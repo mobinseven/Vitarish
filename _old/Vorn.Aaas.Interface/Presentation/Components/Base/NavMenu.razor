@@ -1,0 +1,28 @@
+﻿@inject IStringLocalizer<Strings> Localizer
+@using Duende.IdentityModel
+@using Vorn.Aaas.Interface.Infrastructure.Localization
+
+<MudNavMenu>
+    @* <MudNavLink Href="" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Home">@Localizer["Home"]</MudNavLink> *@
+    <AuthorizeView>
+        <Authorized>
+            <AuthorizeView Context="admin" Policy="@AaasConstants.Admin">
+                <MudNavGroup Title="@Localizer["Admin"]" Expanded="true">
+                    <MudNavLink Href="Admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.ManageAccounts">@Localizer["Admin"]</MudNavLink>
+                    <MudNavLink Href="Admin/Users" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.SupervisedUserCircle">@Localizer["Users"]</MudNavLink>
+                    <MudNavLink Href="Admin/AuthenticationClients" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Hardware">@Localizer["AuthenticationClients"]</MudNavLink>
+                    <MudNavLink Href="Admin/ApiClients" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Api">@Localizer["ApiClients"]</MudNavLink>
+                </MudNavGroup>
+            </AuthorizeView>
+            <MudNavGroup Title="@($"{Localizer["Account"]}: {context.User.Claims.FirstOrDefault(c=>c.Type == JwtClaimTypes.GivenName)?.Value ?? context.User.Identity?.Name}")" Expanded="true">
+                <MudNavLink Href="Account/Manage" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Person">@Localizer["Profile"]</MudNavLink>
+                <MudNavLink Href="Account/Signout" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Logout">@Localizer["Logout"]</MudNavLink>
+            </MudNavGroup>
+        </Authorized>
+        <NotAuthorized>
+            <MudNavGroup Title="@Localizer["Account"]" Expanded="true">
+                <MudNavLink Href="Account/Login" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Password">@Localizer["Login"]</MudNavLink>
+            </MudNavGroup>
+        </NotAuthorized>
+    </AuthorizeView>
+</MudNavMenu>

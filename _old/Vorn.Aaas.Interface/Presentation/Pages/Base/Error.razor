@@ -1,0 +1,8 @@
+﻿@page "/Error"
+@page "/Home/Error"
+@using System.Diagnostics
+@inject ILogger<Error> logger
+<MudAlert Severity="Severity.Error">
+    <h1>Error.</h1>
+    <h2>An error occurred while processing your request.</h2>
+</MudAlert>

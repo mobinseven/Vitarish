@@ -1,0 +1,60 @@
+<Project>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<!-- One version for all projects -->
+		<Authors>Vorn</Authors>
+		<Company>Vorn</Company>
+		<!-- Default the Product to the project name -->
+		<Product Condition="'$(Product)'==''">$(MSBuildProjectName)</Product>
+
+		<GitHubOrg>VORNIR</GitHubOrg>
+		<RepositoryUrl Condition="'$(RepositoryUrl)'==''">
+			https://github.com/$(GitHubOrg)/$(MSBuildProjectName)
+		</RepositoryUrl>
+
+		<!-- Nice to include for NuGet metadata -->
+		<RepositoryType>git</RepositoryType>
+		<MinVerTagPrefix>v</MinVerTagPrefix>
+		<!-- Optional: default prerelease channel when not at a tag -->
+		<MinVerDefaultPreReleaseIdentifiers>preview.0</MinVerDefaultPreReleaseIdentifiers>
+		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseExpression>MIT</PackageLicenseExpression>
+
+		<!-- CI niceties: deterministic + better SourceLink paths -->
+		<ContinuousIntegrationBuild Condition="'$(CI)'=='true'">true</ContinuousIntegrationBuild>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MinVer" Version="6.0.0" PrivateAssets="all" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="README.md" Pack="true" PackagePath="" />
+	</ItemGroup>
+
+	<PropertyGroup>
+		<!-- Absolute path where Pack will drop .nupkg (per configuration) -->
+		<PackageOutputPath>$(MSBuildProjectDirectory)\obj\$(Configuration)\Pack\</PackageOutputPath>
+	</PropertyGroup>
+
+	<PropertyGroup>
+		<IsPackable>true</IsPackable>
+	</PropertyGroup>
+
+	<Target Name="PushAfterPack"
+			AfterTargets="Pack"
+			Condition="'$(Configuration)'=='Release' and '$(BuildingInsideVisualStudio)'=='true'">
+		<ItemGroup>
+			<_Pkg Include="$(PackageOutputPath)*.nupkg" />
+		</ItemGroup>
+
+		<Message Text="Pushing: %(_Pkg.Identity)" Importance="High" />
+		<Exec Command='dotnet nuget push "%(_Pkg.Identity)" -s https://api.nuget.org/v3/index.json --skip-duplicate' />
+	</Target>
+
+</Project>

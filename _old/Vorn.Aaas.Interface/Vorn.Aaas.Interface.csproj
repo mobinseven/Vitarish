@@ -1,0 +1,35 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="MudBlazor" Version="8.*" />
+		<PackageReference Include="Duende.IdentityServer" Version="7.*" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Vorn.Aaas.ApiClients\Vorn.Aaas.ApiClients.csproj" />
+		<ProjectReference Include="..\Vorn.Aaas.AuthenticationClients\Vorn.Aaas.AuthenticationClients.csproj" />
+		<ProjectReference Include="..\Vorn.Aaas.Users\Vorn.Aaas.Users.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Vorn.Caas.Client" Version="8.*" />
+		<PackageReference Include="Vorn.Aaas.Client" Version="8.*" />
+	</ItemGroup>
+
+	<!--<ItemGroup>
+		<ProjectReference Include="..\Vorn.Aaas.Client\Vorn.Aaas.Client.csproj" />
+		<ProjectReference Include="..\..\Vorn.Caas\Vorn.Caas.Client\Vorn.Caas.Client.csproj" />
+	</ItemGroup>-->
+
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+
+</Project>

@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<PackageId>Vorn.Caas.Client</PackageId>
+		<Title>Vorn.Caas.Client</Title>
+		<Description>
+			This library is designed as a client for Vorn Caas.
+		</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Vorn.Aaas\Vorn.Aaas.Client.Api\Vorn.Aaas.Client.Api.csproj" PrivateAssets="none" />
+	</ItemGroup>
+	<PropertyGroup>
+		<IncludeProjectReferencesDuringPacking>false</IncludeProjectReferencesDuringPacking>
+	</PropertyGroup>
+
+
+</Project>

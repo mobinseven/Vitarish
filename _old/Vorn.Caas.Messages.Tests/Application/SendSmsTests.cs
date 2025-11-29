@@ -1,0 +1,114 @@
+namespace Vorn.Caas.Messages.Tests.Application;
+
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using Vorn.Caas.Messages.Application;
+using Vorn.Caas.Messages.Domain.Interfaces;
+using Vorn.Caas.Messages.Domain.Models;
+using Xunit;
+
+public sealed class SendSmsTests
+{
+    [Fact]
+    public async Task ExecuteAsync_ReturnsResultFromService()
+    {
+        SmsSendResult expected = new(
+            "42",
+            "+10000000000",
+            1200m,
+            Guid.NewGuid(),
+            SubmittedAt: null,
+            RelatedMessageIds: new[] { "42" },
+            Metadata: null);
+        FakeMessagesService service = new()
+        {
+            SendSmsDelegate = (_, _) => Task.FromResult(expected)
+        };
+        Message message = new() { Recipient = "+10000000000", Body = "hello" };
+
+        SmsSendResult result = await SendSms.ExecuteAsync(service, message);
+
+        Assert.Equal(expected, result);
+        Assert.Same(message, service.LastSmsMessage);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_PassesCancellationToken()
+    {
+        using CancellationTokenSource cts = new();
+        CancellationToken observed = default;
+        FakeMessagesService service = new()
+        {
+            SendSmsDelegate = (_, token) =>
+            {
+                observed = token;
+                return Task.FromResult(new SmsSendResult(
+                    "1",
+                    "+10000000000",
+                    0m,
+                    Guid.Empty,
+                    SubmittedAt: null,
+                    RelatedMessageIds: new[] { "1" },
+                    Metadata: null));
+            }
+        };
+        Message message = new() { Recipient = "+10000000000", Body = "hello" };
+
+        await SendSms.ExecuteAsync(service, message, cts.Token);
+
+        Assert.Equal(cts.Token, observed);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_CancelledTokenThrows()
+    {
+        FakeMessagesService service = new();
+        Message message = new() { Recipient = "+10000000000", Body = "hello" };
+        using CancellationTokenSource cts = new();
+        cts.Cancel();
+
+        await Assert.ThrowsAsync<OperationCanceledException>(() => SendSms.ExecuteAsync(service, message, cts.Token));
+    }
+
+    private sealed class FakeMessagesService : IMessagesService
+    {
+        public Func<Message, CancellationToken, Task<SmsSendResult>>? SendSmsDelegate { get; set; }
+
+        public Message? LastSmsMessage { get; private set; }
+
+        public Task SendEmail(Message message) => Task.CompletedTask;
+
+        public Task<SmsSendResult> SendSms(Message message, CancellationToken cancellationToken = default)
+        {
+            LastSmsMessage = message;
+            if (SendSmsDelegate is not null)
+            {
+                return SendSmsDelegate(message, cancellationToken);
+            }
+
+            return Task.FromResult(new SmsSendResult(
+                "0",
+                message.Recipient,
+                0m,
+                Guid.Empty,
+                SubmittedAt: null,
+                RelatedMessageIds: Array.Empty<string>(),
+                Metadata: null));
+        }
+
+        public Task SendSmsCode(Message message, CancellationToken cancellationToken = default) => Task.CompletedTask;
+
+        public Task<SmsDeliveryState> GetSmsDeliveryStateAsync(long messageId, CancellationToken cancellationToken = default) =>
+            Task.FromResult(new SmsDeliveryState(
+                messageId.ToString(),
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null,
+                null));
+    }
+}

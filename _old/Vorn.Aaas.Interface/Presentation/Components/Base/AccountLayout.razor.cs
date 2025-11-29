@@ -1,0 +1,16 @@
+﻿
+namespace Vorn.Aaas.Interface.Presentation.Components.Base;
+
+public partial class AccountLayout : LayoutComponentBase
+{
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
+    protected override void OnParametersSet()
+    {
+        if(HttpContext is null)
+        {
+            NavigationManager.Refresh(forceReload: true);
+        }
+    }
+
+}

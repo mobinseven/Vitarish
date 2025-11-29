@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="OpenAI" Version="2.4.0" />
+		<PackageReference Include="Vorn.Dashboard.Client" Version="2.1.0" />
+		<PackageReference Include="Vorn.Aaas.Client.Api" Version="8.*" />
+	</ItemGroup>
+	<ItemGroup>
+		<!--<ProjectReference Include="..\..\Vorn.Aaas\Vorn.Aaas.Client.Api\Vorn.Aaas.Client.Api.csproj" />-->
+	</ItemGroup>
+</Project>

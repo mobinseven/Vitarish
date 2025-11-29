@@ -1,0 +1,27 @@
+@if(Roles?.Any() == true)
+{
+    <MudTable Items="Roles" Dense="true" Elevation="0" Bordered="true">
+        <HeaderContent>
+            <MudTh>@Localizer["Role"]</MudTh>
+            <MudTh>@Localizer["Read"]</MudTh>
+            <MudTh>@Localizer["Write"]</MudTh>
+        </HeaderContent>
+        <RowTemplate Context="role">
+            <MudTd>@role</MudTd>
+            <MudTd>
+                <MudCheckBox T="bool"
+                             Value="@readRoles.Contains(role)"
+                             ValueChanged="@(async (bool v) => await ToggleRead(role, v))" />
+            </MudTd>
+            <MudTd>
+                <MudCheckBox T="bool"
+                             Value="@writeRoles.Contains(role)"
+                             ValueChanged="@(async (bool v) => await ToggleWrite(role, v))" />
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+else
+{
+    <MudText Typo="Typo.caption">@Localizer["NoRoles"]</MudText>
+}

@@ -1,0 +1,39 @@
+@page "/Admin/Users"
+@inherits AdminBase
+
+<MudDataGrid T="User"
+             Items="Users"
+             RowClick="RowClicked"
+             Elevation="0">
+    <Columns>
+        <PropertyColumn Property="u => u.UserName" Title="@Localizer["UserName"]" />
+        <PropertyColumn Property="u => u.FirstName" Title="@Localizer["FirstName"]" />
+        <PropertyColumn Property="u => u.LastName" Title="@Localizer["LastName"]" />
+        <PropertyColumn Property="u => u.PhoneNumber" Title="@Localizer["PhoneNumber"]" />
+        <TemplateColumn>
+            <CellTemplate>
+                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default">
+                    <MudMenuItem OnClick="() => Remove(context.Item)">@Localizer["Delete"]</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => NavigationManager.NavigateTo("/Admin/Users/" + context.Item.Id))">@Localizer["View"]</MudMenuItem>
+                </MudMenu>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
+
+<MudDivider Class="my-3" />
+
+<MudStack Row>
+    <MudTextField Variant="Variant.Outlined" @bind-Value=editUser.FirstName Label="@Localizer["FirstName"]" />
+    <MudTextField Variant="Variant.Outlined" @bind-Value=editUser.LastName Label="@Localizer["LastName"]" />
+    <MudTextField Variant="Variant.Outlined" @bind-Value=editUser.PhoneNumber Label="@Localizer["PhoneNumber"]" />
+    <MudTextField Variant="Variant.Outlined" @bind-Value=password Label="@Localizer["Password"]" Style="direction:ltr" />
+    <MudFab StartIcon="@(editingUser is null ? Icons.Material.Filled.Add : Icons.Material.Filled.Save)"
+            Size="Size.Small"
+            OnClick="Save"
+            DropShadow="false" />
+    @if(editingUser is not null)
+    {
+        <MudFab StartIcon="@Icons.Material.Filled.Cancel" Size="Size.Small" Color="Color.Default" OnClick="CancelEdit" DropShadow="false" />
+    }
+</MudStack>

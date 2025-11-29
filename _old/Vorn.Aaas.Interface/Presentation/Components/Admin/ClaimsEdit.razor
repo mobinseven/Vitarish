@@ -1,0 +1,36 @@
+﻿@if (UserClaims is not null)
+{
+    <MudTable Items="@UserClaims"
+              Elevation="0"
+              Hover="true"
+              Striped=true
+              MultiSelection="true" @bind-SelectedItems="selectedClaims"
+              Bordered=true>
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">@Localizer["Claims"]</MudText>
+            <MudSpacer />
+            <MudFab Size="Size.Small" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Add" OnClick="Add" />
+            <MudFab Size="Size.Small" Color="Color.Error" StartIcon="@Icons.Material.Filled.Delete" OnClick="Delete" Disabled=@(!selectedClaims.Any()) />
+        </ToolBarContent>
+        <HeaderContent>
+            <MudTh>@Localizer["Type"]</MudTh>
+            <MudTh>@Localizer["Value"]</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd DataLabel="@Localizer["Type"]">@context.Type</MudTd>
+            <MudTd DataLabel="@Localizer["Value"]">@context.Value</MudTd>
+        </RowTemplate>
+        <RowEditingTemplate>
+            <MudTd DataLabel="@Localizer["Type"]">
+                <MudTextField @bind-Value="@context.Type" Required />
+            </MudTd>
+            <MudTd DataLabel="@Localizer["Value"]">
+                <MudTextField @bind-Value="@context.Value" Required />
+            </MudTd>
+        </RowEditingTemplate>
+    </MudTable>
+}
+else
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}

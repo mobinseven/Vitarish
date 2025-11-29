@@ -1,0 +1,32 @@
+﻿@page "/Admin/Users/{UserId}"
+@inherits AdminBase
+@if(this.User is not null)
+{
+    <MudPaper Square="true" Class="my-3 pa-3" Elevation="0">
+        <MudTextField Label="@Localizer["FirstName"]"
+                      Variant="Variant.Outlined"
+                      @bind-Value="this.User.FirstName" For="@(() => this.User.FirstName)" />
+        <MudTextField Label="@Localizer["LastName"]"
+                      Variant="Variant.Outlined"
+                      @bind-Value="this.User.LastName" For="@(() => this.User.LastName)" />
+        <MudTextField Label="@Localizer["Phone"]" Class="mt-3"
+                      Variant="Variant.Outlined"
+                      @bind-Value="this.User.PhoneNumber" For="@(() => this.User.PhoneNumber)" />
+        <MudTextField Label="@Localizer["Password"]" Class="mt-3" Style="direction: ltr"
+                      Variant="Variant.Outlined"
+                      @bind-Value="password" For="@(() => password)" />
+        <MudDivider Class="my-3" />
+        <AccessClaimsMatrix @bind-AccessClaims=UserAccessClaims />
+        @* <AccessClaimsEdit @bind-AccessClaims=UserAccessClaims /> *@
+        @* <ClaimsEdit @bind-UserClaims=UserOtherClaims /> *@
+        <MudDivider Class="my-3" />
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+            <MudButton StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" DropShadow=false OnClick="Save" Variant="Variant.Filled">@Localizer["Save"]</MudButton>
+            <MudButton StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="Delete">@Localizer["Delete"]</MudButton>
+        </MudStack>
+    </MudPaper>
+}
+else
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}

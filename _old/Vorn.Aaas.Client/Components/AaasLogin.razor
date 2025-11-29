@@ -1,0 +1,5 @@
+﻿<form action="authentication/login" method="get" style="width: inherit;">
+    <AntiforgeryToken />
+    <input type="hidden" name="ReturnUrl" value="@(ReturnUrl is null ? NavigationManager.Uri : ReturnUrl)" />
+    @SubmitButton
+</form>

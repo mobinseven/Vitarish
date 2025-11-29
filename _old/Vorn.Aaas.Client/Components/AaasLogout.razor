@@ -1,0 +1,5 @@
+﻿<form action="authentication/logout" method="post" style="width: inherit;">
+    <AntiforgeryToken />
+    <input type="hidden" name="ReturnUrl" value="@currentUrl" />
+    @SubmitButton(authState)
+</form>

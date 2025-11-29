@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+        <PropertyGroup>
+                <TargetFramework>net8.0</TargetFramework>
+                <Nullable>enable</Nullable>
+                <ImplicitUsings>enable</ImplicitUsings>
+                <PublishReadyToRun>true</PublishReadyToRun>
+        </PropertyGroup>
+
+        <ItemGroup>
+                <PackageReference Include="Duende.IdentityServer.AspNetIdentity" Version="7.*" />
+                <PackageReference Include="Duende.IdentityServer.EntityFramework" Version="7.*" />
+                <PackageReference Include="FileBaseContext" Version="4.0.1" />
+                <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.*">
+                        <PrivateAssets>all</PrivateAssets>
+                        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+                        <TreatAsUsed>true</TreatAsUsed>
+                </PackageReference>
+                <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.*" />
+                <PackageReference Include="Vorn.Dashboard.Client" Version="2.1.0" />
+        </ItemGroup>
+
+        <ItemGroup>
+                <ProjectReference Include="..\Vorn.Aaas.Interface\Vorn.Aaas.Interface.csproj" />
+                <ProjectReference Include="..\Vorn.Aaas.RequestIdentities\Vorn.Aaas.RequestIdentities.csproj" />
+        </ItemGroup>
+
+</Project>

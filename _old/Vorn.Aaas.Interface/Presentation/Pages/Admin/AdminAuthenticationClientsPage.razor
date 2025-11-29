@@ -1,0 +1,31 @@
+@page "/Admin/AuthenticationClients"
+@inherits AdminBase
+
+<MudDataGrid T="AuthenticationClient" Items="Clients" RowClick="RowClicked" Elevation="0">
+    <Columns>
+        <PropertyColumn Property="x => x.Id" />
+        <PropertyColumn Property="x => x.Url" />
+        <PropertyColumn Property="x => x.Title" />
+        <PropertyColumn Property="x => x.Description" />
+        <PropertyColumn Property="x => x.LogoUrl" />
+        <PropertyColumn Property="x => x.AutoAccess" />
+        <TemplateColumn>
+            <CellTemplate>
+                <MudMenu Icon="@Icons.Material.Filled.MoreVert" Color="Color.Default">
+                    <MudMenuItem OnClick="() => Remove(context.Item)">@Localizer["Delete"]</MudMenuItem>
+                    <MudMenuItem OnClick="@(() => NavigationManager.NavigateTo($"/Admin/AuthenticationClients/{context.Item.Id}"))">@Localizer["View"]</MudMenuItem>
+                </MudMenu>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
+<MudDivider Class="my-3" />
+<MudStack Row>
+    <MudTextField @bind-Value=newClientId Label="@Localizer["Id"]" />
+    <MudTextField @bind-Value=newClientUrl Label="@Localizer["Url"]" />
+    <MudTextField @bind-Value=newClientTitle Label="@Localizer["Title"]" />
+    <MudTextField @bind-Value=newClientDescription Label="@Localizer["Description"]" />
+    <MudTextField @bind-Value=newClientLogoUri Label="@Localizer["LogoUrl"]" />
+    <MudCheckBox T="bool" Class="mt-2" @bind-Value=newClientAutoAccess Label="@Localizer["AutoAccess"]" />
+    <MudFab StartIcon="@Icons.Material.Filled.Add" Size="Size.Small" OnClick="Save" DropShadow="false" />
+</MudStack>

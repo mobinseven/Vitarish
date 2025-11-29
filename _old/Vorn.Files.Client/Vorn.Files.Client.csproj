@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+	<PropertyGroup>
+		<PackageId>Vorn.Files.Client</PackageId>
+		<Title>Vorn.Files.Client</Title>
+		<Description>
+			This library is designed as part of web applications which are clients who get file hosting as a service from a Vorn.Files.Host.
+		</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Vorn.Aaas\Vorn.Aaas.Client.Api\Vorn.Aaas.Client.Api.csproj" PrivateAssets="none" />
+		<ProjectReference Include="..\..\Vorn.Entities\Vorn.Entities.Client\Vorn.Entities.Client.csproj" PrivateAssets="none" />
+	</ItemGroup>
+	<PropertyGroup>
+		<IncludeProjectReferencesDuringPacking>false</IncludeProjectReferencesDuringPacking>
+	</PropertyGroup>
+
+
+
+</Project>

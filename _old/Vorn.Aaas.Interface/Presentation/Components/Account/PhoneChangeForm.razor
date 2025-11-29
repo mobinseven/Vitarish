@@ -1,0 +1,14 @@
+﻿@if (!string.IsNullOrEmpty(error))
+{
+    <MudAlert Severity="Severity.Error">@error</MudAlert>
+}
+@if (PhoneNumber is null)
+{
+    <PhoneVerificationSend OnValidSubmit="@ValidSendCodeSubmit" />
+}
+else if (User is not null && PhoneNumber is not null)
+{
+    <PhoneVerificationVerify PhoneNumber="@PhoneNumber"
+    User="@User"
+    OnValidSubmit="@ValidVerifyCodeSubmit" />
+}

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+	
+	<PropertyGroup>
+		<PackageId>Vorn.Aaas.Client</PackageId>
+		<Title>Vorn.Aaas.Client</Title>
+		<Description>
+			This library is designed as part of web applications which are clients who get authentication as a service from Vorn.Aaas.Server.
+		</Description>
+	</PropertyGroup>
+
+        <ItemGroup>
+                <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.*" />
+                <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="8.*" />
+                <PackageReference Include="Microsoft.AspNetCore.Components.Authorization" Version="8.*" />
+        </ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\Vorn.Aaas.Client.Api\Vorn.Aaas.Client.Api.csproj" PrivateAssets="none"  />
+	</ItemGroup>
+	<PropertyGroup>
+		<IncludeProjectReferencesDuringPacking>false</IncludeProjectReferencesDuringPacking>
+	</PropertyGroup>
+
+
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+</Project>
