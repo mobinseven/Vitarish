@@ -1,6 +1,0 @@
-﻿@page "/Account/Manage"
-
-@inherits IdentityBase
-
-<MudText Typo="Typo.h4" GutterBottom="true" Align="Align.Center">@Localizer["Profile"]</MudText>
-<ProfileEditor @rendermode=InteractiveServer ReturnUrl="@ReturnUrl" Username="@HttpContext?.User.Identity?.Name" />
