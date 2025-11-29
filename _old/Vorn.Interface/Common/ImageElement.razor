@@ -1,0 +1,8 @@
+﻿<picture style="width: 100%">
+    <source src="@Src" type="@Type" />
+    <img src="@Src" style="width: 100%" />
+</picture>
+@code {
+    [Parameter] public string Src { get; set; }
+    [Parameter] public string Type { get; set; }
+}

@@ -1,0 +1,8 @@
+<video style="width: 100%" controls preload="metadata" autoplay loop>
+    <source src="@Src" type="@Type" />
+</video>
+@code {
+    [Inject] protected IJSRuntime Js { get; set; } = default!;
+    [Parameter] public string Src { get; set; }
+    [Parameter] public string Type { get; set; }
+}

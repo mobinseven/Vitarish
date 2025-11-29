@@ -1,0 +1,8 @@
+﻿<MudChip T="string" Size="@Size" Color="@Color" Style="@Style" Class="@Class">@ChildContent</MudChip>
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public Size Size { get; set; } = Size.Large;
+    [Parameter] public Color Color { get; set; } = Color.Default;
+    [Parameter] public string? Style { get; set; } = "white-space: pre-wrap;height:auto;width: auto;overflow-wrap: anywhere;";
+    [Parameter] public string? Class { get; set; } = "py-2";
+}

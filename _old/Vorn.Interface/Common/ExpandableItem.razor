@@ -1,0 +1,81 @@
+﻿@if(!firstRenderDone)
+{
+    @if(LoadingContent is null)
+    {
+        <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="50px" Class="glass rounded" Animation="Animation.Wave" />
+    }
+    else
+    {
+        @LoadingContent
+    }
+}
+else
+{
+    <div @ref=Element id="@($"expandable-{Id}")" style="width: 100%" class="@Class">
+
+        <MudStack Row
+                  AlignItems="AlignItems.Center"
+                  StretchItems="StretchItems.Start"
+                  Style="width: 100%"
+                  Class="pa-1 glass rounded">
+            @if(StartContent is not null)
+            {
+                <div>
+                    @StartContent
+                </div>
+            }
+            @if(TitleContent is null)
+            {
+                <MudButton OnClick="Toggle" FullWidth Size="Size">
+                    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Style="width: 100%;">
+                        @if(!NoIcon)
+                        {
+                            <MudIcon Icon="@(Expanded? OpenIcon : CloseIcon)" />
+                        }
+                        <MudStack Row Justify="Justify.Center" AlignItems="AlignItems.Center" Style="width: 100%">
+                            <div>
+                                @if(!string.IsNullOrWhiteSpace(HighlightString))
+                                {
+                                    <MudText Typo="Typo.h6">
+                                        <MudHighlighter HighlightedText="@HighlightString" Text="@Name" />
+                                    </MudText>
+                                }
+                                else
+                                {
+                                    <MudText Typo="Typo.h6">@Name</MudText>
+                                }
+                            </div>
+                        </MudStack>
+                    </MudStack>
+                    <div>
+                        @InlineContent
+                    </div>
+                </MudButton>
+            }
+            else
+            {
+                @TitleContent(this)
+            }
+            @if(MenuItems is not null && ShowMenu)
+            {
+                <div>
+                    <MudFab Size="Size.Small" DropShadow=false OnClick="() => menuOpen = !menuOpen" StartIcon="@(menuOpen ? "fa-thin fa-xmark" : "fa-thin fa-ellipsis-stroke-vertical")" />
+                </div>
+            }
+        </MudStack>
+        <MudCollapse @bind-Expanded=menuOpen>
+            @if(menuOpen)
+            {
+                <MudPaper Elevation="0" Class="my-1">
+                    @MenuItems
+                </MudPaper>
+            }
+        </MudCollapse>
+        <MudCollapse Expanded=Expanded Style="overflow: hidden;" Class="py-2" OnAnimationEnd="OnAnimationEnd">
+            @if(Expanded)
+            {
+                @ChildContent
+            }
+        </MudCollapse>
+    </div>
+}
