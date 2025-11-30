@@ -96,8 +96,8 @@ public static class AuthenticationClientsWebApplicationExtensions
             })
             .WithName("UpdateAuthenticationClient")
             .Accepts<UpdateAuthenticationClient>("application/json")
-            .Produces<AuthenticationClient>(StatusCodes.Status200OK)
-            .Produces(StatusCodes.Status404NotFound)
+            .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status400BadRequest)
             .WithSummary("Edit an authentication client")
             .WithDescription("Updates the authentication client identified by **id**.");
 

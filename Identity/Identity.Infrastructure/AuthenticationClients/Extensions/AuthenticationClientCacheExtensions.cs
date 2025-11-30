@@ -15,7 +15,7 @@ internal static class AuthenticationClientCacheExtensions
 
     internal static Task SetClientsAsync(IDistributedCache cache, IReadOnlyCollection<AuthenticationClient> clients, CancellationToken ct)
     {
-        AuthenticationClient[] payload = clients as AuthenticationClient[] ?? clients.ToArray();
+        AuthenticationClient[] payload = clients is AuthenticationClient[] array ? array : clients.ToArray();
         return cache.SetAsync(ClientsKey, Serialize(payload), CacheOptions, ct);
     }
 
