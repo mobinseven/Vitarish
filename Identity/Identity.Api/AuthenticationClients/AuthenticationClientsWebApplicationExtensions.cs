@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using System.Linq;
 using Vitarish.Identity.Contracts.AuthenticationClients;
 using Vitarish.Identity.Core.AuthenticationClients.Application.Commands;
 using Vitarish.Identity.Core.AuthenticationClients.Application.Queries;
@@ -42,10 +43,11 @@ public static class AuthenticationClientsWebApplicationExtensions
             async ([FromServices] ISender sender) =>
             {
                 IEnumerable<AuthenticationClient> list = await sender.Send(new GetAuthenticationClients());
-                return Results.Ok(list);
+                IEnumerable<AuthenticationClientResponse> response = list.Select(ToResponse);
+                return Results.Ok(response);
             })
             .WithName("GetAuthenticationClients")
-            .Produces<IEnumerable<AuthenticationClient>>(StatusCodes.Status200OK)
+            .Produces<IEnumerable<AuthenticationClientResponse>>(StatusCodes.Status200OK)
             .WithSummary("List all authentication clients")
             .WithDescription("Returns a collection of all registered authentication clients.");
 
@@ -55,11 +57,11 @@ public static class AuthenticationClientsWebApplicationExtensions
             {
                 AuthenticationClient? result = await sender.Send(new GetAuthenticationClient(id));
                 return result is not null
-                    ? Results.Ok(result)
+                    ? Results.Ok(ToResponse(result))
                     : Results.NotFound();
             })
             .WithName("GetAuthenticationClient")
-            .Produces<AuthenticationClient>(StatusCodes.Status200OK)
+            .Produces<AuthenticationClientResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status404NotFound)
             .WithSummary("Get a single authentication client")
             .WithDescription("Returns the authentication client identified by **id**.");
@@ -79,12 +81,12 @@ public static class AuthenticationClientsWebApplicationExtensions
                 var result = await sender.Send(command);
 
                 return result.IsSuccess
-                    ? Results.Created($"/api/authenticationclients/{result.Value.Id}", result.Value)
+                    ? Results.Created($"/api/authenticationclients/{result.Value.Id}", ToResponse(result.Value))
                     : Results.Conflict(result.Error.Description);
             })
             .WithName("CreateAuthenticationClient")
             .Accepts<CreateAuthenticationClientRequest>("application/json")
-            .Produces<AuthenticationClient>(StatusCodes.Status201Created)
+            .Produces<AuthenticationClientResponse>(StatusCodes.Status201Created)
             .Produces(StatusCodes.Status409Conflict)
             .WithSummary("Create a new authentication client")
             .WithDescription("Creates a new authentication client and returns a **201 Created** response with a `Location` header pointing to the newly created resource.");
@@ -136,4 +138,12 @@ public static class AuthenticationClientsWebApplicationExtensions
             .WithSummary("Remove an authentication client")
             .WithDescription("Deletes the authentication client identified by **id**.");
     }
+
+    private static AuthenticationClientResponse ToResponse(AuthenticationClient client) => new(
+        client.Id,
+        client.Url,
+        client.Title,
+        client.Description,
+        client.LogoUrl,
+        client.AutoAccess);
 }

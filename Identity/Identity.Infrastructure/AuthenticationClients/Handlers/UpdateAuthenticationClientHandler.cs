@@ -21,11 +21,12 @@ internal sealed class UpdateAuthenticationClientHandler(AuthenticationClientDbCo
                 $"Authentication client with ID '{request.Id}' was not found."));
         }
 
-        client.Url = request.Url;
-        client.Title = request.Title;
-        client.Description = request.Description;
-        client.LogoUrl = request.LogoUrl;
-        client.AutoAccess = request.AutoAccess;
+        client.Update(
+            request.Url,
+            request.Title,
+            request.Description,
+            request.LogoUrl,
+            request.AutoAccess);
 
         _ = await db.SaveChangesAsync(cancellationToken);
         await AuthenticationClientCacheExtensions.SetClientAsync(cache, client, cancellationToken);
