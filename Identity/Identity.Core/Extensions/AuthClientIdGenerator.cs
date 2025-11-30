@@ -9,8 +9,13 @@ namespace Vitarish.Identity.Core.Extensions;
 /// </summary>
 public static class AuthClientIdGenerator
 {
-    // RFC 4648 lowercase Base32 alphabet, intentionally omitting padding ('=') for deterministic ID generation.
-    // This is a deliberate deviation from the full RFC 4648 spec, as padding is not required for this use case.
+    // RFC 4648 lowercase Base32 alphabet.
+    // Standard Base32 uses padding ('=') to ensure output length is a multiple of 8 characters.
+    // We intentionally omit padding for these IDs because:
+    // 1. We only need deterministic, collision-resistant identifiers (not round-trip encoding)
+    // 2. We truncate to 32 characters anyway, so padding alignment is irrelevant
+    // 3. Omitting padding produces cleaner URLs and identifiers
+    // Note: These IDs are not intended to be decoded by standard Base32 decoders.
     private const string Alphabet = "abcdefghijklmnopqrstuvwxyz234567";
 
     /// <summary>
@@ -48,6 +53,7 @@ public static class AuthClientIdGenerator
             }
         }
 
+        // Handle remaining bits without padding (intentionally non-standard)
         if (bitsLeft > 0)
         {
             _ = result.Append(Alphabet[(buffer << (5 - bitsLeft)) & 0x1F]);
