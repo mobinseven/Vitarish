@@ -1,28 +1,23 @@
 using Microsoft.AspNetCore.Components;
 using Vitarish.Web.Admins.Client.Models;
 
-namespace Vitarish.Web.Admins.Client.Components.Admin;
+namespace Vitarish.Web.Admins.Client.Components;
 
-public partial class AccessClaimsMatrix : ComponentBase
+public partial class AccessUsersMatrix : ComponentBase
 {
-    [Parameter] public IReadOnlyList<AccessClaimModel>? Claims { get; set; }
+    [Parameter] public IReadOnlyList<AdminUserModel>? Rows { get; set; }
 
     private List<string> roles = [];
 
     protected override void OnParametersSet()
     {
-        UpdateRoles();
-    }
-
-    private void UpdateRoles()
-    {
-        if(Claims is null)
+        if(Rows is null)
         {
             roles = [];
             return;
         }
 
-        roles = Claims
+        roles = Rows
             .SelectMany(r => r.Access.Readers.Concat(r.Access.Writers))
             .Where(r => !string.IsNullOrWhiteSpace(r))
             .Distinct(StringComparer.OrdinalIgnoreCase)
