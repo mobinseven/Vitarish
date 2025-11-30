@@ -8,17 +8,18 @@ public static class ServiceCollectionExtensions
 {
     public static WebApplicationBuilder AddAiClient(this WebApplicationBuilder builder)
     {
-        if (!builder.Services.Any(x => x.ServiceType == typeof(IApiClientService)))
+        if(!builder.Services.Any(x => x.ServiceType == typeof(IApiClientService)))
         {
             throw new Exception("The IApiClientService is required.");
         }
-        builder.Services.AddScoped<IResponseHubClient, ResponseHubClient>();
-        builder.Services.AddScoped<ISpeechHubClient, SpeechHubClient>();
-        builder.Services.AddScoped<IStreamResponder, StreamResponder>();
-        builder.Services.AddScoped<IStreamRewriter, StreamRewriter>();
-        builder.Services.AddScoped<IStreamTranscriber, StreamTranscriber>();
-        builder.Services.AddSignalRClient<AiSpeechHub>();
-        builder.Services.AddSignalRClient<AiResponseHub>();
+        _ = builder.Services.AddScoped<IResponderClient, ResponderClient>();
+        _ = builder.Services.AddScoped<ITranscriberClient, TranscriberClient>();
+        _ = builder.Services.AddScoped<IStreamResponder, StreamResponder>();
+        _ = builder.Services.AddScoped<IStreamRewriter, StreamRewriter>();
+        _ = builder.Services.AddScoped<IStreamTranscriber, StreamTranscriber>();
+        _ = builder.Services.AddScoped<IModelRegistry, ModelRegistry>();
+        _ = builder.Services.AddSignalRClient<TranscriberClientDefinition>();
+        _ = builder.Services.AddSignalRClient<ResponderClientDefinition>();
         return builder;
     }
 }

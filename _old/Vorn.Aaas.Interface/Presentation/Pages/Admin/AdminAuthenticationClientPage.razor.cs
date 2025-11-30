@@ -2,12 +2,13 @@ namespace Vorn.Aaas.Interface.Presentation.Pages.Admin;
 
 using System.Security.Claims;
 using Vorn.Aaas.AuthenticationClients.Domain.Entities;
-using Vorn.Aaas.AuthenticationClients.Presentation.Services;
+using Vorn.Aaas.AuthenticationClients.Presentation.Abstractions;
 using Vorn.Aaas.Users.Domain.Entities;
 using Vorn.Aaas.Users.Application.Commands;
-using Vorn.Aaas.Users.ReadModel.Dtos;
 using Vorn.Aaas.Interface.Presentation.Components.Admin;
 using Vorn.Aaas.Client.Extensions;
+using Vorn.Aaas.Users.Presentation.Contracts;
+using Vorn.Aaas.AuthenticationClients.Presentation.Contracts;
 
 public partial class AdminAuthenticationClientPage
 {

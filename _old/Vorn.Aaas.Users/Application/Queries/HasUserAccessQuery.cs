@@ -11,8 +11,8 @@ public class HasUserAccessQueryValidator : AbstractValidator<HasUserAccessQuery>
 {
     public HasUserAccessQueryValidator()
     {
-        RuleFor(q => q.UserId).NotEmpty();
-        RuleFor(q => q.ClientId).NotEmpty();
+        _ = RuleFor(q => q.UserId).NotEmpty();
+        _ = RuleFor(q => q.ClientId).NotEmpty();
     }
 }
 
@@ -22,7 +22,7 @@ public class HasUserAccessQueryHandler(UsersDbContext db) : IRequestHandler<HasU
         HasUserAccessQuery request,
         CancellationToken cancellationToken)
     {
-        var prefix = request.ClientId + ":";          // compile‑time concatenation
+        string prefix = request.ClientId + ":";          // compile‑time concatenation
         return await db.UserClaims
             .AsNoTracking()                           // read‑only, faster
             .Where(c =>

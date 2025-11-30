@@ -1,3 +1,5 @@
+using Vorn.Aaas.Users.Presentation.Contracts;
+
 namespace Vorn.Aaas.Interface.Presentation.Components.Admin;
 
 public partial class ClaimsEdit : CommonBase

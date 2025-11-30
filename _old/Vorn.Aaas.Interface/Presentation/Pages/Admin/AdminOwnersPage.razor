@@ -1,0 +1,38 @@
+@page "/Admin/Owners"
+@using Vorn.Aaas.Parties.Domain.Entities
+@using Vorn.Aaas.Parties.Presentation.Abstractions
+@inject IPartiesService PartiesService
+@inherits AdminBase
+
+<MudDataGrid T="Owner" Items="Owners" RowClick="RowClicked" Elevation="0">
+    <Columns>
+        <PropertyColumn Property="x => x.Id" />
+        <PropertyColumn Property="x => x.Name" />
+        <PropertyColumn Property="x => x.Description" />
+        <PropertyColumn Property="x => x.CreatedAt" Format="yyyy-MM-dd HH:mm" />
+        <PropertyColumn Property="x => x.CreatedBy" />
+        <TemplateColumn>
+            <CellTemplate>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                               Color="Color.Error"
+                               OnClick="() => RemoveOwner(context.Item)" />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
+<MudDivider Class="my-3" />
+<MudStack Row>
+    <MudTextField @bind-Value=newOwnerName Label="@Localizer["Name"]" Required />
+    <MudTextField @bind-Value=newOwnerLogoUrl Label="@Localizer["LogoUrl"]" />
+    <MudTextField @bind-Value=newOwnerDescription Label="@Localizer["Description"]" />
+    <MudFab StartIcon="@(editingOwner is null ? Icons.Material.Filled.Add : Icons.Material.Filled.Save)"
+            Size="Size.Small" OnClick="SaveOwner" DropShadow="false" />
+    @if (editingOwner is not null)
+    {
+        <MudFab StartIcon="@Icons.Material.Filled.Cancel"
+                Size="Size.Small"
+                OnClick="CancelEditOwner"
+                Color="Color.Default"
+                DropShadow="false" />
+    }
+</MudStack>

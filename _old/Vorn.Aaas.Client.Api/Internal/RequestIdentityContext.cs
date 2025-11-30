@@ -1,12 +1,15 @@
 using Microsoft.Extensions.Logging;
 using Vorn.Aaas.Client.Api.Abstractions;
+using Vorn.Aaas.Client.Api.Contracts;
+using Vorn.Aaas.Client.Api.Models;
 
 namespace Vorn.Aaas.Client.Api.Internal;
 
 internal sealed class RequestIdentityContext(
-    IRequestIdentityForwarder forwarder,
-    ILogger<RequestIdentityContext> logger) : IRequestIdentityContext, IRequestIdentityContextWriter
+    IRequestIdentityForwarder forwarder) : IRequestIdentityContext, IRequestIdentityContextWriter
 {
+    private bool _isForwarding;
+
     public string Authority { get; private set; } = string.Empty;
     public string ClientId { get; private set; } = string.Empty;
     public string OwnerId { get; private set; } = string.Empty;
@@ -17,7 +20,7 @@ internal sealed class RequestIdentityContext(
     public string? RequestId { get; private set; }
     public string? AdditionalInfo { get; private set; }
 
-    public void Write(RequestIdentityContextCommand command)
+    public async Task Write(RequestIdentityContextCommand command)
     {
         Authority = command.Authority;
         ClientId = command.ClientId;
@@ -29,21 +32,16 @@ internal sealed class RequestIdentityContext(
         RequestId = command.RequestId;
         AdditionalInfo = command.AdditionalInfo;
 
-        Forward();
+        if (!_isForwarding)
+        {
+            await Forward();
+        }
     }
 
-    private void Forward()
+    private async Task Forward()
     {
-        if (string.IsNullOrWhiteSpace(Authority) ||
-            string.IsNullOrWhiteSpace(ClientId) ||
-            string.IsNullOrWhiteSpace(OwnerId) ||
-            string.IsNullOrWhiteSpace(RequestId))
-        {
-            return;
-        }
-
         string currentRequestId = RequestId!;
-        RequestIdentityEnvelope envelope = new(
+        RequestIdentityDto envelope = new(
             currentRequestId,
             Authority,
             ClientId,
@@ -55,13 +53,8 @@ internal sealed class RequestIdentityContext(
             AdditionalInfo,
             DateTimeOffset.UtcNow);
 
-        Task task = forwarder.ForwardAsync(envelope).AsTask();
-        _ = task.ContinueWith(static (completed, state) =>
-        {
-            if (completed.IsFaulted && state is (ILogger<RequestIdentityContext> log, string body)) // state object contains resulting body and it might be the whole html page of error page
-            {
-                log.LogWarning(completed.Exception, "Failed forwarding request identity");
-            }
-        }, (logger, currentRequestId), TaskScheduler.Default);
+        _isForwarding = true;
+        await forwarder.ForwardAsync(envelope, this);
+        _isForwarding = false;
     }
 }

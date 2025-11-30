@@ -1,4 +1,3 @@
-namespace Vorn.Aaas.Users.Presentation.Api;
 
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
@@ -6,15 +5,11 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Vorn.Aaas.Users;
 using Vorn.Aaas.Users.Application.Queries;
-using Vorn.Aaas.Users.Presentation.Service;
-using Vorn.Aaas.Users.ReadModel.Dtos;
+using Vorn.Aaas.Users.Presentation.Abstractions;
+using Vorn.Aaas.Users.Presentation.Contracts;
+
+namespace Vorn.Aaas.Users.Presentation.Api;
 
 public static class PersonalAccessTokenApiExtensions
 {
@@ -32,7 +27,7 @@ public static class PersonalAccessTokenApiExtensions
 
         configureFilters?.Invoke(group);
 
-        group.MapPost(string.Empty, async (
+        _ = group.MapPost(string.Empty, async (
             [FromBody] CreatePersonalAccessTokenRequest request,
             [FromServices] IPersonalAccessTokenGenerator generator,
             [FromServices] IMediator mediator,
@@ -58,7 +53,7 @@ public static class PersonalAccessTokenApiExtensions
                 if (string.Equals(claim.Type, AaasConstants.AccessClaim, StringComparison.Ordinal) &&
                     !string.IsNullOrWhiteSpace(claim.Value))
                 {
-                    scopeSet.Add(claim.Value);
+                    _ = scopeSet.Add(claim.Value);
                 }
             }
 

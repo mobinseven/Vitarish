@@ -1,8 +1,9 @@
 namespace Vorn.Aaas.Interface.Presentation.Components.Admin;
+
 using Microsoft.AspNetCore.Components;
-using Vorn.Aaas.Client.Models;
 using Vorn.Aaas.Client.Extensions;
 using Vorn.Aaas.Users.Domain.Entities;
+using Vorn.Aaas.Client.Contracts;
 
 public partial class AccessUsersMatrix : CommonBase
 {

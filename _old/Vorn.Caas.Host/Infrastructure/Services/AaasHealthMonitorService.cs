@@ -6,9 +6,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Vorn.Caas.Messages.Domain.Interfaces;
-using Vorn.Caas.Messages.Domain.Models;
-using Vorn.Caas.Messages.Domain.Options;
+using Vorn.Communications.Abstractions;
+using Vorn.Communications.Models;
+using Vorn.Communications.Options;
 
 internal sealed class AaasHealthMonitorService(
     IMessagesService messagesService,

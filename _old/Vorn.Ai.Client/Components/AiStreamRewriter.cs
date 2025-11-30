@@ -1,10 +1,8 @@
-namespace Vorn.Ai.Client.Components;
 
 using Microsoft.AspNetCore.Components;
-using System;
-using System.Threading.Tasks;
 using Vorn.Ai.Client.Abstractions;
 
+namespace Vorn.Ai.Client.Components;
 
 public partial class AiStreamRewriter : ComponentBase, IDisposable
 {
@@ -30,11 +28,14 @@ public partial class AiStreamRewriter : ComponentBase, IDisposable
         StreamRewriter.RewriteErrored += OnServiceRewriteErrored;
     }
 
-    protected override void OnParametersSet() => Value ??= string.Empty;
+    protected override void OnParametersSet()
+    {
+        Value ??= string.Empty;
+    }
 
     public async Task StartRewriteAsync(string? prompt = null)
     {
-        if (Rewriting)
+        if(Rewriting)
         {
             CancelRewrite();
         }
@@ -43,35 +44,40 @@ public partial class AiStreamRewriter : ComponentBase, IDisposable
         await StreamRewriter.StartRewriteAsync(effectivePrompt);
     }
 
-    public void CancelRewrite() => StreamRewriter.CancelRewrite();
+    public void CancelRewrite()
+    {
+        StreamRewriter.CancelRewrite();
+    }
 
-    private async void OnServiceRewriteStarted(object? sender, EventArgs args) =>
+    private async void OnServiceRewriteStarted(object? sender, EventArgs args)
+    {
+        await InvokeAsync(OnRewriteStarted.InvokeAsync);
+    }
+
+    private async void OnServiceValueChanged(object? sender, string newValue)
+    {
         await InvokeAsync(async () =>
         {
-            await OnRewriteStarted.InvokeAsync();
-        });
-
-    private async void OnServiceValueChanged(object? sender, string newValue) =>
-        await InvokeAsync(async () =>
-        {
-            if (!string.Equals(CurrentValue, newValue, StringComparison.Ordinal))
+            if(!string.Equals(CurrentValue, newValue, StringComparison.Ordinal))
             {
                 Value = newValue;
                 await ValueChanged.InvokeAsync(newValue);
             }
         });
+    }
 
-    private async void OnServiceRewriteCompleted(object? sender, EventArgs args) =>
-        await InvokeAsync(async () =>
-        {
-            await OnRewriteCompleted.InvokeAsync();
-        });
+    private async void OnServiceRewriteCompleted(object? sender, EventArgs args)
+    {
+        await InvokeAsync(OnRewriteCompleted.InvokeAsync);
+    }
 
-    private async void OnServiceRewriteErrored(object? sender, Exception exception) =>
+    private async void OnServiceRewriteErrored(object? sender, Exception exception)
+    {
         await InvokeAsync(async () =>
         {
             await OnRewriteError.InvokeAsync(exception);
         });
+    }
 
     public void Dispose()
     {
@@ -87,7 +93,7 @@ public partial class AiStreamRewriter : ComponentBase, IDisposable
     {
         string sanitized = nextValue ?? string.Empty;
 
-        if (string.Equals(CurrentValue, sanitized, StringComparison.Ordinal))
+        if(string.Equals(CurrentValue, sanitized, StringComparison.Ordinal))
         {
             return;
         }

@@ -1,9 +1,8 @@
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using FluentValidation;
-using Vorn.Aaas.Users.ReadModel.Dtos;
-using Vorn.Aaas.Users.Domain.Entities;
 using Vorn.Aaas.Users.Infrastructure.Data;
+using Vorn.Aaas.Users.Presentation.Contracts;
 
 namespace Vorn.Aaas.Users.Application.Queries;
 
@@ -13,7 +12,7 @@ public class GetClientUsersQueryValidator : AbstractValidator<GetClientUsersQuer
 {
     public GetClientUsersQueryValidator()
     {
-        RuleFor(q => q.ClientId).NotEmpty();
+        _ = RuleFor(q => q.ClientId).NotEmpty();
     }
 }
 

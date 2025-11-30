@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR.Client;
 using Vorn.Aaas.Client.Api.Abstractions;
+using Vorn.Aaas.Client.Api.Contracts;
 using Vorn.Aaas.Client.Api.Options;
 
 namespace Vorn.Files.Client.Internal.Services;

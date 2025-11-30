@@ -1,9 +1,9 @@
 
 using global::Vorn.Aaas.Client.Api.Abstractions;
+using global::Vorn.Caas.Client.Abstractions.Models;
 using global::Vorn.Caas.Client.Internal.Models;
 using System.Net.Http.Json;
 using Vorn.Caas.Client.Abstractions;
-using Vorn.Caas.Client.Models;
 
 namespace Vorn.Caas.Client.Internal;
 

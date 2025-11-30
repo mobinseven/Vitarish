@@ -5,9 +5,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Vorn.Aaas.Users.Application.Commands;
-using Vorn.Aaas.Users.Application.Commands.UpdateUserProfile;
 using Vorn.Aaas.Users.Application.Queries;
-using Vorn.Aaas.Users.ReadModel.Dtos;
+using Vorn.Aaas.Users.Presentation.Contracts;
 
 namespace Vorn.Aaas.Users.Presentation.Api
 {
@@ -26,7 +25,7 @@ namespace Vorn.Aaas.Users.Presentation.Api
             this WebApplication app,
             Action<RouteGroupBuilder>? configureFilters = null)
         {
-            var group = app
+            RouteGroupBuilder group = app
                 .MapGroup("/api/users")
                 .WithTags("Users")
                 .RequireAuthorization(new AuthorizeAttribute
@@ -37,28 +36,11 @@ namespace Vorn.Aaas.Users.Presentation.Api
             // Allow consumer to add group-level filters (applies to all endpoints in the group)
             configureFilters?.Invoke(group);
 
-            group.MapGet("/profile/{userId}",
-                async (string userId, [FromServices] IMediator mediator) =>
-                {
-                    var result = await mediator.Send(new GetUserProfileQuery(userId));
-                    return result is not null
-                    ? Results.Ok(result)
-                    : Results.NotFound();
-                    ;
-                });
-
-            group.MapPost("/profile/{userId}",
-                async (string userId, [FromBody]Dictionary<string, string> preference,[FromServices] IMediator mediator) =>
-                {
-                    await mediator.Send(new UpdateUserProfileCommand(userId, preference));
-                    return Results.Ok();
-                });
-
             // GET /api/users/clients/{clientId}/{userId}
-            group.MapGet("/clients/{clientId}/{userId}",
+            _ = group.MapGet("/clients/{clientId}/{userId}",
                 async (string clientId, string userId, [FromServices] IMediator mediator) =>
                 {
-                    var result = await mediator.Send(new GetClientUserQuery(clientId, userId));
+                    UserDto? result = await mediator.Send(new GetClientUserQuery(clientId, userId));
                     return result is not null
                         ? Results.Ok(result)
                         : Results.NotFound();
@@ -76,10 +58,10 @@ namespace Vorn.Aaas.Users.Presentation.Api
                 });
 
             // GET /api/users/{userId}/claims
-            group.MapGet("/{userId}/claims",
+            _ = group.MapGet("/{userId}/claims",
                 async (string userId, [FromServices] IMediator mediator) =>
                 {
-                    var claims = await mediator.Send(new GetUserClaimsQuery(userId));
+                    IEnumerable<ClaimDto> claims = await mediator.Send(new GetUserClaimsQuery(userId));
                     return Results.Ok(claims);
                 })
                 .WithName("GetUserClaims")
@@ -93,10 +75,10 @@ namespace Vorn.Aaas.Users.Presentation.Api
                 });
 
             // GET /api/users/{userId}/access/{clientId}
-            group.MapGet("/{userId}/access/{clientId}",
+            _ = group.MapGet("/{userId}/access/{clientId}",
                 async (string userId, string clientId, [FromServices] IMediator mediator) =>
                 {
-                    var claim = await mediator.Send(new GetUserAccessClaimQuery(userId, clientId));
+                    ClaimDto? claim = await mediator.Send(new GetUserAccessClaimQuery(userId, clientId));
                     return claim is not null
                         ? Results.Ok(claim)
                         : Results.NotFound();
@@ -113,7 +95,7 @@ namespace Vorn.Aaas.Users.Presentation.Api
                     return op;
                 });
 
-            group.MapGet("/{userId}/hasaccess/{clientId}",
+            _ = group.MapGet("/{userId}/hasaccess/{clientId}",
                 async (string userId, string clientId, [FromServices] IMediator mediator) =>
                     Results.Ok(await mediator.Send(new HasUserAccessQuery(userId, clientId))))
                  .WithName("HasUserAccess")
@@ -128,10 +110,10 @@ namespace Vorn.Aaas.Users.Presentation.Api
                  });
 
             // GET /api/users/clients/{clientId}
-            group.MapGet("/clients/{clientId}",
+            _ = group.MapGet("/clients/{clientId}",
                 async (string clientId, [FromServices] IMediator mediator) =>
                 {
-                    var users = await mediator.Send(new GetClientUsersQuery(clientId));
+                    IEnumerable<UserDto> users = await mediator.Send(new GetClientUsersQuery(clientId));
                     return Results.Ok(users);
                 })
                 .WithName("GetClientUsers")
@@ -145,7 +127,7 @@ namespace Vorn.Aaas.Users.Presentation.Api
                 });
 
             // POST /api/users/access
-            group.MapPost("/access",
+            _ = group.MapPost("/access",
                 async ([FromBody] SetUserAccessClaimCommand command, [FromServices] IMediator mediator) =>
                 {
                     await mediator.Send(command);
@@ -159,12 +141,15 @@ namespace Vorn.Aaas.Users.Presentation.Api
                     op.Summary = "Grant or update a user's access claim";
                     op.Description = "Creates or updates an access claim for the specified user and client. The full command payload must be sent in the request body.";
                     if (op.RequestBody is not null)
+                    {
                         op.RequestBody.Description = "The command payload containing userId, clientId, and the desired claim value.";
+                    }
+
                     return op;
                 });
 
             // DELETE /api/users/access
-            group.MapDelete("/access",
+            _ = group.MapDelete("/access",
                 async ([FromBody] RemoveUserAccessClaimCommand command, [FromServices] IMediator mediator) =>
                 {
                     await mediator.Send(command);
@@ -178,7 +163,10 @@ namespace Vorn.Aaas.Users.Presentation.Api
                     op.Summary = "Remove a user's access claim";
                     op.Description = "Deletes the access claim for the given user and client. The command payload must be provided in the request body.";
                     if (op.RequestBody is not null)
+                    {
                         op.RequestBody.Description = "The command payload containing userId and clientId to remove the claim for.";
+                    }
+
                     return op;
                 });
         }

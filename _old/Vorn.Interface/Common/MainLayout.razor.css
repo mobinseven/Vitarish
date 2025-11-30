@@ -74,6 +74,17 @@
 /*::deep .mud-input-outlined-border {
     background-color: var(--background);
 }*/
+/*::deep .mud-fab-size-small {
+    width: 35px;
+    height: 35px;
+}
+
+    ::deep .mud-fab-size-small * .mud-icon-size-medium {
+        font-size: 1.1rem;
+    }*/
+::deep .mud-chip {
+    font-size: 1rem;
+}
 
 ::deep .mud-table-sticky-header * .mud-table-root .mud-table-head * .mud-table-cell {
     width: 100%;
@@ -166,160 +177,4 @@
     100% {
         background-position: 12.5rem top;
     }
-}
-
-/* =============================================================================
-   TYPOGRAPHY THEME OVERRIDES
-   =============================================================================
-   These styles ensure MudBlazor components respond to typography theme settings.
-   The CSS custom properties (--mud-typography-default-*) are set via ThemeService
-   and can be modified through ThemeService.UpdateTypography() method.
-   
-   This enables centralized control of font sizes across all components without
-   needing per-component overrides.
-   ============================================================================= */
-
-/* Base typography for all MudBlazor components
-   Note: !important is required here because MudBlazor (v8.12.0+) uses inline styles
-   and high-specificity selectors that would otherwise override theme settings.
-   This ensures our theme typography CSS variables take precedence. */
-::deep .mud-typography,
-::deep .mud-typography-body1,
-::deep .mud-typography-body2 {
-    font-size: var(--mud-typography-default-size) !important;
-    font-weight: var(--mud-typography-default-weight) !important;
-    line-height: var(--mud-typography-default-lineheight) !important;
-}
-
-/* Buttons */
-::deep .mud-button-root {
-    font-size: var(--mud-typography-default-size);
-    font-weight: var(--mud-typography-default-weight);
-    line-height: var(--mud-typography-default-lineheight);
-}
-
-::deep .mud-button-label {
-    font-size: inherit;
-    font-weight: inherit;
-}
-
-/* Form inputs - TextField, Select, Autocomplete, etc. */
-::deep .mud-input,
-::deep .mud-input-root,
-::deep .mud-input-input,
-::deep .mud-select,
-::deep .mud-select-input {
-    font-size: var(--mud-typography-default-size);
-    font-weight: var(--mud-typography-default-weight);
-}
-
-::deep .mud-input-label,
-::deep .mud-input-label-inputcontrol,
-::deep .mud-input-helper-text {
-    font-size: calc(var(--mud-typography-default-size) * 0.875);
-}
-
-/* Table components */
-::deep .mud-table,
-::deep .mud-table-cell,
-::deep .mud-table-head .mud-table-cell,
-::deep .mud-table-body .mud-table-cell,
-::deep .mud-table-foot .mud-table-cell {
-    font-size: var(--mud-typography-default-size);
-    font-weight: var(--mud-typography-default-weight);
-}
-
-/* DataGrid */
-::deep .mud-data-grid,
-::deep .mud-datagrid-cell {
-    font-size: var(--mud-typography-default-size);
-}
-
-/* List and Menu items */
-::deep .mud-list-item,
-::deep .mud-list-item-text,
-::deep .mud-menu-item,
-::deep .mud-nav-link {
-    font-size: var(--mud-typography-default-size);
-    font-weight: var(--mud-typography-default-weight);
-}
-
-/* Chips and Badges */
-::deep .mud-chip-content,
-::deep .mud-chip-label {
-    font-size: var(--mud-typography-default-size);
-}
-
-::deep .mud-badge-root {
-    font-size: calc(var(--mud-typography-default-size) * 0.75);
-}
-
-/* Dialog components */
-::deep .mud-dialog-title {
-    font-size: calc(var(--mud-typography-default-size) * 1.25);
-    font-weight: 500;
-}
-
-::deep .mud-dialog-content {
-    font-size: var(--mud-typography-default-size);
-}
-
-/* Tabs */
-::deep .mud-tab {
-    font-size: var(--mud-typography-default-size);
-    font-weight: var(--mud-typography-default-weight);
-}
-
-/* Expansion panels */
-::deep .mud-expand-panel-header,
-::deep .mud-expand-panel-text {
-    font-size: var(--mud-typography-default-size);
-    font-weight: var(--mud-typography-default-weight);
-}
-
-/* Tooltips and Popovers */
-::deep .mud-tooltip,
-::deep .mud-popover-content {
-    font-size: calc(var(--mud-typography-default-size) * 0.875);
-}
-
-/* Alerts and Snackbars */
-::deep .mud-alert-message,
-::deep .mud-snackbar-content-message {
-    font-size: var(--mud-typography-default-size);
-}
-
-/* Drawer */
-::deep .mud-drawer-content {
-    font-size: var(--mud-typography-default-size);
-}
-
-/* AppBar */
-::deep .mud-appbar {
-    font-size: var(--mud-typography-default-size);
-}
-
-/* Timeline */
-::deep .mud-timeline-item-content {
-    font-size: var(--mud-typography-default-size);
-}
-
-/* Breadcrumbs */
-::deep .mud-breadcrumb-item {
-    font-size: var(--mud-typography-default-size);
-}
-
-/* Pagination */
-::deep .mud-pagination-item {
-    font-size: var(--mud-typography-default-size);
-}
-
-/* Rating */
-::deep .mud-rating-item {
-    font-size: calc(var(--mud-typography-default-size) * 1.5);
-}
-
-/* Avatar text */
-::deep .mud-avatar-text {
-    font-size: calc(var(--mud-typography-default-size) * 0.875);
 }

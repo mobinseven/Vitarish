@@ -13,7 +13,9 @@ public class AiJsonGeneratorInput : AiResponderInput
     private EventCallback<IEnumerable<ResponderOutput>> externalOnOutputEnd;
     private EventCallback<string?> externalOnError;
     private EventCallback<bool> externalOnBusyChanged;
-    private string Instructions { get; set; } = @"Always reply with a JSON object that matches the provided schema. Populate every required field using the supplied patient description. Use ISO-8601 format (yyyy-MM-dd) for dates. When information is not available, return null for optional fields. Do not include Markdown or commentary.";
+
+    private string Instructions { get; set; } =
+        @"Always reply with a JSON object that matches the provided schema. Populate every required field using the supplied patient description. Use ISO-8601 format (yyyy-MM-dd) for dates. When information is not available, return null for optional fields. Do not include Markdown or commentary.";
 
     [Parameter, EditorRequired]
     public string Schema { get; set; } = default!;
@@ -22,30 +24,34 @@ public class AiJsonGeneratorInput : AiResponderInput
     public EventCallback<AiJsonGeneratedEventArgs> OnJsonReceived { get; set; }
         = EventCallback<AiJsonGeneratedEventArgs>.Empty;
 
-    protected override void OnParametersSet()
+    // Wire callbacks once per component instance.
+    protected override void OnInitialized()
     {
+
+        base.OnInitialized();
+        // Capture parent-provided callbacks
         externalOnOutput = OnOutput;
         externalOnOutputEnd = OnOutputEnd;
         externalOnError = OnError;
         externalOnBusyChanged = OnBusyChanged;
 
-        ResponderOptions baseOptions = Options ?? new ResponderOptions();
-        Options = baseOptions with
-        {
-            Instructions = Instructions,
-            TextFormat = ResponseTextFormat.JsonObject
-        };
-
+        // Replace with internal handlers
         OnOutput = EventCallback.Factory.Create<ResponderOutput>(this, HandleOutputAsync);
         OnOutputEnd = EventCallback.Factory.Create<IEnumerable<ResponderOutput>>(this, HandleCompletedAsync);
         OnError = EventCallback.Factory.Create<string?>(this, ForwardErrorAsync);
         OnBusyChanged = EventCallback.Factory.Create<bool>(this, HandleBusyChangedAsync);
 
-        base.OnParametersSet();
+        SetInitializationPrompt(
+            $"Generate a JSON object that conforms to this schema: \n {Schema} \n Based on the following prompt/description: \n "
+        );
 
-        SetInitializationPrompt($"Generate a JSON object that conforms to this schema: \n {Schema} \n Based on the following prompt/description: \n ");
+        var baseOptions = Options ?? new ResponderOptions();
+        Options = baseOptions with
+        {
+            Instructions = Instructions,
+            TextFormat = ResponseTextFormat.JsonObject
+        };
     }
-
     private async Task HandleOutputAsync(ResponderOutput output)
     {
         bufferedOutputs.Add(output);

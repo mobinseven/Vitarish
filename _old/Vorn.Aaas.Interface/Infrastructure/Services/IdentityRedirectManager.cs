@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Components;
 using System.Diagnostics.CodeAnalysis;
 
 public sealed class IdentityRedirectManager(NavigationManager navigationManager, ILogger<IdentityRedirectManager> logger)
@@ -17,17 +16,17 @@ public sealed class IdentityRedirectManager(NavigationManager navigationManager,
     public void RedirectTo(string? uri)
     {
         uri ??= "";
-        if(Uri.IsWellFormedUriString(uri, UriKind.Absolute))
+        if (Uri.IsWellFormedUriString(uri, UriKind.Absolute))
         {
             navigationManager.NavigateTo(uri, true);
         }
-        if(!Uri.IsWellFormedUriString(uri, UriKind.Relative))
+        if (!Uri.IsWellFormedUriString(uri, UriKind.Relative))
         {
             uri = navigationManager.ToBaseRelativePath(uri);
         }
         navigationManager.NavigateTo(uri, true);//throws a dumb exception in debugging mode
         //HttpContext.RedirectTo(uri);
-        //throw new InvalidOperationException($"{nameof(IdentityRedirectManager)} can only be used during static rendering.");
+        throw new InvalidOperationException($"{nameof(IdentityRedirectManager)} can only be used during static rendering.");
     }
 
     [DoesNotReturn]

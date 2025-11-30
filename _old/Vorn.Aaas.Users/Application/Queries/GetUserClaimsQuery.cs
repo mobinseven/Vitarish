@@ -1,8 +1,9 @@
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using FluentValidation;
+using System.Security.Claims;
 using Vorn.Aaas.Users.Domain.Entities;
-using Vorn.Aaas.Users.ReadModel.Dtos;
+using Vorn.Aaas.Users.Presentation.Contracts;
 
 namespace Vorn.Aaas.Users.Application.Queries;
 
@@ -12,7 +13,7 @@ public class GetUserClaimsQueryValidator : AbstractValidator<GetUserClaimsQuery>
 {
     public GetUserClaimsQueryValidator()
     {
-        RuleFor(q => q.UserId).NotEmpty();
+        _ = RuleFor(q => q.UserId).NotEmpty();
     }
 }
 
@@ -20,8 +21,8 @@ public class GetUserClaimsQueryHandler(UserManager<User> manager) : IRequestHand
 {
     public async Task<IEnumerable<ClaimDto>> Handle(GetUserClaimsQuery request, CancellationToken cancellationToken)
     {
-        var user = await manager.FindByIdAsync(request.UserId) ?? throw new InvalidDataException("user Id is invalid");
-        var claims = await manager.GetClaimsAsync(user);
+        User user = await manager.FindByIdAsync(request.UserId) ?? throw new InvalidDataException("user Id is invalid");
+        IList<Claim> claims = await manager.GetClaimsAsync(user);
         return claims.Select(c => new ClaimDto(c.Type, c.Value)).ToList();
     }
 }

@@ -180,7 +180,7 @@ Make sure your downstream APIs expect and authorize these headers as needed.
 
 ## Token caching and concurrency
 
-- Tokens are cached in-memory with `IMemoryCache`.
+- Tokens are cached via Redis using `IDistributedCache`.
 - Proactive refresh: tokens are refreshed 60 seconds before expiry.
 - Concurrent requests are synchronized with a per-service `SemaphoreSlim` to avoid token stampedes.
 

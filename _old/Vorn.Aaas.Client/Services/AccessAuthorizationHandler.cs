@@ -1,16 +1,17 @@
 
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Distributed;
 using System.Collections.Concurrent;
+using Vorn.Aaas.Client.Abstractions;
 using Vorn.Aaas.Client.Api.Abstractions;
+using Vorn.Aaas.Client.Contracts;
 using Vorn.Aaas.Client.Extensions;
-using Vorn.Aaas.Client.Models;
 
 namespace Vorn.Aaas.Client.Services;
 
 internal class AccessAuthorizationHandler(
     IUserAccessApiClient apiClient,
-    IMemoryCache cache,
+    IDistributedCache cache,
     IRequestIdentityContext requestIdentityContext) : AuthorizationHandler<IAccessAuthorizationRequirement, string>
 {
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new();
@@ -25,21 +26,31 @@ internal class AccessAuthorizationHandler(
         string ownerOrClient = resource ?? requestIdentityContext.OwnerId;
         string key = $"{userId}:{ownerOrClient}:{req.GetType().Name}";
 
-        if (!cache.TryGetValue(key, out bool hasAccess))
+        bool? cachedAccess = await GetCachedAccessAsync(key);
+        bool hasAccess;
+
+        if (cachedAccess is null)
         {
             SemaphoreSlim gate = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
             await gate.WaitAsync();
             try
             {
-                if (!cache.TryGetValue(key, out hasAccess))
+                cachedAccess = await GetCachedAccessAsync(key);
+                if (cachedAccess is null)
                 {
                     hasAccess = req is AdminAccessClaimRequirement
                         ? await IsAdminAsync(userId, ownerOrClient, apiClient)
                         : await HasAccessAsync(userId, ownerOrClient, apiClient);
 
                     TimeSpan ttl = hasAccess ? TimeSpan.FromMinutes(5) : TimeSpan.FromSeconds(45);
-                    _ = cache.Set(key, hasAccess,
-                        new MemoryCacheEntryOptions { AbsoluteExpirationRelativeToNow = ttl });
+                    await cache.SetAsync(
+                        key,
+                        SerializeAccess(hasAccess),
+                        new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = ttl });
+                }
+                else
+                {
+                    hasAccess = cachedAccess.Value;
                 }
             }
             finally
@@ -47,6 +58,10 @@ internal class AccessAuthorizationHandler(
                 _ = gate.Release();
                 _ = _locks.TryRemove(key, out _);
             }
+        }
+        else
+        {
+            hasAccess = cachedAccess.Value;
         }
 
         if (hasAccess)
@@ -73,5 +88,13 @@ internal class AccessAuthorizationHandler(
         Access access = AccessExtensions.GenerateAccess(claims.Value);
         return access.Admin;
     }
+
+    private async Task<bool?> GetCachedAccessAsync(string key)
+    {
+        byte[]? payload = await cache.GetAsync(key);
+        return payload is null || payload.Length == 0 ? null : payload[0] is 1;
+    }
+
+    private static byte[] SerializeAccess(bool value) => new[] { value ? (byte)1 : (byte)0 };
 
 }

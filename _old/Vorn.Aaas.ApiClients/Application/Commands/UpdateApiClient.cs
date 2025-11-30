@@ -1,11 +1,13 @@
+
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using FluentValidation;
+using Microsoft.Extensions.Caching.Distributed;
 using Vorn.Aaas.ApiClients.Domain.Entities;
 using Vorn.Aaas.ApiClients.Infrastructure.Data;
+using Vorn.Aaas.ApiClients.Infrastructure.Extensions;
 
 namespace Vorn.Aaas.ApiClients.Application.Commands;
-
 /// <summary>
 /// Command to edit an existing <see cref="ApiClient"/>.
 /// </summary>
@@ -18,18 +20,18 @@ public class UpdateApiClientValidator : AbstractValidator<UpdateApiClient>
 {
     public UpdateApiClientValidator()
     {
-        RuleFor(c => c.Id).NotEmpty();
-        RuleFor(c => c.Secret).NotEmpty();
-        RuleFor(c => c.Scopes).NotEmpty();
-        RuleFor(c => c.HostUri).NotEmpty();
+        _ = RuleFor(c => c.Id).NotEmpty();
+        _ = RuleFor(c => c.Secret).NotEmpty();
+        _ = RuleFor(c => c.Scopes).NotEmpty();
+        _ = RuleFor(c => c.HostUri).NotEmpty();
     }
 }
 
-internal sealed class UpdateApiClientHandler(ApiClientDbContext db) : IRequestHandler<UpdateApiClient, ApiClient?>
+internal sealed class UpdateApiClientHandler(ApiClientDbContext db, IDistributedCache cache) : IRequestHandler<UpdateApiClient, ApiClient?>
 {
     public async Task<ApiClient?> Handle(UpdateApiClient request, CancellationToken cancellationToken)
     {
-        var client = await db.ApiClients.FirstOrDefaultAsync(a => a.Id == request.Id, cancellationToken);
+        ApiClient? client = await db.ApiClients.FirstOrDefaultAsync(a => a.Id == request.Id, cancellationToken);
         if (client is null)
         {
             return null;
@@ -39,7 +41,9 @@ internal sealed class UpdateApiClientHandler(ApiClientDbContext db) : IRequestHa
         client.Scopes = request.Scopes;
         client.HostUri = request.HostUri;
 
-        await db.SaveChangesAsync(cancellationToken);
+        _ = await db.SaveChangesAsync(cancellationToken);
+        await ApiClientCacheExtensions.SetClientAsync(cache, client, cancellationToken);
+        await ApiClientCacheExtensions.RemoveClientsAsync(cache, cancellationToken);
         return client;
     }
 }

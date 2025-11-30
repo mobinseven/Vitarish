@@ -1,7 +1,7 @@
 namespace Vorn.Aaas.Interface.Presentation.Pages.Admin;
 
 using Vorn.Aaas.Users.Application.Commands;
-using ClientClaimDto = Vorn.Aaas.Client.Models.ClaimDto;
+using ClientClaimDto = Client.Contracts.ClaimDto;
 
 public partial class AdminUserPage
 {

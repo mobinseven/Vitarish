@@ -3,7 +3,7 @@ using Vorn.Ai.Client.Models;
 
 namespace Vorn.Ai.Client.Internal.Services;
 
-public sealed class StreamResponder(IResponseHubClient responseHubClient) : IStreamResponder
+public sealed class StreamResponder(IResponderClient responseHubClient) : IStreamResponder
 {
     private readonly List<ResponderOutput> _outputs = [];
     private readonly SemaphoreSlim _gate = new(1, 1);
@@ -16,7 +16,7 @@ public sealed class StreamResponder(IResponseHubClient responseHubClient) : IStr
 
     public async Task Submit(IEnumerable<ResponderInput> inputs, ResponderOptions options, CancellationToken ct = default)
     {
-        if (!await _gate.WaitAsync(0, ct))
+        if(!await _gate.WaitAsync(0, ct))
         {
             return;
         }
@@ -26,13 +26,13 @@ public sealed class StreamResponder(IResponseHubClient responseHubClient) : IStr
             Responding = true;
             _outputs.Clear();
 
-            await foreach (ResponderOutput? item in responseHubClient.StreamAsync([.. inputs], options, ct).WithCancellation(ct))
+            await foreach(ResponderOutput? item in responseHubClient.StreamAsync([.. inputs], options, ct).WithCancellation(ct))
             {
                 ResponderOutput toRaise = item;
 
-                if (item.Type == ResponderOutputType.Text)
+                if(item.Type == ResponderOutputType.Text)
                 {
-                    if (_outputs.Count > 0 && _outputs[^1].Type == ResponderOutputType.Text)
+                    if(_outputs.Count > 0 && _outputs[^1].Type == ResponderOutputType.Text)
                     {
                         ResponderOutput last = _outputs[^1];
                         ResponderOutput merged = last with { Text = last.Text + item.Text };
@@ -56,7 +56,7 @@ public sealed class StreamResponder(IResponseHubClient responseHubClient) : IStr
         {
             Responding = false;
             OutputCompleted?.Invoke(this, _outputs);
-            _gate.Release();
+            _ = _gate.Release();
         }
     }
 }

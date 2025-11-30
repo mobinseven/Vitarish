@@ -1,4 +1,4 @@
-﻿@page "/Admin"
+@page "/Admin"
 @inherits AdminBase
 <div style="display:grid">
     <div style="justify-self:center">
@@ -10,6 +10,18 @@
         </MudButton>
         <MudButton Href="Admin/ApiClients" FullWidth>
             @Localizer["ApiClients"]
+        </MudButton>
+        <MudButton Href="Admin/RequestIdentities" FullWidth>
+            @Localizer["RequestIdentities"]
+        </MudButton>
+        <MudButton Href="Admin/Owners" FullWidth>
+            @Localizer["Owners"]
+        </MudButton>
+        <MudButton Href="Admin/Tenants" FullWidth>
+            @Localizer["Tenants"]
+        </MudButton>
+        <MudButton Href="Admin/TenantIndicators" FullWidth>
+            @Localizer["TenantIndicators"]
         </MudButton>
     </div>
 </div>

@@ -18,15 +18,6 @@ public partial class ThemeForm
     private ThemeFormModel initialModel = default!;
     private IReadOnlyList<KeyValuePair<string, string>> lightSurfaceVariables = Array.Empty<KeyValuePair<string, string>>();
     private IReadOnlyList<KeyValuePair<string, string>> darkSurfaceVariables = Array.Empty<KeyValuePair<string, string>>();
-    private string typographyPreset = "default";
-
-    private static readonly Dictionary<string, (string fontSize, double fontSizeValue, string fontWeight, double fontWeightValue)> TypographyPresets = new()
-    {
-        ["compact"] = ("0.875rem", 0.875, "400", 400),
-        ["default"] = ("1rem", 1.0, "500", 500),
-        ["comfortable"] = ("1.125rem", 1.125, "500", 500),
-        ["large"] = ("1.25rem", 1.25, "500", 500)
-    };
 
     private string LightSurfaceStyle =>
         $"background: {model.LightSurface ?? "transparent"}; border: {model.LightBorder ?? "none"}; " +
@@ -44,24 +35,6 @@ public partial class ThemeForm
         initialModel = ThemeFormModel.FromTheme(ThemeService);
         model = initialModel.Clone();
         UpdateSurfaceSnapshots();
-        DetectTypographyPreset();
-    }
-
-    private void DetectTypographyPreset()
-    {
-        var currentSize = ThemeService.Typography.FontSize;
-        var currentWeight = ThemeService.Typography.FontWeight;
-        
-        foreach (var (presetName, presetValues) in TypographyPresets)
-        {
-            if (presetValues.fontSize == currentSize && presetValues.fontWeight == currentWeight)
-            {
-                typographyPreset = presetName;
-                return;
-            }
-        }
-        
-        typographyPreset = "custom";
     }
 
     private void UpdateSurfaceSnapshots()
@@ -132,7 +105,6 @@ public partial class ThemeForm
     private Task OnFontSizeSliderChanged()
     {
         model.FontSize = $"{model.FontSizeValue.ToString("0.##", CultureInfo.InvariantCulture)}rem";
-        typographyPreset = "custom";
         return ApplyAfterBindingAsync();
     }
 
@@ -141,23 +113,6 @@ public partial class ThemeForm
         var roundedWeight = (int)(Math.Round(model.FontWeightValue / 100d, MidpointRounding.AwayFromZero) * 100d);
         model.FontWeight = roundedWeight.ToString(CultureInfo.InvariantCulture);
         model.FontWeightValue = roundedWeight;
-        typographyPreset = "custom";
-        return ApplyAfterBindingAsync();
-    }
-
-    private Task OnTypographyPresetChanged(string preset)
-    {
-        typographyPreset = preset;
-        
-        if (preset != "custom" && TypographyPresets.TryGetValue(preset, out var presetValues))
-        {
-            model.FontSize = presetValues.fontSize;
-            model.FontSizeValue = presetValues.fontSizeValue;
-            model.FontWeight = presetValues.fontWeight;
-            model.FontWeightValue = presetValues.fontWeightValue;
-        }
-        // If "custom", keep current values
-        
         return ApplyAfterBindingAsync();
     }
 

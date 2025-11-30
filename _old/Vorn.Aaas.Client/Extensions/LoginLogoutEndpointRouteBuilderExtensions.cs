@@ -6,9 +6,10 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
-using Vorn.Aaas.Client.Models;
+using Vorn.Aaas.Client.Api.Abstractions;
+using Vorn.Aaas.Client.Contracts;
 
 namespace Vorn.Aaas.Client.Extensions;
 
@@ -22,16 +23,31 @@ internal static class LoginLogoutEndpointRouteBuilderExtensions
         _ = group.MapGet("/login", (string? returnUrl) => TypedResults.Challenge(GetAuthProperties(returnUrl, pathBase)))
             .AllowAnonymous();
         _ = group.MapPost("/logout", async ([FromServices] IOptionsMonitor<OpenIdConnectOptions> oidcOptionsMonitor,
-            [FromServices] IMemoryCache cache,
+            [FromServices] IDistributedCache cache,
+            [FromServices] IRequestIdentityContext identityContext,
             HttpContext context,
             [FromForm] string? returnUrl) =>
         {
             OpenIdConnectOptions oidcOptions = oidcOptionsMonitor.Get(DefaultChallengeScheme);
 
-            string cacheKey = $"{context.User.GetId()}_{oidcOptions.ClientId}_{nameof(AccessClaimRequirement)}";
-            cache.Remove(cacheKey);
-            string cacheKeyAdmin = $"{context.User.GetId()}_{oidcOptions.ClientId}_{nameof(AdminAccessClaimRequirement)}";
-            cache.Remove(cacheKeyAdmin);
+            string? userId = context.User.GetId();
+            if (!string.IsNullOrEmpty(userId))
+            {
+                string ownerOrClient = string.IsNullOrWhiteSpace(identityContext.OwnerId)
+                    ? identityContext.ClientId
+                    : identityContext.OwnerId;
+                ownerOrClient = string.IsNullOrWhiteSpace(ownerOrClient)
+                    ? oidcOptions.ClientId
+                    : ownerOrClient;
+
+                if (!string.IsNullOrEmpty(ownerOrClient))
+                {
+                    string cacheKey = $"{userId}:{ownerOrClient}:{nameof(AccessClaimRequirement)}";
+                    cache.Remove(cacheKey);
+                    string cacheKeyAdmin = $"{userId}:{ownerOrClient}:{nameof(AdminAccessClaimRequirement)}";
+                    cache.Remove(cacheKeyAdmin);
+                }
+            }
 
             await RevokeRefreshTokenAsync(context, oidcOptions);
 

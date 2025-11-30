@@ -9,6 +9,6 @@ public class DeleteAuthenticationClientValidator : AbstractValidator<DeleteAuthe
 {
     public DeleteAuthenticationClientValidator()
     {
-        RuleFor(c => c.Id).NotEmpty();
+        _ = RuleFor(c => c.Id).NotEmpty();
     }
 }

@@ -2,10 +2,11 @@
 
 public class AiOptions
 {
-    public string ApiKey { get; set; } = string.Empty;
-    public string TranscriptionModel { get; set; } = "gpt-4o-mini-transcribe";
-    public string ResponseModel { get; set; } = "gpt-5-nano-2025-08-07";
-    public string McpInstructions { get; set; } = string.Empty;
+    public string DefaultTranscriptionModel { get; set; } = "gpt-4o-mini-transcribe";
+    public string DefaultResponseModel { get; set; } = "gpt-5-nano-2025-08-07";
+    public OllamaOptions Ollama { get; set; } = new();
+    public OpenAiOptions OpenAi { get; set; } = new();
+    public GoogleOptions Google { get; set; } = new();
     public string QuickRewriteInstructions { get; set; } = @"
 Rewrite the provided text in a quick, clear manner while retaining the original meaning. 
 The rewrite should be in the same language as the input text. 

@@ -15,12 +15,8 @@
         </ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Vorn.Aaas.Client.Api\Vorn.Aaas.Client.Api.csproj" PrivateAssets="none"  />
+		<ProjectReference Include="..\Vorn.Aaas.Client.Api\Vorn.Aaas.Client.Api.csproj" />
 	</ItemGroup>
-	<PropertyGroup>
-		<IncludeProjectReferencesDuringPacking>false</IncludeProjectReferencesDuringPacking>
-	</PropertyGroup>
-
 
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />

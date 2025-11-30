@@ -2,7 +2,6 @@ namespace Vorn.Aaas.Interface.Presentation.Components.Account;
 
 public partial class PhoneVerificationVerify
 {
-    [Parameter] public string VerificationEndpoint { get; set; } = "/Account/Login/Phone/Submit";
     [Parameter] public string? ReturnUrl { get; set; }
     [Parameter] public string? FailureUrl { get; set; }
     [Parameter] public User User { get; set; } = default!;

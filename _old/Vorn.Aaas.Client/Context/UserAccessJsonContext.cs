@@ -1,8 +1,7 @@
-namespace Vorn.Aaas.Client.Context;
-
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
-using Vorn.Aaas.Client.Models;
+using Vorn.Aaas.Client.Contracts;
+
+namespace Vorn.Aaas.Client.Context;
 
 [JsonSourceGenerationOptions(PropertyNameCaseInsensitive = true)]
 [JsonSerializable(typeof(IEnumerable<ClaimDto>))]

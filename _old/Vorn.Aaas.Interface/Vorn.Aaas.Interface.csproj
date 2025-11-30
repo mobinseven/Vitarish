@@ -9,24 +9,19 @@
 
 	<ItemGroup>
 		<PackageReference Include="MudBlazor" Version="8.*" />
-		<PackageReference Include="Duende.IdentityServer" Version="7.*" />
 	</ItemGroup>
+
+        <ItemGroup>
+                <ProjectReference Include="..\Vorn.Aaas.ApiClients\Vorn.Aaas.ApiClients.csproj" />
+                <ProjectReference Include="..\Vorn.Aaas.AuthenticationClients\Vorn.Aaas.AuthenticationClients.csproj" />
+                <ProjectReference Include="..\Vorn.Aaas.RequestIdentities\Vorn.Aaas.RequestIdentities.csproj" />
+                <ProjectReference Include="..\Vorn.Aaas.Users\Vorn.Aaas.Users.csproj" />
+        </ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\Vorn.Aaas.ApiClients\Vorn.Aaas.ApiClients.csproj" />
-		<ProjectReference Include="..\Vorn.Aaas.AuthenticationClients\Vorn.Aaas.AuthenticationClients.csproj" />
-		<ProjectReference Include="..\Vorn.Aaas.Users\Vorn.Aaas.Users.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<PackageReference Include="Vorn.Caas.Client" Version="8.*" />
-		<PackageReference Include="Vorn.Aaas.Client" Version="8.*" />
-	</ItemGroup>
-
-	<!--<ItemGroup>
 		<ProjectReference Include="..\Vorn.Aaas.Client\Vorn.Aaas.Client.csproj" />
-		<ProjectReference Include="..\..\Vorn.Caas\Vorn.Caas.Client\Vorn.Caas.Client.csproj" />
-	</ItemGroup>-->
+		<ProjectReference Include="..\Vorn.Aaas.Parties\Vorn.Aaas.Parties.csproj" />
+	</ItemGroup>
 
 	<ItemGroup>
 		<SupportedPlatform Include="browser" />

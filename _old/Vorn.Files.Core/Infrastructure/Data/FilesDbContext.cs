@@ -9,12 +9,11 @@ using Vorn.Files.Core.Domain.Entities;
 
 public sealed class FilesDbContext : MultiTenantDbContext
 {
-    private readonly EntityManagementInterceptor interceptor;
-
+    private readonly EntityInterceptor interceptor;
     public FilesDbContext(
         IMultiTenantContextAccessor<TenantInfo> multiTenantContextAccessor,
         DbContextOptions<FilesDbContext> options,
-        EntityManagementInterceptor interceptor) : base(multiTenantContextAccessor, options)
+        EntityInterceptor interceptor) : base(multiTenantContextAccessor, options)
     {
         this.interceptor = interceptor;
         TenantMismatchMode = TenantMismatchMode.Overwrite;
@@ -25,7 +24,6 @@ public sealed class FilesDbContext : MultiTenantDbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.AddInterceptors(interceptor);
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<FileInformation>().HasQueryFilter(entity =>
@@ -40,10 +38,10 @@ public sealed class FilesDbContext : MultiTenantDbContext
         modelBuilder.Entity<FileInformation>()
             .HasIndex(entity => entity.Checksum);
 
-        if (Database.IsSqlite())
-        {
-            modelBuilder.ConfigureEntityDateTimeOffsetConversions();
-        }
+        //if (Database.IsSqlite())
+        //{
+        //    modelBuilder.ConfigureEntityDateTimeOffsetConversions();
+        //}
 
         base.OnModelCreating(modelBuilder);
     }

@@ -1,6 +1,7 @@
-namespace Vorn.Aaas.RequestIdentities.Domain.Entities;
 
 using System.ComponentModel.DataAnnotations;
+
+namespace Vorn.Aaas.RequestIdentities.Domain.Entities;
 
 public sealed class RequestIdentity
 {

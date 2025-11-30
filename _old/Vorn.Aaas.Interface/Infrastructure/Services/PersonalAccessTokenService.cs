@@ -3,7 +3,7 @@ namespace Vorn.Aaas.Interface.Infrastructure.Services;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Vorn.Aaas.Users.Presentation.Service;
+using Vorn.Aaas.Users.Presentation.Abstractions;
 
 public interface IPersonalAccessTokenService
 {

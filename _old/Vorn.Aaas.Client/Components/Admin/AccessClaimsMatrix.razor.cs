@@ -1,9 +1,10 @@
-namespace Vorn.Aaas.Client.Admin;
 
 using Microsoft.AspNetCore.Components;
 using Vorn.Aaas.Client.Constants;
+using Vorn.Aaas.Client.Contracts;
 using Vorn.Aaas.Client.Extensions;
-using Vorn.Aaas.Client.Models;
+
+namespace Vorn.Aaas.Client.Admin;
 
 public partial class AccessClaimsMatrix : ComponentBase
 {
@@ -11,8 +12,8 @@ public partial class AccessClaimsMatrix : ComponentBase
     [Parameter] public List<ClaimDto>? AccessClaims { get; set; }
     [Parameter] public EventCallback<List<ClaimDto>> AccessClaimsChanged { get; set; }
 
-    List<AccessClientModel>? rows;
-    List<string> roles = [];
+    private List<AccessClientModel>? rows;
+    private List<string> roles = [];
 
     protected override void OnParametersSet()
     {
@@ -26,7 +27,7 @@ public partial class AccessClaimsMatrix : ComponentBase
         UpdateRoles();
     }
 
-    void SyncFromClaims()
+    private void SyncFromClaims()
     {
         if (rows is null || AccessClaims is null)
         {
@@ -40,7 +41,7 @@ public partial class AccessClaimsMatrix : ComponentBase
         }
     }
 
-    void Sync()
+    private void Sync()
     {
         if (rows is null)
         {
@@ -56,13 +57,13 @@ public partial class AccessClaimsMatrix : ComponentBase
 
         if (!ClaimListsEqual(AccessClaims, newClaims))
         {
-            AccessClaimsChanged.InvokeAsync(newClaims.ToList());
+            _ = AccessClaimsChanged.InvokeAsync(newClaims.ToList());
         }
 
         UpdateRoles();
     }
 
-    void UpdateRoles()
+    private void UpdateRoles()
     {
         if (rows is null)
         {
@@ -78,7 +79,7 @@ public partial class AccessClaimsMatrix : ComponentBase
             .ToList();
     }
 
-    static bool ClaimListsEqual(IReadOnlyList<ClaimDto>? a, IReadOnlyList<ClaimDto>? b)
+    private static bool ClaimListsEqual(IReadOnlyList<ClaimDto>? a, IReadOnlyList<ClaimDto>? b)
     {
         if (ReferenceEquals(a, b))
         {
@@ -103,9 +104,9 @@ public partial class AccessClaimsMatrix : ComponentBase
 
     public sealed record ClientModel(string Id, string? Title);
 
-    sealed class AccessClientModel
+    private sealed class AccessClientModel
     {
-        readonly Action sync;
+        private readonly Action sync;
         public ClientModel Client { get; }
         public ClaimDto Claim { get; private set; }
         public Access Access { get; } = new();
@@ -176,7 +177,7 @@ public partial class AccessClaimsMatrix : ComponentBase
             UpdateClaim(false);
         }
 
-        void UpdateClaim(bool callSync = true)
+        private void UpdateClaim(bool callSync = true)
         {
             Claim.Type = AaasConstants.AccessClaim;
             Claim.Value = $"{Client.Id}:{Access.GetClaimAccessValue()}";

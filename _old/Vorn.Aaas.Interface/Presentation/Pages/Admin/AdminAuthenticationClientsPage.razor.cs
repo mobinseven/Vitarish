@@ -1,4 +1,6 @@
 
+using Vorn.Aaas.AuthenticationClients.Presentation.Contracts;
+
 namespace Vorn.Aaas.Interface.Presentation.Pages.Admin;
 
 public partial class AdminAuthenticationClientsPage

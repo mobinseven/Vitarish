@@ -27,15 +27,23 @@ public sealed record ResponderInput(
 )
 {
     public static ResponderInput TextInput(string text)
-        => new(ResponderInputType.Text, Text: text);
+    {
+        return new(ResponderInputType.Text, Text: text);
+    }
 
     public static ResponderInput ImageInput(string imageUrl, ResponderInputImageDetail? detail = null)
-        => new(ResponderInputType.Image, ImageUrl: imageUrl, Detail: detail);
+    {
+        return new(ResponderInputType.Image, ImageUrl: imageUrl, Detail: detail);
+    }
 
     public static ResponderInput FileInput(string? fileId = null, string? fileData = null, string? filename = null)
-        => new(ResponderInputType.File, FileId: fileId, FileData: fileData, Filename: filename);
+    {
+        return new(ResponderInputType.File, FileId: fileId, FileData: fileData, Filename: filename);
+    }
 
     public static ResponderInput McpToolCallApprovalInput(string approvalId)
-        => new(ResponderInputType.McpToolCallApproval, ApprovalId: approvalId);
+    {
+        return new(ResponderInputType.McpToolCallApproval, ApprovalId: approvalId);
+    }
 }
 

@@ -1,8 +1,10 @@
+
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using FluentValidation;
+using Microsoft.Extensions.Caching.Distributed;
 using Vorn.Aaas.Users.Domain.Entities;
+using Vorn.Aaas.Users.Infrastructure.Extensions;
 
 namespace Vorn.Aaas.Users.Application.Queries;
 
@@ -12,14 +14,25 @@ public class GetUserQueryValidator : AbstractValidator<GetUserQuery>
 {
     public GetUserQueryValidator()
     {
-        RuleFor(q => q.Id).NotEmpty();
+        _ = RuleFor(q => q.Id).NotEmpty();
     }
 }
 
-internal class GetUserQueryHandler(UserManager<User> userManager) : IRequestHandler<GetUserQuery, User?>
+internal class GetUserQueryHandler(UserManager<User> userManager, IDistributedCache cache) : IRequestHandler<GetUserQuery, User?>
 {
     public async Task<User?> Handle(GetUserQuery request, CancellationToken cancellationToken)
     {
-        return await userManager.Users.SingleOrDefaultAsync(u => u.Id == request.Id, cancellationToken);
+        if (await UserCacheExtensions.GetUserAsync(cache, request.Id, cancellationToken) is { } cached)
+        {
+            return cached;
+        }
+
+        User? user = await userManager.FindByIdAsync(request.Id);
+        if (user is not null)
+        {
+            await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
+        }
+
+        return user;
     }
 }

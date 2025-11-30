@@ -10,11 +10,13 @@ using System.Threading.Tasks;
 using Vorn.Files.Host.Infrastructure.Extensions;
 using Vorn.Files.Host.Infrastructure.Interfaces;
 
-public sealed class ThumbnailService(ILogger<ThumbnailService> logger) : BackgroundService, IThumbnailService
+public sealed class ThumbnailService(
+    ILogger<ThumbnailService> logger,
+    IObjectStorageService storage) : BackgroundService, IThumbnailService
 {
     private readonly Channel<ThumbnailRequest> _channel = Channel.CreateUnbounded<ThumbnailRequest>();
 
-    public void Enqueue(string filePath, string contentType) => _channel.Writer.TryWrite(new(filePath, contentType));
+    public void Enqueue(string objectKey, string contentType) => _channel.Writer.TryWrite(new(objectKey, contentType));
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -22,8 +24,14 @@ public sealed class ThumbnailService(ILogger<ThumbnailService> logger) : Backgro
         {
             try
             {
-                string thumbPath = req.FilePath + ".thumb.jpg";
-                await using FileStream source = File.OpenRead(req.FilePath);
+                string thumbObjectKey = req.ObjectKey + ".thumb.jpg";
+
+                if (await storage.ExistsAsync(thumbObjectKey, stoppingToken).ConfigureAwait(false))
+                {
+                    continue;
+                }
+
+                await using Stream source = await storage.DownloadAsync(req.ObjectKey, stoppingToken).ConfigureAwait(false);
                 byte[] bytes;
                 if (req.ContentType.StartsWith("image", StringComparison.OrdinalIgnoreCase))
                 {
@@ -39,15 +47,23 @@ public sealed class ThumbnailService(ILogger<ThumbnailService> logger) : Backgro
                 {
                     continue;
                 }
-                await File.WriteAllBytesAsync(thumbPath, bytes, stoppingToken);
-                logger.LogInformation("Generated thumbnail for {File}", req.FilePath);
+
+                using MemoryStream thumbnailStream = new(bytes);
+                await storage.UploadAsync(
+                    thumbObjectKey,
+                    Thumbnails.ThumbnailContentType,
+                    thumbnailStream,
+                    thumbnailStream.Length,
+                    stoppingToken).ConfigureAwait(false);
+
+                logger.LogInformation("Generated thumbnail for {File}", req.ObjectKey);
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Thumbnail generation failed for {File}", req.FilePath);
+                logger.LogError(ex, "Thumbnail generation failed for {File}", req.ObjectKey);
             }
         }
     }
 
-    private record ThumbnailRequest(string FilePath, string ContentType);
+    private record ThumbnailRequest(string ObjectKey, string ContentType);
 }

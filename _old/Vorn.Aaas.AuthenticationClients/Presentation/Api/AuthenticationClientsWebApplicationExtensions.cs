@@ -25,7 +25,7 @@ namespace Vorn.Aaas.AuthenticationClients.Presentation.Api
             this WebApplication app,
             Action<RouteGroupBuilder>? configureFilters = null)
         {
-            var group = app
+            RouteGroupBuilder group = app
                 .MapGroup("/api/authenticationclients")
                 .WithTags("Authentication Clients")
                 .RequireAuthorization(new AuthorizeAttribute
@@ -37,10 +37,10 @@ namespace Vorn.Aaas.AuthenticationClients.Presentation.Api
             configureFilters?.Invoke(group);
 
             // GET /api/authenticationclients
-            group.MapGet(string.Empty,
+            _ = group.MapGet(string.Empty,
                 async ([FromServices] ISender sender) =>
                 {
-                    var list = await sender.Send(new GetAuthenticationClients());
+                    IEnumerable<AuthenticationClient> list = await sender.Send(new GetAuthenticationClients());
                     return Results.Ok(list);
                 })
                 .WithName("GetAuthenticationClients")
@@ -53,10 +53,10 @@ namespace Vorn.Aaas.AuthenticationClients.Presentation.Api
                 });
 
             // GET /api/authenticationclients/{id}
-            group.MapGet("/{id}",
+            _ = group.MapGet("/{id}",
                 async (string id, [FromServices] ISender sender) =>
                 {
-                    var result = await sender.Send(new GetAuthenticationClient(id));
+                    AuthenticationClient? result = await sender.Send(new GetAuthenticationClient(id));
                     return result is not null
                         ? Results.Ok(result)
                         : Results.NotFound();
@@ -73,10 +73,10 @@ namespace Vorn.Aaas.AuthenticationClients.Presentation.Api
                 });
 
             // POST /api/authenticationclients
-            group.MapPost(string.Empty,
+            _ = group.MapPost(string.Empty,
                 async ([FromBody] CreateAuthenticationClient command, [FromServices] ISender sender) =>
                 {
-                    var client = await sender.Send(command);
+                    AuthenticationClient? client = await sender.Send(command);
                     if (client is null)
                     {
                         // optionally handle error case
@@ -100,7 +100,7 @@ namespace Vorn.Aaas.AuthenticationClients.Presentation.Api
                 });
 
             // PUT /api/authenticationclients/{id}
-            group.MapPut("/{id}",
+            _ = group.MapPut("/{id}",
                 async (string id, [FromBody] UpdateAuthenticationClient command, [FromServices] ISender sender) =>
                 {
                     if (id != command.Id)
@@ -128,10 +128,10 @@ namespace Vorn.Aaas.AuthenticationClients.Presentation.Api
                 });
 
             // DELETE /api/authenticationclients/{id}
-            group.MapDelete("/{id}",
+            _ = group.MapDelete("/{id}",
                 async (string id, [FromServices] ISender sender) =>
                 {
-                    var command = new DeleteAuthenticationClient(id);
+                    DeleteAuthenticationClient command = new(id);
                     await sender.Send(command);
                     return Results.NoContent();
                 })

@@ -1,0 +1,191 @@
+﻿
+@using System.Text.Json
+@using System.Threading
+@using Vorn.Files.Client.Abstractions
+@using Vorn.Files.Client.Models
+
+<MudDataGrid @ref="dataGrid" T="FileInformationDto" ServerData="ServerReload">
+    <ToolBarContent>
+@*         <UploadInput OnCompleted="async () => await dataGrid.ReloadServerData()">
+            <MudButton StartIcon="fa-light fa-paperclip"
+                       Color="Color.Success"
+                       Style="pointer-events: none;"
+                       FullWidth />
+        </UploadInput> *@
+        <MudFab StartIcon="fa-thin fa-arrows-rotate" DropShadow=false OnClick="async () => await dataGrid.ReloadServerData()" />
+        <MudSpacer />
+        @if(ToolbarButtons is not null)
+        {
+            @ToolbarButtons
+        }
+    </ToolBarContent>
+    <Columns>
+        <TemplateColumn CellClass="my-5" CellStyle="border-bottom: 0px;">
+            <CellTemplate>
+                <MudGrid Justify="Justify.Center" Spacing="3">
+                    <MudItem lg="6" md="8" sm="10" xs="10">
+                        <MudCard Elevation=20 Style="height: 100%; width: 100%;">
+                            <MudCardContent>
+                                <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center">
+                                    @{ string? contentType = GetContentType(context.Item); long size = GetSize(context.Item); }
+                                    <MudStack>
+                                        <MudText Typo="Typo.caption">@contentType</MudText>
+                                        <MudText Typo="Typo.caption">@(size/1024)KB</MudText>
+                                        <MudText Typo="Typo.caption">@context.Item.CreatedAt</MudText>
+                                    </MudStack>
+                                    <MudImage Src="@context.Item.Thumbnail" Height="100" />
+                                    <MudFab StartIcon="fa-thin fa-check" DropShadow=false OnClick="async () => await OnFileSelected.InvokeAsync(context.Item)" />
+                                </MudStack>
+                            </MudCardContent>
+                            <MudCardActions>
+                            </MudCardActions>
+                        </MudCard>
+                    </MudItem>
+                </MudGrid>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <LoadingContent>
+        <MudCard Elevation=20 Style="height: 100%;" Class="mx-lg-20 mx-md-15 mx-sm-10 mx-xs-5 my-5">
+            <MudCardHeader>
+                <CardHeaderAvatar>
+                    <MudSkeleton SkeletonType="SkeletonType.Circle" Animation="Animation.Wave" Height="40px" Width="40px" />
+                </CardHeaderAvatar>
+                <CardHeaderContent>
+                    <MudSkeleton Animation="Animation.Wave" Width="40%" />
+                    <MudSkeleton Animation="Animation.Wave" Width="60%" />
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Animation="Animation.Wave" Height="250px" />
+            <MudCardContent>
+                <MudSkeleton Animation="Animation.Wave" />
+            </MudCardContent>
+            <MudCardActions>
+                <MudSkeleton SkeletonType="SkeletonType.Circle" Animation="Animation.Wave" Height="30px" Width="30px" Class="ml-2 mb-2" />
+                <MudSkeleton SkeletonType="SkeletonType.Circle" Animation="Animation.Wave" Height="30px" Width="30px" Class="ml-3 mb-2" />
+            </MudCardActions>
+        </MudCard>
+    </LoadingContent>
+    <PagerContent>
+        <MudDataGridPager PageSizeSelector=false T="FileInformationDto" />
+    </PagerContent>
+</MudDataGrid>
+@code {
+    MudDataGrid<FileInformationDto> dataGrid;
+
+    [Inject] protected IFilesClient FilesClient { get; set; } = default!;
+
+    [Parameter] public EventCallback<FileInformationDto> OnFileSelected { get; set; }
+    [Parameter] public RenderFragment? ToolbarButtons { get; set; }
+
+    [SupplyParameterFromQuery] public string? ClientId { get; set; }
+
+    private async Task<GridData<FileInformationDto>> ServerReload(GridState<FileInformationDto> state)
+    {
+        FileInformationDescriptorDto descriptor = new()
+        {
+            Owner = ClientId,
+            Skip = state.Page * state.PageSize,
+            Take = state.PageSize
+        };
+
+        int totalItems = await FilesClient.CountAsync(descriptor, CancellationToken.None);
+
+        IReadOnlyList<FileInformationDto> pagedData = await FilesClient.GetListAsync(descriptor, CancellationToken.None);
+
+        return new GridData<FileInformationDto>
+            {
+                TotalItems = totalItems,
+                Items = pagedData.OrderByDescending(f => f.CreatedAt)
+            };
+    }
+
+    private static string? GetContentType(FileInformationDto item)
+    {
+        if(item is null)
+        {
+            return null;
+        }
+
+        if(!string.IsNullOrWhiteSpace(item.ContentType))
+        {
+            return item.ContentType;
+        }
+
+        string? fromMetadata = TryGetMetadataValue(item, "contentType");
+
+        if(!string.IsNullOrWhiteSpace(fromMetadata))
+        {
+            return fromMetadata;
+        }
+
+        return TryGetLegacyValue(item, "ContentType");
+    }
+
+    private static long GetSize(FileInformationDto item)
+    {
+        if(item is null)
+        {
+            return 0;
+        }
+
+        string? fromMetadata = TryGetMetadataValue(item, "size");
+
+        if(fromMetadata is not null && long.TryParse(fromMetadata, out long parsed))
+        {
+            return parsed;
+        }
+
+        if(long.TryParse(TryGetLegacyValue(item, "Size"), out long legacy))
+        {
+            return legacy;
+        }
+
+        return 0;
+    }
+
+    private static string? TryGetMetadataValue(FileInformationDto item, string propertyName)
+    {
+        string? json = item.GetType().GetProperty("MetadataJson")?.GetValue(item) as string;
+
+        if(string.IsNullOrWhiteSpace(json))
+        {
+            return null;
+        }
+
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(json);
+
+            if(document.RootElement.TryGetProperty(propertyName, out JsonElement element))
+            {
+                return element.ValueKind switch
+                {
+                    JsonValueKind.String => element.GetString(),
+                    JsonValueKind.Number when propertyName == "size" && element.TryGetInt64(out long size) => size.ToString(),
+                    JsonValueKind.Number => element.GetRawText(),
+                    _ => null
+                };
+            }
+        }
+        catch(JsonException)
+        {
+            return null;
+        }
+
+        return null;
+    }
+
+    private static string? TryGetLegacyValue(FileInformationDto item, string propertyName)
+    {
+        object? value = item.GetType().GetProperty(propertyName)?.GetValue(item);
+
+        return value switch
+        {
+            string text when !string.IsNullOrWhiteSpace(text) => text,
+            long number => number.ToString(),
+            int number => number.ToString(),
+            _ => null
+        };
+    }
+}

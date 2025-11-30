@@ -1,0 +1,18 @@
+﻿@using Vorn.Files.Client.Models
+
+<MudDialog>
+    <DialogContent>
+        <FileBrowser OnFileSelected="f => Ok(f)">
+            <ToolbarButtons>
+                <MudFab StartIcon="fa-thin fa-xmark" DropShadow=false OnClick="() => MudDialog.Cancel()" />
+            </ToolbarButtons>
+        </FileBrowser>
+    </DialogContent>
+</MudDialog>
+
+@code {
+
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; }
+
+    private void Ok(FileInformationDto url) => MudDialog.Close(DialogResult.Ok(url));
+}

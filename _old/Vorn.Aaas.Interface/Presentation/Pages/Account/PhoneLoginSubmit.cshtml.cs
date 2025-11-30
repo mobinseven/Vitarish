@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
-using Microsoft.Extensions.Logging;
+using Vorn.Aaas.Users.Presentation.Abstractions;
 
 namespace Vorn.Aaas.Interface.Presentation.Pages.Account;
 
@@ -27,33 +27,33 @@ public sealed class PhoneLoginSubmitModel(
     public async Task<IActionResult> OnPostAsync()
     {
         string failureDestination = ResolveFailureUrl();
-        if(!IsInputValid())
+        if (!IsInputValid())
         {
             LogWarning(null, "InvalidRequest");
             return RedirectWithStatus(failureDestination, BuildInvalidAttemptMessage());
         }
 
-        if(!string.Equals(Input.Provider, TokenOptions.DefaultPhoneProvider, StringComparison.Ordinal))
+        if (!string.Equals(Input.Provider, TokenOptions.DefaultPhoneProvider, StringComparison.Ordinal))
         {
             LogWarning(null, "InvalidRequest");
             return RedirectWithStatus(failureDestination, BuildInvalidAttemptMessage());
         }
 
         User? user = await _usersService.GetUserAsync(Input.UserId, HttpContext.RequestAborted);
-        if(user is null)
+        if (user is null)
         {
             LogWarning(null, "InvalidCredentials");
             return RedirectWithStatus("/Account/Login/Phone", BuildInvalidAttemptMessage());
         }
 
         string normalizedCode = Input.Code.ConvertToEnglishNumerals();
-        if(!await _smsAuthenticationService.VerifyCode(user, normalizedCode))
+        if (!await _smsAuthenticationService.VerifyCode(user, normalizedCode))
         {
             LogWarning(user, "MfaFailure");
             return RedirectWithStatus(failureDestination, BuildInvalidAttemptMessage());
         }
 
-        if(!await _phoneStore.GetPhoneNumberConfirmedAsync(user, HttpContext.RequestAborted))
+        if (!await _phoneStore.GetPhoneNumberConfirmedAsync(user, HttpContext.RequestAborted))
         {
             await _phoneStore.SetPhoneNumberConfirmedAsync(user, true, HttpContext.RequestAborted);
         }
@@ -61,7 +61,7 @@ public sealed class PhoneLoginSubmitModel(
         await _signInManager.SignInAsync(user, true, "mfa");
 
         string? normalizedReturnUrl = NormalizeReturnUrl();
-        if(string.IsNullOrEmpty(normalizedReturnUrl))
+        if (string.IsNullOrEmpty(normalizedReturnUrl))
         {
             return Redirect("/Account/SuccessfulLogin");
         }
@@ -90,25 +90,9 @@ public sealed class PhoneLoginSubmitModel(
 
     private string BuildInvalidAttemptMessage() => $"{_localizer["Error"]}: {_localizer["InvalidLoginAttempt"]}";
 
-    private string ResolveFailureUrl()
-    {
-        if(string.IsNullOrWhiteSpace(Input.FailureUrl))
-        {
-            return "/Account/Login/Phone";
-        }
+    private string ResolveFailureUrl() => string.IsNullOrWhiteSpace(Input.FailureUrl) ? "/Account/Login/Phone" : WebUtility.UrlDecode(Input.FailureUrl);
 
-        return WebUtility.UrlDecode(Input.FailureUrl);
-    }
-
-    private string? NormalizeReturnUrl()
-    {
-        if(string.IsNullOrWhiteSpace(Input.ReturnUrl))
-        {
-            return null;
-        }
-
-        return WebUtility.UrlDecode(Input.ReturnUrl);
-    }
+    private string? NormalizeReturnUrl() => string.IsNullOrWhiteSpace(Input.ReturnUrl) ? null : WebUtility.UrlDecode(Input.ReturnUrl);
 
     private IActionResult RedirectWithStatus(string destination, string message)
     {

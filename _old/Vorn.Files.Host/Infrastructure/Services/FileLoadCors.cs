@@ -1,17 +1,14 @@
-namespace Vorn.Files.Host.Infrastructure.Services;
 
 using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
+using Vorn.Entities.Models;
 using Vorn.Files.Core.Domain.Models;
 using Vorn.Files.Core.Presentation.Interfaces;
 using Vorn.Files.Host.Domain.Options;
 using Vorn.Files.Host.Infrastructure.Extensions;
+
+namespace Vorn.Files.Host.Infrastructure.Services;
 
 public class FileLoadCors(
     RequestDelegate _next,
@@ -38,14 +35,18 @@ public class FileLoadCors(
         using IDisposable tenantScope = tenantAccessor.UseTenant(Defaults.RootTenant);
         using IServiceScope scope = serviceScopeFactory.CreateScope();
         IFileInformationService fileInformations = scope.ServiceProvider.GetRequiredService<IFileInformationService>();
-        System.Collections.Generic.IReadOnlyList<FileInformationDto> fis = await fileInformations.GetListAsync(new FileInformationDescriptorDto { Name = fileName }, context.RequestAborted);
-        FileInformationDto? fileInformation = fis.FirstOrDefault();
+        EntityResult<IReadOnlyList<FileInformationDto>> fisRes = await fileInformations.GetListAsync(new FileInformationDescriptorDto { Name = fileName }, context.RequestAborted);
+        IReadOnlyList<FileInformationDto>? fis = fisRes.Value;
+        FileInformationDto? fileInformation = fis?.FirstOrDefault();
 
         if(fileInformation is null)
         {
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
             return;
         }
+
+        context.Items[typeof(FileInformationDto)] = fileInformation;
+        context.Items["FileName"] = fileName;
 
         string[] origins = [];
         if(context.Request.Headers.TryGetValue("Referer", out StringValues referer))
@@ -72,5 +73,7 @@ public class FileLoadCors(
     }
 
     private static bool IsAllowedOrigin(string[] allowedOrigins, string[] origins)
-        => allowedOrigins.Intersect(origins).Any() || allowedOrigins.Contains("*");
+    {
+        return allowedOrigins.Intersect(origins).Any() || allowedOrigins.Contains("*");
+    }
 }

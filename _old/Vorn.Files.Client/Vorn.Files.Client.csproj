@@ -9,13 +9,9 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Vorn.Aaas\Vorn.Aaas.Client.Api\Vorn.Aaas.Client.Api.csproj" PrivateAssets="none" />
-		<ProjectReference Include="..\..\Vorn.Entities\Vorn.Entities.Client\Vorn.Entities.Client.csproj" PrivateAssets="none" />
+		<ProjectReference Include="..\..\Vorn.Aaas\Vorn.Aaas.Client.Api\Vorn.Aaas.Client.Api.csproj" />
+		<ProjectReference Include="..\..\Vorn.Entities\Vorn.Entities.Client\Vorn.Entities.Client.csproj" />
 	</ItemGroup>
-	<PropertyGroup>
-		<IncludeProjectReferencesDuringPacking>false</IncludeProjectReferencesDuringPacking>
-	</PropertyGroup>
-
 
 
 </Project>

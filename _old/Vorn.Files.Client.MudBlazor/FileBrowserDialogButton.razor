@@ -1,0 +1,31 @@
+﻿@using Vorn.Files.Client.Models
+
+<EditForm Model=@(new FileInformationDto()) OnSubmit="OpenDialogAsync" FormName="OpenDialogAsync">
+    @if(SubmitButton is not null)
+    {
+        @SubmitButton
+    }
+    else
+    {
+        <MudIconButton Size="Size.Small" Icon="fa-thin fa-image" ButtonType="ButtonType.Submit"></MudIconButton>
+    }
+</EditForm>
+
+@code {
+    [Parameter] public RenderFragment? SubmitButton { get; set; }
+    [Parameter] public EventCallback<FileInformationDto> OnFileSelected { get; set; }
+
+    [Inject] protected IDialogService DialogService { get; set; } = default!;
+
+    private async Task OpenDialogAsync()
+    {
+        var dialog = await DialogService.ShowAsync<FileBrwoserDialog>("", new DialogOptions { MaxWidth = MaxWidth.Medium, FullWidth = true });
+        var result = await dialog.Result;
+
+        if((!result?.Canceled ?? false) && (result!.Data is not null))
+        {
+            await OnFileSelected.InvokeAsync((FileInformationDto)(result!.Data));
+        }
+    }
+
+}

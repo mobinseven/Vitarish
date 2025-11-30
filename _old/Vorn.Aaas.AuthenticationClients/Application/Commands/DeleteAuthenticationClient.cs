@@ -1,5 +1,5 @@
-using Vorn.Aaas.AuthenticationClients.Domain.Entities;
 using MediatR;
+using Vorn.Aaas.AuthenticationClients.Domain.Entities;
 
 namespace Vorn.Aaas.AuthenticationClients.Application.Commands;
 

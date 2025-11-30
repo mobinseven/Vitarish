@@ -9,7 +9,7 @@ public class UpdateAuthenticationClientValidator : AbstractValidator<UpdateAuthe
 {
     public UpdateAuthenticationClientValidator()
     {
-        RuleFor(c => c.Id).NotEmpty();
-        RuleFor(c => c.Url).NotEmpty();
+        _ = RuleFor(c => c.Id).NotEmpty();
+        _ = RuleFor(c => c.Url).NotEmpty();
     }
 }

@@ -1,12 +1,14 @@
+
+using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using FluentValidation;
+using Microsoft.Extensions.Caching.Distributed;
 using Vorn.Aaas.ApiClients.Domain.Entities;
 using Vorn.Aaas.ApiClients.Domain.Events;
 using Vorn.Aaas.ApiClients.Infrastructure.Data;
+using Vorn.Aaas.ApiClients.Infrastructure.Extensions;
 
 namespace Vorn.Aaas.ApiClients.Application.Commands;
-
 /// <summary>
 /// Command to create a new <see cref="ApiClient"/>.
 /// </summary>
@@ -19,14 +21,14 @@ public class CreateApiClientValidator : AbstractValidator<CreateApiClient>
 {
     public CreateApiClientValidator()
     {
-        RuleFor(c => c.Id).NotEmpty();
-        RuleFor(c => c.Secret).NotEmpty();
-        RuleFor(c => c.Scopes).NotEmpty();
-        RuleFor(c => c.HostUri).NotEmpty();
+        _ = RuleFor(c => c.Id).NotEmpty();
+        _ = RuleFor(c => c.Secret).NotEmpty();
+        _ = RuleFor(c => c.Scopes).NotEmpty();
+        _ = RuleFor(c => c.HostUri).NotEmpty();
     }
 }
 
-internal sealed class CreateApiClientHandler(ApiClientDbContext db, IPublisher publisher) : IRequestHandler<CreateApiClient, ApiClient?>
+internal sealed class CreateApiClientHandler(ApiClientDbContext db, IPublisher publisher, IDistributedCache cache) : IRequestHandler<CreateApiClient, ApiClient?>
 {
     public async Task<ApiClient?> Handle(CreateApiClient request, CancellationToken cancellationToken)
     {
@@ -43,10 +45,12 @@ internal sealed class CreateApiClientHandler(ApiClientDbContext db, IPublisher p
             HostUri = request.HostUri
         };
 
-        db.ApiClients.Add(client);
-        await db.SaveChangesAsync(cancellationToken);
+        _ = db.ApiClients.Add(client);
+        _ = await db.SaveChangesAsync(cancellationToken);
 
         await publisher.Publish(new ApiClientCreatedEvent(client.Id), cancellationToken);
+        await ApiClientCacheExtensions.SetClientAsync(cache, client, cancellationToken);
+        await ApiClientCacheExtensions.RemoveClientsAsync(cache, cancellationToken);
         return client;
     }
 }

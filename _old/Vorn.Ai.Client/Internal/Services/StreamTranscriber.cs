@@ -1,14 +1,13 @@
-namespace Vorn.Ai.Client.Internal.Services;
 
 using Microsoft.JSInterop;
-using System;
 using System.Text;
-using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 using Vorn.Ai.Client.Abstractions;
+using Vorn.Ai.Client.Contracts.Transcription;
 
-public sealed class StreamTranscriber(ISpeechHubClient speechHubClient, IJSRuntime jsRuntime) : IStreamTranscriber
+namespace Vorn.Ai.Client.Internal.Services;
+
+public sealed class StreamTranscriber(ITranscriberClient speechHubClient, IJSRuntime jsRuntime) : IStreamTranscriber
 {
     private const string ModulePath = "./_content/Vorn.Ai.Client/Components/AiStreamTranscriber.razor.js";
     private const int ChannelCapacity = 5000;
@@ -17,7 +16,6 @@ public sealed class StreamTranscriber(ISpeechHubClient speechHubClient, IJSRunti
     private IJSObjectReference? _module;
     private DotNetObjectReference<StreamTranscriber>? _objRef;
     private Channel<byte[]>? _audioRecorder;
-    private string _value = string.Empty;
     private bool _initialized;
     private bool _disposed;
 
@@ -27,7 +25,9 @@ public sealed class StreamTranscriber(ISpeechHubClient speechHubClient, IJSRunti
 
     public bool Transcribing { get; private set; }
 
-    public string Value => _value;
+    public string Value { get; private set; } = string.Empty;
+
+    public TranscriberOptions? Options { get; set; }
 
     public event EventHandler<bool>? SupportStatusChanged;
 
@@ -43,7 +43,7 @@ public sealed class StreamTranscriber(ISpeechHubClient speechHubClient, IJSRunti
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
-        if (_initialized)
+        if(_initialized)
         {
             return;
         }
@@ -51,7 +51,7 @@ public sealed class StreamTranscriber(ISpeechHubClient speechHubClient, IJSRunti
         await _initializationGate.WaitAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            if (_initialized)
+            if(_initialized)
             {
                 return;
             }
@@ -64,13 +64,13 @@ public sealed class StreamTranscriber(ISpeechHubClient speechHubClient, IJSRunti
         }
         finally
         {
-            _initializationGate.Release();
+            _ = _initializationGate.Release();
         }
     }
 
     public async Task ToggleRecordingAsync(CancellationToken cancellationToken = default)
     {
-        if (Recording)
+        if(Recording)
         {
             await StopRecordingAsync().ConfigureAwait(false);
         }
@@ -84,15 +84,15 @@ public sealed class StreamTranscriber(ISpeechHubClient speechHubClient, IJSRunti
     {
         await InitializeAsync(cancellationToken).ConfigureAwait(false);
 
-        if (!Supported || Recording || Transcribing)
+        if(!Supported || Recording || Transcribing)
         {
             return;
         }
 
-        if (_value.Length > 0)
+        if(Value.Length > 0)
         {
-            _value = string.Empty;
-            ValueChanged?.Invoke(this, _value);
+            Value = string.Empty;
+            ValueChanged?.Invoke(this, Value);
         }
 
         Recording = true;
@@ -105,21 +105,21 @@ public sealed class StreamTranscriber(ISpeechHubClient speechHubClient, IJSRunti
 
         try
         {
-            await foreach (string chunk in speechHubClient.StreamTranscribeAsync(_audioRecorder.Reader, ct: cancellationToken).ConfigureAwait(false))
+            await foreach(string chunk in speechHubClient.StreamTranscribeAsync(_audioRecorder.Reader, options: Options, ct: cancellationToken).ConfigureAwait(false))
             {
-                if (string.IsNullOrEmpty(chunk))
+                if(string.IsNullOrEmpty(chunk))
                 {
                     continue;
                 }
 
                 ChunkReceived?.Invoke(this, chunk);
-                builder.Append(chunk);
+                _ = builder.Append(chunk);
                 string nextValue = builder.ToString();
 
-                if (!string.Equals(_value, nextValue, StringComparison.Ordinal))
+                if(!string.Equals(Value, nextValue, StringComparison.Ordinal))
                 {
-                    _value = nextValue;
-                    ValueChanged?.Invoke(this, _value);
+                    Value = nextValue;
+                    ValueChanged?.Invoke(this, Value);
                 }
             }
         }
@@ -134,7 +134,7 @@ public sealed class StreamTranscriber(ISpeechHubClient speechHubClient, IJSRunti
 
     public async ValueTask StopRecordingAsync()
     {
-        if (!Recording)
+        if(!Recording)
         {
             return;
         }
@@ -144,7 +144,7 @@ public sealed class StreamTranscriber(ISpeechHubClient speechHubClient, IJSRunti
 
         ValueTask stopTask = _module?.InvokeVoidAsync("stop") ?? ValueTask.CompletedTask;
 
-        _audioRecorder?.Writer.TryComplete();
+        _ = (_audioRecorder?.Writer.TryComplete());
         Recording = false;
         RecordingStateChanged?.Invoke(this, false);
 
@@ -154,26 +154,26 @@ public sealed class StreamTranscriber(ISpeechHubClient speechHubClient, IJSRunti
     [JSInvokable]
     public ValueTask OnChunk(byte[] data)
     {
-        _audioRecorder?.Writer.TryWrite(data);
+        _ = (_audioRecorder?.Writer.TryWrite(data));
         return ValueTask.CompletedTask;
     }
 
     [JSInvokable]
     public ValueTask OnStop()
     {
-        if (Recording)
+        if(Recording)
         {
             Recording = false;
             RecordingStateChanged?.Invoke(this, false);
         }
 
-        _audioRecorder?.Writer.TryComplete();
+        _ = (_audioRecorder?.Writer.TryComplete());
         return ValueTask.CompletedTask;
     }
 
     public async ValueTask DisposeAsync()
     {
-        if (_disposed)
+        if(_disposed)
         {
             return;
         }
@@ -184,7 +184,7 @@ public sealed class StreamTranscriber(ISpeechHubClient speechHubClient, IJSRunti
         {
             await StopRecordingAsync().ConfigureAwait(false);
 
-            if (_module is not null)
+            if(_module is not null)
             {
                 await _module.DisposeAsync().ConfigureAwait(false);
             }

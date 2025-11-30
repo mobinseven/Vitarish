@@ -1,8 +1,8 @@
-namespace Vorn.Aaas.Client.Api.Abstractions;
 
 using Microsoft.AspNetCore.SignalR.Client;
 using Vorn.Aaas.Client.Api.Options;
 
+namespace Vorn.Aaas.Client.Api.Abstractions;
 /// <summary>
 /// Creates configured <see cref="HubConnection"/> instances for AAAS protected hubs.
 /// </summary>

@@ -376,26 +376,6 @@
 
                 <MudText Typo="Typo.subtitle1">@Localizer["Typography"]</MudText>
                 <MudGrid>
-                    <MudItem xs="12">
-                        <MudStack Spacing="1">
-                            <MudText Typo="Typo.caption">@Localizer["Typography preset"]</MudText>
-                            <MudSelect T="string" 
-                                       Label="@Localizer["Typography Scale"]" 
-                                       Value="@typographyPreset"
-                                       ValueChanged="@OnTypographyPresetChanged"
-                                       Variant="Variant.Outlined">
-                                <MudSelectItem Value="@("compact")">@Localizer["Compact"] (0.875rem / 14px)</MudSelectItem>
-                                <MudSelectItem Value="@("default")">@Localizer["Default"] (1rem / 16px)</MudSelectItem>
-                                <MudSelectItem Value="@("comfortable")">@Localizer["Comfortable"] (1.125rem / 18px)</MudSelectItem>
-                                <MudSelectItem Value="@("large")">@Localizer["Large"] (1.25rem / 20px)</MudSelectItem>
-                                <MudSelectItem Value="@("custom")">@Localizer["Custom"]</MudSelectItem>
-                            </MudSelect>
-                            <MudAlert Severity="Severity.Info" Dense="true">
-                                @Localizer["Current"]: <strong>@ThemeService.Typography.FontSize</strong> 
-                                (@Localizer["Weight"]: @ThemeService.Typography.FontWeight)
-                            </MudAlert>
-                        </MudStack>
-                    </MudItem>
                     <MudItem xs="12" sm="6">
                         <MudStack Spacing="1">
                             <MudText Typo="Typo.caption">@Localizer["Font size"]</MudText>

@@ -1,7 +1,5 @@
 namespace Vorn.Aaas.Users.Presentation.Api;
 
-using System.Collections.Generic;
-
 public sealed record CreatePersonalAccessTokenRequest(
     string UserId,
     int? LifetimeDays = null,

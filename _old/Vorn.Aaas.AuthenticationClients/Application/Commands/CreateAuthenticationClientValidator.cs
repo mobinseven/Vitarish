@@ -9,7 +9,7 @@ public class CreateAuthenticationClientValidator : AbstractValidator<CreateAuthe
 {
     public CreateAuthenticationClientValidator()
     {
-        RuleFor(c => c.Id).NotEmpty();
-        RuleFor(c => c.Url).NotEmpty();
+        _ = RuleFor(c => c.Id).NotEmpty();
+        _ = RuleFor(c => c.Url).NotEmpty();
     }
 }

@@ -1,6 +1,6 @@
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using FluentValidation;
 using Vorn.Aaas.Users.Domain.Entities;
 
 namespace Vorn.Aaas.Users.Application.Queries;
@@ -11,7 +11,7 @@ public class UserHasPasswordQueryValidator : AbstractValidator<UserHasPasswordQu
 {
     public UserHasPasswordQueryValidator()
     {
-        RuleFor(q => q.Id).NotEmpty();
+        _ = RuleFor(q => q.Id).NotEmpty();
     }
 }
 
@@ -19,7 +19,7 @@ internal class UserHasPasswordQueryHandler(UserManager<User> userManager) : IReq
 {
     public async Task<bool> Handle(UserHasPasswordQuery request, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByIdAsync(request.Id);
+        User? user = await userManager.FindByIdAsync(request.Id);
         return user is not null && await userManager.HasPasswordAsync(user);
     }
 }

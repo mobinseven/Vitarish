@@ -1,2 +1,2 @@
-AaasWebApplicationRunner aaasWebApplication = new(AaasWebApplicationBuilder.BuildWebApplication(args));
+AaasWebApplicationRunner aaasWebApplication = new(await AaasWebApplicationBuilder.BuildWebApplication(args));
 await aaasWebApplication.Run();

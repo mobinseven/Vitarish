@@ -2,7 +2,8 @@ using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Vorn.Aaas.Client.Api.Abstractions;
-using Vorn.Aaas.Client.Api.Models;
+using Vorn.Aaas.Client.Api.Contracts;
+using Vorn.Aaas.Client.Api.Extensions;
 using Vorn.Aaas.Client.Api.Options;
 
 namespace Vorn.Aaas.Client.Api.Internal;
@@ -35,13 +36,13 @@ internal class SignalRClientFactory(
         SignalRClientRegistration merged = mergeOptions(registration, options);
         ApiClientDto apiClient = await resolveApiClientAsync(merged, cancellationToken).ConfigureAwait(false);
         string hubUrl = buildHubUrl(apiClient, merged);
-        IReadOnlyDictionary<string, string> headers = buildHeaders(merged.OwnerClientId);
+        IReadOnlyDictionary<string, string> headers = buildHeaders();
 
         HubConnectionBuilder builder = new();
-        builder.WithUrl(hubUrl, httpOptions =>
+        _ = builder.WithUrl(hubUrl, httpOptions =>
         {
             httpOptions.AccessTokenProvider = async () => (string?)await getAccessTokenAsync(apiClient).ConfigureAwait(false);
-            foreach((string key, string value) in headers)
+            foreach ((string key, string value) in headers)
             {
                 httpOptions.Headers[key] = value;
             }
@@ -49,12 +50,12 @@ internal class SignalRClientFactory(
             merged.ConfigureHttpConnection?.Invoke(httpOptions);
         });
 
-        if(merged.AutomaticReconnect)
+        if (merged.AutomaticReconnect)
         {
             _ = builder.WithAutomaticReconnect();
         }
 
-        if(merged.UseMessagePack)
+        if (merged.UseMessagePack)
         {
             _ = builder.AddMessagePackProtocol();
         }
@@ -77,12 +78,12 @@ internal class SignalRClientFactory(
             ConfigureHttpConnection = registration.ConfigureHttpConnection,
         };
 
-        if(options?.ConfigureBuilder is not null)
+        if (options?.ConfigureBuilder is not null)
         {
             merged.ConfigureBuilder += options.ConfigureBuilder;
         }
 
-        if(options?.ConfigureHttpConnection is not null)
+        if (options?.ConfigureHttpConnection is not null)
         {
             merged.ConfigureHttpConnection += options.ConfigureHttpConnection;
         }
@@ -98,17 +99,11 @@ internal class SignalRClientFactory(
         return client ?? throw new InvalidOperationException($"No such API client registered: {clientId}");
     }
 
-    private string resolveApiClientId(SignalRClientRegistration registration)
-    {
-        if (!string.IsNullOrWhiteSpace(registration.ApiClientId))
-        {
-            return registration.ApiClientId;
-        }
-
-        return string.IsNullOrWhiteSpace(registration.ClientId)
+    private string resolveApiClientId(SignalRClientRegistration registration) => !string.IsNullOrWhiteSpace(registration.ApiClientId)
+            ? registration.ApiClientId
+            : string.IsNullOrWhiteSpace(registration.ClientId)
             ? throw new InvalidOperationException("SignalR client registration requires either ClientId or ApiClientId to resolve the API client.")
             : deriveClientId(registration.ClientId);
-    }
 
     private string deriveClientId(string clientPath)
     {
@@ -118,7 +113,7 @@ internal class SignalRClientFactory(
             throw new InvalidOperationException($"Unable to derive API client id from client path '{clientPath}'.");
         }
 
-        string suffix = configuration.Aaas.Local ?? false ? ".local" : string.Empty;
+        string suffix = configuration.Aaas.Local ?? false ? ".local" : configuration.Aaas.Dev ?? false ? ".dev" : string.Empty;
         return $"api.{target}{suffix}";
     }
 
@@ -133,10 +128,10 @@ internal class SignalRClientFactory(
         return UrlHelper.UrlCombine(hostBase, combinedPath);
     }
 
-    private IReadOnlyDictionary<string, string> buildHeaders(string? ownerOverride)
+    private IReadOnlyDictionary<string, string> buildHeaders()
     {
         using HttpRequestMessage request = new();
-        RequestIdentityContextHeaders.Apply(request.Headers, identityContext, ownerOverride);
+        RequestIdentityContextHeaders.Apply(request.Headers, identityContext);
         return request.Headers.ToDictionary(static header => header.Key, static header => header.Value.LastOrDefault() ?? string.Empty);
     }
 

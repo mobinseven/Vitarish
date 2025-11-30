@@ -8,20 +8,20 @@ public static class MigrationExtensions
         TContext db = scope.ServiceProvider.GetRequiredService<TContext>();
         ILogger<TContext> logger = scope.ServiceProvider.GetRequiredService<ILogger<TContext>>();
 
-        ////// For SQLite: make sure the directory exists (EF/SQLite won't create it)
-        ////if (db.Database.GetDbConnection() is SqliteConnection sqlite)
-        ////{
-        ////    string dataSource = sqlite.DataSource; // may be relative
-        ////    string fullPath = Path.IsPathRooted(dataSource)
-        ////        ? dataSource
-        ////        : Path.Combine(AppContext.BaseDirectory, dataSource);
+        // For SQLite: make sure the directory exists (EF/SQLite won't create it)
+        //if (db.Database.GetDbConnection() is SqliteConnection sqlite)
+        //{
+        //    string dataSource = sqlite.DataSource; // may be relative
+        //    string fullPath = Path.IsPathRooted(dataSource)
+        //        ? dataSource
+        //        : Path.Combine(AppContext.BaseDirectory, dataSource);
 
-        ////    string? dir = Path.GetDirectoryName(fullPath);
-        ////    if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
-        ////    {
-        ////        Directory.CreateDirectory(dir);
-        ////    }
-        ////}
+        //    string? dir = Path.GetDirectoryName(fullPath);
+        //    if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+        //    {
+        //        Directory.CreateDirectory(dir);
+        //    }
+        //}
 
         IEnumerable<string> pending = await db.Database.GetPendingMigrationsAsync();
         if(pending.Any())

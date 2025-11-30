@@ -1,9 +1,9 @@
-namespace Vorn.Ai.Client.Components;
 
 using Microsoft.AspNetCore.Components;
-using System;
-using System.Threading.Tasks;
 using Vorn.Ai.Client.Abstractions;
+using Vorn.Ai.Client.Contracts.Transcription;
+
+namespace Vorn.Ai.Client.Components;
 
 public partial class AiStreamTranscriber : ComponentBase, IAsyncDisposable
 {
@@ -24,6 +24,9 @@ public partial class AiStreamTranscriber : ComponentBase, IAsyncDisposable
     [Parameter]
     public string Value { get; set; } = string.Empty;
 
+    [Parameter]
+    public TranscriberOptions? Options { get; set; }
+
     private string CurrentValue => Value ?? string.Empty;
 
     public bool Supported => StreamTranscriber.Supported;
@@ -42,26 +45,40 @@ public partial class AiStreamTranscriber : ComponentBase, IAsyncDisposable
         StreamTranscriber.SupportStatusChanged += OnServiceSupportStatusChanged;
     }
 
-    protected override void OnParametersSet() => Value ??= string.Empty;
+    protected override void OnParametersSet()
+    {
+        Value ??= string.Empty;
+        StreamTranscriber.Options = Options;
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (firstRender)
+        if(firstRender)
         {
             await StreamTranscriber.InitializeAsync();
         }
     }
 
-    public Task ToggleRecordingAsync() => StreamTranscriber.ToggleRecordingAsync();
+    public Task ToggleRecordingAsync()
+    {
+        return StreamTranscriber.ToggleRecordingAsync();
+    }
 
-    public Task StartRecordingAsync() => StreamTranscriber.StartRecordingAsync();
+    public Task StartRecordingAsync()
+    {
+        return StreamTranscriber.StartRecordingAsync();
+    }
 
-    public ValueTask StopRecordingAsync() => StreamTranscriber.StopRecordingAsync();
+    public ValueTask StopRecordingAsync()
+    {
+        return StreamTranscriber.StopRecordingAsync();
+    }
 
-    private async void OnServiceValueChanged(object? sender, string newValue) =>
+    private async void OnServiceValueChanged(object? sender, string newValue)
+    {
         await InvokeAsync(async () =>
         {
-            if (!string.Equals(CurrentValue, newValue, StringComparison.Ordinal))
+            if(!string.Equals(CurrentValue, newValue, StringComparison.Ordinal))
             {
                 Value = newValue;
                 await ValueChanged.InvokeAsync(newValue);
@@ -69,40 +86,51 @@ public partial class AiStreamTranscriber : ComponentBase, IAsyncDisposable
 
             StateHasChanged();
         });
+    }
 
-    private async void OnServiceChunkReceived(object? sender, string chunk) =>
+    private async void OnServiceChunkReceived(object? sender, string chunk)
+    {
         await InvokeAsync(async () =>
         {
             await OnChunk.InvokeAsync(chunk);
         });
+    }
 
-    private async void OnServiceTranscriptionCompleted(object? sender, EventArgs args) =>
+    private async void OnServiceTranscriptionCompleted(object? sender, EventArgs args)
+    {
         await InvokeAsync(async () =>
         {
             await OnTransciptionEnd.InvokeAsync();
             StateHasChanged();
         });
+    }
 
-    private async void OnServiceRecordingStateChanged(object? sender, bool recording) =>
+    private async void OnServiceRecordingStateChanged(object? sender, bool recording)
+    {
         await InvokeAsync(async () =>
         {
             await OnRecordingStateChanged.InvokeAsync(recording);
             StateHasChanged();
         });
+    }
 
-    private async void OnServiceTranscribingStateChanged(object? sender, bool transcribing) =>
+    private async void OnServiceTranscribingStateChanged(object? sender, bool transcribing)
+    {
         await InvokeAsync(async () =>
         {
             await OnTranscribingStateChanged.InvokeAsync(transcribing);
             StateHasChanged();
         });
+    }
 
-    private async void OnServiceSupportStatusChanged(object? sender, bool supported) =>
+    private async void OnServiceSupportStatusChanged(object? sender, bool supported)
+    {
         await InvokeAsync(async () =>
         {
             await OnSupportStatusChanged.InvokeAsync(supported);
             StateHasChanged();
         });
+    }
 
     public async ValueTask DisposeAsync()
     {

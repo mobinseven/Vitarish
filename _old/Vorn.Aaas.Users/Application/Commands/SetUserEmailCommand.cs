@@ -1,7 +1,10 @@
+
+using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using FluentValidation;
+using Microsoft.Extensions.Caching.Distributed;
 using Vorn.Aaas.Users.Domain.Entities;
+using Vorn.Aaas.Users.Infrastructure.Extensions;
 
 namespace Vorn.Aaas.Users.Application.Commands;
 
@@ -11,20 +14,28 @@ public class SetUserEmailCommandValidator : AbstractValidator<SetUserEmailComman
 {
     public SetUserEmailCommandValidator()
     {
-        RuleFor(c => c.Id).NotEmpty();
-        RuleFor(c => c.Email).NotEmpty().EmailAddress();
+        _ = RuleFor(c => c.Id).NotEmpty();
+        _ = RuleFor(c => c.Email).NotEmpty().EmailAddress();
     }
 }
 
-internal class SetUserEmailCommandHandler(UserManager<User> userManager) : IRequestHandler<SetUserEmailCommand, IdentityResult>
+internal class SetUserEmailCommandHandler(UserManager<User> userManager, IDistributedCache cache) : IRequestHandler<SetUserEmailCommand, IdentityResult>
 {
     public async Task<IdentityResult> Handle(SetUserEmailCommand request, CancellationToken cancellationToken)
     {
-        var user = await userManager.FindByIdAsync(request.Id);
+        User? user = await userManager.FindByIdAsync(request.Id);
         if (user is null)
         {
             return IdentityResult.Failed(new IdentityError { Description = "User not found" });
         }
-        return await userManager.SetEmailAsync(user, request.Email);
+
+        IdentityResult result = await userManager.SetEmailAsync(user, request.Email);
+        if (result.Succeeded)
+        {
+            await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
+            await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
+        }
+
+        return result;
     }
 }

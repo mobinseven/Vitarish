@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Components;
 using Vorn.Aaas.AuthenticationClients.Domain.Entities;
 using Vorn.Aaas.Users;
 using Vorn.Aaas.Client.Extensions;
-using Vorn.Aaas.Client.Models;
+using Vorn.Aaas.Client.Contracts;
 
 /// <summary>
 /// Displays the access‑matrix for all authentication clients and emits a minimal list of

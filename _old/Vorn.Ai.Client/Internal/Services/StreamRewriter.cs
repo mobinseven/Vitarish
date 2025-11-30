@@ -1,21 +1,17 @@
-namespace Vorn.Ai.Client.Internal.Services;
-
-using System;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 using Vorn.Ai.Client.Abstractions;
 using Vorn.Ai.Client.Models;
 
-public sealed class StreamRewriter(IResponseHubClient responseHubClient) : IStreamRewriter
+namespace Vorn.Ai.Client.Internal.Services;
+
+public sealed class StreamRewriter(IResponderClient responseHubClient) : IStreamRewriter
 {
     private readonly SemaphoreSlim _gate = new(1, 1);
     private CancellationTokenSource? _cts;
-    private string _value = string.Empty;
 
     public bool Rewriting { get; private set; }
 
-    public string Value => _value;
+    public string Value { get; private set; } = string.Empty;
 
     public event EventHandler? RewriteStarted;
     public event EventHandler<string>? ValueChanged;
@@ -37,47 +33,47 @@ public sealed class StreamRewriter(IResponseHubClient responseHubClient) : IStre
             CancellationToken token = _cts.Token;
 
             Rewriting = true;
-            _value = string.Empty;
+            Value = string.Empty;
             RewriteStarted?.Invoke(this, EventArgs.Empty);
 
             StringBuilder builder = new(Math.Max(16, prompt.Length));
 
-            await foreach (ResponderOutput? response in responseHubClient.StreamRewriteAsync(prompt, token).WithCancellation(token).ConfigureAwait(false))
+            await foreach(ResponderOutput? response in responseHubClient.StreamRewriteAsync(prompt, token).WithCancellation(token).ConfigureAwait(false))
             {
-                if (response is null)
+                if(response is null)
                 {
                     continue;
                 }
 
-                if (response.Type != ResponderOutputType.Text)
+                if(response.Type != ResponderOutputType.Text)
                 {
                     continue;
                 }
 
                 string chunk = response.Text ?? string.Empty;
 
-                if (chunk.Length == 0)
+                if(chunk.Length == 0)
                 {
                     continue;
                 }
 
-                builder.Append(chunk);
+                _ = builder.Append(chunk);
                 string nextValue = builder.ToString();
 
-                if (!string.Equals(_value, nextValue, StringComparison.Ordinal))
+                if(!string.Equals(Value, nextValue, StringComparison.Ordinal))
                 {
-                    _value = nextValue;
-                    ValueChanged?.Invoke(this, _value);
+                    Value = nextValue;
+                    ValueChanged?.Invoke(this, Value);
                 }
             }
 
             RewriteCompleted?.Invoke(this, EventArgs.Empty);
         }
-        catch (OperationCanceledException)
+        catch(OperationCanceledException)
         {
             // cancellation: ignore
         }
-        catch (Exception ex)
+        catch(Exception ex)
         {
             RewriteErrored?.Invoke(this, ex);
             throw;
@@ -86,11 +82,11 @@ public sealed class StreamRewriter(IResponseHubClient responseHubClient) : IStre
         {
             Rewriting = false;
 
-            if (gateTaken)
+            if(gateTaken)
             {
                 _cts?.Dispose();
                 _cts = null;
-                _gate.Release();
+                _ = _gate.Release();
             }
         }
     }

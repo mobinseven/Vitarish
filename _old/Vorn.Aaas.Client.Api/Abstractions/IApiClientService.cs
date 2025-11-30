@@ -1,4 +1,4 @@
-using Vorn.Aaas.Client.Api.Models;
+using Vorn.Aaas.Client.Api.Contracts;
 
 namespace Vorn.Aaas.Client.Api.Abstractions;
 
@@ -10,7 +10,7 @@ public interface IApiClientService
     /// <summary>
     /// Creates a configured <see cref="HttpClient"/> for the specified endpoint.
     /// </summary>
-    Task<HttpClient> CreateClient(string targetClientId, string targetResourceId, string? clientId = null);
+    Task<HttpClient> CreateClient(string targetClientId, string targetResourceId);
 
     /// <summary>
     /// Retrieves an access token for the specified <see cref="ApiClientDto"/>.

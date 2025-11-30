@@ -1,15 +1,16 @@
-namespace Vorn.Aaas.Users.Application.Commands;
 
-using System.Security.Claims;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using Vorn.Aaas.Users;
-using Vorn.Aaas.Users.Application.Abstractions;
-using Vorn.Aaas.Users.Application.Auditing;
+using System.Security.Claims;
 using Vorn.Aaas.Users.Domain.Entities;
 using Vorn.Aaas.Users.Domain.Events;
-using Vorn.Aaas.Users.Infrastructure.Publishing;
+using Vorn.Aaas.Users.Domain.Models;
+using Vorn.Aaas.Users.Infrastructure.Abstractions;
+using Vorn.Aaas.Users.Infrastructure.Service;
+using Vorn.Aaas.Users.Presentation.Abstractions;
+
+namespace Vorn.Aaas.Users.Application.Commands;
 
 public record RemoveUserAccessClaimCommand(string UserId, string ClientId) : IRequest;
 
@@ -17,8 +18,8 @@ public class RemoveUserAccessClaimCommandValidator : AbstractValidator<RemoveUse
 {
     public RemoveUserAccessClaimCommandValidator()
     {
-        RuleFor(c => c.UserId).NotEmpty();
-        RuleFor(c => c.ClientId).NotEmpty();
+        _ = RuleFor(c => c.UserId).NotEmpty();
+        _ = RuleFor(c => c.ClientId).NotEmpty();
     }
 }
 
@@ -33,12 +34,12 @@ public class RemoveUserAccessClaimCommandHandler(
         User user = await manager.FindByIdAsync(request.UserId) ?? throw new InvalidDataException("Invalid user id");
         IList<Claim> claims = await manager.GetClaimsAsync(user);
         Claim? claim = claims.FirstOrDefault(c => c.Type == AaasConstants.AccessClaim && c.Value.StartsWith(request.ClientId + ":"));
-        if(claim is null)
+        if (claim is null)
         {
             return;
         }
         IdentityResult result = await manager.RemoveClaimAsync(user, claim);
-        if(!result.Succeeded)
+        if (!result.Succeeded)
         {
             throw new Exception("Could not remove access claim");
         }

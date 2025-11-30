@@ -13,11 +13,11 @@ public static class AaasApiClientMarkerExtensions
     /// </summary>
     /// <param name="services"></param>
     /// <returns></returns>
-    public static IServiceCollection ConfigureAaasClient(this IServiceCollection services, IConfiguration configuration)
+    public static async Task ConfigureAaasClient(this IServiceCollection services, IConfiguration configuration)
     {
         if (services.Any(sd => sd.ServiceType == typeof(AaasApiClientMarker)))
         {
-            return services;
+            return;
         }
 
         _ = services.AddSingleton<AaasApiClientMarker>();
@@ -38,14 +38,15 @@ public static class AaasApiClientMarkerExtensions
                     jwt.TokenValidationParameters.ValidateAudience = false;
                     jwt.TokenValidationParameters.ValidTypes = ["at+jwt"];
                 });
+        await services.AddAaasDataProtection(configuration);
+        services.AddRedisCaching(configuration);
         _ = services.AddAuthorization();
         _ = services.AddMemoryCache();
-        _ = services.AddScoped<IAaasClientFactory, AaasClientFactory>();
+        _ = services.AddTransient<IAaasClientFactory, AaasClientFactory>();
         _ = services.AddScoped<IRequestIdentityForwarder, RequestIdentityForwarder>();
         _ = services.AddScoped<RequestIdentityContext>();
         _ = services.AddScoped<IRequestIdentityContext>(sp => sp.GetRequiredService<RequestIdentityContext>());
         _ = services.AddScoped<IRequestIdentityContextWriter>(sp => sp.GetRequiredService<RequestIdentityContext>());
-        return services;
     }
 
     /// <summary>
@@ -72,14 +73,8 @@ public static class AaasApiClientMarkerExtensions
                 .ValidateOnStart();
 
         VornOptions vornOptions = services.BuildServiceProvider().GetRequiredService<IOptions<VornOptions>>().Value;
-        _ = vornOptions.Cache is not null
-            ? services.AddDistributedSqlServerCache(options =>
-            {
-                options.ConnectionString = vornOptions.Cache.ConnectionString;
-                options.SchemaName = vornOptions.Cache.SchemaName;
-                options.TableName = vornOptions.Cache.TableName;
-            })
-            : services.AddDistributedMemoryCache();
+
+        services.AddRedisCaching(configuration);
 
         //services.AddOpenTelemetry()
         //        .WithTracing(b => b
@@ -91,9 +86,12 @@ public static class AaasApiClientMarkerExtensions
         _ = services.AddScoped<RequestIdentityContext>();
         _ = services.AddScoped<IRequestIdentityContext>(sp => sp.GetRequiredService<RequestIdentityContext>());
         _ = services.AddScoped<IRequestIdentityContextWriter>(sp => sp.GetRequiredService<RequestIdentityContext>());
-        _ = services.AddScoped<IRequestIdentityContextBackgroundSupplier, RequestIdentityContextBackgroundSupplier>();
+        _ = services.AddScoped<IRequestIdentityContextGenerator, RequestIdentityContextGenerator>();
+        _ = services.AddSingleton<IIdentityScopeFactory, IdentityScopeFactory>();
         _ = services.AddTransient<IApiClientService, ApiClientService>();
         _ = services.AddTransient<IAaasClientFactory, AaasClientFactory>();
+        _ = services.AddScoped<ITenantsService, TenantsService>();
+        _ = services.AddHttpContextAccessor();
         return services;
     }
 

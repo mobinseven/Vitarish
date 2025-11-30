@@ -1,8 +1,6 @@
-namespace Vorn.Ai.Client.Abstractions;
+using Vorn.Ai.Client.Contracts.Transcription;
 
-using System;
-using System.Threading;
-using System.Threading.Tasks;
+namespace Vorn.Ai.Client.Abstractions;
 
 public interface IStreamTranscriber : IAsyncDisposable
 {
@@ -25,6 +23,11 @@ public interface IStreamTranscriber : IAsyncDisposable
     /// Gets the current transcribed text value.
     /// </summary>
     string Value { get; }
+
+    /// <summary>
+    /// Gets or sets additional options passed to the transcription hub.
+    /// </summary>
+    TranscriberOptions? Options { get; set; }
 
     /// <summary>
     /// Raised when the transcribed value changes.

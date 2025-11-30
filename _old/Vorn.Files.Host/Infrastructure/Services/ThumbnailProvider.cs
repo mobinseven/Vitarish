@@ -1,13 +1,15 @@
 namespace Vorn.Files.Host.Infrastructure.Services;
 
 using Microsoft.AspNetCore.Http;
-using System;
-using System.IO;
 using System.Threading.Tasks;
 using Vorn.Files.Host.Domain.Options;
 using Vorn.Files.Host.Infrastructure.Extensions;
+using Vorn.Files.Host.Infrastructure.Interfaces;
 
-public class ThumbnailProvider(RequestDelegate next, VornOptions options)
+public class ThumbnailProvider(
+    RequestDelegate next,
+    VornOptions options,
+    IObjectStorageService storage)
 {
     public async Task InvokeAsync(HttpContext context)
     {
@@ -17,22 +19,25 @@ public class ThumbnailProvider(RequestDelegate next, VornOptions options)
             return;
         }
 
-        string? fileName = Path.GetFileName(context.Request.Path);
-        if (string.IsNullOrWhiteSpace(fileName))
+        if (!context.Items.TryGetValue("FileName", out object? fileNameObj) || fileNameObj is not string fileName)
         {
             context.Response.StatusCode = StatusCodes.Status404NotFound;
             return;
         }
 
-        string basePath = Path.Combine(Environment.CurrentDirectory, "wwwroot", options.Files.UploadPath);
-        string thumbPath = Path.Combine(basePath, fileName) + ".thumb.jpg";
-        if (!File.Exists(thumbPath))
+        string objectKey = options.Files.BuildObjectKey(fileName);
+        string thumbKey = objectKey + ".thumb.jpg";
+
+        if (!await storage.ExistsAsync(thumbKey, context.RequestAborted).ConfigureAwait(false))
         {
             context.Response.StatusCode = StatusCodes.Status404NotFound;
             return;
         }
 
-        context.Response.ContentType = Thumbnails.ThumbnailContentType;
-        await context.Response.SendFileAsync(thumbPath);
+        ObjectMetadata metadata = await storage.GetMetadataAsync(thumbKey, context.RequestAborted).ConfigureAwait(false);
+        context.Response.ContentType = metadata.ContentType ?? Thumbnails.ThumbnailContentType;
+        context.Response.ContentLength = metadata.Size;
+
+        await storage.StreamToAsync(thumbKey, context.Response.Body, cancellationToken: context.RequestAborted).ConfigureAwait(false);
     }
 }

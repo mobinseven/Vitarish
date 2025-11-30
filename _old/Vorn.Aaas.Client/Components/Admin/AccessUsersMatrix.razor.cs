@@ -1,16 +1,17 @@
-namespace Vorn.Aaas.Client.Admin;
 
 using Microsoft.AspNetCore.Components;
-using Vorn.Aaas.Client.Models;
-using Vorn.Aaas.Client.Services;
+using Vorn.Aaas.Client.Abstractions;
+using Vorn.Aaas.Client.Contracts;
+
+namespace Vorn.Aaas.Client.Admin;
 
 public partial class AccessUsersMatrix : ComponentBase
 {
     [Parameter] public string ClientId { get; set; } = string.Empty;
 
-    [Inject] IAccessService AccessService { get; set; } = default!;
+    [Inject] private IAccessService AccessService { get; set; } = default!;
 
-    bool initialized;
+    private bool initialized;
 
     protected override async Task OnInitializedAsync()
     {
@@ -18,11 +19,11 @@ public partial class AccessUsersMatrix : ComponentBase
         initialized = true;
     }
 
-    IEnumerable<string> Roles => AccessService.Roles;
+    private IEnumerable<string> Roles => AccessService.Roles;
 
-    IReadOnlyList<UserDto> Users => AccessService.Users;
+    private IReadOnlyList<UserDto> Users => AccessService.Users;
 
-    async Task Remove(string userId)
+    private async Task Remove(string userId)
     {
         await AccessService.RemoveUserAccessAsync(userId, ClientId);
         UserDto? user = Users.FirstOrDefault(u => u.Id == userId);

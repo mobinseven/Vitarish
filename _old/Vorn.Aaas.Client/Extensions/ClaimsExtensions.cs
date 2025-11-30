@@ -1,6 +1,6 @@
 using Duende.IdentityModel;
 using System.Security.Claims;
-using Vorn.Aaas.Client.Models;
+using Vorn.Aaas.Client.Contracts;
 
 namespace Vorn.Aaas.Client.Extensions;
 

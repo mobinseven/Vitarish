@@ -1,8 +1,6 @@
-namespace Vorn.Ai.Server.Domain.Models;
-
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
+
+namespace Vorn.Ai.Server.Domain.Models;
 
 public sealed record ResponderOptions
 {

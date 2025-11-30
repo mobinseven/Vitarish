@@ -14,13 +14,14 @@ using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 using Moq;
 using MudBlazor;
-using Vorn.Aaas.ApiClients.Presentation.Services;
-using Vorn.Aaas.AuthenticationClients.Presentation.Services;
+using Vorn.Aaas.ApiClients.Presentation.Abstractions;
+using Vorn.Aaas.AuthenticationClients.Presentation.Abstractions;
 using Vorn.Aaas.Interface.Infrastructure.Localization;
 using Vorn.Aaas.Interface.Infrastructure.Services;
 using Vorn.Aaas.Interface.Presentation.Components.Base;
+using Vorn.Aaas.RequestIdentities.Presentation.Abstractions;
 using Vorn.Aaas.Users.Domain.Entities;
-using Vorn.Aaas.Users.Presentation.Service;
+using Vorn.Aaas.Users.Presentation.Abstractions;
 
 namespace Vorn.Aaas.Interface.Tests.TestInfrastructure;
 
@@ -44,6 +45,7 @@ internal sealed class ComponentFixture : IDisposable
         var personalAccessTokensMock = new Mock<IPersonalAccessTokenService>();
         var authClientsMock = new Mock<IAuthenticationClientsService>();
         var identityInteractionMock = new Mock<IIdentityServerInteractionService>();
+        var requestIdentitiesMock = new Mock<IRequestIdentitiesService>();
 
         var userStoreMock = new Mock<IUserStore<User>>();
         userStoreMock.As<IUserPhoneNumberStore<User>>();
@@ -97,6 +99,7 @@ internal sealed class ComponentFixture : IDisposable
             apiClientsMock,
             personalAccessTokensMock,
             authClientsMock,
+            requestIdentitiesMock,
             userStoreMock,
             userManagerMock,
             signInManager,
@@ -119,6 +122,7 @@ internal sealed class ComponentFixture : IDisposable
         SetProperty(component, "ApiClientService", Mocks.ApiClients.Object, typeof(CommonBase));
         SetProperty(component, "PersonalAccessTokenService", Mocks.PersonalAccessTokens.Object, typeof(CommonBase));
         SetProperty(component, "AuthenticationClientsService", Mocks.AuthenticationClients.Object, typeof(CommonBase));
+        SetProperty(component, "RequestIdentitiesService", Mocks.RequestIdentities.Object, typeof(CommonBase));
         SetProperty(component, "EmailAuthenticationService", Mocks.EmailAuthentication.Object, typeof(CommonBase));
         SetProperty(component, "SmsAuthenticationService", Mocks.SmsAuthentication.Object, typeof(CommonBase));
         SetProperty(component, "AuthenticationStateProvider", AuthenticationState, typeof(CommonBase));

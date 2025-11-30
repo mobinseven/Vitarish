@@ -1,10 +1,12 @@
-namespace Vorn.Aaas.Client.Api.DependencyInjection;
 
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vorn.Aaas.Client.Api.Abstractions;
+using Vorn.Aaas.Client.Api.Contracts;
 using Vorn.Aaas.Client.Api.Internal;
 using Vorn.Aaas.Client.Api.Options;
+
+namespace Vorn.Aaas.Client.Api.DependencyInjection;
 
 public static class SignalRClientServiceCollectionExtensions
 {
@@ -29,7 +31,7 @@ public static class SignalRClientServiceCollectionExtensions
         ArgumentException.ThrowIfNullOrWhiteSpace(name);
         ArgumentNullException.ThrowIfNull(configure);
 
-        services.Configure<SignalRClientOptions>(options =>
+        _ = services.Configure<SignalRClientOptions>(options =>
         {
             SignalRClientRegistration registration = new();
             configure(registration);

@@ -1,6 +1,7 @@
 namespace Vorn.Aaas.Interface.Infrastructure.Services;
 
 using Vorn.Aaas.Client.Api.Abstractions;
+using Vorn.Aaas.Users.Presentation.Abstractions;
 
 internal sealed class AdminContext(IRequestIdentityContext vornContext) : IAdminContext
 {

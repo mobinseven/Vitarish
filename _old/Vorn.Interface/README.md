@@ -24,15 +24,8 @@ A service for handling search functionality across components:
 Manages MudBlazor themes with:
 - Pre-configured light and dark palettes
 - Customizable colors and typography
-- **Centralized font size control** via CSS custom properties
 - Glassmorphism surface effects
 - Dynamic theme switching
-
-**Typography Features:**
-- Control font sizes for all MudBlazor components from theme settings
-- Built-in support for compact, default, comfortable, and large UI scales
-- CSS variables enable consistent typography across all components
-- See [Typography Theming Guide](TYPOGRAPHY_THEMING_GUIDE.md) for detailed usage
 
 ### Other Components
 

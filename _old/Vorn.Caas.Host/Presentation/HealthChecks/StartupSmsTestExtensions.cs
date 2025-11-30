@@ -1,8 +1,9 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Vorn.Caas.Messages.Domain.Interfaces;
-using Vorn.Caas.Messages.Domain.Models;
+using Vorn.Caas.Messages.Models;
+using Vorn.Communications.Abstractions;
+using Vorn.Communications.Models;
 
 namespace Vorn.Caas.Host.Presentation.HealthChecks;
 

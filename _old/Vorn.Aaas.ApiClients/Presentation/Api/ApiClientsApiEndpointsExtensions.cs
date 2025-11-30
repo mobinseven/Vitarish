@@ -25,7 +25,7 @@ namespace Vorn.Aaas.ApiClients.Presentation.Api
             this WebApplication app,
             Action<RouteGroupBuilder>? configureFilters = null)
         {
-            var group = app
+            RouteGroupBuilder group = app
                 .MapGroup("/api/apiclients")
                 .WithTags("API Clients")
                 .RequireAuthorization(new AuthorizeAttribute
@@ -37,9 +37,9 @@ namespace Vorn.Aaas.ApiClients.Presentation.Api
             configureFilters?.Invoke(group);
 
             // GET /api/apiclients/{id}
-            group.MapGet("/{id}", async (string id, [FromServices] ISender sender) =>
+            _ = group.MapGet("/{id}", async (string id, [FromServices] ISender sender) =>
             {
-                var result = await sender.Send(new GetApiClient(id));
+                ApiClient? result = await sender.Send(new GetApiClient(id));
                 return result is not null
                     ? Results.Ok(result)
                     : Results.NotFound();
@@ -56,9 +56,9 @@ namespace Vorn.Aaas.ApiClients.Presentation.Api
                 });
 
             // GET /api/apiclients
-            group.MapGet(string.Empty, async ([FromServices] ISender sender) =>
+            _ = group.MapGet(string.Empty, async ([FromServices] ISender sender) =>
             {
-                var list = await sender.Send(new GetApiClients());
+                IEnumerable<ApiClient> list = await sender.Send(new GetApiClients());
                 return Results.Ok(list);
             })
                 .WithName("GetApiClients")
@@ -71,11 +71,11 @@ namespace Vorn.Aaas.ApiClients.Presentation.Api
                 });
 
             // POST /api/apiclients
-            group.MapPost(string.Empty, async (
+            _ = group.MapPost(string.Empty, async (
                     [FromBody] CreateApiClient command,
                     [FromServices] ISender sender) =>
             {
-                var client = await sender.Send(command);
+                ApiClient? client = await sender.Send(command);
                 if (client is null)
                 {
                     // optionally handle error case
@@ -99,7 +99,7 @@ namespace Vorn.Aaas.ApiClients.Presentation.Api
                 });
 
             // PUT /api/apiclients/{id}
-            group.MapPut("/{id}", async (
+            _ = group.MapPut("/{id}", async (
                     string id,
                     [FromBody] UpdateApiClient command,
                     [FromServices] ISender sender) =>
@@ -109,7 +109,7 @@ namespace Vorn.Aaas.ApiClients.Presentation.Api
                     return Results.BadRequest($"Route id '{id}' does not match payload id '{command.Id}'.");
                 }
 
-                var updated = await sender.Send(command);
+                ApiClient? updated = await sender.Send(command);
                 return updated is not null
                     ? Results.Ok(updated)
                     : Results.NotFound();
@@ -131,7 +131,7 @@ namespace Vorn.Aaas.ApiClients.Presentation.Api
                 });
 
             // DELETE /api/apiclients/{id}
-            group.MapDelete("/{id}", async (
+            _ = group.MapDelete("/{id}", async (
                     string id,
                     [FromServices] ISender sender) =>
             {

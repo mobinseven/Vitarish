@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using Vorn.Aaas.Users.Presentation.Abstractions;
 
 [ValidateAntiForgeryToken]
 public sealed class PasswordLoginSubmitModel(

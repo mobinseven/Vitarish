@@ -2,19 +2,10 @@ namespace Vorn.Aaas.Client.Extensions
 {
     public static class UrlExtensions
     {
-        public static string UrlCombine(string baseUrl, string relativePath)
-        {
-            if (string.IsNullOrWhiteSpace(baseUrl))
-            {
-                return relativePath ?? string.Empty;
-            }
-
-            if (string.IsNullOrWhiteSpace(relativePath))
-            {
-                return baseUrl;
-            }
-
-            return new Uri(new Uri(baseUrl.TrimEnd('/') + "/"), relativePath.TrimStart()).ToString();
-        }
+        public static string UrlCombine(string baseUrl, string relativePath) => string.IsNullOrWhiteSpace(baseUrl)
+                ? relativePath ?? string.Empty
+                : string.IsNullOrWhiteSpace(relativePath)
+                ? baseUrl
+                : new Uri(new Uri(baseUrl.TrimEnd('/') + "/"), relativePath.TrimStart()).ToString();
     }
 }

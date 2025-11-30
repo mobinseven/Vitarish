@@ -1,16 +1,17 @@
-namespace Vorn.Aaas.Client.Services;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Primitives;
 using Microsoft.JSInterop;
-using System.Collections.Generic;
 using System.Globalization;
+using Vorn.Aaas.Client.Abstractions;
+
+namespace Vorn.Aaas.Client.Services;
 
 public class UserProfileCultureInfoProvider(
     UserProfileService profileService,
     IHttpContextAccessor httpContextAccessor,
-    IJSRuntime jsRuntime)
+    IJSRuntime jsRuntime) : IUserProfileCultureInfoProvider
 {
     private CultureInfo? cachedCulture;
     private bool hasLoaded;

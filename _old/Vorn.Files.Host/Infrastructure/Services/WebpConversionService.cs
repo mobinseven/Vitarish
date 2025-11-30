@@ -10,12 +10,14 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using Vorn.Files.Host.Infrastructure.Interfaces;
 
-public sealed class WebpConversionService(ILogger<WebpConversionService> logger) : BackgroundService, IWebpConversionService
+public sealed class WebpConversionService(
+    ILogger<WebpConversionService> logger,
+    IObjectStorageService storage) : BackgroundService, IWebpConversionService
 {
     private readonly Channel<ConversionRequest> channel = Channel.CreateUnbounded<ConversionRequest>();
 
-    public void Enqueue(string filePath, string contentType)
-        => channel.Writer.TryWrite(new(filePath, contentType));
+    public void Enqueue(string objectKey, string contentType)
+        => channel.Writer.TryWrite(new(objectKey, contentType));
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
@@ -28,17 +30,17 @@ public sealed class WebpConversionService(ILogger<WebpConversionService> logger)
                     continue;
                 }
 
-                string webpPath = Path.ChangeExtension(request.FilePath, "webp");
-                if (File.Exists(webpPath))
+                string webpObjectKey = Path.ChangeExtension(request.ObjectKey, "webp")!;
+                if (await storage.ExistsAsync(webpObjectKey, stoppingToken).ConfigureAwait(false))
                 {
                     continue;
                 }
 
-                await using FileStream stream = File.OpenRead(request.FilePath);
+                await using Stream stream = await storage.DownloadAsync(request.ObjectKey, stoppingToken).ConfigureAwait(false);
                 using SKBitmap bitmap = SKBitmap.Decode(stream);
                 if (bitmap is null)
                 {
-                    logger.LogWarning("Skipping WEBP conversion for {File}: unable to decode bitmap", request.FilePath);
+                    logger.LogWarning("Skipping WEBP conversion for {File}: unable to decode bitmap", request.ObjectKey);
                     continue;
                 }
 
@@ -46,22 +48,22 @@ public sealed class WebpConversionService(ILogger<WebpConversionService> logger)
                 using SKData? data = image.Encode(SKEncodedImageFormat.Webp, 80);
                 if (data is null)
                 {
-                    logger.LogWarning("Skipping WEBP conversion for {File}: encoder returned null data", request.FilePath);
+                    logger.LogWarning("Skipping WEBP conversion for {File}: encoder returned null data", request.ObjectKey);
                     continue;
                 }
 
-                await using FileStream destination = new(
-                    webpPath,
-                    FileMode.Create,
-                    FileAccess.Write,
-                    FileShare.Read,
-                    bufferSize: 64 * 1024,
-                    useAsync: true);
-
+                using MemoryStream destination = new();
                 data.SaveTo(destination);
-                await destination.FlushAsync(stoppingToken).ConfigureAwait(false);
+                destination.Seek(0, SeekOrigin.Begin);
 
-                logger.LogInformation("Generated WEBP variant for {File}", request.FilePath);
+                await storage.UploadAsync(
+                    webpObjectKey,
+                    "image/webp",
+                    destination,
+                    destination.Length,
+                    stoppingToken).ConfigureAwait(false);
+
+                logger.LogInformation("Generated WEBP variant for {File}", request.ObjectKey);
             }
             catch (OperationCanceledException)
             {
@@ -69,10 +71,10 @@ public sealed class WebpConversionService(ILogger<WebpConversionService> logger)
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "WEBP conversion failed for {File}", request.FilePath);
+                logger.LogError(ex, "WEBP conversion failed for {File}", request.ObjectKey);
             }
         }
     }
 
-    private readonly record struct ConversionRequest(string FilePath, string ContentType);
+    private readonly record struct ConversionRequest(string ObjectKey, string ContentType);
 }

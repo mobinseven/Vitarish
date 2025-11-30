@@ -1,5 +1,5 @@
 using Vorn.Aaas.Client.Constants;
-using Vorn.Aaas.Client.Models;
+using Vorn.Aaas.Client.Contracts;
 
 namespace Vorn.Aaas.Client.Extensions;
 
@@ -37,7 +37,7 @@ public static class AccessExtensions
             bool atEnd = i == span.Length;
             if (atEnd || span[i] == ':')
             {
-                ReadOnlySpan<char> slice = span.Slice(start, i - start);
+                ReadOnlySpan<char> slice = span[start..i];
                 switch (section)
                 {
                     case 0:

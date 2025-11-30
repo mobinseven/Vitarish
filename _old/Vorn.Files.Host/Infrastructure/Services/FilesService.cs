@@ -1,26 +1,23 @@
-﻿namespace Vorn.Files.Host.Infrastructure.Services;
-
+﻿
 using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
-using Microsoft.Extensions.Logging;
 using SkiaSharp;
-using System;
-using System.IO;
-using System.Linq;
 using System.Security.Cryptography;
-using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
+using Vorn.Entities.Models;
 using Vorn.Files.Core.Domain.Models;
 using Vorn.Files.Core.Presentation.Interfaces;
 using Vorn.Files.Host.Domain.Options;
 using Vorn.Files.Host.Infrastructure.Extensions;
 using Vorn.Files.Host.Infrastructure.Interfaces;
 
+namespace Vorn.Files.Host.Infrastructure.Services;
+
 public class FilesService(
     VornOptions options,
     IFileInformationService fileInfoService,
     ILogger<FilesService> logger,
+    IObjectStorageService storage,
     IThumbnailService thumbnailService,
     IWebpConversionService webpConversionService,
     IMultiTenantContextAccessor<TenantInfo> tenantAccessor) : IFilesService
@@ -59,15 +56,16 @@ public class FilesService(
 
         using IDisposable tenantScope = tenantAccessor.UseTenant(resolvedTenant.Id);
 
-        System.Collections.Generic.IReadOnlyList<FileInformationDto> sameChecksum = await fileInfoService.GetListAsync(new FileInformationDescriptorDto { Checksum = givenInformation.Checksum }, CancellationToken.None);
-        FileInformationDto? existingForTenant = sameChecksum.FirstOrDefault(info => string.Equals(info.Owner, resolvedTenant.Id, StringComparison.Ordinal));
+        EntityResult<IReadOnlyList<FileInformationDto>> sameChecksumResult = await fileInfoService.GetListAsync(new FileInformationDescriptorDto { Checksum = givenInformation.Checksum }, CancellationToken.None);
+        IReadOnlyList<FileInformationDto>? sameChecksum = sameChecksumResult.Value;
+        FileInformationDto? existingForTenant = sameChecksum?.FirstOrDefault(info => string.Equals(info.Owner, resolvedTenant.Id, StringComparison.Ordinal));
         if(existingForTenant is not null)
         {
             logger.LogInformation("Duplicate detected. Reusing existing file for tenant {TenantId} (Id={Id}).", resolvedTenant.Id, existingForTenant.Id);
             return existingForTenant;
         }
 
-        FileInformationDto? existing = sameChecksum.FirstOrDefault();
+        FileInformationDto? existing = sameChecksum?.FirstOrDefault();
         if(existing is not null)
         {
             logger.LogInformation("Duplicate detected for new owner. Cloning existing file (SourceId={SourceId}).", existing.Id);
@@ -94,7 +92,7 @@ public class FilesService(
                 Tag = givenInformation.Tag
             };
 
-            await fileInfoService.AddAsync(cloned, CancellationToken.None).ConfigureAwait(false);
+            _ = await fileInfoService.AddAsync(cloned, CancellationToken.None).ConfigureAwait(false);
             return cloned;
         }
 
@@ -109,11 +107,7 @@ public class FilesService(
 
         string contentType = givenInformation.ContentType;
 
-        string baseServerPath = Path.Combine(Environment.CurrentDirectory, "wwwroot", options.Files.UploadPath);
-
-        Directory.CreateDirectory(baseServerPath);
-
-        string tempServerPath = Path.Combine(baseServerPath, $".tmp-{Guid.NewGuid():N}.part");
+        string tempServerPath = Path.Combine(Path.GetTempPath(), $".tmp-{Guid.NewGuid():N}.part");
 
         try
         {
@@ -149,35 +143,48 @@ public class FilesService(
 
 
             string extension = ContentTypeExtensions.SafeGetExtension(contentType);
-            FileInformationDto info = new();
-            info.Id = Guid.NewGuid();
+            FileInformationDto info = new()
+            {
+                Id = Guid.NewGuid()
+            };
             string finalFileName = $"{options.Files.Prefix}-{info.Id}.{extension}";
-            string finalServerPath = Path.Combine(baseServerPath, finalFileName);
+            string objectKey = options.Files.BuildObjectKey(finalFileName);
             bool isImage = contentType.StartsWith("image", StringComparison.OrdinalIgnoreCase);
-            AtomicMove(tempServerPath, finalServerPath);
 
             info.AllowedOrigins = givenInformation.AllowedOrigins;
             info.Checksum = computedChecksum;
             info.Owner = givenInformation.Owner;
             info.Url = BuildPublicUrl(options.Files.BaseUrl, options.Files.UploadPath, finalFileName);
-            info.Thumbnail = givenInformation.Thumbnail ?? info.Url + "?thumb=1";
+            info.Thumbnail = givenInformation.Thumbnail ?? (info.Url + "?thumb=1");
             info.ContentType = contentType;
-            long fileSize = new FileInfo(finalServerPath).Length;
-            info.Metadata = BuildMetadata(requestMetadata, fileSize, extension, finalServerPath, isImage);
+            long fileSize = new FileInfo(tempServerPath).Length;
+            info.Metadata = BuildMetadata(requestMetadata, fileSize, extension, tempServerPath, isImage);
 
-            await fileInfoService.AddAsync(info, CancellationToken.None).ConfigureAwait(false);
+            await using(FileStream uploadStream = new(
+                tempServerPath,
+                FileMode.Open,
+                FileAccess.Read,
+                FileShare.Read,
+                bufferSize: 64 * 1024,
+                options: FileOptions.Asynchronous))
+            {
+                await storage.UploadAsync(objectKey, contentType, uploadStream, fileSize, cancellationToken).ConfigureAwait(false);
+            }
+
+            _ = await fileInfoService.AddAsync(info, CancellationToken.None).ConfigureAwait(false);
 
             if(givenInformation.Thumbnail is null)
             {
-                thumbnailService.Enqueue(finalServerPath, contentType);
+                thumbnailService.Enqueue(objectKey, contentType);
             }
 
             if(isImage)
             {
-                webpConversionService.Enqueue(finalServerPath, contentType);
+                webpConversionService.Enqueue(objectKey, contentType);
             }
 
             logger.LogInformation("SaveFile finished. FileId={Id}, Size={Size} bytes, Url={Url}", info.Id, fileSize, info.Url);
+            SafeDelete(tempServerPath);
             return info;
         }
         catch(OperationCanceledException)
@@ -228,10 +235,12 @@ public class FilesService(
         };
     }
 
-    private static bool HasMetadata(FileMetadata metadata) =>
-        !string.IsNullOrWhiteSpace(metadata.Extension)
+    private static bool HasMetadata(FileMetadata metadata)
+    {
+        return !string.IsNullOrWhiteSpace(metadata.Extension)
         || metadata.Size > 0
         || metadata.Dimensions is not null;
+    }
 
     private static FileMetadata MergeMetadata(FileMetadata incoming, FileMetadata existing)
     {
@@ -265,19 +274,6 @@ public class FilesService(
         catch
         {
             return null;
-        }
-    }
-
-    private static void AtomicMove(string tempPath, string finalPath)
-    {
-        try
-        {
-            File.Move(tempPath, finalPath, overwrite: false);
-        }
-        catch(IOException) when(File.Exists(finalPath))
-        {
-            // In case of extremely rare collisions/races, prefer keeping the existing final file.
-            SafeDelete(tempPath);
         }
     }
 

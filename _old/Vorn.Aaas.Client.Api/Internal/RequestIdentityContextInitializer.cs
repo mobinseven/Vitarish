@@ -5,14 +5,16 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Vorn.Aaas.Client.Api.Abstractions;
+using Vorn.Aaas.Client.Api.Contracts;
 using Vorn.Aaas.Client.Api.Options;
 
 namespace Vorn.Aaas.Client.Api.Internal;
 
 public static class RequestIdentityContextInitializer
 {
-    public static IDisposable? Initialize<TLogger>(
+    public static async Task<IDisposable?> Initialize<TLogger>(
         HttpContext http,
         ClaimsPrincipal? user = null)
     {
@@ -72,7 +74,7 @@ public static class RequestIdentityContextInitializer
             requestId,
             null);
 
-        contextWriter.Write(command);
+        await contextWriter.Write(command);
 
         return scope;
     }

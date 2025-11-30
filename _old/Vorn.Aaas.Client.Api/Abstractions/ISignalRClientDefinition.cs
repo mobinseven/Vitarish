@@ -1,7 +1,7 @@
+
+using Vorn.Aaas.Client.Api.Contracts;
+
 namespace Vorn.Aaas.Client.Api.Abstractions;
-
-using Vorn.Aaas.Client.Api.Options;
-
 /// <summary>
 /// Provides default configuration for a SignalR hub client registration.
 /// </summary>

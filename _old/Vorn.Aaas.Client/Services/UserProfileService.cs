@@ -1,13 +1,14 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Json;
+using Vorn.Aaas.Client.Abstractions;
 using Vorn.Aaas.Client.Api.Abstractions;
 
 namespace Vorn.Aaas.Client.Services;
 
-public class UserProfileService(AuthenticationStateProvider authStateProvider, IAaasClientFactory aaasClientFactory)
+public class UserProfileService(AuthenticationStateProvider authStateProvider, IAaasClientFactory aaasClientFactory) : IUserProfileService
 {
     private const string CulturePreferenceKey = "Culture";
-    private const string BaseUrl = "/api/users/";
+    private const string BaseUrl = "api/user/";
     private Task<HttpClient> CreateClient(string? clientId = null) => aaasClientFactory.CreateClient(BaseUrl, clientId);
     public async Task<Dictionary<string, string>?> GetProfileAsync()
     {
@@ -24,12 +25,8 @@ public class UserProfileService(AuthenticationStateProvider authStateProvider, I
             return null;
         }
 
-        HttpResponseMessage response = await httpClient.GetAsync($"profile/{userId}");
-        if (response.IsSuccessStatusCode)
-        {
-            return await response.Content.ReadFromJsonAsync<Dictionary<string, string>>();
-        }
-        return new Dictionary<string, string>();
+        HttpResponseMessage response = await httpClient.GetAsync($"/api/user/profile/{userId}");
+        return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<Dictionary<string, string>>() : [];
     }
 
     public async Task UpdateProfileAsync(Dictionary<string, string> preferences)
@@ -47,7 +44,7 @@ public class UserProfileService(AuthenticationStateProvider authStateProvider, I
             return;
         }
 
-        await httpClient.PutAsJsonAsync($"profile/{userId}", preferences);
+        _ = await httpClient.PutAsJsonAsync($"/api/user/profile/{userId}", preferences);
     }
 
     public string? GetCulture(IDictionary<string, string> preferences)

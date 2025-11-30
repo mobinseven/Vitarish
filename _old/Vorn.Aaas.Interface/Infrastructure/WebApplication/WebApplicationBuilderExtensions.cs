@@ -1,3 +1,5 @@
+using Vorn.Aaas.Users.Presentation.Abstractions;
+
 public static class WebApplicationBuilderExtensions
 {
     public static void AddAaasInterface(this WebApplicationBuilder builder)
@@ -17,10 +19,10 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddScoped<IAdminContext, AdminContext>();
         builder.Services.AddTransient<ISmsAuthenticationService, SmsAuthenticationService>();
         builder.Services.AddTransient<IEmailAuthenticationService, EmailAuthenticationService>();
-        builder.AddCaasClient();
+        // TODO: Restore when Vorn.Caas dependency is available
+        // builder.AddCaasClient();
         builder.Services.AddTransient<IPersonalAccessTokenService, PersonalAccessTokenService>();
-        builder.Services.AddSingleton<IMessageQueue, MessageQueue>();
-        builder.Services.AddHostedService<MessageBackgroundService>();
+        // IMessageQueue is now registered in Host via Hangfire configuration
         builder.Services.AddTransient<ICipherService, CipherService>();
         builder.Services.AddAuthorization(options =>
         {

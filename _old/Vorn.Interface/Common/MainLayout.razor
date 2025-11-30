@@ -3,16 +3,11 @@
 @{
     var themeSurface = CurrentThemeSurface;
     var shimmer = themeSurface.Shimmer;
-    var typography = ThemeService.Typography;
 }
 
 <style>
     :root {
 @foreach(var variable in themeSurface.RootVariables)
-{
-@:        @(variable.Key): @(variable.Value);
-}
-@foreach(var variable in typography.RootVariables)
 {
 @:        @(variable.Key): @(variable.Value);
 }

@@ -1,8 +1,9 @@
-namespace Vorn.Ai.Client.Components;
 
 using Microsoft.AspNetCore.Components;
 using Vorn.Ai.Client.Abstractions;
 using Vorn.Ai.Client.Models;
+
+namespace Vorn.Ai.Client.Components;
 
 public partial class AiStreamResponder : ComponentBase, IDisposable
 {
@@ -33,7 +34,7 @@ public partial class AiStreamResponder : ComponentBase, IDisposable
 
     public void Cancel()
     {
-        if (_cts is not null)
+        if(_cts is not null)
         {
             try
             { _cts.Cancel(); }
@@ -43,18 +44,23 @@ public partial class AiStreamResponder : ComponentBase, IDisposable
         }
     }
 
-    private async void OnServiceOutput(object? sender, ResponderOutput output) =>
+    private async void OnServiceOutput(object? sender, ResponderOutput output)
+    {
         await InvokeAsync(async () =>
         {
             await OnOutput.InvokeAsync(output);
             StateHasChanged();
         });
+    }
 
-    private async void OnServiceCompleted(object? sender, IReadOnlyList<ResponderOutput> all) => await InvokeAsync(async () =>
+    private async void OnServiceCompleted(object? sender, IReadOnlyList<ResponderOutput> all)
+    {
+        await InvokeAsync(async () =>
                                                                                                       {
                                                                                                           await OnOutputEnd.InvokeAsync(all);
                                                                                                           StateHasChanged();
                                                                                                       });
+    }
 
     public void Dispose()
     {

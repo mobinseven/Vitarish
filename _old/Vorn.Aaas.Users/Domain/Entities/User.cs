@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 namespace Vorn.Aaas.Users.Domain.Entities;
+
 public class User : IdentityUser
 {
     [MaxLength(64)]

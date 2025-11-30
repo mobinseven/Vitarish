@@ -1,6 +1,8 @@
-namespace Vorn.Aaas.Client.Api.Options;
 
 using System.Diagnostics.CodeAnalysis;
+using Vorn.Aaas.Client.Api.Contracts;
+
+namespace Vorn.Aaas.Client.Api.Options;
 
 public sealed class SignalRClientOptions
 {

@@ -1,12 +1,11 @@
-namespace Vorn.Aaas.Users.Application.Queries;
 
 using FluentValidation;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Vorn.Aaas.Users;
-using Vorn.Aaas.Users.Domain.Entities;
 using Vorn.Aaas.Users.Infrastructure.Data;
-using Vorn.Aaas.Users.ReadModel.Dtos;
+using Vorn.Aaas.Users.Presentation.Contracts;
+
+namespace Vorn.Aaas.Users.Application.Queries;
 
 public record GetClientUserQuery(string ClientId, string UserId) : IRequest<UserDto?>;
 
@@ -14,8 +13,8 @@ public class GetClientUserQueryValidator : AbstractValidator<GetClientUserQuery>
 {
     public GetClientUserQueryValidator()
     {
-        RuleFor(q => q.ClientId).NotEmpty();
-        RuleFor(q => q.UserId).NotEmpty();
+        _ = RuleFor(q => q.ClientId).NotEmpty();
+        _ = RuleFor(q => q.UserId).NotEmpty();
     }
 }
 
@@ -26,7 +25,7 @@ public class GetClientUserQueryHandler(UsersDbContext db) : IRequestHandler<GetC
         CancellationToken cancellationToken)
     {
         // prefix the access‑claim value once; no per‑row Split()
-        var prefix = request.ClientId + ":";
+        string prefix = request.ClientId + ":";
 
         return await (
             from u in db.Users.AsNoTracking()                         // read‑only :contentReference[oaicite:0]{index=0}

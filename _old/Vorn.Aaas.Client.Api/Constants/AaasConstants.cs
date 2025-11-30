@@ -1,6 +1,6 @@
 namespace Vorn.Aaas.Client.Api.Constants;
 
-public static class Constants
+public static class AaasConstants
 {
     public const string Admin = nameof(Admin);
     public const string AccessClient = "AccessClient";

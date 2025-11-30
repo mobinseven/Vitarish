@@ -1,6 +1,7 @@
-namespace Vorn.Aaas.Client.Admin;
 
 using Microsoft.AspNetCore.Components;
+
+namespace Vorn.Aaas.Client.Admin;
 
 public partial class RoleEditor : ComponentBase
 {
@@ -10,8 +11,8 @@ public partial class RoleEditor : ComponentBase
     [Parameter] public EventCallback<string?> WriteChanged { get; set; }
     [Parameter] public IEnumerable<string> Roles { get; set; } = [];
 
-    HashSet<string> readRoles = new(StringComparer.OrdinalIgnoreCase);
-    HashSet<string> writeRoles = new(StringComparer.OrdinalIgnoreCase);
+    private HashSet<string> readRoles = new(StringComparer.OrdinalIgnoreCase);
+    private HashSet<string> writeRoles = new(StringComparer.OrdinalIgnoreCase);
 
     protected override void OnParametersSet()
     {
@@ -19,34 +20,20 @@ public partial class RoleEditor : ComponentBase
         writeRoles = Split(Write);
     }
 
-    static HashSet<string> Split(string? value) =>
+    private static HashSet<string> Split(string? value) =>
         value?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
              .ToHashSet(StringComparer.OrdinalIgnoreCase) ?? new(StringComparer.OrdinalIgnoreCase);
 
-    Task ToggleRead(string role, bool value)
+    private Task ToggleRead(string role, bool value)
     {
-        if (value)
-        {
-            readRoles.Add(role);
-        }
-        else
-        {
-            readRoles.Remove(role);
-        }
+        _ = value ? readRoles.Add(role) : readRoles.Remove(role);
 
         return ReadChanged.InvokeAsync(readRoles.Count == 0 ? null : string.Join(',', readRoles));
     }
 
-    Task ToggleWrite(string role, bool value)
+    private Task ToggleWrite(string role, bool value)
     {
-        if (value)
-        {
-            writeRoles.Add(role);
-        }
-        else
-        {
-            writeRoles.Remove(role);
-        }
+        _ = value ? writeRoles.Add(role) : writeRoles.Remove(role);
 
         return WriteChanged.InvokeAsync(writeRoles.Count == 0 ? null : string.Join(',', writeRoles));
     }

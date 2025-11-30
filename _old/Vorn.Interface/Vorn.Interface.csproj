@@ -29,12 +29,8 @@
 	</ItemGroup>-->
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Vorn.Ai\Vorn.Ai.Client\Vorn.Ai.Client.csproj" PrivateAssets="none" />
-		<ProjectReference Include="..\..\Vorn.Files\Vorn.Files.Client\Vorn.Files.Client.csproj" PrivateAssets="none" />
+		<ProjectReference Include="..\..\Vorn.Ai\Vorn.Ai.Client\Vorn.Ai.Client.csproj" />
+		<ProjectReference Include="..\..\Vorn.Files\Vorn.Files.Client\Vorn.Files.Client.csproj" />
 	</ItemGroup>
-	<PropertyGroup>
-		<IncludeProjectReferencesDuringPacking>false</IncludeProjectReferencesDuringPacking>
-	</PropertyGroup>
-
 
 </Project>

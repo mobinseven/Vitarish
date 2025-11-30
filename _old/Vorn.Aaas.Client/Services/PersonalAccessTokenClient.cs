@@ -1,30 +1,18 @@
-namespace Vorn.Aaas.Client.Services;
-
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.Http.Json;
-using System.Threading;
-using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
+using System.Net.Http.Json;
+using Vorn.Aaas.Client.Abstractions;
 using Vorn.Aaas.Client.Api.Abstractions;
 using Vorn.Aaas.Client.Context;
-using Vorn.Aaas.Client.Models;
+using Vorn.Aaas.Client.Contracts;
 
-public interface IPersonalAccessTokenClient
-{
-    Task<string?> CreateTokenAsync(
-        int? lifetimeDays = null,
-        IEnumerable<string>? scopes = null,
-        bool isReferenceToken = false,
-        CancellationToken cancellationToken = default);
-}
+namespace Vorn.Aaas.Client.Services;
 
 public sealed class PersonalAccessTokenClient(
     IRequestIdentityContext identityContext,
     IAaasClientFactory clientFactory,
     ILogger<PersonalAccessTokenClient> logger,
-    IMemoryCache memoryCache) : IPersonalAccessTokenClient
+    IDistributedCache cache) : IPersonalAccessTokenClient
 {
     private const string BaseUrl = "api/pat";
 
@@ -46,9 +34,10 @@ public sealed class PersonalAccessTokenClient(
         string scopeKey = scopeList is { Count: > 0 }
             ? string.Join('\u001f', scopeList.OrderBy(static scope => scope, StringComparer.Ordinal))
             : string.Empty;
-        CacheKey cacheKey = new(userId, lifetimeDays, scopeKey, isReferenceToken);
+        string cacheKey = BuildCacheKey(userId, lifetimeDays, scopeKey, isReferenceToken);
 
-        if (memoryCache.TryGetValue(cacheKey, out string? cachedToken) && cachedToken is not null)
+        string? cachedToken = await cache.GetStringAsync(cacheKey, cancellationToken);
+        if (!string.IsNullOrEmpty(cachedToken))
         {
             logger.LogInformation("Returning cached personal access token.");
             return cachedToken;
@@ -85,11 +74,16 @@ public sealed class PersonalAccessTokenClient(
 
         if (lifetimeDays is { } days)
         {
-            memoryCache.Set(cacheKey, token.Token, TimeSpan.FromDays(days));
+            await cache.SetStringAsync(
+                cacheKey,
+                token.Token,
+                new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(days) },
+                cancellationToken);
         }
 
         return token.Token;
     }
 
-    private readonly record struct CacheKey(string UserId, int? LifetimeDays, string Scopes, bool IsReferenceToken);
+    private static string BuildCacheKey(string userId, int? lifetimeDays, string scopeKey, bool isReferenceToken) =>
+        $"pat:{userId}:{lifetimeDays?.ToString() ?? "null"}:{scopeKey}:{isReferenceToken}";
 }

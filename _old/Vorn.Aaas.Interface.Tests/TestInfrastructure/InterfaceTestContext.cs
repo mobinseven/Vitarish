@@ -17,14 +17,15 @@ using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 using Moq;
 using MudBlazor;
-using Vorn.Aaas.ApiClients.Presentation.Services;
-using Vorn.Aaas.AuthenticationClients.Presentation.Services;
 using Vorn.Aaas.Interface.Infrastructure.Localization;
 using Vorn.Aaas.Interface.Infrastructure.Services;
 using Vorn.Aaas.Interface.Presentation.Components.Base;
 using Vorn.Aaas.Users.Domain.Entities;
-using Vorn.Aaas.Users.Presentation.Service;
 using MudBlazor.Services;
+using Vorn.Aaas.RequestIdentities.Presentation.Abstractions;
+using Vorn.Aaas.Users.Presentation.Abstractions;
+using Vorn.Aaas.AuthenticationClients.Presentation.Abstractions;
+using Vorn.Aaas.ApiClients.Presentation.Abstractions;
 
 namespace Vorn.Aaas.Interface.Tests.TestInfrastructure;
 
@@ -68,6 +69,9 @@ internal sealed class InterfaceTestContext : TestContext
 
         var authenticationClientsServiceMock = new Mock<IAuthenticationClientsService>();
         Services.AddSingleton(authenticationClientsServiceMock.Object);
+
+        var requestIdentitiesServiceMock = new Mock<IRequestIdentitiesService>();
+        Services.AddSingleton(requestIdentitiesServiceMock.Object);
 
         var identityInteractionMock = new Mock<IIdentityServerInteractionService>();
         Services.AddSingleton(identityInteractionMock.Object);
@@ -123,6 +127,7 @@ internal sealed class InterfaceTestContext : TestContext
             apiClientsServiceMock,
             personalAccessTokenServiceMock,
             authenticationClientsServiceMock,
+            requestIdentitiesServiceMock,
             userStoreMock,
             userManagerMock,
             signInManager,

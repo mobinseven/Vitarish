@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
+using Vorn.Aaas.Users.Presentation.Abstractions;
 
 namespace Vorn.Aaas.Interface.Presentation.Pages.Account;
 

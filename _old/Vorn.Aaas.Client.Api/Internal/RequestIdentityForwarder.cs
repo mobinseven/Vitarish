@@ -3,23 +3,23 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Http.Json;
 using Vorn.Aaas.Client.Api.Abstractions;
+using Vorn.Aaas.Client.Api.Contracts;
+using Vorn.Aaas.Client.Api.Models;
 
 namespace Vorn.Aaas.Client.Api.Internal;
 
 internal interface IRequestIdentityForwarder
 {
-    ValueTask ForwardAsync(RequestIdentityEnvelope envelope, CancellationToken cancellationToken = default);
+    ValueTask ForwardAsync(RequestIdentityDto envelope, IRequestIdentityContextWriter? writer = null, CancellationToken cancellationToken = default);
 }
 
-internal sealed class RequestIdentityForwarder(
-    IServiceProvider services,
-    ILogger<RequestIdentityForwarder> logger) : IRequestIdentityForwarder
+internal sealed class RequestIdentityForwarder(IServiceProvider services) : IRequestIdentityForwarder
 {
     private IAaasClientFactory? factory;
 
     private IAaasClientFactory ClientFactory => factory ??= services.GetRequiredService<IAaasClientFactory>();
 
-    public async ValueTask ForwardAsync(RequestIdentityEnvelope envelope, CancellationToken cancellationToken = default)
+    public async ValueTask ForwardAsync(RequestIdentityDto envelope, IRequestIdentityContextWriter? writer = null, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -31,35 +31,31 @@ internal sealed class RequestIdentityForwarder(
 
             if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Conflict)
             {
+                var res = await response.Content.ReadFromJsonAsync<RequestIdentityDto>(cancellationToken);
+                if (res is not null && writer is not null && response.IsSuccessStatusCode)
+                {
+                    RequestIdentityContextCommand command = new(
+                        res.Authority,
+                        res.ClientId,
+                        res.OwnerId,
+                        res.TenantId,
+                        res.UserId,
+                        res.ResourceId,
+                        res.TraceId,
+                        res.RequestId,
+                        res.AdditionalInfo);
+                    await writer.Write(command);
+                }
                 return;
             }
-
-            string body = await response.Content.ReadAsStringAsync(cancellationToken);
-            logger.LogWarning(
-                "Failed to forward request identity {RequestId}: {StatusCode} {Body}",
-                envelope.RequestId,
-                response.StatusCode,
-                body);
         }
         catch (OperationCanceledException)
         {
-            throw;
+            return;
         }
-        catch (Exception exception)
+        catch
         {
-            logger.LogWarning(exception, "Error forwarding request identity {RequestId}", envelope.RequestId);
+            throw;
         }
     }
 }
-
-internal sealed record RequestIdentityEnvelope(
-    string RequestId,
-    string Authority,
-    string ClientId,
-    string OwnerId,
-    string? TenantId,
-    string? UserId,
-    string? ResourceId,
-    string? TraceId,
-    string? AdditionalInfo,
-    DateTimeOffset CreatedAt);

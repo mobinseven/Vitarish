@@ -1,15 +1,16 @@
-namespace Vorn.Aaas.Users.Application.Commands;
 
-using System.Security.Claims;
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using Vorn.Aaas.Users;
-using Vorn.Aaas.Users.Application.Abstractions;
-using Vorn.Aaas.Users.Application.Auditing;
+using System.Security.Claims;
 using Vorn.Aaas.Users.Domain.Entities;
 using Vorn.Aaas.Users.Domain.Events;
-using Vorn.Aaas.Users.Infrastructure.Publishing;
+using Vorn.Aaas.Users.Domain.Models;
+using Vorn.Aaas.Users.Infrastructure.Abstractions;
+using Vorn.Aaas.Users.Infrastructure.Service;
+using Vorn.Aaas.Users.Presentation.Abstractions;
+
+namespace Vorn.Aaas.Users.Application.Commands;
 
 public record SetUserAccessClaimCommand(string UserId, string ClientId, string AccessValue) : IRequest;
 
@@ -17,8 +18,8 @@ public class SetUserAccessClaimCommandValidator : AbstractValidator<SetUserAcces
 {
     public SetUserAccessClaimCommandValidator()
     {
-        RuleFor(c => c.UserId).NotEmpty();
-        RuleFor(c => c.ClientId).NotEmpty();
+        _ = RuleFor(c => c.UserId).NotEmpty();
+        _ = RuleFor(c => c.ClientId).NotEmpty();
     }
 }
 
@@ -37,7 +38,7 @@ public class SetUserAccessClaimCommandHandler(
         IdentityResult result = oldClaim is null
             ? await manager.AddClaimAsync(user, newClaim)
             : await manager.ReplaceClaimAsync(user, oldClaim, newClaim);
-        if(!result.Succeeded)
+        if (!result.Succeeded)
         {
             throw new Exception("Could not set access claim");
         }

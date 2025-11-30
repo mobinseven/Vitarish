@@ -2,7 +2,7 @@ namespace Vorn.Aaas.Interface.Presentation.Components.Admin;
 
 using Vorn.Aaas.Users;
 using Vorn.Aaas.Client.Extensions;
-using Vorn.Aaas.Client.Models;
+using Vorn.Aaas.Client.Contracts;
 
 public partial class AccessClaimsEdit : CommonBase
 {

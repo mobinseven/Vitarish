@@ -1,11 +1,11 @@
-namespace Vorn.Caas.Messages.Tests.Application;
+namespace Vorn.Communications.Tests.Application;
 
 using System;
 using System.Threading;
 using System.Threading.Tasks;
-using Vorn.Caas.Messages.Application;
-using Vorn.Caas.Messages.Domain.Interfaces;
-using Vorn.Caas.Messages.Domain.Models;
+using Vorn.Caas.Messages.Abstractions;
+using Vorn.Caas.Messages.Commands;
+using Vorn.Caas.Messages.Models;
 using Xunit;
 
 public sealed class SendSmsTests

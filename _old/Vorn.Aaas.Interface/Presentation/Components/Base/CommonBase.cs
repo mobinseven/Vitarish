@@ -1,6 +1,8 @@
-﻿using Vorn.Aaas.ApiClients.Presentation.Services;
-using Vorn.Aaas.AuthenticationClients.Presentation.Services;
+using Vorn.Aaas.ApiClients.Presentation.Abstractions;
+using Vorn.Aaas.AuthenticationClients.Presentation.Abstractions;
 using Vorn.Aaas.Client.Api.Abstractions;
+using Vorn.Aaas.RequestIdentities.Presentation.Abstractions;
+using Vorn.Aaas.Users.Presentation.Abstractions;
 
 namespace Vorn.Aaas.Interface.Presentation.Components.Base
 {
@@ -20,6 +22,7 @@ namespace Vorn.Aaas.Interface.Presentation.Components.Base
         [Inject] protected IApiClientsService ApiClientService { get; set; } = default!;
         [Inject] protected IPersonalAccessTokenService PersonalAccessTokenService { get; set; } = default!;
         [Inject] protected IAuthenticationClientsService AuthenticationClientsService { get; set; } = default!;
+        [Inject] protected IRequestIdentitiesService RequestIdentitiesService { get; set; } = default!;
         [Inject] protected IIdentityServerInteractionService InteractionService { get; set; } = default!;
         [Inject] protected IEmailAuthenticationService EmailAuthenticationService { get; set; } = default!;
         [Inject] protected ISmsAuthenticationService SmsAuthenticationService { get; set; } = default!;

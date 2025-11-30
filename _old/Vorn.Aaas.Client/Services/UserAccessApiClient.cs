@@ -1,22 +1,13 @@
-namespace Vorn.Aaas.Client.Services;
 
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization.Metadata;
+using Vorn.Aaas.Client.Abstractions;
 using Vorn.Aaas.Client.Api.Abstractions;
 using Vorn.Aaas.Client.Context;
-using Vorn.Aaas.Client.Models;
+using Vorn.Aaas.Client.Contracts;
 
-public interface IUserAccessApiClient
-{
-    Task<IEnumerable<ClaimDto>?> GetUserClaims(string userId, CancellationToken cancellationToken = default);
-    Task<ClaimDto?> GetUserAccessClaim(string userId, string clientId, CancellationToken cancellationToken = default);
-    Task<bool> HasUserAccess(string userId, string clientId, CancellationToken cancellationToken = default);
-    Task<IEnumerable<UserDto>?> GetClientUsers(string clientId, CancellationToken cancellationToken = default);
-    Task<UserDto?> GetClientUser(string clientId, string userId, CancellationToken cancellationToken = default);
-    Task SetUserAccess(string userId, string clientId, string accessValue, CancellationToken cancellationToken = default);
-    Task RemoveUserAccess(string userId, string clientId, CancellationToken cancellationToken = default);
-}
+namespace Vorn.Aaas.Client.Services;
 
 public class UserAccessApiClient(IAaasClientFactory clientFactory, ILogger<UserAccessApiClient> logger) : IUserAccessApiClient
 {
@@ -29,7 +20,7 @@ public class UserAccessApiClient(IAaasClientFactory clientFactory, ILogger<UserA
         logger.LogInformation("Sending GET query {Query}", query);
         using HttpRequestMessage request = new(HttpMethod.Get, query);
         using HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        _ = response.EnsureSuccessStatusCode();
         T? resultT = await response.Content.ReadFromJsonAsync(jsonTypeInfo, cancellationToken);
         logger.LogInformation("GET query {Query} finished", query);
         return resultT;
@@ -75,7 +66,7 @@ public class UserAccessApiClient(IAaasClientFactory clientFactory, ILogger<UserA
         HttpClient httpClient = await CreateHttpClientAsync();
         SetUserAccessRequest payload = new(userId, clientId, accessValue);
         using HttpResponseMessage response = await httpClient.PostAsJsonAsync("access", payload, UserAccessJsonContext.Default.SetUserAccessRequest, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        _ = response.EnsureSuccessStatusCode();
     }
 
     /// <summary>
@@ -92,6 +83,6 @@ public class UserAccessApiClient(IAaasClientFactory clientFactory, ILogger<UserA
         };
 
         using HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
-        response.EnsureSuccessStatusCode();
+        _ = response.EnsureSuccessStatusCode();
     }
 }

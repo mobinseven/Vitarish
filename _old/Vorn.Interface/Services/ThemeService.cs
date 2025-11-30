@@ -18,7 +18,6 @@ internal sealed class ThemeService : IThemeService
     private readonly MudTheme theme;
     private readonly ThemeSurface lightSurface;
     private readonly ThemeSurface darkSurface;
-    private readonly TypographyVariables typographyVariables;
     private bool darkModeEnabled;
     private bool blazorReadyEnabled = true;
     private RenderFragment? navMenuButtons;
@@ -87,11 +86,6 @@ internal sealed class ThemeService : IThemeService
             shimmer: new ShimmerStyle(
                 TextColor: "#f5f5f5",
                 Background: "#2a2a2a -webkit-gradient(linear, 100% 0, 0 0, from(#2a2a2a), color-stop(0.5, #f5f5f5), to(#2a2a2a))"));
-
-        typographyVariables = new TypographyVariables(
-            fontSize: theme.Typography.Default.FontSize ?? "1rem",
-            fontWeight: theme.Typography.Default.FontWeight ?? "500",
-            lineHeight: "1.5");
     }
 
     public MudTheme Theme => theme;
@@ -99,8 +93,6 @@ internal sealed class ThemeService : IThemeService
     public ThemeSurface Light => lightSurface;
 
     public ThemeSurface Dark => darkSurface;
-
-    public TypographyVariables Typography => typographyVariables;
 
     public bool DarkModeEnabled => darkModeEnabled;
 
@@ -201,13 +193,6 @@ internal sealed class ThemeService : IThemeService
         }
     }
 
-    /// <summary>
-    /// Updates typography settings (font size and weight) for the theme.
-    /// This affects the global font size of MudBlazor components via CSS custom properties.
-    /// To scale the entire UI, adjust the fontSize parameter (e.g., "0.875rem" for compact, "1.125rem" for large).
-    /// </summary>
-    /// <param name="fontSize">Font size for default typography (e.g., "1rem", "0.875rem")</param>
-    /// <param name="fontWeight">Font weight for default typography (e.g., "400", "500", "600")</param>
     public void UpdateTypography(string? fontSize = null, string? fontWeight = null)
     {
         var updated = false;
@@ -215,14 +200,12 @@ internal sealed class ThemeService : IThemeService
         if (!string.IsNullOrWhiteSpace(fontSize))
         {
             theme.Typography.Default.FontSize = fontSize;
-            typographyVariables.Update(fontSize: fontSize);
             updated = true;
         }
 
         if (!string.IsNullOrWhiteSpace(fontWeight))
         {
             theme.Typography.Default.FontWeight = fontWeight;
-            typographyVariables.Update(fontWeight: fontWeight);
             updated = true;
         }
 
@@ -309,11 +292,6 @@ internal sealed class ThemeService : IThemeService
             theme.Typography.Default.FontWeight = SelectValue(
                 typography.FontWeight,
                 theme.Typography.Default.FontWeight ?? string.Empty);
-            
-            // Update typography CSS variables
-            typographyVariables.Update(
-                fontSize: theme.Typography.Default.FontSize,
-                fontWeight: theme.Typography.Default.FontWeight);
         }
 
         ApplySurface(lightSurface, settings.LightSurface);
@@ -570,7 +548,6 @@ public interface IThemeService
     MudTheme Theme { get; }
     ThemeSurface Light { get; }
     ThemeSurface Dark { get; }
-    TypographyVariables Typography { get; }
     bool DarkModeEnabled { get; }
     bool BlazorReadyEnabled { get; }
     RenderFragment? NavMenuButtons { get; }
@@ -669,137 +646,3 @@ public sealed class ThemeSurface
 }
 
 public sealed record ShimmerStyle(string TextColor, string Background);
-
-/// <summary>
-/// Manages typography-related CSS custom properties for consistent font sizing across MudBlazor components.
-/// 
-/// TYPOGRAPHY THEME CONFIGURATION GUIDE:
-/// ======================================
-/// To change the global font size scale for all MudBlazor components, modify these theme properties:
-/// 
-/// 1. ThemeService.UpdateTypography(fontSize: "...", fontWeight: "...")
-///    - fontSize: Controls the base font size (default: "1rem")
-///      * Compact UI: "0.875rem" (14px)
-///      * Default UI: "1rem" (16px)
-///      * Comfortable UI: "1.125rem" (18px)
-///      * Large UI: "1.25rem" (20px)
-///    - fontWeight: Controls the base font weight (default: "500")
-///      * Light: "300"
-///      * Normal: "400"
-///      * Medium: "500"
-///      * Semi-bold: "600"
-/// 
-/// 2. The following CSS custom properties are automatically updated:
-///    - --mud-typography-default-size: Base font size for most components
-///    - --mud-typography-default-weight: Base font weight
-///    - --mud-typography-default-lineheight: Base line height (fixed at 1.5)
-/// 
-/// 3. These variables are used by MudBlazor components including:
-///    - MudText, MudButton, MudTextField, MudSelect, MudAutocomplete
-///    - MudTable, MudDataGrid, MudChip, MudBadge
-///    - MudMenuItem, MudNavLink, MudDrawer
-///    - And many other components
-/// 
-/// Example usage:
-///   // Compact theme for dense UIs
-///   themeService.UpdateTypography(fontSize: "0.875rem", fontWeight: "400");
-///   
-///   // Large theme for accessibility
-///   themeService.UpdateTypography(fontSize: "1.25rem", fontWeight: "500");
-/// </summary>
-public sealed class TypographyVariables
-{
-    // Dictionary used instead of FrozenDictionary to allow runtime updates via Update() method
-    private readonly Dictionary<string, string> rootVariables;
-
-    public TypographyVariables(string fontSize, string fontWeight, string lineHeight)
-    {
-        FontSize = ValidateCssValue(fontSize, nameof(fontSize));
-        FontWeight = ValidateCssValue(fontWeight, nameof(fontWeight));
-        LineHeight = ValidateCssValue(lineHeight, nameof(lineHeight));
-
-        rootVariables = new Dictionary<string, string>
-        {
-            ["--mud-typography-default-size"] = FontSize,
-            ["--mud-typography-default-weight"] = FontWeight,
-            ["--mud-typography-default-lineheight"] = LineHeight
-        };
-    }
-
-    public string FontSize { get; private set; }
-
-    public string FontWeight { get; private set; }
-
-    public string LineHeight { get; private set; }
-
-    /// <summary>
-    /// Gets the CSS custom properties as a read-only dictionary.
-    /// The returned dictionary is read-only to callers, but its contents may be updated internally
-    /// by this class via the <see cref="Update"/> method. Note: Dictionary is used (not FrozenDictionary)
-    /// because this class needs to modify the dictionary contents after construction. The cast to 
-    /// IReadOnlyDictionary only prevents modification by callers, not by the class itself.
-    /// </summary>
-    public IReadOnlyDictionary<string, string> RootVariables => rootVariables;
-
-    public void Update(string? fontSize = null, string? fontWeight = null, string? lineHeight = null)
-    {
-        if (!string.IsNullOrWhiteSpace(fontSize))
-        {
-            var validatedFontSize = ValidateCssValue(fontSize, nameof(fontSize));
-            FontSize = validatedFontSize;
-            rootVariables["--mud-typography-default-size"] = validatedFontSize;
-        }
-
-        if (!string.IsNullOrWhiteSpace(fontWeight))
-        {
-            var validatedFontWeight = ValidateCssValue(fontWeight, nameof(fontWeight));
-            FontWeight = validatedFontWeight;
-            rootVariables["--mud-typography-default-weight"] = validatedFontWeight;
-        }
-
-        if (!string.IsNullOrWhiteSpace(lineHeight))
-        {
-            var validatedLineHeight = ValidateCssValue(lineHeight, nameof(lineHeight));
-            LineHeight = validatedLineHeight;
-            rootVariables["--mud-typography-default-lineheight"] = validatedLineHeight;
-        }
-    }
-
-    private static readonly System.Text.RegularExpressions.Regex CssValuePattern = 
-        new(@"^[\w\s.,%()+\-]+$", System.Text.RegularExpressions.RegexOptions.Compiled);
-    
-    private static readonly char[] DangerousChars = { ';', '{', '}' };
-
-    /// <summary>
-    /// Validates CSS value to prevent CSS injection attacks.
-    /// Ensures the value contains only safe characters for CSS property values.
-    /// </summary>
-    private static string ValidateCssValue(string value, string parameterName)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            throw new ArgumentException("CSS value cannot be null or whitespace.", parameterName);
-        }
-
-        // Allow alphanumeric, periods, hyphens, parentheses, commas, spaces, %, and + for valid CSS values
-        // Examples: "1rem", "1.5", "500", "calc(1rem + 2px)", "100%", "sans-serif"
-        // Note: Spaces are allowed for calc() expressions and font-family names
-        // Security: Semicolons and braces are blocked separately to prevent CSS injection
-        if (!CssValuePattern.IsMatch(value))
-        {
-            throw new ArgumentException(
-                $"CSS value '{value}' contains invalid characters. Only alphanumeric characters, spaces, periods, hyphens, parentheses, commas, and % are allowed.",
-                parameterName);
-        }
-
-        // Prevent CSS injection by checking for suspicious patterns
-        if (value.IndexOfAny(DangerousChars) >= 0)
-        {
-            throw new ArgumentException(
-                $"CSS value '{value}' contains potentially malicious characters (semicolons or braces).",
-                parameterName);
-        }
-
-        return value.Trim();
-    }
-}

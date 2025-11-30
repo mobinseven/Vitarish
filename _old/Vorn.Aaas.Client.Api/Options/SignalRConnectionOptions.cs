@@ -1,7 +1,8 @@
-namespace Vorn.Aaas.Client.Api.Options;
 
 using Microsoft.AspNetCore.Http.Connections.Client;
 using Microsoft.AspNetCore.SignalR.Client;
+
+namespace Vorn.Aaas.Client.Api.Options;
 
 public sealed record SignalRConnectionOptions
 {

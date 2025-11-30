@@ -2,7 +2,7 @@ namespace Vorn.Caas.Client.Abstractions;
 
 using System.Threading;
 using System.Threading.Tasks;
-using Vorn.Caas.Client.Models;
+using Vorn.Caas.Client.Abstractions.Models;
 
 public interface IMessageClient
 {
