@@ -13,7 +13,7 @@ namespace Vitarish.Web.Clients.Services;
 public class UserProfileCultureInfoProvider(
     UserProfileService profileService,
     IHttpContextAccessor httpContextAccessor,
-    IJSRuntime jsRuntime) : IUserProfileCultureInfoProvider
+    IJSRuntime jsRuntime) : IUserProfileCultureInfoProvider, IAsyncDisposable
 {
     private CultureInfo? cachedCulture;
     private bool hasLoaded;
@@ -195,4 +195,24 @@ public class UserProfileCultureInfoProvider(
                 "import",
                 "./_content/Web.Clients/Components/CultureSelector.razor.js")
             .AsTask();
+
+    /// <summary>
+    /// Disposes the JS module reference.
+    /// </summary>
+    public async ValueTask DisposeAsync()
+    {
+        if (cultureModuleTask is not null)
+        {
+            try
+            {
+                IJSObjectReference module = await cultureModuleTask;
+                await module.DisposeAsync();
+            }
+            catch (JSDisconnectedException)
+            {
+                // Ignore - the circuit was already disconnected
+            }
+        }
+        GC.SuppressFinalize(this);
+    }
 }

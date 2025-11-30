@@ -13,5 +13,5 @@ public static class UrlExtensions
             ? relativePath ?? string.Empty
             : string.IsNullOrWhiteSpace(relativePath)
                 ? baseUrl
-                : new Uri(new Uri(baseUrl.TrimEnd('/') + "/"), relativePath.TrimStart()).ToString();
+                : new Uri(new Uri(baseUrl.TrimEnd('/') + "/"), relativePath.TrimStart('/')).ToString();
 }

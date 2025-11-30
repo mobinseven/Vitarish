@@ -31,7 +31,7 @@ public class UserProfileService(AuthenticationStateProvider authStateProvider, I
             return null;
         }
 
-        HttpResponseMessage response = await httpClient.GetAsync($"/api/user/profile/{userId}");
+        using HttpResponseMessage response = await httpClient.GetAsync($"/api/user/profile/{userId}");
         return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<Dictionary<string, string>>() : [];
     }
 
@@ -51,7 +51,8 @@ public class UserProfileService(AuthenticationStateProvider authStateProvider, I
             return;
         }
 
-        _ = await httpClient.PutAsJsonAsync($"/api/user/profile/{userId}", preferences);
+        using HttpResponseMessage response = await httpClient.PutAsJsonAsync($"/api/user/profile/{userId}", preferences);
+        _ = response.IsSuccessStatusCode;
     }
 
     /// <inheritdoc />
