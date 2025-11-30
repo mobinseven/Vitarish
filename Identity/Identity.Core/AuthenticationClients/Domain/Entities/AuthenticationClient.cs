@@ -26,7 +26,7 @@ public class AuthenticationClient : Entity<string>
     }
 
     /// <summary>Base URL of the client.</summary>
-    public string Url { get; set; } = default!;
+    public string Url { get; set; } = string.Empty;
 
     /// <summary>Display title.</summary>
     public string? Title { get; set; }
