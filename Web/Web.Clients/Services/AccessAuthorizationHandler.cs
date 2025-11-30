@@ -57,7 +57,18 @@ internal class AccessAuthorizationHandler(
             finally
             {
                 _ = gate.Release();
-                _ = _locks.TryRemove(key, out _);
+
+                if (gate.CurrentCount == 1 && gate.Wait(0))
+                {
+                    try
+                    {
+                        _ = _locks.TryRemove(key, out _);
+                    }
+                    finally
+                    {
+                        gate.Release();
+                    }
+                }
             }
         }
         else
