@@ -1,4 +1,4 @@
-using Web.Users.Components;
+using Vitarish.Web.Users.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -29,6 +29,6 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
-    .AddAdditionalAssemblies(typeof(Web.Users.Client._Imports).Assembly);
+    .AddAdditionalAssemblies(typeof(Vitarish.Web.Users.Client._Imports).Assembly);
 
 app.Run();
