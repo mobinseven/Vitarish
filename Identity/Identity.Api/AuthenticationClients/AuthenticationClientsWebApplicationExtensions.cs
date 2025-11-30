@@ -70,8 +70,8 @@ public static class AuthenticationClientsWebApplicationExtensions
                 AuthenticationClient? client = await sender.Send(command);
                 if (client is null)
                 {
-                    // optionally handle error case
-                    return Results.Problem("Could not create authentication client.", statusCode: StatusCodes.Status500InternalServerError);
+                    // Return a specific conflict error if a client with the same ID already exists
+                    return Results.Conflict($"Authentication client with ID '{command.Id}' already exists.");
                 }
 
                 return Results.Created($"/api/authenticationclients/{client.Id}", client);
