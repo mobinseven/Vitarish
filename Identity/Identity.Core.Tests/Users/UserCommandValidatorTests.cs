@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Vitarish.Identity.Core.Users.Application.Commands;
 
-namespace Identity.Core.Tests.Users;
+namespace Vitarish.Identity.Core.Tests.Users;
 
 public class CreateUserWithEmailValidatorTests
 {
@@ -233,6 +233,25 @@ public class SetUserAccessClaimValidatorTests
         // Assert
         result.IsValid.Should().BeFalse();
         result.Errors.Should().Contain(e => e.PropertyName == "ClientId");
+    }
+
+    [Theory]
+    [InlineData("user-1", "client-1", "")]
+    [InlineData("user-1", "client-1", null)]
+    public void Validate_WithEmptyOrNullAccessValue_ReturnsInvalid(string userId, string clientId, string? accessValue)
+    {
+        // Arrange
+        var command = new SetUserAccessClaim(
+            UserId: userId,
+            ClientId: clientId,
+            AccessValue: accessValue!);
+
+        // Act
+        var result = _validator.Validate(command);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "AccessValue");
     }
 }
 

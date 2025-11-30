@@ -15,7 +15,7 @@ public sealed class HasUserAccessValidator : AbstractValidator<HasUserAccess>
 {
     public HasUserAccessValidator()
     {
-        _ = RuleFor(q => q.UserId).NotEmpty();
-        _ = RuleFor(q => q.ClientId).NotEmpty();
+        RuleFor(q => q.UserId).NotEmpty();
+        RuleFor(q => q.ClientId).NotEmpty();
     }
 }

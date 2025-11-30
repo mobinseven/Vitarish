@@ -16,6 +16,6 @@ public sealed class GetUserByNameValidator : AbstractValidator<GetUserByName>
 {
     public GetUserByNameValidator()
     {
-        _ = RuleFor(q => q.UserName).NotEmpty();
+        RuleFor(q => q.UserName).NotEmpty();
     }
 }

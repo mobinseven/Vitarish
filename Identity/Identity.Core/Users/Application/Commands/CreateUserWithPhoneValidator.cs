@@ -9,6 +9,6 @@ public sealed class CreateUserWithPhoneValidator : AbstractValidator<CreateUserW
 {
     public CreateUserWithPhoneValidator()
     {
-        _ = RuleFor(c => c.PhoneNumber).NotEmpty();
+        RuleFor(c => c.PhoneNumber).NotEmpty();
     }
 }

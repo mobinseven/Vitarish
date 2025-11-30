@@ -9,7 +9,8 @@ public sealed class SetUserAccessClaimValidator : AbstractValidator<SetUserAcces
 {
     public SetUserAccessClaimValidator()
     {
-        _ = RuleFor(c => c.UserId).NotEmpty();
-        _ = RuleFor(c => c.ClientId).NotEmpty();
+        RuleFor(c => c.UserId).NotEmpty();
+        RuleFor(c => c.ClientId).NotEmpty();
+        RuleFor(c => c.AccessValue).NotEmpty();
     }
 }

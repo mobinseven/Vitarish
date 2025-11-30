@@ -9,6 +9,6 @@ public sealed class DeleteUserValidator : AbstractValidator<DeleteUser>
 {
     public DeleteUserValidator()
     {
-        _ = RuleFor(c => c.Id).NotEmpty();
+        RuleFor(c => c.Id).NotEmpty();
     }
 }

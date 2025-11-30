@@ -9,6 +9,6 @@ public sealed class CreateUserWithEmailValidator : AbstractValidator<CreateUserW
 {
     public CreateUserWithEmailValidator()
     {
-        _ = RuleFor(c => c.Email).NotEmpty().EmailAddress();
+        RuleFor(c => c.Email).NotEmpty().EmailAddress();
     }
 }

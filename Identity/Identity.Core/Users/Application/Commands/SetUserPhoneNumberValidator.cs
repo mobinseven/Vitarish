@@ -9,7 +9,7 @@ public sealed class SetUserPhoneNumberValidator : AbstractValidator<SetUserPhone
 {
     public SetUserPhoneNumberValidator()
     {
-        _ = RuleFor(c => c.UserId).NotEmpty();
-        _ = RuleFor(c => c.PhoneNumber).NotEmpty();
+        RuleFor(c => c.UserId).NotEmpty();
+        RuleFor(c => c.PhoneNumber).NotEmpty();
     }
 }

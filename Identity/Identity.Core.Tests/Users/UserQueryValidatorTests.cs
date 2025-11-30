@@ -1,7 +1,7 @@
 using FluentAssertions;
 using Vitarish.Identity.Core.Users.Application.Queries;
 
-namespace Identity.Core.Tests.Users;
+namespace Vitarish.Identity.Core.Tests.Users;
 
 public class GetUserValidatorTests
 {

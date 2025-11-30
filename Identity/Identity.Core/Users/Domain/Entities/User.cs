@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Diagnostics;
 using System.Text.Json;
 using Vitarish.Base.Domain.Primitives;
 
@@ -10,6 +11,9 @@ namespace Vitarish.Identity.Core.Users.Domain.Entities;
 /// </summary>
 public class User : Entity<string>
 {
+    private Dictionary<string, string>? _profilePreferencesCache;
+    private string? _profileJsonCache;
+
     /// <summary>
     /// Initializes a new instance of the <see cref="User"/> class.
     /// Required for EF Core.
@@ -70,8 +74,47 @@ public class User : Entity<string>
     [NotMapped]
     public Dictionary<string, string> ProfilePreferences
     {
-        get => string.IsNullOrEmpty(ProfileJson) ? [] : JsonSerializer.Deserialize<Dictionary<string, string>>(ProfileJson) ?? [];
-        private set => ProfileJson = value is null || value.Count == 0 ? null : JsonSerializer.Serialize(value);
+        get
+        {
+            if (string.IsNullOrEmpty(ProfileJson))
+            {
+                _profilePreferencesCache = [];
+                _profileJsonCache = ProfileJson;
+                return _profilePreferencesCache;
+            }
+
+            if (_profilePreferencesCache == null || _profileJsonCache != ProfileJson)
+            {
+                try
+                {
+                    _profilePreferencesCache = JsonSerializer.Deserialize<Dictionary<string, string>>(ProfileJson) ?? [];
+                }
+                catch (JsonException ex)
+                {
+                    Debug.WriteLine($"Failed to deserialize profile preferences for user '{Id}': {ex}");
+                    _profilePreferencesCache = [];
+                }
+
+                _profileJsonCache = ProfileJson;
+            }
+
+            return _profilePreferencesCache;
+        }
+        private set
+        {
+            if (value is null || value.Count == 0)
+            {
+                ProfileJson = null;
+                _profilePreferencesCache = [];
+            }
+            else
+            {
+                ProfileJson = JsonSerializer.Serialize(value);
+                _profilePreferencesCache = new Dictionary<string, string>(value);
+            }
+
+            _profileJsonCache = ProfileJson;
+        }
     }
 
     /// <summary>

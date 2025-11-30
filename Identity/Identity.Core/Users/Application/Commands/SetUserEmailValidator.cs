@@ -9,7 +9,7 @@ public sealed class SetUserEmailValidator : AbstractValidator<SetUserEmail>
 {
     public SetUserEmailValidator()
     {
-        _ = RuleFor(c => c.UserId).NotEmpty();
-        _ = RuleFor(c => c.Email).NotEmpty().EmailAddress();
+        RuleFor(c => c.UserId).NotEmpty();
+        RuleFor(c => c.Email).NotEmpty().EmailAddress();
     }
 }

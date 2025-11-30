@@ -16,6 +16,6 @@ public sealed class GetUserValidator : AbstractValidator<GetUser>
 {
     public GetUserValidator()
     {
-        _ = RuleFor(q => q.Id).NotEmpty();
+        RuleFor(q => q.Id).NotEmpty();
     }
 }

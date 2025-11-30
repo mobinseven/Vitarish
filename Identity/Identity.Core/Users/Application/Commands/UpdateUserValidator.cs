@@ -9,6 +9,6 @@ public sealed class UpdateUserValidator : AbstractValidator<UpdateUser>
 {
     public UpdateUserValidator()
     {
-        _ = RuleFor(c => c.Id).NotEmpty();
+        RuleFor(c => c.Id).NotEmpty();
     }
 }

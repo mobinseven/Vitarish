@@ -9,7 +9,7 @@ public sealed class UpdateUserProfileValidator : AbstractValidator<UpdateUserPro
 {
     public UpdateUserProfileValidator()
     {
-        _ = RuleFor(c => c.UserId).NotEmpty();
-        _ = RuleFor(c => c.Preferences).NotNull();
+        RuleFor(c => c.UserId).NotEmpty();
+        RuleFor(c => c.Preferences).NotNull();
     }
 }

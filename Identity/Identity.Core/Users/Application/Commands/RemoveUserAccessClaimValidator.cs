@@ -9,7 +9,7 @@ public sealed class RemoveUserAccessClaimValidator : AbstractValidator<RemoveUse
 {
     public RemoveUserAccessClaimValidator()
     {
-        _ = RuleFor(c => c.UserId).NotEmpty();
-        _ = RuleFor(c => c.ClientId).NotEmpty();
+        RuleFor(c => c.UserId).NotEmpty();
+        RuleFor(c => c.ClientId).NotEmpty();
     }
 }
