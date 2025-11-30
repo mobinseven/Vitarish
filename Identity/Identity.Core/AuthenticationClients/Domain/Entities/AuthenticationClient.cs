@@ -1,13 +1,11 @@
 namespace Vitarish.Identity.Core.AuthenticationClients.Domain.Entities;
 
+using Vitarish.Base.Domain.Primitives;
 /// <summary>
 /// Represents a frontend authentication client application.
 /// </summary>
-public class AuthenticationClient
+public class AuthenticationClient : Entity<string>
 {
-    /// <summary>Unique identifier for the client.</summary>
-    public required string Id { get; set; }
-
     /// <summary>Base URL of the client.</summary>
     public required string Url { get; set; }
 
