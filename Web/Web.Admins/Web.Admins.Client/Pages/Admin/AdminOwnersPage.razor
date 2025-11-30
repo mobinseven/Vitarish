@@ -1,0 +1,30 @@
+@page "/admin/owners"
+
+<PageTitle>Owners</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudStack Spacing="3">
+        <MudText Typo="Typo.h4">Owners</MudText>
+        <MudText Typo="Typo.body1">Owner directory migrated from the legacy interface.</MudText>
+
+        <MudTable Items="owners" Hover="true" Dense="true" Bordered="true">
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Contact</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Contact">@context.Contact</MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudStack>
+</MudContainer>
+
+@code {
+    private IReadOnlyList<(string Name, string Contact)> owners = new List<(string, string)>
+    {
+        ("Contoso", "contoso@example.com"),
+        ("Fabrikam", "fabrikam@example.com"),
+        ("AdventureWorks", "admin@adventure-works.test")
+    };
+}

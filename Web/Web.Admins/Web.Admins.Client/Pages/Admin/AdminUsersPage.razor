@@ -1,0 +1,26 @@
+@page "/admin/users"
+
+<PageTitle>Admin Users</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudStack Spacing="3">
+        <MudText Typo="Typo.h4">Users</MudText>
+        <MudText Typo="Typo.body1">Migrated management view showing directory users and their access claims.</MudText>
+
+        <AccessUsersMatrix Rows="users" />
+    </MudStack>
+</MudContainer>
+
+@code {
+    private IReadOnlyList<AdminUserModel>? users;
+
+    protected override void OnInitialized()
+    {
+        users = new List<AdminUserModel>
+        {
+            new("1", "alex.admin", "Alex Admin", new Access { Entrance = true, Read = "identity,tenants", Write = "identity", Admin = true }),
+            new("2", "casey.ops", "Casey Ops", new Access { Entrance = true, Read = "identity,signals", Write = "signals", Admin = false }),
+            new("3", "riley.support", "Riley Support", new Access { Entrance = true, Read = "identity", Write = string.Empty, Admin = false })
+        };
+    }
+}

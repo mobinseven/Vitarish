@@ -1,0 +1,32 @@
+@page "/admin/request-identities"
+
+<PageTitle>Request Identities</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudStack Spacing="3">
+        <MudText Typo="Typo.h4">Request Identities</MudText>
+        <MudText Typo="Typo.body1">Historical request identity sources surfaced for administrators.</MudText>
+
+        <MudList T="(string Source, string Description)">
+            @foreach(var identity in identities)
+            {
+                <MudListItem T="(string Source, string Description)">
+                    <MudStack Spacing="1">
+                        <MudText Typo="Typo.subtitle1">@identity.Source</MudText>
+                        <MudText Typo="Typo.caption">@identity.Description</MudText>
+                    </MudStack>
+                </MudListItem>
+            }
+        </MudList>
+    </MudStack>
+</MudContainer>
+
+@code {
+    private IReadOnlyList<(string Source, string Description)> identities = new List<(string, string)>
+    {
+        ("Cookies", "User session established via interactive login."),
+        ("PAT", "Personal access token associated with an administrator."),
+        ("ApiKey", "Legacy API key provided to trusted services."),
+        ("Identity Server", "Back-channel token issued by the authentication host.")
+    };
+}

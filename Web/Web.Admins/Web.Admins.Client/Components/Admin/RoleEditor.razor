@@ -1,0 +1,30 @@
+<MudStack Row="true" Spacing="2" AlignItems="AlignItems.Center">
+    <MudTextField @bind-Value="Read"
+                  Placeholder="read (comma separated)"
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense" />
+    <MudTextField @bind-Value="Write"
+                  Placeholder="write (comma separated)"
+                  Variant="Variant.Outlined"
+                  Margin="Margin.Dense" />
+</MudStack>
+
+@code {
+    [Parameter] public string Read { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ReadChanged { get; set; }
+    [Parameter] public string Write { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> WriteChanged { get; set; }
+    [Parameter] public IReadOnlyList<string> Roles { get; set; } = Array.Empty<string>();
+
+    private async Task OnReadChanged(string value)
+    {
+        Read = value;
+        await ReadChanged.InvokeAsync(value);
+    }
+
+    private async Task OnWriteChanged(string value)
+    {
+        Write = value;
+        await WriteChanged.InvokeAsync(value);
+    }
+}

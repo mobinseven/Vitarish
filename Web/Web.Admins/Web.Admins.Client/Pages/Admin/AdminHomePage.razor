@@ -1,0 +1,48 @@
+@page "/admin"
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-10">
+    <MudText Typo="Typo.h3" GutterBottom="true">Admin Console</MudText>
+    <MudText Typo="Typo.subtitle1" Class="mb-6">
+        Quick links to the migrated administration areas.
+    </MudText>
+
+    <MudGrid>
+        <MudItem xs="12" sm="6">
+            <MudCard Class="mb-4">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">Directory</MudText>
+                    <MudText Typo="Typo.body2">Manage users, tenants, and owners.</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Color="Color.Primary" Variant="Variant.Filled" Href="/admin/users">Users</MudButton>
+                    <MudButton Color="Color.Primary" Variant="Variant.Text" Href="/admin/owners">Owners</MudButton>
+                    <MudButton Color="Color.Primary" Variant="Variant.Text" Href="/admin/tenants">Tenants</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudCard Class="mb-4">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">Client Access</MudText>
+                    <MudText Typo="Typo.body2">Configure authentication and API clients.</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Color="Color.Secondary" Variant="Variant.Filled" Href="/admin/authentication-clients">Authentication Clients</MudButton>
+                    <MudButton Color="Color.Secondary" Variant="Variant.Text" Href="/admin/api-clients">API Clients</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+        <MudItem xs="12" sm="6">
+            <MudCard Class="mb-4">
+                <MudCardContent>
+                    <MudText Typo="Typo.h6">Signals</MudText>
+                    <MudText Typo="Typo.body2">Review request identities and tenant indicators.</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Color="Color.Info" Variant="Variant.Filled" Href="/admin/request-identities">Request Identities</MudButton>
+                    <MudButton Color="Color.Info" Variant="Variant.Text" Href="/admin/tenant-indicators">Tenant Indicators</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</MudContainer>

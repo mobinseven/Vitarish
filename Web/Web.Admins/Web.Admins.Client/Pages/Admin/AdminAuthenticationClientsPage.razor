@@ -1,0 +1,26 @@
+@page "/admin/authentication-clients"
+
+<PageTitle>Authentication Clients</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudStack Spacing="3">
+        <MudText Typo="Typo.h4">Authentication Clients</MudText>
+        <MudText Typo="Typo.body1">Review legacy authentication client scopes that were migrated from Vorn.Aaas.Interface.</MudText>
+
+        <AccessClaimsMatrix Claims="clientClaims" />
+    </MudStack>
+</MudContainer>
+
+@code {
+    private IReadOnlyList<AccessClaimModel>? clientClaims;
+
+    protected override void OnInitialized()
+    {
+        clientClaims = new List<AccessClaimModel>
+        {
+            new("Identity Server", new Access { Entrance = true, Read = "users,tenants", Write = "users", Admin = true }),
+            new("Web Gateway", new Access { Entrance = true, Read = "users", Write = "", Admin = false }),
+            new("Mobile", new Access { Entrance = true, Read = "users", Write = "signals", Admin = false })
+        };
+    }
+}

@@ -11,6 +11,7 @@
     <ProjectReference Include="..\Web.Admins.Client\Web.Admins.Client.csproj" />
     <ProjectReference Include="..\..\Web.Base\Web.Base.csproj" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.0" />
+    <PackageReference Include="MudBlazor" Version="8.*" />
   </ItemGroup>
 
 </Project>

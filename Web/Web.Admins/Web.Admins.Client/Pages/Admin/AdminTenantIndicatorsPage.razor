@@ -1,0 +1,30 @@
+@page "/admin/tenant-indicators"
+
+<PageTitle>Tenant Indicators</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-6">
+    <MudStack Spacing="3">
+        <MudText Typo="Typo.h4">Tenant Indicators</MudText>
+        <MudText Typo="Typo.body1">Signals surfaced from the legacy request identity pipeline.</MudText>
+
+        <MudTable Items="indicators" Hover="true" Dense="true" Bordered="true">
+            <HeaderContent>
+                <MudTh>Indicator</MudTh>
+                <MudTh>Description</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Indicator">@context.Indicator</MudTd>
+                <MudTd DataLabel="Description">@context.Description</MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudStack>
+</MudContainer>
+
+@code {
+    private IReadOnlyList<(string Indicator, string Description)> indicators = new List<(string, string)>
+    {
+        ("x-tenant-id", "Legacy header forwarded by API gateway"),
+        ("x-owner", "Owner identifier provided by upstream services"),
+        ("x-signal", "Catch-all indicator preserved for diagnostics")
+    };
+}

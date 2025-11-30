@@ -1,0 +1,32 @@
+@page "/admin/tenants"
+
+<PageTitle>Tenants</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudStack Spacing="3">
+        <MudText Typo="Typo.h4">Tenants</MudText>
+        <MudText Typo="Typo.body1">Tenant registry with legacy identifiers and owners.</MudText>
+
+        <MudTable Items="tenants" Hover="true" Dense="true" Bordered="true">
+            <HeaderContent>
+                <MudTh>Name</MudTh>
+                <MudTh>Owner</MudTh>
+                <MudTh>Indicator</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Name">@context.Name</MudTd>
+                <MudTd DataLabel="Owner">@context.Owner</MudTd>
+                <MudTd DataLabel="Indicator">@context.Indicator</MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudStack>
+</MudContainer>
+
+@code {
+    private IReadOnlyList<(string Name, string Owner, string Indicator)> tenants = new List<(string, string, string)>
+    {
+        ("Northwind", "Contoso", "northwind"),
+        ("Tailspin", "Fabrikam", "tailspin"),
+        ("Woodgrove", "AdventureWorks", "woodgrove")
+    };
+}

@@ -1,0 +1,26 @@
+@page "/admin/api-clients"
+
+<PageTitle>API Clients</PageTitle>
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-6">
+    <MudStack Spacing="3">
+        <MudText Typo="Typo.h4">API Clients</MudText>
+        <MudText Typo="Typo.body1">Legacy API client permissions migrated into the new Admins module.</MudText>
+
+        <AccessClaimsMatrix Claims="apiClientClaims" />
+    </MudStack>
+</MudContainer>
+
+@code {
+    private IReadOnlyList<AccessClaimModel>? apiClientClaims;
+
+    protected override void OnInitialized()
+    {
+        apiClientClaims = new List<AccessClaimModel>
+        {
+            new("Files", new Access { Entrance = true, Read = "files", Write = "files", Admin = false }),
+            new("Comms", new Access { Entrance = true, Read = "messages", Write = "messages", Admin = false }),
+            new("AI", new Access { Entrance = true, Read = "models", Write = "models", Admin = false })
+        };
+    }
+}

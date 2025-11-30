@@ -1,0 +1,43 @@
+@using Vitarish.Web.Admins.Client.Models
+
+@if(Claims is not null)
+{
+    <MudDataGrid T="AccessClaimModel"
+                 Items="Claims"
+                 EditTrigger="DataGridEditTrigger.Manual"
+                 EditMode="DataGridEditMode.Cell"
+                 ReadOnly="false"
+                 Bordered="true"
+                 Elevation="0"
+                 Dense="true">
+        <ToolBarContent>
+            <MudText Typo="Typo.h6">Client Claims</MudText>
+        </ToolBarContent>
+        <Columns>
+            <PropertyColumn Property="c => c.Name"
+                            Title="Name"
+                            Editable="false" />
+            <PropertyColumn Property="c => c.Access"
+                            Title="Access"
+                            Editable="true"
+                            Required="false">
+                <EditTemplate Context="context">
+                    <RoleEditor @bind-Read="context.Item.Access.Read"
+                                @bind-Write="context.Item.Access.Write"
+                                Roles="roles" />
+                </EditTemplate>
+            </PropertyColumn>
+            <PropertyColumn Property="c => c.Access.Admin"
+                            Title="Admin"
+                            Editable="true">
+                <EditTemplate Context="context">
+                    <MudCheckBox T="bool" @bind-Value="context.Item.Access.Admin" />
+                </EditTemplate>
+            </PropertyColumn>
+        </Columns>
+    </MudDataGrid>
+}
+else
+{
+    <MudProgressCircular Color="Color.Default" Indeterminate="true" />
+}
