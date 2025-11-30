@@ -79,6 +79,7 @@ public static class AuthenticationClientsWebApplicationExtensions
             .WithName("CreateAuthenticationClient")
             .Accepts<CreateAuthenticationClient>("application/json")
             .Produces<AuthenticationClient>(StatusCodes.Status201Created)
+            .Produces(StatusCodes.Status500InternalServerError)
             .WithSummary("Create a new authentication client")
             .WithDescription("Creates a new authentication client and returns a **201 Created** response with a `Location` header pointing to the newly created resource.");
 
