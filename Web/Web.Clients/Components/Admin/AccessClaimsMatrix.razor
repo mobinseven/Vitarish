@@ -1,0 +1,32 @@
+@if(rows is not null)
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Client</th>
+                <th>Access</th>
+                <th>Admin</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var row in rows)
+            {
+                <tr>
+                    <td>@row.Client.Title</td>
+                    <td>
+                        <RoleEditor @bind-Read="row.Read"
+                                    @bind-Write="row.Write"
+                                    Roles="roles" />
+                    </td>
+                    <td>
+                        <input type="checkbox" @bind="row.Admin" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>Loading...</p>
+}
