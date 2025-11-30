@@ -1,6 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
 
   <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
     <Title>Vitarish Web Clients</Title>
     <Description>
       Client library for integrating ASP.NET Core Razor Components/Blazor apps with Vitarish Identity.

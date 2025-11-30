@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
@@ -22,11 +23,13 @@ public static class IdentityDataProtectionExtensions
         string pfxPassword = builder.Configuration["Vitarish:Identity:DataProtectionPassword"]
             ?? throw new InvalidOperationException("Vitarish:Identity:DataProtectionPassword not set");
 
-        X509Certificate2 cert = GenerateCertificate(domain, pfxPassword);
+        string contentRoot = builder.Environment.ContentRootPath;
+        X509Certificate2 cert = GenerateCertificate(domain, pfxPassword, contentRoot);
 
+        string keysPath = Path.Combine(contentRoot, "Keys");
         _ = builder.Services
             .AddDataProtection()
-            .PersistKeysToFileSystem(new DirectoryInfo("Keys"))
+            .PersistKeysToFileSystem(new DirectoryInfo(keysPath))
             .ProtectKeysWithCertificate(cert)
             .SetApplicationName(domain);
     }
@@ -34,10 +37,10 @@ public static class IdentityDataProtectionExtensions
     /// <summary>
     /// Generates or loads a self-signed certificate for data protection.
     /// </summary>
-    public static X509Certificate2 GenerateCertificate(string domain, string password)
+    public static X509Certificate2 GenerateCertificate(string domain, string password, string basePath)
     {
-        string pfxPath = Path.Combine(Environment.CurrentDirectory, "DataProtection.pfx");
-        X509Certificate2? certificate;
+        string pfxPath = Path.Combine(basePath, "DataProtection.pfx");
+        X509Certificate2 certificate;
 
         if (File.Exists(pfxPath))
         {
@@ -54,9 +57,13 @@ public static class IdentityDataProtectionExtensions
             request.CertificateExtensions.Add(new X509KeyUsageExtension(X509KeyUsageFlags.DigitalSignature, critical: true));
             request.CertificateExtensions.Add(new X509BasicConstraintsExtension(false, false, 0, false));
             request.CertificateExtensions.Add(new X509SubjectKeyIdentifierExtension(request.PublicKey, false));
-            certificate = request.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(1));
-            byte[] pfxData = certificate.Export(X509ContentType.Pfx, password);
+            X509Certificate2 tempCert = request.CreateSelfSigned(DateTimeOffset.Now, DateTimeOffset.Now.AddYears(1));
+            // Export and re-import to ensure the private key is persisted correctly
+            byte[] pfxData = tempCert.Export(X509ContentType.Pfx, password);
             File.WriteAllBytes(pfxPath, pfxData);
+#pragma warning disable SYSLIB0057 // X509CertificateLoader not available on all platforms
+            certificate = new X509Certificate2(pfxData, password, X509KeyStorageFlags.MachineKeySet);
+#pragma warning restore SYSLIB0057
         }
 
         return certificate;

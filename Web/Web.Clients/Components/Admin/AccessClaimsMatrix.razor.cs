@@ -54,7 +54,7 @@ public partial class AccessClaimsMatrix : ComponentBase
         foreach (AccessClientModel row in rows)
         {
             ClaimDto? claim = AccessClaims.FirstOrDefault(c =>
-                c.Value?.StartsWith($"{row.Client.Id}:", StringComparison.InvariantCultureIgnoreCase) == true);
+                c.Value?.StartsWith($"{row.Client.Id}:", StringComparison.InvariantCultureIgnoreCase) is true);
             row.LoadClaim(claim);
         }
     }

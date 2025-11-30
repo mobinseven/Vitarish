@@ -35,7 +35,7 @@ public partial class IdentityProfile : IDisposable
             return;
         }
 
-        currentUrl = NavigationManager.ToAbsoluteUri(NavigationManager.ToBaseRelativePath(NavigationManager.Uri)).AbsoluteUri;
+        currentUrl = NavigationManager.ToAbsoluteUri(NavigationManager.ToBaseRelativePath(NavigationManager.Uri)).AbsolutePath;
         NavigationManager.LocationChanged += OnLocationChanged;
     }
 

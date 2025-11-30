@@ -52,7 +52,7 @@ public class UserProfileService(AuthenticationStateProvider authStateProvider, I
         }
 
         using HttpResponseMessage response = await httpClient.PutAsJsonAsync($"/api/user/profile/{userId}", preferences);
-        _ = response.IsSuccessStatusCode;
+        // Response is disposed but we don't throw on failure - profile updates are best-effort
     }
 
     /// <inheritdoc />

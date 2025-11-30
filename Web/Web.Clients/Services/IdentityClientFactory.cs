@@ -63,13 +63,14 @@ internal class IdentityClientFactory(
                 throw new InvalidOperationException($"Error retrieving discovery document: {discoveryDocument.Error}");
             }
 
-            TokenResponse tokenResponse = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
+            ClientCredentialsTokenRequest tokenRequest = new()
             {
                 Address = discoveryDocument.TokenEndpoint,
                 ClientId = AuthConstants.AccessClient,
                 ClientSecret = options.Value.Identity.Secret,
                 Scope = AuthConstants.AccessScope,
-            });
+            };
+            TokenResponse tokenResponse = await client.RequestClientCredentialsTokenAsync(tokenRequest);
 
             if (tokenResponse.IsError || tokenResponse.AccessToken is null)
             {

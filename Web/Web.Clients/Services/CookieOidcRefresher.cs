@@ -44,15 +44,15 @@ internal sealed class CookieOidcRefresher(IOptionsMonitor<OpenIdConnectOptions> 
         OpenIdConnectConfiguration oidcConfiguration = await oidcOptions.ConfigurationManager!.GetConfigurationAsync(validateContext.HttpContext.RequestAborted);
         string tokenEndpoint = oidcConfiguration.TokenEndpoint ?? throw new InvalidOperationException("Cannot refresh cookie. TokenEndpoint missing!");
 
-        using HttpResponseMessage refreshResponse = await oidcOptions.Backchannel.PostAsync(tokenEndpoint,
-            new FormUrlEncodedContent(new Dictionary<string, string?>()
-            {
-                ["grant_type"] = "refresh_token",
-                ["client_id"] = oidcOptions.ClientId,
-                ["client_secret"] = oidcOptions.ClientSecret,
-                ["scope"] = string.Join(" ", oidcOptions.Scope),
-                ["refresh_token"] = validateContext.Properties.GetTokenValue("refresh_token"),
-            }));
+        using FormUrlEncodedContent content = new(new Dictionary<string, string?>()
+        {
+            ["grant_type"] = "refresh_token",
+            ["client_id"] = oidcOptions.ClientId,
+            ["client_secret"] = oidcOptions.ClientSecret,
+            ["scope"] = string.Join(" ", oidcOptions.Scope),
+            ["refresh_token"] = validateContext.Properties.GetTokenValue("refresh_token"),
+        });
+        using HttpResponseMessage refreshResponse = await oidcOptions.Backchannel.PostAsync(tokenEndpoint, content);
 
         if (!refreshResponse.IsSuccessStatusCode)
         {

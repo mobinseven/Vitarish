@@ -106,7 +106,7 @@ public static class IdentityClientBuildExtensions
                 oidcOptions.Events.OnRemoteFailure = context =>
                 {
                     bool isCorrelationFailure =
-                        context.Failure?.Message?.Contains("Correlation failed", StringComparison.OrdinalIgnoreCase) == true;
+                        context.Failure?.Message?.Contains("Correlation failed", StringComparison.OrdinalIgnoreCase) is true;
 
                     if (isCorrelationFailure)
                     {
