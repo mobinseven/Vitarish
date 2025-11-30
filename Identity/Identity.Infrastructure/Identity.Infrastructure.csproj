@@ -6,6 +6,20 @@
     <ProjectReference Include="..\..\Base\Base.Infrastructure\Base.Infrastructure.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="DnsClient" Version="1.8.0" />
+    <PackageReference Include="MediatR" Version="12.4.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0-preview.5.25277.114" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.0-preview.5.25277.114" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.0-preview.5.25277.114" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="10.0.0-preview.5.25277.114" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="Vitarish.Identity.Infrastructure.Tests" />
+    <InternalsVisibleTo Include="Identity.Infrastructure.Tests" />
+  </ItemGroup>
+
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
