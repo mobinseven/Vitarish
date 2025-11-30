@@ -70,7 +70,7 @@ public class User : Entity<string>
     [NotMapped]
     public Dictionary<string, string> ProfilePreferences
     {
-        get => string.IsNullOrEmpty(ProfileJson) ? [] : JsonSerializer.Deserialize<Dictionary<string, string>>(ProfileJson)!;
+        get => string.IsNullOrEmpty(ProfileJson) ? [] : JsonSerializer.Deserialize<Dictionary<string, string>>(ProfileJson) ?? [];
         private set => ProfileJson = value is null || value.Count == 0 ? null : JsonSerializer.Serialize(value);
     }
 
