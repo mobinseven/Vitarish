@@ -29,6 +29,6 @@ app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode()
     .AddInteractiveWebAssemblyRenderMode()
-    .AddAdditionalAssemblies(typeof(Vitarish.Web.Owners.Client._Imports).Assembly);
+    .AddAdditionalAssemblies(typeof(Vitarish.Web.Owners.Client.ClientAssemblyMarker).Assembly);
 
 app.Run();
