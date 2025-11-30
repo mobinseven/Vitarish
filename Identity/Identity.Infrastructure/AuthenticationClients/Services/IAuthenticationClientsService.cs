@@ -1,3 +1,4 @@
+using Vitarish.Base.Domain.Results;
 using Vitarish.Identity.Contracts.AuthenticationClients;
 using Vitarish.Identity.Core.AuthenticationClients.Domain.Entities;
 
@@ -14,18 +15,18 @@ public interface IAuthenticationClientsService
     /// <summary>
     /// Creates a client and returns its assigned id (mirrors the Created location of the HTTP API).
     /// </summary>
-    Task<AuthenticationClient?> CreateAuthenticationClientAsync(CreateAuthenticationClientRequest request,
+    Task<Result<AuthenticationClient>> CreateAuthenticationClientAsync(CreateAuthenticationClientRequest request,
                                                                  CancellationToken ct = default);
 
     /// <summary>
     /// Updates an existing authentication client.
     /// </summary>
-    Task UpdateAuthenticationClientAsync(UpdateAuthenticationClientRequest request,
+    Task<Result> UpdateAuthenticationClientAsync(UpdateAuthenticationClientRequest request,
                                          CancellationToken ct = default);
 
     /// <summary>
     /// Deletes an authentication client.
     /// </summary>
-    Task DeleteAuthenticationClientAsync(DeleteAuthenticationClientRequest request,
+    Task<Result> DeleteAuthenticationClientAsync(DeleteAuthenticationClientRequest request,
                                          CancellationToken ct = default);
 }

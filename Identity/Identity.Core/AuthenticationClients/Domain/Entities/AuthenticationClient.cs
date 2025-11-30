@@ -6,8 +6,27 @@ using Vitarish.Base.Domain.Primitives;
 /// </summary>
 public class AuthenticationClient : Entity<string>
 {
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AuthenticationClient"/> class.
+    /// Required for EF Core.
+    /// </summary>
+    private AuthenticationClient() { }
+
+    /// <summary>
+    /// Initializes a new instance of the <see cref="AuthenticationClient"/> class.
+    /// </summary>
+    public AuthenticationClient(string id, string url, string? title, string? description, string? logoUrl, bool autoAccess)
+    {
+        Id = id;
+        Url = url;
+        Title = title;
+        Description = description;
+        LogoUrl = logoUrl;
+        AutoAccess = autoAccess;
+    }
+
     /// <summary>Base URL of the client.</summary>
-    public required string Url { get; set; }
+    public string Url { get; set; } = default!;
 
     /// <summary>Display title.</summary>
     public string? Title { get; set; }

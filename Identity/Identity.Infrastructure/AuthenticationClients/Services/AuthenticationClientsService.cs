@@ -1,4 +1,5 @@
 using MediatR;
+using Vitarish.Base.Domain.Results;
 using Vitarish.Identity.Contracts.AuthenticationClients;
 using Vitarish.Identity.Core.AuthenticationClients.Application.Commands;
 using Vitarish.Identity.Core.AuthenticationClients.Application.Queries;
@@ -15,9 +16,9 @@ public sealed class AuthenticationClientsService(ISender sender) : IAuthenticati
     public Task<IEnumerable<AuthenticationClient>> GetAuthenticationClientsAsync(CancellationToken ct = default) =>
         sender.Send(new GetAuthenticationClients(), ct);
 
-    public async Task<AuthenticationClient?> CreateAuthenticationClientAsync(CreateAuthenticationClientRequest request,
+    public Task<Result<AuthenticationClient>> CreateAuthenticationClientAsync(CreateAuthenticationClientRequest request,
                                                               CancellationToken ct = default)
-        => await sender.Send(new CreateAuthenticationClient(request.Id,
+        => sender.Send(new CreateAuthenticationClient(request.Id,
                                                              request.Url,
                                                              request.Title,
                                                              request.Description,
@@ -25,9 +26,9 @@ public sealed class AuthenticationClientsService(ISender sender) : IAuthenticati
                                                              request.AutoAccess),
                              ct);
 
-    public async Task UpdateAuthenticationClientAsync(UpdateAuthenticationClientRequest request,
+    public Task<Result> UpdateAuthenticationClientAsync(UpdateAuthenticationClientRequest request,
                                                       CancellationToken ct = default)
-        => await sender.Send(new UpdateAuthenticationClient(request.Id,
+        => sender.Send(new UpdateAuthenticationClient(request.Id,
                                                              request.Url,
                                                              request.Title,
                                                              request.Description,
@@ -35,7 +36,7 @@ public sealed class AuthenticationClientsService(ISender sender) : IAuthenticati
                                                              request.AutoAccess),
                              ct);
 
-    public async Task DeleteAuthenticationClientAsync(DeleteAuthenticationClientRequest request,
+    public Task<Result> DeleteAuthenticationClientAsync(DeleteAuthenticationClientRequest request,
                                                       CancellationToken ct = default)
-        => await sender.Send(new DeleteAuthenticationClient(request.Id), ct);
+        => sender.Send(new DeleteAuthenticationClient(request.Id), ct);
 }

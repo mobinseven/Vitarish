@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Vitarish.Identity.Contracts.AuthenticationClients;
 using Vitarish.Identity.Core.AuthenticationClients.Application.Commands;
 using Vitarish.Identity.Core.AuthenticationClients.Application.Queries;
 using Vitarish.Identity.Core.AuthenticationClients.Domain.Entities;
@@ -65,40 +66,57 @@ public static class AuthenticationClientsWebApplicationExtensions
 
         // POST /api/authenticationclients
         _ = group.MapPost(string.Empty,
-            async ([FromBody] CreateAuthenticationClient command, [FromServices] ISender sender) =>
+            async ([FromBody] CreateAuthenticationClientRequest request, [FromServices] ISender sender) =>
             {
-                AuthenticationClient? client = await sender.Send(command);
-                if (client is null)
-                {
-                    // Return a specific conflict error if a client with the same ID already exists
-                    return Results.Conflict($"Authentication client with ID '{command.Id}' already exists.");
-                }
+                var command = new CreateAuthenticationClient(
+                    request.Id,
+                    request.Url,
+                    request.Title,
+                    request.Description,
+                    request.LogoUrl,
+                    request.AutoAccess);
 
-                return Results.Created($"/api/authenticationclients/{client.Id}", client);
+                var result = await sender.Send(command);
+
+                return result.IsSuccess
+                    ? Results.Created($"/api/authenticationclients/{result.Value.Id}", result.Value)
+                    : Results.Conflict(result.Error.Description);
             })
             .WithName("CreateAuthenticationClient")
-            .Accepts<CreateAuthenticationClient>("application/json")
+            .Accepts<CreateAuthenticationClientRequest>("application/json")
             .Produces<AuthenticationClient>(StatusCodes.Status201Created)
-            .Produces(StatusCodes.Status500InternalServerError)
+            .Produces(StatusCodes.Status409Conflict)
             .WithSummary("Create a new authentication client")
             .WithDescription("Creates a new authentication client and returns a **201 Created** response with a `Location` header pointing to the newly created resource.");
 
         // PUT /api/authenticationclients/{id}
         _ = group.MapPut("/{id}",
-            async (string id, [FromBody] UpdateAuthenticationClient command, [FromServices] ISender sender) =>
+            async (string id, [FromBody] UpdateAuthenticationClientRequest request, [FromServices] ISender sender) =>
             {
-                if (id != command.Id)
+                if (id != request.Id)
                 {
-                    return Results.BadRequest($"Route id '{id}' does not match payload id '{command.Id}'.");
+                    return Results.BadRequest($"Route id '{id}' does not match payload id '{request.Id}'.");
                 }
 
-                await sender.Send(command);
-                return Results.NoContent();
+                var command = new UpdateAuthenticationClient(
+                    request.Id,
+                    request.Url,
+                    request.Title,
+                    request.Description,
+                    request.LogoUrl,
+                    request.AutoAccess);
+
+                var result = await sender.Send(command);
+
+                return result.IsSuccess
+                    ? Results.NoContent()
+                    : Results.NotFound(result.Error.Description);
             })
             .WithName("UpdateAuthenticationClient")
-            .Accepts<UpdateAuthenticationClient>("application/json")
+            .Accepts<UpdateAuthenticationClientRequest>("application/json")
             .Produces(StatusCodes.Status204NoContent)
             .Produces(StatusCodes.Status400BadRequest)
+            .Produces(StatusCodes.Status404NotFound)
             .WithSummary("Edit an authentication client")
             .WithDescription("Updates the authentication client identified by **id**.");
 
@@ -106,12 +124,15 @@ public static class AuthenticationClientsWebApplicationExtensions
         _ = group.MapDelete("/{id}",
             async (string id, [FromServices] ISender sender) =>
             {
-                DeleteAuthenticationClient command = new(id);
-                await sender.Send(command);
-                return Results.NoContent();
+                var result = await sender.Send(new DeleteAuthenticationClient(id));
+
+                return result.IsSuccess
+                    ? Results.NoContent()
+                    : Results.NotFound(result.Error.Description);
             })
             .WithName("DeleteAuthenticationClient")
             .Produces(StatusCodes.Status204NoContent)
+            .Produces(StatusCodes.Status404NotFound)
             .WithSummary("Remove an authentication client")
             .WithDescription("Deletes the authentication client identified by **id**.");
     }
