@@ -1,0 +1,17 @@
+body {
+    background-color: #f7f7f7;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.main-container {
+    margin-top: 3rem;
+    margin-bottom: 3rem;
+}
+
+.logo-text {
+    letter-spacing: 0.2rem;
+}
+
+.text-medium {
+    color: #5f6368;
+}

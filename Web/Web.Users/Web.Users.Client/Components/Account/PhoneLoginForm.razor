@@ -1,0 +1,25 @@
+@using Vitarish.Web.Users.Client.Domain.Models
+@inject ISnackbar Snackbar
+
+<EditForm Model="Model" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <MudStack Spacing="2">
+        <MudTextField @bind-Value="Model.PhoneNumber" Label="Phone number" For="() => Model.PhoneNumber" Required="true" />
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
+            Send one-time code
+        </MudButton>
+    </MudStack>
+</EditForm>
+
+<MudText Typo="Typo.caption" Class="mt-2 text-medium">
+    We will text a 6 digit code to verify the number.
+</MudText>
+
+@code {
+    private PhoneLoginModel Model { get; set; } = new();
+
+    private void HandleSubmit()
+    {
+        Snackbar.Add("A one-time code has been sent (demo flow).", Severity.Success);
+    }
+}

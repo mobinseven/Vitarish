@@ -1,0 +1,23 @@
+@using Vitarish.Web.Users.Client.Domain.Models
+@inject ISnackbar Snackbar
+
+<EditForm Model="Model" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <MudStack Spacing="2">
+        <MudTextField @bind-Value="Model.DisplayName" Label="Display name" For="() => Model.DisplayName" Required="true" />
+        <MudTextField @bind-Value="Model.JobTitle" Label="Job title" For="() => Model.JobTitle" />
+        <MudTextField @bind-Value="Model.Website" Label="Website" For="() => Model.Website" />
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
+            Save profile
+        </MudButton>
+    </MudStack>
+</EditForm>
+
+@code {
+    private UserProfileModel Model { get; set; } = new();
+
+    private void HandleSubmit()
+    {
+        Snackbar.Add("Profile saved (demo).", Severity.Success);
+    }
+}

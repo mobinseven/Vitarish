@@ -1,0 +1,20 @@
+@page "/account/login/phone"
+
+<PageTitle>Phone login</PageTitle>
+
+<MudStack Spacing="2">
+    <MudText Typo="Typo.h5" Align="Align.Center">Sign in with phone</MudText>
+    <StatusMessage Message="@SuccessMessage" Severity="Severity.Info" />
+    <PhoneLoginForm />
+    <AuthenticationCodeForm />
+</MudStack>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    private string? SuccessMessage => string.IsNullOrWhiteSpace(ReturnUrl)
+        ? "Enter your phone number to receive a verification code."
+        : $"You will be redirected to {ReturnUrl} after verification.";
+}

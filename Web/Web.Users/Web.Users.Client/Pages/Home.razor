@@ -2,6 +2,16 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
-
-Welcome to your new app.
+<MudStack Spacing="2">
+    <MudText Typo="Typo.h4" Align="Align.Center">Welcome back</MudText>
+    <MudText Typo="Typo.body1" Align="Align.Center">
+        This users area now lives in the standalone <strong>Web.Users</strong> app as part of the migration away from the legacy
+        Vorn.Aaas.Interface project.
+    </MudText>
+    <MudDivider />
+    <MudStack Row="true" Spacing="2" Justify="Justify.Center">
+        <MudButton Href="/account/login/email" Variant="Variant.Filled" Color="Color.Primary">Email login</MudButton>
+        <MudButton Href="/account/login/password" Variant="Variant.Outlined" Color="Color.Primary">Password login</MudButton>
+        <MudButton Href="/account/login/phone" Variant="Variant.Text" Color="Color.Secondary">Phone login</MudButton>
+    </MudStack>
+</MudStack>

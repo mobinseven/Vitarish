@@ -1,0 +1,26 @@
+@using Vitarish.Web.Users.Client.Domain.Models
+@inject ISnackbar Snackbar
+
+<EditForm Model="Model" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <MudStack Spacing="2">
+        <MudTextField @bind-Value="Model.Email" Label="Email" For="() => Model.Email" Required="true" />
+        <MudCheckBox T="bool" @bind-Value="Model.RememberMe" Label="Remember me" />
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
+            Send sign-in link
+        </MudButton>
+    </MudStack>
+</EditForm>
+
+<MudText Typo="Typo.caption" Class="mt-2 text-medium">
+    We will send a one-time link to continue signing in.
+</MudText>
+
+@code {
+    private EmailLoginModel Model { get; set; } = new();
+
+    private void HandleSubmit()
+    {
+        Snackbar.Add("A sign-in link has been sent (demo flow).", Severity.Success);
+    }
+}

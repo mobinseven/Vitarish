@@ -1,0 +1,30 @@
+@inherits LayoutComponentBase
+
+<PageTitle>Vitarish Users</PageTitle>
+
+<MudThemeProvider>
+    <MudContainer MaxWidth="MaxWidth.Small" Class="main-container">
+        <MudPaper Class="pa-6" Elevation="0">
+            <MudStack Justify="Justify.SpaceBetween" AlignItems="AlignItems.Stretch" Spacing="3">
+                <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center" Spacing="1">
+                    <MudText Typo="Typo.h4" Align="Align.Center" Class="logo-text">Vitarish</MudText>
+                    <MudText Typo="Typo.subtitle2" Align="Align.Center" Class="text-medium">Users portal</MudText>
+                </MudStack>
+                <MudDivider />
+                <MudPaper Elevation="0">
+                    @Body
+                </MudPaper>
+                <MudDivider />
+                <MudStack Row="true" Spacing="2">
+                    <MudButton Href="/" Variant="Variant.Text">Home</MudButton>
+                    <MudButton Href="/privacy" Variant="Variant.Text">Privacy</MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    </MudContainer>
+</MudThemeProvider>
+
+<MudSnackbarProvider />
+
+@code {
+}

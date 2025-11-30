@@ -1,0 +1,21 @@
+@using Vitarish.Web.Users.Client.Domain.Models
+@inject ISnackbar Snackbar
+
+<EditForm Model="Model" OnValidSubmit="HandleSubmit">
+    <DataAnnotationsValidator />
+    <MudStack Spacing="2">
+        <MudTextField @bind-Value="Model.Code" Label="Verification code" For="() => Model.Code" Required="true" />
+        <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" FullWidth="true">
+            Verify code
+        </MudButton>
+    </MudStack>
+</EditForm>
+
+@code {
+    private AuthenticationCodeModel Model { get; set; } = new();
+
+    private void HandleSubmit()
+    {
+        Snackbar.Add("Code verified (demo).", Severity.Success);
+    }
+}

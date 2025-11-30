@@ -1,0 +1,19 @@
+@page "/account/login/email"
+
+<PageTitle>Email login</PageTitle>
+
+<MudStack Spacing="2">
+    <MudText Typo="Typo.h5" Align="Align.Center">Sign in with email</MudText>
+    <StatusMessage Message="@SuccessMessage" Severity="Severity.Success" />
+    <EmailLoginForm />
+</MudStack>
+
+@code {
+    [Parameter]
+    [SupplyParameterFromQuery]
+    public string? ReturnUrl { get; set; }
+
+    private string? SuccessMessage => string.IsNullOrWhiteSpace(ReturnUrl)
+        ? "Use your email to get a magic link."
+        : $"You will be returned to {ReturnUrl} after signing in.";
+}
