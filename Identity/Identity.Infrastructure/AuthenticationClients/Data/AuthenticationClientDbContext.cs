@@ -10,4 +10,13 @@ public class AuthenticationClientDbContext(DbContextOptions<AuthenticationClient
 {
     /// <summary>Authentication client set.</summary>
     public DbSet<AuthenticationClient> AuthenticationClients => Set<AuthenticationClient>();
+
+    /// <summary>
+    /// Configures the model for the context.
+    /// </summary>
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<AuthenticationClient>().HasKey(e => e.Id);
+        base.OnModelCreating(modelBuilder);
+    }
 }
