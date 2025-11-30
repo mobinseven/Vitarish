@@ -6,9 +6,9 @@ This document provides the canonical mapping of legacy `Vorn.*` projects to the 
 
 | Legacy Project                  | Purpose (High-Level)                               | New Project(s) / Area                                                                |
 | ------------------------------- | -------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Vorn.Aaas.ApiClients            | General API client helpers for AAA service         | Split into: `Clients/Clients.Api` + module-specific `*.Client` projects              |
-| Vorn.Aaas.AuthenticationClients | Auth-specific API clients                          | `Identity/Identity.Client` (+ some shared helpers in `Clients/Clients.Api`)          |
-| Vorn.Aaas.Client                | Combined AAA client library                        | `Clients/Clients.Interface` (core)                                                   |
+| Vorn.Aaas.ApiClients            | General API client helpers for AAA service         | `Identity/Identity.Core`                                                             |
+| Vorn.Aaas.AuthenticationClients | Auth-specific API clients                          | `Identity/Identity.Core`                                                             |
+| Vorn.Aaas.Client                | Combined AAA client library                        | `Clients/Clients.Interface`                                                          |
 | Vorn.Aaas.Client.Api            | AAA HTTP API client entrypoint                     | `Clients/Clients.Api`                                                                |
 | Vorn.Aaas.Host                  | Main AAA host (API + UI)                           | Split into `Web/Web.Api` + `Web.*` apps (Admins/Users; Owners is new)                |
 | Vorn.Aaas.Interface             | AAA server UI                                      | Split into `Web/Web.Admins`, `Web/Web.Users`, `Web/Web.Base`; Owners UI is new       |
@@ -20,8 +20,8 @@ This document provides the canonical mapping of legacy `Vorn.*` projects to the 
 | Vorn.Ai.Client                  | AI client library                                  | `Ai/Ai.Client` (+ optionally aggregated into `Clients/Clients.Api`)                  |
 | Vorn.Ai.Server                  | AI server / API                                    | `Ai/Ai.Api`, `Ai/Ai.Core`, `Ai/Ai.Infrastructure`, tests → `Ai.*.Tests`              |
 | Vorn.Caas.Client                | Comms (CaaS) client                                | `Communications/Communications.Client`                                               |
-| Vorn.Caas.Host                  | Comms host (API)                                   | `Communications/Communications.Api` + integration with `Web/Web.Api`                 |
-| Vorn.Caas.Messages              | Messaging contracts / domain                       | `Communications/Communications.Contracts` + `Communications/Communications.Core`     |
+| Vorn.Caas.Host                  | Comms host (API)                                   | `Communications/Communications.Api`                                                  |
+| Vorn.Caas.Messages              | Messaging contracts / domain                       | `Communications/Communications.Core`,`Communications/Communications.Infrastructure`  |
 | Vorn.Caas.Messages.Tests        | Tests for messages                                 | `Communications/Communications.Core.Tests`                                           |
 | Vorn.Files.Client               | Files client                                       | `Files/Files.Client`                                                                 |
 | Vorn.Files.Core                 | Files domain                                       | `Files/Files.Core`                                                                   |
