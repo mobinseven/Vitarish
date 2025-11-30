@@ -1,7 +1,9 @@
 using FluentValidation;
+using MediatR;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Base.Infrastructure.Pipeline;
 using Vitarish.Identity.Core.AuthenticationClients.Application.Commands;
 using Vitarish.Identity.Infrastructure.AuthenticationClients.Data;
 using Vitarish.Identity.Infrastructure.AuthenticationClients.Handlers;
@@ -20,6 +22,9 @@ public static class AuthenticationClientsWebApplicationBuilderExtensions
 
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CreateAuthenticationClientHandler).Assembly));
         _ = builder.Services.AddValidatorsFromAssemblyContaining(typeof(CreateAuthenticationClient));
+
+        _ = builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+        _ = builder.Services.AddTransient(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
         _ = builder.Services.AddTransient<IAuthenticationClientsService, AuthenticationClientsService>();
     }
