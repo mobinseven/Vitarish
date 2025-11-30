@@ -89,7 +89,7 @@ public abstract class Enumeration<TEnum> : IEquatable<Enumeration<TEnum>>
         return Equals(other);
     }
 
-    public override int GetHashCode() => Value.GetHashCode();
+    public override int GetHashCode() => Value;
 
     public override string ToString() => Name;
 
