@@ -46,26 +46,38 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
 
     private static TResponse CreateValidationResult(List<ValidationFailure> failures)
     {
+        var firstErrorMessage = failures.First().ErrorMessage;
+        
         // If TResponse is a Result type, return a failure result
         if (typeof(TResponse).IsGenericType)
         {
             var genericType = typeof(TResponse).GetGenericTypeDefinition();
             if (genericType == typeof(Result<>))
             {
-                var errors = failures.Select(f => new Error("Validation.Failed", f.ErrorMessage));
-                var firstError = errors.First();
+                var error = new Error("Validation.Failed", firstErrorMessage);
                 
                 var failureMethod = typeof(Result<>)
                     .MakeGenericType(typeof(TResponse).GetGenericArguments()[0])
                     .GetMethod(nameof(Result.Failure), new[] { typeof(Error) });
                 
-                return (TResponse)failureMethod!.Invoke(null, new object[] { firstError })!;
+                if (failureMethod == null)
+                {
+                    throw new InvalidOperationException($"Could not find Failure method on Result<{typeof(TResponse).GetGenericArguments()[0].Name}>");
+                }
+                
+                var result = failureMethod.Invoke(null, new object[] { error });
+                if (result == null)
+                {
+                    throw new InvalidOperationException("Failure method returned null");
+                }
+                
+                return (TResponse)result;
             }
         }
         
         if (typeof(TResponse) == typeof(Result))
         {
-            var error = new Error("Validation.Failed", failures.First().ErrorMessage);
+            var error = new Error("Validation.Failed", firstErrorMessage);
             return (TResponse)(object)Result.Failure(error);
         }
 

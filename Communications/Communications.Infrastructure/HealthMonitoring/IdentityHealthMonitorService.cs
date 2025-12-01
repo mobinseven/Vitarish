@@ -98,10 +98,12 @@ internal sealed class IdentityHealthMonitorService(
 
         try
         {
-            using var httpClient = httpClientFactory.CreateClient();
-            httpClient.Timeout = RequestTimeout;
+            using var timeoutCts = new CancellationTokenSource(RequestTimeout);
+            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
             
-            using HttpResponseMessage response = await httpClient.GetAsync(discoveryUri, cancellationToken);
+            using var httpClient = httpClientFactory.CreateClient();
+            using HttpResponseMessage response = await httpClient.GetAsync(discoveryUri, linkedCts.Token);
+            
             if (response.IsSuccessStatusCode)
             {
                 return true;
@@ -112,7 +114,7 @@ internal sealed class IdentityHealthMonitorService(
                 discoveryUri,
                 response.StatusCode);
         }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or OperationCanceledException)
         {
             logger.LogWarning(ex, "Error while checking Identity authority {Authority}.", discoveryUri);
         }

@@ -1,12 +1,15 @@
 namespace Vitarish.Communications.Infrastructure.Messages.Handlers;
 
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Vitarish.Communications.Core.Messages.Abstractions;
 using Vitarish.Communications.Core.Messages.Application.Queries;
 using DomainModels = Vitarish.Communications.Core.Messages.Domain.Models;
 using ServiceModels = Vitarish.Communications.Core.Messages.Models;
 
-internal sealed class GetSmsDeliveryStateHandler(IMessagesService messagesService)
+internal sealed class GetSmsDeliveryStateHandler(
+    IMessagesService messagesService,
+    ILogger<GetSmsDeliveryStateHandler> logger)
     : IRequestHandler<GetSmsDeliveryState, DomainModels.SmsDeliveryState?>
 {
     public async Task<DomainModels.SmsDeliveryState?> Handle(GetSmsDeliveryState request, CancellationToken cancellationToken)
@@ -31,10 +34,9 @@ internal sealed class GetSmsDeliveryStateHandler(IMessagesService messagesServic
                 DeliveredAt: result.DeliveredAt,
                 Metadata: result.Metadata);
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // Return null to indicate not found/error
-            // Exception is caught to prevent propagation but could be logged if logger was injected
+            logger.LogError(ex, "Error retrieving SMS delivery state for message ID {MessageId}", request.MessageId);
             return null;
         }
     }
