@@ -23,6 +23,7 @@ internal sealed class VerifyTenantIndicatorHandler(
             return Result.Failure(Error.NotFound("TenantIndicator.NotFound", "Tenant indicator was not found."));
         }
 
+        bool verificationSucceeded = true;
         if (indicator.Status == IndicatorStatus.PendingVerification)
         {
             bool verified = indicator.Verification?.Method switch
@@ -35,20 +36,25 @@ internal sealed class VerifyTenantIndicatorHandler(
                 _ => true
             };
 
-            if (!verified)
+            if (verified)
             {
-                indicator.UpdateLastChecked();
-                await db.SaveChangesAsync(cancellationToken);
-                return Result.Failure(Error.Validation(
-                    "TenantIndicator.VerificationFailed",
-                    "Verification failed for the requested tenant indicator."));
+                indicator.MarkVerified(indicator.Verification!);
             }
-
-            indicator.MarkVerified(indicator.Verification!);
+            else
+            {
+                verificationSucceeded = false;
+            }
         }
 
         indicator.UpdateLastChecked();
         _ = await db.SaveChangesAsync(cancellationToken);
+
+        if (!verificationSucceeded)
+        {
+            return Result.Failure(Error.Validation(
+                "TenantIndicator.VerificationFailed",
+                "Verification failed for the requested tenant indicator."));
+        }
 
         await publisher.Publish(new Identity.Core.Parties.Domain.Events.TenantIndicatorUpdatedEvent(indicator.TenantId, indicator.Id), cancellationToken);
         return Result.Success();

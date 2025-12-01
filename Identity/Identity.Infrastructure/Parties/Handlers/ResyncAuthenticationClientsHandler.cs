@@ -82,7 +82,7 @@ internal sealed class ResyncAuthenticationClientsHandler(
             }
         }
 
-        foreach (AuthenticationClient orphan in existingClients.Values.Where(c => c.Id.StartsWith("ac:")))
+        foreach (AuthenticationClient orphan in existingClients.Values)
         {
             deleted++;
             logger.LogWarning("{Action} orphaned AuthenticationClient: {ClientId}",

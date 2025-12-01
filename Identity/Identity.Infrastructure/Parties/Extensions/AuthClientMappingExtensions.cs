@@ -26,8 +26,18 @@ internal static class AuthClientMappingExtensions
     public static AuthenticationClient CreateClient(TenantIndicator indicator, Tenant tenant)
     {
         string clientId = GenerateClientId(indicator.TenantId, indicator.Method, indicator.Value);
-        AuthenticationClient client = new(clientId, indicator.Value, null, null, null, indicator.Status == IndicatorStatus.Active);
-        MapToClient(indicator, tenant, client);
-        return client;
+        string title = indicator.IsPrimary
+            ? $"{tenant.Name} (primary)"
+            : $"{tenant.Name} ({indicator.Method.ToString().ToLowerInvariant()})";
+
+        string description = $"Tenant={tenant.Id} Indicator={indicator.Method}:{indicator.Value} Status={indicator.Status}";
+
+        return new AuthenticationClient(
+            clientId,
+            indicator.Value,
+            title,
+            description,
+            tenant.LogoUrl,
+            indicator.Status == IndicatorStatus.Active);
     }
 }

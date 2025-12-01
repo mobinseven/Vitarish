@@ -26,6 +26,11 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
         _ = modelBuilder.Entity<Tenant>(entity =>
         {
             _ = entity.HasIndex(t => t.ClientId);
+
+            _ = entity.HasOne(t => t.Owner)
+                .WithMany()
+                .HasForeignKey(t => t.OwnerId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         _ = modelBuilder.Entity<TenantIndicator>(entity =>
@@ -54,7 +59,7 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
 
     public override async Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {
-        foreach (EntityEntry<TenantIndicator>? entry in ChangeTracker.Entries<TenantIndicator>()
+        foreach (EntityEntry<TenantIndicator> entry in ChangeTracker.Entries<TenantIndicator>()
                      .Where(e => e.State is EntityState.Added or EntityState.Modified))
         {
             try
@@ -81,7 +86,7 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
 
         int result = await base.SaveChangesAsync(cancellationToken);
 
-        foreach (TenantIndicatorDeletedEvent? ev in deletedIndicators)
+        foreach (TenantIndicatorDeletedEvent ev in deletedIndicators)
         {
             await publisher.Publish(ev, cancellationToken);
         }

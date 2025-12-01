@@ -29,7 +29,7 @@ internal sealed class TenantsService(PartiesDbContext db, ILogger<TenantsService
             return null;
         }
 
-        List<Tenant> tenant = await db.Tenants
+        List<Tenant> tenants = await db.Tenants
             .AsNoTracking()
             .Include(t => t.Indicators)
             .Where(t => t.Indicators.Any(i =>
@@ -38,19 +38,19 @@ internal sealed class TenantsService(PartiesDbContext db, ILogger<TenantsService
                 i.Value == canonical))
             .ToListAsync(ct);
 
-        if (tenant.Count == 0)
+        if (tenants.Count == 0)
         {
             logger.LogInformation("No tenant found for {Host} (canonical: {Canonical})", host, canonical);
             return null;
         }
 
-        if (tenant.Count > 1)
+        if (tenants.Count > 1)
         {
             logger.LogError("Multiple tenants found for {Host} (canonical: {Canonical})", host, canonical);
             throw new InvalidOperationException($"Ambiguous tenant mapping for host: {canonical}");
         }
 
-        Tenant resolved = tenant[0];
+        Tenant resolved = tenants[0];
         logger.LogInformation(
             "Tenant resolved for {Host} (canonical: {Canonical}): TenantId={TenantId}, Name={Name}",
             host, canonical, resolved.Id, resolved.Name);
