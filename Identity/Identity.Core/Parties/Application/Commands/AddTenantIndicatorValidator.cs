@@ -9,7 +9,9 @@ public sealed class AddTenantIndicatorValidator : AbstractValidator<AddTenantInd
 {
     public AddTenantIndicatorValidator()
     {
+        _ = RuleFor(c => c.TenantId).NotEmpty();
         _ = RuleFor(c => c.Value)
+            .NotEmpty()
             .MaximumLength(253)
             .Must(BeValidHostname).WithMessage("Value must be a valid hostname");
         _ = RuleFor(c => c.Method).IsInEnum();
