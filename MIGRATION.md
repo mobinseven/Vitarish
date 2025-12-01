@@ -122,6 +122,20 @@ This document will be updated as migration work proceeds. Check individual sub-i
 - Validators separated into individual files following existing patterns
 - Tests migrated to `Identity.Core.Tests/Users/*`
 
+#### Vorn.Aaas.Users Tests → Identity/Identity.Core.Tests ✅
+
+**Status**: All Users domain tests migrated and enhanced
+
+**Test files in `Identity.Core.Tests/Users/`**:
+- `UserCommandValidatorTests.cs` - Tests for all command validators (CreateUserWithEmail, CreateUserWithPhone, UpdateUser, DeleteUser, SetUserAccessClaim, RemoveUserAccessClaim, UpdateUserProfile, SetUserEmail, SetUserPhoneNumber)
+- `UserQueryValidatorTests.cs` - Tests for all query validators (GetUser, GetUsers, GetUserByName, HasUserAccess, GetUserProfile, GetClientUser, GetClientUsers)
+- `UserEntityTests.cs` - Tests for User entity domain behavior (constructor, UpdateName, UpdateEmail, UpdatePhoneNumber, UpdateProfilePreferences, ProfilePreferences caching)
+
+**Test coverage**:
+- All command validators have validation tests for valid and invalid inputs
+- All query validators have validation tests for valid and invalid inputs
+- User entity has tests for construction, update methods, and profile preferences behavior
+
 #### Vorn.Aaas.Users → Identity/Identity.Infrastructure ✅
 
 **Status**: Infrastructure layer (DbContext, handlers, services, caching) migrated
