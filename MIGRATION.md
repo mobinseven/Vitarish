@@ -244,3 +244,36 @@ This document will be updated as migration work proceeds. Check individual sub-i
 - TenantsServiceTests (requires TenantsService implementation)
 - AuthClientIdGeneratorTests (requires AuthClientIdGenerator utility in Infrastructure)
 - HostnameNormalizerTests (requires HostnameNormalizer utility in Infrastructure)
+
+#### Vorn.Caas.Messages Infrastructure → Communications/Communications.Infrastructure ✅
+
+**Status**: Messaging infrastructure migrated
+
+**What was migrated**:
+- `Infrastructure/Services/MessagesService.cs` → `Communications.Infrastructure/Messages/Services/MessagesService.cs`
+- `Infrastructure/Wrappers/SmsDotIr/*` → `Communications.Infrastructure/Messages/Providers/SmsDotIr/*`
+- `Domain/Interfaces/IMessagesService.cs` → `Communications.Core/Messages/Abstractions/IMessagesService.cs`
+- `Domain/Interfaces/ISmsProvider.cs` → `Communications.Core/Messages/Abstractions/ISmsProvider.cs`
+- `Domain/Models/*` → `Communications.Core/Messages/Models/*`
+- `Domain/Options/VornOptions.cs` → `Communications.Infrastructure/Messages/Options/CommunicationsOptions.cs` (refactored)
+
+**New files created**:
+- `Communications.Infrastructure/Messages/Options/SmsDotIrOptions.cs` - SMS.ir provider configuration
+- `Communications.Infrastructure/Messages/Options/SmtpOptions.cs` - SMTP configuration
+- `Communications.Infrastructure/Messages/Options/CommunicationsOptions.cs` - Main options class
+- `Communications.Infrastructure/Messages/DependencyInjection/CommunicationsServiceCollectionExtensions.cs` - DI registration
+- `Communications.Infrastructure.Tests/Messages/Services/MessagesServiceTests.cs` - Unit tests
+
+**Key changes during migration**:
+- Updated namespaces from `Vorn.Caas.Messages.*` to `Vitarish.Communications.*`
+- Options class renamed from `VornOptions` to `CommunicationsOptions` with section name `"Communications"`
+- Interface methods made consistent with async naming convention (`SendEmail` → `SendEmailAsync`, etc.)
+- Added DI extension method `AddCommunicationsMessaging()` for easy service registration
+- Added `InternalsVisibleTo` for tests to access internal types
+- Added MailKit package reference for SMTP email functionality
+- SMS provider uses `IHttpClientFactory` pattern via `AddHttpClient<>()` for proper HttpClient lifetime management
+- Added input validation for message parameters
+
+**Not migrated** (future work):
+- Integration tests for SmsDotIrProvider (requires external service mocking)
+- Email sending integration tests (requires SMTP test server)
