@@ -25,12 +25,12 @@ public class SuccessfulLoginModel : PageModel
         string? id = User.FindFirstValue("sub");
         if(id is null)
         {
-            throw new InvalidOperationException("/Account/SuccessfulLogin user could not be retrived from HttpContext");
+            throw new InvalidOperationException("/Account/SuccessfulLogin user could not be retrieved from HttpContext");
         }
 
 
         User user = await _userService.GetUserAsync(id)
-        ?? throw new InvalidOperationException("/Account/SuccessfulLogin user could not be retrived from HttpContext");
+        ?? throw new InvalidOperationException("/Account/SuccessfulLogin user could not be retrieved from HttpContext");
 
 
         bool missingNames = string.IsNullOrWhiteSpace(user.FirstName) && string.IsNullOrWhiteSpace(user.LastName);
