@@ -1,4 +1,5 @@
 using MediatR;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
@@ -45,15 +46,19 @@ internal sealed class CreateUserHandler(
 
     private async Task<Result<User>> PersistUserAsync(User user, CancellationToken cancellationToken)
     {
+        Result<User>? duplicateResult = await CheckForDuplicateIdentifiersAsync(user, cancellationToken);
+        if (duplicateResult is not null)
+        {
+            return duplicateResult;
+        }
+
         _ = db.Users.Add(user);
 
         try
         {
             _ = await db.SaveChangesAsync(cancellationToken);
         }
-        catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("duplicate", StringComparison.OrdinalIgnoreCase) == true ||
-                                            ex.InnerException?.Message.Contains("unique", StringComparison.OrdinalIgnoreCase) == true ||
-                                            ex.InnerException?.Message.Contains("PRIMARY KEY", StringComparison.OrdinalIgnoreCase) == true)
+        catch (DbUpdateException ex) when (IsUniqueConstraintViolation(ex))
         {
             logger.LogWarning(ex, "Failed to create user with ID '{UserId}' due to duplicate key constraint", user.Id);
             return Result.Failure<User>(Error.Conflict(
@@ -66,5 +71,38 @@ internal sealed class CreateUserHandler(
         await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
 
         return Result.Success(user);
+    }
+
+    private async Task<Result<User>?> CheckForDuplicateIdentifiersAsync(User user, CancellationToken cancellationToken)
+    {
+        if (await db.Users.AnyAsync(u => u.UserName == user.UserName, cancellationToken))
+        {
+            return Result.Failure<User>(Error.Conflict(
+                "User.UserNameExists",
+                $"A user with username '{user.UserName}' already exists."));
+        }
+
+        if (!string.IsNullOrWhiteSpace(user.Email) &&
+            await db.Users.AnyAsync(u => u.Email == user.Email, cancellationToken))
+        {
+            return Result.Failure<User>(Error.Conflict(
+                "User.EmailExists",
+                $"A user with email '{user.Email}' already exists."));
+        }
+
+        if (!string.IsNullOrWhiteSpace(user.PhoneNumber) &&
+            await db.Users.AnyAsync(u => u.PhoneNumber == user.PhoneNumber, cancellationToken))
+        {
+            return Result.Failure<User>(Error.Conflict(
+                "User.PhoneNumberExists",
+                $"A user with phone number '{user.PhoneNumber}' already exists."));
+        }
+
+        return null;
+    }
+
+    private static bool IsUniqueConstraintViolation(DbUpdateException exception)
+    {
+        return exception.InnerException is SqlException { Number: 2601 or 2627 };
     }
 }

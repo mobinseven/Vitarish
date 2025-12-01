@@ -17,6 +17,18 @@ public class UsersDbContext(DbContextOptions<UsersDbContext> options) : DbContex
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<User>().HasKey(e => e.Id);
+
+        modelBuilder.Entity<User>()
+            .HasIndex(e => e.UserName)
+            .IsUnique();
+
+        modelBuilder.Entity<User>()
+            .HasIndex(e => e.Email)
+            .IsUnique();
+
+        modelBuilder.Entity<User>()
+            .HasIndex(e => e.PhoneNumber)
+            .IsUnique();
         base.OnModelCreating(modelBuilder);
     }
 }
