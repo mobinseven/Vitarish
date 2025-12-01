@@ -25,9 +25,16 @@ public class MessagesService : IMessagesService
 
     public async Task SendEmailAsync(Message message, CancellationToken cancellationToken = default)
     {
+        ArgumentNullException.ThrowIfNull(message);
+
+        if (string.IsNullOrWhiteSpace(message.Recipient))
+        {
+            throw new ArgumentException("Recipient is required", nameof(message));
+        }
+
         MimeMessage mimeMessage = new();
         mimeMessage.From.Add(new MailboxAddress(options.Smtp.Name, options.Smtp.Username));
-        mimeMessage.To.Add(new MailboxAddress(message.Recipient ?? string.Empty, message.Recipient ?? string.Empty));
+        mimeMessage.To.Add(new MailboxAddress(message.Recipient, message.Recipient));
         mimeMessage.Subject = message.Subject;
         BodyBuilder builder = new()
         {

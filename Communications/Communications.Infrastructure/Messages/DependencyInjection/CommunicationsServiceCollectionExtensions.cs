@@ -16,7 +16,7 @@ public static class CommunicationsServiceCollectionExtensions
         services.Configure<CommunicationsOptions>(
             configuration.GetSection(CommunicationsOptions.Section));
 
-        services.AddSingleton<ISmsProvider, SmsDotIrProvider>();
+        services.AddHttpClient<ISmsProvider, SmsDotIrProvider>();
         services.AddScoped<IMessagesService, MessagesService>();
 
         return services;

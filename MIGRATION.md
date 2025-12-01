@@ -240,7 +240,8 @@ This document will be updated as migration work proceeds. Check individual sub-i
 - Added DI extension method `AddCommunicationsMessaging()` for easy service registration
 - Added `InternalsVisibleTo` for tests to access internal types
 - Added MailKit package reference for SMTP email functionality
-- SMS provider configured as singleton, MessagesService as scoped
+- SMS provider uses `IHttpClientFactory` pattern via `AddHttpClient<>()` for proper HttpClient lifetime management
+- Added input validation for message parameters
 
 **Not migrated** (future work):
 - Integration tests for SmsDotIrProvider (requires external service mocking)

@@ -19,13 +19,13 @@ public class SmsDotIrProvider : ISmsProvider
     private readonly HttpClient apiClient;
     private readonly SmsDotIrOptions options;
 
-    public SmsDotIrProvider(IOptions<CommunicationsOptions> options)
+    public SmsDotIrProvider(HttpClient httpClient, IOptions<CommunicationsOptions> options)
     {
+        ArgumentNullException.ThrowIfNull(httpClient);
+        ArgumentNullException.ThrowIfNull(options);
         this.options = options.Value.SmsDotIr;
-        apiClient = new HttpClient
-        {
-            BaseAddress = new Uri("https://api.sms.ir/")
-        };
+        apiClient = httpClient;
+        apiClient.BaseAddress = new Uri("https://api.sms.ir/");
         apiClient.DefaultRequestHeaders.Add("X-API-KEY", this.options.Key);
         apiClient.DefaultRequestHeaders.Add("Accept", "application/json");
     }
