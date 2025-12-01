@@ -77,6 +77,7 @@ public class Tenant : Entity<Guid>
     {
         TenantIndicator indicator = new(Guid.NewGuid(), Id, method, value, status, isPrimary, verification);
         _indicators.Add(indicator);
+        MarkAsUpdated();
         return indicator;
     }
 }
