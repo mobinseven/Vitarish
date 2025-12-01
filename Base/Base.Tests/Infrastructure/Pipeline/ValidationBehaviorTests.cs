@@ -69,7 +69,7 @@ public class ValidationBehaviorTests
         var exception = await Assert.ThrowsAsync<ValidationException>(() =>
             behavior.Handle(
                 request,
-                _ => Task.FromResult("response"),
+                _ => throw new InvalidOperationException("The next delegate should not be called when validation fails."),
                 CancellationToken.None));
 
         exception.Errors.Should().ContainSingle();
@@ -110,7 +110,7 @@ public class ValidationBehaviorTests
         var exception = await Assert.ThrowsAsync<ValidationException>(() =>
             behavior.Handle(
                 request,
-                _ => Task.FromResult("response"),
+                _ => throw new InvalidOperationException("The next delegate should not be called when validation fails."),
                 CancellationToken.None));
 
         exception.Errors.Should().NotBeEmpty();
