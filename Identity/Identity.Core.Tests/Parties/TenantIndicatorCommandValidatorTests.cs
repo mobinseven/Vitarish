@@ -267,6 +267,23 @@ public class DisableTenantIndicatorValidatorTests
         result.IsValid.Should().BeFalse();
         result.Errors.Should().Contain(e => e.PropertyName == "IndicatorId");
     }
+
+    [Fact]
+    public void Validate_WithBothIdsEmpty_ReturnsInvalid()
+    {
+        // Arrange
+        var command = new DisableTenantIndicator(
+            TenantId: Guid.Empty,
+            IndicatorId: Guid.Empty);
+
+        // Act
+        var result = _validator.Validate(command);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "TenantId");
+        result.Errors.Should().Contain(e => e.PropertyName == "IndicatorId");
+    }
 }
 
 public class VerifyTenantIndicatorValidatorTests
@@ -319,6 +336,23 @@ public class VerifyTenantIndicatorValidatorTests
         result.IsValid.Should().BeFalse();
         result.Errors.Should().Contain(e => e.PropertyName == "IndicatorId");
     }
+
+    [Fact]
+    public void Validate_WithBothIdsEmpty_ReturnsInvalid()
+    {
+        // Arrange
+        var command = new VerifyTenantIndicator(
+            TenantId: Guid.Empty,
+            IndicatorId: Guid.Empty);
+
+        // Act
+        var result = _validator.Validate(command);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "TenantId");
+        result.Errors.Should().Contain(e => e.PropertyName == "IndicatorId");
+    }
 }
 
 public class DeleteTenantIndicatorValidatorTests
@@ -369,6 +403,23 @@ public class DeleteTenantIndicatorValidatorTests
 
         // Assert
         result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "IndicatorId");
+    }
+
+    [Fact]
+    public void Validate_WithBothIdsEmpty_ReturnsInvalid()
+    {
+        // Arrange
+        var command = new DeleteTenantIndicator(
+            TenantId: Guid.Empty,
+            IndicatorId: Guid.Empty);
+
+        // Act
+        var result = _validator.Validate(command);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "TenantId");
         result.Errors.Should().Contain(e => e.PropertyName == "IndicatorId");
     }
 }
