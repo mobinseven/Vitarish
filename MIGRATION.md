@@ -122,7 +122,43 @@ This document will be updated as migration work proceeds. Check individual sub-i
 - Validators separated into individual files following existing patterns
 - Tests migrated to `Identity.Core.Tests/Users/*`
 
-**Not migrated** (Infrastructure/Presentation layer - separate issue):
-- Infrastructure services (DbContext, caching, event publishing)
-- Presentation layer (API endpoints, DI extensions)
-- These belong in `Identity.Infrastructure` and `Identity.Api` respectively
+#### Vorn.Aaas.Users → Identity/Identity.Infrastructure ✅
+
+**Status**: Infrastructure layer (DbContext, handlers, services, caching) migrated
+
+**What was migrated**:
+- `Infrastructure/Data/UsersDbContext.cs` → `Identity.Infrastructure/Users/Data/UsersDbContext.cs`
+- `Infrastructure/Extensions/UserCacheExtensions.cs` → `Identity.Infrastructure/Users/Extensions/UserCacheExtensions.cs`
+- `Infrastructure/Service/UsersService.cs` → `Identity.Infrastructure/Users/Services/UsersService.cs`
+- `Infrastructure/Service/UserAccessService.cs` → `Identity.Infrastructure/Users/Services/UserAccessService.cs`
+- `Infrastructure/Service/UserAccessAuditLogger.cs` → `Identity.Infrastructure/Users/Services/UserAccessAuditLogger.cs`
+- `Infrastructure/Extensions/UsersWebApplicationBuilderExtensions.cs` → `Identity.Infrastructure/Users/DependencyInjection/UsersWebApplicationBuilderExtensions.cs`
+- `Presentation/Contracts/ClaimDto.cs` → `Identity.Contracts/Users/ClaimDto.cs`
+- `Presentation/Contracts/UserDto.cs` → `Identity.Contracts/Users/UserDto.cs`
+
+**New handlers created in Infrastructure**:
+- `GetUserHandler.cs` - Handles GetUser query with caching
+- `GetUserByNameHandler.cs` - Handles GetUserByName query with caching
+- `GetUsersHandler.cs` - Handles GetUsers query with caching
+- `GetUserProfileHandler.cs` - Handles GetUserProfile query
+- `CreateUserHandler.cs` - Handles CreateUserWithEmail and CreateUserWithPhone commands with persistence
+- `UpdateUserHandler.cs` - Handles UpdateUser command with persistence
+- `DeleteUserHandler.cs` - Handles DeleteUser command with persistence
+- `SetUserEmailHandler.cs` - Handles SetUserEmail command with persistence
+- `SetUserPhoneNumberHandler.cs` - Handles SetUserPhoneNumber command with persistence
+- `UpdateUserProfileHandler.cs` - Handles UpdateUserProfile command with persistence
+- Stub handlers for access claims (GetClientUsers, GetClientUser, HasUserAccess, SetUserAccessClaim, RemoveUserAccessClaim)
+
+**Key changes during migration**:
+- Updated namespaces from `Vorn.Aaas.Users.*` to `Vitarish.Identity.Infrastructure.Users.*`
+- DbContext now uses standalone `User` entity (not ASP.NET Identity's IdentityDbContext)
+- Handlers follow the same pattern as `AuthenticationClients` handlers
+- Cache extensions use distributed cache with 5-minute expiration
+- Service interfaces moved to Infrastructure layer (not Core, following existing patterns)
+- DI registration via `AddIdentityUsers()` extension method
+
+**Not migrated** (Presentation layer / API - future work):
+- API endpoint mappings (PersonalAccessTokenApiExtensions, UserAccessApiMappingExtension)
+- PersonalAccessTokenGenerator (requires Duende IdentityServer integration)
+- ASP.NET Identity integration (legacy used IdentityDbContext with UserClaims)
+- Full implementation of UserClaims-based access control (stub handlers provided)
