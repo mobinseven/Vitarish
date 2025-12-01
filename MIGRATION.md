@@ -156,14 +156,15 @@ This document will be updated as migration work proceeds. Check individual sub-i
 - ⏳ Integration tests (pending handler implementation in Communications.Infrastructure)
 
 **Old test scenarios and their migration status**:
+
 | Old Test | Scenario | New Location |
-|----------|----------|--------------|
-| `GetSmsDeliveryStateTests.ExecuteAsync_ThrowsWhenIdInvalid` | Validation of message ID | `GetSmsDeliveryStateValidatorTests.Validate_WithZeroOrNegativeMessageId_ReturnsInvalid` |
-| `GetSmsDeliveryStateTests.ExecuteAsync_ReturnsStateFromService` | Service interaction | To be added in Infrastructure.Tests when handler implemented |
-| `GetSmsDeliveryStateTests.ExecuteAsync_PassesCancellationToken` | Cancellation token handling | To be added in Infrastructure.Tests when handler implemented |
-| `SendSmsTests.ExecuteAsync_ReturnsResultFromService` | Service interaction | To be added in Infrastructure.Tests when handler implemented |
-| `SendSmsTests.ExecuteAsync_PassesCancellationToken` | Cancellation token handling | To be added in Infrastructure.Tests when handler implemented |
-| `SendSmsTests.ExecuteAsync_CancelledTokenThrows` | Cancellation handling | To be added in Infrastructure.Tests when handler implemented |
+| -------- | -------- | ------------ |
+| `GetSmsDeliveryStateTests.ExecuteAsync_ThrowsWhenIdInvalid` | Validation of message ID | `GetSmsDeliveryStateValidatorTests` |
+| `GetSmsDeliveryStateTests.ExecuteAsync_ReturnsStateFromService` | Service interaction | Infrastructure.Tests (pending) |
+| `GetSmsDeliveryStateTests.ExecuteAsync_PassesCancellationToken` | Cancellation token handling | Infrastructure.Tests (pending) |
+| `SendSmsTests.ExecuteAsync_ReturnsResultFromService` | Service interaction | Infrastructure.Tests (pending) |
+| `SendSmsTests.ExecuteAsync_PassesCancellationToken` | Cancellation token handling | Infrastructure.Tests (pending) |
+| `SendSmsTests.ExecuteAsync_CancelledTokenThrows` | Cancellation handling | Infrastructure.Tests (pending) |
 
 #### Vorn.Aaas.Users → Identity/Identity.Core ✅
 
