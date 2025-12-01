@@ -308,3 +308,49 @@ This document will be updated as migration work proceeds. Check individual sub-i
 **Not migrated** (future work):
 - Integration tests for SmsDotIrProvider (requires external service mocking)
 - Email sending integration tests (requires SMTP test server)
+
+#### Vorn.Caas.Host → Communications/Communications.Api ✅
+
+**Status**: Communications API host migrated
+
+**What was migrated**:
+- `Program.cs` → `Communications.Api/Program.cs`
+- `Presentation/Api/ApiMappingExtensions.cs` → `Communications.Api/Messages/Endpoints/MessagesEndpoints.cs`
+- `Presentation/Dto/SmsDtos.cs` → `Communications.Contracts/Messages/*Dto.cs`
+- `Infrastructure/Services/AaasHealthMonitorService.cs` → `Communications.Infrastructure/HealthMonitoring/IdentityHealthMonitorService.cs`
+- `Presentation/HealthChecks/StartupSmsTestExtensions.cs` → `Communications.Api/HealthChecks/StartupSmsTestExtensions.cs`
+
+**New files created**:
+- `Communications.Api/Messages/Endpoints/MessagesEndpoints.cs` - REST API endpoints using minimal APIs
+- `Communications.Contracts/Messages/SmsSendResultDto.cs` - SMS send result contract
+- `Communications.Contracts/Messages/SmsDeliveryStateDto.cs` - SMS delivery state contract
+- `Communications.Contracts/Messages/MessageDto.cs` - Message contract
+- `Communications.Infrastructure/Messages/Handlers/SendSmsHandler.cs` - MediatR handler for SendSms command
+- `Communications.Infrastructure/Messages/Handlers/SendSmsCodeHandler.cs` - MediatR handler for SendSmsCode command
+- `Communications.Infrastructure/Messages/Handlers/SendEmailHandler.cs` - MediatR handler for SendEmail command
+- `Communications.Infrastructure/Messages/Handlers/GetSmsDeliveryStateHandler.cs` - MediatR handler for GetSmsDeliveryState query
+- `Communications.Infrastructure/HealthMonitoring/IdentityHealthMonitorService.cs` - Background service for monitoring Identity authority health
+
+**Key changes during migration**:
+- Updated Communications.Api.csproj to use `Microsoft.NET.Sdk.Web` (from Microsoft.NET.Sdk)
+- Implemented MediatR pattern for all commands and queries with handlers in Infrastructure layer
+- Renamed `AaasHealthMonitorService` to `IdentityHealthMonitorService` to better reflect its purpose
+- Added `IdentityAuthority` and `HealthCheckNotificationRecipient` properties to `CommunicationsOptions`
+- Configured JWT Bearer authentication with Identity authority from configuration
+- Created REST API endpoints under `/api/v1/communications/messages` (changed from `/api/v1/caas/messages`)
+- Removed dependency on `Vorn.Aaas.Client.Api` (no longer needed in new architecture)
+- Removed `RequestIdentityContextEndpointFilter` (request identity handling will be based on claims)
+- Removed deprecated `WithOpenApi()` calls (replaced with `WithSummary()` and `WithDescription()` for .NET 10 compatibility)
+- Added MediatR to Infrastructure with automatic handler registration
+- Health monitoring service registered as a hosted service via DI
+
+**API Endpoints**:
+- `POST /api/v1/communications/messages/sms` - Send an SMS message
+- `GET /api/v1/communications/messages/sms/{messageId}` - Get SMS delivery status
+- `POST /api/v1/communications/messages/smscode` - Send an SMS verification code
+- `POST /api/v1/communications/messages/email` - Send an email message
+- `GET /` - Health check endpoint
+
+**Not migrated** (not applicable in new architecture):
+- Dashboard integration (was using `Vorn.Dashboard.Client` package - to be replaced with new monitoring solution)
+- `ConfigureAaasClient` extension (replaced with standard JWT Bearer authentication configuration)
