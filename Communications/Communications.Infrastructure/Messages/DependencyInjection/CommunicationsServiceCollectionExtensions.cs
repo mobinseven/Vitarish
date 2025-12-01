@@ -1,10 +1,12 @@
 namespace Vitarish.Communications.Infrastructure.Messages.DependencyInjection;
 
 using System.Reflection;
+using FluentValidation;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Communications.Core.Messages.Abstractions;
 using Vitarish.Communications.Infrastructure.HealthMonitoring;
+using Vitarish.Communications.Infrastructure.Messages.Behaviors;
 using Vitarish.Communications.Infrastructure.Messages.Options;
 using Vitarish.Communications.Infrastructure.Messages.Providers.SmsDotIr;
 using Vitarish.Communications.Infrastructure.Messages.Services;
@@ -17,16 +19,19 @@ public static class CommunicationsServiceCollectionExtensions
     {
         services.Configure<CommunicationsOptions>(
             configuration.GetSection(CommunicationsOptions.Section));
-        
-        services.AddSingleton(sp => 
-            sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<CommunicationsOptions>>().Value);
 
         services.AddHttpClient<ISmsProvider, SmsDotIrProvider>();
         services.AddScoped<IMessagesService, MessagesService>();
         
-        // Register MediatR handlers
+        // Register FluentValidation validators from Core assembly
+        services.AddValidatorsFromAssembly(typeof(Vitarish.Communications.Core.Messages.Application.Commands.SendSms).Assembly);
+        
+        // Register MediatR handlers with validation pipeline behavior
         services.AddMediatR(cfg => 
-            cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+        {
+            cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
+            cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+        });
         
         // Register health monitoring as a hosted service
         services.AddHostedService<IdentityHealthMonitorService>();

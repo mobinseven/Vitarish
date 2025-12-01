@@ -24,7 +24,7 @@ public static class MessagesEndpoints
                           });
 
         // --------------------------- POST /api/v1/communications/messages/sms ---------------------------
-        _ = group.MapPost("/sms",
+        group.MapPost("/sms",
             async ([FromBody] MessageDto message, [FromServices] IMediator mediator, CancellationToken cancellationToken) =>
             {
                 var command = new SendSms(message.Recipient, message.Body);
@@ -45,7 +45,7 @@ public static class MessagesEndpoints
              .WithDescription("Sends a plain SMS message to the recipient specified in the request body.");
 
         // --------------------------- GET /api/v1/communications/messages/sms/{messageId} ---------------------------
-        _ = group.MapGet("/sms/{messageId:long}",
+        group.MapGet("/sms/{messageId:long}",
             async ([FromRoute] long messageId, [FromServices] IMediator mediator, CancellationToken cancellationToken) =>
             {
                 var query = new GetSmsDeliveryState(messageId);
@@ -66,7 +66,7 @@ public static class MessagesEndpoints
              .WithDescription("Retrieves delivery information for a previously sent SMS.");
 
         // --------------------------- POST /api/v1/communications/messages/smscode ---------------------------
-        _ = group.MapPost("/smscode",
+        group.MapPost("/smscode",
             async ([FromBody] MessageDto message, [FromServices] IMediator mediator, CancellationToken cancellationToken) =>
             {
                 var command = new SendSmsCode(message.Recipient, message.Body);
@@ -87,7 +87,7 @@ public static class MessagesEndpoints
              .WithDescription("Sends an SMS containing a verification code to the recipient.");
 
         // --------------------------- POST /api/v1/communications/messages/email ---------------------------
-        _ = group.MapPost("/email",
+        group.MapPost("/email",
             async ([FromBody] MessageDto message, [FromServices] IMediator mediator, CancellationToken cancellationToken) =>
             {
                 var command = new SendEmail(message.Recipient, message.Subject, message.Body, message.HtmlBody);

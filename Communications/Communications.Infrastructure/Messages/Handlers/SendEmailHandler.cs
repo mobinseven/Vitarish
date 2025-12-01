@@ -11,15 +11,22 @@ internal sealed class SendEmailHandler(IMessagesService messagesService)
 {
     public async Task<Result> Handle(SendEmail request, CancellationToken cancellationToken)
     {
-        var message = new ServiceModels.Message
+        try
         {
-            Recipient = request.Recipient,
-            Subject = request.Subject,
-            Body = request.Body,
-            HtmlBody = request.HtmlBody
-        };
+            var message = new ServiceModels.Message
+            {
+                Recipient = request.Recipient,
+                Subject = request.Subject,
+                Body = request.Body,
+                HtmlBody = request.HtmlBody
+            };
 
-        await messagesService.SendEmailAsync(message, cancellationToken);
-        return Result.Success();
+            await messagesService.SendEmailAsync(message, cancellationToken);
+            return Result.Success();
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure(new Error("SendEmail.Failed", ex.Message));
+        }
     }
 }

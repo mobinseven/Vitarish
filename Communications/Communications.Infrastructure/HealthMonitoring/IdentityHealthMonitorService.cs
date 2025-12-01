@@ -1,9 +1,5 @@
 namespace Vitarish.Communications.Infrastructure.HealthMonitoring;
 
-using System;
-using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Vitarish.Communications.Core.Messages.Abstractions;
@@ -13,13 +9,13 @@ using Vitarish.Communications.Infrastructure.Messages.Options;
 internal sealed class IdentityHealthMonitorService(
     IMessagesService messagesService,
     CommunicationsOptions options,
-    ILogger<IdentityHealthMonitorService> logger)
+    ILogger<IdentityHealthMonitorService> logger,
+    IHttpClientFactory httpClientFactory)
     : BackgroundService
 {
     private static readonly TimeSpan HealthCheckInterval = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(10);
 
-    private readonly HttpClient httpClient = new() { Timeout = RequestTimeout };
     private bool failureNotified;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -102,6 +98,9 @@ internal sealed class IdentityHealthMonitorService(
 
         try
         {
+            using var httpClient = httpClientFactory.CreateClient();
+            httpClient.Timeout = RequestTimeout;
+            
             using HttpResponseMessage response = await httpClient.GetAsync(discoveryUri, cancellationToken);
             if (response.IsSuccessStatusCode)
             {
@@ -147,11 +146,5 @@ internal sealed class IdentityHealthMonitorService(
         {
             logger.LogError(ex, "Failed to send Identity health failure SMS notification.");
         }
-    }
-
-    public override void Dispose()
-    {
-        httpClient.Dispose();
-        base.Dispose();
     }
 }

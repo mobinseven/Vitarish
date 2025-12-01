@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Vitarish.Communications.Core.Messages.Abstractions;
 using Vitarish.Communications.Core.Messages.Models;
 using Vitarish.Communications.Infrastructure.Messages.Options;
@@ -10,44 +11,59 @@ public static class StartupSmsTestExtensions
 {
     /// <summary>
     /// Send a test SMS on application startup to the configured phone number to exercise SMS provider.
-    /// The call is fire-and-forget and exceptions are logged to the console only so startup is not blocked.
+    /// Uses proper application lifetime events for better integration with the hosting infrastructure.
     /// </summary>
     public static void UseStartupSmsTest(this WebApplication app)
     {
-        // Run after the app is built and before handling requests.
-        _ = Task.Run(async () =>
+        app.Lifetime.ApplicationStarted.Register(() =>
         {
-            try
+            var logger = app.Services.GetRequiredService<ILogger<WebApplication>>();
+            var cancellationToken = app.Lifetime.ApplicationStopping;
+            
+            _ = Task.Run(async () =>
             {
-                using var scope = app.Services.CreateScope();
-                var svc = scope.ServiceProvider.GetService<IMessagesService>();
-                var options = scope.ServiceProvider.GetService<CommunicationsOptions>();
-                
-                if (svc is null)
+                try
                 {
-                    Console.WriteLine("StartupSmsTest: IMessagesService not available");
-                    return;
+                    // Small delay to ensure all services are fully initialized
+                    await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                    
+                    using var scope = app.Services.CreateScope();
+                    var svc = scope.ServiceProvider.GetService<IMessagesService>();
+                    var options = scope.ServiceProvider.GetService<CommunicationsOptions>();
+                    
+                    if (svc is null)
+                    {
+                        logger.LogWarning("StartupSmsTest: IMessagesService not available");
+                        return;
+                    }
+
+                    if (options is null || string.IsNullOrWhiteSpace(options.HealthCheckNotificationRecipient))
+                    {
+                        logger.LogInformation("StartupSmsTest: HealthCheckNotificationRecipient not configured; skipping startup test");
+                        return;
+                    }
+
+                    var msg = new Message
+                    {
+                        Recipient = options.HealthCheckNotificationRecipient,
+                        Body = "Startup health check SMS from Communications.Api"
+                    };
+
+                    SmsSendResult result = await svc.SendSmsAsync(msg, cancellationToken);
+                    logger.LogInformation(
+                        "StartupSmsTest: SMS send attempt completed with message ID {MessageId} and cost {Cost}",
+                        result.MessageId,
+                        result.Cost);
                 }
-
-                if (options is null || string.IsNullOrWhiteSpace(options.HealthCheckNotificationRecipient))
+                catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
                 {
-                    Console.WriteLine("StartupSmsTest: HealthCheckNotificationRecipient not configured; skipping startup test");
-                    return;
+                    logger.LogInformation("StartupSmsTest: Cancelled during application shutdown");
                 }
-
-                var msg = new Message
+                catch (Exception ex)
                 {
-                    Recipient = options.HealthCheckNotificationRecipient,
-                    Body = "Startup health check SMS from Communications.Api"
-                };
-
-                SmsSendResult result = await svc.SendSmsAsync(msg, CancellationToken.None);
-                Console.WriteLine($"StartupSmsTest: SMS send attempt completed with message ID {result.MessageId} and cost {result.Cost}");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"StartupSmsTest: exception while sending SMS: {ex.Message}");
-            }
+                    logger.LogError(ex, "StartupSmsTest: Exception while sending SMS");
+                }
+            }, cancellationToken);
         });
     }
 }

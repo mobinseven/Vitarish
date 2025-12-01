@@ -12,24 +12,32 @@ internal sealed class SendSmsHandler(IMessagesService messagesService)
 {
     public async Task<Result<DomainModels.SmsSendResult>> Handle(SendSms request, CancellationToken cancellationToken)
     {
-        var message = new ServiceModels.Message
+        try
         {
-            Recipient = request.Recipient,
-            Body = request.Body
-        };
+            var message = new ServiceModels.Message
+            {
+                Recipient = request.Recipient,
+                Body = request.Body
+            };
 
-        var result = await messagesService.SendSmsAsync(message, cancellationToken);
-        
-        // Map from service model to domain model
-        var domainResult = new DomainModels.SmsSendResult(
-            MessageId: result.MessageId,
-            Recipient: result.Recipient,
-            Cost: result.Cost,
-            PackId: result.PackId,
-            SubmittedAt: result.SubmittedAt,
-            RelatedMessageIds: result.RelatedMessageIds,
-            Metadata: result.Metadata);
-        
-        return Result.Success(domainResult);
+            var result = await messagesService.SendSmsAsync(message, cancellationToken);
+            
+            // Map from service model to domain model
+            var domainResult = new DomainModels.SmsSendResult(
+                MessageId: result.MessageId,
+                Recipient: result.Recipient,
+                Cost: result.Cost,
+                PackId: result.PackId,
+                SubmittedAt: result.SubmittedAt,
+                RelatedMessageIds: result.RelatedMessageIds,
+                Metadata: result.Metadata);
+            
+            return Result.Success(domainResult);
+        }
+        catch (Exception ex)
+        {
+            return Result.Failure<DomainModels.SmsSendResult>(
+                new Error("SendSms.Failed", ex.Message));
+        }
     }
 }

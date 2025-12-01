@@ -1,7 +1,5 @@
 namespace Vitarish.Communications.Contracts.Messages;
 
-using System;
-using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
 public sealed record SmsSendResultDto(

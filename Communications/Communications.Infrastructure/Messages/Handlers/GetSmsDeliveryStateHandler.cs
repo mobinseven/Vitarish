@@ -11,22 +11,31 @@ internal sealed class GetSmsDeliveryStateHandler(IMessagesService messagesServic
 {
     public async Task<DomainModels.SmsDeliveryState?> Handle(GetSmsDeliveryState request, CancellationToken cancellationToken)
     {
-        var result = await messagesService.GetSmsDeliveryStateAsync(request.MessageId, cancellationToken);
-        
-        if (result is null)
+        try
         {
+            var result = await messagesService.GetSmsDeliveryStateAsync(request.MessageId, cancellationToken);
+            
+            if (result is null)
+            {
+                return null;
+            }
+            
+            return new DomainModels.SmsDeliveryState(
+                MessageId: result.MessageId,
+                Recipient: result.Recipient,
+                StatusCode: result.StatusCode,
+                Status: result.Status,
+                MessageText: result.MessageText,
+                Cost: result.Cost,
+                SentAt: result.SentAt,
+                DeliveredAt: result.DeliveredAt,
+                Metadata: result.Metadata);
+        }
+        catch (Exception)
+        {
+            // Return null to indicate not found/error
+            // Exception is caught to prevent propagation but could be logged if logger was injected
             return null;
         }
-        
-        return new DomainModels.SmsDeliveryState(
-            MessageId: result.MessageId,
-            Recipient: result.Recipient,
-            StatusCode: result.StatusCode,
-            Status: result.Status,
-            MessageText: result.MessageText,
-            Cost: result.Cost,
-            SentAt: result.SentAt,
-            DeliveredAt: result.DeliveredAt,
-            Metadata: result.Metadata);
     }
 }
