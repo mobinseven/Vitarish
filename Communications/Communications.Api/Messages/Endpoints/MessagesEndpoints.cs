@@ -45,10 +45,15 @@ public static class MessagesEndpoints
              .WithDescription("Sends a plain SMS message to the recipient specified in the request body.");
 
         // --------------------------- GET /api/v1/communications/messages/sms/{messageId} ---------------------------
-        group.MapGet("/sms/{messageId:long}",
-            async ([FromRoute] long messageId, [FromServices] IMediator mediator, CancellationToken cancellationToken) =>
+        group.MapGet("/sms/{messageId}",
+            async ([FromRoute] string messageId, [FromServices] IMediator mediator, CancellationToken cancellationToken) =>
             {
-                var query = new GetSmsDeliveryState(messageId);
+                if (!long.TryParse(messageId, out long messageIdLong))
+                {
+                    return Results.BadRequest(new { error = "Invalid message ID format. Message ID must be a numeric value." });
+                }
+                
+                var query = new GetSmsDeliveryState(messageIdLong);
                 var result = await mediator.Send(query, cancellationToken);
                 
                 if (result is null)
@@ -63,7 +68,7 @@ public static class MessagesEndpoints
              .ProducesProblem(StatusCodes.Status404NotFound)
              .ProducesProblem(StatusCodes.Status400BadRequest)
              .WithSummary("Get SMS delivery status")
-             .WithDescription("Retrieves delivery information for a previously sent SMS.");
+             .WithDescription("Retrieves delivery information for a previously sent SMS. The messageId should be the value returned from the SendSms endpoint.");
 
         // --------------------------- POST /api/v1/communications/messages/smscode ---------------------------
         group.MapPost("/smscode",

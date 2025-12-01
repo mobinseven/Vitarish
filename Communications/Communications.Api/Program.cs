@@ -25,7 +25,8 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     {
         options.Authority = communicationsOptions.IdentityAuthority;
         options.RequireHttpsMetadata = true;
-        options.TokenValidationParameters.ValidateAudience = false;
+        options.TokenValidationParameters.ValidateAudience = true;
+        options.TokenValidationParameters.ValidAudience = "communications-api";
         options.TokenValidationParameters.ValidTypes = ["at+jwt"];
     });
 
