@@ -8,6 +8,10 @@ namespace Vitarish.Identity.Core.Parties.Application.Commands;
 /// <summary>
 /// Command to add a tenant indicator.
 /// </summary>
+/// <remarks>
+/// The <paramref name="VerificationMethod"/> defaults to <see cref="IndicatorVerificationMethod.DnsTxt"/>
+/// to encourage automated verification over manual processes.
+/// </remarks>
 public sealed record AddTenantIndicator(
     Guid TenantId,
     IndicatorMethod Method,
