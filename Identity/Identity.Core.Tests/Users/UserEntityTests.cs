@@ -206,8 +206,8 @@ public class UserEntityTests
         var firstAccess = user.ProfilePreferences;
         var secondAccess = user.ProfilePreferences;
 
-        // Assert - both should return equivalent dictionaries
+        // Assert
         firstAccess.Should().BeEquivalentTo(preferences);
-        secondAccess.Should().BeEquivalentTo(preferences);
+        secondAccess.Should().BeSameAs(firstAccess);
     }
 }
