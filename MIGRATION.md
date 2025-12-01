@@ -159,7 +159,7 @@ This document will be updated as migration work proceeds. Check individual sub-i
 
 | Old Test | Scenario | New Location |
 | -------- | -------- | ------------ |
-| `GetSmsDeliveryStateTests.ExecuteAsync_ThrowsWhenIdInvalid` | Validation of message ID | `GetSmsDeliveryStateValidatorTests` |
+| `GetSmsDeliveryStateTests.ExecuteAsync_ThrowsWhenIdInvalid` | Validation of message ID | `MessageQueryValidatorTests.cs` |
 | `GetSmsDeliveryStateTests.ExecuteAsync_ReturnsStateFromService` | Service interaction | Infrastructure.Tests (pending) |
 | `GetSmsDeliveryStateTests.ExecuteAsync_PassesCancellationToken` | Cancellation token handling | Infrastructure.Tests (pending) |
 | `SendSmsTests.ExecuteAsync_ReturnsResultFromService` | Service interaction | Infrastructure.Tests (pending) |
