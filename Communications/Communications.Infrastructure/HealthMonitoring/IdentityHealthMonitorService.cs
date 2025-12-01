@@ -2,13 +2,14 @@ namespace Vitarish.Communications.Infrastructure.HealthMonitoring;
 
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Vitarish.Communications.Core.Messages.Abstractions;
 using Vitarish.Communications.Core.Messages.Models;
 using Vitarish.Communications.Infrastructure.Messages.Options;
 
 internal sealed class IdentityHealthMonitorService(
     IMessagesService messagesService,
-    CommunicationsOptions options,
+    IOptions<CommunicationsOptions> options,
     ILogger<IdentityHealthMonitorService> logger,
     IHttpClientFactory httpClientFactory)
     : BackgroundService
@@ -16,21 +17,22 @@ internal sealed class IdentityHealthMonitorService(
     private static readonly TimeSpan HealthCheckInterval = TimeSpan.FromMinutes(5);
     private static readonly TimeSpan RequestTimeout = TimeSpan.FromSeconds(10);
 
-    private bool failureNotified;
+    private readonly CommunicationsOptions _options = options.Value;
+    private volatile bool failureNotified;
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         ArgumentNullException.ThrowIfNull(messagesService);
-        ArgumentNullException.ThrowIfNull(options);
+        ArgumentNullException.ThrowIfNull(_options);
         ArgumentNullException.ThrowIfNull(logger);
 
-        if (string.IsNullOrWhiteSpace(options.IdentityAuthority))
+        if (string.IsNullOrWhiteSpace(_options.IdentityAuthority))
         {
             logger.LogWarning("Identity authority is not configured; skipping authority health monitoring.");
             return;
         }
 
-        logger.LogInformation("Identity health monitor started for {Authority}", options.IdentityAuthority);
+        logger.LogInformation("Identity health monitor started for {Authority}", _options.IdentityAuthority);
 
         await EvaluateHealthAsync(stoppingToken);
 
@@ -59,14 +61,14 @@ internal sealed class IdentityHealthMonitorService(
             {
                 if (failureNotified)
                 {
-                    logger.LogInformation("Identity authority {Authority} is healthy again.", options.IdentityAuthority);
+                    logger.LogInformation("Identity authority {Authority} is healthy again.", _options.IdentityAuthority);
                 }
 
                 failureNotified = false;
                 return;
             }
 
-            logger.LogWarning("Identity authority {Authority} health check failed.", options.IdentityAuthority);
+            logger.LogWarning("Identity authority {Authority} health check failed.", _options.IdentityAuthority);
 
             if (failureNotified)
             {
@@ -88,9 +90,9 @@ internal sealed class IdentityHealthMonitorService(
 
     private async Task<bool> CheckAuthorityHealthAsync(CancellationToken cancellationToken)
     {
-        if (!Uri.TryCreate(options.IdentityAuthority, UriKind.Absolute, out Uri? authorityUri))
+        if (!Uri.TryCreate(_options.IdentityAuthority, UriKind.Absolute, out Uri? authorityUri))
         {
-            logger.LogWarning("Identity authority value '{Authority}' is not a valid absolute URI.", options.IdentityAuthority);
+            logger.LogWarning("Identity authority value '{Authority}' is not a valid absolute URI.", _options.IdentityAuthority);
             return false;
         }
 
@@ -124,7 +126,7 @@ internal sealed class IdentityHealthMonitorService(
 
     private async Task NotifyFailureAsync()
     {
-        if (string.IsNullOrWhiteSpace(options.HealthCheckNotificationRecipient))
+        if (string.IsNullOrWhiteSpace(_options.HealthCheckNotificationRecipient))
         {
             logger.LogWarning("Health check notification recipient not configured; skipping notification.");
             return;
@@ -134,8 +136,8 @@ internal sealed class IdentityHealthMonitorService(
         {
             Message message = new()
             {
-                Recipient = options.HealthCheckNotificationRecipient,
-                Body = $"Identity authority health check failed for {options.IdentityAuthority} at {DateTimeOffset.UtcNow:O}"
+                Recipient = _options.HealthCheckNotificationRecipient,
+                Body = $"Identity authority health check failed for {_options.IdentityAuthority} at {DateTimeOffset.UtcNow:O}"
             };
 
             SmsSendResult result = await messagesService.SendSmsAsync(message, CancellationToken.None);

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Vitarish.Communications.Core.Messages.Abstractions;
 using Vitarish.Communications.Core.Messages.Models;
 using Vitarish.Communications.Infrastructure.Messages.Options;
@@ -9,6 +10,8 @@ namespace Vitarish.Communications.Api.HealthChecks;
 
 public static class StartupSmsTestExtensions
 {
+    private sealed class StartupSmsTestLogger { }
+
     /// <summary>
     /// Send a test SMS on application startup to the configured phone number to exercise SMS provider.
     /// Uses proper application lifetime events for better integration with the hosting infrastructure.
@@ -17,7 +20,7 @@ public static class StartupSmsTestExtensions
     {
         app.Lifetime.ApplicationStarted.Register(() =>
         {
-            var logger = app.Services.GetRequiredService<ILogger<WebApplication>>();
+            var logger = app.Services.GetRequiredService<ILogger<StartupSmsTestLogger>>();
             var cancellationToken = app.Lifetime.ApplicationStopping;
             
             _ = Task.Run(async () =>
@@ -29,7 +32,7 @@ public static class StartupSmsTestExtensions
                     
                     using var scope = app.Services.CreateScope();
                     var svc = scope.ServiceProvider.GetService<IMessagesService>();
-                    var options = scope.ServiceProvider.GetService<CommunicationsOptions>();
+                    var options = scope.ServiceProvider.GetService<IOptions<CommunicationsOptions>>()?.Value;
                     
                     if (svc is null)
                     {
