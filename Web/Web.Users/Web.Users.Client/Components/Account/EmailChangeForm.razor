@@ -1,0 +1,17 @@
+@if (!string.IsNullOrEmpty(error))
+{
+    <MudAlert Severity="Severity.Error">@error</MudAlert>
+    <MudButton OnClick="() => NavigationManager.Refresh(true)" FullWidth Color="Color.Info">@Localizer["TryAgain"]</MudButton>
+}
+else if (Email is null)
+{
+    <EmailVerificationSend OnValidSubmit="@ValidSendCodeSubmit" />
+}
+else if (User is not null && Email is not null)
+{
+    <EmailVerificationVerify Email="@Email"
+                              User="@User"
+                              OnValidSubmit="@ValidVerifyCodeSubmit"
+                              ReturnUrl="/Account/Manage"
+                              FailureUrl="/Account/Manage/Email" />
+}

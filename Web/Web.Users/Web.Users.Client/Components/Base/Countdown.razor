@@ -1,0 +1,174 @@
+﻿@* Simple, reusable countdown timer component.
+   Defaults to 2 minutes, shows a mm:ss counter, and invokes a callback when finished.
+
+   Example usage:
+   <CountdownTimer Duration="@TimeSpan.FromMinutes(2)" OnFinished="@OnTimerDone" />
+   
+   @code {
+     void OnTimerDone() { /* do something */ }
+   }
+*@
+
+<div class="countdown-timer">
+    <span class="time">@FormatTime(_remaining)</span>
+
+    @if(ShowControls)
+    {
+        <div class="controls">
+            <button @onclick="StartAsync" disabled="@_running">Start</button>
+            <button @onclick="Stop" disabled="@(!_running)">Stop</button>
+            <button @onclick="Reset">Reset</button>
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public TimeSpan Duration { get; set; } = TimeSpan.FromMinutes(2);
+
+    [Parameter]
+    public bool AutoStart { get; set; } = true;
+
+    [Parameter]
+    public bool ShowControls { get; set; } = true;
+
+    /// <summary>
+    /// Invoked once when the countdown reaches zero.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnFinished { get; set; }
+
+    /// <summary>
+    /// Optional: fires each second with the remaining time.
+    /// </summary>
+    [Parameter]
+    public EventCallback<TimeSpan> OnTick { get; set; }
+
+    private System.Threading.PeriodicTimer? _timer;
+    private CancellationTokenSource? _cts;
+    private bool _running;
+    private DateTime _endTimeUtc;
+    private TimeSpan _remaining;
+
+    protected override void OnInitialized()
+    {
+        _remaining = Duration;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(firstRender && AutoStart)
+        {
+            await StartAsync();
+        }
+    }
+
+    public async Task StartAsync()
+    {
+        if(_running)
+            return;
+
+        // If we were previously stopped, continue from the remaining time.
+        _cts = new CancellationTokenSource();
+        _timer = new System.Threading.PeriodicTimer(TimeSpan.FromSeconds(1));
+        _endTimeUtc = DateTime.UtcNow + _remaining;
+        _running = true;
+
+        // Run the ticking loop without blocking the renderer.
+        _ = RunAsync(_cts.Token);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    public void Stop()
+    {
+        if(!_running)
+            return;
+
+        _running = false;
+        try
+        { _cts?.Cancel(); }
+        catch { }
+        _timer?.Dispose();
+        _timer = null;
+        _cts?.Dispose();
+        _cts = null;
+
+        // Preserve _remaining so StartAsync() resumes from where it left off.
+    }
+
+    public void Reset()
+    {
+        Stop();
+        _remaining = Duration;
+        StateHasChanged();
+    }
+
+    public void Reset(TimeSpan newDuration)
+    {
+        Duration = newDuration;
+        Reset();
+    }
+
+    private async Task RunAsync(CancellationToken ct)
+    {
+        if(_timer is null)
+            return;
+
+        try
+        {
+            // Tick immediately to keep UI snappy (optional).
+            await TickAsync();
+
+            while(await _timer!.WaitForNextTickAsync(ct))
+            {
+                await TickAsync();
+                if(_remaining <= TimeSpan.Zero)
+                {
+                    // Completed
+                    Stop();
+                    if(OnFinished.HasDelegate)
+                    {
+                        await InvokeAsync(() => OnFinished.InvokeAsync());
+                    }
+                    break;
+                }
+            }
+        }
+        catch(OperationCanceledException)
+        {
+            // Expected on Stop()/Dispose
+        }
+    }
+
+    private async Task TickAsync()
+    {
+        var now = DateTime.UtcNow;
+        _remaining = _endTimeUtc - now;
+        if(_remaining < TimeSpan.Zero)
+            _remaining = TimeSpan.Zero;
+
+        if(OnTick.HasDelegate)
+        {
+            // fire-and-forget but awaited to preserve ordering
+            await OnTick.InvokeAsync(_remaining);
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private static string FormatTime(TimeSpan ts)
+    {
+        // mm:ss up to 59:59; if longer, show h:mm:ss
+        if(ts.TotalHours >= 1)
+            return string.Format("{0}:{1:00}:{2:00}", (int)ts.TotalHours, ts.Minutes, ts.Seconds);
+        return string.Format("{0:00}:{1:00}", (int)ts.TotalMinutes, ts.Seconds);
+    }
+
+    public void Dispose()
+    {
+        try
+        { _cts?.Cancel(); }
+        catch { }
+        _timer?.Dispose();
+        _cts?.Dispose();
+    }
+}

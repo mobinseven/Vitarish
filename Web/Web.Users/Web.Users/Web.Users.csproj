@@ -8,8 +8,19 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0" />
+    <PackageReference Include="MudBlazor" Version="8.15.0" />
     <ProjectReference Include="..\Web.Users.Client\Web.Users.Client.csproj" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.*" />
+    <ProjectReference Include="..\..\Web.Base\Web.Base.csproj" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="10.0.0" />
   </ItemGroup>
+
+  <!-- TODO: Add references to new architecture projects -->
+  <!-- These will be needed for full functionality: -->
+  <!-- <ProjectReference Include="..\..\..\Identity\Identity.Core\Identity.Core.csproj" /> -->
+  <!-- <ProjectReference Include="..\..\..\Identity\Identity.Infrastructure\Identity.Infrastructure.csproj" /> -->
+  <!-- <ProjectReference Include="..\..\..\Identity\Identity.Contracts\Identity.Contracts.csproj" /> -->
+  <!-- <ProjectReference Include="..\..\..\Communications\Communications.Contracts\Communications.Contracts.csproj" /> -->
+  <!-- <ProjectReference Include="..\..\..\Communications\Communications.Infrastructure\Communications.Infrastructure.csproj" /> -->
 
 </Project>

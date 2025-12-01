@@ -1,0 +1,39 @@
+﻿@page "/Account/Signout"
+@inherits IdentityBase
+
+@if (!LoggedOut)
+{
+    <MudAlert ContentAlignment="HorizontalAlignment.Center" NoIcon="true">
+        <MudText Typo="Typo.h5">
+            @Localizer["LogoutMessage"]
+        </MudText>
+    </MudAlert>
+    <EditForm Model="Input" method="post" OnValidSubmit="LogoutUser" FormName="Logout">
+        <DataAnnotationsValidator />
+        <MudButton Ripple="false" ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Warning" DropShadow="false" FullWidth="true">@Localizer["Continue"]</MudButton>
+    </EditForm>
+}
+else
+{
+    <MudAlert ContentAlignment="HorizontalAlignment.Center" NoIcon="true">
+        <MudText Typo="Typo.h5">
+            @Localizer["LogoutSuccessful"]
+        </MudText>
+    </MudAlert>
+    @if (PostLogoutRedirectUri != null)
+    {
+        <form method="get" action="@(PostLogoutRedirectUri)">
+            <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Warning" ButtonType="ButtonType.Submit">@Localizer["Continue"]</MudButton>
+        </form>
+    }
+    else
+    {
+        <form method="get" action="/">
+            <MudButton FullWidth="true" Variant="Variant.Filled" Color="Color.Warning" ButtonType="ButtonType.Submit">@Localizer["Continue"]</MudButton>
+        </form>
+    }
+    @if (SignOutIframeUrl != null)
+    {
+        <iframe width="0" height="0" style="display:none" class="signout" src="@SignOutIframeUrl"></iframe>
+    }
+}
