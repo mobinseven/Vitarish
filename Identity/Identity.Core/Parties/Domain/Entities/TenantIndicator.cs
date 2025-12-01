@@ -6,7 +6,7 @@ namespace Vitarish.Identity.Core.Parties.Domain.Entities;
 /// <summary>
 /// Represents a tenant identification indicator (hostname or subdomain).
 /// </summary>
-public sealed class TenantIndicator : Entity<Guid>
+public class TenantIndicator : Entity<Guid>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="TenantIndicator"/> class.
