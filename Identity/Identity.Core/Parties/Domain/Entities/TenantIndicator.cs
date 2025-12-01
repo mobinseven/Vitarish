@@ -6,7 +6,7 @@ namespace Vitarish.Identity.Core.Parties.Domain.Entities;
 /// <summary>
 /// Represents a tenant identification indicator (hostname or subdomain).
 /// </summary>
-public class TenantIndicator : Entity<Guid>
+public sealed class TenantIndicator : Entity<Guid>
 {
     /// <summary>
     /// Initializes a new instance of the <see cref="TenantIndicator"/> class.
@@ -97,6 +97,20 @@ public class TenantIndicator : Entity<Guid>
     public void UpdateLastChecked(DateTimeOffset? checkedAt = null)
     {
         LastCheckedAt = checkedAt ?? DateTimeOffset.UtcNow;
+        MarkAsUpdated();
+    }
+
+    /// <summary>
+    /// Updates the primary flag.
+    /// </summary>
+    internal void SetPrimary(bool isPrimary)
+    {
+        if (IsPrimary == isPrimary)
+        {
+            return;
+        }
+
+        IsPrimary = isPrimary;
         MarkAsUpdated();
     }
 }

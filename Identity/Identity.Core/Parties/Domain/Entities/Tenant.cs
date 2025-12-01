@@ -1,3 +1,4 @@
+using System.Linq;
 using Vitarish.Base.Domain.Primitives;
 using Vitarish.Identity.Core.Parties.Domain.Enums;
 
@@ -75,6 +76,11 @@ public class Tenant : Entity<Guid>
     /// </summary>
     public TenantIndicator AddIndicator(IndicatorMethod method, string value, bool isPrimary, IndicatorStatus status, VerificationInfo? verification)
     {
+        if (isPrimary)
+        {
+            _indicators.FirstOrDefault(i => i.IsPrimary)?.SetPrimary(false);
+        }
+
         TenantIndicator indicator = new(Guid.NewGuid(), Id, method, value, status, isPrimary, verification);
         _indicators.Add(indicator);
         MarkAsUpdated();
