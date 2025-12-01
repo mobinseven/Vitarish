@@ -43,7 +43,7 @@ public sealed class PasswordLoginSubmitModel(
             return RedirectWithStatus("/Account/Login/Password", BuildInvalidAttemptMessage());
         }
 
-        var result = await _signInManager.PasswordSignInAsync(user, Input.Password, true, lockoutOnFailure: false);
+        var result = await _signInManager.PasswordSignInAsync(user, Input.Password, true, lockoutOnFailure: true);
         if(result.Succeeded)
         {
             string? normalizedReturnUrl = NormalizeReturnUrl();

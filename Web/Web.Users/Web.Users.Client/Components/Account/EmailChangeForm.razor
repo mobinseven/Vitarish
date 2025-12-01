@@ -11,5 +11,7 @@ else if (User is not null && Email is not null)
 {
     <EmailVerificationVerify Email="@Email"
                               User="@User"
-                              OnValidSubmit="@ValidVerifyCodeSubmit" />
+                              OnValidSubmit="@ValidVerifyCodeSubmit"
+                              ReturnUrl="/Account/Manage"
+                              FailureUrl="/Account/Manage/Email" />
 }
