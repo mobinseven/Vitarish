@@ -1,5 +1,5 @@
 using Vitarish.Base.Domain.Results;
-using Vitarish.Identity.Contracts.Users;
+using Vitarish.Identity.Core.Users.Domain.Entities;
 
 namespace Vitarish.Identity.Infrastructure.Users.Services;
 
@@ -15,11 +15,11 @@ public interface IUserAccessService
         string clientId,
         CancellationToken ct = default);
 
-    Task<IEnumerable<UserDto>> GetClientUsersAsync(
+    Task<IEnumerable<User>> GetClientUsersAsync(
         string clientId,
         CancellationToken ct = default);
 
-    Task<UserDto?> GetClientUserAsync(
+    Task<User?> GetClientUserAsync(
         string clientId,
         string userId,
         CancellationToken ct = default);

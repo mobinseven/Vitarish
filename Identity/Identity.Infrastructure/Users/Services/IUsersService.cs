@@ -9,12 +9,12 @@ namespace Vitarish.Identity.Infrastructure.Users.Services;
 public interface IUsersService
 {
     Task<IEnumerable<User>> GetUsersAsync(CancellationToken ct = default);
-    Task<User?> GetUserAsync(string id, CancellationToken ct = default);
+    Task<User?> GetUserAsync(string userId, CancellationToken ct = default);
     Task<User?> GetUserByNameAsync(string userName, CancellationToken ct = default);
     Task<Result<User>> CreateUserWithPhoneAsync(string phoneNumber, string? firstName, string? lastName, CancellationToken ct = default);
     Task<Result<User>> CreateUserWithEmailAsync(string email, string? firstName, string? lastName, CancellationToken ct = default);
-    Task<Result> UpdateUserAsync(string id, string? firstName, string? lastName, CancellationToken ct = default);
-    Task<Result> DeleteUserAsync(string id, CancellationToken ct = default);
+    Task<Result> UpdateUserAsync(string userId, string? firstName, string? lastName, CancellationToken ct = default);
+    Task<Result> DeleteUserAsync(string userId, CancellationToken ct = default);
     Task<Result> SetUserPhoneNumberAsync(string userId, string phoneNumber, CancellationToken ct = default);
     Task<Result> SetUserEmailAsync(string userId, string email, CancellationToken ct = default);
     Task<Dictionary<string, string>> GetUserProfileAsync(string userId, CancellationToken ct = default);

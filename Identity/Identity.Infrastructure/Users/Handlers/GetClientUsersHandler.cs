@@ -1,6 +1,6 @@
 using MediatR;
-using Vitarish.Identity.Contracts.Users;
 using Vitarish.Identity.Core.Users.Application.Queries;
+using Vitarish.Identity.Core.Users.Domain.Entities;
 
 namespace Vitarish.Identity.Infrastructure.Users.Handlers;
 
@@ -8,11 +8,11 @@ namespace Vitarish.Identity.Infrastructure.Users.Handlers;
 /// Handler for <see cref="GetClientUsers"/> query.
 /// Note: This is a stub implementation. Full implementation requires a UserClaims entity/table.
 /// </summary>
-internal sealed class GetClientUsersHandler : IRequestHandler<GetClientUsers, IEnumerable<UserDto>>
+internal sealed class GetClientUsersHandler : IRequestHandler<GetClientUsers, IEnumerable<User>>
 {
-    public Task<IEnumerable<UserDto>> Handle(GetClientUsers request, CancellationToken cancellationToken)
+    public Task<IEnumerable<User>> Handle(GetClientUsers request, CancellationToken cancellationToken)
     {
         // TODO: Implement when UserClaims entity is added to support access claims
-        return Task.FromResult<IEnumerable<UserDto>>(Array.Empty<UserDto>());
+        return Task.FromResult<IEnumerable<User>>(Array.Empty<User>());
     }
 }

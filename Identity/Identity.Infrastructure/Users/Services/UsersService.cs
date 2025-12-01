@@ -12,8 +12,8 @@ public sealed class UsersService(ISender sender) : IUsersService
     public Task<IEnumerable<User>> GetUsersAsync(CancellationToken ct = default) =>
         sender.Send(new GetUsers(), ct);
 
-    public Task<User?> GetUserAsync(string id, CancellationToken ct = default) =>
-        sender.Send(new GetUser(id), ct);
+    public Task<User?> GetUserAsync(string userId, CancellationToken ct = default) =>
+        sender.Send(new GetUser(userId), ct);
 
     public Task<User?> GetUserByNameAsync(string userName, CancellationToken ct = default) =>
         sender.Send(new GetUserByName(userName), ct);
@@ -24,11 +24,11 @@ public sealed class UsersService(ISender sender) : IUsersService
     public Task<Result<User>> CreateUserWithEmailAsync(string email, string? firstName, string? lastName, CancellationToken ct = default) =>
         sender.Send(new CreateUserWithEmail(email, firstName, lastName), ct);
 
-    public Task<Result> UpdateUserAsync(string id, string? firstName, string? lastName, CancellationToken ct = default) =>
-        sender.Send(new UpdateUser(id, firstName, lastName), ct);
+    public Task<Result> UpdateUserAsync(string userId, string? firstName, string? lastName, CancellationToken ct = default) =>
+        sender.Send(new UpdateUser(userId, firstName, lastName), ct);
 
-    public Task<Result> DeleteUserAsync(string id, CancellationToken ct = default) =>
-        sender.Send(new DeleteUser(id), ct);
+    public Task<Result> DeleteUserAsync(string userId, CancellationToken ct = default) =>
+        sender.Send(new DeleteUser(userId), ct);
 
     public Task<Result> SetUserPhoneNumberAsync(string userId, string phoneNumber, CancellationToken ct = default) =>
         sender.Send(new SetUserPhoneNumber(userId, phoneNumber), ct);

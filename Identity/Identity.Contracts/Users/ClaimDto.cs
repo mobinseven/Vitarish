@@ -13,7 +13,7 @@ public class ClaimDto
         Type = type;
         Value = value;
     }
-    public string? Type { get; set; }
-    public string? Value { get; set; }
+    public string? Type { get; init; }
+    public string? Value { get; init; }
     public Claim ToClaim() => new(Type ?? string.Empty, Value ?? string.Empty);
 }

@@ -1,8 +1,8 @@
 using MediatR;
 using Vitarish.Base.Domain.Results;
-using Vitarish.Identity.Contracts.Users;
 using Vitarish.Identity.Core.Users.Application.Commands;
 using Vitarish.Identity.Core.Users.Application.Queries;
+using Vitarish.Identity.Core.Users.Domain.Entities;
 
 namespace Vitarish.Identity.Infrastructure.Users.Services;
 
@@ -17,12 +17,12 @@ public sealed class UserAccessService(ISender sender) : IUserAccessService
         CancellationToken ct = default) =>
         sender.Send(new HasUserAccess(userId, clientId), ct);
 
-    public Task<IEnumerable<UserDto>> GetClientUsersAsync(
+    public Task<IEnumerable<User>> GetClientUsersAsync(
         string clientId,
         CancellationToken ct = default) =>
         sender.Send(new GetClientUsers(clientId), ct);
 
-    public Task<UserDto?> GetClientUserAsync(
+    public Task<User?> GetClientUserAsync(
         string clientId,
         string userId,
         CancellationToken ct = default) =>
