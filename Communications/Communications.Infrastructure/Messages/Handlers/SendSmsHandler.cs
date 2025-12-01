@@ -14,8 +14,8 @@ internal sealed class SendSmsHandler(IMessagesService messagesService)
     {
         var message = new ServiceModels.Message
         {
-            Recipient = request.Recipient ?? string.Empty,
-            Body = request.Body ?? string.Empty
+            Recipient = request.Recipient,
+            Body = request.Body
         };
 
         var result = await messagesService.SendSmsAsync(message, cancellationToken);

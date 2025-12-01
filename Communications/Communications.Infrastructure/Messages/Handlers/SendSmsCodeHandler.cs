@@ -13,8 +13,8 @@ internal sealed class SendSmsCodeHandler(IMessagesService messagesService)
     {
         var message = new ServiceModels.Message
         {
-            Recipient = request.Recipient ?? string.Empty,
-            Body = request.Code ?? string.Empty
+            Recipient = request.Recipient,
+            Body = request.Code
         };
 
         await messagesService.SendSmsCodeAsync(message, cancellationToken);

@@ -90,7 +90,7 @@ public static class MessagesEndpoints
         _ = group.MapPost("/email",
             async ([FromBody] MessageDto message, [FromServices] IMediator mediator, CancellationToken cancellationToken) =>
             {
-                var command = new SendEmail(message.Recipient, null, message.Body, null);
+                var command = new SendEmail(message.Recipient, message.Subject, message.Body, message.HtmlBody);
                 var result = await mediator.Send(command, cancellationToken);
                 
                 if (result.IsFailure)
@@ -105,7 +105,7 @@ public static class MessagesEndpoints
              .Produces(StatusCodes.Status200OK)
              .ProducesProblem(StatusCodes.Status400BadRequest)
              .WithSummary("Send an email message")
-             .WithDescription("Sends an email to the recipient specified in the request body.");
+             .WithDescription("Sends an email to the recipient specified in the request body. Supports both plain text body and HTML body.");
     }
 
     private static SmsSendResultDto MapToDto(SmsSendResult model)

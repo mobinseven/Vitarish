@@ -13,7 +13,7 @@ internal sealed class SendEmailHandler(IMessagesService messagesService)
     {
         var message = new ServiceModels.Message
         {
-            Recipient = request.Recipient ?? string.Empty,
+            Recipient = request.Recipient,
             Subject = request.Subject,
             Body = request.Body,
             HtmlBody = request.HtmlBody
