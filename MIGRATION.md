@@ -97,3 +97,28 @@ Vitarish/
 ## Migration Status
 
 This document will be updated as migration work proceeds. Check individual sub-issues for detailed migration status of each legacy project.
+
+### Completed Migrations
+
+#### Vorn.Aaas.Users → Identity/Identity.Core ✅
+
+**Status**: Domain models and CQRS commands/queries migrated
+
+**What was migrated**:
+- `Domain/Entities/User.cs` → `Identity.Core/Users/Domain/Entities/User.cs`
+- `Domain/Events/*` → `Identity.Core/Users/Domain/Events/*`
+- `Domain/Models/*` → `Identity.Core/Users/Domain/Models/*`
+- `Application/Commands/*` → `Identity.Core/Users/Application/Commands/*` (CQRS pattern with validators)
+- `Application/Queries/*` → `Identity.Core/Users/Application/Queries/*` (CQRS pattern with validators)
+
+**Key changes during migration**:
+- Updated namespaces from `Vorn.Aaas.Users.*` to `Vitarish.Identity.Core.Users.*`
+- User entity now extends `Entity<string>` from `Base.Domain.Primitives`
+- Commands/Queries use `Result` pattern from `Base.Domain.Results`
+- Validators separated into individual files following existing patterns
+- Tests migrated to `Identity.Core.Tests/Users/*`
+
+**Not migrated** (Infrastructure/Presentation layer - separate issue):
+- Infrastructure services (DbContext, caching, event publishing)
+- Presentation layer (API endpoints, DI extensions)
+- These belong in `Identity.Infrastructure` and `Identity.Api` respectively
