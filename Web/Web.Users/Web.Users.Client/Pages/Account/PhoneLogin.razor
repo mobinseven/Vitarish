@@ -1,0 +1,36 @@
+@page "/Account/Login"
+@page "/Account/Login/Phone"
+@inherits IdentityBase
+@attribute [RequireAntiforgeryToken]
+<MudText Typo="Typo.h4" GutterBottom="true" Align="Align.Center">@Localizer["Login"]</MudText>
+<AuthorizeView Context="authContext">
+    <NotAuthorized>
+        @if (FailureMessage is not null)
+        {
+            <MudAlert Severity="Severity.Error">@FailureMessage</MudAlert>
+        }
+        <PhoneLoginForm @rendermode=@InteractiveServer ReturnUrl="@ReturnUrl" FailureUrl="@failureUrl" />
+        <MudDivider Class="my-3" />
+        <form method="get"
+              action="Account/Login/Password">
+            <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
+            <MudButton FullWidth="true" ButtonType="ButtonType.Submit">
+                @Localizer["LoginViaPassword"]
+            </MudButton>
+        </form>
+        <form method="get"
+              action="Account/Login/Email">
+            <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
+            <MudButton FullWidth="true" ButtonType="ButtonType.Submit">
+                @Localizer["LoginViaEmail"]
+            </MudButton>
+        </form>
+    </NotAuthorized>
+    <Authorized>
+        <form method="get" action="@(ReturnUrl)">
+            <MudButton FullWidth="true" ButtonType="ButtonType.Submit">
+                @Localizer["Continue"]
+            </MudButton>
+        </form>
+    </Authorized>
+</AuthorizeView>
