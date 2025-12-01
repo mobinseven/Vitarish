@@ -24,10 +24,11 @@ public class LoggingBehaviorTests
         var request = new TestRequest("test");
         var response = "response";
 
-        Task<string> Next() => Task.FromResult(response);
-
         // Act
-        var result = await _behavior.Handle(request, Next, CancellationToken.None);
+        var result = await _behavior.Handle(
+            request,
+            _ => Task.FromResult(response),
+            CancellationToken.None);
 
         // Assert
         result.Should().Be(response);
@@ -40,11 +41,12 @@ public class LoggingBehaviorTests
         var request = new TestRequest("test");
         var exception = new InvalidOperationException("Test exception");
 
-        Task<string> Next() => throw exception;
-
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(() =>
-            _behavior.Handle(request, Next, CancellationToken.None));
+            _behavior.Handle(
+                request,
+                _ => throw exception,
+                CancellationToken.None));
     }
 
     [Fact]
@@ -54,14 +56,15 @@ public class LoggingBehaviorTests
         var request = new TestRequest("test");
         var nextCalled = false;
 
-        Task<string> Next()
-        {
-            nextCalled = true;
-            return Task.FromResult("response");
-        }
-
         // Act
-        await _behavior.Handle(request, Next, CancellationToken.None);
+        await _behavior.Handle(
+            request,
+            _ =>
+            {
+                nextCalled = true;
+                return Task.FromResult("response");
+            },
+            CancellationToken.None);
 
         // Assert
         nextCalled.Should().BeTrue();
