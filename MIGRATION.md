@@ -135,6 +135,37 @@ This document will be updated as migration work proceeds. Check individual sub-i
 - `Wrappers/SmsDotIr/*` → Should go to `Communications.Infrastructure`
 - `Options/VornOptions.cs` → Should be refactored and go to `Communications.Infrastructure`
 
+#### Vorn.Caas.Messages.Tests → Communications/Communications.Core.Tests ✅
+
+**Status**: Validator tests migrated and updated to match new CQRS architecture
+
+**What was migrated**:
+- `Application/GetSmsDeliveryStateTests.cs` → Validator tests now in `Communications.Core.Tests/Messages/MessageQueryValidatorTests.cs`
+- `Application/SendSmsTests.cs` → Validator tests now in `Communications.Core.Tests/Messages/MessageCommandValidatorTests.cs`
+
+**Key changes during migration**:
+- Old tests verified static `ExecuteAsync` methods with fake services
+- New architecture uses MediatR handlers (not yet implemented in Infrastructure)
+- Validation logic tests migrated to validator tests (following Core.Tests pattern)
+- Service interaction tests will be added to `Communications.Infrastructure.Tests` when handlers are implemented
+
+**Test coverage in Communications.Core.Tests**:
+- ✅ Command validation (SendSms, SendSmsCode, SendEmail validators)
+- ✅ Query validation (GetSmsDeliveryState validator)
+- ⏳ Handler tests (pending handler implementation in Communications.Infrastructure)
+- ⏳ Integration tests (pending handler implementation in Communications.Infrastructure)
+
+**Old test scenarios and their migration status**:
+
+| Old Test | Scenario | New Location |
+| -------- | -------- | ------------ |
+| `GetSmsDeliveryStateTests.ExecuteAsync_ThrowsWhenIdInvalid` | Validation of message ID | `MessageQueryValidatorTests.cs` |
+| `GetSmsDeliveryStateTests.ExecuteAsync_ReturnsStateFromService` | Service interaction | Infrastructure.Tests (pending) |
+| `GetSmsDeliveryStateTests.ExecuteAsync_PassesCancellationToken` | Cancellation token handling | Infrastructure.Tests (pending) |
+| `SendSmsTests.ExecuteAsync_ReturnsResultFromService` | Service interaction | Infrastructure.Tests (pending) |
+| `SendSmsTests.ExecuteAsync_PassesCancellationToken` | Cancellation token handling | Infrastructure.Tests (pending) |
+| `SendSmsTests.ExecuteAsync_CancelledTokenThrows` | Cancellation handling | Infrastructure.Tests (pending) |
+
 #### Vorn.Aaas.Users → Identity/Identity.Core ✅
 
 **Status**: Domain models and CQRS commands/queries migrated
