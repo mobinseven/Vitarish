@@ -16,8 +16,6 @@ public sealed class GetSmsDeliveryStateValidator : AbstractValidator<GetSmsDeliv
 {
     public GetSmsDeliveryStateValidator()
     {
-        _ = RuleFor(x => x.MessageId)
-            .GreaterThan(0)
-            .WithMessage("Message ID must be a positive value.");
+        RuleFor(x => x.MessageId).GreaterThan(0);
     }
 }

@@ -26,7 +26,7 @@ public class SendSmsValidatorTests
     public void Validate_WithEmptyOrNullRecipient_ReturnsInvalid(string? recipient, string body)
     {
         // Arrange
-        var command = new SendSms(Recipient: recipient!, Body: body);
+        var command = new SendSms(Recipient: recipient, Body: body);
 
         // Act
         var result = _validator.Validate(command);
@@ -42,7 +42,7 @@ public class SendSmsValidatorTests
     public void Validate_WithEmptyOrNullBody_ReturnsInvalid(string recipient, string? body)
     {
         // Arrange
-        var command = new SendSms(Recipient: recipient, Body: body!);
+        var command = new SendSms(Recipient: recipient, Body: body);
 
         // Act
         var result = _validator.Validate(command);
@@ -76,7 +76,7 @@ public class SendSmsCodeValidatorTests
     public void Validate_WithEmptyOrNullRecipient_ReturnsInvalid(string? recipient, string code)
     {
         // Arrange
-        var command = new SendSmsCode(Recipient: recipient!, Code: code);
+        var command = new SendSmsCode(Recipient: recipient, Code: code);
 
         // Act
         var result = _validator.Validate(command);
@@ -92,7 +92,7 @@ public class SendSmsCodeValidatorTests
     public void Validate_WithEmptyOrNullCode_ReturnsInvalid(string recipient, string? code)
     {
         // Arrange
-        var command = new SendSmsCode(Recipient: recipient, Code: code!);
+        var command = new SendSmsCode(Recipient: recipient, Code: code);
 
         // Act
         var result = _validator.Validate(command);
@@ -148,7 +148,7 @@ public class SendEmailValidatorTests
     {
         // Arrange
         var command = new SendEmail(
-            Recipient: recipient!,
+            Recipient: recipient,
             Subject: "Test Subject",
             Body: "Test Body",
             HtmlBody: null);
