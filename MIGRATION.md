@@ -96,7 +96,7 @@ Vitarish/
 
 ## Migration Notes
 
-- The legacy `Vorn.Aaas.Interface` project uses `Vorn.Caas.Client` to, e.g., send OTP codes. In the new design the `Web.Users` must inject some `Communications` service from `Communications.Contracts` to perform such tasks. Meaning that the new design
+- The legacy `Vorn.Aaas.Interface` project uses `Vorn.Caas.Client` to, e.g., send OTP codes. In the new design the `Web.Users` must inject some `Communications` service from `Communications.Contracts` to perform such tasks.
 
 ## Migration Status
 
