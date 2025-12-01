@@ -6,8 +6,8 @@ namespace Vitarish.Identity.Core.Parties.Domain.Enums;
 public enum IndicatorVerificationMethod
 {
     /// <summary>Manual verification by admin.</summary>
-    Manual = 0,
+    Manual = 1,
 
     /// <summary>DNS TXT record verification.</summary>
-    DnsTxt = 1
+    DnsTxt = 2
 }
