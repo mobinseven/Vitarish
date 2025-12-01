@@ -43,10 +43,10 @@ public class MessagesService : IMessagesService
         };
         mimeMessage.Body = builder.ToMessageBody();
         using SmtpClient client = new();
-        await client.ConnectAsync(options.Smtp.Host, options.Smtp.Port, options.Smtp.EnableSsl, cancellationToken);
-        await client.AuthenticateAsync(options.Smtp.Username, options.Smtp.Password, cancellationToken);
-        await client.SendAsync(mimeMessage, cancellationToken);
-        await client.DisconnectAsync(true, cancellationToken);
+        await client.ConnectAsync(options.Smtp.Host, options.Smtp.Port, options.Smtp.EnableSsl, cancellationToken).ConfigureAwait(false);
+        await client.AuthenticateAsync(options.Smtp.Username, options.Smtp.Password, cancellationToken).ConfigureAwait(false);
+        await client.SendAsync(mimeMessage, cancellationToken).ConfigureAwait(false);
+        await client.DisconnectAsync(true, cancellationToken).ConfigureAwait(false);
     }
 
     public Task<SmsSendResult> SendSmsAsync(Message message, CancellationToken cancellationToken = default) =>
