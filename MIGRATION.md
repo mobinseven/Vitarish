@@ -104,6 +104,37 @@ This document will be updated as migration work proceeds. Check individual sub-i
 
 ### Completed Migrations
 
+#### Vorn.Caas.Messages → Communications/Communications.Core ✅
+
+**Status**: Domain models, interfaces, and CQRS commands/queries migrated
+
+**What was migrated**:
+- `Models/Message.cs` → `Communications.Core/Messages/Domain/Models/Message.cs`
+- `Models/SmsSendResult.cs` → `Communications.Core/Messages/Domain/Models/SmsSendResult.cs`
+- `Models/SmsDeliveryState.cs` → `Communications.Core/Messages/Domain/Models/SmsDeliveryState.cs`
+- `Abstractions/IMessagesService.cs` → `Communications.Core/Messages/Domain/Interfaces/IMessagesService.cs`
+- `Abstractions/ISmsProvider.cs` → `Communications.Core/Messages/Domain/Interfaces/ISmsProvider.cs`
+- `Commands/SendSms.cs` → `Communications.Core/Messages/Application/Commands/SendSms.cs` (CQRS pattern with validators)
+- `Commands/SendSmsCode.cs` → `Communications.Core/Messages/Application/Commands/SendSmsCode.cs` (CQRS pattern with validators)
+- `Commands/SendEmail.cs` → `Communications.Core/Messages/Application/Commands/SendEmail.cs` (CQRS pattern with validators)
+- `Queries/GetSmsDeliveryState.cs` → `Communications.Core/Messages/Application/Queries/GetSmsDeliveryState.cs` (CQRS pattern with validators)
+
+**Key changes during migration**:
+- Updated namespaces from `Vorn.Communications.*` to `Vitarish.Communications.Core.Messages.*`
+- Commands/Queries now use MediatR `IRequest<T>` pattern with FluentValidation validators
+- Commands use `Result` pattern from `Base.Domain.Results`
+- Static class pattern replaced with MediatR request/handler pattern
+- Tests migrated to `Communications.Core.Tests/Messages/*`
+
+**Test files in `Communications.Core.Tests/Messages/`**:
+- `MessageCommandValidatorTests.cs` - Tests for all command validators (SendSms, SendSmsCode, SendEmail)
+- `MessageQueryValidatorTests.cs` - Tests for query validators (GetSmsDeliveryState)
+
+**Not migrated** (Infrastructure layer - future work):
+- `Services/MessagesService.cs` → Should go to `Communications.Infrastructure`
+- `Wrappers/SmsDotIr/*` → Should go to `Communications.Infrastructure`
+- `Options/VornOptions.cs` → Should be refactored and go to `Communications.Infrastructure`
+
 #### Vorn.Aaas.Users → Identity/Identity.Core ✅
 
 **Status**: Domain models and CQRS commands/queries migrated
