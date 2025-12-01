@@ -21,6 +21,7 @@ public partial class EmailChangeForm : CommonBase
             }
             if(User is not null)
             {
+                // TODO: Replace with efficient UserService.IsEmailTakenAsync(email, excludeUserId) method
                 var users = await UserService.GetUsersAsync();
                 if(users.Any(u => u.Id != User.Id && u.Email == model.Email))
                 {

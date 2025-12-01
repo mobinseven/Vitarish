@@ -23,7 +23,6 @@ namespace Vitarish.Web.Users.Client.Components.Base
         [Inject] protected IPersonalAccessTokenService PersonalAccessTokenService { get; set; } = default!;
         [Inject] protected IAuthenticationClientsService AuthenticationClientsService { get; set; } = default!;
         [Inject] protected IRequestIdentitiesService RequestIdentitiesService { get; set; } = default!;
-        [Inject] protected IIdentityServerInteractionService InteractionService { get; set; } = default!;
         [Inject] protected IEmailAuthenticationService EmailAuthenticationService { get; set; } = default!;
         [Inject] protected ISmsAuthenticationService SmsAuthenticationService { get; set; } = default!;
         [Inject] protected AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;

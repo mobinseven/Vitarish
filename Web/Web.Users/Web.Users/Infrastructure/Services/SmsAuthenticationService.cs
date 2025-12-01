@@ -1,4 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
+
+namespace Vitarish.Web.Users.Infrastructure.Services;
+
 public interface ISmsAuthenticationService
 {
     Task SendCode(User user, string phonenumber);

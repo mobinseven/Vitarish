@@ -9,7 +9,7 @@ public interface IEmailAuthenticationService
 }
 internal class EmailAuthenticationService(
         UserManager<User> userManager,
-        ILogger<SmsAuthenticationService> logger,
+        ILogger<EmailAuthenticationService> logger,
         IMessageQueue messageQueue) : IEmailAuthenticationService
 {
     public async Task SendCode(User user, string email)

@@ -26,6 +26,12 @@ public partial class PasswordChangeForm : CommonBase
     {
         if(hasPass)
         {
+            if(string.IsNullOrWhiteSpace(ChangePasswordInput.CurrentPassword))
+            {
+                Snackbar.Add(Localizer["CurrentPasswordRequired"], Severity.Warning);
+                return;
+            }
+            
             bool check = await UserService.CheckUserPasswordAsync(UserId, ChangePasswordInput.CurrentPassword!);
             if(!check)
             {
@@ -60,7 +66,6 @@ public partial class PasswordChangeForm : CommonBase
     private sealed class ChangePasswordModel
     {
         [Password]
-        [Required]
         [DataType(DataType.Password)]
         public string? CurrentPassword { get; set; }
 

@@ -9,7 +9,7 @@ public static class WebApplicationBuilderExtensions
         builder.Services.AddRazorComponents().AddInteractiveServerComponents();
         builder.Services.AddRazorPages(options =>
         {
-            options.RootDirectory = "/Presentation/Pages";
+            options.RootDirectory = "/Pages";
         });
         builder.Services.AddCascadingAuthenticationState();
         builder.Services.AddScoped<IdentityRedirectManager>();
