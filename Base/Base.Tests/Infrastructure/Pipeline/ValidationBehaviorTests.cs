@@ -27,10 +27,11 @@ public class ValidationBehaviorTests
         var behavior = new ValidationBehavior<TestRequest, string>(validators, logger);
         var request = new TestRequest(string.Empty);
 
-        Task<string> Next() => Task.FromResult("response");
-
         // Act
-        var result = await behavior.Handle(request, Next, CancellationToken.None);
+        var result = await behavior.Handle(
+            request,
+            _ => Task.FromResult("response"),
+            CancellationToken.None);
 
         // Assert
         result.Should().Be("response");
@@ -45,10 +46,11 @@ public class ValidationBehaviorTests
         var behavior = new ValidationBehavior<TestRequest, string>(validators, logger);
         var request = new TestRequest("valid value");
 
-        Task<string> Next() => Task.FromResult("response");
-
         // Act
-        var result = await behavior.Handle(request, Next, CancellationToken.None);
+        var result = await behavior.Handle(
+            request,
+            _ => Task.FromResult("response"),
+            CancellationToken.None);
 
         // Assert
         result.Should().Be("response");
@@ -63,11 +65,12 @@ public class ValidationBehaviorTests
         var behavior = new ValidationBehavior<TestRequest, string>(validators, logger);
         var request = new TestRequest(string.Empty);
 
-        Task<string> Next() => Task.FromResult("response");
-
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(() =>
-            behavior.Handle(request, Next, CancellationToken.None));
+            behavior.Handle(
+                request,
+                _ => throw new InvalidOperationException("The next delegate should not be called when validation fails."),
+                CancellationToken.None));
 
         exception.Errors.Should().ContainSingle();
     }
@@ -84,10 +87,11 @@ public class ValidationBehaviorTests
         var behavior = new ValidationBehavior<TestRequest, string>(validators, logger);
         var request = new TestRequest("value");
 
-        Task<string> Next() => Task.FromResult("response");
-
         // Act
-        var result = await behavior.Handle(request, Next, CancellationToken.None);
+        var result = await behavior.Handle(
+            request,
+            _ => Task.FromResult("response"),
+            CancellationToken.None);
 
         // Assert
         result.Should().Be("response");
@@ -102,11 +106,12 @@ public class ValidationBehaviorTests
         var behavior = new ValidationBehavior<TestRequest, string>(validators, logger);
         var request = new TestRequest(string.Empty);
 
-        Task<string> Next() => Task.FromResult("response");
-
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ValidationException>(() =>
-            behavior.Handle(request, Next, CancellationToken.None));
+            behavior.Handle(
+                request,
+                _ => throw new InvalidOperationException("The next delegate should not be called when validation fails."),
+                CancellationToken.None));
 
         exception.Errors.Should().NotBeEmpty();
     }
