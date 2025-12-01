@@ -162,3 +162,40 @@ This document will be updated as migration work proceeds. Check individual sub-i
 - PersonalAccessTokenGenerator (requires Duende IdentityServer integration)
 - ASP.NET Identity integration (legacy used IdentityDbContext with UserClaims)
 - Full implementation of UserClaims-based access control (stub handlers provided)
+
+#### Vorn.Aaas.Parties.Tests → Identity/Identity.Core.Tests ✅
+
+**Status**: Validator tests migrated for Parties domain
+
+**What was migrated**:
+- Validator tests for Tenant commands → `Identity.Core.Tests/Parties/TenantCommandValidatorTests.cs`
+- Validator tests for TenantIndicator commands → `Identity.Core.Tests/Parties/TenantIndicatorCommandValidatorTests.cs`
+- Validator tests for Owner commands → `Identity.Core.Tests/Parties/OwnerCommandValidatorTests.cs`
+- Validator tests for Tenant/TenantIndicator queries → `Identity.Core.Tests/Parties/TenantQueryValidatorTests.cs`
+- Validator tests for Owner queries → `Identity.Core.Tests/Parties/OwnerQueryValidatorTests.cs`
+
+**Test coverage includes**:
+- CreateTenantValidator, UpdateTenantValidator, DeleteTenantValidator
+- AddTenantIndicatorValidator, ActivateTenantIndicatorValidator, DisableTenantIndicatorValidator, VerifyTenantIndicatorValidator, DeleteTenantIndicatorValidator
+- CreateOwnerValidator, UpdateOwnerValidator, DeleteOwnerValidator
+- GetTenantValidator, GetTenantIndicatorsValidator, GetTenantsByClientIdValidator, GetTenantsByOwnerValidator
+- GetOwnerValidator
+
+**Key changes during migration**:
+- Updated test namespaces from `Vorn.Aaas.Parties.Tests` to `Identity.Core.Tests.Parties`
+- Tests now use FluentAssertions (consistent with existing Identity.Core.Tests patterns)
+- Tests reference validators from `Vitarish.Identity.Core.Parties.Application.*` namespaces
+
+**Not migrated to Identity.Core.Tests** (Infrastructure tests - belong in Identity.Infrastructure.Tests when handlers are implemented):
+- DatabaseConstraintsTests (requires PartiesDbContext)
+- DnsVerificationTests (requires handlers and DNS verification service)
+- GetTenantsByClientIdTests (requires handler implementation)
+- IndicatorStatusTransitionTests (requires handlers)
+- OnDemandAllowEndpointTests (requires API/endpoint tests)
+- ResyncAuthenticationClientsTests (requires handler implementation)
+- TenantIndicatorCrudTests (requires handlers)
+- TenantIndicatorProjectionTests (requires event handlers)
+- TenantResolverTests (requires TenantResolver service)
+- TenantsServiceTests (requires TenantsService implementation)
+- AuthClientIdGeneratorTests (requires AuthClientIdGenerator utility in Infrastructure)
+- HostnameNormalizerTests (requires HostnameNormalizer utility in Infrastructure)
