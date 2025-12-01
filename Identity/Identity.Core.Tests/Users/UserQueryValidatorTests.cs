@@ -172,3 +172,87 @@ public class GetUserProfileValidatorTests
         result.Errors.Should().Contain(e => e.PropertyName == "UserId");
     }
 }
+
+public class GetClientUserValidatorTests
+{
+    private readonly GetClientUserValidator _validator = new();
+
+    [Fact]
+    public void Validate_WithValidQuery_ReturnsValid()
+    {
+        // Arrange
+        var query = new GetClientUser(ClientId: "client-1", UserId: "user-1");
+
+        // Act
+        var result = _validator.Validate(query);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("", "user-1")]
+    [InlineData(null, "user-1")]
+    public void Validate_WithEmptyOrNullClientId_ReturnsInvalid(string? clientId, string userId)
+    {
+        // Arrange
+        var query = new GetClientUser(ClientId: clientId!, UserId: userId);
+
+        // Act
+        var result = _validator.Validate(query);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "ClientId");
+    }
+
+    [Theory]
+    [InlineData("client-1", "")]
+    [InlineData("client-1", null)]
+    public void Validate_WithEmptyOrNullUserId_ReturnsInvalid(string clientId, string? userId)
+    {
+        // Arrange
+        var query = new GetClientUser(ClientId: clientId, UserId: userId!);
+
+        // Act
+        var result = _validator.Validate(query);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "UserId");
+    }
+}
+
+public class GetClientUsersValidatorTests
+{
+    private readonly GetClientUsersValidator _validator = new();
+
+    [Fact]
+    public void Validate_WithValidQuery_ReturnsValid()
+    {
+        // Arrange
+        var query = new GetClientUsers(ClientId: "client-1");
+
+        // Act
+        var result = _validator.Validate(query);
+
+        // Assert
+        result.IsValid.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(null)]
+    public void Validate_WithEmptyOrNullClientId_ReturnsInvalid(string? clientId)
+    {
+        // Arrange
+        var query = new GetClientUsers(ClientId: clientId!);
+
+        // Act
+        var result = _validator.Validate(query);
+
+        // Assert
+        result.IsValid.Should().BeFalse();
+        result.Errors.Should().Contain(e => e.PropertyName == "ClientId");
+    }
+}
