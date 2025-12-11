@@ -58,6 +58,15 @@ builder.AddHostHangfire(builder.Configuration.GetConnectionString("HangfireDb")!
 builder.AddHostPipeline();
 await builder.AddHostDataProtection();
 _ = builder.Services.AddMemoryCache();
+_ = builder.Services.AddHttpContextAccessor();
+_ = builder.Services.AddDistributedMemoryCache();
+_ = builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(2);  // Align with WebAuthn timeout (60s) + buffer
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+});
 _ = builder.Services.AddControllers();
 _ = builder.Services.AddEndpointsApiExplorer();
 _ = builder.Services.AddLocalization();
@@ -103,6 +112,8 @@ _ = app.UseRouting();
 
 _ = app.UseRateLimiter();
 
+_ = app.UseSession();
+
 _ = app.UseIdentityServer();
 
 _ = app.UseAuthentication();
@@ -120,6 +131,7 @@ app.MapAuthenticationClientsEndpoints().AddEndpointAuthorization();
 app.MapUserAccessEndpoints().AddEndpointAuthorization();
 app.MapPersonalAccessTokenEndpoints().AddEndpointAuthorization();
 app.MapUserProfileEndpoints().AddEndpointAuthorization();
+app.MapWebAuthnEndpoints();
 
 app.MapOwnerEndpoints().AddEndpointAuthorization();
 app.MapTenantEndpoints().AddEndpointAuthorization();

@@ -1,6 +1,9 @@
+using Fido2NetLib;
+using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Host.Infrastructure.Options;
 using Vitarish.Host.Services;
 using Vitarish.Users.Domain.Entities;
+using Vitarish.Users.Domain.Options;
 using Vitarish.Users.Infrastructure;
 using Vitarish.Users.Infrastructure.Data;
 
@@ -41,6 +44,46 @@ public static class HostAuthenticationExtensions
             .AddSignInManager<AuditingSignInManager>()
             .AddClaimsPrincipalFactory<UserInfoClaimsPrincipalFactory>()
             .AddDefaultTokenProviders();
+
+        // Configure WebAuthn/FIDO2
+        builder.AddWebAuthn();
+    }
+
+    /// <summary>
+    /// Configures WebAuthn/FIDO2 services for passkey authentication.
+    /// </summary>
+    private static void AddWebAuthn(this WebApplicationBuilder builder)
+    {
+        // Bind WebAuthn configuration from appsettings with fallback defaults
+        WebAuthnOptions webAuthnOptions = new()
+        {
+            ServerDomain = "localhost",
+            Origins = ["https://localhost"]
+        };
+        builder.Configuration.GetSection(WebAuthnOptions.SectionName).Bind(webAuthnOptions);
+
+        // Apply fallbacks if not set by configuration
+        if (string.IsNullOrEmpty(webAuthnOptions.ServerDomain))
+        {
+            webAuthnOptions.ServerDomain = "localhost";
+        }
+
+        if (webAuthnOptions.Origins == null || webAuthnOptions.Origins.Count == 0)
+        {
+            webAuthnOptions.Origins = ["https://localhost"];
+        }
+
+        // Register WebAuthn options
+        _ = builder.Services.AddSingleton(webAuthnOptions);
+
+        // Configure FIDO2 library
+        _ = builder.Services.AddFido2(options =>
+        {
+            options.ServerDomain = webAuthnOptions.ServerDomain;
+            options.ServerName = webAuthnOptions.ServerName;
+            options.Origins = webAuthnOptions.Origins;
+            options.TimestampDriftTolerance = (int)webAuthnOptions.TimestampDriftTolerance;
+        });
     }
 
     /// <summary>
