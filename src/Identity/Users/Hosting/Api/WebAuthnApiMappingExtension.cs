@@ -202,11 +202,13 @@ public static class WebAuthnApiMappingExtension
                 cancellationToken: ct);
 
             // Store the credential
+            // Note: credential.Id should never be null after successful MakeNewCredentialAsync
+            // The null-forgiving operator is used because the Fido2 library guarantees this property
             WebAuthnCredential storedCredential = new()
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
-                CredentialId = credential.Id!,
+                CredentialId = credential.Id!,  
                 PublicKey = credential.PublicKey,
                 SignatureCounter = credential.SignCount,
                 CredentialType = "public-key",

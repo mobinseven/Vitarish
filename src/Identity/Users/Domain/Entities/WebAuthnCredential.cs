@@ -65,7 +65,7 @@ public class WebAuthnCredential
     /// <summary>
     /// When this credential was registered.
     /// </summary>
-    public DateTimeOffset RegisteredAt { get; set; } = DateTimeOffset.UtcNow;
+    public DateTimeOffset RegisteredAt { get; set; }
 
     /// <summary>
     /// When this credential was last used for authentication.

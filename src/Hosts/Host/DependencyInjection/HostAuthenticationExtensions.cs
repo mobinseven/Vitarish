@@ -53,10 +53,11 @@ public static class HostAuthenticationExtensions
     private static void AddWebAuthn(this WebApplicationBuilder builder)
     {
         // Bind WebAuthn configuration from appsettings
+        // Default to localhost for development; production values should be in appsettings.json
         WebAuthnOptions webAuthnOptions = new()
         {
-            ServerDomain = "localhost",
-            Origins = ["https://localhost"]
+            ServerDomain = builder.Configuration["WebAuthn:ServerDomain"] ?? "localhost",
+            Origins = builder.Configuration.GetSection("WebAuthn:Origins").Get<HashSet<string>>() ?? ["https://localhost"]
         };
         builder.Configuration.GetSection(WebAuthnOptions.SectionName).Bind(webAuthnOptions);
 
