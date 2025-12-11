@@ -206,7 +206,7 @@ public static class WebAuthnApiMappingExtension
         try
         {
             // Verify the attestation response using Fido2 3.0.1 API
-            var credential = await fido2.MakeNewCredentialAsync(
+            var res = await fido2.MakeNewCredentialAsync(
                 attestationResponse,
                 options,
                 async (args, cancellationToken) =>
@@ -218,27 +218,16 @@ public static class WebAuthnApiMappingExtension
                 },
                 requestTokenBindingId: null,
                 cancellationToken: ct);
-
-            // Defensive: credential.Id should never be null after successful MakeNewCredentialAsync,
-            // but we check explicitly to avoid database constraint violations if the library ever changes.
-            if (credential.Id == null)
-            {
-                // This should never happen; if it does, it's a server error.
-                return Results.Problem(
-                    detail: "FIDO2 library returned a credential with null Id after successful MakeNewCredentialAsync. This indicates a library bug or unexpected behavior.",
-                    statusCode: StatusCodes.Status500InternalServerError
-                );
-            }
-
+            var credential = res.Result;
             WebAuthnCredential storedCredential = new()
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
-                CredentialId = credential.Id,
+                CredentialId = credential.CredentialId,
                 PublicKey = credential.PublicKey,
-                SignatureCounter = credential.SignCount,
+                SignatureCounter = credential.Counter,
                 CredentialType = "public-key",
-                AaGuid = credential.AaGuid,
+                AaGuid = credential.Aaguid,
                 RegisteredAt = DateTimeOffset.UtcNow,
                 IsActive = true
             };
@@ -373,7 +362,7 @@ public static class WebAuthnApiMappingExtension
                 cancellationToken: ct);
 
             // Validate signature counter for clone detection
-            if (result.SignCount > 0 && result.SignCount <= credential.SignatureCounter)
+            if (result.Counter > 0 && result.Counter <= credential.SignatureCounter)
             {
                 // Potential cloned authenticator detected
                 credential.IsActive = false;
@@ -383,7 +372,7 @@ public static class WebAuthnApiMappingExtension
             }
 
             // Update the signature counter
-            credential.SignatureCounter = result.SignCount;
+            credential.SignatureCounter = result.Counter;
             credential.LastUsedAt = DateTimeOffset.UtcNow;
             _ = await dbContext.SaveChangesAsync(ct);
 
