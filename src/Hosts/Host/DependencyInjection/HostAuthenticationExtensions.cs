@@ -1,3 +1,4 @@
+using Fido2NetLib;
 using Vitarish.Host.Infrastructure.Options;
 using Vitarish.Host.Services;
 using Vitarish.Users.Domain.Entities;
@@ -41,6 +42,35 @@ public static class HostAuthenticationExtensions
             .AddSignInManager<AuditingSignInManager>()
             .AddClaimsPrincipalFactory<UserInfoClaimsPrincipalFactory>()
             .AddDefaultTokenProviders();
+
+        // Configure WebAuthn/FIDO2
+        builder.AddWebAuthn();
+    }
+
+    /// <summary>
+    /// Configures WebAuthn/FIDO2 services for passkey authentication.
+    /// </summary>
+    private static void AddWebAuthn(this WebApplicationBuilder builder)
+    {
+        // Bind WebAuthn configuration from appsettings
+        WebAuthnOptions webAuthnOptions = new()
+        {
+            ServerDomain = "localhost",
+            Origins = ["https://localhost"]
+        };
+        builder.Configuration.GetSection(WebAuthnOptions.SectionName).Bind(webAuthnOptions);
+
+        // Register WebAuthn options
+        _ = builder.Services.AddSingleton(webAuthnOptions);
+
+        // Configure FIDO2 library
+        _ = builder.Services.AddFido2(options =>
+        {
+            options.ServerDomain = webAuthnOptions.ServerDomain;
+            options.ServerName = webAuthnOptions.ServerName;
+            options.Origins = webAuthnOptions.Origins;
+            options.TimestampDriftTolerance = (int)webAuthnOptions.Timeout;
+        });
     }
 
     /// <summary>
