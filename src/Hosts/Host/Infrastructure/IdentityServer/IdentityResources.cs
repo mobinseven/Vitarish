@@ -2,7 +2,7 @@ using Duende.IdentityServer.Models;
 
 namespace Vitarish.Host.Infrastructure.IdentityServer;
 
-internal static partial class IdentityDefinitions
+public static partial class IdentityDefinitions
 {
     public const string TenantIdClaim = "tenant_id";
     public const string OwnerIdClaim = "owner_id";

@@ -1,8 +1,6 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.JSInterop;
 
-namespace Vitarish.Interface.Tests.TestInfrastructure;
+namespace Accounts.Interface.Tests.TestInfrastructure;
 
 internal sealed class TestJsRuntime : IJSRuntime
 {
@@ -22,13 +20,7 @@ internal sealed class TestJsRuntime : IJSRuntime
     public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args)
         => InvokeAsync<TValue>(identifier, CancellationToken.None, args);
 
-    public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
-    {
-        if(identifier == "import" && typeof(TValue) == typeof(IJSObjectReference))
-        {
-            return new ValueTask<TValue>((TValue)module);
-        }
-
-        return new ValueTask<TValue>(default(TValue)!);
-    }
+    public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args) => identifier == "import" && typeof(TValue) == typeof(IJSObjectReference)
+            ? new ValueTask<TValue>((TValue)module)
+            : new ValueTask<TValue>(default(TValue)!);
 }

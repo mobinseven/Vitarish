@@ -2,7 +2,7 @@ using System.Text.Json.Serialization;
 
 namespace Vitarish.Communications.Infrastructure.Wrappers.SmsDotIr;
 
-internal sealed record SmsDotIrSendResult(
+public sealed record SmsDotIrSendResult(
     [property: JsonPropertyName("data")] SmsDotIrSendResultData? Data,
     [property: JsonPropertyName("status")] int Status,
     [property: JsonPropertyName("message")] string? Message)
@@ -11,17 +11,17 @@ internal sealed record SmsDotIrSendResult(
     public long PrimaryMessageId => Data?.MessageIds?.FirstOrDefault(id => id > 0) ?? 0;
 }
 
-internal sealed record SmsDotIrSendResultData(
+public sealed record SmsDotIrSendResultData(
     [property: JsonPropertyName("packId")] Guid PackId,
     [property: JsonPropertyName("messageIds")] IReadOnlyList<long>? MessageIds,
     [property: JsonPropertyName("cost")] decimal Cost);
 
-internal sealed record SmsDotIrDeliveryState(
+public sealed record SmsDotIrDeliveryState(
     [property: JsonPropertyName("data")] SmsDotIrDeliveryStateData? Data,
     [property: JsonPropertyName("status")] int Status,
     [property: JsonPropertyName("message")] string? Message);
 
-internal sealed record SmsDotIrDeliveryStateData(
+public sealed record SmsDotIrDeliveryStateData(
     [property: JsonPropertyName("messageId")] long MessageId,
     [property: JsonPropertyName("mobile")] string? Mobile,
     [property: JsonPropertyName("messageText")] string? MessageText,

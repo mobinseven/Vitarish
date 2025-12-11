@@ -6,7 +6,7 @@ namespace Vitarish.Accounts.Interface.Components.Account;
 public partial class PhoneVerificationSend
 {
 
-    [Inject] protected new IStringLocalizer<Strings> Localizer { get; set; } = default!;
+    [Inject] protected new IStringLocalizer Localizer { get; set; } = default!;
     [Parameter] public EventCallback<SendSmsCodeModel> OnValidSubmit { get; set; }
     private string fixedPhoneNumber => PhoneNumber.ConvertToEnglishNumerals();
     private string PhoneNumber = string.Empty;

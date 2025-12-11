@@ -1,8 +1,8 @@
-using System.Reflection;
 using Microsoft.AspNetCore.Components;
-using Vitarish.Interface.Presentation.Pages.Account;
+using System.Reflection;
+using Vitarish.Accounts.Interface.Pages.Account;
 
-namespace Vitarish.Interface.Tests.TestInfrastructure;
+namespace Accounts.Interface.Tests.TestInfrastructure;
 
 internal class TestableLogout : Logout
 {

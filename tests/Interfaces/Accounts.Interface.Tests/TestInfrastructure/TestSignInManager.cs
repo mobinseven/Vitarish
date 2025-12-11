@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -6,13 +5,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Vitarish.Users.Domain.Entities;
 
-namespace Vitarish.Interface.Tests.TestInfrastructure;
+namespace Accounts.Interface.Tests.TestInfrastructure;
 
 internal sealed class TestSignInManager : SignInManager<User>
 {
-    public List<User> InteractiveSignInUsers { get; } = new();
+    public List<User> InteractiveSignInUsers { get; } = [];
     public bool SignOutCalled { get; private set; }
-    public List<(User User, string Password, bool IsPersistent, bool LockoutOnFailure)> PasswordSignInAttempts { get; } = new();
+    public List<(User User, string Password, bool IsPersistent, bool LockoutOnFailure)> PasswordSignInAttempts { get; } = [];
     public SignInResult PasswordSignInResult { get; set; } = SignInResult.Success;
 
     public TestSignInManager(

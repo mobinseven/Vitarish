@@ -1,4 +1,5 @@
 using FluentValidation.TestHelper;
+using Vitarish.AuthenticationClients.Infrastructure.Validators;
 
 namespace Vitarish.AuthenticationClients.Tests.Application;
 

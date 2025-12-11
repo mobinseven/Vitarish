@@ -12,7 +12,7 @@ namespace Vitarish.Accounts.Interface.Components.Base
         [Inject] protected IUserStore<User> UserStore { get; set; } = default!;
         [Inject] protected SignInManager<User> SignInManager { get; set; } = default!;
         [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
-        [Inject] protected IStringLocalizer<Strings> Localizer { get; set; } = default!;
+        [Inject] protected IStringLocalizer Localizer { get; set; } = default!;
         [Inject] protected IdentityRedirectManager RedirectManager { get; set; } = default!;
         [Inject] protected ISnackbar Snackbar { get; set; } = default!;
         [Inject] protected IJSRuntime Js { get; set; } = default!;

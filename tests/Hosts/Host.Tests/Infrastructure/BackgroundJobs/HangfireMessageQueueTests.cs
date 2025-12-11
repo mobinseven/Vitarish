@@ -3,9 +3,8 @@ using Hangfire.Common;
 using Hangfire.States;
 using Moq;
 using Vitarish.Host.Infrastructure.BackgroundJobs;
-using Vitarish.Interface.Infrastructure.Services;
 
-namespace Vitarish.Host.Tests.Infrastructure.BackgroundJobs;
+namespace Host.Tests.Infrastructure.BackgroundJobs;
 
 public class HangfireMessageQueueTests
 {
@@ -51,7 +50,7 @@ public class HangfireMessageQueueTests
         string htmlBody = "<p>Test HTML Body</p>";
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() =>
+        _ = Assert.Throws<ArgumentNullException>(() =>
             _sut.EnqueueEmail(to!, subject, textBody, htmlBody));
     }
 
@@ -65,7 +64,7 @@ public class HangfireMessageQueueTests
         string htmlBody = "<p>Test HTML Body</p>";
 
         // Act & Assert
-        Assert.Throws<ArgumentException>(() =>
+        _ = Assert.Throws<ArgumentException>(() =>
             _sut.EnqueueEmail(to, subject, textBody, htmlBody));
     }
 
@@ -79,7 +78,7 @@ public class HangfireMessageQueueTests
         string htmlBody = "<p>Test HTML Body</p>";
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() =>
+        _ = Assert.Throws<ArgumentNullException>(() =>
             _sut.EnqueueEmail(to, subject!, textBody, htmlBody));
     }
 
@@ -112,7 +111,7 @@ public class HangfireMessageQueueTests
         string code = "123456";
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() =>
+        _ = Assert.Throws<ArgumentNullException>(() =>
             _sut.EnqueueSms(phoneNumber!, code));
     }
 
@@ -124,7 +123,7 @@ public class HangfireMessageQueueTests
         string code = "123456";
 
         // Act & Assert
-        Assert.Throws<ArgumentException>(() =>
+        _ = Assert.Throws<ArgumentException>(() =>
             _sut.EnqueueSms(phoneNumber, code));
     }
 
@@ -136,7 +135,7 @@ public class HangfireMessageQueueTests
         string? code = null;
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() =>
+        _ = Assert.Throws<ArgumentNullException>(() =>
             _sut.EnqueueSms(phoneNumber, code!));
     }
 
@@ -148,7 +147,7 @@ public class HangfireMessageQueueTests
         string code = "";
 
         // Act & Assert
-        Assert.Throws<ArgumentException>(() =>
+        _ = Assert.Throws<ArgumentException>(() =>
             _sut.EnqueueSms(phoneNumber, code));
     }
 }

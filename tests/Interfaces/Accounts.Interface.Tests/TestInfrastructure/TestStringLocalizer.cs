@@ -1,12 +1,9 @@
-using System.Collections;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.Localization;
-using Vitarish.Interface.Infrastructure.Localization;
+using System.Collections;
 
-namespace Vitarish.Interface.Tests.TestInfrastructure;
+namespace Accounts.Interface.Tests.TestInfrastructure;
 
-internal sealed class TestStringLocalizer : IStringLocalizer<Strings>, IEnumerable<LocalizedString>
+internal sealed class TestStringLocalizer : IStringLocalizer, IEnumerable<LocalizedString>
 {
     public LocalizedString this[string name]
     {

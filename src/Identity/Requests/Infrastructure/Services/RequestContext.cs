@@ -7,7 +7,7 @@ namespace Vitarish.Requests.Infrastructure.Services;
 /// by middleware from <see cref="Microsoft.AspNetCore.Http.HttpContext.User"/> claims,
 /// or manually via <see cref="IRequestIdentityContextWriter"/> for non-HTTP scenarios.
 /// </summary>
-internal sealed class RequestContext : IRequestContext, IRequestContextWriter
+public sealed class RequestContext : IRequestContext, IRequestContextWriter
 {
     /// <inheritdoc />
     public string Authority { get; internal set; } = string.Empty;

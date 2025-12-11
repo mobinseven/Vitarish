@@ -1,10 +1,5 @@
-using System.Collections.Generic;
-using System.Reflection;
-using System.Security.Claims;
 using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Localization;
@@ -12,18 +7,19 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
-using Moq;
 using MudBlazor;
+using System.Reflection;
+using System.Security.Claims;
+using Vitarish.Accounts.Infrastructure.Services;
+using Vitarish.Accounts.Interface.Components.Base;
+using Vitarish.Accounts.Interface.Localization;
 using Vitarish.ApiClients.Application.Abstractions;
 using Vitarish.AuthenticationClients.Application.Abstractions;
-using Vitarish.Interface.Infrastructure.Localization;
-using Vitarish.Interface.Infrastructure.Services;
-using Vitarish.Interface.Presentation.Components.Base;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
 
-namespace Vitarish.Interface.Tests.TestInfrastructure;
+namespace Accounts.Interface.Tests.TestInfrastructure;
 
 internal sealed class ComponentFixture : IDisposable
 {
@@ -31,29 +27,29 @@ internal sealed class ComponentFixture : IDisposable
     public ServiceMocks Mocks { get; }
     public IdentityRedirectManager RedirectManager { get; }
     public TestAuthenticationStateProvider AuthenticationState { get; } = new();
-    public IStringLocalizer<Strings> Localizer { get; } = new TestStringLocalizer();
+    public IStringLocalizer Localizer { get; } = new TestStringLocalizer();
     public IJSRuntime JsRuntime { get; } = new TestJsRuntime();
     public ISnackbar Snackbar { get; } = Mock.Of<ISnackbar>();
 
     public ComponentFixture()
     {
-        var cipherMock = new Mock<ICipherService>();
-        var usersServiceMock = new Mock<IUsersService>();
-        var smsAuthMock = new Mock<ISmsAuthenticationService>();
-        var emailAuthMock = new Mock<IEmailAuthenticationService>();
-        var apiClientsMock = new Mock<IApiClientsService>();
-        var personalAccessTokensMock = new Mock<IPersonalAccessTokenService>();
-        var authClientsMock = new Mock<IAuthenticationClientsService>();
-        var identityInteractionMock = new Mock<IIdentityServerInteractionService>();
-        var requestIdentitiesMock = new Mock<IRequestIdentitiesService>();
+        Mock<ICipherService> cipherMock = new();
+        Mock<IUsersService> usersServiceMock = new();
+        Mock<ISmsAuthenticationService> smsAuthMock = new();
+        Mock<IEmailAuthenticationService> emailAuthMock = new();
+        Mock<IApiClientsService> apiClientsMock = new();
+        Mock<IPersonalAccessTokenService> personalAccessTokensMock = new();
+        Mock<IAuthenticationClientsService> authClientsMock = new();
+        Mock<IIdentityServerInteractionService> identityInteractionMock = new();
+        Mock<IRequestIdentitiesService> requestIdentitiesMock = new();
 
-        var userStoreMock = new Mock<IUserStore<User>>();
-        userStoreMock.As<IUserPhoneNumberStore<User>>();
-        userStoreMock.As<IUserEmailStore<User>>();
+        Mock<IUserStore<User>> userStoreMock = new();
+        _ = userStoreMock.As<IUserPhoneNumberStore<User>>();
+        _ = userStoreMock.As<IUserEmailStore<User>>();
 
-        var userManagerMock = CreateUserManager(userStoreMock);
+        Mock<UserManager<User>> userManagerMock = CreateUserManager(userStoreMock);
 
-        var httpContext = new DefaultHttpContext
+        DefaultHttpContext httpContext = new()
         {
             User = new ClaimsPrincipal(new ClaimsIdentity(new[]
             {
@@ -62,21 +58,21 @@ internal sealed class ComponentFixture : IDisposable
             }, IdentityConstants.ApplicationScheme))
         };
 
-        var httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-        httpContextAccessorMock.SetupGet(x => x.HttpContext).Returns(httpContext);
+        Mock<IHttpContextAccessor> httpContextAccessorMock = new();
+        _ = httpContextAccessorMock.SetupGet(x => x.HttpContext).Returns(httpContext);
 
-        var claimsFactoryMock = new Mock<IUserClaimsPrincipalFactory<User>>();
-        claimsFactoryMock
+        Mock<IUserClaimsPrincipalFactory<User>> claimsFactoryMock = new();
+        _ = claimsFactoryMock
             .Setup(x => x.CreateAsync(It.IsAny<User>()))
             .ReturnsAsync((User user) =>
                 new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim(ClaimTypes.NameIdentifier, user.Id ?? string.Empty) }, "Cookies")));
 
-        var options = Options.Create(new IdentityOptions());
-        var signInLogger = new Mock<ILogger<SignInManager<User>>>();
-        var schemeProviderMock = new Mock<IAuthenticationSchemeProvider>();
-        var confirmationMock = new Mock<IUserConfirmation<User>>();
+        IOptions<IdentityOptions> options = Options.Create(new IdentityOptions());
+        Mock<ILogger<SignInManager<User>>> signInLogger = new();
+        Mock<IAuthenticationSchemeProvider> schemeProviderMock = new();
+        Mock<IUserConfirmation<User>> confirmationMock = new();
 
-        var signInManager = new TestSignInManager(
+        TestSignInManager signInManager = new(
             userManagerMock.Object,
             httpContextAccessorMock.Object,
             claimsFactoryMock.Object,
@@ -128,23 +124,23 @@ internal sealed class ComponentFixture : IDisposable
         SetProperty(component, "AuthenticationStateProvider", AuthenticationState, typeof(CommonBase));
     }
 
-    static void SetProperty(object instance, string propertyName, object value, Type declaringType)
+    private static void SetProperty(object instance, string propertyName, object value, Type declaringType)
         => declaringType
             .GetProperty(propertyName, BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
             ?.SetValue(instance, value);
 
-    static Mock<UserManager<User>> CreateUserManager(Mock<IUserStore<User>> userStoreMock)
+    private static Mock<UserManager<User>> CreateUserManager(Mock<IUserStore<User>> userStoreMock)
     {
-        var options = new Mock<IOptions<IdentityOptions>>();
-        options.SetupGet(o => o.Value).Returns(new IdentityOptions());
+        Mock<IOptions<IdentityOptions>> options = new();
+        _ = options.SetupGet(o => o.Value).Returns(new IdentityOptions());
 
-        var passwordHasher = new Mock<IPasswordHasher<User>>();
-        var userValidators = new List<IUserValidator<User>>();
-        var passwordValidators = new List<IPasswordValidator<User>>();
-        var keyNormalizer = new Mock<ILookupNormalizer>();
-        var errors = new IdentityErrorDescriber();
-        var services = new Mock<IServiceProvider>();
-        var logger = new Mock<ILogger<UserManager<User>>>();
+        Mock<IPasswordHasher<User>> passwordHasher = new();
+        List<IUserValidator<User>> userValidators = [];
+        List<IPasswordValidator<User>> passwordValidators = [];
+        Mock<ILookupNormalizer> keyNormalizer = new();
+        IdentityErrorDescriber errors = new();
+        Mock<IServiceProvider> services = new();
+        Mock<ILogger<UserManager<User>>> logger = new();
 
         return new Mock<UserManager<User>>(
             userStoreMock.Object,

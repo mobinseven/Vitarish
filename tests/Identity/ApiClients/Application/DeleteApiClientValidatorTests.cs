@@ -1,4 +1,5 @@
 using FluentValidation.TestHelper;
+using Vitarish.ApiClients.Infrastructure.Validators;
 
 namespace Vitarish.ApiClients.Tests.Application;
 

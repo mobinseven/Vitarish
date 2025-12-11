@@ -14,14 +14,14 @@ public sealed class EmailLoginSubmitModel(
     IEmailAuthenticationService emailAuthenticationService,
     SignInManager<User> signInManager,
     IUserStore<User> userStore,
-    IStringLocalizer<Strings> localizer,
+    IStringLocalizer localizer,
     ILogger<EmailLoginSubmitModel> logger) : PageModel
 {
     private readonly IUsersService _usersService = usersService;
     private readonly IEmailAuthenticationService _emailAuthenticationService = emailAuthenticationService;
     private readonly SignInManager<User> _signInManager = signInManager;
     private readonly IUserEmailStore<User> _emailStore = (IUserEmailStore<User>)userStore;
-    private readonly IStringLocalizer<Strings> _localizer = localizer;
+    private readonly IStringLocalizer _localizer = localizer;
     private readonly ILogger<EmailLoginSubmitModel> _logger = logger;
 
     [BindProperty]

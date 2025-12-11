@@ -12,12 +12,12 @@ namespace Vitarish.Accounts.Interface.Pages.Account;
 public sealed class PasswordLoginSubmitModel(
     IUsersService usersService,
     SignInManager<User> signInManager,
-    IStringLocalizer<Strings> localizer,
+    IStringLocalizer localizer,
     ILogger<PasswordLoginSubmitModel> logger) : PageModel
 {
     private readonly IUsersService _usersService = usersService;
     private readonly SignInManager<User> _signInManager = signInManager;
-    private readonly IStringLocalizer<Strings> _localizer = localizer;
+    private readonly IStringLocalizer _localizer = localizer;
     private readonly ILogger<PasswordLoginSubmitModel> _logger = logger;
 
     [BindProperty]

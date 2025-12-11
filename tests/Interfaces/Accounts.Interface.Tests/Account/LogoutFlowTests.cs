@@ -1,10 +1,8 @@
-namespace Vitarish.Interface.Tests.Account;
-
-using System.Threading.Tasks;
+using Accounts.Interface.Tests.TestInfrastructure;
 using Duende.IdentityServer.Models;
-using Moq;
-using Vitarish.Interface.Presentation.Pages.Account;
-using Vitarish.Interface.Tests.TestInfrastructure;
+using Vitarish.Accounts.Interface.Pages.Account;
+
+namespace Accounts.Interface.Tests.Account;
 
 public class LogoutFlowTests
 {
@@ -12,7 +10,7 @@ public class LogoutFlowTests
     public async Task LogoutUser_SignsOutAndStoresLogoutContext()
     {
         using var fixture = new ComponentFixture();
-        var request = new LogoutRequest("client", new LogoutMessage())
+        LogoutRequest request = new("client", new LogoutMessage())
         {
             PostLogoutRedirectUri = "https://post-logout",
             SignOutIFrameUrl = "https://iframe",

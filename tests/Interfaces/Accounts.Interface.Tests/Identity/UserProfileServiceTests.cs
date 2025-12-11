@@ -1,9 +1,9 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.Components.Authorization;
-using Vitarish.Interface.Identity.Services;
+using System.Security.Claims;
+using Vitarish.Accounts.Infrastructure.Services;
 using ApplicationUserProfileService = Vitarish.Users.Application.Abstractions.IUserProfileService;
 
-namespace Vitarish.Interface.Tests.Identity;
+namespace Accounts.Interface.Tests.Identity;
 
 public class UserProfileServiceTests
 {
@@ -13,7 +13,7 @@ public class UserProfileServiceTests
         // Arrange
         Dictionary<string, string> preferences = new() { ["Culture"] = "en-US" };
         Mock<ApplicationUserProfileService> profileService = new();
-        profileService
+        _ = profileService
             .Setup(s => s.GetProfileAsync("user1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(preferences);
 
@@ -24,7 +24,7 @@ public class UserProfileServiceTests
         Dictionary<string, string>? result = await service.GetProfileAsync();
 
         // Assert
-        result.Should().BeEquivalentTo(preferences);
+        _ = result.Should().BeEquivalentTo(preferences);
     }
 
     [Fact]
@@ -39,7 +39,7 @@ public class UserProfileServiceTests
         Dictionary<string, string>? result = await service.GetProfileAsync();
 
         // Assert
-        result.Should().BeNull();
+        _ = result.Should().BeNull();
         profileService.VerifyNoOtherCalls();
     }
 
@@ -53,7 +53,7 @@ public class UserProfileServiceTests
         UserProfileService service = new(authProvider, profileService.Object);
 
         // Act
-        await service.UpdateProfileAsync(new Dictionary<string, string>());
+        await service.UpdateProfileAsync([]);
 
         // Assert
         profileService.VerifyNoOtherCalls();
@@ -63,12 +63,12 @@ public class UserProfileServiceTests
     public async Task SetCultureAsync_UpdatesProfile_WhenCultureValid()
     {
         // Arrange
-        Dictionary<string, string> preferences = new();
+        Dictionary<string, string> preferences = [];
         Mock<ApplicationUserProfileService> profileService = new();
-        profileService
+        _ = profileService
             .Setup(s => s.GetProfileAsync("user1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(preferences);
-        profileService
+        _ = profileService
             .Setup(s => s.UpdateProfileAsync("user1", preferences, It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
@@ -79,8 +79,8 @@ public class UserProfileServiceTests
         bool result = await service.SetCultureAsync("nb-NO");
 
         // Assert
-        result.Should().BeTrue();
-        preferences["Culture"].Should().Be("nb-NO");
+        _ = result.Should().BeTrue();
+        _ = preferences["Culture"].Should().Be("nb-NO");
         profileService.Verify(s => s.UpdateProfileAsync("user1", preferences, It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -96,7 +96,7 @@ public class UserProfileServiceTests
         bool result = await service.SetCultureAsync("  ");
 
         // Assert
-        result.Should().BeFalse();
+        _ = result.Should().BeFalse();
         profileService.VerifyNoOtherCalls();
     }
 

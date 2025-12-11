@@ -1,6 +1,7 @@
 using FluentValidation;
+using Vitarish.AuthenticationClients.Application.Commands;
 
-namespace Vitarish.AuthenticationClients.Application.Commands;
+namespace Vitarish.AuthenticationClients.Infrastructure.Validators;
 
 /// <summary>
 /// Validator for <see cref="DeleteAuthenticationClient"/>.

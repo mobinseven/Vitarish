@@ -13,14 +13,14 @@ public sealed class PhoneLoginSubmitModel(
     ISmsAuthenticationService smsAuthenticationService,
     SignInManager<User> signInManager,
     IUserStore<User> userStore,
-    IStringLocalizer<Strings> localizer,
+    IStringLocalizer localizer,
     ILogger<PhoneLoginSubmitModel> logger) : PageModel
 {
     private readonly IUsersService _usersService = usersService;
     private readonly ISmsAuthenticationService _smsAuthenticationService = smsAuthenticationService;
     private readonly SignInManager<User> _signInManager = signInManager;
     private readonly IUserPhoneNumberStore<User> _phoneStore = (IUserPhoneNumberStore<User>)userStore;
-    private readonly IStringLocalizer<Strings> _localizer = localizer;
+    private readonly IStringLocalizer _localizer = localizer;
     private readonly ILogger<PhoneLoginSubmitModel> _logger = logger;
 
     [BindProperty]

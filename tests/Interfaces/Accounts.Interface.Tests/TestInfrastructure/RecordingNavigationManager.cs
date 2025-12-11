@@ -1,11 +1,10 @@
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Components;
 
-namespace Vitarish.Interface.Tests.TestInfrastructure;
+namespace Accounts.Interface.Tests.TestInfrastructure;
 
 internal sealed class RecordingNavigationManager : NavigationManager
 {
-    private readonly List<(string Uri, bool ForceLoad)> history = new();
+    private readonly List<(string Uri, bool ForceLoad)> history = [];
 
     public IReadOnlyList<(string Uri, bool ForceLoad)> History => history;
 
