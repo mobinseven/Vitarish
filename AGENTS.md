@@ -6,6 +6,7 @@ This repository uses a modular .NET solution that separates client-facing APIs, 
 - `src/`: Production code organized by concern.
   - `Clients/`: Client-facing HTTP endpoints and interfaces. Projects follow a layered structure (`Clients.*`) to expose module functionality.
   - `Hosts/`: Host applications that compose modules into runnable services.
+  - `Interfaces/`: Interface projects that make up the UI users interact with.
   - `Identity/`: Identity domain bounded context. Subfolders (`ApiClients`, `AuthenticationClients`, `Users`, `Parties`, `Requests`) each contain `Domain`, `Application`, `Infrastructure`, and `Hosting` projects.
   - `Modules/`: Business modules (e.g., `Communications`, `Files`, `Instagram`, `Intelligence`) built with the same `Domain`/`Application`/`Infrastructure`/`Hosting` layering. `Modules/Base` provides shared primitives.
 - `tests/`: Mirrors `src/` structure for automated tests, keeping test projects aligned with their production counterparts.
