@@ -1,5 +1,6 @@
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using Finbuckle.MultiTenant;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using Vitarish.ApiClients.Hosting.Api;
@@ -12,7 +13,6 @@ using Vitarish.Files.Hosting;
 using Vitarish.Files.Infrastructure.Data;
 using Vitarish.Instagram.Hosting;
 using Vitarish.Intelligence.Hosting;
-using Vitarish.Interface.Presentation.Components;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Hosting.Api;
 using Vitarish.Parties.Hosting.DependencyInjection;
@@ -46,7 +46,7 @@ IEnumerable<Assembly> requestedModuleAssemblies = [
 
 _ = await builder.AddModules(requestedModuleAssemblies, configureSqlServer);
 
-builder.AddAaasInterface();
+builder.AddAccountsInterface();
 builder.AddAaasHostOptions();
 builder.AddUsers(configureSqlServer);
 builder.AddRequests(configureSqlServer);
@@ -116,15 +116,21 @@ _ = app.UseMultiTenant();
 // Map endpoints from discovered modules
 _ = await app.MapModuleEndpoints();
 
-app.MapApiClientsEndpoints();
-app.MapAuthenticationClientsEndpoints();
-app.MapUserAccessEndpoints();
-app.MapPersonalAccessTokenEndpoints();
-app.MapUserProfileEndpoints();
-app.MapPartiesEndpoints();
-app.MapRequestIdentityEndpoints();
+app.MapApiClientsEndpoints().AddEndpointAuthorization();
+app.MapAuthenticationClientsEndpoints().AddEndpointAuthorization();
+app.MapUserAccessEndpoints().AddEndpointAuthorization();
+app.MapPersonalAccessTokenEndpoints().AddEndpointAuthorization();
+app.MapUserProfileEndpoints().AddEndpointAuthorization();
 
-app.MapAaasInterface();
+app.MapOwnerEndpoints().AddEndpointAuthorization();
+app.MapTenantEndpoints().AddEndpointAuthorization();
+app.MapTenantIndicatorEndpoints().AddEndpointAuthorization();
+app.MapOnDemandTlsEndpoint().AddEndpointAuthorization();
+app.MapAdminEndpoints().AddEndpointAuthorization();
+
+app.MapRequestIdentityEndpoints().AddEndpointAuthorization();
+
+app.MapAccountsInterface();
 
 app.MapHangfireDashboard();
 

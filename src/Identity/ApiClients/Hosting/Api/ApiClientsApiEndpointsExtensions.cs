@@ -21,17 +21,13 @@ namespace Vitarish.ApiClients.Hosting.Api
         /// Optional delegate to apply additional filters/middleware to the endpoint group or individual endpoints.
         /// The action receives the IEndpointRouteBuilder for the group so you can call e.g. .AddEndpointFilter(...) on a handler.
         /// </param>
-        public static void MapApiClientsEndpoints(
+        public static IEndpointConventionBuilder MapApiClientsEndpoints(
             this WebApplication app,
             Action<RouteGroupBuilder>? configureFilters = null)
         {
             RouteGroupBuilder group = app
                 .MapGroup("/api/apiclients")
-                .WithTags("API Clients")
-                .RequireAuthorization(new AuthorizeAttribute
-                {
-                    AuthenticationSchemes = "IdentityServerAccessToken"
-                });
+                .WithTags("API Clients");
 
             // Allow consumer to add filters at the group level (applies to all endpoints in group)
             configureFilters?.Invoke(group);
@@ -75,89 +71,91 @@ namespace Vitarish.ApiClients.Hosting.Api
                 .WithSummary("Delete an API client")
                 .WithDescription("Removes the API client identified by **id**.");
 
-            /// <summary>
-            /// Retrieves a single API client by its unique identifier.
-            /// </summary>
-            /// <param name="id">The identifier of the API client to fetch.</param>
-            /// <param name="sender">The mediator used to dispatch the query.</param>
-            /// <returns>A 200 response with the client when found; otherwise 404.</returns>
-            static async Task<IResult> GetApiClientAsync(string id, [FromServices] ISender sender)
+            return group;
+
+        }
+        /// <summary>
+        /// Retrieves a single API client by its unique identifier.
+        /// </summary>
+        /// <param name="id">The identifier of the API client to fetch.</param>
+        /// <param name="sender">The mediator used to dispatch the query.</param>
+        /// <returns>A 200 response with the client when found; otherwise 404.</returns>
+        static async Task<IResult> GetApiClientAsync(string id, [FromServices] ISender sender)
+        {
+            ApiClient? result = await sender.Send(new GetApiClient(id));
+            return result is not null
+                ? Results.Ok(result)
+                : Results.NotFound();
+        }
+
+        /// <summary>
+        /// Retrieves all API clients registered in the system.
+        /// </summary>
+        /// <param name="sender">The mediator used to dispatch the query.</param>
+        /// <returns>A 200 response containing the collection of API clients.</returns>
+        static async Task<IResult> GetApiClientsAsync([FromServices] ISender sender)
+        {
+            IEnumerable<ApiClient> list = await sender.Send(new GetApiClients());
+            return Results.Ok(list);
+        }
+
+        /// <summary>
+        /// Creates a new API client using the provided command payload.
+        /// </summary>
+        /// <param name="command">The details required to create the API client.</param>
+        /// <param name="sender">The mediator used to dispatch the command.</param>
+        /// <returns>A 201 response with the created client, or a 500 problem response on failure.</returns>
+        static async Task<IResult> CreateApiClientAsync(
+            [FromBody] CreateApiClient command,
+            [FromServices] ISender sender)
+        {
+            ApiClient? client = await sender.Send(command);
+            if (client is null)
             {
-                ApiClient? result = await sender.Send(new GetApiClient(id));
-                return result is not null
-                    ? Results.Ok(result)
-                    : Results.NotFound();
+                return Results.Problem(
+                    "Could not create API client.",
+                    statusCode: StatusCodes.Status500InternalServerError);
             }
 
-            /// <summary>
-            /// Retrieves all API clients registered in the system.
-            /// </summary>
-            /// <param name="sender">The mediator used to dispatch the query.</param>
-            /// <returns>A 200 response containing the collection of API clients.</returns>
-            static async Task<IResult> GetApiClientsAsync([FromServices] ISender sender)
+            return Results.Created($"/api/apiclients/{client.Id}", client);
+        }
+
+        /// <summary>
+        /// Updates an existing API client with the provided values.
+        /// </summary>
+        /// <param name="id">The identifier of the client from the route.</param>
+        /// <param name="command">The update payload, including the expected client identifier.</param>
+        /// <param name="sender">The mediator used to dispatch the command.</param>
+        /// <returns>
+        /// A 200 response with the updated client when successful, 400 when the route and payload identifiers differ,
+        /// or 404 when the client cannot be found.
+        /// </returns>
+        static async Task<IResult> UpdateApiClientAsync(
+            string id,
+            [FromBody] UpdateApiClient command,
+            [FromServices] ISender sender)
+        {
+            if (id != command.Id)
             {
-                IEnumerable<ApiClient> list = await sender.Send(new GetApiClients());
-                return Results.Ok(list);
+                return Results.BadRequest($"Route id '{id}' does not match payload id '{command.Id}'.");
             }
 
-            /// <summary>
-            /// Creates a new API client using the provided command payload.
-            /// </summary>
-            /// <param name="command">The details required to create the API client.</param>
-            /// <param name="sender">The mediator used to dispatch the command.</param>
-            /// <returns>A 201 response with the created client, or a 500 problem response on failure.</returns>
-            static async Task<IResult> CreateApiClientAsync(
-                [FromBody] CreateApiClient command,
-                [FromServices] ISender sender)
-            {
-                ApiClient? client = await sender.Send(command);
-                if (client is null)
-                {
-                    return Results.Problem(
-                        "Could not create API client.",
-                        statusCode: StatusCodes.Status500InternalServerError);
-                }
+            ApiClient? updated = await sender.Send(command);
+            return updated is not null
+                ? Results.Ok(updated)
+                : Results.NotFound();
+        }
 
-                return Results.Created($"/api/apiclients/{client.Id}", client);
-            }
-
-            /// <summary>
-            /// Updates an existing API client with the provided values.
-            /// </summary>
-            /// <param name="id">The identifier of the client from the route.</param>
-            /// <param name="command">The update payload, including the expected client identifier.</param>
-            /// <param name="sender">The mediator used to dispatch the command.</param>
-            /// <returns>
-            /// A 200 response with the updated client when successful, 400 when the route and payload identifiers differ,
-            /// or 404 when the client cannot be found.
-            /// </returns>
-            static async Task<IResult> UpdateApiClientAsync(
-                string id,
-                [FromBody] UpdateApiClient command,
-                [FromServices] ISender sender)
-            {
-                if (id != command.Id)
-                {
-                    return Results.BadRequest($"Route id '{id}' does not match payload id '{command.Id}'.");
-                }
-
-                ApiClient? updated = await sender.Send(command);
-                return updated is not null
-                    ? Results.Ok(updated)
-                    : Results.NotFound();
-            }
-
-            /// <summary>
-            /// Deletes the specified API client.
-            /// </summary>
-            /// <param name="id">The identifier of the API client to delete.</param>
-            /// <param name="sender">The mediator used to dispatch the command.</param>
-            /// <returns>A 204 response after deletion completes.</returns>
-            static async Task<IResult> DeleteApiClientAsync(string id, [FromServices] ISender sender)
-            {
-                await sender.Send(new DeleteApiClient(id));
-                return Results.NoContent();
-            }
+        /// <summary>
+        /// Deletes the specified API client.
+        /// </summary>
+        /// <param name="id">The identifier of the API client to delete.</param>
+        /// <param name="sender">The mediator used to dispatch the command.</param>
+        /// <returns>A 204 response after deletion completes.</returns>
+        static async Task<IResult> DeleteApiClientAsync(string id, [FromServices] ISender sender)
+        {
+            await sender.Send(new DeleteApiClient(id));
+            return Results.NoContent();
         }
     }
 }

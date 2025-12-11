@@ -12,7 +12,7 @@ namespace Vitarish.Users.Hosting.Api;
 
 public static class UserProfileApiMappingExtension
 {
-    public static void MapUserProfileEndpoints(this WebApplication app)
+    public static IEndpointConventionBuilder MapUserProfileEndpoints(this WebApplication app)
     {
         RouteGroupBuilder group = app
             .MapGroup("/api/user/profile")
@@ -39,75 +39,76 @@ public static class UserProfileApiMappingExtension
             .WithSummary("Update user profile preferences")
             .WithDescription("Replaces the profile preferences for the specified user.");
 
-        static async Task<IResult> GetProfileAsync(
-            string userId,
-            ClaimsPrincipal user,
-            [FromServices] IUserProfileService profileService,
-            CancellationToken ct)
+        return group;
+    }
+    static async Task<IResult> GetProfileAsync(
+        string userId,
+        ClaimsPrincipal user,
+        [FromServices] IUserProfileService profileService,
+        CancellationToken ct)
+    {
+        if (!IsAuthorizedUser(user, userId))
         {
-            if (!IsAuthorizedUser(user, userId))
-            {
-                return Results.Forbid();
-            }
-
-            try
-            {
-                Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct);
-                return Results.Ok(profile);
-            }
-            catch (InvalidDataException)
-            {
-                return Results.NotFound();
-            }
+            return Results.Forbid();
         }
 
-        static async Task<IResult> UpdateProfileAsync(
-            string userId,
-            [FromBody] Dictionary<string, string> preferences,
-            ClaimsPrincipal user,
-            [FromServices] IUserProfileService profileService,
-            CancellationToken ct)
+        try
         {
-            if (!IsAuthorizedUser(user, userId))
-            {
-                return Results.Forbid();
-            }
+            Dictionary<string, string> profile = await profileService.GetProfileAsync(userId, ct);
+            return Results.Ok(profile);
+        }
+        catch (InvalidDataException)
+        {
+            return Results.NotFound();
+        }
+    }
 
-            try
-            {
-                await profileService.UpdateProfileAsync(userId, preferences, ct);
-                return Results.NoContent();
-            }
-            catch (InvalidDataException)
-            {
-                return Results.NotFound();
-            }
+    static async Task<IResult> UpdateProfileAsync(
+        string userId,
+        [FromBody] Dictionary<string, string> preferences,
+        ClaimsPrincipal user,
+        [FromServices] IUserProfileService profileService,
+        CancellationToken ct)
+    {
+        if (!IsAuthorizedUser(user, userId))
+        {
+            return Results.Forbid();
         }
 
-        static bool IsAuthorizedUser(ClaimsPrincipal user, string userId)
+        try
         {
-            if (user.Identity?.IsAuthenticated != true)
+            await profileService.UpdateProfileAsync(userId, preferences, ct);
+            return Results.NoContent();
+        }
+        catch (InvalidDataException)
+        {
+            return Results.NotFound();
+        }
+    }
+
+    static bool IsAuthorizedUser(ClaimsPrincipal user, string userId)
+    {
+        if (user.Identity?.IsAuthenticated != true)
+        {
+            return false;
+        }
+
+        string? subjectId = user.FindFirstValue("sub") ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (!string.IsNullOrEmpty(subjectId) && string.Equals(subjectId, userId, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        return user.Claims.Any(static c =>
+        {
+            if (!string.Equals(c.Type, AaasConstants.AccessClaim, StringComparison.Ordinal))
             {
                 return false;
             }
 
-            string? subjectId = user.FindFirstValue("sub") ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!string.IsNullOrEmpty(subjectId) && string.Equals(subjectId, userId, StringComparison.Ordinal))
-            {
-                return true;
-            }
-
-            return user.Claims.Any(static c =>
-            {
-                if (!string.Equals(c.Type, AaasConstants.AccessClaim, StringComparison.Ordinal))
-                {
-                    return false;
-                }
-
-                string[] parts = c.Value.Split(':');
-                return parts.Length > 0 &&
-                    string.Equals(parts[^1], AaasConstants.Admin, StringComparison.OrdinalIgnoreCase);
-            });
-        }
+            string[] parts = c.Value.Split(':');
+            return parts.Length > 0 &&
+                string.Equals(parts[^1], AaasConstants.Admin, StringComparison.OrdinalIgnoreCase);
+        });
     }
 }

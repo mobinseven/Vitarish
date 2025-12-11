@@ -21,7 +21,7 @@ namespace Vitarish.AuthenticationClients.Hosting.Api
         /// Optional delegate to apply additional filters/middleware to the endpoint group or individual endpoints.
         /// The action receives the IEndpointRouteBuilder (group) so you can call .AddEndpointFilter(...) on it.
         /// </param>
-        public static void MapAuthenticationClientsEndpoints(
+        public static IEndpointConventionBuilder MapAuthenticationClientsEndpoints(
             this WebApplication app,
             Action<RouteGroupBuilder>? configureFilters = null)
         {
@@ -76,88 +76,90 @@ namespace Vitarish.AuthenticationClients.Hosting.Api
                 .WithSummary("Delete an authentication client")
                 .WithDescription("Deletes the authentication client identified by **id**.");
 
-            /// <summary>
-            /// Retrieves all authentication clients registered in the system.
-            /// </summary>
-            /// <param name="sender">The mediator used to dispatch the query.</param>
-            /// <returns>A 200 response containing the collection of authentication clients.</returns>
-            static async Task<IResult> GetAuthenticationClientsAsync([FromServices] ISender sender)
+            return group;
+
+        }
+        /// <summary>
+        /// Retrieves all authentication clients registered in the system.
+        /// </summary>
+        /// <param name="sender">The mediator used to dispatch the query.</param>
+        /// <returns>A 200 response containing the collection of authentication clients.</returns>
+        static async Task<IResult> GetAuthenticationClientsAsync([FromServices] ISender sender)
+        {
+            IEnumerable<AuthenticationClient> list = await sender.Send(new GetAuthenticationClients());
+            return Results.Ok(list);
+        }
+
+        /// <summary>
+        /// Retrieves a single authentication client by identifier.
+        /// </summary>
+        /// <param name="id">The authentication client identifier.</param>
+        /// <param name="sender">The mediator used to dispatch the query.</param>
+        /// <returns>A 200 response with the client when found; otherwise 404.</returns>
+        static async Task<IResult> GetAuthenticationClientAsync(string id, [FromServices] ISender sender)
+        {
+            AuthenticationClient? result = await sender.Send(new GetAuthenticationClient(id));
+            return result is not null
+                ? Results.Ok(result)
+                : Results.NotFound();
+        }
+
+        /// <summary>
+        /// Creates a new authentication client.
+        /// </summary>
+        /// <param name="command">The request payload describing the new client.</param>
+        /// <param name="sender">The mediator used to dispatch the command.</param>
+        /// <returns>A 201 response with the created client, or a 500 problem response on failure.</returns>
+        static async Task<IResult> CreateAuthenticationClientAsync(
+            [FromBody] CreateAuthenticationClient command,
+            [FromServices] ISender sender)
+        {
+            AuthenticationClient? client = await sender.Send(command);
+            if (client is null)
             {
-                IEnumerable<AuthenticationClient> list = await sender.Send(new GetAuthenticationClients());
-                return Results.Ok(list);
+                return Results.Problem(
+                    "Could not create authentication client.",
+                    statusCode: StatusCodes.Status500InternalServerError);
             }
 
-            /// <summary>
-            /// Retrieves a single authentication client by identifier.
-            /// </summary>
-            /// <param name="id">The authentication client identifier.</param>
-            /// <param name="sender">The mediator used to dispatch the query.</param>
-            /// <returns>A 200 response with the client when found; otherwise 404.</returns>
-            static async Task<IResult> GetAuthenticationClientAsync(string id, [FromServices] ISender sender)
+            return Results.Created($"/api/authenticationclients/{client.Id}", client);
+        }
+
+        /// <summary>
+        /// Updates an authentication client with new details.
+        /// </summary>
+        /// <param name="id">The identifier from the route.</param>
+        /// <param name="command">The update payload containing the identifier and new values.</param>
+        /// <param name="sender">The mediator used to dispatch the command.</param>
+        /// <returns>
+        /// A 204 response when the update succeeds, 400 when the route and payload identifiers differ,
+        /// or 404 when the client cannot be found.
+        /// </returns>
+        static async Task<IResult> UpdateAuthenticationClientAsync(
+            string id,
+            [FromBody] UpdateAuthenticationClient command,
+            [FromServices] ISender sender)
+        {
+            if (id != command.Id)
             {
-                AuthenticationClient? result = await sender.Send(new GetAuthenticationClient(id));
-                return result is not null
-                    ? Results.Ok(result)
-                    : Results.NotFound();
+                return Results.BadRequest($"Route id '{id}' does not match payload id '{command.Id}'.");
             }
 
-            /// <summary>
-            /// Creates a new authentication client.
-            /// </summary>
-            /// <param name="command">The request payload describing the new client.</param>
-            /// <param name="sender">The mediator used to dispatch the command.</param>
-            /// <returns>A 201 response with the created client, or a 500 problem response on failure.</returns>
-            static async Task<IResult> CreateAuthenticationClientAsync(
-                [FromBody] CreateAuthenticationClient command,
-                [FromServices] ISender sender)
-            {
-                AuthenticationClient? client = await sender.Send(command);
-                if (client is null)
-                {
-                    return Results.Problem(
-                        "Could not create authentication client.",
-                        statusCode: StatusCodes.Status500InternalServerError);
-                }
+            await sender.Send(command);
+            return Results.NoContent();
+        }
 
-                return Results.Created($"/api/authenticationclients/{client.Id}", client);
-            }
-
-            /// <summary>
-            /// Updates an authentication client with new details.
-            /// </summary>
-            /// <param name="id">The identifier from the route.</param>
-            /// <param name="command">The update payload containing the identifier and new values.</param>
-            /// <param name="sender">The mediator used to dispatch the command.</param>
-            /// <returns>
-            /// A 204 response when the update succeeds, 400 when the route and payload identifiers differ,
-            /// or 404 when the client cannot be found.
-            /// </returns>
-            static async Task<IResult> UpdateAuthenticationClientAsync(
-                string id,
-                [FromBody] UpdateAuthenticationClient command,
-                [FromServices] ISender sender)
-            {
-                if (id != command.Id)
-                {
-                    return Results.BadRequest($"Route id '{id}' does not match payload id '{command.Id}'.");
-                }
-
-                await sender.Send(command);
-                return Results.NoContent();
-            }
-
-            /// <summary>
-            /// Deletes the specified authentication client.
-            /// </summary>
-            /// <param name="id">The identifier of the client to delete.</param>
-            /// <param name="sender">The mediator used to dispatch the command.</param>
-            /// <returns>A 204 response once deletion completes.</returns>
-            static async Task<IResult> DeleteAuthenticationClientAsync(string id, [FromServices] ISender sender)
-            {
-                DeleteAuthenticationClient command = new(id);
-                await sender.Send(command);
-                return Results.NoContent();
-            }
+        /// <summary>
+        /// Deletes the specified authentication client.
+        /// </summary>
+        /// <param name="id">The identifier of the client to delete.</param>
+        /// <param name="sender">The mediator used to dispatch the command.</param>
+        /// <returns>A 204 response once deletion completes.</returns>
+        static async Task<IResult> DeleteAuthenticationClientAsync(string id, [FromServices] ISender sender)
+        {
+            DeleteAuthenticationClient command = new(id);
+            await sender.Send(command);
+            return Results.NoContent();
         }
     }
 }

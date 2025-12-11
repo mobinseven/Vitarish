@@ -1,0 +1,20 @@
+using Vitarish.Accounts.Interface.Components.Base;
+using ClaimDto = Vitarish.Users.Domain.Models.ClaimDto;
+
+namespace Vitarish.Accounts.Interface.Components.Admin;
+
+public partial class ClaimsEdit : CommonBase
+{
+    [Parameter] public List<ClaimDto>? UserClaims { get; set; }
+    [Parameter] public EventCallback<List<ClaimDto>> UserClaimsChanged { get; set; }
+
+    private HashSet<ClaimDto> selectedClaims = [];
+    private void Delete()
+    {
+        UserClaims = UserClaims?.Except(selectedClaims).ToList();
+        selectedClaims.Clear();
+        _ = UserClaimsChanged.InvokeAsync(UserClaims);
+    }
+    private void Add() => UserClaims?.Add(new ClaimDto { Type = "NewClaim", Value = "NewValue" });
+
+}

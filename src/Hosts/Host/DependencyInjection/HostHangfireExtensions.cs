@@ -2,7 +2,7 @@ using Hangfire;
 using Hangfire.SqlServer;
 using Vitarish.Host.Infrastructure.BackgroundJobs;
 using Vitarish.Host.Services;
-using Vitarish.Interface.Infrastructure.Services;
+using Vitarish.Accounts.Infrastructure.Services;
 
 namespace Vitarish.Host.DependencyInjection;
 

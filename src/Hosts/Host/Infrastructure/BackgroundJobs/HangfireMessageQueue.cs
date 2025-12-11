@@ -1,5 +1,5 @@
 using Hangfire;
-using Vitarish.Interface.Infrastructure.Services;
+using Vitarish.Accounts.Infrastructure.Services;
 
 namespace Vitarish.Host.Infrastructure.BackgroundJobs;
 
@@ -14,7 +14,7 @@ public class HangfireMessageQueue(IBackgroundJobClient backgroundJobClient) : IM
         ArgumentException.ThrowIfNullOrWhiteSpace(subject, nameof(subject));
 
         EmailMessage message = new(to, subject, textBody, htmlBody);
-        backgroundJobClient.Enqueue<MessageProcessor>(processor => processor.ProcessMessage(message));
+        _ = backgroundJobClient.Enqueue<MessageProcessor>(processor => processor.ProcessMessage(message));
     }
 
     public void EnqueueSms(string phoneNumber, string code)
@@ -23,6 +23,6 @@ public class HangfireMessageQueue(IBackgroundJobClient backgroundJobClient) : IM
         ArgumentException.ThrowIfNullOrWhiteSpace(code, nameof(code));
 
         SmsMessage message = new(phoneNumber, code);
-        backgroundJobClient.Enqueue<MessageProcessor>(processor => processor.ProcessMessage(message));
+        _ = backgroundJobClient.Enqueue<MessageProcessor>(processor => processor.ProcessMessage(message));
     }
 }

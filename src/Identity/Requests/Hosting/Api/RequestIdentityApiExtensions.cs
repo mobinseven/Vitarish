@@ -12,7 +12,7 @@ namespace Vitarish.Requests.Hosting.Api;
 
 public static partial class RequestIdentityApiExtensions
 {
-    public static void MapRequestIdentityEndpoints(this WebApplication app)
+    public static IEndpointConventionBuilder MapRequestIdentityEndpoints(this WebApplication app)
     {
         RouteGroupBuilder group = app
             .MapGroup("/api/request-identities")
@@ -30,39 +30,40 @@ public static partial class RequestIdentityApiExtensions
             .WithSummary("Record a request identity")
             .WithDescription("Stores a request identity entry using the supplied payload.");
 
-        /// <summary>
-        /// Retrieves request identities using the supplied filter and paging parameters.
-        /// </summary>
-        /// <param name="request">The query parameters used to filter and page the results.</param>
-        /// <param name="mediator">The mediator used to dispatch the query.</param>
-        /// <param name="cancellationToken">The cancellation token for the request.</param>
-        /// <returns>A 200 response containing the filtered result set.</returns>
-        static async Task<IResult> GetRequestIdentitiesAsync(
-            [AsParameters] GetRequestIdentitiesRequest request,
-            IMediator mediator,
-            CancellationToken cancellationToken)
-        {
-            GetRequestIdentitiesResult result = await mediator.Send(request.ToQuery(), cancellationToken);
-            return Results.Ok(result);
-        }
-
-        /// <summary>
-        /// Records a request identity using the provided payload.
-        /// </summary>
-        /// <param name="request">The request identity details to persist.</param>
-        /// <param name="mediator">The mediator used to dispatch the command.</param>
-        /// <param name="cancellationToken">The cancellation token for the request.</param>
-        /// <returns>A 200 response containing the recorded request identity.</returns>
-        static async Task<IResult> RecordRequestIdentityAsync(
-            [FromBody] RequestIdentityDto request,
-            IMediator mediator,
-            CancellationToken cancellationToken)
-        {
-            RequestIdentityDto res = await mediator.Send(request.ToCommand(), cancellationToken);
-            return Results.Ok(res);
-        }
+        return group;
     }
 
+    /// <summary>
+    /// Retrieves request identities using the supplied filter and paging parameters.
+    /// </summary>
+    /// <param name="request">The query parameters used to filter and page the results.</param>
+    /// <param name="mediator">The mediator used to dispatch the query.</param>
+    /// <param name="cancellationToken">The cancellation token for the request.</param>
+    /// <returns>A 200 response containing the filtered result set.</returns>
+    static async Task<IResult> GetRequestIdentitiesAsync(
+        [AsParameters] GetRequestIdentitiesRequest request,
+        IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        GetRequestIdentitiesResult result = await mediator.Send(request.ToQuery(), cancellationToken);
+        return Results.Ok(result);
+    }
+
+    /// <summary>
+    /// Records a request identity using the provided payload.
+    /// </summary>
+    /// <param name="request">The request identity details to persist.</param>
+    /// <param name="mediator">The mediator used to dispatch the command.</param>
+    /// <param name="cancellationToken">The cancellation token for the request.</param>
+    /// <returns>A 200 response containing the recorded request identity.</returns>
+    static async Task<IResult> RecordRequestIdentityAsync(
+        [FromBody] RequestIdentityDto request,
+        IMediator mediator,
+        CancellationToken cancellationToken)
+    {
+        RequestIdentityDto res = await mediator.Send(request.ToCommand(), cancellationToken);
+        return Results.Ok(res);
+    }
     private sealed record GetRequestIdentitiesRequest(
         [FromQuery(Name = "page")] int Page = 0,
         [FromQuery(Name = "pageSize")] int PageSize = 50,

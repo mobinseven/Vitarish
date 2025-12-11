@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.DataProtection;
 using StackExchange.Redis;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-using Vitarish.Interface.Identity.DependencyInjection;
 
 namespace Vitarish.Host.DependencyInjection;
 
