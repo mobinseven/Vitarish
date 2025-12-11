@@ -1,4 +1,3 @@
-﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -11,7 +10,7 @@ namespace Vitarish.Host.Migrations.PartiesDb
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "Owners",
                 columns: table => new
                 {
@@ -26,10 +25,10 @@ namespace Vitarish.Host.Migrations.PartiesDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Owners", x => x.Id);
+                    _ = table.PrimaryKey("PK_Owners", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "Tenants",
                 columns: table => new
                 {
@@ -46,10 +45,10 @@ namespace Vitarish.Host.Migrations.PartiesDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Tenants", x => x.Id);
+                    _ = table.PrimaryKey("PK_Tenants", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "TenantIndicators",
                 columns: table => new
                 {
@@ -69,8 +68,8 @@ namespace Vitarish.Host.Migrations.PartiesDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_TenantIndicators", x => x.Id);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_TenantIndicators", x => x.Id);
+                    _ = table.ForeignKey(
                         name: "FK_TenantIndicators_Tenants_TenantId",
                         column: x => x.TenantId,
                         principalTable: "Tenants",
@@ -78,20 +77,20 @@ namespace Vitarish.Host.Migrations.PartiesDb
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_TenantIndicators_Method_Value",
                 table: "TenantIndicators",
                 columns: new[] { "Method", "Value" },
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_TenantIndicators_TenantId_IsPrimary",
                 table: "TenantIndicators",
                 columns: new[] { "TenantId", "IsPrimary" },
                 unique: true,
                 filter: "[IsPrimary] = CAST(1 AS bit)");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_Tenants_ClientId",
                 table: "Tenants",
                 column: "ClientId");
@@ -100,13 +99,13 @@ namespace Vitarish.Host.Migrations.PartiesDb
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "Owners");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "TenantIndicators");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "Tenants");
         }
     }

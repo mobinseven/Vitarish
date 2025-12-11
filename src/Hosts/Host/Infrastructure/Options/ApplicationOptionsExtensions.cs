@@ -1,5 +1,4 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Instagram.Scraper;
 using Vitarish.Modules.Instagram.Scraper;
@@ -20,7 +19,7 @@ public static class ApplicationOptionsExtensions
     /// <returns>The web application builder for chaining.</returns>
     public static WebApplicationBuilder AddApplicationOptions(this WebApplicationBuilder builder)
     {
-        builder.Services.AddApplicationOptions(builder.Configuration);
+        _ = builder.Services.AddApplicationOptions(builder.Configuration);
         return builder;
     }
 
@@ -48,7 +47,7 @@ public static class ApplicationOptionsExtensions
         //!string.IsNullOrEmpty(o.Files.Minio.Endpoint), 
         _ = services.AddSingleton(sp =>
         {
-            var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ApplicationOptions>>();
+            IOptions<ApplicationOptions> options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ApplicationOptions>>();
             return options.Value;
         });
 

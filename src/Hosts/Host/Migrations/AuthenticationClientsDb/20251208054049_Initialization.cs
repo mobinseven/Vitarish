@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -8,9 +8,7 @@ namespace Vitarish.Host.Migrations.AuthenticationClientDb
     public partial class Initialization : Migration
     {
         /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.CreateTable(
+        protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.CreateTable(
                 name: "AuthenticationClients",
                 columns: table => new
                 {
@@ -23,15 +21,11 @@ namespace Vitarish.Host.Migrations.AuthenticationClientDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_AuthenticationClients", x => x.Id);
+                    _ = table.PrimaryKey("PK_AuthenticationClients", x => x.Id);
                 });
-        }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
+        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(
                 name: "AuthenticationClients");
-        }
     }
 }

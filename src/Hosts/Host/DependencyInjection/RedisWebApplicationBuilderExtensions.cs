@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-
 namespace Vitarish.Host.DependencyInjection;
 
 public static class RedisWebApplicationBuilderExtensions

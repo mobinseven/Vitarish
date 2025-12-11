@@ -49,8 +49,5 @@ public static class HostAuthenticationExtensions
     /// to bind all module configuration in a consistent way.
     /// </summary>
     /// <param name="builder">The web application builder.</param>
-    public static void AddAaasHostOptions(this WebApplicationBuilder builder)
-    {
-        _ = builder.AddApplicationOptions();
-    }
+    public static void AddAaasHostOptions(this WebApplicationBuilder builder) => _ = builder.AddApplicationOptions();
 }

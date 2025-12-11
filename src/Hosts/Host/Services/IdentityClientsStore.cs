@@ -1,7 +1,6 @@
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Stores;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 using Vitarish.ApiClients.Domain.Entities;
 using Vitarish.ApiClients.Infrastructure.Data;
 using Vitarish.AuthenticationClients.Domain.Entities;

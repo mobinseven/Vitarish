@@ -1,4 +1,3 @@
-using Duende.IdentityServer.AspNetIdentity;
 using Duende.IdentityServer.EntityFramework.Stores;
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;

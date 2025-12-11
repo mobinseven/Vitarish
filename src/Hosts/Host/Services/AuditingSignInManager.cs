@@ -1,6 +1,5 @@
 
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Vitarish.Users.Domain.Entities;
 
@@ -118,16 +117,10 @@ public sealed class AuditingSignInManager(
             return null;
         }
 
-        if (result.IsLockedOut)
-        {
-            return "Lockout";
-        }
-
-        if (result.IsNotAllowed)
-        {
-            return "AccessDenied";
-        }
-
-        return treatMfaFailures ? "MfaFailure" : result.RequiresTwoFactor ? null : "InvalidCredentials";
+        return result.IsLockedOut
+            ? "Lockout"
+            : result.IsNotAllowed
+            ? "AccessDenied"
+            : treatMfaFailures ? "MfaFailure" : result.RequiresTwoFactor ? null : "InvalidCredentials";
     }
 }

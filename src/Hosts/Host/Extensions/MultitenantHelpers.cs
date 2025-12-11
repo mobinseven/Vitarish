@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Requests.Application.Abstractions;
 public static class MultitenantHelpers
 {

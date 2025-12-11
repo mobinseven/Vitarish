@@ -1,4 +1,3 @@
-﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -11,7 +10,7 @@ namespace Vitarish.Host.Migrations.PersistedGrantDb
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "DeviceCodes",
                 columns: table => new
                 {
@@ -27,10 +26,10 @@ namespace Vitarish.Host.Migrations.PersistedGrantDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_DeviceCodes", x => x.UserCode);
+                    _ = table.PrimaryKey("PK_DeviceCodes", x => x.UserCode);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "Keys",
                 columns: table => new
                 {
@@ -45,10 +44,10 @@ namespace Vitarish.Host.Migrations.PersistedGrantDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Keys", x => x.Id);
+                    _ = table.PrimaryKey("PK_Keys", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "PersistedGrants",
                 columns: table => new
                 {
@@ -67,10 +66,10 @@ namespace Vitarish.Host.Migrations.PersistedGrantDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PersistedGrants", x => x.Id);
+                    _ = table.PrimaryKey("PK_PersistedGrants", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "PushedAuthorizationRequests",
                 columns: table => new
                 {
@@ -82,10 +81,10 @@ namespace Vitarish.Host.Migrations.PersistedGrantDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_PushedAuthorizationRequests", x => x.Id);
+                    _ = table.PrimaryKey("PK_PushedAuthorizationRequests", x => x.Id);
                 });
 
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "ServerSideSessions",
                 columns: table => new
                 {
@@ -103,85 +102,85 @@ namespace Vitarish.Host.Migrations.PersistedGrantDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_ServerSideSessions", x => x.Id);
+                    _ = table.PrimaryKey("PK_ServerSideSessions", x => x.Id);
                 });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_DeviceCodes_DeviceCode",
                 table: "DeviceCodes",
                 column: "DeviceCode",
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_DeviceCodes_Expiration",
                 table: "DeviceCodes",
                 column: "Expiration");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_Keys_Use",
                 table: "Keys",
                 column: "Use");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_PersistedGrants_ConsumedTime",
                 table: "PersistedGrants",
                 column: "ConsumedTime");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_PersistedGrants_Expiration",
                 table: "PersistedGrants",
                 column: "Expiration");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_PersistedGrants_Key",
                 table: "PersistedGrants",
                 column: "Key",
                 unique: true,
                 filter: "[Key] IS NOT NULL");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_PersistedGrants_SubjectId_ClientId_Type",
                 table: "PersistedGrants",
                 columns: new[] { "SubjectId", "ClientId", "Type" });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_PersistedGrants_SubjectId_SessionId_Type",
                 table: "PersistedGrants",
                 columns: new[] { "SubjectId", "SessionId", "Type" });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_PushedAuthorizationRequests_ExpiresAtUtc",
                 table: "PushedAuthorizationRequests",
                 column: "ExpiresAtUtc");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_PushedAuthorizationRequests_ReferenceValueHash",
                 table: "PushedAuthorizationRequests",
                 column: "ReferenceValueHash",
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_ServerSideSessions_DisplayName",
                 table: "ServerSideSessions",
                 column: "DisplayName");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_ServerSideSessions_Expires",
                 table: "ServerSideSessions",
                 column: "Expires");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_ServerSideSessions_Key",
                 table: "ServerSideSessions",
                 column: "Key",
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_ServerSideSessions_SessionId",
                 table: "ServerSideSessions",
                 column: "SessionId");
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_ServerSideSessions_SubjectId",
                 table: "ServerSideSessions",
                 column: "SubjectId");
@@ -190,19 +189,19 @@ namespace Vitarish.Host.Migrations.PersistedGrantDb
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "DeviceCodes");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "Keys");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "PersistedGrants");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "PushedAuthorizationRequests");
 
-            migrationBuilder.DropTable(
+            _ = migrationBuilder.DropTable(
                 name: "ServerSideSessions");
         }
     }
