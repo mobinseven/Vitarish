@@ -1,0 +1,47 @@
+
+@if(User is not null)
+{
+    <MudField Label="@Localizer["AccountDetails"]" Variant="Variant.Outlined">
+        <MudTextField @bind-Value="User.UserName"
+                      Label="@Localizer["UserName"]"
+                      Variant="Variant.Outlined" ReadOnly />
+        <MudTextField @bind-Value="User.Email"
+                      Label="@Localizer["Email"]"
+                      Variant="Variant.Outlined" ReadOnly />
+        <MudTextField @bind-Value="User.PhoneNumber"
+                      Label="@Localizer["PhoneNumber"]"
+                      Variant="Variant.Outlined" ReadOnly />
+        <form method="get" action="/Account/Manage/Phone">
+            <input hidden value="@ReturnUrl" name="ReturnUrl" />
+            <MudButton FullWidth="true" ButtonType="ButtonType.Submit" Color="Color.Info">@Localizer["EditPhone"]</MudButton>
+        </form>
+        <form method="get" action="/Account/Manage/Email">
+            <input hidden value="@ReturnUrl" name="ReturnUrl" />
+            <MudButton FullWidth="true" ButtonType="ButtonType.Submit" Color="Color.Info">@Localizer["EditEmail"]</MudButton>
+        </form>
+        <form method="get" action="/Account/Manage/Password">
+            <input hidden value="@ReturnUrl" name="ReturnUrl" />
+            <MudButton FullWidth="true" ButtonType="ButtonType.Submit" Color="Color.Info">@Localizer["EditPassword"]</MudButton>
+        </form>
+        <form method="get" action="/Account/Manage/Tokens">
+            <input hidden value="@ReturnUrl" name="ReturnUrl" />
+            <MudButton FullWidth="true" ButtonType="ButtonType.Submit" Color="Color.Info">@Localizer["ManagePersonalAccessTokens"]</MudButton>
+        </form>
+    </MudField>
+    <MudField Label="@Localizer["PersonalDetails"]" Variant="Variant.Outlined">
+        <MudTextField @bind-Value="User.FirstName"
+                      Label="@Localizer["FirstName"]"
+                      Variant="Variant.Outlined" />
+        <MudTextField @bind-Value="User.LastName"
+                      Label="@Localizer["LastName"]"
+                      Variant="Variant.Outlined" />
+        <MudButton Variant="Variant.Filled" Disabled="string.IsNullOrWhiteSpace(User.FirstName) && string.IsNullOrWhiteSpace(User.LastName)" OnClick="UpdateUser" Color="Color.Primary" FullWidth="true">@Localizer["Save"]</MudButton>
+    </MudField>
+    <MudField Label="@Localizer["Preferences"]" Variant="Variant.Outlined">
+        <CultureSelector />
+    </MudField>
+}
+else
+{
+    <MudProgressLinear Indeterminate />
+}

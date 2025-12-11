@@ -1,0 +1,31 @@
+<Project>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+
+		<LangVersion>latest</LangVersion>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+
+		<Deterministic>true</Deterministic>
+		<ContinuousIntegrationBuild Condition="'$(CI)'=='true'">true</ContinuousIntegrationBuild>
+
+	</PropertyGroup>
+	<PropertyGroup>
+		<Authors>Vorn</Authors>
+		<Company>Vorn</Company>
+		<Product Condition="'$(Product)'==''">$(MSBuildProjectName)</Product>
+
+		<GitHubOrg>VORNIR</GitHubOrg>
+		<RepositoryUrl Condition="'$(RepositoryUrl)'==''">
+			https://github.com/$(GitHubOrg)/$(MSBuildProjectName)
+		</RepositoryUrl>
+
+		<RepositoryType>git</RepositoryType>
+	</PropertyGroup>
+	<PropertyGroup>
+		<SolutionRootNamespace>Vitarish</SolutionRootNamespace>
+		<RootNamespace Condition="'$(RootNamespace)'=='' and '$(SolutionRootNamespace)'!=''">$(SolutionRootNamespace).$(MSBuildProjectName)</RootNamespace>
+		<AssemblyName Condition="'$(AssemblyName)'=='' and '$(SolutionRootNamespace)'!=''">$(SolutionRootNamespace).$(MSBuildProjectName)</AssemblyName>
+	</PropertyGroup>
+
+</Project>

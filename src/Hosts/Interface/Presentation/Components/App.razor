@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="@Assets["Vitarish.Host.styles.css"]" />
+    <link rel="apple-touch-icon" href="https://assets.vitarish.ir/logo/512.webp" crossorigin="">
+    <link rel="icon" type="image/png" href="https://assets.vitarish.ir/logo/favicon.ico" crossorigin="">
+    <script src="https://assets.vitarish.ir/js/loading.min.js"></script>
+    <ImportMap />
+    <HeadOutlet @rendermode="InteractiveServer" />
+</head>
+
+<body>
+    <Routes @rendermode="InteractiveServer" />
+    <MudThemeProvider @rendermode="InteractiveServer"
+                      Theme="@theme"
+                      IsDarkMode="false" />
+    <ReconnectModal />
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <link href="https://assets.vitarish.ir/fa/css/all.min.css" rel="stylesheet">
+    <link href="https://assets.vitarish.ir/fonts/css/all.min.css" rel="stylesheet">
+</body>
+
+</html>

@@ -1,0 +1,11 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <PackageReference Include="Vorn.Entities.Client" Version="9.1.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Clients.Identity\Clients.Identity.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,12 @@
+using Vorn.Entities.Client.Models;
+
+namespace Vitarish.Clients.Modules.Files.Models;
+
+public sealed record FileInformationDescriptorDto : EntityDescriptorDto
+{
+    public string? Url { get; set; }
+    public string? Name { get; set; }
+    public string? Owner { get; set; }
+    public string? Checksum { get; set; }
+    public string? Tag { get; set; }
+}

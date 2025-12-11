@@ -1,0 +1,76 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Files.Domain.Options;
+using Vitarish.Instagram.Scraper;
+using Vitarish.Modules.Instagram.Scraper;
+
+namespace Vitarish.Host.Options;
+
+/// <summary>
+/// Extension methods for configuring application options in the application.
+/// </summary>
+public static class ApplicationOptionsExtensions
+{
+    /// <summary>
+    /// Adds and configures all application options to the service collection.
+    /// This binds the "Vorn" configuration section and registers the aggregated
+    /// <see cref="ApplicationOptions"/> with the DI container using the options pattern.
+    /// </summary>
+    /// <param name="builder">The web application builder.</param>
+    /// <returns>The web application builder for chaining.</returns>
+    public static WebApplicationBuilder AddApplicationOptions(this WebApplicationBuilder builder)
+    {
+        builder.Services.AddApplicationOptions(builder.Configuration);
+        return builder;
+    }
+
+    /// <summary>
+    /// Adds and configures all application options to the service collection.
+    /// This binds the "Vorn" configuration section and registers the aggregated
+    /// <see cref="ApplicationOptions"/> with the DI container using the options pattern.
+    /// Also registers module-specific option types for consumption by each module.
+    /// </summary>
+    /// <param name="services">The service collection.</param>
+    /// <param name="configuration">The configuration root.</param>
+    /// <returns>The service collection for chaining.</returns>
+    public static IServiceCollection AddApplicationOptions(this IServiceCollection services, Microsoft.Extensions.Configuration.IConfiguration configuration)
+    {
+        _ = services.AddOptions<ApplicationOptions>()
+            .BindConfiguration(ApplicationOptions.Section)
+            .ValidateDataAnnotations()
+            .Validate(o => !string.IsNullOrEmpty(o.InstagramScraper.ApifyToken),
+                     $"{ApplicationOptions.Section}:{nameof(InstagramScraper)}:{nameof(InstagramScraperOptions.ApifyToken)} is not defined")
+            .Validate(o => !string.IsNullOrEmpty(o.Minio.Endpoint),
+                     $"{ApplicationOptions.Section}:{nameof(ApplicationOptions.Minio)}:{nameof(ApplicationOptions.Minio.Endpoint)} is not defined")
+            .ValidateOnStart();
+
+        // Register the concrete ApplicationOptions type as singleton
+        //!string.IsNullOrEmpty(o.Files.Minio.Endpoint), 
+        _ = services.AddSingleton(sp =>
+        {
+            var options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ApplicationOptions>>();
+            return options.Value;
+        });
+
+        // Register module-specific option types for consumption by each module
+        // Intelligence module options
+        _ = services.AddOptions<Intelligence.Domain.Options.AiOptions>()
+            .BindConfiguration($"{ApplicationOptions.Section}:Ai");
+
+        // Files module options
+        _ = services.AddOptions<FilesOptions>()
+            .BindConfiguration($"{ApplicationOptions.Section}:Files");
+
+        _ = services.AddOptions<MinioOptions>()
+            .BindConfiguration($"{ApplicationOptions.Section}:Minio");
+
+        // Communications module options
+        _ = services.AddOptions<Communications.Domain.Options.ProvidersOptions>()
+            .BindConfiguration($"{ApplicationOptions.Section}:Providers");
+
+        _ = services.AddOptions<Communications.Domain.Options.NotificationOptions>()
+            .BindConfiguration($"{ApplicationOptions.Section}:Notifications");
+
+        return services;
+    }
+}

@@ -1,0 +1,38 @@
+@using Vitarish.Clients.Interface.Identity.Services
+@inject UserProfileService ProfileService
+
+<h3>User Preferences</h3>
+
+@if (isLoading)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <div>
+        <CultureSelector />
+        <br />
+        <label>Theme: <input @bind="theme" /></label>
+        <br />
+        <button @onclick="SavePreferences">Save</button>
+    </div>
+}
+
+@code {
+    private bool isLoading = true;
+    private string theme = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var profile = await ProfileService.GetProfileAsync();
+        if (profile != null) theme = profile.GetValueOrDefault("Theme", string.Empty);
+        isLoading = false;
+    }
+
+    private async Task SavePreferences()
+    {
+        var profile = await ProfileService.GetProfileAsync() ?? new Dictionary<string, string>();
+        profile["Theme"] = theme;
+        await ProfileService.UpdateProfileAsync(profile);
+    }
+}

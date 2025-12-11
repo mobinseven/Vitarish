@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<ItemGroup>
+		<PackageReference Include="Finbuckle.MultiTenant.AspNetCore" Version="9.4.0" />
+		<PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="9.*" />
+		<PackageReference Include="Injectio" Version="5.0.0" />
+		<PackageReference Include="Minio" Version="6.0.2" />
+		<PackageReference Include="MimeTypesMap" Version="1.*" />
+		<PackageReference Include="Riok.Mapperly" Version="4.2.1" />
+		<PackageReference Include="SkiaSharp" Version="3.*" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\Identity\Requests\Application\Requests.Application.csproj" />
+		<ProjectReference Include="..\Application\Files.Application.csproj" />
+	</ItemGroup>
+</Project>

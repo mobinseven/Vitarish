@@ -1,0 +1,116 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Components.Authorization;
+using Vitarish.Interface.Identity.Services;
+using ApplicationUserProfileService = Vitarish.Users.Application.Abstractions.IUserProfileService;
+
+namespace Vitarish.Interface.Tests.Identity;
+
+public class UserProfileServiceTests
+{
+    [Fact]
+    public async Task GetProfileAsync_ReturnsPreferences_WhenUserAuthenticated()
+    {
+        // Arrange
+        Dictionary<string, string> preferences = new() { ["Culture"] = "en-US" };
+        Mock<ApplicationUserProfileService> profileService = new();
+        profileService
+            .Setup(s => s.GetProfileAsync("user1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(preferences);
+
+        AuthenticationStateProvider authProvider = new StaticAuthenticationStateProvider(CreateUser("user1"));
+        UserProfileService service = new(authProvider, profileService.Object);
+
+        // Act
+        Dictionary<string, string>? result = await service.GetProfileAsync();
+
+        // Assert
+        result.Should().BeEquivalentTo(preferences);
+    }
+
+    [Fact]
+    public async Task GetProfileAsync_ReturnsNull_WhenUserNotAuthenticated()
+    {
+        // Arrange
+        Mock<ApplicationUserProfileService> profileService = new(MockBehavior.Strict);
+        AuthenticationStateProvider authProvider = new StaticAuthenticationStateProvider(new ClaimsPrincipal(new ClaimsIdentity()));
+        UserProfileService service = new(authProvider, profileService.Object);
+
+        // Act
+        Dictionary<string, string>? result = await service.GetProfileAsync();
+
+        // Assert
+        result.Should().BeNull();
+        profileService.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task UpdateProfileAsync_NoOps_WhenUserIdMissing()
+    {
+        // Arrange
+        Mock<ApplicationUserProfileService> profileService = new(MockBehavior.Strict);
+        ClaimsIdentity identity = new(new[] { new Claim("role", "user") }, "Test");
+        AuthenticationStateProvider authProvider = new StaticAuthenticationStateProvider(new ClaimsPrincipal(identity));
+        UserProfileService service = new(authProvider, profileService.Object);
+
+        // Act
+        await service.UpdateProfileAsync(new Dictionary<string, string>());
+
+        // Assert
+        profileService.VerifyNoOtherCalls();
+    }
+
+    [Fact]
+    public async Task SetCultureAsync_UpdatesProfile_WhenCultureValid()
+    {
+        // Arrange
+        Dictionary<string, string> preferences = new();
+        Mock<ApplicationUserProfileService> profileService = new();
+        profileService
+            .Setup(s => s.GetProfileAsync("user1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(preferences);
+        profileService
+            .Setup(s => s.UpdateProfileAsync("user1", preferences, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        AuthenticationStateProvider authProvider = new StaticAuthenticationStateProvider(CreateUser("user1"));
+        UserProfileService service = new(authProvider, profileService.Object);
+
+        // Act
+        bool result = await service.SetCultureAsync("nb-NO");
+
+        // Assert
+        result.Should().BeTrue();
+        preferences["Culture"].Should().Be("nb-NO");
+        profileService.Verify(s => s.UpdateProfileAsync("user1", preferences, It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SetCultureAsync_ReturnsFalse_WhenCultureBlank()
+    {
+        // Arrange
+        Mock<ApplicationUserProfileService> profileService = new();
+        AuthenticationStateProvider authProvider = new StaticAuthenticationStateProvider(CreateUser("user1"));
+        UserProfileService service = new(authProvider, profileService.Object);
+
+        // Act
+        bool result = await service.SetCultureAsync("  ");
+
+        // Assert
+        result.Should().BeFalse();
+        profileService.VerifyNoOtherCalls();
+    }
+
+    private static ClaimsPrincipal CreateUser(string userId)
+    {
+        ClaimsIdentity identity = new("Test");
+        identity.AddClaim(new Claim("sub", userId));
+        return new ClaimsPrincipal(identity);
+    }
+
+    private sealed class StaticAuthenticationStateProvider(ClaimsPrincipal principal) : AuthenticationStateProvider
+    {
+        private readonly AuthenticationState state = new(principal);
+
+        public override Task<AuthenticationState> GetAuthenticationStateAsync() => Task.FromResult(state);
+    }
+}

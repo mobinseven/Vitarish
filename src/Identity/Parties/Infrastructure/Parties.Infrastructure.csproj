@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="DnsClient" Version="1.8.0" />
+    <PackageReference Include="MediatR" Version="12.5.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.*" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\AuthenticationClients\Infrastructure\AuthenticationClients.Infrastructure.csproj" />
+    <ProjectReference Include="..\Application\Parties.Application.csproj" />
+  </ItemGroup>
+</Project>
