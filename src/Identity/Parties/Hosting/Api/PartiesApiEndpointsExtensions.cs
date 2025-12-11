@@ -30,6 +30,8 @@ namespace Vitarish.Parties.Hosting.Api
             this WebApplication app,
             Action<RouteGroupBuilder>? configureFilters = null)
         {
+            // Placeholder - returns empty group for now
+            return app.MapGroup("/api/parties");
         }
 
         public static IEndpointConventionBuilder MapOwnerEndpoints(this WebApplication app, Action<RouteGroupBuilder>? configureFilters = null)
