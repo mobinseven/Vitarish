@@ -21,7 +21,7 @@ public class UsersDbContext(DbContextOptions<UsersDbContext> options) : Identity
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.CredentialId).IsUnique();
-            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.UserId).HasFilter("[IsActive] = 1");
 
             entity.HasOne(e => e.User)
                 .WithMany()

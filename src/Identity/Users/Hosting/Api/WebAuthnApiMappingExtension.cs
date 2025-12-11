@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Users.Domain.Entities;
+using Vitarish.Users.Domain.Options;
 using Vitarish.Users.Infrastructure;
 using Vitarish.Users.Infrastructure.Data;
 
@@ -20,11 +21,15 @@ namespace Vitarish.Users.Hosting.Api;
 /// </summary>
 public static class WebAuthnApiMappingExtension
 {
-    public static IEndpointConventionBuilder MapWebAuthnEndpoints(this WebApplication app)
+    public static IEndpointConventionBuilder MapWebAuthnEndpoints(
+        this WebApplication app,
+        Action<RouteGroupBuilder>? configureFilters = null)
     {
         RouteGroupBuilder group = app
             .MapGroup("/api/webauthn")
             .WithTags("WebAuthn");
+
+        configureFilters?.Invoke(group);
 
         // Registration endpoints
         _ = group.MapPost("/register/begin", BeginRegistrationAsync)
@@ -41,7 +46,7 @@ public static class WebAuthnApiMappingExtension
 
         _ = group.MapPost("/register/complete", CompleteRegistrationAsync)
             .WithName("CompleteWebAuthnRegistration")
-            .Produces(StatusCodes.Status200OK)
+            .Produces<RegisterCredentialResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .WithSummary("Complete WebAuthn registration")
@@ -58,15 +63,17 @@ public static class WebAuthnApiMappingExtension
             .Produces(StatusCodes.Status400BadRequest)
             .WithSummary("Begin WebAuthn authentication")
             .WithDescription("Initiates a WebAuthn authentication ceremony and returns options for the client.")
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .RequireRateLimiting("fixed");
 
         _ = group.MapPost("/authenticate/complete", CompleteAuthenticationAsync)
             .WithName("CompleteWebAuthnAuthentication")
-            .Produces(StatusCodes.Status200OK)
+            .Produces<AuthenticationResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .WithSummary("Complete WebAuthn authentication")
             .WithDescription("Completes the WebAuthn authentication ceremony and signs in the user.")
-            .AllowAnonymous();
+            .AllowAnonymous()
+            .RequireRateLimiting("fixed");
 
         // Credential management endpoints
         _ = group.MapGet("/credentials", ListCredentialsAsync)
@@ -101,6 +108,7 @@ public static class WebAuthnApiMappingExtension
         [FromServices] UserManager<User> userManager,
         [FromServices] UsersDbContext dbContext,
         [FromServices] IHttpContextAccessor httpContextAccessor,
+        [FromServices] WebAuthnOptions webAuthnOptions,
         CancellationToken ct)
     {
         string? userId = user.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -132,26 +140,32 @@ public static class WebAuthnApiMappingExtension
             DisplayName = $"{appUser.FirstName} {appUser.LastName}".Trim()
         };
 
-        // Create authenticator selection criteria
+        // Create authenticator selection criteria from configuration
         AuthenticatorSelection authenticatorSelection = new()
         {
-            RequireResidentKey = false,
-            UserVerification = UserVerificationRequirement.Preferred
+            RequireResidentKey = ParseResidentKeyRequirement(webAuthnOptions.RequireResidentKey),
+            UserVerification = ParseUserVerificationRequirement(webAuthnOptions.UserVerification)
         };
 
-        // Generate registration options
+        if (!string.IsNullOrEmpty(webAuthnOptions.AuthenticatorAttachment))
+        {
+            authenticatorSelection.AuthenticatorAttachment = ParseAuthenticatorAttachment(webAuthnOptions.AuthenticatorAttachment);
+        }
+
+        // Generate registration options using configuration
         CredentialCreateOptions options = fido2.RequestNewCredential(
             user: fido2User,
             excludeCredentials: existingKeys,
             authenticatorSelection: authenticatorSelection,
-            attestationPreference: AttestationConveyancePreference.None);
+            attestationPreference: ParseAttestationConveyance(webAuthnOptions.AttestationConveyance));
 
         // Store challenge in session for verification
         HttpContext? httpContext = httpContextAccessor.HttpContext;
-        if (httpContext != null)
+        if (httpContext == null)
         {
-            httpContext.Session.SetString($"fido2.attestationOptions.{userId}", options.ToJson());
+            return Results.Problem("Unable to access HTTP context for session storage.");
         }
+        httpContext.Session.SetString($"fido2.attestationOptions.{userId}", options.ToJson());
 
         return Results.Ok(options);
     }
@@ -184,6 +198,10 @@ public static class WebAuthnApiMappingExtension
         }
 
         CredentialCreateOptions? options = CredentialCreateOptions.FromJson(jsonOptions);
+        if (options == null)
+        {
+            return Results.BadRequest("Invalid registration options JSON.");
+        }
 
         try
         {
@@ -201,14 +219,22 @@ public static class WebAuthnApiMappingExtension
                 requestTokenBindingId: null,
                 cancellationToken: ct);
 
-            // Store the credential
-            // Note: credential.Id should never be null after successful MakeNewCredentialAsync
-            // The null-forgiving operator is used because the Fido2 library guarantees this property
+            // Defensive: credential.Id should never be null after successful MakeNewCredentialAsync,
+            // but we check explicitly to avoid database constraint violations if the library ever changes.
+            if (credential.Id == null)
+            {
+                // This should never happen; if it does, it's a server error.
+                return Results.Problem(
+                    detail: "FIDO2 library returned a credential with null Id after successful MakeNewCredentialAsync. This indicates a library bug or unexpected behavior.",
+                    statusCode: StatusCodes.Status500InternalServerError
+                );
+            }
+
             WebAuthnCredential storedCredential = new()
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
-                CredentialId = credential.Id!,  
+                CredentialId = credential.Id,
                 PublicKey = credential.PublicKey,
                 SignatureCounter = credential.SignCount,
                 CredentialType = "public-key",
@@ -223,11 +249,19 @@ public static class WebAuthnApiMappingExtension
             // Clear the session challenge
             httpContext.Session.Remove($"fido2.attestationOptions.{userId}");
 
-            return Results.Ok(new { credentialId = Convert.ToBase64String(storedCredential.CredentialId) });
+            return Results.Ok(new RegisterCredentialResponse { CredentialId = Convert.ToBase64String(storedCredential.CredentialId) });
         }
         catch (Fido2VerificationException ex)
         {
             return Results.BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            // Log the exception in production
+            return Results.Problem(
+                detail: "An unexpected error occurred during credential registration.",
+                statusCode: StatusCodes.Status500InternalServerError
+            );
         }
     }
 
@@ -237,6 +271,7 @@ public static class WebAuthnApiMappingExtension
         [FromServices] UserManager<User> userManager,
         [FromServices] UsersDbContext dbContext,
         [FromServices] IHttpContextAccessor httpContextAccessor,
+        [FromServices] WebAuthnOptions webAuthnOptions,
         CancellationToken ct)
     {
         if (string.IsNullOrEmpty(request.Username))
@@ -247,7 +282,7 @@ public static class WebAuthnApiMappingExtension
         User? user = await userManager.FindByNameAsync(request.Username);
         if (user == null)
         {
-            // Don't reveal whether the user exists
+            // Don't reveal whether the user exists - use same error message
             return Results.BadRequest("Invalid username or no credentials registered");
         }
 
@@ -258,24 +293,26 @@ public static class WebAuthnApiMappingExtension
 
         if (credentials.Count == 0)
         {
-            return Results.BadRequest("No credentials registered for this user");
+            // Use same error message to prevent user enumeration
+            return Results.BadRequest("Invalid username or no credentials registered");
         }
 
         List<PublicKeyCredentialDescriptor> allowedCredentials = credentials
             .Select(c => new PublicKeyCredentialDescriptor(c.CredentialId))
             .ToList();
 
-        // Generate authentication options
+        // Generate authentication options using configuration
         AssertionOptions options = fido2.GetAssertionOptions(
             allowedCredentials,
-            UserVerificationRequirement.Preferred);
+            ParseUserVerificationRequirement(webAuthnOptions.UserVerification));
 
         // Store challenge in session for verification
         HttpContext? httpContext = httpContextAccessor.HttpContext;
-        if (httpContext != null)
+        if (httpContext == null)
         {
-            httpContext.Session.SetString($"fido2.assertionOptions.{user.Id}", options.ToJson());
+            return Results.Problem("Unable to access HTTP context or session. Authentication cannot proceed.");
         }
+        httpContext.Session.SetString($"fido2.assertionOptions.{user.Id}", options.ToJson());
 
         return Results.Ok(options);
     }
@@ -312,6 +349,10 @@ public static class WebAuthnApiMappingExtension
         }
 
         AssertionOptions? options = AssertionOptions.FromJson(jsonOptions);
+        if (options == null)
+        {
+            return Results.BadRequest("Failed to parse authentication options. Please start authentication again.");
+        }
 
         try
         {
@@ -331,25 +372,44 @@ public static class WebAuthnApiMappingExtension
                 requestTokenBindingId: null,
                 cancellationToken: ct);
 
+            // Validate signature counter for clone detection
+            if (result.SignCount > 0 && result.SignCount <= credential.SignatureCounter)
+            {
+                // Potential cloned authenticator detected
+                credential.IsActive = false;
+                _ = await dbContext.SaveChangesAsync(ct);
+                
+                return Results.BadRequest(new { error = "Potential cloned authenticator detected. Credential has been deactivated for security." });
+            }
+
             // Update the signature counter
             credential.SignatureCounter = result.SignCount;
             credential.LastUsedAt = DateTimeOffset.UtcNow;
             _ = await dbContext.SaveChangesAsync(ct);
 
             // Sign in the user
-            if (credential.User != null)
+            if (credential.User == null)
             {
-                await signInManager.SignInAsync(credential.User, isPersistent: true);
+                return Results.BadRequest("User associated with credential not found.");
             }
+            await signInManager.SignInAsync(credential.User, isPersistent: true);
 
             // Clear the session challenge
             httpContext.Session.Remove($"fido2.assertionOptions.{credential.UserId}");
 
-            return Results.Ok(new { success = true });
+            return Results.Ok(new AuthenticationResponse { Success = true });
         }
         catch (Fido2VerificationException ex)
         {
             return Results.BadRequest(new { error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            // Log the exception in production
+            return Results.Problem(
+                detail: "An unexpected error occurred during authentication.",
+                statusCode: StatusCodes.Status500InternalServerError
+            );
         }
     }
 
@@ -406,12 +466,72 @@ public static class WebAuthnApiMappingExtension
 
         return Results.NoContent();
     }
+
+    // Helper methods for parsing configuration strings to enums
+    private static bool ParseResidentKeyRequirement(string value)
+    {
+        return value?.ToLowerInvariant() switch
+        {
+            "required" => true,
+            "preferred" => false,
+            "discouraged" => false,
+            _ => false
+        };
+    }
+
+    private static UserVerificationRequirement ParseUserVerificationRequirement(string value)
+    {
+        return value?.ToLowerInvariant() switch
+        {
+            "required" => UserVerificationRequirement.Required,
+            "preferred" => UserVerificationRequirement.Preferred,
+            "discouraged" => UserVerificationRequirement.Discouraged,
+            _ => UserVerificationRequirement.Preferred
+        };
+    }
+
+    private static AuthenticatorAttachment? ParseAuthenticatorAttachment(string value)
+    {
+        return value?.ToLowerInvariant() switch
+        {
+            "platform" => AuthenticatorAttachment.Platform,
+            "cross-platform" => AuthenticatorAttachment.CrossPlatform,
+            _ => null
+        };
+    }
+
+    private static AttestationConveyancePreference ParseAttestationConveyance(string value)
+    {
+        return value?.ToLowerInvariant() switch
+        {
+            "none" => AttestationConveyancePreference.None,
+            "indirect" => AttestationConveyancePreference.Indirect,
+            "direct" => AttestationConveyancePreference.Direct,
+            _ => AttestationConveyancePreference.None
+        };
+    }
 }
 
 /// <summary>
 /// Request model for beginning WebAuthn authentication.
 /// </summary>
 public record BeginAuthenticationRequest(string Username);
+
+/// <summary>
+/// Response model for completing WebAuthn registration.
+/// </summary>
+public record RegisterCredentialResponse
+{
+    public required string CredentialId { get; init; }
+}
+
+/// <summary>
+/// Response model for completing WebAuthn authentication.
+/// </summary>
+public record AuthenticationResponse
+{
+    public bool Success { get; init; }
+}
 
 /// <summary>
 /// DTO for WebAuthn credential information.

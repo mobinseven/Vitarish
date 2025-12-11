@@ -29,12 +29,14 @@ public class WebAuthnCredential
     /// The credential ID (raw bytes from the authenticator).
     /// </summary>
     [Required]
+    [MaxLength(1024)]
     public required byte[] CredentialId { get; set; }
 
     /// <summary>
     /// The public key for this credential in COSE format.
     /// </summary>
     [Required]
+    [MaxLength(512)]
     public required byte[] PublicKey { get; set; }
 
     /// <summary>

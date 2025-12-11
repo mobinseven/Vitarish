@@ -2,6 +2,7 @@ using Fido2NetLib;
 using Vitarish.Host.Infrastructure.Options;
 using Vitarish.Host.Services;
 using Vitarish.Users.Domain.Entities;
+using Vitarish.Users.Domain.Options;
 using Vitarish.Users.Infrastructure;
 using Vitarish.Users.Infrastructure.Data;
 
@@ -52,14 +53,15 @@ public static class HostAuthenticationExtensions
     /// </summary>
     private static void AddWebAuthn(this WebApplicationBuilder builder)
     {
-        // Bind WebAuthn configuration from appsettings
-        // Default to localhost for development; production values should be in appsettings.json
-        WebAuthnOptions webAuthnOptions = new()
-        {
-            ServerDomain = builder.Configuration["WebAuthn:ServerDomain"] ?? "localhost",
-            Origins = builder.Configuration.GetSection("WebAuthn:Origins").Get<HashSet<string>>() ?? ["https://localhost"]
-        };
+        // Bind WebAuthn configuration from appsettings with fallback defaults
+        WebAuthnOptions webAuthnOptions = new();
         builder.Configuration.GetSection(WebAuthnOptions.SectionName).Bind(webAuthnOptions);
+        
+        // Apply fallbacks if not set by configuration
+        if (string.IsNullOrEmpty(webAuthnOptions.ServerDomain))
+            webAuthnOptions.ServerDomain = "localhost";
+        if (webAuthnOptions.Origins == null || webAuthnOptions.Origins.Count == 0)
+            webAuthnOptions.Origins = new HashSet<string> { "https://localhost" };
 
         // Register WebAuthn options
         _ = builder.Services.AddSingleton(webAuthnOptions);
@@ -70,7 +72,7 @@ public static class HostAuthenticationExtensions
             options.ServerDomain = webAuthnOptions.ServerDomain;
             options.ServerName = webAuthnOptions.ServerName;
             options.Origins = webAuthnOptions.Origins;
-            options.TimestampDriftTolerance = (int)webAuthnOptions.Timeout;
+            options.TimestampDriftTolerance = (int)webAuthnOptions.TimestampDriftTolerance;
         });
     }
 

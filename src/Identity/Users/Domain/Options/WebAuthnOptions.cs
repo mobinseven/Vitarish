@@ -1,4 +1,4 @@
-namespace Vitarish.Host.Infrastructure.Options;
+namespace Vitarish.Users.Domain.Options;
 
 /// <summary>
 /// Configuration options for WebAuthn/FIDO2 authentication.
@@ -33,6 +33,12 @@ public class WebAuthnOptions
     /// Default is 60000 (60 seconds).
     /// </summary>
     public uint Timeout { get; set; } = 60000;
+
+    /// <summary>
+    /// Timestamp drift tolerance in milliseconds to allow for clock skew between client and server.
+    /// Default is 300000 (5 minutes).
+    /// </summary>
+    public uint TimestampDriftTolerance { get; set; } = 300000;
 
     /// <summary>
     /// The attestation conveyance preference.
