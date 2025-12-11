@@ -1,0 +1,25 @@
+# Vitarish Agent Map
+
+This repository uses a modular .NET solution that separates client-facing APIs, hosting shells, and domain-driven modules. Use this file as a quick orientation guide when extending or reviewing the codebase.
+
+## Top-level layout
+- `src/`: Production code organized by concern.
+  - `Clients/`: Client-facing HTTP endpoints and interfaces. Projects follow a layered structure (`Clients.*`) to expose module functionality.
+  - `Hosts/`: Host applications that compose modules into runnable services.
+  - `Identity/`: Identity domain bounded context. Subfolders (`ApiClients`, `AuthenticationClients`, `Users`, `Parties`, `Requests`) each contain `Domain`, `Application`, `Infrastructure`, and `Hosting` projects.
+  - `Modules/`: Business modules (e.g., `Communications`, `Files`, `Instagram`, `Intelligence`) built with the same `Domain`/`Application`/`Infrastructure`/`Hosting` layering. `Modules/Base` provides shared primitives.
+- `tests/`: Mirrors `src/` structure for automated tests, keeping test projects aligned with their production counterparts.
+- `Vitarish.sln`: Solution file wiring the projects together with Debug/Release configurations.
+
+## Layering conventions
+- **Domain**: Entities, value objects, aggregates, and business rules.
+- **Application**: Use cases, commands/queries, DTOs, and orchestration logic.
+- **Infrastructure**: Persistence, external service integrations, and configuration.
+- **Hosting**: Composition roots defining API hosts, DI setup, and runtime entry points.
+
+## Working tips
+- When adding functionality, align new code with the existing bounded context folder and project naming (e.g., `Module.Feature.Application`).
+- Keep domain logic free of infrastructure dependencies; inject abstractions where needed.
+- Add corresponding tests under `tests/` matching the `src/` path to maintain symmetry.
+
+Use this map as a starting point; dive into the relevant module folder for deeper details and existing patterns.
