@@ -1,0 +1,27 @@
+
+using FluentValidation;
+using MediatR;
+using Vitarish.Requests.Domain.Models;
+
+namespace Vitarish.Requests.Application.Commands;
+
+public sealed record RecordRequestIdentityCommand(
+    string RequestId,
+    string Authority,
+    string ClientId,
+    string OwnerId,
+    string? TenantId,
+    string? UserId,
+    string? ResourceId,
+    string? TraceId,
+    string? AdditionalInfo) : IRequest<RequestIdentityDto>;
+
+public sealed class RecordRequestIdentityCommandValidator : AbstractValidator<RecordRequestIdentityCommand>
+{
+    public RecordRequestIdentityCommandValidator()
+    {
+        _ = RuleFor(command => command.RequestId).NotEmpty();
+        _ = RuleFor(command => command.Authority).NotEmpty();
+        _ = RuleFor(command => command.ClientId).NotEmpty();
+    }
+}

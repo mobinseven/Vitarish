@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<ItemGroup>
+		<PackageReference Include="Google.Cloud.Speech.V2" Version="1.6.0" />
+		<PackageReference Include="OllamaSharp.ModelContextProtocol" Version="5.4.9" />
+		<PackageReference Include="OpenAI" Version="2.4.0" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Application\Intelligence.Application.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Compile Update="IntelligenceResource.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>IntelligenceResource.resx</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+	<ItemGroup>
+	  <EmbeddedResource Update="IntelligenceResource.resx">
+	    <Generator>ResXFileCodeGenerator</Generator>
+	    <LastGenOutput>IntelligenceResource.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	</ItemGroup>
+</Project>

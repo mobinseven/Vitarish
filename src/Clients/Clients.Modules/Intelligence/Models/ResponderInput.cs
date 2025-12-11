@@ -1,0 +1,37 @@
+namespace Vitarish.Clients.Modules.Intelligence.Models;
+
+public enum ResponderInputImageDetail
+{
+    Low,
+    High,
+    Auto
+}
+
+public enum ResponderInputType
+{
+    Text,
+    Image,
+    File,
+    McpToolCallApproval
+}
+
+public sealed record ResponderInput(
+    ResponderInputType Type,
+    string? Text = null,
+    string? ImageUrl = null,
+    ResponderInputImageDetail? Detail = null,
+    string? FileId = null,
+    string? FileData = null,
+    string? Filename = null,
+    string? ApprovalId = null
+)
+{
+    public static ResponderInput TextInput(string text) => new(ResponderInputType.Text, Text: text);
+
+    public static ResponderInput ImageInput(string imageUrl, ResponderInputImageDetail? detail = null) => new(ResponderInputType.Image, ImageUrl: imageUrl, Detail: detail);
+
+    public static ResponderInput FileInput(string? fileId = null, string? fileData = null, string? filename = null) => new(ResponderInputType.File, FileId: fileId, FileData: fileData, Filename: filename);
+
+    public static ResponderInput McpToolCallApprovalInput(string approvalId) => new(ResponderInputType.McpToolCallApproval, ApprovalId: approvalId);
+}
+

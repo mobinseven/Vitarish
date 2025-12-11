@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="12.5.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.*" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Application\Requests.Application.csproj" />
+    <ProjectReference Include="..\..\Parties\Application\Parties.Application.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleTo Include="Vitarish.Requests.Hosting" />
+    <InternalsVisibleTo Include="Vitarish.Requests.Tests" />
+  </ItemGroup>
+</Project>

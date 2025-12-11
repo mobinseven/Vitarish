@@ -1,0 +1,50 @@
+@page "/Admin/Tenants"
+
+@inherits AdminBase
+
+<MudDataGrid T="Tenant" Items="Tenants" RowClick="RowClicked" Elevation="0">
+    <Columns>
+        <PropertyColumn Property="x => x.Id" />
+        <PropertyColumn Property="x => x.Name" />
+        <PropertyColumn Property="x => x.OwnerId" Title="Owner" />
+        <PropertyColumn Property="x => x.ClientId" />
+        <PropertyColumn Property="x => x.Description" />
+        <PropertyColumn Property="x => x.CreatedAt" Format="yyyy-MM-dd HH:mm" />
+        <PropertyColumn Property="x => x.CreatedBy" />
+        <TemplateColumn>
+            <CellTemplate>
+                <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                               Color="Color.Error"
+                               OnClick="() => RemoveTenant(context.Item)" />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>
+<MudDivider Class="my-3" />
+<MudStack Row>
+    <MudSelect @bind-Value="selectedOwnerId" Label="@Localizer["Owner"]" Required>
+        @foreach (var owner in Owners)
+        {
+            <MudSelectItem Value="@owner.Id">@owner.Name</MudSelectItem>
+        }
+    </MudSelect>
+    <MudTextField @bind-Value=newTenantName Label="@Localizer["Name"]" Required />
+    <MudTextField @bind-Value=newTenantLogoUrl Label="@Localizer["LogoUrl"]" />
+    <MudTextField @bind-Value=newTenantDescription Label="@Localizer["Description"]" />
+    <MudSelect @bind-Value="selectedClientId" Label="@Localizer["ClientId"]" Required>
+        @foreach (var client in AuthenticationClients)
+        {
+            <MudSelectItem Value="@client.Id">@(client.Title ?? client.Id)</MudSelectItem>
+        }
+    </MudSelect>
+    <MudFab StartIcon="@(editingTenant is null ? Icons.Material.Filled.Add : Icons.Material.Filled.Save)"
+            Size="Size.Small" OnClick="SaveTenant" DropShadow="false" />
+    @if (editingTenant is not null)
+    {
+        <MudFab StartIcon="@Icons.Material.Filled.Cancel"
+                Size="Size.Small"
+                OnClick="CancelEditTenant"
+                Color="Color.Default"
+                DropShadow="false" />
+    }
+</MudStack>
