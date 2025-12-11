@@ -1,4 +1,4 @@
-using Vitarish.Host.Options;
+using Vitarish.Host.Infrastructure.Options;
 using Vitarish.Host.Services;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure;

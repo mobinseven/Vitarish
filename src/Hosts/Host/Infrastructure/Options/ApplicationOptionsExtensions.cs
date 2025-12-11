@@ -4,7 +4,7 @@ using Vitarish.Files.Domain.Options;
 using Vitarish.Instagram.Scraper;
 using Vitarish.Modules.Instagram.Scraper;
 
-namespace Vitarish.Host.Options;
+namespace Vitarish.Host.Infrastructure.Options;
 
 /// <summary>
 /// Extension methods for configuring application options in the application.

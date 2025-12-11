@@ -25,7 +25,6 @@
 		<ProjectReference Include="..\..\Modules\Files\Hosting\Files.Hosting.csproj" />
 		<ProjectReference Include="..\..\Modules\Intelligence\Hosting\Intelligence.Hosting.csproj" />
 		<ProjectReference Include="..\Interface\Interface.csproj" />
-		<ProjectReference Include="..\Host.Options\Host.Options.csproj" />
 	</ItemGroup>
 
 </Project>
