@@ -1,4 +1,5 @@
 using Fido2NetLib;
+using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Host.Infrastructure.Options;
 using Vitarish.Host.Services;
 using Vitarish.Users.Domain.Entities;
@@ -54,14 +55,23 @@ public static class HostAuthenticationExtensions
     private static void AddWebAuthn(this WebApplicationBuilder builder)
     {
         // Bind WebAuthn configuration from appsettings with fallback defaults
-        WebAuthnOptions webAuthnOptions = new();
+        WebAuthnOptions webAuthnOptions = new()
+        {
+            ServerDomain = "localhost",
+            Origins = ["https://localhost"]
+        };
         builder.Configuration.GetSection(WebAuthnOptions.SectionName).Bind(webAuthnOptions);
-        
+
         // Apply fallbacks if not set by configuration
         if (string.IsNullOrEmpty(webAuthnOptions.ServerDomain))
+        {
             webAuthnOptions.ServerDomain = "localhost";
+        }
+
         if (webAuthnOptions.Origins == null || webAuthnOptions.Origins.Count == 0)
-            webAuthnOptions.Origins = new HashSet<string> { "https://localhost" };
+        {
+            webAuthnOptions.Origins = ["https://localhost"];
+        }
 
         // Register WebAuthn options
         _ = builder.Services.AddSingleton(webAuthnOptions);

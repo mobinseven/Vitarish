@@ -2,7 +2,8 @@
 	<ItemGroup>
 		<PackageReference Include="Duende.IdentityServer.AspNetIdentity" Version="7.*" />
 		<PackageReference Include="Duende.IdentityServer.EntityFramework" Version="7.*" />
-		<PackageReference Include="Fido2" Version="3.0.1" />
+		<PackageReference Include="Fido2" Version="4.0.*" />
+		<PackageReference Include="Fido2.AspNet" Version="4.0.*" />
 		<PackageReference Include="Hangfire.SqlServer" Version="1.8.*" />
 		<PackageReference Include="Hangfire.AspNetCore" Version="1.8.*" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.*">
