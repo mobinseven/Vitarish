@@ -1,4 +1,3 @@
-using System.Reflection;
 using System.Security.Claims;
 using System.Text;
 using Fido2NetLib;
@@ -20,18 +19,6 @@ namespace Vitarish.Users.Tests.Hosting;
 
 public class WebAuthnApiMappingExtensionTests
 {
-    private static readonly MethodInfo BeginRegistration = typeof(WebAuthnApiMappingExtension)
-        .GetMethod("BeginRegistrationAsync", BindingFlags.NonPublic | BindingFlags.Static)!;
-
-    private static readonly MethodInfo CompleteRegistration = typeof(WebAuthnApiMappingExtension)
-        .GetMethod("CompleteRegistrationAsync", BindingFlags.NonPublic | BindingFlags.Static)!;
-
-    private static readonly MethodInfo BeginAuthentication = typeof(WebAuthnApiMappingExtension)
-        .GetMethod("BeginAuthenticationAsync", BindingFlags.NonPublic | BindingFlags.Static)!;
-
-    private static readonly MethodInfo CompleteAuthentication = typeof(WebAuthnApiMappingExtension)
-        .GetMethod("CompleteAuthenticationAsync", BindingFlags.NonPublic | BindingFlags.Static)!;
-
     [Fact]
     public async Task BeginAndCompleteRegistrationFlow_PersistsCredentialAndClearsSession()
     {
@@ -104,33 +91,29 @@ public class WebAuthnApiMappingExtensionTests
             new Claim(ClaimTypes.NameIdentifier, user.Id)
         ], "test"));
 
-        string sessionKey = $"fido2.attestationOptions.{user.Id}";
+        string sessionKey = WebAuthnApiMappingExtension.GetAttestationSessionKey(user.Id);
 
-        IResult beginResult = await (Task<IResult>)BeginRegistration.Invoke(null, new object[]
-        {
+        IResult beginResult = await WebAuthnApiMappingExtension.BeginRegistrationAsync(
             principal,
             fido2.Object,
             userManager.Object,
             dbContext,
             accessor.Object,
             options,
-            CancellationToken.None
-        })!;
+            CancellationToken.None);
 
         beginResult.Should().BeOfType<Ok<CredentialCreateOptions>>();
         session.TryGetValue(sessionKey, out _).Should().BeTrue();
 
         AuthenticatorAttestationRawResponse attestationResponse = new() { RawId = credentialId };
 
-        IResult completeResult = await (Task<IResult>)CompleteRegistration.Invoke(null, new object[]
-        {
+        IResult completeResult = await WebAuthnApiMappingExtension.CompleteRegistrationAsync(
             principal,
             attestationResponse,
             fido2.Object,
             dbContext,
             accessor.Object,
-            CancellationToken.None
-        })!;
+            CancellationToken.None);
 
         completeResult.Should().BeOfType<Ok<RegisterCredentialResponse>>();
 
@@ -213,39 +196,136 @@ public class WebAuthnApiMappingExtensionTests
             UserVerification = "preferred"
         };
 
-        IResult beginResult = await (Task<IResult>)BeginAuthentication.Invoke(null, new object[]
-        {
+        string sessionKey = WebAuthnApiMappingExtension.GetAssertionSessionKey(user.Id);
+
+        IResult beginResult = await WebAuthnApiMappingExtension.BeginAuthenticationAsync(
             new BeginAuthenticationRequest(user.UserName!),
             fido2.Object,
             userManager.Object,
             dbContext,
             accessor.Object,
             options,
-            CancellationToken.None
-        })!;
+            CancellationToken.None);
 
         beginResult.Should().BeOfType<Ok<AssertionOptions>>();
-        session.TryGetValue($"fido2.assertionOptions.{user.Id}", out _).Should().BeTrue();
+        session.TryGetValue(sessionKey, out _).Should().BeTrue();
 
         AuthenticatorAssertionRawResponse assertionResponse = new() { RawId = credentialId };
 
-        IResult completeResult = await (Task<IResult>)CompleteAuthentication.Invoke(null, new object[]
-        {
+        IResult completeResult = await WebAuthnApiMappingExtension.CompleteAuthenticationAsync(
             assertionResponse,
             fido2.Object,
             signInManager.Object,
             dbContext,
             accessor.Object,
-            CancellationToken.None
-        })!;
+            CancellationToken.None);
 
         completeResult.Should().BeOfType<Ok<AuthenticationResponse>>();
 
         WebAuthnCredential credential = dbContext.WebAuthnCredentials.Single();
         credential.SignatureCounter.Should().Be(2);
         credential.LastUsedAt.Should().NotBeNull();
-        session.TryGetValue($"fido2.assertionOptions.{user.Id}", out _).Should().BeFalse();
+        session.TryGetValue(sessionKey, out _).Should().BeFalse();
         signInManager.Verify(s => s.SignInAsync(user, true, null), Times.Once);
+    }
+
+    [Fact]
+    public async Task CompleteAuthentication_DetectsClonedAuthenticator_DeactivatesCredential()
+    {
+        using UsersDbContext dbContext = CreateDbContext();
+        byte[] credentialId = [9, 9, 9, 9];
+        byte[] publicKey = [1, 1, 1, 1];
+
+        User user = new() { Id = "user-3", UserName = "clone-user" };
+        WebAuthnCredential credential = new()
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            CredentialId = credentialId,
+            PublicKey = publicKey,
+            SignatureCounter = 5,
+            CredentialType = "public-key",
+            AaGuid = Guid.NewGuid(),
+            RegisteredAt = DateTimeOffset.UtcNow,
+            IsActive = true,
+            User = user
+        };
+
+        dbContext.Users.Add(user);
+        dbContext.WebAuthnCredentials.Add(credential);
+        await dbContext.SaveChangesAsync();
+
+        Mock<UserManager<User>> userManager = CreateUserManagerMock();
+        userManager.Setup(m => m.FindByNameAsync(user.UserName!)).ReturnsAsync(user);
+
+        TestSession session = new();
+        DefaultHttpContext httpContext = CreateHttpContext(session);
+        Mock<IHttpContextAccessor> accessor = new();
+        accessor.Setup(a => a.HttpContext).Returns(httpContext);
+
+        Mock<SignInManager<User>> signInManager = CreateSignInManagerMock(userManager.Object, httpContext);
+
+        Mock<IFido2> fido2 = new();
+        AssertionOptions options = new()
+        {
+            Challenge = [3],
+            RpId = "localhost",
+            AllowCredentials = [new PublicKeyCredentialDescriptor(credentialId)],
+            Status = "ok"
+        };
+
+        fido2.Setup(f => f.GetAssertionOptions(
+                It.IsAny<IEnumerable<PublicKeyCredentialDescriptor>>(),
+                It.IsAny<UserVerificationRequirement>(),
+                It.IsAny<AuthenticationExtensionsClientInputs>()))
+            .Returns(options);
+
+        fido2.Setup(f => f.MakeAssertionAsync(
+                It.IsAny<AuthenticatorAssertionRawResponse>(),
+                It.IsAny<AssertionOptions>(),
+                It.Is<byte[]>(pk => pk.SequenceEqual(publicKey)),
+                credential.SignatureCounter,
+                It.IsAny<IsUserHandleOwnerOfCredentialIdAsync>(),
+                null,
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new AssertionVerificationResult
+            {
+                CredentialId = credentialId,
+                Counter = credential.SignatureCounter,
+                Status = "ok"
+            });
+
+        WebAuthnOptions webAuthnOptions = new()
+        {
+            ServerDomain = "localhost",
+            Origins = ["https://localhost"]
+        };
+
+        _ = await WebAuthnApiMappingExtension.BeginAuthenticationAsync(
+            new BeginAuthenticationRequest(user.UserName!),
+            fido2.Object,
+            userManager.Object,
+            dbContext,
+            accessor.Object,
+            webAuthnOptions,
+            CancellationToken.None);
+
+        AuthenticatorAssertionRawResponse assertionResponse = new() { RawId = credentialId };
+
+        IResult result = await WebAuthnApiMappingExtension.CompleteAuthenticationAsync(
+            assertionResponse,
+            fido2.Object,
+            signInManager.Object,
+            dbContext,
+            accessor.Object,
+            CancellationToken.None);
+
+        IValueHttpResult badRequest = result.Should().BeAssignableTo<IValueHttpResult>().Subject;
+        credential.IsActive.Should().BeFalse();
+        badRequest.Value.Should().BeEquivalentTo(new
+        {
+            error = "Potential cloned authenticator detected. Credential has been deactivated for security."
+        });
     }
 
     private static UsersDbContext CreateDbContext()

@@ -102,7 +102,7 @@ public static class WebAuthnApiMappingExtension
         return group;
     }
 
-    private static async Task<IResult> BeginRegistrationAsync(
+    internal static async Task<IResult> BeginRegistrationAsync(
         ClaimsPrincipal user,
         [FromServices] IFido2 fido2,
         [FromServices] UserManager<User> userManager,
@@ -165,12 +165,12 @@ public static class WebAuthnApiMappingExtension
         {
             return Results.Problem("Unable to access HTTP context for session storage.");
         }
-        httpContext.Session.SetString($"fido2.attestationOptions.{userId}", options.ToJson());
+        httpContext.Session.SetString(GetAttestationSessionKey(userId), options.ToJson());
 
         return Results.Ok(options);
     }
 
-    private static async Task<IResult> CompleteRegistrationAsync(
+    internal static async Task<IResult> CompleteRegistrationAsync(
         ClaimsPrincipal user,
         [FromBody] AuthenticatorAttestationRawResponse attestationResponse,
         [FromServices] IFido2 fido2,
@@ -191,7 +191,7 @@ public static class WebAuthnApiMappingExtension
         }
 
         // Retrieve the challenge from session
-        string? jsonOptions = httpContext.Session.GetString($"fido2.attestationOptions.{userId}");
+        string? jsonOptions = httpContext.Session.GetString(GetAttestationSessionKey(userId));
         if (string.IsNullOrEmpty(jsonOptions))
         {
             return Results.BadRequest("Registration options not found. Please start registration again.");
@@ -236,7 +236,7 @@ public static class WebAuthnApiMappingExtension
             _ = await dbContext.SaveChangesAsync(ct);
 
             // Clear the session challenge
-            httpContext.Session.Remove($"fido2.attestationOptions.{userId}");
+        httpContext.Session.Remove(GetAttestationSessionKey(userId));
 
             return Results.Ok(new RegisterCredentialResponse { CredentialId = Convert.ToBase64String(storedCredential.CredentialId) });
         }
@@ -254,7 +254,7 @@ public static class WebAuthnApiMappingExtension
         }
     }
 
-    private static async Task<IResult> BeginAuthenticationAsync(
+    internal static async Task<IResult> BeginAuthenticationAsync(
         [FromBody] BeginAuthenticationRequest request,
         [FromServices] IFido2 fido2,
         [FromServices] UserManager<User> userManager,
@@ -301,12 +301,12 @@ public static class WebAuthnApiMappingExtension
         {
             return Results.Problem("Unable to access HTTP context or session. Authentication cannot proceed.");
         }
-        httpContext.Session.SetString($"fido2.assertionOptions.{user.Id}", options.ToJson());
+        httpContext.Session.SetString(GetAssertionSessionKey(user.Id), options.ToJson());
 
         return Results.Ok(options);
     }
 
-    private static async Task<IResult> CompleteAuthenticationAsync(
+    internal static async Task<IResult> CompleteAuthenticationAsync(
         [FromBody] AuthenticatorAssertionRawResponse assertionResponse,
         [FromServices] IFido2 fido2,
         [FromServices] SignInManager<User> signInManager,
@@ -331,7 +331,7 @@ public static class WebAuthnApiMappingExtension
         }
 
         // Retrieve the challenge from session
-        string? jsonOptions = httpContext.Session.GetString($"fido2.assertionOptions.{credential.UserId}");
+        string? jsonOptions = httpContext.Session.GetString(GetAssertionSessionKey(credential.UserId));
         if (string.IsNullOrEmpty(jsonOptions))
         {
             return Results.BadRequest("Authentication options not found. Please start authentication again.");
@@ -384,7 +384,7 @@ public static class WebAuthnApiMappingExtension
             await signInManager.SignInAsync(credential.User, isPersistent: true);
 
             // Clear the session challenge
-            httpContext.Session.Remove($"fido2.assertionOptions.{credential.UserId}");
+            httpContext.Session.Remove(GetAssertionSessionKey(credential.UserId));
 
             return Results.Ok(new AuthenticationResponse { Success = true });
         }
@@ -467,6 +467,10 @@ public static class WebAuthnApiMappingExtension
             _ => false
         };
     }
+
+    internal static string GetAttestationSessionKey(string userId) => $"fido2.attestationOptions.{userId}";
+
+    internal static string GetAssertionSessionKey(string userId) => $"fido2.assertionOptions.{userId}";
 
     private static UserVerificationRequirement ParseUserVerificationRequirement(string value)
     {
