@@ -291,7 +291,7 @@ public class WebAuthnApiMappingExtensionTests
             .ReturnsAsync(new AssertionVerificationResult
             {
                 CredentialId = credentialId,
-                Counter = credential.SignatureCounter,
+                Counter = credential.SignatureCounter - 1,
                 Status = "ok"
             });
 
