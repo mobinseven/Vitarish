@@ -1,6 +1,6 @@
 namespace Vitarish.Clients.Interface.Identity.Constants;
 
-public static class AaasConstants
+public static class IdentityConstants
 {
     public const string Admin = nameof(Admin);
     public const string AccessClient = "AccessClient";

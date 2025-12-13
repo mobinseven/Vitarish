@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Components.Authorization;
 namespace Vitarish.Client;
 
-public partial class AaasProfile
+public partial class Profile
 {
 
     [Parameter, EditorRequired] public RenderFragment<AuthenticationState?> SubmitButton { get; set; } = default!;

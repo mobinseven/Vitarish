@@ -120,7 +120,7 @@ public static class IdentityModuleExtensions
             .SetDefaultPolicy(policy: new AuthorizationPolicyBuilder().RequireAuthenticatedUser()
                                                                       .AddRequirements(new AccessClaimRequirement())
                                                                       .Build())
-            .AddPolicy(AaasConstants.Admin, policy => policy.RequireAuthenticatedUser().AddRequirements(new AdminAccessClaimRequirement()).Build());
+            .AddPolicy(IdentityConstants.Admin, policy => policy.RequireAuthenticatedUser().AddRequirements(new AdminAccessClaimRequirement()).Build());
         _ = services.ConfigureCookieOidcRefresh(CookieAuthenticationDefaults.AuthenticationScheme, DefaultChallengeScheme);
         _ = services.AddCascadingAuthenticationState();
         _ = services.AddHttpContextAccessor();

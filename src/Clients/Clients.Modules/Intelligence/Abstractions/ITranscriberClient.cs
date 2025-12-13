@@ -1,5 +1,5 @@
 using System.Threading.Channels;
-using Vitarish.Clients.Modules.Intelligence.Contracts.Transcription;
+using Vitarish.Clients.Modules.Intelligence.Contracts;
 using Vitarish.Clients.Modules.Intelligence.Models;
 
 namespace Vitarish.Clients.Modules.Intelligence.Abstractions;

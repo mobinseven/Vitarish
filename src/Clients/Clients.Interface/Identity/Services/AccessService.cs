@@ -120,7 +120,7 @@ public class AccessService(
         IEnumerable<ClaimDto> claims = await GetUserClaimsAsync(userId, ct);
 
         return claims
-            .Where(claim => string.Equals(claim.Type, AaasConstants.AccessClaim, StringComparison.OrdinalIgnoreCase) &&
+            .Where(claim => string.Equals(claim.Type, IdentityConstants.AccessClaim, StringComparison.OrdinalIgnoreCase) &&
                              (string.IsNullOrWhiteSpace(claimPrefix) ||
                               (claim.Value?.StartsWith(claimPrefix, StringComparison.OrdinalIgnoreCase) ?? false)));
     }

@@ -1,6 +1,6 @@
 namespace Vitarish.Client;
 
-public partial class AaasLogin
+public partial class Login
 {
 
     [Parameter, EditorRequired] public RenderFragment SubmitButton { get; set; } = default!;

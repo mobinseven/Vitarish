@@ -2,7 +2,7 @@ using System.Text;
 using System.Threading.Channels;
 using Vitarish.Clients.Interface.Intelligence.Abstractions;
 using Vitarish.Clients.Modules.Intelligence.Abstractions;
-using Vitarish.Clients.Modules.Intelligence.Contracts.Transcription;
+using Vitarish.Clients.Modules.Intelligence.Contracts;
 
 namespace Vitarish.Clients.Interface.Intelligence.Services;
 

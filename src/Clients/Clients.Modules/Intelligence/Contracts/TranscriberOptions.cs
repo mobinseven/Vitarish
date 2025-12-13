@@ -1,4 +1,4 @@
-namespace Vitarish.Clients.Modules.Intelligence.Contracts.Transcription;
+namespace Vitarish.Clients.Modules.Intelligence.Contracts;
 
 public sealed record TranscriberOptions
 {

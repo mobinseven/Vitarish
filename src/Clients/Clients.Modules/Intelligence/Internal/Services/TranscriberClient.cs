@@ -4,7 +4,7 @@ using System.Threading.Channels;
 using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Identity.Options;
 using Vitarish.Clients.Modules.Intelligence.Abstractions;
-using Vitarish.Clients.Modules.Intelligence.Contracts.Transcription;
+using Vitarish.Clients.Modules.Intelligence.Contracts;
 using Vitarish.Clients.Modules.Intelligence.Models;
 
 namespace Vitarish.Clients.Modules.Intelligence.Internal.Services;
