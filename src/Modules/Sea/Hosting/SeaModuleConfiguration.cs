@@ -16,18 +16,11 @@ internal static class SeaModuleConfiguration
         IConfiguration configuration,
         Action<DbContextOptionsBuilder> configureDbContext)
     {
+        // Reserved for future Sea-specific configuration binding.
         _ = configuration;
         _ = services.AddMemoryCache();
 
-        _ = services.AddDbContext<SeaDbContext>((sp, options) =>
-        {
-            configureDbContext(options);
-        }, ServiceLifetime.Transient, ServiceLifetime.Transient);
-
-        _ = services.AddDbContextPool<SeaDbContext>((_, options) =>
-        {
-            configureDbContext(options);
-        });
+        _ = services.AddDbContext<SeaDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Transient, ServiceLifetime.Transient);
 
         _ = services.AddVitarishSeaInfrastructure();
         _ = services.AddAppMediatR(typeof(SeaDbContext).Assembly);
