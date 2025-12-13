@@ -1,0 +1,153 @@
+using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant.Abstractions;
+using Finbuckle.MultiTenant.EntityFrameworkCore;
+using System.Text.Json;
+using Vitarish.Requests.Application.Abstractions;
+
+namespace Vitarish.Sea.Infrastructure.Data;
+
+public class SeaDbContext : DbContext, IMultiTenantDbContext
+{
+    private readonly EntityInterceptor _interceptor;
+    private readonly SessionContextInterceptor _sessionContext;
+    private readonly IRequestContext _requestIdentity;
+
+    // Dynamically evaluate TenantInfo from IRequestIdentityContext at query time
+    public ITenantInfo? TenantInfo
+    {
+        get
+        {
+            string? tenantId = _requestIdentity.TenantId;
+            return tenantId == null
+                ? null
+                : (ITenantInfo)new Finbuckle.MultiTenant.TenantInfo
+                {
+                    Id = tenantId,
+                    Identifier = tenantId,
+                    Name = tenantId
+                };
+        }
+    }
+
+    public TenantMismatchMode TenantMismatchMode { get; set; } = TenantMismatchMode.Throw;
+    public TenantNotSetMode TenantNotSetMode { get; set; } = TenantNotSetMode.Throw;
+
+    public DbSet<Project> Projects => Set<Project>();
+    public DbSet<Procedure> Procedures => Set<Procedure>();
+    public DbSet<Event> Events => Set<Event>();
+    //public DbSet<EventItem> EventItems => Set<EventItem>();
+    public DbSet<Attachment> Attachments => Set<Attachment>();
+    public DbSet<Role> Roles => Set<Role>();
+    public DbSet<Reminder> Reminders => Set<Reminder>();
+    public DbSet<UserRole> UserRoles => Set<UserRole>();
+    public DbSet<EventRole> EventRoles => Set<EventRole>();
+    public DbSet<UsageConfiguration> UsageConfigurations => Set<UsageConfiguration>();
+    public DbSet<Receipt> Receipts => Set<Receipt>();
+
+    public SeaDbContext(
+        DbContextOptions<SeaDbContext> options,
+        EntityInterceptor interceptor,
+        SessionContextInterceptor sessionContext,
+        IRequestContext requestIdentity) : base(options)
+    {
+        _interceptor = interceptor;
+        _sessionContext = sessionContext;
+        _requestIdentity = requestIdentity;
+
+        // Enable multi-tenant tracking
+        this.EnforceMultiTenantOnTracking();
+    }
+
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) => _ = optionsBuilder
+            .AddInterceptors(_interceptor)
+            .AddInterceptors(_sessionContext);
+
+    public override int SaveChanges(bool acceptAllChangesOnSuccess)
+    {
+        this.EnforceMultiTenant();
+        return base.SaveChanges(acceptAllChangesOnSuccess);
+    }
+
+    public override Task<int> SaveChangesAsync(
+        bool acceptAllChangesOnSuccess,
+        CancellationToken cancellationToken = default)
+    {
+        this.EnforceMultiTenant();
+        return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        // Configure Finbuckle multi-tenant entities
+        _ = modelBuilder.ConfigureMultiTenant();
+
+        // Apply soft-delete filter first, then mark as multi-tenant
+        // Finbuckle automatically merges its tenant filter with the existing filter
+        ConfigureTenantEntity<Project>(modelBuilder);
+        ConfigureTenantEntity<Procedure>(modelBuilder);
+        ConfigureTenantEntity<Event>(modelBuilder);
+        ConfigureTenantEntity<Attachment>(modelBuilder);
+        ConfigureTenantEntity<Role>(modelBuilder);
+        ConfigureTenantEntity<Reminder>(modelBuilder);
+        ConfigureTenantEntity<UserRole>(modelBuilder);
+        ConfigureTenantEntity<EventRole>(modelBuilder);
+        ConfigureTenantEntity<Receipt>(modelBuilder);
+
+        if (Database.IsSqlite())
+        {
+            _ = modelBuilder.ConfigureEntityDateTimeOffsetConversions();
+        }
+
+        _ = modelBuilder.Entity<UsageConfiguration>()
+            .Property(uc => uc.UsageData)
+            .HasDefaultValue(new UsageData(0, 0))
+            .HasConversion(
+                v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                v => JsonSerializer.Deserialize<UsageData?>(v, (JsonSerializerOptions)null) ?? new UsageData(0, 0));
+
+        _ = modelBuilder.Entity<ProjectStats>(eb =>
+        {
+            _ = eb.ToView("vw_ProjectStats");
+            _ = eb.HasNoKey();
+            _ = eb.Ignore(s => s.Project);
+        });
+
+        _ = modelBuilder.Entity<Project>()
+            .Ignore(p => p.Stats);
+
+        _ = modelBuilder.Entity<ProcedureStats>(eb =>
+        {
+            _ = eb.ToView("vw_ProcedureStats");
+            _ = eb.HasNoKey();
+            _ = eb.Ignore(s => s.Procedure);
+        });
+
+        _ = modelBuilder.Entity<Procedure>()
+            .Ignore(p => p.Stats);
+
+        _ = modelBuilder.Entity<EventStats>(eb =>
+        {
+            _ = eb.ToView("vw_EventStats");
+            _ = eb.HasNoKey();
+            _ = eb.Ignore(s => s.Event);
+        });
+
+        _ = modelBuilder.Entity<Event>()
+            .Ignore(e => e.Stats);
+    }
+
+    private void ConfigureTenantEntity<TEntity>(ModelBuilder modelBuilder)
+        where TEntity : Entity
+    {
+        var entityBuilder = modelBuilder.Entity<TEntity>();
+
+        // Apply soft-delete filter first
+        _ = entityBuilder.HasQueryFilter(e =>
+            EF.Property<DateTimeOffset?>(e, "DeletedAt") == null);
+
+        // Mark as multi-tenant - Finbuckle will merge its tenant filter with the soft-delete filter
+        _ = entityBuilder.IsMultiTenant();
+    }
+}

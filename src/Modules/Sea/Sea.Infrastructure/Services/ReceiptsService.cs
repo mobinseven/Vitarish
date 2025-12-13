@@ -1,0 +1,120 @@
+using Vitarish.Sea.Application.Abstractions;
+using Vitarish.Sea.Infrastructure.Extensions;
+
+namespace Vitarish.Sea.Infrastructure.Services;
+
+[RegisterScoped]
+internal class ReceiptsService(
+    IMediator mediator,
+    ReceiptsMapper mapper,
+    IAttachmentsService attachmentsService,
+    IRemindersService remindersService)
+    : EntityService<Receipt, ReceiptDescriptor, ReceiptDto, ReceiptDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IReceiptsService
+{
+    private async Task RemoveReceiptAsync(string createdBy, Guid objectId, CancellationToken cancellationToken)
+    {
+        (await RemoveByDescriptorAsync(
+            new ReceiptDescriptor
+            {
+                CreatedBy = createdBy,
+                ObjectId = objectId
+            },
+            cancellationToken)).EnsureSuccess("Remove receipt");
+    }
+
+    public async Task<bool> GetAsync(Guid userId, Guid objectId, CancellationToken cancellationToken)
+    {
+        ReceiptDto? receiptDto = (await GetListAsync(new ReceiptDescriptorDto { CreatedBy = userId.ToString(), ObjectId = objectId }, cancellationToken))
+            .EnsureValue("Get receipts")
+            .FirstOrDefault();
+        return receiptDto is not null;
+    }
+    public async Task<Guid> AddAsync(Guid userId, Guid objectId, CancellationToken cancellationToken)
+    {
+        ReceiptDto? receiptDto = (await GetListAsync(new ReceiptDescriptorDto { CreatedBy = userId.ToString(), ObjectId = objectId }, CancellationToken.None))
+            .EnsureValue("Get receipts")
+            .FirstOrDefault();
+        if(receiptDto is not null)
+        {
+            return receiptDto.Id;
+        }
+        Receipt receipt = new(objectId);
+        _ = (await AddEntityAsync(receipt, cancellationToken)).EnsureValue("Add receipt");
+        return receipt.Id;
+    }
+
+    public async Task<IReadOnlyList<Guid>> GetReadersAsync(Guid objectId, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<ReceiptDto> receipts = (await GetListAsync(new ReceiptDescriptorDto { ObjectId = objectId }, cancellationToken))
+            .EnsureValue("Get receipts");
+
+        HashSet<Guid> readers = [];
+
+        foreach(ReceiptDto receipt in receipts)
+        {
+            if(Guid.TryParse(receipt.CreatedBy, out Guid userId))
+            {
+                _ = readers.Add(userId);
+            }
+        }
+
+        Guid[] result = new Guid[readers.Count];
+        readers.CopyTo(result);
+        return result;
+    }
+
+    public Task MarkProjectReadAsync(Guid userId, Guid projectId, CancellationToken cancellationToken)
+    {
+        return AddAsync(userId, projectId, cancellationToken);
+    }
+
+    public Task MarkProjectUnreadAsync(Guid userId, Guid projectId, CancellationToken cancellationToken)
+    {
+        return RemoveReceiptAsync(userId.ToString(), projectId, cancellationToken);
+    }
+
+    public Task MarkProcedureReadAsync(Guid userId, Guid procedureId, CancellationToken cancellationToken)
+    {
+        return AddAsync(userId, procedureId, cancellationToken);
+    }
+
+    public Task MarkProcedureUnreadAsync(Guid userId, Guid procedureId, CancellationToken cancellationToken)
+    {
+        return RemoveReceiptAsync(userId.ToString(), procedureId, cancellationToken);
+    }
+
+    public async Task MarkEventReadAsync(Guid userId, Guid eventId, CancellationToken cancellationToken)
+    {
+        _ = await AddAsync(userId, eventId, cancellationToken);
+
+        IReadOnlyList<AttachmentDto> attachments = await attachmentsService.GetByEventAsync(eventId, cancellationToken);
+        foreach(AttachmentDto attachment in attachments)
+        {
+            _ = await AddAsync(userId, attachment.Id, cancellationToken);
+        }
+
+        IReadOnlyList<ReminderDto> reminders = await remindersService.GetByEventAsync(eventId, cancellationToken);
+        foreach(ReminderDto reminder in reminders)
+        {
+            _ = await AddAsync(userId, reminder.Id, cancellationToken);
+        }
+    }
+
+    public async Task MarkEventUnreadAsync(Guid userId, Guid eventId, CancellationToken cancellationToken)
+    {
+        string createdBy = userId.ToString();
+        await RemoveReceiptAsync(createdBy, eventId, cancellationToken);
+
+        IReadOnlyList<AttachmentDto> attachments = await attachmentsService.GetByEventAsync(eventId, cancellationToken);
+        foreach(AttachmentDto attachment in attachments)
+        {
+            await RemoveReceiptAsync(createdBy, attachment.Id, cancellationToken);
+        }
+
+        IReadOnlyList<ReminderDto> reminders = await remindersService.GetByEventAsync(eventId, cancellationToken);
+        foreach(ReminderDto reminder in reminders)
+        {
+            await RemoveReceiptAsync(createdBy, reminder.Id, cancellationToken);
+        }
+    }
+}
