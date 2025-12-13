@@ -3,11 +3,12 @@
 @if(VerifyCodeInput is not null)
 {
     <MudAlert Severity="Severity.Success">@Localizer["CodeSent", VerifyCodeInput.PhoneNumber]</MudAlert>
-    <form method="post" action="/Account/Login/Phone/Submit">
+    <form method="post" action="@Action">
         <input type="hidden" name="Input.UserId" value="@User.Id" />
         <input type="hidden" name="Input.Provider" value="@TokenOptions.DefaultPhoneProvider" />
         <input type="hidden" name="Input.ReturnUrl" value="@ReturnUrl" />
         <input type="hidden" name="Input.FailureUrl" value="@FailureUrl" />
+        <input type="hidden" name="Input.PhoneNumber" value="@PhoneNumber" />
         <AntiforgeryToken />
         <MudFocusTrap>
             <MudField Variant="Variant.Outlined" Style="direction: ltr;">

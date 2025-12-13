@@ -198,6 +198,9 @@
   <data name="PhoneChangeFailed" xml:space="preserve">
     <value>فرایند ثبت شماره ناکام بود</value>
   </data>
+  <data name="PhoneChangeSuccess" xml:space="preserve">
+    <value>شماره تلفن به‌روز شد</value>
+  </data>
   <data name="Cancel" xml:space="preserve">
     <value>لغو</value>
   </data>
