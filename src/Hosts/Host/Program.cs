@@ -13,6 +13,8 @@ using Vitarish.Files.Infrastructure.Data;
 using Vitarish.Instagram.Hosting;
 using Vitarish.Intelligence.Hosting;
 using Vitarish.Modules.Base;
+using Vitarish.Sea.Hosting;
+using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Parties.Hosting.Api;
 using Vitarish.Parties.Hosting.DependencyInjection;
 using Vitarish.Parties.Infrastructure.Data;
@@ -41,7 +43,8 @@ IEnumerable<Assembly> requestedModuleAssemblies = [
             typeof(FilesModule).Assembly,
             typeof(CommunicationModule).Assembly,
             typeof(IntelligenceModule).Assembly,
-            typeof(InstagramModule).Assembly];
+            typeof(InstagramModule).Assembly,
+            typeof(SeaModule).Assembly];
 
 _ = await builder.AddModules(requestedModuleAssemblies, configureSqlServer);
 
@@ -90,6 +93,7 @@ _ = await app.MigrateDatabaseAsync<ApiClientDbContext>();
 _ = await app.MigrateDatabaseAsync<PartiesDbContext>();
 _ = await app.MigrateDatabaseAsync<PersistedGrantDbContext>();
 _ = await app.MigrateDatabaseAsync<FilesDbContext>();
+_ = await app.MigrateDatabaseAsync<SeaDbContext>();
 
 CookiePolicyOptions cookiePolicyOptions = new()
 {
