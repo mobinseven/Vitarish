@@ -42,9 +42,10 @@ public sealed class PasswordChangeSubmitModel(
         if (user is null)
         {
             LogWarning(null, "InvalidCredentials");
-            return RedirectWithStatus("/Account/Login/Password", BuildFailureMessage());
+            return RedirectWithStatus("/Account/Login", BuildFailureMessage());
         }
 
+        IdentityResult result;
         if (await _userManager.HasPasswordAsync(user))
         {
             if (string.IsNullOrWhiteSpace(Input.CurrentPassword))
@@ -60,24 +61,20 @@ public sealed class PasswordChangeSubmitModel(
                 return RedirectWithStatus(failureDestination, BuildFailureMessage());
             }
 
-            IdentityResult changePasswordResult = await _userManager.ChangePasswordAsync(
+            result = await _userManager.ChangePasswordAsync(
                 user,
                 Input.CurrentPassword,
                 Input.NewPassword);
-            if (!changePasswordResult.Succeeded)
-            {
-                LogWarning(user, "UpdateFailure");
-                return RedirectWithStatus(failureDestination, BuildFailureMessage());
-            }
         }
         else
         {
-            IdentityResult addPasswordResult = await _userManager.AddPasswordAsync(user, Input.NewPassword);
-            if (!addPasswordResult.Succeeded)
-            {
-                LogWarning(user, "UpdateFailure");
-                return RedirectWithStatus(failureDestination, BuildFailureMessage());
-            }
+            result = await _userManager.AddPasswordAsync(user, Input.NewPassword);
+        }
+
+        if (!result.Succeeded)
+        {
+            LogWarning(user, "UpdateFailure");
+            return RedirectWithStatus(failureDestination, BuildFailureMessage());
         }
 
         await _signInManager.RefreshSignInAsync(user);
