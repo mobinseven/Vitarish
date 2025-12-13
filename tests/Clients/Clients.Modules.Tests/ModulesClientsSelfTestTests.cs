@@ -14,7 +14,7 @@ public class ModulesClientsSelfTestTests
         services.AddSingleton<IHubConnectionStarter>(Mock.Of<IHubConnectionStarter>());
 
         // Act
-        services.AddModulesClients();
+        services.AddModules();
         using ServiceProvider provider = services.BuildServiceProvider();
 
         // Assert

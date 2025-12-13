@@ -6,9 +6,18 @@ using Vitarish.Clients.Modules.Intelligence.DependencyInjection;
 
 namespace Vitarish.Clients.Modules;
 
+/// <summary>
+/// Provides extension methods for configuring module clients in the dependency injection container.
+/// </summary>
 public static class ModulesClientsExtensions
 {
-    public static IServiceCollection AddModulesClients(this IServiceCollection services)
+    /// <summary>
+    /// Adds the module clients to the service collection, including communications, files, and intelligence modules,
+    /// along with necessary singletons and hosted services for hub connections and self-testing.
+    /// </summary>
+    /// <param name="services">The <see cref="IServiceCollection"/> to add the modules to.</param>
+    /// <returns>The <see cref="IServiceCollection"/> with the modules added.</returns>
+    public static IServiceCollection AddModules(this IServiceCollection services)
     {
         _ = services.AddCommunicationsModuleClient();
         _ = services.AddFilesModuleClient();

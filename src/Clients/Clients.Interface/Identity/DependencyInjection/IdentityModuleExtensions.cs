@@ -14,27 +14,26 @@ using Vitarish.Clients.Interface.Identity.Contracts;
 using Vitarish.Clients.Interface.Identity.Extensions;
 using Vitarish.Clients.Interface.Identity.Services;
 
-public static class AaasBuildExtensions
+public static class IdentityModuleExtensions
 {
     private const string ConfigSection = "Vitarish";
     public const string DefaultChallengeScheme = "oidc";
 
-    public static IdentityClientOptions GetAaasOptions(this WebApplicationBuilder builder)
+    public static IdentityClientOptions GetIdentityOptions(this IConfiguration configuration)
     {
-        IConfigurationSection section = builder.Configuration.GetSection($"{ConfigSection}:Aaas");
-        IdentityClientOptions aaasOptions = section.Get<IdentityClientOptions>() ?? throw new InvalidOperationException($"Configuration section '{ConfigSection}:Aaas' is missing or invalid.");
-        return aaasOptions;
+        IConfigurationSection section = configuration.GetSection($"{ConfigSection}:Identity");
+        IdentityClientOptions options = section.Get<IdentityClientOptions>() ?? throw new InvalidOperationException($"Configuration section '{ConfigSection}:Identity' is missing or invalid.");
+        return options;
     }
-
-    public static async Task<WebApplicationBuilder> AddAaasClient(this WebApplicationBuilder builder)
+    public static async Task<IServiceCollection> AddIdentityComponents(this IServiceCollection services, IConfiguration configuration)
     {
-        if (builder.Services.Any(sd => sd.ServiceType == typeof(IAccessService)))
+        if (services.Any(sd => sd.ServiceType == typeof(IAccessService)))
         {
-            return builder;
+            return services;
         }
-        IdentityClientOptions aaasOptions = builder.GetAaasOptions();
+        IdentityClientOptions aaasOptions = configuration.GetIdentityOptions();
 
-        _ = builder.Services
+        _ = services
         .AddAuthentication(options =>
         {
             options.DefaultScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -112,30 +111,35 @@ public static class AaasBuildExtensions
                 ClockSkew = TimeSpan.FromMinutes(30)
             };
         });
-        if (!builder.Services.Any(sd => sd.ServiceType == typeof(IDistributedCache)))
+        if (!services.Any(sd => sd.ServiceType == typeof(IDistributedCache)))
         {
-            _ = builder.Services.AddDistributedMemoryCache();
+            _ = services.AddDistributedMemoryCache();
         }
-        _ = builder.Services.AddMemoryCache();
-        _ = builder.Services.AddAuthorizationBuilder()
+        _ = services.AddMemoryCache();
+        _ = services.AddAuthorizationBuilder()
             .SetDefaultPolicy(policy: new AuthorizationPolicyBuilder().RequireAuthenticatedUser()
                                                                       .AddRequirements(new AccessClaimRequirement())
                                                                       .Build())
             .AddPolicy(AaasConstants.Admin, policy => policy.RequireAuthenticatedUser().AddRequirements(new AdminAccessClaimRequirement()).Build());
-        _ = builder.Services.ConfigureCookieOidcRefresh(CookieAuthenticationDefaults.AuthenticationScheme, DefaultChallengeScheme);
-        _ = builder.Services.AddCascadingAuthenticationState();
-        _ = builder.Services.AddHttpContextAccessor();
-        _ = builder.Services.AddHttpClient();
-        _ = builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, BlazorAuthorizationMiddlewareResultHandler>();
-        _ = builder.Services.AddIdentityClient(builder.Configuration);
-        await builder.AddIdentityClientDataProtection();
-        _ = builder.Services.AddScoped<IAuthorizationHandler, AccessAuthorizationHandler>();
-        _ = builder.Services.AddScoped<IUserAccessApiClient, UserAccessApiClient>();
-        _ = builder.Services.AddScoped<IPersonalAccessTokenClient, PersonalAccessTokenClient>();
-        _ = builder.Services.AddScoped<IAccessService, AccessService>();
-        _ = builder.Services.AddScoped<UserProfileService>();
-        _ = builder.Services.AddScoped<UserProfileCultureInfoProvider>();
+        _ = services.ConfigureCookieOidcRefresh(CookieAuthenticationDefaults.AuthenticationScheme, DefaultChallengeScheme);
+        _ = services.AddCascadingAuthenticationState();
+        _ = services.AddHttpContextAccessor();
+        _ = services.AddHttpClient();
+        _ = services.AddSingleton<IAuthorizationMiddlewareResultHandler, BlazorAuthorizationMiddlewareResultHandler>();
+        _ = services.AddIdentityClient(configuration);
+        await services.AddIdentityClientDataProtection(configuration);
+        _ = services.AddScoped<IAuthorizationHandler, AccessAuthorizationHandler>();
+        _ = services.AddScoped<IUserAccessApiClient, UserAccessApiClient>();
+        _ = services.AddScoped<IPersonalAccessTokenClient, PersonalAccessTokenClient>();
+        _ = services.AddScoped<IAccessService, AccessService>();
+        _ = services.AddScoped<UserProfileService>();
+        _ = services.AddScoped<UserProfileCultureInfoProvider>();
 
-        return builder;
+        return services;
+    }
+    public static WebApplication MapIdentityModule(this WebApplication app)
+    {
+        _ = app.MapGroup("/authentication").MapLoginAndLogout();
+        return app;
     }
 }

@@ -6,20 +6,19 @@ using Vitarish.Clients.Modules.Intelligence.DependencyInjection;
 
 namespace Vitarish.Clients.Interface.Intelligence.DependencyInjection;
 
-public static class ServiceCollectionExtensions
+public static class IntelligenceModuleExtensions
 {
-    public static IServiceCollection AddIntelligenceComponents(this IServiceCollection services)
+    public static IServiceCollection AddIntelligenceModuleComponents(this IServiceCollection services)
     {
-        _ = services.AddIntelligenceModuleClient();
         _ = services.AddScoped<IStreamResponder, StreamResponder>();
         _ = services.AddScoped<IStreamRewriter, StreamRewriter>();
         _ = services.AddScoped<IStreamTranscriber, StreamTranscriber>();
         return services;
     }
 
-    public static WebApplicationBuilder AddIntelligenceComponents(this WebApplicationBuilder builder)
+    public static WebApplicationBuilder AddIntelligenceModuleComponents(this WebApplicationBuilder builder)
     {
-        _ = builder.Services.AddIntelligenceComponents();
+        _ = builder.Services.AddIntelligenceModuleComponents();
         return builder;
     }
 }
