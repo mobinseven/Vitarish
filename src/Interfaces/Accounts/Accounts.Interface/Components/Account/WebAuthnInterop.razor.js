@@ -57,7 +57,8 @@ export async function isPlatformAuthenticatorAvailable() {
     }
     try {
         return await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable();
-    } catch {
+    } catch (error) {
+        console.error("Error checking for platform authenticator availability:", error);
         return false;
     }
 }
