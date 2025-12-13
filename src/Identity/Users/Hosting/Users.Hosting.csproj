@@ -1,18 +1,19 @@
 <Project Sdk="Microsoft.NET.Sdk">
-  <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Fido2" Version="3.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.*" />
-    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.*" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Infrastructure\Users.Infrastructure.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
-      <_Parameter1>Users.Tests</_Parameter1>
-    </AssemblyAttribute>
-  </ItemGroup>
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Fido2" Version="4.0.*" />
+		<PackageReference Include="Fido2.AspNet" Version="4.0.*" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.*" />
+		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.*" />
+	</ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\Infrastructure\Users.Infrastructure.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+			<_Parameter1>Users.Tests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
 </Project>

@@ -46,33 +46,37 @@ public class WebAuthnApiMappingExtensionTests
             Timeout = 60000,
             Attestation = AttestationConveyancePreference.None,
             AuthenticatorSelection = new AuthenticatorSelection(),
-            Status = "ok"
+            PubKeyCredParams = It.IsAny<IReadOnlyList<PubKeyCredParam>>()
         };
 
         fido2.Setup(f => f.RequestNewCredential(
-                It.IsAny<Fido2User>(),
-                It.IsAny<List<PublicKeyCredentialDescriptor>>(),
-                It.IsAny<AuthenticatorSelection>(),
-                It.IsAny<AttestationConveyancePreference>(),
-                It.IsAny<AuthenticationExtensionsClientInputs>()))
+            new RequestNewCredentialParams
+            {
+                User = It.IsAny<Fido2User>(),
+                AttestationPreference = It.IsAny<AttestationConveyancePreference>(),
+                AuthenticatorSelection = It.IsAny<AuthenticatorSelection>(),
+                PubKeyCredParams = It.IsAny<IReadOnlyList<PubKeyCredParam>>(),
+                Extensions = It.IsAny<AuthenticationExtensionsClientInputs>()
+            }))
             .Returns(createOptions);
 
-        AttestationVerificationSuccess attestation = new()
+        RegisteredPublicKeyCredential attestation = new()
         {
-            CredentialId = credentialId,
+            Id = credentialId,
             PublicKey = publicKey,
-            Counter = 1,
-            Aaguid = Guid.Parse("11111111-1111-1111-1111-111111111111"),
-            Status = "ok"
+            SignCount = 1,
+            AaGuid = Guid.Parse("11111111-1111-1111-1111-111111111111")
         };
 
-        Fido2.CredentialMakeResult makeResult = new("ok", string.Empty, attestation);
+        RegisteredPublicKeyCredential makeResult = new();
 
         fido2.Setup(f => f.MakeNewCredentialAsync(
-                It.IsAny<AuthenticatorAttestationRawResponse>(),
-                It.IsAny<CredentialCreateOptions>(),
-                It.IsAny<IsCredentialIdUniqueToUserAsyncDelegate>(),
-                null,
+            new MakeNewCredentialParams
+            {
+                AttestationResponse = It.IsAny<AuthenticatorAttestationRawResponse>(),
+                IsCredentialIdUniqueToUserCallback = It.IsAny<IsCredentialIdUniqueToUserAsyncDelegate>(),
+                OriginalOptions = It.IsAny<CredentialCreateOptions>()
+            },
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(makeResult);
 
@@ -164,29 +168,33 @@ public class WebAuthnApiMappingExtensionTests
             Challenge = [7, 7, 7],
             RpId = "localhost",
             AllowCredentials = [new PublicKeyCredentialDescriptor(credentialId)],
-            UserVerification = UserVerificationRequirement.Preferred,
-            Status = "ok"
+            UserVerification = UserVerificationRequirement.Preferred
         };
 
         fido2.Setup(f => f.GetAssertionOptions(
-                It.IsAny<IEnumerable<PublicKeyCredentialDescriptor>>(),
-                It.IsAny<UserVerificationRequirement>(),
-                It.IsAny<AuthenticationExtensionsClientInputs>()))
+            new GetAssertionOptionsParams
+            {
+                AllowedCredentials = It.IsAny<IReadOnlyList<PublicKeyCredentialDescriptor>>(),
+                Extensions = It.IsAny<AuthenticationExtensionsClientInputs>(),
+                UserVerification = It.IsAny<UserVerificationRequirement>()
+            }
+                ))
             .Returns(assertionOptions);
 
         fido2.Setup(f => f.MakeAssertionAsync(
-                It.IsAny<AuthenticatorAssertionRawResponse>(),
-                It.IsAny<AssertionOptions>(),
-                It.Is<byte[]>(pk => pk.SequenceEqual(publicKey)),
-                1u,
-                It.IsAny<IsUserHandleOwnerOfCredentialIdAsync>(),
-                null,
+            new MakeAssertionParams
+            {
+                AssertionResponse = It.IsAny<AuthenticatorAssertionRawResponse>(),
+                OriginalOptions = It.IsAny<AssertionOptions>(),
+                IsUserHandleOwnerOfCredentialIdCallback = It.IsAny<IsUserHandleOwnerOfCredentialIdAsync>(),
+                StoredPublicKey = It.Is<byte[]>(pk => pk.SequenceEqual(publicKey)),
+                StoredSignatureCounter = 1u
+            },
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AssertionVerificationResult
+            .ReturnsAsync(new VerifyAssertionResult
             {
                 CredentialId = credentialId,
-                Counter = 2,
-                Status = "ok"
+                SignCount = 2
             });
 
         WebAuthnOptions options = new()
@@ -271,28 +279,31 @@ public class WebAuthnApiMappingExtensionTests
             Challenge = [3],
             RpId = "localhost",
             AllowCredentials = [new PublicKeyCredentialDescriptor(credentialId)],
-            Status = "ok"
         };
 
         fido2.Setup(f => f.GetAssertionOptions(
-                It.IsAny<IEnumerable<PublicKeyCredentialDescriptor>>(),
-                It.IsAny<UserVerificationRequirement>(),
-                It.IsAny<AuthenticationExtensionsClientInputs>()))
+            new GetAssertionOptionsParams
+            {
+                AllowedCredentials = It.IsAny<IReadOnlyList<PublicKeyCredentialDescriptor>>(),
+                Extensions = It.IsAny<AuthenticationExtensionsClientInputs>(),
+                UserVerification = It.IsAny<UserVerificationRequirement>()
+            }))
             .Returns(options);
 
         fido2.Setup(f => f.MakeAssertionAsync(
-                It.IsAny<AuthenticatorAssertionRawResponse>(),
-                It.IsAny<AssertionOptions>(),
-                It.Is<byte[]>(pk => pk.SequenceEqual(publicKey)),
-                credential.SignatureCounter,
-                It.IsAny<IsUserHandleOwnerOfCredentialIdAsync>(),
-                null,
+            new MakeAssertionParams
+            {
+                AssertionResponse = It.IsAny<AuthenticatorAssertionRawResponse>(),
+                OriginalOptions = It.IsAny<AssertionOptions>(),
+                IsUserHandleOwnerOfCredentialIdCallback = It.IsAny<IsUserHandleOwnerOfCredentialIdAsync>(),
+                StoredPublicKey = It.Is<byte[]>(pk => pk.SequenceEqual(publicKey)),
+                StoredSignatureCounter = 1u
+            },
                 It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new AssertionVerificationResult
+            .ReturnsAsync(new VerifyAssertionResult
             {
                 CredentialId = credentialId,
-                Counter = credential.SignatureCounter - 1,
-                Status = "ok"
+                SignCount = credential.SignatureCounter - 1,
             });
 
         WebAuthnOptions webAuthnOptions = new()

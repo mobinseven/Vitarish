@@ -154,10 +154,13 @@ public static class WebAuthnApiMappingExtension
 
         // Generate registration options using configuration
         CredentialCreateOptions options = fido2.RequestNewCredential(
-            user: fido2User,
-            excludeCredentials: existingKeys,
-            authenticatorSelection: authenticatorSelection,
-            attestationPreference: ParseAttestationConveyance(webAuthnOptions.AttestationConveyance));
+            new RequestNewCredentialParams
+            {
+                User = fido2User,
+                AuthenticatorSelection = authenticatorSelection,
+                ExcludeCredentials = existingKeys,
+                AttestationPreference = ParseAttestationConveyance(webAuthnOptions.AttestationConveyance)
+            });
 
         // Store challenge in session for verification
         HttpContext? httpContext = httpContextAccessor.HttpContext;
@@ -206,28 +209,28 @@ public static class WebAuthnApiMappingExtension
         try
         {
             // Verify the attestation response using Fido2 3.0.1 API
-            var res = await fido2.MakeNewCredentialAsync(
-                attestationResponse,
-                options,
-                async (args, cancellationToken) =>
-                {
-                    // Check if credential ID already exists
-                    bool exists = await dbContext.WebAuthnCredentials
-                        .AnyAsync(c => c.CredentialId == args.CredentialId, cancellationToken);
-                    return !exists;
-                },
-                requestTokenBindingId: null,
+            var credential = await fido2.MakeNewCredentialAsync(new MakeNewCredentialParams
+            {
+                AttestationResponse = attestationResponse,
+                IsCredentialIdUniqueToUserCallback = async (args, cancellationToken) =>
+                    {
+                        // Check if credential ID already exists
+                        bool exists = await dbContext.WebAuthnCredentials
+                            .AnyAsync(c => c.CredentialId == args.CredentialId, cancellationToken);
+                        return !exists;
+                    },
+                OriginalOptions = options
+            },
                 cancellationToken: ct);
-            var credential = res.Result;
             WebAuthnCredential storedCredential = new()
             {
                 Id = Guid.NewGuid(),
                 UserId = userId,
-                CredentialId = credential.CredentialId,
+                CredentialId = credential.Id,
                 PublicKey = credential.PublicKey,
-                SignatureCounter = credential.Counter,
+                SignatureCounter = credential.SignCount,
                 CredentialType = "public-key",
-                AaGuid = credential.Aaguid,
+                AaGuid = credential.AaGuid,
                 RegisteredAt = DateTimeOffset.UtcNow,
                 IsActive = true
             };
@@ -236,7 +239,7 @@ public static class WebAuthnApiMappingExtension
             _ = await dbContext.SaveChangesAsync(ct);
 
             // Clear the session challenge
-        httpContext.Session.Remove(GetAttestationSessionKey(userId));
+            httpContext.Session.Remove(GetAttestationSessionKey(userId));
 
             return Results.Ok(new RegisterCredentialResponse { CredentialId = Convert.ToBase64String(storedCredential.CredentialId) });
         }
@@ -292,8 +295,16 @@ public static class WebAuthnApiMappingExtension
 
         // Generate authentication options using configuration
         AssertionOptions options = fido2.GetAssertionOptions(
-            allowedCredentials,
-            ParseUserVerificationRequirement(webAuthnOptions.UserVerification));
+            new GetAssertionOptionsParams
+            {
+                AllowedCredentials = allowedCredentials,
+                UserVerification = ParseUserVerificationRequirement(webAuthnOptions.UserVerification)
+            }) ?? new AssertionOptions
+            {
+                AllowCredentials = allowedCredentials,
+                UserVerification = ParseUserVerificationRequirement(webAuthnOptions.UserVerification)
+            };
+
 
         // Store challenge in session for verification
         HttpContext? httpContext = httpContextAccessor.HttpContext;
@@ -346,33 +357,34 @@ public static class WebAuthnApiMappingExtension
         try
         {
             // Verify the assertion using Fido2 3.0.1 API
-            var result = await fido2.MakeAssertionAsync(
-                assertionResponse,
-                options,
-                credential.PublicKey,
-                credential.SignatureCounter,
-                async (args, cancellationToken) =>
-                {
-                    // Verify the credential still exists
-                    WebAuthnCredential? storedCred = await dbContext.WebAuthnCredentials
-                        .FirstOrDefaultAsync(c => c.CredentialId == args.CredentialId, cancellationToken);
-                    return storedCred != null;
-                },
-                requestTokenBindingId: null,
+            var result = await fido2.MakeAssertionAsync(new MakeAssertionParams
+            {
+                AssertionResponse = assertionResponse,
+                IsUserHandleOwnerOfCredentialIdCallback = async (args, cancellationToken) =>
+                    {
+                        // Verify the credential still exists
+                        WebAuthnCredential? storedCred = await dbContext.WebAuthnCredentials
+                            .FirstOrDefaultAsync(c => c.CredentialId == args.CredentialId, cancellationToken);
+                        return storedCred != null;
+                    },
+                OriginalOptions = options,
+                StoredPublicKey = credential.PublicKey,
+                StoredSignatureCounter = credential.SignatureCounter
+            },
                 cancellationToken: ct);
 
             // Validate signature counter for clone detection
-            if (result.Counter > 0 && result.Counter <= credential.SignatureCounter)
+            if (result.SignCount > 0 && result.SignCount <= credential.SignatureCounter)
             {
                 // Potential cloned authenticator detected
                 credential.IsActive = false;
                 _ = await dbContext.SaveChangesAsync(ct);
-                
+
                 return Results.BadRequest(new { error = "Potential cloned authenticator detected. Credential has been deactivated for security." });
             }
 
             // Update the signature counter
-            credential.SignatureCounter = result.Counter;
+            credential.SignatureCounter = result.SignCount;
             credential.LastUsedAt = DateTimeOffset.UtcNow;
             _ = await dbContext.SaveChangesAsync(ct);
 

@@ -17,22 +17,6 @@ namespace Vitarish.Parties.Hosting.Api
 {
     public static class PartiesApiEndpointsExtensions
     {
-        /// <summary>
-        /// Maps endpoints for Parties (Owners and Tenants) operations.
-        /// Allows injection of custom endpoint filters via the optional configureFilters action.
-        /// </summary>
-        /// <param name="app">The WebApplication instance.</param>
-        /// <param name="configureFilters">
-        /// Optional delegate to apply additional filters/middleware to the endpoint group or individual endpoints.
-        /// The action receives the IEndpointRouteBuilder for the group so you can call e.g. .AddEndpointFilter(...) on a handler.
-        /// </param>
-        public static IEndpointConventionBuilder MapPartiesEndpoints(
-            this WebApplication app,
-            Action<RouteGroupBuilder>? configureFilters = null)
-        {
-            // Placeholder - returns empty group for now
-            return app.MapGroup("/api/parties");
-        }
 
         public static IEndpointConventionBuilder MapOwnerEndpoints(this WebApplication app, Action<RouteGroupBuilder>? configureFilters = null)
         {
