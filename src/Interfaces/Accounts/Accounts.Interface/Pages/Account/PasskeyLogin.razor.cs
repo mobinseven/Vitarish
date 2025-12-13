@@ -2,12 +2,6 @@ namespace Vitarish.Accounts.Interface.Pages.Account;
 
 public partial class PasskeyLogin
 {
-    protected string failureUrl => NavigationManager.GetUriWithQueryParameters("Account/Login/Passkey", new Dictionary<string, object?>
-    {
-        ["FailureMessage"] = Localizer["InvalidLoginAttempt"].Value,
-        [nameof(ReturnUrl)] = ReturnUrl,
-    });
-
     [SupplyParameterFromQuery]
     protected string? FailureMessage { get; set; }
 
