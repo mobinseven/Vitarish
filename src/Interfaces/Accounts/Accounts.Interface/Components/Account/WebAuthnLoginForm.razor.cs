@@ -56,7 +56,7 @@ public partial class WebAuthnLoginForm : CommonBase, IAsyncDisposable
         try
         {
             // Step 1: Begin authentication - get options from server
-            using HttpClient httpClient = HttpClientFactory.CreateClient();
+            HttpClient httpClient = HttpClientFactory.CreateClient();
             httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
 
             HttpResponseMessage beginResponse = await httpClient.PostAsJsonAsync(
