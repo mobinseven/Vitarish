@@ -31,7 +31,7 @@
         </form>
     </NotAuthorized>
     <Authorized>
-        <form method="get" action="@(ReturnUrl)">
+        <form method="get" action="@(GetSafeReturnUrl())">
             <MudButton FullWidth="true" ButtonType="ButtonType.Submit">@Localizer["Continue"]</MudButton>
         </form>
     </Authorized>
