@@ -14,6 +14,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 using MudBlazor.Services;
 using System.Security.Claims;
+using System.Threading.Tasks;
 using Vitarish.Accounts.Infrastructure.Services;
 using Vitarish.ApiClients.Application.Abstractions;
 using Vitarish.AuthenticationClients.Application.Abstractions;
@@ -67,6 +68,9 @@ internal sealed class InterfaceTestContext : TestContext
 
         Mock<IRequestIdentitiesService> requestIdentitiesServiceMock = new();
         _ = Services.AddSingleton(requestIdentitiesServiceMock.Object);
+
+        Mock<IRequestContext> requestContextMock = new();
+        _ = Services.AddSingleton(requestContextMock.Object);
 
         Mock<IIdentityServerInteractionService> identityInteractionMock = new();
         _ = Services.AddSingleton(identityInteractionMock.Object);
@@ -127,11 +131,22 @@ internal sealed class InterfaceTestContext : TestContext
             personalAccessTokenServiceMock,
             authenticationClientsServiceMock,
             requestIdentitiesServiceMock,
+            requestContextMock,
             userStoreMock,
             userManagerMock,
             signInManager,
             httpContext,
             httpClientFactoryMock);
+    }
+
+    public new void Dispose()
+    {
+        base.DisposeAsync().AsTask().GetAwaiter().GetResult();
+    }
+
+    public new ValueTask DisposeAsync()
+    {
+        return base.DisposeAsync();
     }
 
     public void SetupOtpModules()

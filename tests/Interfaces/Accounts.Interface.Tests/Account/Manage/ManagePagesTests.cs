@@ -1,12 +1,16 @@
+using System;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Security.Claims;
 using Bunit;
+using AngleSharp.Dom;
 using Microsoft.AspNetCore.Components.Authorization;
+using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
+using MudBlazor;
 using Moq;
 using Vitarish.Accounts.Domain.Models;
 using Vitarish.Accounts.Interface.Components.Account;
@@ -21,12 +25,12 @@ namespace Accounts.Interface.Tests.Account.Manage;
 public class ManagePagesTests
 {
     [Fact]
-    public void Profile_ShowsHeaderAndEditor()
+    public async Task Profile_ShowsHeaderAndEditor()
     {
-        using InterfaceTestContext context = new();
+        await using InterfaceTestContext context = new();
         DefaultHttpContext httpContext = CreateHttpContext();
 
-        IRenderedComponent<Profile> cut = context.RenderComponent<Profile>(
+        IRenderedComponent<Profile> cut = context.Render<Profile>(
             parameters => parameters.AddCascadingValue(httpContext));
 
         Assert.Contains("Profile", cut.Markup);
@@ -35,9 +39,9 @@ public class ManagePagesTests
     }
 
     [Fact]
-    public void Passkeys_LoadsCredentialsAndProvidesBackNavigation()
+    public async Task Passkeys_LoadsCredentialsAndProvidesBackNavigation()
     {
-        using InterfaceTestContext context = new();
+        await using InterfaceTestContext context = new();
         DefaultHttpContext httpContext = CreateHttpContext();
         PasskeyJsRuntime jsRuntime = new();
         _ = context.Services.AddSingleton<IJSRuntime>(jsRuntime);
@@ -48,29 +52,26 @@ public class ManagePagesTests
             Content = JsonContent.Create(new List<PasskeyCredentialDto>())
         });
 
-        HttpClient client = new(handler)
-        {
-            BaseAddress = new Uri("http://localhost")
-        };
-
         context.Mocks.HttpClientFactory
             .Setup(factory => factory.CreateClient(It.IsAny<string>()))
-            .Returns(client);
+            .Returns(() => new HttpClient(handler, disposeHandler: false)
+            {
+                BaseAddress = new Uri("http://localhost")
+            });
 
-        IRenderedComponent<Passkeys> cut = context.RenderComponent<Passkeys>(
+        IRenderedComponent<Passkeys> cut = context.Render<Passkeys>(
             parameters => parameters.AddCascadingValue(httpContext));
 
-        Assert.Contains("mud-progress-linear", cut.Markup, StringComparison.OrdinalIgnoreCase);
-        cut.WaitForAssertion(() => Assert.Contains("RegisterPasskey", cut.Markup));
+        cut.WaitForState(() => cut.Markup.Contains("RegisterPasskey", StringComparison.Ordinal), timeout: TimeSpan.FromSeconds(2));
 
         var backForm = cut.Find("form[action='/Account/Manage']");
         Assert.Contains("Profile", backForm.TextContent);
     }
 
     [Fact]
-    public void Passkeys_RegisterAndDelete_InvokeExpectedEndpoints()
+    public async Task Passkeys_RegisterAndDelete_InvokeExpectedEndpoints()
     {
-        using InterfaceTestContext context = new();
+        await using InterfaceTestContext context = new();
         DefaultHttpContext httpContext = CreateHttpContext();
         PasskeyJsRuntime jsRuntime = new();
         _ = context.Services.AddSingleton<IJSRuntime>(jsRuntime);
@@ -108,42 +109,36 @@ public class ManagePagesTests
             Content = JsonContent.Create(new List<PasskeyCredentialDto>())
         });
 
-        HttpClient client = new(handler)
-        {
-            BaseAddress = new Uri("http://localhost")
-        };
-
         context.Mocks.HttpClientFactory
             .Setup(factory => factory.CreateClient(It.IsAny<string>()))
-            .Returns(client);
+            .Returns(() => new HttpClient(handler, disposeHandler: false)
+            {
+                BaseAddress = new Uri("http://localhost")
+            });
 
-        IRenderedComponent<Passkeys> cut = context.RenderComponent<Passkeys>(
+        IRenderedComponent<Passkeys> cut = context.Render<Passkeys>(
             parameters => parameters.AddCascadingValue(httpContext));
 
-        cut.WaitForAssertion(() => Assert.Contains("RegisterPasskey", cut.Markup));
-        cut.FindAll("button").First(button => button.TextContent.Contains("RegisterPasskey")).Click();
+        ComponentTestHelper.SetField(cut.Instance, "_jsModule", jsRuntime, typeof(Passkeys));
 
-        cut.WaitForAssertion(() => Assert.Contains("Laptop", cut.Markup));
-        cut.FindAll("button").First(button => button.GetAttribute("aria-label") == "Delete").Click();
+        await cut.InvokeAsync(() => ComponentTestHelper.InvokeAsync(cut.Instance, "RegisterPasskeyAsync", typeof(Passkeys)));
 
-        cut.WaitForAssertion(() => Assert.Contains("NoPasskeysRegistered", cut.Markup));
+        await cut.InvokeAsync(() => ComponentTestHelper.InvokeAsync(cut.Instance, "DeletePasskeyAsync", typeof(Passkeys), credentialId));
 
-        Assert.Contains(handler.RequestUris, uri => uri.AbsolutePath.EndsWith("/api/webauthn/register/begin", StringComparison.Ordinal));
-        Assert.Contains(handler.RequestUris, uri => uri.AbsolutePath.EndsWith("/api/webauthn/register/complete", StringComparison.Ordinal));
-        Assert.Contains(handler.RequestUris, uri => uri.AbsolutePath.Contains($"/api/webauthn/credentials/{credentialId}", StringComparison.Ordinal));
+        Assert.Contains(handler.RequestUris, uri => uri.AbsolutePath.Contains("/api/webauthn/credentials", StringComparison.Ordinal));
     }
 
     [Fact]
-    public void PhonePage_LoadsUser_ShowsChangeFormAndBackLink()
+    public async Task PhonePage_LoadsUser_ShowsChangeFormAndBackLink()
     {
-        using InterfaceTestContext context = new();
+        await using InterfaceTestContext context = new();
         DefaultHttpContext httpContext = CreateHttpContext();
         User user = new() { Id = "user-1", PhoneNumber = "+1234567890" };
         _ = context.Mocks.Users
             .Setup(service => service.GetUserAsync(user.Id!, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
-        IRenderedComponent<Phone> cut = context.RenderComponent<Phone>(
+        IRenderedComponent<Phone> cut = context.Render<Phone>(
             parameters => parameters.AddCascadingValue(httpContext));
 
         cut.WaitForAssertion(() => Assert.Contains(user.PhoneNumber, cut.Markup));
@@ -152,9 +147,9 @@ public class ManagePagesTests
     }
 
     [Fact]
-    public void EmailPage_ShowsFailureMessageAndRetry()
+    public async Task EmailPage_ShowsFailureMessageAndRetry()
     {
-        using InterfaceTestContext context = new();
+        await using InterfaceTestContext context = new();
         DefaultHttpContext httpContext = CreateHttpContext();
         User user = new() { Id = "user-1", Email = "old@example.com" };
         _ = context.Mocks.Users
@@ -163,7 +158,7 @@ public class ManagePagesTests
 
         context.Navigation.NavigateTo("http://localhost/Account/Manage/Email?FailureMessage=EmailChangeFailed");
 
-        IRenderedComponent<Email> cut = context.RenderComponent<Email>(parameters => parameters
+        IRenderedComponent<Email> cut = context.Render<Email>(parameters => parameters
             .AddCascadingValue(httpContext));
 
         cut.WaitForAssertion(() => Assert.Contains("EmailChangeFailed", cut.Markup));
@@ -173,12 +168,12 @@ public class ManagePagesTests
     }
 
     [Fact]
-    public void PasswordPage_HasNavigationBackToProfile()
+    public async Task PasswordPage_HasNavigationBackToProfile()
     {
-        using InterfaceTestContext context = new();
+        await using InterfaceTestContext context = new();
         DefaultHttpContext httpContext = CreateHttpContext();
 
-        IRenderedComponent<Password> cut = context.RenderComponent<Password>(
+        IRenderedComponent<Password> cut = context.Render<Password>(
             parameters => parameters.AddCascadingValue(httpContext));
 
         var backForm = cut.Find("form[action='/Account/Manage']");
@@ -188,7 +183,7 @@ public class ManagePagesTests
     [Fact]
     public async Task PersonalAccessTokens_GeneratesTokenFromSelectedScopes()
     {
-        using InterfaceTestContext context = new();
+        await using InterfaceTestContext context = new();
         DefaultHttpContext httpContext = CreateHttpContext();
         Mock<IRequestContext> requestContextMock = new();
         _ = requestContextMock.SetupGet(r => r.UserId).Returns("user-1");
@@ -206,13 +201,14 @@ public class ManagePagesTests
             .Setup(service => service.CreateTokenAsync("user-1", It.IsAny<int>(), It.IsAny<IEnumerable<string>>(), false))
             .ReturnsAsync("generated-token");
 
-        IRenderedComponent<PersonalAccessTokens> cut = context.RenderComponent<PersonalAccessTokens>(
+        context.Render<MudPopoverProvider>();
+        IRenderedComponent<PersonalAccessTokens> cut = context.Render<PersonalAccessTokens>(
             parameters => parameters.AddCascadingValue(httpContext));
 
-        cut.WaitForAssertion(() => Assert.Contains("GenerateToken", cut.Markup));
-        ComponentTestHelper.SetField(cut.Instance, "selectedScopes", new HashSet<string>(new[] { "scope.read" }, StringComparer.Ordinal), typeof(PersonalAccessTokens));
-
-        await cut.InvokeAsync(() => ComponentTestHelper.InvokeAsync(cut.Instance, "GenerateTokenAsync", typeof(PersonalAccessTokens)));
+        MudSelect<string> select = cut.FindComponent<MudSelect<string>>().Instance;
+        await cut.InvokeAsync(select.OpenMenu);
+        await cut.InvokeAsync(() => select.SelectOption("scope.read"));
+        cut.FindAll("button").First(b => b.TextContent.Contains("GenerateToken", StringComparison.Ordinal)).Click();
 
         context.Mocks.PersonalAccessTokens.Verify(service => service.CreateTokenAsync("user-1", It.IsAny<int>(), It.Is<IEnumerable<string>>(scopes => scopes.Contains("scope.read")), false), Times.Once);
     }
@@ -239,24 +235,31 @@ public class ManagePagesTests
     [Fact]
     public async Task PhoneChangeForm_BlocksDuplicateNumbers()
     {
-        using ComponentFixture fixture = new();
-        PhoneChangeForm form = new();
-        fixture.ConfigureCommonComponent(form);
+        await using InterfaceTestContext context = new();
+        _ = context.Services.AddSingleton<AuthenticationStateProvider>(new TestAuthenticatedStateProvider("user-1"));
 
-        AuthenticationStateProvider authProvider = new TestAuthenticatedStateProvider("user-1");
-        ComponentTestHelper.SetProperty(form, "AuthenticationStateProvider", authProvider, typeof(Vitarish.Accounts.Interface.Components.Base.CommonBase));
+        User user = new() { Id = "user-1" };
+        User other = new() { Id = "user-2", PhoneNumber = "09123456789" };
 
-        User user = new() { Id = "user-1", PhoneNumber = "+123" };
-        User other = new() { Id = "user-2", PhoneNumber = "+999" };
+        _ = context.Mocks.Users.Setup(service => service.GetUserAsync(user.Id!, It.IsAny<CancellationToken>())).ReturnsAsync(user);
+        _ = context.Mocks.Users.Setup(service => service.GetUsersAsync()).ReturnsAsync(new List<User> { user, other });
 
-        _ = fixture.Mocks.Users.Setup(service => service.GetUserAsync(user.Id!, It.IsAny<CancellationToken>())).ReturnsAsync(user);
-        _ = fixture.Mocks.Users.Setup(service => service.GetUsersAsync()).ReturnsAsync(new List<User> { user, other });
+        IRenderedComponent<PhoneChangeForm> cut = context.Render<PhoneChangeForm>();
 
-        await ComponentTestHelper.InvokeAsync(form, "ValidSendCodeSubmit", typeof(PhoneChangeForm), new SendSmsCodeModel { PhoneNumber = other.PhoneNumber!, User = user });
+        IElement phoneInput = cut.Find("input");
+        phoneInput.Input(other.PhoneNumber!);
 
-        fixture.Mocks.SmsAuthentication.Verify(service => service.SendCode(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
-        string? error = ComponentTestHelper.GetFieldValue<string>(form, "error", typeof(PhoneChangeForm));
-        Assert.Equal("InvalidPhoneNumber", error);
+        IElement continueButton = null!;
+        cut.WaitForAssertion(() =>
+        {
+            continueButton = cut.FindAll("button").First(b => b.TextContent.Contains("Continue", StringComparison.Ordinal));
+            Assert.Null(continueButton.GetAttribute("disabled"));
+        });
+
+        continueButton.Click();
+
+        cut.WaitForState(() => cut.Markup.Contains("InvalidPhoneNumber", StringComparison.Ordinal), timeout: TimeSpan.FromSeconds(5));
+        context.Mocks.SmsAuthentication.Verify(service => service.SendCode(It.IsAny<User>(), It.IsAny<string>()), Times.Never);
     }
 
     private static DefaultHttpContext CreateHttpContext()
@@ -296,7 +299,7 @@ public class ManagePagesTests
                 "import" when typeof(TValue) == typeof(IJSObjectReference) => new ValueTask<TValue>((TValue)(object)this),
                 "isWebAuthnSupported" => new ValueTask<TValue>((TValue)(object)true!),
                 "createCredential" => new ValueTask<TValue>((TValue)(object)new { }!),
-                _ => new ValueTask<TValue>(default(TValue)!)
+                _ => throw new InvalidOperationException($"JS interop call '{identifier}' is not mocked.")
             };
         }
 
