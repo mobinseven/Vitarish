@@ -18,7 +18,7 @@ internal static class SeaApiEndpoints
             throw new InvalidOperationException("SeaModule requires a WebApplication for endpoint configuration.");
         }
 
-        RouteGroupBuilder group = app.MapGroup("/api/sea").WithTags("Sea");
+        RouteGroupBuilder group = app.MapGroup("/api/sea").WithTags("Sea").RequireAuthorization();
 
         MapProjects(group);
         MapProcedures(group);
@@ -252,7 +252,7 @@ internal static class SeaApiEndpoints
             return Results.NoContent();
         });
 
-        _ = group.MapDelete("/events/{eventId:guid}/roles", async (Guid eventId, [FromBody] AssignEventRoleRequest request, IEventRolesService service, CancellationToken ct) =>
+        _ = group.MapPost("/events/{eventId:guid}/roles/unassign", async (Guid eventId, [FromBody] AssignEventRoleRequest request, IEventRolesService service, CancellationToken ct) =>
         {
             await service.UnassignAsync(eventId, request.RoleId, request.IsWrite, ct);
             return Results.NoContent();
@@ -288,7 +288,7 @@ internal static class SeaApiEndpoints
             return Results.NoContent();
         });
 
-        _ = group.MapDelete("/user-roles", async ([FromBody] AssignUserRoleRequest request, IUserRolesService service, CancellationToken ct) =>
+        _ = group.MapPost("/user-roles/remove", async ([FromBody] AssignUserRoleRequest request, IUserRolesService service, CancellationToken ct) =>
         {
             await service.RemoveAsync(request.UserId, request.RoleId, ct);
             return Results.NoContent();
@@ -381,7 +381,7 @@ internal static class SeaApiEndpoints
         _ = group.MapGet("/receipts/{userId:guid}/{objectId:guid}", async (Guid userId, Guid objectId, IReceiptsService service, CancellationToken ct) =>
         {
             bool hasReceipt = await service.GetAsync(userId, objectId, ct);
-            return Results.Ok(hasReceipt);
+            return Results.Ok(new { hasReceipt });
         });
     }
 
@@ -429,18 +429,6 @@ internal static class SeaApiEndpoints
         _ = group.MapPut("/usage-configuration", async ([FromBody] UsageConfigurationDto dto, IUsageConfigurationService service, CancellationToken ct) =>
         {
             UsageConfigurationDto? config = await service.UpdateAsync(dto, ct);
-            return config is null ? Results.BadRequest() : Results.Ok(config);
-        });
-
-        _ = group.MapGet("/usage-configuration/raw", async (IUsageConfigurationRepository repo, CancellationToken ct) =>
-        {
-            UsageConfiguration? config = await repo.GetAsync(ct);
-            return config is null ? Results.NotFound() : Results.Ok(config);
-        });
-
-        _ = group.MapPut("/usage-configuration/raw", async ([FromBody] UsageConfiguration entity, IUsageConfigurationRepository repo, CancellationToken ct) =>
-        {
-            UsageConfiguration? config = await repo.UpdateAsync(entity, ct);
             return config is null ? Results.BadRequest() : Results.Ok(config);
         });
     }

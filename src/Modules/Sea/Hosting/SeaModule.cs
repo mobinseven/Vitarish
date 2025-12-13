@@ -10,7 +10,7 @@ namespace Vitarish.Sea.Hosting;
 /// <summary>
 /// Module wiring for the Sea stack using the shared module contracts.
 /// </summary>
-public sealed class SeaModule : ModuleBase
+public class SeaModule : ModuleBase
 {
     private readonly Action<DbContextOptionsBuilder>? configureDbContext;
 
