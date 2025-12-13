@@ -11,7 +11,7 @@ public partial class PhoneChangeForm : CommonBase
     private User? User = null;
     private string? PhoneNumber = null;
     private string? error = null;
-    private async void ValidSendCodeSubmit(SendSmsCodeModel model)
+    private async Task ValidSendCodeSubmit(SendSmsCodeModel model)
     {
         ClaimsPrincipal = (await AuthenticationStateProvider.GetAuthenticationStateAsync()).User;
         if (ClaimsPrincipal.Identity?.IsAuthenticated ?? false)
@@ -31,6 +31,7 @@ public partial class PhoneChangeForm : CommonBase
                 else
                 {
                     await SmsAuthenticationService.SendCode(User, model.PhoneNumber);
+                    error = null;
                     PhoneNumber = model.PhoneNumber;
                 }
             }
@@ -39,34 +40,7 @@ public partial class PhoneChangeForm : CommonBase
         {
             throw new InvalidOperationException("Non-authenticated user accessing a authenticated user form");
         }
-        StateHasChanged();
-    }
-    protected async Task ValidVerifyCodeSubmit(VerifySmsCodeModel model)
-    {
-        ClaimsPrincipal = (await AuthenticationStateProvider.GetAuthenticationStateAsync()).User;
-        if (ClaimsPrincipal!.Identity?.IsAuthenticated ?? false)
-        {
-            if (await SmsAuthenticationService.VerifyCode(User!, model.Code))
-            {
-                Dictionary<string, object?> queryParams = new()
-                {
-                    [nameof(User.Id)] = User!.Id,
-                    [nameof(PhoneNumber)] = CipherService.Encrypt(PhoneNumber!),
-                    [nameof(ReturnUrl)] = WebUtility.UrlEncode(ReturnUrl ?? ""),
-                    [nameof(FailureUrl)] = WebUtility.UrlEncode(FailureUrl ?? ""),
-                };
-                RedirectManager.RedirectTo("/Account/Manage/PhoneVerified", queryParams);
-            }
-            else
-            {
-                error = Localizer["WrongCode"];
-            }
-        }
-        else
-        {
-            throw new InvalidOperationException("Non-authenticated user accessing a authenticated user form");
-        }
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
 }

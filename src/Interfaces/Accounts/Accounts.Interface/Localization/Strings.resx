@@ -198,6 +198,9 @@
   <data name="PhoneChangeFailed" xml:space="preserve">
     <value>Phone change failed</value>
   </data>
+  <data name="PhoneChangeSuccess" xml:space="preserve">
+    <value>Phone number updated</value>
+  </data>
   <data name="Cancel" xml:space="preserve">
     <value>Cancel</value>
   </data>

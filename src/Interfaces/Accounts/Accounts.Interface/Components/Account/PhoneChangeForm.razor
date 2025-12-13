@@ -9,6 +9,8 @@
 else if (User is not null && PhoneNumber is not null)
 {
     <PhoneVerificationVerify PhoneNumber="@PhoneNumber"
-    User="@User"
-    OnValidSubmit="@ValidVerifyCodeSubmit" />
+                             User="@User"
+                             ReturnUrl="@ReturnUrl"
+                             FailureUrl="@FailureUrl"
+                             Action="/Account/Manage/Phone/Submit" />
 }
