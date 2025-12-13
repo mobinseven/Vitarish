@@ -11,7 +11,7 @@
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.*" />
 	</ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Sea.Domain\Sea.Domain.csproj" />
+    <ProjectReference Include="..\Domain\Sea.Domain.csproj" />
   </ItemGroup>
 
 </Project>

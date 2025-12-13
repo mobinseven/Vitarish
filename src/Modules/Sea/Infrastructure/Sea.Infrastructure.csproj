@@ -28,7 +28,7 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Identity\Requests\Application\Requests.Application.csproj" />
-		<ProjectReference Include="..\Sea.Application\Sea.Application.csproj" />
+		<ProjectReference Include="..\Application\Sea.Application.csproj" />
 	</ItemGroup>
 
 </Project>

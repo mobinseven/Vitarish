@@ -9,7 +9,6 @@ using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Hosting.Hubs;
 using Vitarish.Files.Infrastructure.Data;
-using Vitarish.Files.Infrastructure.Extensions;
 using Vitarish.Files.Infrastructure.Interfaces;
 using Vitarish.Files.Infrastructure.Services;
 
