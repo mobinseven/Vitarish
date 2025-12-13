@@ -26,5 +26,7 @@ namespace Vitarish.Accounts.Interface.Components.Base
         [Inject] protected IEmailAuthenticationService EmailAuthenticationService { get; set; } = default!;
         [Inject] protected ISmsAuthenticationService SmsAuthenticationService { get; set; } = default!;
         [Inject] protected AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
+        [Inject] protected IHttpClientFactory HttpClientFactory { get; set; } = default!;
+        [Inject] protected ILoggerFactory LoggerFactory { get; set; } = default!;
     }
 }

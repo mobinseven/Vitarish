@@ -26,6 +26,13 @@
                 @Localizer["LoginViaPhone"]
             </MudButton>
         </form>
+        <form method="get"
+              action="Account/Login/Passkey">
+            <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
+            <MudButton FullWidth="true" ButtonType="ButtonType.Submit">
+                @Localizer["LoginViaPasskey"]
+            </MudButton>
+        </form>
     </NotAuthorized>
     <Authorized>
         <form method="get" action="@(ReturnUrl)">

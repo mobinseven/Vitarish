@@ -39,6 +39,7 @@ internal sealed class InterfaceTestContext : TestContext
         _ = Services.AddSingleton<IStringLocalizer>(new TestStringLocalizer());
         _ = Services.AddSingleton<AuthenticationStateProvider>(new TestAuthenticationStateProvider());
         _ = Services.AddSingleton<IJSRuntime>(new TestJsRuntime());
+        _ = Services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
         _ = Services.AddScoped(sp => new IdentityRedirectManager(
             sp.GetRequiredService<NavigationManager>(),
             NullLogger<IdentityRedirectManager>.Instance));
@@ -112,6 +113,10 @@ internal sealed class InterfaceTestContext : TestContext
             confirmationMock.Object);
         _ = Services.AddSingleton<SignInManager<User>>(signInManager);
 
+        Mock<IHttpClientFactory> httpClientFactoryMock = new();
+        _ = httpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(new HttpClient());
+        _ = Services.AddSingleton(httpClientFactoryMock.Object);
+
         Mocks = new ServiceMocks(
             cipherMock,
             usersServiceMock,
@@ -125,7 +130,8 @@ internal sealed class InterfaceTestContext : TestContext
             userStoreMock,
             userManagerMock,
             signInManager,
-            httpContext);
+            httpContext,
+            httpClientFactoryMock);
     }
 
     public void SetupOtpModules()

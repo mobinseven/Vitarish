@@ -480,4 +480,52 @@
   <data name="DnsTxtRecordInstruction" xml:space="preserve">
     <value>Add the following TXT record to the DNS records:</value>
   </data>
+  <data name="LoginViaPasskey" xml:space="preserve">
+    <value>Login Via Passkey</value>
+  </data>
+  <data name="Passkeys" xml:space="preserve">
+    <value>Passkeys</value>
+  </data>
+  <data name="PasskeyNotSupported" xml:space="preserve">
+    <value>Passkeys are not supported in this browser</value>
+  </data>
+  <data name="PasskeyAuthenticationCancelled" xml:space="preserve">
+    <value>Passkey authentication was cancelled</value>
+  </data>
+  <data name="RegisterNewPasskey" xml:space="preserve">
+    <value>Register New Passkey</value>
+  </data>
+  <data name="PasskeyName" xml:space="preserve">
+    <value>Passkey Name</value>
+  </data>
+  <data name="RegisterPasskey" xml:space="preserve">
+    <value>Register Passkey</value>
+  </data>
+  <data name="RegisteredPasskeys" xml:space="preserve">
+    <value>Registered Passkeys</value>
+  </data>
+  <data name="RegisteredAt" xml:space="preserve">
+    <value>Registered At</value>
+  </data>
+  <data name="LastUsedAt" xml:space="preserve">
+    <value>Last Used At</value>
+  </data>
+  <data name="UnnamedPasskey" xml:space="preserve">
+    <value>Unnamed Passkey</value>
+  </data>
+  <data name="NoPasskeysRegistered" xml:space="preserve">
+    <value>No passkeys registered yet</value>
+  </data>
+  <data name="PasskeyRegistered" xml:space="preserve">
+    <value>Passkey registered successfully</value>
+  </data>
+  <data name="PasskeyRegistrationFailed" xml:space="preserve">
+    <value>Failed to register passkey</value>
+  </data>
+  <data name="PasskeyRegistrationCancelled" xml:space="preserve">
+    <value>Passkey registration was cancelled</value>
+  </data>
+  <data name="PasskeyDeleted" xml:space="preserve">
+    <value>Passkey deleted</value>
+  </data>
 </root>

@@ -441,4 +441,52 @@
   <data name="TokenCreationFailed" xml:space="preserve">
     <value>ایجاد توکن دسترسی شخصی ناموفق بود.</value>
   </data>
+  <data name="LoginViaPasskey" xml:space="preserve">
+    <value>ورود با کلید عبور</value>
+  </data>
+  <data name="Passkeys" xml:space="preserve">
+    <value>کلیدهای عبور</value>
+  </data>
+  <data name="PasskeyNotSupported" xml:space="preserve">
+    <value>کلید عبور در این مرورگر پشتیبانی نمی‌شود</value>
+  </data>
+  <data name="PasskeyAuthenticationCancelled" xml:space="preserve">
+    <value>احراز هویت با کلید عبور لغو شد</value>
+  </data>
+  <data name="RegisterNewPasskey" xml:space="preserve">
+    <value>ثبت کلید عبور جدید</value>
+  </data>
+  <data name="PasskeyName" xml:space="preserve">
+    <value>نام کلید عبور</value>
+  </data>
+  <data name="RegisterPasskey" xml:space="preserve">
+    <value>ثبت کلید عبور</value>
+  </data>
+  <data name="RegisteredPasskeys" xml:space="preserve">
+    <value>کلیدهای عبور ثبت شده</value>
+  </data>
+  <data name="RegisteredAt" xml:space="preserve">
+    <value>تاریخ ثبت</value>
+  </data>
+  <data name="LastUsedAt" xml:space="preserve">
+    <value>آخرین استفاده</value>
+  </data>
+  <data name="UnnamedPasskey" xml:space="preserve">
+    <value>کلید عبور بدون نام</value>
+  </data>
+  <data name="NoPasskeysRegistered" xml:space="preserve">
+    <value>هنوز کلید عبوری ثبت نشده است</value>
+  </data>
+  <data name="PasskeyRegistered" xml:space="preserve">
+    <value>کلید عبور با موفقیت ثبت شد</value>
+  </data>
+  <data name="PasskeyRegistrationFailed" xml:space="preserve">
+    <value>ثبت کلید عبور ناموفق بود</value>
+  </data>
+  <data name="PasskeyRegistrationCancelled" xml:space="preserve">
+    <value>ثبت کلید عبور لغو شد</value>
+  </data>
+  <data name="PasskeyDeleted" xml:space="preserve">
+    <value>کلید عبور حذف شد</value>
+  </data>
 </root>

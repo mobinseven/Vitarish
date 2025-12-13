@@ -18,6 +18,7 @@ global using MudBlazor;
 global using MudBlazor.Services;
 global using System.ComponentModel.DataAnnotations;
 global using System.Net;
+global using System.Net.Http;
 global using System.Security.Claims;
 global using System.Text.RegularExpressions;
 global using Vitarish.ApiClients.Application.Abstractions;
