@@ -14,6 +14,7 @@ public partial class EmailChangeForm : CommonBase
 
     private async void ValidSendCodeSubmit(SendEmailCodeModel model)
     {
+        error = null;
         ClaimsPrincipal = (await AuthenticationStateProvider.GetAuthenticationStateAsync()).User;
         if (ClaimsPrincipal.Identity?.IsAuthenticated ?? false)
         {
@@ -34,34 +35,6 @@ public partial class EmailChangeForm : CommonBase
                     await EmailAuthenticationService.SendCode(User, model.Email);
                     Email = model.Email;
                 }
-            }
-        }
-        else
-        {
-            throw new InvalidOperationException("Non-authenticated user accessing a authenticated user form");
-        }
-        StateHasChanged();
-    }
-
-    protected async Task ValidVerifyCodeSubmit(VerifyEmailCodeModel model)
-    {
-        ClaimsPrincipal = (await AuthenticationStateProvider.GetAuthenticationStateAsync()).User;
-        if (ClaimsPrincipal!.Identity?.IsAuthenticated ?? false)
-        {
-            if (await EmailAuthenticationService.VerifyCode(User!, model.Code))
-            {
-                Dictionary<string, object?> queryParams = new()
-                {
-                    [nameof(User.Id)] = User!.Id,
-                    [nameof(Email)] = CipherService.Encrypt(Email!),
-                    [nameof(ReturnUrl)] = WebUtility.UrlEncode(ReturnUrl ?? ""),
-                    [nameof(FailureUrl)] = WebUtility.UrlEncode(FailureUrl ?? ""),
-                };
-                RedirectManager.RedirectTo("/Account/Manage/EmailVerified", queryParams);
-            }
-            else
-            {
-                error = Localizer["WrongCode"];
             }
         }
         else
