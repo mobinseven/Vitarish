@@ -6,13 +6,18 @@ namespace Vitarish.Accounts.Interface.Pages.Account.Manage;
 public partial class Passkeys : IAsyncDisposable
 {
     private List<PasskeyCredentialDto> Credentials { get; set; } = [];
-    private string NewPasskeyName { get; set; } = string.Empty;
     private bool IsLoading { get; set; } = true;
     private bool IsRegistering { get; set; }
     private bool IsDeletingCredential { get; set; }
     private bool IsSupported { get; set; }
 
     private IJSObjectReference? _jsModule;
+    private ILogger<Passkeys>? _logger;
+
+    protected override void OnInitialized()
+    {
+        _logger = LoggerFactory.CreateLogger<Passkeys>();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -25,8 +30,9 @@ public partial class Passkeys : IAsyncDisposable
                     "./_content/Vitarish.Accounts.Interface/Components/Account/WebAuthnInterop.razor.js");
                 IsSupported = await _jsModule.InvokeAsync<bool>("isWebAuthnSupported");
             }
-            catch
+            catch (Exception ex)
             {
+                _logger?.LogWarning(ex, "Failed to initialize WebAuthn support check");
                 IsSupported = false;
             }
 
@@ -53,11 +59,13 @@ public partial class Passkeys : IAsyncDisposable
             }
             else
             {
+                _logger?.LogWarning("Failed to load WebAuthn credentials. Status: {StatusCode}", response.StatusCode);
                 Snackbar.Add(Localizer["Error"], Severity.Error);
             }
         }
-        catch
+        catch (Exception ex)
         {
+            _logger?.LogError(ex, "Error loading WebAuthn credentials");
             Snackbar.Add(Localizer["Error"], Severity.Error);
         }
         finally
@@ -86,6 +94,7 @@ public partial class Passkeys : IAsyncDisposable
 
             if (!beginResponse.IsSuccessStatusCode)
             {
+                _logger?.LogWarning("Failed to begin WebAuthn registration. Status: {StatusCode}", beginResponse.StatusCode);
                 Snackbar.Add(Localizer["PasskeyRegistrationFailed"], Severity.Error);
                 return;
             }
@@ -106,20 +115,22 @@ public partial class Passkeys : IAsyncDisposable
             if (completeResponse.IsSuccessStatusCode)
             {
                 Snackbar.Add(Localizer["PasskeyRegistered"], Severity.Success);
-                NewPasskeyName = string.Empty;
                 await LoadCredentialsAsync();
             }
             else
             {
+                _logger?.LogWarning("Failed to complete WebAuthn registration. Status: {StatusCode}", completeResponse.StatusCode);
                 Snackbar.Add(Localizer["PasskeyRegistrationFailed"], Severity.Error);
             }
         }
-        catch (JSException)
+        catch (JSException ex)
         {
+            _logger?.LogInformation(ex, "WebAuthn registration cancelled by user");
             Snackbar.Add(Localizer["PasskeyRegistrationCancelled"], Severity.Warning);
         }
-        catch
+        catch (Exception ex)
         {
+            _logger?.LogError(ex, "Error during WebAuthn registration");
             Snackbar.Add(Localizer["PasskeyRegistrationFailed"], Severity.Error);
         }
         finally
@@ -148,11 +159,13 @@ public partial class Passkeys : IAsyncDisposable
             }
             else
             {
+                _logger?.LogWarning("Failed to delete WebAuthn credential {CredentialId}. Status: {StatusCode}", credentialId, response.StatusCode);
                 Snackbar.Add(Localizer["Error"], Severity.Error);
             }
         }
-        catch
+        catch (Exception ex)
         {
+            _logger?.LogError(ex, "Error deleting WebAuthn credential {CredentialId}", credentialId);
             Snackbar.Add(Localizer["Error"], Severity.Error);
         }
         finally

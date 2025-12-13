@@ -7,7 +7,6 @@ namespace Vitarish.Accounts.Interface.Components.Account;
 public partial class WebAuthnLoginForm : CommonBase, IAsyncDisposable
 {
     [Parameter] public string? ReturnUrl { get; set; }
-    [Parameter] public string? FailureUrl { get; set; }
 
     private string Username { get; set; } = string.Empty;
     private string? ErrorMessage { get; set; }
@@ -15,6 +14,12 @@ public partial class WebAuthnLoginForm : CommonBase, IAsyncDisposable
     private bool IsSupported { get; set; }
 
     private IJSObjectReference? _jsModule;
+    private ILogger<WebAuthnLoginForm>? _logger;
+
+    protected override void OnInitialized()
+    {
+        _logger = LoggerFactory.CreateLogger<WebAuthnLoginForm>();
+    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -28,8 +33,9 @@ public partial class WebAuthnLoginForm : CommonBase, IAsyncDisposable
                 IsSupported = await _jsModule.InvokeAsync<bool>("isWebAuthnSupported");
                 StateHasChanged();
             }
-            catch
+            catch (Exception ex)
             {
+                _logger?.LogWarning(ex, "Failed to initialize WebAuthn support check");
                 IsSupported = false;
                 StateHasChanged();
             }
@@ -87,12 +93,14 @@ public partial class WebAuthnLoginForm : CommonBase, IAsyncDisposable
                 ErrorMessage = Localizer["InvalidLoginAttempt"];
             }
         }
-        catch (JSException)
+        catch (JSException ex)
         {
+            _logger?.LogInformation(ex, "WebAuthn authentication cancelled by user for username: {Username}", Username);
             ErrorMessage = Localizer["PasskeyAuthenticationCancelled"];
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            _logger?.LogError(ex, "WebAuthn authentication failed for username: {Username}", Username);
             ErrorMessage = Localizer["InvalidLoginAttempt"];
         }
         finally

@@ -39,6 +39,7 @@ internal sealed class InterfaceTestContext : TestContext
         _ = Services.AddSingleton<IStringLocalizer>(new TestStringLocalizer());
         _ = Services.AddSingleton<AuthenticationStateProvider>(new TestAuthenticationStateProvider());
         _ = Services.AddSingleton<IJSRuntime>(new TestJsRuntime());
+        _ = Services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
         _ = Services.AddScoped(sp => new IdentityRedirectManager(
             sp.GetRequiredService<NavigationManager>(),
             NullLogger<IdentityRedirectManager>.Instance));

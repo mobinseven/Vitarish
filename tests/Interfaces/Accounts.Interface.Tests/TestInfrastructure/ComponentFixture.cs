@@ -126,6 +126,7 @@ internal sealed class ComponentFixture : IDisposable
         SetProperty(component, "SmsAuthenticationService", Mocks.SmsAuthentication.Object, typeof(CommonBase));
         SetProperty(component, "AuthenticationStateProvider", AuthenticationState, typeof(CommonBase));
         SetProperty(component, "HttpClientFactory", Mocks.HttpClientFactory.Object, typeof(CommonBase));
+        SetProperty(component, "LoggerFactory", NullLoggerFactory.Instance, typeof(CommonBase));
     }
 
     private static void SetProperty(object instance, string propertyName, object value, Type declaringType)
