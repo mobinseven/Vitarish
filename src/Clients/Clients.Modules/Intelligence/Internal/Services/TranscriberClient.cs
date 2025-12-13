@@ -2,24 +2,12 @@ using Microsoft.AspNetCore.SignalR.Client;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using Vitarish.Clients.Identity.Abstractions;
-using Vitarish.Clients.Identity.Contracts;
 using Vitarish.Clients.Identity.Options;
 using Vitarish.Clients.Modules.Intelligence.Abstractions;
 using Vitarish.Clients.Modules.Intelligence.Contracts.Transcription;
 using Vitarish.Clients.Modules.Intelligence.Models;
 
 namespace Vitarish.Clients.Modules.Intelligence.Internal.Services;
-
-public class TranscriberClientDefinition(IIdentityClientSignalRFactory connectionFactory) : ISignalRClientDefinition
-{
-    public static void Configure(SignalRClientRegistration registration)
-    {
-        registration.ClientId = "/ai";
-        registration.ResourceId = "/hubs/speech";
-    }
-
-    public Task<HubConnection> CreateAsync(CancellationToken cancellationToken = default) => connectionFactory.CreateConnection<TranscriberClientDefinition>(cancellationToken);
-}
 internal sealed class TranscriberClient(IIdentityClientSignalRFactory connectionFactory) : ITranscriberClient, IAsyncDisposable
 {
     private HubConnection? connection;

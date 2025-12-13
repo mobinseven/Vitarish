@@ -1,23 +1,11 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using System.Runtime.CompilerServices;
 using Vitarish.Clients.Identity.Abstractions;
-using Vitarish.Clients.Identity.Contracts;
 using Vitarish.Clients.Identity.Options;
 using Vitarish.Clients.Modules.Intelligence.Abstractions;
 using Vitarish.Clients.Modules.Intelligence.Models;
 
 namespace Vitarish.Clients.Modules.Intelligence.Internal.Services;
-
-public class ResponderClientDefinition(IIdentityClientSignalRFactory connectionFactory) : ISignalRClientDefinition
-{
-    public static void Configure(SignalRClientRegistration registration)
-    {
-        registration.ClientId = "/ai";
-        registration.ResourceId = "/hubs/response";
-    }
-
-    public Task<HubConnection> CreateAsync(CancellationToken cancellationToken = default) => connectionFactory.CreateConnection<ResponderClientDefinition>(cancellationToken);
-}
 internal sealed class ResponderClient(IIdentityClientSignalRFactory connectionFactory) : IResponderClient, IAsyncDisposable
 {
     private HubConnection? connection;

@@ -1,20 +1,10 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Vitarish.Clients.Identity.Abstractions;
-using Vitarish.Clients.Identity.Contracts;
 using Vitarish.Clients.Modules.Communications.Abstractions;
 using Vitarish.Clients.Modules.Communications.Abstractions.Models;
 using Vitarish.Clients.Modules.Communications.Internal.Models;
 
 namespace Vitarish.Clients.Modules.Communications.Internal;
-
-public class MessageClientDefinition : ISignalRClientDefinition
-{
-    public static void Configure(SignalRClientRegistration registration)
-    {
-        registration.ClientId = "/communications";
-        registration.ResourceId = "/hubs/messages";
-    }
-}
 
 internal sealed class MessageClient(IIdentityClientSignalRFactory connectionFactory) : IMessageClient, IAsyncDisposable
 {
