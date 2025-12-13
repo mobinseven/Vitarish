@@ -31,6 +31,7 @@ internal static class SeaModuleConfiguration
 
     public static void ConfigureEndpoints(IEndpointRouteBuilder endpoints)
     {
+        endpoints.MapSeaEndpoints();
     }
 
     public static void ConfigureHealthChecks(IServiceCollection services) =>
