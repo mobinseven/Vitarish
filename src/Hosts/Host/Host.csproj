@@ -25,6 +25,7 @@
 		<ProjectReference Include="..\..\Modules\Instagram\Instagram.Hosting\Instagram.Hosting.csproj" />
 		<ProjectReference Include="..\..\Modules\Files\Hosting\Files.Hosting.csproj" />
 		<ProjectReference Include="..\..\Modules\Intelligence\Hosting\Intelligence.Hosting.csproj" />
+		<ProjectReference Include="..\..\Modules\Sea\Hosting\Sea.Hosting.csproj" />
 	</ItemGroup>
 
 </Project>
