@@ -9,6 +9,7 @@
         {
             <MudAlert Severity="Severity.Error">@FailureMessage</MudAlert>
         }
+        <AntiforgeryToken />
         <WebAuthnLoginForm @rendermode=@InteractiveServer ReturnUrl="@ReturnUrl" FailureUrl="@failureUrl" />
         <MudDivider Class="my-3" />
         <form method="get" action="/Account/Login/Phone">
