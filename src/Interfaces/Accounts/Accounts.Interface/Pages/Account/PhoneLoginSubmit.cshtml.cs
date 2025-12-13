@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
 using Vitarish.Accounts.Domain.Models;
 using Vitarish.Accounts.Interface.Localization;
+using Vitarish.Interfaces.Base.Extensions;
 using Vitarish.Users.Application.Abstractions;
 
 namespace Vitarish.Accounts.Interface.Pages.Account;

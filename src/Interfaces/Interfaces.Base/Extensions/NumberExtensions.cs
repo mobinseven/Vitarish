@@ -1,4 +1,4 @@
-namespace Vitarish.Interface.Infrastructure.Extensions;
+namespace Vitarish.Interfaces.Base.Extensions;
 
 public static class NumberExtensions
 {

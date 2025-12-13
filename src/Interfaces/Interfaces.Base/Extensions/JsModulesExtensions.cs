@@ -1,5 +1,5 @@
 using Microsoft.JSInterop;
-using Vitarish.Interface.Infrastructure.Extensions;
+using Vitarish.Interfaces.Base.Extensions;
 
 internal static class JsModulesExtensions
 {

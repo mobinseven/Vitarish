@@ -79,6 +79,7 @@ _ = builder.Services.AddMultiTenant<TenantInfo>()
             ? await MultitenantHelpers.ResolveTenantAsync(httpContext)
             : throw new InvalidOperationException("context is not HttpContext");
     });
+
 WebApplication app = builder.Build();
 app.UseDashboardServices();
 

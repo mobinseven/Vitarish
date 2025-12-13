@@ -1,4 +1,4 @@
-namespace Vitarish.Interface.Identity.Extensions;
+namespace Vitarish.Interfaces.Base.Extensions;
 
 internal static class UrlHelper
 {

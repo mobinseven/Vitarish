@@ -1,7 +1,10 @@
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 using Vitarish.Accounts.Domain.Constants;
 using Vitarish.Accounts.Infrastructure.Extensions;
 using Vitarish.Accounts.Infrastructure.Services;
 using Vitarish.Accounts.Interface.Components;
+using Vitarish.Interfaces.Base.Localization;
 
 public static class WebApplicationBuilderExtensions
 {
@@ -9,7 +12,15 @@ public static class WebApplicationBuilderExtensions
     {
         _ = builder.Services.AddMudServices();
         _ = builder.Services.AddHttpContextAccessor();
-        _ = builder.Services.AddRazorComponents().AddInteractiveServerComponents();
+        builder.Services.AddRazorComponents()
+                        .AddInteractiveServerComponents()
+                        .AddHubOptions(options =>
+                        {
+                            options.EnableDetailedErrors = true;
+                            options.ClientTimeoutInterval = TimeSpan.FromMinutes(10);
+                            options.MaximumParallelInvocationsPerClient = 1;
+                            options.MaximumReceiveMessageSize = 128 * 1024;
+                        });
         _ = builder.Services.AddRazorPages(options =>
         {
             options.RootDirectory = "/Presentation/Pages";
@@ -29,7 +40,21 @@ public static class WebApplicationBuilderExtensions
         {
             options.AddPolicy(AaasConstants.Admin, policy => policy.RequireClaim(AaasConstants.AccessClaim, "admin.local:::Admin"));
         });
-        _ = builder.Services.AddLocalization();
+        builder.Services.AddLocalization();
+        builder.Services.ConfigureCompositeStringLocalizer(typeof(Strings));
+        builder.Services.AddSingleton<IStringLocalizer>(sp => sp.GetRequiredService<IStringLocalizer<Strings>>());
+        builder.Services.Configure<RequestLocalizationOptions>(options =>
+        {
+            CultureInfo[] supportedCultures =
+            [
+                new("fa-IR"),
+                new("en-US")
+            ];
+            options.DefaultRequestCulture = new RequestCulture(supportedCultures[0]);
+            options.SupportedCultures = supportedCultures;
+            options.SupportedUICultures = supportedCultures;
+            options.ApplyCurrentCultureToResponseHeaders = true;
+        });
     }
     public static void MapAccountsInterface(this WebApplication app)
     {
