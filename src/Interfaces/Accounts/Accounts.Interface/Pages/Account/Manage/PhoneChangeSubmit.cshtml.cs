@@ -65,7 +65,7 @@ public sealed class PhoneChangeSubmitModel(
         if (!await _smsAuthenticationService.VerifyCode(currentUser, normalizedCode))
         {
             LogWarning(currentUser, "MfaFailure");
-            return RedirectWithStatus(failureDestination, BuildFailureMessage());
+            return RedirectWithStatus(failureDestination, $"{_localizer["Error"]}: {_localizer["WrongCode"]}");
         }
 
         string normalizedPhone = Input.PhoneNumber.ConvertToEnglishNumerals();
@@ -79,10 +79,7 @@ public sealed class PhoneChangeSubmitModel(
             return RedirectWithStatus(failureDestination, BuildFailureMessage());
         }
 
-        if (!await _phoneStore.GetPhoneNumberConfirmedAsync(currentUser, HttpContext.RequestAborted))
-        {
-            await _phoneStore.SetPhoneNumberConfirmedAsync(currentUser, true, HttpContext.RequestAborted);
-        }
+        await _phoneStore.SetPhoneNumberConfirmedAsync(currentUser, true, HttpContext.RequestAborted);
 
         await _signInManager.RefreshSignInAsync(currentUser);
 
