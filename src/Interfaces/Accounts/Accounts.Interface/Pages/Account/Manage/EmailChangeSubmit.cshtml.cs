@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
+using System;
 using System.Net;
 using Vitarish.Accounts.Domain.Models;
 using Vitarish.Accounts.Infrastructure.Services;
@@ -21,7 +22,9 @@ public sealed class EmailChangeSubmitModel(
     private readonly IUsersService _usersService = usersService;
     private readonly IEmailAuthenticationService _emailAuthenticationService = emailAuthenticationService;
     private readonly SignInManager<User> _signInManager = signInManager;
-    private readonly IUserEmailStore<User> _emailStore = (IUserEmailStore<User>)userStore;
+    private readonly IUserEmailStore<User> _emailStore =
+        userStore as IUserEmailStore<User> ??
+        throw new NotSupportedException("The user store must implement IUserEmailStore<User>.");
     private readonly IStringLocalizer _localizer = localizer;
     private readonly ILogger<EmailChangeSubmitModel> _logger = logger;
 
@@ -43,29 +46,35 @@ public sealed class EmailChangeSubmitModel(
             return RedirectWithStatus(failureDestination, BuildFailureMessage());
         }
 
-        User? user = await _usersService.GetUserAsync(Input.UserId, HttpContext.RequestAborted);
-        if (user is null)
+        User? currentUser = await _signInManager.UserManager.GetUserAsync(User);
+        if (currentUser is null)
         {
             LogWarning(null, "InvalidCredentials");
             return RedirectWithStatus("/Account/Manage/Email", BuildFailureMessage());
         }
 
-        string normalizedCode = Input.Code.ConvertToEnglishNumerals();
-        if (!await _emailAuthenticationService.VerifyCode(user, normalizedCode))
+        if (!string.IsNullOrWhiteSpace(Input.UserId) && !string.Equals(Input.UserId, currentUser.Id, StringComparison.Ordinal))
         {
-            LogWarning(user, "MfaFailure");
+            LogWarning(currentUser, "UserMismatch");
             return RedirectWithStatus(failureDestination, BuildFailureMessage());
         }
 
-        IdentityResult setEmailResult = await _usersService.SetUserEmailAsync(user.Id, Input.Email, HttpContext.RequestAborted);
+        string normalizedCode = Input.Code.ConvertToEnglishNumerals();
+        if (!await _emailAuthenticationService.VerifyCode(currentUser, normalizedCode))
+        {
+            LogWarning(currentUser, "MfaFailure");
+            return RedirectWithStatus(failureDestination, BuildFailureMessage());
+        }
+
+        IdentityResult setEmailResult = await _usersService.SetUserEmailAsync(currentUser.Id, Input.Email, HttpContext.RequestAborted);
         if (!setEmailResult.Succeeded)
         {
-            LogWarning(user, "UpdateFailure");
+            LogWarning(currentUser, "UpdateFailure");
             return RedirectWithStatus(failureDestination, BuildFailureMessage());
         }
 
-        await ConfirmEmailAsync(user);
-        await _signInManager.SignInAsync(user, true, "mfa");
+        await ConfirmEmailAsync(currentUser);
+        await _signInManager.SignInAsync(currentUser, true, "mfa");
 
         string destination = NormalizeReturnUrl() ?? "/Account/Manage";
         return RedirectWithStatus(destination, BuildSuccessMessage());
@@ -80,7 +89,6 @@ public sealed class EmailChangeSubmitModel(
     }
 
     private bool IsInputValid() =>
-        !string.IsNullOrWhiteSpace(Input.UserId) &&
         !string.IsNullOrWhiteSpace(Input.Code) &&
         !string.IsNullOrWhiteSpace(Input.Email);
 
