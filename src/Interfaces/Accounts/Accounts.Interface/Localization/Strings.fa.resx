@@ -207,12 +207,15 @@
   <data name="InvalidEmail" xml:space="preserve">
     <value>رایانامه دیگری وارد کنید</value>
   </data>
-  <data name="EmailChangeFailed" xml:space="preserve">
-    <value>تغییر رایانامه ناموفق بود</value>
-  </data>
-  <data name="CurrentEmail" xml:space="preserve">
-    <value>ایمیل فعلی</value>
-  </data>
+    <data name="EmailChangeFailed" xml:space="preserve">
+      <value>تغییر رایانامه ناموفق بود</value>
+    </data>
+    <data name="EmailChangeSuccess" xml:space="preserve">
+      <value>رایانامه با موفقیت به‌روز شد</value>
+    </data>
+    <data name="CurrentEmail" xml:space="preserve">
+      <value>ایمیل فعلی</value>
+    </data>
   <data name="EmptyFieldError" xml:space="preserve">
     <value>{0} وارد نشده</value>
   </data>
