@@ -5,6 +5,7 @@ using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Modules.Communications.Internal;
 using Vitarish.Clients.Modules.Files.Internal.Services;
 using Vitarish.Clients.Modules.Intelligence.Internal.Services;
+using Vitarish.Clients.Modules.Sea.Internal;
 
 namespace Vitarish.Clients.Modules;
 
@@ -37,7 +38,17 @@ public sealed class ModulesClientsSelfTest(
         ("Communications", connectionFactory.CreateConnection<MessageClientDefinition>),
         ("Files", connectionFactory.CreateConnection<FilesModuleClientDefinition>),
         ("Intelligence.Responder", connectionFactory.CreateConnection<ResponderClientDefinition>),
-        ("Intelligence.Transcriber", connectionFactory.CreateConnection<TranscriberClientDefinition>)
+        ("Intelligence.Transcriber", connectionFactory.CreateConnection<TranscriberClientDefinition>),
+        ("Sea.Projects", connectionFactory.CreateConnection<ProjectsClientDefinition>),
+        ("Sea.Procedures", connectionFactory.CreateConnection<ProceduresClientDefinition>),
+        ("Sea.Events", connectionFactory.CreateConnection<EventsClientDefinition>),
+        ("Sea.Attachments", connectionFactory.CreateConnection<AttachmentsClientDefinition>),
+        ("Sea.EventRoles", connectionFactory.CreateConnection<EventRolesClientDefinition>),
+        ("Sea.Roles", connectionFactory.CreateConnection<RolesClientDefinition>),
+        ("Sea.UserRoles", connectionFactory.CreateConnection<UserRolesClientDefinition>),
+        ("Sea.Receipts", connectionFactory.CreateConnection<ReceiptsClientDefinition>),
+        ("Sea.Reminders", connectionFactory.CreateConnection<RemindersClientDefinition>),
+        ("Sea.UsageConfiguration", connectionFactory.CreateConnection<UsageConfigurationClientDefinition>)
     ];
 
     public Task StartAsync(CancellationToken cancellationToken) => RunAsync(cancellationToken);

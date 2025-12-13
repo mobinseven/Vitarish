@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Vitarish.Clients.Modules.Sea.Internal;
 
 namespace Vitarish.Clients.Modules.Tests;
 
@@ -44,6 +45,7 @@ public class ModulesClientsSelfTestTests
             .ReturnsAsync(static () => CreateConnection());
         factory.Setup(f => f.CreateConnection<TranscriberClientDefinition>(It.IsAny<CancellationToken>()))
             .ReturnsAsync(static () => CreateConnection());
+        SetupSeaConnections(factory);
 
         ModulesClientsSelfTest selfTest = new(factory.Object, starter.Object, NullLogger<ModulesClientsSelfTest>.Instance);
 
@@ -51,8 +53,8 @@ public class ModulesClientsSelfTestTests
         await selfTest.RunAsync();
 
         // Assert
-        starter.Verify(s => s.StartAsync(It.IsAny<HubConnection>(), It.IsAny<CancellationToken>()), Times.Exactly(4));
-        starter.Verify(s => s.DisposeAsync(It.IsAny<HubConnection>()), Times.Exactly(4));
+        starter.Verify(s => s.StartAsync(It.IsAny<HubConnection>(), It.IsAny<CancellationToken>()), Times.Exactly(14));
+        starter.Verify(s => s.DisposeAsync(It.IsAny<HubConnection>()), Times.Exactly(14));
     }
 
     [Fact]
@@ -70,6 +72,7 @@ public class ModulesClientsSelfTestTests
             .ReturnsAsync(static () => CreateConnection());
         factory.Setup(f => f.CreateConnection<FilesModuleClientDefinition>(It.IsAny<CancellationToken>()))
             .ReturnsAsync(static () => CreateConnection());
+        SetupSeaConnections(factory);
 
         ModulesClientsSelfTest selfTest = new(factory.Object, starter.Object, NullLogger<ModulesClientsSelfTest>.Instance);
 
@@ -83,4 +86,28 @@ public class ModulesClientsSelfTestTests
 
     private static HubConnection CreateConnection() =>
         new HubConnectionBuilder().WithUrl("http://localhost").Build();
+
+    private static void SetupSeaConnections(Mock<IIdentityClientSignalRFactory> factory)
+    {
+        factory.Setup(f => f.CreateConnection<ProjectsClientDefinition>(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(static () => CreateConnection());
+        factory.Setup(f => f.CreateConnection<ProceduresClientDefinition>(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(static () => CreateConnection());
+        factory.Setup(f => f.CreateConnection<EventsClientDefinition>(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(static () => CreateConnection());
+        factory.Setup(f => f.CreateConnection<AttachmentsClientDefinition>(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(static () => CreateConnection());
+        factory.Setup(f => f.CreateConnection<EventRolesClientDefinition>(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(static () => CreateConnection());
+        factory.Setup(f => f.CreateConnection<RolesClientDefinition>(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(static () => CreateConnection());
+        factory.Setup(f => f.CreateConnection<UserRolesClientDefinition>(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(static () => CreateConnection());
+        factory.Setup(f => f.CreateConnection<ReceiptsClientDefinition>(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(static () => CreateConnection());
+        factory.Setup(f => f.CreateConnection<RemindersClientDefinition>(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(static () => CreateConnection());
+        factory.Setup(f => f.CreateConnection<UsageConfigurationClientDefinition>(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(static () => CreateConnection());
+    }
 }

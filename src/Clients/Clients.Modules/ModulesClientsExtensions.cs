@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Clients.Modules.Communications.DependencyInjection;
 using Vitarish.Clients.Modules.Files.DependencyInjection;
 using Vitarish.Clients.Modules.Intelligence.DependencyInjection;
+using Vitarish.Clients.Modules.Sea.DependencyInjection;
 
 namespace Vitarish.Clients.Modules;
 
@@ -22,6 +23,7 @@ public static class ModulesClientsExtensions
         _ = services.AddCommunicationsModuleClient();
         _ = services.AddFilesModuleClient();
         _ = services.AddIntelligenceModuleClient();
+        _ = services.AddSeaModuleClient();
 
         services.TryAddSingleton<IHubConnectionStarter, HubConnectionStarter>();
         services.TryAddSingleton<ModulesClientsSelfTest>();
