@@ -110,7 +110,7 @@ public partial class Passkeys : IAsyncDisposable
             // Step 3: Complete registration - send attestation to server
             HttpResponseMessage completeResponse = await httpClient.PostAsJsonAsync(
                 "/api/webauthn/register/complete",
-                new { credential = credentialResponse, friendlyName = NewPasskeyName });
+                credentialResponse);
 
             if (completeResponse.IsSuccessStatusCode)
             {
