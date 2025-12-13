@@ -1,6 +1,8 @@
 @page "/Account/Manage/Email"
 @inherits IdentityBase
 
+<StatusMessage />
+
 <MudText Typo="Typo.h4" GutterBottom="true" Align="Align.Center">@Localizer["Email"]</MudText>
 @if (User is not null)
 {
