@@ -24,6 +24,7 @@ public static class WebApplicationBuilderExtensions
         _ = builder.Services.AddTransient<IEmailAuthenticationService, EmailAuthenticationService>();
         _ = builder.Services.AddTransient<IPersonalAccessTokenService, PersonalAccessTokenService>();
         _ = builder.Services.AddTransient<ICipherService, CipherService>();
+        _ = builder.Services.AddHttpClient();
         _ = builder.Services.AddAuthorization(options =>
         {
             options.AddPolicy(AaasConstants.Admin, policy => policy.RequireClaim(AaasConstants.AccessClaim, "admin.local:::Admin"));

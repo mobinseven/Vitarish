@@ -4,7 +4,7 @@ using Vitarish.Accounts.Interface.Components.Base;
 
 namespace Vitarish.Accounts.Interface.Components.Account;
 
-public partial class WebAuthnLoginForm : CommonBase
+public partial class WebAuthnLoginForm : CommonBase, IAsyncDisposable
 {
     [Parameter] public string? ReturnUrl { get; set; }
     [Parameter] public string? FailureUrl { get; set; }
@@ -50,7 +50,7 @@ public partial class WebAuthnLoginForm : CommonBase
         try
         {
             // Step 1: Begin authentication - get options from server
-            using HttpClient httpClient = new();
+            using HttpClient httpClient = HttpClientFactory.CreateClient();
             httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
 
             HttpResponseMessage beginResponse = await httpClient.PostAsJsonAsync(
@@ -59,7 +59,6 @@ public partial class WebAuthnLoginForm : CommonBase
 
             if (!beginResponse.IsSuccessStatusCode)
             {
-                string error = await beginResponse.Content.ReadAsStringAsync();
                 ErrorMessage = Localizer["InvalidLoginAttempt"];
                 return;
             }

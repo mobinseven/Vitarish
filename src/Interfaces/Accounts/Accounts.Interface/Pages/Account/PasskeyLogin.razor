@@ -15,13 +15,15 @@
             <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
             <MudButton FullWidth="true" ButtonType="ButtonType.Submit">@Localizer["LoginViaPhone"]</MudButton>
         </form>
-        <form method="get" action="Account/Login/Password">
+        <form method="get"
+              action="Account/Login/Password">
             <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
             <MudButton FullWidth="true" ButtonType="ButtonType.Submit">
                 @Localizer["LoginViaPassword"]
             </MudButton>
         </form>
-        <form method="get" action="Account/Login/Email">
+        <form method="get"
+              action="Account/Login/Email">
             <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
             <MudButton FullWidth="true" ButtonType="ButtonType.Submit">
                 @Localizer["LoginViaEmail"]

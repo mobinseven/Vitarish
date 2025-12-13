@@ -3,7 +3,7 @@ using System.Text.Json;
 
 namespace Vitarish.Accounts.Interface.Pages.Account.Manage;
 
-public partial class Passkeys
+public partial class Passkeys : IAsyncDisposable
 {
     private List<PasskeyCredentialDto> Credentials { get; set; } = [];
     private string NewPasskeyName { get; set; } = string.Empty;
@@ -42,7 +42,7 @@ public partial class Passkeys
 
         try
         {
-            using HttpClient httpClient = new();
+            using HttpClient httpClient = HttpClientFactory.CreateClient();
             httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
 
             HttpResponseMessage response = await httpClient.GetAsync("/api/webauthn/credentials");
@@ -78,7 +78,7 @@ public partial class Passkeys
 
         try
         {
-            using HttpClient httpClient = new();
+            using HttpClient httpClient = HttpClientFactory.CreateClient();
             httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
 
             // Step 1: Begin registration - get options from server
@@ -136,7 +136,7 @@ public partial class Passkeys
 
         try
         {
-            using HttpClient httpClient = new();
+            using HttpClient httpClient = HttpClientFactory.CreateClient();
             httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
 
             HttpResponseMessage response = await httpClient.DeleteAsync($"/api/webauthn/credentials/{credentialId}");
