@@ -112,6 +112,10 @@ internal sealed class InterfaceTestContext : TestContext
             confirmationMock.Object);
         _ = Services.AddSingleton<SignInManager<User>>(signInManager);
 
+        Mock<IHttpClientFactory> httpClientFactoryMock = new();
+        _ = httpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(new HttpClient());
+        _ = Services.AddSingleton(httpClientFactoryMock.Object);
+
         Mocks = new ServiceMocks(
             cipherMock,
             usersServiceMock,
@@ -125,7 +129,8 @@ internal sealed class InterfaceTestContext : TestContext
             userStoreMock,
             userManagerMock,
             signInManager,
-            httpContext);
+            httpContext,
+            httpClientFactoryMock);
     }
 
     public void SetupOtpModules()

@@ -23,4 +23,5 @@ internal sealed record ServiceMocks(
     Mock<IUserStore<User>> UserStore,
     Mock<UserManager<User>> UserManager,
     TestSignInManager SignInManager,
-    DefaultHttpContext HttpContext);
+    DefaultHttpContext HttpContext,
+    Mock<IHttpClientFactory> HttpClientFactory);

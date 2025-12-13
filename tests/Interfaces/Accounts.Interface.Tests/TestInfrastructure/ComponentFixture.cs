@@ -42,6 +42,8 @@ internal sealed class ComponentFixture : IDisposable
         Mock<IAuthenticationClientsService> authClientsMock = new();
         Mock<IIdentityServerInteractionService> identityInteractionMock = new();
         Mock<IRequestIdentitiesService> requestIdentitiesMock = new();
+        Mock<IHttpClientFactory> httpClientFactoryMock = new();
+        _ = httpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(new HttpClient());
 
         Mock<IUserStore<User>> userStoreMock = new();
         _ = userStoreMock.As<IUserPhoneNumberStore<User>>();
@@ -99,7 +101,8 @@ internal sealed class ComponentFixture : IDisposable
             userStoreMock,
             userManagerMock,
             signInManager,
-            httpContext);
+            httpContext,
+            httpClientFactoryMock);
     }
 
     public void ConfigureCommonComponent(CommonBase component)
@@ -122,6 +125,7 @@ internal sealed class ComponentFixture : IDisposable
         SetProperty(component, "EmailAuthenticationService", Mocks.EmailAuthentication.Object, typeof(CommonBase));
         SetProperty(component, "SmsAuthenticationService", Mocks.SmsAuthentication.Object, typeof(CommonBase));
         SetProperty(component, "AuthenticationStateProvider", AuthenticationState, typeof(CommonBase));
+        SetProperty(component, "HttpClientFactory", Mocks.HttpClientFactory.Object, typeof(CommonBase));
     }
 
     private static void SetProperty(object instance, string propertyName, object value, Type declaringType)
