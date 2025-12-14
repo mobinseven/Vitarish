@@ -2,38 +2,41 @@ using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
 using Vitarish.Sea.Domain.Dto;
+using Vorn.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Internal
 {
-    internal sealed class ReceiptsClient(IIdentityClientSignalRFactory connectionFactory)
-        : SeaHubClient<ReceiptsClientDefinition>(connectionFactory),
+    internal sealed class ReceiptsClient(
+        IIdentityClientSignalRFactory connectionFactory,
+        IEntityInterceptionProvider entityInterceptionProvider)
+        : SeaEntityClient<ReceiptsClientDefinition>(connectionFactory, entityInterceptionProvider),
             IReceiptsClient
     {
         public async Task<Guid> AddAsync(Guid userId, Guid objectId, CancellationToken cancellationToken = default) =>
-            await InvokeAsync<Guid>(nameof(AddAsync), cancellationToken, new object?[] { userId, objectId }).ConfigureAwait(false);
+            await InvokeHubAsync<Guid>(nameof(AddAsync), cancellationToken, new object?[] { userId, objectId }).ConfigureAwait(false);
 
         public async Task<IReadOnlyList<Guid>> GetReadersAsync(Guid objectId, CancellationToken cancellationToken = default) =>
-            await InvokeAsync<IReadOnlyList<Guid>>(nameof(GetReadersAsync), cancellationToken, new object?[] { objectId }).ConfigureAwait(false);
+            await InvokeHubAsync<IReadOnlyList<Guid>>(nameof(GetReadersAsync), cancellationToken, new object?[] { objectId }).ConfigureAwait(false);
 
         public async Task MarkProjectReadAsync(Guid userId, Guid projectId, CancellationToken cancellationToken = default) =>
-            await InvokeAsync(nameof(MarkProjectReadAsync), cancellationToken, new object?[] { userId, projectId }).ConfigureAwait(false);
+            await InvokeNoInterceptAsync(nameof(MarkProjectReadAsync), cancellationToken, userId, projectId).ConfigureAwait(false);
 
         public async Task MarkProjectUnreadAsync(Guid userId, Guid projectId, CancellationToken cancellationToken = default) =>
-            await InvokeAsync(nameof(MarkProjectUnreadAsync), cancellationToken, new object?[] { userId, projectId }).ConfigureAwait(false);
+            await InvokeNoInterceptAsync(nameof(MarkProjectUnreadAsync), cancellationToken, userId, projectId).ConfigureAwait(false);
 
         public async Task MarkProcedureReadAsync(Guid userId, Guid procedureId, CancellationToken cancellationToken = default) =>
-            await InvokeAsync(nameof(MarkProcedureReadAsync), cancellationToken, new object?[] { userId, procedureId }).ConfigureAwait(false);
+            await InvokeNoInterceptAsync(nameof(MarkProcedureReadAsync), cancellationToken, userId, procedureId).ConfigureAwait(false);
 
         public async Task MarkProcedureUnreadAsync(Guid userId, Guid procedureId, CancellationToken cancellationToken = default) =>
-            await InvokeAsync(nameof(MarkProcedureUnreadAsync), cancellationToken, new object?[] { userId, procedureId }).ConfigureAwait(false);
+            await InvokeNoInterceptAsync(nameof(MarkProcedureUnreadAsync), cancellationToken, userId, procedureId).ConfigureAwait(false);
 
         public async Task MarkEventReadAsync(Guid userId, Guid eventId, CancellationToken cancellationToken = default) =>
-            await InvokeAsync(nameof(MarkEventReadAsync), cancellationToken, new object?[] { userId, eventId }).ConfigureAwait(false);
+            await InvokeNoInterceptAsync(nameof(MarkEventReadAsync), cancellationToken, userId, eventId).ConfigureAwait(false);
 
         public async Task MarkEventUnreadAsync(Guid userId, Guid eventId, CancellationToken cancellationToken = default) =>
-            await InvokeAsync(nameof(MarkEventUnreadAsync), cancellationToken, new object?[] { userId, eventId }).ConfigureAwait(false);
+            await InvokeNoInterceptAsync(nameof(MarkEventUnreadAsync), cancellationToken, userId, eventId).ConfigureAwait(false);
 
         public async Task<bool> GetAsync(Guid userId, Guid objectId, CancellationToken cancellationToken = default) =>
-            await InvokeAsync<bool>(nameof(GetAsync), cancellationToken, new object?[] { userId, objectId }).ConfigureAwait(false);
+            await InvokeHubAsync<bool>(nameof(GetAsync), cancellationToken, new object?[] { userId, objectId }).ConfigureAwait(false);
     }
 }

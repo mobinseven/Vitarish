@@ -2,23 +2,26 @@ using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
 using Vitarish.Sea.Domain.Dto;
+using Vorn.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Internal
 {
-    internal sealed class ProjectsClient(IIdentityClientSignalRFactory connectionFactory)
-        : SeaHubClient<ProjectsClientDefinition>(connectionFactory),
+    internal sealed class ProjectsClient(
+        IIdentityClientSignalRFactory connectionFactory,
+        IEntityInterceptionProvider entityInterceptionProvider)
+        : SeaEntityClient<ProjectsClientDefinition>(connectionFactory, entityInterceptionProvider),
             IProjectsClient
     {
         public async Task<Guid> AddAsync(string name, string description, bool template, string metadata, CancellationToken cancellationToken = default) =>
-            await InvokeAsync<Guid>(nameof(AddAsync), cancellationToken, new object?[] { name, description, template, metadata }).ConfigureAwait(false);
+            await InvokeHubAsync<Guid>(nameof(AddAsync), cancellationToken, new object?[] { name, description, template, metadata }).ConfigureAwait(false);
 
         public async Task UpdateAsync(Guid id, string name, string description, bool template, string metadata, CancellationToken cancellationToken = default) =>
-            await InvokeAsync(nameof(UpdateAsync), cancellationToken, new object?[] { id, name, description, template, metadata }).ConfigureAwait(false);
+            await InvokeNoInterceptAsync(nameof(UpdateAsync), cancellationToken, id, name, description, template, metadata).ConfigureAwait(false);
 
         public async Task UpdateMetadataAsync(Guid id, string metadata, CancellationToken cancellationToken = default) =>
-            await InvokeAsync(nameof(UpdateMetadataAsync), cancellationToken, new object?[] { id, metadata }).ConfigureAwait(false);
+            await InvokeNoInterceptAsync(nameof(UpdateMetadataAsync), cancellationToken, id, metadata).ConfigureAwait(false);
 
         public async Task<ProjectSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken = default) =>
-            await InvokeAsync<ProjectSnapshot?>(nameof(CaptureSnapshotAsync), cancellationToken, new object?[] { id }).ConfigureAwait(false);
+            await InvokeHubAsync<ProjectSnapshot?>(nameof(CaptureSnapshotAsync), cancellationToken, new object?[] { id }).ConfigureAwait(false);
     }
 }
