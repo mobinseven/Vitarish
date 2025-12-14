@@ -4,7 +4,17 @@
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "OTEL_DOTNET_AUTO_ENABLED": "true",
+        "OTEL_DOTNET_AUTO_TRACES_ENABLED": "true",
+        "OTEL_DOTNET_AUTO_METRICS_ENABLED": "true",
+        "OTEL_DOTNET_AUTO_LOGS_ENABLED": "true",
+        "OTEL_SERVICE_NAME": "vitarish-host",
+        "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
+        "OTEL_EXPORTER_OTLP_PROTOCOL": "grpc",
+        "OTEL_TRACES_EXPORTER": "otlp",
+        "OTEL_METRICS_EXPORTER": "otlp",
+        "OTEL_LOGS_EXPORTER": "otlp"
       },
       "applicationUrl": "https://localhost:7272"
     }
