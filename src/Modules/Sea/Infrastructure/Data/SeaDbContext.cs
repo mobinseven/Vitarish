@@ -10,14 +10,14 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
 {
     private readonly EntityInterceptor _interceptor;
     private readonly SessionContextInterceptor _sessionContext;
-    private readonly IRequestContext _requestIdentity;
+    private readonly IRequestContext _requestContext;
 
     // Dynamically evaluate TenantInfo from IRequestIdentityContext at query time
     public ITenantInfo? TenantInfo
     {
         get
         {
-            string? tenantId = _requestIdentity.TenantId;
+            string? tenantId = _requestContext.TenantId;
             return tenantId == null
                 ? null
                 : (ITenantInfo)new Finbuckle.MultiTenant.TenantInfo
@@ -52,7 +52,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     {
         _interceptor = interceptor;
         _sessionContext = sessionContext;
-        _requestIdentity = requestIdentity;
+        _requestContext = requestIdentity;
 
         // Enable multi-tenant tracking
         this.EnforceMultiTenantOnTracking();

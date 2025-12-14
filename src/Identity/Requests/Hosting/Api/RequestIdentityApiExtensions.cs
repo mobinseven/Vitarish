@@ -61,8 +61,8 @@ public static partial class RequestIdentityApiExtensions
         IMediator mediator,
         CancellationToken cancellationToken)
     {
-        RequestIdentityDto res = await mediator.Send(request.ToCommand(), cancellationToken);
-        return Results.Ok(res);
+        await mediator.Send(request.ToCommand(), cancellationToken);
+        return Results.Ok();
     }
     private sealed record GetRequestIdentitiesRequest(
         [FromQuery(Name = "page")] int Page = 0,
