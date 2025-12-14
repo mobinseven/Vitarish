@@ -6,10 +6,10 @@ using Vitarish.Requests.Infrastructure.Data;
 
 namespace Vitarish.Requests.Infrastructure.Handlers;
 
-public sealed class GetRequestIdentitiesHandler(RequestsDbContext dbContext)
-    : IRequestHandler<GetRequestIdentities, GetRequestIdentitiesResult>
+public sealed class GetRequestsHandler(RequestsDbContext dbContext)
+    : IRequestHandler<GetRequestsCommand, GetRequestIdentitiesResult>
 {
-    public async Task<GetRequestIdentitiesResult> Handle(GetRequestIdentities request, CancellationToken cancellationToken)
+    public async Task<GetRequestIdentitiesResult> Handle(GetRequestsCommand request, CancellationToken cancellationToken)
     {
         int page = Math.Max(0, request.Page);
         int pageSize = Math.Clamp(request.PageSize, 1, 500);
@@ -47,7 +47,7 @@ public sealed class GetRequestIdentitiesHandler(RequestsDbContext dbContext)
         return new GetRequestIdentitiesResult(items, totalItems);
     }
 
-    private static IQueryable<Request> ApplyFilters(IQueryable<Request> source, RequestIdentitiesFilter filters)
+    private static IQueryable<Request> ApplyFilters(IQueryable<Request> source, RequestDescriptor filters)
     {
         if (!string.IsNullOrWhiteSpace(filters.RequestId))
         {

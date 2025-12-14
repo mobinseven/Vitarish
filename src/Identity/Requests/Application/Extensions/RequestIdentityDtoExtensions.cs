@@ -5,7 +5,7 @@ namespace Vitarish.Requests.Application.Extensions;
 
 public static class RequestIdentityDtoExtensions
 {
-    public static RecordRequestIdentityCommand ToCommand(this RequestIdentityDto dto) => new(
+    public static RecordRequestCommand ToCommand(this RequestIdentityDto dto) => new(
         dto.RequestId,
         dto.Authority,
         dto.ClientId,

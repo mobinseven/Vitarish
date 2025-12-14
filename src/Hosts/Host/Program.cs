@@ -10,17 +10,18 @@ using Vitarish.AuthenticationClients.Infrastructure.Data;
 using Vitarish.Communications.Hosting;
 using Vitarish.Files.Hosting;
 using Vitarish.Files.Infrastructure.Data;
+using Vitarish.Host.Infrastructure.Options;
 using Vitarish.Instagram.Hosting;
 using Vitarish.Intelligence.Hosting;
 using Vitarish.Modules.Base;
-using Vitarish.Sea.Hosting;
-using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Parties.Hosting.Api;
 using Vitarish.Parties.Hosting.DependencyInjection;
 using Vitarish.Parties.Infrastructure.Data;
 using Vitarish.Requests.Hosting.Api;
 using Vitarish.Requests.Hosting.DependencyInjection;
 using Vitarish.Requests.Infrastructure.Data;
+using Vitarish.Sea.Hosting;
+using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Users.Hosting.Api;
 using Vitarish.Users.Hosting.DependencyInjection;
 using Vitarish.Users.Infrastructure.Data;
@@ -49,7 +50,7 @@ IEnumerable<Assembly> requestedModuleAssemblies = [
 _ = await builder.AddModules(requestedModuleAssemblies, configureSqlServer);
 
 builder.AddAccountsInterface();
-builder.AddAaasHostOptions();
+builder.AddApplicationOptions();
 builder.AddUsers(configureSqlServer);
 builder.AddRequests(configureSqlServer);
 builder.AddAaasApiClients(configureSqlServer);
@@ -111,7 +112,7 @@ _ = app.UseCookiePolicy(cookiePolicyOptions);
 _ = app.UseExceptionHandler("/Error");
 _ = app.UseHsts();
 _ = app.UseHttpsRedirection();
-_ = app.UseStaticFiles();
+_ = app.MapStaticAssets();
 
 _ = app.UseRouting();
 

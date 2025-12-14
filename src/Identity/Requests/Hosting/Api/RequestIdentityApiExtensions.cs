@@ -19,7 +19,7 @@ public static partial class RequestIdentityApiExtensions
             .WithTags("Requests");
 
         _ = group.MapGet("/", GetRequestIdentitiesAsync)
-            .WithName("GetRequestIdentities")
+            .WithName("GetRequestsCommand")
             .Produces<GetRequestIdentitiesResult>(StatusCodes.Status200OK)
             .WithSummary("List request identities")
             .WithDescription("Retrieves request identities using optional paging, search, and filter parameters.");
@@ -79,10 +79,10 @@ public static partial class RequestIdentityApiExtensions
         [FromQuery(Name = "additionalInfo")] string? AdditionalInfo = null,
         [FromQuery(Name = "sort")] string[]? Sort = null)
     {
-        public GetRequestIdentities ToQuery()
+        public GetRequestsCommand ToQuery()
         {
-            RequestIdentitiesFilter? filters = HasFilters
-                ? new RequestIdentitiesFilter(RequestId, Authority, ClientId, OwnerId, TenantId, UserId, ResourceId, TraceId, AdditionalInfo)
+            RequestDescriptor? filters = HasFilters
+                ? new RequestDescriptor(RequestId, Authority, ClientId, OwnerId, TenantId, UserId, ResourceId, TraceId, AdditionalInfo)
                 : null;
 
             IReadOnlyCollection<RequestIdentitySort>? sorts = Sort?
@@ -91,7 +91,7 @@ public static partial class RequestIdentityApiExtensions
                 .Cast<RequestIdentitySort>()
                 .ToArray();
 
-            return new GetRequestIdentities(Page, PageSize, Search, filters, sorts);
+            return new GetRequestsCommand(Page, PageSize, Search, filters, sorts);
         }
 
         private bool HasFilters

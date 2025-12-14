@@ -2,7 +2,7 @@ using Vitarish.Requests.Application.Queries;
 
 namespace Vitarish.Accounts.Interface.Pages.Admin;
 
-public partial class AdminRequestIdentitiesPage
+public partial class AdminRequestsPage
 {
     private readonly RequestIdentitiesFilterModel filters = new();
     private readonly List<Request> entries = [];
@@ -25,7 +25,7 @@ public partial class AdminRequestIdentitiesPage
                 .Select(definition => new RequestIdentitySort(definition.SortBy!, definition.Descending))
                 .ToArray();
 
-            RequestIdentitiesFilter? filter = filters.HasValues
+            RequestDescriptor? filter = filters.HasValues
                 ? filters.ToFilter()
                 : null;
 
@@ -92,7 +92,7 @@ public partial class AdminRequestIdentitiesPage
                || !string.IsNullOrWhiteSpace(TraceId)
                || !string.IsNullOrWhiteSpace(AdditionalInfo);
 
-        public RequestIdentitiesFilter ToFilter() => new(
+        public RequestDescriptor ToFilter() => new(
             RequestId,
             Authority,
             ClientId,

@@ -5,7 +5,7 @@ using Vitarish.Requests.Domain.Models;
 
 namespace Vitarish.Requests.Application.Commands;
 
-public sealed record RecordRequestIdentityCommand(
+public sealed record RecordRequestCommand(
     string RequestId,
     string Authority,
     string ClientId,
@@ -14,9 +14,9 @@ public sealed record RecordRequestIdentityCommand(
     string? UserId,
     string? ResourceId,
     string? TraceId,
-    string? AdditionalInfo) : IRequest<RequestIdentityDto>;
+    string? AdditionalInfo) : IRequest;
 
-public sealed class RecordRequestIdentityCommandValidator : AbstractValidator<RecordRequestIdentityCommand>
+public sealed class RecordRequestIdentityCommandValidator : AbstractValidator<RecordRequestCommand>
 {
     public RecordRequestIdentityCommandValidator()
     {

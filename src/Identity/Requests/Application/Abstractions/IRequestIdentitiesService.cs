@@ -8,7 +8,7 @@ public interface IRequestIdentitiesService
         int page = 0,
         int pageSize = 50,
         string? search = null,
-        RequestIdentitiesFilter? filters = null,
+        RequestDescriptor? filters = null,
         IReadOnlyCollection<RequestIdentitySort>? sorts = null,
         CancellationToken ct = default);
 }

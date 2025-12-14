@@ -10,8 +10,8 @@ public sealed class RequestIdentitiesService(ISender sender) : IRequestIdentitie
         int page = 0,
         int pageSize = 50,
         string? search = null,
-        RequestIdentitiesFilter? filters = null,
+        RequestDescriptor? filters = null,
         IReadOnlyCollection<RequestIdentitySort>? sorts = null,
         CancellationToken ct = default)
-        => sender.Send(new GetRequestIdentities(page, pageSize, search, filters, sorts), ct);
+        => sender.Send(new GetRequestsCommand(page, pageSize, search, filters, sorts), ct);
 }

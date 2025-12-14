@@ -3,7 +3,7 @@ using Vitarish.Requests.Domain.Entities;
 
 namespace Vitarish.Requests.Application.Queries;
 
-public sealed record RequestIdentitiesFilter(
+public sealed record RequestDescriptor(
     string? RequestId = null,
     string? Authority = null,
     string? ClientId = null,
@@ -16,11 +16,11 @@ public sealed record RequestIdentitiesFilter(
 
 public sealed record RequestIdentitySort(string Field, bool Descending);
 
-public sealed record GetRequestIdentities(
+public sealed record GetRequestsCommand(
     int Page = 0,
     int PageSize = 50,
     string? Search = null,
-    RequestIdentitiesFilter? Filters = null,
+    RequestDescriptor? Filters = null,
     IReadOnlyCollection<RequestIdentitySort>? Sorts = null)
     : IRequest<GetRequestIdentitiesResult>;
 

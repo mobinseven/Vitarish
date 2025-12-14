@@ -85,12 +85,4 @@ public static class HostAuthenticationExtensions
             options.TimestampDriftTolerance = (int)webAuthnOptions.TimestampDriftTolerance;
         });
     }
-
-    /// <summary>
-    /// Adds and configures all application options using the centralized options pattern.
-    /// This method uses the shared <see cref="ApplicationOptionsExtensions.AddApplicationOptions"/> extension
-    /// to bind all module configuration in a consistent way.
-    /// </summary>
-    /// <param name="builder">The web application builder.</param>
-    public static void AddAaasHostOptions(this WebApplicationBuilder builder) => _ = builder.AddApplicationOptions();
 }
