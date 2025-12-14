@@ -1,4 +1,4 @@
-using Vitarish.Sea.Domain.Enums;
+using Vitarish.Clients.Modules.Sea.Enums;
 
 namespace Vitarish.Clients.Modules.Sea.Abstractions;
 

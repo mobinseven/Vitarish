@@ -1,7 +1,7 @@
 using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
-using Vitarish.Sea.Domain.Dto;
+using Vitarish.Clients.Modules.Sea.Dto;
 using Vorn.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Internal
