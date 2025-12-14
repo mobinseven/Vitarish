@@ -42,6 +42,7 @@ internal sealed class ComponentFixture : IDisposable
         Mock<IAuthenticationClientsService> authClientsMock = new();
         Mock<IIdentityServerInteractionService> identityInteractionMock = new();
         Mock<IRequestIdentitiesService> requestIdentitiesMock = new();
+        Mock<IRequestContext> requestContextMock = new();
         Mock<IHttpClientFactory> httpClientFactoryMock = new();
         _ = httpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(new HttpClient());
 
@@ -98,6 +99,7 @@ internal sealed class ComponentFixture : IDisposable
             personalAccessTokensMock,
             authClientsMock,
             requestIdentitiesMock,
+            requestContextMock,
             userStoreMock,
             userManagerMock,
             signInManager,

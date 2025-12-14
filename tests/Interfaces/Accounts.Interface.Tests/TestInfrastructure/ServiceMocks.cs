@@ -20,6 +20,7 @@ internal sealed record ServiceMocks(
     Mock<IPersonalAccessTokenService> PersonalAccessTokens,
     Mock<IAuthenticationClientsService> AuthenticationClients,
     Mock<IRequestIdentitiesService> RequestIdentities,
+    Mock<IRequestContext> RequestContext,
     Mock<IUserStore<User>> UserStore,
     Mock<UserManager<User>> UserManager,
     TestSignInManager SignInManager,
