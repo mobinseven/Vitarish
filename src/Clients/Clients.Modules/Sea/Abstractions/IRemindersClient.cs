@@ -1,5 +1,5 @@
-using Vitarish.Sea.Domain.Dto;
-using Vitarish.Sea.Domain.Enums;
+using Vitarish.Clients.Modules.Sea.Dto;
+using Vitarish.Clients.Modules.Sea.Enums;
 
 namespace Vitarish.Clients.Modules.Sea.Abstractions;
 

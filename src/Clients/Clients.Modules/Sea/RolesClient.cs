@@ -1,21 +1,24 @@
 using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
-using Vitarish.Sea.Domain.Dto;
+using Vitarish.Clients.Modules.Sea.Dto;
+using Vorn.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Internal
 {
-    internal sealed class RolesClient(IIdentityClientSignalRFactory connectionFactory)
-        : SeaHubClient<RolesClientDefinition>(connectionFactory),
+    internal sealed class RolesClient(
+        IIdentityClientSignalRFactory connectionFactory,
+        IEntityInterceptionProvider entityInterceptionProvider)
+        : SeaEntityClient<RolesClientDefinition>(connectionFactory, entityInterceptionProvider),
             IRolesClient
     {
         public async Task<Guid> AddAsync(string name, CancellationToken cancellationToken = default) =>
-            await InvokeAsync<Guid>(nameof(AddAsync), cancellationToken, new object?[] { name }).ConfigureAwait(false);
+            await InvokeHubAsync<Guid>(nameof(AddAsync), cancellationToken, new object?[] { name }).ConfigureAwait(false);
 
         public async Task UpdateAsync(Guid id, string name, CancellationToken cancellationToken = default) =>
-            await InvokeAsync(nameof(UpdateAsync), cancellationToken, new object?[] { id, name }).ConfigureAwait(false);
+            await InvokeNoInterceptAsync(nameof(UpdateAsync), cancellationToken, id, name).ConfigureAwait(false);
 
         public async Task<(IReadOnlyList<RoleDto> Items, int TotalItems)> GetPagedAsync(RoleDescriptorDto descriptor, CancellationToken cancellationToken = default) =>
-            await InvokeAsync<(IReadOnlyList<RoleDto> Items, int TotalItems)>(nameof(GetPagedAsync), cancellationToken, new object?[] { descriptor }).ConfigureAwait(false);
+            await InvokeHubAsync<(IReadOnlyList<RoleDto> Items, int TotalItems)>(nameof(GetPagedAsync), cancellationToken, new object?[] { descriptor }).ConfigureAwait(false);
     }
 }

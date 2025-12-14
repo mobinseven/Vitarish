@@ -1,27 +1,30 @@
 using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
-using Vitarish.Sea.Domain.Dto;
+using Vitarish.Clients.Modules.Sea.Dto;
+using Vorn.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Internal
 {
-    internal sealed class EventRolesClient(IIdentityClientSignalRFactory connectionFactory)
-        : SeaHubClient<EventRolesClientDefinition>(connectionFactory),
+    internal sealed class EventRolesClient(
+        IIdentityClientSignalRFactory connectionFactory,
+        IEntityInterceptionProvider entityInterceptionProvider)
+        : SeaEntityClient<EventRolesClientDefinition>(connectionFactory, entityInterceptionProvider),
             IEventRolesClient
     {
         public async Task<(IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)> GetIdsAsync(Guid eventId, CancellationToken cancellationToken = default) =>
-            await InvokeAsync<(IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)>(nameof(GetIdsAsync), cancellationToken, new object?[] { eventId }).ConfigureAwait(false);
+            await InvokeHubAsync<(IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)>(nameof(GetIdsAsync), cancellationToken, new object?[] { eventId }).ConfigureAwait(false);
 
         public async Task<IReadOnlyList<Guid>> GetReadIdsAsync(Guid eventId, CancellationToken cancellationToken = default) =>
-            await InvokeAsync<IReadOnlyList<Guid>>(nameof(GetReadIdsAsync), cancellationToken, new object?[] { eventId }).ConfigureAwait(false);
+            await InvokeHubAsync<IReadOnlyList<Guid>>(nameof(GetReadIdsAsync), cancellationToken, new object?[] { eventId }).ConfigureAwait(false);
 
         public async Task<IReadOnlyList<Guid>> GetWriteIdsAsync(Guid eventId, CancellationToken cancellationToken = default) =>
-            await InvokeAsync<IReadOnlyList<Guid>>(nameof(GetWriteIdsAsync), cancellationToken, new object?[] { eventId }).ConfigureAwait(false);
+            await InvokeHubAsync<IReadOnlyList<Guid>>(nameof(GetWriteIdsAsync), cancellationToken, new object?[] { eventId }).ConfigureAwait(false);
 
         public async Task AssignAsync(Guid eventId, Guid roleId, bool isWrite, CancellationToken cancellationToken = default) =>
-            await InvokeAsync(nameof(AssignAsync), cancellationToken, new object?[] { eventId, roleId, isWrite }).ConfigureAwait(false);
+            await InvokeNoInterceptAsync(nameof(AssignAsync), cancellationToken, eventId, roleId, isWrite).ConfigureAwait(false);
 
         public async Task UnassignAsync(Guid eventId, Guid roleId, bool isWrite, CancellationToken cancellationToken = default) =>
-            await InvokeAsync(nameof(UnassignAsync), cancellationToken, new object?[] { eventId, roleId, isWrite }).ConfigureAwait(false);
+            await InvokeNoInterceptAsync(nameof(UnassignAsync), cancellationToken, eventId, roleId, isWrite).ConfigureAwait(false);
     }
 }

@@ -4,6 +4,7 @@ using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Identity.DependencyInjection;
 using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
+using Vorn.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.DependencyInjection;
 
@@ -11,6 +12,7 @@ public static class SeaModuleClientExtensions
 {
     public static IServiceCollection AddSeaModuleClient(this IServiceCollection services)
     {
+        _ = services.AddScoped<IEntityInterceptionProvider, AmbientEntityInterceptionProvider>();
         _ = services.AddScoped<IProjectsClient, ProjectsClient>();
         _ = services.AddScoped<IProceduresClient, ProceduresClient>();
         _ = services.AddScoped<IEventsClient, EventsClient>();

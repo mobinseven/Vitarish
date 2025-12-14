@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Identity.Contracts;
+using Vorn.Entities.Client.SignalR;
+using Vorn.Entities.Client.Models;
 
 namespace Vitarish.Clients.Modules.Sea.Internal;
 
@@ -75,40 +77,24 @@ public class UsageConfigurationClientDefinition : ISignalRClientDefinition
         SeaClientDefinition.Configure(registration, "/hubs/usage-configuration");
 }
 
-internal abstract class SeaHubClient<TDefinition>(IIdentityClientSignalRFactory connectionFactory) : IAsyncDisposable
+internal sealed class SeaEntityConnectionFactory<TDefinition>(IIdentityClientSignalRFactory connectionFactory)
+    : IEntityConnectionFactory<EntityDto>
     where TDefinition : ISignalRClientDefinition
 {
-    private HubConnection? connection;
-
-    protected async Task<HubConnection> EnsureConnectionAsync(CancellationToken cancellationToken)
+    public async Task<HubConnection> CreateConnection()
     {
-        connection ??= await connectionFactory.CreateConnection<TDefinition>(cancellationToken).ConfigureAwait(false);
-
-        if (connection.State != HubConnectionState.Connected)
-        {
-            await connection.StartAsync(cancellationToken).ConfigureAwait(false);
-        }
-
+        HubConnection connection = await connectionFactory.CreateConnection<TDefinition>().ConfigureAwait(false);
         return connection;
     }
+}
 
-    protected async Task InvokeAsync(string methodName, CancellationToken cancellationToken, params object?[] args)
-    {
-        HubConnection hubConnection = await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
-        await hubConnection.InvokeAsync(methodName, args, cancellationToken).ConfigureAwait(false);
-    }
-
-    protected async Task<TReturn> InvokeAsync<TReturn>(string methodName, CancellationToken cancellationToken, params object?[] args)
-    {
-        HubConnection hubConnection = await EnsureConnectionAsync(cancellationToken).ConfigureAwait(false);
-        return await hubConnection.InvokeAsync<TReturn>(methodName, args, cancellationToken).ConfigureAwait(false);
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (connection is not null)
-        {
-            await connection.DisposeAsync().ConfigureAwait(false);
-        }
-    }
+internal abstract class SeaEntityClient<TDefinition>(
+    IIdentityClientSignalRFactory connectionFactory,
+    IEntityInterceptionProvider entityInterceptionProvider)
+    : EntityClient<EntityDto, EntityDescriptorDto>(
+        new SeaEntityConnectionFactory<TDefinition>(connectionFactory),
+        entityInterceptionProvider),
+        IAsyncDisposable
+    where TDefinition : ISignalRClientDefinition
+{
 }
