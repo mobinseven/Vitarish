@@ -18,61 +18,61 @@ internal static class SeaClientDefinition
 public class ProjectsClientDefinition : ISignalRClientDefinition
 {
     public static void Configure(SignalRClientRegistration registration) =>
-        SeaClientDefinition.Configure(registration, "/sea/hubs/projects");
+        SeaClientDefinition.Configure(registration, "/hubs/projects");
 }
 
 public class ProceduresClientDefinition : ISignalRClientDefinition
 {
     public static void Configure(SignalRClientRegistration registration) =>
-        SeaClientDefinition.Configure(registration, "/sea/hubs/procedures");
+        SeaClientDefinition.Configure(registration, "/hubs/procedures");
 }
 
 public class EventsClientDefinition : ISignalRClientDefinition
 {
     public static void Configure(SignalRClientRegistration registration) =>
-        SeaClientDefinition.Configure(registration, "/sea/hubs/events");
+        SeaClientDefinition.Configure(registration, "/hubs/events");
 }
 
 public class AttachmentsClientDefinition : ISignalRClientDefinition
 {
     public static void Configure(SignalRClientRegistration registration) =>
-        SeaClientDefinition.Configure(registration, "/sea/hubs/attachments");
+        SeaClientDefinition.Configure(registration, "/hubs/attachments");
 }
 
 public class EventRolesClientDefinition : ISignalRClientDefinition
 {
     public static void Configure(SignalRClientRegistration registration) =>
-        SeaClientDefinition.Configure(registration, "/sea/hubs/event-roles");
+        SeaClientDefinition.Configure(registration, "/hubs/event-roles");
 }
 
 public class RolesClientDefinition : ISignalRClientDefinition
 {
     public static void Configure(SignalRClientRegistration registration) =>
-        SeaClientDefinition.Configure(registration, "/sea/hubs/roles");
+        SeaClientDefinition.Configure(registration, "/hubs/roles");
 }
 
 public class UserRolesClientDefinition : ISignalRClientDefinition
 {
     public static void Configure(SignalRClientRegistration registration) =>
-        SeaClientDefinition.Configure(registration, "/sea/hubs/user-roles");
+        SeaClientDefinition.Configure(registration, "/hubs/user-roles");
 }
 
 public class ReceiptsClientDefinition : ISignalRClientDefinition
 {
     public static void Configure(SignalRClientRegistration registration) =>
-        SeaClientDefinition.Configure(registration, "/sea/hubs/receipts");
+        SeaClientDefinition.Configure(registration, "/hubs/receipts");
 }
 
 public class RemindersClientDefinition : ISignalRClientDefinition
 {
     public static void Configure(SignalRClientRegistration registration) =>
-        SeaClientDefinition.Configure(registration, "/sea/hubs/reminders");
+        SeaClientDefinition.Configure(registration, "/hubs/reminders");
 }
 
 public class UsageConfigurationClientDefinition : ISignalRClientDefinition
 {
     public static void Configure(SignalRClientRegistration registration) =>
-        SeaClientDefinition.Configure(registration, "/sea/hubs/usage-configuration");
+        SeaClientDefinition.Configure(registration, "/hubs/usage-configuration");
 }
 
 internal abstract class SeaHubClient<TDefinition>(IIdentityClientSignalRFactory connectionFactory) : IAsyncDisposable
