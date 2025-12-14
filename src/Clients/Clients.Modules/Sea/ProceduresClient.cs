@@ -3,19 +3,7 @@ using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
 using Vitarish.Sea.Domain.Dto;
 
-namespace Vitarish.Clients.Modules.Sea.Abstractions
-{
-    public interface IProceduresClient
-    {
-        Task<Guid> AddAsync(Guid projectId, string name, CancellationToken cancellationToken = default);
-        Task UpdateAsync(Guid id, string name, CancellationToken cancellationToken = default);
-        Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
-        Task UpdateMetadataAsync(Guid id, string metadata, CancellationToken cancellationToken = default);
-        Task<ProcedureSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken = default);
-    }
-}
-
-namespace Vitarish.Clients.Modules.Sea.Internal.Services
+namespace Vitarish.Clients.Modules.Sea.Internal
 {
     internal sealed class ProceduresClient(IIdentityClientSignalRFactory connectionFactory)
         : SeaHubClient<ProceduresClientDefinition>(connectionFactory),

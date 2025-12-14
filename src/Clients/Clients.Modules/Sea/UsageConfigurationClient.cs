@@ -3,16 +3,7 @@ using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
 using Vitarish.Sea.Domain.Dto;
 
-namespace Vitarish.Clients.Modules.Sea.Abstractions
-{
-    public interface IUsageConfigurationClient
-    {
-        Task<UsageConfigurationDto?> GetAsync(CancellationToken cancellationToken = default);
-        Task<UsageConfigurationDto?> UpdateAsync(UsageConfigurationDto usageConfigurationDto, CancellationToken cancellationToken = default);
-    }
-}
-
-namespace Vitarish.Clients.Modules.Sea.Internal.Services
+namespace Vitarish.Clients.Modules.Sea.Internal
 {
     internal sealed class UsageConfigurationClient(IIdentityClientSignalRFactory connectionFactory)
         : SeaHubClient<UsageConfigurationClientDefinition>(connectionFactory),

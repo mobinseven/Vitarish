@@ -3,17 +3,7 @@ using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
 using Vitarish.Sea.Domain.Dto;
 
-namespace Vitarish.Clients.Modules.Sea.Abstractions
-{
-    public interface IRolesClient
-    {
-        Task<Guid> AddAsync(string name, CancellationToken cancellationToken = default);
-        Task UpdateAsync(Guid id, string name, CancellationToken cancellationToken = default);
-        Task<(IReadOnlyList<RoleDto> Items, int TotalItems)> GetPagedAsync(RoleDescriptorDto descriptor, CancellationToken cancellationToken = default);
-    }
-}
-
-namespace Vitarish.Clients.Modules.Sea.Internal.Services
+namespace Vitarish.Clients.Modules.Sea.Internal
 {
     internal sealed class RolesClient(IIdentityClientSignalRFactory connectionFactory)
         : SeaHubClient<RolesClientDefinition>(connectionFactory),

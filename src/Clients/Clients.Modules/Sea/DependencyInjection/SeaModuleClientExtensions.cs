@@ -4,7 +4,6 @@ using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Identity.DependencyInjection;
 using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
-using Vitarish.Clients.Modules.Sea.Internal.Services;
 
 namespace Vitarish.Clients.Modules.Sea.DependencyInjection;
 
@@ -12,16 +11,27 @@ public static class SeaModuleClientExtensions
 {
     public static IServiceCollection AddSeaModuleClient(this IServiceCollection services)
     {
-        AddSeaClient<IProjectsClient, ProjectsClient, ProjectsClientDefinition>(services);
-        AddSeaClient<IProceduresClient, ProceduresClient, ProceduresClientDefinition>(services);
-        AddSeaClient<IEventsClient, EventsClient, EventsClientDefinition>(services);
-        AddSeaClient<IAttachmentsClient, AttachmentsClient, AttachmentsClientDefinition>(services);
-        AddSeaClient<IEventRolesClient, EventRolesClient, EventRolesClientDefinition>(services);
-        AddSeaClient<IRolesClient, RolesClient, RolesClientDefinition>(services);
-        AddSeaClient<IUserRolesClient, UserRolesClient, UserRolesClientDefinition>(services);
-        AddSeaClient<IReceiptsClient, ReceiptsClient, ReceiptsClientDefinition>(services);
-        AddSeaClient<IRemindersClient, RemindersClient, RemindersClientDefinition>(services);
-        AddSeaClient<IUsageConfigurationClient, UsageConfigurationClient, UsageConfigurationClientDefinition>(services);
+        _ = services.AddScoped<IProjectsClient, ProjectsClient>();
+        _ = services.AddScoped<IProceduresClient, ProceduresClient>();
+        _ = services.AddScoped<IEventsClient, EventsClient>();
+        _ = services.AddScoped<IAttachmentsClient, AttachmentsClient>();
+        _ = services.AddScoped<IEventRolesClient, EventRolesClient>();
+        _ = services.AddScoped<IRolesClient, RolesClient>();
+        _ = services.AddScoped<IUserRolesClient, UserRolesClient>();
+        _ = services.AddScoped<IReceiptsClient, ReceiptsClient>();
+        _ = services.AddScoped<IRemindersClient, RemindersClient>();
+        _ = services.AddScoped<IUsageConfigurationClient, UsageConfigurationClient>();
+
+        _ = services.AddIdentitySignalRClient<ProjectsClientDefinition>();
+        _ = services.AddIdentitySignalRClient<ProceduresClientDefinition>();
+        _ = services.AddIdentitySignalRClient<EventsClientDefinition>();
+        _ = services.AddIdentitySignalRClient<AttachmentsClientDefinition>();
+        _ = services.AddIdentitySignalRClient<EventRolesClientDefinition>();
+        _ = services.AddIdentitySignalRClient<RolesClientDefinition>();
+        _ = services.AddIdentitySignalRClient<UserRolesClientDefinition>();
+        _ = services.AddIdentitySignalRClient<ReceiptsClientDefinition>();
+        _ = services.AddIdentitySignalRClient<RemindersClientDefinition>();
+        _ = services.AddIdentitySignalRClient<UsageConfigurationClientDefinition>();
 
         return services;
     }
@@ -30,14 +40,5 @@ public static class SeaModuleClientExtensions
     {
         _ = builder.Services.AddSeaModuleClient();
         return builder;
-    }
-
-    private static void AddSeaClient<TAbstraction, TImplementation, TDefinition>(IServiceCollection services)
-        where TAbstraction : class
-        where TImplementation : class, TAbstraction
-        where TDefinition : ISignalRClientDefinition
-    {
-        _ = services.AddScoped<TAbstraction, TImplementation>();
-        _ = services.AddIdentitySignalRClient<TDefinition>();
     }
 }
