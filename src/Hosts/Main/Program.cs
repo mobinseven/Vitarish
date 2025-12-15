@@ -26,6 +26,7 @@ using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Users.Hosting.Api;
 using Vitarish.Users.Hosting.DependencyInjection;
 using Vitarish.Users.Infrastructure.Data;
+using Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -153,5 +154,9 @@ app.MapRequestIdentityEndpoints().AddEndpointAuthorization();
 app.MapAccountsInterface();
 
 app.MapHangfireDashboard();
+
+HangfireReminderQueue reminderQueue = app.Services.GetRequiredService<HangfireReminderQueue>();
+reminderQueue.ScheduleProcessing();
+reminderQueue.TriggerProcessing();
 
 app.Run();
