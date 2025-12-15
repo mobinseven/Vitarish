@@ -29,6 +29,8 @@ public partial class UserRolesSelect : UsersBase
 
     private async Task SaveAsync()
     {
+        Guid userId = Guid.Parse(User.Id);
+
         IEnumerable<Guid> allRoleIds = initialReadRoles
             .Union(initialWriteRoles)
             .Union(readRoles)
@@ -37,16 +39,16 @@ public partial class UserRolesSelect : UsersBase
 
         foreach (Guid id in allRoleIds)
         {
-            await UserRolesService.RemoveUserRoleAsync(Guid.Parse(User.Id), id, CancellationToken.None);
+            await UserRolesService.RemoveUserRoleAsync(userId, id, CancellationToken.None);
 
             if (readRoles.Contains(id))
             {
-                await UserRolesService.AssignAsync(Guid.Parse(User.Id), id, RoleType.Read, CancellationToken.None);
+                await UserRolesService.AssignAsync(userId, id, RoleType.Read, CancellationToken.None);
             }
 
             if (writeRoles.Contains(id))
             {
-                await UserRolesService.AssignAsync(Guid.Parse(User.Id), id, RoleType.Write, CancellationToken.None);
+                await UserRolesService.AssignAsync(userId, id, RoleType.Write, CancellationToken.None);
             }
         }
     }
