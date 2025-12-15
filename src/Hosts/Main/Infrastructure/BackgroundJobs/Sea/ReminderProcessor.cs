@@ -55,7 +55,7 @@ public class ReminderProcessor(
             return;
         }
 
-        string htmlbody = $"<p>{reminder.TextBody}</p>";
+        string htmlbody = $"<p>{System.Net.WebUtility.HtmlEncode(reminder.TextBody)}</p>";
 
         bool shouldSkipQuietHours = false;
         if (reminder.Kind is ReminderKind.Sms)
@@ -69,49 +69,72 @@ public class ReminderProcessor(
             }
         }
 
-        if (!shouldSkipQuietHours)
+        if (shouldSkipQuietHours)
         {
-            switch (reminder.Kind)
-            {
-                case ReminderKind.Email:
-
-                    await messageClient.SendEmail(new Message
-                    {
-                        Recipient = reminder.Recipient,
-                        Subject = reminder.Subject,
-                        Body = reminder.TextBody,
-                        HtmlBody = htmlbody,
-                        Sender = null
-                    }, cancellationToken);
-                    break;
-                case ReminderKind.Sms:
-
-                    SmsSendResult smsResult = await messageClient.SendSms(new Message
-                    {
-                        Recipient = reminder.Recipient,
-                        Body = reminder.TextBody,
-                        Sender = null
-                    }, cancellationToken);
-
-                    if (string.IsNullOrWhiteSpace(smsResult.MessageId))
-                    {
-                        logger.LogError(
-                            "SMS send returned no message ID for reminder '{ReminderId}' to '{Recipient}'.", 
-                            reminder.Id,
-                            reminder.Recipient);
-                        return;
-                    }
-
-                    logger.LogInformation(
-                        "Sent SMS reminder '{ReminderId}' to '{Recipient}' with message id '{MessageId}'.", 
-                        reminder.Id,
-                        reminder.Recipient,
-                        smsResult.MessageId);
-
-                    break;
-            }
-
-            await remindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
+            logger.LogInformation(
+                "Deferring reminder '{ReminderId}' to '{Recipient}' due to quiet hours (8am-10pm).",
+                reminder.Id,
+                reminder.Kind == ReminderKind.Sms ? MaskPhoneNumber(reminder.Recipient) : reminder.Recipient);
+            return;
         }
+
+        switch (reminder.Kind)
+        {
+            case ReminderKind.Email:
+
+                await messageClient.SendEmail(new Message
+                {
+                    Recipient = reminder.Recipient,
+                    Subject = reminder.Subject,
+                    Body = reminder.TextBody,
+                    HtmlBody = htmlbody,
+                    Sender = null
+                }, cancellationToken);
+                break;
+            case ReminderKind.Sms:
+
+                SmsSendResult smsResult = await messageClient.SendSms(new Message
+                {
+                    Recipient = reminder.Recipient,
+                    Body = reminder.TextBody,
+                    Sender = null
+                }, cancellationToken);
+
+                if (string.IsNullOrWhiteSpace(smsResult.MessageId))
+                {
+                    logger.LogError(
+                        "SMS send returned no message ID for reminder '{ReminderId}' to '{Recipient}'. Marking as sent to avoid retries.", 
+                        reminder.Id,
+                        MaskPhoneNumber(reminder.Recipient));
+                    await remindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
+                    return;
+                }
+
+                logger.LogInformation(
+                    "Sent SMS reminder '{ReminderId}' to '{Recipient}' with message id '{MessageId}'.", 
+                    reminder.Id,
+                    MaskPhoneNumber(reminder.Recipient),
+                    smsResult.MessageId);
+
+                break;
+        }
+
+        await remindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
+    }
+
+    private static string MaskPhoneNumber(string phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+        {
+            return "***";
+        }
+
+        if (phoneNumber.Length <= 4)
+        {
+            return "***";
+        }
+
+        string prefix = phoneNumber.StartsWith("+") ? "+" : string.Empty;
+        return $"{prefix}*******{phoneNumber[^4..]}";
     }
 }
