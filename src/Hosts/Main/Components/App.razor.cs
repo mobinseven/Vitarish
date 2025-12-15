@@ -1,4 +1,8 @@
-namespace Vitarish.Accounts.Interface.Components;
+using Microsoft.AspNetCore.Components;
+using MudBlazor;
+using static Microsoft.AspNetCore.Components.Web.RenderMode;
+
+namespace Vitarish.Main.Components;
 
 public partial class App
 {
