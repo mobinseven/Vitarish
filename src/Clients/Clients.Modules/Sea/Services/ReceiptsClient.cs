@@ -38,5 +38,8 @@ namespace Vitarish.Clients.Modules.Sea.Services
 
         public async Task<bool> HasReceiptAsync(Guid userId, Guid objectId, CancellationToken cancellationToken = default) =>
             await InvokeHubAsync<bool>(nameof(HasReceiptAsync), cancellationToken, new object?[] { userId, objectId }).ConfigureAwait(false);
+
+        public async Task<IReadOnlyDictionary<Guid, bool>> HasReceiptsAsync(Guid userId, IEnumerable<Guid> objectIds, CancellationToken cancellationToken = default) =>
+            await InvokeHubAsync<IReadOnlyDictionary<Guid, bool>>(nameof(HasReceiptsAsync), cancellationToken, new object?[] { userId, objectIds }).ConfigureAwait(false);
     }
 }

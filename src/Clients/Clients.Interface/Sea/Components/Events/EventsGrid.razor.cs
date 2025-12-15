@@ -33,20 +33,34 @@ public partial class EventsGrid : EventsBase
         canWrite.Clear();
         readReceipts.Clear();
 
-        List<Task> tasks = [
-            .. events.Select(async e => canRead[e.Id] = await AccessService.CanReadEvent(e.Id)),
-            .. events.Select(async e => canWrite[e.Id] = await AccessService.CanWriteEvent(e.Id))
-        ];
+        Guid[] eventIds = [.. events.Select(e => e.Id)];
+
+        Task<IReadOnlyDictionary<Guid, (bool CanRead, bool CanWrite)>> accessTask = AccessService.GetEventAccessAsync(eventIds);
 
         Guid? userId = AccessService.UserId;
         hasReceiptData = userId is Guid;
 
+        Task<IReadOnlyDictionary<Guid, bool>> receiptsTask = Task.FromResult<IReadOnlyDictionary<Guid, bool>>(new Dictionary<Guid, bool>());
+
         if (userId is Guid id)
         {
-            tasks.AddRange(events.Select(async e => readReceipts[e.Id] = await ReceiptsService.HasReceiptAsync(id, e.Id, CancellationToken.None)));
+            receiptsTask = ReceiptsService.HasReceiptsAsync(id, eventIds, CancellationToken.None);
         }
 
-        await Task.WhenAll(tasks);
+        await Task.WhenAll(accessTask, receiptsTask);
+
+        IReadOnlyDictionary<Guid, (bool CanRead, bool CanWrite)> accessResults = await accessTask;
+        foreach ((Guid eventId, (bool CanRead, bool CanWrite) access) in accessResults)
+        {
+            canRead[eventId] = access.CanRead;
+            canWrite[eventId] = access.CanWrite;
+        }
+
+        IReadOnlyDictionary<Guid, bool> receiptResults = await receiptsTask;
+        foreach ((Guid eventId, bool hasReceipt) in receiptResults)
+        {
+            readReceipts[eventId] = hasReceipt;
+        }
 
         return new GridData<EventDto>
         {

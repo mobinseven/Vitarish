@@ -1,3 +1,4 @@
+using System.Linq;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Infrastructure.Extensions;
 
@@ -28,6 +29,22 @@ internal class ReceiptsService(
             .EnsureValue("Get receipts")
             .FirstOrDefault();
         return receiptDto is not null;
+    }
+
+    public async Task<IReadOnlyDictionary<Guid, bool>> HasReceiptsAsync(Guid userId, IEnumerable<Guid> objectIds, CancellationToken cancellationToken)
+    {
+        Guid[] ids = objectIds.Distinct().ToArray();
+        if(ids.Length == 0)
+        {
+            return new Dictionary<Guid, bool>();
+        }
+
+        IReadOnlyList<ReceiptDto> receipts = (await GetListAsync(new ReceiptDescriptorDto { CreatedBy = userId.ToString() }, cancellationToken))
+            .EnsureValue("Get receipts");
+
+        HashSet<Guid> receiptIds = [.. receipts.Select(r => r.ObjectId)];
+
+        return ids.ToDictionary(id => id, receiptIds.Contains);
     }
     public async Task<Guid> AddAsync(Guid userId, Guid objectId, CancellationToken cancellationToken)
     {

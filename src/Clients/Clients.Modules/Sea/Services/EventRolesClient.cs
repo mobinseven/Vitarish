@@ -15,6 +15,9 @@ namespace Vitarish.Clients.Modules.Sea.Services
         public async Task<(IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)> GetIdsAsync(Guid eventId, CancellationToken cancellationToken = default) =>
             await InvokeHubAsync<(IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)>(nameof(GetIdsAsync), cancellationToken, new object?[] { eventId }).ConfigureAwait(false);
 
+        public async Task<IReadOnlyDictionary<Guid, (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)>> GetIdsForEventsAsync(IEnumerable<Guid> eventIds, CancellationToken cancellationToken = default) =>
+            await InvokeHubAsync<IReadOnlyDictionary<Guid, (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)>>(nameof(GetIdsForEventsAsync), cancellationToken, new object?[] { eventIds }).ConfigureAwait(false);
+
         public async Task<IReadOnlyList<Guid>> GetReadIdsAsync(Guid eventId, CancellationToken cancellationToken = default) =>
             await InvokeHubAsync<IReadOnlyList<Guid>>(nameof(GetReadIdsAsync), cancellationToken, new object?[] { eventId }).ConfigureAwait(false);
 
