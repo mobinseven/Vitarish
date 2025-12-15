@@ -1,12 +1,15 @@
+using Microsoft.Extensions.Localization;
 using System.ComponentModel;
+using System.Globalization;
+using System.Text.Json;
 using Vitarish.Clients.Interface.Sea.Plugins.Clinic.Projects;
 
-namespace Vitarish.Clients.Interface.Sea.Plugins.Clinic.Tools;
+namespace Vitarish.Sea.Tools.Clinic;
 
 [McpServerToolType]
 public sealed class ClinicProjectsTools(
-    IProjectsService ProjectsService,
-    IStringLocalizer<ClinicPatientIntakeProjectCreationForm> Localizer)
+    IProjectsClient ProjectsService,
+    IStringLocalizer Localizer)
 {
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
 
@@ -25,7 +28,7 @@ public sealed class ClinicProjectsTools(
         FirstName = Trim(input.FirstName),
         LastName = Trim(input.LastName),
         DateOfBirth = NormalizeDate(input.DateOfBirth),
-        Gender = NormalizeGender(input.Gender),
+        Gender = input.Gender,
         Email = Trim(input.Email),
         Phone = Trim(input.Phone),
         InsuranceProvider = Trim(input.InsuranceProvider),
@@ -52,20 +55,6 @@ public sealed class ClinicProjectsTools(
             : DateTime.TryParse(trimmed, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime parsed)
             ? parsed.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
             : trimmed;
-    }
-
-    private static string NormalizeGender(string? value)
-    {
-        string? trimmed = Trim(value);
-        return trimmed is null
-            ? ClinicPatientIntakeProjectCreationForm.GenderUnspecified
-            : string.Equals(trimmed, ClinicPatientIntakeProjectCreationForm.GenderFemale, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(trimmed, "F", StringComparison.OrdinalIgnoreCase)
-            ? ClinicPatientIntakeProjectCreationForm.GenderFemale
-            : string.Equals(trimmed, ClinicPatientIntakeProjectCreationForm.GenderMale, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(trimmed, "M", StringComparison.OrdinalIgnoreCase)
-            ? ClinicPatientIntakeProjectCreationForm.GenderMale
-            : ClinicPatientIntakeProjectCreationForm.GenderUnspecified;
     }
 
     private string BuildDescription(ClinicPatientIntakeMetadata metadata) => string.IsNullOrWhiteSpace(metadata.ClinicalNotes)

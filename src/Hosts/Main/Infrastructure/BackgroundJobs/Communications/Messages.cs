@@ -1,4 +1,4 @@
-namespace Vitarish.Host.Infrastructure.BackgroundJobs;
+namespace Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 
 /// <summary>
 /// Base class for all messages processed by background jobs.

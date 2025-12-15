@@ -1,4 +1,4 @@
-namespace Vitarish.Clients.Interface.Sea.Plugins.Clinic.Tools;
+namespace Vitarish.Sea.Tools.Clinic;
 
 public sealed record ClinicProjectDto
 {

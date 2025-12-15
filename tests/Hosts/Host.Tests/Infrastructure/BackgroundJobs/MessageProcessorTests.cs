@@ -1,12 +1,10 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using Vitarish.Communications.Application.Abstractions;
-using Vitarish.Communications.Domain.Models;
-using Vitarish.Host.Infrastructure.BackgroundJobs;
+using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 using CommunicationsMessage = Vitarish.Communications.Domain.Models.Message;
-using Message = Vitarish.Host.Infrastructure.BackgroundJobs.Message;
 
-namespace Vitarish.Host.Tests.Infrastructure.BackgroundJobs;
+namespace Main.Tests.Infrastructure.BackgroundJobs;
 
 public class MessageProcessorTests
 {
@@ -82,7 +80,7 @@ public class MessageProcessorTests
         );
 
         Exception expectedException = new("Email send failed");
-        mockMessagesService
+        _ = mockMessagesService
             .Setup(x => x.SendEmail(It.IsAny<CommunicationsMessage>()))
             .ThrowsAsync(expectedException);
 
@@ -101,7 +99,7 @@ public class MessageProcessorTests
         );
 
         Exception expectedException = new("SMS send failed");
-        mockMessagesService
+        _ = mockMessagesService
             .Setup(x => x.SendSmsCode(
                 It.IsAny<CommunicationsMessage>(),
                 It.IsAny<CancellationToken>()))

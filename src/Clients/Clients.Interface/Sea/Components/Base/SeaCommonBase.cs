@@ -1,4 +1,4 @@
-using Vitarish.Clients.Interface.Sea.Internal;
+using Vitarish.Clients.Interface.Sea.Abstractions;
 
 namespace Vitarish.Clients.Interface.Sea.Components.Base;
 

@@ -1,0 +1,114 @@
+@using Microsoft.AspNetCore.Components.Web
+@using static Microsoft.AspNetCore.Components.Web.RenderMode
+
+<!DOCTYPE html>
+<html style="height:100%;">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="mobile-web-app-capable" content="yes">
+    <base href="/" />
+
+    @* <script type="module" src="./ad-splash-module.js"></script> *@
+    <script>let blazorReady = function(){ 
+            let modal = document.getElementById("reconnect-modal");
+            modal.style.opacity = 0;
+    };</script>
+    <style id="splash-styles">
+        #reconnect-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: #222222;
+            opacity: 1;
+            z-index: 200000;
+            transition: opacity 1s ease-in-out;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+            #reconnect-modal .top,
+            #reconnect-modal .bottom {
+                padding: 20px 0;
+            }
+
+            #reconnect-modal .center {
+                flex-grow: 1;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+            }
+
+            #reconnect-modal img {
+                max-width: 100%;
+                height: auto;
+                display: block;
+            }
+    </style>
+
+    <div id="reconnect-modal">
+        <div class="top">
+            <img id="reconnect-logo" src="https://assets.vitarish.ir/logo/opacity50.webp" style="width:50px; aspect-ratio:1/1;" />
+        </div>
+        <div class="center">
+            <img id="reconnect-ad" src="" style="display: none; max-width: 80vw; max-height: 60vh; object-fit: contain;" />
+        </div>
+        <div class="bottom">
+            <img id="reconnect-brandmark" src="https://assets.vitarish.ir/logo/brandmark-opacity50.webp" style="width:100px; aspect-ratio:1/1;" />
+        </div>
+    </div>
+
+    <HeadOutlet @rendermode="@(new InteractiveServerRenderMode(prerender: false))" />
+</head>
+
+<body style="height:100%" lang="@System.Globalization.CultureInfo.CurrentCulture.Name">
+    <div style="height: 110vh;
+                width: 110vw;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                position:fixed;
+                z-index:-100;
+                background-image: url('./background.jpg');
+                background-size: cover;
+                background-position: 50% 50%;
+                opacity: 1" />
+
+    <Routes @rendermode="@(new InteractiveServerRenderMode(prerender: false))" />
+
+    <script src="_framework/blazor.web.js" autostart="false"></script>
+    <script type="module" src="https://assets.vitarish.ir/js/connection-manager.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js" defer></script>
+    <script>
+        if ("serviceWorker" in navigator) {
+          window.addEventListener("load", async () => {
+            try {
+              const registrations = await navigator.serviceWorker.getRegistrations();
+              for (const registration of registrations) {
+                await registration.unregister();
+              }
+            } catch (e) {
+              console.warn("Error unregistering SWs:", e);
+            }
+
+            // navigator.serviceWorker
+            //   .register("/service-worker.js?v=6")
+            //   .catch((err) => {
+            //     console.warn("SW registration failed:", err);
+            //   });
+          });
+        }
+    </script>
+    <link href="https://assets.vitarish.ir/fa/v6/css/all.min.css" rel="stylesheet" async />
+    <link href="https://assets.vitarish.ir/fonts/css/all.min.css" rel="stylesheet" async />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" async />
+    <link rel="stylesheet" href="Vitarish.Sea.Host.styles.css?v=6" async />
+</body>
+
+</html>

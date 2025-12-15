@@ -1,7 +1,6 @@
 using System.Reflection;
 using Vitarish.Clients.Interface.Localization;
 using Vitarish.Clients.Interface.Sea.Plugins.Clinic.Projects;
-using Vitarish.Clients.Interface.Sea.Plugins.Clinic.Tools;
 using Vitarish.Clients.Interface.Sea.Plugins.Gym.Projects;
 
 namespace Vitarish.Clients.Interface.Sea.Plugins;
@@ -24,8 +23,7 @@ public static class SeaPluginConfigurationExtensions
                 [
                     typeof(ClinicPatientIntakeProjectCreationForm),
                 typeof(ClinicProjectGridCellDisplay)
-                ],
-                [typeof(ClinicProjectsTools)]);
+                ]);
 
             PluginDescriptor gymDescriptor = new(
                 services =>
@@ -36,8 +34,7 @@ public static class SeaPluginConfigurationExtensions
                 [
                     typeof(GymTraineeProjectCreationForm),
                 typeof(GymProjectGridCellDisplay)
-                ],
-                Array.Empty<Type>());
+                ]);
 
             Dictionary<string, PluginDescriptor> descriptors = new(StringComparer.OrdinalIgnoreCase)
             {
@@ -79,15 +76,6 @@ public static class SeaPluginConfigurationExtensions
 
                 resolvedDescriptor.ConfigureServices(services);
                 resourceTypes.AddRange(resolvedDescriptor.ResourceTypes);
-                foreach (Type toolType in resolvedDescriptor.McpToolTypes)
-                {
-                    _ = toolAssemblies.Add(toolType.Assembly);
-                }
-
-                if (resolvedDescriptor.McpToolTypes.Count > 0)
-                {
-                    pluginToolTypes[trimmedIdentifier] = resolvedDescriptor.McpToolTypes;
-                }
 
                 _ = loadedPluginIdentifiers.Add(trimmedIdentifier);
             }
@@ -101,6 +89,5 @@ public static class SeaPluginConfigurationExtensions
 
     private sealed record PluginDescriptor(
         Action<IServiceCollection> ConfigureServices,
-        IReadOnlyCollection<Type> ResourceTypes,
-        IReadOnlyCollection<Type> McpToolTypes);
+        IReadOnlyCollection<Type> ResourceTypes);
 }

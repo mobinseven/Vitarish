@@ -21,6 +21,7 @@ using Vitarish.Requests.Hosting.Api;
 using Vitarish.Requests.Hosting.DependencyInjection;
 using Vitarish.Requests.Infrastructure.Data;
 using Vitarish.Sea.Hosting;
+using Vitarish.Sea.Infrastructure;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Users.Hosting.Api;
 using Vitarish.Users.Hosting.DependencyInjection;
@@ -51,11 +52,13 @@ _ = await builder.AddModules(requestedModuleAssemblies, configureSqlServer);
 
 builder.AddAccountsInterface();
 builder.AddApplicationOptions();
+
 builder.AddUsers(configureSqlServer);
 builder.AddRequests(configureSqlServer);
 builder.AddAaasApiClients(configureSqlServer);
 builder.AddAaasAuthenticationClients(configureSqlServer);
 builder.AddAaasParties(configureSqlServer);
+
 await builder.AddHostIdentityServer(configureSqlServer);
 builder.AddHostAuthentication();
 builder.AddHostHangfire(builder.Configuration.GetConnectionString("HangfireDb")!);

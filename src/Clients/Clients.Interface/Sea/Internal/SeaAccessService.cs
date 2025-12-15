@@ -1,14 +1,7 @@
 
+using Vitarish.Clients.Interface.Sea.Abstractions;
+
 namespace Vitarish.Clients.Interface.Sea.Internal;
-
-
-public interface ISeaAccessService : IAccessService
-{
-    IReadOnlyList<Guid> RoleIds { get; }
-    Guid? UserId { get; }
-    Task<bool> CanReadEvent(Guid eventId);
-    Task<bool> CanWriteEvent(Guid eventId);
-}
 
 public sealed class SeaAccessService(IAccessService accessService, IEntityInterceptionProvider userService, IUserRolesClient userRolesService, IEventRolesClient eventRolesService, IRolesClient rolesService) : ISeaAccessService
 {

@@ -330,7 +330,7 @@ public partial class EventsGrid : EventsBase
             return;
         }
 
-        _ = reordered.Remove(dragged);
+        reordered.Remove(dragged);
 
         int insertIndex = reordered.Count;
 

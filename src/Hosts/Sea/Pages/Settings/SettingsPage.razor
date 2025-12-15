@@ -1,0 +1,65 @@
+@page "/settings"
+@inherits SettingsSectionPageBase
+
+<div style="position: sticky; top: 10px; z-index: 1;">
+    <WidthControlled ControlledWidth="50vw">
+        <MudPaper Class="py-5" Elevation="0">
+            <SettingsBreadcrumbs Items="Breadcrumbs" />
+        </MudPaper>
+    </WidthControlled>
+</div>
+
+<WidthControlled ControlledWidth="50vw">
+
+    <MudPaper Class="glass mt-5" Elevation="0">
+        <MudStack Spacing="3" Class="pa-6">
+            <MudField Label="@Localizer["User"]" Variant="Variant.Outlined">
+                <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="width: 100%">
+                    <UserRolesDisplay User="AccessService.User" />
+                    <Profile>
+                        <SubmitButton>
+                            <MudMenuItem Class="pa-0">
+                                <MudButton DropShadow="false" StartIcon="fa-thin fa-user-gear"
+                                           ButtonType="ButtonType.Submit"
+                                           Size="Size.Small" FullWidth>
+                                    @(context.User.Identity?.Name ?? Localizer["Profile"])
+                                </MudButton>
+                            </MudMenuItem>
+                        </SubmitButton>
+                    </Profile>
+                    <Logout>
+                        <SubmitButton>
+                            <MudMenuItem Class="pa-0">
+                                <MudButton DropShadow="false" StartIcon="fa-thin fa-house-person-leave"
+                                           ButtonType="ButtonType.Submit"
+                                           Size="Size.Small" FullWidth>@Localizer["Logout"]</MudButton>
+                            </MudMenuItem>
+                        </SubmitButton>
+                    </Logout>
+                    <MudItem md="2" Style="height: 100%; width: 100%;"></MudItem>
+                </MudStack>
+            </MudField>
+        </MudStack>
+    </MudPaper>
+
+    @if (AccessService.Access.Admin)
+    {
+        <MudPaper Class="glass mt-5" Elevation="0">
+            <MudStack Spacing="2" Class="pa-6">
+                <MudText Typo="Typo.h6">@($"{Localizer["Admin"]} {Localizer["Settings"]}")</MudText>
+                <MudStack Spacing="1">
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/settings/users">@Localizer["Users"]</MudButton>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/settings/theme">@Localizer["Theme"]</MudButton>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/chat">@Localizer["Chat"]</MudButton>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/settings/statistics">@Localizer["Statistics"]</MudButton>
+                    <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/settings/advanced">@Localizer["Advanced"]</MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+    }
+</WidthControlled>
+
+<div style="height: 50dvh;">
+    <hr />
+</div>
+

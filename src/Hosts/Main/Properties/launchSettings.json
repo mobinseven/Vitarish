@@ -1,6 +1,6 @@
 {
   "profiles": {
-    "Host": {
+    "Main": {
       "commandName": "Project",
       "launchBrowser": true,
       "environmentVariables": {

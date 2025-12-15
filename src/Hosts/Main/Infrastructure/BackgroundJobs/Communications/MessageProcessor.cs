@@ -1,7 +1,7 @@
 using Vitarish.Communications.Application.Abstractions;
 using CommunicationsMessage = Vitarish.Communications.Domain.Models.Message;
 
-namespace Vitarish.Host.Infrastructure.BackgroundJobs;
+namespace Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 
 /// <summary>
 /// Processes messages enqueued via IMessageQueue using Hangfire.

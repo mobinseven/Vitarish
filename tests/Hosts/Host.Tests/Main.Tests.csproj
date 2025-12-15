@@ -23,10 +23,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Using Include="Xunit" />
+	  <ProjectReference Include="..\..\..\src\Hosts\Main\Main.csproj" />
 	</ItemGroup>
+
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\src\Hosts\Host\Host.csproj" />
+		<Using Include="Xunit" />
 	</ItemGroup>
 
 </Project>

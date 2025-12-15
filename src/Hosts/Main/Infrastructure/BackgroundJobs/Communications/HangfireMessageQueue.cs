@@ -1,7 +1,7 @@
 using Hangfire;
 using Vitarish.Accounts.Infrastructure.Services;
 
-namespace Vitarish.Host.Infrastructure.BackgroundJobs;
+namespace Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 
 /// <summary>
 /// Hangfire-backed implementation of IMessageQueue that persists messages to storage.

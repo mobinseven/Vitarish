@@ -1,0 +1,80 @@
+@page "/Projects/{projectId}"
+@page "/Projects/{projectId}/{procedureId}"
+@page "/Projects/{projectId}/{procedureId}/{eventId}"
+@using Vitarish.Clients.Interface.Sea.Abstractions
+
+@inject NavigationManager NavigationManager
+@inject IProjectsClient ProjectsService
+@inject IReceiptsClient ReceiptsService
+@inject ISeaAccessService AccessService
+@inject IStringLocalizer Localizer
+@inject IDialogService DialogService
+@if(Project is not null)
+{
+    <EndOfScroll />
+    <WidthControlled ControlledWidth="50vw">
+        <ProceduresGrid Project="@Project"
+                        ProjectChanged="@(p => NavigationManager.NavigateTo($"/Projects/{p.Id}"))"
+                        ProjectDeleted="@(() => NavigationManager.NavigateTo("/"))"
+                        Context="procedure"
+                        OpenProcedure="OpenProcedureId"
+                        OpenProcedureChanged="@(id => NavigationManager.NavigateTo($"/Projects/{projectId}/{id}"))">
+            <ProcedureChildContent>
+                <WidthControlled ControlledWidth="90%">
+                    <EventsGrid Project="@Project" OpenEvent=OpenEventId OpenEventChanged=@(id => NavigationManager.NavigateTo($"/Projects/{projectId}/{procedureId}/{id}")) Procedure="procedure" />
+                </WidthControlled>
+            </ProcedureChildContent>
+        </ProceduresGrid>
+    </WidthControlled>
+}
+<div style="height: 20dvh;">
+    <hr />
+</div>
+@code {
+    [Parameter] public string? projectId { get; set; }
+    [Parameter] public string? procedureId { get; set; }
+    [Parameter] public string? eventId { get; set; }
+
+    Guid ProjectId;
+    Guid OpenProcedureId;
+    Guid OpenEventId;
+    ProjectDto? Project;
+
+    protected override async Task OnInitializedAsync()
+    {
+        Guid userId = AccessService.UserId ?? throw new InvalidOperationException("This is an authorized page and user ID must be defined");
+
+        if(string.IsNullOrWhiteSpace(projectId))
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+
+        Guid.TryParse(projectId, out ProjectId);
+        Guid.TryParse(procedureId, out OpenProcedureId);
+        Guid.TryParse(eventId, out OpenEventId);
+
+        Project = await ProjectsService.GetAsync(ProjectId, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if(Project is null)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+
+        await ReceiptsService.MarkProjectReadAsync(userId, ProjectId, CancellationToken.None);
+
+        if(OpenProcedureId != Guid.Empty)
+        {
+            await ReceiptsService.MarkProcedureReadAsync(userId, OpenProcedureId, CancellationToken.None);
+        }
+
+        if(OpenEventId != Guid.Empty)
+        {
+            await ReceiptsService.MarkEventReadAsync(userId, OpenEventId, CancellationToken.None);
+        }
+
+        StateHasChanged();
+    }
+
+}

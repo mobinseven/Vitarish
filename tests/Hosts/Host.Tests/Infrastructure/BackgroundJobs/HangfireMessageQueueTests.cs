@@ -2,9 +2,9 @@ using Hangfire;
 using Hangfire.Common;
 using Hangfire.States;
 using Moq;
-using Vitarish.Host.Infrastructure.BackgroundJobs;
+using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 
-namespace Host.Tests.Infrastructure.BackgroundJobs;
+namespace Main.Tests.Infrastructure.BackgroundJobs;
 
 public class HangfireMessageQueueTests
 {
