@@ -13,6 +13,7 @@ using Vitarish.Files.Infrastructure.Data;
 using Vitarish.Host.Infrastructure.Options;
 using Vitarish.Instagram.Hosting;
 using Vitarish.Intelligence.Hosting;
+using Vitarish.Main.Components;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Hosting.Api;
 using Vitarish.Parties.Hosting.DependencyInjection;
@@ -21,7 +22,6 @@ using Vitarish.Requests.Hosting.Api;
 using Vitarish.Requests.Hosting.DependencyInjection;
 using Vitarish.Requests.Infrastructure.Data;
 using Vitarish.Sea.Hosting;
-using Vitarish.Sea.Infrastructure;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Users.Hosting.Api;
 using Vitarish.Users.Hosting.DependencyInjection;
@@ -37,7 +37,7 @@ void configureSqlServer(DbContextOptionsBuilder options)
     builder.Configuration.GetConnectionString("Db"),
     b =>
     {
-        _ = b.MigrationsAssembly("Vitarish.Host");
+        _ = b.MigrationsAssembly("Vitarish.Main");
         _ = b.EnableRetryOnFailure();
     });
 }
@@ -156,5 +156,7 @@ app.MapAccountsInterface();
 app.MapHangfireDashboard();
 
 app.ScheduleSelfTriggeringJobs();
+
+_ = app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
 app.Run();

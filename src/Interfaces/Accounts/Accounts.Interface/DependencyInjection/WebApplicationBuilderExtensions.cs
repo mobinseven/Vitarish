@@ -58,7 +58,6 @@ public static class WebApplicationBuilderExtensions
     }
     public static void MapAccountsInterface(this WebApplication app)
     {
-        _ = app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
         _ = app.MapRazorPages();
         _ = app.MapAdditionalIdentityEndpoints();
     }

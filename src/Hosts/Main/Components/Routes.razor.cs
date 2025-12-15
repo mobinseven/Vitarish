@@ -1,6 +1,6 @@
 using NavigationContext = Microsoft.AspNetCore.Components.Routing.NavigationContext;
 
-namespace Vitarish.Accounts.Interface.Components
+namespace Vitarish.Main.Components
 {
     public partial class Routes
     {
