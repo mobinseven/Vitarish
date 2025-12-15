@@ -14,7 +14,7 @@ public static class RemindersTools
             string subject,
             string textBody,
             DateTimeOffset remindAt,
-            CancellationToken cancellationToken = default) => RemindersService.AddRangeAsync(eventId, recipients, subject, textBody, remindAt, cancellationToken);
+            CancellationToken cancellationToken = default) => RemindersService.AddRemindersAsync(eventId, recipients, subject, textBody, remindAt, cancellationToken);
 
     [McpServerTool(Name = nameof(UpdateReminderAsync), Destructive = true, Idempotent = true, OpenWorld = false, ReadOnly = false, UseStructuredContent = true), Description("This command updates an existing reminder.")]
     public static Task<ReminderDto?> UpdateReminderAsync(
