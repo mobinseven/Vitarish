@@ -1,7 +1,6 @@
 using System.Text;
 using Vitarish.Clients.Interface.Intelligence.Abstractions;
 using Vitarish.Clients.Modules.Intelligence.Abstractions;
-using Vitarish.Clients.Modules.Intelligence.Models;
 
 namespace Vitarish.Clients.Interface.Intelligence.Services;
 

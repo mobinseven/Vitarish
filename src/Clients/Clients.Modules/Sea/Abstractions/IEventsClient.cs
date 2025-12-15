@@ -1,8 +1,9 @@
 using Vitarish.Clients.Modules.Sea.Dto;
+using Vorn.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Abstractions;
 
-public interface IEventsClient
+public interface IEventsClient : IEntityClient<EventDto, EventDescriptorDto>
 {
     Task<IReadOnlyList<EventDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken = default);
     Task<EventDto?> AddAsync(Guid projectId, Guid procedureId, Guid? previousEventId, CancellationToken cancellationToken = default);

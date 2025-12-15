@@ -1,0 +1,8 @@
+.sea-unread-indicator {
+    display: inline-block;
+    width: 0.65rem;
+    height: 0.65rem;
+    border-radius: 9999px;
+    background-color: var(--mud-palette-primary);
+    box-shadow: 0 0 0 0.125rem var(--mud-palette-surface);
+}

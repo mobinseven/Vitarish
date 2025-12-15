@@ -1,8 +1,9 @@
 using Vitarish.Clients.Modules.Sea.Dto;
+using Vorn.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Abstractions;
 
-public interface IAttachmentsClient
+public interface IAttachmentsClient : IEntityClient<AttachmentDto, AttachmentDescriptorDto>
 {
     Task<IReadOnlyList<AttachmentDto>> GetByEventAsync(Guid eventId, CancellationToken cancellationToken = default);
     Task<int> GetCountByEventAsync(Guid eventId, CancellationToken cancellationToken = default);

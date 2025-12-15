@@ -1,8 +1,9 @@
 using Vitarish.Clients.Modules.Sea.Dto;
+using Vorn.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Abstractions;
 
-public interface IRolesClient
+public interface IRolesClient : IEntityClient<RoleDto, RoleDescriptorDto>
 {
     Task<Guid> AddAsync(string name, CancellationToken cancellationToken = default);
     Task UpdateAsync(Guid id, string name, CancellationToken cancellationToken = default);

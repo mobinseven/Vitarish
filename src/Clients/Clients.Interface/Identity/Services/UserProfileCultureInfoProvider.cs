@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Primitives;
-using Vitarish.Clients.Interface.Identity.Abstractions;
 
 namespace Vitarish.Clients.Interface.Identity.Services;
 

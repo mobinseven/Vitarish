@@ -1,0 +1,244 @@
+
+
+@inherits ProjectCreationFormBase<ClinicPatientIntakeProjectCreationForm.ClinicPatientIntakeMetadata, ClinicPatientIntakeProjectCreationForm.ClinicPatientIntakeMetadataModel>
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+                <MudText Typo="Typo.h6">@Localizer["RegisterClinicPatient_Title"]</MudText>
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Secondary"
+                           Disabled="@(isSubmitting || isGenerating)"
+                           OnClick="ToggleManualMode">
+                    @if(isManualMode)
+                    {
+                        @Localizer["Btn_SwitchToAi"]
+                    }
+                    else
+                    {
+                        @Localizer["Btn_SwitchToManual"]
+                    }
+                </MudButton>
+            </MudStack>
+
+            @if(!string.IsNullOrWhiteSpace(facilityLabel))
+            {
+                <MudAlert Severity="Severity.Info" Variant="Variant.Text">
+                    @facilityLabel
+                </MudAlert>
+            }
+
+            @if(!string.IsNullOrWhiteSpace(departmentLabel))
+            {
+                <MudAlert Severity="Severity.Info" Variant="Variant.Text">
+                    @departmentLabel
+                </MudAlert>
+            }
+
+            @if(!string.IsNullOrWhiteSpace(generationError) && !isManualMode)
+            {
+                <MudAlert Severity="Severity.Error">@generationError</MudAlert>
+            }
+
+            @if(!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+            }
+
+            @if(isManualMode)
+            {
+                @if(!string.IsNullOrWhiteSpace(manualValidationError))
+                {
+                    <MudAlert Severity="Severity.Error">@manualValidationError</MudAlert>
+                }
+
+                <MudText Typo="Typo.subtitle2">@Localizer["Info_ManualEntry_Header"]</MudText>
+                <ClinicPatientIntakeManualEditor EditableMetadata="EditableMetadata"
+                                                 Localizer="Localizer"
+                                                 GenderFemale="@GenderFemale"
+                                                 GenderMale="@GenderMale"
+                                                 GenderUnspecified="@GenderUnspecified" />
+            }
+            else
+            {
+                @if(!string.IsNullOrWhiteSpace(metadataValidationError))
+                {
+                    <MudAlert Severity="Severity.Error">@metadataValidationError</MudAlert>
+                }
+
+                <MudStepper @bind-ActiveIndex="activeStep" NonLinear=false>
+                    <TitleTemplate></TitleTemplate>
+                    <ChildContent>
+                        <MudStep Title="@Localizer["Step1_PatientDescription_Title"]" Completed="@DescriptionProvided" Class="px-0">
+                            <MudText Typo="Typo.subtitle2">@Localizer["Step1_DescribePatient_Header"]</MudText>
+                            <MudText Typo="Typo.body2">@Localizer["Step1_DescribePatient_Help"]</MudText>
+                            <AiJsonGeneratorInput @ref="generator"
+                                                @bind-Value="patientDescription"
+                                                DisplaySubmit=false
+                                                Schema="@MetadataJsonSchema"
+                                                OnJsonReceived="HandleAiJsonAsync"
+                                                OnError="HandleAiErrorAsync"
+                                                OnBusyChanged="HandleAiBusyAsync">
+                                <TrailingContent />
+                            </AiJsonGeneratorInput>
+                        </MudStep>
+
+                        <MudStep Title="@Localizer["Step2_Generate_Title"]" Completed="@MetadataAvailable" Class="px-0">
+                            <MudPaper Outlined Class="pa-4">
+                                <MudStack Spacing="2">
+                                    <MudText Typo="Typo.subtitle2">@Localizer["Step2_Generating_Header"]</MudText>
+                                    <MudText Typo="Typo.body2">@Localizer["Step2_Generating_Help"]</MudText>
+                                    @if(isGenerating)
+                                    {
+                                        <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+                                            <MudProgressCircular Size="Size.Medium" Indeterminate />
+                                            <MudText Typo="Typo.body2">@Localizer["Common_Processing"]</MudText>
+                                        </MudStack>
+                                    }
+                                    else
+                                    {
+                                        <MudText Typo="Typo.body2">@Localizer["Step2_Generate_Done"]</MudText>
+                                    }
+                                </MudStack>
+                            </MudPaper>
+                        </MudStep>
+
+                        <MudStep Title="@Localizer["Step3_Review_Title"]" Completed="@CanContinueToFinish" Class="px-0">
+                            <MudText Typo="Typo.subtitle2">@Localizer["Step3_Review_Header"]</MudText>
+                            <MudText Typo="Typo.body2">@Localizer["Step3_Review_Help"]</MudText>
+
+                            <MudDivider Class="my-1" />
+                            <ClinicPatientIntakeManualEditor EditableMetadata="EditableMetadata"
+                                                             Localizer="Localizer"
+                                                             GenderFemale="@GenderFemale"
+                                                             GenderMale="@GenderMale"
+                                                             GenderUnspecified="@GenderUnspecified" />
+
+                            @if(Metadata is null)
+                            {
+                                <MudAlert Severity="Severity.Info" Variant="Variant.Text">
+                                    @Localizer["Info_MetadataAppearsAfterApply"]
+                                </MudAlert>
+                            }
+                        </MudStep>
+
+                        <MudStep Title="@Localizer["Step4_Finish_Title"]" Completed="@CanSubmit" Class="px-0">
+                            <MudText Typo="Typo.subtitle2">@Localizer["Step4_Confirm_Header"]</MudText>
+                            <MudText Typo="Typo.body2">@Localizer["Step4_Confirm_Help"]</MudText>
+
+                            @if(Metadata is not null)
+                            {
+                                <MudPaper Elevation="0" Class="pa-3">
+                                    <MudTable Items="MetadataTableRows" Dense="true" Hover="true" Elevation="0">
+                                        <RowTemplate>
+                                            <MudTd DataLabel="@Localizer["Table_Field"]">@context.Label</MudTd>
+                                            <MudTd DataLabel="@Localizer["Table_Value"]">@context.Value</MudTd>
+                                        </RowTemplate>
+                                    </MudTable>
+                                </MudPaper>
+
+                                <MudAlert Severity="Severity.Success" Variant="Variant.Text">
+                                    @Localizer["Success_ReadyToCreateProjectFor", BuildDisplayName(Metadata!)]
+                                </MudAlert>
+                            }
+                            else
+                            {
+                                <MudAlert Severity="Severity.Info" Variant="Variant.Text">
+                                    @Localizer["Info_ApplyValidMetadataBeforeFinish"]
+                                </MudAlert>
+                            }
+                        </MudStep>
+                    </ChildContent>
+                    <ActionContent />
+                </MudStepper>
+            }
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Style="width: 100%;">
+            <MudButton Variant="Variant.Text"
+                       Color="Color.Default"
+                       OnClick="Cancel">@Localizer["Btn_Cancel"]</MudButton>
+
+            @if(isManualMode)
+            {
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Disabled="@(!CanSubmitManual)"
+                           OnClick="SubmitManualAsync">
+                    @if(isSubmitting)
+                    {
+                        <MudProgressCircular Size="Size.Small" Class="me-2" Indeterminate />
+                    }
+                    @finishLabel
+                </MudButton>
+            }
+            else
+            {
+                <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center">
+                    @if(activeStep > 0)
+                    {
+                        <MudButton Variant="Variant.Text"
+                                   Disabled="@(isSubmitting || isGenerating)"
+                                   OnClick="GoToPreviousStep">@Localizer["Btn_Back"]</MudButton>
+                    }
+
+                    @switch(activeStep)
+                    {
+                        case 0:
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Disabled="@(!CanBeginGeneration)"
+                                       OnClick="() => generator.SubmitAsync()">
+                                @if(isGenerating)
+                                {
+                                    <MudProgressCircular Size="Size.Small" Class="me-2" Indeterminate />
+                                }
+                                @generateLabel
+                            </MudButton>
+                            break;
+                        case 1:
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Disabled="@(!CanOpenReview)"
+                                       OnClick="(() => activeStep = 2)">
+                                @Localizer["Btn_ReviewDetails"]
+                            </MudButton>
+                            break;
+                        case 2:
+                            @if(CanApplyMetadata)
+                            {
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           OnClick="ApplyAndProceedAsync">
+                                    @Localizer["Btn_ApplyAndContinue"]
+                                </MudButton>
+                            }
+                            else if(CanContinueToFinish)
+                            {
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           OnClick="(() => activeStep = 3)">
+                                    @Localizer["Btn_Continue"]
+                                </MudButton>
+                            }
+                            break;
+                        case 3:
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       Disabled="@(!CanSubmit)"
+                                       OnClick="SubmitAsync">
+                                @if(isSubmitting)
+                                {
+                                    <MudProgressCircular Size="Size.Small" Class="me-2" Indeterminate />
+                                }
+                                @finishLabel
+                            </MudButton>
+                            break;
+                    }
+                </MudStack>
+            }
+        </MudStack>
+    </DialogActions>
+</MudDialog>

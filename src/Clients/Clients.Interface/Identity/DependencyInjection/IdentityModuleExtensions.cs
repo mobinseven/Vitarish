@@ -1,16 +1,12 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Vitarish.Clients.Identity.Options;
-using Vitarish.Clients.Interface.Identity.Abstractions;
 using Vitarish.Clients.Interface.Identity.Constants;
-using Vitarish.Clients.Interface.Identity.Contracts;
 using Vitarish.Clients.Interface.Identity.Extensions;
 using Vitarish.Clients.Interface.Identity.Services;
 

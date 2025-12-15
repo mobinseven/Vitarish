@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using System.Net.Http.Json;
 using System.Security.Claims;
-using Vitarish.Clients.Identity.Abstractions;
-using Vitarish.Clients.Interface.Identity.Abstractions;
 
 namespace Vitarish.Clients.Interface.Identity.Services;
 

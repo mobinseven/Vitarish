@@ -1,0 +1,91 @@
+@inherits RemindersBase
+
+<MudDialog>
+    <DialogContent>
+        <div style="width: 100%">
+            @if(KindStep)
+            {
+                <MudChip Color=Color.Primary T="string" Icon="fa-thin fa-phone">@Localizer[kind.ToString()]</MudChip>
+            }
+            @if(DateStep)
+            {
+                <MudChip Color=Color.Primary T="string" Icon="fa-thin fa-calander">@remindAt.ToLocalTime().DateTime.ToShortDateString()</MudChip>
+            }
+            @if(TimeStep)
+            {
+                <MudChip Color=Color.Primary T="string" Icon="fa-thin fa-clock">@remindAt.ToLocalTime().DateTime.ToShortTimeString()</MudChip>
+            }
+        </div>
+        <div>
+            @if(ContentStep)
+            {
+                <Chip Color=Color.Primary>
+                    @textBody
+                </Chip>
+            }
+        </div>
+        <div style="width: 100%">
+            @if(RecipientsStep)
+            {
+                @foreach(var recipients in recipients)
+                {
+                    <MudChip Color=Color.Primary T="string">@recipients.Recipient</MudChip>
+                }
+            }
+        </div>
+
+        <MudStepper @ref=MudStepper @bind-ActiveIndex="ActiveStep" CenterLabels NextButtonIcon="" PreviousButtonIcon="">
+            <ChildContent>
+                <MudStep Title="@Localizer["Kind"]" @bind-Completed=KindStep>
+                    <MudRadioGroup T="ReminderKind" @bind-Value=kind>
+                        <MudRadio T="ReminderKind" Value="ReminderKind.Sms" Label="@Localizer["Sms"]" />
+                        <MudRadio T="ReminderKind" Value="ReminderKind.Email" Label="@Localizer["Email"]" />
+                    </MudRadioGroup>
+                </MudStep>
+                <MudStep Title="@Localizer["Date"]" @bind-Completed=DateStep>
+                    <MudDatePicker PickerVariant="PickerVariant.Dialog" @bind-Date="remindDate" Label="@Localizer["Date"]" Culture="@System.Globalization.CultureInfo.CurrentCulture" />
+                </MudStep>
+                <MudStep Title="@Localizer["Time"]" @bind-Completed=TimeStep>
+                    <MudTimePicker PickerVariant="PickerVariant.Dialog" @bind-Time="remindTime" Label="@Localizer["Time"]" Culture="@System.Globalization.CultureInfo.CurrentCulture" />
+                </MudStep>
+                <MudStep Title="@Localizer["Content"]" @bind-Completed=ContentStep>
+                    <MudTextField @bind-Value="subject" Variant=Variant.Outlined Label="@Localizer["Subject"]" />
+                    <MudTextField @bind-Value="textBody" Variant="Variant.Outlined" AutoGrow Lines="3" Label="@Localizer["TextBody"]" />
+                </MudStep>
+                <MudStep Title="@Localizer["Recipients"]"  @bind-Completed=RecipientsStep>
+                    @foreach(var recipients in recipients)
+                    {
+                        <MudChip Color=Color.Primary T="string">@recipients.Recipient</MudChip>
+                    }
+                </MudStep>
+            </ChildContent>
+            <CompletedContent>
+                <MudText Typo="Typo.body2">@Localizer["YouCanNowSaveTheReminder"]</MudText>
+            </CompletedContent>
+            <ActionContent>
+            </ActionContent>
+        </MudStepper>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Localizer["Close"]</MudButton>
+        @if(MudStepper is not null)
+        {
+            <MudButton DropShadow=false Color=Color.Secondary Variant=Variant.Filled OnClick="MoveToPreviousStepAsync" Disabled=@(MudStepper.ActiveIndex == 0)>@Localizer["Previous"]</MudButton>
+            @if(!MudStepper.IsCompleted)
+            {
+                if(ActiveStep == 4)
+                {
+                    <MudButton Color=Color.Primary DropShadow=false StartIcon="@Icons.Material.Filled.PersonAdd" OnClick="AddRecipientAsync" Variant="Variant.Outlined">
+                        @Localizer["EditItem", Localizer["Recipients"]]
+                    </MudButton>
+                }
+
+                <MudButton DropShadow=false Color=Color.Primary Variant=Variant.Filled OnClick="MudStepper.NextStepAsync" Disabled=@(ContentStep && recipients.Count == 0)>@Localizer["Next"]</MudButton>
+            }
+            else
+            {
+                <MudButton DropShadow=false Color=Color.Primary Variant=Variant.Filled OnClick="SaveAsync">@Localizer["Save"]</MudButton>
+            }
+        }
+    </DialogActions>
+</MudDialog>

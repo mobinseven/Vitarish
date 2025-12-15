@@ -1,6 +1,5 @@
 using Duende.IdentityModel;
 using System.Security.Claims;
-using Vitarish.Clients.Interface.Identity.Contracts;
 
 namespace Vitarish.Clients.Interface.Identity.Extensions;
 

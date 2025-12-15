@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Components.Authorization;
-namespace Vitarish.Client;
+namespace Vitarish.Clients.Interface.Identity.Components;
 
 public partial class Profile
 {

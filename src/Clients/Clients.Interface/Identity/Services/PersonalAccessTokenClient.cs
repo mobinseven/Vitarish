@@ -2,9 +2,6 @@ using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using Vitarish.Client.Context;
-using Vitarish.Clients.Identity.Abstractions;
-using Vitarish.Clients.Interface.Identity.Abstractions;
-using Vitarish.Clients.Interface.Identity.Contracts;
 
 namespace Vitarish.Clients.Interface.Identity.Services;
 

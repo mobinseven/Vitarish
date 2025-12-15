@@ -1,0 +1,20 @@
+@typeparam T where T : PluginContext
+@code {
+    private RenderFragment? content;
+
+    [Parameter]
+    public required IPlugin<T> Plugin { get; set; }
+
+    [Parameter]
+    public required T Context { get; set; }
+
+    protected override void OnInitialized()
+    {
+        content = Plugin.Render(Context);
+    }
+}
+
+@if (content is not null)
+{
+    @content
+}

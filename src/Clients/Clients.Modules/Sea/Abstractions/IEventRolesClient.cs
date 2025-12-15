@@ -1,6 +1,9 @@
+using Vitarish.Clients.Modules.Sea.Dto;
+using Vorn.Entities.Client.SignalR;
+
 namespace Vitarish.Clients.Modules.Sea.Abstractions;
 
-public interface IEventRolesClient
+public interface IEventRolesClient : IEntityClient<EventRoleDto, EventRoleDescriptorDto>
 {
     Task<(IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)> GetIdsAsync(Guid eventId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Guid>> GetReadIdsAsync(Guid eventId, CancellationToken cancellationToken = default);

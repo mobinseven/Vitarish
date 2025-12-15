@@ -1,8 +1,5 @@
 using Microsoft.AspNetCore.Components.Authorization;
-using Vitarish.Clients.Identity.Abstractions;
-using Vitarish.Clients.Interface.Identity.Abstractions;
 using Vitarish.Clients.Interface.Identity.Constants;
-using Vitarish.Clients.Interface.Identity.Contracts;
 using Vitarish.Clients.Interface.Identity.Extensions;
 
 namespace Vitarish.Clients.Interface.Identity.Services;
@@ -95,13 +92,10 @@ public class AccessService(
             {
                 foreach (UserDto user in users)
                 {
-                    if (user.Access != null)
-                    {
-                        user.Access.PropertyChanged += async (_, _) =>
+                    user.Access?.PropertyChanged += async (_, _) =>
                         {
                             await apiClient.SetUserAccess(user.Id, clientId, $"{clientId}:{user.Access.GetClaimAccessValue()}");
                         };
-                    }
                 }
             }
         }

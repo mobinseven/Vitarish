@@ -1,8 +1,9 @@
 using Vitarish.Clients.Modules.Sea.Dto;
+using Vorn.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Abstractions;
 
-public interface IProceduresClient
+public interface IProceduresClient : IEntityClient<ProcedureDto, ProcedureDescriptorDto>
 {
     Task<Guid> AddAsync(Guid projectId, string name, CancellationToken cancellationToken = default);
     Task UpdateAsync(Guid id, string name, CancellationToken cancellationToken = default);

@@ -1,0 +1,15 @@
+@inherits ProjectsBase
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="2">
+            <MudTextField @bind-Value="name" Variant=Variant.Outlined Label="@Localizer["Project"]" />
+            <MudTextField @bind-Value="description" Variant=Variant.Outlined AutoGrow Lines=3 Label="@Localizer["Description"]" />
+            <MudCheckBox @bind-Value="template" Color="Color.Primary" Label="@Localizer["Template"]" />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Localizer["Close"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@string.IsNullOrWhiteSpace(name)">@Localizer["Save"]</MudButton>
+    </DialogActions>
+</MudDialog>

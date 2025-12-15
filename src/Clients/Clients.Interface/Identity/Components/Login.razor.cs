@@ -1,4 +1,4 @@
-namespace Vitarish.Client;
+namespace Vitarish.Clients.Interface.Identity.Components;
 
 public partial class Login
 {

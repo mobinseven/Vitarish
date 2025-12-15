@@ -2,14 +2,11 @@ using Duende.IdentityModel.Client;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Options;
-using Vitarish.Clients.Identity.Abstractions;
-using Vitarish.Clients.Interface.Identity.Contracts;
 
 namespace Vitarish.Clients.Interface.Identity.Extensions;
 

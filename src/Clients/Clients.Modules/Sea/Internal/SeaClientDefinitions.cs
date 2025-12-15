@@ -77,8 +77,9 @@ public class UsageConfigurationClientDefinition : ISignalRClientDefinition
         SeaClientDefinition.Configure(registration, "/hubs/usage-configuration");
 }
 
-internal sealed class SeaEntityConnectionFactory<TDefinition>(IIdentityClientSignalRFactory connectionFactory)
-    : IEntityConnectionFactory<EntityDto>
+internal sealed class SeaEntityConnectionFactory<TEntityDto, TDefinition>(IIdentityClientSignalRFactory connectionFactory)
+    : IEntityConnectionFactory<TEntityDto>
+    where TEntityDto : EntityDto
     where TDefinition : ISignalRClientDefinition
 {
     public async Task<HubConnection> CreateConnection()
@@ -88,13 +89,15 @@ internal sealed class SeaEntityConnectionFactory<TDefinition>(IIdentityClientSig
     }
 }
 
-internal abstract class SeaEntityClient<TDefinition>(
+internal abstract class SeaEntityClient<TEntityDto, TEntityDescriptorDto, TDefinition>(
     IIdentityClientSignalRFactory connectionFactory,
     IEntityInterceptionProvider entityInterceptionProvider)
-    : EntityClient<EntityDto, EntityDescriptorDto>(
-        new SeaEntityConnectionFactory<TDefinition>(connectionFactory),
+    : EntityClient<TEntityDto, TEntityDescriptorDto>(
+        new SeaEntityConnectionFactory<TEntityDto, TDefinition>(connectionFactory),
         entityInterceptionProvider),
         IAsyncDisposable
+    where TEntityDto : EntityDto
+    where TEntityDescriptorDto : EntityDescriptorDto
     where TDefinition : ISignalRClientDefinition
 {
 }

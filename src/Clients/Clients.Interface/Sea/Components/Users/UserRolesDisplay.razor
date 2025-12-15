@@ -1,0 +1,9 @@
+@inherits UsersBase
+
+<MudChipSet T="string" Size="Size.Small">
+    @foreach((string name, RoleType type) in roles)
+    {
+        <MudChip T="string" Size="Size.Small" Color="@GetColor(type)">@name (@Localizer[type.ToString()])</MudChip>
+    }
+</MudChipSet>
+

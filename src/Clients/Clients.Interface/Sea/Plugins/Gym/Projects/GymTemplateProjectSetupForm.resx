@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+
+  <data name="Configure gym template">
+    <value>Configure gym template</value>
+  </data>
+  <data name="Facility: {0}">
+    <value>Facility: {0}</value>
+  </data>
+  <data name="Template name">
+    <value>Template name</value>
+  </data>
+  <data name="Template description">
+    <value>Template description</value>
+  </data>
+  <data name="Default membership type">
+    <value>Default membership type</value>
+  </data>
+  <data name="Default program">
+    <value>Default program</value>
+  </data>
+  <data name="Default goals">
+    <value>Default goals</value>
+  </data>
+  <data name="Onboarding checklist">
+    <value>Onboarding checklist</value>
+  </data>
+  <data name="Safety guidelines">
+    <value>Safety guidelines</value>
+  </data>
+  <data name="Include emergency contact section">
+    <value>Include emergency contact section</value>
+  </data>
+  <data name="Include medical notes section">
+    <value>Include medical notes section</value>
+  </data>
+  <data name="Cancel">
+    <value>Cancel</value>
+  </data>
+  <data name="Creating...">
+    <value>Creating...</value>
+  </data>
+  <data name="Create template">
+    <value>Create template</value>
+  </data>
+  <data name="Gym trainee project template">
+    <value>Gym trainee project template</value>
+  </data>
+</root>

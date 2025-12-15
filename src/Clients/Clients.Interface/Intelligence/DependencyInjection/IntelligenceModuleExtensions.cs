@@ -1,8 +1,5 @@
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Clients.Interface.Intelligence.Abstractions;
 using Vitarish.Clients.Interface.Intelligence.Services;
-using Vitarish.Clients.Modules.Intelligence.DependencyInjection;
 
 namespace Vitarish.Clients.Interface.Intelligence.DependencyInjection;
 

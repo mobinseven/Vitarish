@@ -1,0 +1,14 @@
+@inherits SeaCommonBase
+
+<MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Style="width: 100%">
+    <div>
+        <MudFab Size=Size.Small DropShadow=false Color="Color" StartIcon="@(Reminder.IsSent ? "fa-thin fa-bell-on" : "fa-thin fa-bell")" OnClick="() => ShowDetails()" />
+    </div>
+    <div style="width: 100%">
+        <Chip Color="Color" Class="glass">
+            <MudStack AlignItems="AlignItems.Start" Justify="Justify.Center">
+                <MudText Typo="Typo.caption">@($"{Localizer["Remind", $"{UserIdToName(Reminder.RecipientUserId)!} ({Localizer[Reminder.Kind.ToString()]})"]}")</MudText>
+            </MudStack>
+        </Chip>
+    </div>
+</MudStack>

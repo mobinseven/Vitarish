@@ -1,9 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Distributed;
-using System.Collections.Concurrent;
-using Vitarish.Clients.Identity.Abstractions;
-using Vitarish.Clients.Interface.Identity.Abstractions;
-using Vitarish.Clients.Interface.Identity.Contracts;
 using Vitarish.Clients.Interface.Identity.Extensions;
 
 namespace Vitarish.Clients.Interface.Identity.Services;

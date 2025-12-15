@@ -1,0 +1,336 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="RegisterClinicPatient_Title" xml:space="preserve">
+    <value>ثبت بیمار کلینیک</value>
+  </data>
+  <data name="Btn_SwitchToManual" xml:space="preserve">
+    <value>ورود دستی اطلاعات بیمار</value>
+  </data>
+  <data name="Btn_SwitchToAi" xml:space="preserve">
+    <value>استفاده از گردش کار هوش مصنوعی</value>
+  </data>
+  <data name="Info_ManualEntry_Header" xml:space="preserve">
+    <value>جزئیات بیمار را به صورت دستی وارد کنید</value>
+  </data>
+  <data name="Step1_PatientDescription_Title" xml:space="preserve">
+    <value>توضیحات بیمار</value>
+  </data>
+  <data name="Step1_DescribePatient_Header" xml:space="preserve">
+    <value>بیمار را توصیف کنید</value>
+  </data>
+  <data name="Step1_DescribePatient_Help" xml:space="preserve">
+    <value>اطلاعات پس‌زمینه، علائم، وضعیت بیمه و سایر جزئیات پذیرش را برای راهنمایی دستیار هوش مصنوعی ارائه کنید.</value>
+  </data>
+  <data name="Step2_Generate_Title" xml:space="preserve">
+    <value>تولید</value>
+  </data>
+  <data name="Step2_Generating_Header" xml:space="preserve">
+    <value>در حال تولید داده‌های پذیرش بیمار</value>
+  </data>
+  <data name="Step2_Generating_Help" xml:space="preserve">
+    <value>دستیار هوش مصنوعی توضیحات شما را به فراداده ساختاریافته پذیرش کلینیک تبدیل می‌کند.</value>
+  </data>
+  <data name="Common_Processing" xml:space="preserve">
+    <value>در حال پردازش...</value>
+  </data>
+  <data name="Step2_Generate_Done" xml:space="preserve">
+    <value>تولید فراداده کامل شد. قبل از ادامه جزئیات را بررسی کنید.</value>
+  </data>
+  <data name="Step3_Review_Title" xml:space="preserve">
+    <value>بررسی جزئیات</value>
+  </data>
+  <data name="Step3_Review_Header" xml:space="preserve">
+    <value>اطلاعات بیمار را بررسی و ویرایش کنید</value>
+  </data>
+  <data name="Step3_Review_Help" xml:space="preserve">
+    <value>فراداده تولیدشده را بررسی کرده و قبل از ادامه هر مورد لازم را اصلاح کنید.</value>
+  </data>
+  <data name="Info_MetadataAppearsAfterApply" xml:space="preserve">
+    <value>اطلاعات بیمار پس از اعمال فراداده معتبر در اینجا نمایش داده می‌شود.</value>
+  </data>
+  <data name="Step4_Finish_Title" xml:space="preserve">
+    <value>پایان</value>
+  </data>
+  <data name="Step4_Confirm_Header" xml:space="preserve">
+    <value>تأیید جزئیات</value>
+  </data>
+  <data name="Step4_Confirm_Help" xml:space="preserve">
+    <value>خلاصه را بررسی کرده و پروژه پذیرش بیمار کلینیک را ایجاد کنید.</value>
+  </data>
+  <data name="Info_ApplyValidMetadataBeforeFinish" xml:space="preserve">
+    <value>قبل از پایان، فراداده معتبر را اعمال کنید.</value>
+  </data>
+  <data name="Section_Demographics_Title" xml:space="preserve">
+    <value>اطلاعات جمعیت‌شناختی</value>
+  </data>
+  <data name="Section_Contact_Title" xml:space="preserve">
+    <value>تماس</value>
+  </data>
+  <data name="Section_Insurance_Title" xml:space="preserve">
+    <value>بیمه</value>
+  </data>
+  <data name="Section_CareDetails_Title" xml:space="preserve">
+    <value>جزئیات مراقبت</value>
+  </data>
+  <data name="Section_EmergencyContact_Title" xml:space="preserve">
+    <value>تماس اضطراری</value>
+  </data>
+  <data name="Section_Administrative_Title" xml:space="preserve">
+    <value>اداری</value>
+  </data>
+  <data name="Section_ClinicalNotes_Title" xml:space="preserve">
+    <value>یادداشت‌های بالینی</value>
+  </data>
+  <data name="Field_FirstName" xml:space="preserve">
+    <value>نام</value>
+  </data>
+  <data name="Field_LastName" xml:space="preserve">
+    <value>نام خانوادگی</value>
+  </data>
+  <data name="Field_DateOfBirth" xml:space="preserve">
+    <value>تاریخ تولد</value>
+  </data>
+  <data name="Field_Gender" xml:space="preserve">
+    <value>جنسیت</value>
+  </data>
+  <data name="Field_Email" xml:space="preserve">
+    <value>ایمیل</value>
+  </data>
+  <data name="Field_Phone" xml:space="preserve">
+    <value>تلفن</value>
+  </data>
+  <data name="Field_InsuranceProvider" xml:space="preserve">
+    <value>ارائه‌دهنده بیمه</value>
+  </data>
+  <data name="Field_PolicyNumber" xml:space="preserve">
+    <value>شماره بیمه‌نامه</value>
+  </data>
+  <data name="Field_PrimaryPhysician" xml:space="preserve">
+    <value>پزشک اصلی</value>
+  </data>
+  <data name="Field_VisitReason" xml:space="preserve">
+    <value>دلیل مراجعه</value>
+  </data>
+  <data name="Field_PreferredPharmacy" xml:space="preserve">
+    <value>داروخانه مورد نظر</value>
+  </data>
+  <data name="Field_Allergies" xml:space="preserve">
+    <value>حساسیت‌ها</value>
+  </data>
+  <data name="Field_CurrentMedications" xml:space="preserve">
+    <value>داروهای فعلی</value>
+  </data>
+  <data name="Field_EmergencyContactName" xml:space="preserve">
+    <value>نام تماس اضطراری</value>
+  </data>
+  <data name="Field_EmergencyContactPhone" xml:space="preserve">
+    <value>تلفن تماس اضطراری</value>
+  </data>
+  <data name="Field_Department" xml:space="preserve">
+    <value>بخش</value>
+  </data>
+  <data name="Field_ConsentToShareRecords" xml:space="preserve">
+    <value>رضایت برای اشتراک‌گذاری پرونده</value>
+  </data>
+  <data name="Field_Notes" xml:space="preserve">
+    <value>یادداشت‌های بالینی</value>
+  </data>
+  <data name="Option_Gender_Female" xml:space="preserve">
+    <value>مونث</value>
+  </data>
+  <data name="Option_Gender_Male" xml:space="preserve">
+    <value>مذکر</value>
+  </data>
+  <data name="Option_Gender_Unspecified" xml:space="preserve">
+    <value>نامشخص</value>
+  </data>
+  <data name="Option_Yes" xml:space="preserve">
+    <value>بله</value>
+  </data>
+  <data name="Option_No" xml:space="preserve">
+    <value>خیر</value>
+  </data>
+  <data name="Table_Field" xml:space="preserve">
+    <value>فیلد</value>
+  </data>
+  <data name="Table_Value" xml:space="preserve">
+    <value>مقدار</value>
+  </data>
+  <data name="Btn_Cancel" xml:space="preserve">
+    <value>لغو</value>
+  </data>
+  <data name="Btn_Back" xml:space="preserve">
+    <value>بازگشت</value>
+  </data>
+  <data name="Btn_ReviewDetails" xml:space="preserve">
+    <value>بررسی جزئیات بیمار</value>
+  </data>
+  <data name="Btn_ApplyAndContinue" xml:space="preserve">
+    <value>اعمال فراداده و ادامه</value>
+  </data>
+  <data name="Btn_Continue" xml:space="preserve">
+    <value>ادامه</value>
+  </data>
+  <data name="Btn_Finish" xml:space="preserve">
+    <value>پایان</value>
+  </data>
+  <data name="Btn_GeneratePatientData" xml:space="preserve">
+    <value>تولید اطلاعات بیمار</value>
+  </data>
+  <data name="Status_Finishing" xml:space="preserve">
+    <value>در حال پایان...</value>
+  </data>
+  <data name="Status_Generating" xml:space="preserve">
+    <value>در حال تولید...</value>
+  </data>
+  <data name="Info_FacilityWithName" xml:space="preserve">
+    <value>مرکز: {0}</value>
+  </data>
+  <data name="Info_DepartmentWithName" xml:space="preserve">
+    <value>بخش: {0}</value>
+  </data>
+  <data name="Success_ReadyToCreateProjectFor" xml:space="preserve">
+    <value>آماده ایجاد پروژه برای {0}.</value>
+  </data>
+  <data name="Error_DescriptionRequired" xml:space="preserve">
+    <value>لطفاً قبل از درخواست دستیار هوش مصنوعی، توضیحاتی در مورد بیمار ارائه دهید.</value>
+  </data>
+  <data name="Error_AiNoOutput" xml:space="preserve">
+    <value>دستیار هوش مصنوعی هیچ خروجی JSON برنگرداند.</value>
+  </data>
+  <data name="Error_MetadataEmpty" xml:space="preserve">
+    <value>محموله فراداده خالی است.</value>
+  </data>
+  <data name="Error_AiResponseParse" xml:space="preserve">
+    <value>تجزیه پاسخ هوش مصنوعی امکان‌پذیر نیست: {0}</value>
+  </data>
+  <data name="Error_NameRequired" xml:space="preserve">
+    <value>نام یا نام خانوادگی الزامی است.</value>
+  </data>
+  <data name="Description_OutpatientIntakeRecord" xml:space="preserve">
+    <value>پرونده پذیرش سرپایی</value>
+  </data>
+  <data name="Default_ClinicPatientName" xml:space="preserve">
+    <value>بیمار کلینیک</value>
+  </data>
+  <data name="Section_ClinicalData" xml:space="preserve">
+    <value>داده های بالینی</value>
+  </data>
+</root>

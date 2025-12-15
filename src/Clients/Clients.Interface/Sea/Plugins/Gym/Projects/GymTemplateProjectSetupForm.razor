@@ -1,0 +1,98 @@
+@inherits ProjectsBase
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="2">
+            <MudText Typo="Typo.h6">@Localizer["Configure gym template"]</MudText>
+            @if (!string.IsNullOrWhiteSpace(facilityLabel))
+            {
+                <MudAlert Severity="Severity.Info" Variant="Variant.Text">
+                    @facilityLabel
+                </MudAlert>
+            }
+
+            @if (!string.IsNullOrWhiteSpace(errorMessage))
+            {
+                <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+            }
+
+            <MudForm @ref="form" Model="formModel">
+                <MudGrid Class="mt-2">
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="formModel.TemplateName"
+                                      Label="@Localizer["Template name"]"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      For="() => formModel.TemplateName" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="formModel.TemplateDescription"
+                                      Label="@Localizer["Template description"]"
+                                      Variant="Variant.Outlined"
+                                      AutoGrow="true"
+                                      Lines="3"
+                                      For="() => formModel.TemplateDescription" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="formModel.DefaultMembershipType"
+                                      Label="@Localizer["Default membership type"]"
+                                      Variant="Variant.Outlined"
+                                      For="() => formModel.DefaultMembershipType" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="formModel.DefaultPreferredProgram"
+                                      Label="@Localizer["Default program"]"
+                                      Variant="Variant.Outlined"
+                                      For="() => formModel.DefaultPreferredProgram" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="formModel.DefaultGoals"
+                                      Label="@Localizer["Default goals"]"
+                                      Variant="Variant.Outlined"
+                                      Required="true"
+                                      For="() => formModel.DefaultGoals" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="formModel.OnboardingChecklist"
+                                      Label="@Localizer["Onboarding checklist"]"
+                                      Variant="Variant.Outlined"
+                                      AutoGrow="true"
+                                      Lines="3"
+                                      For="() => formModel.OnboardingChecklist" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField @bind-Value="formModel.SafetyGuidelines"
+                                      Label="@Localizer["Safety guidelines"]"
+                                      Variant="Variant.Outlined"
+                                      AutoGrow="true"
+                                      Lines="3"
+                                      For="() => formModel.SafetyGuidelines" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudStack>
+                            <MudCheckBox @bind-Value="formModel.IncludeEmergencyContact"
+                                         Label="@Localizer["Include emergency contact section"]"
+                                         For="() => formModel.IncludeEmergencyContact" />
+                            <MudCheckBox @bind-Value="formModel.IncludeMedicalNotes"
+                                         Label="@Localizer["Include medical notes section"]"
+                                         For="() => formModel.IncludeMedicalNotes" />
+                        </MudStack>
+                    </MudItem>
+                </MudGrid>
+            </MudForm>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">@Localizer["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   Disabled="@isSubmitting"
+                   OnClick="SubmitAsync">
+            @if (isSubmitting)
+            {
+                <MudProgressCircular Size="@Size.Small" Class="me-2" Indeterminate="true" />
+            }
+            @submitLabel
+        </MudButton>
+    </DialogActions>
+</MudDialog>

@@ -1,5 +1,3 @@
-using Vitarish.Clients.Interface.Identity.Contracts;
-
 namespace Vitarish.Clients.Interface.Identity.Abstractions;
 
 public interface IUserAccessApiClient

@@ -1,5 +1,3 @@
-using Vitarish.Clients.Modules.Intelligence.Models;
-
 namespace Vitarish.Clients.Interface.Intelligence.Abstractions;
 
 /// <summary>
