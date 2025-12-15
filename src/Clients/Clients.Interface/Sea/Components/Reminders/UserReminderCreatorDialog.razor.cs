@@ -56,7 +56,7 @@ public partial class UserReminderCreatorDialog : RemindersBase
     private async Task SaveAsync()
     {
         List<ReminderRecipientDto> recipients = [new ReminderRecipientDto(kind, AccessService.User.Id, GetAddress(AccessService.User, kind))];
-        IReadOnlyList<ReminderDto> added = await RemindersService.AddRangeAsync(Event.Id, recipients, subject, textBody, remindAt, CancellationToken.None);
+        IReadOnlyList<ReminderDto> added = await RemindersService.AddRemindersAsync(Event.Id, recipients, subject, textBody, remindAt, CancellationToken.None);
         MudDialog.Close(DialogResult.Ok(added));
     }
 
