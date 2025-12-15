@@ -40,7 +40,7 @@ public partial class EventsGrid : EventsBase
         Guid? userId = AccessService.UserId;
         hasReceiptData = userId is Guid;
 
-        Task<IReadOnlyDictionary<Guid, bool>> receiptsTask = Task.FromResult<IReadOnlyDictionary<Guid, bool>>(new Dictionary<Guid, bool>());
+        Task<IReadOnlyDictionary<Guid, bool>> receiptsTask = Task.FromResult<IReadOnlyDictionary<Guid, bool>>(System.Collections.Immutable.ImmutableDictionary<Guid, bool>.Empty);
 
         if (userId is Guid id)
         {
