@@ -7,7 +7,7 @@ internal class RemoveAttachmentHandler(IEntityRepository<Attachment, AttachmentD
     public async Task Handle(RemoveAttachmentCommand request, CancellationToken cancellationToken)
     {
         Attachment? entity = await repository.GetAsync(request.AttachmentId, cancellationToken);
-        if(entity is null)
+        if(entity is null || entity.EventId != request.EventId)
         {
             return;
         }
