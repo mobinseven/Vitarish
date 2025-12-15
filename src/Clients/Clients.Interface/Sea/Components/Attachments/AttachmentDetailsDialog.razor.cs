@@ -92,7 +92,7 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
         {
             return;
         }
-        await AttachmentsService.RemoveAsync(Event.Id, Attachment.Id, CancellationToken.None);
+        await AttachmentsService.RemoveAttachmentAsync(Event.Id, Attachment.Id, CancellationToken.None);
         MudDialog.Close();
     }
 }
