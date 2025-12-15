@@ -72,7 +72,7 @@ public class ReminderProcessor(
         if (shouldSkipQuietHours)
         {
             logger.LogInformation(
-                "Deferring reminder '{ReminderId}' to '{Recipient}' due to quiet hours (8am-10pm).",
+                "Deferring reminder '{ReminderId}' to '{Recipient}' due to quiet hours (10pm-8am).",
                 reminder.Id,
                 reminder.Kind == ReminderKind.Sms ? MaskPhoneNumber(reminder.Recipient) : reminder.Recipient);
             return;
