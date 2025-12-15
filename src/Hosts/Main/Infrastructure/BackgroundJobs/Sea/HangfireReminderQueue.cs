@@ -16,7 +16,7 @@ public class HangfireReminderQueue(IRecurringJobManager recurringJobManager)
     {
         recurringJobManager.AddOrUpdate<ReminderProcessor>(
             ProcessRemindersJobId,
-            processor => processor.ProcessDueReminders(CancellationToken.None),
+            processor => processor.ProcessDueReminders(JobCancellationToken.Null),
             Cron.MinuteInterval(10));
     }
 

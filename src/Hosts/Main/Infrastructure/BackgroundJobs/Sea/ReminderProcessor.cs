@@ -1,3 +1,4 @@
+using Hangfire;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Models;
 using Vitarish.Sea.Application.Abstractions;
@@ -22,17 +23,21 @@ public class ReminderProcessor(
     /// <summary>
     /// Processes due reminders. Intended to be invoked by Hangfire as a recurring job.
     /// </summary>
-    public async Task ProcessDueReminders(CancellationToken cancellationToken)
+    public async Task ProcessDueReminders(IJobCancellationToken cancellationToken)
     {
+        cancellationToken.ThrowIfCancellationRequested();
+        CancellationToken shutdownToken = cancellationToken.ShutdownToken;
+
         DateTimeOffset now = _timeProvider.GetUtcNow();
 
-        IReadOnlyList<ReminderDto> due = await remindersService.GetDueAsync(now, cancellationToken);
+        IReadOnlyList<ReminderDto> due = await remindersService.GetDueAsync(now, shutdownToken);
 
         foreach (ReminderDto reminder in due)
         {
             try
             {
-                await ProcessReminderAsync(reminder, now, cancellationToken);
+                await ProcessReminderAsync(reminder, now, shutdownToken);
+                cancellationToken.ThrowIfCancellationRequested();
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
@@ -81,12 +86,28 @@ public class ReminderProcessor(
                     break;
                 case ReminderKind.Sms:
 
-                    _ = await messageClient.SendSms(new Message
+                    SmsSendResult smsResult = await messageClient.SendSms(new Message
                     {
                         Recipient = reminder.Recipient,
                         Body = reminder.TextBody,
                         Sender = null
                     }, cancellationToken);
+
+                    if (string.IsNullOrWhiteSpace(smsResult.MessageId))
+                    {
+                        logger.LogError(
+                            "SMS send returned no message ID for reminder '{ReminderId}' to '{Recipient}'.", 
+                            reminder.Id,
+                            reminder.Recipient);
+                        return;
+                    }
+
+                    logger.LogInformation(
+                        "Sent SMS reminder '{ReminderId}' to '{Recipient}' with message id '{MessageId}'.", 
+                        reminder.Id,
+                        reminder.Recipient,
+                        smsResult.MessageId);
+
                     break;
             }
 
