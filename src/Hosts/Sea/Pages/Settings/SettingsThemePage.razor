@@ -54,7 +54,7 @@
 
     private async Task LoadConfigurationAsync()
     {
-        _usageConfiguration = await UsageConfigurationService.GetAsync(CancellationToken.None).ConfigureAwait(false);
+        _usageConfiguration = await UsageConfigurationService.GetUsageConfigurationAsync(CancellationToken.None).ConfigureAwait(false);
         _metadata = UsageConfigurationMetadata.FromJson(_usageConfiguration?.Metadata);
         string? themeSettingsJson = _metadata.ThemeSettingsJson;
         if(!string.IsNullOrWhiteSpace(themeSettingsJson))
@@ -73,7 +73,7 @@
         ThemeService.LoadThemeSettingsJson(json);
 
         UsageConfigurationDto configuration = _usageConfiguration
-            ?? await UsageConfigurationService.GetAsync(CancellationToken.None).ConfigureAwait(false)
+            ?? await UsageConfigurationService.GetUsageConfigurationAsync(CancellationToken.None).ConfigureAwait(false)
             ?? new(Guid.Empty, null, "{}");
 
         UsageConfigurationMetadata metadata = UsageConfigurationMetadata.FromJson(configuration.Metadata);

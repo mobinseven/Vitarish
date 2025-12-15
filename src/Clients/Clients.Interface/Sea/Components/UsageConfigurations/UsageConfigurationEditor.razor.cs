@@ -32,7 +32,7 @@ public partial class UsageConfigurationEditor : UsageConfigurationsBase
 
     protected override async Task OnInitializedAsync()
     {
-        _configuration = await UsageConfigurationService.GetAsync(CancellationToken.None)
+        _configuration = await UsageConfigurationService.GetUsageConfigurationAsync(CancellationToken.None)
             ?? new(Guid.Empty, null, "{}");
         _metadata = UsageConfigurationMetadata.FromJson(_configuration.Metadata);
         if (string.IsNullOrWhiteSpace(_metadata.ThemeSettingsJson))

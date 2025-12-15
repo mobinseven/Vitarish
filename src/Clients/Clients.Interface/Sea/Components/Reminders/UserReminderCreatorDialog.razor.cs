@@ -74,7 +74,7 @@ public partial class UserReminderCreatorDialog : RemindersBase
 
     private async Task<string> GetTextBody()
     {
-        UsageConfigurationDto? usageConfig = await UsageConfigurationService.GetAsync(CancellationToken.None);
+        UsageConfigurationDto? usageConfig = await UsageConfigurationService.GetUsageConfigurationAsync(CancellationToken.None);
         string firstLine = Localizer["ReminderText", Event.Title, Procedure.Name, Project.Name];
         return string.Concat(firstLine, Environment.NewLine, Environment.NewLine, Event.Description, Environment.NewLine, Environment.NewLine, usageConfig?.ReminderSignature);
     }

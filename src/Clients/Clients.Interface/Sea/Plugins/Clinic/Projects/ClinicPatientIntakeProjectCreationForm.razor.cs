@@ -339,7 +339,7 @@ public partial class ClinicPatientIntakeProjectCreationForm
     {
         try
         {
-            UsageConfigurationDto? usageConfiguration = await UsageConfigurationService.GetAsync(CancellationToken.None);
+            UsageConfigurationDto? usageConfiguration = await UsageConfigurationService.GetUsageConfigurationAsync(CancellationToken.None);
             UsageConfigurationMetadata metadata = UsageConfigurationMetadata.FromJson(usageConfiguration?.Metadata);
             return BuildInstructions(metadata.ChatInstructions, metadata.ClinicPatientIntakeInstructions);
         }

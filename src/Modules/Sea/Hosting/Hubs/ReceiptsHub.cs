@@ -39,6 +39,6 @@ public sealed class ReceiptsHub : EntityServer<ReceiptDto, ReceiptDescriptorDto,
     public Task MarkEventUnreadAsync(Guid userId, Guid eventId, CancellationToken cancellationToken) =>
         _service.MarkEventUnreadAsync(userId, eventId, cancellationToken);
 
-    public Task<bool> GetAsync(Guid userId, Guid objectId, CancellationToken cancellationToken) =>
-        _service.GetAsync(userId, objectId, cancellationToken);
+    public Task<bool> HasReceiptAsync(Guid userId, Guid objectId, CancellationToken cancellationToken) =>
+        _service.HasReceiptAsync(userId, objectId, cancellationToken);
 }

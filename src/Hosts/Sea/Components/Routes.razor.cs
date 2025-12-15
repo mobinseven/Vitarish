@@ -38,7 +38,7 @@ namespace Vitarish.Sea.Components
         {
             try
             {
-                UsageConfigurationDto? configuration = await UsageConfigurationService.GetAsync(CancellationToken.None).ConfigureAwait(false);
+                UsageConfigurationDto? configuration = await UsageConfigurationService.GetUsageConfigurationAsync(CancellationToken.None).ConfigureAwait(false);
                 UsageConfigurationMetadata metadata = UsageConfigurationMetadata.FromJson(configuration?.Metadata);
                 if (!string.IsNullOrWhiteSpace(metadata.ThemeSettingsJson))
                 {

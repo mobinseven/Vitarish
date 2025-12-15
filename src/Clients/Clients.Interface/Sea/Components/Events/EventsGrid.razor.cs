@@ -43,7 +43,7 @@ public partial class EventsGrid : EventsBase
 
         if (userId is Guid id)
         {
-            tasks.AddRange(events.Select(async e => readReceipts[e.Id] = await ReceiptsService.GetAsync(id, e.Id, CancellationToken.None)));
+            tasks.AddRange(events.Select(async e => readReceipts[e.Id] = await ReceiptsService.HasReceiptAsync(id, e.Id, CancellationToken.None)));
         }
 
         await Task.WhenAll(tasks);
