@@ -13,5 +13,5 @@ public interface IReceiptsClient : IEntityClient<ReceiptDto, ReceiptDescriptorDt
     Task MarkProcedureUnreadAsync(Guid userId, Guid procedureId, CancellationToken cancellationToken = default);
     Task MarkEventReadAsync(Guid userId, Guid eventId, CancellationToken cancellationToken = default);
     Task MarkEventUnreadAsync(Guid userId, Guid eventId, CancellationToken cancellationToken = default);
-    Task<bool> GetAsync(Guid userId, Guid objectId, CancellationToken cancellationToken = default);
+    Task<bool> HasReceiptAsync(Guid userId, Guid objectId, CancellationToken cancellationToken = default);
 }

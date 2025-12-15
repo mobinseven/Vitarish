@@ -24,7 +24,7 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
     {
         await base.OnInitializedAsync();
         projectGridCellDisplayPlugins = ProjectGridCellDisplayPlugins.ToList();
-        UsageConfigurationDto? usageConfiguration = await UsageConfigurationService.GetAsync(CancellationToken.None);
+        UsageConfigurationDto? usageConfiguration = await UsageConfigurationService.GetUsageConfigurationAsync(CancellationToken.None);
         UsageConfigurationMetadata metadata = UsageConfigurationMetadata.FromJson(usageConfiguration?.Metadata);
         preferredProjectGridCellDisplayPluginId = metadata.ProjectGridCellDisplayPluginId;
     }

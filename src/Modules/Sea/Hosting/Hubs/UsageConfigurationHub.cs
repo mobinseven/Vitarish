@@ -15,8 +15,8 @@ public sealed class UsageConfigurationHub : EntityServer<UsageConfigurationDto, 
         _service = service;
     }
 
-    public Task<UsageConfigurationDto?> GetAsync(CancellationToken cancellationToken) =>
-        _service.GetAsync(cancellationToken);
+    public Task<UsageConfigurationDto?> GetUsageConfigurationAsync(CancellationToken cancellationToken) =>
+        _service.GetUsageConfigurationAsync(cancellationToken);
 
     public Task<UsageConfigurationDto?> UpdateUsageConfigurationAsync(UsageConfigurationDto usageConfigurationDto, CancellationToken cancellationToken) =>
         _service.UpdateAsync(usageConfigurationDto, cancellationToken);

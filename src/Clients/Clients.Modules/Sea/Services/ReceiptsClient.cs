@@ -36,7 +36,7 @@ namespace Vitarish.Clients.Modules.Sea.Services
         public async Task MarkEventUnreadAsync(Guid userId, Guid eventId, CancellationToken cancellationToken = default) =>
             await InvokeNoInterceptAsync(nameof(MarkEventUnreadAsync), cancellationToken, userId, eventId).ConfigureAwait(false);
 
-        public async Task<bool> GetAsync(Guid userId, Guid objectId, CancellationToken cancellationToken = default) =>
-            await InvokeHubAsync<bool>(nameof(GetAsync), cancellationToken, new object?[] { userId, objectId }).ConfigureAwait(false);
+        public async Task<bool> HasReceiptAsync(Guid userId, Guid objectId, CancellationToken cancellationToken = default) =>
+            await InvokeHubAsync<bool>(nameof(HasReceiptAsync), cancellationToken, new object?[] { userId, objectId }).ConfigureAwait(false);
     }
 }

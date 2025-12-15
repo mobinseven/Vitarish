@@ -22,7 +22,7 @@ internal class ReceiptsService(
             cancellationToken)).EnsureSuccess("Remove receipt");
     }
 
-    public async Task<bool> GetAsync(Guid userId, Guid objectId, CancellationToken cancellationToken)
+    public async Task<bool> HasReceiptAsync(Guid userId, Guid objectId, CancellationToken cancellationToken)
     {
         ReceiptDto? receiptDto = (await GetListAsync(new ReceiptDescriptorDto { CreatedBy = userId.ToString(), ObjectId = objectId }, cancellationToken))
             .EnsureValue("Get receipts")

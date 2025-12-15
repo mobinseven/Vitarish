@@ -380,7 +380,7 @@ internal static class SeaApiEndpoints
 
         _ = group.MapGet("/receipts/{userId:guid}/{objectId:guid}", async (Guid userId, Guid objectId, IReceiptsService service, CancellationToken ct) =>
         {
-            bool hasReceipt = await service.GetAsync(userId, objectId, ct);
+            bool hasReceipt = await service.HasReceiptAsync(userId, objectId, ct);
             return Results.Ok(new { hasReceipt });
         });
     }
@@ -422,7 +422,7 @@ internal static class SeaApiEndpoints
     {
         _ = group.MapGet("/usage-configuration", async (IUsageConfigurationService service, CancellationToken ct) =>
         {
-            UsageConfigurationDto? config = await service.GetAsync(ct);
+            UsageConfigurationDto? config = await service.GetUsageConfigurationAsync(ct);
             return config is null ? Results.NotFound() : Results.Ok(config);
         });
 

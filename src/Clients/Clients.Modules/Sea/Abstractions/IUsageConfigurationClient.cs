@@ -4,6 +4,6 @@ namespace Vitarish.Clients.Modules.Sea.Abstractions;
 
 public interface IUsageConfigurationClient
 {
-    Task<UsageConfigurationDto?> GetAsync(CancellationToken cancellationToken = default);
+    Task<UsageConfigurationDto?> GetUsageConfigurationAsync(CancellationToken cancellationToken = default);
     Task<UsageConfigurationDto?> UpdateUsageConfigurationAsync(UsageConfigurationDto usageConfigurationDto, CancellationToken cancellationToken = default);
 }
