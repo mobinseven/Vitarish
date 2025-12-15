@@ -63,7 +63,7 @@ public class ReminderProcessor(
             int hour = _timeProvider.GetLocalNow().Hour;
             // TODO: This is temporary as our provider will not send sms in these hours. Also, checking delivery is not the
             // responsibility of this service. So, until managing this issue in CaaS side we will just avoid sending sms in these hours.
-            if (hour is < 8 or > 22)
+            if (hour is >= 22 or < 8)
             {
                 shouldSkipQuietHours = true;
             }
