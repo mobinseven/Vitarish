@@ -14,10 +14,15 @@ public partial class UserRolesSelect : UsersBase
 
     protected override async Task OnInitializedAsync()
     {
+        if (!TryGetUserId(out Guid userId))
+        {
+            return;
+        }
+
         roles = [.. await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None)
             .EnsureValueAsync("Load roles")];
         IReadOnlyList<UserRoleDto> userRoles = await UserRolesService.GetListAsync(
-                new UserRoleDescriptorDto { UserId = Guid.Parse(User.Id) },
+                new UserRoleDescriptorDto { UserId = userId },
                 CancellationToken.None)
             .EnsureValueAsync("Load user roles");
         readRoles = [.. userRoles.Where(r => r.Type == RoleType.Read).Select(r => r.RoleId)];
@@ -29,26 +34,44 @@ public partial class UserRolesSelect : UsersBase
 
     private async Task SaveAsync()
     {
+        if (!TryGetUserId(out Guid userId))
+        {
+            return;
+        }
+
         IEnumerable<Guid> allRoleIds = initialReadRoles
             .Union(initialWriteRoles)
             .Union(readRoles)
             .Union(writeRoles)
             .Where(id => initialReadRoles.Contains(id) != readRoles.Contains(id) || initialWriteRoles.Contains(id) != writeRoles.Contains(id));
 
-        foreach (Guid id in allRoleIds)
+        IEnumerable<Task> updateTasks = allRoleIds.Select(async id =>
         {
-            await UserRolesService.RemoveUserRoleAsync(Guid.Parse(User.Id), id, CancellationToken.None);
+            await UserRolesService.RemoveUserRoleAsync(userId, id, CancellationToken.None);
 
             if (readRoles.Contains(id))
             {
-                await UserRolesService.AssignAsync(Guid.Parse(User.Id), id, RoleType.Read, CancellationToken.None);
+                await UserRolesService.AssignAsync(userId, id, RoleType.Read, CancellationToken.None);
             }
 
             if (writeRoles.Contains(id))
             {
-                await UserRolesService.AssignAsync(Guid.Parse(User.Id), id, RoleType.Write, CancellationToken.None);
+                await UserRolesService.AssignAsync(userId, id, RoleType.Write, CancellationToken.None);
             }
+        });
+
+        await Task.WhenAll(updateTasks);
+    }
+
+    private bool TryGetUserId(out Guid userId)
+    {
+        if (!Guid.TryParse(User.Id, out userId))
+        {
+            // TODO: Log this error and notify the user.
+            return false;
         }
+
+        return true;
     }
 
     private bool IsAssigned(Guid id, RoleType type)
