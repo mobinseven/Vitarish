@@ -26,6 +26,7 @@ using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Users.Hosting.Api;
 using Vitarish.Users.Hosting.DependencyInjection;
 using Vitarish.Users.Infrastructure.Data;
+using Vitarish.Main.Infrastructure.BackgroundJobs;
 
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -153,6 +154,8 @@ app.MapRequestIdentityEndpoints().AddEndpointAuthorization();
 app.MapAccountsInterface();
 
 app.MapHangfireDashboard();
+
+app.ScheduleSelfTriggeringJobs();
 
 _ = app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 

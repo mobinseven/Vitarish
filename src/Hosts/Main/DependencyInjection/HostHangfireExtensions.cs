@@ -3,6 +3,7 @@ using Hangfire.SqlServer;
 using Vitarish.Accounts.Infrastructure.Services;
 using Vitarish.Host.Services;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
+using Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 
 namespace Vitarish.Host.DependencyInjection;
 
@@ -53,6 +54,8 @@ public static class HostHangfireExtensions
         // Register message queue and processor
         _ = builder.Services.AddTransient<IMessageQueue, HangfireMessageQueue>();
         _ = builder.Services.AddTransient<MessageProcessor>();
+        _ = builder.Services.AddSingleton<HangfireReminderQueue>();
+        _ = builder.Services.AddTransient<ReminderProcessor>();
     }
 
     /// <summary>
