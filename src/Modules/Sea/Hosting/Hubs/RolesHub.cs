@@ -15,10 +15,10 @@ public sealed class RolesHub : EntityServer<RoleDto, RoleDescriptorDto, IRolesSe
         _service = service;
     }
 
-    public Task<Guid> AddAsync(string name, CancellationToken cancellationToken) =>
+    public Task<Guid> CreateRoleAsync(string name, CancellationToken cancellationToken) =>
         _service.AddAsync(name, cancellationToken);
 
-    public Task UpdateAsync(Guid id, string name, CancellationToken cancellationToken) =>
+    public Task UpdateRoleNameAsync(Guid id, string name, CancellationToken cancellationToken) =>
         _service.UpdateAsync(id, name, cancellationToken);
 
     public Task<(IReadOnlyList<RoleDto> Items, int TotalItems)> GetPagedAsync(RoleDescriptorDto descriptor, CancellationToken cancellationToken) =>

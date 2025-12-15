@@ -287,7 +287,7 @@ public partial class ClinicPatientIntakeProjectCreationForm
             string description = BuildDescription(normalized);
             string metadata = SerializeMetadata(normalized);
 
-            _ = await ProjectsService.AddAsync(projectName, description, template: false, metadata, CancellationToken.None);
+            _ = await ProjectsService.CreateProjectAsync(projectName, description, template: false, metadata, CancellationToken.None);
             Dialog.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)

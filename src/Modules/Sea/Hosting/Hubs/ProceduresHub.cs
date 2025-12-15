@@ -15,10 +15,10 @@ public sealed class ProceduresHub : EntityServer<ProcedureDto, ProcedureDescript
         _service = service;
     }
 
-    public Task<Guid> AddAsync(Guid projectId, string name, CancellationToken cancellationToken) =>
+    public Task<Guid> CreateProcedureAsync(Guid projectId, string name, CancellationToken cancellationToken) =>
         _service.AddAsync(projectId, name, cancellationToken);
 
-    public Task UpdateAsync(Guid id, string name, CancellationToken cancellationToken) =>
+    public Task UpdateProcedureNameAsync(Guid id, string name, CancellationToken cancellationToken) =>
         _service.UpdateAsync(id, name, cancellationToken);
 
     public Task DeleteAsync(Guid id, CancellationToken cancellationToken) =>

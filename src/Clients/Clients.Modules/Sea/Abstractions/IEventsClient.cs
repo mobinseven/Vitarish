@@ -6,8 +6,8 @@ namespace Vitarish.Clients.Modules.Sea.Abstractions;
 public interface IEventsClient : IEntityClient<EventDto, EventDescriptorDto>
 {
     Task<IReadOnlyList<EventDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken = default);
-    Task<EventDto?> AddAsync(Guid projectId, Guid procedureId, Guid? previousEventId, CancellationToken cancellationToken = default);
-    Task<EventDto?> UpdateAsync(Guid id, string title, string description, CancellationToken cancellationToken = default);
+    Task<EventDto?> CreateEventAsync(Guid projectId, Guid procedureId, Guid? previousEventId, CancellationToken cancellationToken = default);
+    Task<EventDto?> UpdateEventDetailsAsync(Guid id, string title, string description, CancellationToken cancellationToken = default);
     Task<bool> MoveUpAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken = default);
     Task<bool> MoveDownAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken = default);
     Task<bool> RemoveEventAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken = default);

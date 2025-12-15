@@ -12,11 +12,11 @@ namespace Vitarish.Clients.Modules.Sea.Services
         : SeaEntityClient<ProjectDto, ProjectDescriptorDto, ProjectsClientDefinition>(connectionFactory, entityInterceptionProvider),
             IProjectsClient
     {
-        public async Task<Guid> AddAsync(string name, string description, bool template, string metadata, CancellationToken cancellationToken = default) =>
-            await InvokeHubAsync<Guid>(nameof(AddAsync), cancellationToken, new object?[] { name, description, template, metadata }).ConfigureAwait(false);
+        public async Task<Guid> CreateProjectAsync(string name, string description, bool template, string metadata, CancellationToken cancellationToken = default) =>
+            await InvokeHubAsync<Guid>(nameof(CreateProjectAsync), cancellationToken, new object?[] { name, description, template, metadata }).ConfigureAwait(false);
 
-        public async Task UpdateAsync(Guid id, string name, string description, bool template, string metadata, CancellationToken cancellationToken = default) =>
-            await InvokeNoInterceptAsync(nameof(UpdateAsync), cancellationToken, id, name, description, template, metadata).ConfigureAwait(false);
+        public async Task UpdateProjectDetailsAsync(Guid id, string name, string description, bool template, string metadata, CancellationToken cancellationToken = default) =>
+            await InvokeNoInterceptAsync(nameof(UpdateProjectDetailsAsync), cancellationToken, id, name, description, template, metadata).ConfigureAwait(false);
 
         public async Task UpdateMetadataAsync(Guid id, string metadata, CancellationToken cancellationToken = default) =>
             await InvokeNoInterceptAsync(nameof(UpdateMetadataAsync), cancellationToken, id, metadata).ConfigureAwait(false);

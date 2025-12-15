@@ -19,7 +19,7 @@ public sealed class RemindersHub : EntityServer<ReminderDto, ReminderDescriptorD
     public Task<IReadOnlyList<ReminderDto>> AddRangeAsync(Guid eventId, IReadOnlyList<ReminderRecipientDto> recipients, string subject, string textBody, DateTimeOffset remindAt, CancellationToken cancellationToken) =>
         _service.AddRangeAsync(eventId, recipients, subject, textBody, remindAt, cancellationToken);
 
-    public Task<ReminderDto?> UpdateAsync(Guid id, ReminderKind kind, string recipientUserId, string recipient, string subject, string textBody, DateTimeOffset remindAt, CancellationToken cancellationToken) =>
+    public Task<ReminderDto?> UpdateReminderAsync(Guid id, ReminderKind kind, string recipientUserId, string recipient, string subject, string textBody, DateTimeOffset remindAt, CancellationToken cancellationToken) =>
         _service.UpdateAsync(id, kind, recipientUserId, recipient, subject, textBody, remindAt, cancellationToken);
 
     public Task<IReadOnlyList<ReminderDto>> GetByEventAsync(Guid eventId, CancellationToken cancellationToken) =>

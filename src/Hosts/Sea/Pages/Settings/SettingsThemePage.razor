@@ -86,7 +86,7 @@
         metadata.ThemeSettingsJson = json;
         configuration.Metadata = metadata.ToJson();
 
-        UsageConfigurationDto? updated = await UsageConfigurationService.UpdateAsync(configuration, CancellationToken.None).ConfigureAwait(false);
+        UsageConfigurationDto? updated = await UsageConfigurationService.UpdateUsageConfigurationAsync(configuration, CancellationToken.None).ConfigureAwait(false);
         _usageConfiguration = updated ?? configuration;
         _metadata = metadata;
     }

@@ -167,7 +167,7 @@ public partial class EventsGrid : EventsBase
 
     private async Task ShowEditDialogForNewEventAsync(Guid? previousEventId)
     {
-        EventDto? created = await EventsService.AddAsync(Project.Id, Procedure.Id, previousEventId, CancellationToken.None);
+        EventDto? created = await EventsService.CreateEventAsync(Project.Id, Procedure.Id, previousEventId, CancellationToken.None);
 
         if (grid is not null)
         {

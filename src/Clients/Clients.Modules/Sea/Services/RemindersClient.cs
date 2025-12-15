@@ -16,8 +16,8 @@ namespace Vitarish.Clients.Modules.Sea.Services
         public async Task<IReadOnlyList<ReminderDto>> AddRangeAsync(Guid eventId, IReadOnlyList<ReminderRecipientDto> recipients, string subject, string textBody, DateTimeOffset remindAt, CancellationToken cancellationToken = default) =>
             await InvokeHubAsync<IReadOnlyList<ReminderDto>>(nameof(AddRangeAsync), cancellationToken, new object?[] { eventId, recipients, subject, textBody, remindAt }).ConfigureAwait(false);
 
-        public async Task<ReminderDto?> UpdateAsync(Guid id, ReminderKind kind, string recipientUserId, string recipient, string subject, string textBody, DateTimeOffset remindAt, CancellationToken cancellationToken = default) =>
-            await InvokeHubAsync<ReminderDto?>(nameof(UpdateAsync), cancellationToken, new object?[] { id, kind, recipientUserId, recipient, subject, textBody, remindAt }).ConfigureAwait(false);
+        public async Task<ReminderDto?> UpdateReminderAsync(Guid id, ReminderKind kind, string recipientUserId, string recipient, string subject, string textBody, DateTimeOffset remindAt, CancellationToken cancellationToken = default) =>
+            await InvokeHubAsync<ReminderDto?>(nameof(UpdateReminderAsync), cancellationToken, new object?[] { id, kind, recipientUserId, recipient, subject, textBody, remindAt }).ConfigureAwait(false);
 
         public async Task<IReadOnlyList<ReminderDto>> GetByEventAsync(Guid eventId, CancellationToken cancellationToken = default) =>
             await InvokeHubAsync<IReadOnlyList<ReminderDto>>(nameof(GetByEventAsync), cancellationToken, new object?[] { eventId }).ConfigureAwait(false);

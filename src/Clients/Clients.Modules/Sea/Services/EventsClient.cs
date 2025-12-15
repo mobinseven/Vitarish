@@ -15,11 +15,11 @@ namespace Vitarish.Clients.Modules.Sea.Services
         public async Task<IReadOnlyList<EventDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken = default) =>
             await InvokeHubAsync<IReadOnlyList<EventDto>>(nameof(GetByProcedureAsync), cancellationToken, new object?[] { procedureId }).ConfigureAwait(false);
 
-        public async Task<EventDto?> AddAsync(Guid projectId, Guid procedureId, Guid? previousEventId, CancellationToken cancellationToken = default) =>
-            await InvokeHubAsync<EventDto?>(nameof(AddAsync), cancellationToken, new object?[] { projectId, procedureId, previousEventId }).ConfigureAwait(false);
+        public async Task<EventDto?> CreateEventAsync(Guid projectId, Guid procedureId, Guid? previousEventId, CancellationToken cancellationToken = default) =>
+            await InvokeHubAsync<EventDto?>(nameof(CreateEventAsync), cancellationToken, new object?[] { projectId, procedureId, previousEventId }).ConfigureAwait(false);
 
-        public async Task<EventDto?> UpdateAsync(Guid id, string title, string description, CancellationToken cancellationToken = default) =>
-            await InvokeHubAsync<EventDto?>(nameof(UpdateAsync), cancellationToken, new object?[] { id, title, description }).ConfigureAwait(false);
+        public async Task<EventDto?> UpdateEventDetailsAsync(Guid id, string title, string description, CancellationToken cancellationToken = default) =>
+            await InvokeHubAsync<EventDto?>(nameof(UpdateEventDetailsAsync), cancellationToken, new object?[] { id, title, description }).ConfigureAwait(false);
 
         public async Task<bool> MoveUpAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken = default) =>
             await InvokeHubAsync<bool>(nameof(MoveUpAsync), cancellationToken, new object?[] { procedureId, eventId }).ConfigureAwait(false);

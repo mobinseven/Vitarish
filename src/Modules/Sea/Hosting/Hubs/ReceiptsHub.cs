@@ -15,7 +15,7 @@ public sealed class ReceiptsHub : EntityServer<ReceiptDto, ReceiptDescriptorDto,
         _service = service;
     }
 
-    public Task<Guid> AddAsync(Guid userId, Guid objectId, CancellationToken cancellationToken) =>
+    public Task<Guid> CreateReceiptAsync(Guid userId, Guid objectId, CancellationToken cancellationToken) =>
         _service.AddAsync(userId, objectId, cancellationToken);
 
     public Task<IReadOnlyList<Guid>> GetReadersAsync(Guid objectId, CancellationToken cancellationToken) =>

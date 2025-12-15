@@ -60,7 +60,7 @@ public partial class ProcedureCreateDialog : ProceduresBase
             return;
         }
 
-        Guid id = await ProceduresService.AddAsync(ProjectId, name, CancellationToken.None);
+        Guid id = await ProceduresService.CreateProcedureAsync(ProjectId, name, CancellationToken.None);
         if (templateProcedure is not null)
         {
             await CopyEventsAsync(templateProcedure.Id, id);
@@ -75,13 +75,13 @@ public partial class ProcedureCreateDialog : ProceduresBase
         Guid? previous = null;
         foreach (EventDto e in events)
         {
-            EventDto? added = await EventsService.AddAsync(ProjectId, toProcedureId, previous, CancellationToken.None);
+            EventDto? added = await EventsService.CreateEventAsync(ProjectId, toProcedureId, previous, CancellationToken.None);
             if (added is null)
             {
                 continue;
             }
 
-            _ = await EventsService.UpdateAsync(added.Id, e.Title, e.Description, CancellationToken.None);
+            _ = await EventsService.UpdateEventDetailsAsync(added.Id, e.Title, e.Description, CancellationToken.None);
 
             (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds) = await EventRolesService.GetIdsAsync(e.Id, CancellationToken.None);
             foreach (Guid readRole in ReadRoleIds)
@@ -97,7 +97,7 @@ public partial class ProcedureCreateDialog : ProceduresBase
             IReadOnlyList<AttachmentDto> attachments = await AttachmentsService.GetByEventAsync(e.Id, CancellationToken.None);
             if (attachments.Count > 0)
             {
-                await AttachmentsService.AddAsync(added.Id, attachments, CancellationToken.None);
+                await AttachmentsService.AddAttachmentRangeAsync(added.Id, attachments, CancellationToken.None);
             }
 
             previous = added.Id;

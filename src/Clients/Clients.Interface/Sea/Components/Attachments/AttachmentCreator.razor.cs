@@ -19,7 +19,7 @@ public partial class AttachmentCreator : AttachmentsBase
             fileInfo.ContentType ?? string.Empty,
             fileInfo.Thumbnail,
             fileInfo.Metadata.Size);
-        await AttachmentsService.AddAsync(Event.Id, [attachment], CancellationToken.None);
+        await AttachmentsService.AddAttachmentRangeAsync(Event.Id, [attachment], CancellationToken.None);
     }
     private async Task AddTextAttachment()
     {
@@ -28,7 +28,7 @@ public partial class AttachmentCreator : AttachmentsBase
             return;
         }
 
-        _ = await AttachmentsService.AddAsync(Event.Id, _value,
+        _ = await AttachmentsService.AddAttachmentAsync(Event.Id, _value,
             "text/plain",
             null,
             Encoding.UTF8.GetByteCount(_value),

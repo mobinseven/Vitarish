@@ -22,7 +22,7 @@ public static class EventsTools
             IEventsClient EventsService,
             Guid projectId,
             Guid procedureId,
-            CancellationToken cancellationToken = default) => EventsService.AddAsync(projectId, procedureId, null, cancellationToken);
+            CancellationToken cancellationToken = default) => EventsService.CreateEventAsync(projectId, procedureId, null, cancellationToken);
 
     [McpServerTool(Name = nameof(AddEventAfterAsync), Destructive = false, Idempotent = false, OpenWorld = false, ReadOnly = false, UseStructuredContent = true), Description("This command inserts a new event after a specific event.")]
     public static Task<EventDto?> AddEventAfterAsync(
@@ -30,7 +30,7 @@ public static class EventsTools
             Guid projectId,
             Guid procedureId,
             Guid afterEventId,
-            CancellationToken cancellationToken = default) => EventsService.AddAsync(projectId, procedureId, afterEventId, cancellationToken);
+            CancellationToken cancellationToken = default) => EventsService.CreateEventAsync(projectId, procedureId, afterEventId, cancellationToken);
 
     [McpServerTool(Name = nameof(UpdateEventAsync), Destructive = true, Idempotent = true, OpenWorld = false, ReadOnly = false, UseStructuredContent = true), Description("This command updates an existing event.")]
     public static Task<EventDto?> UpdateEventAsync(
@@ -38,7 +38,7 @@ public static class EventsTools
             Guid id,
             string title,
             string description,
-            CancellationToken cancellationToken = default) => EventsService.UpdateAsync(id, title, description, cancellationToken);
+            CancellationToken cancellationToken = default) => EventsService.UpdateEventDetailsAsync(id, title, description, cancellationToken);
 
     [McpServerTool(Name = nameof(UpdateEventChainAsync), Destructive = true, Idempotent = true, OpenWorld = false, ReadOnly = false, UseStructuredContent = false), Description("This command updates the chain order of events within a procedure.")]
     public static Task UpdateEventChainAsync(

@@ -14,5 +14,5 @@ public static class UsageConfigurationTools
     public static Task<UsageConfigurationDto?> UpdateUsageConfigurationAsync(
             IUsageConfigurationClient usageConfigurationService,
             UsageConfigurationDto usageConfigurationDto,
-            CancellationToken cancellationToken = default) => usageConfigurationService.UpdateAsync(usageConfigurationDto, cancellationToken);
+            CancellationToken cancellationToken = default) => usageConfigurationService.UpdateUsageConfigurationAsync(usageConfigurationDto, cancellationToken);
 }
