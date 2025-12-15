@@ -23,8 +23,8 @@ namespace Vitarish.Clients.Modules.Sea.Services
         public async Task AddAttachmentRangeAsync(Guid eventId, IEnumerable<AttachmentDto> attachments, CancellationToken cancellationToken = default) =>
             await InvokeNoInterceptAsync(nameof(AddAttachmentRangeAsync), cancellationToken, eventId, attachments).ConfigureAwait(false);
 
-        public async Task RemoveAsync(Guid eventId, Guid attachmentId, CancellationToken cancellationToken = default) =>
-            await InvokeNoInterceptAsync(nameof(RemoveAsync), cancellationToken, eventId, attachmentId).ConfigureAwait(false);
+        public async Task RemoveAttachmentAsync(Guid eventId, Guid attachmentId, CancellationToken cancellationToken = default) =>
+            await InvokeNoInterceptAsync(nameof(RemoveAttachmentAsync), cancellationToken, eventId, attachmentId).ConfigureAwait(false);
 
         public async Task<AttachmentDto?> UpdateAttachmentContentAsync(Guid eventId, Guid attachmentId, string content, CancellationToken cancellationToken = default) =>
             await InvokeHubAsync<AttachmentDto?>(nameof(UpdateAttachmentContentAsync), cancellationToken, new object?[] { eventId, attachmentId, content }).ConfigureAwait(false);

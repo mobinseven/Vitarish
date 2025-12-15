@@ -27,7 +27,7 @@ public sealed class AttachmentsHub : EntityServer<AttachmentDto, AttachmentDescr
     public Task AddAttachmentRangeAsync(Guid eventId, IEnumerable<AttachmentDto> attachments, CancellationToken cancellationToken) =>
         _service.AddAsync(eventId, attachments, cancellationToken);
 
-    public Task RemoveAsync(Guid eventId, Guid attachmentId, CancellationToken cancellationToken) =>
+    public Task RemoveAttachmentAsync(Guid eventId, Guid attachmentId, CancellationToken cancellationToken) =>
         _service.RemoveAsync(eventId, attachmentId, cancellationToken);
 
     public Task<AttachmentDto?> UpdateAttachmentContentAsync(Guid eventId, Guid attachmentId, string content, CancellationToken cancellationToken) =>

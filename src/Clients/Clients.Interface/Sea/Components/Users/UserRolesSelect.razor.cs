@@ -37,7 +37,7 @@ public partial class UserRolesSelect : UsersBase
 
         foreach (Guid id in allRoleIds)
         {
-            await UserRolesService.RemoveAsync(Guid.Parse(User.Id), id, CancellationToken.None);
+            await UserRolesService.RemoveUserRoleAsync(Guid.Parse(User.Id), id, CancellationToken.None);
 
             if (readRoles.Contains(id))
             {

@@ -19,6 +19,6 @@ public sealed class UserRolesHub : EntityServer<UserRoleDto, UserRoleDescriptorD
     public Task AssignAsync(Guid userId, Guid roleId, RoleType type, CancellationToken cancellationToken) =>
         _service.AssignAsync(userId, roleId, type, cancellationToken);
 
-    public Task RemoveAsync(Guid userId, Guid roleId, CancellationToken cancellationToken) =>
+    public Task RemoveUserRoleAsync(Guid userId, Guid roleId, CancellationToken cancellationToken) =>
         _service.RemoveAsync(userId, roleId, cancellationToken);
 }

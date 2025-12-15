@@ -16,7 +16,7 @@ namespace Vitarish.Clients.Modules.Sea.Services
         public async Task AssignAsync(Guid userId, Guid roleId, RoleType type, CancellationToken cancellationToken = default) =>
             await InvokeNoInterceptAsync(nameof(AssignAsync), cancellationToken, userId, roleId, type).ConfigureAwait(false);
 
-        public async Task RemoveAsync(Guid userId, Guid roleId, CancellationToken cancellationToken = default) =>
-            await InvokeNoInterceptAsync(nameof(RemoveAsync), cancellationToken, userId, roleId).ConfigureAwait(false);
+        public async Task RemoveUserRoleAsync(Guid userId, Guid roleId, CancellationToken cancellationToken = default) =>
+            await InvokeNoInterceptAsync(nameof(RemoveUserRoleAsync), cancellationToken, userId, roleId).ConfigureAwait(false);
     }
 }
