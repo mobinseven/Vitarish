@@ -17,17 +17,17 @@ namespace Vitarish.Clients.Modules.Sea.Services
         public async Task<int> GetCountByEventAsync(Guid eventId, CancellationToken cancellationToken = default) =>
             await InvokeHubAsync<int>(nameof(GetCountByEventAsync), cancellationToken, new object?[] { eventId }).ConfigureAwait(false);
 
-        public async Task<AttachmentDto?> AddAsync(Guid eventId, string content, string contentType, string? contentThumbnail, long size, CancellationToken cancellationToken = default) =>
-            await InvokeHubAsync<AttachmentDto?>(nameof(AddAsync), cancellationToken, new object?[] { eventId, content, contentType, contentThumbnail, size }).ConfigureAwait(false);
+        public async Task<AttachmentDto?> AddAttachmentAsync(Guid eventId, string content, string contentType, string? contentThumbnail, long size, CancellationToken cancellationToken = default) =>
+            await InvokeHubAsync<AttachmentDto?>(nameof(AddAttachmentAsync), cancellationToken, new object?[] { eventId, content, contentType, contentThumbnail, size }).ConfigureAwait(false);
 
-        public async Task AddAsync(Guid eventId, IEnumerable<AttachmentDto> attachments, CancellationToken cancellationToken = default) =>
-            await InvokeNoInterceptAsync(nameof(AddAsync), cancellationToken, eventId, attachments).ConfigureAwait(false);
+        public async Task AddAttachmentRangeAsync(Guid eventId, IEnumerable<AttachmentDto> attachments, CancellationToken cancellationToken = default) =>
+            await InvokeNoInterceptAsync(nameof(AddAttachmentRangeAsync), cancellationToken, eventId, attachments).ConfigureAwait(false);
 
         public async Task RemoveAsync(Guid eventId, Guid attachmentId, CancellationToken cancellationToken = default) =>
             await InvokeNoInterceptAsync(nameof(RemoveAsync), cancellationToken, eventId, attachmentId).ConfigureAwait(false);
 
-        public async Task<AttachmentDto?> UpdateAsync(Guid eventId, Guid attachmentId, string content, CancellationToken cancellationToken = default) =>
-            await InvokeHubAsync<AttachmentDto?>(nameof(UpdateAsync), cancellationToken, new object?[] { eventId, attachmentId, content }).ConfigureAwait(false);
+        public async Task<AttachmentDto?> UpdateAttachmentContentAsync(Guid eventId, Guid attachmentId, string content, CancellationToken cancellationToken = default) =>
+            await InvokeHubAsync<AttachmentDto?>(nameof(UpdateAttachmentContentAsync), cancellationToken, new object?[] { eventId, attachmentId, content }).ConfigureAwait(false);
 
         public async Task<AttachmentSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken = default) =>
             await InvokeHubAsync<AttachmentSnapshot?>(nameof(CaptureSnapshotAsync), cancellationToken, new object?[] { id }).ConfigureAwait(false);

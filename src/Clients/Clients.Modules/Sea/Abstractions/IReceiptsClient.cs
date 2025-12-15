@@ -5,7 +5,7 @@ namespace Vitarish.Clients.Modules.Sea.Abstractions;
 
 public interface IReceiptsClient : IEntityClient<ReceiptDto, ReceiptDescriptorDto>
 {
-    Task<Guid> AddAsync(Guid userId, Guid objectId, CancellationToken cancellationToken = default);
+    Task<Guid> CreateReceiptAsync(Guid userId, Guid objectId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Guid>> GetReadersAsync(Guid objectId, CancellationToken cancellationToken = default);
     Task MarkProjectReadAsync(Guid userId, Guid projectId, CancellationToken cancellationToken = default);
     Task MarkProjectUnreadAsync(Guid userId, Guid projectId, CancellationToken cancellationToken = default);

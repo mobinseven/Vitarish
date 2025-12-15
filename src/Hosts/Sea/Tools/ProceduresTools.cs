@@ -17,14 +17,14 @@ public static class ProceduresTools
             IProceduresClient ProceduresService,
             Guid projectId,
             string name,
-            CancellationToken cancellationToken = default) => ProceduresService.AddAsync(projectId, name, cancellationToken);
+            CancellationToken cancellationToken = default) => ProceduresService.CreateProcedureAsync(projectId, name, cancellationToken);
 
     [McpServerTool(Name = nameof(UpdateProcedureAsync), Destructive = true, Idempotent = true, OpenWorld = false, ReadOnly = false, UseStructuredContent = false), Description("This command updates an existing procedure.")]
     public static Task UpdateProcedureAsync(
             IProceduresClient ProceduresService,
             Guid id,
             string name,
-            CancellationToken cancellationToken = default) => ProceduresService.UpdateAsync(id, name, cancellationToken);
+            CancellationToken cancellationToken = default) => ProceduresService.UpdateProcedureNameAsync(id, name, cancellationToken);
 
     [McpServerTool(Name = nameof(DeleteProcedureAsync), Destructive = true, Idempotent = true, OpenWorld = false, ReadOnly = false, UseStructuredContent = false), Description("This command deletes a procedure.")]
     public static Task DeleteProcedureAsync(

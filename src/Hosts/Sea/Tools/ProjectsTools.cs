@@ -32,7 +32,7 @@ public static class ProjectsTools
             string description,
             bool template = false,
             string metadata = "",
-            CancellationToken cancellationToken = default) => ProjectsService.AddAsync(name, description, template, metadata, cancellationToken);
+            CancellationToken cancellationToken = default) => ProjectsService.CreateProjectAsync(name, description, template, metadata, cancellationToken);
 
     [McpServerTool(Name = nameof(UpdateProjectAsync), Destructive = true, Idempotent = true, OpenWorld = false, ReadOnly = false, UseStructuredContent = false), Description("This command updates an existing project.")]
     public static Task UpdateProjectAsync(
@@ -42,7 +42,7 @@ public static class ProjectsTools
             string description,
             bool template,
             string metadata,
-            CancellationToken cancellationToken = default) => ProjectsService.UpdateAsync(id, name, description, template, metadata, cancellationToken);
+            CancellationToken cancellationToken = default) => ProjectsService.UpdateProjectDetailsAsync(id, name, description, template, metadata, cancellationToken);
 
     [McpServerTool(Name = nameof(RemoveProjectAsync), Destructive = true, Idempotent = true, OpenWorld = false, ReadOnly = false, UseStructuredContent = false), Description("This command deletes a project.")]
     public static Task RemoveProjectAsync(

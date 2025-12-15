@@ -12,11 +12,11 @@ namespace Vitarish.Clients.Modules.Sea.Services
         : SeaEntityClient<ProcedureDto, ProcedureDescriptorDto, ProceduresClientDefinition>(connectionFactory, entityInterceptionProvider),
             IProceduresClient
     {
-        public async Task<Guid> AddAsync(Guid projectId, string name, CancellationToken cancellationToken = default) =>
-            await InvokeHubAsync<Guid>(nameof(AddAsync), cancellationToken, new object?[] { projectId, name }).ConfigureAwait(false);
+        public async Task<Guid> CreateProcedureAsync(Guid projectId, string name, CancellationToken cancellationToken = default) =>
+            await InvokeHubAsync<Guid>(nameof(CreateProcedureAsync), cancellationToken, new object?[] { projectId, name }).ConfigureAwait(false);
 
-        public async Task UpdateAsync(Guid id, string name, CancellationToken cancellationToken = default) =>
-            await InvokeNoInterceptAsync(nameof(UpdateAsync), cancellationToken, id, name).ConfigureAwait(false);
+        public async Task UpdateProcedureNameAsync(Guid id, string name, CancellationToken cancellationToken = default) =>
+            await InvokeNoInterceptAsync(nameof(UpdateProcedureNameAsync), cancellationToken, id, name).ConfigureAwait(false);
 
         public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default) =>
             await InvokeNoInterceptAsync(nameof(DeleteAsync), cancellationToken, id).ConfigureAwait(false);

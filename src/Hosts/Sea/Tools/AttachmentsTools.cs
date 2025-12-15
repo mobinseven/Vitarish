@@ -25,14 +25,14 @@ public static class AttachmentsTools
                 string contentType,
                 string? contentThumbnail,
                 long size,
-                CancellationToken cancellationToken = default) => AttachmentsService.AddAsync(eventId, content, contentType, contentThumbnail, size, cancellationToken);
+                CancellationToken cancellationToken = default) => AttachmentsService.AddAttachmentAsync(eventId, content, contentType, contentThumbnail, size, cancellationToken);
 
     [McpServerTool(Name = nameof(AddAttachmentsAsync), Destructive = false, Idempotent = false, OpenWorld = false, ReadOnly = false, UseStructuredContent = false), Description("This command adds multiple attachments to an event.")]
     public static Task AddAttachmentsAsync(
                 IAttachmentsClient AttachmentsService,
                 Guid eventId,
                 IEnumerable<AttachmentDto> attachments,
-                CancellationToken cancellationToken = default) => AttachmentsService.AddAsync(eventId, attachments, cancellationToken);
+                CancellationToken cancellationToken = default) => AttachmentsService.AddAttachmentRangeAsync(eventId, attachments, cancellationToken);
 
     [McpServerTool(Name = nameof(RemoveAttachmentAsync), Destructive = true, Idempotent = true, OpenWorld = false, ReadOnly = false, UseStructuredContent = false), Description("This command removes an attachment from an event.")]
     public static Task RemoveAttachmentAsync(
@@ -47,7 +47,7 @@ public static class AttachmentsTools
                 Guid eventId,
                 Guid attachmentId,
                 string content,
-                CancellationToken cancellationToken = default) => AttachmentsService.UpdateAsync(eventId, attachmentId, content, cancellationToken);
+                CancellationToken cancellationToken = default) => AttachmentsService.UpdateAttachmentContentAsync(eventId, attachmentId, content, cancellationToken);
 
     [McpServerTool(Name = nameof(GetAttachmentSnapshotAsync), Destructive = false, Idempotent = true, OpenWorld = false, ReadOnly = true, UseStructuredContent = true), Description("This query retrieves a snapshot for the specified attachment.")]
     public static Task<AttachmentSnapshot?> GetAttachmentSnapshotAsync(

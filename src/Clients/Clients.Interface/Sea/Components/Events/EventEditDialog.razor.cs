@@ -30,7 +30,7 @@ public partial class EventEditDialog : SeaCommonBase
         }
         else
         {
-            EventDto? updated = await EventsService.UpdateAsync(Event.Id, title, description, CancellationToken.None);
+            EventDto? updated = await EventsService.UpdateEventDetailsAsync(Event.Id, title, description, CancellationToken.None);
             MudDialog.Close(DialogResult.Ok(updated));
         }
     }

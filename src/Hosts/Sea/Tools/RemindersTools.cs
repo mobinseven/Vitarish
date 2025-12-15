@@ -26,7 +26,7 @@ public static class RemindersTools
             string subject,
             string textBody,
             DateTimeOffset remindAt,
-            CancellationToken cancellationToken = default) => RemindersService.UpdateAsync(id, kind, recipientUserId, recipient, subject, textBody, remindAt, cancellationToken);
+            CancellationToken cancellationToken = default) => RemindersService.UpdateReminderAsync(id, kind, recipientUserId, recipient, subject, textBody, remindAt, cancellationToken);
 
     [McpServerTool(Name = nameof(RemoveReminderAsync), Destructive = true, Idempotent = true, OpenWorld = false, ReadOnly = false, UseStructuredContent = false), Description("This command removes a reminder.")]
     public static Task RemoveReminderAsync(

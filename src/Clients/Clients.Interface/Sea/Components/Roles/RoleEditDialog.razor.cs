@@ -20,11 +20,11 @@ public partial class RoleEditDialog : RolesBase
     {
         if (Role is null)
         {
-            _ = await RolesService.AddAsync(name, CancellationToken.None);
+            _ = await RolesService.CreateRoleAsync(name, CancellationToken.None);
         }
         else
         {
-            await RolesService.UpdateAsync(Role.Id, name, CancellationToken.None);
+            await RolesService.UpdateRoleNameAsync(Role.Id, name, CancellationToken.None);
         }
 
         MudDialog.Close(DialogResult.Ok(true));

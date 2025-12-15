@@ -20,7 +20,7 @@ public sealed class ClinicProjectsTools(
         string metadataJson = JsonSerializer.Serialize(metadata, SerializerOptions);
         string name = BuildDisplayName(metadata);
         string description = BuildDescription(metadata);
-        return await ProjectsService.AddAsync(name, description, template: false, metadataJson, cancellationToken);
+        return await ProjectsService.CreateProjectAsync(name, description, template: false, metadataJson, cancellationToken);
     }
 
     private ClinicPatientIntakeMetadata Normalize(ClinicProjectDto input) => new()

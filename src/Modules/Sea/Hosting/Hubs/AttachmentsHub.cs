@@ -21,16 +21,16 @@ public sealed class AttachmentsHub : EntityServer<AttachmentDto, AttachmentDescr
     public Task<int> GetCountByEventAsync(Guid eventId, CancellationToken cancellationToken) =>
         _service.GetCountByEventAsync(eventId, cancellationToken);
 
-    public Task<AttachmentDto?> AddAsync(Guid eventId, string content, string contentType, string? contentThumbnail, long size, CancellationToken cancellationToken) =>
+    public Task<AttachmentDto?> AddAttachmentAsync(Guid eventId, string content, string contentType, string? contentThumbnail, long size, CancellationToken cancellationToken) =>
         _service.AddAsync(eventId, content, contentType, contentThumbnail, size, cancellationToken);
 
-    public Task AddAsync(Guid eventId, IEnumerable<AttachmentDto> attachments, CancellationToken cancellationToken) =>
+    public Task AddAttachmentRangeAsync(Guid eventId, IEnumerable<AttachmentDto> attachments, CancellationToken cancellationToken) =>
         _service.AddAsync(eventId, attachments, cancellationToken);
 
     public Task RemoveAsync(Guid eventId, Guid attachmentId, CancellationToken cancellationToken) =>
         _service.RemoveAsync(eventId, attachmentId, cancellationToken);
 
-    public Task<AttachmentDto?> UpdateAsync(Guid eventId, Guid attachmentId, string content, CancellationToken cancellationToken) =>
+    public Task<AttachmentDto?> UpdateAttachmentContentAsync(Guid eventId, Guid attachmentId, string content, CancellationToken cancellationToken) =>
         _service.UpdateAsync(eventId, attachmentId, content, cancellationToken);
 
     public Task<AttachmentSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken) =>

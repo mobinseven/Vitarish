@@ -15,10 +15,10 @@ public sealed class ProjectsHub : EntityServer<ProjectDto, ProjectDescriptorDto,
         _service = service;
     }
 
-    public Task<Guid> AddAsync(string name, string description, bool template, string metadata, CancellationToken cancellationToken) =>
+    public Task<Guid> CreateProjectAsync(string name, string description, bool template, string metadata, CancellationToken cancellationToken) =>
         _service.AddAsync(name, description, template, metadata, cancellationToken);
 
-    public Task UpdateAsync(Guid id, string name, string description, bool template, string metadata, CancellationToken cancellationToken) =>
+    public Task UpdateProjectDetailsAsync(Guid id, string name, string description, bool template, string metadata, CancellationToken cancellationToken) =>
         _service.UpdateAsync(id, name, description, template, metadata, cancellationToken);
 
     public Task UpdateMetadataAsync(Guid id, string metadata, CancellationToken cancellationToken) =>

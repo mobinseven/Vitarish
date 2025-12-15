@@ -64,7 +64,7 @@ public partial class UsageConfigurationEditor : UsageConfigurationsBase
         }
         _metadata.ThemeSettingsJson = ThemeService.GetThemeSettingsJson();
         _configuration.Metadata = _metadata.ToJson();
-        return UsageConfigurationService.UpdateAsync(_configuration, CancellationToken.None);
+        return UsageConfigurationService.UpdateUsageConfigurationAsync(_configuration, CancellationToken.None);
     }
 
     private sealed record ModelOption(string Id, string DisplayName);

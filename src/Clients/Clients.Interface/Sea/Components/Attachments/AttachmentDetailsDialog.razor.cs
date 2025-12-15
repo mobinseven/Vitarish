@@ -44,7 +44,7 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
 
     private async Task SaveAsync()
     {
-        AttachmentDto? updated = await AttachmentsService.UpdateAsync(
+        AttachmentDto? updated = await AttachmentsService.UpdateAttachmentContentAsync(
             Event.Id,
             Attachment.Id,
             editContent,

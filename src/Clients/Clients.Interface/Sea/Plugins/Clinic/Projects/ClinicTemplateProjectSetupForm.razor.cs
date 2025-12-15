@@ -86,7 +86,7 @@ public partial class ClinicTemplateProjectSetupForm : ProjectsBase
                 departmentName,
                 Context.TemplateId), new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
-            _ = await ProjectsService.AddAsync(templateName, description, template: true, metadata, cancellationToken);
+            _ = await ProjectsService.CreateProjectAsync(templateName, description, template: true, metadata, cancellationToken);
 
             Dialog.Close(DialogResult.Ok(true));
         }

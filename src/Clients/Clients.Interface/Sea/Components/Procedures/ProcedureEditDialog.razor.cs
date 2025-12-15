@@ -43,7 +43,7 @@ public partial class ProcedureEditDialog : ProceduresBase
             return;
         }
 
-        await ProceduresService.UpdateAsync(Procedure.Id, name, CancellationToken.None);
+        await ProceduresService.UpdateProcedureNameAsync(Procedure.Id, name, CancellationToken.None);
 
         MudDialog.Close(DialogResult.Ok(true));
     }

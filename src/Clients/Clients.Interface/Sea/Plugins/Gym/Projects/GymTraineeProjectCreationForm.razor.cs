@@ -405,7 +405,7 @@ Schema:
             string payload = JsonSerializer.Serialize(normalized, SerializerOptions);
             metadataJson = payload;
 
-            _ = await ProjectsService.AddAsync(projectName, description, template: false, payload, CancellationToken.None);
+            _ = await ProjectsService.CreateProjectAsync(projectName, description, template: false, payload, CancellationToken.None);
             Dialog.Close(DialogResult.Ok(true));
         }
         catch (Exception ex)

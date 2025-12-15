@@ -26,11 +26,11 @@ public partial class ProjectTemplateEditDialog : ProjectsBase
     {
         if (Project is null)
         {
-            _ = await ProjectsService.AddAsync(name, description, template: true, metadata, CancellationToken.None);
+            _ = await ProjectsService.CreateProjectAsync(name, description, template: true, metadata, CancellationToken.None);
         }
         else
         {
-            await ProjectsService.UpdateAsync(Project.Id, name, description, template: true, metadata, CancellationToken.None);
+            await ProjectsService.UpdateProjectDetailsAsync(Project.Id, name, description, template: true, metadata, CancellationToken.None);
         }
 
         MudDialog.Close(DialogResult.Ok(true));

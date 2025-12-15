@@ -73,7 +73,7 @@ public partial class GymTemplateProjectSetupForm : ProjectsBase
                 TemplateId = Context.TemplateId
             }, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
-            _ = await ProjectsService.AddAsync(templateName, description, template: true, metadata, cancellationToken);
+            _ = await ProjectsService.CreateProjectAsync(templateName, description, template: true, metadata, cancellationToken);
 
             Dialog.Close(DialogResult.Ok(true));
         }

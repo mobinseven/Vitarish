@@ -18,10 +18,10 @@ public sealed class EventsHub : EntityServer<EventDto, EventDescriptorDto, IEven
     public Task<IReadOnlyList<EventDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken) =>
         _service.GetByProcedureAsync(procedureId, cancellationToken);
 
-    public Task<EventDto?> AddAsync(Guid projectId, Guid procedureId, Guid? previousEventId, CancellationToken cancellationToken) =>
+    public Task<EventDto?> CreateEventAsync(Guid projectId, Guid procedureId, Guid? previousEventId, CancellationToken cancellationToken) =>
         _service.AddAsync(projectId, procedureId, previousEventId, cancellationToken);
 
-    public Task<EventDto?> UpdateAsync(Guid id, string title, string description, CancellationToken cancellationToken) =>
+    public Task<EventDto?> UpdateEventDetailsAsync(Guid id, string title, string description, CancellationToken cancellationToken) =>
         _service.UpdateAsync(id, title, description, cancellationToken);
 
     public Task<bool> MoveUpAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken) =>

@@ -12,8 +12,8 @@ namespace Vitarish.Clients.Modules.Sea.Services
         : SeaEntityClient<ReceiptDto,ReceiptDescriptorDto, ReceiptsClientDefinition>(connectionFactory, entityInterceptionProvider),
             IReceiptsClient
     {
-        public async Task<Guid> AddAsync(Guid userId, Guid objectId, CancellationToken cancellationToken = default) =>
-            await InvokeHubAsync<Guid>(nameof(AddAsync), cancellationToken, new object?[] { userId, objectId }).ConfigureAwait(false);
+        public async Task<Guid> CreateReceiptAsync(Guid userId, Guid objectId, CancellationToken cancellationToken = default) =>
+            await InvokeHubAsync<Guid>(nameof(CreateReceiptAsync), cancellationToken, new object?[] { userId, objectId }).ConfigureAwait(false);
 
         public async Task<IReadOnlyList<Guid>> GetReadersAsync(Guid objectId, CancellationToken cancellationToken = default) =>
             await InvokeHubAsync<IReadOnlyList<Guid>>(nameof(GetReadersAsync), cancellationToken, new object?[] { objectId }).ConfigureAwait(false);
