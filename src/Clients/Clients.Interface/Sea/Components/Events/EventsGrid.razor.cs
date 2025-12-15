@@ -1,5 +1,6 @@
 
 using Microsoft.AspNetCore.Components.Web;
+using System.Collections.Immutable;
 
 namespace Vitarish.Clients.Interface.Sea.Components.Events;
 
@@ -40,7 +41,7 @@ public partial class EventsGrid : EventsBase
         Guid? userId = AccessService.UserId;
         hasReceiptData = userId is Guid;
 
-        Task<IReadOnlyDictionary<Guid, bool>> receiptsTask = Task.FromResult<IReadOnlyDictionary<Guid, bool>>(new Dictionary<Guid, bool>());
+        Task<IReadOnlyDictionary<Guid, bool>> receiptsTask = Task.FromResult<IReadOnlyDictionary<Guid, bool>>(ImmutableDictionary<Guid, bool>.Empty);
 
         if (userId is Guid id)
         {
