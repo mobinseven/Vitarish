@@ -6,5 +6,6 @@ public interface ISeaAccessService : IAccessService
     Guid? UserId { get; }
     Task<bool> CanReadEvent(Guid eventId);
     Task<bool> CanWriteEvent(Guid eventId);
+    Task<IReadOnlyDictionary<Guid, (bool CanRead, bool CanWrite)>> GetEventAccessAsync(IEnumerable<Guid> eventIds);
 }
 

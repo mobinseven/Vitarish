@@ -41,4 +41,7 @@ public sealed class ReceiptsHub : EntityServer<ReceiptDto, ReceiptDescriptorDto,
 
     public Task<bool> HasReceiptAsync(Guid userId, Guid objectId, CancellationToken cancellationToken) =>
         _service.HasReceiptAsync(userId, objectId, cancellationToken);
+
+    public Task<IReadOnlyDictionary<Guid, bool>> HasReceiptsAsync(Guid userId, IEnumerable<Guid> objectIds, CancellationToken cancellationToken) =>
+        _service.HasReceiptsAsync(userId, objectIds, cancellationToken);
 }

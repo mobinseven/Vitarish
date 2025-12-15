@@ -6,6 +6,7 @@ public interface IReceiptsService : IEntityService<ReceiptDto, ReceiptDescriptor
 {
     Task<Guid> AddAsync(Guid userId, Guid objectId, CancellationToken cancellationToken);
     Task<IReadOnlyList<Guid>> GetReadersAsync(Guid objectId, CancellationToken cancellationToken);
+    Task<IReadOnlyDictionary<Guid, bool>> HasReceiptsAsync(Guid userId, IEnumerable<Guid> objectIds, CancellationToken cancellationToken);
     Task MarkProjectReadAsync(Guid userId, Guid projectId, CancellationToken cancellationToken);
     Task MarkProjectUnreadAsync(Guid userId, Guid projectId, CancellationToken cancellationToken);
     Task MarkProcedureReadAsync(Guid userId, Guid procedureId, CancellationToken cancellationToken);

@@ -1,4 +1,5 @@
 
+using System.Linq;
 using Vitarish.Clients.Interface.Sea.Abstractions;
 
 namespace Vitarish.Clients.Interface.Sea.Internal;
@@ -41,6 +42,18 @@ public sealed class SeaAccessService(IAccessService accessService, IEntityInterc
     {
         IReadOnlyList<Guid> ids = await eventRolesService.GetWriteIdsAsync(eventId, CancellationToken.None);
         return ids.Intersect(userWriteRoleIds).Any();
+    }
+
+    public async Task<IReadOnlyDictionary<Guid, (bool CanRead, bool CanWrite)>> GetEventAccessAsync(IEnumerable<Guid> eventIds)
+    {
+        IReadOnlyDictionary<Guid, (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)> rolesByEvent =
+            await eventRolesService.GetIdsForEventsAsync(eventIds, CancellationToken.None);
+
+        return rolesByEvent.ToDictionary(
+            pair => pair.Key,
+            pair => (
+                pair.Value.ReadRoleIds.Intersect(userReadRoleIds).Any(),
+                pair.Value.WriteRoleIds.Intersect(userWriteRoleIds).Any()));
     }
     public void RenameRole(string roleName, string roleNewName) => accessService.RenameRole(roleName, roleNewName);
 
