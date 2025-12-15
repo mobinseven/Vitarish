@@ -1,3 +1,4 @@
+using System;
 using Vitarish.Sea.Application.Commands.Attachments;
 
 namespace Vitarish.Sea.Infrastructure.Handlers;
@@ -7,9 +8,14 @@ internal class RemoveAttachmentHandler(IEntityRepository<Attachment, AttachmentD
     public async Task Handle(RemoveAttachmentCommand request, CancellationToken cancellationToken)
     {
         Attachment? entity = await repository.GetAsync(request.AttachmentId, cancellationToken);
-        if(entity is null)
+        if (entity is null)
         {
             return;
+        }
+
+        if (entity.EventId != request.EventId)
+        {
+            throw new UnauthorizedAccessException("The specified attachment does not belong to the given event.");
         }
 
         await repository.RemoveAsync(entity, cancellationToken);
