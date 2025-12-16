@@ -61,6 +61,7 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
         sb.AppendLine("using System.Collections.Generic;");
         sb.AppendLine("using MediatR;");
         sb.AppendLine("using Microsoft.Extensions.DependencyInjection;");
+        sb.AppendLine("using Microsoft.Extensions.Logging;");
         sb.AppendLine("using Vitarish.Entities.Server.Caching;");
         sb.AppendLine("using Vitarish.Entities.Server.Commands;");
         sb.AppendLine("using Vitarish.Entities.Server.Core;");
@@ -95,6 +96,7 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
         sb.AppendLine("    {");
         sb.AppendLine("        // Core infrastructure");
         sb.AppendLine("        services.AddMemoryCache();");
+        sb.AppendLine("        services.AddLogging(builder => builder.AddConsole());");
         sb.AppendLine($"        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof({extensionClassName}).Assembly));");
         sb.AppendLine("        services.AddSingleton<IEntityCacheInvalidationService, EntityCacheInvalidationService>();");
         sb.AppendLine("        services.AddScoped<EntityInterceptor>();");
