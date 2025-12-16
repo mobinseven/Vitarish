@@ -1,5 +1,5 @@
 using Vitarish.Sea.Domain.Entities;
-using Vorn.Entities;
+using Vitarish.Entities.Server.Core;
 
 namespace Vitarish.Sea.Application.Queries.Events;
 

@@ -1,16 +1,18 @@
-using Vorn.Entities;
-using Vorn.Entities.Server.SignalR;
+using Vitarish.Entities.Server.Core;
+using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Entities.Server.Services;
+using Vitarish.Entities.Server.SignalR;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class ReceiptsHub : EntityServer<ReceiptDto, ReceiptDescriptorDto, IReceiptsService>
+public sealed class ReceiptsHub : EntityServer<ReceiptDto, ReceiptDto, ReceiptDescriptorDto, IReceiptsService>
 {
     private readonly IReceiptsService _service;
 
-    public ReceiptsHub(IReceiptsService service, IEntityUserService entityUserService)
-        : base(service, entityUserService)
+    public ReceiptsHub(IServiceScopeFactory serviceScopeFactory, IReceiptsService service, IEntityUserService? entityUserService = null)
+        : base(serviceScopeFactory, entityUserService)
     {
         _service = service;
     }

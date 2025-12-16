@@ -1,16 +1,18 @@
-using Vorn.Entities;
-using Vorn.Entities.Server.SignalR;
+using Vitarish.Entities.Server.Core;
+using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Entities.Server.Services;
+using Vitarish.Entities.Server.SignalR;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class ProjectsHub : EntityServer<ProjectDto, ProjectDescriptorDto, IProjectsService>
+public sealed class ProjectsHub : EntityServer<ProjectDto, ProjectDto, ProjectDescriptorDto, IProjectsService>
 {
     private readonly IProjectsService _service;
 
-    public ProjectsHub(IProjectsService service, IEntityUserService entityUserService)
-        : base(service, entityUserService)
+    public ProjectsHub(IServiceScopeFactory serviceScopeFactory, IProjectsService service, IEntityUserService? entityUserService = null)
+        : base(serviceScopeFactory, entityUserService)
     {
         _service = service;
     }

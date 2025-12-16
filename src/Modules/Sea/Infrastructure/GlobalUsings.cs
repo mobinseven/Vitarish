@@ -1,7 +1,12 @@
 global using MediatR;
 global using Microsoft.EntityFrameworkCore;
-global using Vorn.Entities;
-global using Vorn.Entities.Models;
+global using Microsoft.Extensions.DependencyInjection;
+global using Vitarish.Entities.Server.Core;
+global using Vitarish.Entities.Server.Models;
+global using Vitarish.Entities.Server.Services;
+global using Vitarish.Entities.Server.Repositories;
+global using Vitarish.Entities.Server.Infrastructure;
+global using Vitarish.Entities.Server.Commands;
 global using Vitarish.Sea.Application.Commands.Events;
 global using Vitarish.Sea.Application.Abstractions;
 global using Vitarish.Sea.Domain.Dto;

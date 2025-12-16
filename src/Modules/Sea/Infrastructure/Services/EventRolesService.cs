@@ -6,9 +6,10 @@ using Vitarish.Sea.Application.Commands.Roles;
 namespace Vitarish.Sea.Infrastructure.Services;
 
 [RegisterScoped]
-internal class EventRolesService(IMediator mediator, EventRolesMapper mapper)
-    : EntityService<EventRole, EventRoleDescriptor, EventRoleDto, EventRoleDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IEventRolesService
+internal class EventRolesService(IServiceScopeFactory serviceScopeFactory, IMediator mediator, EventRolesMapper mapper)
+    : EntityService<EventRole, EventRoleDescriptor, EventRoleDto, EventRoleDto, EventRoleDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IEventRolesService
 {
+    private readonly IMediator _mediator = mediator;
     public async Task<(IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)> GetIdsAsync(Guid eventId, CancellationToken cancellationToken)
     {
         IReadOnlyList<EventRoleDto> roles = (await GetListAsync(new EventRoleDescriptorDto { EventId = eventId }, cancellationToken))
@@ -62,11 +63,11 @@ internal class EventRolesService(IMediator mediator, EventRolesMapper mapper)
 
     public Task AssignAsync(Guid eventId, Guid roleId, bool isWrite, CancellationToken cancellationToken)
     {
-        return Mediator.Send(new AddRoleToEventCommand(eventId, roleId, isWrite), cancellationToken);
+        return _mediator.Send(new AddRoleToEventCommand(eventId, roleId, isWrite), cancellationToken);
     }
 
     public Task UnassignAsync(Guid eventId, Guid roleId, bool isWrite, CancellationToken cancellationToken)
     {
-        return Mediator.Send(new RemoveRoleFromEventCommand(eventId, roleId, isWrite), cancellationToken);
+        return _mediator.Send(new RemoveRoleFromEventCommand(eventId, roleId, isWrite), cancellationToken);
     }
 }

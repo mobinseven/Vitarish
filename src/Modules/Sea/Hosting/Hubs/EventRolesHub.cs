@@ -1,16 +1,18 @@
-using Vorn.Entities;
-using Vorn.Entities.Server.SignalR;
+using Vitarish.Entities.Server.Core;
+using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Entities.Server.Services;
+using Vitarish.Entities.Server.SignalR;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class EventRolesHub : EntityServer<EventRoleDto, EventRoleDescriptorDto, IEventRolesService>
+public sealed class EventRolesHub : EntityServer<EventRoleDto, EventRoleDto, EventRoleDescriptorDto, IEventRolesService>
 {
     private readonly IEventRolesService _service;
 
-    public EventRolesHub(IEventRolesService service, IEntityUserService entityUserService)
-        : base(service, entityUserService)
+    public EventRolesHub(IServiceScopeFactory serviceScopeFactory, IEventRolesService service, IEntityUserService? entityUserService = null)
+        : base(serviceScopeFactory, entityUserService)
     {
         _service = service;
     }

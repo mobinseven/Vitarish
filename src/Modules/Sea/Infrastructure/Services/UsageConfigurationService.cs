@@ -6,7 +6,7 @@ using Vitarish.Sea.Application.Queries.UsageConfigurations;
 namespace Vitarish.Sea.Infrastructure.Services;
 
 [RegisterScoped]
-internal class UsageConfigurationService(IMediator mediator, UsageConfigurationMapper mapper) : EntityService<UsageConfiguration, UsageConfigurationDescriptor, UsageConfigurationDto, UsageConfigurationDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, _ => new UsageConfigurationDescriptor()), IUsageConfigurationService
+internal class UsageConfigurationService(IServiceScopeFactory serviceScopeFactory, UsageConfigurationMapper mapper) : EntityService<UsageConfiguration, UsageConfigurationDescriptor, UsageConfigurationDto, UsageConfigurationDto, UsageConfigurationDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, _ => new UsageConfigurationDescriptor()), IUsageConfigurationService
 {
     public async Task<UsageConfigurationDto?> GetUsageConfigurationAsync(CancellationToken cancellationToken)
     {

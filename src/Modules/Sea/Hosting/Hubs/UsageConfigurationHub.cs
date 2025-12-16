@@ -1,16 +1,18 @@
-using Vorn.Entities;
-using Vorn.Entities.Server.SignalR;
+using Vitarish.Entities.Server.Core;
+using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Entities.Server.Services;
+using Vitarish.Entities.Server.SignalR;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class UsageConfigurationHub : EntityServer<UsageConfigurationDto, UsageConfigurationDescriptorDto, IUsageConfigurationService>
+public sealed class UsageConfigurationHub : EntityServer<UsageConfigurationDto, UsageConfigurationDto, UsageConfigurationDescriptorDto, IUsageConfigurationService>
 {
     private readonly IUsageConfigurationService _service;
 
-    public UsageConfigurationHub(IUsageConfigurationService service, IEntityUserService entityUserService)
-        : base(service, entityUserService)
+    public UsageConfigurationHub(IServiceScopeFactory serviceScopeFactory, IUsageConfigurationService service, IEntityUserService? entityUserService = null)
+        : base(serviceScopeFactory, entityUserService)
     {
         _service = service;
     }

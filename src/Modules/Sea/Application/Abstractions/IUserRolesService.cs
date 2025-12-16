@@ -3,7 +3,7 @@ using Vitarish.Sea.Domain.Enums;
 
 namespace Vitarish.Sea.Application.Abstractions;
 
-public interface IUserRolesService : IEntityService<UserRoleDto, UserRoleDescriptorDto>
+public interface IUserRolesService : IEntityService<UserRoleDto, UserRoleDto, UserRoleDescriptorDto>
 {
     Task AssignAsync(Guid userId, Guid roleId, RoleType type, CancellationToken cancellationToken);
     Task RemoveAsync(Guid userId, Guid roleId, CancellationToken cancellationToken);
