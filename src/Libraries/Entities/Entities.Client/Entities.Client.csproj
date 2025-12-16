@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<PackageId>Vitarish.Entities.Client</PackageId>
+		<Title>Vitarish.Entities.Client</Title>
+		<Description>
+			This library provides base classes of client side of the Vitarish.Entities product group.
+		</Description>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client.Core" Version="10.0.*" />
+	</ItemGroup>
+
+</Project>

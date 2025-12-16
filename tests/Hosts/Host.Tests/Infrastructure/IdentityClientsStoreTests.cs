@@ -4,11 +4,11 @@ using Vitarish.ApiClients.Domain.Entities;
 using Vitarish.ApiClients.Infrastructure.Data;
 using Vitarish.AuthenticationClients.Domain.Entities;
 using Vitarish.AuthenticationClients.Infrastructure.Data;
-using Vitarish.Host.Infrastructure.IdentityServer;
-using Vitarish.Host.Services;
+using Vitarish.Main.Infrastructure.IdentityServer;
+using Vitarish.Main.Services;
 using IdentityClient = Duende.IdentityServer.Models.Client;
 
-namespace Vitarish.Host.Tests.Infrastructure;
+namespace Main.Tests.Infrastructure;
 
 public class IdentityClientsStoreTests : IDisposable
 {
@@ -60,7 +60,7 @@ public class IdentityClientsStoreTests : IDisposable
 
         // Assert
         _ = result.Should().NotBeNull();
-        result!.Claims.Should().ContainSingle(c =>
+        _ = result!.Claims.Should().ContainSingle(c =>
             c.Type == IdentityDefinitions.TenantIdClaim && c.Value == tenantId);
     }
 
@@ -86,7 +86,7 @@ public class IdentityClientsStoreTests : IDisposable
 
         // Assert
         _ = result.Should().NotBeNull();
-        result!.Claims.Should().ContainSingle(c =>
+        _ = result!.Claims.Should().ContainSingle(c =>
             c.Type == IdentityDefinitions.OwnerIdClaim && c.Value == ownerId);
     }
 
@@ -115,9 +115,9 @@ public class IdentityClientsStoreTests : IDisposable
         // Assert
         _ = result.Should().NotBeNull();
         _ = result!.Claims.Should().HaveCount(2);
-        result.Claims.Should().ContainSingle(c =>
+        _ = result.Claims.Should().ContainSingle(c =>
             c.Type == IdentityDefinitions.TenantIdClaim && c.Value == tenantId);
-        result.Claims.Should().ContainSingle(c =>
+        _ = result.Claims.Should().ContainSingle(c =>
             c.Type == IdentityDefinitions.OwnerIdClaim && c.Value == ownerId);
     }
 
@@ -238,8 +238,8 @@ public class IdentityClientsStoreTests : IDisposable
         // Assert
         _ = result.Should().NotBeNull();
         _ = result!.ClientId.Should().Be(clientId);
-        result.Claims.Should().NotContain(c => c.Type == IdentityDefinitions.TenantIdClaim);
-        result.Claims.Should().NotContain(c => c.Type == IdentityDefinitions.OwnerIdClaim);
+        _ = result.Claims.Should().NotContain(c => c.Type == IdentityDefinitions.TenantIdClaim);
+        _ = result.Claims.Should().NotContain(c => c.Type == IdentityDefinitions.OwnerIdClaim);
     }
 
     [Fact]
@@ -299,9 +299,9 @@ public class IdentityClientsStoreTests : IDisposable
         // Assert
         _ = result.Should().NotBeNull();
         _ = result!.Claims.Should().HaveCount(1);
-        result.Claims.Should().ContainSingle(c =>
+        _ = result.Claims.Should().ContainSingle(c =>
             c.Type == IdentityDefinitions.TenantIdClaim && c.Value == tenantId);
-        result.Claims.Should().NotContain(c => c.Type == IdentityDefinitions.OwnerIdClaim);
+        _ = result.Claims.Should().NotContain(c => c.Type == IdentityDefinitions.OwnerIdClaim);
     }
 
     [Fact]
@@ -328,9 +328,9 @@ public class IdentityClientsStoreTests : IDisposable
         // Assert
         _ = result.Should().NotBeNull();
         _ = result!.Claims.Should().HaveCount(1);
-        result.Claims.Should().ContainSingle(c =>
+        _ = result.Claims.Should().ContainSingle(c =>
             c.Type == IdentityDefinitions.OwnerIdClaim && c.Value == ownerId);
-        result.Claims.Should().NotContain(c => c.Type == IdentityDefinitions.TenantIdClaim);
+        _ = result.Claims.Should().NotContain(c => c.Type == IdentityDefinitions.TenantIdClaim);
     }
 
     [Fact]

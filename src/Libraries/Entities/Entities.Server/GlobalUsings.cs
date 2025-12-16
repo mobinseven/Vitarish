@@ -1,0 +1,17 @@
+global using FluentValidation;
+global using MediatR;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.Extensions.Caching.Distributed;
+global using Microsoft.Extensions.Caching.Memory;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.Diagnostics.HealthChecks;
+global using System.Collections.Concurrent;
+global using System.Text.Json;
+global using Vitarish.Entities.Server.Caching;
+global using Vitarish.Entities.Server.Commands;
+global using Vitarish.Entities.Server.Core;
+global using Vitarish.Entities.Server.HealthChecks;
+global using Vitarish.Entities.Server.Models;
+global using Vitarish.Entities.Server.Queries;
+global using Vitarish.Entities.Server.Repositories;
+global using Vitarish.Entities.Server.Validation;
