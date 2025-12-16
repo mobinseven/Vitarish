@@ -1,12 +1,12 @@
 using Duende.IdentityServer.AspNetIdentity;
 using Duende.IdentityServer.Models;
 using System.Security.Claims;
-using Vitarish.Host.Infrastructure.IdentityServer;
+using Vitarish.Main.Infrastructure.IdentityServer;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Users.Domain.Entities;
 
-namespace Vitarish.Host.Services;
+namespace Vitarish.Main.Services;
 
 /// <summary>
 /// Custom profile service that adds tenant_id and owner_id claims to tokens

@@ -1,6 +1,6 @@
 using MediatR;
 
-namespace Vitarish.Host.Services;
+namespace Vitarish.Main.Services;
 
 public class LoggingBehavior<TRequest, TResponse>(ILogger<LoggingBehavior<TRequest, TResponse>> logger) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>

@@ -1,4 +1,3 @@
-﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -11,7 +10,7 @@ namespace Vitarish.Host.Migrations.UsersDb
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
+            _ = migrationBuilder.CreateTable(
                 name: "WebAuthnCredentials",
                 columns: table => new
                 {
@@ -30,8 +29,8 @@ namespace Vitarish.Host.Migrations.UsersDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_WebAuthnCredentials", x => x.Id);
-                    table.ForeignKey(
+                    _ = table.PrimaryKey("PK_WebAuthnCredentials", x => x.Id);
+                    _ = table.ForeignKey(
                         name: "FK_WebAuthnCredentials_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
@@ -39,13 +38,13 @@ namespace Vitarish.Host.Migrations.UsersDb
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_WebAuthnCredentials_CredentialId",
                 table: "WebAuthnCredentials",
                 column: "CredentialId",
                 unique: true);
 
-            migrationBuilder.CreateIndex(
+            _ = migrationBuilder.CreateIndex(
                 name: "IX_WebAuthnCredentials_UserId",
                 table: "WebAuthnCredentials",
                 column: "UserId",
@@ -53,10 +52,7 @@ namespace Vitarish.Host.Migrations.UsersDb
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
+        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(
                 name: "WebAuthnCredentials");
-        }
     }
 }

@@ -103,7 +103,7 @@ public class ReminderProcessor(
                 if (string.IsNullOrWhiteSpace(smsResult.MessageId))
                 {
                     logger.LogError(
-                        "SMS send returned no message ID for reminder '{ReminderId}' to '{Recipient}'. Marking as sent to avoid retries.", 
+                        "SMS send returned no message ID for reminder '{ReminderId}' to '{Recipient}'. Marking as sent to avoid retries.",
                         reminder.Id,
                         MaskPhoneNumber(reminder.Recipient));
                     await remindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
@@ -111,7 +111,7 @@ public class ReminderProcessor(
                 }
 
                 logger.LogInformation(
-                    "Sent SMS reminder '{ReminderId}' to '{Recipient}' with message id '{MessageId}'.", 
+                    "Sent SMS reminder '{ReminderId}' to '{Recipient}' with message id '{MessageId}'.",
                     reminder.Id,
                     MaskPhoneNumber(reminder.Recipient),
                     smsResult.MessageId);

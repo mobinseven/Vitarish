@@ -3,7 +3,7 @@ using Vitarish.Files.Domain.Options;
 using Vitarish.Instagram.Scraper;
 using Vitarish.Modules.Instagram.Scraper;
 
-namespace Vitarish.Host.Infrastructure.Options;
+namespace Vitarish.Main.Infrastructure.Options;
 
 /// <summary>
 /// Extension methods for configuring application options in the application.
@@ -47,7 +47,7 @@ public static class ApplicationOptionsExtensions
         //!string.IsNullOrEmpty(o.Files.Minio.Endpoint), 
         _ = services.AddSingleton(sp =>
         {
-            IOptions<ApplicationOptions> options = sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<ApplicationOptions>>();
+            IOptions<ApplicationOptions> options = sp.GetRequiredService<IOptions<ApplicationOptions>>();
             return options.Value;
         });
 

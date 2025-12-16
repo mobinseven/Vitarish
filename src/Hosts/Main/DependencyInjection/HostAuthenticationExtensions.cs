@@ -1,7 +1,4 @@
-using Fido2NetLib;
-using Microsoft.Extensions.DependencyInjection;
-using Vitarish.Host.Infrastructure.Options;
-using Vitarish.Host.Services;
+using Vitarish.Main.Services;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Domain.Options;
 using Vitarish.Users.Infrastructure;

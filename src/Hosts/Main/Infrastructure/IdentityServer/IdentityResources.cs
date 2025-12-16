@@ -1,6 +1,6 @@
 using Duende.IdentityServer.Models;
 
-namespace Vitarish.Host.Infrastructure.IdentityServer;
+namespace Vitarish.Main.Infrastructure.IdentityServer;
 
 public static partial class IdentityDefinitions
 {

@@ -1,6 +1,6 @@
 using Hangfire.Dashboard;
 
-namespace Vitarish.Host.Services;
+namespace Vitarish.Main.Services;
 
 /// <summary>
 /// Authorization filter for Hangfire dashboard that requires authenticated users.

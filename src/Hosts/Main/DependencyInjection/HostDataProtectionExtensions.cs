@@ -3,7 +3,7 @@ using StackExchange.Redis;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 
-namespace Vitarish.Host.DependencyInjection;
+namespace Vitarish.Main.DependencyInjection;
 
 public static class HostDataProtectionExtensions
 {

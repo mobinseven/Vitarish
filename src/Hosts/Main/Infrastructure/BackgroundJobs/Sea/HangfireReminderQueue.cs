@@ -12,13 +12,10 @@ public class HangfireReminderQueue(IRecurringJobManager recurringJobManager)
     /// <summary>
     /// Adds or updates the recurring job that processes due reminders.
     /// </summary>
-    public void ScheduleProcessing()
-    {
-        recurringJobManager.AddOrUpdate<ReminderProcessor>(
+    public void ScheduleProcessing() => recurringJobManager.AddOrUpdate<ReminderProcessor>(
             ProcessRemindersJobId,
             processor => processor.ProcessDueReminders(JobCancellationToken.Null),
             Cron.MinuteInterval(10));
-    }
 
     /// <summary>
     /// Triggers the reminder processing job immediately.

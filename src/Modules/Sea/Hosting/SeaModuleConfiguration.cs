@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Vitarish.Sea.Infrastructure;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Sea.Presentation.Serializers;
 
@@ -24,6 +23,7 @@ internal static class SeaModuleConfiguration
         _ = services.AddDbContext<SeaDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Transient, ServiceLifetime.Transient);
 
         _ = services.AddVitarishSeaInfrastructure();
+        services.AddVitarishSeaDomainEntityHandlers();
         _ = services.AddAppMediatR(typeof(SeaDbContext).Assembly);
 
         _ = services.ConfigureHttpJsonOptions(options =>

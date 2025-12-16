@@ -5,9 +5,9 @@ using Vitarish.ApiClients.Domain.Entities;
 using Vitarish.ApiClients.Infrastructure.Data;
 using Vitarish.AuthenticationClients.Domain.Entities;
 using Vitarish.AuthenticationClients.Infrastructure.Data;
-using Vitarish.Host.Infrastructure.IdentityServer;
+using Vitarish.Main.Infrastructure.IdentityServer;
 
-namespace Vitarish.Host.Services;
+namespace Vitarish.Main.Services;
 
 public class IdentityClientsStore(AuthenticationClientDbContext authClients, ApiClientDbContext apiClients) : IClientStore
 {

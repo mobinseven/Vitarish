@@ -3,7 +3,7 @@ using Vitarish.Files.Domain.Options;
 using Vitarish.Instagram.Scraper;
 using Vitarish.Intelligence.Domain.Options;
 
-namespace Vitarish.Host.Infrastructure.Options;
+namespace Vitarish.Main.Infrastructure.Options;
 
 /// <summary>
 /// Aggregated application configuration options that combines all module-specific option blocks.

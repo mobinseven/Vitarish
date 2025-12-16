@@ -2,7 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.RateLimiting;
 using System.Threading.RateLimiting;
-using Vitarish.Host.Services;
+using Vitarish.Main.Services;
 using Vitarish.Users.Infrastructure.Service;
 
 public static class HostPipelineExtensions

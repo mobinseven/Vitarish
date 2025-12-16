@@ -5,7 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using System.Security.Cryptography.X509Certificates;
-using Vitarish.Host.Services;
+using Vitarish.Main.DependencyInjection;
+using Vitarish.Main.Services;
 using Vitarish.Users.Domain.Entities;
 
 public static class HostIdentityServerExtensions

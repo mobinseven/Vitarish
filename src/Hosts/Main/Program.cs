@@ -10,10 +10,12 @@ using Vitarish.AuthenticationClients.Infrastructure.Data;
 using Vitarish.Communications.Hosting;
 using Vitarish.Files.Hosting;
 using Vitarish.Files.Infrastructure.Data;
-using Vitarish.Host.Infrastructure.Options;
 using Vitarish.Instagram.Hosting;
 using Vitarish.Intelligence.Hosting;
 using Vitarish.Main.Components;
+using Vitarish.Main.DependencyInjection;
+using Vitarish.Main.Infrastructure.BackgroundJobs;
+using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Hosting.Api;
 using Vitarish.Parties.Hosting.DependencyInjection;
@@ -26,7 +28,6 @@ using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Users.Hosting.Api;
 using Vitarish.Users.Hosting.DependencyInjection;
 using Vitarish.Users.Infrastructure.Data;
-using Vitarish.Main.Infrastructure.BackgroundJobs;
 
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -62,7 +63,7 @@ builder.AddAaasParties(configureSqlServer);
 
 await builder.AddHostIdentityServer(configureSqlServer);
 builder.AddHostAuthentication();
-builder.AddHostHangfire(builder.Configuration.GetConnectionString("HangfireDb")!);
+builder.AddHostHangfire(builder.Configuration.GetConnectionString("Db")!);
 builder.AddHostPipeline();
 await builder.AddHostDataProtection();
 _ = builder.Services.AddMemoryCache();

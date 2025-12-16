@@ -39,7 +39,7 @@ public static class AttachmentsTools
                 IAttachmentsClient AttachmentsService,
                 Guid eventId,
                 Guid attachmentId,
-                CancellationToken cancellationToken = default) => AttachmentsService.RemoveAsync(eventId, attachmentId, cancellationToken);
+                CancellationToken cancellationToken = default) => AttachmentsService.RemoveAttachmentAsync(eventId, attachmentId, cancellationToken);
 
     [McpServerTool(Name = nameof(UpdateAttachmentAsync), Destructive = true, Idempotent = true, OpenWorld = false, ReadOnly = false, UseStructuredContent = true), Description("This command updates the content of an existing attachment.")]
     public static Task<AttachmentDto?> UpdateAttachmentAsync(

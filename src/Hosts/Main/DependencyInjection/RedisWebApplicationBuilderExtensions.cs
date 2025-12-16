@@ -1,4 +1,4 @@
-namespace Vitarish.Host.DependencyInjection;
+namespace Vitarish.Main.DependencyInjection;
 
 public static class RedisWebApplicationBuilderExtensions
 {

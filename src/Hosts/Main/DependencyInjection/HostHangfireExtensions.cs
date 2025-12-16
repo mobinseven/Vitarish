@@ -1,11 +1,12 @@
 using Hangfire;
 using Hangfire.SqlServer;
 using Vitarish.Accounts.Infrastructure.Services;
-using Vitarish.Host.Services;
+using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
+using Vitarish.Main.Services;
 
-namespace Vitarish.Host.DependencyInjection;
+namespace Vitarish.Main.DependencyInjection;
 
 /// <summary>
 /// Extension methods for configuring Hangfire in the Host project.

@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.Extensions.Options;
 using Vitarish.Users.Domain.Entities;
 
-namespace Vitarish.Host.Services;
+namespace Vitarish.Main.Services;
 
 public sealed class AuditingSignInManager(
     UserManager<User> userManager,
@@ -110,17 +110,11 @@ public sealed class AuditingSignInManager(
             reason);
     }
 
-    private static string? DetermineReason(SignInResult result, bool treatMfaFailures)
-    {
-        if (result.Succeeded)
-        {
-            return null;
-        }
-
-        return result.IsLockedOut
+    private static string? DetermineReason(SignInResult result, bool treatMfaFailures) => result.Succeeded
+            ? null
+            : result.IsLockedOut
             ? "Lockout"
             : result.IsNotAllowed
             ? "AccessDenied"
             : treatMfaFailures ? "MfaFailure" : result.RequiresTwoFactor ? null : "InvalidCredentials";
-    }
 }

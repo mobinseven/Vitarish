@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using Vitarish.Users.Domain.Entities;
 
-namespace Vitarish.Host.Services;
+namespace Vitarish.Main.Services;
 
 public class UserInfoClaimsPrincipalFactory(UserManager<User> userManager, IOptions<IdentityOptions> optionsAccessor)
 : UserClaimsPrincipalFactory<User>(userManager, optionsAccessor), IUserClaimsPrincipalFactory<User>
