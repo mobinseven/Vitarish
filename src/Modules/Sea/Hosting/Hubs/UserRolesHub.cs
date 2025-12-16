@@ -8,7 +8,7 @@ using Vitarish.Sea.Domain.Enums;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class UserRolesHub : EntityServer<UserRoleDto, UserRoleDto, UserRoleDescriptorDto, IUserRolesService>
+public sealed class UserRolesHub : EntityServer<UserRoleDto, UserRoleWriteDto, UserRoleDescriptorDto, IUserRolesService>
 {
     private readonly IUserRolesService _service;
 

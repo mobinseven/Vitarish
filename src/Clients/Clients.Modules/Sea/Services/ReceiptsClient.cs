@@ -9,7 +9,7 @@ namespace Vitarish.Clients.Modules.Sea.Services
     internal sealed class ReceiptsClient(
         IIdentityClientSignalRFactory connectionFactory,
         IEntityInterceptionProvider entityInterceptionProvider)
-        : SeaEntityClient<ReceiptDto,ReceiptDescriptorDto, ReceiptsClientDefinition>(connectionFactory, entityInterceptionProvider),
+        : SeaEntityClient<ReceiptDto, ReceiptDescriptorDto, ReceiptsClientDefinition>(connectionFactory, entityInterceptionProvider),
             IReceiptsClient
     {
         public async Task<Guid> CreateReceiptAsync(Guid userId, Guid objectId, CancellationToken cancellationToken = default) =>

@@ -15,7 +15,7 @@ internal class ProceduresService(
     IMediator mediator,
     ProceduresMapper mapper,
     IEventsService eventsService)
-    : EntityService<Procedure, ProcedureDescriptor, ProcedureDto, ProcedureDto, ProcedureDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IProceduresService
+    : EntityService<Procedure, ProcedureDescriptor, ProcedureDto, ProcedureWriteDto, ProcedureDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IProceduresService
 {
     private readonly IMediator _mediator = mediator;
     public async Task<Guid> AddAsync(Guid projectId, string name, CancellationToken cancellationToken)

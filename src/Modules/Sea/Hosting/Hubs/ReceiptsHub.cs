@@ -7,7 +7,7 @@ using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class ReceiptsHub : EntityServer<ReceiptDto, ReceiptDto, ReceiptDescriptorDto, IReceiptsService>
+public sealed class ReceiptsHub : EntityServer<ReceiptDto, ReceiptWriteDto, ReceiptDescriptorDto, IReceiptsService>
 {
     private readonly IReceiptsService _service;
 

@@ -10,7 +10,7 @@ namespace Vitarish.Clients.Modules.Sea.Services
     internal sealed class UsageConfigurationClient(
         IIdentityClientSignalRFactory connectionFactory,
         IEntityInterceptionProvider entityInterceptionProvider)
-        : SeaEntityClient<UsageConfigurationDto,UsageConfigurationDescriptorDto, UsageConfigurationClientDefinition>(connectionFactory, entityInterceptionProvider),
+        : SeaEntityClient<UsageConfigurationDto, UsageConfigurationDescriptorDto, UsageConfigurationClientDefinition>(connectionFactory, entityInterceptionProvider),
             IUsageConfigurationClient
     {
         public async Task<UsageConfigurationDto?> GetUsageConfigurationAsync(CancellationToken cancellationToken = default) =>

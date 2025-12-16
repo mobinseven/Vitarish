@@ -5,6 +5,6 @@ namespace Vitarish.Sea.Infrastructure.Mapping;
 internal partial class EventRolesMapper
 {
     public partial EventRoleDto ToDto(EventRole src);
-    public partial EventRole ToDomain(EventRoleDto src);
+    public partial EventRole ToDomain(EventRoleWriteDto src);
     public partial EventRoleDescriptor ToDomain(EventRoleDescriptorDto src);
 }

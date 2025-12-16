@@ -7,7 +7,7 @@ using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class RolesHub : EntityServer<RoleDto, RoleDto, RoleDescriptorDto, IRolesService>
+public sealed class RolesHub : EntityServer<RoleDto, RoleWriteDto, RoleDescriptorDto, IRolesService>
 {
     private readonly IRolesService _service;
 

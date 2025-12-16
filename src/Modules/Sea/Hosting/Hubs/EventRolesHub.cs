@@ -7,7 +7,7 @@ using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class EventRolesHub : EntityServer<EventRoleDto, EventRoleDto, EventRoleDescriptorDto, IEventRolesService>
+public sealed class EventRolesHub : EntityServer<EventRoleDto, EventRoleWriteDto, EventRoleDescriptorDto, IEventRolesService>
 {
     private readonly IEventRolesService _service;
 

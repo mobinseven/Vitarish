@@ -7,7 +7,7 @@ using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class AttachmentsHub : EntityServer<AttachmentDto, AttachmentDto, AttachmentDescriptorDto, IAttachmentsService>
+public sealed class AttachmentsHub : EntityServer<AttachmentDto, AttachmentWriteDto, AttachmentDescriptorDto, IAttachmentsService>
 {
     private readonly IAttachmentsService _service;
 

@@ -9,7 +9,7 @@ namespace Vitarish.Clients.Modules.Sea.Services
     internal sealed class EventsClient(
         IIdentityClientSignalRFactory connectionFactory,
         IEntityInterceptionProvider entityInterceptionProvider)
-        : SeaEntityClient<EventDto,EventDescriptorDto, EventsClientDefinition>(connectionFactory, entityInterceptionProvider),
+        : SeaEntityClient<EventDto, EventDescriptorDto, EventsClientDefinition>(connectionFactory, entityInterceptionProvider),
             IEventsClient
     {
         public async Task<IReadOnlyList<EventDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken = default) =>
