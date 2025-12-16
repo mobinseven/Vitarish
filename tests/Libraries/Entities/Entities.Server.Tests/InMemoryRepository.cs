@@ -1,8 +1,10 @@
+using System.Collections.Concurrent;
+
 namespace Entities.Server.Tests;
 
 public class InMemoryRepository : IEntityRepository<TestEntity, TestDescriptor>
 {
-    private readonly Dictionary<Guid, TestEntity> _store = [];
+    private readonly ConcurrentDictionary<Guid, TestEntity> _store = new();
 
     public Task<TestEntity?> AddAsync(TestEntity entity, CancellationToken cancellationToken)
     {
@@ -42,7 +44,7 @@ public class InMemoryRepository : IEntityRepository<TestEntity, TestDescriptor>
 
     public Task RemoveAsync(TestEntity entity, CancellationToken cancellationToken)
     {
-        _ = _store.Remove(entity.Id);
+        _ = _store.TryRemove(entity.Id, out _);
         return Task.CompletedTask;
     }
 
@@ -56,7 +58,7 @@ public class InMemoryRepository : IEntityRepository<TestEntity, TestDescriptor>
     {
         foreach(TestEntity e in entities)
         {
-            _ = _store.Remove(e.Id);
+            _ = _store.TryRemove(e.Id, out _);
         }
         return Task.CompletedTask;
     }
