@@ -34,7 +34,7 @@ public class InMemoryRepository : IEntityRepository<TestEntity, TestDescriptor>
 
     public Task<IReadOnlyList<TestEntity>> GetAsync(TestDescriptor descriptor, CancellationToken cancellationToken)
     {
-        return Task.FromResult<IReadOnlyList<TestEntity>>(_store.Values.ToList());
+        return Task.FromResult<IReadOnlyList<TestEntity>>(_store.Values.ToArray());
     }
 
     public Task<TestEntity?> GetAsync(Guid id, CancellationToken cancellationToken)
