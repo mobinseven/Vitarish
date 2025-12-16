@@ -402,3 +402,4 @@ FodyWeavers.xsd
 /Vorn.Aaas.Host/Keys/
 /src/Hosts/Host/appsettings.Development.json
 /src/Hosts/Sea/appsettings.Development.json
+/src/Hosts/Main/appsettings.Development.json
