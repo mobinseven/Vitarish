@@ -3,7 +3,7 @@ namespace Vitarish.Files.Domain.Entities;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Vorn.Entities;
+using Vitarish.Entities.Server.Core;
 using Vitarish.Files.Domain.Models;
 
 public class FileInformation : Entity

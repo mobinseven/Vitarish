@@ -2,7 +2,7 @@ namespace Vitarish.Files.Domain.Models;
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Vorn.Entities.Models;
+using Vitarish.Entities.Server.Models;
 
 public record FileInformationDto : EntityDto
 {

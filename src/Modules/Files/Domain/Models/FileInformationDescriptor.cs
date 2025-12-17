@@ -1,5 +1,5 @@
-using Vorn.Entities;
-using Vorn.Entities.Generators;
+using Vitarish.Entities.Server.Core;
+using Vitarish.Entities.Generators;
 using Vitarish.Files.Domain.Entities;
 
 namespace Vitarish.Files.Domain.Models;

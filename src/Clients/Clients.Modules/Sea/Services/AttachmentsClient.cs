@@ -2,14 +2,14 @@ using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
 using Vitarish.Clients.Modules.Sea.Dto;
-using Vorn.Entities.Client.SignalR;
+using Vitarish.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Services
 {
     internal sealed class AttachmentsClient(
         IIdentityClientSignalRFactory connectionFactory,
         IEntityInterceptionProvider entityInterceptionProvider)
-        : SeaEntityClient<AttachmentDto, AttachmentDescriptorDto, AttachmentsClientDefinition>(connectionFactory, entityInterceptionProvider),
+        : SeaEntityClient<AttachmentDto, AttachmentDto, AttachmentDescriptorDto, AttachmentsClientDefinition>(connectionFactory, entityInterceptionProvider),
             IAttachmentsClient
     {
         public async Task<IReadOnlyList<AttachmentDto>> GetByEventAsync(Guid eventId, CancellationToken cancellationToken = default) => await InvokeHubAsync<IReadOnlyList<AttachmentDto>>(nameof(GetByEventAsync), cancellationToken, new object?[] { eventId }).ConfigureAwait(false);

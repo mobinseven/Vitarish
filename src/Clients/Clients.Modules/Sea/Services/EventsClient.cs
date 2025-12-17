@@ -2,14 +2,14 @@ using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
 using Vitarish.Clients.Modules.Sea.Dto;
-using Vorn.Entities.Client.SignalR;
+using Vitarish.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Services
 {
     internal sealed class EventsClient(
         IIdentityClientSignalRFactory connectionFactory,
         IEntityInterceptionProvider entityInterceptionProvider)
-        : SeaEntityClient<EventDto, EventDescriptorDto, EventsClientDefinition>(connectionFactory, entityInterceptionProvider),
+        : SeaEntityClient<EventDto, EventDto, EventDescriptorDto, EventsClientDefinition>(connectionFactory, entityInterceptionProvider),
             IEventsClient
     {
         public async Task<IReadOnlyList<EventDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken = default) =>

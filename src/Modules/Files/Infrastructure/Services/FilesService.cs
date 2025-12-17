@@ -9,7 +9,7 @@ using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Extensions;
 using Vitarish.Files.Infrastructure.Interfaces;
-using Vorn.Entities.Models;
+using Vitarish.Entities.Server.Models;
 
 namespace Vitarish.Files.Infrastructure.Services;
 
@@ -105,7 +105,17 @@ public class FilesService : IFilesService
                 Tag = givenInformation.Tag
             };
 
-            _ = await _fileInfoService.AddAsync(cloned, CancellationToken.None).ConfigureAwait(false);
+            FileInformationWriteDto clonedWriteDto = new()
+            {
+                AllowedOrigins = cloned.AllowedOrigins,
+                Checksum = cloned.Checksum,
+                Owner = cloned.Owner,
+                Url = cloned.Url,
+                Thumbnail = cloned.Thumbnail,
+                ContentType = cloned.ContentType,
+                Tag = cloned.Tag
+            };
+            _ = await _fileInfoService.AddAsync(clonedWriteDto, CancellationToken.None).ConfigureAwait(false);
             return cloned;
         }
 
@@ -184,7 +194,18 @@ public class FilesService : IFilesService
                 await _storage.UploadAsync(objectKey, contentType, uploadStream, fileSize, cancellationToken).ConfigureAwait(false);
             }
 
-            _ = await _fileInfoService.AddAsync(info, CancellationToken.None).ConfigureAwait(false);
+            FileInformationWriteDto infoWriteDto = new()
+            {
+                Id = info.Id,
+                AllowedOrigins = info.AllowedOrigins,
+                Checksum = info.Checksum,
+                Owner = info.Owner,
+                Url = info.Url,
+                Thumbnail = info.Thumbnail,
+                ContentType = info.ContentType,
+                Tag = info.Tag
+            };
+            _ = await _fileInfoService.AddAsync(infoWriteDto, CancellationToken.None).ConfigureAwait(false);
 
             _logger.LogInformation("SaveFile finished. FileId={Id}, Size={Size} bytes, Url={Url}", info.Id, fileSize, info.Url);
             SafeDelete(tempServerPath);

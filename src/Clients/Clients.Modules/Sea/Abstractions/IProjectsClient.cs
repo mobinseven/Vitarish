@@ -1,9 +1,9 @@
 using Vitarish.Clients.Modules.Sea.Dto;
-using Vorn.Entities.Client.SignalR;
+using Vitarish.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Abstractions;
 
-public interface IProjectsClient : IEntityClient<ProjectDto, ProjectDescriptorDto>
+public interface IProjectsClient : IEntityClient<ProjectDto, ProjectDto, ProjectDescriptorDto>
 {
     Task<Guid> CreateProjectAsync(string name, string description, bool template, string metadata, CancellationToken cancellationToken = default);
     Task UpdateProjectDetailsAsync(Guid id, string name, string description, bool template, string metadata, CancellationToken cancellationToken = default);

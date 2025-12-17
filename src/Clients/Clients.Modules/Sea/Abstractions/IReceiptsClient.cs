@@ -1,9 +1,9 @@
 using Vitarish.Clients.Modules.Sea.Dto;
-using Vorn.Entities.Client.SignalR;
+using Vitarish.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Abstractions;
 
-public interface IReceiptsClient : IEntityClient<ReceiptDto, ReceiptDescriptorDto>
+public interface IReceiptsClient : IEntityClient<ReceiptDto, ReceiptDto, ReceiptDescriptorDto>
 {
     Task<Guid> CreateReceiptAsync(Guid userId, Guid objectId, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Guid>> GetReadersAsync(Guid objectId, CancellationToken cancellationToken = default);

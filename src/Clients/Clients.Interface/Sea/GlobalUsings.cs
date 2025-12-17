@@ -26,5 +26,5 @@ global using Vitarish.Clients.Modules.Intelligence.Models;
 global using Vitarish.Clients.Modules.Sea.Abstractions;
 global using Vitarish.Clients.Modules.Sea.Dto;
 global using Vitarish.Clients.Modules.Sea.Enums;
-global using Vorn.Entities.Client.Models;
-global using Vorn.Entities.Client.SignalR;
+global using Vitarish.Entities.Client.Models;
+global using Vitarish.Entities.Client.SignalR;
