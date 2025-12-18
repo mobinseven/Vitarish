@@ -35,35 +35,29 @@ public class ReminderProcessor(
             cancellationToken,
             async (provider, _, jobToken, shutdownToken) =>
             {
-                IRemindersService tenantRemindersService = provider.GetRequiredService<IRemindersService>();
-                IEventsService tenantEventsService = provider.GetRequiredService<IEventsService>();
-                IMessagesService tenantMessageClient = provider.GetRequiredService<IMessagesService>();
+                TenantReminderContext tenantContext = new(
+                    provider.GetRequiredService<IRemindersService>(),
+                    provider.GetRequiredService<IEventsService>(),
+                    provider.GetRequiredService<IMessagesService>());
 
-                await ProcessTenantRemindersAsync(
-                    tenantRemindersService,
-                    tenantEventsService,
-                    tenantMessageClient,
-                    jobToken,
-                    shutdownToken);
+                await ProcessTenantRemindersAsync(tenantContext, jobToken, shutdownToken);
             });
     }
 
     private async Task ProcessTenantRemindersAsync(
-        IRemindersService remindersService,
-        IEventsService eventsService,
-        IMessagesService messageClient,
+        TenantReminderContext tenantContext,
         IJobCancellationToken cancellationToken,
         CancellationToken shutdownToken)
     {
         DateTimeOffset now = _timeProvider.GetUtcNow();
 
-        IReadOnlyList<ReminderDto> due = await remindersService.GetDueAsync(now, shutdownToken);
+        IReadOnlyList<ReminderDto> due = await tenantContext.RemindersService.GetDueAsync(now, shutdownToken);
 
         foreach (ReminderDto reminder in due)
         {
             try
             {
-                await ProcessReminderAsync(remindersService, eventsService, messageClient, reminder, now, shutdownToken);
+                await ProcessReminderAsync(tenantContext, reminder, now, shutdownToken);
                 cancellationToken.ThrowIfCancellationRequested();
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
@@ -74,17 +68,17 @@ public class ReminderProcessor(
     }
 
     private async Task ProcessReminderAsync(
-        IRemindersService remindersService,
-        IEventsService eventsService,
-        IMessagesService messageClient,
+        TenantReminderContext tenantContext,
         ReminderDto reminder,
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
-        EventDto? evt = await eventsService.GetAsync(reminder.EventId, cancellationToken).GetValueOrDefaultAsync();
+        EventDto? evt = await tenantContext.EventsService
+            .GetAsync(reminder.EventId, cancellationToken)
+            .GetValueOrDefaultAsync();
         if (evt is null)
         {
-            await remindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
+            await tenantContext.RemindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
             return;
         }
 
@@ -115,7 +109,7 @@ public class ReminderProcessor(
         {
             case ReminderKind.Email:
 
-                await messageClient.SendEmail(new Message
+                await tenantContext.MessagesService.SendEmail(new Message
                 {
                     Recipient = reminder.Recipient,
                     Subject = reminder.Subject,
@@ -126,7 +120,7 @@ public class ReminderProcessor(
                 break;
             case ReminderKind.Sms:
 
-                SmsSendResult smsResult = await messageClient.SendSms(new Message
+                SmsSendResult smsResult = await tenantContext.MessagesService.SendSms(new Message
                 {
                     Recipient = reminder.Recipient,
                     Body = reminder.TextBody,
@@ -139,7 +133,7 @@ public class ReminderProcessor(
                         "SMS send returned no message ID for reminder '{ReminderId}' to '{Recipient}'. Marking as sent to avoid retries.",
                         reminder.Id,
                         MaskPhoneNumber(reminder.Recipient));
-                    await remindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
+                    await tenantContext.RemindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
                     return;
                 }
 
@@ -152,7 +146,7 @@ public class ReminderProcessor(
                 break;
         }
 
-        await remindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
+        await tenantContext.RemindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
     }
 
     private static string MaskPhoneNumber(string phoneNumber)
@@ -170,4 +164,9 @@ public class ReminderProcessor(
         string prefix = phoneNumber.StartsWith("+") ? "+" : string.Empty;
         return $"{prefix}*******{phoneNumber[^4..]}";
     }
+
+    private readonly record struct TenantReminderContext(
+        IRemindersService RemindersService,
+        IEventsService EventsService,
+        IMessagesService MessagesService);
 }
