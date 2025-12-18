@@ -1,4 +1,5 @@
 using Hangfire;
+using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Models;
 using Vitarish.Sea.Application.Abstractions;
@@ -13,11 +14,13 @@ namespace Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 /// </summary>
 public class ReminderProcessor(
     ILogger<ReminderProcessor> logger,
-    IRemindersService remindersService,
-    IEventsService eventsService,
-    IMessagesService messageClient,
+    TenantBackgroundExecutor tenantBackgroundExecutor,
     TimeProvider? timeProvider = null)
 {
+    private const string BackgroundResource = "hangfire:sea:reminders";
+
+    private readonly ILogger<ReminderProcessor> _logger = logger;
+    private readonly TenantBackgroundExecutor _tenantBackgroundExecutor = tenantBackgroundExecutor;
     private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
 
     /// <summary>
@@ -26,8 +29,32 @@ public class ReminderProcessor(
     public async Task ProcessDueReminders(IJobCancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        CancellationToken shutdownToken = cancellationToken.ShutdownToken;
 
+        await _tenantBackgroundExecutor.ExecutePerTenantAsync(
+            BackgroundResource,
+            cancellationToken,
+            async (provider, _, jobToken, shutdownToken) =>
+            {
+                IRemindersService tenantRemindersService = provider.GetRequiredService<IRemindersService>();
+                IEventsService tenantEventsService = provider.GetRequiredService<IEventsService>();
+                IMessagesService tenantMessageClient = provider.GetRequiredService<IMessagesService>();
+
+                await ProcessTenantRemindersAsync(
+                    tenantRemindersService,
+                    tenantEventsService,
+                    tenantMessageClient,
+                    jobToken,
+                    shutdownToken);
+            });
+    }
+
+    private async Task ProcessTenantRemindersAsync(
+        IRemindersService remindersService,
+        IEventsService eventsService,
+        IMessagesService messageClient,
+        IJobCancellationToken cancellationToken,
+        CancellationToken shutdownToken)
+    {
         DateTimeOffset now = _timeProvider.GetUtcNow();
 
         IReadOnlyList<ReminderDto> due = await remindersService.GetDueAsync(now, shutdownToken);
@@ -36,17 +63,23 @@ public class ReminderProcessor(
         {
             try
             {
-                await ProcessReminderAsync(reminder, now, shutdownToken);
+                await ProcessReminderAsync(remindersService, eventsService, messageClient, reminder, now, shutdownToken);
                 cancellationToken.ThrowIfCancellationRequested();
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {
-                logger.LogError(ex, "Failed to process reminder '{ReminderId}'.", reminder.Id);
+                _logger.LogError(ex, "Failed to process reminder '{ReminderId}'.", reminder.Id);
             }
         }
     }
 
-    private async Task ProcessReminderAsync(ReminderDto reminder, DateTimeOffset now, CancellationToken cancellationToken)
+    private async Task ProcessReminderAsync(
+        IRemindersService remindersService,
+        IEventsService eventsService,
+        IMessagesService messageClient,
+        ReminderDto reminder,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
     {
         EventDto? evt = await eventsService.GetAsync(reminder.EventId, cancellationToken).GetValueOrDefaultAsync();
         if (evt is null)
@@ -71,7 +104,7 @@ public class ReminderProcessor(
 
         if (shouldSkipQuietHours)
         {
-            logger.LogInformation(
+            _logger.LogInformation(
                 "Deferring reminder '{ReminderId}' to '{Recipient}' due to quiet hours (10pm-8am).",
                 reminder.Id,
                 reminder.Kind == ReminderKind.Sms ? MaskPhoneNumber(reminder.Recipient) : reminder.Recipient);
@@ -102,7 +135,7 @@ public class ReminderProcessor(
 
                 if (string.IsNullOrWhiteSpace(smsResult.MessageId))
                 {
-                    logger.LogError(
+                    _logger.LogError(
                         "SMS send returned no message ID for reminder '{ReminderId}' to '{Recipient}'. Marking as sent to avoid retries.",
                         reminder.Id,
                         MaskPhoneNumber(reminder.Recipient));
@@ -110,7 +143,7 @@ public class ReminderProcessor(
                     return;
                 }
 
-                logger.LogInformation(
+                _logger.LogInformation(
                     "Sent SMS reminder '{ReminderId}' to '{Recipient}' with message id '{MessageId}'.",
                     reminder.Id,
                     MaskPhoneNumber(reminder.Recipient),
