@@ -9,8 +9,5 @@ public class AddOrUpdateEntityHandler<TEntity, TDescriptor>(IEntityRepository<TE
     where TEntity : Entity
     where TDescriptor : EntityDescriptor
 {
-    public Task<TEntity?> Handle(AddOrUpdateEntityCommand<TEntity, TDescriptor> request, CancellationToken cancellationToken)
-    {
-        return repository.AddOrUpdateAsync(request.Entity, cancellationToken);
-    }
+    public Task<TEntity?> Handle(AddOrUpdateEntityCommand<TEntity, TDescriptor> request, CancellationToken cancellationToken) => repository.AddOrUpdateAsync(request.Entity, cancellationToken);
 }

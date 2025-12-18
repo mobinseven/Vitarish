@@ -17,7 +17,7 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
     {
         query = Apply(query, descriptor);
 
-        if(query is not IOrderedQueryable<TEntity>)
+        if (query is not IOrderedQueryable<TEntity>)
         {
             query = query.OrderByDescending(e => e.UpdatedAt ?? e.CreatedAt);
         }
@@ -25,25 +25,13 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
         return query.ApplyPagination(descriptor);
     }
 
-    protected virtual IQueryable<TEntity> Apply(IQueryable<TEntity> query, TDescriptor descriptor)
-    {
-        return query.ApplyDescription(descriptor);
-    }
+    protected virtual IQueryable<TEntity> Apply(IQueryable<TEntity> query, TDescriptor descriptor) => query.ApplyDescription(descriptor);
 
-    public Task<int> CountAsync(TDescriptor descriptor, CancellationToken cancellationToken)
-    {
-        return ApplyCore(Set.AsNoTracking(), descriptor).CountAsync(cancellationToken);
-    }
+    public Task<int> CountAsync(TDescriptor descriptor, CancellationToken cancellationToken) => ApplyCore(Set.AsNoTracking(), descriptor).CountAsync(cancellationToken);
 
-    public Task<TEntity?> GetAsync(Guid id, CancellationToken cancellationToken)
-    {
-        return Set.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
-    }
+    public Task<TEntity?> GetAsync(Guid id, CancellationToken cancellationToken) => Set.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
-    public async Task<IReadOnlyList<TEntity>> GetAsync(TDescriptor descriptor, CancellationToken cancellationToken)
-    {
-        return await ApplyCore(Set.AsNoTracking(), descriptor).ToListAsync(cancellationToken);
-    }
+    public async Task<IReadOnlyList<TEntity>> GetAsync(TDescriptor descriptor, CancellationToken cancellationToken) => await ApplyCore(Set.AsNoTracking(), descriptor).ToListAsync(cancellationToken);
 
     public async Task<TEntity?> AddAsync(TEntity entity, CancellationToken cancellationToken)
     {
@@ -81,11 +69,11 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
         int currentBatchSize = Math.Min(batchSize, remainingCount);
 
         // Optimize for common collection types to avoid multiple enumerations
-        if(entities is List<TEntity> list)
+        if (entities is List<TEntity> list)
         {
             return list.GetRange(startIndex, currentBatchSize);
         }
-        else if(entities is TEntity[] array)
+        else if (entities is TEntity[] array)
         {
             TEntity[] batchArray = new TEntity[currentBatchSize];
             Array.Copy(array, startIndex, batchArray, 0, currentBatchSize);
@@ -102,12 +90,12 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
         // Batch large operations to prevent parameter overflow and memory issues
         int batchSize = BatchSize;
 
-        if(entities.Count <= batchSize)
+        if (entities.Count <= batchSize)
         {
             await Set.AddRangeAsync(entities, cancellationToken);
             await SaveChangesWithHandlingAsync(cancellationToken);
 
-            foreach(TEntity entity in entities)
+            foreach (TEntity entity in entities)
             {
                 DbContext.Entry(entity).State = EntityState.Detached;
             }
@@ -117,14 +105,14 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
 
         // Process in batches - optimize for list/array types
         List<TEntity> results = new(entities.Count);
-        for(int i = 0; i < entities.Count; i += batchSize)
+        for (int i = 0; i < entities.Count; i += batchSize)
         {
             IReadOnlyList<TEntity> batch = GetBatch(entities, i, batchSize);
 
             await Set.AddRangeAsync(batch, cancellationToken);
             await SaveChangesWithHandlingAsync(cancellationToken);
 
-            foreach(TEntity entity in batch)
+            foreach (TEntity entity in batch)
             {
                 DbContext.Entry(entity).State = EntityState.Detached;
                 results.Add(entity);
@@ -145,7 +133,7 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
             DbContext.Entry(entity).State = EntityState.Detached;
             return entity;
         }
-        catch(DbUpdateConcurrencyException)
+        catch (DbUpdateConcurrencyException)
         {
             // Entity doesn't exist, detach and try insert
             DbContext.Entry(entity).State = EntityState.Detached;
@@ -157,7 +145,7 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
                 DbContext.Entry(entity).State = EntityState.Detached;
                 return entity;
             }
-            catch(DbUpdateException ex) when(IsDuplicateKeyException(ex))
+            catch (DbUpdateException ex) when (IsDuplicateKeyException(ex))
             {
                 // Race condition: another thread inserted between our attempts
                 // Fall back to update - wrap in try-catch to handle potential update failures
@@ -169,18 +157,18 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
                     DbContext.Entry(entity).State = EntityState.Detached;
                     return entity;
                 }
-                catch(DbUpdateConcurrencyException)
+                catch (DbUpdateConcurrencyException)
                 {
                     // If final update also fails with concurrency exception, let SaveChangesWithHandlingAsync handle it
                     throw;
                 }
-                catch(DbUpdateException)
+                catch (DbUpdateException)
                 {
                     // Other database exceptions should propagate for consistent error handling
                     throw;
                 }
             }
-            catch(DbUpdateException)
+            catch (DbUpdateException)
             {
                 // Non-duplicate-key DbUpdateException: propagate for consistent error handling
                 throw;
@@ -230,12 +218,12 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
         // Batch large operations to prevent parameter overflow and memory issues
         int batchSize = BatchSize;
 
-        if(entities.Count <= batchSize)
+        if (entities.Count <= batchSize)
         {
             Set.UpdateRange(entities);
             await SaveChangesWithHandlingAsync(cancellationToken);
 
-            foreach(TEntity entity in entities)
+            foreach (TEntity entity in entities)
             {
                 DbContext.Entry(entity).State = EntityState.Detached;
             }
@@ -243,14 +231,14 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
         }
 
         // Process in batches - optimize for list/array types
-        for(int i = 0; i < entities.Count; i += batchSize)
+        for (int i = 0; i < entities.Count; i += batchSize)
         {
             IReadOnlyList<TEntity> batch = GetBatch(entities, i, batchSize);
 
             Set.UpdateRange(batch);
             await SaveChangesWithHandlingAsync(cancellationToken);
 
-            foreach(TEntity entity in batch)
+            foreach (TEntity entity in batch)
             {
                 DbContext.Entry(entity).State = EntityState.Detached;
             }
@@ -262,7 +250,7 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
         // Batch large operations to prevent parameter overflow and memory issues
         int batchSize = BatchSize;
 
-        if(entities.Count <= batchSize)
+        if (entities.Count <= batchSize)
         {
             Set.RemoveRange(entities);
             await SaveChangesWithHandlingAsync(cancellationToken);
@@ -270,7 +258,7 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
         }
 
         // Process in batches - optimize for list/array types
-        for(int i = 0; i < entities.Count; i += batchSize)
+        for (int i = 0; i < entities.Count; i += batchSize)
         {
             IReadOnlyList<TEntity> batch = GetBatch(entities, i, batchSize);
             Set.RemoveRange(batch);
@@ -278,10 +266,7 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
         }
     }
 
-    protected virtual EntityError TranslateException(DbUpdateException exception)
-    {
-        return EntityError.Conflict("A persistence conflict occurred while saving the entity state.");
-    }
+    protected virtual EntityError TranslateException(DbUpdateException exception) => EntityError.Conflict("A persistence conflict occurred while saving the entity state.");
 
     private async Task SaveChangesWithHandlingAsync(CancellationToken cancellationToken)
     {
@@ -289,13 +274,13 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
         {
             _ = await DbContext.SaveChangesAsync(cancellationToken);
         }
-        catch(DbUpdateConcurrencyException ex)
+        catch (DbUpdateConcurrencyException ex)
         {
             throw new EntityFailureException(
                 EntityError.Concurrency("The entity was modified by another process."),
                 ex);
         }
-        catch(DbUpdateException ex)
+        catch (DbUpdateException ex)
         {
             throw new EntityFailureException(TranslateException(ex), ex);
         }

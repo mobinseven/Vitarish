@@ -1,12 +1,8 @@
-﻿namespace Vitarish.Entities.Client.SignalR;
 
 using Microsoft.AspNetCore.SignalR.Client;
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Vitarish.Entities.Client.Models;
 
+namespace Vitarish.Entities.Client.SignalR;
 // -----------------------------------------------------------------------------
 // Models
 // -----------------------------------------------------------------------------
@@ -49,7 +45,11 @@ public sealed class AmbientEntityInterceptionProvider : IEntityInterceptionProvi
 
     private sealed class Holder
     {
-        public Holder(EntityInterceptionConfig? value) => Value = value;
+        public Holder(EntityInterceptionConfig? value)
+        {
+            Value = value;
+        }
+
         public EntityInterceptionConfig? Value { get; }
     }
 
@@ -57,7 +57,11 @@ public sealed class AmbientEntityInterceptionProvider : IEntityInterceptionProvi
     {
         private readonly Action _action;
         private bool _done;
-        public Pop(Action action) => _action = action;
+        public Pop(Action action)
+        {
+            _action = action;
+        }
+
         public void Dispose()
         {
             if (_done)
@@ -115,7 +119,7 @@ public class EntityClient<TReadDto, TWriteDto, TDescriptorDto>(IEntityConnection
         await ApplyInterceptionIfNeededAsync(_interceptionProvider.Current, cancellationToken).ConfigureAwait(false);
     }
 
-    private void RegisterEvents(HubConnection connection) => connection.On<EntityNotification>(nameof(EntityNotification), notification => EntityNotification(notification));
+    private void RegisterEvents(HubConnection connection) => connection.On<EntityNotification>(nameof(EntityNotification), EntityNotification);
 
     private void UnregisterEvents(HubConnection connection) => connection.Remove(nameof(EntityNotification));
 

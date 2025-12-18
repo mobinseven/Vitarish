@@ -9,8 +9,5 @@ public class GetEntitiesHandler<TEntity, TDescriptor>(IEntityRepository<TEntity,
     where TEntity : Entity
     where TDescriptor : EntityDescriptor
 {
-    public Task<IReadOnlyList<TEntity>> Handle(GetEntitiesQuery<TEntity, TDescriptor> request, CancellationToken cancellationToken)
-    {
-        return repository.GetAsync(request.Descriptor, cancellationToken);
-    }
+    public Task<IReadOnlyList<TEntity>> Handle(GetEntitiesQuery<TEntity, TDescriptor> request, CancellationToken cancellationToken) => repository.GetAsync(request.Descriptor, cancellationToken);
 }

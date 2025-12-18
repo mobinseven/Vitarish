@@ -45,13 +45,10 @@ public static class ServiceCollectionExtensions
         string? name = null,
         HealthStatus? failureStatus = null,
         string[]? tags = null)
-        where TEntity : Entity, new()
-    {
-        return builder.AddCheck<EntityCacheHealthCheck<TEntity>>(
+        where TEntity : Entity, new() => builder.AddCheck<EntityCacheHealthCheck<TEntity>>(
             name ?? $"entity_cache_{typeof(TEntity).Name}",
             failureStatus,
             tags ?? Array.Empty<string>());
-    }
 
     /// <summary>
     /// Adds cached repository decorator for entity operations.

@@ -9,8 +9,5 @@ public class RemoveEntitiesByDescriptorHandler<TEntity, TDescriptor>(IEntityRepo
     where TEntity : Entity
     where TDescriptor : EntityDescriptor
 {
-    public async Task Handle(RemoveEntitiesByDescriptorCommand<TEntity, TDescriptor> request, CancellationToken cancellationToken)
-    {
-        await repository.RemoveAsync(request.Descriptor, cancellationToken);
-    }
+    public async Task Handle(RemoveEntitiesByDescriptorCommand<TEntity, TDescriptor> request, CancellationToken cancellationToken) => await repository.RemoveAsync(request.Descriptor, cancellationToken);
 }

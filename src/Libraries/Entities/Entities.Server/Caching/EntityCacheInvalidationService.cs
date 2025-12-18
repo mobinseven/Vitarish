@@ -4,9 +4,9 @@ public sealed class EntityCacheInvalidationService(IEnumerable<IEntityCacheInval
 {
     public void Invalidate(Entity entity, EntityState entityState)
     {
-        foreach(IEntityCacheInvalidator invalidator in cacheInvalidators)
+        foreach (IEntityCacheInvalidator invalidator in cacheInvalidators)
         {
-            if(invalidator.CanHandle(entity))
+            if (invalidator.CanHandle(entity))
             {
                 invalidator.Invalidate(entity, entityState);
             }

@@ -8,22 +8,13 @@ public readonly record struct EntityResult(bool IsSuccess, IReadOnlyList<EntityE
 {
     public bool IsFailure => !IsSuccess;
 
-    public static EntityResult Success()
-    {
-        return new(true, Array.Empty<EntityError>());
-    }
+    public static EntityResult Success() => new(true, Array.Empty<EntityError>());
 
-    public static EntityResult Failure(params EntityError[] errors)
-    {
-        return new(false, Normalize(errors));
-    }
+    public static EntityResult Failure(params EntityError[] errors) => new(false, Normalize(errors));
 
-    private static IReadOnlyList<EntityError> Normalize(EntityError[] errors)
-    {
-        return errors is null
+    private static IReadOnlyList<EntityError> Normalize(EntityError[] errors) => errors is null
             ? throw new ArgumentNullException(nameof(errors))
             : errors.Length == 0 ? Array.Empty<EntityError>() : new ReadOnlyCollection<EntityError>(errors.ToArray());
-    }
 }
 
 /// <summary>
@@ -33,20 +24,11 @@ public readonly record struct EntityResult<T>(bool IsSuccess, T? Value, IReadOnl
 {
     public bool IsFailure => !IsSuccess;
 
-    public static EntityResult<T> Success(T value)
-    {
-        return new(true, value, Array.Empty<EntityError>());
-    }
+    public static EntityResult<T> Success(T value) => new(true, value, Array.Empty<EntityError>());
 
-    public static EntityResult<T> Failure(params EntityError[] errors)
-    {
-        return new(false, default, Normalize(errors));
-    }
+    public static EntityResult<T> Failure(params EntityError[] errors) => new(false, default, Normalize(errors));
 
-    private static IReadOnlyList<EntityError> Normalize(EntityError[] errors)
-    {
-        return errors is null
+    private static IReadOnlyList<EntityError> Normalize(EntityError[] errors) => errors is null
             ? throw new ArgumentNullException(nameof(errors))
             : errors.Length == 0 ? Array.Empty<EntityError>() : new ReadOnlyCollection<EntityError>(errors.ToArray());
-    }
 }

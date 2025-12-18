@@ -41,16 +41,13 @@ public abstract class Entity : INotifyPropertyChanged
         set => SetField(ref field, value, nameof(DeletedBy));
     }
 
-    public void Restore()
-    {
-        DeletedAt = null;
-    }
+    public void Restore() => DeletedAt = null;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 
     protected bool SetField<T>(ref T field, T value, string propertyName)
     {
-        if(EqualityComparer<T>.Default.Equals(field, value))
+        if (EqualityComparer<T>.Default.Equals(field, value))
         {
             return false;
         }
@@ -60,18 +57,9 @@ public abstract class Entity : INotifyPropertyChanged
         return true;
     }
 
-    protected virtual void OnPropertyChanged(string propertyName)
-    {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-    }
+    protected virtual void OnPropertyChanged(string propertyName) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
-    public override bool Equals(object? obj)
-    {
-        return obj is Entity other && (ReferenceEquals(this, other) || Id.Equals(other.Id));
-    }
+    public override bool Equals(object? obj) => obj is Entity other && (ReferenceEquals(this, other) || Id.Equals(other.Id));
 
-    public override int GetHashCode()
-    {
-        return Id.GetHashCode();
-    }
+    public override int GetHashCode() => Id.GetHashCode();
 }

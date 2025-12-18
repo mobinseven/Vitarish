@@ -28,7 +28,7 @@ public class EntityCacheHealthCheck<TEntity>(IEntityCache<TEntity> cache) : IHea
                 ? HealthCheckResult.Healthy("Entity cache is operational")
                 : HealthCheckResult.Degraded("Entity cache read returned unexpected result");
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             return HealthCheckResult.Unhealthy(
                 "Entity cache is not responding",
@@ -41,7 +41,7 @@ public class EntityCacheHealthCheck<TEntity>(IEntityCache<TEntity> cache) : IHea
             {
                 cache.Remove(testEntity.Id);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 // Ignore cleanup failures - health check already has the result
                 Console.Error.WriteLine($"EntityCacheHealthCheck cleanup failed: {ex}");

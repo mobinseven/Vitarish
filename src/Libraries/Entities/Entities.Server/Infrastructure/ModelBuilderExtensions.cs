@@ -16,9 +16,9 @@ public static class ModelBuilderExtensions
             v => v.HasValue ? v.Value.UtcDateTime : null,
             v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : (DateTime?)null);
 
-        foreach(IMutableEntityType? entityType in modelBuilder.Model.GetEntityTypes().Where(IsEntityType))
+        foreach (IMutableEntityType? entityType in modelBuilder.Model.GetEntityTypes().Where(IsEntityType))
         {
-            foreach(IMutableProperty property in entityType.GetProperties())
+            foreach (IMutableProperty property in entityType.GetProperties())
             {
                 ConfigureProperty(property, dtoToUtc, dtoNullableToUtc);
             }
@@ -29,7 +29,7 @@ public static class ModelBuilderExtensions
 
     public static ModelBuilder ConfigureEntitySoftDeleteFilters(this ModelBuilder modelBuilder)
     {
-        foreach(IMutableEntityType? entityType in modelBuilder.Model.GetEntityTypes().Where(IsEntityType))
+        foreach (IMutableEntityType? entityType in modelBuilder.Model.GetEntityTypes().Where(IsEntityType))
         {
             ParameterExpression parameter = Expression.Parameter(entityType.ClrType, "entity");
             MemberExpression deletedAtProperty = Expression.Property(parameter, nameof(Entity.DeletedAt));
@@ -39,7 +39,7 @@ public static class ModelBuilderExtensions
 
             Expression body = notDeletedExpression;
 
-            if(entityType.GetQueryFilter() is { } existingFilter)
+            if (entityType.GetQueryFilter() is { } existingFilter)
             {
                 Expression existingBody = ParameterReplaceVisitor.Replace(
                     existingFilter.Body,
@@ -55,26 +55,23 @@ public static class ModelBuilderExtensions
         return modelBuilder;
     }
 
-    private static bool IsEntityType(IMutableEntityType entityType)
-    {
-        return typeof(Entity).IsAssignableFrom(entityType.ClrType);
-    }
+    private static bool IsEntityType(IMutableEntityType entityType) => typeof(Entity).IsAssignableFrom(entityType.ClrType);
 
     private static void ConfigureProperty(
         IMutableProperty property,
         ValueConverter<DateTimeOffset, DateTime> dtoToUtc,
         ValueConverter<DateTimeOffset?, DateTime?> dtoNullableToUtc)
     {
-        if(property.GetValueConverter() is not null)
+        if (property.GetValueConverter() is not null)
         {
             return;
         }
 
-        if(property.ClrType == typeof(DateTimeOffset))
+        if (property.ClrType == typeof(DateTimeOffset))
         {
             property.SetValueConverter(dtoToUtc);
         }
-        else if(property.ClrType == typeof(DateTimeOffset?))
+        else if (property.ClrType == typeof(DateTimeOffset?))
         {
             property.SetValueConverter(dtoNullableToUtc);
         }
@@ -91,14 +88,8 @@ public static class ModelBuilderExtensions
             _target = target;
         }
 
-        public static Expression Replace(Expression expression, ParameterExpression source, ParameterExpression target)
-        {
-            return new ParameterReplaceVisitor(source, target).Visit(expression)!;
-        }
+        public static Expression Replace(Expression expression, ParameterExpression source, ParameterExpression target) => new ParameterReplaceVisitor(source, target).Visit(expression)!;
 
-        protected override Expression VisitParameter(ParameterExpression node)
-        {
-            return node == _source ? _target : base.VisitParameter(node);
-        }
+        protected override Expression VisitParameter(ParameterExpression node) => node == _source ? _target : base.VisitParameter(node);
     }
 }

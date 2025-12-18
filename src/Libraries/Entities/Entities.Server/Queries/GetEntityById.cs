@@ -9,8 +9,5 @@ public class GetEntityByIdHandler<TEntity, TDescriptor>(IEntityRepository<TEntit
     where TEntity : Entity
     where TDescriptor : EntityDescriptor
 {
-    public Task<TEntity?> Handle(GetEntityByIdQuery<TEntity, TDescriptor> request, CancellationToken cancellationToken)
-    {
-        return repository.GetAsync(request.Id, cancellationToken);
-    }
+    public Task<TEntity?> Handle(GetEntityByIdQuery<TEntity, TDescriptor> request, CancellationToken cancellationToken) => repository.GetAsync(request.Id, cancellationToken);
 }

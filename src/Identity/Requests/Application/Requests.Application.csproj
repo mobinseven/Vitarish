@@ -1,6 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <PackageReference Include="MediatR" Version="12.5.0" />
+    <PackageReference Include="MediatR" Version="14.0.*" />
     <PackageReference Include="FluentValidation" Version="11.*" />
   </ItemGroup>
   <ItemGroup>

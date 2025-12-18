@@ -38,7 +38,7 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        if(!_validators.Any())
+        if (!_validators.Any())
         {
             return await next();
         }
@@ -46,7 +46,7 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
         ValidationContext<TRequest> context = new(request);
 
         ValidationResult[] validationResults;
-        if(_parallelExecution)
+        if (_parallelExecution)
         {
             try
             {
@@ -56,7 +56,7 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
                 validationResults = await Task.WhenAll(
                     _validators.Select(v => v.ValidateAsync(context, cancellationToken)));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 throw new EntityFailureException(
                     EntityError.Validation(
@@ -69,7 +69,7 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
         else
         {
             List<ValidationResult> results = [];
-            foreach(IValidator<TRequest> v in _validators)
+            foreach (IValidator<TRequest> v in _validators)
             {
                 results.Add(await v.ValidateAsync(context, cancellationToken));
             }

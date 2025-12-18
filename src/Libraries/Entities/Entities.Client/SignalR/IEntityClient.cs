@@ -1,11 +1,6 @@
-﻿namespace Vitarish.Entities.Client.SignalR;
-
-using System;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using Vitarish.Entities.Client.Models;
 
+namespace Vitarish.Entities.Client.SignalR;
 /// <summary>
 /// Client surface for working with entities over SignalR.
 /// Interception is ambient (via an <c>IEntityInterceptionProvider</c>) and is

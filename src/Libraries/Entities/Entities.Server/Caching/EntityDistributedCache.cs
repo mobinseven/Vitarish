@@ -14,10 +14,7 @@ public class EntityDistributedCache<TEntity>(
         AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
     };
 
-    private static string GetCacheKey(Guid id)
-    {
-        return $"{typeof(TEntity).Name}:{id}";
-    }
+    private static string GetCacheKey(Guid id) => $"{typeof(TEntity).Name}:{id}";
 
     public TEntity? Get(Guid id)
     {
@@ -30,13 +27,13 @@ public class EntityDistributedCache<TEntity>(
         string key = GetCacheKey(id);
         string? json = await cache.GetStringAsync(key);
 
-        if(json is not null)
+        if (json is not null)
         {
             return JsonSerializer.Deserialize<TEntity>(json);
         }
 
         TEntity? entity = await factory();
-        if(entity is not null)
+        if (entity is not null)
         {
             await cache.SetStringAsync(
                 key,
@@ -47,16 +44,10 @@ public class EntityDistributedCache<TEntity>(
         return entity;
     }
 
-    public void Set(TEntity entity)
-    {
-        cache.SetString(
+    public void Set(TEntity entity) => cache.SetString(
             GetCacheKey(entity.Id),
             JsonSerializer.Serialize(entity),
             _options);
-    }
 
-    public void Remove(Guid id)
-    {
-        cache.Remove(GetCacheKey(id));
-    }
+    public void Remove(Guid id) => cache.Remove(GetCacheKey(id));
 }

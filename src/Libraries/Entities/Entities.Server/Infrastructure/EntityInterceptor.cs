@@ -11,12 +11,12 @@ public sealed class EntityInterceptor(
         IPublisher publisher) : SaveChangesInterceptor
 {
 
-    private readonly ConcurrentDictionary<DbContext, List<EntityNotificationCore>> _notifications = new(10,100); // TODO: adjust these numbers with realistic scenarios. This interceptor is used per scope so it won't grow too much.
+    private readonly ConcurrentDictionary<DbContext, List<EntityNotificationCore>> _notifications = new(10, 100); // TODO: adjust these numbers with realistic scenarios. This interceptor is used per scope so it won't grow too much.
 
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
     {
-        if(eventData.Context is DbContext context)
+        if (eventData.Context is DbContext context)
         {
             DateTimeOffset now = timeService.Now;
             UpdateEntities(context, now, userService);
@@ -32,7 +32,7 @@ public sealed class EntityInterceptor(
         InterceptionResult<int> result,
         CancellationToken cancellationToken = default)
     {
-        if(eventData.Context is DbContext context)
+        if (eventData.Context is DbContext context)
         {
             DateTimeOffset now = timeService.Now;
             UpdateEntities(context, now, userService);
@@ -55,7 +55,7 @@ public sealed class EntityInterceptor(
             {
                 await PublishNotificationsAsync(eventData.Context, publisher, CancellationToken.None);
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 // Log but don't throw - notifications should not fail the save operation
                 System.Diagnostics.Debug.WriteLine($"Failed to publish notifications: {ex.Message}");
@@ -76,7 +76,7 @@ public sealed class EntityInterceptor(
 
     public override void SaveChangesFailed(DbContextErrorEventData eventData)
     {
-        if(eventData.Context is not null)
+        if (eventData.Context is not null)
         {
             _ = _notifications.TryRemove(eventData.Context, out _);
         }
@@ -88,7 +88,7 @@ public sealed class EntityInterceptor(
         DbContextErrorEventData eventData,
         CancellationToken cancellationToken = default)
     {
-        if(eventData.Context is not null)
+        if (eventData.Context is not null)
         {
             _ = _notifications.TryRemove(eventData.Context, out _);
         }
@@ -102,9 +102,9 @@ public sealed class EntityInterceptor(
 
         string? userId = userService.UserId;
 
-        foreach(EntityEntry<Entity> entry in context.ChangeTracker.Entries<Entity>())
+        foreach (EntityEntry<Entity> entry in context.ChangeTracker.Entries<Entity>())
         {
-            switch(entry.State)
+            switch (entry.State)
             {
                 case EntityState.Added:
                     entry.Entity.CreatedAt = now;
@@ -125,7 +125,7 @@ public sealed class EntityInterceptor(
 
     private static void InvalidateCache(DbContext context, IEntityCacheInvalidationService cacheInvalidatorService)
     {
-        foreach(EntityEntry<Entity> entry in context.ChangeTracker.Entries<Entity>())
+        foreach (EntityEntry<Entity> entry in context.ChangeTracker.Entries<Entity>())
         {
             cacheInvalidatorService.Invalidate(entry.Entity, entry.State);
         }
@@ -135,7 +135,7 @@ public sealed class EntityInterceptor(
     {
         List<EntityNotificationCore> list = [];
 
-        foreach(EntityEntry<Entity> entry in context.ChangeTracker.Entries<Entity>())
+        foreach (EntityEntry<Entity> entry in context.ChangeTracker.Entries<Entity>())
         {
             EntityOperation? operation = entry.State switch
             {
@@ -146,7 +146,7 @@ public sealed class EntityInterceptor(
                 _ => null
             };
 
-            if(operation is null)
+            if (operation is null)
             {
                 continue;
             }
@@ -154,18 +154,18 @@ public sealed class EntityInterceptor(
             Dictionary<string, object?> snapshot = entry.Properties.ToDictionary(p => p.Metadata.Name, p => p.CurrentValue);
 
             IReadOnlyDictionary<string, (object? Old, object? New)>? changes = null;
-            if(entry.State == EntityState.Modified)
+            if (entry.State == EntityState.Modified)
             {
                 Dictionary<string, (object? Old, object? New)> c = [];
-                foreach(PropertyEntry prop in entry.Properties)
+                foreach (PropertyEntry prop in entry.Properties)
                 {
-                    if(prop.IsModified)
+                    if (prop.IsModified)
                     {
                         c[prop.Metadata.Name] = (prop.OriginalValue, prop.CurrentValue);
                     }
                 }
 
-                if(c.Count > 0)
+                if (c.Count > 0)
                 {
                     changes = c;
                 }
@@ -182,7 +182,7 @@ public sealed class EntityInterceptor(
             list.Add(new EntityNotificationCore(args));
         }
 
-        if(list.Count > 0)
+        if (list.Count > 0)
         {
             _notifications[context] = list;
         }
@@ -190,14 +190,14 @@ public sealed class EntityInterceptor(
 
     private async Task PublishNotificationsAsync(DbContext? context, IPublisher publisher, CancellationToken cancellationToken)
     {
-        if(context is null)
+        if (context is null)
         {
             return;
         }
 
-        if(_notifications.TryRemove(context, out List<EntityNotificationCore>? list))
+        if (_notifications.TryRemove(context, out List<EntityNotificationCore>? list))
         {
-            foreach(EntityNotificationCore notification in list)
+            foreach (EntityNotificationCore notification in list)
             {
                 await publisher.Publish(notification, cancellationToken);
             }

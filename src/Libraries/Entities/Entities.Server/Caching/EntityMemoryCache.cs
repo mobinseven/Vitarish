@@ -15,33 +15,24 @@ public class EntityMemoryCache<TEntity> : IEntityCache<TEntity>
         };
     }
 
-    public TEntity? Get(Guid id)
-    {
-        return _cache.TryGetValue(id, out TEntity? value) ? value : default;
-    }
+    public TEntity? Get(Guid id) => _cache.TryGetValue(id, out TEntity? value) ? value : default;
 
     public async Task<TEntity?> GetOrAddAsync(Guid id, Func<Task<TEntity?>> factory)
     {
-        if(_cache.TryGetValue(id, out TEntity? value))
+        if (_cache.TryGetValue(id, out TEntity? value))
         {
             return value;
         }
 
         TEntity? entity = await factory();
-        if(entity is not null)
+        if (entity is not null)
         {
             Set(entity);
         }
         return entity;
     }
 
-    public void Set(TEntity entity)
-    {
-        _ = _cache.Set(entity.Id, entity, _options);
-    }
+    public void Set(TEntity entity) => _ = _cache.Set(entity.Id, entity, _options);
 
-    public void Remove(Guid id)
-    {
-        _cache.Remove(id);
-    }
+    public void Remove(Guid id) => _cache.Remove(id);
 }

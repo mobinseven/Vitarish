@@ -39,7 +39,7 @@ public class EntityHubConnectionTracker : IEntityHubConnectionTracker
     {
         _connections[connectionId] = new ConnectionInfo(connectionId, userId);
 
-        if(!string.IsNullOrEmpty(userId))
+        if (!string.IsNullOrEmpty(userId))
         {
             _ = _userConnections.AddOrUpdate(
                 userId,
@@ -54,14 +54,14 @@ public class EntityHubConnectionTracker : IEntityHubConnectionTracker
 
     public void RemoveConnection(string connectionId)
     {
-        if(_connections.TryRemove(connectionId, out ConnectionInfo? info))
+        if (_connections.TryRemove(connectionId, out ConnectionInfo? info))
         {
             // Remove from user tracking
-            if(!string.IsNullOrEmpty(info.UserId) &&
+            if (!string.IsNullOrEmpty(info.UserId) &&
                 _userConnections.TryGetValue(info.UserId, out ConcurrentDictionary<string, byte>? userConnections))
             {
                 _ = userConnections.TryRemove(connectionId, out _);
-                if(userConnections.IsEmpty)
+                if (userConnections.IsEmpty)
                 {
                     _ = _userConnections.TryRemove(info.UserId, out _);
                 }
@@ -69,15 +69,15 @@ public class EntityHubConnectionTracker : IEntityHubConnectionTracker
 
             // Remove from all groups - lock covers entire operation to prevent race conditions
             // between creating snapshot and removing from _groupConnections
-            lock(_groupLock)
+            lock (_groupLock)
             {
                 List<string> groupsToRemove = info.Groups.Keys.ToList();
-                foreach(string group in groupsToRemove)
+                foreach (string group in groupsToRemove)
                 {
-                    if(_groupConnections.TryGetValue(group, out ConcurrentDictionary<string, byte>? groupConnections))
+                    if (_groupConnections.TryGetValue(group, out ConcurrentDictionary<string, byte>? groupConnections))
                     {
                         _ = groupConnections.TryRemove(connectionId, out _);
-                        if(groupConnections.IsEmpty)
+                        if (groupConnections.IsEmpty)
                         {
                             _ = _groupConnections.TryRemove(group, out _);
                         }
@@ -89,11 +89,11 @@ public class EntityHubConnectionTracker : IEntityHubConnectionTracker
 
     public void AddToGroup(string connectionId, string groupName)
     {
-        if(_connections.TryGetValue(connectionId, out ConnectionInfo? info))
+        if (_connections.TryGetValue(connectionId, out ConnectionInfo? info))
         {
             // Lock covers both info.Groups and _groupConnections modifications to prevent race conditions
             // with RemoveConnection which also needs consistent state between these two data structures
-            lock(_groupLock)
+            lock (_groupLock)
             {
                 _ = info.Groups.TryAdd(groupName, 0);
 
@@ -111,18 +111,18 @@ public class EntityHubConnectionTracker : IEntityHubConnectionTracker
 
     public void RemoveFromGroup(string connectionId, string groupName)
     {
-        if(_connections.TryGetValue(connectionId, out ConnectionInfo? info))
+        if (_connections.TryGetValue(connectionId, out ConnectionInfo? info))
         {
             // Lock covers both info.Groups and _groupConnections modifications to prevent race conditions
             // with AddToGroup which also needs consistent state between these two data structures
-            lock(_groupLock)
+            lock (_groupLock)
             {
                 _ = info.Groups.TryRemove(groupName, out _);
 
-                if(_groupConnections.TryGetValue(groupName, out ConcurrentDictionary<string, byte>? groupConnections))
+                if (_groupConnections.TryGetValue(groupName, out ConcurrentDictionary<string, byte>? groupConnections))
                 {
                     _ = groupConnections.TryRemove(connectionId, out _);
-                    if(groupConnections.IsEmpty)
+                    if (groupConnections.IsEmpty)
                     {
                         _ = _groupConnections.TryRemove(groupName, out _);
                     }
@@ -131,27 +131,15 @@ public class EntityHubConnectionTracker : IEntityHubConnectionTracker
         }
     }
 
-    public IReadOnlyCollection<string> GetConnections()
-    {
-        return _connections.Keys.ToList();
-    }
+    public IReadOnlyCollection<string> GetConnections() => _connections.Keys.ToList();
 
-    public IReadOnlyCollection<string> GetConnectionsByUser(string userId)
-    {
-        return _userConnections.TryGetValue(userId, out ConcurrentDictionary<string, byte>? connections)
+    public IReadOnlyCollection<string> GetConnectionsByUser(string userId) => _userConnections.TryGetValue(userId, out ConcurrentDictionary<string, byte>? connections)
                 ? connections.Keys.ToList()
                 : Array.Empty<string>();
-    }
 
-    public IReadOnlyCollection<string> GetConnectionsByGroup(string groupName)
-    {
-        return _groupConnections.TryGetValue(groupName, out ConcurrentDictionary<string, byte>? connections)
+    public IReadOnlyCollection<string> GetConnectionsByGroup(string groupName) => _groupConnections.TryGetValue(groupName, out ConcurrentDictionary<string, byte>? connections)
                 ? connections.Keys.ToList()
                 : Array.Empty<string>();
-    }
 
-    public int GetConnectionCount()
-    {
-        return _connections.Count;
-    }
+    public int GetConnectionCount() => _connections.Count;
 }

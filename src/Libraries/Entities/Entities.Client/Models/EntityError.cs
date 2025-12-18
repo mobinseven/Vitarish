@@ -1,7 +1,4 @@
 namespace Vitarish.Entities.Client.Models;
-
-using System.Collections.Generic;
-
 /// <summary>
 /// Describes a structured error returned from an entity operation.
 /// </summary>

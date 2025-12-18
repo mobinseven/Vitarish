@@ -7,8 +7,5 @@ public static class EntityNotificationHandlerExtension
     public static void AddEntityNotificationHandler<TReadDto, TWriteDto, TDescriptorDto>(this IServiceCollection services)
       where TReadDto : EntityReadDto
       where TWriteDto : EntityWriteDto
-      where TDescriptorDto : EntityDescriptorDto
-    {
-        _ = services.AddScoped<INotificationHandler<EntityNotificationCore>, EntityServer<TReadDto, TWriteDto, TDescriptorDto, IEntityService<TReadDto, TWriteDto, TDescriptorDto>>.EntityNotificationHandler>();
-    }
+      where TDescriptorDto : EntityDescriptorDto => _ = services.AddScoped<INotificationHandler<EntityNotificationCore>, EntityServer<TReadDto, TWriteDto, TDescriptorDto, IEntityService<TReadDto, TWriteDto, TDescriptorDto>>.EntityNotificationHandler>();
 }

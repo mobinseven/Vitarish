@@ -12,7 +12,7 @@ public class RemoveEntityByIdHandler<TEntity, TDescriptor>(IEntityRepository<TEn
     public async Task Handle(RemoveEntityByIdCommand<TEntity, TDescriptor> request, CancellationToken cancellationToken)
     {
         TEntity? entity = await repository.GetAsync(request.Id, cancellationToken);
-        if(entity == null)
+        if (entity == null)
         {
             return;
         }

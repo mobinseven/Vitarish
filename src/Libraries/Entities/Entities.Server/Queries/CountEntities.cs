@@ -9,8 +9,5 @@ public class CountEntitiesHandler<TEntity, TDescriptor>(IEntityRepository<TEntit
     where TEntity : Entity
     where TDescriptor : EntityDescriptor
 {
-    public Task<int> Handle(CountEntitiesQuery<TEntity, TDescriptor> request, CancellationToken cancellationToken)
-    {
-        return repository.CountAsync(request.Descriptor, cancellationToken);
-    }
+    public Task<int> Handle(CountEntitiesQuery<TEntity, TDescriptor> request, CancellationToken cancellationToken) => repository.CountAsync(request.Descriptor, cancellationToken);
 }

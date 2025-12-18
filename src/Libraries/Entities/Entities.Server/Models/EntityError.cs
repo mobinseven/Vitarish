@@ -8,28 +8,16 @@ public sealed record EntityError(
     string? Target = null,
     IReadOnlyDictionary<string, string[]>? Details = null)
 {
-    public static EntityError Unknown(string message)
-    {
-        return new(EntityErrorCode.Unknown, message);
-    }
+    public static EntityError Unknown(string message) => new(EntityErrorCode.Unknown, message);
 
-    public static EntityError NotFound(string message, string? target = null)
-    {
-        return new(EntityErrorCode.NotFound, message, target);
-    }
+    public static EntityError NotFound(string message, string? target = null) => new(EntityErrorCode.NotFound, message, target);
 
-    public static EntityError Conflict(string message, string? target = null)
-    {
-        return new(EntityErrorCode.Conflict, message, target);
-    }
+    public static EntityError Conflict(string message, string? target = null) => new(EntityErrorCode.Conflict, message, target);
 
     public static EntityError Validation(
         string message,
         string? target = null,
-        IReadOnlyDictionary<string, string[]>? details = null)
-    {
-        return new(EntityErrorCode.Validation, message, target, details);
-    }
+        IReadOnlyDictionary<string, string[]>? details = null) => new(EntityErrorCode.Validation, message, target, details);
 
     /// <summary>
     /// Creates a validation error from a dictionary with single error messages per property.
@@ -41,14 +29,8 @@ public sealed record EntityError(
     /// </remarks>
     public static EntityError Validation(
         string message,
-        IReadOnlyDictionary<string, string> singleDetails)
-    {
-        return new(EntityErrorCode.Validation, message, null,
+        IReadOnlyDictionary<string, string> singleDetails) => new(EntityErrorCode.Validation, message, null,
                 singleDetails.ToDictionary(kvp => kvp.Key, kvp => new[] { kvp.Value }));
-    }
 
-    public static EntityError Concurrency(string message, string? target = null)
-    {
-        return new(EntityErrorCode.Concurrency, message, target);
-    }
+    public static EntityError Concurrency(string message, string? target = null) => new(EntityErrorCode.Concurrency, message, target);
 }
