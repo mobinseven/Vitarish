@@ -69,7 +69,28 @@ public class FilesService : IFilesService
 
         using IDisposable tenantScope = _tenantAccessor.UseTenant(resolvedTenant.Id);
 
-        EntityResult<IReadOnlyList<FileInformationDto>> sameChecksumResult = await _fileInfoService.GetListAsync(new FileInformationDescriptorDto { Checksum = givenInformation.Checksum }, CancellationToken.None);
+        FileInformationWriteDto MapToWriteDto(FileInformationDto readDto, bool includeId = false)
+        {
+            FileInformationWriteDto writeDto = new()
+            {
+                AllowedOrigins = readDto.AllowedOrigins,
+                Checksum = readDto.Checksum,
+                Owner = readDto.Owner,
+                Url = readDto.Url,
+                Thumbnail = readDto.Thumbnail,
+                ContentType = readDto.ContentType,
+                Tag = readDto.Tag
+            };
+
+            if (includeId)
+            {
+                writeDto.Id = readDto.Id;
+            }
+
+            return writeDto;
+        }
+
+        EntityResult<IReadOnlyList<FileInformationDto>> sameChecksumResult = await _fileInfoService.GetListAsync(new FileInformationDescriptorDto { Checksum = givenInformation.Checksum }, cancellationToken);
         IReadOnlyList<FileInformationDto>? sameChecksum = sameChecksumResult.Value;
         FileInformationDto? existingForTenant = sameChecksum?.FirstOrDefault(info => string.Equals(info.Owner, resolvedTenant.Id, StringComparison.Ordinal));
         if (existingForTenant is not null)
@@ -105,17 +126,8 @@ public class FilesService : IFilesService
                 Tag = givenInformation.Tag
             };
 
-            FileInformationWriteDto clonedWriteDto = new()
-            {
-                AllowedOrigins = cloned.AllowedOrigins,
-                Checksum = cloned.Checksum,
-                Owner = cloned.Owner,
-                Url = cloned.Url,
-                Thumbnail = cloned.Thumbnail,
-                ContentType = cloned.ContentType,
-                Tag = cloned.Tag
-            };
-            _ = await _fileInfoService.AddAsync(clonedWriteDto, CancellationToken.None).ConfigureAwait(false);
+            FileInformationWriteDto clonedWriteDto = MapToWriteDto(cloned);
+            _ = await _fileInfoService.AddAsync(clonedWriteDto, cancellationToken).ConfigureAwait(false);
             return cloned;
         }
 
@@ -194,18 +206,8 @@ public class FilesService : IFilesService
                 await _storage.UploadAsync(objectKey, contentType, uploadStream, fileSize, cancellationToken).ConfigureAwait(false);
             }
 
-            FileInformationWriteDto infoWriteDto = new()
-            {
-                Id = info.Id,
-                AllowedOrigins = info.AllowedOrigins,
-                Checksum = info.Checksum,
-                Owner = info.Owner,
-                Url = info.Url,
-                Thumbnail = info.Thumbnail,
-                ContentType = info.ContentType,
-                Tag = info.Tag
-            };
-            _ = await _fileInfoService.AddAsync(infoWriteDto, CancellationToken.None).ConfigureAwait(false);
+            FileInformationWriteDto infoWriteDto = MapToWriteDto(info, includeId: true);
+            _ = await _fileInfoService.AddAsync(infoWriteDto, cancellationToken).ConfigureAwait(false);
 
             _logger.LogInformation("SaveFile finished. FileId={Id}, Size={Size} bytes, Url={Url}", info.Id, fileSize, info.Url);
             SafeDelete(tempServerPath);
