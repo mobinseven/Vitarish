@@ -2,14 +2,14 @@ using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
 using Vitarish.Clients.Modules.Sea.Dto;
-using Vorn.Entities.Client.SignalR;
+using Vitarish.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Services
 {
     internal sealed class RolesClient(
         IIdentityClientSignalRFactory connectionFactory,
         IEntityInterceptionProvider entityInterceptionProvider)
-        : SeaEntityClient<RoleDto, RoleDescriptorDto, RolesClientDefinition>(connectionFactory, entityInterceptionProvider),
+        : SeaEntityClient<RoleDto, RoleDto, RoleDescriptorDto, RolesClientDefinition>(connectionFactory, entityInterceptionProvider),
             IRolesClient
     {
         public async Task<Guid> CreateRoleAsync(string name, CancellationToken cancellationToken = default) =>

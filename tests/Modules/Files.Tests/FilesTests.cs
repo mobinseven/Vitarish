@@ -14,7 +14,7 @@ using System.Threading.Channels;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Infrastructure.Interfaces;
 using Vitarish.Files.Infrastructure.Services;
-using Vorn.Entities.Models;
+using Vitarish.Entities.Server.Models;
 
 namespace Vitarish.Files.Tests;
 
@@ -133,15 +133,26 @@ public sealed class FilesHostTests
             byName[fileName] = info;
         }
 
-        public Task<EntityResult<FileInformationDto>> AddAsync(FileInformationDto dto, CancellationToken cancellationToken)
+        public Task<EntityResult<FileInformationDto>> AddAsync(FileInformationWriteDto dto, CancellationToken cancellationToken)
         {
-            store.Add(dto);
-            if (TryResolveName(dto) is { } name)
+            FileInformationDto readDto = new()
             {
-                byName[name] = dto;
+                Id = dto.Id,
+                AllowedOrigins = dto.AllowedOrigins,
+                ContentType = dto.ContentType,
+                Thumbnail = dto.Thumbnail,
+                Checksum = dto.Checksum,
+                Url = dto.Url,
+                Owner = dto.Owner,
+                Tag = dto.Tag
+            };
+            store.Add(readDto);
+            if (TryResolveName(readDto) is { } name)
+            {
+                byName[name] = readDto;
             }
 
-            return Task.FromResult(EntityResult<FileInformationDto>.Success(dto));
+            return Task.FromResult(EntityResult<FileInformationDto>.Success(readDto));
         }
 
         public Task<EntityResult<IReadOnlyList<FileInformationDto>>> GetListAsync(FileInformationDescriptorDto descriptor, CancellationToken cancellationToken)
@@ -162,22 +173,22 @@ public sealed class FilesHostTests
             return Task.FromResult(EntityResult<IReadOnlyList<FileInformationDto>>.Success(result));
         }
 
-        public Task<EntityResult<IReadOnlyList<FileInformationDto>>> AddAsync(IReadOnlyList<FileInformationDto> dtos, CancellationToken cancellationToken) =>
+        public Task<EntityResult<IReadOnlyList<FileInformationDto>>> AddAsync(IReadOnlyList<FileInformationWriteDto> dtos, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task<EntityResult<FileInformationDto>> UpdateAsync(FileInformationDto dto, CancellationToken cancellationToken) =>
+        public Task<EntityResult<FileInformationDto>> UpdateAsync(FileInformationWriteDto dto, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task<EntityResult<IReadOnlyList<FileInformationDto>>> UpdateAsync(IReadOnlyList<FileInformationDto> dtos, CancellationToken cancellationToken) =>
+        public Task<EntityResult<IReadOnlyList<FileInformationDto>>> UpdateAsync(IReadOnlyList<FileInformationWriteDto> dtos, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task<EntityResult<FileInformationDto>> AddOrUpdateAsync(FileInformationDto dto, CancellationToken cancellationToken) =>
+        public Task<EntityResult<FileInformationDto>> AddOrUpdateAsync(FileInformationWriteDto dto, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task<EntityResult> RemoveAsync(FileInformationDto dto, CancellationToken cancellationToken) =>
+        public Task<EntityResult> RemoveAsync(FileInformationWriteDto dto, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
-        public Task<EntityResult> RemoveAsync(IReadOnlyList<FileInformationDto> dtos, CancellationToken cancellationToken) =>
+        public Task<EntityResult> RemoveAsync(IReadOnlyList<FileInformationWriteDto> dtos, CancellationToken cancellationToken) =>
             throw new NotSupportedException();
 
         public Task<EntityResult> RemoveAsync(Guid id, CancellationToken cancellationToken) =>

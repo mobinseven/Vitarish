@@ -3,14 +3,14 @@ using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
 using Vitarish.Clients.Modules.Sea.Dto;
 using Vitarish.Clients.Modules.Sea.Enums;
-using Vorn.Entities.Client.SignalR;
+using Vitarish.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Services
 {
     internal sealed class RemindersClient(
         IIdentityClientSignalRFactory connectionFactory,
         IEntityInterceptionProvider entityInterceptionProvider)
-        : SeaEntityClient<ReminderDto, ReminderDescriptorDto, RemindersClientDefinition>(connectionFactory, entityInterceptionProvider),
+        : SeaEntityClient<ReminderDto, ReminderDto, ReminderDescriptorDto, RemindersClientDefinition>(connectionFactory, entityInterceptionProvider),
             IRemindersClient
     {
     public async Task<IReadOnlyList<ReminderDto>> AddRemindersAsync(Guid eventId, IReadOnlyList<ReminderRecipientDto> recipients, string subject, string textBody, DateTimeOffset remindAt, CancellationToken cancellationToken = default) =>

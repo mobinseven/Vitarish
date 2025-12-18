@@ -1,17 +1,19 @@
-using Vorn.Entities;
-using Vorn.Entities.Server.SignalR;
+using Vitarish.Entities.Server.Core;
+using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Entities.Server.Services;
+using Vitarish.Entities.Server.SignalR;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 using Vitarish.Sea.Domain.Enums;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class RemindersHub : EntityServer<ReminderDto, ReminderDescriptorDto, IRemindersService>
+public sealed class RemindersHub : EntityServer<ReminderDto, ReminderWriteDto, ReminderDescriptorDto, IRemindersService>
 {
     private readonly IRemindersService _service;
 
-    public RemindersHub(IRemindersService service, IEntityUserService entityUserService)
-        : base(service, entityUserService)
+    public RemindersHub(IServiceScopeFactory serviceScopeFactory, IRemindersService service, IEntityUserService? entityUserService = null)
+        : base(serviceScopeFactory, entityUserService)
     {
         _service = service;
     }

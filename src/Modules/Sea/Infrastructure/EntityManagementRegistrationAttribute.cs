@@ -1,2 +1,2 @@
-[assembly: Vorn.Entities.Generators.GenerateEntitiesRegistrationAttribute]
+[assembly: Vitarish.Entities.Generators.GenerateEntitiesRegistrationAttribute]
 

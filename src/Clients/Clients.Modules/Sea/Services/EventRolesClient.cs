@@ -2,14 +2,14 @@ using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
 using Vitarish.Clients.Modules.Sea.Dto;
-using Vorn.Entities.Client.SignalR;
+using Vitarish.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Services
 {
     internal sealed class EventRolesClient(
         IIdentityClientSignalRFactory connectionFactory,
         IEntityInterceptionProvider entityInterceptionProvider)
-        : SeaEntityClient<EventRoleDto, EventRoleDescriptorDto, EventRolesClientDefinition>(connectionFactory, entityInterceptionProvider),
+        : SeaEntityClient<EventRoleDto, EventRoleDto, EventRoleDescriptorDto, EventRolesClientDefinition>(connectionFactory, entityInterceptionProvider),
             IEventRolesClient
     {
         public async Task<(IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)> GetIdsAsync(Guid eventId, CancellationToken cancellationToken = default) =>

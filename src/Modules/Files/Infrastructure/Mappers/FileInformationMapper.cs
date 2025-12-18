@@ -16,6 +16,9 @@ public partial class FileInformationMapper
     [MapperIgnoreSource(nameof(FileInformationDto.Metadata))]
     public partial FileInformation ToDomain(FileInformationDto src);
 
+    [MapProperty(nameof(FileInformationWriteDto.Owner), nameof(FileInformation.TenantId))]
+    public partial FileInformation ToDomain(FileInformationWriteDto src);
+
     [MapperIgnoreSource(nameof(FileInformationDescriptorDto.AdditionalData))]
     public partial FileInformationDescriptor ToDomain(FileInformationDescriptorDto src);
 }

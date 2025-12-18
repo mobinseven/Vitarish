@@ -1,8 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
-    <PackageReference Include="Vorn.Entities.Server" Version="9.*" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\Domain\Files.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
 </Project>

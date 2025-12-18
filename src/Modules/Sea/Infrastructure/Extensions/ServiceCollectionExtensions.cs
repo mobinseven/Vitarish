@@ -9,7 +9,6 @@ public static class ServiceCollectionExtensions
         this IServiceCollection services, params Assembly[] assemblies)
     {
         _ = services.AddScoped<SessionContextInterceptor>();
-        services.AddVitarishSeaInfrastructureEntityHandlers();
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(assemblies));
         _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CommandFailureNotificationBehavior<,>));
         return services;

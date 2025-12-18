@@ -1,16 +1,18 @@
-using Vorn.Entities;
-using Vorn.Entities.Server.SignalR;
+using Vitarish.Entities.Server.Core;
+using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Entities.Server.Services;
+using Vitarish.Entities.Server.SignalR;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class ProceduresHub : EntityServer<ProcedureDto, ProcedureDescriptorDto, IProceduresService>
+public sealed class ProceduresHub : EntityServer<ProcedureDto, ProcedureWriteDto, ProcedureDescriptorDto, IProceduresService>
 {
     private readonly IProceduresService _service;
 
-    public ProceduresHub(IProceduresService service, IEntityUserService entityUserService)
-        : base(service, entityUserService)
+    public ProceduresHub(IServiceScopeFactory serviceScopeFactory, IProceduresService service, IEntityUserService? entityUserService = null)
+        : base(serviceScopeFactory, entityUserService)
     {
         _service = service;
     }

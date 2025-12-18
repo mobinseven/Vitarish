@@ -5,7 +5,7 @@ namespace Vitarish.Sea.Infrastructure.Mapping;
 internal partial class UserRolesMapper
 {
     public partial UserRoleDto ToDto(UserRole src);
-    public partial UserRole ToDomain(UserRoleDto src);
+    public partial UserRole ToDomain(UserRoleWriteDto src);
     public partial UserRoleDescriptor ToDomain(UserRoleDescriptorDto src);
 }
 

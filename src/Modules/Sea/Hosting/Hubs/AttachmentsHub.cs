@@ -1,16 +1,18 @@
-using Vorn.Entities;
-using Vorn.Entities.Server.SignalR;
+using Vitarish.Entities.Server.Core;
+using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Entities.Server.Services;
+using Vitarish.Entities.Server.SignalR;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class AttachmentsHub : EntityServer<AttachmentDto, AttachmentDescriptorDto, IAttachmentsService>
+public sealed class AttachmentsHub : EntityServer<AttachmentDto, AttachmentWriteDto, AttachmentDescriptorDto, IAttachmentsService>
 {
     private readonly IAttachmentsService _service;
 
-    public AttachmentsHub(IAttachmentsService service, IEntityUserService entityUserService)
-        : base(service, entityUserService)
+    public AttachmentsHub(IServiceScopeFactory serviceScopeFactory, IAttachmentsService service, IEntityUserService? entityUserService = null)
+        : base(serviceScopeFactory, entityUserService)
     {
         _service = service;
     }

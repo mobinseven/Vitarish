@@ -1,16 +1,18 @@
-using Vorn.Entities;
-using Vorn.Entities.Server.SignalR;
+using Vitarish.Entities.Server.Core;
+using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Entities.Server.Services;
+using Vitarish.Entities.Server.SignalR;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class UsageConfigurationHub : EntityServer<UsageConfigurationDto, UsageConfigurationDescriptorDto, IUsageConfigurationService>
+public sealed class UsageConfigurationHub : EntityServer<UsageConfigurationDto, UsageConfigurationWriteDto, UsageConfigurationDescriptorDto, IUsageConfigurationService>
 {
     private readonly IUsageConfigurationService _service;
 
-    public UsageConfigurationHub(IUsageConfigurationService service, IEntityUserService entityUserService)
-        : base(service, entityUserService)
+    public UsageConfigurationHub(IServiceScopeFactory serviceScopeFactory, IUsageConfigurationService service, IEntityUserService? entityUserService = null)
+        : base(serviceScopeFactory, entityUserService)
     {
         _service = service;
     }
@@ -18,6 +20,6 @@ public sealed class UsageConfigurationHub : EntityServer<UsageConfigurationDto, 
     public Task<UsageConfigurationDto?> GetUsageConfigurationAsync(CancellationToken cancellationToken) =>
         _service.GetUsageConfigurationAsync(cancellationToken);
 
-    public Task<UsageConfigurationDto?> UpdateUsageConfigurationAsync(UsageConfigurationDto usageConfigurationDto, CancellationToken cancellationToken) =>
+    public Task<UsageConfigurationDto?> UpdateUsageConfigurationAsync(UsageConfigurationWriteDto usageConfigurationDto, CancellationToken cancellationToken) =>
         _service.UpdateAsync(usageConfigurationDto, cancellationToken);
 }

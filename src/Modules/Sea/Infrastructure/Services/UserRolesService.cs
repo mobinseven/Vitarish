@@ -4,7 +4,7 @@ using Vitarish.Sea.Infrastructure.Extensions;
 namespace Vitarish.Sea.Infrastructure.Services;
 
 [RegisterScoped]
-internal class UserRolesService(IMediator mediator, UserRolesMapper mapper) : EntityService<UserRole, UserRoleDescriptor, UserRoleDto, UserRoleDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IUserRolesService
+internal class UserRolesService(IServiceScopeFactory serviceScopeFactory, UserRolesMapper mapper) : EntityService<UserRole, UserRoleDescriptor, UserRoleDto, UserRoleWriteDto, UserRoleDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IUserRolesService
 {
     public async Task AssignAsync(Guid userId, Guid roleId, RoleType type, CancellationToken cancellationToken)
     {

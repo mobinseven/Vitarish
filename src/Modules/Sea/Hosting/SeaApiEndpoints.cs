@@ -6,6 +6,7 @@ using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 using Vitarish.Sea.Domain.Entities;
 using Vitarish.Sea.Domain.Enums;
+using Vitarish.Sea.Infrastructure.Mapping;
 
 namespace Vitarish.Sea.Hosting;
 
@@ -426,9 +427,10 @@ internal static class SeaApiEndpoints
             return config is null ? Results.NotFound() : Results.Ok(config);
         });
 
-        _ = group.MapPut("/usage-configuration", async ([FromBody] UsageConfigurationDto dto, IUsageConfigurationService service, CancellationToken ct) =>
+        _ = group.MapPut("/usage-configuration", async ([FromBody] UsageConfigurationDto dto, IUsageConfigurationService service, UsageConfigurationMapper mapper, CancellationToken ct) =>
         {
-            UsageConfigurationDto? config = await service.UpdateAsync(dto, ct);
+            UsageConfigurationWriteDto writeDto = mapper.ToWriteDto(dto);
+            UsageConfigurationDto? config = await service.UpdateAsync(writeDto, ct);
             return config is null ? Results.BadRequest() : Results.Ok(config);
         });
     }

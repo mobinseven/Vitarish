@@ -1,5 +1,5 @@
 using Vitarish.Files.Application.Abstractions;
-using Vorn.Entities;
+using Vitarish.Entities.Server.Services;
 
 namespace Vitarish.Files.Tests;
 
@@ -17,7 +17,7 @@ public sealed class FileInformationServiceInterfaceTests
     {
         // Assert
         typeof(IFileInformationService)
-            .Should().Implement<IEntityService<FileInformationDto, FileInformationDescriptorDto>>();
+            .Should().Implement<IEntityService<FileInformationDto, FileInformationWriteDto, FileInformationDescriptorDto>>();
     }
 
     [Fact]

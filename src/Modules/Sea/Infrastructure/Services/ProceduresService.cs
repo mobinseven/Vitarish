@@ -11,11 +11,13 @@ using Vitarish.Sea.Infrastructure.Helpers;
 
 [RegisterScoped]
 internal class ProceduresService(
+    IServiceScopeFactory serviceScopeFactory,
     IMediator mediator,
     ProceduresMapper mapper,
     IEventsService eventsService)
-    : EntityService<Procedure, ProcedureDescriptor, ProcedureDto, ProcedureDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IProceduresService
+    : EntityService<Procedure, ProcedureDescriptor, ProcedureDto, ProcedureWriteDto, ProcedureDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IProceduresService
 {
+    private readonly IMediator _mediator = mediator;
     public async Task<Guid> AddAsync(Guid projectId, string name, CancellationToken cancellationToken)
     {
         Procedure entity = new(projectId, name);
@@ -43,7 +45,7 @@ internal class ProceduresService(
             return;
         }
 
-        await Mediator.Send(new UpdateEventsChainCommand(id, []), cancellationToken);
+        await _mediator.Send(new UpdateEventsChainCommand(id, []), cancellationToken);
         (await RemoveAsync(entity, cancellationToken)).EnsureSuccess("Remove procedure");
     }
 

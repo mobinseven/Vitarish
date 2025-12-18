@@ -3,7 +3,7 @@ using Vitarish.Sea.Domain.Enums;
 
 namespace Vitarish.Sea.Application.Abstractions;
 
-public interface IRemindersService : IEntityService<ReminderDto, ReminderDescriptorDto>
+public interface IRemindersService : IEntityService<ReminderDto, ReminderWriteDto, ReminderDescriptorDto>
 {
     Task<IReadOnlyList<ReminderDto>> AddRangeAsync(
         Guid eventId,

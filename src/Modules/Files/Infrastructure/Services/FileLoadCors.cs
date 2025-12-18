@@ -7,7 +7,7 @@ using Microsoft.Extensions.Primitives;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Extensions;
-using Vorn.Entities.Models;
+using Vitarish.Entities.Server.Models;
 
 namespace Vitarish.Files.Infrastructure.Services;
 

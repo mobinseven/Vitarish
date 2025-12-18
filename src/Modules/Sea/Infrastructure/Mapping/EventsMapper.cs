@@ -5,7 +5,7 @@ namespace Vitarish.Sea.Infrastructure.Mapping;
 internal partial class EventsMapper
 {
     public partial EventDto ToDto(Event src);
-    public partial Event ToDomain(EventDto src);
+    public partial Event ToDomain(EventWriteDto src);
     public partial EventDescriptor ToDomain(EventDescriptorDto src);
 }
 

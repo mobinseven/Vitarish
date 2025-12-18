@@ -1,13 +1,13 @@
 using System.Threading.Channels;
 using Vitarish.Clients.Modules.Files.Models;
-using Vorn.Entities.Client.SignalR;
+using Vitarish.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Files.Abstractions;
 
 /// <summary>
 /// Client abstraction for file related operations exposed by the files service.
 /// </summary>
-public interface IFilesModuleClient : IEntityClient<FileInformationDto, FileInformationDescriptorDto>
+public interface IFilesModuleClient : IEntityClient<FileInformationDto, FileInformationDto, FileInformationDescriptorDto>
 {
     /// <summary>
     /// Streams a file to the server using a channel of byte arrays and returns the resulting file information.

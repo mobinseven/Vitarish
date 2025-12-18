@@ -3,14 +3,14 @@ using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
 using Vitarish.Clients.Modules.Sea.Dto;
-using Vorn.Entities.Client.SignalR;
+using Vitarish.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Services
 {
     internal sealed class UsageConfigurationClient(
         IIdentityClientSignalRFactory connectionFactory,
         IEntityInterceptionProvider entityInterceptionProvider)
-        : SeaEntityClient<UsageConfigurationDto,UsageConfigurationDescriptorDto, UsageConfigurationClientDefinition>(connectionFactory, entityInterceptionProvider),
+        : SeaEntityClient<UsageConfigurationDto, UsageConfigurationDto, UsageConfigurationDescriptorDto, UsageConfigurationClientDefinition>(connectionFactory, entityInterceptionProvider),
             IUsageConfigurationClient
     {
         public async Task<UsageConfigurationDto?> GetUsageConfigurationAsync(CancellationToken cancellationToken = default) =>

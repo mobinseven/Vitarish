@@ -1,4 +1,4 @@
-using Vorn.Entities.Client.Models;
+using Vitarish.Entities.Client.Models;
 
 namespace Vitarish.Clients.Modules.Files.Models;
 

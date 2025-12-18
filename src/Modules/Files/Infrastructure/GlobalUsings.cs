@@ -1,6 +1,10 @@
 global using MediatR;
+global using Microsoft.Extensions.DependencyInjection;
 global using Riok.Mapperly.Abstractions;
 global using Vitarish.Files.Domain.Entities;
 global using Vitarish.Files.Domain.Models;
 global using Vitarish.Files.Infrastructure.Mappers;
-global using Vorn.Entities;
+global using Vitarish.Entities.Server.Core;
+global using Vitarish.Entities.Server.Services;
+global using Vitarish.Entities.Server.Infrastructure;
+global using Vitarish.Entities.Server.Repositories;

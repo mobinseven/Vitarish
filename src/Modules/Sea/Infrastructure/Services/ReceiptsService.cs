@@ -6,11 +6,11 @@ namespace Vitarish.Sea.Infrastructure.Services;
 
 [RegisterScoped]
 internal class ReceiptsService(
-    IMediator mediator,
+    IServiceScopeFactory serviceScopeFactory,
     ReceiptsMapper mapper,
     IAttachmentsService attachmentsService,
     IRemindersService remindersService)
-    : EntityService<Receipt, ReceiptDescriptor, ReceiptDto, ReceiptDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IReceiptsService
+    : EntityService<Receipt, ReceiptDescriptor, ReceiptDto, ReceiptWriteDto, ReceiptDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IReceiptsService
 {
     private async Task RemoveReceiptAsync(string createdBy, Guid objectId, CancellationToken cancellationToken)
     {

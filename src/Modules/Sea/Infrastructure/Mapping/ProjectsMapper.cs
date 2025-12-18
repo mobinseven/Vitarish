@@ -6,7 +6,7 @@ internal partial class ProjectsMapper
 {
     public partial ProjectDto ToDto(Project src);
 
-    public partial Project ToDomain(ProjectDto src);
+    public partial Project ToDomain(ProjectWriteDto src);
 
     public partial ProjectDescriptor ToDomain(ProjectDescriptorDto src);
 }
