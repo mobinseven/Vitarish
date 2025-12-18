@@ -132,6 +132,8 @@ _ = app.UseAuthorization();
 
 _ = app.UseAntiforgery();
 
+app.UseRequestsContext();
+
 _ = app.UseMultiTenant();
 
 // Map endpoints from discovered modules
