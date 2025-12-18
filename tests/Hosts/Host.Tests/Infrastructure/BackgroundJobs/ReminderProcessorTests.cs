@@ -21,6 +21,7 @@ namespace Main.Tests.Infrastructure.BackgroundJobs;
 public class ReminderProcessorTests : IDisposable
 {
     private readonly Mock<ILogger<ReminderProcessor>> mockLogger;
+    private readonly Mock<ILogger<TenantBackgroundExecutor>> mockExecutorLogger;
     private readonly Mock<IRemindersService> mockRemindersService;
     private readonly Mock<IEventsService> mockEventsService;
     private readonly Mock<IMessagesService> mockMessagesService;
@@ -34,6 +35,7 @@ public class ReminderProcessorTests : IDisposable
     public ReminderProcessorTests()
     {
         mockLogger = new Mock<ILogger<ReminderProcessor>>();
+        mockExecutorLogger = new Mock<ILogger<TenantBackgroundExecutor>>();
         mockRemindersService = new Mock<IRemindersService>();
         mockEventsService = new Mock<IEventsService>();
         mockMessagesService = new Mock<IMessagesService>();
@@ -71,6 +73,7 @@ public class ReminderProcessorTests : IDisposable
         services.AddScoped(_ => mockEventsService.Object);
         services.AddScoped(_ => mockMessagesService.Object);
         services.AddScoped(_ => mockPartiesService.Object);
+        services.AddSingleton(_ => mockExecutorLogger.Object);
         services.AddScoped<TenantBackgroundExecutor>();
 
         serviceProvider = services.BuildServiceProvider();

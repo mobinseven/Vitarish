@@ -1,5 +1,6 @@
 using Hangfire;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Requests.Application.Abstractions;
@@ -10,6 +11,7 @@ namespace Vitarish.Main.Infrastructure.BackgroundJobs;
 /// Executes background job work for each tenant, ensuring the request context is populated per tenant scope.
 /// </summary>
 public sealed class TenantBackgroundExecutor(
+    ILogger<TenantBackgroundExecutor> logger,
     IPartiesService partiesService,
     IServiceScopeFactory serviceScopeFactory)
 {
@@ -28,6 +30,7 @@ public sealed class TenantBackgroundExecutor(
         Func<IServiceProvider, Tenant, IJobCancellationToken, CancellationToken, Task> perTenantAsync,
         CancellationToken cancellationToken = default)
     {
+        ArgumentException.ThrowIfNullOrWhiteSpace(resourceId);
         ArgumentNullException.ThrowIfNull(jobCancellationToken);
         ArgumentNullException.ThrowIfNull(perTenantAsync);
 
@@ -39,16 +42,23 @@ public sealed class TenantBackgroundExecutor(
         {
             jobCancellationToken.ThrowIfCancellationRequested();
 
-            await using AsyncServiceScope scope = serviceScopeFactory.CreateAsyncScope();
+            try
+            {
+                await using AsyncServiceScope scope = serviceScopeFactory.CreateAsyncScope();
 
-            IRequestContextWriter contextWriter = scope.ServiceProvider.GetRequiredService<IRequestContextWriter>();
-            InitializeRequestContext(contextWriter, resourceId, tenant);
+                IRequestContextWriter contextWriter = scope.ServiceProvider.GetRequiredService<IRequestContextWriter>();
+                InitializeRequestContext(contextWriter, resourceId, tenant);
 
-            using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-                jobCancellationToken.ShutdownToken,
-                cancellationToken);
+                using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+                    jobCancellationToken.ShutdownToken,
+                    cancellationToken);
 
-            await perTenantAsync(scope.ServiceProvider, tenant, jobCancellationToken, linkedCts.Token);
+                await perTenantAsync(scope.ServiceProvider, tenant, jobCancellationToken, linkedCts.Token);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                logger.LogError(ex, "Failed to process tenant '{TenantId}' ({TenantName}).", tenant.Id, tenant.Name);
+            }
         }
     }
 
