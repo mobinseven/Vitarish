@@ -23,7 +23,7 @@ internal static class SeaModuleConfiguration
         _ = services.AddDbContext<SeaDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Transient, ServiceLifetime.Transient);
 
         _ = services.AddVitarishSeaInfrastructure();
-        // services.AddVitarishSeaDomainEntityHandlers(); // TODO: Update for new Entities.Server library
+        services.AddVitarishSeaDomainEntityHandlers();
         _ = services.AddAppMediatR(typeof(SeaDbContext).Assembly);
 
         _ = services.ConfigureHttpJsonOptions(options =>
