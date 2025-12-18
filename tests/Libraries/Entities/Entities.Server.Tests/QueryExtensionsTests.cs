@@ -20,11 +20,10 @@ public class QueryExtensionsTests
             .FindDeclaredQueryFilter(EntityQueryFilterNames.SoftDelete);
 
         Assert.NotNull(filter);
-        IQueryFilter softDeleteFilter = filter!;
 
-        Assert.Equal(EntityQueryFilterNames.SoftDelete, softDeleteFilter.Key);
+        Assert.Equal(EntityQueryFilterNames.SoftDelete, filter!.Key);
 
-        LambdaExpression? predicateExpression = softDeleteFilter.Expression;
+        LambdaExpression? predicateExpression = filter.Expression;
 
         Assert.NotNull(predicateExpression);
 
@@ -58,7 +57,7 @@ public class QueryExtensionsTests
             .OrderBy(entity => entity.Name)
             .ToListAsync();
 
-        Assert.Equal(new[] { visible.Name, deleted.Name }, result.Select(entity => entity.Name));
+        Assert.Equal(new[] { deleted.Name }, result.Select(entity => entity.Name));
     }
 
     private sealed class TestDbContext(DbContextOptions<TestDbContext> options) : DbContext(options)
