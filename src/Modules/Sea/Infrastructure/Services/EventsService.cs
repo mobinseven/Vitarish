@@ -14,7 +14,7 @@ internal class EventsService(
     IMediator mediator,
     EventsMapper mapper,
     IAttachmentsService attachmentsService)
-    : EntityService<Event, EventDescriptor, EventDto, EventDto, EventDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IEventsService
+    : EntityService<Event, EventDescriptor, EventDto, EventWriteDto, EventDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IEventsService
 {
     private readonly IMediator _mediator = mediator;
 

@@ -2,14 +2,14 @@ using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
 using Vitarish.Clients.Modules.Sea.Dto;
-using Vorn.Entities.Client.SignalR;
+using Vitarish.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Services
 {
     internal sealed class ReceiptsClient(
         IIdentityClientSignalRFactory connectionFactory,
         IEntityInterceptionProvider entityInterceptionProvider)
-        : SeaEntityClient<ReceiptDto,ReceiptDescriptorDto, ReceiptsClientDefinition>(connectionFactory, entityInterceptionProvider),
+        : SeaEntityClient<ReceiptDto, ReceiptDto, ReceiptDescriptorDto, ReceiptsClientDefinition>(connectionFactory, entityInterceptionProvider),
             IReceiptsClient
     {
         public async Task<Guid> CreateReceiptAsync(Guid userId, Guid objectId, CancellationToken cancellationToken = default) =>

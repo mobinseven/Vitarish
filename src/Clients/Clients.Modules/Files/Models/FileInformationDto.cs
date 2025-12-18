@@ -1,11 +1,11 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Vorn.Entities.Client.Models;
+using Vitarish.Entities.Client.Models;
 
 namespace Vitarish.Clients.Modules.Files.Models;
 
-public record FileInformationDto : EntityDto
+public record FileInformationDto : EntityReadDto
 {
     private static readonly JsonSerializerOptions MetadataSerializerOptions = new(JsonSerializerDefaults.Web)
     {

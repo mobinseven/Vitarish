@@ -1,8 +1,8 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Identity.Contracts;
-using Vorn.Entities.Client.SignalR;
-using Vorn.Entities.Client.Models;
+using Vitarish.Entities.Client.SignalR;
+using Vitarish.Entities.Client.Models;
 
 namespace Vitarish.Clients.Modules.Sea.Internal;
 
@@ -77,9 +77,9 @@ public class UsageConfigurationClientDefinition : ISignalRClientDefinition
         SeaClientDefinition.Configure(registration, "/hubs/usage-configuration");
 }
 
-internal sealed class SeaEntityConnectionFactory<TEntityDto, TDefinition>(IIdentityClientSignalRFactory connectionFactory)
-    : IEntityConnectionFactory<TEntityDto>
-    where TEntityDto : EntityDto
+internal sealed class SeaEntityConnectionFactory<TReadDto, TDefinition>(IIdentityClientSignalRFactory connectionFactory)
+    : IEntityConnectionFactory<TReadDto>
+    where TReadDto : EntityReadDto
     where TDefinition : ISignalRClientDefinition
 {
     public async Task<HubConnection> CreateConnection()
@@ -89,15 +89,16 @@ internal sealed class SeaEntityConnectionFactory<TEntityDto, TDefinition>(IIdent
     }
 }
 
-internal abstract class SeaEntityClient<TEntityDto, TEntityDescriptorDto, TDefinition>(
+internal abstract class SeaEntityClient<TReadDto, TWriteDto, TDescriptorDto, TDefinition>(
     IIdentityClientSignalRFactory connectionFactory,
     IEntityInterceptionProvider entityInterceptionProvider)
-    : EntityClient<TEntityDto, TEntityDescriptorDto>(
-        new SeaEntityConnectionFactory<TEntityDto, TDefinition>(connectionFactory),
+    : EntityClient<TReadDto, TWriteDto, TDescriptorDto>(
+        new SeaEntityConnectionFactory<TReadDto, TDefinition>(connectionFactory),
         entityInterceptionProvider),
         IAsyncDisposable
-    where TEntityDto : EntityDto
-    where TEntityDescriptorDto : EntityDescriptorDto
+    where TReadDto : EntityReadDto
+    where TWriteDto : EntityWriteDto
+    where TDescriptorDto : EntityDescriptorDto
     where TDefinition : ISignalRClientDefinition
 {
 }

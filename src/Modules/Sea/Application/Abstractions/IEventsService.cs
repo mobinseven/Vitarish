@@ -2,7 +2,7 @@ namespace Vitarish.Sea.Application.Abstractions;
 
 using Vitarish.Sea.Domain.Dto;
 
-public interface IEventsService : IEntityService<EventDto, EventDto, EventDescriptorDto>
+public interface IEventsService : IEntityService<EventDto, EventWriteDto, EventDescriptorDto>
 {
     Task<IReadOnlyList<EventDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken);
 

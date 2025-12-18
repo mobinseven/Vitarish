@@ -5,7 +5,7 @@ namespace Vitarish.Sea.Infrastructure.Mapping;
 internal partial class RemindersMapper
 {
     public partial ReminderDto ToDto(Reminder src);
-    public partial Reminder ToDomain(ReminderDto src);
+    public partial Reminder ToDomain(ReminderWriteDto src);
     public partial ReminderDescriptor ToDomain(ReminderDescriptorDto src);
 }
 

@@ -8,7 +8,7 @@ using Vitarish.Sea.Domain.Enums;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class RemindersHub : EntityServer<ReminderDto, ReminderDto, ReminderDescriptorDto, IRemindersService>
+public sealed class RemindersHub : EntityServer<ReminderDto, ReminderWriteDto, ReminderDescriptorDto, IRemindersService>
 {
     private readonly IRemindersService _service;
 

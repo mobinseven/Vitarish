@@ -7,7 +7,7 @@ using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class ProceduresHub : EntityServer<ProcedureDto, ProcedureDto, ProcedureDescriptorDto, IProceduresService>
+public sealed class ProceduresHub : EntityServer<ProcedureDto, ProcedureWriteDto, ProcedureDescriptorDto, IProceduresService>
 {
     private readonly IProceduresService _service;
 

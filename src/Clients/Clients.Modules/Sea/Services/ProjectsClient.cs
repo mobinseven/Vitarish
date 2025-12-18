@@ -2,14 +2,14 @@ using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Modules.Sea.Abstractions;
 using Vitarish.Clients.Modules.Sea.Internal;
 using Vitarish.Clients.Modules.Sea.Dto;
-using Vorn.Entities.Client.SignalR;
+using Vitarish.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Sea.Services
 {
     internal sealed class ProjectsClient(
         IIdentityClientSignalRFactory connectionFactory,
         IEntityInterceptionProvider entityInterceptionProvider)
-        : SeaEntityClient<ProjectDto, ProjectDescriptorDto, ProjectsClientDefinition>(connectionFactory, entityInterceptionProvider),
+        : SeaEntityClient<ProjectDto, ProjectDto, ProjectDescriptorDto, ProjectsClientDefinition>(connectionFactory, entityInterceptionProvider),
             IProjectsClient
     {
         public async Task<Guid> CreateProjectAsync(string name, string description, bool template, string metadata, CancellationToken cancellationToken = default) =>

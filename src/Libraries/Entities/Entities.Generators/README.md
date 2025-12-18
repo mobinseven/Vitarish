@@ -1,13 +1,13 @@
-# Vorn.Entities.Generators
+# Vitarish.Entities.Generators
 
-`Vorn.Entities.Generators` is a Roslyn source generator that emits dependency injection helpers for every aggregate described in your assembly. By annotating your domain project once, the generator produces extension methods that register MediatR handlers, caches, and interception services without hand-writing boilerplate.
+`Vitarish.Entities.Generators` is a Roslyn source generator that emits dependency injection helpers for every aggregate described in your assembly. By annotating your domain project once, the generator produces extension methods that register MediatR handlers, caches, and interception services without hand-writing boilerplate.
 
 ## Add the analyzer reference
 
 Include the generator as an analyzer reference in the project that defines your entities and descriptors:
 
 ```bash
-dotnet add package Vorn.Entities.Generators
+dotnet add package Vitarish.Entities.Generators
 ```
 
 > 📌 The package is a source generator, so it only needs to be referenced by the project that produces the entities. Downstream consumers (API, server, client) will use the generated extensions at compile time.
@@ -17,12 +17,12 @@ dotnet add package Vorn.Entities.Generators
 Decorate your assembly with `[GenerateEntitiesRegistration]` to activate generation.
 
 ```csharp
-using Vorn.Entities.Generators;
+using Vitarish.Entities.Generators;
 
 [assembly: GenerateEntitiesRegistration]
 ```
 
-The generator scans the compilation for descriptor types decorated with `[EntityDescriptorFor(typeof(TEntity))]` where `TEntity` inherits from `Vorn.Entities.Entity`.
+The generator scans the compilation for descriptor types decorated with `[EntityDescriptorFor(typeof(TEntity))]` where `TEntity` inherits from `Vitarish.Entities.Entity`.
 
 ## Describe descriptors
 

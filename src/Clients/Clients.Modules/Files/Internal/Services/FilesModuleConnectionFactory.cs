@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Modules.Files.Models;
-using Vorn.Entities.Client.SignalR;
+using Vitarish.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Files.Internal.Services;
 

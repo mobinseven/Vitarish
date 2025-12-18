@@ -7,7 +7,7 @@ using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class ProjectsHub : EntityServer<ProjectDto, ProjectDto, ProjectDescriptorDto, IProjectsService>
+public sealed class ProjectsHub : EntityServer<ProjectDto, ProjectWriteDto, ProjectDescriptorDto, IProjectsService>
 {
     private readonly IProjectsService _service;
 

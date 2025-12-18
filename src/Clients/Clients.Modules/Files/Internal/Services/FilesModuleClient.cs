@@ -2,11 +2,11 @@
 using System.Threading.Channels;
 using Vitarish.Clients.Modules.Files.Abstractions;
 using Vitarish.Clients.Modules.Files.Models;
-using Vorn.Entities.Client.SignalR;
+using Vitarish.Entities.Client.SignalR;
 
 namespace Vitarish.Clients.Modules.Files.Internal.Services;
 
-internal class FilesModuleClient : EntityClient<FileInformationDto, FileInformationDescriptorDto>, IAsyncDisposable, IFilesModuleClient
+internal class FilesModuleClient : EntityClient<FileInformationDto, FileInformationDto, FileInformationDescriptorDto>, IAsyncDisposable, IFilesModuleClient
 {
     private readonly IEntityConnectionFactory<FileInformationDto> _connectionFactory;
     private readonly IEntityInterceptionProvider _entityInterceptionProvider;

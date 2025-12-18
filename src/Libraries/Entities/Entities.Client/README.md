@@ -1,4 +1,4 @@
-# Vorn.Entities.Client
+# Vitarish.Entities.Client
 
 The client package focuses on Blazor and typed SignalR consumption. It wraps an `IEntityClient<TReadDto, TWriteDto, TDescriptorDto>` with a
 component base that manages hub connections, busy state, notifications, and error handling so Razor components remain mostly
@@ -7,11 +7,11 @@ markup.
 ## Install
 
 ```bash
-dotnet add package Vorn.Entities.SignalR.Client
-dotnet add package Vorn.Entities.Client
+dotnet add package Vitarish.Entities.SignalR.Client
+dotnet add package Vitarish.Entities.Client
 ```
 
-Bring in `Vorn.Entities` and `Vorn.Entities.Server` for the backing service/hub if they are not already referenced.
+Bring in `Vitarish.Entities` and `Vitarish.Entities.Server` for the backing service/hub if they are not already referenced.
 
 ## Configure SignalR access
 

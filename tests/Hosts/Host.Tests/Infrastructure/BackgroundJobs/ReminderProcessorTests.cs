@@ -7,7 +7,7 @@ using Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 using Vitarish.Sea.Domain.Enums;
-using Vorn.Entities.Models;
+using Vitarish.Entities.Server.Models;
 
 namespace Main.Tests.Infrastructure.BackgroundJobs;
 

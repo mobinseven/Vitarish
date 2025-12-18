@@ -7,7 +7,7 @@ using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class UsageConfigurationHub : EntityServer<UsageConfigurationDto, UsageConfigurationDto, UsageConfigurationDescriptorDto, IUsageConfigurationService>
+public sealed class UsageConfigurationHub : EntityServer<UsageConfigurationDto, UsageConfigurationWriteDto, UsageConfigurationDescriptorDto, IUsageConfigurationService>
 {
     private readonly IUsageConfigurationService _service;
 
@@ -20,6 +20,6 @@ public sealed class UsageConfigurationHub : EntityServer<UsageConfigurationDto, 
     public Task<UsageConfigurationDto?> GetUsageConfigurationAsync(CancellationToken cancellationToken) =>
         _service.GetUsageConfigurationAsync(cancellationToken);
 
-    public Task<UsageConfigurationDto?> UpdateUsageConfigurationAsync(UsageConfigurationDto usageConfigurationDto, CancellationToken cancellationToken) =>
+    public Task<UsageConfigurationDto?> UpdateUsageConfigurationAsync(UsageConfigurationWriteDto usageConfigurationDto, CancellationToken cancellationToken) =>
         _service.UpdateAsync(usageConfigurationDto, cancellationToken);
 }

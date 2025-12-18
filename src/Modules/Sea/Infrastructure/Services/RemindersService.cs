@@ -6,7 +6,7 @@ using Vitarish.Sea.Application.Commands.Reminders;
 namespace Vitarish.Sea.Infrastructure.Services;
 
 [RegisterScoped]
-internal class RemindersService(IServiceScopeFactory serviceScopeFactory, IMediator mediator, RemindersMapper mapper) : EntityService<Reminder, ReminderDescriptor, ReminderDto, ReminderDto, ReminderDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IRemindersService
+internal class RemindersService(IServiceScopeFactory serviceScopeFactory, IMediator mediator, RemindersMapper mapper) : EntityService<Reminder, ReminderDescriptor, ReminderDto, ReminderWriteDto, ReminderDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IRemindersService
 {
     private readonly IMediator _mediator = mediator;
 

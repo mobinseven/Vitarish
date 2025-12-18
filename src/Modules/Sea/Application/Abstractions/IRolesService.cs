@@ -2,7 +2,7 @@ using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Application.Abstractions;
 
-public interface IRolesService : IEntityService<RoleDto, RoleDto, RoleDescriptorDto>
+public interface IRolesService : IEntityService<RoleDto, RoleWriteDto, RoleDescriptorDto>
 {
     Task<Guid> AddAsync(string name, CancellationToken cancellationToken);
     Task UpdateAsync(Guid id, string name, CancellationToken cancellationToken);

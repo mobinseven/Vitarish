@@ -10,7 +10,7 @@ internal class ReceiptsService(
     ReceiptsMapper mapper,
     IAttachmentsService attachmentsService,
     IRemindersService remindersService)
-    : EntityService<Receipt, ReceiptDescriptor, ReceiptDto, ReceiptDto, ReceiptDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IReceiptsService
+    : EntityService<Receipt, ReceiptDescriptor, ReceiptDto, ReceiptWriteDto, ReceiptDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IReceiptsService
 {
     private async Task RemoveReceiptAsync(string createdBy, Guid objectId, CancellationToken cancellationToken)
     {

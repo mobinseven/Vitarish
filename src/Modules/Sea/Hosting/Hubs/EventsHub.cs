@@ -7,7 +7,7 @@ using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class EventsHub : EntityServer<EventDto, EventDto, EventDescriptorDto, IEventsService>
+public sealed class EventsHub : EntityServer<EventDto, EventWriteDto, EventDescriptorDto, IEventsService>
 {
     private readonly IEventsService _service;
 

@@ -1,6 +1,6 @@
 namespace Vitarish.Entities.Server.Extensions;
 /// <summary>
-/// Extension methods for configuring Vorn.Entities services with enhanced features.
+/// Extension methods for configuring Vitarish.Entities services with enhanced features.
 /// </summary>
 public static class ServiceCollectionExtensions
 {

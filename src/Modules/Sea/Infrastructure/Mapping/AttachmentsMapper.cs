@@ -6,7 +6,7 @@ namespace Vitarish.Sea.Infrastructure.Mapping;
 internal partial class AttachmentsMapper
 {
     public partial AttachmentDto ToDto(Attachment src);
-    public partial Attachment ToDomain(AttachmentDto src);
+    public partial Attachment ToDomain(AttachmentWriteDto src);
 
     public partial AttachmentDescriptor ToDomain(AttachmentDescriptorDto src);
 }

@@ -13,7 +13,7 @@ using Vitarish.Sea.Infrastructure.Helpers;
 internal class ProjectsService(
     IServiceScopeFactory serviceScopeFactory,
     ProjectsMapper mapper,
-    IProceduresService proceduresService) : EntityService<Project, ProjectDescriptor, ProjectDto, ProjectDto, ProjectDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IProjectsService
+    IProceduresService proceduresService) : EntityService<Project, ProjectDescriptor, ProjectDto, ProjectWriteDto, ProjectDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IProjectsService
 {
     public async Task<Guid> AddAsync(string name, string description, bool template, string metadata, CancellationToken cancellationToken)
     {
