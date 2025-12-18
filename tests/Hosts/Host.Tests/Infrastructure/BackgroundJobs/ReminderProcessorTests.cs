@@ -1,45 +1,91 @@
+using FluentAssertions;
 using Hangfire;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Models;
+using Vitarish.Main.Infrastructure.BackgroundJobs;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
+using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Requests.Infrastructure.Services;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 using Vitarish.Sea.Domain.Enums;
 using Vitarish.Entities.Server.Models;
+using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Parties.Domain.Entities;
 
 namespace Main.Tests.Infrastructure.BackgroundJobs;
 
-public class ReminderProcessorTests
+public class ReminderProcessorTests : IDisposable
 {
     private readonly Mock<ILogger<ReminderProcessor>> mockLogger;
+    private readonly Mock<ILogger<TenantBackgroundExecutor>> mockExecutorLogger;
     private readonly Mock<IRemindersService> mockRemindersService;
     private readonly Mock<IEventsService> mockEventsService;
     private readonly Mock<IMessagesService> mockMessagesService;
     private readonly Mock<IJobCancellationToken> mockCancellationToken;
+    private readonly Mock<IPartiesService> mockPartiesService;
     private readonly FakeTimeProvider fakeTimeProvider;
+    private readonly ServiceProvider serviceProvider;
+    private readonly RequestContextRecorder contextRecorder;
     private readonly ReminderProcessor sut;
 
     public ReminderProcessorTests()
     {
         mockLogger = new Mock<ILogger<ReminderProcessor>>();
+        mockExecutorLogger = new Mock<ILogger<TenantBackgroundExecutor>>();
         mockRemindersService = new Mock<IRemindersService>();
         mockEventsService = new Mock<IEventsService>();
         mockMessagesService = new Mock<IMessagesService>();
         mockCancellationToken = new Mock<IJobCancellationToken>();
+        mockPartiesService = new Mock<IPartiesService>();
         fakeTimeProvider = new FakeTimeProvider();
 
         // Setup default cancellation token behavior
         mockCancellationToken.Setup(x => x.ShutdownToken).Returns(CancellationToken.None);
+        mockPartiesService
+            .Setup(x => x.GetTenantsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[]
+            {
+                new Tenant
+                {
+                    Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                    OwnerId = Guid.Parse("00000000-0000-0000-0000-000000000010"),
+                    ClientId = "client-1",
+                    Name = "Tenant 1"
+                }
+            });
+
+        ServiceCollection services = new();
+        services.AddScoped<RequestContext>();
+        services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
+        services.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());
+        services.AddSingleton<RequestContextRecorder>();
+        services.AddScoped(sp =>
+        {
+            RequestContextRecorder recorder = sp.GetRequiredService<RequestContextRecorder>();
+            IRequestContext context = sp.GetRequiredService<IRequestContext>();
+            recorder.Record(context);
+            return mockRemindersService.Object;
+        });
+        services.AddScoped(_ => mockEventsService.Object);
+        services.AddScoped(_ => mockMessagesService.Object);
+        services.AddScoped(_ => mockPartiesService.Object);
+        services.AddSingleton(_ => mockExecutorLogger.Object);
+        services.AddScoped<TenantBackgroundExecutor>();
+
+        serviceProvider = services.BuildServiceProvider();
+        contextRecorder = serviceProvider.GetRequiredService<RequestContextRecorder>();
 
         sut = new ReminderProcessor(
             mockLogger.Object,
-            mockRemindersService.Object,
-            mockEventsService.Object,
-            mockMessagesService.Object,
+            serviceProvider.GetRequiredService<TenantBackgroundExecutor>(),
             fakeTimeProvider);
     }
+
+    public void Dispose() => serviceProvider.Dispose();
 
     private class FakeTimeProvider : TimeProvider
     {
@@ -51,6 +97,14 @@ public class ReminderProcessorTests
 
         public override DateTimeOffset GetUtcNow() => _utcNow;
         public override TimeZoneInfo LocalTimeZone => _localTimeZone;
+    }
+
+    private sealed class RequestContextRecorder
+    {
+        public List<(string? TenantId, string OwnerId, string ClientId)> Snapshots { get; } = [];
+
+        public void Record(IRequestContext context) =>
+            Snapshots.Add((context.TenantId, context.OwnerId, context.ClientId));
     }
 
     [Fact]
@@ -322,6 +376,57 @@ public class ReminderProcessorTests
                     m.HtmlBody.Contains("&lt;/script&gt;")),
                 It.IsAny<CancellationToken>()),
             Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessDueReminders_IteratesAllTenants()
+    {
+        // Arrange
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        fakeTimeProvider.SetUtcNow(now);
+
+        ReminderDto reminder = CreateReminderDto();
+        EventDto evt = CreateEventDto();
+
+        mockRemindersService
+            .Setup(x => x.GetDueAsync(now, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[] { reminder });
+
+        mockEventsService
+            .Setup(x => x.GetAsync(reminder.EventId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<EventDto>.Success(evt));
+
+        mockPartiesService
+            .Setup(x => x.GetTenantsAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new[]
+            {
+                new Tenant
+                {
+                    Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
+                    OwnerId = Guid.Parse("00000000-0000-0000-0000-000000000010"),
+                    ClientId = "client-1",
+                    Name = "Tenant 1"
+                },
+                new Tenant
+                {
+                    Id = Guid.Parse("00000000-0000-0000-0000-000000000002"),
+                    OwnerId = Guid.Parse("00000000-0000-0000-0000-000000000020"),
+                    ClientId = "client-2",
+                    Name = "Tenant 2"
+                }
+            });
+
+        // Act
+        await sut.ProcessDueReminders(mockCancellationToken.Object);
+
+        // Assert
+        mockRemindersService.Verify(x => x.GetDueAsync(now, It.IsAny<CancellationToken>()), Times.Exactly(2));
+        mockRemindersService.Verify(x => x.MarkSentAsync(reminder.Id, now, It.IsAny<CancellationToken>()), Times.Exactly(2));
+        contextRecorder.Snapshots.Should().BeEquivalentTo(new[]
+        {
+            ("00000000-0000-0000-0000-000000000001", "00000000-0000-0000-0000-000000000010", "client-1"),
+            ("00000000-0000-0000-0000-000000000002", "00000000-0000-0000-0000-000000000020", "client-2")
+        });
     }
 
     private static ReminderDto CreateReminderDto(
