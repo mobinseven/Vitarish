@@ -1,4 +1,4 @@
-# Vorn.Entities.Server
+# Vitarish.Entities.Server
 
 This package adapts the core entity management abstractions to SignalR. It ships a typed hub base, EF Core configuration helpers,
 and notification relays so real-time clients see the same CRUD surface as REST consumers.
@@ -6,16 +6,16 @@ and notification relays so real-time clients see the same CRUD surface as REST c
 ## Install
 
 ```bash
-dotnet add package Vorn.Entities.Server
+dotnet add package Vitarish.Entities.Server
 ```
 
-Add `Vorn.Entities` for the core entities and `Vorn.Entities.SignalR.Client` if you plan to build clients.
+Add `Vitarish.Entities` for the core entities and `Vitarish.Entities.SignalR.Client` if you plan to build clients.
 
 ## Register services
 
 ```csharp
 builder.Services.AddSignalR();
-builder.Services.AddVornEntityManagement();      // generated or manual registration of handlers/caches
+builder.Services.AddVitarishEntityManagement();  // generated or manual registration of handlers/caches
 builder.Services.AddSingleton<IEntityUserService, HttpContextEntityUserService>();
 builder.Services.AddSingleton<IEntityTimeService, EntityTimeService>();
 builder.Services.AddTransient<INotificationHandler<EntityNotificationCore>, EntityNotificationHandler>();
