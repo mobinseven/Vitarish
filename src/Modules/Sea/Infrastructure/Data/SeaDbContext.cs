@@ -12,7 +12,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     private readonly SessionContextInterceptor _sessionContext;
     private readonly IRequestContext _requestContext;
 
-    // Dynamically evaluate TenantInfo from IRequestIdentityContext at query time
+    // Dynamically evaluate TenantInfo from IRequestsContext at query time
     public ITenantInfo? TenantInfo
     {
         get

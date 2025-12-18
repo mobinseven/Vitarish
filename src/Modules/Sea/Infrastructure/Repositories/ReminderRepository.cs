@@ -13,7 +13,7 @@ internal class ReminderRepository(SeaDbContext dbContext)
     {
         query = base.Apply(query, descriptor);
 
-        if(descriptor.EventId is not null)
+        if (descriptor.EventId is not null)
         {
             query = query.Where(r => r.EventId == descriptor.EventId);
         }

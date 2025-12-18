@@ -20,7 +20,7 @@ internal static class SeaModuleConfiguration
         _ = services.AddMemoryCache();
         _ = services.AddSignalR().AddMessagePackProtocol();
 
-        _ = services.AddDbContext<SeaDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Transient, ServiceLifetime.Transient);
+        _ = services.AddDbContext<SeaDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Scoped);
 
         _ = services.AddVitarishSeaInfrastructure();
         services.AddVitarishSeaDomainEntityHandlers();
