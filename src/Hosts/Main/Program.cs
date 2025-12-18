@@ -132,7 +132,7 @@ _ = app.UseAuthorization();
 
 _ = app.UseAntiforgery();
 
-app.UseRequestsContext();
+app.UseRequestsContextMiddleware();
 
 _ = app.UseMultiTenant();
 
