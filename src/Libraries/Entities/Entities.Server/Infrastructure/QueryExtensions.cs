@@ -9,7 +9,7 @@ public static class QueryExtensions
     {
         if (descriptor is { DeletedFrom: not null } or { DeletedTo: not null } or { DeletedBy: not null })
         {
-            query = query.IgnoreQueryFilters();
+            query = query.IgnoreQueryFilters(new[] { EntityQueryFilterNames.SoftDelete });
         }
 
         if (descriptor.CreatedFrom is not null)
