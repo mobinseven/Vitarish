@@ -37,19 +37,9 @@ public static class ModelBuilderExtensions
                 deletedAtProperty,
                 Expression.Constant(null, typeof(DateTimeOffset?)));
 
-            Expression body = notDeletedExpression;
-
-            if (entityType.GetQueryFilter() is { } existingFilter)
-            {
-                Expression existingBody = ParameterReplaceVisitor.Replace(
-                    existingFilter.Body,
-                    existingFilter.Parameters[0],
-                    parameter);
-
-                body = Expression.AndAlso(existingBody, notDeletedExpression);
-            }
-
-            entityType.SetQueryFilter(Expression.Lambda(body, parameter));
+            entityType.SetQueryFilter(
+                EntityQueryFilterNames.SoftDelete,
+                Expression.Lambda(notDeletedExpression, parameter));
         }
 
         return modelBuilder;
@@ -77,19 +67,4 @@ public static class ModelBuilderExtensions
         }
     }
 
-    private sealed class ParameterReplaceVisitor : ExpressionVisitor
-    {
-        private readonly ParameterExpression _source;
-        private readonly ParameterExpression _target;
-
-        private ParameterReplaceVisitor(ParameterExpression source, ParameterExpression target)
-        {
-            _source = source;
-            _target = target;
-        }
-
-        public static Expression Replace(Expression expression, ParameterExpression source, ParameterExpression target) => new ParameterReplaceVisitor(source, target).Visit(expression)!;
-
-        protected override Expression VisitParameter(ParameterExpression node) => node == _source ? _target : base.VisitParameter(node);
-    }
 }
