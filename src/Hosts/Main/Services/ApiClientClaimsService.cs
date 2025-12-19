@@ -21,12 +21,12 @@ public sealed class ApiClientClaimsService(
     public async Task ValidateAsync(CustomTokenRequestValidationContext context)
     {
         // Only process client credentials requests
-        if (context.Result?.ValidatedRequest?.GrantType != GrantType.ClientCredentials)
+        if (context.Result?.ValidatedRequest is not { GrantType: GrantType.ClientCredentials } validatedRequest)
         {
             return;
         }
 
-        await AddTenantOwnerClaimsAsync(context.Result.ValidatedRequest);
+        await AddTenantOwnerClaimsAsync(validatedRequest);
     }
 
     private async Task AddTenantOwnerClaimsAsync(ValidatedTokenRequest request)
@@ -41,7 +41,7 @@ public sealed class ApiClientClaimsService(
 
         try
         {
-            Tenant? tenant = await tenantsService.ResolveFromHostAsync(httpContext, CancellationToken.None);
+            Tenant? tenant = await tenantsService.ResolveFromHostAsync(httpContext, httpContext.RequestAborted);
             if (tenant is not null)
             {
                 request.ClientClaims.Add(new Claim(IdentityDefinitions.TenantIdClaim, tenant.Id.ToString()));
