@@ -35,18 +35,9 @@ public class IdentityClientsStore(AuthenticationClientDbContext authClients, Api
         ApiClient? apiClient = await apiClients.ApiClients.SingleOrDefaultAsync(c => c.Id == clientId);
         if (apiClient is not null)
         {
-            List<ClientClaim> claims = [];
-
-            if (!string.IsNullOrEmpty(apiClient.TenantId))
-            {
-                claims.Add(new ClientClaim(IdentityDefinitions.TenantIdClaim, apiClient.TenantId));
-            }
-
-            if (!string.IsNullOrEmpty(apiClient.OwnerId))
-            {
-                claims.Add(new ClientClaim(IdentityDefinitions.OwnerIdClaim, apiClient.OwnerId));
-            }
-
+            // API clients don't have associated tenant/owner claims at the entity level.
+            // Tenant/owner claims for API client tokens are provided at runtime by ApiClientClaimsService
+            // which resolves them from the HTTP request context (similar to PartyProfileService).
             Client client = new()
             {
                 ClientId = apiClient.Id,
@@ -55,7 +46,7 @@ public class IdentityClientsStore(AuthenticationClientDbContext authClients, Api
                 AllowedScopes = [apiClient.Scopes],
                 AllowedGrantTypes = GrantTypes.ClientCredentials,
                 ClientClaimsPrefix = string.Empty,
-                Claims = claims
+                Claims = []
             };
             return client;
         }

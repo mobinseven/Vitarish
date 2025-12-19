@@ -39,101 +39,17 @@ public class IdentityClientsStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task FindClientByIdAsync_WhenApiClientHasTenantId_ReturnsClientWithTenantIdClaim()
+    public async Task FindClientByIdAsync_WhenApiClient_ReturnsClientWithNoClaims()
     {
         // Arrange
-        string clientId = "test-api-client";
-        string tenantId = "tenant-123";
-        ApiClient apiClient = new()
-        {
-            Id = clientId,
-            Secret = "test-secret",
-            Scopes = "api",
-            HostUri = "https://test.example.com",
-            TenantId = tenantId
-        };
-        _ = _apiClientDbContext.ApiClients.Add(apiClient);
-        _ = await _apiClientDbContext.SaveChangesAsync();
-
-        // Act
-        IdentityClient? result = await _sut.FindClientByIdAsync(clientId);
-
-        // Assert
-        _ = result.Should().NotBeNull();
-        _ = result!.Claims.Should().ContainSingle(c =>
-            c.Type == IdentityDefinitions.TenantIdClaim && c.Value == tenantId);
-    }
-
-    [Fact]
-    public async Task FindClientByIdAsync_WhenApiClientHasOwnerId_ReturnsClientWithOwnerIdClaim()
-    {
-        // Arrange
-        string clientId = "test-api-client";
-        string ownerId = "owner-456";
-        ApiClient apiClient = new()
-        {
-            Id = clientId,
-            Secret = "test-secret",
-            Scopes = "api",
-            HostUri = "https://test.example.com",
-            OwnerId = ownerId
-        };
-        _ = _apiClientDbContext.ApiClients.Add(apiClient);
-        _ = await _apiClientDbContext.SaveChangesAsync();
-
-        // Act
-        IdentityClient? result = await _sut.FindClientByIdAsync(clientId);
-
-        // Assert
-        _ = result.Should().NotBeNull();
-        _ = result!.Claims.Should().ContainSingle(c =>
-            c.Type == IdentityDefinitions.OwnerIdClaim && c.Value == ownerId);
-    }
-
-    [Fact]
-    public async Task FindClientByIdAsync_WhenApiClientHasBothTenantIdAndOwnerId_ReturnsClientWithBothClaims()
-    {
-        // Arrange
-        string clientId = "test-api-client";
-        string tenantId = "tenant-123";
-        string ownerId = "owner-456";
-        ApiClient apiClient = new()
-        {
-            Id = clientId,
-            Secret = "test-secret",
-            Scopes = "api",
-            HostUri = "https://test.example.com",
-            TenantId = tenantId,
-            OwnerId = ownerId
-        };
-        _ = _apiClientDbContext.ApiClients.Add(apiClient);
-        _ = await _apiClientDbContext.SaveChangesAsync();
-
-        // Act
-        IdentityClient? result = await _sut.FindClientByIdAsync(clientId);
-
-        // Assert
-        _ = result.Should().NotBeNull();
-        _ = result!.Claims.Should().HaveCount(2);
-        _ = result.Claims.Should().ContainSingle(c =>
-            c.Type == IdentityDefinitions.TenantIdClaim && c.Value == tenantId);
-        _ = result.Claims.Should().ContainSingle(c =>
-            c.Type == IdentityDefinitions.OwnerIdClaim && c.Value == ownerId);
-    }
-
-    [Fact]
-    public async Task FindClientByIdAsync_WhenApiClientHasNoTenantIdOrOwnerId_ReturnsClientWithNoClaims()
-    {
-        // Arrange
+        // API clients don't have tenant/owner at entity level - claims are added at runtime by ApiClientClaimsService
         string clientId = "test-api-client";
         ApiClient apiClient = new()
         {
             Id = clientId,
             Secret = "test-secret",
             Scopes = "api",
-            HostUri = "https://test.example.com",
-            TenantId = null,
-            OwnerId = null
+            HostUri = "https://test.example.com"
         };
         _ = _apiClientDbContext.ApiClients.Add(apiClient);
         _ = await _apiClientDbContext.SaveChangesAsync();
@@ -147,56 +63,7 @@ public class IdentityClientsStoreTests : IDisposable
     }
 
     [Fact]
-    public async Task FindClientByIdAsync_WhenApiClientHasEmptyTenantIdAndOwnerId_ReturnsClientWithNoClaims()
-    {
-        // Arrange
-        string clientId = "test-api-client";
-        ApiClient apiClient = new()
-        {
-            Id = clientId,
-            Secret = "test-secret",
-            Scopes = "api",
-            HostUri = "https://test.example.com",
-            TenantId = "",
-            OwnerId = ""
-        };
-        _ = _apiClientDbContext.ApiClients.Add(apiClient);
-        _ = await _apiClientDbContext.SaveChangesAsync();
-
-        // Act
-        IdentityClient? result = await _sut.FindClientByIdAsync(clientId);
-
-        // Assert
-        _ = result.Should().NotBeNull();
-        _ = result!.Claims.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task FindClientByIdAsync_WhenApiClientHasClaims_ClientClaimsPrefixIsEmptyString()
-    {
-        // Arrange
-        string clientId = "test-api-client";
-        ApiClient apiClient = new()
-        {
-            Id = clientId,
-            Secret = "test-secret",
-            Scopes = "api",
-            HostUri = "https://test.example.com",
-            TenantId = "tenant-123"
-        };
-        _ = _apiClientDbContext.ApiClients.Add(apiClient);
-        _ = await _apiClientDbContext.SaveChangesAsync();
-
-        // Act
-        IdentityClient? result = await _sut.FindClientByIdAsync(clientId);
-
-        // Assert
-        _ = result.Should().NotBeNull();
-        _ = result!.ClientClaimsPrefix.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task FindClientByIdAsync_WhenApiClientHasNoClaims_ClientClaimsPrefixIsEmptyString()
+    public async Task FindClientByIdAsync_WhenApiClient_ClientClaimsPrefixIsEmptyString()
     {
         // Arrange
         string clientId = "test-api-client";
@@ -273,64 +140,6 @@ public class IdentityClientsStoreTests : IDisposable
         // Assert
         _ = result.Should().NotBeNull();
         _ = result!.AllowedGrantTypes.Should().BeEquivalentTo(Duende.IdentityServer.Models.GrantTypes.ClientCredentials);
-    }
-
-    [Fact]
-    public async Task FindClientByIdAsync_WhenApiClientHasOnlyTenantId_ReturnsClientWithOnlyTenantIdClaim()
-    {
-        // Arrange
-        string clientId = "test-api-client";
-        string tenantId = "tenant-only";
-        ApiClient apiClient = new()
-        {
-            Id = clientId,
-            Secret = "test-secret",
-            Scopes = "api",
-            HostUri = "https://test.example.com",
-            TenantId = tenantId,
-            OwnerId = null
-        };
-        _ = _apiClientDbContext.ApiClients.Add(apiClient);
-        _ = await _apiClientDbContext.SaveChangesAsync();
-
-        // Act
-        IdentityClient? result = await _sut.FindClientByIdAsync(clientId);
-
-        // Assert
-        _ = result.Should().NotBeNull();
-        _ = result!.Claims.Should().HaveCount(1);
-        _ = result.Claims.Should().ContainSingle(c =>
-            c.Type == IdentityDefinitions.TenantIdClaim && c.Value == tenantId);
-        _ = result.Claims.Should().NotContain(c => c.Type == IdentityDefinitions.OwnerIdClaim);
-    }
-
-    [Fact]
-    public async Task FindClientByIdAsync_WhenApiClientHasOnlyOwnerId_ReturnsClientWithOnlyOwnerIdClaim()
-    {
-        // Arrange
-        string clientId = "test-api-client";
-        string ownerId = "owner-only";
-        ApiClient apiClient = new()
-        {
-            Id = clientId,
-            Secret = "test-secret",
-            Scopes = "api",
-            HostUri = "https://test.example.com",
-            TenantId = null,
-            OwnerId = ownerId
-        };
-        _ = _apiClientDbContext.ApiClients.Add(apiClient);
-        _ = await _apiClientDbContext.SaveChangesAsync();
-
-        // Act
-        IdentityClient? result = await _sut.FindClientByIdAsync(clientId);
-
-        // Assert
-        _ = result.Should().NotBeNull();
-        _ = result!.Claims.Should().HaveCount(1);
-        _ = result.Claims.Should().ContainSingle(c =>
-            c.Type == IdentityDefinitions.OwnerIdClaim && c.Value == ownerId);
-        _ = result.Claims.Should().NotContain(c => c.Type == IdentityDefinitions.TenantIdClaim);
     }
 
     [Fact]
