@@ -17,7 +17,7 @@ public class HasUserAccessQueryHandler(UsersDbContext db) : IRequestHandler<HasU
             .AsNoTracking()                           // read‑only, faster
             .Where(c =>
                 c.UserId == request.UserId &&
-                c.ClaimType == AaasConstants.AccessClaim &&
+                c.ClaimType == IdentityAccessConstants.AccessClaim &&
                 EF.Functions.Like(c.ClaimValue, prefix + "%")) // LIKE 'cid:%'
             .AnyAsync(cancellationToken);              // 0/1 row, no materialisation
     }

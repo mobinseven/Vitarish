@@ -16,7 +16,7 @@ public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TReq
             if (failures.Count != 0)
             {
                 logger.LogWarning("Validation failures for {Request}", typeof(TRequest).Name);
-                throw new ValidationException(failures);
+                throw new FluentValidation.ValidationException(failures);
             }
         }
         return await next();

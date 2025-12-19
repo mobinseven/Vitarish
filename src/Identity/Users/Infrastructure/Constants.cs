@@ -1,6 +1,6 @@
 namespace Vitarish.Users.Infrastructure;
 
-public static class AaasConstants
+public static class IdentityAccessConstants
 {
     public const string Admin = nameof(Admin);
     public const string AccessClaim = "access";

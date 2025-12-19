@@ -69,7 +69,7 @@ public static class PersonalAccessTokenApiExtensions
 
         foreach (ClaimDto claim in userClaims)
         {
-            if (string.Equals(claim.Type, AaasConstants.AccessClaim, StringComparison.Ordinal) &&
+            if (string.Equals(claim.Type, IdentityAccessConstants.AccessClaim, StringComparison.Ordinal) &&
                 !string.IsNullOrWhiteSpace(claim.Value))
             {
                 _ = scopeSet.Add(claim.Value);

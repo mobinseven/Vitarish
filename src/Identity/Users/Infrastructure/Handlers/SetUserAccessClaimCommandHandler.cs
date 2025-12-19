@@ -20,9 +20,9 @@ public class SetUserAccessClaimCommandHandler(
     public async Task Handle(SetUserAccessClaimCommand request, CancellationToken cancellationToken)
     {
         User user = await manager.FindByIdAsync(request.UserId) ?? throw new InvalidDataException("Invalid user id");
-        Claim newClaim = new(AaasConstants.AccessClaim, $"{request.ClientId}:{request.AccessValue}");
+        Claim newClaim = new(IdentityAccessConstants.AccessClaim, $"{request.ClientId}:{request.AccessValue}");
         IList<Claim> claims = await manager.GetClaimsAsync(user);
-        Claim? oldClaim = claims.FirstOrDefault(c => c.Type == AaasConstants.AccessClaim && c.Value.StartsWith(request.ClientId + ":"));
+        Claim? oldClaim = claims.FirstOrDefault(c => c.Type == IdentityAccessConstants.AccessClaim && c.Value.StartsWith(request.ClientId + ":"));
         IdentityResult result = oldClaim is null
             ? await manager.AddClaimAsync(user, newClaim)
             : await manager.ReplaceClaimAsync(user, oldClaim, newClaim);

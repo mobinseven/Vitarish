@@ -2,6 +2,8 @@ using Microsoft.Extensions.Configuration;
 using Vitarish.Clients.Interface.Files.DependencyInjection;
 using Vitarish.Clients.Interface.Intelligence.DependencyInjection;
 using Vitarish.Clients.Interface.Localization;
+using Vitarish.Clients.Interface.Sea.Abstractions;
+using Vitarish.Clients.Interface.Sea.Internal;
 using Vitarish.Clients.Modules;
 
 namespace Vitarish.Clients.Interface;
@@ -26,6 +28,7 @@ public static class ClientsInterfaceExtensions
             _ = services.ConfigureCompositeStringLocalizer(typeof(Strings));
             _ = services.AddSingleton<IStringLocalizer>(sp => sp.GetRequiredService<IStringLocalizer<Strings>>());
             _ = services.AddMudServices();
+            _ = services.AddScoped<ISeaAccessService, SeaAccessService>();
             _ = services.Configure<RequestLocalizationOptions>(options =>
             {
                 CultureInfo[] supportedCultures =

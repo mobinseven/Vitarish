@@ -9,11 +9,11 @@ namespace Vitarish.Clients.Identity.Internal;
 
 internal class IdentityClientSignalRFactory(
     IIdentityClientService identityClientService,
-    IOptions<IdentityClientOptions> aaasOptions,
+    IOptions<IdentityClientOptions> identityOptions,
     IOptions<SignalRClientOptions> signalROptions) : IIdentityClientSignalRFactory
 {
     private readonly SignalRClientOptions registrations = signalROptions.Value;
-    private readonly IdentityClientOptions configuration = aaasOptions.Value;
+    private readonly IdentityClientOptions configuration = identityOptions.Value;
 
     public Task<HubConnection> CreateConnection<TClient>(CancellationToken cancellationToken = default) =>
         CreateConnection<TClient>(default, cancellationToken);
@@ -32,7 +32,7 @@ internal class IdentityClientSignalRFactory(
     private async Task<HubConnection> BuildConnectionAsync(SignalRClientRegistration registration, SignalRConnectionOptions? options, CancellationToken cancellationToken)
     {
         HubConnectionBuilder builder = new();
-        _ = builder.WithUrl(registration.ResourceId, httpOptions =>
+        _ = builder.WithUrl(new Uri(new Uri(identityOptions.Value.Authority), registration.RelativePath), httpOptions =>
         {
             httpOptions.AccessTokenProvider = async () => (string?)await identityClientService.GetAccessTokenAsync().ConfigureAwait(false);
             registration.ConfigureHttpConnection?.Invoke(httpOptions);

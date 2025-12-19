@@ -20,7 +20,7 @@ public class GetClientUserQueryHandler(UsersDbContext db) : IRequestHandler<GetC
             join c in db.UserClaims.AsNoTracking()
                      on u.Id equals c.UserId
             where u.Id == request.UserId
-                  && c.ClaimType == AaasConstants.AccessClaim
+                  && c.ClaimType == IdentityAccessConstants.AccessClaim
                   && EF.Functions.Like(c.ClaimValue, prefix + "%")    // LIKE 'cid:%'
             select new UserDto                                       // project directly to DTO
             {

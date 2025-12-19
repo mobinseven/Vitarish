@@ -46,7 +46,7 @@ public partial class AccessClaimsEdit : CommonBase
     private class AccessClaimModel
     {
         public string Id = Guid.NewGuid().ToString();
-        public ClaimDto Claim { get; set; } = new ClaimDto { Type = AaasConstants.AccessClaim };
+        public ClaimDto Claim { get; set; } = new ClaimDto { Type = IdentityAccessConstants.AccessClaim };
         public Access Access { get; } = new();
 
         public string ClientId { get; set { field = value; UpdateClaim(); } } = string.Empty;
@@ -70,7 +70,7 @@ public partial class AccessClaimsEdit : CommonBase
 
         public void UpdateClaim()
         {
-            Claim.Type = AaasConstants.AccessClaim;
+            Claim.Type = IdentityAccessConstants.AccessClaim;
             Claim.Value = $"{ClientId}:{Access.GetClaimAccessValue()}";
         }
     }

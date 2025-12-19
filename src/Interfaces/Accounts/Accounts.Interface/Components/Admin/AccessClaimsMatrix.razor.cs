@@ -166,7 +166,7 @@ public partial class AccessClaimsMatrix : CommonBase
         {
             Client = client;
             _sync = sync;
-            Claim = new ClaimDto { Type = AaasConstants.AccessClaim };
+            Claim = new ClaimDto { Type = IdentityAccessConstants.AccessClaim };
         }
 
         public void LoadClaim(ClaimDto? claim)
@@ -191,7 +191,7 @@ public partial class AccessClaimsMatrix : CommonBase
 
         private void UpdateClaim(bool callSync = true)
         {
-            Claim.Type = AaasConstants.AccessClaim;
+            Claim.Type = IdentityAccessConstants.AccessClaim;
             Claim.Value = $"{Client.Id}:{Access.GetClaimAccessValue()}";
 
             if (callSync)

@@ -16,7 +16,7 @@ public class GetUserAccessClaimQueryHandler(UsersDbContext db) : IRequestHandler
         var claim = await db.UserClaims
             .AsNoTracking()
             .Where(c => c.UserId == request.UserId &&
-                c.ClaimType == AaasConstants.AccessClaim &&
+                c.ClaimType == IdentityAccessConstants.AccessClaim &&
                 EF.Functions.Like(c.ClaimValue, prefix + "%"))
             .Select(c => new { c.ClaimType, c.ClaimValue })
             .SingleOrDefaultAsync(cancellationToken);

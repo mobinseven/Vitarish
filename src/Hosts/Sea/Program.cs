@@ -9,7 +9,6 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 await builder.Services.AddInterfaceModules(builder.Configuration);
 
-
 _ = builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents()
                 .AddHubOptions(options =>

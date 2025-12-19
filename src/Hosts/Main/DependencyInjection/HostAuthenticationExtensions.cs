@@ -13,7 +13,7 @@ public static class HostAuthenticationExtensions
             .AddAuthentication()
             .AddLocalApi(options =>
             {
-                options.ExpectedScope = AaasConstants.AccessScope;
+                options.ExpectedScope = IdentityAccessConstants.AccessScope;
             });
 
         _ = builder.Services.ConfigureApplicationCookie(options =>

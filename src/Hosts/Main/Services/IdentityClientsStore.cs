@@ -11,7 +11,7 @@ namespace Vitarish.Main.Services;
 
 public class IdentityClientsStore(AuthenticationClientDbContext authClients, ApiClientDbContext apiClients) : IClientStore
 {
-    public async Task<Duende.IdentityServer.Models.Client?> FindClientByIdAsync(string clientId)
+    public async Task<Client?> FindClientByIdAsync(string clientId)
     {
         AuthenticationClient? authenticationClient = await authClients.AuthenticationClients.SingleOrDefaultAsync(c => c.Id == clientId);
         if (authenticationClient is not null)
@@ -47,7 +47,7 @@ public class IdentityClientsStore(AuthenticationClientDbContext authClients, Api
                 claims.Add(new ClientClaim(IdentityDefinitions.OwnerIdClaim, apiClient.OwnerId));
             }
 
-            Duende.IdentityServer.Models.Client client = new()
+            Client client = new()
             {
                 ClientId = apiClient.Id,
                 ClientUri = apiClient.HostUri,

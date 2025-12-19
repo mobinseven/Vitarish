@@ -39,10 +39,10 @@ public partial class MainLayout : IAsyncDisposable, IBrowserViewportObserver, IR
         {
             await BrowserViewportService.SubscribeAsync(this, fireImmediately: true);
 
-            if (ThemeService.BlazorReadyEnabled)
-            {
-                await JS.InvokeVoidAsync("eval", "if(blazorReady) blazorReady();");
-            }
+            //if (ThemeService.BlazorReadyEnabled)
+            //{
+            //    await JS.InvokeVoidAsync("eval", "if(blazorReady) blazorReady();");
+            //}
         }
 
         await base.OnAfterRenderAsync(firstRender);

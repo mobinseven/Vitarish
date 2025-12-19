@@ -2,7 +2,7 @@ namespace Vitarish.Clients.Identity.Extensions
 {
     public static class UrlExtensions
     {
-        public static string UrlCombine(string baseUrl, string relativePath) => string.IsNullOrWhiteSpace(baseUrl)
+        public static string UrlCombine(string? baseUrl, string relativePath) => string.IsNullOrWhiteSpace(baseUrl)
                 ? relativePath ?? string.Empty
                 : string.IsNullOrWhiteSpace(relativePath)
                 ? baseUrl

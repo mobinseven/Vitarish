@@ -12,7 +12,7 @@ public class GetClientUsersQueryHandler(UsersDbContext db) : IRequestHandler<Get
     {
         List<UserDto> users = await db.UserClaims
             .AsNoTracking()
-            .Where(uc => uc.ClaimType == AaasConstants.AccessClaim)
+            .Where(uc => uc.ClaimType == IdentityAccessConstants.AccessClaim)
             .Where(uc => uc.ClaimValue!.StartsWith(request.ClientId))
             .Join(db.Users, uc => uc.UserId, u => u.Id, (uc, u) => new UserDto
             {

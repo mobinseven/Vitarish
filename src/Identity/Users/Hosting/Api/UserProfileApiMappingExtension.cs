@@ -101,14 +101,14 @@ public static class UserProfileApiMappingExtension
 
         return user.Claims.Any(static c =>
         {
-            if (!string.Equals(c.Type, AaasConstants.AccessClaim, StringComparison.Ordinal))
+            if (!string.Equals(c.Type, IdentityAccessConstants.AccessClaim, StringComparison.Ordinal))
             {
                 return false;
             }
 
             string[] parts = c.Value.Split(':');
             return parts.Length > 0 &&
-                string.Equals(parts[^1], AaasConstants.Admin, StringComparison.OrdinalIgnoreCase);
+                string.Equals(parts[^1], IdentityAccessConstants.Admin, StringComparison.OrdinalIgnoreCase);
         });
     }
 }

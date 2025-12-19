@@ -14,7 +14,6 @@ Add `Vitarish.Entities` for the core entities and `Vitarish.Entities.SignalR.Cli
 ## Register services
 
 ```csharp
-builder.Services.AddSignalR();
 builder.Services.AddVitarishEntityManagement();  // generated or manual registration of handlers/caches
 builder.Services.AddSingleton<IEntityUserService, HttpContextEntityUserService>();
 builder.Services.AddSingleton<IEntityTimeService, EntityTimeService>();

@@ -21,7 +21,7 @@ public class RemoveUserAccessClaimCommandHandler(
     {
         User user = await manager.FindByIdAsync(request.UserId) ?? throw new InvalidDataException("Invalid user id");
         IList<Claim> claims = await manager.GetClaimsAsync(user);
-        Claim? claim = claims.FirstOrDefault(c => c.Type == AaasConstants.AccessClaim && c.Value.StartsWith(request.ClientId + ":"));
+        Claim? claim = claims.FirstOrDefault(c => c.Type == IdentityAccessConstants.AccessClaim && c.Value.StartsWith(request.ClientId + ":"));
         if (claim is null)
         {
             return;
