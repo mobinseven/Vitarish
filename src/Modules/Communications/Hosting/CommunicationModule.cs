@@ -28,7 +28,7 @@ public class CommunicationModule : ModuleBase
     protected override void ConfigureEndpoints(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapMessagesEndpoints();
-        endpoints.MapHub<MessagesHub>("/hubs/messages");
+        endpoints.MapHub<MessagesHub>("/communications/hubs/messages");
     }
 
     /// <inheritdoc />
