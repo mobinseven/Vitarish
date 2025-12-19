@@ -1,0 +1,19 @@
+namespace Vitarish.Main.Pages.Account;
+
+public partial class PasskeyLogin
+{
+    [SupplyParameterFromQuery]
+    protected string? FailureMessage { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (HttpContext?.User.Identity?.IsAuthenticated ?? false)
+        {
+            RedirectManager.RedirectTo(ReturnUrl);
+        }
+        if (HttpMethods.IsGet(HttpContext?.Request.Method))
+        {
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+        }
+    }
+}

@@ -1,5 +1,6 @@
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using Finbuckle.MultiTenant;
+using Google.Api;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using Vitarish.ApiClients.Hosting.Api;
@@ -52,6 +53,19 @@ IEnumerable<Assembly> requestedModuleAssemblies = [
 
 _ = await builder.AddModules(requestedModuleAssemblies, configureSqlServer);
 
+builder.Services.AddRazorComponents()
+                .AddInteractiveServerComponents()
+                .AddHubOptions(options =>
+                {
+                    options.EnableDetailedErrors = true;
+                    options.ClientTimeoutInterval = TimeSpan.FromMinutes(10);
+                    options.MaximumParallelInvocationsPerClient = 1;
+                    options.MaximumReceiveMessageSize = 128 * 1024;
+                });
+_ = builder.Services.AddRazorPages(options =>
+{
+    options.RootDirectory = "/Pages";
+});
 builder.AddAccountsInterface();
 builder.AddApplicationOptions();
 
@@ -88,6 +102,11 @@ _ = builder.Services.AddMultiTenant<TenantInfo>()
             ? await MultitenantHelpers.ResolveTenantAsync(httpContext)
             : throw new InvalidOperationException("context is not HttpContext");
     });
+
+_ = builder.Services.AddSignalR(o =>
+{
+    o.EnableDetailedErrors = true;
+}).AddMessagePackProtocol();
 
 WebApplication app = builder.Build();
 app.UseDashboardServices();
@@ -154,12 +173,13 @@ app.MapAdminEndpoints().AddEndpointAuthorization();
 
 app.MapRequestIdentityEndpoints().AddEndpointAuthorization();
 
+_ = app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
+_ = app.MapRazorPages();
 app.MapAccountsInterface();
 
 app.MapHangfireDashboard();
 
 app.ScheduleSelfTriggeringJobs();
 
-_ = app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 
 app.Run();
