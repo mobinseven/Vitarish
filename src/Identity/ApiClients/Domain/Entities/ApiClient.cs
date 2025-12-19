@@ -16,10 +16,4 @@ public class ApiClient
 
     /// <summary>Base URI of the client.</summary>
     public required string HostUri { get; set; }
-
-    /// <summary>Tenant identifier associated with this client.</summary>
-    public string? TenantId { get; set; }
-
-    /// <summary>Owner identifier associated with this client.</summary>
-    public string? OwnerId { get; set; }
 }

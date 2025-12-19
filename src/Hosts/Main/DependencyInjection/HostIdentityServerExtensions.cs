@@ -1,6 +1,7 @@
 using Duende.IdentityServer.EntityFramework.Stores;
 using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
+using Duende.IdentityServer.Validation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
@@ -36,7 +37,8 @@ public static class HostIdentityServerExtensions
             .AddResourceStore<IdentityResourcesStore>()
             .AddOperationalStore(options => options.ConfigureDbContext = configureSqlServer)
             .AddAspNetIdentity<User>()
-            .AddProfileService<PartyProfileService>();
+            .AddProfileService<PartyProfileService>()
+            .AddCustomTokenRequestValidator<ApiClientClaimsService>();
 
         _ = builder.Services.AddScoped<IEventSink, SecurityEventLogger>();
         _ = builder.Services.AddTransient<IPersistedGrantStore, PersistedGrantStore>();
