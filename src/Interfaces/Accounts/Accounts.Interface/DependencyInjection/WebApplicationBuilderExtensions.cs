@@ -12,19 +12,6 @@ public static class WebApplicationBuilderExtensions
     {
         _ = builder.Services.AddMudServices();
         _ = builder.Services.AddHttpContextAccessor();
-        builder.Services.AddRazorComponents()
-                        .AddInteractiveServerComponents()
-                        .AddHubOptions(options =>
-                        {
-                            options.EnableDetailedErrors = true;
-                            options.ClientTimeoutInterval = TimeSpan.FromMinutes(10);
-                            options.MaximumParallelInvocationsPerClient = 1;
-                            options.MaximumReceiveMessageSize = 128 * 1024;
-                        });
-        _ = builder.Services.AddRazorPages(options =>
-        {
-            options.RootDirectory = "/Presentation/Pages";
-        });
         _ = builder.Services.AddCascadingAuthenticationState();
         _ = builder.Services.AddScoped<IdentityRedirectManager>();
         _ = builder.Services.AddScoped<UserProfileService>();
@@ -58,7 +45,6 @@ public static class WebApplicationBuilderExtensions
     }
     public static void MapAccountsInterface(this WebApplication app)
     {
-        _ = app.MapRazorPages();
         _ = app.MapAdditionalIdentityEndpoints();
     }
 }

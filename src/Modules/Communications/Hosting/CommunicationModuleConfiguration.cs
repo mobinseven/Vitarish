@@ -14,7 +14,6 @@ public static class CommunicationModuleConfiguration
     {
         _ = services.AddTransient<IMessagesService, MessagesService>();
         _ = services.AddTransient<ISmsProvider, SmsDotIrProvider>();
-        _ = services.AddSignalR().AddMessagePackProtocol();
         return services;
     }
 }

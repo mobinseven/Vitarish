@@ -63,8 +63,6 @@ internal static class FilesModuleConfiguration
 
         services.AddVitarishFilesDomainEntityHandlers();
         _ = services.AddVitarishFilesInfrastructure();
-
-        _ = services.AddSignalR().AddMessagePackProtocol();
     }
 
     public static void ConfigureEndpoints(IEndpointRouteBuilder endpoints)

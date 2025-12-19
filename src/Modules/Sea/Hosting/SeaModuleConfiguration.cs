@@ -18,7 +18,6 @@ internal static class SeaModuleConfiguration
         // Reserved for future Sea-specific configuration binding.
         _ = configuration;
         _ = services.AddMemoryCache();
-        _ = services.AddSignalR().AddMessagePackProtocol();
 
         _ = services.AddDbContext<SeaDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Scoped);
 

@@ -49,7 +49,6 @@ internal static class IntelligenceModuleConfiguration
         _ = services.AddTransient<IResponder, ProviderDispatchingResponder>();
         _ = services.AddSingleton<ITranscriber, ProviderDispatchingTranscriber>();
         _ = services.AddAntiforgery();
-        _ = services.AddSignalR().AddMessagePackProtocol();
     }
 
     internal static void ConfigureHealthChecks(IServiceCollection services) =>
