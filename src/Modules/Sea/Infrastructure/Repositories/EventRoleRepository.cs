@@ -2,7 +2,7 @@ using Vitarish.Sea.Infrastructure.Data;
 
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
-[RegisterTransient]
+[RegisterScoped]
 internal class EventRoleRepository(SeaDbContext dbContext)
     : EntityRepository<EventRole, EventRoleDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<EventRole, EventRoleDescriptor>

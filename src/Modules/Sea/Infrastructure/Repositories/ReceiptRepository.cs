@@ -2,7 +2,7 @@ using Vitarish.Sea.Infrastructure.Data;
 
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
-[RegisterTransient]
+[RegisterScoped]
 internal class ReceiptRepository(SeaDbContext dbContext)
     : EntityRepository<Receipt, ReceiptDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Receipt, ReceiptDescriptor>

@@ -4,7 +4,7 @@ using Vitarish.Files.Infrastructure.Data;
 
 namespace Vitarish.Files.Infrastructure.Repositories;
 
-[RegisterTransient]
+[RegisterScoped]
 public sealed class FileInformationRepository(FilesDbContext dbContext)
     : EntityRepository<FileInformation, FileInformationDescriptor, FilesDbContext>(dbContext), IEntityRepository<FileInformation, FileInformationDescriptor>
 {
