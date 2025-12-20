@@ -24,3 +24,7 @@ This repository uses a modular .NET solution that separates client-facing APIs, 
 - Add corresponding tests under `tests/` matching the `src/` path to maintain symmetry.
 
 Use this map as a starting point; dive into the relevant module folder for deeper details and existing patterns.
+
+## Pull requests
+
+Always check for a successful build and passing all tests before creating a PR.
