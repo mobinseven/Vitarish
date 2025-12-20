@@ -18,7 +18,7 @@ namespace Vitarish.Main.Services
             HttpContext? httpContext = httpConnectionFeature?.HttpContext;
             if (httpContext != null)
             {
-                RequestsContextExtensions.PopulateContext(httpContext, writer);
+                await RequestsContextExtensions.PopulateContext(httpContext, writer);
             }
             return await next(invocationContext);
         }

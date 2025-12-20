@@ -32,7 +32,7 @@ public sealed class RequestsContextMiddleware
         var writer = context.RequestServices.GetService<IRequestContextWriter>();
         if (writer != null)
         {
-            RequestsContextExtensions.PopulateContext(context, writer);
+            await RequestsContextExtensions.PopulateContext(context, writer);
         }
 
         await _next(context);
