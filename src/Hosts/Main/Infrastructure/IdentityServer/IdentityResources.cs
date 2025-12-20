@@ -14,6 +14,6 @@ public static partial class IdentityDefinitions
                 new IdentityResources.Profile(),
                 new IdentityResources.Email(),
                 new IdentityResources.Phone(),
-                new IdentityResource(IdentityAccessConstants.AccessScope, "Tenant and Owner Information", [TenantIdClaim, OwnerIdClaim])
+                new IdentityResource(TenantOwnerScope, "Tenant and Owner Information", [TenantIdClaim, OwnerIdClaim])
             ];
 }
