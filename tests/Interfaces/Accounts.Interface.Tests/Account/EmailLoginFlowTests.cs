@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging.Abstractions;
 using Vitarish.Accounts.Domain.Models;
 using Vitarish.Accounts.Interface.Components.Account;
-using Vitarish.Accounts.Interface.Pages.Account;
+using Vitarish.Main.Pages.Account;
 using Vitarish.Users.Domain.Entities;
 
 namespace Accounts.Interface.Tests.Account;
