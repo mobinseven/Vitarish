@@ -14,7 +14,7 @@ using MudBlazor;
 using Moq;
 using Vitarish.Accounts.Domain.Models;
 using Vitarish.Accounts.Interface.Components.Account;
-using Vitarish.Accounts.Interface.Pages.Account.Manage;
+using Vitarish.Main.Pages.Account.Manage;
 using Vitarish.ApiClients.Domain.Entities;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
