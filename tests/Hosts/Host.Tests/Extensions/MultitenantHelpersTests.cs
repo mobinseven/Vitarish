@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
@@ -254,11 +255,11 @@ public class MultitenantHelpersTests
         };
 
         // Add test claims
-        System.Security.Claims.ClaimsPrincipal user = new(new System.Security.Claims.ClaimsIdentity(
+        ClaimsPrincipal user = new(new ClaimsIdentity(
         [
-            new System.Security.Claims.Claim(RequestIdentityConstants.TenantIdClaim, expectedTenantId),
-            new System.Security.Claims.Claim(RequestIdentityConstants.OwnerIdClaim, expectedOwnerId),
-            new System.Security.Claims.Claim("client_id", expectedClientId)
+            new Claim(RequestIdentityConstants.TenantIdClaim, expectedTenantId),
+            new Claim(RequestIdentityConstants.OwnerIdClaim, expectedOwnerId),
+            new Claim("client_id", expectedClientId)
         ], "test"));
         httpContext.User = user;
 
