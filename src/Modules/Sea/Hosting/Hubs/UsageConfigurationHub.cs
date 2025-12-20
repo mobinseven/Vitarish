@@ -9,9 +9,9 @@ namespace Vitarish.Sea.Hosting.Hubs;
 public sealed class UsageConfigurationHub(IUsageConfigurationService service, IEntityUserService? entityUserService = null)
     : EntityServer<UsageConfigurationDto, UsageConfigurationWriteDto, UsageConfigurationDescriptorDto, IUsageConfigurationService>(service, entityUserService)
 {
-    public Task<UsageConfigurationDto?> GetUsageConfigurationAsync(CancellationToken cancellationToken) =>
+    public Task<UsageConfigurationDto?> GetUsageConfigurationAsync(CancellationToken cancellationToken = default) =>
         EntityService.GetUsageConfigurationAsync(cancellationToken);
 
-    public Task<UsageConfigurationDto?> UpdateUsageConfigurationAsync(UsageConfigurationWriteDto usageConfigurationDto, CancellationToken cancellationToken) =>
+    public Task<UsageConfigurationDto?> UpdateUsageConfigurationAsync(UsageConfigurationWriteDto usageConfigurationDto, CancellationToken cancellationToken = default) =>
         EntityService.UpdateAsync(usageConfigurationDto, cancellationToken);
 }
