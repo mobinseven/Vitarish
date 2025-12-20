@@ -2,9 +2,9 @@ using Vitarish.Files.Application.Abstractions;
 
 namespace Vitarish.Files.Infrastructure.Services;
 
-public class FileInformationService(IServiceScopeFactory serviceScopeFactory, FileInformationMapper mapper)
+public class FileInformationService(IMediator mediator, FileInformationMapper mapper)
     : EntityService<FileInformation, FileInformationDescriptor, FileInformationDto, FileInformationWriteDto, FileInformationDescriptorDto>(
-        serviceScopeFactory, 
+        mediator, 
         mapper.ToDto, 
         mapper.ToDomain, 
         mapper.ToDomain),

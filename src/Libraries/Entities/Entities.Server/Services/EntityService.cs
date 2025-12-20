@@ -1,7 +1,7 @@
 namespace Vitarish.Entities.Server.Services;
 
 public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, TDescriptorDto>(
-    IServiceScopeFactory serviceScopeFactory,
+    IMediator mediator,
     Func<TEntity, TReadDto> outgoingMap,
     Func<TWriteDto, TEntity> incomingMap,
     Func<TDescriptorDto, TDescriptor> descriptorMap) : IEntityService<TReadDto, TWriteDto, TDescriptorDto>
@@ -11,35 +11,12 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
     where TWriteDto : EntityWriteDto
     where TDescriptorDto : EntityDescriptorDto
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
+    private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
     private readonly Func<TEntity, TReadDto> _outgoingMap = outgoingMap ?? throw new ArgumentNullException(nameof(outgoingMap));
     private readonly Func<TWriteDto, TEntity> _incomingMap = incomingMap ?? throw new ArgumentNullException(nameof(incomingMap));
 
+    protected IMediator Mediator => _mediator;
     protected Func<TDescriptorDto, TDescriptor> DescriptorMap { get; } = descriptorMap ?? throw new ArgumentNullException(nameof(descriptorMap));
-
-    /// <summary>
-    /// Executes a MediatR operation within a new service scope to prevent IServiceProvider disposal issues.
-    /// This ensures that the service provider used by MediatR to resolve handlers is not disposed during async operations.
-    /// </summary>
-    private async Task<TResult> ExecuteInScopeAsync<TResult>(Func<IMediator, Task<TResult>> operation, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        using IServiceScope scope = _serviceScopeFactory.CreateScope();
-        IMediator mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-        return await operation(mediator);
-    }
-
-    /// <summary>
-    /// Executes a MediatR operation within a new service scope to prevent IServiceProvider disposal issues.
-    /// This overload is for operations that don't return a value.
-    /// </summary>
-    private async Task ExecuteInScopeAsync(Func<IMediator, Task> operation, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        using IServiceScope scope = _serviceScopeFactory.CreateScope();
-        IMediator mediator = scope.ServiceProvider.GetRequiredService<IMediator>();
-        await operation(mediator);
-    }
 
     public Task<EntityResult<TReadDto>> AddAsync(TWriteDto dto, CancellationToken cancellationToken) => ExecuteDtoAsync(
                 mediator => mediator.Send(new AddEntityCommand<TEntity, TDescriptor>(_incomingMap(dto)), cancellationToken),
@@ -218,7 +195,8 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
     {
         try
         {
-            await ExecuteInScopeAsync(action, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            await action(Mediator);
             return EntityResult.Success();
         }
         catch (EntityFailureException ex)
@@ -255,7 +233,8 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
 
         try
         {
-            TSource? entity = await ExecuteInScopeAsync(action, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            TSource? entity = await action(Mediator);
             return entity is null ? EntityResult<TProjection>.Failure(nullErrorFactory()) : EntityResult<TProjection>.Success(map(entity));
         }
         catch (EntityFailureException ex)
@@ -281,7 +260,8 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
 
         try
         {
-            IReadOnlyList<TSource> entities = await ExecuteInScopeAsync(action, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            IReadOnlyList<TSource> entities = await action(Mediator);
             return EntityResult<IReadOnlyList<TProjection>>.Success(MapList(entities, map));
         }
         catch (EntityFailureException ex)
@@ -316,7 +296,8 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
 
         try
         {
-            PartedResult<TSource> result = await ExecuteInScopeAsync(action, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            PartedResult<TSource> result = await action(Mediator);
             return EntityResult<PartedResult<TProjection>>.Success(
                 new PartedResult<TProjection>(MapList(result.Items, map), result.TotalItems));
         }
@@ -335,7 +316,8 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
 
         try
         {
-            int value = await ExecuteInScopeAsync(action, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+            int value = await action(Mediator);
             return EntityResult<int>.Success(value);
         }
         catch (EntityFailureException ex)
