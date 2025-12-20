@@ -4,7 +4,7 @@ using Vitarish.Sea.Infrastructure.Helpers;
 
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
-[RegisterTransient]
+[RegisterScoped]
 internal class RoleRepository(SeaDbContext dbContext)
     : EntityRepository<Role, RoleDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Role, RoleDescriptor>

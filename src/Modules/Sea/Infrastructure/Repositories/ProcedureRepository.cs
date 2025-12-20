@@ -11,7 +11,7 @@ using Vitarish.Sea.Domain.Models;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.Helpers;
 
-[RegisterTransient]
+[RegisterScoped]
 internal class ProcedureRepository(SeaDbContext dbContext)
     : EntityRepository<Procedure, ProcedureDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Procedure, ProcedureDescriptor>

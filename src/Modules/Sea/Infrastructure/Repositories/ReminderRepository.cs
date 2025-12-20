@@ -4,7 +4,7 @@ using Vitarish.Sea.Infrastructure.Helpers;
 
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
-[RegisterTransient]
+[RegisterScoped]
 internal class ReminderRepository(SeaDbContext dbContext)
     : EntityRepository<Reminder, ReminderDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Reminder, ReminderDescriptor>

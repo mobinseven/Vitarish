@@ -12,7 +12,7 @@ using Vitarish.Sea.Domain.Models;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.Helpers;
 
-[RegisterTransient]
+[RegisterScoped]
 internal class ProjectRepository(SeaDbContext dbContext)
     : EntityRepository<Project, ProjectDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Project, ProjectDescriptor>

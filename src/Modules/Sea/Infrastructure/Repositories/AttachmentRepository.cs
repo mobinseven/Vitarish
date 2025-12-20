@@ -4,7 +4,7 @@ using Vitarish.Sea.Infrastructure.Helpers;
 
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
-[RegisterTransient]
+[RegisterScoped]
 internal class AttachmentRepository(SeaDbContext dbContext)
     : EntityRepository<Attachment, AttachmentDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Attachment, AttachmentDescriptor>

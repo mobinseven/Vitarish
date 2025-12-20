@@ -2,7 +2,7 @@ using Vitarish.Sea.Infrastructure.Data;
 
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
-[RegisterTransient]
+[RegisterScoped]
 internal class UserRoleRepository(SeaDbContext dbContext)
     : EntityRepository<UserRole, UserRoleDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<UserRole, UserRoleDescriptor>

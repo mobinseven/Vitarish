@@ -12,7 +12,7 @@ using Vitarish.Sea.Domain.Models;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.Helpers;
 
-[RegisterTransient]
+[RegisterScoped]
 internal class EventRepository(SeaDbContext dbContext)
     : EntityRepository<Event, EventDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Event, EventDescriptor>
