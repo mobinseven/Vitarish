@@ -94,14 +94,12 @@ _ = builder.Services.AddControllers();
 _ = builder.Services.AddEndpointsApiExplorer();
 _ = builder.Services.AddLocalization();
 _ = builder.AddDashboardServices();
-_ = builder.Services.AddMultiTenant<TenantInfo>()
-    .WithEchoStore()
-    .WithDelegateStrategy(async context =>
-    {
-        return context is HttpContext httpContext
+Func<object, Task<string?>> tenantResolverMiddleware = async context => context is HttpContext httpContext
             ? await MultitenantHelpers.ResolveTenantAsync(httpContext)
             : throw new InvalidOperationException("context is not HttpContext");
-    });
+_ = builder.Services.AddMultiTenant<TenantInfo>()
+    .WithEchoStore()
+    .WithDelegateStrategy(tenantResolverMiddleware);
 
 _ = builder.Services.AddSignalR(o =>
 {
