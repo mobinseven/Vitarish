@@ -13,10 +13,9 @@ using Vitarish.Sea.Application.Commands.Attachments;
 
 [RegisterScoped]
 internal sealed class AttachmentsService(
-    IServiceScopeFactory serviceScopeFactory,
     IMediator mediator,
     AttachmentsMapper mapper)
-    : EntityService<Attachment, AttachmentDescriptor, AttachmentDto, AttachmentWriteDto, AttachmentDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IAttachmentsService
+    : EntityService<Attachment, AttachmentDescriptor, AttachmentDto, AttachmentWriteDto, AttachmentDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IAttachmentsService
 {
     private readonly IMediator _mediator = mediator;
     public async Task<IReadOnlyList<AttachmentDto>> GetByEventAsync(Guid eventId, CancellationToken cancellationToken)

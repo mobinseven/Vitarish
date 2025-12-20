@@ -6,8 +6,8 @@ using Vitarish.Sea.Application.Commands.Roles;
 namespace Vitarish.Sea.Infrastructure.Services;
 
 [RegisterScoped]
-internal class EventRolesService(IServiceScopeFactory serviceScopeFactory, IMediator mediator, EventRolesMapper mapper)
-    : EntityService<EventRole, EventRoleDescriptor, EventRoleDto, EventRoleWriteDto, EventRoleDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IEventRolesService
+internal class EventRolesService(IMediator mediator, EventRolesMapper mapper)
+    : EntityService<EventRole, EventRoleDescriptor, EventRoleDto, EventRoleWriteDto, EventRoleDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IEventRolesService
 {
     private readonly IMediator _mediator = mediator;
     public async Task<(IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)> GetIdsAsync(Guid eventId, CancellationToken cancellationToken)

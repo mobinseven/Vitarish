@@ -10,11 +10,10 @@ using Vitarish.Sea.Infrastructure.Extensions;
 
 [RegisterScoped]
 internal class EventsService(
-    IServiceScopeFactory serviceScopeFactory,
     IMediator mediator,
     EventsMapper mapper,
     IAttachmentsService attachmentsService)
-    : EntityService<Event, EventDescriptor, EventDto, EventWriteDto, EventDescriptorDto>(serviceScopeFactory, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IEventsService
+    : EntityService<Event, EventDescriptor, EventDto, EventWriteDto, EventDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IEventsService
 {
     private readonly IMediator _mediator = mediator;
 
