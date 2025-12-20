@@ -3,6 +3,13 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
+using Minio;
+using Vitarish.Files.Application.Abstractions;
+using Vitarish.Files.Domain.Options;
+using Vitarish.Files.Hosting.Hubs;
+using Vitarish.Files.Infrastructure.Data;
+using Vitarish.Files.Infrastructure.Interfaces;
 using Vitarish.Files.Infrastructure.Services;
 using Vitarish.Modules.Base;
 
@@ -40,20 +47,75 @@ public class FilesModule : ModuleBase
         IConfiguration configuration,
         Action<DbContextOptionsBuilder>? configureDbContext)
     {
-        Action<DbContextOptionsBuilder>? dbConfigurator = configureDbContext ?? this.configureDbContext;
-        if (dbConfigurator is null)
+        Action<DbContextOptionsBuilder>? dbConfigurator = (configureDbContext ?? this.configureDbContext) ?? throw new InvalidOperationException("FilesModule requires a DbContext configuration delegate.");
+
+        _ = services.AddSingleton<IMinioClient>(_ =>
         {
-            throw new InvalidOperationException("FilesModule requires a DbContext configuration delegate.");
+            MinioOptions minioOptions = _.GetRequiredService<IOptions<MinioOptions>>().Value;
+            IMinioClient clientBuilder = new MinioClient()
+                .WithEndpoint(minioOptions.Endpoint, minioOptions.Port)
+                .WithCredentials(minioOptions.AccessKey, minioOptions.SecretKey);
+
+            if (minioOptions.UseSsl)
+            {
+                clientBuilder = clientBuilder.WithSSL();
+            }
+
+            return clientBuilder.Build();
+        });
+
+        _ = services.AddSingleton<IObjectStorageService, MinioObjectStorageService>();
+        _ = services.AddHttpClient(nameof(ObjectStorageMiddleware))
+            .ConfigureHttpClient((sp, client) =>
+            {
+                MinioOptions minioOptions = sp.GetRequiredService<IOptions<MinioOptions>>().Value;
+                client.Timeout = TimeSpan.FromSeconds(minioOptions.HttpRequestTimeoutSeconds);
+            });
+        _ = services.AddScoped<IFilesService, FilesService>();
+        _ = services.AddScoped<IFileInformationService, FileInformationService>();
+        _ = services.AddControllers();
+
+        if (configureDbContext != null)
+        {
+            _ = services.AddDbContext<FilesDbContext>((sp, options) =>
+            {
+                configureDbContext(options);
+            }, ServiceLifetime.Transient, ServiceLifetime.Transient);
+
+            _ = services.AddDbContextPool<FilesDbContext>((_, options) =>
+            {
+                configureDbContext(options);
+            });
         }
 
-        FilesModuleConfiguration.ConfigureServices(services, configuration, dbConfigurator);// Placeholder: options binding customizations can be added here as the module evolves.
+        services.AddVitarishFilesDomainEntityHandlers();
+        _ = services.AddVitarishFilesInfrastructure();
     }
 
     /// <inheritdoc />
-    protected override void ConfigureEndpoints(IEndpointRouteBuilder endpoints) => FilesModuleConfiguration.ConfigureEndpoints(endpoints);
+    protected override void ConfigureEndpoints(IEndpointRouteBuilder endpoints)
+    {
+        if (endpoints is not WebApplication app)
+        {
+            throw new InvalidOperationException("FilesModule requires a WebApplication for endpoint configuration.");
+        }
+
+        _ = app.UseMiddleware<FileLoadCors>();
+        _ = app.UseMiddleware<ObjectStorageMiddleware>();
+        _ = app.MapHub<FilesHub>("/files/hubs/transfer");
+    }
 
     /// <inheritdoc />
-    protected override Task ConfigureEndpointsAsync(IEndpointRouteBuilder endpoints) => FilesModuleConfiguration.ConfigureEndpointsAsync(endpoints);
+    protected override async Task ConfigureEndpointsAsync(IEndpointRouteBuilder endpoints)
+    {
+        if (endpoints is not WebApplication app)
+        {
+            throw new InvalidOperationException("FilesModule requires a WebApplication for endpoint configuration.");
+        }
+        using IServiceScope scope = app.Services.CreateScope();
+        IObjectStorageService storage = scope.ServiceProvider.GetRequiredService<IObjectStorageService>();
+        await storage.EnsureBucketAsync(app.Lifetime.ApplicationStopping);
+    }
 
     /// <inheritdoc />
     protected override void ConfigureHealthChecks(WebApplicationBuilder builder) =>

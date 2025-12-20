@@ -54,15 +54,4 @@ public static class IdentityRequestsExtensions
 
         return services;
     }
-
-    /// <summary>
-    /// Adds the middleware that populates <see cref="IRequestContext"/> from HttpContext.User claims.
-    /// This should be called after authentication middleware.
-    /// </summary>
-    /// <param name="app">The application builder.</param>
-    /// <returns>The application builder for chaining.</returns>
-    public static IApplicationBuilder UseRequestsContextMiddleware(this IApplicationBuilder app)
-    {
-        return app.UseMiddleware<RequestIdentityContextMiddleware>();
-    }
 }

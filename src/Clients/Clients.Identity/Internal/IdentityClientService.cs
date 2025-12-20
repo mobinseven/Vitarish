@@ -36,18 +36,18 @@ public class IdentityClientService(
 
     public async Task<string> GetAccessTokenAsync()
     {
-        if (TryGetValidToken(out string? cachedToken))
-        {
-            return cachedToken;
-        }
+        //if (TryGetValidToken(out string? cachedToken))
+        //{
+        //    return cachedToken;
+        //}
 
         await tokenLock.WaitAsync();
         try
         {
-            if (TryGetValidToken(out cachedToken))
-            {
-                return cachedToken;
-            }
+            //if (TryGetValidToken(out cachedToken))
+            //{
+            //    return cachedToken;
+            //}
 
             HttpClient client = httpClientFactory.CreateClient();
             DiscoveryDocumentResponse discoveryDocument = await client.GetDiscoveryDocumentAsync(options.Value.Authority);

@@ -12,14 +12,14 @@ namespace Vitarish.Sea.Hosting;
 
 internal static class SeaApiEndpoints
 {
-    public static void MapSeaEndpoints(this IEndpointRouteBuilder endpoints)
+    public static RouteGroupBuilder MapSeaEndpoints(this IEndpointRouteBuilder endpoints)
     {
         if (endpoints is not WebApplication app)
         {
             throw new InvalidOperationException("SeaModule requires a WebApplication for endpoint configuration.");
         }
 
-        RouteGroupBuilder group = app.MapGroup("/api/sea").WithTags("Sea").RequireAuthorization();
+        RouteGroupBuilder group = app.MapGroup("/api/sea").WithTags("Sea");
 
         MapProjects(group);
         MapProcedures(group);
@@ -33,6 +33,7 @@ internal static class SeaApiEndpoints
         MapGodView(group);
         MapUsageConfiguration(group);
         MapDatabaseStatistics(group);
+        return group;
     }
 
     private static void MapProjects(RouteGroupBuilder group)

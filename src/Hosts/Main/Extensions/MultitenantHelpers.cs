@@ -6,7 +6,7 @@ public static class MultitenantHelpers
     /// <summary>
     /// Resolves the tenant identifier from the request context.
     /// Uses IHttpContextAccessor to ensure we get the IRequestContext from the correct request scope,
-    /// which is populated by RequestIdentityContextMiddleware.
+    /// which is populated by RequestsContextMiddleware.
     /// </summary>
     /// <param name="context">The HTTP context (may be from Finbuckle delegate strategy).</param>
     /// <returns>The tenant identifier, owner identifier, or client identifier.</returns>
@@ -19,7 +19,7 @@ public static class MultitenantHelpers
 
         // Get IHttpContextAccessor to ensure we use the correct request-scoped HttpContext.
         // The context parameter from Finbuckle's delegate may not have the same service scope
-        // as the one populated by RequestIdentityContextMiddleware.
+        // as the one populated by RequestsContextMiddleware.
         IHttpContextAccessor? httpContextAccessor = context.RequestServices.GetService<IHttpContextAccessor>();
         HttpContext? currentContext = httpContextAccessor?.HttpContext ?? context;
 

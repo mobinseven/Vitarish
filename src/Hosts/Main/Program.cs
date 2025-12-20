@@ -1,6 +1,7 @@
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using Finbuckle.MultiTenant;
 using Google.Api;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using Vitarish.ApiClients.Hosting.Api;
@@ -17,6 +18,7 @@ using Vitarish.Main.Components;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
 using Vitarish.Main.Infrastructure.Options;
+using Vitarish.Main.Services;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Hosting.Api;
 using Vitarish.Parties.Hosting.DependencyInjection;
@@ -149,7 +151,7 @@ _ = app.UseAuthorization();
 
 _ = app.UseAntiforgery();
 
-app.UseRequestsContextMiddleware();
+app.UseMiddleware<RequestsContextMiddleware>();
 
 _ = app.UseMultiTenant();
 

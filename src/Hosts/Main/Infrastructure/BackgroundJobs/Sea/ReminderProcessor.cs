@@ -1,10 +1,10 @@
 using Hangfire;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Models;
+using Vitarish.Parties.Domain.Entities;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 using Vitarish.Sea.Domain.Enums;
-using Vitarish.Sea.Infrastructure.Extensions;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 
@@ -29,18 +29,20 @@ public class ReminderProcessor(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
+        async Task perTenantAsync(IServiceProvider provider, IJobCancellationToken jobToken, CancellationToken shutdownToken)
+        {
+            var ctx = provider.GetRequiredService<IRequestContext>();
+            TenantReminderContext tenantContext = new(
+                provider.GetRequiredService<IRemindersService>(),
+                provider.GetRequiredService<IMessagesService>());
+
+            await ProcessTenantRemindersAsync(tenantContext, jobToken, shutdownToken);
+        }
+
         await _tenantBackgroundExecutor.ExecutePerTenantAsync(
             BackgroundResource,
             cancellationToken,
-            async (provider, _, jobToken, shutdownToken) =>
-            {
-                TenantReminderContext tenantContext = new(
-                    provider.GetRequiredService<IRemindersService>(),
-                    provider.GetRequiredService<IEventsService>(),
-                    provider.GetRequiredService<IMessagesService>());
-
-                await ProcessTenantRemindersAsync(tenantContext, jobToken, shutdownToken);
-            });
+            perTenantAsync);
     }
 
     private async Task ProcessTenantRemindersAsync(
@@ -72,15 +74,6 @@ public class ReminderProcessor(
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
-        EventDto? evt = await tenantContext.EventsService
-            .GetAsync(reminder.EventId, cancellationToken)
-            .GetValueOrDefaultAsync();
-        if (evt is null)
-        {
-            await tenantContext.RemindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
-            return;
-        }
-
         string htmlbody = $"<p>{System.Net.WebUtility.HtmlEncode(reminder.TextBody)}</p>";
 
         bool shouldSkipQuietHours = false;
@@ -166,6 +159,5 @@ public class ReminderProcessor(
 
     private readonly record struct TenantReminderContext(
         IRemindersService RemindersService,
-        IEventsService EventsService,
         IMessagesService MessagesService);
 }

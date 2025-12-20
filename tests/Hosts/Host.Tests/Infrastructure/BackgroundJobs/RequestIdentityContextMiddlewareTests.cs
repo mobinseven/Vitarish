@@ -1,7 +1,9 @@
 using System.Security.Claims;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Main.Services;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Hosting.Middleware;
 using Vitarish.Requests.Infrastructure.Services;
@@ -65,7 +67,7 @@ public class RequestIdentityContextMiddlewareTests
         HttpContext httpContext = CreateHttpContext(scope.ServiceProvider, user);
 
         bool nextCalled = false;
-        RequestIdentityContextMiddleware middleware = new((ctx) =>
+        RequestsContextMiddleware middleware = new((ctx) =>
         {
             nextCalled = true;
             return Task.CompletedTask;
@@ -95,7 +97,7 @@ public class RequestIdentityContextMiddlewareTests
         HttpContext httpContext = CreateHttpContext(scope.ServiceProvider, user);
 
         bool nextCalled = false;
-        RequestIdentityContextMiddleware middleware = new((ctx) =>
+        RequestsContextMiddleware middleware = new((ctx) =>
         {
             nextCalled = true;
             return Task.CompletedTask;
@@ -121,7 +123,7 @@ public class RequestIdentityContextMiddlewareTests
         using IServiceScope scope = CreateScope(rootProvider);
         HttpContext httpContext = CreateHttpContext(scope.ServiceProvider);
 
-        RequestIdentityContextMiddleware middleware = new((ctx) => Task.CompletedTask);
+        RequestsContextMiddleware middleware = new((ctx) => Task.CompletedTask);
 
         // Act
         await middleware.InvokeAsync(httpContext);
@@ -142,7 +144,7 @@ public class RequestIdentityContextMiddlewareTests
         using IServiceScope scope = CreateScope(rootProvider);
         HttpContext httpContext = CreateHttpContext(scope.ServiceProvider, requestIdHeader: expectedRequestId);
 
-        RequestIdentityContextMiddleware middleware = new((ctx) => Task.CompletedTask);
+        RequestsContextMiddleware middleware = new((ctx) => Task.CompletedTask);
 
         // Act
         await middleware.InvokeAsync(httpContext);
@@ -160,7 +162,7 @@ public class RequestIdentityContextMiddlewareTests
         using IServiceScope scope = CreateScope(rootProvider);
         HttpContext httpContext = CreateHttpContext(scope.ServiceProvider);
 
-        RequestIdentityContextMiddleware middleware = new((ctx) => Task.CompletedTask);
+        RequestsContextMiddleware middleware = new((ctx) => Task.CompletedTask);
 
         // Act
         await middleware.InvokeAsync(httpContext);
@@ -186,7 +188,7 @@ public class RequestIdentityContextMiddlewareTests
         using IServiceScope scope = CreateScope(rootProvider);
         HttpContext httpContext = CreateHttpContext(scope.ServiceProvider, user);
 
-        RequestIdentityContextMiddleware middleware = new((ctx) => Task.CompletedTask);
+        RequestsContextMiddleware middleware = new((ctx) => Task.CompletedTask);
 
         // Act
         await middleware.InvokeAsync(httpContext);
@@ -211,7 +213,7 @@ public class RequestIdentityContextMiddlewareTests
         using IServiceScope scope = CreateScope(rootProvider);
         HttpContext httpContext = CreateHttpContext(scope.ServiceProvider, user);
 
-        RequestIdentityContextMiddleware middleware = new((ctx) => Task.CompletedTask);
+        RequestsContextMiddleware middleware = new((ctx) => Task.CompletedTask);
 
         // Act
         await middleware.InvokeAsync(httpContext);
@@ -237,7 +239,7 @@ public class RequestIdentityContextMiddlewareTests
         using IServiceScope scope = CreateScope(rootProvider);
         HttpContext httpContext = CreateHttpContext(scope.ServiceProvider, user);
 
-        RequestIdentityContextMiddleware middleware = new((ctx) => Task.CompletedTask);
+        RequestsContextMiddleware middleware = new((ctx) => Task.CompletedTask);
 
         // Act
         await middleware.InvokeAsync(httpContext);
@@ -258,7 +260,7 @@ public class RequestIdentityContextMiddlewareTests
         int callOrder = 0;
         int middlewareCallOrder = 0;
 
-        RequestIdentityContextMiddleware middleware = new((ctx) =>
+        RequestsContextMiddleware middleware = new((ctx) =>
         {
             callOrder++;
             middlewareCallOrder = callOrder;
@@ -282,7 +284,7 @@ public class RequestIdentityContextMiddlewareTests
         HttpContext httpContext = CreateHttpContext(provider);
 
         bool nextCalled = false;
-        RequestIdentityContextMiddleware middleware = new((ctx) =>
+        RequestsContextMiddleware middleware = new((ctx) =>
         {
             nextCalled = true;
             return Task.CompletedTask;

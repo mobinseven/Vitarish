@@ -2,6 +2,7 @@ using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Main.Services;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Hosting.Middleware;
 using Vitarish.Requests.Infrastructure.Services;
@@ -44,7 +45,7 @@ public class MultitenantHelpersTests
             RequestServices = scope.ServiceProvider
         };
 
-        // Simulate what RequestIdentityContextMiddleware does
+        // Simulate what RequestsContextMiddleware does
         IRequestContextWriter writer = scope.ServiceProvider.GetRequiredService<IRequestContextWriter>();
         writer.SetContext(
             authority: "test-authority",
@@ -73,7 +74,7 @@ public class MultitenantHelpersTests
             RequestServices = scope.ServiceProvider
         };
 
-        // Simulate what RequestIdentityContextMiddleware does (without tenantId)
+        // Simulate what RequestsContextMiddleware does (without tenantId)
         IRequestContextWriter writer = scope.ServiceProvider.GetRequiredService<IRequestContextWriter>();
         writer.SetContext(
             authority: "test-authority",
@@ -102,7 +103,7 @@ public class MultitenantHelpersTests
             RequestServices = scope.ServiceProvider
         };
 
-        // Simulate what RequestIdentityContextMiddleware does (without tenantId and ownerId)
+        // Simulate what RequestsContextMiddleware does (without tenantId and ownerId)
         IRequestContextWriter writer = scope.ServiceProvider.GetRequiredService<IRequestContextWriter>();
         writer.SetContext(
             authority: "test-authority",
@@ -265,11 +266,11 @@ public class MultitenantHelpersTests
 
         string? resolvedTenant = null;
 
-        // Create middleware that simulates RequestIdentityContextMiddleware followed by tenant resolution
-        RequestIdentityContextMiddleware middleware = new(async ctx =>
+        // Create middleware that simulates RequestsContextMiddleware followed by tenant resolution
+        RequestsContextMiddleware middleware = new(async ctx =>
         {
             // This simulates what the tenant resolver (in UseMultiTenant middleware) would do
-            // after RequestIdentityContextMiddleware has run
+            // after RequestsContextMiddleware has run
             resolvedTenant = await MultitenantHelpers.ResolveTenantAsync(ctx);
         });
 

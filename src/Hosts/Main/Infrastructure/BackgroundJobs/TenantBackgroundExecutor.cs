@@ -24,7 +24,7 @@ public sealed class TenantBackgroundExecutor(
     public async Task ExecutePerTenantAsync(
         string resourceId,
         IJobCancellationToken jobCancellationToken,
-        Func<IServiceProvider, Tenant, IJobCancellationToken, CancellationToken, Task> perTenantAsync,
+        Func<IServiceProvider, IJobCancellationToken, CancellationToken, Task> perTenantAsync,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(resourceId);
@@ -50,7 +50,7 @@ public sealed class TenantBackgroundExecutor(
                     jobCancellationToken.ShutdownToken,
                     cancellationToken);
 
-                await perTenantAsync(scope.ServiceProvider, tenant, jobCancellationToken, linkedCts.Token);
+                await perTenantAsync(scope.ServiceProvider, jobCancellationToken, linkedCts.Token);
             }
             catch (Exception ex) when (ex is not OperationCanceledException)
             {

@@ -1,20 +1,27 @@
 using Vitarish.Main.Services;
-using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Domain.Options;
 using Vitarish.Users.Infrastructure;
 using Vitarish.Users.Infrastructure.Data;
 
 public static class HostAuthenticationExtensions
 {
+    private const string ConfigSection = $"{nameof(Vitarish)}:Identity";
     public static void AddHostAuthentication(this WebApplicationBuilder builder)
     {
 
-        _ = builder.Services
-            .AddAuthentication()
-            .AddLocalApi(options =>
-            {
-                options.ExpectedScope = IdentityAccessConstants.AccessScope;
-            });
+        AuthenticationBuilder authen = builder.Services
+            .AddAuthentication();
+        _ = authen.AddLocalApi(options =>
+        {
+            options.ExpectedScope = IdentityAccessConstants.AccessScope;
+        });
+        _ = authen.AddJwtBearer(jwt =>
+                {
+                    jwt.Authority = builder.Configuration[$"{ConfigSection}:Authority"];
+                    jwt.RequireHttpsMetadata = true;
+                    jwt.TokenValidationParameters.ValidateAudience = false;
+                    jwt.TokenValidationParameters.ValidTypes = ["at+jwt"];
+                });
 
         _ = builder.Services.ConfigureApplicationCookie(options =>
         {
