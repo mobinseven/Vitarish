@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Routing;
+using Vitarish.Clients.Identity.Abstractions;
 using Vitarish.Clients.Interface.Sea.Abstractions;
 using Vitarish.Clients.Interface.Sea.Components.UsageConfigurations;
 using Vitarish.Clients.Interface.Services;
@@ -15,6 +16,7 @@ namespace Vitarish.Sea.Components
         [Inject] private NavigationManager Nav { get; set; } = default!;
         [Inject] private IUsageConfigurationClient UsageConfigurationService { get; set; } = default!;
         [Inject] private IThemeService ThemeService { get; set; } = default!;
+        [Inject] private IIdentityClientContext ClientIdentityContext { get; set; } = default!;
 
         private Task? _themeInitializationTask;
 
