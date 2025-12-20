@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,11 +25,16 @@ public sealed class RequestsContextMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
-        var result = await context.AuthenticateAsync(JwtBearerDefaults.AuthenticationScheme);
+        IAuthenticationService? authenticationService = context.RequestServices.GetService<IAuthenticationService>();
 
-        if (result.Succeeded)
+        if (authenticationService is not null)
         {
-            context.User = result.Principal!;
+            var result = await authenticationService.AuthenticateAsync(context, JwtBearerDefaults.AuthenticationScheme);
+
+            if (result.Succeeded && result.Principal is not null)
+            {
+                context.User = result.Principal;
+            }
         }
 
         IRequestContextWriter? writer = context.RequestServices.GetService<IRequestContextWriter>();
