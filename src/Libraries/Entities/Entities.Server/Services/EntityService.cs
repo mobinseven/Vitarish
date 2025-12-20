@@ -11,7 +11,7 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
     where TWriteDto : EntityWriteDto
     where TDescriptorDto : EntityDescriptorDto
 {
-    private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+    protected IMediator Mediator { get; } = mediator ?? throw new ArgumentNullException(nameof(mediator));
     private readonly Func<TEntity, TReadDto> _outgoingMap = outgoingMap ?? throw new ArgumentNullException(nameof(outgoingMap));
     private readonly Func<TWriteDto, TEntity> _incomingMap = incomingMap ?? throw new ArgumentNullException(nameof(incomingMap));
 
@@ -195,7 +195,7 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            await action(_mediator);
+            await action(Mediator);
             return EntityResult.Success();
         }
         catch (EntityFailureException ex)
@@ -233,7 +233,7 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            TSource? entity = await action(_mediator);
+            TSource? entity = await action(Mediator);
             return entity is null ? EntityResult<TProjection>.Failure(nullErrorFactory()) : EntityResult<TProjection>.Success(map(entity));
         }
         catch (EntityFailureException ex)
@@ -260,7 +260,7 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            IReadOnlyList<TSource> entities = await action(_mediator);
+            IReadOnlyList<TSource> entities = await action(Mediator);
             return EntityResult<IReadOnlyList<TProjection>>.Success(MapList(entities, map));
         }
         catch (EntityFailureException ex)
@@ -296,7 +296,7 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            PartedResult<TSource> result = await action(_mediator);
+            PartedResult<TSource> result = await action(Mediator);
             return EntityResult<PartedResult<TProjection>>.Success(
                 new PartedResult<TProjection>(MapList(result.Items, map), result.TotalItems));
         }
@@ -316,7 +316,7 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
-            int value = await action(_mediator);
+            int value = await action(Mediator);
             return EntityResult<int>.Success(value);
         }
         catch (EntityFailureException ex)

@@ -15,7 +15,6 @@ internal class EventsService(
     IAttachmentsService attachmentsService)
     : EntityService<Event, EventDescriptor, EventDto, EventWriteDto, EventDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IEventsService
 {
-    private readonly IMediator _mediator = mediator;
 
     public async Task<IReadOnlyList<EventDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken)
     {
@@ -28,7 +27,7 @@ internal class EventsService(
         IEnumerable<EventChainChangeDto> chainChangeDtos,
         CancellationToken cancellationToken)
     {
-        await _mediator.Send(
+        await Mediator.Send(
             new UpdateEventsChainCommand(procedureId,
                 [.. chainChangeDtos.Select(dto => new EventChainChange(dto.Id, dto.PreviousEventId))]),
             cancellationToken);
@@ -40,22 +39,22 @@ internal class EventsService(
         Guid? previousEventId,
         CancellationToken cancellationToken)
     {
-        Event? entity = await _mediator.Send(new AddEventAfterCommand(projectId, procedureId, previousEventId), cancellationToken);
+        Event? entity = await Mediator.Send(new AddEventAfterCommand(projectId, procedureId, previousEventId), cancellationToken);
 
         return entity is null ? null : mapper.ToDto(entity);
     }
 
     public Task<bool> MoveUpAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken)
-        => _mediator.Send(new MoveEventUpCommand(procedureId, eventId), cancellationToken);
+        => Mediator.Send(new MoveEventUpCommand(procedureId, eventId), cancellationToken);
 
     public Task<bool> MoveDownAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken)
-        => _mediator.Send(new MoveEventDownCommand(procedureId, eventId), cancellationToken);
+        => Mediator.Send(new MoveEventDownCommand(procedureId, eventId), cancellationToken);
 
     public Task<bool> RemoveEventAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken)
-        => _mediator.Send(new RemoveEventCommand(procedureId, eventId), cancellationToken);
+        => Mediator.Send(new RemoveEventCommand(procedureId, eventId), cancellationToken);
 
     public Task RepairChainAsync(Guid procedureId, CancellationToken cancellationToken)
-        => _mediator.Send(new RepairEventChainCommand(procedureId), cancellationToken);
+        => Mediator.Send(new RepairEventChainCommand(procedureId), cancellationToken);
 
     public async Task<EventDto?> UpdateAsync(
         Guid id,
@@ -75,20 +74,20 @@ internal class EventsService(
     }
 
     public Task CommitAsync(Guid eventId, Guid reporterUserId, DateTimeOffset commitTime, CancellationToken cancellationToken)
-        => _mediator.Send(new CommitEventCommand(eventId, reporterUserId, commitTime), cancellationToken);
+        => Mediator.Send(new CommitEventCommand(eventId, reporterUserId, commitTime), cancellationToken);
 
     public Task<int> CommitAllByProcedureAsync(
         Guid procedureId,
         Guid reporterUserId,
         DateTimeOffset commitTime,
         CancellationToken cancellationToken)
-        => _mediator.Send(new CommitProcedureEventsCommand(procedureId, reporterUserId, commitTime), cancellationToken);
+        => Mediator.Send(new CommitProcedureEventsCommand(procedureId, reporterUserId, commitTime), cancellationToken);
 
     public Task UncommitAsync(Guid eventId, CancellationToken cancellationToken)
-        => _mediator.Send(new UncommitEventCommand(eventId), cancellationToken);
+        => Mediator.Send(new UncommitEventCommand(eventId), cancellationToken);
 
     public Task<int> UncommitAllByProcedureAsync(Guid procedureId, CancellationToken cancellationToken)
-        => _mediator.Send(new UncommitProcedureEventsCommand(procedureId), cancellationToken);
+        => Mediator.Send(new UncommitProcedureEventsCommand(procedureId), cancellationToken);
 
     public async Task<int> GetRemindersCountAsync(Guid eventId, CancellationToken cancellationToken)
     {

@@ -17,7 +17,6 @@ internal sealed class AttachmentsService(
     AttachmentsMapper mapper)
     : EntityService<Attachment, AttachmentDescriptor, AttachmentDto, AttachmentWriteDto, AttachmentDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IAttachmentsService
 {
-    private readonly IMediator _mediator = mediator;
     public async Task<IReadOnlyList<AttachmentDto>> GetByEventAsync(Guid eventId, CancellationToken cancellationToken)
     {
         return (await GetListAsync<GetEventAttachmentsQuery, Attachment>(
@@ -49,7 +48,7 @@ internal sealed class AttachmentsService(
         IEnumerable<AttachmentDto> attachments,
         CancellationToken cancellationToken)
     {
-        await _mediator.Send(
+        await Mediator.Send(
             new AddAttachmentsCommand(
                 eventId,
                 attachments.Select(a => new AttachmentItem(a.Content, a.ContentType, a.ContentThumbnail, a.Size))),
@@ -58,7 +57,7 @@ internal sealed class AttachmentsService(
 
     public async Task RemoveAsync(Guid eventId, Guid attachmentId, CancellationToken cancellationToken)
     {
-        await _mediator.Send(new RemoveAttachmentCommand(eventId, attachmentId), cancellationToken);
+        await Mediator.Send(new RemoveAttachmentCommand(eventId, attachmentId), cancellationToken);
     }
 
     public async Task<AttachmentDto?> UpdateAsync(
@@ -75,7 +74,7 @@ internal sealed class AttachmentsService(
 
         entity.Content = content;
 
-        Attachment? updated = await _mediator.Send(
+        Attachment? updated = await Mediator.Send(
             new UpdateEntityCommand<Attachment, AttachmentDescriptor>(entity),
             cancellationToken);
         return updated is null ? null : mapper.ToDto(updated);
