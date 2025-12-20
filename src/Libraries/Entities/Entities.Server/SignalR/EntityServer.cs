@@ -23,14 +23,13 @@ public sealed record EntityInterceptionConfig
 /// </code>
 /// </para>
 /// <para>
-/// <b>Service Lifetime Management:</b> This hub uses <see cref="IServiceScopeFactory"/> to create a new service scope
-/// for each operation, ensuring that scoped services (including <see cref="IMediator"/> and its handlers) are not disposed
-/// prematurely during async operations. This prevents <see cref="ObjectDisposedException"/> when the Blazor Server
-/// circuit or SignalR connection is disposed while operations are still running.
+/// <b>Service Lifetime:</b> The <typeparamref name="TEntityService"/> is injected via DI and executes
+/// within the same scope as the SignalR hub invocation. This ensures consistent scoping behavior
+/// where each hub method call operates within its own DI scope created by ASP.NET Core.
 /// </para>
 /// </remarks>
 public class EntityServer<TReadDto, TWriteDto, TDescriptorDto, TEntityService>(
-    IServiceScopeFactory serviceScopeFactory,
+    TEntityService entityService,
     IEntityUserService? entityUserService = null,
     IEntityTimeService? entityTimeService = null,
     IEntityHubConnectionTracker? connectionTracker = null)
@@ -40,7 +39,8 @@ public class EntityServer<TReadDto, TWriteDto, TDescriptorDto, TEntityService>(
     where TDescriptorDto : EntityDescriptorDto
     where TEntityService : IEntityService<TReadDto, TWriteDto, TDescriptorDto>
 {
-    private readonly IServiceScopeFactory _serviceScopeFactory = serviceScopeFactory ?? throw new ArgumentNullException(nameof(serviceScopeFactory));
+    protected TEntityService EntityService { get; } = entityService ?? throw new ArgumentNullException(nameof(entityService));
+
     public override async Task OnConnectedAsync()
     {
         string? userId = Context.User?.Identity?.Name;
@@ -65,60 +65,30 @@ public class EntityServer<TReadDto, TWriteDto, TDescriptorDto, TEntityService>(
         return Task.CompletedTask;
     }
 
-    /// <summary>
-    /// Executes an entity service operation within a new service scope to prevent disposal issues.
-    /// Preserves interception configuration by copying values to the new scope's services.
-    /// </summary>
-    private async Task<TResult> ExecuteInScopeAsync<TResult>(Func<TEntityService, Task<TResult>> operation, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        using IServiceScope scope = _serviceScopeFactory.CreateScope();
-
-        // Copy interception config to the new scope's services to preserve user/time context
-        if (entityUserService != null)
-        {
-            IEntityUserService? scopedUserService = scope.ServiceProvider.GetService<IEntityUserService>();
-            scopedUserService?.Set(entityUserService.UserId);
-        }
-
-        if (entityTimeService != null)
-        {
-            IEntityTimeService? scopedTimeService = scope.ServiceProvider.GetService<IEntityTimeService>();
-            if (scopedTimeService != null && entityTimeService.Now != default)
-            {
-                scopedTimeService.Set(entityTimeService.Now);
-            }
-        }
-
-        TEntityService entityService = scope.ServiceProvider.GetRequiredService<TEntityService>();
-        return await operation(entityService);
-    }
-
     // Use Context.ConnectionAborted to properly cancel operations when client disconnects
-    // Each operation creates a new service scope to prevent IServiceProvider disposal issues
-    public Task<EntityResult<TReadDto>> AddAsync(TWriteDto dto) => ExecuteInScopeAsync(service => service.AddAsync(dto, Context.ConnectionAborted), Context.ConnectionAborted);
+    public Task<EntityResult<TReadDto>> AddAsync(TWriteDto dto) => EntityService.AddAsync(dto, Context.ConnectionAborted);
 
-    public Task<EntityResult<IReadOnlyList<TReadDto>>> AddRangeAsync(IReadOnlyList<TWriteDto> dtos) => ExecuteInScopeAsync(service => service.AddAsync(dtos, Context.ConnectionAborted), Context.ConnectionAborted);
+    public Task<EntityResult<IReadOnlyList<TReadDto>>> AddRangeAsync(IReadOnlyList<TWriteDto> dtos) => EntityService.AddAsync(dtos, Context.ConnectionAborted);
 
-    public Task<EntityResult<TReadDto>> AddOrUpdateAsync(TWriteDto dto) => ExecuteInScopeAsync(service => service.AddOrUpdateAsync(dto, Context.ConnectionAborted), Context.ConnectionAborted);
+    public Task<EntityResult<TReadDto>> AddOrUpdateAsync(TWriteDto dto) => EntityService.AddOrUpdateAsync(dto, Context.ConnectionAborted);
 
-    public Task<EntityResult<TReadDto>> UpdateAsync(TWriteDto dto) => ExecuteInScopeAsync(service => service.UpdateAsync(dto, Context.ConnectionAborted), Context.ConnectionAborted);
+    public Task<EntityResult<TReadDto>> UpdateAsync(TWriteDto dto) => EntityService.UpdateAsync(dto, Context.ConnectionAborted);
 
-    public Task<EntityResult<IReadOnlyList<TReadDto>>> UpdateRangeAsync(IReadOnlyList<TWriteDto> dtos) => ExecuteInScopeAsync(service => service.UpdateAsync(dtos, Context.ConnectionAborted), Context.ConnectionAborted);
+    public Task<EntityResult<IReadOnlyList<TReadDto>>> UpdateRangeAsync(IReadOnlyList<TWriteDto> dtos) => EntityService.UpdateAsync(dtos, Context.ConnectionAborted);
 
-    public Task<EntityResult<int>> CountAsync(TDescriptorDto descriptor) => ExecuteInScopeAsync(service => service.CountAsync(descriptor, Context.ConnectionAborted), Context.ConnectionAborted);
+    public Task<EntityResult<int>> CountAsync(TDescriptorDto descriptor) => EntityService.CountAsync(descriptor, Context.ConnectionAborted);
 
-    public Task<EntityResult<TReadDto>> GetAsync(Guid id) => ExecuteInScopeAsync(service => service.GetAsync(id, Context.ConnectionAborted), Context.ConnectionAborted);
+    public Task<EntityResult<TReadDto>> GetAsync(Guid id) => EntityService.GetAsync(id, Context.ConnectionAborted);
 
-    public Task<EntityResult<IReadOnlyList<TReadDto>>> GetListAsync(TDescriptorDto descriptor) => ExecuteInScopeAsync(service => service.GetListAsync(descriptor, Context.ConnectionAborted), Context.ConnectionAborted);
+    public Task<EntityResult<IReadOnlyList<TReadDto>>> GetListAsync(TDescriptorDto descriptor) => EntityService.GetListAsync(descriptor, Context.ConnectionAborted);
 
-    public Task<EntityResult<PartedResult<TReadDto>>> GetPartedAsync(TDescriptorDto descriptor) => ExecuteInScopeAsync(service => service.GetPartedAsync(descriptor, Context.ConnectionAborted), Context.ConnectionAborted);
+    public Task<EntityResult<PartedResult<TReadDto>>> GetPartedAsync(TDescriptorDto descriptor) => EntityService.GetPartedAsync(descriptor, Context.ConnectionAborted);
 
-    public Task<EntityResult> RemoveAsync(TWriteDto dto) => ExecuteInScopeAsync(service => service.RemoveAsync(dto, Context.ConnectionAborted), Context.ConnectionAborted);
+    public Task<EntityResult> RemoveAsync(TWriteDto dto) => EntityService.RemoveAsync(dto, Context.ConnectionAborted);
 
-    public Task<EntityResult> RemoveRangeAsync(IReadOnlyList<TWriteDto> dtos) => ExecuteInScopeAsync(service => service.RemoveAsync(dtos, Context.ConnectionAborted), Context.ConnectionAborted);
+    public Task<EntityResult> RemoveRangeAsync(IReadOnlyList<TWriteDto> dtos) => EntityService.RemoveAsync(dtos, Context.ConnectionAborted);
 
-    public Task<EntityResult> RemoveByIdAsync(Guid id) => ExecuteInScopeAsync(service => service.RemoveAsync(id, Context.ConnectionAborted), Context.ConnectionAborted);
+    public Task<EntityResult> RemoveByIdAsync(Guid id) => EntityService.RemoveAsync(id, Context.ConnectionAborted);
 
-    public Task<EntityResult> RemoveByDescriptorAsync(TDescriptorDto descriptor) => ExecuteInScopeAsync(service => service.RemoveByDescriptorAsync(descriptor, Context.ConnectionAborted), Context.ConnectionAborted);
+    public Task<EntityResult> RemoveByDescriptorAsync(TDescriptorDto descriptor) => EntityService.RemoveByDescriptorAsync(descriptor, Context.ConnectionAborted);
 }
