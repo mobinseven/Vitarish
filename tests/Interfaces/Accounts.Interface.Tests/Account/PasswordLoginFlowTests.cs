@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.Extensions.Logging.Abstractions;
 using Vitarish.Accounts.Domain.Models;
-using Vitarish.Accounts.Interface.Pages.Account;
+using Vitarish.Main.Pages.Account;
 using Vitarish.Users.Domain.Entities;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 

@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using System.Reflection;
-using Vitarish.Accounts.Interface.Pages.Account;
+using Vitarish.Main.Pages.Account;
 
 namespace Accounts.Interface.Tests.TestInfrastructure;
 

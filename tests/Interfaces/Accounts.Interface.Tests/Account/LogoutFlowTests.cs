@@ -1,6 +1,6 @@
 using Accounts.Interface.Tests.TestInfrastructure;
 using Duende.IdentityServer.Models;
-using Vitarish.Accounts.Interface.Pages.Account;
+using Vitarish.Main.Pages.Account;
 
 namespace Accounts.Interface.Tests.Account;
 
