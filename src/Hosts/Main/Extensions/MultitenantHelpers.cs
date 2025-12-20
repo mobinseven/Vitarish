@@ -25,10 +25,12 @@ public static class MultitenantHelpers
 
         IRequestContext ric = currentContext.RequestServices.GetRequiredService<IRequestContext>();
 
-        return !string.IsNullOrEmpty(ric.TenantId)
-            ? Task.FromResult<string?>(ric.TenantId)
+        string? tenantIdentifier = !string.IsNullOrEmpty(ric.TenantId)
+            ? ric.TenantId
             : !string.IsNullOrEmpty(ric.OwnerId)
-                ? Task.FromResult<string?>(ric.OwnerId)
-                : Task.FromResult<string?>(ric.ClientId);
+                ? ric.OwnerId
+                : ric.ClientId;
+
+        return Task.FromResult<string?>(tenantIdentifier);
     }
 }

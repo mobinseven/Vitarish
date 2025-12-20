@@ -266,12 +266,11 @@ public class MultitenantHelpersTests
         string? resolvedTenant = null;
 
         // Create middleware that simulates RequestIdentityContextMiddleware followed by tenant resolution
-        RequestIdentityContextMiddleware middleware = new(ctx =>
+        RequestIdentityContextMiddleware middleware = new(async ctx =>
         {
             // This simulates what the tenant resolver (in UseMultiTenant middleware) would do
             // after RequestIdentityContextMiddleware has run
-            resolvedTenant = MultitenantHelpers.ResolveTenantAsync(ctx).GetAwaiter().GetResult();
-            return Task.CompletedTask;
+            resolvedTenant = await MultitenantHelpers.ResolveTenantAsync(ctx);
         });
 
         // Act
