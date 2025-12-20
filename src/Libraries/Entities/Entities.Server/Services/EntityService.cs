@@ -11,10 +11,11 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
     where TWriteDto : EntityWriteDto
     where TDescriptorDto : EntityDescriptorDto
 {
-    protected IMediator Mediator { get; } = mediator ?? throw new ArgumentNullException(nameof(mediator));
+    private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
     private readonly Func<TEntity, TReadDto> _outgoingMap = outgoingMap ?? throw new ArgumentNullException(nameof(outgoingMap));
     private readonly Func<TWriteDto, TEntity> _incomingMap = incomingMap ?? throw new ArgumentNullException(nameof(incomingMap));
 
+    protected IMediator Mediator => _mediator;
     protected Func<TDescriptorDto, TDescriptor> DescriptorMap { get; } = descriptorMap ?? throw new ArgumentNullException(nameof(descriptorMap));
 
     public Task<EntityResult<TReadDto>> AddAsync(TWriteDto dto, CancellationToken cancellationToken) => ExecuteDtoAsync(
