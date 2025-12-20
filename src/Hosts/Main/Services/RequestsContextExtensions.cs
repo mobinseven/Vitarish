@@ -1,12 +1,6 @@
-﻿using System.Diagnostics;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
+using System.Diagnostics;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
-using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Hosting.Middleware;
 
 namespace Vitarish.Main.Services
@@ -63,18 +57,6 @@ namespace Vitarish.Main.Services
                         }
                     }
                 }
-            }
-
-            // Fallback for owner_id: route value, then clientId
-            string? routeOwnerId = routeValues["ownerId"]?.ToString();
-            ownerId = ownerId.Length > 0 ? ownerId : routeOwnerId ?? clientId;
-
-            // Fallback for tenant_id: synthesize from clientId and ownerId, or null if both are empty.
-            // When synthesizing, if clientId is empty but ownerId is present, tenantId = ownerId.
-            // If both clientId and ownerId are present, tenantId = "{clientId}.{ownerId}".
-            if (string.IsNullOrEmpty(tenantId) && (!string.IsNullOrEmpty(clientId) || !string.IsNullOrEmpty(ownerId)))
-            {
-                tenantId = string.IsNullOrEmpty(clientId) ? ownerId : $"{clientId}.{ownerId}";
             }
 
             // Get resource identifier from the route pattern
