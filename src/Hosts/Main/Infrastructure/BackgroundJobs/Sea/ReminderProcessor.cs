@@ -1,5 +1,4 @@
 using Hangfire;
-using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Models;
 using Vitarish.Sea.Application.Abstractions;

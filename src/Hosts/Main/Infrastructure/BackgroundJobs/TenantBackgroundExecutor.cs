@@ -1,9 +1,6 @@
 using Hangfire;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
-using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs;
 
@@ -62,14 +59,11 @@ public sealed class TenantBackgroundExecutor(
         }
     }
 
-    private static void InitializeRequestContext(IRequestContextWriter contextWriter, string resourceId, Tenant tenant)
-    {
-        contextWriter.SetContext(
+    private static void InitializeRequestContext(IRequestContextWriter contextWriter, string resourceId, Tenant tenant) => contextWriter.SetContext(
             authority: BackgroundAuthority,
             clientId: tenant.ClientId,
             ownerId: tenant.OwnerId.ToString(),
             tenantId: tenant.Id.ToString(),
             resourceId: resourceId,
             requestId: $"hangfire-{resourceId}-{Guid.NewGuid()}");
-    }
 }
