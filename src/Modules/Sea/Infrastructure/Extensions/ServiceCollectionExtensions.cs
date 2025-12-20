@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
 using Vitarish.Sea.Infrastructure.Behaviors;
 using Vitarish.Sea.Infrastructure.Data;
@@ -10,7 +10,7 @@ public static class ServiceCollectionExtensions
     {
         _ = services.AddScoped<SessionContextInterceptor>();
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssemblies(assemblies));
-        _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CommandFailureNotificationBehavior<,>));
+        //_ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(CommandFailureNotificationBehavior<,>));
         return services;
     }
 }

@@ -2,6 +2,7 @@ using Duende.IdentityServer.EntityFramework.DbContexts;
 using Finbuckle.MultiTenant;
 using Google.Api;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using Vitarish.ApiClients.Hosting.Api;
@@ -106,6 +107,7 @@ _ = builder.Services.AddMultiTenant<TenantInfo>()
 _ = builder.Services.AddSignalR(o =>
 {
     o.EnableDetailedErrors = true;
+    o.AddFilter<RequestsContextHubFilter>();
 }).AddMessagePackProtocol();
 
 WebApplication app = builder.Build();

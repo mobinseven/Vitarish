@@ -1,4 +1,3 @@
-using Vitarish.Accounts.Interface.Components.Base;
 using ClaimDto = Vitarish.Users.Domain.Models.ClaimDto;
 
 namespace Vitarish.Accounts.Interface.Components.Admin;

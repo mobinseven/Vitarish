@@ -1,4 +1,4 @@
-﻿@page "/Admin/Users/{UserId}"
+@page "/Admin/Users/{UserId}"
 @inherits AdminBase
 @if(this.User is not null)
 {
@@ -16,9 +16,7 @@
                       Variant="Variant.Outlined"
                       @bind-Value="password" For="@(() => password)" />
         <MudDivider Class="my-3" />
-        <AccessClaimsMatrix @bind-AccessClaims=UserAccessClaims />
-        @* <AccessClaimsEdit @bind-AccessClaims=UserAccessClaims /> *@
-        @* <ClaimsEdit @bind-UserClaims=UserOtherClaims /> *@
+        <ClaimsEdit @bind-UserClaims="UserAccessClaims" />
         <MudDivider Class="my-3" />
         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
             <MudButton StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" DropShadow=false OnClick="Save" Variant="Variant.Filled">@Localizer["Save"]</MudButton>

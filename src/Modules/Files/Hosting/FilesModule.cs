@@ -100,7 +100,7 @@ public class FilesModule : ModuleBase
             throw new InvalidOperationException("FilesModule requires a WebApplication for endpoint configuration.");
         }
 
-        _ = app.UseMiddleware<FileLoadCors>();
+        //_ = app.UseMiddleware<FileLoadCors>(); TODO: remporary disabled
         _ = app.UseMiddleware<ObjectStorageMiddleware>();
         _ = app.MapHub<FilesHub>("/files/hubs/transfer");
     }

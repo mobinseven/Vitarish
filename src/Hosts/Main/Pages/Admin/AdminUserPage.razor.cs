@@ -1,7 +1,6 @@
 using Vitarish.Users.Application.Commands;
+using Vitarish.Users.Domain.Models;
 using Vitarish.Users.Infrastructure;
-using ClientClaimDto = Vitarish.Accounts.Domain.Contracts.ClaimDto;
-
 namespace Vitarish.Main.Pages.Admin;
 
 public partial class AdminUserPage
@@ -10,14 +9,14 @@ public partial class AdminUserPage
     private string password = string.Empty;
     [Inject] private IPasswordHasher<User> PasswordHasher { get; set; } = default!;
     private User? User;
-    private List<ClientClaimDto>? UserAccessClaims { get; set; }
-    private List<ClientClaimDto>? UserOtherClaims { get; set; }
+    private List<ClaimDto>? UserAccessClaims { get; set; }
+    private List<ClaimDto>? UserOtherClaims { get; set; }
     protected override async Task OnParametersSetAsync()
     {
         if (UserId is not null)
         {
             User = await UserService.GetUserAsync(UserId);
-            var UserClaims = (await UserService.GetUserClaimsAsync(UserId)).Select(c => new ClientClaimDto { Type = c.Type, Value = c.Value }).ToList();
+            var UserClaims = (await UserService.GetUserClaimsAsync(UserId)).Select(c => new ClaimDto { Type = c.Type, Value = c.Value }).ToList();
             UserAccessClaims = UserClaims.Where(c => c.Type == IdentityAccessConstants.AccessClaim).ToList();
             UserOtherClaims = UserClaims.Where(c => c.Type != IdentityAccessConstants.AccessClaim).ToList();
         }

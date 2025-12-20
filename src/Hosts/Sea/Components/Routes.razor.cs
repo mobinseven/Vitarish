@@ -18,9 +18,6 @@ namespace Vitarish.Sea.Components
 
         private Task? _themeInitializationTask;
 
-        // Use the AAAS client ID for authorization
-        private readonly string? Resource;
-
         private async Task OnNavigating(NavigationContext context)
         {
             if (AccessService.User is null)

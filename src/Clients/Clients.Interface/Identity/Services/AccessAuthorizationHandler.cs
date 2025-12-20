@@ -6,8 +6,7 @@ namespace Vitarish.Clients.Interface.Identity.Services;
 
 internal class AccessAuthorizationHandler(
     IUserAccessApiClient apiClient,
-    IDistributedCache cache,
-    IIdentityClientContext clientIdentityContext) : AuthorizationHandler<IAccessAuthorizationRequirement, string>
+    IDistributedCache cache) : AuthorizationHandler<IAccessAuthorizationRequirement, string>
 {
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new();
 
@@ -17,9 +16,7 @@ internal class AccessAuthorizationHandler(
         string? userId = ctx.User.GetId();
         if (userId is null)
         { ctx.Fail(); return; }
-
-        string ownerOrClient = resource ?? clientIdentityContext.OwnerId;
-        string key = $"{userId}:{ownerOrClient}:{req.GetType().Name}";
+        string key = $"{userId}:{resource}:{req.GetType().Name}";
 
         bool? cachedAccess = await GetCachedAccessAsync(key);
         bool hasAccess;
@@ -34,8 +31,8 @@ internal class AccessAuthorizationHandler(
                 if (cachedAccess is null)
                 {
                     hasAccess = req is AdminAccessClaimRequirement
-                        ? await IsAdminAsync(userId, ownerOrClient, apiClient)
-                        : await HasAccessAsync(userId, ownerOrClient, apiClient);
+                        ? await IsAdminAsync(userId, resource)
+                        : await HasAccessAsync(userId, resource);
 
                     TimeSpan ttl = hasAccess ? TimeSpan.FromMinutes(5) : TimeSpan.FromSeconds(45);
                     await cache.SetAsync(
@@ -69,12 +66,12 @@ internal class AccessAuthorizationHandler(
         }
     }
 
-    private static async Task<bool> HasAccessAsync(string userId, string res, IUserAccessApiClient api) =>
-        await api.HasUserAccess(userId, res);
+    private async Task<bool> HasAccessAsync(string userId, string res) =>
+        await apiClient.HasUserAccess(userId, res);
 
-    private static async Task<bool> IsAdminAsync(string userId, string res, IUserAccessApiClient api)
+    private async Task<bool> IsAdminAsync(string userId, string res)
     {
-        ClaimDto? claims = await api.GetUserAccessClaim(userId, res);
+        ClaimDto? claims = await apiClient.GetUserAccessClaim(userId, res);
         if (claims?.Value is null)
         {
             return false;
