@@ -1,7 +1,6 @@
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using Finbuckle.MultiTenant;
-using Google.Api;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
@@ -149,11 +148,12 @@ _ = app.UseSession();
 _ = app.UseIdentityServer();
 
 _ = app.UseAuthentication();
+_ = app.UseMiddleware<RequestsContextMiddleware>();
 _ = app.UseAuthorization();
 
 _ = app.UseAntiforgery();
 
-app.UseMiddleware<RequestsContextMiddleware>();
+_ = app.MapGet("/request", (HttpContext context, IRequestContext requestContext) => requestContext.GetRequest());
 
 _ = app.UseMultiTenant();
 

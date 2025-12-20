@@ -5,8 +5,9 @@ namespace Vitarish.Main.Services
 {
     public class RequestsContextHubFilter : IHubFilter
     {
-        public async ValueTask<object?> InvokeMethodAsync(HubInvocationContext invocationContext,
-        Func<HubInvocationContext, ValueTask<object>> next)
+        public async ValueTask<object?> InvokeMethodAsync(
+            HubInvocationContext invocationContext,
+            Func<HubInvocationContext, ValueTask<object?>> next)
         {
             IRequestContextWriter writer = invocationContext.ServiceProvider.GetRequiredService<IRequestContextWriter>();
             IHttpContextFeature? httpConnectionFeature = invocationContext

@@ -1,3 +1,5 @@
+using Vitarish.Requests.Domain.Entities;
+
 namespace Vitarish.Requests.Application.Abstractions;
 
 /// <summary>
@@ -49,4 +51,6 @@ public interface IRequestContext
     /// Additional context information.
     /// </summary>
     string? AdditionalInfo { get; }
+
+    Request GetRequest();
 }

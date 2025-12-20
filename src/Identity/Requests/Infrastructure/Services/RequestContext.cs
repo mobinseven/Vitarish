@@ -1,4 +1,5 @@
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Requests.Domain.Entities;
 
 namespace Vitarish.Requests.Infrastructure.Services;
 
@@ -58,4 +59,15 @@ public sealed class RequestContext : IRequestContext, IRequestContextWriter
         RequestId = requestId ?? Guid.NewGuid().ToString();
         AdditionalInfo = additionalInfo;
     }
+
+    public Request GetRequest() => new()
+    {
+        Authority = Authority,
+        ClientId = ClientId,
+        OwnerId = OwnerId,
+        TenantId = TenantId,
+        UserId = UserId,
+        ResourceId = ResourceId,
+        TraceId = TraceId,
+    };
 }
