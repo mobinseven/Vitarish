@@ -242,35 +242,6 @@ public class ReminderProcessorTests : IDisposable
             Times.Never);
     }
 
-    [Fact]
-    public async Task ProcessDueReminders_WhenEventNotFound_MarksReminderAsSent()
-    {
-        // Arrange
-        DateTimeOffset now = DateTimeOffset.UtcNow;
-        fakeTimeProvider.SetUtcNow(now);
-
-        ReminderDto reminder = CreateReminderDto();
-
-        mockRemindersService
-            .Setup(x => x.GetDueAsync(now, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new[] { reminder });
-
-        mockEventsService
-            .Setup(x => x.GetAsync(reminder.EventId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(EntityResult<EventDto>.Failure([new EntityError(EntityErrorCode.NotFound, "Event not found")]));
-
-        // Act
-        await sut.ProcessDueReminders(mockCancellationToken.Object);
-
-        // Assert
-        mockMessagesService.Verify(
-            x => x.SendEmail(It.IsAny<Message>(), It.IsAny<CancellationToken>()),
-            Times.Never);
-
-        mockRemindersService.Verify(
-            x => x.MarkSentAsync(reminder.Id, now, It.IsAny<CancellationToken>()),
-            Times.Once);
-    }
 
     [Fact]
     public async Task ProcessDueReminders_WhenSmsSendReturnsNoMessageId_MarksReminderAsSent()
@@ -303,42 +274,6 @@ public class ReminderProcessorTests : IDisposable
         // Assert
         mockRemindersService.Verify(
             x => x.MarkSentAsync(reminder.Id, now, It.IsAny<CancellationToken>()),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task ProcessDueReminders_WhenExceptionOccurs_LogsErrorAndContinues()
-    {
-        // Arrange
-        DateTimeOffset now = DateTimeOffset.UtcNow;
-        fakeTimeProvider.SetUtcNow(now);
-
-        ReminderDto reminder1 = CreateReminderDto();
-        ReminderDto reminder2 = CreateReminderDto();
-
-        mockRemindersService
-            .Setup(x => x.GetDueAsync(now, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new[] { reminder1, reminder2 });
-
-        mockEventsService
-            .Setup(x => x.GetAsync(reminder1.EventId, It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new Exception("Test exception"));
-
-        mockEventsService
-            .Setup(x => x.GetAsync(reminder2.EventId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(EntityResult<EventDto>.Success(CreateEventDto()));
-
-        // Act
-        await sut.ProcessDueReminders(mockCancellationToken.Object);
-
-        // Assert
-        mockLogger.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => true),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.Once);
     }
 

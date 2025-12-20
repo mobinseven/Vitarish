@@ -1,7 +1,6 @@
 using Vitarish.Accounts.Domain.Contracts;
-using Vitarish.Accounts.Interface.Components.Base;
+using Vitarish.Users.Domain.Models;
 using Vitarish.Users.Infrastructure;
-using ClaimDto = Vitarish.Accounts.Domain.Contracts.ClaimDto;
 
 namespace Vitarish.Accounts.Interface.Components.Admin;
 /// <summary>

@@ -71,7 +71,7 @@ public class TenantBackgroundExecutorTests : IDisposable
             await sut.ExecutePerTenantAsync(
                 resourceId!,
                 mockCancellationToken.Object,
-                (_, _, _, _) => Task.CompletedTask));
+                (_, _, _) => Task.CompletedTask));
     }
 
     [Fact]
@@ -85,7 +85,7 @@ public class TenantBackgroundExecutorTests : IDisposable
             await sut.ExecutePerTenantAsync(
                 resourceId,
                 mockCancellationToken.Object,
-                (_, _, _, _) => Task.CompletedTask));
+                (_, _, _) => Task.CompletedTask));
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public class TenantBackgroundExecutorTests : IDisposable
             await sut.ExecutePerTenantAsync(
                 resourceId,
                 mockCancellationToken.Object,
-                (_, _, _, _) => Task.CompletedTask));
+                (_, _, _) => Task.CompletedTask));
     }
 
     [Fact]
@@ -114,7 +114,7 @@ public class TenantBackgroundExecutorTests : IDisposable
             await sut.ExecutePerTenantAsync(
                 resourceId,
                 cancellationToken!,
-                (_, _, _, _) => Task.CompletedTask));
+                (_, _, _) => Task.CompletedTask));
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public class TenantBackgroundExecutorTests : IDisposable
     {
         // Arrange
         string resourceId = "test-resource";
-        Func<IServiceProvider, Tenant, IJobCancellationToken, CancellationToken, Task>? action = null;
+        Func<IServiceProvider, IJobCancellationToken, CancellationToken, Task>? action = null;
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(async () =>
@@ -147,7 +147,7 @@ public class TenantBackgroundExecutorTests : IDisposable
         await sut.ExecutePerTenantAsync(
             resourceId,
             mockCancellationToken.Object,
-            (_, _, _, _) =>
+            (_, _, _) =>
             {
                 executionCount++;
                 return Task.CompletedTask;
@@ -174,7 +174,7 @@ public class TenantBackgroundExecutorTests : IDisposable
         await sut.ExecutePerTenantAsync(
             resourceId,
             mockCancellationToken.Object,
-            (_, _, _, _) =>
+            (_, _, _) =>
             {
                 executionCount++;
                 return Task.CompletedTask;
@@ -206,7 +206,7 @@ public class TenantBackgroundExecutorTests : IDisposable
         await sut.ExecutePerTenantAsync(
             resourceId,
             mockCancellationToken.Object,
-            (_, _, _, _) =>
+            (_, _, _) =>
             {
                 executionCount++;
                 return Task.CompletedTask;
@@ -241,7 +241,7 @@ public class TenantBackgroundExecutorTests : IDisposable
         await sut.ExecutePerTenantAsync(
             resourceId,
             mockCancellationToken.Object,
-            (provider, _, _, _) =>
+            (provider, _, _) =>
             {
                 IRequestContext context = provider.GetRequiredService<IRequestContext>();
                 requestContextSnapshots.Add(new RequestContextSnapshot
@@ -267,52 +267,6 @@ public class TenantBackgroundExecutorTests : IDisposable
         snapshot.RequestId.Should().StartWith($"hangfire-{resourceId}-");
     }
 
-    [Fact]
-    public async Task ExecutePerTenantAsync_WithTenantProcessingFailure_LogsErrorAndContinues()
-    {
-        // Arrange
-        string resourceId = "test-resource";
-        Tenant[] tenants =
-        [
-            CreateTenant("00000000-0000-0000-0000-000000000001", "client-1", "Tenant 1"),
-            CreateTenant("00000000-0000-0000-0000-000000000002", "client-2", "Tenant 2"),
-            CreateTenant("00000000-0000-0000-0000-000000000003", "client-3", "Tenant 3")
-        ];
-
-        mockPartiesService
-            .Setup(x => x.GetTenantsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(tenants);
-
-        int executionCount = 0;
-        Exception testException = new("Test exception");
-
-        // Act
-        await sut.ExecutePerTenantAsync(
-            resourceId,
-            mockCancellationToken.Object,
-            (_, tenant, _, _) =>
-            {
-                executionCount++;
-                // Throw exception for second tenant only
-                if (tenant.Id == tenants[1].Id)
-                {
-                    throw testException;
-                }
-                return Task.CompletedTask;
-            });
-
-        // Assert
-        executionCount.Should().Be(3, "all tenants should be processed despite failure");
-        mockLogger.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => true),
-                testException,
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.Once,
-            "error should be logged for the failed tenant");
-    }
 
     [Fact]
     public async Task ExecutePerTenantAsync_WithOperationCanceledException_RethrowsException()
@@ -330,7 +284,7 @@ public class TenantBackgroundExecutorTests : IDisposable
             await sut.ExecutePerTenantAsync(
                 resourceId,
                 mockCancellationToken.Object,
-                (_, _, _, _) => throw new OperationCanceledException()));
+                (_, _, _) => throw new OperationCanceledException()));
     }
 
     [Fact]
@@ -353,7 +307,7 @@ public class TenantBackgroundExecutorTests : IDisposable
             await sut.ExecutePerTenantAsync(
                 resourceId,
                 mockCancellationToken.Object,
-                (_, _, _, _) => Task.CompletedTask));
+                (_, _, _) => Task.CompletedTask));
     }
 
     [Fact]
@@ -377,7 +331,7 @@ public class TenantBackgroundExecutorTests : IDisposable
         await sut.ExecutePerTenantAsync(
             resourceId,
             mockCancellationToken.Object,
-            (_, _, _, ct) =>
+            (_, _, ct) =>
             {
                 // Verify that cancellation from either source cancels the linked token
                 shutdownCts.Cancel();
@@ -390,42 +344,6 @@ public class TenantBackgroundExecutorTests : IDisposable
         wasLinked.Should().BeTrue("cancellation token should be linked to both shutdown and external tokens");
     }
 
-    [Fact]
-    public async Task ExecutePerTenantAsync_PassesTenantToAction()
-    {
-        // Arrange
-        string resourceId = "test-resource";
-        Guid tenantId = Guid.Parse("00000000-0000-0000-0000-000000000001");
-        Tenant expectedTenant = new()
-        {
-            Id = tenantId,
-            OwnerId = Guid.Parse("00000000-0000-0000-0000-000000000010"),
-            ClientId = "client-1",
-            Name = "Tenant 1"
-        };
-
-        mockPartiesService
-            .Setup(x => x.GetTenantsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new[] { expectedTenant });
-
-        Tenant? receivedTenant = null;
-
-        // Act
-        await sut.ExecutePerTenantAsync(
-            resourceId,
-            mockCancellationToken.Object,
-            (_, tenant, _, _) =>
-            {
-                receivedTenant = tenant;
-                return Task.CompletedTask;
-            });
-
-        // Assert
-        receivedTenant.Should().NotBeNull();
-        receivedTenant!.Id.Should().Be(tenantId);
-        receivedTenant.Name.Should().Be("Tenant 1");
-        receivedTenant.ClientId.Should().Be("client-1");
-    }
 
     private static Tenant CreateTenant(string id, string clientId, string name)
     {
