@@ -1,5 +1,4 @@
 using Vitarish.Entities.Server.Core;
-using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Entities.Server.Services;
 using Vitarish.Entities.Server.SignalR;
 using Vitarish.Sea.Application.Abstractions;
@@ -8,19 +7,12 @@ using Vitarish.Sea.Domain.Enums;
 
 namespace Vitarish.Sea.Hosting.Hubs;
 
-public sealed class UserRolesHub : EntityServer<UserRoleDto, UserRoleWriteDto, UserRoleDescriptorDto, IUserRolesService>
+public sealed class UserRolesHub(IUserRolesService service, IEntityUserService? entityUserService = null)
+    : EntityServer<UserRoleDto, UserRoleWriteDto, UserRoleDescriptorDto, IUserRolesService>(service, entityUserService)
 {
-    private readonly IUserRolesService _service;
-
-    public UserRolesHub(IServiceScopeFactory serviceScopeFactory, IUserRolesService service, IEntityUserService? entityUserService = null)
-        : base(serviceScopeFactory, entityUserService)
-    {
-        _service = service;
-    }
-
     public Task AssignAsync(Guid userId, Guid roleId, RoleType type, CancellationToken cancellationToken) =>
-        _service.AssignAsync(userId, roleId, type, cancellationToken);
+        EntityService.AssignAsync(userId, roleId, type, cancellationToken);
 
     public Task RemoveUserRoleAsync(Guid userId, Guid roleId, CancellationToken cancellationToken) =>
-        _service.RemoveAsync(userId, roleId, cancellationToken);
+        EntityService.RemoveAsync(userId, roleId, cancellationToken);
 }
