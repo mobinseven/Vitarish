@@ -36,8 +36,8 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
             Skip = 0,
             Take = int.MaxValue,
             Search = SearchString,
-            Template = AccessService.Access.Admin && template,
-            RoleIds = AccessService.Access.Admin ? null : AccessService.RoleIds,
+            Template = AdminMode && template,
+            RoleIds = AdminMode ? null : AccessService.RoleIds,
             //IncludeStats = true
         };
         IReadOnlyList<ProjectDto> Items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None)

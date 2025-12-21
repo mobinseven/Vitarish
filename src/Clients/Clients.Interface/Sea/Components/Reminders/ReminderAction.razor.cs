@@ -17,7 +17,7 @@ public partial class ReminderAction : EventsBase
             { nameof(ReminderCreatorDialog.Project), Project }
         };
 
-        IDialogReference dialog = AccessService.Access.Admin
+        IDialogReference dialog = AdminMode
             ? await DialogService.ShowAsync<ReminderCreatorDialog>(Localizer["Reminder"], parameters)
             : await DialogService.ShowAsync<UserReminderCreatorDialog>(Localizer["Reminder"], parameters);
 

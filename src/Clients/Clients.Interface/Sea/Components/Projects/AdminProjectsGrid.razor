@@ -1,0 +1,10 @@
+<ProjectsGrid OnClicked="OnClicked"
+              OnProjectCreated="OnProjectCreated"
+              ProjectChildContent="ProjectChildContent"
+              IsAdmin="true" />
+
+@code {
+    [Parameter] public EventCallback<Guid> OnClicked { get; set; }
+    [Parameter] public EventCallback<ProjectDto> OnProjectCreated { get; set; }
+    [Parameter] public RenderFragment<ProjectDto>? ProjectChildContent { get; set; }
+}

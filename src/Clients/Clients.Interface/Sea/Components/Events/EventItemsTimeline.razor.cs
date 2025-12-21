@@ -60,7 +60,7 @@ public partial class EventItemsTimeline : EventsBase
 
     private async Task LoadRolesAsync()
     {
-        CanWrite = AccessService.Access.Admin || await AccessService.CanWriteEvent(Event.Id);
+        CanWrite = AdminMode || await AccessService.CanWriteEvent(Event.Id);
         await InvokeAsync(StateHasChanged);
     }
 

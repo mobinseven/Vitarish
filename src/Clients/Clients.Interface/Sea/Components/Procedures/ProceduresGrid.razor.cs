@@ -19,7 +19,7 @@ public partial class ProceduresGrid : ProceduresBase
     {
         ProcedureDescriptorDto descriptor = new()
         {
-            RoleIds = AccessService.Access.Admin ? null : AccessService.RoleIds,
+            RoleIds = AdminMode ? null : AccessService.RoleIds,
             ProjectId = Project.Id,
             //IncludeStats = true
         };

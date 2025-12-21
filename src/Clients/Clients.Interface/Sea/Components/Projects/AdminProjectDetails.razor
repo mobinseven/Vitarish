@@ -1,0 +1,12 @@
+<ProjectDetails Project="Project"
+                OnEdit="OnEdit"
+                OnDelete="OnDelete"
+                OnAddProcedure="OnAddProcedure"
+                IsAdmin="true" />
+
+@code {
+    [Parameter, EditorRequired] public ProjectDto Project { get; set; } = default!;
+    [Parameter] public EventCallback<ProjectDto> OnEdit { get; set; }
+    [Parameter] public EventCallback<ProjectDto> OnDelete { get; set; }
+    [Parameter] public EventCallback<ProjectDto> OnAddProcedure { get; set; }
+}
