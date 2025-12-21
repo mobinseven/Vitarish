@@ -9,6 +9,9 @@ public sealed class SeaAccessService(IAccessService accessService, IEntityInterc
     private HashSet<Guid> userReadRoleIds = [];
     private HashSet<Guid> userWriteRoleIds = [];
     private IReadOnlyList<RoleDto> roles = [];
+    /// <summary>
+    /// Exposes whether the underlying access service has admin privileges for the current user.
+    /// </summary>
     public bool IsAdmin => accessService.Access.Admin;
     public AccessOld Access => accessService.Access;
     public IEnumerable<string> Roles => accessService.Roles;
