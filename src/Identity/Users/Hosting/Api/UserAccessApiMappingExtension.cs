@@ -275,8 +275,4 @@ namespace Vitarish.Users.Hosting.Api
         }
     }
 
-    /// <summary>
-    /// Request payload for setting access using the request pattern.
-    /// </summary>
-    public record SetRequestAccessRequest(RequestIdentityDto Request, string AccessValue);
 }

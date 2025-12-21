@@ -34,10 +34,10 @@ public class SetRequestAccessClaimCommandHandler(
         IdentityResult result = oldClaim is null
             ? await manager.AddClaimAsync(user, newClaim)
             : await manager.ReplaceClaimAsync(user, oldClaim, newClaim);
-        
+
         if (!result.Succeeded)
         {
-            throw new Exception("Could not set access claim");
+            throw new Exception($"Could not set access claim: {string.Join(", ", result.Errors.Select(e => e.Description))}");
         }
 
         await publisher.PublishAsync(new UserAccessClaimSetEvent(userId, clientId, command.AccessValue), cancellationToken);

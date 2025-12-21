@@ -38,7 +38,7 @@ public class RemoveRequestAccessClaimCommandHandler(
         IdentityResult result = await manager.RemoveClaimAsync(user, claim);
         if (!result.Succeeded)
         {
-            throw new Exception("Could not remove access claim");
+            throw new Exception($"Could not remove access claim: {string.Join(", ", result.Errors.Select(e => e.Description))}");
         }
         
         await publisher.PublishAsync(new UserAccessClaimRemovedEvent(userId, clientId), cancellationToken);
