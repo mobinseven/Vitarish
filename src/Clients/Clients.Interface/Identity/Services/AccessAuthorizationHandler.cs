@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Distributed;
 using Vitarish.Clients.Identity.Contracts;
 using Vitarish.Clients.Interface.Identity.Extensions;
-using Vitarish.Requests.Domain.Models;
 
 namespace Vitarish.Clients.Interface.Identity.Services;
 
@@ -24,16 +23,13 @@ internal class AccessAuthorizationHandler(
         }
 
         // Build request context from current user and resource
-        RequestDto? clientRequest = requestContextClient.Request;
-        if (clientRequest is null)
+        RequestDto? requestContext = requestContextClient.Request;
+        if (requestContext is null)
         {
             // Fallback to legacy client-based check if request context is not available
             await HandleLegacyAuthorizationAsync(ctx, req, resource, userId);
             return;
         }
-
-        // Convert to RequestIdentityDto
-        RequestIdentityDto requestContext = ToRequestIdentityDto(clientRequest);
 
         // Use request-based authorization (new pattern)
         string key = $"{userId}:{resource}:{req.GetType().Name}:v2";
@@ -140,10 +136,10 @@ internal class AccessAuthorizationHandler(
     }
 
     // Request-based methods (new pattern)
-    private async Task<bool> HasAccessAsync(RequestIdentityDto request) =>
+    private async Task<bool> HasAccessAsync(RequestDto request) =>
         await userAccessClient.HasRequestAccess(request);
 
-    private async Task<bool> IsAdminAsync(RequestIdentityDto request)
+    private async Task<bool> IsAdminAsync(RequestDto request)
     {
         ClaimDto? claims = await userAccessClient.GetRequestAccessClaim(request);
         if (claims?.Value is null)
@@ -178,18 +174,4 @@ internal class AccessAuthorizationHandler(
     }
 
     private static byte[] SerializeAccess(bool value) => new[] { value ? (byte)1 : (byte)0 };
-
-    // Helper method to convert between DTO types
-    private static RequestIdentityDto ToRequestIdentityDto(RequestDto dto) =>
-        new(
-            RequestId: dto.RequestId ?? Guid.NewGuid().ToString(),
-            Authority: dto.Authority,
-            ClientId: dto.ClientId,
-            OwnerId: dto.OwnerId,
-            TenantId: dto.TenantId,
-            UserId: dto.UserId,
-            ResourceId: dto.ResourceId,
-            TraceId: null,
-            AdditionalInfo: null
-        );
 }
