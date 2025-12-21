@@ -19,7 +19,7 @@ public partial class EventCommitDetails : SeaCommonBase
 
     private async Task LoadRolesAsync()
     {
-        CanWrite = AccessService.Access.Admin || await AccessService.CanWriteEvent(Event.Id);
+        CanWrite = AdminMode || await AccessService.CanWriteEvent(Event.Id);
         await InvokeAsync(StateHasChanged);
     }
     private string? UserIdToName(Guid id) => AccessService.Users.FirstOrDefault(x => x.Id == id.ToString())?.FullName;

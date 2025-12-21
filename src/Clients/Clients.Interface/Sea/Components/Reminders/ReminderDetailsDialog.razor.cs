@@ -9,7 +9,7 @@ public partial class ReminderDetailsDialog : RemindersBase
     [Parameter, EditorRequired] public ProcedureDto Procedure { get; set; } = default!;
     [Parameter, EditorRequired] public ReminderDto Reminder { get; set; } = default!;
 
-    private bool CanEdit => AccessService.Access.Admin || AccessService.User?.Id == Reminder.CreatedBy;
+    private bool CanEdit => AdminMode || AccessService.User?.Id == Reminder.CreatedBy;
 
     private string? UserIdToName(string? id) => id is null ? null : AccessService.Users.FirstOrDefault(x => x.Id == id)?.FullName;
 

@@ -85,10 +85,10 @@ public partial class EventsGrid : EventsBase
     private bool IsLast(EventDto e) => events.GetLastByChain()?.Id == e.Id;
 
     private bool CanReorder(EventDto item)
-        => AccessService.Access.Admin || (canWrite.TryGetValue(item.Id, out bool value) && value);
+        => AdminMode || (canWrite.TryGetValue(item.Id, out bool value) && value);
 
     private bool CanReorderEvents
-        => AccessService.Access.Admin || events.Any(item => canWrite.TryGetValue(item.Id, out bool value) && value);
+        => AdminMode || events.Any(item => canWrite.TryGetValue(item.Id, out bool value) && value);
 
     private bool ShouldShowDropZones => CanReorderEvents && draggedEventId is Guid;
 

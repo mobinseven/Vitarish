@@ -27,7 +27,7 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
     private async Task LoadRolesAsync()
     {
         (_, _) = await EventRolesService.GetIdsAsync(Event.Id, CancellationToken.None);
-        CanWrite = AccessService.Access.Admin || (await AccessService.CanWriteEvent(Event.Id) && Attachment.CreatedBy == AccessService.User!.Id);
+        CanWrite = AdminMode || (await AccessService.CanWriteEvent(Event.Id) && Attachment.CreatedBy == AccessService.User!.Id);
     }
 
     private async Task LoadReadersAsync() => readers = await ReceiptsService.GetReadersAsync(Attachment.Id, CancellationToken.None) ?? Array.Empty<Guid>();

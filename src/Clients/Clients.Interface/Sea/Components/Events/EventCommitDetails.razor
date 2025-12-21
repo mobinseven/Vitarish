@@ -16,7 +16,7 @@
         <MudButton OnClick="MudDialog.Cancel">@Localizer["Close"]</MudButton>
         @if(Event.IsCommitted)
         {
-            if(AccessService.Access.Admin)
+            if(AdminMode)
             {
                 <MudButton Variant="Variant.Filled" Color="Color.Error" OnClick="() => ToggleCommitAsync()">@Localizer["Uncommit"]</MudButton>
             }

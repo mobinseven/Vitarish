@@ -11,9 +11,9 @@
             <CellTemplate Context="context">
                 <ExpandableItem Name="@context.Item.Name"
                                 Expanded="@(context.Item.Id == OpenProcedure)"
-                                ExpandedChanged="@(async e => { await OpenProcedureChanged.InvokeAsync(e ? context.Item.Id : null); await grid!.ReloadServerData(); })"
-                                NoIcon
-                                ShowMenu=AccessService.Access.Admin>
+                                 ExpandedChanged="@(async e => { await OpenProcedureChanged.InvokeAsync(e ? context.Item.Id : null); await grid!.ReloadServerData(); })"
+                                 NoIcon
+                                 ShowMenu=AdminMode>
                     <StartContent>
                         <MudAvatar Class="glass" Variant=Variant.Outlined>
                             <ProgressDisplay Stats="context.Item.Stats ?? new StatsDto()" Title="@context.Item.Name" />

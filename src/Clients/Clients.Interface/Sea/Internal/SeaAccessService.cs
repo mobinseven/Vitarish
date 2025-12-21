@@ -9,6 +9,7 @@ public sealed class SeaAccessService(IAccessService accessService, IEntityInterc
     private HashSet<Guid> userReadRoleIds = [];
     private HashSet<Guid> userWriteRoleIds = [];
     private IReadOnlyList<RoleDto> roles = [];
+    public bool IsAdmin => accessService.Access.Admin;
     public AccessOld Access => accessService.Access;
     public IEnumerable<string> Roles => accessService.Roles;
     public IReadOnlyList<UserDto> Users => accessService.Users;
@@ -73,4 +74,3 @@ public sealed class SeaAccessService(IAccessService accessService, IEntityInterc
 
     public Task RemoveUserAccessAsync(string userId, string clientId, CancellationToken ct) => accessService.RemoveUserAccessAsync(userId, clientId, ct);
 }
-

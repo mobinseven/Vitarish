@@ -1,0 +1,12 @@
+<EventsGrid Project="Project"
+            Procedure="Procedure"
+            OpenEvent="OpenEvent"
+            OpenEventChanged="OpenEventChanged"
+            IsAdmin="true" />
+
+@code {
+    [Parameter, EditorRequired] public ProjectDto Project { get; set; } = default!;
+    [Parameter, EditorRequired] public ProcedureDto Procedure { get; set; } = default!;
+    [Parameter] public Guid? OpenEvent { get; set; }
+    [Parameter] public EventCallback<Guid?> OpenEventChanged { get; set; }
+}

@@ -5,8 +5,9 @@ namespace Vitarish.Clients.Interface.Sea.Components.Base;
 public class SeaCommonBase : CommonBase
 {
     [Inject] protected ISeaAccessService AccessService { get; set; } = default!;
+    [Parameter] public bool? IsAdmin { get; set; }
+    protected bool AdminMode => IsAdmin ?? AccessService.IsAdmin;
     public override void OnCompleted() => throw new NotImplementedException();
     public override void OnError(Exception error) => throw new NotImplementedException();
     protected override Task ReloadRequired() => Task.CompletedTask;
 }
-
