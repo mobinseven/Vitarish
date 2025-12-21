@@ -1,6 +1,5 @@
 
 using MediatR;
-using Vitarish.Requests.Domain.Models;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Application.Queries;
@@ -10,29 +9,8 @@ namespace Vitarish.Users.Infrastructure.Service;
 /// <inheritdoc />
 public sealed class UserAccessService(ISender sender) : IUserAccessService
 {
-    /* ---------- Request-Based Methods (New Pattern) ---------- */
 
-    public Task<bool> HasRequestAccessAsync(
-        RequestIdentityDto request,
-        CancellationToken ct = default) =>
-        sender.Send(new HasRequestAccessQuery(request), ct);
-
-    public Task<ClaimDto?> GetRequestAccessClaimAsync(
-        RequestIdentityDto request,
-        CancellationToken ct = default) =>
-        sender.Send(new GetRequestAccessClaimQuery(request), ct);
-
-    public Task SetRequestAccessAsync(
-        SetRequestAccessClaimCommand command,
-        CancellationToken ct = default) =>
-        sender.Send(command, ct);
-
-    public Task RemoveRequestAccessAsync(
-        RemoveRequestAccessClaimCommand command,
-        CancellationToken ct = default) =>
-        sender.Send(command, ct);
-
-    /* ---------- Legacy Client-Based Methods (Deprecated) ---------- */
+    /* ---------- Queries ---------- */
 
     public Task<IEnumerable<ClaimDto>> GetUserClaimsAsync(
         string userId,
@@ -62,7 +40,7 @@ public sealed class UserAccessService(ISender sender) : IUserAccessService
         CancellationToken ct = default) =>
         sender.Send(new GetClientUserQuery(clientId, userId), ct);
 
-    /* ---------- Legacy Commands (Deprecated) ---------- */
+    /* ---------- Commands ---------- */
 
     public Task SetUserAccessAsync(
         SetUserAccessClaimCommand command,

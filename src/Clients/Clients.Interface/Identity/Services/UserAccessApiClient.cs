@@ -2,7 +2,6 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization.Metadata;
 using Vitarish.Client.Context;
-using Vitarish.Clients.Identity.Contracts;
 
 namespace Vitarish.Clients.Interface.Identity.Services;
 
@@ -22,61 +21,6 @@ public class UserAccessApiClient(IIdentityClientService clientFactory, ILogger<U
         logger.LogInformation("GET query {Query} finished", query);
         return resultT;
     }
-
-    private async Task<T?> PostQuery<T>(string endpoint, object payload, JsonTypeInfo<T> jsonTypeInfo, CancellationToken cancellationToken = default)
-    {
-        HttpClient httpClient = await CreateHttpClientAsync();
-        logger.LogInformation("Sending POST query {Endpoint}", endpoint);
-        using HttpResponseMessage response = await httpClient.PostAsJsonAsync(endpoint, payload, cancellationToken);
-        _ = response.EnsureSuccessStatusCode();
-        T? resultT = await response.Content.ReadFromJsonAsync(jsonTypeInfo, cancellationToken);
-        logger.LogInformation("POST query {Endpoint} finished", endpoint);
-        return resultT;
-    }
-
-    /* ---------- Request-Based Methods (New Pattern) ---------- */
-
-    /// <summary>
-    /// Check if a request has access based on full request context.
-    /// POST /api/users/request/hasaccess
-    /// </summary>
-    public async Task<bool> HasRequestAccess(RequestDto request, CancellationToken cancellationToken = default)
-    {
-        bool? result = await PostQuery("request/hasaccess", request, UserAccessJsonContext.Default.Boolean, cancellationToken);
-        return result ?? false;
-    }
-
-    /// <summary>
-    /// Get access claim for a request based on full request context.
-    /// POST /api/users/request/access
-    /// </summary>
-    public async Task<ClaimDto?> GetRequestAccessClaim(RequestDto request, CancellationToken cancellationToken = default) =>
-        await PostQuery("request/access", request, UserAccessJsonContext.Default.ClaimDto, cancellationToken);
-
-    /// <summary>
-    /// Set access for a request based on full request context.
-    /// POST /api/users/request/setaccess
-    /// </summary>
-    public async Task SetRequestAccess(RequestDto request, string accessValue, CancellationToken cancellationToken = default)
-    {
-        HttpClient httpClient = await CreateHttpClientAsync();
-        var payload = new { Request = request, AccessValue = accessValue };
-        using HttpResponseMessage response = await httpClient.PostAsJsonAsync("request/setaccess", payload, cancellationToken);
-        _ = response.EnsureSuccessStatusCode();
-    }
-
-    /// <summary>
-    /// Remove access for a request based on full request context.
-    /// POST /api/users/request/removeaccess
-    /// </summary>
-    public async Task RemoveRequestAccess(RequestDto request, CancellationToken cancellationToken = default)
-    {
-        HttpClient httpClient = await CreateHttpClientAsync();
-        using HttpResponseMessage response = await httpClient.PostAsJsonAsync("request/removeaccess", request, cancellationToken);
-        _ = response.EnsureSuccessStatusCode();
-    }
-
-    /* ---------- Legacy Client-Based Methods (Deprecated) ---------- */
 
     /// <summary>
     /// Get all claims for a user.
