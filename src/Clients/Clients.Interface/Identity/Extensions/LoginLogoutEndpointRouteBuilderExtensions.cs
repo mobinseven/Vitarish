@@ -39,10 +39,16 @@ internal static class LoginLogoutEndpointRouteBuilderExtensions
 
                 if (!string.IsNullOrEmpty(ownerOrClient))
                 {
-                    string cacheKey = $"{userId}:{ownerOrClient}:{nameof(AccessClaimRequirement)}";
-                    cache.Remove(cacheKey);
-                    string cacheKeyAdmin = $"{userId}:{ownerOrClient}:{nameof(AdminAccessClaimRequirement)}";
-                    cache.Remove(cacheKeyAdmin);
+                    // Clear both v1 (legacy) and v2 (request-based) cache entries
+                    string cacheKeyV1 = $"{userId}:{ownerOrClient}:{nameof(AccessClaimRequirement)}:v1";
+                    cache.Remove(cacheKeyV1);
+                    string cacheKeyAdminV1 = $"{userId}:{ownerOrClient}:{nameof(AdminAccessClaimRequirement)}:v1";
+                    cache.Remove(cacheKeyAdminV1);
+                    
+                    string cacheKeyV2 = $"{userId}:{ownerOrClient}:{nameof(AccessClaimRequirement)}:v2";
+                    cache.Remove(cacheKeyV2);
+                    string cacheKeyAdminV2 = $"{userId}:{ownerOrClient}:{nameof(AdminAccessClaimRequirement)}:v2";
+                    cache.Remove(cacheKeyAdminV2);
                 }
             }
 
