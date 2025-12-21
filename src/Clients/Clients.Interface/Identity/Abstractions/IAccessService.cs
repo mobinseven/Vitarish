@@ -4,7 +4,7 @@ public interface IAccessService
 {
     Task InitializeAsync(string? clientId = null);
     void RenameRole(string roleName, string roleNewName);
-    Access Access { get; }
+    AccessOld Access { get; }
     IEnumerable<string> Roles { get; }
     IReadOnlyList<UserDto> Users { get; }
     UserDto? User { get; }

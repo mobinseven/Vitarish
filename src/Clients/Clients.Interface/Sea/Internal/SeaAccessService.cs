@@ -9,7 +9,7 @@ public sealed class SeaAccessService(IAccessService accessService, IEntityInterc
     private HashSet<Guid> userReadRoleIds = [];
     private HashSet<Guid> userWriteRoleIds = [];
     private IReadOnlyList<RoleDto> roles = [];
-    public Access Access => accessService.Access;
+    public AccessOld Access => accessService.Access;
     public IEnumerable<string> Roles => accessService.Roles;
     public IReadOnlyList<UserDto> Users => accessService.Users;
     public UserDto? User => accessService.User;

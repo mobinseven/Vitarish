@@ -11,7 +11,7 @@ public class AccessService(
 {
     private List<UserDto> users { get; set; } = [];
 
-    public Access Access { get; private set; } = new();
+    public AccessOld Access { get; private set; } = new();
 
     public IEnumerable<string> Roles { get; private set; } = Array.Empty<string>();
 

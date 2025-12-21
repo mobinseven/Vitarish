@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 
 namespace Vitarish.Clients.Interface.Identity.Contracts;
 
-public class Access
+public class AccessOld
 {
     public string Id { get; set; } = Guid.NewGuid().ToString();
 

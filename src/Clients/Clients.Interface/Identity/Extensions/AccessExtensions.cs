@@ -2,27 +2,27 @@ using Vitarish.Clients.Identity.Constants;
 
 public static class AccessExtensions
 {
-    public static string GetClaimAccessValue(this Access access) => $"{access.Read}:{access.Write}:{(access.Admin ? AaasConstants.Admin : string.Empty)}";
+    public static string GetClaimAccessValue(this AccessOld access) => $"{access.Read}:{access.Write}:{(access.Admin ? AaasConstants.Admin : string.Empty)}";
 
     /// <summary>
-    /// Creates and populates an <see cref="Access"/> instance from a colon‑delimited string.
+    /// Creates and populates an <see cref="AccessOld"/> instance from a colon‑delimited string.
     /// Expected layout: "[clientId]:[readRoles]:[writeRoles]:[admin]" where every segment is optional.
-    /// • If <c>clientId</c> is not empty ⇒ <see cref="Access.Entrance"/> = <c>true</c>
-    /// • If <c>readRoles</c>  is not empty ⇒ <see cref="Access.Read"/>   = segment value
-    /// • If <c>writeRoles</c> is not empty ⇒ <see cref="Access.Write"/>  = segment value
-    /// • If final segment equals "admin" (case–insensitive) ⇒ <see cref="Access.Admin"/> = <c>true</c>
+    /// • If <c>clientId</c> is not empty ⇒ <see cref="AccessOld.Entrance"/> = <c>true</c>
+    /// • If <c>readRoles</c>  is not empty ⇒ <see cref="AccessOld.Read"/>   = segment value
+    /// • If <c>writeRoles</c> is not empty ⇒ <see cref="AccessOld.Write"/>  = segment value
+    /// • If final segment equals "admin" (case–insensitive) ⇒ <see cref="AccessOld.Admin"/> = <c>true</c>
     /// </summary>
     /// <param name="value">Permission string.</param>
-    /// <returns>Configured <see cref="Access"/> object.</returns>
+    /// <returns>Configured <see cref="AccessOld"/> object.</returns>
     /// <exception cref="ArgumentNullException">Thrown when <paramref name="value"/> is <c>null</c>.</exception>
-    public static Access GenerateAccess(string value)
+    public static AccessOld GenerateAccess(string value)
     {
         if (value is null)
         {
             throw new ArgumentNullException(nameof(value));
         }
 
-        Access access = new();
+        AccessOld access = new();
         ReadOnlySpan<char> span = value.AsSpan();
 
         int section = 0;

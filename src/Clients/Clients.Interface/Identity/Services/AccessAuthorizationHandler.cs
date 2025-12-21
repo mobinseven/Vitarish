@@ -81,7 +81,7 @@ internal class AccessAuthorizationHandler(
             return false;
         }
 
-        Access access = AccessExtensions.GenerateAccess(claims.Value);
+        AccessOld access = AccessExtensions.GenerateAccess(claims.Value);
         return access.Admin;
     }
 

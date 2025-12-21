@@ -49,8 +49,6 @@ public class Access
 
     public virtual string[] Roles => Readers.Union(Writers).Distinct().Order().ToArray();
 
-    public virtual string Value => this.GetClaimAccessValue();
-
     public event PropertyChangedEventHandler? PropertyChanged;
     public bool PropertyChangedEventSet => PropertyChanged is not null;
     protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
