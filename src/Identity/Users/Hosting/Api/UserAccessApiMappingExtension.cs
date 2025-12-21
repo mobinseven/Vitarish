@@ -44,7 +44,7 @@ namespace Vitarish.Users.Hosting.Api
                 .WithName("HasRequestAccess")
                 .Produces<bool>(StatusCodes.Status200OK)
                 .WithSummary("Check request access")
-                .WithDescription("Indicates whether the request has access based on full request context. This is the preferred method.");
+                .WithDescription("Indicates whether the request has access based on full request context. Accepts RequestIdentityDto in the request body. This is the preferred method.");
 
             // POST /api/users/request/access
             _ = group.MapPost("/request/access", GetRequestAccessClaimAsync)
@@ -52,21 +52,21 @@ namespace Vitarish.Users.Hosting.Api
                 .Produces<ClaimDto>(StatusCodes.Status200OK)
                 .Produces(StatusCodes.Status404NotFound)
                 .WithSummary("Get request access claim")
-                .WithDescription("Returns the access claim for the request based on full request context. This is the preferred method.");
+                .WithDescription("Returns the access claim for the request based on full request context. Accepts RequestIdentityDto in the request body. This is the preferred method.");
 
             // POST /api/users/request/setaccess
             _ = group.MapPost("/request/setaccess", SetRequestAccessAsync)
                 .WithName("SetRequestAccess")
                 .Produces(StatusCodes.Status200OK)
                 .WithSummary("Grant request access")
-                .WithDescription("Grants access for the request based on full request context. This is the preferred method.");
+                .WithDescription("Grants access for the request based on full request context. Accepts SetRequestAccessRequest (containing RequestIdentityDto and AccessValue) in the request body. This is the preferred method.");
 
             // POST /api/users/request/removeaccess
             _ = group.MapPost("/request/removeaccess", RemoveRequestAccessAsync)
                 .WithName("RemoveRequestAccess")
                 .Produces(StatusCodes.Status204NoContent)
                 .WithSummary("Revoke request access")
-                .WithDescription("Removes access for the request based on full request context. This is the preferred method.");
+                .WithDescription("Removes access for the request based on full request context. Accepts RequestIdentityDto in the request body. This is the preferred method.");
 
             /* ---------- Legacy Client-Based Endpoints (Deprecated) ---------- */
 

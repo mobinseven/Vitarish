@@ -32,18 +32,19 @@ internal class AccessAuthorizationHandler(
         }
 
         // Use request-based authorization (new pattern)
-        string key = $"{userId}:{resource}:{req.GetType().Name}:v2";
+        string keyV2 = $"{userId}:{resource}:{req.GetType().Name}:v2";
+        string keyV1 = $"{userId}:{resource}:{req.GetType().Name}:v1";
 
-        bool? cachedAccess = await GetCachedAccessAsync(key);
+        bool? cachedAccess = await GetCachedAccessAsync(keyV2);
         bool hasAccess;
 
         if (cachedAccess is null)
         {
-            SemaphoreSlim gate = _locks.GetOrAdd(key, _ => new SemaphoreSlim(1, 1));
+            SemaphoreSlim gate = _locks.GetOrAdd(keyV2, _ => new SemaphoreSlim(1, 1));
             await gate.WaitAsync();
             try
             {
-                cachedAccess = await GetCachedAccessAsync(key);
+                cachedAccess = await GetCachedAccessAsync(keyV2);
                 if (cachedAccess is null)
                 {
                     hasAccess = req is AdminAccessClaimRequirement
@@ -52,9 +53,12 @@ internal class AccessAuthorizationHandler(
 
                     TimeSpan ttl = hasAccess ? TimeSpan.FromMinutes(5) : TimeSpan.FromSeconds(45);
                     await cache.SetAsync(
-                        key,
+                        keyV2,
                         SerializeAccess(hasAccess),
                         new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = ttl });
+                    
+                    // Clear legacy cache entry to avoid duplication during migration
+                    await cache.RemoveAsync(keyV1);
                 }
                 else
                 {
@@ -64,7 +68,7 @@ internal class AccessAuthorizationHandler(
             finally
             {
                 _ = gate.Release();
-                _ = _locks.TryRemove(key, out _);
+                _ = _locks.TryRemove(keyV2, out _);
             }
         }
         else

@@ -15,7 +15,9 @@ public class HasRequestAccessQueryValidator : AbstractValidator<HasRequestAccess
     public HasRequestAccessQueryValidator()
     {
         _ = RuleFor(q => q.Request).NotNull();
-        _ = RuleFor(q => q.Request.UserId).NotEmpty();
-        _ = RuleFor(q => q.Request.ClientId).NotEmpty();
+        _ = RuleFor(q => q.Request.UserId).NotNull().NotEmpty()
+            .When(q => q.Request != null);
+        _ = RuleFor(q => q.Request.ClientId).NotNull().NotEmpty()
+            .When(q => q.Request != null);
     }
 }

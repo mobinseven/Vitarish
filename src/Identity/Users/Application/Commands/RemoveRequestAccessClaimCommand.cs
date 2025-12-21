@@ -15,7 +15,9 @@ public class RemoveRequestAccessClaimCommandValidator : AbstractValidator<Remove
     public RemoveRequestAccessClaimCommandValidator()
     {
         _ = RuleFor(c => c.Request).NotNull();
-        _ = RuleFor(c => c.Request.UserId).NotEmpty();
-        _ = RuleFor(c => c.Request.ClientId).NotEmpty();
+        _ = RuleFor(c => c.Request.UserId).NotNull().NotEmpty()
+            .When(c => c.Request != null);
+        _ = RuleFor(c => c.Request.ClientId).NotNull().NotEmpty()
+            .When(c => c.Request != null);
     }
 }

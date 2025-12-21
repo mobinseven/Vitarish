@@ -16,11 +16,9 @@ public class GetRequestAccessClaimQueryValidator : AbstractValidator<GetRequestA
     public GetRequestAccessClaimQueryValidator()
     {
         _ = RuleFor(q => q.Request).NotNull();
-        _ = RuleFor(q => q.Request.UserId)
-            .NotEmpty()
-            .When(q => q.Request != null && q.Request.UserId != null);
-        _ = RuleFor(q => q.Request.ClientId)
-            .NotEmpty()
-            .When(q => q.Request != null && q.Request.ClientId != null);
+        _ = RuleFor(q => q.Request.UserId).NotNull().NotEmpty()
+            .When(q => q.Request != null);
+        _ = RuleFor(q => q.Request.ClientId).NotNull().NotEmpty()
+            .When(q => q.Request != null);
     }
 }

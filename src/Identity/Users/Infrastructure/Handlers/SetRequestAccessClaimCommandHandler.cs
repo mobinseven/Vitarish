@@ -37,7 +37,7 @@ public class SetRequestAccessClaimCommandHandler(
 
         if (!result.Succeeded)
         {
-            throw new InvalidOperationException($"Could not set access claim: {string.Join(", ", result.Errors.Select(e => e.Description))}");
+            throw new InvalidOperationException($"Could not set access claim for user '{userId}' and client '{clientId}': {string.Join(", ", result.Errors.Select(e => e.Description))}");
         }
 
         await publisher.PublishAsync(new UserAccessClaimSetEvent(userId, clientId, command.AccessValue), cancellationToken);

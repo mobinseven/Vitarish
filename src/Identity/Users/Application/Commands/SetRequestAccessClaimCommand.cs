@@ -18,8 +18,8 @@ public class SetRequestAccessClaimCommandValidator : AbstractValidator<SetReques
 
         When(c => c.Request != null, () =>
         {
-            _ = RuleFor(c => c.Request!.UserId).NotEmpty();
-            _ = RuleFor(c => c.Request!.ClientId).NotEmpty();
+            _ = RuleFor(c => c.Request!.UserId).NotNull().NotEmpty();
+            _ = RuleFor(c => c.Request!.ClientId).NotNull().NotEmpty();
         });
         _ = RuleFor(c => c.AccessValue).NotEmpty();
     }
