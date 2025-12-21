@@ -31,7 +31,7 @@ public sealed class ResyncAuthenticationClientsHandler(
 
         List<TenantIndicator> indicators = await query.ToListAsync(ct);
 
-        HashSet<string> indicatorIds = indicators.Select(i => AuthClientMappingExtensions.GenerateClientId(i.TenantId, i.Method, i.Value)).ToHashSet();
+        HashSet<string> indicatorIds = [.. indicators.Select(i => AuthClientMappingExtensions.GenerateClientId(i.TenantId, i.Method, i.Value))];
 
         Dictionary<string, AuthenticationClient> existingClients = await authDb.AuthenticationClients
             .Where(c => c.Id.StartsWith("ac:"))
