@@ -5,4 +5,3 @@ namespace Vitarish.Sea.Pages.Settings
         protected override string BasePath => "/Admin/settings";
     }
 }
-
