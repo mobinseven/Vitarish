@@ -25,6 +25,11 @@ This repository uses a modular .NET solution that separates client-facing APIs, 
 
 Use this map as a starting point; dive into the relevant module folder for deeper details and existing patterns.
 
+# Cautions
+
+- The `Identity/` shall not need nor reference any projects outside this folder.
+- The projects under `Clients/` shall not under any circumstances reference any project out of this folder. If a client project needed any object from outside of this folder, a corresponding DTO must be created for the object inside that project.
+
 ## Pull requests
 
 Always check for a successful build and passing all tests before creating a PR.
