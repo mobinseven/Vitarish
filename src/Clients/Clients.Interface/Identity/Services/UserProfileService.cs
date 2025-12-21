@@ -7,7 +7,7 @@ namespace Vitarish.Clients.Interface.Identity.Services;
 public class UserProfileService(AuthenticationStateProvider authStateProvider, IIdentityClientService aaasClientFactory) : IUserProfileService
 {
     private const string CulturePreferenceKey = "Culture";
-    private const string BaseUrl = "api/user/";
+    private const string BaseUrl = "/api/user/";
     private Task<HttpClient> CreateClient(string? clientId = null) => aaasClientFactory.CreateClient(BaseUrl, clientId);
     public async Task<Dictionary<string, string>?> GetProfileAsync()
     {
@@ -25,7 +25,7 @@ public class UserProfileService(AuthenticationStateProvider authStateProvider, I
             return null;
         }
 
-        HttpResponseMessage response = await httpClient.GetAsync($"/api/user/profile/{userId}");
+        HttpResponseMessage response = await httpClient.GetAsync($"profile/{userId}");
         return response.IsSuccessStatusCode ? await response.Content.ReadFromJsonAsync<Dictionary<string, string>>() : [];
     }
 
@@ -44,7 +44,7 @@ public class UserProfileService(AuthenticationStateProvider authStateProvider, I
             return;
         }
 
-        _ = await httpClient.PutAsJsonAsync($"/api/user/profile/{userId}", preferences);
+        _ = await httpClient.PutAsJsonAsync($"profile/{userId}", preferences);
     }
 
     public string? GetCulture(IDictionary<string, string> preferences)

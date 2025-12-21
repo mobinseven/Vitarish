@@ -7,7 +7,7 @@ namespace Vitarish.Clients.Interface.Identity.Services;
 public class AccessService(
     AuthenticationStateProvider authenticationStateProvider,
     IUserAccessApiClient apiClient,
-    IIdentityClientContext clientIdentityContext) : IAccessService
+    IRequestContextClient clientIdentityContext) : IAccessService
 {
     private List<UserDto> users { get; set; } = [];
 
@@ -37,7 +37,7 @@ public class AccessService(
             return;
         }
 
-        clientId ??= clientIdentityContext.ClientId;
+        clientId ??= clientIdentityContext.Request?.ClientId;
         System.Security.Claims.ClaimsPrincipal claimPrincipal = (await authenticationStateProvider.GetAuthenticationStateAsync()).User;
 
         if (claimPrincipal.Identity?.IsAuthenticated ?? false)

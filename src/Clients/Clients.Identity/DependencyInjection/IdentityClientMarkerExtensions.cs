@@ -42,7 +42,7 @@ public static class IdentityClientMarkerExtensions
         _ = services.AddMemoryCache();
         _ = services.AddTransient<IIdentityClientService, IdentityClientService>();
         _ = services.AddHttpContextAccessor();
-        _ = services.AddScoped<IIdentityClientContext, IdentityClientContext>();
+        _ = services.AddScoped<IRequestContextClient, RequestContextClient>();
         return services;
     }
 

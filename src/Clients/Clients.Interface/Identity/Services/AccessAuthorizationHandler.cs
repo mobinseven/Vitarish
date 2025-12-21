@@ -5,7 +5,7 @@ using Vitarish.Clients.Interface.Identity.Extensions;
 namespace Vitarish.Clients.Interface.Identity.Services;
 
 internal class AccessAuthorizationHandler(
-    IUserAccessApiClient apiClient,
+    IUserAccessApiClient userAccessClient,
     IDistributedCache cache) : AuthorizationHandler<IAccessAuthorizationRequirement, string>
 {
     private static readonly ConcurrentDictionary<string, SemaphoreSlim> _locks = new();
@@ -15,7 +15,11 @@ internal class AccessAuthorizationHandler(
     {
         string? userId = ctx.User.GetId();
         if (userId is null)
-        { ctx.Fail(); return; }
+        {
+            ctx.Fail();
+            return;
+        }
+
         string key = $"{userId}:{resource}:{req.GetType().Name}";
 
         bool? cachedAccess = await GetCachedAccessAsync(key);
@@ -67,11 +71,11 @@ internal class AccessAuthorizationHandler(
     }
 
     private async Task<bool> HasAccessAsync(string userId, string res) =>
-        await apiClient.HasUserAccess(userId, res);
+        await userAccessClient.HasUserAccess(userId, res);
 
     private async Task<bool> IsAdminAsync(string userId, string res)
     {
-        ClaimDto? claims = await apiClient.GetUserAccessClaim(userId, res);
+        ClaimDto? claims = await userAccessClient.GetUserAccessClaim(userId, res);
         if (claims?.Value is null)
         {
             return false;

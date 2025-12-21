@@ -27,10 +27,8 @@ namespace Vitarish.Main.Services
             string? authority = options?.Value?.Authority ?? user.FindFirstValue("iss") ?? string.Empty;
 
             // Get client_id from claims (client_id claim is standard in OAuth2/OIDC access tokens)
-            RouteValueDictionary routeValues = http.GetRouteData()?.Values ?? [];
-            string? routeClientId = routeValues["clientId"]?.ToString();
             string? claimClientId = user.FindFirstValue("client_id");
-            string clientId = claimClientId ?? routeClientId ?? string.Empty;
+            string clientId = claimClientId ?? string.Empty;
 
             // Get owner_id and tenant_id from claims (trusted source)
             string? claimOwnerId = user.FindFirstValue(RequestIdentityConstants.OwnerIdClaim);

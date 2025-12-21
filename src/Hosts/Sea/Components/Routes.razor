@@ -1,7 +1,7 @@
 @inject IStringLocalizer Localizer
 <Router AppAssembly="typeof(App).Assembly" OnNavigateAsync="OnNavigating">
     <Found Context="routeData">
-        <AuthorizeRouteView RouteData="routeData" Context="auth" DefaultLayout="typeof(MainLayout)" Resource="@Nav.BaseUri">
+        <AuthorizeRouteView RouteData="routeData" Context="auth" DefaultLayout="typeof(MainLayout)" Resource="@RequestContext.Request.TenantId">
             <Authorizing>
             </Authorizing>
             <NotAuthorized>

@@ -6,7 +6,7 @@ using Vitarish.Client.Context;
 namespace Vitarish.Clients.Interface.Identity.Services;
 
 public sealed class PersonalAccessTokenClient(
-    IIdentityClientContext identityContext,
+    IRequestContextClient identityContext,
     IIdentityClientService clientFactory,
     ILogger<PersonalAccessTokenClient> logger,
     IDistributedCache cache) : IPersonalAccessTokenClient
@@ -23,7 +23,7 @@ public sealed class PersonalAccessTokenClient(
         {
             throw new ArgumentOutOfRangeException(nameof(lifetimeDays));
         }
-        string userId = identityContext.UserId ??
+        string userId = identityContext.Request?.UserId ??
             throw new InvalidOperationException("User identifier is required to create a personal access token.");
         List<string>? scopeList = scopes?
             .Where(static scope => !string.IsNullOrWhiteSpace(scope))

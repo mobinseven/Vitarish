@@ -21,7 +21,7 @@ internal static class LoginLogoutEndpointRouteBuilderExtensions
             .AllowAnonymous();
         _ = group.MapPost("/logout", async ([FromServices] IOptionsMonitor<OpenIdConnectOptions> oidcOptionsMonitor,
             [FromServices] IDistributedCache cache,
-            [FromServices] IIdentityClientContext identityContext,
+            [FromServices] IRequestContextClient identityContext,
             HttpContext context,
             [FromForm] string? returnUrl) =>
         {
@@ -30,9 +30,9 @@ internal static class LoginLogoutEndpointRouteBuilderExtensions
             string? userId = context.User.GetId();
             if (!string.IsNullOrEmpty(userId))
             {
-                string? ownerOrClient = string.IsNullOrWhiteSpace(identityContext.OwnerId)
-                    ? identityContext.ClientId
-                    : identityContext.OwnerId;
+                string? ownerOrClient = string.IsNullOrWhiteSpace(identityContext.Request?.OwnerId)
+                    ? identityContext.Request?.ClientId
+                    : identityContext.Request.OwnerId;
                 ownerOrClient = string.IsNullOrWhiteSpace(ownerOrClient)
                     ? oidcOptions.ClientId
                     : ownerOrClient;
