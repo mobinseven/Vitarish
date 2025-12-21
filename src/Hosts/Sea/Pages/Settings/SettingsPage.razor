@@ -42,24 +42,20 @@
         </MudStack>
     </MudPaper>
 
-    @if (AccessService.Access.Admin)
-    {
-        <MudPaper Class="glass mt-5" Elevation="0">
-            <MudStack Spacing="2" Class="pa-6">
-                <MudText Typo="Typo.h6">@($"{Localizer["Admin"]} {Localizer["Settings"]}")</MudText>
-                <MudStack Spacing="1">
-                    <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/settings/users">@Localizer["Users"]</MudButton>
-                    <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/settings/theme">@Localizer["Theme"]</MudButton>
-                    <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/chat">@Localizer["Chat"]</MudButton>
-                    <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/settings/statistics">@Localizer["Statistics"]</MudButton>
-                    <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/settings/advanced">@Localizer["Advanced"]</MudButton>
-                </MudStack>
+    <MudPaper Class="glass mt-5" Elevation="0">
+        <MudStack Spacing="2" Class="pa-6">
+            <MudText Typo="Typo.h6">@($"{Localizer["Admin"]} {Localizer["Settings"]}")</MudText>
+            <MudStack Spacing="1">
+                <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/users">@Localizer["Users"]</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/theme">@Localizer["Theme"]</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/Chat">@Localizer["Chat"]</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/statistics">@Localizer["Statistics"]</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/advanced">@Localizer["Advanced"]</MudButton>
             </MudStack>
-        </MudPaper>
-    }
+        </MudStack>
+    </MudPaper>
 </WidthControlled>
 
 <div style="height: 50dvh;">
     <hr />
 </div>
-
