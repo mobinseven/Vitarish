@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
-using Vitarish.Requests.Domain.Models;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Models;
@@ -37,39 +36,6 @@ namespace Vitarish.Users.Hosting.Api
             // Allow consumer to add group-level filters (applies to all endpoints in the group)
             configureFilters?.Invoke(group);
 
-            /* ---------- Request-Based Endpoints (New Pattern) ---------- */
-
-            // POST /api/users/request/hasaccess
-            _ = group.MapPost("/request/hasaccess", HasRequestAccessAsync)
-                .WithName("HasRequestAccess")
-                .Produces<bool>(StatusCodes.Status200OK)
-                .WithSummary("Check request access")
-                .WithDescription("Indicates whether the request has access based on full request context. Accepts RequestIdentityDto in the request body. This is the preferred method.");
-
-            // POST /api/users/request/access
-            _ = group.MapPost("/request/access", GetRequestAccessClaimAsync)
-                .WithName("GetRequestAccessClaim")
-                .Produces<ClaimDto>(StatusCodes.Status200OK)
-                .Produces(StatusCodes.Status404NotFound)
-                .WithSummary("Get request access claim")
-                .WithDescription("Returns the access claim for the request based on full request context. Accepts RequestIdentityDto in the request body. This is the preferred method.");
-
-            // POST /api/users/request/setaccess
-            _ = group.MapPost("/request/setaccess", SetRequestAccessAsync)
-                .WithName("SetRequestAccess")
-                .Produces(StatusCodes.Status200OK)
-                .WithSummary("Grant request access")
-                .WithDescription("Grants access for the request based on full request context. Accepts SetRequestAccessRequest (containing RequestIdentityDto and AccessValue) in the request body. This is the preferred method.");
-
-            // POST /api/users/request/removeaccess
-            _ = group.MapPost("/request/removeaccess", RemoveRequestAccessAsync)
-                .WithName("RemoveRequestAccess")
-                .Produces(StatusCodes.Status204NoContent)
-                .WithSummary("Revoke request access")
-                .WithDescription("Removes access for the request based on full request context. Accepts RequestIdentityDto in the request body. This is the preferred method.");
-
-            /* ---------- Legacy Client-Based Endpoints (Deprecated) ---------- */
-
             // GET /api/users/clients/{clientId}/{userId}
             _ = group.MapGet("/clients/{clientId}/{userId}", GetClientUserAsync)
                 .WithName("GetClientUser")
@@ -90,16 +56,14 @@ namespace Vitarish.Users.Hosting.Api
                 .WithName("GetUserAccess")
                 .Produces<ClaimDto>(StatusCodes.Status200OK)
                 .Produces(StatusCodes.Status404NotFound)
-                .WithSummary("[Deprecated] Get user access claim")
-                .WithDescription("**Deprecated**: Use /api/users/request/access instead. Returns the access claim for **userId** in the specified **clientId** context.")
-                .WithOpenApi(op => { op.Deprecated = true; return op; });
+                .WithSummary("Get user access claim")
+                .WithDescription("Returns the access claim for **userId** in the specified **clientId** context.");
 
             _ = group.MapGet("/{userId}/hasaccess/{clientId}", HasUserAccessAsync)
                 .WithName("HasUserAccess")
                 .Produces<bool>(StatusCodes.Status200OK)
-                .WithSummary("[Deprecated] Check user access")
-                .WithDescription("**Deprecated**: Use /api/users/request/hasaccess instead. Indicates whether **userId** has access within **clientId**.")
-                .WithOpenApi(op => { op.Deprecated = true; return op; });
+                .WithSummary("Check user access")
+                .WithDescription("Indicates whether **userId** has access within **clientId**.");
 
             // GET /api/users/clients/{clientId}
             _ = group.MapGet("/clients/{clientId}", GetClientUsersAsync)
@@ -113,72 +77,19 @@ namespace Vitarish.Users.Hosting.Api
                 .WithName("SetUserAccess")
                 .Accepts<SetUserAccessClaimCommand>("application/json")
                 .Produces(StatusCodes.Status200OK)
-                .WithSummary("[Deprecated] Grant user access")
-                .WithDescription("**Deprecated**: Use /api/users/request/setaccess instead. Grants access for the provided user and client combination.")
-                .WithOpenApi(op => { op.Deprecated = true; return op; });
+                .WithSummary("Grant user access")
+                .WithDescription("Grants access for the provided user and client combination.");
 
             // DELETE /api/users/access
             _ = group.MapDelete("/access", RemoveUserAccessAsync)
                 .WithName("RemoveUserAccess")
                 .Accepts<RemoveUserAccessClaimCommand>("application/json")
                 .Produces(StatusCodes.Status204NoContent)
-                .WithSummary("[Deprecated] Revoke user access")
-                .WithDescription("**Deprecated**: Use /api/users/request/removeaccess instead. Removes access for the provided user and client combination.")
-                .WithOpenApi(op => { op.Deprecated = true; return op; });
+                .WithSummary("Revoke user access")
+                .WithDescription("Removes access for the provided user and client combination.");
 
             return group;
         }
-
-        /* ---------- Request-Based Handler Methods (New Pattern) ---------- */
-
-        /// <summary>
-        /// Checks if a request has access based on full request context.
-        /// </summary>
-        static async Task<IResult> HasRequestAccessAsync(
-            [FromBody] RequestIdentityDto request,
-            [FromServices] IMediator mediator)
-        {
-            bool hasAccess = await mediator.Send(new HasRequestAccessQuery(request));
-            return Results.Ok(hasAccess);
-        }
-
-        /// <summary>
-        /// Retrieves an access claim for a request based on full request context.
-        /// </summary>
-        static async Task<IResult> GetRequestAccessClaimAsync(
-            [FromBody] RequestIdentityDto request,
-            [FromServices] IMediator mediator)
-        {
-            ClaimDto? claim = await mediator.Send(new GetRequestAccessClaimQuery(request));
-            return claim is not null
-                ? Results.Ok(claim)
-                : Results.NotFound();
-        }
-
-        /// <summary>
-        /// Sets access for a request based on full request context.
-        /// </summary>
-        static async Task<IResult> SetRequestAccessAsync(
-            [FromBody] SetRequestAccessRequest requestData,
-            [FromServices] IMediator mediator)
-        {
-            await mediator.Send(new SetRequestAccessClaimCommand(requestData.Request, requestData.AccessValue));
-            return Results.Ok();
-        }
-
-        /// <summary>
-        /// Removes access for a request based on full request context.
-        /// </summary>
-        static async Task<IResult> RemoveRequestAccessAsync(
-            [FromBody] RequestIdentityDto request,
-            [FromServices] IMediator mediator)
-        {
-            await mediator.Send(new RemoveRequestAccessClaimCommand(request));
-            return Results.NoContent();
-        }
-
-        /* ---------- Legacy Handler Methods (Deprecated) ---------- */
-
         /// <summary>
         /// Retrieves a specific client user by identifiers.
         /// </summary>
@@ -274,5 +185,4 @@ namespace Vitarish.Users.Hosting.Api
             return Results.NoContent();
         }
     }
-
 }
