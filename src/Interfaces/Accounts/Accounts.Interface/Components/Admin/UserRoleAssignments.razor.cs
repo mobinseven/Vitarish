@@ -92,7 +92,7 @@ public partial class UserRoleAssignments : AdminBase
         IdentityResult result = await UserManager.RemoveFromRoleAsync(entry.User, role);
         if (result.Succeeded)
         {
-            _ = entry.AssignedRoles.RemoveAll(r => string.Equals(r, role, StringComparison.OrdinalIgnoreCase));
+            entry.AssignedRoles.RemoveAll(r => string.Equals(r, role, StringComparison.OrdinalIgnoreCase));
             _ = Snackbar.Add(Localizer["RoleRemoved"], Severity.Success);
         }
         else
