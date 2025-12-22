@@ -21,22 +21,27 @@ public partial class UserRoleAssignments : AdminBase
         roles.Clear();
         StateHasChanged();
 
-        IEnumerable<User> loadedUsers = await UserService.GetUsersAsync();
-        roles.AddRange(RoleManager.Roles
-            .Select(role => role.Name)
-            .Where(name => !string.IsNullOrWhiteSpace(name))
-            .Select(name => name!)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderBy(name => name));
-
-        foreach (User user in loadedUsers)
+        try
         {
-            IList<string> userRoles = await UserManager.GetRolesAsync(user);
-            users.Add(new UserRoleEntry(user, userRoles.ToList()));
-        }
+            IEnumerable<User> loadedUsers = await UserService.GetUsersAsync();
+            roles.AddRange(RoleManager.Roles
+                .Select(role => role.Name)
+                .Where(name => !string.IsNullOrWhiteSpace(name))!
+                .Select(name => name!)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderBy(name => name));
 
-        isLoading = false;
-        StateHasChanged();
+            foreach (User user in loadedUsers)
+            {
+                IList<string> userRoles = await UserManager.GetRolesAsync(user);
+                users.Add(new UserRoleEntry(user, userRoles.ToList()));
+            }
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
     }
 
     private Task ReloadAsync() => LoadAsync();
