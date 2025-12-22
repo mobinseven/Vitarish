@@ -24,7 +24,7 @@ public partial class UserRoleAssignments : AdminBase
         IEnumerable<User> loadedUsers = await UserService.GetUsersAsync();
         roles.AddRange(RoleManager.Roles
             .Select(role => role.Name)
-            .Where(name => !string.IsNullOrWhiteSpace(name))!
+            .Where(name => !string.IsNullOrWhiteSpace(name))
             .Select(name => name!)
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .OrderBy(name => name));
