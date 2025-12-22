@@ -8,9 +8,6 @@ public partial class UserRoleAssignments : AdminBase
     private readonly List<string> roles = [];
     private bool isLoading;
 
-    [Inject] private UserManager<User> UserManager { get; set; } = default!;
-    [Inject] private RoleManager<IdentityRole> RoleManager { get; set; } = default!;
-
     protected override async Task OnInitializedAsync()
         => await LoadAsync();
 
