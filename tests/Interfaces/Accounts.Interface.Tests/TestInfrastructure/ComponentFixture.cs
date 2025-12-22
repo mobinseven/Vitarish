@@ -16,6 +16,7 @@ using Vitarish.Accounts.Interface.Localization;
 using Vitarish.ApiClients.Application.Abstractions;
 using Vitarish.AuthenticationClients.Application.Abstractions;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
 
@@ -43,6 +44,7 @@ internal sealed class ComponentFixture : IDisposable
         Mock<IIdentityServerInteractionService> identityInteractionMock = new();
         Mock<IRequestIdentitiesService> requestIdentitiesMock = new();
         Mock<IRequestContext> requestContextMock = new();
+        Mock<IPartiesService> partiesServiceMock = new();
         Mock<IHttpClientFactory> httpClientFactoryMock = new();
         _ = httpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(new HttpClient());
 
@@ -51,6 +53,9 @@ internal sealed class ComponentFixture : IDisposable
         _ = userStoreMock.As<IUserEmailStore<User>>();
 
         Mock<UserManager<User>> userManagerMock = CreateUserManager(userStoreMock);
+
+        Mock<IRoleStore<IdentityRole>> roleStoreMock = new();
+        Mock<RoleManager<IdentityRole>> roleManagerMock = CreateRoleManager(roleStoreMock);
 
         DefaultHttpContext httpContext = new()
         {
@@ -100,8 +105,11 @@ internal sealed class ComponentFixture : IDisposable
             authClientsMock,
             requestIdentitiesMock,
             requestContextMock,
+            partiesServiceMock,
             userStoreMock,
+            roleStoreMock,
             userManagerMock,
+            roleManagerMock,
             signInManager,
             httpContext,
             httpClientFactoryMock);
@@ -124,6 +132,10 @@ internal sealed class ComponentFixture : IDisposable
         SetProperty(component, "PersonalAccessTokenService", Mocks.PersonalAccessTokens.Object, typeof(CommonBase));
         SetProperty(component, "AuthenticationClientsService", Mocks.AuthenticationClients.Object, typeof(CommonBase));
         SetProperty(component, "RequestIdentitiesService", Mocks.RequestIdentities.Object, typeof(CommonBase));
+        if (component is AdminBase)
+        {
+            SetProperty(component, "PartiesService", Mocks.Parties.Object, typeof(AdminBase));
+        }
         SetProperty(component, "EmailAuthenticationService", Mocks.EmailAuthentication.Object, typeof(CommonBase));
         SetProperty(component, "SmsAuthenticationService", Mocks.SmsAuthentication.Object, typeof(CommonBase));
         SetProperty(component, "AuthenticationStateProvider", AuthenticationState, typeof(CommonBase));
@@ -158,6 +170,19 @@ internal sealed class ComponentFixture : IDisposable
             keyNormalizer.Object,
             errors,
             services.Object,
+            logger.Object);
+    }
+
+    private static Mock<RoleManager<IdentityRole>> CreateRoleManager(Mock<IRoleStore<IdentityRole>> roleStoreMock)
+    {
+        Mock<ILookupNormalizer> keyNormalizer = new();
+        Mock<IdentityErrorDescriber> errors = new();
+        Mock<ILogger<RoleManager<IdentityRole>>> logger = new();
+        return new Mock<RoleManager<IdentityRole>>(
+            roleStoreMock.Object,
+            Array.Empty<IRoleValidator<IdentityRole>>(),
+            keyNormalizer.Object,
+            errors.Object,
             logger.Object);
     }
 

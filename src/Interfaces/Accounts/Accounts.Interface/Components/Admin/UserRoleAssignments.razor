@@ -1,0 +1,87 @@
+@inherits AdminBase
+
+<MudStack Spacing="2">
+    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <MudText Typo="Typo.h5">@Localizer["UserRoles"]</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                       Color="Color.Primary"
+                       OnClick="ReloadAsync"
+                       Disabled="isLoading" />
+    </MudStack>
+
+    <MudPaper Elevation="0" Class="pa-3">
+        @if (isLoading)
+        {
+            <MudProgressLinear Indeterminate Color="Color.Default" />
+        }
+        else if (users.Count == 0)
+        {
+            <MudText Typo="Typo.body2">@Localizer["NoUsers"]</MudText>
+        }
+        else
+        {
+            <MudDataGrid T="UserRoleEntry"
+                         Items="users"
+                         Dense="true"
+                         Hover="true"
+                         Loading="isLoading"
+                         Elevation="0"
+                         Bordered="true">
+                <Columns>
+                    <PropertyColumn Property="entry => entry.User.UserName" Title="@Localizer["UserName"]" />
+                    <PropertyColumn Property="entry => entry.User.Email" Title="@Localizer["Email"]" />
+                    <PropertyColumn Property="entry => entry.User.PhoneNumber" Title="@Localizer["PhoneNumber"]" />
+                    <TemplateColumn Title="@Localizer["CurrentRoles"]">
+                        <CellTemplate>
+                            @if (context.Item.AssignedRoles.Count == 0)
+                            {
+                                <MudText Typo="Typo.caption">@Localizer["NoRoles"]</MudText>
+                            }
+                            else
+                            {
+                                <MudStack Row Spacing="1">
+                                    @foreach (string role in context.Item.AssignedRoles)
+                                    {
+                                        <MudChip T="string"
+                                                 OnClose="@(() => RemoveRoleAsync(context.Item, role))"
+                                                 CloseIcon="@Icons.Material.Filled.Close">
+                                            @role
+                                        </MudChip>
+                                    }
+                                </MudStack>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@Localizer["AssignRole"]">
+                        <CellTemplate>
+                            <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                                <MudSelect T="string"
+                                           Value="@context.Item.SelectedRole"
+                                           ValueChanged="@((string? value) => UpdateSelectedRole(context.Item, value))"
+                                           Dense="true"
+                                           Label="@Localizer["SelectRole"]"
+                                           Disabled="isLoading || roles.Count == 0">
+                                    @if (roles.Count == 0)
+                                    {
+                                        <MudSelectItem Value="string.Empty">@Localizer["NoRoles"]</MudSelectItem>
+                                    }
+                                    else
+                                    {
+                                        @foreach (string role in roles)
+                                        {
+                                            <MudSelectItem Value="@role">@role</MudSelectItem>
+                                        }
+                                    }
+                                </MudSelect>
+                                <MudIconButton Icon="@Icons.Material.Filled.Check"
+                                               Color="Color.Primary"
+                                               Disabled="isLoading || string.IsNullOrWhiteSpace(context.Item.SelectedRole)"
+                                               OnClick="@(() => AssignRoleAsync(context.Item))" />
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+            </MudDataGrid>
+        }
+    </MudPaper>
+</MudStack>

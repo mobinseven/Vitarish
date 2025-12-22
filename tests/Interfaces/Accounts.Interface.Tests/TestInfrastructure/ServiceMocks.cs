@@ -5,6 +5,7 @@ using Vitarish.Accounts.Infrastructure.Services;
 using Vitarish.ApiClients.Application.Abstractions;
 using Vitarish.AuthenticationClients.Application.Abstractions;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
 
@@ -21,8 +22,11 @@ internal sealed record ServiceMocks(
     Mock<IAuthenticationClientsService> AuthenticationClients,
     Mock<IRequestIdentitiesService> RequestIdentities,
     Mock<IRequestContext> RequestContext,
+    Mock<IPartiesService> Parties,
     Mock<IUserStore<User>> UserStore,
+    Mock<IRoleStore<IdentityRole>> RoleStore,
     Mock<UserManager<User>> UserManager,
+    Mock<RoleManager<IdentityRole>> RoleManager,
     TestSignInManager SignInManager,
     DefaultHttpContext HttpContext,
     Mock<IHttpClientFactory> HttpClientFactory);
