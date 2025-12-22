@@ -26,7 +26,7 @@ namespace Vitarish.Users.Hosting.Api
             Action<RouteGroupBuilder>? configureFilters = null)
         {
             RouteGroupBuilder group = app
-                .MapGroup("/api/users/access")
+                .MapGroup("/api/users")
                 .WithTags("Users")
                 .RequireAuthorization(new AuthorizeAttribute
                 {
@@ -36,11 +36,11 @@ namespace Vitarish.Users.Hosting.Api
             // Allow consumer to add group-level filters (applies to all endpoints in the group)
             configureFilters?.Invoke(group);
 
-            _ = group.MapGet("/", GetUsers)
-                .WithName("GetCurrentUser")
+            _ = group.MapPost("/role", GetUsersByRole)
+                .WithName("GetUsersByrole")
                 .Produces(StatusCodes.Status200OK, typeof(IEnumerable<UserDto>), "application/json")
-                .WithSummary("Get users by access")
-                .WithDescription("Get users for current request context");
+                .WithSummary("Get users by role")
+                .WithDescription("Get users by a given role name");
 
             _ = group.MapGet("/current", GetCurrentUser)
                 .WithName("GetCurrentUser")
@@ -48,21 +48,14 @@ namespace Vitarish.Users.Hosting.Api
                 .WithSummary("Get current user")
                 .WithDescription("Get user for current request context");
 
-            _ = group.MapPost("/check", CheckUserAccessAsync)
-                .WithName("CheckUserAccess")
-                .Accepts<UserAccess>("application/json")
-                .Produces(StatusCodes.Status202Accepted)
-                .Produces(StatusCodes.Status204NoContent)
-                .WithSummary("Check user access")
-                .WithDescription("Check if the given user access combination exists");
-
             return group;
         }
 
-        private static async Task<IResult> GetUsers(
+        private static async Task<IResult> GetUsersByRole(
+            [FromBody] GetUsersByRoleQuery query,
             [FromServices] IMediator mediator)
         {
-            IEnumerable<User> res = await mediator.Send(new UsersByAccessQuery());
+            IEnumerable<User> res = await mediator.Send(query);
             return Results.Ok(res.Select(u => new UserDto(u)));
         }
 
@@ -71,14 +64,6 @@ namespace Vitarish.Users.Hosting.Api
         {
             User? res = await mediator.Send(new GetCurrentUserQuery());
             return Results.Ok(new UserDto(res));
-        }
-
-        private static async Task<IResult> CheckUserAccessAsync(
-            [FromBody] CheckUserAccessQuery command,
-            [FromServices] IMediator mediator)
-        {
-            bool exists = await mediator.Send(command);
-            return exists ? Results.Accepted() : Results.NoContent();
         }
     }
 }

@@ -1,5 +1,4 @@
 using Duende.IdentityServer.Models;
-using Vitarish.Users.Infrastructure;
 
 namespace Vitarish.Main.Infrastructure.IdentityServer;
 
@@ -8,7 +7,7 @@ public static partial class IdentityDefinitions
     public const string TenantIdClaim = "tenant_id";
     public const string OwnerIdClaim = "owner_id";
     public const string TenantOwnerScope = "tenant_owner";
-
+    public const string TenantRolesAuthType = "TenantRoles";
     public static IdentityResource[] IdentityResources { get; } = [
                 new IdentityResources.OpenId(),
                 new IdentityResources.Profile(),

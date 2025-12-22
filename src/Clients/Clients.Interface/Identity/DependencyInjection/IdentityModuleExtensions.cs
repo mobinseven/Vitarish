@@ -112,10 +112,7 @@ public static class IdentityModuleExtensions
             _ = services.AddDistributedMemoryCache();
         }
         _ = services.AddMemoryCache();
-        _ = services.AddAuthorizationBuilder()
-            .SetDefaultPolicy(policy: new AuthorizationPolicyBuilder().RequireAuthenticatedUser()
-                                                                      .AddRequirements(new UserAccessRequirement())
-                                                                      .Build());
+        _ = services.AddAuthorization();
         _ = services.ConfigureCookieOidcRefresh(CookieAuthenticationDefaults.AuthenticationScheme, DefaultChallengeScheme);
         _ = services.AddCascadingAuthenticationState();
         _ = services.AddHttpContextAccessor();
@@ -123,8 +120,6 @@ public static class IdentityModuleExtensions
         _ = services.AddSingleton<IAuthorizationMiddlewareResultHandler, BlazorAuthorizationMiddlewareResultHandler>();
         _ = services.AddIdentityClient(configuration);
         await services.AddIdentityClientDataProtection(configuration);
-        _ = services.AddScoped<IAuthorizationHandler, UserAccessAuthorizationHandler>();
-        _ = services.AddScoped<IUserAccessClient, UserAccessClient>();
         _ = services.AddScoped<IPersonalAccessTokenClient, PersonalAccessTokenClient>();
         _ = services.AddScoped<IPersonalClientFactory, PersonalClientFactory>();
         _ = services.AddScoped<IUsersService, UsersService>();

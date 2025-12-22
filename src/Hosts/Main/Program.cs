@@ -109,6 +109,7 @@ _ = builder.Services.AddSignalR(o =>
     o.AddFilter<RequestsContextHubFilter>();
 }).AddMessagePackProtocol();
 
+
 WebApplication app = builder.Build();
 app.UseDashboardServices();
 

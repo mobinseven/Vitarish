@@ -11,7 +11,7 @@ namespace Vitarish.Sea.Pages.Settings
         public IStringLocalizer Localizer { get; set; } = default!;
 
         [Inject]
-        public ISeaAccessService AccessService { get; set; } = default!;
+        public ISeaUsersService AccessService { get; set; } = default!;
 
         [Inject]
         public NavigationManager NavigationManager { get; set; } = default!;

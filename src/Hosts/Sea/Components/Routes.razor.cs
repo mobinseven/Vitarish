@@ -1,8 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Routing;
-using Vitarish.Clients.Identity.Abstractions;
-using Vitarish.Clients.Interface.Identity.Contracts;
 using Vitarish.Clients.Interface.Sea.Abstractions;
 using Vitarish.Clients.Interface.Sea.Components.UsageConfigurations;
 using Vitarish.Clients.Interface.Services;
@@ -11,10 +9,8 @@ namespace Vitarish.Sea.Components
 {
     public partial class Routes : IDisposable
     {
-        [Inject] protected ISeaAccessService AccessService { get; set; } = default!;
-        [CascadingParameter] private Task<AuthenticationState>? AuthStateTask { get; set; }
+        [Inject] protected ISeaUsersService AccessService { get; set; } = default!;
         [Inject] private ILogger<Routes> Logger { get; set; } = default!;
-        [Inject] private NavigationManager Nav { get; set; } = default!;
         [Inject] private IUsageConfigurationClient UsageConfigurationService { get; set; } = default!;
         [Inject] private IThemeService ThemeService { get; set; } = default!;
 
@@ -23,7 +19,7 @@ namespace Vitarish.Sea.Components
         {
             if (AccessService.User is null)
             {
-                await AccessService.Initialize();
+                await AccessService.Initialize(["Sea.Admin", "Sea.User"]);
             }
 
             await EnsureThemeInitializedAsync().ConfigureAwait(false);

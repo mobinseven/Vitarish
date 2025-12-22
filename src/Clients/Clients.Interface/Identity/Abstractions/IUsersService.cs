@@ -7,6 +7,6 @@ public interface IUsersService
     IEnumerable<UserDto> Users { get; }
     UserDto? User { get; }
 
-    Task Initialize();
+    Task Initialize(string[] roles);
 }
 

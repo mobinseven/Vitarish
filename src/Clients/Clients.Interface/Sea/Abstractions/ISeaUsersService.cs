@@ -1,6 +1,6 @@
 namespace Vitarish.Clients.Interface.Sea.Abstractions;
 
-public interface ISeaAccessService : IUsersService
+public interface ISeaUsersService : IUsersService
 {
     /// <summary>
     /// Indicates whether the current user has admin access within the Sea client.

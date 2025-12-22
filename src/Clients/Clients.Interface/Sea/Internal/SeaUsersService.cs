@@ -3,7 +3,7 @@ using Vitarish.Clients.Interface.Sea.Abstractions;
 
 namespace Vitarish.Clients.Interface.Sea.Internal;
 
-public sealed class SeaAccessService(IEntityInterceptionProvider userService, IUserRolesClient userRolesService, IEventRolesClient eventRolesService, IRolesClient rolesService, IUserAccessClient userAccessClient) : UsersService(userAccessClient), ISeaAccessService
+public sealed class SeaUsersService(IEntityInterceptionProvider userService, IUserRolesClient userRolesService, IEventRolesClient eventRolesService, IRolesClient rolesService, IPersonalClientFactory userAccessClient) : UsersService(userAccessClient), ISeaUsersService
 {
     private HashSet<Guid> userReadRoleIds = [];
     private HashSet<Guid> userWriteRoleIds = [];
@@ -12,9 +12,9 @@ public sealed class SeaAccessService(IEntityInterceptionProvider userService, IU
     public IReadOnlyList<Guid> RoleIds => userReadRoleIds.Union(userWriteRoleIds).ToList();
     public Guid? UserId => User is not null ? Guid.Parse(User.Id) : null;
 
-    public override async Task Initialize()
+    public override async Task Initialize(string[] roleNames)
     {
-        await base.Initialize();
+        await base.Initialize(roleNames);
         if (Guid.TryParse(User?.Id, out Guid id))
         {
             _ = userService.Use(new EntityInterceptionConfig { Time = DateTime.Now, UserId = id.ToString() });

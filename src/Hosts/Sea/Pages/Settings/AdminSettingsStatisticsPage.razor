@@ -1,5 +1,5 @@
 @page "/Admin/settings/statistics"
-@attribute [Authorize(Roles = "Admin")]
+@attribute [Authorize(Roles = "Sea.Admin")]
 @inherits AdminSettingsSectionPageBase
 
 <div style="position: sticky; top: 10px; z-index: 1;">
@@ -13,12 +13,7 @@
 <WidthControlled ControlledWidth="50vw">
     <MudPaper Class="glass mt-5" Elevation="0">
         <MudStack Spacing="3" Class="pa-6">
-            <DatabaseStatisticsDisplay />
-            <GodViewEntityTabs />
-            <ProjectCsvDownloadButton />
-            <ProcedureCsvDownloadButton />
-            <EventCsvDownloadButton />
-            <AttachmentCsvDownloadButton />
+            @* TODO: Implement statistics *@
         </MudStack>
     </MudPaper>
 </WidthControlled>

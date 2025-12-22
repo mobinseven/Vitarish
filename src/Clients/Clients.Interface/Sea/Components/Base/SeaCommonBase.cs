@@ -4,7 +4,7 @@ namespace Vitarish.Clients.Interface.Sea.Components.Base;
 
 public class SeaCommonBase : CommonBase
 {
-    [Inject] protected ISeaAccessService AccessService { get; set; } = default!;
+    [Inject] protected ISeaUsersService AccessService { get; set; } = default!;
     /// <summary>
     /// Optional override for admin-specific rendering when the caller wants to force admin mode.
     /// </summary>

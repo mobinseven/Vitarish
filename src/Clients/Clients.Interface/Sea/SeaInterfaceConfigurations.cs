@@ -17,7 +17,7 @@ internal static class SeaInterfaceConfigurations
             _ = services.AddScoped<IProjectGridCellDisplayPlugin, DefaultProjectGridCellDisplayPlugin>();
             _ = services.AddScoped<IEventItemPlugin, AttachmentPlugin>();
             _ = services.AddScoped<IEventItemPlugin, ReminderPlugin>();
-            _ = services.AddScoped<ISeaAccessService, SeaAccessService>();
+            _ = services.AddScoped<ISeaUsersService, SeaUsersService>();
             return services;
         }
 

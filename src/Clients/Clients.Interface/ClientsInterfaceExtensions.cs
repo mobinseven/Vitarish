@@ -28,7 +28,7 @@ public static class ClientsInterfaceExtensions
             _ = services.ConfigureCompositeStringLocalizer(typeof(Strings));
             _ = services.AddSingleton<IStringLocalizer>(sp => sp.GetRequiredService<IStringLocalizer<Strings>>());
             _ = services.AddMudServices();
-            _ = services.AddScoped<ISeaAccessService, SeaAccessService>();
+            _ = services.AddScoped<ISeaUsersService, SeaUsersService>();
             _ = services.Configure<RequestLocalizationOptions>(options =>
             {
                 CultureInfo[] supportedCultures =
