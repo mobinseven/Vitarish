@@ -23,7 +23,7 @@ public partial class UserRoleAssignments : AdminBase
 
         try
         {
-            IEnumerable<User> loadedUsers = await UserService.GetUsersAsync();
+            List<User> loadedUsers = (await UserService.GetUsersAsync()).ToList();
             roles.AddRange(RoleManager.Roles
                 .Select(role => role.Name)
                 .Where(name => !string.IsNullOrWhiteSpace(name))!
@@ -31,10 +31,12 @@ public partial class UserRoleAssignments : AdminBase
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .OrderBy(name => name));
 
-            foreach (User user in loadedUsers)
+            IList<string>[] userRoles = await Task.WhenAll(
+                loadedUsers.Select(user => UserManager.GetRolesAsync(user)));
+
+            for (int i = 0; i < loadedUsers.Count; i++)
             {
-                IList<string> userRoles = await UserManager.GetRolesAsync(user);
-                users.Add(new UserRoleEntry(user, userRoles.ToList()));
+                users.Add(new UserRoleEntry(loadedUsers[i], userRoles[i].ToList()));
             }
         }
         finally
