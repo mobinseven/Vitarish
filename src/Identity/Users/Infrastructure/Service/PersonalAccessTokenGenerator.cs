@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text.Json;
+using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Domain.Options;
@@ -16,10 +17,10 @@ public sealed class PersonalAccessTokenGenerator(
     UserManager<User> userManager,
     ITokenService tokenService,
     IIssuerNameService issuerNameService,
+    IRequestContext requestContext,
     IOptions<PersonalAccessTokenOptions> preferences) : IPersonalAccessTokenGenerator
 {
-    private const string ClientId = "pat.client";
-    private const string TokenProvider = "AAAS";
+    private const string TokenProvider = nameof(Vitarish);
     private const string TokenName = "PersonalAccessToken";
 
     public async Task<string> CreateTokenAsync(
@@ -103,11 +104,13 @@ public sealed class PersonalAccessTokenGenerator(
             Issuer = await issuerNameService.GetCurrentAsync(),
             Lifetime = (int)lifetime.TotalSeconds,
             CreationTime = now.UtcDateTime,
-            ClientId = ClientId,
+            ClientId = requestContext.ClientId,
             AccessTokenType = isReferenceToken ? AccessTokenType.Reference : AccessTokenType.Jwt,
             Claims =
             [
-                new Claim("client_id", ClientId),
+                new Claim("client_id", requestContext.ClientId),
+                new Claim("owner_id", requestContext.OwnerId),
+                new Claim("tenant_id", requestContext.TenantId),
                 new Claim("sub", subjectId)
             ]
         };

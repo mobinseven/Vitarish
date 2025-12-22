@@ -1,4 +1,5 @@
 @page "/Admin/Chat"
+@using Vitarish.Clients.Interface.Identity.Extensions
 @attribute [Authorize(Roles = "Admin")]
 @inject IMcpToolProvider McpToolProvider
 @inject IUsageConfigurationClient UsageConfigurationService
@@ -21,17 +22,21 @@
 
 
 @code {
+    [CascadingParameter] private AuthenticationStateProvider AuthenticationState { get; set; } = default!;
+
     ResponderOptions _options = new();
     string? _chatInstructions;
 
     protected override async Task OnInitializedAsync()
     {
+        var user = (await AuthenticationState.GetAuthenticationStateAsync()).User;
+        var userId = user.GetId();
+
         UsageConfigurationDto? usageConfiguration = await UsageConfigurationService.GetUsageConfigurationAsync(CancellationToken.None);
         UsageConfigurationMetadata metadata = UsageConfigurationMetadata.FromJson(usageConfiguration?.Metadata);
         
-        // Get plugin identifiers from usage configuration metadata (per tenant in DB)
         IReadOnlyList<string> pluginIdentifiers = metadata.PluginIdentifiers ?? [];
-        IReadOnlyList<ResponderToolDefinition> tools = await McpToolProvider.GetDefinitionsAsync(pluginIdentifiers, false);
+        IReadOnlyList<ResponderToolDefinition> tools = await McpToolProvider.GetDefinitionsAsync(userId, pluginIdentifiers, false);
         string? preferredPlugin = pluginIdentifiers.FirstOrDefault(static p => !string.IsNullOrWhiteSpace(p))?.Trim();
         
         _chatInstructions = string.IsNullOrWhiteSpace(metadata.ChatInstructions)

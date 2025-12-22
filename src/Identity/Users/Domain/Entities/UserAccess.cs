@@ -2,9 +2,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Vitarish.Users.Domain.Entities;
 
-public class Access
+public class UserAccess
 {
-    public Guid Id { get; set; } = Guid.NewGuid();
+    public object?[] Key => [ClientId, OwnerId, TenantId, UserId, ResourceId];
     [MaxLength(128)]
     public string ClientId { get; set; } = default!;
 

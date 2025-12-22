@@ -1,11 +1,10 @@
 namespace Vitarish.Clients.Interface.Sea.Abstractions;
 
-public interface ISeaAccessService : IAccessService
+public interface ISeaAccessService : IUsersService
 {
     /// <summary>
     /// Indicates whether the current user has admin access within the Sea client.
     /// </summary>
-    bool IsAdmin { get; }
     IReadOnlyList<Guid> RoleIds { get; }
     Guid? UserId { get; }
     Task<bool> CanReadEvent(Guid eventId);

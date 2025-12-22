@@ -40,9 +40,10 @@ public static class IdentityClientMarkerExtensions
         //            .AddHttpClientInstrumentation());
 
         _ = services.AddMemoryCache();
+        _ = services.AddHybridCache();
+
         _ = services.AddTransient<IIdentityClientService, IdentityClientService>();
         _ = services.AddHttpContextAccessor();
-        _ = services.AddScoped<IRequestContextClient, RequestContextClient>();
         return services;
     }
 

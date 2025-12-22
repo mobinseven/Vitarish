@@ -1,6 +1,6 @@
 namespace Vitarish.Clients.Interface.Identity.Abstractions
 {
-    public interface IUserProfileService
+    public interface IUserProfileClient
     {
         string? GetCulture(IDictionary<string, string> preferences);
         Task<string?> GetCultureAsync();

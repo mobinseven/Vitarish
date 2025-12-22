@@ -4,7 +4,7 @@ using System.Security.Claims;
 
 namespace Vitarish.Clients.Interface.Identity.Services;
 
-public class UserProfileService(AuthenticationStateProvider authStateProvider, IIdentityClientService aaasClientFactory) : IUserProfileService
+public class UserProfileClient(AuthenticationStateProvider authStateProvider, IIdentityClientService aaasClientFactory) : IUserProfileClient
 {
     private const string CulturePreferenceKey = "Culture";
     private const string BaseUrl = "/api/user/";

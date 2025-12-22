@@ -1,86 +1,134 @@
-using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
+using System.Security.Cryptography;
+using System.Text;
 using Vitarish.Client.Context;
 
 namespace Vitarish.Clients.Interface.Identity.Services;
 
 public sealed class PersonalAccessTokenClient(
-    IRequestContextClient identityContext,
     IIdentityClientService clientFactory,
     ILogger<PersonalAccessTokenClient> logger,
-    IDistributedCache cache) : IPersonalAccessTokenClient
+    HybridCache cache) : IPersonalAccessTokenClient
 {
     private const string BaseUrl = "api/pat";
 
+    // Small safety window so you don't serve a token right at its expiry edge.
+    private static readonly TimeSpan ExpirySkew = TimeSpan.FromMinutes(5);
+
     public async Task<string?> CreateTokenAsync(
+        string userId,
         int? lifetimeDays,
         IEnumerable<string>? scopes,
         bool isReferenceToken,
         CancellationToken cancellationToken)
     {
-        if (lifetimeDays is { } value && value < 1)
+        ArgumentException.ThrowIfNullOrEmpty(userId);
+        ArgumentNullException.ThrowIfNull(lifetimeDays);
+        ArgumentOutOfRangeException.ThrowIfLessThan(lifetimeDays.Value, 1);
+
+        string[]? normalizedScopes = scopes?
+            .Where(static s => !string.IsNullOrWhiteSpace(s))
+            .Select(static s => s.Trim())
+            .Distinct(StringComparer.Ordinal)
+            .OrderBy(static s => s, StringComparer.Ordinal)
+            .ToArray();
+
+        string cacheKey = BuildHashedCacheKey(userId, lifetimeDays.Value, normalizedScopes, isReferenceToken);
+
+        TimeSpan ttl = ComputeTtl(lifetimeDays.Value);
+
+        var entryOptions = new HybridCacheEntryOptions
         {
-            throw new ArgumentOutOfRangeException(nameof(lifetimeDays));
-        }
-        string userId = identityContext.Request?.UserId ??
-            throw new InvalidOperationException("User identifier is required to create a personal access token.");
-        List<string>? scopeList = scopes?
-            .Where(static scope => !string.IsNullOrWhiteSpace(scope))
-            .ToList();
-        string scopeKey = scopeList is { Count: > 0 }
-            ? string.Join('\u001f', scopeList.OrderBy(static scope => scope, StringComparer.Ordinal))
-            : string.Empty;
-        string cacheKey = BuildCacheKey(userId, lifetimeDays, scopeKey, isReferenceToken);
+            // Expiration applies to the distributed backend; LocalCacheExpiration controls the in-memory tier.
+            Expiration = ttl,
+            LocalCacheExpiration = ttl,
+        };
 
-        string? cachedToken = await cache.GetStringAsync(cacheKey, cancellationToken);
-        if (!string.IsNullOrEmpty(cachedToken))
+        // Optional: tags allow invalidation (e.g., if you revoke tokens for a user).
+        // Keep tags non-PII (hash userId).
+        var tags = new[] { $"pat-user:{HashToHex(userId)}" };
+
+        try
         {
-            logger.LogInformation("Returning cached personal access token.");
-            return cachedToken;
-        }
-
-        HttpClient httpClient = await clientFactory.CreateClient(BaseUrl);
-
-        CreatePersonalAccessTokenRequest payload = new(
-            userId,
-            lifetimeDays,
-            scopeList is { Count: > 0 } ? scopeList : null,
-            isReferenceToken);
-
-        logger.LogInformation("Requesting personal access token generation.");
-
-        using HttpResponseMessage response = await httpClient.PostAsJsonAsync(
-            string.Empty,
-            payload,
-            PersonalAccessTokenJsonContext.Default.CreatePersonalAccessTokenRequest,
-            cancellationToken);
-
-        _ = response.EnsureSuccessStatusCode();
-
-        PersonalAccessTokenResponse? token = await response.Content.ReadFromJsonAsync(
-            PersonalAccessTokenJsonContext.Default.PersonalAccessTokenResponse,
-            cancellationToken);
-
-        if (token is null)
-        {
-            return null;
-        }
-
-        logger.LogInformation("Personal access token generation completed successfully.");
-
-        if (lifetimeDays is { } days)
-        {
-            await cache.SetStringAsync(
+            // TState overload lets us keep the factory static (no captures).
+            return await cache.GetOrCreateAsync(
                 cacheKey,
-                token.Token,
-                new DistributedCacheEntryOptions { AbsoluteExpirationRelativeToNow = TimeSpan.FromDays(days) },
+                (clientFactory, logger, userId, lifetimeDays.Value, normalizedScopes, isReferenceToken),
+                static async (state, ct) =>
+                {
+                    (IIdentityClientService? clientFactory, ILogger<PersonalAccessTokenClient>? logger, string? userId, int lifetimeDays, string[]? scopes, bool isReferenceToken) = state;
+
+                    HttpClient httpClient = await clientFactory.CreateClient(BaseUrl);
+
+                    var payload = new CreatePersonalAccessTokenRequest(
+                        userId,
+                        lifetimeDays,
+                        scopes is { Length: > 0 } ? scopes : null,
+                        isReferenceToken);
+
+                    logger.LogInformation("Requesting personal access token generation.");
+
+                    using HttpResponseMessage response = await httpClient.PostAsJsonAsync(
+                        string.Empty,
+                        payload,
+                        PersonalAccessTokenJsonContext.Default.CreatePersonalAccessTokenRequest,
+                        ct);
+
+                    _ = response.EnsureSuccessStatusCode();
+
+                    PersonalAccessTokenResponse? token = await response.Content.ReadFromJsonAsync(
+                        PersonalAccessTokenJsonContext.Default.PersonalAccessTokenResponse,
+                        ct);
+
+                    if (string.IsNullOrWhiteSpace(token?.Token))
+                    {
+                        // Throw so HybridCache doesn't cache a bad/empty result.
+                        throw new InvalidOperationException("PAT endpoint returned an empty token payload.");
+                    }
+
+                    logger.LogInformation("Personal access token generation completed successfully.");
+                    return token.Token;
+                },
+                entryOptions,
+                tags,
                 cancellationToken);
         }
-
-        return token.Token;
+        catch (InvalidOperationException ex) when (!cancellationToken.IsCancellationRequested)
+        {
+            logger.LogWarning(ex, "Token generation returned an invalid payload; not caching.");
+            return null;
+        }
     }
 
-    private static string BuildCacheKey(string userId, int? lifetimeDays, string scopeKey, bool isReferenceToken) =>
-        $"pat:{userId}:{lifetimeDays?.ToString() ?? "null"}:{scopeKey}:{isReferenceToken}";
+    private static TimeSpan ComputeTtl(int lifetimeDays)
+    {
+        TimeSpan ttl = TimeSpan.FromDays(lifetimeDays) - ExpirySkew;
+        return ttl > TimeSpan.Zero ? ttl : TimeSpan.FromDays(lifetimeDays);
+    }
+
+    private static string BuildHashedCacheKey(string userId, int lifetimeDays, string[]? scopes, bool isReferenceToken)
+    {
+        // Hash the “identity” of this request to keep keys short, avoid key-length issues,
+        // and avoid raw identifiers in cache keys (recommended key hygiene).
+        var sb = new StringBuilder(256);
+        _ = sb.Append("pat|uid=").Append(userId)
+          .Append("|days=").Append(lifetimeDays)
+          .Append("|ref=").Append(isReferenceToken);
+
+        if (scopes is { Length: > 0 })
+        {
+            _ = sb.Append("|scopes=");
+            foreach (var s in scopes)
+            {
+                _ = sb.Append(s).Append('\u001f');
+            }
+        }
+
+        return "pat:" + HashToHex(sb.ToString());
+    }
+
+    private static string HashToHex(string value)
+        => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(value)));
 }

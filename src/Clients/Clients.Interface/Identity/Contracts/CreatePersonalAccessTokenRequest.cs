@@ -5,5 +5,3 @@ internal sealed record CreatePersonalAccessTokenRequest(
     int? LifetimeDays,
     IEnumerable<string>? Scopes,
     bool IsReferenceToken = false);
-
-internal sealed record PersonalAccessTokenResponse(string Token);

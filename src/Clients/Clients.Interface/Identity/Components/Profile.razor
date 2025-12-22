@@ -1,7 +1,7 @@
 
 @if (authState?.User.Identity?.IsAuthenticated ?? false)
 {
-    <form method="get" action="@(UrlExtensions.UrlCombine(ClientIdentityContext.Request.Authority, "/Account/Manage"))" style="width: inherit;">
+    <form method="get" action="@(UrlExtensions.UrlCombine(Options.Authority, "/Account/Manage"))" style="width: inherit;">
         <input type="hidden" name="ReturnUrl" value="@(currentUrl)" />
         @SubmitButton(authState)
         <AntiforgeryToken />

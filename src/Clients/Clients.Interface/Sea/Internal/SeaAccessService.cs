@@ -1,30 +1,21 @@
-
-using System.Linq;
+using Vitarish.Clients.Interface.Identity.Services;
 using Vitarish.Clients.Interface.Sea.Abstractions;
 
 namespace Vitarish.Clients.Interface.Sea.Internal;
 
-public sealed class SeaAccessService(IAccessService accessService, IEntityInterceptionProvider userService, IUserRolesClient userRolesService, IEventRolesClient eventRolesService, IRolesClient rolesService) : ISeaAccessService
+public sealed class SeaAccessService(IEntityInterceptionProvider userService, IUserRolesClient userRolesService, IEventRolesClient eventRolesService, IRolesClient rolesService, IUserAccessClient userAccessClient) : UsersService(userAccessClient), ISeaAccessService
 {
     private HashSet<Guid> userReadRoleIds = [];
     private HashSet<Guid> userWriteRoleIds = [];
     private IReadOnlyList<RoleDto> roles = [];
-    /// <summary>
-    /// Exposes whether the underlying access service has admin privileges for the current user.
-    /// </summary>
-    public bool IsAdmin => accessService.Access.Admin;
-    public AccessOld Access => accessService.Access;
-    public IEnumerable<string> Roles => accessService.Roles;
-    public IReadOnlyList<UserDto> Users => accessService.Users;
-    public UserDto? User => accessService.User;
 
     public IReadOnlyList<Guid> RoleIds => userReadRoleIds.Union(userWriteRoleIds).ToList();
-    public Guid? UserId => accessService.User is not null ? Guid.Parse(accessService.User.Id) : null;
+    public Guid? UserId => User is not null ? Guid.Parse(User.Id) : null;
 
-    public async Task InitializeAsync(string? clientId = null)
+    public override async Task Initialize()
     {
-        await accessService.InitializeAsync(clientId);
-        if (Guid.TryParse(accessService.User?.Id, out Guid id))
+        await base.Initialize();
+        if (Guid.TryParse(User?.Id, out Guid id))
         {
             _ = userService.Use(new EntityInterceptionConfig { Time = DateTime.Now, UserId = id.ToString() });
             IReadOnlyList<UserRoleDto> userroles = await userRolesService.GetListAsync(new UserRoleDescriptorDto { UserId = id }, CancellationToken.None)
@@ -59,21 +50,4 @@ public sealed class SeaAccessService(IAccessService accessService, IEntityInterc
                 pair.Value.ReadRoleIds.Intersect(userReadRoleIds).Any(),
                 pair.Value.WriteRoleIds.Intersect(userWriteRoleIds).Any()));
     }
-    public void RenameRole(string roleName, string roleNewName) => accessService.RenameRole(roleName, roleNewName);
-
-    public Task<IEnumerable<ClaimDto>> GetUserClaimsAsync(string userId, CancellationToken ct) => accessService.GetUserClaimsAsync(userId, ct);
-
-    public Task<IEnumerable<ClaimDto>> GetUserAccessClaimsAsync(string userId, string claimPrefix, CancellationToken ct) => accessService.GetUserAccessClaimsAsync(userId, claimPrefix, ct);
-
-    public Task<ClaimDto?> GetUserAccessClaimAsync(string userId, string clientId, CancellationToken ct) => accessService.GetUserAccessClaimAsync(userId, clientId, ct);
-
-    public Task<bool> HasUserAccessAsync(string userId, string clientId, CancellationToken ct) => accessService.HasUserAccessAsync(userId, clientId, ct);
-
-    public Task<IEnumerable<UserDto>> GetClientUsersAsync(string clientId, CancellationToken ct) => accessService.GetClientUsersAsync(clientId, ct);
-
-    public Task<UserDto?> GetClientUserAsync(string clientId, string userId, CancellationToken ct) => accessService.GetClientUserAsync(clientId, userId, ct);
-
-    public Task SetUserAccessAsync(string userId, string clientId, string accessValue, CancellationToken ct) => accessService.SetUserAccessAsync(userId, clientId, accessValue, ct);
-
-    public Task RemoveUserAccessAsync(string userId, string clientId, CancellationToken ct) => accessService.RemoveUserAccessAsync(userId, clientId, ct);
 }

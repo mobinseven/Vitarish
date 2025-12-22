@@ -4,7 +4,7 @@ using Microsoft.Extensions.Primitives;
 namespace Vitarish.Clients.Interface.Identity.Services;
 
 public class UserProfileCultureInfoProvider(
-    UserProfileService profileService,
+    UserProfileClient profileService,
     IHttpContextAccessor httpContextAccessor,
     IJSRuntime jsRuntime) : IUserProfileCultureInfoProvider
 {

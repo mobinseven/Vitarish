@@ -3,6 +3,7 @@
 	<ItemGroup>
 		<PackageReference Include="Duende.IdentityModel" Version="7.*" />
 		<PackageReference Include="Microsoft.AspNetCore.DataProtection.StackExchangeRedis" Version="10.0.*" />
+		<PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="10.0.*" />
 		<PackageReference Include="Microsoft.AspNetCore.Http.Connections.Client" Version="10.0.*" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.*" />
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.*" />

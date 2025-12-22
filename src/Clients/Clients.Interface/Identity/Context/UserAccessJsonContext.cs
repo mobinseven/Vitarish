@@ -6,6 +6,4 @@ namespace Vitarish.Client.Context;
 [JsonSerializable(typeof(IEnumerable<UserDto>))]
 [JsonSerializable(typeof(UserDto))]
 [JsonSerializable(typeof(bool))]
-[JsonSerializable(typeof(SetUserAccessRequest))]
-[JsonSerializable(typeof(RemoveUserAccessRequest))]
 internal sealed partial class UserAccessJsonContext : JsonSerializerContext;

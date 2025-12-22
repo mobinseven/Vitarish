@@ -25,7 +25,6 @@ public static class IdentityUsersExtensions
         _ = builder.Services.AddValidatorsFromAssemblyContaining(typeof(AssemblyMarker));
         _ = builder.Services.Configure<PersonalAccessTokenOptions>(builder.Configuration.GetSection("PersonalAccessTokens"));
         _ = builder.Services.AddSingleton<IUserAccessAuditLogger, UserAccessAuditLogger>();
-        _ = builder.Services.AddTransient<IUserAccessService, UserAccessService>();
         _ = builder.Services.AddTransient<IUserProfileService, UserProfileService>();
         _ = builder.Services.AddTransient<IPersonalAccessTokenGenerator, PersonalAccessTokenGenerator>();
         _ = builder.Services.AddTransient<IUsersService, UsersService>();

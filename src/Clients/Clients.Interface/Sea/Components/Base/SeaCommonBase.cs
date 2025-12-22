@@ -12,7 +12,7 @@ public class SeaCommonBase : CommonBase
     /// <summary>
     /// Effective admin flag resolved from the override or the access service.
     /// </summary>
-    protected bool AdminMode => IsAdmin ?? AccessService.IsAdmin;
+    protected bool AdminMode => IsAdmin ?? false;
     public override void OnCompleted() => throw new NotImplementedException();
     public override void OnError(Exception error) => throw new NotImplementedException();
     protected override Task ReloadRequired() => Task.CompletedTask;

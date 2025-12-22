@@ -23,7 +23,7 @@ public static class IdentityModuleExtensions
     }
     public static async Task<IServiceCollection> AddIdentityComponents(this IServiceCollection services, IConfiguration configuration)
     {
-        if (services.Any(sd => sd.ServiceType == typeof(IAccessService)))
+        if (services.Any(sd => sd.ServiceType == typeof(IUsersService)))
         {
             return services;
         }
@@ -114,9 +114,8 @@ public static class IdentityModuleExtensions
         _ = services.AddMemoryCache();
         _ = services.AddAuthorizationBuilder()
             .SetDefaultPolicy(policy: new AuthorizationPolicyBuilder().RequireAuthenticatedUser()
-                                                                      .AddRequirements(new AccessClaimRequirement())
-                                                                      .Build())
-            .AddPolicy(IdentityConstants.Admin, policy => policy.RequireAuthenticatedUser().AddRequirements(new AdminAccessClaimRequirement()).Build());
+                                                                      .AddRequirements(new UserAccessRequirement())
+                                                                      .Build());
         _ = services.ConfigureCookieOidcRefresh(CookieAuthenticationDefaults.AuthenticationScheme, DefaultChallengeScheme);
         _ = services.AddCascadingAuthenticationState();
         _ = services.AddHttpContextAccessor();
@@ -124,11 +123,12 @@ public static class IdentityModuleExtensions
         _ = services.AddSingleton<IAuthorizationMiddlewareResultHandler, BlazorAuthorizationMiddlewareResultHandler>();
         _ = services.AddIdentityClient(configuration);
         await services.AddIdentityClientDataProtection(configuration);
-        _ = services.AddScoped<IAuthorizationHandler, AccessAuthorizationHandler>();
-        _ = services.AddScoped<IUserAccessApiClient, UserAccessApiClient>();
+        _ = services.AddScoped<IAuthorizationHandler, UserAccessAuthorizationHandler>();
+        _ = services.AddScoped<IUserAccessClient, UserAccessClient>();
         _ = services.AddScoped<IPersonalAccessTokenClient, PersonalAccessTokenClient>();
-        _ = services.AddScoped<IAccessService, AccessService>();
-        _ = services.AddScoped<UserProfileService>();
+        _ = services.AddScoped<IPersonalClientFactory, PersonalClientFactory>();
+        _ = services.AddScoped<IUsersService, UsersService>();
+        _ = services.AddScoped<UserProfileClient>();
         _ = services.AddScoped<UserProfileCultureInfoProvider>();
 
         return services;

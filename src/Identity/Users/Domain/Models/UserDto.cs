@@ -1,3 +1,5 @@
+using Vitarish.Users.Domain.Entities;
+
 namespace Vitarish.Users.Domain.Models;
 
 public class UserDto
@@ -9,6 +11,14 @@ public class UserDto
     public string? Email { get; set; }
     public string? PhoneNumber { get; set; }
     public string FullName => $"{FirstName} {LastName}";
-    public ClaimDto? AccessClaim { get; set; }
-    public Dictionary<string, string>? ProfilePreferences { get; set; }
+
+    public UserDto(User user)
+    {
+        Id = user.Id;
+        UserName = user.UserName;
+        FirstName = user.FirstName;
+        LastName = user.LastName;
+        Email = user.Email;
+        PhoneNumber = user.PhoneNumber;
+    }
 }

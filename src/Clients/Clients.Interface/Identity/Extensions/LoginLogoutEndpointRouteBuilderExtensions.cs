@@ -21,7 +21,6 @@ internal static class LoginLogoutEndpointRouteBuilderExtensions
             .AllowAnonymous();
         _ = group.MapPost("/logout", async ([FromServices] IOptionsMonitor<OpenIdConnectOptions> oidcOptionsMonitor,
             [FromServices] IDistributedCache cache,
-            [FromServices] IRequestContextClient identityContext,
             HttpContext context,
             [FromForm] string? returnUrl) =>
         {
@@ -30,20 +29,7 @@ internal static class LoginLogoutEndpointRouteBuilderExtensions
             string? userId = context.User.GetId();
             if (!string.IsNullOrEmpty(userId))
             {
-                string? ownerOrClient = string.IsNullOrWhiteSpace(identityContext.Request?.OwnerId)
-                    ? identityContext.Request?.ClientId
-                    : identityContext.Request.OwnerId;
-                ownerOrClient = string.IsNullOrWhiteSpace(ownerOrClient)
-                    ? oidcOptions.ClientId
-                    : ownerOrClient;
-
-                if (!string.IsNullOrEmpty(ownerOrClient))
-                {
-                    string cacheKey = $"{userId}:{ownerOrClient}:{nameof(AccessClaimRequirement)}";
-                    cache.Remove(cacheKey);
-                    string cacheKeyAdmin = $"{userId}:{ownerOrClient}:{nameof(AdminAccessClaimRequirement)}";
-                    cache.Remove(cacheKeyAdmin);
-                }
+           // TODO: remove all cache keys related to this user ID
             }
 
             await RevokeRefreshTokenAsync(context, oidcOptions);

@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using Vitarish.Users.Application.Abstractions;
+using Vitarish.Users.Application.Commands;
+using Vitarish.Users.Application.Contracts;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Models;
 using Vitarish.Users.Infrastructure;
@@ -30,7 +32,7 @@ public static class PersonalAccessTokenApiExtensions
 
         _ = group.MapPost(string.Empty, CreatePersonalAccessTokenAsync)
             .WithName("CreatePersonalAccessToken")
-            .Accepts<CreatePersonalAccessTokenRequest>("application/json")
+            .Accepts<CreatePersonalAccessTokenCommand>("application/json")
             .Produces<PersonalAccessTokenResponse>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .WithSummary("Create a personal access token")
@@ -46,8 +48,8 @@ public static class PersonalAccessTokenApiExtensions
     /// <param name="mediator">The mediator used to retrieve user claims.</param>
     /// <param name="cancellationToken">The cancellation token for the request.</param>
     /// <returns>A 200 response with the generated personal access token, or a 400 problem response when validation fails.</returns>
-    static async Task<IResult> CreatePersonalAccessTokenAsync(
-        [FromBody] CreatePersonalAccessTokenRequest request,
+    private static async Task<IResult> CreatePersonalAccessTokenAsync(
+        [FromBody] CreatePersonalAccessTokenCommand request,
         [FromServices] IPersonalAccessTokenGenerator generator,
         [FromServices] IMediator mediator,
         CancellationToken cancellationToken)

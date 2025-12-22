@@ -11,26 +11,46 @@ public class UsersDbContext(DbContextOptions<UsersDbContext> options) : Identity
     /// WebAuthn/FIDO2 credentials (passkeys) for users.
     /// </summary>
     public DbSet<WebAuthnCredential> WebAuthnCredentials { get; set; } = null!;
-    public DbSet<Access> Accesses => Set<Access>();
+    public DbSet<UserAccess> UsersAccess => Set<UserAccess>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
 
-        _ = builder.Entity<Access>(entity =>
+        builder.Entity<UserAccess>(entity =>
         {
-            _ = entity.HasKey(access => access.Id);
-            _ = entity.Property(access => access.ClientId).HasMaxLength(128).IsRequired();
-            _ = entity.Property(access => access.OwnerId).HasMaxLength(128).IsRequired();
-            _ = entity.Property(access => access.TenantId).HasMaxLength(256);
-            _ = entity.Property(access => access.UserId).HasMaxLength(128);
-            _ = entity.Property(access => access.ResourceId).HasMaxLength(512);
-            _ = entity.HasIndex(access => access.ClientId);
-            _ = entity.HasIndex(access => access.OwnerId);
-            _ = entity.HasIndex(access => access.TenantId);
-            _ = entity.HasIndex(access => access.UserId);
-            _ = entity.HasIndex(access => access.ResourceId);
+
+            entity.HasKey(access => new {
+                access.ClientId,
+                access.OwnerId,
+                access.TenantId,
+                access.UserId,
+                access.ResourceId
+            });
+
+            entity.Property(access => access.ClientId)
+                  .HasMaxLength(128)
+                  .IsRequired();
+
+            entity.Property(access => access.OwnerId)
+                  .HasMaxLength(128)
+                  .IsRequired();
+
+            entity.Property(access => access.TenantId)
+                  .HasMaxLength(256);
+
+            entity.Property(access => access.UserId)
+                  .HasMaxLength(128);
+
+            entity.Property(access => access.ResourceId)
+                  .HasMaxLength(512);
+
+            entity.HasIndex(e => new { e.ClientId, e.OwnerId, e.TenantId, e.ResourceId })
+                  .IncludeProperties(e => e.UserId);
+
         });
+
+
         // Configure WebAuthnCredential entity
         _ = builder.Entity<WebAuthnCredential>(entity =>
         {

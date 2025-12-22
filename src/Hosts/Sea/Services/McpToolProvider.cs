@@ -5,14 +5,6 @@ using Vitarish.Clients.Modules.Intelligence.Models;
 
 namespace Vitarish.Sea.Services;
 
-public interface IMcpToolProvider
-{
-    Task<IReadOnlyList<ResponderToolDefinition>> GetDefinitionsAsync(
-        IEnumerable<string>? pluginIdentifiers,
-        bool includeCommands = true,
-        CancellationToken cancellationToken = default);
-}
-
 public sealed class McpToolProvider(
     IHttpContextAccessor httpContextAccessor,
     IPersonalAccessTokenClient accessTokenClient) : IMcpToolProvider
@@ -21,11 +13,12 @@ public sealed class McpToolProvider(
     private static readonly IReadOnlyList<string> BaseCommandTools = McpToolDefinitions.CommandToolNames;
 
     public async Task<IReadOnlyList<ResponderToolDefinition>> GetDefinitionsAsync(
+        string userId,
         IEnumerable<string>? pluginIdentifiers,
         bool includeCommands = true,
         CancellationToken cancellationToken = default)
     {
-        string? accessToken = await accessTokenClient.CreateTokenAsync(scopes: [IdentityConstants.AccessScope], cancellationToken: cancellationToken);
+        string? accessToken = await accessTokenClient.CreateTokenAsync(userId, scopes: [IdentityConstants.AccessScope], cancellationToken: cancellationToken);
         if (string.IsNullOrWhiteSpace(accessToken))
         {
             throw new InvalidOperationException("Unable to retrieve an access token for the configured API client.");
