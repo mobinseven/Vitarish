@@ -1,5 +1,6 @@
-@page "/settings/users"
-@inherits SettingsSectionPageBase
+@page "/Admin/settings/users"
+@attribute [Authorize(Roles = "Admin")]
+@inherits AdminSettingsSectionPageBase
 
 <div style="position: sticky; top: 10px; z-index: 1;">
     <WidthControlled ControlledWidth="50vw">
@@ -10,19 +11,11 @@
 </div>
 
 <WidthControlled ControlledWidth="50vw">
-
-    @if (!AccessService.Access.Admin)
-    {
-        <MudAlert Severity="Severity.Warning">@Localizer["AccessDenied"]</MudAlert>
-    }
-    else
-    {
-        <MudPaper Class="glass mt-5" Elevation="0">
-            <MudStack Spacing="3" Class="pa-6">
-                <UsersGrid />
-            </MudStack>
-        </MudPaper>
-    }
+    <MudPaper Class="glass mt-5" Elevation="0">
+        <MudStack Spacing="3" Class="pa-6">
+            <UsersGrid />
+        </MudStack>
+    </MudPaper>
 </WidthControlled>
 
 <div style="height: 50dvh;">
@@ -32,4 +25,3 @@
 @code {
     private IReadOnlyList<BreadcrumbItem> Breadcrumbs => BuildBreadcrumbs(Localizer["Users"]);
 }
-

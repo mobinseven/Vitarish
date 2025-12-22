@@ -16,11 +16,13 @@ namespace Vitarish.Sea.Pages.Settings
         [Inject]
         public NavigationManager NavigationManager { get; set; } = default!;
 
+        protected virtual string BasePath => "/settings";
+
         protected IReadOnlyList<BreadcrumbItem> BuildBreadcrumbs(string? currentSection = null)
         {
             List<BreadcrumbItem> items =
             [
-                new(Localizer["Settings"], "/settings", disabled: currentSection is null)
+                new(Localizer["Settings"], BasePath, disabled: currentSection is null)
             ];
 
             if (!string.IsNullOrWhiteSpace(currentSection))
@@ -32,4 +34,3 @@ namespace Vitarish.Sea.Pages.Settings
         }
     }
 }
-

@@ -1,5 +1,6 @@
-@page "/settings/theme"
-@inherits SettingsSectionPageBase
+@page "/Admin/settings/theme"
+@attribute [Authorize(Roles = "Admin")]
+@inherits AdminSettingsSectionPageBase
 
 
 @inject IUsageConfigurationClient UsageConfigurationService
@@ -14,19 +15,11 @@
 </div>
 
 <WidthControlled ControlledWidth="50vw">
-
-    @if (!AccessService.Access.Admin)
-    {
-        <MudAlert Severity="Severity.Warning">@Localizer["AccessDenied"]</MudAlert>
-    }
-    else
-    {
-        <MudPaper Class="glass mt-5" Elevation="0">
-            <MudStack Spacing="3" Class="pa-6">
-                <ThemeForm OnThemeChanged="OnThemeChangedAsync" />
-            </MudStack>
-        </MudPaper>
-    }
+    <MudPaper Class="glass mt-5" Elevation="0">
+        <MudStack Spacing="3" Class="pa-6">
+            <ThemeForm OnThemeChanged="OnThemeChangedAsync" />
+        </MudStack>
+    </MudPaper>
 </WidthControlled>
 
 <div style="height: 50dvh;">
@@ -43,11 +36,6 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-
-        if(!AccessService.Access.Admin)
-        {
-            return;
-        }
 
         await LoadConfigurationAsync().ConfigureAwait(false);
     }
@@ -91,4 +79,3 @@
         _metadata = metadata;
     }
 }
-
