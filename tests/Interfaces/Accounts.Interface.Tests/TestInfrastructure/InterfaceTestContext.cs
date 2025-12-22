@@ -19,6 +19,7 @@ using Vitarish.Accounts.Infrastructure.Services;
 using Vitarish.ApiClients.Application.Abstractions;
 using Vitarish.AuthenticationClients.Application.Abstractions;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
 
@@ -72,6 +73,9 @@ internal sealed class InterfaceTestContext : TestContext
         Mock<IRequestContext> requestContextMock = new();
         _ = Services.AddSingleton(requestContextMock.Object);
 
+        Mock<IPartiesService> partiesServiceMock = new();
+        _ = Services.AddSingleton(partiesServiceMock.Object);
+
         Mock<IIdentityServerInteractionService> identityInteractionMock = new();
         _ = Services.AddSingleton(identityInteractionMock.Object);
 
@@ -82,6 +86,10 @@ internal sealed class InterfaceTestContext : TestContext
 
         Mock<UserManager<User>> userManagerMock = CreateUserManager(userStoreMock);
         _ = Services.AddSingleton<UserManager<User>>(userManagerMock.Object);
+
+        Mock<IRoleStore<IdentityRole>> roleStoreMock = new();
+        Mock<RoleManager<IdentityRole>> roleManagerMock = CreateRoleManager(roleStoreMock);
+        _ = Services.AddSingleton<RoleManager<IdentityRole>>(roleManagerMock.Object);
 
         DefaultHttpContext httpContext = new()
         {
@@ -132,8 +140,11 @@ internal sealed class InterfaceTestContext : TestContext
             authenticationClientsServiceMock,
             requestIdentitiesServiceMock,
             requestContextMock,
+            partiesServiceMock,
             userStoreMock,
+            roleStoreMock,
             userManagerMock,
+            roleManagerMock,
             signInManager,
             httpContext,
             httpClientFactoryMock);
@@ -176,6 +187,19 @@ internal sealed class InterfaceTestContext : TestContext
             keyNormalizer.Object,
             errors,
             services.Object,
+            logger.Object);
+    }
+
+    private static Mock<RoleManager<IdentityRole>> CreateRoleManager(Mock<IRoleStore<IdentityRole>> roleStoreMock)
+    {
+        Mock<ILookupNormalizer> keyNormalizer = new();
+        Mock<IdentityErrorDescriber> errors = new();
+        Mock<ILogger<RoleManager<IdentityRole>>> logger = new();
+        return new Mock<RoleManager<IdentityRole>>(
+            roleStoreMock.Object,
+            Array.Empty<IRoleValidator<IdentityRole>>(),
+            keyNormalizer.Object,
+            errors.Object,
             logger.Object);
     }
 }

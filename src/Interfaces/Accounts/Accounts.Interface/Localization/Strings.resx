@@ -534,4 +534,28 @@
   <data name="PasskeyDeleted" xml:space="preserve">
     <value>Passkey deleted</value>
   </data>
+  <data name="AssignRole" xml:space="preserve">
+    <value>Assign role</value>
+  </data>
+  <data name="SelectRole" xml:space="preserve">
+    <value>Select a role</value>
+  </data>
+  <data name="RoleAlreadyAssigned" xml:space="preserve">
+    <value>User already has this role.</value>
+  </data>
+  <data name="RoleAssigned" xml:space="preserve">
+    <value>Role assigned successfully.</value>
+  </data>
+  <data name="RoleRemoved" xml:space="preserve">
+    <value>Role removed.</value>
+  </data>
+  <data name="UserRoles" xml:space="preserve">
+    <value>User roles</value>
+  </data>
+  <data name="CurrentRoles" xml:space="preserve">
+    <value>Current roles</value>
+  </data>
+  <data name="NoUsers" xml:space="preserve">
+    <value>No users found</value>
+  </data>
 </root>

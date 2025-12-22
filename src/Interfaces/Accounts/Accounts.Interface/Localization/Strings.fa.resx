@@ -495,4 +495,28 @@
   <data name="PasskeyDeleted" xml:space="preserve">
     <value>کلید عبور حذف شد</value>
   </data>
+  <data name="AssignRole" xml:space="preserve">
+    <value>تخصیص نقش</value>
+  </data>
+  <data name="SelectRole" xml:space="preserve">
+    <value>انتخاب نقش</value>
+  </data>
+  <data name="RoleAlreadyAssigned" xml:space="preserve">
+    <value>این نقش قبلاً به کاربر اختصاص یافته است.</value>
+  </data>
+  <data name="RoleAssigned" xml:space="preserve">
+    <value>نقش با موفقیت اختصاص یافت.</value>
+  </data>
+  <data name="RoleRemoved" xml:space="preserve">
+    <value>نقش حذف شد.</value>
+  </data>
+  <data name="UserRoles" xml:space="preserve">
+    <value>نقش‌های کاربر</value>
+  </data>
+  <data name="CurrentRoles" xml:space="preserve">
+    <value>نقش‌های فعلی</value>
+  </data>
+  <data name="NoUsers" xml:space="preserve">
+    <value>کاربری یافت نشد</value>
+  </data>
 </root>
