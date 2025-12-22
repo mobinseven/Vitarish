@@ -34,10 +34,9 @@ public partial class UserRoleAssignments : AdminBase
             IList<string>[] userRoles = await Task.WhenAll(
                 loadedUsers.Select(user => UserManager.GetRolesAsync(user)));
 
-            for (int i = 0; i < loadedUsers.Count; i++)
-            {
-                users.Add(new UserRoleEntry(loadedUsers[i], userRoles[i].ToList()));
-            }
+            users.AddRange(loadedUsers.Zip(
+                userRoles,
+                (user, roles) => new UserRoleEntry(user, roles.ToList())));
         }
         finally
         {
