@@ -86,17 +86,9 @@ public partial class UserRoleAssignments : AdminBase
             return;
         }
 
-        string? userId = entry?.User?.Id;
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            _ = Snackbar.Add(Localizer["Error"], Severity.Error);
-            return;
-        }
-
-        User? user = await UserManager.FindByIdAsync(userId);
+        User? user = await GetUserAsync(entry);
         if (user is null)
         {
-            _ = Snackbar.Add(Localizer["Error"], Severity.Error);
             return;
         }
 
@@ -123,17 +115,9 @@ public partial class UserRoleAssignments : AdminBase
             return;
         }
 
-        string? userId = entry?.User?.Id;
-        if (string.IsNullOrWhiteSpace(userId))
-        {
-            _ = Snackbar.Add(Localizer["Error"], Severity.Error);
-            return;
-        }
-
-        User? user = await UserManager.FindByIdAsync(userId);
+        User? user = await GetUserAsync(entry);
         if (user is null)
         {
-            _ = Snackbar.Add(Localizer["Error"], Severity.Error);
             return;
         }
 
@@ -155,5 +139,24 @@ public partial class UserRoleAssignments : AdminBase
     {
         public string? SelectedRole { get; set; }
         public string? SelectedTenantId { get; set; }
+    }
+
+    private async Task<User?> GetUserAsync(UserRoleEntry entry)
+    {
+        string? userId = entry?.User?.Id;
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            _ = Snackbar.Add(Localizer["Error"], Severity.Error);
+            return null;
+        }
+
+        User? user = await UserManager.FindByIdAsync(userId);
+        if (user is null)
+        {
+            _ = Snackbar.Add(Localizer["Error"], Severity.Error);
+            return null;
+        }
+
+        return user;
     }
 }
