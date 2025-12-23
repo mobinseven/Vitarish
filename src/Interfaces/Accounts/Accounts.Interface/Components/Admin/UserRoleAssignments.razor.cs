@@ -22,8 +22,13 @@ public partial class UserRoleAssignments : AdminBase
 
         try
         {
-            List<User> loadedUsers = (await UserService.GetUsersAsync()).ToList();
-            tenants.AddRange((await PartiesService.GetTenantsAsync()).OrderBy(tenant => tenant.Name));
+            Task<IEnumerable<User>> usersTask = UserService.GetUsersAsync();
+            Task<IEnumerable<Tenant>> tenantsTask = PartiesService.GetTenantsAsync();
+
+            await Task.WhenAll(usersTask, tenantsTask);
+
+            List<User> loadedUsers = (await usersTask).ToList();
+            tenants.AddRange((await tenantsTask).OrderBy(tenant => tenant.Name));
             roles.AddRange(RoleManager.Roles
                 .Select(role => role.Name)
                 .Where(name => !string.IsNullOrWhiteSpace(name))!
