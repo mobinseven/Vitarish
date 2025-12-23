@@ -12,7 +12,10 @@ let consecutiveServerFailures = 0;
 let reloadTimeoutId = null;
 
 function handleReconnectStateChanged(event) {
-    reloadTimeoutId = null;
+    if (reloadTimeoutId) {
+        clearTimeout(reloadTimeoutId);
+        reloadTimeoutId = null;
+    }
 
     if (event.detail.state === "show") {
         reconnectModal.showModal();
@@ -45,17 +48,6 @@ async function retry() {
         }
     } catch (err) {
         // We got an exception, server is currently unavailable
-    }
-}
-
-async function resume() {
-    try {
-        const successful = await Blazor.resumeCircuit();
-        if (!successful) {
-            scheduleReload();
-        }
-    } catch {
-        scheduleReload();
     }
 }
 
