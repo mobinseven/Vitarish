@@ -31,6 +31,32 @@
                     <PropertyColumn Property="entry => entry.User.UserName" Title="@Localizer["UserName"]" />
                     <PropertyColumn Property="entry => entry.User.Email" Title="@Localizer["Email"]" />
                     <PropertyColumn Property="entry => entry.User.PhoneNumber" Title="@Localizer["PhoneNumber"]" />
+                    <TemplateColumn Title="@Localizer["Tenant"]">
+                        <CellTemplate>
+                            <MudSelect T="string"
+                                       Value="@context.Item.SelectedTenantId"
+                                       ValueChanged="@((string? value) => UpdateSelectedTenant(context.Item, value))"
+                                       Dense="true"
+                                       Label="@Localizer["SelectTenant"]"
+                                       Disabled="isLoading || tenants.Count == 0">
+                                @if (tenants.Count == 0)
+                                {
+                                    <MudSelectItem Value="string.Empty">@Localizer["NoTenants"]</MudSelectItem>
+                                }
+                                else
+                                {
+                                    @foreach (var tenant in tenants)
+                                    {
+                                        string tenantLabel = string.IsNullOrWhiteSpace(tenant.Name)
+                                            ? tenant.Id.ToString()
+                                            : tenant.Name;
+
+                                        <MudSelectItem Value="@tenant.Id.ToString()">@tenantLabel</MudSelectItem>
+                                    }
+                                }
+                            </MudSelect>
+                        </CellTemplate>
+                    </TemplateColumn>
                     <TemplateColumn Title="@Localizer["CurrentRoles"]">
                         <CellTemplate>
                             @if (context.Item.AssignedRoles.Count == 0)

@@ -1,9 +1,12 @@
+using Vitarish.Parties.Domain.Entities;
+
 namespace Vitarish.Accounts.Interface.Components.Admin;
 
 public partial class UserRoleAssignments : AdminBase
 {
     private readonly List<UserRoleEntry> users = [];
     private readonly List<string> roles = [];
+    private readonly List<Tenant> tenants = [];
     private bool isLoading;
 
     protected override async Task OnInitializedAsync()
@@ -14,11 +17,13 @@ public partial class UserRoleAssignments : AdminBase
         isLoading = true;
         users.Clear();
         roles.Clear();
+        tenants.Clear();
         StateHasChanged();
 
         try
         {
             List<User> loadedUsers = (await UserService.GetUsersAsync()).ToList();
+            tenants.AddRange((await PartiesService.GetTenantsAsync()).OrderBy(tenant => tenant.Name));
             roles.AddRange(RoleManager.Roles
                 .Select(role => role.Name)
                 .Where(name => !string.IsNullOrWhiteSpace(name))!
@@ -48,6 +53,12 @@ public partial class UserRoleAssignments : AdminBase
         return Task.CompletedTask;
     }
 
+    private Task UpdateSelectedTenant(UserRoleEntry entry, string? value)
+    {
+        entry.SelectedTenantId = value;
+        return Task.CompletedTask;
+    }
+
     private async Task AssignRoleAsync(UserRoleEntry entry)
     {
         if (string.IsNullOrWhiteSpace(entry.SelectedRole))
@@ -56,17 +67,26 @@ public partial class UserRoleAssignments : AdminBase
             return;
         }
 
-        if (entry.AssignedRoles.Contains(entry.SelectedRole, StringComparer.OrdinalIgnoreCase))
+        if (string.IsNullOrWhiteSpace(entry.SelectedTenantId))
         {
-            _ = Snackbar.Add(Localizer["RoleAlreadyAssigned"], Severity.Info);
-            entry.SelectedRole = null;
+            _ = Snackbar.Add(Localizer["SelectTenant"], Severity.Warning);
             return;
         }
 
-        IdentityResult result = await UserManager.AddToRoleAsync(entry.User, entry.SelectedRole);
+        string tenantRole = $"{entry.SelectedTenantId}:{entry.SelectedRole}";
+
+        if (entry.AssignedRoles.Contains(tenantRole, StringComparer.OrdinalIgnoreCase))
+        {
+            _ = Snackbar.Add(Localizer["RoleAlreadyAssigned"], Severity.Info);
+            entry.SelectedRole = null;
+            entry.SelectedTenantId = null;
+            return;
+        }
+
+        IdentityResult result = await UserManager.AddToRoleAsync(entry.User, tenantRole);
         if (result.Succeeded)
         {
-            entry.AssignedRoles.Add(entry.SelectedRole);
+            entry.AssignedRoles.Add(tenantRole);
             _ = Snackbar.Add(Localizer["RoleAssigned"], Severity.Success);
         }
         else
@@ -75,6 +95,7 @@ public partial class UserRoleAssignments : AdminBase
         }
 
         entry.SelectedRole = null;
+        entry.SelectedTenantId = null;
         StateHasChanged();
     }
 
@@ -102,5 +123,6 @@ public partial class UserRoleAssignments : AdminBase
     private sealed record UserRoleEntry(User User, List<string> AssignedRoles)
     {
         public string? SelectedRole { get; set; }
+        public string? SelectedTenantId { get; set; }
     }
 }
