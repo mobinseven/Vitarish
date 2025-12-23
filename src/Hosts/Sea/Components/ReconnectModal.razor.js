@@ -2,25 +2,25 @@
 const reconnectModal = document.getElementById("components-reconnect-modal");
 reconnectModal.addEventListener("components-reconnect-state-changed", handleReconnectStateChanged);
 
-const retryButton = document.getElementById("components-reconnect-button");
-retryButton.addEventListener("click", retry);
-
-const resumeButton = document.getElementById("components-resume-button");
-resumeButton.addEventListener("click", resume);
-
 const serverStatusCheckIntervalMs = 10000;
 const serverStatusCheckTimeoutMs = 8000;
 const maxServerFailuresBeforeReload = 6;
+const autoReloadDelayMs = 2000;
 
 let serverStatusIntervalId = null;
 let consecutiveServerFailures = 0;
+let reloadTimeoutId = null;
 
 function handleReconnectStateChanged(event) {
+    reloadTimeoutId = null;
+
     if (event.detail.state === "show") {
         reconnectModal.showModal();
+        retry();
     } else if (event.detail.state === "hide") {
         reconnectModal.close();
     } else if (event.detail.state === "failed") {
+        scheduleReload();
     } else if (event.detail.state === "rejected") {
         location.reload();
     }
@@ -38,7 +38,7 @@ async function retry() {
             // We'll reload the page so the user can continue using the app as quickly as possible.
             const resumeSuccessful = await Blazor.resumeCircuit();
             if (!resumeSuccessful) {
-                location.reload();
+                scheduleReload();
             } else {
                 reconnectModal.close();
             }
@@ -52,10 +52,10 @@ async function resume() {
     try {
         const successful = await Blazor.resumeCircuit();
         if (!successful) {
-            location.reload();
+            scheduleReload();
         }
     } catch {
-        location.reload();
+        scheduleReload();
     }
 }
 
@@ -114,7 +114,7 @@ function handleServerUnreachable() {
     consecutiveServerFailures += 1;
 
     if (consecutiveServerFailures >= maxServerFailuresBeforeReload) {
-        location.reload();
+        scheduleReload();
         return;
     }
 
@@ -125,4 +125,12 @@ function handleVisibilityChangeForStatusCheck() {
     if (document.visibilityState === "visible") {
         checkServerStatus();
     }
+}
+
+function scheduleReload() {
+    if (reloadTimeoutId) {
+        return;
+    }
+
+    reloadTimeoutId = setTimeout(() => location.reload(), autoReloadDelayMs);
 }
