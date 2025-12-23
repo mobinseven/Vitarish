@@ -39,14 +39,17 @@ namespace Vitarish.Users.Hosting.Api
             _ = group.MapPost("/role", GetUsersByRole)
                 .WithName("GetUsersByrole")
                 .Produces(StatusCodes.Status200OK, typeof(IEnumerable<UserDto>), "application/json")
-                .WithSummary("Get users by role")
-                .WithDescription("Get users by a given role name");
+                .WithSummary("Get users by role");
+
+            _ = group.MapPost("/checkrole", CheckUserRole)
+                .WithName("CheckUserRole")
+                .Produces(StatusCodes.Status200OK)
+                .WithSummary("check user has a given role");
 
             _ = group.MapGet("/current", GetCurrentUser)
                 .WithName("GetCurrentUser")
                 .Produces(StatusCodes.Status200OK, typeof(UserDto), "application/json")
-                .WithSummary("Get current user")
-                .WithDescription("Get user for current request context");
+                .WithSummary("Get current user");
 
             return group;
         }
@@ -57,6 +60,14 @@ namespace Vitarish.Users.Hosting.Api
         {
             IEnumerable<User> res = await mediator.Send(query);
             return Results.Ok(res.Select(u => new UserDto(u)));
+        }
+
+        private static async Task<IResult> CheckUserRole(
+            [FromBody] CheckUserRoleQuery query,
+            [FromServices] IMediator mediator)
+        {
+            bool res = await mediator.Send(query);
+            return res ? Results.Ok() : Results.NoContent();
         }
 
         private static async Task<IResult> GetCurrentUser(

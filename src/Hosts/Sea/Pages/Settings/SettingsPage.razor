@@ -42,8 +42,7 @@
         </MudStack>
     </MudPaper>
 
-    <AuthorizeView Roles="Admin">
-        <Authorized>
+    <TenantAuthorizeView Role="Sea.Admin">
             <MudPaper Class="glass mt-5" Elevation="0">
                 <MudStack Spacing="2" Class="pa-6">
                     <MudText Typo="Typo.h6">@($"{Localizer["Admin"]} {Localizer["Settings"]}")</MudText>
@@ -55,9 +54,8 @@
                         <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/advanced">@Localizer["Advanced"]</MudButton>
                     </MudStack>
                 </MudStack>
-            </MudPaper>
-        </Authorized>
-    </AuthorizeView>
+        </MudPaper>
+    </TenantAuthorizeView>
 </WidthControlled>
 
 <div style="height: 50dvh;">

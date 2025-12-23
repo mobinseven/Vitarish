@@ -6,7 +6,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
 using Vitarish.Clients.Identity.Options;
-using Vitarish.Clients.Interface.Identity.Constants;
 using Vitarish.Clients.Interface.Identity.Extensions;
 using Vitarish.Clients.Interface.Identity.Services;
 
@@ -102,6 +101,8 @@ public static class IdentityModuleExtensions
             };
             options.TokenValidationParameters = new TokenValidationParameters
             {
+                NameClaimType = "name",
+                RoleClaimType = "role",
                 ValidateAudience = false,
                 ValidateLifetime = true,
                 ClockSkew = TimeSpan.FromMinutes(30)
@@ -120,6 +121,8 @@ public static class IdentityModuleExtensions
         _ = services.AddSingleton<IAuthorizationMiddlewareResultHandler, BlazorAuthorizationMiddlewareResultHandler>();
         _ = services.AddIdentityClient(configuration);
         await services.AddIdentityClientDataProtection(configuration);
+        _ = services.AddSingleton<IAuthorizationPolicyProvider, TenantRolePolicyProvider>();
+        _ = services.AddScoped<IAuthorizationHandler, TenantRoleHandler>();
         _ = services.AddScoped<IPersonalAccessTokenClient, PersonalAccessTokenClient>();
         _ = services.AddScoped<IPersonalClientFactory, PersonalClientFactory>();
         _ = services.AddScoped<IUsersService, UsersService>();

@@ -1,0 +1,9 @@
+@* TenantAuthorizeView.razor *@
+<AuthorizeView Policy="@($"{TenantRolePolicyProvider.Prefix}{Role}")">
+    @ChildContent
+</AuthorizeView>
+
+@code {
+    [Parameter, EditorRequired] public string Role { get; set; } = default!;
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

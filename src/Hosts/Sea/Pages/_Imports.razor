@@ -36,5 +36,7 @@
 @using Vitarish.Clients.Modules.Intelligence.Models
 @using Vitarish.Clients.Interface.Services
 @using Vitarish.Clients.Interface.Sea.Components.Settings
+@using Vitarish.Clients.Interface.Identity.Contracts
+@using Vitarish.Clients.Interface.Identity.Extensions
 
-@attribute [Authorize(Roles = "Sea.User")]
+@attribute [TenantRoleAuthorize("Sea.User")]

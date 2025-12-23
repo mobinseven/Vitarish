@@ -18,6 +18,18 @@ public class UsersService(IPersonalClientFactory clientFactory) : IUsersService
         _ = response.EnsureSuccessStatusCode();
         return await response.Content.ReadFromJsonAsync<IEnumerable<UserDto>>(cancellationToken: cancellationToken) ?? [];
     }
+    public async Task<bool> CheckUserRole(string roleName, CancellationToken cancellationToken = default)
+    {
+        HttpClient httpClient = await CreateAuthenticatedClientAsync();
+        string query = "checkrole";
+        using HttpRequestMessage request = new(HttpMethod.Post, query)
+        {
+            Content = JsonContent.Create(new { RoleName = roleName })
+        };
+        using HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken);
+        _ = response.EnsureSuccessStatusCode();
+        return response.StatusCode == System.Net.HttpStatusCode.OK;
+    }
     public async Task<UserDto?> GetCurrentUser(CancellationToken cancellationToken = default)
     {
         HttpClient httpClient = await CreateAuthenticatedClientAsync();

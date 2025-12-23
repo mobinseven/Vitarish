@@ -1,4 +1,6 @@
-namespace Vitarish.Sea.Pages.Settings
+using Vitarish.Sea.Pages.Settings;
+
+namespace Vitarish.Sea.Pages.Admin
 {
     public abstract class AdminSettingsSectionPageBase : SettingsSectionPageBase
     {

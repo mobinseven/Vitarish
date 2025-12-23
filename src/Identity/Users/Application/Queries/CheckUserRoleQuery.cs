@@ -3,4 +3,4 @@ using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Users.Application.Queries;
 
-public record CheckUserAccessQuery(string Resource) : IRequest<bool>;
+public record CheckUserRoleQuery(string RoleName) : IRequest<bool>;

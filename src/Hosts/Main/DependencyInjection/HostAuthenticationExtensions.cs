@@ -49,7 +49,6 @@ public static class HostAuthenticationExtensions
             .AddClaimsPrincipalFactory<UserInfoClaimsPrincipalFactory>()
             .AddDefaultTokenProviders();
 
-        builder.Services.AddTransient<IClaimsTransformation, TenantRoleClaimsTransformation>();
         // Configure WebAuthn/FIDO2
         builder.AddWebAuthn();
     }

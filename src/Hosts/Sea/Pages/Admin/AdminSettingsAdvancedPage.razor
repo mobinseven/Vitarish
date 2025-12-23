@@ -1,5 +1,4 @@
-@page "/Admin/settings/statistics"
-@attribute [Authorize(Roles = "Sea.Admin")]
+@page "/Admin/settings/advanced"
 @inherits AdminSettingsSectionPageBase
 
 <div style="position: sticky; top: 10px; z-index: 1;">
@@ -13,7 +12,7 @@
 <WidthControlled ControlledWidth="50vw">
     <MudPaper Class="glass mt-5" Elevation="0">
         <MudStack Spacing="3" Class="pa-6">
-            @* TODO: Implement statistics *@
+            <UsageConfigurationEditor />
         </MudStack>
     </MudPaper>
 </WidthControlled>
@@ -23,5 +22,5 @@
 </div>
 
 @code {
-    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => BuildBreadcrumbs(Localizer["Statistics"]);
+    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => BuildBreadcrumbs(Localizer["Advanced"]);
 }

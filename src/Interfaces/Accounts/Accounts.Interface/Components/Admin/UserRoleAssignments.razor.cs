@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Identity;
-
 namespace Vitarish.Accounts.Interface.Components.Admin;
 
 public partial class UserRoleAssignments : AdminBase
@@ -29,11 +27,11 @@ public partial class UserRoleAssignments : AdminBase
                 .OrderBy(name => name));
 
             IList<string>[] userRoles = await Task.WhenAll(
-                loadedUsers.Select(user => UserManager.GetRolesAsync(user)));
+                loadedUsers.Select(UserManager.GetRolesAsync));
 
             users.AddRange(loadedUsers.Zip(
                 userRoles,
-                (user, roles) => new UserRoleEntry(user, roles.ToList())));
+                (user, roles) => new UserRoleEntry(user, [.. roles])));
         }
         finally
         {
@@ -90,7 +88,7 @@ public partial class UserRoleAssignments : AdminBase
         IdentityResult result = await UserManager.RemoveFromRoleAsync(entry.User, role);
         if (result.Succeeded)
         {
-            entry.AssignedRoles.RemoveAll(r => string.Equals(r, role, StringComparison.OrdinalIgnoreCase));
+            _ = entry.AssignedRoles.RemoveAll(r => string.Equals(r, role, StringComparison.OrdinalIgnoreCase));
             _ = Snackbar.Add(Localizer["RoleRemoved"], Severity.Success);
         }
         else
