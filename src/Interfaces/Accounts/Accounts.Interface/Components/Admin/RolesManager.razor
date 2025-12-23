@@ -1,5 +1,6 @@
 @inherits AdminBase
 @using Vitarish.Users.Domain.Models
+@using Vitarish.Parties.Domain.Entities
 
 <MudStack Spacing="2">
     <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
@@ -12,6 +13,28 @@
 
     <MudPaper Elevation="0" Class="pa-3">
         <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
+            <MudSelect T="string"
+                       Dense="true"
+                       Label="@Localizer["SelectTenant"]"
+                       @bind-Value="selectedTenantId"
+                       Disabled="isLoading || tenants.Count == 0"
+                       Class="flex-grow-1">
+                @if (tenants.Count == 0)
+                {
+                    <MudSelectItem Value="string.Empty">@Localizer["NoTenants"]</MudSelectItem>
+                }
+                else
+                {
+                    @foreach (Tenant tenant in tenants)
+                    {
+                        string tenantLabel = string.IsNullOrWhiteSpace(tenant.Name)
+                            ? tenant.Id.ToString()
+                            : tenant.Name;
+
+                        <MudSelectItem Value="@tenant.Id.ToString()">@tenantLabel</MudSelectItem>
+                    }
+                }
+            </MudSelect>
             <MudTextField Label="@Localizer["RoleName"]"
                           Variant="Variant.Outlined"
                           @bind-Value="newRoleName"
@@ -23,7 +46,7 @@
             <MudButton Variant="Variant.Filled"
                        Color="Color.Primary"
                        StartIcon="@Icons.Material.Filled.Add"
-                       Disabled="isLoading || string.IsNullOrWhiteSpace(newRoleName)"
+                       Disabled="isLoading || string.IsNullOrWhiteSpace(newRoleName) || string.IsNullOrWhiteSpace(selectedTenantId)"
                        OnClick="CreateRoleAsync">
                 @Localizer["AddRole"]
             </MudButton>

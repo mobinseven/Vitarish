@@ -3,14 +3,17 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using MudBlazor;
 using ClaimDto = Vitarish.Users.Domain.Models.ClaimDto;
+using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Accounts.Interface.Components.Admin;
 
 public partial class RolesManager : AdminBase
 {
     private readonly List<RoleEntry> roles = [];
+    private readonly List<Tenant> tenants = [];
     private bool isLoading;
     private string newRoleName = string.Empty;
+    private string? selectedTenantId;
 
     [Inject] private IDialogService DialogService { get; set; } = default!;
 
@@ -21,13 +24,22 @@ public partial class RolesManager : AdminBase
     {
         isLoading = true;
         roles.Clear();
+        tenants.Clear();
         StateHasChanged();
 
         try
         {
-            List<IdentityRole> loadedRoles = await RoleManager.Roles
+            Task<List<IdentityRole>> rolesTask = RoleManager.Roles
                 .OrderBy(role => role.Name)
                 .ToListAsync();
+
+            Task<IEnumerable<Tenant>> tenantsTask = PartiesService.GetTenantsAsync();
+
+            await Task.WhenAll(rolesTask, tenantsTask);
+
+            List<IdentityRole> loadedRoles = await rolesTask;
+            tenants.AddRange((await tenantsTask).OrderBy(tenant => tenant.Name));
+            selectedTenantId ??= tenants.FirstOrDefault()?.Id.ToString();
 
             IList<Claim>[] claimSets = await Task.WhenAll(loadedRoles.Select(RoleManager.GetClaimsAsync));
 
@@ -53,13 +65,21 @@ public partial class RolesManager : AdminBase
             return;
         }
 
-        if (await RoleManager.RoleExistsAsync(roleName))
+        if (string.IsNullOrWhiteSpace(selectedTenantId))
         {
-            _ = Snackbar.Add(Localizer["RoleExists", roleName], Severity.Info);
+            _ = Snackbar.Add(Localizer["SelectTenant"], Severity.Warning);
             return;
         }
 
-        IdentityResult result = await RoleManager.CreateAsync(new IdentityRole(roleName));
+        string tenantRoleName = $"{selectedTenantId}:{roleName}";
+
+        if (await RoleManager.RoleExistsAsync(tenantRoleName))
+        {
+            _ = Snackbar.Add(Localizer["RoleExists", tenantRoleName], Severity.Info);
+            return;
+        }
+
+        IdentityResult result = await RoleManager.CreateAsync(new IdentityRole(tenantRoleName));
         if (!result.Succeeded)
         {
             _ = Snackbar.Add(Localizer["RoleCreateFailed"], Severity.Error);
@@ -67,7 +87,8 @@ public partial class RolesManager : AdminBase
         }
 
         newRoleName = string.Empty;
-        IdentityRole? createdRole = await RoleManager.FindByNameAsync(roleName);
+        selectedTenantId = tenants.FirstOrDefault()?.Id.ToString();
+        IdentityRole? createdRole = await RoleManager.FindByNameAsync(tenantRoleName);
         if (createdRole is not null)
         {
             roles.Add(new RoleEntry(createdRole, []));
