@@ -19,7 +19,7 @@ namespace Vitarish.Sea.Components
         {
             if (AccessService.User is null)
             {
-                await AccessService.Initialize(["Sea.Admin", "Sea.User"]);
+                await AccessService.Initialize(["Admin", "User"]);
             }
 
             await EnsureThemeInitializedAsync().ConfigureAwait(false);
