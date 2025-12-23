@@ -198,7 +198,7 @@ public class ManagePagesTests
             });
 
         _ = context.Mocks.PersonalAccessTokens
-            .Setup(service => service.CreateTokenAsync("user-1", It.IsAny<int>(), It.IsAny<IEnumerable<string>>(), false))
+            .Setup(service => service.CreateTokenAsync("user-1", It.IsAny<int>(), It.IsAny<IEnumerable<string>>(), false, It.IsAny<CancellationToken>()))
             .ReturnsAsync("generated-token");
 
         context.Render<MudPopoverProvider>();
@@ -210,7 +210,7 @@ public class ManagePagesTests
         await cut.InvokeAsync(() => select.SelectOption("scope.read"));
         cut.FindAll("button").First(b => b.TextContent.Contains("GenerateToken", StringComparison.Ordinal)).Click();
 
-        context.Mocks.PersonalAccessTokens.Verify(service => service.CreateTokenAsync("user-1", It.IsAny<int>(), It.Is<IEnumerable<string>>(scopes => scopes.Contains("scope.read")), false), Times.Once);
+        context.Mocks.PersonalAccessTokens.Verify(service => service.CreateTokenAsync("user-1", It.IsAny<int>(), It.Is<IEnumerable<string>>(scopes => scopes.Contains("scope.read")), false, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]

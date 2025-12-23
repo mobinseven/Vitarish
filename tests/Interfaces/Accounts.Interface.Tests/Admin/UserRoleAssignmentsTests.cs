@@ -70,6 +70,9 @@ public class UserRoleAssignmentsTests
             .SetupGet(manager => manager.Roles)
             .Returns(new List<IdentityRole> { new("Editor") }.AsQueryable());
         _ = context.Mocks.UserManager
+            .Setup(manager => manager.FindByIdAsync(user.Id))
+            .ReturnsAsync(user);
+        _ = context.Mocks.UserManager
             .Setup(manager => manager.GetRolesAsync(user))
             .ReturnsAsync(new List<string>());
         _ = context.Mocks.UserManager
@@ -115,6 +118,9 @@ public class UserRoleAssignmentsTests
         _ = context.Mocks.RoleManager
             .SetupGet(manager => manager.Roles)
             .Returns(new List<IdentityRole> { new("Admin") }.AsQueryable());
+        _ = context.Mocks.UserManager
+            .Setup(manager => manager.FindByIdAsync(user.Id))
+            .ReturnsAsync(user);
         _ = context.Mocks.UserManager
             .Setup(manager => manager.GetRolesAsync(user))
             .ReturnsAsync(new List<string> { "8ad35b4d-611d-4cff-8dcb-824c19a7b5d9:Admin" });
