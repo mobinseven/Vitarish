@@ -17,7 +17,6 @@ export function registerSplashScreenLoadedHandler(dotNetRef) {
     }
 
     const onLoad = () => {
-        window.removeEventListener("load", onLoad);
         notifyHidden();
     };
 

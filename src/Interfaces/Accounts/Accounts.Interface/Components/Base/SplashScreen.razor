@@ -3,10 +3,10 @@
 
 <div class="@CssClass" aria-live="polite" aria-label="Loading Vitarish">
     <div class="splash-screen__logo">
-        <img src="https://assets.vitarish.ir/logo/512.webp" alt="Vitarish logo" loading="eager" decoding="async" />
+        <img src="@LogoUrl" alt="Vitarish logo" loading="eager" decoding="async" />
     </div>
     <div class="splash-screen__brandmark">
-        <img src="https://assets.vitarish.ir/logo/brandmark-opacity50.webp" alt="Vitarish wordmark" loading="eager" decoding="async" />
+        <img src="@BrandmarkUrl" alt="Vitarish wordmark" loading="eager" decoding="async" />
     </div>
 </div>
 
@@ -23,6 +23,12 @@
 
     [Parameter]
     public TimeSpan AutoHideDelay { get; set; } = TimeSpan.Zero;
+
+    [Parameter]
+    public string LogoUrl { get; set; } = "https://assets.vitarish.ir/logo/512.webp";
+
+    [Parameter]
+    public string BrandmarkUrl { get; set; } = "https://assets.vitarish.ir/logo/brandmark-opacity50.webp";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -55,8 +61,6 @@
 
     public async ValueTask DisposeAsync()
     {
-        _dotNetRef?.Dispose();
-
         if (_registration is not null)
         {
             await _registration.DisposeAsync();
@@ -66,5 +70,7 @@
         {
             await _module.DisposeAsync();
         }
+
+        _dotNetRef?.Dispose();
     }
 }
