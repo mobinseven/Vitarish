@@ -10,6 +10,12 @@ public static class IdentityClientDataProtectionExtensions
     private const string ConfigSection = $"{nameof(Vitarish)}:Identity";
     public static async Task AddIdentityClientDataProtection(this IServiceCollection services, IConfiguration configuration)
     {
+        if (configuration.GetValue<bool>($"{ConfigSection}:DisableDataProtection"))
+        {
+            _ = services.AddDataProtection();
+            return;
+        }
+
         string domain = configuration[$"{ConfigSection}:Authority"] ?? throw new Exception($"{ConfigSection}:Authority not set");
         string pfxPassword = configuration[$"{ConfigSection}:DataProtectionPassword"] ?? throw new Exception($"{ConfigSection}:DataProtectionPassword not set");
         ConnectionMultiplexer redis = ConnectionMultiplexer.Connect(configuration.GetRedisConnectionString());

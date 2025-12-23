@@ -5,6 +5,7 @@
             <Authorizing>
             </Authorizing>
             <NotAuthorized>
+                <p id="not-authorized">NOT AUTHORIZED</p>
                 <WidthControlled>
                     <div style="width: 100%;height: 500px;" class="pa-20">
                         @if(auth.User.Identity is not null && auth.User.Identity.IsAuthenticated)

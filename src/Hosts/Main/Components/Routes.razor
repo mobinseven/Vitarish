@@ -9,6 +9,7 @@
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)" Resource="@("admin")">
             <NotAuthorized>
+                <p id="not-authorized">NOT AUTHORIZED</p>
                 <MudText Typo="Typo.h4" GutterBottom="true" Align="Align.Center">@Localizer["AccessDenied"]</MudText>
                 <MudChip T="string" Size="Size.Large">@Localizer["AccessDeniedMessage"]</MudChip>
             </NotAuthorized>
