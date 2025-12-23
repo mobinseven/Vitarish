@@ -3,7 +3,7 @@ using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Requests.Hosting.Middleware;
 
-namespace Vitarish.Main.Services
+namespace Vitarish.Main.Extensions
 {
     internal static class RequestsContextExtensions
     {

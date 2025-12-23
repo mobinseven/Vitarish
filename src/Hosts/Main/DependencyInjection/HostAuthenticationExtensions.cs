@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Vitarish.Main.Services;
 using Vitarish.Users.Domain.Options;
 using Vitarish.Users.Infrastructure;
@@ -40,14 +41,6 @@ public static class HostAuthenticationExtensions
                 return Task.FromResult(0);
             };
         });
-        _ = builder.Services.AddIdentity<User, IdentityRole>(o =>
-        {
-            o.Stores.MaxLengthForKeys = 128;
-        })
-            .AddEntityFrameworkStores<UsersDbContext>()
-            .AddSignInManager<AuditingSignInManager>()
-            .AddClaimsPrincipalFactory<UserInfoClaimsPrincipalFactory>()
-            .AddDefaultTokenProviders();
 
         // Configure WebAuthn/FIDO2
         builder.AddWebAuthn();

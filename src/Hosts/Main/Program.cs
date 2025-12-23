@@ -3,6 +3,7 @@ using Finbuckle.MultiTenant;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.FileProviders;
 using System.Reflection;
 using Vitarish.ApiClients.Hosting.Api;
 using Vitarish.ApiClients.Hosting.DependencyInjection;
@@ -17,6 +18,7 @@ using Vitarish.Intelligence.Hosting;
 using Vitarish.Main.Components;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
+using Vitarish.Main.Infrastructure.IdentityServer;
 using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Services;
 using Vitarish.Modules.Base;
@@ -30,7 +32,9 @@ using Vitarish.Sea.Hosting;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Users.Hosting.Api;
 using Vitarish.Users.Hosting.DependencyInjection;
+using Vitarish.Users.Infrastructure;
 using Vitarish.Users.Infrastructure.Data;
+using Microsoft.Extensions.FileProviders;
 
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -79,6 +83,7 @@ builder.AddAaasParties(configureSqlServer);
 
 await builder.AddHostIdentityServer(configureSqlServer);
 builder.AddHostAuthentication();
+builder.AddHostAuthorization();
 builder.AddHostHangfire(builder.Configuration.GetConnectionString("Db")!);
 builder.AddHostPipeline();
 await builder.AddHostDataProtection();
@@ -95,7 +100,6 @@ _ = builder.Services.AddSession(options =>
 _ = builder.Services.AddControllers();
 _ = builder.Services.AddEndpointsApiExplorer();
 _ = builder.Services.AddLocalization();
-_ = builder.AddDashboardServices();
 Func<object, Task<string?>> tenantResolver = async context => context is HttpContext httpContext
             ? await MultitenantHelpers.ResolveTenantAsync(httpContext)
             : throw new InvalidOperationException("context is not HttpContext");
@@ -111,7 +115,6 @@ _ = builder.Services.AddSignalR(o =>
 
 
 WebApplication app = builder.Build();
-app.UseDashboardServices();
 
 _ = await app.MigrateDatabaseAsync<UsersDbContext>();
 _ = await app.MigrateDatabaseAsync<RequestsDbContext>();

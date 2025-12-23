@@ -1,14 +1,11 @@
 using Duende.IdentityServer.EntityFramework.Stores;
-using Duende.IdentityServer.Services;
 using Duende.IdentityServer.Stores;
-using Duende.IdentityServer.Validation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using System.Security.Cryptography.X509Certificates;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Services;
-using Vitarish.Users.Domain.Entities;
 
 public static class HostIdentityServerExtensions
 {

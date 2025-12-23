@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Vitarish.Main.Services;
+using Vitarish.Main.Extensions;
 
 public sealed class RequestsContextMiddleware
 {

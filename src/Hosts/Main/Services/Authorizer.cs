@@ -1,0 +1,24 @@
+using Microsoft.AspNetCore.Authorization;
+using Vitarish.Main.Contracts;
+using Vitarish.Users.Infrastructure;
+
+namespace Vitarish.Main.Services;
+
+public sealed class Authorizer : AuthorizationHandler<AuthorizerRequirement>
+{
+    protected override async Task HandleRequirementAsync(
+        AuthorizationHandlerContext context,
+        AuthorizerRequirement requirement)
+    {
+        if (context.User.IsInRole(requirement.Role))
+        {
+            context.Succeed(requirement);
+            return;
+        }
+        if (context.User.Claims.Any(c => c.Type == IdentityAccessConstants.AccessClaim && c.Value == requirement.Role))
+        {
+            context.Succeed(requirement);
+            return;
+        }
+    }
+}

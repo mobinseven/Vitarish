@@ -10,6 +10,7 @@ using Vitarish.Main.Services;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Users.Domain.Entities;
+using Vitarish.Users.Infrastructure.Service;
 using IdentityOptions = Microsoft.AspNetCore.Identity.IdentityOptions;
 
 namespace Vitarish.Host.Tests.Infrastructure;

@@ -1,6 +1,7 @@
 
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Users.Application.Abstractions;
@@ -20,7 +21,15 @@ public static class IdentityUsersExtensions
         Action<DbContextOptionsBuilder> dbContextOptionsBuilder)
     {
         _ = builder.Services.AddDbContext<UsersDbContext>(dbContextOptionsBuilder);
-        _ = builder.Services.AddIdentityCore<User>().AddEntityFrameworkStores<UsersDbContext>();
+
+        _ = builder.Services
+            .AddIdentity<User, IdentityRole>()
+            .AddRoles<IdentityRole>()
+            .AddEntityFrameworkStores<UsersDbContext>()
+            .AddSignInManager<AuditingSignInManager>()
+            .AddClaimsPrincipalFactory<UserInfoClaimsPrincipalFactory>()
+            .AddDefaultTokenProviders();
+
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = builder.Services.AddValidatorsFromAssemblyContaining(typeof(AssemblyMarker));
         _ = builder.Services.Configure<PersonalAccessTokenOptions>(builder.Configuration.GetSection("PersonalAccessTokens"));

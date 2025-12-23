@@ -1,11 +1,12 @@
 
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Users.Infrastructure.Data;
 
-public class UsersDbContext(DbContextOptions<UsersDbContext> options) : IdentityDbContext<User>(options)
+public class UsersDbContext(DbContextOptions<UsersDbContext> options) : IdentityDbContext<User, IdentityRole, string>(options)
 {
     /// <summary>
     /// WebAuthn/FIDO2 credentials (passkeys) for users.

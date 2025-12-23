@@ -1,9 +1,10 @@
 using Duende.IdentityModel;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using Vitarish.Users.Domain.Entities;
 
-namespace Vitarish.Main.Services;
+namespace Vitarish.Users.Infrastructure.Service;
 
 public class UserInfoClaimsPrincipalFactory(UserManager<User> userManager, IOptions<IdentityOptions> optionsAccessor)
 : UserClaimsPrincipalFactory<User>(userManager, optionsAccessor), IUserClaimsPrincipalFactory<User>

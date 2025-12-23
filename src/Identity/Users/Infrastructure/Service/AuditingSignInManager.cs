@@ -1,9 +1,12 @@
 
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Vitarish.Users.Domain.Entities;
 
-namespace Vitarish.Main.Services;
+namespace Vitarish.Users.Infrastructure.Service;
 
 public sealed class AuditingSignInManager(
     UserManager<User> userManager,
