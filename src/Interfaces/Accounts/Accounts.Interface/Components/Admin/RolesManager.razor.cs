@@ -41,11 +41,21 @@ public partial class RolesManager : AdminBase
             tenants.AddRange((await tenantsTask).OrderBy(tenant => tenant.Name));
             selectedTenantId ??= tenants.FirstOrDefault()?.Id.ToString();
 
-            IList<Claim>[] claimSets = await Task.WhenAll(loadedRoles.Select(RoleManager.GetClaimsAsync));
+            IList<Claim>[] claimSets = new IList<Claim>[loadedRoles.Count];
 
-            roles.AddRange(loadedRoles.Zip(
-                claimSets,
-                (role, claims) => new RoleEntry(role, claims.Select(claim => new ClaimDto(claim.Type, claim.Value)).ToList())));
+            int index = 0;
+            foreach (var role in loadedRoles)
+            {
+                claimSets[index] = await RoleManager.GetClaimsAsync(role);
+                index++;
+            }
+
+            foreach (var role in loadedRoles.Zip(claimSets, (role, claims) => new RoleEntry(role, [.. claims.Select(claim => new ClaimDto(claim.Type, claim.Value))])))
+            {
+                roles.Add(role);
+            }
+
+
         }
         finally
         {

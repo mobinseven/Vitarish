@@ -76,9 +76,8 @@ public partial class UserRoleAssignments : AdminBase
             return;
         }
 
-        string tenantRole = $"{entry.SelectedTenantId}:{entry.SelectedRole}";
 
-        if (entry.AssignedRoles.Contains(tenantRole, StringComparer.OrdinalIgnoreCase))
+        if (entry.AssignedRoles.Contains(entry.SelectedRole, StringComparer.OrdinalIgnoreCase))
         {
             _ = Snackbar.Add(Localizer["RoleAlreadyAssigned"], Severity.Info);
             entry.SelectedRole = null;
@@ -86,10 +85,10 @@ public partial class UserRoleAssignments : AdminBase
             return;
         }
 
-        IdentityResult result = await UserManager.AddToRoleAsync(entry.User, tenantRole);
+        IdentityResult result = await UserManager.AddToRoleAsync(entry.User, entry.SelectedRole);
         if (result.Succeeded)
         {
-            entry.AssignedRoles.Add(tenantRole);
+            entry.AssignedRoles.Add(entry.SelectedRole);
             _ = Snackbar.Add(Localizer["RoleAssigned"], Severity.Success);
         }
         else
