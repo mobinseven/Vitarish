@@ -21,15 +21,12 @@ function handleReconnectStateChanged(event) {
     } else if (event.detail.state === "hide") {
         reconnectModal.close();
     } else if (event.detail.state === "failed") {
-        document.addEventListener("visibilitychange", retryWhenDocumentBecomesVisible);
     } else if (event.detail.state === "rejected") {
         location.reload();
     }
 }
 
 async function retry() {
-    document.removeEventListener("visibilitychange", retryWhenDocumentBecomesVisible);
-
     try {
         // Reconnect will asynchronously return:
         // - true to mean success
@@ -48,7 +45,6 @@ async function retry() {
         }
     } catch (err) {
         // We got an exception, server is currently unavailable
-        document.addEventListener("visibilitychange", retryWhenDocumentBecomesVisible);
     }
 }
 
@@ -60,12 +56,6 @@ async function resume() {
         }
     } catch {
         location.reload();
-    }
-}
-
-async function retryWhenDocumentBecomesVisible() {
-    if (document.visibilityState === "visible") {
-        await retry();
     }
 }
 
@@ -106,6 +96,9 @@ async function checkServerStatus() {
         clearTimeout(timeoutId);
 
         if (response.ok) {
+            if (consecutiveServerFailures > 0) {
+                await retry();
+            }
             consecutiveServerFailures = 0;
             return;
         }
