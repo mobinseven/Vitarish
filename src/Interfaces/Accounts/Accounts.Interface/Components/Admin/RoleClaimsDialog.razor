@@ -1,0 +1,11 @@
+<MudDialog>
+    <DialogContent>
+        <MudText Typo="Typo.subtitle1">@Localizer["ManageClaimsFor", RoleName]</MudText>
+        <MudDivider Class="my-2" />
+        <ClaimsEdit UserClaims="@claims" UserClaimsChanged="UpdateClaims" />
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Cancel">@Localizer["Cancel"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">@Localizer["Save"]</MudButton>
+    </DialogActions>
+</MudDialog>

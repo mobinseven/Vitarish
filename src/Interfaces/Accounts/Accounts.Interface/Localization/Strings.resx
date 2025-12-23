@@ -567,4 +567,61 @@
   <data name="NoUsers" xml:space="preserve">
     <value>No users found</value>
   </data>
+  <data name="IdentityRoles" xml:space="preserve">
+    <value>Identity roles</value>
+  </data>
+  <data name="RoleName" xml:space="preserve">
+    <value>Role name</value>
+  </data>
+  <data name="AddRole" xml:space="preserve">
+    <value>Add role</value>
+  </data>
+  <data name="RoleNameRequired" xml:space="preserve">
+    <value>Role name is required.</value>
+  </data>
+  <data name="RoleExists" xml:space="preserve">
+    <value>Role '{0}' already exists.</value>
+  </data>
+  <data name="RoleCreated" xml:space="preserve">
+    <value>Role created.</value>
+  </data>
+  <data name="RoleCreateFailed" xml:space="preserve">
+    <value>Could not create role.</value>
+  </data>
+  <data name="RoleUpdated" xml:space="preserve">
+    <value>Role updated.</value>
+  </data>
+  <data name="RoleUpdateFailed" xml:space="preserve">
+    <value>Could not update role.</value>
+  </data>
+  <data name="RoleDeleted" xml:space="preserve">
+    <value>Role deleted.</value>
+  </data>
+  <data name="RoleDeleteFailed" xml:space="preserve">
+    <value>Could not delete role.</value>
+  </data>
+  <data name="RoleDeleteConfirmation" xml:space="preserve">
+    <value>Delete role '{0}'? This action cannot be undone.</value>
+  </data>
+  <data name="ManageClaims" xml:space="preserve">
+    <value>Manage claims</value>
+  </data>
+  <data name="ManageClaimsFor" xml:space="preserve">
+    <value>Manage claims for {0}</value>
+  </data>
+  <data name="NoClaims" xml:space="preserve">
+    <value>No claims</value>
+  </data>
+  <data name="ClaimsUpdated" xml:space="preserve">
+    <value>Claims updated.</value>
+  </data>
+  <data name="ClaimsUpdateFailed" xml:space="preserve">
+    <value>Could not update claims.</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>Actions</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+  </data>
 </root>

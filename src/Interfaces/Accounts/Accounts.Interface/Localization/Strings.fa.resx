@@ -528,4 +528,61 @@
   <data name="NoUsers" xml:space="preserve">
     <value>کاربری یافت نشد</value>
   </data>
+  <data name="IdentityRoles" xml:space="preserve">
+    <value>نقش‌های هویت</value>
+  </data>
+  <data name="RoleName" xml:space="preserve">
+    <value>نام نقش</value>
+  </data>
+  <data name="AddRole" xml:space="preserve">
+    <value>افزودن نقش</value>
+  </data>
+  <data name="RoleNameRequired" xml:space="preserve">
+    <value>نام نقش الزامی است.</value>
+  </data>
+  <data name="RoleExists" xml:space="preserve">
+    <value>نقش «{0}» از قبل وجود دارد.</value>
+  </data>
+  <data name="RoleCreated" xml:space="preserve">
+    <value>نقش ایجاد شد.</value>
+  </data>
+  <data name="RoleCreateFailed" xml:space="preserve">
+    <value>ایجاد نقش انجام نشد.</value>
+  </data>
+  <data name="RoleUpdated" xml:space="preserve">
+    <value>نقش به‌روزرسانی شد.</value>
+  </data>
+  <data name="RoleUpdateFailed" xml:space="preserve">
+    <value>به‌روزرسانی نقش انجام نشد.</value>
+  </data>
+  <data name="RoleDeleted" xml:space="preserve">
+    <value>نقش حذف شد.</value>
+  </data>
+  <data name="RoleDeleteFailed" xml:space="preserve">
+    <value>حذف نقش انجام نشد.</value>
+  </data>
+  <data name="RoleDeleteConfirmation" xml:space="preserve">
+    <value>نقش «{0}» حذف شود؟ این کار قابل بازگشت نیست.</value>
+  </data>
+  <data name="ManageClaims" xml:space="preserve">
+    <value>مدیریت ادعاها</value>
+  </data>
+  <data name="ManageClaimsFor" xml:space="preserve">
+    <value>مدیریت ادعاها برای {0}</value>
+  </data>
+  <data name="NoClaims" xml:space="preserve">
+    <value>ادعایی وجود ندارد</value>
+  </data>
+  <data name="ClaimsUpdated" xml:space="preserve">
+    <value>ادعاها به‌روزرسانی شدند.</value>
+  </data>
+  <data name="ClaimsUpdateFailed" xml:space="preserve">
+    <value>به‌روزرسانی ادعاها انجام نشد.</value>
+  </data>
+  <data name="Actions" xml:space="preserve">
+    <value>اقدامات</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>ویرایش</value>
+  </data>
 </root>
