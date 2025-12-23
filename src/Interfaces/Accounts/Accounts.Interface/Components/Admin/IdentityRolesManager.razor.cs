@@ -130,7 +130,7 @@ public partial class IdentityRolesManager : AdminBase
         DialogParameters<RoleClaimsDialog> parameters = new()
         {
             { dialog => dialog.RoleName, entry.Role.Name ?? string.Empty },
-            { dialog => dialog.Claims, entry.Claims.Select(claim => new ClaimDto(claim.Type, claim.Value)).ToList() }
+            { dialog => dialog.Claims, entry.Claims }
         };
 
         DialogOptions options = new()
@@ -156,8 +156,15 @@ public partial class IdentityRolesManager : AdminBase
         List<Claim> existing = entry.Claims.Select(claim => claim.ToClaim()).ToList();
         List<Claim> desired = updatedClaims.Select(claim => claim.ToClaim()).ToList();
 
-        List<Claim> toRemove = existing.Where(claim => desired.All(c => !ClaimEquals(c, claim))).ToList();
-        List<Claim> toAdd = desired.Where(claim => existing.All(c => !ClaimEquals(c, claim))).ToList();
+        ILookup<string, Claim> desiredLookup = desired.ToLookup(c => c.Type, StringComparer.OrdinalIgnoreCase);
+        List<Claim> toRemove = existing
+            .Where(e => !desiredLookup[e.Type].Any(d => string.Equals(d.Value, e.Value, StringComparison.Ordinal)))
+            .ToList();
+
+        ILookup<string, Claim> existingLookup = existing.ToLookup(c => c.Type, StringComparer.OrdinalIgnoreCase);
+        List<Claim> toAdd = desired
+            .Where(d => !existingLookup[d.Type].Any(e => string.Equals(e.Value, d.Value, StringComparison.Ordinal)))
+            .ToList();
 
         foreach (Claim claim in toRemove)
         {
