@@ -31,6 +31,32 @@
                     <PropertyColumn Property="entry => entry.User.UserName" Title="@Localizer["UserName"]" />
                     <PropertyColumn Property="entry => entry.User.Email" Title="@Localizer["Email"]" />
                     <PropertyColumn Property="entry => entry.User.PhoneNumber" Title="@Localizer["PhoneNumber"]" />
+                    <TemplateColumn Title="@Localizer["Tenant"]">
+                        <CellTemplate>
+                            @if (tenants.Count > 0)
+                            {
+                                <MudSelect T="string"
+                                           Value="@context.Item.SelectedTenantId"
+                                           ValueChanged="@((string? value) => UpdateSelectedTenant(context.Item, value))"
+                                           Dense="true"
+                                           Label="@Localizer["SelectTenant"]"
+                                           Disabled="isLoading">
+                                    @foreach (var tenant in tenants)
+                                    {
+                                        string tenantLabel = string.IsNullOrWhiteSpace(tenant.Name)
+                                            ? tenant.Id.ToString()
+                                            : tenant.Name;
+
+                                        <MudSelectItem Value="@tenant.Id.ToString()">@tenantLabel</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            }
+                            else
+                            {
+                                <MudText Typo="Typo.caption">@Localizer["NoTenants"]</MudText>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
                     <TemplateColumn Title="@Localizer["CurrentRoles"]">
                         <CellTemplate>
                             @if (context.Item.AssignedRoles.Count == 0)

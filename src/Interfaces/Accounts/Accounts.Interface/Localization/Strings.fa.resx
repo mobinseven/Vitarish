@@ -396,6 +396,9 @@
   <data name="NoRoles" xml:space="preserve">
     <value>هیچ نقشی نیست</value>
   </data>
+  <data name="NoTenants" xml:space="preserve">
+    <value>مستاجری وجود ندارد</value>
+  </data>
   <data name="PersonalDetails" xml:space="preserve">
     <value>جزئیات شخصی</value>
   </data>
@@ -404,6 +407,9 @@
   </data>
   <data name="Role" xml:space="preserve">
     <value>نقش</value>
+  </data>
+  <data name="SelectTenant" xml:space="preserve">
+    <value>مستاجر را انتخاب کنید</value>
   </data>
   <data name="Title" xml:space="preserve">
     <value>عنوان</value>
@@ -428,6 +434,9 @@
   </data>
   <data name="ReferenceToken" xml:space="preserve">
     <value>توکن مرجع</value>
+  </data>
+  <data name="Tenant" xml:space="preserve">
+    <value>مستاجر</value>
   </data>
   <data name="GenerateToken" xml:space="preserve">
     <value>ایجاد توکن</value>
