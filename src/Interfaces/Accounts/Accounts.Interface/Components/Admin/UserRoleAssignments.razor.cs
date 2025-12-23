@@ -76,8 +76,9 @@ public partial class UserRoleAssignments : AdminBase
             return;
         }
 
+        string roleName = $"{entry.SelectedTenantId}:{entry.SelectedRole}";
 
-        if (entry.AssignedRoles.Contains(entry.SelectedRole, StringComparer.OrdinalIgnoreCase))
+        if (entry.AssignedRoles.Contains(roleName, StringComparer.OrdinalIgnoreCase))
         {
             _ = Snackbar.Add(Localizer["RoleAlreadyAssigned"], Severity.Info);
             entry.SelectedRole = null;
@@ -85,10 +86,24 @@ public partial class UserRoleAssignments : AdminBase
             return;
         }
 
-        IdentityResult result = await UserManager.AddToRoleAsync(entry.User, entry.SelectedRole);
+        string? userId = entry?.User?.Id;
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            _ = Snackbar.Add(Localizer["Error"], Severity.Error);
+            return;
+        }
+
+        User? user = await UserManager.FindByIdAsync(userId);
+        if (user is null)
+        {
+            _ = Snackbar.Add(Localizer["Error"], Severity.Error);
+            return;
+        }
+
+        IdentityResult result = await UserManager.AddToRoleAsync(user, roleName);
         if (result.Succeeded)
         {
-            entry.AssignedRoles.Add(entry.SelectedRole);
+            entry.AssignedRoles.Add(roleName);
             _ = Snackbar.Add(Localizer["RoleAssigned"], Severity.Success);
         }
         else
@@ -108,7 +123,21 @@ public partial class UserRoleAssignments : AdminBase
             return;
         }
 
-        IdentityResult result = await UserManager.RemoveFromRoleAsync(entry.User, role);
+        string? userId = entry?.User?.Id;
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            _ = Snackbar.Add(Localizer["Error"], Severity.Error);
+            return;
+        }
+
+        User? user = await UserManager.FindByIdAsync(userId);
+        if (user is null)
+        {
+            _ = Snackbar.Add(Localizer["Error"], Severity.Error);
+            return;
+        }
+
+        IdentityResult result = await UserManager.RemoveFromRoleAsync(user, role);
         if (result.Succeeded)
         {
             _ = entry.AssignedRoles.RemoveAll(r => string.Equals(r, role, StringComparison.OrdinalIgnoreCase));
