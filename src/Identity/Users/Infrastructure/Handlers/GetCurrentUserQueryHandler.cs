@@ -8,5 +8,5 @@ namespace Vitarish.Users.Infrastructure.Handlers;
 
 internal class GetCurrentUserQueryHandler(UserManager<User> userManager, IRequestContext requestContext) : IRequestHandler<GetCurrentUserQuery, User?>
 {
-    public async Task<User?> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken) => await userManager.FindByIdAsync(requestContext.UserId);
+    public async Task<User?> Handle(GetCurrentUserQuery request, CancellationToken cancellationToken) => await userManager.FindByIdAsync(requestContext.UserId ?? throw new InvalidDataException("IRequestContext provided a null user ID"));
 }

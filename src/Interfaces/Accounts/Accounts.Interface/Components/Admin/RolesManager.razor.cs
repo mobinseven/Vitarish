@@ -6,7 +6,7 @@ using ClaimDto = Vitarish.Users.Domain.Models.ClaimDto;
 
 namespace Vitarish.Accounts.Interface.Components.Admin;
 
-public partial class IdentityRolesManager : AdminBase
+public partial class RolesManager : AdminBase
 {
     private readonly List<RoleEntry> roles = [];
     private bool isLoading;

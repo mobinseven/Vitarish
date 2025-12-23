@@ -35,11 +35,11 @@ public partial class UserRoleAssignments : AdminBase
                 .Distinct()
                 .Cast<string>());
 
-            IList<string>[] userRoles = await Task.WhenAll(loadedUsers.Select(UserManager.GetRolesAsync));
-
-            users.AddRange(loadedUsers.Zip(
-                userRoles,
-                (user, roles) => new UserRoleEntry(user, [.. roles])));
+            foreach (User user in loadedUsers)
+            {
+                IList<string> userRoles = await UserManager.GetRolesAsync(user);
+                users.Add(new UserRoleEntry(user, [.. userRoles]));
+            }
         }
         finally
         {

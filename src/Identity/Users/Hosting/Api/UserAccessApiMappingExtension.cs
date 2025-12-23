@@ -44,6 +44,7 @@ namespace Vitarish.Users.Hosting.Api
             _ = group.MapPost("/checkrole", CheckUserRole)
                 .WithName("CheckUserRole")
                 .Produces(StatusCodes.Status200OK)
+                .Produces(StatusCodes.Status204NoContent)
                 .WithSummary("check user has a given role");
 
             _ = group.MapGet("/current", GetCurrentUser)
