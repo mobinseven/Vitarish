@@ -205,11 +205,41 @@ public partial class TenantAccessList : CommonBase
         List<string> RoleDisplay,
         TenantIndicator? PrimaryIndicator)
     {
-        public string TenantName => string.IsNullOrWhiteSpace(Tenant?.Name) ? TenantId.ToString() : Tenant.Name;
-        public string OwnerName => string.IsNullOrWhiteSpace(Owner?.Name) ? Tenant?.OwnerId.ToString() ?? "-" : Owner.Name;
-        public string OwnerId => Owner?.Id.ToString() ?? Tenant?.OwnerId.ToString() ?? "-";
-        public string ClientId => Client?.Id ?? Tenant?.ClientId ?? "-";
-        public string ClientHost => Client?.HostUri ?? "-";
-        public string PrimaryIdentifier => PrimaryIndicator?.Value ?? "-";
+        public string TenantDisplayName => string.IsNullOrWhiteSpace(Tenant?.Name)
+            ? $"Tenant {TenantId.ToString()[..8]}"
+            : Tenant!.Name;
+
+        public string OwnerDisplayName => string.IsNullOrWhiteSpace(Owner?.Name)
+            ? "Workspace owner"
+            : Owner!.Name;
+
+        public string ClientDisplay => string.IsNullOrWhiteSpace(Client?.HostUri)
+            ? "Client workspace"
+            : Client!.HostUri;
+
+        public string PrimaryIdentifier => PrimaryIndicator?.Value ?? string.Empty;
+        public bool HasPrimaryIdentifier => !string.IsNullOrWhiteSpace(PrimaryIdentifier);
+        public string PrimaryLabel => HasPrimaryIdentifier ? PrimaryIdentifier : string.Empty;
+        public string PrimaryUrl => HasPrimaryIdentifier ? BuildTenantUrl(PrimaryIdentifier) : string.Empty;
+
+        public string Initials => BuildInitials(TenantDisplayName);
+
+        private static string BuildInitials(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return "?";
+            }
+
+            string[] parts = value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+            if (parts.Length == 1)
+            {
+                return parts[0].Substring(0, 1).ToUpperInvariant();
+            }
+
+            return string.Concat(
+                parts[0].Substring(0, 1),
+                parts[1].Substring(0, 1)).ToUpperInvariant();
+        }
     }
 }
