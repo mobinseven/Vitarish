@@ -38,6 +38,7 @@ public class RequestIdentityContextMiddlewareTests
     private static IServiceProvider CreateServiceProvider()
     {
         ServiceCollection services = new();
+        services.AddAuthentication();
         services.AddScoped<RequestContext>();
         services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
         services.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());

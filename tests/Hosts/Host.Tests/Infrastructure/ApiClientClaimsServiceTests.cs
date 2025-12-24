@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using System.Security.Claims;
 using Vitarish.Main.Infrastructure.IdentityServer;
-using Vitarish.Main.Services;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 
@@ -16,16 +15,16 @@ public class ApiClientClaimsServiceTests
 {
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
     private readonly Mock<ITenantsService> _mockTenantsService;
-    private readonly Mock<ILogger<ApiClientClaimsService>> _mockLogger;
-    private readonly ApiClientClaimsService _sut;
+    private readonly Mock<ILogger<ApiClientTokenValidator>> _mockLogger;
+    private readonly ApiClientTokenValidator _sut;
 
     public ApiClientClaimsServiceTests()
     {
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
         _mockTenantsService = new Mock<ITenantsService>();
-        _mockLogger = new Mock<ILogger<ApiClientClaimsService>>();
+        _mockLogger = new Mock<ILogger<ApiClientTokenValidator>>();
 
-        _sut = new ApiClientClaimsService(
+        _sut = new ApiClientTokenValidator(
             _mockHttpContextAccessor.Object,
             _mockTenantsService.Object,
             _mockLogger.Object);

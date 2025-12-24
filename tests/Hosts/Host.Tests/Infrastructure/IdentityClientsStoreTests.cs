@@ -5,7 +5,6 @@ using Vitarish.ApiClients.Infrastructure.Data;
 using Vitarish.AuthenticationClients.Domain.Entities;
 using Vitarish.AuthenticationClients.Infrastructure.Data;
 using Vitarish.Main.Infrastructure.IdentityServer;
-using Vitarish.Main.Services;
 using IdentityClient = Duende.IdentityServer.Models.Client;
 
 namespace Main.Tests.Infrastructure;
@@ -42,7 +41,7 @@ public class IdentityClientsStoreTests : IDisposable
     public async Task FindClientByIdAsync_WhenApiClient_ReturnsClientWithNoClaims()
     {
         // Arrange
-        // API clients don't have tenant/owner at entity level - claims are added at runtime by ApiClientClaimsService
+        // API clients don't have tenant/owner at entity level - claims are added at runtime by ApiClientTokenValidator
         string clientId = "test-api-client";
         ApiClient apiClient = new()
         {

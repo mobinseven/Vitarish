@@ -1,8 +1,7 @@
-using System.Security.Claims;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Vitarish.Main.Services;
+using System.Security.Claims;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Hosting.Middleware;
 using Vitarish.Requests.Infrastructure.Services;
@@ -14,10 +13,11 @@ public class MultitenantHelpersTests
     private static IServiceProvider CreateServiceProvider()
     {
         ServiceCollection services = new();
-        services.AddScoped<RequestContext>();
-        services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
-        services.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());
-        services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+        _ = services.AddAuthentication();
+        _ = services.AddScoped<RequestContext>();
+        _ = services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
+        _ = services.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());
+        _ = services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         return services.BuildServiceProvider();
     }
 
@@ -25,10 +25,10 @@ public class MultitenantHelpersTests
     public async Task ResolveTenantAsync_WithNullContext_ReturnsNull()
     {
         // Act
-        string? result = await MultitenantHelpers.ResolveTenantAsync(null!);
+        string? result = await TenantResolver.ResolveTenantAsync(null!);
 
         // Assert
-        result.Should().BeNull();
+        _ = result.Should().BeNull();
     }
 
     [Fact]
@@ -54,10 +54,10 @@ public class MultitenantHelpersTests
             tenantId: expectedTenantId);
 
         // Act
-        string? result = await MultitenantHelpers.ResolveTenantAsync(httpContext);
+        string? result = await TenantResolver.ResolveTenantAsync(httpContext);
 
         // Assert
-        result.Should().Be(expectedTenantId);
+        _ = result.Should().Be(expectedTenantId);
     }
 
     [Fact]
@@ -83,10 +83,10 @@ public class MultitenantHelpersTests
             tenantId: null);
 
         // Act
-        string? result = await MultitenantHelpers.ResolveTenantAsync(httpContext);
+        string? result = await TenantResolver.ResolveTenantAsync(httpContext);
 
         // Assert
-        result.Should().Be(expectedOwnerId);
+        _ = result.Should().Be(expectedOwnerId);
     }
 
     [Fact]
@@ -112,10 +112,10 @@ public class MultitenantHelpersTests
             tenantId: null);
 
         // Act
-        string? result = await MultitenantHelpers.ResolveTenantAsync(httpContext);
+        string? result = await TenantResolver.ResolveTenantAsync(httpContext);
 
         // Assert
-        result.Should().Be(expectedClientId);
+        _ = result.Should().Be(expectedClientId);
     }
 
     [Fact]
@@ -134,12 +134,12 @@ public class MultitenantHelpersTests
         // DO NOT call SetContext - this simulates the bug scenario
 
         // Act
-        string? result = await MultitenantHelpers.ResolveTenantAsync(httpContext);
+        string? result = await TenantResolver.ResolveTenantAsync(httpContext);
 
         // Assert
         // With an uninitialized context, TenantId, OwnerId, and ClientId are all empty/null
         // So the result should be empty string (the default value for ClientId)
-        result.Should().BeEmpty();
+        _ = result.Should().BeEmpty();
     }
 
     [Fact]
@@ -167,13 +167,13 @@ public class MultitenantHelpersTests
 
         // Verify that resolving from the same scope gets the initialized context
         IRequestContext requestContext = scope.ServiceProvider.GetRequiredService<IRequestContext>();
-        requestContext.TenantId.Should().Be(expectedTenantId, "Context should be initialized in the same scope");
+        _ = requestContext.TenantId.Should().Be(expectedTenantId, "Context should be initialized in the same scope");
 
         // Act
-        string? result = await MultitenantHelpers.ResolveTenantAsync(httpContext);
+        string? result = await TenantResolver.ResolveTenantAsync(httpContext);
 
         // Assert
-        result.Should().Be(expectedTenantId);
+        _ = result.Should().Be(expectedTenantId);
     }
 
     [Fact]
@@ -200,10 +200,10 @@ public class MultitenantHelpersTests
             tenantId: tenantId);
 
         // Act
-        string? result = await MultitenantHelpers.ResolveTenantAsync(httpContext);
+        string? result = await TenantResolver.ResolveTenantAsync(httpContext);
 
         // Assert
-        result.Should().Be(tenantId, "TenantId should be preferred over OwnerId and ClientId");
+        _ = result.Should().Be(tenantId, "TenantId should be preferred over OwnerId and ClientId");
     }
 
     [Fact]
@@ -229,10 +229,10 @@ public class MultitenantHelpersTests
             tenantId: null);
 
         // Act
-        string? result = await MultitenantHelpers.ResolveTenantAsync(httpContext);
+        string? result = await TenantResolver.ResolveTenantAsync(httpContext);
 
         // Assert
-        result.Should().Be(ownerId, "OwnerId should be preferred over ClientId when TenantId is null");
+        _ = result.Should().Be(ownerId, "OwnerId should be preferred over ClientId when TenantId is null");
     }
 
     /// <summary>
@@ -271,14 +271,14 @@ public class MultitenantHelpersTests
         {
             // This simulates what the tenant resolver (in UseMultiTenant middleware) would do
             // after RequestsContextMiddleware has run
-            resolvedTenant = await MultitenantHelpers.ResolveTenantAsync(ctx);
+            resolvedTenant = await TenantResolver.ResolveTenantAsync(ctx);
         });
 
         // Act
         await middleware.InvokeAsync(httpContext);
 
         // Assert
-        resolvedTenant.Should().Be(expectedTenantId, "Tenant resolver should get the initialized context");
+        _ = resolvedTenant.Should().Be(expectedTenantId, "Tenant resolver should get the initialized context");
     }
 
     /// <summary>
@@ -291,13 +291,13 @@ public class MultitenantHelpersTests
         const string expectedTenantId = "accessor-tenant";
 
         ServiceCollection services = new();
-        services.AddScoped<RequestContext>();
-        services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
-        services.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());
+        _ = services.AddScoped<RequestContext>();
+        _ = services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
+        _ = services.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());
 
         // Create HttpContextAccessor and set it up
         HttpContextAccessor httpContextAccessor = new();
-        services.AddSingleton<IHttpContextAccessor>(httpContextAccessor);
+        _ = services.AddSingleton<IHttpContextAccessor>(httpContextAccessor);
 
         using ServiceProvider rootProvider = services.BuildServiceProvider();
         using IServiceScope scope = rootProvider.CreateScope();
@@ -319,10 +319,10 @@ public class MultitenantHelpersTests
             tenantId: expectedTenantId);
 
         // Act
-        string? result = await MultitenantHelpers.ResolveTenantAsync(httpContext);
+        string? result = await TenantResolver.ResolveTenantAsync(httpContext);
 
         // Assert
-        result.Should().Be(expectedTenantId);
+        _ = result.Should().Be(expectedTenantId);
     }
 
     /// <summary>
@@ -337,13 +337,13 @@ public class MultitenantHelpersTests
         const string expectedTenantId = "correct-scope-tenant";
 
         ServiceCollection services = new();
-        services.AddScoped<RequestContext>();
-        services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
-        services.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());
+        _ = services.AddScoped<RequestContext>();
+        _ = services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
+        _ = services.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());
 
         // Create HttpContextAccessor
         HttpContextAccessor httpContextAccessor = new();
-        services.AddSingleton<IHttpContextAccessor>(httpContextAccessor);
+        _ = services.AddSingleton<IHttpContextAccessor>(httpContextAccessor);
 
         using ServiceProvider rootProvider = services.BuildServiceProvider();
 
@@ -372,13 +372,13 @@ public class MultitenantHelpersTests
 
         // Verify the wrong scope has an uninitialized context
         IRequestContext wrongRequestContext = wrongScope.ServiceProvider.GetRequiredService<IRequestContext>();
-        wrongRequestContext.TenantId.Should().BeNull("Wrong scope should have uninitialized context");
+        _ = wrongRequestContext.TenantId.Should().BeNull("Wrong scope should have uninitialized context");
 
         // Act - pass the "wrong" context but expect the helper to use IHttpContextAccessor
-        string? result = await MultitenantHelpers.ResolveTenantAsync(wrongContext);
+        string? result = await TenantResolver.ResolveTenantAsync(wrongContext);
 
         // Assert - should get the value from the correct scope (via IHttpContextAccessor)
-        result.Should().Be(expectedTenantId,
+        _ = result.Should().Be(expectedTenantId,
             "Helper should use IHttpContextAccessor's HttpContext which has the initialized IRequestContext");
     }
 }

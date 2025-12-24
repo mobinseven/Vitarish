@@ -43,7 +43,7 @@ public sealed class PersonalAccessTokenClientTests
         var sut = new PersonalAccessTokenClient(clientFactory.Object, Logger, cache.Object);
 
         await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            sut.CreateTokenAsync("user-1", lifetimeDays: null, scopes: null, isReferenceToken: false, CancellationToken.None));
+            sut.CreateTokenAsync("user-1", lifetimeDays: 30, scopes: null, isReferenceToken: false, CancellationToken.None));
     }
 
     [Theory]
