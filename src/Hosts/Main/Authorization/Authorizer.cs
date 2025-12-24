@@ -9,6 +9,8 @@ namespace Vitarish.Main.Authorization;
 public sealed class Authorizer(UserManager<User> userManager, IDistributedCache cache) : AuthorizationHandler<AuthorizerRequirement>
 {
     private static readonly KeyedAsyncLock _keyedLock = new();
+    private static readonly TimeSpan RoleCacheSuccessTtl = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan RoleCacheFailureTtl = TimeSpan.FromSeconds(45);
 
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
@@ -57,7 +59,7 @@ public sealed class Authorizer(UserManager<User> userManager, IDistributedCache 
                 var user = await userManager.FindByIdAsync(subjectId);
                 hasRole = user is not null && await userManager.IsInRoleAsync(user, requirement.Role);
 
-                TimeSpan ttl = hasRole ? TimeSpan.FromMinutes(5) : TimeSpan.FromSeconds(45);
+                TimeSpan ttl = hasRole ? RoleCacheSuccessTtl : RoleCacheFailureTtl;
                 await cache.SetAsync(
                     cacheKey,
                     SerializeBool(hasRole),
@@ -71,7 +73,10 @@ public sealed class Authorizer(UserManager<User> userManager, IDistributedCache 
         }
     }
 
-    private static string BuildCacheKey(string userId, string role) => $"Authorizer:{userId}:{role}";
+    private static string BuildCacheKey(string userId, string role) =>
+        $"Authorizer:{EscapeSegment(userId)}:{EscapeSegment(role)}";
+
+    private static string EscapeSegment(string value) => Uri.EscapeDataString(value);
 
     private static async Task<bool?> GetCachedBoolAsync(IDistributedCache distributedCache, string key)
     {
