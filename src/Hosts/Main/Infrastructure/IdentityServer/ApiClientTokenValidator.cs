@@ -1,21 +1,21 @@
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Validation;
 using System.Security.Claims;
-using Vitarish.Main.Infrastructure.IdentityServer;
+using Vitarish.Main.Services;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 
-namespace Vitarish.Main.Services;
+namespace Vitarish.Main.Infrastructure.IdentityServer;
 
 /// <summary>
 /// Custom token request validator that adds tenant and owner claims to API client tokens.
 /// Similar to how <see cref="PartyProfileService"/> adds claims for user authentication flows,
 /// this service resolves tenant/owner information from the HTTP request context for client credentials flow.
 /// </summary>
-public sealed class ApiClientClaimsService(
+public sealed class ApiClientTokenValidator(
     IHttpContextAccessor httpContextAccessor,
     ITenantsService tenantsService,
-    ILogger<ApiClientClaimsService> logger)
+    ILogger<ApiClientTokenValidator> logger)
     : ICustomTokenRequestValidator
 {
     public async Task ValidateAsync(CustomTokenRequestValidationContext context)

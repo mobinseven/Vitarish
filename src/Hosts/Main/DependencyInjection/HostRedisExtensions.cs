@@ -1,6 +1,6 @@
 namespace Vitarish.Main.DependencyInjection;
 
-public static class RedisWebApplicationBuilderExtensions
+public static class HostRedisExtensions
 {
     public static void AddRedisCaching(this IServiceCollection services, IConfiguration configuration) =>
         services.AddStackExchangeRedisCache(options => options.Configuration = configuration.GetRedisConnectionString());

@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Authorization;
-using Vitarish.Main.Contracts;
 
-namespace Vitarish.Main.Services;
+namespace Vitarish.Main.Authorization;
 
 public class AuthorizerPolicyProvider(IOptions<AuthorizationOptions> options) : IAuthorizationPolicyProvider
 {

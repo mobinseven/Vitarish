@@ -5,9 +5,8 @@ using Vitarish.ApiClients.Domain.Entities;
 using Vitarish.ApiClients.Infrastructure.Data;
 using Vitarish.AuthenticationClients.Domain.Entities;
 using Vitarish.AuthenticationClients.Infrastructure.Data;
-using Vitarish.Main.Infrastructure.IdentityServer;
 
-namespace Vitarish.Main.Services;
+namespace Vitarish.Main.Infrastructure.IdentityServer;
 
 public class IdentityClientsStore(AuthenticationClientDbContext authClients, ApiClientDbContext apiClients) : IClientStore
 {
@@ -16,7 +15,7 @@ public class IdentityClientsStore(AuthenticationClientDbContext authClients, Api
         AuthenticationClient? authenticationClient = await authClients.AuthenticationClients.SingleOrDefaultAsync(c => c.Id == clientId);
         if (authenticationClient is not null)
         {
-            Duende.IdentityServer.Models.Client client = new()
+            Client client = new()
             {
                 ClientId = authenticationClient.Id,
                 ClientName = authenticationClient.Title,
@@ -36,7 +35,7 @@ public class IdentityClientsStore(AuthenticationClientDbContext authClients, Api
         if (apiClient is not null)
         {
             // API clients don't have associated tenant/owner claims at the entity level.
-            // Tenant/owner claims for API client tokens are provided at runtime by ApiClientClaimsService
+            // Tenant/owner claims for API client tokens are provided at runtime by ApiClientTokenValidator
             // which resolves them from the HTTP request context (similar to PartyProfileService).
             Client client = new()
             {

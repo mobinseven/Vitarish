@@ -1,11 +1,10 @@
 using Hangfire;
 using Hangfire.SqlServer;
-using Vitarish.Accounts.Infrastructure.Services;
+using Vitarish.Main.Authorization;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
-using Vitarish.Main.Services;
 
 namespace Vitarish.Main.DependencyInjection;
 

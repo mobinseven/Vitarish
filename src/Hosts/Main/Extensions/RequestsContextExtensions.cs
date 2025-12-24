@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Requests.Hosting.Middleware;
+using Vitarish.Users.Infrastructure;
 
 namespace Vitarish.Main.Extensions
 {
@@ -11,6 +12,9 @@ namespace Vitarish.Main.Extensions
         public static async Task PopulateContext(HttpContext http, IRequestContextWriter writer)
         {
             ClaimsPrincipal user = http.User;
+
+            // Get user ID from sub claim
+            string? userId = user.FindFirstValue("sub") ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
 
             // Generate or retrieve request ID
             string? existingReqId = http.Request.Headers[RequestIdentityConstants.RequestIdHeader].FirstOrDefault();
@@ -63,9 +67,6 @@ namespace Vitarish.Main.Extensions
 
             // Get trace ID from activity
             string? traceId = Activity.Current?.TraceId.ToHexString();
-
-            // Get user ID from sub claim
-            string? userId = user.FindFirstValue("sub");
 
             // Populate the context via the writer interface
             writer.SetContext(

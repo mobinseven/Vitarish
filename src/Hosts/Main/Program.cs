@@ -101,7 +101,7 @@ _ = builder.Services.AddControllers();
 _ = builder.Services.AddEndpointsApiExplorer();
 _ = builder.Services.AddLocalization();
 Func<object, Task<string?>> tenantResolver = async context => context is HttpContext httpContext
-            ? await MultitenantHelpers.ResolveTenantAsync(httpContext)
+            ? await TenantResolver.ResolveTenantAsync(httpContext)
             : throw new InvalidOperationException("context is not HttpContext");
 _ = builder.Services.AddMultiTenant<TenantInfo>()
     .WithEchoStore()

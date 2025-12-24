@@ -18,21 +18,13 @@ namespace Vitarish.Main.Services
             HttpContext? httpContext = httpConnectionFeature?.HttpContext;
             if (httpContext != null)
             {
-                if (!httpContext.User.Identity?.IsAuthenticated ?? true)
-                {
-                    throw new UnauthorizedAccessException();
-                }
-                else
+                if (httpContext.User.Identity?.IsAuthenticated ?? false)
                 {
                     IRequestContextWriter writer = invocationContext.ServiceProvider.GetRequiredService<IRequestContextWriter>();
                     await RequestsContextExtensions.PopulateContext(httpContext, writer);
-                    return await next(invocationContext);
                 }
             }
-            else
-            {
-                throw new InvalidOperationException();
-            }
+            return await next(invocationContext);
         }
     }
 }

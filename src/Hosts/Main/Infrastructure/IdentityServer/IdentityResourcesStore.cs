@@ -2,9 +2,8 @@ using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Stores;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.ApiClients.Infrastructure.Data;
-using Vitarish.Main.Infrastructure.IdentityServer;
 
-namespace Vitarish.Main.Services;
+namespace Vitarish.Main.Infrastructure.IdentityServer;
 
 public class IdentityResourcesStore(ApiClientDbContext apiClients) : IResourceStore
 {

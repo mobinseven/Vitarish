@@ -5,6 +5,8 @@ using Microsoft.IdentityModel.Tokens;
 using StackExchange.Redis;
 using System.Security.Cryptography.X509Certificates;
 using Vitarish.Main.DependencyInjection;
+using Vitarish.Main.Infrastructure.IdentityServer;
+using Vitarish.Main.Infrastructure.Security;
 using Vitarish.Main.Services;
 
 public static class HostIdentityServerExtensions
@@ -35,7 +37,7 @@ public static class HostIdentityServerExtensions
             .AddOperationalStore(options => options.ConfigureDbContext = configureSqlServer)
             .AddAspNetIdentity<User>()
             .AddProfileService<PartyProfileService>()
-            .AddCustomTokenRequestValidator<ApiClientClaimsService>();
+            .AddCustomTokenRequestValidator<ApiClientTokenValidator>();
 
         _ = builder.Services.AddScoped<IEventSink, SecurityEventLogger>();
         _ = builder.Services.AddTransient<IPersistedGrantStore, PersistedGrantStore>();

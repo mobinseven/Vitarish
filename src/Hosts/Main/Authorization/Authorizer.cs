@@ -1,9 +1,8 @@
 using Duende.IdentityServer.Extensions;
 using Microsoft.AspNetCore.Authorization;
-using Vitarish.Main.Contracts;
 using Vitarish.Users.Infrastructure;
 
-namespace Vitarish.Main.Services;
+namespace Vitarish.Main.Authorization;
 
 public sealed class Authorizer(UserManager<User> userManager) : AuthorizationHandler<AuthorizerRequirement>
 {

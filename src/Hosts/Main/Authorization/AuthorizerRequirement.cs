@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
 
-namespace Vitarish.Main.Contracts;
+namespace Vitarish.Main.Authorization;
 
 public record AuthorizerRequirement(string Role) : IAuthorizationRequirement;

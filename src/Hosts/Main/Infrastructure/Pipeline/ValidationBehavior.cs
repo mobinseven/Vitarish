@@ -1,7 +1,7 @@
 using FluentValidation;
 using MediatR;
 
-namespace Vitarish.Main.Services;
+namespace Vitarish.Main.Infrastructure.Pipeline;
 
 public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators, ILogger<ValidationBehavior<TRequest, TResponse>> logger) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : IRequest<TResponse>

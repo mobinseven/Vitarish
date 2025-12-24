@@ -3,7 +3,7 @@ using Duende.IdentityServer.Events;
 using Duende.IdentityServer.Services;
 using System.Reflection;
 
-namespace Vitarish.Main.Services;
+namespace Vitarish.Main.Infrastructure.Security;
 
 public class SecurityEventLogger(ILogger<SecurityEventLogger> logger) : IEventSink
 {

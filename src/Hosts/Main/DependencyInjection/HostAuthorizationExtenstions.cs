@@ -1,5 +1,5 @@
 using Microsoft.AspNetCore.Authorization;
-using Vitarish.Main.Services;
+using Vitarish.Main.Authorization;
 
 namespace Vitarish.Main.DependencyInjection;
 

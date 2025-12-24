@@ -1,8 +1,5 @@
-using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Vitarish.Main.Services;
 using Vitarish.Users.Domain.Options;
 using Vitarish.Users.Infrastructure;
-using Vitarish.Users.Infrastructure.Data;
 
 public static class HostAuthenticationExtensions
 {

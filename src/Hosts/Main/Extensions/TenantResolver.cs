@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Vitarish.Requests.Application.Abstractions;
 
-public static class MultitenantHelpers
+public static class TenantResolver
 {
     /// <summary>
     /// Resolves the tenant identifier from the request context.
