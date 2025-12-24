@@ -1,4 +1,6 @@
 @inherits AdminBase
+@using Vitarish.Parties.Domain.Entities
+@using Vitarish.ApiClients.Domain.Entities
 
 <MudStack Spacing="2">
     <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
@@ -20,68 +22,118 @@
         }
         else
         {
-            <MudDataGrid T="UserRoleEntry"
-                         Items="users"
-                         Dense="true"
-                         Hover="true"
-                         Loading="isLoading"
-                         Elevation="0"
-                         Bordered="true">
-                <Columns>
-                    <PropertyColumn Property="entry => entry.User.UserName" Title="@Localizer["UserName"]" />
-                    <PropertyColumn Property="entry => entry.User.Email" Title="@Localizer["Email"]" />
-                    <PropertyColumn Property="entry => entry.User.PhoneNumber" Title="@Localizer["PhoneNumber"]" />
-                    <TemplateColumn Title="@Localizer["CurrentRoles"]">
-                        <CellTemplate>
-                            @if (context.Item.AssignedRoles.Count == 0)
-                            {
-                                <MudText Typo="Typo.caption">@Localizer["NoRoles"]</MudText>
-                            }
-                            else
-                            {
-                                <MudStack Row Spacing="1">
-                                    @foreach (string role in context.Item.AssignedRoles)
-                                    {
-                                        <MudChip T="string"
-                                                 OnClose="@(() => RemoveRoleAsync(context.Item, role))"
-                                                 CloseIcon="@Icons.Material.Filled.Close">
-                                            @role
-                                        </MudChip>
-                                    }
-                                </MudStack>
-                            }
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Title="@Localizer["AssignRole"]">
-                        <CellTemplate>
-                            <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
-                                <MudSelect T="string"
-                                           Value="@context.Item.SelectedRole"
-                                           ValueChanged="@((string? value) => UpdateSelectedRole(context.Item, value))"
-                                           Dense="true"
-                                           Label="@Localizer["SelectRole"]"
-                                           Disabled="isLoading || roles.Count == 0">
-                                    @if (roles.Count == 0)
-                                    {
-                                        <MudSelectItem Value="string.Empty">@Localizer["NoRoles"]</MudSelectItem>
-                                    }
-                                    else
-                                    {
-                                        @foreach (string role in roles)
+            <MudTable T="UserRoleEntry"
+                      Items="users"
+                      Dense="true"
+                      Hover="true"
+                      Bordered="true"
+                      Elevation="0"
+                      CanCancelEdit="false"
+                      RowsPerPage="10">
+                <HeaderContent>
+                    <MudTh></MudTh>
+                    <MudTh>@Localizer["UserName"]</MudTh>
+                    <MudTh>@Localizer["Email"]</MudTh>
+                    <MudTh>@Localizer["PhoneNumber"]</MudTh>
+                    <MudTh>@Localizer["RolesCount"]</MudTh>
+                    <MudTh>@Localizer["Actions"]</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="">
+                        <MudIconButton Icon="@(context.IsExpanded ? Icons.Material.Filled.ExpandLess : Icons.Material.Filled.ExpandMore)"
+                                       Size="Size.Small"
+                                       OnClick="@(() => ToggleExpand(context))" />
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["UserName"]">@context.User.UserName</MudTd>
+                    <MudTd DataLabel="@Localizer["Email"]">@context.User.Email</MudTd>
+                    <MudTd DataLabel="@Localizer["PhoneNumber"]">@context.User.PhoneNumber</MudTd>
+                    <MudTd DataLabel="@Localizer["RolesCount"]">
+                        <MudChip T="string" Size="Size.Small" Color="Color.Info">
+                            @context.AssignedRoles.Count
+                        </MudChip>
+                    </MudTd>
+                    <MudTd DataLabel="@Localizer["Actions"]">
+                        <MudButton Variant="Variant.Filled"
+                                   Color="Color.Primary"
+                                   StartIcon="@Icons.Material.Filled.Add"
+                                   Size="Size.Small"
+                                   OnClick="@(() => OpenAssignRoleDialogAsync(context))">
+                            @Localizer["AssignRole"]
+                        </MudButton>
+                    </MudTd>
+                </RowTemplate>
+                <ChildRowContent>
+                    @if (context.IsExpanded)
+                    {
+                        <MudTr>
+                            <td colspan="6">
+                                <MudCard Elevation="0" Class="ma-2">
+                                    <MudCardContent>
+                                        @if (context.RoleDetails.Count == 0)
                                         {
-                                            <MudSelectItem Value="@role">@role</MudSelectItem>
+                                            <MudText Typo="Typo.body2">@Localizer["NoRoles"]</MudText>
                                         }
-                                    }
-                                </MudSelect>
-                                <MudIconButton Icon="@Icons.Material.Filled.Check"
-                                               Color="Color.Primary"
-                                               Disabled="isLoading || string.IsNullOrWhiteSpace(context.Item.SelectedRole)"
-                                               OnClick="@(() => AssignRoleAsync(context.Item))" />
-                            </MudStack>
-                        </CellTemplate>
-                    </TemplateColumn>
-                </Columns>
-            </MudDataGrid>
+                                        else
+                                        {
+                                            <MudTable T="RoleDetail"
+                                                      Items="context.RoleDetails"
+                                                      Dense="true"
+                                                      Elevation="0"
+                                                      Hover="true">
+                                                <HeaderContent>
+                                                    <MudTh>@Localizer["Role"]</MudTh>
+                                                    <MudTh>@Localizer["Tenant"]</MudTh>
+                                                    <MudTh>@Localizer["Owner"]</MudTh>
+                                                    <MudTh>@Localizer["Client"]</MudTh>
+                                                    <MudTh>@Localizer["Actions"]</MudTh>
+                                                </HeaderContent>
+                                                <RowTemplate Context="roleContext">
+                                                    <MudTd DataLabel="@Localizer["Role"]">
+                                                        <MudChip T="string" Color="Color.Primary" Size="Size.Small">
+                                                            @roleContext.RoleName
+                                                        </MudChip>
+                                                    </MudTd>
+                                                    <MudTd DataLabel="@Localizer["Tenant"]">
+                                                        <MudStack Spacing="0">
+                                                            <MudText Typo="Typo.body2">@roleContext.TenantName</MudText>
+                                                            <MudText Typo="Typo.caption">@roleContext.TenantId</MudText>
+                                                        </MudStack>
+                                                    </MudTd>
+                                                    <MudTd DataLabel="@Localizer["Owner"]">
+                                                        <MudStack Spacing="0">
+                                                            <MudText Typo="Typo.body2">@roleContext.OwnerName</MudText>
+                                                            <MudText Typo="Typo.caption">@roleContext.OwnerId</MudText>
+                                                        </MudStack>
+                                                    </MudTd>
+                                                    <MudTd DataLabel="@Localizer["Client"]">
+                                                        @if (!string.IsNullOrWhiteSpace(roleContext.ClientId) && roleContext.ClientId != "-")
+                                                        {
+                                                            <MudText Typo="Typo.body2">@roleContext.ClientId</MudText>
+                                                        }
+                                                        else
+                                                        {
+                                                            <MudText Typo="Typo.caption">-</MudText>
+                                                        }
+                                                    </MudTd>
+                                                    <MudTd DataLabel="@Localizer["Actions"]">
+                                                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                                                       Color="Color.Error"
+                                                                       Size="Size.Small"
+                                                                       OnClick="@(() => RemoveRoleAsync(context, roleContext.FullRoleName))" />
+                                                    </MudTd>
+                                                </RowTemplate>
+                                            </MudTable>
+                                        }
+                                    </MudCardContent>
+                                </MudCard>
+                            </td>
+                        </MudTr>
+                    }
+                </ChildRowContent>
+                <PagerContent>
+                    <MudTablePager />
+                </PagerContent>
+            </MudTable>
         }
     </MudPaper>
 </MudStack>
