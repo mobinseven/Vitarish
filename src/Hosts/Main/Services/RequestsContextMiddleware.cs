@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
+using System.Linq;
 using Vitarish.Main.Extensions;
 
 public sealed class RequestsContextMiddleware
@@ -20,24 +22,28 @@ public sealed class RequestsContextMiddleware
     {
         // Try each configured authentication scheme
         IAuthenticationService? authenticationService = context.RequestServices.GetService<IAuthenticationService>();
-        if (authenticationService != null)
+        IAuthenticationSchemeProvider? schemeProvider = context.RequestServices.GetService<IAuthenticationSchemeProvider>();
+        if (authenticationService != null && schemeProvider != null)
         {
-            foreach (string scheme in _authSchemes)
-            {
-                AuthenticateResult? result;
-                try
-                {
-                    result = await authenticationService.AuthenticateAsync(context, scheme);
-                }
-                catch (InvalidOperationException)
-                {
-                    break;
-                }
+            var availableSchemes = (await schemeProvider.GetAllSchemesAsync())
+                .Select(s => s.Name)
+                .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
-                if (result?.Succeeded == true && result.Principal != null)
+            if (availableSchemes.Count > 0)
+            {
+                foreach (string scheme in _authSchemes)
                 {
-                    context.User = result.Principal;
-                    break;
+                    if (!availableSchemes.Contains(scheme))
+                    {
+                        continue;
+                    }
+
+                    AuthenticateResult? result = await authenticationService.AuthenticateAsync(context, scheme);
+                    if (result?.Succeeded == true && result.Principal != null)
+                    {
+                        context.User = result.Principal;
+                        break;
+                    }
                 }
             }
         }

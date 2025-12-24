@@ -1,3 +1,4 @@
+using System.Linq;
 using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Accounts.Interface.Components.Admin;
@@ -62,7 +63,19 @@ public partial class UserRoleAssignments : AdminBase
             return;
         }
 
-        if (entry.AssignedRoles.Contains(entry.SelectedRole, StringComparer.OrdinalIgnoreCase))
+        // UI currently assumes a single-tenant context; default to the first available tenant.
+        Tenant? tenant = tenants
+            .OrderBy(t => t.Id)
+            .FirstOrDefault();
+        if (tenant is null)
+        {
+            _ = Snackbar.Add(Localizer["NoTenantsAvailable"], Severity.Error);
+            return;
+        }
+
+        string roleName = BuildTenantRoleName(tenant.Id, entry.SelectedRole);
+
+        if (entry.AssignedRoles.Contains(roleName, StringComparer.OrdinalIgnoreCase))
         {
             _ = Snackbar.Add(Localizer["RoleAlreadyAssigned"], Severity.Info);
             entry.SelectedRole = null;
@@ -74,15 +87,6 @@ public partial class UserRoleAssignments : AdminBase
         {
             return;
         }
-
-        Guid? tenantId = tenants.FirstOrDefault()?.Id;
-        if (tenantId is null)
-        {
-            _ = Snackbar.Add(Localizer["Error"], Severity.Error);
-            return;
-        }
-
-        string roleName = $"{tenantId}:{entry.SelectedRole}";
 
         IdentityResult result = await UserManager.AddToRoleAsync(user, roleName);
         if (result.Succeeded)
@@ -149,4 +153,7 @@ public partial class UserRoleAssignments : AdminBase
 
         return user;
     }
+
+    private static string BuildTenantRoleName(Guid tenantId, string role)
+        => $"{tenantId}:{role}";
 }

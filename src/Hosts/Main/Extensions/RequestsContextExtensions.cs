@@ -8,6 +8,7 @@ namespace Vitarish.Main.Extensions
 {
     internal static class RequestsContextExtensions
     {
+        private const string SynthesizedTenantPrefix = "tenant-";
 
         public static async Task PopulateContext(HttpContext http, IRequestContextWriter writer)
         {
@@ -61,14 +62,14 @@ namespace Vitarish.Main.Extensions
             }
         }
 
-        if (string.IsNullOrEmpty(ownerId) && clientId.Length > 0)
+        if (string.IsNullOrEmpty(ownerId) && !string.IsNullOrEmpty(clientId))
         {
             ownerId = clientId;
         }
 
-        if (string.IsNullOrEmpty(tenantId) && ownerId.Length > 0)
+        if (string.IsNullOrEmpty(tenantId) && !string.IsNullOrEmpty(ownerId))
         {
-            tenantId = $"tenant-{ownerId}";
+            tenantId = $"{SynthesizedTenantPrefix}{ownerId}";
         }
 
         // Get resource identifier from the route pattern
