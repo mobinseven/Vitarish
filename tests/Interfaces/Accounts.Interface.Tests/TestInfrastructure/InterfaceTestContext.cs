@@ -13,6 +13,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
 using MudBlazor.Services;
+using MudBlazor;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using Vitarish.Accounts.Infrastructure.Services;
@@ -38,6 +39,10 @@ internal sealed class InterfaceTestContext : TestContext
 
         _ = Services.AddLogging();
         _ = Services.AddMudServices();
+        
+        Mock<IDialogService> dialogServiceMock = new();
+        _ = Services.AddSingleton(dialogServiceMock.Object);
+        
         _ = Services.AddSingleton<IStringLocalizer>(new TestStringLocalizer());
         _ = Services.AddSingleton<AuthenticationStateProvider>(new TestAuthenticationStateProvider());
         _ = Services.AddSingleton<IJSRuntime>(new TestJsRuntime());
@@ -147,7 +152,8 @@ internal sealed class InterfaceTestContext : TestContext
             roleManagerMock,
             signInManager,
             httpContext,
-            httpClientFactoryMock);
+            httpClientFactoryMock,
+            dialogServiceMock);
     }
 
     public new void Dispose()
