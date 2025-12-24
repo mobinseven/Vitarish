@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -126,6 +127,7 @@ public static class IdentityModuleExtensions
         _ = services.AddScoped<IPersonalAccessTokenClient, PersonalAccessTokenClient>();
         _ = services.AddScoped<IPersonalClientFactory, PersonalClientFactory>();
         _ = services.AddScoped<IUsersService, UsersService>();
+        _ = services.AddScoped<IIdentityService, IdentityService>();
         _ = services.AddScoped<UserProfileClient>();
         _ = services.AddScoped<UserProfileCultureInfoProvider>();
 

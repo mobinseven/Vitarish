@@ -4,7 +4,7 @@ public interface IPersonalAccessTokenClient
 {
     Task<string?> CreateTokenAsync(
         string userId,
-        int? lifetimeDays = null,
+        int lifetimeDays = 30,
         IEnumerable<string>? scopes = null,
         bool isReferenceToken = false,
         CancellationToken cancellationToken = default);

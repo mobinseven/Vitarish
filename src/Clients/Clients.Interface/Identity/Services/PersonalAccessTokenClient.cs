@@ -19,25 +19,24 @@ public sealed class PersonalAccessTokenClient(
 
     public async Task<string?> CreateTokenAsync(
         string userId,
-        int? lifetimeDays,
-        IEnumerable<string>? scopes,
-        bool isReferenceToken,
-        CancellationToken cancellationToken)
+        int lifetimeDays = 30,
+        IEnumerable<string>? scopes = null,
+        bool isReferenceToken=false,
+        CancellationToken cancellationToken=default)
     {
         ArgumentException.ThrowIfNullOrEmpty(userId);
-        ArgumentNullException.ThrowIfNull(lifetimeDays);
-        ArgumentOutOfRangeException.ThrowIfLessThan(lifetimeDays.Value, 1);
 
-        string[]? normalizedScopes = scopes?
+        scopes ??= new HashSet<string>();
+        string[]? normalizedScopes = scopes
             .Where(static s => !string.IsNullOrWhiteSpace(s))
             .Select(static s => s.Trim())
             .Distinct(StringComparer.Ordinal)
             .OrderBy(static s => s, StringComparer.Ordinal)
             .ToArray();
 
-        string cacheKey = BuildHashedCacheKey(userId, lifetimeDays.Value, normalizedScopes, isReferenceToken);
+        string cacheKey = BuildHashedCacheKey(userId, lifetimeDays, normalizedScopes, isReferenceToken);
 
-        TimeSpan ttl = ComputeTtl(lifetimeDays.Value);
+        TimeSpan ttl = ComputeTtl(lifetimeDays);
 
         var entryOptions = new HybridCacheEntryOptions
         {
@@ -55,7 +54,7 @@ public sealed class PersonalAccessTokenClient(
             // TState overload lets us keep the factory static (no captures).
             return await cache.GetOrCreateAsync(
                 cacheKey,
-                (clientFactory, logger, userId, lifetimeDays.Value, normalizedScopes, isReferenceToken),
+                (clientFactory, logger, userId, lifetimeDays, normalizedScopes, isReferenceToken),
                 static async (state, ct) =>
                 {
                     (IIdentityClientService? clientFactory, ILogger<PersonalAccessTokenClient>? logger, string? userId, int lifetimeDays, string[]? scopes, bool isReferenceToken) = state;

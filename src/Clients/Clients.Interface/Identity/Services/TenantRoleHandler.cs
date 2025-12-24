@@ -6,6 +6,7 @@ using System.Security.Claims;
 namespace Vitarish.Clients.Interface.Identity.Services;
 
 public sealed class TenantRoleHandler(
+    IIdentityService identityService,
     IUsersService usersService,
     IHttpContextAccessor http,
     IDistributedCache cache
@@ -33,6 +34,8 @@ public sealed class TenantRoleHandler(
         {
             return;
         }
+
+        identityService.User ??= context.User;
 
         string key = BuildKey(userId, http.HttpContext?.Request.Host.Value, requirement.Role);
 
