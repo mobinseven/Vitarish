@@ -45,8 +45,9 @@ public partial class UserRoleAssignmentDialog : ComponentBase
 
             List<Guid> ownerIds = tenants.Select(t => t.OwnerId).Distinct().ToList();
             Dictionary<Guid, Task<Owner?>> ownerTasks = ownerIds.ToDictionary(id => id, id => PartiesService.GetOwnerAsync(id));
-            await Task.WhenAll(ownerTasks.Values);
-            Dictionary<Guid, Owner?> owners = ownerTasks.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.GetAwaiter().GetResult());
+            Dictionary<Guid, Owner?> owners = (await Task.WhenAll(
+                ownerTasks.Select(async kvp => new { kvp.Key, Value = await kvp.Value })
+            )).ToDictionary(x => x.Key, x => x.Value);
 
             List<string> clientIds = tenants
                 .Where(t => !string.IsNullOrWhiteSpace(t.ClientId))
@@ -55,9 +56,9 @@ public partial class UserRoleAssignmentDialog : ComponentBase
                 .ToList();
             Dictionary<string, Task<ApiClient?>> clientTasks = clientIds
                 .ToDictionary(id => id, id => ApiClientService.GetApiClientAsync(id), StringComparer.OrdinalIgnoreCase);
-            await Task.WhenAll(clientTasks.Values);
-            Dictionary<string, ApiClient?> clients = clientTasks
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.GetAwaiter().GetResult(), StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, ApiClient?> clients = (await Task.WhenAll(
+                clientTasks.Select(async kvp => new { kvp.Key, Value = await kvp.Value })
+            )).ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
 
             List<ParsedTenantRole> parsedRoles = RoleParser.ParseTenantRoles(AvailableRoles, tenantDict, owners, clients);
             
