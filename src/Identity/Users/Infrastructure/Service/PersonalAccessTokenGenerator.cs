@@ -1,4 +1,5 @@
 
+using Duende.IdentityModel;
 using Duende.IdentityServer;
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Services;
@@ -55,7 +56,10 @@ public sealed class PersonalAccessTokenGenerator(
                 !string.IsNullOrWhiteSpace(claim.Value))
             .Select(static claim => claim.Value)
             .ToHashSet(StringComparer.Ordinal);
-
+        IList<string> roleNames = await userManager.GetRolesAsync(user); // ASP.NET Core Identity roles :contentReference[oaicite:3]{index=3}
+        HashSet<string> roleSet = roleNames
+            .Where(static r => !string.IsNullOrWhiteSpace(r))
+            .ToHashSet(StringComparer.Ordinal);
         HashSet<string> scopeSet = new(allowedScopes, StringComparer.Ordinal);
         List<string>? invalidScopes = null;
 
@@ -121,6 +125,11 @@ public sealed class PersonalAccessTokenGenerator(
             token.Claims.Add(new Claim("scope", scope));
         }
 
+        foreach (string role in roleSet)
+        {
+            token.Claims.Add(new Claim(JwtClaimTypes.Role, role));
+        }
+
         string securityToken = await tokenService.CreateSecurityTokenAsync(token);
 
         PersonalAccessTokenCacheEntry entry = new(
@@ -156,7 +165,7 @@ public sealed class PersonalAccessTokenGenerator(
         }
     }
 
-    private Task StoreTokenAsync(
+    private Task<IdentityResult> StoreTokenAsync(
         User user,
         PersonalAccessTokenCacheEntry entry,
         CancellationToken cancellationToken)
