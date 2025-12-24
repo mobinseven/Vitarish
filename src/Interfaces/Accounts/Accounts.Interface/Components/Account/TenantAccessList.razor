@@ -2,31 +2,40 @@
 @using Vitarish.Parties.Domain.Entities
 @using Vitarish.ApiClients.Domain.Entities
 
-<MudStack Spacing="3">
-    <MudPaper Class="pa-4" Elevation="1" Style="background: linear-gradient(135deg, rgba(25, 118, 210, 0.12), rgba(0, 188, 212, 0.08)); border-radius: 20px;">
+<MudStack Spacing="4">
+    <MudPaper Class="pa-5" Elevation="1" Style="background: linear-gradient(135deg, rgba(25, 118, 210, 0.14), rgba(0, 188, 212, 0.1)); border-radius: 24px;">
         <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Wrap="Wrap.Wrap">
-            <MudStack Spacing="1" Style="max-width: 640px;">
+            <MudStack Spacing="1" Style="max-width: 720px;">
                 <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
                     <MudIcon Icon="@Icons.Material.Filled.WavingHand" Color="Color.Primary" />
-                    <MudText Typo="Typo.h5">@Localizer["TenantAccess"]</MudText>
+                    <MudText Typo="Typo.h4">@Localizer["Welcome back"]</MudText>
                 </MudStack>
-                <MudText Typo="Typo.body2" Color="Color.Secondary">
-                    @Localizer["Access the tenants you are connected to and jump straight into the work that matters most."]
+                <MudText Typo="Typo.subtitle1" Color="Color.Secondary">
+                    @Localizer["Choose where you want to pick up. Your tenant spaces are ready when you are."]
                 </MudText>
+                <MudStack Row Spacing="1" AlignItems="AlignItems.Center">
+                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
+                        @Localizer["Tenants"]: @tenantEntries.Count
+                    </MudChip>
+                    <MudChip T="string" Variant="Variant.Outlined" Size="Size.Medium">
+                        <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                            <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Size="Size.Small" />
+                            <MudText Typo="Typo.body2">@Localizer["Welcome hub"]</MudText>
+                        </MudStack>
+                    </MudChip>
+                </MudStack>
             </MudStack>
             <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
-                    @Localizer["Tenants"]: @tenantEntries.Count
-                </MudChip>
                 <MudIconButton Icon="@Icons.Material.Filled.Refresh"
                                Color="Color.Primary"
                                OnClick="ReloadAsync"
-                               Disabled="isLoading" />
+                               Disabled="isLoading"
+                               aria-label="@Localizer["Reload"]" />
             </MudStack>
         </MudStack>
     </MudPaper>
 
-    <MudPaper Elevation="0" Class="pa-4" Style="border-radius: 16px;">
+    <MudPaper Elevation="0" Class="pa-4" Style="border-radius: 20px;">
         @if (isLoading)
         {
             <MudProgressLinear Indeterminate Color="Color.Default" />
@@ -41,75 +50,80 @@
         }
         else
         {
-            <MudDataGrid T="TenantAccessEntry"
-                         Items="tenantEntries"
-                         Dense="true"
-                         Hover="true"
-                         Loading="isLoading"
-                         Elevation="0"
-                         Bordered="true"
-                         Striped="true">
-                <Columns>
-                    <TemplateColumn Title="@Localizer["Tenant"]">
-                        <CellTemplate>
-                            <MudStack Spacing="0">
-                                <MudText Typo="Typo.body1">@context.Item.TenantName</MudText>
-                                <MudText Typo="Typo.caption">@context.Item.TenantId</MudText>
-                            </MudStack>
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Title="@Localizer["Owner"]">
-                        <CellTemplate>
-                            <MudStack Spacing="0">
-                                <MudText Typo="Typo.body2">@context.Item.OwnerName</MudText>
-                                <MudText Typo="Typo.caption">@context.Item.OwnerId</MudText>
-                            </MudStack>
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Title="@Localizer["Client"]">
-                        <CellTemplate>
-                            <MudStack Spacing="0">
-                                <MudText Typo="Typo.body2">@context.Item.ClientId</MudText>
-                                <MudText Typo="Typo.caption">@context.Item.ClientHost</MudText>
-                            </MudStack>
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Title="@Localizer["Role"]">
-                        <CellTemplate>
-                            @if (context.Item.RoleDisplay.Count == 0)
-                            {
-                                <MudText Typo="Typo.caption">@Localizer["NoRoles"]</MudText>
-                            }
-                            else
-                            {
+            <MudGrid Spacing="3">
+                @foreach (TenantAccessEntry entry in tenantEntries)
+                {
+                    <MudItem xs="12" sm="6" lg="4">
+                        <MudPaper Class="pa-4" Elevation="0" Style="border: 1px solid rgba(0, 0, 0, 0.08); border-radius: 20px;">
+                            <MudStack Spacing="3">
+                                <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                                    <MudAvatar Color="Color.Primary" Size="Size.Large" Variant="Variant.Filled">
+                                        @entry.Initials
+                                    </MudAvatar>
+                                    <MudStack Spacing="0">
+                                        <MudText Typo="Typo.h6">@entry.TenantDisplayName</MudText>
+                                        <MudText Typo="Typo.caption" Color="Color.Secondary">
+                                            @entry.OwnerDisplayName
+                                        </MudText>
+                                    </MudStack>
+                                </MudStack>
+
                                 <MudStack Row Spacing="1" Wrap="Wrap.Wrap">
-                                    @foreach (string role in context.Item.RoleDisplay)
+                                    @if (entry.RoleDisplay.Count == 0)
                                     {
-                                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary">@role</MudChip>
+                                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">
+                                            @Localizer["NoRoles"]
+                                        </MudChip>
+                                    }
+                                    else
+                                    {
+                                        @foreach (string role in entry.RoleDisplay)
+                                        {
+                                            <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary">
+                                                @role
+                                            </MudChip>
+                                        }
                                     }
                                 </MudStack>
-                            }
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Title="@Localizer["PrimaryIdentifier"]">
-                        <CellTemplate>
-                            <MudText Typo="Typo.body2">@context.Item.PrimaryIdentifier</MudText>
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Title="@Localizer["Actions"]">
-                        <CellTemplate>
-                            <MudButton Variant="Variant.Filled"
-                                       Color="Color.Primary"
-                                       StartIcon="@Icons.Material.Filled.OpenInNew"
-                                       Class="text-capitalize"
-                                       Disabled="string.IsNullOrWhiteSpace(context.Item.PrimaryIdentifier)"
-                                       OnClick="@(() => NavigateToTenant(context.Item))">
-                                @Localizer["OpenTenant"]
-                            </MudButton>
-                        </CellTemplate>
-                    </TemplateColumn>
-                </Columns>
-            </MudDataGrid>
+
+                                <MudDivider />
+
+                                <MudStack Spacing="1">
+                                    <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                                        <MudIcon Icon="@Icons.Material.Filled.Apartment" Size="Size.Small" Color="Color.Primary" />
+                                        <MudText Typo="Typo.body2">@entry.ClientDisplay</MudText>
+                                    </MudStack>
+                                    <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                                        <MudIcon Icon="@Icons.Material.Filled.Link" Size="Size.Small" Color="Color.Primary" />
+                                        @if (entry.HasPrimaryIdentifier)
+                                        {
+                                            <MudLink Href="@entry.PrimaryUrl" Target="_blank">
+                                                <MudText Typo="Typo.body2">@entry.PrimaryLabel</MudText>
+                                            </MudLink>
+                                        }
+                                        else
+                                        {
+                                            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                                @Localizer["Primary address not set"]
+                                            </MudText>
+                                        }
+                                    </MudStack>
+                                </MudStack>
+
+                                <MudButton Variant="Variant.Filled"
+                                           Color="Color.Primary"
+                                           StartIcon="@Icons.Material.Filled.OpenInNew"
+                                           Class="text-capitalize"
+                                           FullWidth="true"
+                                           Disabled="!entry.HasPrimaryIdentifier"
+                                           OnClick="@(() => NavigateToTenant(entry))">
+                                    @Localizer["Enter workspace"]
+                                </MudButton>
+                            </MudStack>
+                        </MudPaper>
+                    </MudItem>
+                }
+            </MudGrid>
         }
     </MudPaper>
 </MudStack>
