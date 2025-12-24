@@ -2,23 +2,42 @@
 @using Vitarish.Parties.Domain.Entities
 @using Vitarish.ApiClients.Domain.Entities
 
-<MudStack Spacing="2">
-    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-        <MudText Typo="Typo.h5">@Localizer["TenantAccess"]</MudText>
-        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
-                       Color="Color.Primary"
-                       OnClick="ReloadAsync"
-                       Disabled="isLoading" />
-    </MudStack>
+<MudStack Spacing="3">
+    <MudPaper Class="pa-4" Elevation="1" Style="background: linear-gradient(135deg, rgba(25, 118, 210, 0.12), rgba(0, 188, 212, 0.08)); border-radius: 20px;">
+        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Wrap="Wrap.Wrap">
+            <MudStack Spacing="1" Style="max-width: 640px;">
+                <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                    <MudIcon Icon="@Icons.Material.Filled.WavingHand" Color="Color.Primary" />
+                    <MudText Typo="Typo.h5">@Localizer["TenantAccess"]</MudText>
+                </MudStack>
+                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                    @Localizer["Access the tenants you are connected to and jump straight into the work that matters most."]
+                </MudText>
+            </MudStack>
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
+                <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
+                    @Localizer["Tenants"]: @tenantEntries.Count
+                </MudChip>
+                <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                               Color="Color.Primary"
+                               OnClick="ReloadAsync"
+                               Disabled="isLoading" />
+            </MudStack>
+        </MudStack>
+    </MudPaper>
 
-    <MudPaper Elevation="0" Class="pa-3">
+    <MudPaper Elevation="0" Class="pa-4" Style="border-radius: 16px;">
         @if (isLoading)
         {
             <MudProgressLinear Indeterminate Color="Color.Default" />
         }
         else if (tenantEntries.Count == 0)
         {
-            <MudText Typo="Typo.body2">@Localizer["NoTenantAccess"]</MudText>
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true" Icon="@Icons.Material.Filled.Info">
+                <MudText Typo="Typo.body2">
+                    @Localizer["NoTenantAccess"]
+                </MudText>
+            </MudAlert>
         }
         else
         {
@@ -28,7 +47,8 @@
                          Hover="true"
                          Loading="isLoading"
                          Elevation="0"
-                         Bordered="true">
+                         Bordered="true"
+                         Striped="true">
                 <Columns>
                     <TemplateColumn Title="@Localizer["Tenant"]">
                         <CellTemplate>
@@ -65,7 +85,7 @@
                                 <MudStack Row Spacing="1" Wrap="Wrap.Wrap">
                                     @foreach (string role in context.Item.RoleDisplay)
                                     {
-                                        <MudChip T="string" Size="Size.Small" Color="Color.Default">@role</MudChip>
+                                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Primary">@role</MudChip>
                                     }
                                 </MudStack>
                             }
@@ -81,6 +101,7 @@
                             <MudButton Variant="Variant.Filled"
                                        Color="Color.Primary"
                                        StartIcon="@Icons.Material.Filled.OpenInNew"
+                                       Class="text-capitalize"
                                        Disabled="string.IsNullOrWhiteSpace(context.Item.PrimaryIdentifier)"
                                        OnClick="@(() => NavigateToTenant(context.Item))">
                                 @Localizer["OpenTenant"]
