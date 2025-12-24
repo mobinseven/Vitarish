@@ -1,0 +1,14 @@
+@page "/"
+@layout Vitarish.Accounts.Interface.Components.Base.AccountLayout
+
+@using MudBlazor
+@using Vitarish.Accounts.Interface.Components.Base
+
+<MudStack Spacing="3">
+    <MudText Typo="Typo.h5">UI Preview Host</MudText>
+    <MudText Typo="Typo.body1">
+        This preview uses lightweight authentication and stubbed services so the UI can render
+        without IdentityServer, Redis, or SQL dependencies.
+    </MudText>
+    <Countdown Duration="TimeSpan.FromMinutes(1)" AutoStart="false" ShowControls="true" />
+</MudStack>
