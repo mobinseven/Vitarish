@@ -8,7 +8,7 @@ namespace Vitarish.Clients.Interface.Files.Services;
 
 public sealed class StreamTransferService : IStreamTransfer, IAsyncDisposable
 {
-    private const string ModulePath = "./_content/Vitarish.Client/Files/Components/StreamTransfer.razor.js";
+    private const string ModulePath = "./_content/Vitarish.Clients.Interface/Files/Components/StreamTransfer.razor.js";
     private readonly IFilesModuleClient _filesClient;
     private readonly IJSRuntime _jsRuntime;
     private const string Accept = "image/*,video/*";
