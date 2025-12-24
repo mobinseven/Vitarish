@@ -1,5 +1,9 @@
 using FluentAssertions;
+using Main.Tests;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using Vitarish.Requests.Application.Abstractions;
@@ -13,12 +17,24 @@ public class MultitenantHelpersTests
     private static IServiceProvider CreateServiceProvider()
     {
         ServiceCollection services = new();
-        _ = services.AddAuthentication();
+        _ = AddTestAuthentication(services);
         _ = services.AddScoped<RequestContext>();
         _ = services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
         _ = services.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());
         _ = services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         return services.BuildServiceProvider();
+    }
+
+    private static AuthenticationBuilder AddTestAuthentication(ServiceCollection services)
+    {
+        services.AddLogging();
+        return services.AddAuthentication()
+            .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
+                JwtBearerDefaults.AuthenticationScheme,
+                _ => { })
+            .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
+                IdentityConstants.ApplicationScheme,
+                _ => { });
     }
 
     [Fact]

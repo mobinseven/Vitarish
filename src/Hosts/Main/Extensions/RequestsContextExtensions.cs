@@ -61,6 +61,16 @@ namespace Vitarish.Main.Extensions
                 }
             }
 
+            if (string.IsNullOrEmpty(ownerId) && !string.IsNullOrEmpty(clientId))
+            {
+                ownerId = clientId;
+            }
+
+            if (string.IsNullOrEmpty(tenantId) && !string.IsNullOrEmpty(ownerId))
+            {
+                tenantId = ownerId;
+            }
+
             // Get resource identifier from the route pattern
             string? resourceId = (http.GetEndpoint() as RouteEndpoint)?.RoutePattern?.RawText
                                  ?? http.Request.Path.ToString();

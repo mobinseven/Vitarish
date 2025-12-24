@@ -1,6 +1,10 @@
 using System.Security.Claims;
 using FluentAssertions;
+using Main.Tests;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Main.Services;
@@ -38,7 +42,7 @@ public class RequestIdentityContextMiddlewareTests
     private static IServiceProvider CreateServiceProvider()
     {
         ServiceCollection services = new();
-        services.AddAuthentication();
+        _ = AddTestAuthentication(services);
         services.AddScoped<RequestContext>();
         services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
         services.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());
@@ -46,6 +50,18 @@ public class RequestIdentityContextMiddlewareTests
     }
 
     private static IServiceScope CreateScope(IServiceProvider provider) => provider.CreateScope();
+
+    private static AuthenticationBuilder AddTestAuthentication(ServiceCollection services)
+    {
+        services.AddLogging();
+        return services.AddAuthentication()
+            .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
+                JwtBearerDefaults.AuthenticationScheme,
+                _ => { })
+            .AddScheme<AuthenticationSchemeOptions, TestAuthenticationHandler>(
+                IdentityConstants.ApplicationScheme,
+                _ => { });
+    }
 
     [Fact]
     public async Task InvokeAsync_WithAuthenticatedUser_PopulatesContextFromClaims()
@@ -281,6 +297,7 @@ public class RequestIdentityContextMiddlewareTests
         // Arrange
         // Create a service provider without IRequestContextWriter registered
         ServiceCollection services = new();
+        _ = AddTestAuthentication(services);
         using ServiceProvider provider = services.BuildServiceProvider();
         HttpContext httpContext = CreateHttpContext(provider);
 
