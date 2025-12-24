@@ -7,6 +7,7 @@
 		<PackageReference Include="MimeTypesMap" Version="1.*" />
 		<PackageReference Include="Riok.Mapperly" Version="4.2.1" />
 		<PackageReference Include="SkiaSharp" Version="3.*" />
+		<PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.*" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Identity\Requests\Application\Requests.Application.csproj" />

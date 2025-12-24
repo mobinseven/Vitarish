@@ -6,6 +6,7 @@ public partial class UserRoleAssignments : AdminBase
 {
     private readonly List<UserRoleEntry> users = [];
     private readonly List<string> roles = [];
+    private readonly List<Tenant> tenants = [];
     private bool isLoading;
 
     protected override async Task OnInitializedAsync()
@@ -16,13 +17,16 @@ public partial class UserRoleAssignments : AdminBase
         isLoading = true;
         users.Clear();
         roles.Clear();
+        tenants.Clear();
         StateHasChanged();
 
         try
         {
             Task<IEnumerable<User>> usersTask = UserService.GetUsersAsync();
+            Task<IEnumerable<Tenant>> tenantsTask = PartiesService.GetTenantsAsync();
 
             List<User> loadedUsers = [.. await usersTask];
+            tenants.AddRange(await tenantsTask);
             roles.AddRange(RoleManager.Roles
                 .Where(role=>role.Name != null)
                 .Select(role => role.Name)
@@ -71,10 +75,19 @@ public partial class UserRoleAssignments : AdminBase
             return;
         }
 
-        IdentityResult result = await UserManager.AddToRoleAsync(user, entry.SelectedRole);
+        Guid? tenantId = tenants.FirstOrDefault()?.Id;
+        if (tenantId is null)
+        {
+            _ = Snackbar.Add(Localizer["Error"], Severity.Error);
+            return;
+        }
+
+        string roleName = $"{tenantId}:{entry.SelectedRole}";
+
+        IdentityResult result = await UserManager.AddToRoleAsync(user, roleName);
         if (result.Succeeded)
         {
-            entry.AssignedRoles.Add(entry.SelectedRole);
+            entry.AssignedRoles.Add(roleName);
             _ = Snackbar.Add(Localizer["RoleAssigned"], Severity.Success);
         }
         else

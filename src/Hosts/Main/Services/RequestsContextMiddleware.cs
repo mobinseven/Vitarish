@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Vitarish.Main.Extensions;
 
@@ -18,13 +19,26 @@ public sealed class RequestsContextMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         // Try each configured authentication scheme
-        foreach (string scheme in _authSchemes)
+        IAuthenticationService? authenticationService = context.RequestServices.GetService<IAuthenticationService>();
+        if (authenticationService != null)
         {
-            var result = await context.AuthenticateAsync(scheme);
-            if (result?.Succeeded == true && result.Principal != null)
+            foreach (string scheme in _authSchemes)
             {
-                context.User = result.Principal;
-                break;
+                AuthenticateResult? result;
+                try
+                {
+                    result = await authenticationService.AuthenticateAsync(context, scheme);
+                }
+                catch (InvalidOperationException)
+                {
+                    break;
+                }
+
+                if (result?.Succeeded == true && result.Principal != null)
+                {
+                    context.User = result.Principal;
+                    break;
+                }
             }
         }
 

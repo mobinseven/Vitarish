@@ -58,12 +58,22 @@ namespace Vitarish.Main.Extensions
                             clientId = tenant.ClientId;
                         }
                     }
-                }
             }
+        }
 
-            // Get resource identifier from the route pattern
-            string? resourceId = (http.GetEndpoint() as RouteEndpoint)?.RoutePattern?.RawText
-                                 ?? http.Request.Path.ToString();
+        if (string.IsNullOrEmpty(ownerId) && clientId.Length > 0)
+        {
+            ownerId = clientId;
+        }
+
+        if (string.IsNullOrEmpty(tenantId) && ownerId.Length > 0)
+        {
+            tenantId = $"tenant-{ownerId}";
+        }
+
+        // Get resource identifier from the route pattern
+        string? resourceId = (http.GetEndpoint() as RouteEndpoint)?.RoutePattern?.RawText
+                             ?? http.Request.Path.ToString();
 
             // Get trace ID from activity
             string? traceId = Activity.Current?.TraceId.ToHexString();

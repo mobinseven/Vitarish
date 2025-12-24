@@ -25,6 +25,7 @@ public sealed class PersonalAccessTokenClient(
         CancellationToken cancellationToken=default)
     {
         ArgumentException.ThrowIfNullOrEmpty(userId);
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(lifetimeDays, 0);
 
         scopes ??= new HashSet<string>();
         string[]? normalizedScopes = scopes

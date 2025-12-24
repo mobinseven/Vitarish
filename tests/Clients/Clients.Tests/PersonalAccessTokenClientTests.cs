@@ -35,19 +35,18 @@ public sealed class PersonalAccessTokenClientTests
 
 
     [Fact]
-    public async Task CreateTokenAsync_Throws_WhenLifetimeDaysNull()
+    public async Task CreateTokenAsync_Throws_WhenLifetimeDaysNotPositive()
     {
         var clientFactory = new Mock<IIdentityClientService>(MockBehavior.Strict);
         var cache = new Mock<HybridCache>(MockBehavior.Strict);
 
         var sut = new PersonalAccessTokenClient(clientFactory.Object, Logger, cache.Object);
 
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            sut.CreateTokenAsync("user-1", lifetimeDays: 30, scopes: null, isReferenceToken: false, CancellationToken.None));
+        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() =>
+            sut.CreateTokenAsync("user-1", lifetimeDays: 0, scopes: null, isReferenceToken: false, CancellationToken.None));
     }
 
     [Theory]
-    [InlineData(0)]
     [InlineData(-1)]
     public async Task CreateTokenAsync_Throws_WhenLifetimeDaysLessThanOne(int lifetimeDays)
     {
