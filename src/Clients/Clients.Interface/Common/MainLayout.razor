@@ -1,4 +1,4 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
 
 @{
     var themeSurface = CurrentThemeSurface;
@@ -34,7 +34,7 @@
 </style>
 
 <div style="height: 100%">
-    <MudRTLProvider RightToLeft="@System.Globalization.CultureInfo.CurrentCulture.TextInfo.IsRightToLeft" Style="height: 100%;">
+    <MudRTLProvider RightToLeft="@System.Globalization.CultureInfo.CurrentCulture.TextInfo.IsRightToLeft" Style="min-height: 100dvh;">
         @if(BreakpointReceived)
         {
             <CascadingValue Value="@PageBreakpoint">
