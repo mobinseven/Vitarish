@@ -46,7 +46,7 @@ public partial class UserRoleAssignmentDialog : ComponentBase
             List<Guid> ownerIds = tenants.Select(t => t.OwnerId).Distinct().ToList();
             Dictionary<Guid, Task<Owner?>> ownerTasks = ownerIds.ToDictionary(id => id, id => PartiesService.GetOwnerAsync(id));
             await Task.WhenAll(ownerTasks.Values);
-            Dictionary<Guid, Owner?> owners = ownerTasks.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Result);
+            Dictionary<Guid, Owner?> owners = ownerTasks.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.GetAwaiter().GetResult());
 
             List<string> clientIds = tenants
                 .Where(t => !string.IsNullOrWhiteSpace(t.ClientId))
@@ -57,7 +57,7 @@ public partial class UserRoleAssignmentDialog : ComponentBase
                 .ToDictionary(id => id, id => ApiClientService.GetApiClientAsync(id), StringComparer.OrdinalIgnoreCase);
             await Task.WhenAll(clientTasks.Values);
             Dictionary<string, ApiClient?> clients = clientTasks
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Result, StringComparer.OrdinalIgnoreCase);
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.GetAwaiter().GetResult(), StringComparer.OrdinalIgnoreCase);
 
             foreach (string role in AvailableRoles)
             {

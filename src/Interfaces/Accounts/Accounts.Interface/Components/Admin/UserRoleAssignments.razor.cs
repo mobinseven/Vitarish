@@ -34,7 +34,7 @@ public partial class UserRoleAssignments : AdminBase
             List<Guid> ownerIds = tenants.Select(t => t.OwnerId).Distinct().ToList();
             Dictionary<Guid, Task<Owner?>> ownerTasks = ownerIds.ToDictionary(id => id, id => PartiesService.GetOwnerAsync(id));
             await Task.WhenAll(ownerTasks.Values);
-            Dictionary<Guid, Owner?> owners = ownerTasks.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Result);
+            Dictionary<Guid, Owner?> owners = ownerTasks.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.GetAwaiter().GetResult());
 
             List<string> clientIds = tenants
                 .Where(t => !string.IsNullOrWhiteSpace(t.ClientId))
@@ -45,13 +45,11 @@ public partial class UserRoleAssignments : AdminBase
                 .ToDictionary(id => id, id => ApiClientService.GetApiClientAsync(id), StringComparer.OrdinalIgnoreCase);
             await Task.WhenAll(clientTasks.Values);
             Dictionary<string, ApiClient?> clients = clientTasks
-                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.Result, StringComparer.OrdinalIgnoreCase);
+                .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.GetAwaiter().GetResult(), StringComparer.OrdinalIgnoreCase);
 
             roles.AddRange(RoleManager.Roles
                 .Where(role => role.Name != null)
-                .Select(role => role.Name)
-                .Distinct()
-                .Cast<string>());
+                .Select(role => role.Name!));
 
             foreach (User user in loadedUsers)
             {
