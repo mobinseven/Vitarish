@@ -18,6 +18,7 @@ internal static class SeaInterfaceConfigurations
             _ = services.AddScoped<IEventItemPlugin, AttachmentPlugin>();
             _ = services.AddScoped<IEventItemPlugin, ReminderPlugin>();
             _ = services.AddScoped<ISeaUsersService, SeaUsersService>();
+            _ = services.AddScoped<ISeaUsersService, SeaUsersService>();
             return services;
         }
 
