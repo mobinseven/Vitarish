@@ -14,9 +14,9 @@ namespace Vitarish.Clients.Modules.Sea.Services
             IUsageConfigurationClient
     {
         public async Task<UsageConfigurationDto?> GetUsageConfigurationAsync(CancellationToken cancellationToken = default) =>
-            await InvokeHubAsync<UsageConfigurationDto?>(nameof(GetUsageConfigurationAsync), cancellationToken, Array.Empty<object?>()).ConfigureAwait(false);
+            await InvokeHubAsync<UsageConfigurationDto?>(nameof(GetUsageConfigurationAsync), cancellationToken, []).ConfigureAwait(false);
 
         public async Task<UsageConfigurationDto?> UpdateUsageConfigurationAsync(UsageConfigurationDto usageConfigurationDto, CancellationToken cancellationToken = default) =>
-            await InvokeHubAsync<UsageConfigurationDto?>(nameof(UpdateUsageConfigurationAsync), cancellationToken, new object?[] { usageConfigurationDto }).ConfigureAwait(false);
+            await InvokeHubAsync<UsageConfigurationDto?>(nameof(UpdateUsageConfigurationAsync), cancellationToken, [usageConfigurationDto]).ConfigureAwait(false);
     }
 }
