@@ -9,6 +9,7 @@ public sealed class PreviewUserStore : IUserStore<User>, IUserSecurityStampStore
     {
         Id = "preview-user",
         UserName = "preview-user",
+        NormalizedUserName = "PREVIEW-USER",
         SecurityStamp = "preview-stamp"
     };
 
