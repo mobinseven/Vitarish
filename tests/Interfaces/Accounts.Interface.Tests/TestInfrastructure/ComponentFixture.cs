@@ -47,6 +47,7 @@ internal sealed class ComponentFixture : IDisposable
         Mock<IPartiesService> partiesServiceMock = new();
         Mock<IHttpClientFactory> httpClientFactoryMock = new();
         _ = httpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(new HttpClient());
+        Mock<IDialogService> dialogServiceMock = new();
 
         Mock<IUserStore<User>> userStoreMock = new();
         _ = userStoreMock.As<IUserPhoneNumberStore<User>>();
@@ -112,7 +113,8 @@ internal sealed class ComponentFixture : IDisposable
             roleManagerMock,
             signInManager,
             httpContext,
-            httpClientFactoryMock);
+            httpClientFactoryMock,
+            dialogServiceMock);
     }
 
     public void ConfigureCommonComponent(CommonBase component)

@@ -1,4 +1,6 @@
 using Vitarish.Parties.Domain.Entities;
+using Vitarish.ApiClients.Domain.Entities;
+using MudBlazor;
 
 namespace Vitarish.Accounts.Interface.Components.Admin;
 
@@ -7,6 +9,8 @@ public partial class UserRoleAssignments : AdminBase
     private readonly List<UserRoleEntry> users = [];
     private readonly List<string> roles = [];
     private bool isLoading;
+
+    [Inject] private IDialogService DialogService { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
         => await LoadAsync();
@@ -21,18 +25,43 @@ public partial class UserRoleAssignments : AdminBase
         try
         {
             Task<IEnumerable<User>> usersTask = UserService.GetUsersAsync();
+            Task<IEnumerable<Tenant>> tenantsTask = PartiesService.GetTenantsAsync();
 
             List<User> loadedUsers = [.. await usersTask];
+            IEnumerable<Tenant> tenants = await tenantsTask;
+            Dictionary<Guid, Tenant> tenantDict = tenants.ToDictionary(t => t.Id);
+
+            List<Guid> ownerIds = tenants.Select(t => t.OwnerId).Distinct().ToList();
+            Dictionary<Guid, Task<Owner?>> ownerTasks = ownerIds.ToDictionary(id => id, id => PartiesService.GetOwnerAsync(id));
+            Dictionary<Guid, Owner?> owners = (await Task.WhenAll(
+                ownerTasks.Select(async kvp => new { kvp.Key, Value = await kvp.Value })
+            )).ToDictionary(x => x.Key, x => x.Value);
+
+            List<string> clientIds = tenants
+                .Where(t => !string.IsNullOrWhiteSpace(t.ClientId))
+                .Select(t => t.ClientId!)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            Dictionary<string, Task<ApiClient?>> clientTasks = clientIds
+                .ToDictionary(id => id, id => ApiClientService.GetApiClientAsync(id), StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, ApiClient?> clients = (await Task.WhenAll(
+                clientTasks.Select(async kvp => new { kvp.Key, Value = await kvp.Value })
+            )).ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
+
             roles.AddRange(RoleManager.Roles
-                .Where(role=>role.Name != null)
-                .Select(role => role.Name)
-                .Distinct()
-                .Cast<string>());
+                .Where(role => role.Name != null)
+                .Select(role => role.Name!));
 
             foreach (User user in loadedUsers)
             {
                 IList<string> userRoles = await UserManager.GetRolesAsync(user);
-                users.Add(new UserRoleEntry(user, [.. userRoles]));
+                List<ParsedTenantRole> parsedRoles = RoleParser.ParseTenantRoles(userRoles, tenantDict, owners, clients);
+                
+                List<RoleDetail> roleDetails = parsedRoles
+                    .Select(r => new RoleDetail(r.TenantId, r.TenantName, r.OwnerId, r.OwnerName, r.ClientId, r.RoleName, r.FullRoleName))
+                    .ToList();
+
+                users.Add(new UserRoleEntry(user, [.. userRoles], roleDetails));
             }
         }
         finally
@@ -44,24 +73,51 @@ public partial class UserRoleAssignments : AdminBase
 
     private Task ReloadAsync() => LoadAsync();
 
-    private static Task UpdateSelectedRole(UserRoleEntry entry, string? value)
+    private void ToggleExpand(UserRoleEntry entry)
     {
-        entry.SelectedRole = value;
-        return Task.CompletedTask;
+        entry.IsExpanded = !entry.IsExpanded;
+        StateHasChanged();
     }
 
-    private async Task AssignRoleAsync(UserRoleEntry entry)
+    private async Task OpenAssignRoleDialogAsync(UserRoleEntry entry)
     {
-        if (string.IsNullOrWhiteSpace(entry.SelectedRole))
+        DialogParameters<UserRoleAssignmentDialog> parameters = new()
+        {
+            { dialog => dialog.UserName, entry.User.UserName ?? entry.User.Email ?? "User" },
+            { dialog => dialog.AvailableRoles, roles },
+            { dialog => dialog.AssignedRoles, entry.AssignedRoles }
+        };
+
+        DialogOptions options = new()
+        {
+            CloseButton = true,
+            FullWidth = true,
+            MaxWidth = MaxWidth.Medium
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<UserRoleAssignmentDialog>(
+            Localizer["AssignRole"],
+            parameters,
+            options);
+        DialogResult result = await dialog.Result;
+
+        if (result is { Canceled: false, Data: string selectedRole })
+        {
+            await AssignRoleAsync(entry, selectedRole);
+        }
+    }
+
+    private async Task AssignRoleAsync(UserRoleEntry entry, string selectedRole)
+    {
+        if (string.IsNullOrWhiteSpace(selectedRole))
         {
             _ = Snackbar.Add(Localizer["SelectRole"], Severity.Warning);
             return;
         }
 
-        if (entry.AssignedRoles.Contains(entry.SelectedRole, StringComparer.OrdinalIgnoreCase))
+        if (entry.AssignedRoles.Contains(selectedRole, StringComparer.OrdinalIgnoreCase))
         {
             _ = Snackbar.Add(Localizer["RoleAlreadyAssigned"], Severity.Info);
-            entry.SelectedRole = null;
             return;
         }
 
@@ -71,24 +127,32 @@ public partial class UserRoleAssignments : AdminBase
             return;
         }
 
-        IdentityResult result = await UserManager.AddToRoleAsync(user, entry.SelectedRole);
+        IdentityResult result = await UserManager.AddToRoleAsync(user, selectedRole);
         if (result.Succeeded)
         {
-            entry.AssignedRoles.Add(entry.SelectedRole);
             _ = Snackbar.Add(Localizer["RoleAssigned"], Severity.Success);
+            await ReloadAsync();
         }
         else
         {
             _ = Snackbar.Add(Localizer["Error"], Severity.Error);
         }
-
-        entry.SelectedRole = null;
-        StateHasChanged();
     }
 
     private async Task RemoveRoleAsync(UserRoleEntry entry, string role)
     {
         if (!entry.AssignedRoles.Contains(role, StringComparer.OrdinalIgnoreCase))
+        {
+            return;
+        }
+
+        bool? confirmed = await DialogService.ShowMessageBox(
+            Localizer["Confirm"],
+            Localizer["ConfirmRemoveRole", role],
+            yesText: Localizer["Remove"],
+            cancelText: Localizer["Cancel"]);
+
+        if (confirmed != true)
         {
             return;
         }
@@ -102,21 +166,38 @@ public partial class UserRoleAssignments : AdminBase
         IdentityResult result = await UserManager.RemoveFromRoleAsync(user, role);
         if (result.Succeeded)
         {
-            _ = entry.AssignedRoles.RemoveAll(r => string.Equals(r, role, StringComparison.OrdinalIgnoreCase));
             _ = Snackbar.Add(Localizer["RoleRemoved"], Severity.Success);
+            await ReloadAsync();
         }
         else
         {
             _ = Snackbar.Add(Localizer["Error"], Severity.Error);
         }
-
-        StateHasChanged();
     }
 
-    private sealed record UserRoleEntry(User User, List<string> AssignedRoles)
+    private sealed class UserRoleEntry
     {
-        public string? SelectedRole { get; set; }
+        public UserRoleEntry(User user, List<string> assignedRoles, List<RoleDetail> roleDetails)
+        {
+            User = user;
+            AssignedRoles = assignedRoles;
+            RoleDetails = roleDetails;
+        }
+
+        public User User { get; }
+        public List<string> AssignedRoles { get; }
+        public List<RoleDetail> RoleDetails { get; }
+        public bool IsExpanded { get; set; }
     }
+
+    private sealed record RoleDetail(
+        Guid TenantId,
+        string TenantName,
+        string OwnerId,
+        string OwnerName,
+        string ClientId,
+        string RoleName,
+        string FullRoleName);
 
     private async Task<User?> GetUserAsync(UserRoleEntry entry)
     {

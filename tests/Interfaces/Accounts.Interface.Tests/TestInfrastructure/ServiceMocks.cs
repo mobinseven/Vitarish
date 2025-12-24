@@ -29,4 +29,5 @@ internal sealed record ServiceMocks(
     Mock<RoleManager<IdentityRole>> RoleManager,
     TestSignInManager SignInManager,
     DefaultHttpContext HttpContext,
-    Mock<IHttpClientFactory> HttpClientFactory);
+    Mock<IHttpClientFactory> HttpClientFactory,
+    Mock<MudBlazor.IDialogService> DialogService);
