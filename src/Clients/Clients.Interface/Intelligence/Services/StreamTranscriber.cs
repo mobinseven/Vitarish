@@ -8,7 +8,7 @@ namespace Vitarish.Clients.Interface.Intelligence.Services;
 
 public sealed class StreamTranscriber(ITranscriberClient speechHubClient, IJSRuntime jsRuntime) : IStreamTranscriber
 {
-    private const string ModulePath = "./_content/Vitarish.Client/Intelligence/Components/AiStreamTranscriber.razor.js";
+    private const string ModulePath = "./_content/Vitarish.Clients.Interface/Intelligence/Components/AiStreamTranscriber.razor.js";
     private const int ChannelCapacity = 5000;
 
     private readonly SemaphoreSlim _initializationGate = new(1, 1);
