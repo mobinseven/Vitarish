@@ -378,6 +378,9 @@
   <data name="ClientId" xml:space="preserve">
     <value>Client Id</value>
   </data>
+  <data name="Client" xml:space="preserve">
+    <value>Client</value>
+  </data>
   <data name="Created" xml:space="preserve">
     <value>Created</value>
   </data>
@@ -396,8 +399,17 @@
   <data name="NoRoles" xml:space="preserve">
     <value>No Roles</value>
   </data>
+  <data name="NoTenantAccess" xml:space="preserve">
+    <value>No tenant access roles assigned.</value>
+  </data>
   <data name="NoTenants" xml:space="preserve">
     <value>No tenants</value>
+  </data>
+  <data name="OpenTenant" xml:space="preserve">
+    <value>Open Tenant</value>
+  </data>
+  <data name="Owner" xml:space="preserve">
+    <value>Owner</value>
   </data>
   <data name="PersonalDetails" xml:space="preserve">
     <value>Personal Details</value>
@@ -444,6 +456,9 @@
   <data name="Tenant" xml:space="preserve">
     <value>Tenant</value>
   </data>
+  <data name="TenantAccess" xml:space="preserve">
+    <value>Tenant Access</value>
+  </data>
   <data name="ManagePersonalAccessTokens" xml:space="preserve">
     <value>Manage personal access tokens</value>
   </data>
@@ -485,6 +500,9 @@
   </data>
   <data name="TenantId" xml:space="preserve">
     <value>Tenant Id</value>
+  </data>
+  <data name="PrimaryIdentifier" xml:space="preserve">
+    <value>Primary Identifier</value>
   </data>
   <data name="TraceId" xml:space="preserve">
     <value>Trace Id</value>
