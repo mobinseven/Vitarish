@@ -57,35 +57,71 @@ public partial class TenantAccessList : CommonBase
                 return;
             }
 
-            Dictionary<Guid, Owner?> owners = [];
-            Dictionary<string, ApiClient?> clients = new(StringComparer.OrdinalIgnoreCase);
+            List<Guid> tenantIds = tenantRoleAssignments
+                .Select(role => role.TenantId)
+                .Distinct()
+                .ToList();
+
+            Dictionary<Guid, Task<Tenant?>> tenantTasks = tenantIds
+                .ToDictionary(id => id, id => PartiesService.GetTenantAsync(id));
+            await Task.WhenAll(tenantTasks.Values);
+
+            Dictionary<Guid, Tenant?> tenants = tenantTasks
+                .ToDictionary(entry => entry.Key, entry => entry.Value.Result);
+
+            List<Guid> ownerIds = tenants.Values
+                .Where(tenant => tenant is not null)
+                .Select(tenant => tenant!.OwnerId)
+                .Distinct()
+                .ToList();
+
+            Dictionary<Guid, Task<Owner?>> ownerTasks = ownerIds
+                .ToDictionary(id => id, id => PartiesService.GetOwnerAsync(id));
+
+            List<string> clientIds = tenants.Values
+                .Where(tenant => tenant is not null && !string.IsNullOrWhiteSpace(tenant.ClientId))
+                .Select(tenant => tenant!.ClientId!)
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+
+            Dictionary<string, Task<ApiClient?>> clientTasks = clientIds
+                .ToDictionary(id => id, id => ApiClientService.GetApiClientAsync(id), StringComparer.OrdinalIgnoreCase);
+
+            Dictionary<Guid, Task<IEnumerable<TenantIndicator>>> indicatorTasks = tenants.Values
+                .Where(tenant => tenant is not null)
+                .ToDictionary(tenant => tenant!.Id, tenant => PartiesService.GetTenantIndicatorsAsync(tenant!.Id));
+
+            await Task.WhenAll(ownerTasks.Values);
+            await Task.WhenAll(clientTasks.Values);
+            await Task.WhenAll(indicatorTasks.Values);
+
+            Dictionary<Guid, Owner?> owners = ownerTasks
+                .ToDictionary(entry => entry.Key, entry => entry.Value.Result);
+            Dictionary<string, ApiClient?> clients = clientTasks
+                .ToDictionary(entry => entry.Key, entry => entry.Value.Result, StringComparer.OrdinalIgnoreCase);
 
             foreach (IGrouping<Guid, TenantRoleAssignment> grouping in tenantRoleAssignments.GroupBy(role => role.TenantId))
             {
-                Tenant? tenant = await PartiesService.GetTenantAsync(grouping.Key);
+                Tenant? tenant = tenants.GetValueOrDefault(grouping.Key);
                 Owner? owner = null;
                 ApiClient? client = null;
                 TenantIndicator? primaryIndicator = null;
 
                 if (tenant is not null)
                 {
-                    if (!owners.TryGetValue(tenant.OwnerId, out owner))
+                    _ = owners.TryGetValue(tenant.OwnerId, out owner);
+
+                    if (!string.IsNullOrWhiteSpace(tenant.ClientId))
                     {
-                        owner = await PartiesService.GetOwnerAsync(tenant.OwnerId);
-                        owners[tenant.OwnerId] = owner;
+                        _ = clients.TryGetValue(tenant.ClientId, out client);
                     }
 
-                    if (!string.IsNullOrWhiteSpace(tenant.ClientId)
-                        && !clients.TryGetValue(tenant.ClientId, out client))
+                    if (indicatorTasks.TryGetValue(tenant.Id, out Task<IEnumerable<TenantIndicator>>? indicatorsTask))
                     {
-                        client = await ApiClientService.GetApiClientAsync(tenant.ClientId);
-                        clients[tenant.ClientId] = client;
+                        primaryIndicator = indicatorsTask.Result
+                            .OrderByDescending(indicator => indicator.IsPrimary)
+                            .FirstOrDefault();
                     }
-
-                    IEnumerable<TenantIndicator> indicators = await PartiesService.GetTenantIndicatorsAsync(tenant.Id);
-                    primaryIndicator = indicators
-                        .OrderByDescending(indicator => indicator.IsPrimary)
-                        .FirstOrDefault();
                 }
 
                 List<string> roleDisplay = [.. grouping.Select(role => role.DisplayName)];
