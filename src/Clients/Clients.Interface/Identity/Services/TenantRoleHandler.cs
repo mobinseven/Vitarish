@@ -18,8 +18,6 @@ public sealed class TenantRoleHandler(
         AuthorizationHandlerContext context,
         TenantRoleRequirement requirement)
     {
-        // Optional: if roles are already present in claims, short-circuit.
-        // If your roles are tenant-scoped, you'd check a tenant-role claim instead.
         if (context.User.IsInRole(requirement.Role))
         {
             context.Succeed(requirement);
