@@ -54,44 +54,11 @@ public partial class UserRoleAssignments : AdminBase
             foreach (User user in loadedUsers)
             {
                 IList<string> userRoles = await UserManager.GetRolesAsync(user);
-                List<RoleDetail> roleDetails = [];
-
-                foreach (string role in userRoles)
-                {
-                    int separatorIndex = role.IndexOf(':');
-                    if (separatorIndex <= 0)
-                    {
-                        continue;
-                    }
-
-                    string tenantIdText = role[..separatorIndex];
-                    string roleName = role[(separatorIndex + 1)..];
-
-                    if (string.IsNullOrWhiteSpace(roleName) || !Guid.TryParse(tenantIdText, out Guid tenantId))
-                    {
-                        continue;
-                    }
-
-                    Tenant? tenant = tenantDict.GetValueOrDefault(tenantId);
-                    Owner? owner = tenant != null ? owners.GetValueOrDefault(tenant.OwnerId) : null;
-                    ApiClient? client = tenant != null && !string.IsNullOrWhiteSpace(tenant.ClientId)
-                        ? clients.GetValueOrDefault(tenant.ClientId)
-                        : null;
-
-                    string tenantName = tenant?.Name ?? tenantId.ToString();
-                    string ownerName = owner?.Name ?? (tenant?.OwnerId.ToString() ?? "-");
-                    string ownerId = tenant?.OwnerId.ToString() ?? "-";
-                    string clientId = client?.Id ?? (tenant?.ClientId ?? "-");
-
-                    roleDetails.Add(new RoleDetail(
-                        tenantId,
-                        tenantName,
-                        ownerId,
-                        ownerName,
-                        clientId,
-                        roleName,
-                        role));
-                }
+                List<ParsedTenantRole> parsedRoles = RoleParser.ParseTenantRoles(userRoles, tenantDict, owners, clients);
+                
+                List<RoleDetail> roleDetails = parsedRoles
+                    .Select(r => new RoleDetail(r.TenantId, r.TenantName, r.OwnerId, r.OwnerName, r.ClientId, r.RoleName, r.FullRoleName))
+                    .ToList();
 
                 users.Add(new UserRoleEntry(user, [.. userRoles], roleDetails));
             }

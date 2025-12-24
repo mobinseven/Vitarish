@@ -59,39 +59,17 @@ public partial class UserRoleAssignmentDialog : ComponentBase
             Dictionary<string, ApiClient?> clients = clientTasks
                 .ToDictionary(kvp => kvp.Key, kvp => kvp.Value.GetAwaiter().GetResult(), StringComparer.OrdinalIgnoreCase);
 
-            foreach (string role in AvailableRoles)
+            List<ParsedTenantRole> parsedRoles = RoleParser.ParseTenantRoles(AvailableRoles, tenantDict, owners, clients);
+            
+            foreach (ParsedTenantRole parsed in parsedRoles)
             {
-                int separatorIndex = role.IndexOf(':');
-                if (separatorIndex <= 0)
-                {
-                    continue;
-                }
-
-                string tenantIdText = role[..separatorIndex];
-                string roleName = role[(separatorIndex + 1)..];
-
-                if (string.IsNullOrWhiteSpace(roleName) || !Guid.TryParse(tenantIdText, out Guid tenantId))
-                {
-                    continue;
-                }
-
-                Tenant? tenant = tenantDict.GetValueOrDefault(tenantId);
-                Owner? owner = tenant != null ? owners.GetValueOrDefault(tenant.OwnerId) : null;
-                ApiClient? client = tenant != null && !string.IsNullOrWhiteSpace(tenant.ClientId)
-                    ? clients.GetValueOrDefault(tenant.ClientId)
-                    : null;
-
-                string tenantName = tenant?.Name ?? tenantId.ToString();
-                string ownerName = owner?.Name ?? (tenant?.OwnerId.ToString() ?? "-");
-                string clientId = client?.Id ?? (tenant?.ClientId ?? "-");
-
                 tenantRoles.Add(new TenantRoleOption(
-                    tenantId,
-                    tenantName,
-                    ownerName,
-                    clientId,
-                    roleName,
-                    role));
+                    parsed.TenantId,
+                    parsed.TenantName,
+                    parsed.OwnerName,
+                    parsed.ClientId,
+                    parsed.RoleName,
+                    parsed.FullRoleName));
             }
 
             tenantRoles.Sort((a, b) =>
