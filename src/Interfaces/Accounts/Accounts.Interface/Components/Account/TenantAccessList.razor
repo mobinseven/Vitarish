@@ -1,0 +1,94 @@
+@inherits CommonBase
+@using Vitarish.Parties.Domain.Entities
+@using Vitarish.ApiClients.Domain.Entities
+
+<MudStack Spacing="2">
+    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+        <MudText Typo="Typo.h5">@Localizer["TenantAccess"]</MudText>
+        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
+                       Color="Color.Primary"
+                       OnClick="ReloadAsync"
+                       Disabled="isLoading" />
+    </MudStack>
+
+    <MudPaper Elevation="0" Class="pa-3">
+        @if (isLoading)
+        {
+            <MudProgressLinear Indeterminate Color="Color.Default" />
+        }
+        else if (tenantEntries.Count == 0)
+        {
+            <MudText Typo="Typo.body2">@Localizer["NoTenantAccess"]</MudText>
+        }
+        else
+        {
+            <MudDataGrid T="TenantAccessEntry"
+                         Items="tenantEntries"
+                         Dense="true"
+                         Hover="true"
+                         Loading="isLoading"
+                         Elevation="0"
+                         Bordered="true">
+                <Columns>
+                    <TemplateColumn Title="@Localizer["Tenant"]">
+                        <CellTemplate>
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.body1">@context.Item.TenantName</MudText>
+                                <MudText Typo="Typo.caption">@context.Item.TenantId</MudText>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@Localizer["Owner"]">
+                        <CellTemplate>
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.body2">@context.Item.OwnerName</MudText>
+                                <MudText Typo="Typo.caption">@context.Item.OwnerId</MudText>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@Localizer["Client"]">
+                        <CellTemplate>
+                            <MudStack Spacing="0">
+                                <MudText Typo="Typo.body2">@context.Item.ClientId</MudText>
+                                <MudText Typo="Typo.caption">@context.Item.ClientHost</MudText>
+                            </MudStack>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@Localizer["Role"]">
+                        <CellTemplate>
+                            @if (context.Item.RoleDisplay.Count == 0)
+                            {
+                                <MudText Typo="Typo.caption">@Localizer["NoRoles"]</MudText>
+                            }
+                            else
+                            {
+                                <MudStack Row Spacing="1" Wrap="Wrap.Wrap">
+                                    @foreach (string role in context.Item.RoleDisplay)
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Color="Color.Default">@role</MudChip>
+                                    }
+                                </MudStack>
+                            }
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@Localizer["PrimaryIdentifier"]">
+                        <CellTemplate>
+                            <MudText Typo="Typo.body2">@context.Item.PrimaryIdentifier</MudText>
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn Title="@Localizer["Actions"]">
+                        <CellTemplate>
+                            <MudButton Variant="Variant.Filled"
+                                       Color="Color.Primary"
+                                       StartIcon="@Icons.Material.Filled.OpenInNew"
+                                       Disabled="string.IsNullOrWhiteSpace(context.Item.PrimaryIdentifier)"
+                                       OnClick="@(() => NavigateToTenant(context.Item))">
+                                @Localizer["OpenTenant"]
+                            </MudButton>
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+            </MudDataGrid>
+        }
+    </MudPaper>
+</MudStack>
