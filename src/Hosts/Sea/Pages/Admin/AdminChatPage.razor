@@ -1,4 +1,5 @@
 @page "/Admin/Chat"
+@using Vitarish.Clients.Interface.Identity.Abstractions
 @inject IMcpToolProvider McpToolProvider
 @inject IUsageConfigurationClient UsageConfigurationService
 
@@ -20,15 +21,15 @@
 
 
 @code {
-    [CascadingParameter] private AuthenticationStateProvider AuthenticationState { get; set; } = default!;
 
     ResponderOptions _options = new();
     string? _chatInstructions;
 
+    [Inject] protected IIdentityService IdentityService { get; set; } = default!;
+
     protected override async Task OnInitializedAsync()
     {
-        var user = (await AuthenticationState.GetAuthenticationStateAsync()).User;
-        var userId = user.GetId();
+        var userId = IdentityService.User?.GetId() ?? throw new Exception("Impossible exception");
 
         UsageConfigurationDto? usageConfiguration = await UsageConfigurationService.GetUsageConfigurationAsync(CancellationToken.None);
         UsageConfigurationMetadata metadata = UsageConfigurationMetadata.FromJson(usageConfiguration?.Metadata);

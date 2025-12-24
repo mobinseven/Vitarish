@@ -10,7 +10,6 @@
 </div>
 
 <WidthControlled ControlledWidth="50vw">
-
     <MudPaper Class="glass mt-5" Elevation="0">
         <MudStack Spacing="3" Class="pa-6">
             <MudField Label="@Localizer["User"]" Variant="Variant.Outlined">
@@ -39,23 +38,13 @@
                     <MudItem md="2" Style="height: 100%; width: 100%;"></MudItem>
                 </MudStack>
             </MudField>
+            <TenantAuthorizeView Role="Admin">
+                <MudButton DropShadow="false" StartIcon="fa-thin fa-admin" OnClick="@(() => NavigationManager.NavigateTo("/Admin/Settings"))"
+                           Size="Size.Small" FullWidth>@Localizer["Admin"]</MudButton>
+            </TenantAuthorizeView>
         </MudStack>
     </MudPaper>
 
-    <TenantAuthorizeView Role="Sea.Admin">
-            <MudPaper Class="glass mt-5" Elevation="0">
-                <MudStack Spacing="2" Class="pa-6">
-                    <MudText Typo="Typo.h6">@($"{Localizer["Admin"]} {Localizer["Settings"]}")</MudText>
-                    <MudStack Spacing="1">
-                        <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/users">@Localizer["Users"]</MudButton>
-                        <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/theme">@Localizer["Theme"]</MudButton>
-                        <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/Chat">@Localizer["Chat"]</MudButton>
-                        <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/statistics">@Localizer["Statistics"]</MudButton>
-                        <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/advanced">@Localizer["Advanced"]</MudButton>
-                    </MudStack>
-                </MudStack>
-        </MudPaper>
-    </TenantAuthorizeView>
 </WidthControlled>
 
 <div style="height: 50dvh;">
