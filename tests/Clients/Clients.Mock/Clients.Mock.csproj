@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>Vitarish.Clients.Mock</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Clients\Clients.Interface\Clients.Interface.csproj" />
+    <ProjectReference Include="..\..\..\src\Clients\Clients.Identity\Clients.Identity.csproj" />
+  </ItemGroup>
+</Project>
