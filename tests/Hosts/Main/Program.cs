@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -21,15 +20,6 @@ _ = builder.Services.AddRazorPages(options =>
 });
 
 _ = builder.Services.AddIdentityComponentsPreview();
-
-builder.Services
-    .AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
-    })
-    .AddScheme<AuthenticationSchemeOptions, PreviewAuthenticationHandler>(IdentityConstants.ApplicationScheme, _ => { })
-    .AddScheme<AuthenticationSchemeOptions, PreviewAuthenticationHandler>(IdentityConstants.ExternalScheme, _ => { });
 
 _ = builder.Services.AddAuthorization();
 

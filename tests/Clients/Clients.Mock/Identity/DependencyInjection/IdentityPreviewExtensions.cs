@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Net;
@@ -19,6 +20,8 @@ namespace Vitarish.Clients.Mock.Identity.DependencyInjection;
 
 public static class IdentityPreviewExtensions
 {
+    private const string HttpClientName = "Vitarish.Clients.Mock";
+
     public static IServiceCollection AddIdentityComponentsPreview(this IServiceCollection services)
     {
         if (services.Any(sd => sd.ServiceType == typeof(IUsersService)))
@@ -56,6 +59,9 @@ public static class IdentityPreviewExtensions
         _ = services.AddCascadingAuthenticationState();
         _ = services.AddHttpContextAccessor();
         _ = services.AddHttpClient();
+        _ = services.AddTransient<MockHttpMessageHandler>();
+        _ = services.AddHttpClient(HttpClientName)
+            .ConfigurePrimaryHttpMessageHandler<MockHttpMessageHandler>();
         _ = services.AddSingleton<IAuthorizationMiddlewareResultHandler, BlazorAuthorizationMiddlewareResultHandler>();
         _ = services.AddSingleton<IAuthorizationPolicyProvider, TenantRolePolicyProvider>();
         _ = services.AddScoped<IAuthorizationHandler, TenantRoleHandler>();
@@ -157,7 +163,10 @@ public static class IdentityPreviewExtensions
         }
     }
 
-    private sealed class MockPersonalClientFactory(IOptions<IdentityClientOptions> options, IIdentityService identityService)
+    private sealed class MockPersonalClientFactory(
+        IOptions<IdentityClientOptions> options,
+        IIdentityService identityService,
+        IHttpClientFactory httpClientFactory)
         : IPersonalClientFactory
     {
         public Task<HttpClient> CreateAuthenticatedClient(string? endpoint = null)
@@ -166,26 +175,25 @@ public static class IdentityPreviewExtensions
             string baseAddress = endpoint is null
                 ? options.Value.Authority
                 : UrlExtensions.UrlCombine(options.Value.Authority, endpoint);
-            HttpClient httpClient = new(new MockHttpMessageHandler())
-            {
-                BaseAddress = new Uri(baseAddress)
-            };
+            HttpClient httpClient = httpClientFactory.CreateClient(HttpClientName);
+            httpClient.BaseAddress = new Uri(baseAddress);
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", "preview-token");
             return Task.FromResult(httpClient);
         }
     }
 
-    private sealed class MockIdentityClientService(IOptions<IdentityClientOptions> options) : IIdentityClientService
+    private sealed class MockIdentityClientService(
+        IOptions<IdentityClientOptions> options,
+        IHttpClientFactory httpClientFactory)
+        : IIdentityClientService
     {
         public Task<HttpClient> CreateClient(string? endpoint = null, string? clientId = null)
         {
             string baseAddress = endpoint is null
                 ? options.Value.Authority
                 : UrlExtensions.UrlCombine(options.Value.Authority, endpoint);
-            HttpClient httpClient = new(new MockHttpMessageHandler())
-            {
-                BaseAddress = new Uri(baseAddress)
-            };
+            HttpClient httpClient = httpClientFactory.CreateClient(HttpClientName);
+            httpClient.BaseAddress = new Uri(baseAddress);
             return Task.FromResult(httpClient);
         }
 
