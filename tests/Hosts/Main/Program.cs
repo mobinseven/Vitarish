@@ -1,10 +1,10 @@
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Vitarish.Clients.Mock.Identity.DependencyInjection;
 using Vitarish.Main.Mock.Authentication;
 using Vitarish.Main.Mock.Components;
 using Vitarish.Users.Domain.Entities;
@@ -19,14 +19,7 @@ _ = builder.Services.AddRazorPages(options =>
     options.RootDirectory = "/Pages";
 });
 
-builder.Services
-    .AddAuthentication(options =>
-    {
-        options.DefaultAuthenticateScheme = IdentityConstants.ApplicationScheme;
-        options.DefaultChallengeScheme = IdentityConstants.ApplicationScheme;
-    })
-    .AddScheme<AuthenticationSchemeOptions, PreviewAuthenticationHandler>(IdentityConstants.ApplicationScheme, _ => { })
-    .AddScheme<AuthenticationSchemeOptions, PreviewAuthenticationHandler>(IdentityConstants.ExternalScheme, _ => { });
+_ = builder.Services.AddIdentityComponentsPreview();
 
 _ = builder.Services.AddAuthorization();
 
