@@ -32,6 +32,8 @@ public sealed class MockRequestContext : IRequestContext, IRequestContextWriter
         UserId = UserId,
         ResourceId = ResourceId,
         TraceId = TraceId,
+        RequestId = RequestId!,
+        AdditionalInfo = AdditionalInfo,
     };
 
     public void SetContext(
