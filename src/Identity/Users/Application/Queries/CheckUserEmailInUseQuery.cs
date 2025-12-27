@@ -9,6 +9,6 @@ public class CheckUserEmailInUseQueryValidator : AbstractValidator<CheckUserEmai
 {
     public CheckUserEmailInUseQueryValidator()
     {
-        _ = RuleFor(q => q.Email).NotEmpty();
+        _ = RuleFor(q => q.Email).NotEmpty().EmailAddress();
     }
 }

@@ -6,10 +6,15 @@ using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Users.Infrastructure.Handlers;
 
-public class CheckUserEmailInUseQueryHandler(UserManager<User> userManager) : IRequestHandler<CheckUserEmailInUseQuery, bool>
+public class CheckUserEmailInUseQueryHandler(UserManager<User> userManager, ILookupNormalizer lookupNormalizer)
+    : IRequestHandler<CheckUserEmailInUseQuery, bool>
 {
-    public Task<bool> Handle(CheckUserEmailInUseQuery request, CancellationToken cancellationToken) =>
-        userManager.Users.AsNoTracking().AnyAsync(
-            user => user.Email == request.Email && (request.ExcludeUserId == null || user.Id != request.ExcludeUserId),
+    public Task<bool> Handle(CheckUserEmailInUseQuery request, CancellationToken cancellationToken)
+    {
+        string normalizedEmail = lookupNormalizer.NormalizeEmail(request.Email);
+        return userManager.Users.AsNoTracking().AnyAsync(
+            user => user.NormalizedEmail == normalizedEmail
+                    && (request.ExcludeUserId == null || user.Id != request.ExcludeUserId),
             cancellationToken);
+    }
 }
