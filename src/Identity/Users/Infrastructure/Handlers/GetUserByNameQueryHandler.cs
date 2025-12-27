@@ -1,13 +1,14 @@
 using MediatR;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Entities;
+using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Users.Infrastructure.Extensions;
 
 namespace Vitarish.Users.Infrastructure.Handlers;
 
-public class GetUserByNameQueryHandler(UserManager<User> userManager, IDistributedCache cache) : IRequestHandler<GetUserByNameQuery, User?>
+public class GetUserByNameQueryHandler(UsersDbContext dbContext, IDistributedCache cache) : IRequestHandler<GetUserByNameQuery, User?>
 {
     public async Task<User?> Handle(GetUserByNameQuery request, CancellationToken cancellationToken)
     {
@@ -16,7 +17,7 @@ public class GetUserByNameQueryHandler(UserManager<User> userManager, IDistribut
             return cached;
         }
 
-        User? user = await userManager.FindByNameAsync(request.UserName);
+        User? user = await dbContext.Users.AsNoTracking().SingleOrDefaultAsync(u => u.UserName == request.UserName, cancellationToken: cancellationToken);
         if (user is not null)
         {
             await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
