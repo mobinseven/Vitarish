@@ -1,0 +1,21 @@
+@page "/components/accounts/admin/claims-edit"
+
+<MudStack Spacing="2">
+    <MudText Typo="Typo.h6">Claims edit</MudText>
+    <Vitarish.Accounts.Interface.Components.Admin.ClaimsEdit UserClaims="Claims" UserClaimsChanged="HandleClaimsChanged" />
+</MudStack>
+
+@code {
+    private List<ClaimDto> Claims { get; set; } =
+    [
+        new("scope", "read"),
+        new("scope", "write"),
+        new("role", "admin")
+    ];
+
+    private Task HandleClaimsChanged(List<ClaimDto> claims)
+    {
+        Claims = claims;
+        return Task.CompletedTask;
+    }
+}

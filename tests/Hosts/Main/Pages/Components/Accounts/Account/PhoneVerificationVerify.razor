@@ -1,0 +1,15 @@
+@page "/components/accounts/account/phone-verification-verify"
+
+<MudStack Spacing="2">
+    <MudText Typo="Typo.h6">Phone verification verify</MudText>
+    <Vitarish.Accounts.Interface.Components.Account.PhoneVerificationVerify PhoneNumber="09120000000" User="PreviewUser" />
+</MudStack>
+
+@code {
+    private User PreviewUser { get; } = new()
+    {
+        Id = "preview-user",
+        UserName = "preview-user",
+        PhoneNumber = "09120000000"
+    };
+}
