@@ -2,17 +2,10 @@
 
 <MudStack Spacing="2">
     <MudText Typo="Typo.h6">User role assignment dialog</MudText>
-    <Vitarish.Accounts.Interface.Components.Admin.UserRoleAssignmentDialog UserName="preview-user" AvailableRoles="AvailableRoles" AssignedRoles="AssignedRoles" />
+    <Vitarish.Accounts.Interface.Components.Admin.UserRoleAssignmentDialog UserName="preview-user" AssignedRoles="AssignedRoles" />
 </MudStack>
 
 @code {
-    private List<string> AvailableRoles { get; } =
-    [
-        "00000000-0000-0000-0000-000000000001:Tenant.Read",
-        "00000000-0000-0000-0000-000000000001:Tenant.Write",
-        "00000000-0000-0000-0000-000000000002:Tenant.Admin"
-    ];
-
     private List<string> AssignedRoles { get; } =
     [
         "00000000-0000-0000-0000-000000000001:Tenant.Read"

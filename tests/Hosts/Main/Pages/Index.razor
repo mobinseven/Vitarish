@@ -15,46 +15,61 @@
 
     <MudText Typo="Typo.h6">Accounts components</MudText>
 
-    <MudGrid Spacing="2">
-        <MudItem xs="12" md="4">
-            <MudText Typo="Typo.subtitle2">Account</MudText>
-            <MudList T="string" Dense="true">
-                <MudListItem T="string" Href="/components/accounts/account/culture-selector">Culture selector</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/account/email-change-form">Email change form</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/account/email-login-form">Email login form</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/account/email-verification-send">Email verification send</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/account/email-verification-verify">Email verification verify</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/account/password-change-form">Password change form</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/account/password-login-form">Password login form</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/account/phone-change-form">Phone change form</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/account/phone-login-form">Phone login form</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/account/phone-verification-send">Phone verification send</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/account/phone-verification-verify">Phone verification verify</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/account/profile-editor">Profile editor</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/account/status-message">Status message</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/account/tenants-widget">Tenants widget</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/account/webauthn-interop">WebAuthn interop</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/account/webauthn-login-form">WebAuthn login form</MudListItem>
-            </MudList>
-        </MudItem>
-        <MudItem xs="12" md="4">
-            <MudText Typo="Typo.subtitle2">Admin</MudText>
-            <MudList T="string" Dense="true">
-                <MudListItem T="string" Href="/components/accounts/admin/claims-edit">Claims edit</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/admin/role-claims-dialog">Role claims dialog</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/admin/role-editor">Role editor</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/admin/roles-manager">Roles manager</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/admin/user-role-assignment-dialog">User role assignment dialog</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/admin/user-role-assignments">User role assignments</MudListItem>
-            </MudList>
-        </MudItem>
-        <MudItem xs="12" md="4">
-            <MudText Typo="Typo.subtitle2">Base</MudText>
-            <MudList T="string" Dense="true">
-                <MudListItem T="string" Href="/components/accounts/base/account-layout">Account layout</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/base/countdown">Countdown</MudListItem>
-                <MudListItem T="string" Href="/components/accounts/base/main-layout">Main layout</MudListItem>
-            </MudList>
-        </MudItem>
+<MudGrid Spacing="2">
+        @foreach (var group in _accountLinkGroups)
+        {
+            <MudItem xs="12" md="4">
+                <MudText Typo="Typo.subtitle2">@group.Title</MudText>
+                <MudList T="string" Dense="true">
+                    @foreach (var link in group.Items)
+                    {
+                        <MudListItem T="string" Href="@link.Href">@link.Label</MudListItem>
+                    }
+                </MudList>
+            </MudItem>
+        }
     </MudGrid>
 </MudStack>
+
+@code {
+    private readonly IReadOnlyList<LinkGroup> _accountLinkGroups =
+    [
+        new LinkGroup("Account", new List<LinkItem>
+        {
+            new("Culture selector", "/components/accounts/account/culture-selector"),
+            new("Email change form", "/components/accounts/account/email-change-form"),
+            new("Email login form", "/components/accounts/account/email-login-form"),
+            new("Email verification send", "/components/accounts/account/email-verification-send"),
+            new("Email verification verify", "/components/accounts/account/email-verification-verify"),
+            new("Password change form", "/components/accounts/account/password-change-form"),
+            new("Password login form", "/components/accounts/account/password-login-form"),
+            new("Phone change form", "/components/accounts/account/phone-change-form"),
+            new("Phone login form", "/components/accounts/account/phone-login-form"),
+            new("Phone verification send", "/components/accounts/account/phone-verification-send"),
+            new("Phone verification verify", "/components/accounts/account/phone-verification-verify"),
+            new("Profile editor", "/components/accounts/account/profile-editor"),
+            new("Status message", "/components/accounts/account/status-message"),
+            new("Tenants widget", "/components/accounts/account/tenants-widget"),
+            new("WebAuthn interop", "/components/accounts/account/webauthn-interop"),
+            new("WebAuthn login form", "/components/accounts/account/webauthn-login-form")
+        }),
+        new LinkGroup("Admin", new List<LinkItem>
+        {
+            new("Claims edit", "/components/accounts/admin/claims-edit"),
+            new("Role claims dialog", "/components/accounts/admin/role-claims-dialog"),
+            new("Role editor", "/components/accounts/admin/role-editor"),
+            new("Roles manager", "/components/accounts/admin/roles-manager"),
+            new("User role assignment dialog", "/components/accounts/admin/user-role-assignment-dialog"),
+            new("User role assignments", "/components/accounts/admin/user-role-assignments")
+        }),
+        new LinkGroup("Base", new List<LinkItem>
+        {
+            new("Account layout", "/components/accounts/base/account-layout"),
+            new("Countdown", "/components/accounts/base/countdown"),
+            new("Main layout", "/components/accounts/base/main-layout")
+        })
+    ];
+
+    private sealed record LinkGroup(string Title, IReadOnlyList<LinkItem> Items);
+    private sealed record LinkItem(string Label, string Href);
+}
