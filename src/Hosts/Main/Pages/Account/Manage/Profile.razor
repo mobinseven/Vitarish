@@ -1,7 +1,8 @@
 @page "/Account/Manage"
+@using Vitarish.Accounts.Interface.Components.Account.Widgets
 
 @inherits IdentityBase
 
 <MudText Typo="Typo.h4" GutterBottom="true" Align="Align.Center">@Localizer["Profile"]</MudText>
-<TenantAccessList />
+<TenantsWidget />
 <ProfileEditor @rendermode=InteractiveServer ReturnUrl="@ReturnUrl" Username="@HttpContext?.User.Identity?.Name" />

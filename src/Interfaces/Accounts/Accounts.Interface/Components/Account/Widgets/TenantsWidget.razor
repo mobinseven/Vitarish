@@ -3,38 +3,6 @@
 @using Vitarish.ApiClients.Domain.Entities
 
 <MudStack Spacing="4">
-    <MudPaper Class="pa-5" Elevation="1" Style="background: linear-gradient(135deg, rgba(25, 118, 210, 0.14), rgba(0, 188, 212, 0.1)); border-radius: 24px;">
-        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Wrap="Wrap.Wrap">
-            <MudStack Spacing="1" Style="max-width: 720px;">
-                <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
-                    <MudIcon Icon="@Icons.Material.Filled.WavingHand" Color="Color.Primary" />
-                    <MudText Typo="Typo.h4">@Localizer["Welcome back"]</MudText>
-                </MudStack>
-                <MudText Typo="Typo.subtitle1" Color="Color.Secondary">
-                    @Localizer["Choose where you want to pick up. Your tenant spaces are ready when you are."]
-                </MudText>
-                <MudStack Row Spacing="1" AlignItems="AlignItems.Center">
-                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Filled" Size="Size.Medium">
-                        @Localizer["Tenants"]: @tenantEntries.Count
-                    </MudChip>
-                    <MudChip T="string" Variant="Variant.Outlined" Size="Size.Medium">
-                        <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
-                            <MudIcon Icon="@Icons.Material.Filled.AutoAwesome" Size="Size.Small" />
-                            <MudText Typo="Typo.body2">@Localizer["Welcome hub"]</MudText>
-                        </MudStack>
-                    </MudChip>
-                </MudStack>
-            </MudStack>
-            <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
-                <MudIconButton Icon="@Icons.Material.Filled.Refresh"
-                               Color="Color.Primary"
-                               OnClick="ReloadAsync"
-                               Disabled="isLoading"
-                               aria-label="@Localizer["Reload"]" />
-            </MudStack>
-        </MudStack>
-    </MudPaper>
-
     <MudPaper Elevation="0" Class="pa-4" Style="border-radius: 20px;">
         @if (isLoading)
         {
@@ -42,11 +10,7 @@
         }
         else if (tenantEntries.Count == 0)
         {
-            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true" Icon="@Icons.Material.Filled.Info">
-                <MudText Typo="Typo.body2">
-                    @Localizer["NoTenantAccess"]
-                </MudText>
-            </MudAlert>
+            @* nothing to display *@
         }
         else
         {

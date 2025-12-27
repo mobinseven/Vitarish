@@ -1,13 +1,9 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Identity;
-using MudBlazor;
-using Vitarish.ApiClients.Domain.Entities;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 
-namespace Vitarish.Accounts.Interface.Components.Account;
+namespace Vitarish.Accounts.Interface.Components.Account.Widgets;
 
-public partial class TenantAccessList : CommonBase
+public partial class TenantsWidget : CommonBase
 {
     private readonly List<TenantAccessEntry> tenantEntries = [];
     private bool isLoading;
@@ -64,7 +60,7 @@ public partial class TenantAccessList : CommonBase
 
             Dictionary<Guid, Task<Tenant?>> tenantTasks = tenantIds
                 .ToDictionary(id => id, id => PartiesService.GetTenantAsync(id));
-            await Task.WhenAll(tenantTasks.Values);
+            _ = await Task.WhenAll(tenantTasks.Values);
 
             Dictionary<Guid, Tenant?> tenants = tenantTasks
                 .ToDictionary(entry => entry.Key, entry => entry.Value.Result);
@@ -91,9 +87,9 @@ public partial class TenantAccessList : CommonBase
                 .Where(tenant => tenant is not null)
                 .ToDictionary(tenant => tenant!.Id, tenant => PartiesService.GetTenantIndicatorsAsync(tenant!.Id));
 
-            await Task.WhenAll(ownerTasks.Values);
-            await Task.WhenAll(clientTasks.Values);
-            await Task.WhenAll(indicatorTasks.Values);
+            _ = await Task.WhenAll(ownerTasks.Values);
+            _ = await Task.WhenAll(clientTasks.Values);
+            _ = await Task.WhenAll(indicatorTasks.Values);
 
             Dictionary<Guid, Owner?> owners = ownerTasks
                 .ToDictionary(entry => entry.Key, entry => entry.Value.Result);
@@ -154,15 +150,7 @@ public partial class TenantAccessList : CommonBase
         NavigationManager.NavigateTo(BuildTenantUrl(entry.PrimaryIdentifier), forceLoad: true);
     }
 
-    private static string BuildTenantUrl(string identifier)
-    {
-        if (Uri.TryCreate(identifier, UriKind.Absolute, out Uri? absolute))
-        {
-            return absolute.ToString();
-        }
-
-        return $"https://{identifier}";
-    }
+    private static string BuildTenantUrl(string identifier) => Uri.TryCreate(identifier, UriKind.Absolute, out Uri? absolute) ? absolute.ToString() : $"https://{identifier}";
 
     private static List<TenantRoleAssignment> ParseTenantRoles(IEnumerable<string> roles)
     {
@@ -232,14 +220,11 @@ public partial class TenantAccessList : CommonBase
             }
 
             string[] parts = value.Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            if (parts.Length == 1)
-            {
-                return parts[0].Substring(0, 1).ToUpperInvariant();
-            }
-
-            return string.Concat(
-                parts[0].Substring(0, 1),
-                parts[1].Substring(0, 1)).ToUpperInvariant();
+            return parts.Length == 1
+                ? parts[0][..1].ToUpperInvariant()
+                : string.Concat(
+                parts[0][..1],
+                parts[1][..1]).ToUpperInvariant();
         }
     }
 }
