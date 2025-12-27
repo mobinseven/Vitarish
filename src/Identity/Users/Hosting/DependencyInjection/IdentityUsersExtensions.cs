@@ -20,7 +20,7 @@ public static class IdentityUsersExtensions
         this WebApplicationBuilder builder,
         Action<DbContextOptionsBuilder> dbContextOptionsBuilder)
     {
-        _ = builder.Services.AddDbContext<UsersDbContext>(dbContextOptionsBuilder);
+        _ = builder.Services.AddDbContext<UsersDbContext>(dbContextOptionsBuilder, ServiceLifetime.Transient);
 
         _ = builder.Services
             .AddIdentity<User, IdentityRole>()
