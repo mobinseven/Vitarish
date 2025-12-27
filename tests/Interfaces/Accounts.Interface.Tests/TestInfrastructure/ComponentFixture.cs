@@ -10,6 +10,7 @@ using Microsoft.JSInterop;
 using MudBlazor;
 using System.Reflection;
 using System.Security.Claims;
+using Vitarish.Accounts.Application.Abstractions;
 using Vitarish.Accounts.Infrastructure.Services;
 using Vitarish.Accounts.Interface.Components.Base;
 using Vitarish.Accounts.Interface.Localization;
@@ -36,6 +37,7 @@ internal sealed class ComponentFixture : IDisposable
     {
         Mock<ICipherService> cipherMock = new();
         Mock<IUsersService> usersServiceMock = new();
+        Mock<IUserService> userServiceMock = new();
         Mock<ISmsAuthenticationService> smsAuthMock = new();
         Mock<IEmailAuthenticationService> emailAuthMock = new();
         Mock<IApiClientsService> apiClientsMock = new();
@@ -98,6 +100,7 @@ internal sealed class ComponentFixture : IDisposable
         Mocks = new ServiceMocks(
             cipherMock,
             usersServiceMock,
+            userServiceMock,
             smsAuthMock,
             emailAuthMock,
             identityInteractionMock,
@@ -120,7 +123,7 @@ internal sealed class ComponentFixture : IDisposable
     public void ConfigureCommonComponent(CommonBase component)
     {
         SetProperty(component, "CipherService", Mocks.Cipher.Object, typeof(CommonBase));
-        SetProperty(component, "UserService", Mocks.Users.Object, typeof(CommonBase));
+        SetProperty(component, "UserService", Mocks.UserService.Object, typeof(CommonBase));
         SetProperty(component, "UserStore", Mocks.UserStore.Object, typeof(CommonBase));
         SetProperty(component, "SignInManager", Mocks.SignInManager, typeof(CommonBase));
         SetProperty(component, "NavigationManager", Navigation, typeof(CommonBase));

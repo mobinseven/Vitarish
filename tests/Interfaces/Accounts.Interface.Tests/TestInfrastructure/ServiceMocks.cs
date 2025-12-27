@@ -1,6 +1,7 @@
 using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Vitarish.Accounts.Application.Abstractions;
 using Vitarish.Accounts.Infrastructure.Services;
 using Vitarish.ApiClients.Application.Abstractions;
 using Vitarish.AuthenticationClients.Application.Abstractions;
@@ -14,6 +15,7 @@ namespace Accounts.Interface.Tests.TestInfrastructure;
 internal sealed record ServiceMocks(
     Mock<ICipherService> Cipher,
     Mock<IUsersService> Users,
+    Mock<IUserService> UserService,
     Mock<ISmsAuthenticationService> SmsAuthentication,
     Mock<IEmailAuthenticationService> EmailAuthentication,
     Mock<IIdentityServerInteractionService> IdentityInteraction,

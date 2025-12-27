@@ -16,6 +16,7 @@ using MudBlazor.Services;
 using MudBlazor;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using Vitarish.Accounts.Application.Abstractions;
 using Vitarish.Accounts.Infrastructure.Services;
 using Vitarish.ApiClients.Application.Abstractions;
 using Vitarish.AuthenticationClients.Application.Abstractions;
@@ -56,6 +57,9 @@ internal sealed class InterfaceTestContext : TestContext
 
         Mock<IUsersService> usersServiceMock = new();
         _ = Services.AddSingleton(usersServiceMock.Object);
+
+        Mock<IUserService> userServiceMock = new();
+        _ = Services.AddSingleton(userServiceMock.Object);
 
         Mock<ISmsAuthenticationService> smsAuthenticationMock = new();
         _ = Services.AddSingleton(smsAuthenticationMock.Object);
@@ -137,6 +141,7 @@ internal sealed class InterfaceTestContext : TestContext
         Mocks = new ServiceMocks(
             cipherMock,
             usersServiceMock,
+            userServiceMock,
             smsAuthenticationMock,
             emailAuthenticationMock,
             identityInteractionMock,
