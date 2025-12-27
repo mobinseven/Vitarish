@@ -1,8 +1,3 @@
-using Vitarish.Accounts.Infrastructure.Services;
-using Vitarish.Accounts.Interface.Localization;
-using Vitarish.ApiClients.Application.Abstractions;
-using Vitarish.Requests.Application.Abstractions;
-
 namespace Vitarish.Accounts.Interface.Components.Base
 {
     public class CommonBase : ComponentBase

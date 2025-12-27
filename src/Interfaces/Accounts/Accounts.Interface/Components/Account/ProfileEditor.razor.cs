@@ -1,6 +1,3 @@
-using System.Net;
-using Microsoft.AspNetCore.Components;
-using MudBlazor;
 using Vitarish.Users.Application.Commands;
 
 namespace Vitarish.Accounts.Interface.Components.Account;
