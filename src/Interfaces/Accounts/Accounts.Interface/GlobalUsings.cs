@@ -28,6 +28,7 @@ global using Vitarish.AuthenticationClients.Domain.Entities;
 global using Vitarish.Accounts.Domain.Attributes;
 global using Vitarish.Accounts.Domain.Models;
 global using Vitarish.Interface.Infrastructure.Extensions;
+global using Vitarish.Accounts.Application.Abstractions;
 global using Vitarish.Accounts.Interface.Localization;
 global using Vitarish.Accounts.Infrastructure.Services;
 global using Vitarish.Accounts.Interface.Components;

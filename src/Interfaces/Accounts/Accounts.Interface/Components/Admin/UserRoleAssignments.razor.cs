@@ -24,7 +24,7 @@ public partial class UserRoleAssignments : AdminBase
 
         try
         {
-            Task<IEnumerable<User>> usersTask = UserService.GetUsersAsync();
+            Task<IEnumerable<User>> usersTask = UsersService.GetUsersAsync();
             Task<IEnumerable<Tenant>> tenantsTask = PartiesService.GetTenantsAsync();
 
             List<User> loadedUsers = [.. await usersTask];

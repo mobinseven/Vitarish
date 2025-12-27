@@ -1,6 +1,4 @@
 @using System.Globalization
-@using Vitarish.Accounts.Application.Abstractions
-@inject IUserProfileInterfaceService ProfileService
 @inject UserProfileCultureInfoProvider CultureProvider
 @inject IStringLocalizer<CultureSelector> Strings
 @inject NavigationManager NavManager
@@ -25,8 +23,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        Dictionary<string, string>? preferences = await ProfileService.GetProfileAsync();
-        string? existingCulture = ProfileService.GetCulture(preferences ?? []);
+        string? existingCulture = await UserService.GetCultureAsync();
         if (!string.IsNullOrWhiteSpace(existingCulture))
         {
             cultureName = existingCulture;

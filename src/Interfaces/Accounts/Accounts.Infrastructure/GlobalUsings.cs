@@ -16,3 +16,4 @@ global using Vitarish.Requests.Application.Abstractions;
 // Project‑specific namespaces
 global using Vitarish.Users.Application.Abstractions;
 global using Vitarish.Users.Domain.Entities;
+global using Vitarish.Accounts.Application.Abstractions;

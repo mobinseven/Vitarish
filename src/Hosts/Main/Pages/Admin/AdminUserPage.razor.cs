@@ -15,8 +15,8 @@ public partial class AdminUserPage
     {
         if (UserId is not null)
         {
-            User = await UserService.GetUserAsync(UserId);
-            var UserClaims = (await UserService.GetUserClaimsAsync(UserId)).Select(c => new ClaimDto { Type = c.Type, Value = c.Value }).ToList();
+            User = await UsersService.GetUserAsync(UserId);
+            var UserClaims = (await UsersService.GetUserClaimsAsync(UserId)).Select(c => new ClaimDto { Type = c.Type, Value = c.Value }).ToList();
             UserAccessClaims = UserClaims.Where(c => c.Type == IdentityAccessConstants.AccessClaim).ToList();
             UserOtherClaims = UserClaims.Where(c => c.Type != IdentityAccessConstants.AccessClaim).ToList();
         }
@@ -32,7 +32,7 @@ public partial class AdminUserPage
             return;
         }
 
-        IdentityResult res = await UserService.DeleteUserAsync(new DeleteUserCommand(User.Id));
+        IdentityResult res = await UsersService.DeleteUserAsync(new DeleteUserCommand(User.Id));
         if (res.Succeeded)
         {
             Snackbar.Add(Localizer["Deleted"], Severity.Success);
@@ -54,7 +54,7 @@ public partial class AdminUserPage
             User.PasswordHash = PasswordHasher.HashPassword(User, password);
         }
 
-        var userRes = await UserService.UpdateUserAsync(new UpdateUserCommand(User));
+        var userRes = await UsersService.UpdateUserAsync(new UpdateUserCommand(User));
         if (!userRes.Succeeded)
         {
             Snackbar.Add(Localizer["Error"], Severity.Warning);
@@ -67,7 +67,7 @@ public partial class AdminUserPage
             return;
         }
 
-        var servRes = await UserService.UpdateUserClaimsAsync(new UpdateUserClaimsCommand(User, UserOtherClaims.Union(UserAccessClaims)!.Select(c => new Claim(c.Type, c.Value)).ToArray()));
+        var servRes = await UsersService.UpdateUserClaimsAsync(new UpdateUserClaimsCommand(User, UserOtherClaims.Union(UserAccessClaims)!.Select(c => new Claim(c.Type, c.Value)).ToArray()));
         if (!servRes.Succeeded)
         {
             Snackbar.Add(Localizer["Error"], Severity.Warning);

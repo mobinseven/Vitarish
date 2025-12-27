@@ -11,7 +11,7 @@ public partial class AdminUsersPage
     [Inject] private IPasswordHasher<User> PasswordHasher { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
-        => Users = [.. await UserService.GetUsersAsync()];
+        => Users = [.. await UsersService.GetUsersAsync()];
 
     private void RowClicked(DataGridRowClickEventArgs<User> args)
     {
@@ -30,7 +30,7 @@ public partial class AdminUsersPage
     {
         if (editingUser is null)
         {
-            User? user = await UserService.CreateUserWithPhoneAsync(new CreateUserWithPhoneCommand(editUser.PhoneNumber, editUser.FirstName, editUser.LastName));
+            User? user = await UsersService.CreateUserWithPhoneAsync(new CreateUserWithPhoneCommand(editUser.PhoneNumber, editUser.FirstName, editUser.LastName));
             if (user is not null)
             {
                 Users.Add(user);
@@ -46,7 +46,7 @@ public partial class AdminUsersPage
             {
                 editingUser.PasswordHash = PasswordHasher.HashPassword(editingUser, password);
             }
-            IdentityResult result = await UserService.UpdateUserAsync(new UpdateUserCommand(editingUser));
+            IdentityResult result = await UsersService.UpdateUserAsync(new UpdateUserCommand(editingUser));
             if (result.Succeeded)
             {
                 int idx = Users.FindIndex(u => u.Id == editingUser.Id);
@@ -69,7 +69,7 @@ public partial class AdminUsersPage
 
     private async Task Remove(User user)
     {
-        IdentityResult res = await UserService.DeleteUserAsync(new DeleteUserCommand(user.Id));
+        IdentityResult res = await UsersService.DeleteUserAsync(new DeleteUserCommand(user.Id));
         if (res.Succeeded)
         {
             _ = Users.Remove(user);

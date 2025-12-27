@@ -1,6 +1,3 @@
-using Vitarish.Accounts.Domain.Models;
-using Vitarish.Accounts.Interface.Components.Base;
-
 namespace Vitarish.Accounts.Interface.Components.Account;
 
 public partial class EmailLoginForm : CommonBase

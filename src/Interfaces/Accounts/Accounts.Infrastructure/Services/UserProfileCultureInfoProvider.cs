@@ -1,14 +1,11 @@
-using System.Globalization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Primitives;
-using Microsoft.JSInterop;
-using Vitarish.Accounts.Application.Abstractions;
+using System.Globalization;
 
 namespace Vitarish.Accounts.Infrastructure.Services;
 
 public class UserProfileCultureInfoProvider(
-    UserProfileInterfaceService profileService,
+    IUserService userService,
     IHttpContextAccessor httpContextAccessor,
     IJSRuntime jsRuntime) : IUserProfileCultureInfoProvider
 {
@@ -60,7 +57,7 @@ public class UserProfileCultureInfoProvider(
             return false;
         }
 
-        if (!await profileService.SetCultureAsync(cultureName))
+        if (!await userService.SetCultureAsync(cultureName))
         {
             return false;
         }
@@ -78,8 +75,7 @@ public class UserProfileCultureInfoProvider(
 
     private async Task<CultureInfo?> ResolveCultureAsync()
     {
-        Dictionary<string, string>? preferences = await profileService.GetProfileAsync();
-        string? cultureFromProfile = preferences is null ? null : profileService.GetCulture(preferences);
+        string? cultureFromProfile = await userService.GetCultureAsync();
         CultureInfo? culture = TryGetCulture(cultureFromProfile);
         if (culture is not null)
         {
@@ -92,11 +88,7 @@ public class UserProfileCultureInfoProvider(
             return null;
         }
 
-        if (preferences is not null)
-        {
-            profileService.SetCulture(preferences, cookieCulture.Name);
-            await profileService.UpdateProfileAsync(preferences);
-        }
+        _ = await userService.SetCultureAsync(cookieCulture.Name);
 
         return cookieCulture;
     }

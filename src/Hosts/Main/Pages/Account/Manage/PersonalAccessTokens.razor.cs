@@ -43,7 +43,7 @@ public partial class PersonalAccessTokens
         }
         Snackbar.Add(Localizer["TokenCreationFailed"], Severity.Error);
 
-        string? subjectId = RequestIdentityContext.UserId;
+        string? subjectId = RequestContext.UserId;
         if (string.IsNullOrEmpty(subjectId))
         {
             Snackbar.Add(Localizer["TokenCreationFailed"], Severity.Error);

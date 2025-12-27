@@ -9,11 +9,7 @@ public partial class Email
     protected string returnUrl => ReturnUrl ?? "/Account/Manage";
     protected override async Task OnInitializedAsync()
     {
-        string? id = HttpContext?.User.FindFirstValue("sub");
-        if (id is not null)
-        {
-            User = await UserService.GetUserAsync(id);
-        }
+        User = await UserService.GetUserAsync();
         StateHasChanged();
     }
 }
