@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Vitarish.Accounts.Infrastructure.Services;
+using Vitarish.ApiClients.Application.Abstractions;
+using Vitarish.AuthenticationClients.Application.Abstractions;
 using Vitarish.Clients.Mock.Identity.DependencyInjection;
 using Vitarish.Main.Mock.Authentication;
 using Vitarish.Main.Mock.Components;
@@ -8,6 +10,8 @@ using Vitarish.Main.Mock.Services;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
+using Vitarish.Parties.Application.Abstractions;
+using Duende.IdentityServer.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -26,7 +30,9 @@ _ = builder.Services.AddAuthorization();
 builder.Services
     .AddIdentityCore<User>()
     .AddSignInManager()
-    .AddUserStore<PreviewUserStore>();
+    .AddUserStore<PreviewUserStore>()
+    .AddRoles<IdentityRole>()
+    .AddRoleStore<PreviewRoleStore>();
 
 builder.AddAccountsInterface();
 
@@ -36,6 +42,11 @@ builder.Services.AddScoped<IRequestContext, MockRequestContext>();
 builder.Services.AddScoped<IRequestContextWriter>(sp => (IRequestContextWriter)sp.GetRequiredService<IRequestContext>());
 builder.Services.AddSingleton<IMessageQueue, MockMessageQueue>();
 builder.Services.AddSingleton<IPersonalAccessTokenGenerator, MockPersonalAccessTokenGenerator>();
+builder.Services.AddSingleton<IIdentityServerInteractionService, MockIdentityServerInteractionService>();
+builder.Services.AddSingleton<IApiClientsService, MockApiClientsService>();
+builder.Services.AddSingleton<IAuthenticationClientsService, MockAuthenticationClientsService>();
+builder.Services.AddSingleton<IRequestIdentitiesService, MockRequestIdentitiesService>();
+builder.Services.AddSingleton<IPartiesService, MockPartiesService>();
 
 WebApplication app = builder.Build();
 
