@@ -3,11 +3,6 @@
     <InlineContent>
         <MudButton OnClick="AddProject" StartIcon="fa-thin fa-folder-plus">@Localizer["AddItem", Localizer["Project"]]</MudButton>
     </InlineContent>
-@*     <MenuItems>
-        <MudMenuItem OnClick="ToggleTemplate" Icon="@(template ? "fa-thin fa-folder" : "fa-thin fa-folder-gear")">
-            @Localizer["Display", Localizer[template ? "Projects" : "Templates"]]
-        </MudMenuItem>
-    </MenuItems> *@
 </ExpandableItem>
 <MudDataGrid T="ProjectDto"
              @ref=grid
