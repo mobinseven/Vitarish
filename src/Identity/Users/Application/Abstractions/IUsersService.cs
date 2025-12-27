@@ -21,9 +21,10 @@ public interface IUsersService
     Task<IdentityResult> UpdateUserClaimsAsync(UpdateUserClaimsCommand command, CancellationToken ct = default);
     Task<bool> UserHasPasswordAsync(string userId, CancellationToken ct = default);
     Task<bool> CheckUserPasswordAsync(string userId, string password, CancellationToken ct = default);
+    Task<bool> CheckUserEmailInUseAsync(string email, string? excludeUserId = null, CancellationToken ct = default);
+    Task<bool> CheckUserPhoneNumberInUseAsync(string phoneNumber, string? excludeUserId = null, CancellationToken ct = default);
     Task<IdentityResult> RemoveUserPasswordAsync(string userId, CancellationToken ct = default);
     Task<IdentityResult> AddUserPasswordAsync(string userId, string password, CancellationToken ct = default);
     Task<IdentityResult> SetUserPhoneNumberAsync(string userId, string phoneNumber, CancellationToken ct = default);
     Task<IdentityResult> SetUserEmailAsync(string userId, string email, CancellationToken ct = default);
 }
-

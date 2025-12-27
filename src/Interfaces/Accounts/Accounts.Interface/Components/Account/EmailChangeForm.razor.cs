@@ -22,8 +22,8 @@ public partial class EmailChangeForm : CommonBase
             }
             if (User is not null)
             {
-                IEnumerable<User> users = await UserService.GetUsersAsync();
-                if (users.Any(u => u.Id != User.Id && u.Email == model.Email))
+                bool emailInUse = await UserService.CheckUserEmailInUseAsync(model.Email, User.Id);
+                if (emailInUse)
                 {
                     error = Localizer["InvalidEmail"];
                 }

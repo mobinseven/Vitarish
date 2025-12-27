@@ -225,7 +225,7 @@ public class ManagePagesTests
 
         User user = new() { Id = "user-1" };
         _ = fixture.Mocks.Users.Setup(service => service.GetUserAsync(user.Id!, It.IsAny<CancellationToken>())).ReturnsAsync(user);
-        _ = fixture.Mocks.Users.Setup(service => service.GetUsersAsync()).ReturnsAsync(new List<User> { user });
+        _ = fixture.Mocks.Users.Setup(service => service.CheckUserEmailInUseAsync("new@example.com", user.Id, It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         await ComponentTestHelper.InvokeAsync(form, "ValidSendCodeSubmit", typeof(EmailChangeForm), new SendEmailCodeModel { Email = "new@example.com", User = user });
 
@@ -242,7 +242,7 @@ public class ManagePagesTests
         User other = new() { Id = "user-2", PhoneNumber = "09123456789" };
 
         _ = context.Mocks.Users.Setup(service => service.GetUserAsync(user.Id!, It.IsAny<CancellationToken>())).ReturnsAsync(user);
-        _ = context.Mocks.Users.Setup(service => service.GetUsersAsync()).ReturnsAsync(new List<User> { user, other });
+        _ = context.Mocks.Users.Setup(service => service.CheckUserPhoneNumberInUseAsync(other.PhoneNumber!, user.Id, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         IRenderedComponent<PhoneChangeForm> cut = context.Render<PhoneChangeForm>();
 

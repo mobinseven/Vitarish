@@ -48,6 +48,12 @@ public sealed class UsersService(ISender sender) : IUsersService
     public Task<bool> CheckUserPasswordAsync(string userId, string password, CancellationToken ct = default) =>
         sender.Send(new CheckUserPasswordQuery(userId, password), ct);
 
+    public Task<bool> CheckUserEmailInUseAsync(string email, string? excludeUserId = null, CancellationToken ct = default) =>
+        sender.Send(new CheckUserEmailInUseQuery(email, excludeUserId), ct);
+
+    public Task<bool> CheckUserPhoneNumberInUseAsync(string phoneNumber, string? excludeUserId = null, CancellationToken ct = default) =>
+        sender.Send(new CheckUserPhoneNumberInUseQuery(phoneNumber, excludeUserId), ct);
+
     public Task<IdentityResult> RemoveUserPasswordAsync(string userId, CancellationToken ct = default) =>
         sender.Send(new RemoveUserPasswordCommand(userId), ct);
 
@@ -60,4 +66,3 @@ public sealed class UsersService(ISender sender) : IUsersService
     public Task<IdentityResult> SetUserEmailAsync(string userId, string email, CancellationToken ct = default) =>
         sender.Send(new SetUserEmailCommand(userId, email), ct);
 }
-

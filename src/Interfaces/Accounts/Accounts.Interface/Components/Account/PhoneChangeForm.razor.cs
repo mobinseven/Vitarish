@@ -20,8 +20,8 @@ public partial class PhoneChangeForm : CommonBase
             }
             if (User is not null)
             {
-                IEnumerable<User> users = await UserService.GetUsersAsync();
-                if (users.Any(u => u.Id != User.Id && u.PhoneNumber == model.PhoneNumber))
+                bool phoneNumberInUse = await UserService.CheckUserPhoneNumberInUseAsync(model.PhoneNumber, User.Id);
+                if (phoneNumberInUse)
                 {
                     error = Localizer["InvalidPhoneNumber"];
                 }
