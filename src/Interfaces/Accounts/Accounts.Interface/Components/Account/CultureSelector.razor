@@ -1,5 +1,6 @@
 @using System.Globalization
-@inject UserProfileService ProfileService
+@using Vitarish.Accounts.Application.Abstractions
+@inject IUserProfileInterfaceService ProfileService
 @inject UserProfileCultureInfoProvider CultureProvider
 @inject IStringLocalizer<CultureSelector> Strings
 @inject NavigationManager NavManager

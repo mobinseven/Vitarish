@@ -18,7 +18,7 @@ public class UserProfileServiceTests
             .ReturnsAsync(preferences);
 
         AuthenticationStateProvider authProvider = new StaticAuthenticationStateProvider(CreateUser("user1"));
-        UserProfileService service = new(authProvider, profileService.Object);
+        UserProfileInterfaceService service = new(authProvider, profileService.Object);
 
         // Act
         Dictionary<string, string>? result = await service.GetProfileAsync();
@@ -33,7 +33,7 @@ public class UserProfileServiceTests
         // Arrange
         Mock<ApplicationUserProfileService> profileService = new(MockBehavior.Strict);
         AuthenticationStateProvider authProvider = new StaticAuthenticationStateProvider(new ClaimsPrincipal(new ClaimsIdentity()));
-        UserProfileService service = new(authProvider, profileService.Object);
+        UserProfileInterfaceService service = new(authProvider, profileService.Object);
 
         // Act
         Dictionary<string, string>? result = await service.GetProfileAsync();
@@ -50,7 +50,7 @@ public class UserProfileServiceTests
         Mock<ApplicationUserProfileService> profileService = new(MockBehavior.Strict);
         ClaimsIdentity identity = new(new[] { new Claim("role", "user") }, "Test");
         AuthenticationStateProvider authProvider = new StaticAuthenticationStateProvider(new ClaimsPrincipal(identity));
-        UserProfileService service = new(authProvider, profileService.Object);
+        UserProfileInterfaceService service = new(authProvider, profileService.Object);
 
         // Act
         await service.UpdateProfileAsync([]);
@@ -73,7 +73,7 @@ public class UserProfileServiceTests
             .Returns(Task.CompletedTask);
 
         AuthenticationStateProvider authProvider = new StaticAuthenticationStateProvider(CreateUser("user1"));
-        UserProfileService service = new(authProvider, profileService.Object);
+        UserProfileInterfaceService service = new(authProvider, profileService.Object);
 
         // Act
         bool result = await service.SetCultureAsync("nb-NO");
@@ -90,7 +90,7 @@ public class UserProfileServiceTests
         // Arrange
         Mock<ApplicationUserProfileService> profileService = new();
         AuthenticationStateProvider authProvider = new StaticAuthenticationStateProvider(CreateUser("user1"));
-        UserProfileService service = new(authProvider, profileService.Object);
+        UserProfileInterfaceService service = new(authProvider, profileService.Object);
 
         // Act
         bool result = await service.SetCultureAsync("  ");

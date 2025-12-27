@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Localization;
 using System.Globalization;
+using Vitarish.Accounts.Application.Abstractions;
 using Vitarish.Accounts.Domain.Constants;
 using Vitarish.Accounts.Infrastructure.Extensions;
 using Vitarish.Accounts.Infrastructure.Services;
@@ -14,7 +15,7 @@ public static class WebApplicationBuilderExtensions
         _ = builder.Services.AddHttpContextAccessor();
         _ = builder.Services.AddCascadingAuthenticationState();
         _ = builder.Services.AddScoped<IdentityRedirectManager>();
-        _ = builder.Services.AddScoped<UserProfileService>();
+        _ = builder.Services.AddScoped<IUserProfileInterfaceService, UserProfileInterfaceService>();
         _ = builder.Services.AddScoped<UserProfileCultureInfoProvider>();
         _ = builder.Services.AddScoped<AuthenticationStateProvider, IdentityRevalidatingAuthenticationStateProvider>();
         _ = builder.Services.AddScoped<IAdminContext, AdminContext>();

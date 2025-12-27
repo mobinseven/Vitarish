@@ -1,14 +1,10 @@
-using System.IO;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Components.Authorization;
-using ClientUserProfileService = Vitarish.Accounts.Application.Abstractions.IUserProfileService;
-using ApplicationUserProfileService = Vitarish.Users.Application.Abstractions.IUserProfileService;
+using Vitarish.Accounts.Application.Abstractions;
 
 namespace Vitarish.Accounts.Infrastructure.Services;
 
-public class UserProfileService(
+public class UserProfileInterfaceService(
     AuthenticationStateProvider authStateProvider,
-    ApplicationUserProfileService profileService) : ClientUserProfileService
+    IUserProfileService profileService) : IUserProfileInterfaceService
 {
     private const string CulturePreferenceKey = "Culture";
 

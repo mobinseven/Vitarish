@@ -1,6 +1,3 @@
-using Vitarish.Accounts.Domain.Models;
-using Vitarish.Accounts.Interface.Components.Base;
-
 namespace Vitarish.Accounts.Interface.Components.Account;
 
 public partial class EmailChangeForm : CommonBase
@@ -25,7 +22,7 @@ public partial class EmailChangeForm : CommonBase
             }
             if (User is not null)
             {
-                var users = await UserService.GetUsersAsync();
+                IEnumerable<User> users = await UserService.GetUsersAsync();
                 if (users.Any(u => u.Id != User.Id && u.Email == model.Email))
                 {
                     error = Localizer["InvalidEmail"];

@@ -8,7 +8,7 @@ using Vitarish.Accounts.Application.Abstractions;
 namespace Vitarish.Accounts.Infrastructure.Services;
 
 public class UserProfileCultureInfoProvider(
-    UserProfileService profileService,
+    UserProfileInterfaceService profileService,
     IHttpContextAccessor httpContextAccessor,
     IJSRuntime jsRuntime) : IUserProfileCultureInfoProvider
 {

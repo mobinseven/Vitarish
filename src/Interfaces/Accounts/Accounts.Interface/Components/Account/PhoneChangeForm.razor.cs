@@ -1,6 +1,3 @@
-using Vitarish.Accounts.Domain.Models;
-using Vitarish.Accounts.Interface.Components.Base;
-
 namespace Vitarish.Accounts.Interface.Components.Account;
 
 public partial class PhoneChangeForm : CommonBase
@@ -23,7 +20,7 @@ public partial class PhoneChangeForm : CommonBase
             }
             if (User is not null)
             {
-                var users = await UserService.GetUsersAsync();
+                IEnumerable<User> users = await UserService.GetUsersAsync();
                 if (users.Any(u => u.Id != User.Id && u.PhoneNumber == model.PhoneNumber))
                 {
                     error = Localizer["InvalidPhoneNumber"];
