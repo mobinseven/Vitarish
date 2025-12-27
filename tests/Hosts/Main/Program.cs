@@ -1,9 +1,5 @@
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using Vitarish.Accounts.Infrastructure.Services;
 using Vitarish.Clients.Mock.Identity.DependencyInjection;
 using Vitarish.Main.Mock.Authentication;
