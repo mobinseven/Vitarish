@@ -1,0 +1,15 @@
+@page "/components/accounts/account/email-verification-verify"
+
+<MudStack Spacing="2">
+    <MudText Typo="Typo.h6">Email verification verify</MudText>
+    <Vitarish.Accounts.Interface.Components.Account.EmailVerificationVerify Email="preview@example.com" User="PreviewUser" />
+</MudStack>
+
+@code {
+    private User PreviewUser { get; } = new()
+    {
+        Id = "preview-user",
+        UserName = "preview-user",
+        Email = "preview@example.com"
+    };
+}
