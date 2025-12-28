@@ -7,13 +7,20 @@ public partial class EmailChangeForm : CommonBase
     private string? Email = null;
     private string? error = null;
     private User? User = null;
-    private async void ValidSendCodeSubmit(SendEmailCodeModel model)
+    private bool hasRendered = false;
+
+    protected override void OnAfterRender(bool firstRender)
     {
-        User = await UserService.GetUserAsync();
+        hasRendered = true;
+    }
+
+    private async Task ValidSendCodeSubmit(SendEmailCodeModel model)
+    {
+        User = await UserService.GetUserAsync(model.User?.Id);
         if (User is null)
         {
             error = Localizer["UserNotFound"];
-            StateHasChanged();
+            NotifyStateChanged();
             return;
         }
         bool emailInUse = await UserService.CheckUserEmailInUseAsync(model.Email);
@@ -26,6 +33,14 @@ public partial class EmailChangeForm : CommonBase
             await UserService.SendEmailCode(model.Email);
             Email = model.Email;
         }
-        StateHasChanged();
+        NotifyStateChanged();
+    }
+
+    private void NotifyStateChanged()
+    {
+        if (hasRendered)
+        {
+            StateHasChanged();
+        }
     }
 }
