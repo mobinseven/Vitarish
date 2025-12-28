@@ -2,7 +2,7 @@
 
 This repository uses a modular .NET solution that separates client-facing APIs, hosting shells, and domain-driven modules. Use this file as a quick orientation guide when extending or reviewing the codebase.
 
-## Top-level layout
+## Folder Structure
 - `src/`: Production code organized by concern.
   - `Clients/`: Client-facing HTTP endpoints and interfaces. Projects follow a layered structure (`Clients.*`) to expose module functionality.
   - `Hosts/`: Host applications that compose modules into runnable services.
