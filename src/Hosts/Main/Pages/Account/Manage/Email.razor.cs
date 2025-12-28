@@ -1,3 +1,5 @@
+using Duende.IdentityServer.Extensions;
+
 namespace Vitarish.Main.Pages.Account.Manage;
 
 public partial class Email
@@ -9,7 +11,8 @@ public partial class Email
     protected string returnUrl => ReturnUrl ?? "/Account/Manage";
     protected override async Task OnInitializedAsync()
     {
-        User = await UserService.GetUserAsync();
+        string? userId = HttpContext?.User.GetSubjectId();
+        User = await UserService.GetUserAsync(userId);
         StateHasChanged();
     }
 }

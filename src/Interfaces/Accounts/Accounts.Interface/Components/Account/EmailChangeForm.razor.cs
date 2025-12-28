@@ -9,7 +9,7 @@ public partial class EmailChangeForm : CommonBase
     private User? User = null;
     private async void ValidSendCodeSubmit(SendEmailCodeModel model)
     {
-        User = await UserService.GetUserAsync();
+        User = await UserService.GetUserAsync(model.User?.Id);
         if (User is null)
         {
             error = Localizer["UserNotFound"];
