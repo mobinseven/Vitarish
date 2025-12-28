@@ -1,25 +1,24 @@
-using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Identity;
+using System.Collections.Concurrent;
 
 namespace Vitarish.Main.Mock.Services;
 
 public sealed class PreviewRoleStore : IRoleStore<IdentityRole>, IQueryableRoleStore<IdentityRole>
 {
     private readonly ConcurrentDictionary<string, IdentityRole> _roles = new();
+    public IQueryable<IdentityRole> Roles =>
+    new TestAsyncEnumerable<IdentityRole>(_roles.Values);
 
-    public IQueryable<IdentityRole> Roles => _roles.Values.AsQueryable();
 
     public Task<IdentityResult> CreateAsync(IdentityRole role, CancellationToken cancellationToken)
     {
-        _roles.TryAdd(role.Id, role);
+        _ = _roles.TryAdd(role.Id, role);
         return Task.FromResult(IdentityResult.Success);
     }
 
-    public Task<IdentityResult> UpdateAsync(IdentityRole role, CancellationToken cancellationToken)
-    {
+    public Task<IdentityResult> UpdateAsync(IdentityRole role, CancellationToken cancellationToken) =>
         // Role updates are applied on the existing instance by callers.
-        return Task.FromResult(IdentityResult.Success);
-    }
+        Task.FromResult(IdentityResult.Success);
 
     public Task<IdentityResult> DeleteAsync(IdentityRole role, CancellationToken cancellationToken)
     {
@@ -27,15 +26,9 @@ public sealed class PreviewRoleStore : IRoleStore<IdentityRole>, IQueryableRoleS
         return Task.FromResult(IdentityResult.Success);
     }
 
-    public Task<string> GetRoleIdAsync(IdentityRole role, CancellationToken cancellationToken)
-    {
-        return Task.FromResult(role.Id ?? string.Empty);
-    }
+    public Task<string> GetRoleIdAsync(IdentityRole role, CancellationToken cancellationToken) => Task.FromResult(role.Id ?? string.Empty);
 
-    public Task<string?> GetRoleNameAsync(IdentityRole role, CancellationToken cancellationToken)
-    {
-        return Task.FromResult(role.Name);
-    }
+    public Task<string?> GetRoleNameAsync(IdentityRole role, CancellationToken cancellationToken) => Task.FromResult(role.Name);
 
     public Task SetRoleNameAsync(IdentityRole role, string? roleName, CancellationToken cancellationToken)
     {
@@ -43,10 +36,7 @@ public sealed class PreviewRoleStore : IRoleStore<IdentityRole>, IQueryableRoleS
         return Task.CompletedTask;
     }
 
-    public Task<string?> GetNormalizedRoleNameAsync(IdentityRole role, CancellationToken cancellationToken)
-    {
-        return Task.FromResult(role.NormalizedName);
-    }
+    public Task<string?> GetNormalizedRoleNameAsync(IdentityRole role, CancellationToken cancellationToken) => Task.FromResult(role.NormalizedName);
 
     public Task SetNormalizedRoleNameAsync(IdentityRole role, string? normalizedName, CancellationToken cancellationToken)
     {
@@ -56,14 +46,11 @@ public sealed class PreviewRoleStore : IRoleStore<IdentityRole>, IQueryableRoleS
 
     public Task<IdentityRole?> FindByIdAsync(string roleId, CancellationToken cancellationToken)
     {
-        _roles.TryGetValue(roleId, out IdentityRole? role);
+        _ = _roles.TryGetValue(roleId, out IdentityRole? role);
         return Task.FromResult(role);
     }
 
-    public Task<IdentityRole?> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
-    {
-        return Task.FromResult(_roles.Values.FirstOrDefault(role => role.NormalizedName == normalizedRoleName));
-    }
+    public Task<IdentityRole?> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken) => Task.FromResult(_roles.Values.FirstOrDefault(role => role.NormalizedName == normalizedRoleName));
 
     public void Dispose()
     {
