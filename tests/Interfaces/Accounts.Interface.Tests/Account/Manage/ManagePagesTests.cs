@@ -135,7 +135,7 @@ public class ManagePagesTests
         DefaultHttpContext httpContext = CreateHttpContext();
         User user = new() { Id = "user-1", PhoneNumber = "+1234567890" };
         _ = context.Mocks.UserService
-            .Setup(service => service.GetUserAsync(It.IsAny<CancellationToken>()))
+            .Setup(service => service.GetUserAsync(user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
         IRenderedComponent<Phone> cut = context.Render<Phone>(
@@ -153,7 +153,7 @@ public class ManagePagesTests
         DefaultHttpContext httpContext = CreateHttpContext();
         User user = new() { Id = "user-1", Email = "old@example.com" };
         _ = context.Mocks.UserService
-            .Setup(service => service.GetUserAsync(It.IsAny<CancellationToken>()))
+            .Setup(service => service.GetUserAsync(user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
         context.Navigation.NavigateTo("http://localhost/Account/Manage/Email?FailureMessage=EmailChangeFailed");
@@ -224,7 +224,7 @@ public class ManagePagesTests
         ComponentTestHelper.SetProperty(form, "AuthenticationStateProvider", authProvider, typeof(Vitarish.Accounts.Interface.Components.Base.CommonBase));
 
         User user = new() { Id = "user-1" };
-        _ = fixture.Mocks.UserService.Setup(service => service.GetUserAsync(It.IsAny<CancellationToken>())).ReturnsAsync(user);
+        _ = fixture.Mocks.UserService.Setup(service => service.GetUserAsync(user.Id, It.IsAny<CancellationToken>())).ReturnsAsync(user);
         _ = fixture.Mocks.UserService.Setup(service => service.CheckUserEmailInUseAsync("new@example.com", It.IsAny<CancellationToken>())).ReturnsAsync(false);
 
         await ComponentTestHelper.InvokeAsync(form, "ValidSendCodeSubmit", typeof(EmailChangeForm), new SendEmailCodeModel { Email = "new@example.com", User = user });
@@ -242,7 +242,7 @@ public class ManagePagesTests
         AuthenticationStateProvider authProvider = new TestAuthenticatedStateProvider("user-1");
         ComponentTestHelper.SetProperty(form, "AuthenticationStateProvider", authProvider, typeof(Vitarish.Accounts.Interface.Components.Base.CommonBase));
 
-        _ = fixture.Mocks.UserService.Setup(service => service.GetUserAsync(It.IsAny<CancellationToken>())).ReturnsAsync((User?)null);
+        _ = fixture.Mocks.UserService.Setup(service => service.GetUserAsync(null, It.IsAny<CancellationToken>())).ReturnsAsync((User?)null);
 
         await ComponentTestHelper.InvokeAsync(form, "ValidSendCodeSubmit", typeof(EmailChangeForm), new SendEmailCodeModel
         {
@@ -265,7 +265,7 @@ public class ManagePagesTests
         User user = new() { Id = "user-1" };
         User other = new() { Id = "user-2", PhoneNumber = "09123456789" };
 
-        _ = context.Mocks.UserService.Setup(service => service.GetUserAsync(It.IsAny<CancellationToken>())).ReturnsAsync(user);
+        _ = context.Mocks.UserService.Setup(service => service.GetUserAsync(user.Id, It.IsAny<CancellationToken>())).ReturnsAsync(user);
         _ = context.Mocks.UserService.Setup(service => service.CheckUserPhoneNumberInUseAsync(other.PhoneNumber!, It.IsAny<CancellationToken>())).ReturnsAsync(true);
 
         IRenderedComponent<PhoneChangeForm> cut = context.Render<PhoneChangeForm>();
