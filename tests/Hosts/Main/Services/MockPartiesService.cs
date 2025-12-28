@@ -137,17 +137,17 @@ public sealed class MockPartiesService : IPartiesService
 
     public Task<bool> VerifyTenantIndicatorAsync(Guid tenantId, Guid indicatorId, CancellationToken ct = default)
     {
-        return Task.FromResult(UpdateIndicatorStatus(tenantId, indicatorId, static indicator => indicator.Status = IndicatorStatus.Verified));
+        return Task.FromResult(UpdateIndicatorStatus(tenantId, indicatorId, IndicatorStatus.Verified));
     }
 
     public Task<bool> ActivateTenantIndicatorAsync(Guid tenantId, Guid indicatorId, CancellationToken ct = default)
     {
-        return Task.FromResult(UpdateIndicatorStatus(tenantId, indicatorId, static indicator => indicator.Status = IndicatorStatus.Active));
+        return Task.FromResult(UpdateIndicatorStatus(tenantId, indicatorId, IndicatorStatus.Active));
     }
 
     public Task<bool> DisableTenantIndicatorAsync(Guid tenantId, Guid indicatorId, CancellationToken ct = default)
     {
-        return Task.FromResult(UpdateIndicatorStatus(tenantId, indicatorId, static indicator => indicator.Status = IndicatorStatus.Disabled));
+        return Task.FromResult(UpdateIndicatorStatus(tenantId, indicatorId, IndicatorStatus.Disabled));
     }
 
     public Task<bool> DeleteTenantIndicatorAsync(Guid tenantId, Guid indicatorId, CancellationToken ct = default)
@@ -156,7 +156,7 @@ public sealed class MockPartiesService : IPartiesService
         return Task.FromResult(removed > 0);
     }
 
-    private bool UpdateIndicatorStatus(Guid tenantId, Guid indicatorId, Action<TenantIndicator> update)
+    private bool UpdateIndicatorStatus(Guid tenantId, Guid indicatorId, IndicatorStatus newStatus)
     {
         TenantIndicator? indicator = indicators.FirstOrDefault(item => item.TenantId == tenantId && item.Id == indicatorId);
         if (indicator is null)
@@ -164,8 +164,11 @@ public sealed class MockPartiesService : IPartiesService
             return false;
         }
 
-        update(indicator);
-        indicator.VerifiedAt = DateTimeOffset.UtcNow;
+        indicator.Status = newStatus;
+        if (newStatus == IndicatorStatus.Verified)
+        {
+            indicator.VerifiedAt = DateTimeOffset.UtcNow;
+        }
         return true;
     }
 }
