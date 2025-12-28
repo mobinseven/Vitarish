@@ -21,7 +21,7 @@ This repository uses a modular .NET solution that separates client-facing APIs, 
 
 ## Namespaces
 - Namespaces follow the folder and project structure. Start with the bounded context or module name, then append the layer (e.g., `Vitarish.Identity.Users.Domain`, `Vitarish.Modules.Communications.Application`).
-- Keep namespaces aligned with the project name (`*.csproj`) to simplify discovery and avoid accidental cross-layer leakage.
+- The project name (`*.csproj`) should match the final segments of the namespace (e.g., `Users.Domain.csproj` for `Vitarish.Identity.Users.Domain`) to simplify discovery and avoid accidental cross-layer leakage.
 - `Clients/` namespaces should remain inside the `Vitarish.Clients.*` root to enforce the no-cross-folder reference rule.
 - `Interfaces/` namespaces should live under `Vitarish.Interfaces.*`, and UI-specific types should not be placed in domain/application namespaces.
 - When adding new folders, update namespaces to mirror the folder path so related types stay grouped and easy to locate.
