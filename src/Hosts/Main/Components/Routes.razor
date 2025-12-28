@@ -5,9 +5,9 @@
 @using Vitarish.Accounts.Interface.Components.Base
 @inject IStringLocalizer Localizer
 
-<Router AppAssembly="typeof(App).Assembly" OnNavigateAsync="OnNavigating">
+<Router AppAssembly="typeof(App).Assembly">
     <Found Context="routeData">
-        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)" Resource="@("admin")">
+        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)">
             <NotAuthorized>
                 <MudText Typo="Typo.h4" GutterBottom="true" Align="Align.Center">@Localizer["AccessDenied"]</MudText>
                 <MudChip T="string" Size="Size.Large">@Localizer["AccessDeniedMessage"]</MudChip>

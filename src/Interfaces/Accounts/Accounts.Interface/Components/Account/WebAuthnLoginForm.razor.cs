@@ -16,9 +16,10 @@ public partial class WebAuthnLoginForm : CommonBase, IAsyncDisposable
     private IJSObjectReference? _jsModule;
     private ILogger<WebAuthnLoginForm>? _logger;
 
-    protected override void OnInitialized()
+    protected override Task OnInitializedAsync()
     {
         _logger = LoggerFactory.CreateLogger<WebAuthnLoginForm>();
+        return base.OnInitializedAsync();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

@@ -1,5 +1,3 @@
-using Vitarish.Users.Application.Commands;
-
 namespace Vitarish.Accounts.Interface.Components.Account;
 
 public partial class ProfileEditor
@@ -29,10 +27,10 @@ public partial class ProfileEditor
         _isBusy = true;
         try
         {
-            await UserService.UpdateUserAsync(User);
+            _ = await UserService.UpdateUserAsync(User);
             if (ReturnUrl is null)
             {
-                Snackbar.Add(Localizer["ProfileUpdated"]);
+                _ = Snackbar.Add(Localizer["ProfileUpdated"]);
             }
             else
             {

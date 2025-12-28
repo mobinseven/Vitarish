@@ -1,3 +1,5 @@
+using Duende.IdentityServer.Extensions;
+
 namespace Vitarish.Accounts.Interface.Components.Base
 {
     public class CommonBase : ComponentBase
@@ -23,5 +25,8 @@ namespace Vitarish.Accounts.Interface.Components.Base
         [Inject] protected AuthenticationStateProvider AuthenticationStateProvider { get; set; } = default!;
         [Inject] protected IHttpClientFactory HttpClientFactory { get; set; } = default!;
         [Inject] protected ILoggerFactory LoggerFactory { get; set; } = default!;
+        [Inject] protected IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
+
+        protected sealed override void OnInitialized() => UserService.CurrentUserId = HttpContextAccessor.HttpContext?.User.GetSubjectId();
     }
 }

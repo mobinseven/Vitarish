@@ -1,12 +1,10 @@
-using Vitarish.Accounts.Interface.Components.Base;
-
 namespace Vitarish.Accounts.Interface.Components.Account;
 
 public partial class StatusMessage : IdentityBase
 {
     private string? DisplayMessage { get; set; }
 
-    protected override void OnInitialized()
+    protected override Task OnInitializedAsync()
     {
         DisplayMessage = HttpContext?.Request.Cookies[IdentityRedirectManager.StatusCookieName];
 
@@ -14,6 +12,7 @@ public partial class StatusMessage : IdentityBase
         {
             HttpContext?.Response.Cookies.Delete(IdentityRedirectManager.StatusCookieName);
         }
+        return base.OnInitializedAsync();
     }
 
 }

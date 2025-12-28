@@ -5,7 +5,7 @@ public class IdentityBase : CommonBase
     [CascadingParameter] protected HttpContext? HttpContext { get; set; }
     [SupplyParameterFromQuery] protected string? FailureUrl { get; set; }
     [SupplyParameterFromQuery] protected string? ReturnUrl { get; set; }
-    protected override async void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         RedirectManager.HttpContext = HttpContext;
         if (ReturnUrl is null)

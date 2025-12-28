@@ -12,7 +12,7 @@ public partial class EmailVerificationVerify
 
     protected VerifyEmailCodeModel VerifyCodeInput { get; private set; } = new();
 
-    protected override void OnInitialized()
+    protected override Task OnInitializedAsync()
     {
         if (User is null)
         {
@@ -24,5 +24,6 @@ public partial class EmailVerificationVerify
         }
         VerifyCodeInput.User = User;
         VerifyCodeInput.Email = Email;
+        return base.OnInitializedAsync();
     }
 }

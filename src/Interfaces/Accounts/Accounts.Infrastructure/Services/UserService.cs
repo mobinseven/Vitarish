@@ -3,33 +3,41 @@ using Vitarish.Users.Application.Commands;
 namespace Vitarish.Accounts.Infrastructure.Services;
 
 public class UserService(IUsersService usersService,
-    IRequestContext requestContext,
     IUserProfileService profileService,
     IEmailAuthenticationService emailAuthenticationService,
     ISmsAuthenticationService smsAuthenticationService) : IUserService
 {
     private const string CulturePreferenceKey = "Culture";
     public User? CurrentUser { get; set; }
-    private string currentUserId => requestContext.UserId ?? throw new InvalidOperationException("Request context must supply user ID");
-    public async Task<User?> GetUserAsync(CancellationToken ct = default) =>
-        CurrentUser ??= await usersService.GetUserAsync(currentUserId, ct);
+    public string? CurrentUserId { get; set; }
+    public async Task<User?> GetUserAsync(string? userId = null, CancellationToken ct = default)
+    {
+        if (userId == null && CurrentUserId == null)
+        {
+            throw new InvalidOperationException("Current user ID must be set at this stage.");
+        }
+        CurrentUserId ??= userId;
+        CurrentUser ??= await usersService.GetUserAsync(CurrentUserId, ct);
+        return CurrentUser;
+    }
+
     public async Task<IdentityResult> UpdateUserAsync(User user, CancellationToken ct = default)
     {
         var res = await usersService.UpdateUserAsync(new UpdateUserCommand(user), ct);
         if (res.Succeeded)
         {
-            CurrentUser = await usersService.GetUserAsync(currentUserId, ct);
+            CurrentUser = await usersService.GetUserAsync(CurrentUserId, ct);
         }
         return res;
     }
     public Task<bool> UserHasPasswordAsync(CancellationToken ct = default) =>
-        usersService.UserHasPasswordAsync(currentUserId, ct);
+        usersService.UserHasPasswordAsync(CurrentUserId, ct);
 
     public Task<bool> CheckUserEmailInUseAsync(string email, CancellationToken ct = default) =>
-        usersService.CheckUserEmailInUseAsync(email, currentUserId, ct);
+        usersService.CheckUserEmailInUseAsync(email, CurrentUserId, ct);
 
     public Task<bool> CheckUserPhoneNumberInUseAsync(string phoneNumber, CancellationToken ct = default) =>
-        usersService.CheckUserPhoneNumberInUseAsync(phoneNumber, currentUserId, ct);
+        usersService.CheckUserPhoneNumberInUseAsync(phoneNumber, CurrentUserId, ct);
 
 
     public async Task SendEmailCode(string email)
@@ -50,7 +58,7 @@ public class UserService(IUsersService usersService,
         return CurrentUser?.ProfilePreferences;
     }
 
-    public async Task UpdateProfileAsync(Dictionary<string, string> preferences) => await profileService.UpdateProfileAsync(currentUserId, preferences);
+    public async Task UpdateProfileAsync(Dictionary<string, string> preferences) => await profileService.UpdateProfileAsync(CurrentUserId, preferences);
 
     public static string? GetCulture(IDictionary<string, string> preferences)
     {
