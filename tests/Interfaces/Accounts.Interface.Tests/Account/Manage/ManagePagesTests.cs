@@ -233,6 +233,30 @@ public class ManagePagesTests
     }
 
     [Fact]
+    public async Task EmailChangeForm_ShowsErrorWhenUserIsMissing()
+    {
+        using ComponentFixture fixture = new();
+        EmailChangeForm form = new();
+        fixture.ConfigureCommonComponent(form);
+
+        AuthenticationStateProvider authProvider = new TestAuthenticatedStateProvider("user-1");
+        ComponentTestHelper.SetProperty(form, "AuthenticationStateProvider", authProvider, typeof(Vitarish.Accounts.Interface.Components.Base.CommonBase));
+
+        _ = fixture.Mocks.UserService.Setup(service => service.GetUserAsync(It.IsAny<CancellationToken>())).ReturnsAsync((User?)null);
+
+        await ComponentTestHelper.InvokeAsync(form, "ValidSendCodeSubmit", typeof(EmailChangeForm), new SendEmailCodeModel
+        {
+            Email = "new@example.com",
+            User = new User { Id = "user-1" }
+        });
+
+        string? error = ComponentTestHelper.GetFieldValue<string?>(form, "error", typeof(EmailChangeForm));
+        Assert.Equal(fixture.Localizer["UserNotFound"].Value, error);
+        fixture.Mocks.UserService.Verify(service => service.CheckUserEmailInUseAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()), Times.Never);
+        fixture.Mocks.UserService.Verify(service => service.SendEmailCode(It.IsAny<string>()), Times.Never);
+    }
+
+    [Fact]
     public async Task PhoneChangeForm_BlocksDuplicateNumbers()
     {
         await using InterfaceTestContext context = new();

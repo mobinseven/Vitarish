@@ -210,6 +210,9 @@
   <data name="InvalidEmail" xml:space="preserve">
     <value>Enter another email</value>
   </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>User not found</value>
+  </data>
     <data name="EmailChangeFailed" xml:space="preserve">
       <value>Email change failed</value>
     </data>
