@@ -210,6 +210,9 @@
   <data name="InvalidEmail" xml:space="preserve">
     <value>رایانامه دیگری وارد کنید</value>
   </data>
+  <data name="UserNotFound" xml:space="preserve">
+    <value>کاربر یافت نشد</value>
+  </data>
     <data name="EmailChangeFailed" xml:space="preserve">
       <value>تغییر رایانامه ناموفق بود</value>
     </data>

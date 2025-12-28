@@ -10,6 +10,12 @@ public partial class EmailChangeForm : CommonBase
     private async void ValidSendCodeSubmit(SendEmailCodeModel model)
     {
         User = await UserService.GetUserAsync();
+        if (User is null)
+        {
+            error = Localizer["UserNotFound"];
+            StateHasChanged();
+            return;
+        }
         bool emailInUse = await UserService.CheckUserEmailInUseAsync(model.Email);
         if (emailInUse)
         {
