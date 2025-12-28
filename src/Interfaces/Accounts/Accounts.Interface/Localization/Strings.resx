@@ -639,6 +639,21 @@
   <data name="ClaimsUpdateFailed" xml:space="preserve">
     <value>Could not update claims.</value>
   </data>
+  <data name="UpdateYourNameDetails" xml:space="preserve">
+    <value>Update your name details.</value>
+  </data>
+  <data name="SetYourLocalePreferences" xml:space="preserve">
+    <value>Set your locale preferences.</value>
+  </data>
+  <data name="Workspaces" xml:space="preserve">
+    <value>Workspaces</value>
+  </data>
+  <data name="NoWorkspacesAssigned" xml:space="preserve">
+    <value>No workspaces assigned.</value>
+  </data>
+  <data name="ChooseWorkspaceToContinue" xml:space="preserve">
+    <value>Choose a workspace to continue.</value>
+  </data>
   <data name="Actions" xml:space="preserve">
     <value>Actions</value>
   </data>
