@@ -1,14 +1,15 @@
+using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Identity;
 
 namespace Vitarish.Main.Mock.Services;
 
 public sealed class PreviewRoleStore : IRoleStore<IdentityRole>
 {
-    private readonly List<IdentityRole> _roles = [];
+    private readonly ConcurrentDictionary<string, IdentityRole> _roles = new();
 
     public Task<IdentityResult> CreateAsync(IdentityRole role, CancellationToken cancellationToken)
     {
-        _roles.Add(role);
+        _roles.TryAdd(role.Id, role);
         return Task.FromResult(IdentityResult.Success);
     }
 
@@ -20,7 +21,7 @@ public sealed class PreviewRoleStore : IRoleStore<IdentityRole>
 
     public Task<IdentityResult> DeleteAsync(IdentityRole role, CancellationToken cancellationToken)
     {
-        _ = _roles.RemoveAll(existing => existing.Id == role.Id);
+        _ = _roles.TryRemove(role.Id, out _);
         return Task.FromResult(IdentityResult.Success);
     }
 
@@ -53,12 +54,13 @@ public sealed class PreviewRoleStore : IRoleStore<IdentityRole>
 
     public Task<IdentityRole?> FindByIdAsync(string roleId, CancellationToken cancellationToken)
     {
-        return Task.FromResult(_roles.FirstOrDefault(role => role.Id == roleId));
+        _roles.TryGetValue(roleId, out IdentityRole? role);
+        return Task.FromResult(role);
     }
 
     public Task<IdentityRole?> FindByNameAsync(string normalizedRoleName, CancellationToken cancellationToken)
     {
-        return Task.FromResult(_roles.FirstOrDefault(role => role.NormalizedName == normalizedRoleName));
+        return Task.FromResult(_roles.Values.FirstOrDefault(role => role.NormalizedName == normalizedRoleName));
     }
 
     public void Dispose()
