@@ -600,6 +600,21 @@
   <data name="ClaimsUpdateFailed" xml:space="preserve">
     <value>به‌روزرسانی ادعاها انجام نشد.</value>
   </data>
+  <data name="UpdateYourNameDetails" xml:space="preserve">
+    <value>جزئیات نام خود را به‌روزرسانی کنید.</value>
+  </data>
+  <data name="SetYourLocalePreferences" xml:space="preserve">
+    <value>ترجیحات محلی خود را تنظیم کنید.</value>
+  </data>
+  <data name="Workspaces" xml:space="preserve">
+    <value>فضاهای کاری</value>
+  </data>
+  <data name="NoWorkspacesAssigned" xml:space="preserve">
+    <value>هیچ فضای کاری اختصاص داده نشده است.</value>
+  </data>
+  <data name="ChooseWorkspaceToContinue" xml:space="preserve">
+    <value>برای ادامه یک فضای کاری را انتخاب کنید.</value>
+  </data>
   <data name="Actions" xml:space="preserve">
     <value>اقدامات</value>
   </data>
