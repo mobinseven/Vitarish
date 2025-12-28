@@ -1,4 +1,4 @@
-# Vitarish Agent Map
+# Vitarish Agent Guide
 
 This repository uses a modular .NET solution that separates client-facing APIs, hosting shells, and domain-driven modules. Use this file as a quick orientation guide when extending or reviewing the codebase.
 
