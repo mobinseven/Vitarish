@@ -3,9 +3,11 @@ using Microsoft.AspNetCore.Identity;
 
 namespace Vitarish.Main.Mock.Services;
 
-public sealed class PreviewRoleStore : IRoleStore<IdentityRole>
+public sealed class PreviewRoleStore : IRoleStore<IdentityRole>, IQueryableRoleStore<IdentityRole>
 {
     private readonly ConcurrentDictionary<string, IdentityRole> _roles = new();
+
+    public IQueryable<IdentityRole> Roles => _roles.Values.AsQueryable();
 
     public Task<IdentityResult> CreateAsync(IdentityRole role, CancellationToken cancellationToken)
     {
