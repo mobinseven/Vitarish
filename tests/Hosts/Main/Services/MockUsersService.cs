@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using System.Collections.Concurrent;
 using System.Security.Claims;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Application.Commands;
@@ -9,9 +10,9 @@ namespace Vitarish.Main.Mock.Services;
 public sealed class MockUsersService : IUsersService
 {
     private const string DefaultPassword = "preview-password";
-    private readonly Dictionary<string, User> users = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, List<Claim>> userClaims = new(StringComparer.OrdinalIgnoreCase);
-    private readonly Dictionary<string, string> userPasswords = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, User> users = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, List<Claim>> userClaims = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, string> userPasswords = new(StringComparer.OrdinalIgnoreCase);
 
     public MockUsersService()
     {
@@ -91,24 +92,29 @@ public sealed class MockUsersService : IUsersService
 
     public Task<IdentityResult> UpdateUserAsync(UpdateUserCommand command, CancellationToken ct = default)
     {
-        if (!users.ContainsKey(command.User.Id))
+        while (true)
         {
-            return Task.FromResult(UserNotFound());
-        }
+            if (!users.TryGetValue(command.User.Id, out User? existingUser))
+            {
+                return Task.FromResult(UserNotFound());
+            }
 
-        users[command.User.Id] = command.User;
-        return Task.FromResult(IdentityResult.Success);
+            if (users.TryUpdate(command.User.Id, command.User, existingUser))
+            {
+                return Task.FromResult(IdentityResult.Success);
+            }
+        }
     }
 
     public Task<IdentityResult> DeleteUserAsync(DeleteUserCommand command, CancellationToken ct = default)
     {
-        if (!users.Remove(command.Id))
+        if (!users.TryRemove(command.Id, out _))
         {
             return Task.FromResult(UserNotFound());
         }
 
-        userClaims.Remove(command.Id);
-        userPasswords.Remove(command.Id);
+        userClaims.TryRemove(command.Id, out _);
+        userPasswords.TryRemove(command.Id, out _);
         return Task.FromResult(IdentityResult.Success);
     }
 
@@ -162,7 +168,7 @@ public sealed class MockUsersService : IUsersService
             return Task.FromResult(UserNotFound());
         }
 
-        userPasswords.Remove(userId);
+        userPasswords.TryRemove(userId, out _);
         return Task.FromResult(IdentityResult.Success);
     }
 
@@ -179,26 +185,64 @@ public sealed class MockUsersService : IUsersService
 
     public Task<IdentityResult> SetUserPhoneNumberAsync(string userId, string phoneNumber, CancellationToken ct = default)
     {
-        if (!users.TryGetValue(userId, out User? user))
+        return UpdateUserAsync(userId, existingUser =>
         {
-            return Task.FromResult(UserNotFound());
-        }
-
-        user.PhoneNumber = phoneNumber;
-        return Task.FromResult(IdentityResult.Success);
+            User updatedUser = CloneUser(existingUser);
+            updatedUser.PhoneNumber = phoneNumber;
+            return updatedUser;
+        });
     }
 
     public Task<IdentityResult> SetUserEmailAsync(string userId, string email, CancellationToken ct = default)
     {
-        if (!users.TryGetValue(userId, out User? user))
+        return UpdateUserAsync(userId, existingUser =>
         {
-            return Task.FromResult(UserNotFound());
-        }
-
-        user.Email = email;
-        return Task.FromResult(IdentityResult.Success);
+            User updatedUser = CloneUser(existingUser);
+            updatedUser.Email = email;
+            return updatedUser;
+        });
     }
 
     private static IdentityResult UserNotFound()
         => IdentityResult.Failed(new IdentityError { Code = "UserNotFound", Description = "User not found." });
+
+    private Task<IdentityResult> UpdateUserAsync(string userId, Func<User, User> update)
+    {
+        while (true)
+        {
+            if (!users.TryGetValue(userId, out User? existingUser))
+            {
+                return Task.FromResult(UserNotFound());
+            }
+
+            User updatedUser = update(existingUser);
+            if (users.TryUpdate(userId, updatedUser, existingUser))
+            {
+                return Task.FromResult(IdentityResult.Success);
+            }
+        }
+    }
+
+    private static User CloneUser(User user)
+        => new()
+        {
+            AccessFailedCount = user.AccessFailedCount,
+            ConcurrencyStamp = user.ConcurrencyStamp,
+            Email = user.Email,
+            EmailConfirmed = user.EmailConfirmed,
+            FirstName = user.FirstName,
+            Id = user.Id,
+            LastName = user.LastName,
+            LockoutEnabled = user.LockoutEnabled,
+            LockoutEnd = user.LockoutEnd,
+            NormalizedEmail = user.NormalizedEmail,
+            NormalizedUserName = user.NormalizedUserName,
+            PasswordHash = user.PasswordHash,
+            PhoneNumber = user.PhoneNumber,
+            PhoneNumberConfirmed = user.PhoneNumberConfirmed,
+            ProfileJson = user.ProfileJson,
+            SecurityStamp = user.SecurityStamp,
+            TwoFactorEnabled = user.TwoFactorEnabled,
+            UserName = user.UserName
+        };
 }
