@@ -29,7 +29,7 @@ Use this map as a starting point; dive into the relevant module folder for deepe
 
 - The `Identity/` shall not need nor reference any projects outside this folder.
 - The projects under `Clients/` shall not under any circumstances reference any project out of this folder. If a client project needed any object from outside of this folder, a corresponding DTO must be created for the object inside that project.
-- When creating UI components, consult `DSG.md` for design systems guidelines. If the component has a page under Mock hosts (e.g. Main.Mock) and take screenshots of the resulting design. If it doesn't have, add a page for the component and follow suit.
+- When creating UI components, consult `DSG.md` for design systems guidelines. If the component has a page under Mock hosts (e.g. Main.Mock), take screenshots of the resulting design. If it doesn't have, add a page for the component and follow suit.
 
 ## Pull requests
 
