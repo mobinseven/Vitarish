@@ -27,7 +27,7 @@ using Vitarish.Users.Domain.Entities;
 
 namespace Accounts.Interface.Tests.TestInfrastructure;
 
-internal sealed class InterfaceTestContext : TestContext
+internal sealed class InterfaceTestContext : BunitContext
 {
     public ServiceMocks Mocks { get; }
     public RecordingNavigationManager Navigation { get; }
@@ -40,10 +40,10 @@ internal sealed class InterfaceTestContext : TestContext
 
         _ = Services.AddLogging();
         _ = Services.AddMudServices();
-        
+
         Mock<IDialogService> dialogServiceMock = new();
         _ = Services.AddSingleton(dialogServiceMock.Object);
-        
+
         _ = Services.AddSingleton<IStringLocalizer>(new TestStringLocalizer());
         _ = Services.AddSingleton<AuthenticationStateProvider>(new TestAuthenticationStateProvider());
         _ = Services.AddSingleton<IJSRuntime>(new TestJsRuntime());
@@ -103,7 +103,7 @@ internal sealed class InterfaceTestContext : TestContext
         DefaultHttpContext httpContext = new()
         {
             User = new ClaimsPrincipal(new ClaimsIdentity(
-                new[] { new Claim(ClaimTypes.Name, "AuthenticatedUser") },
+                new[] { new Claim(ClaimTypes.Name, "AuthenticatedUser"), new Claim(ClaimTypes.NameIdentifier, "user-1"), new Claim("sub", "user-1") },
                 "Cookies"))
         };
 
