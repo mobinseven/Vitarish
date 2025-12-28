@@ -47,6 +47,7 @@ builder.Services.AddSingleton<IApiClientsService, MockApiClientsService>();
 builder.Services.AddSingleton<IAuthenticationClientsService, MockAuthenticationClientsService>();
 builder.Services.AddSingleton<IRequestIdentitiesService, MockRequestIdentitiesService>();
 builder.Services.AddSingleton<IPartiesService, MockPartiesService>();
+builder.Services.AddSingleton<IUsersService, MockUsersService>();
 
 WebApplication app = builder.Build();
 
