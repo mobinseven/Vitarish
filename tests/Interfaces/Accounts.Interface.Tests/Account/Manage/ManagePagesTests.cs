@@ -224,6 +224,7 @@ public class ManagePagesTests
         ComponentTestHelper.SetProperty(form, "AuthenticationStateProvider", authProvider, typeof(Vitarish.Accounts.Interface.Components.Base.CommonBase));
 
         User user = new() { Id = "user-1" };
+        ComponentTestHelper.SetProperty(form, "User", user, typeof(Vitarish.Accounts.Interface.Components.Base.CommonBase));
         _ = fixture.Mocks.UserService.Setup(service => service.GetUserAsync(user.Id, It.IsAny<CancellationToken>())).ReturnsAsync(user);
         _ = fixture.Mocks.UserService.Setup(service => service.CheckUserEmailInUseAsync("new@example.com", "user-1", It.IsAny<CancellationToken>())).ReturnsAsync(false);
 

@@ -16,6 +16,11 @@ public interface IUserService
     Task<IdentityResult> UpdateUserAsync(string userId, User user, CancellationToken ct = default);
 
     /// <summary>
+    /// Create a new user using email or phone number.
+    /// </summary>
+    Task<IdentityResult> CreateUserAsync(User user, CancellationToken ct = default);
+
+    /// <summary>
     /// Check whether the user has a password set.
     /// </summary>
     Task<bool> UserHasPasswordAsync(string userId, CancellationToken ct = default);
@@ -61,4 +66,3 @@ public interface IUserService
     Task<bool> SetCultureAsync(string userId, string culture);
     Task<IEnumerable<IdentityRole>> GetUserRolesAsync(string userId, CancellationToken ct = default);
 }
-

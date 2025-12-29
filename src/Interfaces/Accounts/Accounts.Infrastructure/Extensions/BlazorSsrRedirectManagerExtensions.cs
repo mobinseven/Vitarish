@@ -1,5 +1,14 @@
-﻿internal static class BlazorSsrRedirectManagerExtensions
+﻿using Microsoft.Extensions.DependencyInjection;
+
+public static class BlazorSsrRedirectManagerExtensions
 {
+    public static IServiceCollection AddBlazorSsrRedirectManager(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        _ = services.AddScoped<IdentityRedirectManager>();
+        return services;
+    }
+
     public static void RedirectTo(this HttpContext httpContext, string redirectionUrl)
     {
         ArgumentNullException.ThrowIfNull(httpContext);

@@ -15,3 +15,34 @@ public interface IMessageQueue
     /// </summary>
     void EnqueueSms(string phoneNumber, string code);
 }
+
+public abstract record MessageQueueMessage;
+
+public sealed record EmailQueueMessage(
+    string To,
+    string Subject,
+    string TextBody,
+    string HtmlBody) : MessageQueueMessage;
+
+public sealed record SmsQueueMessage(
+    string PhoneNumber,
+    string Code) : MessageQueueMessage;
+
+public sealed class MessageQueue : IMessageQueue
+{
+    private readonly Queue<MessageQueueMessage> messages = new();
+
+    public int Count => messages.Count;
+
+    public void EnqueueEmail(string to, string subject, string textBody, string htmlBody)
+    {
+        messages.Enqueue(new EmailQueueMessage(to, subject, textBody, htmlBody));
+    }
+
+    public void EnqueueSms(string phoneNumber, string code)
+    {
+        messages.Enqueue(new SmsQueueMessage(phoneNumber, code));
+    }
+
+    public MessageQueueMessage Dequeue() => messages.Dequeue();
+}
