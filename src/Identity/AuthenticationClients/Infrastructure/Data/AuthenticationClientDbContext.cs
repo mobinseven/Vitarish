@@ -19,7 +19,7 @@ public class AuthenticationClientDbContext(DbContextOptions<AuthenticationClient
         modelBuilder.Entity<AuthenticationClient>(entity =>
         {
             entity.HasKey(client => client.Id);
-            entity.Property(client => client.Id).HasMaxLength(128);
+            entity.Property(client => client.Id).HasMaxLength(128).IsRequired();
             entity.Property(client => client.Url).HasMaxLength(2048).IsRequired();
             entity.Property(client => client.Title).HasMaxLength(200);
             entity.Property(client => client.Description).HasMaxLength(1024);
