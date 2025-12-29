@@ -8,6 +8,8 @@ public class UpdateUserCommandValidatorTests
 {
     private readonly UpdateUserCommandValidator validator = new();
 
+    private static User CreateNullUser() => null!;
+
     [Fact]
     public void Validate_WithValidUser_Passes()
     {
@@ -22,17 +24,17 @@ public class UpdateUserCommandValidatorTests
     [Fact]
     public void Validate_WithNullUser_Fails()
     {
-        UpdateUserCommand command = new(null!);
+        UpdateUserCommand command = new(CreateNullUser());
 
-        Action act = () => validator.Validate(command);
+        TestValidationResult<UpdateUserCommand> result = validator.TestValidate(command);
 
-        act.Should().Throw<NullReferenceException>();
+        result.ShouldHaveValidationErrorFor(c => c.User);
     }
 
     [Fact]
     public void Validate_WithMissingUserId_Fails()
     {
-        User user = new() { Id = null };
+        User user = new() { Id = null! };
         UpdateUserCommand command = new(user);
 
         TestValidationResult<UpdateUserCommand> result = validator.TestValidate(command);

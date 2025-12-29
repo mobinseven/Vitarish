@@ -17,8 +17,11 @@ public class UserCacheExtensionsTests
 
         await UserCacheExtensions.SetUserAsync(cache, user, CancellationToken.None);
 
-        User? byId = await UserCacheExtensions.GetUserAsync(cache, "user-1", CancellationToken.None);
-        User? byName = await UserCacheExtensions.GetUserByNameAsync(cache, "user1", CancellationToken.None);
+        Task<User?> byIdTask = UserCacheExtensions.GetUserAsync(cache, "user-1", CancellationToken.None);
+        Task<User?> byNameTask = UserCacheExtensions.GetUserByNameAsync(cache, "user1", CancellationToken.None);
+        await Task.WhenAll(byIdTask, byNameTask);
+        User? byId = await byIdTask;
+        User? byName = await byNameTask;
 
         byId.Should().NotBeNull();
         byId!.Id.Should().Be("user-1");
