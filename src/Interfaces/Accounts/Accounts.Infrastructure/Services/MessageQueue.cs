@@ -30,7 +30,7 @@ public sealed record SmsQueueMessage(
 
 public sealed class MessageQueue : IMessageQueue
 {
-    private readonly Queue<MessageQueueMessage> messages = new();
+    private readonly System.Collections.Concurrent.ConcurrentQueue<MessageQueueMessage> messages = new();
 
     public int Count => messages.Count;
 
@@ -44,5 +44,13 @@ public sealed class MessageQueue : IMessageQueue
         messages.Enqueue(new SmsQueueMessage(phoneNumber, code));
     }
 
-    public MessageQueueMessage Dequeue() => messages.Dequeue();
+    public MessageQueueMessage Dequeue()
+    {
+        if (messages.TryDequeue(out MessageQueueMessage? message))
+        {
+            return message;
+        }
+
+        throw new InvalidOperationException("The queue is empty.");
+    }
 }

@@ -25,7 +25,7 @@ public interface IPersonalAccessTokenService
 public sealed class PersonalAccessTokenService(IPersonalAccessTokenGenerator generator)
     : IPersonalAccessTokenService
 {
-    private static readonly ConcurrentDictionary<string, List<string>> TokenStore = new();
+    private static readonly ConcurrentDictionary<string, HashSet<string>> TokenStore = new();
 
     public async Task<string> CreateTokenAsync(
         string subjectId,
@@ -35,7 +35,7 @@ public sealed class PersonalAccessTokenService(IPersonalAccessTokenGenerator gen
         CancellationToken cancellationToken = default)
     {
         string token = await generator.CreateTokenAsync(subjectId, lifetimeDays, scopes, isReferenceToken, cancellationToken);
-        List<string> tokens = TokenStore.GetOrAdd(subjectId, _ => []);
+        HashSet<string> tokens = TokenStore.GetOrAdd(subjectId, _ => []);
         lock (tokens)
         {
             tokens.Add(token);
@@ -48,7 +48,7 @@ public sealed class PersonalAccessTokenService(IPersonalAccessTokenGenerator gen
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (!TokenStore.TryGetValue(subjectId, out List<string>? tokens))
+        if (!TokenStore.TryGetValue(subjectId, out HashSet<string>? tokens))
         {
             return Task.FromResult<IReadOnlyCollection<string>>(Array.Empty<string>());
         }
@@ -65,7 +65,7 @@ public sealed class PersonalAccessTokenService(IPersonalAccessTokenGenerator gen
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (TokenStore.TryGetValue(subjectId, out List<string>? tokens))
+        if (TokenStore.TryGetValue(subjectId, out HashSet<string>? tokens))
         {
             lock (tokens)
             {
