@@ -1,7 +1,8 @@
 using Microsoft.AspNetCore.Identity;
 using System.Collections.Concurrent;
+using Vitarish.Main.Mock.Services;
 
-namespace Vitarish.Main.Mock.Services;
+namespace Vitarish.Main.Mock.Authentication;
 
 public sealed class PreviewRoleStore : IRoleStore<IdentityRole>, IQueryableRoleStore<IdentityRole>
 {

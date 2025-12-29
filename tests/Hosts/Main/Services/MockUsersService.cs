@@ -245,4 +245,5 @@ public sealed class MockUsersService : IUsersService
             TwoFactorEnabled = user.TwoFactorEnabled,
             UserName = user.UserName
         };
+    public Task<IEnumerable<IdentityRole>> GetUserRolesAsync(string userId, CancellationToken ct = default) => throw new NotImplementedException();
 }
