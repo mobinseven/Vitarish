@@ -127,8 +127,8 @@ public static class IdentityModuleExtensions
         _ = services.AddScoped<IPersonalClientFactory, PersonalClientFactory>();
         _ = services.AddScoped<IUsersService, UsersService>();
         _ = services.AddScoped<IIdentityService, IdentityService>();
-        _ = services.AddScoped<UserProfileClient>();
-        _ = services.AddScoped<UserProfileCultureInfoProvider>();
+        _ = services.AddScoped<IUserProfileClient, UserProfileClient>();
+        _ = services.AddScoped<IUserProfileCultureInfoProvider, UserProfileCultureInfoProvider>();
 
         return services;
     }
