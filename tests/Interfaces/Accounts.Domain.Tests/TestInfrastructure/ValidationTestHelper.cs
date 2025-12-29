@@ -12,8 +12,7 @@ public static class ValidationTestHelper
 
     public static ValidationAttribute CreateInternalAttribute(string attributeTypeName)
     {
-        Type attributeType = typeof(global::Vitarish.Accounts.Domain.Options.AaasOptions).Assembly.GetType(attributeTypeName, throwOnError: true)
-            ?? throw new InvalidOperationException($"Attribute type '{attributeTypeName}' not found.");
+        Type attributeType = typeof(global::Vitarish.Accounts.Domain.Options.AaasOptions).Assembly.GetType(attributeTypeName, throwOnError: true)!;
         return (ValidationAttribute)Activator.CreateInstance(attributeType)!;
     }
 }
