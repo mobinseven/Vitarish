@@ -6,6 +6,16 @@ public partial class EmailChangeForm : CommonBase
     [Parameter] public string? FailureUrl { get; set; }
     private string? Email = null;
     private string? error = null;
+    private bool hasRendered = false;
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if (firstRender)
+        {
+            hasRendered = true;
+        }
+    }
+
     private async void ValidSendCodeSubmit(SendEmailCodeModel model)
     {
         if (User is null)
