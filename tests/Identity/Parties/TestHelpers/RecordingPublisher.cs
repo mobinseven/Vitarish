@@ -14,7 +14,7 @@ internal sealed class RecordingPublisher : IPublisher
     public Task Publish<TNotification>(TNotification notification, CancellationToken cancellationToken = default)
         where TNotification : INotification
     {
-        _notifications.Add(notification!);
+        _notifications.Add(notification);
         return Task.CompletedTask;
     }
 
