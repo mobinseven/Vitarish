@@ -27,4 +27,5 @@ public interface IUsersService
     Task<IdentityResult> AddUserPasswordAsync(string userId, string password, CancellationToken ct = default);
     Task<IdentityResult> SetUserPhoneNumberAsync(string userId, string phoneNumber, CancellationToken ct = default);
     Task<IdentityResult> SetUserEmailAsync(string userId, string email, CancellationToken ct = default);
+    Task<IEnumerable<IdentityRole>> GetUserRolesAsync(string userId, CancellationToken ct = default);
 }

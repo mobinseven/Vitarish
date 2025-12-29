@@ -30,8 +30,11 @@ public sealed class UsersService(ISender sender) : IUsersService
     public async Task<IList<Claim>> GetUserClaimsAsync(string userId, CancellationToken ct = default)
     {
         IEnumerable<ClaimDto> dtos = await sender.Send(new GetUserClaimsQuery(userId), ct);
-        return dtos.Select(d => d.ToClaim()).ToList();
+        return [.. dtos.Select(d => d.ToClaim())];
     }
+
+    public Task<IEnumerable<IdentityRole>> GetUserRolesAsync(string userId, CancellationToken ct = default) =>
+        sender.Send(new GetUserRolesQuery(userId), ct);
 
     public Task<IdentityResult> UpdateUserClaimsAsync(UpdateUserClaimsCommand command, CancellationToken ct = default) =>
         sender.Send(command, ct);
