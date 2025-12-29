@@ -30,7 +30,7 @@ _ = builder.Services.AddAuthorization();
 builder.Services
     .AddIdentityCore<User>()
     .AddSignInManager()
-    .AddUserStore<PreviewUserStore>()
+    .AddUserStore<PreviewUserRoleStore>()
     .AddRoles<IdentityRole>()
     .AddRoleStore<PreviewRoleStore>();
 

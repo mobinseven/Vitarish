@@ -1,3 +1,5 @@
+using Duende.IdentityServer.Extensions;
+
 namespace Vitarish.Main.Pages.Account.Manage;
 
 public partial class Email

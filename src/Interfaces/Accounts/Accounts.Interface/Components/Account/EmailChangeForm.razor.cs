@@ -11,7 +11,7 @@ public partial class EmailChangeForm : CommonBase
         if (User is null)
         {
             error = Localizer["UserNotFound"];
-            StateHasChanged();
+            NotifyStateChanged();
             return;
         }
         bool emailInUse = await UserService.CheckUserEmailInUseAsync(model.Email, User.Email);
@@ -24,6 +24,14 @@ public partial class EmailChangeForm : CommonBase
             await UserService.SendEmailCode(User.Id, model.Email);
             Email = model.Email;
         }
-        StateHasChanged();
+        NotifyStateChanged();
+    }
+
+    private void NotifyStateChanged()
+    {
+        if (hasRendered)
+        {
+            StateHasChanged();
+        }
     }
 }
