@@ -39,10 +39,14 @@ public static class UrlExtensions
             string paramKey = parts[0];
             string paramValue = parts.Length > 1 ? parts[1] : string.Empty;
 
-            if (string.Equals(paramKey, key, StringComparison.Ordinal))
+            if (string.Equals(Uri.UnescapeDataString(paramKey), key, StringComparison.Ordinal))
             {
-                parameters.Add(new KeyValuePair<string, string>(paramKey, Uri.EscapeDataString(value)));
-                replaced = true;
+                if (!replaced)
+                {
+                    parameters.Add(new KeyValuePair<string, string>(paramKey, Uri.EscapeDataString(value)));
+                    replaced = true;
+                }
+
                 continue;
             }
 
