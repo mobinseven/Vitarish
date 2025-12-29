@@ -16,15 +16,15 @@ public class AuthenticationClientDbContext(DbContextOptions<AuthenticationClient
     {
         base.OnModelCreating(modelBuilder);
 
-        _ = modelBuilder.Entity<AuthenticationClient>(entity =>
+        modelBuilder.Entity<AuthenticationClient>(entity =>
         {
-            _ = entity.HasKey(client => client.Id);
-            _ = entity.Property(client => client.Id).HasMaxLength(128).IsRequired();
-            _ = entity.Property(client => client.Url).HasMaxLength(2048).IsRequired();
-            _ = entity.Property(client => client.Title).HasMaxLength(200);
-            _ = entity.Property(client => client.Description).HasMaxLength(1024);
-            _ = entity.Property(client => client.LogoUrl).HasMaxLength(2048);
-            _ = entity.HasIndex(client => client.Url);
+            entity.HasKey(client => client.Id);
+            entity.Property(client => client.Id).HasMaxLength(128);
+            entity.Property(client => client.Url).HasMaxLength(2048).IsRequired();
+            entity.Property(client => client.Title).HasMaxLength(200);
+            entity.Property(client => client.Description).HasMaxLength(1024);
+            entity.Property(client => client.LogoUrl).HasMaxLength(2048);
+            entity.HasIndex(client => client.Url);
         });
     }
 }
