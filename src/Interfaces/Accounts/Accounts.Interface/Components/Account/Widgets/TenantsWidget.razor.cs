@@ -9,10 +9,12 @@ public partial class TenantsWidget : CommonBase
     private bool isLoading;
 
     [Inject] private IPartiesService PartiesService { get; set; } = default!;
-    [Inject] private UserManager<User> UserManager { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
-        => await LoadAsync();
+    {
+        await base.OnInitializedAsync();
+        await LoadAsync();
+    }
 
     private async Task LoadAsync()
     {
@@ -38,15 +40,8 @@ public partial class TenantsWidget : CommonBase
                 return;
             }
 
-            User? user = await UserManager.FindByIdAsync(userId);
-            if (user is null)
-            {
-                _ = Snackbar.Add(Localizer["Error"], Severity.Error);
-                return;
-            }
-
-            IList<string> roles = await UserManager.GetRolesAsync(user);
-            List<TenantRoleAssignment> tenantRoleAssignments = ParseTenantRoles(roles);
+            var roles = await UserService.GetUserRolesAsync(User.Id);
+            List<TenantRoleAssignment> tenantRoleAssignments = ParseTenantRoles(roles.Select(ur => ur.Name).Cast<string>());
 
             if (tenantRoleAssignments.Count == 0)
             {

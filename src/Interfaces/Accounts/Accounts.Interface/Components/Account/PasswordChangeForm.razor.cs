@@ -10,5 +10,9 @@ public partial class PasswordChangeForm : CommonBase
 
     private PasswordChangeModel ChangePasswordInput { get; set; } = new();
 
-    protected override async Task OnInitializedAsync() => hasPass = await UserService.UserHasPasswordAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        hasPass = await UserService.UserHasPasswordAsync(User.Id);
+    }
 }

@@ -1,3 +1,4 @@
+using Duende.IdentityServer.Extensions;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Primitives;
 using System.Globalization;
@@ -57,7 +58,7 @@ public class UserProfileCultureInfoProvider(
             return false;
         }
 
-        if (!await userService.SetCultureAsync(cultureName))
+        if (!await userService.SetCultureAsync(httpContextAccessor.HttpContext?.User.GetSubjectId(), cultureName))
         {
             return false;
         }
@@ -75,7 +76,7 @@ public class UserProfileCultureInfoProvider(
 
     private async Task<CultureInfo?> ResolveCultureAsync()
     {
-        string? cultureFromProfile = await userService.GetCultureAsync();
+        string? cultureFromProfile = await userService.GetCultureAsync(httpContextAccessor.HttpContext?.User.GetSubjectId());
         CultureInfo? culture = TryGetCulture(cultureFromProfile);
         if (culture is not null)
         {
@@ -88,7 +89,7 @@ public class UserProfileCultureInfoProvider(
             return null;
         }
 
-        _ = await userService.SetCultureAsync(cookieCulture.Name);
+        _ = await userService.SetCultureAsync(httpContextAccessor.HttpContext?.User.GetSubjectId(), cookieCulture.Name);
 
         return cookieCulture;
     }

@@ -1,6 +1,4 @@
 using Vitarish.Parties.Domain.Entities;
-using Vitarish.ApiClients.Domain.Entities;
-using MudBlazor;
 
 namespace Vitarish.Accounts.Interface.Components.Admin;
 
@@ -13,7 +11,10 @@ public partial class UserRoleAssignments : AdminBase
     [Inject] private IDialogService DialogService { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
-        => await LoadAsync();
+    {
+        await base.OnInitializedAsync();
+        await LoadAsync();
+    }
 
     private async Task LoadAsync()
     {
@@ -56,7 +57,7 @@ public partial class UserRoleAssignments : AdminBase
             {
                 IList<string> userRoles = await UserManager.GetRolesAsync(user);
                 List<ParsedTenantRole> parsedRoles = RoleParser.ParseTenantRoles(userRoles, tenantDict, owners, clients);
-                
+
                 List<RoleDetail> roleDetails = parsedRoles
                     .Select(r => new RoleDetail(r.TenantId, r.TenantName, r.OwnerId, r.OwnerName, r.ClientId, r.RoleName, r.FullRoleName))
                     .ToList();

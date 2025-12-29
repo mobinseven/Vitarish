@@ -7,9 +7,4 @@ public partial class Email
     protected User? User;
     protected string failureUrl => NavigationManager.GetUriWithQueryParameters(NavigationManager.Uri, new Dictionary<string, object?> { ["FailureMessage"] = Localizer["EmailChangeFailed"].Value });
     protected string returnUrl => ReturnUrl ?? "/Account/Manage";
-    protected override async Task OnInitializedAsync()
-    {
-        User = await UserService.GetUserAsync();
-        StateHasChanged();
-    }
 }

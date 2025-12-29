@@ -9,10 +9,6 @@ public partial class ProfileEditor
     private bool _isValid;
     private bool _isBusy;
 
-    private User User = default!;
-
-    protected override async Task OnInitializedAsync() => User = (await UserService.GetUserAsync())!;
-
     private async Task UpdateUser()
     {
         if (_form is not null)
@@ -27,7 +23,7 @@ public partial class ProfileEditor
         _isBusy = true;
         try
         {
-            _ = await UserService.UpdateUserAsync(User);
+            _ = await UserService.UpdateUserAsync(User.Id, User);
             if (ReturnUrl is null)
             {
                 _ = Snackbar.Add(Localizer["ProfileUpdated"]);

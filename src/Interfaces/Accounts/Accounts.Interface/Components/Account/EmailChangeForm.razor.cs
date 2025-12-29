@@ -6,24 +6,22 @@ public partial class EmailChangeForm : CommonBase
     [Parameter] public string? FailureUrl { get; set; }
     private string? Email = null;
     private string? error = null;
-    private User? User = null;
     private async void ValidSendCodeSubmit(SendEmailCodeModel model)
     {
-        User = await UserService.GetUserAsync();
         if (User is null)
         {
             error = Localizer["UserNotFound"];
             StateHasChanged();
             return;
         }
-        bool emailInUse = await UserService.CheckUserEmailInUseAsync(model.Email);
+        bool emailInUse = await UserService.CheckUserEmailInUseAsync(model.Email, User.Email);
         if (emailInUse)
         {
             error = Localizer["InvalidEmail"];
         }
         else
         {
-            await UserService.SendEmailCode(model.Email);
+            await UserService.SendEmailCode(User.Id, model.Email);
             Email = model.Email;
         }
         StateHasChanged();

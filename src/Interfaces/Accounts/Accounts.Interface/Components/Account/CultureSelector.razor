@@ -6,7 +6,7 @@
 <label class="culture-selector">
     <span>@Strings["Language"]</span>
     <select value="@cultureName" @onchange="OnCultureChanged">
-        @foreach (CultureInfo culture in SupportedCultures)
+        @foreach(CultureInfo culture in SupportedCultures)
         {
             <option value="@culture.Name">@culture.NativeName</option>
         }
@@ -23,11 +23,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        string? existingCulture = await UserService.GetCultureAsync();
-        if (!string.IsNullOrWhiteSpace(existingCulture))
+        await base.OnInitializedAsync();
+        string? existingCulture = await UserService.GetCultureAsync(User.Id);
+        if(!string.IsNullOrWhiteSpace(existingCulture))
         {
             cultureName = existingCulture;
-            if (await CultureProvider.TryApplyCultureAsync(existingCulture))
+            if(await CultureProvider.TryApplyCultureAsync(existingCulture))
             {
                 return;
             }
@@ -35,7 +36,7 @@
 
         await CultureProvider.ApplyRequestedCultureAsync();
         CultureInfo? requestedCulture = await CultureProvider.GetRequestedCultureAsync();
-        if (requestedCulture is not null)
+        if(requestedCulture is not null)
         {
             cultureName = requestedCulture.Name;
         }
@@ -44,7 +45,7 @@
     private async Task OnCultureChanged(ChangeEventArgs args)
     {
         string? value = args.Value as string;
-        if (string.IsNullOrWhiteSpace(value))
+        if(string.IsNullOrWhiteSpace(value))
         {
             return;
         }

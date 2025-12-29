@@ -7,6 +7,7 @@ public class IdentityBase : CommonBase
     [SupplyParameterFromQuery] protected string? ReturnUrl { get; set; }
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         RedirectManager.HttpContext = HttpContext;
         if (ReturnUrl is null)
         {

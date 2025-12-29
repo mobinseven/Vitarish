@@ -3,7 +3,7 @@
 @using Vitarish.ApiClients.Domain.Entities
 
 <MudStack Spacing="3">
-    <MudPaper Elevation="1" Class="pa-4">
+    <MudPaper Elevation="0" Class="pa-4" Outlined>
         @if (isLoading)
         {
             <MudProgressLinear Indeterminate Color="Color.Default" />
@@ -25,8 +25,8 @@
                 <MudGrid Spacing="3">
                 @foreach (TenantAccessEntry entry in tenantEntries)
                 {
-                    <MudItem xs="12" sm="6" lg="4">
-                        <MudPaper Class="pa-4" Elevation="1">
+                    <MudItem xs="12">
+                        <MudPaper Class="pa-4" Elevation="0" Outlined>
                             <MudStack Spacing="2">
                                 <MudStack Row AlignItems="AlignItems.Center" Spacing="2">
                                     <MudAvatar Color="Color.Primary" Size="Size.Large" Variant="Variant.Filled">

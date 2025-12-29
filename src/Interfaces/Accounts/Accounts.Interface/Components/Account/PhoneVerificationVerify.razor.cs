@@ -12,8 +12,9 @@ public partial class PhoneVerificationVerify
 
     protected VerifySmsCodeModel VerifyCodeInput { get; private set; } = new();
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         if (User is null)
         {
             throw new ArgumentNullException(nameof(User));
@@ -24,6 +25,5 @@ public partial class PhoneVerificationVerify
         }
         VerifyCodeInput.User = User;
         VerifyCodeInput.PhoneNumber = PhoneNumber;
-        return base.OnInitializedAsync();
     }
 }

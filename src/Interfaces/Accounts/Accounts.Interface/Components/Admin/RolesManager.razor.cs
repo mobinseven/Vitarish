@@ -18,7 +18,10 @@ public partial class RolesManager : AdminBase
     [Inject] private IDialogService DialogService { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
-        => await LoadRolesAsync();
+    {
+        await base.OnInitializedAsync();
+        await LoadRolesAsync();
+    }
 
     private async Task LoadRolesAsync()
     {
