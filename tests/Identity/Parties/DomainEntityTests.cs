@@ -23,7 +23,6 @@ public class DomainEntityTests
     [Fact]
     public void Tenant_SetsCreatedAtOnConstruction()
     {
-        DateTime before = DateTime.UtcNow.AddSeconds(-1);
         var tenant = new Tenant
         {
             Id = Guid.NewGuid(),
@@ -32,28 +31,24 @@ public class DomainEntityTests
             ClientId = "client-id"
         };
 
-        Assert.True(tenant.CreatedAt >= before);
-        Assert.True(tenant.CreatedAt <= DateTime.UtcNow.AddSeconds(1));
+        Assert.InRange(DateTime.UtcNow.Subtract(tenant.CreatedAt), TimeSpan.Zero, TimeSpan.FromSeconds(5));
     }
 
     [Fact]
     public void Owner_SetsCreatedAtOnConstruction()
     {
-        DateTime before = DateTime.UtcNow.AddSeconds(-1);
         var owner = new Owner
         {
             Id = Guid.NewGuid(),
             Name = "Owner"
         };
 
-        Assert.True(owner.CreatedAt >= before);
-        Assert.True(owner.CreatedAt <= DateTime.UtcNow.AddSeconds(1));
+        Assert.InRange(DateTime.UtcNow.Subtract(owner.CreatedAt), TimeSpan.Zero, TimeSpan.FromSeconds(5));
     }
 
     [Fact]
     public void TenantIndicator_SetsDefaults()
     {
-        DateTimeOffset before = DateTimeOffset.UtcNow.AddSeconds(-1);
         var indicator = new TenantIndicator
         {
             Id = Guid.NewGuid(),
@@ -64,8 +59,7 @@ public class DomainEntityTests
 
         Assert.Null(indicator.Verification);
         Assert.False(indicator.IsPrimary);
-        Assert.True(indicator.CreatedAt >= before);
-        Assert.True(indicator.CreatedAt <= DateTimeOffset.UtcNow.AddSeconds(1));
+        Assert.InRange(DateTimeOffset.UtcNow.Subtract(indicator.CreatedAt), TimeSpan.Zero, TimeSpan.FromSeconds(5));
     }
 
     [Fact]
