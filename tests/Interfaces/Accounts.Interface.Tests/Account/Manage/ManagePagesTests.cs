@@ -172,6 +172,14 @@ public class ManagePagesTests
     {
         await using InterfaceTestContext context = new();
         DefaultHttpContext httpContext = CreateHttpContext();
+        User user = new() { Id = "user-1" };
+
+        _ = context.Mocks.UserService
+            .Setup(service => service.GetUserAsync(user.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(user);
+        _ = context.Mocks.UserService
+            .Setup(service => service.UserHasPasswordAsync(user.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(true);
 
         IRenderedComponent<Password> cut = context.Render<Password>(
             parameters => parameters.AddCascadingValue(httpContext));
@@ -223,9 +231,10 @@ public class ManagePagesTests
         AuthenticationStateProvider authProvider = new TestAuthenticatedStateProvider("user-1");
         ComponentTestHelper.SetProperty(form, "AuthenticationStateProvider", authProvider, typeof(Vitarish.Accounts.Interface.Components.Base.CommonBase));
 
-        User user = new() { Id = "user-1" };
+        User user = new() { Id = "user-1", Email = "old@example.com" };
         _ = fixture.Mocks.UserService.Setup(service => service.GetUserAsync(user.Id, It.IsAny<CancellationToken>())).ReturnsAsync(user);
-        _ = fixture.Mocks.UserService.Setup(service => service.CheckUserEmailInUseAsync("new@example.com", "user-1", It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        _ = fixture.Mocks.UserService.Setup(service => service.CheckUserEmailInUseAsync("new@example.com", user.Email, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        ComponentTestHelper.SetProperty(form, "User", user, typeof(Vitarish.Accounts.Interface.Components.Base.CommonBase));
 
         await ComponentTestHelper.InvokeAsync(form, "ValidSendCodeSubmit", typeof(EmailChangeForm), new SendEmailCodeModel { Email = "new@example.com", User = user });
 
