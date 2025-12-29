@@ -1,18 +1,22 @@
 using MediatR;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Queries;
-using Vitarish.Users.Domain.Entities;
+using Vitarish.Users.Infrastructure.Data;
 
 namespace Vitarish.Users.Infrastructure.Handlers;
 
-internal class CheckUserRoleQueryHandler(UserManager<User> userManager, IRequestContext requestContext) : IRequestHandler<CheckUserRoleQuery, bool>
+internal class CheckUserRoleQueryHandler(UsersDbContext dbContext, IRequestContext requestContext) : IRequestHandler<CheckUserRoleQuery, bool>
 {
     public async Task<bool> Handle(CheckUserRoleQuery request, CancellationToken cancellationToken)
     {
-        User user = await userManager.FindByIdAsync(requestContext.UserId ?? throw new InvalidDataException("IRequestContext provided a null user ID")) ?? throw new InvalidDataException("IRequestContext provided a non-existant user ID.");
-
         string needed = $"{requestContext.TenantId}:{request.RoleName}";
-        return await userManager.IsInRoleAsync(user, needed);
+        string userId = requestContext.UserId ?? throw new InvalidDataException("IRequestContext provided a null user ID");
+        return await dbContext.UserRoles.AsNoTracking()
+            .Join(dbContext.Roles.AsNoTracking(),
+                userRole => userRole.RoleId,
+                role => role.Id,
+                (userRole, role) => new { userRole.UserId, role.Name })
+            .AnyAsync(x => x.UserId == userId && x.Name == needed, cancellationToken);
     }
 }
