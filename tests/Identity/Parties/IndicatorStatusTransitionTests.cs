@@ -176,6 +176,39 @@ public class IndicatorStatusTransitionTests : IDisposable
     }
 
     [Fact]
+    public async Task ActivateTenantIndicator_FailsForDisabledIndicator()
+    {
+        var tenant = new Tenant
+        {
+            Id = Guid.NewGuid(),
+            OwnerId = Guid.NewGuid(),
+            Name = "Test Tenant",
+            ClientId = "test-client",
+        };
+        var indicator = new TenantIndicator
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenant.Id,
+            Method = IndicatorMethod.Hostname,
+            Value = "disabled.example.com",
+            Status = IndicatorStatus.Disabled
+        };
+        tenant.Indicators.Add(indicator);
+        _dbContext.Tenants.Add(tenant);
+        await _dbContext.SaveChangesAsync();
+
+        var handler = new ActivateTenantIndicatorHandler(_dbContext, _publisher);
+        var command = new ActivateTenantIndicator(tenant.Id, indicator.Id);
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        Assert.False(result);
+        var updated = await _dbContext.TenantIndicators.FindAsync(indicator.Id);
+        Assert.NotNull(updated);
+        Assert.Equal(IndicatorStatus.Disabled, updated.Status);
+    }
+
+    [Fact]
     public async Task DisableTenantIndicator_TransitionsToDisabled()
     {
         var tenant = new Tenant
@@ -206,6 +239,19 @@ public class IndicatorStatusTransitionTests : IDisposable
         var updated = await _dbContext.TenantIndicators.FindAsync(indicator.Id);
         Assert.NotNull(updated);
         Assert.Equal(IndicatorStatus.Disabled, updated.Status);
+    }
+
+    [Fact]
+    public async Task VerifyTenantIndicator_ReturnsFalseWhenMissing()
+    {
+        var tenantId = Guid.NewGuid();
+
+        var handler = new VerifyTenantIndicatorHandler(_dbContext, _publisher, _dnsService);
+        var command = new VerifyTenantIndicator(tenantId, Guid.NewGuid());
+
+        var result = await handler.Handle(command, CancellationToken.None);
+
+        Assert.False(result);
     }
 
     public void Dispose()
