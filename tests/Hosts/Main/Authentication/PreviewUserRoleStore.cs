@@ -24,15 +24,31 @@ public sealed class PreviewUserRoleStore : IUserStore<User>, IUserSecurityStampS
 
     public Task<IdentityResult> CreateAsync(User user, CancellationToken cancellationToken)
     {
-        _ = _users.TryAdd(user.Id, user);
-        return Task.FromResult(IdentityResult.Success);
+        if (_users.TryAdd(user.Id, user))
+        {
+            return Task.FromResult(IdentityResult.Success);
+        }
+
+        return Task.FromResult(IdentityResult.Failed(new IdentityError
+        {
+            Code = "DuplicateUserId",
+            Description = $"User with ID '{user.Id}' already exists."
+        }));
     }
 
     public Task<IdentityResult> DeleteAsync(User user, CancellationToken cancellationToken)
     {
-        _ = _users.TryRemove(user.Id, out _);
         _ = _userRoles.TryRemove(user.Id, out _);
-        return Task.FromResult(IdentityResult.Success);
+        if (_users.TryRemove(user.Id, out _))
+        {
+            return Task.FromResult(IdentityResult.Success);
+        }
+
+        return Task.FromResult(IdentityResult.Failed(new IdentityError
+        {
+            Code = "UserNotFound",
+            Description = $"User with ID '{user.Id}' not found."
+        }));
     }
 
     public void Dispose()
@@ -79,7 +95,27 @@ public sealed class PreviewUserRoleStore : IUserStore<User>, IUserSecurityStampS
     }
 
     public Task<IdentityResult> UpdateAsync(User user, CancellationToken cancellationToken)
-        => Task.FromResult(IdentityResult.Success);
+    {
+        if (!_users.TryGetValue(user.Id, out User? existingUser))
+        {
+            return Task.FromResult(IdentityResult.Failed(new IdentityError
+            {
+                Code = "UserNotFound",
+                Description = "User not found."
+            }));
+        }
+
+        if (_users.TryUpdate(user.Id, user, existingUser))
+        {
+            return Task.FromResult(IdentityResult.Success);
+        }
+
+        return Task.FromResult(IdentityResult.Failed(new IdentityError
+        {
+            Code = "ConcurrencyFailure",
+            Description = "Optimistic concurrency failure, object has been modified."
+        }));
+    }
 
     public Task AddToRoleAsync(User user, string roleName, CancellationToken cancellationToken)
     {
@@ -120,8 +156,7 @@ public sealed class PreviewUserRoleStore : IUserStore<User>, IUserSecurityStampS
         List<User> usersInRole = _userRoles
             .Where(kvp => kvp.Value.ContainsKey(roleName))
             .Select(kvp => _users.GetValueOrDefault(kvp.Key))
-            .Where(user => user is not null)
-            .Select(user => user!)
+            .OfType<User>()
             .ToList();
 
         return Task.FromResult<IList<User>>(usersInRole);
