@@ -1,18 +1,25 @@
 using MediatR;
-using Microsoft.AspNetCore.Identity;
-using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
 using Vitarish.Users.Application.Queries;
-using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Domain.Models;
+using Vitarish.Users.Infrastructure.Data;
 
 namespace Vitarish.Users.Infrastructure.Handlers;
 
-public class GetUserClaimsQueryHandler(UserManager<User> manager) : IRequestHandler<GetUserClaimsQuery, IEnumerable<ClaimDto>>
+public class GetUserClaimsQueryHandler(UsersDbContext dbContext) : IRequestHandler<GetUserClaimsQuery, IEnumerable<ClaimDto>>
 {
     public async Task<IEnumerable<ClaimDto>> Handle(GetUserClaimsQuery request, CancellationToken cancellationToken)
     {
-        User user = await manager.FindByIdAsync(request.UserId) ?? throw new InvalidDataException("user Id is invalid");
-        IList<Claim> claims = await manager.GetClaimsAsync(user);
-        return claims.Select(c => new ClaimDto(c.Type, c.Value)).ToList();
+        bool userExists = await dbContext.Users.AsNoTracking()
+            .AnyAsync(user => user.Id == request.UserId, cancellationToken);
+        if (!userExists)
+        {
+            throw new InvalidDataException("user Id is invalid");
+        }
+
+        return await dbContext.UserClaims.AsNoTracking()
+            .Where(claim => claim.UserId == request.UserId)
+            .Select(claim => new ClaimDto(claim.ClaimType, claim.ClaimValue))
+            .ToListAsync(cancellationToken);
     }
 }
