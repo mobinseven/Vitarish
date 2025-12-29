@@ -12,22 +12,10 @@ internal class GetUsersByRoleQueryHandler(UsersDbContext dbContext, IRequestCont
     public async Task<IEnumerable<User>> Handle(GetUsersByRoleQuery request, CancellationToken cancellationToken)
     {
         string needed = $"{requestContext.TenantId}:{request.RoleName}";
-        string? roleId = await dbContext.Roles.AsNoTracking()
-            .Where(role => role.Name == needed)
-            .Select(role => role.Id)
-            .SingleOrDefaultAsync(cancellationToken);
-
-        if (roleId is null)
-        {
-            return Array.Empty<User>();
-        }
-
-        return await dbContext.UserRoles.AsNoTracking()
-            .Where(userRole => userRole.RoleId == roleId)
-            .Join(dbContext.Users.AsNoTracking(),
-                userRole => userRole.UserId,
-                user => user.Id,
-                (_, user) => user)
-            .ToListAsync(cancellationToken);
+        return await (from user in dbContext.Users.AsNoTracking()
+            join userRole in dbContext.UserRoles.AsNoTracking() on user.Id equals userRole.UserId
+            join role in dbContext.Roles.AsNoTracking() on userRole.RoleId equals role.Id
+            where role.Name == needed
+            select user).ToListAsync(cancellationToken);
     }
 }

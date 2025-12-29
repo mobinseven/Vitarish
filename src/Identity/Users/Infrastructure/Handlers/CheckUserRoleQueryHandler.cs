@@ -12,17 +12,11 @@ internal class CheckUserRoleQueryHandler(UsersDbContext dbContext, IRequestConte
     {
         string needed = $"{requestContext.TenantId}:{request.RoleName}";
         string userId = requestContext.UserId ?? throw new InvalidDataException("IRequestContext provided a null user ID");
-        string? roleId = await dbContext.Roles.AsNoTracking()
-            .Where(role => role.Name == needed)
-            .Select(role => role.Id)
-            .SingleOrDefaultAsync(cancellationToken);
-
-        if (roleId is null)
-        {
-            return false;
-        }
-
         return await dbContext.UserRoles.AsNoTracking()
-            .AnyAsync(userRole => userRole.UserId == userId && userRole.RoleId == roleId, cancellationToken);
+            .Join(dbContext.Roles.AsNoTracking(),
+                userRole => userRole.RoleId,
+                role => role.Id,
+                (userRole, role) => new { userRole.UserId, role.Name })
+            .AnyAsync(x => x.UserId == userId && x.Name == needed, cancellationToken);
     }
 }
