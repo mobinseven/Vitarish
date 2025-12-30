@@ -254,7 +254,7 @@ public class AccountComponentsTests
             .Setup(service => service.GetUserAsync(user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
         _ = context.Mocks.UserService
-            .Setup(service => service.CheckUserEmailInUseAsync("new@example.com", user.Email, It.IsAny<CancellationToken>()))
+            .Setup(service => service.CheckUserEmailInUseAsync("new@example.com", user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
         _ = context.Mocks.UserService
             .Setup(service => service.SendEmailCode(user.Id, "new@example.com"))
@@ -278,7 +278,7 @@ public class AccountComponentsTests
             .Setup(service => service.GetUserAsync(user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
         _ = context.Mocks.UserService
-            .Setup(service => service.CheckUserEmailInUseAsync("new@example.com", user.Email, It.IsAny<CancellationToken>()))
+            .Setup(service => service.CheckUserEmailInUseAsync("new@example.com", user.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         IRenderedComponent<EmailChangeForm> cut = context.Render<EmailChangeForm>();
@@ -422,9 +422,10 @@ public class AccountComponentsTests
             {
                 "import" when typeof(TValue) == typeof(IJSObjectReference)
                     => RecordImport<TValue>(args),
+                "mudElementRef.addOnBlurEvent" => new ValueTask<TValue>(default(TValue)!),
                 "isWebAuthnSupported" => InvokeSupported<TValue>(),
                 "getCredential" => InvokeGetCredential<TValue>(),
-                _ => new ValueTask<TValue>(default(TValue)!)
+                _ => throw new NotSupportedException($"JS interop call '{identifier}' is not mocked in {nameof(RecordingJsRuntime)}.")
             };
         }
 
@@ -466,9 +467,10 @@ public class AccountComponentsTests
             {
                 "import" when typeof(TValue) == typeof(IJSObjectReference)
                     => new ValueTask<TValue>((TValue)(object)this),
+                "mudElementRef.addOnBlurEvent" => new ValueTask<TValue>(default(TValue)!),
                 "isWebAuthnSupported" => InvokeSupported<TValue>(),
                 "getCredential" => throw new JSException("cancelled"),
-                _ => new ValueTask<TValue>(default(TValue)!)
+                _ => throw new NotSupportedException($"JS interop call '{identifier}' is not mocked in {nameof(FailingJsRuntime)}.")
             };
         }
 

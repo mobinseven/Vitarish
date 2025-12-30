@@ -233,7 +233,7 @@ public class ManagePagesTests
 
         User user = new() { Id = "user-1", Email = "old@example.com" };
         _ = fixture.Mocks.UserService.Setup(service => service.GetUserAsync(user.Id, It.IsAny<CancellationToken>())).ReturnsAsync(user);
-        _ = fixture.Mocks.UserService.Setup(service => service.CheckUserEmailInUseAsync("new@example.com", user.Email, It.IsAny<CancellationToken>())).ReturnsAsync(false);
+        _ = fixture.Mocks.UserService.Setup(service => service.CheckUserEmailInUseAsync("new@example.com", user.Id, It.IsAny<CancellationToken>())).ReturnsAsync(false);
         ComponentTestHelper.SetProperty(form, "User", user, typeof(Vitarish.Accounts.Interface.Components.Base.CommonBase));
 
         await ComponentTestHelper.InvokeAsync(form, "ValidSendCodeSubmit", typeof(EmailChangeForm), new SendEmailCodeModel { Email = "new@example.com", User = user });
