@@ -33,9 +33,10 @@ public static class UrlExtensions
 
         List<KeyValuePair<string, string>> parameters = new();
         bool replaced = false;
-        foreach (string entry in query.Split('&', StringSplitOptions.RemoveEmptyEntries))
+        foreach (string[] parts in query
+                     .Split('&', StringSplitOptions.RemoveEmptyEntries)
+                     .Select(entry => entry.Split('=', 2)))
         {
-            string[] parts = entry.Split('=', 2);
             string paramKey = parts[0];
             string paramValue = parts.Length > 1 ? parts[1] : string.Empty;
 
