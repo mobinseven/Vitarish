@@ -24,7 +24,7 @@ public partial class EmailChangeForm : CommonBase
             NotifyStateChanged();
             return;
         }
-        bool emailInUse = await UserService.CheckUserEmailInUseAsync(model.Email, User.Email);
+        bool emailInUse = await UserService.CheckUserEmailInUseAsync(model.Email, User.Id);
         if (emailInUse)
         {
             error = Localizer["InvalidEmail"];
