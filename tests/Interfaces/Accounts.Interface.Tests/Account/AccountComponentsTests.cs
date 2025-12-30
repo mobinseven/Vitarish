@@ -340,14 +340,8 @@ public class AccountComponentsTests
         _ = context.Services.AddSingleton<IJSRuntime>(jsRuntime);
 
         RecordingHttpMessageHandler handler = new();
-        handler.EnqueueResponse(new HttpResponseMessage(HttpStatusCode.OK)
-        {
-            Content = JsonContent.Create(new { challenge = "", rpId = "", allowCredentials = Array.Empty<object>() })
-        });
-        handler.EnqueueResponse(new HttpResponseMessage(HttpStatusCode.OK)
-        {
-            Content = JsonContent.Create(new { })
-        });
+        handler.EnqueueJsonResponse(new { challenge = "", rpId = "", allowCredentials = Array.Empty<object>() });
+        handler.EnqueueJsonResponse(new { });
 
         context.Mocks.HttpClientFactory
             .Setup(factory => factory.CreateClient(It.IsAny<string>()))
@@ -374,10 +368,7 @@ public class AccountComponentsTests
         _ = context.Services.AddSingleton<IJSRuntime>(jsRuntime);
 
         RecordingHttpMessageHandler handler = new();
-        handler.EnqueueResponse(new HttpResponseMessage(HttpStatusCode.OK)
-        {
-            Content = JsonContent.Create(new { challenge = "", rpId = "", allowCredentials = Array.Empty<object>() })
-        });
+        handler.EnqueueJsonResponse(new { challenge = "", rpId = "", allowCredentials = Array.Empty<object>() });
 
         context.Mocks.HttpClientFactory
             .Setup(factory => factory.CreateClient(It.IsAny<string>()))
@@ -491,6 +482,11 @@ public class AccountComponentsTests
         private readonly Queue<HttpResponseMessage> responses = new();
 
         public void EnqueueResponse(HttpResponseMessage response) => responses.Enqueue(response);
+        public void EnqueueJsonResponse<TPayload>(TPayload payload)
+            => EnqueueResponse(new HttpResponseMessage(HttpStatusCode.OK)
+            {
+                Content = JsonContent.Create(payload)
+            });
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
@@ -500,6 +496,19 @@ public class AccountComponentsTests
             }
 
             return Task.FromResult(responses.Dequeue());
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                while (responses.Count > 0)
+                {
+                    responses.Dequeue().Dispose();
+                }
+            }
+
+            base.Dispose(disposing);
         }
     }
 
