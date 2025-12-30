@@ -22,14 +22,35 @@ internal static class AuthenticationClientCacheExtensions
 
     internal static Task RemoveClientsAsync(IDistributedCache cache, CancellationToken ct) => cache.RemoveAsync(ClientsKey, ct);
 
-    internal static async Task<AuthenticationClient?> GetClientAsync(IDistributedCache cache, string id, CancellationToken ct) =>
-        Deserialize<AuthenticationClient>(await cache.GetAsync(ClientKey(id), ct));
+    internal static async Task<AuthenticationClient?> GetClientAsync(IDistributedCache cache, string id, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return null;
+        }
 
-    internal static Task SetClientAsync(IDistributedCache cache, AuthenticationClient client, CancellationToken ct) =>
-        cache.SetAsync(ClientKey(client.Id), Serialize(client), CacheOptions, ct);
+        return Deserialize<AuthenticationClient>(await cache.GetAsync(ClientKey(id), ct));
+    }
 
-    internal static Task RemoveClientAsync(IDistributedCache cache, string id, CancellationToken ct) =>
-        cache.RemoveAsync(ClientKey(id), ct);
+    internal static Task SetClientAsync(IDistributedCache cache, AuthenticationClient client, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(client.Id))
+        {
+            return Task.CompletedTask;
+        }
+
+        return cache.SetAsync(ClientKey(client.Id), Serialize(client), CacheOptions, ct);
+    }
+
+    internal static Task RemoveClientAsync(IDistributedCache cache, string id, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return Task.CompletedTask;
+        }
+
+        return cache.RemoveAsync(ClientKey(id), ct);
+    }
 
     private static string ClientKey(string id) => $"authentication-clients:{id}";
 

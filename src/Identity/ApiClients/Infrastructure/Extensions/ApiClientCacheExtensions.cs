@@ -22,14 +22,35 @@ internal static class ApiClientCacheExtensions
 
     internal static Task RemoveClientsAsync(IDistributedCache cache, CancellationToken ct) => cache.RemoveAsync(ClientsKey, ct);
 
-    internal static async Task<ApiClient?> GetClientAsync(IDistributedCache cache, string id, CancellationToken ct) =>
-        Deserialize<ApiClient>(await cache.GetAsync(ClientKey(id), ct));
+    internal static async Task<ApiClient?> GetClientAsync(IDistributedCache cache, string id, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return null;
+        }
 
-    internal static Task SetClientAsync(IDistributedCache cache, ApiClient client, CancellationToken ct) =>
-        cache.SetAsync(ClientKey(client.Id), Serialize(client), CacheOptions, ct);
+        return Deserialize<ApiClient>(await cache.GetAsync(ClientKey(id), ct));
+    }
 
-    internal static Task RemoveClientAsync(IDistributedCache cache, string id, CancellationToken ct) =>
-        cache.RemoveAsync(ClientKey(id), ct);
+    internal static Task SetClientAsync(IDistributedCache cache, ApiClient client, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(client.Id))
+        {
+            return Task.CompletedTask;
+        }
+
+        return cache.SetAsync(ClientKey(client.Id), Serialize(client), CacheOptions, ct);
+    }
+
+    internal static Task RemoveClientAsync(IDistributedCache cache, string id, CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return Task.CompletedTask;
+        }
+
+        return cache.RemoveAsync(ClientKey(id), ct);
+    }
 
     private static string ClientKey(string id) => $"api-clients:{id}";
 

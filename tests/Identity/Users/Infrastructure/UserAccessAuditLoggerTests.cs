@@ -1,0 +1,20 @@
+using Vitarish.Users.Domain.Models;
+using Vitarish.Users.Infrastructure.Service;
+using Vitarish.Users.Tests.TestHelpers;
+
+namespace Vitarish.Users.Tests.Infrastructure;
+
+public class UserAccessAuditLoggerTests
+{
+    [Fact]
+    public async Task LogAsync_WritesLogEntry()
+    {
+        TestLogger<UserAccessAuditLogger> logger = new();
+        UserAccessAuditLogger auditLogger = new(logger);
+        UserAccessAuditEntry entry = new(DateTimeOffset.UtcNow, "admin-1", "owner-1", "user-1", "client-1", "access");
+
+        await auditLogger.LogAsync(entry, CancellationToken.None);
+
+        logger.Entries.Should().Contain(e => e.Level == LogLevel.Information && e.Message.Contains("User access audit"));
+    }
+}

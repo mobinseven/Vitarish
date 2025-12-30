@@ -49,4 +49,27 @@ public class UserProfileServiceTests
             It.IsAny<CancellationToken>()),
             Times.Once);
     }
+
+    [Fact]
+    public async Task GetProfileAsync_WhenSenderThrows_PropagatesException()
+    {
+        sender.Setup(s => s.Send(It.IsAny<GetUserProfileQuery>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidDataException("invalid user"));
+
+        Func<Task> act = () => service.GetProfileAsync("missing", CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidDataException>();
+    }
+
+    [Fact]
+    public async Task UpdateProfileAsync_WhenSenderThrows_PropagatesException()
+    {
+        Dictionary<string, string> preferences = new() { ["theme"] = "dark" };
+        sender.Setup(s => s.Send(It.IsAny<UpdateUserProfileCommand>(), It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidDataException("invalid user"));
+
+        Func<Task> act = () => service.UpdateProfileAsync("missing", preferences, CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidDataException>();
+    }
 }
