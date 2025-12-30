@@ -128,7 +128,7 @@ public class UserService : IUserService
                 ct);
             return created is null
                 ? IdentityResult.Failed(new IdentityError { Code = "CreateUserFailed", Description = "Unable to create user with email." })
-                : IdentityResult.Success;
+                : UpdateUserId(user, created);
         }
 
         if (!string.IsNullOrWhiteSpace(user.PhoneNumber))
@@ -138,10 +138,16 @@ public class UserService : IUserService
                 ct);
             return created is null
                 ? IdentityResult.Failed(new IdentityError { Code = "CreateUserFailed", Description = "Unable to create user with phone number." })
-                : IdentityResult.Success;
+                : UpdateUserId(user, created);
         }
 
         return IdentityResult.Failed(new IdentityError { Code = "InvalidUser", Description = "Email or phone number is required." });
+    }
+
+    private static IdentityResult UpdateUserId(User user, User created)
+    {
+        user.Id = created.Id;
+        return IdentityResult.Success;
     }
 
     public async Task<Dictionary<string, string>?> GetProfileAsync(string userId)

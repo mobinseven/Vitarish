@@ -26,7 +26,7 @@ public class SmsAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task SmsAuthenticationService_SendCode_InvalidPhone_ThrowsOrReturnsFailure()
+    public async Task SmsAuthenticationService_SendCode_InvalidPhone_ThrowsArgumentException()
     {
         Mock<UserManager<User>> userManager = UserManagerFactory.CreateMock();
         Mock<IMessageQueue> messageQueue = new();

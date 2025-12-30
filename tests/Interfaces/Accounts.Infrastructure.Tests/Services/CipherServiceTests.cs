@@ -18,7 +18,7 @@ public class CipherServiceTests
     }
 
     [Fact]
-    public void CipherService_Encrypt_NullInput_ThrowsOrReturnsEmpty()
+    public void CipherService_Encrypt_NullInput_ThrowsArgumentNullException()
     {
         IDataProtectionProvider provider = DataProtectionProvider.Create("cipher-tests");
         CipherService sut = new(provider);

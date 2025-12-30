@@ -1,4 +1,3 @@
-using System;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Abstractions;
 

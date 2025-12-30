@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using System.Reflection;
 using Vitarish.Accounts.Infrastructure.Services;
 using Vitarish.Accounts.Infrastructure.Tests.TestInfrastructure;
 using Vitarish.Users.Domain.Entities;
@@ -26,15 +25,16 @@ public class IdentityRevalidatingAuthenticationStateProviderTests
         userManager.SetupGet(manager => manager.SupportsUserSecurityStamp).Returns(true);
 
         ServiceProvider serviceProvider = BuildServiceProvider(userManager.Object);
-        IdentityRevalidatingAuthenticationStateProvider sut = new(
-            new LoggerFactory(),
+        using LoggerFactory loggerFactory = new();
+        TestIdentityRevalidatingAuthenticationStateProvider sut = new(
+            loggerFactory,
             serviceProvider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new IdentityOptions()));
 
         ClaimsPrincipal principal = BuildPrincipal("old-stamp");
         AuthenticationState state = new(principal);
 
-        bool isValid = await ValidateAsync(sut, state);
+        bool isValid = await sut.ValidateAsync(state);
 
         isValid.Should().BeFalse();
     }
@@ -52,15 +52,16 @@ public class IdentityRevalidatingAuthenticationStateProviderTests
         userManager.SetupGet(manager => manager.SupportsUserSecurityStamp).Returns(true);
 
         ServiceProvider serviceProvider = BuildServiceProvider(userManager.Object);
-        IdentityRevalidatingAuthenticationStateProvider sut = new(
-            new LoggerFactory(),
+        using LoggerFactory loggerFactory = new();
+        TestIdentityRevalidatingAuthenticationStateProvider sut = new(
+            loggerFactory,
             serviceProvider.GetRequiredService<IServiceScopeFactory>(),
             Options.Create(new IdentityOptions()));
 
         ClaimsPrincipal principal = BuildPrincipal("stamp");
         AuthenticationState state = new(principal);
 
-        bool isValid = await ValidateAsync(sut, state);
+        bool isValid = await sut.ValidateAsync(state);
 
         isValid.Should().BeTrue();
     }
@@ -83,15 +84,13 @@ public class IdentityRevalidatingAuthenticationStateProviderTests
         return services.BuildServiceProvider();
     }
 
-    private static async Task<bool> ValidateAsync(
-        IdentityRevalidatingAuthenticationStateProvider provider,
-        AuthenticationState state)
+    private sealed class TestIdentityRevalidatingAuthenticationStateProvider(
+            ILoggerFactory loggerFactory,
+            IServiceScopeFactory scopeFactory,
+            IOptions<IdentityOptions> options)
+        : IdentityRevalidatingAuthenticationStateProvider(loggerFactory, scopeFactory, options)
     {
-        MethodInfo? method = typeof(IdentityRevalidatingAuthenticationStateProvider)
-            .GetMethod("ValidateAuthenticationStateAsync", BindingFlags.Instance | BindingFlags.NonPublic);
-
-        method.Should().NotBeNull();
-        Task<bool> task = (Task<bool>)method!.Invoke(provider, new object[] { state, CancellationToken.None })!;
-        return await task;
+        public Task<bool> ValidateAsync(AuthenticationState state, CancellationToken cancellationToken = default)
+            => ValidateAuthenticationStateAsync(state, cancellationToken);
     }
 }

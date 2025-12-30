@@ -7,7 +7,7 @@ namespace Vitarish.Accounts.Infrastructure.Tests.Services;
 public class IdentityRedirectManagerTests
 {
     [Fact]
-    public void IdentityRedirectManager_RedirectTo_ReturnsRedirectResult()
+    public void IdentityRedirectManager_RedirectTo_NavigatesAndThrowsException()
     {
         RecordingNavigationManager navigationManager = new();
         Mock<ILogger<IdentityRedirectManager>> logger = new();

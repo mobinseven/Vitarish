@@ -25,7 +25,7 @@ public interface IPersonalAccessTokenService
 public sealed class PersonalAccessTokenService(IPersonalAccessTokenGenerator generator)
     : IPersonalAccessTokenService
 {
-    private static readonly ConcurrentDictionary<string, HashSet<string>> TokenStore = new();
+    private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> tokenStore = new();
 
     public async Task<string> CreateTokenAsync(
         string subjectId,
@@ -35,11 +35,8 @@ public sealed class PersonalAccessTokenService(IPersonalAccessTokenGenerator gen
         CancellationToken cancellationToken = default)
     {
         string token = await generator.CreateTokenAsync(subjectId, lifetimeDays, scopes, isReferenceToken, cancellationToken);
-        HashSet<string> tokens = TokenStore.GetOrAdd(subjectId, _ => []);
-        lock (tokens)
-        {
-            tokens.Add(token);
-        }
+        ConcurrentDictionary<string, byte> tokens = tokenStore.GetOrAdd(subjectId, _ => new ConcurrentDictionary<string, byte>());
+        _ = tokens.TryAdd(token, 0);
         return token;
     }
 
@@ -48,15 +45,12 @@ public sealed class PersonalAccessTokenService(IPersonalAccessTokenGenerator gen
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (!TokenStore.TryGetValue(subjectId, out HashSet<string>? tokens))
+        if (!tokenStore.TryGetValue(subjectId, out ConcurrentDictionary<string, byte>? tokens))
         {
             return Task.FromResult<IReadOnlyCollection<string>>(Array.Empty<string>());
         }
 
-        lock (tokens)
-        {
-            return Task.FromResult<IReadOnlyCollection<string>>(tokens.ToArray());
-        }
+        return Task.FromResult<IReadOnlyCollection<string>>(tokens.Keys.ToArray());
     }
 
     public Task RevokeTokenAsync(
@@ -65,12 +59,9 @@ public sealed class PersonalAccessTokenService(IPersonalAccessTokenGenerator gen
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (TokenStore.TryGetValue(subjectId, out HashSet<string>? tokens))
+        if (tokenStore.TryGetValue(subjectId, out ConcurrentDictionary<string, byte>? tokens))
         {
-            lock (tokens)
-            {
-                _ = tokens.Remove(token);
-            }
+            _ = tokens.TryRemove(token, out _);
         }
 
         return Task.CompletedTask;

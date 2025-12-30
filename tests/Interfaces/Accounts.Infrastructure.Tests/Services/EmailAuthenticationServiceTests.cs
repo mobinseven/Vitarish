@@ -31,7 +31,7 @@ public class EmailAuthenticationServiceTests
     }
 
     [Fact]
-    public async Task EmailAuthenticationService_SendCode_InvalidEmail_ThrowsOrReturnsFailure()
+    public async Task EmailAuthenticationService_SendCode_InvalidEmail_ThrowsArgumentException()
     {
         Mock<UserManager<User>> userManager = UserManagerFactory.CreateMock();
         Mock<IMessageQueue> messageQueue = new();

@@ -1,4 +1,8 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Accounts.Infrastructure.Services;
+
+namespace Vitarish.Accounts.Infrastructure.Extensions;
 
 public static class BlazorSsrRedirectManagerExtensions
 {
