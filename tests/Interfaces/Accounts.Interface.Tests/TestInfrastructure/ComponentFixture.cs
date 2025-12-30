@@ -66,6 +66,7 @@ internal sealed class ComponentFixture : IDisposable
             {
                 new Claim(ClaimTypes.Name, "AuthenticatedUser"),
                 new Claim(ClaimTypes.NameIdentifier, "AuthenticatedUserId"),
+                new Claim("sub", "user-1"),
             }, IdentityConstants.ApplicationScheme))
         };
 

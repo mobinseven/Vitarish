@@ -8,4 +8,6 @@ public sealed class AdminContext(IRequestContext vornContext) : IAdminContext
     public string? UserId => vornContext.UserId;
 
     public string? OwnerId => field ??= vornContext.OwnerId;
+
+    public bool IsAdmin => string.Equals(UserId, OwnerId, StringComparison.Ordinal);
 }

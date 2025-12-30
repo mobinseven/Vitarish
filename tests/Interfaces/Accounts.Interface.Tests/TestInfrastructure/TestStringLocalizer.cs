@@ -33,3 +33,17 @@ internal sealed class TestStringLocalizer : IStringLocalizer, IEnumerable<Locali
 
     IEnumerator IEnumerable.GetEnumerator() => ((IEnumerable<LocalizedString>)this).GetEnumerator();
 }
+
+internal sealed class TestStringLocalizer<T> : IStringLocalizer<T>
+{
+    private readonly TestStringLocalizer inner = new();
+
+    public LocalizedString this[string name] => inner[name];
+
+    public LocalizedString this[string name, params object[] arguments] => inner[name, arguments];
+
+    public IEnumerable<LocalizedString> GetAllStrings(bool includeParentCultures) =>
+        inner.GetAllStrings(includeParentCultures);
+
+    public IStringLocalizer WithCulture(System.Globalization.CultureInfo culture) => inner.WithCulture(culture);
+}

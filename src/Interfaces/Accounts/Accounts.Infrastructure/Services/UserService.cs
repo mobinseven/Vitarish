@@ -117,6 +117,39 @@ public class UserService : IUserService
         return result;
     }
 
+    public async Task<IdentityResult> CreateUserAsync(User user, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(user);
+
+        if (!string.IsNullOrWhiteSpace(user.Email))
+        {
+            User? created = await _usersService.CreateUserWithEmailAsync(
+                new CreateUserWithEmailCommand(user.Email, user.FirstName, user.LastName),
+                ct);
+            return created is null
+                ? IdentityResult.Failed(new IdentityError { Code = "CreateUserFailed", Description = "Unable to create user with email." })
+                : UpdateUserId(user, created);
+        }
+
+        if (!string.IsNullOrWhiteSpace(user.PhoneNumber))
+        {
+            User? created = await _usersService.CreateUserWithPhoneAsync(
+                new CreateUserWithPhoneCommand(user.PhoneNumber, user.FirstName, user.LastName),
+                ct);
+            return created is null
+                ? IdentityResult.Failed(new IdentityError { Code = "CreateUserFailed", Description = "Unable to create user with phone number." })
+                : UpdateUserId(user, created);
+        }
+
+        return IdentityResult.Failed(new IdentityError { Code = "InvalidUser", Description = "Email or phone number is required." });
+    }
+
+    private static IdentityResult UpdateUserId(User user, User created)
+    {
+        user.Id = created.Id;
+        return IdentityResult.Success;
+    }
+
     public async Task<Dictionary<string, string>?> GetProfileAsync(string userId)
     {
         string cacheKey = CacheKeys.Profile(userId);

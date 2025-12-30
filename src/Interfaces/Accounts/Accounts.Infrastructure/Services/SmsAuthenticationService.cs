@@ -15,6 +15,12 @@ public class SmsAuthenticationService(
 {
     public async Task SendCode(User user, string phonenumber)
     {
+        ArgumentNullException.ThrowIfNull(user);
+        if (string.IsNullOrWhiteSpace(phonenumber))
+        {
+            throw new ArgumentException("Phone number is required.", nameof(phonenumber));
+        }
+
         string code = await userManager.GenerateTwoFactorTokenAsync(user, TokenOptions.DefaultPhoneProvider);
         messageQueue.EnqueueSms(phonenumber, code);
     }

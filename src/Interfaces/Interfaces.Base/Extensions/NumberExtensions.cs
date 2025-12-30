@@ -1,7 +1,28 @@
+using System.Globalization;
+
 namespace Vitarish.Interfaces.Base.Extensions;
 
 public static class NumberExtensions
 {
+    public static string ToCompactString(this long value)
+        => ((decimal)value).ToCompactString();
+
+    public static string ToCompactString(this decimal value)
+    {
+        decimal absolute = Math.Abs(value);
+        if (absolute >= 1_000_000m)
+        {
+            return string.Format(CultureInfo.InvariantCulture, "{0:0.#}M", value / 1_000_000m);
+        }
+
+        if (absolute >= 1_000m)
+        {
+            return string.Format(CultureInfo.InvariantCulture, "{0:0.#}K", value / 1_000m);
+        }
+
+        return value.ToString(CultureInfo.InvariantCulture);
+    }
+
     public static string ConvertToEnglishNumerals(this string input)
     {
         string[] persianNumerals = { "۰", "۱", "۲", "۳", "۴", "۵", "۶", "۷", "۸", "۹" };
