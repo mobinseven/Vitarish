@@ -5,4 +5,6 @@ public interface IAdminContext
     string? UserId { get; }
 
     string? OwnerId { get; }
+
+    bool IsAdmin { get; }
 }

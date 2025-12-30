@@ -8,6 +8,8 @@ namespace Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 /// </summary>
 public class HangfireMessageQueue(IBackgroundJobClient backgroundJobClient) : IMessageQueue
 {
+    public int Count => 0;
+
     public void EnqueueEmail(string to, string subject, string textBody, string htmlBody)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(to, nameof(to));
@@ -24,5 +26,10 @@ public class HangfireMessageQueue(IBackgroundJobClient backgroundJobClient) : IM
 
         SmsMessage message = new(phoneNumber, code);
         _ = backgroundJobClient.Enqueue<MessageProcessor>(processor => processor.ProcessMessage(message));
+    }
+
+    public MessageQueueMessage Dequeue()
+    {
+        throw new NotSupportedException("Hangfire-backed message queue does not support dequeue operations.");
     }
 }

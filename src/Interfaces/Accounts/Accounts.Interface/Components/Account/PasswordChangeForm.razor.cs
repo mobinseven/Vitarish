@@ -13,6 +13,12 @@ public partial class PasswordChangeForm : CommonBase
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+        if (User is null)
+        {
+            hasPass = false;
+            return;
+        }
+
         hasPass = await UserService.UserHasPasswordAsync(User.Id);
     }
 }

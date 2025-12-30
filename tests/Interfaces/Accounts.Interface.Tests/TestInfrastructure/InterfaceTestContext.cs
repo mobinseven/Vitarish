@@ -45,12 +45,14 @@ internal sealed class InterfaceTestContext : BunitContext
         _ = Services.AddSingleton(dialogServiceMock.Object);
 
         _ = Services.AddSingleton<IStringLocalizer>(new TestStringLocalizer());
+        _ = Services.AddSingleton(typeof(IStringLocalizer<>), typeof(TestStringLocalizer<>));
         _ = Services.AddSingleton<AuthenticationStateProvider>(new TestAuthenticationStateProvider());
         _ = Services.AddSingleton<IJSRuntime>(new TestJsRuntime());
         _ = Services.AddSingleton<ILoggerFactory>(NullLoggerFactory.Instance);
         _ = Services.AddScoped(sp => new IdentityRedirectManager(
             sp.GetRequiredService<NavigationManager>(),
             NullLogger<IdentityRedirectManager>.Instance));
+        _ = Services.AddScoped<UserProfileCultureInfoProvider>();
 
         Mock<ICipherService> cipherMock = new();
         _ = Services.AddSingleton(cipherMock.Object);
@@ -59,6 +61,10 @@ internal sealed class InterfaceTestContext : BunitContext
         _ = Services.AddSingleton(usersServiceMock.Object);
 
         Mock<IUserService> userServiceMock = new();
+        User defaultUser = new() { Id = "user-1" };
+        _ = userServiceMock
+            .Setup(service => service.GetUserAsync("user-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(defaultUser);
         _ = Services.AddSingleton(userServiceMock.Object);
 
         Mock<ISmsAuthenticationService> smsAuthenticationMock = new();

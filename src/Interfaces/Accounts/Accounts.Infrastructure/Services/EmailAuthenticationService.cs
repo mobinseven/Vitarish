@@ -16,6 +16,12 @@ public class EmailAuthenticationService(
 {
     public async Task SendCode(User user, string email)
     {
+        ArgumentNullException.ThrowIfNull(user);
+        if (string.IsNullOrWhiteSpace(email))
+        {
+            throw new ArgumentException("Email is required.", nameof(email));
+        }
+
         string code = await userManager.GenerateTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider);
         (string HtmlBody, string TextBody) = GetAuthenticationCodeEmail(user.UserName, code);
         messageQueue.EnqueueEmail(email, "Code", TextBody, HtmlBody);
