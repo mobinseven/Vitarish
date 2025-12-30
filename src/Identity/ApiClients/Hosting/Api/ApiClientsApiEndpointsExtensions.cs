@@ -27,7 +27,11 @@ namespace Vitarish.ApiClients.Hosting.Api
         {
             RouteGroupBuilder group = app
                 .MapGroup("/api/apiclients")
-                .WithTags("API Clients");
+                .WithTags("API Clients")
+                .RequireAuthorization(new AuthorizeAttribute
+                {
+                    AuthenticationSchemes = "IdentityServerAccessToken"
+                });
 
             // Allow consumer to add filters at the group level (applies to all endpoints in group)
             configureFilters?.Invoke(group);

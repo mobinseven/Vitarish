@@ -1,0 +1,22 @@
+using Vitarish.Users.Domain.Options;
+
+namespace Vitarish.Users.Tests.Domain;
+
+public class PersonalAccessTokenOptionsTests
+{
+    [Fact]
+    public void PersonalAccessTokenOptions_DefaultLifetimeIs30Days()
+    {
+        PersonalAccessTokenOptions options = new();
+
+        options.DefaultLifetimeDays.Should().Be(30);
+    }
+
+    [Fact]
+    public void PersonalAccessTokenOptions_AllowsCustomLifetime()
+    {
+        PersonalAccessTokenOptions options = new() { DefaultLifetimeDays = 7 };
+
+        options.DefaultLifetimeDays.Should().Be(7);
+    }
+}
