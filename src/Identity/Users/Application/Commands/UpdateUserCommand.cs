@@ -12,6 +12,9 @@ public class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
     public UpdateUserCommandValidator()
     {
         _ = RuleFor(c => c.User).NotNull();
-        _ = RuleFor(c => c.User.Id).NotNull();
+        _ = When(c => c.User is not null, () =>
+        {
+            _ = RuleFor(c => c.User.Id).NotNull();
+        });
     }
 }
