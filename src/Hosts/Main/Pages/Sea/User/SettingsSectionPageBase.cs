@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.Extensions.Localization;
-using MudBlazor;
 using Vitarish.Sea.Interface.Abstractions;
 
 namespace Vitarish.Main.Pages.Sea.User
