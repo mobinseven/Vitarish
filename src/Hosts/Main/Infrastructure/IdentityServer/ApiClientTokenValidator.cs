@@ -43,8 +43,9 @@ public sealed class ApiClientTokenValidator(
             Tenant? tenant = await tenantsService.ResolveFromHostAsync(httpContext, httpContext.RequestAborted);
             if (tenant is not null)
             {
-                request.ClientClaims.Add(new Claim(IdentityDefinitions.TenantIdClaim, tenant.Id.ToString()));
+                request.ClientClaims.Add(new Claim(IdentityDefinitions.ClientIdClaim, tenant.ClientId));
                 request.ClientClaims.Add(new Claim(IdentityDefinitions.OwnerIdClaim, tenant.OwnerId.ToString()));
+                request.ClientClaims.Add(new Claim(IdentityDefinitions.TenantIdClaim, tenant.Id.ToString()));
 
                 logger.LogDebug(
                     "Added tenant/owner claims for API client {ClientId}: TenantId={TenantId}, OwnerId={OwnerId}",

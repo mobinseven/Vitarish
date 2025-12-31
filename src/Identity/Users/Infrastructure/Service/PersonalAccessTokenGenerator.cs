@@ -113,8 +113,8 @@ public sealed class PersonalAccessTokenGenerator(
             Claims =
             [
                 new Claim("client_id", requestContext.ClientId),
-                new Claim("owner_id", requestContext.OwnerId),
-                new Claim("tenant_id", requestContext.TenantId),
+                new Claim(IdentityDefinitions.OwnerIdClaim, requestContext.OwnerId),
+                new Claim(IdentityDefinitions.TenantIdClaim, requestContext.TenantId),
                 new Claim("sub", subjectId)
             ]
         };

@@ -274,7 +274,7 @@ public class ApiClientClaimsServiceTests
 
         _ = tenantIdClaim.Should().NotBeNull();
         _ = ownerIdClaim.Should().NotBeNull();
-        _ = tenantIdClaim!.Type.Should().Be("tenant_id");
-        _ = ownerIdClaim!.Type.Should().Be("owner_id");
+        _ = tenantIdClaim!.Type.Should().Be(IdentityDefinitions.TenantIdClaim);
+        _ = ownerIdClaim!.Type.Should().Be(IdentityDefinitions.OwnerIdClaim);
     }
 }

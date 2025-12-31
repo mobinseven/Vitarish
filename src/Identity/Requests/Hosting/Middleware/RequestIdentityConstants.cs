@@ -13,12 +13,12 @@ public static class RequestIdentityConstants
     /// <summary>
     /// The claim type for tenant identifier.
     /// </summary>
-    public const string TenantIdClaim = "tenant_id";
+    public const string TenantIdClaim = IdentityDefinitions.TenantIdClaim;
 
     /// <summary>
     /// The claim type for owner identifier.
     /// </summary>
-    public const string OwnerIdClaim = "owner_id";
+    public const string OwnerIdClaim = IdentityDefinitions.OwnerIdClaim;
 
     /// <summary>
     /// The HTTP header name for request identifier.

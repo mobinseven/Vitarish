@@ -1,6 +1,7 @@
 using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http;
 using System.Text.Json;
 using Vitarish.Requests.Application.Abstractions;
 
@@ -11,6 +12,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     private readonly EntityInterceptor _interceptor;
     private readonly SessionContextInterceptor _sessionContext;
     private readonly IRequestContext _requestContext;
+    private readonly IHttpContextAccessor _httpContextAccessor;
 
     // Dynamically evaluate TenantInfo from IRequestsContext at query time
     public ITenantInfo? TenantInfo
@@ -18,8 +20,12 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         get
         {
             string? tenantId = _requestContext.TenantId;
+            if (tenantId == null)
+            {
+                tenantId = _httpContextAccessor.HttpContext?.GetTenantId();
+            }
             return tenantId == null
-                ? null
+                ? throw new InvalidOperationException("Tenant ID can not be recognized.")
                 : (ITenantInfo)new Finbuckle.MultiTenant.TenantInfo
                 {
                     Id = tenantId,
@@ -48,11 +54,13 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         DbContextOptions<SeaDbContext> options,
         EntityInterceptor interceptor,
         SessionContextInterceptor sessionContext,
-        IRequestContext requestIdentity) : base(options)
+        IRequestContext requestIdentity,
+        IHttpContextAccessor httpContextAccessor) : base(options)
     {
         _interceptor = interceptor;
         _sessionContext = sessionContext;
         _requestContext = requestIdentity;
+        _httpContextAccessor = httpContextAccessor;
 
         // Enable multi-tenant tracking
         this.EnforceMultiTenantOnTracking();

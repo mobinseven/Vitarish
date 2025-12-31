@@ -33,13 +33,13 @@ public class IdentityResourcesStore(ApiClientDbContext apiClients) : IResourceSt
         return [.. scopes.Where(apiscope => scopeNames.Any(scope => scope == apiscope)).Select(s => new ApiScope(s))];
     }
 
-    Task<IEnumerable<IdentityResource>> IResourceStore.FindIdentityResourcesByScopeNameAsync(IEnumerable<string> scopeNames) => Task.FromResult(IdentityDefinitions.IdentityResources.Where(ir => scopeNames.Any(scope => scope == ir.Name)).Select(ir => ir));
+    Task<IEnumerable<IdentityResource>> IResourceStore.FindIdentityResourcesByScopeNameAsync(IEnumerable<string> scopeNames) => Task.FromResult(ResourceDefinitions.IdentityResources.Where(ir => scopeNames.Any(scope => scope == ir.Name)).Select(ir => ir));
 
     async Task<Resources> IResourceStore.GetAllResourcesAsync()
     {
         List<ApiClient> apiclients = await apiClients.ApiClients.ToListAsync();
         List<ApiResource> resources = [.. apiclients.Select(a => a.Scopes).Select(s => new ApiResource(s) { Scopes = { s } })];
         List<ApiScope> scopes = [.. apiclients.Select(a => a.Scopes).Select(s => new ApiScope(s))];
-        return new Resources(IdentityDefinitions.IdentityResources, resources, scopes);
+        return new Resources(ResourceDefinitions.IdentityResources, resources, scopes);
     }
 }

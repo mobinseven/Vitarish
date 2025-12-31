@@ -13,6 +13,7 @@ using Vitarish.Files.Hosting;
 using Vitarish.Files.Infrastructure.Data;
 using Vitarish.Instagram.Hosting;
 using Vitarish.Intelligence.Hosting;
+using Vitarish.Main.Authorization;
 using Vitarish.Main.Components;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
@@ -107,8 +108,8 @@ _ = builder.Services.AddSignalR(o =>
     o.EnableDetailedErrors = true;
     o.AddFilter<RequestsContextHubFilter>();
 }).AddMessagePackProtocol();
-
-
+builder.Services.AddTransient<IClaimsTransformation, PartyClaimsTransformation>();
+builder.Services.AddVitarishInterfacesBase();
 WebApplication app = builder.Build();
 
 _ = await app.MigrateDatabaseAsync<UsersDbContext>();
@@ -147,7 +148,6 @@ _ = app.UseSession();
 _ = app.UseIdentityServer();
 
 _ = app.UseAuthentication();
-_ = app.UseMiddleware<RequestsContextMiddleware>();
 _ = app.UseAuthorization();
 
 _ = app.UseAntiforgery();

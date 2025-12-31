@@ -26,7 +26,7 @@ public class IdentityClientsStore(AuthenticationClientDbContext authClients, Api
                 FrontChannelLogoutUri = $"{authenticationClient.Url}/signout-oidc",
                 AccessTokenLifetime = (int)TimeSpan.FromDays(30).TotalSeconds,
                 AllowOfflineAccess = true,
-                AllowedScopes = { "openid", "profile", "email", "phone", IdentityDefinitions.TenantOwnerScope },
+                AllowedScopes = { "openid", "profile", "email", "phone", IdentityDefinitions.PartyScope },
                 Properties = { [nameof(authenticationClient.AutoAccess)] = authenticationClient.AutoAccess.ToString() }
             };
             return client;

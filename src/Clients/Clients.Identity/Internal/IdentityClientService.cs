@@ -59,9 +59,9 @@ public class IdentityClientService(
             TokenResponse tokenResponse = await client.RequestClientCredentialsTokenAsync(new ClientCredentialsTokenRequest
             {
                 Address = discoveryDocument.TokenEndpoint,
-                ClientId = AaasConstants.AccessClient,
+                ClientId = IdentityConstants.AccessClient,
                 ClientSecret = options.Value.Secret,
-                Scope = AaasConstants.AccessScope,
+                Scope = IdentityConstants.AccessScope,
             });
 
             if (tokenResponse.IsError || tokenResponse.AccessToken is null)
@@ -114,7 +114,7 @@ public class IdentityClientService(
 
     private string CreateConfigurationHash()
     {
-        string composite = string.Join(":", options.Value.Authority, AaasConstants.AccessClient, AaasConstants.AccessScope, options.Value.Secret);
+        string composite = string.Join(":", options.Value.Authority, IdentityConstants.AccessClient, IdentityConstants.AccessScope, options.Value.Secret);
         byte[] data = Encoding.UTF8.GetBytes(composite);
         byte[] hash = SHA256.HashData(data);
         return Convert.ToHexString(hash);

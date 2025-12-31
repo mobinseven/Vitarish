@@ -41,14 +41,14 @@ EXEC sys.sp_set_session_context @key=N'user_id',  @value=@u;";
     {
         sqlite.CreateFunction<string, string?>(
             "session_context",
-            key => key?.Equals("owner_id", StringComparison.OrdinalIgnoreCase) == true
+            key => key?.Equals(IdentityDefinitions.OwnerIdClaim, StringComparison.OrdinalIgnoreCase) == true
                     ? ctx.OwnerId?.ToString()
                  : key?.Equals("user_id", StringComparison.OrdinalIgnoreCase) == true
                     ? ctx.UserId?.ToString()
                  : null,
             isDeterministic: false);
 
-        sqlite.CreateFunction("owner_id", () => ctx.OwnerId?.ToString(), isDeterministic: false);
+        sqlite.CreateFunction(IdentityDefinitions.OwnerIdClaim, () => ctx.OwnerId?.ToString(), isDeterministic: false);
         sqlite.CreateFunction("user_id", () => ctx.UserId?.ToString(), isDeterministic: false);
     }
 }
