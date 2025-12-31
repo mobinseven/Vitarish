@@ -1,10 +1,7 @@
 using Microsoft.AspNetCore.Localization;
 using System.Globalization;
-using Vitarish.Accounts.Application.Abstractions;
 using Vitarish.Accounts.Domain.Constants;
 using Vitarish.Accounts.Infrastructure.Extensions;
-using Vitarish.Accounts.Infrastructure.Services;
-using Vitarish.Accounts.Interface.Components;
 using Vitarish.Interfaces.Base.Localization;
 
 public static class WebApplicationBuilderExtensions
@@ -28,10 +25,10 @@ public static class WebApplicationBuilderExtensions
         {
             options.AddPolicy(AaasConstants.Admin, policy => policy.RequireClaim(AaasConstants.AccessClaim, "admin.local:::Admin"));
         });
-        builder.Services.AddLocalization();
-        builder.Services.ConfigureCompositeStringLocalizer(typeof(Strings));
-        builder.Services.AddSingleton<IStringLocalizer>(sp => sp.GetRequiredService<IStringLocalizer<Strings>>());
-        builder.Services.Configure<RequestLocalizationOptions>(options =>
+        _ = builder.Services.AddLocalization();
+        _ = builder.Services.ConfigureCompositeStringLocalizer(typeof(Vitarish.Accounts.Interface.Localization.Strings));
+        builder.Services.AddSingleton<IStringLocalizer>(sp => sp.GetRequiredService<IStringLocalizer<Vitarish.Interfaces.Base.Localization.Strings>>());
+        _ = builder.Services.Configure<RequestLocalizationOptions>(options =>
         {
             CultureInfo[] supportedCultures =
             [
@@ -44,8 +41,5 @@ public static class WebApplicationBuilderExtensions
             options.ApplyCurrentCultureToResponseHeaders = true;
         });
     }
-    public static void MapAccountsInterface(this WebApplication app)
-    {
-        _ = app.MapAdditionalIdentityEndpoints();
-    }
+    public static void MapAccountsInterface(this WebApplication app) => _ = app.MapAdditionalIdentityEndpoints();
 }
