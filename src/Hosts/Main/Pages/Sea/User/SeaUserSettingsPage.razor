@@ -1,0 +1,28 @@
+@page "/settings"
+@inherits SettingsSectionPageBase
+
+<div style="position: sticky; top: 10px; z-index: 1;">
+    <WidthControlled ControlledWidth="50vw">
+        <MudPaper Class="py-5" Elevation="0">
+            <SettingsBreadcrumbs Items="Breadcrumbs" />
+        </MudPaper>
+    </WidthControlled>
+</div>
+
+<WidthControlled ControlledWidth="50vw">
+    <MudPaper Class="glass mt-5" Elevation="0">
+        <MudStack Spacing="3" Class="pa-6">
+            <MudField Label="@Localizer["User"]" Variant="Variant.Outlined">
+                <MudStack AlignItems="AlignItems.Center" Justify="Justify.Center" Style="width: 100%">
+                    <UserRolesDisplay User="AccessService.User" />
+                    <MudItem md="2" Style="height: 100%; width: 100%;"></MudItem>
+                </MudStack>
+            </MudField>
+        </MudStack>
+    </MudPaper>
+
+</WidthControlled>
+
+<div style="height: 50dvh;">
+    <hr />
+</div>

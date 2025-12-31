@@ -26,6 +26,7 @@
 		<ProjectReference Include="..\..\Modules\Files\Hosting\Files.Hosting.csproj" />
 		<ProjectReference Include="..\..\Modules\Intelligence\Hosting\Intelligence.Hosting.csproj" />
 		<ProjectReference Include="..\..\Modules\Sea\Hosting\Sea.Hosting.csproj" />
+		<ProjectReference Include="..\..\Modules\Sea\Interface\Sea.Interface.csproj" />
 	</ItemGroup>
 
 </Project>

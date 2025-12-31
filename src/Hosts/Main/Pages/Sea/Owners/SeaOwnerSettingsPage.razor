@@ -1,0 +1,32 @@
+@page "/sea/owner/settings"
+@inherits SeaOwnerSettingsSectionPageBase
+
+<div style="position: sticky; top: 10px; z-index: 1;">
+    <WidthControlled ControlledWidth="50vw">
+        <MudPaper Class="py-5" Elevation="0">
+            <SettingsBreadcrumbs Items="Breadcrumbs" />
+        </MudPaper>
+    </WidthControlled>
+</div>
+
+<WidthControlled ControlledWidth="50vw">
+    <MudPaper Class="glass mt-5" Elevation="0">
+        <MudStack Spacing="2" Class="pa-6">
+            <MudStack Spacing="1">
+                <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/users">@Localizer["Users"]</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/theme">@Localizer["Theme"]</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/Chat">@Localizer["Chat"]</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/statistics">@Localizer["Statistics"]</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/advanced">@Localizer["Advanced"]</MudButton>
+            </MudStack>
+        </MudStack>
+    </MudPaper>
+</WidthControlled>
+
+<div style="height: 50dvh;">
+    <hr />
+</div>
+
+@code {
+    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => BuildBreadcrumbs();
+}

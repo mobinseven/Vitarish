@@ -1,0 +1,12 @@
+@page "/sea"
+@inject NavigationManager NavigationManager
+
+<EndOfScroll />
+
+<WidthControlled>
+    <ProjectsGrid Context="project" OnClicked="@(id => NavigationManager.NavigateTo($"/sea/projects/{id}"))" />
+</WidthControlled>
+<div style="height: 20dvh;">
+    <hr />
+</div>
+

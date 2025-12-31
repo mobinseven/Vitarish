@@ -1,9 +1,7 @@
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using Finbuckle.MultiTenant;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.FileProviders;
 using System.Reflection;
 using Vitarish.ApiClients.Hosting.Api;
 using Vitarish.ApiClients.Hosting.DependencyInjection;
@@ -18,7 +16,6 @@ using Vitarish.Intelligence.Hosting;
 using Vitarish.Main.Components;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
-using Vitarish.Main.Infrastructure.IdentityServer;
 using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Services;
 using Vitarish.Modules.Base;
@@ -32,9 +29,7 @@ using Vitarish.Sea.Hosting;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Users.Hosting.Api;
 using Vitarish.Users.Hosting.DependencyInjection;
-using Vitarish.Users.Infrastructure;
 using Vitarish.Users.Infrastructure.Data;
-using Microsoft.Extensions.FileProviders;
 
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);

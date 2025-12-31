@@ -1,0 +1,26 @@
+@page "/sea/owner/settings/users"
+@inherits SeaOwnerSettingsSectionPageBase
+
+<div style="position: sticky; top: 10px; z-index: 1;">
+    <WidthControlled ControlledWidth="50vw">
+        <MudPaper Class="py-5" Elevation="0">
+            <SettingsBreadcrumbs Items="Breadcrumbs" />
+        </MudPaper>
+    </WidthControlled>
+</div>
+
+<WidthControlled ControlledWidth="50vw">
+    <MudPaper Class="glass mt-5" Elevation="0">
+        <MudStack Spacing="3" Class="pa-6">
+            <UsersGrid />
+        </MudStack>
+    </MudPaper>
+</WidthControlled>
+
+<div style="height: 50dvh;">
+    <hr />
+</div>
+
+@code {
+    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => BuildBreadcrumbs(Localizer["Users"]);
+}
