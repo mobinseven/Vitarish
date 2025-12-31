@@ -31,7 +31,7 @@ public static class UrlExtensions
             query = url[(queryIndex + 1)..];
         }
 
-        List<KeyValuePair<string, string>> parameters = new();
+        List<KeyValuePair<string, string>> parameters = [];
         bool replaced = false;
         foreach (string[] parts in query
                      .Split('&', StringSplitOptions.RemoveEmptyEntries)

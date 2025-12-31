@@ -1,6 +1,3 @@
-using Microsoft.JSInterop;
-using Vitarish.Interfaces.Base.Extensions;
-
 internal static class JsModulesExtensions
 {
     public static ValueTask<IJSObjectReference> RegisterJsModule(this IJSRuntime js, object sender) => js.InvokeAsync<IJSObjectReference>(

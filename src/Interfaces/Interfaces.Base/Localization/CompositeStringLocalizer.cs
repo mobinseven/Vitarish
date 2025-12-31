@@ -1,6 +1,3 @@
-using Microsoft.Extensions.Localization;
-using System.Globalization;
-
 namespace Vitarish.Interfaces.Base.Localization;
 
 public sealed class CompositeStringLocalizer : IStringLocalizer

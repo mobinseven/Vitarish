@@ -1,4 +1,4 @@
-namespace Vitarish.Interfaces.Base.Localization;
+namespace Vitarish.Clients.Interface.Localization;
 
 public sealed class CompositeStringLocalizerOptions
 {

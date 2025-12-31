@@ -1,6 +1,3 @@
-using Microsoft.Extensions.Localization;
-using MudBlazor;
-
 namespace Vitarish.Interfaces.Base.Localization;
 
 public class CustomMudLocalizer(IStringLocalizer localizer) : MudLocalizer

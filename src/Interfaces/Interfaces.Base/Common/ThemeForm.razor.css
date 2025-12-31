@@ -1,0 +1,14 @@
+.theme-form .theme-color-chip {
+    width: 100%;
+    justify-content: center;
+    font-variant-numeric: tabular-nums;
+}
+
+.theme-form .theme-color-chip.mud-chip-outlined {
+    border-style: dashed;
+}
+
+.theme-form .theme-variable-chip {
+    width: auto;
+    min-width: 0;
+}

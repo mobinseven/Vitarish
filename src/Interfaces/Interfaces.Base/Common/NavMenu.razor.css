@@ -1,0 +1,6 @@
+
+::deep .mud-button-root:not(.mud-button-outlined,.mud-button-filled) {
+    backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+    -webkit-backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+    background-color: var(--background);
+}

@@ -1,0 +1,25 @@
+.vorn-end-of-scroll {
+    position: relative;
+    width: 100%;
+    height: 0;
+    overflow: hidden;
+    pointer-events: none;
+    flex-shrink: 0;
+    transition-property: height;
+    transition-duration: 200ms;
+    transition-timing-function: ease;
+    opacity: 0;
+}
+
+    .vorn-end-of-scroll::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(var(--vorn-end-of-scroll-gradient, to bottom), rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0));
+        opacity: 0;
+        transition: opacity 150ms ease;
+    }
+
+    .vorn-end-of-scroll.end-of-scroll--active::before {
+        opacity: 1;
+    }
