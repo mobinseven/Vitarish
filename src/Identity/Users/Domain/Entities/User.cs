@@ -20,4 +20,7 @@ public class User : IdentityUser
         get => string.IsNullOrEmpty(ProfileJson) ? [] : JsonSerializer.Deserialize<Dictionary<string, string>>(ProfileJson)!;
         set => ProfileJson = value is null || value.Count == 0 ? null : JsonSerializer.Serialize(value);
     }
+
+    [NotMapped]
+    public string FullName => $"{FirstName} {LastName}".Trim();
 }
