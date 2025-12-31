@@ -10,7 +10,7 @@ public sealed class Authorizer(UserManager<User> userManager, IDistributedCache 
 {
     private static readonly KeyedAsyncLock _keyedLock = new();
     private static readonly TimeSpan RoleCacheSuccessTtl = TimeSpan.FromMinutes(5);
-    private static readonly TimeSpan RoleCacheFailureTtl = TimeSpan.FromSeconds(45);
+    private static readonly TimeSpan RoleCacheFailureTtl = TimeSpan.FromSeconds(15);
 
     protected override async Task HandleRequirementAsync(
         AuthorizationHandlerContext context,
