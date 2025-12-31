@@ -1,0 +1,314 @@
+<AiStreamTranscriber @ref="_transcriber"
+                     Value="@_transcription"
+                     ValueChanged="OnTranscriptionChanged"
+                     OnTransciptionEnd="OnTranscriptionEnded"
+                     OnRecordingStateChanged="OnRecordingChanged"
+                     OnTranscribingStateChanged="OnTranscribingChanged" />
+
+<AiStreamRewriter @ref="_rewriter"
+                  Value="@_rewrite"
+                  ValueChanged="OnRewriteValueChanged"
+                  OnRewriteStarted="OnRewriteStarted"
+                  OnRewriteCompleted="OnRewriteCompleted"
+                  OnRewriteError="OnRewriteError" />
+
+<AiStreamResponder @ref="_responder"
+                   Options="@_responderOptions"
+                   OnOutput="OnResponderOutput"
+                   OnOutputEnd="OnResponderCompleted" />
+
+<div class="ai-stream-workbench">
+    <section class="ai-stream-section">
+        <h3>Transcription</h3>
+        <div class="ai-stream-controls">
+            <button type="button"
+                    @onclick="ToggleRecordingAsync"
+                    disabled="@(!_supported || _transcribing)">
+                @GetRecordingLabel()
+            </button>
+        </div>
+        <p class="ai-stream-status">@_transcriberStatus</p>
+        <textarea class="ai-stream-text" @bind="_transcription" @bind:event="oninput"></textarea>
+    </section>
+    <section class="ai-stream-section">
+        <h3>Rewrite</h3>
+        <div class="ai-stream-controls">
+            <button type="button"
+                    @onclick="RewriteAsync"
+                    disabled="@(_rewriting || (string.IsNullOrWhiteSpace(_transcription) && string.IsNullOrWhiteSpace(_rewrite)))">
+                @_rewriting ? "Cancel Rewrite" : "Rewrite Transcript"
+            </button>
+        </div>
+        <textarea class="ai-stream-text" @bind="_rewrite" @bind:event="oninput"></textarea>
+    </section>
+    <section class="ai-stream-section">
+        <h3>Responder</h3>
+        <div class="ai-stream-controls">
+            <button type="button"
+                    @onclick="SubmitResponderAsync"
+                    disabled="@string.IsNullOrWhiteSpace(_rewrite)">
+                @_responderSubmitting ? "Cancel Response" : "Send to Responder"
+            </button>
+        </div>
+        <div class="ai-stream-controls">
+            <input @bind="ResponderModel"
+                   @bind:event="oninput"
+                   list="ai-responder-models"
+                   placeholder="Optional model override" />
+        </div>
+        <datalist id="ai-responder-models">
+            @foreach(string model in _modelSuggestions)
+            {
+                <option value="@model"></option>
+            }
+        </datalist>
+        <ul class="ai-stream-outputs">
+            @if(_responderOutputs.Count == 0)
+            {
+                <li class="ai-stream-output-empty">No responses yet.</li>
+            }
+            else
+            {
+                foreach(var output in _responderOutputs)
+                {
+                    <li class="ai-stream-output">@FormatOutput(output)</li>
+                }
+            }
+        </ul>
+    </section>
+</div>
+
+@code {
+    private AiStreamTranscriber? _transcriber;
+    private AiStreamRewriter? _rewriter;
+    private AiStreamResponder? _responder;
+
+    private string _transcription = string.Empty;
+    private string _rewrite = string.Empty;
+    private string _transcriberStatus = "Checking microphone support…";
+    private bool _supported;
+    private bool _transcribing;
+    private bool _recording;
+    private bool _rewriting;
+    private bool _responderSubmitting;
+    private readonly List<ResponderOutput> _responderOutputs = new();
+    private ResponderOptions _responderOptions = new();
+    private static readonly string[] _modelSuggestions = ["gpt-5-nano", "gpt-4o", "gpt-4o-mini", "o3-mini"];
+    private string _responderModel = string.Empty;
+
+    private string ResponderModel
+    {
+        get => _responderModel;
+        set
+        {
+            _responderModel = value;
+            _responderOptions = _responderOptions with { Model = string.IsNullOrWhiteSpace(value) ? null : value.Trim() };
+            StateHasChanged();
+        }
+    }
+
+    private Task OnSupportDetected(bool supported)
+    {
+        _supported = supported;
+        _transcriberStatus = supported
+            ? "Ready to record."
+            : "Microphone recording is not supported in this browser.";
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private Task OnRecordingChanged(bool recording)
+    {
+        _recording = recording;
+        UpdateStatus();
+        return Task.CompletedTask;
+    }
+
+    private Task OnTranscribingChanged(bool transcribing)
+    {
+        _transcribing = transcribing;
+        UpdateStatus();
+        return Task.CompletedTask;
+    }
+
+    private Task OnTranscriptionChanged(string value)
+    {
+        _transcription = value;
+
+        if(!_rewriting && string.IsNullOrWhiteSpace(_rewrite))
+        {
+            _rewrite = value;
+        }
+
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private Task OnTranscriptionEnded()
+    {
+        UpdateStatus();
+        return Task.CompletedTask;
+    }
+
+    private Task OnRewriteValueChanged(string value)
+    {
+        _rewrite = value;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private Task OnRewriteStarted()
+    {
+        _rewriting = true;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private Task OnRewriteCompleted()
+    {
+        _rewriting = false;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private Task OnRewriteError(Exception exception)
+    {
+        _rewriting = false;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private async Task ToggleRecordingAsync()
+    {
+        if(_transcriber is null)
+        {
+            return;
+        }
+
+        await _transcriber.ToggleRecordingAsync();
+        UpdateStatus();
+    }
+
+    private string GetRecordingLabel()
+        => _recording ? "Stop Recording" : "Start Recording";
+
+    private void UpdateStatus()
+    {
+        if(!_supported)
+        {
+            _transcriberStatus = "Microphone recording is not supported.";
+            StateHasChanged();
+            return;
+        }
+
+        _transcriberStatus = _recording
+            ? "Recording…"
+            : _transcribing
+                ? "Transcribing…"
+                : "Ready to record.";
+        StateHasChanged();
+    }
+
+    private async Task RewriteAsync()
+    {
+        if(_rewriter is null)
+        {
+            return;
+        }
+
+        if(_rewriting)
+        {
+            _rewriter.CancelRewrite();
+            _rewriting = false;
+            StateHasChanged();
+            return;
+        }
+
+        _rewriting = true;
+        StateHasChanged();
+
+        string prompt = string.IsNullOrWhiteSpace(_transcription) ? _rewrite : _transcription;
+        await _rewriter.StartRewriteAsync(prompt);
+    }
+
+    private async Task SubmitResponderAsync()
+    {
+        if(_responder is null)
+        {
+            return;
+        }
+
+        if(_responder.Responding)
+        {
+            _responder.Cancel();
+            _responderSubmitting = false;
+            StateHasChanged();
+            return;
+        }
+
+        _responderOutputs.Clear();
+        _responderSubmitting = true;
+        StateHasChanged();
+
+        var inputs = new[] { ResponderInput.TextInput(_rewrite) };
+        try
+        {
+            await _responder.Submit(inputs);
+        }
+        catch
+        {
+            _responderSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    private Task OnResponderOutput(ResponderOutput output)
+    {
+        _responderOutputs.Add(output);
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private Task OnResponderCompleted(IEnumerable<ResponderOutput> outputs)
+    {
+        _responderOutputs.Clear();
+        foreach(var output in outputs)
+        {
+            _responderOutputs.Add(output);
+        }
+
+        _responderSubmitting = false;
+        StateHasChanged();
+        return Task.CompletedTask;
+    }
+
+    private string FormatOutput(ResponderOutput output)
+        => output.Type switch
+        {
+            ResponderOutputType.Message => FormatMessage(output.Content),
+            ResponderOutputType.Text => output.Text ?? string.Empty,
+            ResponderOutputType.Reasoning => output.Text ?? string.Empty,
+            _ => output.Text ?? output.Type.ToString()
+        };
+
+    private string FormatMessage(IReadOnlyList<ResponderOutput>? content)
+    {
+        if(content is null || content.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        StringBuilder builder = new();
+        for(int i = 0; i < content.Count; i++)
+        {
+            if(i > 0)
+            {
+                builder.AppendLine();
+            }
+
+            builder.Append(FormatOutput(content[i]));
+        }
+
+        return builder.ToString();
+    }
+}
