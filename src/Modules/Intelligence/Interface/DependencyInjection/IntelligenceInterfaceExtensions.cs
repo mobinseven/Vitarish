@@ -3,9 +3,9 @@ using Vitarish.Intelligence.Interface.Services;
 
 namespace Vitarish.Intelligence.Interface.DependencyInjection;
 
-public static class IntelligenceModuleInterfaceExtensions
+public static class IntelligenceInterfaceExtensions
 {
-    public static IServiceCollection AddIntelligenceModuleComponents(this IServiceCollection services)
+    public static IServiceCollection ConfigureIntelligenceInterface(this IServiceCollection services)
     {
         _ = services.AddScoped<IStreamResponder, StreamResponder>();
         _ = services.AddScoped<IStreamRewriter, StreamRewriter>();

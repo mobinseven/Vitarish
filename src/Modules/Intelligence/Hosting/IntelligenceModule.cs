@@ -7,6 +7,7 @@ using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Hosting.Hubs;
 using Vitarish.Intelligence.Infrastructure.Services;
 using Vitarish.Intelligence.Infrastructure.Services.Dispatching;
+using Vitarish.Intelligence.Interface.DependencyInjection;
 using Vitarish.Modules.Base;
 
 namespace Vitarish.Intelligence.Hosting;
@@ -29,6 +30,7 @@ public class IntelligenceModule : ModuleBase
         _ = services.AddTransient<IResponder, ProviderDispatchingResponder>();
         _ = services.AddSingleton<ITranscriber, ProviderDispatchingTranscriber>();
         _ = services.AddAntiforgery();
+        services.ConfigureIntelligenceInterface();
     }
 
     /// <inheritdoc />
