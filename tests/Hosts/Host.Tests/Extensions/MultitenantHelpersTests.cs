@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using Vitarish.Requests.Application.Abstractions;
-using Vitarish.Requests.Hosting.Middleware;
+using Vitarish.Requests.Application;
 using Vitarish.Requests.Infrastructure.Services;
 
 namespace Main.Tests.Extensions;

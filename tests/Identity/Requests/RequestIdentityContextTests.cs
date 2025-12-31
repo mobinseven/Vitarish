@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Infrastructure.Services;
 
@@ -9,7 +10,7 @@ public class RequestIdentityContextTests
     public void DefaultContext_HasEmptyStringProperties()
     {
         // Arrange & Act
-        RequestContext context = new();
+        RequestContext context = new(new HttpContextAccessor());
 
         // Assert
         context.Authority.Should().BeEmpty();
@@ -27,7 +28,7 @@ public class RequestIdentityContextTests
     public void SetContext_WithAllParameters_PopulatesAllProperties()
     {
         // Arrange
-        RequestContext context = new();
+        RequestContext context = new(new HttpContextAccessor());
         const string authority = "https://auth.example.com";
         const string clientId = "test-client";
         const string ownerId = "owner-123";
@@ -67,7 +68,7 @@ public class RequestIdentityContextTests
     public void SetContext_WithoutRequestId_GeneratesNewRequestId()
     {
         // Arrange
-        RequestContext context = new();
+        RequestContext context = new(new HttpContextAccessor());
 
         // Act
         IRequestContextWriter writer = context;
@@ -85,7 +86,7 @@ public class RequestIdentityContextTests
     public void SetContext_WithProvidedRequestId_UsesProvidedValue()
     {
         // Arrange
-        RequestContext context = new();
+        RequestContext context = new(new HttpContextAccessor());
         const string expectedRequestId = "my-custom-request-id";
 
         // Act
@@ -104,7 +105,7 @@ public class RequestIdentityContextTests
     public void SetContext_WithOnlyRequiredParameters_SetsOptionalToNull()
     {
         // Arrange
-        RequestContext context = new();
+        RequestContext context = new(new HttpContextAccessor());
 
         // Act
         IRequestContextWriter writer = context;
@@ -128,7 +129,7 @@ public class RequestIdentityContextTests
     public void Context_ImplementsBothInterfaces()
     {
         // Arrange & Act
-        RequestContext context = new();
+        RequestContext context = new(new HttpContextAccessor());
 
         // Assert
         context.Should().BeAssignableTo<IRequestContext>();
