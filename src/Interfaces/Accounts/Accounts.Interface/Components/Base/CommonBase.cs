@@ -1,5 +1,4 @@
 using Duende.IdentityServer.Extensions;
-using System.Threading.Tasks;
 
 namespace Vitarish.Accounts.Interface.Components.Base
 {
@@ -28,7 +27,7 @@ namespace Vitarish.Accounts.Interface.Components.Base
         [Inject] protected ILoggerFactory LoggerFactory { get; set; } = default!;
         [Inject] protected IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
 
-        protected User? User { get;set; } = default!;
+        protected User? User { get; set; } = default!;
 
         protected override async Task OnInitializedAsync()
         {
