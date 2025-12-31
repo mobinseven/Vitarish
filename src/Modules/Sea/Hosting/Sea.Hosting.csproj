@@ -5,6 +5,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
 		<ProjectReference Include="..\Infrastructure\Sea.Infrastructure.csproj" />
+		<ProjectReference Include="..\Interface\Sea.Interface.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.*" />

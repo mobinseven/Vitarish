@@ -4,11 +4,11 @@ using Vitarish.Sea.Interface.Internal;
 
 namespace Vitarish.Sea.Interface.DependencyInjection;
 
-internal static class SeaInterfaceConfigurations
+public static class SeaInterfaceConfigurations
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection ConfigureSeaModule()
+        public IServiceCollection ConfigureSeaInterface()
         {
             SeaPluginManifest pluginManifest = services.ConfigureSeaPlugins([SeaPluginIdentifiers.Clinic]);
             _ = services.AddSingleton(pluginManifest);
