@@ -1,4 +1,4 @@
-namespace Vitarish.Requests.Hosting.Middleware;
+namespace Vitarish.Requests.Application;
 
 /// <summary>
 /// Options for configuring request identity context resolution.

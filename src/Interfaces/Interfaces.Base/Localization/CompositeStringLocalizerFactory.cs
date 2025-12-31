@@ -1,5 +1,4 @@
 using Microsoft.Extensions.Options;
-using Vitarish.Clients.Interface.Localization;
 
 namespace Vitarish.Interfaces.Base.Localization;
 

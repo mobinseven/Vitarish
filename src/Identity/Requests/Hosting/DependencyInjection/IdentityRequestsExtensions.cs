@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Requests.Application;
 using Vitarish.Requests.Application.Abstractions;
-using Vitarish.Requests.Hosting.Middleware;
 using Vitarish.Requests.Infrastructure;
 using Vitarish.Requests.Infrastructure.Data;
 using Vitarish.Requests.Infrastructure.Services;
@@ -46,6 +46,8 @@ public static class IdentityRequestsExtensions
         {
             _ = services.Configure<RequestsOptions>(section);
         }
+
+        _ = services.AddHttpContextAccessor();
 
         // Register the context as scoped - one per request
         _ = services.AddScoped<RequestContext>();
