@@ -1,0 +1,22 @@
+@inherits SeaCommonBase
+
+<MudDialog>
+    <DialogContent>
+        <MudList T="ProcedureDto" Dense="true">
+            @foreach (var proj in projects)
+            {
+                <MudListSubheader>@proj.Name</MudListSubheader>
+                @if (procedures.TryGetValue(proj.Id, out var list))
+                {
+                    @foreach (var proc in list)
+                    {
+                        <MudListItem T="ProcedureDto" OnClick="@(() => Select(proc))">@proc.Name</MudListItem>
+                    }
+                }
+            }
+        </MudList>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Localizer["Close"]</MudButton>
+    </DialogActions>
+</MudDialog>

@@ -1,0 +1,50 @@
+@inherits ProceduresBase
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="2">
+            <MudText Typo="Typo.h6">@Localizer["Choose procedure form"]</MudText>
+            <MudList T="object" Dense="true">
+                @foreach (var plugin in Options)
+                {
+                    <MudListItem T="object" OnClick="@(() => Select(plugin))">
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.subtitle1">@plugin.DisplayName</MudText>
+                            @if (!string.IsNullOrWhiteSpace(plugin.Description))
+                            {
+                                <MudText Typo="Typo.body2" Class="mud-text-secondary">@plugin.Description</MudText>
+                            }
+                        </MudStack>
+                    </MudListItem>
+                }
+                @if (ShowStandardForm)
+                {
+                    <MudListItem T="object" OnClick="@(() => Select(null))">
+                        <MudStack Spacing="1">
+                            <MudText Typo="Typo.subtitle1">@Localizer["Standard procedure"]</MudText>
+                            <MudText Typo="Typo.body2" Class="mud-text-secondary">@Localizer["Use the default procedure creation dialog."]</MudText>
+                        </MudStack>
+                    </MudListItem>
+                }
+            </MudList>
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton Variant="Variant.Text" Color="Color.Default" OnClick="Cancel">@Localizer["Cancel"]</MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance Dialog { get; set; } = default!;
+
+    [Parameter]
+    public required IReadOnlyList<IProcedureCreationFormPlugin> Options { get; set; }
+
+    [Parameter]
+    public bool ShowStandardForm { get; set; }
+
+    private void Select(IProcedureCreationFormPlugin? plugin)
+        => Dialog.Close(DialogResult.Ok(plugin));
+
+    private void Cancel() => Dialog.Cancel();
+}

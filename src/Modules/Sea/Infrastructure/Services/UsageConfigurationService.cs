@@ -13,7 +13,7 @@ internal class UsageConfigurationService(IMediator mediator, UsageConfigurationM
         return (await GetAsync(new GetUsageConfigurationQuery(), cancellationToken)).GetValueOrDefault();
     }
 
-    public async Task<UsageConfigurationDto?> UpdateAsync(UsageConfigurationWriteDto usageConfigurationDto, CancellationToken cancellationToken)
+    public async Task<UsageConfigurationDto?> UpdateAsync(UsageConfigurationDto usageConfigurationDto, CancellationToken cancellationToken)
     {
         return (await GetAsync(
             new UpdateUsageConfigurationCommand(

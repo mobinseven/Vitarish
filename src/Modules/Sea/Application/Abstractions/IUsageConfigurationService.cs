@@ -5,6 +5,6 @@ namespace Vitarish.Sea.Application.Abstractions;
 public interface IUsageConfigurationService : IEntityService<UsageConfigurationDto, UsageConfigurationWriteDto, UsageConfigurationDescriptorDto>
 {
     Task<UsageConfigurationDto?> GetUsageConfigurationAsync(CancellationToken cancellationToken);
-    Task<UsageConfigurationDto?> UpdateAsync(UsageConfigurationWriteDto usageConfigurationDto, CancellationToken cancellationToken);
+    Task<UsageConfigurationDto?> UpdateAsync(UsageConfigurationDto usageConfigurationDto, CancellationToken cancellationToken);
 }
 

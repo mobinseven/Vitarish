@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  
+  <!-- Title -->
+  <data name="Configure clinic template">
+    <value>Configure clinic template</value>
+  </data>
+  
+  <!-- Button labels -->
+  <data name="Cancel">
+    <value>Cancel</value>
+  </data>
+  <data name="Creating...">
+    <value>Creating...</value>
+  </data>
+  <data name="Create template">
+    <value>Create template</value>
+  </data>
+  
+  <!-- Context labels -->
+  <data name="Facility: {0}">
+    <value>Facility: {0}</value>
+  </data>
+  <data name="Department: {0}">
+    <value>Department: {0}</value>
+  </data>
+  
+  <!-- Form field labels -->
+  <data name="Template name">
+    <value>Template name</value>
+  </data>
+  <data name="Template description">
+    <value>Template description</value>
+  </data>
+  <data name="Default department">
+    <value>Default department</value>
+  </data>
+  <data name="Default physician">
+    <value>Default physician</value>
+  </data>
+  <data name="Default reason for visit">
+    <value>Default reason for visit</value>
+  </data>
+  <data name="Intake checklist">
+    <value>Intake checklist</value>
+  </data>
+  <data name="Consent guidance">
+    <value>Consent guidance</value>
+  </data>
+  <data name="Include insurance details section">
+    <value>Include insurance details section</value>
+  </data>
+  <data name="Include clinical notes section">
+    <value>Include clinical notes section</value>
+  </data>
+  
+  <!-- Default description -->
+  <data name="Clinic intake project template">
+    <value>Clinic intake project template</value>
+  </data>
+</root>

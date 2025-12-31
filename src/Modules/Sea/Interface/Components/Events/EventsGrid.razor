@@ -1,0 +1,133 @@
+@inherits EventsBase
+
+<MudDataGrid T="EventDto" @ref=grid ServerData=ReloadData HeaderClass="d-none" RowClass="border-none" Elevation="0" Height="100%">
+    <Columns>
+        <TemplateColumn T="EventDto">
+            <CellTemplate Context="context">
+                @if(AdminMode || canWrite[context.Item.Id] || canRead[context.Item.Id])
+                {
+@*                     if(ShouldShowDropZones)
+                    {
+                        <div class="@GetDropZoneCss(context.Item.Id, true)"
+                             @ondragover="@(args => HandleDragOver(context.Item.Id, true, args))"
+                             @ondragover:preventDefault
+                             @ondragleave="@(args => HandleDragLeave(context.Item.Id, true, args))"
+                             @ondrop="@(args => HandleDropAsync(context.Item.Id, true, args))"
+                             @ondrop:preventDefault>
+                            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="50px" Class="glass rounded" Animation="Animation.Wave" />
+                        </div>
+                    } *@
+                    <ExpandableItem Context="expandable"
+                                    Size="Size.Large"
+                                    Expanded="@(OpenEvent == context.Item.Id)"
+                                    ExpandedChanged=@(async e =>{ await OpenEventChanged.InvokeAsync(e ? context.Item.Id : null); await grid!.ReloadServerData(); })
+                                    ShowMenu=AdminMode
+                                    Name="@context.Item.Title"
+                                    NoIcon>
+                        <StartContent>
+                            <MudStack Row Spacing="0">
+@*                                 <div class="@GetRowClass(context.Item)"
+                                     @key="context.Item.Id"
+                                     draggable="@CanReorder(context.Item)"
+                                     @ondragstart="@(args => HandleDragStart(context.Item, args))"
+                                     @ondragend="HandleDragEnd">
+                                    <MudFab Size=Size.Small
+                                            Class="glass"
+                                            Style="pointer-events: none"
+                                            DropShadow=false
+                                            StartIcon="fa-thin fa-grip-vertical" />
+                                </div> *@
+                                @if(!Project.Template)
+                                {
+                                    if(AdminMode || canWrite[context.Item.Id])
+                                    {
+                                        <div>
+                                            <MudFab Size=Size.Small
+                                                    Class="glass"
+                                                    Color="@(context.Item.IsCommitted ? Color.Info : Color.Default)"
+                                                    Style="@(context.Item.IsCommitted ? "background-color: deeppink" : "")"
+                                                    DropShadow=false
+                                                    OnClick="() => ToggleCommitAsync(context.Item)"
+                                                    StartIcon="@(context.Item.IsCommitted ? "fa-thin fa-check " : "fa-thin fa-circle")" />
+                                        </div>
+                                    }
+                                }
+                            </MudStack>
+                        </StartContent>
+                        <InlineContent>
+                            <StatsDisplay Stats="context.Item.Stats ?? new StatsDto()" />
+                        </InlineContent>
+                        <MenuItems>
+                            <MudMenuItem OnClick="@(() => EditEvent(context.Item))"
+                                         Icon="@Icons.Material.Filled.Edit">
+                                @Localizer["EditItem", Localizer["Event"]]
+                            </MudMenuItem>
+                            <MudMenuItem OnClick="@(() => EditEventRoles(context.Item))"
+                                         Icon="fa-thin fa-people-line">
+                                @Localizer["EditRoles", Localizer["Event"]]
+                            </MudMenuItem>
+                            <MudMenuItem OnClick="@(() => AddEventAfter(context.Item))"
+                                         Icon="fa-thin fa-plus">
+                                @Localizer["AddAfter", Localizer["Event"]]
+                            </MudMenuItem>
+                            <MudMenuItem OnClick="@(() => MoveUp(context.Item))"
+                                         Disabled="@IsFirst(context.Item)"
+                                         Icon="fa-thin fa-arrow-up">
+                                @Localizer["MoveUp", Localizer["Event"]]
+                            </MudMenuItem>
+                            <MudMenuItem OnClick="@(() => MoveDown(context.Item))"
+                                         Disabled="@IsLast(context.Item)"
+                                         Icon="fa-thin fa-arrow-down">
+                                @Localizer["MoveDown", Localizer["Event"]]
+                            </MudMenuItem>
+                            <MudMenuItem OnClick="@(() => DeleteEvent(context.Item))"
+                                         Icon="@Icons.Material.Filled.Delete">
+                                @Localizer["DeleteItem", Localizer["Event"]]
+                            </MudMenuItem>
+                        </MenuItems>
+                        <ChildContent>
+                            <EventItemsTimeline Event="context.Item" Procedure="Procedure" Project="Project" />
+                        </ChildContent>
+                    </ExpandableItem>
+                    if(ShouldShowDropZones && IsLast(context.Item))
+                    {
+                        <div class="@GetDropZoneCss(null, false)"
+                             @ondragover="@(args => HandleDragOver(null, false, args))"
+                             @ondragover:preventDefault
+                             @ondragleave="@(args => HandleDragLeave(null, false, args))"
+                             @ondrop="@(args => HandleDropAsync(null, false, args))"
+                             @ondrop:preventDefault></div>
+                    }
+                }
+                else
+                {
+                    <MudStack Row
+                              AlignItems="AlignItems.Center"
+                              Justify="Justify.Center"
+                              Style="width: 100%">
+                        <div>
+                            <MudFab Size=Size.Small
+                                    DropShadow=false
+                                    StartIcon="@(context.Item.IsCommitted ? "fa-solid fa-circle-check " : "fa-thin fa-circle")" />
+                        </div>
+                        <div style="width: 100%; filter: blur(3px)">
+                            <Chip>
+                                @Localizer["NoAccess"]
+                            </Chip>
+                        </div>
+                    </MudStack>
+                }
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <LoadingContent>
+        <MudProgressLinear Indeterminate />
+    </LoadingContent>
+    <NoRecordsContent>
+        <MudProgressLinear Indeterminate />
+        @if(AdminMode)
+        {
+            <MudButton StartIcon="fa-thin fa-plus" Size=Size.Large OnClick="AddEvent" FullWidth>@Localizer["AddItem", Localizer["Event"]]</MudButton>
+        }
+    </NoRecordsContent>
+</MudDataGrid>

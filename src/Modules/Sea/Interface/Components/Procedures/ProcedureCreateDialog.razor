@@ -1,0 +1,22 @@
+@inherits ProceduresBase
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="2">
+            <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+                @if(templateProcedure is not null)
+                {
+                    <Chip Color="Color.Primary">@templateProcedure.Name</Chip>
+                }
+                <MudButton Variant="Variant.Text" OnClick="SelectTemplateAsync">
+                    @Localizer["Select", Localizer["TemplateItem", Localizer["Procedure"]]]
+                </MudButton>
+            </MudStack>
+            <MudTextField @bind-Value="name" Variant=Variant.Outlined Label="@Localizer["Procedure"]" />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Localizer["Close"]</MudButton>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@string.IsNullOrWhiteSpace(name)">@Localizer["Save"]</MudButton>
+    </DialogActions>
+</MudDialog>

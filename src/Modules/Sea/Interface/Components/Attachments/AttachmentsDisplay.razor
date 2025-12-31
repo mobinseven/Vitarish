@@ -1,0 +1,19 @@
+﻿@inherits SeaCommonBase
+
+<MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Style="width: 100%">
+    <div>
+        <MudFab Size=Size.Small DropShadow=false Color="Color" StartIcon="@Icon(Attachment.ContentType)" OnClick="() => ShowDetails()" />
+    </div>
+    <div style="width: 100%">
+        @if(Attachment.ContentType.StartsWith("image") || Attachment.ContentType.StartsWith("video"))
+        {
+            <Chip Color="Color" Style="@($"white-space: pre-wrap;height:auto; overflow: auto; background-image: url('{Attachment.ContentThumbnail}'); background-size: cover;")">
+                <MudImage Src="@Attachment.ContentThumbnail" Width="100" Style="opacity:0;" @onclick="() => ShowDetails()" />
+            </Chip>
+        }
+        @if(Attachment.ContentType.StartsWith("text"))
+        {
+            <TextChip Color="Color" Class="pa-2 glass" Text="@Attachment.Content" />
+        }
+    </div>
+</MudStack>

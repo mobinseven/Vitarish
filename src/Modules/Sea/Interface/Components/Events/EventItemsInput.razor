@@ -1,0 +1,18 @@
+@inherits EventsBase
+
+@if(mainPlugins.Count > 0)
+{
+    foreach(var plugin in mainPlugins)
+    {
+        @plugin.Render(contextWithActions)
+    }
+}
+else if(actionPlugins.Count > 0)
+{
+    <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+        @foreach(var plugin in actionPlugins)
+        {
+            @plugin.Render(baseContext)
+        }
+    </MudStack>
+}

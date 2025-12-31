@@ -1,0 +1,29 @@
+@inherits UsersBase
+
+<MudDataGrid T="UserDto" @ref=grid ServerData=ReloadData OverscanCount=10 Hover="true" Elevation="0">
+    <Columns>
+        <TemplateColumn T="UserDto">
+            <CellTemplate Context="context">
+                <ExpandableItem Context="expandable">
+                    <TitleContent>
+                        <MudButton FullWidth Size="Size.Small" OnClick="expandable.Toggle">
+                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.FlexStart" Style="width: 100%;">
+                                <MudIcon Icon="@(expandable.Expanded ? "fa-solid fa-person-dress-simple" : "fa-thin fa-person-dress-simple")" />
+                                <MudText Class="mx-2">
+                                    <MudHighlighter HighlightedText="@SearchString" Text="@context.Item.FullName" />
+                                </MudText>
+                            </MudStack>
+                        </MudButton>
+                        @if(!expandable.Expanded)
+                        {
+                            <UserRolesDisplay User="@context.Item" />
+                        }
+                    </TitleContent>
+                    <ChildContent>
+                        <UserRolesSelect User="context.Item" />
+                    </ChildContent>
+                </ExpandableItem>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid>

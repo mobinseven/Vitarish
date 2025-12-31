@@ -1,0 +1,25 @@
+@inherits SeaCommonBase
+<MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+    <MudBadge Content="@BadgeContent" Visible="@(BadgeCount > 0)" Color="@BlinkColor" Overlap Style="background-color: unset;" BadgeClass="glass">
+        <MudAvatar Size=Size.Small Variant=Variant.Text Style="@EventItemsStyle">
+            <i class="@BlinkIcon"></i>
+        </MudAvatar>
+    </MudBadge>
+@*     <div>
+        @Stats.LastUpdate?.DateTime.ToShortDateString().ConvertNumeralsToPersian()
+    </div> *@
+@*     <div>
+        <UnreadIndicator Visible="@(!HasNewItems && Stats.Unread)" Tooltip="@Localizer["Unread"]" />
+    </div> *@
+</MudStack>
+@code {
+    [Parameter, EditorRequired] public StatsDto Stats { get; set; }
+    private bool HasNewItems => Stats.NewItems > 0;
+    private int BadgeCount => HasNewItems
+        ? (Stats.NewItems)
+        : Stats.EventItems;
+    private string BadgeContent => NumberExtensions.LocalizeNumerals(BadgeCount.ToString());
+    private string EventItemsStyle => HasNewItems ? "opacity: 1; background-color: unset;" : BadgeCount > 0 ? "opacity: 1; background-color: unset;" : "opacity: 0;";
+    private string BlinkIcon => HasNewItems ? "fa-solid  fa-envelope fa-fade fa-xl" : "fa-solid  fa-envelope-open fa-xl";
+    private Color BlinkColor => HasNewItems ? Color.Primary : Color.Default;
+}

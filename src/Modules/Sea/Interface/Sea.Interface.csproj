@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
+
+
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.1" />
+		<PackageReference Include="Duende.IdentityServer" Version="7.*" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\Identity\Users\Application\Users.Application.csproj" />
+		<ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+		<ProjectReference Include="..\..\Files\Interface\Files.Interface.csproj" />
+		<ProjectReference Include="..\..\Intelligence\Interface\Intelligence.Interface.csproj" />
+		<ProjectReference Include="..\Application\Sea.Application.csproj" />
+	</ItemGroup>
+
+</Project>

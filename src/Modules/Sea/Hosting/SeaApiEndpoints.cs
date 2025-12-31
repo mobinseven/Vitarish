@@ -430,8 +430,7 @@ internal static class SeaApiEndpoints
 
         _ = group.MapPut("/usage-configuration", async ([FromBody] UsageConfigurationDto dto, IUsageConfigurationService service, UsageConfigurationMapper mapper, CancellationToken ct) =>
         {
-            UsageConfigurationWriteDto writeDto = mapper.ToWriteDto(dto);
-            UsageConfigurationDto? config = await service.UpdateAsync(writeDto, ct);
+            UsageConfigurationDto? config = await service.UpdateAsync(dto, ct);
             return config is null ? Results.BadRequest() : Results.Ok(config);
         });
     }
