@@ -1,6 +1,7 @@
 using Interfaces.Base.Tests.TestInfrastructure;
 using Microsoft.Extensions.Localization;
 using Microsoft.Extensions.Options;
+using Vitarish.Clients.Interface.Localization;
 using Vitarish.Interfaces.Base.Localization;
 
 namespace Interfaces.Base.Tests.Localization;

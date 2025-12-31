@@ -1,3 +1,4 @@
+using Vitarish.Clients.Interface.Localization;
 using Vitarish.Interfaces.Base.Localization;
 
 namespace Interfaces.Base.Tests.Localization;
