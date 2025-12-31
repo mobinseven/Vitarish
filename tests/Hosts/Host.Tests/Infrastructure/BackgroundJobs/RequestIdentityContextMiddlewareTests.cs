@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Main.Services;
 using Vitarish.Requests.Application.Abstractions;
-using Vitarish.Requests.Hosting.Middleware;
+using Vitarish.Requests.Application;
 using Vitarish.Requests.Infrastructure.Services;
 
 namespace Vitarish.Requests.Tests;
@@ -43,6 +43,7 @@ public class RequestIdentityContextMiddlewareTests
     {
         ServiceCollection services = new();
         _ = AddTestAuthentication(services);
+        _ = services.AddHttpContextAccessor();
         services.AddScoped<RequestContext>();
         services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
         services.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());

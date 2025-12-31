@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
-using Vitarish.Requests.Hosting.Middleware;
+using Vitarish.Requests.Application;
 using Vitarish.Users.Infrastructure;
 
 namespace Vitarish.Main.Extensions

@@ -36,6 +36,7 @@ public class TenantBackgroundExecutorTests : IDisposable
             .ReturnsAsync(Array.Empty<Tenant>());
 
         ServiceCollection services = new();
+        _ = services.AddHttpContextAccessor();
         services.AddScoped<RequestContext>();
         services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
         services.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());
