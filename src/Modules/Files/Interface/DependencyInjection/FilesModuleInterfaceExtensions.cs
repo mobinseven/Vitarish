@@ -6,7 +6,7 @@ namespace Vitarish.Files.Interface.DependencyInjection;
 
 public static class FilesModuleExtensions
 {
-    public static IServiceCollection AddFilesModuleComponents(this IServiceCollection services)
+    public static IServiceCollection ConfigureFilesInterface(this IServiceCollection services)
     {
         _ = services.AddMemoryCache();
         _ = services.AddScoped<StreamTransferService>();

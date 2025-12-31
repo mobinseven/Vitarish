@@ -11,6 +11,7 @@ using Vitarish.Files.Hosting.Hubs;
 using Vitarish.Files.Infrastructure.Data;
 using Vitarish.Files.Infrastructure.Interfaces;
 using Vitarish.Files.Infrastructure.Services;
+using Vitarish.Files.Interface.DependencyInjection;
 using Vitarish.Modules.Base;
 
 namespace Vitarish.Files.Hosting;
@@ -90,6 +91,8 @@ public class FilesModule : ModuleBase
 
         services.AddVitarishFilesDomainEntityHandlers();
         _ = services.AddVitarishFilesInfrastructure();
+
+        services.ConfigureFilesInterface();
     }
 
     /// <inheritdoc />
