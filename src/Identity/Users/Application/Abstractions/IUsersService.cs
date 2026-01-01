@@ -8,7 +8,7 @@ namespace Vitarish.Users.Application.Abstractions;
 /// <summary>
 /// Contract for working with Users inside the application (no HTTP required).
 /// </summary>
-public interface IUsersService
+public interface IUsersService : IUserStore<User>, IUserSecurityStampStore<User>, IUserRoleStore<User>
 {
     Task<IEnumerable<User>> GetUsersAsync(CancellationToken ct = default);
     Task<User?> GetUserAsync(string id, CancellationToken ct = default);
