@@ -2,6 +2,7 @@ using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Text.Json;
 using Vitarish.Requests.Application.Abstractions;
 
@@ -14,24 +15,17 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     private readonly IRequestContext _requestContext;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
-    // Dynamically evaluate TenantInfo from IRequestsContext at query time
     public ITenantInfo? TenantInfo
     {
         get
         {
-            string? tenantId = _requestContext.TenantId;
-            if (tenantId == null)
+            string tenantId = _requestContext.TenantId ?? (_httpContextAccessor.HttpContext?.GetTenantId()) ?? throw new InvalidOperationException("Tenant ID can not be recognized.");
+            return new Finbuckle.MultiTenant.TenantInfo
             {
-                tenantId = _httpContextAccessor.HttpContext?.GetTenantId();
-            }
-            return tenantId == null
-                ? throw new InvalidOperationException("Tenant ID can not be recognized.")
-                : (ITenantInfo)new Finbuckle.MultiTenant.TenantInfo
-                {
-                    Id = tenantId,
-                    Identifier = tenantId,
-                    Name = tenantId
-                };
+                Id = tenantId,
+                Identifier = tenantId,
+                Name = tenantId
+            };
         }
     }
 
@@ -149,7 +143,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     private void ConfigureTenantEntity<TEntity>(ModelBuilder modelBuilder)
         where TEntity : Entity
     {
-        var entityBuilder = modelBuilder.Entity<TEntity>();
+        EntityTypeBuilder<TEntity> entityBuilder = modelBuilder.Entity<TEntity>();
 
         // Apply soft-delete filter first
         _ = entityBuilder.HasQueryFilter(e =>

@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Modules.Base;
 using Vitarish.Sea.Infrastructure.Data;
+using Vitarish.Sea.Infrastructure.Services;
 using Vitarish.Sea.Interface.DependencyInjection;
 using Vitarish.Sea.Presentation.Serializers;
 
@@ -47,7 +48,7 @@ public class SeaModule : ModuleBase
         _ = configuration;
         _ = services.AddMemoryCache();
 
-        _ = services.AddDbContext<SeaDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Scoped);
+        _ = services.AddDbContext<SeaDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Transient);
 
         _ = services.AddVitarishSeaInfrastructure();
         services.AddVitarishSeaDomainEntityHandlers();
@@ -78,6 +79,16 @@ public class SeaModule : ModuleBase
         _ = app.MapHub<Hubs.RemindersHub>("/sea/hubs/reminders");
         _ = app.MapHub<Hubs.UsageConfigurationHub>("/sea/hubs/usage-configuration");
         _ = endpoints.MapSeaEndpoints();
+    }
+
+    protected override async Task ConfigureEndpointsAsync(IEndpointRouteBuilder endpoints)
+    {
+        if (endpoints is not WebApplication app)
+        {
+            throw new InvalidOperationException("SeaModule requires a WebApplication for endpoint configuration.");
+        }
+
+        await app.InitializeViews();
     }
 
     /// <inheritdoc />
