@@ -1,7 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
-using Vitarish.Sea.Infrastructure.Behaviors;
-using Vitarish.Sea.Infrastructure.Data;
 
 public static class ServiceCollectionExtensions
 {

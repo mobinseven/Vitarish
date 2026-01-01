@@ -1,5 +1,3 @@
-using Vitarish.Sea.Application.Commands.Events;
-
 namespace Vitarish.Sea.Infrastructure.Handlers;
 
 internal class UncommitEventHandler(IEntityRepository<Event, EventDescriptor> repository) : IRequestHandler<UncommitEventCommand>
@@ -7,7 +5,7 @@ internal class UncommitEventHandler(IEntityRepository<Event, EventDescriptor> re
     public async Task Handle(UncommitEventCommand request, CancellationToken cancellationToken)
     {
         Event? entity = await repository.GetAsync(request.EventId, cancellationToken);
-        if(entity is null)
+        if (entity is null)
         {
             return;
         }

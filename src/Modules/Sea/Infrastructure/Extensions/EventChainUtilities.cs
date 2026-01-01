@@ -1,21 +1,17 @@
 namespace Vitarish.Sea.Infrastructure.Extensions;
 
-using System.Collections.Generic;
-using System.Linq;
-using Vitarish.Sea.Domain.Entities;
-
 public static class EventChainUtilities
 {
     public static IReadOnlyList<Event> OrderByChain(IReadOnlyList<Event> events)
     {
-        if(events.Count <= 1)
+        if (events.Count <= 1)
         {
             return events;
         }
 
         Dictionary<Guid, Event> map = events.ToDictionary(static e => e.Id);
         Event? first = events.FirstOrDefault(e => e.PreviousEventId is null || !map.ContainsKey(e.PreviousEventId.Value));
-        if(first is null)
+        if (first is null)
         {
             return events;
         }
@@ -24,20 +20,20 @@ public static class EventChainUtilities
         HashSet<Guid> visited = [first.Id];
         Event? current = first;
 
-        while(true)
+        while (true)
         {
             Event? next = events.FirstOrDefault(e => e.PreviousEventId == current!.Id && !visited.Contains(e.Id));
-            if(next is null)
+            if (next is null)
             {
                 break;
             }
 
             ordered.Add(next);
-            visited.Add(next.Id);
+            _ = visited.Add(next.Id);
             current = next;
         }
 
-        if(ordered.Count != map.Count)
+        if (ordered.Count != map.Count)
         {
             ordered.AddRange(events.Where(e => !visited.Contains(e.Id)));
         }
@@ -55,7 +51,7 @@ public static class EventChainUtilities
 
     public static Event? FindLast(IReadOnlyList<Event> events)
     {
-        if(events.Count == 0)
+        if (events.Count == 0)
         {
             return null;
         }

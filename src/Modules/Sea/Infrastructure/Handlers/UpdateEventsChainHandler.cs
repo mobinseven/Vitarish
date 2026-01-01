@@ -1,5 +1,3 @@
-
-using Vitarish.Sea.Application.Commands.Events;
 using DomainEventDescriptor = Vitarish.Sea.Domain.Models.EventDescriptor;
 
 namespace Vitarish.Sea.Infrastructure.Handlers;
@@ -13,20 +11,20 @@ internal class UpdateEventsChainHandler(IEntityRepository<Event, EventDescriptor
 
         HashSet<Guid> ids = request.Events.Where(e => e.Id.HasValue).Select(e => e.Id!.Value).ToHashSet();
         List<Event> toRemove = all.Where(e => !ids.Contains(e.Id)).ToList();
-        if(toRemove.Count > 0)
+        if (toRemove.Count > 0)
         {
             await repository.RemoveRangeAsync(toRemove, cancellationToken);
         }
 
         List<Event> updated = [];
-        foreach(EventChainChange change in request.Events)
+        foreach (EventChainChange change in request.Events)
         {
-            if(change.Id is null || !map.TryGetValue(change.Id.Value, out Event? entity))
+            if (change.Id is null || !map.TryGetValue(change.Id.Value, out Event? entity))
             {
                 continue;
             }
 
-            if(entity.PreviousEventId == change.PreviousEventId)
+            if (entity.PreviousEventId == change.PreviousEventId)
             {
                 continue;
             }
@@ -35,7 +33,7 @@ internal class UpdateEventsChainHandler(IEntityRepository<Event, EventDescriptor
             updated.Add(entity);
         }
 
-        if(updated.Count > 0)
+        if (updated.Count > 0)
         {
             await repository.UpdateRangeAsync(updated, cancellationToken);
         }

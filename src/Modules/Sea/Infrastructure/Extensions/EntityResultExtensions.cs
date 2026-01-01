@@ -2,16 +2,13 @@ namespace Vitarish.Sea.Infrastructure.Extensions
 {
     public static class EntityResultExtensions
     {
-        public static T EnsureValue<T>(this EntityResult<T> result, string? operationName = null)
-        {
-            return result.IsSuccess && result.Value is { } value
+        public static T EnsureValue<T>(this EntityResult<T> result, string? operationName = null) => result.IsSuccess && result.Value is { } value
                 ? value
                 : throw new InvalidOperationException(BuildMessage(operationName, result.Errors));
-        }
 
         public static void EnsureSuccess(this EntityResult result, string? operationName = null)
         {
-            if(result.IsSuccess)
+            if (result.IsSuccess)
             {
                 return;
             }
@@ -19,10 +16,7 @@ namespace Vitarish.Sea.Infrastructure.Extensions
             throw new InvalidOperationException(BuildMessage(operationName, result.Errors));
         }
 
-        public static T? GetValueOrDefault<T>(this EntityResult<T> result)
-        {
-            return result.IsSuccess ? result.Value : default;
-        }
+        public static T? GetValueOrDefault<T>(this EntityResult<T> result) => result.IsSuccess ? result.Value : default;
 
         public static async Task<T> EnsureValueAsync<T>(this Task<EntityResult<T>> resultTask, string? operationName = null)
         {
@@ -48,7 +42,7 @@ namespace Vitarish.Sea.Infrastructure.Extensions
                 ? "Entity operation failed."
                 : $"Entity operation '{operationName}' failed.";
 
-            if(errors.Count == 0)
+            if (errors.Count == 0)
             {
                 return prefix;
             }
@@ -57,9 +51,6 @@ namespace Vitarish.Sea.Infrastructure.Extensions
             return $"{prefix} Errors: {details}";
         }
 
-        private static string FormatError(EntityError error)
-        {
-            return string.IsNullOrWhiteSpace(error.Message) ? error.Code.ToString() : $"{error.Code}: {error.Message}";
-        }
+        private static string FormatError(EntityError error) => string.IsNullOrWhiteSpace(error.Message) ? error.Code.ToString() : $"{error.Code}: {error.Message}";
     }
 }

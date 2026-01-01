@@ -9,7 +9,7 @@ internal class UpdateUsageConfigurationCommandHandler(IEntityRepository<UsageCon
     {
         IReadOnlyList<UsageConfiguration> all = await repository.GetAsync(new UsageConfigurationDescriptor(), cancellationToken) ?? [];
         UsageConfiguration? entity = all.FirstOrDefault();
-        if(entity != null)
+        if (entity != null)
         {
             entity.ReminderSignature = request.ReminderSignature;
             entity.Metadata = request.MetadataSchema;

@@ -9,7 +9,7 @@ public static class ProcedureCsvExtensions
     {
         StringBuilder builder = new();
 
-        foreach(ProcedureCsvItem item in items)
+        foreach (ProcedureCsvItem item in items)
         {
             _ = builder.AppendLine(string.Join(',', [
                 Escape(item.ProjectName),

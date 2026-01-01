@@ -1,14 +1,5 @@
 namespace Vitarish.Sea.Infrastructure.Handlers;
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Vitarish.Sea.Application.Commands.Events;
-using Vitarish.Sea.Domain.Entities;
-using Vitarish.Sea.Domain.Models;
-using Vitarish.Sea.Infrastructure.Extensions;
-
 internal class MoveEventUpHandler(IEntityRepository<Event, EventDescriptor> repository) : IRequestHandler<MoveEventUpCommand, bool>
 {
     public async Task<bool> Handle(MoveEventUpCommand request, CancellationToken cancellationToken)
@@ -16,13 +7,13 @@ internal class MoveEventUpHandler(IEntityRepository<Event, EventDescriptor> repo
         IReadOnlyList<Event> events = await repository.GetAsync(new EventDescriptor { ProcedureId = request.ProcedureId }, cancellationToken);
         Dictionary<Guid, Event> map = events.ToDictionary(static e => e.Id);
 
-        if(!map.TryGetValue(request.EventId, out Event? current))
+        if (!map.TryGetValue(request.EventId, out Event? current))
         {
             return false;
         }
 
         Event? previous = EventChainUtilities.FindPrevious(events, current, map);
-        if(previous is null)
+        if (previous is null)
         {
             return false;
         }
@@ -35,7 +26,7 @@ internal class MoveEventUpHandler(IEntityRepository<Event, EventDescriptor> repo
 
         List<Event> updates = [current, previous];
 
-        if(next is not null)
+        if (next is not null)
         {
             next.PreviousEventId = previous.Id;
             updates.Add(next);

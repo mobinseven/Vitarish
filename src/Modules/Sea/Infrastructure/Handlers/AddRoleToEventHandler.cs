@@ -9,7 +9,7 @@ internal class AddRoleToEventHandler(IEntityRepository<EventRole, EventRoleDescr
         RoleType type = request.IsWrite ? RoleType.Write : RoleType.Read;
         EventRoleDescriptor descriptor = new()
         { EventId = request.EventId, RoleId = request.RoleId, Type = type };
-        if((await repository.GetAsync(descriptor, cancellationToken)).Count == 0)
+        if ((await repository.GetAsync(descriptor, cancellationToken)).Count == 0)
         {
             _ = await repository.AddAsync(new EventRole(request.EventId, request.RoleId, type), cancellationToken);
         }

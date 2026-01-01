@@ -38,15 +38,15 @@ internal static class EntitySearchHelper
         HashSet<string> fragments = new(StringComparer.OrdinalIgnoreCase);
 
         string trimmed = NormalizeText(search.Trim());
-        if(trimmed.Length > 0)
+        if (trimmed.Length > 0)
         {
             _ = fragments.Add(trimmed);
         }
 
-        foreach(string fragment in search.Split(SearchSeparators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        foreach (string fragment in search.Split(SearchSeparators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
             string normalized = NormalizeText(fragment);
-            if(normalized.Length > 0)
+            if (normalized.Length > 0)
             {
                 _ = fragments.Add(normalized);
             }
@@ -63,7 +63,7 @@ internal static class EntitySearchHelper
         ArgumentNullException.ThrowIfNull(propertySelectors);
 
         using IEnumerator<string> enumerator = patterns.GetEnumerator();
-        if(!enumerator.MoveNext() || propertySelectors.Length == 0)
+        if (!enumerator.MoveNext() || propertySelectors.Length == 0)
         {
             return static _ => true;
         }
@@ -79,7 +79,7 @@ internal static class EntitySearchHelper
             Expression pattern = Expression.Constant(enumerator.Current);
             Expression? patternPredicate = null;
 
-            foreach(Expression<Func<TEntity, string?>> selector in propertySelectors)
+            foreach (Expression<Func<TEntity, string?>> selector in propertySelectors)
             {
                 ReplaceParameterVisitor visitor = new(selector.Parameters[0], entity);
                 Expression property = visitor.Visit(selector.Body)!;
@@ -97,14 +97,14 @@ internal static class EntitySearchHelper
                 patternPredicate = patternPredicate is null ? like : Expression.OrElse(patternPredicate, like);
             }
 
-            if(patternPredicate is null)
+            if (patternPredicate is null)
             {
                 continue;
             }
 
             predicate = predicate is null ? patternPredicate : Expression.OrElse(predicate, patternPredicate);
         }
-        while(enumerator.MoveNext());
+        while (enumerator.MoveNext());
 
         return predicate is null
             ? static _ => true
@@ -113,7 +113,7 @@ internal static class EntitySearchHelper
 
     public static string NormalizeText(string value)
     {
-        if(string.IsNullOrEmpty(value))
+        if (string.IsNullOrEmpty(value))
         {
             return string.Empty;
         }
@@ -121,7 +121,7 @@ internal static class EntitySearchHelper
         string normalized = value.Normalize(NormalizationForm.FormKC);
         StringBuilder builder = new(normalized.Length);
 
-        foreach(char character in normalized)
+        foreach (char character in normalized)
         {
             _ = NormalizationLookup.TryGetValue(character, out string? replacement) ? builder.Append(replacement) : builder.Append(character);
         }
@@ -133,7 +133,7 @@ internal static class EntitySearchHelper
     {
         Expression normalized = property;
 
-        foreach((string? variant, string? replacement) in NormalizationPairs)
+        foreach ((string? variant, string? replacement) in NormalizationPairs)
         {
             normalized = Expression.Call(
                 normalized,
@@ -145,19 +145,13 @@ internal static class EntitySearchHelper
         return normalized;
     }
 
-    private static string EscapeLikeFragment(string fragment)
-    {
-        return fragment
+    private static string EscapeLikeFragment(string fragment) => fragment
                 .Replace("\\", "\\\\", StringComparison.Ordinal)
                 .Replace("%", "\\%", StringComparison.Ordinal)
                 .Replace("_", "\\_", StringComparison.Ordinal);
-    }
 
     private sealed class ReplaceParameterVisitor(ParameterExpression source, ParameterExpression target) : ExpressionVisitor
     {
-        protected override Expression VisitParameter(ParameterExpression node)
-        {
-            return node == source ? target : base.VisitParameter(node);
-        }
+        protected override Expression VisitParameter(ParameterExpression node) => node == source ? target : base.VisitParameter(node);
     }
 }

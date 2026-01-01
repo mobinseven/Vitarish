@@ -6,24 +6,24 @@ public static class EventChainExtensions
     {
         Dictionary<Guid, EventDto> map = events.ToDictionary(e => e.Id);
         EventDto? first = events.FirstOrDefault(e => e.PreviousEventId is null || !map.ContainsKey(e.PreviousEventId.Value));
-        if(first is null)
+        if (first is null)
         {
             return events.ToList();
         }
 
         List<EventDto> ordered = [first];
         EventDto? current = first;
-        while(true)
+        while (true)
         {
             current = events.FirstOrDefault(e => e.PreviousEventId == current.Id);
-            if(current is null)
+            if (current is null)
             {
                 break;
             }
 
             ordered.Add(current);
         }
-        if(ordered.Count != map.Count)
+        if (ordered.Count != map.Count)
         {
             ordered.AddRange(events.Where(e => !ordered.Any(o => o.Id == e.Id)));
         }

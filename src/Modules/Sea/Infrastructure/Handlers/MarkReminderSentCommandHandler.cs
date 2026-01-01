@@ -7,7 +7,7 @@ internal class MarkReminderSentCommandHandler(IEntityRepository<Reminder, Remind
     public async Task Handle(MarkReminderSentCommand request, CancellationToken cancellationToken)
     {
         Reminder? reminder = await repository.GetAsync(request.Id, cancellationToken);
-        if(reminder is null)
+        if (reminder is null)
         {
             return;
         }

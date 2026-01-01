@@ -9,7 +9,7 @@ public static class EventCsvExtensions
     {
         StringBuilder builder = new();
 
-        foreach(EventCsvItem item in items)
+        foreach (EventCsvItem item in items)
         {
             _ = builder.AppendLine(string.Join(',', [
                 Escape(item.ProjectName),

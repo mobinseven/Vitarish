@@ -1,4 +1,3 @@
-using System;
 using Vitarish.Sea.Application.Commands.Attachments;
 
 namespace Vitarish.Sea.Infrastructure.Handlers;

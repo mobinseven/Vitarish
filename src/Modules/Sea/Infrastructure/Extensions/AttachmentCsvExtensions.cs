@@ -9,7 +9,7 @@ public static class AttachmentCsvExtensions
     {
         StringBuilder builder = new();
 
-        foreach(AttachmentCsvItem item in items.Where(i => i.Attachment.ContentType.StartsWith("text", StringComparison.OrdinalIgnoreCase)))
+        foreach (AttachmentCsvItem item in items.Where(i => i.Attachment.ContentType.StartsWith("text", StringComparison.OrdinalIgnoreCase)))
         {
             _ = builder.AppendLine(string.Join(',', [
                 Escape(item.ProjectName),

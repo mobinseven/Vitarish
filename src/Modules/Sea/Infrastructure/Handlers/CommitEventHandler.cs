@@ -1,7 +1,3 @@
-
-
-using Vitarish.Sea.Application.Commands.Events;
-
 namespace Vitarish.Sea.Infrastructure.Handlers;
 
 internal class CommitEventHandler(IEntityRepository<Event, EventDescriptor> repository) : IRequestHandler<CommitEventCommand>
@@ -9,7 +5,7 @@ internal class CommitEventHandler(IEntityRepository<Event, EventDescriptor> repo
     public async Task Handle(CommitEventCommand request, CancellationToken cancellationToken)
     {
         Event? entity = await repository.GetAsync(request.EventId, cancellationToken);
-        if(entity is null)
+        if (entity is null)
         {
             return;
         }

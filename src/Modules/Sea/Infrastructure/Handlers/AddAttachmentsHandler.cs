@@ -6,7 +6,7 @@ internal class AddAttachmentsHandler(IEntityRepository<Attachment, AttachmentDes
 {
     public async Task Handle(AddAttachmentsCommand request, CancellationToken cancellationToken)
     {
-        foreach(AttachmentItem item in request.Attachments)
+        foreach (AttachmentItem item in request.Attachments)
         {
             _ = await repository.AddAsync(new Attachment(
                 request.EventId,

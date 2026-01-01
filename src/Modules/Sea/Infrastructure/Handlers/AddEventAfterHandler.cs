@@ -1,14 +1,5 @@
 namespace Vitarish.Sea.Infrastructure.Handlers;
 
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Vitarish.Sea.Application.Commands.Events;
-using Vitarish.Sea.Domain.Entities;
-using Vitarish.Sea.Domain.Models;
-using Vitarish.Sea.Infrastructure.Extensions;
-
 internal class AddEventAfterHandler(IEntityRepository<Event, EventDescriptor> repository) : IRequestHandler<AddEventAfterCommand, Event?>
 {
     public async Task<Event?> Handle(AddEventAfterCommand request, CancellationToken cancellationToken)
@@ -22,18 +13,18 @@ internal class AddEventAfterHandler(IEntityRepository<Event, EventDescriptor> re
 
         Event entity = new(request.ProjectId, request.ProcedureId, after?.Id);
         Event? added = await repository.AddAsync(entity, cancellationToken);
-        if(added is null)
+        if (added is null)
         {
             return null;
         }
 
-        if(after is not null)
+        if (after is not null)
         {
             Event? next = EventChainUtilities.FindNext(events, after.Id);
-            if(next is not null)
+            if (next is not null)
             {
                 next.PreviousEventId = added.Id;
-                await repository.UpdateAsync(next, cancellationToken);
+                _ = await repository.UpdateAsync(next, cancellationToken);
             }
         }
 

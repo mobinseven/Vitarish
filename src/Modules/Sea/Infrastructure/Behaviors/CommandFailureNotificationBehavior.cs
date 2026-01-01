@@ -13,7 +13,7 @@ internal class CommandFailureNotificationBehavior<TRequest, TResponse>(IPublishe
         {
             return await next();
         }
-        catch(Exception ex)
+        catch (Exception ex)
         {
             await publisher.Publish(new CommandFailureNotification(typeof(TRequest).Name, ex), cancellationToken);
             throw;
