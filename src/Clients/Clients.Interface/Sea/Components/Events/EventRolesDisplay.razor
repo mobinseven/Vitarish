@@ -1,8 +1,0 @@
-@inherits EventsBase
-
-<MudChipSet T="string" Size="Size.Small">
-    @foreach(var role in roles)
-    {
-        <MudChip Selected Size="Size.Small" T="string" Color="@GetColor(role.Type)">@($"{role.Name} ({Localizer[role.Type.ToString()]})")</MudChip>
-    }
-</MudChipSet>
