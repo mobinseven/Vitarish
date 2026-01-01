@@ -42,8 +42,8 @@ public partial class UserReminderCreatorDialog : RemindersBase
         subject = Localizer["ReminderSubject", Event.Title];
         textBody = await GetTextBody();
 
-        string? phone = AccessService.User.PhoneNumber;
-        string? email = AccessService.User.Email;
+        string? phone = HttpContextAccessor.HttpContext?.GetUserPhoneNumber();
+        string? email = HttpContextAccessor.HttpContext?.GetUserEmail();
 
         showKindStep = !string.IsNullOrWhiteSpace(phone) && !string.IsNullOrWhiteSpace(email);
         if (!showKindStep)
@@ -55,7 +55,7 @@ public partial class UserReminderCreatorDialog : RemindersBase
 
     private async Task SaveAsync()
     {
-        List<ReminderRecipientDto> recipients = [new ReminderRecipientDto(kind, AccessService.User.Id, GetAddress(AccessService.User, kind))];
+        List<ReminderRecipientDto> recipients = [new ReminderRecipientDto(kind, RequestContext.UserId, GetAddress(kind))];
         IReadOnlyList<ReminderDto> added = await RemindersService.AddRangeAsync(Event.Id, recipients, subject, textBody, remindAt, CancellationToken.None);
         MudDialog.Close(DialogResult.Ok(added));
     }
@@ -79,11 +79,11 @@ public partial class UserReminderCreatorDialog : RemindersBase
         return string.Concat(firstLine, Environment.NewLine, Environment.NewLine, Event.Description, Environment.NewLine, Environment.NewLine, usageConfig?.ReminderSignature);
     }
 
-    private static string? GetAddress(UserDto user, ReminderKind kind)
+    private string? GetAddress(ReminderKind kind)
         => kind switch
         {
-            ReminderKind.Email => user.Email,
-            ReminderKind.Sms => user.PhoneNumber,
+            ReminderKind.Email => HttpContextAccessor.HttpContext?.GetUserEmail(),
+            ReminderKind.Sms => HttpContextAccessor.HttpContext?.GetUserPhoneNumber(),
         };
 
     private void ResetCompletedSteps(int currentStep)

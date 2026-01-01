@@ -1,3 +1,5 @@
+using Vitarish.Users.Domain.Entities;
+
 namespace Vitarish.Sea.Interface.Components.Events;
 
 public partial class EventCommitDetails : SeaCommonBase
@@ -11,10 +13,13 @@ public partial class EventCommitDetails : SeaCommonBase
     [Parameter, EditorRequired] public EventDto Event { get; set; } = default!;
     private bool CanWrite { get; set; }
 
-    protected override void OnInitialized()
+    private IReadOnlyList<UserDto> Users = [];
+
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
-        _ = LoadRolesAsync();
+        await base.OnInitializedAsync();
+        await LoadRolesAsync();
+        await LoadUsersAsync();
     }
 
     private async Task LoadRolesAsync()
@@ -22,7 +27,13 @@ public partial class EventCommitDetails : SeaCommonBase
         CanWrite = AdminMode || await AccessService.CanWriteEvent(Event.Id);
         await InvokeAsync(StateHasChanged);
     }
-    private string? UserIdToName(Guid id) => AccessService.Users.FirstOrDefault(x => x.Id == id.ToString())?.FullName;
+    private async Task LoadUsersAsync()
+    {
+        IList<User> usersInRole = await UsersService.GetUsersInRoleAsync("User", CancellationToken.None);
+        Users = [.. usersInRole.Select(u => new UserDto(u))];
+    }
+
+    private string? UserIdToName(Guid id) => Users.FirstOrDefault(x => x.Id == id.ToString())?.FullName;
 
     private async void ToggleCommitAsync()
     {
@@ -54,7 +65,7 @@ public partial class EventCommitDetails : SeaCommonBase
         else
         {
             DateTimeOffset commitTime = new(DateTime.Now, TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow));
-            await EventsService.CommitAsync(Event.Id, Guid.Parse(AccessService.User!.Id), commitTime, CancellationToken.None);
+            await EventsService.CommitAsync(Event.Id, Guid.Parse(RequestContext.UserId), commitTime, CancellationToken.None);
         }
         MudDialog.Close();
     }

@@ -1,3 +1,5 @@
+using Vitarish.Users.Domain.Entities;
+
 namespace Vitarish.Sea.Interface.Components.Reminders;
 
 public partial class ReminderDetailsDialog : RemindersBase
@@ -9,9 +11,21 @@ public partial class ReminderDetailsDialog : RemindersBase
     [Parameter, EditorRequired] public ProcedureDto Procedure { get; set; } = default!;
     [Parameter, EditorRequired] public ReminderDto Reminder { get; set; } = default!;
 
-    private bool CanEdit => AdminMode || AccessService.User?.Id == Reminder.CreatedBy;
+    private bool CanEdit => AdminMode || RequestContext.UserId == Reminder.CreatedBy;
 
-    private string? UserIdToName(string? id) => id is null ? null : AccessService.Users.FirstOrDefault(x => x.Id == id)?.FullName;
+    private IReadOnlyList<UserDto> Users = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsersAsync();
+    }
+    private async Task LoadUsersAsync()
+    {
+        IList<User> usersInRole = await UsersService.GetUsersInRoleAsync("User", CancellationToken.None);
+        Users = [.. usersInRole.Select(u => new UserDto(u))];
+    }
+
+    private string? UserIdToName(string? id) => id is null ? null : Users.FirstOrDefault(x => x.Id == id)?.FullName;
 
     private string SentAtText() => Reminder.SentAt is null
         ? Localizer["NotSent"].Value

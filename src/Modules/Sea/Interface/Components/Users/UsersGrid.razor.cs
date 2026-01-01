@@ -1,3 +1,5 @@
+using Vitarish.Users.Domain.Entities;
+
 namespace Vitarish.Sea.Interface.Components.Users;
 
 public partial class UsersGrid : UsersBase, IDisposable
@@ -6,7 +8,8 @@ public partial class UsersGrid : UsersBase, IDisposable
     private string? SearchString;
     private async Task<GridData<UserDto>> ReloadData(GridState<UserDto> gridState)
     {
-        IList<UserDto> users = [.. AccessService.Users];
+        IList<User> usersInRole = await UsersService.GetUsersInRoleAsync("User", CancellationToken.None);
+        IList<UserDto> users = [.. usersInRole.Select(u => new UserDto(u))];
         return new GridData<UserDto>
         {
             Items = users,

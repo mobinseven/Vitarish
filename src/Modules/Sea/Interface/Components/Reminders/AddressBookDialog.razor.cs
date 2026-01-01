@@ -1,3 +1,5 @@
+using Vitarish.Users.Domain.Entities;
+
 namespace Vitarish.Sea.Interface.Components.Reminders;
 
 public partial class AddressBookDialog : SeaCommonBase
@@ -10,7 +12,18 @@ public partial class AddressBookDialog : SeaCommonBase
     private HashSet<ReminderRecipientDto> selected = [];
     private string customAddress = string.Empty;
 
-    protected override void OnInitialized() => selected = Recipients is not null ? Recipients.ToHashSet() : [];
+    private IReadOnlyList<UserDto> Users = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadUsersAsync();
+        selected = Recipients is not null ? Recipients.ToHashSet() : [];
+    }
+    private async Task LoadUsersAsync()
+    {
+        IList<User> usersInRole = await UsersService.GetUsersInRoleAsync("User", CancellationToken.None);
+        Users = [.. usersInRole.Select(u => new UserDto(u))];
+    }
 
     private void ToggleUser(UserDto user)
     {

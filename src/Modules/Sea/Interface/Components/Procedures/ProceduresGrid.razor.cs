@@ -17,9 +17,10 @@ public partial class ProceduresGrid : ProceduresBase
 
     private async Task<GridData<ProcedureDto>> ReloadData(GridState<ProcedureDto> gridState)
     {
+        var roleIds = await AccessService.GetRoleIds();
         ProcedureDescriptorDto descriptor = new()
         {
-            RoleIds = AdminMode ? null : AccessService.RoleIds,
+            RoleIds = AdminMode ? null : roleIds,
             ProjectId = Project.Id,
             //IncludeStats = true
         };
@@ -107,7 +108,7 @@ public partial class ProceduresGrid : ProceduresBase
 
     private async Task CommitAllEventsAsync(ProcedureDto procedure)
     {
-        if (!Guid.TryParse(AccessService.User?.Id, out Guid userId))
+        if (!Guid.TryParse(RequestContext.UserId, out Guid userId))
         {
             return;
         }

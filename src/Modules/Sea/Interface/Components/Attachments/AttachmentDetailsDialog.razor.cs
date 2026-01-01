@@ -1,3 +1,5 @@
+using Vitarish.Users.Domain.Entities;
+
 namespace Vitarish.Sea.Interface.Components.Attachments;
 
 public partial class AttachmentDetailsDialog : SeaCommonBase
@@ -15,19 +17,26 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
     private bool editing;
     private string editContent = string.Empty;
     private IReadOnlyList<Guid> readers = Array.Empty<Guid>();
-
-    protected override void OnInitialized()
+    private IReadOnlyList<UserDto> Users = [];
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
-        _ = LoadRolesAsync();
-        _ = LoadReadersAsync();
+        await base.OnInitializedAsync();
+        await LoadUsersAsync();
+        await LoadRolesAsync();
+        await LoadReadersAsync();
         StateHasChanged();
+    }
+
+    private async Task LoadUsersAsync()
+    {
+        IList<User> usersInRole = await UsersService.GetUsersInRoleAsync("User", CancellationToken.None);
+        Users = [.. usersInRole.Select(u => new UserDto(u))];
     }
 
     private async Task LoadRolesAsync()
     {
         (_, _) = await EventRolesService.GetIdsAsync(Event.Id, CancellationToken.None);
-        CanWrite = AdminMode || (await AccessService.CanWriteEvent(Event.Id) && Attachment.CreatedBy == AccessService.User!.Id);
+        CanWrite = AdminMode || (await AccessService.CanWriteEvent(Event.Id) && Attachment.CreatedBy == RequestContext.UserId);
     }
 
     private async Task LoadReadersAsync() => readers = await ReceiptsService.GetReadersAsync(Attachment.Id, CancellationToken.None) ?? Array.Empty<Guid>();
@@ -57,10 +66,10 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
         editing = false;
     }
 
-    private string? UserIdToName(string id) => AccessService.Users.FirstOrDefault(x => x.Id == id)?.FullName;
+    private string? UserIdToName(string id) => Users.FirstOrDefault(x => x.Id == id)?.FullName;
     private string FormatReader(Guid readerId)
     {
-        string? name = AccessService.Users.FirstOrDefault(x => x.Id == readerId.ToString())?.FullName;
+        string? name = Users.FirstOrDefault(x => x.Id == readerId.ToString())?.FullName;
         return string.IsNullOrWhiteSpace(name) ? readerId.ToString() : name;
     }
 

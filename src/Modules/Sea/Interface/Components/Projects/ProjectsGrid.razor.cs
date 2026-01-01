@@ -31,13 +31,14 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
 
     private async Task<GridData<ProjectDto>> ReloadData(GridState<ProjectDto> gridState)
     {
+        var roleIds = await AccessService.GetRoleIds();
         ProjectDescriptorDto descriptor = new()
         {
             Skip = 0,
             Take = int.MaxValue,
             Search = SearchString,
             Template = AdminMode && template,
-            RoleIds = AdminMode ? null : AccessService.RoleIds,
+            RoleIds = AdminMode ? null : roleIds,
             //IncludeStats = true
         };
         IReadOnlyList<ProjectDto> Items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None)

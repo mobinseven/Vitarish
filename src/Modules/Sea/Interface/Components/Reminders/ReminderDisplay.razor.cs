@@ -1,3 +1,5 @@
+using Vitarish.Users.Domain.Entities;
+
 namespace Vitarish.Sea.Interface.Components.Reminders;
 
 public partial class ReminderDisplay : SeaCommonBase
@@ -7,6 +9,16 @@ public partial class ReminderDisplay : SeaCommonBase
     [Parameter, EditorRequired] public EventDto Event { get; set; } = default!;
     [Parameter, EditorRequired] public ProjectDto Project { get; set; } = default!;
     [Parameter, EditorRequired] public ProcedureDto Procedure { get; set; } = default!;
+
+
+    private IReadOnlyList<UserDto> Users = [];
+
+    protected override async Task OnInitializedAsync() => await LoadUsersAsync();
+    private async Task LoadUsersAsync()
+    {
+        IList<User> usersInRole = await UsersService.GetUsersInRoleAsync("User", CancellationToken.None);
+        Users = [.. usersInRole.Select(u => new UserDto(u))];
+    }
 
     private async Task ShowDetails()
     {
@@ -20,7 +32,7 @@ public partial class ReminderDisplay : SeaCommonBase
 
         _ = await DialogService.ShowAsync<ReminderDetailsDialog>(Localizer["Reminder"], parameters);
     }
-    private string? UserIdToName(string? id) => id is null ? null : AccessService.Users.FirstOrDefault(x => x.Id == id)?.FullName;
+    private string? UserIdToName(string? id) => id is null ? null : Users.FirstOrDefault(x => x.Id == id)?.FullName;
 
 }
 
