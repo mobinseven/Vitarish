@@ -68,7 +68,6 @@ public sealed class MockUsersService : IUsersService
             new Claim(ClaimTypes.Name, user.UserName ?? user.Id)
         ];
         userRoles[user.Id] = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        userRoles[user.Id] = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         return Task.FromResult<User?>(user);
     }
