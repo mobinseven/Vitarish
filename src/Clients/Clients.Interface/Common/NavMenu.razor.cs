@@ -17,6 +17,8 @@ public partial class NavMenu : IDisposable
 
     private NavMenuAction? BackAction => NavMenuService.State.BackAction;
 
+    private string? BackHref => BackAction?.OnClick is null ? BackAction?.Href : null;
+
     private string HomeHref => NavMenuService.State.HomeUri ?? "/";
 
     protected override void OnInitialized()
@@ -39,8 +41,15 @@ public partial class NavMenu : IDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    private Task HandleBackClick() =>
-        BackAction?.InvokeAsync(NavigationManager) ?? Task.CompletedTask;
+    private Task HandleBackClick()
+    {
+        if (BackAction?.OnClick is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        return BackAction.InvokeAsync(NavigationManager);
+    }
 
     private async void OnNavMenuStateChanged(object? sender, EventArgs e) =>
         await InvokeAsync(StateHasChanged);

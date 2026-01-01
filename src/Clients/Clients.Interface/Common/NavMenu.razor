@@ -11,7 +11,7 @@
         {
             @if(BackAction is not null)
             {
-                <MudFab Size=Size StartIcon="@BackAction.Icon" DropShadow=false Href="@BackAction.Href" OnClick="HandleBackClick" />
+                <MudFab Size=Size StartIcon="@BackAction.Icon" DropShadow=false Href="@BackHref" OnClick="HandleBackClick" />
             }
             <MudFab Size=Size StartIcon="fa-thin fa-house-blank" DropShadow=false Href="@HomeHref" />
             @if(SearchService.IsEnabled)
