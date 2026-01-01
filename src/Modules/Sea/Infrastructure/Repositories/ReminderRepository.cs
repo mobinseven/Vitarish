@@ -1,10 +1,8 @@
 using System.Linq.Expressions;
-using Vitarish.Sea.Infrastructure.Data;
-using Vitarish.Sea.Infrastructure.Helpers;
 
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
-[RegisterScoped]
+[RegisterTransient]
 internal class ReminderRepository(SeaDbContext dbContext)
     : EntityRepository<Reminder, ReminderDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Reminder, ReminderDescriptor>
@@ -18,16 +16,16 @@ internal class ReminderRepository(SeaDbContext dbContext)
             query = query.Where(r => r.EventId == descriptor.EventId);
         }
 
-        if(descriptor.Kind is not null)
+        if (descriptor.Kind is not null)
         {
             query = query.Where(r => r.Kind == descriptor.Kind);
         }
 
-        if(!string.IsNullOrWhiteSpace(descriptor.Search))
+        if (!string.IsNullOrWhiteSpace(descriptor.Search))
         {
             IReadOnlyCollection<string> patterns = EntitySearchHelper.CreateSearchPatterns(descriptor.Search);
 
-            if(patterns.Count > 0)
+            if (patterns.Count > 0)
             {
                 Expression<Func<Reminder, bool>> predicate = EntitySearchHelper.BuildSearchPredicate<Reminder>(
                     patterns,
@@ -39,32 +37,32 @@ internal class ReminderRepository(SeaDbContext dbContext)
             }
         }
 
-        if(!string.IsNullOrWhiteSpace(descriptor.RecipientUserId))
+        if (!string.IsNullOrWhiteSpace(descriptor.RecipientUserId))
         {
             query = query.Where(r => r.RecipientUserId == descriptor.RecipientUserId);
         }
 
-        if(descriptor.RemindFrom is not null)
+        if (descriptor.RemindFrom is not null)
         {
             query = query.Where(r => r.RemindAt >= descriptor.RemindFrom);
         }
 
-        if(descriptor.RemindTo is not null)
+        if (descriptor.RemindTo is not null)
         {
             query = query.Where(r => r.RemindAt <= descriptor.RemindTo);
         }
 
-        if(descriptor.SentFrom is not null)
+        if (descriptor.SentFrom is not null)
         {
             query = query.Where(r => r.SentAt >= descriptor.SentFrom);
         }
 
-        if(descriptor.SentTo is not null)
+        if (descriptor.SentTo is not null)
         {
             query = query.Where(r => r.SentAt <= descriptor.SentTo);
         }
 
-        if(descriptor.IsSent is not null)
+        if (descriptor.IsSent is not null)
         {
             query = query.Where(r => r.SentAt != null == descriptor.IsSent);
         }
@@ -72,9 +70,6 @@ internal class ReminderRepository(SeaDbContext dbContext)
         return query;
     }
 
-    protected override bool IsDuplicateKeyException(DbUpdateException exception)
-    {
-        return false;
-    }
+    protected override bool IsDuplicateKeyException(DbUpdateException exception) => false;
 }
 

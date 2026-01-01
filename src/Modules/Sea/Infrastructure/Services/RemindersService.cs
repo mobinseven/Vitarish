@@ -1,11 +1,8 @@
-
-using Vitarish.Sea.Application.Abstractions;
-using Vitarish.Sea.Infrastructure.Extensions;
 using Vitarish.Sea.Application.Commands.Reminders;
 
 namespace Vitarish.Sea.Infrastructure.Services;
 
-[RegisterScoped]
+[RegisterTransient]
 internal class RemindersService(IMediator mediator, RemindersMapper mapper) : EntityService<Reminder, ReminderDescriptor, ReminderDto, ReminderWriteDto, ReminderDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IRemindersService
 {
 
@@ -47,7 +44,7 @@ internal class RemindersService(IMediator mediator, RemindersMapper mapper) : En
             id,
             cancellationToken)).GetValueOrDefault();
 
-        if(reminder is null)
+        if (reminder is null)
         {
             return null;
         }
@@ -64,24 +61,15 @@ internal class RemindersService(IMediator mediator, RemindersMapper mapper) : En
         return mapper.ToDto(updated);
     }
 
-    public async Task<IReadOnlyList<ReminderDto>> GetByEventAsync(Guid eventId, CancellationToken cancellationToken)
-    {
-        return (await GetListAsync(
+    public async Task<IReadOnlyList<ReminderDto>> GetByEventAsync(Guid eventId, CancellationToken cancellationToken) => (await GetListAsync(
                 new ReminderDescriptor { EventId = eventId },
                 cancellationToken)).EnsureValue("Get reminders by event");
-    }
 
-    public async Task<IReadOnlyList<ReminderDto>> GetDueAsync(DateTimeOffset now, CancellationToken cancellationToken)
-    {
-        return (await GetListAsync(
+    public async Task<IReadOnlyList<ReminderDto>> GetDueAsync(DateTimeOffset now, CancellationToken cancellationToken) => (await GetListAsync(
                 new ReminderDescriptor { RemindTo = now, IsSent = false },
                 cancellationToken)).EnsureValue("Get due reminders");
-    }
 
-    public async Task MarkSentAsync(Guid id, DateTimeOffset sentAt, CancellationToken cancellationToken)
-    {
-        await Mediator.Send(new MarkReminderSentCommand(id, sentAt), cancellationToken);
-    }
+    public async Task MarkSentAsync(Guid id, DateTimeOffset sentAt, CancellationToken cancellationToken) => await Mediator.Send(new MarkReminderSentCommand(id, sentAt), cancellationToken);
 
 }
 

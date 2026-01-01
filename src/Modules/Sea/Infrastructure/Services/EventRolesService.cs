@@ -1,11 +1,8 @@
-using System.Linq;
-using Vitarish.Sea.Application.Abstractions;
-using Vitarish.Sea.Infrastructure.Extensions;
 using Vitarish.Sea.Application.Commands.Roles;
 
 namespace Vitarish.Sea.Infrastructure.Services;
 
-[RegisterScoped]
+[RegisterTransient]
 internal class EventRolesService(IMediator mediator, EventRolesMapper mapper)
     : EntityService<EventRole, EventRoleDescriptor, EventRoleDto, EventRoleWriteDto, EventRoleDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IEventRolesService
 {
@@ -21,7 +18,7 @@ internal class EventRolesService(IMediator mediator, EventRolesMapper mapper)
     public async Task<IReadOnlyDictionary<Guid, (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)>> GetIdsForEventsAsync(IEnumerable<Guid> eventIds, CancellationToken cancellationToken)
     {
         Guid[] ids = eventIds.Distinct().ToArray();
-        if(ids.Length == 0)
+        if (ids.Length == 0)
         {
             return new Dictionary<Guid, (IReadOnlyList<Guid>, IReadOnlyList<Guid>)>();
         }
@@ -38,9 +35,9 @@ internal class EventRolesService(IMediator mediator, EventRolesMapper mapper)
                     (IReadOnlyList<Guid>)group.Where(role => role.Type == RoleType.Read).Select(role => role.RoleId).ToList(),
                     (IReadOnlyList<Guid>)group.Where(role => role.Type == RoleType.Write).Select(role => role.RoleId).ToList()));
 
-        foreach(Guid id in ids)
+        foreach (Guid id in ids)
         {
-            result.TryAdd(id, (Array.Empty<Guid>(), Array.Empty<Guid>()));
+            _ = result.TryAdd(id, (Array.Empty<Guid>(), Array.Empty<Guid>()));
         }
 
         return result;
@@ -60,13 +57,7 @@ internal class EventRolesService(IMediator mediator, EventRolesMapper mapper)
         return [.. roles.Select(r => r.RoleId)];
     }
 
-    public Task AssignAsync(Guid eventId, Guid roleId, bool isWrite, CancellationToken cancellationToken)
-    {
-        return Mediator.Send(new AddRoleToEventCommand(eventId, roleId, isWrite), cancellationToken);
-    }
+    public Task AssignAsync(Guid eventId, Guid roleId, bool isWrite, CancellationToken cancellationToken) => Mediator.Send(new AddRoleToEventCommand(eventId, roleId, isWrite), cancellationToken);
 
-    public Task UnassignAsync(Guid eventId, Guid roleId, bool isWrite, CancellationToken cancellationToken)
-    {
-        return Mediator.Send(new RemoveRoleFromEventCommand(eventId, roleId, isWrite), cancellationToken);
-    }
+    public Task UnassignAsync(Guid eventId, Guid roleId, bool isWrite, CancellationToken cancellationToken) => Mediator.Send(new RemoveRoleFromEventCommand(eventId, roleId, isWrite), cancellationToken);
 }

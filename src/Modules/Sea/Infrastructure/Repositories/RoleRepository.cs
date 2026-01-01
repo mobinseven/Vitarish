@@ -1,10 +1,8 @@
 using System.Linq.Expressions;
-using Vitarish.Sea.Infrastructure.Data;
-using Vitarish.Sea.Infrastructure.Helpers;
 
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
-[RegisterScoped]
+[RegisterTransient]
 internal class RoleRepository(SeaDbContext dbContext)
     : EntityRepository<Role, RoleDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Role, RoleDescriptor>
@@ -13,11 +11,11 @@ internal class RoleRepository(SeaDbContext dbContext)
     {
         query = base.Apply(query, descriptor);
 
-        if(!string.IsNullOrWhiteSpace(descriptor.Search))
+        if (!string.IsNullOrWhiteSpace(descriptor.Search))
         {
             IReadOnlyCollection<string> patterns = EntitySearchHelper.CreateSearchPatterns(descriptor.Search);
 
-            if(patterns.Count > 0)
+            if (patterns.Count > 0)
             {
                 Expression<Func<Role, bool>> predicate = EntitySearchHelper.BuildSearchPredicate<Role>(
                     patterns,
@@ -30,9 +28,6 @@ internal class RoleRepository(SeaDbContext dbContext)
         return query;
     }
 
-    protected override bool IsDuplicateKeyException(DbUpdateException exception)
-    {
-        return false;
-    }
+    protected override bool IsDuplicateKeyException(DbUpdateException exception) => false;
 }
 

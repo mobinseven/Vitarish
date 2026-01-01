@@ -1,18 +1,8 @@
+using System.Linq.Expressions;
+
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-using Vitarish.Sea.Domain.Entities;
-using Vitarish.Sea.Domain.Enums;
-using Vitarish.Sea.Domain.Models;
-using Vitarish.Sea.Infrastructure.Data;
-using Vitarish.Sea.Infrastructure.Helpers;
-
-[RegisterScoped]
+[RegisterTransient]
 internal class EventRepository(SeaDbContext dbContext)
     : EntityRepository<Event, EventDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Event, EventDescriptor>
@@ -21,21 +11,21 @@ internal class EventRepository(SeaDbContext dbContext)
     {
         query = base.Apply(query, descriptor);
 
-        if(descriptor.ProjectId is not null)
+        if (descriptor.ProjectId is not null)
         {
             query = query.Where(e => e.ProjectId == descriptor.ProjectId);
         }
 
-        if(descriptor.ProcedureId is not null)
+        if (descriptor.ProcedureId is not null)
         {
             query = query.Where(e => e.ProcedureId == descriptor.ProcedureId);
         }
 
-        if(!string.IsNullOrWhiteSpace(descriptor.Search))
+        if (!string.IsNullOrWhiteSpace(descriptor.Search))
         {
             IReadOnlyCollection<string> patterns = EntitySearchHelper.CreateSearchPatterns(descriptor.Search);
 
-            if(patterns.Count > 0)
+            if (patterns.Count > 0)
             {
                 Expression<Func<Event, bool>> predicate = EntitySearchHelper.BuildSearchPredicate<Event>(
                     patterns,
@@ -46,44 +36,44 @@ internal class EventRepository(SeaDbContext dbContext)
             }
         }
 
-        if(descriptor.PreviousEventId is not null)
+        if (descriptor.PreviousEventId is not null)
         {
             query = query.Where(e => e.PreviousEventId == descriptor.PreviousEventId);
         }
 
-        if(descriptor.CommittedBy is not null)
+        if (descriptor.CommittedBy is not null)
         {
             query = query.Where(e => e.CommittedBy == descriptor.CommittedBy);
         }
 
-        if(descriptor.CommittedFrom is not null)
+        if (descriptor.CommittedFrom is not null)
         {
             query = query.Where(e => e.CommittedAt >= descriptor.CommittedFrom);
         }
 
-        if(descriptor.CommittedTo is not null)
+        if (descriptor.CommittedTo is not null)
         {
             query = query.Where(e => e.CommittedAt <= descriptor.CommittedTo);
         }
 
-        if(descriptor.IsCommitted is not null)
+        if (descriptor.IsCommitted is not null)
         {
             query = query.Where(e => e.CommittedAt != null == descriptor.IsCommitted);
         }
 
-        if(descriptor.ReadRoleId is not null)
+        if (descriptor.ReadRoleId is not null)
         {
             Guid roleId = descriptor.ReadRoleId.Value;
             query = query.Where(e => dbContext.EventRoles.Any(er => er.EventId == e.Id && er.RoleId == roleId && er.Type == RoleType.Read));
         }
 
-        if(descriptor.WriteRoleId is not null)
+        if (descriptor.WriteRoleId is not null)
         {
             Guid roleId = descriptor.WriteRoleId.Value;
             query = query.Where(e => dbContext.EventRoles.Any(er => er.EventId == e.Id && er.RoleId == roleId && er.Type == RoleType.Write));
         }
 
-        if(descriptor.IncludeStats == false)
+        if (descriptor.IncludeStats == false)
         {
             query = query.IgnoreAutoIncludes();
         }
@@ -93,7 +83,7 @@ internal class EventRepository(SeaDbContext dbContext)
 
     private async Task PopulateStatsAsync(IReadOnlyList<Event> events, CancellationToken cancellationToken)
     {
-        if(events.Count == 0)
+        if (events.Count == 0)
         {
             return;
         }
@@ -107,7 +97,7 @@ internal class EventRepository(SeaDbContext dbContext)
             .Where(stat => eventIds.Contains(stat.EventId))
             .ToDictionaryAsync(stat => stat.EventId, cancellationToken);
 
-        foreach(Event @event in events)
+        foreach (Event @event in events)
         {
             @event.Stats = stats.TryGetValue(@event.Id, out EventStats? stat)
                 ? stat
@@ -122,7 +112,7 @@ internal class EventRepository(SeaDbContext dbContext)
     {
         Event? @event = await base.GetAsync(id, cancellationToken);
 
-        if(@event is null)
+        if (@event is null)
         {
             return null;
         }
@@ -136,7 +126,7 @@ internal class EventRepository(SeaDbContext dbContext)
     {
         IReadOnlyList<Event> events = await base.GetAsync(descriptor, cancellationToken);
 
-        if(events.Count == 0 || descriptor.IncludeStats == false)
+        if (events.Count == 0 || descriptor.IncludeStats == false)
         {
             return events;
         }
@@ -152,9 +142,6 @@ internal class EventRepository(SeaDbContext dbContext)
     Task<IReadOnlyList<Event>> IEntityRepository<Event, EventDescriptor>.GetAsync(EventDescriptor descriptor, CancellationToken cancellationToken)
         => GetAsync(descriptor, cancellationToken);
 
-    protected override bool IsDuplicateKeyException(DbUpdateException exception)
-    {
-        return false;
-    }
+    protected override bool IsDuplicateKeyException(DbUpdateException exception) => false;
 }
 

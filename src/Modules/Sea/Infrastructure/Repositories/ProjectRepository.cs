@@ -1,18 +1,8 @@
+using System.Linq.Expressions;
+
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-using Vitarish.Sea.Domain.Entities;
-using Vitarish.Sea.Domain.Enums;
-using Vitarish.Sea.Domain.Models;
-using Vitarish.Sea.Infrastructure.Data;
-using Vitarish.Sea.Infrastructure.Helpers;
-
-[RegisterScoped]
+[RegisterTransient]
 internal class ProjectRepository(SeaDbContext dbContext)
     : EntityRepository<Project, ProjectDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Project, ProjectDescriptor>
@@ -21,11 +11,11 @@ internal class ProjectRepository(SeaDbContext dbContext)
     {
         query = base.Apply(query, descriptor);
 
-        if(!string.IsNullOrWhiteSpace(descriptor.Search))
+        if (!string.IsNullOrWhiteSpace(descriptor.Search))
         {
             IReadOnlyCollection<string> patterns = EntitySearchHelper.CreateSearchPatterns(descriptor.Search);
 
-            if(patterns.Count > 0)
+            if (patterns.Count > 0)
             {
                 Expression<Func<Project, bool>> predicate = EntitySearchHelper.BuildSearchPredicate<Project>(
                     patterns,
@@ -37,19 +27,19 @@ internal class ProjectRepository(SeaDbContext dbContext)
             }
         }
 
-        if(descriptor.Template is not null)
+        if (descriptor.Template is not null)
         {
             query = query.Where(p => p.Template == descriptor.Template);
         }
 
-        if(descriptor.RoleIds is not null)
+        if (descriptor.RoleIds is not null)
         {
             query = query.Where(p => dbContext.Events
                 .Any(ev => ev.ProjectId == p.Id &&
                            dbContext.EventRoles.Any(er => er.EventId == ev.Id && descriptor.RoleIds.Contains(er.RoleId))));
         }
 
-        if(descriptor.SortBy is { } sort)
+        if (descriptor.SortBy is { } sort)
         {
             query = (sort, descriptor.Descending) switch
             {
@@ -66,7 +56,7 @@ internal class ProjectRepository(SeaDbContext dbContext)
 
     private async Task PopulateStatsAsync(IReadOnlyList<Project> projects, CancellationToken cancellationToken)
     {
-        if(projects.Count == 0)
+        if (projects.Count == 0)
         {
             return;
         }
@@ -78,7 +68,7 @@ internal class ProjectRepository(SeaDbContext dbContext)
             .Where(stat => projectIds.Contains(stat.ProjectId))
             .ToDictionaryAsync(stat => stat.ProjectId, cancellationToken);
 
-        foreach(Project project in projects)
+        foreach (Project project in projects)
         {
             project.Stats = stats.TryGetValue(project.Id, out ProjectStats? stat)
                 ? stat
@@ -93,7 +83,7 @@ internal class ProjectRepository(SeaDbContext dbContext)
     {
         Project? project = await base.GetAsync(id, cancellationToken);
 
-        if(project is null)
+        if (project is null)
         {
             return null;
         }
@@ -107,7 +97,7 @@ internal class ProjectRepository(SeaDbContext dbContext)
     {
         IReadOnlyList<Project> projects = await base.GetAsync(descriptor, cancellationToken);
 
-        if(projects.Count == 0 || descriptor.IncludeStats == false)
+        if (projects.Count == 0 || descriptor.IncludeStats == false)
         {
             return projects;
         }
@@ -123,8 +113,5 @@ internal class ProjectRepository(SeaDbContext dbContext)
     Task<IReadOnlyList<Project>> IEntityRepository<Project, ProjectDescriptor>.GetAsync(ProjectDescriptor descriptor, CancellationToken cancellationToken)
         => GetAsync(descriptor, cancellationToken);
 
-    protected override bool IsDuplicateKeyException(DbUpdateException exception)
-    {
-        return false;
-    }
+    protected override bool IsDuplicateKeyException(DbUpdateException exception) => false;
 }

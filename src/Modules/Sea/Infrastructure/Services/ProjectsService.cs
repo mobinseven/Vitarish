@@ -1,15 +1,6 @@
 namespace Vitarish.Sea.Infrastructure.Services;
 
-using System;
-using System.Collections.Generic;
-using Vitarish.Sea.Application.Abstractions;
-using Vitarish.Sea.Domain.Dto;
-using Vitarish.Sea.Domain.Entities;
-using Vitarish.Sea.Domain.Models;
-using Vitarish.Sea.Infrastructure.Extensions;
-using Vitarish.Sea.Infrastructure.Helpers;
-
-[RegisterScoped]
+[RegisterTransient]
 internal class ProjectsService(
     IMediator mediator,
     ProjectsMapper mapper,
@@ -26,7 +17,7 @@ internal class ProjectsService(
     public async Task UpdateAsync(Guid id, string name, string description, bool template, string metadata, CancellationToken cancellationToken)
     {
         Project? project = (await GetEntityAsync(id, cancellationToken)).GetValueOrDefault();
-        if(project is null)
+        if (project is null)
         {
             return;
         }
@@ -42,7 +33,7 @@ internal class ProjectsService(
     public async Task UpdateMetadataAsync(Guid id, string metadata, CancellationToken cancellationToken)
     {
         Project? project = (await GetEntityAsync(id, cancellationToken)).GetValueOrDefault();
-        if(project is null)
+        if (project is null)
         {
             return;
         }
@@ -55,7 +46,7 @@ internal class ProjectsService(
     public async Task<ProjectSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken)
     {
         ProjectDto? project = (await GetAsync(id, cancellationToken)).GetValueOrDefault();
-        if(project is null)
+        if (project is null)
         {
             return null;
         }
@@ -67,10 +58,10 @@ internal class ProjectsService(
             .EnsureValue("Get project procedures");
 
         List<ProcedureSnapshot> procedureSnapshots = new(procedures.Count);
-        foreach(ProcedureDto procedure in procedures)
+        foreach (ProcedureDto procedure in procedures)
         {
             ProcedureSnapshot? snapshot = await proceduresService.CaptureSnapshotAsync(procedure.Id, cancellationToken);
-            if(snapshot is not null)
+            if (snapshot is not null)
             {
                 procedureSnapshots.Add(snapshot);
             }

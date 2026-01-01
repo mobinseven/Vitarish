@@ -1,9 +1,6 @@
-using Vitarish.Sea.Application.Abstractions;
-using Vitarish.Sea.Infrastructure.Extensions;
-
 namespace Vitarish.Sea.Infrastructure.Services;
 
-[RegisterScoped]
+[RegisterTransient]
 internal class RolesService(IMediator mediator, RolesMapper mapper) : EntityService<Role, RoleDescriptor, RoleDto, RoleWriteDto, RoleDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IRolesService
 {
     public async Task<Guid> AddAsync(string name, CancellationToken cancellationToken)
@@ -16,7 +13,7 @@ internal class RolesService(IMediator mediator, RolesMapper mapper) : EntityServ
     public async Task UpdateAsync(Guid id, string name, CancellationToken cancellationToken)
     {
         Role? role = (await GetEntityAsync(id, cancellationToken)).GetValueOrDefault();
-        if(role is null)
+        if (role is null)
         {
             return;
         }

@@ -1,8 +1,6 @@
-using Vitarish.Sea.Infrastructure.Data;
-
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
-[RegisterScoped]
+[RegisterTransient]
 internal class EventRoleRepository(SeaDbContext dbContext)
     : EntityRepository<EventRole, EventRoleDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<EventRole, EventRoleDescriptor>
@@ -11,17 +9,17 @@ internal class EventRoleRepository(SeaDbContext dbContext)
     {
         query = base.Apply(query, descriptor);
 
-        if(descriptor.EventId is not null)
+        if (descriptor.EventId is not null)
         {
             query = query.Where(er => er.EventId == descriptor.EventId);
         }
 
-        if(descriptor.RoleId is not null)
+        if (descriptor.RoleId is not null)
         {
             query = query.Where(er => er.RoleId == descriptor.RoleId);
         }
 
-        if(descriptor.Type is not null)
+        if (descriptor.Type is not null)
         {
             query = query.Where(er => er.Type == descriptor.Type);
         }
@@ -29,8 +27,5 @@ internal class EventRoleRepository(SeaDbContext dbContext)
         return query;
     }
 
-    protected override bool IsDuplicateKeyException(DbUpdateException exception)
-    {
-        return false;
-    }
+    protected override bool IsDuplicateKeyException(DbUpdateException exception) => false;
 }

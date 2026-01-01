@@ -1,17 +1,8 @@
+using System.Linq.Expressions;
+
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Threading;
-using System.Threading.Tasks;
-using Vitarish.Sea.Domain.Entities;
-using Vitarish.Sea.Domain.Models;
-using Vitarish.Sea.Infrastructure.Data;
-using Vitarish.Sea.Infrastructure.Helpers;
-
-[RegisterScoped]
+[RegisterTransient]
 internal class ProcedureRepository(SeaDbContext dbContext)
     : EntityRepository<Procedure, ProcedureDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Procedure, ProcedureDescriptor>
@@ -20,16 +11,16 @@ internal class ProcedureRepository(SeaDbContext dbContext)
     {
         query = base.Apply(query, descriptor);
 
-        if(descriptor.ProjectId is not null)
+        if (descriptor.ProjectId is not null)
         {
             query = query.Where(p => p.ProjectId == descriptor.ProjectId);
         }
 
-        if(!string.IsNullOrWhiteSpace(descriptor.Search))
+        if (!string.IsNullOrWhiteSpace(descriptor.Search))
         {
             IReadOnlyCollection<string> patterns = EntitySearchHelper.CreateSearchPatterns(descriptor.Search);
 
-            if(patterns.Count > 0)
+            if (patterns.Count > 0)
             {
                 Expression<Func<Procedure, bool>> predicate = EntitySearchHelper.BuildSearchPredicate<Procedure>(
                     patterns,
@@ -40,13 +31,13 @@ internal class ProcedureRepository(SeaDbContext dbContext)
             }
         }
 
-        if(descriptor.RoleIds?.Any() == true)
+        if (descriptor.RoleIds?.Any() == true)
         {
             query = query.Where(p => dbContext.Events.Any(e => e.ProcedureId == p.Id
                 && dbContext.EventRoles.Any(er => er.EventId == e.Id && descriptor.RoleIds!.Contains(er.RoleId))));
         }
 
-        if(descriptor.IncludeStats == false)
+        if (descriptor.IncludeStats == false)
         {
             query = query.IgnoreAutoIncludes();
         }
@@ -56,7 +47,7 @@ internal class ProcedureRepository(SeaDbContext dbContext)
 
     private async Task PopulateStatsAsync(IReadOnlyList<Procedure> procedures, CancellationToken cancellationToken)
     {
-        if(procedures.Count == 0)
+        if (procedures.Count == 0)
         {
             return;
         }
@@ -70,7 +61,7 @@ internal class ProcedureRepository(SeaDbContext dbContext)
             .Where(stat => procedureIds.Contains(stat.ProcedureId))
             .ToDictionaryAsync(stat => stat.ProcedureId, cancellationToken);
 
-        foreach(Procedure procedure in procedures)
+        foreach (Procedure procedure in procedures)
         {
             procedure.Stats = stats.TryGetValue(procedure.Id, out ProcedureStats? stat)
                 ? stat
@@ -85,7 +76,7 @@ internal class ProcedureRepository(SeaDbContext dbContext)
     {
         Procedure? procedure = await base.GetAsync(id, cancellationToken);
 
-        if(procedure is null)
+        if (procedure is null)
         {
             return null;
         }
@@ -99,7 +90,7 @@ internal class ProcedureRepository(SeaDbContext dbContext)
     {
         IReadOnlyList<Procedure> procedures = await base.GetAsync(descriptor, cancellationToken);
 
-        if(procedures.Count == 0 || descriptor.IncludeStats == false)
+        if (procedures.Count == 0 || descriptor.IncludeStats == false)
         {
             return procedures;
         }
@@ -115,9 +106,6 @@ internal class ProcedureRepository(SeaDbContext dbContext)
     Task<IReadOnlyList<Procedure>> IEntityRepository<Procedure, ProcedureDescriptor>.GetAsync(ProcedureDescriptor descriptor, CancellationToken cancellationToken)
         => GetAsync(descriptor, cancellationToken);
 
-    protected override bool IsDuplicateKeyException(DbUpdateException exception)
-    {
-        return false;
-    }
+    protected override bool IsDuplicateKeyException(DbUpdateException exception) => false;
 }
 

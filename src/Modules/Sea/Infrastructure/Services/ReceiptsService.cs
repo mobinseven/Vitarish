@@ -1,10 +1,6 @@
-using System.Linq;
-using Vitarish.Sea.Application.Abstractions;
-using Vitarish.Sea.Infrastructure.Extensions;
-
 namespace Vitarish.Sea.Infrastructure.Services;
 
-[RegisterScoped]
+[RegisterTransient]
 internal class ReceiptsService(
     IMediator mediator,
     ReceiptsMapper mapper,
@@ -12,16 +8,13 @@ internal class ReceiptsService(
     IRemindersService remindersService)
     : EntityService<Receipt, ReceiptDescriptor, ReceiptDto, ReceiptWriteDto, ReceiptDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IReceiptsService
 {
-    private async Task RemoveReceiptAsync(string createdBy, Guid objectId, CancellationToken cancellationToken)
-    {
-        (await RemoveByDescriptorAsync(
+    private async Task RemoveReceiptAsync(string createdBy, Guid objectId, CancellationToken cancellationToken) => (await RemoveByDescriptorAsync(
             new ReceiptDescriptor
             {
                 CreatedBy = createdBy,
                 ObjectId = objectId
             },
             cancellationToken)).EnsureSuccess("Remove receipt");
-    }
 
     public async Task<bool> HasReceiptAsync(Guid userId, Guid objectId, CancellationToken cancellationToken)
     {
@@ -34,7 +27,7 @@ internal class ReceiptsService(
     public async Task<IReadOnlyDictionary<Guid, bool>> HasReceiptsAsync(Guid userId, IEnumerable<Guid> objectIds, CancellationToken cancellationToken)
     {
         Guid[] ids = objectIds.Distinct().ToArray();
-        if(ids.Length == 0)
+        if (ids.Length == 0)
         {
             return new Dictionary<Guid, bool>();
         }
@@ -51,7 +44,7 @@ internal class ReceiptsService(
         ReceiptDto? receiptDto = (await GetListAsync(new ReceiptDescriptorDto { CreatedBy = userId.ToString(), ObjectId = objectId }, CancellationToken.None))
             .EnsureValue("Get receipts")
             .FirstOrDefault();
-        if(receiptDto is not null)
+        if (receiptDto is not null)
         {
             return receiptDto.Id;
         }
@@ -67,9 +60,9 @@ internal class ReceiptsService(
 
         HashSet<Guid> readers = [];
 
-        foreach(ReceiptDto receipt in receipts)
+        foreach (ReceiptDto receipt in receipts)
         {
-            if(Guid.TryParse(receipt.CreatedBy, out Guid userId))
+            if (Guid.TryParse(receipt.CreatedBy, out Guid userId))
             {
                 _ = readers.Add(userId);
             }
@@ -80,38 +73,26 @@ internal class ReceiptsService(
         return result;
     }
 
-    public Task MarkProjectReadAsync(Guid userId, Guid projectId, CancellationToken cancellationToken)
-    {
-        return AddAsync(userId, projectId, cancellationToken);
-    }
+    public Task MarkProjectReadAsync(Guid userId, Guid projectId, CancellationToken cancellationToken) => AddAsync(userId, projectId, cancellationToken);
 
-    public Task MarkProjectUnreadAsync(Guid userId, Guid projectId, CancellationToken cancellationToken)
-    {
-        return RemoveReceiptAsync(userId.ToString(), projectId, cancellationToken);
-    }
+    public Task MarkProjectUnreadAsync(Guid userId, Guid projectId, CancellationToken cancellationToken) => RemoveReceiptAsync(userId.ToString(), projectId, cancellationToken);
 
-    public Task MarkProcedureReadAsync(Guid userId, Guid procedureId, CancellationToken cancellationToken)
-    {
-        return AddAsync(userId, procedureId, cancellationToken);
-    }
+    public Task MarkProcedureReadAsync(Guid userId, Guid procedureId, CancellationToken cancellationToken) => AddAsync(userId, procedureId, cancellationToken);
 
-    public Task MarkProcedureUnreadAsync(Guid userId, Guid procedureId, CancellationToken cancellationToken)
-    {
-        return RemoveReceiptAsync(userId.ToString(), procedureId, cancellationToken);
-    }
+    public Task MarkProcedureUnreadAsync(Guid userId, Guid procedureId, CancellationToken cancellationToken) => RemoveReceiptAsync(userId.ToString(), procedureId, cancellationToken);
 
     public async Task MarkEventReadAsync(Guid userId, Guid eventId, CancellationToken cancellationToken)
     {
         _ = await AddAsync(userId, eventId, cancellationToken);
 
         IReadOnlyList<AttachmentDto> attachments = await attachmentsService.GetByEventAsync(eventId, cancellationToken);
-        foreach(AttachmentDto attachment in attachments)
+        foreach (AttachmentDto attachment in attachments)
         {
             _ = await AddAsync(userId, attachment.Id, cancellationToken);
         }
 
         IReadOnlyList<ReminderDto> reminders = await remindersService.GetByEventAsync(eventId, cancellationToken);
-        foreach(ReminderDto reminder in reminders)
+        foreach (ReminderDto reminder in reminders)
         {
             _ = await AddAsync(userId, reminder.Id, cancellationToken);
         }
@@ -123,13 +104,13 @@ internal class ReceiptsService(
         await RemoveReceiptAsync(createdBy, eventId, cancellationToken);
 
         IReadOnlyList<AttachmentDto> attachments = await attachmentsService.GetByEventAsync(eventId, cancellationToken);
-        foreach(AttachmentDto attachment in attachments)
+        foreach (AttachmentDto attachment in attachments)
         {
             await RemoveReceiptAsync(createdBy, attachment.Id, cancellationToken);
         }
 
         IReadOnlyList<ReminderDto> reminders = await remindersService.GetByEventAsync(eventId, cancellationToken);
-        foreach(ReminderDto reminder in reminders)
+        foreach (ReminderDto reminder in reminders)
         {
             await RemoveReceiptAsync(createdBy, reminder.Id, cancellationToken);
         }

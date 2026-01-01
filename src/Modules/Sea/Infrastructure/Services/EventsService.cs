@@ -1,14 +1,6 @@
 namespace Vitarish.Sea.Infrastructure.Services;
 
-using System.Collections.Generic;
-using System.Linq;
-using Vitarish.Sea.Application.Abstractions;
-using Vitarish.Sea.Domain.Dto;
-using Vitarish.Sea.Domain.Entities;
-using Vitarish.Sea.Domain.Models;
-using Vitarish.Sea.Infrastructure.Extensions;
-
-[RegisterScoped]
+[RegisterTransient]
 internal class EventsService(
     IMediator mediator,
     EventsMapper mapper,
@@ -16,22 +8,16 @@ internal class EventsService(
     : EntityService<Event, EventDescriptor, EventDto, EventWriteDto, EventDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IEventsService
 {
 
-    public async Task<IReadOnlyList<EventDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken)
-    {
-        return (await GetListAsync(new EventDescriptor { ProcedureId = procedureId, IncludeStats = true }, cancellationToken))
+    public async Task<IReadOnlyList<EventDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken) => (await GetListAsync(new EventDescriptor { ProcedureId = procedureId, IncludeStats = true }, cancellationToken))
             .EnsureValue("Get events by procedure");
-    }
 
     public async Task UpdateChainAsync(
         Guid procedureId,
         IEnumerable<EventChainChangeDto> chainChangeDtos,
-        CancellationToken cancellationToken)
-    {
-        await Mediator.Send(
+        CancellationToken cancellationToken) => await Mediator.Send(
             new UpdateEventsChainCommand(procedureId,
                 [.. chainChangeDtos.Select(dto => new EventChainChange(dto.Id, dto.PreviousEventId))]),
             cancellationToken);
-    }
 
     public async Task<EventDto?> AddAsync(
         Guid projectId,
@@ -63,7 +49,7 @@ internal class EventsService(
         CancellationToken cancellationToken)
     {
         Event? en = (await GetEntityAsync(id, cancellationToken)).GetValueOrDefault();
-        if(en is null)
+        if (en is null)
         {
             return null;
         }
@@ -89,23 +75,20 @@ internal class EventsService(
     public Task<int> UncommitAllByProcedureAsync(Guid procedureId, CancellationToken cancellationToken)
         => Mediator.Send(new UncommitProcedureEventsCommand(procedureId), cancellationToken);
 
-    public async Task<int> GetRemindersCountAsync(Guid eventId, CancellationToken cancellationToken)
-    {
-        return (await CountAsync<Reminder, ReminderDescriptor>(new() { EventId = eventId }, cancellationToken))
+    public async Task<int> GetRemindersCountAsync(Guid eventId, CancellationToken cancellationToken) => (await CountAsync<Reminder, ReminderDescriptor>(new() { EventId = eventId }, cancellationToken))
             .EnsureValue("Count event reminders");
-    }
 
     public async Task<EventSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken)
     {
         EventDto? eventDto = (await GetAsync(id, cancellationToken)).GetValueOrDefault();
-        if(eventDto is null)
+        if (eventDto is null)
         {
             return null;
         }
 
         IReadOnlyList<AttachmentDto> attachments = await attachmentsService.GetByEventAsync(id, cancellationToken);
         List<AttachmentSnapshot> attachmentSnapshots = new(attachments.Count);
-        foreach(AttachmentDto attachment in attachments)
+        foreach (AttachmentDto attachment in attachments)
         {
             attachmentSnapshots.Add(new AttachmentSnapshot(attachment.Id, attachment.Content));
         }

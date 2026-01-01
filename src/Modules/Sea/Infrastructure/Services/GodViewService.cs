@@ -1,10 +1,8 @@
 using System.Globalization;
-using Vitarish.Sea.Application.Abstractions;
-using Vitarish.Sea.Infrastructure.Data;
 
 namespace Vitarish.Sea.Infrastructure.Services;
 
-[RegisterScoped]
+[RegisterTransient]
 internal sealed class GodViewService(SeaDbContext dbContext) : IGodViewService
 {
     public async Task<GodViewPage> GetProjectsAsync(GodViewPageRequest request, CancellationToken cancellationToken)
@@ -299,14 +297,14 @@ internal sealed class GodViewService(SeaDbContext dbContext) : IGodViewService
 
     private static IQueryable<GodViewRowDto> ApplySearch(IQueryable<GodViewRowDto> query, IReadOnlyList<string> terms)
     {
-        if(terms.Count == 0)
+        if (terms.Count == 0)
         {
             return query;
         }
 
-        foreach(string term in terms)
+        foreach (string term in terms)
         {
-            if(string.IsNullOrWhiteSpace(term))
+            if (string.IsNullOrWhiteSpace(term))
             {
                 continue;
             }
@@ -326,14 +324,14 @@ internal sealed class GodViewService(SeaDbContext dbContext) : IGodViewService
 
     private static IQueryable<AttachmentRow> ApplySearch(IQueryable<AttachmentRow> query, IReadOnlyList<string> terms)
     {
-        if(terms.Count == 0)
+        if (terms.Count == 0)
         {
             return query;
         }
 
-        foreach(string term in terms)
+        foreach (string term in terms)
         {
-            if(string.IsNullOrWhiteSpace(term))
+            if (string.IsNullOrWhiteSpace(term))
             {
                 continue;
             }
@@ -355,7 +353,7 @@ internal sealed class GodViewService(SeaDbContext dbContext) : IGodViewService
 
     private static string FormatSize(long size)
     {
-        if(size < 1024)
+        if (size < 1024)
         {
             return string.Format(CultureInfo.CurrentCulture, "{0} B", size);
         }
@@ -364,7 +362,7 @@ internal sealed class GodViewService(SeaDbContext dbContext) : IGodViewService
         string[] suffixes = ["KB", "MB", "GB", "TB"];
         int suffixIndex = 0;
 
-        while(value >= 1024 && suffixIndex < suffixes.Length - 1)
+        while (value >= 1024 && suffixIndex < suffixes.Length - 1)
         {
             value /= 1024;
             suffixIndex++;
