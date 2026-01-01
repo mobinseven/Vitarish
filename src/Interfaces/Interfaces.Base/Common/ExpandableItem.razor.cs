@@ -17,7 +17,7 @@ public partial class ExpandableItem : ComponentBase, IExpandableItem
     [Parameter] public string CloseIcon { get; set; } = "fa-thin fa-folder";
     [Parameter] public string? HighlightString { get; set; }
     [Parameter] public int Count { get; set; }
-    [Parameter] public bool Focusable { get; set; } = true;
+    [Parameter] public bool Focusable { get; set; } = false;
     [Parameter] public Color Color { get; set; }
     [Parameter] public Size Size { get; set; } = Size.Large;
     [Parameter] public string? Class { get; set; }
