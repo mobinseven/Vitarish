@@ -6,7 +6,7 @@ public class SeaCommonBase : CommonBase
     /// <summary>
     /// Optional override for admin-specific rendering when the caller wants to force admin mode.
     /// </summary>
-    [Parameter] public bool? IsAdmin { get; set; }
+    [CascadingParameter] public bool? IsAdmin { get; set; }
     /// <summary>
     /// Effective admin flag resolved from the override or the access service.
     /// </summary>

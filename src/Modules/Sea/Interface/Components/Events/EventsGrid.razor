@@ -20,8 +20,8 @@
                     <ExpandableItem Context="expandable"
                                     Size="Size.Large"
                                     Expanded="@(OpenEvent == context.Item.Id)"
-                                    ExpandedChanged=@(async e =>{ await OpenEventChanged.InvokeAsync(e ? context.Item.Id : null); await grid!.ReloadServerData(); })
                                     ShowMenu=AdminMode
+                                    OnClicked="@(() => EventClicked.InvokeAsync(context.Item.Id))"
                                     Name="@context.Item.Title"
                                     NoIcon>
                         <StartContent>

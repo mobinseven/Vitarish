@@ -9,7 +9,7 @@ public partial class EventsGrid : EventsBase
     [Parameter, EditorRequired] public ProjectDto Project { get; set; }
     [Parameter, EditorRequired] public ProcedureDto Procedure { get; set; }
     [Parameter] public Guid? OpenEvent { get; set; }
-    [Parameter] public EventCallback<Guid?> OpenEventChanged { get; set; }
+    [Parameter] public EventCallback<Guid?> EventClicked { get; set; }
 
     [Inject] private IEnumerable<IEventCreationFormPlugin> EventCreationFormPlugins { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
@@ -20,11 +20,19 @@ public partial class EventsGrid : EventsBase
 
     private readonly Dictionary<Guid, bool> canRead = [];
     private readonly Dictionary<Guid, bool> canWrite = [];
-    private readonly Dictionary<Guid, bool> readReceipts = [];
-    private bool hasReceiptData;
     private Guid? draggedEventId;
     private Guid? dropIndicatorEventId;
     private bool dropIndicatorBefore;
+
+    //Action<bool> onExpandedChanged(EventDto item) => async e =>
+    //{
+    //    if (!e)
+    //    {
+    //        await OpenEventChanged.InvokeAsync(e ? item.Id : null);
+    //        return;
+    //    }
+    //    await grid!.ReloadServerData();
+    //};
 
     private async Task<GridData<EventDto>> ReloadData(GridState<EventDto> gridState)
     {
@@ -32,35 +40,16 @@ public partial class EventsGrid : EventsBase
 
         canRead.Clear();
         canWrite.Clear();
-        readReceipts.Clear();
 
         Guid[] eventIds = [.. events.Select(e => e.Id)];
 
         Task<IReadOnlyDictionary<Guid, (bool CanRead, bool CanWrite)>> accessTask = AccessService.GetEventAccessAsync(eventIds);
-
-        Guid? userId = AccessService.UserId;
-        hasReceiptData = userId is Guid;
-
-        Task<IReadOnlyDictionary<Guid, bool>> receiptsTask = Task.FromResult<IReadOnlyDictionary<Guid, bool>>(ImmutableDictionary<Guid, bool>.Empty);
-
-        if (userId is Guid id)
-        {
-            receiptsTask = ReceiptsService.HasReceiptsAsync(id, eventIds, CancellationToken.None);
-        }
-
-        await Task.WhenAll(accessTask, receiptsTask);
 
         IReadOnlyDictionary<Guid, (bool CanRead, bool CanWrite)> accessResults = await accessTask;
         foreach ((Guid eventId, (bool CanRead, bool CanWrite) access) in accessResults)
         {
             canRead[eventId] = access.CanRead;
             canWrite[eventId] = access.CanWrite;
-        }
-
-        IReadOnlyDictionary<Guid, bool> receiptResults = await receiptsTask;
-        foreach ((Guid eventId, bool hasReceipt) in receiptResults)
-        {
-            readReceipts[eventId] = hasReceipt;
         }
 
         return new GridData<EventDto>

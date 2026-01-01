@@ -6,7 +6,7 @@ public partial class ProceduresGrid : ProceduresBase
     [Parameter] public EventCallback<ProjectDto> ProjectChanged { get; set; }
     [Parameter] public EventCallback ProjectDeleted { get; set; }
     [Parameter] public Guid? OpenProcedure { get; set; }
-    [Parameter] public EventCallback<Guid?> OpenProcedureChanged { get; set; }
+    [Parameter] public EventCallback<Guid?> ProcedureClicked { get; set; }
     [Parameter] public RenderFragment<ProcedureDto>? ProcedureChildContent { get; set; }
 
     [Inject] private IEventsService EventsService { get; set; } = default!;
