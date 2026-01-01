@@ -13,6 +13,7 @@ public sealed class MockUsersService : IUsersService
     private readonly ConcurrentDictionary<string, User> users = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, List<Claim>> userClaims = new(StringComparer.OrdinalIgnoreCase);
     private readonly ConcurrentDictionary<string, string> userPasswords = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, HashSet<string>> userRoles = new(StringComparer.OrdinalIgnoreCase);
 
     public MockUsersService()
     {
@@ -33,6 +34,7 @@ public sealed class MockUsersService : IUsersService
             new Claim(ClaimTypes.NameIdentifier, previewUser.Id),
             new Claim(ClaimTypes.Name, previewUser.UserName ?? previewUser.Id)
         ];
+        userRoles[previewUser.Id] = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
     }
 
     public Task<IEnumerable<User>> GetUsersAsync(CancellationToken ct = default)
@@ -65,6 +67,7 @@ public sealed class MockUsersService : IUsersService
             new Claim(ClaimTypes.NameIdentifier, user.Id),
             new Claim(ClaimTypes.Name, user.UserName ?? user.Id)
         ];
+        userRoles[user.Id] = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
         return Task.FromResult<User?>(user);
     }
@@ -115,6 +118,7 @@ public sealed class MockUsersService : IUsersService
 
         userClaims.TryRemove(command.Id, out _);
         userPasswords.TryRemove(command.Id, out _);
+        userRoles.TryRemove(command.Id, out _);
         return Task.FromResult(IdentityResult.Success);
     }
 
@@ -203,6 +207,128 @@ public sealed class MockUsersService : IUsersService
         });
     }
 
+    public Task<IdentityResult> CreateAsync(User user, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(user.Id))
+        {
+            user.Id = Guid.NewGuid().ToString("N");
+        }
+
+        users[user.Id] = user;
+        userRoles[user.Id] = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        userClaims[user.Id] =
+        [
+            new Claim(ClaimTypes.NameIdentifier, user.Id),
+            new Claim(ClaimTypes.Name, user.UserName ?? user.Id)
+        ];
+        return Task.FromResult(IdentityResult.Success);
+    }
+
+    public Task<IdentityResult> UpdateAsync(User user, CancellationToken cancellationToken) =>
+        UpdateUserAsync(user.Id, _ => user);
+
+    public Task<IdentityResult> DeleteAsync(User user, CancellationToken cancellationToken) =>
+        DeleteUserAsync(new DeleteUserCommand(user.Id), cancellationToken);
+
+    public Task<User?> FindByIdAsync(string userId, CancellationToken cancellationToken) =>
+        GetUserAsync(userId, cancellationToken);
+
+    public Task<User?> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken)
+    {
+        User? user = users.Values.FirstOrDefault(entry =>
+            string.Equals(entry.NormalizedUserName, normalizedUserName, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(user);
+    }
+
+    public Task<string> GetUserIdAsync(User user, CancellationToken cancellationToken) =>
+        Task.FromResult(user.Id);
+
+    public Task<string?> GetUserNameAsync(User user, CancellationToken cancellationToken) =>
+        Task.FromResult(user.UserName);
+
+    public Task SetUserNameAsync(User user, string? userName, CancellationToken cancellationToken)
+    {
+        user.UserName = userName;
+        return Task.CompletedTask;
+    }
+
+    public Task<string?> GetNormalizedUserNameAsync(User user, CancellationToken cancellationToken) =>
+        Task.FromResult(user.NormalizedUserName);
+
+    public Task SetNormalizedUserNameAsync(User user, string? normalizedName, CancellationToken cancellationToken)
+    {
+        user.NormalizedUserName = normalizedName;
+        return Task.CompletedTask;
+    }
+
+    public Task SetSecurityStampAsync(User user, string stamp, CancellationToken cancellationToken)
+    {
+        user.SecurityStamp = stamp;
+        return Task.CompletedTask;
+    }
+
+    public Task<string?> GetSecurityStampAsync(User user, CancellationToken cancellationToken) =>
+        Task.FromResult(user.SecurityStamp);
+
+    public Task AddToRoleAsync(User user, string roleName, CancellationToken cancellationToken)
+    {
+        _ = userRoles.AddOrUpdate(user.Id,
+            _ => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { roleName },
+            (_, existing) =>
+            {
+                existing.Add(roleName);
+                return existing;
+            });
+        return Task.CompletedTask;
+    }
+
+    public Task RemoveFromRoleAsync(User user, string roleName, CancellationToken cancellationToken)
+    {
+        _ = userRoles.AddOrUpdate(user.Id,
+            _ => new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+            (_, existing) =>
+            {
+                _ = existing.Remove(roleName);
+                return existing;
+            });
+        return Task.CompletedTask;
+    }
+
+    public Task<IList<string>> GetRolesAsync(User user, CancellationToken cancellationToken)
+    {
+        IList<string> roles = userRoles.TryGetValue(user.Id, out HashSet<string>? entries)
+            ? entries.ToList()
+            : new List<string>();
+        return Task.FromResult(roles);
+    }
+
+    public async Task<bool> IsInRoleAsync(User user, string roleName, CancellationToken cancellationToken)
+    {
+        IList<string> roles = await GetRolesAsync(user, cancellationToken);
+        return roles.Any(r => string.Equals(r, roleName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    public Task<IList<User>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
+    {
+        IList<User> result = users.Values.Where(u =>
+                userRoles.TryGetValue(u.Id, out HashSet<string>? roles) &&
+                roles.Any(r => string.Equals(r, roleName, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+        return Task.FromResult(result);
+    }
+
+    public Task<IEnumerable<IdentityRole>> GetUserRolesAsync(string userId, CancellationToken ct = default)
+    {
+        IEnumerable<IdentityRole> roles = userRoles.TryGetValue(userId, out HashSet<string>? entries)
+            ? entries.Select(r => new IdentityRole(r))
+            : Enumerable.Empty<IdentityRole>();
+        return Task.FromResult(roles);
+    }
+
+    public void Dispose()
+    {
+    }
+
     private static IdentityResult UserNotFound()
         => IdentityResult.Failed(new IdentityError { Code = "UserNotFound", Description = "User not found." });
 
@@ -245,5 +371,4 @@ public sealed class MockUsersService : IUsersService
             TwoFactorEnabled = user.TwoFactorEnabled,
             UserName = user.UserName
         };
-    public Task<IEnumerable<IdentityRole>> GetUserRolesAsync(string userId, CancellationToken ct = default) => throw new NotImplementedException();
 }
