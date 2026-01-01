@@ -9,7 +9,11 @@
         }
         else
         {
-            <MudFab Size=Size StartIcon="fa-thin fa-house-blank" DropShadow=false Href="/" />
+            @if(BackAction is not null)
+            {
+                <MudFab Size=Size StartIcon="@BackAction.Icon" DropShadow=false Href="@BackAction.Href" OnClick="HandleBackClick" />
+            }
+            <MudFab Size=Size StartIcon="fa-thin fa-house-blank" DropShadow=false Href="@HomeHref" />
             @if(SearchService.IsEnabled)
             {
                 <MudFab Size=Size StartIcon="fa-thin fa-magnifying-glass" DropShadow=false OnClick="() => searchActive = true" />
@@ -19,9 +23,9 @@
                     <MudFab Size=Size IconColor="Color.Info" StartIcon="@Icons.Material.Filled.Download" DropShadow=false OnClick="context.OnInstallClicked" />
                 </InstallButton>
             </PwaInstall>
-            @if(ThemeService.NavMenuButtons is not null)
+            @if(NavMenuButtons is not null)
             {
-                @ThemeService.NavMenuButtons
+                @NavMenuButtons
             }
             else
             {
