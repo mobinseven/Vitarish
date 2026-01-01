@@ -14,6 +14,8 @@ public class UserInfoClaimsPrincipalFactory(UserManager<User> userManager, IOpti
         ClaimsIdentity identity = await base.GenerateClaimsAsync(user);
         identity.AddClaim(new Claim(JwtClaimTypes.FamilyName, user.LastName ?? string.Empty));
         identity.AddClaim(new Claim(JwtClaimTypes.GivenName, user.FirstName ?? string.Empty));
+        identity.AddClaim(new Claim(JwtClaimTypes.Email, user.Email ?? string.Empty));
+        identity.AddClaim(new Claim(JwtClaimTypes.PhoneNumber, user.PhoneNumber ?? string.Empty));
         return identity;
     }
 }

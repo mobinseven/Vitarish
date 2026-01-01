@@ -1,8 +1,9 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Duende.IdentityModel" Version="8.0.0" />
     <PackageReference Include="MediatR" Version="14.0.*" />
     <PackageReference Include="FluentValidation" Version="11.*" />
   </ItemGroup>

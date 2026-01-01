@@ -1,7 +1,8 @@
+using Duende.IdentityModel;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
 
-public static class ClaimsHttpContextClaimExtensions
+public static class ContextClaimExtensions
 {
     private static ClaimsIdentity? GetPartyIdentity(HttpContext context)
         => context.User.Identities.FirstOrDefault(i =>
@@ -24,6 +25,46 @@ public static class ClaimsHttpContextClaimExtensions
             return !string.IsNullOrWhiteSpace(value)
                 ? value
                 : throw new InvalidOperationException($"Missing claim '{IdentityDefinitions.UserIdClaim}'.");
+        }
+
+        public string GetUserGivenName()
+        {
+            ArgumentNullException.ThrowIfNull(principal);
+
+            string? value = GetClaimValue(principal, JwtClaimTypes.GivenName);
+            return !string.IsNullOrWhiteSpace(value)
+                ? value
+                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.GivenName}'.");
+        }
+
+        public string GetUserFamilyName()
+        {
+            ArgumentNullException.ThrowIfNull(principal);
+
+            string? value = GetClaimValue(principal, JwtClaimTypes.FamilyName);
+            return !string.IsNullOrWhiteSpace(value)
+                ? value
+                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.FamilyName}'.");
+        }
+
+        public string GetUserEmail()
+        {
+            ArgumentNullException.ThrowIfNull(principal);
+
+            string? value = GetClaimValue(principal, JwtClaimTypes.Email);
+            return !string.IsNullOrWhiteSpace(value)
+                ? value
+                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.Email}'.");
+        }
+
+        public string GetUserPhoneNumber()
+        {
+            ArgumentNullException.ThrowIfNull(principal);
+
+            string? value = GetClaimValue(principal, JwtClaimTypes.PhoneNumber);
+            return !string.IsNullOrWhiteSpace(value)
+                ? value
+                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.PhoneNumber}'.");
         }
 
         public string GetClientId()
@@ -133,6 +174,47 @@ public static class ClaimsHttpContextClaimExtensions
                 ? value
                 : throw new InvalidOperationException($"Missing claim '{IdentityDefinitions.UserIdClaim}'.");
         }
+
+        public string GetUserGivenName()
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            string? value = GetClaimValue(context, JwtClaimTypes.GivenName);
+            return !string.IsNullOrWhiteSpace(value)
+                ? value
+                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.GivenName}'.");
+        }
+
+        public string GetUserFamilyName()
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            string? value = GetClaimValue(context, JwtClaimTypes.FamilyName);
+            return !string.IsNullOrWhiteSpace(value)
+                ? value
+                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.FamilyName}'.");
+        }
+
+        public string GetUserEmail()
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            string? value = GetClaimValue(context, JwtClaimTypes.Email);
+            return !string.IsNullOrWhiteSpace(value)
+                ? value
+                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.Email}'.");
+        }
+
+        public string GetUserPhoneNumber()
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            string? value = GetClaimValue(context, JwtClaimTypes.PhoneNumber);
+            return !string.IsNullOrWhiteSpace(value)
+                ? value
+                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.PhoneNumber}'.");
+        }
+
 
         public string GetClientId()
         {
