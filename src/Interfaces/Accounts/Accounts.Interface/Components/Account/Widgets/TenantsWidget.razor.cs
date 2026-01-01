@@ -48,10 +48,9 @@ public partial class TenantsWidget : CommonBase
                 return;
             }
 
-            List<Guid> tenantIds = tenantRoleAssignments
+            List<Guid> tenantIds = [.. tenantRoleAssignments
                 .Select(role => role.TenantId)
-                .Distinct()
-                .ToList();
+                .Distinct()];
 
             Dictionary<Guid, Task<Tenant?>> tenantTasks = tenantIds
                 .ToDictionary(id => id, id => PartiesService.GetTenantAsync(id));
@@ -60,20 +59,18 @@ public partial class TenantsWidget : CommonBase
             Dictionary<Guid, Tenant?> tenants = tenantTasks
                 .ToDictionary(entry => entry.Key, entry => entry.Value.Result);
 
-            List<Guid> ownerIds = tenants.Values
+            List<Guid> ownerIds = [.. tenants.Values
                 .Where(tenant => tenant is not null)
                 .Select(tenant => tenant!.OwnerId)
-                .Distinct()
-                .ToList();
+                .Distinct()];
 
             Dictionary<Guid, Task<Owner?>> ownerTasks = ownerIds
                 .ToDictionary(id => id, id => PartiesService.GetOwnerAsync(id));
 
-            List<string> clientIds = tenants.Values
+            List<string> clientIds = [.. tenants.Values
                 .Where(tenant => tenant is not null && !string.IsNullOrWhiteSpace(tenant.ClientId))
                 .Select(tenant => tenant!.ClientId!)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
+                .Distinct(StringComparer.OrdinalIgnoreCase)];
 
             Dictionary<string, Task<ApiClient?>> clientTasks = clientIds
                 .ToDictionary(id => id, id => ApiClientService.GetApiClientAsync(id), StringComparer.OrdinalIgnoreCase);
@@ -132,8 +129,6 @@ public partial class TenantsWidget : CommonBase
             StateHasChanged();
         }
     }
-
-    private Task ReloadAsync() => LoadAsync();
 
     private void NavigateToTenant(TenantAccessEntry entry)
     {
