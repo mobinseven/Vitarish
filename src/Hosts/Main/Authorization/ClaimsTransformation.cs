@@ -1,17 +1,18 @@
+using Duende.IdentityServer.Extensions;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Main.Authorization;
 
-public class PartyClaimsTransformation(IHttpContextAccessor httpContextAccessor) : IClaimsTransformation
+public class ClaimsTransformation(IHttpContextAccessor httpContextAccessor) : IClaimsTransformation
 {
     private readonly HttpContext http = httpContextAccessor.HttpContext!;
     public async Task<ClaimsPrincipal> TransformAsync(ClaimsPrincipal principal)
     {
         if (principal.Identity?.IsAuthenticated == true)
         {
-            ITenantsService? tenantsService = http.RequestServices.GetService<ITenantsService>();
-            if (tenantsService is not null)
+            ITenantsService tenantsService = http.RequestServices.GetRequiredService<ITenantsService>();
+            IUsersService usersService = http.RequestServices.GetRequiredService<IUsersService>();
             {
                 Tenant? tenant = await tenantsService.ResolveFromHostAsync(http, http.RequestAborted);
                 if (tenant is not null)
@@ -24,6 +25,22 @@ public class PartyClaimsTransformation(IHttpContextAccessor httpContextAccessor)
                     identity.AddClaim(new Claim(IdentityDefinitions.OwnerIdClaim, ownerId));
                     identity.AddClaim(new Claim(IdentityDefinitions.TenantIdClaim, tenantId));
 
+                    if (identity.Claims.Any())
+                    {
+                        principal.AddIdentity(identity);
+                    }
+                }
+            }
+            {
+                var roles = await usersService.GetUserRolesAsync(principal.GetSubjectId());
+
+                if (roles != null)
+                {
+                    ClaimsIdentity identity = new(IdentityDefinitions.RolesScope);
+                    foreach (var role in roles)
+                    {
+                        identity.AddClaim(new Claim(ClaimTypes.Role, role.Name));
+                    }
                     if (identity.Claims.Any())
                     {
                         principal.AddIdentity(identity);

@@ -1,7 +1,7 @@
 @page "/sea/projects/{projectId}"
 @page "/sea/projects/{projectId}/{procedureId}"
 @page "/sea/projects/{projectId}/{procedureId}/{eventId}"
-
+@inherits TenantPageBase
 @inject NavigationManager NavigationManager
 @inject IProjectsService ProjectsService
 @inject IReceiptsService ReceiptsService
@@ -12,18 +12,23 @@
 {
     <EndOfScroll />
     <WidthControlled ControlledWidth="50vw">
-        <ProceduresGrid Project="@Project"
-                        ProjectChanged="@(p => NavigationManager.NavigateTo($"/sea/projects/{p.Id}"))"
-                        ProjectDeleted="@(() => NavigationManager.NavigateTo("/"))"
-                        Context="procedure"
-                        OpenProcedure="OpenProcedureId"
-                        OpenProcedureChanged="@(id => NavigationManager.NavigateTo($"/sea/projects/{projectId}/{id}"))">
-            <ProcedureChildContent>
-                <WidthControlled ControlledWidth="90%">
-                    <EventsGrid Project="@Project" OpenEvent=OpenEventId OpenEventChanged=@(id => NavigationManager.NavigateTo($"/sea/projects/{projectId}/{procedureId}/{id}")) Procedure="procedure" />
-                </WidthControlled>
-            </ProcedureChildContent>
-        </ProceduresGrid>
+        <CascadingValue Value="IsAdmin">
+            <ProceduresGrid Project="@Project"
+                            ProjectChanged="@(p => NavigationManager.NavigateTo($"/sea/projects/{p.Id}"))"
+                            ProjectDeleted="@(() => NavigationManager.NavigateTo("/"))"
+                            Context="procedure"
+                            OpenProcedure="OpenProcedureId"
+                            ProcedureClicked="@(id => NavigationManager.NavigateTo($"/sea/projects/{projectId}/{id}"))">
+                <ProcedureChildContent>
+                    <WidthControlled ControlledWidth="90%">
+                        <EventsGrid Project="@Project"
+                                    OpenEvent=OpenEventId
+                                    EventClicked=@(id => NavigationManager.NavigateTo($"/sea/projects/{projectId}/{procedureId}/{id}"))
+                                    Procedure="procedure" />
+                    </WidthControlled>
+                </ProcedureChildContent>
+            </ProceduresGrid>
+        </CascadingValue>
     </WidthControlled>
 }
 <div style="height: 20dvh;">
@@ -39,9 +44,12 @@
     Guid OpenEventId;
     ProjectDto? Project;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        Guid userId = AccessService.UserId ?? throw new InvalidOperationException("This is an authorized page and user ID must be defined");
+        if(userId is null)
+        {
+            return;
+        }
 
         if(string.IsNullOrWhiteSpace(projectId))
         {
@@ -61,16 +69,16 @@
             return;
         }
 
-        await ReceiptsService.MarkProjectReadAsync(userId, ProjectId, CancellationToken.None);
+        await ReceiptsService.MarkProjectReadAsync(userId.Value, ProjectId, CancellationToken.None);
 
         if(OpenProcedureId != Guid.Empty)
         {
-            await ReceiptsService.MarkProcedureReadAsync(userId, OpenProcedureId, CancellationToken.None);
+            await ReceiptsService.MarkProcedureReadAsync(userId.Value, OpenProcedureId, CancellationToken.None);
         }
 
         if(OpenEventId != Guid.Empty)
         {
-            await ReceiptsService.MarkEventReadAsync(userId, OpenEventId, CancellationToken.None);
+            await ReceiptsService.MarkEventReadAsync(userId.Value, OpenEventId, CancellationToken.None);
         }
 
         StateHasChanged();

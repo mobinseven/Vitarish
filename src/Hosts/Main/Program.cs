@@ -1,6 +1,5 @@
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using Finbuckle.MultiTenant;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using Vitarish.ApiClients.Hosting.Api;
@@ -18,7 +17,6 @@ using Vitarish.Main.Components;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
 using Vitarish.Main.Infrastructure.Options;
-using Vitarish.Main.Services;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Hosting.Api;
 using Vitarish.Parties.Hosting.DependencyInjection;
@@ -97,7 +95,7 @@ _ = builder.Services.AddControllers();
 _ = builder.Services.AddEndpointsApiExplorer();
 _ = builder.Services.AddLocalization();
 Func<object, Task<string?>> tenantResolver = async context => context is HttpContext httpContext
-            ? await TenantResolver.ResolveTenantAsync(httpContext)
+            ? httpContext.GetTenantId()
             : throw new InvalidOperationException("context is not HttpContext");
 _ = builder.Services.AddMultiTenant<TenantInfo>()
     .WithEchoStore()
@@ -106,9 +104,8 @@ _ = builder.Services.AddMultiTenant<TenantInfo>()
 _ = builder.Services.AddSignalR(o =>
 {
     o.EnableDetailedErrors = true;
-    o.AddFilter<RequestsContextHubFilter>();
 }).AddMessagePackProtocol();
-builder.Services.AddTransient<IClaimsTransformation, PartyClaimsTransformation>();
+builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
 builder.Services.AddVitarishInterfacesBase();
 WebApplication app = builder.Build();
 

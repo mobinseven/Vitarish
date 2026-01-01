@@ -3,7 +3,7 @@ using Duende.IdentityServer.Models;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 
-namespace Vitarish.Main.Services;
+namespace Vitarish.Main.Infrastructure.IdentityServer;
 
 /// <summary>
 /// Custom profile service that adds party claims to tokens

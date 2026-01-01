@@ -1,12 +1,12 @@
-using System.Diagnostics;
-using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
+using System.Diagnostics;
+using System.Security.Claims;
+using Vitarish.Requests.Application;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Domain.Entities;
-using Vitarish.Requests.Application;
 
 namespace Vitarish.Requests.Infrastructure.Services;
 
@@ -15,25 +15,11 @@ namespace Vitarish.Requests.Infrastructure.Services;
 /// by middleware from <see cref="Microsoft.AspNetCore.Http.HttpContext.User"/> claims,
 /// or manually via <see cref="IRequestIdentityContextWriter"/> for non-HTTP scenarios.
 /// </summary>
-public sealed class RequestContext : IRequestContext, IRequestContextWriter
+public sealed class RequestContext(IHttpContextAccessor httpContextAccessor) : IRequestContext, IRequestContextWriter
 {
-    private readonly IHttpContextAccessor httpContextAccessor;
+    private readonly IHttpContextAccessor httpContextAccessor = httpContextAccessor;
     private bool initializedFromHttpContext;
     private bool overridden;
-    private string authority = string.Empty;
-    private string clientId = string.Empty;
-    private string ownerId = string.Empty;
-    private string? userId;
-    private string? tenantId;
-    private string? resourceId;
-    private string? traceId;
-    private string? requestId;
-    private string? additionalInfo;
-
-    public RequestContext(IHttpContextAccessor httpContextAccessor)
-    {
-        this.httpContextAccessor = httpContextAccessor;
-    }
 
     /// <inheritdoc />
     public string Authority
@@ -41,10 +27,10 @@ public sealed class RequestContext : IRequestContext, IRequestContextWriter
         get
         {
             EnsureInitializedFromHttpContext();
-            return authority;
+            return field;
         }
-        internal set => authority = value;
-    }
+        internal set;
+    } = string.Empty;
 
     /// <inheritdoc />
     public string ClientId
@@ -52,10 +38,10 @@ public sealed class RequestContext : IRequestContext, IRequestContextWriter
         get
         {
             EnsureInitializedFromHttpContext();
-            return clientId;
+            return field;
         }
-        internal set => clientId = value;
-    }
+        internal set;
+    } = string.Empty;
 
     /// <inheritdoc />
     public string OwnerId
@@ -63,10 +49,10 @@ public sealed class RequestContext : IRequestContext, IRequestContextWriter
         get
         {
             EnsureInitializedFromHttpContext();
-            return ownerId;
+            return field;
         }
-        internal set => ownerId = value;
-    }
+        internal set;
+    } = string.Empty;
 
     /// <inheritdoc />
     public string? UserId
@@ -74,9 +60,9 @@ public sealed class RequestContext : IRequestContext, IRequestContextWriter
         get
         {
             EnsureInitializedFromHttpContext();
-            return userId;
+            return field;
         }
-        internal set => userId = value;
+        internal set;
     }
 
     /// <inheritdoc />
@@ -85,9 +71,9 @@ public sealed class RequestContext : IRequestContext, IRequestContextWriter
         get
         {
             EnsureInitializedFromHttpContext();
-            return tenantId;
+            return field;
         }
-        internal set => tenantId = value;
+        internal set;
     }
 
     /// <inheritdoc />
@@ -96,9 +82,9 @@ public sealed class RequestContext : IRequestContext, IRequestContextWriter
         get
         {
             EnsureInitializedFromHttpContext();
-            return resourceId;
+            return field;
         }
-        internal set => resourceId = value;
+        internal set;
     }
 
     /// <inheritdoc />
@@ -107,9 +93,9 @@ public sealed class RequestContext : IRequestContext, IRequestContextWriter
         get
         {
             EnsureInitializedFromHttpContext();
-            return traceId;
+            return field;
         }
-        internal set => traceId = value;
+        internal set;
     }
 
     /// <inheritdoc />
@@ -118,9 +104,9 @@ public sealed class RequestContext : IRequestContext, IRequestContextWriter
         get
         {
             EnsureInitializedFromHttpContext();
-            return requestId;
+            return field;
         }
-        internal set => requestId = value;
+        internal set;
     }
 
     /// <inheritdoc />
@@ -129,9 +115,9 @@ public sealed class RequestContext : IRequestContext, IRequestContextWriter
         get
         {
             EnsureInitializedFromHttpContext();
-            return additionalInfo;
+            return field;
         }
-        internal set => additionalInfo = value;
+        internal set;
     }
 
     /// <inheritdoc />
@@ -196,24 +182,9 @@ public sealed class RequestContext : IRequestContext, IRequestContextWriter
         IOptions<RequestsOptions>? options = http.RequestServices.GetService<IOptions<RequestsOptions>>();
         string? resolvedAuthority = options?.Value?.Authority ?? user.FindFirstValue("iss") ?? string.Empty;
 
-        string? claimClientId = user.FindFirstValue("client_id");
-        string resolvedClientId = claimClientId ?? string.Empty;
-
-        string? claimOwnerId = user.FindFirstValue(RequestIdentityConstants.OwnerIdClaim);
-        string? claimTenantId = user.FindFirstValue(RequestIdentityConstants.TenantIdClaim);
-
-        string resolvedOwnerId = claimOwnerId ?? string.Empty;
-        string? resolvedTenantId = claimTenantId;
-
-        if (string.IsNullOrEmpty(resolvedOwnerId) && !string.IsNullOrEmpty(resolvedClientId))
-        {
-            resolvedOwnerId = resolvedClientId;
-        }
-
-        if (string.IsNullOrEmpty(resolvedTenantId) && !string.IsNullOrEmpty(resolvedOwnerId))
-        {
-            resolvedTenantId = resolvedOwnerId;
-        }
+        string resolvedClientId = http.GetClientId();
+        string resolvedOwnerId = http.GetOwnerId();
+        string? resolvedTenantId = http.GetTenantId();
 
         string? resolvedUserId = user.FindFirstValue("sub") ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
         string? resolvedResourceId = (http.GetEndpoint() as RouteEndpoint)?.RoutePattern?.RawText

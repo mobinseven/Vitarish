@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using System.Security.Claims;
 using Vitarish.Main.Infrastructure.IdentityServer;
-using Vitarish.Main.Services;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Users.Domain.Entities;

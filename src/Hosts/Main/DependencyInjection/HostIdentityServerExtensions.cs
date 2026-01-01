@@ -7,7 +7,6 @@ using System.Security.Cryptography.X509Certificates;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.IdentityServer;
 using Vitarish.Main.Infrastructure.Security;
-using Vitarish.Main.Services;
 
 public static class HostIdentityServerExtensions
 {

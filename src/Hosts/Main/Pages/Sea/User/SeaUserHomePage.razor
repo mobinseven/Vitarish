@@ -1,12 +1,14 @@
 @page "/sea"
+@inherits TenantPageBase
 @inject NavigationManager NavigationManager
 
 <EndOfScroll />
 
 <WidthControlled>
-    <ProjectsGrid Context="project" OnClicked="@(id => NavigationManager.NavigateTo($"/sea/projects/{id}"))" />
+    <CascadingValue Value="IsAdmin">
+        <ProjectsGrid Context="project" OnClicked="@(id => NavigationManager.NavigateTo($"/sea/projects/{id}"))" />
+    </CascadingValue>
 </WidthControlled>
 <div style="height: 20dvh;">
     <hr />
 </div>
-
