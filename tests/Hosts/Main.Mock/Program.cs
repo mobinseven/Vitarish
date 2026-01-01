@@ -32,7 +32,7 @@ builder.Services
     .AddRoleStore<PreviewRoleStore>();
 
 builder.AddAccountsInterface();
-
+builder.Services.AddVitarishInterfacesBase();
 builder.Services.AddScoped<AuthenticationStateProvider, PreviewAuthenticationStateProvider>();
 builder.Services.AddSingleton<Vitarish.Users.Application.Abstractions.IUserProfileService, PreviewUserProfileService>();
 builder.Services.AddScoped<IRequestContext, MockRequestContext>();
