@@ -2,9 +2,8 @@
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.Extensions.Localization
 @using MudBlazor
-@using Vitarish.Accounts.Interface.Components.Base
+@using Vitarish.Interfaces.Base.Common
 @inject IStringLocalizer Localizer
-
 <Router AppAssembly="typeof(App).Assembly">
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)">
