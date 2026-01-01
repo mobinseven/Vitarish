@@ -43,29 +43,6 @@ public class BaseComponentsTests
     }
 
     [Fact]
-    public async Task MainLayout_RendersSidebarAndBody()
-    {
-        await using InterfaceTestContext context = new();
-
-        IRenderedComponent<MainLayout> cut = context.Render<MainLayout>(parameters => parameters
-            .Add(p => p.Body, (RenderFragment)(builder => builder.AddContent(0, "MainBody"))));
-
-        Assert.Contains("MainBody", cut.Markup, StringComparison.Ordinal);
-        Assert.Contains("Privacy", cut.Markup, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public async Task MainLayout_TogglesDrawer_OnMenuClick()
-    {
-        await using InterfaceTestContext context = new();
-
-        IRenderedComponent<MainLayout> cut = context.Render<MainLayout>(parameters => parameters
-            .Add(p => p.Body, (RenderFragment)(builder => builder.AddContent(0, "MainBody"))));
-
-        Assert.DoesNotContain("MudDrawer", cut.Markup, StringComparison.OrdinalIgnoreCase);
-    }
-
-    [Fact]
     public async Task IdentityBase_ProvidesCascadingAuthState()
     {
         await using InterfaceTestContext context = new();

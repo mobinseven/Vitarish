@@ -1,17 +1,16 @@
+using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Vitarish.Accounts.Infrastructure.Services;
 using Vitarish.ApiClients.Application.Abstractions;
 using Vitarish.AuthenticationClients.Application.Abstractions;
-using Vitarish.Clients.Mock.Identity.DependencyInjection;
 using Vitarish.Main.Mock.Authentication;
 using Vitarish.Main.Mock.Components;
 using Vitarish.Main.Mock.Services;
+using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
-using Vitarish.Parties.Application.Abstractions;
-using Duende.IdentityServer.Services;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -22,8 +21,6 @@ _ = builder.Services.AddRazorPages(options =>
 {
     options.RootDirectory = "/Pages";
 });
-
-_ = builder.Services.AddIdentityComponentsPreview();
 
 _ = builder.Services.AddAuthorization();
 

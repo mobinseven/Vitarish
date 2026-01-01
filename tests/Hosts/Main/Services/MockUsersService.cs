@@ -285,8 +285,8 @@ public sealed class MockUsersService : IUsersService
     public Task RemoveFromRoleAsync(User user, string roleName, CancellationToken cancellationToken)
     {
         _ = userRoles.AddOrUpdate(user.Id,
-            _ => new HashSet<string>(StringComparer.OrdinalIgnoreCase),
-            (_, existing) =>
+            p => new HashSet<string>(StringComparer.OrdinalIgnoreCase),
+            (o, existing) =>
             {
                 _ = existing.Remove(roleName);
                 return existing;

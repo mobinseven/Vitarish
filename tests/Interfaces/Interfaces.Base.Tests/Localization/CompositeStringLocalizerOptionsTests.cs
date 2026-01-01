@@ -1,4 +1,3 @@
-using Vitarish.Clients.Interface.Localization;
 using Vitarish.Interfaces.Base.Localization;
 
 namespace Interfaces.Base.Tests.Localization;
@@ -8,9 +7,9 @@ public class CompositeStringLocalizerOptionsTests
     [Fact]
     public void CompositeStringLocalizerOptions_Defaults_AreStable()
     {
-        var options = new CompositeStringLocalizerOptions();
+        CompositeStringLocalizerOptions options = new();
 
-        options.ResourceTypesInPriorityOrder.Should().NotBeNull();
-        options.ResourceTypesInPriorityOrder.Should().BeEmpty();
+        _ = options.ResourceTypesInPriorityOrder.Should().NotBeNull();
+        _ = options.ResourceTypesInPriorityOrder.Should().BeEmpty();
     }
 }
