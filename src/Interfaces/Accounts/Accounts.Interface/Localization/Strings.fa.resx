@@ -606,6 +606,51 @@
   <data name="SetYourLocalePreferences" xml:space="preserve">
     <value>ترجیحات محلی خود را تنظیم کنید.</value>
   </data>
+  <data name="AccessibilitySettings" xml:space="preserve">
+    <value>دسترس‌پذیری</value>
+  </data>
+  <data name="AccessibilitySettingsDescription" xml:space="preserve">
+    <value>مقیاس فونت، شفافیت و روشنایی را برای خوانایی بهتر تنظیم کنید.</value>
+  </data>
+  <data name="FontScale" xml:space="preserve">
+    <value>مقیاس فونت</value>
+  </data>
+  <data name="FontWeight" xml:space="preserve">
+    <value>ضخامت فونت</value>
+  </data>
+  <data name="LineHeight" xml:space="preserve">
+    <value>ارتفاع خط</value>
+  </data>
+  <data name="SurfaceTransparency" xml:space="preserve">
+    <value>شفافیت سطح</value>
+  </data>
+  <data name="SurfaceBlur" xml:space="preserve">
+    <value>محو شدن سطح</value>
+  </data>
+  <data name="SurfaceBrightness" xml:space="preserve">
+    <value>روشنایی سطح</value>
+  </data>
+  <data name="HighContrastMode" xml:space="preserve">
+    <value>متن با کنتراست بالا</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>پیش‌نمایش</value>
+  </data>
+  <data name="AccessibilityPreviewText" xml:space="preserve">
+    <value>این پیش‌نمایش تنظیمات فعلی دسترس‌پذیری شما را نشان می‌دهد.</value>
+  </data>
+  <data name="AccessibilityPreviewHint" xml:space="preserve">
+    <value>تغییرات بلافاصله اعمال می‌شوند؛ برای ذخیره در پروفایل، ذخیره را انتخاب کنید.</value>
+  </data>
+  <data name="ResetToDefaults" xml:space="preserve">
+    <value>بازنشانی به پیش‌فرض</value>
+  </data>
+  <data name="AccessibilitySaved" xml:space="preserve">
+    <value>تنظیمات دسترس‌پذیری ذخیره شد.</value>
+  </data>
+  <data name="AccessibilitySaveFailed" xml:space="preserve">
+    <value>ذخیره تنظیمات دسترس‌پذیری ممکن نشد.</value>
+  </data>
   <data name="Workspaces" xml:space="preserve">
     <value>فضاهای کاری</value>
   </data>
