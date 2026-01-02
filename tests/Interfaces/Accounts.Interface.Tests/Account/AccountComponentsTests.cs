@@ -241,9 +241,12 @@ public class AccountComponentsTests
 
         IRenderedComponent<ProfileEditor> cut = context.Render<ProfileEditor>();
 
-        IElement saveButton = cut.FindAll("button")
-            .First(button => button.TextContent.Contains("Save", StringComparison.Ordinal) && button.HasAttribute("disabled"));
-        Assert.True(saveButton.HasAttribute("disabled"));
+        var saveButtons = cut.FindAll("button")
+            .Where(button => button.TextContent.Contains("Save", StringComparison.OrdinalIgnoreCase) && button.HasAttribute("disabled"))
+            .ToList();
+
+        Assert.NotEmpty(saveButtons);
+        Assert.True(saveButtons.First().HasAttribute("disabled"));
     }
 
     [Fact]

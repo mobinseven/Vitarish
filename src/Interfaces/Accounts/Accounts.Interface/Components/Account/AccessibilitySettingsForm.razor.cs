@@ -160,6 +160,14 @@ public partial class AccessibilitySettingsForm
             : fallback;
     }
 
+    private static readonly Regex RgbaRegex = new(
+        @"rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
+    private static readonly Regex RgbaOpacityRegex = new(
+        @"rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*([0-9.]+)\s*\)",
+        RegexOptions.IgnoreCase | RegexOptions.Compiled);
+
     private static (int r, int g, int b)? ParseRgb(string? value)
     {
         if (string.IsNullOrWhiteSpace(value))
@@ -167,10 +175,7 @@ public partial class AccessibilitySettingsForm
             return null;
         }
 
-        Match match = Regex.Match(
-            value,
-            @"rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})",
-            RegexOptions.IgnoreCase);
+        Match match = RgbaRegex.Match(value);
 
         return match.Success
             ? (int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture),
@@ -186,10 +191,7 @@ public partial class AccessibilitySettingsForm
             return fallback;
         }
 
-        Match match = Regex.Match(
-            value,
-            @"rgba?\(\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*\d{1,3}\s*,\s*([0-9.]+)\s*\)",
-            RegexOptions.IgnoreCase);
+        Match match = RgbaOpacityRegex.Match(value);
 
         if (match.Success && double.TryParse(match.Groups[1].Value, NumberStyles.Float, CultureInfo.InvariantCulture, out double parsed))
         {
