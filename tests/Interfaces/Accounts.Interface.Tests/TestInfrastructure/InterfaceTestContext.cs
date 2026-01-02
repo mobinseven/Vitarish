@@ -40,6 +40,7 @@ internal sealed class InterfaceTestContext : BunitContext
 
         _ = Services.AddLogging();
         _ = Services.AddMudServices();
+        _ = Services.AddVitarishInterfacesBase();
 
         Mock<IDialogService> dialogServiceMock = new();
         _ = Services.AddSingleton(dialogServiceMock.Object);
