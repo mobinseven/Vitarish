@@ -10,9 +10,11 @@ using Microsoft.JSInterop;
 using System.Net;
 using System.Net.Http.Json;
 using System.Linq;
+using System.Text.Json;
 using Vitarish.Accounts.Infrastructure.Services;
 using Vitarish.Accounts.Domain.Models;
 using Vitarish.Accounts.Interface.Components.Account;
+using Vitarish.Interfaces.Base.Services;
 using Vitarish.Users.Domain.Entities;
 
 namespace Accounts.Interface.Tests.Account;
@@ -240,8 +242,70 @@ public class AccountComponentsTests
         IRenderedComponent<ProfileEditor> cut = context.Render<ProfileEditor>();
 
         IElement saveButton = cut.FindAll("button")
-            .Single(button => button.TextContent.Contains("Save", StringComparison.Ordinal));
+            .First(button => button.TextContent.Contains("Save", StringComparison.Ordinal) && button.HasAttribute("disabled"));
         Assert.True(saveButton.HasAttribute("disabled"));
+    }
+
+    [Fact]
+    public async Task AccessibilitySettingsForm_LoadsStoredPreferences_UpdatesTheme()
+    {
+        await using InterfaceTestContext context = new();
+        string json = JsonSerializer.Serialize(new
+        {
+            fontScale = 1.2,
+            fontWeight = 650,
+            lineHeight = 1.65,
+            surfaceOpacity = 0.8,
+            surfaceBlur = 15,
+            brightness = 125,
+            highContrast = true
+        }, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+
+        _ = context.Mocks.UserService
+            .Setup(service => service.GetProfileAsync("user-1"))
+            .ReturnsAsync(new Dictionary<string, string> { ["Accessibility"] = json });
+
+        IRenderedComponent<AccessibilitySettingsForm> cut = context.Render<AccessibilitySettingsForm>();
+
+        cut.WaitForAssertion(() => Assert.Equal("1.2rem", context.Services.GetRequiredService<IThemeService>().Theme.Typography.Default.FontSize));
+
+        IThemeService theme = context.Services.GetRequiredService<IThemeService>();
+        Assert.Equal("1.2rem", theme.Theme.Typography.Default.FontSize);
+        Assert.Equal("650", theme.Theme.Typography.Default.FontWeight);
+        Assert.Equal("1.65", theme.Typography.LineHeight);
+        Assert.Contains("0.8", theme.Light.Background, StringComparison.Ordinal);
+        Assert.Contains("125", theme.Light.Brightness, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task AccessibilitySettingsForm_SavesPreferences_WithExistingEntries()
+    {
+        await using InterfaceTestContext context = new();
+        Dictionary<string, string> savedPreferences = new();
+
+        _ = context.Mocks.UserService
+            .Setup(service => service.GetProfileAsync("user-1"))
+            .ReturnsAsync(new Dictionary<string, string> { ["Culture"] = "en-US" });
+        _ = context.Mocks.UserService
+            .Setup(service => service.UpdateProfileAsync("user-1", It.IsAny<Dictionary<string, string>>()))
+            .Callback<string, Dictionary<string, string>>((_, prefs) => savedPreferences = prefs)
+            .Returns(Task.CompletedTask);
+
+        IRenderedComponent<AccessibilitySettingsForm> cut = context.Render<AccessibilitySettingsForm>();
+
+        cut.WaitForAssertion(() => Assert.Contains("Save", cut.Markup, StringComparison.Ordinal));
+        IElement saveButton = cut.FindAll("button").Single(button => button.TextContent.Contains("Save", StringComparison.OrdinalIgnoreCase));
+        await cut.InvokeAsync(() => saveButton.Click());
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.NotEmpty(savedPreferences);
+            Assert.Equal("en-US", savedPreferences["Culture"]);
+            Assert.True(savedPreferences.ContainsKey("Accessibility"));
+        });
+
+        JsonDocument doc = JsonDocument.Parse(savedPreferences["Accessibility"]);
+        Assert.True(doc.RootElement.GetProperty("fontScale").GetDouble() > 0.5);
     }
 
     [Fact]

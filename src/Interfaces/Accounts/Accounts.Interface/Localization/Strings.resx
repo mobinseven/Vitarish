@@ -645,6 +645,51 @@
   <data name="SetYourLocalePreferences" xml:space="preserve">
     <value>Set your locale preferences.</value>
   </data>
+  <data name="AccessibilitySettings" xml:space="preserve">
+    <value>Accessibility</value>
+  </data>
+  <data name="AccessibilitySettingsDescription" xml:space="preserve">
+    <value>Adjust font scale, surface transparency, and brightness to improve readability.</value>
+  </data>
+  <data name="FontScale" xml:space="preserve">
+    <value>Font scale</value>
+  </data>
+  <data name="FontWeight" xml:space="preserve">
+    <value>Font weight</value>
+  </data>
+  <data name="LineHeight" xml:space="preserve">
+    <value>Line height</value>
+  </data>
+  <data name="SurfaceTransparency" xml:space="preserve">
+    <value>Surface transparency</value>
+  </data>
+  <data name="SurfaceBlur" xml:space="preserve">
+    <value>Surface blur</value>
+  </data>
+  <data name="SurfaceBrightness" xml:space="preserve">
+    <value>Surface brightness</value>
+  </data>
+  <data name="HighContrastMode" xml:space="preserve">
+    <value>High contrast text</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>Preview</value>
+  </data>
+  <data name="AccessibilityPreviewText" xml:space="preserve">
+    <value>This preview reflects your current accessibility preferences.</value>
+  </data>
+  <data name="AccessibilityPreviewHint" xml:space="preserve">
+    <value>Changes apply immediately; select Save to keep them for your profile.</value>
+  </data>
+  <data name="ResetToDefaults" xml:space="preserve">
+    <value>Reset to defaults</value>
+  </data>
+  <data name="AccessibilitySaved" xml:space="preserve">
+    <value>Accessibility preferences saved.</value>
+  </data>
+  <data name="AccessibilitySaveFailed" xml:space="preserve">
+    <value>Unable to save accessibility preferences.</value>
+  </data>
   <data name="Workspaces" xml:space="preserve">
     <value>Workspaces</value>
   </data>
