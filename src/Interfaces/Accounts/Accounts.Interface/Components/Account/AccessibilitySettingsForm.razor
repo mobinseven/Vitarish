@@ -1,7 +1,7 @@
 @inherits CommonBase
 @inject IThemeService ThemeService
 
-<MudStack Spacing="2">
+<MudStack Spacing="2" Style="@($"direction:{Direction};")">
     <MudStack Spacing="0">
         <MudText Typo="Typo.subtitle1">@Localizer["AccessibilitySettings"]</MudText>
         <MudText Typo="Typo.body2" Color="Color.Secondary">@Localizer["AccessibilitySettingsDescription"]</MudText>
