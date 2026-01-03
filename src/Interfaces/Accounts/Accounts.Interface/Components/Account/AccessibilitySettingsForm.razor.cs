@@ -22,6 +22,8 @@ public partial class AccessibilitySettingsForm
     private string lightBaseBackground = "rgba(255, 255, 255, 0.45)";
     private string darkBaseBackground = "rgba(18, 18, 18, 0.75)";
 
+    private string Direction => CultureInfo.CurrentUICulture.TextInfo.IsRightToLeft ? "rtl" : "ltr";
+
     private string PreviewStyle =>
         $"background:{BuildBackground(lightBaseBackground)};border:{BuildBorder(isDark: false)};" +
         $"filter:brightness({settings.Brightness.ToString("0", CultureInfo.InvariantCulture)}%);" +
@@ -100,12 +102,16 @@ public partial class AccessibilitySettingsForm
             return;
         }
 
-        ThemeService.UpdateTypography(
-            $"{settings.FontScale.ToString("0.##", CultureInfo.InvariantCulture)}rem",
-            settings.FontWeight.ToString(CultureInfo.InvariantCulture));
+        string fontSizeValue = $"{settings.FontScale.ToString("0.##", CultureInfo.InvariantCulture)}rem";
+        string fontWeightValue = settings.FontWeight.ToString(CultureInfo.InvariantCulture);
+        string lineHeightValue = settings.LineHeight.ToString("0.##", CultureInfo.InvariantCulture);
 
-        ThemeService.Typography.Update(
-            lineHeight: settings.LineHeight.ToString("0.##", CultureInfo.InvariantCulture));
+        ThemeService.Theme.Typography.Default.LineHeight = lineHeightValue;
+        ThemeService.Typography.Update(lineHeight: lineHeightValue);
+
+        ThemeService.UpdateTypography(
+            fontSizeValue,
+            fontWeightValue);
 
         string blurValue = $"{settings.SurfaceBlur.ToString("0.#", CultureInfo.InvariantCulture)}px";
         string brightnessValue = $"{settings.Brightness.ToString("0.#", CultureInfo.InvariantCulture)}%";

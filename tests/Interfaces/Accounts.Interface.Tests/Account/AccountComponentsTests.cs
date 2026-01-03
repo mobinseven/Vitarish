@@ -312,6 +312,29 @@ public class AccountComponentsTests
     }
 
     [Fact]
+    public async Task AccessibilitySettingsForm_UpdatesTheme_OnValueChange()
+    {
+        await using InterfaceTestContext context = new();
+        IRenderedComponent<AccessibilitySettingsForm> cut = context.Render<AccessibilitySettingsForm>();
+
+        IThemeService theme = context.Services.GetRequiredService<IThemeService>();
+        IReadOnlyList<IElement> sliders = cut.FindAll("input[type=range]");
+        Assert.True(sliders.Count >= 3);
+
+        await cut.InvokeAsync(() =>
+        {
+            sliders[0].Input(1.25);
+            sliders[2].Input(1.8);
+        });
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal("1.25rem", theme.Theme.Typography.Default.FontSize);
+            Assert.Equal("1.8", theme.Theme.Typography.Default.LineHeight);
+        });
+    }
+
+    [Fact]
     public async Task EmailChangeForm_SubmitValid_SendsVerification()
     {
         await using InterfaceTestContext context = new();
