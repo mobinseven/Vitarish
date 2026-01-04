@@ -10,6 +10,8 @@ internal sealed class ThemeService : IThemeService
 
     private readonly ILayoutService layoutService;
 
+    public event EventHandler? ThemeModified;
+
     public ThemeService(ILayoutService layoutService)
     {
         this.layoutService = layoutService;
@@ -97,6 +99,12 @@ internal sealed class ThemeService : IThemeService
 
     public ThemeSurface GetSurface(bool darkMode) => darkMode ? Dark : Light;
 
+    private void NotifyThemeModified()
+    {
+        ThemeModified?.Invoke(this, EventArgs.Empty);
+        layoutService.NotifyThemeStateChanged(this);
+    }
+
     public void SetDarkMode(bool enabled)
     {
         if (DarkModeEnabled == enabled)
@@ -105,7 +113,7 @@ internal sealed class ThemeService : IThemeService
         }
 
         DarkModeEnabled = enabled;
-        layoutService.NotifyThemeStateChanged(this);
+        NotifyThemeModified();
     }
 
     public void SetBlazorReadyEnabled(bool enabled)
@@ -116,7 +124,7 @@ internal sealed class ThemeService : IThemeService
         }
 
         BlazorReadyEnabled = enabled;
-        layoutService.NotifyThemeStateChanged(this);
+        NotifyThemeModified();
     }
 
     public void SetNavMenuButtons(RenderFragment? buttons)
@@ -127,7 +135,7 @@ internal sealed class ThemeService : IThemeService
         }
 
         NavMenuButtons = buttons;
-        layoutService.NotifyThemeStateChanged(this);
+        NotifyThemeModified();
     }
 
     public void UpdateLightPaletteColors(
@@ -155,7 +163,7 @@ internal sealed class ThemeService : IThemeService
                 surface,
                 textPrimary))
         {
-            layoutService.NotifyThemeStateChanged(this);
+            NotifyThemeModified();
         }
     }
 
@@ -184,7 +192,7 @@ internal sealed class ThemeService : IThemeService
                 surface,
                 textPrimary))
         {
-            layoutService.NotifyThemeStateChanged(this);
+            NotifyThemeModified();
         }
     }
 
@@ -215,7 +223,7 @@ internal sealed class ThemeService : IThemeService
 
         if (updated)
         {
-            layoutService.NotifyThemeStateChanged(this);
+            NotifyThemeModified();
         }
     }
 
@@ -223,7 +231,7 @@ internal sealed class ThemeService : IThemeService
     {
         if (UpdateSurface(Light, blur, brightness, background, border))
         {
-            layoutService.NotifyThemeStateChanged(this);
+            NotifyThemeModified();
         }
     }
 
@@ -231,7 +239,7 @@ internal sealed class ThemeService : IThemeService
     {
         if (UpdateSurface(Dark, blur, brightness, background, border))
         {
-            layoutService.NotifyThemeStateChanged(this);
+            NotifyThemeModified();
         }
     }
 
@@ -309,7 +317,7 @@ internal sealed class ThemeService : IThemeService
         DarkModeEnabled = settings.DarkModeEnabled ?? DarkModeEnabled;
         BlazorReadyEnabled = settings.BlazorReadyEnabled ?? BlazorReadyEnabled;
 
-        layoutService.NotifyThemeStateChanged(this);
+        NotifyThemeModified();
     }
 
     private static bool UpdateSurface(
@@ -554,6 +562,7 @@ internal sealed class ThemeService : IThemeService
 
 public interface IThemeService
 {
+    event EventHandler? ThemeModified;
     MudTheme Theme { get; }
     ThemeSurface Light { get; }
     ThemeSurface Dark { get; }

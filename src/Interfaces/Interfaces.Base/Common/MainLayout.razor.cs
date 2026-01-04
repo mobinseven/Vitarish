@@ -27,6 +27,7 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
     {
         Initialized = true;
         darkmood = ThemeService.DarkModeEnabled;
+        ThemeService.ThemeModified += OnThemeModified;
         LayoutService.ThemeStateChanged += OnThemeStateChanged;
         LayoutService.SearchStateChanged += OnSearchStateChanged;
         subscription = RenderNotifier.Subscribe(this);
@@ -56,6 +57,7 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
 
     public async ValueTask DisposeAsync()
     {
+        ThemeService.ThemeModified -= OnThemeModified;
         LayoutService.ThemeStateChanged -= OnThemeStateChanged;
         LayoutService.SearchStateChanged -= OnSearchStateChanged;
         await BrowserViewportService.UnsubscribeAsync(this);
@@ -91,6 +93,12 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
     public void OnCompleted() => throw new NotImplementedException();
     public void OnError(Exception error) => throw new NotImplementedException();
     void IObserver<RenderNotification>.OnNext(RenderNotification value) => RenderNotificationReceived(this, value);
+
+    private void OnThemeModified(object? sender, EventArgs e)
+    {
+        darkmood = ThemeService.DarkModeEnabled;
+        _ = InvokeAsync(StateHasChanged);
+    }
 
     private void OnThemeStateChanged(object? sender, EventArgs e)
     {
