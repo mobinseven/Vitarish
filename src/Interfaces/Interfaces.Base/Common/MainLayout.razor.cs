@@ -94,13 +94,11 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
     public void OnError(Exception error) => throw new NotImplementedException();
     void IObserver<RenderNotification>.OnNext(RenderNotification value) => RenderNotificationReceived(this, value);
 
-    private void OnThemeModified(object? sender, EventArgs e)
-    {
-        darkmood = ThemeService.DarkModeEnabled;
-        _ = InvokeAsync(StateHasChanged);
-    }
+    private void OnThemeModified(object? sender, EventArgs e) => HandleThemeChanged();
 
-    private void OnThemeStateChanged(object? sender, EventArgs e)
+    private void OnThemeStateChanged(object? sender, EventArgs e) => HandleThemeChanged();
+
+    private void HandleThemeChanged()
     {
         darkmood = ThemeService.DarkModeEnabled;
         _ = InvokeAsync(StateHasChanged);
