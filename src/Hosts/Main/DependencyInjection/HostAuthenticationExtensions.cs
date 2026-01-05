@@ -23,6 +23,16 @@ public static class HostAuthenticationExtensions
 
         _ = builder.Services.ConfigureApplicationCookie(options =>
         {
+            options.Events.OnRedirectToLogin = ctx =>
+            {
+                ctx.Response.StatusCode = StatusCodes.Status401Unauthorized;
+                return Task.CompletedTask;
+            };
+            options.Events.OnRedirectToAccessDenied = ctx =>
+            {
+                ctx.Response.StatusCode = StatusCodes.Status403Forbidden;
+                return Task.CompletedTask;
+            };
             options.Cookie = new()
             {
                 HttpOnly = true,
