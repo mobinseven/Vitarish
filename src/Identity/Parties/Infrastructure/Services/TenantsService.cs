@@ -34,34 +34,45 @@ public sealed class TenantsService(
             return null;
         }
 
-        // Resolve by hostname first, then subdomain (both must be Active)
-        List<Tenant> tenant = await db.Tenants
-            .AsNoTracking()
-            .Include(t => t.Indicators)
-            .Where(t => t.Indicators.Any(i =>
-                i.Status == IndicatorStatus.Active &&
-                (i.Method == IndicatorMethod.Hostname || i.Method == IndicatorMethod.Subdomain) &&
-                i.Value == canonical))
-            .ToListAsync(ct);
-
-        if (tenant.Count == 0)
+        try
         {
-            logger.LogInformation("No tenant found for {Host} (canonical: {Canonical})", rawHost, canonical);
+            List<Tenant> tenant = await db.Tenants
+                .AsNoTracking()
+                .Include(t => t.Indicators)
+                .Where(t => t.Indicators.Any(i =>
+                    i.Status == IndicatorStatus.Active &&
+                    (i.Method == IndicatorMethod.Hostname || i.Method == IndicatorMethod.Subdomain) &&
+                    i.Value == canonical))
+                .ToListAsync(ct);
+
+            if (tenant.Count == 0)
+            {
+                logger.LogInformation("No tenant found for {Host} (canonical: {Canonical})", rawHost, canonical);
+                return null;
+            }
+
+            if (tenant.Count > 1)
+            {
+                // Multiple tenants match - this shouldn't happen with unique constraints
+                logger.LogError("Multiple tenants found for {Host} (canonical: {Canonical})", rawHost, canonical);
+                throw new InvalidOperationException($"Ambiguous tenant mapping for host: {canonical}");
+            }
+
+            Tenant resolved = tenant[0];
+            logger.LogInformation(
+                "Tenant resolved for {Host} (canonical: {Canonical}): TenantId={TenantId}, Name={Name}",
+                rawHost, canonical, resolved.Id, resolved.Name);
+
+            return resolved;
+
+        }
+        catch (OperationCanceledException ex)
+        {
             return null;
         }
-
-        if (tenant.Count > 1)
+        catch
         {
-            // Multiple tenants match - this shouldn't happen with unique constraints
-            logger.LogError("Multiple tenants found for {Host} (canonical: {Canonical})", rawHost, canonical);
-            throw new InvalidOperationException($"Ambiguous tenant mapping for host: {canonical}");
+            throw;
         }
-
-        Tenant resolved = tenant[0];
-        logger.LogInformation(
-            "Tenant resolved for {Host} (canonical: {Canonical}): TenantId={TenantId}, Name={Name}",
-            rawHost, canonical, resolved.Id, resolved.Name);
-
-        return resolved;
     }
 }
