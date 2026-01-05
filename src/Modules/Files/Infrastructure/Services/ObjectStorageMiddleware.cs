@@ -39,11 +39,7 @@ public sealed class ObjectStorageMiddleware(
     public async Task InvokeAsync(HttpContext context)
     {
         IOptionsSnapshot<FilesOptions> filesOptions = context.RequestServices.GetRequiredService<IOptionsSnapshot<FilesOptions>>();
-        IOptionsSnapshot<MinioOptions> minioOptions = context.RequestServices.GetRequiredService<IOptionsSnapshot<MinioOptions>>();
-
         FilesOptions filesSettings = filesOptions.Value;
-        MinioOptions currentMinioOptions = minioOptions.Value;
-        ValidateOptions(filesSettings, currentMinioOptions);
 
         if (!context.Request.Path.StartsWithSegments("/" + filesSettings.UploadPath))
         {
@@ -51,6 +47,10 @@ public sealed class ObjectStorageMiddleware(
             return;
         }
 
+        IOptionsSnapshot<MinioOptions> minioOptions = context.RequestServices.GetRequiredService<IOptionsSnapshot<MinioOptions>>();
+
+        MinioOptions currentMinioOptions = minioOptions.Value;
+        ValidateOptions(filesSettings, currentMinioOptions);
         if (!HttpMethods.IsGet(context.Request.Method) && !HttpMethods.IsHead(context.Request.Method))
         {
             context.Response.StatusCode = StatusCodes.Status405MethodNotAllowed;
