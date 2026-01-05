@@ -60,6 +60,8 @@ public sealed class UsersService(ISender sender) : IUsersService
     public Task<bool> UserHasPasswordAsync(string userId, CancellationToken ct = default) =>
         sender.Send(new UserHasPasswordQuery(userId), ct);
 
+    public Task<bool> CheckUserRoleAsync(string userId, string roleName, CancellationToken ct = default) =>
+        sender.Send(new CheckUserRoleQuery(userId, roleName), ct);
     public Task<bool> CheckUserPasswordAsync(string userId, string password, CancellationToken ct = default) =>
         sender.Send(new CheckUserPasswordQuery(userId, password), ct);
 
