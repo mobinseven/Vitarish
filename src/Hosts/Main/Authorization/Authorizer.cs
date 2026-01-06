@@ -6,7 +6,7 @@ using Vitarish.Users.Infrastructure;
 
 namespace Vitarish.Main.Authorization;
 
-public sealed class Authorizer(UserManager<User> userManager, IDistributedCache cache) : AuthorizationHandler<AuthorizerRequirement>
+public sealed class Authorizer(IUsersService usersService, IDistributedCache cache) : AuthorizationHandler<AuthorizerRequirement>
 {
     private static readonly KeyedAsyncLock _keyedLock = new();
     private static readonly TimeSpan RoleCacheSuccessTtl = TimeSpan.FromMinutes(5);
@@ -16,6 +16,11 @@ public sealed class Authorizer(UserManager<User> userManager, IDistributedCache 
         AuthorizationHandlerContext context,
         AuthorizerRequirement requirement)
     {
+        if(requirement.Role == IdentityAccessConstants.User && context.User.IsAuthenticated())
+        {
+            context.Succeed(requirement);
+            return;
+        }
         if (context.User.IsInRole(requirement.Role))
         {
             context.Succeed(requirement);
@@ -56,9 +61,7 @@ public sealed class Authorizer(UserManager<User> userManager, IDistributedCache 
             }
             else
             {
-                var user = await userManager.FindByIdAsync(subjectId);
-                hasRole = user is not null && await userManager.IsInRoleAsync(user, requirement.Role);
-
+                hasRole = await usersService.CheckUserRoleAsync(subjectId, requirement.Role);
                 TimeSpan ttl = hasRole ? RoleCacheSuccessTtl : RoleCacheFailureTtl;
                 await cache.SetAsync(
                     cacheKey,
