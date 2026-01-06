@@ -2,7 +2,7 @@ using Duende.IdentityServer.Extensions;
 
 namespace Vitarish.Accounts.Interface.Components.Base
 {
-    public class CommonBase : ComponentBase
+    public class IdentityCommonBase : ComponentBase
     {
         [Inject] protected ICipherService CipherService { get; set; } = default!;
         [Inject] protected IUserService UserService { get; set; } = default!;

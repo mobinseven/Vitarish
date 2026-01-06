@@ -2,9 +2,6 @@ namespace Vitarish.Accounts.Interface.Components.Account;
 
 public partial class ProfileEditor
 {
-    [Parameter] public string Username { get; set; } = default!;
-    [Parameter] public string? ReturnUrl { get; set; }
-
     private MudForm? _form;
     private bool _isValid;
     private bool _isBusy;
@@ -24,14 +21,6 @@ public partial class ProfileEditor
         try
         {
             _ = await UserService.UpdateUserAsync(User.Id, User);
-            if (ReturnUrl is null)
-            {
-                _ = Snackbar.Add(Localizer["ProfileUpdated"]);
-            }
-            else
-            {
-                RedirectManager.RedirectTo(WebUtility.UrlDecode(ReturnUrl));
-            }
         }
         finally
         {
@@ -39,22 +28,12 @@ public partial class ProfileEditor
         }
     }
 
-    private void NavigateToEmail() => NavigateToAccount("/Account/Manage/Email");
+    private void NavigateToEmail() => NavigationManager.NavigateTo("/Account/Manage/Email");
 
-    private void NavigateToPhone() => NavigateToAccount("/Account/Manage/Phone");
+    private void NavigateToPhone() => NavigationManager.NavigateTo("/Account/Manage/Phone");
 
-    private void NavigateToPassword() => NavigateToAccount("/Account/Manage/Password");
+    private void NavigateToPassword() => NavigationManager.NavigateTo("/Account/Manage/Password");
 
-    private void NavigateToTokens() => NavigateToAccount("/Account/Manage/Tokens");
+    private void NavigateToTokens() => NavigationManager.NavigateTo("/Account/Manage/Tokens");
 
-    private void NavigateToAccount(string path)
-    {
-        if (!string.IsNullOrWhiteSpace(ReturnUrl))
-        {
-            NavigationManager.NavigateTo($"{path}?ReturnUrl={Uri.EscapeDataString(ReturnUrl)}");
-            return;
-        }
-
-        NavigationManager.NavigateTo(path);
-    }
 }

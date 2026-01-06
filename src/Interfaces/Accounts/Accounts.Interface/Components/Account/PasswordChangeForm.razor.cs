@@ -1,6 +1,6 @@
 namespace Vitarish.Accounts.Interface.Components.Account;
 
-public partial class PasswordChangeForm : CommonBase
+public partial class PasswordChangeForm : IdentityCommonBase
 {
     [Parameter] public string? ReturnUrl { get; set; }
     [Parameter] public string? FailureUrl { get; set; }

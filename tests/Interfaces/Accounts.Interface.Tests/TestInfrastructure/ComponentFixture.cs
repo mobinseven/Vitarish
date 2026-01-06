@@ -121,32 +121,32 @@ internal sealed class ComponentFixture : IDisposable
             dialogServiceMock);
     }
 
-    public void ConfigureCommonComponent(CommonBase component)
+    public void ConfigureCommonComponent(IdentityCommonBase component)
     {
-        SetProperty(component, "CipherService", Mocks.Cipher.Object, typeof(CommonBase));
-        SetProperty(component, "UserService", Mocks.UserService.Object, typeof(CommonBase));
-        SetProperty(component, "UserStore", Mocks.UserStore.Object, typeof(CommonBase));
-        SetProperty(component, "SignInManager", Mocks.SignInManager, typeof(CommonBase));
-        SetProperty(component, "NavigationManager", Navigation, typeof(CommonBase));
-        SetProperty(component, "Localizer", Localizer, typeof(CommonBase));
-        SetProperty(component, "RedirectManager", RedirectManager, typeof(CommonBase));
-        SetProperty(component, "Snackbar", Snackbar, typeof(CommonBase));
-        SetProperty(component, "Js", JsRuntime, typeof(CommonBase));
-        SetProperty(component, "IdentityServerInteractionService", Mocks.IdentityInteraction.Object, typeof(CommonBase));
-        SetProperty(component, "InteractionService", Mocks.IdentityInteraction.Object, typeof(CommonBase));
-        SetProperty(component, "ApiClientService", Mocks.ApiClients.Object, typeof(CommonBase));
-        SetProperty(component, "PersonalAccessTokenService", Mocks.PersonalAccessTokens.Object, typeof(CommonBase));
-        SetProperty(component, "AuthenticationClientsService", Mocks.AuthenticationClients.Object, typeof(CommonBase));
-        SetProperty(component, "RequestIdentitiesService", Mocks.RequestIdentities.Object, typeof(CommonBase));
+        SetProperty(component, "CipherService", Mocks.Cipher.Object, typeof(IdentityCommonBase));
+        SetProperty(component, "UserService", Mocks.UserService.Object, typeof(IdentityCommonBase));
+        SetProperty(component, "UserStore", Mocks.UserStore.Object, typeof(IdentityCommonBase));
+        SetProperty(component, "SignInManager", Mocks.SignInManager, typeof(IdentityCommonBase));
+        SetProperty(component, "NavigationManager", Navigation, typeof(IdentityCommonBase));
+        SetProperty(component, "Localizer", Localizer, typeof(IdentityCommonBase));
+        SetProperty(component, "RedirectManager", RedirectManager, typeof(IdentityCommonBase));
+        SetProperty(component, "Snackbar", Snackbar, typeof(IdentityCommonBase));
+        SetProperty(component, "Js", JsRuntime, typeof(IdentityCommonBase));
+        SetProperty(component, "IdentityServerInteractionService", Mocks.IdentityInteraction.Object, typeof(IdentityCommonBase));
+        SetProperty(component, "InteractionService", Mocks.IdentityInteraction.Object, typeof(IdentityCommonBase));
+        SetProperty(component, "ApiClientService", Mocks.ApiClients.Object, typeof(IdentityCommonBase));
+        SetProperty(component, "PersonalAccessTokenService", Mocks.PersonalAccessTokens.Object, typeof(IdentityCommonBase));
+        SetProperty(component, "AuthenticationClientsService", Mocks.AuthenticationClients.Object, typeof(IdentityCommonBase));
+        SetProperty(component, "RequestIdentitiesService", Mocks.RequestIdentities.Object, typeof(IdentityCommonBase));
         if (component is AdminBase)
         {
             SetProperty(component, "PartiesService", Mocks.Parties.Object, typeof(AdminBase));
         }
-        SetProperty(component, "EmailAuthenticationService", Mocks.EmailAuthentication.Object, typeof(CommonBase));
-        SetProperty(component, "SmsAuthenticationService", Mocks.SmsAuthentication.Object, typeof(CommonBase));
-        SetProperty(component, "AuthenticationStateProvider", AuthenticationState, typeof(CommonBase));
-        SetProperty(component, "HttpClientFactory", Mocks.HttpClientFactory.Object, typeof(CommonBase));
-        SetProperty(component, "LoggerFactory", NullLoggerFactory.Instance, typeof(CommonBase));
+        SetProperty(component, "EmailAuthenticationService", Mocks.EmailAuthentication.Object, typeof(IdentityCommonBase));
+        SetProperty(component, "SmsAuthenticationService", Mocks.SmsAuthentication.Object, typeof(IdentityCommonBase));
+        SetProperty(component, "AuthenticationStateProvider", AuthenticationState, typeof(IdentityCommonBase));
+        SetProperty(component, "HttpClientFactory", Mocks.HttpClientFactory.Object, typeof(IdentityCommonBase));
+        SetProperty(component, "LoggerFactory", NullLoggerFactory.Instance, typeof(IdentityCommonBase));
     }
 
     private static void SetProperty(object instance, string propertyName, object value, Type declaringType)

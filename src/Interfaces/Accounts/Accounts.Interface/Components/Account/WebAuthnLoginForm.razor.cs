@@ -4,7 +4,7 @@ using Vitarish.Accounts.Interface.Components.Base;
 
 namespace Vitarish.Accounts.Interface.Components.Account;
 
-public partial class WebAuthnLoginForm : CommonBase, IAsyncDisposable
+public partial class WebAuthnLoginForm : IdentityCommonBase, IAsyncDisposable
 {
     [Parameter] public string? ReturnUrl { get; set; }
 

@@ -108,7 +108,7 @@ public class BaseComponentsTests
         protected override void BuildRenderTree(RenderTreeBuilder builder) { }
     }
 
-    private sealed class TestCommonComponent : CommonBase
+    private sealed class TestCommonComponent : IdentityCommonBase
     {
         public User? ExposedUser => User;
         public ISnackbar SnackbarService => Snackbar;

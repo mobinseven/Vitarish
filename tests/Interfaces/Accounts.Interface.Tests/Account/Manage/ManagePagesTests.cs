@@ -14,11 +14,11 @@ using MudBlazor;
 using Moq;
 using Vitarish.Accounts.Domain.Models;
 using Vitarish.Accounts.Interface.Components.Account;
-using Vitarish.Main.Pages.Account.Manage;
 using Vitarish.ApiClients.Domain.Entities;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
 using Accounts.Interface.Tests.TestInfrastructure;
+using Vitarish.Main.Pages.Accounts;
 
 namespace Accounts.Interface.Tests.Account.Manage;
 
@@ -229,14 +229,14 @@ public class ManagePagesTests
         fixture.ConfigureCommonComponent(form);
 
         AuthenticationStateProvider authProvider = new TestAuthenticatedStateProvider("user-1");
-        ComponentTestHelper.SetProperty(form, "AuthenticationStateProvider", authProvider, typeof(Vitarish.Accounts.Interface.Components.Base.CommonBase));
+        ComponentTestHelper.SetProperty(form, "AuthenticationStateProvider", authProvider, typeof(Vitarish.Accounts.Interface.Components.Base.IdentityCommonBase));
 
         User user = new() { Id = "user-1", Email = "old@example.com" };
-        ComponentTestHelper.SetProperty(form, "User", user, typeof(Vitarish.Accounts.Interface.Components.Base.CommonBase));
+        ComponentTestHelper.SetProperty(form, "User", user, typeof(Vitarish.Accounts.Interface.Components.Base.IdentityCommonBase));
 
         _ = fixture.Mocks.UserService.Setup(service => service.GetUserAsync(user.Id, It.IsAny<CancellationToken>())).ReturnsAsync(user);
         _ = fixture.Mocks.UserService.Setup(service => service.CheckUserEmailInUseAsync("new@example.com", user.Id, It.IsAny<CancellationToken>())).ReturnsAsync(false);
-        ComponentTestHelper.SetProperty(form, "User", user, typeof(Vitarish.Accounts.Interface.Components.Base.CommonBase));
+        ComponentTestHelper.SetProperty(form, "User", user, typeof(Vitarish.Accounts.Interface.Components.Base.IdentityCommonBase));
 
         await ComponentTestHelper.InvokeAsync(form, "ValidSendCodeSubmit", typeof(EmailChangeForm), new SendEmailCodeModel { Email = "new@example.com", User = user });
 
@@ -251,7 +251,7 @@ public class ManagePagesTests
         fixture.ConfigureCommonComponent(form);
 
         AuthenticationStateProvider authProvider = new TestAuthenticatedStateProvider("user-1");
-        ComponentTestHelper.SetProperty(form, "AuthenticationStateProvider", authProvider, typeof(Vitarish.Accounts.Interface.Components.Base.CommonBase));
+        ComponentTestHelper.SetProperty(form, "AuthenticationStateProvider", authProvider, typeof(Vitarish.Accounts.Interface.Components.Base.IdentityCommonBase));
 
         _ = fixture.Mocks.UserService.Setup(service => service.GetUserAsync(null, It.IsAny<CancellationToken>())).ReturnsAsync((User?)null);
 

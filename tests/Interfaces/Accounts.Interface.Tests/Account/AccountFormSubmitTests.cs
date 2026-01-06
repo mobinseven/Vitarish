@@ -7,10 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Security.Claims;
 using Vitarish.Accounts.Domain.Models;
 using Vitarish.Accounts.Interface.Components.Account;
-using Vitarish.Main.Pages.Account;
-using Vitarish.Main.Pages.Account.Manage;
 using Vitarish.Users.Domain.Entities;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
+using Vitarish.Main.Pages.Identity;
+using Vitarish.Main.Pages.Accounts;
 
 namespace Accounts.Interface.Tests.Account;
 

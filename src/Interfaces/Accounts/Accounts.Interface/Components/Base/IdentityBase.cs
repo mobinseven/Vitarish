@@ -1,6 +1,6 @@
 namespace Vitarish.Accounts.Interface.Components.Base;
 
-public class IdentityBase : CommonBase
+public class IdentityBase : IdentityCommonBase
 {
     [CascadingParameter] protected HttpContext? HttpContext { get; set; }
     [SupplyParameterFromQuery] protected string? FailureUrl { get; set; }

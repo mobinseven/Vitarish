@@ -2,7 +2,7 @@ using Vitarish.Accounts.Interface.Components.Base;
 
 namespace Vitarish.Accounts.Interface.Components.Admin;
 
-public partial class RoleEditor : CommonBase
+public partial class RoleEditor : IdentityCommonBase
 {
     [Parameter] public string? Read { get; set; }
     [Parameter] public EventCallback<string?> ReadChanged { get; set; }

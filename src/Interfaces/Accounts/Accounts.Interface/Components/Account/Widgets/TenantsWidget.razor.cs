@@ -3,7 +3,7 @@ using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Accounts.Interface.Components.Account.Widgets;
 
-public partial class TenantsWidget : CommonBase
+public partial class TenantsWidget : IdentityCommonBase
 {
     private readonly List<TenantAccessEntry> tenantEntries = [];
     private bool isLoading;
@@ -24,22 +24,6 @@ public partial class TenantsWidget : CommonBase
 
         try
         {
-            ClaimsPrincipal claimsPrincipal = (await AuthenticationStateProvider.GetAuthenticationStateAsync()).User;
-            if (!(claimsPrincipal.Identity?.IsAuthenticated ?? false))
-            {
-                _ = Snackbar.Add(Localizer["InvalidLoginAttempt"], Severity.Warning);
-                return;
-            }
-
-            string? userId = claimsPrincipal.FindFirstValue("sub")
-                ?? claimsPrincipal.FindFirstValue(ClaimTypes.NameIdentifier);
-
-            if (string.IsNullOrWhiteSpace(userId))
-            {
-                _ = Snackbar.Add(Localizer["Error"], Severity.Error);
-                return;
-            }
-
             var roles = await UserService.GetUserRolesAsync(User.Id);
             List<TenantRoleAssignment> tenantRoleAssignments = ParseTenantRoles(roles.Select(ur => ur.Name).Cast<string>());
 
@@ -110,6 +94,11 @@ public partial class TenantsWidget : CommonBase
                             .OrderByDescending(indicator => indicator.IsPrimary)
                             .FirstOrDefault();
                     }
+                }
+
+                if(primaryIndicator is null)
+                {
+                    continue;
                 }
 
                 List<string> roleDisplay = [.. grouping.Select(role => role.DisplayName)];

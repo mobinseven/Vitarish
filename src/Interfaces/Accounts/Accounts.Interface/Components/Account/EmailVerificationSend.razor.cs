@@ -3,7 +3,7 @@ using Vitarish.Accounts.Interface.Components.Base;
 
 namespace Vitarish.Accounts.Interface.Components.Account;
 
-public partial class EmailVerificationSend : CommonBase
+public partial class EmailVerificationSend : IdentityCommonBase
 {
     [Parameter] public EventCallback<SendEmailCodeModel> OnValidSubmit { get; set; }
     private string Email = string.Empty;
