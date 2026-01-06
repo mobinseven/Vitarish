@@ -1,3 +1,4 @@
+using Duende.IdentityModel;
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using Finbuckle.MultiTenant;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,8 @@ using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
 using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Modules.Base;
+using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Hosting.Api;
 using Vitarish.Parties.Hosting.DependencyInjection;
 using Vitarish.Parties.Infrastructure.Data;
@@ -94,9 +97,26 @@ _ = builder.Services.AddSession(options =>
 _ = builder.Services.AddControllers();
 _ = builder.Services.AddEndpointsApiExplorer();
 _ = builder.Services.AddLocalization();
-Func<object, Task<string?>> tenantResolver = async context => context is HttpContext httpContext
-            ? httpContext.GetTenantId()
-            : throw new InvalidOperationException("context is not HttpContext");
+Func<object, Task<string?>> tenantResolver = async context =>
+{
+
+    if (context is HttpContext http)
+    {
+
+        ITenantsService tenantsService = http.RequestServices.GetRequiredService<ITenantsService>();
+        {
+            Tenant? tenant = await tenantsService.ResolveFromHostAsync(http, http.RequestAborted);
+            if (tenant is not null)
+            {
+                return tenant.Id.ToString();
+            }
+        }
+    }
+    else
+        throw new InvalidOperationException("context is not HttpContext");
+    return null;
+}
+;
 _ = builder.Services.AddMultiTenant<TenantInfo>()
     .WithEchoStore()
     .WithDelegateStrategy(tenantResolver);
