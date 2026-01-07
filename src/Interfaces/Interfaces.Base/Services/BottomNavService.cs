@@ -109,20 +109,6 @@ public sealed record SearchAction(
 );
 
 /// <summary>
-/// Represents a radial action button shown in the Create menu.
-/// </summary>
-/// <param name="Label">The label for the action (used for accessibility).</param>
-/// <param name="Icon">The MudBlazor icon name (e.g., Icons.Material.Filled.CameraAlt).</param>
-/// <param name="OnClick">The action to execute when clicked.</param>
-/// <param name="Enabled">Whether the action is enabled (clickable).</param>
-public sealed record RadialAction(
-    string Label,
-    string Icon,
-    Func<Task> OnClick,
-    bool Enabled = true
-);
-
-/// <summary>
 /// Implementation of the bottom navigation service.
 /// </summary>
 [RegisterScoped]
