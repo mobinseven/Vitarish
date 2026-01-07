@@ -43,18 +43,32 @@ public partial class NavMenu : ComponentBase, IDisposable
         }
     }
 
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) =>
-        _ = HandleLocationChangedAsync(e);
-
-    private Task HandleLocationChangedAsync(LocationChangedEventArgs e)
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        searchActive = false;
-        SyncQueryFromUri(e.Location);
-        return InvokeAsync(StateHasChanged);
+        try
+        {
+            searchActive = false;
+            SyncQueryFromUri(e.Location);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch
+        {
+            // Intentionally ignore to avoid surfacing navigation callback exceptions.
+        }
     }
 
 
-    private void OnNavMenuStateChanged() => _ = InvokeAsync(StateHasChanged);
+    private async void OnNavMenuStateChanged()
+    {
+        try
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+        catch
+        {
+            // Rendering failures are surfaced via Blazor; suppress here to avoid unobserved tasks.
+        }
+    }
 
     public void Dispose()
     {
