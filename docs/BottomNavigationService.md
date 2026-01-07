@@ -350,7 +350,27 @@ public sealed record SearchAction(
 1. **Navigation events**: The service automatically resets to defaults when the user navigates to a new page.
 2. **Action precedence**: For Back and Search buttons, if both `Action` and `Uri` are provided, `Action` takes precedence.
 3. **State equality**: The service compares options before updating state to avoid unnecessary change notifications.
-4. **Thread safety**: The service is registered as scoped and should only be accessed from the Blazor synchronization context.
+4. **Function equality**: Custom actions (lambdas/delegates) are compared by reference equality. This means passing a new lambda with the same logic will trigger a state update. To avoid this, store your action delegate in a field and reuse it.
+5. **Thread safety**: The service is registered as scoped and should only be accessed from the Blazor synchronization context.
+
+### Example: Reusing Action Delegates
+
+```csharp
+private readonly Func<Task> searchAction;
+
+public MyPage()
+{
+    searchAction = async () => await DialogService.ShowAsync<SearchDialog>();
+}
+
+protected override void OnInitialized()
+{
+    // This will not trigger unnecessary updates on subsequent calls
+    BottomNav.Apply(new BottomNavOptions(
+        Search: new SearchAction(Action: searchAction)
+    ));
+}
+```
 
 ## Testing
 
@@ -368,11 +388,31 @@ See `tests/Interfaces/Interfaces.Base.Tests/Services/BottomNavServiceTests.cs` f
 
 ## Integration with Existing NavMenu
 
-The repository already has a `NavMenu` component and `NavMenuService` in `src/Interfaces/Interfaces.Base/Common/NavMenu.razor`. The **BottomNavService** is designed as a complementary service that can:
+The repository already has a `NavMenu` component and `NavMenuService` in `src/Interfaces/Interfaces.Base/Common/NavMenu.razor`. The **BottomNavService** is designed as a **newer, cleaner alternative** that:
 
-1. **Coexist** with the existing NavMenu implementation
-2. **Replace** NavMenuService in a future refactoring if desired
-3. Provide a **cleaner API** for the bottom navigation pattern described in the issue
+1. **Provides a cleaner API**: Strongly-typed button state with `NavButton` records
+2. **Better separation of concerns**: Each button type has its own configuration
+3. **More explicit defaults**: Profile button always visible, Back button hidden by default
+4. **Follows the issue requirements**: Designed specifically for the bottom navigation pattern
+
+### When to Use Which Service?
+
+**Use BottomNavService** for:
+- New pages and components
+- Bottom navigation bars with the 4-button pattern (Home, Search, Back, Profile)
+- Cases where you want explicit control over each button type
+
+**Use NavMenuService** for:
+- Existing pages already using it (no need to migrate)
+- Custom navigation patterns not covered by the 4-button model
+- Legacy compatibility
+
+### Coexistence
+
+Both services can coexist in the same application:
+- They are independent and don't conflict
+- Pages can use whichever service fits their needs
+- Both services auto-reset on navigation
 
 ### Migration Path (Optional)
 

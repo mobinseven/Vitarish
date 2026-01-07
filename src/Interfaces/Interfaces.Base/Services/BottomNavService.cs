@@ -178,6 +178,9 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
         if (ReferenceEquals(a, b)) return true;
         if (a is null || b is null) return false;
 
+        // Note: Action functions are compared by reference equality.
+        // This means passing a new lambda with the same logic will be treated as different.
+        // This is intentional to keep the implementation simple and avoid complex equality checks.
         return a.Visible == b.Visible &&
                a.Uri == b.Uri &&
                ReferenceEquals(a.Action, b.Action);
@@ -188,6 +191,9 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
         if (ReferenceEquals(a, b)) return true;
         if (a is null || b is null) return false;
 
+        // Note: Action functions are compared by reference equality.
+        // This means passing a new lambda with the same logic will be treated as different.
+        // This is intentional to keep the implementation simple and avoid complex equality checks.
         return a.Uri == b.Uri &&
                ReferenceEquals(a.Action, b.Action);
     }
