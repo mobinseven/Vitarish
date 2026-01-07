@@ -214,6 +214,7 @@ public sealed class BottomNavServiceTests
     {
         TestNavigationManager navigationManager = new();
         TestJsRuntime jsRuntime = new();
+        navigationManager.NavigateTo("/page1/page2/");
         BottomNavService service = new(navigationManager, jsRuntime);
 
         service.Apply(new BottomNavOptions(
@@ -225,8 +226,7 @@ public sealed class BottomNavServiceTests
 
         await service.Current.Back.OnClick();
 
-        jsRuntime.Invocations.Should().ContainSingle()
-            .Which.Should().Be("history.back");
+        navigationManager.History.Should().Contain("http://localhost/page1");
     }
 
     [Fact]
