@@ -48,11 +48,6 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
         if (firstRender)
         {
             await BrowserViewportService.SubscribeAsync(this, fireImmediately: true);
-
-            //if (ThemeService.BlazorReadyEnabled)
-            //{
-            //    await JS.InvokeVoidAsync("eval", "if(blazorReady) blazorReady();");
-            //}
         }
 
         await base.OnAfterRenderAsync(firstRender);

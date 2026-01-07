@@ -66,27 +66,6 @@ public interface INavMenuService
 }
 
 /// <summary>
-/// Represents a configured navigation menu action.
-/// </summary>
-public sealed record NavMenuAction(string Icon, string? Href = null, Func<Task>? OnClick = null, string? AriaLabel = null)
-{
-    public Task InvokeAsync(NavigationManager navigationManager)
-    {
-        if (OnClick is not null)
-        {
-            return OnClick();
-        }
-
-        if (!string.IsNullOrWhiteSpace(Href))
-        {
-            navigationManager.NavigateTo(Href);
-        }
-
-        return Task.CompletedTask;
-    }
-}
-
-/// <summary>
 /// Captures the current navigation menu configuration.
 /// </summary>
 public sealed record NavMenuState(string? HomeUri, NavMenuAction? BackAction, RenderFragment? AdditionalButtons)

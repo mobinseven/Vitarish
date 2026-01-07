@@ -38,15 +38,7 @@ public partial class NavMenu : ComponentBase, IDisposable
         await InvokeAsync(StateHasChanged);
     }
 
-    private Task HandleBackClick()
-    {
-        if (BackAction?.OnClick is null)
-        {
-            return Task.CompletedTask;
-        }
-
-        return BackAction.InvokeAsync(NavigationManager);
-    }
+    private Task HandleBackClick() => BackAction?.OnClick is null ? Task.CompletedTask : BackAction.InvokeAsync(NavigationManager);
 
     private async void OnNavMenuStateChanged(object? sender, EventArgs e) =>
         await InvokeAsync(StateHasChanged);
@@ -55,5 +47,6 @@ public partial class NavMenu : ComponentBase, IDisposable
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
         NavMenuService.StateChanged -= OnNavMenuStateChanged;
+        GC.SuppressFinalize(this);
     }
 }
