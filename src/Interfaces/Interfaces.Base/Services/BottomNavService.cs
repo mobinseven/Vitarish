@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Routing;
-using Microsoft.JSInterop;
-
 namespace Vitarish.Interfaces.Base.Services;
 
 /// <summary>
@@ -94,7 +90,7 @@ public sealed record BottomNavOptions(
 /// <param name="Uri">The URI to navigate to when clicked (if Action is not provided).</param>
 /// <param name="Action">The custom action to execute when clicked (takes precedence over Uri).</param>
 public sealed record BackTarget(
-    bool Visible,
+    bool Visible = true,
     string? Uri = null,
     Func<Task>? Action = null
 );
@@ -108,7 +104,6 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
     private readonly NavigationManager navigationManager;
     private readonly IJSRuntime jsRuntime;
     private readonly BottomNavDefaults defaults;
-    private BottomNavState current;
     private BottomNavOptions? currentOptions;
 
     public BottomNavService(
@@ -119,7 +114,7 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
         this.navigationManager = navigationManager;
         this.jsRuntime = jsRuntime;
         this.defaults = defaults ?? BottomNavDefaults.Default;
-        current = CreateDefaultState();
+        Current = CreateDefaultState();
         currentOptions = null;
 
         navigationManager.LocationChanged += HandleLocationChanged;
@@ -127,7 +122,7 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
 
     public event Action? Changed;
 
-    public BottomNavState Current => current;
+    public BottomNavState Current { get; private set; }
 
     public void Apply(BottomNavOptions? options)
     {
@@ -138,41 +133,53 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
         }
 
         currentOptions = options;
-        current = CreateState(options);
+        Current = CreateState(options);
         Changed?.Invoke();
     }
 
-    public void ResetToDefaults()
-    {
-        Apply(null);
-    }
+    public void ResetToDefaults() => Apply(null);
 
-    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
-    {
-        ResetToDefaults();
-    }
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e) => ResetToDefaults();
 
-    private bool AreOptionsEqual(BottomNavOptions? a, BottomNavOptions? b)
+    private static bool AreOptionsEqual(BottomNavOptions? a, BottomNavOptions? b)
     {
-        if (ReferenceEquals(a, b)) return true;
-        if (a is null || b is null) return false;
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+
+        if (a is null || b is null)
+        {
+            return false;
+        }
 
         // Compare individual properties
-        if (a.HomeUriOverride != b.HomeUriOverride) return false;
+        if (a.HomeUriOverride != b.HomeUriOverride)
+        {
+            return false;
+        }
 
         // Compare Back
-        if (!AreBackTargetsEqual(a.Back, b.Back)) return false;
+        if (!AreBackTargetsEqual(a.Back, b.Back))
+        {
+            return false;
+        }
 
         // Compare Search
-        if (a.SearchUriOverride != b.SearchUriOverride) return false;
-
-        return true;
+        return a.SearchUriOverride == b.SearchUriOverride;
     }
 
-    private bool AreBackTargetsEqual(BackTarget? a, BackTarget? b)
+    private static bool AreBackTargetsEqual(BackTarget? a, BackTarget? b)
     {
-        if (ReferenceEquals(a, b)) return true;
-        if (a is null || b is null) return false;
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+
+        if (a is null || b is null)
+        {
+            return false;
+        }
 
         // Note: Action functions are compared by reference equality.
         // This means passing a new lambda with the same logic will be treated as different.
@@ -182,10 +189,7 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
                ReferenceEquals(a.Action, b.Action);
     }
 
-    private BottomNavState CreateDefaultState()
-    {
-        return CreateState(null);
-    }
+    private BottomNavState CreateDefaultState() => CreateState(null);
 
     private BottomNavState CreateState(BottomNavOptions? options)
     {
@@ -213,7 +217,6 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
             }
         );
 
-        // Back button: visible only if configured, executes action or navigates to URI
         NavButton back;
         if (options?.Back is { Visible: true })
         {
@@ -240,7 +243,6 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
             }
             else
             {
-                // Default to browser back navigation when no override is provided.
                 back = new(
                     Visible: true,
                     Enabled: true,
@@ -250,11 +252,10 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
         }
         else
         {
-            // Back button not visible by default
             back = new(
-                Visible: false,
-                Enabled: false,
-                OnClick: () => Task.CompletedTask
+                Visible: true,
+                Enabled: true,
+                OnClick: async () => await jsRuntime.InvokeVoidAsync("history.back")
             );
         }
 
