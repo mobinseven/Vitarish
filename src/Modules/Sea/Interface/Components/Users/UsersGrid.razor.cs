@@ -27,13 +27,18 @@ public partial class UsersGrid : UsersBase, IDisposable
         UpdateSearchFromUri(NavigationManager.Uri);
     }
 
-    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) =>
+        _ = HandleLocationChangedAsync(e);
+
+    private Task HandleLocationChangedAsync(LocationChangedEventArgs e)
     {
         UpdateSearchFromUri(e.Location);
         if (grid is not null)
         {
-            await grid.ReloadServerData();
+            return grid.ReloadServerData();
         }
+
+        return Task.CompletedTask;
     }
 
     private void UpdateSearchFromUri(string uri)

@@ -5,6 +5,8 @@ namespace Vitarish.Interfaces.Base.Common;
 
 public static class SearchQueryHelper
 {
+    private const string QueryParameterName = "q";
+
     public static string? ExtractQuery(NavigationManager navigationManager, string uri)
     {
         Uri absolute = navigationManager.ToAbsoluteUri(uri);
@@ -22,7 +24,7 @@ public static class SearchQueryHelper
                 continue;
             }
 
-            if (!string.Equals(segment[..separatorIndex], "q", StringComparison.Ordinal))
+            if (!string.Equals(segment[..separatorIndex], QueryParameterName, StringComparison.Ordinal))
             {
                 continue;
             }

@@ -13,6 +13,7 @@ public sealed class BottomNavServiceTests
     {
         TestNavigationManager navigationManager = new();
         NavService service = new(navigationManager);
+        // Back remains enabled by default to support the always-rendered NavMenu back button.
 
         service.Current.Home.Visible.Should().BeTrue();
         service.Current.Home.Enabled.Should().BeTrue();

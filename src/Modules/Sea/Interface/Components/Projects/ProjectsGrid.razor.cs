@@ -74,13 +74,18 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
         await ReloadRequired();
     }
 
-    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) =>
+        _ = HandleLocationChangedAsync(e);
+
+    private Task HandleLocationChangedAsync(LocationChangedEventArgs e)
     {
         bool updated = UpdateSearchFromUri(e.Location);
         if (updated && grid is not null)
         {
-            await grid.ReloadServerData();
+            return grid.ReloadServerData();
         }
+
+        return Task.CompletedTask;
     }
 
     private bool UpdateSearchFromUri(string uri)

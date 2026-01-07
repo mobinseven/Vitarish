@@ -43,15 +43,18 @@ public partial class NavMenu : ComponentBase, IDisposable
         }
     }
 
-    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) =>
+        _ = HandleLocationChangedAsync(e);
+
+    private Task HandleLocationChangedAsync(LocationChangedEventArgs e)
     {
         searchActive = false;
         SyncQueryFromUri(e.Location);
-        await InvokeAsync(StateHasChanged);
+        return InvokeAsync(StateHasChanged);
     }
 
 
-    private async void OnNavMenuStateChanged() => await InvokeAsync(StateHasChanged);
+    private void OnNavMenuStateChanged() => _ = InvokeAsync(StateHasChanged);
 
     public void Dispose()
     {
