@@ -3,7 +3,7 @@ namespace Vitarish.Interfaces.Base.Services;
 /// <summary>
 /// Provides centralized configuration for bottom navigation bar buttons.
 /// </summary>
-public interface IBottomNavService
+public interface INavService
 {
     /// <summary>
     /// Gets the current bottom navigation state.
@@ -99,14 +99,14 @@ public sealed record BackTarget(
 /// Implementation of the bottom navigation service.
 /// </summary>
 [RegisterScoped]
-public sealed class BottomNavService : IBottomNavService, IDisposable
+public sealed class NavService : INavService, IDisposable
 {
     private readonly NavigationManager navigationManager;
     private readonly IJSRuntime jsRuntime;
     private readonly BottomNavDefaults defaults;
     private BottomNavOptions? currentOptions;
 
-    public BottomNavService(
+    public NavService(
         NavigationManager navigationManager,
         IJSRuntime jsRuntime,
         BottomNavDefaults? defaults = null)
