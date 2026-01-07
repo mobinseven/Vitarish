@@ -253,9 +253,9 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
         else
         {
             back = new(
-                Visible: false,
-                Enabled: false,
-                OnClick: () => Task.CompletedTask
+                Visible: true,
+                Enabled: true,
+                OnClick: NavigateUpOneLevelAsync
             );
         }
 
