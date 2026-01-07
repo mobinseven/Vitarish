@@ -446,3 +446,111 @@ For all interactive components:
 * Sections: spacing 24 between blocks
 * Page max width: 960–1200; chat max 840
 * Skeletons for loading; inline empty/error states with clear CTA
+
+
+# Tips
+
+## 1) Information architecture: don’t ship a “scroll wall”
+
+* **Split long configuration screens into clear sections** (tabs/side-nav/accordions): e.g. *Account*, *User details*, *Theme*, *Typography*, *Surfaces*, *Advanced*.
+* **Use progressive disclosure**: show common settings first; put tokens/advanced sliders behind “Advanced”.
+* **Provide a “Search settings” field** when settings exceed one screen.
+* **Keep one primary task per screen**. If “Add user” and “Theme configuration” are both present, separate them.
+
+## 2) Layout & grid: consistent alignment beats decoration
+
+* Use a **single layout grid** (e.g. 12-col or simple max-width + gutters) and stick to it.
+* Pick one label strategy and apply everywhere:
+
+  * **Top labels** for narrow layouts/mobile, or
+  * **Left/right aligned labels** for desktop (but consistent).
+* **Align control edges**: inputs, toggles, sliders, helper text, and buttons should snap to the same vertical lines.
+* Use a **spacing system** (e.g. 8px steps): 8/16/24/32. Avoid “random” gaps.
+
+## 3) Typography: legibility first, then style
+
+* Minimum body text: **14–16px**, and avoid ultra-light gray for important text.
+* Define a **type scale**: H1/H2/Body/Caption, with consistent weights and line heights.
+* Don’t mix typographic styles across sections (e.g., tiny labels in one area, big labels elsewhere) unless intentional.
+
+## 4) Localization & RTL/LTR: choose one experience and make it correct
+
+* **Don’t mix languages** (Persian + English labels) in the same UI unless there’s a clear reason. Localize everything, or separate language-only areas.
+* For RTL UIs:
+
+  * Set the container `dir="rtl"` and ensure components are RTL-aware.
+  * Keep **numbers/hex codes** LTR but visually integrated (e.g. use `dir="ltr"` only on the code field).
+  * Icons and affordances (chevrons, edit pencils) should mirror appropriately.
+
+## 5) Forms: reduce ambiguity and make actions obvious
+
+* Every field needs:
+
+  * **Label**, **helper text** (optional), **validation message** (when needed).
+* Avoid repeated unlabeled icon rows:
+
+  * **Icon-only actions must have tooltips** and ideally a text label if frequent (“Edit email”, “Edit phone”).
+* Use clear call-to-actions:
+
+  * One **primary** button (“Save changes” / “Create user”)
+  * Secondary (“Cancel”, “Reset”)
+* Show **unsaved changes** state (“You have unsaved changes”) and disable Save until something changes.
+
+## 6) Controls: use the right input for the job
+
+* **Sliders are bad for precise values** unless you also show:
+
+  * Current numeric value
+  * Units
+  * Optional number input for exact entry
+  * Clear min/max and step
+* Toggles must have:
+
+  * A **label describing the state** (“Use high contrast mode”)
+  * If needed, a short explanation of what changes.
+
+## 7) Color & theme configuration: tokens must be scannable and safe
+
+What’s going wrong in many theme editors is “giant color bars + tiny labels”. Instead:
+
+* Represent each color token as a row:
+
+  * **Swatch** + **Token name** + **Editable value** (HEX/RGB) + **Copy** + **Reset**
+* Group tokens semantically:
+
+  * **Brand** (Primary/Secondary/Tertiary)
+  * **Text** (Primary text/Secondary text/Disabled)
+  * **Surfaces** (Background/Surface/Elevation)
+  * **Status** (Success/Warning/Error/Info)
+* Add **contrast checks** automatically (WCAG):
+
+  * Warn when text on surface fails contrast.
+  * Provide suggested accessible alternatives.
+* Avoid putting hex text inside the colored bar unless contrast is guaranteed.
+
+## 8) Preview: make feedback immediate and meaningful
+
+* Provide a **live preview panel** that stays visible (sticky side panel on desktop, collapsible drawer on mobile).
+* Preview should show real components and states:
+
+  * Normal / Hover / Disabled / Focus / Error states
+* Make it easy to test:
+
+  * “Preview on Light/Dark”
+  * “Simulate color-blindness” (optional but valuable)
+
+## 9) Visual consistency: fewer borders, fewer shadows, clearer hierarchy
+
+* Use **one elevation style** (cards/shadows) consistently—avoid heavy shadows everywhere.
+* Don’t stack “card inside card inside card” unless there’s a clear hierarchy.
+* Use separators sparingly; prefer **spacing and headings** for grouping.
+
+## 10) Accessibility & usability: bake it in
+
+* Minimum touch target: **44×44 px**.
+* Strong **focus states** for keyboard navigation.
+* Ensure labels are programmatically tied to inputs (screen readers).
+* Avoid low-contrast placeholder-as-label patterns.
+* Ensure error messages are specific and placed near the field.
+
+
