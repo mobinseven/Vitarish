@@ -22,7 +22,7 @@ public partial class NavMenu : ComponentBase, IDisposable
             }
 
             query = value;
-            _ = NavigateSearchAsync();
+            NavigateSearch();
         }
     }
     private BottomNavState State => BottomNavService.Current;
@@ -39,7 +39,7 @@ public partial class NavMenu : ComponentBase, IDisposable
         if (!string.IsNullOrEmpty(query))
         {
             query = null;
-            _ = NavigateSearchAsync();
+            NavigateSearch();
         }
     }
 
@@ -84,17 +84,16 @@ public partial class NavMenu : ComponentBase, IDisposable
 
     private void HandleSearchClick() => searchActive = true;
 
-    private Task NavigateSearchAsync()
+    private void NavigateSearch()
     {
         if (!State.Search.Enabled)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         string searchUri = BottomNavService.GetSearchUri(query);
         BottomNavService.UpdateSearchUri(searchUri);
         NavigationManager.NavigateTo(searchUri);
-        return Task.CompletedTask;
     }
 
     private void SyncQueryFromUri(string uri)

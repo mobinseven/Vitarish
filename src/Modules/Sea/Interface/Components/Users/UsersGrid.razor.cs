@@ -31,8 +31,7 @@ public partial class UsersGrid : UsersBase, IDisposable
     {
         try
         {
-            UpdateSearchFromUri(e.Location);
-            if (grid is not null)
+            if (UpdateSearchFromUri(e.Location) && grid is not null)
             {
                 await grid.ReloadServerData();
             }
@@ -43,9 +42,16 @@ public partial class UsersGrid : UsersBase, IDisposable
         }
     }
 
-    private void UpdateSearchFromUri(string uri)
+    private bool UpdateSearchFromUri(string uri)
     {
-        SearchString = SearchQueryHelper.ExtractQuery(NavigationManager, uri);
+        string? query = SearchQueryHelper.ExtractQuery(NavigationManager, uri);
+        if (string.Equals(SearchString, query, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        SearchString = query;
+        return true;
     }
 
     void IDisposable.Dispose()
