@@ -246,16 +246,16 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
                 back = new(
                     Visible: true,
                     Enabled: true,
-                    OnClick: async () => await jsRuntime.InvokeVoidAsync("history.back")
+                    OnClick: NavigateUpOneLevelAsync
                 );
             }
         }
         else
         {
             back = new(
-                Visible: true,
-                Enabled: true,
-                OnClick: async () => await jsRuntime.InvokeVoidAsync("history.back")
+                Visible: false,
+                Enabled: false,
+                OnClick: () => Task.CompletedTask
             );
         }
 
@@ -271,6 +271,25 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
         );
 
         return new BottomNavState(home, search, back, profile);
+    }
+
+    private Task NavigateUpOneLevelAsync()
+    {
+        string absolutePath = new Uri(navigationManager.Uri).AbsolutePath;
+        string normalizedPath = absolutePath.EndsWith("/")
+            ? absolutePath.TrimEnd('/')
+            : absolutePath;
+
+        if (string.IsNullOrEmpty(normalizedPath) || normalizedPath == "/")
+        {
+            navigationManager.NavigateTo("/");
+            return Task.CompletedTask;
+        }
+
+        int lastSlashIndex = normalizedPath.LastIndexOf('/');
+        string parentPath = lastSlashIndex <= 0 ? "/" : normalizedPath[..lastSlashIndex];
+        navigationManager.NavigateTo(parentPath);
+        return Task.CompletedTask;
     }
 
     public void Dispose()
