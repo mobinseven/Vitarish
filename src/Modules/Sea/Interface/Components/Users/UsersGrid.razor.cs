@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components.Routing;
+using Vitarish.Interfaces.Base.Common;
 using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Sea.Interface.Components.Users;
@@ -37,36 +38,7 @@ public partial class UsersGrid : UsersBase, IDisposable
 
     private void UpdateSearchFromUri(string uri)
     {
-        SearchString = ExtractQuery(uri);
-    }
-
-    private string? ExtractQuery(string uri)
-    {
-        Uri absolute = NavigationManager.ToAbsoluteUri(uri);
-        string query = absolute.Query;
-        if (string.IsNullOrEmpty(query) || query.Length <= 1)
-        {
-            return null;
-        }
-
-        foreach (string segment in query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
-        {
-            int separatorIndex = segment.IndexOf('=');
-            if (separatorIndex < 0)
-            {
-                continue;
-            }
-
-            if (!string.Equals(segment[..separatorIndex], "q", StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            string value = segment[(separatorIndex + 1)..];
-            return Uri.UnescapeDataString(value.Replace("+", " "));
-        }
-
-        return null;
+        SearchString = SearchQueryHelper.ExtractQuery(NavigationManager, uri);
     }
 
     void IDisposable.Dispose()

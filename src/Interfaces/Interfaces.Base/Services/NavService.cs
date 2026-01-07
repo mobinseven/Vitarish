@@ -286,7 +286,7 @@ public sealed class NavService : INavService, IDisposable
             {
                 back = new(
                     Visible: true,
-                    Enabled: false,
+                    Enabled: true,
                     OnClick: NavigateUpOneLevelAsync
                 );
             }

@@ -81,7 +81,7 @@ public partial class NavMenu : ComponentBase, IDisposable
 
     private void SyncQueryFromUri(string uri)
     {
-        string? currentQuery = ExtractQuery(uri);
+        string? currentQuery = SearchQueryHelper.ExtractQuery(NavigationManager, uri);
 
         if (!string.Equals(query, currentQuery, StringComparison.Ordinal))
         {
@@ -89,34 +89,5 @@ public partial class NavMenu : ComponentBase, IDisposable
         }
 
         searchActive = !string.IsNullOrEmpty(query);
-    }
-
-    private string? ExtractQuery(string uri)
-    {
-        Uri absolute = NavigationManager.ToAbsoluteUri(uri);
-        string queryString = absolute.Query;
-        if (string.IsNullOrEmpty(queryString) || queryString.Length <= 1)
-        {
-            return null;
-        }
-
-        foreach (string segment in queryString.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
-        {
-            int separatorIndex = segment.IndexOf('=');
-            if (separatorIndex < 0)
-            {
-                continue;
-            }
-
-            if (!string.Equals(segment[..separatorIndex], "q", StringComparison.Ordinal))
-            {
-                continue;
-            }
-
-            string value = segment[(separatorIndex + 1)..];
-            return Uri.UnescapeDataString(value.Replace("+", " "));
-        }
-
-        return null;
     }
 }

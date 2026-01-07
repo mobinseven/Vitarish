@@ -183,17 +183,23 @@ public sealed class BottomNavServiceTests
     }
 
     [Fact]
-    public void Back_button_visible_true_without_action_or_uri_is_disabled()
+    public async Task Back_button_visible_true_without_action_or_uri_navigates_up()
     {
         TestNavigationManager navigationManager = new();
         NavService service = new(navigationManager);
+        navigationManager.TriggerLocationChanged("/level1/child");
 
         service.Apply(new BottomNavOptions(
             Back: new BackTarget(Visible: true)
         ));
 
         service.Current.Back.Visible.Should().BeTrue();
-        service.Current.Back.Enabled.Should().BeFalse();
+        service.Current.Back.Enabled.Should().BeTrue();
+
+        await service.Current.Back.OnClick();
+
+        navigationManager.History.Should().ContainSingle()
+            .Which.Should().Be("http://localhost/level1");
     }
 
     [Fact]
