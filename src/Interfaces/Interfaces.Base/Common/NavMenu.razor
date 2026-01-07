@@ -9,20 +9,11 @@
         }
         else
         {
-            @if(BackAction is not null)
-            {
-                <MudFab Size=Size StartIcon="@BackAction.Icon" DropShadow=false Href="@BackHref" OnClick="HandleBackClick" />
-            }
-            <MudFab Size=Size StartIcon="fa-thin fa-house-blank" DropShadow=false Href="@HomeHref" />
+            <MudFab Size=Size StartIcon="fa-thin fa-house-blank" DropShadow=false Href="/" />
             @if(SearchService.IsEnabled)
             {
                 <MudFab Size=Size StartIcon="fa-thin fa-magnifying-glass" DropShadow=false OnClick="() => searchActive = true" />
             }
-            <PwaInstall>
-                <InstallButton>
-                    <MudFab Size=Size IconColor="Color.Info" StartIcon="@Icons.Material.Filled.Download" DropShadow=false OnClick="context.OnInstallClicked" />
-                </InstallButton>
-            </PwaInstall>
             <MudFab Size=Size StartIcon="fa-thin fa-gear" DropShadow=false Href="/profile" />
         }
     </MudStack>
