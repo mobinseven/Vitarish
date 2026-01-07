@@ -93,27 +93,14 @@ public partial class MudBottomNavBar : ComponentBase, IDisposable
         await CloseCreateMenu();
     }
 
-    private async Task HandleHomeClick()
-    {
-        await State.Home.OnClick();
-        await CloseCreateMenu();
-    }
+    private Task HandleHomeClick() => HandleNavButtonClick(State.Home.OnClick);
+    private Task HandleSearchClick() => HandleNavButtonClick(State.Search.OnClick);
+    private Task HandleBackClick() => HandleNavButtonClick(State.Back.OnClick);
+    private Task HandleProfileClick() => HandleNavButtonClick(State.Profile.OnClick);
 
-    private async Task HandleSearchClick()
+    private async Task HandleNavButtonClick(Func<Task> onClick)
     {
-        await State.Search.OnClick();
-        await CloseCreateMenu();
-    }
-
-    private async Task HandleBackClick()
-    {
-        await State.Back.OnClick();
-        await CloseCreateMenu();
-    }
-
-    private async Task HandleProfileClick()
-    {
-        await State.Profile.OnClick();
+        await onClick();
         await CloseCreateMenu();
     }
 
