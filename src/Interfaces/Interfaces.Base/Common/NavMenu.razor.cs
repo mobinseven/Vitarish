@@ -67,16 +67,17 @@ public partial class NavMenu : ComponentBase, IDisposable
 
     private void HandleSearchClick() => searchActive = true;
 
-    private async Task NavigateSearchAsync()
+    private Task NavigateSearchAsync()
     {
         if (!State.Search.Enabled)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         string searchUri = BottomNavService.GetSearchUri(query);
         BottomNavService.UpdateSearchUri(searchUri);
-        await HandleNavButtonClick(BottomNavService.Current.Search.OnClick);
+        NavigationManager.NavigateTo(searchUri);
+        return Task.CompletedTask;
     }
 
     private void SyncQueryFromUri(string uri)
