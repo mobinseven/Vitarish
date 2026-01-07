@@ -365,3 +365,30 @@ The service includes comprehensive unit tests covering:
 - Dispose behavior
 
 See `tests/Interfaces/Interfaces.Base.Tests/Services/BottomNavServiceTests.cs` for examples.
+
+## Integration with Existing NavMenu
+
+The repository already has a `NavMenu` component and `NavMenuService` in `src/Interfaces/Interfaces.Base/Common/NavMenu.razor`. The **BottomNavService** is designed as a complementary service that can:
+
+1. **Coexist** with the existing NavMenu implementation
+2. **Replace** NavMenuService in a future refactoring if desired
+3. Provide a **cleaner API** for the bottom navigation pattern described in the issue
+
+### Migration Path (Optional)
+
+If you want to integrate BottomNavService with the existing NavMenu component, you can:
+
+1. Update `NavMenu.razor.cs` to inject `IBottomNavService` instead of `INavMenuService`
+2. Bind button visibility and click handlers to `BottomNavService.Current` state
+3. Keep the existing search integration with `ISearchService` for the search input overlay
+
+Example snippet for integration:
+
+```csharp
+// In NavMenu.razor.cs
+[Inject] private IBottomNavService BottomNav { get; set; } = default!;
+
+// Update the template to use BottomNav.Current instead of NavMenuService.State
+```
+
+This integration is **optional** and not required for the BottomNavService to function independently.
