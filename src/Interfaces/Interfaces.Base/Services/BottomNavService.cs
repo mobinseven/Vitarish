@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.JSInterop;
 
 namespace Vitarish.Interfaces.Base.Services;
 
@@ -79,11 +80,11 @@ public sealed record BottomNavDefaults(
 /// </summary>
 /// <param name="HomeUriOverride">Optional override for the Home button URI.</param>
 /// <param name="Back">Optional Back button configuration.</param>
-/// <param name="Search">Optional Search button configuration.</param>
+/// <param name="SearchUriOverride">Optional override for the Search button URI.</param>
 public sealed record BottomNavOptions(
     string? HomeUriOverride = null,
     BackTarget? Back = null,
-    SearchAction? Search = null
+    string? SearchUriOverride = null
 );
 
 /// <summary>
@@ -99,29 +100,24 @@ public sealed record BackTarget(
 );
 
 /// <summary>
-/// Configuration for the Search button action.
-/// </summary>
-/// <param name="Action">The custom action to execute when clicked (takes precedence over Uri).</param>
-/// <param name="Uri">The URI to navigate to when clicked (if Action is not provided).</param>
-public sealed record SearchAction(
-    Func<Task>? Action = null,
-    string? Uri = null
-);
-
-/// <summary>
 /// Implementation of the bottom navigation service.
 /// </summary>
 [RegisterScoped]
 public sealed class BottomNavService : IBottomNavService, IDisposable
 {
     private readonly NavigationManager navigationManager;
+    private readonly IJSRuntime jsRuntime;
     private readonly BottomNavDefaults defaults;
     private BottomNavState current;
     private BottomNavOptions? currentOptions;
 
-    public BottomNavService(NavigationManager navigationManager, BottomNavDefaults? defaults = null)
+    public BottomNavService(
+        NavigationManager navigationManager,
+        IJSRuntime jsRuntime,
+        BottomNavDefaults? defaults = null)
     {
         this.navigationManager = navigationManager;
+        this.jsRuntime = jsRuntime;
         this.defaults = defaults ?? BottomNavDefaults.Default;
         current = CreateDefaultState();
         currentOptions = null;
@@ -168,7 +164,7 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
         if (!AreBackTargetsEqual(a.Back, b.Back)) return false;
 
         // Compare Search
-        if (!AreSearchActionsEqual(a.Search, b.Search)) return false;
+        if (a.SearchUriOverride != b.SearchUriOverride) return false;
 
         return true;
     }
@@ -183,18 +179,6 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
         // This is intentional to keep the implementation simple and avoid complex equality checks.
         return a.Visible == b.Visible &&
                a.Uri == b.Uri &&
-               ReferenceEquals(a.Action, b.Action);
-    }
-
-    private bool AreSearchActionsEqual(SearchAction? a, SearchAction? b)
-    {
-        if (ReferenceEquals(a, b)) return true;
-        if (a is null || b is null) return false;
-
-        // Note: Action functions are compared by reference equality.
-        // This means passing a new lambda with the same logic will be treated as different.
-        // This is intentional to keep the implementation simple and avoid complex equality checks.
-        return a.Uri == b.Uri &&
                ReferenceEquals(a.Action, b.Action);
     }
 
@@ -217,42 +201,17 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
             }
         );
 
-        // Search button: always visible, uses custom action/URI or default
-        NavButton search;
-        if (options?.Search?.Action is not null)
-        {
-            search = new(
-                Visible: true,
-                Enabled: true,
-                OnClick: options.Search.Action
-            );
-        }
-        else if (options?.Search?.Uri is not null)
-        {
-            string searchUri = options.Search.Uri;
-            search = new(
-                Visible: true,
-                Enabled: true,
-                OnClick: () =>
-                {
-                    navigationManager.NavigateTo(searchUri);
-                    return Task.CompletedTask;
-                }
-            );
-        }
-        else
-        {
-            // Default search behavior
-            search = new(
-                Visible: true,
-                Enabled: true,
-                OnClick: () =>
-                {
-                    navigationManager.NavigateTo(defaults.SearchUri);
-                    return Task.CompletedTask;
-                }
-            );
-        }
+        // Search button: always visible, uses override or default URI
+        string searchUri = options?.SearchUriOverride ?? defaults.SearchUri;
+        NavButton search = new(
+            Visible: true,
+            Enabled: true,
+            OnClick: () =>
+            {
+                navigationManager.NavigateTo(searchUri);
+                return Task.CompletedTask;
+            }
+        );
 
         // Back button: visible only if configured, executes action or navigates to URI
         NavButton back;
@@ -281,11 +240,11 @@ public sealed class BottomNavService : IBottomNavService, IDisposable
             }
             else
             {
-                // Back button configured as visible but no action/URI provided - disabled state
+                // Default to browser back navigation when no override is provided.
                 back = new(
                     Visible: true,
-                    Enabled: false,
-                    OnClick: () => Task.CompletedTask
+                    Enabled: true,
+                    OnClick: async () => await jsRuntime.InvokeVoidAsync("history.back")
                 );
             }
         }
