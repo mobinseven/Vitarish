@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using System.Net;
 
 namespace Vitarish.Interfaces.Base.Common;
 
@@ -27,7 +28,7 @@ public static class SearchQueryHelper
             }
 
             string value = segment[(separatorIndex + 1)..];
-            return Uri.UnescapeDataString(value.Replace("+", " "));
+            return WebUtility.UrlDecode(value);
         }
 
         return null;

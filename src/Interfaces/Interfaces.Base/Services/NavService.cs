@@ -296,7 +296,7 @@ public sealed class NavService : INavService, IDisposable
             back = new(
                 Visible: false,
                 Enabled: false,
-                OnClick: NavigateUpOneLevelAsync
+                OnClick: () => Task.CompletedTask
             );
         }
         else
@@ -304,7 +304,7 @@ public sealed class NavService : INavService, IDisposable
             back = new(
                 Visible: false,
                 Enabled: false,
-                OnClick: NavigateUpOneLevelAsync
+                OnClick: () => Task.CompletedTask
             );
         }
 
