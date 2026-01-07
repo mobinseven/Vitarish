@@ -1,54 +1,79 @@
+using Microsoft.AspNetCore.Components.Routing;
+
 namespace Vitarish.Interfaces.Base.Common;
 
 
 public partial class NavMenu : ComponentBase, IDisposable
 {
-    [Inject] private ISearchService SearchService { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private INavService BottomNavService { get; set; } = default!;
     [Parameter] public Size Size { get; set; } = Size.Large;
 
     private bool searchActive;
-    private string? query
+    private string? query;
+    private string? Query
     {
-        get;
+        get => query;
         set
         {
-            field = value;
-            SearchService.Search(this, value);
+            if (string.Equals(query, value, StringComparison.Ordinal))
+            {
+                return;
+            }
+
+            query = value;
+            NavigateSearch();
         }
     }
     private BottomNavState State => BottomNavService.Current;
     protected override void OnInitialized()
     {
         NavigationManager.LocationChanged += OnLocationChanged;
+        BottomNavService.Changed += OnNavMenuStateChanged;
+        SyncQueryFromUri(NavigationManager.Uri);
     }
 
     private void Close()
     {
         searchActive = false;
-        SearchService.Search(this, null);
-    }
-
-    private void Open()
-    {
-        searchActive = false;
-        SearchService.Search(this, query);
+        if (!string.IsNullOrEmpty(query))
+        {
+            query = null;
+            NavigateSearch();
+        }
     }
 
     private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        Close();
-        await InvokeAsync(StateHasChanged);
+        try
+        {
+            searchActive = false;
+            SyncQueryFromUri(e.Location);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch
+        {
+            // Intentionally ignore to avoid surfacing navigation callback exceptions.
+        }
     }
 
 
-    private async void OnNavMenuStateChanged(object? sender, EventArgs e) =>
-        await InvokeAsync(StateHasChanged);
+    private async void OnNavMenuStateChanged()
+    {
+        try
+        {
+            await InvokeAsync(StateHasChanged);
+        }
+        catch
+        {
+            // Rendering failures are surfaced via Blazor; suppress here to avoid unobserved tasks.
+        }
+    }
 
     public void Dispose()
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
+        BottomNavService.Changed -= OnNavMenuStateChanged;
         GC.SuppressFinalize(this);
     }
 
@@ -57,4 +82,29 @@ public partial class NavMenu : ComponentBase, IDisposable
     private Task HandleProfileClick() => HandleNavButtonClick(State.Profile.OnClick);
     private static async Task HandleNavButtonClick(Func<Task> onClick) => await onClick();
 
+    private void HandleSearchClick() => searchActive = true;
+
+    private void NavigateSearch()
+    {
+        if (!State.Search.Enabled)
+        {
+            return;
+        }
+
+        string searchUri = BottomNavService.GetSearchUri(query);
+        BottomNavService.UpdateSearchUri(searchUri);
+        NavigationManager.NavigateTo(searchUri);
+    }
+
+    private void SyncQueryFromUri(string uri)
+    {
+        string? currentQuery = SearchQueryHelper.ExtractQuery(NavigationManager, uri);
+
+        if (!string.Equals(query, currentQuery, StringComparison.Ordinal))
+        {
+            query = currentQuery;
+        }
+
+        searchActive = !string.IsNullOrEmpty(query);
+    }
 }

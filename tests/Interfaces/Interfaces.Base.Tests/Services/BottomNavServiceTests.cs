@@ -9,10 +9,11 @@ namespace Vitarish.Interfaces.Base.Tests.Services;
 public sealed class BottomNavServiceTests
 {
     [Fact]
-    public void Default_state_has_all_buttons_except_back()
+    public void Default_state_has_all_buttons()
     {
         TestNavigationManager navigationManager = new();
         NavService service = new(navigationManager);
+        // Back remains enabled by default to support the always-rendered NavMenu back button.
 
         service.Current.Home.Visible.Should().BeTrue();
         service.Current.Home.Enabled.Should().BeTrue();
@@ -20,8 +21,8 @@ public sealed class BottomNavServiceTests
         service.Current.Search.Enabled.Should().BeTrue();
         service.Current.Profile.Visible.Should().BeTrue();
         service.Current.Profile.Enabled.Should().BeTrue();
-        service.Current.Back.Visible.Should().BeFalse();
-        service.Current.Back.Enabled.Should().BeFalse();
+        service.Current.Back.Visible.Should().BeTrue();
+        service.Current.Back.Enabled.Should().BeTrue();
     }
 
     [Fact]
@@ -183,17 +184,23 @@ public sealed class BottomNavServiceTests
     }
 
     [Fact]
-    public void Back_button_visible_true_without_action_or_uri_is_disabled()
+    public async Task Back_button_visible_true_without_action_or_uri_navigates_up()
     {
         TestNavigationManager navigationManager = new();
         NavService service = new(navigationManager);
+        navigationManager.TriggerLocationChanged("/level1/child");
 
         service.Apply(new BottomNavOptions(
             Back: new BackTarget(Visible: true)
         ));
 
         service.Current.Back.Visible.Should().BeTrue();
-        service.Current.Back.Enabled.Should().BeFalse();
+        service.Current.Back.Enabled.Should().BeTrue();
+
+        await service.Current.Back.OnClick();
+
+        navigationManager.History.Should().ContainSingle()
+            .Which.Should().Be("http://localhost/level1");
     }
 
     [Fact]
@@ -314,7 +321,7 @@ public sealed class BottomNavServiceTests
         service.Current.Home.OnClick().Wait();
         navigationManager.History.Should().ContainSingle()
             .Which.Should().Be("http://localhost/"); // Back to default
-        service.Current.Back.Visible.Should().BeFalse(); // Back hidden again
+        service.Current.Back.Visible.Should().BeTrue(); // Back returns to default behavior
     }
 
     [Fact]
@@ -331,7 +338,7 @@ public sealed class BottomNavServiceTests
 
         service.Current.Home.OnClick().Wait();
         navigationManager.History.Should().Contain("http://localhost/"); // Reset to default
-        service.Current.Back.Visible.Should().BeFalse();
+        service.Current.Back.Visible.Should().BeTrue();
     }
 
     [Fact]

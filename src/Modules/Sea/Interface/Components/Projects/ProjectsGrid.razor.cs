@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Components.Routing;
+using Vitarish.Interfaces.Base.Common;
+
 namespace Vitarish.Sea.Interface.Components.Projects;
 
 public partial class ProjectsGrid : ProjectsBase, IDisposable
@@ -59,7 +62,8 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        SearchService.OnSearch += OnSearch;
+        NavigationManager.LocationChanged += OnLocationChanged;
+        UpdateSearchFromUri(NavigationManager.Uri);
         StateHasChanged();
     }
     protected override async Task ReloadRequired() => await grid!.ReloadServerData();
@@ -70,10 +74,33 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
         await ReloadRequired();
     }
 
-    protected async void OnSearch(object? sender, string? query)
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
+        try
+        {
+            bool updated = UpdateSearchFromUri(e.Location);
+            if (updated && grid is not null)
+            {
+                await grid.ReloadServerData();
+            }
+        }
+        catch
+        {
+            // Ignore navigation refresh errors.
+        }
+    }
+
+    private bool UpdateSearchFromUri(string uri)
+    {
+        string? query = SearchQueryHelper.ExtractQuery(NavigationManager, uri);
+
+        if (string.Equals(SearchString, query, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
         SearchString = query;
-        await grid!.ReloadServerData();
+        return true;
     }
 
     private async Task AddProject()
@@ -240,7 +267,7 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
 
     void IDisposable.Dispose()
     {
-        SearchService.OnSearch -= OnSearch;
+        NavigationManager.LocationChanged -= OnLocationChanged;
         GC.SuppressFinalize(this);
     }
 }

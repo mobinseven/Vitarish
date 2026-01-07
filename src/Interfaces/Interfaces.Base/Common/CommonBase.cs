@@ -4,7 +4,7 @@ public class CommonBase : ComponentBase, IDisposable, IRenderNotificationReceive
 {
     public Guid Id { get; private set; } = Guid.NewGuid();
     [Inject] protected IStringLocalizer Localizer { get; set; } = default!;
-    [Inject] protected ISearchService SearchService { get; set; } = default!;
+    [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
     [Inject] protected IDialogService DialogService { get; set; } = default!;
     [Inject] protected IScrollManager ScrollManager { get; set; } = default!;
     [Inject] private IRenderNotifier RenderNotifier { get; set; } = default!;
@@ -43,4 +43,3 @@ public class CommonBase : ComponentBase, IDisposable, IRenderNotificationReceive
     void IObserver<RenderNotification>.OnNext(RenderNotification value) => RenderNotificationReceived(this, value);
 
 }
-
