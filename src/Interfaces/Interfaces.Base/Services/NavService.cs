@@ -1,3 +1,6 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
+
 namespace Vitarish.Interfaces.Base.Services;
 
 /// <summary>
@@ -20,6 +23,19 @@ public interface INavService
     /// </summary>
     /// <param name="options">The page-specific navigation options, or null to use defaults.</param>
     void Apply(BottomNavOptions? options);
+
+    /// <summary>
+    /// Builds a search URI using the configured defaults and the supplied query.
+    /// </summary>
+    /// <param name="query">The search query.</param>
+    /// <returns>The resolved search URI.</returns>
+    string GetSearchUri(string? query);
+
+    /// <summary>
+    /// Updates only the search destination while preserving other navigation options.
+    /// </summary>
+    /// <param name="searchUri">The search destination URI.</param>
+    void UpdateSearchUri(string searchUri);
 
     /// <summary>
     /// Restores the navigation bar to its global defaults.
@@ -80,7 +96,8 @@ public sealed record BottomNavDefaults(
 public sealed record BottomNavOptions(
     string? HomeUriOverride = null,
     BackTarget? Back = null,
-    string? SearchUriOverride = null
+    string? SearchUriOverride = null,
+    SearchAction? Search = null
 );
 
 /// <summary>
@@ -96,23 +113,34 @@ public sealed record BackTarget(
 );
 
 /// <summary>
+/// Configuration for the Search button.
+/// </summary>
+/// <param name="Visible">Whether the Search button is visible.</param>
+/// <param name="Enabled">Whether the Search button is enabled.</param>
+/// <param name="Uri">The URI to navigate to when clicked (if Action is not provided).</param>
+/// <param name="Action">Custom action to execute when clicked (takes precedence over Uri).</param>
+public sealed record SearchAction(
+    bool Visible = true,
+    bool Enabled = true,
+    string? Uri = null,
+    Func<Task>? Action = null
+);
+
+/// <summary>
 /// Implementation of the bottom navigation service.
 /// </summary>
 [RegisterScoped]
 public sealed class NavService : INavService, IDisposable
 {
     private readonly NavigationManager navigationManager;
-    private readonly IJSRuntime jsRuntime;
     private readonly BottomNavDefaults defaults;
     private BottomNavOptions? currentOptions;
 
     public NavService(
         NavigationManager navigationManager,
-        IJSRuntime jsRuntime,
         BottomNavDefaults? defaults = null)
     {
         this.navigationManager = navigationManager;
-        this.jsRuntime = jsRuntime;
         this.defaults = defaults ?? BottomNavDefaults.Default;
         Current = CreateDefaultState();
         currentOptions = null;
@@ -165,7 +193,12 @@ public sealed class NavService : INavService, IDisposable
             return false;
         }
 
-        // Compare Search
+        if (!AreSearchActionsEqual(a.Search, b.Search))
+        {
+            return false;
+        }
+
+        // Compare Search URI overrides
         return a.SearchUriOverride == b.SearchUriOverride;
     }
 
@@ -189,6 +222,24 @@ public sealed class NavService : INavService, IDisposable
                ReferenceEquals(a.Action, b.Action);
     }
 
+    private static bool AreSearchActionsEqual(SearchAction? a, SearchAction? b)
+    {
+        if (ReferenceEquals(a, b))
+        {
+            return true;
+        }
+
+        if (a is null || b is null)
+        {
+            return false;
+        }
+
+        return a.Visible == b.Visible &&
+               a.Enabled == b.Enabled &&
+               a.Uri == b.Uri &&
+               ReferenceEquals(a.Action, b.Action);
+    }
+
     private BottomNavState CreateDefaultState() => CreateState(null);
 
     private BottomNavState CreateState(BottomNavOptions? options)
@@ -205,32 +256,22 @@ public sealed class NavService : INavService, IDisposable
             }
         );
 
-        // Search button: always visible, uses override or default URI
-        string searchUri = options?.SearchUriOverride ?? defaults.SearchUri;
-        NavButton search = new(
-            Visible: true,
-            Enabled: true,
-            OnClick: () =>
-            {
-                navigationManager.NavigateTo(searchUri);
-                return Task.CompletedTask;
-            }
-        );
+        NavButton search = CreateSearchButton(options);
 
         NavButton back;
-        if (options?.Back is { Visible: true })
+        if (options?.Back is { Visible: true } backOptions)
         {
-            if (options.Back.Action is not null)
+            if (backOptions.Action is not null)
             {
                 back = new(
                     Visible: true,
                     Enabled: true,
-                    OnClick: options.Back.Action
+                    OnClick: backOptions.Action
                 );
             }
-            else if (options.Back.Uri is not null)
+            else if (backOptions.Uri is not null)
             {
-                string backUri = options.Back.Uri;
+                string backUri = backOptions.Uri;
                 back = new(
                     Visible: true,
                     Enabled: true,
@@ -245,16 +286,24 @@ public sealed class NavService : INavService, IDisposable
             {
                 back = new(
                     Visible: true,
-                    Enabled: true,
+                    Enabled: false,
                     OnClick: NavigateUpOneLevelAsync
                 );
             }
         }
+        else if (options?.Back is { Visible: false })
+        {
+            back = new(
+                Visible: false,
+                Enabled: false,
+                OnClick: NavigateUpOneLevelAsync
+            );
+        }
         else
         {
             back = new(
-                Visible: true,
-                Enabled: true,
+                Visible: false,
+                Enabled: false,
                 OnClick: NavigateUpOneLevelAsync
             );
         }
@@ -296,5 +345,79 @@ public sealed class NavService : INavService, IDisposable
     {
         navigationManager.LocationChanged -= HandleLocationChanged;
         GC.SuppressFinalize(this);
+    }
+
+    public string GetSearchUri(string? query)
+    {
+        string baseUri = currentOptions?.Search?.Uri
+            ?? currentOptions?.SearchUriOverride
+            ?? defaults.SearchUri;
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return baseUri;
+        }
+
+        string separator = baseUri.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+        return $"{baseUri}{separator}q={Uri.EscapeDataString(query)}";
+    }
+
+    public void UpdateSearchUri(string searchUri)
+    {
+        BottomNavOptions merged = currentOptions is null
+            ? new BottomNavOptions(SearchUriOverride: searchUri)
+            : currentOptions with
+            {
+                Search = null,
+                SearchUriOverride = searchUri
+            };
+
+        Apply(merged);
+    }
+
+    private NavButton CreateSearchButton(BottomNavOptions? options)
+    {
+        if (options?.Search is { } searchAction)
+        {
+            if (!searchAction.Visible)
+            {
+                return new NavButton(
+                    Visible: false,
+                    Enabled: false,
+                    OnClick: () => Task.CompletedTask
+                );
+            }
+
+            if (searchAction.Action is not null)
+            {
+                return new NavButton(
+                    Visible: searchAction.Visible,
+                    Enabled: searchAction.Enabled,
+                    OnClick: searchAction.Action
+                );
+            }
+
+            string actionUri = searchAction.Uri ?? defaults.SearchUri;
+            return new NavButton(
+                Visible: searchAction.Visible,
+                Enabled: searchAction.Enabled,
+                OnClick: () =>
+                {
+                    navigationManager.NavigateTo(actionUri);
+                    return Task.CompletedTask;
+                }
+            );
+        }
+
+        string searchUri = options?.SearchUriOverride ?? defaults.SearchUri;
+        return new NavButton(
+            Visible: true,
+            Enabled: true,
+            OnClick: () =>
+            {
+                navigationManager.NavigateTo(searchUri);
+                return Task.CompletedTask;
+            }
+        );
     }
 }

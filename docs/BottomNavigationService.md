@@ -420,7 +420,7 @@ If you want to integrate BottomNavService with the existing NavMenu component, y
 
 1. Update `NavMenu.razor.cs` to inject `IBottomNavService` instead of `INavMenuService`
 2. Bind button visibility and click handlers to `BottomNavService.Current` state
-3. Keep the existing search integration with `ISearchService` for the search input overlay
+3. Use `INavService.GetSearchUri(...)` to turn the search input into a search URI without a separate search service
 
 Example snippet for integration:
 

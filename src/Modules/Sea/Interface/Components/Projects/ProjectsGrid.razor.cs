@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components.Routing;
+
 namespace Vitarish.Sea.Interface.Components.Projects;
 
 public partial class ProjectsGrid : ProjectsBase, IDisposable
@@ -59,7 +61,8 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        SearchService.OnSearch += OnSearch;
+        NavigationManager.LocationChanged += OnLocationChanged;
+        UpdateSearchFromUri(NavigationManager.Uri);
         StateHasChanged();
     }
     protected override async Task ReloadRequired() => await grid!.ReloadServerData();
@@ -70,10 +73,55 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
         await ReloadRequired();
     }
 
-    protected async void OnSearch(object? sender, string? query)
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
+        bool updated = UpdateSearchFromUri(e.Location);
+        if (updated && grid is not null)
+        {
+            await grid.ReloadServerData();
+        }
+    }
+
+    private bool UpdateSearchFromUri(string uri)
+    {
+        string? query = ExtractQuery(uri);
+
+        if (string.Equals(SearchString, query, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
         SearchString = query;
-        await grid!.ReloadServerData();
+        return true;
+    }
+
+    private string? ExtractQuery(string uri)
+    {
+        Uri absolute = NavigationManager.ToAbsoluteUri(uri);
+        string query = absolute.Query;
+        if (string.IsNullOrEmpty(query) || query.Length <= 1)
+        {
+            return null;
+        }
+
+        foreach (string segment in query.TrimStart('?').Split('&', StringSplitOptions.RemoveEmptyEntries))
+        {
+            int separatorIndex = segment.IndexOf('=');
+            if (separatorIndex < 0)
+            {
+                continue;
+            }
+
+            if (!string.Equals(segment[..separatorIndex], "q", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            string value = segment[(separatorIndex + 1)..];
+            return Uri.UnescapeDataString(value.Replace("+", " "));
+        }
+
+        return null;
     }
 
     private async Task AddProject()
@@ -240,7 +288,7 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
 
     void IDisposable.Dispose()
     {
-        SearchService.OnSearch -= OnSearch;
+        NavigationManager.LocationChanged -= OnLocationChanged;
         GC.SuppressFinalize(this);
     }
 }
