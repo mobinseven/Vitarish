@@ -4,15 +4,22 @@ using Vitarish.Users.Application.Commands;
 
 public class UserService : IUserService
 {
+    private static class Keys
+    {
+        public static string User => $"User";
+        public static string Roles => $"UserRoles";
+        public static string Profile => $"UserProfile";
+        public static string Culture => $"UserCulture";
+        public static string Theme => $"UserTheme";
+    }
     private static class CacheKeys
     {
-        public static string User(string userId) => $"User:{userId}";
-        public static string Roles(string userId) => $"UserRoles:{userId}";
-        public static string Profile(string userId) => $"UserProfile:{userId}";
-        public static string Culture(string userId) => $"UserCulture:{userId}";
+        public static string User(string userId) => $"{Keys.User}:{userId}";
+        public static string Roles(string userId) => $"{Keys.Roles}:{userId}";
+        public static string Profile(string userId) => $"{Keys.Profile}:{userId}";
+        public static string Culture(string userId) => $"{Keys.Culture}:{userId}";
+        public static string Theme(string userId) => $"{Keys.Theme}:{userId}";
     }
-
-    private const string CulturePreferenceKey = "Culture";
 
     private readonly IUsersService _usersService;
     private readonly IUserProfileService _profileService;
@@ -178,8 +185,8 @@ public class UserService : IUserService
         // Update distributed cache
         byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(preferences);
         await _cache.SetAsync(CacheKeys.Profile(userId), bytes, _cacheOptions);
-        // Also update derived culture
-        if (preferences.TryGetValue(CulturePreferenceKey, out string? culture))
+        // Also update derived theme
+        if (preferences.TryGetValue(Keys.Culture, out string? culture))
         {
             await _cache.SetStringAsync(CacheKeys.Culture(userId), culture, _cacheOptions);
         }
@@ -213,6 +220,30 @@ public class UserService : IUserService
         return result;
     }
 
+    public async Task<string?> GetThemeAsync(string userId)
+    {
+        // Try cache first
+        string? theme = await _cache.GetStringAsync(CacheKeys.Theme(userId));
+        if (!string.IsNullOrEmpty(theme))
+        {
+            return theme;
+        }
+
+        // Cache miss or not present
+        Dictionary<string, string>? prefs = await GetProfileAsync(userId);
+        if (prefs == null)
+        {
+            return null;
+        }
+
+        string? result = GetTheme(prefs);
+        if (result != null)
+        {
+            await _cache.SetStringAsync(CacheKeys.Theme(userId), result, _cacheOptions);
+        }
+        return result;
+    }
+
     public async Task<bool> SetCultureAsync(string userId, string culture)
     {
         if (string.IsNullOrWhiteSpace(culture))
@@ -226,11 +257,31 @@ public class UserService : IUserService
             return false;
         }
 
-        prefs[CulturePreferenceKey] = culture;
+        prefs[Keys.Culture] = culture;
 
         await UpdateProfileAsync(userId, prefs);
         return true;
     }
+
+    public async Task<bool> SetThemeAsync(string userId, string theme)
+    {
+        if (string.IsNullOrWhiteSpace(theme))
+        {
+            return false;
+        }
+
+        Dictionary<string, string>? prefs = await GetProfileAsync(userId);
+        if (prefs == null)
+        {
+            return false;
+        }
+
+        prefs[Keys.Theme] = theme;
+
+        await UpdateProfileAsync(userId, prefs);
+        return true;
+    }
+
     public Task<bool> UserHasPasswordAsync(string userId, CancellationToken ct = default) =>
         _usersService.UserHasPasswordAsync(userId, ct);
 
@@ -253,5 +304,7 @@ public class UserService : IUserService
     }
 
     public static string? GetCulture(IDictionary<string, string> preferences) =>
-        preferences.TryGetValue(CulturePreferenceKey, out string? c) ? c : null;
+        preferences.TryGetValue(Keys.Culture, out string? c) ? c : null;
+    public static string? GetTheme(IDictionary<string, string> preferences) =>
+        preferences.TryGetValue(Keys.Theme, out string? c) ? c : null;
 }

@@ -10,7 +10,6 @@ public sealed record UsageConfigurationMetadata
     public string? ClinicPatientIntakeInstructions { get; set; }
     public string? ProjectOverviewInstructions { get; set; }
     public string? ProcedureOverviewInstructions { get; set; }
-    public string? ThemeSettingsJson { get; set; }
     public string[]? PluginIdentifiers { get; set; }
 
     public static UsageConfigurationMetadata FromJson(string? json)

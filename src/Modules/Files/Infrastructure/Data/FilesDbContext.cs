@@ -28,7 +28,7 @@ public sealed class FilesDbContext : MultiTenantDbContext
         _ = modelBuilder.Entity<FileInformation>().HasQueryFilter(entity =>
             entity.DeletedAt == null &&
             TenantInfo != null &&
-            (TenantInfo.Id == Defaults.RootTenant || entity.TenantId == TenantInfo.Id));
+            (TenantInfo.Id == TenantDefaults.RootTenant || entity.TenantId == TenantInfo.Id));
 
         _ = modelBuilder.Entity<FileInformation>()
             .Property(entity => entity.TenantId)

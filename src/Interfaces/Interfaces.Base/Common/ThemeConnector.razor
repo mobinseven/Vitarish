@@ -1,0 +1,46 @@
+@implements IDisposable
+
+@inject IThemeService ThemeService
+
+<MudThemeProvider @key="@($"theme-{ThemeService.ThemeVersion}")"
+                  Theme="@ThemeService.Theme"
+                  IsDarkMode="@ThemeService.IsDarkMode"
+                  IsDarkModeChanged="OnDarkModeChanged"
+                  ObserveSystemThemeChange="@ThemeService.ObserveSystemThemeChange" />
+
+<style @key="@($"surface-{ThemeService.ThemeVersion}")">
+    @ThemeService.BuildCustomCss()
+</style>
+
+@code {
+    private MudThemeProvider? _provider;
+
+    protected override async Task OnInitializedAsync()
+    {
+        ThemeService.VisualStateChanged += OnVisualStateChanged;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(!firstRender || _provider is null)
+            return;
+
+        // If Auto, sync to actual system preference once JS is available.
+        if(ThemeService.Settings.Theme == ThemePreference.Auto)
+        {
+            var systemIsDark = await _provider.GetSystemDarkModeAsync(); // preferred API :contentReference[oaicite:10]{index=10}
+            await ThemeService.UpdateSystemDarkModeAsync(systemIsDark);
+        }
+    }
+
+    private Task OnDarkModeChanged(bool isDarkMode)
+        => ThemeService.UpdateSystemDarkModeAsync(isDarkMode);
+
+    private void OnVisualStateChanged()
+        => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        ThemeService.VisualStateChanged -= OnVisualStateChanged;
+    }
+}

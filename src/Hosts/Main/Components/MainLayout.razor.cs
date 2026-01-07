@@ -1,4 +1,10 @@
-namespace Vitarish.Interfaces.Base.Common;
+using Vitarish.Accounts.Application.Abstractions;
+using Vitarish.Interfaces.Base.Abstractions;
+using Vitarish.Interfaces.Base.Common;
+using Vitarish.Interfaces.Base.Models;
+using Vitarish.Interfaces.Base.Services;
+
+namespace Vitarish.Main.Components;
 
 public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowserViewportObserver, IRenderNotificationReceiver
 {
@@ -8,14 +14,12 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
     [Inject] private IJSRuntime JS { get; set; } = default!;
     [Inject] private IRenderNotifier RenderNotifier { get; set; } = default!;
     [Inject] protected ISnackbar Snackbar { get; set; } = default!;
-    [Inject] private IThemeService ThemeService { get; set; } = default!;
+    [Inject] protected IThemeService ThemeService { get; set; } = default!;
     [Inject] private ILayoutService LayoutService { get; set; } = default!;
-
+    [Inject] protected IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
+    [Inject] protected IUserService UserService { get; set; } = default!;
     private bool Initialized;
-    private bool darkmood;
-
-    protected MudTheme Theme => ThemeService.Theme;
-    protected ThemeSurface CurrentThemeSurface => ThemeService.GetSurface(darkmood);
+    private readonly bool darkmood;
 
     private IDisposable? subscription;
     protected Breakpoint PageBreakpoint { get; set; }
@@ -23,12 +27,17 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
     private Breakpoint? startingBreakpoint;
     private bool BreakpointReceived => startingBreakpoint is not null;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
+        ThemeSettings? themeSettings = null;
+        string? userId = HttpContextAccessor.HttpContext?.GetUserId();
+        if (!string.IsNullOrEmpty(userId))
+        {
+            string? theme = await UserService.GetThemeAsync(userId);
+            themeSettings = ThemeSettings.FromJson(theme);
+        }
+        await ThemeService.InitializeAsync(themeSettings);
         Initialized = true;
-        darkmood = ThemeService.DarkModeEnabled;
-        ThemeService.ThemeModified += OnThemeModified;
-        LayoutService.ThemeStateChanged += OnThemeStateChanged;
         LayoutService.SearchStateChanged += OnSearchStateChanged;
         subscription = RenderNotifier.Subscribe(this);
         StateHasChanged();
@@ -57,8 +66,6 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
 
     public async ValueTask DisposeAsync()
     {
-        ThemeService.ThemeModified -= OnThemeModified;
-        LayoutService.ThemeStateChanged -= OnThemeStateChanged;
         LayoutService.SearchStateChanged -= OnSearchStateChanged;
         await BrowserViewportService.UnsubscribeAsync(this);
         subscription?.Dispose();
@@ -93,16 +100,6 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
     public void OnCompleted() => throw new NotImplementedException();
     public void OnError(Exception error) => throw new NotImplementedException();
     void IObserver<RenderNotification>.OnNext(RenderNotification value) => RenderNotificationReceived(this, value);
-
-    private void OnThemeModified(object? sender, EventArgs e) => HandleThemeChanged();
-
-    private void OnThemeStateChanged(object? sender, EventArgs e) => HandleThemeChanged();
-
-    private void HandleThemeChanged()
-    {
-        darkmood = ThemeService.DarkModeEnabled;
-        _ = InvokeAsync(StateHasChanged);
-    }
 
     private void OnSearchStateChanged(object? sender, EventArgs e)
         => _ = InvokeAsync(StateHasChanged);

@@ -23,14 +23,7 @@
                     <MudFab Size=Size IconColor="Color.Info" StartIcon="@Icons.Material.Filled.Download" DropShadow=false OnClick="context.OnInstallClicked" />
                 </InstallButton>
             </PwaInstall>
-            @if(NavMenuButtons is not null)
-            {
-                @NavMenuButtons
-            }
-            else
-            {
-                <MudFab Size=Size StartIcon="fa-thin fa-gear" DropShadow=false Href="/settings" />
-            }
+            <MudFab Size=Size StartIcon="fa-thin fa-gear" DropShadow=false Href="/settings" />
         }
     </MudStack>
 </div>

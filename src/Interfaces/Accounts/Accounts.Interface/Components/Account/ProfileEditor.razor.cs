@@ -5,7 +5,7 @@ public partial class ProfileEditor
     private MudForm? _form;
     private bool _isValid;
     private bool _isBusy;
-
+    private string? _userTheme => User.ProfilePreferences.ContainsKey("UserTheme") ? User.ProfilePreferences["UserTheme"] : null;
     private async Task UpdateUser()
     {
         if (_form is not null)

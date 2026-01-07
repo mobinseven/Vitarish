@@ -5,15 +5,12 @@ public partial class NavMenu : ComponentBase, IDisposable
 {
     [Inject] private ISearchService SearchService { get; set; } = default!;
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
-    [Inject] private IThemeService ThemeService { get; set; } = default!;
     [Inject] private INavMenuService NavMenuService { get; set; } = default!;
 
     [Parameter] public Size Size { get; set; } = Size.Large;
 
     private bool searchActive;
     private string? query;
-
-    private RenderFragment? NavMenuButtons => NavMenuService.State.AdditionalButtons ?? ThemeService.NavMenuButtons;
 
     private NavMenuAction? BackAction => NavMenuService.State.BackAction;
 

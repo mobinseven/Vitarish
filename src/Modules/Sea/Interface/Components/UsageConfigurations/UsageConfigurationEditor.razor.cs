@@ -22,7 +22,6 @@ public partial class UsageConfigurationEditor : UsageConfigurationsBase
 
     [Inject] private IEnumerable<IProjectGridCellDisplayPlugin> ProjectGridCellDisplayPlugins { get; set; } = default!;
     [Inject] private ILoadedPluginCatalog LoadedPluginCatalog { get; set; } = default!;
-    [Inject] private IThemeService ThemeService { get; set; } = default!;
 
     private string PreferredProjectGridCellDisplayPluginId
     {
@@ -35,14 +34,6 @@ public partial class UsageConfigurationEditor : UsageConfigurationsBase
         _configuration = await UsageConfigurationService.GetUsageConfigurationAsync(CancellationToken.None)
             ?? new(Guid.Empty, null, "{}");
         _metadata = UsageConfigurationMetadata.FromJson(_configuration.Metadata);
-        if (string.IsNullOrWhiteSpace(_metadata.ThemeSettingsJson))
-        {
-            _metadata.ThemeSettingsJson = ThemeService.GetThemeSettingsJson();
-        }
-        else
-        {
-            ThemeService.LoadThemeSettingsJson(_metadata.ThemeSettingsJson);
-        }
         _projectGridCellDisplayPlugins =
             ProjectGridCellDisplayPlugins
                 .OrderBy(plugin => plugin.DisplayName, StringComparer.CurrentCultureIgnoreCase)
@@ -62,7 +53,6 @@ public partial class UsageConfigurationEditor : UsageConfigurationsBase
         {
             _metadata.ChatModel = null;
         }
-        _metadata.ThemeSettingsJson = ThemeService.GetThemeSettingsJson();
         _configuration.Metadata = _metadata.ToJson();
         return UsageConfigurationService.UpdateAsync(_configuration, CancellationToken.None);
     }

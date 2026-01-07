@@ -46,7 +46,7 @@ public class FileLoadCors
             return;
         }
 
-        using IDisposable tenantScope = _tenantAccessor.UseTenant(Defaults.RootTenant);
+        using IDisposable tenantScope = _tenantAccessor.UseTenant(TenantDefaults.RootTenant);
         using IServiceScope scope = _serviceScopeFactory.CreateScope();
         IFileInformationService fileInformations = scope.ServiceProvider.GetRequiredService<IFileInformationService>();
         EntityResult<IReadOnlyList<FileInformationDto>> fisRes = await fileInformations.GetListAsync(new FileInformationDescriptorDto { Name = fileName }, context.RequestAborted);

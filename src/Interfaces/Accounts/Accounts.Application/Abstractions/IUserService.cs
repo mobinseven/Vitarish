@@ -65,4 +65,6 @@ public interface IUserService
     /// </summary>
     Task<bool> SetCultureAsync(string userId, string culture);
     Task<IEnumerable<IdentityRole>> GetUserRolesAsync(string userId, CancellationToken ct = default);
+    Task<bool> SetThemeAsync(string userId, string theme);
+    Task<string?> GetThemeAsync(string userId);
 }

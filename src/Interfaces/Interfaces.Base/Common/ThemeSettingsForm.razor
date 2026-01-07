@@ -1,0 +1,148 @@
+@implements IDisposable
+
+@inject IThemeService ThemeService
+
+<MudPaper Class="pa-4 pa-sm-6" Elevation="0" Style="max-width: 840px;">
+    <MudStack Spacing="4">
+        <MudStack Spacing="1">
+            <MudText Typo="Typo.h6">Appearance</MudText>
+            <MudText Typo="Typo.body2" Color="Color.Secondary">
+                Changes apply instantly across the app.
+            </MudText>
+        </MudStack>
+
+        <MudDivider />
+
+        <MudGrid Spacing="3">
+            <MudItem xs="12" md="6">
+                <MudPaper Class="pa-4" Elevation="0" Style="border: 1px solid var(--mud-palette-divider); border-radius: var(--mud-default-borderradius);">
+                    <MudText Typo="Typo.subtitle1">Theme</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+                        Light, Dark, or follow your system setting.
+                    </MudText>
+
+                    <MudRadioGroup T="ThemePreference"
+                                   Value="@_settings.Theme"
+                                   ValueChanged="OnThemeChanged">
+                        <MudRadio T="ThemePreference" Value="ThemePreference.Light" Label="Light" />
+                        <MudRadio T="ThemePreference" Value="ThemePreference.Dark" Label="Dark" />
+                        <MudRadio T="ThemePreference" Value="ThemePreference.Auto" Label="Auto (System)" />
+                    </MudRadioGroup>
+
+                    @if(_settings.Theme == ThemePreference.Auto)
+                    {
+                        <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mt-2">
+                            Current: @((ThemeService.IsDarkMode) ? "Dark" : "Light")
+                        </MudText>
+                    }
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudPaper Class="pa-4" Elevation="0" Style="border: 1px solid var(--mud-palette-divider); border-radius: var(--mud-default-borderradius);">
+                    <MudText Typo="Typo.subtitle1">Typography size</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+                        Adjust overall text density for readability.
+                    </MudText>
+
+                    <MudRadioGroup T="TypographySize"
+                                   Label="Typography size"
+                                   Value="@_settings.Typography"
+                                   ValueChanged="OnTypographyChanged">
+                        <MudRadio T="TypographySize" Value="TypographySize.Compact" Label="Compact" />
+                        <MudRadio T="TypographySize" Value="TypographySize.Normal" Label="Normal" />
+                        <MudRadio T="TypographySize" Value="TypographySize.Large" Label="Large" />
+                    </MudRadioGroup>
+                </MudPaper>
+            </MudItem>
+
+            <MudItem xs="12" md="6">
+                <MudPaper Class="pa-4" Elevation="0" Style="border: 1px solid var(--mud-palette-divider); border-radius: var(--mud-default-borderradius);">
+                    <MudText Typo="Typo.subtitle1">Transparency style</MudText>
+                    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+                        Adjust transparency style of theme
+                    </MudText>
+
+                    <MudRadioGroup T="ThemeSurfaceType"
+                                   Label="Surface style"
+                                   Value="@_settings.Surface"
+                                   ValueChanged="OnSurfaceChanged">
+                        <MudRadio T="ThemeSurfaceType" Value="ThemeSurfaceType.Translucent" Label="Translucent" />
+                        <MudRadio T="ThemeSurfaceType" Value="ThemeSurfaceType.Transparent" Label="Transparent" />
+                        <MudRadio T="ThemeSurfaceType" Value="ThemeSurfaceType.Opaque" Label="Opaque" />
+                    </MudRadioGroup>
+                </MudPaper>
+            </MudItem>
+        </MudGrid>
+
+        <MudPaper Class="pa-4" Elevation="0" Style="border: 1px solid var(--mud-palette-divider); border-radius: var(--mud-default-borderradius);">
+            <MudStack Spacing="2">
+                <MudText Typo="Typo.subtitle1">Preview</MudText>
+
+                <MudText Typo="Typo.h5">Heading preview</MudText>
+                <MudText Typo="Typo.body1">
+                    The quick brown fox jumps over the lazy dog.
+                </MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    Caption / helper text preview
+                </MudText>
+
+                <MudStack Row Spacing="2">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary">Primary action</MudButton>
+                    <MudButton Variant="Variant.Outlined" Color="Color.Primary">Secondary</MudButton>
+                </MudStack>
+            </MudStack>
+        </MudPaper>
+
+        <MudStack Row Justify="Justify.FlexEnd" Spacing="2">
+            <MudButton Variant="Variant.Text" OnClick="ResetAsync">Reset</MudButton>
+        </MudStack>
+    </MudStack>
+</MudPaper>
+
+@code {
+
+    // Export callback: called on *every* update
+    [Parameter] public EventCallback<string> SettingsSaved { get; set; }
+
+    private ThemeSettings _settings = ThemeSettings.Default;
+
+    protected override void OnInitialized()
+    {
+        // Always track changes so Auto/system toggles can be exported too.
+        ThemeService.SettingsChanged += HandleServiceSettingsChangedAsync;
+        _settings = ThemeService.Settings;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ThemeService.InitializeAsync();
+        _settings = ThemeService.Settings;
+    }
+
+    private async Task OnThemeChanged(ThemePreference pref)
+        => await ThemeService.SetThemePreferenceAsync(pref);
+
+    private async Task OnTypographyChanged(TypographySize size)
+        => await ThemeService.SetTypographySizeAsync(size);
+
+    private Task OnSurfaceChanged(ThemeSurfaceType s)
+        => ThemeService.SetSurfaceAsync(s);
+
+    private async Task ResetAsync()
+        => await ThemeService.InitializeAsync(Models.ThemeSettings.Default with { LastKnownIsDarkMode = ThemeService.IsDarkMode });
+
+    private async Task HandleServiceSettingsChangedAsync(Models.ThemeSettings s)
+    {
+        _settings = s;
+        await InvokeAsync(StateHasChanged);
+
+        if(SettingsSaved.HasDelegate)
+            await SettingsSaved.InvokeAsync(s.ToJson());
+    }
+
+    public void Dispose()
+    {
+        ThemeService.SettingsChanged -= HandleServiceSettingsChangedAsync;
+    }
+}
