@@ -1,0 +1,170 @@
+@page "/navigation/bottom-nav"
+@using MudBlazor
+@using Microsoft.AspNetCore.Components.Web
+@using Vitarish.Interfaces.Base.Common
+@using Vitarish.Interfaces.Base.Services
+@inject IBottomNavService BottomNavService
+@inject ISnackbar Snackbar
+
+<MudContainer MaxWidth="MaxWidth.Medium" Class="mt-4" Style="padding-bottom: 140px;">
+    <MudText Typo="Typo.h4" Class="mb-4">Bottom Navigation Bar</MudText>
+    
+    <MudText Typo="Typo.body1" Class="mb-2">
+        A floating, pill-shaped bottom navigation bar with a radial Create menu.
+    </MudText>
+
+    <MudDivider Class="my-4" />
+
+    <MudText Typo="Typo.h6" Class="mb-2">Features</MudText>
+    <MudList T="string">
+        <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle">
+            Floating pill design with shadow
+        </MudListItem>
+        <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle">
+            5 navigation buttons: Home, Search, Create (+), Back, Profile
+        </MudListItem>
+        <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle">
+            Active state styling (filled vs outline icons)
+        </MudListItem>
+        <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle">
+            Expandable radial menu with 3 quick actions
+        </MudListItem>
+        <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle">
+            Smooth animations and transitions
+        </MudListItem>
+        <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle">
+            Keyboard accessible with ARIA labels
+        </MudListItem>
+        <MudListItem T="string" Icon="@Icons.Material.Filled.CheckCircle">
+            Responsive and mobile-friendly
+        </MudListItem>
+    </MudList>
+
+    <MudDivider Class="my-4" />
+
+    <MudText Typo="Typo.h6" Class="mb-2">Demo Controls</MudText>
+    
+    <MudStack Spacing="3" Class="mb-4">
+        <MudSwitch @bind-Value="_showBackButton" Color="Color.Primary">
+            Show Back Button
+        </MudSwitch>
+
+        <MudButton Variant="Variant.Filled" 
+                   Color="Color.Primary" 
+                   OnClick="@(() => _activeButton = NavButtonId.Home)">
+            Set Home Active
+        </MudButton>
+        
+        <MudButton Variant="Variant.Filled" 
+                   Color="Color.Secondary" 
+                   OnClick="@(() => _activeButton = NavButtonId.Search)">
+            Set Search Active
+        </MudButton>
+        
+        <MudButton Variant="Variant.Filled" 
+                   Color="Color.Tertiary" 
+                   OnClick="@(() => _activeButton = NavButtonId.Profile)">
+            Set Profile Active
+        </MudButton>
+    </MudStack>
+
+    <MudDivider Class="my-4" />
+
+    <MudText Typo="Typo.h6" Class="mb-2">Usage Example</MudText>
+    <MudPaper Elevation="2" Class="pa-4">
+        <pre><code>&lt;MudBottomNavBar 
+    Active="NavButtonId.Home"
+    CreateActions="@_radialActions"
+    EnableCreateMenu="true"
+    CreateMenuToggled="@HandleCreateMenuToggled" /&gt;</code></pre>
+    </MudPaper>
+
+    <MudDivider Class="my-4" />
+
+    <MudText Typo="Typo.body2" Color="Color.Info" Class="mt-4">
+        Try clicking the buttons in the navigation bar at the bottom of the screen!
+        The Create button (+) in the center will expand a radial menu with quick actions.
+    </MudText>
+</MudContainer>
+
+<MudBottomNavBar 
+    Active="@_activeButton"
+    CreateActions="@_radialActions"
+    EnableCreateMenu="true"
+    CreateMenuToggled="@HandleCreateMenuToggled" />
+
+@code {
+    private NavButtonId? _activeButton = NavButtonId.Home;
+    private bool _showBackButton = false;
+    private bool _createMenuOpen = false;
+
+    private IReadOnlyList<RadialAction> _radialActions = new List<RadialAction>
+    {
+        new RadialAction(
+            Label: "Take Photo",
+            Icon: Icons.Material.Filled.CameraAlt,
+            OnClick: async () => 
+            {
+                await Task.CompletedTask;
+                // Simulate action
+            }
+        ),
+        new RadialAction(
+            Label: "Upload Image",
+            Icon: Icons.Material.Filled.Image,
+            OnClick: async () => 
+            {
+                await Task.CompletedTask;
+                // Simulate action
+            }
+        ),
+        new RadialAction(
+            Label: "Record Video",
+            Icon: Icons.Material.Filled.Videocam,
+            OnClick: async () => 
+            {
+                await Task.CompletedTask;
+                // Simulate action
+            }
+        )
+    };
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        UpdateNavState();
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        UpdateNavState();
+    }
+
+    private void UpdateNavState()
+    {
+        BottomNavService.Apply(new BottomNavOptions(
+            Back: _showBackButton ? new BackTarget(Visible: true, Action: HandleBackClick) : null,
+            Search: new SearchAction(Action: HandleSearchClick)
+        ));
+    }
+
+    private Task HandleBackClick()
+    {
+        Snackbar.Add("Back button clicked!", Severity.Info);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleSearchClick()
+    {
+        Snackbar.Add("Search button clicked!", Severity.Info);
+        return Task.CompletedTask;
+    }
+
+    private Task HandleCreateMenuToggled(bool isOpen)
+    {
+        _createMenuOpen = isOpen;
+        Snackbar.Add(isOpen ? "Create menu opened" : "Create menu closed", Severity.Normal);
+        return Task.CompletedTask;
+    }
+}

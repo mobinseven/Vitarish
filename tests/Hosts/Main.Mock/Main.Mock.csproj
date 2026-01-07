@@ -8,5 +8,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Interfaces\Accounts\Accounts.Interface\Accounts.Interface.csproj" />
+    <ProjectReference Include="..\..\..\src\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
   </ItemGroup>
 </Project>
