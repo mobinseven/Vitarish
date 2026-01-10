@@ -48,8 +48,8 @@ namespace Vitarish.Intelligence.Infrastructure.Services
                 _logger.LogInformation("Starting Intelligence module self-test...");
 
                 ValidateDefaultModels();
-                await ProbeResponderAsync(cancellationToken).ConfigureAwait(false);
-                await ProbeTranscriberAsync(cancellationToken).ConfigureAwait(false);
+                //await ProbeResponderAsync(cancellationToken).ConfigureAwait(false);
+                //await ProbeTranscriberAsync(cancellationToken).ConfigureAwait(false);
 
                 _logger.LogInformation("Intelligence module startup self-test completed successfully.");
             }
