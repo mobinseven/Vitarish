@@ -12,21 +12,21 @@
     <base href="/" />
     <ResourcePreloader />
     <link rel="stylesheet" href="@Assets["Vitarish.Main.styles.css"]" />
-    <link rel="apple-touch-icon" href="https://assets.vitarish.ir/logo/512.webp" crossorigin="">
-    <link rel="icon" type="image/png" href="https://assets.vitarish.ir/logo/favicon.ico" crossorigin="">
-    <script src="https://assets.vitarish.ir/js/loading.min.js"></script>
+@*     <link rel="apple-touch-icon" href="https://assets.vitarish.ir/logo/512.webp" crossorigin="">
+    <link rel="icon" type="image/png" href="https://assets.vitarish.ir/logo/favicon.ico" crossorigin=""> *@
+    @* <script src="https://assets.vitarish.ir/js/loading.min.js"></script> *@
     <ImportMap />
     <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
 <body>
     <Routes @rendermode="RenderModeForPage" />
-    <script src="_framework/blazor.web.js" autostart="false"></script>
-    <script type="module" src="https://assets.vitarish.ir/js/connection-manager.js"></script>
+    <script src="_framework/blazor.web.js"></script>
+@*     <script src="_framework/blazor.web.js" autostart="false"></script>
+    <script type="module" src="https://assets.vitarish.ir/js/connection-manager.js"></script> *@
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
-    <link href="https://assets.vitarish.ir/fa/css/all.min.css" rel="stylesheet">
-    <link href="https://assets.vitarish.ir/fonts/css/all.min.css" rel="stylesheet">
+    <link href="fa/v6/css/all.min.css" rel="stylesheet">
 </body>
 
 </html>
