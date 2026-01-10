@@ -5,10 +5,10 @@
         <MudStack Spacing="2">
             <MudText Typo="Typo.h6">@Localizer["TemplateItem", Localizer["Project"]]</MudText>
             <MudTextField @bind-Value="name"
-                          Variant="Variant.Outlined"
+                          Variant="ThemeService.SecondaryVariant"
                           Label="@Localizer["Project"]" />
             <MudTextField @bind-Value="description"
-                          Variant="Variant.Outlined"
+                          Variant="ThemeService.SecondaryVariant"
                           AutoGrow
                           Lines="3"
                           Label="@Localizer["Description"]" />

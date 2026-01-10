@@ -1,0 +1,16 @@
+@inherits MudField
+
+<MudField Variant="Variant.Text"
+          Style="cursor: pointer"
+          Underline="false"
+          FullWidth>
+    <MudStack Row Style="width: 100%;" StretchItems="StretchItems.Start" AlignItems="AlignItems.Center">
+        <div>
+            <MudText Typo="Typo.h6">@Label</MudText>
+            <MudText Typo="Typo.caption">@HelperText</MudText>
+        </div>
+        <div>
+            @ChildContent
+        </div>
+    </MudStack>
+</MudField>

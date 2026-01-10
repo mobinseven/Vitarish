@@ -44,7 +44,7 @@
                 </MudStep>
                 <MudStep Title="@Localizer["Content"]" @bind-Completed=ContentStep>
                     <MudTextField @bind-Value="subject" Variant=Variant.Outlined Label="@Localizer["Subject"]" />
-                    <MudTextField @bind-Value="textBody" Variant="Variant.Outlined" AutoGrow Lines="3" Label="@Localizer["TextBody"]" />
+                    <MudTextField @bind-Value="textBody" Variant="ThemeService.SecondaryVariant" AutoGrow Lines="3" Label="@Localizer["TextBody"]" />
                 </MudStep>
             </ChildContent>
             <CompletedContent>

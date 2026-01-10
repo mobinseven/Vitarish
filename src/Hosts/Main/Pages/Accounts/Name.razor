@@ -1,0 +1,32 @@
+@page "/Profile/Name"
+@inherits IdentityCommonBase
+
+@if(User is null)
+{
+    return;
+}
+
+<WidthControlled>
+    <MudPaper Class="sticky-top pa-3 my-3" Elevation="0">
+        <MudText Typo="Typo.h3" GutterBottom="true" Align="Align.Center">@Localizer["EditItem", Localizer["Name"]]</MudText>
+    </MudPaper>
+    <MudPaper Elevation="0" Class="pa-4">
+        <MudStack Spacing="2">
+            <MudTextField @bind-Value="User.FirstName"
+                          Label="@Localizer["FirstName"]"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="true"
+                          Required="true" />
+            <MudTextField @bind-Value="User.LastName"
+                          Label="@Localizer["LastName"]"
+                          Variant="Variant.Outlined"
+                          Margin="Margin.Dense"
+                          Immediate="true"
+                          Required="true" />
+            <MudButton OnClick="@(() => UserService.UpdateUserAsync(User.Id, User))" FullWidth Color="Color.Primary" Variant="Variant.Filled">
+                @Localizer["Save"]
+            </MudButton>
+        </MudStack>
+    </MudPaper>
+</WidthControlled>

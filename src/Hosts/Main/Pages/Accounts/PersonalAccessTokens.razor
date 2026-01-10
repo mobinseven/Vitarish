@@ -16,7 +16,7 @@ else
                              Label="@Localizer["LifetimeDays"]"
                              Min="1"
                              Max="3650"
-                             Variant="Variant.Outlined" />
+                             Variant="ThemeService.SecondaryVariant" />
             <MudSwitch T="bool" @bind-Value="model.IsReferenceToken"
                        Color="Color.Primary"
                        Class="mb-4">@Localizer["ReferenceToken"]</MudSwitch>
@@ -25,7 +25,7 @@ else
                        MultiSelection="true"
                        SelectedValues="SelectedScopeValues"
                        SelectedValuesChanged="OnSelectedScopesChanged"
-                       Variant="Variant.Outlined">
+                       Variant="ThemeService.SecondaryVariant">
                 @foreach (var scope in scopes)
                 {
                     <MudSelectItem Value="@scope">@scope</MudSelectItem>
@@ -47,6 +47,6 @@ else
         <MudTextField Value="@token"
                       Lines="6"
                       ReadOnly="true"
-                      Variant="Variant.Outlined" />
+                      Variant="ThemeService.SecondaryVariant" />
     </MudPaper>
 }

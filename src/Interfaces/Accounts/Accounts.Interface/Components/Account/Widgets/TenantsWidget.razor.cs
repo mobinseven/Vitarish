@@ -24,7 +24,7 @@ public partial class TenantsWidget : IdentityCommonBase
 
         try
         {
-            var roles = await UserService.GetUserRolesAsync(User.Id);
+            IEnumerable<IdentityRole> roles = await UserService.GetUserRolesAsync(User.Id);
             List<TenantRoleAssignment> tenantRoleAssignments = ParseTenantRoles(roles.Select(ur => ur.Name).Cast<string>());
 
             if (tenantRoleAssignments.Count == 0)
@@ -56,8 +56,8 @@ public partial class TenantsWidget : IdentityCommonBase
                 .Select(tenant => tenant!.ClientId!)
                 .Distinct(StringComparer.OrdinalIgnoreCase)];
 
-            Dictionary<string, Task<ApiClient?>> clientTasks = clientIds
-                .ToDictionary(id => id, id => ApiClientService.GetApiClientAsync(id), StringComparer.OrdinalIgnoreCase);
+            Dictionary<string, Task<AuthenticationClient?>> clientTasks = clientIds
+                .ToDictionary(id => id, id => AuthenticationClientsService.GetAuthenticationClientAsync(id), StringComparer.OrdinalIgnoreCase);
 
             Dictionary<Guid, Task<IEnumerable<TenantIndicator>>> indicatorTasks = tenants.Values
                 .Where(tenant => tenant is not null)
@@ -69,14 +69,14 @@ public partial class TenantsWidget : IdentityCommonBase
 
             Dictionary<Guid, Owner?> owners = ownerTasks
                 .ToDictionary(entry => entry.Key, entry => entry.Value.Result);
-            Dictionary<string, ApiClient?> clients = clientTasks
+            Dictionary<string, AuthenticationClient?> clients = clientTasks
                 .ToDictionary(entry => entry.Key, entry => entry.Value.Result, StringComparer.OrdinalIgnoreCase);
 
             foreach (IGrouping<Guid, TenantRoleAssignment> grouping in tenantRoleAssignments.GroupBy(role => role.TenantId))
             {
                 Tenant? tenant = tenants.GetValueOrDefault(grouping.Key);
                 Owner? owner = null;
-                ApiClient? client = null;
+                AuthenticationClient? client = null;
                 TenantIndicator? primaryIndicator = null;
 
                 if (tenant is not null)
@@ -96,7 +96,7 @@ public partial class TenantsWidget : IdentityCommonBase
                     }
                 }
 
-                if(primaryIndicator is null)
+                if (primaryIndicator is null)
                 {
                     continue;
                 }
@@ -168,7 +168,7 @@ public partial class TenantsWidget : IdentityCommonBase
         Guid TenantId,
         Tenant? Tenant,
         Owner? Owner,
-        ApiClient? Client,
+        AuthenticationClient? Client,
         List<string> RoleDisplay,
         TenantIndicator? PrimaryIndicator)
     {
@@ -180,9 +180,9 @@ public partial class TenantsWidget : IdentityCommonBase
             ? "Workspace owner"
             : Owner!.Name;
 
-        public string ClientDisplay => string.IsNullOrWhiteSpace(Client?.HostUri)
+        public string ClientDisplay => string.IsNullOrWhiteSpace(Client?.Url)
             ? "Client workspace"
-            : Client!.HostUri;
+            : Client!.Url;
 
         public string PrimaryIdentifier => PrimaryIndicator?.Value ?? string.Empty;
         public bool HasPrimaryIdentifier => !string.IsNullOrWhiteSpace(PrimaryIdentifier);

@@ -19,7 +19,7 @@
 
 
                     <div style="position: fixed; bottom: 0; width: 100%;pointer-events: none;">
-                        @if(PageBreakpoint >= Breakpoint.Md)
+                        @if(PageBreakpoint >= Breakpoint.Sm)
                         {
                             <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-5">
                                 <MudPaper Class="pa-5" Elevation="20" Style="border-radius: 70px; pointer-events: auto;">
@@ -27,7 +27,7 @@
                                 </MudPaper>
                             </MudStack>
                         }
-                        else if(PageBreakpoint < Breakpoint.Md)
+                        else if(PageBreakpoint < Breakpoint.Sm)
                         {
                             <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Class="pa-1">
                                 <MudPaper Class="pa-1" Elevation="20" Style="border-radius: 70px; pointer-events: auto;">

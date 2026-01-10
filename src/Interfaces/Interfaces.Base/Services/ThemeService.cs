@@ -11,10 +11,12 @@ public sealed class ThemeService : IThemeService
     public ThemeSettings Settings { get; private set; } = ThemeSettings.Default;
     public MudTheme Theme { get; private set; } = BuildTheme(TypographySize.Normal);
 
+    public Variant PrimaryVariant  => IsDarkMode ? Variant.Filled : Variant.Filled;
+    public Variant SecondaryVariant => IsDarkMode ? Variant.Outlined : Variant.Outlined;
+
     public bool IsDarkMode { get; private set; }
     public int ThemeVersion { get; private set; }
 
-    // MudThemeProvider.ObserveSystemThemeChange defaults to true; we explicitly enable only for Auto. :contentReference[oaicite:4]{index=4}
     public bool ObserveSystemThemeChange => Settings.Theme == ThemePreference.Auto;
 
     public event Func<ThemeSettings, Task>? SettingsChanged;
@@ -57,7 +59,6 @@ public sealed class ThemeService : IThemeService
 
     public Task UpdateSystemDarkModeAsync(bool isDarkMode)
     {
-        // Only persist system changes when following system (Auto)
         if (Settings.Theme != ThemePreference.Auto)
         {
             return Task.CompletedTask;
@@ -163,7 +164,7 @@ public sealed class ThemeService : IThemeService
                 PrimaryContrastText = new MudColor("#FFFFFF"),
                 Secondary = new MudColor("#0EA5E9"),
                 SecondaryContrastText = new MudColor("#001018"),
-                Background = new MudColor("#F8FAFC"),
+                Background = new MudColor("#f1f1f1"),
                 Surface = new MudColor("#FFFFFF"),
                 AppbarBackground = new MudColor("#FFFFFF"),
                 AppbarText = new MudColor("#0F172A"),
@@ -177,9 +178,9 @@ public sealed class ThemeService : IThemeService
                 PrimaryContrastText = new MudColor("#07101F"),
                 Secondary = new MudColor("#38BDF8"),
                 SecondaryContrastText = new MudColor("#041018"),
-                Background = new MudColor("#333333"),
-                Surface = new MudColor("#0F172A"),
-                AppbarBackground = new MudColor("#0F172A"),
+                Background = new MudColor("#323232"),
+                Surface = new MudColor("#434343"),
+                AppbarBackground = new MudColor("#434343"),
                 AppbarText = new MudColor("#E2E8F0"),
                 TextPrimary = new MudColor("#E2E8F0"),
                 TextSecondary = new MudColor("#94A3B8"),
@@ -226,32 +227,32 @@ public sealed class ThemeService : IThemeService
     {
 
         ThemeSurfaceType.Opaque => IsDarkMode ? $@"
-  --background: rgba(18, 18, 18, 1);
-  --border: 1px solid rgba(93, 93, 93, .5);
+  --background: rgba(43, 43, 43, 1);
+  --border: none;
   --blur: 0px;
   --brightness: 100%;" : $@"
   --background: rgba(255,255, 255, 1);
-  --border: 1px solid rgba(18, 18, 18, .55);
+  --border: none;
   --blur: 0px;
   --brightness: 100%;",
 
         ThemeSurfaceType.Transparent => IsDarkMode ? $@"
-  --background: rgba(18, 18, 18, .2);
-  --border: 1px solid rgba(93, 93, 93, .8);
+  --background: rgba(43, 43, 43, .2);
+  --border: none;
   --blur: 1px;
   --brightness: 95%;" : $@"
   --background: rgba(255, 255, 255, .2);
-  --border: 1px solid rgba(18, 18, 18, .8);
+  --border: none;
   --blur: 1px;
   --brightness: 105%;",
 
         _ => IsDarkMode ? $@"
-  --background: rgba(18, 18, 18, .5);
-  --border: 1px solid rgba(93, 93, 93, .5);
+  --background: rgba(43, 43, 43, .5);
+  --border: none;
   --blur: 5px;
   --brightness: 80%;" : $@"
   --background: rgba(255, 255, 255, .5);
-  --border: 1px solid rgba(18, 18, 18, .5);
+  --border: none;
   --blur: 5px;
   --brightness: 100%;"
         ,

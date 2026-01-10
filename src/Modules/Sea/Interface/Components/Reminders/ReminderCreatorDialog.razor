@@ -50,7 +50,7 @@
                 </MudStep>
                 <MudStep Title="@Localizer["Content"]" @bind-Completed=ContentStep>
                     <MudTextField @bind-Value="subject" Variant=Variant.Outlined Label="@Localizer["Subject"]" />
-                    <MudTextField @bind-Value="textBody" Variant="Variant.Outlined" AutoGrow Lines="3" Label="@Localizer["TextBody"]" />
+                    <MudTextField @bind-Value="textBody" Variant="ThemeService.SecondaryVariant" AutoGrow Lines="3" Label="@Localizer["TextBody"]" />
                 </MudStep>
                 <MudStep Title="@Localizer["Recipients"]"  @bind-Completed=RecipientsStep>
                     @foreach(var recipients in recipients)
@@ -75,7 +75,7 @@
             {
                 if(ActiveStep == 4)
                 {
-                    <MudButton Color=Color.Primary DropShadow=false StartIcon="@Icons.Material.Filled.PersonAdd" OnClick="AddRecipientAsync" Variant="Variant.Outlined">
+                    <MudButton Color=Color.Primary DropShadow=false StartIcon="@Icons.Material.Filled.PersonAdd" OnClick="AddRecipientAsync" Variant="ThemeService.SecondaryVariant">
                         @Localizer["EditItem", Localizer["Recipients"]]
                     </MudButton>
                 }

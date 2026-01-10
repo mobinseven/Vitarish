@@ -1,10 +1,11 @@
-﻿<div>
+@inherits IdentityCommonBase
+<div>
     <MudTextField @bind-Value="@Email"
                   Label="@Localizer["Email"]"
                   Placeholder="email@example.com"
                   Style="text-align: center"
                   UserAttributes="@(new() { { "dir", "ltr" }, { "autocomplete", "email" }, { "aria-required", "true" } } )"
-                  Variant="Variant.Outlined"
+                  Variant="ThemeService.SecondaryVariant"
                   Margin="Margin.Normal"
                   ShrinkLabel=true
                   AutoFocus=true

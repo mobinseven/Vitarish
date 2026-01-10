@@ -1,4 +1,4 @@
-@inherits ComponentBase
+@inherits CommonBase
 @using Vitarish.Parties.Domain.Entities
 @using Vitarish.ApiClients.Domain.Entities
 
@@ -21,7 +21,7 @@
                 <MudSelect T="TenantRoleOption"
                            @bind-Value="selectedRole"
                            Label="@Localizer["SelectRole"]"
-                           Variant="Variant.Outlined"
+                           Variant="ThemeService.SecondaryVariant"
                            Dense="true"
                            ToStringFunc="@(role => role?.DisplayName ?? string.Empty)">
                     @foreach (var tenant in tenantRoles.GroupBy(r => r.TenantId))

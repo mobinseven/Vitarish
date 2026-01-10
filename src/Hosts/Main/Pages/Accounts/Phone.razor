@@ -1,21 +1,21 @@
-﻿@page "/Account/Manage/Phone"
-@inherits IdentityBase
+@page "/Profile/Phone"
+@inherits IdentityCommonBase
 
-<MudText Typo="Typo.h4" GutterBottom="true" Align="Align.Center">@Localizer["PhoneNumber"]</MudText>
-@if (User is not null)
+@if(User is null)
 {
-    <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Start">@Localizer["CurrentPhoneNumber"]: @User.PhoneNumber</MudAlert>
+    return;
+}
 
-    @if (FailureMessage is not null)
-    {
-        <MudAlert Severity="Severity.Error">@FailureMessage</MudAlert>
-    }
-    <PhoneChangeForm @rendermode=@InteractiveServer ReturnUrl="@returnUrl" FailureUrl="@failureUrl" />
-}
-else
-{
-    <MudProgressCircular />
-}
-<form method="get" action="/Account/Manage">
-    <MudButton FullWidth="true" ButtonType="ButtonType.Submit">@Localizer["Cancel"]</MudButton>
-</form>
+<WidthControlled>
+    <MudPaper Class="sticky-top pa-3 my-3" Elevation="0">
+        <MudText Typo="Typo.h3" GutterBottom="true" Align="Align.Center">@Localizer["EditItem", Localizer["Phone"]]</MudText>
+    </MudPaper>
+    <MudPaper Elevation="0" Class="pa-4">
+        @if(!string.IsNullOrEmpty(User.PhoneNumber))
+        {
+            <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Start" NoIcon>@Localizer["CurrentPhoneNumber"]: @User.PhoneNumber</MudAlert>
+        }
+
+        <PhoneChangeForm />
+    </MudPaper>
+</WidthControlled>

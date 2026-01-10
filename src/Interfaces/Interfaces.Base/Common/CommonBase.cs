@@ -1,3 +1,5 @@
+using Vitarish.Interfaces.Base.Abstractions;
+
 namespace Vitarish.Interfaces.Base.Common;
 
 public class CommonBase : ComponentBase, IDisposable, IRenderNotificationReceiver
@@ -8,7 +10,7 @@ public class CommonBase : ComponentBase, IDisposable, IRenderNotificationReceive
     [Inject] protected IDialogService DialogService { get; set; } = default!;
     [Inject] protected IScrollManager ScrollManager { get; set; } = default!;
     [Inject] private IRenderNotifier RenderNotifier { get; set; } = default!;
-
+    [Inject] protected IThemeService ThemeService { get; set; } = default!;
     [CascadingParameter] public Breakpoint? PageBreakpoint { get; set; }
 
     protected bool firstRenderDone;

@@ -18,6 +18,7 @@
                     </MudNavGroup>
                 </AuthorizeView>
                 <MudNavGroup Title="@($"{Localizer["Account"]}: {context.User.GetUserGivenName()}")" Expanded="true">
+                    <TenantsWidget />
                     <MudNavLink Href="Profile" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Person">@Localizer["Profile"]</MudNavLink>
                     <MudNavLink Href="Account/Signout" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Logout">@Localizer["Logout"]</MudNavLink>
                 </MudNavGroup>

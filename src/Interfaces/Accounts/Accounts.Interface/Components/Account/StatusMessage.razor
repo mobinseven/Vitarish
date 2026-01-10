@@ -1,7 +1,7 @@
-﻿@inherits IdentityBase
+@inherits IdentityBase
 @if (!string.IsNullOrEmpty(DisplayMessage))
 {
     var severity = DisplayMessage.StartsWith(Localizer["Error"]) ? Severity.Error : Severity.Success;
 
-    <MudAlert Variant="Variant.Outlined" ContentAlignment="HorizontalAlignment.Center" Severity="@severity">@DisplayMessage</MudAlert>
+    <MudAlert Variant="ThemeService.SecondaryVariant" ContentAlignment="HorizontalAlignment.Center" Severity="@severity">@DisplayMessage</MudAlert>
 }

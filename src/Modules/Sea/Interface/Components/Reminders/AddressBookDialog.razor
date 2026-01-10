@@ -13,7 +13,7 @@
                     <MudCheckBox T="bool" ValueChanged="() => RemoveRecipient(recipient)" Value="true">@recipient.Recipient</MudCheckBox>
                 }
             </MudList>
-            <MudTextField @bind-Value="customAddress" Label="@AddressLabel" Variant="Variant.Outlined" Adornment="Adornment.End" AdornmentIcon="fa-thin fa-plus" OnAdornmentClick="AddCustom" />
+            <MudTextField @bind-Value="customAddress" Label="@AddressLabel" Variant="ThemeService.SecondaryVariant" Adornment="Adornment.End" AdornmentIcon="fa-thin fa-plus" OnAdornmentClick="AddCustom" />
         </MudStack>
     </DialogContent>
     <DialogActions>

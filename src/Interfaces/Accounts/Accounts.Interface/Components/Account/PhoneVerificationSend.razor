@@ -1,12 +1,13 @@
-﻿<div>
+<div>
     <MudTextField @bind-Value="@PhoneNumber"
                   Label="@Localizer["PhoneNumber"]"
                   Placeholder="09123456789"
                   MaxLength="11"
                   Style="text-align: center"
                   UserAttributes="@(new() { { "dir", "ltr" }, { "autocomplete", "tel" }, { "aria-required", "true" } } )"
-                  Variant="Variant.Outlined"
+                  Variant="ThemeService.SecondaryVariant"
                   Margin="Margin.Normal"
+                  Underline="false"
                   ShrinkLabel=true
                   AutoFocus=true
                   DebounceInterval="500"

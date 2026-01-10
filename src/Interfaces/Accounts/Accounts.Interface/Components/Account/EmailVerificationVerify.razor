@@ -1,5 +1,5 @@
 @using Microsoft.AspNetCore.Identity
-
+@inherits CommonBase
 @if(VerifyCodeInput is not null)
 {
     <MudAlert Severity="Severity.Success">@Localizer["CodeSent", VerifyCodeInput.Email]</MudAlert>
@@ -11,7 +11,7 @@
         <input type="hidden" name="Input.ReturnUrl" value="@ReturnUrl" />
         <input type="hidden" name="Input.FailureUrl" value="@FailureUrl" />
         <MudFocusTrap>
-            <MudField Variant="Variant.Outlined" Style="direction: ltr;">
+            <MudField Variant="ThemeService.SecondaryVariant" Style="direction: ltr;">
                 <MudStack AlignItems="AlignItems.Center" Style="width: 100%;">
                     <input name="Input.Code"
                            @bind="VerifyCodeInput.Code"

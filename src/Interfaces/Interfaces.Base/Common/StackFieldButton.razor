@@ -1,0 +1,20 @@
+@inherits MudButton
+<MudButton Variant="Variant.Filled"
+           FullWidth
+           StartIcon="@StartIcon"
+           EndIcon="@ContinueIcon"
+           OnClick="@OnClick"
+           DropShadow="false">
+    <MudStack Row Style="width: 100%" AlignItems="AlignItems.Start" StretchItems="StretchItems.Middle">
+        <div>@Label</div>
+        <div />
+        <div>
+            @ChildContent
+        </div>
+    </MudStack>
+</MudButton>
+@code {
+    [Parameter] public string? Label { get; set; }
+
+    private string ContinueIcon => CultureInfo.CurrentCulture.TextInfo.IsRightToLeft ? "fa-thin fa-chevron-left" : "fa-thin fa-chevron-right";
+}

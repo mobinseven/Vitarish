@@ -1,14 +1,9 @@
-using Microsoft.AspNetCore.Components;
-using MudBlazor;
-using Vitarish.ApiClients.Domain.Entities;
-using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Application.Abstractions;
-using Vitarish.ApiClients.Application.Abstractions;
-using Vitarish.Accounts.Interface.Localization;
+using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Accounts.Interface.Components.Admin;
 
-public partial class UserRoleAssignmentDialog : ComponentBase
+public partial class UserRoleAssignmentDialog
 {
     private readonly List<TenantRoleOption> tenantRoles = [];
     private bool isLoading;
@@ -61,7 +56,7 @@ public partial class UserRoleAssignmentDialog : ComponentBase
             )).ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
 
             List<ParsedTenantRole> parsedRoles = RoleParser.ParseTenantRoles(AvailableRoles, tenantDict, owners, clients);
-            
+
             foreach (ParsedTenantRole parsed in parsedRoles)
             {
                 tenantRoles.Add(new TenantRoleOption(

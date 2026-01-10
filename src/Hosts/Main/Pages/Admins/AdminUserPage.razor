@@ -4,16 +4,16 @@
 {
     <MudPaper Square="true" Class="my-3 pa-3" Elevation="0">
         <MudTextField Label="@Localizer["FirstName"]"
-                      Variant="Variant.Outlined"
+                      Variant="ThemeService.SecondaryVariant"
                       @bind-Value="this.User.FirstName" For="@(() => this.User.FirstName)" />
         <MudTextField Label="@Localizer["LastName"]"
-                      Variant="Variant.Outlined"
+                      Variant="ThemeService.SecondaryVariant"
                       @bind-Value="this.User.LastName" For="@(() => this.User.LastName)" />
         <MudTextField Label="@Localizer["Phone"]" Class="mt-3"
-                      Variant="Variant.Outlined"
+                      Variant="ThemeService.SecondaryVariant"
                       @bind-Value="this.User.PhoneNumber" For="@(() => this.User.PhoneNumber)" />
         <MudTextField Label="@Localizer["Password"]" Class="mt-3" Style="direction: ltr"
-                      Variant="Variant.Outlined"
+                      Variant="ThemeService.SecondaryVariant"
                       @bind-Value="password" For="@(() => password)" />
         <MudDivider Class="my-3" />
         <ClaimsEdit @bind-UserClaims="UserAccessClaims" />

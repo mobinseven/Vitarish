@@ -71,19 +71,6 @@ public partial class NavMenu : ComponentBase, IDisposable
             // Rendering failures are surfaced via Blazor; suppress here to avoid unobserved tasks.
         }
     }
-
-    public void Dispose()
-    {
-        NavigationManager.LocationChanged -= OnLocationChanged;
-        BottomNavService.Changed -= OnNavMenuStateChanged;
-        GC.SuppressFinalize(this);
-    }
-
-    private Task HandleHomeClick() => HandleNavButtonClick(State.Home.OnClick);
-    private Task HandleBackClick() => HandleNavButtonClick(State.Back.OnClick);
-    private Task HandleProfileClick() => HandleNavButtonClick(State.Profile.OnClick);
-    private static async Task HandleNavButtonClick(Func<Task> onClick) => await onClick();
-
     private void HandleSearchClick() => searchActive = true;
 
     private void NavigateSearch()
@@ -108,5 +95,18 @@ public partial class NavMenu : ComponentBase, IDisposable
         }
 
         searchActive = !string.IsNullOrEmpty(query);
+    }
+
+    private Task HandleHomeClick() => HandleNavButtonClick(State.Home.OnClick);
+    private Task HandleBackClick() => HandleNavButtonClick(State.Back.OnClick);
+    private Task HandleProfileClick() => HandleNavButtonClick(State.Profile.OnClick);
+    private static async Task HandleNavButtonClick(Func<Task> onClick) => await onClick();
+
+
+    public void Dispose()
+    {
+        NavigationManager.LocationChanged -= OnLocationChanged;
+        BottomNavService.Changed -= OnNavMenuStateChanged;
+        GC.SuppressFinalize(this);
     }
 }

@@ -11,6 +11,8 @@ public interface IThemeService
     bool IsDarkMode { get; }
     bool ObserveSystemThemeChange { get; }
     int ThemeVersion { get; }
+    Variant PrimaryVariant { get; }
+    Variant SecondaryVariant { get; }
 
     /// <summary>Raised for any change that should be persisted/exported.</summary>
     event Func<ThemeSettings, Task>? SettingsChanged;

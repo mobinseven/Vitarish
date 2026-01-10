@@ -1,8 +1,51 @@
 @page "/Profile"
+@inherits IdentityCommonBase
+
+@if(User is null)
+{
+    return;
+}
+
 <WidthControlled>
-    <MudPaper Class="sticky-top pa-3" Elevation="0">
+    <MudPaper Class="sticky-top pa-3 my-3" Elevation="0">
         <MudText Typo="Typo.h3" GutterBottom="true" Align="Align.Center">@Localizer["Profile"]</MudText>
     </MudPaper>
-    <TenantsWidget />
-    <ProfileEditor />
+    <MudStack Spacing="3">
+        <Stack>
+            <StackField Label="@Localizer["AccountDetails"]">
+                <MudText Typo="Typo.body2" Color="Color.Secondary">@User?.UserName</MudText>
+            </StackField>
+            <StackFieldButton OnClick="@(() => NavigationManager.NavigateTo("/profile/name"))"
+                              StartIcon="fa-thin fa-person"
+                              Label="@Localizer["Name"]">
+                @User?.FullName
+            </StackFieldButton>
+            <StackFieldButton OnClick="@(() => NavigationManager.NavigateTo("/profile/email"))"
+                              StartIcon="fa-thin fa-envelope"
+                              Label="@Localizer["Email"]">
+                @User?.Email
+            </StackFieldButton>
+            <StackFieldButton OnClick="@(() => NavigationManager.NavigateTo("/profile/phone"))"
+                              StartIcon="fa-thin fa-mobile"
+                              Label="@Localizer["PhoneNumber"]">
+                @User?.PhoneNumber
+            </StackFieldButton>
+            <StackFieldButton OnClick="@(() => NavigationManager.NavigateTo("/profile/password"))"
+                              StartIcon="fa-thin fa-lock"
+                              Label="@Localizer["EditPassword"]">
+                ***********
+            </StackFieldButton>
+        </Stack>
+        <Stack>
+            <StackField Label="@Localizer["Language"]">
+                <CultureSelector />
+            </StackField>
+        </Stack>
+        <Stack>
+
+            <StackFieldButton OnClick="@(() => NavigationManager.NavigateTo("/profile/Appearance"))"
+                              StartIcon="fa-thin fa-paint-brush-alt"
+                              Label="@Localizer["Appearance"]" />
+        </Stack>
+    </MudStack>
 </WidthControlled>

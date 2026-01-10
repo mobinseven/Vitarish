@@ -24,10 +24,10 @@
 <MudDivider Class="my-3" />
 
 <MudStack Row>
-    <MudTextField Variant="Variant.Outlined" @bind-Value=editUser.FirstName Label="@Localizer["FirstName"]" />
-    <MudTextField Variant="Variant.Outlined" @bind-Value=editUser.LastName Label="@Localizer["LastName"]" />
-    <MudTextField Variant="Variant.Outlined" @bind-Value=editUser.PhoneNumber Label="@Localizer["PhoneNumber"]" />
-    <MudTextField Variant="Variant.Outlined" @bind-Value=password Label="@Localizer["Password"]" Style="direction:ltr" />
+    <MudTextField Variant="ThemeService.SecondaryVariant" @bind-Value=editUser.FirstName Label="@Localizer["FirstName"]" />
+    <MudTextField Variant="ThemeService.SecondaryVariant" @bind-Value=editUser.LastName Label="@Localizer["LastName"]" />
+    <MudTextField Variant="ThemeService.SecondaryVariant" @bind-Value=editUser.PhoneNumber Label="@Localizer["PhoneNumber"]" />
+    <MudTextField Variant="ThemeService.SecondaryVariant" @bind-Value=password Label="@Localizer["Password"]" Style="direction:ltr" />
     <MudFab StartIcon="@(editingUser is null ? Icons.Material.Filled.Add : Icons.Material.Filled.Save)"
             Size="Size.Small"
             OnClick="Save"

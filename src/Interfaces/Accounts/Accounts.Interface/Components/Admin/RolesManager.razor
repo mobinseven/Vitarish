@@ -36,7 +36,7 @@
                 }
             </MudSelect>
             <MudTextField Label="@Localizer["RoleName"]"
-                          Variant="Variant.Outlined"
+                          Variant="ThemeService.SecondaryVariant"
                           @bind-Value="newRoleName"
                           Immediate="true"
                           Disabled="isLoading"
@@ -80,7 +80,7 @@
                                               Immediate="true"
                                               Required="true"
                                               Disabled="context.Item.IsProcessing"
-                                              Variant="Variant.Outlined" />
+                                              Variant="ThemeService.SecondaryVariant" />
                             }
                             else
                             {

@@ -32,7 +32,6 @@ public sealed class NavService : INavService, IDisposable
 
     public void Apply(NavOptions? options)
     {
-        // Compare the options to see if state really changed
         if (AreOptionsEqual(currentOptions, options))
         {
             return;

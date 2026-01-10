@@ -1,4 +1,49 @@
-﻿::deep .sticky-top {
+::deep .stack > .mud-field {
+    margin: 0 0 2px 0;
+    padding: 15px;
+    background: var(--background);
+    backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+}
+
+::deep div[role=group] > .mud-field:first-child {
+    border-top-left-radius: var(--mud-default-borderradius);
+    border-top-right-radius: var(--mud-default-borderradius);
+}
+
+::deep div[role=group] > .mud-field:last-child {
+    border-bottom-left-radius: var(--mud-default-borderradius);
+    border-bottom-right-radius: var(--mud-default-borderradius);
+    margin: 0;
+}
+
+::deep .stack > .mud-button {
+    margin: 0 0 2px 0;
+    padding: 15px;
+    background: var(--background);
+    backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+    border-radius: unset;
+}
+
+::deep div[role=group] > .mud-button:first-child {
+    border-top-left-radius: var(--mud-default-borderradius);
+    border-top-right-radius: var(--mud-default-borderradius);
+}
+
+::deep div[role=group] > .mud-button:last-child {
+    border-bottom-left-radius: var(--mud-default-borderradius);
+    border-bottom-right-radius: var(--mud-default-borderradius);
+    margin: 0;
+}
+
+::deep .mud-input.mud-input-filled {
+    background-color: rgba(156,156,156,.1)
+}
+
+::deep .mud-popover {
+    border-radius: 0;
+}
+
+::deep .sticky-top {
     position: sticky;
     top: 0;
     z-index: 100;
@@ -183,16 +228,16 @@
    Note: !important is required here because MudBlazor (v8.12.0+) uses inline styles
    and high-specificity selectors that would otherwise override theme settings.
    This ensures our theme typography CSS variables take precedence. */
-::deep .mud-typography,
+/*::deep .mud-typography,
 ::deep .mud-typography-body1,
 ::deep .mud-typography-body2 {
     font-size: var(--mud-typography-default-size) !important;
     font-weight: var(--mud-typography-default-weight) !important;
     line-height: var(--mud-typography-default-lineheight) !important;
-}
+}*/
 
 /* Buttons */
-::deep .mud-button-root {
+/*::deep .mud-button-root {
     font-size: var(--mud-typography-default-size);
     font-weight: var(--mud-typography-default-weight);
     line-height: var(--mud-typography-default-lineheight);
@@ -201,10 +246,10 @@
 ::deep .mud-button-label {
     font-size: inherit;
     font-weight: inherit;
-}
+}*/
 
 /* Form inputs - TextField, Select, Autocomplete, etc. */
-::deep .mud-input,
+/*::deep .mud-input,
 ::deep .mud-input-root,
 ::deep .mud-input-input,
 ::deep .mud-select,
@@ -217,109 +262,109 @@
 ::deep .mud-input-label-inputcontrol,
 ::deep .mud-input-helper-text {
     font-size: calc(var(--mud-typography-default-size) * 0.875);
-}
+}*/
 
 /* Table components */
-::deep .mud-table,
+/*::deep .mud-table,
 ::deep .mud-table-cell,
 ::deep .mud-table-head .mud-table-cell,
 ::deep .mud-table-body .mud-table-cell,
 ::deep .mud-table-foot .mud-table-cell {
     font-size: var(--mud-typography-default-size);
     font-weight: var(--mud-typography-default-weight);
-}
+}*/
 
 /* DataGrid */
-::deep .mud-data-grid,
+/*::deep .mud-data-grid,
 ::deep .mud-datagrid-cell {
     font-size: var(--mud-typography-default-size);
-}
+}*/
 
 /* List and Menu items */
-::deep .mud-list-item,
+/*::deep .mud-list-item,
 ::deep .mud-list-item-text,
 ::deep .mud-menu-item,
 ::deep .mud-nav-link {
     font-size: var(--mud-typography-default-size);
     font-weight: var(--mud-typography-default-weight);
-}
+}*/
 
 /* Chips and Badges */
-::deep .mud-chip-content,
+/*::deep .mud-chip-content,
 ::deep .mud-chip-label {
     font-size: var(--mud-typography-default-size);
 }
 
 ::deep .mud-badge-root {
     font-size: calc(var(--mud-typography-default-size) * 0.75);
-}
+}*/
 
 /* Dialog components */
-::deep .mud-dialog-title {
+/*::deep .mud-dialog-title {
     font-size: calc(var(--mud-typography-default-size) * 1.25);
     font-weight: 500;
 }
 
 ::deep .mud-dialog-content {
     font-size: var(--mud-typography-default-size);
-}
+}*/
 
 /* Tabs */
-::deep .mud-tab {
+/*::deep .mud-tab {
     font-size: var(--mud-typography-default-size);
     font-weight: var(--mud-typography-default-weight);
-}
+}*/
 
 /* Expansion panels */
-::deep .mud-expand-panel-header,
+/*::deep .mud-expand-panel-header,
 ::deep .mud-expand-panel-text {
     font-size: var(--mud-typography-default-size);
     font-weight: var(--mud-typography-default-weight);
-}
+}*/
 
 /* Tooltips and Popovers */
-::deep .mud-tooltip,
+/*::deep .mud-tooltip,
 ::deep .mud-popover-content {
     font-size: calc(var(--mud-typography-default-size) * 0.875);
-}
+}*/
 
 /* Alerts and Snackbars */
-::deep .mud-alert-message,
+/*::deep .mud-alert-message,
 ::deep .mud-snackbar-content-message {
     font-size: var(--mud-typography-default-size);
-}
+}*/
 
 /* Drawer */
-::deep .mud-drawer-content {
+/*::deep .mud-drawer-content {
     font-size: var(--mud-typography-default-size);
-}
+}*/
 
 /* AppBar */
-::deep .mud-appbar {
+/*::deep .mud-appbar {
     font-size: var(--mud-typography-default-size);
-}
+}*/
 
 /* Timeline */
-::deep .mud-timeline-item-content {
+/*::deep .mud-timeline-item-content {
     font-size: var(--mud-typography-default-size);
-}
+}*/
 
 /* Breadcrumbs */
-::deep .mud-breadcrumb-item {
+/*::deep .mud-breadcrumb-item {
     font-size: var(--mud-typography-default-size);
-}
+}*/
 
 /* Pagination */
-::deep .mud-pagination-item {
+/*::deep .mud-pagination-item {
     font-size: var(--mud-typography-default-size);
-}
+}*/
 
 /* Rating */
-::deep .mud-rating-item {
+/*::deep .mud-rating-item {
     font-size: calc(var(--mud-typography-default-size) * 1.5);
-}
+}*/
 
 /* Avatar text */
-::deep .mud-avatar-text {
+/*::deep .mud-avatar-text {
     font-size: calc(var(--mud-typography-default-size) * 0.875);
-}
+}*/
