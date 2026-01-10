@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Components;
+using Vitarish.Interfaces.Base.Constants;
+using Vitarish.Interfaces.Base.Models;
 using Vitarish.Interfaces.Base.Services;
 
 namespace Vitarish.Interfaces.Base.Tests.Services;
@@ -6,14 +8,13 @@ namespace Vitarish.Interfaces.Base.Tests.Services;
 /// <summary>
 /// Unit tests for the NavService implementation.
 /// </summary>
-public sealed class BottomNavServiceTests
+public sealed class NavServiceTests
 {
     [Fact]
-    public void Default_state_has_all_buttons()
+    public void Default_state_has_all_buttons_except_back()
     {
         TestNavigationManager navigationManager = new();
         NavService service = new(navigationManager);
-        // Back remains enabled by default to support the always-rendered NavMenu back button.
 
         service.Current.Home.Visible.Should().BeTrue();
         service.Current.Home.Enabled.Should().BeTrue();
@@ -21,8 +22,8 @@ public sealed class BottomNavServiceTests
         service.Current.Search.Enabled.Should().BeTrue();
         service.Current.Profile.Visible.Should().BeTrue();
         service.Current.Profile.Enabled.Should().BeTrue();
-        service.Current.Back.Visible.Should().BeTrue();
-        service.Current.Back.Enabled.Should().BeTrue();
+        service.Current.Back.Visible.Should().BeFalse();
+        service.Current.Back.Enabled.Should().BeFalse();
     }
 
     [Fact]
@@ -65,7 +66,7 @@ public sealed class BottomNavServiceTests
     public async Task Custom_defaults_are_used_for_navigation()
     {
         TestNavigationManager navigationManager = new();
-        BottomNavDefaults customDefaults = new("/dashboard", "/user", "/find");
+        NavDefaults customDefaults = new("/dashboard", "/user", "/find");
         NavService service = new(navigationManager, customDefaults);
 
         await service.Current.Home.OnClick();
@@ -84,7 +85,7 @@ public sealed class BottomNavServiceTests
         TestNavigationManager navigationManager = new();
         NavService service = new(navigationManager);
 
-        service.Apply(new BottomNavOptions(HomeUriOverride: "/custom-home"));
+        service.Apply(new NavOptions(HomeUriOverride: "/custom-home"));
 
         service.Current.Home.OnClick().Wait();
         navigationManager.History.Should().ContainSingle()
@@ -97,7 +98,7 @@ public sealed class BottomNavServiceTests
         TestNavigationManager navigationManager = new();
         NavService service = new(navigationManager);
 
-        service.Apply(new BottomNavOptions(
+        service.Apply(new NavOptions(
             Back: new BackTarget(Visible: true, Uri: "/previous")
         ));
 
@@ -111,7 +112,7 @@ public sealed class BottomNavServiceTests
         TestNavigationManager navigationManager = new();
         NavService service = new(navigationManager);
 
-        service.Apply(new BottomNavOptions(
+        service.Apply(new NavOptions(
             Back: new BackTarget(Visible: true, Uri: "/previous")
         ));
 
@@ -128,7 +129,7 @@ public sealed class BottomNavServiceTests
         NavService service = new(navigationManager);
         bool actionExecuted = false;
 
-        service.Apply(new BottomNavOptions(
+        service.Apply(new NavOptions(
             Back: new BackTarget(
                 Visible: true,
                 Action: () =>
@@ -152,7 +153,7 @@ public sealed class BottomNavServiceTests
         NavService service = new(navigationManager);
         bool actionExecuted = false;
 
-        service.Apply(new BottomNavOptions(
+        service.Apply(new NavOptions(
             Back: new BackTarget(
                 Visible: true,
                 Uri: "/should-not-navigate",
@@ -176,7 +177,7 @@ public sealed class BottomNavServiceTests
         TestNavigationManager navigationManager = new();
         NavService service = new(navigationManager);
 
-        service.Apply(new BottomNavOptions(
+        service.Apply(new NavOptions(
             Back: new BackTarget(Visible: false, Uri: "/previous")
         ));
 
@@ -184,23 +185,17 @@ public sealed class BottomNavServiceTests
     }
 
     [Fact]
-    public async Task Back_button_visible_true_without_action_or_uri_navigates_up()
+    public void Back_button_visible_true_without_action_or_uri_is_disabled()
     {
         TestNavigationManager navigationManager = new();
         NavService service = new(navigationManager);
-        navigationManager.TriggerLocationChanged("/level1/child");
 
-        service.Apply(new BottomNavOptions(
+        service.Apply(new NavOptions(
             Back: new BackTarget(Visible: true)
         ));
 
         service.Current.Back.Visible.Should().BeTrue();
-        service.Current.Back.Enabled.Should().BeTrue();
-
-        await service.Current.Back.OnClick();
-
-        navigationManager.History.Should().ContainSingle()
-            .Which.Should().Be("http://localhost/level1");
+        service.Current.Back.Enabled.Should().BeFalse();
     }
 
     [Fact]
@@ -210,7 +205,7 @@ public sealed class BottomNavServiceTests
         NavService service = new(navigationManager);
         bool actionExecuted = false;
 
-        service.Apply(new BottomNavOptions(
+        service.Apply(new NavOptions(
             Search: new SearchAction(
                 Action: () =>
                 {
@@ -232,7 +227,7 @@ public sealed class BottomNavServiceTests
         TestNavigationManager navigationManager = new();
         NavService service = new(navigationManager);
 
-        service.Apply(new BottomNavOptions(
+        service.Apply(new NavOptions(
             Search: new SearchAction(Uri: "/custom-search")
         ));
 
@@ -249,7 +244,7 @@ public sealed class BottomNavServiceTests
         NavService service = new(navigationManager);
         bool actionExecuted = false;
 
-        service.Apply(new BottomNavOptions(
+        service.Apply(new NavOptions(
             Search: new SearchAction(
                 Uri: "/should-not-navigate",
                 Action: () =>
@@ -272,7 +267,7 @@ public sealed class BottomNavServiceTests
         TestNavigationManager navigationManager = new();
         NavService service = new(navigationManager);
 
-        service.Apply(new BottomNavOptions()); // No search configuration
+        service.Apply(new NavOptions()); // No search configuration
 
         await service.Current.Search.OnClick();
 
@@ -288,7 +283,7 @@ public sealed class BottomNavServiceTests
         int changedCount = 0;
         service.Changed += () => changedCount++;
 
-        service.Apply(new BottomNavOptions(HomeUriOverride: "/new-home"));
+        service.Apply(new NavOptions(HomeUriOverride: "/new-home"));
 
         changedCount.Should().Be(1);
     }
@@ -311,7 +306,7 @@ public sealed class BottomNavServiceTests
     {
         TestNavigationManager navigationManager = new();
         NavService service = new(navigationManager);
-        service.Apply(new BottomNavOptions(
+        service.Apply(new NavOptions(
             HomeUriOverride: "/custom",
             Back: new BackTarget(Visible: true, Uri: "/back")
         ));
@@ -321,7 +316,7 @@ public sealed class BottomNavServiceTests
         service.Current.Home.OnClick().Wait();
         navigationManager.History.Should().ContainSingle()
             .Which.Should().Be("http://localhost/"); // Back to default
-        service.Current.Back.Visible.Should().BeTrue(); // Back returns to default behavior
+        service.Current.Back.Visible.Should().BeFalse(); // Back hidden again
     }
 
     [Fact]
@@ -329,7 +324,7 @@ public sealed class BottomNavServiceTests
     {
         TestNavigationManager navigationManager = new();
         NavService service = new(navigationManager);
-        service.Apply(new BottomNavOptions(
+        service.Apply(new NavOptions(
             HomeUriOverride: "/custom",
             Back: new BackTarget(Visible: true, Uri: "/back")
         ));
@@ -338,7 +333,7 @@ public sealed class BottomNavServiceTests
 
         service.Current.Home.OnClick().Wait();
         navigationManager.History.Should().Contain("http://localhost/"); // Reset to default
-        service.Current.Back.Visible.Should().BeTrue();
+        service.Current.Back.Visible.Should().BeFalse();
     }
 
     [Fact]
@@ -348,11 +343,11 @@ public sealed class BottomNavServiceTests
         NavService service = new(navigationManager);
 
         // Try various configurations
-        service.Apply(new BottomNavOptions(HomeUriOverride: "/custom"));
+        service.Apply(new NavOptions(HomeUriOverride: "/custom"));
         service.Current.Profile.Visible.Should().BeTrue();
         service.Current.Profile.Enabled.Should().BeTrue();
 
-        service.Apply(new BottomNavOptions(Back: new BackTarget(Visible: true, Uri: "/back")));
+        service.Apply(new NavOptions(Back: new BackTarget(Visible: true, Uri: "/back")));
         service.Current.Profile.Visible.Should().BeTrue();
         service.Current.Profile.Enabled.Should().BeTrue();
 
@@ -366,7 +361,7 @@ public sealed class BottomNavServiceTests
     {
         TestNavigationManager navigationManager = new();
         NavService service = new(navigationManager);
-        service.Apply(new BottomNavOptions(HomeUriOverride: "/custom"));
+        service.Apply(new NavOptions(HomeUriOverride: "/custom"));
 
         service.Dispose();
         navigationManager.TriggerLocationChanged("/another-page");
@@ -383,13 +378,13 @@ public sealed class BottomNavServiceTests
         TestNavigationManager navigationManager = new();
         NavService service = new(navigationManager);
 
-        service.Apply(new BottomNavOptions(HomeUriOverride: "/home1"));
+        service.Apply(new NavOptions(HomeUriOverride: "/home1"));
         service.Current.Home.OnClick().Wait();
 
-        service.Apply(new BottomNavOptions(HomeUriOverride: "/home2"));
+        service.Apply(new NavOptions(HomeUriOverride: "/home2"));
         service.Current.Home.OnClick().Wait();
 
-        service.Apply(new BottomNavOptions(HomeUriOverride: "/home3"));
+        service.Apply(new NavOptions(HomeUriOverride: "/home3"));
         service.Current.Home.OnClick().Wait();
 
         navigationManager.History.Should().HaveCount(3);
