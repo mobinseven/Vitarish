@@ -177,7 +177,7 @@ public sealed class ThemeService : IThemeService
                 PrimaryContrastText = new MudColor("#07101F"),
                 Secondary = new MudColor("#38BDF8"),
                 SecondaryContrastText = new MudColor("#041018"),
-                Background = new MudColor("#0B1220"),
+                Background = new MudColor("#333333"),
                 Surface = new MudColor("#0F172A"),
                 AppbarBackground = new MudColor("#0F172A"),
                 AppbarText = new MudColor("#E2E8F0"),
@@ -227,7 +227,7 @@ public sealed class ThemeService : IThemeService
 
         ThemeSurfaceType.Opaque => IsDarkMode ? $@"
   --background: rgba(18, 18, 18, 1);
-  --border: 1px solid rgba(255, 255, 255, .5);
+  --border: 1px solid rgba(93, 93, 93, .5);
   --blur: 0px;
   --brightness: 100%;" : $@"
   --background: rgba(255,255, 255, 1);
@@ -237,7 +237,7 @@ public sealed class ThemeService : IThemeService
 
         ThemeSurfaceType.Transparent => IsDarkMode ? $@"
   --background: rgba(18, 18, 18, .2);
-  --border: 1px solid rgba(255, 255, 255, .8);
+  --border: 1px solid rgba(93, 93, 93, .8);
   --blur: 1px;
   --brightness: 95%;" : $@"
   --background: rgba(255, 255, 255, .2);
@@ -247,7 +247,7 @@ public sealed class ThemeService : IThemeService
 
         _ => IsDarkMode ? $@"
   --background: rgba(18, 18, 18, .5);
-  --border: 1px solid rgba(255, 255, 255, .5);
+  --border: 1px solid rgba(93, 93, 93, .5);
   --blur: 5px;
   --brightness: 80%;" : $@"
   --background: rgba(255, 255, 255, .5);

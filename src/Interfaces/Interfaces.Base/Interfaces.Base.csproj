@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 	<ItemGroup>
 		<PackageReference Include="Injectio" Version="5.0.0" />
+		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.1" />
 		<PackageReference Include="MudBlazor" Version="8.*" />
-		<PackageReference Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.0" />
 	</ItemGroup>
 </Project>

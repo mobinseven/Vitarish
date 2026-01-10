@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.WebUtilities;
 using System.Net;
 
@@ -13,11 +12,6 @@ public static class SearchQueryHelper
         Uri absolute = navigationManager.ToAbsoluteUri(uri);
         var query = QueryHelpers.ParseQuery(absolute.Query);
 
-        if (!query.TryGetValue(QueryParameterName, out var values) || values.Count == 0)
-        {
-            return null;
-        }
-
-        return WebUtility.UrlDecode(values[0]);
+        return !query.TryGetValue(QueryParameterName, out var values) || values.Count == 0 ? null : WebUtility.UrlDecode(values[0]);
     }
 }

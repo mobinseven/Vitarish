@@ -1,130 +1,8 @@
-using Microsoft.AspNetCore.Components;
-using Microsoft.AspNetCore.Components.Routing;
+using Vitarish.Interfaces.Base.Abstractions;
+using Vitarish.Interfaces.Base.Constants;
+using Vitarish.Interfaces.Base.Models;
 
 namespace Vitarish.Interfaces.Base.Services;
-
-/// <summary>
-/// Provides centralized configuration for bottom navigation bar buttons.
-/// </summary>
-public interface INavService
-{
-    /// <summary>
-    /// Gets the current bottom navigation state.
-    /// </summary>
-    BottomNavState Current { get; }
-
-    /// <summary>
-    /// Raised when the bottom navigation configuration changes.
-    /// </summary>
-    event Action? Changed;
-
-    /// <summary>
-    /// Applies per-page navigation options to the current state.
-    /// </summary>
-    /// <param name="options">The page-specific navigation options, or null to use defaults.</param>
-    void Apply(BottomNavOptions? options);
-
-    /// <summary>
-    /// Builds a search URI using the configured defaults and the supplied query.
-    /// </summary>
-    /// <param name="query">The search query.</param>
-    /// <returns>The resolved search URI.</returns>
-    string GetSearchUri(string? query);
-
-    /// <summary>
-    /// Updates only the search destination while preserving other navigation options.
-    /// </summary>
-    /// <param name="searchUri">The search destination URI.</param>
-    void UpdateSearchUri(string searchUri);
-
-    /// <summary>
-    /// Restores the navigation bar to its global defaults.
-    /// </summary>
-    void ResetToDefaults();
-}
-
-/// <summary>
-/// Represents the current state of the bottom navigation bar.
-/// </summary>
-/// <param name="Home">The Home button configuration.</param>
-/// <param name="Search">The Search button configuration.</param>
-/// <param name="Back">The Back button configuration.</param>
-/// <param name="Profile">The Profile button configuration.</param>
-public sealed record BottomNavState(
-    NavButton Home,
-    NavButton Search,
-    NavButton Back,
-    NavButton Profile
-);
-
-/// <summary>
-/// Represents a single navigation button.
-/// </summary>
-/// <param name="Visible">Whether the button is visible.</param>
-/// <param name="Enabled">Whether the button is enabled (clickable).</param>
-/// <param name="OnClick">The action to execute when the button is clicked.</param>
-public sealed record NavButton(
-    bool Visible,
-    bool Enabled,
-    Func<Task> OnClick
-);
-
-/// <summary>
-/// Global default configuration for the bottom navigation bar.
-/// </summary>
-/// <param name="HomeUri">The default URI for the Home button.</param>
-/// <param name="ProfileUri">The URI for the Profile button.</param>
-/// <param name="SearchUri">The default URI for the Search button when not overridden.</param>
-public sealed record BottomNavDefaults(
-    string HomeUri,
-    string ProfileUri,
-    string SearchUri
-)
-{
-    /// <summary>
-    /// Gets the default configuration with common URI values.
-    /// </summary>
-    public static BottomNavDefaults Default { get; } = new("/", "/profile", "/search");
-}
-
-/// <summary>
-/// Per-page configuration options for the bottom navigation bar.
-/// </summary>
-/// <param name="HomeUriOverride">Optional override for the Home button URI.</param>
-/// <param name="Back">Optional Back button configuration.</param>
-/// <param name="SearchUriOverride">Optional override for the Search button URI.</param>
-public sealed record BottomNavOptions(
-    string? HomeUriOverride = null,
-    BackTarget? Back = null,
-    string? SearchUriOverride = null,
-    SearchAction? Search = null
-);
-
-/// <summary>
-/// Configuration for the Back button.
-/// </summary>
-/// <param name="Visible">Whether the Back button should be visible.</param>
-/// <param name="Uri">The URI to navigate to when clicked (if Action is not provided).</param>
-/// <param name="Action">The custom action to execute when clicked (takes precedence over Uri).</param>
-public sealed record BackTarget(
-    bool Visible = true,
-    string? Uri = null,
-    Func<Task>? Action = null
-);
-
-/// <summary>
-/// Configuration for the Search button.
-/// </summary>
-/// <param name="Visible">Whether the Search button is visible.</param>
-/// <param name="Enabled">Whether the Search button is enabled.</param>
-/// <param name="Uri">The URI to navigate to when clicked (if Action is not provided).</param>
-/// <param name="Action">Custom action to execute when clicked (takes precedence over Uri).</param>
-public sealed record SearchAction(
-    bool Visible = true,
-    bool Enabled = true,
-    string? Uri = null,
-    Func<Task>? Action = null
-);
 
 /// <summary>
 /// Implementation of the bottom navigation service.
@@ -133,15 +11,15 @@ public sealed record SearchAction(
 public sealed class NavService : INavService, IDisposable
 {
     private readonly NavigationManager navigationManager;
-    private readonly BottomNavDefaults defaults;
-    private BottomNavOptions? currentOptions;
+    private readonly NavDefaults defaults;
+    private NavOptions? currentOptions;
 
     public NavService(
         NavigationManager navigationManager,
-        BottomNavDefaults? defaults = null)
+        NavDefaults? defaults = null)
     {
         this.navigationManager = navigationManager;
-        this.defaults = defaults ?? BottomNavDefaults.Default;
+        this.defaults = defaults ?? NavDefaults.Default;
         Current = CreateDefaultState();
         currentOptions = null;
 
@@ -152,7 +30,7 @@ public sealed class NavService : INavService, IDisposable
 
     public BottomNavState Current { get; private set; }
 
-    public void Apply(BottomNavOptions? options)
+    public void Apply(NavOptions? options)
     {
         // Compare the options to see if state really changed
         if (AreOptionsEqual(currentOptions, options))
@@ -169,7 +47,7 @@ public sealed class NavService : INavService, IDisposable
 
     private void HandleLocationChanged(object? sender, LocationChangedEventArgs e) => ResetToDefaults();
 
-    private static bool AreOptionsEqual(BottomNavOptions? a, BottomNavOptions? b)
+    private static bool AreOptionsEqual(NavOptions? a, NavOptions? b)
     {
         if (ReferenceEquals(a, b))
         {
@@ -229,12 +107,7 @@ public sealed class NavService : INavService, IDisposable
             return true;
         }
 
-        if (a is null || b is null)
-        {
-            return false;
-        }
-
-        return a.Visible == b.Visible &&
+        return a is not null && b is not null && a.Visible == b.Visible &&
                a.Enabled == b.Enabled &&
                a.Uri == b.Uri &&
                ReferenceEquals(a.Action, b.Action);
@@ -242,7 +115,7 @@ public sealed class NavService : INavService, IDisposable
 
     private BottomNavState CreateDefaultState() => CreateState(null);
 
-    private BottomNavState CreateState(BottomNavOptions? options)
+    private BottomNavState CreateState(NavOptions? options)
     {
         // Home button: always visible, uses HomeUri override or default
         string homeUri = options?.HomeUriOverride ?? defaults.HomeUri;
@@ -291,17 +164,15 @@ public sealed class NavService : INavService, IDisposable
                 );
             }
         }
-        else if (options?.Back is { Visible: false })
+        else
         {
-            back = new(
+            back = options?.Back is { Visible: false }
+                ? new(
                 Visible: false,
                 Enabled: false,
                 OnClick: NavigateUpOneLevelAsync
-            );
-        }
-        else
-        {
-            back = new(
+            )
+                : new(
                 Visible: true,
                 Enabled: true,
                 OnClick: NavigateUpOneLevelAsync
@@ -364,8 +235,8 @@ public sealed class NavService : INavService, IDisposable
 
     public void UpdateSearchUri(string searchUri)
     {
-        BottomNavOptions merged = currentOptions is null
-            ? new BottomNavOptions(SearchUriOverride: searchUri)
+        NavOptions merged = currentOptions is null
+            ? new NavOptions(SearchUriOverride: searchUri)
             : currentOptions with
             {
                 Search = null,
@@ -375,7 +246,7 @@ public sealed class NavService : INavService, IDisposable
         Apply(merged);
     }
 
-    private NavButton CreateSearchButton(BottomNavOptions? options)
+    private NavButton CreateSearchButton(NavOptions? options)
     {
         if (options?.Search is { } searchAction)
         {
