@@ -2,7 +2,6 @@ using Vitarish.Accounts.Application.Abstractions;
 using Vitarish.Interfaces.Base.Abstractions;
 using Vitarish.Interfaces.Base.Common;
 using Vitarish.Interfaces.Base.Models;
-using Vitarish.Interfaces.Base.Services;
 
 namespace Vitarish.Main.Components;
 
@@ -12,7 +11,6 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
     [Inject] private IRenderNotifier RenderNotifier { get; set; } = default!;
     [Inject] protected ISnackbar Snackbar { get; set; } = default!;
     [Inject] protected IThemeService ThemeService { get; set; } = default!;
-    [Inject] private ILayoutService LayoutService { get; set; } = default!;
     [Inject] protected IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
     [Inject] protected IUserService UserService { get; set; } = default!;
     [Inject] protected INavService NavService { get; set; } = default!;
@@ -38,7 +36,6 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
         }
         await ThemeService.InitializeAsync(themeSettings);
         Initialized = true;
-        LayoutService.SearchStateChanged += OnSearchStateChanged;
         subscription = RenderNotifier.Subscribe(this);
         NavService.RenderRequired += HandleLocationChanged;
         _ = NavigationManager.RegisterLocationChangingHandler(async c => { Navigating = true; await InvokeAsync(() => StateHasChanged()); });
@@ -71,7 +68,6 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
     public async ValueTask DisposeAsync()
     {
         NavService.RenderRequired -= HandleLocationChanged;
-        LayoutService.SearchStateChanged -= OnSearchStateChanged;
         await BrowserViewportService.UnsubscribeAsync(this);
         subscription?.Dispose();
 
@@ -105,7 +101,4 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
     public void OnCompleted() => throw new NotImplementedException();
     public void OnError(Exception error) => throw new NotImplementedException();
     void IObserver<RenderNotification>.OnNext(RenderNotification value) => RenderNotificationReceived(this, value);
-
-    private void OnSearchStateChanged(object? sender, EventArgs e)
-        => _ = InvokeAsync(StateHasChanged);
 }
