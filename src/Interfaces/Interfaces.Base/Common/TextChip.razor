@@ -1,14 +1,16 @@
 @using System.Text.RegularExpressions
 @inherits Chip
 <MudChip T=string Size="@Size" Color="@Color" Style="@Style" Class="@Class">
-    @if(string.IsNullOrEmpty(Text))
-    {
-        @ChildContent
-    }
-    else
-    {
-        @CreateComponents(Text)
-    }
+    <MudText Typo="Typo.body1">
+        @if(string.IsNullOrEmpty(Text))
+        {
+            @ChildContent
+        }
+        else
+        {
+            @CreateComponents(Text)
+        }
+    </MudText>
 </MudChip>
 @code {
     [Parameter] public string Text { get; set; } = string.Empty;

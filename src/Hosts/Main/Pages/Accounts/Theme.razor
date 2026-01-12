@@ -6,10 +6,4 @@
     return;
 }
 
-<WidthControlled>
-    <MudPaper Class="sticky-top pa-3 my-3" Elevation="0">
-        <MudText Typo="Typo.h3" GutterBottom="true" Align="Align.Center">@Localizer["Appearance"]</MudText>
-    </MudPaper>
-    <ThemeSettingsForm SettingsSaved="@(s => UserService.SetThemeAsync(User.Id, s))" />
-
-</WidthControlled>
+<ThemeSettingsForm SettingsSaved="@(s => UserService.SetThemeAsync(User.Id, s))" />

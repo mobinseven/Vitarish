@@ -28,4 +28,8 @@
     <ProjectReference Include="..\..\..\src\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Services\" />
+  </ItemGroup>
+
 </Project>

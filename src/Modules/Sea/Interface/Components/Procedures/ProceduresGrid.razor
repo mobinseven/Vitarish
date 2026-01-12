@@ -1,6 +1,5 @@
 @inherits ProceduresBase
 
-<ProjectDetails Project="@Project" OnAddProcedure="ProjectChanged" OnEdit="ProjectChanged" OnDelete="ProjectDeleted" />
 <MudDataGrid T="ProcedureDto" @ref=grid
              Class="glass"
              ServerData=ReloadData

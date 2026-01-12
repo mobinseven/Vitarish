@@ -1,0 +1,82 @@
+@page "/sea/projects/{projectId}/{procedureId}/{eventId}"
+@inherits TenantPageBase
+@inject IProjectsService ProjectsService
+@inject IProceduresService ProcedureService
+@inject IEventsService EventService
+@inject IReceiptsService ReceiptsService
+@inject ISeaUsersService AccessService
+@if(Project is null || Procedure is null || Event is null)
+{
+    return;
+}
+
+<CascadingValue Value="IsAdmin">
+    <EventItemsTimeline Event="Event" Procedure="Procedure" Project="Project" />
+</CascadingValue>
+
+@code {
+    [Parameter] public string? projectId { get; set; }
+    [Parameter] public string? procedureId { get; set; }
+    [Parameter] public string? eventId { get; set; }
+
+    Guid ProjectId;
+    Guid ProcedureId;
+    Guid EventId;
+
+    ProjectDto? Project;
+    ProcedureDto? Procedure;
+    EventDto? Event;
+
+    private bool markedAsRead;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        Guid.TryParse(projectId, out ProjectId);
+        Guid.TryParse(procedureId, out ProcedureId);
+        Guid.TryParse(eventId, out EventId);
+
+        Project = await ProjectsService.GetAsync(ProjectId, CancellationToken.None).GetValueOrDefaultAsync();
+        if(Project is null)
+        {
+            NavigationManager.NavigateTo("/sea/projects");
+            return;
+        }
+
+        Procedure = await ProcedureService.GetAsync(ProcedureId, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if(Procedure is null)
+        {
+            NavigationManager.NavigateTo($"/sea/projects/{projectId}");
+            return;
+        }
+
+        Event = await EventService.GetAsync(EventId, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if(Event is null)
+        {
+            NavigationManager.NavigateTo($"/sea/projects/{projectId}/{procedureId}");
+            return;
+        }
+
+        NavService.OverridePageTitle(projectId, Project.Name);
+        NavService.OverridePageTitle(procedureId, Procedure.Name);
+        NavService.OverridePageTitle(eventId, Event.Title);
+
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(userId is null || Event is null)
+        {
+            return;
+        }
+
+        if(!markedAsRead)
+        {
+            await ReceiptsService.MarkEventReadAsync(userId.Value, Event.Id, CancellationToken.None);
+            markedAsRead = true;
+        }
+    }
+
+}

@@ -6,16 +6,4 @@
     return;
 }
 
-<WidthControlled>
-    <MudPaper Class="sticky-top pa-3 my-3" Elevation="0">
-        <MudText Typo="Typo.h3" GutterBottom="true" Align="Align.Center">@Localizer["EditItem", Localizer["Phone"]]</MudText>
-    </MudPaper>
-    <MudPaper Elevation="0" Class="pa-4">
-        @if(!string.IsNullOrEmpty(User.PhoneNumber))
-        {
-            <MudAlert Severity="Severity.Info" ContentAlignment="HorizontalAlignment.Start" NoIcon>@Localizer["CurrentPhoneNumber"]: @User.PhoneNumber</MudAlert>
-        }
-
-        <PhoneChangeForm />
-    </MudPaper>
-</WidthControlled>
+<PhoneChangeForm />

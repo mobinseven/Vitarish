@@ -1,9 +1,7 @@
 @inherits ProjectsBase
-<ExpandableItem Context="expandable" ShowMenu=AdminMode Class="sticky-top" Name="@Localizer["Projects"]" NoIcon>
-    <InlineContent>
-        <MudButton OnClick="AddProject" StartIcon="fa-thin fa-folder-plus">@Localizer["AddItem", Localizer["Project"]]</MudButton>
-    </InlineContent>
-</ExpandableItem>
+<Stack>
+    <StackButton OnClick="AddProject" StartIcon="fa-thin fa-folder-plus" Label="@Localizer["AddItem", Localizer["Project"]]"/>
+</Stack>
 <MudDataGrid T="ProjectDto"
              @ref=grid
              LoadingProgressColor="Color.Success"

@@ -3,8 +3,6 @@ namespace Vitarish.Sea.Interface.Components.Procedures;
 public partial class ProceduresGrid : ProceduresBase
 {
     [Parameter, EditorRequired] public ProjectDto Project { get; set; }
-    [Parameter] public EventCallback<ProjectDto> ProjectChanged { get; set; }
-    [Parameter] public EventCallback ProjectDeleted { get; set; }
     [Parameter] public Guid? OpenProcedure { get; set; }
     [Parameter] public EventCallback<Guid?> ProcedureClicked { get; set; }
     [Parameter] public RenderFragment<ProcedureDto>? ProcedureChildContent { get; set; }

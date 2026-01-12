@@ -10,27 +10,67 @@ namespace Vitarish.Interfaces.Base.Services;
 [RegisterScoped]
 public sealed class NavService : INavService, IDisposable
 {
+    private readonly IStringLocalizer localizer;
     private readonly NavigationManager navigationManager;
     private readonly NavDefaults defaults;
-    private NavOptions? currentOptions;
-
+    private BottomNavOptions? currentOptions;
+    public Stack<Breadcrumb> Breadcrumbs { get; private set; } = [];
+    private string currentLocation = string.Empty;
+    public event EventHandler? RenderRequired;
     public NavService(
         NavigationManager navigationManager,
+        IStringLocalizer localizer,
         NavDefaults? defaults = null)
     {
+        this.localizer = localizer;
         this.navigationManager = navigationManager;
         this.defaults = defaults ?? NavDefaults.Default;
-        Current = CreateDefaultState();
+        CurrentBottomNavState = CreateDefaultBottomNavState();
         currentOptions = null;
-
+        currentLocation = GetCurrentPath();
+        GenerateCurrentBreadcrumbs();
         navigationManager.LocationChanged += HandleLocationChanged;
+    }
+
+    private string GetCurrentPath() => navigationManager.ToBaseRelativePath(navigationManager.Uri.RemoveAllQueryParams()).TrimEnd('/');
+
+    public void OverridePageTitle(string text, string title)
+    {
+        Breadcrumb? bc = Breadcrumbs.FirstOrDefault(b => b.Text.Contains(text));
+        _ = (bc?.Text = title);
+        RenderRequired?.Invoke(this, new EventArgs());
+    }
+
+    private void GenerateCurrentBreadcrumbs()
+    {
+        string[] subs = currentLocation.Split('/');
+        Breadcrumbs.TryPeek(out var res);
+        if ((subs.Length > Breadcrumbs.Count) || (subs.Last() != res?.Path))
+        {
+            Breadcrumbs.Clear();
+            string path = string.Empty;
+            Breadcrumbs.Push(new Breadcrumb("/", localizer["Dashboard"]));
+            foreach (string sub in subs)
+            {
+                if (string.IsNullOrEmpty(sub))
+                {
+                    continue;
+                }
+                path += sub + "/";
+                Breadcrumbs.Push(new Breadcrumb(path, localizer[sub]));
+            }
+        }
+        else if (subs.Length < Breadcrumbs.Count - 1)
+        {
+            _ = Breadcrumbs.Pop();
+        }
     }
 
     public event Action? Changed;
 
-    public BottomNavState Current { get; private set; }
+    public BottomNavState CurrentBottomNavState { get; private set; }
 
-    public void Apply(NavOptions? options)
+    public void Apply(BottomNavOptions? options)
     {
         if (AreOptionsEqual(currentOptions, options))
         {
@@ -38,15 +78,21 @@ public sealed class NavService : INavService, IDisposable
         }
 
         currentOptions = options;
-        Current = CreateState(options);
+        CurrentBottomNavState = CreateState(options);
         Changed?.Invoke();
     }
 
-    public void ResetToDefaults() => Apply(null);
+    public void ResetNavToDefaults() => Apply(null);
 
-    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e) => ResetToDefaults();
+    private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        currentLocation = GetCurrentPath();
+        GenerateCurrentBreadcrumbs();
+        ResetNavToDefaults();
+        RenderRequired?.Invoke(this, new EventArgs());
+    }
 
-    private static bool AreOptionsEqual(NavOptions? a, NavOptions? b)
+    private static bool AreOptionsEqual(BottomNavOptions? a, BottomNavOptions? b)
     {
         if (ReferenceEquals(a, b))
         {
@@ -99,22 +145,14 @@ public sealed class NavService : INavService, IDisposable
                ReferenceEquals(a.Action, b.Action);
     }
 
-    private static bool AreSearchActionsEqual(SearchAction? a, SearchAction? b)
-    {
-        if (ReferenceEquals(a, b))
-        {
-            return true;
-        }
+    private static bool AreSearchActionsEqual(SearchAction? a, SearchAction? b) => ReferenceEquals(a, b) || !(a is null || b is null || a.Visible != b.Visible ||
+               a.Enabled != b.Enabled ||
+               a.Uri != b.Uri ||
+               !ReferenceEquals(a.Action, b.Action));
 
-        return a is not null && b is not null && a.Visible == b.Visible &&
-               a.Enabled == b.Enabled &&
-               a.Uri == b.Uri &&
-               ReferenceEquals(a.Action, b.Action);
-    }
+    private BottomNavState CreateDefaultBottomNavState() => CreateState(null);
 
-    private BottomNavState CreateDefaultState() => CreateState(null);
-
-    private BottomNavState CreateState(NavOptions? options)
+    private BottomNavState CreateState(BottomNavOptions? options)
     {
         // Home button: always visible, uses HomeUri override or default
         string homeUri = options?.HomeUriOverride ?? defaults.HomeUri;
@@ -234,8 +272,8 @@ public sealed class NavService : INavService, IDisposable
 
     public void UpdateSearchUri(string searchUri)
     {
-        NavOptions merged = currentOptions is null
-            ? new NavOptions(SearchUriOverride: searchUri)
+        BottomNavOptions merged = currentOptions is null
+            ? new BottomNavOptions(SearchUriOverride: searchUri)
             : currentOptions with
             {
                 Search = null,
@@ -245,7 +283,7 @@ public sealed class NavService : INavService, IDisposable
         Apply(merged);
     }
 
-    private NavButton CreateSearchButton(NavOptions? options)
+    private NavButton CreateSearchButton(BottomNavOptions? options)
     {
         if (options?.Search is { } searchAction)
         {

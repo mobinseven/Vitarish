@@ -1,33 +1,30 @@
 @page "/"
-<WidthControlled>
-    <MudNavMenu>
-        <AuthorizeView>
-            <Authorized>
-                <AuthorizeView Context="admin" Policy="@IdentityAccessConstants.Admin">
-                    <MudNavGroup Title="@Localizer["Admin"]" Expanded="true">
-                        <MudNavLink Href="Admin" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.ManageAccounts">@Localizer["Admin"]</MudNavLink>
-                        <MudNavLink Href="Admin/Users" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.SupervisedUserCircle">@Localizer["Users"]</MudNavLink>
-                        <MudNavLink Href="Admin/UserRoles" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.VerifiedUser">@Localizer["UserRoles"]</MudNavLink>
-                        <MudNavLink Href="Admin/Roles" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Security">@Localizer["IdentityRoles"]</MudNavLink>
-                        <MudNavLink Href="Admin/AuthenticationClients" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Hardware">@Localizer["AuthenticationClients"]</MudNavLink>
-                        <MudNavLink Href="Admin/ApiClients" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Api">@Localizer["ApiClients"]</MudNavLink>
-                        <MudNavLink Href="Admin/Requests" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Fingerprint">@Localizer["RequestIdentities"]</MudNavLink>
-                        <MudNavLink Href="Admin/Owners" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.ManageAccounts">@Localizer["Owenrs"]</MudNavLink>
-                        <MudNavLink Href="Admin/Tenants" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.HomeRepairService">@Localizer["Tenants"]</MudNavLink>
-                        <MudNavLink Href="Admin/TenantIndicators" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Domain">@Localizer["TenantIndicators"]</MudNavLink>
-                    </MudNavGroup>
-                </AuthorizeView>
-                <MudNavGroup Title="@($"{Localizer["Account"]}: {context.User.GetUserGivenName()}")" Expanded="true">
-                    <TenantsWidget />
-                    <MudNavLink Href="Profile" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Person">@Localizer["Profile"]</MudNavLink>
-                    <MudNavLink Href="Account/Signout" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Logout">@Localizer["Logout"]</MudNavLink>
-                </MudNavGroup>
-            </Authorized>
-            <NotAuthorized>
-                <MudNavGroup Title="@Localizer["Account"]" Expanded="true">
-                    <MudNavLink Href="Account/Login" Match="NavLinkMatch.All" Icon="@Icons.Material.Filled.Password">@Localizer["Login"]</MudNavLink>
-                </MudNavGroup>
-            </NotAuthorized>
-        </AuthorizeView>
-    </MudNavMenu>
-</WidthControlled>
+
+<AuthorizeView>
+    <Authorized>
+        <Stack>
+            <StackField Label="@Localizer["Dashboard"]" />
+            <AuthorizeView Context="admin" Policy="@IdentityAccessConstants.Admin">
+                <StackButton Label="@Localizer["Admin"]"
+                             StartIcon="fa-thin fa-user-shield"
+                             OnClick="@(() => NavigationManager.NavigateTo("/Admin"))" />
+            </AuthorizeView>
+            <StackButton Label="@Localizer["Profile"]"
+                         StartIcon="fa-thin fa-user-gear"
+                         OnClick="@(() => NavigationManager.NavigateTo("/Profile"))" />
+        </Stack>
+        <TenantsWidget />
+        <Stack>
+            <StackButton Label="@Localizer["Logout"]"
+                         StartIcon="fa-thin fa-sign-out-alt"
+                         OnClick="@(() => NavigationManager.NavigateTo("/Account/Signout"))" />
+        </Stack>
+    </Authorized>
+    <NotAuthorized>
+        <Stack>
+            <StackButton Label="@Localizer["Login"]"
+                         StartIcon="fa-thin fa-sign-in"
+                         OnClick="@(() => NavigationManager.NavigateTo("/Account/Login"))" />
+        </Stack>
+    </NotAuthorized>
+</AuthorizeView>

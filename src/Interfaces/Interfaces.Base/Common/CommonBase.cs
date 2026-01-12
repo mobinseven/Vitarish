@@ -11,6 +11,7 @@ public class CommonBase : ComponentBase, IDisposable, IRenderNotificationReceive
     [Inject] protected IScrollManager ScrollManager { get; set; } = default!;
     [Inject] private IRenderNotifier RenderNotifier { get; set; } = default!;
     [Inject] protected IThemeService ThemeService { get; set; } = default!;
+    [Inject] protected INavService NavService { get; set; } = default!;
     [CascadingParameter] public Breakpoint? PageBreakpoint { get; set; }
 
     protected bool firstRenderDone;

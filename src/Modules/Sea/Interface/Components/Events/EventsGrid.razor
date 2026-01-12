@@ -6,17 +6,6 @@
             <CellTemplate Context="context">
                 @if(AdminMode || canWrite[context.Item.Id] || canRead[context.Item.Id])
                 {
-@*                     if(ShouldShowDropZones)
-                    {
-                        <div class="@GetDropZoneCss(context.Item.Id, true)"
-                             @ondragover="@(args => HandleDragOver(context.Item.Id, true, args))"
-                             @ondragover:preventDefault
-                             @ondragleave="@(args => HandleDragLeave(context.Item.Id, true, args))"
-                             @ondrop="@(args => HandleDropAsync(context.Item.Id, true, args))"
-                             @ondrop:preventDefault>
-                            <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="50px" Class="glass rounded" Animation="Animation.Wave" />
-                        </div>
-                    } *@
                     <ExpandableItem Context="expandable"
                                     Size="Size.Large"
                                     Expanded="@(OpenEvent == context.Item.Id)"
@@ -26,17 +15,6 @@
                                     NoIcon>
                         <StartContent>
                             <MudStack Row Spacing="0">
-@*                                 <div class="@GetRowClass(context.Item)"
-                                     @key="context.Item.Id"
-                                     draggable="@CanReorder(context.Item)"
-                                     @ondragstart="@(args => HandleDragStart(context.Item, args))"
-                                     @ondragend="HandleDragEnd">
-                                    <MudFab Size=Size.Small
-                                            Class="glass"
-                                            Style="pointer-events: none"
-                                            DropShadow=false
-                                            StartIcon="fa-thin fa-grip-vertical" />
-                                </div> *@
                                 @if(!Project.Template)
                                 {
                                     if(AdminMode || canWrite[context.Item.Id])
@@ -85,9 +63,6 @@
                                 @Localizer["DeleteItem", Localizer["Event"]]
                             </MudMenuItem>
                         </MenuItems>
-                        <ChildContent>
-                            <EventItemsTimeline Event="context.Item" Procedure="Procedure" Project="Project" />
-                        </ChildContent>
                     </ExpandableItem>
                     if(ShouldShowDropZones && IsLast(context.Item))
                     {

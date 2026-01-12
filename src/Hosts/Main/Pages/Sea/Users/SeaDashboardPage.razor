@@ -1,0 +1,23 @@
+@page "/sea"
+@inherits TenantPageBase
+@inject IProjectsService ProjectsService
+<Stack>
+    <StackButton Href="/sea/projects" Label="@Localizer["Projects"]">
+        @projectsCount
+    </StackButton>
+</Stack>
+@if(IsOwner)
+{
+    <Stack>
+        <StackField Label="@Localizer["Owner"]" />
+        <StackButton Href="/sea/owner/settings" Label="@Localizer["Settings"]" StartIcon="fa-thin fa-gear-complex"/>
+    </Stack>
+}
+
+@code{
+    private int projectsCount;
+    protected override async Task OnParametersSetAsync()
+    {
+        projectsCount = await ProjectsService.CountAsync(new ProjectDescriptorDto{ }, CancellationToken.None).GetValueOrDefaultAsync();
+    }
+}

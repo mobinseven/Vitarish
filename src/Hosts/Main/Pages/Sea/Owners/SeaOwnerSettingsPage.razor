@@ -1,29 +1,11 @@
 @page "/sea/owner/settings"
-@inherits SeaOwnerSettingsSectionPageBase
+@inherits TenantPageBase
 
-<div style="position: sticky; top: 10px; z-index: 1;">
-    <WidthControlled ControlledWidth="50vw">
-        <MudPaper Class="py-5" Elevation="0">
-            <SettingsBreadcrumbs Items="Breadcrumbs" />
-        </MudPaper>
-    </WidthControlled>
-</div>
+<Stack>
+    <StackButton Href="/sea/owner/settings/users" Label="@Localizer["Users"]" StartIcon="fa-thin fa-users" />
+    <StackButton Href="/sea/owner/settings/theme" Label="@Localizer["Theme"]" StartIcon="fa-thin fa-brush" />
+    <StackButton Href="/sea/owner/Chat" Label="@Localizer["Chat"]" StartIcon="fa-thin fa-message" />
+    <StackButton Href="/sea/owner/settings/statistics" Label="@Localizer["Statistics"]" StartIcon="fa-thin fa-chart-line-up" />
+    <StackButton Href="/sea/owner/settings/advanced" Label="@Localizer["Advanced"]" StartIcon="fa-thin fa-gear-complex" />
+</Stack>
 
-<WidthControlled ControlledWidth="50vw">
-    <MudPaper Class="glass mt-5" Elevation="0">
-        <MudStack Spacing="2" Class="pa-6">
-            <MudStack Spacing="1">
-                <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/users">@Localizer["Users"]</MudButton>
-                <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/theme">@Localizer["Theme"]</MudButton>
-                <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/Chat">@Localizer["Chat"]</MudButton>
-                <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/statistics">@Localizer["Statistics"]</MudButton>
-                <MudButton Variant="Variant.Text" Color="Color.Primary" FullWidth Href="/Admin/settings/advanced">@Localizer["Advanced"]</MudButton>
-            </MudStack>
-        </MudStack>
-    </MudPaper>
-</WidthControlled>
-
-
-@code {
-    private IReadOnlyList<BreadcrumbItem> Breadcrumbs => BuildBreadcrumbs();
-}

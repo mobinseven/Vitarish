@@ -27,7 +27,7 @@ public partial class NavMenu : ComponentBase, IDisposable
             NavigateSearch();
         }
     }
-    private BottomNavState State => BottomNavService.Current;
+    private BottomNavState State => BottomNavService.CurrentBottomNavState;
     protected override void OnInitialized()
     {
         NavigationManager.LocationChanged += OnLocationChanged;

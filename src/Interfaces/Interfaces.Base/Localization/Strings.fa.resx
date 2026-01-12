@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -288,7 +288,7 @@
   <data name="MoveUp" xml:space="preserve">
     <value>بالا بردن {0}</value>
   </data>
-  <data name="Name" xml:space="preserve">
+  <data name="NameItem" xml:space="preserve">
     <value>نام {0}</value>
   </data>
   <data name="New" xml:space="preserve">
@@ -833,10 +833,47 @@
   <data name="SeenBy" xml:space="preserve">
     <value>دیده شده از سوی</value>
   </data>
+  <data name="DepartmentLabel" xml:space="preserve">
+    <value>سازمان: {0}</value>
+  </data>
+  <data name="MedicalNotesLabel" xml:space="preserve">
+    <value>یادداشت بالینی: {0}</value>
+  </data>
+  <data name="MembershipLabel" xml:space="preserve">
+    <value>عضویت: {0}</value>
+  </data>
+  <data name="NationalityLabel" xml:space="preserve">
+    <value>ملیت: {0}</value>
+  </data>
+  <data name="No" xml:space="preserve">
+    <value>نه</value>
+  </data>
+  <data name="NotProvided" xml:space="preserve">
+    <value>داده نشده</value>
+  </data>
+  <data name="TraineeNameLabel" xml:space="preserve">
+    <value>نام: {0}</value>
+  </data>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="TraineeOverviewHeading" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
+  <data name="VisitReasonLabel" xml:space="preserve">
+    <value>دلیل آمدن: {0}</value>
+  </data>
+  <data name="Yes" xml:space="preserve">
+    <value>بله</value>
+  </data>
   <data name="NewItems" xml:space="preserve">
     <value>وابسته نو</value>
   </data>
   <data name="Sms" xml:space="preserve">
     <value>پیامک</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>پیشخوان</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>نام</value>
   </data>
 </root>

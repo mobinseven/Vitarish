@@ -7,5 +7,6 @@ public enum TypographySize
 {
     Compact,
     Normal,
-    Large
+    Large,
+    ExtraLarge
 }

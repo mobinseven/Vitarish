@@ -2,37 +2,30 @@
 
 @if(Project is null)
 {
+    return;
 }
-else
+@if(AdminMode)
 {
-    <ExpandableItem Size=Size.Small Name="@Project.Description" ShowMenu=AdminMode Class="sticky-top">
-        <TitleContent>
-            <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center" Style="width: 100%">
-                <MudText Align=Align.Center Typo="Typo.h6" Class="py-2">@Project.Name</MudText>
-                @if(!string.IsNullOrWhiteSpace(Project.Description))
-                {
-                    <MudText HtmlTag="p" Align=Align.Center Typo="Typo.subtitle1" Class="py-3">@Project.Description</MudText>
-                }
-                @if(Project.Template)
-                {
-                    <MudChip T="string" Color="Color.Info">@Localizer["Template"]</MudChip>
-                }
-            </MudStack>
-        </TitleContent>
-        <MenuItems>
-            <MudMenuItem OnClick="@(() => AddProcedure())"
-                         Icon="fa-thin fa-file-plus">
-                @Localizer["AddItem", Localizer["Procedure"]]
-            </MudMenuItem>
-            <MudMenuItem OnClick="@(() => EditProject(Project))"
-                         Icon="fa-thin fa-pencil">
-                @Localizer["EditItem", Localizer["Project"]]
-            </MudMenuItem>
-            <MudMenuItem OnClick="@(() => DeleteProject(Project))"
-                         IconColor="Color.Error"
-                         Icon="fa-thin fa-folder-xmark">
-                @Localizer["DeleteItem", Localizer["Project"]]
-            </MudMenuItem>
-        </MenuItems>
-    </ExpandableItem>
+    <Stack>
+        <StackButton OnClick="@(() => AddProcedure())"
+                     StartIcon="fa-thin fa-file-plus"
+                     Label="@Localizer["AddItem", Localizer["Procedure"]]" />
+    </Stack>
 }
+<Stack>
+    <StackField Label="@Project.Name">
+        @if(!string.IsNullOrWhiteSpace(Project.Description))
+        {
+            <MudText HtmlTag="p" Typo="Typo.caption" Class="py-3">@Project.Description</MudText>
+        }
+    </StackField>
+    @if(AdminMode)
+    {
+        <StackButton OnClick="@(() => EditProject(Project))"
+                     StartIcon="fa-thin fa-pencil"
+                     Label="@Localizer["EditItem", Localizer["Project"]]" />
+        <StackButton OnClick="@(() => DeleteProject(Project))"
+                     StartIcon="fa-thin fa-folder-xmark"
+                     Label="@Localizer["DeleteItem", Localizer["Project"]]" />
+    }
+</Stack>

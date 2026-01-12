@@ -62,4 +62,9 @@ public static class UrlExtensions
         string newQuery = string.Join("&", parameters.Select(pair => $"{pair.Key}={pair.Value}"));
         return $"{basePart}?{newQuery}{fragment}";
     }
+
+    public static string RemoveAllQueryParams(this string url)
+    {
+        return url.IndexOf("?") > 0 ? url.Substring(0, url.IndexOf("?")) : url;
+    }
 }

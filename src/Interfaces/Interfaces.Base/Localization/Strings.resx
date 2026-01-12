@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <!-- 
     Microsoft ResX Schema 
@@ -288,7 +288,7 @@
   <data name="MoveUp" xml:space="preserve">
     <value>Move {0} up</value>
   </data>
-  <data name="Name" xml:space="preserve">
+  <data name="NameItem" xml:space="preserve">
     <value>{0} Name</value>
   </data>
   <data name="New" xml:space="preserve">
@@ -931,5 +931,14 @@ of project "{2}"</value>
   </data>
   <data name="NewItems" xml:space="preserve">
     <value>New Items</value>
+  </data>
+  <data name="Sms" xml:space="preserve">
+    <value>SMS</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Dashboard</value>
+  </data>
+  <data name="Name" xml:space="preserve">
+    <value>Name</value>
   </data>
 </root>

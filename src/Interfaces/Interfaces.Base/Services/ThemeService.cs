@@ -113,7 +113,8 @@ public sealed class ThemeService : IThemeService
         var scale = size switch
         {
             TypographySize.Compact => 0.85,
-            TypographySize.Large => 1.15,
+            TypographySize.Large => 1.25,
+            TypographySize.ExtraLarge => 1.5,
             _ => 1.00
         };
 
@@ -184,7 +185,7 @@ public sealed class ThemeService : IThemeService
                 AppbarText = new MudColor("#E2E8F0"),
                 TextPrimary = new MudColor("#E2E8F0"),
                 TextSecondary = new MudColor("#94A3B8"),
-                Divider = new MudColor("#233044")
+                Divider = new MudColor("#233044"),
             },
             Typography = typography
         };

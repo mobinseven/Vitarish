@@ -1,0 +1,75 @@
+@page "/sea/projects/{projectId}/{procedureId}"
+@inherits TenantPageBase
+@inject IProjectsService ProjectsService
+@inject IProceduresService ProcedureService
+@inject IEventsService EventService
+@inject IReceiptsService ReceiptsService
+@inject ISeaUsersService AccessService
+@if(Project is null || Procedure is null)
+{
+    return;
+}
+<CascadingValue Value="IsAdmin">
+    <EventsGrid Project="@Project"
+                EventClicked=@(id => NavigationManager.NavigateTo($"/sea/projects/{projectId}/{procedureId}/{id}"))
+                Procedure="Procedure" />
+</CascadingValue>
+@code {
+    [Parameter] public string? projectId { get; set; }
+    [Parameter] public string? procedureId { get; set; }
+
+    Guid ProjectId;
+    Guid ProcedureId;
+
+    ProjectDto? Project;
+    ProcedureDto? Procedure;
+
+    private bool markedAsRead;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if(userId is null)
+        {
+            return;
+        }
+
+        Guid.TryParse(projectId, out ProjectId);
+        Guid.TryParse(procedureId, out ProcedureId);
+
+        Project = await ProjectsService.GetAsync(ProjectId, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if(Project is null)
+        {
+            NavigationManager.NavigateTo("/sea/projects");
+            return;
+        }
+
+        Procedure = (await ProcedureService.GetAsync(ProcedureId, CancellationToken.None)).EnsureValue();
+
+        if(Procedure is null)
+        {
+            NavigationManager.NavigateTo($"/sea/projects/{projectId}");
+            return;
+        }
+
+
+        NavService.OverridePageTitle(projectId, Project.Name);
+        NavService.OverridePageTitle(procedureId, Procedure.Name);
+
+        StateHasChanged();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(userId is null || Procedure is null)
+        {
+            return;
+        }
+        if(!markedAsRead)
+        {
+            await ReceiptsService.MarkProcedureReadAsync(userId.Value, Procedure.Id, CancellationToken.None);
+            markedAsRead = true;
+        }
+    }
+
+}

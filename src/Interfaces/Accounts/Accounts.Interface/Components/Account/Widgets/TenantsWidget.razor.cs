@@ -51,26 +51,15 @@ public partial class TenantsWidget : IdentityCommonBase
             Dictionary<Guid, Task<Owner?>> ownerTasks = ownerIds
                 .ToDictionary(id => id, id => PartiesService.GetOwnerAsync(id));
 
-            List<string> clientIds = [.. tenants.Values
-                .Where(tenant => tenant is not null && !string.IsNullOrWhiteSpace(tenant.ClientId))
-                .Select(tenant => tenant!.ClientId!)
-                .Distinct(StringComparer.OrdinalIgnoreCase)];
-
-            Dictionary<string, Task<AuthenticationClient?>> clientTasks = clientIds
-                .ToDictionary(id => id, id => AuthenticationClientsService.GetAuthenticationClientAsync(id), StringComparer.OrdinalIgnoreCase);
-
             Dictionary<Guid, Task<IEnumerable<TenantIndicator>>> indicatorTasks = tenants.Values
                 .Where(tenant => tenant is not null)
                 .ToDictionary(tenant => tenant!.Id, tenant => PartiesService.GetTenantIndicatorsAsync(tenant!.Id));
 
             _ = await Task.WhenAll(ownerTasks.Values);
-            _ = await Task.WhenAll(clientTasks.Values);
             _ = await Task.WhenAll(indicatorTasks.Values);
 
             Dictionary<Guid, Owner?> owners = ownerTasks
                 .ToDictionary(entry => entry.Key, entry => entry.Value.Result);
-            Dictionary<string, AuthenticationClient?> clients = clientTasks
-                .ToDictionary(entry => entry.Key, entry => entry.Value.Result, StringComparer.OrdinalIgnoreCase);
 
             foreach (IGrouping<Guid, TenantRoleAssignment> grouping in tenantRoleAssignments.GroupBy(role => role.TenantId))
             {
@@ -82,11 +71,6 @@ public partial class TenantsWidget : IdentityCommonBase
                 if (tenant is not null)
                 {
                     _ = owners.TryGetValue(tenant.OwnerId, out owner);
-
-                    if (!string.IsNullOrWhiteSpace(tenant.ClientId))
-                    {
-                        _ = clients.TryGetValue(tenant.ClientId, out client);
-                    }
 
                     if (indicatorTasks.TryGetValue(tenant.Id, out Task<IEnumerable<TenantIndicator>>? indicatorsTask))
                     {
@@ -107,7 +91,6 @@ public partial class TenantsWidget : IdentityCommonBase
                     grouping.Key,
                     tenant,
                     owner,
-                    client,
                     roleDisplay,
                     primaryIndicator));
             }
@@ -126,10 +109,8 @@ public partial class TenantsWidget : IdentityCommonBase
             return;
         }
 
-        NavigationManager.NavigateTo(BuildTenantUrl(entry.PrimaryIdentifier), forceLoad: true);
+        NavigationManager.NavigateTo(entry.PrimaryUrl, forceLoad: true);
     }
-
-    private static string BuildTenantUrl(string identifier) => Uri.TryCreate(identifier, UriKind.Absolute, out Uri? absolute) ? absolute.ToString() : $"https://{identifier}";
 
     private static List<TenantRoleAssignment> ParseTenantRoles(IEnumerable<string> roles)
     {
@@ -168,7 +149,6 @@ public partial class TenantsWidget : IdentityCommonBase
         Guid TenantId,
         Tenant? Tenant,
         Owner? Owner,
-        AuthenticationClient? Client,
         List<string> RoleDisplay,
         TenantIndicator? PrimaryIndicator)
     {
@@ -180,14 +160,14 @@ public partial class TenantsWidget : IdentityCommonBase
             ? "Workspace owner"
             : Owner!.Name;
 
-        public string ClientDisplay => string.IsNullOrWhiteSpace(Client?.Url)
-            ? "Client workspace"
-            : Client!.Url;
-
         public string PrimaryIdentifier => PrimaryIndicator?.Value ?? string.Empty;
         public bool HasPrimaryIdentifier => !string.IsNullOrWhiteSpace(PrimaryIdentifier);
         public string PrimaryLabel => HasPrimaryIdentifier ? PrimaryIdentifier : string.Empty;
-        public string PrimaryUrl => HasPrimaryIdentifier ? BuildTenantUrl(PrimaryIdentifier) : string.Empty;
+        public string PrimaryUrl => PrimaryIndicator.Method switch
+        {
+            Parties.Domain.Enums.IndicatorMethod.Subdomain => PrimaryIndicator.Value ?? throw new InvalidDataException("primary indicator value is null"),
+            _ => Tenant.ClientId
+        };
 
         public string Initials => BuildInitials(TenantDisplayName);
 

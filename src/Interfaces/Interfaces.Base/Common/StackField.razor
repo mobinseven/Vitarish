@@ -4,13 +4,36 @@
           Style="cursor: pointer"
           Underline="false"
           FullWidth>
-    <MudStack Row Style="width: 100%;" StretchItems="StretchItems.Start" AlignItems="AlignItems.Center">
-        <div>
-            <MudText Typo="Typo.h6">@Label</MudText>
-            <MudText Typo="Typo.caption">@HelperText</MudText>
-        </div>
-        <div>
-            @ChildContent
-        </div>
-    </MudStack>
+
+    @if(PageBreakpoint >= Breakpoint.Sm)
+    {
+        <MudStack Row Style="width: 100%;" StretchItems="StretchItems.Start" AlignItems="AlignItems.Center">
+            <div>
+                <MudText Typo="Typo.h6">@Label</MudText>
+                <MudText Typo="Typo.caption">@HelperText</MudText>
+            </div>
+            <div>@EndContent</div>
+        </MudStack>
+        @ChildContent
+    }
+    else if(PageBreakpoint < Breakpoint.Sm)
+    {
+        <MudStack Style="width: 100%;" AlignItems="AlignItems.Start">
+            <div>
+                <MudText Typo="Typo.h6">@Label</MudText>
+                <MudText Typo="Typo.caption">@HelperText</MudText>
+            </div>
+            <div>@EndContent</div>
+            <div>
+                @ChildContent
+            </div>
+        </MudStack>
+    }
 </MudField>
+
+@code{
+    [CascadingParameter]
+    public Breakpoint PageBreakpoint { get; set; }
+    [Parameter]
+    public RenderFragment? EndContent { get; set; }
+}

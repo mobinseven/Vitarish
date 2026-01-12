@@ -18,6 +18,7 @@ using Vitarish.Main.Components;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
 using Vitarish.Main.Infrastructure.Options;
+using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
@@ -127,6 +128,7 @@ _ = builder.Services.AddSignalR(o =>
 }).AddMessagePackProtocol();
 builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
 builder.Services.AddVitarishInterfacesBase();
+builder.Services.AddSingleton<IPackageProvider, PackageProvider>();
 WebApplication app = builder.Build();
 
 _ = await app.MigrateDatabaseAsync<UsersDbContext>();

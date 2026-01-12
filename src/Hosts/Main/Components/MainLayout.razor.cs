@@ -8,19 +8,19 @@ namespace Vitarish.Main.Components;
 
 public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowserViewportObserver, IRenderNotificationReceiver
 {
-    [Inject] protected IDialogService DialogService { get; set; } = default!;
-    [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
     [Inject] private IBrowserViewportService BrowserViewportService { get; set; } = default!;
-    [Inject] private IJSRuntime JS { get; set; } = default!;
     [Inject] private IRenderNotifier RenderNotifier { get; set; } = default!;
     [Inject] protected ISnackbar Snackbar { get; set; } = default!;
     [Inject] protected IThemeService ThemeService { get; set; } = default!;
     [Inject] private ILayoutService LayoutService { get; set; } = default!;
     [Inject] protected IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
     [Inject] protected IUserService UserService { get; set; } = default!;
-    private bool Initialized;
-    private readonly bool darkmood;
+    [Inject] protected INavService NavService { get; set; } = default!;
+    [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
+    [Inject] protected IStringLocalizer Localizer { get; set; } = default!;
 
+    private bool Initialized;
+    private bool Navigating;
     private IDisposable? subscription;
     protected Breakpoint PageBreakpoint { get; set; }
     private readonly List<Breakpoint> breakpointHistory = [];
@@ -40,6 +40,15 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
         Initialized = true;
         LayoutService.SearchStateChanged += OnSearchStateChanged;
         subscription = RenderNotifier.Subscribe(this);
+        NavService.RenderRequired += HandleLocationChanged;
+        _ = NavigationManager.RegisterLocationChangingHandler(async c => { Navigating = true; await InvokeAsync(() => StateHasChanged()); });
+        StateHasChanged();
+    }
+
+
+    private void HandleLocationChanged(object? sender, EventArgs e)
+    {
+        Navigating = false;
         StateHasChanged();
     }
 
@@ -61,6 +70,7 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
 
     public async ValueTask DisposeAsync()
     {
+        NavService.RenderRequired -= HandleLocationChanged;
         LayoutService.SearchStateChanged -= OnSearchStateChanged;
         await BrowserViewportService.UnsubscribeAsync(this);
         subscription?.Dispose();

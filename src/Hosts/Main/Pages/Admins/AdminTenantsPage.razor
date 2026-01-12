@@ -1,5 +1,6 @@
 @page "/Admin/Tenants"
-
+@using Vitarish.Main.Infrastructure.Services
+@inject IPackageProvider PackageProvider
 @inherits AdminBase
 
 <MudDataGrid T="Tenant" Items="Tenants" RowClick="RowClicked" Elevation="0">
@@ -32,9 +33,9 @@
     <MudTextField @bind-Value=newTenantLogoUrl Label="@Localizer["LogoUrl"]" />
     <MudTextField @bind-Value=newTenantDescription Label="@Localizer["Description"]" />
     <MudSelect @bind-Value="selectedClientId" Label="@Localizer["ClientId"]" Required>
-        @foreach (var client in AuthenticationClients)
+        @foreach(var package in PackageProvider.GetPackages())
         {
-            <MudSelectItem Value="@client.Id">@(client.Title ?? client.Id)</MudSelectItem>
+            <MudSelectItem Value="@package.Id">@(package.Name)</MudSelectItem>
         }
     </MudSelect>
     <MudFab StartIcon="@(editingTenant is null ? Icons.Material.Filled.Add : Icons.Material.Filled.Save)"

@@ -2,6 +2,9 @@
 
 @inject IStringLocalizer Localizer
 
+
+<ThemeConnector @rendermode=InteractiveServer />
+
 <MudRTLProvider RightToLeft="@System.Globalization.CultureInfo.CurrentCulture.TextInfo.IsRightToLeft" Style="height: 100%">
     <MudLayout Style="height: 100%">
         <div style="height: 10dvh;">
@@ -36,6 +39,7 @@
             </MudItem>
         </MudStack>
     </MudLayout>
+
     <MudPopoverProvider @rendermode=InteractiveServer />
     <MudSnackbarProvider @rendermode=InteractiveServer />
 </MudRTLProvider>
