@@ -4,6 +4,8 @@ namespace Vitarish.Interfaces.Base.Common;
 
 public class CommonBase : ComponentBase, IDisposable, IRenderNotificationReceiver
 {
+    protected string? SearchString { get; set; }
+
     public Guid Id { get; private set; } = Guid.NewGuid();
     [Inject] protected IStringLocalizer Localizer { get; set; } = default!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
@@ -18,7 +20,13 @@ public class CommonBase : ComponentBase, IDisposable, IRenderNotificationReceive
     private readonly IList<Type> registeredTypes = [];
     private IDisposable? subscription;
     protected void RenderForType<T>() => registeredTypes.Add(typeof(T));
-    protected override void OnInitialized() => subscription = RenderNotifier.Subscribe(this);
+    protected override void OnInitialized()
+    {
+        subscription = RenderNotifier.Subscribe(this);
+
+        NavigationManager.LocationChanged += OnLocationChanged;
+        _ = UpdateSearchFromUri(NavigationManager.Uri);
+    }
     protected virtual Task ReloadRequired() => Task.CompletedTask;
     private async void RenderNotificationReceived(object? sender, RenderNotification notification)
     {
@@ -36,8 +44,37 @@ public class CommonBase : ComponentBase, IDisposable, IRenderNotificationReceive
             StateHasChanged();
         }
     }
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        try
+        {
+            bool updated = UpdateSearchFromUri(e.Location);
+            if (updated)
+            {
+                await ReloadRequired();
+            }
+        }
+        catch
+        {
+            // Ignore navigation refresh errors.
+        }
+    }
+
+    private bool UpdateSearchFromUri(string uri)
+    {
+        string? query = SearchQueryHelper.ExtractQuery(NavigationManager, uri);
+
+        if (string.Equals(SearchString, query, StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        SearchString = query;
+        return true;
+    }
     void IDisposable.Dispose()
     {
+        NavigationManager.LocationChanged -= OnLocationChanged;
         subscription?.Dispose();
         GC.SuppressFinalize(this);
     }

@@ -1,3 +1,4 @@
+using System.Security;
 using Vitarish.Interfaces.Base.Abstractions;
 using Vitarish.Interfaces.Base.Constants;
 using Vitarish.Interfaces.Base.Models;
@@ -15,6 +16,7 @@ public sealed class NavService : INavService, IDisposable
     private readonly NavDefaults defaults;
     private BottomNavOptions? currentOptions;
     public Stack<Breadcrumb> Breadcrumbs { get; private set; } = [];
+    private string breadcrumbsLocation;
     private string currentLocation = string.Empty;
     public event EventHandler? RenderRequired;
     public NavService(
@@ -44,8 +46,11 @@ public sealed class NavService : INavService, IDisposable
     private void GenerateCurrentBreadcrumbs()
     {
         string[] subs = currentLocation.Split('/');
-        Breadcrumbs.TryPeek(out var res);
-        if ((subs.Length > Breadcrumbs.Count) || (subs.Last() != res?.Path))
+        if (subs.Length < Breadcrumbs.Count - 1)
+        {
+            _ = Breadcrumbs.Pop();
+        }
+        else if (breadcrumbsLocation != currentLocation)
         {
             Breadcrumbs.Clear();
             string path = string.Empty;
@@ -60,10 +65,7 @@ public sealed class NavService : INavService, IDisposable
                 Breadcrumbs.Push(new Breadcrumb(path, localizer[sub]));
             }
         }
-        else if (subs.Length < Breadcrumbs.Count - 1)
-        {
-            _ = Breadcrumbs.Pop();
-        }
+        breadcrumbsLocation = currentLocation;
     }
 
     public event Action? Changed;
@@ -257,17 +259,8 @@ public sealed class NavService : INavService, IDisposable
 
     public string GetSearchUri(string? query)
     {
-        string baseUri = currentOptions?.Search?.Uri
-            ?? currentOptions?.SearchUriOverride
-            ?? defaults.SearchUri;
-
-        if (string.IsNullOrWhiteSpace(query))
-        {
-            return baseUri;
-        }
-
-        string separator = baseUri.Contains('?', StringComparison.Ordinal) ? "&" : "?";
-        return $"{baseUri}{separator}q={Uri.EscapeDataString(query)}";
+        string searchUri = string.IsNullOrWhiteSpace(query) ? navigationManager.Uri.RemoveAllQueryParams() : navigationManager.GetUriWithQueryParameter("q", query);
+        return searchUri;
     }
 
     public void UpdateSearchUri(string searchUri)

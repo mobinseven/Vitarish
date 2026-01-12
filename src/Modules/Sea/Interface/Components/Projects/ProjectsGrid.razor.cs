@@ -1,12 +1,7 @@
-using Microsoft.AspNetCore.Components.Routing;
-using Vitarish.Interfaces.Base.Common;
-
 namespace Vitarish.Sea.Interface.Components.Projects;
 
 public partial class ProjectsGrid : ProjectsBase, IDisposable
 {
-    private string? SearchString { get; set; }
-
     [Parameter] public EventCallback<Guid> OnClicked { get; set; }
     [Parameter] public EventCallback<ProjectDto> OnProjectCreated { get; set; }
     [Parameter] public RenderFragment<ProjectDto>? ProjectChildContent { get; set; }
@@ -16,7 +11,7 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
     [Inject] private IStringLocalizerFactory StringLocalizerFactory { get; set; } = default!;
 
-    private bool template;
+    private readonly bool template;
     private MudDataGrid<ProjectDto>? grid;
     private List<ProjectDto>? projects = null;
     private IReadOnlyList<IProjectGridCellDisplayPlugin> projectGridCellDisplayPlugins = [];
@@ -26,7 +21,7 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        projectGridCellDisplayPlugins = ProjectGridCellDisplayPlugins.ToList();
+        projectGridCellDisplayPlugins = [.. ProjectGridCellDisplayPlugins];
         UsageConfigurationDto? usageConfiguration = await UsageConfigurationService.GetUsageConfigurationAsync(CancellationToken.None);
         UsageConfigurationMetadata metadata = UsageConfigurationMetadata.FromJson(usageConfiguration?.Metadata);
         preferredProjectGridCellDisplayPluginId = metadata.ProjectGridCellDisplayPluginId;
@@ -34,7 +29,7 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
 
     private async Task<GridData<ProjectDto>> ReloadData(GridState<ProjectDto> gridState)
     {
-        var roleIds = await AccessService.GetRoleIds();
+        IReadOnlyList<Guid> roleIds = await AccessService.GetRoleIds();
         ProjectDescriptorDto descriptor = new()
         {
             Skip = 0,
@@ -59,49 +54,7 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
         };
     }
 
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        NavigationManager.LocationChanged += OnLocationChanged;
-        UpdateSearchFromUri(NavigationManager.Uri);
-        StateHasChanged();
-    }
     protected override async Task ReloadRequired() => await grid!.ReloadServerData();
-
-    private async void ToggleTemplate()
-    {
-        template = !template;
-        await ReloadRequired();
-    }
-
-    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
-    {
-        try
-        {
-            bool updated = UpdateSearchFromUri(e.Location);
-            if (updated && grid is not null)
-            {
-                await grid.ReloadServerData();
-            }
-        }
-        catch
-        {
-            // Ignore navigation refresh errors.
-        }
-    }
-
-    private bool UpdateSearchFromUri(string uri)
-    {
-        string? query = SearchQueryHelper.ExtractQuery(NavigationManager, uri);
-
-        if (string.Equals(SearchString, query, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        SearchString = query;
-        return true;
-    }
 
     private async Task AddProject()
     {
@@ -267,7 +220,6 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
 
     void IDisposable.Dispose()
     {
-        NavigationManager.LocationChanged -= OnLocationChanged;
         GC.SuppressFinalize(this);
     }
 }
