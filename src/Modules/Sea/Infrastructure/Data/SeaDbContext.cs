@@ -20,7 +20,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         get
         {
             string tenantId = _requestContext.TenantId ?? (_httpContextAccessor.HttpContext?.GetTenantId()) ?? throw new InvalidOperationException("Tenant ID can not be recognized.");
-            return new Finbuckle.MultiTenant.TenantInfo
+            return new TenantInfo
             {
                 Id = tenantId,
                 Identifier = tenantId,
@@ -113,7 +113,6 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         {
             _ = eb.ToView("vw_ProjectStats");
             _ = eb.HasNoKey();
-            _ = eb.Ignore(s => s.Project);
         });
 
         _ = modelBuilder.Entity<Project>()
@@ -123,7 +122,6 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         {
             _ = eb.ToView("vw_ProcedureStats");
             _ = eb.HasNoKey();
-            _ = eb.Ignore(s => s.Procedure);
         });
 
         _ = modelBuilder.Entity<Procedure>()
@@ -133,7 +131,6 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         {
             _ = eb.ToView("vw_EventStats");
             _ = eb.HasNoKey();
-            _ = eb.Ignore(s => s.Event);
         });
 
         _ = modelBuilder.Entity<Event>()

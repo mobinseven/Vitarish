@@ -65,7 +65,7 @@ internal class ProcedureRepository(SeaDbContext dbContext)
         {
             procedure.Stats = stats.TryGetValue(procedure.Id, out ProcedureStats? stat)
                 ? stat
-                : new ProcedureStats { ProcedureId = procedure.Id, Procedure = procedure };
+                : new ProcedureStats { ProcedureId = procedure.Id };
         }
     }
 

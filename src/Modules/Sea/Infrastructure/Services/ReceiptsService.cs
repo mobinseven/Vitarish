@@ -26,7 +26,7 @@ internal class ReceiptsService(
 
     public async Task<IReadOnlyDictionary<Guid, bool>> HasReceiptsAsync(Guid userId, IEnumerable<Guid> objectIds, CancellationToken cancellationToken)
     {
-        Guid[] ids = objectIds.Distinct().ToArray();
+        Guid[] ids = [.. objectIds.Distinct()];
         if (ids.Length == 0)
         {
             return new Dictionary<Guid, bool>();
@@ -42,7 +42,7 @@ internal class ReceiptsService(
     public async Task<Guid> AddAsync(Guid userId, Guid objectId, CancellationToken cancellationToken)
     {
         ReceiptDto? receiptDto = (await GetListAsync(new ReceiptDescriptorDto { CreatedBy = userId.ToString(), ObjectId = objectId }, CancellationToken.None))
-            .EnsureValue("Get receipts")
+            .EnsureValue()
             .FirstOrDefault();
         if (receiptDto is not null)
         {
@@ -56,7 +56,7 @@ internal class ReceiptsService(
     public async Task<IReadOnlyList<Guid>> GetReadersAsync(Guid objectId, CancellationToken cancellationToken)
     {
         IReadOnlyList<ReceiptDto> receipts = (await GetListAsync(new ReceiptDescriptorDto { ObjectId = objectId }, cancellationToken))
-            .EnsureValue("Get receipts");
+            .EnsureValue();
 
         HashSet<Guid> readers = [];
 

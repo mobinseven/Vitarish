@@ -12,7 +12,6 @@ public sealed class ProcedureStats
     public int NewItems { get; init; }
     public bool Unread { get; init; }
     public DateTimeOffset? LastUpdate { get; init; }
-    public Procedure Procedure { get; init; } = null!;
 
     [NotMapped]
     public ProgressState State => Progress.FromCounts(CommittedEvents, Events).State;

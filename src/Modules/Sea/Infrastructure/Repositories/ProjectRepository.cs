@@ -72,7 +72,7 @@ internal class ProjectRepository(SeaDbContext dbContext)
         {
             project.Stats = stats.TryGetValue(project.Id, out ProjectStats? stat)
                 ? stat
-                : new ProjectStats { ProjectId = project.Id, Project = project };
+                : new ProjectStats { ProjectId = project.Id };
         }
     }
 

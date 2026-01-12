@@ -64,15 +64,6 @@
                             </MudMenuItem>
                         </MenuItems>
                     </ExpandableItem>
-                    if(ShouldShowDropZones && IsLast(context.Item))
-                    {
-                        <div class="@GetDropZoneCss(null, false)"
-                             @ondragover="@(args => HandleDragOver(null, false, args))"
-                             @ondragover:preventDefault
-                             @ondragleave="@(args => HandleDragLeave(null, false, args))"
-                             @ondrop="@(args => HandleDropAsync(null, false, args))"
-                             @ondrop:preventDefault></div>
-                    }
                 }
                 else
                 {

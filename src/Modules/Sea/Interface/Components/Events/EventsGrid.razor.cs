@@ -1,7 +1,3 @@
-
-using Microsoft.AspNetCore.Components.Web;
-using System.Collections.Immutable;
-
 namespace Vitarish.Sea.Interface.Components.Events;
 
 public partial class EventsGrid : EventsBase
@@ -20,19 +16,7 @@ public partial class EventsGrid : EventsBase
 
     private readonly Dictionary<Guid, bool> canRead = [];
     private readonly Dictionary<Guid, bool> canWrite = [];
-    private Guid? draggedEventId;
-    private Guid? dropIndicatorEventId;
-    private bool dropIndicatorBefore;
 
-    //Action<bool> onExpandedChanged(EventDto item) => async e =>
-    //{
-    //    if (!e)
-    //    {
-    //        await OpenEventChanged.InvokeAsync(e ? item.Id : null);
-    //        return;
-    //    }
-    //    await grid!.ReloadServerData();
-    //};
 
     private async Task<GridData<EventDto>> ReloadData(GridState<EventDto> gridState)
     {
@@ -59,7 +43,7 @@ public partial class EventsGrid : EventsBase
         };
     }
 
-    protected override async Task ReloadRequired() => await grid?.ReloadServerData();
+    protected override Task ReloadRequired() => grid?.ReloadServerData() ?? Task.CompletedTask;
 
     protected override async Task OnInitializedAsync()
     {
@@ -72,36 +56,6 @@ public partial class EventsGrid : EventsBase
 
     private bool IsFirst(EventDto e) => events.GetFirstByChain()?.Id == e.Id;
     private bool IsLast(EventDto e) => events.GetLastByChain()?.Id == e.Id;
-
-    private bool CanReorder(EventDto item)
-        => AdminMode || (canWrite.TryGetValue(item.Id, out bool value) && value);
-
-    private bool CanReorderEvents
-        => AdminMode || events.Any(item => canWrite.TryGetValue(item.Id, out bool value) && value);
-
-    private bool ShouldShowDropZones => CanReorderEvents && draggedEventId is Guid;
-
-    private string GetRowClass(EventDto item)
-    {
-        List<string> classes = ["event-row"];
-
-        if (!CanReorder(item))
-        {
-            classes.Add("event-row--locked");
-        }
-
-        if (draggedEventId == item.Id)
-        {
-            classes.Add("event-row--dragging");
-        }
-
-        return string.Join(' ', classes);
-    }
-
-    private string GetDropZoneCss(Guid? targetId, bool before)
-        => dropIndicatorEventId == targetId && dropIndicatorBefore == before
-            ? "event-drop-zone event-drop-zone--active"
-            : "event-drop-zone";
 
     private Task AddEvent() => AddEventAt(events.GetLastByChain()?.Id);
 
@@ -267,133 +221,4 @@ public partial class EventsGrid : EventsBase
         _ = await DialogService.ShowAsync<EventCommitDetails>(Localizer["Event"], parameters);
     }
 
-    private void HandleDragStart(EventDto item, DragEventArgs _)
-    {
-        if (!CanReorder(item))
-        {
-            return;
-        }
-
-        draggedEventId = item.Id;
-        dropIndicatorEventId = null;
-        dropIndicatorBefore = false;
-        StateHasChanged();
-    }
-
-    private void HandleDragEnd(DragEventArgs _)
-        => ResetDragState();
-
-    private void HandleDragOver(Guid? targetEventId, bool before, DragEventArgs _)
-    {
-        if (draggedEventId is null)
-        {
-            return;
-        }
-
-        if (targetEventId == draggedEventId && before)
-        {
-            if (dropIndicatorEventId is not null)
-            {
-                dropIndicatorEventId = null;
-                StateHasChanged();
-            }
-            return;
-        }
-
-        if (dropIndicatorEventId != targetEventId || dropIndicatorBefore != before)
-        {
-            dropIndicatorEventId = targetEventId;
-            dropIndicatorBefore = before;
-            StateHasChanged();
-        }
-    }
-
-    private void HandleDragLeave(Guid? targetEventId, bool before, DragEventArgs _)
-    {
-        if (dropIndicatorEventId == targetEventId && dropIndicatorBefore == before)
-        {
-            dropIndicatorEventId = null;
-            StateHasChanged();
-        }
-    }
-
-    private async Task HandleDropAsync(Guid? targetEventId, bool before, DragEventArgs d)
-    {
-        if (draggedEventId is not Guid sourceId)
-        {
-            ResetDragState();
-            return;
-        }
-
-        List<EventDto> reordered = [.. events];
-        EventDto? dragged = reordered.FirstOrDefault(e => e.Id == sourceId);
-
-        if (dragged is null)
-        {
-            ResetDragState();
-            return;
-        }
-
-        _ = reordered.Remove(dragged);
-
-        int insertIndex = reordered.Count;
-
-        if (targetEventId is Guid targetId)
-        {
-            int targetIndex = reordered.FindIndex(e => e.Id == targetId);
-
-            if (targetIndex < 0)
-            {
-                ResetDragState();
-                return;
-            }
-
-            insertIndex = before ? targetIndex : targetIndex + 1;
-        }
-
-        insertIndex = Math.Clamp(insertIndex, 0, reordered.Count);
-        reordered.Insert(insertIndex, dragged);
-
-        if (reordered.Select(e => e.Id).SequenceEqual(events.Select(e => e.Id)))
-        {
-            ResetDragState();
-            return;
-        }
-
-        try
-        {
-            await PersistChainAsync(reordered);
-
-            if (grid is not null)
-            {
-                await grid.ReloadServerData();
-            }
-        }
-        finally
-        {
-            ResetDragState();
-        }
-    }
-
-    private async Task PersistChainAsync(IReadOnlyList<EventDto> orderedEvents)
-    {
-        List<EventChainChangeDto> chain = [];
-        Guid? previousId = null;
-
-        foreach (EventDto evt in orderedEvents)
-        {
-            chain.Add(new EventChainChangeDto(evt.Id, previousId));
-            previousId = evt.Id;
-        }
-
-        await EventsService.UpdateChainAsync(Procedure.Id, chain, CancellationToken.None);
-    }
-
-    private void ResetDragState()
-    {
-        draggedEventId = null;
-        dropIndicatorEventId = null;
-        dropIndicatorBefore = false;
-        StateHasChanged();
-    }
 }

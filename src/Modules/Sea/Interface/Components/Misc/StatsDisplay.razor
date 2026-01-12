@@ -5,12 +5,6 @@
             <i class="@BlinkIcon"></i>
         </MudAvatar>
     </MudBadge>
-@*     <div>
-        @Stats.LastUpdate?.DateTime.ToShortDateString().ConvertNumeralsToPersian()
-    </div> *@
-@*     <div>
-        <UnreadIndicator Visible="@(!HasNewItems && Stats.Unread)" Tooltip="@Localizer["Unread"]" />
-    </div> *@
 </MudStack>
 @code {
     [Parameter, EditorRequired] public StatsDto Stats { get; set; }

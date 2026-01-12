@@ -88,9 +88,7 @@ internal class EventRepository(SeaDbContext dbContext)
             return;
         }
 
-        List<Guid> eventIds = events
-            .Select(@event => @event.Id)
-            .ToList();
+        List<Guid> eventIds = [.. events.Select(@event => @event.Id)];
 
         Dictionary<Guid, EventStats> stats = await dbContext.Set<EventStats>()
             .AsNoTracking()
@@ -101,12 +99,12 @@ internal class EventRepository(SeaDbContext dbContext)
         {
             @event.Stats = stats.TryGetValue(@event.Id, out EventStats? stat)
                 ? stat
-                : new EventStats { EventId = @event.Id, Event = @event };
+                : new EventStats { EventId = @event.Id };
         }
     }
 
     private Task PopulateStatsAsync(Event @event, CancellationToken cancellationToken)
-        => PopulateStatsAsync(new[] { @event }, cancellationToken);
+        => PopulateStatsAsync([@event], cancellationToken);
 
     public new async Task<Event?> GetAsync(Guid id, CancellationToken cancellationToken)
     {

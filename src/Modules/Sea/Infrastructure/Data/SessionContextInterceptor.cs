@@ -48,7 +48,7 @@ EXEC sys.sp_set_session_context @key=N'user_id',  @value=@u;";
                  : null,
             isDeterministic: false);
 
-        sqlite.CreateFunction(IdentityDefinitions.OwnerIdClaim, () => ctx.OwnerId?.ToString(), isDeterministic: false);
-        sqlite.CreateFunction("user_id", () => ctx.UserId?.ToString(), isDeterministic: false);
+        sqlite.CreateFunction(IdentityDefinitions.OwnerIdClaim, () => ctx.OwnerId?.ToString(), isDeterministic: true);
+        sqlite.CreateFunction("user_id", () => ctx.UserId?.ToString(), isDeterministic: true);
     }
 }
