@@ -1,4 +1,3 @@
-using Duende.IdentityModel;
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using Finbuckle.MultiTenant;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +8,7 @@ using Vitarish.ApiClients.Infrastructure.Data;
 using Vitarish.AuthenticationClients.Hosting.Api;
 using Vitarish.AuthenticationClients.Infrastructure.Data;
 using Vitarish.Communications.Hosting;
+using Vitarish.Entities.Server.Services;
 using Vitarish.Files.Hosting;
 using Vitarish.Files.Infrastructure.Data;
 using Vitarish.Instagram.Hosting;
@@ -70,6 +70,7 @@ _ = builder.Services.AddRazorPages(options =>
 {
     options.RootDirectory = "/Pages";
 });
+
 builder.AddAccountsInterface();
 builder.AddApplicationOptions();
 
@@ -80,11 +81,14 @@ builder.AddAaasAuthenticationClients(configureSqlServer);
 builder.AddAaasParties(configureSqlServer);
 
 await builder.AddHostIdentityServer(configureSqlServer);
+
 builder.AddHostAuthentication();
 builder.AddHostAuthorization();
 builder.AddHostHangfire(builder.Configuration.GetConnectionString("Db")!);
 builder.AddHostPipeline();
+
 await builder.AddHostDataProtection();
+
 _ = builder.Services.AddMemoryCache();
 _ = builder.Services.AddHttpContextAccessor();
 _ = builder.Services.AddDistributedMemoryCache();
@@ -114,7 +118,10 @@ Func<object, Task<string?>> tenantResolver = async context =>
         }
     }
     else
+    {
         throw new InvalidOperationException("context is not HttpContext");
+    }
+
     return null;
 }
 ;
@@ -129,6 +136,11 @@ _ = builder.Services.AddSignalR(o =>
 builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
 builder.Services.AddVitarishInterfacesBase();
 builder.Services.AddSingleton<IPackageProvider, PackageProvider>();
+
+builder.Services.AddScoped<EntityDataProvider>();
+builder.Services.AddScoped<IEntityUserService>(sp => sp.GetRequiredService<EntityDataProvider>());
+builder.Services.AddScoped<IEntityTimeService>(sp => sp.GetRequiredService<EntityDataProvider>());
+
 WebApplication app = builder.Build();
 
 _ = await app.MigrateDatabaseAsync<UsersDbContext>();

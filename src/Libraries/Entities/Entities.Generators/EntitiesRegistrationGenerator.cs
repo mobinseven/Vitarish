@@ -100,8 +100,6 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
         sb.AppendLine($"        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof({extensionClassName}).Assembly));");
         sb.AppendLine("        services.AddSingleton<IEntityCacheInvalidationService, EntityCacheInvalidationService>();");
         sb.AppendLine("        services.AddScoped<EntityInterceptor>();");
-        sb.AppendLine("        services.AddScoped<IEntityUserService, EntityUserService>();");
-        sb.AppendLine("        services.AddScoped<IEntityTimeService, EntityTimeService>();");
         sb.AppendLine();
 
         foreach(KeyValuePair<INamedTypeSymbol, INamedTypeSymbol> kvp in descriptors)
