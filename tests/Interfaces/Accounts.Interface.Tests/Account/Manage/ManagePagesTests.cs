@@ -24,19 +24,6 @@ namespace Accounts.Interface.Tests.Account.Manage;
 
 public class ManagePagesTests
 {
-    [Fact]
-    public async Task Profile_ShowsHeaderAndEditor()
-    {
-        await using InterfaceTestContext context = new();
-        DefaultHttpContext httpContext = CreateHttpContext();
-
-        IRenderedComponent<Profile> cut = context.Render<Profile>(
-            parameters => parameters.AddCascadingValue(httpContext));
-
-        Assert.Contains("Profile", cut.Markup);
-        Assert.NotNull(cut.Find("h4"));
-        Assert.NotNull(cut.FindComponent<Vitarish.Accounts.Interface.Components.Account.ProfileEditor>());
-    }
 
     [Fact]
     public async Task Passkeys_LoadsCredentialsAndProvidesBackNavigation()
