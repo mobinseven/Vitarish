@@ -74,11 +74,6 @@ public partial class NavMenu : ComponentBase, IDisposable
 
     private void NavigateSearch()
     {
-        if (!State.Search.Enabled)
-        {
-            return;
-        }
-
         string searchUri = BottomNavService.GetSearchUri(query);
         BottomNavService.UpdateSearchUri(searchUri);
         NavigationManager.NavigateTo(searchUri);

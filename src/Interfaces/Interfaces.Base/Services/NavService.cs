@@ -168,8 +168,6 @@ public sealed class NavService : INavService, IDisposable
             }
         );
 
-        NavButton search = CreateSearchButton(options);
-
         NavButton back;
         if (options?.Back is { Visible: true } backOptions)
         {
@@ -229,7 +227,7 @@ public sealed class NavService : INavService, IDisposable
             }
         );
 
-        return new BottomNavState(home, search, back, profile);
+        return new BottomNavState(home, back, profile);
     }
 
     private Task NavigateUpOneLevelAsync()
@@ -276,49 +274,4 @@ public sealed class NavService : INavService, IDisposable
         Apply(merged);
     }
 
-    private NavButton CreateSearchButton(BottomNavOptions? options)
-    {
-        if (options?.Search is { } searchAction)
-        {
-            if (!searchAction.Visible)
-            {
-                return new NavButton(
-                    Visible: false,
-                    Enabled: false,
-                    OnClick: () => Task.CompletedTask
-                );
-            }
-
-            if (searchAction.Action is not null)
-            {
-                return new NavButton(
-                    Visible: searchAction.Visible,
-                    Enabled: searchAction.Enabled,
-                    OnClick: searchAction.Action
-                );
-            }
-
-            string actionUri = searchAction.Uri ?? defaults.SearchUri;
-            return new NavButton(
-                Visible: searchAction.Visible,
-                Enabled: searchAction.Enabled,
-                OnClick: () =>
-                {
-                    navigationManager.NavigateTo(actionUri);
-                    return Task.CompletedTask;
-                }
-            );
-        }
-
-        string searchUri = options?.SearchUriOverride ?? defaults.SearchUri;
-        return new NavButton(
-            Visible: true,
-            Enabled: true,
-            OnClick: () =>
-            {
-                navigationManager.NavigateTo(searchUri);
-                return Task.CompletedTask;
-            }
-        );
-    }
 }

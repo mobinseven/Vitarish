@@ -9,7 +9,6 @@ namespace Vitarish.Interfaces.Base.Models;
 /// <param name="Profile">The Profile button configuration.</param>
 public sealed record BottomNavState(
     NavButton Home,
-    NavButton Search,
     NavButton Back,
     NavButton Profile
 );
