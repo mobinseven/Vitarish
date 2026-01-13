@@ -1,0 +1,32 @@
+@inherits MudButton
+<MudButton Variant="Variant.Text"
+           FullWidth
+           Size="@Size"
+           Color="@Color"
+           StartIcon="@StartIcon"
+           IconColor="@Color"
+           IconSize="Size.Small"
+           EndIcon="@ContinueIcon"
+           OnClick="@Toggle"
+           DropShadow="false">
+    <MudStack Row Style="width: 100%" AlignItems="AlignItems.Start" StretchItems="StretchItems.Middle">
+        <MudHighlighter HighlightedText="@HighlightString" Text="@Label" />
+    </MudStack>
+</MudButton>
+
+@if(expanded)
+{
+    <div class="stack-item" style="margin-top: -1px;">
+        @ChildContent
+    </div>
+}
+@code {
+    private bool expanded;
+
+    private void Toggle() => expanded = !expanded;
+
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? HighlightString { get; set; }
+
+    private string ContinueIcon => expanded ? "fa-thin fa-chevron-down" : CultureInfo.CurrentCulture.TextInfo.IsRightToLeft ? "fa-thin fa-chevron-left" : "fa-thin fa-chevron-right";
+}
