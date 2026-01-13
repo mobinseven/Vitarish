@@ -1,6 +1,6 @@
 namespace Vitarish.Sea.Interface.Plugins.Clinic.Projects;
 
-public partial class ClinicPatientIntakeProjectCreationForm
+public partial class ClinicProjectCreationForm
 {
     internal const string GenderFemale = "Female";
     internal const string GenderMale = "Male";
@@ -107,7 +107,7 @@ public partial class ClinicPatientIntakeProjectCreationForm
     {
         base.OnInitialized();
 
-        InitializeEditableMetadata(new ClinicPatientIntakeMetadataModel(OnEditableMetadataChanged));
+        InitializeEditableMetadata(new ClinicProjectMetadataModel(OnEditableMetadataChanged));
         ApplyContextMetadata();
         ValidateManual();
     }
@@ -178,7 +178,7 @@ public partial class ClinicPatientIntakeProjectCreationForm
 
         if (args.IsFinal)
         {
-            if (TryDeserializeMetadata(args.Json, out ClinicPatientIntakeMetadata? metadata, out string? error))
+            if (TryDeserializeMetadata(args.Json, out ClinicProjectMetadata? metadata, out string? error))
             {
                 SetMetadata(metadata, markAsClean: true);
                 EditableMetadata.LoadFrom(metadata!);
@@ -208,7 +208,7 @@ public partial class ClinicPatientIntakeProjectCreationForm
     {
         metadataValidationError = null;
 
-        if (!TryCreateMetadataFromEditor(out ClinicPatientIntakeMetadata? parsed, out string? error))
+        if (!TryCreateMetadataFromEditor(out ClinicProjectMetadata? parsed, out string? error))
         {
             metadataValidationError = error;
             ClearMetadata();
@@ -243,7 +243,7 @@ public partial class ClinicPatientIntakeProjectCreationForm
 
         manualValidationError = null;
 
-        if (!TryCreateMetadataFromEditor(out ClinicPatientIntakeMetadata? parsed, out string? validationError))
+        if (!TryCreateMetadataFromEditor(out ClinicProjectMetadata? parsed, out string? validationError))
         {
             manualValidationError = validationError;
             StateHasChanged();
@@ -263,7 +263,7 @@ public partial class ClinicPatientIntakeProjectCreationForm
 
         try
         {
-            if (!TryDeserializeMetadata(MetadataJson, out ClinicPatientIntakeMetadata? parsed, out string? validationError))
+            if (!TryDeserializeMetadata(MetadataJson, out ClinicProjectMetadata? parsed, out string? validationError))
             {
                 metadataValidationError = validationError;
                 errorMessage = validationError;
@@ -279,7 +279,7 @@ public partial class ClinicPatientIntakeProjectCreationForm
                 return;
             }
 
-            ClinicPatientIntakeMetadata normalized = parsed!;
+            ClinicProjectMetadata normalized = parsed!;
             SetMetadata(normalized, markAsClean: true);
 
             string projectName = BuildDisplayName(normalized);
@@ -378,7 +378,7 @@ public partial class ClinicPatientIntakeProjectCreationForm
 
     protected override string BuildDeserializationErrorMessage(Exception exception) => Localizer["Error_AiResponseParse", exception.Message];
 
-    private bool TryCreateMetadataFromEditor(out ClinicPatientIntakeMetadata? metadata, out string? error)
+    private bool TryCreateMetadataFromEditor(out ClinicProjectMetadata? metadata, out string? error)
     {
         metadata = null;
         error = null;
@@ -393,7 +393,7 @@ public partial class ClinicPatientIntakeProjectCreationForm
             ? GenderUnspecified
             : EditableMetadata.Gender!;
 
-        ClinicPatientIntakeMetadata normalized = new()
+        ClinicProjectMetadata normalized = new()
         {
             FirstName = NormalizeInput(EditableMetadata.FirstName),
             LastName = NormalizeInput(EditableMetadata.LastName),
@@ -443,7 +443,7 @@ public partial class ClinicPatientIntakeProjectCreationForm
         }
     }
 
-    private IReadOnlyList<MetadataTableRow> BuildMetadataTableRows(ClinicPatientIntakeMetadata metadata)
+    private IReadOnlyList<MetadataTableRow> BuildMetadataTableRows(ClinicProjectMetadata metadata)
     {
         IReadOnlyList<MetadataSection> sections = BuildMetadataSections(metadata);
         List<MetadataTableRow> rows = [];
@@ -459,7 +459,7 @@ public partial class ClinicPatientIntakeProjectCreationForm
         return rows;
     }
 
-    protected override ClinicPatientIntakeMetadata NormalizeMetadata(ClinicPatientIntakeMetadata metadata)
+    protected override ClinicProjectMetadata NormalizeMetadata(ClinicProjectMetadata metadata)
     {
         string normalizedGender = metadata.Gender switch
         {
@@ -487,11 +487,11 @@ public partial class ClinicPatientIntakeProjectCreationForm
             ? parsed.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
             : value;
 
-    private string BuildDescription(ClinicPatientIntakeMetadata metadata) => string.IsNullOrWhiteSpace(metadata.ClinicalNotes)
+    private string BuildDescription(ClinicProjectMetadata metadata) => string.IsNullOrWhiteSpace(metadata.ClinicalNotes)
                 ? Localizer["Description_OutpatientIntakeRecord"]
                 : metadata.ClinicalNotes!;
 
-    private string BuildDisplayName(ClinicPatientIntakeMetadata metadata)
+    private string BuildDisplayName(ClinicProjectMetadata metadata)
     {
         IEnumerable<string> parts = new[] { metadata.FirstName, metadata.LastName }
             .Where(v => !string.IsNullOrWhiteSpace(v))
@@ -501,7 +501,7 @@ public partial class ClinicPatientIntakeProjectCreationForm
         return string.IsNullOrWhiteSpace(displayName) ? Localizer["Default_ClinicPatientName"] : displayName;
     }
 
-    private IReadOnlyList<MetadataSection> BuildMetadataSections(ClinicPatientIntakeMetadata metadata)
+    private IReadOnlyList<MetadataSection> BuildMetadataSections(ClinicProjectMetadata metadata)
     {
         List<MetadataSection> sections = [];
 
@@ -566,216 +566,7 @@ public partial class ClinicPatientIntakeProjectCreationForm
             : DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime parsed)
             ? parsed.ToString("y", CultureInfo.CurrentCulture)
             : value;
-
-    public sealed record ClinicPatientIntakeMetadata
-    {
-        public string? FirstName { get; init; }
-        public string? LastName { get; init; }
-        public string? DateOfBirth { get; init; }
-        public string? Gender { get; init; }
-        public string? Email { get; init; }
-        public string? Phone { get; init; }
-        public string? InsuranceProvider { get; init; }
-        public string? PolicyNumber { get; init; }
-        public string? PrimaryPhysician { get; init; }
-        public string? VisitReason { get; init; }
-        public string? PreferredPharmacy { get; init; }
-        public string? Allergies { get; init; }
-        public string? CurrentMedications { get; init; }
-        public string? ClinicalNotes { get; init; }
-        public string? EmergencyContactName { get; init; }
-        public string? EmergencyContactPhone { get; init; }
-        public bool? ConsentToShareRecords { get; init; }
-        public Guid? FacilityId { get; init; }
-        public string? DepartmentName { get; init; }
-        public Guid? TemplateId { get; init; }
-    }
-
-    public sealed class ClinicPatientIntakeMetadataModel
-    {
-        private readonly Action onChanged;
-        private bool suppressNotifications;
-
-        public ClinicPatientIntakeMetadataModel(Action onChanged)
-        {
-            this.onChanged = onChanged;
-        }
-
-        public string? FirstName
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public string? LastName
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public string? DateOfBirth
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public string? Gender
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public string? Email
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public string? Phone
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public string? InsuranceProvider
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public string? PolicyNumber
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public string? PrimaryPhysician
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public string? VisitReason
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public string? PreferredPharmacy
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public string? Allergies
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public string? CurrentMedications
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public string? ClinicalNotes
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public string? EmergencyContactName
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public string? EmergencyContactPhone
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public string? DepartmentName
-        {
-            get;
-            set => SetField(ref field, value);
-        }
-
-        public bool ConsentToShareRecords
-        {
-            get;
-            set => SetField(ref field, value);
-        } = true;
-
-        public void LoadFrom(ClinicPatientIntakeMetadata metadata)
-        {
-            suppressNotifications = true;
-            FirstName = metadata.FirstName;
-            LastName = metadata.LastName;
-            DateOfBirth = metadata.DateOfBirth;
-            Gender = metadata.Gender;
-            Email = metadata.Email;
-            Phone = metadata.Phone;
-            InsuranceProvider = metadata.InsuranceProvider;
-            PolicyNumber = metadata.PolicyNumber;
-            PrimaryPhysician = metadata.PrimaryPhysician;
-            VisitReason = metadata.VisitReason;
-            PreferredPharmacy = metadata.PreferredPharmacy;
-            Allergies = metadata.Allergies;
-            CurrentMedications = metadata.CurrentMedications;
-            ClinicalNotes = metadata.ClinicalNotes;
-            EmergencyContactName = metadata.EmergencyContactName;
-            EmergencyContactPhone = metadata.EmergencyContactPhone;
-            DepartmentName = metadata.DepartmentName;
-            ConsentToShareRecords = metadata.ConsentToShareRecords ?? true;
-            suppressNotifications = false;
-        }
-
-        public void Clear()
-        {
-            suppressNotifications = true;
-            FirstName = null;
-            LastName = null;
-            DateOfBirth = null;
-            Gender = null;
-            Email = null;
-            Phone = null;
-            InsuranceProvider = null;
-            PolicyNumber = null;
-            PrimaryPhysician = null;
-            VisitReason = null;
-            PreferredPharmacy = null;
-            Allergies = null;
-            CurrentMedications = null;
-            ClinicalNotes = null;
-            EmergencyContactName = null;
-            EmergencyContactPhone = null;
-            DepartmentName = null;
-            ConsentToShareRecords = true;
-            suppressNotifications = false;
-        }
-
-        private void SetField<T>(ref T field, T value)
-        {
-            if (EqualityComparer<T>.Default.Equals(field, value))
-            {
-                return;
-            }
-
-            field = value;
-
-            if (!suppressNotifications)
-            {
-                onChanged();
-            }
-        }
-    }
-
     private sealed record MetadataSection(string Title, IReadOnlyList<MetadataField> Fields);
-
     private sealed record MetadataField(string Label, string Value);
-
     private sealed record MetadataTableRow(string Section, string Label, string Value);
 }

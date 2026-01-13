@@ -5,7 +5,7 @@ namespace Vitarish.Sea.Interface.Plugins.Clinic.Projects;
 /// resulting project record contains the metadata clinicians rely on during the
 /// first consultation.
 /// </summary>
-public sealed class ClinicPatientIntakeProjectCreationFormPlugin(
+public sealed class ClinicProjectCreationFormPlugin(
     IStringLocalizer localizer) : IProjectCreationFormPlugin
 {
     private const string FacilityTypeMetadataKey = "FacilityType";
@@ -42,8 +42,8 @@ public sealed class ClinicPatientIntakeProjectCreationFormPlugin(
                                                                                      }
                                                                                      else
                                                                                      {
-                                                                                         builder.OpenComponent<ClinicPatientIntakeProjectCreationForm>(0);
-                                                                                         builder.AddAttribute(1, nameof(ClinicPatientIntakeProjectCreationForm.Context), context);
+                                                                                         builder.OpenComponent<ClinicProjectCreationForm>(0);
+                                                                                         builder.AddAttribute(1, nameof(ClinicProjectCreationForm.Context), context);
                                                                                      }
 
                                                                                      builder.CloseComponent();

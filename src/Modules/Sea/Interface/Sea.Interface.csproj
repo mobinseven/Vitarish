@@ -19,10 +19,15 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Identity\Requests\Application\Requests.Application.csproj" />
 		<ProjectReference Include="..\..\..\Identity\Users\Application\Users.Application.csproj" />
+		<ProjectReference Include="..\..\..\Identity\Users\Domain\Users.Domain.csproj" />
 		<ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
+		<ProjectReference Include="..\..\Files\Domain\Files.Domain.csproj" />
 		<ProjectReference Include="..\..\Files\Interface\Files.Interface.csproj" />
+		<ProjectReference Include="..\..\Intelligence\Domain\Intelligence.Domain.csproj" />
 		<ProjectReference Include="..\..\Intelligence\Interface\Intelligence.Interface.csproj" />
 		<ProjectReference Include="..\Application\Sea.Application.csproj" />
+		<ProjectReference Include="..\Domain\Sea.Domain.csproj" />
 	</ItemGroup>
 
 </Project>

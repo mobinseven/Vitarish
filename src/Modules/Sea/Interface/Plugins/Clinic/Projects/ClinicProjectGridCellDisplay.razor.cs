@@ -2,7 +2,7 @@ namespace Vitarish.Sea.Interface.Plugins.Clinic.Projects;
 
 public partial class ClinicProjectGridCellDisplay
 {
-    private ClinicTemplateMetadata? templateMetadata;
+    private ClinicTemplateProjectMetadata? templateMetadata;
 
     [Parameter, EditorRequired]
     public ProjectGridCellDisplayContext Context { get; set; } = default!;
@@ -20,7 +20,7 @@ public partial class ClinicProjectGridCellDisplay
 
     private Task HandleClickedAsync() => InvokeClickAsync(Context.OnClicked, Context.Project.Id);
 
-    protected override ClinicPatientIntakeMetadata? ParseMetadata(string? metadataJson) => ClinicProjectMetadataParser.TryParsePatient(metadataJson);
+    protected override ClinicProjectMetadata? ParseMetadata(string? metadataJson) => ClinicProjectMetadataParser.TryParsePatient(metadataJson);
 
     protected override void OnMetadataAssigned(string? metadataJson) => templateMetadata = Metadata is null
             ? ClinicProjectMetadataParser.TryParseTemplate(metadataJson)
@@ -28,5 +28,5 @@ public partial class ClinicProjectGridCellDisplay
 
     protected override string GetDefaultDisplayName() => Localizer["Clinic patient"];
 
-    protected override string? GetChipLabel(ClinicPatientIntakeMetadata metadata) => metadata.VisitReason;
+    protected override string? GetChipLabel(ClinicProjectMetadata metadata) => metadata.VisitReason;
 }

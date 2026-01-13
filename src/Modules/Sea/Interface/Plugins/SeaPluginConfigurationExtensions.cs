@@ -17,11 +17,11 @@ public static class SeaPluginConfigurationExtensions
             PluginDescriptor clinicDescriptor = new(
                 services =>
                 {
-                    _ = services.AddScoped<IProjectCreationFormPlugin, ClinicPatientIntakeProjectCreationFormPlugin>();
+                    _ = services.AddScoped<IProjectCreationFormPlugin, ClinicProjectCreationFormPlugin>();
                     _ = services.AddScoped<IProjectGridCellDisplayPlugin, ClinicProjectGridCellDisplayPlugin>();
                 },
                 [
-                    typeof(ClinicPatientIntakeProjectCreationForm),
+                    typeof(ClinicProjectCreationForm),
                 typeof(ClinicProjectGridCellDisplay)
                 ]);
 
