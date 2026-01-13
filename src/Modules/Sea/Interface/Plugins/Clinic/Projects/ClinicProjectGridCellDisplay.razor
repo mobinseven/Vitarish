@@ -1,19 +1,8 @@
 @using Vitarish.Sea.Interface.Plugins.Base.Projects
 @inherits ProjectGridCellDisplayBase<ClinicPatientIntakeMetadata>
 
-<ExpandableItem Context="expandable"
-                OnClicked="HandleClickedAsync"
-                NoIcon
-                Name="@Context.Project.Name"
-                HighlightString="@Context.HighlightString">
-    <StartContent>
-        <MudStack AlignItems="AlignItems.Center" Spacing="1">
-            <MudAvatar Class="glass" Variant="ThemeService.SecondaryVariant" Color="Color.Info">
-                <ProgressDisplay Stats="DisplayStats" Title="@Context.Project.Name" />
-            </MudAvatar>
-        </MudStack>
-    </StartContent>
-    <InlineContent>
-        <StatsDisplay Stats="DisplayStats" />
-    </InlineContent>
-</ExpandableItem>
+<StackButton OnClick="HandleClickedAsync"
+             Label="@Context.Project.Name"
+             HighlightString="@Context.HighlightString">
+    <StatsDisplay Stats="DisplayStats" />
+</StackButton>
