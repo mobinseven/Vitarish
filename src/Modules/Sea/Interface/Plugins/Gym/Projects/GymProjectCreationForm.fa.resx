@@ -13,16 +13,16 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
 
-  <data name="RegisterGymTrainee_Title">
+  <data name="RegisterGymTrainee">
     <value>ثبت نام ورزشکار</value>
   </data>
-  <data name="Step1_TraineeDescription_Title">
+  <data name="TraineeDescription">
     <value>توضیحات ورزشکار</value>
   </data>
-  <data name="Step1_DescribeTrainee_Header">
+  <data name="DescribeTrainee">
     <value>ورزشکار را توصیف کنید</value>
   </data>
-  <data name="Step1_DescribeTrainee_Help">
+  <data name="DescribeTraineeHelp">
     <value>اطلاعات پس‌زمینه، اهداف تناسب اندام، برنامه‌های مورد علاقه و هر نکته مهم برای مربی را وارد کنید.</value>
   </data>
   <data name="Generate trainee profile">
@@ -31,97 +31,97 @@
   <data name="Generating...">
     <value>در حال تولید...</value>
   </data>
-  <data name="Step2_Generate_Title">
+  <data name="Generate">
     <value>تولید</value>
   </data>
-  <data name="Step2_Generating_Header">
+  <data name="Generating">
     <value>در حال تولید اطلاعات ورزشکار</value>
   </data>
-  <data name="Step2_Generating_Help">
+  <data name="GeneratingHelp">
     <value>دستیار هوش مصنوعی توضیحات شما را به داده‌های ساخت‌یافته تبدیل می‌کند.</value>
   </data>
-  <data name="Common_Processing">
+  <data name="Processing">
     <value>در حال پردازش...</value>
   </data>
-  <data name="Step2_Generate_Done">
+  <data name="GenerationDone">
     <value>تولید داده کامل شد. لطفاً جزئیات را بررسی کنید.</value>
   </data>
-  <data name="Step3_Review_Title">
+  <data name="Review">
     <value>بازبینی جزئیات</value>
   </data>
-  <data name="Step3_Review_Header">
+  <data name="Review">
     <value>جزئیات ورزشکار را بازبینی و ویرایش کنید</value>
   </data>
-  <data name="Step3_Review_Help">
+  <data name="ReviewHelp">
     <value>اطلاعات تولید شده را بررسی و در صورت نیاز اصلاح کنید.</value>
   </data>
-  <data name="Info_MetadataAppearsAfterGenerate">
+  <data name="MetadataAppearsAfterGenerate">
     <value>پس از تولید داده، اطلاعات ورزشکار در اینجا نمایش داده می‌شود.</value>
   </data>
-  <data name="Section_Identity_Title">
+  <data name="Identity">
     <value>هویت</value>
   </data>
-  <data name="Section_Contact_Title">
+  <data name="Contact">
     <value>اطلاعات تماس</value>
   </data>
-  <data name="Section_Membership_Title">
+  <data name="Membership">
     <value>عضویت</value>
   </data>
-  <data name="Section_Emergency_Title">
+  <data name="Emergency">
     <value>تماس اضطراری</value>
   </data>
-  <data name="Section_Health_Title">
+  <data name="Health">
     <value>یادداشت‌های سلامتی</value>
   </data>
-  <data name="Section_RawMetadata_Title">
+  <data name="RawMetadata">
     <value>پیش‌نمایش متاداده</value>
   </data>
-  <data name="Field_FirstName">
+  <data name="FirstName">
     <value>نام</value>
   </data>
-  <data name="Field_LastName">
+  <data name="LastName">
     <value>نام خانوادگی</value>
   </data>
-  <data name="Field_DateOfBirth">
+  <data name="DateOfBirth">
     <value>تاریخ تولد</value>
   </data>
-  <data name="Field_Gender">
+  <data name="Gender">
     <value>جنسیت</value>
   </data>
-  <data name="Option_Gender_Female">
+  <data name="Gender_Female">
     <value>زن</value>
   </data>
-  <data name="Option_Gender_Male">
+  <data name="Gender_Male">
     <value>مرد</value>
   </data>
-  <data name="Option_Gender_Unassigned">
+  <data name="Gender_Unassigned">
     <value>نامشخص</value>
   </data>
-  <data name="Field_Nationality">
+  <data name="Nationality">
     <value>ملیت</value>
   </data>
-  <data name="Field_Email">
+  <data name="Email">
     <value>ایمیل</value>
   </data>
-  <data name="Field_Phone">
+  <data name="Phone">
     <value>تلفن</value>
   </data>
-  <data name="Field_MembershipType">
+  <data name="MembershipType">
     <value>نوع عضویت</value>
   </data>
-  <data name="Field_PreferredProgram">
+  <data name="PreferredProgram">
     <value>برنامه مورد علاقه</value>
   </data>
-  <data name="Field_Goals">
+  <data name="Goals">
     <value>اهداف اصلی</value>
   </data>
-  <data name="Field_EmergencyContactName">
+  <data name="EmergencyContactName">
     <value>نام تماس اضطراری</value>
   </data>
-  <data name="Field_EmergencyContactPhone">
+  <data name="EmergencyContactPhone">
     <value>تلفن تماس اضطراری</value>
   </data>
-  <data name="Field_MedicalNotes">
+  <data name="MedicalNotes">
     <value>ملاحظات پزشکی</value>
   </data>
   <data name="Cancel">
@@ -136,7 +136,7 @@
   <data name="Finishing...">
     <value>در حال تکمیل...</value>
   </data>
-  <data name="Btn_ReviewDetails">
+  <data name="ReviewDetails">
     <value>بازبینی جزئیات ورزشکار</value>
   </data>
   <data name="Facility: {0}">

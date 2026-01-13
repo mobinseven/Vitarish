@@ -3,7 +3,7 @@
 <MudDialog>
     <DialogContent>
         <MudStack Spacing="2">
-            <MudText Typo="Typo.h6">@Localizer["Configure clinic template"]</MudText>
+            <MudText Typo="Typo.h6">@Localizer["ConfigureClinicTemplate"]</MudText>
             @if (!string.IsNullOrWhiteSpace(facilityLabel))
             {
                 <MudAlert Severity="Severity.Info" Variant="Variant.Text">
@@ -26,14 +26,14 @@
                 <MudGrid Class="mt-2">
                     <MudItem xs="12">
                         <MudTextField @bind-Value="formModel.TemplateName"
-                                      Label="@Localizer["Template name"]"
+                                      Label="@Localizer["TemplateName"]"
                                       Variant="ThemeService.SecondaryVariant"
                                       Required="true"
                                       For="() => formModel.TemplateName" />
                     </MudItem>
                     <MudItem xs="12">
                         <MudTextField @bind-Value="formModel.TemplateDescription"
-                                      Label="@Localizer["Template description"]"
+                                      Label="@Localizer["TemplateDescription"]"
                                       Variant="ThemeService.SecondaryVariant"
                                       AutoGrow="true"
                                       Lines="3"
@@ -41,26 +41,26 @@
                     </MudItem>
                     <MudItem xs="12" sm="6">
                         <MudTextField @bind-Value="formModel.DefaultDepartmentName"
-                                      Label="@Localizer["Default department"]"
+                                      Label="@Localizer["DefaultDepartment"]"
                                       Variant="ThemeService.SecondaryVariant"
                                       For="() => formModel.DefaultDepartmentName" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
                         <MudTextField @bind-Value="formModel.DefaultPrimaryPhysician"
-                                      Label="@Localizer["Default physician"]"
+                                      Label="@Localizer["DefaultPhysician"]"
                                       Variant="ThemeService.SecondaryVariant"
                                       For="() => formModel.DefaultPrimaryPhysician" />
                     </MudItem>
                     <MudItem xs="12">
                         <MudTextField @bind-Value="formModel.DefaultVisitReason"
-                                      Label="@Localizer["Default reason for visit"]"
+                                      Label="@Localizer["DefaultVisitReason"]"
                                       Variant="ThemeService.SecondaryVariant"
                                       Required="true"
                                       For="() => formModel.DefaultVisitReason" />
                     </MudItem>
                     <MudItem xs="12">
                         <MudTextField @bind-Value="formModel.IntakeChecklist"
-                                      Label="@Localizer["Intake checklist"]"
+                                      Label="@Localizer["IntakeChecklist"]"
                                       Variant="ThemeService.SecondaryVariant"
                                       AutoGrow="true"
                                       Lines="3"
@@ -68,7 +68,7 @@
                     </MudItem>
                     <MudItem xs="12">
                         <MudTextField @bind-Value="formModel.BaselineConsentText"
-                                      Label="@Localizer["Consent guidance"]"
+                                      Label="@Localizer["BaselineConsentText"]"
                                       Variant="ThemeService.SecondaryVariant"
                                       AutoGrow="true"
                                       Lines="3"
@@ -77,10 +77,10 @@
                     <MudItem xs="12">
                         <MudStack>
                             <MudCheckBox @bind-Value="formModel.IncludeInsuranceSection"
-                                         Label="@Localizer["Include insurance details section"]"
+                                         Label="@Localizer["IncludeInsuranceSection"]"
                                          For="() => formModel.IncludeInsuranceSection" />
                             <MudCheckBox @bind-Value="formModel.IncludeClinicalNotesSection"
-                                         Label="@Localizer["Include clinical notes section"]"
+                                         Label="@Localizer["IncludeClinicalNotesSection"]"
                                          For="() => formModel.IncludeClinicalNotesSection" />
                         </MudStack>
                     </MudItem>

@@ -1,3 +1,5 @@
+using Vitarish.Sea.Interface.Plugins.Base.Enums;
+
 namespace Vitarish.Sea.Interface.Plugins.Base.Projects;
 /// <summary>
 /// Provides display helpers for project grid cell components so they can render
@@ -100,7 +102,12 @@ public abstract class ProjectGridCellDisplayBase<TMetadata> : ProjectsBase
     /// Formats a gender value using localized resources.
     /// </summary>
     /// <param name="gender">The gender value.</param>
-    protected string? FormatGender(string? gender) => string.IsNullOrWhiteSpace(gender) ? (string?)null : Localizer[gender!];
+    protected string? FormatGender(Gender? gender) => gender switch
+    {
+        Gender.Male => Localizer["Male"],
+        Gender.Female => Localizer["Female"],
+        _ => Localizer["Unspecified"]
+    };
 
     /// <summary>
     /// Formats a date value using the current culture.

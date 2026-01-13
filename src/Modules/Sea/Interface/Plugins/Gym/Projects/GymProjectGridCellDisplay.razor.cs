@@ -1,8 +1,11 @@
+using Vitarish.Sea.Interface.Plugins.Base.Enums;
+using Vitarish.Sea.Interface.Plugins.Base.Projects;
+
 namespace Vitarish.Sea.Interface.Plugins.Gym.Projects;
 
-public partial class GymProjectGridCellDisplay : ProjectsBase
+public partial class GymProjectGridCellDisplay : ProjectGridCellDisplayBase<GymProjectMetadata>
 {
-    private GymTraineeMetadata? metadata;
+    private GymProjectMetadata? metadata;
     private string? traineeInitials;
     private string traineeDisplayName = string.Empty;
     private string? membershipChipLabel;
@@ -100,13 +103,6 @@ public partial class GymProjectGridCellDisplay : ProjectsBase
             ? null
             : (string)Localizer["ContactSummaryLabel", FormatValue(metadata.Email), FormatValue(metadata.Phone)];
 
-    private string FormatValue(string? value) => string.IsNullOrWhiteSpace(value) ? Localizer["NotProvided"] : value!;
-
-    private string? FormatDate(string? value) => string.IsNullOrWhiteSpace(value)
-            ? null
-            : DateTime.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out DateTime parsed)
-            ? parsed.ToString("d", CultureInfo.CurrentCulture)
-            : value;
-
-    private string? FormatGender(string? gender) => string.IsNullOrWhiteSpace(gender) ? null : (string)Localizer[gender!];
+    protected override GymProjectMetadata? ParseMetadata(string? metadataJson) => GymProjectMetadataParser.TryParse(metadataJson);
+    protected override string GetDefaultDisplayName() => Metadata?.LastName ?? Metadata?.FirstName ?? Metadata?.Phone ?? Metadata?.Email ?? Localizer["Trainee"];
 }

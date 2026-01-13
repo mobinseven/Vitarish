@@ -28,11 +28,11 @@ public static class SeaPluginConfigurationExtensions
             PluginDescriptor gymDescriptor = new(
                 services =>
                 {
-                    _ = services.AddScoped<IProjectCreationFormPlugin, GymTraineeProjectCreationFormPlugin>();
+                    _ = services.AddScoped<IProjectCreationFormPlugin, GymProjectCreationFormPlugin>();
                     _ = services.AddScoped<IProjectGridCellDisplayPlugin, GymProjectGridCellDisplayPlugin>();
                 },
                 [
-                    typeof(GymTraineeProjectCreationForm),
+                    typeof(GymProjectCreationForm),
                 typeof(GymProjectGridCellDisplay)
                 ]);
 

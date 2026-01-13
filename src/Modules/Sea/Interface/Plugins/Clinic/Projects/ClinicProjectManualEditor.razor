@@ -1,95 +1,91 @@
 @using Microsoft.Extensions.Localization
+@using Vitarish.Sea.Interface.Plugins.Base.Enums
 @inherits CommonBase
 <MudStack Spacing="3">
     <MudTextField @bind-Value="EditableMetadata.FirstName"
-                  Label="@Localizer["Field_FirstName"]"
+                  Label="@Localizer["FirstName"]"
                   Variant="ThemeService.SecondaryVariant"
                   Immediate="true" />
     <MudTextField @bind-Value="EditableMetadata.LastName"
-                  Label="@Localizer["Field_LastName"]"
+                  Label="@Localizer["LastName"]"
                   Variant="ThemeService.SecondaryVariant"
                   Immediate="true" />
     <MudTextField @bind-Value="EditableMetadata.DateOfBirth"
-                  Label="@Localizer["Field_DateOfBirth"]"
+                  Label="@Localizer["DateOfBirth"]"
                   Variant="ThemeService.SecondaryVariant"
                   Immediate="true"
                   InputType="InputType.Date" />
-    <MudSelect T="string"
-               @bind-Value="EditableMetadata.Gender"
-               Label="@Localizer["Field_Gender"]"
-               Variant="ThemeService.SecondaryVariant"
-               Dense="true"
-               Clearable="true">
-        <MudSelectItem Value="@GenderFemale">@Localizer["Option_Gender_Female"]</MudSelectItem>
-        <MudSelectItem Value="@GenderMale">@Localizer["Option_Gender_Male"]</MudSelectItem>
-        <MudSelectItem Value="@GenderUnspecified">@Localizer["Option_Gender_Unspecified"]</MudSelectItem>
-    </MudSelect>
+    <MudRadioGroup T="Gender"
+                   @bind-Value="EditableMetadata.Gender">
+        <MudRadio Value="@Gender.Female">@Localizer["Female"]</MudRadio>
+        <MudRadio Value="@Gender.Male">@Localizer["Male"]</MudRadio>
+    </MudRadioGroup>
     <MudDivider Class="my-1" />
     <MudTextField @bind-Value="EditableMetadata.ClinicalNotes"
                   Lines="4"
                   Variant="ThemeService.SecondaryVariant"
                   Immediate="true"
-                  Label="@Localizer["Field_Notes"]" />
+                  Label="@Localizer["Notes"]" />
     <MudExpansionPanels Dense Outlined Elevation="0" Class="border">
-        <MudExpansionPanel Dense KeepContentAlive=false Text="@Localizer["Section_ClinicalData"]">
+        <MudExpansionPanel Dense KeepContentAlive=false Text="@Localizer["ClinicalData"]">
             <MudTextField @bind-Value="EditableMetadata.Email"
-                          Label="@Localizer["Field_Email"]"
+                          Label="@Localizer["Email"]"
                           Variant="ThemeService.SecondaryVariant"
                           Immediate="true"
                           InputType="InputType.Email" />
             <MudTextField @bind-Value="EditableMetadata.Phone"
-                          Label="@Localizer["Field_Phone"]"
+                          Label="@Localizer["Phone"]"
                           Variant="ThemeService.SecondaryVariant"
                           Immediate="true" />
             <MudDivider Class="my-1" />
             <MudTextField @bind-Value="EditableMetadata.InsuranceProvider"
-                          Label="@Localizer["Field_InsuranceProvider"]"
+                          Label="@Localizer["InsuranceProvider"]"
                           Variant="ThemeService.SecondaryVariant"
                           Immediate="true" />
             <MudTextField @bind-Value="EditableMetadata.PolicyNumber"
-                          Label="@Localizer["Field_PolicyNumber"]"
+                          Label="@Localizer["PolicyNumber"]"
                           Variant="ThemeService.SecondaryVariant"
                           Immediate="true" />
             <MudTextField @bind-Value="EditableMetadata.PrimaryPhysician"
-                          Label="@Localizer["Field_PrimaryPhysician"]"
+                          Label="@Localizer["PrimaryPhysician"]"
                           Variant="ThemeService.SecondaryVariant"
                           Immediate="true" />
             <MudDivider Class="my-1" />
             <MudTextField @bind-Value="EditableMetadata.VisitReason"
-                          Label="@Localizer["Field_VisitReason"]"
+                          Label="@Localizer["VisitReason"]"
                           Variant="ThemeService.SecondaryVariant"
                           Immediate="true" />
             <MudTextField @bind-Value="EditableMetadata.PreferredPharmacy"
-                          Label="@Localizer["Field_PreferredPharmacy"]"
+                          Label="@Localizer["PreferredPharmacy"]"
                           Variant="ThemeService.SecondaryVariant"
                           Immediate="true" />
             <MudTextField @bind-Value="EditableMetadata.Allergies"
-                          Label="@Localizer["Field_Allergies"]"
+                          Label="@Localizer["Allergies"]"
                           Variant="ThemeService.SecondaryVariant"
                           Immediate="true" />
             <MudTextField @bind-Value="EditableMetadata.CurrentMedications"
-                          Label="@Localizer["Field_CurrentMedications"]"
+                          Label="@Localizer["CurrentMedications"]"
                           Variant="ThemeService.SecondaryVariant"
                           Immediate="true" />
             <MudDivider Class="my-1" />
             <MudTextField @bind-Value="EditableMetadata.EmergencyContactName"
-                          Label="@Localizer["Field_EmergencyContactName"]"
+                          Label="@Localizer["EmergencyContactName"]"
                           Variant="ThemeService.SecondaryVariant"
                           Immediate="true" />
             <MudTextField @bind-Value="EditableMetadata.EmergencyContactPhone"
-                          Label="@Localizer["Field_EmergencyContactPhone"]"
+                          Label="@Localizer["EmergencyContactPhone"]"
                           Variant="ThemeService.SecondaryVariant"
                           Immediate="true" />
             <MudDivider Class="my-1" />
             <MudTextField @bind-Value="EditableMetadata.DepartmentName"
-                          Label="@Localizer["Field_Department"]"
+                          Label="@Localizer["Department"]"
                           Variant="ThemeService.SecondaryVariant"
                           Immediate="true" />
             <MudSwitch T="bool"
                        @bind-Value="EditableMetadata.ConsentToShareRecords"
                        Color="Color.Primary"
                        Class="mt-2"
-                       Label="@Localizer["Field_ConsentToShareRecords"]" />
+                       Label="@Localizer["ConsentToShareRecords"]" />
             <MudDivider Class="my-1" />
         </MudExpansionPanel>
     </MudExpansionPanels>
@@ -99,20 +95,4 @@
     [Parameter, EditorRequired]
     public required ClinicProjectMetadataModel EditableMetadata { get; set; }
         = default!;
-
-    [Parameter, EditorRequired]
-    public required IStringLocalizer Localizer { get; set; }
-        = default!;
-
-    [Parameter, EditorRequired]
-    public required string GenderFemale { get; set; }
-        = string.Empty;
-
-    [Parameter, EditorRequired]
-    public required string GenderMale { get; set; }
-        = string.Empty;
-
-    [Parameter, EditorRequired]
-    public required string GenderUnspecified { get; set; }
-        = string.Empty;
 }

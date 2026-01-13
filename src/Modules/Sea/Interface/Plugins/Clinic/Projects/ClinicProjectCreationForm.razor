@@ -7,18 +7,18 @@
     <DialogContent>
         <MudStack Spacing="3">
             <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
-                <MudText Typo="Typo.h6">@Localizer["RegisterClinicPatient_Title"]</MudText>
+                <MudText Typo="Typo.h6">@Localizer["RegisterClinicPatient"]</MudText>
                 <MudButton Variant="Variant.Filled"
                            Color="Color.Secondary"
                            Disabled="@(isSubmitting || isGenerating)"
                            OnClick="ToggleManualMode">
                     @if(isManualMode)
                     {
-                        @Localizer["Btn_SwitchToAi"]
+                        @Localizer["SwitchToAi"]
                     }
                     else
                     {
-                        @Localizer["Btn_SwitchToManual"]
+                        @Localizer["SwitchToManual"]
                     }
                 </MudButton>
             </MudStack>
@@ -54,12 +54,8 @@
                     <MudAlert Severity="Severity.Error">@manualValidationError</MudAlert>
                 }
 
-                <MudText Typo="Typo.subtitle2">@Localizer["Info_ManualEntry_Header"]</MudText>
-                <ClinicProjectManualEditor EditableMetadata="EditableMetadata"
-                                                 Localizer="Localizer"
-                                                 GenderFemale="@GenderFemale"
-                                                 GenderMale="@GenderMale"
-                                                 GenderUnspecified="@GenderUnspecified" />
+                <MudText Typo="Typo.subtitle2">@Localizer["ManualEntry"]</MudText>
+                <ClinicProjectManualEditor EditableMetadata="EditableMetadata" />
             }
             else
             {
@@ -71,9 +67,9 @@
                 <MudStepper @bind-ActiveIndex="activeStep" NonLinear=false>
                     <TitleTemplate></TitleTemplate>
                     <ChildContent>
-                        <MudStep Title="@Localizer["Step1_PatientDescription_Title"]" Completed="@DescriptionProvided" Class="px-0">
-                            <MudText Typo="Typo.subtitle2">@Localizer["Step1_DescribePatient_Header"]</MudText>
-                            <MudText Typo="Typo.body2">@Localizer["Step1_DescribePatient_Help"]</MudText>
+                        <MudStep Title="@Localizer["PatientDescription"]" Completed="@DescriptionProvided" Class="px-0">
+                            <MudText Typo="Typo.subtitle2">@Localizer["DescribePatient"]</MudText>
+                            <MudText Typo="Typo.body2">@Localizer["DescribePatientHelp"]</MudText>
                             <AiJsonGeneratorInput @ref="generator"
                                                 @bind-Value="patientDescription"
                                                 DisplaySubmit=false
@@ -85,68 +81,63 @@
                             </AiJsonGeneratorInput>
                         </MudStep>
 
-                        <MudStep Title="@Localizer["Step2_Generate_Title"]" Completed="@MetadataAvailable" Class="px-0">
+                        <MudStep Title="@Localizer["Generate"]" Completed="@MetadataAvailable" Class="px-0">
                             <MudPaper Outlined Class="pa-4">
                                 <MudStack Spacing="2">
-                                    <MudText Typo="Typo.subtitle2">@Localizer["Step2_Generating_Header"]</MudText>
-                                    <MudText Typo="Typo.body2">@Localizer["Step2_Generating_Help"]</MudText>
+                                    <MudText Typo="Typo.subtitle2">@Localizer["Generating"]</MudText>
+                                    <MudText Typo="Typo.body2">@Localizer["GeneratingHelp"]</MudText>
                                     @if(isGenerating)
                                     {
                                         <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
                                             <MudProgressCircular Size="Size.Medium" Indeterminate />
-                                            <MudText Typo="Typo.body2">@Localizer["Common_Processing"]</MudText>
+                                            <MudText Typo="Typo.body2">@Localizer["Processing"]</MudText>
                                         </MudStack>
                                     }
                                     else
                                     {
-                                        <MudText Typo="Typo.body2">@Localizer["Step2_Generate_Done"]</MudText>
+                                        <MudText Typo="Typo.body2">@Localizer["GenerationDone"]</MudText>
                                     }
                                 </MudStack>
                             </MudPaper>
                         </MudStep>
 
-                        <MudStep Title="@Localizer["Step3_Review_Title"]" Completed="@CanContinueToFinish" Class="px-0">
-                            <MudText Typo="Typo.subtitle2">@Localizer["Step3_Review_Header"]</MudText>
-                            <MudText Typo="Typo.body2">@Localizer["Step3_Review_Help"]</MudText>
+                        <MudStep Title="@Localizer["Review"]" Completed="@CanContinueToFinish" Class="px-0">
+                            <MudText Typo="Typo.subtitle2">@Localizer["Review"]</MudText>
+                            <MudText Typo="Typo.body2">@Localizer["ReviewHelp"]</MudText>
 
                             <MudDivider Class="my-1" />
-                            <ClinicPatientIntakeManualEditor EditableMetadata="EditableMetadata"
-                                                             Localizer="Localizer"
-                                                             GenderFemale="@GenderFemale"
-                                                             GenderMale="@GenderMale"
-                                                             GenderUnspecified="@GenderUnspecified" />
+                            <ClinicProjectManualEditor EditableMetadata="EditableMetadata" />
 
                             @if(Metadata is null)
                             {
                                 <MudAlert Severity="Severity.Info" Variant="Variant.Text">
-                                    @Localizer["Info_MetadataAppearsAfterApply"]
+                                    @Localizer["MetadataAppearsAfterApply"]
                                 </MudAlert>
                             }
                         </MudStep>
 
-                        <MudStep Title="@Localizer["Step4_Finish_Title"]" Completed="@CanSubmit" Class="px-0">
-                            <MudText Typo="Typo.subtitle2">@Localizer["Step4_Confirm_Header"]</MudText>
-                            <MudText Typo="Typo.body2">@Localizer["Step4_Confirm_Help"]</MudText>
+                        <MudStep Title="@Localizer["Finish"]" Completed="@CanSubmit" Class="px-0">
+                            <MudText Typo="Typo.subtitle2">@Localizer["Confirm"]</MudText>
+                            <MudText Typo="Typo.body2">@Localizer["ConfirmHelp"]</MudText>
 
                             @if(Metadata is not null)
                             {
                                 <MudPaper Elevation="0" Class="pa-3">
                                     <MudTable Items="MetadataTableRows" Dense="true" Hover="true" Elevation="0">
                                         <RowTemplate>
-                                            <MudTd DataLabel="@Localizer["Table_Field"]">@context.Label</MudTd>
-                                            <MudTd DataLabel="@Localizer["Table_Value"]">@context.Value</MudTd>
+                                            <MudTd DataLabel="@context.Label">@context.Value</MudTd>
                                         </RowTemplate>
                                     </MudTable>
                                 </MudPaper>
 
                                 <MudAlert Severity="Severity.Success" Variant="Variant.Text">
-                                    @Localizer["Success_ReadyToCreateProjectFor", BuildDisplayName(Metadata!)]
+                                    @Localizer["ReadyToCreateProjectFor", BuildDisplayName(Metadata!)]
                                 </MudAlert>
                             }
                             else
                             {
                                 <MudAlert Severity="Severity.Info" Variant="Variant.Text">
-                                    @Localizer["Info_ApplyValidMetadataBeforeFinish"]
+                                    @Localizer["ApplyValidMetadataBeforeFinish"]
                                 </MudAlert>
                             }
                         </MudStep>
@@ -160,7 +151,7 @@
         <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Style="width: 100%;">
             <MudButton Variant="Variant.Text"
                        Color="Color.Default"
-                       OnClick="Cancel">@Localizer["Btn_Cancel"]</MudButton>
+                       OnClick="Cancel">@Localizer["Cancel"]</MudButton>
 
             @if(isManualMode)
             {
@@ -182,7 +173,7 @@
                     {
                         <MudButton Variant="Variant.Text"
                                    Disabled="@(isSubmitting || isGenerating)"
-                                   OnClick="GoToPreviousStep">@Localizer["Btn_Back"]</MudButton>
+                                   OnClick="GoToPreviousStep">@Localizer["Back"]</MudButton>
                     }
 
                     @switch(activeStep)
@@ -204,7 +195,7 @@
                                        Color="Color.Primary"
                                        Disabled="@(!CanOpenReview)"
                                        OnClick="(() => activeStep = 2)">
-                                @Localizer["Btn_ReviewDetails"]
+                                @Localizer["ReviewDetails"]
                             </MudButton>
                             break;
                         case 2:
@@ -213,7 +204,7 @@
                                 <MudButton Variant="Variant.Filled"
                                            Color="Color.Primary"
                                            OnClick="ApplyAndProceedAsync">
-                                    @Localizer["Btn_ApplyAndContinue"]
+                                    @Localizer["ApplyAndContinue"]
                                 </MudButton>
                             }
                             else if(CanContinueToFinish)
@@ -221,7 +212,7 @@
                                 <MudButton Variant="Variant.Filled"
                                            Color="Color.Primary"
                                            OnClick="(() => activeStep = 3)">
-                                    @Localizer["Btn_Continue"]
+                                    @Localizer["Continue"]
                                 </MudButton>
                             }
                             break;

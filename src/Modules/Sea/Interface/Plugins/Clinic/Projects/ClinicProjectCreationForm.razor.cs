@@ -74,12 +74,12 @@ public partial class ClinicProjectCreationForm
         = default!;
 
     private string finishLabel => isSubmitting
-        ? Localizer["Status_Finishing"]
-        : Localizer["Btn_Finish"];
+        ? Localizer["Finishing"]
+        : Localizer["Finish"];
 
     private string generateLabel => isGenerating
-        ? Localizer["Status_Generating"]
-        : Localizer["Btn_GeneratePatientData"];
+        ? Localizer["Generating"]
+        : Localizer["GeneratePatientData"];
 
     private bool DescriptionProvided => !string.IsNullOrWhiteSpace(patientDescription);
 
@@ -127,13 +127,13 @@ public partial class ClinicProjectCreationForm
         }
 
         facilityLabel = Context.TryGetMetadata<string>(FacilityNameMetadataKey, out string? facilityName)
-            ? (string)Localizer["Info_FacilityWithName", facilityName!]
+            ? (string)Localizer["FacilityWithName", facilityName!]
             : null;
 
         if (Context.TryGetMetadata<string>(DepartmentNameMetadataKey, out string? department))
         {
             departmentName = department;
-            departmentLabel = Localizer["Info_DepartmentWithName", department!];
+            departmentLabel = Localizer["DepartmentWithName", department!];
         }
         else
         {
@@ -166,7 +166,7 @@ public partial class ClinicProjectCreationForm
         {
             if (args.IsFinal)
             {
-                generationError = Localizer["Error_AiNoOutput"];
+                generationError = Localizer["AiNoOutput"];
                 SetMetadataJson(string.Empty, markAsClean: true);
                 ClearMetadata();
                 EditableMetadata.Clear();
@@ -374,9 +374,9 @@ public partial class ClinicProjectCreationForm
         metadataHasPendingChanges = !markAsClean;
     }
 
-    protected override string BuildEmptyMetadataErrorMessage() => Localizer["Error_MetadataEmpty"];
+    protected override string BuildEmptyMetadataErrorMessage() => Localizer["MetadataEmpty"];
 
-    protected override string BuildDeserializationErrorMessage(Exception exception) => Localizer["Error_AiResponseParse", exception.Message];
+    protected override string BuildDeserializationErrorMessage(Exception exception) => Localizer["AiResponseParse", exception.Message];
 
     private bool TryCreateMetadataFromEditor(out ClinicProjectMetadata? metadata, out string? error)
     {
@@ -385,20 +385,16 @@ public partial class ClinicProjectCreationForm
 
         if (string.IsNullOrWhiteSpace(EditableMetadata.FirstName) && string.IsNullOrWhiteSpace(EditableMetadata.LastName))
         {
-            error = Localizer["Error_NameRequired"];
+            error = Localizer["NameRequired"];
             return false;
         }
-
-        string gender = string.IsNullOrWhiteSpace(EditableMetadata.Gender)
-            ? GenderUnspecified
-            : EditableMetadata.Gender!;
-
+        
         ClinicProjectMetadata normalized = new()
         {
             FirstName = NormalizeInput(EditableMetadata.FirstName),
             LastName = NormalizeInput(EditableMetadata.LastName),
             DateOfBirth = NormalizeInput(EditableMetadata.DateOfBirth),
-            Gender = gender,
+            Gender = EditableMetadata.Gender,
             Email = NormalizeInput(EditableMetadata.Email),
             Phone = NormalizeInput(EditableMetadata.Phone),
             InsuranceProvider = NormalizeInput(EditableMetadata.InsuranceProvider),
@@ -461,18 +457,12 @@ public partial class ClinicProjectCreationForm
 
     protected override ClinicProjectMetadata NormalizeMetadata(ClinicProjectMetadata metadata)
     {
-        string normalizedGender = metadata.Gender switch
-        {
-            GenderMale => GenderMale,
-            GenderFemale => GenderFemale,
-            _ => GenderUnspecified
-        };
 
         string? dateOfBirth = ParseDate(metadata.DateOfBirth);
 
         return metadata with
         {
-            Gender = normalizedGender,
+            Gender = metadata.Gender,
             DateOfBirth = dateOfBirth,
             FacilityId = facilityId ?? metadata.FacilityId,
             DepartmentName = departmentName ?? metadata.DepartmentName,
@@ -488,8 +478,8 @@ public partial class ClinicProjectCreationForm
             : value;
 
     private string BuildDescription(ClinicProjectMetadata metadata) => string.IsNullOrWhiteSpace(metadata.ClinicalNotes)
-                ? Localizer["Description_OutpatientIntakeRecord"]
-                : metadata.ClinicalNotes!;
+                ? Localizer["PatientDescription"]
+                : metadata.ClinicalNotes!; // TODO: build a meaningful description based on all data not just clinical notes
 
     private string BuildDisplayName(ClinicProjectMetadata metadata)
     {
@@ -498,7 +488,7 @@ public partial class ClinicProjectCreationForm
             .Select(v => v!.Trim());
 
         string displayName = string.Join(" ", parts);
-        return string.IsNullOrWhiteSpace(displayName) ? Localizer["Default_ClinicPatientName"] : displayName;
+        return string.IsNullOrWhiteSpace(displayName) ? Localizer["Patient"] : displayName;
     }
 
     private IReadOnlyList<MetadataSection> BuildMetadataSections(ClinicProjectMetadata metadata)
@@ -514,39 +504,39 @@ public partial class ClinicProjectCreationForm
         }
 
         List<MetadataField> demographics = [];
-        AddField(demographics, Localizer["Field_FirstName"], metadata.FirstName);
-        AddField(demographics, Localizer["Field_LastName"], metadata.LastName);
-        AddField(demographics, Localizer["Field_DateOfBirth"], FormatDateForDisplay(metadata.DateOfBirth));
-        AddField(demographics, Localizer["Field_Gender"], metadata.Gender);
-        AddSection(Localizer["Section_Demographics_Title"], demographics);
+        AddField(demographics, Localizer["FirstName"], metadata.FirstName);
+        AddField(demographics, Localizer["LastName"], metadata.LastName);
+        AddField(demographics, Localizer["DateOfBirth"], FormatDateForDisplay(metadata.DateOfBirth));
+        AddField(demographics, Localizer["Gender"], FormatGender(metadata.Gender));
+        AddSection(Localizer["Demographics"], demographics);
 
         List<MetadataField> contact = [];
-        AddField(contact, Localizer["Field_Email"], metadata.Email);
-        AddField(contact, Localizer["Field_Phone"], metadata.Phone);
-        AddSection(Localizer["Section_Contact_Title"], contact);
+        AddField(contact, Localizer["Email"], metadata.Email);
+        AddField(contact, Localizer["Phone"], metadata.Phone);
+        AddSection(Localizer["Contact"], contact);
 
         List<MetadataField> insurance = [];
-        AddField(insurance, Localizer["Field_InsuranceProvider"], metadata.InsuranceProvider);
-        AddField(insurance, Localizer["Field_PolicyNumber"], metadata.PolicyNumber);
-        AddField(insurance, Localizer["Field_PrimaryPhysician"], metadata.PrimaryPhysician);
-        AddSection(Localizer["Section_Insurance_Title"], insurance);
+        AddField(insurance, Localizer["InsuranceProvider"], metadata.InsuranceProvider);
+        AddField(insurance, Localizer["PolicyNumber"], metadata.PolicyNumber);
+        AddField(insurance, Localizer["PrimaryPhysician"], metadata.PrimaryPhysician);
+        AddSection(Localizer["Insurance"], insurance);
 
         List<MetadataField> care = [];
-        AddField(care, Localizer["Field_VisitReason"], metadata.VisitReason);
-        AddField(care, Localizer["Field_PreferredPharmacy"], metadata.PreferredPharmacy);
-        AddField(care, Localizer["Field_Allergies"], metadata.Allergies);
-        AddField(care, Localizer["Field_CurrentMedications"], metadata.CurrentMedications);
-        AddSection(Localizer["Section_CareDetails_Title"], care);
+        AddField(care, Localizer["VisitReason"], metadata.VisitReason);
+        AddField(care, Localizer["PreferredPharmacy"], metadata.PreferredPharmacy);
+        AddField(care, Localizer["Allergies"], metadata.Allergies);
+        AddField(care, Localizer["CurrentMedications"], metadata.CurrentMedications);
+        AddSection(Localizer["CareDetails"], care);
 
         List<MetadataField> emergency = [];
-        AddField(emergency, Localizer["Field_EmergencyContactName"], metadata.EmergencyContactName);
-        AddField(emergency, Localizer["Field_EmergencyContactPhone"], metadata.EmergencyContactPhone);
-        AddSection(Localizer["Section_EmergencyContact_Title"], emergency);
+        AddField(emergency, Localizer["EmergencyContactName"], metadata.EmergencyContactName);
+        AddField(emergency, Localizer["EmergencyContactPhone"], metadata.EmergencyContactPhone);
+        AddSection(Localizer["EmergencyContact"], emergency);
 
         List<MetadataField> administrative = [];
-        AddField(administrative, Localizer["Field_ConsentToShareRecords"], FormatBoolean(metadata.ConsentToShareRecords));
-        AddField(administrative, Localizer["Field_Department"], metadata.DepartmentName);
-        AddSection(Localizer["Section_Administrative_Title"], administrative);
+        AddField(administrative, Localizer["ConsentToShareRecords"], FormatBoolean(metadata.ConsentToShareRecords));
+        AddField(administrative, Localizer["Department"], metadata.DepartmentName);
+        AddSection(Localizer["Administrative"], administrative);
 
         return sections;
     }
@@ -559,7 +549,7 @@ public partial class ClinicProjectCreationForm
         }
     }
 
-    private string? FormatBoolean(bool? value) => value is null ? null : (string)(value.Value ? Localizer["Option_Yes"] : Localizer["Option_No"]);
+    private string? FormatBoolean(bool? value) => value is null ? null : (string)(value.Value ? Localizer["Yes"] : Localizer["No"]);
 
     private static string? FormatDateForDisplay(string? value) => string.IsNullOrWhiteSpace(value)
             ? null

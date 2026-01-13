@@ -26,7 +26,7 @@ public partial class ClinicProjectGridCellDisplay
             ? ClinicProjectMetadataParser.TryParseTemplate(metadataJson)
             : null;
 
-    protected override string GetDefaultDisplayName() => Localizer["Clinic patient"];
+    protected override string GetDefaultDisplayName() => Metadata?.LastName ?? Metadata?.FirstName ?? Metadata?.Phone ?? Metadata?.Email ?? Localizer["Patient"];
 
     protected override string? GetChipLabel(ClinicProjectMetadata metadata) => metadata.VisitReason;
 }

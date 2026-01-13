@@ -1,6 +1,8 @@
+using Vitarish.Sea.Interface.Plugins.Base.Enums;
+
 namespace Vitarish.Sea.Interface.Plugins.Gym.Projects;
 
-public partial class GymTraineeProjectCreationForm : ProjectsBase
+public partial class GymProjectCreationForm : ProjectsBase
 {
     private const string FacilityIdMetadataKey = "FacilityId";
     private const string FacilityNameMetadataKey = "FacilityName";
@@ -59,7 +61,7 @@ public partial class GymTraineeProjectCreationForm : ProjectsBase
     private int activeStep;
     private string traineeDescription = string.Empty;
     private string metadataJson = string.Empty;
-    private GymTraineeMetadata? traineeMetadata;
+    private GymProjectMetadata? traineeMetadata;
     private readonly GymTraineeMetadataModel editableMetadata;
     private string? generationError;
     private string? metadataValidationError;
@@ -67,7 +69,7 @@ public partial class GymTraineeProjectCreationForm : ProjectsBase
     private bool suppressMetadataChangeNotification;
     private bool metadataHasPendingChanges;
 
-    public GymTraineeProjectCreationForm()
+    public GymProjectCreationForm()
     {
         responderOptions = new ResponderOptions
         {
@@ -195,7 +197,7 @@ Schema:
             return Task.CompletedTask;
         }
 
-        if (TryDeserializeMetadata(text, out GymTraineeMetadata? metadata, out string? error))
+        if (TryDeserializeMetadata(text, out GymProjectMetadata? metadata, out string? error))
         {
             traineeMetadata = metadata;
             SetMetadataJson(JsonSerializer.Serialize(metadata, SerializerOptions));
@@ -216,7 +218,7 @@ Schema:
         return Task.CompletedTask;
     }
 
-    private bool TryDeserializeMetadata(string json, out GymTraineeMetadata? metadata, out string? error)
+    private bool TryDeserializeMetadata(string json, out GymProjectMetadata? metadata, out string? error)
     {
         metadata = null;
         error = null;
@@ -229,7 +231,7 @@ Schema:
 
         try
         {
-            GymTraineeMetadata? parsed = JsonSerializer.Deserialize<GymTraineeMetadata>(json, SerializerOptions);
+            GymProjectMetadata? parsed = JsonSerializer.Deserialize<GymProjectMetadata>(json, SerializerOptions);
             if (parsed is null)
             {
                 error = Localizer["The metadata payload is empty."];
@@ -246,12 +248,12 @@ Schema:
         }
     }
 
-    private GymTraineeMetadata NormalizeMetadata(GymTraineeMetadata metadata) => metadata with
+    private GymProjectMetadata NormalizeMetadata(GymProjectMetadata metadata) => metadata with
     {
         FirstName = NormalizeInput(metadata.FirstName),
         LastName = NormalizeInput(metadata.LastName),
         DateOfBirth = NormalizeDate(metadata.DateOfBirth),
-        Gender = NormalizeGender(metadata.Gender),
+        Gender = metadata.Gender,
         Nationality = NormalizeInput(metadata.Nationality),
         Email = NormalizeInput(metadata.Email),
         Phone = NormalizeInput(metadata.Phone),
@@ -284,7 +286,7 @@ Schema:
 
     private void SetMetadataJson(string? value) => metadataJson = value ?? string.Empty;
 
-    private void LoadEditableMetadata(GymTraineeMetadata metadata)
+    private void LoadEditableMetadata(GymProjectMetadata metadata)
     {
         suppressMetadataChangeNotification = true;
         editableMetadata.LoadFrom(metadata);
@@ -323,7 +325,7 @@ Schema:
             return;
         }
 
-        GymTraineeMetadata preview = editableMetadata.ToMetadata(facilityId, Context.TemplateId);
+        GymProjectMetadata preview = editableMetadata.ToMetadata(facilityId, Context.TemplateId);
         metadataJson = JsonSerializer.Serialize(preview, SerializerOptions);
     }
 
@@ -332,7 +334,7 @@ Schema:
     {
         metadataValidationError = null;
 
-        if (!TryCreateMetadataFromEditor(out GymTraineeMetadata? parsed, out string? error))
+        if (!TryCreateMetadataFromEditor(out GymProjectMetadata? parsed, out string? error))
         {
             metadataValidationError = error;
             traineeMetadata = null;
@@ -348,17 +350,17 @@ Schema:
         StateHasChanged();
     }
 
-    private bool TryCreateMetadataFromEditor(out GymTraineeMetadata metadata, out string? error)
+    private bool TryCreateMetadataFromEditor(out GymProjectMetadata metadata, out string? error)
     {
         metadata = editableMetadata.ToMetadata(facilityId, Context.TemplateId);
         error = null;
 
         (string Label, string? Value)[] required = new (string Label, string? Value)[]
         {
-            (Localizer["Field_FirstName"], metadata.FirstName),
-            (Localizer["Field_LastName"], metadata.LastName),
-            (Localizer["Field_EmergencyContactName"], metadata.EmergencyContactName),
-            (Localizer["Field_EmergencyContactPhone"], metadata.EmergencyContactPhone)
+            (Localizer["FirstName"], metadata.FirstName),
+            (Localizer["LastName"], metadata.LastName),
+            (Localizer["EmergencyContactName"], metadata.EmergencyContactName),
+            (Localizer["EmergencyContactPhone"], metadata.EmergencyContactPhone)
         };
 
         foreach ((string label, string value) in required)
@@ -384,7 +386,7 @@ Schema:
         metadataValidationError = null;
         errorMessage = null;
 
-        if (!TryCreateMetadataFromEditor(out GymTraineeMetadata? metadata, out string? validationError))
+        if (!TryCreateMetadataFromEditor(out GymProjectMetadata? metadata, out string? validationError))
         {
             metadataValidationError = validationError;
             StateHasChanged();
@@ -396,7 +398,7 @@ Schema:
 
         try
         {
-            GymTraineeMetadata normalized = metadata!;
+            GymProjectMetadata normalized = metadata!;
             traineeMetadata = normalized;
             string projectName = BuildProjectName(normalized);
             string description = BuildDescription(normalized);
@@ -417,7 +419,7 @@ Schema:
         }
     }
 
-    private string BuildProjectName(GymTraineeMetadata metadata)
+    private string BuildProjectName(GymProjectMetadata metadata)
     {
         string?[] parts = new[] { metadata.FirstName, metadata.LastName }
             .Where(v => !string.IsNullOrWhiteSpace(v))
@@ -428,7 +430,7 @@ Schema:
             : string.Join(" ", parts);
     }
 
-    private string BuildDescription(GymTraineeMetadata metadata) => string.IsNullOrWhiteSpace(metadata.Goals)
+    private string BuildDescription(GymProjectMetadata metadata) => string.IsNullOrWhiteSpace(metadata.Goals)
                 ? Localizer["Personal training intake"]
                 : metadata.Goals!;
 
@@ -485,11 +487,11 @@ Description:
             set => Set(ref field, value);
         } = DateTime.Today.AddYears(-18);
 
-        public string Gender
+        public Gender? Gender
         {
             get;
-            set => Set(ref field, string.IsNullOrWhiteSpace(value) ? GenderUnassigned : value!);
-        } = GenderUnassigned;
+            set => Set(ref field, value);
+        }
 
         public string Nationality
         {
@@ -545,11 +547,11 @@ Description:
             set => Set(ref field, value ?? string.Empty);
         } = string.Empty;
 
-        public void LoadFrom(GymTraineeMetadata metadata)
+        public void LoadFrom(GymProjectMetadata metadata)
         {
             FirstName = metadata.FirstName ?? string.Empty;
             LastName = metadata.LastName ?? string.Empty;
-            Gender = metadata.Gender ?? GenderUnassigned;
+            Gender = metadata.Gender;
             Nationality = metadata.Nationality ?? string.Empty;
             Email = metadata.Email ?? string.Empty;
             Phone = metadata.Phone ?? string.Empty;
@@ -566,7 +568,7 @@ Description:
         {
             FirstName = string.Empty;
             LastName = string.Empty;
-            Gender = GenderUnassigned;
+            Gender = default;
             Nationality = string.Empty;
             Email = string.Empty;
             Phone = string.Empty;
@@ -579,12 +581,12 @@ Description:
             DateOfBirth = DateTime.Today.AddYears(-18);
         }
 
-        public GymTraineeMetadata ToMetadata(Guid? facilityId, Guid? templateId) => new()
+        public GymProjectMetadata ToMetadata(Guid? facilityId, Guid? templateId) => new()
         {
             FirstName = NormalizeInput(FirstName),
             LastName = NormalizeInput(LastName),
             DateOfBirth = DateOfBirth?.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
-            Gender = string.IsNullOrWhiteSpace(Gender) ? GenderUnassigned : Gender,
+            Gender = Gender,
             Nationality = NormalizeInput(Nationality),
             Email = NormalizeInput(Email),
             Phone = NormalizeInput(Phone),

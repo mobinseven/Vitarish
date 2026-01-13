@@ -1,14 +1,11 @@
+using Vitarish.Sea.Interface.Plugins.Base.Enums;
+
 namespace Vitarish.Sea.Interface.Plugins.Clinic.Projects;
 
-public sealed class ClinicProjectMetadataModel
+public sealed class ClinicProjectMetadataModel(Action onChanged)
 {
-    private readonly Action onChanged;
+    private readonly Action onChanged = onChanged;
     private bool suppressNotifications;
-
-    public ClinicProjectMetadataModel(Action onChanged)
-    {
-        this.onChanged = onChanged;
-    }
 
     public string? FirstName
     {
@@ -28,7 +25,7 @@ public sealed class ClinicProjectMetadataModel
         set => SetField(ref field, value);
     }
 
-    public string? Gender
+    public Gender Gender
     {
         get;
         set => SetField(ref field, value);
@@ -148,7 +145,7 @@ public sealed class ClinicProjectMetadataModel
         FirstName = null;
         LastName = null;
         DateOfBirth = null;
-        Gender = null;
+        Gender = default;
         Email = null;
         Phone = null;
         InsuranceProvider = null;

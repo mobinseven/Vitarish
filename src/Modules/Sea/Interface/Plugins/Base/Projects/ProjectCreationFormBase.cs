@@ -1,3 +1,5 @@
+using Vitarish.Sea.Interface.Plugins.Base.Enums;
+
 namespace Vitarish.Sea.Interface.Plugins.Base.Projects;
 /// <summary>
 /// Provides metadata serialization helpers for project creation forms that operate without
@@ -184,4 +186,10 @@ public abstract class ProjectCreationFormBase<TMetadata, TEditableModel> : Proje
     /// <param name="value">The raw input.</param>
     /// <returns>The normalized value.</returns>
     protected static string? NormalizeInput(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    protected string? FormatGender(Gender? gender) => gender switch
+    {
+        Gender.Male => Localizer["Male"],
+        Gender.Female => Localizer["Female"],
+        _ => Localizer["Unspecified"]
+    };
 }

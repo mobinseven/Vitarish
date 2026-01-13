@@ -4,7 +4,7 @@ namespace Vitarish.Sea.Interface.Plugins.Gym.Projects;
 /// a new project. The plugin demonstrates how metadata can be captured and
 /// persisted alongside the project record.
 /// </summary>
-public sealed class GymTraineeProjectCreationFormPlugin(
+public sealed class GymProjectCreationFormPlugin(
     IStringLocalizer localizer) : IProjectCreationFormPlugin
 {
     private const string FacilityTypeMetadataKey = "FacilityType";
@@ -41,8 +41,8 @@ public sealed class GymTraineeProjectCreationFormPlugin(
                                                                                      }
                                                                                      else
                                                                                      {
-                                                                                         builder.OpenComponent<GymTraineeProjectCreationForm>(0);
-                                                                                         builder.AddAttribute(1, nameof(GymTraineeProjectCreationForm.Context), context);
+                                                                                         builder.OpenComponent<GymProjectCreationForm>(0);
+                                                                                         builder.AddAttribute(1, nameof(GymProjectCreationForm.Context), context);
                                                                                      }
 
                                                                                      builder.CloseComponent();

@@ -1,8 +1,9 @@
+@using Vitarish.Sea.Interface.Plugins.Base.Enums
 @inherits ProjectsBase
 <MudDialog>
     <DialogContent>
         <MudStack Spacing="3">
-            <MudText Typo="Typo.h6">@Localizer["RegisterGymTrainee_Title"]</MudText>
+            <MudText Typo="Typo.h6">@Localizer["RegisterGymTrainee"]</MudText>
 
             <AiStreamResponder @ref="responder"
                                Options="responderOptions"
@@ -33,39 +34,39 @@
 
             <MudStepper @bind-ActiveIndex="activeStep" NonLinear="false">
                 <ChildContent>
-                    <MudStep Title="@Localizer["Step1_TraineeDescription_Title"]" Completed="@DescriptionProvided" Class="px-0">
-                        <MudText Typo="Typo.subtitle2">@Localizer["Step1_DescribeTrainee_Header"]</MudText>
-                        <MudText Typo="Typo.body2">@Localizer["Step1_DescribeTrainee_Help"]</MudText>
+                    <MudStep Title="@Localizer["TraineeDescription"]" Completed="@DescriptionProvided" Class="px-0">
+                        <MudText Typo="Typo.subtitle2">@Localizer["DescribeTrainee"]</MudText>
+                        <MudText Typo="Typo.body2">@Localizer["DescribeTraineeHelp"]</MudText>
                         <AdvancedInput @bind-Value="traineeDescription" @bind-Busy="inputBusy" />
                     </MudStep>
 
-                    <MudStep Title="@Localizer["Step2_Generate_Title"]" Completed="@MetadataAvailable" Class="px-0">
+                    <MudStep Title="@Localizer["Generate"]" Completed="@MetadataAvailable" Class="px-0">
                         <MudPaper Outlined Class="pa-4">
                             <MudStack Spacing="2">
-                                <MudText Typo="Typo.subtitle2">@Localizer["Step2_Generating_Header"]</MudText>
-                                <MudText Typo="Typo.body2">@Localizer["Step2_Generating_Help"]</MudText>
+                                <MudText Typo="Typo.subtitle2">@Localizer["Generating"]</MudText>
+                                <MudText Typo="Typo.body2">@Localizer["GeneratingHelp"]</MudText>
                                 @if (isGenerating)
                                 {
                                     <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
                                         <MudProgressCircular Size="Size.Medium" Indeterminate />
-                                        <MudText Typo="Typo.body2">@Localizer["Common_Processing"]</MudText>
+                                        <MudText Typo="Typo.body2">@Localizer["Processing"]</MudText>
                                     </MudStack>
                                 }
                                 else if (MetadataAvailable)
                                 {
-                                    <MudText Typo="Typo.body2">@Localizer["Step2_Generate_Done"]</MudText>
+                                    <MudText Typo="Typo.body2">@Localizer["GenerationDone"]</MudText>
                                 }
                             </MudStack>
                         </MudPaper>
                     </MudStep>
 
-                    <MudStep Title="@Localizer["Step3_Review_Title"]" Completed="@CanSubmit" Class="px-0">
-                        <MudText Typo="Typo.subtitle2">@Localizer["Step3_Review_Header"]</MudText>
-                        <MudText Typo="Typo.body2">@Localizer["Step3_Review_Help"]</MudText>
+                    <MudStep Title="@Localizer["Review"]" Completed="@CanSubmit" Class="px-0">
+                        <MudText Typo="Typo.subtitle2">@Localizer["Review"]</MudText>
+                        <MudText Typo="Typo.body2">@Localizer["ReviewHelp"]</MudText>
 
                         @if (!MetadataAvailable)
                         {
-                            <MudAlert Severity="Severity.Info" Class="mt-2">@Localizer["Info_MetadataAppearsAfterGenerate"]</MudAlert>
+                            <MudAlert Severity="Severity.Info" Class="mt-2">@Localizer["MetadataAppearsAfterGenerate"]</MudAlert>
                         }
                         else
                         {
@@ -73,41 +74,37 @@
                                 <MudItem xs="12">
                                     <MudPaper Elevation="0" Class="pa-3">
                                         <MudStack Spacing="1">
-                                            <MudText Typo="Typo.subtitle2">@Localizer["Section_Identity_Title"]</MudText>
+                                            <MudText Typo="Typo.subtitle2">@Localizer["Identity"]</MudText>
                                             <MudDivider Class="my-1" />
                                             <MudGrid Spacing="2">
                                                 <MudItem xs="12" sm="6">
                                                     <MudTextField @bind-Value="editableMetadata.FirstName"
-                                                                  Label="@Localizer["Field_FirstName"]"
+                                                                  Label="@Localizer["FirstName"]"
                                                                   Variant="ThemeService.SecondaryVariant"
                                                                   Immediate="true" />
                                                 </MudItem>
                                                 <MudItem xs="12" sm="6">
                                                     <MudTextField @bind-Value="editableMetadata.LastName"
-                                                                  Label="@Localizer["Field_LastName"]"
+                                                                  Label="@Localizer["LastName"]"
                                                                   Variant="ThemeService.SecondaryVariant"
                                                                   Immediate="true" />
                                                 </MudItem>
                                                 <MudItem xs="12" sm="6">
                                                     <MudDatePicker @bind-Date="editableMetadata.DateOfBirth"
-                                                                   Label="@Localizer["Field_DateOfBirth"]"
+                                                                   Label="@Localizer["DateOfBirth"]"
                                                                    Variant="ThemeService.SecondaryVariant"
                                                                    DisplayMonths="1" />
                                                 </MudItem>
                                                 <MudItem xs="12" sm="6">
-                                                    <MudSelect T="string"
-                                                               @bind-Value="editableMetadata.Gender"
-                                                               Label="@Localizer["Field_Gender"]"
-                                                               Variant="ThemeService.SecondaryVariant"
-                                                               Dense="true">
-                                                        <MudSelectItem Value="@GenderFemale">@Localizer["Option_Gender_Female"]</MudSelectItem>
-                                                        <MudSelectItem Value="@GenderMale">@Localizer["Option_Gender_Male"]</MudSelectItem>
-                                                        <MudSelectItem Value="@GenderUnassigned">@Localizer["Option_Gender_Unassigned"]</MudSelectItem>
-                                                    </MudSelect>
+                                                    <MudRadioGroup T="Gender?"
+                                                               @bind-Value="editableMetadata.Gender">
+                                                        <MudRadio Value="@Gender.Female">@Localizer["Female"]</MudRadio>
+                                                        <MudRadio Value="@Gender.Male">@Localizer["Male"]</MudRadio>
+                                                    </MudRadioGroup>
                                                 </MudItem>
                                                 <MudItem xs="12" sm="6">
                                                     <MudTextField @bind-Value="editableMetadata.Nationality"
-                                                                  Label="@Localizer["Field_Nationality"]"
+                                                                  Label="@Localizer["Nationality"]"
                                                                   Variant="ThemeService.SecondaryVariant"
                                                                   Immediate="true" />
                                                 </MudItem>
@@ -119,18 +116,18 @@
                                 <MudItem xs="12">
                                     <MudPaper Elevation="0" Class="pa-3">
                                         <MudStack Spacing="1">
-                                            <MudText Typo="Typo.subtitle2">@Localizer["Section_Contact_Title"]</MudText>
+                                            <MudText Typo="Typo.subtitle2">@Localizer["Contact"]</MudText>
                                             <MudDivider Class="my-1" />
                                             <MudGrid Spacing="2">
                                                 <MudItem xs="12" sm="6">
                                                     <MudTextField @bind-Value="editableMetadata.Email"
-                                                                  Label="@Localizer["Field_Email"]"
+                                                                  Label="@Localizer["Email"]"
                                                                   Variant="ThemeService.SecondaryVariant"
                                                                   Immediate="true" />
                                                 </MudItem>
                                                 <MudItem xs="12" sm="6">
                                                     <MudTextField @bind-Value="editableMetadata.Phone"
-                                                                  Label="@Localizer["Field_Phone"]"
+                                                                  Label="@Localizer["Phone"]"
                                                                   Variant="ThemeService.SecondaryVariant"
                                                                   Immediate="true" />
                                                 </MudItem>
@@ -142,24 +139,24 @@
                                 <MudItem xs="12">
                                     <MudPaper Elevation="0" Class="pa-3">
                                         <MudStack Spacing="1">
-                                            <MudText Typo="Typo.subtitle2">@Localizer["Section_Membership_Title"]</MudText>
+                                            <MudText Typo="Typo.subtitle2">@Localizer["Membership"]</MudText>
                                             <MudDivider Class="my-1" />
                                             <MudGrid Spacing="2">
                                                 <MudItem xs="12" sm="6">
                                                     <MudTextField @bind-Value="editableMetadata.MembershipType"
-                                                                  Label="@Localizer["Field_MembershipType"]"
+                                                                  Label="@Localizer["MembershipType"]"
                                                                   Variant="ThemeService.SecondaryVariant"
                                                                   Immediate="true" />
                                                 </MudItem>
                                                 <MudItem xs="12" sm="6">
                                                     <MudTextField @bind-Value="editableMetadata.PreferredProgram"
-                                                                  Label="@Localizer["Field_PreferredProgram"]"
+                                                                  Label="@Localizer["PreferredProgram"]"
                                                                   Variant="ThemeService.SecondaryVariant"
                                                                   Immediate="true" />
                                                 </MudItem>
                                                 <MudItem xs="12">
                                                     <MudTextField @bind-Value="editableMetadata.Goals"
-                                                                  Label="@Localizer["Field_Goals"]"
+                                                                  Label="@Localizer["Goals"]"
                                                                   Variant="ThemeService.SecondaryVariant"
                                                                   Immediate="true" />
                                                 </MudItem>
@@ -171,18 +168,18 @@
                                 <MudItem xs="12">
                                     <MudPaper Elevation="0" Class="pa-3">
                                         <MudStack Spacing="1">
-                                            <MudText Typo="Typo.subtitle2">@Localizer["Section_Emergency_Title"]</MudText>
+                                            <MudText Typo="Typo.subtitle2">@Localizer["Emergency"]</MudText>
                                             <MudDivider Class="my-1" />
                                             <MudGrid Spacing="2">
                                                 <MudItem xs="12" sm="6">
                                                     <MudTextField @bind-Value="editableMetadata.EmergencyContactName"
-                                                                  Label="@Localizer["Field_EmergencyContactName"]"
+                                                                  Label="@Localizer["EmergencyContactName"]"
                                                                   Variant="ThemeService.SecondaryVariant"
                                                                   Immediate="true" />
                                                 </MudItem>
                                                 <MudItem xs="12" sm="6">
                                                     <MudTextField @bind-Value="editableMetadata.EmergencyContactPhone"
-                                                                  Label="@Localizer["Field_EmergencyContactPhone"]"
+                                                                  Label="@Localizer["EmergencyContactPhone"]"
                                                                   Variant="ThemeService.SecondaryVariant"
                                                                   Immediate="true" />
                                                 </MudItem>
@@ -194,10 +191,10 @@
                                 <MudItem xs="12">
                                     <MudPaper Elevation="0" Class="pa-3">
                                         <MudStack Spacing="1">
-                                            <MudText Typo="Typo.subtitle2">@Localizer["Section_Health_Title"]</MudText>
+                                            <MudText Typo="Typo.subtitle2">@Localizer["Health"]</MudText>
                                             <MudDivider Class="my-1" />
                                             <MudTextField @bind-Value="editableMetadata.MedicalNotes"
-                                                          Label="@Localizer["Field_MedicalNotes"]"
+                                                          Label="@Localizer["MedicalNotes"]"
                                                           Variant="ThemeService.SecondaryVariant"
                                                           Lines="3"
                                                           AutoGrow="true"
@@ -245,7 +242,7 @@
                                    Color="Color.Primary"
                                    Disabled="@(!CanOpenReview)"
                                    OnClick="() => activeStep = 2">
-                            @Localizer["Btn_ReviewDetails"]
+                            @Localizer["ReviewDetails"]
                         </MudButton>
                         break;
                     case 2:
