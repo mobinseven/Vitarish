@@ -37,11 +37,6 @@ public sealed class FilesDbContext : MultiTenantDbContext
         _ = modelBuilder.Entity<FileInformation>()
             .HasIndex(entity => entity.Checksum);
 
-        //if (Database.IsSqlite())
-        //{
-        //    modelBuilder.ConfigureEntityDateTimeOffsetConversions();
-        //}
-
         base.OnModelCreating(modelBuilder);
     }
 }

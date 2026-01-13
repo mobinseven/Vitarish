@@ -45,10 +45,6 @@ public sealed class EntityInterceptor(
 
     public override int SavedChanges(SaveChangesCompletedEventData eventData, int result)
     {
-        // Note: SavedChanges is a synchronous method but notification publishing is async.
-        // Using fire-and-forget to avoid blocking. In production, consider using SaveChangesAsync
-        // or implementing IHostedService/IBackgroundTaskQueue for guaranteed notification delivery.
-        // This approach accepts that notifications may be lost if the process terminates immediately.
         _ = Task.Run(async () =>
         {
             try
@@ -57,7 +53,6 @@ public sealed class EntityInterceptor(
             }
             catch (Exception ex)
             {
-                // Log but don't throw - notifications should not fail the save operation
                 System.Diagnostics.Debug.WriteLine($"Failed to publish notifications: {ex.Message}");
             }
         });
