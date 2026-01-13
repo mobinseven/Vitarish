@@ -40,10 +40,6 @@
                                          Icon="@Icons.Material.Filled.Edit">
                                 @Localizer["EditItem", Localizer["Event"]]
                             </MudMenuItem>
-                            <MudMenuItem OnClick="@(() => EditEventRoles(context.Item))"
-                                         Icon="fa-thin fa-people-line">
-                                @Localizer["EditRoles", Localizer["Event"]]
-                            </MudMenuItem>
                             <MudMenuItem OnClick="@(() => AddEventAfter(context.Item))"
                                          Icon="fa-thin fa-plus">
                                 @Localizer["AddAfter", Localizer["Event"]]
@@ -57,10 +53,6 @@
                                          Disabled="@IsLast(context.Item)"
                                          Icon="fa-thin fa-arrow-down">
                                 @Localizer["MoveDown", Localizer["Event"]]
-                            </MudMenuItem>
-                            <MudMenuItem OnClick="@(() => DeleteEvent(context.Item))"
-                                         Icon="@Icons.Material.Filled.Delete">
-                                @Localizer["DeleteItem", Localizer["Event"]]
                             </MudMenuItem>
                         </MenuItems>
                     </ExpandableItem>

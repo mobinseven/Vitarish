@@ -148,45 +148,6 @@ public partial class EventsGrid : EventsBase
         _ = await DialogService.ShowAsync<EventEditDialog>(Localizer["Event"], parameters);
     }
 
-    private async Task EditEventRoles(EventDto item)
-    {
-        DialogParameters parameters = new()
-        {
-            { nameof(EventEditDialog.Event), item }
-        };
-
-        _ = await DialogService.ShowAsync<EventRolesEditDialog>(Localizer["Event"], parameters);
-    }
-
-    private async Task DeleteEvent(EventDto item)
-    {
-        DialogParameters parameters = new()
-        {
-            { nameof(ConfirmDialog.ContentText), Localizer["ConfirmationQuestion"].Value },
-            { nameof(ConfirmDialog.ButtonText), Localizer["Delete"].Value },
-            { nameof(ConfirmDialog.Color), Color.Error }
-        };
-        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>(Localizer["Delete"], parameters);
-        DialogResult? result = await dialog.Result;
-
-        if (result is null)
-        {
-            return;
-        }
-
-        if (result.Canceled)
-        {
-            return;
-        }
-        else
-        {
-            _ = await EventsService.RemoveEventAsync(Procedure.Id, item.Id, CancellationToken.None);
-            if (grid is not null)
-            {
-                await grid.ReloadServerData();
-            }
-        }
-    }
 
     private async Task MoveUp(EventDto item)
     {

@@ -1,8 +1,57 @@
 @inherits EventsBase
 
+
+@if(AdminMode)
+{
+    <Stack>
+        <StackField Label="@Event.Title" HelperText="@Localizer["Event"]" />
+        <StackButton OnClick="EditEventRoles" Label="@Localizer["EditRoles", Localizer["Event"]]" />
+        <StackButton OnClick="DeleteEvent" Label="@Localizer["DeleteItem", Localizer["Event"]]" />
+    </Stack>
+}
+
 @code {
     [Parameter, EditorRequired] public required ProjectDto Project { get; set; }
     [Parameter, EditorRequired] public required ProcedureDto Procedure { get; set; }
     [Parameter, EditorRequired] public required EventDto Event { get; set; }
 
+    [Parameter] public EventCallback OnDelete { get; set; }
+
+    private async Task EditEventRoles()
+    {
+        DialogParameters parameters = new()
+        {
+            { nameof(EventEditDialog.Event), Event }
+        };
+
+        _ = await DialogService.ShowAsync<EventRolesEditDialog>(Localizer["Event"], parameters);
+    }
+
+    private async Task DeleteEvent()
+    {
+        DialogParameters parameters = new()
+        {
+            { nameof(StrictConfirmDialog.ContentText), Localizer["ConfirmationQuestion"].Value },
+            { nameof(StrictConfirmDialog.ButtonText), Localizer["Delete"].Value },
+            { nameof(StrictConfirmDialog.ItemName), Event.Title },
+            { nameof(StrictConfirmDialog.Color), Color.Error }
+        };
+        IDialogReference dialog = await DialogService.ShowAsync<StrictConfirmDialog>(Localizer["Delete"], parameters);
+        DialogResult? result = await dialog.Result;
+
+        if(result is null)
+        {
+            return;
+        }
+
+        if(result.Canceled)
+        {
+            return;
+        }
+        else
+        {
+            _ = await EventsService.RemoveEventAsync(Procedure.Id, Event.Id, CancellationToken.None);
+            await OnDelete.InvokeAsync();
+        }
+    }
 }
