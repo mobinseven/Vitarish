@@ -1,5 +1,4 @@
 using Vitarish.Interfaces.Base.Abstractions;
-using Vitarish.Interfaces.Base.Models;
 
 namespace Vitarish.Interfaces.Base.Common;
 
@@ -7,7 +6,7 @@ namespace Vitarish.Interfaces.Base.Common;
 public partial class NavMenu : ComponentBase, IDisposable
 {
     [Inject] private NavigationManager NavigationManager { get; set; } = default!;
-    [Inject] private INavService BottomNavService { get; set; } = default!;
+    [Inject] private INavService NavService { get; set; } = default!;
     [Parameter] public Size Size { get; set; } = Size.Large;
 
     private bool searchActive;
@@ -26,11 +25,9 @@ public partial class NavMenu : ComponentBase, IDisposable
             NavigateSearch();
         }
     }
-    private BottomNavState State => BottomNavService.CurrentBottomNavState;
     protected override void OnInitialized()
     {
         NavigationManager.LocationChanged += OnLocationChanged;
-        BottomNavService.Changed += OnNavMenuStateChanged;
         SyncQueryFromUri(NavigationManager.Uri);
     }
 
@@ -52,30 +49,14 @@ public partial class NavMenu : ComponentBase, IDisposable
             SyncQueryFromUri(e.Location);
             await InvokeAsync(StateHasChanged);
         }
-        catch
-        {
-            // Intentionally ignore to avoid surfacing navigation callback exceptions.
-        }
+        catch { }
     }
 
-
-    private async void OnNavMenuStateChanged()
-    {
-        try
-        {
-            await InvokeAsync(StateHasChanged);
-        }
-        catch
-        {
-            // Rendering failures are surfaced via Blazor; suppress here to avoid unobserved tasks.
-        }
-    }
     private void HandleSearchClick() => searchActive = true;
 
     private void NavigateSearch()
     {
-        string searchUri = BottomNavService.GetSearchUri(query);
-        BottomNavService.UpdateSearchUri(searchUri);
+        string searchUri = NavService.GetSearchUri(query);
         NavigationManager.NavigateTo(searchUri);
     }
 
@@ -91,16 +72,14 @@ public partial class NavMenu : ComponentBase, IDisposable
         searchActive = !string.IsNullOrEmpty(query);
     }
 
-    private Task HandleHomeClick() => HandleNavButtonClick(State.Home.OnClick);
-    private Task HandleBackClick() => HandleNavButtonClick(State.Back.OnClick);
-    private Task HandleProfileClick() => HandleNavButtonClick(State.Profile.OnClick);
-    private static async Task HandleNavButtonClick(Func<Task> onClick) => await onClick();
+    private void HandleHomeClick() => NavService.Home();
+    private void HandleBackClick() => NavService.Back();
+    private void HandleProfileClick() => NavService.Profile();
 
 
     public void Dispose()
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
-        BottomNavService.Changed -= OnNavMenuStateChanged;
         GC.SuppressFinalize(this);
     }
 }
