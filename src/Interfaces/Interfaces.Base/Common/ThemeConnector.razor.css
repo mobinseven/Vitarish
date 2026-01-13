@@ -5,35 +5,54 @@
     backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
 }
 
-::deep div[role=group] > .mud-field:first-child {
-    border-top-left-radius: var(--mud-default-borderradius);
-    border-top-right-radius: var(--mud-default-borderradius);
-}
+    ::deep .stack > .mud-field:first-child {
+        border-top-left-radius: var(--mud-default-borderradius);
+        border-top-right-radius: var(--mud-default-borderradius);
+    }
 
-::deep div[role=group] > .mud-field:last-child {
-    border-bottom-left-radius: var(--mud-default-borderradius);
-    border-bottom-right-radius: var(--mud-default-borderradius);
-    margin: 0;
-}
+    ::deep .stack > .mud-field:last-child {
+        border-bottom-left-radius: var(--mud-default-borderradius);
+        border-bottom-right-radius: var(--mud-default-borderradius);
+        margin: 0;
+    }
 
 ::deep .stack > .mud-button {
-    margin: 0 0 2px 0;
+    margin: 0 0 1px 0;
     padding: 15px;
     border-radius: unset;
     background: var(--background);
     backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
 }
 
-::deep div[role=group] > .mud-button:first-child {
-    border-top-left-radius: var(--mud-default-borderradius);
-    border-top-right-radius: var(--mud-default-borderradius);
+    ::deep .stack > .mud-button:first-child {
+        border-top-left-radius: var(--mud-default-borderradius);
+        border-top-right-radius: var(--mud-default-borderradius);
+    }
+
+    ::deep .stack > .mud-button:last-child {
+        border-bottom-left-radius: var(--mud-default-borderradius);
+        border-bottom-right-radius: var(--mud-default-borderradius);
+        margin: 0;
+    }
+
+::deep .stack > .stack-item {
+    margin: 0 0 1px 0;
+    padding: 15px;
+    border-radius: unset;
+    background: var(--background);
+    backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
 }
 
-::deep div[role=group] > .mud-button:last-child {
-    border-bottom-left-radius: var(--mud-default-borderradius);
-    border-bottom-right-radius: var(--mud-default-borderradius);
-    margin: 0;
-}
+    ::deep .stack > .stack-item:first-child {
+        border-top-left-radius: var(--mud-default-borderradius);
+        border-top-right-radius: var(--mud-default-borderradius);
+    }
+
+    ::deep .stack > .stack-item:last-child {
+        border-bottom-left-radius: var(--mud-default-borderradius);
+        border-bottom-right-radius: var(--mud-default-borderradius);
+        margin: 0;
+    }
 
 ::deep .mud-input.mud-input-filled {
     background-color: rgba(156,156,156,.1)
@@ -197,12 +216,12 @@
 
 @-webkit-keyframes fade-in {
     0% {
-        opacity:0;
+        opacity: 0;
         -webkit-filter: blur(20px);
     }
 
     100% {
-        opacity:1;
+        opacity: 1;
         -webkit-filter: blur(0px);
     }
 }

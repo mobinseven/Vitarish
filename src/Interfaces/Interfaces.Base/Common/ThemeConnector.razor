@@ -12,7 +12,14 @@
     @ThemeService.BuildCustomCss()
 </style>
 
+<div style="height: 100%">
+    @ChildContent
+</div>
+
 @code {
+
+    [Parameter] public RenderFragment? ChildContent  { get; set; }
+
     private MudThemeProvider? _provider;
 
     protected override async Task OnInitializedAsync()

@@ -2,20 +2,14 @@
 
 @if(Initialized)
 {
-    <ThemeConnector />
-
-    <div style="height: 100%">
+    <ThemeConnector>
         <MudRTLProvider RightToLeft="@System.Globalization.CultureInfo.CurrentCulture.TextInfo.IsRightToLeft" Style="min-height: 100dvh;">
             @if(BreakpointReceived)
             {
                 <CascadingValue Value="@PageBreakpoint">
-
-
                     <div style="height: 20dvh;">
                         <hr />
                     </div>
-
-
                     <WidthControlled>
 
                         <MudStack Row Justify="Justify.Center" Style="width: 100%">
@@ -56,6 +50,5 @@
                                MaxWidth="MaxWidth.Small" />
             <MudSnackbarProvider />
         </MudRTLProvider>
-    </div>
-
+    </ThemeConnector>
 }

@@ -2,9 +2,7 @@
 
 @if(Initialized)
 {
-    <ThemeConnector />
-
-    <div style="height: 100%">
+    <ThemeConnector>
         <MudRTLProvider RightToLeft="@System.Globalization.CultureInfo.CurrentCulture.TextInfo.IsRightToLeft" Style="min-height: 100dvh;">
             @if(BreakpointReceived)
             {
@@ -87,6 +85,5 @@
                                MaxWidth="MaxWidth.Small" />
             <MudSnackbarProvider />
         </MudRTLProvider>
-    </div>
-
+    </ThemeConnector>
 }
