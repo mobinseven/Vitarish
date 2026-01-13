@@ -9,7 +9,7 @@
             <MudStack Row Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
                 <MudText Typo="Typo.h6">@Localizer["RegisterClinicPatient"]</MudText>
                 <MudButton Variant="Variant.Filled"
-                           Color="Color.Secondary"
+                           Color="Color.Primary"
                            Disabled="@(isSubmitting || isGenerating)"
                            OnClick="ToggleManualMode">
                     @if(isManualMode)

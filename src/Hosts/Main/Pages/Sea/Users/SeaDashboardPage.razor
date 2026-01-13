@@ -9,15 +9,19 @@
 @if(IsOwner)
 {
     <Stack>
-        <StackField Label="@Localizer["Owner"]" />
-        <StackButton Href="/sea/owner/settings" Label="@Localizer["Settings"]" StartIcon="fa-thin fa-gear-complex"/>
+        <StackButton Href="/sea/owner/settings" Label="@Localizer["Settings"]" StartIcon="fa-thin fa-gear-complex" />
     </Stack>
 }
 
-@code{
+@code {
     private int projectsCount;
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnAfterRenderAsync(bool f)
     {
-        projectsCount = await ProjectsService.CountAsync(new ProjectDescriptorDto{ }, CancellationToken.None).GetValueOrDefaultAsync();
+        if(!f)
+        {
+            return;
+        }
+        projectsCount = await ProjectsService.CountAsync(new ProjectDescriptorDto { }, CancellationToken.None).GetValueOrDefaultAsync();
+        await InvokeAsync(StateHasChanged);
     }
 }
