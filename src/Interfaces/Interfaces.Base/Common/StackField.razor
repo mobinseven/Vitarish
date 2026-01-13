@@ -10,7 +10,10 @@
         <MudStack Row Style="width: 100%;" StretchItems="StretchItems.Start" AlignItems="AlignItems.Center">
             <div>
                 <MudText Typo="Typo.h6">@Label</MudText>
-                <MudText Typo="Typo.caption">@HelperText</MudText>
+                @if(!string.IsNullOrWhiteSpace(HelperText))
+                {
+                    <MudText Typo="Typo.caption">@HelperText</MudText>
+                }
             </div>
             <div>@EndContent</div>
         </MudStack>
@@ -21,19 +24,26 @@
         <MudStack Style="width: 100%;" AlignItems="AlignItems.Start">
             <div>
                 <MudText Typo="Typo.h6">@Label</MudText>
-                <MudText Typo="Typo.caption">@HelperText</MudText>
+                @if(!string.IsNullOrWhiteSpace(HelperText))
+                {
+                    <MudText Typo="Typo.caption">@HelperText</MudText>
+                }
             </div>
-            <div>@EndContent</div>
-            <div>
-                @ChildContent
-            </div>
+            @if(EndContent is not null)
+            {
+                <div>@EndContent</div>
+            }
+            @if(ChildContent is not null)
+            {
+                <div>
+                    @ChildContent
+                </div>
+            }
         </MudStack>
     }
 </MudField>
 
-@code{
-    [CascadingParameter]
-    public Breakpoint PageBreakpoint { get; set; }
-    [Parameter]
-    public RenderFragment? EndContent { get; set; }
+@code {
+    [CascadingParameter] public Breakpoint PageBreakpoint { get; set; }
+    [Parameter]  public RenderFragment? EndContent { get; set; }
 }
