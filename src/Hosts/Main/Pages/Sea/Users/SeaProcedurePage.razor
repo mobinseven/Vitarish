@@ -13,6 +13,7 @@
     <EventsGrid Project="@Project"
                 EventClicked=@(id => NavigationManager.NavigateTo($"/sea/projects/{projectId}/{procedureId}/{id}"))
                 Procedure="Procedure" />
+    <ProcedureDetails Procedure="Procedure" Project="Project" OnDelete="@(() => NavigationManager.NavigateTo($"/sea/projects/{projectId}"))" />
 </CascadingValue>
 @code {
     [Parameter] public string? projectId { get; set; }

@@ -8,6 +8,7 @@
 {
     <Stack>
         <StackButton OnClick="@(() => AddProcedure())"
+                     Color="Color.Primary"
                      StartIcon="fa-thin fa-file-plus"
                      Label="@Localizer["AddItem", Localizer["Procedure"]]" />
     </Stack>
@@ -25,6 +26,7 @@
                      StartIcon="fa-thin fa-pencil"
                      Label="@Localizer["EditItem", Localizer["Project"]]" />
         <StackButton OnClick="@(() => DeleteProject(Project))"
+                     Color="Color.Error"
                      StartIcon="fa-thin fa-folder-xmark"
                      Label="@Localizer["DeleteItem", Localizer["Project"]]" />
     }

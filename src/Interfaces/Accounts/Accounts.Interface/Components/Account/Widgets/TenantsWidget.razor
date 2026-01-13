@@ -1,10 +1,7 @@
 @inherits IdentityCommonBase
 
 <Stack>
-    <StackField Label="@Localizer["Workspaces"]">
-        <MudText Typo="Typo.h6"></MudText>
-        <MudText Typo="Typo.body2" Color="Color.Secondary">@Localizer["ChooseWorkspaceToContinue"]</MudText>
-    </StackField>
+    <StackField Label="@Localizer["Workspaces"]"/>
 
     @foreach(TenantAccessEntry entry in tenantEntries)
     {

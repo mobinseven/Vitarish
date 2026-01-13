@@ -3,7 +3,10 @@
 @using Microsoft.Extensions.Localization
 @using MudBlazor
 @using Vitarish.Interfaces.Base.Common
+@using Vitarish.Main.Pages.Common
+
 @inject IStringLocalizer Localizer
+
 <Router AppAssembly="typeof(App).Assembly">
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)">
@@ -17,4 +20,7 @@
         </AuthorizeRouteView>
         <FocusOnNavigate RouteData="routeData" Selector=".focus" />
     </Found>
+    <NotFound>
+        <RouteView RouteData="new RouteData(typeof(NotFound), new Dictionary<string,object?>())" DefaultLayout="typeof(SimpleLayout)" />
+    </NotFound>
 </Router>

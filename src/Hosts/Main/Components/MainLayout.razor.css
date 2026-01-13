@@ -1,5 +1,5 @@
 ::deep .stack > .mud-field {
-    margin: 0 0 2px 0;
+    margin: 0 0 1px 0;
     padding: 15px;
     background: var(--background);
     backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
@@ -106,6 +106,12 @@
     -webkit-backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
     border: var(--border);
     background-color: var(--background);
+    -webkit-animation-name: fade-in;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-iteration-count: 1;
+}
+
+::deep .fade {
     -webkit-animation-name: fade-in;
     -webkit-animation-duration: 1s;
     -webkit-animation-iteration-count: 1;

@@ -7,17 +7,20 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
     [Inject] private IAttachmentsService AttachmentsService { get; set; } = default!;
     [Inject] private IEventRolesService EventRolesService { get; set; } = default!;
     [Inject] private IReceiptsService ReceiptsService { get; set; } = default!;
+
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter, EditorRequired] public EventDto Event { get; set; } = default!;
     [Parameter, EditorRequired] public AttachmentDto Attachment { get; set; } = default!;
 
     [Parameter] public Color Color { get; set; }
+
     private bool CanWrite { get; set; }
     private bool editing;
     private string editContent = string.Empty;
-    private IReadOnlyList<Guid> readers = Array.Empty<Guid>();
+    private IReadOnlyList<Guid> readers = [];
     private IReadOnlyList<UserDto> Users = [];
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -73,7 +76,7 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
         return string.IsNullOrWhiteSpace(name) ? readerId.ToString() : name;
     }
 
-    private IEnumerable<string> GetReaders()
+    private string[] GetReaders()
     {
         if (readers.Count == 0)
         {

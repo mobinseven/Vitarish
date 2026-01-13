@@ -1,4 +1,4 @@
-@page "/Profile"
+@page "/Settings"
 @inherits IdentityCommonBase
 
 @if(User is null)
@@ -10,24 +10,24 @@
         <StackField Label="@Localizer["AccountDetails"]">
             <MudText Typo="Typo.body2" Color="Color.Secondary">@User?.UserName</MudText>
         </StackField>
-        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/profile/name"))"
-                          StartIcon="fa-thin fa-person"
-                          Label="@Localizer["Name"]">
+        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/name"))"
+                     StartIcon="fa-thin fa-person"
+                     Label="@Localizer["Name"]">
             @User?.FullName
         </StackButton>
-        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/profile/email"))"
-                          StartIcon="fa-thin fa-envelope"
-                          Label="@Localizer["Email"]">
+        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/email"))"
+                     StartIcon="fa-thin fa-envelope"
+                     Label="@Localizer["Email"]">
             @User?.Email
         </StackButton>
-        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/profile/phone"))"
-                          StartIcon="fa-thin fa-mobile"
-                          Label="@Localizer["PhoneNumber"]">
+        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/phone"))"
+                     StartIcon="fa-thin fa-mobile"
+                     Label="@Localizer["PhoneNumber"]">
             @User?.PhoneNumber
         </StackButton>
-        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/profile/password"))"
-                          StartIcon="fa-thin fa-lock"
-                          Label="@Localizer["EditPassword"]">
+        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/password"))"
+                     StartIcon="fa-thin fa-lock"
+                     Label="@Localizer["EditPassword"]">
             ***********
         </StackButton>
     </Stack>
@@ -38,8 +38,14 @@
     </Stack>
     <Stack>
 
-        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/profile/Appearance"))"
-                          StartIcon="fa-thin fa-paint-brush-alt"
-                          Label="@Localizer["Appearance"]" />
+        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/Appearance"))"
+                     StartIcon="fa-thin fa-paint-brush-alt"
+                     Label="@Localizer["Appearance"]" />
+    </Stack>
+    <Stack>
+        <StackButton Label="@Localizer["Logout"]"
+                     Color="Color.Error"
+                     StartIcon="fa-thin fa-sign-out-alt"
+                     OnClick="@(() => NavigationManager.NavigateTo("/Account/Signout"))" />
     </Stack>
 </MudStack>

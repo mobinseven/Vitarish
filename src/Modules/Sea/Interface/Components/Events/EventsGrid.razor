@@ -1,6 +1,6 @@
 @inherits EventsBase
 
-<MudDataGrid T="EventDto" @ref=grid ServerData=ReloadData HeaderClass="d-none" RowClass="border-none" Elevation="0" Height="100%">
+<MudDataGrid T="EventDto" @ref="grid" ServerData="ReloadData" HeaderClass="d-none" RowClass="border-none" Elevation="0" Height="100%" Class="glass">
     <Columns>
         <TemplateColumn T="EventDto">
             <CellTemplate Context="context">

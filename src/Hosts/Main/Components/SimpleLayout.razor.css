@@ -1,0 +1,222 @@
+::deep .stack > .mud-field {
+    margin: 0 0 2px 0;
+    padding: 15px;
+    background: var(--background);
+    backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+}
+
+::deep div[role=group] > .mud-field:first-child {
+    border-top-left-radius: var(--mud-default-borderradius);
+    border-top-right-radius: var(--mud-default-borderradius);
+}
+
+::deep div[role=group] > .mud-field:last-child {
+    border-bottom-left-radius: var(--mud-default-borderradius);
+    border-bottom-right-radius: var(--mud-default-borderradius);
+    margin: 0;
+}
+
+::deep .stack > .mud-button {
+    margin: 0 0 2px 0;
+    padding: 15px;
+    border-radius: unset;
+    background: var(--background);
+    backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+}
+
+::deep div[role=group] > .mud-button:first-child {
+    border-top-left-radius: var(--mud-default-borderradius);
+    border-top-right-radius: var(--mud-default-borderradius);
+}
+
+::deep div[role=group] > .mud-button:last-child {
+    border-bottom-left-radius: var(--mud-default-borderradius);
+    border-bottom-right-radius: var(--mud-default-borderradius);
+    margin: 0;
+}
+
+::deep .mud-input.mud-input-filled {
+    background-color: rgba(156,156,156,.1)
+}
+
+::deep .mud-popover {
+    border-radius: 0;
+}
+
+::deep .sticky-top {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+::deep .sticky-bottom {
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
+}
+
+::deep .mud-paper {
+    backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+    -webkit-backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+    border: var(--border);
+    background-color: var(--background);
+}
+
+::deep .mud-table {
+    background-color: transparent;
+}
+
+::deep tbody::before {
+    content: "";
+    display: block;
+    height: 1em; /* Adjust this value for desired spacing */
+}
+
+@media (max-width: 600px) {
+    ::deep .mud-xs-table .mud-table-root .mud-table-head, ::deep .mud-xs-table .mud-table-root .mud-table-foot {
+        display: table-row-group;
+    }
+
+    ::deep .mud-xs-table .mud-table-cell:before {
+        content: none;
+    }
+}
+
+::deep .mud-badge.mud-badge-default {
+    background-color: unset;
+}
+
+::deep .mud-data-grid .mud-table-cell.mud-datagrid-group {
+    background-color: unset;
+}
+
+::deep .mud-table-cell {
+    padding: 2px 10px;
+}
+
+::deep thead {
+    position: sticky;
+    position: -webkit-sticky;
+    top: 10px;
+    z-index: 2;
+}
+
+::deep .glass {
+    backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+    -webkit-backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+    border: var(--border);
+    background-color: var(--background);
+    -webkit-animation-name: fade-in;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-iteration-count: 1;
+}
+
+::deep .fade {
+    -webkit-animation-name: fade-in;
+    -webkit-animation-duration: 1s;
+    -webkit-animation-iteration-count: 1;
+}
+
+::deep .mud-button-root:not(.mud-button-outlined,.mud-button-filled) {
+    backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+    -webkit-backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+}
+
+/*::deep .mud-input-outlined-border {
+    background-color: var(--background);
+}*/
+
+::deep .mud-table-sticky-header * .mud-table-root .mud-table-head * .mud-table-cell {
+    width: 100%;
+    position: sticky;
+    position: -webkit-sticky;
+    top: 10px;
+    border-radius: var(--mud-default-borderradius);
+    backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+    -webkit-backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+    border: var(--border);
+    z-index: 2;
+    background-color: var(--background);
+}
+
+@media (max-width: 600px) {
+    ::deep .mud-table-head .mud-table-row {
+        display: table-row;
+    }
+}
+
+::deep .mud-tabs-tabbar {
+    background-color: unset;
+}
+
+::deep .mud-tab {
+    backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+    -webkit-backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+}
+
+::deep .mud-tabs-panels {
+    border-radius: var(--mud-default-borderradius);
+    backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+    -webkit-backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+}
+
+::deep .mud-expand-panel {
+    background-color: transparent;
+}
+
+::deep .mud-table-cell {
+    border: 0 !important;
+    display: table-cell;
+}
+
+::deep .filepond--panel-root {
+    background-color: transparent;
+}
+
+::deep .mud-snackbar {
+    min-width: unset;
+    text-align: center;
+    justify-content: center;
+}
+
+::deep .mud-table-empty-row {
+    background-color: unset;
+}
+
+::deep .pointer-events-none {
+    pointer-events: none;
+}
+
+::deep .mud-icon-root {
+    width: initial !important; /* عمت OCD داره */
+}
+
+::deep .mud-collapse-wrapper {
+    overflow: hidden;
+}
+
+@-webkit-keyframes fade-in {
+    0% {
+        opacity:0;
+        -webkit-filter: blur(20px);
+    }
+
+    100% {
+        opacity:1;
+        -webkit-filter: blur(0px);
+    }
+}
+
+@-webkit-keyframes shimmer {
+    0% {
+        background-position: -4rem top;
+    }
+
+    70% {
+        background-position: 12.5rem top;
+    }
+
+    100% {
+        background-position: 12.5rem top;
+    }
+}

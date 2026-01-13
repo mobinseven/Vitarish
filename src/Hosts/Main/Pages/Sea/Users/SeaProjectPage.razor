@@ -5,19 +5,26 @@
 @inject IEventsService EventService
 @inject IReceiptsService ReceiptsService
 @inject ISeaUsersService AccessService
+
 @if(Project is null)
 {
     return;
 }
 
 <CascadingValue Value="IsAdmin">
+
     <ProceduresGrid Project="@Project"
                     ProcedureClicked="@(id => NavigationManager.NavigateTo($"/sea/projects/{projectId}/{id}"))" />
 
-    <ProjectDetails Project="@Project" OnAddProcedure="@(p => NavigationManager.NavigateTo($"/sea/projects/{p.Id}"))" OnEdit="@(p => NavigationManager.NavigateTo($"/sea/projects/{p.Id}"))" OnDelete="@(() => NavigationManager.NavigateTo("/"))" />
+    <ProjectDetails Project="@Project"
+                    OnAddProcedure="@(p => NavigationManager.NavigateTo($"/sea/projects/{p.Id}"))"
+                    OnEdit="@(p => NavigationManager.NavigateTo($"/sea/projects/{p.Id}"))"
+                    OnDelete="@(() => NavigationManager.NavigateTo("/"))" />
 
 </CascadingValue>
+
 @code {
+
     [Parameter] public string? projectId { get; set; }
 
 

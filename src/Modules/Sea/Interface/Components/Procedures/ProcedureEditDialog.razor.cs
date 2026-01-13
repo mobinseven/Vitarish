@@ -1,3 +1,5 @@
+using Vitarish.Sea.Domain.Entities;
+
 namespace Vitarish.Sea.Interface.Components.Procedures;
 
 public partial class ProcedureEditDialog : ProceduresBase
@@ -48,5 +50,48 @@ public partial class ProcedureEditDialog : ProceduresBase
         MudDialog.Close(DialogResult.Ok(true));
     }
 
+    private async Task CommitAllEventsAsync(ProcedureDto procedure)
+    {
+        if (!Guid.TryParse(RequestContext.UserId, out Guid userId))
+        {
+            return;
+        }
+
+        StateHasChanged();
+
+        try
+        {
+            DateTimeOffset commitTime = new(DateTime.Now, TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow));
+            int committed = await EventsService.CommitAllByProcedureAsync(
+                procedure.Id,
+                userId,
+                commitTime,
+                CancellationToken.None);
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
+
+    private bool IsUncommitAllDisabled(ProcedureDto procedure)
+    {
+        StatsDto? stats = procedure.Stats;
+
+        return stats is not null && stats.CommittedEvents == 0;
+    }
+
+    private async Task UncommitAllEventsAsync(ProcedureDto procedure)
+    {
+
+        try
+        {
+            int uncommitted = await EventsService.UncommitAllByProcedureAsync(procedure.Id, CancellationToken.None);
+        }
+        finally
+        {
+            StateHasChanged();
+        }
+    }
     private void Cancel() => MudDialog.Cancel();
 }

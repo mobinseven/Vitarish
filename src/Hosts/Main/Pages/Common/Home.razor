@@ -2,22 +2,16 @@
 
 <AuthorizeView>
     <Authorized>
+        <TenantsWidget />
         <Stack>
-            <StackField Label="@Localizer["Dashboard"]" />
             <AuthorizeView Context="admin" Policy="@IdentityAccessConstants.Admin">
                 <StackButton Label="@Localizer["Admin"]"
                              StartIcon="fa-thin fa-user-shield"
                              OnClick="@(() => NavigationManager.NavigateTo("/Admin"))" />
             </AuthorizeView>
-            <StackButton Label="@Localizer["Profile"]"
+            <StackButton Label="@Localizer["Settings"]"
                          StartIcon="fa-thin fa-user-gear"
-                         OnClick="@(() => NavigationManager.NavigateTo("/Profile"))" />
-        </Stack>
-        <TenantsWidget />
-        <Stack>
-            <StackButton Label="@Localizer["Logout"]"
-                         StartIcon="fa-thin fa-sign-out-alt"
-                         OnClick="@(() => NavigationManager.NavigateTo("/Account/Signout"))" />
+                         OnClick="@(() => NavigationManager.NavigateTo("/Settings"))" />
         </Stack>
     </Authorized>
     <NotAuthorized>

@@ -1,0 +1,61 @@
+@inherits LayoutComponentBase
+
+@if(Initialized)
+{
+    <ThemeConnector />
+
+    <div style="height: 100%">
+        <MudRTLProvider RightToLeft="@System.Globalization.CultureInfo.CurrentCulture.TextInfo.IsRightToLeft" Style="min-height: 100dvh;">
+            @if(BreakpointReceived)
+            {
+                <CascadingValue Value="@PageBreakpoint">
+
+
+                    <div style="height: 20dvh;">
+                        <hr />
+                    </div>
+
+
+                    <WidthControlled>
+
+                        <MudStack Row Justify="Justify.Center" Style="width: 100%">
+                            <MudImage Src="/logo/brandmark-opacity50.webp" Height="150" />
+                        </MudStack>
+
+                        @Body
+
+                    </WidthControlled>
+
+                    <div style="height: 20dvh;">
+                        <hr />
+                    </div>
+
+                    <div style="position: fixed; bottom: 0; width: 100%;pointer-events: none;">
+                        @if(PageBreakpoint >= Breakpoint.Sm)
+                        {
+                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-5">
+                                <MudPaper Class="pa-5" Elevation="20" Style="border-radius: 70px; pointer-events: auto;">
+                                    <NavMenu Size="Size.Large" />
+                                </MudPaper>
+                            </MudStack>
+                        }
+                        else if(PageBreakpoint < Breakpoint.Sm)
+                        {
+                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Class="pa-1">
+                                <MudPaper Class="pa-1" Elevation="20" Style="border-radius: 70px; pointer-events: auto;">
+                                    <NavMenu />
+                                </MudPaper>
+                            </MudStack>
+                        }
+                    </div>
+                    <AntiforgeryToken />
+                </CascadingValue>
+            }
+            <MudPopoverProvider />
+            <MudDialogProvider FullWidth="true"
+                               MaxWidth="MaxWidth.Small" />
+            <MudSnackbarProvider />
+        </MudRTLProvider>
+    </div>
+
+}

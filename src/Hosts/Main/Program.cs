@@ -187,7 +187,6 @@ _ = app.MapGet("/request", (HttpContext context, IRequestContext requestContext)
 
 _ = app.UseMultiTenant();
 
-// Map endpoints from discovered modules
 _ = await app.MapModuleEndpoints();
 
 app.MapApiClientsEndpoints().AddEndpointAuthorization();
@@ -207,6 +206,7 @@ app.MapRequestIdentityEndpoints().AddEndpointAuthorization();
 
 _ = app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 _ = app.MapRazorPages();
+
 app.MapAccountsInterface();
 
 app.MapHangfireDashboard();

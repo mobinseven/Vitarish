@@ -1,11 +1,14 @@
 @inherits ProjectsBase
 <Stack>
-    <StackButton OnClick="AddProject" StartIcon="fa-thin fa-folder-plus" Label="@Localizer["AddItem", Localizer["Project"]]"/>
+    <StackButton Color="Color.Primary"
+                 OnClick="AddProject"
+                 StartIcon="fa-thin fa-folder-plus"
+                 Label="@Localizer["AddItem", Localizer["Project"]]" />
 </Stack>
 <MudDataGrid T="ProjectDto"
-             @ref=grid
+             @ref="grid"
              LoadingProgressColor="Color.Success"
-             ServerData=ReloadData
+             ServerData="ReloadData"
              Class="glass"
              Dense
              Breakpoint=Breakpoint.None
