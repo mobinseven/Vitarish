@@ -14,7 +14,7 @@
     </Stack>
 }
 <Stack>
-    <StackField Label="@Project.Name">
+    <StackField Label="@Project.Name" HelperText="@Localizer["Project"]">
         @if(!string.IsNullOrWhiteSpace(Project.Description))
         {
             <MudText HtmlTag="p" Typo="Typo.caption" Class="py-3">@Project.Description</MudText>

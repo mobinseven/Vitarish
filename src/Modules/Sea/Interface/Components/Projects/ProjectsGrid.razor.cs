@@ -12,8 +12,8 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
     [Inject] private IStringLocalizerFactory StringLocalizerFactory { get; set; } = default!;
 
     private readonly bool template;
-    private MudDataGrid<ProjectDto>? grid;
-    private List<ProjectDto>? projects = null;
+
+    private List<ProjectDto>? projects = [];
     private IReadOnlyList<IProjectGridCellDisplayPlugin> projectGridCellDisplayPlugins = [];
     private string? preferredProjectGridCellDisplayPluginId;
     private readonly ConcurrentDictionary<string, ProjectCreationFormPluginDisplayMetadata> pluginDisplayMetadataCache = new(StringComparer.OrdinalIgnoreCase);
@@ -27,7 +27,15 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
         preferredProjectGridCellDisplayPluginId = metadata.ProjectGridCellDisplayPluginId;
     }
 
-    private async Task<GridData<ProjectDto>> ReloadData(GridState<ProjectDto> gridState)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ReloadData();
+        }
+    }
+
+    private async Task ReloadData()
     {
         IReadOnlyList<Guid> roleIds = await AccessService.GetRoleIds();
         ProjectDescriptorDto descriptor = new()
@@ -46,15 +54,10 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
             .OrderByDescending(e => (e.Stats?.NewItems ?? 0) > 0)
             .ThenByDescending(e => e.Stats?.Unread ?? false)
             .ThenBy(e => e.Name)];
-
-        return new GridData<ProjectDto>
-        {
-            Items = projects,
-            TotalItems = Items.Count
-        };
+        await InvokeAsync(StateHasChanged);
     }
 
-    protected override async Task ReloadRequired() => await grid!.ReloadServerData();
+    protected override async Task ReloadRequired() => await ReloadData();
 
     private async Task AddProject()
     {
@@ -210,8 +213,5 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
                                                                                                             builder.CloseComponent();
                                                                                                         };
 
-    void IDisposable.Dispose()
-    {
-        GC.SuppressFinalize(this);
-    }
+    void IDisposable.Dispose() => GC.SuppressFinalize(this);
 }

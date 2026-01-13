@@ -5,19 +5,10 @@
                  StartIcon="fa-thin fa-folder-plus"
                  Label="@Localizer["AddItem", Localizer["Project"]]" />
 </Stack>
-<MudDataGrid T="ProjectDto"
-             @ref="grid"
-             LoadingProgressColor="Color.Success"
-             ServerData="ReloadData"
-             Class="glass"
-             Dense
-             Breakpoint=Breakpoint.None
-             Elevation="0">
-    <Columns>
-        <TemplateColumn T="ProjectDto">
-            <CellTemplate Context="context">
-                @RenderProjectCell(context.Item)
-            </CellTemplate>
-        </TemplateColumn>
-    </Columns>
-</MudDataGrid>
+
+<Stack>
+    @foreach(var project in projects)
+    {
+        @RenderProjectCell(project)
+    }
+</Stack>

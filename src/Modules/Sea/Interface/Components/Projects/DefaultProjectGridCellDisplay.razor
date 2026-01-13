@@ -1,17 +1,12 @@
 @using System.Threading.Tasks
 @inherits ProjectsBase
-<ExpandableItem Context="expandable"
-                OnClicked="HandleClickedAsync"
-                NoIcon
-                Name="@Context.Project.Name"
-                HighlightString="@Context.HighlightString">
-    <InlineContent>
-        <StatsDisplay Stats="DisplayStats" />
-    </InlineContent>
-    <ChildContent>
-        @Context.ChildContent?.Invoke(Context.Project)
-    </ChildContent>
-</ExpandableItem>
+
+<StackButton OnClick="HandleClickedAsync"
+             Label="@Context.Project.Name"
+             HighlightString="@Context.HighlightString">
+    <StatsDisplay Stats="DisplayStats" />
+</StackButton>
+
 
 @code {
     [Parameter, EditorRequired]

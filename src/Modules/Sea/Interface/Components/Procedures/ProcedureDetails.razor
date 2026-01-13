@@ -1,10 +1,15 @@
 @inherits ProceduresBase
-<Stack>
-    <StackField Label="@Procedure.Name" />
-    <StackButton Label="@Localizer["Edit", Localizer["Procedure"]]" OnClick="EditProcedure" />
-    <StackButton Label="@Localizer["Delete", Localizer["Procedure"]]" Color="Color.Error" OnClick="DeleteProcedure" />
-</Stack>
 
+
+@if(AdminMode)
+{
+    <Stack>
+        <StackField Label="@Procedure.Name" HelperText="@Localizer["Procedure"]" />
+        <StackButton Label="@Localizer["Edit", Localizer["Procedure"]]" OnClick="EditProcedure" />
+        <StackButton Label="@Localizer["Delete", Localizer["Procedure"]]" Color="Color.Error" OnClick="DeleteProcedure" />
+    </Stack>
+
+}
 @code {
 
     [Parameter, EditorRequired] public required ProjectDto Project { get; set; }

@@ -6,18 +6,22 @@ namespace Vitarish.Sea.Interface.Components.Users;
 
 public partial class UsersGrid : UsersBase, IDisposable
 {
-    private MudDataGrid<UserDto>? grid;
     private string? SearchString;
+    private IList<UserDto> users = [];
 
-    private async Task<GridData<UserDto>> ReloadData(GridState<UserDto> gridState)
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ReloadData();
+        }
+    }
+
+    private async Task ReloadData()
     {
         IList<User> usersInRole = await UsersService.GetUsersInRoleAsync("User", CancellationToken.None);
-        IList<UserDto> users = [.. usersInRole.Select(u => new UserDto(u))];
-        return new GridData<UserDto>
-        {
-            Items = users,
-            TotalItems = users.Count
-        };
+        users = [.. usersInRole.Select(u => new UserDto(u))];
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override void OnInitialized()
@@ -31,9 +35,9 @@ public partial class UsersGrid : UsersBase, IDisposable
     {
         try
         {
-            if (UpdateSearchFromUri(e.Location) && grid is not null)
+            if (UpdateSearchFromUri(e.Location))
             {
-                await grid.ReloadServerData();
+                await ReloadData();
             }
         }
         catch
