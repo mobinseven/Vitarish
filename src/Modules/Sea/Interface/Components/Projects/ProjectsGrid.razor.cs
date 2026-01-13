@@ -179,18 +179,10 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
 
     private IProjectGridCellDisplayPlugin? ResolveProjectCellDisplayPlugin(ProjectGridCellDisplayContext context)
     {
-        List<IProjectGridCellDisplayPlugin> available =
-            [.. projectGridCellDisplayPlugins.Where(plugin => plugin.IsAvailable(context))];
-
-        if (available.Count == 0)
-        {
-            return null;
-        }
-
         if (!string.IsNullOrWhiteSpace(preferredProjectGridCellDisplayPluginId))
         {
             IProjectGridCellDisplayPlugin? configured =
-                available.FirstOrDefault(plugin => string.Equals(plugin.Id, preferredProjectGridCellDisplayPluginId, StringComparison.Ordinal));
+                projectGridCellDisplayPlugins.FirstOrDefault(plugin => string.Equals(plugin.Id, preferredProjectGridCellDisplayPluginId, StringComparison.Ordinal));
             if (configured is not null)
             {
                 return configured;
@@ -198,9 +190,9 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
         }
 
         IProjectGridCellDisplayPlugin? defaultPlugin =
-            available.FirstOrDefault(plugin => string.Equals(plugin.Id, DefaultProjectGridCellDisplayPlugin.PluginId, StringComparison.Ordinal));
+            projectGridCellDisplayPlugins.FirstOrDefault(plugin => string.Equals(plugin.Id, DefaultProjectGridCellDisplayPlugin.PluginId, StringComparison.Ordinal));
 
-        return defaultPlugin ?? available[0];
+        return defaultPlugin;
     }
 
     private ProjectGridCellDisplayContext BuildDisplayContext(ProjectDto project) => new(
