@@ -15,19 +15,11 @@ public sealed class BlazorNotAuthorizedResultHandler : IAuthorizationMiddlewareR
         PolicyAuthorizationResult authorizeResult)
     {
         var endpoint = context.GetEndpoint();
-
-        // Razor component endpoints have RootComponentMetadata/ComponentTypeMetadata
         var isRazorComponentEndpoint =
             endpoint?.Metadata.GetMetadata<RootComponentMetadata>() is not null;
 
-        if (isRazorComponentEndpoint && (authorizeResult.Challenged || authorizeResult.Forbidden))
-        {
-            // Don't challenge/forbid (which would redirect with cookies).
-            // Let Blazor render; <AuthorizeRouteView><NotAuthorized> can show UI.
-            return next(context);
-        }
-
-        // Keep normal behavior for controllers/Razor Pages/APIs.
-        return _defaultHandler.HandleAsync(next, context, policy, authorizeResult);
+        return isRazorComponentEndpoint && (authorizeResult.Challenged || authorizeResult.Forbidden)
+            ? next(context)
+            : _defaultHandler.HandleAsync(next, context, policy, authorizeResult);
     }
 }
