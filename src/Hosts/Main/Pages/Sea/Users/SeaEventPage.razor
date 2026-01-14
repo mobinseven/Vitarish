@@ -12,7 +12,7 @@
 
 <CascadingValue Value="IsAdmin">
     <EventItemsTimeline Event="Event" Procedure="Procedure" Project="Project" />
-    <EventDetails Event="Event" Procedure="Procedure" Project="Project" />
+    <EventDetails Event="Event" Procedure="Procedure" Project="Project" OnDelete="@(() => NavigationManager.NavigateTo($"/sea/projects/{projectId}/{procedureId}"))" />
 </CascadingValue>
 
 @code {
