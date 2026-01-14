@@ -120,6 +120,7 @@ public sealed class RequestContext(IHttpContextAccessor httpContextAccessor) : I
         internal set;
     }
 
+    ClaimsPrincipal? IRequestContext.User => httpContextAccessor.HttpContext?.User;
     /// <inheritdoc />
     public void SetContext(
         string authority,

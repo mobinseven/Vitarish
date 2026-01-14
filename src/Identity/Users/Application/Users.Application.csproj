@@ -4,6 +4,7 @@
     <PackageReference Include="FluentValidation" Version="11.*" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Requests\Application\Requests.Application.csproj" />
     <ProjectReference Include="..\Domain\Users.Domain.csproj" />
   </ItemGroup>
 </Project>

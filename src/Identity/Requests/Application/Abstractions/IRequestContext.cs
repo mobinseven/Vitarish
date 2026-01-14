@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Http;
+using System.Security.Claims;
 using Vitarish.Requests.Domain.Entities;
 
 namespace Vitarish.Requests.Application.Abstractions;
@@ -52,5 +54,6 @@ public interface IRequestContext
     /// </summary>
     string? AdditionalInfo { get; }
 
+    ClaimsPrincipal? User { get; }
     Request GetRequest();
 }
