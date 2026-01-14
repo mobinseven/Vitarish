@@ -1,9 +1,6 @@
-using System.Security.Claims;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using MudBlazor;
-using ClaimDto = Vitarish.Users.Domain.Models.ClaimDto;
 using Vitarish.Parties.Domain.Entities;
+using ClaimDto = Vitarish.Users.Domain.Models.ClaimDto;
 
 namespace Vitarish.Accounts.Interface.Components.Admin;
 
@@ -14,8 +11,7 @@ public partial class RolesManager : AdminBase
     private bool isLoading;
     private string newRoleName = string.Empty;
     private string? selectedTenantId;
-
-    [Inject] private IDialogService DialogService { get; set; } = default!;
+    private List<RoleEntry> tenantRoles => selectedTenantId is null ? [] : [.. roles.Where(r => r.Role.Name?.StartsWith(selectedTenantId) ?? false)];
 
     protected override async Task OnInitializedAsync()
     {
@@ -47,13 +43,13 @@ public partial class RolesManager : AdminBase
             IList<Claim>[] claimSets = new IList<Claim>[loadedRoles.Count];
 
             int index = 0;
-            foreach (var role in loadedRoles)
+            foreach (IdentityRole role in loadedRoles)
             {
                 claimSets[index] = await RoleManager.GetClaimsAsync(role);
                 index++;
             }
 
-            foreach (var role in loadedRoles.Zip(claimSets, (role, claims) => new RoleEntry(role, [.. claims.Select(claim => new ClaimDto(claim.Type, claim.Value))])))
+            foreach (RoleEntry? role in loadedRoles.Zip(claimSets, (role, claims) => new RoleEntry(role, [.. claims.Select(claim => new ClaimDto(claim.Type, claim.Value))])))
             {
                 roles.Add(role);
             }
@@ -66,8 +62,6 @@ public partial class RolesManager : AdminBase
             StateHasChanged();
         }
     }
-
-    private Task ReloadAsync() => LoadRolesAsync();
 
     private async Task CreateRoleAsync()
     {
@@ -263,23 +257,17 @@ public partial class RolesManager : AdminBase
     private static int RoleComparison(RoleEntry left, RoleEntry right)
         => string.Compare(left.Role.Name ?? string.Empty, right.Role.Name ?? string.Empty, StringComparison.OrdinalIgnoreCase);
 
-    private sealed class RoleEntry
+    private sealed class RoleEntry(IdentityRole role, List<ClaimDto> claims)
     {
-        public RoleEntry(IdentityRole role, List<ClaimDto> claims)
-        {
-            Role = role;
-            Claims = claims;
-            EditName = role.Name ?? string.Empty;
-        }
+        public IdentityRole Role { get; } = role;
+        public string? Name => Role.Name?.Substring(Role.Name.IndexOf(':') + 1, Role.Name.Length - Role.Name.IndexOf(':') - 1);
 
-        public IdentityRole Role { get; }
-
-        public List<ClaimDto> Claims { get; set; }
+        public List<ClaimDto> Claims { get; set; } = claims;
 
         public bool IsEditing { get; set; }
 
         public bool IsProcessing { get; set; }
 
-        public string EditName { get; set; }
+        public string EditName { get; set; } = role.Name ?? string.Empty;
     }
 }

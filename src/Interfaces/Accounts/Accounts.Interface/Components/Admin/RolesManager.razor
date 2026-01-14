@@ -2,144 +2,143 @@
 @using Vitarish.Users.Domain.Models
 @using Vitarish.Parties.Domain.Entities
 
-<MudStack Spacing="2">
-    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
-        <MudText Typo="Typo.h5">@Localizer["IdentityRoles"]</MudText>
-        <MudIconButton Icon="@Icons.Material.Filled.Refresh"
-                       Color="Color.Primary"
-                       OnClick="ReloadAsync"
-                       Disabled="isLoading" />
-    </MudStack>
-
-    <MudPaper Elevation="0" Class="pa-3">
-        <MudStack Row Spacing="2" AlignItems="AlignItems.Center">
-            <MudSelect T="string"
-                       Dense="true"
-                       Label="@Localizer["SelectTenant"]"
-                       @bind-Value="selectedTenantId"
-                       Disabled="isLoading || tenants.Count == 0"
-                       Class="flex-grow-1">
-                @if (tenants.Count == 0)
+<Stack>
+    <StackField>
+        <MudSelect T="string"
+                   Dense="true"
+                   Label="@Localizer["SelectTenant"]"
+                   @bind-Value="selectedTenantId"
+                   Disabled="isLoading || tenants.Count == 0"
+                   Class="flex-grow-1">
+            @if(tenants.Count == 0)
+            {
+                <MudSelectItem Value="string.Empty">@Localizer["NoTenants"]</MudSelectItem>
+            }
+            else
+            {
+                @foreach(Tenant tenant in tenants)
                 {
-                    <MudSelectItem Value="string.Empty">@Localizer["NoTenants"]</MudSelectItem>
+                    string tenantLabel = string.IsNullOrWhiteSpace(tenant.Name)
+                        ? tenant.Id.ToString()
+                        : tenant.Name;
+
+                    <MudSelectItem Value="@tenant.Id.ToString()">@tenantLabel</MudSelectItem>
+                }
+            }
+        </MudSelect>
+    </StackField>
+</Stack>
+
+
+<Stack>
+    @if(isLoading)
+    {
+        <MudProgressLinear Indeterminate Color="Color.Default" />
+    }
+    else if(roles.Count == 0)
+    {
+        <MudText Typo="Typo.body2">@Localizer["NoRoles"]</MudText>
+    }
+    else
+    {
+        @foreach(var role in tenantRoles)
+        {
+            <StackButton Label="@role.Name" />
+        }
+
+    }
+    <StackField>
+        <MudTextField Label="@Localizer["RoleName"]"
+                      Variant="ThemeService.SecondaryVariant"
+                      @bind-Value="newRoleName"
+                      Immediate="true"
+                      Disabled="isLoading"
+                      Adornment="Adornment.Start"
+                      AdornmentIcon="@Icons.Material.Filled.Security"
+                      Class="flex-grow-1" />
+        <MudButton Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Material.Filled.Add"
+                   Disabled="isLoading || string.IsNullOrWhiteSpace(newRoleName) || string.IsNullOrWhiteSpace(selectedTenantId)"
+                   OnClick="CreateRoleAsync">
+            @Localizer["AddRole"]
+        </MudButton>
+    </StackField>
+</Stack>
+
+@* <MudDataGrid T="RoleEntry"
+             Items="roles"
+             Hover="true"
+             Dense="true"
+             Bordered="true"
+             Elevation="0"
+             Loading="isLoading">
+    <Columns>
+        <TemplateColumn Title="@Localizer["Role"]">
+            <CellTemplate>
+                @if(context.Item.IsEditing)
+                {
+                    <MudTextField @bind-Value="context.Item.EditName"
+                                  Immediate="true"
+                                  Required="true"
+                                  Disabled="context.Item.IsProcessing"
+                                  Variant="ThemeService.SecondaryVariant" />
                 }
                 else
                 {
-                    @foreach (Tenant tenant in tenants)
-                    {
-                        string tenantLabel = string.IsNullOrWhiteSpace(tenant.Name)
-                            ? tenant.Id.ToString()
-                            : tenant.Name;
-
-                        <MudSelectItem Value="@tenant.Id.ToString()">@tenantLabel</MudSelectItem>
-                    }
+                    <MudText Typo="Typo.body1">@context.Item.Role.Name</MudText>
                 }
-            </MudSelect>
-            <MudTextField Label="@Localizer["RoleName"]"
-                          Variant="ThemeService.SecondaryVariant"
-                          @bind-Value="newRoleName"
-                          Immediate="true"
-                          Disabled="isLoading"
-                          Adornment="Adornment.Start"
-                          AdornmentIcon="@Icons.Material.Filled.Security"
-                          Class="flex-grow-1" />
-            <MudButton Variant="Variant.Filled"
-                       Color="Color.Primary"
-                       StartIcon="@Icons.Material.Filled.Add"
-                       Disabled="isLoading || string.IsNullOrWhiteSpace(newRoleName) || string.IsNullOrWhiteSpace(selectedTenantId)"
-                       OnClick="CreateRoleAsync">
-                @Localizer["AddRole"]
-            </MudButton>
-        </MudStack>
-    </MudPaper>
-
-    <MudPaper Elevation="0" Class="pa-3">
-        @if (isLoading)
-        {
-            <MudProgressLinear Indeterminate Color="Color.Default" />
-        }
-        else if (roles.Count == 0)
-        {
-            <MudText Typo="Typo.body2">@Localizer["NoRoles"]</MudText>
-        }
-        else
-        {
-            <MudDataGrid T="RoleEntry"
-                         Items="roles"
-                         Hover="true"
-                         Dense="true"
-                         Bordered="true"
-                         Elevation="0"
-                         Loading="isLoading">
-                <Columns>
-                    <TemplateColumn Title="@Localizer["Role"]">
-                        <CellTemplate>
-                            @if (context.Item.IsEditing)
-                            {
-                                <MudTextField @bind-Value="context.Item.EditName"
-                                              Immediate="true"
-                                              Required="true"
-                                              Disabled="context.Item.IsProcessing"
-                                              Variant="ThemeService.SecondaryVariant" />
-                            }
-                            else
-                            {
-                                <MudText Typo="Typo.body1">@context.Item.Role.Name</MudText>
-                            }
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Title="@Localizer["Claims"]">
-                        <CellTemplate>
-                            @if (context.Item.Claims.Count == 0)
-                            {
-                                <MudText Typo="Typo.caption">@Localizer["NoClaims"]</MudText>
-                            }
-                            else
-                            {
-                                <MudStack Row Spacing="1" Wrap="Wrap.Wrap">
-                                    @foreach (ClaimDto claim in context.Item.Claims)
-                                    {
-                                        <MudChip T="string"
-                                                 Size="Size.Small"
-                                                 Color="Color.Default">
-                                            @($"{claim.Type}: {claim.Value}")
-                                        </MudChip>
-                                    }
-                                </MudStack>
-                            }
-                        </CellTemplate>
-                    </TemplateColumn>
-                    <TemplateColumn Title="@Localizer["Actions"]">
-                        <CellTemplate>
-                            <MudStack Row Spacing="1" Justify="Justify.FlexEnd">
-                                @if (context.Item.IsEditing)
-                                {
-                                    <MudIconButton Icon="@Icons.Material.Filled.Check"
-                                                   Color="Color.Primary"
-                                                   Disabled="context.Item.IsProcessing || string.IsNullOrWhiteSpace(context.Item.EditName)"
-                                                   OnClick="@(() => SaveRoleAsync(context.Item))" />
-                                    <MudIconButton Icon="@Icons.Material.Filled.Close"
-                                                   Disabled="context.Item.IsProcessing"
-                                                   OnClick="@(() => CancelEdit(context.Item))" />
-                                }
-                                else
-                                {
-                                    <MudIconButton Icon="@Icons.Material.Filled.Edit"
-                                                   Disabled="isLoading"
-                                                   OnClick="@(() => StartEdit(context.Item))" />
-                                    <MudIconButton Icon="@Icons.Material.Filled.VpnKey"
-                                                   Disabled="context.Item.IsProcessing"
-                                                   OnClick="@(() => ManageClaimsAsync(context.Item))" />
-                                    <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                                                   Color="Color.Error"
-                                                   Disabled="context.Item.IsProcessing"
-                                                   OnClick="@(() => DeleteRoleAsync(context.Item))" />
-                                }
-                            </MudStack>
-                        </CellTemplate>
-                    </TemplateColumn>
-                </Columns>
-            </MudDataGrid>
-        }
-    </MudPaper>
-</MudStack>
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="@Localizer["Claims"]">
+            <CellTemplate>
+                @if(context.Item.Claims.Count == 0)
+                {
+                    <MudText Typo="Typo.caption">@Localizer["NoClaims"]</MudText>
+                }
+                else
+                {
+                    <MudStack Row Spacing="1" Wrap="Wrap.Wrap">
+                        @foreach(ClaimDto claim in context.Item.Claims)
+                        {
+                            <MudChip T="string"
+                                     Size="Size.Small"
+                                     Color="Color.Default">
+                                @($"{claim.Type}: {claim.Value}")
+                            </MudChip>
+                        }
+                    </MudStack>
+                }
+            </CellTemplate>
+        </TemplateColumn>
+        <TemplateColumn Title="@Localizer["Actions"]">
+            <CellTemplate>
+                <MudStack Row Spacing="1" Justify="Justify.FlexEnd">
+                    @if(context.Item.IsEditing)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Check"
+                                       Color="Color.Primary"
+                                       Disabled="context.Item.IsProcessing || string.IsNullOrWhiteSpace(context.Item.EditName)"
+                                       OnClick="@(() => SaveRoleAsync(context.Item))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                       Disabled="context.Item.IsProcessing"
+                                       OnClick="@(() => CancelEdit(context.Item))" />
+                    }
+                    else
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       Disabled="isLoading"
+                                       OnClick="@(() => StartEdit(context.Item))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.VpnKey"
+                                       Disabled="context.Item.IsProcessing"
+                                       OnClick="@(() => ManageClaimsAsync(context.Item))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       Disabled="context.Item.IsProcessing"
+                                       OnClick="@(() => DeleteRoleAsync(context.Item))" />
+                    }
+                </MudStack>
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+</MudDataGrid> *@
