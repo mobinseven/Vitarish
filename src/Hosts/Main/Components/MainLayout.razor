@@ -17,7 +17,7 @@
                                 {
                                     <MudTimelineItem Elevation="0" Size="Size.Small" Variant="Variant.Outlined" DotStyle="background: none" Class="my-2">
                                         <ItemDot>
-                                            <MudButton Size="Size.Small" Href="@breadcrumb.Path" Style="min-width: max-content;" Class="glass py-3">
+                                            <MudButton Href="@breadcrumb.Path" Style="min-width: max-content;" Class="glass py-3">
                                                 @breadcrumb.Text
                                             </MudButton>
                                         </ItemDot>
@@ -38,7 +38,7 @@
                     <WidthControlled>
                         @if(!Navigating && NavService.Breadcrumbs.Length > 1)
                         {
-                            <MudPaper Class="sticky-top pa-3 mb-3 glass" Elevation="0">
+                            <MudPaper Class="sticky-top pa-3 mb-3 glass mx-1" Elevation="0">
                                 <MudText Typo="Typo.h4" GutterBottom="true" Align="Align.Center">
                                     @Localizer[NavService.Breadcrumbs.Last().Text]
                                 </MudText>
