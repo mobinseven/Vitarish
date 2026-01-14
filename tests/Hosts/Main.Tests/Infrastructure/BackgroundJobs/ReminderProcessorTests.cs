@@ -390,12 +390,12 @@ public class ReminderProcessorTests : IDisposable
         return new EventDto(
             ProjectId: Guid.NewGuid(),
             ProcedureId: Guid.NewGuid(),
-            Title: "Test Event",
-            Description: "Test Description",
             PreviousEventId: null,
             CommittedAt: DateTimeOffset.UtcNow,
             CommittedBy: Guid.NewGuid())
         {
+            Title = "Test Event",
+            Description = "Test Description",
             Id = Guid.NewGuid()
         };
     }

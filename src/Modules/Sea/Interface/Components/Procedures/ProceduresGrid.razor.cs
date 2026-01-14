@@ -18,12 +18,9 @@ public partial class ProceduresGrid : ProceduresBase
         
     private async Task ReloadData()
     {
-        var roleIds = await AccessService.GetRoleIds();
         ProcedureDescriptorDto descriptor = new()
         {
-            RoleIds = AdminMode ? null : roleIds,
-            ProjectId = Project.Id,
-            //IncludeStats = true
+            ProjectId = Project.Id
         };
         IReadOnlyList<ProcedureDto> Items = await ProceduresService.GetListAsync(descriptor, CancellationToken.None)
             .EnsureValueAsync("Load procedures");

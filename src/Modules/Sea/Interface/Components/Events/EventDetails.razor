@@ -1,6 +1,5 @@
 @inherits EventsBase
 
-
 <Stack>
     <StackField Label="@Event.Title" HelperText="@Localizer["Event"]">
         @Event.Description
@@ -24,6 +23,7 @@
         }
     }
 </Stack>
+
 @if(AdminMode)
 {
     <Stack>
@@ -38,6 +38,7 @@
     [Parameter, EditorRequired] public required EventDto Event { get; set; }
 
     [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public EventCallback OnUpdate { get; set; }
 
     private async Task EditEventRoles()
     {
@@ -47,6 +48,7 @@
         };
 
         _ = await DialogService.ShowAsync<EventRolesEditDialog>(Localizer["Event"], parameters);
+        await OnUpdate.InvokeAsync();
     }
 
     private async Task DeleteEvent()
@@ -84,15 +86,10 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        await LoadRolesAsync();
+        CanWrite = await EventsService.CanWriteEvent(Event.Id);
         await LoadUsersAsync();
     }
 
-    private async Task LoadRolesAsync()
-    {
-        CanWrite = AdminMode || await AccessService.CanWriteEvent(Event.Id);
-        await InvokeAsync(StateHasChanged);
-    }
     private async Task LoadUsersAsync()
     {
         Users = [.. (await UsersService.GetUsersInRoleAsync("User", CancellationToken.None)).Select(u => new UserDto(u))];
@@ -130,7 +127,8 @@
         else
         {
             DateTimeOffset commitTime = new(DateTime.Now, TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow));
-            await EventsService.CommitAsync(Event.Id, Guid.Parse(RequestContext.UserId), commitTime, CancellationToken.None);
+            await EventsService.CommitAsync(Event.Id, CancellationToken.None);
+            await OnUpdate.InvokeAsync();
         }
     }
 }

@@ -11,26 +11,12 @@ public partial class EventsGrid : EventsBase
 
     private List<EventDto> events = [];
 
-    private readonly Dictionary<Guid, bool> canRead = [];
-    private readonly Dictionary<Guid, bool> canWrite = [];
-
     private async Task ReloadData()
     {
         events = [.. (await EventsService.GetByProcedureAsync(Procedure.Id, CancellationToken.None)).SortByChain()];
 
-        canRead.Clear();
-        canWrite.Clear();
-
         Guid[] eventIds = [.. events.Select(e => e.Id)];
 
-        Task<IReadOnlyDictionary<Guid, (bool CanRead, bool CanWrite)>> accessTask = AccessService.GetEventAccessAsync(eventIds);
-
-        IReadOnlyDictionary<Guid, (bool CanRead, bool CanWrite)> accessResults = await accessTask;
-        foreach ((Guid eventId, (bool CanRead, bool CanWrite) access) in accessResults)
-        {
-            canRead[eventId] = access.CanRead;
-            canWrite[eventId] = access.CanWrite;
-        }
         await InvokeAsync(StateHasChanged);
 
     }
@@ -42,7 +28,6 @@ public partial class EventsGrid : EventsBase
         await base.OnInitializedAsync();
         if (Procedure is not null)
         {
-            await EventsService.RepairChainAsync(Procedure.Id, CancellationToken.None);
             await ReloadData();
         }
     }

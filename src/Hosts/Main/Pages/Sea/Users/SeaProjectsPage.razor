@@ -1,5 +1,4 @@
 @page "/sea/projects"
-@inherits TenantPageBase
 
 <CascadingValue Value="IsAdmin">
     <ProjectsGrid Context="project" OnClicked="@(id => NavigationManager.NavigateTo($"/sea/projects/{id}"))" />

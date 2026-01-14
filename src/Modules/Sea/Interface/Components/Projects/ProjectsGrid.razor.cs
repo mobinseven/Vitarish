@@ -37,15 +37,12 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
 
     private async Task ReloadData()
     {
-        IReadOnlyList<Guid> roleIds = await AccessService.GetRoleIds();
         ProjectDescriptorDto descriptor = new()
         {
             Skip = 0,
             Take = int.MaxValue,
             Search = SearchString,
             Template = AdminMode && template,
-            RoleIds = AdminMode ? null : roleIds,
-            //IncludeStats = true
         };
         IReadOnlyList<ProjectDto> Items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None)
             .EnsureValueAsync("Load projects");
@@ -130,8 +127,8 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
     {
         DialogParameters parameters = new()
         {
-            { nameof(PluginDialog<ProjectCreationFormContext>.Plugin), plugin },
-            { nameof(PluginDialog<ProjectCreationFormContext>.Context), context }
+            { nameof(PluginDialog<>.Plugin), plugin },
+            { nameof(PluginDialog<>.Context), context }
         };
 
         _ = await DialogService.ShowAsync<PluginDialog<ProjectCreationFormContext>>(null, parameters);

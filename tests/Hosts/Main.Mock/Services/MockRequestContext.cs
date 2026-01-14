@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Domain.Entities;
 
@@ -22,6 +23,8 @@ public sealed class MockRequestContext : IRequestContext, IRequestContextWriter
     public string? RequestId { get; private set; } = Guid.NewGuid().ToString();
 
     public string? AdditionalInfo { get; private set; }
+
+    ClaimsPrincipal? IRequestContext.User => new ClaimsPrincipal();
 
     public Request GetRequest() => new()
     {

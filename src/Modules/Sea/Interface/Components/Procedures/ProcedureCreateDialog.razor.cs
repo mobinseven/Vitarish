@@ -10,7 +10,6 @@ public partial class ProcedureCreateDialog : ProceduresBase
     private string name = string.Empty;
     private ProcedureDto? templateProcedure;
 
-    [Inject] private IEventsService EventsService { get; set; } = default!;
     [Inject] private IAttachmentsService AttachmentsService { get; set; } = default!;
     [Inject] private IEventRolesService EventRolesService { get; set; } = default!;
 

@@ -14,7 +14,6 @@ global using Vitarish.Interfaces.Base.Services;
 global using Vitarish.Sea.Application.Abstractions;
 global using Vitarish.Sea.Domain.Dto;
 global using Vitarish.Sea.Domain.Enums;
-global using Vitarish.Sea.Interface.Abstractions;
 global using Vitarish.Sea.Interface.Components.Base;
 global using Vitarish.Sea.Interface.Components.Events.Plugins;
 global using Vitarish.Sea.Interface.Components.Events.Plugins.EventItems;

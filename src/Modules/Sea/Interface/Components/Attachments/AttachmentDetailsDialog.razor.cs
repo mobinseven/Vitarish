@@ -4,6 +4,7 @@ namespace Vitarish.Sea.Interface.Components.Attachments;
 
 public partial class AttachmentDetailsDialog : SeaCommonBase
 {
+    [Inject] private IAccessControlledEventsService EventsService { get; set; } = default!;
     [Inject] private IAttachmentsService AttachmentsService { get; set; } = default!;
     [Inject] private IEventRolesService EventRolesService { get; set; } = default!;
     [Inject] private IReceiptsService ReceiptsService { get; set; } = default!;
@@ -25,8 +26,8 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
     {
         await base.OnInitializedAsync();
         await LoadUsersAsync();
-        await LoadRolesAsync();
         await LoadReadersAsync();
+        CanWrite = await EventsService.CanWriteEvent(Event.Id);
         StateHasChanged();
     }
 
@@ -34,12 +35,6 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
     {
         IList<User> usersInRole = await UsersService.GetUsersInRoleAsync("User", CancellationToken.None);
         Users = [.. usersInRole.Select(u => new UserDto(u))];
-    }
-
-    private async Task LoadRolesAsync()
-    {
-        (_, _) = await EventRolesService.GetIdsAsync(Event.Id, CancellationToken.None);
-        CanWrite = AdminMode || (await AccessService.CanWriteEvent(Event.Id) && Attachment.CreatedBy == RequestContext.UserId);
     }
 
     private async Task LoadReadersAsync() => readers = await ReceiptsService.GetReadersAsync(Attachment.Id, CancellationToken.None) ?? Array.Empty<Guid>();

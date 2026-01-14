@@ -1,14 +1,21 @@
 @inherits ProjectsBase
-<Stack>
-    <StackButton Color="Color.Primary"
-                 OnClick="AddProject"
-                 StartIcon="fa-thin fa-folder-plus"
-                 Label="@Localizer["AddItem", Localizer["Project"]]" />
-</Stack>
+@if(IsAdmin)
+{
+    <Stack>
+        <StackButton Color="Color.Primary"
+                     OnClick="AddProject"
+                     StartIcon="fa-thin fa-folder-plus"
+                     Label="@Localizer["AddItem", Localizer["Project"]]" />
+    </Stack>
 
+}
 <Stack>
     @foreach(var project in projects)
     {
         @RenderProjectCell(project)
+    }
+    @if(projects.Count == 0)
+    {
+        <StackField Label="@Localizer["NoItems", Localizer["Project"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Project"]]" />
     }
 </Stack>

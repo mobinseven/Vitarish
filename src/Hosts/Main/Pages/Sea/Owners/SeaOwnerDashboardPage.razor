@@ -1,7 +1,5 @@
 @page "/sea/owner"
-@inherits TenantPageBase
 
-<Stack>
-    <StackButton Href="/sea/owner/settings" Label="@Localizer["Settings"]" StartIcon="fa-thin fa-gear-complex" />
-</Stack>
-
+@code{
+    protected override void OnInitialized() => NavigationManager.NavigateTo("/sea");
+}

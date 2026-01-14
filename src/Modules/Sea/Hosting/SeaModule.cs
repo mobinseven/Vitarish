@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Modules.Base;
 using Vitarish.Sea.Infrastructure.Data;
+using Vitarish.Sea.Infrastructure.DependencyInjection;
 using Vitarish.Sea.Infrastructure.Services;
 using Vitarish.Sea.Interface.DependencyInjection;
 using Vitarish.Sea.Presentation.Serializers;
@@ -50,7 +51,7 @@ public class SeaModule : ModuleBase
 
         _ = services.AddDbContext<SeaDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Transient);
 
-        _ = services.AddVitarishSeaInfrastructure();
+        _ = services.AddSeaInfrastructure();
         services.AddVitarishSeaDomainEntityHandlers();
         _ = services.AddAppMediatR(typeof(SeaDbContext).Assembly);
 

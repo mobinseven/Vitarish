@@ -1,9 +1,8 @@
 namespace Vitarish.Sea.Interface.Components.Events;
 
-public partial class EventEditDialog : SeaCommonBase
+public partial class EventEditDialog : EventsBase
 {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
-    [Inject] private IEventsService EventsService { get; set; } = default!;
 
     [Parameter] public EventDto? Event { get; set; }
 

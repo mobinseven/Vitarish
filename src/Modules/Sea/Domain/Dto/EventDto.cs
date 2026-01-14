@@ -3,12 +3,16 @@ namespace Vitarish.Sea.Domain.Dto;
 public record EventDto(
     [property: JsonPropertyName("projectId")] Guid ProjectId,
     [property: JsonPropertyName("procedureId")] Guid ProcedureId,
-    [property: JsonPropertyName("title")] string Title,
-    [property: JsonPropertyName("description")] string Description,
     [property: JsonPropertyName("previousEventId")] Guid? PreviousEventId,
     [property: JsonPropertyName("committedAt")] DateTimeOffset? CommittedAt,
     [property: JsonPropertyName("committedBy")] Guid CommittedBy) : EntityDto
 {
+    [property: JsonPropertyName("title")]
+    public string Title { get; set; }
+
+    [property: JsonPropertyName("description")]
+    public string Description { get; set; }
+
     [JsonPropertyName("url")]
     public string Url => $"/sea/events/{Id}";
 

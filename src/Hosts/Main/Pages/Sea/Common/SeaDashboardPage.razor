@@ -1,6 +1,7 @@
 @page "/sea"
 @inherits TenantPageBase
-@inject IProjectsService ProjectsService
+@inject IAccessControlledProjectsService ProjectsService
+
 <Stack>
     <StackButton Href="/sea/projects" Label="@Localizer["Projects"]">
         @projectsCount

@@ -1,0 +1,7 @@
+@attribute [Authorize(Policy = IdentityAccessConstants.User)]
+@inherits TenantPageBase
+
+@inject IAccessControlledProjectsService ProjectsService
+@inject IAccessControlledProceduresService ProcedureService
+@inject IAccessControlledEventsService EventService
+@inject IReceiptsService ReceiptsService

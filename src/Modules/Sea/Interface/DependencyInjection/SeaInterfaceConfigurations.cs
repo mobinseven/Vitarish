@@ -1,6 +1,5 @@
 using Vitarish.Sea.Interface.Components.Attachments;
 using Vitarish.Sea.Interface.Components.Reminders;
-using Vitarish.Sea.Interface.Internal;
 
 namespace Vitarish.Sea.Interface.DependencyInjection;
 
@@ -16,8 +15,6 @@ public static class SeaInterfaceConfigurations
             _ = services.AddScoped<IProjectGridCellDisplayPlugin, DefaultProjectGridCellDisplayPlugin>();
             _ = services.AddScoped<IEventItemPlugin, AttachmentPlugin>();
             _ = services.AddScoped<IEventItemPlugin, ReminderPlugin>();
-            _ = services.AddScoped<ISeaUsersService, SeaUsersService>();
-            _ = services.AddScoped<ISeaUsersService, SeaUsersService>();
             return services;
         }
 

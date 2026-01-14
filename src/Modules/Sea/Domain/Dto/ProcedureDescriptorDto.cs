@@ -6,7 +6,7 @@ public record ProcedureDescriptorDto : EntityDescriptorDto
     public Guid? ProjectId { get; init; }
 
     [JsonPropertyName("roleIds")]
-    public IReadOnlyList<Guid>? RoleIds { get; init; }
+    public IReadOnlyList<Guid>? RoleIds { get; set; }
 
     //[JsonPropertyName("includeStats")]
     //public bool IncludeStats { get; set; } = true;

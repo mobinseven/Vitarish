@@ -1,46 +1,44 @@
 @inherits EventsBase
 
-<MudDataGrid T="EventTimelineItem" @ref=grid ServerData=ReloadData HeaderClass="d-none" RowClass="border-none" Breakpoint=Breakpoint.None Elevation="0" Style="width: 100%">
-    <Columns>
-        <TemplateColumn T="EventTimelineItem">
-            <CellTemplate Context="context">
-                @if(!string.IsNullOrWhiteSpace(context.Item.Placeholder))
-                {
-                    <MudStack Row
-                              AlignItems="AlignItems.Center"
-                              Justify="Justify.FlexStart"
-                              Style="width: 100%">
-                        <div>
-                            <MudFab Size=Size.Small
-                                    DropShadow=false
-                                    StartIcon="fa-thin fa-circle-notch fa-spin" />
-                        </div>
-                        <div>
-                            <Chip Class="py-2 glass">
-                                <MudText Typo="Typo.caption"
-                                         Class="shimmer">
-                                    @context.Item.Placeholder
-                                </MudText>
-                            </Chip>
-                        </div>
-                    </MudStack>
-                }
-                else
-                {
-                    @context.Item.Content
-                }
-            </CellTemplate>
-            <FooterTemplate>
-                @if(CanWrite)
-                {
-                    <MudPaper Style="width: 100%; background-color: var(--mud-palette-surface);" Class="pa-2 fade" Elevation="0">
-                        <EventItemsInput Project="Project" Procedure="Procedure" Event="Event" />
-                    </MudPaper>
-                }
-            </FooterTemplate>
-        </TemplateColumn>
-    </Columns>
-    <LoadingContent>
-        <MudProgressLinear Indeterminate />
-    </LoadingContent>
-</MudDataGrid>
+<Stack>
+    @foreach(var item in items)
+    {
+        @if(!string.IsNullOrWhiteSpace(item.Placeholder))
+        {
+            <MudStack Row
+                      AlignItems="AlignItems.Center"
+                      Justify="Justify.FlexStart"
+                      Style="width: 100%">
+                <div>
+                    <MudFab Size=Size.Small
+                            DropShadow=false
+                            StartIcon="fa-thin fa-circle-notch fa-spin" />
+                </div>
+                <div>
+                    <Chip Class="py-2 glass">
+                        <MudText Typo="Typo.caption"
+                                 Class="shimmer">
+                            @item.Placeholder
+                        </MudText>
+                    </Chip>
+                </div>
+            </MudStack>
+        }
+        else
+        {
+            @item.Content
+        }
+    }
+    @if(items.Count == 0)
+    {
+        <StackField Label="@Localizer["NoItems", Localizer["Attachment"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Attachment"]]" />
+    }
+</Stack>
+@if(CanWrite)
+{
+    <Stack>
+        <StackField>
+            <EventItemsInput Project="Project" Procedure="Procedure" Event="Event" />
+        </StackField>
+    </Stack>
+}

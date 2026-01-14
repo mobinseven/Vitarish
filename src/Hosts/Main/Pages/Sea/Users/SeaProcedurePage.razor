@@ -1,20 +1,17 @@
 @page "/sea/projects/{projectId}/{procedureId}"
-@inherits TenantPageBase
-@inject IProjectsService ProjectsService
-@inject IProceduresService ProcedureService
-@inject IEventsService EventService
-@inject IReceiptsService ReceiptsService
-@inject ISeaUsersService AccessService
+
 @if(Project is null || Procedure is null)
 {
     return;
 }
+
 <CascadingValue Value="IsAdmin">
     <EventsGrid Project="@Project"
                 EventClicked=@(id => NavigationManager.NavigateTo($"/sea/projects/{projectId}/{procedureId}/{id}"))
                 Procedure="Procedure" />
     <ProcedureDetails Procedure="Procedure" Project="Project" OnDelete="@(() => NavigationManager.NavigateTo($"/sea/projects/{projectId}"))" />
 </CascadingValue>
+
 @code {
     [Parameter] public string? projectId { get; set; }
     [Parameter] public string? procedureId { get; set; }

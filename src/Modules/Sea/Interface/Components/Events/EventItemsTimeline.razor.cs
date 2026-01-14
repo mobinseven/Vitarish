@@ -1,11 +1,7 @@
-using System.Reflection;
-
 namespace Vitarish.Sea.Interface.Components.Events;
 
 public partial class EventItemsTimeline : EventsBase
 {
-    private static readonly MethodInfo? RenderForTypeMethod = ResolveRenderForTypeMethod();
-
     [Parameter] public Color Color { get; set; }
     [Parameter, EditorRequired] public EventDto Event { get; set; } = default!;
     [Parameter, EditorRequired] public ProcedureDto Procedure { get; set; } = default!;
@@ -14,74 +10,36 @@ public partial class EventItemsTimeline : EventsBase
     [Inject] private IEnumerable<IEventItemPlugin> Plugins { get; set; } = default!;
     [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
 
-    private MudDataGrid<EventTimelineItem>? grid;
+    private bool CanWrite;
+
     private readonly List<EventTimelineItem> items = [];
     private readonly List<(IEventItemPlugin Plugin, EventTimelineContext Context)> pluginContexts = [];
 
-    private bool CanWrite { get; set; }
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
-        _ = LoadRolesAsync();
-        UpdatePluginContexts();
+        await base.OnInitializedAsync();
+        await UpdatePluginContexts();
+        CanWrite = await EventsService.CanWriteEvent(Event.Id);
     }
 
-    private async Task<GridData<EventTimelineItem>> ReloadData(GridState<EventTimelineItem> gridState)
+    private async Task ReloadData()
     {
-        CancellationToken cancellationToken = CancellationToken.None;
-
         List<EventTimelineItem> aggregated = [];
         foreach ((IEventItemPlugin plugin, EventTimelineContext context) in pluginContexts)
         {
-            IReadOnlyList<EventTimelineItem> pluginItems = await plugin.GetItemsAsync(context, cancellationToken);
+            IReadOnlyList<EventTimelineItem> pluginItems = await plugin.GetItemsAsync(context, CancellationToken.None);
             aggregated.AddRange(pluginItems);
         }
 
         items.Clear();
         items.AddRange(aggregated.OrderBy(item => item.When));
 
-        return new GridData<EventTimelineItem>
-        {
-            Items = items,
-            TotalItems = items.Count
-        };
-    }
-
-    protected override async Task ReloadRequired()
-    {
-        if (grid is not null)
-        {
-            await grid.ReloadServerData();
-        }
-
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task LoadRolesAsync()
-    {
-        CanWrite = AdminMode || await AccessService.CanWriteEvent(Event.Id);
-        await InvokeAsync(StateHasChanged);
-    }
+    protected override Task ReloadRequired() => ReloadData();
 
-    private static MethodInfo? ResolveRenderForTypeMethod()
-    {
-        Type? current = typeof(SeaCommonBase);
-        while (current is not null)
-        {
-            MethodInfo? method = current.GetMethod("RenderForType", BindingFlags.Instance | BindingFlags.NonPublic);
-            if (method is not null && method.IsGenericMethodDefinition)
-            {
-                return method;
-            }
-
-            current = current.BaseType;
-        }
-
-        return null;
-    }
-
-    private void UpdatePluginContexts()
+    private async Task UpdatePluginContexts()
     {
         Dictionary<string, object?> metadata = new()
         {
@@ -101,31 +59,6 @@ public partial class EventItemsTimeline : EventsBase
             }
         }
 
-        SubscribeToWatchedTypes();
-
-        if (grid is not null)
-        {
-            _ = grid.ReloadServerData();
-        }
-    }
-
-    private void SubscribeToWatchedTypes()
-    {
-        if (RenderForTypeMethod is null)
-        {
-            return;
-        }
-
-        HashSet<Type> watchedTypes = [typeof(EventDto)];
-        foreach ((IEventItemPlugin plugin, _) in pluginContexts)
-        {
-            watchedTypes.UnionWith(plugin.WatchedTypes);
-        }
-
-        foreach (Type type in watchedTypes)
-        {
-            MethodInfo method = RenderForTypeMethod.MakeGenericMethod(type);
-            _ = method.Invoke(this, null);
-        }
+        await ReloadData();
     }
 }
