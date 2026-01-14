@@ -4,6 +4,8 @@ namespace Vitarish.Entities.Server.Models;
 
 public record EntityDescriptorDto
 {
+    [JsonPropertyName("id")]
+    public Guid? Id { get; set; }
     [JsonPropertyName("skip")]
     public int? Skip { get; set; }
 

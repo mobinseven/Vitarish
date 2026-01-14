@@ -7,6 +7,10 @@ public static class QueryExtensions
 {
     public static IQueryable<T> ApplyDescription<T>(this IQueryable<T> query, EntityDescriptor descriptor) where T : Entity
     {
+        if (descriptor.Id is not null)
+        {
+            query = query.Where(e => e.Id == descriptor.Id);
+        }
         if (descriptor is { DeletedFrom: not null } or { DeletedTo: not null } or { DeletedBy: not null })
         {
             query = query.IgnoreQueryFilters([EntityQueryFilterNames.SoftDelete]);
