@@ -238,21 +238,21 @@ public sealed class ThemeService : IThemeService
   --brightness: 100%;",
 
         ThemeSurfaceType.Transparent => IsDarkMode ? $@"
-  --background: rgba(43, 43, 43, .5);
+  --background: rgba(43, 43, 43, .7);
   --border: none;
   --blur: 1px;
   --brightness: 95%;" : $@"
-  --background: rgba(255, 255, 255, .5);
+  --background: rgba(255, 255, 255, .7);
   --border: none;
   --blur: 1px;
   --brightness: 105%;",
 
         _ => IsDarkMode ? $@"
-  --background: rgba(43, 43, 43, .8);
+  --background: rgba(43, 43, 43, .85);
   --border: none;
   --blur: 5px;
   --brightness: 80%;" : $@"
-  --background: rgba(255, 255, 255, .8);
+  --background: rgba(255, 255, 255, .85);
   --border: none;
   --blur: 5px;
   --brightness: 100%;"
