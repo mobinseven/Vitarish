@@ -1,9 +1,7 @@
 @inherits SeaCommonBase
 <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
     <MudBadge Content="@BadgeContent" Visible="@(BadgeCount > 0)" Color="@BlinkColor" Overlap Style="background-color: unset;" BadgeClass="glass">
-        <MudAvatar Size=Size.Small Variant=Variant.Text Style="@EventItemsStyle">
-            <i class="@BlinkIcon"></i>
-        </MudAvatar>
+        <MudIcon Icon="@BlinkIcon" Color="Color.Inherit" Style="@EventItemsStyle" />
     </MudBadge>
 </MudStack>
 @code {
@@ -14,6 +12,6 @@
         : Stats.EventItems;
     private string BadgeContent => NumberExtensions.LocalizeNumerals(BadgeCount.ToString());
     private string EventItemsStyle => HasNewItems ? "opacity: 1; background-color: unset;" : BadgeCount > 0 ? "opacity: 1; background-color: unset;" : "opacity: 0;";
-    private string BlinkIcon => HasNewItems ? "fa-solid  fa-envelope fa-fade fa-xl" : "fa-solid  fa-envelope-open fa-xl";
+    private string BlinkIcon => HasNewItems ? "fa-solid  fa-envelope fa-fade fa-xl" : BadgeCount > 0 ? "fa-solid  fa-envelope-open fa-xl" : "fa-solid fa-fw";
     private Color BlinkColor => HasNewItems ? Color.Primary : Color.Default;
 }

@@ -13,7 +13,7 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
 
     private readonly bool template;
 
-    private List<ProjectDto>? projects = [];
+    private List<ProjectDto> projects = [];
     private IReadOnlyList<IProjectGridCellDisplayPlugin> projectGridCellDisplayPlugins = [];
     private string? preferredProjectGridCellDisplayPluginId;
     private readonly ConcurrentDictionary<string, ProjectCreationFormPluginDisplayMetadata> pluginDisplayMetadataCache = new(StringComparer.OrdinalIgnoreCase);
@@ -137,20 +137,21 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
         _ = await DialogService.ShowAsync<PluginDialog<ProjectCreationFormContext>>(null, parameters);
     }
 
-    private ProjectCreationFormPluginDisplayMetadata ResolvePluginDisplayMetadata(IProjectCreationFormPlugin plugin) => pluginDisplayMetadataCache.GetOrAdd(plugin.Id, _ =>
-                                                                                                                                 {
-                                                                                                                                     string displayName = plugin.DisplayName;
-                                                                                                                                     string? description = plugin.Description;
+    private ProjectCreationFormPluginDisplayMetadata ResolvePluginDisplayMetadata(IProjectCreationFormPlugin plugin) =>
+        pluginDisplayMetadataCache.GetOrAdd(plugin.Id, _ =>
+        {
+            string displayName = plugin.DisplayName;
+            string? description = plugin.Description;
 
-                                                                                                                                     IStringLocalizer? localizer = CreatePluginLocalizer(plugin);
-                                                                                                                                     if (localizer is not null)
-                                                                                                                                     {
-                                                                                                                                         displayName = GetLocalizedValue(localizer, "DisplayName") ?? displayName;
-                                                                                                                                         description = GetLocalizedValue(localizer, "Description") ?? description;
-                                                                                                                                     }
+            IStringLocalizer? localizer = CreatePluginLocalizer(plugin);
+            if (localizer is not null)
+            {
+                displayName = GetLocalizedValue(localizer, "DisplayName") ?? displayName;
+                description = GetLocalizedValue(localizer, "Description") ?? description;
+            }
 
-                                                                                                                                     return new ProjectCreationFormPluginDisplayMetadata(displayName, description);
-                                                                                                                                 });
+            return new ProjectCreationFormPluginDisplayMetadata(displayName, description);
+        });
 
     private IStringLocalizer? CreatePluginLocalizer(IProjectCreationFormPlugin plugin)
     {

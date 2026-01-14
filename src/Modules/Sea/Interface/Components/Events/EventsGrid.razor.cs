@@ -4,7 +4,6 @@ public partial class EventsGrid : EventsBase
 {
     [Parameter, EditorRequired] public ProjectDto Project { get; set; }
     [Parameter, EditorRequired] public ProcedureDto Procedure { get; set; }
-    [Parameter] public Guid? OpenEvent { get; set; }
     [Parameter] public EventCallback<Guid?> EventClicked { get; set; }
 
     [Inject] private IEnumerable<IEventCreationFormPlugin> EventCreationFormPlugins { get; set; } = default!;
@@ -12,13 +11,10 @@ public partial class EventsGrid : EventsBase
 
     private List<EventDto> events = [];
 
-    private MudDataGrid<EventDto>? grid;
-
     private readonly Dictionary<Guid, bool> canRead = [];
     private readonly Dictionary<Guid, bool> canWrite = [];
 
-
-    private async Task<GridData<EventDto>> ReloadData(GridState<EventDto> gridState)
+    private async Task ReloadData()
     {
         events = [.. (await EventsService.GetByProcedureAsync(Procedure.Id, CancellationToken.None)).SortByChain()];
 
@@ -35,15 +31,11 @@ public partial class EventsGrid : EventsBase
             canRead[eventId] = access.CanRead;
             canWrite[eventId] = access.CanWrite;
         }
+        await InvokeAsync(StateHasChanged);
 
-        return new GridData<EventDto>
-        {
-            Items = events,
-            TotalItems = events.Count
-        };
     }
 
-    protected override Task ReloadRequired() => grid?.ReloadServerData() ?? Task.CompletedTask;
+    protected override Task ReloadRequired() => ReloadData();
 
     protected override async Task OnInitializedAsync()
     {
@@ -51,6 +43,7 @@ public partial class EventsGrid : EventsBase
         if (Procedure is not null)
         {
             await EventsService.RepairChainAsync(Procedure.Id, CancellationToken.None);
+            await ReloadData();
         }
     }
 
@@ -127,13 +120,9 @@ public partial class EventsGrid : EventsBase
     {
         EventDto? created = await EventsService.AddAsync(Project.Id, Procedure.Id, previousEventId, CancellationToken.None);
 
-        if (grid is not null)
-        {
-            await grid.ReloadServerData();
-        }
-
         if (created is not null)
         {
+            await ReloadData();
             await EditEvent(created);
         }
     }
@@ -153,10 +142,7 @@ public partial class EventsGrid : EventsBase
     {
         if (await EventsService.MoveUpAsync(Procedure.Id, item.Id, CancellationToken.None))
         {
-            if (grid is not null)
-            {
-                await grid.ReloadServerData();
-            }
+            await ReloadData();
         }
     }
 
@@ -164,22 +150,7 @@ public partial class EventsGrid : EventsBase
     {
         if (await EventsService.MoveDownAsync(Procedure.Id, item.Id, CancellationToken.None))
         {
-            if (grid is not null)
-            {
-                await grid.ReloadServerData();
-            }
+            await ReloadData();
         }
     }
-
-
-    private async Task ToggleCommitAsync(EventDto item)
-    {
-        DialogParameters parameters = new()
-        {
-            { nameof(EventCommitDetails.Event), item }
-        };
-
-        _ = await DialogService.ShowAsync<EventCommitDetails>(Localizer["Event"], parameters);
-    }
-
 }

@@ -1,91 +1,18 @@
 @inherits EventsBase
 
-<MudDataGrid T="EventDto" @ref="grid" ServerData="ReloadData" HeaderClass="d-none" RowClass="border-none" Elevation="0" Height="100%" Class="glass">
-    <Columns>
-        <TemplateColumn T="EventDto">
-            <CellTemplate Context="context">
-                @if(AdminMode || canWrite[context.Item.Id] || canRead[context.Item.Id])
-                {
-                    <ExpandableItem Context="expandable"
-                                    Size="Size.Large"
-                                    Expanded="@(OpenEvent == context.Item.Id)"
-                                    ShowMenu=AdminMode
-                                    OnClicked="@(() => EventClicked.InvokeAsync(context.Item.Id))"
-                                    Name="@context.Item.Title"
-                                    NoIcon>
-                        <StartContent>
-                            <MudStack Row Spacing="0">
-                                @if(!Project.Template)
-                                {
-                                    if(AdminMode || canWrite[context.Item.Id])
-                                    {
-                                        <div>
-                                            <MudFab Size=Size.Small
-                                                    Class="glass"
-                                                    Color="@(context.Item.IsCommitted ? Color.Info : Color.Default)"
-                                                    Style="@(context.Item.IsCommitted ? "background-color: deeppink" : "")"
-                                                    DropShadow=false
-                                                    OnClick="() => ToggleCommitAsync(context.Item)"
-                                                    StartIcon="@(context.Item.IsCommitted ? "fa-thin fa-check " : "fa-thin fa-circle")" />
-                                        </div>
-                                    }
-                                }
-                            </MudStack>
-                        </StartContent>
-                        <InlineContent>
-                            <StatsDisplay Stats="context.Item.Stats ?? new StatsDto()" />
-                        </InlineContent>
-                        <MenuItems>
-                            <MudMenuItem OnClick="@(() => EditEvent(context.Item))"
-                                         Icon="@Icons.Material.Filled.Edit">
-                                @Localizer["EditItem", Localizer["Event"]]
-                            </MudMenuItem>
-                            <MudMenuItem OnClick="@(() => AddEventAfter(context.Item))"
-                                         Icon="fa-thin fa-plus">
-                                @Localizer["AddAfter", Localizer["Event"]]
-                            </MudMenuItem>
-                            <MudMenuItem OnClick="@(() => MoveUp(context.Item))"
-                                         Disabled="@IsFirst(context.Item)"
-                                         Icon="fa-thin fa-arrow-up">
-                                @Localizer["MoveUp", Localizer["Event"]]
-                            </MudMenuItem>
-                            <MudMenuItem OnClick="@(() => MoveDown(context.Item))"
-                                         Disabled="@IsLast(context.Item)"
-                                         Icon="fa-thin fa-arrow-down">
-                                @Localizer["MoveDown", Localizer["Event"]]
-                            </MudMenuItem>
-                        </MenuItems>
-                    </ExpandableItem>
-                }
-                else
-                {
-                    <MudStack Row
-                              AlignItems="AlignItems.Center"
-                              Justify="Justify.Center"
-                              Style="width: 100%">
-                        <div>
-                            <MudFab Size=Size.Small
-                                    DropShadow=false
-                                    StartIcon="@(context.Item.IsCommitted ? "fa-solid fa-circle-check " : "fa-thin fa-circle")" />
-                        </div>
-                        <div style="width: 100%; filter: blur(3px)">
-                            <Chip>
-                                @Localizer["NoAccess"]
-                            </Chip>
-                        </div>
-                    </MudStack>
-                }
-            </CellTemplate>
-        </TemplateColumn>
-    </Columns>
-    <LoadingContent>
-        <MudProgressLinear Indeterminate />
-    </LoadingContent>
-    <NoRecordsContent>
-        <MudProgressLinear Indeterminate />
-        @if(AdminMode)
-        {
-            <MudButton StartIcon="fa-thin fa-plus" Size=Size.Large OnClick="AddEvent" FullWidth>@Localizer["AddItem", Localizer["Event"]]</MudButton>
-        }
-    </NoRecordsContent>
-</MudDataGrid>
+<Stack>
+    @foreach(var evt in events)
+    {
+        <StackButton Label="@evt.Title" Color="@(evt.IsCommitted ? Color.Primary : Color.Default)" StartIcon="@(evt.IsCommitted ? "fa-thin fa-check" : "fa-thin fa-fw")" OnClick="@(() => EventClicked.InvokeAsync(evt.Id))">
+            <StatsDisplay Stats="evt.Stats ?? new StatsDto()" />
+        </StackButton>
+    }
+</Stack>
+
+@if(AdminMode)
+{
+    <Stack>
+        <StackButton Color="Color.Primary" StartIcon="fa-thin fa-plus" Size=Size.Large OnClick="AddEvent" Label="@Localizer["AddItem", Localizer["Event"]]"/>
+    </Stack>
+}
+
