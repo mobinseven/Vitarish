@@ -941,4 +941,10 @@ of project "{2}"</value>
   <data name="Name" xml:space="preserve">
     <value>Name</value>
   </data>
+  <data name="NoItemsHelp" xml:space="preserve">
+    <value>There is no {0} to show. </value>
+  </data>
+  <data name="NoAccess" xml:space="preserve">
+    <value>No access</value>
+  </data>
 </root>

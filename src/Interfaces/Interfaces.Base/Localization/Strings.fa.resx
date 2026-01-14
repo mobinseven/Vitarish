@@ -876,4 +876,10 @@
   <data name="Name" xml:space="preserve">
     <value>نام</value>
   </data>
+  <data name="NoItemsHelp" xml:space="preserve">
+    <value>هیچ داده ای از {0} نیست.</value>
+  </data>
+  <data name="NoAccess" xml:space="preserve">
+    <value>بدون دسترسی</value>
+  </data>
 </root>
