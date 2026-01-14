@@ -1,5 +1,5 @@
+using Vitarish.Users.Application;
 using Vitarish.Users.Domain.Options;
-using Vitarish.Users.Infrastructure;
 
 public static class HostAuthenticationExtensions
 {

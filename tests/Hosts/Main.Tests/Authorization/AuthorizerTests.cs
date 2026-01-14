@@ -7,6 +7,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using System.Security.Claims;
 using Vitarish.Main.Authorization;
+using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
 
@@ -20,7 +21,7 @@ public class AuthorizerTests
         Mock<IUserStore<User>> userStoreMock = new();
         Mock<IUsersService> userManager = new(
             userStoreMock.Object, null!, null!, null!, null!, null!, null!, null!, null!);
-
+        Mock<IRequestContext> mockRequestContextMock = new();
         User user = new();
         const string userId = "user-1";
         const string role = "Admin";
@@ -31,7 +32,7 @@ public class AuthorizerTests
         MemoryDistributedCache cache = new(Options.Create(new MemoryDistributedCacheOptions()));
 
         ClaimsPrincipal principal = new(new ClaimsIdentity([new Claim("sub", userId)], "mock"));
-        Authorizer handler = new(userManager.Object, cache);
+        Authorizer handler = new(userManager.Object, cache, mockRequestContextMock.Object);
         AuthorizerRequirement requirement = new(role);
 
         AuthorizationHandlerContext firstContext = new([requirement], principal, null);

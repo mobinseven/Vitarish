@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
+using Vitarish.Users.Application;
 using Vitarish.Users.Application.Abstractions;
-using Vitarish.Users.Infrastructure;
 
 namespace Vitarish.Users.Hosting.Api;
 

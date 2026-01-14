@@ -1,4 +1,4 @@
-namespace Vitarish.Users.Infrastructure;
+namespace Vitarish.Users.Application;
 
 public static class IdentityAccessConstants
 {
