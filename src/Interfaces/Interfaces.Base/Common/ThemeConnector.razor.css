@@ -1,40 +1,3 @@
-::deep .stack > .mud-field {
-    margin: 0 0 1px 0;
-    padding: 15px;
-    background: var(--background);
-    backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
-}
-
-    ::deep .stack > .mud-field:first-child {
-        border-top-left-radius: var(--mud-default-borderradius);
-        border-top-right-radius: var(--mud-default-borderradius);
-    }
-
-    ::deep .stack > .mud-field:last-child {
-        border-bottom-left-radius: var(--mud-default-borderradius);
-        border-bottom-right-radius: var(--mud-default-borderradius);
-        margin: 0;
-    }
-
-::deep .stack > .mud-button {
-    margin: 0 0 1px 0;
-    padding: 15px;
-    border-radius: unset;
-    background: var(--background);
-    backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
-}
-
-    ::deep .stack > .mud-button:first-child {
-        border-top-left-radius: var(--mud-default-borderradius);
-        border-top-right-radius: var(--mud-default-borderradius);
-    }
-
-    ::deep .stack > .mud-button:last-child {
-        border-bottom-left-radius: var(--mud-default-borderradius);
-        border-bottom-right-radius: var(--mud-default-borderradius);
-        margin: 0;
-    }
-
 ::deep .stack > .stack-item {
     margin: 0 0 1px 0;
     padding: 15px;
@@ -207,7 +170,9 @@
 }
 
 ::deep .mud-icon-root {
-    width: initial !important; /* عمت OCD داره */
+    width: 1.25em !important; /* عمت OCD داره */
+    height: 1.25em !important; /* عمت OCD داره */
+    line-height: 1.25 !important;
 }
 
 ::deep .mud-collapse-wrapper {
@@ -218,11 +183,13 @@
     0% {
         opacity: 0;
         -webkit-filter: blur(20px);
+        backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
     }
 
     100% {
         opacity: 1;
         -webkit-filter: blur(0px);
+        backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
     }
 }
 
