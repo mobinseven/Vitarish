@@ -2,10 +2,8 @@ using Duende.IdentityServer.EntityFramework.DbContexts;
 using Finbuckle.MultiTenant;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
-using Vitarish.ApiClients.Hosting.Api;
 using Vitarish.ApiClients.Hosting.DependencyInjection;
 using Vitarish.ApiClients.Infrastructure.Data;
-using Vitarish.AuthenticationClients.Hosting.Api;
 using Vitarish.AuthenticationClients.Infrastructure.Data;
 using Vitarish.Communications.Hosting;
 using Vitarish.Entities.Server.Services;
@@ -22,15 +20,12 @@ using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
-using Vitarish.Parties.Hosting.Api;
 using Vitarish.Parties.Hosting.DependencyInjection;
 using Vitarish.Parties.Infrastructure.Data;
-using Vitarish.Requests.Hosting.Api;
 using Vitarish.Requests.Hosting.DependencyInjection;
 using Vitarish.Requests.Infrastructure.Data;
 using Vitarish.Sea.Hosting;
 using Vitarish.Sea.Infrastructure.Data;
-using Vitarish.Users.Hosting.Api;
 using Vitarish.Users.Hosting.DependencyInjection;
 using Vitarish.Users.Infrastructure.Data;
 
@@ -188,21 +183,6 @@ _ = app.MapGet("/request", (HttpContext context, IRequestContext requestContext)
 _ = app.UseMultiTenant();
 
 _ = await app.MapModuleEndpoints();
-
-app.MapApiClientsEndpoints().AddEndpointAuthorization();
-app.MapAuthenticationClientsEndpoints().AddEndpointAuthorization();
-app.MapUserAccessEndpoints().AddEndpointAuthorization();
-app.MapPersonalAccessTokenEndpoints().AddEndpointAuthorization();
-app.MapUserProfileEndpoints().AddEndpointAuthorization();
-app.MapWebAuthnEndpoints();
-
-app.MapOwnerEndpoints().AddEndpointAuthorization();
-app.MapTenantEndpoints().AddEndpointAuthorization();
-app.MapTenantIndicatorEndpoints().AddEndpointAuthorization();
-app.MapOnDemandTlsEndpoint().AddEndpointAuthorization();
-app.MapAdminEndpoints().AddEndpointAuthorization();
-
-app.MapRequestIdentityEndpoints().AddEndpointAuthorization();
 
 _ = app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 _ = app.MapRazorPages();
