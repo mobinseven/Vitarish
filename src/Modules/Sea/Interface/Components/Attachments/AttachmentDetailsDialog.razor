@@ -36,7 +36,7 @@
                     </MudListSubheader>
                     @foreach(var reader in GetReaders())
                     {
-                        <MudListItem Dense=true Icon="fa-thin fa-check-double" Text="@reader" />
+                        <MudListItem Dense="true" Icon="fa-thin fa-check-double" Text="@reader" />
                     }
                 </MudList>
             }
@@ -46,16 +46,16 @@
         <MudButton OnClick="Close">@Localizer["Close"]</MudButton>
         @if(editing)
         {
-            <MudButton Variant="Variant.Filled" OnClick="SaveAsync" Color="Color.Primary">@Localizer["Save"]</MudButton>
-            <MudButton OnClick="CancelEdit">@Localizer["Cancel"]</MudButton>
+            <MudButton Variant="Variant.Filled" OnClick="SaveAsync" Color="Color.Primary" DropShadow="false">@Localizer["Save"]</MudButton>
+            <MudButton OnClick="CancelEdit" DropShadow="false">@Localizer["Cancel"]</MudButton>
         }
         else if(CanWrite)
         {
             if(Attachment.ContentType.StartsWith("text"))
             {
-                <MudButton Variant="Variant.Filled" OnClick="StartEdit">@Localizer["Edit"]</MudButton>
+                <MudButton Variant="Variant.Filled" OnClick="StartEdit" DropShadow="false">@Localizer["Edit"]</MudButton>
             }
-            <MudButton Variant="Variant.Filled" OnClick="DeleteAttachment" Color="Color.Error">@Localizer["DeleteItem", Localizer["Attachment"]]</MudButton>
+            <MudButton Variant="Variant.Filled" OnClick="DeleteAttachment" Color="Color.Error" DropShadow="false">@Localizer["DeleteItem", Localizer["Attachment"]]</MudButton>
         }
     </DialogActions>
 </MudDialog>

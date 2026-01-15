@@ -462,7 +462,7 @@
   <data name="Uncommit" xml:space="preserve">
     <value>Uncommit</value>
   </data>
-  <data name="UncommitHelpText" xml:space="preserve">
+  <data name="UncommitHelp" xml:space="preserve">
     <value>The commited data (times, reporter, attachments, etc.) will be deleted</value>
   </data>
   <data name="UnsetAs" xml:space="preserve">
@@ -761,12 +761,6 @@ of project "{2}"</value>
   <data name="CommitEventAsyncHelpText" xml:space="preserve">
     <value>This command commits an event.</value>
   </data>
-  <data name="UncommitEventAsync" xml:space="preserve">
-    <value>Uncommit Event</value>
-  </data>
-  <data name="UncommitEventAsyncHelpText" xml:space="preserve">
-    <value>This command uncommits an event.</value>
-  </data>
   <data name="GetEventRemindersCountAsync" xml:space="preserve">
     <value>Get Event Reminders Count</value>
   </data>
@@ -952,5 +946,17 @@ of project "{2}"</value>
   </data>
   <data name="UncommittedByName" xml:space="preserve">
     <value>Uncommitted by {0}</value>
+  </data>
+  <data name="ReaderRoles" xml:space="preserve">
+    <value>Roles with read access</value>
+  </data>
+  <data name="WriterRoles" xml:space="preserve">
+    <value>Roles with write access</value>
+  </data>
+  <data name="WriterRolesHelp" xml:space="preserve">
+    <value>The users with these roles can write under this event and mark it as committed</value>
+  </data>
+  <data name="ReaderRolesHelp" xml:space="preserve">
+    <value>The users with these toles can view this event and its details.</value>
   </data>
 </root>

@@ -12,9 +12,9 @@
 @if(Event.IsCommitted)
 {
     <Stack>
-        <StackField Color="Color.Primary">
-            <MudText Typo="Typo.body2">@($"{Localizer["CommittedBy"]}: {UserIdToName(Event.CommittedBy)}")</MudText>
-            <MudText Typo="Typo.body2">@($"{Localizer["CommittedAt"]}: {Event.CommittedAt!.Value.DateTime.ToLocalTime().ToShortDateString()} {Event.CommittedAt!.Value.DateTime.ToLocalTime().ToShortTimeString()}")</MudText>
+        <StackField>
+            <MudText Color="Color.Primary" Typo="Typo.body1">@($"{Localizer["CommittedBy"]}: {UserIdToName(Event.CommittedBy)}")</MudText>
+            <MudText Color="Color.Primary" Typo="Typo.caption">@($"{Localizer["CommittedAt"]}: {Event.CommittedAt!.Value.DateTime.ToLocalTime().ToShortDateString()} {Event.CommittedAt!.Value.DateTime.ToLocalTime().ToShortTimeString()}")</MudText>
         </StackField>
         @if(AdminMode)
         {
@@ -33,8 +33,8 @@ else if(CanWrite)
 @if(AdminMode)
 {
     <Stack>
-        <StackButton OnClick="EditEventRoles" Label="@Localizer["EditRoles", Localizer["Event"]]" />
-        <StackButton OnClick="DeleteEvent" Label="@Localizer["DeleteItem", Localizer["Event"]]" Color="Color.Error" />
+        <StackButton StartIcon="fa-thin fa-users" OnClick="EditEventRoles" Label="@Localizer["EditRoles", Localizer["Event"]]" />
+        <StackButton StartIcon="fa-thin fa-trash" OnClick="DeleteEvent" Label="@Localizer["DeleteItem", Localizer["Event"]]" Color="Color.Error" />
     </Stack>
 }
 
@@ -53,7 +53,7 @@ else if(CanWrite)
             { nameof(EventEditDialog.Event), Event }
         };
 
-        var dialog = await DialogService.ShowAsync<EventRolesEditDialog>(Localizer["Event"], parameters);
+        var dialog = await DialogService.ShowAsync<EventRolesEditDialog>(null, parameters);
         await dialog.Result;
         await OnUpdate.InvokeAsync();
     }

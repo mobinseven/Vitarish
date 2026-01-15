@@ -3,14 +3,17 @@
 <MudDialog>
     <DialogContent>
         <Stack>
-            <StackField AdornmentIcon="fa-thin fa-glasses" Label="@Localizer["ReadRolesFor"]" />
+            <StackField Label="@Event.Title" HelperText="@Event.Description" />
+        </Stack>
+        <Stack>
+            <StackField AdornmentIcon="fa-thin fa-glasses" Label="@Localizer["ReaderRoles"]" HelperText="@Localizer["ReaderRolesHelp"]" />
             @foreach(var role in roles)
             {
                 <StackCheckbox Label="@role.Name" Value="readRoleIds.Contains(role.Id)" ValueChanged="@((bool b) => OnReadRoleChanged(role.Id, b))" />
             }
         </Stack>
         <Stack>
-            <StackField AdornmentIcon="fa-thin fa-pen" Label="@Localizer["WriteRolesFor"]" />
+            <StackField AdornmentIcon="fa-thin fa-pen" Label="@Localizer["WriterRoles"]" HelperText="@Localizer["WriterRolesHelp"]" />
             @foreach(var role in roles)
             {
                 <StackCheckbox Label="@role.Name" Value="writeRoleIds.Contains(role.Id)" ValueChanged="@((bool b) => OnWriteRoleChanged(role.Id, b))" />

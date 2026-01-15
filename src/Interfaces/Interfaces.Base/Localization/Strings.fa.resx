@@ -187,7 +187,7 @@
     <value>ثبت شده در</value>
   </data>
   <data name="CommittedBy" xml:space="preserve">
-    <value>ثبت شده توسط</value>
+    <value>ثبت انجام شده توسط</value>
   </data>
   <data name="Confirm" xml:space="preserve">
     <value>تایید</value>
@@ -462,8 +462,8 @@
   <data name="Uncommit" xml:space="preserve">
     <value>لغو وضعیت انجام</value>
   </data>
-  <data name="UncommitHelpText" xml:space="preserve">
-    <value>تمامی داده های ثبت شده در گزارش حذف خواهند شد</value>
+  <data name="UncommitHelp" xml:space="preserve">
+    <value>این رویداد از وضعیت «انجام شده» خارج میشود.</value>
   </data>
   <data name="UnsetAs" xml:space="preserve">
     <value>بیرون آوردن از حالت {0}</value>
@@ -761,12 +761,6 @@
   <data name="CommitEventAsyncHelpText" xml:space="preserve">
     <value>مرتکب یک رویداد می شود.</value>
   </data>
-  <data name="UncommitEventAsync" xml:space="preserve">
-    <value>واقعه غیرقانونی</value>
-  </data>
-  <data name="UncommitEventAsyncHelpText" xml:space="preserve">
-    <value>یک رویداد را نادیده می گیرد.</value>
-  </data>
   <data name="GetEventRemindersCountAsync" xml:space="preserve">
     <value>یادآوری رویداد را دریافت کنید</value>
   </data>
@@ -883,9 +877,21 @@
     <value>بدون دسترسی</value>
   </data>
   <data name="CommittedByName" xml:space="preserve">
-    <value>ثبت شده توسط {0}</value>
+    <value>ثبت انجام شده توسط {0}</value>
   </data>
   <data name="UncommittedByName" xml:space="preserve">
     <value>لغو وضعیت ثبت توسط {0}</value>
+  </data>
+  <data name="ReaderRoles" xml:space="preserve">
+    <value>نقشهای بیننده</value>
+  </data>
+  <data name="WriterRoles" xml:space="preserve">
+    <value>نقشهای نویسنده</value>
+  </data>
+  <data name="WriterRolesHelp" xml:space="preserve">
+    <value>کاربرانی که یکی از این نقشها را دارند میتوانند زیر این رویداد یادداشت گذاشته و یا آن را به عنوان انجام شده ثبت و گزارش کنند.</value>
+  </data>
+  <data name="ReaderRolesHelp" xml:space="preserve">
+    <value>کاربرانی که یکی از این نقشها را دارند میتوانند این رویداد و جزئیاتش را ببینند.</value>
   </data>
 </root>
