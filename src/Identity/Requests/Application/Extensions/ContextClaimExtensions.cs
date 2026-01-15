@@ -37,6 +37,21 @@ public static class ContextClaimExtensions
                 : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.GivenName}'.");
         }
 
+        public string GetUserFullName()
+        {
+            ArgumentNullException.ThrowIfNull(principal);
+
+            string? given = GetClaimValue(principal, JwtClaimTypes.GivenName);
+
+            string? sure = GetClaimValue(principal, JwtClaimTypes.FamilyName);
+
+            string full = $"{given} {sure}";
+
+            return !string.IsNullOrWhiteSpace(given) || !string.IsNullOrWhiteSpace(sure)
+                ? full
+                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.GivenName}' and '{JwtClaimTypes.FamilyName}'.");
+        }
+
         public string GetUserFamilyName()
         {
             ArgumentNullException.ThrowIfNull(principal);

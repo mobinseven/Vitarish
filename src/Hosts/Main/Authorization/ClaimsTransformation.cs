@@ -1,3 +1,4 @@
+using Duende.IdentityModel;
 using Duende.IdentityServer.Extensions;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
@@ -11,39 +12,50 @@ public class ClaimsTransformation(IHttpContextAccessor httpContextAccessor) : IC
     {
         if (principal.Identity?.IsAuthenticated == true)
         {
-            ITenantsService tenantsService = http.RequestServices.GetRequiredService<ITenantsService>();
-            IUsersService usersService = http.RequestServices.GetRequiredService<IUsersService>();
             {
+                ITenantsService tenantsService = http.RequestServices.GetRequiredService<ITenantsService>();
                 Tenant? tenant = await tenantsService.ResolveFromHostAsync(http, http.RequestAborted);
                 if (tenant is not null)
                 {
-                    ClaimsIdentity identity = new(IdentityDefinitions.PartyScope);
+                    ClaimsIdentity partyIdentity = new(IdentityDefinitions.PartyScope);
                     string clientId = tenant.ClientId;
                     string ownerId = tenant.OwnerId.ToString();
                     string tenantId = tenant.Id.ToString();
-                    identity.AddClaim(new Claim(IdentityDefinitions.ClientIdClaim, clientId));
-                    identity.AddClaim(new Claim(IdentityDefinitions.OwnerIdClaim, ownerId));
-                    identity.AddClaim(new Claim(IdentityDefinitions.TenantIdClaim, tenantId));
+                    partyIdentity.AddClaim(new Claim(IdentityDefinitions.ClientIdClaim, clientId));
+                    partyIdentity.AddClaim(new Claim(IdentityDefinitions.OwnerIdClaim, ownerId));
+                    partyIdentity.AddClaim(new Claim(IdentityDefinitions.TenantIdClaim, tenantId));
 
-                    if (identity.Claims.Any())
+                    if (partyIdentity.Claims.Any())
                     {
-                        principal.AddIdentity(identity);
+                        principal.AddIdentity(partyIdentity);
                     }
                 }
             }
             {
-                var roles = await usersService.GetUserRolesAsync(principal.GetSubjectId());
+                IUsersService usersService = http.RequestServices.GetRequiredService<IUsersService>();
+
+                string userId = principal.GetSubjectId();
+
+                User? user = await usersService.GetUserAsync(userId);
+
+                ClaimsIdentity personalIdentity = new(IdentityDefinitions.PersonalScope);
+
+                personalIdentity.AddClaim(new Claim(JwtClaimTypes.FamilyName, user.LastName ?? string.Empty));
+                personalIdentity.AddClaim(new Claim(JwtClaimTypes.GivenName, user.FirstName ?? string.Empty));
+                principal.AddIdentity(personalIdentity);
+
+                IEnumerable<IdentityRole> roles = await usersService.GetUserRolesAsync(userId);
 
                 if (roles != null)
                 {
-                    ClaimsIdentity identity = new(IdentityDefinitions.RolesScope);
-                    foreach (var role in roles)
+                    ClaimsIdentity rolesIdentity = new(IdentityDefinitions.RolesScope);
+                    foreach (IdentityRole role in roles)
                     {
-                        identity.AddClaim(new Claim(ClaimTypes.Role, role.Name));
+                        rolesIdentity.AddClaim(new Claim(ClaimTypes.Role, role.Name));
                     }
-                    if (identity.Claims.Any())
+                    if (rolesIdentity.Claims.Any())
                     {
-                        principal.AddIdentity(identity);
+                        principal.AddIdentity(rolesIdentity);
                     }
                 }
             }
