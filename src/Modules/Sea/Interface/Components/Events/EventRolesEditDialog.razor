@@ -2,29 +2,20 @@
 
 <MudDialog>
     <DialogContent>
-        <MudStack Spacing="2">
-            <MudTextField ReadOnly Value="Event?.Title" Variant=Variant.Text Underline=false />
-            @if(!string.IsNullOrWhiteSpace(Event?.Description))
+        <Stack>
+            <StackField AdornmentIcon="fa-thin fa-glasses" Label="@Localizer["ReadRolesFor"]" />
+            @foreach(var role in roles)
             {
-                <MudTextField ReadOnly Value="Event?.Description" Variant=Variant.Text AutoGrow Underline=false />
+                <StackCheckbox Label="@role.Name" Value="readRoleIds.Contains(role.Id)" ValueChanged="@((bool b) => OnReadRoleChanged(role.Id, b))" />
             }
-            <MudTable Items="roles" Dense="true" Elevation="0">
-                <HeaderContent>
-                    <MudTh>@Localizer["Role"]</MudTh>
-                    <MudTh>@Localizer["Read"]</MudTh>
-                    <MudTh>@Localizer["Write"]</MudTh>
-                </HeaderContent>
-                <RowTemplate>
-                    <MudTd DataLabel="@Localizer["Role"]">@context.Name</MudTd>
-                    <MudTd DataLabel="@Localizer["Read"]">
-                        <MudCheckBox T="bool" Value="readRoleIds.Contains(context.Id)" ValueChanged="@((bool b) => OnReadRoleChanged(context.Id, b))" />
-                    </MudTd>
-                    <MudTd DataLabel="@Localizer["Write"]">
-                        <MudCheckBox T="bool" Value="writeRoleIds.Contains(context.Id)" ValueChanged="@((bool b) => OnWriteRoleChanged(context.Id, b))" />
-                    </MudTd>
-                </RowTemplate>
-            </MudTable>
-        </MudStack>
+        </Stack>
+        <Stack>
+            <StackField AdornmentIcon="fa-thin fa-pen" Label="@Localizer["WriteRolesFor"]" />
+            @foreach(var role in roles)
+            {
+                <StackCheckbox Label="@role.Name" Value="writeRoleIds.Contains(role.Id)" ValueChanged="@((bool b) => OnWriteRoleChanged(role.Id, b))" />
+            }
+        </Stack>
     </DialogContent>
     <DialogActions>
         <MudButton OnClick="Cancel">@Localizer["Close"]</MudButton>

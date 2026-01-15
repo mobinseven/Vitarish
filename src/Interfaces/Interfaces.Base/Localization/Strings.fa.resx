@@ -175,7 +175,7 @@
     <value>بستن</value>
   </data>
   <data name="Commit" xml:space="preserve">
-    <value>ثبت</value>
+    <value>ثبت به عنوان انجام شده</value>
   </data>
   <data name="CommitAllEvents" xml:space="preserve">
     <value>ثبت همه رویدادها</value>
@@ -460,7 +460,7 @@
     <value>برای تأیید، «{0}» را تایپ کنید</value>
   </data>
   <data name="Uncommit" xml:space="preserve">
-    <value>پس گرفتن</value>
+    <value>لغو وضعیت انجام</value>
   </data>
   <data name="UncommitHelpText" xml:space="preserve">
     <value>تمامی داده های ثبت شده در گزارش حذف خواهند شد</value>
@@ -881,5 +881,11 @@
   </data>
   <data name="NoAccess" xml:space="preserve">
     <value>بدون دسترسی</value>
+  </data>
+  <data name="CommittedByName" xml:space="preserve">
+    <value>ثبت شده توسط {0}</value>
+  </data>
+  <data name="UncommittedByName" xml:space="preserve">
+    <value>لغو وضعیت ثبت توسط {0}</value>
   </data>
 </root>

@@ -1,28 +1,34 @@
 @inherits EventsBase
 
-<Stack>
-    <StackField Label="@Event.Title" HelperText="@Localizer["Event"]">
-        @Event.Description
-    </StackField>
-    @if(Event.IsCommitted)
-    {
+@if(!string.IsNullOrWhiteSpace(Event.Description))
+{
+    <Stack>
+        <StackField Label="@Event.Title" HelperText="@Localizer["Event"]">
+            @Event.Description
+        </StackField>
+    </Stack>
+}
+
+@if(Event.IsCommitted)
+{
+    <Stack>
         <StackField Color="Color.Primary">
             <MudText Typo="Typo.body2">@($"{Localizer["CommittedBy"]}: {UserIdToName(Event.CommittedBy)}")</MudText>
             <MudText Typo="Typo.body2">@($"{Localizer["CommittedAt"]}: {Event.CommittedAt!.Value.DateTime.ToLocalTime().ToShortDateString()} {Event.CommittedAt!.Value.DateTime.ToLocalTime().ToShortTimeString()}")</MudText>
         </StackField>
-        if(AdminMode)
+        @if(AdminMode)
         {
             <StackButton StartIcon="fa-thin fa-xmark" Color="Color.Error" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Uncommit"]" />
         }
-    }
-    else
-    {
-        if(CanWrite)
-        {
-            <StackButton StartIcon="fa-thin fa-check" Color="Color.Primary" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Commit"]" />
-        }
-    }
-</Stack>
+    </Stack>
+}
+else if(CanWrite)
+{
+    <Stack>
+        <StackButton StartIcon="fa-thin fa-check" Color="Color.Primary" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Commit"]" />
+    </Stack>
+}
+
 
 @if(AdminMode)
 {
@@ -47,7 +53,8 @@
             { nameof(EventEditDialog.Event), Event }
         };
 
-        _ = await DialogService.ShowAsync<EventRolesEditDialog>(Localizer["Event"], parameters);
+        var dialog = await DialogService.ShowAsync<EventRolesEditDialog>(Localizer["Event"], parameters);
+        await dialog.Result;
         await OnUpdate.InvokeAsync();
     }
 
@@ -97,11 +104,11 @@
         if(Event.IsCommitted)
         {
             DialogParameters parameters = new()
-        {
-            { nameof(ConfirmDialog.ContentText), Localizer["UncommitHelpText"].Value },
-            { nameof(ConfirmDialog.ButtonText), Localizer["Uncommit", Event.Title].Value },
-            { nameof(ConfirmDialog.Color), Color.Error }
-        };
+            {
+                { nameof(ConfirmDialog.ContentText), Localizer["UncommitHelpText"].Value },
+                { nameof(ConfirmDialog.ButtonText), Localizer["Uncommit", Event.Title].Value },
+                { nameof(ConfirmDialog.Color), Color.Error }
+            };
             IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>(Localizer["Uncommit"], parameters);
             DialogResult? result = await dialog.Result;
 
@@ -118,11 +125,16 @@
             {
             }
             await EventsService.UncommitAsync(Event.Id, CancellationToken.None);
+            string uncommitMessage = Localizer["UncommittedByName", RequestContext.User.GetUserFullName()];
+            await AttachmentsService.AddAsync(Event.Id, uncommitMessage, "text/plain", null, Encoding.UTF8.GetByteCount(uncommitMessage), CancellationToken.None);
+            await OnUpdate.InvokeAsync();
         }
         else
         {
             DateTimeOffset commitTime = new(DateTime.Now, TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow));
             await EventsService.CommitAsync(Event.Id, CancellationToken.None);
+            string commitMessage = Localizer["CommittedByName", RequestContext.User.GetUserFullName()];
+            await AttachmentsService.AddAsync(Event.Id, commitMessage, "text/plain", null, Encoding.UTF8.GetByteCount(commitMessage), CancellationToken.None);
             await OnUpdate.InvokeAsync();
         }
     }

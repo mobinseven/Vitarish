@@ -36,7 +36,7 @@ internal class AccessControlledServiceBase(
             userReadRoleIds = [.. userroles.Where(r => r.Type == RoleType.Read).Select(r => r.RoleId)];
             userWriteRoleIds = [.. userroles.Where(r => r.Type == RoleType.Write).Select(r => r.RoleId)];
             userReadRoleIds = [.. userWriteRoleIds.Union(userReadRoleIds)];
-            isAdmin = requestContext.IsTenantAdmin();
+            isAdmin = requestContext.IsTenantAdmin() || requestContext.IsTenantOwner();
 
             loaded = true;
         }

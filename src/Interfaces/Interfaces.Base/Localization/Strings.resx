@@ -175,7 +175,7 @@
     <value>Close</value>
   </data>
   <data name="Commit" xml:space="preserve">
-    <value>Commit</value>
+    <value>Mark as committed</value>
   </data>
   <data name="CommitAllEvents" xml:space="preserve">
     <value>Commit all events</value>
@@ -946,5 +946,11 @@ of project "{2}"</value>
   </data>
   <data name="NoAccess" xml:space="preserve">
     <value>No access</value>
+  </data>
+  <data name="CommittedByName" xml:space="preserve">
+    <value>Committed by {0}</value>
+  </data>
+  <data name="UncommittedByName" xml:space="preserve">
+    <value>Uncommitted by {0}</value>
   </data>
 </root>

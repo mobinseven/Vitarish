@@ -3,6 +3,7 @@ namespace Vitarish.Sea.Interface.Components.Events;
 public class EventsBase : SeaCommonBase
 {
     [Inject] protected IAccessControlledEventsService EventsService { get; set; } = default!;
+    [Inject] protected IAttachmentsService AttachmentsService { get; set; } = default!;
     [Inject] protected IEventRolesService EventRolesService { get; set; } = default!;
     [Inject] protected IRolesService RolesService { get; set; } = default!;
 
