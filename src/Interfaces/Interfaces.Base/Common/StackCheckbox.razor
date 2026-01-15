@@ -1,5 +1,18 @@
 @inherits MudCheckBox<bool>
 
-<MudCheckBox T="bool" Class="stack-item" Value="@Value" ValueChanged="@ValueChanged" Color="@Color" Size="@Size" UncheckedIcon="fa-thin fa-circle" CheckedIcon="fa-thin fa-check">
-    <span class="mx-1">@Label</span>
+<MudCheckBox T="bool"
+             LabelPlacement="@LabelPlacement"
+             Class="stack-item"
+             Value="@Value"
+             ValueChanged="@ValueChanged"
+             Color="@(Color == default ? Color.Primary : Color)"
+             Size="@Size"
+             UncheckedIcon="fa-thin fa-circle"
+             UncheckedColor="@(UncheckedColor == default ? Color.Default : UncheckedColor)"
+             CheckedIcon="fa-thin fa-check"
+             Label="@Label">
+    @if(ChildContent is not null)
+    {
+        @ChildContent
+    }
 </MudCheckBox>
