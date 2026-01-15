@@ -11,9 +11,9 @@ public partial class AdminOwnersPage
 
     protected override async Task OnInitializedAsync() => Owners = [.. await PartiesService.GetOwnersAsync()];
 
-    private void RowClicked(DataGridRowClickEventArgs<Owner> args)
+    private void RowClicked(Owner item)
     {
-        editingOwner = args.Item;
+        editingOwner = item;
         newOwnerName = editingOwner.Name;
         newOwnerLogoUrl = editingOwner.LogoUrl ?? string.Empty;
         newOwnerDescription = editingOwner.Description ?? string.Empty;

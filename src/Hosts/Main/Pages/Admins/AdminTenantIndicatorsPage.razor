@@ -2,8 +2,6 @@
 
 @inherits AdminBase
 
-<MudText Typo="Typo.h4" Class="mb-4">Tenant Indicators Management</MudText>
-
 <MudSelect @bind-Value="selectedTenantId" Label="@Localizer["Select Tenant"]" Required Class="mb-4">
     @foreach (var tenant in Tenants)
     {

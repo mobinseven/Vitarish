@@ -19,6 +19,7 @@ public partial class AdminUserPage
             var UserClaims = (await UsersService.GetUserClaimsAsync(UserId)).Select(c => new ClaimDto { Type = c.Type, Value = c.Value }).ToList();
             UserAccessClaims = UserClaims.Where(c => c.Type == IdentityAccessConstants.AccessClaim).ToList();
             UserOtherClaims = UserClaims.Where(c => c.Type != IdentityAccessConstants.AccessClaim).ToList();
+            NavService.OverridePageTitle(User.Id, User.FullName);
         }
         else
         {

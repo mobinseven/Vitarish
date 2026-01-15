@@ -7,7 +7,6 @@ public partial class AdminTenantsPage
 {
     private List<Tenant> Tenants { get; set; } = [];
     private List<Owner> Owners { get; set; } = [];
-    private List<AuthenticationClient> AuthenticationClients { get; set; } = [];
     private string newTenantName = string.Empty, newTenantLogoUrl = string.Empty, newTenantDescription = string.Empty, selectedClientId = string.Empty;
     private Guid selectedOwnerId;
     private Tenant? editingTenant;
@@ -16,22 +15,16 @@ public partial class AdminTenantsPage
     {
         Tenants = [.. await PartiesService.GetTenantsAsync()];
         Owners = [.. await PartiesService.GetOwnersAsync()];
-        AuthenticationClients = [.. await AuthenticationClientsService.GetAuthenticationClientsAsync()];
 
         if (Owners.Count > 0)
         {
             selectedOwnerId = Owners[0].Id;
         }
-
-        if (AuthenticationClients.Count > 0)
-        {
-            selectedClientId = AuthenticationClients[0].Id;
-        }
     }
 
-    private void RowClicked(DataGridRowClickEventArgs<Tenant> args)
+    private void RowClicked(Tenant tenant)
     {
-        editingTenant = args.Item;
+        editingTenant = tenant;
         selectedOwnerId = editingTenant.OwnerId;
         newTenantName = editingTenant.Name;
         newTenantLogoUrl = editingTenant.LogoUrl ?? string.Empty;
@@ -85,10 +78,6 @@ public partial class AdminTenantsPage
         newTenantName = string.Empty;
         newTenantLogoUrl = string.Empty;
         newTenantDescription = string.Empty;
-        if (AuthenticationClients.Count > 0)
-        {
-            selectedClientId = AuthenticationClients[0].Id;
-        }
         StateHasChanged();
     }
 
@@ -109,9 +98,5 @@ public partial class AdminTenantsPage
         newTenantName = string.Empty;
         newTenantLogoUrl = string.Empty;
         newTenantDescription = string.Empty;
-        if (AuthenticationClients.Count > 0)
-        {
-            selectedClientId = AuthenticationClients[0].Id;
-        }
     }
 }

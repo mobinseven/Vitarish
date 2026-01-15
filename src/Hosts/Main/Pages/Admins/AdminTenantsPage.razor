@@ -3,7 +3,14 @@
 @inject IPackageProvider PackageProvider
 @inherits AdminBase
 
-<MudDataGrid T="Tenant" Items="Tenants" RowClick="RowClicked" Elevation="0">
+<Stack>
+    @foreach(var tenant in Tenants)
+    {
+        <StackButton Label="@tenant.Name" OnClick="() => RowClicked(tenant)" />
+    }
+</Stack>
+
+@* <MudDataGrid T="Tenant" Items="Tenants" RowClick="RowClicked" Elevation="0">
     <Columns>
         <PropertyColumn Property="x => x.Id" />
         <PropertyColumn Property="x => x.Name" />
@@ -20,32 +27,35 @@
             </CellTemplate>
         </TemplateColumn>
     </Columns>
-</MudDataGrid>
-<MudDivider Class="my-3" />
-<MudStack Row>
-    <MudSelect @bind-Value="selectedOwnerId" Label="@Localizer["Owner"]" Required>
-        @foreach (var owner in Owners)
-        {
-            <MudSelectItem Value="@owner.Id">@owner.Name</MudSelectItem>
-        }
-    </MudSelect>
-    <MudTextField @bind-Value=newTenantName Label="@Localizer["Name"]" Required />
-    <MudTextField @bind-Value=newTenantLogoUrl Label="@Localizer["LogoUrl"]" />
-    <MudTextField @bind-Value=newTenantDescription Label="@Localizer["Description"]" />
-    <MudSelect @bind-Value="selectedClientId" Label="@Localizer["ClientId"]" Required>
-        @foreach(var package in PackageProvider.GetPackages())
-        {
-            <MudSelectItem Value="@package.Id">@(package.Name)</MudSelectItem>
-        }
-    </MudSelect>
-    <MudFab StartIcon="@(editingTenant is null ? Icons.Material.Filled.Add : Icons.Material.Filled.Save)"
-            Size="Size.Small" OnClick="SaveTenant" DropShadow="false" />
-    @if (editingTenant is not null)
-    {
-        <MudFab StartIcon="@Icons.Material.Filled.Cancel"
-                Size="Size.Small"
-                OnClick="CancelEditTenant"
-                Color="Color.Default"
-                DropShadow="false" />
-    }
-</MudStack>
+</MudDataGrid> *@
+<Stack>
+    <StackField>
+        <MudSelect @bind-Value="selectedOwnerId" Label="@Localizer["Owner"]" Required>
+            @foreach(var owner in Owners)
+            {
+                <MudSelectItem Value="@owner.Id">@owner.Name</MudSelectItem>
+            }
+        </MudSelect>
+        <MudTextField @bind-Value=newTenantName Label="@Localizer["Name"]" Required />
+        <MudTextField @bind-Value=newTenantLogoUrl Label="@Localizer["LogoUrl"]" />
+        <MudTextField @bind-Value=newTenantDescription Label="@Localizer["Description"]" />
+        <MudSelect @bind-Value="selectedClientId" Label="@Localizer["ClientId"]" Required>
+            @foreach(var package in PackageProvider.GetPackages())
+            {
+                <MudSelectItem Value="@package.Id">@(package.Name)</MudSelectItem>
+            }
+        </MudSelect>
+        <MudButtonGroup>
+            <MudButton StartIcon="@(editingTenant is null ? Icons.Material.Filled.Add : Icons.Material.Filled.Save)"
+                       Size="Size.Small" OnClick="SaveTenant" DropShadow="false" />
+            @if(editingTenant is not null)
+            {
+                <MudButton StartIcon="@Icons.Material.Filled.Cancel"
+                           Size="Size.Small"
+                           OnClick="CancelEditTenant"
+                           Color="Color.Default"
+                           DropShadow="false" />
+            }
+        </MudButtonGroup>
+    </StackField>
+</Stack>

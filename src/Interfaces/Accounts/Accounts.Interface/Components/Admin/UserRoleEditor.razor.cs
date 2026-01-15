@@ -2,33 +2,31 @@ using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Accounts.Interface.Components.Admin;
 
-public partial class UserRoleAssignments : AdminBase
+public partial class UserRoleEditor
 {
-    private readonly List<UserRoleEntry> users = [];
+    [Parameter, EditorRequired] public User User { get; set; }
+    [Parameter] public EventCallback OnUpdate { get; set; }
+
+    UserRoleEntry? userRole;
     private readonly List<string> roles = [];
     private bool isLoading;
-
-    [Inject] private IDialogService DialogService { get; set; } = default!;
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        await LoadAsync();
+        await LoadAsync(User);
     }
 
-    private async Task LoadAsync()
+    private async Task LoadAsync(User user)
     {
         isLoading = true;
-        users.Clear();
         roles.Clear();
         StateHasChanged();
 
         try
         {
-            Task<IEnumerable<User>> usersTask = UsersService.GetUsersAsync();
             Task<IEnumerable<Tenant>> tenantsTask = PartiesService.GetTenantsAsync();
 
-            List<User> loadedUsers = [.. await usersTask];
             IEnumerable<Tenant> tenants = await tenantsTask;
             Dictionary<Guid, Tenant> tenantDict = tenants.ToDictionary(t => t.Id);
 
@@ -53,17 +51,15 @@ public partial class UserRoleAssignments : AdminBase
                 .Where(role => role.Name != null)
                 .Select(role => role.Name!));
 
-            foreach (User user in loadedUsers)
-            {
-                IList<string> userRoles = await UserManager.GetRolesAsync(user);
-                List<ParsedTenantRole> parsedRoles = RoleParser.ParseTenantRoles(userRoles, tenantDict, owners, clients);
+            IList<string> userRoles = await UserManager.GetRolesAsync(user);
+            List<ParsedTenantRole> parsedRoles = RoleParser.ParseTenantRoles(userRoles, tenantDict, owners, clients);
 
-                List<RoleDetail> roleDetails = parsedRoles
-                    .Select(r => new RoleDetail(r.TenantId, r.TenantName, r.OwnerId, r.OwnerName, r.ClientId, r.RoleName, r.FullRoleName))
-                    .ToList();
+            List<RoleDetail> roleDetails = parsedRoles
+                .Select(r => new RoleDetail(r.TenantId, r.TenantName, r.OwnerId, r.OwnerName, r.ClientId, r.RoleName, r.FullRoleName))
+                .ToList();
 
-                users.Add(new UserRoleEntry(user, [.. userRoles], roleDetails));
-            }
+            userRole = new UserRoleEntry(user, [.. userRoles], roleDetails);
+
         }
         finally
         {
@@ -71,9 +67,6 @@ public partial class UserRoleAssignments : AdminBase
             StateHasChanged();
         }
     }
-
-    private Task ReloadAsync() => LoadAsync();
-
     private void ToggleExpand(UserRoleEntry entry)
     {
         entry.IsExpanded = !entry.IsExpanded;
@@ -132,7 +125,7 @@ public partial class UserRoleAssignments : AdminBase
         if (result.Succeeded)
         {
             _ = Snackbar.Add(Localizer["RoleAssigned"], Severity.Success);
-            await ReloadAsync();
+            await OnUpdate.InvokeAsync();
         }
         else
         {
@@ -168,7 +161,7 @@ public partial class UserRoleAssignments : AdminBase
         if (result.Succeeded)
         {
             _ = Snackbar.Add(Localizer["RoleRemoved"], Severity.Success);
-            await ReloadAsync();
+            await OnUpdate.InvokeAsync();
         }
         else
         {

@@ -16,12 +16,14 @@
                       Variant="ThemeService.SecondaryVariant"
                       @bind-Value="password" For="@(() => password)" />
         <MudDivider Class="my-3" />
-        <ClaimsEdit @bind-UserClaims="UserAccessClaims" />
-        <MudDivider Class="my-3" />
         <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
             <MudButton StartIcon="@Icons.Material.Filled.Save" Color="Color.Primary" DropShadow=false OnClick="Save" Variant="Variant.Filled">@Localizer["Save"]</MudButton>
             <MudButton StartIcon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="Delete">@Localizer["Delete"]</MudButton>
         </MudStack>
+        <MudDivider Class="my-3" />
+        <UserRoleEditor User="User" OnUpdate="() => NavigationManager.Refresh(true)" />
+        <MudDivider Class="my-3" />
+        <ClaimsEdit @bind-UserClaims="UserAccessClaims" />
     </MudPaper>
 }
 else
