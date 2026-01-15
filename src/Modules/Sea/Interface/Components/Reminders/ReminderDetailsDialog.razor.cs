@@ -21,7 +21,7 @@ public partial class ReminderDetailsDialog : RemindersBase
     }
     private async Task LoadUsersAsync()
     {
-        IList<User> usersInRole = await UsersService.GetUsersInRoleAsync("User", CancellationToken.None);
+        IList<User> usersInRole = await UsersService.GetUsersInRoleAsync(RequestContext.GetTenantUserRole(), CancellationToken.None);
         Users = [.. usersInRole.Select(u => new UserDto(u))];
     }
 

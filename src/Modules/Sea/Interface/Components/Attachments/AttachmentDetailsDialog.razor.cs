@@ -6,7 +6,6 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
 {
     [Inject] private IAccessControlledEventsService EventsService { get; set; } = default!;
     [Inject] private IAttachmentsService AttachmentsService { get; set; } = default!;
-    [Inject] private IEventRolesService EventRolesService { get; set; } = default!;
     [Inject] private IReceiptsService ReceiptsService { get; set; } = default!;
 
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
@@ -33,7 +32,7 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
 
     private async Task LoadUsersAsync()
     {
-        IList<User> usersInRole = await UsersService.GetUsersInRoleAsync("User", CancellationToken.None);
+        IList<User> usersInRole = await UsersService.GetUsersInRoleAsync(RequestContext.GetTenantUserRole(), CancellationToken.None);
         Users = [.. usersInRole.Select(u => new UserDto(u))];
     }
 

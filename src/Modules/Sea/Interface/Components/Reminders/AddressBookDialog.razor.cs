@@ -17,11 +17,11 @@ public partial class AddressBookDialog : SeaCommonBase
     protected override async Task OnInitializedAsync()
     {
         await LoadUsersAsync();
-        selected = Recipients is not null ? Recipients.ToHashSet() : [];
+        selected = Recipients is not null ? [.. Recipients] : [];
     }
     private async Task LoadUsersAsync()
     {
-        IList<User> usersInRole = await UsersService.GetUsersInRoleAsync("User", CancellationToken.None);
+        IList<User> usersInRole = await UsersService.GetUsersInRoleAsync(RequestContext.GetTenantUserRole(), CancellationToken.None);
         Users = [.. usersInRole.Select(u => new UserDto(u))];
     }
 

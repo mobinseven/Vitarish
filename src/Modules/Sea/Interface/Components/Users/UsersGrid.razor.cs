@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components.Routing;
-using Vitarish.Interfaces.Base.Common;
 using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Sea.Interface.Components.Users;
@@ -19,7 +18,7 @@ public partial class UsersGrid : UsersBase, IDisposable
 
     private async Task ReloadData()
     {
-        IList<User> usersInRole = await UsersService.GetUsersInRoleAsync("User", CancellationToken.None);
+        IList<User> usersInRole = await UsersService.GetUsersInRoleAsync(RequestContext.GetTenantUserRole(), CancellationToken.None);
         users = [.. usersInRole.Select(u => new UserDto(u))];
         await InvokeAsync(StateHasChanged);
     }
@@ -28,7 +27,7 @@ public partial class UsersGrid : UsersBase, IDisposable
     {
         base.OnInitialized();
         NavigationManager.LocationChanged += OnLocationChanged;
-        UpdateSearchFromUri(NavigationManager.Uri);
+        _ = UpdateSearchFromUri(NavigationManager.Uri);
     }
 
     private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)

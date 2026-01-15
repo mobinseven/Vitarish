@@ -87,12 +87,7 @@
     {
         await base.OnInitializedAsync();
         CanWrite = await EventsService.CanWriteEvent(Event.Id);
-        await LoadUsersAsync();
-    }
-
-    private async Task LoadUsersAsync()
-    {
-        Users = [.. (await UsersService.GetUsersInRoleAsync("User", CancellationToken.None)).Select(u => new UserDto(u))];
+        Users = [.. (await UsersService.GetUsersInRoleAsync(RequestContext.GetTenantUserRole(), CancellationToken.None)).Select(u => new UserDto(u))];
     }
 
     private string? UserIdToName(Guid id) => Users.FirstOrDefault(x => x.Id == id.ToString())?.FullName;
