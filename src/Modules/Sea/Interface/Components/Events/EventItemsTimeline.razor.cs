@@ -8,7 +8,6 @@ public partial class EventItemsTimeline : EventsBase
     [Parameter, EditorRequired] public ProjectDto Project { get; set; } = default!;
 
     [Inject] private IEnumerable<IEventItemPlugin> Plugins { get; set; } = default!;
-    [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
 
     private bool CanWrite;
 
@@ -41,18 +40,11 @@ public partial class EventItemsTimeline : EventsBase
 
     private async Task UpdatePluginContexts()
     {
-        Dictionary<string, object?> metadata = new()
-        {
-            ["ProjectId"] = Project.Id,
-            ["ProcedureId"] = Procedure.Id,
-            ["EventId"] = Event.Id
-        };
-
         pluginContexts.Clear();
 
         foreach (IEventItemPlugin plugin in Plugins)
         {
-            EventTimelineContext context = new(ServiceProvider, Project, Procedure, Event, Color, metadata);
+            EventTimelineContext context = new(Project, Procedure, Event, Color);
             if (plugin.IsAvailable(context))
             {
                 pluginContexts.Add((plugin, context));

@@ -1,6 +1,6 @@
 using Vitarish.Sea.Interface.Plugins.Base.Enums;
 
-namespace Vitarish.Sea.Interface.Plugins.Clinic.Projects;
+namespace Vitarish.Sea.Interface.Plugins.Clinic.Models;
 
 public sealed record ClinicProjectMetadata
 {
@@ -9,6 +9,8 @@ public sealed record ClinicProjectMetadata
     public string? LastName { get; init; }
 
     public string? DateOfBirth { get; init; }
+
+    public DateTime? DateOfSurgery { get; init; }
 
     public Gender Gender { get; init; }
 

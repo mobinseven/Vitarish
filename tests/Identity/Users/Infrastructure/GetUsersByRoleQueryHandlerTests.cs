@@ -1,11 +1,9 @@
-using Microsoft.AspNetCore.Identity;
-using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Handlers;
 using Vitarish.Users.Tests.TestHelpers;
 
-namespace Vitarish.Users.Tests.Infrastructure;
+namespace Users.Tests.Infrastructure;
 
 public class GetUsersByRoleQueryHandlerTests
 {
@@ -17,32 +15,27 @@ public class GetUsersByRoleQueryHandlerTests
         IdentityUserRole<string> userRole = new() { UserId = "user-1", RoleId = "role-1" };
 
         await using UsersDbContext dbContext = UsersDbContextFactory.Create();
-        dbContext.Users.Add(user);
-        dbContext.Roles.Add(role);
-        dbContext.UserRoles.Add(userRole);
-        await dbContext.SaveChangesAsync();
+        _ = dbContext.Users.Add(user);
+        _ = dbContext.Roles.Add(role);
+        _ = dbContext.UserRoles.Add(userRole);
+        _ = await dbContext.SaveChangesAsync();
 
-        Mock<IRequestContext> requestContext = new();
-        requestContext.SetupGet(r => r.TenantId).Returns("tenant-1");
-
-        GetUsersByRoleQueryHandler handler = new(dbContext, requestContext.Object);
+        GetUsersByRoleQueryHandler handler = new(dbContext);
 
         IEnumerable<User> result = await handler.Handle(new GetUsersByRoleQuery("Admin"), CancellationToken.None);
 
-        result.Should().ContainSingle(u => u.Id == "user-1");
+        _ = result.Should().ContainSingle(u => u.Id == "user-1");
     }
 
     [Fact]
     public async Task Handle_WhenNoMatch_ReturnsEmpty()
     {
         await using UsersDbContext dbContext = UsersDbContextFactory.Create();
-        Mock<IRequestContext> requestContext = new();
-        requestContext.SetupGet(r => r.TenantId).Returns("tenant-2");
 
-        GetUsersByRoleQueryHandler handler = new(dbContext, requestContext.Object);
+        GetUsersByRoleQueryHandler handler = new(dbContext);
 
         IEnumerable<User> result = await handler.Handle(new GetUsersByRoleQuery("Admin"), CancellationToken.None);
 
-        result.Should().BeEmpty();
+        _ = result.Should().BeEmpty();
     }
 }

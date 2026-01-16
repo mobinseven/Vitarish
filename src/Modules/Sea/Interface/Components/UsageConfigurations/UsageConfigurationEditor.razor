@@ -1,20 +1,28 @@
 @inherits UsageConfigurationsBase
 
-<MudTextField Label="@Localizer["ReminderSignature"]" Variant="ThemeService.SecondaryVariant" @bind-Value="_configuration.ReminderSignature" />
+<Stack>
+    <StackField Label="@Localizer["ReminderSignature"]">
+        <MudTextField @bind-Value="_configuration.ReminderSignature" Lines="4" AutoGrow />
+    </StackField>
+</Stack>
 
-@if(_projectGridCellDisplayPlugins.Count > 1)
-{
-    <br />
-    <MudSelect T="string" Label="@Localizer["ProjectGridCellDisplay"]" Variant="ThemeService.SecondaryVariant" @bind-Value="PreferredProjectGridCellDisplayPluginId" Clearable="true">
-        <MudSelectItem T="string" Value="@AutomaticPluginSelectionValue">@Localizer["ProjectGridCellDisplayAutomatic"]</MudSelectItem>
-        @foreach(IProjectGridCellDisplayPlugin plugin in _projectGridCellDisplayPlugins)
-        {
-            <MudSelectItem T="string" Value="@plugin.Id">@plugin.DisplayName</MudSelectItem>
-        }
-    </MudSelect>
-}
+<Stack>
+    <StackField Label="@Localizer["Plugin"]">
+        <MudSelect T="string" @bind-Value="_metadata.PluginIdentifier" Clearable="true" Underline="false">
+            <MudSelectItem T="string" Value="null">@Localizer["None"]</MudSelectItem>
+            @foreach(string plugin in SeaPluginIdentifiers.List)
+            {
+                <MudSelectItem T="string" Value="@plugin">@Localizer[plugin]</MudSelectItem>
+            }
+        </MudSelect>
+    </StackField>
+</Stack>
 
-<br />
+<Stack>
+    <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" />
+</Stack>
+
+@* <br />
 <MudSelect T="string" Label="@Localizer["PreferredChatModel"]" Variant="ThemeService.SecondaryVariant" @bind-Value="_metadata.ChatModel" Clearable="true">
     @foreach(ModelOption model in AvailableModels)
     {
@@ -35,8 +43,4 @@
 {
     <br />
     <MudTextField Label="@Localizer["ClinicPatientIntakeInstructions"]" Variant="ThemeService.SecondaryVariant" @bind-Value="_metadata.ClinicPatientIntakeInstructions" Lines="6" AutoGrow />
-}
-
-<br />
-<MudButton StartIcon="fa-thin fa-floppy-disk" OnClick="SaveAsync">@Localizer["Save"]</MudButton>
-
+} *@

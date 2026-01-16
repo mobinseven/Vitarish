@@ -2,31 +2,10 @@ namespace Vitarish.Sea.Interface.Components.Projects;
 
 public partial class ProjectDetails : ProjectsBase
 {
-    [Inject] private IEnumerable<IProcedureCreationFormPlugin> ProcedureCreationFormPlugins { get; set; } = default!;
-    [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
-
     [Parameter, EditorRequired] public ProjectDto Project { get; set; } = default!;
-    [Parameter] public EventCallback<ProjectDto> OnEdit { get; set; }
-    [Parameter] public EventCallback<ProjectDto> OnDelete { get; set; }
-    [Parameter] public EventCallback<ProjectDto> OnAddProcedure { get; set; }
-
-
-    private async Task ShowPluginAsync(IProcedureCreationFormPlugin plugin, ProcedureCreationFormContext context)
-    {
-        DialogParameters parameters = new()
-        {
-            { nameof(PluginDialog<ProcedureCreationFormContext>.Plugin), plugin },
-            { nameof(PluginDialog<ProcedureCreationFormContext>.Context), context }
-        };
-
-        _ = await DialogService.ShowAsync<PluginDialog<ProcedureCreationFormContext>>(plugin.DisplayName, parameters);
-    }
-
-    private ProcedureCreationFormContext BuildCreationFormContext()
-        => new(ServiceProvider, Project, new Dictionary<string, object?>
-        {
-            { "ProjectId", Project.Id }
-        });
+    [Parameter] public EventCallback OnEdit { get; set; }
+    [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public EventCallback<Guid> OnProcedureAdded { get; set; }
 
     private async Task AddProcedure()
     {
@@ -36,45 +15,19 @@ public partial class ProjectDetails : ProjectsBase
             { nameof(ProcedureCreateDialog.ProjectName), Project.Name }
         };
 
-        ProcedureCreationFormContext context = BuildCreationFormContext();
-        List<IProcedureCreationFormPlugin> plugins =
-            [.. ProcedureCreationFormPlugins
-                .Where(plugin => plugin.IsAvailable(context))
-                .OrderBy(plugin => plugin.DisplayName, StringComparer.CurrentCultureIgnoreCase)];
+        var dialog = await DialogService.ShowAsync<ProcedureCreateDialog>(Localizer["Procedure"], parameters);
 
-        if (plugins.Count == 0)
-        {
-            _ = await DialogService.ShowAsync<ProcedureCreateDialog>(Localizer["Procedure"], parameters);
-            return;
-        }
+        var result = await dialog.Result;
 
-        if (plugins.Count == 1)
-        {
-            await ShowPluginAsync(plugins[0], context);
-            return;
-        }
-
-        DialogParameters selectorParameters = new()
-        {
-            { nameof(ProcedureCreationFormSelectorDialog.Options), plugins },
-            { nameof(ProcedureCreationFormSelectorDialog.ShowStandardForm), true }
-        };
-
-        IDialogReference selector = await DialogService.ShowAsync<ProcedureCreationFormSelectorDialog>(Localizer["Procedure"], selectorParameters);
-        DialogResult? result = await selector.Result;
-
-        if (result is null || result.Canceled)
+        if(result?.Canceled ?? true)
         {
             return;
         }
 
-        if (result.Data is IProcedureCreationFormPlugin plugin)
+        if(result.Data is Guid procedureId)
         {
-            await ShowPluginAsync(plugin, context);
-            return;
+            await OnProcedureAdded.InvokeAsync(procedureId);
         }
-
-        _ = await DialogService.ShowAsync<ProcedureCreateDialog>(Localizer["Procedure"], parameters);
     }
 
     private async Task EditProject(ProjectDto project)
@@ -99,7 +52,7 @@ public partial class ProjectDetails : ProjectsBase
 
         Project = await ProjectsService.GetAsync(Project.Id, CancellationToken.None)
             .GetValueOrDefaultAsync() ?? throw new Exception("Project was null");
-        await OnEdit.InvokeAsync(Project);
+        await OnEdit.InvokeAsync();
     }
 
     private async Task DeleteProject(ProjectDto project)
@@ -126,7 +79,7 @@ public partial class ProjectDetails : ProjectsBase
         else
         {
             await ProjectsService.RemoveAsync(project.Id, CancellationToken.None).EnsureSuccessAsync("Remove project");
-            await OnDelete.InvokeAsync(project);
+            await OnDelete.InvokeAsync();
         }
     }
 }

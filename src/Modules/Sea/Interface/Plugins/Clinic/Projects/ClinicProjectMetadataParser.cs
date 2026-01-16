@@ -1,3 +1,5 @@
+using Vitarish.Sea.Interface.Plugins.Clinic.Models;
+
 namespace Vitarish.Sea.Interface.Plugins.Clinic.Projects;
 
 internal static class ClinicProjectMetadataParser
@@ -6,8 +8,6 @@ internal static class ClinicProjectMetadataParser
     {
         PropertyNameCaseInsensitive = true
     };
-
-    public static bool HasClinicMetadata(string? metadataJson) => TryParsePatient(metadataJson) is not null || TryParseTemplate(metadataJson) is not null;
 
     public static ClinicProjectMetadata? TryParsePatient(string? metadataJson)
     {
@@ -25,30 +25,6 @@ internal static class ClinicProjectMetadataParser
                 && string.IsNullOrWhiteSpace(metadata.LastName)
                 && string.IsNullOrWhiteSpace(metadata.VisitReason)
                 && string.IsNullOrWhiteSpace(metadata.InsuranceProvider)
-                ? null
-                : metadata;
-        }
-        catch (JsonException)
-        {
-            return null;
-        }
-    }
-
-    public static ClinicTemplateProjectMetadata? TryParseTemplate(string? metadataJson)
-    {
-        if (string.IsNullOrWhiteSpace(metadataJson))
-        {
-            return null;
-        }
-
-        try
-        {
-            ClinicTemplateProjectMetadata? metadata = JsonSerializer.Deserialize<ClinicTemplateProjectMetadata>(metadataJson, SerializerOptions);
-            return metadata is null
-                ? null
-                : string.IsNullOrWhiteSpace(metadata.DefaultVisitReason)
-                && string.IsNullOrWhiteSpace(metadata.IntakeChecklist)
-                && string.IsNullOrWhiteSpace(metadata.BaselineConsentText)
                 ? null
                 : metadata;
         }

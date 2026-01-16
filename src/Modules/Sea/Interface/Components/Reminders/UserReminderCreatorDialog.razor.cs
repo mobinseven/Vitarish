@@ -42,8 +42,8 @@ public partial class UserReminderCreatorDialog : RemindersBase
         subject = Localizer["ReminderSubject", Event.Title];
         textBody = await GetTextBody();
 
-        string? phone = HttpContextAccessor.HttpContext?.GetUserPhoneNumber();
-        string? email = HttpContextAccessor.HttpContext?.GetUserEmail();
+        string? phone = RequestContext.User?.GetUserPhoneNumber();
+        string? email = RequestContext.User?.GetUserEmail();
 
         showKindStep = !string.IsNullOrWhiteSpace(phone) && !string.IsNullOrWhiteSpace(email);
         if (!showKindStep)
@@ -82,8 +82,8 @@ public partial class UserReminderCreatorDialog : RemindersBase
     private string? GetAddress(ReminderKind kind)
         => kind switch
         {
-            ReminderKind.Email => HttpContextAccessor.HttpContext?.GetUserEmail(),
-            ReminderKind.Sms => HttpContextAccessor.HttpContext?.GetUserPhoneNumber(),
+            ReminderKind.Email => RequestContext.User?.GetUserEmail(),
+            ReminderKind.Sms => RequestContext.User?.GetUserPhoneNumber(),
         };
 
     private void ResetCompletedSteps(int currentStep)

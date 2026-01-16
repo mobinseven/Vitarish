@@ -65,7 +65,7 @@ public partial class ProcedureCreateDialog : ProceduresBase
             await CopyEventsAsync(templateProcedure.Id, id);
         }
 
-        MudDialog.Close(DialogResult.Ok(true));
+        MudDialog.Close(DialogResult.Ok(id));
     }
 
     private async Task CopyEventsAsync(Guid fromProcedureId, Guid toProcedureId)

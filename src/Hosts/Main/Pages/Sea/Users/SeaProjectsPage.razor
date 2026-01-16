@@ -1,5 +1,5 @@
 @page "/sea/projects"
 
 <CascadingValue Value="IsAdmin">
-    <ProjectsGrid Context="project" OnClicked="@(id => NavigationManager.NavigateTo($"/sea/projects/{id}"))" />
+    <ProjectsGrid OnClicked="@(id => NavigationManager.NavigateTo($"/sea/projects/{id}"))" OnCreated="@(id => NavigationManager.NavigateTo($"/sea/projects/{id}"))" />
 </CascadingValue>

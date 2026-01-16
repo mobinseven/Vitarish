@@ -1,21 +1,32 @@
 @inherits ProjectsBase
-@if(IsAdmin)
+@if(Plugin is null)
 {
-    <Stack>
-        <StackButton Color="Color.Primary"
-                     OnClick="AddProject"
-                     StartIcon="fa-thin fa-folder-plus"
-                     Label="@Localizer["AddItem", Localizer["Project"]]" />
-    </Stack>
+    @if(IsAdmin)
+    {
+        <Stack>
+            <StackButton Color="Color.Primary"
+                         OnClick="AddProject"
+                         StartIcon="fa-thin fa-folder-plus"
+                         Label="@Localizer["AddItem", Localizer["Project"]]" />
+        </Stack>
 
+    }
+    <Stack>
+        @foreach(var project in projects)
+        {
+            <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
+                         Label="@project.Name"
+                         HighlightString="@SearchString">
+                <StatsDisplay Stats="project.Stats" />
+            </StackButton>
+        }
+        @if(projects.Count == 0)
+        {
+            <StackField Label="@Localizer["NoItems", Localizer["Project"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Project"]]" />
+        }
+    </Stack>
 }
-<Stack>
-    @foreach(var project in projects)
-    {
-        @RenderProjectCell(project)
-    }
-    @if(projects.Count == 0)
-    {
-        <StackField Label="@Localizer["NoItems", Localizer["Project"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Project"]]" />
-    }
-</Stack>
+else
+{
+    @Plugin.Render(new ProjectsGridPlugin(OnClicked, OnCreated))
+}

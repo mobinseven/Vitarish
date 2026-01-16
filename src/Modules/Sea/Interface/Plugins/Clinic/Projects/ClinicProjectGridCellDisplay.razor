@@ -1,8 +1,0 @@
-@using Vitarish.Sea.Interface.Plugins.Base.Projects
-@inherits ProjectGridCellDisplayBase<ClinicProjectMetadata>
-
-<StackButton OnClick="HandleClickedAsync"
-             Label="@Context.Project.Name"
-             HighlightString="@Context.HighlightString">
-    <StatsDisplay Stats="DisplayStats" />
-</StackButton>

@@ -2,8 +2,6 @@ namespace Vitarish.Sea.Interface.Components.UsageConfigurations;
 
 public partial class UsageConfigurationEditor : UsageConfigurationsBase
 {
-    private const string AutomaticPluginSelectionValue = "__automatic";
-
     private static readonly IReadOnlyList<ModelOption> AvailableModels =
     [
         new("gpt-5-2025-08-07", "GPT-5"),
@@ -17,28 +15,12 @@ public partial class UsageConfigurationEditor : UsageConfigurationsBase
 
     private UsageConfigurationDto _configuration = new(Guid.Empty, null, "{}");
     private UsageConfigurationMetadata _metadata = new();
-    private List<IProjectGridCellDisplayPlugin> _projectGridCellDisplayPlugins = [];
-    private bool _clinicPatientIntakePluginAvailable;
-
-    [Inject] private IEnumerable<IProjectGridCellDisplayPlugin> ProjectGridCellDisplayPlugins { get; set; } = default!;
-    [Inject] private ILoadedPluginCatalog LoadedPluginCatalog { get; set; } = default!;
-
-    private string PreferredProjectGridCellDisplayPluginId
-    {
-        get => _metadata.ProjectGridCellDisplayPluginId ?? AutomaticPluginSelectionValue;
-        set => _metadata.ProjectGridCellDisplayPluginId = value == AutomaticPluginSelectionValue ? null : value;
-    }
 
     protected override async Task OnInitializedAsync()
     {
         _configuration = await UsageConfigurationService.GetUsageConfigurationAsync(CancellationToken.None)
             ?? new(Guid.Empty, null, "{}");
         _metadata = UsageConfigurationMetadata.FromJson(_configuration.Metadata);
-        _projectGridCellDisplayPlugins =
-            ProjectGridCellDisplayPlugins
-                .OrderBy(plugin => plugin.DisplayName, StringComparer.CurrentCultureIgnoreCase)
-                .ToList();
-        _clinicPatientIntakePluginAvailable = LoadedPluginCatalog.IsLoaded(SeaPluginIdentifiers.Clinic);
     }
 
     private Task SaveAsync()

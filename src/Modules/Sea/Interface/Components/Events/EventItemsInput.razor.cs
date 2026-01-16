@@ -7,7 +7,6 @@ public partial class EventItemsInput : EventsBase
     [Parameter, EditorRequired] public EventDto Event { get; set; } = default!;
 
     [Inject] private IEnumerable<IEventItemPlugin> Plugins { get; set; } = default!;
-    [Inject] private IServiceProvider ServiceProvider { get; set; } = default!;
 
     private readonly List<IEventItemCreationPlugin> mainPlugins = [];
     private readonly List<IEventItemCreationPlugin> actionPlugins = [];
@@ -20,14 +19,7 @@ public partial class EventItemsInput : EventsBase
     {
         base.OnInitialized();
 
-        Dictionary<string, object?> metadata = new()
-        {
-            ["ProjectId"] = Project.Id,
-            ["ProcedureId"] = Procedure.Id,
-            ["EventId"] = Event.Id
-        };
-
-        baseContext = new EventItemCreationContext(ServiceProvider, Project, Procedure, Event, metadata);
+        baseContext = new EventItemCreationContext(Project, Procedure, Event);
         mainPlugins.Clear();
         actionPlugins.Clear();
 

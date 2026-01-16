@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Sea.Interface.Components.Base;
@@ -7,7 +6,6 @@ public class SeaCommonBase : CommonBase
 {
     [Inject] protected IUsersService UsersService { get; set; } = default!;
     [Inject] protected IRequestContext RequestContext { get; set; } = default!;
-    [Inject] protected IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
     /// <summary>
     /// Optional override for admin-specific rendering when the caller wants to force admin mode.
     /// </summary>

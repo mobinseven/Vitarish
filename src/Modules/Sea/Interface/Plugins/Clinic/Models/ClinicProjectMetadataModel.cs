@@ -1,6 +1,6 @@
 using Vitarish.Sea.Interface.Plugins.Base.Enums;
 
-namespace Vitarish.Sea.Interface.Plugins.Clinic.Projects;
+namespace Vitarish.Sea.Interface.Plugins.Clinic.Models;
 
 public sealed class ClinicProjectMetadataModel(Action onChanged)
 {

@@ -1,27 +1,15 @@
 namespace Vitarish.Sea.Interface.Components.Reminders;
 
-internal sealed class ReminderPlugin : IEventItemPlugin
+internal sealed class ReminderPlugin(IRemindersService remindersService) : IEventItemPlugin
 {
-    private readonly IStringLocalizer localizer;
-
-    public ReminderPlugin(IStringLocalizer localizer)
-    {
-        this.localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
-    }
 
     public string Id => "event-items/reminders";
 
-    public string DisplayName => localizer["Reminders"];
+    public string DisplayName => nameof(ReminderPlugin);
 
-    public string? Description => localizer["GetRemindersByEventAsyncHelpText"];
+    public string? Description => nameof(ReminderPlugin);
 
     public EventItemCreationPlacement Placement => EventItemCreationPlacement.Action;
-
-    public IReadOnlyCollection<Type> WatchedTypes { get; } = new[]
-    {
-        typeof(EventDto),
-        typeof(ReminderDto)
-    };
 
     public bool IsAvailable(EventItemCreationContext context)
         => context is not null;
@@ -42,7 +30,6 @@ internal sealed class ReminderPlugin : IEventItemPlugin
     public async Task<IReadOnlyList<EventTimelineItem>> GetItemsAsync(EventTimelineContext context, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(context);
-        IRemindersService remindersService = context.GetRequiredService<IRemindersService>();
         IReadOnlyList<ReminderDto> reminders = await remindersService.GetByEventAsync(context.Event.Id, cancellationToken);
 
         return reminders

@@ -1,19 +1,12 @@
 namespace Vitarish.Sea.Interface.Components.Attachments;
 
-internal sealed class AttachmentPlugin : IEventItemPlugin
+internal sealed class AttachmentPlugin(IAttachmentsService attachmentsService) : IEventItemPlugin
 {
-    private readonly IStringLocalizer localizer;
-
-    public AttachmentPlugin(IStringLocalizer localizer)
-    {
-        this.localizer = localizer ?? throw new ArgumentNullException(nameof(localizer));
-    }
-
     public string Id => "event-items/attachments";
 
-    public string DisplayName => localizer["Attachments"];
+    public string DisplayName => nameof(AttachmentPlugin);
 
-    public string? Description => localizer["AddAttachmentsAsyncHelpText"];
+    public string? Description => nameof(AttachmentPlugin);
 
     public EventItemCreationPlacement Placement => EventItemCreationPlacement.Main;
 
@@ -40,7 +33,6 @@ internal sealed class AttachmentPlugin : IEventItemPlugin
     public async Task<IReadOnlyList<EventTimelineItem>> GetItemsAsync(EventTimelineContext context, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(context);
-        IAttachmentsService attachmentsService = context.GetRequiredService<IAttachmentsService>();
         IReadOnlyList<AttachmentDto> attachments = await attachmentsService.GetByEventAsync(context.Event.Id, cancellationToken);
 
         return [.. attachments

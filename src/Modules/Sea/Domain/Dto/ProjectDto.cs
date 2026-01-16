@@ -1,15 +1,11 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public record ProjectDto(
-    [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("description")] string Description,
-    [property: JsonPropertyName("template")] bool Template,
-    [property: JsonPropertyName("metadata")] string Metadata) : EntityDto
+public record ProjectDto : EntityDto
 {
-    [JsonPropertyName("url")]
-    public string Url => $"/sea/projects/{Id}";
-
-    [JsonPropertyName("stats")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public StatsDto? Stats { get; init; }
+    [JsonPropertyName("name")] public string Name { get; set; }
+    [JsonPropertyName("description")] public string Description { get; set; }
+    [JsonPropertyName("template")] public bool Template { get; set; }
+    [JsonPropertyName("metadata")] public string Metadata { get; set; }
+    [JsonPropertyName("url")] public string Url => $"/sea/projects/{Id}";
+    [JsonPropertyName("stats")][JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public StatsDto? Stats { get; init; }
 }

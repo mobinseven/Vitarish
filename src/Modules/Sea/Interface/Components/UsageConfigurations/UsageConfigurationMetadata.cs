@@ -4,13 +4,12 @@ public sealed record UsageConfigurationMetadata
 {
     private static readonly JsonSerializerOptions SerializerOptions = new(JsonSerializerDefaults.Web);
 
-    public string? ProjectGridCellDisplayPluginId { get; set; }
     public string? ChatInstructions { get; set; }
     public string? ChatModel { get; set; }
     public string? ClinicPatientIntakeInstructions { get; set; }
     public string? ProjectOverviewInstructions { get; set; }
     public string? ProcedureOverviewInstructions { get; set; }
-    public string[]? PluginIdentifiers { get; set; }
+    public string? PluginIdentifier { get; set; }
 
     public static UsageConfigurationMetadata FromJson(string? json)
     {

@@ -13,7 +13,7 @@ internal class AccessControlledProjectsService(
     private async Task<ProjectDescriptorDto> IncludeRoleIdsInDescriptor(ProjectDescriptorDto projectDescriptorDto)
     {
         await EnsureInitialized();
-        projectDescriptorDto.RoleIds = [.. userReadRoleIds];
+        projectDescriptorDto.RoleIds = isAdmin ? null : [.. userReadRoleIds];
         return projectDescriptorDto;
     }
 

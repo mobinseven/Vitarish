@@ -25,9 +25,11 @@ public static class WebApplicationBuilderExtensions
         {
             options.AddPolicy(AaasConstants.Admin, policy => policy.RequireClaim(AaasConstants.AccessClaim, "admin.local:::Admin"));
         });
+
         _ = builder.Services.AddLocalization();
-        _ = builder.Services.ConfigureCompositeStringLocalizer(typeof(Vitarish.Accounts.Interface.Localization.Strings));
-        builder.Services.AddSingleton<IStringLocalizer>(sp => sp.GetRequiredService<IStringLocalizer<Vitarish.Interfaces.Base.Localization.Strings>>());
+        _ = builder.Services.AddSingleton<IStringLocalizer>(sp => sp.GetRequiredService<IStringLocalizer<Vitarish.Interfaces.Base.Localization.Strings>>());
+        _ = builder.Services.AddSingleton<MudLocalizer, CustomMudLocalizer>();
+
         _ = builder.Services.Configure<RequestLocalizationOptions>(options =>
         {
             CultureInfo[] supportedCultures =

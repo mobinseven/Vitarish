@@ -1,15 +1,9 @@
+using Vitarish.Sea.Interface.Plugins.Clinic.Models;
+
 namespace Vitarish.Sea.Interface.Plugins.Clinic.Projects;
 
 public partial class ClinicProjectCreationForm
 {
-    internal const string GenderFemale = "Female";
-    internal const string GenderMale = "Male";
-    internal const string GenderUnspecified = "Unspecified";
-
-    private const string FacilityIdMetadataKey = "FacilityId";
-    private const string FacilityNameMetadataKey = "FacilityName";
-    private const string DepartmentNameMetadataKey = "DepartmentName";
-
     private const string MetadataJsonSchema = """
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -69,9 +63,6 @@ public partial class ClinicProjectCreationForm
     [CascadingParameter]
     private IMudDialogInstance Dialog { get; set; } = default!;
 
-    [Parameter]
-    public required ProjectCreationFormContext Context { get; set; }
-        = default!;
 
     private string finishLabel => isSubmitting
         ? Localizer["Finishing"]
@@ -108,7 +99,6 @@ public partial class ClinicProjectCreationForm
         base.OnInitialized();
 
         InitializeEditableMetadata(new ClinicProjectMetadataModel(OnEditableMetadataChanged));
-        ApplyContextMetadata();
         ValidateManual();
     }
 
@@ -119,28 +109,6 @@ public partial class ClinicProjectCreationForm
         Instructions = await LoadInstructionsAsync();
     }
 
-    private void ApplyContextMetadata()
-    {
-        if (Context.TryGetMetadata<Guid>(FacilityIdMetadataKey, out Guid facility))
-        {
-            facilityId = facility;
-        }
-
-        facilityLabel = Context.TryGetMetadata<string>(FacilityNameMetadataKey, out string? facilityName)
-            ? (string)Localizer["FacilityWithName", facilityName!]
-            : null;
-
-        if (Context.TryGetMetadata<string>(DepartmentNameMetadataKey, out string? department))
-        {
-            departmentName = department;
-            departmentLabel = Localizer["DepartmentWithName", department!];
-        }
-        else
-        {
-            departmentName = null;
-            departmentLabel = null;
-        }
-    }
 
     private Task HandleAiBusyAsync(bool isBusy)
     {
@@ -286,8 +254,8 @@ public partial class ClinicProjectCreationForm
             string description = BuildDescription(normalized);
             string metadata = SerializeMetadata(normalized);
 
-            _ = await ProjectsService.AddAsync(projectName, description, template: false, metadata, CancellationToken.None);
-            Dialog.Close(DialogResult.Ok(true));
+            var created = await ProjectsService.AddAsync(projectName, description, template: false, metadata, CancellationToken.None);
+            Dialog.Close(DialogResult.Ok(created));
         }
         catch (Exception ex)
         {
@@ -466,7 +434,6 @@ public partial class ClinicProjectCreationForm
             DateOfBirth = dateOfBirth,
             FacilityId = facilityId ?? metadata.FacilityId,
             DepartmentName = departmentName ?? metadata.DepartmentName,
-            TemplateId = Context.TemplateId ?? metadata.TemplateId,
             ConsentToShareRecords = metadata.ConsentToShareRecords ?? true
         };
     }

@@ -9,10 +9,7 @@ public static class SeaInterfaceConfigurations
     {
         public IServiceCollection ConfigureSeaInterface()
         {
-            SeaPluginManifest pluginManifest = services.ConfigureSeaPlugins([SeaPluginIdentifiers.Clinic]);
-            _ = services.AddSingleton(pluginManifest);
-            _ = services.AddSingleton<ILoadedPluginCatalog, SeaPluginCatalog>();
-            _ = services.AddScoped<IProjectGridCellDisplayPlugin, DefaultProjectGridCellDisplayPlugin>();
+            _ = services.ConfigureSeaPlugins();
             _ = services.AddScoped<IEventItemPlugin, AttachmentPlugin>();
             _ = services.AddScoped<IEventItemPlugin, ReminderPlugin>();
             return services;

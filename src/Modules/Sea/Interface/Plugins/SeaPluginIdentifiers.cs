@@ -5,6 +5,7 @@ namespace Vitarish.Sea.Interface.Plugins;
 /// </summary>
 public static class SeaPluginIdentifiers
 {
-    public const string Clinic = "clinic";
-    public const string Gym = "gym";
+    public const string Clinic = nameof(Clinic);
+    public const string Gym = nameof(Gym);
+    public static string[] List => [Clinic, Gym];
 }

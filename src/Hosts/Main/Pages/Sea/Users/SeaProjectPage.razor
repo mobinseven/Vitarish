@@ -8,12 +8,12 @@
 <CascadingValue Value="IsAdmin">
 
     <ProceduresGrid Project="@Project"
-                    ProcedureClicked="@(id => NavigationManager.NavigateTo($"/sea/projects/{projectId}/{id}"))" />
+                    ProcedureClicked="@(procedureId => NavigationManager.NavigateTo($"/sea/projects/{projectId}/{procedureId}"))" />
 
     <ProjectDetails Project="@Project"
-                    OnAddProcedure="@(p => NavigationManager.NavigateTo($"/sea/projects/{p.Id}"))"
-                    OnEdit="@(p => NavigationManager.NavigateTo($"/sea/projects/{p.Id}"))"
-                    OnDelete="@(() => NavigationManager.NavigateTo("/"))" />
+                    OnProcedureAdded="@(procedureId => NavigationManager.NavigateTo($"/sea/projects/{projectId}/{procedureId}"))"
+                    OnEdit="@(() => NavigationManager.NavigateTo($"/sea/projects/{projectId}"))"
+                    OnDelete="@(() => NavigationManager.NavigateTo("/sea/projects"))" />
 
 </CascadingValue>
 
@@ -34,8 +34,6 @@
         {
             return;
         }
-
-        Console.WriteLine($"/sea/projects/{projectId}");
 
         Guid.TryParse(projectId, out ProjectId);
 

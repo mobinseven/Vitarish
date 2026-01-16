@@ -13,7 +13,7 @@ internal class AccessControlledProceduresService(
     private async Task<ProcedureDescriptorDto> IncludeRoleIdsInDescriptor(ProcedureDescriptorDto procedureDescriptorDto)
     {
         await EnsureInitialized();
-        procedureDescriptorDto.RoleIds = [.. userReadRoleIds];
+        procedureDescriptorDto.RoleIds = isAdmin ? null : [.. userReadRoleIds];
         return procedureDescriptorDto;
     }
 
