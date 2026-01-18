@@ -1,7 +1,6 @@
-using Hangfire;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Models;
-using Vitarish.Parties.Domain.Entities;
+using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 using Vitarish.Sea.Domain.Enums;
@@ -25,29 +24,26 @@ public class ReminderProcessor(
     /// <summary>
     /// Processes due reminders. Intended to be invoked by Hangfire as a recurring job.
     /// </summary>
-    public async Task ProcessDueReminders(IJobCancellationToken cancellationToken)
+    public async Task ProcessDueReminders(CancellationToken cancellationToken = default)
     {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        async Task perTenantAsync(IServiceProvider provider, IJobCancellationToken jobToken, CancellationToken shutdownToken)
+        async Task perTenantAsync(IServiceProvider provider, CancellationToken shutdownToken)
         {
-            var ctx = provider.GetRequiredService<IRequestContext>();
+            IRequestContext ctx = provider.GetRequiredService<IRequestContext>();
             TenantReminderContext tenantContext = new(
                 provider.GetRequiredService<IRemindersService>(),
                 provider.GetRequiredService<IMessagesService>());
 
-            await ProcessTenantRemindersAsync(tenantContext, jobToken, shutdownToken);
+            await ProcessTenantRemindersAsync(tenantContext, shutdownToken);
         }
 
         await _tenantBackgroundExecutor.ExecutePerTenantAsync(
             BackgroundResource,
-            cancellationToken,
-            perTenantAsync);
+            perTenantAsync,
+            cancellationToken);
     }
 
     private async Task ProcessTenantRemindersAsync(
         TenantReminderContext tenantContext,
-        IJobCancellationToken cancellationToken,
         CancellationToken shutdownToken)
     {
         DateTimeOffset now = _timeProvider.GetUtcNow();
@@ -59,11 +55,9 @@ public class ReminderProcessor(
             try
             {
                 await ProcessReminderAsync(tenantContext, reminder, now, shutdownToken);
-                cancellationToken.ThrowIfCancellationRequested();
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+            catch
             {
-                _logger.LogError(ex, "Failed to process reminder '{ReminderId}'.", reminder.Id);
             }
         }
     }

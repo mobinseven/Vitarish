@@ -36,9 +36,4 @@ public class CommunicationModule : ModuleBase
         endpoints.MapMessagesEndpoints();
         endpoints.MapHub<MessagesHub>("/communications/hubs/messages");
     }
-
-    /// <inheritdoc />
-    protected override void ConfigureHealthChecks(WebApplicationBuilder builder) =>
-        // Reserved for Communications-specific health checks (e.g., SMS gateway reachability).
-        builder.Services.AddHealthChecks();
 }

@@ -1,3 +1,6 @@
+using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Main.Infrastructure.BackgroundJobs.Files;
+using Vitarish.Main.Infrastructure.BackgroundJobs.Intelligence;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs;
@@ -12,9 +15,16 @@ public static class HangfireStartupJobs
     /// </summary>
     public static void ScheduleSelfTriggeringJobs(this WebApplication app)
     {
-        HangfireReminderQueue reminderQueue = app.Services.GetRequiredService<HangfireReminderQueue>();
+        HangfireReminderJobManager reminderJobs = app.Services.GetRequiredService<HangfireReminderJobManager>();
+        reminderJobs.ScheduleProcessing();
+        reminderJobs.TriggerProcessing();
 
-        reminderQueue.ScheduleProcessing();
-        reminderQueue.TriggerProcessing();
+        HangfireFilesJobManager filesJobs = app.Services.GetRequiredService<HangfireFilesJobManager>();
+        filesJobs.ScheduleProcessing();
+        filesJobs.TriggerProcessing();
+
+        HangfireIntelligenceJobManager intelligenceJobs = app.Services.GetRequiredService<HangfireIntelligenceJobManager>();
+        intelligenceJobs.ScheduleProcessing();
+        intelligenceJobs.TriggerProcessing();
     }
 }

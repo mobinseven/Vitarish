@@ -19,7 +19,7 @@ namespace Vitarish.Files.Hosting;
 /// <summary>
 /// Module wiring for the Files stack using the shared module contracts.
 /// </summary>
-public class FilesModule : ModuleBase
+public class FilesModule : ModuleBase, IModule
 {
     private readonly Action<DbContextOptionsBuilder>? configureDbContext;
 
@@ -48,6 +48,8 @@ public class FilesModule : ModuleBase
         IConfiguration configuration,
         Action<DbContextOptionsBuilder>? configureDbContext)
     {
+        services.AddSingleton<FilesModule>();
+
         Action<DbContextOptionsBuilder>? dbConfigurator = (configureDbContext ?? this.configureDbContext) ?? throw new InvalidOperationException("FilesModule requires a DbContext configuration delegate.");
 
         _ = services.AddSingleton<IMinioClient>(_ =>
@@ -125,6 +127,4 @@ public class FilesModule : ModuleBase
         // Reserved for Files-specific health checks (e.g., object storage availability).
         builder.Services.AddHealthChecks();
 
-    /// <inheritdoc />
-    protected override void ConfigureSelfTests(WebApplicationBuilder builder) => builder.Services.AddHostedService<ObjectStorageStartupSelfTest>();
 }

@@ -1,75 +1,56 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
+using Hangfire;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 using Minio;
 using System.Buffers;
 using Vitarish.Files.Domain.Options;
+using Vitarish.Files.Hosting;
 using Vitarish.Files.Infrastructure.Extensions;
 using Vitarish.Files.Infrastructure.Interfaces;
+using Vitarish.Files.Infrastructure.Services;
+namespace Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 
-namespace Vitarish.Files.Infrastructure.Services;
-
-public sealed class ObjectStorageStartupSelfTest(
+public class FilesProcessor(
+    FilesModule filesModule,
     IObjectStorageService storage,
-    IOptionsMonitor<FilesOptions> options,
+    IOptionsMonitor<FilesOptions> filesOptions,
     IOptionsMonitor<MinioOptions> minioOptions,
     IMinioClient minioClient,
-    IHttpClientFactory httpClientFactory,
-    ILogger<ObjectStorageStartupSelfTest> logger) : IHostedService
+    IHttpClientFactory httpClientFactory)
 {
-    private readonly IObjectStorageService _storage = storage;
-    private readonly IOptionsMonitor<FilesOptions> _filesOptions = options;
-    private readonly IOptionsMonitor<MinioOptions> _minioOptions = minioOptions;
-    private readonly IMinioClient _minioClient = minioClient;
-    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
-    private readonly ILogger<ObjectStorageStartupSelfTest> _logger = logger;
 
     private const string SelfTestFileName = "_startup-self-test.bin";
     private static readonly byte[] Payload = "Files module startup self-test"u8.ToArray();
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public async Task ProcessSelfTests(CancellationToken cancellationToken = default)
     {
-        FilesOptions filesOptions = _filesOptions.CurrentValue
-            ?? throw new InvalidOperationException("Files options are required for the startup self-test.");
-        MinioOptions minioOptions = _minioOptions.CurrentValue;
-        string objectKey = GetObjectKey(filesOptions);
+        string objectKey = GetObjectKey(filesOptions.CurrentValue);
         try
         {
-            //await _storage.EnsureBucketAsync(cancellationToken).ConfigureAwait(false);
+            await storage.EnsureBucketAsync(cancellationToken).ConfigureAwait(false);
 
-            //await UploadAsync(filesOptions, cancellationToken).ConfigureAwait(false);
-            //await VerifyExistsAsync(filesOptions, cancellationToken).ConfigureAwait(false);
-            //await VerifyDownloadAsync(filesOptions, cancellationToken).ConfigureAwait(false);
-            //await VerifySeekAsync(filesOptions, cancellationToken).ConfigureAwait(false);
-            //await VerifyMiddlewareAsync(filesOptions, minioOptions, cancellationToken).ConfigureAwait(false);
-            //await VerifyRemoveAsync(filesOptions, cancellationToken).ConfigureAwait(false);
+            await UploadAsync(filesOptions.CurrentValue, cancellationToken).ConfigureAwait(false);
+            await VerifyExistsAsync(filesOptions.CurrentValue, cancellationToken).ConfigureAwait(false);
+            await VerifyDownloadAsync(filesOptions.CurrentValue, cancellationToken).ConfigureAwait(false);
+            await VerifySeekAsync(filesOptions.CurrentValue, cancellationToken).ConfigureAwait(false);
+            await VerifyMiddlewareAsync(filesOptions.CurrentValue, minioOptions.CurrentValue, cancellationToken).ConfigureAwait(false);
+            await VerifyRemoveAsync(filesOptions.CurrentValue, cancellationToken).ConfigureAwait(false);
 
-            _logger.LogInformation("Object storage startup self-test completed successfully.");
+            filesModule.IsAvailable = true;
         }
-        catch (OperationCanceledException)
+        catch
         {
-            throw;
-        }
-        catch (System.Exception ex)
-        {
-            _logger.LogCritical(ex, "Object storage startup self-test failed.");
-            throw;
+            filesModule.IsAvailable = false;
         }
         finally
         {
-            await CleanupAsync(objectKey, filesOptions, cancellationToken).ConfigureAwait(false);
+            await CleanupAsync(objectKey, filesOptions.CurrentValue, cancellationToken).ConfigureAwait(false);
         }
     }
-
-    public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
     private async Task UploadAsync(FilesOptions filesOptions, CancellationToken cancellationToken)
     {
         await using MemoryStream buffer = new(Payload, writable: false);
-        await _storage.UploadAsync(
+        await storage.UploadAsync(
             GetObjectKey(filesOptions),
             "application/octet-stream",
             buffer,
@@ -80,13 +61,13 @@ public sealed class ObjectStorageStartupSelfTest(
     private async Task VerifyExistsAsync(FilesOptions filesOptions, CancellationToken cancellationToken)
     {
         string objectKey = GetObjectKey(filesOptions);
-        bool exists = await _storage.ExistsAsync(objectKey, cancellationToken).ConfigureAwait(false);
+        bool exists = await storage.ExistsAsync(objectKey, cancellationToken).ConfigureAwait(false);
         if (!exists)
         {
             throw new IOException($"Uploaded self-test object '{objectKey}' was not found.");
         }
 
-        ObjectMetadata metadata = await _storage.GetMetadataAsync(objectKey, cancellationToken)
+        ObjectMetadata metadata = await storage.GetMetadataAsync(objectKey, cancellationToken)
             .ConfigureAwait(false);
         if (metadata.Size != Payload.LongLength)
         {
@@ -97,7 +78,7 @@ public sealed class ObjectStorageStartupSelfTest(
 
     private async Task VerifyDownloadAsync(FilesOptions filesOptions, CancellationToken cancellationToken)
     {
-        await using Stream download = await _storage.DownloadAsync(GetObjectKey(filesOptions), cancellationToken).ConfigureAwait(false);
+        await using Stream download = await storage.DownloadAsync(GetObjectKey(filesOptions), cancellationToken).ConfigureAwait(false);
         byte[] buffer = ArrayPool<byte>.Shared.Rent(Payload.Length);
         try
         {
@@ -124,7 +105,7 @@ public sealed class ObjectStorageStartupSelfTest(
         int sliceOffset = 5;
         int sliceLength = 7;
         await using MemoryStream sliceBuffer = new();
-        await _storage.StreamToAsync(
+        await storage.StreamToAsync(
             GetObjectKey(filesOptions),
             sliceBuffer,
             sliceOffset,
@@ -141,6 +122,34 @@ public sealed class ObjectStorageStartupSelfTest(
         if (!Payload.AsSpan(sliceOffset, sliceLength).SequenceEqual(slice))
         {
             throw new IOException("Self-test seek returned unexpected payload slice.");
+        }
+    }
+    private async Task VerifyRemoveAsync(FilesOptions filesOptions, CancellationToken cancellationToken)
+    {
+        string objectKey = GetObjectKey(filesOptions);
+        await storage.RemoveAsync(objectKey, cancellationToken).ConfigureAwait(false);
+        bool exists = await storage.ExistsAsync(objectKey, cancellationToken).ConfigureAwait(false);
+        if (exists)
+        {
+            throw new IOException($"Self-test object '{objectKey}' still exists after removal.");
+        }
+    }
+
+    private async Task CleanupAsync(string objectKey, FilesOptions filesOptions, CancellationToken cancellationToken)
+    {
+        try
+        {
+            if (await storage.ExistsAsync(objectKey, cancellationToken).ConfigureAwait(false))
+            {
+                await storage.RemoveAsync(objectKey, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch (System.Exception)
+        {
+            throw;
         }
     }
 
@@ -168,8 +177,8 @@ public sealed class ObjectStorageStartupSelfTest(
 
         ObjectStorageMiddleware middleware = new(
             _ => Task.CompletedTask,
-            _minioClient,
-            _httpClientFactory,
+            minioClient,
+            httpClientFactory,
             NullLogger<ObjectStorageMiddleware>.Instance);
 
         await middleware.InvokeAsync(context).ConfigureAwait(false);
@@ -196,40 +205,9 @@ public sealed class ObjectStorageStartupSelfTest(
             throw new IOException("Object storage middleware returned unexpected payload during self-test.");
         }
     }
-
-    private async Task VerifyRemoveAsync(FilesOptions filesOptions, CancellationToken cancellationToken)
-    {
-        string objectKey = GetObjectKey(filesOptions);
-        await _storage.RemoveAsync(objectKey, cancellationToken).ConfigureAwait(false);
-        bool exists = await _storage.ExistsAsync(objectKey, cancellationToken).ConfigureAwait(false);
-        if (exists)
-        {
-            throw new IOException($"Self-test object '{objectKey}' still exists after removal.");
-        }
-    }
-
-    private async Task CleanupAsync(string objectKey, FilesOptions filesOptions, CancellationToken cancellationToken)
-    {
-        try
-        {
-            if (await _storage.ExistsAsync(objectKey, cancellationToken).ConfigureAwait(false))
-            {
-                await _storage.RemoveAsync(objectKey, cancellationToken).ConfigureAwait(false);
-            }
-        }
-        catch (OperationCanceledException)
-        {
-            throw;
-        }
-        catch (System.Exception ex)
-        {
-            _logger.LogWarning(ex, "Failed to clean up self-test object {ObjectKey}.", objectKey);
-        }
-    }
-
     private string BuildRequestPath()
     {
-        string uploadPath = _filesOptions.CurrentValue?.UploadPath?.Trim('/') ?? string.Empty;
+        string uploadPath = filesOptions.CurrentValue?.UploadPath?.Trim('/') ?? string.Empty;
         return string.IsNullOrEmpty(uploadPath)
             ? $"/{SelfTestFileName}"
             : $"/{uploadPath}/{SelfTestFileName}";

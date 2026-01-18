@@ -5,7 +5,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Models;
-using Vitarish.Main.Infrastructure.BackgroundJobs;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Infrastructure.Services;
@@ -15,6 +14,7 @@ using Vitarish.Sea.Domain.Enums;
 using Vitarish.Entities.Server.Models;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
+using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 
 namespace Main.Tests.Infrastructure.BackgroundJobs;
 
@@ -119,7 +119,7 @@ public class ReminderProcessorTests : IDisposable
             .ReturnsAsync(Array.Empty<ReminderDto>());
 
         // Act
-        await sut.ProcessDueReminders(mockCancellationToken.Object);
+        await sut.ProcessDueReminders();
 
         // Assert
         mockEventsService.Verify(
@@ -149,7 +149,7 @@ public class ReminderProcessorTests : IDisposable
             .ReturnsAsync(EntityResult<EventDto>.Success(evt));
 
         // Act
-        await sut.ProcessDueReminders(mockCancellationToken.Object);
+        await sut.ProcessDueReminders();
 
         // Assert
         mockMessagesService.Verify(
@@ -192,7 +192,7 @@ public class ReminderProcessorTests : IDisposable
             .ReturnsAsync(new SmsSendResult("msg-123", null, 0, null, null, null, null));
 
         // Act
-        await sut.ProcessDueReminders(mockCancellationToken.Object);
+        await sut.ProcessDueReminders();
 
         // Assert
         mockMessagesService.Verify(
@@ -231,7 +231,7 @@ public class ReminderProcessorTests : IDisposable
             .ReturnsAsync(EntityResult<EventDto>.Success(evt));
 
         // Act
-        await sut.ProcessDueReminders(mockCancellationToken.Object);
+        await sut.ProcessDueReminders();
 
         // Assert
         mockMessagesService.Verify(
@@ -270,7 +270,7 @@ public class ReminderProcessorTests : IDisposable
             .ReturnsAsync(new SmsSendResult(string.Empty, null, 0, null, null, null, null));
 
         // Act
-        await sut.ProcessDueReminders(mockCancellationToken.Object);
+        await sut.ProcessDueReminders();
 
         // Assert
         mockRemindersService.Verify(
@@ -301,7 +301,7 @@ public class ReminderProcessorTests : IDisposable
             .ReturnsAsync(EntityResult<EventDto>.Success(evt));
 
         // Act
-        await sut.ProcessDueReminders(mockCancellationToken.Object);
+        await sut.ProcessDueReminders();
 
         // Assert
         mockMessagesService.Verify(
@@ -353,7 +353,7 @@ public class ReminderProcessorTests : IDisposable
             });
 
         // Act
-        await sut.ProcessDueReminders(mockCancellationToken.Object);
+        await sut.ProcessDueReminders();
 
         // Assert
         mockRemindersService.Verify(x => x.GetDueAsync(now, It.IsAny<CancellationToken>()), Times.Exactly(2));

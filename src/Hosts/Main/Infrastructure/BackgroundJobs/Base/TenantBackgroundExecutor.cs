@@ -2,13 +2,12 @@ using Hangfire;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 
-namespace Vitarish.Main.Infrastructure.BackgroundJobs;
+namespace Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 
 /// <summary>
 /// Executes background job work for each tenant, ensuring the request context is populated per tenant scope.
 /// </summary>
 public sealed class TenantBackgroundExecutor(
-    ILogger<TenantBackgroundExecutor> logger,
     IPartiesService partiesService,
     IServiceScopeFactory serviceScopeFactory)
 {
@@ -18,26 +17,24 @@ public sealed class TenantBackgroundExecutor(
     /// Iterates all tenants and runs the provided action in a scoped context per tenant.
     /// </summary>
     /// <param name="resourceId">The resource identifier to place in the request context.</param>
-    /// <param name="jobCancellationToken">The Hangfire job cancellation token.</param>
+    /// <param name="cancellationToken">The Hangfire job cancellation token.</param>
     /// <param name="perTenantAsync">The action to execute for each tenant.</param>
     /// <param name="cancellationToken">An optional cancellation token.</param>
     public async Task ExecutePerTenantAsync(
         string resourceId,
-        IJobCancellationToken jobCancellationToken,
-        Func<IServiceProvider, IJobCancellationToken, CancellationToken, Task> perTenantAsync,
+        Func<IServiceProvider, CancellationToken, Task> perTenantAsync,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(resourceId);
-        ArgumentNullException.ThrowIfNull(jobCancellationToken);
         ArgumentNullException.ThrowIfNull(perTenantAsync);
 
-        jobCancellationToken.ThrowIfCancellationRequested();
+        cancellationToken.ThrowIfCancellationRequested();
 
         IEnumerable<Tenant> tenants = await partiesService.GetTenantsAsync(cancellationToken);
 
         foreach (Tenant tenant in tenants)
         {
-            jobCancellationToken.ThrowIfCancellationRequested();
+            cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
@@ -46,15 +43,10 @@ public sealed class TenantBackgroundExecutor(
                 IRequestContextWriter contextWriter = scope.ServiceProvider.GetRequiredService<IRequestContextWriter>();
                 InitializeRequestContext(contextWriter, resourceId, tenant);
 
-                using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-                    jobCancellationToken.ShutdownToken,
-                    cancellationToken);
-
-                await perTenantAsync(scope.ServiceProvider, jobCancellationToken, linkedCts.Token);
+                await perTenantAsync(scope.ServiceProvider, cancellationToken);
             }
-            catch (Exception ex) when (ex is not OperationCanceledException)
+            catch
             {
-                logger.LogError(ex, "Failed to process tenant '{TenantId}' ({TenantName}).", tenant.Id, tenant.Name);
             }
         }
     }
@@ -65,5 +57,5 @@ public sealed class TenantBackgroundExecutor(
             ownerId: tenant.OwnerId.ToString(),
             tenantId: tenant.Id.ToString(),
             resourceId: resourceId,
-            requestId: $"hangfire-{resourceId}-{Guid.NewGuid()}");
+            requestId: Guid.NewGuid().ToString());
 }

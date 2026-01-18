@@ -13,7 +13,20 @@ public abstract class ModuleBase : IModule
 {
     /// <inheritdoc />
     public abstract string Name { get; }
-
+    private bool isAvailable;
+    public bool IsAvailable
+    {
+        get => isAvailable;
+        set
+        {
+            if (isAvailable != value)
+            {
+                AvailabilityChanged?.Invoke(value);
+            }
+            isAvailable = value;
+        }
+    }
+    public event Action<bool>? AvailabilityChanged;
     /// <inheritdoc />
     public async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
@@ -39,7 +52,7 @@ public abstract class ModuleBase : IModule
         IServiceCollection services,
         IConfiguration configuration,
         Action<DbContextOptionsBuilder>? configureDbContext)
-    {    }
+    { }
 
     /// <summary>
     /// Configures HTTP endpoints for the module. Override to map module-specific routes.

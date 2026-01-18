@@ -11,7 +11,7 @@ public interface IModule
     /// <summary>
     /// Gets the unique name identifier for this module.
     /// </summary>
-    string Name { get; }
+    string Name { get;  }
 
     /// <summary>
     /// Registers module services and configuration with the application builder.
@@ -29,4 +29,7 @@ public interface IModule
     /// <param name="endpoints">The endpoint route builder.</param>
     /// <returns>A task that completes when endpoint mapping is done.</returns>
     Task MapEndpoints(IEndpointRouteBuilder endpoints);
+
+    bool IsAvailable { get; set; }
+    event Action<bool> AvailabilityChanged;
 }

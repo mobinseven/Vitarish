@@ -5,7 +5,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Hosting.Hubs;
-using Vitarish.Intelligence.Infrastructure.Services;
 using Vitarish.Intelligence.Infrastructure.Services.Dispatching;
 using Vitarish.Intelligence.Interface.DependencyInjection;
 using Vitarish.Modules.Base;
@@ -26,11 +25,12 @@ public class IntelligenceModule : ModuleBase
         IConfiguration configuration,
         Action<DbContextOptionsBuilder>? configureDbContext)
     {
+        _ = services.AddSingleton<IntelligenceModule>();
         _ = services.AddSingleton<ModelRegistry>();
         _ = services.AddTransient<IResponder, ProviderDispatchingResponder>();
         _ = services.AddSingleton<ITranscriber, ProviderDispatchingTranscriber>();
         _ = services.AddAntiforgery();
-        services.ConfigureIntelligenceInterface();
+        _ = services.ConfigureIntelligenceInterface();
     }
 
     /// <inheritdoc />
@@ -44,6 +44,4 @@ public class IntelligenceModule : ModuleBase
     protected override void ConfigureHealthChecks(WebApplicationBuilder builder) =>
         builder.Services.AddHealthChecks();
 
-    /// <inheritdoc />
-    protected override void ConfigureSelfTests(WebApplicationBuilder builder) => builder.Services.AddHostedService<IntelligenceStartupSelfTest>();
 }
