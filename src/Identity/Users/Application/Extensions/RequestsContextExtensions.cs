@@ -5,11 +5,11 @@ public static class RequestsContextExtensions
 {
     extension(IRequestContext context)
     {
-        public bool IsTenantAdmin() => context.User?.IsInRole($"{context.TenantId}:{IdentityAccessConstants.Admin}") ?? false;
-        public bool IsTenantOwner() => context.User?.IsInRole($"{context.TenantId}:{IdentityAccessConstants.Owner}") ?? false;
-        public bool IsTenantUser() => context.User?.IsInRole($"{context.TenantId}:{IdentityAccessConstants.User}") ?? false;
-        public string GetTenantUserRole() => $"{context.TenantId}:{IdentityAccessConstants.User}";
-        public string GetTenantAdminRole() => $"{context.TenantId}:{IdentityAccessConstants.Admin}";
-        public string GetTenantOwnerRole() => $"{context.TenantId}:{IdentityAccessConstants.Owner}";
+        public bool IsTenantAdmin() => context.User?.IsInRole($"{context.TenantId}:{IdentityAccessConstants.TenantAdmin}") ?? false;
+        public bool IsTenantOwner() => context.User?.IsInRole($"{context.TenantId}:{IdentityAccessConstants.TenantOwner}") ?? false;
+        public bool IsTenantUser() => context.User?.IsInRole($"{context.TenantId}:{IdentityAccessConstants.TenantUser}") ?? false;
+        public string GetTenantUserRole() => $"{context.TenantId}:{IdentityAccessConstants.TenantUser}";
+        public string GetTenantAdminRole() => $"{context.TenantId}:{IdentityAccessConstants.TenantAdmin}";
+        public string GetTenantOwnerRole() => $"{context.TenantId}:{IdentityAccessConstants.TenantOwner}";
     }
 }
