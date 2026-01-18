@@ -1,5 +1,6 @@
 namespace Vitarish.Interfaces.Base.Localization;
 
+[RegisterSingleton]
 public class CustomMudLocalizer(IStringLocalizer localizer) : MudLocalizer
 {
     public override LocalizedString this[string key] => localizer[key];

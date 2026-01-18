@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Localization;
+using Microsoft.Extensions.Localization;
 using System.Globalization;
 using Vitarish.Accounts.Domain.Constants;
 using Vitarish.Accounts.Infrastructure.Extensions;
@@ -27,8 +28,6 @@ public static class WebApplicationBuilderExtensions
         });
 
         _ = builder.Services.AddLocalization();
-        _ = builder.Services.AddSingleton<IStringLocalizer>(sp => sp.GetRequiredService<IStringLocalizer<Vitarish.Interfaces.Base.Localization.Strings>>());
-        _ = builder.Services.AddSingleton<MudLocalizer, CustomMudLocalizer>();
 
         _ = builder.Services.Configure<RequestLocalizationOptions>(options =>
         {
