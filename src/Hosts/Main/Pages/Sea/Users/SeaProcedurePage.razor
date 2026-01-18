@@ -24,6 +24,16 @@
 
     private bool markedAsRead;
 
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if(procedureId is null)
+        {
+            return;
+        }
+        RenderForId(procedureId);
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         if(UserId is null)
