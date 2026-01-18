@@ -1,4 +1,7 @@
-namespace Vitarish.Interfaces.Base.Common;
+using Vitarish.Interfaces.Base.Abstractions;
+using Vitarish.Interfaces.Base.Models;
+
+namespace Vitarish.Interfaces.Base.Services;
 
 [RegisterSingleton]
 internal class RenderNotifier : IRenderNotifier
@@ -16,7 +19,7 @@ internal class RenderNotifier : IRenderNotifier
 
     public async Task TriggerEvent(RenderNotification message) => Parallel.ForEach(observers, (o, CancellationToken) => o.Value.OnNext(message));
 
-    public async Task Notify(string content)
+    public async Task Notify(object? content)
     {
         RenderNotification renderNotification = new()
         {
@@ -30,19 +33,4 @@ internal class RenderNotifier : IRenderNotifier
     {
         public void Dispose() => observers.TryRemove(new KeyValuePair<Guid, IRenderNotificationReceiver>(observer.Id, observer));
     }
-}
-
-public class RenderNotification
-{
-    public string Content { get; set; } = string.Empty;
-}
-public interface IRenderNotifier
-{
-    Task Notify(string content);
-    IDisposable Subscribe(IRenderNotificationReceiver observer);
-}
-
-public interface IRenderNotificationReceiver : IObserver<RenderNotification>
-{
-    Guid Id { get; }
 }

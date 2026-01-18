@@ -1,4 +1,7 @@
+using Vitarish.Entities.Server.Models;
 using Vitarish.Interfaces.Base.Abstractions;
+using Vitarish.Interfaces.Base.Models;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Interfaces.Base.Common;
 
@@ -7,6 +10,7 @@ public class CommonBase : ComponentBase, IDisposable, IRenderNotificationReceive
     protected string? SearchString { get; set; }
 
     public Guid Id { get; private set; } = Guid.NewGuid();
+    [Inject] protected IRequestContext RequestContext { get; set; } = default!;
     [Inject] protected IStringLocalizer Localizer { get; set; } = default!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
     [Inject] protected IDialogService DialogService { get; set; } = default!;
@@ -16,10 +20,13 @@ public class CommonBase : ComponentBase, IDisposable, IRenderNotificationReceive
     [Inject] protected INavService NavService { get; set; } = default!;
     [CascadingParameter] public Breakpoint? PageBreakpoint { get; set; }
 
-    protected bool firstRenderDone;
     private readonly IList<Type> registeredTypes = [];
-    private IDisposable? subscription;
+    private readonly IList<string> registeredIds = [];
     protected void RenderForType<T>() => registeredTypes.Add(typeof(T));
+    protected void RenderForId(string id) => registeredIds.Add(id);
+
+    protected bool firstRenderDone;
+    private IDisposable? subscription;
     protected override void OnInitialized()
     {
         subscription = RenderNotifier.Subscribe(this);
@@ -28,12 +35,18 @@ public class CommonBase : ComponentBase, IDisposable, IRenderNotificationReceive
         _ = UpdateSearchFromUri(NavigationManager.Uri);
     }
     protected virtual Task ReloadRequired() => Task.CompletedTask;
-    private async void RenderNotificationReceived(object? sender, RenderNotification notification)
+
+    protected virtual async void RenderNotificationReceived(object? sender, RenderNotification notification)
     {
-        bool shouldRender = registeredTypes.Any(t => t.Name.StartsWith(notification.Content));
-        if (shouldRender)
+        if (notification.Content is EntityNotificationArgs entityNotification)
         {
-            await InvokeAsync(ReloadRequired);
+            bool typeAndTenant = registeredTypes.Any(t => t.Name.StartsWith(entityNotification.EntityName) && entityNotification.CorrelationId == RequestContext.TenantId);
+            bool entityId = registeredIds.Any(id => entityNotification.Id == id);
+
+            if (typeAndTenant || entityId)
+            {
+                await InvokeAsync(ReloadRequired);
+            }
         }
     }
     protected override void OnAfterRender(bool firstRender)
