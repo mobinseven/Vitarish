@@ -1,11 +1,13 @@
 using Duende.IdentityServer.EntityFramework.DbContexts;
 using Finbuckle.MultiTenant;
+using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 using Vitarish.ApiClients.Hosting.DependencyInjection;
 using Vitarish.ApiClients.Infrastructure.Data;
 using Vitarish.AuthenticationClients.Infrastructure.Data;
 using Vitarish.Communications.Hosting;
+using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Entities.Server.Services;
 using Vitarish.Files.Hosting;
 using Vitarish.Files.Infrastructure.Data;
@@ -15,6 +17,7 @@ using Vitarish.Main.Authorization;
 using Vitarish.Main.Components;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
+using Vitarish.Main.Infrastructure.Handlers;
 using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Modules.Base;
@@ -135,6 +138,8 @@ builder.Services.AddSingleton<IPackageProvider, PackageProvider>();
 builder.Services.AddScoped<EntityDataProvider>();
 builder.Services.AddScoped<IEntityUserService>(sp => sp.GetRequiredService<EntityDataProvider>());
 builder.Services.AddScoped<IEntityTimeService>(sp => sp.GetRequiredService<EntityDataProvider>());
+
+builder.Services.AddSingleton<INotificationHandler<EntityNotification>, EntityNotificationHandler>();
 
 WebApplication app = builder.Build();
 
