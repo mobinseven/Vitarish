@@ -39,11 +39,13 @@ public partial class EventsGrid : EventsBase
     private async Task AddEventAt(Guid? previousEventId)
     {
         EventDto? created = await EventsService.AddAsync(Project.Id, Procedure.Id, previousEventId, CancellationToken.None);
-
         if (created is not null)
         {
-            await ReloadData();
-            await EditEvent(created);
+            EventDto? updated = await EventsService.UpdateAsync(created.Id, $"{Localizer["Event"]} {events.Count}", string.Empty, CancellationToken.None);
+            if (updated is not null)
+            {
+                await EditEvent(updated);
+            }
         }
     }
 
@@ -54,7 +56,7 @@ public partial class EventsGrid : EventsBase
             { nameof(EventEditDialog.Event), item }
         };
 
-        _ = await DialogService.ShowAsync<EventEditDialog>(Localizer["Event"], parameters);
+        _ = await DialogService.ShowAsync<EventEditDialog>(null, parameters);
     }
 
 
