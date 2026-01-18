@@ -33,6 +33,11 @@
         Guid.TryParse(procedureId, out ProcedureId);
         Guid.TryParse(eventId, out EventId);
 
+        await ReloadRequired();
+    }
+
+    protected override async Task ReloadRequired()
+    {
         Project = await ProjectsService.GetAsync(ProjectId, CancellationToken.None).GetValueOrDefaultAsync();
         if(Project is null)
         {
@@ -56,11 +61,11 @@
             return;
         }
 
-        NavService.OverridePageTitle(projectId, Project.Name);
-        NavService.OverridePageTitle(procedureId, Procedure.Name);
-        NavService.OverridePageTitle(eventId, Event.Title);
+        NavService.OverridePageTitle(Project.Id.ToString(), Project.Name);
+        NavService.OverridePageTitle(Procedure.Id.ToString(), Procedure.Name);
+        NavService.OverridePageTitle(Event.Id.ToString(), Event.Title);
 
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

@@ -12,7 +12,7 @@
 
     <ProjectDetails Project="@Project"
                     OnProcedureAdded="@(procedureId => NavigationManager.NavigateTo($"/sea/projects/{projectId}/{procedureId}"))"
-                    OnEdit="@(() => NavigationManager.NavigateTo($"/sea/projects/{projectId}"))"
+                    
                     OnDelete="@(() => NavigationManager.NavigateTo("/sea/projects"))" />
 
 </CascadingValue>
@@ -28,14 +28,31 @@
 
     bool markedAsRead;
 
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if(projectId is null)
+        {
+            return;
+        }
+        RenderForId(projectId);
+    }
+
     protected override async Task OnParametersSetAsync()
     {
-        if(userId is null)
+        if(projectId is null)
         {
             return;
         }
 
         Guid.TryParse(projectId, out ProjectId);
+
+        await ReloadRequired();
+    }
+
+    protected override async Task ReloadRequired()
+    {
 
         Project = await ProjectsService.GetAsync(ProjectId, CancellationToken.None).GetValueOrDefaultAsync();
 
@@ -45,11 +62,9 @@
             return;
         }
 
-        NavService.OverridePageTitle(projectId, Project.Name);
+        NavService.OverridePageTitle(Project.Id.ToString(), Project.Name);
 
-        await ReceiptsService.MarkProjectReadAsync(userId.Value, ProjectId, CancellationToken.None);
-
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
