@@ -1,4 +1,4 @@
-namespace Vitarish.Sea.Interface.Components.Events.Plugins;
+namespace Vitarish.Sea.Interface.Components.Plugins;
 
 public record EventItemPlugin(
     ProjectDto Project,
@@ -30,7 +30,7 @@ public enum EventItemCreationPlacement
     Main,
     Action
 }
-public interface IEventItemCreationPlugin : IPlugin<EventItemCreationContext>
+public interface IEventItemCreationPlugin : Plugin<EventItemCreationContext>
 {
     EventItemCreationPlacement Placement { get; }
 }

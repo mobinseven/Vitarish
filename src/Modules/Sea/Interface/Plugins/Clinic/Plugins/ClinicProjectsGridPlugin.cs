@@ -1,14 +1,11 @@
-namespace Vitarish.Sea.Interface.Plugins.Clinic.Projects;
+using Vitarish.Sea.Interface.Plugins.Clinic.Projects;
+
+namespace Vitarish.Sea.Interface.Plugins.Clinic.Plugins;
 
 internal class ClinicProjectsGridPlugin : IProjectsGridPlugin
 {
     public string Id => SeaPluginIdentifiers.Clinic;
 
-    public string DisplayName => nameof(ClinicProjectsGridPlugin);
-
-    public string? Description => nameof(ClinicProjectsGridPlugin);
-
-    public bool IsAvailable(ProjectsGridPlugin context) => true;
     public RenderFragment Render(ProjectsGridPlugin context) => builder =>
     {
         builder.OpenComponent<ClinicProjectsGrid>(0);

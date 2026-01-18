@@ -1,4 +1,4 @@
-namespace Vitarish.Sea.Interface.Components.Roles;
+namespace Vitarish.Sea.Interface.Components.Base;
 
 public class RolesBase : SeaCommonBase
 {

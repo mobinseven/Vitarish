@@ -24,6 +24,11 @@ public sealed class ClinicProjectMetadataModel(Action onChanged)
         get;
         set => SetField(ref field, value);
     }
+    public DateTime? DateOfSurgery
+    {
+        get;
+        set => SetField(ref field, value);
+    }
 
     public Gender Gender
     {
@@ -121,6 +126,7 @@ public sealed class ClinicProjectMetadataModel(Action onChanged)
         FirstName = metadata.FirstName;
         LastName = metadata.LastName;
         DateOfBirth = metadata.DateOfBirth;
+        DateOfSurgery = metadata.DateOfSurgery;
         Gender = metadata.Gender;
         Email = metadata.Email;
         Phone = metadata.Phone;

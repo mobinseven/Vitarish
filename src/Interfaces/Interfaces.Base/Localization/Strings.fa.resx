@@ -190,7 +190,7 @@
     <value>ثبت انجام شده توسط</value>
   </data>
   <data name="Confirm" xml:space="preserve">
-    <value>تایید</value>
+    <value>تأیید جزئیات</value>
   </data>
   <data name="ConfirmationQuestion" xml:space="preserve">
     <value>آیا مطمئن هستید؟</value>
@@ -244,7 +244,7 @@
     <value>ویرایش پرونده به معنی ویرایش روندهای آن و دیگر جزییاتش است</value>
   </data>
   <data name="Email" xml:space="preserve">
-    <value>رایانامه</value>
+    <value>ایمیل</value>
   </data>
   <data name="Event" xml:space="preserve">
     <value>رویداد</value>
@@ -319,7 +319,7 @@
     <value>بدون گروه پاسخگو (تنها مدیر این گزارش را میبیند)</value>
   </data>
   <data name="Notes" xml:space="preserve">
-    <value>یادداشت پیوست</value>
+    <value>یادداشت‌های بالینی</value>
   </data>
   <data name="NotFound" xml:space="preserve">
     <value>یافت نشد</value>
@@ -518,12 +518,6 @@
   <data name="ReminderSignature" xml:space="preserve">
     <value>امضای یادآوری</value>
   </data>
-  <data name="ProjectGridCellDisplay" xml:space="preserve">
-    <value>نمایش سلول جدول پروژه</value>
-  </data>
-  <data name="ProjectGridCellDisplayAutomatic" xml:space="preserve">
-    <value>استفاده از انتخاب خودکار</value>
-  </data>
   <data name="PreferredChatModel" xml:space="preserve">
     <value>مدل چت ترجیحی</value>
   </data>
@@ -629,18 +623,6 @@
   <data name="Unread" xml:space="preserve">
     <value>خوانده نشده</value>
   </data>
-  <data name="GetAttachmentsAsync" xml:space="preserve">
-    <value>پیوست کنید</value>
-  </data>
-  <data name="GetAttachmentsAsyncHelpText" xml:space="preserve">
-    <value>پیوست ها را برای رویداد مشخص شده بازیابی می کند.</value>
-  </data>
-  <data name="GetAttachmentsCountAsync" xml:space="preserve">
-    <value>تعداد پیوست ها را دریافت کنید</value>
-  </data>
-  <data name="GetAttachmentsCountAsyncHelpText" xml:space="preserve">
-    <value>تعداد پیوست ها را برای رویداد مشخص شده دریافت می کند.</value>
-  </data>
   <data name="AddAttachmentAsync" xml:space="preserve">
     <value>پیوست را اضافه کنید</value>
   </data>
@@ -653,35 +635,11 @@
   <data name="AddAttachmentsAsyncHelpText" xml:space="preserve">
     <value>چندین ضمیمه را به یک رویداد اضافه می کند.</value>
   </data>
-  <data name="RemoveAttachmentAsync" xml:space="preserve">
-    <value>اتصال را حذف کنید</value>
-  </data>
-  <data name="RemoveAttachmentAsyncHelpText" xml:space="preserve">
-    <value>پیوست را از یک رویداد حذف می کند.</value>
-  </data>
-  <data name="UpdateAttachmentAsync" xml:space="preserve">
-    <value>پیوست به روزرسانی</value>
-  </data>
-  <data name="UpdateAttachmentAsyncHelpText" xml:space="preserve">
-    <value>محتوای یک پیوست موجود را به روز می کند.</value>
-  </data>
-  <data name="GetProceduresAsync" xml:space="preserve">
-    <value>رویه ها را دریافت کنید</value>
-  </data>
-  <data name="GetProceduresAsyncHelpText" xml:space="preserve">
-    <value>مراحل را توسط توصیف کننده بازیابی می کند.</value>
-  </data>
   <data name="AddProcedureAsync" xml:space="preserve">
     <value>روش اضافه کنید</value>
   </data>
   <data name="AddProcedureAsyncHelpText" xml:space="preserve">
     <value>یک روش جدید ایجاد می کند.</value>
-  </data>
-  <data name="UpdateProcedureAsync" xml:space="preserve">
-    <value>روش به روزرسانی</value>
-  </data>
-  <data name="UpdateProcedureAsyncHelpText" xml:space="preserve">
-    <value>یک روش موجود را به روز می کند.</value>
   </data>
   <data name="DeleteProcedureAsync" xml:space="preserve">
     <value>روش را حذف کنید</value>
@@ -695,47 +653,11 @@
   <data name="AddRemindersAsyncHelpText" xml:space="preserve">
     <value>یادآوری های یک رویداد را اضافه می کند.</value>
   </data>
-  <data name="UpdateReminderAsync" xml:space="preserve">
-    <value>یادآوری به روزرسانی</value>
-  </data>
-  <data name="UpdateReminderAsyncHelpText" xml:space="preserve">
-    <value>یادآوری موجود را به روز می کند.</value>
-  </data>
-  <data name="RemoveReminderAsync" xml:space="preserve">
-    <value>یادآوری را حذف کنید</value>
-  </data>
-  <data name="RemoveReminderAsyncHelpText" xml:space="preserve">
-    <value>یادآوری را حذف می کند.</value>
-  </data>
-  <data name="GetRemindersByEventAsync" xml:space="preserve">
-    <value>یادآوری را با رویداد دریافت کنید</value>
-  </data>
-  <data name="GetRemindersByEventAsyncHelpText" xml:space="preserve">
-    <value>یادآوری یادآوری برای یک رویداد.</value>
-  </data>
-  <data name="GetDueRemindersAsync" xml:space="preserve">
-    <value>یادآوری های لازم را دریافت کنید</value>
-  </data>
-  <data name="GetDueRemindersAsyncHelpText" xml:space="preserve">
-    <value>یادآوری یادآوری ها را به یک زمان بازیابی می کند.</value>
-  </data>
   <data name="MarkReminderSentAsync" xml:space="preserve">
     <value>یادآوری ارسال شده</value>
   </data>
   <data name="MarkReminderSentAsyncHelpText" xml:space="preserve">
     <value>یادآوری را به عنوان ارسال شده نشان می دهد.</value>
-  </data>
-  <data name="GetEventsByProcedureAsync" xml:space="preserve">
-    <value>با رویه رویدادها را دریافت کنید</value>
-  </data>
-  <data name="GetEventsByProcedureAsyncHelpText" xml:space="preserve">
-    <value>رویدادها را برای یک روش بازیابی می کند.</value>
-  </data>
-  <data name="GetEventAsync" xml:space="preserve">
-    <value>رویداد را دریافت کنید</value>
-  </data>
-  <data name="GetEventAsyncHelpText" xml:space="preserve">
-    <value>توسط شناسه خود رویدادی می شود.</value>
   </data>
   <data name="AddEventAsync" xml:space="preserve">
     <value>رویداد را اضافه کنید</value>
@@ -743,59 +665,11 @@
   <data name="AddEventAsyncHelpText" xml:space="preserve">
     <value>یک رویداد جدید ایجاد می کند.</value>
   </data>
-  <data name="UpdateEventAsync" xml:space="preserve">
-    <value>رویداد به روزرسانی</value>
-  </data>
-  <data name="UpdateEventAsyncHelpText" xml:space="preserve">
-    <value>یک رویداد موجود را به روز می کند.</value>
-  </data>
-  <data name="UpdateEventChainAsync" xml:space="preserve">
-    <value>زنجیره رویداد را به روز کنید</value>
-  </data>
-  <data name="UpdateEventChainAsyncHelpText" xml:space="preserve">
-    <value>ترتیب زنجیره وقایع را در یک روش به روز می کند.</value>
-  </data>
   <data name="CommitEventAsync" xml:space="preserve">
     <value>مرتکب</value>
   </data>
   <data name="CommitEventAsyncHelpText" xml:space="preserve">
     <value>مرتکب یک رویداد می شود.</value>
-  </data>
-  <data name="GetEventRemindersCountAsync" xml:space="preserve">
-    <value>یادآوری رویداد را دریافت کنید</value>
-  </data>
-  <data name="GetEventRemindersCountAsyncHelpText" xml:space="preserve">
-    <value>تعداد یادآوری های یک رویداد را دریافت می کند.</value>
-  </data>
-  <data name="GetUsageConfigurationAsync" xml:space="preserve">
-    <value>پیکربندی استفاده را دریافت کنید</value>
-  </data>
-  <data name="GetUsageConfigurationAsyncHelpText" xml:space="preserve">
-    <value>پیکربندی استفاده فعلی را بازیابی می کند.</value>
-  </data>
-  <data name="UpdateUsageConfigurationAsync" xml:space="preserve">
-    <value>پیکربندی استفاده را به روز کنید</value>
-  </data>
-  <data name="UpdateUsageConfigurationAsyncHelpText" xml:space="preserve">
-    <value>پیکربندی استفاده به روزرسانی.</value>
-  </data>
-  <data name="GetProjectsAsync" xml:space="preserve">
-    <value>پروژه ها را بدست آورید</value>
-  </data>
-  <data name="GetProjectsAsyncHelpText" xml:space="preserve">
-    <value>پروژه ها را با توضیحات بازیابی می کند.</value>
-  </data>
-  <data name="GetProjectsCountAsync" xml:space="preserve">
-    <value>تعداد پروژه ها را بدست آورید</value>
-  </data>
-  <data name="GetProjectsCountAsyncHelpText" xml:space="preserve">
-    <value>تعداد پروژه ها را دریافت می کند.</value>
-  </data>
-  <data name="GetProjectAsync" xml:space="preserve">
-    <value>پروژه را دریافت کنید</value>
-  </data>
-  <data name="GetProjectAsyncHelpText" xml:space="preserve">
-    <value>توسط شناسه خود یک پروژه دریافت می کند.</value>
   </data>
   <data name="AddProjectAsync" xml:space="preserve">
     <value>پروژه را اضافه کنید</value>
@@ -803,20 +677,8 @@
   <data name="AddProjectAsyncHelpText" xml:space="preserve">
     <value>یک پروژه جدید ایجاد می کند.</value>
   </data>
-  <data name="UpdateProjectAsync" xml:space="preserve">
-    <value>پروژه به روزرسانی</value>
-  </data>
-  <data name="UpdateProjectAsyncHelpText" xml:space="preserve">
-    <value>یک پروژه موجود را به روز می کند.</value>
-  </data>
-  <data name="RemoveProjectAsync" xml:space="preserve">
-    <value>حذف پروژه</value>
-  </data>
-  <data name="RemoveProjectAsyncHelpText" xml:space="preserve">
-    <value>یک پروژه را حذف می کند.</value>
-  </data>
   <data name="Committed" xml:space="preserve">
-    <value>ثبت شده</value>
+    <value>انجام شده</value>
   </data>
   <data name="Attach" xml:space="preserve">
     <value>پیوستن</value>
@@ -880,7 +742,7 @@
     <value>ثبت انجام شده توسط {0}</value>
   </data>
   <data name="UncommittedByName" xml:space="preserve">
-    <value>لغو وضعیت ثبت توسط {0}</value>
+    <value>لغو وضعیت انجام شده توسط {0}</value>
   </data>
   <data name="ReaderRoles" xml:space="preserve">
     <value>نقشهای بیننده</value>
@@ -893,5 +755,209 @@
   </data>
   <data name="ReaderRolesHelp" xml:space="preserve">
     <value>کاربرانی که یکی از این نقشها را دارند میتوانند این رویداد و جزئیاتش را ببینند.</value>
+  </data>
+  <data name="SurgeryDateDesc" xml:space="preserve">
+    <value>تاریخ عمل (جدید به قدیم)</value>
+  </data>
+  <data name="SurgeryDate" xml:space="preserve">
+    <value>تاریخ عمل (قدیم به جدید)</value>
+  </data>
+  <data name="DateOf" xml:space="preserve">
+    <value>تاریخ {0}</value>
+  </data>
+  <data name="Surgery" xml:space="preserve">
+    <value>عمل</value>
+  </data>
+  <data name="SortBy" xml:space="preserve">
+    <value>ترتیب</value>
+  </data>
+  <data name="RegisterClinicPatient" xml:space="preserve">
+    <value>ثبت بیمار کلینیک</value>
+  </data>
+  <data name="SwitchToManual" xml:space="preserve">
+    <value>ورود دستی اطلاعات بیمار</value>
+  </data>
+  <data name="SwitchToAi" xml:space="preserve">
+    <value>استفاده از گردش کار هوش مصنوعی</value>
+  </data>
+  <data name="ManualEntry" xml:space="preserve">
+    <value>جزئیات بیمار را به صورت دستی وارد کنید</value>
+  </data>
+  <data name="PatientDescription" xml:space="preserve">
+    <value>توضیحات بیمار</value>
+  </data>
+  <data name="DescribePatient" xml:space="preserve">
+    <value>بیمار را توصیف کنید</value>
+  </data>
+  <data name="DescribePatientHelp" xml:space="preserve">
+    <value>اطلاعات پس‌زمینه، علائم، وضعیت بیمه و سایر جزئیات پذیرش را برای راهنمایی دستیار هوش مصنوعی ارائه کنید.</value>
+  </data>
+  <data name="Generate" xml:space="preserve">
+    <value>تولید</value>
+  </data>
+  <data name="Generating" xml:space="preserve">
+    <value>در حال تولید...</value>
+  </data>
+  <data name="GeneratingHelp" xml:space="preserve">
+    <value>دستیار هوش مصنوعی توضیحات شما را به فراداده ساختاریافته پذیرش کلینیک تبدیل می‌کند.</value>
+  </data>
+  <data name="Processing" xml:space="preserve">
+    <value>در حال پردازش...</value>
+  </data>
+  <data name="GenerationDone" xml:space="preserve">
+    <value>تولید فراداده کامل شد. قبل از ادامه جزئیات را بررسی کنید.</value>
+  </data>
+  <data name="Review" xml:space="preserve">
+    <value>بررسی جزئیات</value>
+  </data>
+  <data name="ReviewHelp" xml:space="preserve">
+    <value>اطلاعات را بررسی و در صورت نیاز ویرایش کنید</value>
+  </data>
+  <data name="MetadataAppearsAfterApply" xml:space="preserve">
+    <value>اطلاعات بیمار پس از اعمال فراداده معتبر در اینجا نمایش داده می‌شود.</value>
+  </data>
+  <data name="Finish" xml:space="preserve">
+    <value>پایان</value>
+  </data>
+  <data name="ConfirmHelp" xml:space="preserve">
+    <value>خلاصه را بررسی کرده و پروژه پذیرش بیمار کلینیک را ایجاد کنید.</value>
+  </data>
+  <data name="ApplyValidMetadataBeforeFinish" xml:space="preserve">
+    <value>قبل از پایان، فراداده معتبر را اعمال کنید.</value>
+  </data>
+  <data name="Demographics" xml:space="preserve">
+    <value>اطلاعات جمعیت‌شناختی</value>
+  </data>
+  <data name="Contact" xml:space="preserve">
+    <value>تماس</value>
+  </data>
+  <data name="Insurance" xml:space="preserve">
+    <value>بیمه</value>
+  </data>
+  <data name="CareDetails" xml:space="preserve">
+    <value>جزئیات مراقبت</value>
+  </data>
+  <data name="EmergencyContact" xml:space="preserve">
+    <value>تماس اضطراری</value>
+  </data>
+  <data name="Administrative" xml:space="preserve">
+    <value>اداری</value>
+  </data>
+  <data name="ClinicalNotes" xml:space="preserve">
+    <value>یادداشت‌های بالینی</value>
+  </data>
+  <data name="FirstName" xml:space="preserve">
+    <value>نام</value>
+  </data>
+  <data name="LastName" xml:space="preserve">
+    <value>نام خانوادگی</value>
+  </data>
+  <data name="DateOfBirth" xml:space="preserve">
+    <value>تاریخ تولد</value>
+  </data>
+  <data name="Gender" xml:space="preserve">
+    <value>جنسیت</value>
+  </data>
+  <data name="Phone" xml:space="preserve">
+    <value>تلفن</value>
+  </data>
+  <data name="InsuranceProvider" xml:space="preserve">
+    <value>ارائه‌دهنده بیمه</value>
+  </data>
+  <data name="PolicyNumber" xml:space="preserve">
+    <value>شماره بیمه‌نامه</value>
+  </data>
+  <data name="PrimaryPhysician" xml:space="preserve">
+    <value>پزشک اصلی</value>
+  </data>
+  <data name="VisitReason" xml:space="preserve">
+    <value>دلیل مراجعه</value>
+  </data>
+  <data name="PreferredPharmacy" xml:space="preserve">
+    <value>داروخانه مورد نظر</value>
+  </data>
+  <data name="Allergies" xml:space="preserve">
+    <value>حساسیت‌ها</value>
+  </data>
+  <data name="CurrentMedications" xml:space="preserve">
+    <value>داروهای فعلی</value>
+  </data>
+  <data name="EmergencyContactName" xml:space="preserve">
+    <value>نام تماس اضطراری</value>
+  </data>
+  <data name="EmergencyContactPhone" xml:space="preserve">
+    <value>تلفن تماس اضطراری</value>
+  </data>
+  <data name="Department" xml:space="preserve">
+    <value>بخش</value>
+  </data>
+  <data name="ConsentToShareRecords" xml:space="preserve">
+    <value>رضایت برای اشتراک‌گذاری پرونده</value>
+  </data>
+  <data name="Female" xml:space="preserve">
+    <value>زن</value>
+  </data>
+  <data name="Male" xml:space="preserve">
+    <value>مرد</value>
+  </data>
+  <data name="Unspecified" xml:space="preserve">
+    <value>نامشخص</value>
+  </data>
+  <data name="Table_Field" xml:space="preserve">
+    <value>فیلد</value>
+  </data>
+  <data name="Table_Value" xml:space="preserve">
+    <value>مقدار</value>
+  </data>
+  <data name="ReviewDetails" xml:space="preserve">
+    <value>بررسی جزئیات بیمار</value>
+  </data>
+  <data name="ApplyAndContinue" xml:space="preserve">
+    <value>اعمال فراداده و ادامه</value>
+  </data>
+  <data name="GeneratePatientData" xml:space="preserve">
+    <value>تولید اطلاعات بیمار</value>
+  </data>
+  <data name="Finishing" xml:space="preserve">
+    <value>در حال پایان...</value>
+  </data>
+  <data name="FacilityWithName" xml:space="preserve">
+    <value>مرکز: {0}</value>
+  </data>
+  <data name="DepartmentWithName" xml:space="preserve">
+    <value>بخش: {0}</value>
+  </data>
+  <data name="ReadyToCreateProjectFor" xml:space="preserve">
+    <value>آماده ایجاد پروژه برای {0}.</value>
+  </data>
+  <data name="DescriptionRequired" xml:space="preserve">
+    <value>لطفاً قبل از درخواست دستیار هوش مصنوعی، توضیحاتی در مورد بیمار ارائه دهید.</value>
+  </data>
+  <data name="AiNoOutput" xml:space="preserve">
+    <value>دستیار هوش مصنوعی هیچ خروجی JSON برنگرداند.</value>
+  </data>
+  <data name="MetadataEmpty" xml:space="preserve">
+    <value>محموله فراداده خالی است.</value>
+  </data>
+  <data name="AiResponseParse" xml:space="preserve">
+    <value>تجزیه پاسخ هوش مصنوعی امکان‌پذیر نیست: {0}</value>
+  </data>
+  <data name="NameRequired" xml:space="preserve">
+    <value>نام یا نام خانوادگی الزامی است.</value>
+  </data>
+  <data name="Patient" xml:space="preserve">
+    <value>بیمار کلینیک</value>
+  </data>
+  <data name="ClinicalData" xml:space="preserve">
+    <value>داده های بالینی</value>
+  </data>
+  <data name="PatientRecord" xml:space="preserve">
+    <value>پرونده پذیرش سرپایی</value>
+  </data>
+  <data name="Gender_Unspecified" xml:space="preserve">
+    <value>نامشخص</value>
+  </data>
+  <data name="Uncommitted" xml:space="preserve">
+    <value>لغو وضعیت انجام شده</value>
   </data>
 </root>

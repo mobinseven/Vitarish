@@ -1,5 +1,3 @@
-using Vitarish.Sea.Interface.Components.Events;
-
 namespace Vitarish.Sea.Interface.Components.Reminders;
 
 public partial class ReminderAction : EventsBase

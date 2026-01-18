@@ -1,3 +1,5 @@
+using Vitarish.Sea.Interface.Components.Plugins;
+
 namespace Vitarish.Sea.Interface.Components.Events;
 
 public partial class EventItemsInput : EventsBase
@@ -25,11 +27,6 @@ public partial class EventItemsInput : EventsBase
 
         foreach (IEventItemPlugin plugin in Plugins)
         {
-            if (!plugin.IsAvailable(baseContext))
-            {
-                continue;
-            }
-
             switch (plugin.Placement)
             {
                 case EventItemCreationPlacement.Main:

@@ -1,4 +1,4 @@
-namespace Vitarish.Sea.Interface.Components.Users;
+namespace Vitarish.Sea.Interface.Components.Base;
 
 public class UsersBase : SeaCommonBase
 {

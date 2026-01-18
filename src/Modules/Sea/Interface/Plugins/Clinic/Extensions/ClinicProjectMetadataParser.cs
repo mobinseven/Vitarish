@@ -1,6 +1,6 @@
 using Vitarish.Sea.Interface.Plugins.Clinic.Models;
 
-namespace Vitarish.Sea.Interface.Plugins.Clinic.Projects;
+namespace Vitarish.Sea.Interface.Plugins.Clinic.Extensions;
 
 internal static class ClinicProjectMetadataParser
 {

@@ -1,4 +1,4 @@
-namespace Vitarish.Sea.Interface.Components.Attachments;
+namespace Vitarish.Sea.Interface.Components.Base;
 
 public class AttachmentsBase : SeaCommonBase
 {

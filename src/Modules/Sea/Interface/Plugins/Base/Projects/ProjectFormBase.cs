@@ -9,7 +9,7 @@ namespace Vitarish.Sea.Interface.Plugins.Base.Projects;
 /// </summary>
 /// <typeparam name="TMetadata">The metadata contract emitted by the form.</typeparam>
 /// <typeparam name="TEditableModel">The mutable editor model that powers the UI.</typeparam>
-public abstract class ProjectCreationFormBase<TMetadata, TEditableModel> : ProjectsBase
+public abstract class ProjectFormBase<TMetadata, TEditableModel> : ProjectsBase
     where TMetadata : class
     where TEditableModel : class
 {
@@ -115,15 +115,7 @@ public abstract class ProjectCreationFormBase<TMetadata, TEditableModel> : Proje
         SuppressMetadataChangeNotification = true;
         MetadataJson = value ?? string.Empty;
         SuppressMetadataChangeNotification = false;
-
-        OnMetadataJsonChanged(markAsClean);
     }
-
-    /// <summary>
-    /// Called whenever <see cref="MetadataJson"/> changes.
-    /// </summary>
-    /// <param name="markAsClean">Indicates whether the payload should be treated as clean.</param>
-    protected abstract void OnMetadataJsonChanged(bool markAsClean);
 
     /// <summary>
     /// Attempts to deserialize metadata from <paramref name="json"/>.
@@ -139,46 +131,19 @@ public abstract class ProjectCreationFormBase<TMetadata, TEditableModel> : Proje
 
         if (string.IsNullOrWhiteSpace(json))
         {
-            error = BuildEmptyMetadataErrorMessage();
             return false;
         }
 
         try
         {
-            TMetadata? parsed = JsonSerializer.Deserialize<TMetadata>(json, serializerOptions);
-            if (parsed is null)
-            {
-                error = BuildEmptyMetadataErrorMessage();
-                return false;
-            }
-
-            metadata = NormalizeMetadata(parsed);
-            return true;
+            metadata = JsonSerializer.Deserialize<TMetadata>(json, serializerOptions);
+            return metadata is not null;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
-            error = BuildDeserializationErrorMessage(ex);
             return false;
         }
     }
-
-    /// <summary>
-    /// Builds the localized message used when the metadata payload is empty.
-    /// </summary>
-    protected abstract string BuildEmptyMetadataErrorMessage();
-
-    /// <summary>
-    /// Builds a localized message describing why deserialization failed.
-    /// </summary>
-    /// <param name="exception">The underlying exception.</param>
-    protected abstract string BuildDeserializationErrorMessage(Exception exception);
-
-    /// <summary>
-    /// Normalizes the metadata after successful deserialization.
-    /// </summary>
-    /// <param name="metadata">The parsed metadata.</param>
-    /// <returns>The normalized metadata.</returns>
-    protected abstract TMetadata NormalizeMetadata(TMetadata metadata);
 
     /// <summary>
     /// Normalizes string input by trimming whitespace and converting empty strings to null.

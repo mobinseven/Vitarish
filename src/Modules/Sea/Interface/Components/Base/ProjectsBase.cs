@@ -1,4 +1,4 @@
-namespace Vitarish.Sea.Interface.Components.Projects;
+namespace Vitarish.Sea.Interface.Components.Base;
 
 
 public class ProjectsBase : SeaCommonBase

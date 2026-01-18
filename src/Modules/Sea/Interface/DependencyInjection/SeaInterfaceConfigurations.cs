@@ -1,6 +1,3 @@
-using Vitarish.Sea.Interface.Components.Attachments;
-using Vitarish.Sea.Interface.Components.Reminders;
-
 namespace Vitarish.Sea.Interface.DependencyInjection;
 
 public static class SeaInterfaceConfigurations

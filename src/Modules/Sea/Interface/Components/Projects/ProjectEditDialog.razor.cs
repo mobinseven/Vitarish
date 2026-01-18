@@ -1,10 +1,17 @@
+using Vitarish.Sea.Domain.Entities;
+
 namespace Vitarish.Sea.Interface.Components.Projects;
 
 public partial class ProjectEditDialog : ProjectsBase
 {
+    [Inject] private IEnumerable<IProjectEditPlugin> ProjectEditPlugins { get; set; } = [];
+
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter] public ProjectDto? Project { get; set; }
+
+    private IProjectEditPlugin? Plugin => ProjectEditPlugins.SingleOrDefault(p => p.Id == UsageConfigurationMetadata?.PluginIdentifier);
+
 
     private string name = string.Empty;
     private string description = string.Empty;
@@ -21,6 +28,8 @@ public partial class ProjectEditDialog : ProjectsBase
             metadata = Project.Metadata;
         }
     }
+
+    private Action<ProjectDto> OnUpdate(ProjectDto project) => p => metadata = p.Metadata;
 
     private async Task SaveAsync()
     {

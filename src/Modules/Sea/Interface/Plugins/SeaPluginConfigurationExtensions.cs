@@ -1,6 +1,4 @@
-using Vitarish.Sea.Interface.Components.Attachments;
-using Vitarish.Sea.Interface.Components.Reminders;
-using Vitarish.Sea.Interface.Plugins.Clinic.Projects;
+using Vitarish.Sea.Interface.Plugins.Clinic.Plugins;
 
 namespace Vitarish.Sea.Interface.Plugins;
 
@@ -11,6 +9,8 @@ public static class SeaPluginConfigurationExtensions
         public IServiceCollection ConfigureSeaPlugins()
         {
             _ = services.AddScoped<IProjectsGridPlugin, ClinicProjectsGridPlugin>();
+            _ = services.AddScoped<IProjectEditPlugin, ClinicProjectEditPlugin>();
+            _ = services.AddScoped<IProjectDetailsPlugin, ClinicProjectDetailsPlugin>();
             _ = services.AddScoped<IEventItemTimelinePlugin, AttachmentPlugin>();
             _ = services.AddScoped<IEventItemCreationPlugin, AttachmentPlugin>();
             _ = services.AddScoped<IEventItemTimelinePlugin, ReminderPlugin>();

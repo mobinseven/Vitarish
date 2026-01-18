@@ -1,4 +1,4 @@
-namespace Vitarish.Sea.Interface.Components.Events;
+namespace Vitarish.Sea.Interface.Components.Base;
 
 public class EventsBase : SeaCommonBase
 {

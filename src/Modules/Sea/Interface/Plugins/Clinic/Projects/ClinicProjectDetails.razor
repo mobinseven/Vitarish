@@ -1,0 +1,50 @@
+@inherits ProjectDetails
+
+@if(AdminMode)
+{
+    <Stack>
+        <StackButton OnClick="@(() => AddProcedure())"
+                     Color="Color.Primary"
+                     StartIcon="fa-thin fa-file-plus"
+                     Label="@Localizer["AddItem", Localizer["Procedure"]]" />
+    </Stack>
+}
+<Stack>
+    <StackField Label="@Project.Name">
+        @if(!string.IsNullOrWhiteSpace(Project.Description))
+        {
+            <MudText HtmlTag="p" Typo="Typo.caption" Class="py-3">@Project.Description</MudText>
+        }
+        @if(Metadata is not null)
+        {
+            @if(!string.IsNullOrWhiteSpace(Metadata.ClinicalNotes))
+            {
+                <MudText HtmlTag="p" Typo="Typo.caption" Class="py-3">@Localizer["ClinicalNotes"]: @Metadata.ClinicalNotes</MudText>
+            }
+            @if(Metadata.DateOfSurgery.HasValue)
+            {
+                <MudText HtmlTag="p" Typo="Typo.caption" Class="py-3">@Localizer["DateOf", Localizer["Surgery"]]: @Metadata.DateOfSurgery.Value.ToShortDateString()</MudText>
+            }
+        }
+    </StackField>
+
+    @if(AdminMode)
+    {
+        <StackButton OnClick="@(() => EditProject(Project))"
+                     StartIcon="fa-thin fa-pencil"
+                     Label="@Localizer["EditItem", Localizer["Project"]]" />
+        <StackButton OnClick="@(() => DeleteProject(Project))"
+                     Color="Color.Error"
+                     StartIcon="fa-thin fa-folder-xmark"
+                     Label="@Localizer["DeleteItem", Localizer["Project"]]" />
+    }
+</Stack>
+
+@code {
+    ClinicProjectMetadata? Metadata;
+
+    protected override void OnParametersSet()
+    {
+        Metadata = Project.GetClinicProjectMetadata();
+    }
+}

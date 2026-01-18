@@ -1,4 +1,6 @@
-namespace Vitarish.Sea.Interface.Components.Reminders;
+using Vitarish.Sea.Interface.Components.Reminders;
+
+namespace Vitarish.Sea.Interface.Components.Plugins;
 
 internal sealed class ReminderPlugin(IRemindersService remindersService) : IEventItemPlugin
 {

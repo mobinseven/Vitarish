@@ -1,4 +1,6 @@
-namespace Vitarish.Sea.Interface.Components.Attachments;
+using Vitarish.Sea.Interface.Components.Attachments;
+
+namespace Vitarish.Sea.Interface.Components.Plugins;
 
 internal sealed class AttachmentPlugin(IAttachmentsService attachmentsService) : IEventItemPlugin
 {

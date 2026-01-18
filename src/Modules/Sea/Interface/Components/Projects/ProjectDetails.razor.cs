@@ -6,8 +6,9 @@ public partial class ProjectDetails : ProjectsBase
     [Parameter] public EventCallback OnEdit { get; set; }
     [Parameter] public EventCallback OnDelete { get; set; }
     [Parameter] public EventCallback<Guid> OnProcedureAdded { get; set; }
-
-    private async Task AddProcedure()
+    [Inject] private IEnumerable<IProjectDetailsPlugin> Plugins { get; set; } = [];
+    private IProjectDetailsPlugin? Plugin => Plugins.SingleOrDefault(p => p.Id == UsageConfigurationMetadata?.PluginIdentifier);
+    protected virtual async Task AddProcedure()
     {
         DialogParameters parameters = new()
         {
@@ -30,13 +31,13 @@ public partial class ProjectDetails : ProjectsBase
         }
     }
 
-    private async Task EditProject(ProjectDto project)
+    protected virtual async Task EditProject(ProjectDto project)
     {
         DialogParameters parameters = new()
         {
             { nameof(ProjectEditDialog.Project), project }
         };
-        IDialogReference dialog = await DialogService.ShowAsync<ProjectEditDialog>(Localizer["Project"], parameters);
+        IDialogReference dialog = await DialogService.ShowAsync<ProjectEditDialog>(null, parameters);
 
         DialogResult? result = await dialog.Result;
 
@@ -50,12 +51,10 @@ public partial class ProjectDetails : ProjectsBase
             return;
         }
 
-        Project = await ProjectsService.GetAsync(Project.Id, CancellationToken.None)
-            .GetValueOrDefaultAsync() ?? throw new Exception("Project was null");
         await OnEdit.InvokeAsync();
     }
 
-    private async Task DeleteProject(ProjectDto project)
+    protected virtual async Task DeleteProject(ProjectDto project)
     {
         DialogParameters parameters = new()
         {

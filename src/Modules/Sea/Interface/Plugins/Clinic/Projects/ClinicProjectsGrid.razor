@@ -1,5 +1,5 @@
 @inherits ProjectsBase
-<MudText Typo="Typo.h4">Clinical Grid</MudText>
+
 @if(IsAdmin)
 {
     <Stack>
@@ -8,14 +8,26 @@
                      StartIcon="fa-thin fa-folder-plus"
                      Label="@Localizer["AddItem", Localizer["Project"]]" />
     </Stack>
-
 }
+
+@if(projects is null)
+{
+    return;
+}
+
+
 <Stack>
-    @foreach(var project in projects)
+    <StackField Label="@Localizer["SortBy"]">
+        <MudSelect T="string" Value="UsageConfigurationMetadata?.ProjectsSortMethod" ValueChanged="v => SortMethodChanged(v)" Underline="false">
+            <MudSelectItem Value="SortBy.SurgeryDateDesc.ToString()">@Localizer["SurgeryDateDesc"]</MudSelectItem>
+            <MudSelectItem Value="SortBy.SurgeryDate.ToString()">@Localizer["SurgeryDate"]</MudSelectItem>
+        </MudSelect>
+    </StackField>
+    @foreach(var project in projectsViaSurgeryData)
     {
         <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
-                      Label="@project.Name"
-                      HighlightString="@SearchString">
+                     Label="@project.Name"
+                     HighlightString="@SearchString">
             <StatsDisplay Stats="project.Stats" />
         </StackButton>
     }
@@ -24,3 +36,18 @@
         <StackField Label="@Localizer["NoItems", Localizer["Project"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Project"]]" />
     }
 </Stack>
+
+@if(projectsLackSurgeryData.Count > 0)
+{
+    <Stack>
+        <StackField Label="@Localizer["NoItems", Localizer["DateOf", Localizer["Surgery"]]]" />
+        @foreach(var project in projectsLackSurgeryData)
+        {
+            <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
+                         Label="@project.Name"
+                         HighlightString="@SearchString">
+                <StatsDisplay Stats="project.Stats" />
+            </StackButton>
+        }
+    </Stack>
+}

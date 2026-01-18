@@ -1,0 +1,64 @@
+@inherits ProjectFormBase<ClinicProjectMetadata, ClinicProjectMetadataModel>
+
+<MudText Typo="Typo.h5">@Project.Name</MudText>
+
+<ClinicProjectManualEditor EditableMetadata="EditableMetadata" />
+
+@code {
+    [Parameter, EditorRequired] public ProjectDto Project { get; set; }
+    [Parameter] public EventCallback<ProjectDto> OnUpdate { get; set; }
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        var model = new ClinicProjectMetadataModel(OnMetadataChenged);
+        model.LoadFrom(Project.GetClinicProjectMetadata());
+        InitializeEditableMetadata(model);
+    }
+    private bool TryCreateMetadataFromEditor(out ClinicProjectMetadata? metadata, out string? error)
+    {
+        metadata = null;
+        error = null;
+
+        if(string.IsNullOrWhiteSpace(EditableMetadata.FirstName) && string.IsNullOrWhiteSpace(EditableMetadata.LastName))
+        {
+            EditableMetadata.LastName = Project.Name;
+        }
+
+        metadata = new()
+        {
+            FirstName = NormalizeInput(EditableMetadata.FirstName),
+            LastName = NormalizeInput(EditableMetadata.LastName),
+            DateOfBirth = NormalizeInput(EditableMetadata.DateOfBirth),
+            DateOfSurgery = EditableMetadata.DateOfSurgery,
+            Gender = EditableMetadata.Gender,
+            Email = NormalizeInput(EditableMetadata.Email),
+            Phone = NormalizeInput(EditableMetadata.Phone),
+            InsuranceProvider = NormalizeInput(EditableMetadata.InsuranceProvider),
+            PolicyNumber = NormalizeInput(EditableMetadata.PolicyNumber),
+            PrimaryPhysician = NormalizeInput(EditableMetadata.PrimaryPhysician),
+            VisitReason = NormalizeInput(EditableMetadata.VisitReason),
+            PreferredPharmacy = NormalizeInput(EditableMetadata.PreferredPharmacy),
+            Allergies = NormalizeInput(EditableMetadata.Allergies),
+            CurrentMedications = NormalizeInput(EditableMetadata.CurrentMedications),
+            ClinicalNotes = NormalizeInput(EditableMetadata.ClinicalNotes),
+            EmergencyContactName = NormalizeInput(EditableMetadata.EmergencyContactName),
+            EmergencyContactPhone = NormalizeInput(EditableMetadata.EmergencyContactPhone),
+            ConsentToShareRecords = EditableMetadata.ConsentToShareRecords,
+            DepartmentName = NormalizeInput(EditableMetadata.DepartmentName)
+        };
+        return true;
+    }
+
+    private async void OnMetadataChenged()
+    {
+        if(!TryCreateMetadataFromEditor(out ClinicProjectMetadata? parsed, out string? validationError))
+        {
+            StateHasChanged();
+        }
+
+        SetMetadata(parsed, markAsClean: true);
+        Project.Metadata = MetadataJson;
+        await OnUpdate.InvokeAsync(Project);
+    }
+}

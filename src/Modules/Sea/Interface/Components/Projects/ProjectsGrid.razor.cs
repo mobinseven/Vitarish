@@ -5,22 +5,9 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
     [Parameter] public EventCallback<Guid> OnClicked { get; set; }
     [Parameter] public EventCallback<Guid> OnCreated { get; set; }
     [Inject] private IEnumerable<IProjectsGridPlugin> ProjectsGridPlugins { get; set; } = [];
-    [Inject] private IUsageConfigurationService UsageConfigurationService { get; set; } = default!;
-
-    private readonly bool template;
-
-    protected string? PluginIdentifier;
-    private IProjectsGridPlugin? Plugin => ProjectsGridPlugins.SingleOrDefault(p => p.Id == PluginIdentifier);
+    private IProjectsGridPlugin? Plugin => ProjectsGridPlugins.SingleOrDefault(p => p.Id == UsageConfigurationMetadata?.PluginIdentifier);
 
     private List<ProjectDto> projects = [];
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        UsageConfigurationDto? usageConfiguration = await UsageConfigurationService.GetUsageConfigurationAsync(CancellationToken.None);
-        UsageConfigurationMetadata metadata = UsageConfigurationMetadata.FromJson(usageConfiguration?.Metadata);
-        PluginIdentifier = metadata.PluginIdentifier;
-    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -37,7 +24,6 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
             Skip = 0,
             Take = int.MaxValue,
             Search = SearchString,
-            Template = AdminMode && template,
         };
         IReadOnlyList<ProjectDto> Items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None)
             .EnsureValueAsync("Load projects");

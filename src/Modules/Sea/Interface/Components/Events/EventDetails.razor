@@ -105,7 +105,7 @@ else if(CanWrite)
         {
             DialogParameters parameters = new()
             {
-                { nameof(ConfirmDialog.ContentText), Localizer["UncommitHelpText"].Value },
+                { nameof(ConfirmDialog.ContentText), Localizer["UncommitHelp"].Value },
                 { nameof(ConfirmDialog.ButtonText), Localizer["Uncommit", Event.Title].Value },
                 { nameof(ConfirmDialog.Color), Color.Error }
             };
@@ -121,11 +121,9 @@ else if(CanWrite)
             {
                 return;
             }
-            else
-            {
-            }
+
             await EventsService.UncommitAsync(Event.Id, CancellationToken.None);
-            string uncommitMessage = Localizer["UncommittedByName", RequestContext.User.GetUserFullName()];
+            string uncommitMessage = Localizer["Uncommitted"];
             await AttachmentsService.AddAsync(Event.Id, uncommitMessage, "text/plain", null, Encoding.UTF8.GetByteCount(uncommitMessage), CancellationToken.None);
             await OnUpdate.InvokeAsync();
         }
@@ -133,7 +131,7 @@ else if(CanWrite)
         {
             DateTimeOffset commitTime = new(DateTime.Now, TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow));
             await EventsService.CommitAsync(Event.Id, CancellationToken.None);
-            string commitMessage = Localizer["CommittedByName", RequestContext.User.GetUserFullName()];
+            string commitMessage = Localizer["Committed"];
             await AttachmentsService.AddAsync(Event.Id, commitMessage, "text/plain", null, Encoding.UTF8.GetByteCount(commitMessage), CancellationToken.None);
             await OnUpdate.InvokeAsync();
         }

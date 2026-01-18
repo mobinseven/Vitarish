@@ -46,9 +46,7 @@ public partial class ClinicProjectCreationForm
     private bool metadataHasPendingChanges;
     private bool isManualMode;
     private bool manualIsValid;
-    private Guid? facilityId;
     private string? facilityLabel;
-    private string? departmentName;
     private string? departmentLabel;
     private string? errorMessage;
     private string? generationError;
@@ -56,9 +54,6 @@ public partial class ClinicProjectCreationForm
     private string? manualValidationError;
     private int activeStep;
     private string patientDescription = string.Empty;
-
-    [Inject]
-    private IUsageConfigurationService UsageConfigurationService { get; set; } = default!;
 
     [CascadingParameter]
     private IMudDialogInstance Dialog { get; set; } = default!;
@@ -98,8 +93,7 @@ public partial class ClinicProjectCreationForm
     {
         base.OnInitialized();
 
-        InitializeEditableMetadata(new ClinicProjectMetadataModel(OnEditableMetadataChanged));
-        ValidateManual();
+        InitializeEditableMetadata(new ClinicProjectMetadataModel(OnMetadataChenged));
     }
 
     protected override async Task OnInitializedAsync()
@@ -210,17 +204,20 @@ public partial class ClinicProjectCreationForm
         }
 
         manualValidationError = null;
+        OnMetadataChenged();
+        metadataHasPendingChanges = false;
+        await SubmitMetadataAsync();
+    }
 
+    private void OnMetadataChenged()
+    {
         if (!TryCreateMetadataFromEditor(out ClinicProjectMetadata? parsed, out string? validationError))
         {
             manualValidationError = validationError;
             StateHasChanged();
-            return;
         }
 
         SetMetadata(parsed, markAsClean: true);
-        metadataHasPendingChanges = false;
-        await SubmitMetadataAsync();
     }
 
     private async Task SubmitMetadataAsync()
@@ -290,7 +287,6 @@ public partial class ClinicProjectCreationForm
         if (isManualMode)
         {
             manualValidationError = null;
-            ValidateManual();
         }
         else
         {
@@ -336,16 +332,6 @@ public partial class ClinicProjectCreationForm
         return string.Join(Environment.NewLine + Environment.NewLine, segments);
     }
 
-    protected override void OnMetadataJsonChanged(bool markAsClean)
-    {
-        metadataValidationError = null;
-        metadataHasPendingChanges = !markAsClean;
-    }
-
-    protected override string BuildEmptyMetadataErrorMessage() => Localizer["MetadataEmpty"];
-
-    protected override string BuildDeserializationErrorMessage(Exception exception) => Localizer["AiResponseParse", exception.Message];
-
     private bool TryCreateMetadataFromEditor(out ClinicProjectMetadata? metadata, out string? error)
     {
         metadata = null;
@@ -356,12 +342,13 @@ public partial class ClinicProjectCreationForm
             error = Localizer["NameRequired"];
             return false;
         }
-        
-        ClinicProjectMetadata normalized = new()
+
+        metadata = new()
         {
             FirstName = NormalizeInput(EditableMetadata.FirstName),
             LastName = NormalizeInput(EditableMetadata.LastName),
             DateOfBirth = NormalizeInput(EditableMetadata.DateOfBirth),
+            DateOfSurgery = EditableMetadata.DateOfSurgery,
             Gender = EditableMetadata.Gender,
             Email = NormalizeInput(EditableMetadata.Email),
             Phone = NormalizeInput(EditableMetadata.Phone),
@@ -378,35 +365,8 @@ public partial class ClinicProjectCreationForm
             ConsentToShareRecords = EditableMetadata.ConsentToShareRecords,
             DepartmentName = NormalizeInput(EditableMetadata.DepartmentName)
         };
-
-        metadata = NormalizeMetadata(normalized);
         return true;
     }
-
-    private void OnEditableMetadataChanged()
-    {
-        metadataHasPendingChanges = true;
-        metadataValidationError = null;
-
-        if (isManualMode)
-        {
-            ValidateManual();
-        }
-
-        _ = InvokeAsync(StateHasChanged);
-    }
-
-    private void ValidateManual()
-    {
-        manualValidationError = null;
-        manualIsValid = TryCreateMetadataFromEditor(out _, out string? error);
-
-        if (!manualIsValid)
-        {
-            manualValidationError = error;
-        }
-    }
-
     private IReadOnlyList<MetadataTableRow> BuildMetadataTableRows(ClinicProjectMetadata metadata)
     {
         IReadOnlyList<MetadataSection> sections = BuildMetadataSections(metadata);
@@ -421,21 +381,6 @@ public partial class ClinicProjectCreationForm
         }
 
         return rows;
-    }
-
-    protected override ClinicProjectMetadata NormalizeMetadata(ClinicProjectMetadata metadata)
-    {
-
-        string? dateOfBirth = ParseDate(metadata.DateOfBirth);
-
-        return metadata with
-        {
-            Gender = metadata.Gender,
-            DateOfBirth = dateOfBirth,
-            FacilityId = facilityId ?? metadata.FacilityId,
-            DepartmentName = departmentName ?? metadata.DepartmentName,
-            ConsentToShareRecords = metadata.ConsentToShareRecords ?? true
-        };
     }
 
     private static string? ParseDate(string? value) => string.IsNullOrWhiteSpace(value)

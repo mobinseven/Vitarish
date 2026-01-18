@@ -1,4 +1,4 @@
-namespace Vitarish.Sea.Interface.Components.Procedures;
+namespace Vitarish.Sea.Interface.Components.Base;
 
 
 public class ProceduresBase : SeaCommonBase
