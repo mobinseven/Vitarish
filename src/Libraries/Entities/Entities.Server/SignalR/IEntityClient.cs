@@ -4,5 +4,5 @@ namespace Vitarish.Entities.Server.SignalR;
 
 public interface IEntityClient
 {
-    Task EntityNotification(EntityNotificationCore notification);
+    Task EntityNotification(EntityNotification notification);
 }

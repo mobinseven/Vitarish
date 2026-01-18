@@ -53,9 +53,9 @@ public class EntityServer<TReadDto, TWriteDto, TDescriptorDto, TEntityService>(
         connectionTracker?.RemoveConnection(Context.ConnectionId);
         await base.OnDisconnectedAsync(exception);
     }
-    public sealed class EntityNotificationHandler(IHubContext<EntityServer<TReadDto, TWriteDto, TDescriptorDto, TEntityService>, IEntityClient> hubContext) : INotificationHandler<EntityNotificationCore>
+    public sealed class EntityNotificationHandler(IHubContext<EntityServer<TReadDto, TWriteDto, TDescriptorDto, TEntityService>, IEntityClient> hubContext) : INotificationHandler<EntityNotification>
     {
-        public async Task Handle(EntityNotificationCore notification, CancellationToken cancellationToken) => await hubContext.Clients.All.EntityNotification(notification);
+        public async Task Handle(EntityNotification notification, CancellationToken cancellationToken) => await hubContext.Clients.All.EntityNotification(notification);
     }
 
     public Task SetInterceptionConfig(EntityInterceptionConfig? interceptionConfig)

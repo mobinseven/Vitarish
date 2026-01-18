@@ -11,7 +11,7 @@ public sealed class EntityInterceptor(
         IPublisher publisher) : SaveChangesInterceptor
 {
 
-    private readonly ConcurrentDictionary<DbContext, List<EntityNotificationCore>> _notifications = new(10, 100); // TODO: adjust these numbers with realistic scenarios. This interceptor is used per scope so it won't grow too much.
+    private readonly ConcurrentDictionary<DbContext, List<EntityNotification>> _notifications = new(10, 100); // TODO: adjust these numbers with realistic scenarios. This interceptor is used per scope so it won't grow too much.
 
 
     public override InterceptionResult<int> SavingChanges(DbContextEventData eventData, InterceptionResult<int> result)
@@ -128,7 +128,7 @@ public sealed class EntityInterceptor(
 
     private void CaptureChanges(DbContext context, DateTimeOffset now)
     {
-        List<EntityNotificationCore> list = [];
+        List<EntityNotification> list = [];
 
         foreach (EntityEntry<Entity> entry in context.ChangeTracker.Entries<Entity>())
         {
@@ -146,35 +146,14 @@ public sealed class EntityInterceptor(
                 continue;
             }
 
-            Dictionary<string, object?> snapshot = entry.Properties.ToDictionary(p => p.Metadata.Name, p => p.CurrentValue);
-
-            IReadOnlyDictionary<string, (object? Old, object? New)>? changes = null;
-            if (entry.State == EntityState.Modified)
-            {
-                Dictionary<string, (object? Old, object? New)> c = [];
-                foreach (PropertyEntry prop in entry.Properties)
-                {
-                    if (prop.IsModified)
-                    {
-                        c[prop.Metadata.Name] = (prop.OriginalValue, prop.CurrentValue);
-                    }
-                }
-
-                if (c.Count > 0)
-                {
-                    changes = c;
-                }
-            }
-
             EntityNotificationArgs args = new(
                 entry.Entity.GetType().Name,
                 entry.Entity.Id.ToString(),
                 operation.Value,
                 now,
-                Snapshot: snapshot,
-                Changes: changes);
+               CorrelationId: entry.Property("TenantId").CurrentValue?.ToString());
 
-            list.Add(new EntityNotificationCore(args));
+            list.Add(new EntityNotification(args));
         }
 
         if (list.Count > 0)
@@ -190,9 +169,9 @@ public sealed class EntityInterceptor(
             return;
         }
 
-        if (_notifications.TryRemove(context, out List<EntityNotificationCore>? list))
+        if (_notifications.TryRemove(context, out List<EntityNotification>? list))
         {
-            foreach (EntityNotificationCore notification in list)
+            foreach (EntityNotification notification in list)
             {
                 await publisher.Publish(notification, cancellationToken);
             }

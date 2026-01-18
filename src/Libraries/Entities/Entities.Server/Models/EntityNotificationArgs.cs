@@ -1,4 +1,4 @@
-﻿namespace Vitarish.Entities.Server.Models;
+namespace Vitarish.Entities.Server.Models;
 
 public sealed record EntityNotificationArgs(
     string EntityName,
@@ -8,5 +8,3 @@ public sealed record EntityNotificationArgs(
     string? CorrelationId = null,
     IReadOnlyDictionary<string, object?>? Snapshot = null,
     IReadOnlyDictionary<string, (object? Old, object? New)>? Changes = null);
-
-public sealed record EntityNotification(EntityNotificationArgs Args);
