@@ -954,10 +954,76 @@
   <data name="PatientRecord" xml:space="preserve">
     <value>پرونده پذیرش سرپایی</value>
   </data>
+  <data name="Uncommitted" xml:space="preserve">
+    <value>لغو وضعیت انجام شده</value>
+  </data>
+  <data name="Workspaces" xml:space="preserve">
+    <value>فضاهای کاری</value>
+  </data>
+  <data name="Account" xml:space="preserve">
+    <value>حساب کاربری</value>
+  </data>
+  <data name="DetailsOf" xml:space="preserve">
+    <value>جزییات {0}</value>
+  </data>
+  <data name="Appearance" xml:space="preserve">
+    <value>نما</value>
+  </data>
   <data name="Gender_Unspecified" xml:space="preserve">
     <value>نامشخص</value>
   </data>
-  <data name="Uncommitted" xml:space="preserve">
-    <value>لغو وضعیت انجام شده</value>
+  <data name="Theme" xml:space="preserve">
+    <value>رنگ آمیزی</value>
+  </data>
+  <data name="Typography" xml:space="preserve">
+    <value>قلم و نوشتار</value>
+  </data>
+  <data name="Transparency" xml:space="preserve">
+    <value>شفافیت</value>
+  </data>
+  <data name="PreviewOf" xml:space="preserve">
+    <value>پیشنمایش {0}</value>
+  </data>
+  <data name="Heading" xml:space="preserve">
+    <value>عنوان</value>
+  </data>
+  <data name="Caption" xml:space="preserve">
+    <value>زیرنویس</value>
+  </data>
+  <data name="Action" xml:space="preserve">
+    <value>کنش</value>
+  </data>
+  <data name="Light" xml:space="preserve">
+    <value>روشن</value>
+  </data>
+  <data name="Dark" xml:space="preserve">
+    <value>تیره</value>
+  </data>
+  <data name="Auto" xml:space="preserve">
+    <value>خودکار</value>
+  </data>
+  <data name="Compact" xml:space="preserve">
+    <value>فشرده</value>
+  </data>
+  <data name="Normal" xml:space="preserve">
+    <value>معمولی</value>
+  </data>
+  <data name="Large" xml:space="preserve">
+    <value>بزرگ</value>
+  </data>
+  <data name="ExtraLarge" xml:space="preserve">
+    <value>بسیار بزرگ</value>
+  </data>
+  <data name="Opaque" xml:space="preserve">
+    <value>ناشفاف</value>
+  </data>
+  <data name="Translucent" xml:space="preserve">
+    <value>نیمه شفاف</value>
+  </data>
+  <data name="Transparent" xml:space="preserve">
+    <value>شفاف</value>
+  </data>
+  <data name="Preview" xml:space="preserve">
+    <value>پیشنمایش</value>
   </data>
 </root>

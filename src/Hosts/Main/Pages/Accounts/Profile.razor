@@ -7,7 +7,7 @@
 }
 <MudStack Spacing="3">
     <Stack>
-        <StackField Label="@Localizer["AccountDetails"]">
+        <StackField Label="@Localizer["DetailsOf", Localizer["Account"]]">
             <MudText Typo="Typo.body2" Color="Color.Secondary">@User?.UserName</MudText>
         </StackField>
         <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/name"))"
