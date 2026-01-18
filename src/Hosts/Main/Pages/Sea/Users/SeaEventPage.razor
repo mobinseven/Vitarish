@@ -8,8 +8,7 @@
 <CascadingValue Value="IsAdmin">
     <EventItemsTimeline Event="Event" Procedure="Procedure" Project="Project" />
     <EventDetails Event="Event" Procedure="Procedure" Project="Project"
-                  OnDelete="@(() => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}"))"
-                  OnUpdate="() => NavigationManager.Refresh(true)" />
+                  OnDelete="@(() => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}"))" />
 </CascadingValue>
 
 @code {
@@ -26,6 +25,16 @@
     EventDto? Event;
 
     private bool markedAsRead;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if(eventId is null)
+        {
+            return;
+        }
+        RenderForId(eventId);
+    }
 
     protected override async Task OnParametersSetAsync()
     {

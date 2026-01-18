@@ -3,7 +3,6 @@ namespace Vitarish.Sea.Interface.Components.Projects;
 public partial class ProjectDetails : ProjectsBase
 {
     [Parameter, EditorRequired] public ProjectDto Project { get; set; } = default!;
-    [Parameter] public EventCallback OnEdit { get; set; }
     [Parameter] public EventCallback OnDelete { get; set; }
     [Parameter] public EventCallback<Guid> OnProcedureAdded { get; set; }
     [Inject] private IEnumerable<IProjectDetailsPlugin> Plugins { get; set; } = [];
@@ -50,8 +49,6 @@ public partial class ProjectDetails : ProjectsBase
         {
             return;
         }
-
-        await OnEdit.InvokeAsync();
     }
 
     protected virtual async Task DeleteProject(ProjectDto project)

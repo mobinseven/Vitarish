@@ -44,7 +44,6 @@ else if(CanWrite)
     [Parameter, EditorRequired] public required EventDto Event { get; set; }
 
     [Parameter] public EventCallback OnDelete { get; set; }
-    [Parameter] public EventCallback OnUpdate { get; set; }
 
     private async Task EditEventRoles()
     {
@@ -55,7 +54,6 @@ else if(CanWrite)
 
         var dialog = await DialogService.ShowAsync<EventRolesEditDialog>(null, parameters);
         await dialog.Result;
-        await OnUpdate.InvokeAsync();
     }
 
     private async Task DeleteEvent()
@@ -125,7 +123,6 @@ else if(CanWrite)
             await EventsService.UncommitAsync(Event.Id, CancellationToken.None);
             string uncommitMessage = Localizer["Uncommitted"];
             await AttachmentsService.AddAsync(Event.Id, uncommitMessage, "text/plain", null, Encoding.UTF8.GetByteCount(uncommitMessage), CancellationToken.None);
-            await OnUpdate.InvokeAsync();
         }
         else
         {
@@ -133,7 +130,6 @@ else if(CanWrite)
             await EventsService.CommitAsync(Event.Id, CancellationToken.None);
             string commitMessage = Localizer["Committed"];
             await AttachmentsService.AddAsync(Event.Id, commitMessage, "text/plain", null, Encoding.UTF8.GetByteCount(commitMessage), CancellationToken.None);
-            await OnUpdate.InvokeAsync();
         }
     }
 }

@@ -12,7 +12,6 @@
 
     <ProjectDetails Project="@Project"
                     OnProcedureAdded="@(procedureId => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}"))"
-                    
                     OnDelete="@(() => NavigationManager.NavigateTo("/sea/Projects"))" />
 
 </CascadingValue>
