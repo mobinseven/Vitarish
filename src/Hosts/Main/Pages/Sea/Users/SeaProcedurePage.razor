@@ -26,7 +26,7 @@
 
     protected override async Task OnParametersSetAsync()
     {
-        if(userId is null)
+        if(UserId is null)
         {
             return;
         }
@@ -64,13 +64,13 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if(userId is null || Procedure is null)
+        if(UserId is null || Procedure is null)
         {
             return;
         }
         if(!markedAsRead)
         {
-            await ReceiptsService.MarkProcedureReadAsync(userId.Value, Procedure.Id, CancellationToken.None);
+            await ReceiptsService.MarkProcedureReadAsync(UserId.Value, Procedure.Id, CancellationToken.None);
             markedAsRead = true;
         }
     }

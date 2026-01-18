@@ -70,14 +70,14 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if(userId is null || Event is null)
+        if(UserId is null || Event is null)
         {
             return;
         }
 
         if(!markedAsRead)
         {
-            await ReceiptsService.MarkEventReadAsync(userId.Value, Event.Id, CancellationToken.None);
+            await ReceiptsService.MarkEventReadAsync(UserId.Value, Event.Id, CancellationToken.None);
             markedAsRead = true;
         }
     }

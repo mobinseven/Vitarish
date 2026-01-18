@@ -69,14 +69,14 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if(userId is null || Project is null)
+        if(UserId is null || Project is null)
         {
             return;
         }
 
         if(!markedAsRead)
         {
-            await ReceiptsService.MarkProjectReadAsync(userId.Value, ProjectId, CancellationToken.None);
+            await ReceiptsService.MarkProjectReadAsync(UserId.Value, ProjectId, CancellationToken.None);
             markedAsRead = true;
         }
     }
