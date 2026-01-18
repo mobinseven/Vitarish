@@ -1,4 +1,33 @@
 @page "/Admin/Roles"
 @inherits AdminBase
-
+@using Microsoft.EntityFrameworkCore;
 <RolesManager />
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await EnsureTenantRolesInitialized().ConfigureAwait(false);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task EnsureTenantRolesInitialized()
+    {
+        var roles = await UsersDbContext.Roles.AsNoTracking().OrderBy(role => role.Name).ToListAsync().ConfigureAwait(false);
+
+        var tenants = await PartiesService.GetTenantsAsync().ConfigureAwait(false);
+
+        string[] defaultRoles = [IdentityAccessConstants.TenantUser, IdentityAccessConstants.TenantAdmin, IdentityAccessConstants.TenantOwner];
+        foreach(var tenant in tenants)
+        {
+            foreach(var role in defaultRoles)
+            {
+                var roleName = $"{tenant.Id}:{role}";
+                if(!roles.Any(r => r.Name == roleName))
+                {
+                    await RoleManager.CreateAsync(new IdentityRole(roleName)).ConfigureAwait(false);
+                }
+            }
+        }
+    }
+}

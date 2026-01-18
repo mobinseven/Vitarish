@@ -1,4 +1,5 @@
 using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Users.Infrastructure.Data;
 
 namespace Vitarish.Accounts.Interface.Components.Base
 {
@@ -8,6 +9,7 @@ namespace Vitarish.Accounts.Interface.Components.Base
         [Inject] protected IUsersService UsersService { get; set; } = default!;
         [Inject] protected UserManager<User> UserManager { get; set; } = default!;
         [Inject] protected RoleManager<IdentityRole> RoleManager { get; set; } = default!;
+        [Inject] protected UsersDbContext UsersDbContext { get; set; } = default!;
 
     }
 }

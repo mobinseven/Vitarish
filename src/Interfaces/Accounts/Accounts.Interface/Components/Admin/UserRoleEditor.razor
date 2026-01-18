@@ -19,8 +19,6 @@ else
         <HeaderContent>
             <MudTh>@Localizer["Role"]</MudTh>
             <MudTh>@Localizer["Tenant"]</MudTh>
-            <MudTh>@Localizer["Owner"]</MudTh>
-            <MudTh>@Localizer["Client"]</MudTh>
             <MudTh>@Localizer["Actions"]</MudTh>
         </HeaderContent>
         <RowTemplate Context="roleContext">
@@ -34,21 +32,6 @@ else
                     <MudText Typo="Typo.body2">@roleContext.TenantName</MudText>
                 </MudStack>
             </MudTd>
-            <MudTd DataLabel="@Localizer["Owner"]">
-                <MudStack Spacing="0">
-                    <MudText Typo="Typo.body2">@roleContext.OwnerName</MudText>
-                </MudStack>
-            </MudTd>
-            <MudTd DataLabel="@Localizer["Client"]">
-                @if(!string.IsNullOrWhiteSpace(roleContext.ClientId) && roleContext.ClientId != "-")
-                {
-                    <MudText Typo="Typo.body2">@roleContext.ClientId</MudText>
-                }
-                else
-                {
-                    <MudText Typo="Typo.caption">-</MudText>
-                }
-            </MudTd>
             <MudTd DataLabel="@Localizer["Actions"]">
                 <MudIconButton Icon="@Icons.Material.Filled.Delete"
                                Color="Color.Error"
@@ -57,13 +40,13 @@ else
             </MudTd>
         </RowTemplate>
     </MudTable>
-
-    <MudButton Variant="Variant.Filled"
-               Color="Color.Primary"
-               FullWidth
-               StartIcon="@Icons.Material.Filled.Add"
-               Size="Size.Small"
-               OnClick="@(() => OpenAssignRoleDialogAsync(userRole))">
-        @Localizer["AssignRole"]
-    </MudButton>
 }
+
+<MudButton Variant="Variant.Filled"
+           Color="Color.Primary"
+           FullWidth
+           StartIcon="@Icons.Material.Filled.Add"
+           Size="Size.Small"
+           OnClick="@(() => OpenAssignRoleDialogAsync(userRole))">
+    @Localizer["AssignRole"]
+</MudButton>

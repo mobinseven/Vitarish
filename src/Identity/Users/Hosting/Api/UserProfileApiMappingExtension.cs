@@ -108,7 +108,7 @@ public static class UserProfileApiMappingExtension
 
             string[] parts = c.Value.Split(':');
             return parts.Length > 0 &&
-                string.Equals(parts[^1], IdentityAccessConstants.Admin, StringComparison.OrdinalIgnoreCase);
+                string.Equals(parts[^1], IdentityAccessConstants.PlatformAdmin, StringComparison.OrdinalIgnoreCase);
         });
     }
 }

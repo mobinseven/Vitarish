@@ -1,4 +1,3 @@
-using Vitarish.ApiClients.Domain.Entities;
 using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Accounts.Interface.Components.Admin;
@@ -36,9 +35,9 @@ internal static class RoleParser
                 : null;
 
             string tenantName = tenant?.Name ?? tenantId.ToString();
-            string ownerName = owner?.Name ?? (tenant?.OwnerId.ToString() ?? "-");
+            string ownerName = owner?.Name ?? tenant?.OwnerId.ToString() ?? "-";
             string ownerId = tenant?.OwnerId.ToString() ?? "-";
-            string clientId = client?.Id ?? (tenant?.ClientId ?? "-");
+            string clientId = client?.Id ?? tenant?.ClientId ?? "-";
 
             parsedRoles.Add(new ParsedTenantRole(
                 tenantId,
