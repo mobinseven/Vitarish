@@ -1,4 +1,4 @@
-@page "/sea/projects/{projectId}/{procedureId}/{eventId}"
+@page "/sea/Projects/{projectId}/{procedureId}/{eventId}"
 
 @if(Project is null || Procedure is null || Event is null)
 {
@@ -8,7 +8,7 @@
 <CascadingValue Value="IsAdmin">
     <EventItemsTimeline Event="Event" Procedure="Procedure" Project="Project" />
     <EventDetails Event="Event" Procedure="Procedure" Project="Project"
-                  OnDelete="@(() => NavigationManager.NavigateTo($"/sea/projects/{projectId}/{procedureId}"))"
+                  OnDelete="@(() => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}"))"
                   OnUpdate="() => NavigationManager.Refresh(true)" />
 </CascadingValue>
 
@@ -41,7 +41,7 @@
         Project = await ProjectsService.GetAsync(ProjectId, CancellationToken.None).GetValueOrDefaultAsync();
         if(Project is null)
         {
-            NavigationManager.NavigateTo("/sea/projects");
+            NavigationManager.NavigateTo("/sea/Projects");
             return;
         }
 
@@ -49,7 +49,7 @@
 
         if(Procedure is null)
         {
-            NavigationManager.NavigateTo($"/sea/projects/{projectId}");
+            NavigationManager.NavigateTo($"/sea/Projects/{projectId}");
             return;
         }
 
@@ -57,7 +57,7 @@
 
         if(Event is null)
         {
-            NavigationManager.NavigateTo($"/sea/projects/{projectId}/{procedureId}");
+            NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}");
             return;
         }
 

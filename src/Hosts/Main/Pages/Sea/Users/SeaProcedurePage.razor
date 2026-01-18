@@ -1,4 +1,4 @@
-@page "/sea/projects/{projectId}/{procedureId}"
+@page "/sea/Projects/{projectId}/{procedureId}"
 
 @if(Project is null || Procedure is null)
 {
@@ -7,9 +7,9 @@
 
 <CascadingValue Value="IsAdmin">
     <EventsGrid Project="@Project"
-                EventClicked=@(id => NavigationManager.NavigateTo($"/sea/projects/{projectId}/{procedureId}/{id}"))
+                EventClicked=@(id => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}/{id}"))
                 Procedure="Procedure" />
-    <ProcedureDetails Procedure="Procedure" Project="Project" OnDelete="@(() => NavigationManager.NavigateTo($"/sea/projects/{projectId}"))" />
+    <ProcedureDetails Procedure="Procedure" Project="Project" OnDelete="@(() => NavigationManager.NavigateTo($"/sea/Projects/{projectId}"))" />
 </CascadingValue>
 
 @code {
@@ -43,7 +43,7 @@
 
         if(Project is null)
         {
-            NavigationManager.NavigateTo("/sea/projects");
+            NavigationManager.NavigateTo("/sea/Projects");
             return;
         }
 
@@ -51,7 +51,7 @@
 
         if(Procedure is null)
         {
-            NavigationManager.NavigateTo($"/sea/projects/{projectId}");
+            NavigationManager.NavigateTo($"/sea/Projects/{projectId}");
             return;
         }
 
