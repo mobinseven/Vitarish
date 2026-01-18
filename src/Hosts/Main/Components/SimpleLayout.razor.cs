@@ -1,6 +1,5 @@
 using Vitarish.Accounts.Application.Abstractions;
 using Vitarish.Interfaces.Base.Abstractions;
-using Vitarish.Interfaces.Base.Common;
 using Vitarish.Interfaces.Base.Models;
 
 namespace Vitarish.Main.Components;
