@@ -21,27 +21,34 @@ public sealed class NavService : INavService, IDisposable
         navigationManager.LocationChanged += HandleLocationChanged;
     }
 
-    public void OverridePageTitle(string text, string title)
+    public void OverridePageTitle(string id, string text)
     {
-        Breadcrumb? bc = breadcrumbs.FirstOrDefault(b => b.Text.Contains(text));
-        _ = (bc?.Text = title);
+        Breadcrumb? bc = breadcrumbs.FirstOrDefault(b => b.Id == id);
+        _ = (bc?.Text = text);
         RenderRequired?.Invoke(this, new EventArgs());
     }
 
     private void GenerateCurrentBreadcrumbs()
     {
         string[] subs = CurrentLocation.Split('/');
-        breadcrumbs = [new Breadcrumb("/", localizer["Dashboard"])];
+        breadcrumbs = [new Breadcrumb { Path = "/", Text = localizer["Dashboard"] }];
         string path = string.Empty;
         foreach (string sub in subs)
         {
-            if(string.IsNullOrWhiteSpace(sub))
+            if (string.IsNullOrWhiteSpace(sub))
             {
                 continue;
             }
 
             path += sub + "/";
-            breadcrumbs.Add(new Breadcrumb(path, localizer[sub]));
+            if (localizer[sub].ResourceNotFound)
+            {
+                breadcrumbs.Add(new Breadcrumb { Path = path, Id = sub });
+            }
+            else
+            {
+                breadcrumbs.Add(new Breadcrumb { Path = path, Text = localizer[sub], Id = sub });
+            }
         }
     }
 
