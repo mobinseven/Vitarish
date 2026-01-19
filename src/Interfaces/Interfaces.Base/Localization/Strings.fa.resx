@@ -291,7 +291,7 @@
   <data name="NameItem" xml:space="preserve">
     <value>نام {0}</value>
   </data>
-  <data name="New" xml:space="preserve">
+  <data name="NewItem" xml:space="preserve">
     <value>{0} نو</value>
   </data>
   <data name="NoAttachments" xml:space="preserve">
@@ -720,9 +720,6 @@
   <data name="Yes" xml:space="preserve">
     <value>بله</value>
   </data>
-  <data name="NewItems" xml:space="preserve">
-    <value>وابسته نو</value>
-  </data>
   <data name="Sms" xml:space="preserve">
     <value>پیامک</value>
   </data>
@@ -969,9 +966,6 @@
   <data name="Appearance" xml:space="preserve">
     <value>نما</value>
   </data>
-  <data name="Gender_Unspecified" xml:space="preserve">
-    <value>نامشخص</value>
-  </data>
   <data name="Theme" xml:space="preserve">
     <value>رنگ آمیزی</value>
   </data>
@@ -1025,5 +1019,17 @@
   </data>
   <data name="Preview" xml:space="preserve">
     <value>پیشنمایش</value>
+  </data>
+  <data name="RequiredValue" xml:space="preserve">
+    <value>تعیین {0} اجباری است.</value>
+  </data>
+  <data name="Or" xml:space="preserve">
+    <value>{0} یا {1}</value>
+  </data>
+  <data name="Gender_Unspecified" xml:space="preserve">
+    <value>نامشخص</value>
+  </data>
+  <data name="Owner" xml:space="preserve">
+    <value>سرپرست</value>
   </data>
 </root>

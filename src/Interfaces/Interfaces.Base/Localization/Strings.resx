@@ -291,7 +291,7 @@
   <data name="NameItem" xml:space="preserve">
     <value>{0} Name</value>
   </data>
-  <data name="New" xml:space="preserve">
+  <data name="NewItem" xml:space="preserve">
     <value>New {0}</value>
   </data>
   <data name="NoAttachments" xml:space="preserve">
@@ -785,9 +785,6 @@ of project "{2}"</value>
   <data name="Yes" xml:space="preserve">
     <value>Yes</value>
   </data>
-  <data name="NewItems" xml:space="preserve">
-    <value>New Items</value>
-  </data>
   <data name="Sms" xml:space="preserve">
     <value>SMS</value>
   </data>
@@ -1087,5 +1084,14 @@ of project "{2}"</value>
   </data>
   <data name="Preview" xml:space="preserve">
     <value>Preview</value>
+  </data>
+  <data name="RequiredValue" xml:space="preserve">
+    <value>The {0} is required.</value>
+  </data>
+  <data name="Or" xml:space="preserve">
+    <value>{0} or {1}</value>
+  </data>
+  <data name="Owner" xml:space="preserve">
+    <value>Owner</value>
   </data>
 </root>
