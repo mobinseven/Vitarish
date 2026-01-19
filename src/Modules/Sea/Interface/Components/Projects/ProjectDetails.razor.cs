@@ -3,7 +3,8 @@ namespace Vitarish.Sea.Interface.Components.Projects;
 public partial class ProjectDetails : ProjectsBase
 {
     [Parameter, EditorRequired] public ProjectDto Project { get; set; } = default!;
-    [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public EventCallback OnDeleted { get; set; }
+    [Parameter] public EventCallback<Guid> OnEdit { get; set; }
     [Parameter] public EventCallback<Guid> OnProcedureAdded { get; set; }
     [Inject] private IEnumerable<IProjectDetailsPlugin> Plugins { get; set; } = [];
     private IProjectDetailsPlugin? Plugin => Plugins.SingleOrDefault(p => p.Id == UsageConfigurationMetadata?.PluginIdentifier);
@@ -30,33 +31,14 @@ public partial class ProjectDetails : ProjectsBase
         }
     }
 
-    protected virtual async Task EditProject(ProjectDto project)
-    {
-        DialogParameters parameters = new()
-        {
-            { nameof(ProjectEditDialog.Project), project }
-        };
-        IDialogReference dialog = await DialogService.ShowAsync<ProjectEditDialog>(null, parameters);
+    protected virtual Task EditProject() => OnEdit.InvokeAsync(Project.Id);
 
-        DialogResult? result = await dialog.Result;
-
-        if (result is null)
-        {
-            return;
-        }
-
-        if (result.Canceled)
-        {
-            return;
-        }
-    }
-
-    protected virtual async Task DeleteProject(ProjectDto project)
+    protected virtual async Task DeleteProject()
     {
         DialogParameters parameters = new()
         {
             { nameof(StrictConfirmDialog.ContentText), Localizer["StrictConfirmationQuestion", Localizer["Project"]].Value },
-            { nameof(StrictConfirmDialog.ItemName), project.Name },
+            { nameof(StrictConfirmDialog.ItemName), Project.Name },
             { nameof(StrictConfirmDialog.ButtonText), Localizer["Delete", Localizer["Project"]].Value },
             { nameof(StrictConfirmDialog.Color), Color.Error }
         };
@@ -74,8 +56,8 @@ public partial class ProjectDetails : ProjectsBase
         }
         else
         {
-            await ProjectsService.RemoveAsync(project.Id, CancellationToken.None).EnsureSuccessAsync("Remove project");
-            await OnDelete.InvokeAsync();
+            await ProjectsService.RemoveAsync(Project.Id, CancellationToken.None).EnsureSuccessAsync("Remove project");
+            await OnDeleted.InvokeAsync();
         }
     }
 }

@@ -1,5 +1,3 @@
-using Vitarish.Sea.Interface.Plugins.Base.Enums;
-
 namespace Vitarish.Sea.Interface.Plugins.Base.Projects;
 /// <summary>
 /// Provides metadata serialization helpers for project creation forms that operate without
@@ -9,7 +7,7 @@ namespace Vitarish.Sea.Interface.Plugins.Base.Projects;
 /// </summary>
 /// <typeparam name="TMetadata">The metadata contract emitted by the form.</typeparam>
 /// <typeparam name="TEditableModel">The mutable editor model that powers the UI.</typeparam>
-public abstract class ProjectFormBase<TMetadata, TEditableModel> : ProjectsBase
+public abstract class ProjectFormBase<TMetadata, TEditableModel> : ProjectEditForm
     where TMetadata : class
     where TEditableModel : class
 {
@@ -21,8 +19,6 @@ public abstract class ProjectFormBase<TMetadata, TEditableModel> : ProjectsBase
         PropertyNameCaseInsensitive = true,
         DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
-
-    private bool editableMetadataInitialized;
 
     /// <summary>
     /// Gets the editable model backing the form.
@@ -53,18 +49,9 @@ public abstract class ProjectFormBase<TMetadata, TEditableModel> : ProjectsBase
     /// <param name="editableMetadata">The editor model instance.</param>
     protected void InitializeEditableMetadata(TEditableModel editableMetadata)
     {
-        if (editableMetadata is null)
-        {
-            throw new ArgumentNullException(nameof(editableMetadata));
-        }
-
-        if (editableMetadataInitialized)
-        {
-            throw new InvalidOperationException("Editable metadata has already been initialized.");
-        }
+        ArgumentNullException.ThrowIfNull(editableMetadata);
 
         EditableMetadata = editableMetadata;
-        editableMetadataInitialized = true;
     }
 
     /// <summary>
@@ -72,31 +59,20 @@ public abstract class ProjectFormBase<TMetadata, TEditableModel> : ProjectsBase
     /// <see cref="MetadataJson"/>, and invokes <see cref="OnMetadataChanged"/>.
     /// </summary>
     /// <param name="metadata">The metadata instance.</param>
-    /// <param name="markAsClean">Indicates whether the metadata should be considered clean.</param>
-    protected void SetMetadata(TMetadata? metadata, bool markAsClean)
+    protected void SetMetadata(TMetadata? metadata)
     {
         Metadata = metadata;
-        OnMetadataChanged(metadata);
-
         string payload = metadata is null
             ? string.Empty
             : SerializeMetadata(metadata);
 
-        SetMetadataJson(payload, markAsClean);
+        SetMetadataJson(payload);
     }
 
     /// <summary>
     /// Clears metadata state and notifies derived classes about the change.
     /// </summary>
-    protected void ClearMetadata() => SetMetadata(null, markAsClean: true);
-
-    /// <summary>
-    /// Invoked whenever <see cref="Metadata"/> changes.
-    /// </summary>
-    /// <param name="metadata">The new metadata value.</param>
-    protected virtual void OnMetadataChanged(TMetadata? metadata)
-    {
-    }
+    protected void ClearMetadata() => SetMetadata(null);
 
     /// <summary>
     /// Serializes <paramref name="metadata"/> to JSON using <see cref="serializerOptions"/>.
@@ -109,52 +85,10 @@ public abstract class ProjectFormBase<TMetadata, TEditableModel> : ProjectsBase
     /// Updates the JSON payload and notifies derived classes.
     /// </summary>
     /// <param name="value">The new JSON payload.</param>
-    /// <param name="markAsClean">Whether the JSON should be marked as clean.</param>
-    protected void SetMetadataJson(string? value, bool markAsClean)
+    protected void SetMetadataJson(string? value)
     {
         SuppressMetadataChangeNotification = true;
         MetadataJson = value ?? string.Empty;
         SuppressMetadataChangeNotification = false;
     }
-
-    /// <summary>
-    /// Attempts to deserialize metadata from <paramref name="json"/>.
-    /// </summary>
-    /// <param name="json">The JSON payload.</param>
-    /// <param name="metadata">When successful, receives the normalized metadata.</param>
-    /// <param name="error">Receives a localized error message when parsing fails.</param>
-    /// <returns><see langword="true"/> when the metadata could be parsed.</returns>
-    protected bool TryDeserializeMetadata(string json, out TMetadata? metadata, out string? error)
-    {
-        metadata = null;
-        error = null;
-
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return false;
-        }
-
-        try
-        {
-            metadata = JsonSerializer.Deserialize<TMetadata>(json, serializerOptions);
-            return metadata is not null;
-        }
-        catch (Exception)
-        {
-            return false;
-        }
-    }
-
-    /// <summary>
-    /// Normalizes string input by trimming whitespace and converting empty strings to null.
-    /// </summary>
-    /// <param name="value">The raw input.</param>
-    /// <returns>The normalized value.</returns>
-    protected static string? NormalizeInput(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-    protected string? FormatGender(Gender? gender) => gender switch
-    {
-        Gender.Male => Localizer["Male"],
-        Gender.Female => Localizer["Female"],
-        _ => Localizer["Unspecified"]
-    };
 }

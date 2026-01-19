@@ -8,7 +8,7 @@ namespace Vitarish.Main.Infrastructure.IdentityServer;
 /// <summary>
 /// Custom token request validator that adds tenant and owner claims to API client tokens.
 /// Similar to how <see cref="PartyProfileService"/> adds claims for user authentication flows,
-/// this service resolves tenant/owner information from the HTTP request context for client credentials flow.
+/// this service resolves tenant/Owner information from the HTTP request context for client credentials flow.
 /// </summary>
 public sealed class ApiClientTokenValidator(
     IHttpContextAccessor httpContextAccessor,
@@ -32,7 +32,7 @@ public sealed class ApiClientTokenValidator(
         HttpContext? httpContext = httpContextAccessor.HttpContext;
         if (httpContext is null)
         {
-            logger.LogDebug("HttpContext is null, skipping tenant/owner claim resolution for client {ClientId}",
+            logger.LogDebug("HttpContext is null, skipping tenant/Owner claim resolution for client {ClientId}",
                 request.Client?.ClientId);
             return;
         }
@@ -47,7 +47,7 @@ public sealed class ApiClientTokenValidator(
                 request.ClientClaims.Add(new Claim(IdentityDefinitions.TenantIdClaim, tenant.Id.ToString()));
 
                 logger.LogDebug(
-                    "Added tenant/owner claims for API client {ClientId}: TenantId={TenantId}, OwnerId={OwnerId}",
+                    "Added tenant/Owner claims for API client {ClientId}: TenantId={TenantId}, OwnerId={OwnerId}",
                     request.Client?.ClientId,
                     tenant.Id,
                     tenant.OwnerId);
@@ -55,7 +55,7 @@ public sealed class ApiClientTokenValidator(
             else
             {
                 logger.LogDebug(
-                    "No tenant resolved from host for API client {ClientId}, tenant/owner claims not added",
+                    "No tenant resolved from host for API client {ClientId}, tenant/Owner claims not added",
                     request.Client?.ClientId);
             }
         }

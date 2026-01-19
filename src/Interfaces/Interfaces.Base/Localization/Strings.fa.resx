@@ -1026,10 +1026,13 @@
   <data name="Or" xml:space="preserve">
     <value>{0} یا {1}</value>
   </data>
+  <data name="Owner" xml:space="preserve">
+    <value>سرپرست</value>
+  </data>
   <data name="Gender_Unspecified" xml:space="preserve">
     <value>نامشخص</value>
   </data>
-  <data name="Owner" xml:space="preserve">
-    <value>سرپرست</value>
+  <data name="PlaceOfBirth" xml:space="preserve">
+    <value>زادگاه</value>
   </data>
 </root>

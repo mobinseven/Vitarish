@@ -3,7 +3,7 @@ namespace Vitarish.Sea.Domain.Dto;
 public record ProjectDescriptorDto : EntityDescriptorDto
 {
     [JsonPropertyName("template")]
-    public bool Template { get; set; } = false;
+    public bool? Template { get; set; } = false;
 
     [JsonPropertyName("sortBy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

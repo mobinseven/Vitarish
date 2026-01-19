@@ -4,10 +4,6 @@ namespace Vitarish.Sea.Interface.Plugins.Clinic.Projects;
 
 public partial class ClinicProjectsGrid
 {
-    [Parameter] public EventCallback<Guid> OnClicked { get; set; }
-    [Parameter] public EventCallback<Guid> OnCreated { get; set; }
-
-    private List<ProjectDto>? projects;
     private List<ProjectDto>? projectsViaSurgeryData;
     private List<ProjectDto>? projectsLackSurgeryData;
 
@@ -25,13 +21,14 @@ public partial class ClinicProjectsGrid
         }
     }
 
-    private async Task ReloadData()
+    protected override async Task ReloadData()
     {
         ProjectDescriptorDto descriptor = new()
         {
             Skip = 0,
             Take = int.MaxValue,
             Search = SearchString,
+            Template = TemplateMode
         };
 
         IReadOnlyList<ProjectDto> Items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None)
@@ -71,27 +68,9 @@ public partial class ClinicProjectsGrid
         await InvokeAsync(StateHasChanged);
     }
 
-    private async void SortMethodChanged(string? value)
-    {
-        _ = (UsageConfigurationMetadata?.ProjectsSortMethod = value);
+    private async void SortMethodChanged(string? value) =>
+        // _ = (UsageConfigurationMetadata?.ProjectsSortMethod = value);
         Sort();
-    }
 
     protected override async Task ReloadRequired() => await ReloadData();
-
-    private async Task AddProject()
-    {
-        IDialogReference selector = await DialogService.ShowAsync<ClinicProjectCreationForm>();
-        DialogResult? result = await selector.Result;
-
-        if (result is null || result.Canceled)
-        {
-            return;
-        }
-
-        if (result.Data is Guid created)
-        {
-            await OnCreated.InvokeAsync(created);
-        }
-    }
 }

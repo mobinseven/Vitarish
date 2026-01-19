@@ -1,0 +1,14 @@
+@inherits SeaProjectPage
+
+@page "/sea/Projects/Templates/Edit/{projectId}"
+@page "/sea/Projects/Templates/New"
+
+<CascadingValue Value="IsAdmin">
+
+    <ProjectEditForm Project="Project"
+                     OnUpdate="@(projectId => NavigationManager.NavigateTo($"/sea/Projects/Templates/{projectId}"))"
+                     OnCreate="@(projectId => NavigationManager.NavigateTo($"/sea/Projects/Templates/{projectId}"))"
+                     OnCancel="@(() => NavigationManager.NavigateTo($"/sea/Projects/Templates/{projectId}"))"
+                     TemplateMode="true"/>
+
+</CascadingValue>

@@ -29,7 +29,7 @@ public sealed class PartyProfileService(
         HttpContext? httpContext = httpContextAccessor.HttpContext;
         if (httpContext is null)
         {
-            logger.LogDebug("HttpContext is null, skipping tenant/owner claim resolution");
+            logger.LogDebug("HttpContext is null, skipping tenant/Owner claim resolution");
             return;
         }
 
@@ -43,7 +43,7 @@ public sealed class PartyProfileService(
                 context.IssuedClaims.Add(new Claim(IdentityDefinitions.TenantIdClaim, tenant.Id.ToString()));
 
                 logger.LogDebug(
-                    "Added tenant/owner claims for user {Subject}: TenantId={TenantId}, OwnerId={OwnerId}",
+                    "Added tenant/Owner claims for user {Subject}: TenantId={TenantId}, OwnerId={OwnerId}",
                     context.Subject?.Identity?.Name,
                     tenant.Id,
                     tenant.OwnerId);
@@ -51,7 +51,7 @@ public sealed class PartyProfileService(
             else
             {
                 logger.LogDebug(
-                    "No tenant resolved from host for user {Subject}, tenant/owner claims not added",
+                    "No tenant resolved from host for user {Subject}, tenant/Owner claims not added",
                     context.Subject?.Identity?.Name);
             }
         }

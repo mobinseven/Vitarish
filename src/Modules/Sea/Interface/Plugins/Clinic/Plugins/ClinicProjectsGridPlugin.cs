@@ -10,7 +10,8 @@ internal class ClinicProjectsGridPlugin : IProjectsGridPlugin
     {
         builder.OpenComponent<ClinicProjectsGrid>(0);
         builder.AddAttribute(1, nameof(context.OnClicked), EventCallback.Factory.Create(this, context.OnClicked));
-        builder.AddAttribute(2, nameof(context.OnCreated), EventCallback.Factory.Create(this, context.OnCreated));
+        builder.AddAttribute(2, nameof(context.OnAdd), EventCallback.Factory.Create(this, context.OnAdd));
+        builder.AddAttribute(3, nameof(context.TemplateMode), context.TemplateMode);
         builder.CloseComponent();
     };
 }

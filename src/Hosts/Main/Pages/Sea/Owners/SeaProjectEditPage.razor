@@ -1,0 +1,17 @@
+@inherits SeaProjectPage
+
+@page "/sea/Projects/Edit/{projectId}"
+@page "/sea/Projects/New"
+
+@if(initialized)
+{
+    <CascadingValue Value="IsAdmin">
+
+        <ProjectEditForm Project="Project"
+                         OnUpdate="@(projectId => NavigationManager.NavigateTo($"/sea/Projects/{projectId}"))"
+                         OnCreate="@(projectId => NavigationManager.NavigateTo($"/sea/Projects/{projectId}"))"
+                         OnCancel="@(() => NavigationManager.NavigateTo($"/sea/Projects/{projectId}"))" />
+
+    </CascadingValue>
+
+}

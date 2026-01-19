@@ -1,2 +1,7 @@
 @attribute [Authorize(Policy = IdentityAccessConstants.TenantOwner)]
 @inherits TenantPageBase
+@using Vitarish.Main.Pages.Sea.Users
+
+@inject IAccessControlledProjectsService ProjectsService
+@inject IAccessControlledProceduresService ProcedureService
+@inject IAccessControlledEventsService EventService

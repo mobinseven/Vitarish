@@ -1,4 +1,4 @@
-@inherits ProjectsBase
+@inherits ProjectsGrid
 
 @if(IsAdmin)
 {
@@ -15,29 +15,45 @@
     return;
 }
 
+@if(TemplateMode)
+{
+    <Stack>
+        @foreach(var project in projects)
+        {
+            <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
+                         Label="@project.Name"
+                         HighlightString="@SearchString" />
+        }
+    </Stack>
 
-<Stack>
-    <StackField Label="@Localizer["SortBy"]">
-        <MudSelect T="string" Value="UsageConfigurationMetadata?.ProjectsSortMethod" ValueChanged="v => SortMethodChanged(v)" Underline="false">
-            <MudSelectItem Value="SortBy.SurgeryDateDesc.ToString()">@Localizer["SurgeryDateDesc"]</MudSelectItem>
-            <MudSelectItem Value="SortBy.SurgeryDate.ToString()">@Localizer["SurgeryDate"]</MudSelectItem>
-        </MudSelect>
-    </StackField>
-    @foreach(var project in projectsViaSurgeryData)
-    {
-        <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
-                     Label="@project.Name"
-                     HighlightString="@SearchString">
-            <StatsDisplay Stats="project.Stats" />
-        </StackButton>
-    }
-    @if(projects.Count == 0)
-    {
-        <StackField Label="@Localizer["NoItems", Localizer["Project"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Project"]]" />
-    }
-</Stack>
+    return;
+}
 
-@if(projectsLackSurgeryData.Count > 0)
+@if(projectsViaSurgeryData?.Count > 0)
+{
+    <Stack>
+        <StackField Label="@Localizer["SortBy"]">
+            <MudSelect T="string" Value="UsageConfigurationMetadata?.ProjectsSortMethod" ValueChanged="v => SortMethodChanged(v)" Underline="false">
+                <MudSelectItem Value="SortBy.SurgeryDateDesc.ToString()">@Localizer["SurgeryDateDesc"]</MudSelectItem>
+                <MudSelectItem Value="SortBy.SurgeryDate.ToString()">@Localizer["SurgeryDate"]</MudSelectItem>
+            </MudSelect>
+        </StackField>
+        @foreach(var project in projectsViaSurgeryData)
+        {
+            <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
+                         Label="@project.Name"
+                         HighlightString="@SearchString">
+                <StatsDisplay Stats="project.Stats" />
+            </StackButton>
+        }
+        @if(projects.Count == 0)
+        {
+            <StackField Label="@Localizer["NoItems", Localizer["Project"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Project"]]" />
+        }
+    </Stack>
+}
+
+@if(projectsLackSurgeryData?.Count > 0)
 {
     <Stack>
         <StackField Label="@Localizer["NoItems", Localizer["DateOf", Localizer["Surgery"]]]" />

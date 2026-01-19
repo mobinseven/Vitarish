@@ -1,14 +1,15 @@
-using Vitarish.Sea.Domain.Entities;
-
 namespace Vitarish.Sea.Interface.Components.Projects;
 
-public partial class ProjectEditDialog : ProjectsBase
+public partial class ProjectEditForm : ProjectsBase
 {
     [Inject] private IEnumerable<IProjectEditPlugin> ProjectEditPlugins { get; set; } = [];
 
-    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
-
     [Parameter] public ProjectDto? Project { get; set; }
+    [Parameter] public EventCallback<Guid> OnUpdate { get; set; }
+    [Parameter] public EventCallback<Guid> OnCreate { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+    [Parameter] public bool TemplateMode { get; set; } = false;
+
 
     private IProjectEditPlugin? Plugin => ProjectEditPlugins.SingleOrDefault(p => p.Id == UsageConfigurationMetadata?.PluginIdentifier);
 
@@ -18,7 +19,7 @@ public partial class ProjectEditDialog : ProjectsBase
     private bool template;
     private string metadata = "{}";
 
-    protected override void OnInitialized()
+    protected override void OnParametersSet()
     {
         if (Project is not null)
         {
@@ -28,21 +29,19 @@ public partial class ProjectEditDialog : ProjectsBase
             metadata = Project.Metadata;
         }
     }
-
-    private Action<ProjectDto> OnUpdate(ProjectDto project) => p => metadata = p.Metadata;
-
-    private async Task SaveAsync()
+    protected virtual async Task SaveAsync()
     {
         if (Project is null)
         {
-            _ = await ProjectsService.AddAsync(name, description, template, metadata, CancellationToken.None);
+            var created = await ProjectsService.AddAsync(name, description, template, metadata, CancellationToken.None);
+            await OnCreate.InvokeAsync(created);
         }
         else
         {
             await ProjectsService.UpdateAsync(Project.Id, name, description, template, metadata, CancellationToken.None);
+            await OnUpdate.InvokeAsync(Project.Id);
         }
-        MudDialog.Close(DialogResult.Ok(true));
     }
 
-    private void Cancel() => MudDialog.Cancel();
+    protected void Cancel() => OnCancel.InvokeAsync();
 }

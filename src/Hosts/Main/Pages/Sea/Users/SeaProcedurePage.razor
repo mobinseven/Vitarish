@@ -16,11 +16,11 @@
     [Parameter] public string? projectId { get; set; }
     [Parameter] public string? procedureId { get; set; }
 
-    Guid ProjectId;
-    Guid ProcedureId;
+    protected Guid ProjectId;
+    protected Guid ProcedureId;
 
-    ProjectDto? Project;
-    ProcedureDto? Procedure;
+    protected ProjectDto? Project;
+    protected ProcedureDto? Procedure;
 
     private bool markedAsRead;
 

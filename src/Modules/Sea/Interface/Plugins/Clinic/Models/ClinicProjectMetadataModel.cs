@@ -19,7 +19,7 @@ public sealed class ClinicProjectMetadataModel(Action onChanged)
         set => SetField(ref field, value);
     }
 
-    public string? DateOfBirth
+    public DateTime? DateOfBirth
     {
         get;
         set => SetField(ref field, value);
@@ -31,6 +31,12 @@ public sealed class ClinicProjectMetadataModel(Action onChanged)
     }
 
     public Gender Gender
+    {
+        get;
+        set => SetField(ref field, value);
+    }
+
+    public string? PlaceOfBirth
     {
         get;
         set => SetField(ref field, value);
@@ -54,25 +60,7 @@ public sealed class ClinicProjectMetadataModel(Action onChanged)
         set => SetField(ref field, value);
     }
 
-    public string? PolicyNumber
-    {
-        get;
-        set => SetField(ref field, value);
-    }
-
-    public string? PrimaryPhysician
-    {
-        get;
-        set => SetField(ref field, value);
-    }
-
     public string? VisitReason
-    {
-        get;
-        set => SetField(ref field, value);
-    }
-
-    public string? PreferredPharmacy
     {
         get;
         set => SetField(ref field, value);
@@ -107,19 +95,6 @@ public sealed class ClinicProjectMetadataModel(Action onChanged)
         get;
         set => SetField(ref field, value);
     }
-
-    public string? DepartmentName
-    {
-        get;
-        set => SetField(ref field, value);
-    }
-
-    public bool ConsentToShareRecords
-    {
-        get;
-        set => SetField(ref field, value);
-    } = true;
-
     public void LoadFrom(ClinicProjectMetadata metadata)
     {
         suppressNotifications = true;
@@ -128,22 +103,37 @@ public sealed class ClinicProjectMetadataModel(Action onChanged)
         DateOfBirth = metadata.DateOfBirth;
         DateOfSurgery = metadata.DateOfSurgery;
         Gender = metadata.Gender;
+        PlaceOfBirth  = metadata.PlaceOfBirth;
         Email = metadata.Email;
         Phone = metadata.Phone;
         InsuranceProvider = metadata.InsuranceProvider;
-        PolicyNumber = metadata.PolicyNumber;
-        PrimaryPhysician = metadata.PrimaryPhysician;
         VisitReason = metadata.VisitReason;
-        PreferredPharmacy = metadata.PreferredPharmacy;
         Allergies = metadata.Allergies;
         CurrentMedications = metadata.CurrentMedications;
         ClinicalNotes = metadata.ClinicalNotes;
         EmergencyContactName = metadata.EmergencyContactName;
         EmergencyContactPhone = metadata.EmergencyContactPhone;
-        DepartmentName = metadata.DepartmentName;
-        ConsentToShareRecords = metadata.ConsentToShareRecords ?? true;
         suppressNotifications = false;
     }
+
+    public ClinicProjectMetadata GetModel() => new()
+    {
+        FirstName = NormalizeInput(FirstName),
+        LastName = NormalizeInput(LastName),
+        DateOfBirth = DateOfBirth,
+        DateOfSurgery = DateOfSurgery,
+        Gender = Gender,
+        PlaceOfBirth = NormalizeInput(PlaceOfBirth),
+        Email = NormalizeInput(Email),
+        Phone = NormalizeInput(Phone),
+        InsuranceProvider = NormalizeInput(InsuranceProvider),
+        VisitReason = NormalizeInput(VisitReason),
+        Allergies = NormalizeInput(Allergies),
+        CurrentMedications = NormalizeInput(CurrentMedications),
+        ClinicalNotes = NormalizeInput(ClinicalNotes),
+        EmergencyContactName = NormalizeInput(EmergencyContactName),
+        EmergencyContactPhone = NormalizeInput(EmergencyContactPhone),
+    };
 
     public void Clear()
     {
@@ -155,17 +145,12 @@ public sealed class ClinicProjectMetadataModel(Action onChanged)
         Email = null;
         Phone = null;
         InsuranceProvider = null;
-        PolicyNumber = null;
-        PrimaryPhysician = null;
         VisitReason = null;
-        PreferredPharmacy = null;
         Allergies = null;
         CurrentMedications = null;
         ClinicalNotes = null;
         EmergencyContactName = null;
         EmergencyContactPhone = null;
-        DepartmentName = null;
-        ConsentToShareRecords = true;
         suppressNotifications = false;
     }
 
@@ -183,4 +168,11 @@ public sealed class ClinicProjectMetadataModel(Action onChanged)
             onChanged();
         }
     }
+
+    /// <summary>
+    /// Normalizes string input by trimming whitespace and converting empty strings to null.
+    /// </summary>
+    /// <param name="value">The raw input.</param>
+    /// <returns>The normalized value.</returns>
+    private static string? NormalizeInput(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }

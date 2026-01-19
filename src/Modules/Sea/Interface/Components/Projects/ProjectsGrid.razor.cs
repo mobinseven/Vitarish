@@ -2,12 +2,13 @@ namespace Vitarish.Sea.Interface.Components.Projects;
 
 public partial class ProjectsGrid : ProjectsBase, IDisposable
 {
+    [Parameter] public bool TemplateMode { get; set; } = false;
     [Parameter] public EventCallback<Guid> OnClicked { get; set; }
-    [Parameter] public EventCallback<Guid> OnCreated { get; set; }
+    [Parameter] public EventCallback OnAdd { get; set; }
     [Inject] private IEnumerable<IProjectsGridPlugin> ProjectsGridPlugins { get; set; } = [];
     private IProjectsGridPlugin? Plugin => ProjectsGridPlugins.SingleOrDefault(p => p.Id == UsageConfigurationMetadata?.PluginIdentifier);
 
-    private List<ProjectDto> projects = [];
+    protected List<ProjectDto> projects = [];
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -17,13 +18,14 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
         }
     }
 
-    private async Task ReloadData()
+    protected virtual async Task ReloadData()
     {
         ProjectDescriptorDto descriptor = new()
         {
             Skip = 0,
             Take = int.MaxValue,
             Search = SearchString,
+            Template = TemplateMode
         };
         IReadOnlyList<ProjectDto> Items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None)
             .EnsureValueAsync("Load projects");
@@ -37,18 +39,5 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
 
     protected override async Task ReloadRequired() => await ReloadData();
 
-    private async Task AddProject()
-    {
-        IDialogReference selector = await DialogService.ShowAsync<ProjectEditDialog>();
-        DialogResult? result = await selector.Result;
-        if (result is null || result.Canceled)
-        {
-            return;
-        }
-
-        if (result.Data is ProjectDto created)
-        {
-            await OnCreated.InvokeAsync(created.Id);
-        }
-    }
+    protected virtual Task AddProject() => OnAdd.InvokeAsync();
 }

@@ -7,7 +7,7 @@ public class SeaCommonBase : CommonBase, IDisposable
     /// <summary>
     /// Optional override for admin-specific rendering when the caller wants to force admin mode.
     /// </summary>
-    [CascadingParameter] public bool IsAdmin { get; set; }
+    [CascadingParameter] public bool IsAdmin { get; set; } = false;
     /// <summary>
     /// Effective admin flag resolved from the override or the access service.
     /// </summary>

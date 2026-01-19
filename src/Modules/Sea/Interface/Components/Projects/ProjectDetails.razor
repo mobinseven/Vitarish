@@ -25,10 +25,10 @@
         </StackField>
         @if(AdminMode)
         {
-            <StackButton OnClick="@(() => EditProject(Project))"
+            <StackButton OnClick="@(() => EditProject())"
                          StartIcon="fa-thin fa-pencil"
                          Label="@Localizer["EditItem", Localizer["Project"]]" />
-            <StackButton OnClick="@(() => DeleteProject(Project))"
+            <StackButton OnClick="@(() => DeleteProject())"
                          Color="Color.Error"
                          StartIcon="fa-thin fa-folder-xmark"
                          Label="@Localizer["DeleteItem", Localizer["Project"]]" />
@@ -37,5 +37,5 @@
 }
 else
 {
-    @Plugin.Render(new ProjectDetailsPlugin(Project, OnDelete, OnProcedureAdded))
+    @Plugin.Render(new ProjectDetailsPlugin(Project, OnEdit, OnDeleted, OnProcedureAdded))
 }

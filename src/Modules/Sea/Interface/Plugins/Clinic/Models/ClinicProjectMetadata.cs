@@ -8,11 +8,13 @@ public sealed record ClinicProjectMetadata
 
     public string? LastName { get; init; }
 
-    public string? DateOfBirth { get; init; }
+    public DateTime? DateOfBirth { get; init; }
 
     public DateTime? DateOfSurgery { get; init; }
 
     public Gender Gender { get; init; }
+
+    public string? PlaceOfBirth { get; init; }
 
     public string? Email { get; init; }
 
@@ -20,13 +22,7 @@ public sealed record ClinicProjectMetadata
 
     public string? InsuranceProvider { get; init; }
 
-    public string? PolicyNumber { get; init; }
-
-    public string? PrimaryPhysician { get; init; }
-
     public string? VisitReason { get; init; }
-
-    public string? PreferredPharmacy { get; init; }
 
     public string? Allergies { get; init; }
 
@@ -37,12 +33,4 @@ public sealed record ClinicProjectMetadata
     public string? EmergencyContactName { get; init; }
 
     public string? EmergencyContactPhone { get; init; }
-
-    public bool? ConsentToShareRecords { get; init; }
-
-    public Guid? FacilityId { get; init; }
-
-    public string? DepartmentName { get; init; }
-
-    public Guid? TemplateId { get; init; }
 }

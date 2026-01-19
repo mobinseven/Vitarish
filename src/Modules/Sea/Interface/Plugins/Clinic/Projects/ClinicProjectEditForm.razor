@@ -1,64 +1,138 @@
 @inherits ProjectFormBase<ClinicProjectMetadata, ClinicProjectMetadataModel>
 
-<MudText Typo="Typo.h5">@Project.Name</MudText>
 
-<ClinicProjectManualEditor EditableMetadata="EditableMetadata" />
+@if(EditableMetadata is null)
+{
+    return;
+}
+<Stack>
+    @if(TemplateMode)
+    {
+        <StackTextField @bind-Value="EditableMetadata.LastName"
+                        Required
+                        Label="@Localizer["Title"]" />
+
+        <StackTextField @bind-Value="EditableMetadata.ClinicalNotes"
+                        Lines="4"
+                        Label="@Localizer["Description"]" />
+    }
+    else
+    {
+        <StackTextField @bind-Value="EditableMetadata.FirstName"
+                        Label="@Localizer["FirstName"]" />
+
+        <StackTextField @bind-Value="EditableMetadata.LastName"
+                        Required
+                        Label="@Localizer["LastName"]" />
+
+        <StackField>
+            <MudDatePicker @bind-Date="EditableMetadata.DateOfBirth"
+                           Variant="Variant.Filled"
+                           DateFormat="dd/MM/yyyy"
+                           Label="@Localizer["DateOfBirth"]" />
+        </StackField>
+
+        <StackField>
+            <MudDatePicker @bind-Date="EditableMetadata.DateOfSurgery"
+                           Variant="Variant.Filled"
+                           DateFormat="dd/MM/yyyy"
+                           Label="@Localizer["DateOf", Localizer["Surgery"]]" />
+        </StackField>
+
+        <StackField>
+            <MudRadioGroup T="Gender"
+                           @bind-Value="EditableMetadata.Gender">
+                <MudRadio Value="@Gender.Female">@Localizer["Female"]</MudRadio>
+                <MudRadio Value="@Gender.Male">@Localizer["Male"]</MudRadio>
+            </MudRadioGroup>
+        </StackField>
+
+        <StackTextField @bind-Value="EditableMetadata.ClinicalNotes"
+                        Lines="4"
+                        Label="@Localizer["Notes"]" />
+
+        <StackExpandable Label="@Localizer["ClinicalData"]">
+            <MudTextField @bind-Value="EditableMetadata.PlaceOfBirth"
+                          Label="@Localizer["PlaceOfBirth"]" />
+            <MudTextField @bind-Value="EditableMetadata.Email"
+                          Label="@Localizer["Email"]"
+                          InputType="InputType.Email" />
+            <MudTextField @bind-Value="EditableMetadata.Phone"
+                          Label="@Localizer["Phone"]"
+                          InputType="InputType.Telephone" />
+            <MudDivider Class="my-1" />
+            <MudTextField @bind-Value="EditableMetadata.InsuranceProvider"
+                          Label="@Localizer["InsuranceProvider"]" />
+            <MudDivider Class="my-1" />
+            <MudTextField @bind-Value="EditableMetadata.VisitReason"
+                          Label="@Localizer["VisitReason"]" />
+            <MudTextField @bind-Value="EditableMetadata.Allergies"
+                          Label="@Localizer["Allergies"]" />
+            <MudTextField @bind-Value="EditableMetadata.CurrentMedications"
+                          Label="@Localizer["CurrentMedications"]" />
+            <MudDivider Class="my-1" />
+            <MudTextField @bind-Value="EditableMetadata.EmergencyContactName"
+                          Label="@Localizer["EmergencyContactName"]" />
+            <MudTextField @bind-Value="EditableMetadata.EmergencyContactPhone"
+                          Label="@Localizer["EmergencyContactPhone"]" />
+        </StackExpandable>
+    }
+
+</Stack>
+
+<Stack>
+    <StackButton Label="@Localizer["Save"]" StartIcon="fa-thin fa-save" Color="Color.Primary" OnClick="SaveAsync" Disabled="@(!isValid)" />
+    <StackButton Label="@Localizer["Cancel"]" StartIcon="fa-thin fa-xmark" OnClick="() => OnCancel.InvokeAsync()" />
+</Stack>
 
 @code {
-    [Parameter, EditorRequired] public ProjectDto Project { get; set; }
-    [Parameter] public EventCallback<ProjectDto> OnUpdate { get; set; }
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
         var model = new ClinicProjectMetadataModel(OnMetadataChenged);
-        model.LoadFrom(Project.GetClinicProjectMetadata());
+        if(Project is not null)
+        {
+            model.LoadFrom(Project.GetClinicProjectMetadata());
+        }
+        else
+        {
+            model.LoadFrom(new ClinicProjectMetadata());
+        }
         InitializeEditableMetadata(model);
-    }
-    private bool TryCreateMetadataFromEditor(out ClinicProjectMetadata? metadata, out string? error)
-    {
-        metadata = null;
-        error = null;
 
-        if(string.IsNullOrWhiteSpace(EditableMetadata.FirstName) && string.IsNullOrWhiteSpace(EditableMetadata.LastName))
+        if(Project is not null && string.IsNullOrWhiteSpace(EditableMetadata.LastName))
         {
             EditableMetadata.LastName = Project.Name;
         }
-
-        metadata = new()
-        {
-            FirstName = NormalizeInput(EditableMetadata.FirstName),
-            LastName = NormalizeInput(EditableMetadata.LastName),
-            DateOfBirth = NormalizeInput(EditableMetadata.DateOfBirth),
-            DateOfSurgery = EditableMetadata.DateOfSurgery,
-            Gender = EditableMetadata.Gender,
-            Email = NormalizeInput(EditableMetadata.Email),
-            Phone = NormalizeInput(EditableMetadata.Phone),
-            InsuranceProvider = NormalizeInput(EditableMetadata.InsuranceProvider),
-            PolicyNumber = NormalizeInput(EditableMetadata.PolicyNumber),
-            PrimaryPhysician = NormalizeInput(EditableMetadata.PrimaryPhysician),
-            VisitReason = NormalizeInput(EditableMetadata.VisitReason),
-            PreferredPharmacy = NormalizeInput(EditableMetadata.PreferredPharmacy),
-            Allergies = NormalizeInput(EditableMetadata.Allergies),
-            CurrentMedications = NormalizeInput(EditableMetadata.CurrentMedications),
-            ClinicalNotes = NormalizeInput(EditableMetadata.ClinicalNotes),
-            EmergencyContactName = NormalizeInput(EditableMetadata.EmergencyContactName),
-            EmergencyContactPhone = NormalizeInput(EditableMetadata.EmergencyContactPhone),
-            ConsentToShareRecords = EditableMetadata.ConsentToShareRecords,
-            DepartmentName = NormalizeInput(EditableMetadata.DepartmentName)
-        };
-        return true;
+        StateHasChanged();
     }
 
     private async void OnMetadataChenged()
     {
-        if(!TryCreateMetadataFromEditor(out ClinicProjectMetadata? parsed, out string? validationError))
-        {
-            StateHasChanged();
-        }
+        SetMetadata(EditableMetadata.GetModel());
+        StateHasChanged();
+    }
 
-        SetMetadata(parsed, markAsClean: true);
-        Project.Metadata = MetadataJson;
-        await OnUpdate.InvokeAsync(Project);
+    string title => (string.IsNullOrWhiteSpace(EditableMetadata.FirstName) ? Metadata?.LastName : $"{Metadata?.FirstName} {Metadata?.LastName}") ?? Localizer["NewItem", Localizer["Project"]];
+
+    private bool isValid => !string.IsNullOrWhiteSpace(title);
+
+    protected override async Task SaveAsync()
+    {
+        if(!isValid)
+        {
+            return;
+        }
+        if(Project is null)
+        {
+            var created = await ProjectsService.AddAsync(title, Metadata?.ClinicalNotes ?? string.Empty, TemplateMode, MetadataJson, CancellationToken.None);
+            await OnCreate.InvokeAsync(created);
+        }
+        else
+        {
+            await ProjectsService.UpdateAsync(Project.Id, title, Metadata?.ClinicalNotes ?? string.Empty, TemplateMode, MetadataJson, CancellationToken.None);
+            await OnUpdate.InvokeAsync(Project.Id);
+        }
     }
 }

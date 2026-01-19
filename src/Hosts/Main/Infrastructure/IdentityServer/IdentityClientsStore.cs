@@ -34,8 +34,8 @@ public class IdentityClientsStore(AuthenticationClientDbContext authClients, Api
         ApiClient? apiClient = await apiClients.ApiClients.SingleOrDefaultAsync(c => c.Id == clientId);
         if (apiClient is not null)
         {
-            // API clients don't have associated tenant/owner claims at the entity level.
-            // Tenant/owner claims for API client tokens are provided at runtime by ApiClientTokenValidator
+            // API clients don't have associated tenant/Owner claims at the entity level.
+            // Tenant/Owner claims for API client tokens are provided at runtime by ApiClientTokenValidator
             // which resolves them from the HTTP request context (similar to PartyProfileService).
             Client client = new()
             {

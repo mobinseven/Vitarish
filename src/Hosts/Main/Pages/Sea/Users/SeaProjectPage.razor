@@ -11,8 +11,9 @@
                     ProcedureClicked="@(procedureId => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}"))" />
 
     <ProjectDetails Project="@Project"
+                    OnEdit="@(projectId =>NavigationManager.NavigateTo($"/sea/Projects/Edit/{projectId}"))"
                     OnProcedureAdded="@(procedureId => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}"))"
-                    OnDelete="@(() => NavigationManager.NavigateTo("/sea/Projects"))" />
+                    OnDeleted="@(() => NavigationManager.NavigateTo("/sea/Projects"))" />
 
 </CascadingValue>
 
@@ -21,33 +22,39 @@
     [Parameter] public string? projectId { get; set; }
 
 
-    Guid ProjectId;
+    protected Guid ProjectId;
 
-    ProjectDto? Project;
+    protected ProjectDto? Project;
 
+    protected bool initialized;
     bool markedAsRead;
 
-
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
+        await base.OnInitializedAsync();
+
         if(projectId is null)
         {
-            return;
-        }
-        RenderForId(projectId);
-    }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        if(projectId is null)
-        {
+            NavigationManager.NavigateTo("/sea/Projects");
             return;
         }
 
         Guid.TryParse(projectId, out ProjectId);
+        RenderForId(projectId);
 
         await ReloadRequired();
+        initialized = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if(!firstRender)
+        {
+            return;
+        }
+
+        await MarkAsRead();
     }
 
     protected override async Task ReloadRequired()
@@ -62,11 +69,9 @@
         }
 
         NavService.OverridePageTitle(Project.Id.ToString(), Project.Name);
-
-        await InvokeAsync(StateHasChanged);
     }
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
+    protected async Task MarkAsRead()
     {
         if(UserId is null || Project is null)
         {

@@ -1,0 +1,14 @@
+@inherits SeaProcedurePage
+@page "/sea/Projects/Templates/{projectId}/{procedureId}"
+
+@if(Project is null || Procedure is null)
+{
+    return;
+}
+
+<CascadingValue Value="IsAdmin">
+    <EventsGrid Project="@Project"
+                EventClicked=@(id => NavigationManager.NavigateTo($"/sea/Projects/Templates/{projectId}/{procedureId}/{id}"))
+                Procedure="Procedure" />
+    <ProcedureDetails Procedure="Procedure" Project="Project" OnDelete="@(() => NavigationManager.NavigateTo($"/sea/Projects/Templates/{projectId}"))" />
+</CascadingValue>

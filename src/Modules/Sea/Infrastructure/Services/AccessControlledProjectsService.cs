@@ -23,7 +23,8 @@ internal class AccessControlledProjectsService(
         ProjectDescriptorDto descriptor = new()
         {
             Id = id,
-            RoleIds = isAdmin ? null : [.. userReadRoleIds]
+            RoleIds = isAdmin ? null : [.. userReadRoleIds],
+            Template = null
         };
         IReadOnlyList<ProjectDto> res = await Service.GetListAsync(descriptor, cancellationToken).EnsureValueAsync();
         ProjectDto? project = res.SingleOrDefault();

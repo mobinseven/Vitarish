@@ -12,7 +12,7 @@ public class TenantPageBase : CommonBase
     protected bool IsAdmin;
     protected bool IsOwner;
     protected Guid? UserId => Guid.Parse(RequestContext.UserId ?? Guid.Empty.ToString());
-    protected sealed override async Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         IsAdmin = RequestContext.IsTenantAdmin() || RequestContext.IsTenantOwner();
         IsOwner = RequestContext.IsTenantOwner();
