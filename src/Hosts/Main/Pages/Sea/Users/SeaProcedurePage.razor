@@ -57,7 +57,7 @@
             return;
         }
 
-        Procedure = (await ProcedureService.GetAsync(ProcedureId, CancellationToken.None)).EnsureValue();
+        Procedure = await ProcedureService.GetAsync(ProcedureId, CancellationToken.None).GetValueOrDefaultAsync();
 
         if(Procedure is null)
         {

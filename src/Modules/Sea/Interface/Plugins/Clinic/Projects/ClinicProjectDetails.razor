@@ -1,14 +1,5 @@
 @inherits ProjectDetails
 
-@if(AdminMode)
-{
-    <Stack>
-        <StackButton OnClick="@(() => AddProcedure())"
-                     Color="Color.Primary"
-                     StartIcon="fa-thin fa-file-plus"
-                     Label="@Localizer["AddItem", Localizer["Procedure"]]" />
-    </Stack>
-}
 <Stack>
     <StackField Label="@Project.Name">
         @if(!string.IsNullOrWhiteSpace(Project.Description))

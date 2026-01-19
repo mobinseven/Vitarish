@@ -12,7 +12,6 @@ internal class ClinicProjectDetailsPlugin : IProjectDetailsPlugin
         builder.AddAttribute(1, nameof(context.Project), context.Project);
         builder.AddAttribute(2, nameof(context.OnEdit), EventCallback.Factory.Create(this, context.OnEdit));
         builder.AddAttribute(3, nameof(context.OnDeleted), EventCallback.Factory.Create(this, context.OnDeleted));
-        builder.AddAttribute(4, nameof(context.OnProcedureAdded), EventCallback.Factory.Create(this, context.OnProcedureAdded));
         builder.CloseComponent();
     };
 }

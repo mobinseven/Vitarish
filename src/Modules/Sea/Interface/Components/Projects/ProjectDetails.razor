@@ -7,15 +7,6 @@
 
 @if(Plugin is null)
 {
-    @if(AdminMode)
-    {
-        <Stack>
-            <StackButton OnClick="@(() => AddProcedure())"
-                         Color="Color.Primary"
-                         StartIcon="fa-thin fa-file-plus"
-                         Label="@Localizer["AddItem", Localizer["Procedure"]]" />
-        </Stack>
-    }
     <Stack>
         <StackField Label="@Project.Name" HelperText="@Localizer["Project"]">
             @if(!string.IsNullOrWhiteSpace(Project.Description))
@@ -37,5 +28,5 @@
 }
 else
 {
-    @Plugin.Render(new ProjectDetailsPlugin(Project, OnEdit, OnDeleted, OnProcedureAdded))
+    @Plugin.Render(new ProjectDetailsPlugin(Project, OnEdit, OnDeleted))
 }

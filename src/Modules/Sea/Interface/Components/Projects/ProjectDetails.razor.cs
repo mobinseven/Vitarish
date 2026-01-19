@@ -5,31 +5,8 @@ public partial class ProjectDetails : ProjectsBase
     [Parameter, EditorRequired] public ProjectDto Project { get; set; } = default!;
     [Parameter] public EventCallback OnDeleted { get; set; }
     [Parameter] public EventCallback<Guid> OnEdit { get; set; }
-    [Parameter] public EventCallback<Guid> OnProcedureAdded { get; set; }
     [Inject] private IEnumerable<IProjectDetailsPlugin> Plugins { get; set; } = [];
     private IProjectDetailsPlugin? Plugin => Plugins.SingleOrDefault(p => p.Id == UsageConfigurationMetadata?.PluginIdentifier);
-    protected virtual async Task AddProcedure()
-    {
-        DialogParameters parameters = new()
-        {
-            { nameof(ProcedureCreateDialog.ProjectId), Project.Id },
-            { nameof(ProcedureCreateDialog.ProjectName), Project.Name }
-        };
-
-        var dialog = await DialogService.ShowAsync<ProcedureCreateDialog>(Localizer["Procedure"], parameters);
-
-        var result = await dialog.Result;
-
-        if(result?.Canceled ?? true)
-        {
-            return;
-        }
-
-        if(result.Data is Guid procedureId)
-        {
-            await OnProcedureAdded.InvokeAsync(procedureId);
-        }
-    }
 
     protected virtual Task EditProject() => OnEdit.InvokeAsync(Project.Id);
 

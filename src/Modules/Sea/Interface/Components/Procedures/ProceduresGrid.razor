@@ -3,8 +3,16 @@
 <Stack>
     @foreach(var procedure in procedures)
     {
-        <StackButton Label="@procedure.Name" OnClick="@(() => ProcedureClicked.InvokeAsync(procedure.Id))">
+        <StackButton Label="@procedure.Name" OnClick="@(() => OnClicked.InvokeAsync(procedure.Id))">
             <StatsDisplay Stats="procedure.Stats ?? new StatsDto()" />
         </StackButton>
+    }
+
+    @if(AdminMode)
+    {
+        <StackButton OnClick="@(() => AddProcedure())"
+                     Color="Color.Primary"
+                     StartIcon="fa-thin fa-file-plus"
+                     Label="@Localizer["AddItem", Localizer["Procedure"]]" />
     }
 </Stack>

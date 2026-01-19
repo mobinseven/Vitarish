@@ -3,7 +3,8 @@ namespace Vitarish.Sea.Interface.Components.Procedures;
 public partial class ProceduresGrid : ProceduresBase
 {
     [Parameter, EditorRequired] public ProjectDto Project { get; set; }
-    [Parameter] public EventCallback<Guid?> ProcedureClicked { get; set; }
+    [Parameter] public EventCallback<Guid?> OnClicked { get; set; }
+    [Parameter] public EventCallback<Guid> OnCreated { get; set; }
 
     private List<ProcedureDto> procedures = [];
 
@@ -31,5 +32,27 @@ public partial class ProceduresGrid : ProceduresBase
     }
 
     protected override async Task ReloadRequired() => await ReloadData();
+    private async Task AddProcedure()
+    {
+        DialogParameters parameters = new()
+        {
+            { nameof(ProcedureCreateDialog.ProjectId), Project.Id },
+            { nameof(ProcedureCreateDialog.ProjectName), Project.Name }
+        };
+
+        var dialog = await DialogService.ShowAsync<ProcedureCreateDialog>(Localizer["Procedure"], parameters);
+
+        var result = await dialog.Result;
+
+        if (result?.Canceled ?? true)
+        {
+            return;
+        }
+
+        if (result.Data is Guid procedureId)
+        {
+            await OnCreated.InvokeAsync(procedureId);
+        }
+    }
 
 }

@@ -8,11 +8,11 @@
 <CascadingValue Value="IsAdmin">
 
     <ProceduresGrid Project="@Project"
-                    ProcedureClicked="@(procedureId => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}"))" />
+                    OnClicked="@(procedureId => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}"))"
+                    OnCreated="@(procedureId => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}"))" />
 
     <ProjectDetails Project="@Project"
                     OnEdit="@(projectId =>NavigationManager.NavigateTo($"/sea/Projects/Edit/{projectId}"))"
-                    OnProcedureAdded="@(procedureId => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}"))"
                     OnDeleted="@(() => NavigationManager.NavigateTo("/sea/Projects"))" />
 
 </CascadingValue>
