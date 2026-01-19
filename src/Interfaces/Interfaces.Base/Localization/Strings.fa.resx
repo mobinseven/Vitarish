@@ -1035,4 +1035,7 @@
   <data name="PlaceOfBirth" xml:space="preserve">
     <value>زادگاه</value>
   </data>
+  <data name="New" xml:space="preserve">
+    <value>نو</value>
+  </data>
 </root>

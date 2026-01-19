@@ -1097,4 +1097,7 @@ of project "{2}"</value>
   <data name="PlaceOfBirth" xml:space="preserve">
     <value>Place of birth</value>
   </data>
+  <data name="New" xml:space="preserve">
+    <value>New</value>
+  </data>
 </root>

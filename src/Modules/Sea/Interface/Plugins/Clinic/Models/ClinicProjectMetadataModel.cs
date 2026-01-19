@@ -141,6 +141,7 @@ public sealed class ClinicProjectMetadataModel(Action onChanged)
         FirstName = null;
         LastName = null;
         DateOfBirth = null;
+        PlaceOfBirth = null;
         Gender = default;
         Email = null;
         Phone = null;

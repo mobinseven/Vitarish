@@ -1,0 +1,9 @@
+@page "/sea/Projects/Templates/New"
+
+<CascadingValue Value="IsAdmin">
+
+    <ProjectEditForm OnCreate="@(projectId => NavigationManager.NavigateTo($"/sea/Projects/Templates/{projectId}"))"
+                     OnCancel="@(() => NavigationManager.NavigateTo($"/sea/Projects/Templates"))"
+                     TemplateMode="true"/>
+
+</CascadingValue>
