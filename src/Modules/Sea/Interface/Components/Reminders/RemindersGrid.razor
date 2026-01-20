@@ -12,12 +12,7 @@
     }
     else
     {
-        <StackField Label="@Localizer["SortBy"]">
-            <MudSelect T="string" Value="sortMethod" ValueChanged="v => Sort(v)" Underline="false">
-                <MudSelectItem T="string" Value="SortBy.At.ToString()">@Localizer["DateAscending"]</MudSelectItem>
-                <MudSelectItem T="string" Value="null">@Localizer["DateDescending"]</MudSelectItem>
-            </MudSelect>
-        </StackField>
+        <StackSort Methods="SortMethods" />
         @foreach(var reminder in Reminders)
         {
             <StackButton OnClick="() => OnClicked(reminder)"

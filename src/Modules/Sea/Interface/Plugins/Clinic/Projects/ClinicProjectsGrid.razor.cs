@@ -1,3 +1,4 @@
+using Vitarish.Interfaces.Base.Models;
 using Vitarish.Sea.Interface.Plugins.Clinic.Models;
 
 namespace Vitarish.Sea.Interface.Plugins.Clinic.Projects;
