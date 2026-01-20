@@ -1,6 +1,5 @@
 using Injectio.Attributes;
 using Vitarish.Requests.Application.Abstractions;
-using Vitarish.Sea.Interface.Models;
 
 namespace Vitarish.Sea.Interface.Services;
 
