@@ -1112,4 +1112,7 @@ of project "{2}"</value>
   <data name="DateAscending" xml:space="preserve">
     <value>Older to newer</value>
   </data>
+  <data name="Ownership" xml:space="preserve">
+    <value>Ownership</value>
+  </data>
 </root>

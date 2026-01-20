@@ -1,10 +1,18 @@
 @inherits IdentityCommonBase
 
-<Stack>
-    <StackField Label="@Localizer["Workspaces"]"/>
+@if(tenantEntries.Count > 0)
+{
+    <Stack>
+        <StackField Label="@Localizer["Workspaces"]" />
 
-    @foreach(TenantAccessEntry entry in tenantEntries)
-    {
-        <StackButton Color="Color.Primary" Label="@entry.TenantDisplayName" OnClick="@(() => NavigateToTenant(entry))" StartIcon="fa-regular fa-building" />
-    }
-</Stack>
+        @if(isLoading)
+        {
+            <MudProgressLinear Indeterminate />
+        }
+
+        @foreach(TenantAccessEntry entry in tenantEntries)
+        {
+            <StackButton Color="Color.Primary" Label="@entry.TenantDisplayName" OnClick="@(() => NavigateToTenant(entry))" StartIcon="fa-regular fa-building" />
+        }
+    </Stack>
+}
