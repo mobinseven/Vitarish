@@ -32,12 +32,8 @@
 @if(projectsViaSurgeryData?.Count > 0)
 {
     <Stack>
-        <StackField Label="@Localizer["SortBy"]">
-            <MudSelect T="string" Value="UsageConfigurationMetadata?.ProjectsSortMethod" ValueChanged="v => Sort()" Underline="false">
-                <MudSelectItem Value="SortBy.SurgeryDateDesc.ToString()">@Localizer["SurgeryDateDesc"]</MudSelectItem>
-                <MudSelectItem Value="SortBy.SurgeryDate.ToString()">@Localizer["SurgeryDate"]</MudSelectItem>
-            </MudSelect>
-        </StackField>
+        <StackSort Methods="SortMethodsViaSurgeryData" />
+
         @foreach(var project in projectsViaSurgeryData)
         {
             <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
@@ -46,10 +42,6 @@
                 <StatsDisplay Stats="project.Stats" />
             </StackButton>
         }
-        @if(projects.Count == 0)
-        {
-            <StackField Label="@Localizer["NoItems", Localizer["Project"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Project"]]" />
-        }
     </Stack>
 }
 
@@ -57,6 +49,7 @@
 {
     <Stack>
         <StackField Label="@Localizer["NoItems", Localizer["DateOf", Localizer["Surgery"]]]" />
+        <StackSort Methods="SortMethodsLackSurgeryData" />
         @foreach(var project in projectsLackSurgeryData)
         {
             <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
