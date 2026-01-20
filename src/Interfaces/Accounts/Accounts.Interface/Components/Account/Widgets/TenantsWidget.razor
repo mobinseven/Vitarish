@@ -5,6 +5,6 @@
 
     @foreach(TenantAccessEntry entry in tenantEntries)
     {
-        <StackButton Color="Color.Primary" Label="@entry.TenantDisplayName" OnClick="@(() => NavigateToTenant(entry))" StartIcon="fa-thin fa-building" />
+        <StackButton Color="Color.Primary" Label="@entry.TenantDisplayName" OnClick="@(() => NavigateToTenant(entry))" StartIcon="fa-regular fa-building" />
     }
 </Stack>

@@ -5,15 +5,15 @@
         <div style="width: 100%">
             @if(KindStep)
             {
-                <MudChip Color=Color.Primary T="string" Icon="fa-thin fa-phone">@Localizer[kind.ToString()]</MudChip>
+                <MudChip Color=Color.Primary T="string" Icon="fa-regular fa-phone">@Localizer[kind.ToString()]</MudChip>
             }
             @if(DateStep)
             {
-                <MudChip Color=Color.Primary T="string" Icon="fa-thin fa-calander">@remindAt.ToLocalTime().DateTime.ToShortDateString()</MudChip>
+                <MudChip Color=Color.Primary T="string" Icon="fa-regular fa-calander">@remindAt.ToLocalTime().DateTime.ToShortDateString()</MudChip>
             }
             @if(TimeStep)
             {
-                <MudChip Color=Color.Primary T="string" Icon="fa-thin fa-clock">@remindAt.ToLocalTime().DateTime.ToShortTimeString()</MudChip>
+                <MudChip Color=Color.Primary T="string" Icon="fa-regular fa-clock">@remindAt.ToLocalTime().DateTime.ToShortTimeString()</MudChip>
             }
         </div>
         <div>

@@ -4,14 +4,14 @@
         @if(searchActive)
         {
             <MudTextField T="string" @bind-Value="Query" Style="border-radius: 70px; width: 100%;" AutoFocus DebounceInterval="1000" Variant="Variant.Text" />
-            <MudFab Size=Size StartIcon="fa-thin fa-xmark" DropShadow=false OnClick="Close" />
+            <MudFab Size=Size StartIcon="fa-regular fa-xmark" DropShadow=false OnClick="Close" />
         }
         else
         {
-            <MudFab Size=Size StartIcon="fa-thin fa-house-blank" DropShadow=false OnClick="HandleHomeClick" />
-            <MudFab Size=Size StartIcon="fa-thin fa-magnifying-glass" DropShadow=false OnClick="HandleSearchClick" />
-            <MudFab Size=Size StartIcon="fa-thin fa-level-up-alt" DropShadow=false OnClick="HandleBackClick" Disabled="@(NavigationManager.Uri == NavigationManager.BaseUri)" />
-            <MudFab Size=Size StartIcon="fa-thin fa-gear" DropShadow=false OnClick="HandleProfileClick" />
+            <MudFab Size=Size StartIcon="fa-regular fa-house-blank" DropShadow=false OnClick="HandleHomeClick" />
+            <MudFab Size=Size StartIcon="fa-regular fa-magnifying-glass" DropShadow=false OnClick="HandleSearchClick" />
+            <MudFab Size=Size StartIcon="fa-regular fa-level-up-alt" DropShadow=false OnClick="HandleBackClick" Disabled="@(NavigationManager.Uri == NavigationManager.BaseUri)" />
+            <MudFab Size=Size StartIcon="fa-regular fa-gear" DropShadow=false OnClick="HandleProfileClick" />
         }
     </MudStack>
 </div>

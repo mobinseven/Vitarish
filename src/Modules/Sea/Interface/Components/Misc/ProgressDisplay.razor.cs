@@ -7,13 +7,13 @@ public partial class ProgressDisplay
 
     private string ProgressIcon(ProgressState? state) => state switch
     {
-        ProgressState.NotStarted => "fa-thin fa-circle",
-        ProgressState.Quarter => "fa-solid fa-circle-quarter",
-        ProgressState.Half => "fa-solid fa-circle-half",
-        ProgressState.ThreeQuarters => "fa-solid fa-circle-three-quarters",
-        ProgressState.InProgress => "fa-duotone fa-solid fa-circle-three-quarters",
-        ProgressState.Completed => "fa-solid fa-circle-check",
-        _ => "fa-solid fa-circle-dotted"
+        ProgressState.NotStarted => "fa-regular fa-circle",
+        ProgressState.Quarter => "fa-regular fa-circle-quarter",
+        ProgressState.Half => "fa-regular fa-circle-half",
+        ProgressState.ThreeQuarters => "fa-regular fa-circle-three-quarters",
+        ProgressState.InProgress => "fa-duotone fa-regular fa-circle-three-quarters",
+        ProgressState.Completed => "fa-regular fa-circle-check",
+        _ => "fa-regular fa-circle-dotted"
     };
 
     private async Task DisplayInfo()

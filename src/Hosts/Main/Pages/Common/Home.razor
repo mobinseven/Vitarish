@@ -6,18 +6,18 @@
         <Stack>
             <AuthorizeView Context="admin" Policy="@IdentityAccessConstants.PlatformAdmin">
                 <StackButton Label="@Localizer["Admin"]"
-                             StartIcon="fa-thin fa-user-shield"
+                             StartIcon="fa-regular fa-user-shield"
                              OnClick="@(() => NavigationManager.NavigateTo("/Admin"))" />
             </AuthorizeView>
             <StackButton Label="@Localizer["Settings"]"
-                         StartIcon="fa-thin fa-user-gear"
+                         StartIcon="fa-regular fa-user-gear"
                          OnClick="@(() => NavigationManager.NavigateTo("/Settings"))" />
         </Stack>
     </Authorized>
     <NotAuthorized>
         <Stack>
             <StackButton Label="@Localizer["Login"]"
-                         StartIcon="fa-thin fa-sign-in"
+                         StartIcon="fa-regular fa-sign-in"
                          OnClick="@(() => NavigationManager.NavigateTo("/Account/Login"))" />
         </Stack>
     </NotAuthorized>

@@ -12,6 +12,6 @@
         : Stats.EventItems;
     private string BadgeContent => NumberExtensions.LocalizeNumerals(BadgeCount.ToString());
     private string EventItemsStyle => HasNewItems ? "opacity: 1; background-color: unset;" : BadgeCount > 0 ? "opacity: 1; background-color: unset;" : "opacity: 0;";
-    private string BlinkIcon => HasNewItems ? "fa-solid  fa-envelope fa-fade fa-xl" : BadgeCount > 0 ? "fa-solid  fa-envelope-open fa-xl" : "fa-solid fa-fw";
+    private string BlinkIcon => HasNewItems ? "fa-regular  fa-envelope fa-fade fa-xl" : BadgeCount > 0 ? "fa-regular  fa-envelope-open fa-xl" : "fa-regular fa-fw";
     private Color BlinkColor => HasNewItems ? Color.Primary : Color.Default;
 }

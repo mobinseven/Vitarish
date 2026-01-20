@@ -19,6 +19,6 @@ public partial class AttachmentsDisplay : SeaCommonBase
     }
 
     private string Icon(string contentType) => contentType.StartsWith("image")
-            ? "fa-thin fa-file-image"
-            : contentType.StartsWith("video") ? "fa-thin fa-file-video" : "fa-thin fa-file-lines";
+            ? "fa-regular fa-file-image"
+            : contentType.StartsWith("video") ? "fa-regular fa-file-video" : "fa-regular fa-file-lines";
 }

@@ -22,14 +22,14 @@
         </StackField>
         @if(AdminMode)
         {
-            <StackButton StartIcon="fa-thin fa-xmark" Color="Color.Error" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Uncommit"]" />
+            <StackButton StartIcon="fa-regular fa-xmark" Color="Color.Error" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Uncommit"]" />
         }
     </Stack>
 }
 else if(CanWrite)
 {
     <Stack>
-        <StackButton StartIcon="fa-thin fa-check" Color="Color.Primary" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Commit"]" />
+        <StackButton StartIcon="fa-regular fa-check" Color="Color.Primary" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Commit"]" />
     </Stack>
 }
 
@@ -37,8 +37,8 @@ else if(CanWrite)
 @if(AdminMode)
 {
     <Stack>
-        <StackButton StartIcon="fa-thin fa-users" OnClick="EditEventRoles" Label="@Localizer["EditRoles", Localizer["Event"]]" />
-        <StackButton StartIcon="fa-thin fa-trash" OnClick="DeleteEvent" Label="@Localizer["DeleteItem", Localizer["Event"]]" Color="Color.Error" />
+        <StackButton StartIcon="fa-regular fa-users" OnClick="EditEventRoles" Label="@Localizer["EditRoles", Localizer["Event"]]" />
+        <StackButton StartIcon="fa-regular fa-trash" OnClick="DeleteEvent" Label="@Localizer["DeleteItem", Localizer["Event"]]" Color="Color.Error" />
     </Stack>
 }
 

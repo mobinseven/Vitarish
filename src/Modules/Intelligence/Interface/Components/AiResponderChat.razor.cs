@@ -90,7 +90,7 @@ public partial class AiResponderChat : CommonBase
     internal RenderFragment ClearButton => builder =>
     {
         builder.OpenComponent<MudFab>(0);
-        builder.AddAttribute(1, nameof(MudFab.StartIcon), "fa-thin fa-broom-wide");
+        builder.AddAttribute(1, nameof(MudFab.StartIcon), "fa-regular fa-broom-wide");
         builder.AddAttribute(2, nameof(MudFab.Size), Size.Small);
         builder.AddAttribute(3, nameof(MudFab.Color), Color.Error);
         builder.AddAttribute(4, nameof(MudFab.OnClick), EventCallback.Factory.Create<Microsoft.AspNetCore.Components.Web.MouseEventArgs>(this, ClearConversationAsync));

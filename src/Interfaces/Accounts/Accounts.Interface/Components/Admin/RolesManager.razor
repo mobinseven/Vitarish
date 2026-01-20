@@ -44,7 +44,7 @@
         @foreach(var role in tenantRoles)
         {
             <StackField Label="@role.Name">
-                <MudFab DropShadow="false" StartIcon="fa-thin fa-xmark" OnClick="async () => await DeleteRoleAsync(role)" />
+                <MudFab DropShadow="false" StartIcon="fa-regular fa-xmark" OnClick="async () => await DeleteRoleAsync(role)" />
             </StackField>
         }
 

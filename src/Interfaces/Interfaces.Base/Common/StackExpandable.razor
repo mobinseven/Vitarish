@@ -29,5 +29,5 @@
     [Parameter] public string? Label { get; set; }
     [Parameter] public string? HighlightString { get; set; }
 
-    private string ContinueIcon => expanded ? "fa-thin fa-chevron-down" : CultureInfo.CurrentCulture.TextInfo.IsRightToLeft ? "fa-thin fa-chevron-left" : "fa-thin fa-chevron-right";
+    private string ContinueIcon => expanded ? "fa-regular fa-chevron-down" : CultureInfo.CurrentCulture.TextInfo.IsRightToLeft ? "fa-regular fa-chevron-left" : "fa-regular fa-chevron-right";
 }
