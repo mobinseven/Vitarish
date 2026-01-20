@@ -39,6 +39,8 @@ public partial class UserReminderCreatorDialog : RemindersBase
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
+
         subject = Localizer["ReminderSubject", Event.Title];
         textBody = await GetTextBody();
 

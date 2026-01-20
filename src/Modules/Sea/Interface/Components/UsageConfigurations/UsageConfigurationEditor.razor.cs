@@ -1,3 +1,5 @@
+using Vitarish.Sea.Interface.Models;
+
 namespace Vitarish.Sea.Interface.Components.UsageConfigurations;
 
 public partial class UsageConfigurationEditor : UsageConfigurationsBase
@@ -13,15 +15,8 @@ public partial class UsageConfigurationEditor : UsageConfigurationsBase
         new("gpt-4.1-nano-2025-04-14", "GPT-4.1 Nano")
     ];
 
-    private UsageConfigurationDto _configuration = new(Guid.Empty, null, "{}");
-    private UsageConfigurationMetadata _metadata = new();
-
-    protected override async Task OnInitializedAsync()
-    {
-        _configuration = await UsageConfigurationService.GetUsageConfigurationAsync(CancellationToken.None)
-            ?? new(Guid.Empty, null, "{}");
-        _metadata = UsageConfigurationMetadata.FromJson(_configuration.Metadata);
-    }
+    private UsageConfigurationDto? _configuration => UsageConfiguration;
+    private UsageConfigurationMetadata? _metadata => UsageConfigurationMetadata;
 
     private Task SaveAsync()
     {

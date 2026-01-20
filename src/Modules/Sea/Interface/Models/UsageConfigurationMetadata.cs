@@ -1,4 +1,4 @@
-namespace Vitarish.Sea.Interface.Components.UsageConfigurations;
+namespace Vitarish.Sea.Interface.Models;
 
 public sealed record UsageConfigurationMetadata
 {

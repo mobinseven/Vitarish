@@ -8,6 +8,7 @@ public partial class UserRolesDisplay : UsersBase
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         IReadOnlyList<UserRoleDto> userRoles = await UserRolesService.GetListAsync(
                 new UserRoleDescriptorDto { UserId = Guid.Parse(User.Id) },
                 CancellationToken.None)

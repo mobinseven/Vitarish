@@ -26,3 +26,5 @@ global using MudBlazor;
 global using Vitarish.Users.Domain.Models;
 global using Microsoft.Extensions.Localization;
 global using Vitarish.Files.Domain.Models;
+global using Vitarish.Sea.Interface.Models;
+global using Vitarish.Sea.Interface.Services;

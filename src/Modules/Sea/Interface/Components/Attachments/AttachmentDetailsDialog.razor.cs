@@ -19,21 +19,13 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
     private bool editing;
     private string editContent = string.Empty;
     private IReadOnlyList<Guid> readers = [];
-    private IReadOnlyList<UserDto> Users = [];
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        await LoadUsersAsync();
         await LoadReadersAsync();
         CanWrite = await EventsService.CanWriteEvent(Event.Id);
         StateHasChanged();
-    }
-
-    private async Task LoadUsersAsync()
-    {
-        IList<User> usersInRole = await UsersService.GetUsersInRoleAsync(RequestContext.GetTenantUserRole(), CancellationToken.None);
-        Users = [.. usersInRole.Select(u => new UserDto(u))];
     }
 
     private async Task LoadReadersAsync() => readers = await ReceiptsService.GetReadersAsync(Attachment.Id, CancellationToken.None) ?? Array.Empty<Guid>();
@@ -63,7 +55,6 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
         editing = false;
     }
 
-    private string? UserIdToName(string id) => Users.FirstOrDefault(x => x.Id == id)?.FullName;
     private string FormatReader(Guid readerId)
     {
         string? name = Users.FirstOrDefault(x => x.Id == readerId.ToString())?.FullName;

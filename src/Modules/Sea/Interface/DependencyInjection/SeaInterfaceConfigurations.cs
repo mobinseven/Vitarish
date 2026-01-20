@@ -9,6 +9,7 @@ public static class SeaInterfaceConfigurations
             _ = services.ConfigureSeaPlugins();
             _ = services.AddScoped<IEventItemPlugin, AttachmentPlugin>();
             _ = services.AddScoped<IEventItemPlugin, ReminderPlugin>();
+            _ = services.AddVitarishSeaInterface();
             return services;
         }
 

@@ -10,16 +10,6 @@ public partial class ReminderDetailsDialog : RemindersBase
 
     private bool CanEdit => AdminMode || RequestContext.UserId == Reminder.CreatedBy;
 
-    private IReadOnlyList<UserDto> Users = [];
-
-    protected override async Task ReloadRequired()
-    {
-        IList<User> usersInRole = await UsersService.GetUsersInRoleAsync(RequestContext.GetTenantUserRole(), CancellationToken.None);
-        Users = [.. usersInRole.Select(u => new UserDto(u))];
-    }
-
-    private string? UserIdToName(string? id) => id is null ? null : Users.FirstOrDefault(x => x.Id == id)?.FullName;
-
     private string SentAtText() => Reminder.SentAt is null
         ? Localizer["NotSent"].Value
         : $"{Reminder.SentAt.Value.ToLocalTime().DateTime:d} {Reminder.SentAt.Value.ToLocalTime().DateTime:t}";

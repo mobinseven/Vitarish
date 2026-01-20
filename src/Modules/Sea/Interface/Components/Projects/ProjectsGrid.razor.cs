@@ -10,15 +10,7 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
 
     protected List<ProjectDto> projects = [];
 
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender)
-        {
-            await ReloadData();
-        }
-    }
-
-    protected virtual async Task ReloadData()
+    protected override async Task ReloadRequired()
     {
         ProjectDescriptorDto descriptor = new()
         {
@@ -36,8 +28,5 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
             .ThenBy(e => e.Name)];
         await InvokeAsync(StateHasChanged);
     }
-
-    protected override async Task ReloadRequired() => await ReloadData();
-
     protected virtual Task AddProject() => OnAdd.InvokeAsync();
 }

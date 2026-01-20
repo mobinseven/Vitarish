@@ -11,7 +11,7 @@ public partial class ProcedureTemplatesBrowser : SeaCommonBase
 
     protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
+        await base.OnInitializedAsync();
         projects = [.. await ProjectsService.GetListAsync(new ProjectDescriptorDto { Template = true }, CancellationToken.None)
             .EnsureValueAsync("Load template projects")];
         foreach (ProjectDto p in projects)

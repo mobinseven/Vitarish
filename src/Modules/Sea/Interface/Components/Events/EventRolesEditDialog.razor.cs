@@ -16,6 +16,7 @@ public partial class EventRolesEditDialog : SeaCommonBase
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         if (Event is null)
         {
             MudDialog.Cancel();

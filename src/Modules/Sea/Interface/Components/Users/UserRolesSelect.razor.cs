@@ -14,6 +14,7 @@ public partial class UserRolesSelect : UsersBase
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         if (!TryGetUserId(out Guid userId))
         {
             return;
