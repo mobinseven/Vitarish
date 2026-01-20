@@ -1,22 +1,26 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+	</PropertyGroup>
 
 
-  <ItemGroup>
-    <SupportedPlatform Include="browser" />
-  </ItemGroup>
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.1" />
-  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Minio" Version="6.0.2" />
+		<PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="9.*" />
+		<PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.1" />
+	</ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Application\Files.Application.csproj" />
-  </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+		<ProjectReference Include="..\Application\Files.Application.csproj" />
+		<ProjectReference Include="..\Infrastructure\Files.Infrastructure.csproj" />
+	</ItemGroup>
 
 </Project>

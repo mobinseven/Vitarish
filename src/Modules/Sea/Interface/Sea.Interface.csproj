@@ -22,12 +22,14 @@
 		<ProjectReference Include="..\..\..\Identity\Users\Domain\Users.Domain.csproj" />
 		<ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
+		<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
 		<ProjectReference Include="..\..\Files\Domain\Files.Domain.csproj" />
 		<ProjectReference Include="..\..\Files\Interface\Files.Interface.csproj" />
 		<ProjectReference Include="..\..\Intelligence\Domain\Intelligence.Domain.csproj" />
 		<ProjectReference Include="..\..\Intelligence\Interface\Intelligence.Interface.csproj" />
 		<ProjectReference Include="..\Application\Sea.Application.csproj" />
 		<ProjectReference Include="..\Domain\Sea.Domain.csproj" />
+		<ProjectReference Include="..\Infrastructure\Sea.Infrastructure.csproj" />
 	</ItemGroup>
 
 </Project>

@@ -7,19 +7,18 @@ using Microsoft.Extensions.Options;
 using Minio;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
-using Vitarish.Files.Hosting.Hubs;
 using Vitarish.Files.Infrastructure.Data;
 using Vitarish.Files.Infrastructure.Interfaces;
 using Vitarish.Files.Infrastructure.Services;
 using Vitarish.Files.Interface.DependencyInjection;
 using Vitarish.Modules.Base;
 
-namespace Vitarish.Files.Hosting;
+namespace Vitarish.Files.Interface;
 
 /// <summary>
 /// Module wiring for the Files stack using the shared module contracts.
 /// </summary>
-public class FilesModule : ModuleBase, IModule
+public class FilesModule : ModuleBase, IFilesModule
 {
     private readonly Action<DbContextOptionsBuilder>? configureDbContext;
 
@@ -48,7 +47,7 @@ public class FilesModule : ModuleBase, IModule
         IConfiguration configuration,
         Action<DbContextOptionsBuilder>? configureDbContext)
     {
-        services.AddSingleton<FilesModule>();
+        services.AddSingleton<IFilesModule, FilesModule>();
 
         Action<DbContextOptionsBuilder>? dbConfigurator = (configureDbContext ?? this.configureDbContext) ?? throw new InvalidOperationException("FilesModule requires a DbContext configuration delegate.");
 
@@ -107,24 +106,15 @@ public class FilesModule : ModuleBase, IModule
 
         //_ = app.UseMiddleware<FileLoadCors>(); TODO: remporary disabled
         _ = app.UseMiddleware<ObjectStorageMiddleware>();
-        _ = app.MapHub<FilesHub>("/files/hubs/transfer");
+        //_ = app.MapHub<FilesHub>("/files/hubs/transfer");
     }
 
     /// <inheritdoc />
-    protected override async Task ConfigureEndpointsAsync(IEndpointRouteBuilder endpoints)
+    protected override async Task InitializeAsync(WebApplication app)
     {
-        if (endpoints is not WebApplication app)
-        {
-            throw new InvalidOperationException("FilesModule requires a WebApplication for endpoint configuration.");
-        }
         using IServiceScope scope = app.Services.CreateScope();
         IObjectStorageService storage = scope.ServiceProvider.GetRequiredService<IObjectStorageService>();
         await storage.EnsureBucketAsync(app.Lifetime.ApplicationStopping);
     }
-
-    /// <inheritdoc />
-    protected override void ConfigureHealthChecks(WebApplicationBuilder builder) =>
-        // Reserved for Files-specific health checks (e.g., object storage availability).
-        builder.Services.AddHealthChecks();
 
 }

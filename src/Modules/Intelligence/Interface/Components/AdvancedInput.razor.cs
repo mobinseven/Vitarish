@@ -1,9 +1,14 @@
+using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Interface.Models;
+using Vitarish.Intelligence.Application.Abstractions;
 
 namespace Vitarish.Intelligence.Interface.Components;
 
 public partial class AdvancedInput : CommonBase
 {
+    [Inject] protected IFilesModule FilesModule { get; set; } = default!;
+    [Inject] protected IIntelligenceModule IntelligenceModule { get; set; } = default!;
+
     private AiStreamTranscriber? _transcriber;
     private AiStreamRewriter? _rewriter;
     private StreamTransfer? _streamTransferComponent;

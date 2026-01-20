@@ -1,16 +1,15 @@
-using Hangfire;
 using Microsoft.Extensions.Logging.Abstractions;
 using Minio;
 using System.Buffers;
+using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
-using Vitarish.Files.Hosting;
 using Vitarish.Files.Infrastructure.Extensions;
 using Vitarish.Files.Infrastructure.Interfaces;
 using Vitarish.Files.Infrastructure.Services;
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 
 public class FilesProcessor(
-    FilesModule filesModule,
+    IFilesModule filesModule,
     IObjectStorageService storage,
     IOptionsMonitor<FilesOptions> filesOptions,
     IOptionsMonitor<MinioOptions> minioOptions,

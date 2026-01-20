@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+    <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
     <ProjectReference Include="..\Domain\Communications.Domain.csproj" />
   </ItemGroup>
 </Project>

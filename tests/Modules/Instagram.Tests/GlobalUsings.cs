@@ -5,7 +5,6 @@ global using FluentAssertions;
 global using Microsoft.AspNetCore.Http.HttpResults;
 global using Microsoft.Extensions.Logging;
 global using Moq;
-global using Vitarish.Instagram.Hosting;
 global using Vitarish.Instagram.Scraper;
 global using Vitarish.Modules.Instagram.Scraper;
 global using Vitarish.Modules.Instagram.Scraper.Models;

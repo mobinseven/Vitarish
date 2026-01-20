@@ -23,7 +23,7 @@
         <ActivatorContent>
             <MudFab StartIcon="fa-thin fa-photo-film"
                     HtmlTag="div"
-                    Disabled=@(_busy)
+                    Disabled=@(_busy || !FilesModule.IsAvailable)
                     Size="Size.Small"
                     Color="Color.Primary"
                     DropShadow=false />
@@ -74,18 +74,15 @@
               Spacing="0"
               Class="ma-1">
         <MudStack Row Justify="Justify.FlexEnd" AlignItems="AlignItems.Center" Spacing="1" Style="pointer-events: auto;">
-            @if(!(_streamTransferComponent?.Transferring ?? false))
+            @if(_streamTransferComponent is not null)
             {
-                @if(_streamTransferComponent is not null)
-                {
-                    @_streamTransferComponent.ActContent
-                }
-                @if(EndContent is not null)
-                {
-                    <div>
-                        @EndContent
-                    </div>
-                }
+                @_streamTransferComponent.ActContent
+            }
+            @if(EndContent is not null)
+            {
+                <div>
+                    @EndContent
+                </div>
             }
         </MudStack>
         <MudStack Row Justify="Justify.FlexStart" AlignItems="AlignItems.Center" Spacing="1" Style="pointer-events: auto;">
@@ -123,7 +120,7 @@
                             DropShadow=false
                             Color="Color.Primary"
                             StartIcon="@(_rewriting ? "fa-solid fa-wand-sparkles fa-fade" : "fa-thin fa-wand-sparkles")"
-                            Disabled=@(_rewriting || _recording || _transcribing || _transferring || _value.Length < MinStringLengthToRewrite)
+                            Disabled=@(_rewriting || _recording || _transcribing || _transferring || _value.Length < MinStringLengthToRewrite || !IntelligenceModule.IsAvailable)
                             OnClick="RewriteAsync" />
                 </div>
                 @if(_transcriber?.Supported ?? false)
@@ -133,7 +130,7 @@
                                 DropShadow=false
                                 Color="@(_recording  || _transcribing ? Color.Error : Color.Primary)"
                                 StartIcon="@(_recording ? "fa-duotone fa-solid fa-microphone fa-fade" : _transcribing ? "fa-duotone fa-solid fa-waveform-lines fa-fade" : "fa-thin fa-microphone")"
-                                Disabled=@(_transcribing || _rewriting || _transferring)
+                                Disabled=@(_transcribing || _rewriting || _transferring || !IntelligenceModule.IsAvailable)
                                 OnClick="ToggleRecordingAsync" />
                     </div>
                 }

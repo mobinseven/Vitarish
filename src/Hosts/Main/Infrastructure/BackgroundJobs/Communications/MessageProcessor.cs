@@ -1,4 +1,6 @@
 using Vitarish.Communications.Application.Abstractions;
+using Vitarish.Communications.Domain.Models;
+using Vitarish.Communications.Domain.Options;
 using CommunicationsMessage = Vitarish.Communications.Domain.Models.Message;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
@@ -6,8 +8,28 @@ namespace Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 /// <summary>
 /// Processes messages enqueued via IMessageQueue using Hangfire.
 /// </summary>
-public class MessageProcessor(ILogger<MessageProcessor> logger, IMessagesService messagesService)
+public class MessageProcessor(ILogger<MessageProcessor> logger, IMessagesService messagesService, ICommunicationsModule communicationsModule, IOptionsMonitor<NotificationOptions>? options = null)
 {
+    public async Task ProcessSelfTests()
+    {
+        try
+        {
+            string recipient = options.CurrentValue.StartupSmsRecipient;
+
+            CommunicationsMessage msg = new()
+            {
+                Recipient = recipient,
+                Body = "Startup health check SMS from Vorn Communications"
+            };
+
+            SmsSendResult result = await messagesService.SendSms(msg, CancellationToken.None);
+            communicationsModule.IsAvailable = true;
+        }
+        catch
+        {
+            communicationsModule.IsAvailable = false;
+        }
+    }
     /// <summary>
     /// Processes a message by sending it via the appropriate channel.
     /// This method is invoked by Hangfire as a background job.

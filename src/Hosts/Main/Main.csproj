@@ -22,10 +22,7 @@
 		<ProjectReference Include="..\..\Identity\Users\Hosting\Users.Hosting.csproj" />
 		<ProjectReference Include="..\..\Interfaces\Accounts\Accounts.Interface\Accounts.Interface.csproj" />
 		<ProjectReference Include="..\..\Modules\Communications\Hosting\Communications.Hosting.csproj" />
-		<ProjectReference Include="..\..\Modules\Instagram\Instagram.Hosting\Instagram.Hosting.csproj" />
-		<ProjectReference Include="..\..\Modules\Files\Hosting\Files.Hosting.csproj" />
-		<ProjectReference Include="..\..\Modules\Intelligence\Hosting\Intelligence.Hosting.csproj" />
-		<ProjectReference Include="..\..\Modules\Sea\Hosting\Sea.Hosting.csproj" />
+		<ProjectReference Include="..\..\Modules\Instagram\Instagram.Interface\Instagram.Interface.csproj" />
 		<ProjectReference Include="..\..\Modules\Sea\Interface\Sea.Interface.csproj" />
 	</ItemGroup>
 

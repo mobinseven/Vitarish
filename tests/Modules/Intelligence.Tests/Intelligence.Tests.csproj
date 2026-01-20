@@ -27,7 +27,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Modules\Intelligence\Application\Intelligence.Application.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Intelligence\Domain\Intelligence.Domain.csproj" />
-    <ProjectReference Include="..\..\..\src\Modules\Intelligence\Hosting\Intelligence.Hosting.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Intelligence\Infrastructure\Intelligence.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

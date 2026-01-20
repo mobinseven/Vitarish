@@ -1,5 +1,3 @@
-using Vitarish.Sea.Interface.Components.Plugins;
-
 namespace Vitarish.Sea.Interface.Components.Events;
 
 public partial class EventItemsInput : EventsBase

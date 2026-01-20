@@ -1,4 +1,4 @@
-using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Intelligence;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
@@ -24,6 +24,10 @@ public static class HangfireStartupJobs
         filesJobs.TriggerProcessing();
 
         HangfireIntelligenceJobManager intelligenceJobs = app.Services.GetRequiredService<HangfireIntelligenceJobManager>();
+        intelligenceJobs.ScheduleProcessing();
+        intelligenceJobs.TriggerProcessing();
+
+        _ = app.Services.GetRequiredService<HangfireCommunicationsJobManager>();
         intelligenceJobs.ScheduleProcessing();
         intelligenceJobs.TriggerProcessing();
     }

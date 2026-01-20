@@ -1,4 +1,3 @@
-using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -13,33 +12,28 @@ public abstract class ModuleBase : IModule
 {
     /// <inheritdoc />
     public abstract string Name { get; }
-    private bool isAvailable;
+
     public bool IsAvailable
     {
-        get => isAvailable;
+        get;
         set
         {
-            if (isAvailable != value)
+            if (field != value)
             {
                 AvailabilityChanged?.Invoke(value);
             }
-            isAvailable = value;
+            field = value;
         }
     }
     public event Action<bool>? AvailabilityChanged;
     /// <inheritdoc />
-    public async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
-    {
-        ConfigureServices(builder.Services, builder.Configuration, configureDbContext);
-        ConfigureHealthChecks(builder);
-        ConfigureSelfTests(builder);
-    }
+    public async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null) => ConfigureServices(builder.Services, builder.Configuration, configureDbContext);
 
     /// <inheritdoc />
-    public async Task MapEndpoints(IEndpointRouteBuilder endpoints)
+    public async Task MapEndpoints(WebApplication app)
     {
-        ConfigureEndpoints(endpoints);
-        await ConfigureEndpointsAsync(endpoints);
+        ConfigureEndpoints(app);
+        await InitializeAsync(app);
     }
 
     /// <summary>
@@ -51,11 +45,14 @@ public abstract class ModuleBase : IModule
     protected virtual void ConfigureServices(
         IServiceCollection services,
         IConfiguration configuration,
-        Action<DbContextOptionsBuilder>? configureDbContext)
+        Action<DbContextOptionsBuilder>? configureDbContext = null)
     { }
+    protected virtual void ConfigureServices(
+        IServiceCollection services,
+        IConfiguration configuration) => ConfigureServices(services, configuration, null);
 
     /// <summary>
-    /// Configures HTTP endpoints for the module. Override to map module-specific routes.
+    /// Configures HTTP app for the module. Override to map module-specific routes.
     /// </summary>
     /// <param name="endpoints">The endpoint route builder.</param>
     protected virtual void ConfigureEndpoints(IEndpointRouteBuilder endpoints)
@@ -63,27 +60,9 @@ public abstract class ModuleBase : IModule
     }
 
     /// <summary>
-    /// Configures HTTP endpoints for the module asynchronously.
-    /// Override when async initialization is required during endpoint configuration.
+    /// Initializes the module.
     /// </summary>
     /// <param name="endpoints">The endpoint route builder.</param>
     /// <returns>A task that completes when async configuration is done.</returns>
-    protected virtual Task ConfigureEndpointsAsync(IEndpointRouteBuilder endpoints) => Task.CompletedTask;
-
-    /// <summary>
-    /// Configures health checks for the module. Override to add module-specific health checks.
-    /// </summary>
-    /// <param name="builder">The web application builder.</param>
-    protected virtual void ConfigureHealthChecks(WebApplicationBuilder builder)
-    {
-    }
-
-    /// <summary>
-    /// Configures self-tests for the module. Override to register startup validation services.
-    /// Self-tests typically run as hosted services to verify module dependencies are available.
-    /// </summary>
-    /// <param name="builder">The web application builder.</param>
-    protected virtual void ConfigureSelfTests(WebApplicationBuilder builder)
-    {
-    }
+    protected virtual Task InitializeAsync(WebApplication app) => Task.CompletedTask;
 }

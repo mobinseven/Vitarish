@@ -1,14 +1,12 @@
-using Hangfire;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Domain.Models;
 using Vitarish.Intelligence.Domain.Options;
-using Vitarish.Intelligence.Hosting;
 using Vitarish.Intelligence.Infrastructure;
 using Vitarish.Intelligence.Infrastructure.Services.Dispatching;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Intelligence;
 
-public class IntelligenceProcessor(IntelligenceModule intelligenceModule,
+public class IntelligenceProcessor(IIntelligenceModule intelligenceModule,
         IOptionsMonitor<AiOptions> aiOptions,
         ModelRegistry modelRegistry,
         IResponder responder,

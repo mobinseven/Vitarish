@@ -12,6 +12,7 @@
 	</ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
+    <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
     <ProjectReference Include="..\Domain\Sea.Domain.csproj" />
   </ItemGroup>
 

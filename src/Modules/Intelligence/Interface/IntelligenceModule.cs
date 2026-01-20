@@ -4,17 +4,16 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Intelligence.Application.Abstractions;
-using Vitarish.Intelligence.Hosting.Hubs;
 using Vitarish.Intelligence.Infrastructure.Services.Dispatching;
 using Vitarish.Intelligence.Interface.DependencyInjection;
 using Vitarish.Modules.Base;
 
-namespace Vitarish.Intelligence.Hosting;
+namespace Vitarish.Intelligence.Interface;
 
 /// <summary>
 /// Module wiring for the Intelligence stack using the shared module contracts.
 /// </summary>
-public class IntelligenceModule : ModuleBase
+public class IntelligenceModule : ModuleBase, IIntelligenceModule
 {
     /// <inheritdoc />
     public override string Name => "Intelligence";
@@ -25,23 +24,12 @@ public class IntelligenceModule : ModuleBase
         IConfiguration configuration,
         Action<DbContextOptionsBuilder>? configureDbContext)
     {
-        _ = services.AddSingleton<IntelligenceModule>();
+        _ = services.AddSingleton<IIntelligenceModule, IntelligenceModule>();
         _ = services.AddSingleton<ModelRegistry>();
         _ = services.AddTransient<IResponder, ProviderDispatchingResponder>();
         _ = services.AddSingleton<ITranscriber, ProviderDispatchingTranscriber>();
         _ = services.AddAntiforgery();
         _ = services.ConfigureIntelligenceInterface();
     }
-
-    /// <inheritdoc />
-    protected override void ConfigureEndpoints(IEndpointRouteBuilder endpoints)
-    {
-        _ = endpoints.MapHub<ResponseHub>("/ai/hubs/response");
-        _ = endpoints.MapHub<SpeechHub>("/ai/hubs/speech");
-    }
-
-    /// <inheritdoc />
-    protected override void ConfigureHealthChecks(WebApplicationBuilder builder) =>
-        builder.Services.AddHealthChecks();
 
 }

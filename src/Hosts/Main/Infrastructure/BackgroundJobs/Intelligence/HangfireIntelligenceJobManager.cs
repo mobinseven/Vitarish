@@ -12,7 +12,7 @@ public class HangfireIntelligenceJobManager(IRecurringJobManager recurringJobMan
     public void ScheduleProcessing() => recurringJobManager.AddOrUpdate<IntelligenceProcessor>(
             JobId,
             processor => processor.ProcessSelfTests(),
-            Cron.MinuteInterval(15));
+            Cron.HourInterval(2));
 
     /// <summary>
     /// Triggers the job immediately.

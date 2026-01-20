@@ -64,6 +64,7 @@ public static class HostHangfireExtensions
         _ = builder.Services.AddSingleton<HangfireReminderJobManager>();
         _ = builder.Services.AddSingleton<HangfireFilesJobManager>();
         _ = builder.Services.AddSingleton<HangfireIntelligenceJobManager>();
+        _ = builder.Services.AddSingleton<HangfireCommunicationsJobManager>();
     }
 
     /// <summary>

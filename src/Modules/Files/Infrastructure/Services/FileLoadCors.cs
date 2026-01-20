@@ -1,13 +1,12 @@
 using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
+using Vitarish.Entities.Server.Models;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Extensions;
-using Vitarish.Entities.Server.Models;
 
 namespace Vitarish.Files.Infrastructure.Services;
 

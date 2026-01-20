@@ -11,9 +11,7 @@ public class ModuleBaseTests
 
         public bool ConfigureServicesCalled { get; private set; }
         public bool ConfigureEndpointsCalled { get; private set; }
-        public bool ConfigureEndpointsAsyncCalled { get; private set; }
-        public bool ConfigureHealthChecksCalled { get; private set; }
-        public bool ConfigureSelfTestsCalled { get; private set; }
+        public bool InitializeAsyncCalled { get; private set; }
 
         protected override void ConfigureServices(
             IServiceCollection services,
@@ -28,20 +26,10 @@ public class ModuleBaseTests
             ConfigureEndpointsCalled = true;
         }
 
-        protected override Task ConfigureEndpointsAsync(IEndpointRouteBuilder endpoints)
+        protected override Task InitializeAsync(WebApplication app)
         {
-            ConfigureEndpointsAsyncCalled = true;
+            InitializeAsyncCalled = true;
             return Task.CompletedTask;
-        }
-
-        protected override void ConfigureHealthChecks(WebApplicationBuilder builder)
-        {
-            ConfigureHealthChecksCalled = true;
-        }
-
-        protected override void ConfigureSelfTests(WebApplicationBuilder builder)
-        {
-            ConfigureSelfTestsCalled = true;
         }
     }
 
@@ -90,8 +78,7 @@ public class ModuleBaseTests
 
         // Assert
         module.ConfigureServicesCalled.Should().BeTrue();
-        module.ConfigureHealthChecksCalled.Should().BeTrue();
-        module.ConfigureSelfTestsCalled.Should().BeTrue();
+        module.InitializeAsyncCalled.Should().BeTrue();
     }
 
     [Fact]
@@ -107,7 +94,7 @@ public class ModuleBaseTests
 
         // Assert
         module.ConfigureEndpointsCalled.Should().BeTrue();
-        module.ConfigureEndpointsAsyncCalled.Should().BeTrue();
+        module.InitializeAsyncCalled.Should().BeTrue();
     }
 
     [Fact]
