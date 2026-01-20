@@ -1,5 +1,4 @@
 using Hangfire;
-using Vitarish.Accounts.Infrastructure.Services;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 
@@ -28,8 +27,5 @@ public class HangfireMessageQueue(IBackgroundJobClient backgroundJobClient) : IM
         _ = backgroundJobClient.Enqueue<MessageProcessor>(processor => processor.ProcessMessage(message));
     }
 
-    public MessageQueueMessage Dequeue()
-    {
-        throw new NotSupportedException("Hangfire-backed message queue does not support dequeue operations.");
-    }
+    public MessageQueueMessage Dequeue() => throw new NotSupportedException("Hangfire-backed message queue does not support dequeue operations.");
 }

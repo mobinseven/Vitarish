@@ -1100,4 +1100,16 @@ of project "{2}"</value>
   <data name="New" xml:space="preserve">
     <value>New</value>
   </data>
+  <data name="At" xml:space="preserve">
+    <value>At</value>
+  </data>
+  <data name="By" xml:space="preserve">
+    <value>By</value>
+  </data>
+  <data name="DateDescending" xml:space="preserve">
+    <value>Newer to older</value>
+  </data>
+  <data name="DateAscending" xml:space="preserve">
+    <value>Older to newer</value>
+  </data>
 </root>

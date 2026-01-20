@@ -34,7 +34,7 @@ internal sealed class ReminderPlugin(IRemindersService remindersService) : IEven
         ArgumentNullException.ThrowIfNull(context);
         IReadOnlyList<ReminderDto> reminders = await remindersService.GetByEventAsync(context.Event.Id, cancellationToken);
 
-        return reminders
+        return [.. reminders
             .Select(reminder => new EventTimelineItem(
                 reminder.RemindAt.ToLocalTime().DateTime,
                 builder =>
@@ -42,12 +42,8 @@ internal sealed class ReminderPlugin(IRemindersService remindersService) : IEven
                     builder.OpenComponent<ReminderDisplay>(0);
                     builder.AddAttribute(1, nameof(ReminderDisplay.Color), context.Color);
                     builder.AddAttribute(2, nameof(ReminderDisplay.Reminder), reminder);
-                    builder.AddAttribute(3, nameof(ReminderDisplay.Event), context.Event);
-                    builder.AddAttribute(4, nameof(ReminderDisplay.Project), context.Project);
-                    builder.AddAttribute(5, nameof(ReminderDisplay.Procedure), context.Procedure);
                     builder.CloseComponent();
                 },
-                Array.Empty<Guid>()))
-            .ToArray();
+                []))];
     }
 }

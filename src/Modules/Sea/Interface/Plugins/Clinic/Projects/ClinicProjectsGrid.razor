@@ -33,7 +33,7 @@
 {
     <Stack>
         <StackField Label="@Localizer["SortBy"]">
-            <MudSelect T="string" Value="UsageConfigurationMetadata?.ProjectsSortMethod" ValueChanged="v => SortMethodChanged(v)" Underline="false">
+            <MudSelect T="string" Value="UsageConfigurationMetadata?.ProjectsSortMethod" ValueChanged="v => Sort()" Underline="false">
                 <MudSelectItem Value="SortBy.SurgeryDateDesc.ToString()">@Localizer["SurgeryDateDesc"]</MudSelectItem>
                 <MudSelectItem Value="SortBy.SurgeryDate.ToString()">@Localizer["SurgeryDate"]</MudSelectItem>
             </MudSelect>

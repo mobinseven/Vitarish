@@ -1,0 +1,30 @@
+@inherits RemindersBase
+
+@if(Reminders is null)
+{
+    return;
+}
+
+<Stack>
+    @if(Reminders.Count == 0)
+    {
+        <StackField Label="@Localizer["NoItems", Localizer["Reminder"]]" />
+    }
+    else
+    {
+        <StackField Label="@Localizer["SortBy"]">
+            <MudSelect T="string" Value="sortMethod" ValueChanged="v => Sort(v)" Underline="false">
+                <MudSelectItem T="string" Value="SortBy.At.ToString()">@Localizer["DateAscending"]</MudSelectItem>
+                <MudSelectItem T="string" Value="null">@Localizer["DateDescending"]</MudSelectItem>
+            </MudSelect>
+        </StackField>
+        @foreach(var reminder in Reminders)
+        {
+            <StackButton OnClick="() => OnClicked(reminder)"
+                         Label="@reminder.Subject"
+                         HighlightString="@SearchString">
+                @UserIdToName(reminder.RecipientUserId)
+            </StackButton>
+        }
+    }
+</Stack>

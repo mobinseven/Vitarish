@@ -15,7 +15,7 @@ public class HangfireReminderJobManager(IRecurringJobManager recurringJobManager
     public void ScheduleProcessing() => recurringJobManager.AddOrUpdate<ReminderProcessor>(
             ProcessRemindersJobId,
             processor => processor.ProcessDueReminders(),
-            Cron.MinuteInterval(5));
+            Cron.MinuteInterval(1));
 
     /// <summary>
     /// Triggers the reminder processing job immediately.

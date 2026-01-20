@@ -15,16 +15,23 @@ public class SeaCommonBase : CommonBase, IDisposable
     protected UsageConfigurationDto? UsageConfiguration;
     protected UsageConfigurationMetadata? UsageConfigurationMetadata;
 
+    protected IReadOnlyList<UserDto> Users = [];
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         UsageConfiguration = await UsageConfigurationService.GetUsageConfigurationAsync(CancellationToken.None);
         UsageConfigurationMetadata = UsageConfigurationMetadata.FromJson(UsageConfiguration?.Metadata);
+        Users = [.. (await UsersService.GetUsersInRoleAsync(RequestContext.GetTenantUserRole(), CancellationToken.None)).Select(u => new UserDto(u))];
+
         if (IsAdmin)
         {
             UsageConfigurationMetadata.OnChange += OnUsageConfigurationChanged;
         }
+        await ReloadRequired();
     }
+    protected string? UserIdToName(Guid id) => Users.FirstOrDefault(x => x.Id == id.ToString())?.FullName;
+    protected string? UserIdToName(string id) => Users.FirstOrDefault(x => x.Id == id)?.FullName;
 
     private async void OnUsageConfigurationChanged(object? sender, EventArgs args)
     {

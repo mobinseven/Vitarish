@@ -6,20 +6,13 @@ public partial class ReminderDetailsDialog : RemindersBase
 {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    [Parameter, EditorRequired] public EventDto Event { get; set; } = default!;
-    [Parameter, EditorRequired] public ProjectDto Project { get; set; } = default!;
-    [Parameter, EditorRequired] public ProcedureDto Procedure { get; set; } = default!;
     [Parameter, EditorRequired] public ReminderDto Reminder { get; set; } = default!;
 
     private bool CanEdit => AdminMode || RequestContext.UserId == Reminder.CreatedBy;
 
     private IReadOnlyList<UserDto> Users = [];
 
-    protected override async Task OnInitializedAsync()
-    {
-        await LoadUsersAsync();
-    }
-    private async Task LoadUsersAsync()
+    protected override async Task ReloadRequired()
     {
         IList<User> usersInRole = await UsersService.GetUsersInRoleAsync(RequestContext.GetTenantUserRole(), CancellationToken.None);
         Users = [.. usersInRole.Select(u => new UserDto(u))];

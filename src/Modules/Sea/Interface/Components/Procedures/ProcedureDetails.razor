@@ -4,9 +4,9 @@
 @if(AdminMode)
 {
     <Stack>
-        <StackField Label="@Procedure.Name" HelperText="@Localizer["Procedure"]" />
-        <StackButton Label="@Localizer["EditItem", Localizer["Procedure"]]" OnClick="EditProcedure" />
-        <StackButton Label="@Localizer["DeleteItem", Localizer["Procedure"]]" Color="Color.Error" OnClick="DeleteProcedure" />
+        <StackField Label="@Procedure.Name" />
+        <StackButton Label="@Localizer["EditItem", Localizer["Procedure"]]" OnClick="EditProcedure" StartIcon="fa-thin fa-edit" />
+        <StackButton Label="@Localizer["DeleteItem", Localizer["Procedure"]]" Color="Color.Error" OnClick="DeleteProcedure" StartIcon="fa-thin fa-trash" />
     </Stack>
 
 }

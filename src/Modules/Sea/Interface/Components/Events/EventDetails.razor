@@ -3,18 +3,22 @@
 @if(!string.IsNullOrWhiteSpace(Event.Description))
 {
     <Stack>
-        <StackField Label="@Event.Title" HelperText="@Localizer["Event"]">
-            @Event.Description
-        </StackField>
+        <StackField Label="@Event.Title" HelperText="@Event.Description" />
     </Stack>
 }
 
 @if(Event.IsCommitted)
 {
     <Stack>
-        <StackField>
-            <MudText Color="Color.Primary" Typo="Typo.body1">@($"{Localizer["CommittedBy"]}: {UserIdToName(Event.CommittedBy)}")</MudText>
-            <MudText Color="Color.Primary" Typo="Typo.caption">@($"{Localizer["CommittedAt"]}: {Event.CommittedAt!.Value.DateTime.ToLocalTime().ToShortDateString()} {Event.CommittedAt!.Value.DateTime.ToLocalTime().ToShortTimeString()}")</MudText>
+        <StackField Label="@Localizer["Committed"]" Color="Color.Primary" AdornmentIcon="fa-duotone fa-circle-check fa-2x" AdornmentColor="Color.Primary">
+            @{
+                var userName = UserIdToName(Event.CommittedBy);
+            }
+            @if(!string.IsNullOrWhiteSpace(userName))
+            {
+                <MudText Typo="Typo.caption">@($"{Localizer["By"]}: {userName}")</MudText>
+            }
+            <MudText Typo="Typo.caption">@($"{Localizer["At"]}: {Event.CommittedAt!.Value.DateTime.ToLocalTime().ToShortDateString()} {Event.CommittedAt!.Value.DateTime.ToLocalTime().ToShortTimeString()}")</MudText>
         </StackField>
         @if(AdminMode)
         {
@@ -86,16 +90,13 @@ else if(CanWrite)
 
     private bool CanWrite;
 
-    private IReadOnlyList<UserDto> Users = [];
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         CanWrite = await EventsService.CanWriteEvent(Event.Id);
-        Users = [.. (await UsersService.GetUsersInRoleAsync(RequestContext.GetTenantUserRole(), CancellationToken.None)).Select(u => new UserDto(u))];
     }
 
-    private string? UserIdToName(Guid id) => Users.FirstOrDefault(x => x.Id == id.ToString())?.FullName;
 
     private async void ToggleCommitAsync()
     {

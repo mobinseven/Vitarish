@@ -68,9 +68,5 @@ public partial class ClinicProjectsGrid
         await InvokeAsync(StateHasChanged);
     }
 
-    private async void SortMethodChanged(string? value) =>
-        // _ = (UsageConfigurationMetadata?.ProjectsSortMethod = value);
-        Sort();
-
     protected override async Task ReloadRequired() => await ReloadData();
 }

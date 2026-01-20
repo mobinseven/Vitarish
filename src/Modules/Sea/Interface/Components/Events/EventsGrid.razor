@@ -14,12 +14,9 @@
             </StackButton>
         }
     }
+
+    @if(AdminMode)
+    {
+        <StackButton Color="Color.Primary" StartIcon="fa-thin fa-plus" Size=Size.Large OnClick="AddEvent" Label="@Localizer["AddItem", Localizer["Event"]]" />
+    }
 </Stack>
-
-@if(AdminMode)
-{
-    <Stack>
-        <StackButton Color="Color.Primary" StartIcon="fa-thin fa-plus" Size=Size.Large OnClick="AddEvent" Label="@Localizer["AddItem", Localizer["Event"]]"/>
-    </Stack>
-}
-
