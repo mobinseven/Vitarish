@@ -16,5 +16,8 @@ public sealed record UsageConfigurationDto : EntityDto
     [JsonPropertyName("metadata")]
     public string Metadata { get; set; } = string.Empty;
 
+    [JsonIgnore]
+    public object? MetadataObject { get; set; }
+
 }
 
