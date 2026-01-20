@@ -1,5 +1,3 @@
-using System.Text;
-
 namespace Vitarish.Interfaces.Base.Localization;
 
 [RegisterSingleton]

@@ -1,0 +1,40 @@
+@inherits CommonBase
+@if(Methods.Length > 1)
+{
+    <StackField Label="@Localizer["SortBy"]">
+        <EndContent>
+            <MudSelect T="SortMethod" Value="selectedValue" ValueChanged="v => OnChanged(v)" Underline="false">
+                @foreach(var method in Methods)
+                {
+                    <MudSelectItem Value="method">@method.LabelAction()</MudSelectItem>
+                }
+            </MudSelect>
+        </EndContent>
+    </StackField>
+}
+
+@code {
+
+    private SortMethod? selectedValue => Value ?? Methods.FirstOrDefault();
+
+    [Parameter] public SortMethod[] Methods { get; set; } = [];
+    [Parameter] public SortMethod? Value { get; set; }
+    [Parameter] public EventCallback<SortMethod?> ValueChanged { get; set; }
+
+    protected override void OnAfterRender(bool firstRender)
+    {
+        if(!firstRender)
+        {
+            return;
+        }
+
+        selectedValue?.SortAction();
+    }
+
+    private void OnChanged(SortMethod method)
+    {
+        method.SortAction();
+        Value = method;
+        ValueChanged.InvokeAsync(Value);
+    }
+}
