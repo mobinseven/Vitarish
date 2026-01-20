@@ -12,10 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.1" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
     <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
     <ProjectReference Include="..\..\Files\Interface\Files.Interface.csproj" />

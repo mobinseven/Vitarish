@@ -7,7 +7,6 @@
         </ItemGroup>
         <ItemGroup>
                 <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.*" />
-                <PackageReference Include="Microsoft.AspNetCore.SignalR.Protocols.MessagePack" Version="10.0.*" />
         </ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
