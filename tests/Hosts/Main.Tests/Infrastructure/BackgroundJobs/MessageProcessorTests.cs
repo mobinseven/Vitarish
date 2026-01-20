@@ -10,13 +10,15 @@ public class MessageProcessorTests
 {
     private readonly Mock<ILogger<MessageProcessor>> mockLogger;
     private readonly Mock<IMessagesService> mockMessagesService;
+    private readonly Mock<ICommunicationsModule> mockCommunicationModule;
     private readonly MessageProcessor sut;
 
     public MessageProcessorTests()
     {
         mockLogger = new Mock<ILogger<MessageProcessor>>();
         mockMessagesService = new Mock<IMessagesService>();
-        sut = new MessageProcessor(mockLogger.Object, mockMessagesService.Object);
+        mockCommunicationModule = new Mock<ICommunicationsModule>();
+        sut = new MessageProcessor(mockLogger.Object, mockMessagesService.Object, mockCommunicationModule.Object);
     }
 
     [Fact]
