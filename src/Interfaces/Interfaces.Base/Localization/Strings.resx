@@ -430,7 +430,7 @@
     <value>Search</value>
   </data>
   <data name="Select" xml:space="preserve">
-    <value>Select {0}</value>
+    <value>Select</value>
   </data>
   <data name="SetAs" xml:space="preserve">
     <value>Set as {0}</value>
@@ -1114,5 +1114,8 @@ of project "{2}"</value>
   </data>
   <data name="Ownership" xml:space="preserve">
     <value>Ownership</value>
+  </data>
+  <data name="SelectItem" xml:space="preserve">
+    <value>Selection of {0}</value>
   </data>
 </root>

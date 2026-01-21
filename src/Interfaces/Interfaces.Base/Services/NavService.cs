@@ -23,7 +23,7 @@ public sealed class NavService : INavService, IDisposable
 
     public void OverridePageTitle(string id, string text)
     {
-        Breadcrumb? bc = breadcrumbs.FirstOrDefault(b => b.Id == id);
+        Breadcrumb? bc = breadcrumbs?.FirstOrDefault(b => b.Id == id);
         _ = (bc?.Text = text);
         RenderRequired?.Invoke(this, new EventArgs());
     }

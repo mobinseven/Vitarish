@@ -5,11 +5,15 @@
     {
         if(evt.Title == "Redacted")
         {
-            <StackButton Label="@Localizer["NoAccess"]" Style="filter: blur(5px); pointer-events: none;" />
+            <StackButton Label="@Localizer["NoAccess"]"
+                         Style="filter: blur(5px); pointer-events: none;" />
         }
         else
         {
-            <StackButton Label="@evt.Title" Color="@(evt.IsCommitted ? Color.Primary : Color.Default)" StartIcon="@(evt.IsCommitted ? "fa-regular fa-check" : "fa-regular fa-fw")" OnClick="@(() => EventClicked.InvokeAsync(evt.Id))">
+            <StackButton Label="@evt.Title"
+                         Color="@(evt.IsCommitted ? Color.Primary : Color.Default)"
+                         StartIcon="@(evt.IsCommitted ? "fa-regular fa-check" : "fa-regular fa-fw")"
+                         OnClick="@(() => EventClicked.InvokeAsync(evt.Id))">
                 <StatsDisplay Stats="evt.Stats ?? new StatsDto()" />
             </StackButton>
         }
@@ -17,6 +21,10 @@
 
     @if(AdminMode)
     {
-        <StackButton Color="Color.Primary" StartIcon="fa-regular fa-plus" Size=Size.Large OnClick="AddEvent" Label="@Localizer["AddItem", Localizer["Event"]]" />
+        <StackButton Color="Color.Primary"
+                     StartIcon="fa-regular fa-plus"
+                     Size="Size.Large"
+                     OnClick="AddEvent"
+                     Label="@Localizer["AddItem", Localizer["Event"]]" />
     }
 </Stack>

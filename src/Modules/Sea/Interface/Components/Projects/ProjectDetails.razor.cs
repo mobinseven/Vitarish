@@ -33,7 +33,7 @@ public partial class ProjectDetails : ProjectsBase
         }
         else
         {
-            await ProjectsService.RemoveAsync(Project.Id, CancellationToken.None).EnsureSuccessAsync("Remove project");
+            await ProjectsService.RemoveAsync(Project.Id, CancellationToken.None);
             await OnDeleted.InvokeAsync();
         }
     }

@@ -22,8 +22,7 @@ public partial class EventRolesEditDialog : SeaCommonBase
             MudDialog.Cancel();
             return;
         }
-        roles = (await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None)
-            .EnsureValueAsync("Load roles")).ToList();
+        roles = [.. await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None).GetValueOrDefaultAsync() ?? []];
         (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds) = await EventRolesService.GetIdsAsync(Event.Id, CancellationToken.None);
         readRoleIds = [.. ReadRoleIds];
         writeRoleIds = [.. WriteRoleIds];

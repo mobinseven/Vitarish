@@ -19,13 +19,14 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
             Search = SearchString,
             Template = TemplateMode
         };
-        IReadOnlyList<ProjectDto> Items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None)
-            .EnsureValueAsync("Load projects");
+
+        IReadOnlyList<ProjectDto> Items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
 
         projects = [.. Items
             .OrderByDescending(e => (e.Stats?.NewItems ?? 0) > 0)
             .ThenByDescending(e => e.Stats?.Unread ?? false)
             .ThenBy(e => e.Name)];
+
         await InvokeAsync(StateHasChanged);
     }
     protected virtual Task AddProject() => OnAdd.InvokeAsync();

@@ -20,12 +20,10 @@ public partial class UserRolesSelect : UsersBase
             return;
         }
 
-        roles = [.. await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None)
-            .EnsureValueAsync("Load roles")];
+        roles = [.. await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None).GetValueOrDefaultAsync() ?? []];
         IReadOnlyList<UserRoleDto> userRoles = await UserRolesService.GetListAsync(
                 new UserRoleDescriptorDto { UserId = userId },
-                CancellationToken.None)
-            .EnsureValueAsync("Load user roles");
+                CancellationToken.None).GetValueOrDefaultAsync() ?? [];
         readRoles = [.. userRoles.Where(r => r.Type == RoleType.Read).Select(r => r.RoleId)];
         writeRoles = [.. userRoles.Where(r => r.Type == RoleType.Write).Select(r => r.RoleId)];
         initialReadRoles = [.. readRoles];

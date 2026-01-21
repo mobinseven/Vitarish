@@ -3,7 +3,6 @@ namespace Vitarish.Sea.Interface.Components.Base;
 public class SeaCommonBase : CommonBase, IDisposable
 {
     [Inject] protected IInterfaceDataProvider DataProvider { get; set; } = default!;
-    [Inject] protected IUsersService UsersService { get; set; } = default!;
     [Inject] protected IUsageConfigurationService UsageConfigurationService { get; set; } = default!;
     /// <summary>
     /// Optional override for admin-specific rendering when the caller wants to force admin mode.

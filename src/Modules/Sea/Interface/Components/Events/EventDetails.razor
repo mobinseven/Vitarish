@@ -10,15 +10,22 @@
 @if(Event.IsCommitted)
 {
     <Stack>
-        <StackField Label="@Localizer["Committed"]" Color="Color.Primary" AdornmentIcon="fa-duotone fa-circle-check fa-2x" AdornmentColor="Color.Primary">
+        <StackField Label="@Localizer["Committed"]"
+                    Color="Color.Primary"
+                    AdornmentIcon="fa-duotone fa-circle-check fa-2x"
+                    AdornmentColor="Color.Primary">
             @{
                 var userName = UserIdToName(Event.CommittedBy);
             }
             @if(!string.IsNullOrWhiteSpace(userName))
             {
-                <MudText Typo="Typo.caption">@($"{Localizer["By"]}: {userName}")</MudText>
+                <MudText Typo="Typo.caption">
+                    @($" {Localizer["By"]}: {userName} ")
+                </MudText>
             }
-            <MudText Typo="Typo.caption">@($"{Localizer["At"]}: {Event.CommittedAt!.Value.DateTime.ToLocalTime().ToShortDateString()} {Event.CommittedAt!.Value.DateTime.ToLocalTime().ToShortTimeString()}")</MudText>
+            <MudText Typo="Typo.caption">
+                @($" {Localizer["At"]}: {Event.CommittedAt!.Value.DateTime.ToLocalTime().ToShortDateString()} {Event.CommittedAt!.Value.DateTime.ToLocalTime().ToShortTimeString()} ")
+            </MudText>
         </StackField>
         @if(AdminMode)
         {
@@ -37,8 +44,13 @@ else if(CanWrite)
 @if(AdminMode)
 {
     <Stack>
-        <StackButton StartIcon="fa-regular fa-users" OnClick="EditEventRoles" Label="@Localizer["EditRoles", Localizer["Event"]]" />
-        <StackButton StartIcon="fa-regular fa-trash" OnClick="DeleteEvent" Label="@Localizer["DeleteItem", Localizer["Event"]]" Color="Color.Error" />
+        <StackButton StartIcon="fa-regular fa-users"
+                     OnClick="EditEventRoles"
+                     Label="@Localizer["EditRoles", Localizer["Event"]]" />
+        <StackButton StartIcon="fa-regular fa-trash"
+                     OnClick="DeleteEvent"
+                     Label="@Localizer["DeleteItem", Localizer["Event"]]"
+                     Color="Color.Error" />
     </Stack>
 }
 

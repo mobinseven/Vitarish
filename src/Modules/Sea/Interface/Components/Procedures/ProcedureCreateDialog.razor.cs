@@ -48,8 +48,7 @@ public partial class ProcedureCreateDialog : ProceduresBase
             Search = name
         };
 
-        IReadOnlyList<ProcedureDto> existing = await ProceduresService.GetListAsync(descriptor, CancellationToken.None)
-            .EnsureValueAsync("Load procedures");
+        IReadOnlyList<ProcedureDto> existing = await ProceduresService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
         if (existing.Any(p => string.Equals(p.Name, name, StringComparison.CurrentCultureIgnoreCase)))
         {
             _ = await DialogService.ShowMessageBox(

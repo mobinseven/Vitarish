@@ -2,21 +2,18 @@
 
 <MudDialog>
     <DialogContent>
-        <MudStack Spacing="2">
-            <MudStack Row AlignItems="AlignItems.Center" Spacing="1">
+        <Stack>
+            <StackButton Label="@Localizer["SelectItem", Localizer["TemplateItem", Localizer["Procedure"]]]" OnClick="SelectTemplateAsync">
                 @if(templateProcedure is not null)
                 {
                     <Chip Color="Color.Primary">@templateProcedure.Name</Chip>
                 }
-                <MudButton Variant="Variant.Text" OnClick="SelectTemplateAsync">
-                    @Localizer["Select", Localizer["TemplateItem", Localizer["Procedure"]]]
-                </MudButton>
-            </MudStack>
-            <MudTextField @bind-Value="name" Variant=Variant.Outlined Label="@Localizer["Procedure"]" />
-        </MudStack>
+            </StackButton>
+            <StackTextField @bind-Value="name" Label="@Localizer["NameItem", Localizer["Procedure"]]" />
+        </Stack>
+        <Stack>
+            <StackButton Color="Color.Primary" OnClick="SaveAsync" Label="@Localizer["Create"]" EndIcon="fa-regular fa-check" />
+            <StackButton OnClick="Cancel" Label="@Localizer["Cancel"]" EndIcon="fa-regular fa-xmark" />
+        </Stack>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">@Localizer["Close"]</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@string.IsNullOrWhiteSpace(name)">@Localizer["Save"]</MudButton>
-    </DialogActions>
 </MudDialog>

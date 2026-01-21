@@ -23,8 +23,7 @@ public partial class ProceduresGrid : ProceduresBase
         {
             ProjectId = Project.Id
         };
-        IReadOnlyList<ProcedureDto> Items = await ProceduresService.GetListAsync(descriptor, CancellationToken.None)
-            .EnsureValueAsync("Load procedures");
+        IReadOnlyList<ProcedureDto> Items = await ProceduresService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
 
         procedures = [.. Items
             .OrderByDescending(e => (e.Stats?.Unread ?? false) || ((e.Stats?.NewItems ?? 0) > 0))
@@ -40,7 +39,7 @@ public partial class ProceduresGrid : ProceduresBase
             { nameof(ProcedureCreateDialog.ProjectName), Project.Name }
         };
 
-        var dialog = await DialogService.ShowAsync<ProcedureCreateDialog>(Localizer["Procedure"], parameters);
+        var dialog = await DialogService.ShowAsync<ProcedureCreateDialog>(null, parameters);
 
         var result = await dialog.Result;
 

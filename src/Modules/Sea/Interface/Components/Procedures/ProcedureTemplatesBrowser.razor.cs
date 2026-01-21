@@ -12,12 +12,10 @@ public partial class ProcedureTemplatesBrowser : SeaCommonBase
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        projects = [.. await ProjectsService.GetListAsync(new ProjectDescriptorDto { Template = true }, CancellationToken.None)
-            .EnsureValueAsync("Load template projects")];
+        projects = [.. await ProjectsService.GetListAsync(new ProjectDescriptorDto { Template = true }, CancellationToken.None).GetValueOrDefaultAsync() ?? []];
         foreach (ProjectDto p in projects)
         {
-            procedures[p.Id] = (await ProceduresService.GetListAsync(new ProcedureDescriptorDto { ProjectId = p.Id }, CancellationToken.None)
-                .EnsureValueAsync("Load template procedures")).ToList();
+            procedures[p.Id] = [.. await ProceduresService.GetListAsync(new ProcedureDescriptorDto { ProjectId = p.Id }, CancellationToken.None).GetValueOrDefaultAsync() ?? []];
         }
     }
 

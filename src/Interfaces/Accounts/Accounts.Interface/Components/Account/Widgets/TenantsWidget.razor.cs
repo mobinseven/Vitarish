@@ -6,7 +6,6 @@ namespace Vitarish.Accounts.Interface.Components.Account.Widgets;
 public partial class TenantsWidget : IdentityCommonBase
 {
     private readonly List<TenantAccessEntry> tenantEntries = [];
-    private bool isLoading;
 
     [Inject] private IPartiesService PartiesService { get; set; } = default!;
 
@@ -18,7 +17,6 @@ public partial class TenantsWidget : IdentityCommonBase
 
     private async Task LoadAsync()
     {
-        isLoading = true;
         tenantEntries.Clear();
         StateHasChanged();
 
@@ -80,7 +78,6 @@ public partial class TenantsWidget : IdentityCommonBase
         }
         finally
         {
-            isLoading = false;
             StateHasChanged();
         }
     }

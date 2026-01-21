@@ -430,7 +430,7 @@
     <value>جستجو</value>
   </data>
   <data name="Select" xml:space="preserve">
-    <value>گزینش {0}</value>
+    <value>برگزیدن</value>
   </data>
   <data name="SetAs" xml:space="preserve">
     <value>در آوردن به حالت {0}</value>
@@ -1047,10 +1047,13 @@
   <data name="DateAscending" xml:space="preserve">
     <value>قدیم به جدید</value>
   </data>
+  <data name="Ownership" xml:space="preserve">
+    <value>سرپرستی</value>
+  </data>
   <data name="Gender_Unspecified" xml:space="preserve">
     <value>نامشخص</value>
   </data>
-  <data name="Ownership" xml:space="preserve">
-    <value>سرپرستی</value>
+  <data name="SelectItem" xml:space="preserve">
+    <value>گزینش {0}</value>
   </data>
 </root>

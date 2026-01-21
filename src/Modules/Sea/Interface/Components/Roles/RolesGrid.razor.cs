@@ -5,7 +5,7 @@ public partial class RolesGrid : RolesBase
     private List<RoleDto> roles = [];
 
     protected override async Task OnInitializedAsync()
-     {
+    {
         await base.OnInitializedAsync();
         roles = [.. await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None).GetValueOrDefaultAsync() ?? []];
     }
@@ -52,8 +52,7 @@ public partial class RolesGrid : RolesBase
         }
         else
         {
-            roles = (await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None)
-                .EnsureValueAsync("Reload roles")).ToList();
+            roles = [.. await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None).GetValueOrDefaultAsync() ?? []];
             StateHasChanged();
         }
     }
