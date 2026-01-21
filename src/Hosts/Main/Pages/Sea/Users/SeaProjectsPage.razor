@@ -4,3 +4,7 @@
     <ProjectsGrid OnClicked="@(id => NavigationManager.NavigateTo($"/sea/Projects/{id}"))"
                   OnAdd="@(() => NavigationManager.NavigateTo($"/sea/Projects/New"))" />
 </CascadingValue>
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}

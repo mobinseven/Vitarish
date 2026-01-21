@@ -1,2 +1,6 @@
 @page "/sea/Owner/Settings/Users"
 <UsersGrid />
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}

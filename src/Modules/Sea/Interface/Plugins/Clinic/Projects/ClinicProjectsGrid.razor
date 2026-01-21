@@ -29,6 +29,13 @@
     return;
 }
 
+@if(!string.IsNullOrWhiteSpace(SearchString) && projects.Count == 0)
+{
+    <Stack>
+        <StackField Label="@Localizer["NoSearchItems", SearchString]" />
+    </Stack>
+}
+
 @if(projectsViaSurgeryData?.Count > 0)
 {
     <Stack>

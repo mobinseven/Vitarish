@@ -4,7 +4,7 @@ using Vitarish.Interfaces.Base.Abstractions;
 
 namespace Vitarish.Main.Infrastructure.Handlers;
 
-internal sealed class EntityNotificationHandler(IRenderNotifier renderNotifier) : INotificationHandler<EntityNotification>
+internal sealed class EntityNotificationHandler(IGlobalRenderNotifier renderNotifier) : INotificationHandler<EntityNotification>
 {
     public Task Handle(EntityNotification notification, CancellationToken cancellationToken)
     {

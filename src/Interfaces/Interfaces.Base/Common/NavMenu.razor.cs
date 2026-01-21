@@ -1,77 +1,29 @@
-using Vitarish.Interfaces.Base.Abstractions;
-
 namespace Vitarish.Interfaces.Base.Common;
 
 
-public partial class NavMenu : ComponentBase, IDisposable
+public partial class NavMenu : CommonBase, IDisposable
 {
-    [Inject] private NavigationManager NavigationManager { get; set; } = default!;
-    [Inject] private INavService NavService { get; set; } = default!;
+    [SupplyParameterFromQuery]
+    [Parameter]
+    public bool Search { get; set; }
     [Parameter] public Size Size { get; set; } = Size.Large;
 
-    private bool searchActive;
-    private string? query;
-    private string? Query
-    {
-        get => query;
-        set
-        {
-            if (string.Equals(query, value, StringComparison.Ordinal))
-            {
-                return;
-            }
+    private bool SearchActive => NavService.SearchString is not null;
+    protected override void OnInitialized() => NavigationManager.LocationChanged += OnLocationChanged;
 
-            query = value;
-            NavigateSearch();
-        }
-    }
-    protected override void OnInitialized()
+    private async void Close()
     {
-        NavigationManager.LocationChanged += OnLocationChanged;
-        SyncQueryFromUri(NavigationManager.Uri);
+        NavService.SearchString = null;
+        await InvokeAsync(StateHasChanged);
     }
 
-    private void Close()
+    private async void Open()
     {
-        searchActive = false;
-        if (!string.IsNullOrEmpty(query))
-        {
-            query = null;
-            NavigateSearch();
-        }
+        NavService.SearchString = string.Empty;
+        await InvokeAsync(StateHasChanged);
     }
 
-    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
-    {
-        try
-        {
-            searchActive = false;
-            SyncQueryFromUri(e.Location);
-            await InvokeAsync(StateHasChanged);
-        }
-        catch { }
-    }
-
-    private void HandleSearchClick() => searchActive = true;
-
-    private void NavigateSearch()
-    {
-        string searchUri = NavService.GetSearchUri(query);
-        NavigationManager.NavigateTo(searchUri);
-    }
-
-    private void SyncQueryFromUri(string uri)
-    {
-        string? currentQuery = SearchQueryHelper.ExtractQuery(NavigationManager, uri);
-
-        if (!string.Equals(query, currentQuery, StringComparison.Ordinal))
-        {
-            query = currentQuery;
-        }
-
-        searchActive = !string.IsNullOrEmpty(query);
-    }
-
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e) => Close();
     private void HandleHomeClick() => NavService.Home();
     private void HandleBackClick() => NavService.Back();
     private void HandleProfileClick() => NavService.Profile();

@@ -1050,10 +1050,13 @@
   <data name="Ownership" xml:space="preserve">
     <value>سرپرستی</value>
   </data>
+  <data name="SelectItem" xml:space="preserve">
+    <value>گزینش {0}</value>
+  </data>
   <data name="Gender_Unspecified" xml:space="preserve">
     <value>نامشخص</value>
   </data>
-  <data name="SelectItem" xml:space="preserve">
-    <value>گزینش {0}</value>
+  <data name="NoSearchItems" xml:space="preserve">
+    <value>برای این عبارت نتیجه ای یافت نشد:  '{0}'</value>
   </data>
 </root>

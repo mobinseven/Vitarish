@@ -5,8 +5,8 @@ namespace Vitarish.Sea.Interface.Plugins.Clinic.Projects;
 
 public partial class ClinicProjectsGrid
 {
-    private List<ProjectDto>? projectsViaSurgeryData;
-    private List<ProjectDto>? projectsLackSurgeryData;
+    private IReadOnlyList<ProjectDto>? projectsViaSurgeryData;
+    private IReadOnlyList<ProjectDto>? projectsLackSurgeryData;
 
     protected override async Task ReloadRequired()
     {
@@ -14,7 +14,7 @@ public partial class ClinicProjectsGrid
         {
             Skip = 0,
             Take = int.MaxValue,
-            Search = SearchString,
+            Search = string.IsNullOrWhiteSpace(SearchString) ? null : SearchString,
             Template = TemplateMode
         };
 
@@ -25,6 +25,7 @@ public partial class ClinicProjectsGrid
 
         projectsViaSurgeryData = [.. projects.Where(project => ((ClinicProjectMetadata?)project.MetadataObject)?.DateOfSurgery.HasValue ?? false)];
         projectsLackSurgeryData = [.. projects.Where(project => !((ClinicProjectMetadata?)project.MetadataObject)?.DateOfSurgery.HasValue ?? true)];
+        StateHasChanged();
     }
     private SortMethod[] SortMethodsViaSurgeryData => [
         new SortMethod(

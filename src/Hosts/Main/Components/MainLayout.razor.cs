@@ -4,21 +4,16 @@ using Vitarish.Interfaces.Base.Models;
 
 namespace Vitarish.Main.Components;
 
-public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowserViewportObserver, IRenderNotificationReceiver
+public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowserViewportObserver
 {
     [Inject] private IBrowserViewportService BrowserViewportService { get; set; } = default!;
-    [Inject] private IRenderNotifier RenderNotifier { get; set; } = default!;
     [Inject] protected ISnackbar Snackbar { get; set; } = default!;
     [Inject] protected IThemeService ThemeService { get; set; } = default!;
-    [Inject] protected IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
+    [Inject] protected IRequestContext RequestContext { get; set; } = default!;
     [Inject] protected IUserService UserService { get; set; } = default!;
     [Inject] protected INavService NavService { get; set; } = default!;
-    [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
-    [Inject] protected IStringLocalizer Localizer { get; set; } = default!;
 
     private bool Initialized;
-    private bool Navigating;
-    private IDisposable? subscription;
     protected Breakpoint PageBreakpoint { get; set; }
     private readonly List<Breakpoint> breakpointHistory = [];
     private Breakpoint? startingBreakpoint;
@@ -27,7 +22,7 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
     protected override async Task OnInitializedAsync()
     {
         ThemeSettings? themeSettings = null;
-        string? userId = HttpContextAccessor.HttpContext?.GetUserId();
+        string? userId = RequestContext.UserId;
         if (!string.IsNullOrEmpty(userId))
         {
             string? theme = await UserService.GetThemeAsync(userId);
@@ -35,16 +30,6 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
         }
         await ThemeService.InitializeAsync(themeSettings);
         Initialized = true;
-        subscription = RenderNotifier.Subscribe(this);
-        NavService.RenderRequired += HandleLocationChanged;
-        _ = NavigationManager.RegisterLocationChangingHandler(async c => { Navigating = true; await InvokeAsync(() => StateHasChanged()); });
-        StateHasChanged();
-    }
-
-
-    private void HandleLocationChanged(object? sender, EventArgs e)
-    {
-        Navigating = false;
         StateHasChanged();
     }
 
@@ -66,9 +51,7 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
 
     public async ValueTask DisposeAsync()
     {
-        NavService.RenderRequired -= HandleLocationChanged;
         await BrowserViewportService.UnsubscribeAsync(this);
-        subscription?.Dispose();
 
         GC.SuppressFinalize(this);
     }
@@ -96,8 +79,4 @@ public partial class MainLayout : LayoutComponentBase, IAsyncDisposable, IBrowse
         PageBreakpoint = browserViewportEventArgs.Breakpoint;
         return InvokeAsync(StateHasChanged);
     }
-
-    public void OnCompleted() => throw new NotImplementedException();
-    public void OnError(Exception error) => throw new NotImplementedException();
-    void IObserver<RenderNotification>.OnNext(RenderNotification value) => RenderNotificationReceived(this, value);
 }

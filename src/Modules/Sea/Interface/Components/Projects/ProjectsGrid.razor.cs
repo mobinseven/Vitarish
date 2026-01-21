@@ -12,6 +12,11 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
 
     protected override async Task ReloadRequired()
     {
+        if (Plugin is not null)
+        {
+            return;
+        }
+
         ProjectDescriptorDto descriptor = new()
         {
             Skip = 0,

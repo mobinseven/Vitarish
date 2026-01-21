@@ -22,6 +22,7 @@
                         Label="@Localizer["FirstName"]" />
 
         <StackTextField @bind-Value="EditableMetadata.LastName"
+                        DebounceInterval="500"
                         Required
                         Label="@Localizer["LastName"]" />
 
@@ -81,8 +82,8 @@
 </Stack>
 
 <Stack>
-    <StackButton Label="@Localizer["Save"]" StartIcon="fa-regular fa-save" Color="Color.Primary" OnClick="SaveAsync" Disabled="@(!isValid)" />
-    <StackButton Label="@Localizer["Cancel"]" StartIcon="fa-regular fa-xmark" OnClick="() => OnCancel.InvokeAsync()" />
+    <StackButton Label="@Localizer["Save"]" EndIcon="fa-regular fa-save" Color="Color.Primary" OnClick="SaveAsync" Disabled="@(!isValid)" />
+    <StackButton Label="@Localizer["Cancel"]" EndIcon="fa-regular fa-xmark" OnClick="() => OnCancel.InvokeAsync()" />
 </Stack>
 
 @code {
@@ -114,7 +115,7 @@
         StateHasChanged();
     }
 
-    string title => (string.IsNullOrWhiteSpace(EditableMetadata.FirstName) ? Metadata?.LastName : $"{Metadata?.FirstName} {Metadata?.LastName}") ?? Localizer["NewItem", Localizer["Project"]];
+    string? title => (string.IsNullOrWhiteSpace(EditableMetadata.FirstName) ? Metadata?.LastName : $"{Metadata?.FirstName} {Metadata?.LastName}");
 
     private bool isValid => !string.IsNullOrWhiteSpace(title);
 

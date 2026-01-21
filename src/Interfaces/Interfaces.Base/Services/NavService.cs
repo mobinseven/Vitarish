@@ -1,4 +1,5 @@
 using Vitarish.Interfaces.Base.Abstractions;
+using Vitarish.Interfaces.Base.Common;
 using Vitarish.Interfaces.Base.Models;
 
 namespace Vitarish.Interfaces.Base.Services;
@@ -6,15 +7,26 @@ namespace Vitarish.Interfaces.Base.Services;
 [RegisterScoped]
 public sealed class NavService : INavService, IDisposable
 {
+
+    private readonly IRenderNotifier renderNotifier;
     private readonly IStringLocalizer localizer;
     private readonly NavigationManager navigationManager;
     private List<Breadcrumb>? breadcrumbs;
     private string CurrentLocation => navigationManager.ToBaseRelativePath(navigationManager.Uri.RemoveAllQueryParams()).TrimEnd('/');
     public Breadcrumb[] Breadcrumbs => breadcrumbs?.ToArray() ?? [];
-    public event EventHandler? RenderRequired;
-
-    public NavService(NavigationManager navigationManager, IStringLocalizer localizer)
+    public string? SearchString
     {
+        get => field;
+        set
+        {
+            field = value;
+            renderNotifier.Notify();
+        }
+    }
+
+    public NavService(NavigationManager navigationManager, IStringLocalizer localizer, IRenderNotifier renderNotifier)
+    {
+        this.renderNotifier = renderNotifier;
         this.localizer = localizer;
         this.navigationManager = navigationManager;
         GenerateCurrentBreadcrumbs();
@@ -25,7 +37,13 @@ public sealed class NavService : INavService, IDisposable
     {
         Breadcrumb? bc = breadcrumbs?.FirstOrDefault(b => b.Id == id);
         _ = (bc?.Text = text);
-        RenderRequired?.Invoke(this, new EventArgs());
+        renderNotifier.Notify();
+    }
+
+    public void EnableSearch()
+    {
+        navigationManager.NavigateTo(navigationManager.GetUriWithQueryParameter(nameof(NavMenu.Search), true));
+        renderNotifier.Notify();
     }
 
     private void GenerateCurrentBreadcrumbs()
@@ -55,7 +73,7 @@ public sealed class NavService : INavService, IDisposable
     private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         GenerateCurrentBreadcrumbs();
-        RenderRequired?.Invoke(this, new EventArgs());
+        renderNotifier.Notify();
     }
 
     private void NavigateUpOneLevel()
@@ -80,8 +98,6 @@ public sealed class NavService : INavService, IDisposable
         navigationManager.LocationChanged -= HandleLocationChanged;
         GC.SuppressFinalize(this);
     }
-
-    public string GetSearchUri(string? query) => string.IsNullOrWhiteSpace(query) ? navigationManager.Uri.RemoveAllQueryParams() : navigationManager.GetUriWithQueryParameter("q", query);
 
     public void Back() => NavigateUpOneLevel();
     public void Home() => navigationManager.NavigateTo("/");

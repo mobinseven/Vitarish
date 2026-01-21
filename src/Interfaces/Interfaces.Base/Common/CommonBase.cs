@@ -5,9 +5,9 @@ using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Interfaces.Base.Common;
 
-public class CommonBase : ComponentBase, IDisposable, IRenderNotificationReceiver
+public class CommonBase : ComponentBase, IDisposable
 {
-    protected string? SearchString { get; set; }
+    [CascadingParameter] protected string? SearchString { get; set; }
 
     public Guid Id { get; private set; } = Guid.NewGuid();
     [Inject] protected IRequestContext RequestContext { get; set; } = default!;
@@ -24,16 +24,7 @@ public class CommonBase : ComponentBase, IDisposable, IRenderNotificationReceive
     private readonly IList<string> registeredIds = [];
     protected void RenderForType<T>() => registeredTypes.Add(typeof(T));
     protected void RenderForId(string id) => registeredIds.Add(id);
-
-    protected bool firstRenderDone;
-    private IDisposable? subscription;
-    protected override void OnInitialized()
-    {
-        subscription = RenderNotifier.Subscribe(this);
-
-        NavigationManager.LocationChanged += OnLocationChanged;
-        _ = UpdateSearchFromUri(NavigationManager.Uri);
-    }
+    protected override void OnInitialized() => RenderNotifier.RenderRequired += RenderNotificationReceived;
     protected virtual Task ReloadRequired() => Task.CompletedTask;
 
     protected virtual async void RenderNotificationReceived(object? sender, RenderNotification notification)
@@ -48,51 +39,15 @@ public class CommonBase : ComponentBase, IDisposable, IRenderNotificationReceive
                 await InvokeAsync(ReloadRequired);
             }
         }
-    }
-    protected override void OnAfterRender(bool firstRender)
-    {
-        if (firstRender)
+        else
         {
-            firstRenderDone = true;
-            StateHasChanged();
+            await InvokeAsync(StateHasChanged);
         }
-    }
-    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
-    {
-        try
-        {
-            bool updated = UpdateSearchFromUri(e.Location);
-            if (updated)
-            {
-                await ReloadRequired();
-            }
-        }
-        catch
-        {
-            // Ignore navigation refresh errors.
-        }
-    }
-
-    private bool UpdateSearchFromUri(string uri)
-    {
-        string? query = SearchQueryHelper.ExtractQuery(NavigationManager, uri);
-
-        if (string.Equals(SearchString, query, StringComparison.Ordinal))
-        {
-            return false;
-        }
-
-        SearchString = query;
-        return true;
     }
     void IDisposable.Dispose()
     {
-        NavigationManager.LocationChanged -= OnLocationChanged;
-        subscription?.Dispose();
+        RenderNotifier.RenderRequired -= RenderNotificationReceived;
         GC.SuppressFinalize(this);
     }
-    public virtual void OnCompleted() { }
-    public virtual void OnError(Exception error) { }
-    void IObserver<RenderNotification>.OnNext(RenderNotification value) => RenderNotificationReceived(this, value);
 
 }

@@ -24,7 +24,4 @@ public class SeaCommonBase : CommonBase, IDisposable
     }
     protected string? UserIdToName(Guid id) => Users.FirstOrDefault(x => x.Id == id.ToString())?.FullName;
     protected string? UserIdToName(string id) => Users.FirstOrDefault(x => x.Id == id)?.FullName;
-    public override void OnCompleted() => throw new NotImplementedException();
-    public override void OnError(Exception error) => throw new NotImplementedException();
-    protected override Task ReloadRequired() => Task.CompletedTask;
 }

@@ -59,6 +59,10 @@
 
     protected override async Task ReloadRequired()
     {
+        if(ProjectId == Guid.Empty)
+        {
+            return;
+        }
 
         Project = await ProjectsService.GetAsync(ProjectId, CancellationToken.None).GetValueOrDefaultAsync();
 
@@ -68,7 +72,7 @@
             return;
         }
 
-        NavService.OverridePageTitle(Project.Id.ToString(), Project.Name);
+       NavService.OverridePageTitle(Project.Id.ToString(), Project.Name);
     }
 
     protected async Task MarkAsRead()

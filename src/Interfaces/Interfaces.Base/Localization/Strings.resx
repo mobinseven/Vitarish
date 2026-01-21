@@ -1118,4 +1118,7 @@ of project "{2}"</value>
   <data name="SelectItem" xml:space="preserve">
     <value>Selection of {0}</value>
   </data>
+  <data name="NoSearchItems" xml:space="preserve">
+    <value>No items found for '{0}'</value>
+  </data>
 </root>

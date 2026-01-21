@@ -4,7 +4,7 @@ using Vitarish.Interfaces.Base.Models;
 
 namespace Vitarish.Main.Components;
 
-public partial class SimpleLayout : LayoutComponentBase, IAsyncDisposable, IBrowserViewportObserver, IRenderNotificationReceiver
+public partial class SimpleLayout : LayoutComponentBase, IAsyncDisposable, IBrowserViewportObserver
 {
     [Inject] private IBrowserViewportService BrowserViewportService { get; set; } = default!;
     [Inject] private IRenderNotifier RenderNotifier { get; set; } = default!;
@@ -18,7 +18,6 @@ public partial class SimpleLayout : LayoutComponentBase, IAsyncDisposable, IBrow
 
     private bool Initialized;
     private bool Navigating;
-    private IDisposable? subscription;
     protected Breakpoint PageBreakpoint { get; set; }
     private readonly List<Breakpoint> breakpointHistory = [];
     private Breakpoint? startingBreakpoint;
@@ -35,8 +34,7 @@ public partial class SimpleLayout : LayoutComponentBase, IAsyncDisposable, IBrow
         }
         await ThemeService.InitializeAsync(themeSettings);
         Initialized = true;
-        subscription = RenderNotifier.Subscribe(this);
-        NavService.RenderRequired += HandleLocationChanged;
+        RenderNotifier.RenderRequired += HandleLocationChanged;
         _ = NavigationManager.RegisterLocationChangingHandler(async c => { Navigating = true; await InvokeAsync(() => StateHasChanged()); });
         StateHasChanged();
     }
@@ -66,9 +64,8 @@ public partial class SimpleLayout : LayoutComponentBase, IAsyncDisposable, IBrow
 
     public async ValueTask DisposeAsync()
     {
-        NavService.RenderRequired -= HandleLocationChanged;
+        RenderNotifier.RenderRequired -= HandleLocationChanged;
         await BrowserViewportService.UnsubscribeAsync(this);
-        subscription?.Dispose();
 
         GC.SuppressFinalize(this);
     }
@@ -96,8 +93,4 @@ public partial class SimpleLayout : LayoutComponentBase, IAsyncDisposable, IBrow
         PageBreakpoint = browserViewportEventArgs.Breakpoint;
         return InvokeAsync(StateHasChanged);
     }
-
-    public void OnCompleted() => throw new NotImplementedException();
-    public void OnError(Exception error) => throw new NotImplementedException();
-    void IObserver<RenderNotification>.OnNext(RenderNotification value) => RenderNotificationReceived(this, value);
 }

@@ -1,7 +1,9 @@
+using Vitarish.Interfaces.Base.Models;
+
 namespace Vitarish.Interfaces.Base.Abstractions;
 
 public interface IRenderNotifier
 {
-    Task Notify(object? content);
-    IDisposable Subscribe(IRenderNotificationReceiver observer);
+    event EventHandler<RenderNotification> RenderRequired;
+    Task Notify(object? content = null);
 }

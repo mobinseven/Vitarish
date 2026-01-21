@@ -8,50 +8,13 @@
             {
                 <CascadingValue Value="@PageBreakpoint">
 
-                    <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center">
-
-                        @if(NavService.Breadcrumbs.Length > 1)
-                        {
-                            <MudTimeline TimelineOrientation="TimelineOrientation.Vertical" TimelineAlign="TimelineAlign.Default" TimelinePosition="TimelinePosition.Start">
-                                @foreach(var breadcrumb in NavService.Breadcrumbs.SkipLast(1))
-                                {
-                                    <MudTimelineItem Elevation="0" Size="Size.Small" Variant="Variant.Outlined" DotStyle="background: none" Class="my-2">
-                                        <ItemDot>
-                                            <MudButton Href="@breadcrumb.Path" Style="min-width: max-content;" Class="glass py-3">
-                                                @breadcrumb.Text
-                                            </MudButton>
-                                        </ItemDot>
-                                    </MudTimelineItem>
-                                }
-                            </MudTimeline>
-                        }
-                        else
-                        {
-                            <div style="height: 10dvh;">
-                                <hr />
-                            </div>
-                        }
-
-                    </MudStack>
-
+                    <BreadcrumbsTree />
 
                     <WidthControlled>
-                        @if(!Navigating && NavService.Breadcrumbs.Length > 1)
-                        {
-                            <MudPaper Class="sticky-top pa-3 mb-3 glass mx-1" Elevation="0">
-                                <MudText Typo="Typo.h4" GutterBottom="true" Align="Align.Center">
-                                    @Localizer[NavService.Breadcrumbs.Last().Text]
-                                </MudText>
-                            </MudPaper>
-                        }
-                        else
-                        {
-                            <MudStack Row Justify="Justify.Center" Style="width: 100%">
-                                <MudImage Src="/logo/brandmark-opacity50.webp" Height="150" />
-                            </MudStack>
-                        }
 
-                        @Body
+                        <CascadingValue Value="NavService.SearchString">
+                            @Body
+                        </CascadingValue>
 
                     </WidthControlled>
 
@@ -59,7 +22,7 @@
                         <hr />
                     </div>
 
-                    <div style="position: fixed; bottom: 0; width: 100%;pointer-events: none;">
+                    <div style="position: fixed; z-index: 10; bottom: 0; width: 100%;pointer-events: none;">
                         @if(PageBreakpoint >= Breakpoint.Sm)
                         {
                             <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-5">
