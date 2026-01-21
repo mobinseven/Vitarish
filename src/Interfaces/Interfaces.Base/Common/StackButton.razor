@@ -25,5 +25,5 @@
 @code {
     [Parameter] public string? Label { get; set; }
     [Parameter] public string? HighlightString { get; set; }
-    private string ContinueIcon => CultureInfo.CurrentCulture.TextInfo.IsRightToLeft ? "fa-regular fa-chevron-left" : "fa-regular fa-chevron-right";
+    private string ContinueIcon => EndIcon is null ? CultureInfo.CurrentCulture.TextInfo.IsRightToLeft ? "fa-regular fa-chevron-left" : "fa-regular fa-chevron-right" : EndIcon;
 }
