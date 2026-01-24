@@ -20,7 +20,7 @@ public sealed class NavService : INavService, IDisposable
         set
         {
             field = value;
-            renderNotifier.Notify();
+            _ = renderNotifier.Notify();
         }
     }
 
@@ -36,18 +36,30 @@ public sealed class NavService : INavService, IDisposable
     public void OverridePageTitle(string id, string text)
     {
         Breadcrumb? bc = breadcrumbs?.FirstOrDefault(b => b.Id == id);
-        _ = (bc?.Text = text);
-        renderNotifier.Notify();
+        if (bc is null)
+        {
+            return;
+        }
+        if (!string.IsNullOrEmpty(bc.Text))
+        {
+            return;
+        }
+        bc.Text = text;
+        _ = renderNotifier.Notify();
     }
 
     public void EnableSearch()
     {
         navigationManager.NavigateTo(navigationManager.GetUriWithQueryParameter(nameof(NavMenu.Search), true));
-        renderNotifier.Notify();
+        _ = renderNotifier.Notify();
     }
 
-    private void GenerateCurrentBreadcrumbs()
+    private void GenerateCurrentBreadcrumbs(bool force = false)
     {
+        if(breadcrumbs is not null && !force)
+        {
+            return;
+        }
         string[] subs = CurrentLocation.Split('/');
         breadcrumbs = [new Breadcrumb { Path = "/", Text = localizer["Dashboard"] }];
         string path = string.Empty;
@@ -72,8 +84,8 @@ public sealed class NavService : INavService, IDisposable
 
     private void HandleLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        GenerateCurrentBreadcrumbs();
-        renderNotifier.Notify();
+        GenerateCurrentBreadcrumbs(true);
+        _ = renderNotifier.Notify();
     }
 
     private void NavigateUpOneLevel()

@@ -1,6 +1,6 @@
 using Duende.IdentityModel;
 using Duende.IdentityServer.Extensions;
-using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Main.Authorization;
@@ -13,8 +13,8 @@ public class ClaimsTransformation(IHttpContextAccessor httpContextAccessor) : IC
         if (principal.Identity?.IsAuthenticated == true)
         {
             {
-                ITenantsService tenantsService = http.RequestServices.GetRequiredService<ITenantsService>();
-                Tenant? tenant = await tenantsService.ResolveFromHostAsync(http, http.RequestAborted);
+                ITenantResolver tenantsService = http.RequestServices.GetRequiredService<ITenantResolver>();
+                Tenant? tenant = await tenantsService.ResolveAsync(http, http.RequestAborted);
                 if (tenant is not null)
                 {
                     ClaimsIdentity partyIdentity = new(IdentityDefinitions.PartyScope);

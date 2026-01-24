@@ -21,7 +21,7 @@
                     <TextChip Color="Color" Class="pa-2 glass" Text="@Attachment.Content" />
                 }
             }
-            <MudText Typo="Typo.body2">@($"{Localizer["Attacher"]}: {UserIdToName(Attachment.CreatedBy)}")</MudText>
+            <MudText Typo="Typo.body2">@($"{Localizer["Attacher"]}: {GetUserFullNameById(Attachment.CreatedBy)}")</MudText>
             <MudText Typo="Typo.body2">@($"{Localizer["CreatedAt"]}: {Attachment.CreatedAt.ToLocalTime()}")</MudText>
             @if(Attachment.UpdatedAt is not null)
             {

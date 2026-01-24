@@ -15,7 +15,7 @@
                     AdornmentIcon="fa-duotone fa-circle-check fa-2x"
                     AdornmentColor="Color.Primary">
             @{
-                var userName = UserIdToName(Event.CommittedBy);
+                var userName = GetUserFullNameById(Event.CommittedBy);
             }
             @if(!string.IsNullOrWhiteSpace(userName))
             {

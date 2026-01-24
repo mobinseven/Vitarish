@@ -27,7 +27,11 @@ public abstract class ModuleBase : IModule
     }
     public event Action<bool>? AvailabilityChanged;
     /// <inheritdoc />
-    public async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null) => ConfigureServices(builder.Services, builder.Configuration, configureDbContext);
+    public async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
+    {
+        _ = builder.Services.AddScoped<ITenantService, TenantService>();
+        ConfigureServices(builder.Services, builder.Configuration, configureDbContext);
+    }
 
     /// <inheritdoc />
     public async Task MapEndpoints(WebApplication app)

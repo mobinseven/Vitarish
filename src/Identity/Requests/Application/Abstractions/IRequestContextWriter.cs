@@ -27,5 +27,6 @@ public interface IRequestContextWriter
         string? resourceId = null,
         string? traceId = null,
         string? requestId = null,
-        string? additionalInfo = null);
+        string? additionalInfo = null,
+        string? metadataJson = null);
 }

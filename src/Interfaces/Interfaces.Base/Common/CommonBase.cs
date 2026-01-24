@@ -25,6 +25,7 @@ public class CommonBase : ComponentBase, IDisposable
     protected void RenderForType<T>() => registeredTypes.Add(typeof(T));
     protected void RenderForId(string id) => registeredIds.Add(id);
     protected override void OnInitialized() => RenderNotifier.RenderRequired += RenderNotificationReceived;
+    protected override Task OnInitializedAsync() => ReloadRequired();
     protected virtual Task ReloadRequired() => Task.CompletedTask;
 
     protected virtual async void RenderNotificationReceived(object? sender, RenderNotification notification)

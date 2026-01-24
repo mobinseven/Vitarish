@@ -10,24 +10,6 @@
     }
 </Stack>
 
-@* <MudDataGrid T="Tenant" Items="Tenants" RowClick="RowClicked" Elevation="0">
-    <Columns>
-        <PropertyColumn Property="x => x.Id" />
-        <PropertyColumn Property="x => x.Name" />
-        <PropertyColumn Property="x => x.OwnerId" Title="Owner" />
-        <PropertyColumn Property="x => x.ClientId" />
-        <PropertyColumn Property="x => x.Description" />
-        <PropertyColumn Property="x => x.CreatedAt" Format="yyyy-MM-dd HH:mm" />
-        <PropertyColumn Property="x => x.CreatedBy" />
-        <TemplateColumn>
-            <CellTemplate>
-                <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                               Color="Color.Error"
-                               OnClick="() => RemoveTenant(context.Item)" />
-            </CellTemplate>
-        </TemplateColumn>
-    </Columns>
-</MudDataGrid> *@
 <Stack>
     <StackField>
         <MudSelect @bind-Value="selectedOwnerId" Label="@Localizer["Owner"]" Required>

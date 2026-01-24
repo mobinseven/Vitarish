@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Vitarish.Parties.Domain.Entities;
 
 /// <summary>
@@ -34,6 +36,8 @@ public class Tenant
 
     /// <summary>User who last modified the tenant.</summary>
     public string? ModifiedBy { get; set; }
+
+    public Dictionary<string, object?> Metadata { get; set; } = [];
 
     /// <summary>Collection of tenant indicators (hostnames/subdomains).</summary>
     public ICollection<TenantIndicator> Indicators { get; set; } = [];

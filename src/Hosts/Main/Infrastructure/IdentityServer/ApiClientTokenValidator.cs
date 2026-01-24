@@ -1,6 +1,6 @@
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Validation;
-using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Main.Infrastructure.IdentityServer;
@@ -12,7 +12,7 @@ namespace Vitarish.Main.Infrastructure.IdentityServer;
 /// </summary>
 public sealed class ApiClientTokenValidator(
     IHttpContextAccessor httpContextAccessor,
-    ITenantsService tenantsService,
+    ITenantResolver tenantsService,
     ILogger<ApiClientTokenValidator> logger)
     : ICustomTokenRequestValidator
 {
@@ -39,7 +39,7 @@ public sealed class ApiClientTokenValidator(
 
         try
         {
-            Tenant? tenant = await tenantsService.ResolveFromHostAsync(httpContext, httpContext.RequestAborted);
+            Tenant? tenant = await tenantsService.ResolveAsync(httpContext, httpContext.RequestAborted);
             if (tenant is not null)
             {
                 request.ClientClaims.Add(new Claim(IdentityDefinitions.ClientIdClaim, tenant.ClientId));

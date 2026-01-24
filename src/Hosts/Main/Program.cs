@@ -21,7 +21,6 @@ using Vitarish.Main.Infrastructure.Handlers;
 using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Modules.Base;
-using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Hosting.DependencyInjection;
 using Vitarish.Parties.Infrastructure.Data;
@@ -106,9 +105,9 @@ Func<object, Task<string?>> tenantResolver = async context =>
     if (context is HttpContext http)
     {
 
-        ITenantsService tenantsService = http.RequestServices.GetRequiredService<ITenantsService>();
+        ITenantResolver tenantsService = http.RequestServices.GetRequiredService<ITenantResolver>();
         {
-            Tenant? tenant = await tenantsService.ResolveFromHostAsync(http, http.RequestAborted);
+            Tenant? tenant = await tenantsService.ResolveAsync(http, http.RequestAborted);
             if (tenant is not null)
             {
                 return tenant.Id.ToString();

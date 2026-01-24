@@ -14,8 +14,8 @@
                 </div>
             </MudStack>
 
-            <MudText Typo="Typo.body2">@($"{Localizer["Creator"]}: {UserIdToName(Reminder.CreatedBy)}")</MudText>
-            <MudText Typo="Typo.body2">@($"{Localizer["Recipient"]}: {UserIdToName(Reminder.RecipientUserId)}")</MudText>
+            <MudText Typo="Typo.body2">@($"{Localizer["Creator"]}: {GetUserFullNameById(Reminder.CreatedBy)}")</MudText>
+            <MudText Typo="Typo.body2">@($"{Localizer["Recipient"]}: {GetUserFullNameById(Reminder.RecipientUserId)}")</MudText>
             <MudText Typo="Typo.body2">@($"{Localizer["RemindAt"]}: {Reminder.RemindAt.ToLocalTime().DateTime.ToShortDateString()} {Reminder.CreatedAt.ToLocalTime().DateTime.ToShortTimeString()}")</MudText>
             <MudText Typo="Typo.body2">@($"{Localizer["SentAt"]}: {SentAtText()}")</MudText>
         </MudStack>

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Text.Json;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Events;
 using Vitarish.Parties.Infrastructure.Extensions;
@@ -30,6 +31,13 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
         _ = modelBuilder.Entity<Tenant>(entity =>
         {
             _ = entity.HasIndex(t => t.ClientId);
+
+            _ = entity.Property(e => e.Metadata)
+                        .HasConversion(
+                            v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                            v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
+                        .HasDefaultValueSql("'{}'")
+                        .HasColumnType("nvarchar(max)");
         });
 
         _ = modelBuilder.Entity<TenantIndicator>(entity =>

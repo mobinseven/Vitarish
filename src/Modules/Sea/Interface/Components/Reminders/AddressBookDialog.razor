@@ -4,7 +4,7 @@
     <DialogContent>
         <MudStack Spacing="1">
             <MudList T="UserDto">
-                @foreach(var user in Users.Where(u => !string.IsNullOrEmpty(GetAddress(u, Kind))))
+                @foreach(var user in GetUsers().Where(u => !string.IsNullOrEmpty(GetUserAddressById(u.Id, Kind))))
                 {
                     <MudCheckBox T="bool" ValueChanged="() => ToggleUser(user)" Value="IsSelected(user)">@user.FullName</MudCheckBox>
                 }

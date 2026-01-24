@@ -14,7 +14,8 @@ public sealed record UpdateTenant(
     string ClientId,
     string? LogoUrl = null,
     string? Description = null,
-    string? ModifiedBy = null) : IRequest<Tenant?>;
+    string? ModifiedBy = null,
+    Dictionary<string, object?> Metadata = default) : IRequest<Tenant?>;
 
 /// <summary>
 /// Validator for <see cref="UpdateTenant"/>.

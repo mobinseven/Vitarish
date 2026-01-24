@@ -1,5 +1,6 @@
 using System.Security.Claims;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Requests.Application.Models;
 using Vitarish.Requests.Domain.Entities;
 
 namespace Vitarish.Main.Mock.Services;
@@ -23,6 +24,8 @@ public sealed class MockRequestContext : IRequestContext, IRequestContextWriter
     public string? RequestId { get; private set; } = Guid.NewGuid().ToString();
 
     public string? AdditionalInfo { get; private set; }
+
+    public Metadata? Metadata => throw new NotImplementedException();
 
     ClaimsPrincipal? IRequestContext.User => new ClaimsPrincipal();
 
@@ -60,4 +63,6 @@ public sealed class MockRequestContext : IRequestContext, IRequestContextWriter
         RequestId = requestId ?? Guid.NewGuid().ToString();
         AdditionalInfo = additionalInfo;
     }
+
+    public void SetContext(string authority, string clientId, string ownerId, string? tenantId = null, string? userId = null, string? resourceId = null, string? traceId = null, string? requestId = null, string? additionalInfo = null, string? metadataJson = null) => throw new NotImplementedException();
 }

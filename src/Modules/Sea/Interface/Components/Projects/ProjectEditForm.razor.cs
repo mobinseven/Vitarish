@@ -11,7 +11,7 @@ public partial class ProjectEditForm : ProjectsBase
     [Parameter] public bool TemplateMode { get; set; } = false;
 
 
-    private IProjectEditPlugin? Plugin => ProjectEditPlugins.SingleOrDefault(p => p.Id == UsageConfigurationMetadata?.PluginIdentifier);
+    private IProjectEditPlugin? Plugin => ProjectEditPlugins.SingleOrDefault(p => p.Id == MetadataService?.PluginIdentifier);
 
 
     private string name = string.Empty;

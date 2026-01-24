@@ -1,5 +1,6 @@
 using Duende.IdentityServer.AspNetIdentity;
 using Duende.IdentityServer.Models;
+using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 
@@ -13,7 +14,7 @@ public sealed class PartyProfileService(
     UserManager<User> userManager,
     IUserClaimsPrincipalFactory<User> claimsFactory,
     IHttpContextAccessor httpContextAccessor,
-    ITenantsService tenantsService,
+    ITenantResolver tenantsService,
     ILogger<PartyProfileService> logger)
     : ProfileService<User>(userManager, claimsFactory, logger)
 {
@@ -35,7 +36,7 @@ public sealed class PartyProfileService(
 
         try
         {
-            Tenant? tenant = await tenantsService.ResolveFromHostAsync(httpContext, CancellationToken.None);
+            Tenant? tenant = await tenantsService.ResolveAsync(httpContext, CancellationToken.None);
             if (tenant is not null)
             {
                 context.IssuedClaims.Add(new Claim(IdentityDefinitions.ClientIdClaim, tenant.ClientId));

@@ -1,6 +1,7 @@
 @inherits EventsBase
 
 <Stack>
+    <StackField Label="@Localizer["Attachments"]" />
     @foreach(var item in items)
     {
         @if(!string.IsNullOrWhiteSpace(item.Placeholder))
@@ -29,16 +30,11 @@
             @item.Content
         }
     }
-    @if(items.Count == 0)
+    @if(CanWrite)
     {
-        <StackField Label="@Localizer["NoItems", Localizer["Attachment"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Attachment"]]" />
-    }
-</Stack>
-@if(CanWrite)
-{
-    <Stack>
         <StackField>
             <EventItemsInput Project="Project" Procedure="Procedure" Event="Event" />
         </StackField>
-    </Stack>
-}
+    }
+
+</Stack>

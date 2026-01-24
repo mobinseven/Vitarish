@@ -25,7 +25,7 @@ public class IdentityPartiesExtensionsTests
 
         Assert.NotNull(provider.GetService<PartiesDbContext>());
         Assert.NotNull(provider.GetService<IPartiesService>());
-        Assert.NotNull(provider.GetService<ITenantsService>());
+        Assert.NotNull(provider.GetService<ITenantResolver>());
         Assert.NotNull(provider.GetService<ILookupClient>());
         Assert.NotNull(provider.GetService<IDnsVerificationService>());
         Assert.NotNull(provider.GetService<ISender>());

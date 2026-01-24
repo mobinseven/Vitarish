@@ -1,7 +1,7 @@
 @inherits UsersBase
 
 <Stack>
-    @foreach(var user in Users)
+    @foreach(var user in GetUsers())
     {
         <StackExpandable Label="@user.FullName" HighlightString="@SearchString">
             <UserRolesSelect User="@user" />

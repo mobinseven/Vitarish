@@ -17,7 +17,7 @@ namespace Vitarish.Host.Migrations.PartiesDb
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.0")
+                .HasAnnotation("ProductVersion", "10.0.1")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -76,6 +76,12 @@ namespace Vitarish.Host.Migrations.PartiesDb
 
                     b.Property<string>("LogoUrl")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Metadata")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValueSql("'{}'");
 
                     b.Property<DateTime?>("ModifiedAt")
                         .HasColumnType("datetime2");

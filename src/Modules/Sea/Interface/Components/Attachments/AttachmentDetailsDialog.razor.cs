@@ -57,7 +57,7 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
 
     private string FormatReader(Guid readerId)
     {
-        string? name = Users.FirstOrDefault(x => x.Id == readerId.ToString())?.FullName;
+        string? name = GetUserFullNameById(readerId);
         return string.IsNullOrWhiteSpace(name) ? readerId.ToString() : name;
     }
 

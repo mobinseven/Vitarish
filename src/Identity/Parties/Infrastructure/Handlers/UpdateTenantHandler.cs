@@ -29,6 +29,7 @@ public sealed class UpdateTenantHandler(PartiesDbContext db) : IRequestHandler<U
         tenant.ClientId = request.ClientId;
         tenant.ModifiedAt = DateTime.UtcNow;
         tenant.ModifiedBy = request.ModifiedBy;
+        tenant.Metadata = request.Metadata;
 
         _ = await db.SaveChangesAsync(cancellationToken);
         return tenant;

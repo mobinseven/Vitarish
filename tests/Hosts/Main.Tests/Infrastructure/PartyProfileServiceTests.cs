@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using System.Security.Claims;
 using Vitarish.Main.Infrastructure.IdentityServer;
+using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Users.Domain.Entities;
@@ -19,7 +20,7 @@ public class PartyProfileServiceTests
     private readonly Mock<UserManager<User>> _mockUserManager;
     private readonly UserInfoClaimsPrincipalFactory _claimsFactory;
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
-    private readonly Mock<ITenantsService> _mockTenantsService;
+    private readonly Mock<ITenantResolver> _mockTenantsService;
     private readonly Mock<ILogger<PartyProfileService>> _mockLogger;
     private readonly PartyProfileService _sut;
 
@@ -34,7 +35,7 @@ public class PartyProfileServiceTests
             _mockUserManager.Object,
             Microsoft.Extensions.Options.Options.Create(new IdentityOptions()));
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
-        _mockTenantsService = new Mock<ITenantsService>();
+        _mockTenantsService = new Mock<ITenantResolver>();
         _mockLogger = new Mock<ILogger<PartyProfileService>>();
 
         _sut = new PartyProfileService(
@@ -62,7 +63,7 @@ public class PartyProfileServiceTests
         HttpContext httpContext = new DefaultHttpContext();
         _ = _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
         _ = _mockTenantsService
-            .Setup(x => x.ResolveFromHostAsync(httpContext, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ResolveAsync(httpContext, It.IsAny<CancellationToken>()))
             .ReturnsAsync(tenant);
 
         ProfileDataRequestContext context = new()
@@ -89,7 +90,7 @@ public class PartyProfileServiceTests
         HttpContext httpContext = new DefaultHttpContext();
         _ = _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
         _ = _mockTenantsService
-            .Setup(x => x.ResolveFromHostAsync(httpContext, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ResolveAsync(httpContext, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Tenant?)null);
 
         ProfileDataRequestContext context = new()
@@ -127,7 +128,7 @@ public class PartyProfileServiceTests
         context.IssuedClaims.Should().NotContain(c => c.Type == IdentityDefinitions.TenantIdClaim);
         context.IssuedClaims.Should().NotContain(c => c.Type == IdentityDefinitions.OwnerIdClaim);
         _mockTenantsService.Verify(
-            x => x.ResolveFromHostAsync(It.IsAny<HttpContext>(), It.IsAny<CancellationToken>()),
+            x => x.ResolveAsync(It.IsAny<HttpContext>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -138,7 +139,7 @@ public class PartyProfileServiceTests
         HttpContext httpContext = new DefaultHttpContext();
         _ = _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
         _ = _mockTenantsService
-            .Setup(x => x.ResolveFromHostAsync(httpContext, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ResolveAsync(httpContext, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         ProfileDataRequestContext context = new()
@@ -171,7 +172,7 @@ public class PartyProfileServiceTests
         HttpContext httpContext = new DefaultHttpContext();
         _ = _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
         _ = _mockTenantsService
-            .Setup(x => x.ResolveFromHostAsync(httpContext, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ResolveAsync(httpContext, It.IsAny<CancellationToken>()))
             .ReturnsAsync(tenant);
 
         Claim existingClaim = new("existing_claim", "existing_value");
@@ -230,7 +231,7 @@ public class PartyProfileServiceTests
         HttpContext httpContext = new DefaultHttpContext();
         _ = _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
         _ = _mockTenantsService
-            .Setup(x => x.ResolveFromHostAsync(httpContext, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ResolveAsync(httpContext, It.IsAny<CancellationToken>()))
             .ReturnsAsync(tenant);
 
         ProfileDataRequestContext context = new()
@@ -270,7 +271,7 @@ public class PartyProfileServiceTests
         HttpContext httpContext = new DefaultHttpContext();
         _ = _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
         _ = _mockTenantsService
-            .Setup(x => x.ResolveFromHostAsync(httpContext, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ResolveAsync(httpContext, It.IsAny<CancellationToken>()))
             .ReturnsAsync(tenant);
 
         ProfileDataRequestContext context = new()

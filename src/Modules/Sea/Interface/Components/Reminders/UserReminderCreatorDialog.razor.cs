@@ -18,7 +18,7 @@ public partial class UserReminderCreatorDialog : RemindersBase
     private bool DateStep;
     private bool TimeStep;
     private bool ContentStep;
-    private DateTimeOffset remindAt => new(remindDate!.Value.Date + remindTime!.Value, TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow));
+    private DateTimeOffset RemindAt => new(remindDate!.Value.Date + remindTime!.Value, TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow));
     private string subject = string.Empty;
     private string textBody = string.Empty;
 
@@ -58,7 +58,7 @@ public partial class UserReminderCreatorDialog : RemindersBase
     private async Task SaveAsync()
     {
         List<ReminderRecipientDto> recipients = [new ReminderRecipientDto(kind, RequestContext.UserId, GetAddress(kind))];
-        IReadOnlyList<ReminderDto> added = await RemindersService.AddRangeAsync(Event.Id, recipients, subject, textBody, remindAt, CancellationToken.None);
+        IReadOnlyList<ReminderDto> added = await RemindersService.AddRangeAsync(Event.Id, recipients, subject, textBody, RemindAt, CancellationToken.None);
         MudDialog.Close(DialogResult.Ok(added));
     }
 
@@ -76,9 +76,8 @@ public partial class UserReminderCreatorDialog : RemindersBase
 
     private async Task<string> GetTextBody()
     {
-        UsageConfigurationDto? usageConfig = await UsageConfigurationService.GetUsageConfigurationAsync(CancellationToken.None);
         string firstLine = Localizer["ReminderText", Event.Title, Procedure.Name, Project.Name];
-        return string.Concat(firstLine, Environment.NewLine, Environment.NewLine, Event.Description, Environment.NewLine, Environment.NewLine, usageConfig?.ReminderSignature);
+        return string.Concat(firstLine, Environment.NewLine, Environment.NewLine, Event.Description, Environment.NewLine, Environment.NewLine, MetadataService?.ReminderSignature);
     }
 
     private string? GetAddress(ReminderKind kind)

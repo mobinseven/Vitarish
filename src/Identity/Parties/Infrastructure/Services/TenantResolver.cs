@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
+using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Enums;
 using Vitarish.Parties.Infrastructure.Data;
@@ -11,7 +12,7 @@ namespace Vitarish.Parties.Infrastructure.Services;
 /// <summary>
 /// Resolves tenants based on incoming host names using cached tenant indicators.
 /// </summary>
-public class TenantResolver
+public class TenantResolver: ITenantResolver
 {
     private readonly PartiesDbContext dbContext;
     private readonly IMemoryCache cache;

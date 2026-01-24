@@ -6,7 +6,7 @@ using Vitarish.Parties.Application.Queries;
 using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Parties.Infrastructure.Services;
-/// <inheritdoc />
+
 public sealed class PartiesService(ISender sender) : IPartiesService
 {
     public Task<Owner?> GetOwnerAsync(Guid id, CancellationToken ct = default) =>

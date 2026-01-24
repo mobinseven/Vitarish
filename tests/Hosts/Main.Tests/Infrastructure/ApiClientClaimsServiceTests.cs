@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using System.Security.Claims;
 using Vitarish.Main.Infrastructure.IdentityServer;
+using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 
@@ -14,14 +15,14 @@ namespace Vitarish.Host.Tests.Infrastructure;
 public class ApiClientClaimsServiceTests
 {
     private readonly Mock<IHttpContextAccessor> _mockHttpContextAccessor;
-    private readonly Mock<ITenantsService> _mockTenantsService;
+    private readonly Mock<ITenantResolver> _mockTenantsService;
     private readonly Mock<ILogger<ApiClientTokenValidator>> _mockLogger;
     private readonly ApiClientTokenValidator _sut;
 
     public ApiClientClaimsServiceTests()
     {
         _mockHttpContextAccessor = new Mock<IHttpContextAccessor>();
-        _mockTenantsService = new Mock<ITenantsService>();
+        _mockTenantsService = new Mock<ITenantResolver>();
         _mockLogger = new Mock<ILogger<ApiClientTokenValidator>>();
 
         _sut = new ApiClientTokenValidator(
@@ -47,7 +48,7 @@ public class ApiClientClaimsServiceTests
         HttpContext httpContext = new DefaultHttpContext();
         _ = _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
         _ = _mockTenantsService
-            .Setup(x => x.ResolveFromHostAsync(httpContext, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ResolveAsync(httpContext, It.IsAny<CancellationToken>()))
             .ReturnsAsync(tenant);
 
         ValidatedTokenRequest validatedRequest = new()
@@ -79,7 +80,7 @@ public class ApiClientClaimsServiceTests
         HttpContext httpContext = new DefaultHttpContext();
         _ = _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
         _ = _mockTenantsService
-            .Setup(x => x.ResolveFromHostAsync(httpContext, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ResolveAsync(httpContext, It.IsAny<CancellationToken>()))
             .ReturnsAsync((Tenant?)null);
 
         ValidatedTokenRequest validatedRequest = new()
@@ -127,7 +128,7 @@ public class ApiClientClaimsServiceTests
         _ = context.Result.ValidatedRequest.ClientClaims.Should().NotContain(c => c.Type == IdentityDefinitions.TenantIdClaim);
         _ = context.Result.ValidatedRequest.ClientClaims.Should().NotContain(c => c.Type == IdentityDefinitions.OwnerIdClaim);
         _mockTenantsService.Verify(
-            x => x.ResolveFromHostAsync(It.IsAny<HttpContext>(), It.IsAny<CancellationToken>()),
+            x => x.ResolveAsync(It.IsAny<HttpContext>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -138,7 +139,7 @@ public class ApiClientClaimsServiceTests
         HttpContext httpContext = new DefaultHttpContext();
         _ = _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
         _ = _mockTenantsService
-            .Setup(x => x.ResolveFromHostAsync(httpContext, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ResolveAsync(httpContext, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Database error"));
 
         ValidatedTokenRequest validatedRequest = new()
@@ -188,7 +189,7 @@ public class ApiClientClaimsServiceTests
 
         // Assert
         _mockTenantsService.Verify(
-            x => x.ResolveFromHostAsync(It.IsAny<HttpContext>(), It.IsAny<CancellationToken>()),
+            x => x.ResolveAsync(It.IsAny<HttpContext>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -207,7 +208,7 @@ public class ApiClientClaimsServiceTests
         HttpContext httpContext = new DefaultHttpContext();
         _ = _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
         _ = _mockTenantsService
-            .Setup(x => x.ResolveFromHostAsync(httpContext, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ResolveAsync(httpContext, It.IsAny<CancellationToken>()))
             .ReturnsAsync(tenant);
 
         Claim existingClaim = new("existing_claim", "existing_value");
@@ -250,7 +251,7 @@ public class ApiClientClaimsServiceTests
         HttpContext httpContext = new DefaultHttpContext();
         _ = _mockHttpContextAccessor.Setup(x => x.HttpContext).Returns(httpContext);
         _ = _mockTenantsService
-            .Setup(x => x.ResolveFromHostAsync(httpContext, It.IsAny<CancellationToken>()))
+            .Setup(x => x.ResolveAsync(httpContext, It.IsAny<CancellationToken>()))
             .ReturnsAsync(tenant);
 
         ValidatedTokenRequest validatedRequest = new()

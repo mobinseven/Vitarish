@@ -18,7 +18,7 @@ public partial class AddressBookDialog : SeaCommonBase
     }
     private void ToggleUser(UserDto user)
     {
-        string? address = GetAddress(user, Kind);
+        string? address = GetUserAddressById(user.Id, Kind);
         if (string.IsNullOrEmpty(address))
         {
             return;
@@ -33,7 +33,7 @@ public partial class AddressBookDialog : SeaCommonBase
     private void RemoveRecipient(ReminderRecipientDto recipient) => selected.Remove(recipient);
     private bool IsSelected(UserDto user)
     {
-        string? address = GetAddress(user, Kind);
+        string? address = GetUserAddressById(user.Id, Kind);
         if (address is null)
         {
             return false;
@@ -56,12 +56,6 @@ public partial class AddressBookDialog : SeaCommonBase
 
     private string AddressLabel => Kind == ReminderKind.Email ? Localizer["Email"] : Localizer["Phone"];
 
-    private static string? GetAddress(UserDto user, ReminderKind kind)
-    => kind switch
-    {
-        ReminderKind.Email => user.Email,
-        ReminderKind.Sms => user.PhoneNumber,
-    };
 
     private void Cancel() => MudDialog.Cancel();
 }

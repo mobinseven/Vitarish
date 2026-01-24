@@ -6,7 +6,7 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
     [Parameter] public EventCallback<Guid> OnClicked { get; set; }
     [Parameter] public EventCallback OnAdd { get; set; }
     [Inject] private IEnumerable<IProjectsGridPlugin> ProjectsGridPlugins { get; set; } = [];
-    private IProjectsGridPlugin? Plugin => ProjectsGridPlugins.SingleOrDefault(p => p.Id == UsageConfigurationMetadata?.PluginIdentifier);
+    private IProjectsGridPlugin? Plugin => ProjectsGridPlugins.SingleOrDefault(p => p.Id == MetadataService?.PluginIdentifier);
 
     protected List<ProjectDto> projects = [];
 

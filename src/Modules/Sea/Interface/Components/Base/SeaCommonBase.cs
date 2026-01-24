@@ -1,9 +1,10 @@
+using Vitarish.Sea.Interface.Services;
+
 namespace Vitarish.Sea.Interface.Components.Base;
 
 public class SeaCommonBase : CommonBase, IDisposable
 {
-    [Inject] protected IInterfaceDataProvider DataProvider { get; set; } = default!;
-    [Inject] protected IUsageConfigurationService UsageConfigurationService { get; set; } = default!;
+    [Inject] protected IMetadataService MetadataService { get; set; } = default!;
     /// <summary>
     /// Optional override for admin-specific rendering when the caller wants to force admin mode.
     /// </summary>
@@ -12,16 +13,15 @@ public class SeaCommonBase : CommonBase, IDisposable
     /// Effective admin flag resolved from the override or the access service.
     /// </summary>
     protected bool AdminMode => IsAdmin;
-    protected UsageConfigurationDto? UsageConfiguration => DataProvider.UsageConfiguration;
-    protected UsageConfigurationMetadata? UsageConfigurationMetadata => DataProvider.UsageConfigurationMetadata;
-    protected IReadOnlyList<UserDto> Users => DataProvider.Users ?? [];
+    protected IEnumerable<UserDto> GetUsers() => MetadataService.Users ?? [];
+    protected string? GetUserFullNameById(Guid id) => MetadataService.Users?.FirstOrDefault(x => x.Id == id.ToString())?.FullName ?? id.ToString();
+    protected string? GetUserFullNameById(string id) => MetadataService.Users?.FirstOrDefault(x => x.Id == id)?.FullName ?? id;
 
-    protected override async Task OnInitializedAsync()
+    protected string? GetUserAddressById(string userId, ReminderKind kind)
+    => kind switch
     {
-        await base.OnInitializedAsync();
-        await DataProvider.Initialize();
-        await ReloadRequired();
-    }
-    protected string? UserIdToName(Guid id) => Users.FirstOrDefault(x => x.Id == id.ToString())?.FullName;
-    protected string? UserIdToName(string id) => Users.FirstOrDefault(x => x.Id == id)?.FullName;
+        ReminderKind.Email => MetadataService.Users?.FirstOrDefault(x => x.Id == userId)?.Email,
+        ReminderKind.Sms => MetadataService.Users?.FirstOrDefault(x => x.Id == userId)?.PhoneNumber,
+    };
+    protected string? GetUserAddressById(Guid userId, ReminderKind kind) => GetUserAddressById(userId.ToString(), kind);
 }

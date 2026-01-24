@@ -41,7 +41,6 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     public DbSet<Reminder> Reminders => Set<Reminder>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<EventRole> EventRoles => Set<EventRole>();
-    public DbSet<UsageConfiguration> UsageConfigurations => Set<UsageConfiguration>();
     public DbSet<Receipt> Receipts => Set<Receipt>();
 
     public SeaDbContext(
@@ -101,13 +100,6 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         {
             _ = modelBuilder.ConfigureEntityDateTimeOffsetConversions();
         }
-
-        _ = modelBuilder.Entity<UsageConfiguration>()
-            .Property(uc => uc.UsageData)
-            .HasDefaultValue(new UsageData(0, 0))
-            .HasConversion(
-                v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
-                v => JsonSerializer.Deserialize<UsageData?>(v, (JsonSerializerOptions)null) ?? new UsageData(0, 0));
 
         _ = modelBuilder.Entity<ProjectStats>(eb =>
         {
