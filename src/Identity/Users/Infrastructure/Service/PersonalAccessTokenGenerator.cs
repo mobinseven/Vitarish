@@ -53,7 +53,7 @@ public sealed class PersonalAccessTokenGenerator(
 
         IList<Claim> userClaims = await userManager.GetClaimsAsync(user);
         HashSet<string> allowedScopes = userClaims
-            .Where(static claim => string.Equals(claim.Type, IdentityAccessConstants.AccessClaim, StringComparison.Ordinal) &&
+            .Where(static claim => string.Equals(claim.Type, IdentityDefinitions.AccessClaim, StringComparison.Ordinal) &&
                 !string.IsNullOrWhiteSpace(claim.Value))
             .Select(static claim => claim.Value)
             .ToHashSet(StringComparer.Ordinal);
@@ -69,7 +69,7 @@ public sealed class PersonalAccessTokenGenerator(
             foreach (string scope in scopes)
             {
                 if (string.IsNullOrWhiteSpace(scope) ||
-                    string.Equals(scope, IdentityAccessConstants.AccessScope, StringComparison.Ordinal))
+                    string.Equals(scope, IdentityDefinitions.AccessScope, StringComparison.Ordinal))
                 {
                     continue;
                 }
@@ -89,7 +89,7 @@ public sealed class PersonalAccessTokenGenerator(
             throw new InvalidOperationException($"Requested scopes are not permitted: {string.Join(", ", invalidScopes)}");
         }
 
-        _ = scopeSet.Add(IdentityAccessConstants.AccessScope);
+        _ = scopeSet.Add(IdentityDefinitions.AccessScope);
 
         if (scopeSet.Count == 0)
         {

@@ -17,7 +17,7 @@
 
         var tenants = await PartiesService.GetTenantsAsync().ConfigureAwait(false);
 
-        string[] defaultRoles = [IdentityAccessConstants.TenantUser, IdentityAccessConstants.TenantAdmin, IdentityAccessConstants.TenantOwner];
+        string[] defaultRoles = [IdentityDefinitions.TenantUser, IdentityDefinitions.TenantAdmin, IdentityDefinitions.TenantOwner];
         foreach(var tenant in tenants)
         {
             foreach(var role in defaultRoles)

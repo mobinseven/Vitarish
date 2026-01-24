@@ -34,11 +34,11 @@ public sealed class Authorizer(IUsersService usersService, IDistributedCache cac
         bool result;
         switch (requirement.Role)
         {
-            case IdentityAccessConstants.PlatformUser:
+            case IdentityDefinitions.PlatformUser:
                 context.Succeed(requirement);
                 break;
 
-            case IdentityAccessConstants.PlatformAdmin:
+            case IdentityDefinitions.PlatformAdmin:
 
                 requiredRole = $"Admin";
                 result = await ControlAndCache(context, requiredRole, subjectId);
@@ -52,9 +52,9 @@ public sealed class Authorizer(IUsersService usersService, IDistributedCache cac
                 }
                 break;
 
-            case IdentityAccessConstants.TenantAdmin:
+            case IdentityDefinitions.TenantAdmin:
 
-                requiredRole = $"{requestContext.TenantId}:{IdentityAccessConstants.TenantAdmin}";
+                requiredRole = $"{requestContext.TenantId}:{IdentityDefinitions.TenantAdmin}";
                 result = await ControlAndCache(context, requiredRole, subjectId);
                 if (result)
                 {
@@ -66,9 +66,9 @@ public sealed class Authorizer(IUsersService usersService, IDistributedCache cac
                 }
                 break;
 
-            case IdentityAccessConstants.TenantUser:
+            case IdentityDefinitions.TenantUser:
 
-                requiredRole = $"{requestContext.TenantId}:{IdentityAccessConstants.TenantUser}";
+                requiredRole = $"{requestContext.TenantId}:{IdentityDefinitions.TenantUser}";
                 result = await ControlAndCache(context, requiredRole, subjectId);
                 if (result)
                 {
@@ -80,9 +80,9 @@ public sealed class Authorizer(IUsersService usersService, IDistributedCache cac
                 }
                 break;
 
-            case IdentityAccessConstants.TenantOwner:
+            case IdentityDefinitions.TenantOwner:
 
-                requiredRole = $"{requestContext.TenantId}:{IdentityAccessConstants.TenantOwner}";
+                requiredRole = $"{requestContext.TenantId}:{IdentityDefinitions.TenantOwner}";
                 result = await ControlAndCache(context, requiredRole, subjectId);
                 if (result)
                 {
@@ -107,7 +107,7 @@ public sealed class Authorizer(IUsersService usersService, IDistributedCache cac
             return true;
         }
 
-        if (context.User.Claims.Any(c => c.Type == IdentityAccessConstants.AccessClaim && c.Value == requirement))
+        if (context.User.Claims.Any(c => c.Type == IdentityDefinitions.AccessClaim && c.Value == requirement))
         {
             return true;
         }

@@ -4,7 +4,7 @@
     <Authorized>
         <TenantsWidget />
         <Stack>
-            <AuthorizeView Context="admin" Policy="@IdentityAccessConstants.PlatformAdmin">
+            <AuthorizeView Context="admin" Policy="@IdentityDefinitions.PlatformAdmin">
                 <StackButton Label="@Localizer["Admin"]"
                              StartIcon="fa-regular fa-user-shield"
                              OnClick="@(() => NavigationManager.NavigateTo("/Admin"))" />

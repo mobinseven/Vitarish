@@ -11,7 +11,7 @@ public static class HostAuthenticationExtensions
             .AddAuthentication();
         _ = authen.AddLocalApi(options =>
         {
-            options.ExpectedScope = IdentityAccessConstants.AccessScope;
+            options.ExpectedScope = IdentityDefinitions.AccessScope;
         });
         _ = authen.AddJwtBearer(jwt =>
                 {

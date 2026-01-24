@@ -71,7 +71,7 @@ public class PersonalAccessTokenGeneratorTests
         User user = new() { Id = "user-1" };
         Mock<UserManager<User>> userManager = UserManagerMockFactory.Create();
         userManager.Setup(m => m.FindByIdAsync("user-1")).ReturnsAsync(user);
-        userManager.Setup(m => m.GetClaimsAsync(user)).ReturnsAsync([new Claim(IdentityAccessConstants.AccessClaim, "allowed")]);
+        userManager.Setup(m => m.GetClaimsAsync(user)).ReturnsAsync([new Claim(IdentityDefinitions.AccessClaim, "allowed")]);
         userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string>());
 
         Mock<ITokenService> tokenService = new();
@@ -93,13 +93,13 @@ public class PersonalAccessTokenGeneratorTests
         User user = new() { Id = "user-1" };
         Mock<UserManager<User>> userManager = UserManagerMockFactory.Create();
         userManager.Setup(m => m.FindByIdAsync("user-1")).ReturnsAsync(user);
-        userManager.Setup(m => m.GetClaimsAsync(user)).ReturnsAsync([new Claim(IdentityAccessConstants.AccessClaim, "scope1")]);
+        userManager.Setup(m => m.GetClaimsAsync(user)).ReturnsAsync([new Claim(IdentityDefinitions.AccessClaim, "scope1")]);
         userManager.Setup(m => m.GetRolesAsync(user)).ReturnsAsync(new List<string>());
         string cachedPayload = JsonSerializer.Serialize(new
         {
             Token = "cached-token",
             ExpiresAt = DateTimeOffset.UtcNow.AddDays(1),
-            Scopes = new[] { "scope1", IdentityAccessConstants.AccessScope },
+            Scopes = new[] { "scope1", IdentityDefinitions.AccessScope },
             IsReferenceToken = false
         });
         userManager.Setup(m => m.GetAuthenticationTokenAsync(user, It.IsAny<string>(), It.IsAny<string>()))
