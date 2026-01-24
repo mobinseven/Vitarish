@@ -1,4 +1,3 @@
-using Vitarish.Users.Application;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Domain.Models;
 namespace Vitarish.Main.Pages.Admins;
@@ -16,7 +15,7 @@ public partial class AdminUserPage
         if (UserId is not null)
         {
             User = await UsersService.GetUserAsync(UserId);
-            var UserClaims = (await UsersService.GetUserClaimsAsync(UserId)).Select(c => new ClaimDto { Type = c.Type, Value = c.Value }).ToList();
+            List<ClaimDto> UserClaims = (await UsersService.GetUserClaimsAsync(UserId)).Select(c => new ClaimDto { Type = c.Type, Value = c.Value }).ToList();
             UserAccessClaims = UserClaims.Where(c => c.Type == IdentityDefinitions.AccessClaim).ToList();
             UserOtherClaims = UserClaims.Where(c => c.Type != IdentityDefinitions.AccessClaim).ToList();
             NavService.OverridePageTitle(User.Id, User.FullName);
@@ -34,14 +33,7 @@ public partial class AdminUserPage
         }
 
         IdentityResult res = await UsersService.DeleteUserAsync(new DeleteUserCommand(User.Id));
-        if (res.Succeeded)
-        {
-            Snackbar.Add(Localizer["Deleted"], Severity.Success);
-        }
-        else
-        {
-            Snackbar.Add(Localizer["Error"], Severity.Warning);
-        }
+        _ = res.Succeeded ? Snackbar.Add(Localizer["Deleted"], Severity.Success) : Snackbar.Add(Localizer["Error"], Severity.Warning);
     }
     private async void Save()
     {
@@ -55,26 +47,26 @@ public partial class AdminUserPage
             User.PasswordHash = PasswordHasher.HashPassword(User, password);
         }
 
-        var userRes = await UsersService.UpdateUserAsync(new UpdateUserCommand(User));
+        IdentityResult userRes = await UsersService.UpdateUserAsync(new UpdateUserCommand(User));
         if (!userRes.Succeeded)
         {
-            Snackbar.Add(Localizer["Error"], Severity.Warning);
+            _ = Snackbar.Add(Localizer["Error"], Severity.Warning);
             return;
         }
 
         if (UserOtherClaims is null || UserAccessClaims is null)
         {
-            Snackbar.Add(Localizer["Error"], Severity.Warning);
+            _ = Snackbar.Add(Localizer["Error"], Severity.Warning);
             return;
         }
 
-        var servRes = await UsersService.UpdateUserClaimsAsync(new UpdateUserClaimsCommand(User, UserOtherClaims.Union(UserAccessClaims)!.Select(c => new Claim(c.Type, c.Value)).ToArray()));
+        IdentityResult servRes = await UsersService.UpdateUserClaimsAsync(new UpdateUserClaimsCommand(User, UserOtherClaims.Union(UserAccessClaims)!.Select(c => new Claim(c.Type, c.Value)).ToArray()));
         if (!servRes.Succeeded)
         {
-            Snackbar.Add(Localizer["Error"], Severity.Warning);
+            _ = Snackbar.Add(Localizer["Error"], Severity.Warning);
         }
 
-        Snackbar.Add(Localizer["Saved"], Severity.Success);
+        _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
     }
 
     private void Back() => NavigationManager.NavigateTo("/Admin/Users");

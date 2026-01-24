@@ -1,3 +1,5 @@
+using Vitarish.AuthenticationClients.Application.Commands;
+
 namespace Vitarish.Main.Pages.Admins;
 
 public partial class AdminAuthenticationClientPage
@@ -24,7 +26,7 @@ public partial class AdminAuthenticationClientPage
             return;
         }
 
-        var update = new AuthenticationClients.Application.Commands.UpdateAuthenticationClient(Client.Id,
+        UpdateAuthenticationClient update = new(Client.Id,
                                                            Client.Url,
                                                            Client.Title,
                                                            Client.Description,

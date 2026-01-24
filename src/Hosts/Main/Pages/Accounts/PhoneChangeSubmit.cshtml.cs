@@ -1,14 +1,6 @@
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System;
-using System.Net;
-using Vitarish.Accounts.Domain.Models;
-using Vitarish.Accounts.Infrastructure.Services;
-using Vitarish.Accounts.Interface.Localization;
 using Vitarish.Interfaces.Base.Extensions;
-using Vitarish.Users.Application.Abstractions;
 
 namespace Vitarish.Main.Pages.Accounts;
 

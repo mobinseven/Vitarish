@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Options;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Instagram.Scraper;
 using Vitarish.Modules.Instagram.Scraper;

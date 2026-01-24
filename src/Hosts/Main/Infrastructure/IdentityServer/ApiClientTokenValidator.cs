@@ -1,6 +1,5 @@
 using Duende.IdentityServer.Models;
 using Duende.IdentityServer.Validation;
-using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Main.Infrastructure.IdentityServer;

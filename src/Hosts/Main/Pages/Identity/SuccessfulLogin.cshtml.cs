@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Vitarish.Users.Application.Abstractions;
 
 namespace Vitarish.Main.Pages.Identity;
 

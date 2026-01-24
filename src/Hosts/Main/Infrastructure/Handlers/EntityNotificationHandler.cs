@@ -8,7 +8,7 @@ internal sealed class EntityNotificationHandler(IGlobalRenderNotifier renderNoti
 {
     public Task Handle(EntityNotification notification, CancellationToken cancellationToken)
     {
-        renderNotifier.Notify(notification.Args);
+        _ = renderNotifier.Notify(notification.Args);
         return Task.CompletedTask;
     }
 }

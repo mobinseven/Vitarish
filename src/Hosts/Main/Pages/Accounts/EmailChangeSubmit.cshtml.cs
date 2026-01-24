@@ -1,13 +1,6 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System;
-using System.Net;
-using Vitarish.Accounts.Domain.Models;
-using Vitarish.Accounts.Infrastructure.Services;
-using Vitarish.Accounts.Interface.Localization;
 using Vitarish.Interfaces.Base.Extensions;
-using Vitarish.Users.Application.Abstractions;
 
 namespace Vitarish.Main.Pages.Accounts;
 
@@ -95,7 +88,7 @@ public sealed class EmailChangeSubmitModel(
 
     private string BuildFailureMessage() => $"{_localizer["Error"]}: {_localizer["EmailChangeFailed"]}";
 
-    private string BuildSuccessMessage() => _localizer["EmailChangeSuccess"]; 
+    private string BuildSuccessMessage() => _localizer["EmailChangeSuccess"];
 
     private string ResolveFailureUrl() => string.IsNullOrWhiteSpace(Input.FailureUrl) ? "/Account/Manage/Email" : WebUtility.UrlDecode(Input.FailureUrl);
 

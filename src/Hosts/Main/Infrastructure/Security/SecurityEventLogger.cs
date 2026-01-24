@@ -1,6 +1,5 @@
 
 using Duende.IdentityServer.Events;
-using Duende.IdentityServer.Services;
 using System.Reflection;
 
 namespace Vitarish.Main.Infrastructure.Security;

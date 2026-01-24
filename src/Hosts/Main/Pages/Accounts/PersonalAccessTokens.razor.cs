@@ -1,5 +1,3 @@
-using Vitarish.Accounts.Domain.Models;
-
 namespace Vitarish.Main.Pages.Accounts;
 
 public partial class PersonalAccessTokens
@@ -38,15 +36,15 @@ public partial class PersonalAccessTokens
 
         if (!selectedScopes.Any())
         {
-            Snackbar.Add(Localizer["SelectScopesFirst"], Severity.Warning);
+            _ = Snackbar.Add(Localizer["SelectScopesFirst"], Severity.Warning);
             return;
         }
-        Snackbar.Add(Localizer["TokenCreationFailed"], Severity.Error);
+        _ = Snackbar.Add(Localizer["TokenCreationFailed"], Severity.Error);
 
         string? subjectId = RequestContext.UserId;
         if (string.IsNullOrEmpty(subjectId))
         {
-            Snackbar.Add(Localizer["TokenCreationFailed"], Severity.Error);
+            _ = Snackbar.Add(Localizer["TokenCreationFailed"], Severity.Error);
             return;
         }
 
@@ -57,11 +55,11 @@ public partial class PersonalAccessTokens
         try
         {
             token = await PersonalAccessTokenService.CreateTokenAsync(subjectId, model.LifetimeDays, selectedScopes, model.IsReferenceToken);
-            Snackbar.Add(Localizer["TokenCreated"], Severity.Success);
+            _ = Snackbar.Add(Localizer["TokenCreated"], Severity.Success);
         }
         catch
         {
-            Snackbar.Add(Localizer["TokenCreationFailed"], Severity.Error);
+            _ = Snackbar.Add(Localizer["TokenCreationFailed"], Severity.Error);
         }
         finally
         {

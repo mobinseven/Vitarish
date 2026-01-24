@@ -1,5 +1,3 @@
-using Hangfire;
-using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Base;

@@ -1,7 +1,5 @@
 using Duende.IdentityServer.AspNetIdentity;
 using Duende.IdentityServer.Models;
-using Vitarish.Main.Infrastructure.Services;
-using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Main.Infrastructure.IdentityServer;

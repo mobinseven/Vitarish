@@ -1,5 +1,3 @@
-using Vitarish.Accounts.Interface.Components.Base;
-
 namespace Vitarish.Main.Pages.Identity;
 
 public partial class EmailLogin : IdentityBase

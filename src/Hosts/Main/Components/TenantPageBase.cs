@@ -1,6 +1,5 @@
 using Vitarish.Interfaces.Base.Common;
 using Vitarish.Modules.Base;
-using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Users.Domain.Models;
 using Metadata = Vitarish.Requests.Application.Models.Metadata;

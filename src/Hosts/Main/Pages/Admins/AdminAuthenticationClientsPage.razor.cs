@@ -1,6 +1,4 @@
 using Vitarish.AuthenticationClients.Application.Commands;
-using Vitarish.AuthenticationClients.Domain.Entities;
-using Vitarish.AuthenticationClients.Infrastructure.Services;
 
 namespace Vitarish.Main.Pages.Admins;
 
