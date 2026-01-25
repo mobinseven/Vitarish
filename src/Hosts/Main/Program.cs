@@ -126,10 +126,6 @@ _ = builder.Services.AddMultiTenant<TenantInfo>()
     .WithEchoStore()
     .WithDelegateStrategy(tenantResolver);
 
-_ = builder.Services.AddSignalR(o =>
-{
-    o.EnableDetailedErrors = true;
-}).AddMessagePackProtocol();
 builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
 builder.Services.AddVitarishInterfacesBase();
 builder.Services.AddSingleton<IPackageProvider, PackageProvider>();

@@ -9,7 +9,7 @@ global using Microsoft.AspNetCore.Identity;
 global using Microsoft.Extensions.Options;
 global using Microsoft.JSInterop;
 // Third‑party UI libraries
-global using MudBlazor;
+
 global using System.Security.Claims;
 global using Vitarish.Accounts.Infrastructure.Services;
 global using Vitarish.Requests.Application.Abstractions;
