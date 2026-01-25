@@ -3,18 +3,9 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Vitarish.Main.Pages.Identity;
 
-public class SuccessfulLoginModel : PageModel
+public class SuccessfulLoginModel(IUsersService userService) : PageModel
 {
-    private readonly IUsersService _userService;
-
-
-    public SuccessfulLoginModel(IUsersService userService)
-    {
-        _userService = userService;
-    }
-
-    [BindProperty(SupportsGet = true)]
-    public string? FailureUrl { get; set; }
+    private readonly IUsersService _userService = userService;
 
 
     [BindProperty(SupportsGet = true)]
@@ -23,11 +14,7 @@ public class SuccessfulLoginModel : PageModel
 
     public async Task<IActionResult> OnGetAsync()
     {
-        string? id = User.FindFirstValue("sub");
-        if (id is null)
-        {
-            throw new InvalidOperationException("/Account/SuccessfulLogin user could not be retrived from HttpContext");
-        }
+        string? id = User.FindFirstValue("sub") ?? throw new InvalidOperationException("/Account/SuccessfulLogin user could not be retrived from HttpContext");
 
 
         User user = await _userService.GetUserAsync(id)
@@ -41,12 +28,11 @@ public class SuccessfulLoginModel : PageModel
         {
             if (string.IsNullOrWhiteSpace(ReturnUrl))
             {
-                return Redirect("/Account/Manage");
+                return Redirect("/Settings/Name");
             }
             else
             {
-                string encoded = Uri.EscapeDataString(ReturnUrl);
-                return Redirect($"/Account/Manage?ReturnUrl={encoded}");
+                return Redirect(ReturnUrl);
             }
         }
 

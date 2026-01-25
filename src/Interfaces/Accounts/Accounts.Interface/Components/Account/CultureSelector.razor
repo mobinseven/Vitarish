@@ -4,10 +4,10 @@
 @inject NavigationManager NavManager
 
 <MudSelect T="string" Value="@cultureName" ValueChanged="s => OnCultureChanged(s)" FullWidth Variant="Variant.Filled" Underline="false">
-        @foreach(CultureInfo culture in SupportedCultures)
-        {
-            <MudSelectItem value="@culture.Name">@culture.NativeName</MudSelectItem>
-        }
+    @foreach(CultureInfo culture in SupportedCultures)
+    {
+        <MudSelectItem value="@culture.Name">@culture.NativeName</MudSelectItem>
+    }
 </MudSelect>
 
 @code {
@@ -21,12 +21,21 @@
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
+        var cookieculture = await CultureProvider.GetCultureFromCookieAsync();
+        if(cookieculture is not null)
+        {
+            cultureName = cookieculture.Name;
+            return;
+        }
+
         string? existingCulture = await UserService.GetCultureAsync(User.Id);
         if(!string.IsNullOrWhiteSpace(existingCulture))
         {
             cultureName = existingCulture;
             if(await CultureProvider.TryApplyCultureAsync(existingCulture))
             {
+                NavManager.Refresh(forceReload: true);
                 return;
             }
         }

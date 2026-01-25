@@ -6,7 +6,7 @@ using Metadata = Vitarish.Requests.Application.Models.Metadata;
 
 namespace Vitarish.Main.Components;
 
-public class TenantPageBase : CommonBase, IDisposable
+public class TenantPageBase : PageBase, IDisposable
 {
     [Inject] protected IPartiesService PartiesService { get; set; } = default!;
     [Inject] protected ITenantService TenantService { get; set; } = default!;
@@ -20,6 +20,7 @@ public class TenantPageBase : CommonBase, IDisposable
 
     protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         IsAdmin = RequestContext.IsTenantAdmin() || RequestContext.IsTenantOwner();
         IsOwner = RequestContext.IsTenantOwner();
 

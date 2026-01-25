@@ -10,22 +10,22 @@
         <StackField Label="@Localizer["DetailsOf", Localizer["Account"]]">
             <MudText Typo="Typo.body2" Color="Color.Secondary">@User?.UserName</MudText>
         </StackField>
-        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/name"))"
+        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/Name"))"
                      StartIcon="fa-regular fa-person"
                      Label="@Localizer["Name"]">
             @User?.FullName
         </StackButton>
-        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/email"))"
+        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/Email"))"
                      StartIcon="fa-regular fa-envelope"
                      Label="@Localizer["Email"]">
             @User?.Email
         </StackButton>
-        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/phone"))"
+        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/Phone"))"
                      StartIcon="fa-regular fa-mobile"
                      Label="@Localizer["PhoneNumber"]">
             @User?.PhoneNumber
         </StackButton>
-        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/password"))"
+        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/Password"))"
                      StartIcon="fa-regular fa-lock"
                      Label="@Localizer["EditPassword"]">
             ***********

@@ -94,7 +94,7 @@ public class UserProfileCultureInfoProvider(
         return cookieCulture;
     }
 
-    private async Task<CultureInfo?> GetCultureFromCookieAsync()
+    public async Task<CultureInfo?> GetCultureFromCookieAsync()
     {
         HttpContext? context = httpContextAccessor.HttpContext;
         if (context is null)
