@@ -1,6 +1,7 @@
 @inherits ProceduresBase
 
 <Stack>
+    <StackField Label="@Localizer["Procedures"]" />
     @foreach(var procedure in procedures)
     {
         <StackButton Label="@procedure.Name" OnClick="@(() => OnClicked.InvokeAsync(procedure.Id))">
