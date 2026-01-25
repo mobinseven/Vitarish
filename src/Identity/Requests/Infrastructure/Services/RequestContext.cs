@@ -35,7 +35,7 @@ public sealed class RequestContext(IHttpContextAccessor httpContextAccessor) : I
     } = string.Empty;
 
     /// <inheritdoc />
-    public string ClientId
+    public string? ClientId
     {
         get
         {
@@ -43,10 +43,10 @@ public sealed class RequestContext(IHttpContextAccessor httpContextAccessor) : I
             return field;
         }
         internal set;
-    } = string.Empty;
+    }
 
     /// <inheritdoc />
-    public string OwnerId
+    public string? OwnerId
     {
         get
         {
@@ -54,7 +54,7 @@ public sealed class RequestContext(IHttpContextAccessor httpContextAccessor) : I
             return field;
         }
         internal set;
-    } = string.Empty;
+    }
 
     /// <inheritdoc />
     public string? UserId
@@ -140,8 +140,8 @@ public sealed class RequestContext(IHttpContextAccessor httpContextAccessor) : I
     /// <inheritdoc />
     public void SetContext(
         string authority,
-        string clientId,
-        string ownerId,
+        string? clientId,
+        string? ownerId,
         string? tenantId = null,
         string? userId = null,
         string? resourceId = null,
@@ -201,8 +201,8 @@ public sealed class RequestContext(IHttpContextAccessor httpContextAccessor) : I
         IOptions<RequestsOptions>? options = http.RequestServices.GetService<IOptions<RequestsOptions>>();
         string? resolvedAuthority = options?.Value?.Authority ?? user.FindFirstValue("iss") ?? string.Empty;
 
-        string resolvedClientId = http.GetClientId();
-        string resolvedOwnerId = http.GetOwnerId();
+        string? resolvedClientId = http.GetClientId();
+        string? resolvedOwnerId = http.GetOwnerId();
         string? resolvedTenantId = http.GetTenantId();
 
         string? resolvedUserId = user.FindFirstValue("sub") ?? user.FindFirstValue(ClaimTypes.NameIdentifier);
