@@ -20,8 +20,8 @@ public interface IRequestContextWriter
     /// <param name="additionalInfo">Additional context information.</param>
     void SetContext(
         string authority,
-        string clientId,
-        string ownerId,
+        string? clientId,
+        string? ownerId,
         string? tenantId = null,
         string? userId = null,
         string? resourceId = null,

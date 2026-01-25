@@ -18,12 +18,12 @@ public interface IRequestContext
     /// <summary>
     /// The client identifier associated with the request.
     /// </summary>
-    string ClientId { get; }
+    string? ClientId { get; }
 
     /// <summary>
     /// The owner identifier from the authenticated claims.
     /// </summary>
-    string OwnerId { get; }
+    string? OwnerId { get; }
 
     /// <summary>
     /// The user identifier (subject claim) from the authenticated user.

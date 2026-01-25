@@ -14,8 +14,8 @@ public class RequestIdentityContextTests
 
         // Assert
         context.Authority.Should().BeEmpty();
-        context.ClientId.Should().BeEmpty();
-        context.OwnerId.Should().BeEmpty();
+        context.ClientId.Should().BeNull();
+        context.OwnerId.Should().BeNull();
         context.UserId.Should().BeNull();
         context.TenantId.Should().BeNull();
         context.ResourceId.Should().BeNull();
@@ -111,13 +111,13 @@ public class RequestIdentityContextTests
         IRequestContextWriter writer = context;
         writer.SetContext(
             authority: "https://auth.example.com",
-            clientId: "test-client",
-            ownerId: "owner-123");
+            clientId: null,
+            ownerId: null);
 
         // Assert
         context.Authority.Should().Be("https://auth.example.com");
-        context.ClientId.Should().Be("test-client");
-        context.OwnerId.Should().Be("owner-123");
+        context.ClientId.Should().BeNull();
+        context.OwnerId.Should().BeNull();
         context.TenantId.Should().BeNull();
         context.UserId.Should().BeNull();
         context.ResourceId.Should().BeNull();

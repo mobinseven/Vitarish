@@ -17,101 +17,75 @@ public static class ContextClaimExtensions
     private static string? GetClaimValue(ClaimsPrincipal principal, string claimType) => principal.FindFirst(claimType)?.Value;
     extension(ClaimsPrincipal principal)
     {
-        public string GetUserId()
+        public string? GetUserId()
         {
             ArgumentNullException.ThrowIfNull(principal);
 
-            string? value = GetClaimValue(principal, IdentityDefinitions.UserIdClaim);
-            return !string.IsNullOrWhiteSpace(value)
-                ? value
-                : throw new InvalidOperationException($"Missing claim '{IdentityDefinitions.UserIdClaim}'.");
+            return GetClaimValue(principal, IdentityDefinitions.UserIdClaim);
         }
 
-        public string GetUserGivenName()
+        public string? GetUserGivenName()
         {
             ArgumentNullException.ThrowIfNull(principal);
 
-            string? value = GetClaimValue(principal, JwtClaimTypes.GivenName);
-            return !string.IsNullOrWhiteSpace(value)
-                ? value
-                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.GivenName}'.");
+            return GetClaimValue(principal, JwtClaimTypes.GivenName);
         }
 
-        public string GetUserFullName()
+        public string? GetUserFullName()
         {
             ArgumentNullException.ThrowIfNull(principal);
 
             string? given = GetClaimValue(principal, JwtClaimTypes.GivenName);
-
             string? sure = GetClaimValue(principal, JwtClaimTypes.FamilyName);
 
-            string full = $"{given} {sure}";
+            if (string.IsNullOrWhiteSpace(given) && string.IsNullOrWhiteSpace(sure))
+            {
+                return null;
+            }
 
-            return !string.IsNullOrWhiteSpace(given) || !string.IsNullOrWhiteSpace(sure)
-                ? full
-                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.GivenName}' and '{JwtClaimTypes.FamilyName}'.");
+            return $"{given} {sure}".Trim();
         }
 
-        public string GetUserFamilyName()
+        public string? GetUserFamilyName()
         {
             ArgumentNullException.ThrowIfNull(principal);
 
-            string? value = GetClaimValue(principal, JwtClaimTypes.FamilyName);
-            return !string.IsNullOrWhiteSpace(value)
-                ? value
-                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.FamilyName}'.");
+            return GetClaimValue(principal, JwtClaimTypes.FamilyName);
         }
 
-        public string GetUserEmail()
+        public string? GetUserEmail()
         {
             ArgumentNullException.ThrowIfNull(principal);
 
-            string? value = GetClaimValue(principal, JwtClaimTypes.Email);
-            return !string.IsNullOrWhiteSpace(value)
-                ? value
-                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.Email}'.");
+            return GetClaimValue(principal, JwtClaimTypes.Email);
         }
 
-        public string GetUserPhoneNumber()
+        public string? GetUserPhoneNumber()
         {
             ArgumentNullException.ThrowIfNull(principal);
 
-            string? value = GetClaimValue(principal, JwtClaimTypes.PhoneNumber);
-            return !string.IsNullOrWhiteSpace(value)
-                ? value
-                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.PhoneNumber}'.");
+            return GetClaimValue(principal, JwtClaimTypes.PhoneNumber);
         }
 
-        public string GetClientId()
+        public string? GetClientId()
         {
             ArgumentNullException.ThrowIfNull(principal);
 
-            string? value = GetClaimValue(principal, IdentityDefinitions.ClientIdClaim);
-            return !string.IsNullOrWhiteSpace(value)
-                ? value
-                : throw new InvalidOperationException($"Missing claim '{IdentityDefinitions.ClientIdClaim}'.");
+            return GetClaimValue(principal, IdentityDefinitions.ClientIdClaim);
         }
 
-        public string GetOwnerId()
+        public string? GetOwnerId()
         {
             ArgumentNullException.ThrowIfNull(principal);
 
-            string? value = GetClaimValue(principal, IdentityDefinitions.OwnerIdClaim);
-            return value is not null
-                ? value
-                : throw new InvalidOperationException(
-                $"Missing/invalid claim '{IdentityDefinitions.OwnerIdClaim}' (expected Guid).");
+            return GetClaimValue(principal, IdentityDefinitions.OwnerIdClaim);
         }
 
-        public string GetTenantId()
+        public string? GetTenantId()
         {
             ArgumentNullException.ThrowIfNull(principal);
 
-            string? value = GetClaimValue(principal, IdentityDefinitions.TenantIdClaim);
-            return value is not null
-                ? value
-                : throw new InvalidOperationException(
-                $"Missing/invalid claim '{IdentityDefinitions.TenantIdClaim}' (expected Guid).");
+            return GetClaimValue(principal, IdentityDefinitions.TenantIdClaim);
         }
 
 
@@ -180,87 +154,76 @@ public static class ContextClaimExtensions
 
     extension(HttpContext context)
     {
-        public string GetUserId()
+        public string? GetUserId()
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            string? value = GetClaimValue(context, IdentityDefinitions.UserIdClaim);
-            return !string.IsNullOrWhiteSpace(value)
-                ? value
-                : throw new InvalidOperationException($"Missing claim '{IdentityDefinitions.UserIdClaim}'.");
+            return GetClaimValue(context, IdentityDefinitions.UserIdClaim);
         }
 
-        public string GetUserGivenName()
+        public string? GetUserGivenName()
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            string? value = GetClaimValue(context, JwtClaimTypes.GivenName);
-            return !string.IsNullOrWhiteSpace(value)
-                ? value
-                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.GivenName}'.");
+            return GetClaimValue(context, JwtClaimTypes.GivenName);
         }
 
-        public string GetUserFamilyName()
+        public string? GetUserFamilyName()
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            string? value = GetClaimValue(context, JwtClaimTypes.FamilyName);
-            return !string.IsNullOrWhiteSpace(value)
-                ? value
-                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.FamilyName}'.");
+            return GetClaimValue(context, JwtClaimTypes.FamilyName);
         }
 
-        public string GetUserEmail()
+        public string? GetUserFullName()
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            string? value = GetClaimValue(context, JwtClaimTypes.Email);
-            return !string.IsNullOrWhiteSpace(value)
-                ? value
-                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.Email}'.");
+            string? given = GetClaimValue(context, JwtClaimTypes.GivenName);
+            string? sure = GetClaimValue(context, JwtClaimTypes.FamilyName);
+
+            if (string.IsNullOrWhiteSpace(given) && string.IsNullOrWhiteSpace(sure))
+            {
+                return null;
+            }
+
+            return $"{given} {sure}".Trim();
         }
 
-        public string GetUserPhoneNumber()
+        public string? GetUserEmail()
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            string? value = GetClaimValue(context, JwtClaimTypes.PhoneNumber);
-            return !string.IsNullOrWhiteSpace(value)
-                ? value
-                : throw new InvalidOperationException($"Missing claim '{JwtClaimTypes.PhoneNumber}'.");
+            return GetClaimValue(context, JwtClaimTypes.Email);
+        }
+
+        public string? GetUserPhoneNumber()
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            return GetClaimValue(context, JwtClaimTypes.PhoneNumber);
         }
 
 
-        public string GetClientId()
+        public string? GetClientId()
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            string? value = GetClaimValue(context, IdentityDefinitions.ClientIdClaim);
-            return !string.IsNullOrWhiteSpace(value)
-                ? value
-                : throw new InvalidOperationException($"Missing claim '{IdentityDefinitions.ClientIdClaim}'.");
+            return GetClaimValue(context, IdentityDefinitions.ClientIdClaim);
         }
 
-        public string GetOwnerId()
+        public string? GetOwnerId()
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            string? value = GetClaimValue(context, IdentityDefinitions.OwnerIdClaim);
-            return value is not null
-                ? value
-                : throw new InvalidOperationException(
-                $"Missing/invalid claim '{IdentityDefinitions.OwnerIdClaim}' (expected Guid).");
+            return GetClaimValue(context, IdentityDefinitions.OwnerIdClaim);
         }
 
-        public string GetTenantId()
+        public string? GetTenantId()
         {
             ArgumentNullException.ThrowIfNull(context);
 
-            string? value = GetClaimValue(context, IdentityDefinitions.TenantIdClaim);
-            return value is not null
-                ? value
-                : throw new InvalidOperationException(
-                $"Missing/invalid claim '{IdentityDefinitions.TenantIdClaim}' (expected Guid).");
+            return GetClaimValue(context, IdentityDefinitions.TenantIdClaim);
         }
 
 

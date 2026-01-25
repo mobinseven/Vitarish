@@ -14,10 +14,10 @@ public sealed class Request
     public string Authority { get; set; } = default!;
 
     [MaxLength(128)]
-    public string ClientId { get; set; } = default!;
+    public string? ClientId { get; set; }
 
     [MaxLength(128)]
-    public string OwnerId { get; set; } = default!;
+    public string? OwnerId { get; set; }
 
     [MaxLength(256)]
     public string? TenantId { get; set; }

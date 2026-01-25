@@ -9,9 +9,9 @@ public sealed class MockRequestContext : IRequestContext, IRequestContextWriter
 {
     public string Authority { get; private set; } = "mock-authority";
 
-    public string ClientId { get; private set; } = "mock-client";
+    public string? ClientId { get; private set; }
 
-    public string OwnerId { get; private set; } = "mock-owner";
+    public string? OwnerId { get; private set; }
 
     public string? UserId { get; private set; }
 
@@ -44,8 +44,8 @@ public sealed class MockRequestContext : IRequestContext, IRequestContextWriter
 
     public void SetContext(
         string authority,
-        string clientId,
-        string ownerId,
+        string? clientId,
+        string? ownerId,
         string? tenantId = null,
         string? userId = null,
         string? resourceId = null,
@@ -64,5 +64,5 @@ public sealed class MockRequestContext : IRequestContext, IRequestContextWriter
         AdditionalInfo = additionalInfo;
     }
 
-    public void SetContext(string authority, string clientId, string ownerId, string? tenantId = null, string? userId = null, string? resourceId = null, string? traceId = null, string? requestId = null, string? additionalInfo = null, string? metadataJson = null) => throw new NotImplementedException();
+    public void SetContext(string authority, string? clientId, string? ownerId, string? tenantId = null, string? userId = null, string? resourceId = null, string? traceId = null, string? requestId = null, string? additionalInfo = null, string? metadataJson = null) => throw new NotImplementedException();
 }
