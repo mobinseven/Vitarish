@@ -1,7 +1,7 @@
 @page "/Admin/Tenants"
 @using Vitarish.Main.Infrastructure.Services
 @inject IPackageProvider PackageProvider
-@inherits AdminBase
+@inherits AdminCommonBase
 
 <Stack>
     @foreach(var tenant in Tenants)

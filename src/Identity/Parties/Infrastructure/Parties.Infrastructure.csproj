@@ -5,7 +5,6 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.*" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\AuthenticationClients\Infrastructure\AuthenticationClients.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Requests\Application\Requests.Application.csproj" />
     <ProjectReference Include="..\Application\Parties.Application.csproj" />
   </ItemGroup>

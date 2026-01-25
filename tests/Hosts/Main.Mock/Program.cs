@@ -2,8 +2,6 @@ using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Vitarish.Accounts.Infrastructure.Services;
-using Vitarish.ApiClients.Application.Abstractions;
-using Vitarish.AuthenticationClients.Application.Abstractions;
 using Vitarish.Main.Mock.Authentication;
 using Vitarish.Main.Mock.Components;
 using Vitarish.Main.Mock.Services;
@@ -40,8 +38,6 @@ builder.Services.AddScoped<IRequestContextWriter>(sp => (IRequestContextWriter)s
 builder.Services.AddSingleton<IMessageQueue, MockMessageQueue>();
 builder.Services.AddSingleton<IPersonalAccessTokenGenerator, MockPersonalAccessTokenGenerator>();
 builder.Services.AddSingleton<IIdentityServerInteractionService, MockIdentityServerInteractionService>();
-builder.Services.AddSingleton<IApiClientsService, MockApiClientsService>();
-builder.Services.AddSingleton<IAuthenticationClientsService, MockAuthenticationClientsService>();
 builder.Services.AddSingleton<IRequestIdentitiesService, MockRequestIdentitiesService>();
 builder.Services.AddSingleton<IPartiesService, MockPartiesService>();
 builder.Services.AddSingleton<IUsersService, MockUsersService>();

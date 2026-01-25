@@ -17,7 +17,7 @@ namespace Vitarish.Parties.Hosting.DependencyInjection;
 /// </summary>
 public static class IdentityPartiesExtensions
 {
-    public static void AddAaasParties(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> dbContextOptionsBuilder)
+    public static void AddParties(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> dbContextOptionsBuilder)
     {
         _ = builder.Services.AddDbContext<PartiesDbContext>(dbContextOptionsBuilder, ServiceLifetime.Transient);
 

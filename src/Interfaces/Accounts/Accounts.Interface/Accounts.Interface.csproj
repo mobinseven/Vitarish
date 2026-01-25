@@ -17,9 +17,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\Identity\ApiClients\Application\ApiClients.Application.csproj" />
-		<ProjectReference Include="..\..\..\Identity\AuthenticationClients\Domain\AuthenticationClients.Domain.csproj" />
-		<ProjectReference Include="..\..\..\Identity\AuthenticationClients\Infrastructure\AuthenticationClients.Infrastructure.csproj" />
 		<ProjectReference Include="..\..\..\Identity\Parties\Application\Parties.Application.csproj" />
 		<ProjectReference Include="..\..\..\Identity\Users\Infrastructure\Users.Infrastructure.csproj" />
 		<ProjectReference Include="..\..\Interfaces.Base\Interfaces.Base.csproj" />

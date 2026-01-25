@@ -21,8 +21,6 @@ global using System.Security.Claims;
 global using Vitarish.Accounts.Domain.Models;
 global using Vitarish.Accounts.Infrastructure.Services;
 global using Vitarish.Accounts.Interface.Components.Base;
-global using Vitarish.ApiClients.Domain.Entities;
-global using Vitarish.AuthenticationClients.Domain.Entities;
 global using Vitarish.Requests.Application.Abstractions;
 global using Vitarish.Requests.Domain.Entities;
 // Project‑specific namespaces

@@ -1,6 +1,6 @@
 using Vitarish.Parties.Domain.Entities;
 
-namespace Vitarish.Accounts.Interface.Components.Admin;
+namespace Vitarish.Admins.Interface.Components.Admin;
 
 public partial class UserRoleEditor
 {
@@ -41,18 +41,13 @@ public partial class UserRoleEditor
                 .Select(t => t.ClientId!)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
-            Dictionary<string, Task<ApiClient?>> clientTasks = clientIds
-                .ToDictionary(id => id, id => ApiClientService.GetApiClientAsync(id), StringComparer.OrdinalIgnoreCase);
-            Dictionary<string, ApiClient?> clients = (await Task.WhenAll(
-                clientTasks.Select(async kvp => new { kvp.Key, Value = await kvp.Value })
-            )).ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
 
             roles.AddRange(RoleManager.Roles
                 .Where(role => role.Name != null)
                 .Select(role => role.Name!));
 
             IList<string> userRoles = await UserManager.GetRolesAsync(user);
-            List<ParsedTenantRole> parsedRoles = RoleParser.ParseTenantRoles(userRoles, tenantDict, owners, clients);
+            List<ParsedTenantRole> parsedRoles = RoleParser.ParseTenantRoles(userRoles, tenantDict, owners);
 
             List<RoleDetail> roleDetails = parsedRoles
                 .Select(r => new RoleDetail(r.TenantId, r.TenantName, r.OwnerId, r.OwnerName, r.ClientId, r.RoleName, r.FullRoleName))

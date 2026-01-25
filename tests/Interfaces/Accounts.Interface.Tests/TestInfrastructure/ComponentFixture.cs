@@ -13,11 +13,9 @@ using System.Security.Claims;
 using Vitarish.Accounts.Application.Abstractions;
 using Vitarish.Accounts.Infrastructure.Services;
 using Vitarish.Accounts.Interface.Components.Base;
-using Vitarish.Accounts.Interface.Localization;
-using Vitarish.ApiClients.Application.Abstractions;
-using Vitarish.AuthenticationClients.Application.Abstractions;
-using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Admins.Interface.Components.Base;
 using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
 
@@ -40,9 +38,7 @@ internal sealed class ComponentFixture : IDisposable
         Mock<IUserService> userServiceMock = new();
         Mock<ISmsAuthenticationService> smsAuthMock = new();
         Mock<IEmailAuthenticationService> emailAuthMock = new();
-        Mock<IApiClientsService> apiClientsMock = new();
         Mock<IPersonalAccessTokenService> personalAccessTokensMock = new();
-        Mock<IAuthenticationClientsService> authClientsMock = new();
         Mock<IIdentityServerInteractionService> identityInteractionMock = new();
         Mock<IRequestIdentitiesService> requestIdentitiesMock = new();
         Mock<IRequestContext> requestContextMock = new();
@@ -105,9 +101,7 @@ internal sealed class ComponentFixture : IDisposable
             smsAuthMock,
             emailAuthMock,
             identityInteractionMock,
-            apiClientsMock,
             personalAccessTokensMock,
-            authClientsMock,
             requestIdentitiesMock,
             requestContextMock,
             partiesServiceMock,
@@ -134,13 +128,11 @@ internal sealed class ComponentFixture : IDisposable
         SetProperty(component, "Js", JsRuntime, typeof(IdentityCommonBase));
         SetProperty(component, "IdentityServerInteractionService", Mocks.IdentityInteraction.Object, typeof(IdentityCommonBase));
         SetProperty(component, "InteractionService", Mocks.IdentityInteraction.Object, typeof(IdentityCommonBase));
-        SetProperty(component, "ApiClientService", Mocks.ApiClients.Object, typeof(IdentityCommonBase));
         SetProperty(component, "PersonalAccessTokenService", Mocks.PersonalAccessTokens.Object, typeof(IdentityCommonBase));
-        SetProperty(component, "AuthenticationClientsService", Mocks.AuthenticationClients.Object, typeof(IdentityCommonBase));
         SetProperty(component, "RequestIdentitiesService", Mocks.RequestIdentities.Object, typeof(IdentityCommonBase));
-        if (component is AdminBase)
+        if (component is AdminCommonBase)
         {
-            SetProperty(component, "PartiesService", Mocks.Parties.Object, typeof(AdminBase));
+            SetProperty(component, "PartiesService", Mocks.Parties.Object, typeof(AdminCommonBase));
         }
         SetProperty(component, "EmailAuthenticationService", Mocks.EmailAuthentication.Object, typeof(IdentityCommonBase));
         SetProperty(component, "SmsAuthenticationService", Mocks.SmsAuthentication.Object, typeof(IdentityCommonBase));

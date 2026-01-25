@@ -1,8 +1,9 @@
+using Vitarish.Admins.Interface.Components.Base;
 using ClaimDto = Vitarish.Users.Domain.Models.ClaimDto;
 
-namespace Vitarish.Accounts.Interface.Components.Admin;
+namespace Vitarish.Admins.Interface.Components.Admin;
 
-public partial class ClaimsEdit : IdentityCommonBase
+public partial class ClaimsEdit : AdminCommonBase
 {
     [Parameter] public List<ClaimDto>? UserClaims { get; set; }
     [Parameter] public EventCallback<List<ClaimDto>> UserClaimsChanged { get; set; }

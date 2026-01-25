@@ -1,24 +1,19 @@
-using System;
-using System.Net;
-using System.Net.Http;
-using System.Net.Http.Json;
-using System.Security.Claims;
-using Bunit;
+using Accounts.Interface.Tests.TestInfrastructure;
 using AngleSharp.Dom;
+using Bunit;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Components.Web;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.JSInterop;
 using MudBlazor;
-using Moq;
+using System.Net;
+using System.Net.Http.Json;
+using System.Security.Claims;
 using Vitarish.Accounts.Domain.Models;
 using Vitarish.Accounts.Interface.Components.Account;
-using Vitarish.ApiClients.Domain.Entities;
+using Vitarish.Main.Pages.Accounts;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
-using Accounts.Interface.Tests.TestInfrastructure;
-using Vitarish.Main.Pages.Accounts;
 
 namespace Accounts.Interface.Tests.Account.Manage;
 
@@ -39,7 +34,7 @@ public class ManagePagesTests
             Content = JsonContent.Create(new List<PasskeyCredentialDto>())
         });
 
-        context.Mocks.HttpClientFactory
+        _ = context.Mocks.HttpClientFactory
             .Setup(factory => factory.CreateClient(It.IsAny<string>()))
             .Returns(() => new HttpClient(handler, disposeHandler: false)
             {
@@ -51,7 +46,7 @@ public class ManagePagesTests
 
         cut.WaitForState(() => cut.Markup.Contains("RegisterPasskey", StringComparison.Ordinal), timeout: TimeSpan.FromSeconds(2));
 
-        var backForm = cut.Find("form[action='/Account/Manage']");
+        IElement backForm = cut.Find("form[action='/Account/Manage']");
         Assert.Contains("Profile", backForm.TextContent);
     }
 
@@ -96,7 +91,7 @@ public class ManagePagesTests
             Content = JsonContent.Create(new List<PasskeyCredentialDto>())
         });
 
-        context.Mocks.HttpClientFactory
+        _ = context.Mocks.HttpClientFactory
             .Setup(factory => factory.CreateClient(It.IsAny<string>()))
             .Returns(() => new HttpClient(handler, disposeHandler: false)
             {
@@ -129,7 +124,7 @@ public class ManagePagesTests
             parameters => parameters.AddCascadingValue(httpContext));
 
         cut.WaitForAssertion(() => Assert.Contains(user.PhoneNumber, cut.Markup));
-        var cancelForm = cut.Find("form[action='/Account/Manage']");
+        IElement cancelForm = cut.Find("form[action='/Account/Manage']");
         Assert.Contains("Cancel", cancelForm.TextContent);
     }
 
@@ -150,7 +145,7 @@ public class ManagePagesTests
 
         cut.WaitForAssertion(() => Assert.Contains("EmailChangeFailed", cut.Markup));
         Assert.Contains("TryAgain", cut.Markup);
-        var cancelForm = cut.Find("form[action='/Account/Manage']");
+        IElement cancelForm = cut.Find("form[action='/Account/Manage']");
         Assert.Contains("Cancel", cancelForm.TextContent);
     }
 
@@ -171,7 +166,7 @@ public class ManagePagesTests
         IRenderedComponent<Password> cut = context.Render<Password>(
             parameters => parameters.AddCascadingValue(httpContext));
 
-        var backForm = cut.Find("form[action='/Account/Manage']");
+        IElement backForm = cut.Find("form[action='/Account/Manage']");
         Assert.Contains("Profile", backForm.TextContent);
     }
 
@@ -184,19 +179,11 @@ public class ManagePagesTests
         _ = requestContextMock.SetupGet(r => r.UserId).Returns("user-1");
         _ = context.Services.AddSingleton(requestContextMock.Object);
 
-        _ = context.Mocks.ApiClients
-            .Setup(service => service.GetApiClientsAsync())
-            .ReturnsAsync(new List<ApiClient>
-            {
-                new() { Id = "client-1", Secret = "secret", HostUri = "http://localhost", Scopes = "scope.read" },
-                new() { Id = "client-2", Secret = "secret", HostUri = "http://localhost", Scopes = "scope.write" },
-            });
-
         _ = context.Mocks.PersonalAccessTokens
             .Setup(service => service.CreateTokenAsync("user-1", It.IsAny<int>(), It.IsAny<IEnumerable<string>>(), false, It.IsAny<CancellationToken>()))
             .ReturnsAsync("generated-token");
 
-        context.Render<MudPopoverProvider>();
+        _ = context.Render<MudPopoverProvider>();
         IRenderedComponent<PersonalAccessTokens> cut = context.Render<PersonalAccessTokens>(
             parameters => parameters.AddCascadingValue(httpContext));
 
@@ -314,16 +301,13 @@ public class ManagePagesTests
 
     private sealed class PasskeyJsRuntime : IJSRuntime, IJSObjectReference
     {
-        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args)
+        public ValueTask<TValue> InvokeAsync<TValue>(string identifier, object?[]? args) => identifier switch
         {
-            return identifier switch
-            {
-                "import" when typeof(TValue) == typeof(IJSObjectReference) => new ValueTask<TValue>((TValue)(object)this),
-                "isWebAuthnSupported" => new ValueTask<TValue>((TValue)(object)true!),
-                "createCredential" => new ValueTask<TValue>((TValue)(object)new { }!),
-                _ => throw new InvalidOperationException($"JS interop call '{identifier}' is not mocked.")
-            };
-        }
+            "import" when typeof(TValue) == typeof(IJSObjectReference) => new ValueTask<TValue>((TValue)(object)this),
+            "isWebAuthnSupported" => new ValueTask<TValue>((TValue)(object)true!),
+            "createCredential" => new ValueTask<TValue>((TValue)(object)new { }!),
+            _ => throw new InvalidOperationException($"JS interop call '{identifier}' is not mocked.")
+        };
 
         public ValueTask<TValue> InvokeAsync<TValue>(string identifier, CancellationToken cancellationToken, object?[]? args)
             => InvokeAsync<TValue>(identifier, args);
@@ -334,19 +318,16 @@ public class ManagePagesTests
     private sealed class RecordingHttpMessageHandler : HttpMessageHandler
     {
         private readonly Queue<HttpResponseMessage> responses = new();
-        public List<Uri> RequestUris { get; } = new();
+        public List<Uri> RequestUris { get; } = [];
 
         public void EnqueueResponse(HttpResponseMessage response) => responses.Enqueue(response);
 
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
         {
             RequestUris.Add(request.RequestUri!);
-            if (responses.Count == 0)
-            {
-                throw new InvalidOperationException("No response available for request");
-            }
-
-            return Task.FromResult(responses.Dequeue());
+            return responses.Count == 0
+                ? throw new InvalidOperationException("No response available for request")
+                : Task.FromResult(responses.Dequeue());
         }
     }
 }

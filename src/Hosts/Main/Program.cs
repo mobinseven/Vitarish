@@ -3,9 +3,6 @@ using Finbuckle.MultiTenant;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
-using Vitarish.ApiClients.Hosting.DependencyInjection;
-using Vitarish.ApiClients.Infrastructure.Data;
-using Vitarish.AuthenticationClients.Infrastructure.Data;
 using Vitarish.Communications.Hosting;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Entities.Server.Services;
@@ -73,9 +70,7 @@ builder.AddApplicationOptions();
 
 builder.AddUsers(configureSqlServer);
 builder.AddRequests(configureSqlServer);
-builder.AddAaasApiClients(configureSqlServer);
-builder.AddAaasAuthenticationClients(configureSqlServer);
-builder.AddAaasParties(configureSqlServer);
+builder.AddParties(configureSqlServer);
 
 await builder.AddHostIdentityServer(configureSqlServer);
 
@@ -140,8 +135,6 @@ WebApplication app = builder.Build();
 
 _ = await app.MigrateDatabaseAsync<UsersDbContext>();
 _ = await app.MigrateDatabaseAsync<RequestsDbContext>();
-_ = await app.MigrateDatabaseAsync<AuthenticationClientDbContext>();
-_ = await app.MigrateDatabaseAsync<ApiClientDbContext>();
 _ = await app.MigrateDatabaseAsync<PartiesDbContext>();
 _ = await app.MigrateDatabaseAsync<PersistedGrantDbContext>();
 _ = await app.MigrateDatabaseAsync<FilesDbContext>();

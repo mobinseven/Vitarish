@@ -17,12 +17,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Identity\ApiClients\Hosting\ApiClients.Hosting.csproj" />
-		<ProjectReference Include="..\..\Identity\AuthenticationClients\Hosting\AuthenticationClients.Hosting.csproj" />
 		<ProjectReference Include="..\..\Identity\Parties\Hosting\Parties.Hosting.csproj" />
 		<ProjectReference Include="..\..\Identity\Requests\Hosting\Requests.Hosting.csproj" />
 		<ProjectReference Include="..\..\Identity\Users\Hosting\Users.Hosting.csproj" />
 		<ProjectReference Include="..\..\Interfaces\Accounts\Accounts.Interface\Accounts.Interface.csproj" />
+		<ProjectReference Include="..\..\Interfaces\Admins\Admins.Interface\Admins.Interface.csproj" />
 		<ProjectReference Include="..\..\Modules\Communications\Hosting\Communications.Hosting.csproj" />
 		<ProjectReference Include="..\..\Modules\Instagram\Instagram.Interface\Instagram.Interface.csproj" />
 		<ProjectReference Include="..\..\Modules\Sea\Interface\Sea.Interface.csproj" />

@@ -19,7 +19,7 @@ public class IdentityPartiesExtensionsTests
     {
         var builder = WebApplication.CreateBuilder();
 
-        builder.AddAaasParties(options => options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+        builder.AddParties(options => options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
 
         using var provider = builder.Services.BuildServiceProvider();
 

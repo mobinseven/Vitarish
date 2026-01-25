@@ -1,13 +1,11 @@
 using Accounts.Interface.Tests.TestInfrastructure;
 using Bunit;
 using Microsoft.AspNetCore.Components.Authorization;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+using System.Security.Claims;
 using Vitarish.Accounts.Interface.Components.Account.Widgets;
-using Vitarish.ApiClients.Domain.Entities;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Users.Domain.Entities;
-using System.Security.Claims;
 
 namespace Accounts.Interface.Tests.Account;
 
@@ -20,13 +18,6 @@ public class TenantsWidgetTests
         Guid tenantId = Guid.NewGuid();
         Owner owner = new() { Id = Guid.NewGuid(), Name = "Owner" };
         Tenant tenant = new() { Id = tenantId, Name = "Workspace A", OwnerId = owner.Id, ClientId = "client-1" };
-        ApiClient apiClient = new()
-        {
-            Id = "client-1",
-            Secret = "secret",
-            Scopes = "scope.read",
-            HostUri = "https://workspace.example.com"
-        };
         TenantIndicator indicator = new() { TenantId = tenantId, Value = "workspace.example.com", IsPrimary = true };
         User user = new() { Id = "user-1", UserName = "alice" };
 
@@ -37,7 +28,7 @@ public class TenantsWidgetTests
             .ReturnsAsync(user);
         _ = context.Mocks.UserService
             .Setup(service => service.GetUserRolesAsync(user.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<IdentityRole> { new($"{tenantId}:Admin") });
+            .ReturnsAsync([new($"{tenantId}:Admin")]);
         _ = context.Mocks.Parties
             .Setup(service => service.GetTenantAsync(tenantId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(tenant);
@@ -46,10 +37,7 @@ public class TenantsWidgetTests
             .ReturnsAsync(owner);
         _ = context.Mocks.Parties
             .Setup(service => service.GetTenantIndicatorsAsync(tenantId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<TenantIndicator> { indicator });
-        _ = context.Mocks.ApiClients
-            .Setup(service => service.GetApiClientAsync(apiClient.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(apiClient);
+            .ReturnsAsync([indicator]);
 
         IRenderedComponent<TenantsWidget> cut = context.Render<TenantsWidget>();
 
@@ -72,7 +60,7 @@ public class TenantsWidgetTests
             .ReturnsAsync(user);
         _ = context.Mocks.UserService
             .Setup(service => service.GetUserRolesAsync(user.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<IdentityRole> { new($"{tenantId}:Viewer") });
+            .ReturnsAsync([new($"{tenantId}:Viewer")]);
         _ = context.Mocks.Parties
             .Setup(service => service.GetTenantAsync(tenantId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(tenant);
@@ -81,7 +69,7 @@ public class TenantsWidgetTests
             .ReturnsAsync(owner);
         _ = context.Mocks.Parties
             .Setup(service => service.GetTenantIndicatorsAsync(tenantId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<TenantIndicator>());
+            .ReturnsAsync([]);
 
         IRenderedComponent<TenantsWidget> cut = context.Render<TenantsWidget>();
 

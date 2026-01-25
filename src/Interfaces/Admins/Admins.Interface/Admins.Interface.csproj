@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Duende.IdentityServer" Version="7.*" />
+		<PackageReference Include="Duende.IdentityModel" Version="8.*" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\Identity\Parties\Application\Parties.Application.csproj" />
+		<ProjectReference Include="..\..\..\Identity\Users\Infrastructure\Users.Infrastructure.csproj" />
+		<ProjectReference Include="..\..\Interfaces.Base\Interfaces.Base.csproj" />
+	</ItemGroup>
+</Project>

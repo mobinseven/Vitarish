@@ -14,13 +14,7 @@ public partial class PersonalAccessTokens
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        IEnumerable<ApiClient> clients = await ApiClientService.GetApiClientsAsync();
         scopes.Clear();
-        scopes.AddRange(clients
-            .Select(static c => c.Scopes)
-            .Where(static s => !string.IsNullOrWhiteSpace(s))
-            .Distinct(StringComparer.Ordinal)
-            .OrderBy(static s => s));
     }
 
     private async Task GenerateTokenAsync()

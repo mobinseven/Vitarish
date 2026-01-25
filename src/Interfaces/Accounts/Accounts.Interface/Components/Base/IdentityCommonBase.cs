@@ -14,9 +14,7 @@ namespace Vitarish.Accounts.Interface.Components.Base
         [Inject] protected IJSRuntime Js { get; set; } = default!;
         [Inject] protected IRequestContext RequestContext { get; set; } = default!;
         [Inject] protected IIdentityServerInteractionService IdentityServerInteractionService { get; set; } = default!;
-        [Inject] protected IApiClientsService ApiClientService { get; set; } = default!;
         [Inject] protected IPersonalAccessTokenService PersonalAccessTokenService { get; set; } = default!;
-        [Inject] protected IAuthenticationClientsService AuthenticationClientsService { get; set; } = default!;
         [Inject] protected IRequestIdentitiesService RequestIdentitiesService { get; set; } = default!;
         [Inject] protected IIdentityServerInteractionService InteractionService { get; set; } = default!;
         [Inject] protected IEmailAuthenticationService EmailAuthenticationService { get; set; } = default!;

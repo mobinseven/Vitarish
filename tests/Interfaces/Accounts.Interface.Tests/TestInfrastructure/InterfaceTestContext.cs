@@ -12,16 +12,13 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.JSInterop;
-using MudBlazor.Services;
 using MudBlazor;
+using MudBlazor.Services;
 using System.Security.Claims;
-using System.Threading.Tasks;
 using Vitarish.Accounts.Application.Abstractions;
 using Vitarish.Accounts.Infrastructure.Services;
-using Vitarish.ApiClients.Application.Abstractions;
-using Vitarish.AuthenticationClients.Application.Abstractions;
-using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
 
@@ -74,14 +71,8 @@ internal sealed class InterfaceTestContext : BunitContext
         Mock<IEmailAuthenticationService> emailAuthenticationMock = new();
         _ = Services.AddSingleton(emailAuthenticationMock.Object);
 
-        Mock<IApiClientsService> apiClientsServiceMock = new();
-        _ = Services.AddSingleton(apiClientsServiceMock.Object);
-
         Mock<IPersonalAccessTokenService> personalAccessTokenServiceMock = new();
         _ = Services.AddSingleton(personalAccessTokenServiceMock.Object);
-
-        Mock<IAuthenticationClientsService> authenticationClientsServiceMock = new();
-        _ = Services.AddSingleton(authenticationClientsServiceMock.Object);
 
         Mock<IRequestIdentitiesService> requestIdentitiesServiceMock = new();
         _ = Services.AddSingleton(requestIdentitiesServiceMock.Object);
@@ -152,9 +143,7 @@ internal sealed class InterfaceTestContext : BunitContext
             smsAuthenticationMock,
             emailAuthenticationMock,
             identityInteractionMock,
-            apiClientsServiceMock,
             personalAccessTokenServiceMock,
-            authenticationClientsServiceMock,
             requestIdentitiesServiceMock,
             requestContextMock,
             partiesServiceMock,
@@ -168,15 +157,9 @@ internal sealed class InterfaceTestContext : BunitContext
             dialogServiceMock);
     }
 
-    public new void Dispose()
-    {
-        base.DisposeAsync().AsTask().GetAwaiter().GetResult();
-    }
+    public new void Dispose() => base.DisposeAsync().AsTask().GetAwaiter().GetResult();
 
-    public new ValueTask DisposeAsync()
-    {
-        return base.DisposeAsync();
-    }
+    public new ValueTask DisposeAsync() => base.DisposeAsync();
 
     public void SetupOtpModules()
     {

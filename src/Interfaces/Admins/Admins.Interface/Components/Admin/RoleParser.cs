@@ -1,14 +1,13 @@
 using Vitarish.Parties.Domain.Entities;
 
-namespace Vitarish.Accounts.Interface.Components.Admin;
+namespace Vitarish.Admins.Interface.Components.Admin;
 
 internal static class RoleParser
 {
     public static List<ParsedTenantRole> ParseTenantRoles(
         IEnumerable<string> roles,
         Dictionary<Guid, Tenant> tenantDict,
-        Dictionary<Guid, Owner?> owners,
-        Dictionary<string, ApiClient?> clients)
+        Dictionary<Guid, Owner?> owners)
     {
         List<ParsedTenantRole> parsedRoles = [];
 
@@ -30,14 +29,11 @@ internal static class RoleParser
 
             Tenant? tenant = tenantDict.GetValueOrDefault(tenantId);
             Owner? owner = tenant != null ? owners.GetValueOrDefault(tenant.OwnerId) : null;
-            ApiClient? client = tenant != null && !string.IsNullOrWhiteSpace(tenant.ClientId)
-                ? clients.GetValueOrDefault(tenant.ClientId)
-                : null;
 
             string tenantName = tenant?.Name ?? tenantId.ToString();
             string ownerName = owner?.Name ?? tenant?.OwnerId.ToString() ?? "-";
             string ownerId = tenant?.OwnerId.ToString() ?? "-";
-            string clientId = client?.Id ?? tenant?.ClientId ?? "-";
+            string clientId = tenant?.ClientId ?? "-";
 
             parsedRoles.Add(new ParsedTenantRole(
                 tenantId,

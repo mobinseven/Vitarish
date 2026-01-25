@@ -1,6 +1,6 @@
 @page "/Admin/TenantIndicators"
 
-@inherits AdminBase
+@inherits AdminCommonBase
 
 <MudSelect @bind-Value="selectedTenantId" Label="@Localizer["Select Tenant"]" Required Class="mb-4">
     @foreach (var tenant in Tenants)

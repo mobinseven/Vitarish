@@ -1,5 +1,5 @@
 @page "/Admin"
-@inherits AdminBase
+@inherits AdminCommonBase
 
 <Stack>
     <StackButton Label="@Localizer["Users"]" Href="Admin/Users" StartIcon="fa-regular fa-users" />
@@ -9,9 +9,7 @@
 </Stack>
 <Stack>
     <StackButton Label="@Localizer["TenantIndicators"]" Href="Admin/TenantIndicators" StartIcon="fa-regular fa-building" />
-    <StackButton Label="@Localizer["AuthenticationClients"]" Href="Admin/AuthenticationClients" StartIcon="fa-regular fa-building-shield" />
 </Stack>
 <Stack>
-    <StackButton Label="@Localizer["ApiClients"]" Href="Admin/ApiClients" StartIcon="fa-regular fa-server" />
     <StackButton Label="@Localizer["Requests"]" Href="Admin/Requests" StartIcon="fa-regular fa-mail-bulk" />
 </Stack>

@@ -1,10 +1,11 @@
 using Microsoft.EntityFrameworkCore;
+using Vitarish.Admins.Interface.Components.Base;
 using Vitarish.Parties.Domain.Entities;
 using ClaimDto = Vitarish.Users.Domain.Models.ClaimDto;
 
-namespace Vitarish.Accounts.Interface.Components.Admin;
+namespace Vitarish.Admins.Interface.Components.Admin;
 
-public partial class RolesManager : AdminBase
+public partial class RolesManager : AdminCommonBase
 {
     private readonly List<RoleEntry> roles = [];
     private readonly List<Tenant> tenants = [];

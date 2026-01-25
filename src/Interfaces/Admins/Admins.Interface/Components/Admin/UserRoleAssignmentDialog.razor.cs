@@ -1,7 +1,7 @@
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 
-namespace Vitarish.Accounts.Interface.Components.Admin;
+namespace Vitarish.Admins.Interface.Components.Admin;
 
 public partial class UserRoleAssignmentDialog
 {
@@ -16,7 +16,6 @@ public partial class UserRoleAssignmentDialog
     [Parameter] public List<string> AssignedRoles { get; set; } = [];
 
     [Inject] private IPartiesService PartiesService { get; set; } = default!;
-    [Inject] private IApiClientsService ApiClientService { get; set; } = default!;
     [Inject] private IStringLocalizer Localizer { get; set; } = default!;
 
     private List<string> assignedRoles = [];
@@ -49,13 +48,8 @@ public partial class UserRoleAssignmentDialog
                 .Select(t => t.ClientId!)
                 .Distinct(StringComparer.OrdinalIgnoreCase)
                 .ToList();
-            Dictionary<string, Task<ApiClient?>> clientTasks = clientIds
-                .ToDictionary(id => id, id => ApiClientService.GetApiClientAsync(id), StringComparer.OrdinalIgnoreCase);
-            Dictionary<string, ApiClient?> clients = (await Task.WhenAll(
-                clientTasks.Select(async kvp => new { kvp.Key, Value = await kvp.Value })
-            )).ToDictionary(x => x.Key, x => x.Value, StringComparer.OrdinalIgnoreCase);
 
-            List<ParsedTenantRole> parsedRoles = RoleParser.ParseTenantRoles(AvailableRoles, tenantDict, owners, clients);
+            List<ParsedTenantRole> parsedRoles = RoleParser.ParseTenantRoles(AvailableRoles, tenantDict, owners);
 
             foreach (ParsedTenantRole parsed in parsedRoles)
             {
