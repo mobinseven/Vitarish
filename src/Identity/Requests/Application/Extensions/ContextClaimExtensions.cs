@@ -43,7 +43,7 @@ public static class ContextClaimExtensions
                 return null;
             }
 
-            return $"{given} {sure}";
+            return $"{given} {sure}".Trim();
         }
 
         public string? GetUserFamilyName()
@@ -173,6 +173,21 @@ public static class ContextClaimExtensions
             ArgumentNullException.ThrowIfNull(context);
 
             return GetClaimValue(context, JwtClaimTypes.FamilyName);
+        }
+
+        public string? GetUserFullName()
+        {
+            ArgumentNullException.ThrowIfNull(context);
+
+            string? given = GetClaimValue(context, JwtClaimTypes.GivenName);
+            string? sure = GetClaimValue(context, JwtClaimTypes.FamilyName);
+
+            if (string.IsNullOrWhiteSpace(given) && string.IsNullOrWhiteSpace(sure))
+            {
+                return null;
+            }
+
+            return $"{given} {sure}".Trim();
         }
 
         public string? GetUserEmail()
