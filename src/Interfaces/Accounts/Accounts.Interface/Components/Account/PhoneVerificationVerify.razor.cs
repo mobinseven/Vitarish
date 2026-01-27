@@ -1,5 +1,3 @@
-using Vitarish.Accounts.Domain.Models;
-
 namespace Vitarish.Accounts.Interface.Components.Account;
 
 public partial class PhoneVerificationVerify

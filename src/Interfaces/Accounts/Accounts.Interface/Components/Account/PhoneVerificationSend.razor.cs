@@ -1,5 +1,3 @@
-using Vitarish.Accounts.Domain.Models;
-using Vitarish.Accounts.Interface.Localization;
 using Vitarish.Interfaces.Base.Extensions;
 
 namespace Vitarish.Accounts.Interface.Components.Account;

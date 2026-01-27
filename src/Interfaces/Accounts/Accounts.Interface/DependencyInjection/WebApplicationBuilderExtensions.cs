@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Localization;
-using Microsoft.Extensions.Localization;
 using System.Globalization;
 using Vitarish.Accounts.Domain.Constants;
 using Vitarish.Accounts.Infrastructure.Extensions;
-using Vitarish.Interfaces.Base.Localization;
 
 public static class WebApplicationBuilderExtensions
 {
