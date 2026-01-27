@@ -564,6 +564,9 @@
   <data name="PasskeyDeleted" xml:space="preserve">
     <value>Passkey deleted</value>
   </data>
+  <data name="PasskeyNameUpdated" xml:space="preserve">
+    <value>Passkey name updated</value>
+  </data>
   <data name="AssignRole" xml:space="preserve">
     <value>Assign role</value>
   </data>

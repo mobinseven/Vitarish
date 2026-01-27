@@ -525,6 +525,9 @@
   <data name="PasskeyDeleted" xml:space="preserve">
     <value>کلید عبور حذف شد</value>
   </data>
+  <data name="PasskeyNameUpdated" xml:space="preserve">
+    <value>نام کلید عبور به‌روزرسانی شد</value>
+  </data>
   <data name="AssignRole" xml:space="preserve">
     <value>تخصیص نقش</value>
   </data>
