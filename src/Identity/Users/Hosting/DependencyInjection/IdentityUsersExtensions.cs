@@ -1,4 +1,3 @@
-
 using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Identity;
@@ -10,6 +9,7 @@ using Vitarish.Users.Domain.Options;
 using Vitarish.Users.Infrastructure;
 using Vitarish.Users.Infrastructure.Abstractions;
 using Vitarish.Users.Infrastructure.Data;
+using Vitarish.Users.Infrastructure.Extensions;
 using Vitarish.Users.Infrastructure.Service;
 
 namespace Vitarish.Users.Hosting.DependencyInjection;
@@ -37,5 +37,13 @@ public static class IdentityUsersExtensions
         _ = builder.Services.AddTransient<IUserProfileService, UserProfileService>();
         _ = builder.Services.AddTransient<IPersonalAccessTokenGenerator, PersonalAccessTokenGenerator>();
         _ = builder.Services.AddTransient<IUsersService, UsersService>();
+    }
+
+    /// <summary>
+    /// Maps Users module endpoints.
+    /// </summary>
+    public static void MapUsersEndpoints(this WebApplication app)
+    {
+        _ = app.MapWebAuthnManagementEndpoints();
     }
 }
