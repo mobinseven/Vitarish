@@ -5,7 +5,7 @@
 <MudText Typo="Typo.h4" GutterBottom="true" Align="Align.Center">@Localizer["Login"]</MudText>
 <AuthorizeView Context="authContext">
     <NotAuthorized>
-        @if (FailureMessage is not null)
+        @if(FailureMessage is not null)
         {
             <MudAlert Severity="Severity.Error">@FailureMessage</MudAlert>
         }
@@ -14,20 +14,22 @@
         <MudDivider Class="my-3" />
         <form method="get" action="/Account/Login/Phone">
             <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
-            <MudButton FullWidth="true" ButtonType="ButtonType.Submit">@Localizer["LoginViaPhone"]</MudButton>
+            <MudButton FullWidth="true" ButtonType="ButtonType.Submit">
+                @Localizer["LoginVia", Localizer["Phone"]]
+            </MudButton>
         </form>
         <form method="get"
               action="Account/Login/Password">
             <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
             <MudButton FullWidth="true" ButtonType="ButtonType.Submit">
-                @Localizer["LoginViaPassword"]
+                @Localizer["LoginVia", Localizer["Password"]]
             </MudButton>
         </form>
         <form method="get"
               action="Account/Login/Email">
             <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
             <MudButton FullWidth="true" ButtonType="ButtonType.Submit">
-                @Localizer["LoginViaEmail"]
+                @Localizer["LoginVia", Localizer["Email"]]
             </MudButton>
         </form>
     </NotAuthorized>

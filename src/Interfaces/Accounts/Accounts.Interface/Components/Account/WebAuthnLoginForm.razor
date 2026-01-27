@@ -1,7 +1,7 @@
-@if (IsSupported)
+@if(IsSupported)
 {
     <MudPaper Class="pa-4">
-        @if (!string.IsNullOrEmpty(ErrorMessage))
+        @if(!string.IsNullOrEmpty(ErrorMessage))
         {
             <MudAlert Severity="Severity.Error" Class="mb-3">@ErrorMessage</MudAlert>
         }
@@ -20,11 +20,11 @@
                    OnClick="@AuthenticateAsync"
                    Disabled="@(IsAuthenticating || string.IsNullOrWhiteSpace(Username))"
                    Class="mt-3">
-            @if (IsAuthenticating)
+            @if(IsAuthenticating)
             {
                 <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="me-2" />
             }
-            @Localizer["LoginViaPasskey"]
+            @Localizer["Continue"]]
         </MudButton>
     </MudPaper>
 }

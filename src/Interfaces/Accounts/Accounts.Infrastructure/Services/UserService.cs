@@ -244,23 +244,22 @@ public class UserService : IUserService
         return result;
     }
 
-    public async Task<bool> SetCultureAsync(string userId, string culture)
+    public async Task SetCultureAsync(string userId, string culture)
     {
         if (string.IsNullOrWhiteSpace(culture))
         {
-            return false;
+            return;
         }
 
         Dictionary<string, string>? prefs = await GetProfileAsync(userId);
         if (prefs == null)
         {
-            return false;
+            return;
         }
 
         prefs[Keys.Culture] = culture;
 
         await UpdateProfileAsync(userId, prefs);
-        return true;
     }
 
     public async Task<bool> SetThemeAsync(string userId, string theme)

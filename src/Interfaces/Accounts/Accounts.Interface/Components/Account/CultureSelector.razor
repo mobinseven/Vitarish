@@ -14,7 +14,7 @@
     private string cultureName = CultureInfo.CurrentUICulture.Name;
     private static readonly IReadOnlyList<CultureInfo> SupportedCultures =
     [
-        new("fa-IR"),
+    new("fa-IR"),
         new("en-US"),
     ];
 
@@ -26,6 +26,11 @@
         if(cookieculture is not null)
         {
             cultureName = cookieculture.Name;
+            return;
+        }
+
+        if(User is null)
+        {
             return;
         }
 

@@ -1,4 +1,4 @@
-﻿@page "/Account/Login/Email"
+@page "/Account/Login/Email"
 
 @inherits IdentityBase
 @attribute [RequireAntiforgeryToken]
@@ -16,21 +16,21 @@
               action="Account/Login/Password">
             <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
             <MudButton FullWidth="true" ButtonType="ButtonType.Submit">
-                @Localizer["LoginViaPassword"]
+                @Localizer["LoginVia", Localizer["Password"]]
             </MudButton>
         </form>
         <form method="get"
               action="Account/Login/Phone">
             <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
             <MudButton FullWidth="true" ButtonType="ButtonType.Submit">
-                @Localizer["LoginViaPhone"]
+                @Localizer["LoginVia", Localizer["Phone"]]
             </MudButton>
         </form>
         <form method="get"
               action="Account/Login/Passkey">
             <input type="hidden" name="ReturnUrl" value="@ReturnUrl" />
             <MudButton FullWidth="true" ButtonType="ButtonType.Submit">
-                @Localizer["LoginViaPasskey"]
+                @Localizer["LoginVia", Localizer["Passkey"]]
             </MudButton>
         </form>
     </NotAuthorized>

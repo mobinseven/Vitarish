@@ -51,27 +51,28 @@ public class UserProfileCultureInfoProvider(
         return true;
     }
 
-    public async Task<bool> SetCultureAsync(string cultureName)
+    public async Task SetCultureAsync(string cultureName)
     {
         if (string.IsNullOrWhiteSpace(cultureName))
         {
-            return false;
+            return;
         }
-
-        if (!await userService.SetCultureAsync(httpContextAccessor.HttpContext?.User.GetSubjectId(), cultureName))
-        {
-            return false;
-        }
-
         cachedCulture = TryGetCulture(cultureName);
         hasLoaded = true;
         if (cachedCulture is null)
         {
-            return false;
+            return;
         }
 
         await ApplyCultureAsync(cachedCulture);
-        return true;
+
+        string? userId = httpContextAccessor.HttpContext?.GetUserId();
+        if (userId is null)
+        {
+            return;
+
+        }
+        await userService.SetCultureAsync(userId, cultureName);
     }
 
     private async Task<CultureInfo?> ResolveCultureAsync()
@@ -89,7 +90,11 @@ public class UserProfileCultureInfoProvider(
             return null;
         }
 
-        _ = await userService.SetCultureAsync(httpContextAccessor.HttpContext?.User.GetSubjectId(), cookieCulture.Name);
+        var userId = httpContextAccessor.HttpContext?.GetUserId();
+        if (userId is not null)
+        {
+            await userService.SetCultureAsync(userId, cookieCulture.Name);
+        }
 
         return cookieCulture;
     }

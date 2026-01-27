@@ -12,7 +12,6 @@ namespace Vitarish.Accounts.Interface.Components.Base
         [Inject] protected IdentityRedirectManager RedirectManager { get; set; } = default!;
         [Inject] protected ISnackbar Snackbar { get; set; } = default!;
         [Inject] protected IJSRuntime Js { get; set; } = default!;
-        [Inject] protected IRequestContext RequestContext { get; set; } = default!;
         [Inject] protected IIdentityServerInteractionService IdentityServerInteractionService { get; set; } = default!;
         [Inject] protected IPersonalAccessTokenService PersonalAccessTokenService { get; set; } = default!;
         [Inject] protected IRequestIdentitiesService RequestIdentitiesService { get; set; } = default!;

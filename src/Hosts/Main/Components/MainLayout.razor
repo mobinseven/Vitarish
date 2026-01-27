@@ -4,6 +4,7 @@
 {
     <ThemeConnector>
         <MudRTLProvider RightToLeft="@System.Globalization.CultureInfo.CurrentCulture.TextInfo.IsRightToLeft" Style="min-height: 100dvh;">
+            <BreakpointProvider @bind-Breakpoint="PageBreakpoint" BreakpointReceived="() => BreakpointReceived  = true" />
             @if(BreakpointReceived)
             {
                 <CascadingValue Value="@PageBreakpoint">

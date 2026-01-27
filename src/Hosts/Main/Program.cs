@@ -171,8 +171,6 @@ _ = app.UseAuthorization();
 
 _ = app.UseAntiforgery();
 
-_ = app.MapGet("/request", (HttpContext context, IRequestContext requestContext) => requestContext.GetRequest());
-
 _ = app.UseMultiTenant();
 
 _ = await app.MapModuleEndpoints();

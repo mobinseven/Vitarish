@@ -856,7 +856,7 @@
     <value>جنسیت</value>
   </data>
   <data name="Phone" xml:space="preserve">
-    <value>تلفن</value>
+    <value>همراه</value>
   </data>
   <data name="InsuranceProvider" xml:space="preserve">
     <value>ارائه‌دهنده بیمه</value>
@@ -1053,10 +1053,28 @@
   <data name="SelectItem" xml:space="preserve">
     <value>گزینش {0}</value>
   </data>
+  <data name="NoSearchItems" xml:space="preserve">
+    <value>برای این عبارت نتیجه ای یافت نشد:  '{0}'</value>
+  </data>
   <data name="Gender_Unspecified" xml:space="preserve">
     <value>نامشخص</value>
   </data>
-  <data name="NoSearchItems" xml:space="preserve">
-    <value>برای این عبارت نتیجه ای یافت نشد:  '{0}'</value>
+  <data name="Login" xml:space="preserve">
+    <value>ورود</value>
+  </data>
+  <data name="LoginVia" xml:space="preserve">
+    <value>ورود با {0}</value>
+  </data>
+  <data name="Password" xml:space="preserve">
+    <value>رمز</value>
+  </data>
+  <data name="Passkey" xml:space="preserve">
+    <value>کلید</value>
+  </data>
+  <data name="PhoneNumber" xml:space="preserve">
+    <value>شماره همراه</value>
+  </data>
+  <data name="UserName" xml:space="preserve">
+    <value>نام کاربری</value>
   </data>
 </root>
