@@ -1,0 +1,89 @@
+@if (!string.IsNullOrEmpty(ErrorMessage))
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">@ErrorMessage</MudAlert>
+}
+
+@if (IsLoading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else
+{
+    @if (!IsSupported)
+    {
+        <MudAlert Severity="Severity.Warning" Class="mb-4">@Localizer["PasskeyNotSupported"]</MudAlert>
+    }
+    else
+    {
+        <MudPaper Class="pa-4 mb-4">
+            <MudText Typo="Typo.h6" GutterBottom="true">@Localizer["RegisterNewPasskey"]</MudText>
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       OnClick="@RegisterPasskeyAsync"
+                       Disabled="@IsRegistering"
+                       Class="mt-2">
+                @if (IsRegistering)
+                {
+                    <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="me-2" />
+                }
+                @Localizer["RegisterPasskey"]
+            </MudButton>
+        </MudPaper>
+    }
+
+    @if (Credentials.Any())
+    {
+        <MudText Typo="Typo.h6" GutterBottom="true">@Localizer["RegisteredPasskeys"]</MudText>
+        <MudTable Items="@Credentials" Hover="true" Striped="true">
+            <HeaderContent>
+                <MudTh>@Localizer["PasskeyName"]</MudTh>
+                <MudTh>@Localizer["RegisteredAt"]</MudTh>
+                <MudTh>@Localizer["LastUsedAt"]</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="@Localizer["PasskeyName"]">
+                    @if (EditingCredentialId == context.Id)
+                    {
+                        <MudTextField @bind-Value="@EditingFriendlyName"
+                                      Variant="Variant.Outlined"
+                                      Margin="Margin.Dense"
+                                      Immediate="true"
+                                      MaxLength="200" />
+                    }
+                    else
+                    {
+                        @(context.FriendlyName ?? Localizer["UnnamedPasskey"])
+                    }
+                </MudTd>
+                <MudTd DataLabel="@Localizer["RegisteredAt"]">@context.RegisteredAt.LocalDateTime.ToString("g")</MudTd>
+                <MudTd DataLabel="@Localizer["LastUsedAt"]">@(context.LastUsedAt?.LocalDateTime.ToString("g") ?? "-")</MudTd>
+                <MudTd>
+                    @if (EditingCredentialId == context.Id)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Check"
+                                       Color="Color.Success"
+                                       OnClick="@(() => SavePasskeyNameAsync(context.Id))"
+                                       Disabled="@IsSavingName" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Close"
+                                       OnClick="@CancelEdit"
+                                       Disabled="@IsSavingName" />
+                    }
+                    else
+                    {
+                        <MudIconButton Icon="@Icons.Material.Filled.Edit"
+                                       OnClick="@(() => StartEdit(context.Id, context.FriendlyName))" />
+                        <MudIconButton Icon="@Icons.Material.Filled.Delete"
+                                       Color="Color.Error"
+                                       OnClick="@(() => DeletePasskeyAsync(context.Id))"
+                                       Disabled="@IsDeletingCredential" />
+                    }
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else if (!IsLoading)
+    {
+        <MudAlert Severity="Severity.Info">@Localizer["NoPasskeysRegistered"]</MudAlert>
+    }
+}
