@@ -14,6 +14,8 @@ namespace Vitarish.Users.Infrastructure.Extensions;
 /// </summary>
 public static class WebAuthnEndpointRouteBuilderExtensions
 {
+    private const int MaxFriendlyNameLength = 200;
+
     /// <summary>
     /// Maps WebAuthn credential management endpoints.
     /// </summary>
@@ -41,6 +43,12 @@ public static class WebAuthnEndpointRouteBuilderExtensions
                 return Results.Unauthorized();
             }
 
+            // Validate friendly name length
+            if (!string.IsNullOrEmpty(request.FriendlyName) && request.FriendlyName.Length > MaxFriendlyNameLength)
+            {
+                return Results.BadRequest(new { error = $"FriendlyName cannot exceed {MaxFriendlyNameLength} characters." });
+            }
+
             WebAuthnCredential? credential = await dbContext.WebAuthnCredentials
                 .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
 
@@ -49,7 +57,7 @@ public static class WebAuthnEndpointRouteBuilderExtensions
                 return Results.NotFound();
             }
 
-            credential.FriendlyName = request.FriendlyName;
+            credential.FriendlyName = request.FriendlyName?.Trim();
             _ = await dbContext.SaveChangesAsync();
 
             return Results.Ok();

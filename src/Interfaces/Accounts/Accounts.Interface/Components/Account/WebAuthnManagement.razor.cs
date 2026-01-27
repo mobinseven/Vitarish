@@ -46,6 +46,13 @@ public partial class WebAuthnManagement : IdentityCommonBase, IAsyncDisposable
         }
     }
 
+    private HttpClient CreateHttpClient()
+    {
+        HttpClient httpClient = HttpClientFactory.CreateClient();
+        httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
+        return httpClient;
+    }
+
     private async Task LoadCredentialsAsync()
     {
         IsLoading = true;
@@ -54,8 +61,7 @@ public partial class WebAuthnManagement : IdentityCommonBase, IAsyncDisposable
 
         try
         {
-            using HttpClient httpClient = HttpClientFactory.CreateClient();
-            httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
+            using HttpClient httpClient = CreateHttpClient();
 
             HttpResponseMessage response = await httpClient.GetAsync("/api/webauthn/credentials");
             if (response.IsSuccessStatusCode)
@@ -93,8 +99,7 @@ public partial class WebAuthnManagement : IdentityCommonBase, IAsyncDisposable
 
         try
         {
-            using HttpClient httpClient = HttpClientFactory.CreateClient();
-            httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
+            using HttpClient httpClient = CreateHttpClient();
 
             // Step 1: Begin registration - get options from server
             HttpResponseMessage beginResponse = await httpClient.PostAsync("/api/webauthn/register/begin", null);
@@ -169,8 +174,7 @@ public partial class WebAuthnManagement : IdentityCommonBase, IAsyncDisposable
 
         try
         {
-            using HttpClient httpClient = HttpClientFactory.CreateClient();
-            httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
+            using HttpClient httpClient = CreateHttpClient();
 
             HttpResponseMessage response = await httpClient.PatchAsJsonAsync(
                 $"/api/webauthn/credentials/{credentialId}",
@@ -209,8 +213,7 @@ public partial class WebAuthnManagement : IdentityCommonBase, IAsyncDisposable
 
         try
         {
-            using HttpClient httpClient = HttpClientFactory.CreateClient();
-            httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
+            using HttpClient httpClient = CreateHttpClient();
 
             HttpResponseMessage response = await httpClient.DeleteAsync($"/api/webauthn/credentials/{credentialId}");
 
