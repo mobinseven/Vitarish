@@ -24,27 +24,14 @@
 
     private bool markedAsRead;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
-        if(procedureId is null)
-        {
-            return;
-        }
-        RenderForId(procedureId);
-    }
-
-    protected override async Task OnParametersSetAsync()
-    {
-        if(UserId is null)
-        {
-            return;
-        }
-
         Guid.TryParse(projectId, out ProjectId);
         Guid.TryParse(procedureId, out ProcedureId);
+        RenderForId(procedureId);
+        RenderForId(projectId);
 
-        await ReloadRequired();
+        await base.OnInitializedAsync();
     }
 
     protected override async Task ReloadRequired()

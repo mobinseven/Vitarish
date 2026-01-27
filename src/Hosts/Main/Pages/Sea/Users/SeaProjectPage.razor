@@ -31,18 +31,11 @@
 
     protected override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
-
-        if(projectId is null)
-        {
-            NavigationManager.NavigateTo("/sea/Projects");
-            return;
-        }
 
         Guid.TryParse(projectId, out ProjectId);
         RenderForId(projectId);
 
-        await ReloadRequired();
+        await base.OnInitializedAsync();
         initialized = true;
         await InvokeAsync(StateHasChanged);
     }
