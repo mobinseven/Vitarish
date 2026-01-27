@@ -22,7 +22,7 @@ global using Vitarish.Accounts.Domain.Attributes;
 global using Vitarish.Accounts.Domain.Models;
 global using Vitarish.Accounts.Infrastructure.Services;
 global using Vitarish.Accounts.Interface.Components.Base;
-global using Vitarish.Accounts.Interface.Localization;
+global using Vitarish.Interfaces.Base.Localization;
 global using Vitarish.Requests.Application.Abstractions;
 // Project‑specific namespaces
 global using Vitarish.Users.Application.Abstractions;
