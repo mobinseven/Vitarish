@@ -1,6 +1,5 @@
 using Fido2NetLib;
 using Fido2NetLib.Objects;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
@@ -22,7 +21,6 @@ public class WebAuthnService : IWebAuthnService
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
     private readonly UsersDbContext _dbContext;
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly WebAuthnOptions _webAuthnOptions;
     private readonly IDistributedCache _cache;
 
@@ -31,7 +29,6 @@ public class WebAuthnService : IWebAuthnService
         UserManager<User> userManager,
         SignInManager<User> signInManager,
         UsersDbContext dbContext,
-        IHttpContextAccessor httpContextAccessor,
         WebAuthnOptions webAuthnOptions,
         IDistributedCache cache)
     {
@@ -39,7 +36,6 @@ public class WebAuthnService : IWebAuthnService
         _userManager = userManager;
         _signInManager = signInManager;
         _dbContext = dbContext;
-        _httpContextAccessor = httpContextAccessor;
         _webAuthnOptions = webAuthnOptions;
         _cache = cache;
     }
