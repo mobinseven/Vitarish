@@ -1,8 +1,8 @@
 using Fido2NetLib;
 using Fido2NetLib.Objects;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using System.Text;
 using System.Text.Json;
 using Vitarish.Users.Application.Abstractions;
@@ -21,23 +21,23 @@ public class WebAuthnService : IWebAuthnService
     private readonly UserManager<User> _userManager;
     private readonly SignInManager<User> _signInManager;
     private readonly UsersDbContext _dbContext;
-    private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly WebAuthnOptions _webAuthnOptions;
+    private readonly IDistributedCache _cache;
 
     public WebAuthnService(
         IFido2 fido2,
         UserManager<User> userManager,
         SignInManager<User> signInManager,
         UsersDbContext dbContext,
-        IHttpContextAccessor httpContextAccessor,
-        WebAuthnOptions webAuthnOptions)
+        WebAuthnOptions webAuthnOptions,
+        IDistributedCache cache)
     {
         _fido2 = fido2;
         _userManager = userManager;
         _signInManager = signInManager;
         _dbContext = dbContext;
-        _httpContextAccessor = httpContextAccessor;
         _webAuthnOptions = webAuthnOptions;
+        _cache = cache;
     }
 
     public async Task<string> BeginRegistrationAsync(string userId, CancellationToken ct = default)
@@ -92,15 +92,16 @@ public class WebAuthnService : IWebAuthnService
                 AttestationPreference = ParseAttestationConveyance(_webAuthnOptions.AttestationConveyance)
             });
 
-        // Store challenge in session for verification
-        HttpContext? httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext == null)
-        {
-            throw new InvalidOperationException("Unable to access HTTP context for session storage.");
-        }
-        
+        // Store challenge in distributed cache for verification
         string optionsJson = options.ToJson();
-        httpContext.Session.SetString(GetAttestationSessionKey(userId), optionsJson);
+        byte[] optionsBytes = Encoding.UTF8.GetBytes(optionsJson);
+        
+        DistributedCacheEntryOptions cacheOptions = new()
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2) // Align with WebAuthn timeout
+        };
+        
+        await _cache.SetAsync(GetAttestationCacheKey(userId), optionsBytes, cacheOptions, ct);
 
         return optionsJson;
     }
@@ -112,19 +113,14 @@ public class WebAuthnService : IWebAuthnService
             throw new ArgumentException("User ID cannot be null or empty", nameof(userId));
         }
 
-        HttpContext? httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext == null)
-        {
-            throw new InvalidOperationException("HTTP context not available");
-        }
-
-        // Retrieve the challenge from session
-        string? jsonOptions = httpContext.Session.GetString(GetAttestationSessionKey(userId));
-        if (string.IsNullOrEmpty(jsonOptions))
+        // Retrieve the challenge from distributed cache
+        byte[]? jsonOptionsBytes = await _cache.GetAsync(GetAttestationCacheKey(userId), ct);
+        if (jsonOptionsBytes == null)
         {
             throw new InvalidOperationException("Registration options not found. Please start registration again.");
         }
 
+        string jsonOptions = Encoding.UTF8.GetString(jsonOptionsBytes);
         CredentialCreateOptions? options = CredentialCreateOptions.FromJson(jsonOptions);
         if (options == null)
         {
@@ -166,8 +162,8 @@ public class WebAuthnService : IWebAuthnService
         _ = _dbContext.WebAuthnCredentials.Add(storedCredential);
         _ = await _dbContext.SaveChangesAsync(ct);
 
-        // Clear the session challenge
-        httpContext.Session.Remove(GetAttestationSessionKey(userId));
+        // Clear the cache challenge
+        await _cache.RemoveAsync(GetAttestationCacheKey(userId), ct);
 
         return Convert.ToBase64String(storedCredential.CredentialId);
     }
@@ -211,27 +207,22 @@ public class WebAuthnService : IWebAuthnService
                 UserVerification = ParseUserVerificationRequirement(_webAuthnOptions.UserVerification)
             };
 
-        // Store challenge in session for verification
-        HttpContext? httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext == null)
-        {
-            throw new InvalidOperationException("Unable to access HTTP context or session. Authentication cannot proceed.");
-        }
-        
+        // Store challenge in distributed cache for verification
         string optionsJson = options.ToJson();
-        httpContext.Session.SetString(GetAssertionSessionKey(user.Id), optionsJson);
+        byte[] optionsBytes = Encoding.UTF8.GetBytes(optionsJson);
+        
+        DistributedCacheEntryOptions cacheOptions = new()
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2) // Align with WebAuthn timeout
+        };
+        
+        await _cache.SetAsync(GetAssertionCacheKey(user.Id), optionsBytes, cacheOptions, ct);
 
         return optionsJson;
     }
 
     public async Task<bool> CompleteAuthenticationAsync(string assertionResponseJson, CancellationToken ct = default)
     {
-        HttpContext? httpContext = _httpContextAccessor.HttpContext;
-        if (httpContext == null)
-        {
-            throw new InvalidOperationException("HTTP context not available");
-        }
-
         // Parse the assertion response from JSON
         AuthenticatorAssertionRawResponse assertionResponse = JsonSerializer.Deserialize<AuthenticatorAssertionRawResponse>(assertionResponseJson)
             ?? throw new InvalidOperationException("Failed to deserialize assertion response");
@@ -246,13 +237,14 @@ public class WebAuthnService : IWebAuthnService
             throw new InvalidOperationException("Credential not found or inactive");
         }
 
-        // Retrieve the challenge from session
-        string? jsonOptions = httpContext.Session.GetString(GetAssertionSessionKey(credential.UserId));
-        if (string.IsNullOrEmpty(jsonOptions))
+        // Retrieve the challenge from distributed cache
+        byte[]? jsonOptionsBytes = await _cache.GetAsync(GetAssertionCacheKey(credential.UserId), ct);
+        if (jsonOptionsBytes == null)
         {
             throw new InvalidOperationException("Authentication options not found. Please start authentication again.");
         }
 
+        string jsonOptions = Encoding.UTF8.GetString(jsonOptionsBytes);
         AssertionOptions? options = AssertionOptions.FromJson(jsonOptions);
         if (options == null)
         {
@@ -298,8 +290,8 @@ public class WebAuthnService : IWebAuthnService
         }
         await _signInManager.SignInAsync(credential.User, isPersistent: true);
 
-        // Clear the session challenge
-        httpContext.Session.Remove(GetAssertionSessionKey(credential.UserId));
+        // Clear the cache challenge
+        await _cache.RemoveAsync(GetAssertionCacheKey(credential.UserId), ct);
 
         return true;
     }
@@ -356,9 +348,9 @@ public class WebAuthnService : IWebAuthnService
         _ => false
     };
 
-    private static string GetAttestationSessionKey(string userId) => $"fido2.attestationOptions.{userId}";
+    private static string GetAttestationCacheKey(string userId) => $"fido2.attestationOptions.{userId}";
 
-    private static string GetAssertionSessionKey(string userId) => $"fido2.assertionOptions.{userId}";
+    private static string GetAssertionCacheKey(string userId) => $"fido2.assertionOptions.{userId}";
 
     private static UserVerificationRequirement ParseUserVerificationRequirement(string value) => value?.ToLowerInvariant() switch
     {
