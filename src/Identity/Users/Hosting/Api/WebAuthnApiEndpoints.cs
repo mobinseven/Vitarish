@@ -1,9 +1,9 @@
-using Fido2NetLib.Objects;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Routing;
 using System.Security.Claims;
+using System.Text.Json;
 using Vitarish.Users.Application.Abstractions;
 
 namespace Vitarish.Users.Hosting.Api;
@@ -26,7 +26,7 @@ public static class WebAuthnApiEndpoints
         // Registration endpoints
         _ = group.MapPost("/register/begin", BeginRegistrationAsync)
             .WithName("BeginWebAuthnRegistration")
-            .Produces<CredentialCreateOptions>(StatusCodes.Status200OK)
+            .Produces<JsonDocument>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .Produces(StatusCodes.Status401Unauthorized)
             .WithSummary("Begin WebAuthn registration")
@@ -45,7 +45,7 @@ public static class WebAuthnApiEndpoints
         // Authentication endpoints
         _ = group.MapPost("/authenticate/begin", BeginAuthenticationAsync)
             .WithName("BeginWebAuthnAuthentication")
-            .Produces<AssertionOptions>(StatusCodes.Status200OK)
+            .Produces<JsonDocument>(StatusCodes.Status200OK)
             .Produces(StatusCodes.Status400BadRequest)
             .WithSummary("Begin WebAuthn authentication")
             .WithDescription("Initiates a WebAuthn authentication ceremony and returns options for the client.")
@@ -95,7 +95,8 @@ public static class WebAuthnApiEndpoints
 
         try
         {
-            CredentialCreateOptions options = await webAuthnService.BeginRegistrationAsync(userId, ct);
+            string optionsJson = await webAuthnService.BeginRegistrationAsync(userId, ct);
+            JsonDocument options = JsonDocument.Parse(optionsJson);
             return Results.Ok(options);
         }
         catch (InvalidOperationException ex)
@@ -113,7 +114,7 @@ public static class WebAuthnApiEndpoints
 
     private static async Task<IResult> CompleteRegistrationAsync(
         ClaimsPrincipal user,
-        [FromBody] AuthenticatorAttestationRawResponse attestationResponse,
+        [FromBody] JsonDocument attestationResponse,
         [FromServices] IWebAuthnService webAuthnService,
         CancellationToken ct)
     {
@@ -125,7 +126,8 @@ public static class WebAuthnApiEndpoints
 
         try
         {
-            string credentialId = await webAuthnService.CompleteRegistrationAsync(userId, attestationResponse, ct);
+            string attestationResponseJson = attestationResponse.RootElement.GetRawText();
+            string credentialId = await webAuthnService.CompleteRegistrationAsync(userId, attestationResponseJson, ct);
             return Results.Ok(new RegisterCredentialResponse { CredentialId = credentialId });
         }
         catch (Fido2NetLib.Fido2VerificationException ex)
@@ -157,7 +159,8 @@ public static class WebAuthnApiEndpoints
 
         try
         {
-            AssertionOptions options = await webAuthnService.BeginAuthenticationAsync(request.Username, ct);
+            string optionsJson = await webAuthnService.BeginAuthenticationAsync(request.Username, ct);
+            JsonDocument options = JsonDocument.Parse(optionsJson);
             return Results.Ok(options);
         }
         catch (InvalidOperationException)
@@ -175,13 +178,14 @@ public static class WebAuthnApiEndpoints
     }
 
     private static async Task<IResult> CompleteAuthenticationAsync(
-        [FromBody] AuthenticatorAssertionRawResponse assertionResponse,
+        [FromBody] JsonDocument assertionResponse,
         [FromServices] IWebAuthnService webAuthnService,
         CancellationToken ct)
     {
         try
         {
-            bool success = await webAuthnService.CompleteAuthenticationAsync(assertionResponse, ct);
+            string assertionResponseJson = assertionResponse.RootElement.GetRawText();
+            bool success = await webAuthnService.CompleteAuthenticationAsync(assertionResponseJson, ct);
             return Results.Ok(new AuthenticationResponse { Success = success });
         }
         catch (Fido2NetLib.Fido2VerificationException ex)

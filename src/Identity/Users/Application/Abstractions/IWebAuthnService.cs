@@ -1,5 +1,3 @@
-using Fido2NetLib.Objects;
-
 namespace Vitarish.Users.Application.Abstractions;
 
 /// <summary>
@@ -12,33 +10,33 @@ public interface IWebAuthnService
     /// </summary>
     /// <param name="userId">The ID of the user registering a credential.</param>
     /// <param name="ct">Cancellation token.</param>
-    /// <returns>Registration options for the client to create a credential.</returns>
-    Task<CredentialCreateOptions> BeginRegistrationAsync(string userId, CancellationToken ct = default);
+    /// <returns>Registration options JSON for the client to create a credential.</returns>
+    Task<string> BeginRegistrationAsync(string userId, CancellationToken ct = default);
 
     /// <summary>
     /// Completes the WebAuthn registration ceremony and stores the credential.
     /// </summary>
     /// <param name="userId">The ID of the user registering a credential.</param>
-    /// <param name="attestationResponse">The attestation response from the authenticator.</param>
+    /// <param name="attestationResponseJson">The attestation response JSON from the authenticator.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>The credential ID if successful.</returns>
-    Task<string> CompleteRegistrationAsync(string userId, AuthenticatorAttestationRawResponse attestationResponse, CancellationToken ct = default);
+    Task<string> CompleteRegistrationAsync(string userId, string attestationResponseJson, CancellationToken ct = default);
 
     /// <summary>
     /// Begins the WebAuthn authentication ceremony for a user.
     /// </summary>
     /// <param name="username">The username to authenticate.</param>
     /// <param name="ct">Cancellation token.</param>
-    /// <returns>Authentication options for the client.</returns>
-    Task<AssertionOptions> BeginAuthenticationAsync(string username, CancellationToken ct = default);
+    /// <returns>Authentication options JSON for the client.</returns>
+    Task<string> BeginAuthenticationAsync(string username, CancellationToken ct = default);
 
     /// <summary>
     /// Completes the WebAuthn authentication ceremony and signs in the user.
     /// </summary>
-    /// <param name="assertionResponse">The assertion response from the authenticator.</param>
+    /// <param name="assertionResponseJson">The assertion response JSON from the authenticator.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>True if authentication was successful.</returns>
-    Task<bool> CompleteAuthenticationAsync(AuthenticatorAssertionRawResponse assertionResponse, CancellationToken ct = default);
+    Task<bool> CompleteAuthenticationAsync(string assertionResponseJson, CancellationToken ct = default);
 
     /// <summary>
     /// Lists all active WebAuthn credentials for a user.

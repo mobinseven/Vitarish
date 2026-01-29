@@ -39,7 +39,7 @@ public class WebAuthnService : IWebAuthnService
         _webAuthnOptions = webAuthnOptions;
     }
 
-    public async Task<CredentialCreateOptions> BeginRegistrationAsync(string userId, CancellationToken ct = default)
+    public async Task<string> BeginRegistrationAsync(string userId, CancellationToken ct = default)
     {
         if (string.IsNullOrEmpty(userId))
         {
@@ -97,12 +97,14 @@ public class WebAuthnService : IWebAuthnService
         {
             throw new InvalidOperationException("Unable to access HTTP context for session storage.");
         }
-        httpContext.Session.SetString(GetAttestationSessionKey(userId), options.ToJson());
+        
+        string optionsJson = options.ToJson();
+        httpContext.Session.SetString(GetAttestationSessionKey(userId), optionsJson);
 
-        return options;
+        return optionsJson;
     }
 
-    public async Task<string> CompleteRegistrationAsync(string userId, AuthenticatorAttestationRawResponse attestationResponse, CancellationToken ct = default)
+    public async Task<string> CompleteRegistrationAsync(string userId, string attestationResponseJson, CancellationToken ct = default)
     {
         if (string.IsNullOrEmpty(userId))
         {
@@ -127,6 +129,9 @@ public class WebAuthnService : IWebAuthnService
         {
             throw new InvalidOperationException("Invalid registration options JSON.");
         }
+
+        // Parse the attestation response from JSON
+        AuthenticatorAttestationRawResponse attestationResponse = AuthenticatorAttestationRawResponse.Parse(attestationResponseJson);
 
         // Verify the attestation response using Fido2 3.0.1 API
         RegisteredPublicKeyCredential credential = await _fido2.MakeNewCredentialAsync(new MakeNewCredentialParams
@@ -165,7 +170,7 @@ public class WebAuthnService : IWebAuthnService
         return Convert.ToBase64String(storedCredential.CredentialId);
     }
 
-    public async Task<AssertionOptions> BeginAuthenticationAsync(string username, CancellationToken ct = default)
+    public async Task<string> BeginAuthenticationAsync(string username, CancellationToken ct = default)
     {
         if (string.IsNullOrEmpty(username))
         {
@@ -210,18 +215,23 @@ public class WebAuthnService : IWebAuthnService
         {
             throw new InvalidOperationException("Unable to access HTTP context or session. Authentication cannot proceed.");
         }
-        httpContext.Session.SetString(GetAssertionSessionKey(user.Id), options.ToJson());
+        
+        string optionsJson = options.ToJson();
+        httpContext.Session.SetString(GetAssertionSessionKey(user.Id), optionsJson);
 
-        return options;
+        return optionsJson;
     }
 
-    public async Task<bool> CompleteAuthenticationAsync(AuthenticatorAssertionRawResponse assertionResponse, CancellationToken ct = default)
+    public async Task<bool> CompleteAuthenticationAsync(string assertionResponseJson, CancellationToken ct = default)
     {
         HttpContext? httpContext = _httpContextAccessor.HttpContext;
         if (httpContext == null)
         {
             throw new InvalidOperationException("HTTP context not available");
         }
+
+        // Parse the assertion response from JSON
+        AuthenticatorAssertionRawResponse assertionResponse = AuthenticatorAssertionRawResponse.Parse(assertionResponseJson);
 
         // Find the credential
         WebAuthnCredential? credential = await _dbContext.WebAuthnCredentials
