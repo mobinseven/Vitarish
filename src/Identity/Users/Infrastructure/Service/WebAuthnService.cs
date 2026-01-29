@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
+using System.Text.Json;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Domain.Options;
@@ -131,7 +132,8 @@ public class WebAuthnService : IWebAuthnService
         }
 
         // Parse the attestation response from JSON
-        AuthenticatorAttestationRawResponse attestationResponse = AuthenticatorAttestationRawResponse.Parse(attestationResponseJson);
+        AuthenticatorAttestationRawResponse attestationResponse = JsonSerializer.Deserialize<AuthenticatorAttestationRawResponse>(attestationResponseJson)
+            ?? throw new InvalidOperationException("Failed to deserialize attestation response");
 
         // Verify the attestation response using Fido2 3.0.1 API
         RegisteredPublicKeyCredential credential = await _fido2.MakeNewCredentialAsync(new MakeNewCredentialParams
@@ -231,7 +233,8 @@ public class WebAuthnService : IWebAuthnService
         }
 
         // Parse the assertion response from JSON
-        AuthenticatorAssertionRawResponse assertionResponse = AuthenticatorAssertionRawResponse.Parse(assertionResponseJson);
+        AuthenticatorAssertionRawResponse assertionResponse = JsonSerializer.Deserialize<AuthenticatorAssertionRawResponse>(assertionResponseJson)
+            ?? throw new InvalidOperationException("Failed to deserialize assertion response");
 
         // Find the credential
         WebAuthnCredential? credential = await _dbContext.WebAuthnCredentials
