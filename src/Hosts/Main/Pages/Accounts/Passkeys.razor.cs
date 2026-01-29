@@ -1,11 +1,14 @@
 using System.Text.Json;
 using Vitarish.Interfaces.Base.Common;
+using Vitarish.Users.Application.Abstractions;
 
 namespace Vitarish.Main.Pages.Accounts;
 
 public partial class Passkeys : IAsyncDisposable
 {
-    private List<PasskeyCredentialDto> Credentials { get; set; } = [];
+    [Inject] private IWebAuthnService WebAuthnService { get; set; } = default!;
+
+    private List<WebAuthnCredentialDto> Credentials { get; set; } = [];
     private bool IsLoading { get; set; } = true;
     private bool IsRegistering { get; set; }
     private bool IsDeletingCredential { get; set; }
@@ -38,20 +41,26 @@ public partial class Passkeys : IAsyncDisposable
     {
         IsLoading = true;
         StateHasChanged();
-        using HttpClient httpClient = HttpClientFactory.CreateClient();
-        httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
 
-        HttpResponseMessage response = await httpClient.GetAsync("/api/webauthn/credentials");
-        if (response.IsSuccessStatusCode)
+        try
         {
-            List<PasskeyCredentialDto>? credentials = await response.Content.ReadFromJsonAsync<List<PasskeyCredentialDto>>();
-            Credentials = credentials ?? [];
+            if (User?.Id == null)
+            {
+                _ = Snackbar.Add(Localizer["Error"], Severity.Error);
+                return;
+            }
+
+            IEnumerable<WebAuthnCredentialDto> credentials = await WebAuthnService.ListCredentialsAsync(User.Id);
+            Credentials = credentials.ToList();
         }
-        else
+        catch (Exception ex)
         {
             _ = Snackbar.Add(Localizer["Error"], Severity.Error);
         }
-        IsLoading = false;
+        finally
+        {
+            IsLoading = false;
+        }
     }
 
     private async Task RegisterPasskeyAsync()
@@ -63,48 +72,44 @@ public partial class Passkeys : IAsyncDisposable
 
         IsRegistering = true;
         StateHasChanged();
-        using HttpClient httpClient = HttpClientFactory.CreateClient();
-        httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
 
-        // Step 1: Begin registration - get options from server
-        HttpResponseMessage beginResponse = await httpClient.PostAsync("/api/webauthn/register/begin", null);
-
-        if (!beginResponse.IsSuccessStatusCode)
+        try
         {
-            _ = Snackbar.Add(Localizer["PasskeyRegistrationFailed"], Severity.Error);
-            return;
-        }
+            if (User?.Id == null)
+            {
+                _ = Snackbar.Add(Localizer["PasskeyRegistrationFailed"], Severity.Error);
+                return;
+            }
 
-        JsonDocument options = await beginResponse.Content.ReadFromJsonAsync<JsonDocument>()
-            ?? throw new InvalidOperationException("Failed to parse registration options");
+            // Step 1: Begin registration - get options from service
+            string optionsJson = await WebAuthnService.BeginRegistrationAsync(User.Id);
+            JsonDocument options = JsonDocument.Parse(optionsJson);
 
-        // Step 2: Create credential using authenticator
-        object credentialResponse = await _jsModule.InvokeAsync<object>(
-            "createCredential",
-            options.RootElement);
+            // Step 2: Create credential using authenticator
+            object credentialResponse = await _jsModule.InvokeAsync<object>(
+                "createCredential",
+                options.RootElement);
 
-        // Step 3: Complete registration - send attestation to server
-        HttpResponseMessage completeResponse = await httpClient.PostAsJsonAsync(
-            "/api/webauthn/register/complete",
-            credentialResponse);
+            // Step 3: Complete registration - send attestation to service
+            string credentialResponseJson = JsonSerializer.Serialize(credentialResponse);
+            string credentialId = await WebAuthnService.CompleteRegistrationAsync(User.Id, credentialResponseJson);
 
-        if (completeResponse.IsSuccessStatusCode)
-        {
             _ = Snackbar.Add(Localizer["PasskeyRegistered"], Severity.Success);
             await LoadCredentialsAsync();
         }
-        else
+        catch (Exception ex)
         {
             _ = Snackbar.Add(Localizer["PasskeyRegistrationFailed"], Severity.Error);
         }
-
-        IsRegistering = false;
-        StateHasChanged();
+        finally
+        {
+            IsRegistering = false;
+            StateHasChanged();
+        }
     }
 
-    private async Task DeletePasskeyAsync(PasskeyCredentialDto credentialDto)
+    private async Task DeletePasskeyAsync(WebAuthnCredentialDto credentialDto)
     {
-
         DialogParameters parameters = new()
             {
                 { nameof(ConfirmDialog.ContentText), Localizer["ConfirmationQuestion"].Value },
@@ -114,27 +119,25 @@ public partial class Passkeys : IAsyncDisposable
         IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>(null, parameters);
         DialogResult? result = await dialog.Result;
 
-        if (result is null)
-        {
-            return;
-        }
-
-        if (result.Canceled)
+        if (result is null || result.Canceled)
         {
             return;
         }
 
         IsDeletingCredential = true;
         StateHasChanged();
-        Guid credentialId = credentialDto.Id;
+
         try
         {
-            using HttpClient httpClient = HttpClientFactory.CreateClient();
-            httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
+            if (User?.Id == null)
+            {
+                _ = Snackbar.Add(Localizer["Error"], Severity.Error);
+                return;
+            }
 
-            HttpResponseMessage response = await httpClient.DeleteAsync($"/api/webauthn/credentials/{credentialId}");
+            bool deleted = await WebAuthnService.DeleteCredentialAsync(credentialDto.Id, User.Id);
 
-            if (response.IsSuccessStatusCode)
+            if (deleted)
             {
                 _ = Snackbar.Add(Localizer["PasskeyDeleted"], Severity.Success);
                 await LoadCredentialsAsync();
@@ -164,13 +167,4 @@ public partial class Passkeys : IAsyncDisposable
 
         GC.SuppressFinalize(this);
     }
-}
-
-public record PasskeyCredentialDto
-{
-    public Guid Id { get; init; }
-    public string? FriendlyName { get; init; }
-    public DateTimeOffset RegisteredAt { get; init; }
-    public DateTimeOffset? LastUsedAt { get; init; }
-    public string? Transports { get; init; }
 }

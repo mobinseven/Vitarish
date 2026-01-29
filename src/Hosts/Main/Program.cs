@@ -25,7 +25,6 @@ using Vitarish.Requests.Hosting.DependencyInjection;
 using Vitarish.Requests.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Sea.Interface;
-using Vitarish.Users.Hosting.Api;
 using Vitarish.Users.Hosting.DependencyInjection;
 using Vitarish.Users.Infrastructure.Data;
 
@@ -175,8 +174,6 @@ _ = app.UseAntiforgery();
 _ = app.UseMultiTenant();
 
 _ = await app.MapModuleEndpoints();
-
-app.MapWebAuthnEndpoints();
 
 _ = app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 _ = app.MapRazorPages();
