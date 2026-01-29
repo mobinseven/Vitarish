@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Vitarish.Interfaces.Base.Common;
 
 namespace Vitarish.Main.Pages.Accounts;
 
@@ -11,13 +12,6 @@ public partial class Passkeys : IAsyncDisposable
     private bool IsSupported { get; set; }
 
     private IJSObjectReference? _jsModule;
-    private ILogger<Passkeys>? _logger;
-
-    protected override Task OnInitializedAsync()
-    {
-        _logger = LoggerFactory.CreateLogger<Passkeys>();
-        return base.OnInitializedAsync();
-    }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -32,7 +26,6 @@ public partial class Passkeys : IAsyncDisposable
             }
             catch (Exception ex)
             {
-                _logger?.LogWarning(ex, "Failed to initialize WebAuthn support check");
                 IsSupported = false;
             }
 
@@ -45,33 +38,20 @@ public partial class Passkeys : IAsyncDisposable
     {
         IsLoading = true;
         StateHasChanged();
+        using HttpClient httpClient = HttpClientFactory.CreateClient();
+        httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
 
-        try
+        HttpResponseMessage response = await httpClient.GetAsync("/api/webauthn/credentials");
+        if (response.IsSuccessStatusCode)
         {
-            using HttpClient httpClient = HttpClientFactory.CreateClient();
-            httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
-
-            HttpResponseMessage response = await httpClient.GetAsync("/api/webauthn/credentials");
-            if (response.IsSuccessStatusCode)
-            {
-                List<PasskeyCredentialDto>? credentials = await response.Content.ReadFromJsonAsync<List<PasskeyCredentialDto>>();
-                Credentials = credentials ?? [];
-            }
-            else
-            {
-                _logger?.LogWarning("Failed to load WebAuthn credentials. Status: {StatusCode}", response.StatusCode);
-                _ = Snackbar.Add(Localizer["Error"], Severity.Error);
-            }
+            List<PasskeyCredentialDto>? credentials = await response.Content.ReadFromJsonAsync<List<PasskeyCredentialDto>>();
+            Credentials = credentials ?? [];
         }
-        catch (Exception ex)
+        else
         {
-            _logger?.LogError(ex, "Error loading WebAuthn credentials");
             _ = Snackbar.Add(Localizer["Error"], Severity.Error);
         }
-        finally
-        {
-            IsLoading = false;
-        }
+        IsLoading = false;
     }
 
     private async Task RegisterPasskeyAsync()
@@ -83,68 +63,70 @@ public partial class Passkeys : IAsyncDisposable
 
         IsRegistering = true;
         StateHasChanged();
+        using HttpClient httpClient = HttpClientFactory.CreateClient();
+        httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
 
-        try
+        // Step 1: Begin registration - get options from server
+        HttpResponseMessage beginResponse = await httpClient.PostAsync("/api/webauthn/register/begin", null);
+
+        if (!beginResponse.IsSuccessStatusCode)
         {
-            using HttpClient httpClient = HttpClientFactory.CreateClient();
-            httpClient.BaseAddress = new Uri(NavigationManager.BaseUri);
-
-            // Step 1: Begin registration - get options from server
-            HttpResponseMessage beginResponse = await httpClient.PostAsync("/api/webauthn/register/begin", null);
-
-            if (!beginResponse.IsSuccessStatusCode)
-            {
-                _logger?.LogWarning("Failed to begin WebAuthn registration. Status: {StatusCode}", beginResponse.StatusCode);
-                _ = Snackbar.Add(Localizer["PasskeyRegistrationFailed"], Severity.Error);
-                return;
-            }
-
-            JsonDocument options = await beginResponse.Content.ReadFromJsonAsync<JsonDocument>()
-                ?? throw new InvalidOperationException("Failed to parse registration options");
-
-            // Step 2: Create credential using authenticator
-            object credentialResponse = await _jsModule.InvokeAsync<object>(
-                "createCredential",
-                options.RootElement);
-
-            // Step 3: Complete registration - send attestation to server
-            HttpResponseMessage completeResponse = await httpClient.PostAsJsonAsync(
-                "/api/webauthn/register/complete",
-                credentialResponse);
-
-            if (completeResponse.IsSuccessStatusCode)
-            {
-                _ = Snackbar.Add(Localizer["PasskeyRegistered"], Severity.Success);
-                await LoadCredentialsAsync();
-            }
-            else
-            {
-                _logger?.LogWarning("Failed to complete WebAuthn registration. Status: {StatusCode}", completeResponse.StatusCode);
-                _ = Snackbar.Add(Localizer["PasskeyRegistrationFailed"], Severity.Error);
-            }
+            _ = Snackbar.Add(Localizer["PasskeyRegistrationFailed"], Severity.Error);
+            return;
         }
-        catch (JSException ex)
+
+        JsonDocument options = await beginResponse.Content.ReadFromJsonAsync<JsonDocument>()
+            ?? throw new InvalidOperationException("Failed to parse registration options");
+
+        // Step 2: Create credential using authenticator
+        object credentialResponse = await _jsModule.InvokeAsync<object>(
+            "createCredential",
+            options.RootElement);
+
+        // Step 3: Complete registration - send attestation to server
+        HttpResponseMessage completeResponse = await httpClient.PostAsJsonAsync(
+            "/api/webauthn/register/complete",
+            credentialResponse);
+
+        if (completeResponse.IsSuccessStatusCode)
         {
-            _logger?.LogInformation(ex, "WebAuthn registration cancelled by user");
-            _ = Snackbar.Add(Localizer["PasskeyRegistrationCancelled"], Severity.Warning);
+            _ = Snackbar.Add(Localizer["PasskeyRegistered"], Severity.Success);
+            await LoadCredentialsAsync();
         }
-        catch (Exception ex)
+        else
         {
-            _logger?.LogError(ex, "Error during WebAuthn registration");
             _ = Snackbar.Add(Localizer["PasskeyRegistrationFailed"], Severity.Error);
         }
-        finally
-        {
-            IsRegistering = false;
-            StateHasChanged();
-        }
+
+        IsRegistering = false;
+        StateHasChanged();
     }
 
-    private async Task DeletePasskeyAsync(Guid credentialId)
+    private async Task DeletePasskeyAsync(PasskeyCredentialDto credentialDto)
     {
+
+        DialogParameters parameters = new()
+            {
+                { nameof(ConfirmDialog.ContentText), Localizer["ConfirmationQuestion"].Value },
+                { nameof(ConfirmDialog.ButtonText), Localizer["Delete", credentialDto.FriendlyName].Value },
+                { nameof(ConfirmDialog.Color), Color.Error }
+            };
+        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>(null, parameters);
+        DialogResult? result = await dialog.Result;
+
+        if (result is null)
+        {
+            return;
+        }
+
+        if (result.Canceled)
+        {
+            return;
+        }
+
         IsDeletingCredential = true;
         StateHasChanged();
-
+        Guid credentialId = credentialDto.Id;
         try
         {
             using HttpClient httpClient = HttpClientFactory.CreateClient();
@@ -159,13 +141,11 @@ public partial class Passkeys : IAsyncDisposable
             }
             else
             {
-                _logger?.LogWarning("Failed to delete WebAuthn credential {CredentialId}. Status: {StatusCode}", credentialId, response.StatusCode);
                 _ = Snackbar.Add(Localizer["Error"], Severity.Error);
             }
         }
         catch (Exception ex)
         {
-            _logger?.LogError(ex, "Error deleting WebAuthn credential {CredentialId}", credentialId);
             _ = Snackbar.Add(Localizer["Error"], Severity.Error);
         }
         finally
@@ -181,6 +161,8 @@ public partial class Passkeys : IAsyncDisposable
         {
             await _jsModule.DisposeAsync();
         }
+
+        GC.SuppressFinalize(this);
     }
 }
 

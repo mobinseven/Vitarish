@@ -213,15 +213,15 @@
   <data name="UserNotFound" xml:space="preserve">
     <value>کاربر یافت نشد</value>
   </data>
-    <data name="EmailChangeFailed" xml:space="preserve">
-      <value>تغییر رایانامه ناموفق بود</value>
-    </data>
-    <data name="EmailChangeSuccess" xml:space="preserve">
-      <value>رایانامه با موفقیت به‌روز شد</value>
-    </data>
-    <data name="CurrentEmail" xml:space="preserve">
-      <value>ایمیل فعلی</value>
-    </data>
+  <data name="EmailChangeFailed" xml:space="preserve">
+    <value>تغییر رایانامه ناموفق بود</value>
+  </data>
+  <data name="EmailChangeSuccess" xml:space="preserve">
+    <value>رایانامه با موفقیت به‌روز شد</value>
+  </data>
+  <data name="CurrentEmail" xml:space="preserve">
+    <value>ایمیل فعلی</value>
+  </data>
   <data name="EmptyFieldError" xml:space="preserve">
     <value>{0} وارد نشده</value>
   </data>
@@ -450,20 +450,17 @@
   <data name="ReferenceToken" xml:space="preserve">
     <value>توکن مرجع</value>
   </data>
-  <data name="Tenant" xml:space="preserve">
-    <value>مستاجر</value>
-  </data>
-  <data name="TenantAccess" xml:space="preserve">
-    <value>دسترسی مستاجر</value>
-  </data>
   <data name="GenerateToken" xml:space="preserve">
     <value>ایجاد توکن</value>
   </data>
   <data name="Token" xml:space="preserve">
     <value>توکن</value>
   </data>
-  <data name="PrimaryIdentifier" xml:space="preserve">
-    <value>شناسه اصلی</value>
+  <data name="Tenant" xml:space="preserve">
+    <value>مستاجر</value>
+  </data>
+  <data name="TenantAccess" xml:space="preserve">
+    <value>دسترسی مستاجر</value>
   </data>
   <data name="ManagePersonalAccessTokens" xml:space="preserve">
     <value>مدیریت توکن‌های دسترسی شخصی</value>
@@ -476,6 +473,9 @@
   </data>
   <data name="TokenCreationFailed" xml:space="preserve">
     <value>ایجاد توکن دسترسی شخصی ناموفق بود.</value>
+  </data>
+  <data name="PrimaryIdentifier" xml:space="preserve">
+    <value>شناسه اصلی</value>
   </data>
   <data name="LoginViaPasskey" xml:space="preserve">
     <value>ورود با کلید عبور</value>
@@ -665,5 +665,8 @@
   </data>
   <data name="Edit" xml:space="preserve">
     <value>ویرایش</value>
+  </data>
+  <data name="ConfirmationQuestion" xml:space="preserve">
+    <value>آیا مطمئن هستید؟</value>
   </data>
 </root>

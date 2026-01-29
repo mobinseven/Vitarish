@@ -30,6 +30,11 @@
                      Label="@Localizer["EditPassword"]">
             ***********
         </StackButton>
+        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/Passkeys"))"
+                     StartIcon="fa-regular fa-lock"
+                     Label="@Localizer["Passkeys"]">
+            
+        </StackButton>
     </Stack>
     <Stack>
         <StackField Label="@Localizer["Language"]">

@@ -213,15 +213,15 @@
   <data name="UserNotFound" xml:space="preserve">
     <value>User not found</value>
   </data>
-    <data name="EmailChangeFailed" xml:space="preserve">
-      <value>Email change failed</value>
-    </data>
-    <data name="EmailChangeSuccess" xml:space="preserve">
-      <value>Email updated successfully</value>
-    </data>
-    <data name="CurrentEmail" xml:space="preserve">
-      <value>Current email</value>
-    </data>
+  <data name="EmailChangeFailed" xml:space="preserve">
+    <value>Email change failed</value>
+  </data>
+  <data name="EmailChangeSuccess" xml:space="preserve">
+    <value>Email updated successfully</value>
+  </data>
+  <data name="CurrentEmail" xml:space="preserve">
+    <value>Current email</value>
+  </data>
   <data name="EmptyFieldError" xml:space="preserve">
     <value>The {0} field must have a value</value>
   </data>
@@ -704,5 +704,8 @@
   </data>
   <data name="Edit" xml:space="preserve">
     <value>Edit</value>
+  </data>
+  <data name="ConfirmationQuestion" xml:space="preserve">
+    <value>Are you sure?</value>
   </data>
 </root>
