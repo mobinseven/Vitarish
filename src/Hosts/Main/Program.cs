@@ -176,7 +176,7 @@ _ = app.UseMultiTenant();
 
 _ = await app.MapModuleEndpoints();
 
-app.MapWebAuthnEndpoints();
+app.MapWebAuthnApiEndpoints();
 
 _ = app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 _ = app.MapRazorPages();

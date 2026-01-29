@@ -37,6 +37,7 @@ public static class IdentityUsersExtensions
         _ = builder.Services.AddTransient<IUserProfileService, UserProfileService>();
         _ = builder.Services.AddTransient<IPersonalAccessTokenGenerator, PersonalAccessTokenGenerator>();
         _ = builder.Services.AddTransient<IUsersService, UsersService>();
+        _ = builder.Services.AddTransient<IWebAuthnService, WebAuthnService>();
     }
 
     /// <summary>
