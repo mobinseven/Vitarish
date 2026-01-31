@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Localization;
 using System.Globalization;
 using Vitarish.Accounts.Domain.Constants;
 using Vitarish.Accounts.Infrastructure.Extensions;
+using Vitarish.Accounts.Interface.Abstractions;
+using Vitarish.Accounts.Interface.Services;
 
 public static class WebApplicationBuilderExtensions
 {
@@ -19,6 +21,11 @@ public static class WebApplicationBuilderExtensions
         _ = builder.Services.AddTransient<IEmailAuthenticationService, EmailAuthenticationService>();
         _ = builder.Services.AddTransient<IPersonalAccessTokenService, PersonalAccessTokenService>();
         _ = builder.Services.AddTransient<ICipherService, CipherService>();
+        
+        // Register WebAuthn interop service
+        _ = builder.Services.AddScoped<WebAuthnInteropService>();
+        _ = builder.Services.AddScoped<IWebAuthnInterop>(static sp => sp.GetRequiredService<WebAuthnInteropService>());
+        
         _ = builder.Services.AddHttpClient();
         _ = builder.Services.AddAuthorization(options =>
         {
