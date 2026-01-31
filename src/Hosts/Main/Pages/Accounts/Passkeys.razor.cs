@@ -20,29 +20,15 @@ public partial class Passkeys
     {
         if (firstRender)
         {
-            bool initialized = false;
             try
             {
                 await WebAuthnInterop.InitializeAsync();
-                initialized = true;
+                IsSupported = await WebAuthnInterop.IsWebAuthnSupportedAsync();
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "Failed to initialize WebAuthn interop");
-            }
-
-            // Only check support if initialization succeeded
-            if (initialized)
-            {
-                try
-                {
-                    IsSupported = await WebAuthnInterop.IsWebAuthnSupportedAsync();
-                }
-                catch (Exception ex)
-                {
-                    Logger.LogWarning(ex, "Failed to check WebAuthn support");
-                    IsSupported = false;
-                }
+                Logger.LogWarning(ex, "Failed to initialize WebAuthn or check support");
+                IsSupported = false;
             }
 
             await LoadCredentialsAsync();
