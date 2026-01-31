@@ -73,52 +73,73 @@ export async function createCredential(options) {
         throw new Error('WebAuthn is not supported in this browser');
     }
 
-    // Convert server options to WebAuthn format
-    const publicKeyOptions = {
-        challenge: base64UrlToUint8Array(options.challenge),
-        rp: {
-            id: options.rp.id,
-            name: options.rp.name
-        },
-        user: {
-            id: base64UrlToUint8Array(options.user.id),
-            name: options.user.name,
-            displayName: options.user.displayName
-        },
-        pubKeyCredParams: options.pubKeyCredParams.map(p => ({
-            type: p.type,
-            alg: p.alg
-        })),
-        timeout: options.timeout || 60000,
-        attestation: options.attestation || 'none',
-        authenticatorSelection: options.authenticatorSelection || {}
-    };
+    try {
+        // Convert server options to WebAuthn format
+        const publicKeyOptions = {
+            challenge: base64UrlToUint8Array(options.challenge),
+            rp: {
+                id: options.rp.id,
+                name: options.rp.name
+            },
+            user: {
+                id: base64UrlToUint8Array(options.user.id),
+                name: options.user.name,
+                displayName: options.user.displayName
+            },
+            pubKeyCredParams: options.pubKeyCredParams.map(p => ({
+                type: p.type,
+                alg: p.alg
+            })),
+            timeout: options.timeout || 60000,
+            attestation: options.attestation || 'none',
+            authenticatorSelection: options.authenticatorSelection || {}
+        };
 
-    // Add excludeCredentials if present
-    if (options.excludeCredentials && options.excludeCredentials.length > 0) {
-        publicKeyOptions.excludeCredentials = options.excludeCredentials.map(c => ({
-            type: c.type,
-            id: base64UrlToUint8Array(c.id),
-            transports: c.transports
-        }));
-    }
-
-    // Call the WebAuthn API
-    const credential = await navigator.credentials.create({
-        publicKey: publicKeyOptions
-    });
-
-    // Format the response for the server
-    const response = credential.response;
-    return {
-        id: credential.id,
-        rawId: arrayBufferToBase64Url(credential.rawId),
-        type: credential.type,
-        response: {
-            attestationObject: arrayBufferToBase64Url(response.attestationObject),
-            clientDataJSON: arrayBufferToBase64Url(response.clientDataJSON)
+        // Add excludeCredentials if present
+        if (options.excludeCredentials && options.excludeCredentials.length > 0) {
+            publicKeyOptions.excludeCredentials = options.excludeCredentials.map(c => ({
+                type: c.type,
+                id: base64UrlToUint8Array(c.id),
+                transports: c.transports
+            }));
         }
-    };
+
+        // Call the WebAuthn API
+        const credential = await navigator.credentials.create({
+            publicKey: publicKeyOptions
+        });
+
+        if (!credential) {
+            throw new Error('Failed to create credential: No credential returned');
+        }
+
+        // Format the response for the server
+        const response = credential.response;
+        return {
+            id: credential.id,
+            rawId: arrayBufferToBase64Url(credential.rawId),
+            type: credential.type,
+            response: {
+                attestationObject: arrayBufferToBase64Url(response.attestationObject),
+                clientDataJSON: arrayBufferToBase64Url(response.clientDataJSON)
+            }
+        };
+    } catch (error) {
+        // Enhance error messages
+        if (error.name === 'NotAllowedError') {
+            throw new Error('User cancelled the credential creation or the operation timed out');
+        } else if (error.name === 'AbortError') {
+            throw new Error('Credential creation was aborted');
+        } else if (error.name === 'NotSupportedError') {
+            throw new Error('WebAuthn is not supported or the authenticator does not support the requested algorithm');
+        } else if (error.name === 'InvalidStateError') {
+            throw new Error('The authenticator is already registered for this user');
+        } else if (error.name === 'SecurityError') {
+            throw new Error('The operation is insecure or not allowed in this context');
+        }
+        // Re-throw the original error or our enhanced version
+        throw error;
+    }
 }
 
 /**
@@ -131,39 +152,60 @@ export async function getCredential(options) {
         throw new Error('WebAuthn is not supported in this browser');
     }
 
-    // Convert server options to WebAuthn format
-    const publicKeyOptions = {
-        challenge: base64UrlToUint8Array(options.challenge),
-        timeout: options.timeout || 60000,
-        rpId: options.rpId,
-        userVerification: options.userVerification || 'preferred'
-    };
+    try {
+        // Convert server options to WebAuthn format
+        const publicKeyOptions = {
+            challenge: base64UrlToUint8Array(options.challenge),
+            timeout: options.timeout || 60000,
+            rpId: options.rpId,
+            userVerification: options.userVerification || 'preferred'
+        };
 
-    // Add allowCredentials if present
-    if (options.allowCredentials && options.allowCredentials.length > 0) {
-        publicKeyOptions.allowCredentials = options.allowCredentials.map(c => ({
-            type: c.type,
-            id: base64UrlToUint8Array(c.id),
-            transports: c.transports
-        }));
-    }
-
-    // Call the WebAuthn API
-    const credential = await navigator.credentials.get({
-        publicKey: publicKeyOptions
-    });
-
-    // Format the response for the server
-    const response = credential.response;
-    return {
-        id: credential.id,
-        rawId: arrayBufferToBase64Url(credential.rawId),
-        type: credential.type,
-        response: {
-            authenticatorData: arrayBufferToBase64Url(response.authenticatorData),
-            clientDataJSON: arrayBufferToBase64Url(response.clientDataJSON),
-            signature: arrayBufferToBase64Url(response.signature),
-            userHandle: response.userHandle ? arrayBufferToBase64Url(response.userHandle) : null
+        // Add allowCredentials if present
+        if (options.allowCredentials && options.allowCredentials.length > 0) {
+            publicKeyOptions.allowCredentials = options.allowCredentials.map(c => ({
+                type: c.type,
+                id: base64UrlToUint8Array(c.id),
+                transports: c.transports
+            }));
         }
-    };
+
+        // Call the WebAuthn API
+        const credential = await navigator.credentials.get({
+            publicKey: publicKeyOptions
+        });
+
+        if (!credential) {
+            throw new Error('Failed to get credential: No credential returned');
+        }
+
+        // Format the response for the server
+        const response = credential.response;
+        return {
+            id: credential.id,
+            rawId: arrayBufferToBase64Url(credential.rawId),
+            type: credential.type,
+            response: {
+                authenticatorData: arrayBufferToBase64Url(response.authenticatorData),
+                clientDataJSON: arrayBufferToBase64Url(response.clientDataJSON),
+                signature: arrayBufferToBase64Url(response.signature),
+                userHandle: response.userHandle ? arrayBufferToBase64Url(response.userHandle) : null
+            }
+        };
+    } catch (error) {
+        // Enhance error messages
+        if (error.name === 'NotAllowedError') {
+            throw new Error('User cancelled the authentication or the operation timed out');
+        } else if (error.name === 'AbortError') {
+            throw new Error('Authentication was aborted');
+        } else if (error.name === 'NotSupportedError') {
+            throw new Error('WebAuthn is not supported or the authenticator does not support the requested algorithm');
+        } else if (error.name === 'SecurityError') {
+            throw new Error('The operation is insecure or not allowed in this context');
+        } else if (error.name === 'UnknownError') {
+            throw new Error('An unknown error occurred during authentication. Please ensure your authenticator is set up correctly.');
+        }
+        // Re-throw the original error or our enhanced version
+        throw error;
+    }
 }

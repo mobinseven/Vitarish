@@ -1,18 +1,20 @@
 using System.Net.Http.Json;
 using System.Text.Json;
+using Vitarish.Accounts.Interface.Abstractions;
 
 namespace Vitarish.Accounts.Interface.Components.Account;
 
-public partial class WebAuthnLoginForm : IdentityCommonBase, IAsyncDisposable
+public partial class WebAuthnLoginForm : IdentityCommonBase
 {
     [Parameter] public string? ReturnUrl { get; set; }
+
+    [Inject] public IWebAuthnInterop WebAuthnService { get; set; } = default!;
 
     private string Username { get; set; } = string.Empty;
     private string? ErrorMessage { get; set; }
     private bool IsAuthenticating { get; set; }
     private bool IsSupported { get; set; }
 
-    private IJSObjectReference? _jsModule;
     private ILogger<WebAuthnLoginForm>? _logger;
 
     protected override async Task OnInitializedAsync()
@@ -27,10 +29,8 @@ public partial class WebAuthnLoginForm : IdentityCommonBase, IAsyncDisposable
         {
             try
             {
-                _jsModule = await Js.InvokeAsync<IJSObjectReference>(
-                    "import",
-                    "./_content/Vitarish.Accounts.Interface/Components/Account/WebAuthnInterop.razor.js");
-                IsSupported = await _jsModule.InvokeAsync<bool>("isWebAuthnSupported");
+                await WebAuthnService.InitializeAsync();
+                IsSupported = await WebAuthnService.IsWebAuthnSupportedAsync();
                 StateHasChanged();
             }
             catch (Exception ex)
@@ -44,7 +44,7 @@ public partial class WebAuthnLoginForm : IdentityCommonBase, IAsyncDisposable
 
     private async Task AuthenticateAsync()
     {
-        if (string.IsNullOrWhiteSpace(Username) || _jsModule is null)
+        if (string.IsNullOrWhiteSpace(Username))
         {
             return;
         }
@@ -72,10 +72,8 @@ public partial class WebAuthnLoginForm : IdentityCommonBase, IAsyncDisposable
             JsonDocument options = await beginResponse.Content.ReadFromJsonAsync<JsonDocument>()
                 ?? throw new InvalidOperationException("Failed to parse authentication options");
 
-            // Step 2: Get credential from authenticator
-            object credentialResponse = await _jsModule.InvokeAsync<object>(
-                "getCredential",
-                options.RootElement);
+            // Step 2: Get credential from authenticator using the service
+            object credentialResponse = await WebAuthnService.GetCredentialAsync(options.RootElement);
 
             // Step 3: Complete authentication - send assertion to server
             HttpResponseMessage completeResponse = await httpClient.PostAsJsonAsync(
@@ -93,28 +91,30 @@ public partial class WebAuthnLoginForm : IdentityCommonBase, IAsyncDisposable
                 ErrorMessage = Localizer["InvalidLoginAttempt"];
             }
         }
-        catch (JSException ex)
+        catch (WebAuthnUserCancelledException ex)
         {
             _logger?.LogInformation(ex, "WebAuthn authentication cancelled by user for username: {Username}", Username);
             ErrorMessage = Localizer["PasskeyAuthenticationCancelled"];
         }
-        catch (Exception ex)
+        catch (WebAuthnNotSupportedException ex)
+        {
+            _logger?.LogWarning(ex, "WebAuthn not supported for username: {Username}", Username);
+            ErrorMessage = Localizer["WebAuthnNotSupported"];
+        }
+        catch (WebAuthnException ex)
         {
             _logger?.LogError(ex, "WebAuthn authentication failed for username: {Username}", Username);
+            ErrorMessage = Localizer["InvalidLoginAttempt"];
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Unexpected error during WebAuthn authentication for username: {Username}", Username);
             ErrorMessage = Localizer["InvalidLoginAttempt"];
         }
         finally
         {
             IsAuthenticating = false;
             StateHasChanged();
-        }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.DisposeAsync();
         }
     }
 }

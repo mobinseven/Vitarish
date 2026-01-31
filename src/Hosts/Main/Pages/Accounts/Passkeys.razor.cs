@@ -1,11 +1,14 @@
 using System.Text.Json;
+using Vitarish.Accounts.Interface.Abstractions;
 using Vitarish.Interfaces.Base.Common;
 
 namespace Vitarish.Main.Pages.Accounts;
 
-public partial class Passkeys : IAsyncDisposable
+public partial class Passkeys
 {
     [Inject] private IWebAuthnService WebAuthnService { get; set; } = default!;
+    [Inject] private IWebAuthnInterop WebAuthnInterop { get; set; } = default!;
+    [Inject] private ILogger<Passkeys> Logger { get; set; } = default!;
 
     private List<WebAuthnCredentialDto> Credentials { get; set; } = [];
     private bool IsLoading { get; set; } = true;
@@ -13,21 +16,18 @@ public partial class Passkeys : IAsyncDisposable
     private bool IsDeletingCredential { get; set; }
     private bool IsSupported { get; set; }
 
-    private IJSObjectReference? _jsModule;
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             try
             {
-                _jsModule = await Js.InvokeAsync<IJSObjectReference>(
-                    "import",
-                    "./_content/Vitarish.Accounts.Interface/Components/Account/WebAuthnInterop.razor.js");
-                IsSupported = await _jsModule.InvokeAsync<bool>("isWebAuthnSupported");
+                await WebAuthnInterop.InitializeAsync();
+                IsSupported = await WebAuthnInterop.IsWebAuthnSupportedAsync();
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Logger.LogWarning(ex, "Failed to initialize WebAuthn or check support");
                 IsSupported = false;
             }
 
@@ -64,11 +64,6 @@ public partial class Passkeys : IAsyncDisposable
 
     private async Task RegisterPasskeyAsync()
     {
-        if (_jsModule is null)
-        {
-            return;
-        }
-
         IsRegistering = true;
         StateHasChanged();
 
@@ -84,10 +79,8 @@ public partial class Passkeys : IAsyncDisposable
             string optionsJson = await WebAuthnService.BeginRegistrationAsync(User.Id);
             JsonDocument options = JsonDocument.Parse(optionsJson);
 
-            // Step 2: Create credential using authenticator
-            object credentialResponse = await _jsModule.InvokeAsync<object>(
-                "createCredential",
-                options.RootElement);
+            // Step 2: Create credential using authenticator via the interop service
+            object credentialResponse = await WebAuthnInterop.CreateCredentialAsync(options.RootElement);
 
             // Step 3: Complete registration - send attestation to service
             string credentialResponseJson = JsonSerializer.Serialize(credentialResponse);
@@ -96,8 +89,24 @@ public partial class Passkeys : IAsyncDisposable
             _ = Snackbar.Add(Localizer["PasskeyRegistered"], Severity.Success);
             await LoadCredentialsAsync();
         }
-        catch (Exception)
+        catch (WebAuthnUserCancelledException ex)
         {
+            Logger.LogInformation(ex, "WebAuthn registration cancelled by user");
+            _ = Snackbar.Add(Localizer["PasskeyRegistrationCancelled"], Severity.Warning);
+        }
+        catch (WebAuthnNotSupportedException ex)
+        {
+            Logger.LogWarning(ex, "WebAuthn not supported during registration");
+            _ = Snackbar.Add(Localizer["PasskeyNotSupported"], Severity.Error);
+        }
+        catch (WebAuthnException ex)
+        {
+            Logger.LogError(ex, "WebAuthn registration failed");
+            _ = Snackbar.Add(Localizer["PasskeyRegistrationFailed"], Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Unexpected error during passkey registration");
             _ = Snackbar.Add(Localizer["PasskeyRegistrationFailed"], Severity.Error);
         }
         finally
@@ -157,13 +166,4 @@ public partial class Passkeys : IAsyncDisposable
         }
     }
 
-    public async ValueTask DisposeAsync()
-    {
-        if (_jsModule is not null)
-        {
-            await _jsModule.DisposeAsync();
-        }
-
-        GC.SuppressFinalize(this);
-    }
 }
