@@ -60,6 +60,7 @@ builder.Services.AddRazorComponents()
                     options.MaximumParallelInvocationsPerClient = 1;
                     options.MaximumReceiveMessageSize = 128 * 1024;
                 });
+
 _ = builder.Services.AddRazorPages(options =>
 {
     options.RootDirectory = "/Pages";

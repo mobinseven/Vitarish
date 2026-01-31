@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Vitarish.Interfaces.Base.Common;
-using Vitarish.Users.Application.Abstractions;
 
 namespace Vitarish.Main.Pages.Accounts;
 
@@ -27,7 +26,7 @@ public partial class Passkeys : IAsyncDisposable
                     "./_content/Vitarish.Accounts.Interface/Components/Account/WebAuthnInterop.razor.js");
                 IsSupported = await _jsModule.InvokeAsync<bool>("isWebAuthnSupported");
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 IsSupported = false;
             }
@@ -51,9 +50,9 @@ public partial class Passkeys : IAsyncDisposable
             }
 
             IEnumerable<WebAuthnCredentialDto> credentials = await WebAuthnService.ListCredentialsAsync(User.Id);
-            Credentials = credentials.ToList();
+            Credentials = [.. credentials];
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _ = Snackbar.Add(Localizer["Error"], Severity.Error);
         }
@@ -97,7 +96,7 @@ public partial class Passkeys : IAsyncDisposable
             _ = Snackbar.Add(Localizer["PasskeyRegistered"], Severity.Success);
             await LoadCredentialsAsync();
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _ = Snackbar.Add(Localizer["PasskeyRegistrationFailed"], Severity.Error);
         }
@@ -147,7 +146,7 @@ public partial class Passkeys : IAsyncDisposable
                 _ = Snackbar.Add(Localizer["Error"], Severity.Error);
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _ = Snackbar.Add(Localizer["Error"], Severity.Error);
         }

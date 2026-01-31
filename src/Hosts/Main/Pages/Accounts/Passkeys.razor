@@ -15,14 +15,14 @@ else
         }
         else
         {
-            <StackField Label="@Localizer["RegisteredPasskeys"]" />
             @foreach(var credential in Credentials)
             {
                 <StackButton Label="@(credential.FriendlyName ?? Localizer["UnnamedPasskey"])" OnClick="@(() => DeletePasskeyAsync(credential))" />
             }
             <StackButton Label="@Localizer["RegisterNewPasskey"]"
                          OnClick="@RegisterPasskeyAsync"
-                         StartIcon="fa-regular fa-key-plus" />
+                         Color="Color.Primary"
+                         StartIcon="fa-regular fa-plus" />
         }
     </Stack>
 }
