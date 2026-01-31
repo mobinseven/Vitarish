@@ -19,7 +19,7 @@
                     </MudChip>
                 </CellTemplate>
             </PropertyColumn>
-            <PropertyColumn Property="x => x.Verification!.Method" Title="Verification">
+            <PropertyColumn Property="x => x.Verification.Method" Title="Verification">
                 <CellTemplate>
                     @if (context.Item.Verification is not null)
                     {

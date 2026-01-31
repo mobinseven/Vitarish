@@ -10,6 +10,7 @@ public partial class TenantIndicatorsComponent
     [Parameter] public Guid TenantId { get; set; }
     
     private List<TenantIndicator> Indicators { get; set; } = [];
+    private Guid _previousTenantId = Guid.Empty;
     private IndicatorMethod newMethod = IndicatorMethod.Hostname;
     private IndicatorVerificationMethod newVerificationMethod = IndicatorVerificationMethod.DnsTxt;
     private string newValue = string.Empty;
@@ -21,19 +22,17 @@ public partial class TenantIndicatorsComponent
 
     protected override async Task OnParametersSetAsync()
     {
-        if (TenantId != Guid.Empty)
+        if (TenantId != Guid.Empty && TenantId != _previousTenantId)
         {
+            _previousTenantId = TenantId;
             await LoadIndicators();
         }
     }
 
     private async Task LoadIndicators()
     {
-        if (TenantId != Guid.Empty)
-        {
-            Indicators = [.. await PartiesService.GetTenantIndicatorsAsync(TenantId)];
-            StateHasChanged();
-        }
+        Indicators = [.. await PartiesService.GetTenantIndicatorsAsync(TenantId)];
+        StateHasChanged();
     }
 
     private async Task AddIndicator()
