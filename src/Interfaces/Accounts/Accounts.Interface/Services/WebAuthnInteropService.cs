@@ -243,18 +243,19 @@ public sealed class WebAuthnInteropService : IWebAuthnInterop, IAsyncDisposable
     private static bool IsUserCancellation(JSException ex)
     {
         // Common patterns for user cancellation
+        // Check for specific cancellation-related messages
         string message = ex.Message.ToLowerInvariant();
         return message.Contains("abort") 
             || message.Contains("cancel") 
             || message.Contains("user declined")
             || message.Contains("user refused")
-            || message.Contains("not allowed");
+            || (message.Contains("not allowed") && !message.Contains("not supported"));
     }
 
     private static bool IsNotSupportedError(JSException ex)
     {
         string message = ex.Message.ToLowerInvariant();
         return message.Contains("not supported") 
-            || message.Contains("not available");
+            || (message.Contains("not available") && !message.Contains("cancel"));
     }
 }

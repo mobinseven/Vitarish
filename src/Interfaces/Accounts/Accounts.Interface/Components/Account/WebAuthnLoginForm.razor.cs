@@ -4,7 +4,7 @@ using Vitarish.Accounts.Interface.Abstractions;
 
 namespace Vitarish.Accounts.Interface.Components.Account;
 
-public partial class WebAuthnLoginForm : IdentityCommonBase, IAsyncDisposable
+public partial class WebAuthnLoginForm : IdentityCommonBase
 {
     [Parameter] public string? ReturnUrl { get; set; }
 
@@ -116,14 +116,5 @@ public partial class WebAuthnLoginForm : IdentityCommonBase, IAsyncDisposable
             IsAuthenticating = false;
             StateHasChanged();
         }
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        if (WebAuthnService is IAsyncDisposable disposable)
-        {
-            await disposable.DisposeAsync();
-        }
-        GC.SuppressFinalize(this);
     }
 }
