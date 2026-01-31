@@ -242,8 +242,11 @@ public sealed class WebAuthnInteropService : IWebAuthnInterop, IAsyncDisposable
 
     private static bool IsUserCancellation(JSException ex)
     {
-        // Common patterns for user cancellation
-        // Check for specific cancellation-related messages
+        // Detects user cancellation based on common error message patterns.
+        // WebAuthn errors can vary by browser, but cancellation typically includes:
+        // - "abort" or "cancel" for explicit user cancellation
+        // - "user declined" or "user refused" for rejection
+        // - "not allowed" when user doesn't grant permission (but not "not supported")
         string message = ex.Message.ToLowerInvariant();
         return message.Contains("abort") 
             || message.Contains("cancel") 
@@ -254,6 +257,10 @@ public sealed class WebAuthnInteropService : IWebAuthnInterop, IAsyncDisposable
 
     private static bool IsNotSupportedError(JSException ex)
     {
+        // Detects when WebAuthn is not supported in the browser or authenticator.
+        // Checks for "not supported" (browser capability issue) or "not available"
+        // (authenticator unavailable), but excludes messages that also contain "cancel"
+        // to avoid false positives with cancellation errors.
         string message = ex.Message.ToLowerInvariant();
         return message.Contains("not supported") 
             || (message.Contains("not available") && !message.Contains("cancel"));
