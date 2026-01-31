@@ -1,14 +1,15 @@
+using Microsoft.AspNetCore.Components;
 using Vitarish.Parties.Application.Commands;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Enums;
 
-namespace Vitarish.Main.Pages.Admins;
+namespace Vitarish.Admins.Interface.Components.Admin;
 
-public partial class AdminTenantIndicatorsPage
+public partial class TenantIndicatorsComponent
 {
-    private List<Tenant> Tenants { get; set; } = [];
+    [Parameter] public Guid TenantId { get; set; }
+    
     private List<TenantIndicator> Indicators { get; set; } = [];
-    private Guid selectedTenantId = Guid.Empty;
     private IndicatorMethod newMethod = IndicatorMethod.Hostname;
     private IndicatorVerificationMethod newVerificationMethod = IndicatorVerificationMethod.DnsTxt;
     private string newValue = string.Empty;
@@ -18,19 +19,9 @@ public partial class AdminTenantIndicatorsPage
     private string verificationToken = string.Empty;
     private string verificationEvidence = string.Empty;
 
-    protected override async Task OnInitializedAsync()
-    {
-        Tenants = [.. await PartiesService.GetTenantsAsync()];
-        if (Tenants.Count > 0)
-        {
-            selectedTenantId = Tenants[0].Id;
-            await LoadIndicators();
-        }
-    }
-
     protected override async Task OnParametersSetAsync()
     {
-        if (selectedTenantId != Guid.Empty)
+        if (TenantId != Guid.Empty)
         {
             await LoadIndicators();
         }
@@ -38,16 +29,16 @@ public partial class AdminTenantIndicatorsPage
 
     private async Task LoadIndicators()
     {
-        if (selectedTenantId != Guid.Empty)
+        if (TenantId != Guid.Empty)
         {
-            Indicators = [.. await PartiesService.GetTenantIndicatorsAsync(selectedTenantId)];
+            Indicators = [.. await PartiesService.GetTenantIndicatorsAsync(TenantId)];
             StateHasChanged();
         }
     }
 
     private async Task AddIndicator()
     {
-        if (selectedTenantId == Guid.Empty || string.IsNullOrWhiteSpace(newValue))
+        if (TenantId == Guid.Empty || string.IsNullOrWhiteSpace(newValue))
         {
             ShowFeedback("Please select a tenant and provide a valid value.", Severity.Warning);
             return;
@@ -55,7 +46,7 @@ public partial class AdminTenantIndicatorsPage
 
         try
         {
-            AddTenantIndicator request = new(selectedTenantId, newMethod, newValue.Trim(), newIsPrimary, newVerificationMethod);
+            AddTenantIndicator request = new(TenantId, newMethod, newValue.Trim(), newIsPrimary, newVerificationMethod);
             TenantIndicator? indicator = await PartiesService.AddTenantIndicatorAsync(request);
 
             if (indicator is not null)
@@ -98,7 +89,7 @@ public partial class AdminTenantIndicatorsPage
     {
         try
         {
-            bool result = await PartiesService.VerifyTenantIndicatorAsync(selectedTenantId, indicator.Id);
+            bool result = await PartiesService.VerifyTenantIndicatorAsync(TenantId, indicator.Id);
             if (result)
             {
                 await LoadIndicators();
@@ -119,7 +110,7 @@ public partial class AdminTenantIndicatorsPage
     {
         try
         {
-            bool result = await PartiesService.ActivateTenantIndicatorAsync(selectedTenantId, indicator.Id);
+            bool result = await PartiesService.ActivateTenantIndicatorAsync(TenantId, indicator.Id);
             if (result)
             {
                 await LoadIndicators();
@@ -140,7 +131,7 @@ public partial class AdminTenantIndicatorsPage
     {
         try
         {
-            bool result = await PartiesService.DisableTenantIndicatorAsync(selectedTenantId, indicator.Id);
+            bool result = await PartiesService.DisableTenantIndicatorAsync(TenantId, indicator.Id);
             if (result)
             {
                 await LoadIndicators();
@@ -161,7 +152,7 @@ public partial class AdminTenantIndicatorsPage
     {
         try
         {
-            bool result = await PartiesService.DeleteTenantIndicatorAsync(selectedTenantId, indicator.Id);
+            bool result = await PartiesService.DeleteTenantIndicatorAsync(TenantId, indicator.Id);
             if (result)
             {
                 _ = Indicators.Remove(indicator);

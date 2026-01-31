@@ -1,15 +1,6 @@
-@page "/Admin/TenantIndicators"
-
 @inherits AdminCommonBase
 
-<MudSelect @bind-Value="selectedTenantId" Label="@Localizer["Select Tenant"]" Required Class="mb-4">
-    @foreach (var tenant in Tenants)
-    {
-        <MudSelectItem Value="@tenant.Id">@tenant.Name</MudSelectItem>
-    }
-</MudSelect>
-
-@if (selectedTenantId != Guid.Empty && Indicators.Any())
+@if (TenantId != Guid.Empty && Indicators.Any())
 {
     <MudDataGrid T="TenantIndicator" Items="Indicators" Elevation="0" Class="mb-4">
         <Columns>
@@ -98,7 +89,7 @@
         </Columns>
     </MudDataGrid>
 }
-else if (selectedTenantId != Guid.Empty)
+else if (TenantId != Guid.Empty)
 {
     <MudAlert Severity="Severity.Info" Class="mb-4">No indicators found for this tenant.</MudAlert>
 }
@@ -124,7 +115,7 @@ else if (selectedTenantId != Guid.Empty)
                    Variant="Variant.Filled"
                    Color="Color.Primary"
                    OnClick="AddIndicator"
-                   Disabled="@(selectedTenantId == Guid.Empty || string.IsNullOrWhiteSpace(newValue))">
+                   Disabled="@(TenantId == Guid.Empty || string.IsNullOrWhiteSpace(newValue))">
             Add Indicator
         </MudButton>
     </MudStack>
