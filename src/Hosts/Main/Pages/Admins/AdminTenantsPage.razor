@@ -1,12 +1,15 @@
 @page "/Admin/Tenants"
 @using Vitarish.Main.Infrastructure.Services
+@using Vitarish.Admins.Interface.Components.Admin
 @inject IPackageProvider PackageProvider
 @inherits AdminCommonBase
 
 <Stack>
     @foreach(var tenant in Tenants)
     {
-        <StackButton Label="@tenant.Name" OnClick="() => RowClicked(tenant)" />
+        <StackExpandable Label="@tenant.Name">
+            <TenantIndicatorsComponent TenantId="@tenant.Id" />
+        </StackExpandable>
     }
 </Stack>
 

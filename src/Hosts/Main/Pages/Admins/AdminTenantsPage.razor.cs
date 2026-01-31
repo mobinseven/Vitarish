@@ -22,16 +22,6 @@ public partial class AdminTenantsPage
         }
     }
 
-    private void RowClicked(Tenant tenant)
-    {
-        editingTenant = tenant;
-        selectedOwnerId = editingTenant.OwnerId;
-        newTenantName = editingTenant.Name;
-        newTenantLogoUrl = editingTenant.LogoUrl ?? string.Empty;
-        newTenantDescription = editingTenant.Description ?? string.Empty;
-        selectedClientId = editingTenant.ClientId ?? string.Empty;
-    }
-
     private async Task SaveTenant()
     {
         if (string.IsNullOrWhiteSpace(selectedClientId))
