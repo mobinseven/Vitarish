@@ -1,0 +1,36 @@
+<MudDialog>
+    <DialogContent>
+        <Stack>
+            <StackField>
+                <MudSelect @bind-Value="selectedOwnerId" Label="@Localizer["Owner"]" Required>
+                    @foreach(var owner in Owners)
+                    {
+                        <MudSelectItem Value="@owner.Id">@owner.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </StackField>
+            <StackField>
+                <MudTextField @bind-Value=newTenantName Label="@Localizer["Name"]" Required />
+            </StackField>
+            <StackField>
+                <MudTextField @bind-Value=newTenantLogoUrl Label="@Localizer["LogoUrl"]" />
+            </StackField>
+            <StackField>
+                <MudTextField @bind-Value=newTenantDescription Label="@Localizer["Description"]" />
+            </StackField>
+            <StackField>
+                <MudSelect @bind-Value="selectedPackageId" Label="@Localizer["Package"]" Required>
+                    @foreach(var package in PackageProvider.GetPackages())
+                    {
+                        <MudSelectItem Value="@package.Id">@(package.Name)</MudSelectItem>
+                    }
+                </MudSelect>
+            </StackField>
+        </Stack>
+        <Stack>
+            <StackButton Label="@Localizer["Save"]" OnClick="SaveTenant" Color="Color.Primary" StartIcon="fa-regular fa-save" />
+            <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" StartIcon="fa-regular fa-xmark" />
+        </Stack>
+    </DialogContent>
+</MudDialog>
+

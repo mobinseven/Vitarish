@@ -1,0 +1,49 @@
+@inherits AdminCommonBase
+<MudDialog>
+    <DialogContent>
+        <Stack>
+            <StackField>
+                <MudSelect @bind-Value="newMethod" Label="@Localizer["Method"]" Required>
+                    <MudSelectItem Value="@IndicatorMethod.Hostname">Hostname</MudSelectItem>
+                    <MudSelectItem Value="@IndicatorMethod.Subdomain">Subdomain</MudSelectItem>
+                </MudSelect>
+            </StackField>
+            <StackField>
+                <MudTextField @bind-Value="newValue"
+                              Label="@Localizer["Address"]"
+                              Placeholder="e.g., app.customer.com"
+                              Required />
+            </StackField>
+            <StackField>
+                <MudSelect @bind-Value="newVerificationMethod" Label="@Localizer["VerificationMethod"]" Required>
+                    <MudSelectItem Value="@IndicatorVerificationMethod.Manual">Manual</MudSelectItem>
+                    <MudSelectItem Value="@IndicatorVerificationMethod.DnsTxt">DNS TXT Record</MudSelectItem>
+                </MudSelect>
+            </StackField>
+            <StackField>
+                <MudSelect @bind-Value="newStatus" Label="@Localizer["Status"]" Required>
+                    <MudSelectItem Value="@IndicatorStatus.Active">@Localizer["Active"]</MudSelectItem>
+                    <MudSelectItem Value="@IndicatorStatus.Verified">@Localizer["Verified"]</MudSelectItem>
+                    <MudSelectItem Value="@IndicatorStatus.Disabled">@Localizer["Disabled"]</MudSelectItem>
+                </MudSelect>
+            </StackField>
+            <StackCheckbox @bind-Value="newIsPrimary"
+                           Label="@Localizer["Primary"]" />
+            @if(!string.IsNullOrWhiteSpace(verificationToken) && !string.IsNullOrWhiteSpace(verificationEvidence))
+            {
+                <StackField>
+                    <MudAlert Severity="Severity.Info" Class="mt-2">
+                        <MudText Typo="Typo.body2">@Localizer["DnsTxtRecordInstruction"]</MudText>
+                        <MudText Typo="Typo.body2" Class="mt-2"><strong>Hostname:</strong> @verificationEvidence</MudText>
+                        <MudText Typo="Typo.body2"><strong>Value:</strong> verify=@verificationToken</MudText>
+                    </MudAlert>
+                </StackField>
+            }
+        </Stack>
+        <Stack>
+            <StackButton Label="@Localizer["Save"]" OnClick="Save" Color="Color.Primary" StartIcon="fa-regular fa-save" />
+            <StackButton OnClick="MudDialog.Cancel" StartIcon="fa-regular fa-xmark" Label="@Localizer["Cancel"]" />
+        </Stack>
+    </DialogContent>
+</MudDialog>
+

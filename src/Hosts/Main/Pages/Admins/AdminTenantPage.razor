@@ -1,0 +1,16 @@
+@inherits AdminCommonBase
+@page "/Admin/Tenants/{TenantId}"
+
+@if(Tenant is null)
+{
+    return;
+}
+
+<Stack>
+    <TenantIndicatorsEditor Tenant="Tenant" />
+</Stack>
+
+<Stack>
+    <StackButton StartIcon="fa-regular fa-pen-to-square" OnClick="EditTenant" Label="@Localizer["EditItem", Localizer["Tenant"]]" />
+    <StackButton Color="Color.Error" StartIcon="fa-regular fa-trash" OnClick="RemoveTenant" Label="@Localizer["DeleteItem", Localizer["Tenant"]]" />
+</Stack>

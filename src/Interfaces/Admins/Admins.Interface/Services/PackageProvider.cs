@@ -1,4 +1,4 @@
-namespace Vitarish.Main.Infrastructure.Services;
+namespace Vitarish.Admins.Interface.Services;
 
 public record Package(string Id, string Name);
 

@@ -3,6 +3,7 @@ using Finbuckle.MultiTenant;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
+using Vitarish.Admins.Interface.Services;
 using Vitarish.Communications.Hosting;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Entities.Server.Services;

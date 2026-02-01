@@ -1,11 +1,7 @@
-using Microsoft.AspNetCore.Components;
 using Microsoft.JSInterop;
 using System.Threading.Channels;
-using Vitarish.Files.Domain.Models;
 using Vitarish.Files.Infrastructure.Interfaces;
-using Vitarish.Files.Interface.Abstractions;
 using Vitarish.Files.Interface.Components;
-using Vitarish.Files.Interface.Models;
 
 namespace Vitarish.Files.Interface.Services;
 
@@ -155,7 +151,7 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
                     }
                 };
 
-                FileInformationDto? fileInfo = await _filesClient.SaveFile(channel.Reader, info, cancellationToken).ConfigureAwait(false) ??throw new InvalidDataException("The returned result must not be null");
+                FileInformationDto? fileInfo = await _filesClient.SaveFile(channel.Reader, info, cancellationToken).ConfigureAwait(false) ?? throw new InvalidDataException("The returned result must not be null");
                 await pump.ConfigureAwait(false);
 
                 _ = _pendingFiles.Remove(file);
