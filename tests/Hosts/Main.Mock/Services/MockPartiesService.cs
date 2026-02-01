@@ -5,17 +5,18 @@ namespace Vitarish.Main.Mock.Services;
 
 public sealed class MockPartiesService : IPartiesService
 {
-    private readonly List<OwnerReadDto> owners = [];
-    private readonly List<TenantReadDto> tenants = [];
+    private readonly Dictionary<Guid, OwnerReadDto> owners = [];
+    private readonly Dictionary<Guid, TenantReadDto> tenants = [];
 
     public Task<OwnerReadDto?> GetOwnerAsync(Guid id, CancellationToken ct = default)
     {
-        return Task.FromResult(owners.FirstOrDefault(owner => owner.Id == id));
+        _ = owners.TryGetValue(id, out OwnerReadDto? owner);
+        return Task.FromResult(owner);
     }
 
     public Task<IEnumerable<OwnerReadDto>> GetOwnersAsync(CancellationToken ct = default)
     {
-        return Task.FromResult<IEnumerable<OwnerReadDto>>(owners);
+        return Task.FromResult<IEnumerable<OwnerReadDto>>(owners.Values);
     }
 
     public Task<OwnerReadDto?> CreateOwnerAsync(OwnerWriteDto dto, CancellationToken ct = default)
@@ -28,14 +29,13 @@ public sealed class MockPartiesService : IPartiesService
             Description = dto.Description,
             CreatedAt = DateTimeOffset.UtcNow
         };
-        owners.Add(owner);
+        owners[owner.Id] = owner;
         return Task.FromResult<OwnerReadDto?>(owner);
     }
 
     public Task<OwnerReadDto?> UpdateOwnerAsync(OwnerWriteDto dto, CancellationToken ct = default)
     {
-        OwnerReadDto? owner = owners.FirstOrDefault(item => item.Id == dto.Id);
-        if (owner is null)
+        if (!owners.TryGetValue(dto.Id, out OwnerReadDto? owner))
         {
             return Task.FromResult<OwnerReadDto?>(null);
         }
@@ -47,30 +47,30 @@ public sealed class MockPartiesService : IPartiesService
             Description = dto.Description,
             UpdatedAt = DateTimeOffset.UtcNow
         };
-        _ = owners.Remove(owner);
-        owners.Add(updatedOwner);
+        owners[dto.Id] = updatedOwner;
         return Task.FromResult<OwnerReadDto?>(updatedOwner);
     }
 
     public Task DeleteOwnerAsync(Guid id, CancellationToken ct = default)
     {
-        _ = owners.RemoveAll(owner => owner.Id == id);
+        _ = owners.Remove(id);
         return Task.CompletedTask;
     }
 
     public Task<TenantReadDto?> GetTenantAsync(Guid id, CancellationToken ct = default)
     {
-        return Task.FromResult(tenants.FirstOrDefault(tenant => tenant.Id == id));
+        _ = tenants.TryGetValue(id, out TenantReadDto? tenant);
+        return Task.FromResult(tenant);
     }
 
     public Task<IEnumerable<TenantReadDto>> GetTenantsAsync(CancellationToken ct = default)
     {
-        return Task.FromResult<IEnumerable<TenantReadDto>>(tenants);
+        return Task.FromResult<IEnumerable<TenantReadDto>>(tenants.Values);
     }
 
     public Task<IEnumerable<TenantReadDto>> GetTenantsByOwnerAsync(Guid ownerId, CancellationToken ct = default)
     {
-        return Task.FromResult<IEnumerable<TenantReadDto>>(tenants.Where(tenant => tenant.OwnerId == ownerId).ToList());
+        return Task.FromResult<IEnumerable<TenantReadDto>>(tenants.Values.Where(tenant => tenant.OwnerId == ownerId).ToList());
     }
 
     public Task<TenantReadDto?> CreateTenantAsync(TenantWriteDto dto, CancellationToken ct = default)
@@ -86,14 +86,13 @@ public sealed class MockPartiesService : IPartiesService
             Metadata = dto.Metadata,
             CreatedAt = DateTimeOffset.UtcNow
         };
-        tenants.Add(tenant);
+        tenants[tenant.Id] = tenant;
         return Task.FromResult<TenantReadDto?>(tenant);
     }
 
     public Task<TenantReadDto?> UpdateTenantAsync(TenantWriteDto dto, CancellationToken ct = default)
     {
-        TenantReadDto? tenant = tenants.FirstOrDefault(item => item.Id == dto.Id);
-        if (tenant is null)
+        if (!tenants.TryGetValue(dto.Id, out TenantReadDto? tenant))
         {
             return Task.FromResult<TenantReadDto?>(null);
         }
@@ -108,14 +107,13 @@ public sealed class MockPartiesService : IPartiesService
             Metadata = dto.Metadata,
             UpdatedAt = DateTimeOffset.UtcNow
         };
-        _ = tenants.Remove(tenant);
-        tenants.Add(updatedTenant);
+        tenants[dto.Id] = updatedTenant;
         return Task.FromResult<TenantReadDto?>(updatedTenant);
     }
 
     public Task DeleteTenantAsync(Guid id, CancellationToken ct = default)
     {
-        _ = tenants.RemoveAll(tenant => tenant.Id == id);
+        _ = tenants.Remove(id);
         return Task.CompletedTask;
     }
 }

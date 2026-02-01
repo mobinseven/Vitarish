@@ -12,9 +12,11 @@ public partial class TenantIndicatorsEditor
 
     protected override Task ReloadRequired()
     {
-        // Note: TenantIndicators are not available in TenantReadDto
-        // This component would need to be refactored to use a separate indicators service
-        // or the DTO would need to include indicators
+        // TODO: TenantReadDto does not include Indicators collection.
+        // To make this component functional, either:
+        // 1. Add indicators to TenantReadDto
+        // 2. Create a separate IIndicatorsService
+        // 3. Add a method to IPartiesService to get tenant with indicators
         Indicators.Clear();
         return Task.CompletedTask;
     }

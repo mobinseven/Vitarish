@@ -70,6 +70,9 @@ public partial class TenantsWidget : IdentityCommonBase
             return;
         }
 
+        // Note: Without tenant indicators in the DTO, we navigate using ClientId.
+        // This may not work correctly for subdomain-based tenants.
+        // TODO: Either include indicators in TenantReadDto or create a separate navigation service
         NavigationManager.NavigateTo(entry.ClientId, forceLoad: true);
     }
 
