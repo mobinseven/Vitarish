@@ -1,4 +1,6 @@
+using Vitarish.Entities.Generators;
 using Vitarish.Entities.Server.Core;
+using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Enums;
 
 namespace Vitarish.Parties.Application.Descriptors;
@@ -6,6 +8,7 @@ namespace Vitarish.Parties.Application.Descriptors;
 /// <summary>
 /// Descriptor for filtering and querying TenantIndicator entities on the server.
 /// </summary>
+[EntityDescriptorFor(typeof(TenantIndicator))]
 public record TenantIndicatorDescriptor : EntityDescriptor
 {
     public Guid? TenantId { get; init; }

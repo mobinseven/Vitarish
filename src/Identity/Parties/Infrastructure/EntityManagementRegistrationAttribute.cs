@@ -1,0 +1,2 @@
+[assembly: Vitarish.Entities.Generators.GenerateEntitiesRegistrationAttribute]
+
