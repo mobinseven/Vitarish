@@ -3,7 +3,6 @@ using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
-using System.Text.Json;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Sea.Infrastructure.Data;
