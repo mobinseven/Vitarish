@@ -1,4 +1,4 @@
-using Vitarish.Parties.Application.Commands;
+using Vitarish.Parties.Application.Dtos;
 using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Main.Pages.Admins;
@@ -23,11 +23,14 @@ public partial class AdminOwnersPage
     {
         if (editingOwner is null)
         {
-            CreateOwner request = new(
-                newOwnerName,
-                string.IsNullOrWhiteSpace(newOwnerLogoUrl) ? null : newOwnerLogoUrl,
-                string.IsNullOrWhiteSpace(newOwnerDescription) ? null : newOwnerDescription);
-            Owner? owner = await PartiesService.CreateOwnerAsync(request);
+            OwnerWriteDto dto = new()
+            {
+                Id = Guid.NewGuid(),
+                Name = newOwnerName,
+                LogoUrl = string.IsNullOrWhiteSpace(newOwnerLogoUrl) ? null : newOwnerLogoUrl,
+                Description = string.IsNullOrWhiteSpace(newOwnerDescription) ? null : newOwnerDescription
+            };
+            Owner? owner = await PartiesService.CreateOwnerAsync(dto);
             if (owner is not null)
             {
                 Owners.Add(owner);
@@ -35,12 +38,14 @@ public partial class AdminOwnersPage
         }
         else
         {
-            UpdateOwner request = new(
-                editingOwner.Id,
-                newOwnerName,
-                string.IsNullOrWhiteSpace(newOwnerLogoUrl) ? null : newOwnerLogoUrl,
-                string.IsNullOrWhiteSpace(newOwnerDescription) ? null : newOwnerDescription);
-            Owner? updated = await PartiesService.UpdateOwnerAsync(request);
+            OwnerWriteDto dto = new()
+            {
+                Id = editingOwner.Id,
+                Name = newOwnerName,
+                LogoUrl = string.IsNullOrWhiteSpace(newOwnerLogoUrl) ? null : newOwnerLogoUrl,
+                Description = string.IsNullOrWhiteSpace(newOwnerDescription) ? null : newOwnerDescription
+            };
+            Owner? updated = await PartiesService.UpdateOwnerAsync(dto);
             if (updated is not null)
             {
                 int idx = Owners.FindIndex(o => o.Id == updated.Id);

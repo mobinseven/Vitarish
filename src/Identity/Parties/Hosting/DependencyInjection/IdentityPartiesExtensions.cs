@@ -1,10 +1,8 @@
 using DnsClient;
-using FluentValidation;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Parties.Application.Abstractions;
-using Vitarish.Parties.Application.Commands;
 using Vitarish.Parties.Infrastructure;
 using Vitarish.Parties.Infrastructure.Abstractions;
 using Vitarish.Parties.Infrastructure.Data;
@@ -22,8 +20,11 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddDbContext<PartiesDbContext>(dbContextOptionsBuilder, ServiceLifetime.Transient);
 
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
-        _ = builder.Services.AddValidatorsFromAssemblyContaining<CreateTenantValidator>();
 
+        // Register Entity Services
+        _ = builder.Services.AddTransient<OwnerService>();
+        _ = builder.Services.AddTransient<TenantService>();
+        
         _ = builder.Services.AddTransient<ITenantResolver, TenantResolver>();
         _ = builder.Services.AddTransient<IPartiesService, PartiesService>();
         _ = builder.Services.AddSingleton<ILookupClient>(sp =>
