@@ -1,18 +1,18 @@
 using Vitarish.Admins.Interface.Components.Admin;
-using Vitarish.Parties.Domain.Entities;
+using Vitarish.Parties.Application.Dtos;
 
 namespace Vitarish.Main.Pages.Admins;
 
 public partial class AdminTenantsPage
 {
-    private List<Tenant> Tenants { get; set; } = [];
+    private List<TenantReadDto> Tenants { get; set; } = [];
 
     protected override async Task OnInitializedAsync()
     {
         Tenants = [.. await PartiesService.GetTenantsAsync()];
     }
 
-    private void RowClicked(Tenant tenant)
+    private void RowClicked(TenantReadDto tenant)
     {
         NavigationManager.NavigateTo($"/Admin/Tenants/{tenant.Id}");
     }

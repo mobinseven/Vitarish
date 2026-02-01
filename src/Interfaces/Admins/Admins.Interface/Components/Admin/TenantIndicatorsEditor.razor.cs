@@ -1,29 +1,33 @@
-using Vitarish.Parties.Domain.Entities;
+using Vitarish.Parties.Application.Dtos;
 using Vitarish.Parties.Domain.Enums;
 
 namespace Vitarish.Admins.Interface.Components.Admin;
 
 public partial class TenantIndicatorsEditor
 {
-    [Parameter, EditorRequired] public Tenant Tenant { get; set; }
+    [Parameter, EditorRequired] public TenantReadDto Tenant { get; set; }
 
-    private List<TenantIndicator> Indicators { get; set; } = [];
+    private List<TenantIndicatorReadDto> Indicators { get; set; } = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        await ReloadRequired();
+    }
 
     protected override async Task ReloadRequired()
     {
-        // Reload the tenant to get updated indicators
-        Tenant? reloadedTenant = await PartiesService.GetTenantAsync(Tenant.Id);
-        if (reloadedTenant is not null)
-        {
-            Indicators = [.. reloadedTenant.Indicators];
-        }
+        Indicators.Clear();
+        IEnumerable<TenantIndicatorReadDto> indicators = await PartiesService.GetTenantIndicatorsByTenantAsync(Tenant.Id);
+        Indicators = [.. indicators];
+        StateHasChanged();
     }
 
     protected async Task AddIndicator()
     {
         DialogParameters parameters = new()
         {
-            {"Tenant", Tenant }
+            {"TenantId", Tenant.Id }
         };
         var dialog = await DialogService.ShowAsync<TenantIndicatorEditDialog>(null, parameters);
         var result = await dialog.Result;
@@ -35,11 +39,11 @@ public partial class TenantIndicatorsEditor
     }
 
 
-    protected async Task EditIndicator(TenantIndicator tenantIndicator)
+    protected async Task EditIndicator(TenantIndicatorReadDto tenantIndicator)
     {
         DialogParameters parameters = new()
         {
-            {"Tenant", Tenant },
+            {"TenantId", Tenant.Id },
             {"TenantIndicator", tenantIndicator }
         };
         var dialog = await DialogService.ShowAsync<TenantIndicatorEditDialog>(null, parameters);

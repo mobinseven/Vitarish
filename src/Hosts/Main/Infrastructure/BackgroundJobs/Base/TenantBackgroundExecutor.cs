@@ -1,4 +1,4 @@
-using Vitarish.Parties.Domain.Entities;
+using Vitarish.Parties.Application.Dtos;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 
@@ -28,9 +28,9 @@ public sealed class TenantBackgroundExecutor(
 
         cancellationToken.ThrowIfCancellationRequested();
 
-        IEnumerable<Tenant> tenants = await partiesService.GetTenantsAsync(cancellationToken);
+        IEnumerable<TenantReadDto> tenants = await partiesService.GetTenantsAsync(cancellationToken);
 
-        foreach (Tenant tenant in tenants)
+        foreach (TenantReadDto tenant in tenants)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -49,7 +49,7 @@ public sealed class TenantBackgroundExecutor(
         }
     }
 
-    private static void InitializeRequestContext(IRequestContextWriter contextWriter, string resourceId, Tenant tenant) => contextWriter.SetContext(
+    private static void InitializeRequestContext(IRequestContextWriter contextWriter, string resourceId, TenantReadDto tenant) => contextWriter.SetContext(
             authority: BackgroundAuthority,
             clientId: tenant.ClientId,
             ownerId: tenant.OwnerId.ToString(),

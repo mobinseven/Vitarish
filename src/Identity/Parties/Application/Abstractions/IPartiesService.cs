@@ -1,5 +1,4 @@
 using Vitarish.Parties.Application.Dtos;
-using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Parties.Application.Abstractions;
 /// <summary>
@@ -8,17 +7,24 @@ namespace Vitarish.Parties.Application.Abstractions;
 public interface IPartiesService
 {
     // Owner methods
-    Task<Owner?> GetOwnerAsync(Guid id, CancellationToken ct = default);
-    Task<IEnumerable<Owner>> GetOwnersAsync(CancellationToken ct = default);
-    Task<Owner?> CreateOwnerAsync(OwnerWriteDto dto, CancellationToken ct = default);
-    Task<Owner?> UpdateOwnerAsync(OwnerWriteDto dto, CancellationToken ct = default);
+    Task<OwnerReadDto?> GetOwnerAsync(Guid id, CancellationToken ct = default);
+    Task<IEnumerable<OwnerReadDto>> GetOwnersAsync(CancellationToken ct = default);
+    Task<OwnerReadDto?> CreateOwnerAsync(OwnerWriteDto dto, CancellationToken ct = default);
+    Task<OwnerReadDto?> UpdateOwnerAsync(OwnerWriteDto dto, CancellationToken ct = default);
     Task DeleteOwnerAsync(Guid id, CancellationToken ct = default);
 
     // Tenant methods
-    Task<Tenant?> GetTenantAsync(Guid id, CancellationToken ct = default);
-    Task<IEnumerable<Tenant>> GetTenantsAsync(CancellationToken ct = default);
-    Task<IEnumerable<Tenant>> GetTenantsByOwnerAsync(Guid ownerId, CancellationToken ct = default);
-    Task<Tenant?> CreateTenantAsync(TenantWriteDto dto, CancellationToken ct = default);
-    Task<Tenant?> UpdateTenantAsync(TenantWriteDto dto, CancellationToken ct = default);
+    Task<TenantReadDto?> GetTenantAsync(Guid id, CancellationToken ct = default);
+    Task<IEnumerable<TenantReadDto>> GetTenantsAsync(CancellationToken ct = default);
+    Task<IEnumerable<TenantReadDto>> GetTenantsByOwnerAsync(Guid ownerId, CancellationToken ct = default);
+    Task<TenantReadDto?> CreateTenantAsync(TenantWriteDto dto, CancellationToken ct = default);
+    Task<TenantReadDto?> UpdateTenantAsync(TenantWriteDto dto, CancellationToken ct = default);
     Task DeleteTenantAsync(Guid id, CancellationToken ct = default);
+
+    // TenantIndicator methods
+    Task<TenantIndicatorReadDto?> GetTenantIndicatorAsync(Guid id, CancellationToken ct = default);
+    Task<IEnumerable<TenantIndicatorReadDto>> GetTenantIndicatorsByTenantAsync(Guid tenantId, CancellationToken ct = default);
+    Task<TenantIndicatorReadDto?> CreateTenantIndicatorAsync(TenantIndicatorWriteDto dto, CancellationToken ct = default);
+    Task<TenantIndicatorReadDto?> UpdateTenantIndicatorAsync(TenantIndicatorWriteDto dto, CancellationToken ct = default);
+    Task DeleteTenantIndicatorAsync(Guid id, CancellationToken ct = default);
 }

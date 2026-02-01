@@ -1,5 +1,5 @@
 using Vitarish.Admins.Interface.Components.Admin;
-using Vitarish.Parties.Domain.Entities;
+using Vitarish.Parties.Application.Dtos;
 
 namespace Vitarish.Main.Pages.Admins;
 
@@ -8,7 +8,7 @@ public partial class AdminTenantPage
     [Parameter] public string? TenantId { get; set; }
 
     private Guid tenantGuid;
-    private Tenant? Tenant;
+    private TenantReadDto? Tenant;
     protected override async Task ReloadRequired()
     {
         if (TenantId is null)

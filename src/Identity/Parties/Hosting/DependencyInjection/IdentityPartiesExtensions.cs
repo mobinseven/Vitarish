@@ -24,6 +24,7 @@ public static class IdentityPartiesExtensions
         // Register Entity Services
         _ = builder.Services.AddTransient<OwnerService>();
         _ = builder.Services.AddTransient<TenantService>();
+        _ = builder.Services.AddTransient<TenantIndicatorService>();
         
         _ = builder.Services.AddTransient<ITenantResolver, TenantResolver>();
         _ = builder.Services.AddTransient<IPartiesService, PartiesService>();

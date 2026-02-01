@@ -1,5 +1,6 @@
 using Vitarish.Parties.Application.Abstractions;
-using Vitarish.Parties.Domain.Entities;
+using Vitarish.Parties.Application.Dtos;
+using Vitarish.Parties.Domain.Enums;
 
 namespace Vitarish.Accounts.Interface.Components.Account.Widgets;
 
@@ -34,25 +35,34 @@ public partial class TenantsWidget : IdentityCommonBase
                 .Select(role => role.TenantId)
                 .Distinct()];
 
-            Dictionary<Guid, Task<Tenant?>> tenantTasks = tenantIds
+            Dictionary<Guid, Task<TenantReadDto?>> tenantTasks = tenantIds
                 .ToDictionary(id => id, id => PartiesService.GetTenantAsync(id));
             _ = await Task.WhenAll(tenantTasks.Values);
 
-            Dictionary<Guid, Tenant?> tenants = tenantTasks
+            Dictionary<Guid, TenantReadDto?> tenants = tenantTasks
+                .ToDictionary(entry => entry.Key, entry => entry.Value.Result);
+
+            // Load indicators for all tenants
+            Dictionary<Guid, Task<IEnumerable<TenantIndicatorReadDto>>> indicatorTasks = tenantIds
+                .ToDictionary(id => id, id => PartiesService.GetTenantIndicatorsByTenantAsync(id));
+            _ = await Task.WhenAll(indicatorTasks.Values);
+
+            Dictionary<Guid, IEnumerable<TenantIndicatorReadDto>> tenantIndicators = indicatorTasks
                 .ToDictionary(entry => entry.Key, entry => entry.Value.Result);
 
             foreach (IGrouping<Guid, TenantRoleAssignment> grouping in tenantRoleAssignments.GroupBy(role => role.TenantId))
             {
-                Tenant? tenant = tenants.GetValueOrDefault(grouping.Key);
-                TenantIndicator? primaryIndicator = null;
+                TenantReadDto? tenant = tenants.GetValueOrDefault(grouping.Key);
+                IEnumerable<TenantIndicatorReadDto> indicators = tenantIndicators.GetValueOrDefault(grouping.Key) ?? [];
 
-                if (tenant is not null)
+                if (tenant is null)
                 {
-                    // Get indicators from the tenant entity itself
-                    primaryIndicator = tenant.Indicators
-                        .OrderByDescending(indicator => indicator.IsPrimary)
-                        .FirstOrDefault();
+                    continue;
                 }
+
+                TenantIndicatorReadDto? primaryIndicator = indicators
+                    .OrderByDescending(indicator => indicator.IsPrimary)
+                    .FirstOrDefault();
 
                 if (primaryIndicator is null)
                 {
@@ -75,7 +85,7 @@ public partial class TenantsWidget : IdentityCommonBase
 
     private void NavigateToTenant(TenantAccessEntry entry)
     {
-        if (string.IsNullOrWhiteSpace(entry.PrimaryIdentifier))
+        if (string.IsNullOrWhiteSpace(entry.PrimaryUrl))
         {
             return;
         }
@@ -118,17 +128,18 @@ public partial class TenantsWidget : IdentityCommonBase
 
     private sealed record TenantAccessEntry(
         Guid TenantId,
-        Tenant? Tenant,
-        TenantIndicator? PrimaryIndicator)
+        TenantReadDto Tenant,
+        TenantIndicatorReadDto PrimaryIndicator)
     {
         public string TenantDisplayName => string.IsNullOrWhiteSpace(Tenant?.Name)
             ? $"Tenant {TenantId.ToString()[..8]}"
             : Tenant!.Name;
 
         public string PrimaryIdentifier => PrimaryIndicator?.Value ?? string.Empty;
+        
         public string PrimaryUrl => PrimaryIndicator.Method switch
         {
-            Parties.Domain.Enums.IndicatorMethod.Subdomain => PrimaryIndicator.Value ?? throw new InvalidDataException("primary indicator value is null"),
+            IndicatorMethod.Subdomain => PrimaryIndicator.Value ?? throw new InvalidDataException("primary indicator value is null"),
             _ => Tenant.ClientId
         };
     }
