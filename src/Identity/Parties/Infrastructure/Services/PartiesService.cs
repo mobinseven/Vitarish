@@ -3,10 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Entities.Server.Models;
 using Vitarish.Parties.Application.Abstractions;
-using Vitarish.Parties.Application.Commands;
-using Vitarish.Parties.Application.Descriptors;
 using Vitarish.Parties.Application.Dtos;
-using Vitarish.Parties.Application.Queries;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Infrastructure.Data;
 
@@ -16,14 +13,12 @@ public sealed class PartiesService : IPartiesService
 {
     private readonly OwnerService _ownerService;
     private readonly TenantService _tenantService;
-    private readonly ISender _sender;
     private readonly PartiesDbContext _dbContext;
 
-    public PartiesService(OwnerService ownerService, TenantService tenantService, ISender sender, PartiesDbContext dbContext)
+    public PartiesService(OwnerService ownerService, TenantService tenantService, PartiesDbContext dbContext)
     {
         _ownerService = ownerService;
         _tenantService = tenantService;
-        _sender = sender;
         _dbContext = dbContext;
     }
 
@@ -107,23 +102,4 @@ public sealed class PartiesService : IPartiesService
     {
         await _tenantService.RemoveAsync(id, ct);
     }
-
-    // TenantIndicator methods - keep using MediatR for now
-    public Task<IEnumerable<TenantIndicator>> GetTenantIndicatorsAsync(Guid tenantId, CancellationToken ct = default) =>
-        _sender.Send(new GetTenantIndicators(tenantId), ct);
-
-    public async Task<TenantIndicator?> AddTenantIndicatorAsync(AddTenantIndicator request, CancellationToken ct = default) =>
-        await _sender.Send(request, ct);
-
-    public Task<bool> VerifyTenantIndicatorAsync(Guid tenantId, Guid indicatorId, CancellationToken ct = default) =>
-        _sender.Send(new VerifyTenantIndicator(tenantId, indicatorId), ct);
-
-    public Task<bool> ActivateTenantIndicatorAsync(Guid tenantId, Guid indicatorId, CancellationToken ct = default) =>
-        _sender.Send(new ActivateTenantIndicator(tenantId, indicatorId), ct);
-
-    public Task<bool> DisableTenantIndicatorAsync(Guid tenantId, Guid indicatorId, CancellationToken ct = default) =>
-        _sender.Send(new DisableTenantIndicator(tenantId, indicatorId), ct);
-
-    public Task<bool> DeleteTenantIndicatorAsync(Guid tenantId, Guid indicatorId, CancellationToken ct = default) =>
-        _sender.Send(new DeleteTenantIndicator(tenantId, indicatorId), ct);
 }

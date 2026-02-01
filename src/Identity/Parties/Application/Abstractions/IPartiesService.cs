@@ -1,4 +1,3 @@
-using Vitarish.Parties.Application.Commands;
 using Vitarish.Parties.Application.Dtos;
 using Vitarish.Parties.Domain.Entities;
 
@@ -22,12 +21,4 @@ public interface IPartiesService
     Task<Tenant?> CreateTenantAsync(TenantWriteDto dto, CancellationToken ct = default);
     Task<Tenant?> UpdateTenantAsync(TenantWriteDto dto, CancellationToken ct = default);
     Task DeleteTenantAsync(Guid id, CancellationToken ct = default);
-
-    // TenantIndicator methods
-    Task<IEnumerable<TenantIndicator>> GetTenantIndicatorsAsync(Guid tenantId, CancellationToken ct = default);
-    Task<TenantIndicator?> AddTenantIndicatorAsync(AddTenantIndicator request, CancellationToken ct = default);
-    Task<bool> VerifyTenantIndicatorAsync(Guid tenantId, Guid indicatorId, CancellationToken ct = default);
-    Task<bool> ActivateTenantIndicatorAsync(Guid tenantId, Guid indicatorId, CancellationToken ct = default);
-    Task<bool> DisableTenantIndicatorAsync(Guid tenantId, Guid indicatorId, CancellationToken ct = default);
-    Task<bool> DeleteTenantIndicatorAsync(Guid tenantId, Guid indicatorId, CancellationToken ct = default);
 }

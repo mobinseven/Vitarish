@@ -41,12 +41,6 @@ public partial class TenantsWidget : IdentityCommonBase
             Dictionary<Guid, Tenant?> tenants = tenantTasks
                 .ToDictionary(entry => entry.Key, entry => entry.Value.Result);
 
-            Dictionary<Guid, Task<IEnumerable<TenantIndicator>>> indicatorTasks = tenants.Values
-                .Where(tenant => tenant is not null)
-                .ToDictionary(tenant => tenant!.Id, tenant => PartiesService.GetTenantIndicatorsAsync(tenant!.Id));
-
-            _ = await Task.WhenAll(indicatorTasks.Values);
-
             foreach (IGrouping<Guid, TenantRoleAssignment> grouping in tenantRoleAssignments.GroupBy(role => role.TenantId))
             {
                 Tenant? tenant = tenants.GetValueOrDefault(grouping.Key);
@@ -54,13 +48,10 @@ public partial class TenantsWidget : IdentityCommonBase
 
                 if (tenant is not null)
                 {
-
-                    if (indicatorTasks.TryGetValue(tenant.Id, out Task<IEnumerable<TenantIndicator>>? indicatorsTask))
-                    {
-                        primaryIndicator = indicatorsTask.Result
-                            .OrderByDescending(indicator => indicator.IsPrimary)
-                            .FirstOrDefault();
-                    }
+                    // Get indicators from the tenant entity itself
+                    primaryIndicator = tenant.Indicators
+                        .OrderByDescending(indicator => indicator.IsPrimary)
+                        .FirstOrDefault();
                 }
 
                 if (primaryIndicator is null)

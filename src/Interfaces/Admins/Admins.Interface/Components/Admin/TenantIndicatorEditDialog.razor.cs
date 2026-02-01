@@ -1,4 +1,3 @@
-using Vitarish.Parties.Application.Commands;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Enums;
 
@@ -36,21 +35,10 @@ public partial class TenantIndicatorEditDialog
         }
     }
 
-    private async Task Save()
+    private Task Save()
     {
-        if (TenantIndicator is null)
-        {
-            AddTenantIndicator request = new(Tenant.Id, newMethod, newValue.Trim(), newIsPrimary, newVerificationMethod);
-            TenantIndicator? indicator = await PartiesService.AddTenantIndicatorAsync(request);
-            if (indicator != null)
-            {
-                MudDialog.Close(indicator);
-            }
-
-        }
-        else
-        {
-            // TODO: update tenant indicator command
-        }
+        // TODO: Implement TenantIndicator management using EntityService pattern
+        MudDialog.Cancel();
+        return Task.CompletedTask;
     }
 }

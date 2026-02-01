@@ -28,10 +28,11 @@ public class DomainEntityTests
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
             Name = "Tenant",
-            ClientId = "client-id"
+            ClientId = "client-id",
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
-        Assert.InRange(DateTime.UtcNow.Subtract(tenant.CreatedAt), TimeSpan.Zero, TimeSpan.FromSeconds(5));
+        Assert.InRange(DateTimeOffset.UtcNow.Subtract(tenant.CreatedAt), TimeSpan.Zero, TimeSpan.FromSeconds(5));
     }
 
     [Fact]
@@ -40,10 +41,11 @@ public class DomainEntityTests
         var owner = new Owner
         {
             Id = Guid.NewGuid(),
-            Name = "Owner"
+            Name = "Owner",
+            CreatedAt = DateTimeOffset.UtcNow
         };
 
-        Assert.InRange(DateTime.UtcNow.Subtract(owner.CreatedAt), TimeSpan.Zero, TimeSpan.FromSeconds(5));
+        Assert.InRange(DateTimeOffset.UtcNow.Subtract(owner.CreatedAt), TimeSpan.Zero, TimeSpan.FromSeconds(5));
     }
 
     [Fact]

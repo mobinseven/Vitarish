@@ -11,7 +11,12 @@ public partial class TenantIndicatorsEditor
 
     protected override async Task ReloadRequired()
     {
-        Indicators = [.. await PartiesService.GetTenantIndicatorsAsync(Tenant.Id)];
+        // Reload the tenant to get updated indicators
+        Tenant? reloadedTenant = await PartiesService.GetTenantAsync(Tenant.Id);
+        if (reloadedTenant is not null)
+        {
+            Indicators = [.. reloadedTenant.Indicators];
+        }
     }
 
     protected async Task AddIndicator()
