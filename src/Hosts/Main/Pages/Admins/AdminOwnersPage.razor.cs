@@ -1,17 +1,16 @@
 using Vitarish.Parties.Application.Dtos;
-using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Main.Pages.Admins;
 
 public partial class AdminOwnersPage
 {
-    private List<Owner> Owners { get; set; } = [];
+    private List<OwnerReadDto> Owners { get; set; } = [];
     private string newOwnerName = string.Empty, newOwnerLogoUrl = string.Empty, newOwnerDescription = string.Empty;
-    private Owner? editingOwner;
+    private OwnerReadDto? editingOwner;
 
     protected override async Task OnInitializedAsync() => Owners = [.. await PartiesService.GetOwnersAsync()];
 
-    private void RowClicked(Owner item)
+    private void RowClicked(OwnerReadDto item)
     {
         editingOwner = item;
         newOwnerName = editingOwner.Name;
@@ -30,7 +29,7 @@ public partial class AdminOwnersPage
                 LogoUrl = string.IsNullOrWhiteSpace(newOwnerLogoUrl) ? null : newOwnerLogoUrl,
                 Description = string.IsNullOrWhiteSpace(newOwnerDescription) ? null : newOwnerDescription
             };
-            Owner? owner = await PartiesService.CreateOwnerAsync(dto);
+            OwnerReadDto? owner = await PartiesService.CreateOwnerAsync(dto);
             if (owner is not null)
             {
                 Owners.Add(owner);
@@ -45,7 +44,7 @@ public partial class AdminOwnersPage
                 LogoUrl = string.IsNullOrWhiteSpace(newOwnerLogoUrl) ? null : newOwnerLogoUrl,
                 Description = string.IsNullOrWhiteSpace(newOwnerDescription) ? null : newOwnerDescription
             };
-            Owner? updated = await PartiesService.UpdateOwnerAsync(dto);
+            OwnerReadDto? updated = await PartiesService.UpdateOwnerAsync(dto);
             if (updated is not null)
             {
                 int idx = Owners.FindIndex(o => o.Id == updated.Id);
@@ -63,7 +62,7 @@ public partial class AdminOwnersPage
         StateHasChanged();
     }
 
-    private async Task RemoveOwner(Owner owner)
+    private async Task RemoveOwner(OwnerReadDto owner)
     {
         await PartiesService.DeleteOwnerAsync(owner.Id);
         _ = Owners.Remove(owner);
