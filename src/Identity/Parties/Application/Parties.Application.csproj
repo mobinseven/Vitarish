@@ -9,5 +9,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Requests\Application\Requests.Application.csproj" />
     <ProjectReference Include="..\Domain\Parties.Domain.csproj" />
+    <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
+    <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Client\Entities.Client.csproj" />
   </ItemGroup>
 </Project>
