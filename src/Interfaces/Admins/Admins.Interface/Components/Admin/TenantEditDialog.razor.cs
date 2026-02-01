@@ -1,5 +1,5 @@
 using Vitarish.Admins.Interface.Services;
-using Vitarish.Parties.Application.Commands;
+using Vitarish.Parties.Application.Dtos;
 using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Admins.Interface.Components.Admin;
@@ -38,13 +38,16 @@ public partial class TenantEditDialog
 
         if (Tenant is null)
         {
-            CreateTenant request = new(
-                selectedOwnerId,
-                newTenantName,
-                selectedPackageId,
-                string.IsNullOrWhiteSpace(newTenantLogoUrl) ? null : newTenantLogoUrl,
-                string.IsNullOrWhiteSpace(newTenantDescription) ? null : newTenantDescription);
-            Tenant? tenant = await PartiesService.CreateTenantAsync(request);
+            TenantWriteDto dto = new()
+            {
+                Id = Guid.NewGuid(),
+                OwnerId = selectedOwnerId,
+                Name = newTenantName,
+                ClientId = selectedPackageId,
+                LogoUrl = string.IsNullOrWhiteSpace(newTenantLogoUrl) ? null : newTenantLogoUrl,
+                Description = string.IsNullOrWhiteSpace(newTenantDescription) ? null : newTenantDescription
+            };
+            Tenant? tenant = await PartiesService.CreateTenantAsync(dto);
             if (tenant is not null)
             {
                 MudDialog.Close(tenant);
@@ -52,14 +55,17 @@ public partial class TenantEditDialog
         }
         else
         {
-            UpdateTenant request = new(
-                Tenant.Id,
-                selectedOwnerId,
-                newTenantName,
-                selectedPackageId,
-                string.IsNullOrWhiteSpace(newTenantLogoUrl) ? null : newTenantLogoUrl,
-                string.IsNullOrWhiteSpace(newTenantDescription) ? null : newTenantDescription);
-            Tenant? updated = await PartiesService.UpdateTenantAsync(request);
+            TenantWriteDto dto = new()
+            {
+                Id = Tenant.Id,
+                OwnerId = selectedOwnerId,
+                Name = newTenantName,
+                ClientId = selectedPackageId,
+                LogoUrl = string.IsNullOrWhiteSpace(newTenantLogoUrl) ? null : newTenantLogoUrl,
+                Description = string.IsNullOrWhiteSpace(newTenantDescription) ? null : newTenantDescription,
+                Metadata = Tenant.Metadata
+            };
+            Tenant? updated = await PartiesService.UpdateTenantAsync(dto);
             if (updated is not null)
             {
                 MudDialog.Close(updated);

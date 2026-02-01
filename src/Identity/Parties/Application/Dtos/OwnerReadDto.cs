@@ -1,4 +1,4 @@
-using Vitarish.Entities.Client.Models;
+using Vitarish.Entities.Server.Models;
 
 namespace Vitarish.Parties.Application.Dtos;
 

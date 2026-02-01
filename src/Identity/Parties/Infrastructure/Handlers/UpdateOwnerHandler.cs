@@ -19,8 +19,8 @@ public sealed class UpdateOwnerHandler(PartiesDbContext db) : IRequestHandler<Up
         owner.Name = request.Name;
         owner.LogoUrl = request.LogoUrl;
         owner.Description = request.Description;
-        owner.ModifiedAt = DateTime.UtcNow;
-        owner.ModifiedBy = request.ModifiedBy;
+        owner.UpdatedAt = DateTimeOffset.UtcNow;
+        owner.UpdatedBy = request.ModifiedBy;
 
         _ = await db.SaveChangesAsync(cancellationToken);
         return owner;
