@@ -1,7 +1,7 @@
 using MediatR;
 using Vitarish.Entities.Server.Services;
-using Vitarish.Parties.Application.Descriptors;
 using Vitarish.Parties.Application.Dtos;
+using Vitarish.Parties.Domain.Descriptors;
 using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Parties.Infrastructure.Services;

@@ -1,7 +1,7 @@
 using Vitarish.Entities.Server.Models;
 using Vitarish.Parties.Application.Abstractions;
-using Vitarish.Parties.Application.Descriptors;
 using Vitarish.Parties.Application.Dtos;
+using Vitarish.Parties.Domain.Descriptors;
 
 namespace Vitarish.Parties.Infrastructure.Services;
 
