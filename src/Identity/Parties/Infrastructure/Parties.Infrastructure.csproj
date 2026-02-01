@@ -1,6 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
     <PackageReference Include="DnsClient" Version="1.8.0" />
+    <PackageReference Include="Injectio" Version="5.0.0" />
     <PackageReference Include="MediatR" Version="14.0.*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="10.0.*" />
   </ItemGroup>
@@ -9,7 +10,5 @@
     <ProjectReference Include="..\Application\Parties.Application.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Repositories\" />
-  </ItemGroup>
+
 </Project>
