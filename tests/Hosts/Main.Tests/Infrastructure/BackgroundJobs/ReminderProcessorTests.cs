@@ -15,6 +15,7 @@ using Vitarish.Entities.Server.Models;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
+using Vitarish.Parties.Application.Dtos;
 
 namespace Main.Tests.Infrastructure.BackgroundJobs;
 
@@ -49,7 +50,7 @@ public class ReminderProcessorTests : IDisposable
             .Setup(x => x.GetTenantsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(new[]
             {
-                new Tenant
+                new TenantReadDto
                 {
                     Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                     OwnerId = Guid.Parse("00000000-0000-0000-0000-000000000010"),
@@ -334,23 +335,23 @@ public class ReminderProcessorTests : IDisposable
 
         mockPartiesService
             .Setup(x => x.GetTenantsAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new[]
-            {
-                new Tenant
+            .ReturnsAsync(
+            [
+                new TenantReadDto
                 {
                     Id = Guid.Parse("00000000-0000-0000-0000-000000000001"),
                     OwnerId = Guid.Parse("00000000-0000-0000-0000-000000000010"),
                     ClientId = "client-1",
                     Name = "Tenant 1"
                 },
-                new Tenant
+                new()
                 {
                     Id = Guid.Parse("00000000-0000-0000-0000-000000000002"),
                     OwnerId = Guid.Parse("00000000-0000-0000-0000-000000000020"),
                     ClientId = "client-2",
                     Name = "Tenant 2"
                 }
-            });
+            ]);
 
         // Act
         await sut.ProcessDueReminders();
