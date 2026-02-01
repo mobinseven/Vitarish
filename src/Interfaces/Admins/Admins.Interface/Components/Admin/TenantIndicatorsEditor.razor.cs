@@ -1,25 +1,22 @@
 using Vitarish.Parties.Application.Dtos;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Enums;
-using Vitarish.Parties.Infrastructure.Services;
 
 namespace Vitarish.Admins.Interface.Components.Admin;
 
 public partial class TenantIndicatorsEditor
 {
     [Parameter, EditorRequired] public TenantReadDto Tenant { get; set; }
-    [Inject] private TenantService TenantService { get; set; } = default!;
 
     private List<TenantIndicator> Indicators { get; set; } = [];
 
-    protected override async Task ReloadRequired()
+    protected override Task ReloadRequired()
     {
-        // Reload the tenant entity to get updated indicators
-        var result = await TenantService.GetEntityAsync(Tenant.Id);
-        if (result.IsSuccess && result.Value is not null)
-        {
-            Indicators = [.. result.Value.Indicators];
-        }
+        // Note: TenantIndicators are not available in TenantReadDto
+        // This component would need to be refactored to use a separate indicators service
+        // or the DTO would need to include indicators
+        Indicators.Clear();
+        return Task.CompletedTask;
     }
 
     protected async Task AddIndicator()

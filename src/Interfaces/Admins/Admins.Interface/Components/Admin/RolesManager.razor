@@ -1,6 +1,6 @@
 @inherits AdminCommonBase
 @using Vitarish.Users.Domain.Models
-@using Vitarish.Parties.Domain.Entities
+@using Vitarish.Parties.Application.Dtos
 
 <Stack>
     <StackField>
@@ -16,7 +16,7 @@
             }
             else
             {
-                @foreach(Tenant tenant in tenants)
+                @foreach(TenantReadDto tenant in tenants)
                 {
                     string tenantLabel = string.IsNullOrWhiteSpace(tenant.Name)
                         ? tenant.Id.ToString()

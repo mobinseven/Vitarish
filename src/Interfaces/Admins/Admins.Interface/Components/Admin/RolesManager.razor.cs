@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Admins.Interface.Components.Base;
-using Vitarish.Parties.Domain.Entities;
+using Vitarish.Parties.Application.Dtos;
 using ClaimDto = Vitarish.Users.Domain.Models.ClaimDto;
 
 namespace Vitarish.Admins.Interface.Components.Admin;
@@ -8,7 +8,7 @@ namespace Vitarish.Admins.Interface.Components.Admin;
 public partial class RolesManager : AdminCommonBase
 {
     private readonly List<RoleEntry> roles = [];
-    private readonly List<Tenant> tenants = [];
+    private readonly List<TenantReadDto> tenants = [];
     private bool isLoading;
     private string newRoleName = string.Empty;
     private string? selectedTenantId;
@@ -33,7 +33,7 @@ public partial class RolesManager : AdminCommonBase
                 .OrderBy(role => role.Name)
                 .ToListAsync();
 
-            Task<IEnumerable<Tenant>> tenantsTask = PartiesService.GetTenantsAsync();
+            Task<IEnumerable<TenantReadDto>> tenantsTask = PartiesService.GetTenantsAsync();
 
             await Task.WhenAll(rolesTask, tenantsTask);
 
