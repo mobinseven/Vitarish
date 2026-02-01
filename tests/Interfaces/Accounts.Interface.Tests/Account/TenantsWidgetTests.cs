@@ -17,8 +17,15 @@ public class TenantsWidgetTests
         await using InterfaceTestContext context = new();
         Guid tenantId = Guid.NewGuid();
         Owner owner = new() { Id = Guid.NewGuid(), Name = "Owner" };
-        Tenant tenant = new() { Id = tenantId, Name = "Workspace A", OwnerId = owner.Id, ClientId = "client-1" };
         TenantIndicator indicator = new() { TenantId = tenantId, Value = "workspace.example.com", IsPrimary = true };
+        Tenant tenant = new() 
+        { 
+            Id = tenantId, 
+            Name = "Workspace A", 
+            OwnerId = owner.Id, 
+            ClientId = "client-1",
+            Indicators = [indicator]
+        };
         User user = new() { Id = "user-1", UserName = "alice" };
 
         _ = context.Services.AddSingleton<AuthenticationStateProvider>(new TestAuthenticatedStateProvider("user-1"));
@@ -35,9 +42,6 @@ public class TenantsWidgetTests
         _ = context.Mocks.Parties
             .Setup(service => service.GetOwnerAsync(owner.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(owner);
-        _ = context.Mocks.Parties
-            .Setup(service => service.GetTenantIndicatorsAsync(tenantId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([indicator]);
 
         IRenderedComponent<TenantsWidget> cut = context.Render<TenantsWidget>();
 
@@ -50,7 +54,14 @@ public class TenantsWidgetTests
         await using InterfaceTestContext context = new();
         Guid tenantId = Guid.NewGuid();
         Owner owner = new() { Id = Guid.NewGuid(), Name = "Owner" };
-        Tenant tenant = new() { Id = tenantId, Name = "Workspace A", OwnerId = owner.Id, ClientId = "client-1" };
+        Tenant tenant = new() 
+        { 
+            Id = tenantId, 
+            Name = "Workspace A", 
+            OwnerId = owner.Id, 
+            ClientId = "client-1",
+            Indicators = []
+        };
         User user = new() { Id = "user-1", UserName = "alice" };
 
         _ = context.Services.AddSingleton<AuthenticationStateProvider>(new TestAuthenticatedStateProvider("user-1"));
@@ -67,9 +78,6 @@ public class TenantsWidgetTests
         _ = context.Mocks.Parties
             .Setup(service => service.GetOwnerAsync(owner.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(owner);
-        _ = context.Mocks.Parties
-            .Setup(service => service.GetTenantIndicatorsAsync(tenantId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([]);
 
         IRenderedComponent<TenantsWidget> cut = context.Render<TenantsWidget>();
 
