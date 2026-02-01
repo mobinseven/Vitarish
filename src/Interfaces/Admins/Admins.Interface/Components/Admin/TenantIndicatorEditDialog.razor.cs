@@ -6,7 +6,7 @@ namespace Vitarish.Admins.Interface.Components.Admin;
 public partial class TenantIndicatorEditDialog
 {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
-    [Parameter, EditorRequired] public Tenant Tenant { get; set; }
+    [Parameter, EditorRequired] public Guid TenantId { get; set; }
     [Parameter] public TenantIndicator? TenantIndicator { get; set; }
 
     private IndicatorMethod newMethod = IndicatorMethod.Hostname;

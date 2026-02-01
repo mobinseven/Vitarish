@@ -1,5 +1,5 @@
 using Vitarish.Parties.Application.Abstractions;
-using Vitarish.Parties.Domain.Entities;
+using Vitarish.Parties.Application.Dtos;
 
 namespace Vitarish.Admins.Interface.Components.Admin;
 
@@ -34,12 +34,12 @@ public partial class UserRoleAssignmentDialog
 
         try
         {
-            IEnumerable<Tenant> tenants = await PartiesService.GetTenantsAsync();
-            Dictionary<Guid, Tenant> tenantDict = tenants.ToDictionary(t => t.Id);
+            IEnumerable<TenantReadDto> tenants = await PartiesService.GetTenantsAsync();
+            Dictionary<Guid, TenantReadDto> tenantDict = tenants.ToDictionary(t => t.Id);
 
             List<Guid> ownerIds = tenants.Select(t => t.OwnerId).Distinct().ToList();
-            Dictionary<Guid, Task<Owner?>> ownerTasks = ownerIds.ToDictionary(id => id, id => PartiesService.GetOwnerAsync(id));
-            Dictionary<Guid, Owner?> owners = (await Task.WhenAll(
+            Dictionary<Guid, Task<OwnerReadDto?>> ownerTasks = ownerIds.ToDictionary(id => id, id => PartiesService.GetOwnerAsync(id));
+            Dictionary<Guid, OwnerReadDto?> owners = (await Task.WhenAll(
                 ownerTasks.Select(async kvp => new { kvp.Key, Value = await kvp.Value })
             )).ToDictionary(x => x.Key, x => x.Value);
 

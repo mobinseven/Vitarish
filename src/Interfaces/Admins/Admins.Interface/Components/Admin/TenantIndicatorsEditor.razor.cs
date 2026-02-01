@@ -1,21 +1,24 @@
+using Vitarish.Parties.Application.Dtos;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Enums;
+using Vitarish.Parties.Infrastructure.Services;
 
 namespace Vitarish.Admins.Interface.Components.Admin;
 
 public partial class TenantIndicatorsEditor
 {
-    [Parameter, EditorRequired] public Tenant Tenant { get; set; }
+    [Parameter, EditorRequired] public TenantReadDto Tenant { get; set; }
+    [Inject] private TenantService TenantService { get; set; } = default!;
 
     private List<TenantIndicator> Indicators { get; set; } = [];
 
     protected override async Task ReloadRequired()
     {
-        // Reload the tenant to get updated indicators
-        Tenant? reloadedTenant = await PartiesService.GetTenantAsync(Tenant.Id);
-        if (reloadedTenant is not null)
+        // Reload the tenant entity to get updated indicators
+        var result = await TenantService.GetEntityAsync(Tenant.Id);
+        if (result.IsSuccess && result.Value is not null)
         {
-            Indicators = [.. reloadedTenant.Indicators];
+            Indicators = [.. result.Value.Indicators];
         }
     }
 
@@ -23,7 +26,7 @@ public partial class TenantIndicatorsEditor
     {
         DialogParameters parameters = new()
         {
-            {"Tenant", Tenant }
+            {"TenantId", Tenant.Id }
         };
         var dialog = await DialogService.ShowAsync<TenantIndicatorEditDialog>(null, parameters);
         var result = await dialog.Result;
@@ -39,7 +42,7 @@ public partial class TenantIndicatorsEditor
     {
         DialogParameters parameters = new()
         {
-            {"Tenant", Tenant },
+            {"TenantId", Tenant.Id },
             {"TenantIndicator", tenantIndicator }
         };
         var dialog = await DialogService.ShowAsync<TenantIndicatorEditDialog>(null, parameters);

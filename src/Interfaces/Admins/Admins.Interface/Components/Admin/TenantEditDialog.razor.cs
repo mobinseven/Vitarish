@@ -1,18 +1,17 @@
 using Vitarish.Admins.Interface.Services;
 using Vitarish.Parties.Application.Dtos;
-using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Admins.Interface.Components.Admin;
 
 public partial class TenantEditDialog
 {
     [Inject] protected IPackageProvider PackageProvider { get; set; } = default!;
-    [Parameter] public Tenant? Tenant { get; set; }
+    [Parameter] public TenantReadDto? Tenant { get; set; }
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     private string newTenantName = string.Empty, newTenantLogoUrl = string.Empty, newTenantDescription = string.Empty, selectedPackageId = string.Empty;
     private Guid selectedOwnerId;
-    private List<Owner> Owners { get; set; } = [];
+    private List<OwnerReadDto> Owners { get; set; } = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -47,7 +46,7 @@ public partial class TenantEditDialog
                 LogoUrl = string.IsNullOrWhiteSpace(newTenantLogoUrl) ? null : newTenantLogoUrl,
                 Description = string.IsNullOrWhiteSpace(newTenantDescription) ? null : newTenantDescription
             };
-            Tenant? tenant = await PartiesService.CreateTenantAsync(dto);
+            TenantReadDto? tenant = await PartiesService.CreateTenantAsync(dto);
             if (tenant is not null)
             {
                 MudDialog.Close(tenant);
@@ -65,7 +64,7 @@ public partial class TenantEditDialog
                 Description = string.IsNullOrWhiteSpace(newTenantDescription) ? null : newTenantDescription,
                 Metadata = Tenant.Metadata
             };
-            Tenant? updated = await PartiesService.UpdateTenantAsync(dto);
+            TenantReadDto? updated = await PartiesService.UpdateTenantAsync(dto);
             if (updated is not null)
             {
                 MudDialog.Close(updated);

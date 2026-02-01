@@ -1,7 +1,6 @@
 using Vitarish.Interfaces.Base.Common;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Application.Dtos;
-using Vitarish.Parties.Domain.Entities;
 using Vitarish.Users.Domain.Models;
 using Metadata = Vitarish.Requests.Application.Models.Metadata;
 
@@ -13,7 +12,7 @@ public class TenantPageBase : PageBase, IDisposable
     [Inject] protected ITenantService TenantService { get; set; } = default!;
     [Inject] protected IUsersService UsersService { get; set; } = default!;
 
-    protected Tenant? Tenant;
+    protected TenantReadDto? Tenant;
     protected bool IsAdmin;
     protected bool IsOwner;
 
@@ -39,18 +38,22 @@ public class TenantPageBase : PageBase, IDisposable
 
     private async void OnUpdatedMetadata(string key, object? value)
     {
-        Tenant!.Metadata = TenantService.Metadata?.ToDictionary() ?? [];
+        Dictionary<string, object?> metadata = TenantService.Metadata?.ToDictionary() ?? [];
         TenantWriteDto dto = new()
         {
-            Id = Tenant.Id,
+            Id = Tenant!.Id,
             OwnerId = Tenant.OwnerId,
             Name = Tenant.Name,
             ClientId = Tenant.ClientId,
             LogoUrl = Tenant.LogoUrl,
             Description = Tenant.Description,
-            Metadata = Tenant.Metadata
+            Metadata = metadata
         };
-        _ = await PartiesService.UpdateTenantAsync(dto);
+        TenantReadDto? updated = await PartiesService.UpdateTenantAsync(dto);
+        if (updated is not null)
+        {
+            Tenant = updated;
+        }
     }
 
     public void Dispose()

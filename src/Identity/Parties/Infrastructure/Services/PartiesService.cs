@@ -1,9 +1,7 @@
-using Microsoft.EntityFrameworkCore;
 using Vitarish.Entities.Server.Models;
 using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Parties.Application.Descriptors;
 using Vitarish.Parties.Application.Dtos;
-using Vitarish.Parties.Domain.Entities;
-using Vitarish.Parties.Infrastructure.Data;
 
 namespace Vitarish.Parties.Infrastructure.Services;
 
@@ -11,59 +9,72 @@ public sealed class PartiesService : IPartiesService
 {
     private readonly OwnerService _ownerService;
     private readonly TenantService _tenantService;
-    private readonly PartiesDbContext _dbContext;
 
-    public PartiesService(OwnerService ownerService, TenantService tenantService, PartiesDbContext dbContext)
+    public PartiesService(OwnerService ownerService, TenantService tenantService)
     {
         _ownerService = ownerService;
         _tenantService = tenantService;
-        _dbContext = dbContext;
     }
 
     // Owner methods using EntityService
-    public async Task<Owner?> GetOwnerAsync(Guid id, CancellationToken ct = default) => await _dbContext.Owners.FirstOrDefaultAsync(o => o.Id == id, ct);
-
-    public async Task<IEnumerable<Owner>> GetOwnersAsync(CancellationToken ct = default) => await _dbContext.Owners.Where(o => o.DeletedAt == null).ToListAsync(ct);
-
-    public async Task<Owner?> CreateOwnerAsync(OwnerWriteDto dto, CancellationToken ct = default)
+    public async Task<OwnerReadDto?> GetOwnerAsync(Guid id, CancellationToken ct = default)
     {
-        EntityResult<OwnerReadDto> result = await _ownerService.AddAsync(dto, ct);
-        return !result.IsSuccess || result.Value == null ? null : await GetOwnerAsync(result.Value.Id, ct);
+        EntityResult<OwnerReadDto> result = await _ownerService.GetAsync(id, ct);
+        return result.IsSuccess ? result.Value : null;
     }
 
-    public async Task<Owner?> UpdateOwnerAsync(OwnerWriteDto dto, CancellationToken ct = default)
+    public async Task<IEnumerable<OwnerReadDto>> GetOwnersAsync(CancellationToken ct = default)
+    {
+        OwnerDescriptor descriptor = new() { DeletedFrom = null, DeletedTo = null };
+        EntityResult<IReadOnlyList<OwnerReadDto>> result = await _ownerService.GetListAsync(descriptor, ct);
+        return result.IsSuccess ? result.Value ?? [] : [];
+    }
+
+    public async Task<OwnerReadDto?> CreateOwnerAsync(OwnerWriteDto dto, CancellationToken ct = default)
+    {
+        EntityResult<OwnerReadDto> result = await _ownerService.AddAsync(dto, ct);
+        return result.IsSuccess ? result.Value : null;
+    }
+
+    public async Task<OwnerReadDto?> UpdateOwnerAsync(OwnerWriteDto dto, CancellationToken ct = default)
     {
         EntityResult<OwnerReadDto> result = await _ownerService.UpdateAsync(dto, ct);
-        return !result.IsSuccess || result.Value == null ? null : await GetOwnerAsync(result.Value.Id, ct);
+        return result.IsSuccess ? result.Value : null;
     }
 
     public async Task DeleteOwnerAsync(Guid id, CancellationToken ct = default) => await _ownerService.RemoveAsync(id, ct);
 
     // Tenant methods using EntityService
-    public async Task<Tenant?> GetTenantAsync(Guid id, CancellationToken ct = default) => await _dbContext.Tenants
-            .Include(t => t.Indicators)
-            .FirstOrDefaultAsync(t => t.Id == id, ct);
-
-    public async Task<IEnumerable<Tenant>> GetTenantsAsync(CancellationToken ct = default) => await _dbContext.Tenants
-            .Include(t => t.Indicators)
-            .Where(t => t.DeletedAt == null)
-            .ToListAsync(ct);
-
-    public async Task<IEnumerable<Tenant>> GetTenantsByOwnerAsync(Guid ownerId, CancellationToken ct = default) => await _dbContext.Tenants
-            .Include(t => t.Indicators)
-            .Where(t => t.OwnerId == ownerId && t.DeletedAt == null)
-            .ToListAsync(ct);
-
-    public async Task<Tenant?> CreateTenantAsync(TenantWriteDto dto, CancellationToken ct = default)
+    public async Task<TenantReadDto?> GetTenantAsync(Guid id, CancellationToken ct = default)
     {
-        EntityResult<TenantReadDto> result = await _tenantService.AddAsync(dto, ct);
-        return !result.IsSuccess || result.Value == null ? null : await GetTenantAsync(result.Value.Id, ct);
+        EntityResult<TenantReadDto> result = await _tenantService.GetAsync(id, ct);
+        return result.IsSuccess ? result.Value : null;
     }
 
-    public async Task<Tenant?> UpdateTenantAsync(TenantWriteDto dto, CancellationToken ct = default)
+    public async Task<IEnumerable<TenantReadDto>> GetTenantsAsync(CancellationToken ct = default)
+    {
+        TenantDescriptor descriptor = new() { DeletedFrom = null, DeletedTo = null };
+        EntityResult<IReadOnlyList<TenantReadDto>> result = await _tenantService.GetListAsync(descriptor, ct);
+        return result.IsSuccess ? result.Value ?? [] : [];
+    }
+
+    public async Task<IEnumerable<TenantReadDto>> GetTenantsByOwnerAsync(Guid ownerId, CancellationToken ct = default)
+    {
+        TenantDescriptor descriptor = new() { OwnerId = ownerId, DeletedFrom = null, DeletedTo = null };
+        EntityResult<IReadOnlyList<TenantReadDto>> result = await _tenantService.GetListAsync(descriptor, ct);
+        return result.IsSuccess ? result.Value ?? [] : [];
+    }
+
+    public async Task<TenantReadDto?> CreateTenantAsync(TenantWriteDto dto, CancellationToken ct = default)
+    {
+        EntityResult<TenantReadDto> result = await _tenantService.AddAsync(dto, ct);
+        return result.IsSuccess ? result.Value : null;
+    }
+
+    public async Task<TenantReadDto?> UpdateTenantAsync(TenantWriteDto dto, CancellationToken ct = default)
     {
         EntityResult<TenantReadDto> result = await _tenantService.UpdateAsync(dto, ct);
-        return !result.IsSuccess || result.Value == null ? null : await GetTenantAsync(result.Value.Id, ct);
+        return result.IsSuccess ? result.Value : null;
     }
 
     public async Task DeleteTenantAsync(Guid id, CancellationToken ct = default) => await _tenantService.RemoveAsync(id, ct);
