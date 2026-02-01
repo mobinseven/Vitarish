@@ -1,5 +1,6 @@
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Commands;
+using Vitarish.Parties.Application.Dtos;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Enums;
 
@@ -21,31 +22,32 @@ public sealed class MockPartiesService : IPartiesService
         return Task.FromResult<IEnumerable<Owner>>(owners);
     }
 
-    public Task<Owner?> CreateOwnerAsync(CreateOwner request, CancellationToken ct = default)
+    public Task<Owner?> CreateOwnerAsync(OwnerWriteDto dto, CancellationToken ct = default)
     {
         Owner owner = new()
         {
-            Id = Guid.NewGuid(),
-            Name = request.Name,
-            LogoUrl = request.LogoUrl,
-            Description = request.Description
+            Id = dto.Id == Guid.Empty ? Guid.NewGuid() : dto.Id,
+            Name = dto.Name,
+            LogoUrl = dto.LogoUrl,
+            Description = dto.Description,
+            CreatedAt = DateTimeOffset.UtcNow
         };
         owners.Add(owner);
         return Task.FromResult<Owner?>(owner);
     }
 
-    public Task<Owner?> UpdateOwnerAsync(UpdateOwner request, CancellationToken ct = default)
+    public Task<Owner?> UpdateOwnerAsync(OwnerWriteDto dto, CancellationToken ct = default)
     {
-        Owner? owner = owners.FirstOrDefault(item => item.Id == request.Id);
+        Owner? owner = owners.FirstOrDefault(item => item.Id == dto.Id);
         if (owner is null)
         {
             return Task.FromResult<Owner?>(null);
         }
 
-        owner.Name = request.Name;
-        owner.LogoUrl = request.LogoUrl;
-        owner.Description = request.Description;
-        owner.ModifiedAt = DateTime.UtcNow;
+        owner.Name = dto.Name;
+        owner.LogoUrl = dto.LogoUrl;
+        owner.Description = dto.Description;
+        owner.UpdatedAt = DateTimeOffset.UtcNow;
         return Task.FromResult<Owner?>(owner);
     }
 
@@ -70,34 +72,38 @@ public sealed class MockPartiesService : IPartiesService
         return Task.FromResult<IEnumerable<Tenant>>(tenants.Where(tenant => tenant.OwnerId == ownerId).ToList());
     }
 
-    public Task<Tenant?> CreateTenantAsync(CreateTenant request, CancellationToken ct = default)
+    public Task<Tenant?> CreateTenantAsync(TenantWriteDto dto, CancellationToken ct = default)
     {
         Tenant tenant = new()
         {
-            Id = Guid.NewGuid(),
-            OwnerId = request.OwnerId,
-            Name = request.Name,
-            LogoUrl = request.LogoUrl,
-            Description = request.Description,
-            ClientId = request.ClientId
+            Id = dto.Id == Guid.Empty ? Guid.NewGuid() : dto.Id,
+            OwnerId = dto.OwnerId,
+            Name = dto.Name,
+            LogoUrl = dto.LogoUrl,
+            Description = dto.Description,
+            ClientId = dto.ClientId,
+            Metadata = dto.Metadata,
+            CreatedAt = DateTimeOffset.UtcNow
         };
         tenants.Add(tenant);
         return Task.FromResult<Tenant?>(tenant);
     }
 
-    public Task<Tenant?> UpdateTenantAsync(UpdateTenant request, CancellationToken ct = default)
+    public Task<Tenant?> UpdateTenantAsync(TenantWriteDto dto, CancellationToken ct = default)
     {
-        Tenant? tenant = tenants.FirstOrDefault(item => item.Id == request.Id);
+        Tenant? tenant = tenants.FirstOrDefault(item => item.Id == dto.Id);
         if (tenant is null)
         {
             return Task.FromResult<Tenant?>(null);
         }
 
-        tenant.Name = request.Name;
-        tenant.LogoUrl = request.LogoUrl;
-        tenant.Description = request.Description;
-        tenant.ClientId = request.ClientId;
-        tenant.ModifiedAt = DateTime.UtcNow;
+        tenant.OwnerId = dto.OwnerId;
+        tenant.Name = dto.Name;
+        tenant.LogoUrl = dto.LogoUrl;
+        tenant.Description = dto.Description;
+        tenant.ClientId = dto.ClientId;
+        tenant.Metadata = dto.Metadata;
+        tenant.UpdatedAt = DateTimeOffset.UtcNow;
         return Task.FromResult<Tenant?>(tenant);
     }
 

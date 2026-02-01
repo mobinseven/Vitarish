@@ -1,5 +1,6 @@
 using Vitarish.Interfaces.Base.Common;
 using Vitarish.Modules.Base;
+using Vitarish.Parties.Application.Dtos;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Users.Domain.Models;
 using Metadata = Vitarish.Requests.Application.Models.Metadata;
@@ -39,7 +40,17 @@ public class TenantPageBase : PageBase, IDisposable
     private async void OnUpdatedMetadata(string key, object? value)
     {
         Tenant!.Metadata = TenantService.Metadata?.ToDictionary() ?? [];
-        _ = await PartiesService.UpdateTenantAsync(new Parties.Application.Commands.UpdateTenant(Tenant.Id, Tenant.OwnerId, Tenant.Name, Tenant.ClientId, Metadata: Tenant!.Metadata));
+        TenantWriteDto dto = new()
+        {
+            Id = Tenant.Id,
+            OwnerId = Tenant.OwnerId,
+            Name = Tenant.Name,
+            ClientId = Tenant.ClientId,
+            LogoUrl = Tenant.LogoUrl,
+            Description = Tenant.Description,
+            Metadata = Tenant.Metadata
+        };
+        _ = await PartiesService.UpdateTenantAsync(dto);
     }
 
     public void Dispose()
