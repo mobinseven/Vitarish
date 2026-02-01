@@ -1,5 +1,6 @@
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Dtos;
+using Vitarish.Parties.Domain.Enums;
 
 namespace Vitarish.Accounts.Interface.Components.Account.Widgets;
 
@@ -41,11 +42,29 @@ public partial class TenantsWidget : IdentityCommonBase
             Dictionary<Guid, TenantReadDto?> tenants = tenantTasks
                 .ToDictionary(entry => entry.Key, entry => entry.Value.Result);
 
+            // Load indicators for all tenants
+            Dictionary<Guid, Task<IEnumerable<TenantIndicatorReadDto>>> indicatorTasks = tenantIds
+                .ToDictionary(id => id, id => PartiesService.GetTenantIndicatorsByTenantAsync(id));
+            _ = await Task.WhenAll(indicatorTasks.Values);
+
+            Dictionary<Guid, IEnumerable<TenantIndicatorReadDto>> tenantIndicators = indicatorTasks
+                .ToDictionary(entry => entry.Key, entry => entry.Value.Result);
+
             foreach (IGrouping<Guid, TenantRoleAssignment> grouping in tenantRoleAssignments.GroupBy(role => role.TenantId))
             {
                 TenantReadDto? tenant = tenants.GetValueOrDefault(grouping.Key);
+                IEnumerable<TenantIndicatorReadDto> indicators = tenantIndicators.GetValueOrDefault(grouping.Key) ?? [];
 
                 if (tenant is null)
+                {
+                    continue;
+                }
+
+                TenantIndicatorReadDto? primaryIndicator = indicators
+                    .OrderByDescending(indicator => indicator.IsPrimary)
+                    .FirstOrDefault();
+
+                if (primaryIndicator is null)
                 {
                     continue;
                 }
@@ -54,7 +73,8 @@ public partial class TenantsWidget : IdentityCommonBase
 
                 tenantEntries.Add(new TenantAccessEntry(
                     grouping.Key,
-                    tenant));
+                    tenant,
+                    primaryIndicator));
             }
         }
         finally
@@ -65,15 +85,12 @@ public partial class TenantsWidget : IdentityCommonBase
 
     private void NavigateToTenant(TenantAccessEntry entry)
     {
-        if (string.IsNullOrWhiteSpace(entry.ClientId))
+        if (string.IsNullOrWhiteSpace(entry.PrimaryUrl))
         {
             return;
         }
 
-        // Note: Without tenant indicators in the DTO, we navigate using ClientId.
-        // This may not work correctly for subdomain-based tenants.
-        // TODO: Either include indicators in TenantReadDto or create a separate navigation service
-        NavigationManager.NavigateTo(entry.ClientId, forceLoad: true);
+        NavigationManager.NavigateTo(entry.PrimaryUrl, forceLoad: true);
     }
 
     private static List<TenantRoleAssignment> ParseTenantRoles(IEnumerable<string> roles)
@@ -111,12 +128,19 @@ public partial class TenantsWidget : IdentityCommonBase
 
     private sealed record TenantAccessEntry(
         Guid TenantId,
-        TenantReadDto Tenant)
+        TenantReadDto Tenant,
+        TenantIndicatorReadDto PrimaryIndicator)
     {
         public string TenantDisplayName => string.IsNullOrWhiteSpace(Tenant?.Name)
             ? $"Tenant {TenantId.ToString()[..8]}"
             : Tenant!.Name;
 
-        public string ClientId => Tenant.ClientId;
+        public string PrimaryIdentifier => PrimaryIndicator?.Value ?? string.Empty;
+        
+        public string PrimaryUrl => PrimaryIndicator.Method switch
+        {
+            IndicatorMethod.Subdomain => PrimaryIndicator.Value ?? throw new InvalidDataException("primary indicator value is null"),
+            _ => Tenant.ClientId
+        };
     }
 }

@@ -7,6 +7,7 @@ public sealed class MockPartiesService : IPartiesService
 {
     private readonly Dictionary<Guid, OwnerReadDto> owners = [];
     private readonly Dictionary<Guid, TenantReadDto> tenants = [];
+    private readonly Dictionary<Guid, TenantIndicatorReadDto> indicators = [];
 
     public Task<OwnerReadDto?> GetOwnerAsync(Guid id, CancellationToken ct = default)
     {
@@ -114,6 +115,66 @@ public sealed class MockPartiesService : IPartiesService
     public Task DeleteTenantAsync(Guid id, CancellationToken ct = default)
     {
         _ = tenants.Remove(id);
+        return Task.CompletedTask;
+    }
+
+    public Task<TenantIndicatorReadDto?> GetTenantIndicatorAsync(Guid id, CancellationToken ct = default)
+    {
+        _ = indicators.TryGetValue(id, out TenantIndicatorReadDto? indicator);
+        return Task.FromResult(indicator);
+    }
+
+    public Task<IEnumerable<TenantIndicatorReadDto>> GetTenantIndicatorsByTenantAsync(Guid tenantId, CancellationToken ct = default)
+    {
+        return Task.FromResult<IEnumerable<TenantIndicatorReadDto>>(
+            indicators.Values.Where(indicator => indicator.TenantId == tenantId).ToList());
+    }
+
+    public Task<TenantIndicatorReadDto?> CreateTenantIndicatorAsync(TenantIndicatorWriteDto dto, CancellationToken ct = default)
+    {
+        TenantIndicatorReadDto indicator = new()
+        {
+            Id = dto.Id == Guid.Empty ? Guid.NewGuid() : dto.Id,
+            TenantId = dto.TenantId,
+            Method = dto.Method,
+            Value = dto.Value,
+            Status = dto.Status,
+            IsPrimary = dto.IsPrimary,
+            Verification = dto.Verification,
+            VerifiedAt = dto.VerifiedAt,
+            LastCheckedAt = dto.LastCheckedAt,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+        indicators[indicator.Id] = indicator;
+        return Task.FromResult<TenantIndicatorReadDto?>(indicator);
+    }
+
+    public Task<TenantIndicatorReadDto?> UpdateTenantIndicatorAsync(TenantIndicatorWriteDto dto, CancellationToken ct = default)
+    {
+        if (!indicators.TryGetValue(dto.Id, out TenantIndicatorReadDto? indicator))
+        {
+            return Task.FromResult<TenantIndicatorReadDto?>(null);
+        }
+
+        TenantIndicatorReadDto updatedIndicator = indicator with
+        {
+            TenantId = dto.TenantId,
+            Method = dto.Method,
+            Value = dto.Value,
+            Status = dto.Status,
+            IsPrimary = dto.IsPrimary,
+            Verification = dto.Verification,
+            VerifiedAt = dto.VerifiedAt,
+            LastCheckedAt = dto.LastCheckedAt,
+            UpdatedAt = DateTimeOffset.UtcNow
+        };
+        indicators[dto.Id] = updatedIndicator;
+        return Task.FromResult<TenantIndicatorReadDto?>(updatedIndicator);
+    }
+
+    public Task DeleteTenantIndicatorAsync(Guid id, CancellationToken ct = default)
+    {
+        _ = indicators.Remove(id);
         return Task.CompletedTask;
     }
 }

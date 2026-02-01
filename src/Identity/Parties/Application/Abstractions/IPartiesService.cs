@@ -20,4 +20,11 @@ public interface IPartiesService
     Task<TenantReadDto?> CreateTenantAsync(TenantWriteDto dto, CancellationToken ct = default);
     Task<TenantReadDto?> UpdateTenantAsync(TenantWriteDto dto, CancellationToken ct = default);
     Task DeleteTenantAsync(Guid id, CancellationToken ct = default);
+
+    // TenantIndicator methods
+    Task<TenantIndicatorReadDto?> GetTenantIndicatorAsync(Guid id, CancellationToken ct = default);
+    Task<IEnumerable<TenantIndicatorReadDto>> GetTenantIndicatorsByTenantAsync(Guid tenantId, CancellationToken ct = default);
+    Task<TenantIndicatorReadDto?> CreateTenantIndicatorAsync(TenantIndicatorWriteDto dto, CancellationToken ct = default);
+    Task<TenantIndicatorReadDto?> UpdateTenantIndicatorAsync(TenantIndicatorWriteDto dto, CancellationToken ct = default);
+    Task DeleteTenantIndicatorAsync(Guid id, CancellationToken ct = default);
 }

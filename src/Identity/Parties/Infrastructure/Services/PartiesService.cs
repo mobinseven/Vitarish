@@ -9,11 +9,13 @@ public sealed class PartiesService : IPartiesService
 {
     private readonly OwnerService _ownerService;
     private readonly TenantService _tenantService;
+    private readonly TenantIndicatorService _tenantIndicatorService;
 
-    public PartiesService(OwnerService ownerService, TenantService tenantService)
+    public PartiesService(OwnerService ownerService, TenantService tenantService, TenantIndicatorService tenantIndicatorService)
     {
         _ownerService = ownerService;
         _tenantService = tenantService;
+        _tenantIndicatorService = tenantIndicatorService;
     }
 
     // Owner methods using EntityService
@@ -78,4 +80,32 @@ public sealed class PartiesService : IPartiesService
     }
 
     public async Task DeleteTenantAsync(Guid id, CancellationToken ct = default) => await _tenantService.RemoveAsync(id, ct);
+
+    // TenantIndicator methods using EntityService
+    public async Task<TenantIndicatorReadDto?> GetTenantIndicatorAsync(Guid id, CancellationToken ct = default)
+    {
+        EntityResult<TenantIndicatorReadDto> result = await _tenantIndicatorService.GetAsync(id, ct);
+        return result.IsSuccess ? result.Value : null;
+    }
+
+    public async Task<IEnumerable<TenantIndicatorReadDto>> GetTenantIndicatorsByTenantAsync(Guid tenantId, CancellationToken ct = default)
+    {
+        TenantIndicatorDescriptor descriptor = new() { TenantId = tenantId, DeletedFrom = null, DeletedTo = null };
+        EntityResult<IReadOnlyList<TenantIndicatorReadDto>> result = await _tenantIndicatorService.GetListAsync(descriptor, ct);
+        return result.IsSuccess ? result.Value ?? [] : [];
+    }
+
+    public async Task<TenantIndicatorReadDto?> CreateTenantIndicatorAsync(TenantIndicatorWriteDto dto, CancellationToken ct = default)
+    {
+        EntityResult<TenantIndicatorReadDto> result = await _tenantIndicatorService.AddAsync(dto, ct);
+        return result.IsSuccess ? result.Value : null;
+    }
+
+    public async Task<TenantIndicatorReadDto?> UpdateTenantIndicatorAsync(TenantIndicatorWriteDto dto, CancellationToken ct = default)
+    {
+        EntityResult<TenantIndicatorReadDto> result = await _tenantIndicatorService.UpdateAsync(dto, ct);
+        return result.IsSuccess ? result.Value : null;
+    }
+
+    public async Task DeleteTenantIndicatorAsync(Guid id, CancellationToken ct = default) => await _tenantIndicatorService.RemoveAsync(id, ct);
 }
