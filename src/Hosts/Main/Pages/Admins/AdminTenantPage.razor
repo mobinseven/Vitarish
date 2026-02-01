@@ -6,11 +6,9 @@
     return;
 }
 
-<Stack>
-    <TenantIndicatorsEditor Tenant="Tenant" />
-</Stack>
+<TenantIndicatorsEditor Tenant="Tenant" />
 
 <Stack>
-    <StackButton StartIcon="fa-regular fa-pen-to-square" OnClick="EditTenant" Label="@Localizer["EditItem", Localizer["Tenant"]]" />
-    <StackButton Color="Color.Error" StartIcon="fa-regular fa-trash" OnClick="RemoveTenant" Label="@Localizer["DeleteItem", Localizer["Tenant"]]" />
+    <StackButton EndIcon="fa-regular fa-pen-to-square" OnClick="EditTenant" Label="@Localizer["EditItem", Localizer["Tenant"]]" />
+    <StackButton Color="Color.Error" EndIcon="fa-regular fa-trash" OnClick="RemoveTenant" Label="@Localizer["DeleteItem", Localizer["Tenant"]]" />
 </Stack>

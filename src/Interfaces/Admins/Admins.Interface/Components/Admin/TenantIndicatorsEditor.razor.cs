@@ -13,6 +13,7 @@ public partial class TenantIndicatorsEditor
     {
         await base.OnInitializedAsync();
         await ReloadRequired();
+        NavService.OverridePageTitle(Tenant.Id.ToString(), Tenant.Name);
     }
 
     protected override async Task ReloadRequired()
