@@ -1,62 +1,129 @@
 
 using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Vitarish.Entities.Server.Models;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Commands;
+using Vitarish.Parties.Application.Descriptors;
+using Vitarish.Parties.Application.Dtos;
 using Vitarish.Parties.Application.Queries;
 using Vitarish.Parties.Domain.Entities;
+using Vitarish.Parties.Infrastructure.Data;
 
 namespace Vitarish.Parties.Infrastructure.Services;
 
-public sealed class PartiesService(ISender sender) : IPartiesService
+public sealed class PartiesService : IPartiesService
 {
-    public Task<Owner?> GetOwnerAsync(Guid id, CancellationToken ct = default) =>
-        sender.Send(new GetOwner(id), ct);
+    private readonly OwnerService _ownerService;
+    private readonly TenantService _tenantService;
+    private readonly ISender _sender;
+    private readonly PartiesDbContext _dbContext;
 
-    public Task<IEnumerable<Owner>> GetOwnersAsync(CancellationToken ct = default) =>
-        sender.Send(new GetOwners(), ct);
+    public PartiesService(OwnerService ownerService, TenantService tenantService, ISender sender, PartiesDbContext dbContext)
+    {
+        _ownerService = ownerService;
+        _tenantService = tenantService;
+        _sender = sender;
+        _dbContext = dbContext;
+    }
 
-    public async Task<Owner?> CreateOwnerAsync(CreateOwner request, CancellationToken ct = default) =>
-        await sender.Send(request, ct);
+    // Owner methods using EntityService
+    public async Task<Owner?> GetOwnerAsync(Guid id, CancellationToken ct = default)
+    {
+        return await _dbContext.Owners.FirstOrDefaultAsync(o => o.Id == id, ct);
+    }
 
-    public async Task<Owner?> UpdateOwnerAsync(UpdateOwner request, CancellationToken ct = default) =>
-        await sender.Send(request, ct);
+    public async Task<IEnumerable<Owner>> GetOwnersAsync(CancellationToken ct = default)
+    {
+        return await _dbContext.Owners.Where(o => o.DeletedAt == null).ToListAsync(ct);
+    }
 
-    public Task DeleteOwnerAsync(Guid id, CancellationToken ct = default) =>
-        sender.Send(new DeleteOwner(id), ct);
+    public async Task<Owner?> CreateOwnerAsync(OwnerWriteDto dto, CancellationToken ct = default)
+    {
+        EntityResult<OwnerReadDto> result = await _ownerService.AddAsync(dto, ct);
+        if (!result.IsSuccess || result.Value == null)
+            return null;
 
-    public Task<Tenant?> GetTenantAsync(Guid id, CancellationToken ct = default) =>
-        sender.Send(new GetTenant(id), ct);
+        return await GetOwnerAsync(result.Value.Id, ct);
+    }
 
-    public Task<IEnumerable<Tenant>> GetTenantsAsync(CancellationToken ct = default) =>
-        sender.Send(new GetTenants(), ct);
+    public async Task<Owner?> UpdateOwnerAsync(OwnerWriteDto dto, CancellationToken ct = default)
+    {
+        EntityResult<OwnerReadDto> result = await _ownerService.UpdateAsync(dto, ct);
+        if (!result.IsSuccess || result.Value == null)
+            return null;
 
-    public Task<IEnumerable<Tenant>> GetTenantsByOwnerAsync(Guid ownerId, CancellationToken ct = default) =>
-        sender.Send(new GetTenantsByOwner(ownerId), ct);
+        return await GetOwnerAsync(result.Value.Id, ct);
+    }
 
-    public async Task<Tenant?> CreateTenantAsync(CreateTenant request, CancellationToken ct = default) =>
-        await sender.Send(request, ct);
+    public async Task DeleteOwnerAsync(Guid id, CancellationToken ct = default)
+    {
+        await _ownerService.RemoveAsync(id, ct);
+    }
 
-    public async Task<Tenant?> UpdateTenantAsync(UpdateTenant request, CancellationToken ct = default) =>
-        await sender.Send(request, ct);
+    // Tenant methods using EntityService
+    public async Task<Tenant?> GetTenantAsync(Guid id, CancellationToken ct = default)
+    {
+        return await _dbContext.Tenants
+            .Include(t => t.Indicators)
+            .FirstOrDefaultAsync(t => t.Id == id, ct);
+    }
 
-    public Task DeleteTenantAsync(Guid id, CancellationToken ct = default) =>
-        sender.Send(new DeleteTenant(id), ct);
+    public async Task<IEnumerable<Tenant>> GetTenantsAsync(CancellationToken ct = default)
+    {
+        return await _dbContext.Tenants
+            .Include(t => t.Indicators)
+            .Where(t => t.DeletedAt == null)
+            .ToListAsync(ct);
+    }
 
+    public async Task<IEnumerable<Tenant>> GetTenantsByOwnerAsync(Guid ownerId, CancellationToken ct = default)
+    {
+        return await _dbContext.Tenants
+            .Include(t => t.Indicators)
+            .Where(t => t.OwnerId == ownerId && t.DeletedAt == null)
+            .ToListAsync(ct);
+    }
+
+    public async Task<Tenant?> CreateTenantAsync(TenantWriteDto dto, CancellationToken ct = default)
+    {
+        EntityResult<TenantReadDto> result = await _tenantService.AddAsync(dto, ct);
+        if (!result.IsSuccess || result.Value == null)
+            return null;
+
+        return await GetTenantAsync(result.Value.Id, ct);
+    }
+
+    public async Task<Tenant?> UpdateTenantAsync(TenantWriteDto dto, CancellationToken ct = default)
+    {
+        EntityResult<TenantReadDto> result = await _tenantService.UpdateAsync(dto, ct);
+        if (!result.IsSuccess || result.Value == null)
+            return null;
+
+        return await GetTenantAsync(result.Value.Id, ct);
+    }
+
+    public async Task DeleteTenantAsync(Guid id, CancellationToken ct = default)
+    {
+        await _tenantService.RemoveAsync(id, ct);
+    }
+
+    // TenantIndicator methods - keep using MediatR for now
     public Task<IEnumerable<TenantIndicator>> GetTenantIndicatorsAsync(Guid tenantId, CancellationToken ct = default) =>
-        sender.Send(new GetTenantIndicators(tenantId), ct);
+        _sender.Send(new GetTenantIndicators(tenantId), ct);
 
     public async Task<TenantIndicator?> AddTenantIndicatorAsync(AddTenantIndicator request, CancellationToken ct = default) =>
-        await sender.Send(request, ct);
+        await _sender.Send(request, ct);
 
     public Task<bool> VerifyTenantIndicatorAsync(Guid tenantId, Guid indicatorId, CancellationToken ct = default) =>
-        sender.Send(new VerifyTenantIndicator(tenantId, indicatorId), ct);
+        _sender.Send(new VerifyTenantIndicator(tenantId, indicatorId), ct);
 
     public Task<bool> ActivateTenantIndicatorAsync(Guid tenantId, Guid indicatorId, CancellationToken ct = default) =>
-        sender.Send(new ActivateTenantIndicator(tenantId, indicatorId), ct);
+        _sender.Send(new ActivateTenantIndicator(tenantId, indicatorId), ct);
 
     public Task<bool> DisableTenantIndicatorAsync(Guid tenantId, Guid indicatorId, CancellationToken ct = default) =>
-        sender.Send(new DisableTenantIndicator(tenantId, indicatorId), ct);
+        _sender.Send(new DisableTenantIndicator(tenantId, indicatorId), ct);
 
     public Task<bool> DeleteTenantIndicatorAsync(Guid tenantId, Guid indicatorId, CancellationToken ct = default) =>
-        sender.Send(new DeleteTenantIndicator(tenantId, indicatorId), ct);
+        _sender.Send(new DeleteTenantIndicator(tenantId, indicatorId), ct);
 }
