@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
+    <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+    <ProjectReference Include="..\Application\Cms.Application.csproj" />
+    <ProjectReference Include="..\Domain\Cms.Domain.csproj" />
+    <ProjectReference Include="..\Infrastructure\Cms.Infrastructure.csproj" />
+    <ProjectReference Include="..\Interface\Cms.Interface.csproj" />
+  </ItemGroup>
+</Project>
