@@ -27,4 +27,5 @@ public interface IPartiesService
     Task<TenantIndicatorReadDto?> CreateTenantIndicatorAsync(TenantIndicatorWriteDto dto, CancellationToken ct = default);
     Task<TenantIndicatorReadDto?> UpdateTenantIndicatorAsync(TenantIndicatorWriteDto dto, CancellationToken ct = default);
     Task DeleteTenantIndicatorAsync(Guid id, CancellationToken ct = default);
+    Task CreateTenantRolesAsync(Guid tenantId, CancellationToken ct = default);
 }

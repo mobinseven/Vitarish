@@ -17,14 +17,14 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\..\Estates\Aggregator\Estates.Aggregator\Estates.Aggregator.csproj" />
 		<ProjectReference Include="..\..\Identity\Parties\Hosting\Parties.Hosting.csproj" />
 		<ProjectReference Include="..\..\Identity\Requests\Hosting\Requests.Hosting.csproj" />
 		<ProjectReference Include="..\..\Identity\Users\Hosting\Users.Hosting.csproj" />
 		<ProjectReference Include="..\..\Interfaces\Accounts\Accounts.Interface\Accounts.Interface.csproj" />
 		<ProjectReference Include="..\..\Interfaces\Admins\Admins.Interface\Admins.Interface.csproj" />
-		<ProjectReference Include="..\..\Modules\Communications\Hosting\Communications.Hosting.csproj" />
-		<ProjectReference Include="..\..\Modules\Instagram\Instagram.Interface\Instagram.Interface.csproj" />
-		<ProjectReference Include="..\..\Modules\Sea\Interface\Sea.Interface.csproj" />
+		<ProjectReference Include="..\..\Interfaces\Widgets\Interfaces.Widgets\Interfaces.Widgets.csproj" />
+		<ProjectReference Include="..\..\Modules\Aggregator\Modules.Aggregator\Modules.Aggregator.csproj" />
 	</ItemGroup>
 
 </Project>

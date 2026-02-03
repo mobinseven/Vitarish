@@ -1536,13 +1536,16 @@
   <data name="Actions" xml:space="preserve">
     <value>اقدامات</value>
   </data>
-  <data name="Gender_Unspecified" xml:space="preserve">
-    <value>نامشخص</value>
-  </data>
   <data name="Owners" xml:space="preserve">
     <value>سرپرستان</value>
   </data>
   <data name="Tenants" xml:space="preserve">
     <value>فضاهای کاری</value>
+  </data>
+  <data name="Gender_Unspecified" xml:space="preserve">
+    <value>نامشخص</value>
+  </data>
+  <data name="Enter" xml:space="preserve">
+    <value>ورود</value>
   </data>
 </root>

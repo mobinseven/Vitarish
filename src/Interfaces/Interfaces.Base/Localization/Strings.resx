@@ -1643,4 +1643,7 @@ of project "{2}"</value>
   <data name="Tenants" xml:space="preserve">
     <value>Tenants</value>
   </data>
+  <data name="Enter" xml:space="preserve">
+    <value>Enter</value>
+  </data>
 </root>

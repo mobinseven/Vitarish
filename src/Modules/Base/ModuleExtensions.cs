@@ -68,7 +68,7 @@ public static class ModuleExtensions
     /// </summary>
     /// <param name="app">The web application.</param>
     /// <returns>A task that completes when all module endpoints are mapped.</returns>
-    public static async Task<WebApplication> MapModuleEndpoints(this WebApplication app)
+    public static async Task<WebApplication> InitializeModules(this WebApplication app)
     {
         IReadOnlyList<IModule>? modules = app.Services.GetService<IReadOnlyList<IModule>>();
         if (modules is null)

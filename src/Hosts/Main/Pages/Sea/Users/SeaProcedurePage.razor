@@ -24,18 +24,22 @@
 
     private bool markedAsRead;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
         Guid.TryParse(projectId, out ProjectId);
         Guid.TryParse(procedureId, out ProcedureId);
         RenderForId(procedureId);
         RenderForId(projectId);
-
-        await base.OnInitializedAsync();
+        await ReloadRequired();
     }
 
     protected override async Task ReloadRequired()
     {
+        if(ProjectId == Guid.Empty)
+        {
+            return;
+        }
+
         Project = await ProjectsService.GetAsync(ProjectId, CancellationToken.None).GetValueOrDefaultAsync();
 
         if(Project is null)

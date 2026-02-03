@@ -9,12 +9,9 @@ namespace Vitarish.Parties.Infrastructure.Services;
 /// <summary>
 /// Service for managing Tenant entities using the Entities framework.
 /// </summary>
-public class TenantService : EntityService<Tenant, TenantDescriptor, TenantReadDto, TenantWriteDto, TenantDescriptorDto>
-{
-    public TenantService(IMediator mediator) 
-        : base(
-            mediator,
-            tenant => new TenantReadDto
+public class TenantService(IMediator mediator) : EntityService<Tenant, TenantDescriptor, TenantReadDto, TenantWriteDto, TenantDescriptorDto>(
+        mediator,
+        tenant => new TenantReadDto
             {
                 Id = tenant.Id,
                 OwnerId = tenant.OwnerId,
@@ -30,7 +27,7 @@ public class TenantService : EntityService<Tenant, TenantDescriptor, TenantReadD
                 DeletedAt = tenant.DeletedAt,
                 DeletedBy = tenant.DeletedBy
             },
-            dto => new Tenant
+        dto => new Tenant
             {
                 Id = dto.Id,
                 OwnerId = dto.OwnerId,
@@ -40,7 +37,7 @@ public class TenantService : EntityService<Tenant, TenantDescriptor, TenantReadD
                 ClientId = dto.ClientId,
                 Metadata = dto.Metadata
             },
-            descriptorDto => new TenantDescriptor
+        descriptorDto => new TenantDescriptor
             {
                 Id = descriptorDto.Id,
                 Skip = descriptorDto.Skip,
@@ -59,6 +56,5 @@ public class TenantService : EntityService<Tenant, TenantDescriptor, TenantReadD
                 Name = descriptorDto.Name,
                 ClientId = descriptorDto.ClientId
             })
-    {
-    }
+{
 }

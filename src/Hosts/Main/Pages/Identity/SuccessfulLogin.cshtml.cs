@@ -5,39 +5,46 @@ namespace Vitarish.Main.Pages.Identity;
 
 public class SuccessfulLoginModel(IUsersService userService) : PageModel
 {
-    private readonly IUsersService _userService = userService;
-
-
     [BindProperty(SupportsGet = true)]
     public string? ReturnUrl { get; set; }
 
-
     public async Task<IActionResult> OnGetAsync()
     {
-        string? id = User.FindFirstValue("sub") ?? throw new InvalidOperationException("/Account/SuccessfulLogin user could not be retrived from HttpContext");
+        // Get authenticated user ID (or fail early)
+        string userId = User.FindFirstValue("sub")
+            ?? throw new InvalidOperationException("User id could not be retrieved from HttpContext.");
 
+        // Fetch user
+        User user = await userService.GetUserAsync(userId)
+            ?? throw new InvalidOperationException("User could not be retrieved.");
 
-        User user = await _userService.GetUserAsync(id)
-        ?? throw new InvalidOperationException("/Account/SuccessfulLogin user could not be retrived from HttpContext");
-
-
-        bool missingNames = string.IsNullOrWhiteSpace(user.FirstName) && string.IsNullOrWhiteSpace(user.LastName);
-
+        // If user has no name, force them to complete profile
+        bool missingNames = string.IsNullOrWhiteSpace(user.FirstName)
+                         || string.IsNullOrWhiteSpace(user.LastName);
 
         if (missingNames)
         {
-            if (string.IsNullOrWhiteSpace(ReturnUrl))
-            {
-                return Redirect("/Settings/Name");
-            }
-            else
-            {
-                return Redirect(ReturnUrl);
-            }
+            // Always redirect to local complete-name page.
+            return RedirectToPage("/Settings/Name", new { ReturnUrl });
         }
 
+        // If no return URL is provided, just go home
+        if (string.IsNullOrEmpty(ReturnUrl))
+        {
+            return LocalRedirect("/");
+        }
 
-        string? target = WebUtility.UrlDecode(ReturnUrl);
-        return !string.IsNullOrWhiteSpace(target) && Url.IsLocalUrl(target) ? LocalRedirect(target) : Redirect("/");
+        // Decode and check safety of return URL
+        string decoded = WebUtility.UrlDecode(ReturnUrl);
+
+        // Only local URLs should be allowed back
+        if (!Url.IsLocalUrl(decoded))
+        {
+            // Fallback to home if external or unsafe
+            return LocalRedirect("/");
+        }
+
+        // Finally redirect to the intended local page
+        return LocalRedirect(decoded);
     }
 }

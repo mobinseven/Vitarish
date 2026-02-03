@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using Vitarish.Modules.Base;
+using Vitarish.Estates.Base;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.DependencyInjection;
 using Vitarish.Sea.Infrastructure.Services;
@@ -9,25 +9,22 @@ using Vitarish.Sea.Presentation.Serializers;
 
 namespace Vitarish.Sea.Interface;
 
-/// <summary>
-/// Module wiring for the Sea stack using the shared module contracts.
-/// </summary>
-public class SeaModule : ModuleBase, ISeaModule
+public class SeaEstate : Estate, ISeaEstate
 {
     private readonly Action<DbContextOptionsBuilder>? configureDbContext;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SeaModule"/> class.
+    /// Initializes a new instance of the <see cref="SeaEstate"/> class.
     /// </summary>
-    public SeaModule()
+    public SeaEstate()
     {
     }
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="SeaModule"/> class with database configuration.
+    /// Initializes a new instance of the <see cref="SeaEstate"/> class with database configuration.
     /// </summary>
     /// <param name="configureDbContext">Delegate to configure the database context.</param>
-    public SeaModule(Action<DbContextOptionsBuilder> configureDbContext)
+    public SeaEstate(Action<DbContextOptionsBuilder> configureDbContext)
     {
         this.configureDbContext = configureDbContext;
     }
@@ -35,16 +32,18 @@ public class SeaModule : ModuleBase, ISeaModule
     /// <inheritdoc />
     public override string Name => "Sea";
 
+    public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null) => ConfigureServices(builder.Services, builder.Configuration, configureDbContext);
+
     /// <inheritdoc />
-    protected override void ConfigureServices(
+    protected void ConfigureServices(
         IServiceCollection services,
         IConfiguration configuration,
         Action<DbContextOptionsBuilder>? configureDbContext)
     {
-        Action<DbContextOptionsBuilder>? dbConfigurator = (configureDbContext ?? this.configureDbContext) ?? throw new InvalidOperationException("SeaModule requires a DbContext configuration delegate.");
+        Action<DbContextOptionsBuilder>? dbConfigurator = (configureDbContext ?? this.configureDbContext) ?? throw new InvalidOperationException("SeaEstate requires a DbContext configuration delegate.");
 
         _ = configuration;
-        _ = services.AddSingleton<ISeaModule, SeaModule>();
+        _ = services.AddSingleton<ISeaEstate, SeaEstate>();
         _ = services.AddMemoryCache();
 
         _ = services.AddDbContext<SeaDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Transient);
@@ -59,5 +58,5 @@ public class SeaModule : ModuleBase, ISeaModule
         _ = services.ConfigureSeaInterface();
     }
 
-    protected override async Task InitializeAsync(WebApplication app) => await app.InitializeViews();
+    public override async Task Initialize(WebApplication app) => await app.InitializeViews();
 }

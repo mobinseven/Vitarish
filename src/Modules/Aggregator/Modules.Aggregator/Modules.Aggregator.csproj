@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\Communications\Hosting\Communications.Hosting.csproj" />
+    <ProjectReference Include="..\..\Files\Interface\Files.Interface.csproj" />
+    <ProjectReference Include="..\..\Instagram\Instagram.Interface\Instagram.Interface.csproj" />
+    <ProjectReference Include="..\..\Intelligence\Interface\Intelligence.Interface.csproj" />
+  </ItemGroup>
+
+</Project>

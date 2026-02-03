@@ -39,7 +39,7 @@ public sealed class PasswordLoginSubmitModel(
         if (user is null)
         {
             LogWarning(null, Input.Username, "InvalidCredentials");
-            return RedirectWithStatus("/Account/Login/Password", BuildInvalidAttemptMessage());
+            return RedirectWithStatus(failureDestination, BuildInvalidAttemptMessage());
         }
 
         Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(user, Input.Password, true, lockoutOnFailure: false);

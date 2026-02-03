@@ -1,4 +1,3 @@
-using Vitarish.Interfaces.Base.Common;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Application.Dtos;
 using Vitarish.Users.Domain.Models;
@@ -13,25 +12,47 @@ public class TenantPageBase : PageBase, IDisposable
     [Inject] protected IUsersService UsersService { get; set; } = default!;
 
     protected TenantReadDto? Tenant;
+    protected bool IsUser;
     protected bool IsAdmin;
     protected bool IsOwner;
 
     protected Guid? UserId => Guid.Parse(RequestContext.UserId ?? Guid.Empty.ToString());
 
-    protected override async Task OnInitializedAsync()
+    protected override sealed async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
+        if (RequestContext.TenantId is null)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+
+        Tenant = await PartiesService.GetTenantAsync(Guid.Parse(RequestContext.TenantId));
+
+        if (Tenant is null)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+
+        IsUser = RequestContext.IsTenantUser();
+
+        if (!IsUser)
+        {
+            NavigationManager.NavigateTo("/");
+            return;
+        }
+
+        TenantService.Metadata = new Metadata(Tenant.Metadata);
+        TenantService.Metadata.OnUpdate += OnUpdatedMetadata;
+        TenantService.Users = [.. (await UsersService.GetUsersInRoleAsync(RequestContext.GetTenantUserRole(), CancellationToken.None)).Select(u => new UserDto(u))];
+
+        NavService.OverridePageTitle(Tenant.ClientId, Tenant.Name);
+
         IsAdmin = RequestContext.IsTenantAdmin() || RequestContext.IsTenantOwner();
         IsOwner = RequestContext.IsTenantOwner();
 
-        Tenant = await PartiesService.GetTenantAsync(Guid.Parse(RequestContext.TenantId));
-        if (Tenant is not null)
-        {
-            TenantService.Metadata = new Metadata(Tenant.Metadata);
-            TenantService.Metadata.OnUpdate += OnUpdatedMetadata;
-            TenantService.Users = [.. (await UsersService.GetUsersInRoleAsync(RequestContext.GetTenantUserRole(), CancellationToken.None)).Select(u => new UserDto(u))];
-            NavService.OverridePageTitle(Tenant.ClientId, Tenant.Name);
-        }
         StateHasChanged();
     }
 

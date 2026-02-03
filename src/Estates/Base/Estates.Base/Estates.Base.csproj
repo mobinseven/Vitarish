@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<ItemGroup>
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.*" />
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\..\..\Identity\Parties\Application\Parties.Application.csproj" />
+	  <ProjectReference Include="..\..\..\Identity\Requests\Application\Requests.Application.csproj" />
+	  <ProjectReference Include="..\..\..\Identity\Users\Application\Users.Application.csproj" />
+	  <ProjectReference Include="..\..\..\Modules\Aggregator\Modules.Aggregator\Modules.Aggregator.csproj" />
+	</ItemGroup>
+
+</Project>

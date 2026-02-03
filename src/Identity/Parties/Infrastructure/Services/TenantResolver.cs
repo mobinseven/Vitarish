@@ -12,17 +12,9 @@ namespace Vitarish.Parties.Infrastructure.Services;
 /// <summary>
 /// Resolves tenants based on incoming host names using cached tenant indicators.
 /// </summary>
-public class TenantResolver: ITenantResolver
+public class TenantResolver(PartiesDbContext dbContext, IMemoryCache cache) : ITenantResolver
 {
-    private readonly PartiesDbContext dbContext;
-    private readonly IMemoryCache cache;
     private static readonly MemoryCacheEntryOptions CacheOptions = new() { SlidingExpiration = TimeSpan.FromMinutes(10) };
-
-    public TenantResolver(PartiesDbContext dbContext, IMemoryCache cache)
-    {
-        this.dbContext = dbContext;
-        this.cache = cache;
-    }
 
     /// <summary>
     /// Resolves an active tenant by normalizing the host name and looking up a matching indicator.

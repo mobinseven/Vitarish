@@ -9,12 +9,9 @@ namespace Vitarish.Parties.Infrastructure.Services;
 /// <summary>
 /// Service for managing TenantIndicator entities using the Entities framework.
 /// </summary>
-public class TenantIndicatorService : EntityService<TenantIndicator, TenantIndicatorDescriptor, TenantIndicatorReadDto, TenantIndicatorWriteDto, TenantIndicatorDescriptorDto>
-{
-    public TenantIndicatorService(IMediator mediator) 
-        : base(
-            mediator,
-            indicator => new TenantIndicatorReadDto
+public class TenantIndicatorService(IMediator mediator) : EntityService<TenantIndicator, TenantIndicatorDescriptor, TenantIndicatorReadDto, TenantIndicatorWriteDto, TenantIndicatorDescriptorDto>(
+        mediator,
+        indicator => new TenantIndicatorReadDto
             {
                 Id = indicator.Id,
                 TenantId = indicator.TenantId,
@@ -32,7 +29,7 @@ public class TenantIndicatorService : EntityService<TenantIndicator, TenantIndic
                 DeletedAt = indicator.DeletedAt,
                 DeletedBy = indicator.DeletedBy
             },
-            dto => new TenantIndicator
+        dto => new TenantIndicator
             {
                 Id = dto.Id,
                 TenantId = dto.TenantId,
@@ -44,7 +41,7 @@ public class TenantIndicatorService : EntityService<TenantIndicator, TenantIndic
                 VerifiedAt = dto.VerifiedAt,
                 LastCheckedAt = dto.LastCheckedAt
             },
-            descriptorDto => new TenantIndicatorDescriptor
+        descriptorDto => new TenantIndicatorDescriptor
             {
                 Id = descriptorDto.Id,
                 Skip = descriptorDto.Skip,
@@ -65,6 +62,5 @@ public class TenantIndicatorService : EntityService<TenantIndicator, TenantIndic
                 Status = descriptorDto.Status,
                 IsPrimary = descriptorDto.IsPrimary
             })
-    {
-    }
+{
 }

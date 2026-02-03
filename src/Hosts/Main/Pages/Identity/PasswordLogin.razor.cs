@@ -2,12 +2,6 @@ namespace Vitarish.Main.Pages.Identity;
 
 public partial class PasswordLogin
 {
-
-    protected string failureUrl => NavigationManager.GetUriWithQueryParameters("Account/Login/Password", new Dictionary<string, object?>
-    {
-        [nameof(ReturnUrl)] = ReturnUrl,
-    });
-
     private PasswordLoginModel Model { get; } = new();
 
     protected override async Task OnInitializedAsync()

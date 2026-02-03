@@ -1,15 +1,15 @@
-using Vitarish.Admins.Interface.Services;
+using Vitarish.Estates.Aggregator;
 using Vitarish.Parties.Application.Dtos;
 
 namespace Vitarish.Admins.Interface.Components.Admin;
 
 public partial class TenantEditDialog
 {
-    [Inject] protected IPackageProvider PackageProvider { get; set; } = default!;
+    [Inject] protected IEstatesProvider EstatesProvider { get; set; } = default!;
     [Parameter] public TenantReadDto? Tenant { get; set; }
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    private string newTenantName = string.Empty, newTenantLogoUrl = string.Empty, newTenantDescription = string.Empty, selectedPackageId = string.Empty;
+    private string newTenantName = string.Empty, newTenantLogoUrl = string.Empty, newTenantDescription = string.Empty, selectedEstateId = string.Empty;
     private Guid selectedOwnerId;
     private List<OwnerReadDto> Owners { get; set; } = [];
 
@@ -17,19 +17,27 @@ public partial class TenantEditDialog
     {
         Owners = [.. await PartiesService.GetOwnersAsync()];
 
-        if(Tenant is not null)
+        if (Tenant is not null)
         {
             selectedOwnerId = Tenant.OwnerId;
             newTenantName = Tenant.Name;
             newTenantLogoUrl = Tenant.LogoUrl ?? string.Empty;
             newTenantDescription = Tenant.Description ?? string.Empty;
-            selectedPackageId = Tenant.ClientId ?? string.Empty;
+            selectedEstateId = Tenant.ClientId ?? string.Empty;
+        }
+    }
+
+    private async Task UpdateRoles()
+    {
+        if (Tenant is not null)
+        {
+            await PartiesService.CreateTenantRolesAsync(Tenant.Id);
         }
     }
 
     private async Task SaveTenant()
     {
-        if (string.IsNullOrWhiteSpace(selectedPackageId))
+        if (string.IsNullOrWhiteSpace(selectedEstateId))
         {
             _ = Snackbar.Add("Client ID is required", Severity.Error);
             return;
@@ -42,7 +50,7 @@ public partial class TenantEditDialog
                 Id = Guid.NewGuid(),
                 OwnerId = selectedOwnerId,
                 Name = newTenantName,
-                ClientId = selectedPackageId,
+                ClientId = selectedEstateId,
                 LogoUrl = string.IsNullOrWhiteSpace(newTenantLogoUrl) ? null : newTenantLogoUrl,
                 Description = string.IsNullOrWhiteSpace(newTenantDescription) ? null : newTenantDescription
             };
@@ -59,7 +67,7 @@ public partial class TenantEditDialog
                 Id = Tenant.Id,
                 OwnerId = selectedOwnerId,
                 Name = newTenantName,
-                ClientId = selectedPackageId,
+                ClientId = selectedEstateId,
                 LogoUrl = string.IsNullOrWhiteSpace(newTenantLogoUrl) ? null : newTenantLogoUrl,
                 Description = string.IsNullOrWhiteSpace(newTenantDescription) ? null : newTenantDescription,
                 Metadata = Tenant.Metadata
@@ -76,8 +84,5 @@ public partial class TenantEditDialog
         newTenantDescription = string.Empty;
         StateHasChanged();
     }
-    private void Cancel()
-    {
-        MudDialog.Cancel();
-    }
+    private void Cancel() => MudDialog.Cancel();
 }

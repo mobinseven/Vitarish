@@ -29,15 +29,11 @@
     protected bool initialized;
     bool markedAsRead;
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-
         Guid.TryParse(projectId, out ProjectId);
         RenderForId(projectId);
-
-        await base.OnInitializedAsync();
-        initialized = true;
-        await InvokeAsync(StateHasChanged);
+        await ReloadRequired();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -65,7 +61,8 @@
             return;
         }
 
-       NavService.OverridePageTitle(Project.Id.ToString(), Project.Name);
+        NavService.OverridePageTitle(Project.Id.ToString(), Project.Name);
+        initialized = true;
     }
 
     protected async Task MarkAsRead()

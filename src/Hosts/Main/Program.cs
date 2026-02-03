@@ -3,10 +3,10 @@ using Finbuckle.MultiTenant;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using System.Reflection;
-using Vitarish.Admins.Interface.Services;
 using Vitarish.Communications.Hosting;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Entities.Server.Services;
+using Vitarish.Estates.Aggregator;
 using Vitarish.Files.Infrastructure.Data;
 using Vitarish.Files.Interface;
 using Vitarish.Instagram.Interface;
@@ -25,7 +25,6 @@ using Vitarish.Parties.Infrastructure.Data;
 using Vitarish.Requests.Hosting.DependencyInjection;
 using Vitarish.Requests.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.Data;
-using Vitarish.Sea.Interface;
 using Vitarish.Users.Hosting.DependencyInjection;
 using Vitarish.Users.Infrastructure.Data;
 
@@ -47,9 +46,8 @@ IEnumerable<Assembly> requestedModuleAssemblies = [
             typeof(FilesModule).Assembly,
             typeof(CommunicationModule).Assembly,
             typeof(IntelligenceModule).Assembly,
-            typeof(InstagramModule).Assembly,
-            typeof(SeaModule).Assembly];
-
+            typeof(InstagramModule).Assembly];
+await builder.RegisterEstates(configureSqlServer);
 _ = await builder.AddModules(requestedModuleAssemblies, configureSqlServer);
 
 builder.Services.AddRazorComponents()
@@ -125,7 +123,8 @@ _ = builder.Services.AddMultiTenant<TenantInfo>()
 
 builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
 builder.Services.AddVitarishInterfacesBase();
-builder.Services.AddSingleton<IPackageProvider, PackageProvider>();
+
+builder.Services.AddSingleton<IEstatesProvider, EstatesProvider>();
 
 builder.Services.AddScoped<EntityDataProvider>();
 builder.Services.AddScoped<IEntityUserService>(sp => sp.GetRequiredService<EntityDataProvider>());
@@ -175,7 +174,8 @@ _ = app.UseAntiforgery();
 
 _ = app.UseMultiTenant();
 
-_ = await app.MapModuleEndpoints();
+_ = await app.InitializeModules();
+await app.InitializeEstates();
 
 _ = app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 _ = app.MapRazorPages();

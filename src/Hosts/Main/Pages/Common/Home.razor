@@ -8,9 +8,12 @@
     </StackField>
 </Stack>
 
+
 <AuthorizeView>
     <Authorized>
-        <TenantsWidget />
+
+        <TenantDashboard />
+
         <Stack>
             <AuthorizeView Context="admin" Policy="@IdentityDefinitions.PlatformAdmin">
                 <StackButton Label="@Localizer["Admin"]"

@@ -19,16 +19,20 @@
                 <MudTextField @bind-Value=newTenantDescription Label="@Localizer["Description"]" />
             </StackField>
             <StackField>
-                <MudSelect @bind-Value="selectedPackageId" Label="@Localizer["Package"]" Required>
-                    @foreach(var package in PackageProvider.GetPackages())
+                <MudSelect @bind-Value="selectedEstateId" Label="@Localizer["Estate"]" Required>
+                    @foreach(var estate in EstatesProvider.GetEstateRecords())
                     {
-                        <MudSelectItem Value="@package.Id">@(package.Name)</MudSelectItem>
+                        <MudSelectItem Value="@estate.Id">@(estate.Name)</MudSelectItem>
                     }
                 </MudSelect>
             </StackField>
         </Stack>
         <Stack>
             <StackButton Label="@Localizer["Save"]" OnClick="SaveTenant" Color="Color.Primary" StartIcon="fa-regular fa-save" />
+            @if(Tenant is not null)
+            {
+                <StackButton Label="@Localizer["UpdateRoles"]" OnClick="UpdateRoles" StartIcon="fa-regular fa-sync" />
+            }
             <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" StartIcon="fa-regular fa-xmark" />
         </Stack>
     </DialogContent>

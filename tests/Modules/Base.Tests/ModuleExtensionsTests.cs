@@ -146,7 +146,7 @@ public class ModuleExtensionsTests
         WebApplication app = builder.Build();
 
         // Act
-        await app.MapModuleEndpoints();
+        await app.InitializeModules();
 
         // Assert
         IReadOnlyList<IModule>? modules = app.Services.GetService<IReadOnlyList<IModule>>();
@@ -164,7 +164,7 @@ public class ModuleExtensionsTests
         WebApplication app = builder.Build();
 
         // Act
-        Func<Task> act = async () => await app.MapModuleEndpoints();
+        Func<Task> act = async () => await app.InitializeModules();
 
         // Assert
         await act.Should().NotThrowAsync();

@@ -9,12 +9,9 @@ namespace Vitarish.Parties.Infrastructure.Services;
 /// <summary>
 /// Service for managing Owner entities using the Entities framework.
 /// </summary>
-public class OwnerService : EntityService<Owner, OwnerDescriptor, OwnerReadDto, OwnerWriteDto, OwnerDescriptorDto>
-{
-    public OwnerService(IMediator mediator) 
-        : base(
-            mediator,
-            owner => new OwnerReadDto
+public class OwnerService(IMediator mediator) : EntityService<Owner, OwnerDescriptor, OwnerReadDto, OwnerWriteDto, OwnerDescriptorDto>(
+        mediator,
+        owner => new OwnerReadDto
             {
                 Id = owner.Id,
                 Name = owner.Name,
@@ -27,14 +24,14 @@ public class OwnerService : EntityService<Owner, OwnerDescriptor, OwnerReadDto, 
                 DeletedAt = owner.DeletedAt,
                 DeletedBy = owner.DeletedBy
             },
-            dto => new Owner
+        dto => new Owner
             {
                 Id = dto.Id,
                 Name = dto.Name,
                 LogoUrl = dto.LogoUrl,
                 Description = dto.Description
             },
-            descriptorDto => new OwnerDescriptor
+        descriptorDto => new OwnerDescriptor
             {
                 Id = descriptorDto.Id,
                 Skip = descriptorDto.Skip,
@@ -51,6 +48,5 @@ public class OwnerService : EntityService<Owner, OwnerDescriptor, OwnerReadDto, 
                 DeletedBy = descriptorDto.DeletedBy,
                 Name = descriptorDto.Name
             })
-    {
-    }
+{
 }

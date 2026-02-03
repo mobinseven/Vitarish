@@ -52,7 +52,7 @@ public class ModuleIntegrationTests
         WebApplication app = builder.Build();
 
         // Act - Map endpoints
-        await app.MapModuleEndpoints();
+        await app.InitializeModules();
 
         // Assert
         ServiceRegistrationModule.ServiceRegistered.Should().BeTrue();
@@ -91,7 +91,7 @@ public class ModuleIntegrationTests
         // Act
         await builder.AddModules([]);
         WebApplication app = builder.Build();
-        await app.MapModuleEndpoints();
+        await app.InitializeModules();
 
         // Assert - should not throw
         IReadOnlyList<IModule>? modules = app.Services.GetService<IReadOnlyList<IModule>>();

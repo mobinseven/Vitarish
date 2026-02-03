@@ -109,4 +109,19 @@ public partial class TenantIndicatorEditDialog
             }
         }
     }
+
+    private async void Delete()
+    {
+        if (TenantIndicator is null)
+        {
+            MudDialog.Close();
+        }
+        else
+        {
+            await PartiesService.DeleteTenantIndicatorAsync(TenantIndicator.Id);
+            Snackbar.Add("Indicator deleted successfully", Severity.Success);
+            MudDialog.Close();
+        }
+
+    }
 }
