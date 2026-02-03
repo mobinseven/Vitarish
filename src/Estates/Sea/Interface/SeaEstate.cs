@@ -8,7 +8,9 @@ using Vitarish.Sea.Interface.DependencyInjection;
 using Vitarish.Sea.Presentation.Serializers;
 
 namespace Vitarish.Sea.Interface;
-
+/// <summary>
+/// Sea is short for state-event-action. It was the main concept behind 
+/// </summary>
 public class SeaEstate : Estate, ISeaEstate
 {
     private readonly Action<DbContextOptionsBuilder>? configureDbContext;
