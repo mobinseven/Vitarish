@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+    <ProjectReference Include="..\..\Base\Estates.Base\Estates.Base.csproj" />
+    <ProjectReference Include="..\Application\Cms.Application.csproj" />
+    <ProjectReference Include="..\Domain\Cms.Domain.csproj" />
+    <ProjectReference Include="..\Infrastructure\Cms.Infrastructure.csproj" />
+  </ItemGroup>
+
+</Project>
