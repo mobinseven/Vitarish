@@ -5,3 +5,4 @@ global using Vitarish.Entities.Server.Core;
 global using Vitarish.Entities.Server.Models;
 global using Vitarish.Cms.Domain.Entities;
 global using Vitarish.Cms.Domain.Enums;
+global using Vitarish.Cms.Domain.Models;
