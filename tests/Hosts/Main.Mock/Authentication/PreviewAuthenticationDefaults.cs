@@ -1,5 +1,5 @@
 using System.Security.Claims;
-using Vitarish.Accounts.Domain.Constants;
+using Vitarish.Interfaces.Accounts.Constants;
 
 namespace Vitarish.Main.Mock.Authentication;
 

@@ -1,3 +1,5 @@
+using Vitarish.Interfaces.Accounts.Models;
+
 namespace Vitarish.Main.Pages.Identity;
 
 public partial class PasswordLogin

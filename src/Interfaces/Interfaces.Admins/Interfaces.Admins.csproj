@@ -1,0 +1,13 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Duende.IdentityServer" Version="7.*" />
+		<PackageReference Include="Duende.IdentityModel" Version="8.*" />
+	</ItemGroup>
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Estates\Aggregator\Estates.Aggregator\Estates.Aggregator.csproj" />
+	  <ProjectReference Include="..\Interfaces.Base\Interfaces.Base.csproj" />
+	</ItemGroup>
+</Project>

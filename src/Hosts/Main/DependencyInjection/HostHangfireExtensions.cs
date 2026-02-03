@@ -1,5 +1,6 @@
 using Hangfire;
 using Hangfire.SqlServer;
+using Vitarish.Interfaces.Accounts.Services;
 using Vitarish.Main.Authorization;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;

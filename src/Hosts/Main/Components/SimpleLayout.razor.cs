@@ -1,4 +1,4 @@
-using Vitarish.Accounts.Application.Abstractions;
+using Vitarish.Interfaces.Accounts.Abstractions;
 using Vitarish.Interfaces.Base.Abstractions;
 using Vitarish.Interfaces.Base.Models;
 

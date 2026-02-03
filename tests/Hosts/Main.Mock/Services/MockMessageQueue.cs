@@ -1,4 +1,4 @@
-using Vitarish.Accounts.Infrastructure.Services;
+using Vitarish.Interfaces.Accounts.Services;
 
 namespace Vitarish.Main.Mock.Services;
 

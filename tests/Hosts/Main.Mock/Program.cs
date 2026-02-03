@@ -1,7 +1,7 @@
 using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
-using Vitarish.Accounts.Infrastructure.Services;
+using Vitarish.Interfaces.Accounts.Services;
 using Vitarish.Main.Mock.Authentication;
 using Vitarish.Main.Mock.Components;
 using Vitarish.Main.Mock.Services;

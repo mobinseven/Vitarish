@@ -1,4 +1,5 @@
 using Hangfire;
+using Vitarish.Interfaces.Accounts.Services;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 

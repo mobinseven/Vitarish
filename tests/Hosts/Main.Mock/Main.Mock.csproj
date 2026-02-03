@@ -5,8 +5,4 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Vitarish.Main.Mock</RootNamespace>
   </PropertyGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Interfaces\Accounts\Accounts.Interface\Accounts.Interface.csproj" />
-  </ItemGroup>
 </Project>

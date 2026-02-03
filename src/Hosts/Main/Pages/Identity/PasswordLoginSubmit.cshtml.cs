@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using Microsoft.AspNetCore.WebUtilities;
+using Vitarish.Interfaces.Accounts.Models;
 
 namespace Vitarish.Main.Pages.Identity;
 

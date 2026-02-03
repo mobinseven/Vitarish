@@ -18,9 +18,9 @@ global using MudBlazor.Services;
 global using System.Net;
 global using System.Net.Http;
 global using System.Security.Claims;
-global using Vitarish.Accounts.Domain.Models;
-global using Vitarish.Accounts.Infrastructure.Services;
-global using Vitarish.Accounts.Interface.Components.Base;
+global using Vitarish.Interfaces.Accounts.Models;
+global using Vitarish.Interfaces.Accounts.Services;
+global using Vitarish.Interfaces.Accounts.Components.Base;
 global using Vitarish.Requests.Application.Abstractions;
 global using Vitarish.Requests.Domain.Entities;
 // Project‑specific namespaces
