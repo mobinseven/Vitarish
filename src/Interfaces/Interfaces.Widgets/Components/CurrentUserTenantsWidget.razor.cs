@@ -9,7 +9,8 @@ namespace Vitarish.Interfaces.Widgets.Components;
 
 public partial class CurrentUserTenantsWidget : CommonBase
 {
-    private readonly List<TenantReadDto> tenants = [];
+    private readonly Dictionary<Guid, TenantReadDto> tenants = [];
+    private readonly Dictionary<Guid, TenantIndicatorReadDto> tenantsIndicators = [];
 
     [Inject] private IUserService UserService { get; set; } = default!;
     [Inject] private IPartiesService PartiesService { get; set; } = default!;
@@ -22,21 +23,32 @@ public partial class CurrentUserTenantsWidget : CommonBase
         }
 
         IEnumerable<IdentityRole> roles = await UserService.GetUserRolesAsync(RequestContext.UserId);
-        List<Guid> tenantIds = ParseTenantRoles(roles.Select(ur => ur.Name).Cast<string>().Distinct());
+        List<Guid> tenantIds = [.. ParseTenantRoles(roles.Select(ur => ur.Name).Cast<string>()).Distinct()];
 
         foreach (Guid id in tenantIds)
         {
-            TenantReadDto? tenant = await PartiesService.GetTenantAsync(id);
+            var tenant = await PartiesService.GetTenantAsync(id);
             if (tenant == null)
             {
                 continue;
             }
-            tenants.Add(tenant);
+            var tenantInds = await PartiesService.GetTenantIndicatorsByTenantAsync(id);
+            var ind = tenantInds.FirstOrDefault();
+            if (ind == null)
+            {
+                continue;
+            }
+
+            tenants.Add(id, tenant);
+            tenantsIndicators.Add(id, ind);
         }
     }
 
-    private void NavigateToTenant(TenantReadDto entry) => NavigationManager.NavigateTo(entry.ClientId, forceLoad: true);
-
+    private void NavigateToTenant(Guid id)
+    {
+        string url = $"https://{tenantsIndicators[id].Value}/{tenants[id].ClientId}";
+        NavigationManager.NavigateTo(url, forceLoad: true);
+    }
     private static List<Guid> ParseTenantRoles(IEnumerable<string> roles)
     {
         List<Guid> tenantIds = [];

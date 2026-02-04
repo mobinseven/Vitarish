@@ -18,9 +18,8 @@ public class TenantPageBase : PageBase, IDisposable
 
     protected Guid? UserId => Guid.Parse(RequestContext.UserId ?? Guid.Empty.ToString());
 
-    protected override sealed async Task OnInitializedAsync()
+    protected sealed override async Task OnInitializedAsync()
     {
-        await base.OnInitializedAsync();
 
         if (RequestContext.TenantId is null)
         {
@@ -53,6 +52,7 @@ public class TenantPageBase : PageBase, IDisposable
         IsAdmin = RequestContext.IsTenantAdmin() || RequestContext.IsTenantOwner();
         IsOwner = RequestContext.IsTenantOwner();
 
+        await base.OnInitializedAsync();
         StateHasChanged();
     }
 

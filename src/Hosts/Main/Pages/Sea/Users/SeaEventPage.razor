@@ -26,19 +26,12 @@
 
     private bool markedAsRead;
 
-    protected override async Task OnParametersSetAsync()
+    protected override async Task ReloadRequired()
     {
         Guid.TryParse(projectId, out ProjectId);
         Guid.TryParse(procedureId, out ProcedureId);
         Guid.TryParse(eventId, out EventId);
-        RenderForId(eventId);
-        RenderForId(procedureId);
-        RenderForId(projectId);
-        await ReloadRequired();
-    }
 
-    protected override async Task ReloadRequired()
-    {
         if(ProjectId == Guid.Empty)
         {
             return;

@@ -29,13 +29,6 @@
     protected bool initialized;
     bool markedAsRead;
 
-    protected override async Task OnParametersSetAsync()
-    {
-        Guid.TryParse(projectId, out ProjectId);
-        RenderForId(projectId);
-        await ReloadRequired();
-    }
-
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if(!firstRender)
@@ -48,6 +41,8 @@
 
     protected override async Task ReloadRequired()
     {
+        Guid.TryParse(projectId, out ProjectId);
+
         if(ProjectId == Guid.Empty)
         {
             return;

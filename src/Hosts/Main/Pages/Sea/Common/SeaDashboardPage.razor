@@ -4,7 +4,10 @@
 
 <Stack>
     <StackButton Href="/sea/Projects" Label="@Localizer["Projects"]">
-        @projectsCount
+        @if(projectsCount > 0)
+        {
+            @projectsCount
+        }
     </StackButton>
 </Stack>
 
@@ -20,12 +23,8 @@
 
 @code {
     private int projectsCount;
-    protected override async Task OnAfterRenderAsync(bool f)
+    protected override async Task ReloadRequired()
     {
-        if(!f)
-        {
-            return;
-        }
         projectsCount = await ProjectsService.CountAsync(new ProjectDescriptorDto { }, CancellationToken.None).GetValueOrDefaultAsync();
         await InvokeAsync(StateHasChanged);
     }
