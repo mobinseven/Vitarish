@@ -5,7 +5,7 @@ namespace Vitarish.Modules.Base.Tests;
 
 public class ModuleExtensionsTests
 {
-    private class TestModuleA : ModuleBase
+    private class TestModuleA : Module
     {
         public override string Name => "TestModuleA";
         public bool Registered { get; private set; }
@@ -25,7 +25,7 @@ public class ModuleExtensionsTests
         }
     }
 
-    private class TestModuleB : ModuleBase
+    private class TestModuleB : Module
     {
         public override string Name => "TestModuleB";
         public bool Registered { get; private set; }
@@ -39,7 +39,7 @@ public class ModuleExtensionsTests
         }
     }
 
-    private class DbContextAwareModule : ModuleBase
+    private class DbContextAwareModule : Module
     {
         public override string Name => "DbContextAware";
 
@@ -73,13 +73,13 @@ public class ModuleExtensionsTests
     public void DiscoverModules_DoesNotIncludeAbstractClasses()
     {
         // Arrange
-        Assembly assembly = typeof(ModuleBase).Assembly;
+        Assembly assembly = typeof(Module).Assembly;
 
         // Act
         List<IModule> modules = ModuleExtensions.DiscoverModules([assembly]);
 
         // Assert
-        modules.Should().NotContain(m => m.GetType() == typeof(ModuleBase));
+        modules.Should().NotContain(m => m.GetType() == typeof(Module));
     }
 
     [Fact]

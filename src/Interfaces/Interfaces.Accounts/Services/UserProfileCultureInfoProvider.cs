@@ -181,6 +181,6 @@ public class UserProfileCultureInfoProvider(
         => cultureModuleTask ??= jsRuntime
             .InvokeAsync<IJSObjectReference>(
                 "import",
-                "/_content/Vitarish.Interfaces.Account/Components/Account/CultureSelector.razor.js")
+                "/_content/Vitarish.Interfaces.Accounts/Components/Account/CultureSelector.razor.js")
             .AsTask();
 }

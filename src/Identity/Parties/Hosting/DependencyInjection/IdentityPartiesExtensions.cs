@@ -24,8 +24,8 @@ public static class IdentityPartiesExtensions
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
 
         // Register Entity Services
-        _ = builder.Services.AddTransient<OwnerService>();
-        _ = builder.Services.AddTransient<TenantService>();
+        _ = builder.Services.AddTransient<OwnersService>();
+        _ = builder.Services.AddTransient<TenantsService>();
         _ = builder.Services.AddTransient<TenantIndicatorService>();
 
         _ = builder.Services.AddTransient<ITenantResolver, TenantResolver>();

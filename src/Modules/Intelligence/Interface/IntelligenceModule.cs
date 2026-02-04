@@ -13,23 +13,23 @@ namespace Vitarish.Intelligence.Interface;
 /// <summary>
 /// Module wiring for the Intelligence stack using the shared module contracts.
 /// </summary>
-public class IntelligenceModule : ModuleBase, IIntelligenceModule
+public class IntelligenceModule : Module, IIntelligenceModule
 {
     /// <inheritdoc />
     public override string Name => "Intelligence";
 
+    public override Task Initialize(WebApplication app) => Task.CompletedTask;
+
     /// <inheritdoc />
-    protected override void ConfigureServices(
-        IServiceCollection services,
-        IConfiguration configuration,
+    public override async Task Register(WebApplicationBuilder builder,
         Action<DbContextOptionsBuilder>? configureDbContext)
     {
-        _ = services.AddSingleton<IIntelligenceModule, IntelligenceModule>();
-        _ = services.AddSingleton<ModelRegistry>();
-        _ = services.AddTransient<IResponder, ProviderDispatchingResponder>();
-        _ = services.AddSingleton<ITranscriber, ProviderDispatchingTranscriber>();
-        _ = services.AddAntiforgery();
-        _ = services.ConfigureIntelligenceInterface();
+        _ = builder.Services.AddSingleton<IIntelligenceModule, IntelligenceModule>();
+        _ = builder.Services.AddSingleton<ModelRegistry>();
+        _ = builder.Services.AddTransient<IResponder, ProviderDispatchingResponder>();
+        _ = builder.Services.AddSingleton<ITranscriber, ProviderDispatchingTranscriber>();
+        _ = builder.Services.AddAntiforgery();
+        _ = builder.Services.ConfigureIntelligenceInterface();
     }
 
 }

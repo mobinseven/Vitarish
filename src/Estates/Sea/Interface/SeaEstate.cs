@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Vitarish.Estates.Base;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.DependencyInjection;
@@ -9,55 +8,27 @@ using Vitarish.Sea.Presentation.Serializers;
 
 namespace Vitarish.Sea.Interface;
 /// <summary>
-/// Sea is short for state-event-action. It was the main concept behind 
+/// SEA is short for state-event-action, which is the concept behind this estate which provides project management features.
 /// </summary>
 public class SeaEstate : Estate, ISeaEstate
 {
-    private readonly Action<DbContextOptionsBuilder>? configureDbContext;
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SeaEstate"/> class.
-    /// </summary>
-    public SeaEstate()
-    {
-    }
-
-    /// <summary>
-    /// Initializes a new instance of the <see cref="SeaEstate"/> class with database configuration.
-    /// </summary>
-    /// <param name="configureDbContext">Delegate to configure the database context.</param>
-    public SeaEstate(Action<DbContextOptionsBuilder> configureDbContext)
-    {
-        this.configureDbContext = configureDbContext;
-    }
-
-    /// <inheritdoc />
     public override string Name => "Sea";
 
-    public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null) => ConfigureServices(builder.Services, builder.Configuration, configureDbContext);
-
-    /// <inheritdoc />
-    protected void ConfigureServices(
-        IServiceCollection services,
-        IConfiguration configuration,
-        Action<DbContextOptionsBuilder>? configureDbContext)
+    public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
-        Action<DbContextOptionsBuilder>? dbConfigurator = (configureDbContext ?? this.configureDbContext) ?? throw new InvalidOperationException("SeaEstate requires a DbContext configuration delegate.");
+        _ = builder.Services.AddSingleton<ISeaEstate, SeaEstate>();
+        _ = builder.Services.AddMemoryCache();
 
-        _ = configuration;
-        _ = services.AddSingleton<ISeaEstate, SeaEstate>();
-        _ = services.AddMemoryCache();
+        _ = builder.Services.AddDbContext<SeaDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Transient);
 
-        _ = services.AddDbContext<SeaDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Transient);
+        _ = builder.Services.AddSeaInfrastructure();
+        builder.Services.AddVitarishSeaDomainEntityHandlers();
+        _ = builder.Services.AddAppMediatR(typeof(SeaDbContext).Assembly);
 
-        _ = services.AddSeaInfrastructure();
-        services.AddVitarishSeaDomainEntityHandlers();
-        _ = services.AddAppMediatR(typeof(SeaDbContext).Assembly);
-
-        _ = services.ConfigureHttpJsonOptions(options =>
+        _ = builder.Services.ConfigureHttpJsonOptions(options =>
             options.SerializerOptions.TypeInfoResolverChain.Insert(0, SeaJsonSerializerContext.Default));
 
-        _ = services.ConfigureSeaInterface();
+        _ = builder.Services.ConfigureSeaInterface();
     }
 
     public override async Task Initialize(WebApplication app) => await app.InitializeViews();

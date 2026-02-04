@@ -7,7 +7,7 @@ using Vitarish.Users.Application.Commands;
 
 namespace Vitarish.Parties.Infrastructure.Services;
 
-public sealed class PartiesService(OwnerService ownerService, TenantService tenantService, TenantIndicatorService tenantIndicatorService, ISender sender) : IPartiesService
+public sealed class PartiesService(OwnersService ownerService, TenantsService tenantService, TenantIndicatorService tenantIndicatorService, ISender sender) : IPartiesService
 {
     // Owner methods using EntityService
     public async Task<OwnerReadDto?> GetOwnerAsync(Guid id, CancellationToken ct = default)

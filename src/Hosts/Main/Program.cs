@@ -22,6 +22,7 @@ using Vitarish.Modules.Base;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Hosting.DependencyInjection;
 using Vitarish.Parties.Infrastructure.Data;
+using Vitarish.Parties.Infrastructure.Services;
 using Vitarish.Requests.Hosting.DependencyInjection;
 using Vitarish.Requests.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.Data;
@@ -42,13 +43,10 @@ void configureSqlServer(DbContextOptionsBuilder options)
     });
 }
 
-IEnumerable<Assembly> requestedModuleAssemblies = [
-            typeof(FilesModule).Assembly,
-            typeof(CommunicationModule).Assembly,
-            typeof(IntelligenceModule).Assembly,
-            typeof(InstagramModule).Assembly];
+_ = builder.Services.AddScoped<ITenantService, TenantService>();
+
 await builder.RegisterEstates(configureSqlServer);
-_ = await builder.AddModules(requestedModuleAssemblies, configureSqlServer);
+await builder.RegisterModules(configureSqlServer);
 
 builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents()
@@ -174,7 +172,7 @@ _ = app.UseAntiforgery();
 
 _ = app.UseMultiTenant();
 
-_ = await app.InitializeModules();
+await app.InitializeModules();
 await app.InitializeEstates();
 
 _ = app.MapRazorComponents<App>().AddInteractiveServerRenderMode();

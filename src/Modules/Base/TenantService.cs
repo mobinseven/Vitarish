@@ -4,7 +4,7 @@ using Vitarish.Users.Domain.Models;
 
 namespace Vitarish.Modules.Base;
 
-internal class TenantService : ITenantService
+public class TenantService : ITenantService
 {
     public Tenant? Tenant { get; private set; }
     public Metadata? Metadata { get; set; }

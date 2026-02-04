@@ -9,7 +9,7 @@ public class EstatesProvider(IStringLocalizer localizer) : IEstatesProvider
 {
     public IReadOnlyList<EstateRecord> GetEstateRecords()
     {
-        List<IEstate> estates = EstatesExtensions.DiscoverEstates();
+        List<IEstate> estates = EstatesExtensions.GetEstates();
         return [.. estates.Select(e => new EstateRecord(e.Name, localizer[e.Name]))];
     }
 }

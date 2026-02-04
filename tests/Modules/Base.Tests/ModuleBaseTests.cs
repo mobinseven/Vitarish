@@ -5,7 +5,7 @@ namespace Vitarish.Modules.Base.Tests;
 
 public class ModuleBaseTests
 {
-    private class TestModule : ModuleBase
+    private class TestModule : Module
     {
         public override string Name => "TestModule";
 
@@ -33,12 +33,12 @@ public class ModuleBaseTests
         }
     }
 
-    private class MinimalModule : ModuleBase
+    private class MinimalModule : Module
     {
         public override string Name => "MinimalModule";
     }
 
-    private class DbContextConfiguredModule : ModuleBase
+    private class DbContextConfiguredModule : Module
     {
         public override string Name => "DbContextConfigured";
 
@@ -90,7 +90,7 @@ public class ModuleBaseTests
         WebApplication app = builder.Build();
 
         // Act
-        await module.MapEndpoints(app);
+        await module.Initialize(app);
 
         // Assert
         module.ConfigureEndpointsCalled.Should().BeTrue();
@@ -135,7 +135,7 @@ public class ModuleBaseTests
         WebApplication app = builder.Build();
 
         // Act
-        Func<Task> act = async () => await module.MapEndpoints(app);
+        Func<Task> act = async () => await module.Initialize(app);
 
         // Assert
         await act.Should().NotThrowAsync();
@@ -145,6 +145,6 @@ public class ModuleBaseTests
     public void ModuleBase_ImplementsIModule()
     {
         // Assert
-        typeof(ModuleBase).Should().Implement<IModule>();
+        typeof(Module).Should().Implement<IModule>();
     }
 }

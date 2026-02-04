@@ -9,7 +9,7 @@ namespace Vitarish.Parties.Infrastructure.Services;
 /// <summary>
 /// Service for managing Tenant entities using the Entities framework.
 /// </summary>
-public class TenantService(IMediator mediator) : EntityService<Tenant, TenantDescriptor, TenantReadDto, TenantWriteDto, TenantDescriptorDto>(
+public class TenantsService(IMediator mediator) : EntityService<Tenant, TenantDescriptor, TenantReadDto, TenantWriteDto, TenantDescriptorDto>(
         mediator,
         tenant => new TenantReadDto
             {

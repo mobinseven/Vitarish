@@ -6,7 +6,7 @@ namespace Vitarish.Modules.Base.Tests;
 /// </summary>
 public class ModuleIntegrationTests
 {
-    private class ServiceRegistrationModule : ModuleBase
+    private class ServiceRegistrationModule : Module
     {
         public override string Name => "ServiceRegistration";
 

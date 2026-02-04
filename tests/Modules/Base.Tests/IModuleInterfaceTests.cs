@@ -32,7 +32,7 @@ public class IModuleInterfaceTests
     public void IModule_HasMapEndpointsMethod()
     {
         // Arrange & Act
-        var method = typeof(IModule).GetMethod("MapEndpoints");
+        var method = typeof(IModule).GetMethod("Initialize");
 
         // Assert
         method.Should().NotBeNull();
