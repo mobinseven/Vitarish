@@ -1,13 +1,13 @@
 @inherits CommonBase
 
-@if(tenantEntries.Count > 0)
+@if(tenants.Count > 0)
 {
     <Stack>
         <StackField Label="@Localizer["Workspaces"]" />
 
-        @foreach(TenantAccessEntry entry in tenantEntries)
+        @foreach(var entry in tenants)
         {
-            <StackButton Size="Size.Large" Color="Color.Primary" Label="@entry.TenantDisplayName" OnClick="@(() => NavigateToTenant(entry))" StartIcon="fa-regular fa-building" />
+            <StackButton Size="Size.Large" Color="Color.Primary" Label="@entry.Name" OnClick="@(() => NavigateToTenant(entry))" StartIcon="fa-regular fa-building" />
         }
     </Stack>
 }

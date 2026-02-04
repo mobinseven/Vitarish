@@ -1646,4 +1646,7 @@ of project "{2}"</value>
   <data name="Enter" xml:space="preserve">
     <value>Enter</value>
   </data>
+  <data name="NotFoundHelp" xml:space="preserve">
+    <value>The requested entry was not found.</value>
+  </data>
 </root>
