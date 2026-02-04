@@ -1,24 +1,16 @@
 @using Microsoft.AspNetCore.Components.Authorization
 @using Microsoft.AspNetCore.Components.Routing
-@using Microsoft.Extensions.Localization
-@using MudBlazor
-@using Vitarish.Interfaces.Base.Common
-@using Vitarish.Main.Pages.Common
-
-@inject IStringLocalizer Localizer
 
 <Router AppAssembly="typeof(App).Assembly">
     <Found Context="routeData">
         <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)">
             <NotAuthorized>
-                <MudText Typo="Typo.h4" GutterBottom="true" Align="Align.Center">@Localizer["AccessDenied"]</MudText>
-                <MudChip T="string" Size="Size.Large">@Localizer["AccessDeniedMessage"]</MudChip>
+                <RouteView RouteData="new RouteData(typeof(NotAuthorized), new Dictionary<string, object?>())" DefaultLayout="typeof(SimpleLayout)" />
             </NotAuthorized>
             <Authorizing>
                 <MudProgressLinear Indeterminate />
             </Authorizing>
         </AuthorizeRouteView>
-        <FocusOnNavigate RouteData="routeData" Selector=".focus" />
     </Found>
     <NotFound>
         <RouteView RouteData="new RouteData(typeof(NotFound), new Dictionary<string,object?>())" DefaultLayout="typeof(SimpleLayout)" />

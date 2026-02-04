@@ -2,7 +2,6 @@ using Duende.IdentityServer.Extensions;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.Extensions.Primitives;
 using System.Globalization;
-using Vitarish.Interfaces.Accounts.Abstractions;
 
 namespace Vitarish.Interfaces.Accounts.Services;
 
@@ -91,7 +90,7 @@ public class UserProfileCultureInfoProvider(
             return null;
         }
 
-        var userId = httpContextAccessor.HttpContext?.GetUserId();
+        string? userId = httpContextAccessor.HttpContext?.GetUserId();
         if (userId is not null)
         {
             await userService.SetCultureAsync(userId, cookieCulture.Name);

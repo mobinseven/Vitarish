@@ -4,7 +4,7 @@ using Vitarish.Parties.Application.Dtos;
 
 namespace Vitarish.Interfaces.Widgets.Components;
 
-public partial class TenantDashboard
+public partial class TenantWidget
 {
     [Inject] protected IPartiesService PartiesService { get; set; } = default!;
 

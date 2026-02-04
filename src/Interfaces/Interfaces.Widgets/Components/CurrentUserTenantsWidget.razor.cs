@@ -1,12 +1,14 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Identity;
 using Vitarish.Interfaces.Accounts.Abstractions;
 using Vitarish.Interfaces.Base.Common;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Dtos;
 using Vitarish.Parties.Domain.Enums;
 
-namespace Vitarish.Interfaces.Accounts.Components.Account.Widgets;
+namespace Vitarish.Interfaces.Widgets.Components;
 
-public partial class TenantsWidget : CommonBase
+public partial class CurrentUserTenantsWidget : CommonBase
 {
     private readonly List<TenantAccessEntry> tenantEntries = [];
 
