@@ -22,7 +22,7 @@ public partial class CurrentUserTenantsWidget : CommonBase
         }
 
         IEnumerable<IdentityRole> roles = await UserService.GetUserRolesAsync(RequestContext.UserId);
-        List<Guid> tenantIds = ParseTenantRoles(roles.Select(ur => ur.Name).Cast<string>());
+        List<Guid> tenantIds = ParseTenantRoles(roles.Select(ur => ur.Name).Cast<string>().Distinct());
 
         foreach (Guid id in tenantIds)
         {
