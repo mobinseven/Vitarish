@@ -83,4 +83,19 @@ public class CachedEntityRepository<TEntity, TDescriptor>(
     /// Removes multiple entities. Cache will be invalidated by EntityInterceptor.
     /// </summary>
     public Task RemoveRangeAsync(IReadOnlyList<TEntity> entities, CancellationToken cancellationToken) => innerRepository.RemoveRangeAsync(entities, cancellationToken);
+
+    /// <summary>
+    /// Hard deletes entity (permanently removes from database). Cache will be invalidated by EntityInterceptor.
+    /// </summary>
+    public Task HardDeleteAsync(TEntity entity, CancellationToken cancellationToken) => innerRepository.HardDeleteAsync(entity, cancellationToken);
+
+    /// <summary>
+    /// Hard deletes entities by descriptor (permanently removes from database). Cache will be invalidated by EntityInterceptor.
+    /// </summary>
+    public Task HardDeleteAsync(TDescriptor descriptor, CancellationToken cancellationToken) => innerRepository.HardDeleteAsync(descriptor, cancellationToken);
+
+    /// <summary>
+    /// Hard deletes multiple entities (permanently removes from database). Cache will be invalidated by EntityInterceptor.
+    /// </summary>
+    public Task HardDeleteRangeAsync(IReadOnlyList<TEntity> entities, CancellationToken cancellationToken) => innerRepository.HardDeleteRangeAsync(entities, cancellationToken);
 }

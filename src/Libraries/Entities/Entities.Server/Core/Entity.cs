@@ -41,7 +41,11 @@ public abstract class Entity : INotifyPropertyChanged
         set => SetField(ref field, value, nameof(DeletedBy));
     }
 
+    internal bool IsMarkedForHardDelete { get; set; }
+
     public void Restore() => DeletedAt = null;
+
+    public void HardDelete() => IsMarkedForHardDelete = true;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

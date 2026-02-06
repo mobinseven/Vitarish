@@ -266,6 +266,46 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
         }
     }
 
+    public async Task HardDeleteAsync(TEntity entity, CancellationToken cancellationToken)
+    {
+        entity.HardDelete();
+        _ = Set.Remove(entity);
+        await SaveChangesWithHandlingAsync(cancellationToken);
+    }
+
+    public async Task HardDeleteAsync(TDescriptor descriptor, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<TEntity> list = await GetAsync(descriptor, cancellationToken);
+        await HardDeleteRangeAsync(list, cancellationToken);
+    }
+
+    public async Task HardDeleteRangeAsync(IReadOnlyList<TEntity> entities, CancellationToken cancellationToken)
+    {
+        // Mark all entities for hard delete
+        foreach (TEntity entity in entities)
+        {
+            entity.HardDelete();
+        }
+
+        // Batch large operations to prevent parameter overflow and memory issues
+        int batchSize = BatchSize;
+
+        if (entities.Count <= batchSize)
+        {
+            Set.RemoveRange(entities);
+            await SaveChangesWithHandlingAsync(cancellationToken);
+            return;
+        }
+
+        // Process in batches - optimize for list/array types
+        for (int i = 0; i < entities.Count; i += batchSize)
+        {
+            IReadOnlyList<TEntity> batch = GetBatch(entities, i, batchSize);
+            Set.RemoveRange(batch);
+            await SaveChangesWithHandlingAsync(cancellationToken);
+        }
+    }
+
     protected virtual EntityError TranslateException(DbUpdateException exception) => EntityError.Conflict("A persistence conflict occurred while saving the entity state.");
 
     private async Task SaveChangesWithHandlingAsync(CancellationToken cancellationToken)
