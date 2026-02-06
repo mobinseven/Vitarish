@@ -27,12 +27,16 @@
                 </MudSelect>
             </StackField>
         </Stack>
+
+        @if(Tenant is not null)
+        {
+            <Stack>
+                <StackField Label="@Tenant.Name" />
+                <StackButton Label="@Localizer["UpdateRoles"]" OnClick="UpdateRoles" StartIcon="fa-regular fa-sync" />
+            </Stack>
+        }
         <Stack>
             <StackButton Label="@Localizer["Save"]" OnClick="SaveTenant" Color="Color.Primary" StartIcon="fa-regular fa-save" />
-            @if(Tenant is not null)
-            {
-                <StackButton Label="@Localizer["UpdateRoles"]" OnClick="UpdateRoles" StartIcon="fa-regular fa-sync" />
-            }
             <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" StartIcon="fa-regular fa-xmark" />
         </Stack>
     </DialogContent>

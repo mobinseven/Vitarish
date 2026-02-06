@@ -53,6 +53,7 @@ public class TenantPageBase : PageBase, IDisposable
         IsOwner = RequestContext.IsTenantOwner();
 
         await base.OnInitializedAsync();
+
         StateHasChanged();
     }
 

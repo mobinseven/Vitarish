@@ -38,6 +38,7 @@
         }
 
         Project = await ProjectsService.GetAsync(ProjectId, CancellationToken.None).GetValueOrDefaultAsync();
+
         if(Project is null)
         {
             NavigationManager.NavigateTo("/sea/Projects");

@@ -16,13 +16,14 @@ public class SeaEstate : Estate, ISeaEstate
 
     public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
+        builder.Services.AddVitarishSeaDomainEntityHandlers();
+
         _ = builder.Services.AddSingleton<ISeaEstate, SeaEstate>();
         _ = builder.Services.AddMemoryCache();
 
         _ = builder.Services.AddDbContext<SeaDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Transient);
 
         _ = builder.Services.AddSeaInfrastructure();
-        builder.Services.AddVitarishSeaDomainEntityHandlers();
         _ = builder.Services.AddAppMediatR(typeof(SeaDbContext).Assembly);
 
         _ = builder.Services.ConfigureHttpJsonOptions(options =>
