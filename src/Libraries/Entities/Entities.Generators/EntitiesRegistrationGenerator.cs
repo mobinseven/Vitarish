@@ -120,6 +120,10 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
             sb.AppendLine($"        services.AddTransient<IRequestHandler<RemoveEntitiesCommand<{entityFull}, {descriptorFull}>>, RemoveEntitiesHandler<{entityFull}, {descriptorFull}>>();");
             sb.AppendLine($"        services.AddTransient<IRequestHandler<RemoveEntityByIdCommand<{entityFull}, {descriptorFull}>>, RemoveEntityByIdHandler<{entityFull}, {descriptorFull}>>();");
             sb.AppendLine($"        services.AddTransient<IRequestHandler<RemoveEntitiesByDescriptorCommand<{entityFull}, {descriptorFull}>>, RemoveEntitiesByDescriptorHandler<{entityFull}, {descriptorFull}>>();");
+            sb.AppendLine($"        services.AddTransient<IRequestHandler<HardDeleteEntityCommand<{entityFull}, {descriptorFull}>>, HardDeleteEntityHandler<{entityFull}, {descriptorFull}>>();");
+            sb.AppendLine($"        services.AddTransient<IRequestHandler<HardDeleteEntitiesCommand<{entityFull}, {descriptorFull}>>, HardDeleteEntitiesHandler<{entityFull}, {descriptorFull}>>();");
+            sb.AppendLine($"        services.AddTransient<IRequestHandler<HardDeleteEntityByIdCommand<{entityFull}, {descriptorFull}>>, HardDeleteEntityByIdHandler<{entityFull}, {descriptorFull}>>();");
+            sb.AppendLine($"        services.AddTransient<IRequestHandler<HardDeleteEntitiesByDescriptorCommand<{entityFull}, {descriptorFull}>>, HardDeleteEntitiesByDescriptorHandler<{entityFull}, {descriptorFull}>>();");
             sb.AppendLine($"        services.AddTransient<IRequestHandler<GetEntityByIdQuery<{entityFull}, {descriptorFull}>, {entityFull}?>, GetEntityByIdHandler<{entityFull}, {descriptorFull}>>();");
             sb.AppendLine($"        services.AddTransient<IRequestHandler<GetEntitiesQuery<{entityFull}, {descriptorFull}>, IReadOnlyList<{entityFull}>>, GetEntitiesHandler<{entityFull}, {descriptorFull}>>();");
             sb.AppendLine($"        services.AddTransient<IRequestHandler<CountEntitiesQuery<{entityFull}, {descriptorFull}>, int>, CountEntitiesHandler<{entityFull}, {descriptorFull}>>();");
