@@ -87,6 +87,84 @@ public class CrudTests : IDisposable
         Assert.Equal(0, count);
     }
 
+    [Fact]
+    public async Task Can_HardDelete_Entity()
+    {
+        IMediator mediator = _provider.GetRequiredService<IMediator>();
+        TestEntity entity = new() { Name = "ToHardDelete" };
+
+        TestEntity? added = await mediator.Send(new AddEntityCommand<TestEntity, TestDescriptor>(entity));
+        Assert.NotNull(added);
+
+        // Hard delete the entity
+        await mediator.Send(new HardDeleteEntityCommand<TestEntity, TestDescriptor>(entity));
+
+        // Verify it's permanently deleted
+        TestEntity? fetched = await mediator.Send(new GetEntityByIdQuery<TestEntity, TestDescriptor>(entity.Id));
+        Assert.Null(fetched);
+
+        int count = await mediator.Send(new CountEntitiesQuery<TestEntity, TestDescriptor>(new TestDescriptor()));
+        Assert.Equal(0, count);
+    }
+
+    [Fact]
+    public async Task Can_HardDelete_Entity_By_Id()
+    {
+        IMediator mediator = _provider.GetRequiredService<IMediator>();
+        TestEntity entity = new() { Name = "ToHardDeleteById" };
+
+        TestEntity? added = await mediator.Send(new AddEntityCommand<TestEntity, TestDescriptor>(entity));
+        Assert.NotNull(added);
+
+        // Hard delete by ID
+        await mediator.Send(new HardDeleteEntityByIdCommand<TestEntity, TestDescriptor>(entity.Id));
+
+        // Verify it's permanently deleted
+        TestEntity? fetched = await mediator.Send(new GetEntityByIdQuery<TestEntity, TestDescriptor>(entity.Id));
+        Assert.Null(fetched);
+    }
+
+    [Fact]
+    public async Task Can_HardDelete_Multiple_Entities()
+    {
+        IMediator mediator = _provider.GetRequiredService<IMediator>();
+
+        IReadOnlyList<TestEntity> entities = await mediator.Send(
+            new AddEntitiesCommand<TestEntity, TestDescriptor>(
+            [
+                new() { Name = "HardDelete-1" },
+                new() { Name = "HardDelete-2" },
+                new() { Name = "HardDelete-3" }
+            ]));
+        Assert.Equal(3, entities.Count);
+
+        // Hard delete all entities
+        await mediator.Send(new HardDeleteEntitiesCommand<TestEntity, TestDescriptor>(entities));
+
+        int count = await mediator.Send(new CountEntitiesQuery<TestEntity, TestDescriptor>(new TestDescriptor()));
+        Assert.Equal(0, count);
+    }
+
+    [Fact]
+    public async Task Can_HardDelete_By_Descriptor()
+    {
+        IMediator mediator = _provider.GetRequiredService<IMediator>();
+
+        IReadOnlyList<TestEntity> entities = await mediator.Send(
+            new AddEntitiesCommand<TestEntity, TestDescriptor>(
+            [
+                new() { Name = "Descriptor-1" },
+                new() { Name = "Descriptor-2" }
+            ]));
+        Assert.Equal(2, entities.Count);
+
+        // Hard delete by descriptor
+        await mediator.Send(new HardDeleteEntitiesByDescriptorCommand<TestEntity, TestDescriptor>(new TestDescriptor()));
+
+        int count = await mediator.Send(new CountEntitiesQuery<TestEntity, TestDescriptor>(new TestDescriptor()));
+        Assert.Equal(0, count);
+    }
+
     public void Dispose()
     {
         _provider.Dispose();

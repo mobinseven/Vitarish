@@ -13,6 +13,9 @@ public interface IEntityRepository<TEntity, TDescriptor>
     Task RemoveAsync(TEntity entity, CancellationToken cancellationToken);
     Task RemoveAsync(TDescriptor entity, CancellationToken cancellationToken);
     Task RemoveRangeAsync(IReadOnlyList<TEntity> entities, CancellationToken cancellationToken);
+    Task HardDeleteAsync(TEntity entity, CancellationToken cancellationToken);
+    Task HardDeleteAsync(TDescriptor descriptor, CancellationToken cancellationToken);
+    Task HardDeleteRangeAsync(IReadOnlyList<TEntity> entities, CancellationToken cancellationToken);
     Task<TEntity?> UpdateAsync(TEntity entity, CancellationToken cancellationToken);
     Task UpdateRangeAsync(IReadOnlyList<TEntity> entities, CancellationToken cancellationToken);
 }

@@ -77,4 +77,25 @@ public class InMemoryRepository : IEntityRepository<TestEntity, TestDescriptor>
         }
         return Task.CompletedTask;
     }
+
+    public Task HardDeleteAsync(TestEntity entity, CancellationToken cancellationToken)
+    {
+        _ = _store.TryRemove(entity.Id, out _);
+        return Task.CompletedTask;
+    }
+
+    public Task HardDeleteAsync(TestDescriptor descriptor, CancellationToken cancellationToken)
+    {
+        _store.Clear();
+        return Task.CompletedTask;
+    }
+
+    public Task HardDeleteRangeAsync(IReadOnlyList<TestEntity> entities, CancellationToken cancellationToken)
+    {
+        foreach(TestEntity e in entities)
+        {
+            _ = _store.TryRemove(e.Id, out _);
+        }
+        return Task.CompletedTask;
+    }
 }

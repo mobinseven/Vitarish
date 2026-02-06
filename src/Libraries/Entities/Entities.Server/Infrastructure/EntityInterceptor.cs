@@ -110,9 +110,13 @@ public sealed class EntityInterceptor(
                     entry.Entity.UpdatedBy = userId;
                     break;
                 case EntityState.Deleted:
-                    entry.State = EntityState.Modified;
-                    entry.Entity.DeletedAt = now;
-                    entry.Entity.DeletedBy = userId;
+                    // Skip soft delete conversion if entity is marked for hard delete
+                    if (!entry.Entity.IsMarkedForHardDelete)
+                    {
+                        entry.State = EntityState.Modified;
+                        entry.Entity.DeletedAt = now;
+                        entry.Entity.DeletedBy = userId;
+                    }
                     break;
             }
         }
