@@ -302,6 +302,33 @@ public class UserService : IUserService
         await _smsAuthService.SendCode(user, phone);
     }
 
+    public async Task<IdentityResult> RemoveUserRoleAsync(string userId, string roleName, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            throw new ArgumentException("userId is required", nameof(userId));
+        }
+
+        if (string.IsNullOrWhiteSpace(roleName))
+        {
+            throw new ArgumentException("roleName is required", nameof(roleName));
+        }
+
+        User? user = await GetUserAsync(userId, ct);
+        if (user is null)
+        {
+            return IdentityResult.Failed(new IdentityError { Code = "UserNotFound", Description = "User not found." });
+        }
+
+        IdentityResult result = await _usersService.RemoveFromRoleAsync(user, roleName, ct);
+        if (result.Succeeded)
+        {
+            // Invalidate roles cache
+            await _cache.RemoveAsync(CacheKeys.Roles(userId), ct);
+        }
+        return result;
+    }
+
     public static string? GetCulture(IDictionary<string, string> preferences) =>
         preferences.TryGetValue(Keys.Culture, out string? c) ? c : null;
     public static string? GetTheme(IDictionary<string, string> preferences) =>
