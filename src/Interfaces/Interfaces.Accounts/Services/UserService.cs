@@ -320,13 +320,17 @@ public class UserService : IUserService
             return IdentityResult.Failed(new IdentityError { Code = "UserNotFound", Description = "User not found." });
         }
 
-        IdentityResult result = await _usersService.RemoveFromRoleAsync(user, roleName, ct);
-        if (result.Succeeded)
+        try
         {
+            await _usersService.RemoveFromRoleAsync(user, roleName, ct);
             // Invalidate roles cache
             await _cache.RemoveAsync(CacheKeys.Roles(userId), ct);
+            return IdentityResult.Success;
         }
-        return result;
+        catch (InvalidOperationException ex)
+        {
+            return IdentityResult.Failed(new IdentityError { Code = "RemoveRoleFailed", Description = ex.Message });
+        }
     }
 
     public static string? GetCulture(IDictionary<string, string> preferences) =>
