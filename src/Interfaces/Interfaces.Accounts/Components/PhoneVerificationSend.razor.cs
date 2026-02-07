@@ -1,7 +1,7 @@
 using Vitarish.Interfaces.Accounts.Models;
 using Vitarish.Interfaces.Base.Extensions;
 
-namespace Vitarish.Interfaces.Accounts.Components.Account;
+namespace Vitarish.Interfaces.Accounts.Components;
 
 public partial class PhoneVerificationSend
 {

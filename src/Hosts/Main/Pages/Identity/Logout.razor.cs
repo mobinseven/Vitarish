@@ -1,4 +1,4 @@
-using Vitarish.Interfaces.Accounts.Components.Base;
+using Vitarish.Interfaces.Accounts.Components;
 
 namespace Vitarish.Main.Pages.Identity;
 

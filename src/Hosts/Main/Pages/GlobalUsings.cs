@@ -20,7 +20,6 @@ global using System.Net.Http;
 global using System.Security.Claims;
 global using Vitarish.Interfaces.Accounts.Models;
 global using Vitarish.Interfaces.Accounts.Services;
-global using Vitarish.Interfaces.Accounts.Components.Base;
 global using Vitarish.Requests.Application.Abstractions;
 global using Vitarish.Requests.Domain.Entities;
 // Project‑specific namespaces

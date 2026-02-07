@@ -1,4 +1,4 @@
-namespace Vitarish.Interfaces.Accounts.Components.Base;
+namespace Vitarish.Interfaces.Accounts.Components;
 
 public partial class AccountLayout : LayoutComponentBase
 {

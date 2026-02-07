@@ -9,7 +9,7 @@ namespace Vitarish.Interfaces.Accounts.Services;
 /// </summary>
 public sealed class WebAuthnInteropService : IWebAuthnInterop, IAsyncDisposable
 {
-    private const string ModulePath = "./_content/Vitarish.Interfaces.Accounts/Components/Account/WebAuthnInterop.razor.js";
+    private const string ModulePath = "./_content/Vitarish.Interfaces.Accounts/Components/WebAuthnInterop.razor.js";
     private readonly IJSRuntime _jsRuntime;
     private readonly ILogger<WebAuthnInteropService> _logger;
     private readonly SemaphoreSlim _initializationGate = new(1, 1);

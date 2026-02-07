@@ -7,7 +7,7 @@ using Vitarish.Users.Application.Queries;
 namespace Vitarish.Users.Infrastructure.Service;
 
 /// <inheritdoc />
-public sealed class UserProfileService(ISender sender) : IUserProfileService
+public class UserProfileService(ISender sender) : IUserProfileService
 {
     public Task<Dictionary<string, string>> GetProfileAsync(string userId, CancellationToken ct = default) =>
         sender.Send(new GetUserProfileQuery(userId), ct);

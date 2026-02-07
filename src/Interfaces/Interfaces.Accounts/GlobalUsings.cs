@@ -21,7 +21,7 @@ global using Vitarish.Interfaces.Accounts.Abstractions;
 global using Vitarish.Interfaces.Accounts.Attributes;
 global using Vitarish.Interfaces.Accounts.Models;
 global using Vitarish.Interfaces.Accounts.Services;
-global using Vitarish.Interfaces.Accounts.Components.Base;
+global using Vitarish.Interfaces.Accounts.Components;
 global using Vitarish.Interfaces.Base.Localization;
 global using Vitarish.Requests.Application.Abstractions;
 // Project‑specific namespaces

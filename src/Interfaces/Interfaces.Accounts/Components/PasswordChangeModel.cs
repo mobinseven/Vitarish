@@ -1,4 +1,4 @@
-namespace Vitarish.Interfaces.Accounts.Components.Account;
+namespace Vitarish.Interfaces.Accounts.Components;
 
 public class PasswordChangeModel
 {

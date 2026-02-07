@@ -1,7 +1,6 @@
-using Vitarish.Interfaces.Accounts.Components.Base;
 using Vitarish.Interfaces.Accounts.Models;
 
-namespace Vitarish.Interfaces.Accounts.Components.Account;
+namespace Vitarish.Interfaces.Accounts.Components;
 
 public partial class PasswordLoginForm : IdentityCommonBase
 {

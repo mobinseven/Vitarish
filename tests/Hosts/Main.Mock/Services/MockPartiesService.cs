@@ -177,4 +177,6 @@ public sealed class MockPartiesService : IPartiesService
         _ = indicators.Remove(id);
         return Task.CompletedTask;
     }
+
+    public Task CreateTenantRolesAsync(Guid tenantId, CancellationToken ct = default) => throw new NotImplementedException();
 }

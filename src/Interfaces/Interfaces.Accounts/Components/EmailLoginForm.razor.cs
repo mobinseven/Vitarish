@@ -1,29 +1,28 @@
-using Vitarish.Interfaces.Accounts.Components.Base;
 using Vitarish.Interfaces.Accounts.Models;
 
-namespace Vitarish.Interfaces.Accounts.Components.Account;
+namespace Vitarish.Interfaces.Accounts.Components;
 
-public partial class PhoneLoginForm : IdentityCommonBase
+public partial class EmailLoginForm : IdentityCommonBase
 {
+    [Parameter] public string VerificationEndpoint { get; set; } = "/Account/Login/Email/Submit";
     [Parameter] public string? ReturnUrl { get; set; }
     [Parameter] public string? FailureUrl { get; set; }
     private User? User = null;
-    private string? PhoneNumber = null;
+    private string? Email = null;
 
-    private async Task ValidSendCodeSubmit(SendSmsCodeModel model)
+    private async void ValidSendCodeSubmit(SendEmailCodeModel model)
     {
         ClaimsPrincipal claimsPrincipal = (await AuthenticationStateProvider.GetAuthenticationStateAsync()).User;
         if (!claimsPrincipal.Identity?.IsAuthenticated ?? true)
         {
-            User = await SmsAuthenticationService.GetOrRegisterUser(model.PhoneNumber);
-            await SmsAuthenticationService.SendCode(User, model.PhoneNumber);
-            PhoneNumber = model.PhoneNumber;
+            User = await EmailAuthenticationService.GetOrRegisterUser(model.Email);
+            await EmailAuthenticationService.SendCode(User, model.Email);
+            Email = model.Email;
         }
         else
         {
             throw new InvalidOperationException("Authenticated user accessing a non-authenticated user form");
         }
-
         StateHasChanged();
     }
 }

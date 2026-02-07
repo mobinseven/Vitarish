@@ -1,9 +1,8 @@
 using System.Net.Http.Json;
 using System.Text.Json;
 using Vitarish.Interfaces.Accounts.Abstractions;
-using Vitarish.Interfaces.Accounts.Components.Base;
 
-namespace Vitarish.Interfaces.Accounts.Components.Account;
+namespace Vitarish.Interfaces.Accounts.Components;
 
 public partial class WebAuthnLoginForm : IdentityCommonBase
 {

@@ -3,7 +3,7 @@ using Vitarish.Interfaces.Accounts.Abstractions;
 using Vitarish.Interfaces.Accounts.Services;
 using Vitarish.Interfaces.Base.Common;
 
-namespace Vitarish.Interfaces.Accounts.Components.Base
+namespace Vitarish.Interfaces.Accounts.Components
 {
     public class IdentityCommonBase : CommonBase
     {

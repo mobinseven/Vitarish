@@ -1,8 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Vitarish.Main.Mock</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\Interfaces\Interfaces.Accounts\Interfaces.Accounts.csproj" />
+    <ProjectReference Include="..\..\..\src\Interfaces\Interfaces.Admins\Interfaces.Admins.csproj" />
+    <ProjectReference Include="..\..\..\src\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+    <ProjectReference Include="..\..\..\src\Interfaces\Interfaces.Widgets\Interfaces.Widgets.csproj" />
+  </ItemGroup>
 </Project>
