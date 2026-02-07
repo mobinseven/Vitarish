@@ -1,7 +1,7 @@
 using Vitarish.Interfaces.Base.Common;
 using Vitarish.Parties.Application.Abstractions;
 
-namespace Vitarish.Interfaces.Admins.Components.Base
+namespace Vitarish.Interfaces.Admins.Components
 {
     public class AdminCommonBase : CommonBase
     {
@@ -9,7 +9,6 @@ namespace Vitarish.Interfaces.Admins.Components.Base
         [Inject] protected SignInManager<User> SignInManager { get; set; } = default!;
         [Inject] protected ISnackbar Snackbar { get; set; } = default!;
         [Inject] protected IJSRuntime Js { get; set; } = default!;
-        [Inject] protected IRequestContext RequestContext { get; set; } = default!;
         [Inject] protected IIdentityServerInteractionService IdentityServerInteractionService { get; set; } = default!;
         [Inject] protected IRequestIdentitiesService RequestIdentitiesService { get; set; } = default!;
         [Inject] protected IIdentityServerInteractionService InteractionService { get; set; } = default!;

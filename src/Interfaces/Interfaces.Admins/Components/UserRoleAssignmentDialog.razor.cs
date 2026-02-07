@@ -1,7 +1,7 @@
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Application.Dtos;
 
-namespace Vitarish.Interfaces.Admins.Components.Admin;
+namespace Vitarish.Interfaces.Admins.Components;
 
 public partial class UserRoleAssignmentDialog
 {

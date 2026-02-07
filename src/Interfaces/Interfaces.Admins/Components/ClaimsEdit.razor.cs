@@ -1,7 +1,6 @@
-using Vitarish.Interfaces.Admins.Components.Base;
 using ClaimDto = Vitarish.Users.Domain.Models.ClaimDto;
 
-namespace Vitarish.Interfaces.Admins.Components.Admin;
+namespace Vitarish.Interfaces.Admins.Components;
 
 public partial class ClaimsEdit : AdminCommonBase
 {

@@ -2,7 +2,7 @@ using Vitarish.Parties.Application.Dtos;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Enums;
 
-namespace Vitarish.Interfaces.Admins.Components.Admin;
+namespace Vitarish.Interfaces.Admins.Components;
 
 public partial class TenantIndicatorEditDialog
 {

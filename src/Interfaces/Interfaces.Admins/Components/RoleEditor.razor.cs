@@ -1,6 +1,4 @@
-using Vitarish.Interfaces.Admins.Components.Base;
-
-namespace Vitarish.Interfaces.Admins.Components.Admin;
+namespace Vitarish.Interfaces.Admins.Components;
 
 public partial class RoleEditor : AdminCommonBase
 {

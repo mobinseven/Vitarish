@@ -1,6 +1,6 @@
 using Vitarish.Parties.Application.Dtos;
 
-namespace Vitarish.Interfaces.Admins.Components.Admin;
+namespace Vitarish.Interfaces.Admins.Components;
 
 internal static class RoleParser
 {

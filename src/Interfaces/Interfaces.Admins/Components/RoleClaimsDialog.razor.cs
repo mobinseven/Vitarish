@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Components;
 using MudBlazor;
 using ClaimDto = Vitarish.Users.Domain.Models.ClaimDto;
 
-namespace Vitarish.Interfaces.Admins.Components.Admin;
+namespace Vitarish.Interfaces.Admins.Components;
 
 public partial class RoleClaimsDialog
 {
