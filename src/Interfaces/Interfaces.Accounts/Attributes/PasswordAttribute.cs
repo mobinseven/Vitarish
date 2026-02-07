@@ -17,17 +17,11 @@ public class PasswordAttribute : ValidationAttribute
             return new ValidationResult("PasswordLengthError");
         }
 
-        if (!Regex.IsMatch(password, @"[A-Z]"))
-        {
-            return new ValidationResult("PasswordUppercaseError");
-        }
-
-        if (!Regex.IsMatch(password, @"[a-z]"))
-        {
-            return new ValidationResult("PasswordLowercaseError");
-        }
-
-        return !Regex.IsMatch(password, @"\d")
+        return !Regex.IsMatch(password, @"[A-Z]")
+            ? new ValidationResult("PasswordUppercaseError")
+            : !Regex.IsMatch(password, @"[a-z]")
+            ? new ValidationResult("PasswordLowercaseError")
+            : !Regex.IsMatch(password, @"\d")
             ? new ValidationResult("PasswordDigitError")
             : !Regex.IsMatch(password, @"[\W_]") ? new ValidationResult("PasswordSignError") : ValidationResult.Success;
     }

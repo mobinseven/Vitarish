@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations;
-
 namespace Vitarish.Interfaces.Accounts.Models;
 
 public class EmailChangeVerifyModel : VerifyCodeModel

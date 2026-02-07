@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Interfaces.Accounts.Services;
 
 public interface ISmsAuthenticationService
 {

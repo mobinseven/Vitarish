@@ -1,7 +1,5 @@
 using Microsoft.Extensions.Caching.Distributed;
 using System.Text.Json;
-using Vitarish.Interfaces.Accounts.Abstractions;
-using Vitarish.Interfaces.Accounts.Services;
 using Vitarish.Users.Application.Commands;
 
 public class UserService : IUserService
@@ -29,7 +27,7 @@ public class UserService : IUserService
     private readonly ISmsAuthenticationService _smsAuthService;
     private readonly IDistributedCache _cache;
     private readonly DistributedCacheEntryOptions _cacheOptions;
-    private static readonly SemaphoreSlim _userLock = new SemaphoreSlim(1, 1); 
+    private static readonly SemaphoreSlim _userLock = new(1, 1);
 
     public UserService(
         IUsersService usersService,
@@ -82,7 +80,7 @@ public class UserService : IUserService
         }
         finally
         {
-            _userLock.Release();  // Release lock
+            _ = _userLock.Release();  // Release lock
         }
     }
 

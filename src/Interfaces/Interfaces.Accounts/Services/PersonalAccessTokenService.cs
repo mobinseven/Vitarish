@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using Vitarish.Users.Application.Abstractions;
 
 namespace Vitarish.Interfaces.Accounts.Services;
 
@@ -45,12 +44,9 @@ public sealed class PersonalAccessTokenService(IPersonalAccessTokenGenerator gen
         CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (!tokenStore.TryGetValue(subjectId, out ConcurrentDictionary<string, byte>? tokens))
-        {
-            return Task.FromResult<IReadOnlyCollection<string>>(Array.Empty<string>());
-        }
-
-        return Task.FromResult<IReadOnlyCollection<string>>(tokens.Keys.ToArray());
+        return !tokenStore.TryGetValue(subjectId, out ConcurrentDictionary<string, byte>? tokens)
+            ? Task.FromResult<IReadOnlyCollection<string>>(Array.Empty<string>())
+            : Task.FromResult<IReadOnlyCollection<string>>(tokens.Keys.ToArray());
     }
 
     public Task RevokeTokenAsync(

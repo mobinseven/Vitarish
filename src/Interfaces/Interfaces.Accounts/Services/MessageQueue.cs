@@ -92,13 +92,5 @@ public sealed class MessageQueue : IMessageQueue
         messages.Enqueue(new SmsQueueMessage(phoneNumber, code));
     }
 
-    public MessageQueueMessage Dequeue()
-    {
-        if (messages.TryDequeue(out MessageQueueMessage? message))
-        {
-            return message;
-        }
-
-        throw new InvalidOperationException("The queue is empty.");
-    }
+    public MessageQueueMessage Dequeue() => messages.TryDequeue(out MessageQueueMessage? message) ? message : throw new InvalidOperationException("The queue is empty.");
 }

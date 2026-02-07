@@ -1,6 +1,3 @@
-using Microsoft.AspNetCore.Identity;
-using Vitarish.Users.Domain.Entities;
-
 namespace Vitarish.Interfaces.Accounts.Abstractions;
 
 public interface IUserService

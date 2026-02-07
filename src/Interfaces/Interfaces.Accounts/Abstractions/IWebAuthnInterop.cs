@@ -55,17 +55,17 @@ public interface IWebAuthnInterop
 /// </summary>
 public class WebAuthnNotSupportedException : Exception
 {
-    public WebAuthnNotSupportedException() 
+    public WebAuthnNotSupportedException()
         : base("WebAuthn is not supported in this browser")
     {
     }
 
-    public WebAuthnNotSupportedException(string message) 
+    public WebAuthnNotSupportedException(string message)
         : base(message)
     {
     }
 
-    public WebAuthnNotSupportedException(string message, Exception innerException) 
+    public WebAuthnNotSupportedException(string message, Exception innerException)
         : base(message, innerException)
     {
     }
@@ -76,17 +76,17 @@ public class WebAuthnNotSupportedException : Exception
 /// </summary>
 public class WebAuthnUserCancelledException : Exception
 {
-    public WebAuthnUserCancelledException() 
+    public WebAuthnUserCancelledException()
         : base("The WebAuthn operation was cancelled by the user")
     {
     }
 
-    public WebAuthnUserCancelledException(string message) 
+    public WebAuthnUserCancelledException(string message)
         : base(message)
     {
     }
 
-    public WebAuthnUserCancelledException(string message, Exception innerException) 
+    public WebAuthnUserCancelledException(string message, Exception innerException)
         : base(message, innerException)
     {
     }
@@ -97,17 +97,17 @@ public class WebAuthnUserCancelledException : Exception
 /// </summary>
 public class WebAuthnException : Exception
 {
-    public WebAuthnException() 
+    public WebAuthnException()
         : base("A WebAuthn operation failed")
     {
     }
 
-    public WebAuthnException(string message) 
+    public WebAuthnException(string message)
         : base(message)
     {
     }
 
-    public WebAuthnException(string message, Exception innerException) 
+    public WebAuthnException(string message, Exception innerException)
         : base(message, innerException)
     {
     }

@@ -1,6 +1,4 @@
-using Microsoft.JSInterop;
 using System.Text.Json;
-using Vitarish.Interfaces.Accounts.Abstractions;
 
 namespace Vitarish.Interfaces.Accounts.Services;
 
@@ -60,7 +58,7 @@ public sealed class WebAuthnInteropService : IWebAuthnInterop, IAsyncDisposable
         try
         {
             await EnsureModuleAsync(cancellationToken);
-            
+
             if (_module is null)
             {
                 return false;
@@ -88,7 +86,7 @@ public sealed class WebAuthnInteropService : IWebAuthnInterop, IAsyncDisposable
         try
         {
             await EnsureModuleAsync(cancellationToken);
-            
+
             if (_module is null)
             {
                 return false;
@@ -248,8 +246,8 @@ public sealed class WebAuthnInteropService : IWebAuthnInterop, IAsyncDisposable
         // - "user declined" or "user refused" for rejection
         // - "not allowed" when user doesn't grant permission (but not "not supported")
         string message = ex.Message.ToLowerInvariant();
-        return message.Contains("abort") 
-            || message.Contains("cancel") 
+        return message.Contains("abort")
+            || message.Contains("cancel")
             || message.Contains("user declined")
             || message.Contains("user refused")
             || (message.Contains("not allowed") && !message.Contains("not supported"));
@@ -262,7 +260,7 @@ public sealed class WebAuthnInteropService : IWebAuthnInterop, IAsyncDisposable
         // (authenticator unavailable), but excludes messages that also contain "cancel"
         // to avoid false positives with cancellation errors.
         string message = ex.Message.ToLowerInvariant();
-        return message.Contains("not supported") 
+        return message.Contains("not supported")
             || (message.Contains("not available") && !message.Contains("cancel"));
     }
 }
