@@ -10,7 +10,7 @@ public static class HostAuthorizationExtenstions
         _ = builder.Services.AddAuthorization();
         _ = builder.Services.AddScoped<IAuthorizationHandler, Authorizer>();
         _ = builder.Services.AddSingleton<IAuthorizationPolicyProvider, AuthorizerPolicyProvider>();
-        _ = builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, BlazorNotAuthorizedResultHandler>();
+        _ = builder.Services.AddSingleton<IAuthorizationMiddlewareResultHandler, BlazorResultHandler>();
 
     }
 }

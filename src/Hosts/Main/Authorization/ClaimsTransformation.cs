@@ -37,6 +37,11 @@ public class ClaimsTransformation(IHttpContextAccessor httpContextAccessor) : IC
 
                 User? user = await usersService.GetUserAsync(userId);
 
+                if (user is null)
+                {
+                    return principal;
+                }
+
                 ClaimsIdentity personalIdentity = new(IdentityDefinitions.PersonalScope);
 
                 personalIdentity.AddClaim(new Claim(JwtClaimTypes.FamilyName, user.LastName ?? string.Empty));

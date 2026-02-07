@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components.Endpoints;
 
 namespace Vitarish.Main.Authorization;
 
-public sealed class BlazorNotAuthorizedResultHandler : IAuthorizationMiddlewareResultHandler
+public sealed class BlazorResultHandler : IAuthorizationMiddlewareResultHandler
 {
     private readonly AuthorizationMiddlewareResultHandler _defaultHandler = new();
 
