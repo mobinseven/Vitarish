@@ -1,10 +1,10 @@
 @inherits IdentityCommonBase
 
-@if(isLoading)
+@if (isLoading)
 {
     <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
 }
-else if(roleDetails.Count == 0)
+else if (roleDetails.Count == 0)
 {
     <Stack>
         <StackField Label="@Localizer["NoRoles"]" />
@@ -14,7 +14,7 @@ else
 {
     <Stack>
         <StackField Label="@Localizer["Roles"]" />
-        @foreach(var role in roleDetails)
+        @foreach (var role in roleDetails)
         {
             <StackButton Label="@Localizer[role.RoleName]" HelperText="@role.TenantName" OnClick="@(() => RemoveRoleAsync(role.FullRoleName))" EndIcon="fa-regular fa-xmark" />
         }

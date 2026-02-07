@@ -45,16 +45,9 @@ public partial class ProfileRoleEditor
                 .Select(r => r.Name!)
                 .ToList();
 
-            List<ParsedTenantRole> parsedRoles = ParseTenantRoles(userRoleNames, tenantDict, owners);
+            List<RoleDetail> parsedRoles = ParseTenantRoles(userRoleNames, tenantDict, owners);
 
-            roleDetails.AddRange(parsedRoles.Select(r => new RoleDetail(
-                r.TenantId,
-                r.TenantName,
-                r.OwnerId,
-                r.OwnerName,
-                r.ClientId,
-                r.RoleName,
-                r.FullRoleName)));
+            roleDetails.AddRange(parsedRoles);
         }
         finally
         {
@@ -94,12 +87,12 @@ public partial class ProfileRoleEditor
         }
     }
 
-    private static List<ParsedTenantRole> ParseTenantRoles(
+    private static List<RoleDetail> ParseTenantRoles(
         IEnumerable<string> roles,
         Dictionary<Guid, TenantReadDto> tenantDict,
         Dictionary<Guid, OwnerReadDto?> owners)
     {
-        List<ParsedTenantRole> parsedRoles = [];
+        List<RoleDetail> parsedRoles = [];
 
         foreach (string role in roles)
         {
@@ -125,7 +118,7 @@ public partial class ProfileRoleEditor
             string ownerId = tenant?.OwnerId.ToString() ?? "-";
             string clientId = tenant?.ClientId ?? "-";
 
-            parsedRoles.Add(new ParsedTenantRole(
+            parsedRoles.Add(new RoleDetail(
                 tenantId,
                 tenantName,
                 ownerId,
@@ -139,15 +132,6 @@ public partial class ProfileRoleEditor
     }
 
     private sealed record RoleDetail(
-        Guid TenantId,
-        string TenantName,
-        string OwnerId,
-        string OwnerName,
-        string ClientId,
-        string RoleName,
-        string FullRoleName);
-
-    private sealed record ParsedTenantRole(
         Guid TenantId,
         string TenantName,
         string OwnerId,
