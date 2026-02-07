@@ -2,72 +2,33 @@
 
 <MudDialog>
     <DialogContent>
-        <MudText Typo="Typo.h6">@Localizer["AssignRoleTo", UserName]</MudText>
-        <MudDivider Class="my-3" />
-        
-        @if (isLoading)
+        @if(isLoading)
         {
             <MudProgressLinear Indeterminate Color="Color.Default" />
         }
-        else if (tenantRoles.Count == 0)
+        else if(tenantRoles.Count == 0)
         {
-            <MudText Typo="Typo.body2">@Localizer["NoRolesAvailable"]</MudText>
+            <Stack>
+                <StackField Label="@Localizer["NoRolesAvailable"]" />
+            </Stack>
         }
         else
         {
-            <MudStack Spacing="2">
-                <MudSelect T="TenantRoleOption"
-                           @bind-Value="selectedRole"
-                           Label="@Localizer["SelectRole"]"
-                           Variant="ThemeService.SecondaryVariant"
-                           Dense="true"
-                           ToStringFunc="@(role => role?.DisplayName ?? string.Empty)">
-                    @foreach (var tenant in tenantRoles.GroupBy(r => r.TenantId))
+            @foreach(var tenant in tenantRoles.GroupBy(r => r.TenantId))
+            {
+                <Stack>
+                    <StackField Label="@tenant.First().TenantName" HelperText="@tenant.First().OwnerName" />
+                    @foreach(var role in tenant)
                     {
-                        <MudSelectItem Value="@((TenantRoleOption?)null)" Disabled="true">
-                            <MudText Typo="Typo.subtitle2" Style="font-weight: bold;">@tenant.First().TenantName</MudText>
-                        </MudSelectItem>
-                        @foreach (var role in tenant)
-                        {
-                            <MudSelectItem Value="@role">
-                                <MudStack Row Spacing="1" AlignItems="AlignItems.Center">
-                                    <MudText Typo="Typo.body2">@role.RoleName</MudText>
-                                    @if (assignedRoles.Contains(role.FullRoleName))
-                                    {
-                                        <MudChip T="string" Size="Size.Small" Color="Color.Success">@Localizer["Assigned"]</MudChip>
-                                    }
-                                </MudStack>
-                            </MudSelectItem>
-                        }
-                    }
-                </MudSelect>
-                
-                @if (selectedRole != null)
-                {
-                    <MudPaper Elevation="0" Class="pa-2" Style="background-color: var(--mud-palette-background-grey);">
-                        <MudStack Spacing="1">
-                            <MudText Typo="Typo.caption">@Localizer["TenantDetails"]</MudText>
-                            <MudStack Row Spacing="2">
-                                <MudText Typo="Typo.body2"><strong>@Localizer["Tenant"]:</strong> @selectedRole.TenantName</MudText>
-                                <MudText Typo="Typo.body2"><strong>@Localizer["Owner"]:</strong> @selectedRole.OwnerName</MudText>
-                            </MudStack>
-                            @if (!string.IsNullOrWhiteSpace(selectedRole.ClientId) && selectedRole.ClientId != "-")
+                        <StackButton Label="@Localizer[role.RoleName]" Disabled="assignedRoles.Contains(role.FullRoleName)" EndIcon="" OnClick="() => Assign(role)">
+                            @if(assignedRoles.Contains(role.FullRoleName))
                             {
-                                <MudText Typo="Typo.body2"><strong>@Localizer["Client"]:</strong> @selectedRole.ClientId</MudText>
+                                <MudChip T="string" Size="Size.Small" Color="Color.Success">@Localizer["Assigned"]</MudChip>
                             }
-                        </MudStack>
-                    </MudPaper>
-                }
-            </MudStack>
+                        </StackButton>
+                    }
+                </Stack>
+            }
         }
     </DialogContent>
-    <DialogActions>
-        <MudButton Variant="Variant.Text" Color="Color.Secondary" OnClick="Cancel">@Localizer["Cancel"]</MudButton>
-        <MudButton Variant="Variant.Filled" 
-                   Color="Color.Primary" 
-                   OnClick="Assign"
-                   Disabled="selectedRole == null || assignedRoles.Contains(selectedRole?.FullRoleName ?? string.Empty)">
-            @Localizer["Assign"]
-        </MudButton>
-    </DialogActions>
 </MudDialog>

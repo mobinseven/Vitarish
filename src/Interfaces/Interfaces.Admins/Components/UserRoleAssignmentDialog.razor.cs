@@ -77,14 +77,14 @@ public partial class UserRoleAssignmentDialog
 
     private void Cancel() => MudDialog.Cancel();
 
-    private void Assign()
+    private void Assign(TenantRoleOption tenantRole)
     {
-        if (selectedRole == null)
+        if (tenantRole == null)
         {
             return;
         }
 
-        MudDialog.Close(DialogResult.Ok(selectedRole.FullRoleName));
+        MudDialog.Close(DialogResult.Ok(tenantRole.FullRoleName));
     }
 
     private sealed record TenantRoleOption(

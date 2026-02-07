@@ -1,3 +1,4 @@
+using Vitarish.Interfaces.Base.Common;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Domain.Models;
 namespace Vitarish.Main.Pages.Admins;
@@ -8,16 +9,11 @@ public partial class AdminUserPage
     private string password = string.Empty;
     [Inject] private IPasswordHasher<User> PasswordHasher { get; set; } = default!;
     private User? User;
-    private List<ClaimDto>? UserAccessClaims { get; set; }
-    private List<ClaimDto>? UserOtherClaims { get; set; }
     protected override async Task OnParametersSetAsync()
     {
         if (UserId is not null)
         {
             User = await UsersService.GetUserAsync(UserId);
-            List<ClaimDto> UserClaims = (await UsersService.GetUserClaimsAsync(UserId)).Select(c => new ClaimDto { Type = c.Type, Value = c.Value }).ToList();
-            UserAccessClaims = UserClaims.Where(c => c.Type == IdentityDefinitions.AccessClaim).ToList();
-            UserOtherClaims = UserClaims.Where(c => c.Type != IdentityDefinitions.AccessClaim).ToList();
             NavService.OverridePageTitle(User.Id, User.FullName);
         }
         else
@@ -28,6 +24,21 @@ public partial class AdminUserPage
     private async void Delete()
     {
         if (User is null)
+        {
+            return;
+        }
+        DialogParameters parameters = new()
+        {
+            { nameof(StrictConfirmDialog.ContentText), Localizer["DeleteItemConfirm", Localizer["User"]].Value  },
+            { nameof(StrictConfirmDialog.ItemName), User.FullName },
+            { nameof(StrictConfirmDialog.ButtonText), Localizer["Delete"].Value },
+            { nameof(StrictConfirmDialog.Color), Color.Error }
+        };
+
+        var dialog = await DialogService.ShowAsync<StrictConfirmDialog>(null, parameters);
+        var result = await dialog.Result;
+
+        if(result is null || result.Canceled)
         {
             return;
         }
@@ -52,18 +63,6 @@ public partial class AdminUserPage
         {
             _ = Snackbar.Add(Localizer["Error"], Severity.Warning);
             return;
-        }
-
-        if (UserOtherClaims is null || UserAccessClaims is null)
-        {
-            _ = Snackbar.Add(Localizer["Error"], Severity.Warning);
-            return;
-        }
-
-        IdentityResult servRes = await UsersService.UpdateUserClaimsAsync(new UpdateUserClaimsCommand(User, UserOtherClaims.Union(UserAccessClaims)!.Select(c => new Claim(c.Type, c.Value)).ToArray()));
-        if (!servRes.Succeeded)
-        {
-            _ = Snackbar.Add(Localizer["Error"], Severity.Warning);
         }
 
         _ = Snackbar.Add(Localizer["Saved"], Severity.Success);

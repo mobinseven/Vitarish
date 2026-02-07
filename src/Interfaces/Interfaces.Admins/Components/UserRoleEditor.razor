@@ -4,49 +4,18 @@
 {
     return;
 }
-
-@if(userRole.RoleDetails.Count == 0)
-{
-    <MudText Typo="Typo.body2">@Localizer["NoRoles"]</MudText>
-}
-else
-{
-    <MudTable T="RoleDetail"
-              Items="userRole.RoleDetails"
-              Dense="true"
-              Elevation="0"
-              Hover="true">
-        <HeaderContent>
-            <MudTh>@Localizer["Role"]</MudTh>
-            <MudTh>@Localizer["Tenant"]</MudTh>
-            <MudTh>@Localizer["Actions"]</MudTh>
-        </HeaderContent>
-        <RowTemplate Context="roleContext">
-            <MudTd DataLabel="@Localizer["Role"]">
-                <MudChip T="string" Color="Color.Primary" Size="Size.Small">
-                    @roleContext.RoleName
-                </MudChip>
-            </MudTd>
-            <MudTd DataLabel="@Localizer["Tenant"]">
-                <MudStack Spacing="0">
-                    <MudText Typo="Typo.body2">@roleContext.TenantName</MudText>
-                </MudStack>
-            </MudTd>
-            <MudTd DataLabel="@Localizer["Actions"]">
-                <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                               Color="Color.Error"
-                               Size="Size.Small"
-                               OnClick="@(() => RemoveRoleAsync(userRole, roleContext.FullRoleName))" />
-            </MudTd>
-        </RowTemplate>
-    </MudTable>
-}
-
-<MudButton Variant="Variant.Filled"
-           Color="Color.Primary"
-           FullWidth
-           StartIcon="@Icons.Material.Filled.Add"
-           Size="Size.Small"
-           OnClick="@(() => OpenAssignRoleDialogAsync(userRole))">
-    @Localizer["AssignRole"]
-</MudButton>
+<Stack>
+    @if(userRole.RoleDetails.Count == 0)
+    {
+        <StackField Label="@Localizer["NoRoles"]" />
+    }
+    else
+    {
+        <StackField Label="@Localizer["Roles"]" />
+        @foreach(var role in userRole.RoleDetails)
+        {
+            <StackButton Label="@Localizer[role.RoleName]" HelperText="@role.TenantName" OnClick="@(() => RemoveRoleAsync(userRole, role.FullRoleName))" EndIcon="fa-regular fa-xmark" />
+        }
+    }
+    <StackButton Label="@Localizer["AssignRole"]" Color="Color.Primary" EndIcon="fa-regular fa-plus" OnClick="@(() => OpenAssignRoleDialogAsync(userRole))" />
+</Stack>

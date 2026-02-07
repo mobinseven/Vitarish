@@ -7,17 +7,10 @@ public partial class UserRoleEditor
     [Parameter, EditorRequired] public User User { get; set; }
     [Parameter] public EventCallback OnUpdate { get; set; }
 
-    UserRoleEntry? userRole;
+    private UserRoleEntry? userRole;
     private readonly List<string> roles = [];
     private bool isLoading;
-
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        await LoadAsync(User);
-    }
-
-    private async Task LoadAsync(User user)
+    protected override async Task ReloadRequired()
     {
         isLoading = true;
         roles.Clear();
@@ -30,30 +23,22 @@ public partial class UserRoleEditor
             IEnumerable<TenantReadDto> tenants = await tenantsTask;
             Dictionary<Guid, TenantReadDto> tenantDict = tenants.ToDictionary(t => t.Id);
 
-            List<Guid> ownerIds = tenants.Select(t => t.OwnerId).Distinct().ToList();
+            List<Guid> ownerIds = [.. tenants.Select(t => t.OwnerId).Distinct()];
             Dictionary<Guid, Task<OwnerReadDto?>> ownerTasks = ownerIds.ToDictionary(id => id, id => PartiesService.GetOwnerAsync(id));
             Dictionary<Guid, OwnerReadDto?> owners = (await Task.WhenAll(
                 ownerTasks.Select(async kvp => new { kvp.Key, Value = await kvp.Value })
             )).ToDictionary(x => x.Key, x => x.Value);
 
-            List<string> clientIds = tenants
-                .Where(t => !string.IsNullOrWhiteSpace(t.ClientId))
-                .Select(t => t.ClientId!)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
-
             roles.AddRange(RoleManager.Roles
                 .Where(role => role.Name != null)
                 .Select(role => role.Name!));
 
-            IList<string> userRoles = await UserManager.GetRolesAsync(user);
+            IList<string> userRoles = await UserManager.GetRolesAsync(User);
             List<ParsedTenantRole> parsedRoles = RoleParser.ParseTenantRoles(userRoles, tenantDict, owners);
 
-            List<RoleDetail> roleDetails = parsedRoles
-                .Select(r => new RoleDetail(r.TenantId, r.TenantName, r.OwnerId, r.OwnerName, r.ClientId, r.RoleName, r.FullRoleName))
-                .ToList();
+            List<RoleDetail> roleDetails = [.. parsedRoles.Select(r => new RoleDetail(r.TenantId, r.TenantName, r.OwnerId, r.OwnerName, r.ClientId, r.RoleName, r.FullRoleName))];
 
-            userRole = new UserRoleEntry(user, [.. userRoles], roleDetails);
+            userRole = new UserRoleEntry(User, [.. userRoles], roleDetails);
 
         }
         finally
@@ -61,11 +46,6 @@ public partial class UserRoleEditor
             isLoading = false;
             StateHasChanged();
         }
-    }
-    private void ToggleExpand(UserRoleEntry entry)
-    {
-        entry.IsExpanded = !entry.IsExpanded;
-        StateHasChanged();
     }
 
     private async Task OpenAssignRoleDialogAsync(UserRoleEntry entry)
@@ -88,7 +68,7 @@ public partial class UserRoleEditor
             Localizer["AssignRole"],
             parameters,
             options);
-        DialogResult result = await dialog.Result;
+        DialogResult? result = await dialog.Result;
 
         if (result is { Canceled: false, Data: string selectedRole })
         {
@@ -136,8 +116,8 @@ public partial class UserRoleEditor
         }
 
         bool? confirmed = await DialogService.ShowMessageBox(
-            Localizer["Confirm"],
-            Localizer["ConfirmRemoveRole", role],
+            null,
+            Localizer["DeleteItemConfirm", Localizer["Role"]],
             yesText: Localizer["Remove"],
             cancelText: Localizer["Cancel"]);
 
