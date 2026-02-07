@@ -64,4 +64,9 @@ public interface IUserService
     Task<IEnumerable<IdentityRole>> GetUserRolesAsync(string userId, CancellationToken ct = default);
     Task<bool> SetThemeAsync(string userId, string theme);
     Task<string?> GetThemeAsync(string userId);
+
+    /// <summary>
+    /// Remove a role from the specified user and invalidate cache.
+    /// </summary>
+    Task<IdentityResult> RemoveUserRoleAsync(string userId, string roleName, CancellationToken ct = default);
 }
