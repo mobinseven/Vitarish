@@ -28,6 +28,7 @@ namespace Vitarish.Interfaces.Accounts.Components
         protected override async Task OnInitializedAsync()
         {
             User = HttpContextAccessor.HttpContext?.User.IsAuthenticated() ?? false ? await UserService.GetUserAsync(HttpContextAccessor.HttpContext.User.GetSubjectId()) : null;
+            await ReloadRequired();
             StateHasChanged();
         }
     }

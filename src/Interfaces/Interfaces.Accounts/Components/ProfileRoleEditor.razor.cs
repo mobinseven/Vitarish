@@ -11,13 +11,7 @@ public partial class ProfileRoleEditor
     private readonly List<RoleDetail> roleDetails = [];
     private bool isLoading;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await base.OnInitializedAsync();
-        await ReloadRolesAsync();
-    }
-
-    private async Task ReloadRolesAsync()
+    protected override async Task ReloadRequired()
     {
         if (User is null)
         {
@@ -40,10 +34,9 @@ public partial class ProfileRoleEditor
             )).ToDictionary(x => x.Key, x => x.Value);
 
             IEnumerable<IdentityRole> userRoles = await UserService.GetUserRolesAsync(User.Id);
-            List<string> userRoleNames = userRoles
+            List<string> userRoleNames = [.. userRoles
                 .Where(r => !string.IsNullOrWhiteSpace(r.Name))
-                .Select(r => r.Name!)
-                .ToList();
+                .Select(r => r.Name!)];
 
             List<RoleDetail> parsedRoles = ParseTenantRoles(userRoleNames, tenantDict, owners);
 
@@ -78,7 +71,7 @@ public partial class ProfileRoleEditor
         if (result.Succeeded)
         {
             _ = Snackbar.Add(Localizer["RoleRemoved"], Severity.Success);
-            await ReloadRolesAsync();
+            await ReloadRequired();
             await OnUpdate.InvokeAsync();
         }
         else
