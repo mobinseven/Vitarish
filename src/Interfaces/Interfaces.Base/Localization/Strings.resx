@@ -1649,4 +1649,19 @@ of project "{2}"</value>
   <data name="NotFoundHelp" xml:space="preserve">
     <value>The requested entry was not found.</value>
   </data>
+  <data name="TenantOwner" xml:space="preserve">
+    <value>Owner</value>
+  </data>
+  <data name="TenantAdmin" xml:space="preserve">
+    <value>Admin</value>
+  </data>
+  <data name="TenantUser" xml:space="preserve">
+    <value>User</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="DeleteItemConfirm" xml:space="preserve">
+    <value>Are you sure about deleting the {0}?</value>
+  </data>
 </root>

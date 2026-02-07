@@ -1350,6 +1350,9 @@
   <data name="TokenCreationFailed" xml:space="preserve">
     <value>ایجاد توکن دسترسی شخصی ناموفق بود.</value>
   </data>
+  <data name="TenantId" type="System.Resources.ResXNullRef, System.Windows.Forms">
+    <value />
+  </data>
   <data name="PrimaryIdentifier" xml:space="preserve">
     <value>شناسه اصلی</value>
   </data>
@@ -1545,10 +1548,25 @@
   <data name="Enter" xml:space="preserve">
     <value>ورود</value>
   </data>
+  <data name="NotFoundHelp" xml:space="preserve">
+    <value>آنچه درخواست کردید پیدا نشد.</value>
+  </data>
   <data name="Gender_Unspecified" xml:space="preserve">
     <value>نامشخص</value>
   </data>
-  <data name="NotFoundHelp" xml:space="preserve">
-    <value>آنچه درخواست کردید پیدا نشد.</value>
+  <data name="TenantOwner" xml:space="preserve">
+    <value>سرپرست</value>
+  </data>
+  <data name="TenantAdmin" xml:space="preserve">
+    <value>مدیر</value>
+  </data>
+  <data name="TenantUser" xml:space="preserve">
+    <value>کاربر</value>
+  </data>
+  <data name="Remove" xml:space="preserve">
+    <value>حذف</value>
+  </data>
+  <data name="DeleteItemConfirm" xml:space="preserve">
+    <value>آیا در حذف {0} مطمئن هستید؟</value>
   </data>
 </root>
