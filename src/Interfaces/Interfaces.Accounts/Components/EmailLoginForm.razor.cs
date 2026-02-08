@@ -3,8 +3,6 @@ namespace Vitarish.Interfaces.Accounts.Components;
 public partial class EmailLoginForm : IdentityCommonBase
 {
     [Parameter] public string VerificationEndpoint { get; set; } = "/Account/Login/Email/Submit";
-    [Parameter] public string? ReturnUrl { get; set; }
-    [Parameter] public string? FailureUrl { get; set; }
     private User? User = null;
     private string? Email = null;
 

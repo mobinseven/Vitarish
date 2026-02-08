@@ -2,8 +2,6 @@ namespace Vitarish.Interfaces.Accounts.Components;
 
 public partial class EmailChangeForm : IdentityCommonBase
 {
-    [Parameter] public string? ReturnUrl { get; set; }
-    [Parameter] public string? FailureUrl { get; set; }
     private string? Email = null;
     private string? error = null;
     private bool hasRendered = false;

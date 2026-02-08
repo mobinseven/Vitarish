@@ -5,8 +5,6 @@
     <StackField Label="@Localizer["CodeSent", VerifyCodeInput.PhoneNumber]" />
     <input type="hidden" name="Input.UserId" value="@User.Id" />
     <input type="hidden" name="Input.Provider" value="@TokenOptions.DefaultPhoneProvider" />
-    <input type="hidden" name="Input.ReturnUrl" value="@ReturnUrl" />
-    <input type="hidden" name="Input.FailureUrl" value="@FailureUrl" />
     <input type="hidden" name="Input.PhoneNumber" value="@PhoneNumber" />
     <AntiforgeryToken />
     <StackField Style="direction: ltr;">

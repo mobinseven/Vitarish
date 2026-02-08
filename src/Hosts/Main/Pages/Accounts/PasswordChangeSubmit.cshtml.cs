@@ -7,26 +7,22 @@ namespace Vitarish.Main.Pages.Accounts;
 [ValidateAntiForgeryToken]
 public sealed class PasswordChangeSubmitModel(
     SignInManager<User> signInManager,
+    ReturnUrlManager returnUrlManager,
     IStringLocalizer localizer,
     ILogger<PasswordChangeSubmitModel> logger) : PageModel
 {
     private readonly SignInManager<User> _signInManager = signInManager;
     private readonly UserManager<User> _userManager = signInManager.UserManager;
+    private readonly ReturnUrlManager _returnUrlManager = returnUrlManager;
     private readonly IStringLocalizer _localizer = localizer;
     private readonly ILogger<PasswordChangeSubmitModel> _logger = logger;
 
     [BindProperty]
     public PasswordChangeModel Input { get; set; } = new();
 
-    [BindProperty]
-    public string? ReturnUrl { get; set; }
-
-    [BindProperty]
-    public string? FailureUrl { get; set; }
-
     public async Task<IActionResult> OnPostAsync()
     {
-        string failureDestination = ResolveFailureUrl();
+        string failureDestination = "/Account/Manage/Password";
         if (!ModelState.IsValid)
         {
             LogWarning(null, "InvalidRequest");
@@ -74,17 +70,13 @@ public sealed class PasswordChangeSubmitModel(
 
         await _signInManager.RefreshSignInAsync(user);
 
-        string destination = NormalizeReturnUrl() ?? "/Account/Manage/Password";
+        string destination = _returnUrlManager.ConsumeReturnUrl() ?? "/Account/Manage/Password";
         return RedirectWithStatus(destination, BuildSuccessMessage());
     }
 
     private string BuildFailureMessage() => $"{_localizer["Error"]}: {_localizer["PasswordSetUnsuccessful"]}";
 
     private string BuildSuccessMessage() => _localizer["PasswordSetSuccessful"];
-
-    private string ResolveFailureUrl() => string.IsNullOrWhiteSpace(FailureUrl) ? "/Account/Manage/Password" : WebUtility.UrlDecode(FailureUrl);
-
-    private string? NormalizeReturnUrl() => string.IsNullOrWhiteSpace(ReturnUrl) ? null : WebUtility.UrlDecode(ReturnUrl);
 
     private IActionResult RedirectWithStatus(string destination, string message)
     {

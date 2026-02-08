@@ -9,9 +9,7 @@ else if(User is not null && Email is not null)
     <form method="post" action="@VerificationEndpoint">
         <Stack>
             <EmailVerificationVerify Email="@Email"
-                                     User="@User"
-                                     ReturnUrl="@ReturnUrl"
-                                     FailureUrl="@FailureUrl" />
+                                     User="@User" />
         </Stack>
     </form>
 }

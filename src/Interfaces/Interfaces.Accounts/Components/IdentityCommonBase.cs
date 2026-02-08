@@ -8,6 +8,7 @@ namespace Vitarish.Interfaces.Accounts.Components
         [Inject] protected IUserService UserService { get; set; } = default!;
         [Inject] protected SignInManager<User> SignInManager { get; set; } = default!;
         [Inject] protected IdentityRedirectManager RedirectManager { get; set; } = default!;
+        [Inject] protected ReturnUrlManager ReturnUrlManager { get; set; } = default!;
         [Inject] protected ISnackbar Snackbar { get; set; } = default!;
         [Inject] protected IIdentityServerInteractionService IdentityServerInteractionService { get; set; } = default!;
         [Inject] protected IIdentityServerInteractionService InteractionService { get; set; } = default!;

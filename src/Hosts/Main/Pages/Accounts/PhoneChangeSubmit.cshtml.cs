@@ -11,6 +11,7 @@ public sealed class PhoneChangeSubmitModel(
     ISmsAuthenticationService smsAuthenticationService,
     SignInManager<User> signInManager,
     IUserStore<User> userStore,
+    ReturnUrlManager returnUrlManager,
     IStringLocalizer localizer,
     ILogger<PhoneChangeSubmitModel> logger) : PageModel
 {
@@ -20,6 +21,7 @@ public sealed class PhoneChangeSubmitModel(
     private readonly IUserPhoneNumberStore<User> _phoneStore =
         userStore as IUserPhoneNumberStore<User> ??
         throw new NotSupportedException("The user store must implement IUserPhoneNumberStore<User>.");
+    private readonly ReturnUrlManager _returnUrlManager = returnUrlManager;
     private readonly IStringLocalizer _localizer = localizer;
     private readonly ILogger<PhoneChangeSubmitModel> _logger = logger;
 
@@ -28,7 +30,7 @@ public sealed class PhoneChangeSubmitModel(
 
     public async Task<IActionResult> OnPostAsync()
     {
-        string failureDestination = ResolveFailureUrl();
+        string failureDestination = "/Account/Manage/Phone";
         if (!ModelState.IsValid || !IsInputValid())
         {
             LogWarning(null, "InvalidRequest");
@@ -76,7 +78,7 @@ public sealed class PhoneChangeSubmitModel(
 
         await _signInManager.RefreshSignInAsync(currentUser);
 
-        string destination = NormalizeReturnUrl() ?? "/Account/Manage/Phone";
+        string destination = _returnUrlManager.ConsumeReturnUrl() ?? "/Account/Manage/Phone";
         return RedirectWithStatus(destination, BuildSuccessMessage());
     }
 
@@ -87,10 +89,6 @@ public sealed class PhoneChangeSubmitModel(
     private string BuildFailureMessage() => $"{_localizer["Error"]}: {_localizer["PhoneChangeFailed"]}";
 
     private string BuildSuccessMessage() => _localizer["PhoneChangeSuccess"];
-
-    private string ResolveFailureUrl() => string.IsNullOrWhiteSpace(Input.FailureUrl) ? "/Account/Manage/Phone" : WebUtility.UrlDecode(Input.FailureUrl);
-
-    private string? NormalizeReturnUrl() => string.IsNullOrWhiteSpace(Input.ReturnUrl) ? null : WebUtility.UrlDecode(Input.ReturnUrl);
 
     private IActionResult RedirectWithStatus(string destination, string message)
     {

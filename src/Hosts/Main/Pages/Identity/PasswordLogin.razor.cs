@@ -10,7 +10,7 @@ public partial class PasswordLogin
     {
         if (HttpContext?.User.Identity?.IsAuthenticated ?? false)
         {
-            RedirectManager.RedirectTo(ReturnUrl);
+            RedirectManager.RedirectTo(ReturnUrlManager.GetReturnUrl());
         }
         if (HttpMethods.IsGet(HttpContext?.Request.Method))
         {
