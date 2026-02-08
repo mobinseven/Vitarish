@@ -4,11 +4,11 @@
         <MudStack Spacing="2">
             @if(Attachment.ContentType.StartsWith("image"))
             {
-                <ImageElement Src="@Attachment.Content" Type="@Attachment.ContentType" />
+                <Vitarish.Files.Interface.Components.FileImage FileId="@FileId" Type="@Attachment.ContentType" />
             }
             @if(Attachment.ContentType.StartsWith("video"))
             {
-                <VideoElement Src="@Attachment.Content" Type="@Attachment.ContentType" />
+                <Vitarish.Files.Interface.Components.FileVideo FileId="@FileId" Type="@Attachment.ContentType" />
             }
             @if(Attachment.ContentType.StartsWith("text"))
             {

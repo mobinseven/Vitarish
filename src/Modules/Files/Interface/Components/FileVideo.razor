@@ -1,0 +1,8 @@
+<video style="width: 100%" controls preload="metadata" autoplay loop>
+    <source src="@Src" type="@Type" />
+</video>
+@code {
+    [Parameter] public Guid FileId { get; set; }
+    [Parameter] public string? Type { get; set; }
+    private string Src => $"/files/{FileId}";
+}

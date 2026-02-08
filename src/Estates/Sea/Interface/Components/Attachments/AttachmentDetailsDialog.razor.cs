@@ -15,6 +15,8 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
 
     [Parameter] public Color Color { get; set; }
 
+    private Guid FileId => Guid.TryParse(Attachment.Content, out Guid id) ? id : Guid.Empty;
+
     private bool CanWrite { get; set; }
     private bool editing;
     private string editContent = string.Empty;

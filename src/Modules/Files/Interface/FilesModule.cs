@@ -68,6 +68,7 @@ public class FilesModule : Module, IFilesModule
     }
     public override async Task Initialize(WebApplication app)
     {
+        _ = app.UseMiddleware<FileByIdMiddleware>();
         _ = app.UseMiddleware<ObjectStorageMiddleware>();
         using IServiceScope scope = app.Services.CreateScope();
         IObjectStorageService storage = scope.ServiceProvider.GetRequiredService<IObjectStorageService>();
