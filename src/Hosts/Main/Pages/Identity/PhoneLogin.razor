@@ -3,7 +3,7 @@
 @inherits LoginBase
 @attribute [RequireAntiforgeryToken]
 
-<HttpStatus CookieName="@IdentityRedirectManager.StatusCookieName" />
+<HttpStatus CookieName="@IdentityCookieNames.StatusCookieName" />
 <PhoneLoginForm @rendermode=@InteractiveServer />
 <Stack>
     <StackButton Label="@Localizer["LoginVia", Localizer["Password"]]" EndIcon="fa-regular fa-asterisk" Href="Account/Login/Password" />

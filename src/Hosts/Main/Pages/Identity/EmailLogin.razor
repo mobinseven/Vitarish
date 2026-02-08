@@ -4,7 +4,7 @@
 @attribute [RequireAntiforgeryToken]
 
 
-<HttpStatus CookieName="@IdentityRedirectManager.StatusCookieName" />
+<HttpStatus CookieName="@IdentityCookieNames.StatusCookieName" />
 <AntiforgeryToken />
 <EmailLoginForm @rendermode=@InteractiveServer />
 <Stack>

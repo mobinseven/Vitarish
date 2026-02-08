@@ -9,7 +9,6 @@ public static class WebApplicationBuilderExtensions
         _ = builder.Services.AddMudServices();
         _ = builder.Services.AddHttpContextAccessor();
         _ = builder.Services.AddCascadingAuthenticationState();
-        _ = builder.Services.AddScoped<IdentityRedirectManager>();
         _ = builder.Services.AddScoped<ReturnUrlManager>();
         _ = builder.Services.AddScoped<IUserService, UserService>();
         _ = builder.Services.AddScoped<UserProfileCultureInfoProvider>();

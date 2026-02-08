@@ -93,7 +93,7 @@ public sealed class PhoneChangeSubmitModel(
     private IActionResult RedirectWithStatus(string destination, string message)
     {
         Response.Cookies.Append(
-            IdentityRedirectManager.StatusCookieName,
+            IdentityCookieNames.StatusCookieName,
             message,
             CreateStatusCookieOptions());
         return Redirect(destination);

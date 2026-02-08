@@ -3,7 +3,7 @@
 @attribute [RequireAntiforgeryToken]
 
 
-<HttpStatus CookieName="@IdentityRedirectManager.StatusCookieName" />
+<HttpStatus CookieName="@IdentityCookieNames.StatusCookieName" />
 <AntiforgeryToken />
 <WebAuthnLoginForm @rendermode=@InteractiveServer />
 <Stack>

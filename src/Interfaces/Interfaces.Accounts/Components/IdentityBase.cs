@@ -8,8 +8,6 @@ public class IdentityBase : IdentityCommonBase
     {
         await base.OnInitializedAsync();
 
-        RedirectManager.HttpContext = HttpContext;
-
         string? returnUrl = ReturnUrlManager.GetReturnUrl();
 
         if (returnUrl is null)

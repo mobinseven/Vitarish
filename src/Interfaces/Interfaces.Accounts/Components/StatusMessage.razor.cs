@@ -6,11 +6,11 @@ public partial class StatusMessage : IdentityBase
 
     protected override Task OnInitializedAsync()
     {
-        DisplayMessage = HttpContext?.Request.Cookies[IdentityRedirectManager.StatusCookieName];
+        DisplayMessage = HttpContext?.Request.Cookies[IdentityCookieNames.StatusCookieName];
 
         if (DisplayMessage is not null)
         {
-            HttpContext?.Response.Cookies.Delete(IdentityRedirectManager.StatusCookieName);
+            HttpContext?.Response.Cookies.Delete(IdentityCookieNames.StatusCookieName);
         }
         return base.OnInitializedAsync();
     }

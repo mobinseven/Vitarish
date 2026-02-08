@@ -9,7 +9,7 @@ public class LoginBase : IdentityBase
         await base.OnInitializedAsync();
         if (HttpContext?.User.Identity?.IsAuthenticated ?? false)
         {
-            RedirectManager.RedirectTo(ReturnUrlManager.GetReturnUrl());
+            NavigationManager.NavigateTo(ReturnUrlManager.GetReturnUrl() ?? "/");
         }
         if (HttpMethods.IsGet(HttpContext?.Request.Method))
         {
