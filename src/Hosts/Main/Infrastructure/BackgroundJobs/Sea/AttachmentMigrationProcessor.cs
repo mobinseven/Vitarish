@@ -53,124 +53,153 @@ public class AttachmentMigrationProcessor(
             int migratedCount = 0;
             int skippedCount = 0;
             int errorCount = 0;
+            int processedEventCount = 0;
 
-            // Get all events to iterate through their attachments
-            EventDescriptorDto eventDescriptor = new()
+            // Get all events in batches and process them
+            const int batchSize = 1000;
+            int skip = 0;
+            bool hasMoreEvents = true;
+
+            while (hasMoreEvents)
             {
-                Skip = 0,
-                Take = 1000 // Process in batches
-            };
-
-            var eventsResult = await eventsService.GetListAsync(eventDescriptor, cancellationToken);
-            IReadOnlyList<EventDto>? events = eventsResult.GetValueOrDefault();
-
-            if (events == null || events.Count == 0)
-            {
-                logger.LogInformation("No events found for tenant {TenantId}", tenantId);
-                return;
-            }
-
-            logger.LogInformation("Found {Count} events to process for tenant {TenantId}", events.Count, tenantId);
-
-            foreach (EventDto eventDto in events)
-            {
-                try
+                EventDescriptorDto eventDescriptor = new()
                 {
-                    // Get all attachments for this event
-                    IReadOnlyList<AttachmentDto> attachments = await attachmentsService.GetByEventAsync(eventDto.Id, cancellationToken);
+                    Skip = skip,
+                    Take = batchSize
+                };
 
-                    foreach (AttachmentDto attachment in attachments)
+                var eventsResult = await eventsService.GetListAsync(eventDescriptor, cancellationToken);
+                IReadOnlyList<EventDto>? events = eventsResult.GetValueOrDefault();
+
+                if (events == null || events.Count == 0)
+                {
+                    hasMoreEvents = false;
+                    break;
+                }
+
+                logger.LogDebug("Processing batch of {Count} events (skip: {Skip}) for tenant {TenantId}", 
+                    events.Count, skip, tenantId);
+
+                processedEventCount += events.Count;
+
+                foreach (EventDto eventDto in events)
+                {
+                    try
                     {
-                        try
+                        // Get all attachments for this event
+                        IReadOnlyList<AttachmentDto> attachments = await attachmentsService.GetByEventAsync(eventDto.Id, cancellationToken);
+
+                        foreach (AttachmentDto attachment in attachments)
                         {
-                            // Skip if already migrated (content is a valid GUID)
-                            if (Guid.TryParse(attachment.Content, out _))
+                            try
                             {
-                                skippedCount++;
-                                continue;
-                            }
-
-                            // Skip text attachments (they store actual text content, not file references)
-                            if (attachment.ContentType?.StartsWith("text", StringComparison.OrdinalIgnoreCase) == true)
-                            {
-                                skippedCount++;
-                                continue;
-                            }
-
-                            // Try to find the corresponding FileInformation by URL
-                            FileInformationDescriptorDto fileDescriptor = new()
-                            {
-                                Url = attachment.Content
-                            };
-
-                            var fileInfoResult = await fileInformationService.GetListAsync(fileDescriptor, cancellationToken);
-                            IReadOnlyList<FileInformationDto>? fileInfos = fileInfoResult.GetValueOrDefault();
-
-                            if (fileInfos?.Count > 0)
-                            {
-                                FileInformationDto fileInfo = fileInfos[0];
-
-                                // Update the attachment content to use the file ID
-                                AttachmentDto? updated = await attachmentsService.UpdateAsync(
-                                    eventDto.Id,
-                                    attachment.Id,
-                                    fileInfo.Id.ToString(),
-                                    cancellationToken);
-
-                                if (updated != null)
+                                // Skip if already migrated (content is a valid GUID)
+                                if (Guid.TryParse(attachment.Content, out _))
                                 {
-                                    migratedCount++;
+                                    skippedCount++;
+                                    continue;
+                                }
 
-                                    logger.LogDebug(
-                                        "Migrated attachment {AttachmentId}: URL '{Url}' -> ID '{FileId}' for tenant {TenantId}",
+                                // Skip text attachments (they store actual text content, not file references)
+                                // Text attachments are identified by content types starting with "text/"
+                                // Other content types (images, videos, documents) store file references that need migration
+                                if (attachment.ContentType?.StartsWith("text", StringComparison.OrdinalIgnoreCase) == true)
+                                {
+                                    skippedCount++;
+                                    continue;
+                                }
+
+                                // Try to find the corresponding FileInformation by URL
+                                FileInformationDescriptorDto fileDescriptor = new()
+                                {
+                                    Url = attachment.Content
+                                };
+
+                                var fileInfoResult = await fileInformationService.GetListAsync(fileDescriptor, cancellationToken);
+                                IReadOnlyList<FileInformationDto>? fileInfos = fileInfoResult.GetValueOrDefault();
+
+                                if (fileInfos?.Count > 0)
+                                {
+                                    // Warn if multiple files match the same URL (potential data inconsistency)
+                                    if (fileInfos.Count > 1)
+                                    {
+                                        logger.LogWarning(
+                                            "Multiple FileInformation records ({Count}) found for URL '{Url}' on attachment {AttachmentId} for tenant {TenantId}. Using the first match.",
+                                            fileInfos.Count,
+                                            attachment.Content,
+                                            attachment.Id,
+                                            tenantId);
+                                    }
+
+                                    FileInformationDto fileInfo = fileInfos[0];
+
+                                    // Update the attachment content to use the file ID
+                                    AttachmentDto? updated = await attachmentsService.UpdateAsync(
+                                        eventDto.Id,
                                         attachment.Id,
-                                        fileInfo.Url,
-                                        fileInfo.Id,
-                                        tenantId);
+                                        fileInfo.Id.ToString(),
+                                        cancellationToken);
+
+                                    if (updated != null)
+                                    {
+                                        migratedCount++;
+
+                                        logger.LogDebug(
+                                            "Migrated attachment {AttachmentId}: URL '{Url}' -> ID '{FileId}' for tenant {TenantId}",
+                                            attachment.Id,
+                                            fileInfo.Url,
+                                            fileInfo.Id,
+                                            tenantId);
+                                    }
+                                    else
+                                    {
+                                        logger.LogWarning(
+                                            "Failed to update attachment {AttachmentId} for tenant {TenantId}",
+                                            attachment.Id,
+                                            tenantId);
+                                        errorCount++;
+                                    }
                                 }
                                 else
                                 {
                                     logger.LogWarning(
-                                        "Failed to update attachment {AttachmentId} for tenant {TenantId}",
+                                        "Could not find FileInformation for attachment {AttachmentId} with URL: {Url} for tenant {TenantId}",
                                         attachment.Id,
+                                        attachment.Content,
                                         tenantId);
                                     errorCount++;
                                 }
                             }
-                            else
+                            catch (Exception ex)
                             {
-                                logger.LogWarning(
-                                    "Could not find FileInformation for attachment {AttachmentId} with URL: {Url} for tenant {TenantId}",
+                                logger.LogError(
+                                    ex,
+                                    "Error processing attachment {AttachmentId} for tenant {TenantId}",
                                     attachment.Id,
-                                    attachment.Content,
                                     tenantId);
                                 errorCount++;
                             }
                         }
-                        catch (Exception ex)
-                        {
-                            logger.LogError(
-                                ex,
-                                "Error processing attachment {AttachmentId} for tenant {TenantId}",
-                                attachment.Id,
-                                tenantId);
-                            errorCount++;
-                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        logger.LogError(
+                            ex,
+                            "Error processing event {EventId} for tenant {TenantId}",
+                            eventDto.Id,
+                            tenantId);
                     }
                 }
-                catch (Exception ex)
-                {
-                    logger.LogError(
-                        ex,
-                        "Error processing event {EventId} for tenant {TenantId}",
-                        eventDto.Id,
-                        tenantId);
-                }
+
+                // Move to next batch
+                skip += batchSize;
+                hasMoreEvents = events.Count == batchSize; // If we got fewer than batchSize, we're done
             }
 
             logger.LogInformation(
-                "Attachment migration completed for tenant {TenantId}. Migrated: {Migrated}, Skipped: {Skipped}, Errors: {Errors}",
+                "Attachment migration completed for tenant {TenantId}. Events processed: {EventCount}, Migrated: {Migrated}, Skipped: {Skipped}, Errors: {Errors}",
                 tenantId,
+                processedEventCount,
                 migratedCount,
                 skippedCount,
                 errorCount);
