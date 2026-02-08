@@ -1,7 +1,6 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
 using Vitarish.Interfaces.Accounts.Models;
 
 namespace Vitarish.Main.Pages.Identity;
@@ -42,19 +41,8 @@ public sealed class PasswordLoginSubmitModel(
         Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(user, Input.Password, true, lockoutOnFailure: false);
         if (result.Succeeded)
         {
-            string? normalizedReturnUrl = _returnUrlManager.ConsumeReturnUrl();
-            if (string.IsNullOrEmpty(normalizedReturnUrl))
-            {
-                return Redirect("/Account/SuccessfulLogin");
-            }
-
-            string redirectUri = QueryHelpers.AddQueryString(
-                "/Account/SuccessfulLogin",
-                new Dictionary<string, string?>
-                {
-                    ["ReturnUrl"] = normalizedReturnUrl,
-                });
-            return Redirect(redirectUri);
+            // ReturnUrl is already in the cookie, just redirect to SuccessfulLogin
+            return Redirect("/Account/SuccessfulLogin");
         }
 
         if (result.IsLockedOut)

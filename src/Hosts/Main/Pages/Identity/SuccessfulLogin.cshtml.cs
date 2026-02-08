@@ -3,11 +3,8 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace Vitarish.Main.Pages.Identity;
 
-public class SuccessfulLoginModel(IUsersService userService) : PageModel
+public class SuccessfulLoginModel(IUsersService userService, ReturnUrlManager returnUrlManager) : PageModel
 {
-    [BindProperty(SupportsGet = true)]
-    public string? ReturnUrl { get; set; }
-
     public async Task<IActionResult> OnGetAsync()
     {
         // Get authenticated user ID (or fail early)
@@ -25,26 +22,26 @@ public class SuccessfulLoginModel(IUsersService userService) : PageModel
         if (missingNames)
         {
             // Always redirect to local complete-name page.
-            return RedirectToPage("/Settings/Name", new { ReturnUrl });
+            return RedirectToPage("/Settings/Name");
         }
 
+        // Get and clear ReturnUrl from cookie
+        string? returnUrl = returnUrlManager.ConsumeReturnUrl();
+        
         // If no return URL is provided, just go home
-        if (string.IsNullOrEmpty(ReturnUrl))
+        if (string.IsNullOrEmpty(returnUrl))
         {
             return LocalRedirect("/");
         }
 
-        // Decode and check safety of return URL
-        string decoded = WebUtility.UrlDecode(ReturnUrl);
-
         // Only local URLs should be allowed back
-        if (!Url.IsLocalUrl(decoded))
+        if (!Url.IsLocalUrl(returnUrl))
         {
             // Fallback to home if external or unsafe
             return LocalRedirect("/");
         }
 
         // Finally redirect to the intended local page
-        return LocalRedirect(decoded);
+        return LocalRedirect(returnUrl);
     }
 }
