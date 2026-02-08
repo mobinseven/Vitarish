@@ -62,10 +62,12 @@ public static class HostHangfireExtensions
         _ = builder.Services.AddTransient<ReminderProcessor>();
         _ = builder.Services.AddTransient<FilesProcessor>();
         _ = builder.Services.AddTransient<IntelligenceProcessor>();
+        _ = builder.Services.AddTransient<AttachmentMigrationProcessor>();
         _ = builder.Services.AddSingleton<HangfireReminderJobManager>();
         _ = builder.Services.AddSingleton<HangfireFilesJobManager>();
         _ = builder.Services.AddSingleton<HangfireIntelligenceJobManager>();
         _ = builder.Services.AddSingleton<HangfireCommunicationsJobManager>();
+        _ = builder.Services.AddSingleton<HangfireAttachmentMigrationJobManager>();
     }
 
     /// <summary>

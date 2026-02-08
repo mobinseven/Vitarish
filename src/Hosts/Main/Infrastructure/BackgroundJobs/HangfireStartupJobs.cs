@@ -30,5 +30,9 @@ public static class HangfireStartupJobs
         _ = app.Services.GetRequiredService<HangfireCommunicationsJobManager>();
         intelligenceJobs.ScheduleProcessing();
         intelligenceJobs.TriggerProcessing();
+
+        HangfireAttachmentMigrationJobManager migrationJobs = app.Services.GetRequiredService<HangfireAttachmentMigrationJobManager>();
+        migrationJobs.ScheduleProcessing();
+        migrationJobs.TriggerProcessing();
     }
 }
