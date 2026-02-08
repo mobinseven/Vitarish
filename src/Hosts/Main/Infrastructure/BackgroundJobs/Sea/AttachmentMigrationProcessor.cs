@@ -103,7 +103,7 @@ public class AttachmentMigrationProcessor(
                                 // Skip text attachments (they store actual text content, not file references)
                                 // Text attachments are identified by content types starting with "text/"
                                 // Other content types (images, videos, documents) store file references that need migration
-                                if (attachment.ContentType?.StartsWith("text", StringComparison.OrdinalIgnoreCase) == true)
+                                if (attachment.ContentType?.StartsWith("text/", StringComparison.OrdinalIgnoreCase) == true)
                                 {
                                     skippedCount++;
                                     continue;

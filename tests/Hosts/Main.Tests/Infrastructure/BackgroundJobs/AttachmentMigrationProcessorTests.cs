@@ -51,19 +51,19 @@ public class AttachmentMigrationProcessorTests : IDisposable
                 }
             });
 
-        ServiceCollection services = new();
-        _ = services.AddHttpContextAccessor();
-        services.AddScoped<RequestContext>();
-        services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
-        services.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());
-        services.AddScoped(_ => mockEventsService.Object);
-        services.AddScoped(_ => mockAttachmentsService.Object);
-        services.AddScoped(_ => mockFileInformationService.Object);
-        services.AddScoped(_ => mockPartiesService.Object);
-        services.AddSingleton(_ => mockExecutorLogger.Object);
-        services.AddScoped<TenantBackgroundExecutor>();
+        ServiceCollection serviceCollection = new();
+        _ = serviceCollection.AddHttpContextAccessor();
+        serviceCollection.AddScoped<RequestContext>();
+        serviceCollection.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
+        serviceCollection.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());
+        serviceCollection.AddScoped(_ => mockEventsService.Object);
+        serviceCollection.AddScoped(_ => mockAttachmentsService.Object);
+        serviceCollection.AddScoped(_ => mockFileInformationService.Object);
+        serviceCollection.AddScoped(_ => mockPartiesService.Object);
+        serviceCollection.AddSingleton(_ => mockExecutorLogger.Object);
+        serviceCollection.AddScoped<TenantBackgroundExecutor>();
 
-        serviceProvider = services.BuildServiceProvider();
+        serviceProvider = serviceCollection.BuildServiceProvider();
 
         TenantBackgroundExecutor executor = serviceProvider.GetRequiredService<TenantBackgroundExecutor>();
         sut = new AttachmentMigrationProcessor(mockLogger.Object, executor);
