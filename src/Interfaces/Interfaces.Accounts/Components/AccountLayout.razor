@@ -3,49 +3,32 @@
 @inject IStringLocalizer Localizer
 
 
-<ThemeConnector @rendermode=InteractiveServer />
+<ThemeConnector>
 
-<MudRTLProvider RightToLeft="@System.Globalization.CultureInfo.CurrentCulture.TextInfo.IsRightToLeft" Style="height: 100%">
-    <MudPopoverProvider @rendermode=InteractiveServer />
-    <MudSnackbarProvider @rendermode=InteractiveServer />
-    <MudLayout Style="height: 100%">
+    <MudRTLProvider RightToLeft="@System.Globalization.CultureInfo.CurrentCulture.TextInfo.IsRightToLeft" Style="height: 100%">
+        <MudPopoverProvider @rendermode=InteractiveServer />
+        <MudSnackbarProvider @rendermode=InteractiveServer />
         <div style="height: 10dvh;">
             <hr />
         </div>
-        <MudStack Justify="Justify.Center" AlignItems="AlignItems.Center" StretchItems="StretchItems.Middle" Row="true" Style="height: 100%">
-            <MudItem lg="4" md="6" sm="10" xs="12" Style="height: 100%">
-                <MudPaper Class="pa-3 mx-lg-7 mx-lg-5 mx-lg-3 mx-xs-1" Elevation="0" Style="height: 100%">
-                    <MudStack Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Style="height: 100%">
-                        <MudItem Class="my-md-7 my-3" Style="width: 100%">
-                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Style="width: 100%;">
-                                <MudImage Src="/logo/brandmark-opacity50.webp" Height="100" />
-                            </MudStack>
-                        </MudItem>
-                        <MudItem Class="my-md-7 my-3" Style="width: 100%">
-                            <MudPaper Class="pa-3" Elevation="0" Style="height: 100%">
-                                @if (HttpContext is null)
-                                {
-                                    <MudProgressLinear Indeterminate="true" />
-                                }
-                                else
-                                {
-                                    @Body
-                                }
-                            </MudPaper>
-                        </MudItem>
-                        <MudItem Class="my-md-7 my-3" Style="width: 100%">
-                            <CultureSelector @rendermode=InteractiveServer />
-                        </MudItem>
-                        <MudItem Class="my-md-7 my-3" Style="width: 100%">
-                            <form method="get" action="/">
-                                <MudButton FullWidth="true" ButtonType="ButtonType.Submit">@Localizer["Home"]</MudButton>
-                            </form>
-                        </MudItem>
-                    </MudStack>
-                </MudPaper>
-            </MudItem>
-        </MudStack>
-    </MudLayout>
+        <WidthControlled>
+            <TitleContainer />
 
-</MudRTLProvider>
+            @Body
+
+            <Stack>
+                <StackField>
+                    <CultureSelector @rendermode=InteractiveServer />
+                </StackField>
+                <StackButton Label="@Localizer["Home"]" EndIcon="fa-regular fa-home" Href="/" />
+            </Stack>
+
+        </WidthControlled>
+
+        <div style="height: 20dvh;">
+            <hr />
+        </div>
+
+    </MudRTLProvider>
+</ThemeConnector>
 <AntiforgeryToken />

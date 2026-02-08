@@ -2,7 +2,6 @@ namespace Vitarish.Interfaces.Accounts.Components;
 
 public partial class EmailVerificationVerify
 {
-    [Parameter] public string VerificationEndpoint { get; set; } = "/Account/Login/Email/Submit";
     [Parameter] public string? ReturnUrl { get; set; }
     [Parameter] public string? FailureUrl { get; set; }
     [Parameter] public User User { get; set; } = default!;

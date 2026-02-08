@@ -2,33 +2,26 @@
 
 @if(VerifyCodeInput is not null)
 {
-    <MudAlert Severity="Severity.Success">@Localizer["CodeSent", VerifyCodeInput.PhoneNumber]</MudAlert>
-    <form method="post" action="@Action">
-        <input type="hidden" name="Input.UserId" value="@User.Id" />
-        <input type="hidden" name="Input.Provider" value="@TokenOptions.DefaultPhoneProvider" />
-        <input type="hidden" name="Input.ReturnUrl" value="@ReturnUrl" />
-        <input type="hidden" name="Input.FailureUrl" value="@FailureUrl" />
-        <input type="hidden" name="Input.PhoneNumber" value="@PhoneNumber" />
-        <AntiforgeryToken />
-        <MudFocusTrap>
-            <MudField Variant="ThemeService.SecondaryVariant" Style="direction: ltr;">
-                <MudStack AlignItems="AlignItems.Center" Style="width: 100%;">
-                    <input name="Input.Code"
-                           @bind="VerifyCodeInput.Code"
-                           @bind:event="oninput"
-                           type="text"
-                           autocomplete="one-time-code"
-                           inputmode="numeric"
-                           maxlength="6"
-                           autofocus>
-                </MudStack>
-            </MudField>
-        </MudFocusTrap>
-        <MudButton Variant="Variant.Filled"
-                   Color="Color.Primary"
-                   FullWidth="true"
-                   ButtonType="ButtonType.Submit">
-            @Localizer["Continue"]
-        </MudButton>
-    </form>
+    <StackField Label="@Localizer["CodeSent", VerifyCodeInput.PhoneNumber]" />
+    <input type="hidden" name="Input.UserId" value="@User.Id" />
+    <input type="hidden" name="Input.Provider" value="@TokenOptions.DefaultPhoneProvider" />
+    <input type="hidden" name="Input.ReturnUrl" value="@ReturnUrl" />
+    <input type="hidden" name="Input.FailureUrl" value="@FailureUrl" />
+    <input type="hidden" name="Input.PhoneNumber" value="@PhoneNumber" />
+    <AntiforgeryToken />
+    <StackField Style="direction: ltr;">
+        <MudStack AlignItems="AlignItems.Center" Style="width: 100%;">
+            <input name="Input.Code"
+                   @bind="VerifyCodeInput.Code"
+                   @bind:event="oninput"
+                   type="text"
+                   autocomplete="one-time-code"
+                   inputmode="numeric"
+                   maxlength="6"
+                   autofocus>
+        </MudStack>
+    </StackField>
+    <StackButton Label="@Localizer["Continue"]"
+                 Color="Color.Primary"
+                 ButtonType="ButtonType.Submit" />
 }

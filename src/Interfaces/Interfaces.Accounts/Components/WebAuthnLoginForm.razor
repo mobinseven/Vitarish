@@ -1,34 +1,23 @@
 @if(IsSupported)
 {
-    <MudPaper Class="pa-4">
+    <Stack>
         @if(!string.IsNullOrEmpty(ErrorMessage))
         {
-            <MudAlert Severity="Severity.Error" Class="mb-3">@ErrorMessage</MudAlert>
+            <StackField Label="@ErrorMessage" />
         }
-        <MudTextField @bind-Value="Username"
-                      Label="@Localizer["UserName"]"
-                      UserAttributes="@(new() { { "dir", "ltr" }, { "autocomplete", "username webauthn" }, { "aria-required", "true" } })"
-                      Variant="ThemeService.SecondaryVariant"
-                      Margin="Margin.Normal"
-                      ShrinkLabel="true"
-                      AutoFocus="true"
-                      Clearable
-                      Disabled="@IsAuthenticating" />
-        <MudButton Variant="Variant.Filled"
-                   Color="Color.Primary"
-                   FullWidth="true"
-                   OnClick="@AuthenticateAsync"
-                   Disabled="@(IsAuthenticating || string.IsNullOrWhiteSpace(Username))"
-                   Class="mt-3">
-            @if(IsAuthenticating)
-            {
-                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="me-2" />
-            }
-            @Localizer["Continue"]]
-        </MudButton>
-    </MudPaper>
+        <StackTextField @bind-Value="Username"
+                        Label="@Localizer["UserName"]"
+                        UserAttributes="@(new() { { "dir", "ltr" }, { "autocomplete", "username webauthn" }, { "aria-required", "true" } })"
+                        Disabled="@IsAuthenticating" />
+        <StackButton Color="Color.Primary"
+        Label="@Localizer["Continue"]"
+                     OnClick="@AuthenticateAsync"
+                     Disabled="@(IsAuthenticating || string.IsNullOrWhiteSpace(Username))" />
+    </Stack>
 }
 else
 {
-    <MudAlert Severity="Severity.Warning">@Localizer["PasskeyNotSupported"]</MudAlert>
+    <Stack>
+        <StackField Label="@Localizer["PasskeyNotSupported"]" />
+    </Stack>
 }

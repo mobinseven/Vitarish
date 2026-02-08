@@ -1,4 +1,4 @@
-::deep :where([autocomplete=one-time-code]) {
+:where([autocomplete=one-time-code]) {
     --otp-digits: 6;
     --otp-ls: 1.2ch;
     --otp-gap: 1.25;

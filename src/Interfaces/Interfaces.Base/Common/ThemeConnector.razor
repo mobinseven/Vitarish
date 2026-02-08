@@ -3,14 +3,13 @@
 @inject IThemeService ThemeService
 
 <MudThemeProvider @key="@($"theme-{ThemeService.ThemeVersion}")"
+                  @rendermode="InteractiveServer"
                   Theme="@ThemeService.Theme"
                   IsDarkMode="@ThemeService.IsDarkMode"
                   IsDarkModeChanged="OnDarkModeChanged"
                   ObserveSystemThemeChange="@ThemeService.ObserveSystemThemeChange" />
 
-<style @key="@($"surface-{ThemeService.ThemeVersion}")">
-    @ThemeService.BuildCustomCss()
-</style>
+<ThemeSurfaceConfigurator @rendermode="InteractiveServer" />
 
 <div style="height: 100%">
     @ChildContent
@@ -18,7 +17,7 @@
 
 @code {
 
-    [Parameter] public RenderFragment? ChildContent  { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
 
     private MudThemeProvider? _provider;
 

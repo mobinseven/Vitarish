@@ -1,12 +1,17 @@
 @if(Email is null)
 {
-    <EmailVerificationSend OnValidSubmit="@ValidSendCodeSubmit" />
+    <Stack>
+        <EmailVerificationSend OnValidSubmit="@ValidSendCodeSubmit" />
+    </Stack>
 }
 else if(User is not null && Email is not null)
 {
-    <EmailVerificationVerify Email="@Email"
-                             User="@User"
-                             ReturnUrl="@ReturnUrl"
-                             FailureUrl="@FailureUrl"
-                             VerificationEndpoint="@VerificationEndpoint" />
+    <form method="post" action="@VerificationEndpoint">
+        <Stack>
+            <EmailVerificationVerify Email="@Email"
+                                     User="@User"
+                                     ReturnUrl="@ReturnUrl"
+                                     FailureUrl="@FailureUrl" />
+        </Stack>
+    </form>
 }

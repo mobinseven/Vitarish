@@ -1,6 +1,25 @@
 @inherits CommonBase
+@inject NavigationManager Nav
 
-<Stack>
-    <StackField Label="@Localizer["AccessDenied"]" />
-    <StackButton Label="@Localizer["Home"]" Href="/" />
-</Stack>
+<AuthorizeView>
+    <Authorized>
+        <Stack>
+            <StackField Label="@Localizer["AccessDenied"]" />
+            <StackButton Label="@Localizer["Home"]" Href="/" />
+        </Stack>
+    </Authorized>
+    <NotAuthorized>
+        <form method="GET" action="/Account/Login">
+            <input type="hidden" name="Input.ReturnUrl" value="@RequestedPath" />
+            <Stack>
+                <StackField Label="@Localizer["LoginRequired"]" />
+                <StackButton Label="@Localizer["Continue"]" ButtonType="ButtonType.Submit" />
+            </Stack>
+        </form>
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private string RequestedPath =>
+        new Uri(Nav.Uri).PathAndQuery;
+}

@@ -1,17 +1,34 @@
-@if (!string.IsNullOrEmpty(error))
+@if(User is null)
 {
-    <MudAlert Severity="Severity.Error">@error</MudAlert>
-    <MudButton OnClick="() => NavigationManager.Refresh(true)" FullWidth Color="Color.Info">@Localizer["TryAgain"]</MudButton>
+    return;
 }
-else if (Email is null)
+
+@if(!string.IsNullOrEmpty(User.Email))
 {
-    <EmailVerificationSend OnValidSubmit="@ValidSendCodeSubmit" />
+    <Stack>
+        <StackField Label="@User.Email" HelperText="@Localizer["CurrentItem", Localizer["Email"]]" />
+    </Stack>
 }
-else if (User is not null && Email is not null)
-{
-    <EmailVerificationVerify Email="@Email"
-                              User="@User"
-                              ReturnUrl="@ReturnUrl"
-                              FailureUrl="@FailureUrl"
-                              VerificationEndpoint="/Account/Manage/Email/Submit" />
-}
+
+<Stack>
+    <StackField Label="@Localizer["EditItem", Localizer["Email"]]" />
+    @if(!string.IsNullOrEmpty(error))
+    {
+        <MudAlert Severity="Severity.Error">@error</MudAlert>
+        <MudButton OnClick="() => NavigationManager.Refresh(true)" FullWidth Color="Color.Info">@Localizer["TryAgain"]</MudButton>
+    }
+    else if(Email is null)
+    {
+        <EmailVerificationSend OnValidSubmit="@ValidSendCodeSubmit" />
+    }
+    else if(User is not null && Email is not null)
+    {
+        <form method="post" action="/Account/Manage/Email/Submit">
+            <EmailVerificationVerify Email="@Email"
+                                     User="@User"
+                                     ReturnUrl="@ReturnUrl"
+                                     FailureUrl="@FailureUrl" />
+        </form>
+    }
+
+</Stack>

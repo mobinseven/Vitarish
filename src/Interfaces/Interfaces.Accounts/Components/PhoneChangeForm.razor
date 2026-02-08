@@ -1,16 +1,34 @@
-﻿@if (!string.IsNullOrEmpty(error))
+@if(User is null)
 {
-    <MudAlert Severity="Severity.Error">@error</MudAlert>
+    return;
 }
-@if (PhoneNumber is null)
+
+@if(!string.IsNullOrEmpty(User.PhoneNumber))
 {
-    <PhoneVerificationSend OnValidSubmit="@ValidSendCodeSubmit" />
+    <Stack>
+        <StackField Label="@User.PhoneNumber" HelperText="@Localizer["CurrentItem", Localizer["Phone"]]" />
+    </Stack>
 }
-else if (User is not null && PhoneNumber is not null)
-{
-    <PhoneVerificationVerify PhoneNumber="@PhoneNumber"
-                             User="@User"
-                             ReturnUrl="@ReturnUrl"
-                             FailureUrl="@FailureUrl"
-                             Action="/Account/Manage/Phone/Submit" />
-}
+
+<Stack>
+    <StackField Label="@Localizer["EditItem", Localizer["Phone"]]" />
+    @if(!string.IsNullOrEmpty(error))
+    {
+        <MudAlert Severity="Severity.Error">@error</MudAlert>
+        <MudButton OnClick="() => NavigationManager.Refresh(true)" FullWidth Color="Color.Info">@Localizer["TryAgain"]</MudButton>
+    }
+    @if(PhoneNumber is null)
+    {
+        <PhoneVerificationSend OnValidSubmit="@ValidSendCodeSubmit" />
+    }
+    else if(User is not null && PhoneNumber is not null)
+    {
+        <form method="post" action="/Account/Manage/Phone/Submit">
+            <PhoneVerificationVerify PhoneNumber="@PhoneNumber"
+                                     User="@User"
+                                     ReturnUrl="@ReturnUrl"
+                                     FailureUrl="@FailureUrl"
+                                     Action="/Account/Manage/Phone/Submit" />
+        </form>
+    }
+</Stack>

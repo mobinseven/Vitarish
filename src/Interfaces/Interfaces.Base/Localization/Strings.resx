@@ -1664,4 +1664,7 @@ of project "{2}"</value>
   <data name="DeleteItemConfirm" xml:space="preserve">
     <value>Are you sure about deleting the {0}?</value>
   </data>
+  <data name="CurrentItem" xml:space="preserve">
+    <value>Current {0}</value>
+  </data>
 </root>
