@@ -56,6 +56,12 @@ public sealed class ReturnUrlManager
             return;
         }
 
+        // Validate that the URL is local to prevent open redirect vulnerabilities
+        if (!IsLocalUrl(returnUrl))
+        {
+            throw new ArgumentException("Only local URLs are allowed for ReturnUrl.", nameof(returnUrl));
+        }
+
         HttpContext.Response.Cookies.Append(
             ReturnUrlCookieName,
             returnUrl,
@@ -71,6 +77,12 @@ public sealed class ReturnUrlManager
         {
             ClearFailureUrl();
             return;
+        }
+
+        // Validate that the URL is local to prevent open redirect vulnerabilities
+        if (!IsLocalUrl(failureUrl))
+        {
+            throw new ArgumentException("Only local URLs are allowed for FailureUrl.", nameof(failureUrl));
         }
 
         HttpContext.Response.Cookies.Append(
@@ -126,11 +138,42 @@ public sealed class ReturnUrlManager
         return value;
     }
 
-    private static CookieOptions CreateCookieOptions() => new()
+    /// <summary>
+    /// Validates that a URL is local (relative or same-origin) to prevent open redirect vulnerabilities.
+    /// </summary>
+    private bool IsLocalUrl(string url)
+    {
+        if (string.IsNullOrEmpty(url))
+        {
+            return false;
+        }
+
+        // Must be relative (starts with /) or starts with ~/
+        if (url[0] == '/')
+        {
+            // Reject protocol-relative URLs (//)
+            if (url.Length > 1 && url[1] == '/')
+            {
+                return false;
+            }
+            return true;
+        }
+
+        if (url.Length > 1 && url[0] == '~' && url[1] == '/')
+        {
+            return true;
+        }
+
+        // Reject absolute URLs
+        return false;
+    }
+
+    private CookieOptions CreateCookieOptions() => new()
     {
         SameSite = SameSiteMode.Strict,
         HttpOnly = true,
         IsEssential = true,
+        Secure = HttpContext.Request.IsHttps, // Only send over HTTPS in production
         // Session cookie - expires when browser closes
         Path = "/",
     };
