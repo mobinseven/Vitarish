@@ -3,8 +3,6 @@ namespace Vitarish.Interfaces.Accounts.Components;
 public partial class PhoneVerificationVerify
 {
     [Parameter] public string Action { get; set; } = "/Account/Login/Phone/Submit";
-    [Parameter] public string? ReturnUrl { get; set; }
-    [Parameter] public string? FailureUrl { get; set; }
     [Parameter] public User User { get; set; } = default!;
     [Parameter] public string PhoneNumber { get; set; } = string.Empty;
 

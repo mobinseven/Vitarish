@@ -1,5 +1,6 @@
 @inherits CommonBase
 @inject NavigationManager Nav
+@inject ReturnUrlManager ReturnUrlManager
 
 <AuthorizeView>
     <Authorized>
@@ -9,17 +10,18 @@
         </Stack>
     </Authorized>
     <NotAuthorized>
-        <form method="GET" action="/Account/Login">
-            <input type="hidden" name="Input.ReturnUrl" value="@RequestedPath" />
-            <Stack>
-                <StackField Label="@Localizer["LoginRequired"]" />
-                <StackButton Label="@Localizer["Continue"]" ButtonType="ButtonType.Submit" />
-            </Stack>
-        </form>
+        <Stack>
+            <StackField Label="@Localizer["LoginRequired"]" />
+            <StackButton Label="@Localizer["Continue"]" Href="/Account/Login" OnClick="@StoreReturnUrl" />
+        </Stack>
     </NotAuthorized>
 </AuthorizeView>
 
 @code {
-    private string RequestedPath =>
-        new Uri(Nav.Uri).PathAndQuery;
+    private string RequestedPath => new Uri(Nav.Uri).PathAndQuery;
+    
+    private void StoreReturnUrl()
+    {
+        ReturnUrlManager.SetReturnUrl(RequestedPath);
+    }
 }

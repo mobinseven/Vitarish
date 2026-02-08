@@ -9,9 +9,7 @@ else if(User is not null && PhoneNumber is not null)
     <form method="post" action="/Account/Login/Phone/Submit">
         <Stack>
             <PhoneVerificationVerify PhoneNumber="@PhoneNumber"
-                                     User="@User"
-                                     ReturnUrl="@ReturnUrl"
-                                     FailureUrl="@FailureUrl" />
+                                     User="@User" />
         </Stack>
     </form>
 }

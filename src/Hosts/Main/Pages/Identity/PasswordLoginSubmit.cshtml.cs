@@ -1,7 +1,6 @@
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
 using Vitarish.Interfaces.Accounts.Models;
 
 namespace Vitarish.Main.Pages.Identity;
@@ -10,26 +9,22 @@ namespace Vitarish.Main.Pages.Identity;
 public sealed class PasswordLoginSubmitModel(
     IUsersService usersService,
     SignInManager<User> signInManager,
+    ReturnUrlManager returnUrlManager,
     IStringLocalizer localizer,
     ILogger<PasswordLoginSubmitModel> logger) : PageModel
 {
     private readonly IUsersService _usersService = usersService;
     private readonly SignInManager<User> _signInManager = signInManager;
+    private readonly ReturnUrlManager _returnUrlManager = returnUrlManager;
     private readonly IStringLocalizer _localizer = localizer;
     private readonly ILogger<PasswordLoginSubmitModel> _logger = logger;
 
     [BindProperty]
     public PasswordLoginModel Input { get; set; } = new();
 
-    [BindProperty]
-    public string? ReturnUrl { get; set; }
-
-    [BindProperty]
-    public string? FailureUrl { get; set; }
-
     public async Task<IActionResult> OnPostAsync()
     {
-        string failureDestination = ResolveFailureUrl();
+        string failureDestination = "/Account/Login/Password";
         if (!ModelState.IsValid)
         {
             LogWarning(null, Input.Username, "InvalidRequest");
@@ -46,19 +41,8 @@ public sealed class PasswordLoginSubmitModel(
         Microsoft.AspNetCore.Identity.SignInResult result = await _signInManager.PasswordSignInAsync(user, Input.Password, true, lockoutOnFailure: false);
         if (result.Succeeded)
         {
-            string? normalizedReturnUrl = NormalizeReturnUrl();
-            if (string.IsNullOrEmpty(normalizedReturnUrl))
-            {
-                return Redirect("/Account/SuccessfulLogin");
-            }
-
-            string redirectUri = QueryHelpers.AddQueryString(
-                "/Account/SuccessfulLogin",
-                new Dictionary<string, string?>
-                {
-                    [nameof(ReturnUrl)] = normalizedReturnUrl,
-                });
-            return Redirect(redirectUri);
+            // ReturnUrl is already in the cookie, just redirect to SuccessfulLogin
+            return Redirect("/Account/SuccessfulLogin");
         }
 
         if (result.IsLockedOut)
@@ -89,10 +73,6 @@ public sealed class PasswordLoginSubmitModel(
     }
 
     private string BuildInvalidAttemptMessage() => $"{_localizer["Error"]}: {_localizer["InvalidLoginAttempt"]}";
-
-    private string ResolveFailureUrl() => string.IsNullOrWhiteSpace(FailureUrl) ? "/Account/Login/Password" : WebUtility.UrlDecode(FailureUrl);
-
-    private string? NormalizeReturnUrl() => string.IsNullOrWhiteSpace(ReturnUrl) ? null : WebUtility.UrlDecode(ReturnUrl);
 
     private void LogWarning(User? user, string? username, string reason) =>
         _logger.LogWarning(

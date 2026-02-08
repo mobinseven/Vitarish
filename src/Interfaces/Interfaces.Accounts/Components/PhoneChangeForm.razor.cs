@@ -2,8 +2,6 @@ namespace Vitarish.Interfaces.Accounts.Components;
 
 public partial class PhoneChangeForm : IdentityCommonBase
 {
-    [Parameter] public string? ReturnUrl { get; set; }
-    [Parameter] public string? FailureUrl { get; set; }
     private string? PhoneNumber = null;
     private string? error = null;
     private async Task ValidSendCodeSubmit(SendSmsCodeModel model)

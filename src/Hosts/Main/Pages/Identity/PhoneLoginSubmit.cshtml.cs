@@ -1,6 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.AspNetCore.WebUtilities;
 using Vitarish.Interfaces.Accounts.Models;
 using Vitarish.Interfaces.Base.Extensions;
 
@@ -12,6 +11,7 @@ public sealed class PhoneLoginSubmitModel(
     ISmsAuthenticationService smsAuthenticationService,
     SignInManager<User> signInManager,
     IUserStore<User> userStore,
+    ReturnUrlManager returnUrlManager,
     IStringLocalizer localizer,
     ILogger<PhoneLoginSubmitModel> logger) : PageModel
 {
@@ -19,6 +19,7 @@ public sealed class PhoneLoginSubmitModel(
     private readonly ISmsAuthenticationService _smsAuthenticationService = smsAuthenticationService;
     private readonly SignInManager<User> _signInManager = signInManager;
     private readonly IUserPhoneNumberStore<User> _phoneStore = (IUserPhoneNumberStore<User>)userStore;
+    private readonly ReturnUrlManager _returnUrlManager = returnUrlManager;
     private readonly IStringLocalizer _localizer = localizer;
     private readonly ILogger<PhoneLoginSubmitModel> _logger = logger;
 
@@ -27,7 +28,7 @@ public sealed class PhoneLoginSubmitModel(
 
     public async Task<IActionResult> OnPostAsync()
     {
-        string failureDestination = ResolveFailureUrl();
+        string failureDestination = "/Account/Login/Phone";
         if (!IsInputValid())
         {
             LogWarning(null, "InvalidRequest");
@@ -61,20 +62,8 @@ public sealed class PhoneLoginSubmitModel(
 
         await _signInManager.SignInAsync(user, true, "mfa");
 
-        string? normalizedReturnUrl = NormalizeReturnUrl();
-        if (string.IsNullOrEmpty(normalizedReturnUrl))
-        {
-            return Redirect("/Account/SuccessfulLogin");
-        }
-
-        string redirectUri = QueryHelpers.AddQueryString(
-            "/Account/SuccessfulLogin",
-            new Dictionary<string, string?>
-            {
-                [nameof(Input.ReturnUrl)] = normalizedReturnUrl,
-            });
-
-        return Redirect(redirectUri);
+        // ReturnUrl is already in the cookie, just redirect to SuccessfulLogin
+        return Redirect("/Account/SuccessfulLogin");
     }
 
     private void LogWarning(User? user, string reason) =>
@@ -90,10 +79,6 @@ public sealed class PhoneLoginSubmitModel(
         !string.IsNullOrWhiteSpace(Input.Code);
 
     private string BuildInvalidAttemptMessage() => $"{_localizer["Error"]}: {_localizer["InvalidLoginAttempt"]}";
-
-    private string ResolveFailureUrl() => string.IsNullOrWhiteSpace(Input.FailureUrl) ? "/Account/Login/Phone" : WebUtility.UrlDecode(Input.FailureUrl);
-
-    private string? NormalizeReturnUrl() => string.IsNullOrWhiteSpace(Input.ReturnUrl) ? null : WebUtility.UrlDecode(Input.ReturnUrl);
 
     private IActionResult RedirectWithStatus(string destination, string message)
     {

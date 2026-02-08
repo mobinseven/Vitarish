@@ -2,8 +2,6 @@ namespace Vitarish.Interfaces.Accounts.Components;
 
 public partial class PasswordChangeForm : IdentityCommonBase
 {
-    [Parameter] public string? ReturnUrl { get; set; }
-    [Parameter] public string? FailureUrl { get; set; }
     [Parameter] public string? UserId { get; set; } = default!;
 
     private bool hasPass;

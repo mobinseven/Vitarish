@@ -2,8 +2,6 @@ namespace Vitarish.Interfaces.Accounts.Components;
 
 public partial class PhoneLoginForm : IdentityCommonBase
 {
-    [Parameter] public string? ReturnUrl { get; set; }
-    [Parameter] public string? FailureUrl { get; set; }
     private User? User = null;
     private string? PhoneNumber = null;
 

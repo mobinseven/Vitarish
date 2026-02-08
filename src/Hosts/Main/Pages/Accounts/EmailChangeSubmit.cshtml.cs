@@ -12,6 +12,7 @@ public sealed class EmailChangeSubmitModel(
     IEmailAuthenticationService emailAuthenticationService,
     SignInManager<User> signInManager,
     IUserStore<User> userStore,
+    ReturnUrlManager returnUrlManager,
     IStringLocalizer localizer,
     ILogger<EmailChangeSubmitModel> logger) : PageModel
 {
@@ -21,6 +22,7 @@ public sealed class EmailChangeSubmitModel(
     private readonly IUserEmailStore<User> _emailStore =
         userStore as IUserEmailStore<User> ??
         throw new NotSupportedException("The user store must implement IUserEmailStore<User>.");
+    private readonly ReturnUrlManager _returnUrlManager = returnUrlManager;
     private readonly IStringLocalizer _localizer = localizer;
     private readonly ILogger<EmailChangeSubmitModel> _logger = logger;
 
@@ -29,7 +31,7 @@ public sealed class EmailChangeSubmitModel(
 
     public async Task<IActionResult> OnPostAsync()
     {
-        string failureDestination = ResolveFailureUrl();
+        string failureDestination = "/Account/Manage/Email";
         if (!ModelState.IsValid || !IsInputValid())
         {
             LogWarning(null, "InvalidRequest");
@@ -72,7 +74,7 @@ public sealed class EmailChangeSubmitModel(
         await ConfirmEmailAsync(currentUser);
         await _signInManager.SignInAsync(currentUser, true, "mfa");
 
-        string destination = NormalizeReturnUrl() ?? "/Account/Manage";
+        string destination = _returnUrlManager.ConsumeReturnUrl() ?? "/Account/Manage";
         return RedirectWithStatus(destination, BuildSuccessMessage());
     }
 
@@ -91,10 +93,6 @@ public sealed class EmailChangeSubmitModel(
     private string BuildFailureMessage() => $"{_localizer["Error"]}: {_localizer["EmailChangeFailed"]}";
 
     private string BuildSuccessMessage() => _localizer["EmailChangeSuccess"];
-
-    private string ResolveFailureUrl() => string.IsNullOrWhiteSpace(Input.FailureUrl) ? "/Account/Manage/Email" : WebUtility.UrlDecode(Input.FailureUrl);
-
-    private string? NormalizeReturnUrl() => string.IsNullOrWhiteSpace(Input.ReturnUrl) ? null : WebUtility.UrlDecode(Input.ReturnUrl);
 
     private IActionResult RedirectWithStatus(string destination, string message)
     {

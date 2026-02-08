@@ -5,8 +5,6 @@ namespace Vitarish.Interfaces.Accounts.Components;
 
 public partial class WebAuthnLoginForm : IdentityCommonBase
 {
-    [Parameter] public string? ReturnUrl { get; set; }
-
     [Inject] public IWebAuthnInterop WebAuthnService { get; set; } = default!;
 
     private string Username { get; set; } = string.Empty;
@@ -82,8 +80,8 @@ public partial class WebAuthnLoginForm : IdentityCommonBase
             if (completeResponse.IsSuccessStatusCode)
             {
                 // Authentication successful - redirect to return URL
-                string redirectUrl = !string.IsNullOrEmpty(ReturnUrl) ? ReturnUrl : "/";
-                NavigationManager.NavigateTo(redirectUrl, forceLoad: true);
+                string? redirectUrl = ReturnUrlManager.ConsumeReturnUrl();
+                NavigationManager.NavigateTo(!string.IsNullOrEmpty(redirectUrl) ? redirectUrl : "/", forceLoad: true);
             }
             else
             {
