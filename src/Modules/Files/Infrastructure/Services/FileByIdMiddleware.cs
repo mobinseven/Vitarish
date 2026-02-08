@@ -98,6 +98,7 @@ public sealed class FileByIdMiddleware(
             Uri proxyUri = await CreatePresignedUriAsync(resolvedKey, currentMinioOptions.BucketName);
             using HttpRequestMessage proxyRequest = new(outboundMethod, proxyUri);
             CopyRequestHeaders(context.Request, proxyRequest);
+            // Reuse the ObjectStorageMiddleware-configured HttpClient (same MinIO timeout settings)
             HttpClient proxyClient = httpClientFactory.CreateClient(nameof(ObjectStorageMiddleware));
             using HttpResponseMessage proxyResponse = await proxyClient.SendAsync(
                     proxyRequest,

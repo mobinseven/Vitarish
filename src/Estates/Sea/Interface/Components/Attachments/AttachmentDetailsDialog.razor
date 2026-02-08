@@ -4,11 +4,25 @@
         <MudStack Spacing="2">
             @if(Attachment.ContentType.StartsWith("image"))
             {
-                <Vitarish.Files.Interface.Components.FileImage FileId="@FileId" Type="@Attachment.ContentType" />
+                @if(FileId != Guid.Empty)
+                {
+                    <Vitarish.Files.Interface.Components.FileImage FileId="@FileId" Type="@Attachment.ContentType" />
+                }
+                else
+                {
+                    <ImageElement Src="@Attachment.Content" Type="@Attachment.ContentType" />
+                }
             }
             @if(Attachment.ContentType.StartsWith("video"))
             {
-                <Vitarish.Files.Interface.Components.FileVideo FileId="@FileId" Type="@Attachment.ContentType" />
+                @if(FileId != Guid.Empty)
+                {
+                    <Vitarish.Files.Interface.Components.FileVideo FileId="@FileId" Type="@Attachment.ContentType" />
+                }
+                else
+                {
+                    <VideoElement Src="@Attachment.Content" Type="@Attachment.ContentType" />
+                }
             }
             @if(Attachment.ContentType.StartsWith("text"))
             {
