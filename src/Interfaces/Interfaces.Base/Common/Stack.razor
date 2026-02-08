@@ -1,7 +1,9 @@
-<MudStack Spacing="0" Class="my-3 mx-1 stack fade">
+<MudStack Spacing="0" Class="@cssClass">
     @ChildContent
 </MudStack>
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public string? Class { get; set; }
+    private string cssClass => $"mx-1 stack fade {(Class is null ? "my-3" : Class)}";
 }

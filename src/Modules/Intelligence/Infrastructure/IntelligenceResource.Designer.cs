@@ -61,15 +61,6 @@ namespace Vitarish.Intelligence.Infrastructure {
         }
         
         /// <summary>
-        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
-        /// </summary>
-        public static System.IO.UnmanagedMemoryStream audio_hello_world_mp3 {
-            get {
-                return ResourceManager.GetStream("audio_hello_world_mp3", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized resource of type System.Byte[].
         /// </summary>
         public static byte[] audio_hello_world_webm {

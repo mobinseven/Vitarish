@@ -1,22 +1,14 @@
 @page "/Account/Login/Email"
 
-@inherits IdentityBase
+@inherits LoginBase
 @attribute [RequireAntiforgeryToken]
 
-<AuthorizeView>
-    <NotAuthorized>
-        <HttpStatus CookieName="@IdentityRedirectManager.StatusCookieName" />
-        <AntiforgeryToken />
-        <EmailLoginForm @rendermode=@InteractiveServer />
-        <Stack>
-            <StackButton Label="@Localizer["LoginVia", Localizer["Phone"]]" EndIcon="fa-regular fa-phone" Href="Account/Login/Phone" />
-            <StackButton Label="@Localizer["LoginVia", Localizer["Password"]]" EndIcon="fa-regular fa-asterisk" Href="Account/Login/Password" />
-            <StackButton Label="@Localizer["LoginVia", Localizer["Passkey"]]" EndIcon="fa-regular fa-key" Href="Account/Login/Passkey" />
-        </Stack>
-    </NotAuthorized>
-    <Authorized>
-        <Stack>
-            <StackButton Label="@Localizer["Continue"]" Href="@ReturnUrlManager.GetReturnUrl()" />
-        </Stack>
-    </Authorized>
-</AuthorizeView>
+
+<HttpStatus CookieName="@IdentityRedirectManager.StatusCookieName" />
+<AntiforgeryToken />
+<EmailLoginForm @rendermode=@InteractiveServer />
+<Stack>
+    <StackButton Label="@Localizer["LoginVia", Localizer["Phone"]]" EndIcon="fa-regular fa-phone" Href="Account/Login/Phone" />
+    <StackButton Label="@Localizer["LoginVia", Localizer["Password"]]" EndIcon="fa-regular fa-asterisk" Href="Account/Login/Password" />
+    <StackButton Label="@Localizer["LoginVia", Localizer["Passkey"]]" EndIcon="fa-regular fa-key" Href="Account/Login/Passkey" />
+</Stack>

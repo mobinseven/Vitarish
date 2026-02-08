@@ -153,7 +153,7 @@ class BlazorConnectionManager {
   async startBlazor() {
     // Optional worker: ping health endpoint in background to know when the server wakes up.
     if (this.opts.useWorkerPing && typeof Worker !== 'undefined') {
-      const src = await (await fetch('https://assets.vitarish.ir/js/connection-ping-worker.js')).text();
+      const src = await (await fetch('/js/connection-ping-worker.js')).text();
       const blob = new Blob([src], { type: 'text/javascript' });
       this._worker = new Worker(URL.createObjectURL(blob), { type: 'module' });
       this._worker.onmessage = (e) => {

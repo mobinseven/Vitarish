@@ -3,13 +3,15 @@ namespace Vitarish.Interfaces.Accounts.Components;
 public class IdentityBase : IdentityCommonBase
 {
     [CascadingParameter] protected HttpContext? HttpContext { get; set; }
-    
+
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
+
         RedirectManager.HttpContext = HttpContext;
-        
+
         string? returnUrl = ReturnUrlManager.GetReturnUrl();
+
         if (returnUrl is null)
         {
             return;

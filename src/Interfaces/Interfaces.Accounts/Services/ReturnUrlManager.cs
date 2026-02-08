@@ -1,49 +1,21 @@
-using Microsoft.AspNetCore.Http;
-using System.Diagnostics.CodeAnalysis;
-
 namespace Vitarish.Interfaces.Accounts.Services;
 
 /// <summary>
 /// Manages ReturnUrl and FailureUrl using session cookies for reliable persistence across redirects.
 /// </summary>
-public sealed class ReturnUrlManager
+public sealed class ReturnUrlManager(IHttpContextAccessor httpContextAccessor)
 {
     private const string ReturnUrlCookieName = "Identity.ReturnUrl";
-    private const string FailureUrlCookieName = "Identity.FailureUrl";
-    
-    private readonly IHttpContextAccessor _httpContextAccessor;
 
-    public ReturnUrlManager(IHttpContextAccessor httpContextAccessor)
-    {
-        _httpContextAccessor = httpContextAccessor;
-    }
-
-    private HttpContext HttpContext => _httpContextAccessor.HttpContext 
+    private HttpContext HttpContext => httpContextAccessor.HttpContext
         ?? throw new InvalidOperationException("HttpContext is not available.");
 
     /// <summary>
     /// Gets the stored ReturnUrl from the session cookie, or null if not set.
     /// </summary>
-    public string? GetReturnUrl()
-    {
-        if (HttpContext.Request.Cookies.TryGetValue(ReturnUrlCookieName, out string? value))
-        {
-            return string.IsNullOrWhiteSpace(value) ? null : value;
-        }
-        return null;
-    }
-
-    /// <summary>
-    /// Gets the stored FailureUrl from the session cookie, or null if not set.
-    /// </summary>
-    public string? GetFailureUrl()
-    {
-        if (HttpContext.Request.Cookies.TryGetValue(FailureUrlCookieName, out string? value))
-        {
-            return string.IsNullOrWhiteSpace(value) ? null : value;
-        }
-        return null;
-    }
+    public string? GetReturnUrl() => HttpContext.Request.Cookies.TryGetValue(ReturnUrlCookieName, out string? value)
+            ? string.IsNullOrWhiteSpace(value) ? null : value
+            : null;
 
     /// <summary>
     /// Sets the ReturnUrl in a session cookie.
@@ -62,50 +34,22 @@ public sealed class ReturnUrlManager
             throw new ArgumentException("Only local URLs are allowed for ReturnUrl.", nameof(returnUrl));
         }
 
-        HttpContext.Response.Cookies.Append(
-            ReturnUrlCookieName,
-            returnUrl,
-            CreateCookieOptions());
-    }
-
-    /// <summary>
-    /// Sets the FailureUrl in a session cookie.
-    /// </summary>
-    public void SetFailureUrl(string? failureUrl)
-    {
-        if (string.IsNullOrWhiteSpace(failureUrl))
+        if (HttpContext.Response.Headers.IsReadOnly)
         {
-            ClearFailureUrl();
             return;
         }
 
-        // Validate that the URL is local to prevent open redirect vulnerabilities
-        if (!IsLocalUrl(failureUrl))
-        {
-            throw new ArgumentException("Only local URLs are allowed for FailureUrl.", nameof(failureUrl));
-        }
-
         HttpContext.Response.Cookies.Append(
-            FailureUrlCookieName,
-            failureUrl,
-            CreateCookieOptions());
+            ReturnUrlCookieName,
+            returnUrl,
+            CreateCookieOptions()); // TODO: This line is never reached.
+
     }
 
     /// <summary>
     /// Clears the ReturnUrl cookie.
     /// </summary>
-    public void ClearReturnUrl()
-    {
-        HttpContext.Response.Cookies.Delete(ReturnUrlCookieName);
-    }
-
-    /// <summary>
-    /// Clears the FailureUrl cookie.
-    /// </summary>
-    public void ClearFailureUrl()
-    {
-        HttpContext.Response.Cookies.Delete(FailureUrlCookieName);
-    }
+    public void ClearReturnUrl() => HttpContext.Response.Cookies.Delete(ReturnUrlCookieName);
 
     /// <summary>
     /// Clears both ReturnUrl and FailureUrl cookies.
@@ -113,7 +57,6 @@ public sealed class ReturnUrlManager
     public void ClearAll()
     {
         ClearReturnUrl();
-        ClearFailureUrl();
     }
 
     /// <summary>
@@ -128,20 +71,9 @@ public sealed class ReturnUrlManager
     }
 
     /// <summary>
-    /// Gets the FailureUrl from cookie, clears it, and returns the value.
-    /// Used when consuming the FailureUrl for error redirect.
-    /// </summary>
-    public string? ConsumeFailureUrl()
-    {
-        string? value = GetFailureUrl();
-        ClearFailureUrl();
-        return value;
-    }
-
-    /// <summary>
     /// Validates that a URL is local (relative or same-origin) to prevent open redirect vulnerabilities.
     /// </summary>
-    private bool IsLocalUrl(string url)
+    private static bool IsLocalUrl(string url)
     {
         if (string.IsNullOrEmpty(url))
         {
@@ -152,11 +84,7 @@ public sealed class ReturnUrlManager
         if (url[0] == '/')
         {
             // Reject protocol-relative URLs (//)
-            if (url.Length > 1 && url[1] == '/')
-            {
-                return false;
-            }
-            return true;
+            return url.Length <= 1 || url[1] != '/';
         }
 
         if (url.Length > 1 && url[0] == '~' && url[1] == '/')

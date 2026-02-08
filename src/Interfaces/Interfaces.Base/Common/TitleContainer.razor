@@ -1,9 +1,7 @@
 @inherits CommonBase
 @if(NavService.Breadcrumbs.Length > 1)
 {
-    <MudPaper Class="sticky-top pa-3 mb-3 glass mx-1" Elevation="0">
-        <MudText Typo="Typo.h4" GutterBottom="true" Align="Align.Center">
-            @Localizer[NavService.Breadcrumbs.Last().Text]
-        </MudText>
-    </MudPaper>
+    <Stack Class="my-0">
+        <StackField Typo="Typo.h4" Label="@Localizer[NavService.Breadcrumbs.Last().Text]" Align="Align.Center" />
+    </Stack>
 }
