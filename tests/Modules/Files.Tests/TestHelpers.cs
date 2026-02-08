@@ -125,8 +125,13 @@ public sealed class InMemoryFileInformationService : IFileInformationService
     public Task<EntityResult> RemoveByDescriptorAsync(FileInformationDescriptorDto descriptor, CancellationToken cancellationToken) =>
         throw new NotSupportedException();
 
-    public Task<EntityResult<FileInformationDto>> GetAsync(Guid id, CancellationToken cancellationToken) =>
-        throw new NotSupportedException();
+    public Task<EntityResult<FileInformationDto>> GetAsync(Guid id, CancellationToken cancellationToken)
+    {
+        FileInformationDto? match = store.FirstOrDefault(i => i.Id == id);
+        return match is not null
+            ? Task.FromResult(EntityResult<FileInformationDto>.Success(match))
+            : Task.FromResult(EntityResult<FileInformationDto>.Failure(EntityError.NotFound("Not found")));
+    }
 
     public Task<EntityResult<int>> CountAsync(FileInformationDescriptorDto descriptor, CancellationToken cancellationToken) =>
         throw new NotSupportedException();

@@ -12,7 +12,7 @@ public partial class AttachmentCreator : AttachmentsBase
     private async Task OnUploaded(FileInformationDto fileInfo)
     {
         AttachmentDto attachment = new(
-            fileInfo.Url ?? string.Empty,
+            fileInfo.Id.ToString(),
             fileInfo.ContentType ?? string.Empty,
             fileInfo.Thumbnail,
             fileInfo.Metadata.Size);
