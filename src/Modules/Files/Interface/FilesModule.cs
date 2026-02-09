@@ -48,17 +48,12 @@ public class FilesModule : Module, IFilesModule
         _ = services.AddScoped<IFileInformationService, FileInformationService>();
         _ = services.AddControllers();
 
+        // Register SessionContextInterceptor for database session management
+        _ = services.AddScoped<SessionContextInterceptor>();
+
         if (configureDbContext != null)
         {
-            _ = services.AddDbContext<FilesDbContext>((sp, options) =>
-            {
-                configureDbContext(options);
-            }, ServiceLifetime.Transient, ServiceLifetime.Transient);
-
-            _ = services.AddDbContextPool<FilesDbContext>((_, options) =>
-            {
-                configureDbContext(options);
-            });
+            _ = services.AddDbContext<FilesDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Transient);
         }
 
         services.AddVitarishFilesDomainEntityHandlers();
