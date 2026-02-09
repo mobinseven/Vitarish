@@ -19,7 +19,7 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
     {
         get
         {
-            string tenantId = _requestContext.TenantId ?? (_httpContextAccessor.HttpContext?.GetTenantId()) ?? throw new InvalidOperationException("Tenant ID can not be recognized.");
+            string tenantId = _requestContext.TenantId ?? (_httpContextAccessor.HttpContext?.GetTenantId()) ?? throw new InvalidOperationException("Tenant ID cannot be recognized.");
             return new TenantInfo
             {
                 Id = tenantId,
@@ -95,8 +95,7 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
         // Note: Files module allows RootTenant to access all files across tenants
         _ = entityBuilder.HasQueryFilter(e =>
             EF.Property<DateTimeOffset?>(e, "DeletedAt") == null &&
-            (TenantInfo == null || 
-             TenantInfo.Id == TenantDefaults.RootTenant || 
+            (TenantInfo!.Id == TenantDefaults.RootTenant || 
              e.TenantId == TenantInfo.Id));
 
         // Do NOT call IsMultiTenant() as we have custom tenant filtering logic above
