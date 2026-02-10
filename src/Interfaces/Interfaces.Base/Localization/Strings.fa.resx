@@ -1566,10 +1566,13 @@
   <data name="DeleteItemConfirm" xml:space="preserve">
     <value>آیا از حذف {0} مطمئن هستید؟</value>
   </data>
+  <data name="CurrentItem" xml:space="preserve">
+    <value>{0} کنونی</value>
+  </data>
   <data name="Gender_Unspecified" xml:space="preserve">
     <value>نامشخص</value>
   </data>
-  <data name="CurrentItem" xml:space="preserve">
-    <value>{0} کنونی</value>
+  <data name="MassEditMode" xml:space="preserve">
+    <value>ویرایش گروهی</value>
   </data>
 </root>

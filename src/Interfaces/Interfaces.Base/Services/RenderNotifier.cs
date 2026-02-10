@@ -6,7 +6,7 @@ namespace Vitarish.Interfaces.Base.Services;
 [RegisterScoped]
 internal class RenderNotifier : IRenderNotifier, IDisposable
 {
-    public event EventHandler<RenderNotification>? RenderRequired;
+    public event EventHandler? RenderRequired;
 
     private readonly IGlobalRenderNotifier globalRenderNotifier;
     public RenderNotifier(IGlobalRenderNotifier globalRenderNotifier)
@@ -15,17 +15,6 @@ internal class RenderNotifier : IRenderNotifier, IDisposable
         globalRenderNotifier.RenderRequired += Notify;
     }
     public void Dispose() => globalRenderNotifier.RenderRequired -= Notify;
-    public void Notify(object? sender, EventArgs message) => RenderRequired?.Invoke(sender, new()
-    {
-        Content = message,
-    });
-    public async Task Notify(object? content = null)
-    {
-        RenderNotification renderNotification = new()
-        {
-            Content = content,
-        };
-
-        Notify(this, renderNotification);
-    }
+    public void Notify(object? sender, EventArgs message) => RenderRequired?.Invoke(sender, message);
+    public async Task Notify(EventArgs? args = null) => Notify(this, args ?? new());
 }

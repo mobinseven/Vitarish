@@ -20,7 +20,12 @@ public sealed class NavService : INavService, IDisposable
         set
         {
             field = value;
-            _ = renderNotifier.Notify();
+            if (string.IsNullOrWhiteSpace(value))
+            {
+                return;
+            }
+
+            _ = renderNotifier.Notify(new SearchArgs(value));
         }
     }
 
@@ -56,7 +61,7 @@ public sealed class NavService : INavService, IDisposable
 
     private void GenerateCurrentBreadcrumbs(bool force = false)
     {
-        if(breadcrumbs is not null && !force)
+        if (breadcrumbs is not null && !force)
         {
             return;
         }

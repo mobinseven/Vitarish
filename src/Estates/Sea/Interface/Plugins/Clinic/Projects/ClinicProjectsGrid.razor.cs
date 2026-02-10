@@ -5,6 +5,8 @@ namespace Vitarish.Sea.Interface.Plugins.Clinic.Projects;
 
 public partial class ClinicProjectsGrid
 {
+    private bool MassEditMode;
+
     private IReadOnlyList<ProjectDto>? projectsViaSurgeryData;
     private IReadOnlyList<ProjectDto>? projectsLackSurgeryData;
 

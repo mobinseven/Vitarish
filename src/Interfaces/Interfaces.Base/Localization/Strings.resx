@@ -1667,4 +1667,7 @@ of project "{2}"</value>
   <data name="CurrentItem" xml:space="preserve">
     <value>Current {0}</value>
   </data>
+  <data name="MassEditMode" xml:space="preserve">
+    <value>Mass Edit Mode</value>
+  </data>
 </root>

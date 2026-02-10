@@ -78,12 +78,11 @@
                           Label="@Localizer["EmergencyContactPhone"]" />
         </StackExpandable>
     }
-
-</Stack>
-
-<Stack>
     <StackButton Label="@Localizer["Save"]" EndIcon="fa-regular fa-save" Color="Color.Primary" OnClick="SaveAsync" Disabled="@(!isValid)" />
-    <StackButton Label="@Localizer["Cancel"]" EndIcon="fa-regular fa-xmark" OnClick="() => OnCancel.InvokeAsync()" />
+    @if(OnCancel.HasDelegate)
+    {
+        <StackButton Label="@Localizer["Cancel"]" EndIcon="fa-regular fa-xmark" OnClick="() => OnCancel.InvokeAsync()" />
+    }
 </Stack>
 
 @code {

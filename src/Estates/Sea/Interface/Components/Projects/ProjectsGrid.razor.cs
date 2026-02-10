@@ -9,7 +9,7 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
     private IProjectsGridPlugin? Plugin => ProjectsGridPlugins.SingleOrDefault(p => p.Id == MetadataService?.PluginIdentifier);
 
     protected List<ProjectDto> projects = [];
-
+    protected override Task OnSearchedAsync() => ReloadRequired();
     protected override async Task ReloadRequired()
     {
         if (Plugin is not null)

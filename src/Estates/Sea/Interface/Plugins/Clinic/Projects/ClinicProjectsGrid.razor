@@ -7,7 +7,18 @@
                      OnClick="AddProject"
                      StartIcon="fa-regular fa-folder-plus"
                      Label="@Localizer["AddItem", Localizer["Project"]]" />
+        <StackCheckbox @bind-Value="MassEditMode" Label="@Localizer["MassEditMode"]" />
     </Stack>
+
+    @if(MassEditMode)
+    {
+        @foreach(var project in projects)
+        {
+            <ClinicProjectEditForm Project="project" OnUpdate="ReloadRequired" />
+        }
+        return;
+    }
+
 }
 
 @if(projects is null)
@@ -67,3 +78,4 @@
         }
     </Stack>
 }
+

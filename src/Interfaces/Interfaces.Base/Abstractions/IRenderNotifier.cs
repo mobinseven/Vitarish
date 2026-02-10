@@ -4,6 +4,6 @@ namespace Vitarish.Interfaces.Base.Abstractions;
 
 public interface IRenderNotifier
 {
-    event EventHandler<RenderNotification> RenderRequired;
-    Task Notify(object? content = null);
+    event EventHandler RenderRequired;
+    Task Notify(EventArgs? args = null);
 }
