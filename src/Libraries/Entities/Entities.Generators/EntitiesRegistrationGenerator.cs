@@ -191,6 +191,7 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
 
     private static INamedTypeSymbol? FindTypeByName(Compilation compilation, string typeName, INamedTypeSymbol? baseType)
     {
+        // First, search in the current compilation
         foreach (SyntaxTree tree in compilation.SyntaxTrees)
         {
             SemanticModel model = compilation.GetSemanticModel(tree);
@@ -205,13 +206,68 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
                 }
             }
         }
+
+        // Search in referenced assemblies
+        foreach (IAssemblySymbol assembly in compilation.References
+            .Select(r => compilation.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol)
+            .Where(a => a is not null))
+        {
+            INamedTypeSymbol? type = FindTypeInAssembly(assembly!, typeName, baseType);
+            if (type is not null)
+            {
+                return type;
+            }
+        }
+
         return null;
     }
 
-    private sealed record MapperInfo(
-        INamedTypeSymbol ReadDto,
-        INamedTypeSymbol WriteDto,
-        INamedTypeSymbol Descriptor,
-        INamedTypeSymbol DescriptorDto
-    );
+    private static INamedTypeSymbol? FindTypeInAssembly(IAssemblySymbol assembly, string typeName, INamedTypeSymbol? baseType)
+    {
+        return FindTypeInNamespace(assembly.GlobalNamespace, typeName, baseType);
+    }
+
+    private static INamedTypeSymbol? FindTypeInNamespace(INamespaceSymbol namespaceSymbol, string typeName, INamedTypeSymbol? baseType)
+    {
+        foreach (INamedTypeSymbol type in namespaceSymbol.GetTypeMembers())
+        {
+            if (type.Name == typeName 
+                && !type.IsAbstract
+                && (baseType is null || InheritsFrom(type, baseType)))
+            {
+                return type;
+            }
+        }
+
+        foreach (INamespaceSymbol childNamespace in namespaceSymbol.GetNamespaceMembers())
+        {
+            INamedTypeSymbol? type = FindTypeInNamespace(childNamespace, typeName, baseType);
+            if (type is not null)
+            {
+                return type;
+            }
+        }
+
+        return null;
+    }
+
+    private sealed class MapperInfo
+    {
+        public INamedTypeSymbol ReadDto { get; }
+        public INamedTypeSymbol WriteDto { get; }
+        public INamedTypeSymbol Descriptor { get; }
+        public INamedTypeSymbol DescriptorDto { get; }
+
+        public MapperInfo(
+            INamedTypeSymbol readDto,
+            INamedTypeSymbol writeDto,
+            INamedTypeSymbol descriptor,
+            INamedTypeSymbol descriptorDto)
+        {
+            ReadDto = readDto;
+            WriteDto = writeDto;
+            Descriptor = descriptor;
+            DescriptorDto = descriptorDto;
+        }
+    }
 }
