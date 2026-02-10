@@ -19,7 +19,7 @@ public class SmsDotIrProvider : ISmsProvider
         options = providersOptions.Value.SmsDotIr;
         apiClient = httpClientFactory.CreateClient();
         apiClient.BaseAddress = new Uri("https://api.sms.ir/");
-        apiClient.DefaultRequestHeaders.Add("X-API-KEY", this.options.Key);
+        apiClient.DefaultRequestHeaders.Add("X-API-KEY", options.Key);
         apiClient.DefaultRequestHeaders.Add("Accept", "application/json");
     }
 
@@ -114,6 +114,31 @@ public class SmsDotIrProvider : ISmsProvider
         {
             string content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             throw new HttpRequestException($"SmsDotIr SendCode failed: {response.StatusCode} - {content}");
+        }
+    }
+
+    public async Task SendReminder(string receipient, string? project = null, string? procedure = null, string? evnt = null, string? tenant = null, CancellationToken cancellationToken = default)
+    {
+
+        SendVerifyRequest req = new()
+        {
+            Mobile = receipient ?? string.Empty,
+            TemplateId = options.ReminderTemplateId,
+            Parameters = [
+                new NameValue { Name = "PROJECT", Value = project ?? string.Empty },
+                new NameValue { Name = "PROCEDURE", Value = procedure ?? string.Empty },
+                new NameValue { Name = "EVENT", Value = evnt ?? string.Empty },
+                new NameValue { Name = "TENANT", Value = tenant ?? string.Empty },
+            ]
+        };
+
+        using HttpResponseMessage response =
+            await apiClient.PostAsJsonAsync("v1/send/verify", req, cancellationToken).ConfigureAwait(false);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            string content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+            throw new HttpRequestException($"SmsDotIr SendReminder failed: {response.StatusCode} - {content}");
         }
     }
 

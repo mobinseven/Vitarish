@@ -8,7 +8,8 @@ public record EventItemPlugin(
 public sealed record EventItemCreationContext(
     ProjectDto Project,
     ProcedureDto Procedure,
-    EventDto Event) : EventItemPlugin(Project, Procedure, Event)
+    EventDto Event,
+    EventCallback OnCreated) : EventItemPlugin(Project, Procedure, Event)
 {
     public RenderFragment? Actions { get; init; }
 }

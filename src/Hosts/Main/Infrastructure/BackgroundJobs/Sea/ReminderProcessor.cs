@@ -1,6 +1,7 @@
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Models;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
+using Vitarish.Parties.Application.Dtos;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 using Vitarish.Sea.Domain.Enums;
@@ -30,6 +31,12 @@ public class ReminderProcessor(
         {
             IRequestContext ctx = provider.GetRequiredService<IRequestContext>();
             TenantReminderContext tenantContext = new(
+                provider.GetRequiredService<IStringLocalizer>(),
+                provider.GetRequiredService<IRequestContext>(),
+                provider.GetRequiredService<IPartiesService>(),
+                provider.GetRequiredService<IProjectsService>(),
+                provider.GetRequiredService<IProceduresService>(),
+                provider.GetRequiredService<IEventsService>(),
                 provider.GetRequiredService<IRemindersService>(),
                 provider.GetRequiredService<IMessagesService>());
 
@@ -52,13 +59,7 @@ public class ReminderProcessor(
 
         foreach (ReminderDto reminder in due)
         {
-            try
-            {
-                await ProcessReminderAsync(tenantContext, reminder, now, shutdownToken);
-            }
-            catch
-            {
-            }
+            await ProcessReminderAsync(tenantContext, reminder, now, shutdownToken);
         }
     }
 
@@ -68,7 +69,30 @@ public class ReminderProcessor(
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
-        string htmlbody = $"<p>{System.Net.WebUtility.HtmlEncode(reminder.TextBody)}</p>";
+        TenantReadDto? tenant = await tenantContext.PartiesService.GetTenantAsync(Guid.Parse(tenantContext.RequestContext.TenantId!), cancellationToken);
+        if (tenant is null)
+        {
+            return;
+        }
+
+        EventDto? evnt = await tenantContext.EventsService.GetAsync(reminder.EventId, cancellationToken).GetValueOrDefaultAsync();
+        if (evnt is null)
+        {
+            return;
+        }
+
+        ProjectDto? proj = await tenantContext.ProjectsService.GetAsync(evnt.ProjectId, cancellationToken).GetValueOrDefaultAsync();
+        if (proj is null)
+        {
+            return;
+        }
+
+        ProcedureDto? proc = await tenantContext.ProceduresService.GetAsync(evnt.ProcedureId, cancellationToken).GetValueOrDefaultAsync();
+        if (proc is null)
+        {
+            return;
+        }
+
 
         bool shouldSkipQuietHours = false;
         if (reminder.Kind is ReminderKind.Sms)
@@ -84,74 +108,39 @@ public class ReminderProcessor(
 
         if (shouldSkipQuietHours)
         {
-            _logger.LogInformation(
-                "Deferring reminder '{ReminderId}' to '{Recipient}' due to quiet hours (10pm-8am).",
-                reminder.Id,
-                reminder.Kind == ReminderKind.Sms ? MaskPhoneNumber(reminder.Recipient) : reminder.Recipient);
             return;
         }
 
         switch (reminder.Kind)
         {
             case ReminderKind.Email:
-
+                string content = tenantContext.Localizer["ReminderText", evnt.Title, proc.Name, proj.Name];
+                string htmlbody = $"<p>{System.Net.WebUtility.HtmlEncode(content)}</p>";
                 await tenantContext.MessagesService.SendEmail(new Message
                 {
                     Recipient = reminder.Recipient,
-                    Subject = reminder.Subject,
-                    Body = reminder.TextBody,
+                    Subject = tenantContext.Localizer["Reminder"],
+                    Body = content,
                     HtmlBody = htmlbody,
                     Sender = null
                 }, cancellationToken);
                 break;
             case ReminderKind.Sms:
 
-                SmsSendResult smsResult = await tenantContext.MessagesService.SendSms(new Message
-                {
-                    Recipient = reminder.Recipient,
-                    Body = reminder.TextBody,
-                    Sender = null
-                }, cancellationToken);
-
-                if (string.IsNullOrWhiteSpace(smsResult.MessageId))
-                {
-                    _logger.LogError(
-                        "SMS send returned no message ID for reminder '{ReminderId}' to '{Recipient}'. Marking as sent to avoid retries.",
-                        reminder.Id,
-                        MaskPhoneNumber(reminder.Recipient));
-                    await tenantContext.RemindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
-                    return;
-                }
-
-                _logger.LogInformation(
-                    "Sent SMS reminder '{ReminderId}' to '{Recipient}' with message id '{MessageId}'.",
-                    reminder.Id,
-                    MaskPhoneNumber(reminder.Recipient),
-                    smsResult.MessageId);
+                await tenantContext.MessagesService.SendSmsReminder(reminder.Recipient, proj.Name, proc.Name, evnt.Title, tenant.Name, cancellationToken);
 
                 break;
         }
 
         await tenantContext.RemindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
     }
-
-    private static string MaskPhoneNumber(string phoneNumber)
-    {
-        if (string.IsNullOrWhiteSpace(phoneNumber))
-        {
-            return "***";
-        }
-
-        if (phoneNumber.Length <= 4)
-        {
-            return "***";
-        }
-
-        string prefix = phoneNumber.StartsWith("+") ? "+" : string.Empty;
-        return $"{prefix}*******{phoneNumber[^4..]}";
-    }
-
     private readonly record struct TenantReminderContext(
+        IStringLocalizer Localizer,
+        IRequestContext RequestContext,
+        IPartiesService PartiesService,
+        IProjectsService ProjectsService,
+        IProceduresService ProceduresService,
+        IEventsService EventsService,
         IRemindersService RemindersService,
         IMessagesService MessagesService);
 }

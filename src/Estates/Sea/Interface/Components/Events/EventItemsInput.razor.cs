@@ -5,7 +5,7 @@ public partial class EventItemsInput : EventsBase
     [Parameter, EditorRequired] public ProjectDto Project { get; set; } = default!;
     [Parameter, EditorRequired] public ProcedureDto Procedure { get; set; } = default!;
     [Parameter, EditorRequired] public EventDto Event { get; set; } = default!;
-
+    [Parameter] public EventCallback OnCreated { get; set; }
     [Inject] private IEnumerable<IEventItemPlugin> Plugins { get; set; } = default!;
 
     private readonly List<IEventItemCreationPlugin> mainPlugins = [];
@@ -19,7 +19,7 @@ public partial class EventItemsInput : EventsBase
     {
         base.OnInitialized();
 
-        baseContext = new EventItemCreationContext(Project, Procedure, Event);
+        baseContext = new EventItemCreationContext(Project, Procedure, Event, OnCreated);
         mainPlugins.Clear();
         actionPlugins.Clear();
 

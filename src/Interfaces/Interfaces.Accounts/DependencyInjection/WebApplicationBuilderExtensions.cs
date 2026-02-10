@@ -16,8 +16,6 @@ public static class WebApplicationBuilderExtensions
         _ = builder.Services.AddTransient<ISmsAuthenticationService, SmsAuthenticationService>();
         _ = builder.Services.AddTransient<IEmailAuthenticationService, EmailAuthenticationService>();
         _ = builder.Services.AddTransient<IPersonalAccessTokenService, PersonalAccessTokenService>();
-
-        // Register WebAuthn interop service
         _ = builder.Services.AddScoped<WebAuthnInteropService>();
         _ = builder.Services.AddScoped<IWebAuthnInterop>(static sp => sp.GetRequiredService<WebAuthnInteropService>());
 

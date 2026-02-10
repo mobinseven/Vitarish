@@ -5,14 +5,12 @@ public partial class ReminderAction : EventsBase
     [Parameter, EditorRequired] public ProjectDto Project { get; set; } = default!;
     [Parameter, EditorRequired] public ProcedureDto Procedure { get; set; } = default!;
     [Parameter, EditorRequired] public EventDto Event { get; set; } = default!;
-
+    [Parameter] public EventCallback OnCreated { get; set; }
     private async Task AddReminderAsync()
     {
         DialogParameters parameters = new()
         {
             { nameof(ReminderCreatorDialog.Event), Event },
-            { nameof(ReminderCreatorDialog.Procedure), Procedure },
-            { nameof(ReminderCreatorDialog.Project), Project }
         };
 
         IDialogReference dialog = AdminMode
@@ -24,5 +22,7 @@ public partial class ReminderAction : EventsBase
         {
             return;
         }
+
+        await OnCreated.InvokeAsync();
     }
 }

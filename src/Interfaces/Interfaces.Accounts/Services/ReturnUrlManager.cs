@@ -1,7 +1,7 @@
 namespace Vitarish.Interfaces.Accounts.Services;
 
 /// <summary>
-/// Manages ReturnUrl and FailureUrl using session cookies for reliable persistence across redirects.
+/// Manages ReturnUrl using session cookies for reliable persistence across redirects.
 /// </summary>
 public sealed class ReturnUrlManager(IHttpContextAccessor httpContextAccessor)
 {
@@ -50,14 +50,6 @@ public sealed class ReturnUrlManager(IHttpContextAccessor httpContextAccessor)
     /// Clears the ReturnUrl cookie.
     /// </summary>
     public void ClearReturnUrl() => HttpContext.Response.Cookies.Delete(ReturnUrlCookieName);
-
-    /// <summary>
-    /// Clears both ReturnUrl and FailureUrl cookies.
-    /// </summary>
-    public void ClearAll()
-    {
-        ClearReturnUrl();
-    }
 
     /// <summary>
     /// Gets the ReturnUrl from cookie, clears it, and returns the value.

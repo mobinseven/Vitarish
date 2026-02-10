@@ -46,6 +46,9 @@ public class MessagesService : IMessagesService
     public Task SendSmsCode(Message message, CancellationToken cancellationToken = default) =>
         smsProvider.SendCode(message, cancellationToken);
 
+    public Task SendSmsReminder(string receipient, string? project = null, string? procedure = null, string? evnt = null, string? tenant = null, CancellationToken cancellationToken = default) =>
+        smsProvider.SendReminder(receipient, project, procedure, evnt, tenant, cancellationToken);
+
     public Task<SmsDeliveryState> GetSmsDeliveryStateAsync(long messageId, CancellationToken cancellationToken = default) =>
         smsProvider.GetSmsDeliveryStateAsync(messageId, cancellationToken);
 }

@@ -26,6 +26,7 @@ internal sealed class ReminderPlugin(IRemindersService remindersService) : IEven
             builder.AddAttribute(1, nameof(ReminderAction.Project), context.Project);
             builder.AddAttribute(2, nameof(ReminderAction.Procedure), context.Procedure);
             builder.AddAttribute(3, nameof(ReminderAction.Event), context.Event);
+            builder.AddAttribute(4, nameof(ReminderAction.OnCreated), EventCallback.Factory.Create(this, context.OnCreated));
             builder.CloseComponent();
         };
 
