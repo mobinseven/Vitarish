@@ -37,6 +37,7 @@ public sealed class EntitiesMapperGenerator : ISourceGenerator
         // Find all Entity types
         Dictionary<INamedTypeSymbol, EntityMapping> entityMappings = new(SymbolEqualityComparer.Default);
 
+        // Search in current compilation
         foreach (SyntaxTree tree in context.Compilation.SyntaxTrees)
         {
             SemanticModel model = context.Compilation.GetSemanticModel(tree);
@@ -71,6 +72,14 @@ public sealed class EntitiesMapperGenerator : ISourceGenerator
                     }
                 }
             }
+        }
+
+        // Search in referenced assemblies for Entity types
+        foreach (IAssemblySymbol refAssembly in context.Compilation.References
+            .Select(r => context.Compilation.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol)
+            .Where(a => a is not null))
+        {
+            FindEntitiesInAssembly(refAssembly!, entityBase, context.Compilation, readDtoBase, writeDtoBase, descriptorBase, descriptorDtoBase, entityMappings);
         }
 
         // Generate mapper for each entity
@@ -188,6 +197,62 @@ public sealed class EntitiesMapperGenerator : ISourceGenerator
             }
         }
         return false;
+    }
+
+    private static void FindEntitiesInAssembly(
+        IAssemblySymbol assembly,
+        INamedTypeSymbol? entityBase,
+        Compilation compilation,
+        INamedTypeSymbol? readDtoBase,
+        INamedTypeSymbol? writeDtoBase,
+        INamedTypeSymbol? descriptorBase,
+        INamedTypeSymbol? descriptorDtoBase,
+        Dictionary<INamedTypeSymbol, EntityMapping> entityMappings)
+    {
+        FindEntitiesInNamespace(assembly.GlobalNamespace, entityBase, compilation, readDtoBase, writeDtoBase, descriptorBase, descriptorDtoBase, entityMappings);
+    }
+
+    private static void FindEntitiesInNamespace(
+        INamespaceSymbol namespaceSymbol,
+        INamedTypeSymbol? entityBase,
+        Compilation compilation,
+        INamedTypeSymbol? readDtoBase,
+        INamedTypeSymbol? writeDtoBase,
+        INamedTypeSymbol? descriptorBase,
+        INamedTypeSymbol? descriptorDtoBase,
+        Dictionary<INamedTypeSymbol, EntityMapping> entityMappings)
+    {
+        foreach (INamedTypeSymbol type in namespaceSymbol.GetTypeMembers())
+        {
+            // Check if it's an Entity type
+            if (!type.IsAbstract && entityBase is not null && InheritsFrom(type, entityBase))
+            {
+                string entityName = type.Name;
+                
+                // Find corresponding DTOs by naming convention
+                INamedTypeSymbol? readDto = FindTypeByName(compilation, $"{entityName}ReadDto", readDtoBase);
+                INamedTypeSymbol? writeDto = FindTypeByName(compilation, $"{entityName}WriteDto", writeDtoBase);
+                INamedTypeSymbol? descriptor = FindTypeByName(compilation, $"{entityName}Descriptor", descriptorBase);
+                INamedTypeSymbol? descriptorDto = FindTypeByName(compilation, $"{entityName}DescriptorDto", descriptorDtoBase);
+
+                // Only generate mapper if all required types are found
+                if (readDto is not null && writeDto is not null && descriptor is not null && descriptorDto is not null)
+                {
+                    entityMappings[type] = new EntityMapping(
+                        type,
+                        readDto,
+                        writeDto,
+                        descriptor,
+                        descriptorDto
+                    );
+                }
+            }
+        }
+
+        foreach (INamespaceSymbol childNamespace in namespaceSymbol.GetNamespaceMembers())
+        {
+            FindEntitiesInNamespace(childNamespace, entityBase, compilation, readDtoBase, writeDtoBase, descriptorBase, descriptorDtoBase, entityMappings);
+        }
     }
 
     private sealed class EntityMapping
