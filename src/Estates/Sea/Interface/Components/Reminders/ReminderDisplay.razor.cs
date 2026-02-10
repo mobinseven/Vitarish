@@ -1,10 +1,9 @@
-using Vitarish.Users.Domain.Entities;
-
 namespace Vitarish.Sea.Interface.Components.Reminders;
 
 public partial class ReminderDisplay : SeaCommonBase
 {
     [Parameter] public Color Color { get; set; }
+    [Parameter] public EventCallback OnDeleted { get; set; }
     [Parameter, EditorRequired] public ReminderDto Reminder { get; set; } = default!;
     private async Task ShowDetails()
     {
@@ -13,7 +12,19 @@ public partial class ReminderDisplay : SeaCommonBase
             { nameof(ReminderDetailsDialog.Reminder), Reminder }
         };
 
-        _ = await DialogService.ShowAsync<ReminderDetailsDialog>(Localizer["Reminder"], parameters);
+        var dialog = await DialogService.ShowAsync<ReminderDetailsDialog>(Localizer["Reminder"], parameters);
+        var result = await dialog.Result;
+
+        if(result is null || result.Canceled)
+        {
+            return;
+        }
+
+        if(result.Data is bool deleted && deleted)
+        {
+            await OnDeleted.InvokeAsync();
+        }
+
     }
 }
 

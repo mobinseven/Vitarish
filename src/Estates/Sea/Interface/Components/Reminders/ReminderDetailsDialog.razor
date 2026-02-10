@@ -2,29 +2,21 @@
 
 <MudDialog>
     <DialogContent>
-        <MudStack Spacing="2">
-            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Style="width: 100%">
-                <div style="width: 100%">
-                    <Chip>
-                        <MudStack>
-                            <MudText Typo="Typo.h6">@Reminder.Subject</MudText>
-                            <MudText Typo="Typo.body1" Style="white-space: pre-wrap;">@Reminder.TextBody</MudText>
-                        </MudStack>
-                    </Chip>
-                </div>
-            </MudStack>
 
-            <MudText Typo="Typo.body2">@($"{Localizer["Creator"]}: {GetUserFullNameById(Reminder.CreatedBy)}")</MudText>
-            <MudText Typo="Typo.body2">@($"{Localizer["Recipient"]}: {GetUserFullNameById(Reminder.RecipientUserId)}")</MudText>
-            <MudText Typo="Typo.body2">@($"{Localizer["RemindAt"]}: {Reminder.RemindAt.ToLocalTime().DateTime.ToShortDateString()} {Reminder.CreatedAt.ToLocalTime().DateTime.ToShortTimeString()}")</MudText>
-            <MudText Typo="Typo.body2">@($"{Localizer["SentAt"]}: {SentAtText()}")</MudText>
-        </MudStack>
+        <Stack>
+            <StackField Label="@($"{Localizer["Creator"]}: {GetUserFullNameById(Reminder.CreatedBy)}")" />
+            <StackField Label="@($"{Localizer["Recipient"]}: {GetUserFullNameById(Reminder.RecipientUserId)}")" />
+            <StackField Label="@($"{Localizer["RemindAt"]}: {Reminder.RemindAt.ToLocalTime().DateTime.ToShortDateString()} {Reminder.CreatedAt.ToLocalTime().DateTime.ToShortTimeString()}")" />
+            <StackField Label="@($"{Localizer["SentAt"]}: {SentAtText()}")" />
+        </Stack>
+
+        <Stack>
+            @if(CanDelete)
+            {
+                <StackButton Label="@Localizer["DeleteItem", Localizer["Reminder"]]" OnClick="DeleteAsync" EndIcon="fa-regular fa-trash" Color="Color.Error" />
+            }
+            <StackButton Label="@Localizer["Close"]" OnClick="Close" EndIcon="fa-regular fa-xmark" />
+        </Stack>
+
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Close">@Localizer["Close"]</MudButton>
-        @if(CanEdit)
-        {
-            <MudButton Color="Color.Error" Variant=Variant.Filled OnClick="DeleteAsync">@Localizer["DeleteItem", Localizer["Reminder"]]</MudButton>
-        }
-    </DialogActions>
 </MudDialog>

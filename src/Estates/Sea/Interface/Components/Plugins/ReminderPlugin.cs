@@ -43,6 +43,7 @@ internal sealed class ReminderPlugin(IRemindersService remindersService) : IEven
                     builder.OpenComponent<ReminderDisplay>(0);
                     builder.AddAttribute(1, nameof(ReminderDisplay.Color), context.Color);
                     builder.AddAttribute(2, nameof(ReminderDisplay.Reminder), reminder);
+                    builder.AddAttribute(3, nameof(ReminderDisplay.OnDeleted), EventCallback.Factory.Create(this, context.OnDeleted));
                     builder.CloseComponent();
                 },
                 []))];

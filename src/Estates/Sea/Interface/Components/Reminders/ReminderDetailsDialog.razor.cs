@@ -8,7 +8,7 @@ public partial class ReminderDetailsDialog : RemindersBase
 
     [Parameter, EditorRequired] public ReminderDto Reminder { get; set; } = default!;
 
-    private bool CanEdit => AdminMode || RequestContext.UserId == Reminder.CreatedBy;
+    private bool CanDelete => (AdminMode || RequestContext.UserId == Reminder.CreatedBy) && !Reminder.IsSent;
 
     private string SentAtText() => Reminder.SentAt is null
         ? Localizer["NotSent"].Value
@@ -29,8 +29,8 @@ public partial class ReminderDetailsDialog : RemindersBase
             return;
         }
         _ = await RemindersService.RemoveAsync(Reminder.Id, CancellationToken.None);
-        MudDialog.Close();
+        MudDialog.Close(true);
     }
 
-    private void Close() => MudDialog.Close();
+    private void Close() => MudDialog.Cancel();
 }

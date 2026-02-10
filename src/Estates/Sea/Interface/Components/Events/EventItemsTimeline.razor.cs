@@ -21,7 +21,7 @@ public partial class EventItemsTimeline : EventsBase
         CanWrite = await EventsService.CanWriteEvent(Event.Id);
     }
 
-    private async Task ReloadData()
+    protected override async Task ReloadRequired()
     {
         List<EventTimelineItem> aggregated = [];
         foreach ((IEventItemPlugin plugin, EventTimelineContext context) in pluginContexts)
@@ -36,21 +36,21 @@ public partial class EventItemsTimeline : EventsBase
         await InvokeAsync(StateHasChanged);
     }
 
-    protected override Task ReloadRequired() => ReloadData();
-
     private async Task UpdatePluginContexts()
     {
         pluginContexts.Clear();
 
+        EventCallback OnDelete = EventCallback.Factory.Create(this, () => ReloadRequired());
+
         foreach (IEventItemPlugin plugin in Plugins)
         {
-            EventTimelineContext context = new(Project, Procedure, Event, Color);
+            EventTimelineContext context = new(Project, Procedure, Event, Color, OnDelete);
             if (plugin.IsAvailable(context))
             {
                 pluginContexts.Add((plugin, context));
             }
         }
 
-        await ReloadData();
+        await ReloadRequired();
     }
 }

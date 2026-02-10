@@ -18,7 +18,8 @@ public sealed record EventTimelineContext(
     ProjectDto Project,
     ProcedureDto Procedure,
     EventDto Event,
-    Color Color) : EventItemPlugin(Project, Procedure, Event);
+    Color Color,
+    EventCallback OnDeleted) : EventItemPlugin(Project, Procedure, Event);
 
 public sealed record EventTimelineItem(
     DateTime When,
