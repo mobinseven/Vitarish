@@ -1,12 +1,8 @@
-using Microsoft.Extensions.Logging;
-using Vitarish.Files.Application.Abstractions;
-using Vitarish.Files.Domain.Models;
+using Vitarish.Entities.Server.Models;
 using Vitarish.Files.Domain.Options;
-using Vitarish.Files.Infrastructure.Extensions;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
-using Vitarish.Sea.Domain.Models;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 
@@ -59,24 +55,23 @@ public class AttachmentMigrationProcessor(
                 Take = batchSize
             };
 
-            var eventsResult = await eventsService.GetListAsync(eventDescriptor, cancellationToken);
-            IReadOnlyList<EventDto>? events = eventsResult.GetValueOrDefault();
+            EntityResult<IReadOnlyList<EventReadDto>> eventsResult = await eventsService.GetListAsync(eventDescriptor, cancellationToken);
+            IReadOnlyList<EventReadDto>? events = eventsResult.GetValueOrDefault();
 
             if (events == null || events.Count == 0)
             {
-                hasMoreEvents = false;
                 break;
             }
 
-            foreach (EventDto eventDto in events)
+            foreach (EventReadDto eventDto in events)
             {
-                IReadOnlyList<AttachmentDto> attachments = await attachmentsService.GetListAsync(new AttachmentDescriptorDto
+                IReadOnlyList<AttachmentReadDto> attachments = await attachmentsService.GetListAsync(new AttachmentDescriptorDto
                 {
                     EventId = eventDto.Id,
                     DeletedTo = DateTime.Now,
                 }, cancellationToken).GetValueOrDefaultAsync() ?? [];
 
-                foreach (AttachmentDto attachment in attachments)
+                foreach (AttachmentReadDto attachment in attachments)
                 {
                     if (!attachment.Content.StartsWith("http"))
                     {
