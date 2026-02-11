@@ -6,13 +6,13 @@ public partial class EventRolesEditDialog : SeaCommonBase
     [Inject] private IRolesService RolesService { get; set; } = default!;
     [Inject] private IEventRolesService EventRolesService { get; set; } = default!;
 
-    [Parameter] public EventDto? Event { get; set; }
+    [Parameter] public EventReadDto? Event { get; set; }
 
     private HashSet<Guid> readRoleIds = [];
     private HashSet<Guid> writeRoleIds = [];
     private HashSet<Guid> initialReadRoleIds = [];
     private HashSet<Guid> initialWriteRoleIds = [];
-    private List<RoleDto> roles = [];
+    private List<RoleReadDto> roles = [];
 
     protected override async Task OnInitializedAsync()
     {

@@ -10,8 +10,8 @@ public class EventsBase : SeaCommonBase
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        RenderForType<EventDto>();
-        RenderForType<AttachmentDto>();
-        RenderForType<ReminderDto>();
+        RenderForType<EventReadDto>();
+        RenderForType<AttachmentReadDto>();
+        RenderForType<ReminderReadDto>();
     }
 }

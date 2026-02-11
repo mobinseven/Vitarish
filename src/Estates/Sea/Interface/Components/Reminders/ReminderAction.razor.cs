@@ -2,9 +2,9 @@ namespace Vitarish.Sea.Interface.Components.Reminders;
 
 public partial class ReminderAction : EventsBase
 {
-    [Parameter, EditorRequired] public ProjectDto Project { get; set; } = default!;
-    [Parameter, EditorRequired] public ProcedureDto Procedure { get; set; } = default!;
-    [Parameter, EditorRequired] public EventDto Event { get; set; } = default!;
+    [Parameter, EditorRequired] public ProjectReadDto Project { get; set; } = default!;
+    [Parameter, EditorRequired] public ProcedureReadDto Procedure { get; set; } = default!;
+    [Parameter, EditorRequired] public EventReadDto Event { get; set; } = default!;
     [Parameter] public EventCallback OnCreated { get; set; }
     private async Task AddReminderAsync()
     {

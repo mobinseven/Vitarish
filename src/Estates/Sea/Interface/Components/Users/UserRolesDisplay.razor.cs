@@ -9,14 +9,14 @@ public partial class UserRolesDisplay : UsersBase
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        IReadOnlyList<UserRoleDto> userRoles = [.. await UserRolesService.GetListAsync(new UserRoleDescriptorDto { UserId = Guid.Parse(User.Id) }, CancellationToken.None).GetValueOrDefaultAsync() ?? []];
+        IReadOnlyList<UserRoleReadDto> userRoles = [.. await UserRolesService.GetListAsync(new UserRoleDescriptorDto { UserId = Guid.Parse(User.Id) }, CancellationToken.None).GetValueOrDefaultAsync() ?? []];
 
         if (userRoles.Count == 0)
         {
             return;
         }
 
-        IReadOnlyList<RoleDto> roleDtos = [.. await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None).GetValueOrDefaultAsync() ?? []];
+        IReadOnlyList<RoleReadDto> roleDtos = [.. await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None).GetValueOrDefaultAsync() ?? []];
         Dictionary<Guid, string> roleNames = roleDtos.ToDictionary(r => r.Id, r => r.Name);
 
         roles = [.. userRoles

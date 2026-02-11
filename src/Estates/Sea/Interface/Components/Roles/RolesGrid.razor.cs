@@ -2,7 +2,7 @@ namespace Vitarish.Sea.Interface.Components.Roles;
 
 public partial class RolesGrid : RolesBase
 {
-    private List<RoleDto> roles = [];
+    private List<RoleReadDto> roles = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -32,7 +32,7 @@ public partial class RolesGrid : RolesBase
         }
     }
 
-    private async Task EditRole(RoleDto role)
+    private async Task EditRole(RoleReadDto role)
     {
         DialogParameters parameters = new()
         {
@@ -57,7 +57,7 @@ public partial class RolesGrid : RolesBase
         }
     }
 
-    private async Task DeleteRole(RoleDto role)
+    private async Task DeleteRole(RoleReadDto role)
     {
         DialogParameters parameters = new()
         {

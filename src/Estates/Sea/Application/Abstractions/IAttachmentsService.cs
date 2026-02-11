@@ -2,12 +2,12 @@ namespace Vitarish.Sea.Application.Abstractions;
 
 using Vitarish.Sea.Domain.Dto;
 
-public interface IAttachmentsService : IEntityService<AttachmentDto, AttachmentWriteDto, AttachmentDescriptorDto>
+public interface IAttachmentsService : IEntityService<AttachmentReadDto, AttachmentWriteDto, AttachmentDescriptorDto>
 {
-    Task<IReadOnlyList<AttachmentDto>> GetByEventAsync(Guid eventId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<AttachmentReadDto>> GetByEventAsync(Guid eventId, CancellationToken cancellationToken);
     Task<int> GetCountByEventAsync(Guid eventId, CancellationToken cancellationToken);
 
-    Task<AttachmentDto?> AddAsync(
+    Task<AttachmentReadDto?> AddAsync(
         Guid eventId,
         string content,
         string contentType,
@@ -17,7 +17,7 @@ public interface IAttachmentsService : IEntityService<AttachmentDto, AttachmentW
 
     Task AddAsync(
         Guid eventId,
-        IEnumerable<AttachmentDto> attachments,
+        IEnumerable<AttachmentReadDto> attachments,
         CancellationToken cancellationToken);
 
     Task RemoveAsync(
@@ -25,7 +25,7 @@ public interface IAttachmentsService : IEntityService<AttachmentDto, AttachmentW
         Guid attachmentId,
         CancellationToken cancellationToken);
 
-    Task<AttachmentDto?> UpdateAsync(
+    Task<AttachmentReadDto?> UpdateAsync(
         Guid eventId,
         Guid attachmentId,
         string content,

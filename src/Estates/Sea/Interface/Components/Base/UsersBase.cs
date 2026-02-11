@@ -7,7 +7,7 @@ public class UsersBase : SeaCommonBase
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        RenderForType<UserRoleDto>();
+        RenderForType<UserRoleReadDto>();
     }
 }
 

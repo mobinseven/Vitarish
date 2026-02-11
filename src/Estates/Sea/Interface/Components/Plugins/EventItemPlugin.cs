@@ -1,23 +1,23 @@
 namespace Vitarish.Sea.Interface.Components.Plugins;
 
 public record EventItemPlugin(
-    ProjectDto Project,
-    ProcedureDto Procedure,
-    EventDto Event) : PluginContext();
+    ProjectReadDto Project,
+    ProcedureReadDto Procedure,
+    EventReadDto Event) : PluginContext();
 
 public sealed record EventItemCreationContext(
-    ProjectDto Project,
-    ProcedureDto Procedure,
-    EventDto Event,
+    ProjectReadDto Project,
+    ProcedureReadDto Procedure,
+    EventReadDto Event,
     EventCallback OnCreated) : EventItemPlugin(Project, Procedure, Event)
 {
     public RenderFragment? Actions { get; init; }
 }
 
 public sealed record EventTimelineContext(
-    ProjectDto Project,
-    ProcedureDto Procedure,
-    EventDto Event,
+    ProjectReadDto Project,
+    ProcedureReadDto Procedure,
+    EventReadDto Event,
     Color Color,
     EventCallback OnDeleted) : EventItemPlugin(Project, Procedure, Event);
 

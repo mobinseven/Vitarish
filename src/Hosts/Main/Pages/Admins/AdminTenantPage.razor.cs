@@ -1,5 +1,5 @@
 using Vitarish.Interfaces.Admins.Components;
-using Vitarish.Parties.Application.Dtos;
+using Vitarish.Parties.Domain.Dtos;
 
 namespace Vitarish.Main.Pages.Admins;
 

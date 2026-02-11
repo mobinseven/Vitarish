@@ -19,5 +19,4 @@ global using Vitarish.Sea.Domain.Models;
 global using Vitarish.Sea.Infrastructure.Data;
 global using Vitarish.Sea.Infrastructure.Extensions;
 global using Vitarish.Sea.Infrastructure.Helpers;
-global using Vitarish.Sea.Infrastructure.Mapping;
 global using Vitarish.Sea.Infrastructure.Notifications;

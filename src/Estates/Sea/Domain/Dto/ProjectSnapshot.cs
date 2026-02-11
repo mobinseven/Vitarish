@@ -11,5 +11,5 @@ public sealed record ProjectSnapshot(
     string Metadata,
     string? CurrentOverview,
     DateTimeOffset? OverviewUpdatedAt,
-    StatsDto? Stats,
+    StatsReadDto? Stats,
     IReadOnlyList<ProcedureSnapshot> Procedures);

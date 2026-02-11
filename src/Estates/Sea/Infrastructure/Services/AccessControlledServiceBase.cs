@@ -31,7 +31,7 @@ internal class AccessControlledServiceBase(
         if (Guid.TryParse(requestContext.UserId, out Guid id))
         {
             UserId = id;
-            IReadOnlyList<UserRoleDto> userroles = await userRolesService.GetListAsync(new UserRoleDescriptorDto { UserId = id }, CancellationToken.None)
+            IReadOnlyList<UserRoleReadDto> userroles = await userRolesService.GetListAsync(new UserRoleDescriptorDto { UserId = id }, CancellationToken.None)
                 .EnsureValueAsync("Load user roles");
             userReadRoleIds = [.. userroles.Where(r => r.Type == RoleType.Read).Select(r => r.RoleId)];
             userWriteRoleIds = [.. userroles.Where(r => r.Type == RoleType.Write).Select(r => r.RoleId)];

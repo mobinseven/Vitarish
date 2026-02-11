@@ -6,6 +6,6 @@ public class AttachmentsBase : SeaCommonBase
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        RenderForType<AttachmentDto>();
+        RenderForType<AttachmentReadDto>();
     }
 }

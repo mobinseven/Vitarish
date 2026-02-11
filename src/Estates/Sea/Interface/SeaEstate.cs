@@ -16,7 +16,9 @@ public class SeaEstate : Estate, ISeaEstate
 
     public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
-        builder.Services.AddVitarishSeaDomainEntityHandlers();
+        // Note: Sea estate uses manual EntityMappers instead of generated extension methods
+        // because entities have required constructor parameters
+        // builder.Services.AddVitarishSeaDomainEntityHandlers();
 
         _ = builder.Services.AddSingleton<ISeaEstate, SeaEstate>();
         _ = builder.Services.AddMemoryCache();

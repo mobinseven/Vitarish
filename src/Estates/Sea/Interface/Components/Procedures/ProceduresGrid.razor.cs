@@ -2,11 +2,11 @@ namespace Vitarish.Sea.Interface.Components.Procedures;
 
 public partial class ProceduresGrid : ProceduresBase
 {
-    [Parameter, EditorRequired] public ProjectDto Project { get; set; }
+    [Parameter, EditorRequired] public ProjectReadDto Project { get; set; }
     [Parameter] public EventCallback<Guid?> OnClicked { get; set; }
     [Parameter] public EventCallback<Guid> OnCreated { get; set; }
 
-    private List<ProcedureDto> procedures = [];
+    private List<ProcedureReadDto> procedures = [];
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -23,7 +23,7 @@ public partial class ProceduresGrid : ProceduresBase
         {
             ProjectId = Project.Id
         };
-        IReadOnlyList<ProcedureDto> Items = await ProceduresService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        IReadOnlyList<ProcedureReadDto> Items = await ProceduresService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
 
         procedures = [.. Items
             .OrderByDescending(e => (e.Stats?.Unread ?? false) || ((e.Stats?.NewItems ?? 0) > 0))

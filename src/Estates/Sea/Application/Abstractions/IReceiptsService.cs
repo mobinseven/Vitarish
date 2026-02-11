@@ -2,7 +2,7 @@ using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Application.Abstractions;
 
-public interface IReceiptsService : IEntityService<ReceiptDto, ReceiptWriteDto, ReceiptDescriptorDto>
+public interface IReceiptsService : IEntityService<ReceiptReadDto, ReceiptWriteDto, ReceiptDescriptorDto>
 {
     Task<Guid> AddAsync(Guid userId, Guid objectId, CancellationToken cancellationToken);
     Task<IReadOnlyList<Guid>> GetReadersAsync(Guid objectId, CancellationToken cancellationToken);

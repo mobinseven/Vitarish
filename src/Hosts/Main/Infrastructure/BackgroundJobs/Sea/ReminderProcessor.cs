@@ -1,7 +1,7 @@
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Models;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
-using Vitarish.Parties.Application.Dtos;
+using Vitarish.Parties.Domain.Dtos;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 using Vitarish.Sea.Domain.Enums;
@@ -55,9 +55,9 @@ public class ReminderProcessor(
     {
         DateTimeOffset now = _timeProvider.GetUtcNow();
 
-        IReadOnlyList<ReminderDto> due = await tenantContext.RemindersService.GetDueAsync(now, shutdownToken);
+        IReadOnlyList<ReminderReadDto> due = await tenantContext.RemindersService.GetDueAsync(now, shutdownToken);
 
-        foreach (ReminderDto reminder in due)
+        foreach (ReminderReadDto reminder in due)
         {
             await ProcessReminderAsync(tenantContext, reminder, now, shutdownToken);
         }
@@ -65,7 +65,7 @@ public class ReminderProcessor(
 
     private async Task ProcessReminderAsync(
         TenantReminderContext tenantContext,
-        ReminderDto reminder,
+        ReminderReadDto reminder,
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
@@ -75,19 +75,19 @@ public class ReminderProcessor(
             return;
         }
 
-        EventDto? evnt = await tenantContext.EventsService.GetAsync(reminder.EventId, cancellationToken).GetValueOrDefaultAsync();
+        EventReadDto? evnt = await tenantContext.EventsService.GetAsync(reminder.EventId, cancellationToken).GetValueOrDefaultAsync();
         if (evnt is null)
         {
             return;
         }
 
-        ProjectDto? proj = await tenantContext.ProjectsService.GetAsync(evnt.ProjectId, cancellationToken).GetValueOrDefaultAsync();
+        ProjectReadDto? proj = await tenantContext.ProjectsService.GetAsync(evnt.ProjectId, cancellationToken).GetValueOrDefaultAsync();
         if (proj is null)
         {
             return;
         }
 
-        ProcedureDto? proc = await tenantContext.ProceduresService.GetAsync(evnt.ProcedureId, cancellationToken).GetValueOrDefaultAsync();
+        ProcedureReadDto? proc = await tenantContext.ProceduresService.GetAsync(evnt.ProcedureId, cancellationToken).GetValueOrDefaultAsync();
         if (proc is null)
         {
             return;

@@ -1,22 +1,35 @@
+using Vitarish.Entities.Server.Extensions;
+
 namespace Vitarish.Entities.Server.Services;
 
-public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, TDescriptorDto>(
-    IMediator mediator,
-    Func<TEntity, TReadDto> outgoingMap,
-    Func<TWriteDto, TEntity> incomingMap,
-    Func<TDescriptorDto, TDescriptor> descriptorMap) : IEntityService<TReadDto, TWriteDto, TDescriptorDto>
+public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, TDescriptorDto> : IEntityService<TReadDto, TWriteDto, TDescriptorDto>
     where TEntity : Entity
     where TDescriptor : EntityDescriptor
     where TReadDto : EntityReadDto
     where TWriteDto : EntityWriteDto
     where TDescriptorDto : EntityDescriptorDto
 {
-    private readonly IMediator _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-    private readonly Func<TEntity, TReadDto> _outgoingMap = outgoingMap ?? throw new ArgumentNullException(nameof(outgoingMap));
-    private readonly Func<TWriteDto, TEntity> _incomingMap = incomingMap ?? throw new ArgumentNullException(nameof(incomingMap));
+    private readonly IMediator _mediator;
+    private readonly Func<TEntity, TReadDto> _outgoingMap;
+    private readonly Func<TWriteDto, TEntity> _incomingMap;
+    private readonly Func<TDescriptorDto, TDescriptor> _descriptorMap;
+
+    /// <summary>
+    /// Constructor using mapping functions (use auto-generated extension methods: entity => entity.ToDto(), dto => dto.ToDomain()).
+    /// </summary>
+    protected EntityService(
+        IMediator mediator,
+        Func<TEntity, TReadDto> outgoingMap,
+        Func<TWriteDto, TEntity> incomingMap,
+        Func<TDescriptorDto, TDescriptor> descriptorMap)
+    {
+        _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
+        _outgoingMap = outgoingMap ?? throw new ArgumentNullException(nameof(outgoingMap));
+        _incomingMap = incomingMap ?? throw new ArgumentNullException(nameof(incomingMap));
+        _descriptorMap = descriptorMap ?? throw new ArgumentNullException(nameof(descriptorMap));
+    }
 
     protected IMediator Mediator => _mediator;
-    protected Func<TDescriptorDto, TDescriptor> DescriptorMap { get; } = descriptorMap ?? throw new ArgumentNullException(nameof(descriptorMap));
 
     public Task<EntityResult<TReadDto>> AddAsync(TWriteDto dto, CancellationToken cancellationToken) => ExecuteDtoAsync(
                 mediator => mediator.Send(new AddEntityCommand<TEntity, TDescriptor>(_incomingMap(dto)), cancellationToken),
@@ -99,7 +112,7 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
 
     public Task<EntityResult> RemoveByDescriptorAsync(TDescriptor descriptor, CancellationToken cancellationToken) => ExecuteAsync(mediator => mediator.Send(new RemoveEntitiesByDescriptorCommand<TEntity, TDescriptor>(descriptor), cancellationToken), cancellationToken);
 
-    public Task<EntityResult> RemoveByDescriptorAsync(TDescriptorDto descriptor, CancellationToken cancellationToken) => RemoveByDescriptorAsync(DescriptorMap(descriptor), cancellationToken);
+    public Task<EntityResult> RemoveByDescriptorAsync(TDescriptorDto descriptor, CancellationToken cancellationToken) => RemoveByDescriptorAsync(_descriptorMap(descriptor), cancellationToken);
 
     public Task<EntityResult<TReadDto>> GetAsync(Guid id, CancellationToken cancellationToken) => GetAsync(new GetEntityByIdQuery<TEntity, TDescriptor>(id), cancellationToken);
 
@@ -131,7 +144,7 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
 
     public Task<EntityResult<int>> CountAsync(TDescriptor descriptor, CancellationToken cancellationToken) => ExecuteValueAsync(mediator => mediator.Send(new CountEntitiesQuery<TEntity, TDescriptor>(descriptor), cancellationToken), cancellationToken);
 
-    public Task<EntityResult<int>> CountAsync(TDescriptorDto descriptor, CancellationToken cancellationToken) => CountAsync(DescriptorMap(descriptor), cancellationToken);
+    public Task<EntityResult<int>> CountAsync(TDescriptorDto descriptor, CancellationToken cancellationToken) => CountAsync(_descriptorMap(descriptor), cancellationToken);
 
     public Task<EntityResult<int>> CountAsync<TOtherEntity, TOtherDescriptor>(TOtherDescriptor descriptor, CancellationToken cancellationToken)
         where TOtherEntity : Entity
@@ -142,7 +155,7 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
                 _outgoingMap,
                 cancellationToken);
 
-    public Task<EntityResult<IReadOnlyList<TReadDto>>> GetListAsync(TDescriptorDto descriptor, CancellationToken cancellationToken) => GetListAsync(DescriptorMap(descriptor), cancellationToken);
+    public Task<EntityResult<IReadOnlyList<TReadDto>>> GetListAsync(TDescriptorDto descriptor, CancellationToken cancellationToken) => GetListAsync(_descriptorMap(descriptor), cancellationToken);
 
     public Task<EntityResult<IReadOnlyList<TReadDto>>> GetListAsync<TOtherEntity, TOtherDescriptor>(
         TOtherDescriptor descriptor,
@@ -186,7 +199,7 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
             : EntityResult<PartedResult<TReadDto>>.Success(new PartedResult<TReadDto>(itemsResult.Value, countResult.Value));
     }
 
-    public Task<EntityResult<PartedResult<TReadDto>>> GetPartedAsync(TDescriptorDto descriptor, CancellationToken cancellationToken) => GetPartedAsync(DescriptorMap(descriptor), cancellationToken);
+    public Task<EntityResult<PartedResult<TReadDto>>> GetPartedAsync(TDescriptorDto descriptor, CancellationToken cancellationToken) => GetPartedAsync(_descriptorMap(descriptor), cancellationToken);
 
     public Task<EntityResult<PartedResult<TReadDto>>> GetPartedAsync<TQuery>(TQuery query, CancellationToken cancellationToken)
         where TQuery : IRequest<PartedResult<TEntity>> => ExecutePartedAsync(mediator => mediator.Send(query, cancellationToken), _outgoingMap, cancellationToken);

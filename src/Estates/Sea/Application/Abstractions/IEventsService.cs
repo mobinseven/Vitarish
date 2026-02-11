@@ -2,11 +2,11 @@ namespace Vitarish.Sea.Application.Abstractions;
 
 using Vitarish.Sea.Domain.Dto;
 
-public interface IEventsService : IEntityService<EventDto, EventWriteDto, EventDescriptorDto>
+public interface IEventsService : IEntityService<EventReadDto, EventWriteDto, EventDescriptorDto>
 {
-    Task<IReadOnlyList<EventDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<EventReadDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken);
 
-    Task<EventDto?> AddAsync(
+    Task<EventReadDto?> AddAsync(
         Guid projectId,
         Guid procedureId,
         Guid? previousEventId,
@@ -20,7 +20,7 @@ public interface IEventsService : IEntityService<EventDto, EventWriteDto, EventD
 
     Task RepairChainAsync(Guid procedureId, CancellationToken cancellationToken);
 
-    Task<EventDto?> UpdateAsync(
+    Task<EventReadDto?> UpdateAsync(
         Guid Id,
         string Title,
         string Description,
@@ -28,7 +28,7 @@ public interface IEventsService : IEntityService<EventDto, EventWriteDto, EventD
 
     Task UpdateChainAsync(
         Guid procedureId,
-        IEnumerable<EventChainChangeDto> chainChangeDtos,
+        IEnumerable<EventsChainChangeReadDto> chainChangeDtos,
         CancellationToken cancellationToken);
 
     Task CommitAsync(Guid eventId, Guid reporterUserId, DateTimeOffset commitTime, CancellationToken cancellationToken);

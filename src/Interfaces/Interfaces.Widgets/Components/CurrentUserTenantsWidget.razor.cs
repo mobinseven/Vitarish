@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Vitarish.Interfaces.Accounts.Abstractions;
 using Vitarish.Interfaces.Base.Common;
 using Vitarish.Parties.Application.Abstractions;
-using Vitarish.Parties.Application.Dtos;
+using Vitarish.Parties.Domain.Dtos;
 
 namespace Vitarish.Interfaces.Widgets.Components;
 

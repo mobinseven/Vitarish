@@ -4,7 +4,7 @@ namespace Vitarish.Sea.Interface.Components.Reminders;
 
 public partial class RemindersGrid : RemindersBase
 {
-    protected IReadOnlyList<ReminderDto>? Reminders;
+    protected IReadOnlyList<ReminderReadDto>? Reminders;
 
     protected override async Task ReloadRequired()
     {
@@ -29,7 +29,7 @@ public partial class RemindersGrid : RemindersBase
                 StateHasChanged();
             })];
 
-    private async Task OnClicked(ReminderDto reminder)
+    private async Task OnClicked(ReminderReadDto reminder)
     {
         DialogParameters parameters = new()
         {

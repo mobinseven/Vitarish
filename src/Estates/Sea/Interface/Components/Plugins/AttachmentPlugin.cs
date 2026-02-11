@@ -14,8 +14,8 @@ internal sealed class AttachmentPlugin(IAttachmentsService attachmentsService) :
 
     public IReadOnlyCollection<Type> WatchedTypes { get; } = new[]
     {
-        typeof(EventDto),
-        typeof(AttachmentDto)
+        typeof(EventReadDto),
+        typeof(AttachmentReadDto)
     };
 
     public bool IsAvailable(EventItemCreationContext context) => context is not null;
@@ -35,7 +35,7 @@ internal sealed class AttachmentPlugin(IAttachmentsService attachmentsService) :
     public async Task<IReadOnlyList<EventTimelineItem>> GetItemsAsync(EventTimelineContext context, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(context);
-        IReadOnlyList<AttachmentDto> attachments = await attachmentsService.GetByEventAsync(context.Event.Id, cancellationToken);
+        IReadOnlyList<AttachmentReadDto> attachments = await attachmentsService.GetByEventAsync(context.Event.Id, cancellationToken);
 
         return [.. attachments
             .Select(attachment => new EventTimelineItem(
