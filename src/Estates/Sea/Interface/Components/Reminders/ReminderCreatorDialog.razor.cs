@@ -7,7 +7,7 @@ public partial class ReminderCreatorDialog : RemindersBase
     [Parameter, EditorRequired] public EventReadDto Event { get; set; } = default!;
 
     private ReminderKind kind = ReminderKind.Sms;
-    private List<ReminderRecipientDto> recipients = [];
+    private List<ReminderRecipientReadDto> recipients = [];
     private DateTime? remindDate = DateTime.Now.Date;
     private TimeSpan? remindTime = DateTime.Now.ToLocalTime().TimeOfDay;
     private DateTimeOffset RemindAt => new(remindDate!.Value.Date + remindTime!.Value, TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow));
@@ -31,7 +31,7 @@ public partial class ReminderCreatorDialog : RemindersBase
             return;
         }
 
-        if (!result.Canceled && result.Data is IEnumerable<ReminderRecipientDto> rec)
+        if (!result.Canceled && result.Data is IEnumerable<ReminderRecipientReadDto> rec)
         {
             recipients = [.. rec];
         }

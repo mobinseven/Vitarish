@@ -3,10 +3,9 @@ namespace Vitarish.Sea.Infrastructure.Services;
 [RegisterTransient]
 internal class ReceiptsService(
     IMediator mediator,
-    ReceiptsMapper mapper,
     IAttachmentsService attachmentsService,
     IRemindersService remindersService)
-    : EntityService<Receipt, ReceiptDescriptor, ReceiptReadDto, ReceiptWriteDto, ReceiptDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IReceiptsService
+    : EntityService<Receipt, ReceiptDescriptor, ReceiptReadDto, ReceiptWriteDto, ReceiptDescriptorDto>(mediator, EntityMappers.ToDto, EntityMappers.ToDomain, EntityMappers.ToDomain), IReceiptsService
 {
     private async Task RemoveReceiptAsync(string createdBy, Guid objectId, CancellationToken cancellationToken) => (await RemoveByDescriptorAsync(
             new ReceiptDescriptor

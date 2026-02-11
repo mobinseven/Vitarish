@@ -3,8 +3,8 @@ using Vitarish.Sea.Application.Commands.Roles;
 namespace Vitarish.Sea.Infrastructure.Services;
 
 [RegisterTransient]
-internal class EventRolesService(IMediator mediator, EventRolesMapper mapper)
-    : EntityService<EventRole, EventRoleDescriptor, EventRoleReadDto, EventRoleWriteDto, EventRoleDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IEventRolesService
+internal class EventRolesService(IMediator mediator)
+    : EntityService<EventRole, EventRoleDescriptor, EventRoleReadDto, EventRoleWriteDto, EventRoleDescriptorDto>(mediator, EntityMappers.ToDto, EntityMappers.ToDomain, EntityMappers.ToDomain), IEventRolesService
 {
     public async Task<(IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)> GetIdsAsync(Guid eventId, CancellationToken cancellationToken)
     {

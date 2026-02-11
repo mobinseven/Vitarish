@@ -24,7 +24,7 @@
 
 @code {
     [CascadingParameter] IMudDialogInstance MudDialog { get; set; } = default!; 
-    [Parameter, EditorRequired] public StatsDto Stats { get; set; }
+    [Parameter, EditorRequired] public StatsReadDto Stats { get; set; }
     [Parameter, EditorRequired] public string Icon { get; set; }
 
     private void Cancel() => MudDialog.Cancel();

@@ -2,7 +2,7 @@
 
 <MudDialog>
     <DialogContent>
-        <MudList T="ProcedureDto" Dense="true">
+        <MudList T="ProcedureReadDto" Dense="true">
             @foreach (var proj in projects)
             {
                 <MudListSubheader>@proj.Name</MudListSubheader>
@@ -10,7 +10,7 @@
                 {
                     @foreach (var proc in list)
                     {
-                        <MudListItem T="ProcedureDto" OnClick="@(() => Select(proc))">@proc.Name</MudListItem>
+                        <MudListItem T="ProcedureReadDto" OnClick="@(() => Select(proc))">@proc.Name</MudListItem>
                     }
                 }
             }

@@ -5,9 +5,9 @@ public partial class AddressBookDialog : SeaCommonBase
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter, EditorRequired] public ReminderKind Kind { get; set; }
-    [Parameter, EditorRequired] public IEnumerable<ReminderRecipientDto> Recipients { get; set; } = [];
+    [Parameter, EditorRequired] public IEnumerable<ReminderRecipientReadDto> Recipients { get; set; } = [];
 
-    private HashSet<ReminderRecipientDto> selected = [];
+    private HashSet<ReminderRecipientReadDto> selected = [];
     private string customAddress = string.Empty;
 
 
@@ -23,14 +23,14 @@ public partial class AddressBookDialog : SeaCommonBase
         {
             return;
         }
-        ReminderRecipientDto recipient = new(Kind, user.Id, address);
+        ReminderRecipientReadDto recipient = new(Kind, user.Id, address);
         if (!selected.Add(recipient))
         {
             _ = selected.Remove(recipient);
         }
     }
 
-    private void RemoveRecipient(ReminderRecipientDto recipient) => selected.Remove(recipient);
+    private void RemoveRecipient(ReminderRecipientReadDto recipient) => selected.Remove(recipient);
     private bool IsSelected(UserDto user)
     {
         string? address = GetUserAddressById(user.Id, Kind);
@@ -38,7 +38,7 @@ public partial class AddressBookDialog : SeaCommonBase
         {
             return false;
         }
-        ReminderRecipientDto recipient = new(Kind, user.Id, address);
+        ReminderRecipientReadDto recipient = new(Kind, user.Id, address);
         return selected.Contains(recipient);
     }
 
@@ -46,7 +46,7 @@ public partial class AddressBookDialog : SeaCommonBase
     {
         if (!string.IsNullOrWhiteSpace(customAddress))
         {
-            ReminderRecipientDto recipient = new(Kind, null, customAddress);
+            ReminderRecipientReadDto recipient = new(Kind, null, customAddress);
             _ = selected.Add(recipient);
             customAddress = string.Empty;
         }

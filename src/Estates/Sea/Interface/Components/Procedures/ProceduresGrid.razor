@@ -5,7 +5,7 @@
     @foreach(var procedure in procedures)
     {
         <StackButton Label="@procedure.Name" OnClick="@(() => OnClicked.InvokeAsync(procedure.Id))">
-            <StatsDisplay Stats="procedure.Stats ?? new StatsDto()" />
+            <StatsDisplay Stats="procedure.Stats ?? new StatsReadDto()" />
         </StackButton>
     }
 
