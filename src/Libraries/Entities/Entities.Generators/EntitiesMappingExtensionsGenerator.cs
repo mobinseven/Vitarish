@@ -65,10 +65,19 @@ public sealed class EntitiesMappingExtensionsGenerator : ISourceGenerator
             FindEntitiesInAssembly(refAssembly!, entityBase, context.Compilation, readDtoBase, writeDtoBase, descriptorBase, descriptorDtoBase, mappings);
         }
 
-        // Generate extension methods for all found mappings
+        // Generate mapper classes and extension methods for all found mappings
         if (mappings.Count > 0)
         {
-            string extensionsCode = GenerateExtensionMethods(dotlessName, mappings);
+            // Generate individual mapper class files
+            foreach (var mapping in mappings)
+            {
+                string mapperCode = GenerateMapperClass(mapping);
+                string entityName = mapping.Entity.Name;
+                context.AddSource($"{entityName}EntityMapper.g.cs", SourceText.From(mapperCode, Encoding.UTF8));
+            }
+
+            // Generate extension methods class
+            string extensionsCode = GenerateExtensionMethodsClass(dotlessName, mappings);
             context.AddSource($"EntityMappingExtensions.g.cs", SourceText.From(extensionsCode, Encoding.UTF8));
         }
     }
@@ -97,85 +106,75 @@ public sealed class EntitiesMappingExtensionsGenerator : ISourceGenerator
         }
     }
 
-    private static string GenerateExtensionMethods(string dotlessName, List<EntityMappingInfo> mappings)
+    private static string GenerateMapperClass(EntityMappingInfo mapping)
     {
         StringBuilder sb = new StringBuilder();
         sb.AppendLine("#nullable enable");
         sb.AppendLine();
-        sb.AppendLine("namespace Vitarish.Entities.Server.Extensions;");
-        sb.AppendLine();
-        sb.AppendLine("/// <summary>");
-        sb.AppendLine($"/// Auto-generated mapping extension methods for {dotlessName} entities.");
-        sb.AppendLine("/// These methods provide convenient mapping between Entity types and their DTOs.");
-        sb.AppendLine("/// </summary>");
-        sb.AppendLine($"public static class {dotlessName}EntityMappingExtensions");
+        
+        string entityFull = mapping.Entity.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        string readDtoFull = mapping.ReadDto.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        string writeDtoFull = mapping.WriteDto.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        string descriptorFull = mapping.Descriptor.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        string descriptorDtoFull = mapping.DescriptorDto.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+        
+        string entityName = mapping.Entity.Name;
+        string entityNamespace = mapping.Entity.ContainingNamespace.ToDisplayString();
+
+        sb.AppendLine($"namespace {entityNamespace}");
         sb.AppendLine("{");
+        sb.AppendLine("    /// <summary>");
+        sb.AppendLine($"    /// Auto-generated mapper for {entityName} entity using Riok.Mapperly source generation.");
+        sb.AppendLine("    /// </summary>");
+        sb.AppendLine("    [global::Riok.Mapperly.Abstractions.Mapper(RequiredMappingStrategy = global::Riok.Mapperly.Abstractions.RequiredMappingStrategy.Source)]");
+        sb.AppendLine($"    public partial class {entityName}EntityMapper");
+        sb.AppendLine("    {");
+        
+        // Generate ToDto method (Entity -> ReadDto)
+        sb.AppendLine($"        /// <summary>");
+        sb.AppendLine($"        /// Converts a {entityName} entity to its read DTO representation.");
+        sb.AppendLine($"        /// </summary>");
+        sb.AppendLine($"        public {readDtoFull} ToDto({entityFull} src)");
+        sb.AppendLine($"        {{");
+        sb.AppendLine($"            return new {readDtoFull}");
+        sb.AppendLine($"            {{");
+        GeneratePropertyMappings(sb, mapping.Entity, mapping.ReadDto, "src", "                ");
+        sb.AppendLine($"            }};");
+        sb.AppendLine($"        }}");
+        sb.AppendLine();
 
-        foreach (var mapping in mappings)
-        {
-            string entityFull = mapping.Entity.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            string readDtoFull = mapping.ReadDto.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            string writeDtoFull = mapping.WriteDto.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            string descriptorFull = mapping.Descriptor.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            string descriptorDtoFull = mapping.DescriptorDto.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-            
-            string entityName = mapping.Entity.Name;
+        // Generate ToDomain method (WriteDto -> Entity)
+        sb.AppendLine($"        /// <summary>");
+        sb.AppendLine($"        /// Converts a {entityName} write DTO to its entity representation.");
+        sb.AppendLine($"        /// </summary>");
+        sb.AppendLine($"        public {entityFull} ToDomain({writeDtoFull} src)");
+        sb.AppendLine($"        {{");
+        sb.AppendLine($"            return new {entityFull}");
+        sb.AppendLine($"            {{");
+        GeneratePropertyMappings(sb, mapping.WriteDto, mapping.Entity, "src", "                ");
+        sb.AppendLine($"            }};");
+        sb.AppendLine($"        }}");
+        sb.AppendLine();
 
-            // Generate ToDto extension method (Entity -> ReadDto)
-            sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// Converts a {entityName} entity to its read DTO representation.");
-            sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    public static {readDtoFull} ToDto(this {entityFull} entity)");
-            sb.AppendLine($"    {{");
-            sb.AppendLine($"        return new {readDtoFull}");
-            sb.AppendLine($"        {{");
-            
-            // Map all properties from Entity to ReadDto
-            GeneratePropertyMappings(sb, mapping.Entity, mapping.ReadDto, "entity");
-            
-            sb.AppendLine($"        }};");
-            sb.AppendLine($"    }}");
-            sb.AppendLine();
-
-            // Generate ToDomain extension method (WriteDto -> Entity)
-            sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// Converts a {entityName} write DTO to its entity representation.");
-            sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    public static {entityFull} ToDomain(this {writeDtoFull} dto)");
-            sb.AppendLine($"    {{");
-            sb.AppendLine($"        return new {entityFull}");
-            sb.AppendLine($"        {{");
-            
-            // Map all properties from WriteDto to Entity
-            GeneratePropertyMappings(sb, mapping.WriteDto, mapping.Entity, "dto");
-            
-            sb.AppendLine($"        }};");
-            sb.AppendLine($"    }}");
-            sb.AppendLine();
-
-            // Generate ToDomain extension method (DescriptorDto -> Descriptor)
-            sb.AppendLine($"    /// <summary>");
-            sb.AppendLine($"    /// Converts a {entityName} descriptor DTO to its descriptor representation.");
-            sb.AppendLine($"    /// </summary>");
-            sb.AppendLine($"    public static {descriptorFull} ToDomain(this {descriptorDtoFull} dto)");
-            sb.AppendLine($"    {{");
-            sb.AppendLine($"        return new {descriptorFull}");
-            sb.AppendLine($"        {{");
-            
-            // Map all properties from DescriptorDto to Descriptor
-            GeneratePropertyMappings(sb, mapping.DescriptorDto, mapping.Descriptor, "dto");
-            
-            sb.AppendLine($"        }};");
-            sb.AppendLine($"    }}");
-            sb.AppendLine();
-        }
-
+        // Generate ToDomain method (DescriptorDto -> Descriptor)
+        sb.AppendLine($"        /// <summary>");
+        sb.AppendLine($"        /// Converts a {entityName} descriptor DTO to its descriptor representation.");
+        sb.AppendLine($"        /// </summary>");
+        sb.AppendLine($"        public {descriptorFull} ToDomain({descriptorDtoFull} src)");
+        sb.AppendLine($"        {{");
+        sb.AppendLine($"            return new {descriptorFull}");
+        sb.AppendLine($"            {{");
+        GeneratePropertyMappings(sb, mapping.DescriptorDto, mapping.Descriptor, "src", "                ");
+        sb.AppendLine($"            }};");
+        sb.AppendLine($"        }}");
+        
+        sb.AppendLine("    }");
         sb.AppendLine("}");
         
         return sb.ToString();
     }
 
-    private static void GeneratePropertyMappings(StringBuilder sb, INamedTypeSymbol sourceType, INamedTypeSymbol targetType, string sourceVar)
+    private static void GeneratePropertyMappings(StringBuilder sb, INamedTypeSymbol sourceType, INamedTypeSymbol targetType, string sourceVar, string indent)
     {
         // Get all settable properties from target type
         var targetProperties = GetAllProperties(targetType)
@@ -195,7 +194,7 @@ public sealed class EntitiesMappingExtensionsGenerator : ISourceGenerator
                 if (SymbolEqualityComparer.Default.Equals(sourceProp.Type, targetProp.Type) ||
                     IsAssignableFrom(targetProp.Type, sourceProp.Type))
                 {
-                    sb.AppendLine($"            {targetProp.Name} = {sourceVar}.{sourceProp.Name},");
+                    sb.AppendLine($"{indent}{targetProp.Name} = {sourceVar}.{sourceProp.Name},");
                 }
             }
         }
@@ -239,6 +238,77 @@ public sealed class EntitiesMappingExtensionsGenerator : ISourceGenerator
         }
 
         return false;
+    }
+
+    private static string GenerateExtensionMethodsClass(string dotlessName, List<EntityMappingInfo> mappings)
+    {
+        StringBuilder sb = new StringBuilder();
+        sb.AppendLine("#nullable enable");
+        sb.AppendLine();
+        sb.AppendLine("namespace Vitarish.Entities.Server.Extensions");
+        sb.AppendLine("{");
+        sb.AppendLine("    /// <summary>");
+        sb.AppendLine($"    /// Auto-generated mapping extension methods for {dotlessName} entities.");
+        sb.AppendLine("    /// These methods provide convenient mapping between Entity types and their DTOs.");
+        sb.AppendLine("    /// </summary>");
+        sb.AppendLine($"    public static class {dotlessName}EntityMappingExtensions");
+        sb.AppendLine("    {");
+
+        // Generate static mapper instances for efficiency
+        foreach (var mapping in mappings)
+        {
+            string entityName = mapping.Entity.Name;
+            string entityNamespace = mapping.Entity.ContainingNamespace.ToDisplayString();
+            string mapperFull = $"global::{entityNamespace}.{entityName}EntityMapper";
+            
+            sb.AppendLine($"        private static readonly {mapperFull} {entityName}Mapper = new {mapperFull}();");
+        }
+        sb.AppendLine();
+
+        foreach (var mapping in mappings)
+        {
+            string entityFull = mapping.Entity.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            string readDtoFull = mapping.ReadDto.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            string writeDtoFull = mapping.WriteDto.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            string descriptorFull = mapping.Descriptor.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            string descriptorDtoFull = mapping.DescriptorDto.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            string entityName = mapping.Entity.Name;
+
+            // Generate ToDto extension method (Entity -> ReadDto) - delegates to mapper
+            sb.AppendLine($"        /// <summary>");
+            sb.AppendLine($"        /// Converts a {entityName} entity to its read DTO representation.");
+            sb.AppendLine($"        /// </summary>");
+            sb.AppendLine($"        public static {readDtoFull} ToDto(this {entityFull} entity)");
+            sb.AppendLine($"        {{");
+            sb.AppendLine($"            return {entityName}Mapper.ToDto(entity);");
+            sb.AppendLine($"        }}");
+            sb.AppendLine();
+
+            // Generate ToDomain extension method (WriteDto -> Entity) - delegates to mapper
+            sb.AppendLine($"        /// <summary>");
+            sb.AppendLine($"        /// Converts a {entityName} write DTO to its entity representation.");
+            sb.AppendLine($"        /// </summary>");
+            sb.AppendLine($"        public static {entityFull} ToDomain(this {writeDtoFull} dto)");
+            sb.AppendLine($"        {{");
+            sb.AppendLine($"            return {entityName}Mapper.ToDomain(dto);");
+            sb.AppendLine($"        }}");
+            sb.AppendLine();
+
+            // Generate ToDomain extension method (DescriptorDto -> Descriptor) - delegates to mapper
+            sb.AppendLine($"        /// <summary>");
+            sb.AppendLine($"        /// Converts a {entityName} descriptor DTO to its descriptor representation.");
+            sb.AppendLine($"        /// </summary>");
+            sb.AppendLine($"        public static {descriptorFull} ToDomain(this {descriptorDtoFull} dto)");
+            sb.AppendLine($"        {{");
+            sb.AppendLine($"            return {entityName}Mapper.ToDomain(dto);");
+            sb.AppendLine($"        }}");
+            sb.AppendLine();
+        }
+
+        sb.AppendLine("    }");
+        sb.AppendLine("}");
+        
+        return sb.ToString();
     }
 
     private static void FindEntitiesInAssembly(
