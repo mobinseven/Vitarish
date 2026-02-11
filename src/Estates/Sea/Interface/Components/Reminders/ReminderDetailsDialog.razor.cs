@@ -6,7 +6,7 @@ public partial class ReminderDetailsDialog : RemindersBase
 {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    [Parameter, EditorRequired] public ReminderDto Reminder { get; set; } = default!;
+    [Parameter, EditorRequired] public ReminderReadDto Reminder { get; set; } = default!;
 
     private bool CanEdit => AdminMode || RequestContext.UserId == Reminder.CreatedBy;
 

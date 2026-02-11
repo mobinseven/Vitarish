@@ -4,7 +4,7 @@ namespace Vitarish.Sea.Infrastructure.Mapping;
 [RegisterTransient]
 internal partial class ProjectsMapper
 {
-    public partial ProjectDto ToDto(Project src);
+    public partial ProjectReadDto ToDto(Project src);
 
     public partial Project ToDomain(ProjectWriteDto src);
 

@@ -33,7 +33,7 @@ internal sealed class ReminderPlugin(IRemindersService remindersService) : IEven
     public async Task<IReadOnlyList<EventTimelineItem>> GetItemsAsync(EventTimelineContext context, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(context);
-        IReadOnlyList<ReminderDto> reminders = await remindersService.GetByEventAsync(context.Event.Id, cancellationToken);
+        IReadOnlyList<ReminderReadDto> reminders = await remindersService.GetByEventAsync(context.Event.Id, cancellationToken);
 
         return [.. reminders
             .Select(reminder => new EventTimelineItem(

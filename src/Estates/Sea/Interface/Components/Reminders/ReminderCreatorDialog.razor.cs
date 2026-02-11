@@ -4,7 +4,7 @@ public partial class ReminderCreatorDialog : RemindersBase
 {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    [Parameter, EditorRequired] public EventDto Event { get; set; } = default!;
+    [Parameter, EditorRequired] public EventReadDto Event { get; set; } = default!;
 
     private ReminderKind kind = ReminderKind.Sms;
     private List<ReminderRecipientDto> recipients = [];
@@ -14,7 +14,7 @@ public partial class ReminderCreatorDialog : RemindersBase
 
     private async Task SaveAsync()
     {
-        IReadOnlyList<ReminderDto> added = await RemindersService.AddRangeAsync(Event.Id, recipients, string.Empty, string.Empty, RemindAt, CancellationToken.None);
+        IReadOnlyList<ReminderReadDto> added = await RemindersService.AddRangeAsync(Event.Id, recipients, string.Empty, string.Empty, RemindAt, CancellationToken.None);
         MudDialog.Close(DialogResult.Ok(added));
     }
 

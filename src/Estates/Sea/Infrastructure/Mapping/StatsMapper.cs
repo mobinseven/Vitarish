@@ -4,6 +4,6 @@ namespace Vitarish.Sea.Infrastructure.Mapping;
 [RegisterTransient]
 internal partial class StatsMapper
 {
-    public partial StatsDto ToDto(Stats src);
+    public partial StatsReadDto ToDto(Stats src);
 }
 

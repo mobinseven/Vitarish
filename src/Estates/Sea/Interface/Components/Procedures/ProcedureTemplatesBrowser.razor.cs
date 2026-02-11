@@ -6,19 +6,19 @@ public partial class ProcedureTemplatesBrowser : SeaCommonBase
     [Inject] private IProjectsService ProjectsService { get; set; } = default!;
     [Inject] private IProceduresService ProceduresService { get; set; } = default!;
 
-    private List<ProjectDto> projects = [];
-    private readonly Dictionary<Guid, List<ProcedureDto>> procedures = [];
+    private List<ProjectReadDto> projects = [];
+    private readonly Dictionary<Guid, List<ProcedureReadDto>> procedures = [];
 
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         projects = [.. await ProjectsService.GetListAsync(new ProjectDescriptorDto { Template = true }, CancellationToken.None).GetValueOrDefaultAsync() ?? []];
-        foreach (ProjectDto p in projects)
+        foreach (ProjectReadDto p in projects)
         {
             procedures[p.Id] = [.. await ProceduresService.GetListAsync(new ProcedureDescriptorDto { ProjectId = p.Id }, CancellationToken.None).GetValueOrDefaultAsync() ?? []];
         }
     }
 
-    private void Select(ProcedureDto procedure) => MudDialog.Close(DialogResult.Ok(procedure));
+    private void Select(ProcedureReadDto procedure) => MudDialog.Close(DialogResult.Ok(procedure));
     private void Cancel() => MudDialog.Cancel();
 }

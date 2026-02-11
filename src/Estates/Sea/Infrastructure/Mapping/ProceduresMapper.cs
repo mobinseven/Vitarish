@@ -4,7 +4,7 @@ namespace Vitarish.Sea.Infrastructure.Mapping;
 [RegisterTransient]
 internal partial class ProceduresMapper
 {
-    public partial ProcedureDto ToDto(Procedure src);
+    public partial ProcedureReadDto ToDto(Procedure src);
     public partial Procedure ToDomain(ProcedureWriteDto src);
     public partial ProcedureDescriptor ToDomain(ProcedureDescriptorDto src);
 }

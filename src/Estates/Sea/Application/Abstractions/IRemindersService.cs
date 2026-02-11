@@ -3,9 +3,9 @@ using Vitarish.Sea.Domain.Enums;
 
 namespace Vitarish.Sea.Application.Abstractions;
 
-public interface IRemindersService : IEntityService<ReminderDto, ReminderWriteDto, ReminderDescriptorDto>
+public interface IRemindersService : IEntityService<ReminderReadDto, ReminderWriteDto, ReminderDescriptorDto>
 {
-    Task<IReadOnlyList<ReminderDto>> AddRangeAsync(
+    Task<IReadOnlyList<ReminderReadDto>> AddRangeAsync(
         Guid eventId,
         IReadOnlyList<ReminderRecipientDto> recipients,
         string subject,
@@ -13,7 +13,7 @@ public interface IRemindersService : IEntityService<ReminderDto, ReminderWriteDt
         DateTimeOffset remindAt,
         CancellationToken cancellationToken);
 
-    Task<ReminderDto?> UpdateAsync(
+    Task<ReminderReadDto?> UpdateAsync(
         Guid id,
         ReminderKind kind,
         string recipientUserId,
@@ -23,9 +23,9 @@ public interface IRemindersService : IEntityService<ReminderDto, ReminderWriteDt
         DateTimeOffset remindAt,
         CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<ReminderDto>> GetByEventAsync(Guid eventId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<ReminderReadDto>> GetByEventAsync(Guid eventId, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<ReminderDto>> GetDueAsync(DateTimeOffset now, CancellationToken cancellationToken);
+    Task<IReadOnlyList<ReminderReadDto>> GetDueAsync(DateTimeOffset now, CancellationToken cancellationToken);
 
     Task MarkSentAsync(Guid id, DateTimeOffset sentAt, CancellationToken cancellationToken);
 }

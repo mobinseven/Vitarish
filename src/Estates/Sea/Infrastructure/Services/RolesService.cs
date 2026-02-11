@@ -1,7 +1,7 @@
 namespace Vitarish.Sea.Infrastructure.Services;
 
 [RegisterTransient]
-internal class RolesService(IMediator mediator, RolesMapper mapper) : EntityService<Role, RoleDescriptor, RoleDto, RoleWriteDto, RoleDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IRolesService
+internal class RolesService(IMediator mediator, RolesMapper mapper) : EntityService<Role, RoleDescriptor, RoleReadDto, RoleWriteDto, RoleDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IRolesService
 {
     public async Task<Guid> AddAsync(string name, CancellationToken cancellationToken)
     {
@@ -22,9 +22,9 @@ internal class RolesService(IMediator mediator, RolesMapper mapper) : EntityServ
         _ = (await UpdateEntityAsync(role, cancellationToken)).EnsureValue("Update role");
     }
 
-    public async Task<(IReadOnlyList<RoleDto> Items, int TotalItems)> GetPagedAsync(RoleDescriptorDto descriptor, CancellationToken cancellationToken)
+    public async Task<(IReadOnlyList<RoleReadDto> Items, int TotalItems)> GetPagedAsync(RoleDescriptorDto descriptor, CancellationToken cancellationToken)
     {
-        PartedResult<RoleDto> result = (await GetPartedAsync(descriptor, cancellationToken))
+        PartedResult<RoleReadDto> result = (await GetPartedAsync(descriptor, cancellationToken))
             .EnsureValue("Get paged roles");
         return (result.Items, result.TotalItems);
     }

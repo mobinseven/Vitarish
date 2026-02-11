@@ -4,7 +4,7 @@ namespace Vitarish.Sea.Infrastructure.Mapping;
 [RegisterTransient]
 internal partial class ReceiptsMapper
 {
-    public partial ReceiptDto ToDto(Receipt src);
+    public partial ReceiptReadDto ToDto(Receipt src);
     public partial Receipt ToDomain(ReceiptWriteDto src);
     public partial ReceiptDescriptor ToDomain(ReceiptDescriptorDto src);
 }

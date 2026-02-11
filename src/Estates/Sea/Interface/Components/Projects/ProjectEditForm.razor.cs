@@ -4,7 +4,7 @@ public partial class ProjectEditForm : ProjectsBase
 {
     [Inject] private IEnumerable<IProjectEditPlugin> ProjectEditPlugins { get; set; } = [];
 
-    [Parameter] public ProjectDto? Project { get; set; }
+    [Parameter] public ProjectReadDto? Project { get; set; }
     [Parameter] public EventCallback<Guid> OnUpdate { get; set; }
     [Parameter] public EventCallback<Guid> OnCreate { get; set; }
     [Parameter] public EventCallback OnCancel { get; set; }

@@ -5,6 +5,6 @@ public class RemindersBase : SeaCommonBase
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        RenderForType<ReminderDto>();
+        RenderForType<ReminderReadDto>();
     }
 }

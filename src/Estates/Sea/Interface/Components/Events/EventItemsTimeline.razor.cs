@@ -3,9 +3,9 @@ namespace Vitarish.Sea.Interface.Components.Events;
 public partial class EventItemsTimeline : EventsBase
 {
     [Parameter] public Color Color { get; set; }
-    [Parameter, EditorRequired] public EventDto Event { get; set; } = default!;
-    [Parameter, EditorRequired] public ProcedureDto Procedure { get; set; } = default!;
-    [Parameter, EditorRequired] public ProjectDto Project { get; set; } = default!;
+    [Parameter, EditorRequired] public EventReadDto Event { get; set; } = default!;
+    [Parameter, EditorRequired] public ProcedureReadDto Procedure { get; set; } = default!;
+    [Parameter, EditorRequired] public ProjectReadDto Project { get; set; } = default!;
 
     [Inject] private IEnumerable<IEventItemPlugin> Plugins { get; set; } = default!;
 

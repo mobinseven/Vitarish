@@ -2,7 +2,7 @@ namespace Vitarish.Sea.Interface.Components.Misc;
 
 public partial class ProgressDisplay
 {
-    [Parameter, EditorRequired] public StatsDto Stats { get; set; }
+    [Parameter, EditorRequired] public StatsReadDto Stats { get; set; }
     [Parameter, EditorRequired] public string Title { get; set; }
 
     private string ProgressIcon(ProgressState? state) => state switch

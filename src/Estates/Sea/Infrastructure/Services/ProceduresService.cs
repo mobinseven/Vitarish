@@ -5,7 +5,7 @@ internal class ProceduresService(
     IMediator mediator,
     ProceduresMapper mapper,
     IEventsService eventsService)
-    : EntityService<Procedure, ProcedureDescriptor, ProcedureDto, ProcedureWriteDto, ProcedureDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IProceduresService
+    : EntityService<Procedure, ProcedureDescriptor, ProcedureReadDto, ProcedureWriteDto, ProcedureDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IProceduresService
 {
     public async Task<Guid> AddAsync(Guid projectId, string name, CancellationToken cancellationToken)
     {
@@ -52,7 +52,7 @@ internal class ProceduresService(
 
     public async Task<ProcedureSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken)
     {
-        ProcedureDto? procedure = (await GetAsync(id, cancellationToken)).GetValueOrDefault();
+        ProcedureReadDto? procedure = (await GetAsync(id, cancellationToken)).GetValueOrDefault();
         if (procedure is null)
         {
             return null;
@@ -60,9 +60,9 @@ internal class ProceduresService(
 
         (string? overview, DateTimeOffset? updatedAt) = OverviewMetadataParser.Parse(procedure.Metadata);
 
-        IReadOnlyList<EventDto> events = await eventsService.GetByProcedureAsync(id, cancellationToken);
+        IReadOnlyList<EventReadDto> events = await eventsService.GetByProcedureAsync(id, cancellationToken);
         List<EventSnapshot> eventSnapshots = new(events.Count);
-        foreach (EventDto eventDto in events)
+        foreach (EventReadDto eventDto in events)
         {
             EventSnapshot? snapshot = await eventsService.CaptureSnapshotAsync(eventDto.Id, cancellationToken);
             if (snapshot is not null)

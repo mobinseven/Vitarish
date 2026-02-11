@@ -5,10 +5,10 @@ internal class EventsService(
     IMediator mediator,
     EventsMapper mapper,
     IAttachmentsService attachmentsService)
-    : EntityService<Event, EventDescriptor, EventDto, EventWriteDto, EventDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IEventsService
+    : EntityService<Event, EventDescriptor, EventReadDto, EventWriteDto, EventDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IEventsService
 {
 
-    public async Task<IReadOnlyList<EventDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken) => (await GetListAsync(new EventDescriptor { ProcedureId = procedureId, IncludeStats = true }, cancellationToken))
+    public async Task<IReadOnlyList<EventReadDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken) => (await GetListAsync(new EventDescriptor { ProcedureId = procedureId, IncludeStats = true }, cancellationToken))
             .EnsureValue("Get events by procedure");
 
     public async Task UpdateChainAsync(
@@ -19,7 +19,7 @@ internal class EventsService(
                 [.. chainChangeDtos.Select(dto => new EventChainChange(dto.Id, dto.PreviousEventId))]),
             cancellationToken);
 
-    public async Task<EventDto?> AddAsync(
+    public async Task<EventReadDto?> AddAsync(
         Guid projectId,
         Guid procedureId,
         Guid? previousEventId,
@@ -42,7 +42,7 @@ internal class EventsService(
     public Task RepairChainAsync(Guid procedureId, CancellationToken cancellationToken)
         => Mediator.Send(new RepairEventChainCommand(procedureId), cancellationToken);
 
-    public async Task<EventDto?> UpdateAsync(
+    public async Task<EventReadDto?> UpdateAsync(
         Guid id,
         string title,
         string description,
@@ -80,15 +80,15 @@ internal class EventsService(
 
     public async Task<EventSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken)
     {
-        EventDto? eventDto = (await GetAsync(id, cancellationToken)).GetValueOrDefault();
+        EventReadDto? eventDto = (await GetAsync(id, cancellationToken)).GetValueOrDefault();
         if (eventDto is null)
         {
             return null;
         }
 
-        IReadOnlyList<AttachmentDto> attachments = await attachmentsService.GetByEventAsync(id, cancellationToken);
+        IReadOnlyList<AttachmentReadDto> attachments = await attachmentsService.GetByEventAsync(id, cancellationToken);
         List<AttachmentSnapshot> attachmentSnapshots = new(attachments.Count);
-        foreach (AttachmentDto attachment in attachments)
+        foreach (AttachmentReadDto attachment in attachments)
         {
             attachmentSnapshots.Add(new AttachmentSnapshot(attachment.Id, attachment.Content));
         }

@@ -1,6 +1,6 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public record ProcedureDto(
+public record ProcedureReadDto(
     [property: JsonPropertyName("projectId")] Guid ProjectId,
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("metadata")] string Metadata = "{}") : EntityDto
@@ -10,6 +10,6 @@ public record ProcedureDto(
 
     [JsonPropertyName("stats")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public StatsDto? Stats { get; init; }
+    public StatsReadDto? Stats { get; init; }
 }
 

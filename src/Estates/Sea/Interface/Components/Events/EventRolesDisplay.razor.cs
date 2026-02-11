@@ -2,7 +2,7 @@ namespace Vitarish.Sea.Interface.Components.Events;
 
 public partial class EventRolesDisplay : EventsBase
 {
-    [Parameter, EditorRequired] public EventDto Event { get; set; } = default!;
+    [Parameter, EditorRequired] public EventReadDto Event { get; set; } = default!;
 
     private readonly List<RoleChip> roles = [];
 
@@ -14,10 +14,10 @@ public partial class EventRolesDisplay : EventsBase
     {
         roles.Clear();
         (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds) = await EventRolesService.GetIdsAsync(Event.Id, CancellationToken.None);
-        IReadOnlyList<RoleDto> allRoles = await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        IReadOnlyList<RoleReadDto> allRoles = await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None).GetValueOrDefaultAsync() ?? [];
         foreach (Guid id in ReadRoleIds)
         {
-            RoleDto? role = allRoles.FirstOrDefault(r => r.Id == id);
+            RoleReadDto? role = allRoles.FirstOrDefault(r => r.Id == id);
             if (role is not null)
             {
                 roles.Add(new RoleChip(role.Name, RoleType.Read));
@@ -25,7 +25,7 @@ public partial class EventRolesDisplay : EventsBase
         }
         foreach (Guid id in WriteRoleIds)
         {
-            RoleDto? role = allRoles.FirstOrDefault(r => r.Id == id);
+            RoleReadDto? role = allRoles.FirstOrDefault(r => r.Id == id);
             if (role is not null)
             {
                 roles.Add(new RoleChip(role.Name, RoleType.Write));

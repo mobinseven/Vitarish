@@ -4,7 +4,7 @@ namespace Vitarish.Sea.Infrastructure.Mapping;
 [RegisterTransient]
 internal partial class EventRolesMapper
 {
-    public partial EventRoleDto ToDto(EventRole src);
+    public partial EventRoleReadDto ToDto(EventRole src);
     public partial EventRole ToDomain(EventRoleWriteDto src);
     public partial EventRoleDescriptor ToDomain(EventRoleDescriptorDto src);
 }

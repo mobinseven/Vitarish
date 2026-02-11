@@ -4,7 +4,7 @@ public partial class UserRolesSelect : UsersBase
 {
     [Parameter, EditorRequired] public UserDto User { get; set; }
 
-    private List<RoleDto> roles = [];
+    private List<RoleReadDto> roles = [];
     private HashSet<Guid> readRoles = [];
     private HashSet<Guid> writeRoles = [];
     private HashSet<Guid> initialReadRoles = [];
@@ -21,7 +21,7 @@ public partial class UserRolesSelect : UsersBase
         }
 
         roles = [.. await RolesService.GetListAsync(new RoleDescriptorDto(), CancellationToken.None).GetValueOrDefaultAsync() ?? []];
-        IReadOnlyList<UserRoleDto> userRoles = await UserRolesService.GetListAsync(
+        IReadOnlyList<UserRoleReadDto> userRoles = await UserRolesService.GetListAsync(
                 new UserRoleDescriptorDto { UserId = userId },
                 CancellationToken.None).GetValueOrDefaultAsync() ?? [];
         readRoles = [.. userRoles.Where(r => r.Type == RoleType.Read).Select(r => r.RoleId)];
@@ -93,14 +93,14 @@ public partial class UserRolesSelect : UsersBase
 
         if (value.Value)
         {
-            foreach (RoleDto r in roles)
+            foreach (RoleReadDto r in roles)
             {
                 _ = set.Add(r.Id);
             }
         }
         else
         {
-            foreach (RoleDto r in roles)
+            foreach (RoleReadDto r in roles)
             {
                 _ = set.Remove(r.Id);
             }

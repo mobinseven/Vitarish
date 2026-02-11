@@ -8,6 +8,6 @@ public class ProceduresBase : SeaCommonBase
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        RenderForType<ProcedureDto>();
+        RenderForType<ProcedureReadDto>();
     }
 }

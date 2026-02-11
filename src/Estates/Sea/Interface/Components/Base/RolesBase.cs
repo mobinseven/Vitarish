@@ -6,6 +6,6 @@ public class RolesBase : SeaCommonBase
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        RenderForType<RoleDto>();
+        RenderForType<RoleReadDto>();
     }
 }

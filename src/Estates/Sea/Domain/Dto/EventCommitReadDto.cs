@@ -1,5 +1,5 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public record EventCommitDto(
+public record EventCommitReadDto(
     [property: JsonPropertyName("reporterUserId")] Guid ReporterUserId,
     [property: JsonPropertyName("commitTime")] DateTimeOffset CommitTime);

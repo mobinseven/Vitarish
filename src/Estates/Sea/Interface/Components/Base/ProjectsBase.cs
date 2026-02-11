@@ -7,6 +7,6 @@ public class ProjectsBase : SeaCommonBase
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        RenderForType<ProjectDto>();
+        RenderForType<ProjectReadDto>();
     }
 }

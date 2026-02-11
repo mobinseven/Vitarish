@@ -1,6 +1,6 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public record EventDto(
+public record EventReadDto(
     [property: JsonPropertyName("projectId")] Guid ProjectId,
     [property: JsonPropertyName("procedureId")] Guid ProcedureId,
     [property: JsonPropertyName("previousEventId")] Guid? PreviousEventId,
@@ -21,6 +21,6 @@ public record EventDto(
 
     [JsonPropertyName("stats")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public StatsDto? Stats { get; init; }
+    public StatsReadDto? Stats { get; init; }
 }
 

@@ -2,11 +2,11 @@ namespace Vitarish.Sea.Interface.Components.Events;
 
 public partial class EventsGrid : EventsBase
 {
-    [Parameter, EditorRequired] public ProjectDto Project { get; set; }
-    [Parameter, EditorRequired] public ProcedureDto Procedure { get; set; }
+    [Parameter, EditorRequired] public ProjectReadDto Project { get; set; }
+    [Parameter, EditorRequired] public ProcedureReadDto Procedure { get; set; }
     [Parameter] public EventCallback<Guid?> EventClicked { get; set; }
 
-    private List<EventDto> events = [];
+    private List<EventReadDto> events = [];
 
     private async Task ReloadData()
     {
@@ -29,19 +29,19 @@ public partial class EventsGrid : EventsBase
         }
     }
 
-    private bool IsFirst(EventDto e) => events.GetFirstByChain()?.Id == e.Id;
-    private bool IsLast(EventDto e) => events.GetLastByChain()?.Id == e.Id;
+    private bool IsFirst(EventReadDto e) => events.GetFirstByChain()?.Id == e.Id;
+    private bool IsLast(EventReadDto e) => events.GetLastByChain()?.Id == e.Id;
 
     private Task AddEvent() => AddEventAt(events.GetLastByChain()?.Id);
 
-    private Task AddEventAfter(EventDto item) => AddEventAt(item.Id);
+    private Task AddEventAfter(EventReadDto item) => AddEventAt(item.Id);
 
     private async Task AddEventAt(Guid? previousEventId)
     {
-        EventDto? created = await EventsService.AddAsync(Project.Id, Procedure.Id, previousEventId, CancellationToken.None);
+        EventReadDto? created = await EventsService.AddAsync(Project.Id, Procedure.Id, previousEventId, CancellationToken.None);
         if (created is not null)
         {
-            EventDto? updated = await EventsService.UpdateAsync(created.Id, $"{Localizer["Event"]} {events.Count}", string.Empty, CancellationToken.None);
+            EventReadDto? updated = await EventsService.UpdateAsync(created.Id, $"{Localizer["Event"]} {events.Count}", string.Empty, CancellationToken.None);
             if (updated is not null)
             {
                 await EditEvent(updated);
@@ -49,7 +49,7 @@ public partial class EventsGrid : EventsBase
         }
     }
 
-    private async Task EditEvent(EventDto item)
+    private async Task EditEvent(EventReadDto item)
     {
         DialogParameters parameters = new()
         {
@@ -60,7 +60,7 @@ public partial class EventsGrid : EventsBase
     }
 
 
-    private async Task MoveUp(EventDto item)
+    private async Task MoveUp(EventReadDto item)
     {
         if (await EventsService.MoveUpAsync(Procedure.Id, item.Id, CancellationToken.None))
         {
@@ -68,7 +68,7 @@ public partial class EventsGrid : EventsBase
         }
     }
 
-    private async Task MoveDown(EventDto item)
+    private async Task MoveDown(EventReadDto item)
     {
         if (await EventsService.MoveDownAsync(Procedure.Id, item.Id, CancellationToken.None))
         {

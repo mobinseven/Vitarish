@@ -1,5 +1,5 @@
 using Vitarish.Estates.Aggregator;
-using Vitarish.Parties.Application.Dtos;
+using Vitarish.Parties.Domain.Dtos;
 
 namespace Vitarish.Interfaces.Admins.Components;
 

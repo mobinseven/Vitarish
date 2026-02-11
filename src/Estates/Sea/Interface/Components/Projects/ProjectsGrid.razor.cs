@@ -8,7 +8,7 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
     [Inject] private IEnumerable<IProjectsGridPlugin> ProjectsGridPlugins { get; set; } = [];
     private IProjectsGridPlugin? Plugin => ProjectsGridPlugins.SingleOrDefault(p => p.Id == MetadataService?.PluginIdentifier);
 
-    protected List<ProjectDto> projects = [];
+    protected List<ProjectReadDto> projects = [];
     protected override Task OnSearchedAsync() => ReloadRequired();
     protected override async Task ReloadRequired()
     {
@@ -25,7 +25,7 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
             Template = TemplateMode
         };
 
-        IReadOnlyList<ProjectDto> Items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        IReadOnlyList<ProjectReadDto> Items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
 
         projects = [.. Items
             .OrderByDescending(e => (e.Stats?.NewItems ?? 0) > 0)

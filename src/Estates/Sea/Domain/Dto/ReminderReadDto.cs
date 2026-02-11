@@ -1,6 +1,6 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public record ReminderDto(
+public record ReminderReadDto(
     [property: JsonPropertyName("eventId")] Guid EventId,
     [property: JsonPropertyName("kind")] ReminderKind Kind,
     [property: JsonPropertyName("recipientUserId")] string RecipientUserId,

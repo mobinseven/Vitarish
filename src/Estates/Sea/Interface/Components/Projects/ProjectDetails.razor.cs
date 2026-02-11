@@ -2,7 +2,7 @@ namespace Vitarish.Sea.Interface.Components.Projects;
 
 public partial class ProjectDetails : ProjectsBase
 {
-    [Parameter, EditorRequired] public ProjectDto Project { get; set; } = default!;
+    [Parameter, EditorRequired] public ProjectReadDto Project { get; set; } = default!;
     [Parameter] public EventCallback OnDeleted { get; set; }
     [Parameter] public EventCallback<Guid> OnEdit { get; set; }
     [Inject] private IEnumerable<IProjectDetailsPlugin> Plugins { get; set; } = [];

@@ -1,6 +1,6 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public sealed record StatsDto
+public sealed record StatsReadDto
 {
     [property: JsonPropertyName("state")] public ProgressState? State { get; set; }
     [property: JsonPropertyName("procedures")] public int Procedures { get; set; }

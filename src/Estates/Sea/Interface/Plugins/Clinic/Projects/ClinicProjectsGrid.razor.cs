@@ -7,8 +7,8 @@ public partial class ClinicProjectsGrid
 {
     private bool MassEditMode;
 
-    private IReadOnlyList<ProjectDto>? projectsViaSurgeryData;
-    private IReadOnlyList<ProjectDto>? projectsLackSurgeryData;
+    private IReadOnlyList<ProjectReadDto>? projectsViaSurgeryData;
+    private IReadOnlyList<ProjectReadDto>? projectsLackSurgeryData;
 
     protected override async Task ReloadRequired()
     {
@@ -20,7 +20,7 @@ public partial class ClinicProjectsGrid
             Template = TemplateMode
         };
 
-        IReadOnlyList<ProjectDto> Items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        IReadOnlyList<ProjectReadDto> Items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
 
         projects = [.. Items];
         projects.ForEach(p => p.MetadataObject = p.GetClinicProjectMetadata());

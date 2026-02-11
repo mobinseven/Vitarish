@@ -5,7 +5,7 @@ namespace Vitarish.Sea.Interface.Components.Reminders;
 public partial class ReminderDisplay : SeaCommonBase
 {
     [Parameter] public Color Color { get; set; }
-    [Parameter, EditorRequired] public ReminderDto Reminder { get; set; } = default!;
+    [Parameter, EditorRequired] public ReminderReadDto Reminder { get; set; } = default!;
     private async Task ShowDetails()
     {
         DialogParameters parameters = new()
