@@ -23,7 +23,7 @@ public partial class AddressBookDialog : SeaCommonBase
         {
             return;
         }
-        ReminderRecipientReadDto recipient = new(Kind, user.Id, address);
+        ReminderRecipientReadDto recipient = new() { Kind = Kind, RecipientUserId = user.Id, Recipient = address };
         if (!selected.Add(recipient))
         {
             _ = selected.Remove(recipient);
@@ -38,7 +38,7 @@ public partial class AddressBookDialog : SeaCommonBase
         {
             return false;
         }
-        ReminderRecipientReadDto recipient = new(Kind, user.Id, address);
+        ReminderRecipientReadDto recipient = new() { Kind = Kind, RecipientUserId = user.Id, Recipient = address };
         return selected.Contains(recipient);
     }
 
@@ -46,7 +46,7 @@ public partial class AddressBookDialog : SeaCommonBase
     {
         if (!string.IsNullOrWhiteSpace(customAddress))
         {
-            ReminderRecipientReadDto recipient = new(Kind, null, customAddress);
+            ReminderRecipientReadDto recipient = new() { Kind = Kind, RecipientUserId = null, Recipient = customAddress };
             _ = selected.Add(recipient);
             customAddress = string.Empty;
         }

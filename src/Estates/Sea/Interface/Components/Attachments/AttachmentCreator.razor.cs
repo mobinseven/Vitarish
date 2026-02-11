@@ -11,11 +11,14 @@ public partial class AttachmentCreator : AttachmentsBase
 
     private async Task OnUploaded(FileInformationDto fileInfo)
     {
-        AttachmentReadDto attachment = new(
-            fileInfo.Id.ToString(),
-            fileInfo.ContentType ?? string.Empty,
-            fileInfo.Thumbnail,
-            fileInfo.Metadata.Size);
+        AttachmentReadDto attachment = new()
+        {
+            Id = Guid.Parse(fileInfo.Id.ToString()),
+            Content = fileInfo.Id.ToString(),
+            ContentType = fileInfo.ContentType ?? string.Empty,
+            ContentThumbnail = fileInfo.Thumbnail,
+            Size = fileInfo.Metadata.Size
+        };
         await AttachmentsService.AddAsync(Event.Id, [attachment], CancellationToken.None);
     }
     private async Task AddTextAttachment()

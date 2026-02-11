@@ -69,7 +69,7 @@ public class AttachmentMigrationProcessor(
                 };
 
                 var eventsResult = await eventsService.GetListAsync(eventDescriptor, cancellationToken);
-                IReadOnlyList<EventDto>? events = eventsResult.GetValueOrDefault();
+                IReadOnlyList<EventReadDto>? events = eventsResult.GetValueOrDefault();
 
                 if (events == null || events.Count == 0)
                 {
@@ -82,14 +82,14 @@ public class AttachmentMigrationProcessor(
 
                 processedEventCount += events.Count;
 
-                foreach (EventDto eventDto in events)
+                foreach (EventReadDto eventDto in events)
                 {
                     try
                     {
                         // Get all attachments for this event
-                        IReadOnlyList<AttachmentDto> attachments = await attachmentsService.GetByEventAsync(eventDto.Id, cancellationToken);
+                        IReadOnlyList<AttachmentReadDto> attachments = await attachmentsService.GetByEventAsync(eventDto.Id, cancellationToken);
 
-                        foreach (AttachmentDto attachment in attachments)
+                        foreach (AttachmentReadDto attachment in attachments)
                         {
                             try
                             {
@@ -134,7 +134,7 @@ public class AttachmentMigrationProcessor(
                                     FileInformationDto fileInfo = fileInfos[0];
 
                                     // Update the attachment content to use the file ID
-                                    AttachmentDto? updated = await attachmentsService.UpdateAsync(
+                                    AttachmentReadDto? updated = await attachmentsService.UpdateAsync(
                                         eventDto.Id,
                                         attachment.Id,
                                         fileInfo.Id.ToString(),

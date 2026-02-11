@@ -1,11 +1,11 @@
 @inherits RolesBase
 
-<MudDataGrid T="RoleDto" Items="@roles" Hover="true" Class="mt-4">
+<MudDataGrid T="RoleReadDto" Items="@roles" Hover="true" Class="mt-4">
     <ToolBarContent>
         <MudButton StartIcon="@Icons.Material.Filled.Add" OnClick="AddRole">@Localizer["Add"]</MudButton>
     </ToolBarContent>
     <Columns>
-        <TemplateColumn T="RoleDto">
+        <TemplateColumn T="RoleReadDto">
             <CellTemplate Context="context">
                 <MudIconButton Icon="@Icons.Material.Filled.Edit" OnClick="@(() => EditRole(context.Item))" />
                 <MudIconButton Color="Color.Error" Icon="@Icons.Material.Filled.Delete" OnClick="@(() => DeleteRole(context.Item))" />
