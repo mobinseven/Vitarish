@@ -254,6 +254,17 @@ public sealed class EntitiesMappingExtensionsGenerator : ISourceGenerator
         sb.AppendLine($"    public static class {dotlessName}EntityMappingExtensions");
         sb.AppendLine("    {");
 
+        // Generate static mapper instances for efficiency
+        foreach (var mapping in mappings)
+        {
+            string entityName = mapping.Entity.Name;
+            string entityNamespace = mapping.Entity.ContainingNamespace.ToDisplayString();
+            string mapperFull = $"global::{entityNamespace}.{entityName}EntityMapper";
+            
+            sb.AppendLine($"        private static readonly {mapperFull} {entityName}Mapper = new {mapperFull}();");
+        }
+        sb.AppendLine();
+
         foreach (var mapping in mappings)
         {
             string entityFull = mapping.Entity.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
@@ -262,8 +273,6 @@ public sealed class EntitiesMappingExtensionsGenerator : ISourceGenerator
             string descriptorFull = mapping.Descriptor.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             string descriptorDtoFull = mapping.DescriptorDto.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
             string entityName = mapping.Entity.Name;
-            string entityNamespace = mapping.Entity.ContainingNamespace.ToDisplayString();
-            string mapperFull = $"global::{entityNamespace}.{entityName}EntityMapper";
 
             // Generate ToDto extension method (Entity -> ReadDto) - delegates to mapper
             sb.AppendLine($"        /// <summary>");
@@ -271,7 +280,7 @@ public sealed class EntitiesMappingExtensionsGenerator : ISourceGenerator
             sb.AppendLine($"        /// </summary>");
             sb.AppendLine($"        public static {readDtoFull} ToDto(this {entityFull} entity)");
             sb.AppendLine($"        {{");
-            sb.AppendLine($"            return new {mapperFull}().ToDto(entity);");
+            sb.AppendLine($"            return {entityName}Mapper.ToDto(entity);");
             sb.AppendLine($"        }}");
             sb.AppendLine();
 
@@ -281,7 +290,7 @@ public sealed class EntitiesMappingExtensionsGenerator : ISourceGenerator
             sb.AppendLine($"        /// </summary>");
             sb.AppendLine($"        public static {entityFull} ToDomain(this {writeDtoFull} dto)");
             sb.AppendLine($"        {{");
-            sb.AppendLine($"            return new {mapperFull}().ToDomain(dto);");
+            sb.AppendLine($"            return {entityName}Mapper.ToDomain(dto);");
             sb.AppendLine($"        }}");
             sb.AppendLine();
 
@@ -291,7 +300,7 @@ public sealed class EntitiesMappingExtensionsGenerator : ISourceGenerator
             sb.AppendLine($"        /// </summary>");
             sb.AppendLine($"        public static {descriptorFull} ToDomain(this {descriptorDtoFull} dto)");
             sb.AppendLine($"        {{");
-            sb.AppendLine($"            return new {mapperFull}().ToDomain(dto);");
+            sb.AppendLine($"            return {entityName}Mapper.ToDomain(dto);");
             sb.AppendLine($"        }}");
             sb.AppendLine();
         }
