@@ -27,11 +27,7 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
         string descriptorAttributeName = nameof(EntityDescriptorForAttribute);
         INamedTypeSymbol? entityBase = context.Compilation.GetTypeByMetadataName("Vitarish.Entities.Server.Core.Entity");
         INamedTypeSymbol? descriptorBase = context.Compilation.GetTypeByMetadataName("Vitarish.Entities.Server.Core.EntityDescriptor");
-        INamedTypeSymbol? readDtoBase = context.Compilation.GetTypeByMetadataName("Vitarish.Entities.Server.Models.EntityReadDto");
-        INamedTypeSymbol? writeDtoBase = context.Compilation.GetTypeByMetadataName("Vitarish.Entities.Server.Models.EntityWriteDto");
-        INamedTypeSymbol? descriptorDtoBase = context.Compilation.GetTypeByMetadataName("Vitarish.Entities.Server.Models.EntityDescriptorDto");
         Dictionary<INamedTypeSymbol, INamedTypeSymbol> descriptors = new(SymbolEqualityComparer.Default);
-        Dictionary<INamedTypeSymbol, MapperInfo> mappers = new(SymbolEqualityComparer.Default);
 
         // Search in current compilation
         foreach(SyntaxTree tree in context.Compilation.SyntaxTrees)
@@ -57,38 +53,15 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
                         descriptors[entityType] = symbol;
                     }
                 }
-
-                // Check if it's an Entity type to find mapper
-                if (!symbol.IsAbstract && entityBase is not null && InheritsFrom(symbol, entityBase))
-                {
-                    string entityName = symbol.Name;
-                    
-                    // Find corresponding DTOs by naming convention
-                    INamedTypeSymbol? readDto = FindTypeByName(context.Compilation, $"{entityName}ReadDto", readDtoBase);
-                    INamedTypeSymbol? writeDto = FindTypeByName(context.Compilation, $"{entityName}WriteDto", writeDtoBase);
-                    INamedTypeSymbol? descriptor = FindTypeByName(context.Compilation, $"{entityName}Descriptor", descriptorBase);
-                    INamedTypeSymbol? descriptorDto = FindTypeByName(context.Compilation, $"{entityName}DescriptorDto", descriptorDtoBase);
-
-                    // Only use mapper if all required types are found
-                    if (readDto is not null && writeDto is not null && descriptor is not null && descriptorDto is not null)
-                    {
-                        mappers[symbol] = new MapperInfo(
-                            readDto,
-                            writeDto,
-                            descriptor,
-                            descriptorDto
-                        );
-                    }
-                }
             }
         }
 
-        // Search in referenced assemblies for descriptors and entities
+        // Search in referenced assemblies for descriptors
         foreach (IAssemblySymbol refAssembly in context.Compilation.References
             .Select(r => context.Compilation.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol)
             .Where(a => a is not null))
         {
-            FindDescriptorsInAssembly(refAssembly!, descriptorAttributeName, entityBase, descriptorBase, descriptors, mappers, context.Compilation, readDtoBase, writeDtoBase, descriptorDtoBase);
+            FindDescriptorsInAssembly(refAssembly!, descriptorAttributeName, entityBase, descriptorBase, descriptors);
         }
         string extensionClassName = $"EntityManagementRegistrationOf{dotlessName}";
         StringBuilder sb = new();
@@ -147,17 +120,6 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
             string entityName = entity.Name;
 
             sb.AppendLine($"        // {entityName} handlers and cache");
-
-            // Register mapper if available
-            if (mappers.TryGetValue(entity, out MapperInfo? mapperInfo))
-            {
-                string readDtoFull = mapperInfo.ReadDto.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                string writeDtoFull = mapperInfo.WriteDto.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                string descriptorDtoFull = mapperInfo.DescriptorDto.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
-                string mapperFull = $"{entity.ContainingNamespace.ToDisplayString()}.{entityName}Mapper";
-                sb.AppendLine($"        services.AddSingleton<IEntityMapper<{entityFull}, {readDtoFull}, {writeDtoFull}, {descriptorFull}, {descriptorDtoFull}>, {mapperFull}>();");
-            }
-
             sb.AppendLine($"        services.AddTransient<IRequestHandler<AddEntityCommand<{entityFull}, {descriptorFull}>, {entityFull}?>, AddEntityHandler<{entityFull}, {descriptorFull}>>();");
             sb.AppendLine($"        services.AddTransient<IRequestHandler<AddEntitiesCommand<{entityFull}, {descriptorFull}>, IReadOnlyList<{entityFull}>>, AddEntitiesHandler<{entityFull}, {descriptorFull}>>();");
             sb.AppendLine($"        services.AddTransient<IRequestHandler<UpdateEntityCommand<{entityFull}, {descriptorFull}>, {entityFull}?>, UpdateEntityHandler<{entityFull}, {descriptorFull}>>();");
@@ -203,14 +165,9 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
         string descriptorAttributeName,
         INamedTypeSymbol? entityBase,
         INamedTypeSymbol? descriptorBase,
-        Dictionary<INamedTypeSymbol, INamedTypeSymbol> descriptors,
-        Dictionary<INamedTypeSymbol, MapperInfo> mappers,
-        Compilation compilation,
-        INamedTypeSymbol? readDtoBase,
-        INamedTypeSymbol? writeDtoBase,
-        INamedTypeSymbol? descriptorDtoBase)
+        Dictionary<INamedTypeSymbol, INamedTypeSymbol> descriptors)
     {
-        FindDescriptorsInNamespace(assembly.GlobalNamespace, descriptorAttributeName, entityBase, descriptorBase, descriptors, mappers, compilation, readDtoBase, writeDtoBase, descriptorDtoBase);
+        FindDescriptorsInNamespace(assembly.GlobalNamespace, descriptorAttributeName, entityBase, descriptorBase, descriptors);
     }
 
     private static void FindDescriptorsInNamespace(
@@ -218,12 +175,7 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
         string descriptorAttributeName,
         INamedTypeSymbol? entityBase,
         INamedTypeSymbol? descriptorBase,
-        Dictionary<INamedTypeSymbol, INamedTypeSymbol> descriptors,
-        Dictionary<INamedTypeSymbol, MapperInfo> mappers,
-        Compilation compilation,
-        INamedTypeSymbol? readDtoBase,
-        INamedTypeSymbol? writeDtoBase,
-        INamedTypeSymbol? descriptorDtoBase)
+        Dictionary<INamedTypeSymbol, INamedTypeSymbol> descriptors)
     {
         foreach (INamedTypeSymbol type in namespaceSymbol.GetTypeMembers())
         {
@@ -239,111 +191,13 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
                     && (entityBase is null || InheritsFrom(entityType, entityBase)))
                 {
                     descriptors[entityType] = type;
-                    
-                    // Try to find mapper info for this entity
-                    string entityName = entityType.Name;
-                    INamedTypeSymbol? readDto = FindTypeByName(compilation, $"{entityName}ReadDto", readDtoBase);
-                    INamedTypeSymbol? writeDto = FindTypeByName(compilation, $"{entityName}WriteDto", writeDtoBase);
-                    INamedTypeSymbol? descriptorDto = FindTypeByName(compilation, $"{entityName}DescriptorDto", descriptorDtoBase);
-
-                    if (readDto is not null && writeDto is not null && descriptorDto is not null)
-                    {
-                        mappers[entityType] = new MapperInfo(
-                            readDto,
-                            writeDto,
-                            type,
-                            descriptorDto
-                        );
-                    }
                 }
             }
         }
 
         foreach (INamespaceSymbol childNamespace in namespaceSymbol.GetNamespaceMembers())
         {
-            FindDescriptorsInNamespace(childNamespace, descriptorAttributeName, entityBase, descriptorBase, descriptors, mappers, compilation, readDtoBase, writeDtoBase, descriptorDtoBase);
-        }
-    }
-
-    private static INamedTypeSymbol? FindTypeByName(Compilation compilation, string typeName, INamedTypeSymbol? baseType)
-    {
-        // First, search in the current compilation
-        foreach (SyntaxTree tree in compilation.SyntaxTrees)
-        {
-            SemanticModel model = compilation.GetSemanticModel(tree);
-            foreach (TypeDeclarationSyntax node in tree.GetRoot().DescendantNodes().OfType<TypeDeclarationSyntax>())
-            {
-                if (model.GetDeclaredSymbol(node) is INamedTypeSymbol symbol 
-                    && symbol.Name == typeName
-                    && !symbol.IsAbstract
-                    && (baseType is null || InheritsFrom(symbol, baseType)))
-                {
-                    return symbol;
-                }
-            }
-        }
-
-        // Search in referenced assemblies
-        foreach (IAssemblySymbol assembly in compilation.References
-            .Select(r => compilation.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol)
-            .Where(a => a is not null))
-        {
-            INamedTypeSymbol? type = FindTypeInAssembly(assembly!, typeName, baseType);
-            if (type is not null)
-            {
-                return type;
-            }
-        }
-
-        return null;
-    }
-
-    private static INamedTypeSymbol? FindTypeInAssembly(IAssemblySymbol assembly, string typeName, INamedTypeSymbol? baseType)
-    {
-        return FindTypeInNamespace(assembly.GlobalNamespace, typeName, baseType);
-    }
-
-    private static INamedTypeSymbol? FindTypeInNamespace(INamespaceSymbol namespaceSymbol, string typeName, INamedTypeSymbol? baseType)
-    {
-        foreach (INamedTypeSymbol type in namespaceSymbol.GetTypeMembers())
-        {
-            if (type.Name == typeName 
-                && !type.IsAbstract
-                && (baseType is null || InheritsFrom(type, baseType)))
-            {
-                return type;
-            }
-        }
-
-        foreach (INamespaceSymbol childNamespace in namespaceSymbol.GetNamespaceMembers())
-        {
-            INamedTypeSymbol? type = FindTypeInNamespace(childNamespace, typeName, baseType);
-            if (type is not null)
-            {
-                return type;
-            }
-        }
-
-        return null;
-    }
-
-    private sealed class MapperInfo
-    {
-        public INamedTypeSymbol ReadDto { get; }
-        public INamedTypeSymbol WriteDto { get; }
-        public INamedTypeSymbol Descriptor { get; }
-        public INamedTypeSymbol DescriptorDto { get; }
-
-        public MapperInfo(
-            INamedTypeSymbol readDto,
-            INamedTypeSymbol writeDto,
-            INamedTypeSymbol descriptor,
-            INamedTypeSymbol descriptorDto)
-        {
-            ReadDto = readDto;
-            WriteDto = writeDto;
-            Descriptor = descriptor;
-            DescriptorDto = descriptorDto;
+            FindDescriptorsInNamespace(childNamespace, descriptorAttributeName, entityBase, descriptorBase, descriptors);
         }
     }
 }
