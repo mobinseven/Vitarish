@@ -16,7 +16,7 @@
             <StackField Label="@Localizer["Time"]">
                 <MudTimePicker PickerVariant="PickerVariant.Inline" @bind-Time="remindTime" Culture="@System.Globalization.CultureInfo.CurrentCulture" />
             </StackField>
-            <StackButton Label="@Localizer["Recipients"]" OnClick="AddRecipientAsync">
+            <StackButton Label="@Localizer["Recipients"]" OnClick="AddRecipientAsync" Color="@(recipients.Count == 0 ? Color.Warning : Color.Default)">
                 @foreach(var recipients in recipients)
                 {
                     <MudChip Color=Color.Primary T="string">@recipients.Recipient</MudChip>
