@@ -158,7 +158,7 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
                 cancellationToken);
 
     public Task<EntityResult<IReadOnlyList<TReadDto>>> GetListAsync<TQuery>(TQuery query, CancellationToken cancellationToken)
-        where TQuery : IRequest<IReadOnlyList<TEntity>> => ExecuteListAsync(mediator => mediator.Send(query, cancellationToken), _outgoingMap, cancellationToken);
+        where TQuery : IRequest<IReadOnlyList<TEntity>> => ExecuteListAsync(mediator => mediator.Send(query, cancellationToken), entity => entity.ToDto(), cancellationToken);
 
     public Task<EntityResult<IReadOnlyList<TReadDto>>> GetListAsync<TQuery, TOtherEntity>(
         TQuery query,
@@ -171,7 +171,7 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
     {
         EntityResult<IReadOnlyList<TReadDto>> itemsResult = await ExecuteListAsync(
             mediator => mediator.Send(new GetEntitiesQuery<TEntity, TDescriptor>(descriptor), cancellationToken),
-            _outgoingMap,
+            entity => entity.ToDto(),
             cancellationToken);
 
         if (itemsResult.IsFailure || itemsResult.Value is null)
@@ -189,10 +189,10 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
             : EntityResult<PartedResult<TReadDto>>.Success(new PartedResult<TReadDto>(itemsResult.Value, countResult.Value));
     }
 
-    public Task<EntityResult<PartedResult<TReadDto>>> GetPartedAsync(TDescriptorDto descriptor, CancellationToken cancellationToken) => GetPartedAsync(_descriptorMap(descriptor), cancellationToken);
+    public Task<EntityResult<PartedResult<TReadDto>>> GetPartedAsync(TDescriptorDto descriptor, CancellationToken cancellationToken) => GetPartedAsync(descriptor.ToDomain(), cancellationToken);
 
     public Task<EntityResult<PartedResult<TReadDto>>> GetPartedAsync<TQuery>(TQuery query, CancellationToken cancellationToken)
-        where TQuery : IRequest<PartedResult<TEntity>> => ExecutePartedAsync(mediator => mediator.Send(query, cancellationToken), _outgoingMap, cancellationToken);
+        where TQuery : IRequest<PartedResult<TEntity>> => ExecutePartedAsync(mediator => mediator.Send(query, cancellationToken), entity => entity.ToDto(), cancellationToken);
 
     private async Task<EntityResult> ExecuteAsync(Func<IMediator, Task> action, CancellationToken cancellationToken)
     {
@@ -208,7 +208,7 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
         }
     }
 
-    private Task<EntityResult<TReadDto>> ExecuteDtoAsync(Func<IMediator, Task<TEntity?>> action, Func<EntityError> nullErrorFactory, CancellationToken cancellationToken) => ExecuteMappedEntityAsync(action, _outgoingMap, nullErrorFactory, cancellationToken);
+    private Task<EntityResult<TReadDto>> ExecuteDtoAsync(Func<IMediator, Task<TEntity?>> action, Func<EntityError> nullErrorFactory, CancellationToken cancellationToken) => ExecuteMappedEntityAsync(action, entity => entity.ToDto(), nullErrorFactory, cancellationToken);
 
     private Task<EntityResult<TEntity>> ExecuteEntityAsync(Func<IMediator, Task<TEntity?>> action, Func<EntityError> nullErrorFactory, CancellationToken cancellationToken) => ExecuteMappedEntityAsync(action, static entity => entity, nullErrorFactory, cancellationToken);
 
@@ -278,7 +278,7 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
         Func<TEntity, TReadDto> map,
         CancellationToken cancellationToken) => ExecuteListAsync<TEntity, TReadDto>(action, map, cancellationToken);
 
-    private Task<EntityResult<IReadOnlyList<TReadDto>>> ExecuteListAsync(Func<IMediator, Task<IReadOnlyList<TEntity>>> action, CancellationToken cancellationToken) => ExecuteListAsync(action, _outgoingMap, cancellationToken);
+    private Task<EntityResult<IReadOnlyList<TReadDto>>> ExecuteListAsync(Func<IMediator, Task<IReadOnlyList<TEntity>>> action, CancellationToken cancellationToken) => ExecuteListAsync(action, entity => entity.ToDto(), cancellationToken);
 
     private Task<EntityResult<IReadOnlyList<TEntity>>> ExecuteEntityListAsync(Func<IMediator, Task<IReadOnlyList<TEntity>>> action, CancellationToken cancellationToken) => ExecuteListAsync(action, static entity => entity, cancellationToken);
 
