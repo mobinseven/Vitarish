@@ -1,6 +1,13 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public sealed record ReminderRecipientReadDto(
-    [property: JsonPropertyName("kind")] ReminderKind Kind,
-    [property: JsonPropertyName("recipientUserId")] string? RecipientUserId,
-    [property: JsonPropertyName("recipient")] string Recipient);
+public sealed class ReminderRecipientReadDto
+{
+    [JsonPropertyName("kind")]
+    public ReminderKind Kind { get; set; }
+
+    [JsonPropertyName("recipientUserId")]
+    public string? RecipientUserId { get; set; }
+
+    [JsonPropertyName("recipient")]
+    public string Recipient { get; set; } = default!;
+}

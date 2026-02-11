@@ -1,6 +1,11 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public sealed record McpContextEntryReadDto(
-    [property: JsonPropertyName("key")] string Key,
-    [property: JsonPropertyName("value")] string Value);
+public sealed class McpContextEntryReadDto
+{
+    [JsonPropertyName("key")]
+    public string Key { get; set; } = default!;
+
+    [JsonPropertyName("value")]
+    public string Value { get; set; } = default!;
+}
 

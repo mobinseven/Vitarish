@@ -1,16 +1,34 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public record ReminderReadDto(
-    [property: JsonPropertyName("eventId")] Guid EventId,
-    [property: JsonPropertyName("kind")] ReminderKind Kind,
-    [property: JsonPropertyName("recipientUserId")] string RecipientUserId,
-    [property: JsonPropertyName("recipient")] string Recipient,
-    [property: JsonPropertyName("subject")] string Subject,
-    [property: JsonPropertyName("textBody")] string TextBody,
-    [property: JsonPropertyName("remindAt")] DateTimeOffset RemindAt,
-    [property: JsonPropertyName("sentAt")] DateTimeOffset? SentAt,
-    [property: JsonPropertyName("isSent")] bool IsSent) : EntityDto
+public record ReminderReadDto : EntityDto
 {
+    [JsonPropertyName("eventId")]
+    public Guid EventId { get; set; }
+
+    [JsonPropertyName("kind")]
+    public ReminderKind Kind { get; set; }
+
+    [JsonPropertyName("recipientUserId")]
+    public string RecipientUserId { get; set; } = default!;
+
+    [JsonPropertyName("recipient")]
+    public string Recipient { get; set; } = default!;
+
+    [JsonPropertyName("subject")]
+    public string Subject { get; set; } = default!;
+
+    [JsonPropertyName("textBody")]
+    public string TextBody { get; set; } = default!;
+
+    [JsonPropertyName("remindAt")]
+    public DateTimeOffset RemindAt { get; set; }
+
+    [JsonPropertyName("sentAt")]
+    public DateTimeOffset? SentAt { get; set; }
+
+    [JsonPropertyName("isSent")]
+    public bool IsSent { get; set; }
+
     [JsonPropertyName("url")]
     public string Url => $"/sea/reminders/{Id}";
 }

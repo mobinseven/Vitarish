@@ -1,15 +1,21 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public record ProcedureReadDto(
-    [property: JsonPropertyName("projectId")] Guid ProjectId,
-    [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("metadata")] string Metadata = "{}") : EntityDto
+public record ProcedureReadDto : EntityDto
 {
+    [JsonPropertyName("projectId")]
+    public Guid ProjectId { get; set; }
+
+    [JsonPropertyName("name")]
+    public string Name { get; set; } = default!;
+
+    [JsonPropertyName("metadata")]
+    public string Metadata { get; set; } = "{}";
+
     [JsonPropertyName("url")]
     public string Url => $"/sea/procedures/{Id}";
 
     [JsonPropertyName("stats")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public StatsReadDto? Stats { get; init; }
+    public StatsReadDto? Stats { get; set; }
 }
 

@@ -1,17 +1,27 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public record EventReadDto(
-    [property: JsonPropertyName("projectId")] Guid ProjectId,
-    [property: JsonPropertyName("procedureId")] Guid ProcedureId,
-    [property: JsonPropertyName("previousEventId")] Guid? PreviousEventId,
-    [property: JsonPropertyName("committedAt")] DateTimeOffset? CommittedAt,
-    [property: JsonPropertyName("committedBy")] Guid CommittedBy) : EntityDto
+public record EventReadDto : EntityDto
 {
-    [property: JsonPropertyName("title")]
-    public string Title { get; set; }
+    [JsonPropertyName("projectId")]
+    public Guid ProjectId { get; set; }
 
-    [property: JsonPropertyName("description")]
-    public string Description { get; set; }
+    [JsonPropertyName("procedureId")]
+    public Guid ProcedureId { get; set; }
+
+    [JsonPropertyName("previousEventId")]
+    public Guid? PreviousEventId { get; set; }
+
+    [JsonPropertyName("committedAt")]
+    public DateTimeOffset? CommittedAt { get; set; }
+
+    [JsonPropertyName("committedBy")]
+    public Guid CommittedBy { get; set; }
+
+    [JsonPropertyName("title")]
+    public string Title { get; set; } = default!;
+
+    [JsonPropertyName("description")]
+    public string Description { get; set; } = default!;
 
     [JsonPropertyName("url")]
     public string Url => $"/sea/events/{Id}";
@@ -21,6 +31,6 @@ public record EventReadDto(
 
     [JsonPropertyName("stats")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public StatsReadDto? Stats { get; init; }
+    public StatsReadDto? Stats { get; set; }
 }
 

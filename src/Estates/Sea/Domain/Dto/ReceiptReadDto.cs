@@ -1,4 +1,7 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public record ReceiptReadDto(
-    [property: JsonPropertyName("objectId")] Guid ObjectId) : EntityDto;
+public record ReceiptReadDto : EntityDto
+{
+    [JsonPropertyName("objectId")]
+    public Guid ObjectId { get; set; }
+}

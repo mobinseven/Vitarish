@@ -1,10 +1,23 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public record DatabaseStatisticsReadDto(
-    [property: JsonPropertyName("projects")] int Projects,
-    [property: JsonPropertyName("procedures")] int Procedures,
-    [property: JsonPropertyName("events")] int Events,
-    [property: JsonPropertyName("roles")] int Roles,
-    [property: JsonPropertyName("attachments")] int Attachments,
-    [property: JsonPropertyName("reminders")] int Reminders);
+public class DatabaseStatisticsReadDto
+{
+    [JsonPropertyName("projects")]
+    public int Projects { get; set; }
+
+    [JsonPropertyName("procedures")]
+    public int Procedures { get; set; }
+
+    [JsonPropertyName("events")]
+    public int Events { get; set; }
+
+    [JsonPropertyName("roles")]
+    public int Roles { get; set; }
+
+    [JsonPropertyName("attachments")]
+    public int Attachments { get; set; }
+
+    [JsonPropertyName("reminders")]
+    public int Reminders { get; set; }
+}
 
