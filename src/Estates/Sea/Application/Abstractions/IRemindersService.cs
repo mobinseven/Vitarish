@@ -7,7 +7,7 @@ public interface IRemindersService : IEntityService<ReminderReadDto, ReminderWri
 {
     Task<IReadOnlyList<ReminderReadDto>> AddRangeAsync(
         Guid eventId,
-        IReadOnlyList<ReminderRecipientDto> recipients,
+        IReadOnlyList<ReminderRecipientReadDto> recipients,
         string subject,
         string textBody,
         DateTimeOffset remindAt,

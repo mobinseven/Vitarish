@@ -28,7 +28,7 @@ public interface IEventsService : IEntityService<EventReadDto, EventWriteDto, Ev
 
     Task UpdateChainAsync(
         Guid procedureId,
-        IEnumerable<EventChainChangeDto> chainChangeDtos,
+        IEnumerable<EventsChainChangeReadDto> chainChangeDtos,
         CancellationToken cancellationToken);
 
     Task CommitAsync(Guid eventId, Guid reporterUserId, DateTimeOffset commitTime, CancellationToken cancellationToken);

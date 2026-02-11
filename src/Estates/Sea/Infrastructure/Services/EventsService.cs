@@ -13,7 +13,7 @@ internal class EventsService(
 
     public async Task UpdateChainAsync(
         Guid procedureId,
-        IEnumerable<EventChainChangeDto> chainChangeDtos,
+        IEnumerable<EventsChainChangeReadDto> chainChangeDtos,
         CancellationToken cancellationToken) => await Mediator.Send(
             new UpdateEventsChainCommand(procedureId,
                 [.. chainChangeDtos.Select(dto => new EventChainChange(dto.Id, dto.PreviousEventId))]),

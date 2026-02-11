@@ -96,7 +96,7 @@ internal class AccessControlledEventsService(
     public async Task<EventReadDto?> UpdateAsync(Guid Id, string Title, string Description, CancellationToken cancellationToken) => await IsAdmin() ? await Service.UpdateAsync(Id, Title, Description, cancellationToken) : throw AdminRoleRequired;
     public async Task<EntityResult<EventReadDto>> UpdateAsync(EventWriteDto dto, CancellationToken cancellationToken) => await IsAdmin() ? await Service.UpdateAsync(dto, cancellationToken) : throw AdminRoleRequired;
     public async Task<EntityResult<IReadOnlyList<EventReadDto>>> UpdateAsync(IReadOnlyList<EventWriteDto> dtos, CancellationToken cancellationToken) => await IsAdmin() ? await Service.UpdateAsync(dtos, cancellationToken) : throw AdminRoleRequired;
-    public async Task UpdateChainAsync(Guid procedureId, IEnumerable<EventChainChangeDto> chainChangeDtos, CancellationToken cancellationToken)
+    public async Task UpdateChainAsync(Guid procedureId, IEnumerable<EventsChainChangeReadDto> chainChangeDtos, CancellationToken cancellationToken)
     {
         bool res = await IsAdmin();
         if (res)

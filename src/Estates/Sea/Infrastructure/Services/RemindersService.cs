@@ -8,7 +8,7 @@ internal class RemindersService(IMediator mediator, RemindersMapper mapper) : En
 
     public async Task<IReadOnlyList<ReminderReadDto>> AddRangeAsync(
         Guid eventId,
-        IReadOnlyList<ReminderRecipientDto> recipients,
+        IReadOnlyList<ReminderRecipientReadDto> recipients,
         string subject,
         string textBody,
         DateTimeOffset remindAt,

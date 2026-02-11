@@ -7,7 +7,7 @@ internal sealed class GodViewService(SeaDbContext dbContext) : IGodViewService
 {
     public async Task<GodViewPage> GetProjectsAsync(GodViewPageRequest request, CancellationToken cancellationToken)
     {
-        IQueryable<GodViewRowDto> query = dbContext.Projects
+        IQueryable<GodViewRowReadDto> query = dbContext.Projects
             .IgnoreQueryFilters()
             .AsNoTracking()
             .Select(project => new
@@ -24,7 +24,7 @@ internal sealed class GodViewService(SeaDbContext dbContext) : IGodViewService
                     ? project.UpdatedAt.Value
                     : project.CreatedAt
             })
-            .Select(project => new GodViewRowDto(
+            .Select(project => new GodViewRowReadDto(
                 project.Name,
                 null,
                 project.Description,
@@ -43,7 +43,7 @@ internal sealed class GodViewService(SeaDbContext dbContext) : IGodViewService
 
     public async Task<GodViewPage> GetProceduresAsync(GodViewPageRequest request, CancellationToken cancellationToken)
     {
-        IQueryable<GodViewRowDto> query = dbContext.Procedures
+        IQueryable<GodViewRowReadDto> query = dbContext.Procedures
             .IgnoreQueryFilters()
             .AsNoTracking()
             .Join(
@@ -64,7 +64,7 @@ internal sealed class GodViewService(SeaDbContext dbContext) : IGodViewService
                         ? procedure.UpdatedAt.Value
                         : procedure.CreatedAt
                 })
-            .Select(item => new GodViewRowDto(
+            .Select(item => new GodViewRowReadDto(
                 item.Name,
                 item.ProjectName,
                 null,
@@ -83,7 +83,7 @@ internal sealed class GodViewService(SeaDbContext dbContext) : IGodViewService
 
     public async Task<GodViewPage> GetEventsAsync(GodViewPageRequest request, CancellationToken cancellationToken)
     {
-        IQueryable<GodViewRowDto> query = dbContext.Events
+        IQueryable<GodViewRowReadDto> query = dbContext.Events
             .IgnoreQueryFilters()
             .AsNoTracking()
             .Join(
@@ -112,7 +112,7 @@ internal sealed class GodViewService(SeaDbContext dbContext) : IGodViewService
                         ? pair.@event.UpdatedAt.Value
                         : pair.@event.CreatedAt
                 })
-            .Select(item => new GodViewRowDto(
+            .Select(item => new GodViewRowReadDto(
                 item.Title,
                 item.ProjectName + " / " + item.ProcedureName,
                 item.Description,
@@ -199,8 +199,8 @@ internal sealed class GodViewService(SeaDbContext dbContext) : IGodViewService
             .Take(normalized.PageSize)
             .ToListAsync(cancellationToken);
 
-        IReadOnlyList<GodViewRowDto> items = rows
-            .Select(row => new GodViewRowDto(
+        IReadOnlyList<GodViewRowReadDto> items = rows
+            .Select(row => new GodViewRowReadDto(
                 row.ContentType,
                 row.ProjectName + " / " + row.ProcedureName + " / " + row.EventTitle,
                 FormatSize(row.Size),
@@ -218,7 +218,7 @@ internal sealed class GodViewService(SeaDbContext dbContext) : IGodViewService
 
     public async Task<GodViewPage> GetRemindersAsync(GodViewPageRequest request, CancellationToken cancellationToken)
     {
-        IQueryable<GodViewRowDto> query = dbContext.Reminders
+        IQueryable<GodViewRowReadDto> query = dbContext.Reminders
             .IgnoreQueryFilters()
             .AsNoTracking()
             .Join(
@@ -253,40 +253,42 @@ internal sealed class GodViewService(SeaDbContext dbContext) : IGodViewService
                         ? pair.reminder.UpdatedAt.Value
                         : pair.reminder.CreatedAt
                 })
-            .Select(item => new GodViewRowDto(
-                item.Subject,
-                item.ProjectName + " / " + item.ProcedureName + " / " + item.EventTitle,
-                item.Recipient,
-                item.CreatedAt,
-                item.CreatedBy,
-                item.UpdatedAt,
-                item.UpdatedBy,
-                item.DeletedAt,
-                item.DeletedBy,
-                item.SentAt.HasValue && item.SentAt.Value >
+            .Select(item => new GodViewRowReadDto
+            {
+                Primary = item.Subject,
+                Context = item.ProjectName + " / " + item.ProcedureName + " / " + item.EventTitle,
+                Details = item.Recipient,
+                CreatedAt = item.CreatedAt,
+                CreatedBy = item.CreatedBy,
+                UpdatedAt = item.UpdatedAt,
+                UpdatedBy = item.UpdatedBy,
+                DeletedAt = item.DeletedAt,
+                DeletedBy = item.DeletedBy,
+                LastActivityAt = item.SentAt.HasValue && item.SentAt.Value >
                     (item.DeletedAt.HasValue && item.DeletedAt.Value > item.BaseLastActivity
                         ? item.DeletedAt.Value
                         : item.BaseLastActivity)
                     ? item.SentAt.Value
                     : (item.DeletedAt.HasValue && item.DeletedAt.Value > item.BaseLastActivity
                         ? item.DeletedAt.Value
-                        : item.BaseLastActivity)));
+                        : item.BaseLastActivity)
+            });
 
         return await ExecuteAsync(query, request, cancellationToken);
     }
 
     private static async Task<GodViewPage> ExecuteAsync(
-        IQueryable<GodViewRowDto> source,
+        IQueryable<GodViewRowReadDto> source,
         GodViewPageRequest request,
         CancellationToken cancellationToken)
     {
         GodViewPageRequest normalized = GodViewPageRequest.Create(request.Page, request.PageSize, request.SearchTerms);
-        IQueryable<GodViewRowDto> filtered = ApplySearch(source, normalized.SearchTerms);
+        IQueryable<GodViewRowReadDto> filtered = ApplySearch(source, normalized.SearchTerms);
 
         int totalCount = await filtered.CountAsync(cancellationToken);
 
         int skip = normalized.Page * normalized.PageSize;
-        List<GodViewRowDto> items = await filtered
+        List<GodViewRowReadDto> items = await filtered
             //.OrderByDescending(row => row.LastActivityAt)
             .Skip(skip)
             .Take(normalized.PageSize)
@@ -295,7 +297,7 @@ internal sealed class GodViewService(SeaDbContext dbContext) : IGodViewService
         return new GodViewPage(items, totalCount);
     }
 
-    private static IQueryable<GodViewRowDto> ApplySearch(IQueryable<GodViewRowDto> query, IReadOnlyList<string> terms)
+    private static IQueryable<GodViewRowReadDto> ApplySearch(IQueryable<GodViewRowReadDto> query, IReadOnlyList<string> terms)
     {
         if (terms.Count == 0)
         {

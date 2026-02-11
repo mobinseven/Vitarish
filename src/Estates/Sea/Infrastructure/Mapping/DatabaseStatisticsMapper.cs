@@ -5,6 +5,6 @@ namespace Vitarish.Sea.Infrastructure.Mapping;
 internal partial class DatabaseStatisticsMapper
 {
     // Domain -> DTO
-    public partial DatabaseStatisticsDto ToDto(DatabaseStatistics src);
+    public partial DatabaseStatisticsReadDto ToDto(DatabaseStatistics src);
 }
 
