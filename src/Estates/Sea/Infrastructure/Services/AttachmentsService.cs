@@ -5,19 +5,18 @@ namespace Vitarish.Sea.Infrastructure.Services;
 
 [RegisterTransient]
 internal sealed class AttachmentsService(
-    IMediator mediator,
-    AttachmentsMapper mapper)
-    : EntityService<Attachment, AttachmentDescriptor, AttachmentDto, AttachmentWriteDto, AttachmentDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IAttachmentsService
+    IMediator mediator)
+    : EntityService<Attachment, AttachmentDescriptor, AttachmentReadDto, AttachmentWriteDto, AttachmentDescriptorDto>(mediator, EntityMappers.ToDto, EntityMappers.ToDomain, EntityMappers.ToDomain), IAttachmentsService
 {
-    public async Task<IReadOnlyList<AttachmentDto>> GetByEventAsync(Guid eventId, CancellationToken cancellationToken) => (await GetListAsync<GetEventAttachmentsQuery, Attachment>(
+    public async Task<IReadOnlyList<AttachmentReadDto>> GetByEventAsync(Guid eventId, CancellationToken cancellationToken) => (await GetListAsync<GetEventAttachmentsQuery, Attachment>(
                 new GetEventAttachmentsQuery(eventId),
-                mapper.ToDto,
+                EntityMappers.ToDto,
                 cancellationToken)).EnsureValue("Get attachments by event");
 
     public async Task<int> GetCountByEventAsync(Guid eventId, CancellationToken cancellationToken) => (await CountAsync<Attachment, AttachmentDescriptor>(new() { EventId = eventId }, cancellationToken))
             .EnsureValue("Count attachments by event");
 
-    public async Task<AttachmentDto?> AddAsync(
+    public async Task<AttachmentReadDto?> AddAsync(
         Guid eventId,
         string content,
         string contentType,
@@ -28,7 +27,7 @@ internal sealed class AttachmentsService(
 
     public async Task AddAsync(
         Guid eventId,
-        IEnumerable<AttachmentDto> attachments,
+        IEnumerable<AttachmentReadDto> attachments,
         CancellationToken cancellationToken) => await Mediator.Send(
             new AddAttachmentsCommand(
                 eventId,
@@ -37,7 +36,7 @@ internal sealed class AttachmentsService(
 
     public async Task RemoveAsync(Guid eventId, Guid attachmentId, CancellationToken cancellationToken) => await Mediator.Send(new RemoveAttachmentCommand(eventId, attachmentId), cancellationToken);
 
-    public async Task<AttachmentDto?> UpdateAsync(
+    public async Task<AttachmentReadDto?> UpdateAsync(
         Guid eventId,
         Guid attachmentId,
         string content,
@@ -54,12 +53,12 @@ internal sealed class AttachmentsService(
         Attachment? updated = await Mediator.Send(
             new UpdateEntityCommand<Attachment, AttachmentDescriptor>(entity),
             cancellationToken);
-        return updated is null ? null : mapper.ToDto(updated);
+        return updated is null ? null : EntityMappers.ToDto(updated);
     }
 
     public async Task<AttachmentSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken)
     {
-        AttachmentDto? attachment = (await GetAsync(id, cancellationToken)).GetValueOrDefault();
+        AttachmentReadDto? attachment = (await GetAsync(id, cancellationToken)).GetValueOrDefault();
         return attachment is null ? null : new AttachmentSnapshot(attachment.Id, attachment.Content);
     }
 }

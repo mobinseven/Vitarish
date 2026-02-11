@@ -3,8 +3,8 @@ namespace Vitarish.Sea.Interface.Components.Attachments;
 public partial class AttachmentsDisplay : SeaCommonBase
 {
     [Parameter] public Color Color { get; set; }
-    [Parameter, EditorRequired] public EventDto Event { get; set; }
-    [Parameter, EditorRequired] public AttachmentDto Attachment { get; set; }
+    [Parameter, EditorRequired] public EventReadDto Event { get; set; }
+    [Parameter, EditorRequired] public AttachmentReadDto Attachment { get; set; }
 
     private async Task ShowDetails()
     {

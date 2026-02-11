@@ -29,6 +29,7 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
         INamedTypeSymbol? descriptorBase = context.Compilation.GetTypeByMetadataName("Vitarish.Entities.Server.Core.EntityDescriptor");
         Dictionary<INamedTypeSymbol, INamedTypeSymbol> descriptors = new(SymbolEqualityComparer.Default);
 
+        // Search in current compilation
         foreach(SyntaxTree tree in context.Compilation.SyntaxTrees)
         {
             SemanticModel model = context.Compilation.GetSemanticModel(tree);
@@ -53,6 +54,14 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
                     }
                 }
             }
+        }
+
+        // Search in referenced assemblies for descriptors
+        foreach (IAssemblySymbol refAssembly in context.Compilation.References
+            .Select(r => context.Compilation.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol)
+            .Where(a => a is not null))
+        {
+            FindDescriptorsInAssembly(refAssembly!, descriptorAttributeName, entityBase, descriptorBase, descriptors);
         }
         string extensionClassName = $"EntityManagementRegistrationOf{dotlessName}";
         StringBuilder sb = new();
@@ -149,5 +158,46 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
         }
 
         return false;
+    }
+
+    private static void FindDescriptorsInAssembly(
+        IAssemblySymbol assembly,
+        string descriptorAttributeName,
+        INamedTypeSymbol? entityBase,
+        INamedTypeSymbol? descriptorBase,
+        Dictionary<INamedTypeSymbol, INamedTypeSymbol> descriptors)
+    {
+        FindDescriptorsInNamespace(assembly.GlobalNamespace, descriptorAttributeName, entityBase, descriptorBase, descriptors);
+    }
+
+    private static void FindDescriptorsInNamespace(
+        INamespaceSymbol namespaceSymbol,
+        string descriptorAttributeName,
+        INamedTypeSymbol? entityBase,
+        INamedTypeSymbol? descriptorBase,
+        Dictionary<INamedTypeSymbol, INamedTypeSymbol> descriptors)
+    {
+        foreach (INamedTypeSymbol type in namespaceSymbol.GetTypeMembers())
+        {
+            // Check for descriptor attribute
+            foreach(AttributeData attribute in type.GetAttributes())
+            {
+                string? attrName = attribute.AttributeClass?.Name;
+                if(attrName == descriptorAttributeName
+                    && attribute.ConstructorArguments.Length == 1
+                    && attribute.ConstructorArguments[0].Value is INamedTypeSymbol entityType
+                    && !entityType.IsAbstract
+                    && (descriptorBase is null || InheritsFrom(type, descriptorBase))
+                    && (entityBase is null || InheritsFrom(entityType, entityBase)))
+                {
+                    descriptors[entityType] = type;
+                }
+            }
+        }
+
+        foreach (INamespaceSymbol childNamespace in namespaceSymbol.GetNamespaceMembers())
+        {
+            FindDescriptorsInNamespace(childNamespace, descriptorAttributeName, entityBase, descriptorBase, descriptors);
+        }
     }
 }

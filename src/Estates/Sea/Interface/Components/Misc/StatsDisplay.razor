@@ -5,7 +5,7 @@
     </MudBadge>
 </MudStack>
 @code {
-    [Parameter, EditorRequired] public StatsDto Stats { get; set; }
+    [Parameter, EditorRequired] public StatsReadDto Stats { get; set; }
     private bool HasNewItems => Stats.NewItems > 0;
     private int BadgeCount => HasNewItems
         ? (Stats.NewItems)

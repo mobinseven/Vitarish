@@ -10,8 +10,8 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
 
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    [Parameter, EditorRequired] public EventDto Event { get; set; } = default!;
-    [Parameter, EditorRequired] public AttachmentDto Attachment { get; set; } = default!;
+    [Parameter, EditorRequired] public EventReadDto Event { get; set; } = default!;
+    [Parameter, EditorRequired] public AttachmentReadDto Attachment { get; set; } = default!;
 
     [Parameter] public Color Color { get; set; }
 
@@ -44,7 +44,7 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
 
     private async Task SaveAsync()
     {
-        AttachmentDto? updated = await AttachmentsService.UpdateAsync(
+        AttachmentReadDto? updated = await AttachmentsService.UpdateAsync(
             Event.Id,
             Attachment.Id,
             editContent,

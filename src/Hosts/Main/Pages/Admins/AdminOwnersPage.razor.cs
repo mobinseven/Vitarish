@@ -1,4 +1,4 @@
-using Vitarish.Parties.Application.Dtos;
+using Vitarish.Parties.Domain.Dtos;
 
 namespace Vitarish.Main.Pages.Admins;
 

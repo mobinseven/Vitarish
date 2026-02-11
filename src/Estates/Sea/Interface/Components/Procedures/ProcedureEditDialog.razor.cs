@@ -7,7 +7,7 @@ public partial class ProcedureEditDialog : ProceduresBase
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
     [Parameter] public Guid ProjectId { get; set; }
-    [Parameter] public ProcedureDto? Procedure { get; set; }
+    [Parameter] public ProcedureReadDto? Procedure { get; set; }
     [Parameter] public string ProjectName { get; set; } = string.Empty;
 
     private string name = string.Empty;
@@ -34,7 +34,7 @@ public partial class ProcedureEditDialog : ProceduresBase
             Search = name
         };
 
-        IReadOnlyList<ProcedureDto> existing = await ProceduresService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        IReadOnlyList<ProcedureReadDto> existing = await ProceduresService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
         if (existing.Any(p => p.Id != Procedure.Id && string.Equals(p.Name, name, StringComparison.CurrentCultureIgnoreCase)))
         {
             _ = await DialogService.ShowMessageBox(
@@ -49,7 +49,7 @@ public partial class ProcedureEditDialog : ProceduresBase
         MudDialog.Close(DialogResult.Ok(true));
     }
 
-    private async Task CommitAllEventsAsync(ProcedureDto procedure)
+    private async Task CommitAllEventsAsync(ProcedureReadDto procedure)
     {
         if (!Guid.TryParse(RequestContext.UserId, out Guid userId))
         {
@@ -73,14 +73,14 @@ public partial class ProcedureEditDialog : ProceduresBase
         }
     }
 
-    private bool IsUncommitAllDisabled(ProcedureDto procedure)
+    private bool IsUncommitAllDisabled(ProcedureReadDto procedure)
     {
-        StatsDto? stats = procedure.Stats;
+        StatsReadDto? stats = procedure.Stats;
 
         return stats is not null && stats.CommittedEvents == 0;
     }
 
-    private async Task UncommitAllEventsAsync(ProcedureDto procedure)
+    private async Task UncommitAllEventsAsync(ProcedureReadDto procedure)
     {
 
         try

@@ -64,6 +64,11 @@ internal sealed class FakeMessagesService : IMessagesService
             null,
             null));
     }
+
+    public Task SendSmsReminder(string recipient, string? project = null, string? procedure = null, string? evnt = null, string? tenant = null, CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
+    }
 }
 
 /// <summary>
@@ -121,5 +126,10 @@ internal sealed class FakeSmsProvider : ISmsProvider
             null,
             null,
             null));
+    }
+
+    public Task SendReminder(string recipient, string? project = null, string? procedure = null, string? evnt = null, string? tenant = null, CancellationToken cancellationToken = default)
+    {
+        return Task.CompletedTask;
     }
 }

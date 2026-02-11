@@ -4,7 +4,7 @@ public partial class EventEditDialog : EventsBase
 {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    [Parameter] public EventDto? Event { get; set; }
+    [Parameter] public EventReadDto? Event { get; set; }
 
     private string title = string.Empty;
     private string description = string.Empty;
@@ -30,7 +30,7 @@ public partial class EventEditDialog : EventsBase
         }
         else
         {
-            EventDto? updated = await EventsService.UpdateAsync(Event.Id, title, description, CancellationToken.None);
+            EventReadDto? updated = await EventsService.UpdateAsync(Event.Id, title, description, CancellationToken.None);
             MudDialog.Close(DialogResult.Ok(updated));
         }
     }

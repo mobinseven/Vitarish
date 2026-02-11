@@ -33,6 +33,6 @@ public record AttachmentCsvItem(
     string ProjectName,
     string ProcedureName,
     string EventName,
-    AttachmentDto Attachment,
+    AttachmentReadDto Attachment,
     string? CreatedBy);
 

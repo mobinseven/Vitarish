@@ -3,8 +3,7 @@ namespace Vitarish.Sea.Infrastructure.Services;
 [RegisterTransient]
 internal class ProjectsService(
     IMediator mediator,
-    ProjectsMapper mapper,
-    IProceduresService proceduresService) : EntityService<Project, ProjectDescriptor, ProjectDto, ProjectWriteDto, ProjectDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IProjectsService
+    IProceduresService proceduresService) : EntityService<Project, ProjectDescriptor, ProjectReadDto, ProjectWriteDto, ProjectDescriptorDto>(mediator, EntityMappers.ToDto, EntityMappers.ToDomain, EntityMappers.ToDomain), IProjectsService
 {
     public async Task<Guid> AddAsync(string name, string description, bool template, string metadata, CancellationToken cancellationToken)
     {
@@ -45,7 +44,7 @@ internal class ProjectsService(
 
     public async Task<ProjectSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken)
     {
-        ProjectDto? project = (await GetAsync(id, cancellationToken)).GetValueOrDefault();
+        ProjectReadDto? project = (await GetAsync(id, cancellationToken)).GetValueOrDefault();
         if (project is null)
         {
             return null;
@@ -54,11 +53,11 @@ internal class ProjectsService(
         (string? overview, DateTimeOffset? updatedAt) = OverviewMetadataParser.Parse(project.Metadata);
 
         ProcedureDescriptorDto descriptor = new() { ProjectId = id };
-        IReadOnlyList<ProcedureDto> procedures = (await proceduresService.GetListAsync(descriptor, cancellationToken))
+        IReadOnlyList<ProcedureReadDto> procedures = (await proceduresService.GetListAsync(descriptor, cancellationToken))
             .EnsureValue("Get project procedures");
 
         List<ProcedureSnapshot> procedureSnapshots = new(procedures.Count);
-        foreach (ProcedureDto procedure in procedures)
+        foreach (ProcedureReadDto procedure in procedures)
         {
             ProcedureSnapshot? snapshot = await proceduresService.CaptureSnapshotAsync(procedure.Id, cancellationToken);
             if (snapshot is not null)

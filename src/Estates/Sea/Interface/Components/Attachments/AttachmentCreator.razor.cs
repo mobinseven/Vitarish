@@ -4,18 +4,21 @@ public partial class AttachmentCreator : AttachmentsBase
 {
     private string? _value = string.Empty;
 
-    [Parameter, EditorRequired] public ProjectDto Project { get; set; } = default!;
-    [Parameter, EditorRequired] public ProcedureDto Procedure { get; set; } = default!;
-    [Parameter, EditorRequired] public EventDto Event { get; set; } = default!;
+    [Parameter, EditorRequired] public ProjectReadDto Project { get; set; } = default!;
+    [Parameter, EditorRequired] public ProcedureReadDto Procedure { get; set; } = default!;
+    [Parameter, EditorRequired] public EventReadDto Event { get; set; } = default!;
     [Parameter] public RenderFragment? Actions { get; set; }
 
     private async Task OnUploaded(FileInformationDto fileInfo)
     {
-        AttachmentDto attachment = new(
-            fileInfo.Id.ToString(),
-            fileInfo.ContentType ?? string.Empty,
-            fileInfo.Thumbnail,
-            fileInfo.Metadata.Size);
+        AttachmentReadDto attachment = new()
+        {
+            Id = Guid.Parse(fileInfo.Id.ToString()),
+            Content = fileInfo.Id.ToString(),
+            ContentType = fileInfo.ContentType ?? string.Empty,
+            ContentThumbnail = fileInfo.Thumbnail,
+            Size = fileInfo.Metadata.Size
+        };
         await AttachmentsService.AddAsync(Event.Id, [attachment], CancellationToken.None);
     }
     private async Task AddTextAttachment()

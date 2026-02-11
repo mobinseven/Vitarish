@@ -4,7 +4,7 @@ public partial class RoleEditDialog : RolesBase
 {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    [Parameter] public RoleDto? Role { get; set; }
+    [Parameter] public RoleReadDto? Role { get; set; }
 
     private string name = string.Empty;
 

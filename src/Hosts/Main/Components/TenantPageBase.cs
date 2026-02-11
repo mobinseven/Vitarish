@@ -1,5 +1,5 @@
 using Vitarish.Modules.Base;
-using Vitarish.Parties.Application.Dtos;
+using Vitarish.Parties.Domain.Dtos;
 using Vitarish.Users.Domain.Models;
 using Metadata = Vitarish.Requests.Application.Models.Metadata;
 

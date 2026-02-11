@@ -14,7 +14,7 @@
                          Color="@(evt.IsCommitted ? Color.Primary : Color.Default)"
                          StartIcon="@(evt.IsCommitted ? "fa-regular fa-check" : "fa-regular fa-fw")"
                          OnClick="@(() => EventClicked.InvokeAsync(evt.Id))">
-                <StatsDisplay Stats="evt.Stats ?? new StatsDto()" />
+                <StatsDisplay Stats="evt.Stats ?? new StatsReadDto()" />
             </StackButton>
         }
     }

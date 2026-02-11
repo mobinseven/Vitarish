@@ -3,12 +3,12 @@ using Vitarish.Sea.Application.Commands.Roles;
 namespace Vitarish.Sea.Infrastructure.Services;
 
 [RegisterTransient]
-internal class EventRolesService(IMediator mediator, EventRolesMapper mapper)
-    : EntityService<EventRole, EventRoleDescriptor, EventRoleDto, EventRoleWriteDto, EventRoleDescriptorDto>(mediator, mapper.ToDto, mapper.ToDomain, mapper.ToDomain), IEventRolesService
+internal class EventRolesService(IMediator mediator)
+    : EntityService<EventRole, EventRoleDescriptor, EventRoleReadDto, EventRoleWriteDto, EventRoleDescriptorDto>(mediator, EntityMappers.ToDto, EntityMappers.ToDomain, EntityMappers.ToDomain), IEventRolesService
 {
     public async Task<(IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)> GetIdsAsync(Guid eventId, CancellationToken cancellationToken)
     {
-        IReadOnlyList<EventRoleDto> roles = (await GetListAsync(new EventRoleDescriptorDto { EventId = eventId }, cancellationToken))
+        IReadOnlyList<EventRoleReadDto> roles = (await GetListAsync(new EventRoleDescriptorDto { EventId = eventId }, cancellationToken))
             .EnsureValue("Get event roles");
         List<Guid> read = roles.Where(r => r.Type == RoleType.Read).Select(r => r.RoleId).ToList();
         List<Guid> write = roles.Where(r => r.Type == RoleType.Write).Select(r => r.RoleId).ToList();
@@ -23,7 +23,7 @@ internal class EventRolesService(IMediator mediator, EventRolesMapper mapper)
             return new Dictionary<Guid, (IReadOnlyList<Guid>, IReadOnlyList<Guid>)>();
         }
 
-        IReadOnlyList<EventRoleDto> roles = (await GetListAsync(new EventRoleDescriptorDto(), cancellationToken))
+        IReadOnlyList<EventRoleReadDto> roles = (await GetListAsync(new EventRoleDescriptorDto(), cancellationToken))
             .EnsureValue("Get event roles");
 
         Dictionary<Guid, (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)> result = roles
@@ -45,14 +45,14 @@ internal class EventRolesService(IMediator mediator, EventRolesMapper mapper)
 
     public async Task<IReadOnlyList<Guid>> GetReadIdsAsync(Guid eventId, CancellationToken cancellationToken)
     {
-        IReadOnlyList<EventRoleDto> roles = (await GetListAsync(new EventRoleDescriptorDto { EventId = eventId, Type = RoleType.Read }, cancellationToken))
+        IReadOnlyList<EventRoleReadDto> roles = (await GetListAsync(new EventRoleDescriptorDto { EventId = eventId, Type = RoleType.Read }, cancellationToken))
             .EnsureValue("Get read event roles");
         return [.. roles.Select(r => r.RoleId)];
     }
 
     public async Task<IReadOnlyList<Guid>> GetWriteIdsAsync(Guid eventId, CancellationToken cancellationToken)
     {
-        IReadOnlyList<EventRoleDto> roles = (await GetListAsync(new EventRoleDescriptorDto { EventId = eventId, Type = RoleType.Write }, cancellationToken))
+        IReadOnlyList<EventRoleReadDto> roles = (await GetListAsync(new EventRoleDescriptorDto { EventId = eventId, Type = RoleType.Write }, cancellationToken))
             .EnsureValue("Get write event roles");
         return [.. roles.Select(r => r.RoleId)];
     }

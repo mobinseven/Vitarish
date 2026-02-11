@@ -12,8 +12,8 @@
 }
 @code {
 
-    [Parameter, EditorRequired] public required ProjectDto Project { get; set; }
-    [Parameter, EditorRequired] public required ProcedureDto Procedure { get; set; }
+    [Parameter, EditorRequired] public required ProjectReadDto Project { get; set; }
+    [Parameter, EditorRequired] public required ProcedureReadDto Procedure { get; set; }
 
     [Parameter] public EventCallback OnDelete { get; set; }
 
