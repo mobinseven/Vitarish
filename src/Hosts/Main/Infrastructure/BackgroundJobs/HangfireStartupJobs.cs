@@ -15,7 +15,7 @@ public static class HangfireStartupJobs
     /// </summary>
     public static void ScheduleSelfTriggeringJobs(this WebApplication app)
     {
-        HangfireReminderJobManager reminderJobs = app.Services.GetRequiredService<HangfireReminderJobManager>();
+        HangfireSeaJobManager reminderJobs = app.Services.GetRequiredService<HangfireSeaJobManager>();
         reminderJobs.ScheduleProcessing();
         reminderJobs.TriggerProcessing();
 
@@ -30,9 +30,5 @@ public static class HangfireStartupJobs
         _ = app.Services.GetRequiredService<HangfireCommunicationsJobManager>();
         intelligenceJobs.ScheduleProcessing();
         intelligenceJobs.TriggerProcessing();
-
-        HangfireAttachmentMigrationJobManager migrationJobs = app.Services.GetRequiredService<HangfireAttachmentMigrationJobManager>();
-        migrationJobs.ScheduleProcessing();
-        migrationJobs.TriggerProcessing();
     }
 }

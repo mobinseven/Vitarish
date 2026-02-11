@@ -62,7 +62,7 @@ public sealed class FileByIdMiddleware(
 
         EntityResult<FileInformationDto> result =
             await fileInfoService.GetAsync(fileId, context.RequestAborted);
-        FileInformationDto? fileInfo = result.Value;
+        FileInformationDto? fileInfo = result.Value ?? (await fileInfoService.GetListAsync(new() { Tag = idSegment }, context.RequestAborted).GetValueOrDefaultAsync() ?? []).FirstOrDefault();
 
         if (fileInfo is null)
         {

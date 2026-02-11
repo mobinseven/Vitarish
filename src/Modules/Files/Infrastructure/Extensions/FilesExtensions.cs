@@ -1,19 +1,17 @@
-﻿namespace Vitarish.Files.Infrastructure.Extensions;
+namespace Vitarish.Files.Infrastructure.Extensions;
 
 public static class FilesExtensions
 {
-    public static string ExtractId(string fileName, string prefix)
+    public static string ExtractId(string path, string prefix)
     {
-        ArgumentNullException.ThrowIfNull(fileName);
-        ArgumentNullException.ThrowIfNull(prefix);
-
+        string fn = Path.GetFileName(path);
         string expectedPrefix = prefix + "-";
-        if (!fileName.StartsWith(expectedPrefix, StringComparison.OrdinalIgnoreCase))
+        if (!fn.StartsWith(expectedPrefix, StringComparison.OrdinalIgnoreCase))
         {
-            throw new FormatException("The given fileName have not the given prefix.");
+            throw new FormatException("The given path have not the given prefix.");
         }
 
-        string withoutPrefix = fileName[expectedPrefix.Length..];
+        string withoutPrefix = fn[expectedPrefix.Length..];
 
         int dotIndex = withoutPrefix.IndexOf('.');
         if (dotIndex < 0)
