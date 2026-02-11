@@ -278,8 +278,9 @@ internal static class EntityMappers
         Size = attachment.Size
     };
 
+    // Note: EventId not in WriteDto - it's set by service when calling AddAsync(eventId, attachments)
     public static Attachment ToDomain(AttachmentWriteDto dto) => new(
-        Guid.Empty,  // EventId will be set separately
+        Guid.Empty,  // EventId set by service
         dto.Content,
         dto.ContentType,
         dto.ContentThumbnail,

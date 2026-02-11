@@ -65,7 +65,7 @@ internal sealed class FakeMessagesService : IMessagesService
             null));
     }
 
-    public Task SendSmsReminder(string receipient, string? project = null, string? procedure = null, string? evnt = null, string? tenant = null, CancellationToken cancellationToken = default)
+    public Task SendSmsReminder(string recipient, string? project = null, string? procedure = null, string? evnt = null, string? tenant = null, CancellationToken cancellationToken = default)
     {
         return Task.CompletedTask;
     }
@@ -128,7 +128,7 @@ internal sealed class FakeSmsProvider : ISmsProvider
             null));
     }
 
-    public Task SendReminder(string receipient, string? project = null, string? procedure = null, string? evnt = null, string? tenant = null, CancellationToken cancellationToken = default)
+    public Task SendReminder(string recipient, string? project = null, string? procedure = null, string? evnt = null, string? tenant = null, CancellationToken cancellationToken = default)
     {
         return Task.CompletedTask;
     }
