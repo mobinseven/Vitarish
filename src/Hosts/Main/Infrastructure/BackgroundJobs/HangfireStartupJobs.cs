@@ -27,8 +27,8 @@ public static class HangfireStartupJobs
         intelligenceJobs.ScheduleProcessing();
         intelligenceJobs.TriggerProcessing();
 
-        _ = app.Services.GetRequiredService<HangfireCommunicationsJobManager>();
-        intelligenceJobs.ScheduleProcessing();
-        intelligenceJobs.TriggerProcessing();
+        HangfireCommunicationsJobManager commJobs = app.Services.GetRequiredService<HangfireCommunicationsJobManager>();
+        commJobs.ScheduleProcessing();
+        commJobs.TriggerProcessing();
     }
 }

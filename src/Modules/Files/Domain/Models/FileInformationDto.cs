@@ -4,7 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Vitarish.Entities.Server.Models;
 
-public record FileInformationDto : EntityDto
+public record FileInformationDto : EntityReadDto
 {
     private static readonly JsonSerializerOptions MetadataSerializerOptions = new(JsonSerializerDefaults.Web)
     {

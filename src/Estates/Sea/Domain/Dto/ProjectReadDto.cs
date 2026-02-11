@@ -1,6 +1,6 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public record ProjectReadDto : EntityDto
+public record ProjectReadDto : EntityReadDto
 {
     [JsonPropertyName("name")]
     public string Name { get; set; } = default!;

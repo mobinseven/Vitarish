@@ -1,6 +1,6 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public record ProcedureReadDto : EntityDto
+public record ProcedureReadDto : EntityReadDto
 {
     [JsonPropertyName("projectId")]
     public Guid ProjectId { get; set; }

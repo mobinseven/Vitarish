@@ -1,6 +1,6 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public record AttachmentReadDto : EntityDto
+public record AttachmentReadDto : EntityReadDto
 {
     [JsonPropertyName("content")]
     public string Content { get; set; } = default!;

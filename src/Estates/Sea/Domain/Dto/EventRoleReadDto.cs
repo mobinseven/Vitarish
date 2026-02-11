@@ -1,6 +1,6 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public record EventRoleReadDto : EntityDto
+public record EventRoleReadDto : EntityReadDto
 {
     [JsonPropertyName("eventId")]
     public Guid EventId { get; set; }
