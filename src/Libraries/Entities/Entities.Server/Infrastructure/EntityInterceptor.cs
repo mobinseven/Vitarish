@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Vitarish.Entities.Server.Services;
+using Vitarish.Entities.Server.Abstractions;
 
 namespace Vitarish.Entities.Server.Infrastructure;
 

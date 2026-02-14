@@ -1,13 +1,14 @@
 using Vitarish.Files.Application.Abstractions;
+using Vitarish.Files.Domain.Mappers;
 
 namespace Vitarish.Files.Infrastructure.Services;
 
-public class FileInformationService(IMediator mediator, FileInformationMapper mapper)
+public class FileInformationService(IMediator mediator)
     : EntityService<FileInformation, FileInformationDescriptor, FileInformationDto, FileInformationWriteDto, FileInformationDescriptorDto>(
-        mediator, 
-        mapper.ToDto, 
-        mapper.ToDomain, 
-        mapper.ToDomain),
+        mediator,
+        FilesEntityMapperExtensions.ToDto,
+        FilesEntityMapperExtensions.ToDomain,
+        FilesEntityMapperExtensions.ToDescriptor),
     IFileInformationService
 {
 

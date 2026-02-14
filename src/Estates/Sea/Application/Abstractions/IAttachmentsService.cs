@@ -1,5 +1,6 @@
 namespace Vitarish.Sea.Application.Abstractions;
 
+using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 
 public interface IAttachmentsService : IEntityService<AttachmentReadDto, AttachmentWriteDto, AttachmentDescriptorDto>

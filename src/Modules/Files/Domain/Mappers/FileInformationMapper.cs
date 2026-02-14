@@ -1,7 +1,10 @@
-namespace Vitarish.Files.Infrastructure.Mappers;
+using Riok.Mapperly.Abstractions;
+using Vitarish.Files.Domain.Entities;
+using Vitarish.Files.Domain.Models;
+
+namespace Vitarish.Files.Domain.Mappers;
 
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Source)]
-[RegisterSingleton]
 public partial class FileInformationMapper
 {
     [MapProperty(nameof(FileInformation.Metadata), nameof(FileInformationDto.MetadataJson))]
@@ -21,4 +24,21 @@ public partial class FileInformationMapper
 
     [MapperIgnoreSource(nameof(FileInformationDescriptorDto.AdditionalData))]
     public partial FileInformationDescriptor ToDomain(FileInformationDescriptorDto src);
+}
+
+public static class FilesEntityMapperExtensions
+{
+    private static FileInformationMapper Mapper = new FileInformationMapper();
+    public static FileInformationDto ToDto(this FileInformation src)
+    {
+        return Mapper.ToDto(src);
+    }
+    public static FileInformation ToDomain(this FileInformationWriteDto src)
+    {
+        return Mapper.ToDomain(src);
+    }
+    public static FileInformationDescriptor ToDescriptor(this FileInformationDescriptorDto src)
+    {
+        return Mapper.ToDomain(src);
+    }
 }

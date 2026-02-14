@@ -9,7 +9,6 @@
 		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.*" />
 		<PackageReference Include="Minio" Version="6.0.2" />
 		<PackageReference Include="MimeTypesMap" Version="1.*" />
-		<PackageReference Include="Riok.Mapperly" Version="4.2.1" />
 		<PackageReference Include="SkiaSharp" Version="3.*" />
 	</ItemGroup>
 	<ItemGroup>
@@ -18,5 +17,8 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Identity\Requests\Application\Requests.Application.csproj" />
 		<ProjectReference Include="..\Application\Files.Application.csproj" />
+	</ItemGroup>
+	<ItemGroup>
+	  <Folder Include="Mappers\" />
 	</ItemGroup>
 </Project>

@@ -4,7 +4,14 @@ namespace Vitarish.Sea.Infrastructure.Services;
 internal class ProceduresService(
     IMediator mediator,
     IEventsService eventsService)
-    : EntityService<Procedure, ProcedureDescriptor, ProcedureReadDto, ProcedureWriteDto, ProcedureDescriptorDto>(mediator, EntityMappers.ToDto, EntityMappers.ToDomain, EntityMappers.ToDomain), IProceduresService
+    : EntityService<Procedure, ProcedureDescriptor, ProcedureReadDto, ProcedureWriteDto, ProcedureDescriptorDto>
+    (
+        mediator,
+        procedure=>procedure.ToDto(),
+        procedure => procedure.ToDomain(),
+        procedure => procedure.ToDomain()
+    ),
+    IProceduresService
 {
     public async Task<Guid> AddAsync(Guid projectId, string name, CancellationToken cancellationToken)
     {

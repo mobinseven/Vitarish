@@ -5,11 +5,11 @@
     </MudBadge>
 </MudStack>
 @code {
-    [Parameter, EditorRequired] public StatsReadDto Stats { get; set; }
-    private bool HasNewItems => Stats.NewItems > 0;
+    [Parameter, EditorRequired] public StatsReadDto? Stats { get; set; }
+    private bool HasNewItems => Stats?.NewItems > 0;
     private int BadgeCount => HasNewItems
-        ? (Stats.NewItems)
-        : Stats.EventItems;
+        ? (Stats!.NewItems)
+        : Stats?.EventItems ?? 0;
     private string BadgeContent => NumberExtensions.LocalizeNumerals(BadgeCount.ToString());
     private string EventItemsStyle => HasNewItems ? "opacity: 1; background-color: unset;" : BadgeCount > 0 ? "opacity: 1; background-color: unset;" : "opacity: 0;";
     private string BlinkIcon => HasNewItems ? "fa-regular  fa-envelope fa-fade fa-xl" : BadgeCount > 0 ? "fa-regular  fa-envelope-open fa-xl" : "fa-regular fa-fw";

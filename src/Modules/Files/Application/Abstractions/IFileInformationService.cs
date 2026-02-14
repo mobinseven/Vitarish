@@ -1,4 +1,4 @@
-using Vitarish.Entities.Server.Services;
+using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Files.Domain.Models;
 
 namespace Vitarish.Files.Application.Abstractions;

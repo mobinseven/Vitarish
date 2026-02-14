@@ -6,11 +6,17 @@ namespace Vitarish.Sea.Infrastructure.Services;
 [RegisterTransient]
 internal sealed class AttachmentsService(
     IMediator mediator)
-    : EntityService<Attachment, AttachmentDescriptor, AttachmentReadDto, AttachmentWriteDto, AttachmentDescriptorDto>(mediator, EntityMappers.ToDto, EntityMappers.ToDomain, EntityMappers.ToDomain), IAttachmentsService
+    : EntityService<Attachment, AttachmentDescriptor, AttachmentReadDto, AttachmentWriteDto, AttachmentDescriptorDto>
+    (
+        mediator, attachment=>attachment.ToDto(),
+        attachment => attachment.ToDomain(),
+        attachment => attachment.ToDomain()
+    ),
+    IAttachmentsService
 {
     public async Task<IReadOnlyList<AttachmentReadDto>> GetByEventAsync(Guid eventId, CancellationToken cancellationToken) => (await GetListAsync<GetEventAttachmentsQuery, Attachment>(
                 new GetEventAttachmentsQuery(eventId),
-                EntityMappers.ToDto,
+                attachment => attachment.ToDto(),
                 cancellationToken)).EnsureValue("Get attachments by event");
 
     public async Task<int> GetCountByEventAsync(Guid eventId, CancellationToken cancellationToken) => (await CountAsync<Attachment, AttachmentDescriptor>(new() { EventId = eventId }, cancellationToken))
@@ -53,7 +59,7 @@ internal sealed class AttachmentsService(
         Attachment? updated = await Mediator.Send(
             new UpdateEntityCommand<Attachment, AttachmentDescriptor>(entity),
             cancellationToken);
-        return updated is null ? null : EntityMappers.ToDto(updated);
+        return updated is null ? null : updated.ToDto();
     }
 
     public async Task<AttachmentSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken)

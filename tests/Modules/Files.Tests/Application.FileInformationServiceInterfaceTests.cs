@@ -1,5 +1,5 @@
 using Vitarish.Files.Application.Abstractions;
-using Vitarish.Entities.Server.Services;
+using Vitarish.Entities.Server.Abstractions;
 
 namespace Vitarish.Files.Tests;
 

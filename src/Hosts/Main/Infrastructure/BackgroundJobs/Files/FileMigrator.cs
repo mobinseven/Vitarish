@@ -1,3 +1,4 @@
+using Vitarish.Entities.Server.Services;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Models;
 using Vitarish.Files.Domain.Options;
@@ -45,6 +46,7 @@ public class FileMigrator(
                 ContentType = fileInfo.ContentType,
                 Tag = fileInfo.Tag
             };
+
             await fileInformationService.UpdateAsync(fileInformationWriteDto, cancellationToken);
         }
     }

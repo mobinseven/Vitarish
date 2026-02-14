@@ -1,9 +1,9 @@
 using MediatR;
-using Vitarish.Entities.Server.Extensions;
 using Vitarish.Entities.Server.Services;
 using Vitarish.Parties.Domain.Descriptors;
 using Vitarish.Parties.Domain.Dtos;
 using Vitarish.Parties.Domain.Entities;
+using Vitarish.Parties.Domain.Mappers;
 
 namespace Vitarish.Parties.Infrastructure.Services;
 
@@ -14,6 +14,4 @@ public class TenantsService(IMediator mediator) : EntityService<Tenant, TenantDe
         mediator,
         tenant => tenant.ToDto(),
         dto => dto.ToDomain(),
-        descriptorDto => descriptorDto.ToDomain())
-{
-}
+        descriptorDto => descriptorDto.ToDomain());

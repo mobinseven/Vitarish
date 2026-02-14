@@ -113,12 +113,14 @@ public sealed class FileByIdMiddleware(
             {
                 return;
             }
+            context.Response.StatusCode = StatusCodes.Status200OK;
 
             await using Stream responseStream = await proxyResponse.Content
                 .ReadAsStreamAsync(context.RequestAborted)
                 .ConfigureAwait(false);
             await responseStream.CopyToAsync(context.Response.Body, context.RequestAborted)
                 .ConfigureAwait(false);
+            return;
         }
         catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
         {

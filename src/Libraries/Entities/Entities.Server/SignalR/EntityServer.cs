@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
+using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
-using Vitarish.Entities.Server.Services;
 
 namespace Vitarish.Entities.Server.SignalR;
 

@@ -4,7 +4,13 @@ namespace Vitarish.Sea.Infrastructure.Services;
 internal class EventsService(
     IMediator mediator,
     IAttachmentsService attachmentsService)
-    : EntityService<Event, EventDescriptor, EventReadDto, EventWriteDto, EventDescriptorDto>(mediator, EntityMappers.ToDto, EntityMappers.ToDomain, EntityMappers.ToDomain), IEventsService
+    : EntityService<Event, EventDescriptor, EventReadDto, EventWriteDto, EventDescriptorDto>
+    (
+        mediator, evnt => evnt.ToDto(),
+        evnt => evnt.ToDomain(),
+        evnt => evnt.ToDomain()
+    ),
+    IEventsService
 {
 
     public async Task<IReadOnlyList<EventReadDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken) => (await GetListAsync(new EventDescriptor { ProcedureId = procedureId, IncludeStats = true }, cancellationToken))
@@ -26,7 +32,7 @@ internal class EventsService(
     {
         Event? entity = await Mediator.Send(new AddEventAfterCommand(projectId, procedureId, previousEventId), cancellationToken);
 
-        return entity is null ? null : EntityMappers.ToDto(entity);
+        return entity is null ? null : entity.ToDto();
     }
 
     public Task<bool> MoveUpAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken)

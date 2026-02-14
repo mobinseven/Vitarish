@@ -1,11 +1,14 @@
 namespace Vitarish.Sea.Infrastructure.Services;
 
 [RegisterTransient]
-internal class RolesService(IMediator mediator) : EntityService<Role, RoleDescriptor, RoleReadDto, RoleWriteDto, RoleDescriptorDto>(
-    mediator,
-    EntityMappers.ToDto,
-    EntityMappers.ToDomain,
-    EntityMappers.ToDomain), IRolesService
+internal class RolesService(IMediator mediator) : EntityService<Role, RoleDescriptor, RoleReadDto, RoleWriteDto, RoleDescriptorDto>
+    (
+        mediator,
+        role=>role.ToDto(),
+        role => role.ToDomain(),
+        role => role.ToDomain()
+    ),
+    IRolesService
 {
     public async Task<Guid> AddAsync(string name, CancellationToken cancellationToken)
     {

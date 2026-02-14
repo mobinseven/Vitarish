@@ -3,11 +3,14 @@ using Vitarish.Sea.Application.Commands.Reminders;
 namespace Vitarish.Sea.Infrastructure.Services;
 
 [RegisterTransient]
-internal class RemindersService(IMediator mediator) : EntityService<Reminder, ReminderDescriptor, ReminderReadDto, ReminderWriteDto, ReminderDescriptorDto>(
-    mediator,
-    EntityMappers.ToDto,
-    EntityMappers.ToDomain,
-    EntityMappers.ToDomain), IRemindersService
+internal class RemindersService(IMediator mediator) : EntityService<Reminder, ReminderDescriptor, ReminderReadDto, ReminderWriteDto, ReminderDescriptorDto>
+    (
+        mediator,
+        reminder => reminder.ToDto(),
+        reminder => reminder.ToDomain(),
+        reminder => reminder.ToDomain()
+    ),
+    IRemindersService
 {
 
     public async Task<IReadOnlyList<ReminderReadDto>> AddRangeAsync(
@@ -31,7 +34,7 @@ internal class RemindersService(IMediator mediator) : EntityService<Reminder, Re
 
         IReadOnlyList<Reminder> added = (await AddEntitiesAsync(reminders, cancellationToken))
             .EnsureValue("Add reminders");
-        return [.. added.Select(EntityMappers.ToDto)];
+        return [.. added.Select(reminder => reminder.ToDto())];
     }
 
     public async Task<ReminderReadDto?> UpdateAsync(
@@ -62,7 +65,7 @@ internal class RemindersService(IMediator mediator) : EntityService<Reminder, Re
 
         Reminder updated = (await UpdateEntityAsync(reminder, cancellationToken))
             .EnsureValue("Update reminder");
-        return EntityMappers.ToDto(updated);
+        return updated.ToDto();
     }
 
     public async Task<IReadOnlyList<ReminderReadDto>> GetByEventAsync(Guid eventId, CancellationToken cancellationToken) => (await GetListAsync(

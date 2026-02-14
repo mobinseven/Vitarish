@@ -1,4 +1,4 @@
-namespace Vitarish.Entities.Server.Services;
+namespace Vitarish.Entities.Server.Abstractions;
 
 
 public interface IEntityUserService

@@ -5,7 +5,14 @@ internal class ReceiptsService(
     IMediator mediator,
     IAttachmentsService attachmentsService,
     IRemindersService remindersService)
-    : EntityService<Receipt, ReceiptDescriptor, ReceiptReadDto, ReceiptWriteDto, ReceiptDescriptorDto>(mediator, EntityMappers.ToDto, EntityMappers.ToDomain, EntityMappers.ToDomain), IReceiptsService
+    : EntityService<Receipt, ReceiptDescriptor, ReceiptReadDto, ReceiptWriteDto, ReceiptDescriptorDto>
+    (
+        mediator,
+        receipt=>receipt.ToDto(),
+        receipt => receipt.ToDomain(),
+        receipt => receipt.ToDomain()
+    ),
+    IReceiptsService
 {
     private async Task RemoveReceiptAsync(string createdBy, Guid objectId, CancellationToken cancellationToken) => (await RemoveByDescriptorAsync(
             new ReceiptDescriptor

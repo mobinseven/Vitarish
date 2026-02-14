@@ -1,5 +1,5 @@
+using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
-using Vitarish.Entities.Server.Services;
 using Vitarish.Entities.Server.SignalR;
 
 public static class EntityNotificationHandlerExtension

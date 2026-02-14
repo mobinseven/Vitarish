@@ -1,3 +1,4 @@
+using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Application.Abstractions;
