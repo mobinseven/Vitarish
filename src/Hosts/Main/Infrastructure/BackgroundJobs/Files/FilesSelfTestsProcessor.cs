@@ -8,7 +8,7 @@ using Vitarish.Files.Infrastructure.Interfaces;
 using Vitarish.Files.Infrastructure.Services;
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 
-public class FilesProcessor(
+public class FilesSelfTestsProcessor(
     IFilesModule filesModule,
     IObjectStorageService storage,
     IOptionsMonitor<FilesOptions> filesOptions,
@@ -177,8 +177,7 @@ public class FilesProcessor(
         ObjectStorageMiddleware middleware = new(
             _ => Task.CompletedTask,
             minioClient,
-            httpClientFactory,
-            NullLogger<ObjectStorageMiddleware>.Instance);
+            httpClientFactory);
 
         await middleware.InvokeAsync(context).ConfigureAwait(false);
 

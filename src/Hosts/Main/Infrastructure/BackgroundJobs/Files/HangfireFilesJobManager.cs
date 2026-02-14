@@ -12,11 +12,11 @@ public class HangfireFilesJobManager(IRecurringJobManager recurringJobManager)
     /// </summary>
     public void ScheduleProcessing()
     {
-        recurringJobManager.AddOrUpdate<FilesProcessor>(
+        recurringJobManager.AddOrUpdate<FilesSelfTestsProcessor>(
             JobId,
             processor => processor.ProcessSelfTests(),
             Cron.MinuteInterval(15));
-        recurringJobManager.AddOrUpdate<FileMigrator>(
+        recurringJobManager.AddOrUpdate<FileMigrationProccessor>(
             MigrationJobId,
             processor => processor.ProcessMigration(),
             Cron.MinuteInterval(15));

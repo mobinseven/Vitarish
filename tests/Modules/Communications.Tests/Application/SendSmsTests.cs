@@ -195,5 +195,6 @@ public sealed class SendSmsTests
                 null,
                 null,
                 null));
+        public Task SendSmsReminder(string recipient, string? project = null, string? procedure = null, string? evnt = null, string? tenant = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 }

@@ -13,13 +13,11 @@ namespace Vitarish.Files.Infrastructure.Services;
 public sealed class ObjectStorageMiddleware(
     RequestDelegate next,
     IMinioClient minioClient,
-    IHttpClientFactory httpClientFactory,
-    ILogger<ObjectStorageMiddleware> logger)
+    IHttpClientFactory httpClientFactory)
 {
     private readonly RequestDelegate _next = next;
     private readonly IMinioClient _minioClient = minioClient;
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
-    private readonly ILogger<ObjectStorageMiddleware> _logger = logger;
 
     // Headers intentionally excluded from proxy requests because object storage uses its own authentication.
     private static readonly HashSet<string> HeaderExclusions = new(StringComparer.OrdinalIgnoreCase)
@@ -64,74 +62,28 @@ public sealed class ObjectStorageMiddleware(
             ? HttpMethod.Head
             : HttpMethod.Get;
 
-        try
-        {
-            context.RequestAborted.ThrowIfCancellationRequested();
-            Uri proxyUri = await CreatePresignedUriAsync(resolvedKey, currentMinioOptions.BucketName).ConfigureAwait(false);
-            using HttpRequestMessage proxyRequest = new(outboundMethod, proxyUri);
-            CopyRequestHeaders(context.Request, proxyRequest);
-            HttpClient proxyClient = _httpClientFactory.CreateClient(nameof(ObjectStorageMiddleware));
-            using HttpResponseMessage proxyResponse = await proxyClient.SendAsync(
-                    proxyRequest,
-                    HttpCompletionOption.ResponseHeadersRead,
-                    context.RequestAborted)
-                .ConfigureAwait(false);
+        context.RequestAborted.ThrowIfCancellationRequested();
+        Uri proxyUri = await CreatePresignedUriAsync(resolvedKey, currentMinioOptions.BucketName).ConfigureAwait(false);
+        using HttpRequestMessage proxyRequest = new(outboundMethod, proxyUri);
+        CopyRequestHeaders(context.Request, proxyRequest);
+        HttpClient proxyClient = _httpClientFactory.CreateClient(nameof(ObjectStorageMiddleware));
+        using HttpResponseMessage proxyResponse = await proxyClient.SendAsync(
+                proxyRequest,
+                HttpCompletionOption.ResponseHeadersRead,
+                context.RequestAborted)
+            .ConfigureAwait(false);
 
-            context.Response.StatusCode = (int)proxyResponse.StatusCode;
-            CopyResponseHeaders(proxyResponse, context.Response);
+        context.Response.StatusCode = (int)proxyResponse.StatusCode;
+        CopyResponseHeaders(proxyResponse, context.Response);
 
-            if (HttpMethods.IsHead(context.Request.Method) || proxyResponse.Content is null)
-            {
-                return;
-            }
+        if (HttpMethods.IsHead(context.Request.Method) || proxyResponse.Content is null)
+        {
+            return;
+        }
 
-            await using Stream responseStream = await proxyResponse.Content.ReadAsStreamAsync(context.RequestAborted)
-                .ConfigureAwait(false);
-            await responseStream.CopyToAsync(context.Response.Body, context.RequestAborted).ConfigureAwait(false);
-        }
-        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (MinioException ex)
-        {
-            _logger.LogError(
-                ex,
-                "Failed to create presigned URL for {ObjectKey} ({FileName}) from {RequestPath}.",
-                resolvedKey,
-                fileName,
-                context.Request.Path);
-            if (!context.Response.HasStarted)
-            {
-                context.Response.StatusCode = StatusCodes.Status502BadGateway;
-            }
-        }
-        catch (HttpRequestException ex)
-        {
-            _logger.LogError(
-                ex,
-                "Failed to proxy object {ObjectKey} ({FileName}) from {RequestPath}.",
-                resolvedKey,
-                fileName,
-                context.Request.Path);
-            if (!context.Response.HasStarted)
-            {
-                context.Response.StatusCode = StatusCodes.Status502BadGateway;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(
-                ex,
-                "Unexpected failure while proxying object {ObjectKey} ({FileName}) from {RequestPath}.",
-                resolvedKey,
-                fileName,
-                context.Request.Path);
-            if (!context.Response.HasStarted)
-            {
-                context.Response.StatusCode = StatusCodes.Status502BadGateway;
-            }
-        }
+        await using Stream responseStream = await proxyResponse.Content.ReadAsStreamAsync(context.RequestAborted)
+            .ConfigureAwait(false);
+        await responseStream.CopyToAsync(context.Response.Body, context.RequestAborted).ConfigureAwait(false);
     }
 
     private async Task<Uri> CreatePresignedUriAsync(string objectKey, string bucketName)

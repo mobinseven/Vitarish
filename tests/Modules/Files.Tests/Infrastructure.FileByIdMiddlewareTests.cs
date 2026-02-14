@@ -174,7 +174,7 @@ public sealed class Infrastructure_FileByIdMiddlewareTests
         var minioClient = new Mock<IMinioClient>();
         var httpClientFactory = new Mock<IHttpClientFactory>();
         var logger = NullLogger<FileByIdMiddleware>.Instance;
-        return new FileByIdMiddleware(next, minioClient.Object, httpClientFactory.Object, logger);
+        return new FileByIdMiddleware(next, minioClient.Object, httpClientFactory.Object);
     }
 
     private static void SetupServices(DefaultHttpContext context, FileInformationDto? fileInfo)

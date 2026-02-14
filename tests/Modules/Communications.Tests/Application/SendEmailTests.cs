@@ -131,5 +131,6 @@ public sealed class SendEmailTests
 
         public Task<SmsDeliveryState> GetSmsDeliveryStateAsync(long messageId, CancellationToken cancellationToken = default) =>
             Task.FromResult(new SmsDeliveryState(messageId.ToString(), null, null, null, null, null, null, null, null));
+        public Task SendSmsReminder(string recipient, string? project = null, string? procedure = null, string? evnt = null, string? tenant = null, CancellationToken cancellationToken = default) => throw new NotImplementedException();
     }
 }

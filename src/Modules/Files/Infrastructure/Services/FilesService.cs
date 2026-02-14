@@ -189,7 +189,7 @@ public class FilesService : IFilesService
             info.AllowedOrigins = givenInformation.AllowedOrigins;
             info.Checksum = computedChecksum;
             info.Owner = givenInformation.Owner;
-            info.Url = BuildPublicUrl(_options.BaseUrl, _options.UploadPath, finalFileName);
+            //info.Url = BuildPublicUrl(_options.BaseUrl, _options.UploadPath, finalFileName);
             info.Thumbnail = givenInformation.Thumbnail;
             info.ContentType = contentType;
             long fileSize = new FileInfo(tempServerPath).Length;

@@ -18,8 +18,7 @@ namespace Vitarish.Files.Infrastructure.Services;
 public sealed class FileByIdMiddleware(
     RequestDelegate next,
     IMinioClient minioClient,
-    IHttpClientFactory httpClientFactory,
-    ILogger<FileByIdMiddleware> logger)
+    IHttpClientFactory httpClientFactory)
 {
     private const string FilesPrefix = "/files/";
 
@@ -86,70 +85,37 @@ public sealed class FileByIdMiddleware(
 
         string fileName = $"{filesSettings.Prefix}-{fileId:N}.{extension}";
         string objectKey = filesSettings.BuildObjectKey(fileName);
-        string resolvedKey = BuildObjectKey(objectKey, currentMinioOptions.ObjectPrefix);
 
         HttpMethod outboundMethod = HttpMethods.IsHead(context.Request.Method)
             ? HttpMethod.Head
             : HttpMethod.Get;
+        context.RequestAborted.ThrowIfCancellationRequested();
+        Uri proxyUri = await CreatePresignedUriAsync(objectKey, currentMinioOptions.BucketName);
+        using HttpRequestMessage proxyRequest = new(outboundMethod, proxyUri);
+        CopyRequestHeaders(context.Request, proxyRequest);
 
-        try
+        HttpClient proxyClient = httpClientFactory.CreateClient(nameof(ObjectStorageMiddleware));
+        using HttpResponseMessage proxyResponse = await proxyClient.SendAsync(
+                proxyRequest,
+                HttpCompletionOption.ResponseHeadersRead,
+                context.RequestAborted)
+            .ConfigureAwait(false);
+
+        context.Response.StatusCode = (int)proxyResponse.StatusCode;
+        CopyResponseHeaders(proxyResponse, context.Response);
+
+        if (HttpMethods.IsHead(context.Request.Method) || proxyResponse.Content is null)
         {
-            context.RequestAborted.ThrowIfCancellationRequested();
-            Uri proxyUri = await CreatePresignedUriAsync(resolvedKey, currentMinioOptions.BucketName);
-            using HttpRequestMessage proxyRequest = new(outboundMethod, proxyUri);
-            CopyRequestHeaders(context.Request, proxyRequest);
-            // Reuse the ObjectStorageMiddleware-configured HttpClient (same MinIO timeout settings)
-            HttpClient proxyClient = httpClientFactory.CreateClient(nameof(ObjectStorageMiddleware));
-            using HttpResponseMessage proxyResponse = await proxyClient.SendAsync(
-                    proxyRequest,
-                    HttpCompletionOption.ResponseHeadersRead,
-                    context.RequestAborted)
-                .ConfigureAwait(false);
-
-            context.Response.StatusCode = (int)proxyResponse.StatusCode;
-            CopyResponseHeaders(proxyResponse, context.Response);
-
-            if (HttpMethods.IsHead(context.Request.Method) || proxyResponse.Content is null)
-            {
-                return;
-            }
-            context.Response.StatusCode = StatusCodes.Status200OK;
-
-            await using Stream responseStream = await proxyResponse.Content
-                .ReadAsStreamAsync(context.RequestAborted)
-                .ConfigureAwait(false);
-            await responseStream.CopyToAsync(context.Response.Body, context.RequestAborted)
-                .ConfigureAwait(false);
             return;
         }
-        catch (OperationCanceledException) when (context.RequestAborted.IsCancellationRequested)
-        {
-            throw;
-        }
-        catch (MinioException ex)
-        {
-            logger.LogError(ex, "Failed to create presigned URL for file {FileId} ({ObjectKey}).", fileId, resolvedKey);
-            if (!context.Response.HasStarted)
-            {
-                context.Response.StatusCode = StatusCodes.Status502BadGateway;
-            }
-        }
-        catch (HttpRequestException ex)
-        {
-            logger.LogError(ex, "Failed to proxy file {FileId} ({ObjectKey}).", fileId, resolvedKey);
-            if (!context.Response.HasStarted)
-            {
-                context.Response.StatusCode = StatusCodes.Status502BadGateway;
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Unexpected failure while proxying file {FileId} ({ObjectKey}).", fileId, resolvedKey);
-            if (!context.Response.HasStarted)
-            {
-                context.Response.StatusCode = StatusCodes.Status502BadGateway;
-            }
-        }
+
+        await using Stream responseStream = await proxyResponse.Content
+            .ReadAsStreamAsync(context.RequestAborted)
+            .ConfigureAwait(false);
+        await responseStream.CopyToAsync(context.Response.Body, context.RequestAborted)
+            .ConfigureAwait(false);
+        return;
+
     }
 
     private async Task<Uri> CreatePresignedUriAsync(string objectKey, string bucketName)
@@ -200,14 +166,5 @@ public sealed class FileByIdMiddleware(
         _ = destination.Headers.Remove(HeaderNames.TransferEncoding);
         _ = destination.Headers.Remove(HeaderNames.Connection);
         _ = destination.Headers.Remove(HeaderNames.KeepAlive);
-    }
-
-    private static string BuildObjectKey(string objectKey, string? objectPrefix)
-    {
-        string trimmedKey = objectKey.TrimStart('/');
-        string? prefix = objectPrefix?.Trim('/');
-        return string.IsNullOrEmpty(prefix)
-            ? trimmedKey
-            : string.Join('/', prefix, trimmedKey).Replace("//", "/", StringComparison.Ordinal);
     }
 }

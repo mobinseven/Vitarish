@@ -8,7 +8,7 @@ using Vitarish.Sea.Application.Abstractions;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 
-public class FileMigrator(
+public class FileMigrationProccessor(
     TenantBackgroundExecutor tenantBackgroundExecutor)
 {
     private const string BackgroundResource = "hangfire:sea:files:migration";

@@ -60,7 +60,7 @@ public static class HostHangfireExtensions
         _ = builder.Services.AddTransient<IMessageQueue, HangfireMessageQueue>();
         _ = builder.Services.AddTransient<MessageProcessor>();
         _ = builder.Services.AddTransient<ReminderProcessor>();
-        _ = builder.Services.AddTransient<FilesProcessor>();
+        _ = builder.Services.AddTransient<FilesSelfTestsProcessor>();
         _ = builder.Services.AddTransient<IntelligenceProcessor>();
         _ = builder.Services.AddTransient<AttachmentMigrationProcessor>();
         _ = builder.Services.AddSingleton<HangfireSeaJobManager>();

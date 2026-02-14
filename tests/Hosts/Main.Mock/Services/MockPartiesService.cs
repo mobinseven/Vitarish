@@ -1,5 +1,5 @@
 using Vitarish.Parties.Application.Abstractions;
-using Vitarish.Parties.Application.Dtos;
+using Vitarish.Parties.Domain.Dtos;
 
 namespace Vitarish.Main.Mock.Services;
 
@@ -15,10 +15,7 @@ public sealed class MockPartiesService : IPartiesService
         return Task.FromResult(owner);
     }
 
-    public Task<IEnumerable<OwnerReadDto>> GetOwnersAsync(CancellationToken ct = default)
-    {
-        return Task.FromResult<IEnumerable<OwnerReadDto>>(owners.Values);
-    }
+    public Task<IEnumerable<OwnerReadDto>> GetOwnersAsync(CancellationToken ct = default) => Task.FromResult<IEnumerable<OwnerReadDto>>(owners.Values);
 
     public Task<OwnerReadDto?> CreateOwnerAsync(OwnerWriteDto dto, CancellationToken ct = default)
     {
@@ -64,15 +61,9 @@ public sealed class MockPartiesService : IPartiesService
         return Task.FromResult(tenant);
     }
 
-    public Task<IEnumerable<TenantReadDto>> GetTenantsAsync(CancellationToken ct = default)
-    {
-        return Task.FromResult<IEnumerable<TenantReadDto>>(tenants.Values);
-    }
+    public Task<IEnumerable<TenantReadDto>> GetTenantsAsync(CancellationToken ct = default) => Task.FromResult<IEnumerable<TenantReadDto>>(tenants.Values);
 
-    public Task<IEnumerable<TenantReadDto>> GetTenantsByOwnerAsync(Guid ownerId, CancellationToken ct = default)
-    {
-        return Task.FromResult<IEnumerable<TenantReadDto>>(tenants.Values.Where(tenant => tenant.OwnerId == ownerId).ToList());
-    }
+    public Task<IEnumerable<TenantReadDto>> GetTenantsByOwnerAsync(Guid ownerId, CancellationToken ct = default) => Task.FromResult<IEnumerable<TenantReadDto>>(tenants.Values.Where(tenant => tenant.OwnerId == ownerId).ToList());
 
     public Task<TenantReadDto?> CreateTenantAsync(TenantWriteDto dto, CancellationToken ct = default)
     {
@@ -124,11 +115,8 @@ public sealed class MockPartiesService : IPartiesService
         return Task.FromResult(indicator);
     }
 
-    public Task<IEnumerable<TenantIndicatorReadDto>> GetTenantIndicatorsByTenantAsync(Guid tenantId, CancellationToken ct = default)
-    {
-        return Task.FromResult<IEnumerable<TenantIndicatorReadDto>>(
+    public Task<IEnumerable<TenantIndicatorReadDto>> GetTenantIndicatorsByTenantAsync(Guid tenantId, CancellationToken ct = default) => Task.FromResult<IEnumerable<TenantIndicatorReadDto>>(
             indicators.Values.Where(indicator => indicator.TenantId == tenantId).ToList());
-    }
 
     public Task<TenantIndicatorReadDto?> CreateTenantIndicatorAsync(TenantIndicatorWriteDto dto, CancellationToken ct = default)
     {
