@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Minio;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
+using Vitarish.Files.Infrastructure.Api;
 using Vitarish.Files.Infrastructure.Data;
 using Vitarish.Files.Infrastructure.Interfaces;
 using Vitarish.Files.Infrastructure.Services;
@@ -38,7 +39,7 @@ public class FilesModule : Module, IFilesModule
         });
 
         _ = services.AddSingleton<IObjectStorageService, MinioObjectStorageService>();
-        _ = services.AddHttpClient(nameof(ObjectStorageMiddleware))
+        _ = services.AddHttpClient("FilesApi")
             .ConfigureHttpClient((sp, client) =>
             {
                 MinioOptions minioOptions = sp.GetRequiredService<IOptions<MinioOptions>>().Value;
@@ -63,8 +64,7 @@ public class FilesModule : Module, IFilesModule
     }
     public override async Task Initialize(WebApplication app)
     {
-        _ = app.UseMiddleware<FileByIdMiddleware>();
-        _ = app.UseMiddleware<ObjectStorageMiddleware>();
+        _ = app.MapFilesApi();
         using IServiceScope scope = app.Services.CreateScope();
         IObjectStorageService storage = scope.ServiceProvider.GetRequiredService<IObjectStorageService>();
         await storage.EnsureBucketAsync(app.Lifetime.ApplicationStopping);
