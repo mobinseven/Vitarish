@@ -111,7 +111,35 @@ public sealed class Infrastructure_FilesApiTests
         _ = response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
     }
 
-    private static IHost CreateHost(FileInformationDto? fileInfo = null)
+    [Fact]
+    public async Task GetFileById_WithRangeHeader_ForwardsRangeRequest()
+    {
+        // Arrange
+        var fileId = Guid.NewGuid();
+        var fileInfo = new FileInformationDto
+        {
+            Id = fileId,
+            ContentType = "video/mp4",
+            Metadata = new FileMetadata { Extension = "mp4" }
+        };
+
+        HttpRequestMessage? capturedRequest = null;
+        using var host = CreateHost(fileInfo, req => capturedRequest = req);
+        var client = host.GetTestClient();
+
+        // Act
+        var request = new HttpRequestMessage(HttpMethod.Get, $"/files/{fileId}");
+        request.Headers.Add("Range", "bytes=5-11");
+        var response = await client.SendAsync(request);
+
+        // Assert
+        _ = capturedRequest.Should().NotBeNull();
+        _ = capturedRequest!.Headers.Contains("Range").Should().BeTrue();
+        var rangeHeader = capturedRequest.Headers.GetValues("Range").FirstOrDefault();
+        _ = rangeHeader.Should().Be("bytes=5-11");
+    }
+
+    private static IHost CreateHost(FileInformationDto? fileInfo = null, Action<HttpRequestMessage>? captureRequest = null)
     {
         var minioClientMock = new Mock<IMinioClient>();
         minioClientMock
@@ -126,10 +154,14 @@ public sealed class Infrastructure_FilesApiTests
                 "SendAsync",
                 ItExpr.IsAny<HttpRequestMessage>(),
                 ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync(new HttpResponseMessage
+            .ReturnsAsync((HttpRequestMessage req, CancellationToken ct) =>
             {
-                StatusCode = System.Net.HttpStatusCode.OK,
-                Content = new ByteArrayContent(Array.Empty<byte>())
+                captureRequest?.Invoke(req);
+                return new HttpResponseMessage
+                {
+                    StatusCode = System.Net.HttpStatusCode.OK,
+                    Content = new ByteArrayContent(Array.Empty<byte>())
+                };
             });
 
         var httpClient = new HttpClient(httpMessageHandlerMock.Object);

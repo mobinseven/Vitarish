@@ -87,6 +87,8 @@ public static class FilesApi
             return;
         }
 
+        // Extract file ID from fileName in format: {prefix}-{id}.{extension}
+        // Example: "files-a1b2c3d4e5f6.jpg" -> "a1b2c3d4e5f6"
         string extractedId = FilesExtensions.ExtractId(fileName, filesOptions.Value.Prefix);
         if (!Guid.TryParse(extractedId, out Guid fileId))
         {
