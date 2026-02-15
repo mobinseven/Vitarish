@@ -6,8 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using Moq;
-using Moq.Protected;
-using Minio;
 using Vitarish.Files.Domain.Models;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Api;
@@ -15,6 +13,7 @@ using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using Vitarish.Entities.Server.Models;
 using Vitarish.Files.Application.Abstractions;
+using Vitarish.Files.Infrastructure.Interfaces;
 
 namespace Vitarish.Files.Tests;
 
@@ -92,7 +91,9 @@ public sealed class Infrastructure_FilesApiTests
 
         // Assert
         _ = response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
-        _ = response.Content.Headers.ContentLength.Should().Be(0);
+        _ = response.Content.Headers.ContentLength.Should().Be(1000);
+        var content = await response.Content.ReadAsStringAsync();
+        _ = content.Should().BeEmpty();
     }
 
     [Fact]
@@ -123,8 +124,13 @@ public sealed class Infrastructure_FilesApiTests
             Metadata = new FileMetadata { Extension = "mp4" }
         };
 
-        HttpRequestMessage? capturedRequest = null;
-        using var host = CreateHost(fileInfo, req => capturedRequest = req);
+        long? capturedOffset = null;
+        long? capturedLength = null;
+        using var host = CreateHost(fileInfo, (offset, length) =>
+        {
+            capturedOffset = offset;
+            capturedLength = length;
+        });
         var client = host.GetTestClient();
 
         // Act
@@ -133,39 +139,31 @@ public sealed class Infrastructure_FilesApiTests
         var response = await client.SendAsync(request);
 
         // Assert
-        _ = capturedRequest.Should().NotBeNull();
-        _ = capturedRequest!.Headers.Contains("Range").Should().BeTrue();
-        var rangeHeader = capturedRequest.Headers.GetValues("Range").FirstOrDefault();
-        _ = rangeHeader.Should().Be("bytes=5-11");
+        _ = capturedOffset.Should().Be(5);
+        _ = capturedLength.Should().Be(7);
+        _ = response.StatusCode.Should().Be(System.Net.HttpStatusCode.PartialContent);
     }
 
-    private static IHost CreateHost(FileInformationDto? fileInfo = null, Action<HttpRequestMessage>? captureRequest = null)
+    private static IHost CreateHost(FileInformationDto? fileInfo = null, Action<long?, long?>? captureRangeParams = null)
     {
-        var minioClientMock = new Mock<IMinioClient>();
-        minioClientMock
-            .Setup(m => m.PresignedGetObjectAsync(It.IsAny<Minio.DataModel.Args.PresignedGetObjectArgs>()))
-            .ReturnsAsync("http://minio.test/bucket/file");
+        var storageServiceMock = new Mock<IObjectStorageService>();
+        
+        storageServiceMock
+            .Setup(s => s.GetMetadataAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ObjectMetadata(1000, "application/octet-stream"));
 
-        var httpClientFactoryMock = new Mock<IHttpClientFactory>();
-        var httpMessageHandlerMock = new Mock<HttpMessageHandler>();
-        httpMessageHandlerMock
-            .Protected()
-            .Setup<Task<HttpResponseMessage>>(
-                "SendAsync",
-                ItExpr.IsAny<HttpRequestMessage>(),
-                ItExpr.IsAny<CancellationToken>())
-            .ReturnsAsync((HttpRequestMessage req, CancellationToken ct) =>
+        storageServiceMock
+            .Setup(s => s.StreamToAsync(
+                It.IsAny<string>(),
+                It.IsAny<Stream>(),
+                It.IsAny<long?>(),
+                It.IsAny<long?>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<string, Stream, long?, long?, CancellationToken>((key, stream, offset, length, ct) =>
             {
-                captureRequest?.Invoke(req);
-                return new HttpResponseMessage
-                {
-                    StatusCode = System.Net.HttpStatusCode.OK,
-                    Content = new ByteArrayContent(Array.Empty<byte>())
-                };
-            });
-
-        var httpClient = new HttpClient(httpMessageHandlerMock.Object);
-        httpClientFactoryMock.Setup(f => f.CreateClient(It.IsAny<string>())).Returns(httpClient);
+                captureRangeParams?.Invoke(offset, length);
+            })
+            .Returns(Task.CompletedTask);
 
         return new HostBuilder()
             .ConfigureWebHost(webBuilder =>
@@ -174,8 +172,7 @@ public sealed class Infrastructure_FilesApiTests
                     .UseTestServer()
                     .ConfigureServices(services =>
                     {
-                        services.AddSingleton(minioClientMock.Object);
-                        services.AddSingleton(httpClientFactoryMock.Object);
+                        services.AddSingleton(storageServiceMock.Object);
 
                         var tenantAccessor = new TestTenantAccessor("root");
                         services.AddSingleton<IMultiTenantContextAccessor<TenantInfo>>(tenantAccessor);
@@ -196,15 +193,6 @@ public sealed class Infrastructure_FilesApiTests
                                 Prefix = "files",
                                 BaseUrl = "https://files.example",
                                 UploadPath = "uploads"
-                            }));
-
-                        services.AddSingleton<IOptionsSnapshot<MinioOptions>>(new OptionsWrapper<MinioOptions>(
-                            new MinioOptions
-                            {
-                                Endpoint = "minio.example",
-                                AccessKey = "key",
-                                SecretKey = "secret",
-                                BucketName = "bucket"
                             }));
 
                         services.AddRouting();

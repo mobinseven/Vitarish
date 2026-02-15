@@ -39,12 +39,6 @@ public class FilesModule : Module, IFilesModule
         });
 
         _ = services.AddSingleton<IObjectStorageService, MinioObjectStorageService>();
-        _ = services.AddHttpClient("FilesApi")
-            .ConfigureHttpClient((sp, client) =>
-            {
-                MinioOptions minioOptions = sp.GetRequiredService<IOptions<MinioOptions>>().Value;
-                client.Timeout = TimeSpan.FromSeconds(minioOptions.HttpRequestTimeoutSeconds);
-            });
         _ = services.AddScoped<IFilesService, FilesService>();
         _ = services.AddScoped<IFileInformationService, FileInformationService>();
         _ = services.AddControllers();

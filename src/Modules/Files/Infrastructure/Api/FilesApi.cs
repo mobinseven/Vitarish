@@ -6,25 +6,17 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Microsoft.Net.Http.Headers;
-using Minio;
-using Minio.DataModel.Args;
 using Vitarish.Entities.Server.Models;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Models;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Extensions;
+using Vitarish.Files.Infrastructure.Interfaces;
 
 namespace Vitarish.Files.Infrastructure.Api;
 
 public static class FilesApi
 {
-    private static readonly HashSet<string> HeaderExclusions = new(StringComparer.OrdinalIgnoreCase)
-    {
-        HeaderNames.Host,
-        HeaderNames.Authorization,
-        HeaderNames.Cookie,
-    };
-
     public static IEndpointRouteBuilder MapFilesApi(this IEndpointRouteBuilder endpoints)
     {
         RouteGroupBuilder filesGroup = endpoints.MapGroup("/files");
@@ -40,12 +32,10 @@ public static class FilesApi
     private static async Task GetFileByIdAsync(
         Guid id,
         HttpContext context,
-        IMinioClient minioClient,
-        IHttpClientFactory httpClientFactory,
+        IObjectStorageService storageService,
         IMultiTenantContextAccessor<TenantInfo> tenantAccessor,
         IServiceScopeFactory serviceScopeFactory,
-        IOptionsSnapshot<FilesOptions> filesOptions,
-        IOptionsSnapshot<MinioOptions> minioOptions)
+        IOptionsSnapshot<FilesOptions> filesOptions)
     {
         using IDisposable tenantScope = tenantAccessor.UseTenant(TenantDefaults.RootTenant);
         using IServiceScope scope = serviceScopeFactory.CreateScope();
@@ -68,18 +58,16 @@ public static class FilesApi
             return;
         }
 
-        await ServeFileAsync(fileInfo, id, context, minioClient, httpClientFactory, filesOptions.Value, minioOptions.Value);
+        await ServeFileAsync(fileInfo, id, context, storageService, filesOptions.Value);
     }
 
     private static async Task GetFileByNameAsync(
         string fileName,
         HttpContext context,
-        IMinioClient minioClient,
-        IHttpClientFactory httpClientFactory,
+        IObjectStorageService storageService,
         IMultiTenantContextAccessor<TenantInfo> tenantAccessor,
         IServiceScopeFactory serviceScopeFactory,
-        IOptionsSnapshot<FilesOptions> filesOptions,
-        IOptionsSnapshot<MinioOptions> minioOptions)
+        IOptionsSnapshot<FilesOptions> filesOptions)
     {
         if (string.IsNullOrWhiteSpace(fileName))
         {
@@ -109,17 +97,15 @@ public static class FilesApi
             return;
         }
 
-        await ServeFileAsync(fileInfo, fileId, context, minioClient, httpClientFactory, filesOptions.Value, minioOptions.Value);
+        await ServeFileAsync(fileInfo, fileId, context, storageService, filesOptions.Value);
     }
 
     private static async Task ServeFileAsync(
         FileInformationDto fileInfo,
         Guid fileId,
         HttpContext context,
-        IMinioClient minioClient,
-        IHttpClientFactory httpClientFactory,
-        FilesOptions filesSettings,
-        MinioOptions minioSettings)
+        IObjectStorageService storageService,
+        FilesOptions filesSettings)
     {
         string? extension = fileInfo.Metadata.Extension;
         if (string.IsNullOrWhiteSpace(extension))
@@ -131,77 +117,78 @@ public static class FilesApi
         string objectKey = filesSettings.BuildObjectKey(fileName);
 
         context.RequestAborted.ThrowIfCancellationRequested();
-        Uri proxyUri = await CreatePresignedUriAsync(minioClient, objectKey, minioSettings.BucketName);
 
-        HttpMethod method = HttpMethods.IsHead(context.Request.Method) ? HttpMethod.Head : HttpMethod.Get;
-        using HttpRequestMessage proxyRequest = new(method, proxyUri);
-        CopyRequestHeaders(context.Request, proxyRequest);
+        ObjectMetadata metadata = await storageService.GetMetadataAsync(objectKey, context.RequestAborted);
 
-        HttpClient proxyClient = httpClientFactory.CreateClient("FilesApi");
-        using HttpResponseMessage proxyResponse = await proxyClient.SendAsync(
-            proxyRequest,
-            HttpCompletionOption.ResponseHeadersRead,
-            context.RequestAborted);
+        context.Response.ContentType = metadata.ContentType ?? fileInfo.ContentType ?? "application/octet-stream";
+        context.Response.Headers.AcceptRanges = "bytes";
 
-        context.Response.StatusCode = (int)proxyResponse.StatusCode;
-        CopyResponseHeaders(proxyResponse, context.Response);
-
-        if (HttpMethods.IsHead(context.Request.Method) || proxyResponse.Content is null)
+        if (HttpMethods.IsHead(context.Request.Method))
         {
+            context.Response.ContentLength = metadata.Size;
+            context.Response.StatusCode = StatusCodes.Status200OK;
             return;
         }
 
-        await using Stream responseStream = await proxyResponse.Content.ReadAsStreamAsync(context.RequestAborted);
-        await responseStream.CopyToAsync(context.Response.Body, context.RequestAborted);
-    }
+        (long offset, long length, bool isRangeRequest) = ParseRangeHeader(context.Request.Headers.Range, metadata.Size);
 
-    private static async Task<Uri> CreatePresignedUriAsync(IMinioClient minioClient, string objectKey, string bucketName)
-    {
-        PresignedGetObjectArgs args = new PresignedGetObjectArgs()
-            .WithBucket(bucketName)
-            .WithObject(objectKey)
-            .WithExpiry((int)TimeSpan.FromMinutes(60).TotalSeconds);
-
-        string url = await minioClient.PresignedGetObjectAsync(args);
-        return new Uri(url);
-    }
-
-    private static void CopyRequestHeaders(HttpRequest source, HttpRequestMessage destination)
-    {
-        foreach ((string key, Microsoft.Extensions.Primitives.StringValues values) in source.Headers)
+        if (isRangeRequest)
         {
-            if (HeaderExclusions.Contains(key))
-            {
-                continue;
-            }
-
-            if (!destination.Headers.TryAddWithoutValidation(key, (IEnumerable<string>)values))
-            {
-                destination.Content ??= new ByteArrayContent(Array.Empty<byte>());
-                _ = destination.Content.Headers.TryAddWithoutValidation(key, (IEnumerable<string>)values);
-            }
+            context.Response.StatusCode = StatusCodes.Status206PartialContent;
+            context.Response.ContentLength = length;
+            context.Response.Headers.ContentRange = $"bytes {offset}-{offset + length - 1}/{metadata.Size}";
         }
-    }
-
-    private static void CopyResponseHeaders(HttpResponseMessage source, HttpResponse destination)
-    {
-        foreach ((string key, IEnumerable<string> values) in source.Headers)
+        else
         {
-            destination.Headers[key] = values.ToArray();
+            context.Response.StatusCode = StatusCodes.Status200OK;
+            context.Response.ContentLength = metadata.Size;
         }
 
-        if (source.Content is not null)
-        {
-            foreach ((string key, IEnumerable<string> values) in source.Content.Headers)
-            {
-                destination.Headers[key] = values.ToArray();
-            }
+        await storageService.StreamToAsync(
+            objectKey,
+            context.Response.Body,
+            isRangeRequest ? offset : null,
+            isRangeRequest ? length : null,
+            context.RequestAborted);
+    }
 
-            destination.ContentLength = source.Content.Headers.ContentLength is long contentLength ? contentLength : null;
+    private static (long offset, long length, bool isRangeRequest) ParseRangeHeader(string? rangeHeader, long fileSize)
+    {
+        if (string.IsNullOrWhiteSpace(rangeHeader))
+        {
+            return (0, fileSize, false);
         }
 
-        _ = destination.Headers.Remove(HeaderNames.TransferEncoding);
-        _ = destination.Headers.Remove(HeaderNames.Connection);
-        _ = destination.Headers.Remove(HeaderNames.KeepAlive);
+        string range = rangeHeader.Trim();
+        if (!range.StartsWith("bytes=", StringComparison.OrdinalIgnoreCase))
+        {
+            return (0, fileSize, false);
+        }
+
+        string rangeValue = range.Substring(6);
+        string[] parts = rangeValue.Split('-');
+        if (parts.Length != 2)
+        {
+            return (0, fileSize, false);
+        }
+
+        long start = 0;
+        long end = fileSize - 1;
+
+        if (!string.IsNullOrWhiteSpace(parts[0]) && long.TryParse(parts[0], out long parsedStart))
+        {
+            start = parsedStart;
+        }
+
+        if (!string.IsNullOrWhiteSpace(parts[1]) && long.TryParse(parts[1], out long parsedEnd))
+        {
+            end = parsedEnd;
+        }
+
+        start = Math.Max(0, Math.Min(start, fileSize - 1));
+        end = Math.Max(start, Math.Min(end, fileSize - 1));
+        long length = end - start + 1;
+
+        return (start, length, true);
     }
 }
