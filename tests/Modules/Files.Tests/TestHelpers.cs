@@ -97,6 +97,11 @@ public sealed class InMemoryFileInformationService : IFileInformationService
             }
         }
 
+        if (!string.IsNullOrWhiteSpace(descriptor.Tag))
+        {
+            query = query.Where(info => string.Equals(info.Tag, descriptor.Tag, StringComparison.OrdinalIgnoreCase));
+        }
+
         IReadOnlyList<FileInformationDto> result = query.ToList();
         return Task.FromResult(EntityResult<IReadOnlyList<FileInformationDto>>.Success(result));
     }
