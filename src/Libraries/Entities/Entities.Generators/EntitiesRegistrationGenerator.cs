@@ -78,6 +78,7 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
         sb.AppendLine("using Vitarish.Entities.Server.Models;");
         sb.AppendLine("using Vitarish.Entities.Server.Queries;");
         sb.AppendLine("using Vitarish.Entities.Server.Services;");
+        sb.AppendLine("using Microsoft.EntityFrameworkCore.Diagnostics;");
         sb.AppendLine();
         sb.AppendLine("/// <summary>");
         sb.AppendLine($"/// Auto-generated registration extensions for {assembly.Name} entities.");
@@ -105,10 +106,9 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
         sb.AppendLine("    {");
         sb.AppendLine("        // Core infrastructure");
         sb.AppendLine("        services.AddMemoryCache();");
-        sb.AppendLine("        services.AddLogging(builder => builder.AddConsole());");
         sb.AppendLine($"        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof({extensionClassName}).Assembly));");
         sb.AppendLine("        services.AddSingleton<IEntityCacheInvalidationService, EntityCacheInvalidationService>();");
-        sb.AppendLine("        services.AddScoped<EntityInterceptor>();");
+        sb.AppendLine("        services.AddScoped<IInterceptor, EntityInterceptor>();");
         sb.AppendLine();
 
         foreach(KeyValuePair<INamedTypeSymbol, INamedTypeSymbol> kvp in descriptors)

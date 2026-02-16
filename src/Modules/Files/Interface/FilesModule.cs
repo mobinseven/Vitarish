@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -43,9 +44,6 @@ public class FilesModule : Module, IFilesModule
         _ = services.AddSingleton<IObjectStorageService, MinioObjectStorageService>();
         _ = services.AddScoped<IFilesService, FilesService>();
         _ = services.AddScoped<IFileInformationService, FileInformationService>();
-        _ = services.AddControllers();
-
-        _ = services.AddScoped<SessionContextInterceptor>();
 
         if (configureDbContext != null)
         {

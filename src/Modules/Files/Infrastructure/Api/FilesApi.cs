@@ -19,9 +19,9 @@ public static class FilesApi
         RouteGroupBuilder filesGroup = endpoints.MapGroup("/files");
 
         _ = filesGroup.MapGet("/{id:guid}", GetFileByIdAsync);
-        _ = filesGroup.MapMethods("/{id:guid}", new[] { "HEAD" }, GetFileByIdAsync);
+        _ = filesGroup.MapMethods("/{id:guid}", ["HEAD"], GetFileByIdAsync);
         _ = filesGroup.MapGet("/name/{**fileName}", GetFileByNameAsync);
-        _ = filesGroup.MapMethods("/name/{**fileName}", new[] { "HEAD" }, GetFileByNameAsync);
+        _ = filesGroup.MapMethods("/name/{**fileName}", ["HEAD"], GetFileByNameAsync);
 
         return endpoints;
     }

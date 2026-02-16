@@ -3,6 +3,7 @@ using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Vitarish.Requests.Application.Abstractions;
 
@@ -10,8 +11,7 @@ namespace Vitarish.Files.Infrastructure.Data;
 
 public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
 {
-    private readonly EntityInterceptor _interceptor;
-    private readonly SessionContextInterceptor _sessionContext;
+    private readonly IEnumerable<IInterceptor> _interceptors;
     private readonly IRequestContext _requestContext;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -36,23 +36,19 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
 
     public FilesDbContext(
         DbContextOptions<FilesDbContext> options,
-        EntityInterceptor interceptor,
-        SessionContextInterceptor sessionContext,
+        IEnumerable<IInterceptor> interceptors,
         IRequestContext requestContext,
         IHttpContextAccessor httpContextAccessor) : base(options)
     {
-        _interceptor = interceptor;
-        _sessionContext = sessionContext;
+        _interceptors = interceptors;
         _requestContext = requestContext;
         _httpContextAccessor = httpContextAccessor;
 
-        // Enable multi-tenant tracking
         this.EnforceMultiTenantOnTracking();
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) => _ = optionsBuilder
-            .AddInterceptors(_interceptor)
-            .AddInterceptors(_sessionContext);
+            .AddInterceptors(_interceptors);
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {

@@ -24,7 +24,6 @@ public class SeaEstate : Estate, ISeaEstate
         _ = builder.Services.AddDbContext<SeaDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Transient);
 
         _ = builder.Services.AddSeaInfrastructure();
-        _ = builder.Services.AddAppMediatR(typeof(SeaDbContext).Assembly);
 
         _ = builder.Services.ConfigureHttpJsonOptions(options =>
             options.SerializerOptions.TypeInfoResolverChain.Insert(0, SeaJsonSerializerContext.Default));

@@ -2,6 +2,7 @@ using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Vitarish.Requests.Application.Abstractions;
 
@@ -9,8 +10,7 @@ namespace Vitarish.Sea.Infrastructure.Data;
 
 public class SeaDbContext : DbContext, IMultiTenantDbContext
 {
-    private readonly EntityInterceptor _interceptor;
-    private readonly SessionContextInterceptor _sessionContext;
+    private readonly IEnumerable<IInterceptor> _interceptors;
     private readonly IRequestContext _requestContext;
     private readonly IHttpContextAccessor _httpContextAccessor;
 
@@ -44,13 +44,11 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
 
     public SeaDbContext(
         DbContextOptions<SeaDbContext> options,
-        EntityInterceptor interceptor,
-        SessionContextInterceptor sessionContext,
+        IEnumerable<IInterceptor> interceptors,
         IRequestContext requestIdentity,
         IHttpContextAccessor httpContextAccessor) : base(options)
     {
-        _interceptor = interceptor;
-        _sessionContext = sessionContext;
+        _interceptors = interceptors;
         _requestContext = requestIdentity;
         _httpContextAccessor = httpContextAccessor;
 
@@ -59,8 +57,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) => _ = optionsBuilder
-            .AddInterceptors(_interceptor)
-            .AddInterceptors(_sessionContext);
+            .AddInterceptors(_interceptors);
 
     public override int SaveChanges(bool acceptAllChangesOnSuccess)
     {
