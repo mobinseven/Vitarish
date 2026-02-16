@@ -18,12 +18,12 @@ public class FilesSelfTestsProcessor(
     {
         try
         {
-            await storage.EnsureBucketAsync(cancellationToken).ConfigureAwait(false);
-            await UploadAsync(cancellationToken).ConfigureAwait(false);
-            await VerifyExistsAsync(cancellationToken).ConfigureAwait(false);
-            await VerifyDownloadAsync(cancellationToken).ConfigureAwait(false);
-            await VerifySeekAsync(cancellationToken).ConfigureAwait(false);
-            await VerifyRemoveAsync(cancellationToken).ConfigureAwait(false);
+            await storage.EnsureBucketAsync(cancellationToken);
+            await UploadAsync(cancellationToken);
+            await VerifyExistsAsync(cancellationToken);
+            await VerifyDownloadAsync(cancellationToken);
+            await VerifySeekAsync(cancellationToken);
+            await VerifyRemoveAsync(cancellationToken);
 
             filesModule.IsAvailable = true;
         }
@@ -33,7 +33,7 @@ public class FilesSelfTestsProcessor(
         }
         finally
         {
-            await CleanupAsync(cancellationToken).ConfigureAwait(false);
+            await CleanupAsync(cancellationToken);
         }
     }
 
@@ -45,20 +45,20 @@ public class FilesSelfTestsProcessor(
             "application/octet-stream",
             buffer,
             Payload.Length,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
     }
 
     private async Task VerifyExistsAsync(CancellationToken cancellationToken)
     {
         string objectKey = GetObjectKey();
-        bool exists = await storage.ExistsAsync(objectKey, cancellationToken).ConfigureAwait(false);
+        bool exists = await storage.ExistsAsync(objectKey, cancellationToken);
         if (!exists)
         {
             throw new IOException($"Uploaded self-test object '{objectKey}' was not found.");
         }
 
         ObjectMetadata metadata = await storage.GetMetadataAsync(objectKey, cancellationToken)
-            .ConfigureAwait(false);
+            ;
         if (metadata.Size != Payload.LongLength)
         {
             throw new IOException(
@@ -68,11 +68,11 @@ public class FilesSelfTestsProcessor(
 
     private async Task VerifyDownloadAsync(CancellationToken cancellationToken)
     {
-        await using Stream download = await storage.DownloadAsync(GetObjectKey(), cancellationToken).ConfigureAwait(false);
+        await using Stream download = await storage.DownloadAsync(GetObjectKey(), cancellationToken);
         byte[] buffer = ArrayPool<byte>.Shared.Rent(Payload.Length);
         try
         {
-            int read = await download.ReadAsync(buffer.AsMemory(0, Payload.Length), cancellationToken).ConfigureAwait(false);
+            int read = await download.ReadAsync(buffer.AsMemory(0, Payload.Length), cancellationToken);
             if (read != Payload.Length)
             {
                 throw new IOException(
@@ -100,7 +100,7 @@ public class FilesSelfTestsProcessor(
             sliceBuffer,
             sliceOffset,
             sliceLength,
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken);
 
         byte[] slice = sliceBuffer.ToArray();
         if (slice.Length != sliceLength)
@@ -117,8 +117,8 @@ public class FilesSelfTestsProcessor(
     private async Task VerifyRemoveAsync(CancellationToken cancellationToken)
     {
         string objectKey = GetObjectKey();
-        await storage.RemoveAsync(objectKey, cancellationToken).ConfigureAwait(false);
-        bool exists = await storage.ExistsAsync(objectKey, cancellationToken).ConfigureAwait(false);
+        await storage.RemoveAsync(objectKey, cancellationToken);
+        bool exists = await storage.ExistsAsync(objectKey, cancellationToken);
         if (exists)
         {
             throw new IOException($"Self-test object '{objectKey}' still exists after removal.");
@@ -130,9 +130,9 @@ public class FilesSelfTestsProcessor(
         string objectKey = GetObjectKey();
         try
         {
-            if (await storage.ExistsAsync(objectKey, cancellationToken).ConfigureAwait(false))
+            if (await storage.ExistsAsync(objectKey, cancellationToken))
             {
-                await storage.RemoveAsync(objectKey, cancellationToken).ConfigureAwait(false);
+                await storage.RemoveAsync(objectKey, cancellationToken);
             }
         }
         catch (OperationCanceledException)

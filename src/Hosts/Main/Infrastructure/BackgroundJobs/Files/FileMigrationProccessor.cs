@@ -3,6 +3,7 @@ using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Models;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Extensions;
+using Vitarish.Files.Infrastructure.Interfaces;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Sea.Application.Abstractions;
 
@@ -18,6 +19,8 @@ public class FileMigrationProccessor(
         {
             await ProcessTenantMigrationAsync(
                 provider.GetRequiredService<IFileInformationService>(),
+                provider.GetRequiredService<IObjectStorageService>(),
+                provider.GetRequiredService<IOptions<FilesOptions>>(),
                 shutdownToken);
         }
 
@@ -28,11 +31,14 @@ public class FileMigrationProccessor(
     }
     private static async Task ProcessTenantMigrationAsync(
     IFileInformationService fileInformationService,
+    IObjectStorageService objectStorageService,
+    IOptions<FilesOptions> options,
     CancellationToken cancellationToken)
     {
         var fileInfos = await fileInformationService.GetListAsync(new Vitarish.Files.Domain.Models.FileInformationDescriptorDto(), cancellationToken).GetValueOrDefaultAsync() ?? [];
         foreach (var fileInfo in fileInfos)
         {
+
             string id = FilesExtensions.ExtractId(fileInfo.Url, "VITARISH");
             string fileName = Path.GetFileName(fileInfo.Url);
             fileInfo.Tag = id;
@@ -49,6 +55,7 @@ public class FileMigrationProccessor(
             };
 
             await fileInformationService.UpdateAsync(fileInformationWriteDto, cancellationToken);
+            await objectStorageService.RenameAsync(options.Value.BuildObjectKey(fileName), fileInfo.Checksum, cancellationToken);
         }
     }
 }

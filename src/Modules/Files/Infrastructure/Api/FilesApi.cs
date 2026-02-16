@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
 using Minio;
-using System.Globalization;
 using Vitarish.Entities.Server.Models;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
@@ -50,21 +49,7 @@ public static class FilesApi
         }
 
 
-        CultureInfo originalCulture = CultureInfo.CurrentCulture;
-        CultureInfo originalUiCulture = CultureInfo.CurrentUICulture;
-
-        try
-        {
-            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-            CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
-
-            await ServeFileAsync(fileInfo, context, storageService, filesOptions.Value);
-        }
-        finally
-        {
-            CultureInfo.CurrentCulture = originalCulture;
-            CultureInfo.CurrentUICulture = originalUiCulture;
-        }
+        await ServeFileAsync(fileInfo, context, storageService, filesOptions.Value);
 
     }
 
@@ -95,21 +80,7 @@ public static class FilesApi
             return;
         }
 
-        CultureInfo originalCulture = CultureInfo.CurrentCulture;
-        CultureInfo originalUiCulture = CultureInfo.CurrentUICulture;
-
-        try
-        {
-            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-            CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
-
-            await ServeFileAsync(fileInfo, context, storageService, filesOptions.Value);
-        }
-        finally
-        {
-            CultureInfo.CurrentCulture = originalCulture;
-            CultureInfo.CurrentUICulture = originalUiCulture;
-        }
+        await ServeFileAsync(fileInfo, context, storageService, filesOptions.Value);
     }
 
     private static async Task ServeFileAsync(
@@ -118,7 +89,7 @@ public static class FilesApi
         IObjectStorageService storageService,
         FilesOptions filesSettings)
     {
-        string objectKey = filesSettings.BuildObjectKey(fileInfo.Url);
+        string objectKey = filesSettings.BuildObjectKey(fileInfo.Id.ToString());
 
         context.RequestAborted.ThrowIfCancellationRequested();
 

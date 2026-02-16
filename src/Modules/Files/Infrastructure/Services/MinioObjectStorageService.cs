@@ -4,6 +4,7 @@ using Minio;
 using Minio.DataModel;
 using Minio.DataModel.Args;
 using Minio.Exceptions;
+using System.Globalization;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Interfaces;
 
@@ -14,11 +15,58 @@ public sealed class MinioObjectStorageService(
     IOptionsMonitor<MinioOptions> minioOptions) : IObjectStorageService
 {
     private MinioOptions options => minioOptions.CurrentValue;
+
+    private static async Task<TOut> Perform<TOut>(Func<Task<TOut>> function)
+    {
+
+        CultureInfo originalCulture = CultureInfo.CurrentCulture;
+        CultureInfo originalUiCulture = CultureInfo.CurrentUICulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+
+            return await function().ConfigureAwait(false);
+        }
+        catch(Exception ex)
+        {
+            throw;
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUiCulture;
+        }
+    }
+
+    private static async Task Perform(Func<Task> function)
+    {
+
+        CultureInfo originalCulture = CultureInfo.CurrentCulture;
+        CultureInfo originalUiCulture = CultureInfo.CurrentUICulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+
+            await function().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUiCulture;
+        }
+    }
+
     public async Task EnsureBucketAsync(CancellationToken cancellationToken = default)
     {
-        bool exists = await client.BucketExistsAsync(new BucketExistsArgs().WithBucket(options.BucketName), cancellationToken)
-            .ConfigureAwait(false);
-
+        bool exists = await Perform<bool>(() => client.BucketExistsAsync(new BucketExistsArgs().WithBucket(options.BucketName), cancellationToken));
         if (!exists)
         {
             MakeBucketArgs args = new MakeBucketArgs().WithBucket(options.BucketName);
@@ -27,8 +75,23 @@ public sealed class MinioObjectStorageService(
                 args = args.WithLocation(options.Region);
             }
 
-            await client.MakeBucketAsync(args, cancellationToken).ConfigureAwait(false);
+            await Perform(() => client.MakeBucketAsync(args, cancellationToken));
         }
+    }
+
+    public async Task RenameAsync(
+        string objectKey,
+        string newObjectKey,
+        CancellationToken cancellationToken =default)
+    {
+        CopyObjectArgs args = new CopyObjectArgs()
+            .WithBucket(options.BucketName)
+            .WithObject(newObjectKey)
+            .WithCopyObjectSource(new CopySourceObjectArgs()
+                .WithBucket(options.BucketName)
+                .WithObject(objectKey));
+        await Perform(() => client.CopyObjectAsync(args, cancellationToken));
+        await RemoveAsync(objectKey, cancellationToken);
     }
 
     public async Task UploadAsync(
@@ -50,14 +113,14 @@ public sealed class MinioObjectStorageService(
             .WithObjectSize(size)
             .WithContentType(contentType);
 
-        _ = await client.PutObjectAsync(args, cancellationToken).ConfigureAwait(false);
+        _ = await Perform(() => client.PutObjectAsync(args, cancellationToken));
     }
 
     public async Task<bool> ExistsAsync(string objectKey, CancellationToken cancellationToken = default)
     {
         try
         {
-            _ = await GetMetadataAsync(objectKey, cancellationToken).ConfigureAwait(false);
+            _ = await GetMetadataAsync(objectKey, cancellationToken);
             return true;
         }
         catch (ObjectNotFoundException)
@@ -68,14 +131,14 @@ public sealed class MinioObjectStorageService(
 
     public async Task<ObjectMetadata> GetMetadataAsync(string objectKey, CancellationToken cancellationToken = default)
     {
-        ObjectStat stat = await GetStatAsync(objectKey, cancellationToken).ConfigureAwait(false);
+        ObjectStat stat = await GetStatAsync(objectKey, cancellationToken);
         return new ObjectMetadata(stat.Size, stat.ContentType);
     }
 
     public async Task<Stream> DownloadAsync(string objectKey, CancellationToken cancellationToken = default)
     {
         MemoryStream buffer = new();
-        await StreamToAsync(objectKey, buffer, cancellationToken: cancellationToken).ConfigureAwait(false);
+        await StreamToAsync(objectKey, buffer, cancellationToken: cancellationToken);
         _ = buffer.Seek(0, SeekOrigin.Begin);
         return buffer;
     }
@@ -103,7 +166,7 @@ public sealed class MinioObjectStorageService(
             var statArgs = new StatObjectArgs()
                 .WithBucket(options.BucketName)
                 .WithObject(objectKey);
-            var stat = await client.StatObjectAsync(statArgs, cancellationToken).ConfigureAwait(false);
+            var stat = await Perform(() => client.StatObjectAsync(statArgs, cancellationToken));
             long availableLength = stat.Size - resolvedOffset;
             if (availableLength < 0)
             {
@@ -114,7 +177,7 @@ public sealed class MinioObjectStorageService(
             args = args.WithOffsetAndLength(resolvedOffset, resolvedLength);
         }
 
-        await client.GetObjectAsync(args, cancellationToken).ConfigureAwait(false);
+        await Perform(() => client.GetObjectAsync(args, cancellationToken));
     }
 
     public async Task RemoveAsync(string objectKey, CancellationToken cancellationToken = default)
@@ -123,7 +186,7 @@ public sealed class MinioObjectStorageService(
             .WithBucket(options.BucketName)
             .WithObject(objectKey);
 
-        await client.RemoveObjectAsync(args, cancellationToken).ConfigureAwait(false);
+        await Perform(() => client.RemoveObjectAsync(args, cancellationToken));
     }
 
     private async Task<ObjectStat> GetStatAsync(string objectKey, CancellationToken cancellationToken)
@@ -131,6 +194,6 @@ public sealed class MinioObjectStorageService(
         StatObjectArgs args = new StatObjectArgs()
             .WithBucket(options.BucketName)
             .WithObject(objectKey);
-        return await client.StatObjectAsync(args, cancellationToken).ConfigureAwait(false);
+        return await Perform(() => client.StatObjectAsync(args, cancellationToken));
     }
 }

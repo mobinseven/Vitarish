@@ -14,6 +14,7 @@ public interface IObjectStorageService
         long? length = null,
         CancellationToken cancellationToken = default);
     Task RemoveAsync(string objectKey, CancellationToken cancellationToken = default);
+    Task RenameAsync(string objectKey, string newObjectKey, CancellationToken cancellationToken = default);
 }
 
 public sealed record ObjectMetadata(long Size, string? ContentType);

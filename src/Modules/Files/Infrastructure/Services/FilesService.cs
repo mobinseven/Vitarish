@@ -69,27 +69,6 @@ public class FilesService : IFilesService
 
         using IDisposable tenantScope = _tenantAccessor.UseTenant(resolvedTenant.Id);
 
-        FileInformationWriteDto MapToWriteDto(FileInformationReadDto readDto, bool includeId = false)
-        {
-            FileInformationWriteDto writeDto = new()
-            {
-                AllowedOrigins = readDto.AllowedOrigins,
-                Checksum = readDto.Checksum,
-                Owner = readDto.Owner,
-                Url = readDto.Url,
-                Thumbnail = readDto.Thumbnail,
-                ContentType = readDto.ContentType,
-                Tag = readDto.Tag
-            };
-
-            if (includeId)
-            {
-                writeDto.Id = readDto.Id;
-            }
-
-            return writeDto;
-        }
-
         EntityResult<IReadOnlyList<FileInformationReadDto>> sameChecksumResult = await _fileInfoService.GetListAsync(new FileInformationDescriptorDto { Checksum = givenInformation.Checksum }, cancellationToken);
         IReadOnlyList<FileInformationReadDto>? sameChecksum = sameChecksumResult.Value;
         FileInformationReadDto? existingForTenant = sameChecksum?.FirstOrDefault(info => string.Equals(info.Owner, resolvedTenant.Id, StringComparison.Ordinal));
@@ -110,7 +89,7 @@ public class FilesService : IFilesService
                 ? MergeMetadata(incomingMetadata, existingMetadata)
                 : existingMetadata with { };
 
-            FileInformationReadDto cloned = new()
+            FileInformationWriteDto cloned = new()
             {
                 AllowedOrigins = string.IsNullOrWhiteSpace(givenInformation.AllowedOrigins)
                     ? existing.AllowedOrigins
@@ -122,18 +101,15 @@ public class FilesService : IFilesService
                 ContentType = string.IsNullOrWhiteSpace(givenInformation.ContentType)
                     ? existing.ContentType
                     : givenInformation.ContentType,
-                Metadata = clonedMetadata,
                 Tag = givenInformation.Tag
             };
 
-            FileInformationWriteDto clonedWriteDto = MapToWriteDto(cloned);
-            _ = await _fileInfoService.AddAsync(clonedWriteDto, cancellationToken).ConfigureAwait(false);
-            return cloned;
+            var cl = await _fileInfoService.AddAsync(cloned, cancellationToken).GetValueOrDefaultAsync();
+            return cl;
         }
 
         ArgumentNullException.ThrowIfNull(data);
 
-        FileMetadata requestMetadata = givenInformation.Metadata;
 
         if (string.IsNullOrWhiteSpace(givenInformation.ContentType))
         {
@@ -144,87 +120,61 @@ public class FilesService : IFilesService
 
         string tempServerPath = Path.Combine(Path.GetTempPath(), $".tmp-{Guid.NewGuid():N}.part");
 
-        try
+        _logger.LogInformation("SaveFile started. ContentType={ContentType}, Owner={Owner}", contentType, givenInformation.Owner);
+        using IncrementalHash sha = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
+        await using (FileStream fs = new(
+            tempServerPath,
+            FileMode.CreateNew,
+            FileAccess.Write,
+            FileShare.None,
+            bufferSize: 64 * 1024,
+            options: FileOptions.Asynchronous))
         {
-            _logger.LogInformation("SaveFile started. ContentType={ContentType}, Owner={Owner}", contentType, givenInformation.Owner);
-            using IncrementalHash sha = IncrementalHash.CreateHash(HashAlgorithmName.SHA256);
-            await using (FileStream fs = new(
-                tempServerPath,
-                FileMode.CreateNew,
-                FileAccess.Write,
-                FileShare.None,
-                bufferSize: 64 * 1024,
-                options: FileOptions.Asynchronous))
+            await foreach (byte[]? chunk in data.ReadAllAsync(cancellationToken))
             {
-                await foreach (byte[]? chunk in data.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+                if (chunk is { Length: > 0 })
                 {
-                    if (chunk is { Length: > 0 })
-                    {
-                        await fs.WriteAsync(chunk, cancellationToken).ConfigureAwait(false);
-                        sha.AppendData(chunk);
-                    }
+                    await fs.WriteAsync(chunk, cancellationToken);
+                    sha.AppendData(chunk);
                 }
-                await fs.FlushAsync(cancellationToken).ConfigureAwait(false);
             }
-
-            string computedChecksum = Convert.ToHexString(sha.GetHashAndReset()).ToLowerInvariant();
-            _logger.LogDebug("Computed checksum: {Checksum}", computedChecksum);
-
-            if (!string.Equals(givenInformation.Checksum, computedChecksum, StringComparison.OrdinalIgnoreCase))
-            {
-                SafeDelete(tempServerPath);
-                throw new InvalidOperationException("Checksum mismatch");
-            }
-
-
-            string extension = ContentTypeExtensions.SafeGetExtension(contentType);
-            FileInformationReadDto info = new()
-            {
-                Id = Guid.NewGuid()
-            };
-            string finalFileName = $"{_options.Prefix}-{info.Id:N}.{extension}";
-            string objectKey = _options.BuildObjectKey(finalFileName);
-            bool isImage = contentType.StartsWith("image", StringComparison.OrdinalIgnoreCase);
-
-            info.AllowedOrigins = givenInformation.AllowedOrigins;
-            info.Checksum = computedChecksum;
-            info.Owner = givenInformation.Owner;
-            //info.Url = BuildPublicUrl(_options.BaseUrl, _options.UploadPath, finalFileName);
-            info.Thumbnail = givenInformation.Thumbnail;
-            info.ContentType = contentType;
-            long fileSize = new FileInfo(tempServerPath).Length;
-            info.Metadata = BuildMetadata(requestMetadata, fileSize, extension, tempServerPath, isImage);
-
-            await using (FileStream uploadStream = new(
-                tempServerPath,
-                FileMode.Open,
-                FileAccess.Read,
-                FileShare.Read,
-                bufferSize: 64 * 1024,
-                options: FileOptions.Asynchronous))
-            {
-                await _storage.UploadAsync(objectKey, contentType, uploadStream, fileSize, cancellationToken).ConfigureAwait(false);
-            }
-
-            FileInformationWriteDto infoWriteDto = MapToWriteDto(info, includeId: true);
-            _ = await _fileInfoService.AddAsync(infoWriteDto, cancellationToken).ConfigureAwait(false);
-
-            _logger.LogInformation("SaveFile finished. FileId={Id}, Size={Size} bytes, Url={Url}", info.Id, fileSize, info.Url);
-            SafeDelete(tempServerPath);
-            return info;
+            await fs.FlushAsync(cancellationToken);
         }
-        catch (OperationCanceledException)
+
+        string computedChecksum = Convert.ToHexString(sha.GetHashAndReset()).ToLowerInvariant();
+
+        if (!string.Equals(givenInformation.Checksum, computedChecksum, StringComparison.OrdinalIgnoreCase))
         {
-            _logger.LogWarning("SaveFile canceled.");
             SafeDelete(tempServerPath);
-            throw;
+            throw new InvalidOperationException("Checksum mismatch");
         }
-        catch (Exception ex)
+
+
+        string extension = ContentTypeExtensions.SafeGetExtension(contentType);
+        FileInformationWriteDto info = new();
+        bool isImage = contentType.StartsWith("image", StringComparison.OrdinalIgnoreCase);
+
+        info.Checksum = computedChecksum;
+        info.Owner = givenInformation.Owner;
+        info.Thumbnail = givenInformation.Thumbnail;
+        info.ContentType = contentType;
+        long fileSize = new FileInfo(tempServerPath).Length;
+
+        var saved = await _fileInfoService.AddAsync(info, cancellationToken).EnsureValueAsync();
+
+        await using (FileStream uploadStream = new(
+            tempServerPath,
+            FileMode.Open,
+            FileAccess.Read,
+            FileShare.Read,
+            bufferSize: 64 * 1024,
+            options: FileOptions.Asynchronous))
         {
-            _logger.LogError(ex, "SaveFile failed. Cleaning up temp file if present.");
-            SafeDelete(tempServerPath);
-            throw;
+            await _storage.UploadAsync(saved.Id.ToString(), contentType, uploadStream, fileSize, cancellationToken);
         }
+
+        SafeDelete(tempServerPath);
+        return saved;
     }
 
     private static string BuildPublicUrl(string baseUrl, string uploadPath, string fileName)

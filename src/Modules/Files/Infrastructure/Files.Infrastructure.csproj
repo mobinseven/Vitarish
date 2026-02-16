@@ -18,7 +18,4 @@
 		<ProjectReference Include="..\..\..\Identity\Requests\Application\Requests.Application.csproj" />
 		<ProjectReference Include="..\Application\Files.Application.csproj" />
 	</ItemGroup>
-	<ItemGroup>
-	  <Folder Include="Mappers\" />
-	</ItemGroup>
 </Project>

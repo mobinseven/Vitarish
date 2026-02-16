@@ -21,6 +21,7 @@ public partial class FileInformationMapper
 
     [MapProperty(nameof(FileInformationWriteDto.Owner), nameof(FileInformation.TenantId))]
     public partial FileInformation ToDomain(FileInformationWriteDto src);
+    public partial FileInformationWriteDto Clone(FileInformationWriteDto src);
 
     [MapperIgnoreSource(nameof(FileInformationDescriptorDto.AdditionalData))]
     public partial FileInformationDescriptor ToDomain(FileInformationDescriptorDto src);
@@ -36,6 +37,10 @@ public static class FilesEntityMapperExtensions
     public static FileInformation ToDomain(this FileInformationWriteDto src)
     {
         return Mapper.ToDomain(src);
+    }
+    public static FileInformationWriteDto Clone(this FileInformationWriteDto src)
+    {
+        return Mapper.Clone(src);
     }
     public static FileInformationDescriptor ToDescriptor(this FileInformationDescriptorDto src)
     {
