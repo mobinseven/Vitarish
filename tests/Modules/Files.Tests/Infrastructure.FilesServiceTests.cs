@@ -34,7 +34,7 @@ public sealed class FilesServiceTests
         await channel.Writer.WriteAsync(payload);
         channel.Writer.Complete();
 
-        FileInformationDto request = new()
+        FileInformationReadDto request = new()
         {
             AllowedOrigins = "https://app.example",
             ContentType = "image/png",
@@ -43,7 +43,7 @@ public sealed class FilesServiceTests
         };
 
         // Act
-        FileInformationDto? result = await service.SaveFile(channel.Reader, request);
+        FileInformationReadDto? result = await service.SaveFile(channel.Reader, request);
 
         // Assert
         _ = result.Should().NotBeNull();
@@ -72,7 +72,7 @@ public sealed class FilesServiceTests
         Channel<byte[]> channel = Channel.CreateUnbounded<byte[]>();
         channel.Writer.Complete();
 
-        FileInformationDto request = new()
+        FileInformationReadDto request = new()
         {
             AllowedOrigins = "https://app.example",
             ContentType = "image/png",
@@ -107,7 +107,7 @@ public sealed class FilesServiceTests
         Channel<byte[]> channel = Channel.CreateUnbounded<byte[]>();
         channel.Writer.Complete();
 
-        FileInformationDto request = new()
+        FileInformationReadDto request = new()
         {
             AllowedOrigins = "https://app.example",
             ContentType = "image/png",
@@ -142,7 +142,7 @@ public sealed class FilesServiceTests
         Channel<byte[]> channel = Channel.CreateUnbounded<byte[]>();
         channel.Writer.Complete();
 
-        FileInformationDto request = new()
+        FileInformationReadDto request = new()
         {
             ContentType = "image/png",
             Checksum = "abc123",
@@ -176,7 +176,7 @@ public sealed class FilesServiceTests
         Channel<byte[]> channel = Channel.CreateUnbounded<byte[]>();
         channel.Writer.Complete();
 
-        FileInformationDto request = new()
+        FileInformationReadDto request = new()
         {
             ContentType = "image/png",
             Checksum = "abc123",
@@ -205,7 +205,7 @@ public sealed class FilesServiceTests
         var tenantAccessor = new TestTenantAccessor("tenant-123");
 
         // Seed existing file with same checksum
-        var existingFile = new FileInformationDto
+        var existingFile = new FileInformationReadDto
         {
             Id = Guid.NewGuid(),
             Checksum = checksum,
@@ -227,7 +227,7 @@ public sealed class FilesServiceTests
         await channel.Writer.WriteAsync(payload);
         channel.Writer.Complete();
 
-        FileInformationDto request = new()
+        FileInformationReadDto request = new()
         {
             ContentType = "image/png",
             Checksum = checksum,
@@ -235,7 +235,7 @@ public sealed class FilesServiceTests
         };
 
         // Act
-        FileInformationDto? result = await service.SaveFile(channel.Reader, request);
+        FileInformationReadDto? result = await service.SaveFile(channel.Reader, request);
 
         // Assert
         _ = result.Should().NotBeNull();
@@ -256,7 +256,7 @@ public sealed class FilesServiceTests
         var tenantAccessor = new TestTenantAccessor("tenant-456"); // Different tenant
 
         // Seed existing file with same checksum but different tenant
-        var existingFile = new FileInformationDto
+        var existingFile = new FileInformationReadDto
         {
             Id = Guid.NewGuid(),
             Checksum = checksum,
@@ -278,7 +278,7 @@ public sealed class FilesServiceTests
         await channel.Writer.WriteAsync(payload);
         channel.Writer.Complete();
 
-        FileInformationDto request = new()
+        FileInformationReadDto request = new()
         {
             ContentType = "image/png",
             Checksum = checksum,
@@ -286,7 +286,7 @@ public sealed class FilesServiceTests
         };
 
         // Act
-        FileInformationDto? result = await service.SaveFile(channel.Reader, request);
+        FileInformationReadDto? result = await service.SaveFile(channel.Reader, request);
 
         // Assert
         _ = result.Should().NotBeNull();
@@ -318,7 +318,7 @@ public sealed class FilesServiceTests
         await channel.Writer.WriteAsync(payload);
         channel.Writer.Complete();
 
-        FileInformationDto request = new()
+        FileInformationReadDto request = new()
         {
             Checksum = checksum,
             ContentType = "", // Empty content type
@@ -356,7 +356,7 @@ public sealed class FilesServiceTests
         await channel.Writer.WriteAsync(payload);
         channel.Writer.Complete();
 
-        FileInformationDto request = new()
+        FileInformationReadDto request = new()
         {
             Checksum = wrongChecksum,
             ContentType = "text/plain",
@@ -394,7 +394,7 @@ public sealed class FilesServiceTests
         await channel.Writer.WriteAsync(payload);
         channel.Writer.Complete();
 
-        FileInformationDto request = new()
+        FileInformationReadDto request = new()
         {
             ContentType = "image/png",
             Checksum = checksum,
@@ -402,7 +402,7 @@ public sealed class FilesServiceTests
         };
 
         // Act
-        FileInformationDto? result = await service.SaveFile(channel.Reader, request);
+        FileInformationReadDto? result = await service.SaveFile(channel.Reader, request);
 
         // Assert
         _ = result.Should().NotBeNull();
@@ -432,7 +432,7 @@ public sealed class FilesServiceTests
         await channel.Writer.WriteAsync(payload);
         channel.Writer.Complete();
 
-        FileInformationDto request = new()
+        FileInformationReadDto request = new()
         {
             ContentType = "application/pdf",
             Checksum = checksum,
@@ -440,7 +440,7 @@ public sealed class FilesServiceTests
         };
 
         // Act
-        FileInformationDto? result = await service.SaveFile(channel.Reader, request);
+        FileInformationReadDto? result = await service.SaveFile(channel.Reader, request);
 
         // Assert
         _ = result.Should().NotBeNull();
@@ -470,7 +470,7 @@ public sealed class FilesServiceTests
         await channel.Writer.WriteAsync(payload);
         channel.Writer.Complete();
 
-        FileInformationDto request = new()
+        FileInformationReadDto request = new()
         {
             ContentType = "image/png",
             Checksum = checksum,
@@ -479,7 +479,7 @@ public sealed class FilesServiceTests
         };
 
         // Act
-        FileInformationDto? result = await service.SaveFile(channel.Reader, request);
+        FileInformationReadDto? result = await service.SaveFile(channel.Reader, request);
 
         // Assert
         _ = result.Should().NotBeNull();

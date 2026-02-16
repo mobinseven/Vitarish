@@ -11,13 +11,11 @@ namespace Vitarish.Files.Infrastructure.Services;
 
 public sealed class MinioObjectStorageService(
     IMinioClient client,
-    IOptionsMonitor<MinioOptions> minioOptions,
-    ILogger<MinioObjectStorageService> logger) : IObjectStorageService
+    IOptionsMonitor<MinioOptions> minioOptions) : IObjectStorageService
 {
-    private MinioOptions CurrentMinioOptions => minioOptions.CurrentValue;
+    private MinioOptions options => minioOptions.CurrentValue;
     public async Task EnsureBucketAsync(CancellationToken cancellationToken = default)
     {
-        MinioOptions options = CurrentMinioOptions;
         bool exists = await client.BucketExistsAsync(new BucketExistsArgs().WithBucket(options.BucketName), cancellationToken)
             .ConfigureAwait(false);
 
@@ -30,7 +28,6 @@ public sealed class MinioObjectStorageService(
             }
 
             await client.MakeBucketAsync(args, cancellationToken).ConfigureAwait(false);
-            logger.LogInformation("Created bucket {Bucket}", options.BucketName);
         }
     }
 
@@ -41,8 +38,6 @@ public sealed class MinioObjectStorageService(
         long size,
         CancellationToken cancellationToken = default)
     {
-        MinioOptions options = CurrentMinioOptions;
-        string key = BuildObjectKey(objectKey);
         if (data.CanSeek)
         {
             _ = data.Seek(0, SeekOrigin.Begin);
@@ -50,7 +45,7 @@ public sealed class MinioObjectStorageService(
 
         PutObjectArgs args = new PutObjectArgs()
             .WithBucket(options.BucketName)
-            .WithObject(key)
+            .WithObject(objectKey)
             .WithStreamData(data)
             .WithObjectSize(size)
             .WithContentType(contentType);
@@ -62,7 +57,7 @@ public sealed class MinioObjectStorageService(
     {
         try
         {
-            _ = await GetStatAsync(objectKey, cancellationToken).ConfigureAwait(false);
+            _ = await GetMetadataAsync(objectKey, cancellationToken).ConfigureAwait(false);
             return true;
         }
         catch (ObjectNotFoundException)
@@ -84,62 +79,58 @@ public sealed class MinioObjectStorageService(
         _ = buffer.Seek(0, SeekOrigin.Begin);
         return buffer;
     }
-
-    public async Task StreamToAsync(
-        string objectKey,
-        Stream destination,
-        long? offset = null,
-        long? length = null,
-        CancellationToken cancellationToken = default)
+    public async Task StreamToAsync
+        (
+            string objectKey,
+            Stream destination,
+            long? offset = null,
+            long? length = null,
+            CancellationToken cancellationToken = default
+        )
     {
-        MinioOptions options = CurrentMinioOptions;
-        string key = BuildObjectKey(objectKey);
         GetObjectArgs args = new GetObjectArgs()
             .WithBucket(options.BucketName)
-            .WithObject(key)
-            .WithCallbackStream(async stream =>
+            .WithObject(objectKey)
+            .WithCallbackStream(async (stream, innerCancellationToken) =>
             {
-                await stream.CopyToAsync(destination, cancellationToken).ConfigureAwait(false);
+                await stream.CopyToAsync(destination, innerCancellationToken);
             });
-
         if (offset is not null && length is not null)
         {
             long resolvedOffset = Math.Max(0, offset.Value);
             long resolvedLength = Math.Max(0, length.Value);
+
+            var statArgs = new StatObjectArgs()
+                .WithBucket(options.BucketName)
+                .WithObject(objectKey);
+            var stat = await client.StatObjectAsync(statArgs, cancellationToken).ConfigureAwait(false);
+            long availableLength = stat.Size - resolvedOffset;
+            if (availableLength < 0)
+            {
+                return;
+            }
+            resolvedLength = Math.Min(resolvedLength, availableLength);
+
             args = args.WithOffsetAndLength(resolvedOffset, resolvedLength);
         }
 
-        _ = await client.GetObjectAsync(args, cancellationToken).ConfigureAwait(false);
+        await client.GetObjectAsync(args, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task RemoveAsync(string objectKey, CancellationToken cancellationToken = default)
     {
-        MinioOptions options = CurrentMinioOptions;
-        string key = BuildObjectKey(objectKey);
         RemoveObjectArgs args = new RemoveObjectArgs()
             .WithBucket(options.BucketName)
-            .WithObject(key);
+            .WithObject(objectKey);
 
         await client.RemoveObjectAsync(args, cancellationToken).ConfigureAwait(false);
     }
 
     private async Task<ObjectStat> GetStatAsync(string objectKey, CancellationToken cancellationToken)
     {
-        MinioOptions options = CurrentMinioOptions;
-        string key = BuildObjectKey(objectKey);
         StatObjectArgs args = new StatObjectArgs()
             .WithBucket(options.BucketName)
-            .WithObject(key);
-
+            .WithObject(objectKey);
         return await client.StatObjectAsync(args, cancellationToken).ConfigureAwait(false);
-    }
-
-    private string BuildObjectKey(string objectKey)
-    {
-        string trimmedKey = objectKey.TrimStart('/');
-        string? prefix = CurrentMinioOptions.ObjectPrefix?.Trim('/');
-        return string.IsNullOrEmpty(prefix)
-            ? trimmedKey
-            : string.Join('/', prefix, trimmedKey).Replace("//", "/", StringComparison.Ordinal);
     }
 }

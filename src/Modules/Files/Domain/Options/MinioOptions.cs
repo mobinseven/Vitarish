@@ -12,7 +12,6 @@ public class MinioOptions
     public string SecretKey { get; set; } = string.Empty;
     public string BucketName { get; set; } = string.Empty;
     public string? Region { get; set; }
-    public string? ObjectPrefix { get; set; }
     public int HttpRequestTimeoutSeconds { get; set; } = 100;
 
     public MinioOptions()
@@ -29,7 +28,6 @@ public class MinioOptions
         SecretKey = opts.SecretKey;
         BucketName = opts.BucketName;
         Region = opts.Region;
-        ObjectPrefix = opts.ObjectPrefix;
         HttpRequestTimeoutSeconds = opts.HttpRequestTimeoutSeconds;
     }
 
@@ -65,9 +63,6 @@ public class MinioOptions
 
         if (csb.TryGetValue("Region", out value))
             opts.Region = value?.ToString();
-
-        if (csb.TryGetValue("ObjectPrefix", out value))
-            opts.ObjectPrefix = value?.ToString();
 
         if (csb.TryGetValue("HttpRequestTimeoutSeconds", out value)
             && int.TryParse(value?.ToString(), out int timeoutSeconds)

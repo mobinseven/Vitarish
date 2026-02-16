@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Minio;
 using Vitarish.Files.Application.Abstractions;
@@ -23,9 +24,10 @@ public class FilesModule : Module, IFilesModule
         IServiceCollection services = builder.Services;
         ConfigurationManager configuration = builder.Configuration;
         _ = services.AddSingleton<IFilesModule, FilesModule>();
-        _ = services.AddSingleton<IMinioClient>(_ =>
+        _ = services.AddSingleton<IMinioClient>(sp =>
         {
-            MinioOptions minioOptions = _.GetRequiredService<IOptions<MinioOptions>>().Value;
+            MinioOptions minioOptions = sp.GetRequiredService<IOptions<MinioOptions>>().Value;
+
             IMinioClient clientBuilder = new MinioClient()
                 .WithEndpoint(minioOptions.Endpoint, minioOptions.Port)
                 .WithCredentials(minioOptions.AccessKey, minioOptions.SecretKey);
@@ -43,7 +45,6 @@ public class FilesModule : Module, IFilesModule
         _ = services.AddScoped<IFileInformationService, FileInformationService>();
         _ = services.AddControllers();
 
-        // Register SessionContextInterceptor for database session management
         _ = services.AddScoped<SessionContextInterceptor>();
 
         if (configureDbContext != null)
@@ -59,8 +60,5 @@ public class FilesModule : Module, IFilesModule
     public override async Task Initialize(WebApplication app)
     {
         _ = app.MapFilesApi();
-        using IServiceScope scope = app.Services.CreateScope();
-        IObjectStorageService storage = scope.ServiceProvider.GetRequiredService<IObjectStorageService>();
-        await storage.EnsureBucketAsync(app.Lifetime.ApplicationStopping);
     }
 }

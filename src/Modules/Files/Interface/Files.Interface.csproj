@@ -12,13 +12,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Minio" Version="6.0.2" />
 		<PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="9.*" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
-		<ProjectReference Include="..\Application\Files.Application.csproj" />
 		<ProjectReference Include="..\Infrastructure\Files.Infrastructure.csproj" />
 	</ItemGroup>
 

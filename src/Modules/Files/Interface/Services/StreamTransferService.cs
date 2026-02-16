@@ -10,7 +10,7 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
     private const string ModulePath = "./_content/Vitarish.Files.Interface/Components/StreamTransfer.razor.js";
 
     private const string Accept = "image/*,video/*";
-    private readonly List<FileInformationDto> _uploadedFiles = [];
+    private readonly List<FileInformationReadDto> _uploadedFiles = [];
     private readonly string _id = $"{nameof(StreamTransfer)}-{Guid.NewGuid()}";
 
     private DotNetObjectReference<StreamTransferService>? _selfRef;
@@ -21,7 +21,7 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
     private bool _initialized;
 
     public Func<Task>? OnStateChangedAsync { get; set; }
-    public Func<FileInformationDto, Task>? OnFileUploadedAsync { get; set; }
+    public Func<FileInformationReadDto, Task>? OnFileUploadedAsync { get; set; }
 
     public string? UserId { get; set; }
 
@@ -31,7 +31,7 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
 
     public IReadOnlyList<PendingFileDto> PendingFiles => _pendingFiles;
 
-    public IReadOnlyList<FileInformationDto> UploadedFiles => _uploadedFiles;
+    public IReadOnlyList<FileInformationReadDto> UploadedFiles => _uploadedFiles;
 
     public async Task InitializeAsync(CancellationToken cancellationToken = default)
     {
@@ -139,7 +139,7 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
                 }, cancellationToken);
 
                 file.UserId = UserId;
-                FileInformationDto info = new()
+                FileInformationReadDto info = new()
                 {
                     Checksum = file.Checksum,
                     Thumbnail = file.Thumbnail,
@@ -151,7 +151,7 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
                     }
                 };
 
-                FileInformationDto? fileInfo = await _filesClient.SaveFile(channel.Reader, info, cancellationToken).ConfigureAwait(false) ?? throw new InvalidDataException("The returned result must not be null");
+                FileInformationReadDto? fileInfo = await _filesClient.SaveFile(channel.Reader, info, cancellationToken).ConfigureAwait(false) ?? throw new InvalidDataException("The returned result must not be null");
                 await pump.ConfigureAwait(false);
 
                 _ = _pendingFiles.Remove(file);

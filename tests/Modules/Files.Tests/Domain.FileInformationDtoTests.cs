@@ -3,7 +3,7 @@ using System.Text.Json;
 namespace Vitarish.Files.Tests;
 
 /// <summary>
-/// Unit tests for the <see cref="FileInformationDto"/> record.
+/// Unit tests for the <see cref="FileInformationReadDto"/> record.
 /// </summary>
 public sealed class FileInformationDtoTests
 {
@@ -11,7 +11,7 @@ public sealed class FileInformationDtoTests
     public void FileInformationDto_DefaultValues_AreCorrect()
     {
         // Arrange & Act
-        var dto = new FileInformationDto();
+        var dto = new FileInformationReadDto();
 
         // Assert
         dto.AllowedOrigins.Should().Be("*");
@@ -27,7 +27,7 @@ public sealed class FileInformationDtoTests
     public void FileInformationDto_PropertiesAreSettable()
     {
         // Arrange
-        var dto = new FileInformationDto();
+        var dto = new FileInformationReadDto();
 
         // Act
         dto.AllowedOrigins = "https://example.com";
@@ -52,7 +52,7 @@ public sealed class FileInformationDtoTests
     public void Metadata_WhenNotSet_ReturnsEmptyFileMetadata()
     {
         // Arrange
-        var dto = new FileInformationDto();
+        var dto = new FileInformationReadDto();
 
         // Act
         var metadata = dto.Metadata;
@@ -68,7 +68,7 @@ public sealed class FileInformationDtoTests
     public void Metadata_WhenSet_ReturnsCorrectValue()
     {
         // Arrange
-        var dto = new FileInformationDto();
+        var dto = new FileInformationReadDto();
         var expectedMetadata = new FileMetadata
         {
             Size = 1024,
@@ -91,7 +91,7 @@ public sealed class FileInformationDtoTests
     public void Metadata_WhenSetToNull_ReturnsEmptyMetadata()
     {
         // Arrange
-        var dto = new FileInformationDto
+        var dto = new FileInformationReadDto
         {
             Metadata = new FileMetadata { Size = 1024 }
         };
@@ -108,7 +108,7 @@ public sealed class FileInformationDtoTests
     public void MetadataJson_WhenMetadataSet_ReturnsSerializedJson()
     {
         // Arrange
-        var dto = new FileInformationDto
+        var dto = new FileInformationReadDto
         {
             Metadata = new FileMetadata
             {
@@ -130,7 +130,7 @@ public sealed class FileInformationDtoTests
     public void MetadataJson_WhenSet_UpdatesMetadataProperty()
     {
         // Arrange
-        var dto = new FileInformationDto();
+        var dto = new FileInformationReadDto();
         var metadataJson = """{"size":4096,"extension":"gif"}""";
 
         // Act
@@ -146,7 +146,7 @@ public sealed class FileInformationDtoTests
     public void MetadataJson_WhenSetWithDimensions_UpdatesMetadataProperty()
     {
         // Arrange
-        var dto = new FileInformationDto();
+        var dto = new FileInformationReadDto();
         var metadataJson = """{"size":1024,"extension":"png","dimensions":{"width":800,"height":600}}""";
 
         // Act
@@ -165,7 +165,7 @@ public sealed class FileInformationDtoTests
     public void MetadataJson_WhenSetWithInvalidJson_ReturnsEmptyMetadata()
     {
         // Arrange
-        var dto = new FileInformationDto();
+        var dto = new FileInformationReadDto();
         var invalidJson = "not valid json";
 
         // Act
@@ -182,7 +182,7 @@ public sealed class FileInformationDtoTests
     public void MetadataJson_WhenSetWithEmptyString_ReturnsEmptyMetadata()
     {
         // Arrange
-        var dto = new FileInformationDto();
+        var dto = new FileInformationReadDto();
 
         // Act
         dto.MetadataJson = "";
@@ -197,7 +197,7 @@ public sealed class FileInformationDtoTests
     public void MetadataJson_WhenSetWithWhitespace_ReturnsEmptyMetadata()
     {
         // Arrange
-        var dto = new FileInformationDto();
+        var dto = new FileInformationReadDto();
 
         // Act
         dto.MetadataJson = "   ";
@@ -212,7 +212,7 @@ public sealed class FileInformationDtoTests
     public void MetadataJson_Caching_ReturnsConsistentValue()
     {
         // Arrange
-        var dto = new FileInformationDto
+        var dto = new FileInformationReadDto
         {
             Metadata = new FileMetadata { Size = 1024, Extension = "png" }
         };
@@ -229,7 +229,7 @@ public sealed class FileInformationDtoTests
     public void MetadataJson_WhenMetadataUpdated_CacheInvalidated()
     {
         // Arrange
-        var dto = new FileInformationDto
+        var dto = new FileInformationReadDto
         {
             Metadata = new FileMetadata { Size = 1024 }
         };
@@ -248,7 +248,7 @@ public sealed class FileInformationDtoTests
     public void Metadata_WhenMetadataJsonSet_PreviousMetadataCleared()
     {
         // Arrange
-        var dto = new FileInformationDto
+        var dto = new FileInformationReadDto
         {
             Metadata = new FileMetadata { Size = 1024, Extension = "png" }
         };
@@ -269,7 +269,7 @@ public sealed class FileInformationDtoTests
     public void FileInformationDto_AcceptsVariousAllowedOrigins(string allowedOrigins)
     {
         // Arrange & Act
-        var dto = new FileInformationDto
+        var dto = new FileInformationReadDto
         {
             AllowedOrigins = allowedOrigins
         };
@@ -287,7 +287,7 @@ public sealed class FileInformationDtoTests
     public void FileInformationDto_AcceptsVariousContentTypes(string contentType)
     {
         // Arrange & Act
-        var dto = new FileInformationDto
+        var dto = new FileInformationReadDto
         {
             ContentType = contentType
         };
@@ -300,7 +300,7 @@ public sealed class FileInformationDtoTests
     public void FileInformationDto_JsonSerialization_IgnoresMetadataJson()
     {
         // Arrange
-        var dto = new FileInformationDto
+        var dto = new FileInformationReadDto
         {
             ContentType = "image/png",
             Metadata = new FileMetadata { Size = 1024, Extension = "png" }
@@ -332,7 +332,7 @@ public sealed class FileInformationDtoTests
         """;
 
         // Act
-        var dto = JsonSerializer.Deserialize<FileInformationDto>(json, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        var dto = JsonSerializer.Deserialize<FileInformationReadDto>(json, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
         // Assert
         dto.Should().NotBeNull();
@@ -358,7 +358,7 @@ public sealed class FileInformationDtoTests
         """;
 
         // Act
-        var dto = JsonSerializer.Deserialize<FileInformationDto>(json, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        var dto = JsonSerializer.Deserialize<FileInformationReadDto>(json, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
         // Assert
         dto.Should().NotBeNull();

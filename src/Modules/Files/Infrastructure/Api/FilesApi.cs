@@ -1,14 +1,11 @@
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Microsoft.Net.Http.Headers;
+using Minio;
+using System.Globalization;
 using Vitarish.Entities.Server.Models;
 using Vitarish.Files.Application.Abstractions;
-using Vitarish.Files.Domain.Models;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Extensions;
 using Vitarish.Files.Infrastructure.Interfaces;
@@ -21,10 +18,10 @@ public static class FilesApi
     {
         RouteGroupBuilder filesGroup = endpoints.MapGroup("/files");
 
-        filesGroup.MapGet("/{id:guid}", GetFileByIdAsync);
-        filesGroup.MapMethods("/{id:guid}", new[] { "HEAD" }, GetFileByIdAsync);
-        filesGroup.MapGet("/name/{**fileName}", GetFileByNameAsync);
-        filesGroup.MapMethods("/name/{**fileName}", new[] { "HEAD" }, GetFileByNameAsync);
+        _ = filesGroup.MapGet("/{id:guid}", GetFileByIdAsync);
+        _ = filesGroup.MapMethods("/{id:guid}", new[] { "HEAD" }, GetFileByIdAsync);
+        _ = filesGroup.MapGet("/name/{**fileName}", GetFileByNameAsync);
+        _ = filesGroup.MapMethods("/name/{**fileName}", new[] { "HEAD" }, GetFileByNameAsync);
 
         return endpoints;
     }
@@ -32,22 +29,16 @@ public static class FilesApi
     private static async Task GetFileByIdAsync(
         Guid id,
         HttpContext context,
+        IMinioClient minioClient,
         IObjectStorageService storageService,
-        IMultiTenantContextAccessor<TenantInfo> tenantAccessor,
-        IServiceScopeFactory serviceScopeFactory,
+         IFileInformationService fileInfoService,
         IOptionsSnapshot<FilesOptions> filesOptions)
     {
-        using IDisposable tenantScope = tenantAccessor.UseTenant(TenantDefaults.RootTenant);
-        using IServiceScope scope = serviceScopeFactory.CreateScope();
-        IFileInformationService fileInfoService = scope.ServiceProvider.GetRequiredService<IFileInformationService>();
-
-        EntityResult<FileInformationDto> result = await fileInfoService.GetAsync(id, context.RequestAborted);
-        FileInformationDto? fileInfo = result.Value;
-
+        FileInformationReadDto? fileInfo = await fileInfoService.GetAsync(id, context.RequestAborted).GetValueOrDefaultAsync();
         if (fileInfo is null)
         {
-            EntityResult<IReadOnlyList<FileInformationDto>> listResult = await fileInfoService.GetListAsync(
-                new() { Tag = id.ToString() }, 
+            EntityResult<IReadOnlyList<FileInformationReadDto>> listResult = await fileInfoService.GetListAsync(
+                new() { Tag = id.ToString() },
                 context.RequestAborted);
             fileInfo = listResult.Value?.FirstOrDefault();
         }
@@ -58,15 +49,30 @@ public static class FilesApi
             return;
         }
 
-        await ServeFileAsync(fileInfo, id, context, storageService, filesOptions.Value);
+
+        CultureInfo originalCulture = CultureInfo.CurrentCulture;
+        CultureInfo originalUiCulture = CultureInfo.CurrentUICulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+
+            await ServeFileAsync(fileInfo, context, storageService, filesOptions.Value);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUiCulture;
+        }
+
     }
 
     private static async Task GetFileByNameAsync(
         string fileName,
         HttpContext context,
         IObjectStorageService storageService,
-        IMultiTenantContextAccessor<TenantInfo> tenantAccessor,
-        IServiceScopeFactory serviceScopeFactory,
+        IFileInformationService fileInfoService,
         IOptionsSnapshot<FilesOptions> filesOptions)
     {
         if (string.IsNullOrWhiteSpace(fileName))
@@ -75,21 +81,13 @@ public static class FilesApi
             return;
         }
 
-        // Extract file ID from fileName in format: {prefix}-{id}.{extension}
-        // Example: "files-a1b2c3d4e5f6.jpg" -> "a1b2c3d4e5f6"
         string extractedId = FilesExtensions.ExtractId(fileName, filesOptions.Value.Prefix);
         if (!Guid.TryParse(extractedId, out Guid fileId))
         {
             context.Response.StatusCode = StatusCodes.Status400BadRequest;
             return;
         }
-
-        using IDisposable tenantScope = tenantAccessor.UseTenant(TenantDefaults.RootTenant);
-        using IServiceScope scope = serviceScopeFactory.CreateScope();
-        IFileInformationService fileInfoService = scope.ServiceProvider.GetRequiredService<IFileInformationService>();
-
-        EntityResult<FileInformationDto> result = await fileInfoService.GetAsync(fileId, context.RequestAborted);
-        FileInformationDto? fileInfo = result.Value;
+        FileInformationReadDto? fileInfo = await fileInfoService.GetAsync(fileId, context.RequestAborted).GetValueOrDefaultAsync();
 
         if (fileInfo is null)
         {
@@ -97,26 +95,40 @@ public static class FilesApi
             return;
         }
 
-        await ServeFileAsync(fileInfo, fileId, context, storageService, filesOptions.Value);
+        CultureInfo originalCulture = CultureInfo.CurrentCulture;
+        CultureInfo originalUiCulture = CultureInfo.CurrentUICulture;
+
+        try
+        {
+            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+            CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
+
+            await ServeFileAsync(fileInfo, context, storageService, filesOptions.Value);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = originalCulture;
+            CultureInfo.CurrentUICulture = originalUiCulture;
+        }
     }
 
     private static async Task ServeFileAsync(
-        FileInformationDto fileInfo,
-        Guid fileId,
+        FileInformationReadDto fileInfo,
         HttpContext context,
         IObjectStorageService storageService,
         FilesOptions filesSettings)
     {
-        string? extension = fileInfo.Metadata.Extension;
-        if (string.IsNullOrWhiteSpace(extension))
-        {
-            extension = ContentTypeExtensions.SafeGetExtension(fileInfo.ContentType);
-        }
-
-        string fileName = $"{filesSettings.Prefix}-{fileId:N}.{extension}";
-        string objectKey = filesSettings.BuildObjectKey(fileName);
+        string objectKey = filesSettings.BuildObjectKey(fileInfo.Url);
 
         context.RequestAborted.ThrowIfCancellationRequested();
+
+        bool exists = await storageService.ExistsAsync(objectKey, context.RequestAborted);
+
+        if (!exists)
+        {
+            context.Response.StatusCode = StatusCodes.Status404NotFound;
+            return;
+        }
 
         ObjectMetadata metadata = await storageService.GetMetadataAsync(objectKey, context.RequestAborted);
 
@@ -165,7 +177,7 @@ public static class FilesApi
             return (0, fileSize, false);
         }
 
-        string rangeValue = range.Substring(6);
+        string rangeValue = range[6..];
         string[] parts = rangeValue.Split('-');
         if (parts.Length != 2)
         {

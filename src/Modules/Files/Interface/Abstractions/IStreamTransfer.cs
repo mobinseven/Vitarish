@@ -10,9 +10,9 @@ public interface IStreamTransfer
     RenderFragment ActContent { get; }
 
     IReadOnlyList<PendingFileDto> PendingFiles { get; }
-    IReadOnlyList<FileInformationDto> UploadedFiles { get; }
+    IReadOnlyList<FileInformationReadDto> UploadedFiles { get; }
     Func<Task>? OnStateChangedAsync { get; set; }
-    Func<FileInformationDto, Task>? OnFileUploadedAsync { get; set; }
+    Func<FileInformationReadDto, Task>? OnFileUploadedAsync { get; set; }
     string? UserId { get; set; }
 
     void ClearPendings();

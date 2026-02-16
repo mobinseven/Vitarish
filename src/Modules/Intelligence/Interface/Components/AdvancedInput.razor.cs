@@ -25,7 +25,7 @@ public partial class AdvancedInput : CommonBase
     [Parameter] public RenderFragment? StartContent { get; set; }
     [Parameter] public RenderFragment? EndContent { get; set; }
     [Parameter] public string? UserId { get; set; }
-    [Parameter] public EventCallback<FileInformationDto> FileUploaded { get; set; }
+    [Parameter] public EventCallback<FileInformationReadDto> FileUploaded { get; set; }
     [Parameter] public EventCallback<string> OnSubmit { get; set; }
     [Parameter] public bool FileUploadEnabled { get; set; } = true;
     [Parameter] public bool DisplaySubmit { get; set; } = true;
@@ -184,7 +184,7 @@ public partial class AdvancedInput : CommonBase
 
     private async Task OnRewriteValueChanged(string value) => await UpdateValueAsync(value, notifyParent: true);
 
-    private async Task HandleFileUploaded(FileInformationDto file)
+    private async Task HandleFileUploaded(FileInformationReadDto file)
     {
         if (FileUploaded.HasDelegate)
         {

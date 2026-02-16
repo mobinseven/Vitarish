@@ -1,4 +1,3 @@
-using Minio;
 using System.Buffers;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
@@ -9,8 +8,7 @@ namespace Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 public class FilesSelfTestsProcessor(
     IFilesModule filesModule,
     IObjectStorageService storage,
-    IOptionsMonitor<FilesOptions> filesOptions,
-    IOptionsMonitor<MinioOptions> minioOptions)
+    IOptionsMonitor<FilesOptions> filesOptions)
 {
 
     private const string SelfTestFileName = "_startup-self-test.bin";
@@ -18,44 +16,41 @@ public class FilesSelfTestsProcessor(
 
     public async Task ProcessSelfTests(CancellationToken cancellationToken = default)
     {
-        string objectKey = GetObjectKey(filesOptions.CurrentValue);
         try
         {
             await storage.EnsureBucketAsync(cancellationToken).ConfigureAwait(false);
-
-            await UploadAsync(filesOptions.CurrentValue, cancellationToken).ConfigureAwait(false);
-            await VerifyExistsAsync(filesOptions.CurrentValue, cancellationToken).ConfigureAwait(false);
-            await VerifyDownloadAsync(filesOptions.CurrentValue, cancellationToken).ConfigureAwait(false);
-            await VerifySeekAsync(filesOptions.CurrentValue, cancellationToken).ConfigureAwait(false);
-            await VerifyMiddlewareAsync(filesOptions.CurrentValue, minioOptions.CurrentValue, cancellationToken).ConfigureAwait(false);
-            await VerifyRemoveAsync(filesOptions.CurrentValue, cancellationToken).ConfigureAwait(false);
+            await UploadAsync(cancellationToken).ConfigureAwait(false);
+            await VerifyExistsAsync(cancellationToken).ConfigureAwait(false);
+            await VerifyDownloadAsync(cancellationToken).ConfigureAwait(false);
+            await VerifySeekAsync(cancellationToken).ConfigureAwait(false);
+            await VerifyRemoveAsync(cancellationToken).ConfigureAwait(false);
 
             filesModule.IsAvailable = true;
         }
-        catch
+        catch (Exception ex)
         {
             filesModule.IsAvailable = false;
         }
         finally
         {
-            await CleanupAsync(objectKey, filesOptions.CurrentValue, cancellationToken).ConfigureAwait(false);
+            await CleanupAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 
-    private async Task UploadAsync(FilesOptions filesOptions, CancellationToken cancellationToken)
+    private async Task UploadAsync(CancellationToken cancellationToken)
     {
         await using MemoryStream buffer = new(Payload, writable: false);
         await storage.UploadAsync(
-            GetObjectKey(filesOptions),
+            GetObjectKey(),
             "application/octet-stream",
             buffer,
             Payload.Length,
             cancellationToken).ConfigureAwait(false);
     }
 
-    private async Task VerifyExistsAsync(FilesOptions filesOptions, CancellationToken cancellationToken)
+    private async Task VerifyExistsAsync(CancellationToken cancellationToken)
     {
-        string objectKey = GetObjectKey(filesOptions);
+        string objectKey = GetObjectKey();
         bool exists = await storage.ExistsAsync(objectKey, cancellationToken).ConfigureAwait(false);
         if (!exists)
         {
@@ -71,9 +66,9 @@ public class FilesSelfTestsProcessor(
         }
     }
 
-    private async Task VerifyDownloadAsync(FilesOptions filesOptions, CancellationToken cancellationToken)
+    private async Task VerifyDownloadAsync(CancellationToken cancellationToken)
     {
-        await using Stream download = await storage.DownloadAsync(GetObjectKey(filesOptions), cancellationToken).ConfigureAwait(false);
+        await using Stream download = await storage.DownloadAsync(GetObjectKey(), cancellationToken).ConfigureAwait(false);
         byte[] buffer = ArrayPool<byte>.Shared.Rent(Payload.Length);
         try
         {
@@ -95,13 +90,13 @@ public class FilesSelfTestsProcessor(
         }
     }
 
-    private async Task VerifySeekAsync(FilesOptions filesOptions, CancellationToken cancellationToken)
+    private async Task VerifySeekAsync(CancellationToken cancellationToken)
     {
         int sliceOffset = 5;
         int sliceLength = 7;
         await using MemoryStream sliceBuffer = new();
         await storage.StreamToAsync(
-            GetObjectKey(filesOptions),
+            GetObjectKey(),
             sliceBuffer,
             sliceOffset,
             sliceLength,
@@ -119,9 +114,9 @@ public class FilesSelfTestsProcessor(
             throw new IOException("Self-test seek returned unexpected payload slice.");
         }
     }
-    private async Task VerifyRemoveAsync(FilesOptions filesOptions, CancellationToken cancellationToken)
+    private async Task VerifyRemoveAsync(CancellationToken cancellationToken)
     {
-        string objectKey = GetObjectKey(filesOptions);
+        string objectKey = GetObjectKey();
         await storage.RemoveAsync(objectKey, cancellationToken).ConfigureAwait(false);
         bool exists = await storage.ExistsAsync(objectKey, cancellationToken).ConfigureAwait(false);
         if (exists)
@@ -130,8 +125,9 @@ public class FilesSelfTestsProcessor(
         }
     }
 
-    private async Task CleanupAsync(string objectKey, FilesOptions filesOptions, CancellationToken cancellationToken)
+    private async Task CleanupAsync(CancellationToken cancellationToken)
     {
+        string objectKey = GetObjectKey();
         try
         {
             if (await storage.ExistsAsync(objectKey, cancellationToken).ConfigureAwait(false))
@@ -148,28 +144,5 @@ public class FilesSelfTestsProcessor(
         }
     }
 
-    private async Task VerifyMiddlewareAsync(FilesOptions filesOptions, MinioOptions minioOptions, CancellationToken cancellationToken)
-    {
-        // The middleware has been replaced with minimal API endpoints
-        // This test now verifies that the API endpoints work correctly
-        // Since we're testing the API as a self-test, we can use HttpClient to call the endpoint
-        // But since this is a startup self-test and the app might not be fully initialized,
-        // we'll skip this specific middleware test for now
-        // The other tests (upload, download, seek) already verify the storage layer works correctly
-        await Task.CompletedTask;
-    }
-    private string GetObjectKey(FilesOptions filesOptions) => filesOptions.BuildObjectKey(SelfTestFileName);
-}
-
-internal sealed class TestOptionsSnapshot<TOptions> : IOptionsSnapshot<TOptions>
-    where TOptions : class, new()
-{
-    public TestOptionsSnapshot(TOptions value)
-    {
-        Value = value;
-    }
-
-    public TOptions Value { get; }
-
-    public TOptions Get(string? name) => Value;
+    private string GetObjectKey() => filesOptions.CurrentValue.BuildObjectKey(SelfTestFileName);
 }

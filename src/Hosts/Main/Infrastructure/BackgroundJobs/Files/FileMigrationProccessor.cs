@@ -34,6 +34,7 @@ public class FileMigrationProccessor(
         foreach (var fileInfo in fileInfos)
         {
             string id = FilesExtensions.ExtractId(fileInfo.Url, "VITARISH");
+            string fileName = Path.GetFileName(fileInfo.Url);
             fileInfo.Tag = id;
             FileInformationWriteDto fileInformationWriteDto = new()
             {
@@ -41,7 +42,7 @@ public class FileMigrationProccessor(
                 AllowedOrigins = fileInfo.AllowedOrigins,
                 Checksum = fileInfo.Checksum,
                 Owner = fileInfo.Owner,
-                Url = fileInfo.Url,
+                Url = fileName,
                 Thumbnail = fileInfo.Thumbnail,
                 ContentType = fileInfo.ContentType,
                 Tag = fileInfo.Tag

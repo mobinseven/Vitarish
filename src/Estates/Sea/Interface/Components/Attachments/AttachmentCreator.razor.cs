@@ -9,7 +9,7 @@ public partial class AttachmentCreator : AttachmentsBase
     [Parameter, EditorRequired] public EventReadDto Event { get; set; } = default!;
     [Parameter] public RenderFragment? Actions { get; set; }
 
-    private async Task OnUploaded(FileInformationDto fileInfo)
+    private async Task OnUploaded(FileInformationReadDto fileInfo)
     {
         AttachmentReadDto attachment = new()
         {

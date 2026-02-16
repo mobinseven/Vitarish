@@ -40,10 +40,10 @@ public partial class SimpleLayout : LayoutComponentBase, IAsyncDisposable, IBrow
     }
 
 
-    private void HandleLocationChanged(object? sender, EventArgs e)
+    private async void HandleLocationChanged(object? sender, EventArgs e)
     {
         Navigating = false;
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)

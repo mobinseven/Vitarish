@@ -43,20 +43,20 @@ public sealed class TestTenantAccessor : IMultiTenantContextAccessor<TenantInfo>
 /// </summary>
 public sealed class InMemoryFileInformationService : IFileInformationService
 {
-    private readonly List<FileInformationDto> store = [];
-    private readonly ConcurrentDictionary<string, FileInformationDto> byName = new(StringComparer.OrdinalIgnoreCase);
+    private readonly List<FileInformationReadDto> store = [];
+    private readonly ConcurrentDictionary<string, FileInformationReadDto> byName = new(StringComparer.OrdinalIgnoreCase);
 
-    public IReadOnlyList<FileInformationDto> Stored => store;
+    public IReadOnlyList<FileInformationReadDto> Stored => store;
 
-    public void Seed(string fileName, FileInformationDto info)
+    public void Seed(string fileName, FileInformationReadDto info)
     {
         store.Add(info);
         byName[fileName] = info;
     }
 
-    public Task<EntityResult<FileInformationDto>> AddAsync(FileInformationWriteDto dto, CancellationToken cancellationToken)
+    public Task<EntityResult<FileInformationReadDto>> AddAsync(FileInformationWriteDto dto, CancellationToken cancellationToken)
     {
-        FileInformationDto readDto = new()
+        FileInformationReadDto readDto = new()
         {
             Id = dto.Id,
             AllowedOrigins = dto.AllowedOrigins,
@@ -73,12 +73,12 @@ public sealed class InMemoryFileInformationService : IFileInformationService
             byName[name] = readDto;
         }
 
-        return Task.FromResult(EntityResult<FileInformationDto>.Success(readDto));
+        return Task.FromResult(EntityResult<FileInformationReadDto>.Success(readDto));
     }
 
-    public Task<EntityResult<IReadOnlyList<FileInformationDto>>> GetListAsync(FileInformationDescriptorDto descriptor, CancellationToken cancellationToken)
+    public Task<EntityResult<IReadOnlyList<FileInformationReadDto>>> GetListAsync(FileInformationDescriptorDto descriptor, CancellationToken cancellationToken)
     {
-        IEnumerable<FileInformationDto> query = store;
+        IEnumerable<FileInformationReadDto> query = store;
 
         if (!string.IsNullOrWhiteSpace(descriptor.Checksum))
         {
@@ -102,20 +102,20 @@ public sealed class InMemoryFileInformationService : IFileInformationService
             query = query.Where(info => string.Equals(info.Tag, descriptor.Tag, StringComparison.OrdinalIgnoreCase));
         }
 
-        IReadOnlyList<FileInformationDto> result = query.ToList();
-        return Task.FromResult(EntityResult<IReadOnlyList<FileInformationDto>>.Success(result));
+        IReadOnlyList<FileInformationReadDto> result = query.ToList();
+        return Task.FromResult(EntityResult<IReadOnlyList<FileInformationReadDto>>.Success(result));
     }
 
-    public Task<EntityResult<IReadOnlyList<FileInformationDto>>> AddAsync(IReadOnlyList<FileInformationWriteDto> dtos, CancellationToken cancellationToken) =>
+    public Task<EntityResult<IReadOnlyList<FileInformationReadDto>>> AddAsync(IReadOnlyList<FileInformationWriteDto> dtos, CancellationToken cancellationToken) =>
         throw new NotSupportedException();
 
-    public Task<EntityResult<FileInformationDto>> UpdateAsync(FileInformationWriteDto dto, CancellationToken cancellationToken) =>
+    public Task<EntityResult<FileInformationReadDto>> UpdateAsync(FileInformationWriteDto dto, CancellationToken cancellationToken) =>
         throw new NotSupportedException();
 
-    public Task<EntityResult<IReadOnlyList<FileInformationDto>>> UpdateAsync(IReadOnlyList<FileInformationWriteDto> dtos, CancellationToken cancellationToken) =>
+    public Task<EntityResult<IReadOnlyList<FileInformationReadDto>>> UpdateAsync(IReadOnlyList<FileInformationWriteDto> dtos, CancellationToken cancellationToken) =>
         throw new NotSupportedException();
 
-    public Task<EntityResult<FileInformationDto>> AddOrUpdateAsync(FileInformationWriteDto dto, CancellationToken cancellationToken) =>
+    public Task<EntityResult<FileInformationReadDto>> AddOrUpdateAsync(FileInformationWriteDto dto, CancellationToken cancellationToken) =>
         throw new NotSupportedException();
 
     public Task<EntityResult> RemoveAsync(FileInformationWriteDto dto, CancellationToken cancellationToken) =>
@@ -130,21 +130,21 @@ public sealed class InMemoryFileInformationService : IFileInformationService
     public Task<EntityResult> RemoveByDescriptorAsync(FileInformationDescriptorDto descriptor, CancellationToken cancellationToken) =>
         throw new NotSupportedException();
 
-    public Task<EntityResult<FileInformationDto>> GetAsync(Guid id, CancellationToken cancellationToken)
+    public Task<EntityResult<FileInformationReadDto>> GetAsync(Guid id, CancellationToken cancellationToken)
     {
-        FileInformationDto? match = store.FirstOrDefault(i => i.Id == id);
+        FileInformationReadDto? match = store.FirstOrDefault(i => i.Id == id);
         return match is not null
-            ? Task.FromResult(EntityResult<FileInformationDto>.Success(match))
-            : Task.FromResult(EntityResult<FileInformationDto>.Failure(EntityError.NotFound("Not found")));
+            ? Task.FromResult(EntityResult<FileInformationReadDto>.Success(match))
+            : Task.FromResult(EntityResult<FileInformationReadDto>.Failure(EntityError.NotFound("Not found")));
     }
 
     public Task<EntityResult<int>> CountAsync(FileInformationDescriptorDto descriptor, CancellationToken cancellationToken) =>
         throw new NotSupportedException();
 
-    public Task<EntityResult<PartedResult<FileInformationDto>>> GetPartedAsync(FileInformationDescriptorDto descriptor, CancellationToken cancellationToken) =>
+    public Task<EntityResult<PartedResult<FileInformationReadDto>>> GetPartedAsync(FileInformationDescriptorDto descriptor, CancellationToken cancellationToken) =>
         throw new NotSupportedException();
 
-    private static string? TryResolveName(FileInformationDto dto) => string.IsNullOrWhiteSpace(dto.Url) ? (string?)null : dto.Url.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
+    private static string? TryResolveName(FileInformationReadDto dto) => string.IsNullOrWhiteSpace(dto.Url) ? (string?)null : dto.Url.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
 }
 
 /// <summary>

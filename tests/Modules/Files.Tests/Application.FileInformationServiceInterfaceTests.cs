@@ -17,7 +17,7 @@ public sealed class FileInformationServiceInterfaceTests
     {
         // Assert
         typeof(IFileInformationService)
-            .Should().Implement<IEntityService<FileInformationDto, FileInformationWriteDto, FileInformationDescriptorDto>>();
+            .Should().Implement<IEntityService<FileInformationReadDto, FileInformationWriteDto, FileInformationDescriptorDto>>();
     }
 
     [Fact]

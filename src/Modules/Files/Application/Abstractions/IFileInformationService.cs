@@ -3,6 +3,6 @@ using Vitarish.Files.Domain.Models;
 
 namespace Vitarish.Files.Application.Abstractions;
 
-public interface IFileInformationService : IEntityService<FileInformationDto, FileInformationWriteDto, FileInformationDescriptorDto>
+public interface IFileInformationService : IEntityService<FileInformationReadDto, FileInformationWriteDto, FileInformationDescriptorDto>
 {
 }

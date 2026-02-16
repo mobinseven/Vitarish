@@ -4,7 +4,7 @@ using Vitarish.Files.Domain.Mappers;
 namespace Vitarish.Files.Infrastructure.Services;
 
 public class FileInformationService(IMediator mediator)
-    : EntityService<FileInformation, FileInformationDescriptor, FileInformationDto, FileInformationWriteDto, FileInformationDescriptorDto>(
+    : EntityService<FileInformation, FileInformationDescriptor, FileInformationReadDto, FileInformationWriteDto, FileInformationDescriptorDto>(
         mediator,
         FilesEntityMapperExtensions.ToDto,
         FilesEntityMapperExtensions.ToDomain,

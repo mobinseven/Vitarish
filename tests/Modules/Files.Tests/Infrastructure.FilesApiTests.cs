@@ -53,7 +53,7 @@ public sealed class Infrastructure_FilesApiTests
     {
         // Arrange
         var fileId = Guid.NewGuid();
-        var fileInfo = new FileInformationDto
+        var fileInfo = new FileInformationReadDto
         {
             Id = fileId,
             ContentType = "text/plain",
@@ -75,7 +75,7 @@ public sealed class Infrastructure_FilesApiTests
     {
         // Arrange
         var fileId = Guid.NewGuid();
-        var fileInfo = new FileInformationDto
+        var fileInfo = new FileInformationReadDto
         {
             Id = fileId,
             ContentType = "text/plain",
@@ -117,7 +117,7 @@ public sealed class Infrastructure_FilesApiTests
     {
         // Arrange
         var fileId = Guid.NewGuid();
-        var fileInfo = new FileInformationDto
+        var fileInfo = new FileInformationReadDto
         {
             Id = fileId,
             ContentType = "video/mp4",
@@ -144,7 +144,7 @@ public sealed class Infrastructure_FilesApiTests
         _ = response.StatusCode.Should().Be(System.Net.HttpStatusCode.PartialContent);
     }
 
-    private static IHost CreateHost(FileInformationDto? fileInfo = null, Action<long?, long?>? captureRangeParams = null)
+    private static IHost CreateHost(FileInformationReadDto? fileInfo = null, Action<long?, long?>? captureRangeParams = null)
     {
         var storageServiceMock = new Mock<IObjectStorageService>();
         

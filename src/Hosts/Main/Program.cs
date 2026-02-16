@@ -23,7 +23,6 @@ using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Users.Hosting.DependencyInjection;
 using Vitarish.Users.Infrastructure.Data;
 
-
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 void configureSqlServer(DbContextOptionsBuilder options)

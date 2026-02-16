@@ -40,9 +40,9 @@ public class FilesService : IFilesService
     /// validates checksum, de-duplicates by checksum, then atomically publishes the file
     /// and persists metadata. Designed for minimal complexity and high stability.
     /// </summary>
-    public async Task<FileInformationDto?> SaveFile(
+    public async Task<FileInformationReadDto?> SaveFile(
         ChannelReader<byte[]> data,
-        FileInformationDto givenInformation,
+        FileInformationReadDto givenInformation,
         CancellationToken cancellationToken = default)
     {
 
@@ -69,7 +69,7 @@ public class FilesService : IFilesService
 
         using IDisposable tenantScope = _tenantAccessor.UseTenant(resolvedTenant.Id);
 
-        FileInformationWriteDto MapToWriteDto(FileInformationDto readDto, bool includeId = false)
+        FileInformationWriteDto MapToWriteDto(FileInformationReadDto readDto, bool includeId = false)
         {
             FileInformationWriteDto writeDto = new()
             {
@@ -90,16 +90,16 @@ public class FilesService : IFilesService
             return writeDto;
         }
 
-        EntityResult<IReadOnlyList<FileInformationDto>> sameChecksumResult = await _fileInfoService.GetListAsync(new FileInformationDescriptorDto { Checksum = givenInformation.Checksum }, cancellationToken);
-        IReadOnlyList<FileInformationDto>? sameChecksum = sameChecksumResult.Value;
-        FileInformationDto? existingForTenant = sameChecksum?.FirstOrDefault(info => string.Equals(info.Owner, resolvedTenant.Id, StringComparison.Ordinal));
+        EntityResult<IReadOnlyList<FileInformationReadDto>> sameChecksumResult = await _fileInfoService.GetListAsync(new FileInformationDescriptorDto { Checksum = givenInformation.Checksum }, cancellationToken);
+        IReadOnlyList<FileInformationReadDto>? sameChecksum = sameChecksumResult.Value;
+        FileInformationReadDto? existingForTenant = sameChecksum?.FirstOrDefault(info => string.Equals(info.Owner, resolvedTenant.Id, StringComparison.Ordinal));
         if (existingForTenant is not null)
         {
             _logger.LogInformation("Duplicate detected. Reusing existing file for tenant {TenantId} (Id={Id}).", resolvedTenant.Id, existingForTenant.Id);
             return existingForTenant;
         }
 
-        FileInformationDto? existing = sameChecksum?.FirstOrDefault();
+        FileInformationReadDto? existing = sameChecksum?.FirstOrDefault();
         if (existing is not null)
         {
             _logger.LogInformation("Duplicate detected for new owner. Cloning existing file (SourceId={SourceId}).", existing.Id);
@@ -110,7 +110,7 @@ public class FilesService : IFilesService
                 ? MergeMetadata(incomingMetadata, existingMetadata)
                 : existingMetadata with { };
 
-            FileInformationDto cloned = new()
+            FileInformationReadDto cloned = new()
             {
                 AllowedOrigins = string.IsNullOrWhiteSpace(givenInformation.AllowedOrigins)
                     ? existing.AllowedOrigins
@@ -178,7 +178,7 @@ public class FilesService : IFilesService
 
 
             string extension = ContentTypeExtensions.SafeGetExtension(contentType);
-            FileInformationDto info = new()
+            FileInformationReadDto info = new()
             {
                 Id = Guid.NewGuid()
             };
