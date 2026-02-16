@@ -46,11 +46,11 @@ public sealed class Infrastructure_AwsS3ObjectStorageServiceTests
 
     private static AwsS3ObjectStorageService CreateSut(IAmazonS3 client)
     {
-        var optionsMock = new Mock<IOptionsMonitor<MinioOptions>>();
-        _ = optionsMock.SetupGet(x => x.CurrentValue).Returns(new MinioOptions
+        var minioOptionsMock = new Mock<IOptionsMonitor<MinioOptions>>();
+        _ = minioOptionsMock.SetupGet(x => x.CurrentValue).Returns(new MinioOptions
         {
             BucketName = "bucket"
         });
-        return new AwsS3ObjectStorageService(client, optionsMock.Object);
+        return new AwsS3ObjectStorageService(client, minioOptionsMock.Object);
     }
 }

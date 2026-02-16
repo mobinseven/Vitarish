@@ -177,8 +177,10 @@ public sealed class AwsS3ObjectStorageService(
         IReadOnlyList<ObjectListItem> items = response.S3Objects
             .Select(o => new ObjectListItem(
                 o.Key,
-                o.Size ?? 0,
-                o.LastModified.HasValue ? new DateTimeOffset(o.LastModified.Value) : DateTimeOffset.MinValue,
+                o.Size ?? throw new InvalidOperationException($"S3 object size is missing for '{o.Key}'."),
+                o.LastModified.HasValue
+                    ? new DateTimeOffset(o.LastModified.Value)
+                    : throw new InvalidOperationException($"S3 object last-modified timestamp is missing for '{o.Key}'."),
                 o.ETag))
             .ToList();
         return new ObjectListResult(items, response.NextContinuationToken, response.IsTruncated ?? false);
