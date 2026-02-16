@@ -8,6 +8,7 @@ public class MinioOptions
     public string Endpoint { get; set; } = string.Empty;
     public int Port { get; set; } = 443;
     public bool UseSsl { get; set; } = true;
+    public bool ForcePathStyle { get; set; } = true;
     public string AccessKey { get; set; } = string.Empty;
     public string SecretKey { get; set; } = string.Empty;
     public string BucketName { get; set; } = string.Empty;
@@ -24,6 +25,7 @@ public class MinioOptions
         Endpoint = opts.Endpoint;
         Port = opts.Port;
         UseSsl = opts.UseSsl;
+        ForcePathStyle = opts.ForcePathStyle;
         AccessKey = opts.AccessKey;
         SecretKey = opts.SecretKey;
         BucketName = opts.BucketName;
@@ -51,6 +53,8 @@ public class MinioOptions
 
         if (csb.TryGetValue("UseSsl", out value) && bool.TryParse(value?.ToString(), out var ssl))
             opts.UseSsl = ssl;
+        if (csb.TryGetValue("ForcePathStyle", out value) && bool.TryParse(value?.ToString(), out var forcePathStyle))
+            opts.ForcePathStyle = forcePathStyle;
 
         if (csb.TryGetValue("AccessKey", out value) && value != null)
             opts.AccessKey = value.ToString()!;
@@ -71,5 +75,11 @@ public class MinioOptions
             opts.HttpRequestTimeoutSeconds = timeoutSeconds;
         }
         return opts;
+    }
+
+    public string BuildServiceUrl()
+    {
+        string scheme = UseSsl ? "https" : "http";
+        return $"{scheme}://{Endpoint}:{Port}";
     }
 }

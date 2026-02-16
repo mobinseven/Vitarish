@@ -15,6 +15,18 @@ public interface IObjectStorageService
         CancellationToken cancellationToken = default);
     Task RemoveAsync(string objectKey, CancellationToken cancellationToken = default);
     Task RenameAsync(string objectKey, string newObjectKey, CancellationToken cancellationToken = default);
+    Task<ObjectListResult> ListAsync(
+        string? prefix = null,
+        string? continuationToken = null,
+        int? maxKeys = null,
+        CancellationToken cancellationToken = default);
+    Task<string> GetPresignedUrlAsync(
+        string objectKey,
+        TimeSpan expiresIn,
+        string httpMethod = "GET",
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record ObjectMetadata(long Size, string? ContentType);
+public sealed record ObjectListItem(string Key, long Size, DateTimeOffset LastModified, string? ETag);
+public sealed record ObjectListResult(IReadOnlyList<ObjectListItem> Items, string? ContinuationToken, bool IsTruncated);

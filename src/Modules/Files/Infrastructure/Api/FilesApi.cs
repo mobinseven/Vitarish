@@ -2,7 +2,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
-using Minio;
 using Vitarish.Entities.Server.Models;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
@@ -28,7 +27,6 @@ public static class FilesApi
     private static async Task GetFileByIdAsync(
         Guid id,
         HttpContext context,
-        IMinioClient minioClient,
         IObjectStorageService storageService,
          IFileInformationService fileInfoService,
         IOptionsSnapshot<FilesOptions> filesOptions)

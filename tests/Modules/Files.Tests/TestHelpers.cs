@@ -204,8 +204,35 @@ public sealed class RecordingObjectStorageService : IObjectStorageService
         return Task.CompletedTask;
     }
 
+    public Task RenameAsync(string objectKey, string newObjectKey, CancellationToken cancellationToken = default)
+    {
+        if (!objects.TryGetValue(objectKey, out (byte[] Data, string ContentType) value))
+        {
+            throw new InvalidOperationException($"Object '{objectKey}' was not seeded.");
+        }
+
+        objects[newObjectKey] = value;
+        _ = objects.TryRemove(objectKey, out _);
+        return Task.CompletedTask;
+    }
+
+    public Task<ObjectListResult> ListAsync(string? prefix = null, string? continuationToken = null, int? maxKeys = null, CancellationToken cancellationToken = default)
+    {
+        IEnumerable<ObjectListItem> items = objects
+            .Where(kvp => prefix is null || kvp.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+            .Select(kvp => new ObjectListItem(kvp.Key, kvp.Value.Data.Length, DateTimeOffset.UtcNow, null));
+        if (maxKeys is int takeCount && takeCount > 0)
+        {
+            items = items.Take(takeCount);
+        }
+
+        return Task.FromResult(new ObjectListResult(items.ToList(), null, false));
+    }
+
+    public Task<string> GetPresignedUrlAsync(string objectKey, TimeSpan expiresIn, string httpMethod = "GET", CancellationToken cancellationToken = default) =>
+        Task.FromResult($"https://example.local/{objectKey}");
+
     public readonly record struct UploadRecord(string ObjectKey, string ContentType, byte[] Data);
 
     public readonly record struct StreamRecord(string ObjectKey, long? Offset, long? Length);
 }
-

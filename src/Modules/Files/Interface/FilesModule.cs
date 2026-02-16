@@ -1,3 +1,5 @@
+using Amazon.Runtime;
+using Amazon.S3;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
@@ -5,7 +7,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Minio;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Api;
@@ -25,23 +26,24 @@ public class FilesModule : Module, IFilesModule
         IServiceCollection services = builder.Services;
         ConfigurationManager configuration = builder.Configuration;
         _ = services.AddSingleton<IFilesModule, FilesModule>();
-        _ = services.AddSingleton<IMinioClient>(sp =>
+        _ = services.AddSingleton<IAmazonS3>(sp =>
         {
             MinioOptions minioOptions = sp.GetRequiredService<IOptions<MinioOptions>>().Value;
-
-            IMinioClient clientBuilder = new MinioClient()
-                .WithEndpoint(minioOptions.Endpoint, minioOptions.Port)
-                .WithCredentials(minioOptions.AccessKey, minioOptions.SecretKey);
-
-            if (minioOptions.UseSsl)
+            AmazonS3Config amazonS3Config = new()
             {
-                clientBuilder = clientBuilder.WithSSL();
+                ServiceURL = minioOptions.BuildServiceUrl(),
+                ForcePathStyle = minioOptions.ForcePathStyle,
+                UseHttp = !minioOptions.UseSsl
+            };
+            if (!string.IsNullOrWhiteSpace(minioOptions.Region))
+            {
+                amazonS3Config.AuthenticationRegion = minioOptions.Region;
             }
-
-            return clientBuilder.Build();
+            BasicAWSCredentials credentials = new(minioOptions.AccessKey, minioOptions.SecretKey);
+            return new AmazonS3Client(credentials, amazonS3Config);
         });
 
-        _ = services.AddSingleton<IObjectStorageService, MinioObjectStorageService>();
+        _ = services.AddSingleton<IObjectStorageService, AwsS3ObjectStorageService>();
         _ = services.AddScoped<IFilesService, FilesService>();
         _ = services.AddScoped<IFileInformationService, FileInformationService>();
 
