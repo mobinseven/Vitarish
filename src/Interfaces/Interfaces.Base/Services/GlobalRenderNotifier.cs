@@ -8,5 +8,5 @@ internal class GlobalRenderNotifier : IGlobalRenderNotifier
 {
     public event EventHandler? RenderRequired;
 
-    public async Task Notify(object? content = null) => RenderRequired?.Invoke(this, new RenderNotification { Content = content });
+    public async Task Notify(EventArgs? content = null) => RenderRequired?.Invoke(this, content);
 }

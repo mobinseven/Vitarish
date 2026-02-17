@@ -150,12 +150,14 @@ public sealed class EntityInterceptor(
                 continue;
             }
 
-            EntityNotificationArgs args = new(
-                entry.Entity.GetType().Name,
-                entry.Entity.Id.ToString(),
-                operation.Value,
-                now,
-               CorrelationId: entry.Property("TenantId").CurrentValue?.ToString());
+            EntityNotificationArgs args = new()
+            {
+                EntityName = entry.Entity.GetType().Name,
+                Id = entry.Entity.Id.ToString(),
+                Operation = operation.Value,
+                OccurredAt = now,
+                CorrelationId = entry.Property("TenantId").CurrentValue?.ToString()
+            };
 
             list.Add(new EntityNotification(args));
         }

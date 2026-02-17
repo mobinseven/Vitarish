@@ -1,10 +1,12 @@
 namespace Vitarish.Entities.Server.Models;
 
-public sealed record EntityNotificationArgs(
-    string EntityName,
-    string Id,
-    EntityOperation Operation,
-    DateTimeOffset OccurredAt,
-    string? CorrelationId = null,
-    IReadOnlyDictionary<string, object?>? Snapshot = null,
-    IReadOnlyDictionary<string, (object? Old, object? New)>? Changes = null);
+public sealed class EntityNotificationArgs : EventArgs
+{
+    public string EntityName { get; set; }
+    public string Id { get; set; }
+    public EntityOperation Operation { get; set; }
+    public DateTimeOffset OccurredAt { get; set; }
+    public string? CorrelationId { get; set; }
+    public IReadOnlyDictionary<string, object?>? Snapshot { get; set; }
+    public IReadOnlyDictionary<string, (object? Old, object? New)>? Changes { get; set; }
+}

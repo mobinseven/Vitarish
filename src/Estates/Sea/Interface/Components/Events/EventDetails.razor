@@ -60,6 +60,7 @@ else if(CanWrite)
     [Parameter, EditorRequired] public required EventReadDto Event { get; set; }
 
     [Parameter] public EventCallback OnDelete { get; set; }
+    [Parameter] public EventCallback OnUpdate { get; set; }
 
     private async Task EditEventRoles()
     {
@@ -139,10 +140,11 @@ else if(CanWrite)
         }
         else
         {
-            DateTimeOffset commitTime = new(DateTime.Now, TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow));
             await EventsService.CommitAsync(Event.Id, CancellationToken.None);
             string commitMessage = Localizer["Committed"];
             await AttachmentsService.AddAsync(Event.Id, commitMessage, "text/plain", null, Encoding.UTF8.GetByteCount(commitMessage), CancellationToken.None);
         }
+        await InvokeAsync(StateHasChanged);
+        await OnUpdate.InvokeAsync();
     }
 }
