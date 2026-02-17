@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using System.Linq.Expressions;
 
 namespace Vitarish.Sea.Infrastructure.Repositories;
@@ -25,7 +26,7 @@ internal class ProcedureRepository(SeaDbContext dbContext)
                 Expression<Func<Procedure, bool>> predicate = EntitySearchHelper.BuildSearchPredicate<Procedure>(
                     patterns,
                     procedure => procedure.Name,
-                    procedure => procedure.Metadata);
+                    procedure => EF.Property<string>(procedure, nameof(Procedure.Metadata)));
 
                 query = query.Where(predicate);
             }

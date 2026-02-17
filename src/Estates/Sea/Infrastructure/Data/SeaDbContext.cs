@@ -4,6 +4,7 @@ using Finbuckle.MultiTenant.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using System.Text.Json;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Sea.Infrastructure.Data;
@@ -112,8 +113,17 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
             _ = eb.HasNoKey();
         });
 
-        _ = modelBuilder.Entity<Procedure>()
-            .Ignore(p => p.Stats);
+        _ = modelBuilder.Entity<Procedure>(entity =>
+        {
+            _ = entity.Property(e => e.Metadata)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, (JsonSerializerOptions)null) ?? [])
+                .HasDefaultValueSql("'{}'")
+                .HasColumnType("nvarchar(max)");
+
+            _ = entity.Ignore(p => p.Stats);
+        });
 
         _ = modelBuilder.Entity<EventStats>(eb =>
         {
