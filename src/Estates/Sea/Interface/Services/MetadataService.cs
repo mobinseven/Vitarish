@@ -7,10 +7,6 @@ namespace Vitarish.Sea.Interface.Services;
 [RegisterScoped]
 internal class MetadataService(ITenantService tenantsService) : IMetadataService
 {
-    public string? ReminderSignature
-    {
-        get => GetField<string>(); set => SetField(value);
-    }
     public string? PluginIdentifier
     {
         get => GetField<string>(); set => SetField(value);
@@ -37,5 +33,4 @@ public interface IMetadataService
 {
     IEnumerable<UserDto>? Users { get; }
     string? PluginIdentifier { get; set; }
-    string? ReminderSignature { get; set; }
 }

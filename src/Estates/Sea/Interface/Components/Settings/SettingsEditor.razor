@@ -1,11 +1,5 @@
 @inherits SeaCommonBase
 
-<Stack>
-    <StackField Label="@Localizer["ReminderSignature"]">
-        <MudTextField @bind-Value="MetadataService.ReminderSignature" Lines="4" AutoGrow Underline="false" Variant="Variant.Outlined" />
-    </StackField>
-</Stack>
-
 <AuthorizeView Policy="@IdentityDefinitions.PlatformAdmin">
     <Stack>
         <StackField Label="@Localizer["Plugin"]">
