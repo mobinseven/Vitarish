@@ -20,7 +20,7 @@ public sealed class NavService : INavService, IDisposable
         set
         {
             field = value;
-            if (string.IsNullOrWhiteSpace(value))
+            if (value == string.Empty)
             {
                 return;
             }
