@@ -15,14 +15,14 @@ public class FileInformation : Entity
     public long Size { get; private set; }
     public string Checksum { get; set; } = string.Empty;
     public string Url { get; set; } = string.Empty;
-    private string? metadata;
+
     public string? Metadata
     {
-        get => metadata;
+        get;
         set
         {
-            metadata = value;
-            ApplyMetadata(metadata);
+            field = value;
+            ApplyMetadata(field);
         }
     }
     public string? TenantId { get; set; }

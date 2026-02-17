@@ -2,43 +2,37 @@ namespace Vitarish.Sea.Domain.Entities;
 
 public class Event : Entity
 {
-    private string _title = string.Empty;
-    private string _description = string.Empty;
-    private Guid? _previousEventId;
-    private Guid _reporterUserId = default;
-    private DateTimeOffset? _committedAt;
-
     public Guid ProjectId { get; private set; }
     public Guid ProcedureId { get; private set; }
 
     public string Title
     {
-        get => _title;
-        set => SetField(ref _title, value, nameof(Title));
-    }
+        get;
+        set => SetField(ref field, value, nameof(Title));
+    } = string.Empty;
 
     public string Description
     {
-        get => _description;
-        set => SetField(ref _description, value, nameof(Description));
-    }
+        get;
+        set => SetField(ref field, value, nameof(Description));
+    } = string.Empty;
 
     public Guid? PreviousEventId
     {
-        get => _previousEventId;
-        set => SetField(ref _previousEventId, value, nameof(PreviousEventId));
+        get;
+        set => SetField(ref field, value, nameof(PreviousEventId));
     }
 
     public Guid CommittedBy
     {
-        get => _reporterUserId;
-        private set => SetField(ref _reporterUserId, value, nameof(CommittedBy));
-    }
+        get;
+        private set => SetField(ref field, value, nameof(CommittedBy));
+    } = default;
 
     public DateTimeOffset? CommittedAt
     {
-        get => _committedAt;
-        private set => SetField(ref _committedAt, value, nameof(CommittedAt));
+        get;
+        private set => SetField(ref field, value, nameof(CommittedAt));
     }
 
 
