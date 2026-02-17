@@ -5,7 +5,6 @@ namespace Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 public class HangfireFilesJobManager(IRecurringJobManager recurringJobManager)
 {
     private const string JobId = "files:selftests";
-    private const string MigrationJobId = "files:migration";
 
     /// <summary>
     /// Adds or updates the recurring job.
