@@ -21,4 +21,10 @@ public partial class EntityMapper
     /// Converts a Procedure descriptor DTO to its descriptor representation.
     /// </summary>
     public partial global::Vitarish.Sea.Domain.Models.ProcedureDescriptor ToDomain(global::Vitarish.Sea.Domain.Dto.ProcedureDescriptorDto src);
+
+    private static string MapMetadata(Dictionary<string, object?> metadata)
+        => global::Vitarish.Sea.Domain.Entities.Procedure.SerializeMetadata(metadata);
+
+    private static Dictionary<string, object?> MapMetadata(string metadata)
+        => global::Vitarish.Sea.Domain.Entities.Procedure.DeserializeMetadata(metadata);
 }
