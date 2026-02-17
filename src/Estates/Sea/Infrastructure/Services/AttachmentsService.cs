@@ -8,7 +8,7 @@ internal sealed class AttachmentsService(
     IMediator mediator)
     : EntityService<Attachment, AttachmentDescriptor, AttachmentReadDto, AttachmentWriteDto, AttachmentDescriptorDto>
     (
-        mediator, attachment=>attachment.ToDto(),
+        mediator, attachment => attachment.ToDto(),
         attachment => attachment.ToDomain(),
         attachment => attachment.ToDomain()
     ),
@@ -28,7 +28,14 @@ internal sealed class AttachmentsService(
         string contentType,
         string? contentThumbnail,
         long size,
-        CancellationToken cancellationToken) => (await AddAsync(new Attachment(eventId, content, contentType, contentThumbnail, size),
+        CancellationToken cancellationToken) => (await AddAsync(new Attachment
+        {
+            EventId = eventId,
+            Content = content,
+            ContentType = contentType,
+            ContentThumbnail = contentThumbnail,
+            Size = size
+        },
              cancellationToken)).GetValueOrDefault();
 
     public async Task AddAsync(

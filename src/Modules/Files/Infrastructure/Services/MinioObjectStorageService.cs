@@ -1,81 +1,34 @@
-using Microsoft.Extensions.Logging;
+using Amazon.S3;
+using Amazon.S3.Model;
+using Amazon.S3.Transfer;
 using Microsoft.Extensions.Options;
-using Minio;
-using Minio.DataModel;
-using Minio.DataModel.Args;
-using Minio.Exceptions;
-using System.Globalization;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Interfaces;
 
 namespace Vitarish.Files.Infrastructure.Services;
 
-public sealed class MinioObjectStorageService(
-    IMinioClient client,
+public sealed class AwsS3ObjectStorageService(
+    IAmazonS3 client,
     IOptionsMonitor<MinioOptions> minioOptions) : IObjectStorageService
 {
     private MinioOptions options => minioOptions.CurrentValue;
 
-    private static async Task<TOut> Perform<TOut>(Func<Task<TOut>> function)
-    {
-
-        CultureInfo originalCulture = CultureInfo.CurrentCulture;
-        CultureInfo originalUiCulture = CultureInfo.CurrentUICulture;
-
-        try
-        {
-            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-            CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
-
-            return await function().ConfigureAwait(false);
-        }
-        catch(Exception ex)
-        {
-            throw;
-        }
-        finally
-        {
-            CultureInfo.CurrentCulture = originalCulture;
-            CultureInfo.CurrentUICulture = originalUiCulture;
-        }
-    }
-
-    private static async Task Perform(Func<Task> function)
-    {
-
-        CultureInfo originalCulture = CultureInfo.CurrentCulture;
-        CultureInfo originalUiCulture = CultureInfo.CurrentUICulture;
-
-        try
-        {
-            CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
-            CultureInfo.CurrentUICulture = CultureInfo.InvariantCulture;
-
-            await function().ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            throw;
-        }
-        finally
-        {
-            CultureInfo.CurrentCulture = originalCulture;
-            CultureInfo.CurrentUICulture = originalUiCulture;
-        }
-    }
-
     public async Task EnsureBucketAsync(CancellationToken cancellationToken = default)
     {
-        bool exists = await Perform<bool>(() => client.BucketExistsAsync(new BucketExistsArgs().WithBucket(options.BucketName), cancellationToken));
-        if (!exists)
+        try
         {
-            MakeBucketArgs args = new MakeBucketArgs().WithBucket(options.BucketName);
-            if (!string.IsNullOrWhiteSpace(options.Region))
+            _ = await client.GetBucketAclAsync(new GetBucketAclRequest
             {
-                args = args.WithLocation(options.Region);
-            }
-
-            await Perform(() => client.MakeBucketAsync(args, cancellationToken));
+                BucketName = options.BucketName
+            }, cancellationToken);
+        }
+        catch (AmazonS3Exception ex) when (ex.StatusCode == System.Net.HttpStatusCode.NotFound)
+        {
+            PutBucketRequest request = new()
+            {
+                BucketName = options.BucketName
+            };
+            _ = await client.PutBucketAsync(request, cancellationToken);
         }
     }
 
@@ -84,13 +37,14 @@ public sealed class MinioObjectStorageService(
         string newObjectKey,
         CancellationToken cancellationToken =default)
     {
-        CopyObjectArgs args = new CopyObjectArgs()
-            .WithBucket(options.BucketName)
-            .WithObject(newObjectKey)
-            .WithCopyObjectSource(new CopySourceObjectArgs()
-                .WithBucket(options.BucketName)
-                .WithObject(objectKey));
-        await Perform(() => client.CopyObjectAsync(args, cancellationToken));
+        CopyObjectRequest request = new()
+        {
+            SourceBucket = options.BucketName,
+            SourceKey = objectKey,
+            DestinationBucket = options.BucketName,
+            DestinationKey = newObjectKey
+        };
+        _ = await client.CopyObjectAsync(request, cancellationToken);
         await RemoveAsync(objectKey, cancellationToken);
     }
 
@@ -106,14 +60,17 @@ public sealed class MinioObjectStorageService(
             _ = data.Seek(0, SeekOrigin.Begin);
         }
 
-        PutObjectArgs args = new PutObjectArgs()
-            .WithBucket(options.BucketName)
-            .WithObject(objectKey)
-            .WithStreamData(data)
-            .WithObjectSize(size)
-            .WithContentType(contentType);
+        TransferUtilityUploadRequest request = new()
+        {
+            BucketName = options.BucketName,
+            Key = objectKey,
+            InputStream = data,
+            ContentType = contentType,
+            AutoCloseStream = false
+        };
 
-        _ = await Perform(() => client.PutObjectAsync(args, cancellationToken));
+        TransferUtility transferUtility = new(client);
+        await transferUtility.UploadAsync(request, cancellationToken);
     }
 
     public async Task<bool> ExistsAsync(string objectKey, CancellationToken cancellationToken = default)
@@ -123,7 +80,10 @@ public sealed class MinioObjectStorageService(
             _ = await GetMetadataAsync(objectKey, cancellationToken);
             return true;
         }
-        catch (ObjectNotFoundException)
+        catch (AmazonS3Exception ex) when (
+            ex.StatusCode == System.Net.HttpStatusCode.NotFound ||
+            string.Equals(ex.ErrorCode, "NotFound", StringComparison.OrdinalIgnoreCase) ||
+            string.Equals(ex.ErrorCode, "NoSuchKey", StringComparison.OrdinalIgnoreCase))
         {
             return false;
         }
@@ -131,14 +91,23 @@ public sealed class MinioObjectStorageService(
 
     public async Task<ObjectMetadata> GetMetadataAsync(string objectKey, CancellationToken cancellationToken = default)
     {
-        ObjectStat stat = await GetStatAsync(objectKey, cancellationToken);
-        return new ObjectMetadata(stat.Size, stat.ContentType);
+        GetObjectMetadataResponse metadata = await client.GetObjectMetadataAsync(new GetObjectMetadataRequest
+        {
+            BucketName = options.BucketName,
+            Key = objectKey
+        }, cancellationToken);
+        return new ObjectMetadata(metadata.ContentLength, metadata.Headers.ContentType);
     }
 
     public async Task<Stream> DownloadAsync(string objectKey, CancellationToken cancellationToken = default)
     {
         MemoryStream buffer = new();
-        await StreamToAsync(objectKey, buffer, cancellationToken: cancellationToken);
+        using GetObjectResponse response = await client.GetObjectAsync(new GetObjectRequest
+        {
+            BucketName = options.BucketName,
+            Key = objectKey
+        }, cancellationToken);
+        await response.ResponseStream.CopyToAsync(buffer, cancellationToken);
         _ = buffer.Seek(0, SeekOrigin.Begin);
         return buffer;
     }
@@ -151,49 +120,92 @@ public sealed class MinioObjectStorageService(
             CancellationToken cancellationToken = default
         )
     {
-        GetObjectArgs args = new GetObjectArgs()
-            .WithBucket(options.BucketName)
-            .WithObject(objectKey)
-            .WithCallbackStream(async (stream, innerCancellationToken) =>
-            {
-                await stream.CopyToAsync(destination, innerCancellationToken);
-            });
-        if (offset is not null && length is not null)
+        GetObjectRequest request = new()
         {
-            long resolvedOffset = Math.Max(0, offset.Value);
-            long resolvedLength = Math.Max(0, length.Value);
+            BucketName = options.BucketName,
+            Key = objectKey
+        };
 
-            var statArgs = new StatObjectArgs()
-                .WithBucket(options.BucketName)
-                .WithObject(objectKey);
-            var stat = await Perform(() => client.StatObjectAsync(statArgs, cancellationToken));
-            long availableLength = stat.Size - resolvedOffset;
-            if (availableLength < 0)
+        if (offset is not null || length is not null)
+        {
+            ObjectMetadata metadata = await GetMetadataAsync(objectKey, cancellationToken);
+            long resolvedOffset = Math.Max(0, offset ?? 0);
+            if (resolvedOffset >= metadata.Size)
             {
                 return;
             }
-            resolvedLength = Math.Min(resolvedLength, availableLength);
 
-            args = args.WithOffsetAndLength(resolvedOffset, resolvedLength);
+            long resolvedLength = length is null
+                ? metadata.Size - resolvedOffset
+                : Math.Max(0, Math.Min(length.Value, metadata.Size - resolvedOffset));
+            if (resolvedLength <= 0)
+            {
+                return;
+            }
+
+            long resolvedEnd = resolvedOffset + resolvedLength - 1;
+            request.ByteRange = new ByteRange(resolvedOffset, resolvedEnd);
         }
 
-        await Perform(() => client.GetObjectAsync(args, cancellationToken));
+        using GetObjectResponse response = await client.GetObjectAsync(request, cancellationToken);
+        await response.ResponseStream.CopyToAsync(destination, cancellationToken);
     }
 
     public async Task RemoveAsync(string objectKey, CancellationToken cancellationToken = default)
     {
-        RemoveObjectArgs args = new RemoveObjectArgs()
-            .WithBucket(options.BucketName)
-            .WithObject(objectKey);
-
-        await Perform(() => client.RemoveObjectAsync(args, cancellationToken));
+        _ = await client.DeleteObjectAsync(new DeleteObjectRequest
+        {
+            BucketName = options.BucketName,
+            Key = objectKey
+        }, cancellationToken);
     }
 
-    private async Task<ObjectStat> GetStatAsync(string objectKey, CancellationToken cancellationToken)
+    public async Task<ObjectListResult> ListAsync(
+        string? prefix = null,
+        string? continuationToken = null,
+        int? maxKeys = null,
+        CancellationToken cancellationToken = default)
     {
-        StatObjectArgs args = new StatObjectArgs()
-            .WithBucket(options.BucketName)
-            .WithObject(objectKey);
-        return await Perform(() => client.StatObjectAsync(args, cancellationToken));
+        ListObjectsV2Request request = new()
+        {
+            BucketName = options.BucketName,
+            Prefix = prefix,
+            ContinuationToken = continuationToken,
+            MaxKeys = maxKeys
+        };
+        ListObjectsV2Response response = await client.ListObjectsV2Async(request, cancellationToken);
+        IReadOnlyList<ObjectListItem> items = response.S3Objects
+            .Select(o => new ObjectListItem(
+                o.Key,
+                o.Size ?? throw new InvalidOperationException($"S3 object size is missing for '{o.Key}'."),
+                o.LastModified.HasValue
+                    ? new DateTimeOffset(o.LastModified.Value)
+                    : throw new InvalidOperationException($"S3 object last-modified timestamp is missing for '{o.Key}'."),
+                o.ETag))
+            .ToList();
+        return new ObjectListResult(items, response.NextContinuationToken, response.IsTruncated ?? false);
+    }
+
+    public Task<string> GetPresignedUrlAsync(
+        string objectKey,
+        TimeSpan expiresIn,
+        string httpMethod = "GET",
+        CancellationToken cancellationToken = default)
+    {
+        HttpVerb verb = httpMethod.ToUpperInvariant() switch
+        {
+            "PUT" => HttpVerb.PUT,
+            "DELETE" => HttpVerb.DELETE,
+            "HEAD" => HttpVerb.HEAD,
+            _ => HttpVerb.GET
+        };
+        GetPreSignedUrlRequest request = new()
+        {
+            BucketName = options.BucketName,
+            Key = objectKey,
+            Expires = DateTime.UtcNow.Add(expiresIn),
+            Verb = verb
+        };
+        return Task.FromResult(client.GetPreSignedURL(request));
     }
 }

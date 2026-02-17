@@ -2,11 +2,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
-using Minio;
-using Vitarish.Entities.Server.Models;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
-using Vitarish.Files.Infrastructure.Extensions;
 using Vitarish.Files.Infrastructure.Interfaces;
 
 namespace Vitarish.Files.Infrastructure.Api;
@@ -19,8 +16,6 @@ public static class FilesApi
 
         _ = filesGroup.MapGet("/{id:guid}", GetFileByIdAsync);
         _ = filesGroup.MapMethods("/{id:guid}", ["HEAD"], GetFileByIdAsync);
-        _ = filesGroup.MapGet("/name/{**fileName}", GetFileByNameAsync);
-        _ = filesGroup.MapMethods("/name/{**fileName}", ["HEAD"], GetFileByNameAsync);
 
         return endpoints;
     }
@@ -28,72 +23,21 @@ public static class FilesApi
     private static async Task GetFileByIdAsync(
         Guid id,
         HttpContext context,
-        IMinioClient minioClient,
         IObjectStorageService storageService,
          IFileInformationService fileInfoService,
         IOptionsSnapshot<FilesOptions> filesOptions)
     {
         FileInformationReadDto? fileInfo = await fileInfoService.GetAsync(id, context.RequestAborted).GetValueOrDefaultAsync();
-        if (fileInfo is null)
-        {
-            EntityResult<IReadOnlyList<FileInformationReadDto>> listResult = await fileInfoService.GetListAsync(
-                new() { Tag = id.ToString() },
-                context.RequestAborted);
-            fileInfo = listResult.Value?.FirstOrDefault();
-        }
 
         if (fileInfo is null)
         {
             context.Response.StatusCode = StatusCodes.Status404NotFound;
             return;
         }
-
-
-        await ServeFileAsync(fileInfo, context, storageService, filesOptions.Value);
-
-    }
-
-    private static async Task GetFileByNameAsync(
-        string fileName,
-        HttpContext context,
-        IObjectStorageService storageService,
-        IFileInformationService fileInfoService,
-        IOptionsSnapshot<FilesOptions> filesOptions)
-    {
-        if (string.IsNullOrWhiteSpace(fileName))
-        {
-            context.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
-
-        string extractedId = FilesExtensions.ExtractId(fileName, filesOptions.Value.Prefix);
-        if (!Guid.TryParse(extractedId, out Guid fileId))
-        {
-            context.Response.StatusCode = StatusCodes.Status400BadRequest;
-            return;
-        }
-        FileInformationReadDto? fileInfo = await fileInfoService.GetAsync(fileId, context.RequestAborted).GetValueOrDefaultAsync();
-
-        if (fileInfo is null)
-        {
-            context.Response.StatusCode = StatusCodes.Status404NotFound;
-            return;
-        }
-
-        await ServeFileAsync(fileInfo, context, storageService, filesOptions.Value);
-    }
-
-    private static async Task ServeFileAsync(
-        FileInformationReadDto fileInfo,
-        HttpContext context,
-        IObjectStorageService storageService,
-        FilesOptions filesSettings)
-    {
-        string objectKey = filesSettings.BuildObjectKey(fileInfo.Id.ToString());
 
         context.RequestAborted.ThrowIfCancellationRequested();
 
-        bool exists = await storageService.ExistsAsync(objectKey, context.RequestAborted);
+        bool exists = await storageService.ExistsAsync(fileInfo.Checksum, context.RequestAborted);
 
         if (!exists)
         {
@@ -101,7 +45,7 @@ public static class FilesApi
             return;
         }
 
-        ObjectMetadata metadata = await storageService.GetMetadataAsync(objectKey, context.RequestAborted);
+        ObjectMetadata metadata = await storageService.GetMetadataAsync(fileInfo.Checksum, context.RequestAborted);
 
         context.Response.ContentType = metadata.ContentType ?? fileInfo.ContentType ?? "application/octet-stream";
         context.Response.Headers.AcceptRanges = "bytes";
@@ -128,7 +72,7 @@ public static class FilesApi
         }
 
         await storageService.StreamToAsync(
-            objectKey,
+            fileInfo.Checksum,
             context.Response.Body,
             isRangeRequest ? offset : null,
             isRangeRequest ? length : null,

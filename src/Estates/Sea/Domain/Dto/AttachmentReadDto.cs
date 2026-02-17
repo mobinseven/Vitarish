@@ -2,6 +2,9 @@ namespace Vitarish.Sea.Domain.Dto;
 
 public record AttachmentReadDto : EntityReadDto
 {
+    [JsonPropertyName("eventId")]
+    public Guid EventId { get; set; } = default!;
+
     [JsonPropertyName("content")]
     public string Content { get; set; } = default!;
 

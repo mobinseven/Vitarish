@@ -22,14 +22,16 @@ internal class RemindersService(IMediator mediator) : EntityService<Reminder, Re
         CancellationToken cancellationToken)
     {
         List<Reminder> reminders = [
-            .. recipients.Select(r => new Reminder(
-                eventId,
-                r.Kind,
-                r.RecipientUserId,
-                r.Recipient,
-                subject,
-                textBody,
-                remindAt))
+            .. recipients.Select(r => new Reminder
+            {
+                EventId =   eventId,
+                Kind  = r.Kind,
+                RecipientUserId =   r.RecipientUserId,
+                Recipient =    r.Recipient,
+                Subject =    subject,
+                TextBody =    textBody,
+                RemindAt =    remindAt
+            })
         ];
 
         IReadOnlyList<Reminder> added = (await AddEntitiesAsync(reminders, cancellationToken))

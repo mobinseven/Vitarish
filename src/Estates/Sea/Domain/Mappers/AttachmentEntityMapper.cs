@@ -13,6 +13,7 @@ public partial class EntityMapper
     /// Converts a Attachment entity to its read DTO representation.
     /// </summary>
     public partial global::Vitarish.Sea.Domain.Dto.AttachmentReadDto ToDto(global::Vitarish.Sea.Domain.Entities.Attachment src);
+    public partial global::Vitarish.Sea.Domain.Dto.AttachmentWriteDto ToWrite(global::Vitarish.Sea.Domain.Dto.AttachmentReadDto src);
 
     /// <summary>
     /// Converts a Attachment write DTO to its entity representation.

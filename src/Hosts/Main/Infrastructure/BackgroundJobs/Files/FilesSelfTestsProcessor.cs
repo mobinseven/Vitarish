@@ -144,5 +144,5 @@ public class FilesSelfTestsProcessor(
         }
     }
 
-    private string GetObjectKey() => filesOptions.CurrentValue.BuildObjectKey(SelfTestFileName);
+    private string GetObjectKey() => SelfTestFileName;// filesOptions.CurrentValue.BuildObjectKey(SelfTestFileName);
 }

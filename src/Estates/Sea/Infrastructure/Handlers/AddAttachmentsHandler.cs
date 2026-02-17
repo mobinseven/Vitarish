@@ -8,12 +8,14 @@ internal class AddAttachmentsHandler(IEntityRepository<Attachment, AttachmentDes
     {
         foreach (AttachmentItem item in request.Attachments)
         {
-            _ = await repository.AddAsync(new Attachment(
-                request.EventId,
-                item.Content,
-                item.ContentType,
-                item.ContentThumbnail,
-                item.Size), cancellationToken);
+            _ = await repository.AddAsync(new Attachment
+            {
+                EventId = request.EventId,
+                Content = item.Content,
+                ContentType = item.ContentType,
+                ContentThumbnail = item.ContentThumbnail,
+                Size = item.Size
+            }, cancellationToken);
         }
     }
 }
