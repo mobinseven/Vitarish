@@ -6,19 +6,7 @@ internal sealed class AttachmentPlugin(IAttachmentsService attachmentsService) :
 {
     public string Id => "event-items/attachments";
 
-    public string DisplayName => nameof(AttachmentPlugin);
-
-    public string? Description => nameof(AttachmentPlugin);
-
     public EventItemCreationPlacement Placement => EventItemCreationPlacement.Main;
-
-    public IReadOnlyCollection<Type> WatchedTypes { get; } = new[]
-    {
-        typeof(EventReadDto),
-        typeof(AttachmentReadDto)
-    };
-
-    public bool IsAvailable(EventItemCreationContext context) => context is not null;
 
     public bool IsAvailable(EventTimelineContext context) => context is not null;
 
@@ -29,6 +17,7 @@ internal sealed class AttachmentPlugin(IAttachmentsService attachmentsService) :
                                                                                    builder.AddAttribute(2, nameof(AttachmentCreator.Procedure), context.Procedure);
                                                                                    builder.AddAttribute(3, nameof(AttachmentCreator.Event), context.Event);
                                                                                    builder.AddAttribute(4, nameof(AttachmentCreator.Actions), context.Actions);
+                                                                                   builder.AddAttribute(5, nameof(AttachmentCreator.OnCreated), EventCallback.Factory.Create(this, context.OnCreated));
                                                                                    builder.CloseComponent();
                                                                                };
 

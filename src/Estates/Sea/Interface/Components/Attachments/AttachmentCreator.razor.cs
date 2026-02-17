@@ -8,6 +8,7 @@ public partial class AttachmentCreator : AttachmentsBase
     [Parameter, EditorRequired] public ProcedureReadDto Procedure { get; set; } = default!;
     [Parameter, EditorRequired] public EventReadDto Event { get; set; } = default!;
     [Parameter] public RenderFragment? Actions { get; set; }
+    [Parameter] public EventCallback OnCreated { get; set; }
 
     private async Task OnUploaded(FileInformationReadDto fileInfo)
     {
@@ -20,6 +21,7 @@ public partial class AttachmentCreator : AttachmentsBase
             Size = fileInfo.Metadata.Size
         };
         await AttachmentsService.AddAsync(Event.Id, [attachment], CancellationToken.None);
+        await OnCreated.InvokeAsync();
     }
     private async Task AddTextAttachment()
     {
@@ -35,5 +37,6 @@ public partial class AttachmentCreator : AttachmentsBase
             CancellationToken.None) ?? throw new Exception("Attachment was not added");
 
         _value = string.Empty;
+        await OnCreated.InvokeAsync();
     }
 }

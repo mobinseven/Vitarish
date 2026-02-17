@@ -7,14 +7,7 @@ internal sealed class ReminderPlugin(IRemindersService remindersService) : IEven
 
     public string Id => "event-items/reminders";
 
-    public string DisplayName => nameof(ReminderPlugin);
-
-    public string? Description => nameof(ReminderPlugin);
-
     public EventItemCreationPlacement Placement => EventItemCreationPlacement.Action;
-
-    public bool IsAvailable(EventItemCreationContext context)
-        => context is not null;
 
     public bool IsAvailable(EventTimelineContext context)
         => context is not null;
