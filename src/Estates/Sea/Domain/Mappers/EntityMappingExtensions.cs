@@ -6,6 +6,7 @@ using Vitarish;
 #nullable enable
 
 using Vitarish.Sea.Domain;
+using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Sea.Domain.Mappers
 {
@@ -22,6 +23,11 @@ namespace Vitarish.Sea.Domain.Mappers
         public static Dto.AttachmentReadDto ToDto(this Attachment entity)
         {
             return Mapper.ToDto(entity);
+        }
+
+        public static Dto.AttachmentWriteDto ToWrite(this AttachmentReadDto dto)
+        {
+            return Mapper.ToWrite(dto);
         }
 
         /// <summary>

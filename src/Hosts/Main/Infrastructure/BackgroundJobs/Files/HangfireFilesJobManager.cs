@@ -15,7 +15,7 @@ public class HangfireFilesJobManager(IRecurringJobManager recurringJobManager)
         recurringJobManager.AddOrUpdate<FilesSelfTestsProcessor>(
             JobId,
             processor => processor.ProcessSelfTests(),
-            Cron.MinuteInterval(1));
+            Cron.MinuteInterval(10));
     }
 
     /// <summary>
@@ -24,6 +24,6 @@ public class HangfireFilesJobManager(IRecurringJobManager recurringJobManager)
     public void TriggerProcessing()
     {
         recurringJobManager.Trigger(JobId);
-        recurringJobManager.Trigger(MigrationJobId);
+        //recurringJobManager.Trigger(MigrationJobId);
     }
 }

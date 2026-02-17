@@ -30,18 +30,4 @@ public class Attachment : EventItem
         get => _size;
         set => SetField(ref _size, value, nameof(Size));
     }
-    public Attachment() : base() { }
-    public Attachment(
-        Guid eventId,
-        string content,
-        string contentType,
-        string? contentThumbnail,
-        long size)
-        : base(eventId)
-    {
-        _content = content;
-        _contentType = contentType;
-        _contentThumbnail = contentThumbnail;
-        _size = size;
-    }
 }

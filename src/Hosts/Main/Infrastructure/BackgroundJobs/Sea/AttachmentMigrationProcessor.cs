@@ -1,8 +1,13 @@
 using Vitarish.Entities.Server.Models;
+using Vitarish.Files.Application.Abstractions;
+using Vitarish.Files.Domain.Models;
 using Vitarish.Files.Domain.Options;
+using Vitarish.Files.Infrastructure.Extensions;
+using Vitarish.Files.Infrastructure.Interfaces;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
+using Vitarish.Sea.Domain.Mappers;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 
@@ -26,6 +31,8 @@ public class AttachmentMigrationProcessor(
                 provider.GetRequiredService<IEventsService>(),
                 provider.GetRequiredService<IAttachmentsService>(),
                 provider.GetRequiredService<IRequestContext>(),
+                provider.GetRequiredService<IFileInformationService>(),
+                provider.GetRequiredService<IObjectStorageService>(),
                 shutdownToken);
         }
 
@@ -40,57 +47,52 @@ public class AttachmentMigrationProcessor(
         IEventsService eventsService,
         IAttachmentsService attachmentsService,
         IRequestContext requestContext,
+        IFileInformationService fileInformationService,
+        IObjectStorageService objectStorageService,
         CancellationToken cancellationToken)
     {
-        const int batchSize = 1000;
-        int skip = 0;
-        bool hasMoreEvents = true;
+        IReadOnlyList<FileInformationReadDto> fileInfos = await fileInformationService.GetListAsync(new FileInformationDescriptorDto(), cancellationToken).GetValueOrDefaultAsync() ?? [];
+        List<FileInformationReadDto> existing = [];
+        List<string> errors = [];
 
-        while (hasMoreEvents)
+        IReadOnlyList<AttachmentReadDto> attachments = await attachmentsService.GetListAsync(new AttachmentDescriptorDto
         {
-            EventDescriptorDto eventDescriptor = new()
-            {
-                Skip = skip,
-                DeletedTo = DateTime.Now,
-                Take = batchSize
-            };
+            Search = "http"
+        }, cancellationToken).GetValueOrDefaultAsync() ?? [];
 
-            EntityResult<IReadOnlyList<EventReadDto>> eventsResult = await eventsService.GetListAsync(eventDescriptor, cancellationToken);
-            IReadOnlyList<EventReadDto>? events = eventsResult.GetValueOrDefault();
 
-            if (events == null || events.Count == 0)
+        foreach (FileInformationReadDto? fileInfo in fileInfos)
+        {
+            try
             {
-                break;
-            }
-
-            foreach (EventReadDto eventDto in events)
-            {
-                IReadOnlyList<AttachmentReadDto> attachments = await attachmentsService.GetListAsync(new AttachmentDescriptorDto
+                if (string.IsNullOrWhiteSpace(fileInfo.Url))
                 {
-                    EventId = eventDto.Id,
-                    DeletedTo = DateTime.Now,
-                }, cancellationToken).GetValueOrDefaultAsync() ?? [];
+                    continue;
+                }
 
-                foreach (AttachmentReadDto attachment in attachments)
+                string id = FilesExtensions.ExtractId(fileInfo.Url, "VITARISH");
+                string fileName = Path.GetFileName(fileInfo.Url);
+                var attchs = attachments.Where(a => a.Content.Contains(fileName));
+                foreach (var attch in attchs)
                 {
-                    if (!attachment.Content.StartsWith("http"))
-                    {
-                        continue;
-                    }
+                    var wrt = attch.ToWrite() with { Content = fileInfo.Id.ToString() };
+                    await attachmentsService.UpdateAsync(wrt, cancellationToken);
+                }
 
-                    //string id = FilesExtensions.ExtractId(attachment.Content, "VITARISH");
-
-                    //AttachmentDto? updated = await attachmentsService.UpdateAsync(
-                    //    eventDto.Id,
-                    //    attachment.Id,
-                    //    id,
-                    //    cancellationToken);
+                bool ex = await objectStorageService.ExistsAsync(fileInfo.Checksum, cancellationToken);
+                if (ex)
+                {
+                    existing.Add(fileInfo);
+                }
+                else
+                {
+                    await objectStorageService.RenameAsync(fileName, fileInfo.Checksum, cancellationToken);
                 }
             }
-
-            // Move to next batch
-            skip += batchSize;
-            hasMoreEvents = events.Count == batchSize; // If we got fewer than batchSize, we're done
+            catch (Exception ex)
+            {
+                errors.Add($"{ex.GetType().Name} {ex.Message}");
+            }
         }
     }
 }

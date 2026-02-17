@@ -1,11 +1,9 @@
-using Vitarish.Entities.Server.Services;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Models;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Extensions;
 using Vitarish.Files.Infrastructure.Interfaces;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
-using Vitarish.Sea.Application.Abstractions;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 
@@ -35,27 +33,48 @@ public class FileMigrationProccessor(
     IOptions<FilesOptions> options,
     CancellationToken cancellationToken)
     {
-        var fileInfos = await fileInformationService.GetListAsync(new Vitarish.Files.Domain.Models.FileInformationDescriptorDto(), cancellationToken).GetValueOrDefaultAsync() ?? [];
-        foreach (var fileInfo in fileInfos)
+        IReadOnlyList<FileInformationReadDto> fileInfos = await fileInformationService.GetListAsync(new FileInformationDescriptorDto(), cancellationToken).GetValueOrDefaultAsync() ?? [];
+        List<FileInformationReadDto> existing = new();
+        List<string> errors = new();
+        foreach (FileInformationReadDto? fileInfo in fileInfos)
         {
-
-            string id = FilesExtensions.ExtractId(fileInfo.Url, "VITARISH");
-            string fileName = Path.GetFileName(fileInfo.Url);
-            fileInfo.Tag = id;
-            FileInformationWriteDto fileInformationWriteDto = new()
+            try
             {
-                Id = fileInfo.Id,
-                AllowedOrigins = fileInfo.AllowedOrigins,
-                Checksum = fileInfo.Checksum,
-                Owner = fileInfo.Owner,
-                Url = fileName,
-                Thumbnail = fileInfo.Thumbnail,
-                ContentType = fileInfo.ContentType,
-                Tag = fileInfo.Tag
-            };
+                if(string.IsNullOrWhiteSpace(fileInfo.Url))
+                {
+                    continue;
+                }
+                string id = FilesExtensions.ExtractId(fileInfo.Url, "VITARISH");
+                string fileName = Path.GetFileName(fileInfo.Url);
+                fileInfo.Tag = id;
+                FileInformationWriteDto fileInformationWriteDto = new()
+                {
+                    Id = fileInfo.Id,
+                    AllowedOrigins = fileInfo.AllowedOrigins,
+                    Checksum = fileInfo.Checksum,
+                    Owner = fileInfo.Owner,
+                    Url = fileName,
+                    Thumbnail = fileInfo.Thumbnail,
+                    ContentType = fileInfo.ContentType,
+                    Tag = fileInfo.Tag
+                };
 
-            await fileInformationService.UpdateAsync(fileInformationWriteDto, cancellationToken);
-            await objectStorageService.RenameAsync(options.Value.BuildObjectKey(fileName), fileInfo.Checksum, cancellationToken);
+                _ = await fileInformationService.UpdateAsync(fileInformationWriteDto, cancellationToken);
+                bool ex = await objectStorageService.ExistsAsync(fileInfo.Checksum, cancellationToken);
+                if (ex)
+                {
+                    existing.Add(fileInfo);
+                    //continue;
+                }
+                else
+                {
+                    await objectStorageService.RenameAsync(fileName, fileInfo.Checksum, cancellationToken);
+                }
+            }
+            catch (Exception ex)
+            {
+                errors.Add($"{ex.GetType().Name} {ex.Message}");
+            }
         }
     }
 }

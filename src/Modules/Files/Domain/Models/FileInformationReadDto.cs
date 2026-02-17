@@ -16,7 +16,7 @@ public record FileInformationReadDto : EntityReadDto
     public string AllowedOrigins { get; set; } = "*";
     public string ContentType { get; set; } = string.Empty;
     public string? Thumbnail { get; set; }
-    public string? Checksum { get; set; }
+    public string Checksum { get; set; }
     public string Url { get; set; }
     public string? Owner { get; set; }
 
