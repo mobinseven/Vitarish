@@ -1,0 +1,11 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<ItemGroup>
+		<PackageReference Include="MediatR" Version="14.0.*" />
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="../Application/Feed.Application.csproj" />
+		<ProjectReference Include="../../Base/Modules.Base.csproj" />
+	</ItemGroup>
+</Project>

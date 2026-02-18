@@ -14,6 +14,7 @@ using Vitarish.Main.Infrastructure.Handlers;
 using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Modules.Base;
+using Vitarish.Modules.Feed.Infrastructure;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Hosting.DependencyInjection;
 using Vitarish.Parties.Infrastructure.Data;
@@ -40,6 +41,9 @@ _ = builder.Services.AddScoped<ITenantService, TenantService>();
 
 await builder.RegisterEstates(configureSqlServer);
 await builder.RegisterModules(configureSqlServer);
+
+// Register Feed infrastructure
+_ = builder.Services.AddFeedInfrastructure();
 
 builder.Services.AddRazorComponents()
                 .AddInteractiveServerComponents()

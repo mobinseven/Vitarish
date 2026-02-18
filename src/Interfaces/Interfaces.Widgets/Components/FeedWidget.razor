@@ -1,0 +1,44 @@
+@using Vitarish.Modules.Feed.Application.Queries
+@using Vitarish.Modules.Feed.Domain.Models
+@using MediatR
+
+<MudPaper Elevation="2" Class="pa-4">
+    <MudStack Spacing="3">
+        <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center">
+            <MudText Typo="Typo.h6">@Title</MudText>
+            @if (ShowRefreshButton)
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.Refresh" 
+                               OnClick="RefreshAsync" 
+                               Disabled="_isLoading"
+                               Size="Size.Small" />
+            }
+        </MudStack>
+
+        @if (_isLoading && !_feedItems.Any())
+        {
+            <MudProgressLinear Indeterminate="true" />
+        }
+
+        @if (_error != null)
+        {
+            <MudAlert Severity="Severity.Error">@_error</MudAlert>
+        }
+
+        @if (!_feedItems.Any() && !_isLoading)
+        {
+            <MudText Typo="Typo.body2" Color="Color.Secondary">No feed items available</MudText>
+        }
+        else
+        {
+            <Virtualize ItemsProvider="LoadFeedItemsAsync" Context="item" ItemSize="120">
+                <ItemContent>
+                    <FeedItemComponent Item="item" OnClick="() => OnItemClick(item)" />
+                </ItemContent>
+                <Placeholder>
+                    <MudSkeleton SkeletonType="SkeletonType.Rectangle" Height="100px" Class="mb-2" />
+                </Placeholder>
+            </Virtualize>
+        }
+    </MudStack>
+</MudPaper>
