@@ -7,5 +7,5 @@ namespace Vitarish.Sea.Domain.Mappers;
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Source)]
 public partial class EntityMapper
 {
- 
+
 }

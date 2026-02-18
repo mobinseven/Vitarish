@@ -118,7 +118,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, (JsonSerializerOptions)null) ?? [])
+                    v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
 

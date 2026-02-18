@@ -1,5 +1,5 @@
+using Vitarish.Entities.Server.Models;
 using Vitarish.Parties.Domain.Entities;
-using Vitarish.Requests.Application.Models;
 using Vitarish.Users.Domain.Models;
 
 namespace Vitarish.Modules.Base;

@@ -42,23 +42,11 @@ public class Project : Entity
         _metadata = metadata;
     }
 
-    public void Rename(string name)
-    {
-        Name = name;
-    }
+    public void Rename(string name) => Name = name;
 
-    public void SetDescription(string description)
-    {
-        Description = description;
-    }
+    public void SetDescription(string description) => Description = description;
 
-    public void SetTemplate(bool template)
-    {
-        Template = template;
-    }
+    public void SetTemplate(bool template) => Template = template;
 
-    public void SetMetadata(string metadata)
-    {
-        Metadata = metadata;
-    }
+    public void SetMetadata(string metadata) => Metadata = metadata;
 }

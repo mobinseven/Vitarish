@@ -8,5 +8,4 @@ public interface IProjectsService : IEntityService<ProjectReadDto, ProjectWriteD
     Task<Guid> AddAsync(string name, string description, bool template, string metadata, CancellationToken cancellationToken);
     Task UpdateAsync(Guid id, string name, string description, bool template, string metadata, CancellationToken cancellationToken);
     Task UpdateMetadataAsync(Guid id, string metadata, CancellationToken cancellationToken);
-    Task<ProjectSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken);
 }

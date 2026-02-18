@@ -1,6 +1,6 @@
 using System.Security.Claims;
+using Vitarish.Entities.Server.Models;
 using Vitarish.Requests.Application.Abstractions;
-using Vitarish.Requests.Application.Models;
 using Vitarish.Requests.Domain.Entities;
 
 namespace Vitarish.Main.Mock.Services;

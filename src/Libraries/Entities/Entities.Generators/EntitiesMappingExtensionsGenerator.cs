@@ -131,23 +131,17 @@
 //        sb.AppendLine("    {");
 
 //        // Generate ToDto method (Entity -> ReadDto)
-//        sb.AppendLine($"        /// <summary>");
-//        sb.AppendLine($"        /// Converts a {entityName} entity to its read DTO representation.");
-//        sb.AppendLine($"        /// </summary>");
 //        sb.AppendLine($"        public partial {readDtoFull} ToDto({entityFull} src);");
 //        sb.AppendLine();
 
 //        // Generate ToDomain method (WriteDto -> Entity)
-//        sb.AppendLine($"        /// <summary>");
-//        sb.AppendLine($"        /// Converts a {entityName} write DTO to its entity representation.");
-//        sb.AppendLine($"        /// </summary>");
 //        sb.AppendLine($"        public partial {entityFull} ToDomain({writeDtoFull} src);");
 //        sb.AppendLine();
 
+//        sb.AppendLine($"        public partial {writeDtoFull} ToWrite({readDtoFull} src);");
+//        sb.AppendLine();
+
 //        // Generate ToDomain method (DescriptorDto -> Descriptor)
-//        sb.AppendLine($"        /// <summary>");
-//        sb.AppendLine($"        /// Converts a {entityName} descriptor DTO to its descriptor representation.");
-//        sb.AppendLine($"        /// </summary>");
 //        sb.AppendLine($"        public partial {descriptorFull} ToDomain({descriptorDtoFull} src);");
 
 //        sb.AppendLine("    }");
@@ -186,9 +180,6 @@
 //            string entityName = mapping.Entity.Name;
 
 //            // Generate ToDto extension method (Entity -> ReadDto) - delegates to mapper
-//            sb.AppendLine($"        /// <summary>");
-//            sb.AppendLine($"        /// Converts a {entityName} entity to its read DTO representation.");
-//            sb.AppendLine($"        /// </summary>");
 //            sb.AppendLine($"        public static {readDtoFull} ToDto(this {entityFull} entity)");
 //            sb.AppendLine($"        {{");
 //            sb.AppendLine($"            return Mapper.ToDto(entity);");
@@ -196,19 +187,19 @@
 //            sb.AppendLine();
 
 //            // Generate ToDomain extension method (WriteDto -> Entity) - delegates to mapper
-//            sb.AppendLine($"        /// <summary>");
-//            sb.AppendLine($"        /// Converts a {entityName} write DTO to its entity representation.");
-//            sb.AppendLine($"        /// </summary>");
 //            sb.AppendLine($"        public static {entityFull} ToDomain(this {writeDtoFull} dto)");
 //            sb.AppendLine($"        {{");
 //            sb.AppendLine($"            return Mapper.ToDomain(dto);");
 //            sb.AppendLine($"        }}");
 //            sb.AppendLine();
 
+//            sb.AppendLine($"        public static {writeDtoFull} ToWrite(this {readDtoFull} dto)");
+//            sb.AppendLine($"        {{");
+//            sb.AppendLine($"            return Mapper.ToWrite(dto);");
+//            sb.AppendLine($"        }}");
+//            sb.AppendLine();
+
 //            // Generate ToDomain extension method (DescriptorDto -> Descriptor) - delegates to mapper
-//            sb.AppendLine($"        /// <summary>");
-//            sb.AppendLine($"        /// Converts a {entityName} descriptor DTO to its descriptor representation.");
-//            sb.AppendLine($"        /// </summary>");
 //            sb.AppendLine($"        public static {descriptorFull} ToDomain(this {descriptorDtoFull} dto)");
 //            sb.AppendLine($"        {{");
 //            sb.AppendLine($"            return Mapper.ToDomain(dto);");

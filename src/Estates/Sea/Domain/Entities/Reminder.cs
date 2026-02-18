@@ -46,14 +46,8 @@ public class Reminder : EventItem
 
     public bool IsSent => SentAt != null;
 
-    public void MarkSent(DateTimeOffset sentAt)
-    {
-        SentAt = sentAt;
-    }
+    public void MarkSent(DateTimeOffset sentAt) => SentAt = sentAt;
 
-    public void SetKind(ReminderKind kind)
-    {
-        Kind = kind;
-    }
+    public void SetKind(ReminderKind kind) => Kind = kind;
 }
 

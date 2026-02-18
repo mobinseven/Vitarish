@@ -29,7 +29,7 @@ public class CommonBase : ComponentBase, IDisposable
 
     protected virtual async void RenderNotificationReceived(object? sender, object args)
     {
-        if (args is EntityNotificationArgs entityNotification)
+        if (args is EntityNotificationArgs entityNotification && (registeredTypes.Count > 0 || registeredIds.Count > 0))
         {
             bool typeAndTenant = registeredTypes.Any(t => t.Name.StartsWith(entityNotification.EntityName) && entityNotification.CorrelationId == RequestContext.TenantId);
             bool entityId = registeredIds.Any(id => entityNotification.Id == id);

@@ -1,5 +1,3 @@
-using Vitarish.Sea.Domain.Entities;
-
 namespace Vitarish.Sea.Interface.Components.Procedures;
 
 public partial class ProcedureEditDialog : ProceduresBase
@@ -10,13 +8,12 @@ public partial class ProcedureEditDialog : ProceduresBase
     [Parameter] public ProcedureReadDto? Procedure { get; set; }
     [Parameter] public string ProjectName { get; set; } = string.Empty;
 
-    private string name = string.Empty;
-
+    ProcedureWriteDto procedure = new();
     protected override void OnInitialized()
     {
         if (Procedure is not null)
         {
-            name = Procedure.Name;
+            procedure = Procedure.ToWrite();
         }
     }
 
@@ -31,66 +28,22 @@ public partial class ProcedureEditDialog : ProceduresBase
         ProcedureDescriptorDto descriptor = new()
         {
             ProjectId = ProjectId,
-            Search = name
+            Search = procedure.Name
         };
 
         IReadOnlyList<ProcedureReadDto> existing = await ProceduresService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
-        if (existing.Any(p => p.Id != Procedure.Id && string.Equals(p.Name, name, StringComparison.CurrentCultureIgnoreCase)))
+        if (existing.Any(p => p.Id != Procedure.Id && string.Equals(p.Name, procedure.Name, StringComparison.CurrentCultureIgnoreCase)))
         {
             _ = await DialogService.ShowMessageBox(
                 Localizer["Procedure"],
-                Localizer["ProcedureExistsError", ProjectName, name],
+                Localizer["ProcedureExistsError", ProjectName, procedure.Name],
                 yesText: Localizer["Ok"]);
             return;
         }
 
-        await ProceduresService.UpdateAsync(Procedure.Id, name, CancellationToken.None);
+        var updated = await ProceduresService.UpdateAsync(procedure, CancellationToken.None).GetValueOrDefaultAsync();
 
         MudDialog.Close(DialogResult.Ok(true));
-    }
-
-    private async Task CommitAllEventsAsync(ProcedureReadDto procedure)
-    {
-        if (!Guid.TryParse(RequestContext.UserId, out Guid userId))
-        {
-            return;
-        }
-
-        StateHasChanged();
-
-        try
-        {
-            DateTimeOffset commitTime = new(DateTime.Now, TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow));
-            int committed = await EventsService.CommitAllByProcedureAsync(
-                procedure.Id,
-                userId,
-                commitTime,
-                CancellationToken.None);
-        }
-        finally
-        {
-            StateHasChanged();
-        }
-    }
-
-    private bool IsUncommitAllDisabled(ProcedureReadDto procedure)
-    {
-        StatsReadDto? stats = procedure.Stats;
-
-        return stats is not null && stats.CommittedEvents == 0;
-    }
-
-    private async Task UncommitAllEventsAsync(ProcedureReadDto procedure)
-    {
-
-        try
-        {
-            int uncommitted = await EventsService.UncommitAllByProcedureAsync(procedure.Id, CancellationToken.None);
-        }
-        finally
-        {
-            StateHasChanged();
-        }
     }
     private void Cancel() => MudDialog.Cancel();
 }

@@ -4,7 +4,7 @@
 @if(AdminMode)
 {
     <Stack>
-        <StackField Label="@Procedure.Name" />
+        <StackField Label="@Procedure.Name" HelperText="@Procedure.Description" />
         <StackButton Label="@Localizer["EditItem", Localizer["Procedure"]]" OnClick="EditProcedure" StartIcon="fa-regular fa-edit" />
         <StackButton Label="@Localizer["DeleteItem", Localizer["Procedure"]]" Color="Color.Error" OnClick="DeleteProcedure" StartIcon="fa-regular fa-trash" />
     </Stack>
@@ -15,6 +15,7 @@
     [Parameter, EditorRequired] public required ProjectReadDto Project { get; set; }
     [Parameter, EditorRequired] public required ProcedureReadDto Procedure { get; set; }
 
+    [Parameter] public EventCallback OnUpdate { get; set; }
     [Parameter] public EventCallback OnDelete { get; set; }
 
     private async Task EditProcedure()
@@ -38,6 +39,8 @@
         {
             return;
         }
+
+        await OnUpdate.InvokeAsync();
     }
 
 

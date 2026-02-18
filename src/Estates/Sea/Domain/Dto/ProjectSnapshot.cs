@@ -1,8 +1,5 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-using System;
-using System.Collections.Generic;
-
 public sealed record ProjectSnapshot(
     Guid Id,
     string Name,

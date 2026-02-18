@@ -9,4 +9,10 @@ public abstract record EntityWriteDto
 {
     [JsonPropertyName("id")]
     public Guid Id { get; set; }
+    public Dictionary<string, object?> Metadata { get; set; } = [];
+    public Metadata MetadataValues
+    {
+        get;
+        init => field = new(Metadata);
+    }
 }

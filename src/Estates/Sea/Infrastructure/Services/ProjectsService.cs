@@ -48,40 +48,4 @@ internal class ProjectsService(
 
         _ = (await UpdateEntityAsync(project, cancellationToken)).EnsureValue("Update project metadata");
     }
-
-    public async Task<ProjectSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken)
-    {
-        ProjectReadDto? project = (await GetAsync(id, cancellationToken)).GetValueOrDefault();
-        if (project is null)
-        {
-            return null;
-        }
-
-        (string? overview, DateTimeOffset? updatedAt) = OverviewMetadataParser.Parse(project.Metadata);
-
-        ProcedureDescriptorDto descriptor = new() { ProjectId = id };
-        IReadOnlyList<ProcedureReadDto> procedures = (await proceduresService.GetListAsync(descriptor, cancellationToken))
-            .EnsureValue("Get project procedures");
-
-        List<ProcedureSnapshot> procedureSnapshots = new(procedures.Count);
-        foreach (ProcedureReadDto procedure in procedures)
-        {
-            ProcedureSnapshot? snapshot = await proceduresService.CaptureSnapshotAsync(procedure.Id, cancellationToken);
-            if (snapshot is not null)
-            {
-                procedureSnapshots.Add(snapshot);
-            }
-        }
-
-        return new ProjectSnapshot(
-            project.Id,
-            project.Name,
-            project.Description,
-            project.Template,
-            project.Metadata,
-            overview,
-            updatedAt,
-            project.Stats,
-            procedureSnapshots);
-    }
 }

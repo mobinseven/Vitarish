@@ -9,7 +9,7 @@
     <EventsGrid Project="@Project"
                 EventClicked=@(id => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}/{id}"))
                 Procedure="Procedure" />
-    <ProcedureDetails Procedure="Procedure" Project="Project" OnDelete="@(() => NavigationManager.NavigateTo($"/sea/Projects/{projectId}"))" />
+    <ProcedureDetails Procedure="Procedure" Project="Project" OnUpdate="ReloadRequired" OnDelete="@(() => NavigationManager.NavigateTo($"/sea/Projects/{projectId}"))" />
 </CascadingValue>
 
 @code {

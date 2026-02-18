@@ -4,10 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using System.Diagnostics;
 using System.Security.Claims;
-using System.Text.Json;
 using Vitarish.Requests.Application;
 using Vitarish.Requests.Application.Abstractions;
-using Vitarish.Requests.Application.Models;
 using Vitarish.Requests.Domain.Entities;
 
 namespace Vitarish.Requests.Infrastructure.Services;
@@ -123,18 +121,6 @@ public sealed class RequestContext(IHttpContextAccessor httpContextAccessor) : I
     }
 
 
-    /// <inheritdoc />
-    public Metadata? Metadata
-    {
-        get
-        {
-            EnsureInitializedFromHttpContext();
-            return field;
-        }
-        internal set;
-    }
-
-
 
     ClaimsPrincipal? IRequestContext.User => httpContextAccessor.HttpContext?.User;
     /// <inheritdoc />
@@ -161,7 +147,6 @@ public sealed class RequestContext(IHttpContextAccessor httpContextAccessor) : I
         TraceId = traceId;
         RequestId = requestId ?? Guid.NewGuid().ToString();
         AdditionalInfo = additionalInfo;
-        Metadata = metadata is not null ? JsonSerializer.Deserialize<Metadata>(metadata) : [];
     }
 
     public Request GetRequest() => new()

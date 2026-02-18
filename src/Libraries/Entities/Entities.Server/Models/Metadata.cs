@@ -1,4 +1,7 @@
-namespace Vitarish.Requests.Application.Models;
+using System.Runtime.CompilerServices;
+using System.Text.Json;
+
+namespace Vitarish.Entities.Server.Models;
 
 public class Metadata : Dictionary<string, object?>
 {

@@ -31,8 +31,5 @@ public class UserRole : Entity
         _type = type;
     }
 
-    public void SetType(RoleType type)
-    {
-        Type = type;
-    }
+    public void SetType(RoleType type) => Type = type;
 }

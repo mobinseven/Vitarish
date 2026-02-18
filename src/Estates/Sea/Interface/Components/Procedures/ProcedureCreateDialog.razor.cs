@@ -58,13 +58,13 @@ public partial class ProcedureCreateDialog : ProceduresBase
             return;
         }
 
-        Guid id = await ProceduresService.AddAsync(ProjectId, name, CancellationToken.None);
+        var added = await ProceduresService.AddAsync(new ProcedureWriteDto { ProjectId = ProjectId, Name = name }, CancellationToken.None).EnsureValueAsync();
         if (templateProcedure is not null)
         {
-            await CopyEventsAsync(templateProcedure.Id, id);
+            await CopyEventsAsync(templateProcedure.Id, added.Id);
         }
 
-        MudDialog.Close(DialogResult.Ok(id));
+        MudDialog.Close(DialogResult.Ok(added.Id));
     }
 
     private async Task CopyEventsAsync(Guid fromProcedureId, Guid toProcedureId)
