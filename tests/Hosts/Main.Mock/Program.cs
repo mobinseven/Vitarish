@@ -2,6 +2,7 @@ using Duende.IdentityServer.Services;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Vitarish.Interfaces.Accounts.Services;
+using Vitarish.Interfaces.Base.Plugins;
 using Vitarish.Main.Mock.Authentication;
 using Vitarish.Main.Mock.Components;
 using Vitarish.Main.Mock.Services;
@@ -31,6 +32,8 @@ builder.Services
 
 builder.AddAccountsInterface();
 builder.Services.AddVitarishInterfacesBase();
+builder.Services.AddScoped<IFeedPlugin, MockRecentProjectsFeedPlugin>();
+builder.Services.AddScoped<IFeedPlugin, MockRecentAttachmentsFeedPlugin>();
 builder.Services.AddScoped<AuthenticationStateProvider, PreviewAuthenticationStateProvider>();
 builder.Services.AddSingleton<Vitarish.Users.Application.Abstractions.IUserProfileService, PreviewUserProfileService>();
 builder.Services.AddScoped<IRequestContext, MockRequestContext>();

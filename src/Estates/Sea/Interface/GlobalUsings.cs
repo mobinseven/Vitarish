@@ -10,6 +10,7 @@ global using System.Text.Json.Serialization;
 global using Vitarish.Intelligence.Domain.Models;
 global using Vitarish.Intelligence.Interface.Components;
 global using Vitarish.Interfaces.Base.Common;
+global using Vitarish.Interfaces.Base.Plugins;
 global using Vitarish.Interfaces.Base.Services;
 global using Vitarish.Sea.Application.Abstractions;
 global using Vitarish.Sea.Domain.Dto;

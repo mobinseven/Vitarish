@@ -1,0 +1,28 @@
+@inherits SeaCommonBase
+@inject IAttachmentsService AttachmentsService
+
+@if(attachments.Count > 0)
+{
+    <Stack>
+        <StackField Label="@Localizer["Attachments"]" />
+        @foreach(var attachment in attachments)
+        {
+            <StackButton Label="@attachment.ContentType" Href="@attachment.Url" StartIcon="fa-regular fa-paperclip" />
+        }
+    </Stack>
+}
+
+@code {
+    [Parameter, EditorRequired] public FeedPlugin Context { get; set; } = default!;
+
+    private IReadOnlyList<AttachmentReadDto> attachments = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        AttachmentDescriptorDto descriptor = new()
+        {
+            Take = Context.Take
+        };
+        attachments = [.. await AttachmentsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? []];
+    }
+}

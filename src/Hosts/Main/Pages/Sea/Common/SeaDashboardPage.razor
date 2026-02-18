@@ -1,6 +1,7 @@
 @page "/sea"
 @inherits TenantPageBase
 @inject IAccessControlledProjectsService ProjectsService
+@using Vitarish.Interfaces.Base.Plugins
 
 <Stack>
     <StackButton Href="/sea/Projects" Label="@Localizer["Projects"]">
@@ -21,11 +22,29 @@
     </Stack>
 }
 
+<FeedWidget Configuration="@(TenantService.Metadata ?? new Dictionary<string, object?>())" />
+
 @code {
     private int projectsCount;
     protected override async Task ReloadRequired()
     {
+        EnsureFeedConfiguration();
         projectsCount = await ProjectsService.CountAsync(new ProjectDescriptorDto { }, CancellationToken.None).GetValueOrDefaultAsync();
         await InvokeAsync(StateHasChanged);
+    }
+
+    private void EnsureFeedConfiguration()
+    {
+        if (TenantService.Metadata is null)
+        {
+            return;
+        }
+
+        if (FeedPluginConfiguration.GetConfiguredSourceIds(TenantService.Metadata).Count > 0)
+        {
+            return;
+        }
+
+        TenantService.Metadata[FeedPluginConfiguration.SourceIdsMetadataKey] = new[] { "sea.projects.recent", "sea.attachments.recent" };
     }
 }

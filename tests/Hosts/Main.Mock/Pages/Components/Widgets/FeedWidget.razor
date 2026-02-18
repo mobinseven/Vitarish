@@ -1,0 +1,15 @@
+@page "/components/widgets/feed"
+@using Vitarish.Interfaces.Base.Plugins
+@using Vitarish.Interfaces.Base.Common
+
+<Stack>
+    <StackField Label="Feed widget preview" />
+    <Vitarish.Interfaces.Widgets.Components.FeedWidget Configuration="feedConfiguration" Take="3" />
+</Stack>
+
+@code {
+    private readonly Dictionary<string, object?> feedConfiguration = new()
+    {
+        [FeedPluginConfiguration.SourceIdsMetadataKey] = new[] { "sea.projects.recent", "sea.attachments.recent" }
+    };
+}

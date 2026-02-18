@@ -1,0 +1,28 @@
+@inherits SeaCommonBase
+@inject IAccessControlledProjectsService ProjectsService
+
+@if(projects.Count > 0)
+{
+    <Stack>
+        <StackField Label="@Localizer["Projects"]" />
+        @foreach(var project in projects)
+        {
+            <StackButton Label="@project.Name" Href="@project.Url" StartIcon="fa-regular fa-folder-open" />
+        }
+    </Stack>
+}
+
+@code {
+    [Parameter, EditorRequired] public FeedPlugin Context { get; set; } = default!;
+
+    private IReadOnlyList<ProjectReadDto> projects = [];
+
+    protected override async Task OnParametersSetAsync()
+    {
+        ProjectDescriptorDto descriptor = new()
+        {
+            Take = Context.Take
+        };
+        projects = [.. await ProjectsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? []];
+    }
+}

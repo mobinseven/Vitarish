@@ -1,0 +1,9 @@
+@if(ConfiguredPlugins.Count > 0)
+{
+    <Stack>
+        @foreach(var plugin in ConfiguredPlugins)
+        {
+            @plugin.Render(Context)
+        }
+    </Stack>
+}
