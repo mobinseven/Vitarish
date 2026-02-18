@@ -17,7 +17,7 @@ public record PluginContext(
     }
 }
 
-public interface Plugin<T>
+public interface IPlugin<T>
     where T : PluginContext
 {
     string Id { get; }

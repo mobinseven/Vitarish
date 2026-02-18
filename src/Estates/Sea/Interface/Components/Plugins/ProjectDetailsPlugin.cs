@@ -4,4 +4,4 @@ internal sealed record ProjectDetailsPlugin(
     ProjectReadDto Project,
     EventCallback<Guid> OnEdit = default,
     EventCallback OnDeleted = default) : PluginContext();
-internal interface IProjectDetailsPlugin : Plugin<ProjectDetailsPlugin>;
+internal interface IProjectDetailsPlugin : IPlugin<ProjectDetailsPlugin>;

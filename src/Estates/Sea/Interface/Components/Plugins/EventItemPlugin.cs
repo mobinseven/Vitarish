@@ -32,7 +32,7 @@ public enum EventItemCreationPlacement
     Main,
     Action
 }
-public interface IEventItemCreationPlugin : Plugin<EventItemCreationContext>
+public interface IEventItemCreationPlugin : IPlugin<EventItemCreationContext>
 {
     EventItemCreationPlacement Placement { get; }
 }

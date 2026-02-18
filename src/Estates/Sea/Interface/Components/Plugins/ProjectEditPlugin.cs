@@ -6,4 +6,4 @@ internal sealed record ProjectEditPlugin(
     EventCallback<Guid> OnCreate,
     EventCallback OnCancel,
     bool TemplateMode = false) : PluginContext();
-internal interface IProjectEditPlugin : Plugin<ProjectEditPlugin>;
+internal interface IProjectEditPlugin : IPlugin<ProjectEditPlugin>;
