@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Vitarish.Modules.Elasticsearch.Domain</RootNamespace>
+    <AssemblyName>Vitarish.Modules.Elasticsearch.Domain</AssemblyName>
+  </PropertyGroup>
+</Project>

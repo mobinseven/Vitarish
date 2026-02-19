@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <RootNamespace>Vitarish.Modules.Elasticsearch.Application</RootNamespace>
+    <AssemblyName>Vitarish.Modules.Elasticsearch.Application</AssemblyName>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Elasticsearch.Domain\Elasticsearch.Domain.csproj" />
+  </ItemGroup>
+</Project>
