@@ -3,14 +3,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text.Json;
+using Users.Tests.TestHelpers;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Domain.Options;
 using Vitarish.Users.Infrastructure.Service;
-using Vitarish.Users.Tests.TestHelpers;
 
-namespace Vitarish.Users.Tests.Infrastructure;
+namespace Users.Tests.Infrastructure;
 
 public class PersonalAccessTokenGeneratorTests
 {

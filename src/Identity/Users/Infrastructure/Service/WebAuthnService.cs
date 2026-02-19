@@ -15,31 +15,14 @@ namespace Vitarish.Users.Infrastructure.Service;
 /// <summary>
 /// Service for WebAuthn/Passkey authentication operations.
 /// </summary>
-public class WebAuthnService : IWebAuthnService
+public class WebAuthnService(
+    IFido2 fido2,
+    UserManager<User> userManager,
+    SignInManager<User> signInManager,
+    UsersDbContext dbContext,
+    WebAuthnOptions webAuthnOptions,
+    IDistributedCache cache) : IWebAuthnService
 {
-    private readonly IFido2 _fido2;
-    private readonly UserManager<User> _userManager;
-    private readonly SignInManager<User> _signInManager;
-    private readonly UsersDbContext _dbContext;
-    private readonly WebAuthnOptions _webAuthnOptions;
-    private readonly IDistributedCache _cache;
-
-    public WebAuthnService(
-        IFido2 fido2,
-        UserManager<User> userManager,
-        SignInManager<User> signInManager,
-        UsersDbContext dbContext,
-        WebAuthnOptions webAuthnOptions,
-        IDistributedCache cache)
-    {
-        _fido2 = fido2;
-        _userManager = userManager;
-        _signInManager = signInManager;
-        _dbContext = dbContext;
-        _webAuthnOptions = webAuthnOptions;
-        _cache = cache;
-    }
-
     public async Task<string> BeginRegistrationAsync(string userId, CancellationToken ct = default)
     {
         if (string.IsNullOrEmpty(userId))
@@ -47,20 +30,18 @@ public class WebAuthnService : IWebAuthnService
             throw new ArgumentException("User ID cannot be null or empty", nameof(userId));
         }
 
-        User? appUser = await _userManager.FindByIdAsync(userId);
+        User? appUser = await userManager.FindByIdAsync(userId);
         if (appUser == null)
         {
             throw new InvalidOperationException("User not found");
         }
 
         // Get existing credentials for this user
-        List<WebAuthnCredential> existingCredentials = await _dbContext.WebAuthnCredentials
+        List<WebAuthnCredential> existingCredentials = await dbContext.WebAuthnCredentials
             .Where(c => c.UserId == userId && c.IsActive)
             .ToListAsync(ct);
 
-        List<PublicKeyCredentialDescriptor> existingKeys = existingCredentials
-            .Select(c => new PublicKeyCredentialDescriptor(c.CredentialId))
-            .ToList();
+        List<PublicKeyCredentialDescriptor> existingKeys = [.. existingCredentials.Select(c => new PublicKeyCredentialDescriptor(c.CredentialId))];
 
         // Create FIDO2 user
         Fido2User fido2User = new()
@@ -73,23 +54,23 @@ public class WebAuthnService : IWebAuthnService
         // Create authenticator selection criteria from configuration
         AuthenticatorSelection authenticatorSelection = new()
         {
-            RequireResidentKey = ParseResidentKeyRequirement(_webAuthnOptions.RequireResidentKey),
-            UserVerification = ParseUserVerificationRequirement(_webAuthnOptions.UserVerification)
+            RequireResidentKey = ParseResidentKeyRequirement(webAuthnOptions.RequireResidentKey),
+            UserVerification = ParseUserVerificationRequirement(webAuthnOptions.UserVerification)
         };
 
-        if (!string.IsNullOrEmpty(_webAuthnOptions.AuthenticatorAttachment))
+        if (!string.IsNullOrEmpty(webAuthnOptions.AuthenticatorAttachment))
         {
-            authenticatorSelection.AuthenticatorAttachment = ParseAuthenticatorAttachment(_webAuthnOptions.AuthenticatorAttachment);
+            authenticatorSelection.AuthenticatorAttachment = ParseAuthenticatorAttachment(webAuthnOptions.AuthenticatorAttachment);
         }
 
         // Generate registration options using configuration
-        CredentialCreateOptions options = _fido2.RequestNewCredential(
+        CredentialCreateOptions options = fido2.RequestNewCredential(
             new RequestNewCredentialParams
             {
                 User = fido2User,
                 AuthenticatorSelection = authenticatorSelection,
                 ExcludeCredentials = existingKeys,
-                AttestationPreference = ParseAttestationConveyance(_webAuthnOptions.AttestationConveyance)
+                AttestationPreference = ParseAttestationConveyance(webAuthnOptions.AttestationConveyance)
             });
 
         // Store challenge in distributed cache for verification
@@ -101,7 +82,7 @@ public class WebAuthnService : IWebAuthnService
             AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2) // Align with WebAuthn timeout
         };
         
-        await _cache.SetAsync(GetAttestationCacheKey(userId), optionsBytes, cacheOptions, ct);
+        await cache.SetAsync(GetAttestationCacheKey(userId), optionsBytes, cacheOptions, ct);
 
         return optionsJson;
     }
@@ -114,7 +95,7 @@ public class WebAuthnService : IWebAuthnService
         }
 
         // Retrieve the challenge from distributed cache
-        byte[]? jsonOptionsBytes = await _cache.GetAsync(GetAttestationCacheKey(userId), ct);
+        byte[]? jsonOptionsBytes = await cache.GetAsync(GetAttestationCacheKey(userId), ct);
         if (jsonOptionsBytes == null)
         {
             throw new InvalidOperationException("Registration options not found. Please start registration again.");
@@ -132,13 +113,13 @@ public class WebAuthnService : IWebAuthnService
             ?? throw new InvalidOperationException("Failed to deserialize attestation response");
 
         // Verify the attestation response using Fido2 3.0.1 API
-        RegisteredPublicKeyCredential credential = await _fido2.MakeNewCredentialAsync(new MakeNewCredentialParams
+        RegisteredPublicKeyCredential credential = await fido2.MakeNewCredentialAsync(new MakeNewCredentialParams
         {
             AttestationResponse = attestationResponse,
             IsCredentialIdUniqueToUserCallback = async (args, cancellationToken) =>
             {
                 // Check if credential ID already exists
-                bool exists = await _dbContext.WebAuthnCredentials
+                bool exists = await dbContext.WebAuthnCredentials
                     .AnyAsync(c => c.CredentialId == args.CredentialId, cancellationToken);
                 return !exists;
             },
@@ -159,11 +140,11 @@ public class WebAuthnService : IWebAuthnService
             IsActive = true
         };
 
-        _ = _dbContext.WebAuthnCredentials.Add(storedCredential);
-        _ = await _dbContext.SaveChangesAsync(ct);
+        _ = dbContext.WebAuthnCredentials.Add(storedCredential);
+        _ = await dbContext.SaveChangesAsync(ct);
 
         // Clear the cache challenge
-        await _cache.RemoveAsync(GetAttestationCacheKey(userId), ct);
+        await cache.RemoveAsync(GetAttestationCacheKey(userId), ct);
 
         return Convert.ToBase64String(storedCredential.CredentialId);
     }
@@ -175,14 +156,14 @@ public class WebAuthnService : IWebAuthnService
             throw new ArgumentException("Username is required", nameof(username));
         }
 
-        User? user = await _userManager.FindByNameAsync(username);
+        User? user = await userManager.FindByNameAsync(username);
         if (user == null)
         {
             throw new InvalidOperationException("Invalid username or no credentials registered");
         }
 
         // Get existing credentials for this user
-        List<WebAuthnCredential> credentials = await _dbContext.WebAuthnCredentials
+        List<WebAuthnCredential> credentials = await dbContext.WebAuthnCredentials
             .Where(c => c.UserId == user.Id && c.IsActive)
             .ToListAsync(ct);
 
@@ -191,20 +172,18 @@ public class WebAuthnService : IWebAuthnService
             throw new InvalidOperationException("Invalid username or no credentials registered");
         }
 
-        List<PublicKeyCredentialDescriptor> allowedCredentials = credentials
-            .Select(c => new PublicKeyCredentialDescriptor(c.CredentialId))
-            .ToList();
+        List<PublicKeyCredentialDescriptor> allowedCredentials = [.. credentials.Select(c => new PublicKeyCredentialDescriptor(c.CredentialId))];
 
         // Generate authentication options using configuration
-        AssertionOptions options = _fido2.GetAssertionOptions(
+        AssertionOptions options = fido2.GetAssertionOptions(
             new GetAssertionOptionsParams
             {
                 AllowedCredentials = allowedCredentials,
-                UserVerification = ParseUserVerificationRequirement(_webAuthnOptions.UserVerification)
+                UserVerification = ParseUserVerificationRequirement(webAuthnOptions.UserVerification)
             }) ?? new AssertionOptions
             {
                 AllowCredentials = allowedCredentials,
-                UserVerification = ParseUserVerificationRequirement(_webAuthnOptions.UserVerification)
+                UserVerification = ParseUserVerificationRequirement(webAuthnOptions.UserVerification)
             };
 
         // Store challenge in distributed cache for verification
@@ -216,7 +195,7 @@ public class WebAuthnService : IWebAuthnService
             AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2) // Align with WebAuthn timeout
         };
         
-        await _cache.SetAsync(GetAssertionCacheKey(user.Id), optionsBytes, cacheOptions, ct);
+        await cache.SetAsync(GetAssertionCacheKey(user.Id), optionsBytes, cacheOptions, ct);
 
         return optionsJson;
     }
@@ -228,7 +207,7 @@ public class WebAuthnService : IWebAuthnService
             ?? throw new InvalidOperationException("Failed to deserialize assertion response");
 
         // Find the credential
-        WebAuthnCredential? credential = await _dbContext.WebAuthnCredentials
+        WebAuthnCredential? credential = await dbContext.WebAuthnCredentials
             .Include(c => c.User)
             .FirstOrDefaultAsync(c => c.CredentialId == assertionResponse.RawId, ct);
 
@@ -238,7 +217,7 @@ public class WebAuthnService : IWebAuthnService
         }
 
         // Retrieve the challenge from distributed cache
-        byte[]? jsonOptionsBytes = await _cache.GetAsync(GetAssertionCacheKey(credential.UserId), ct);
+        byte[]? jsonOptionsBytes = await cache.GetAsync(GetAssertionCacheKey(credential.UserId), ct);
         if (jsonOptionsBytes == null)
         {
             throw new InvalidOperationException("Authentication options not found. Please start authentication again.");
@@ -252,13 +231,13 @@ public class WebAuthnService : IWebAuthnService
         }
 
         // Verify the assertion using Fido2 3.0.1 API
-        VerifyAssertionResult result = await _fido2.MakeAssertionAsync(new MakeAssertionParams
+        VerifyAssertionResult result = await fido2.MakeAssertionAsync(new MakeAssertionParams
         {
             AssertionResponse = assertionResponse,
             IsUserHandleOwnerOfCredentialIdCallback = async (args, cancellationToken) =>
             {
                 // Verify the credential still exists
-                WebAuthnCredential? storedCred = await _dbContext.WebAuthnCredentials
+                WebAuthnCredential? storedCred = await dbContext.WebAuthnCredentials
                     .FirstOrDefaultAsync(c => c.CredentialId == args.CredentialId, cancellationToken);
                 return storedCred != null;
             },
@@ -273,7 +252,7 @@ public class WebAuthnService : IWebAuthnService
         {
             // Potential cloned authenticator detected
             credential.IsActive = false;
-            _ = await _dbContext.SaveChangesAsync(ct);
+            _ = await dbContext.SaveChangesAsync(ct);
 
             throw new InvalidOperationException("Potential cloned authenticator detected. Credential has been deactivated for security.");
         }
@@ -281,17 +260,17 @@ public class WebAuthnService : IWebAuthnService
         // Update the signature counter
         credential.SignatureCounter = result.SignCount;
         credential.LastUsedAt = DateTimeOffset.UtcNow;
-        _ = await _dbContext.SaveChangesAsync(ct);
+        _ = await dbContext.SaveChangesAsync(ct);
 
         // Sign in the user
         if (credential.User == null)
         {
             throw new InvalidOperationException("User associated with credential not found.");
         }
-        await _signInManager.SignInAsync(credential.User, isPersistent: true);
+        await signInManager.SignInAsync(credential.User, isPersistent: true);
 
         // Clear the cache challenge
-        await _cache.RemoveAsync(GetAssertionCacheKey(credential.UserId), ct);
+        await cache.RemoveAsync(GetAssertionCacheKey(credential.UserId), ct);
 
         return true;
     }
@@ -303,19 +282,19 @@ public class WebAuthnService : IWebAuthnService
             throw new ArgumentException("User ID cannot be null or empty", nameof(userId));
         }
 
-        List<WebAuthnCredential> credentials = await _dbContext.WebAuthnCredentials
+        List<WebAuthnCredential> credentials = await dbContext.WebAuthnCredentials
             .Where(c => c.UserId == userId && c.IsActive)
             .OrderByDescending(c => c.RegisteredAt)
             .ToListAsync(ct);
 
-        return credentials.Select(c => new WebAuthnCredentialDto
+        return [.. credentials.Select(c => new WebAuthnCredentialDto
         {
             Id = c.Id,
             FriendlyName = c.FriendlyName,
             RegisteredAt = c.RegisteredAt,
             LastUsedAt = c.LastUsedAt,
             Transports = c.Transports
-        }).ToList();
+        })];
     }
 
     public async Task<bool> DeleteCredentialAsync(Guid credentialId, string userId, CancellationToken ct = default)
@@ -325,7 +304,7 @@ public class WebAuthnService : IWebAuthnService
             throw new ArgumentException("User ID cannot be null or empty", nameof(userId));
         }
 
-        WebAuthnCredential? credential = await _dbContext.WebAuthnCredentials
+        WebAuthnCredential? credential = await dbContext.WebAuthnCredentials
             .FirstOrDefaultAsync(c => c.Id == credentialId && c.UserId == userId, ct);
 
         if (credential == null)
@@ -333,8 +312,8 @@ public class WebAuthnService : IWebAuthnService
             return false;
         }
 
-        _ = _dbContext.WebAuthnCredentials.Remove(credential);
-        _ = await _dbContext.SaveChangesAsync(ct);
+        _ = dbContext.WebAuthnCredentials.Remove(credential);
+        _ = await dbContext.SaveChangesAsync(ct);
 
         return true;
     }

@@ -105,7 +105,7 @@ public class UserService : IUserService
         IEnumerable<IdentityRole> roles = await _usersService.GetUserRolesAsync(userId, ct);
 
         // Materialize once (avoid re-enumeration) and cache even if empty
-        IdentityRole[] rolesArray = roles as IdentityRole[] ?? roles.ToArray();
+        IdentityRole[] rolesArray = roles as IdentityRole[] ?? [.. roles];
 
         byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(rolesArray);
         await _cache.SetAsync(cacheKey, bytes, _cacheOptions, ct);

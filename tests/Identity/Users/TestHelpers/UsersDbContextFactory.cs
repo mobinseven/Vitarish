@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Users.Infrastructure.Data;
 
-namespace Vitarish.Users.Tests.TestHelpers;
+namespace Users.Tests.TestHelpers;
 
 internal static class UsersDbContextFactory
 {

@@ -4,7 +4,7 @@ using System.Security.Cryptography;
 using System.Threading.Channels;
 using Vitarish.Files.Infrastructure.Services;
 
-namespace Vitarish.Files.Tests;
+namespace Files.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="FilesService"/> class.

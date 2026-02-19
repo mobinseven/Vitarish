@@ -1,4 +1,4 @@
-namespace Vitarish.Parties.Tests;
+namespace Parties.Tests;
 
 using Vitarish.Parties.Domain.Events;
 using Vitarish.Parties.Domain.Enums;

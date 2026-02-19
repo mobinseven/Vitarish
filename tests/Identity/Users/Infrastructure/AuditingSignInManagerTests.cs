@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using System.Net;
 using System.Security.Claims;
+using Users.Tests.TestHelpers;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Service;
-using Vitarish.Users.Tests.TestHelpers;
 
-namespace Vitarish.Users.Tests.Infrastructure;
+namespace Users.Tests.Infrastructure;
 
 public class AuditingSignInManagerTests
 {

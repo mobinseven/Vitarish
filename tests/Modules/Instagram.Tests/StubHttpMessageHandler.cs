@@ -1,23 +1,15 @@
-namespace Vitarish.Instagram.Scraper.Tests;
+namespace Instagram.Scraper.Tests;
 
-internal sealed class StubHttpMessageHandler : HttpMessageHandler
+internal sealed class StubHttpMessageHandler(params HttpResponseMessage[] responses) : HttpMessageHandler
 {
-    private readonly Queue<HttpResponseMessage> _responses;
-
-    public StubHttpMessageHandler(params HttpResponseMessage[] responses)
-    {
-        _responses = new Queue<HttpResponseMessage>(responses);
-    }
+    private readonly Queue<HttpResponseMessage> _responses = new Queue<HttpResponseMessage>(responses);
 
     public IList<HttpRequestMessage> Requests { get; } = new List<HttpRequestMessage>();
 
-    public HttpClient CreateClient()
+    public HttpClient CreateClient() => new HttpClient(this)
     {
-        return new HttpClient(this)
-        {
-            BaseAddress = new Uri("https://api.apify.com"),
-        };
-    }
+        BaseAddress = new Uri("https://api.apify.com"),
+    };
 
     protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
     {
@@ -30,7 +22,7 @@ internal sealed class StubHttpMessageHandler : HttpMessageHandler
             });
         }
 
-        var response = _responses.Dequeue();
+        HttpResponseMessage response = _responses.Dequeue();
         response.RequestMessage = request;
         return Task.FromResult(response);
     }

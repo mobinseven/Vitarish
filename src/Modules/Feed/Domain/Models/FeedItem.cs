@@ -1,4 +1,4 @@
-namespace Vitarish.Modules.Feed.Domain.Models;
+namespace Vitarish.Feed.Domain.Models;
 
 /// <summary>
 /// Represents a single item in a feed, providing a unified structure for displaying

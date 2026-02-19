@@ -56,10 +56,9 @@ public static class EventChainUtilities
             return null;
         }
 
-        HashSet<Guid> referenced = events
+        HashSet<Guid> referenced = [.. events
             .Where(e => e.PreviousEventId.HasValue)
-            .Select(e => e.PreviousEventId!.Value)
-            .ToHashSet();
+            .Select(e => e.PreviousEventId!.Value)];
 
         return events.FirstOrDefault(e => !referenced.Contains(e.Id));
     }

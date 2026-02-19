@@ -1,4 +1,4 @@
-namespace Vitarish.Communications.Tests.Application;
+namespace Communications.Tests.Application;
 
 /// <summary>
 /// Fake implementation of <see cref="IMessagesService"/> for testing purposes.
@@ -65,10 +65,7 @@ internal sealed class FakeMessagesService : IMessagesService
             null));
     }
 
-    public Task SendSmsReminder(string recipient, string? project = null, string? procedure = null, string? evnt = null, string? tenant = null, CancellationToken cancellationToken = default)
-    {
-        return Task.CompletedTask;
-    }
+    public Task SendSmsReminder(string recipient, string? project = null, string? procedure = null, string? evnt = null, string? tenant = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
 }
 
 /// <summary>
@@ -128,8 +125,5 @@ internal sealed class FakeSmsProvider : ISmsProvider
             null));
     }
 
-    public Task SendReminder(string recipient, string? project = null, string? procedure = null, string? evnt = null, string? tenant = null, CancellationToken cancellationToken = default)
-    {
-        return Task.CompletedTask;
-    }
+    public Task SendReminder(string recipient, string? project = null, string? procedure = null, string? evnt = null, string? tenant = null, CancellationToken cancellationToken = default) => Task.CompletedTask;
 }

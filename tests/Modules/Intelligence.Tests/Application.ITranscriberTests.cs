@@ -1,7 +1,7 @@
 using System.Threading.Channels;
 using Vitarish.Intelligence.Application.Abstractions;
 
-namespace Vitarish.Intelligence.Tests;
+namespace Intelligence.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="ITranscriber"/> interface contract.
@@ -14,7 +14,7 @@ public sealed class ITranscriberInterfaceTests
     {
         // Arrange
         var mockTranscriber = new Mock<ITranscriber>();
-        using var audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
+        using MemoryStream audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
         var expectedText = "Hello, this is a test transcription.";
 
         mockTranscriber
@@ -33,7 +33,7 @@ public sealed class ITranscriberInterfaceTests
     {
         // Arrange
         var mockTranscriber = new Mock<ITranscriber>();
-        using var audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
+        using MemoryStream audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
 
         mockTranscriber
             .Setup(t => t.TranscribeAsync(It.IsAny<Stream>(), It.IsAny<string>(), null, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
@@ -52,7 +52,7 @@ public sealed class ITranscriberInterfaceTests
     {
         // Arrange
         var mockTranscriber = new Mock<ITranscriber>();
-        using var audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
+        using MemoryStream audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
 
         mockTranscriber
             .Setup(t => t.TranscribeAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string?>(), null, It.IsAny<CancellationToken>()))
@@ -71,7 +71,7 @@ public sealed class ITranscriberInterfaceTests
     {
         // Arrange
         var mockTranscriber = new Mock<ITranscriber>();
-        using var audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
+        using MemoryStream audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
 
         mockTranscriber
             .Setup(t => t.TranscribeAsync(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
@@ -89,7 +89,7 @@ public sealed class ITranscriberInterfaceTests
     {
         // Arrange
         var mockTranscriber = new Mock<ITranscriber>();
-        using var audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
+        using MemoryStream audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
@@ -98,7 +98,7 @@ public sealed class ITranscriberInterfaceTests
             .ThrowsAsync(new OperationCanceledException());
 
         // Act
-        var act = () => mockTranscriber.Object.TranscribeAsync(audioStream, "audio/wav", "en-US", "whisper", cts.Token);
+        Func<Task<string?>> act = () => mockTranscriber.Object.TranscribeAsync(audioStream, "audio/wav", "en-US", "whisper", cts.Token);
 
         // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();
@@ -113,7 +113,7 @@ public sealed class ITranscriberInterfaceTests
     {
         // Arrange
         var mockTranscriber = new Mock<ITranscriber>();
-        using var audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
+        using MemoryStream audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
 
         mockTranscriber
             .Setup(t => t.TranscribeAsync(It.IsAny<Stream>(), mimeType, It.IsAny<string?>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
@@ -136,7 +136,7 @@ public sealed class ITranscriberInterfaceTests
     {
         // Arrange
         var mockTranscriber = new Mock<ITranscriber>();
-        using var audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
+        using MemoryStream audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
 
         mockTranscriber
             .Setup(t => t.TranscribeAsync(It.IsAny<Stream>(), It.IsAny<string>(), language, It.IsAny<string?>(), It.IsAny<CancellationToken>()))
@@ -199,7 +199,7 @@ public sealed class ITranscriberInterfaceTests
             .Returns(AsyncEnumerableTestExtensions.ThrowOnEnumerateAsync<string>(new OperationCanceledException()));
 
         // Act
-        var act = async () =>
+        Func<Task> act = async () =>
         {
             await foreach (var _ in mockTranscriber.Object.StreamTranscribeAsync(channel.Reader, "audio/wav", "en-US", "whisper", cts.Token))
             {

@@ -1,4 +1,4 @@
-namespace Vitarish.Intelligence.Tests;
+namespace Intelligence.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="ResponderOutput"/> record.
@@ -194,7 +194,7 @@ public sealed class ResponderOutputTests
         var original = ResponderOutput.TextOutput("Original");
 
         // Act
-        var copy = original with { Text = "Modified" };
+        ResponderOutput copy = original with { Text = "Modified" };
 
         // Assert
         copy.Text.Should().Be("Modified");
@@ -272,11 +272,9 @@ public sealed class ResponderOutputTypeTests
     [InlineData(ResponderOutputType.Message, 4)]
     [InlineData(ResponderOutputType.Reasoning, 5)]
     [InlineData(ResponderOutputType.Completion, 6)]
-    public void ResponderOutputType_HasCorrectIntValues(ResponderOutputType type, int expectedValue)
-    {
+    public void ResponderOutputType_HasCorrectIntValues(ResponderOutputType type, int expectedValue) =>
         // Assert
         ((int)type).Should().Be(expectedValue);
-    }
 }
 
 /// <summary>

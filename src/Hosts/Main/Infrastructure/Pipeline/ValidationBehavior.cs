@@ -12,7 +12,7 @@ public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TReq
         {
             ValidationContext<TRequest> context = new(request);
             FluentValidation.Results.ValidationResult[] results = await Task.WhenAll(validators.Select(v => v.ValidateAsync(context, cancellationToken)));
-            List<FluentValidation.Results.ValidationFailure> failures = results.SelectMany(r => r.Errors).Where(f => f != null).ToList();
+            List<FluentValidation.Results.ValidationFailure> failures = [.. results.SelectMany(r => r.Errors).Where(f => f != null)];
             if (failures.Count != 0)
             {
                 logger.LogWarning("Validation failures for {Request}", typeof(TRequest).Name);

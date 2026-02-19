@@ -1,6 +1,6 @@
-using Vitarish.Modules.Feed.Domain.Models;
+using Vitarish.Feed.Domain.Models;
 
-namespace Vitarish.Modules.Feed.Domain.Abstractions;
+namespace Vitarish.Feed.Domain.Abstractions;
 
 /// <summary>
 /// Interface that estates/modules must implement to provide feed items.

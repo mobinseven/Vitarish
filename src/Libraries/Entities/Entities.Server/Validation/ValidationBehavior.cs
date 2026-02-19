@@ -16,29 +16,20 @@ namespace Vitarish.Entities.Server.Validation;
 /// If your custom validator requires shared state, implement proper locking or use sequential validation.
 /// </para>
 /// </remarks>
-public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TRequest, TResponse>
+/// <remarks>
+/// Creates a new ValidationBehavior.
+/// </remarks>
+/// <param name="validators">The validators to use.</param>
+/// <param name="parallelExecution">Whether to execute validators in parallel. Default is false (sequential).</param>
+public class ValidationBehavior<TRequest, TResponse>(IEnumerable<IValidator<TRequest>> validators, bool parallelExecution = false) : IPipelineBehavior<TRequest, TResponse>
     where TRequest : notnull
 {
-    private readonly IEnumerable<IValidator<TRequest>> _validators;
-    private readonly bool _parallelExecution;
-
-    /// <summary>
-    /// Creates a new ValidationBehavior.
-    /// </summary>
-    /// <param name="validators">The validators to use.</param>
-    /// <param name="parallelExecution">Whether to execute validators in parallel. Default is false (sequential).</param>
-    public ValidationBehavior(IEnumerable<IValidator<TRequest>> validators, bool parallelExecution = false)
-    {
-        _validators = validators;
-        _parallelExecution = parallelExecution;
-    }
-
     public async Task<TResponse> Handle(
         TRequest request,
         RequestHandlerDelegate<TResponse> next,
         CancellationToken cancellationToken)
     {
-        if (!_validators.Any())
+        if (!validators.Any())
         {
             return await next();
         }
@@ -46,7 +37,7 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
         ValidationContext<TRequest> context = new(request);
 
         ValidationResult[] validationResults;
-        if (_parallelExecution)
+        if (parallelExecution)
         {
             try
             {
@@ -54,7 +45,7 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
                 // Note: FluentValidation validators are thread-safe for concurrent execution
                 // Custom validators should also be stateless and thread-safe
                 validationResults = await Task.WhenAll(
-                    _validators.Select(v => v.ValidateAsync(context, cancellationToken)));
+                    validators.Select(v => v.ValidateAsync(context, cancellationToken)));
             }
             catch (Exception ex)
             {
@@ -69,17 +60,16 @@ public class ValidationBehavior<TRequest, TResponse> : IPipelineBehavior<TReques
         else
         {
             List<ValidationResult> results = [];
-            foreach (IValidator<TRequest> v in _validators)
+            foreach (IValidator<TRequest> v in validators)
             {
                 results.Add(await v.ValidateAsync(context, cancellationToken));
             }
-            validationResults = results.ToArray();
+            validationResults = [.. results];
         }
 
-        List<ValidationFailure> failures = validationResults
+        List<ValidationFailure> failures = [.. validationResults
             .SelectMany(r => r.Errors)
-            .Where(f => f != null)
-            .ToList();
+            .Where(f => f != null)];
 
         return failures.Count != 0
             ? throw new EntityFailureException(

@@ -1,6 +1,9 @@
+using Vitarish.Feed.Domain.Abstractions;
+using Vitarish.Feed.Domain.Models;
+using Vitarish.Feed.Infrastructure.Services;
 using Vitarish.Modules.Base;
 
-namespace Vitarish.Modules.Feed.Tests;
+namespace Feed.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="FeedService"/>.
@@ -20,11 +23,11 @@ public sealed class FeedServiceTests
         source2.Setup(s => s.SourceId).Returns("source2");
         source2.Setup(s => s.Priority).Returns(20);
 
-        var sources = new[] { source1.Object, source2.Object };
+        object[] sources = new[] { source1.Object, source2.Object };
         var feedService = new FeedService(sources, mockTenantService.Object);
 
         // Act
-        var result = feedService.GetAvailableSources();
+        IReadOnlyList<IFeedDataSource> result = feedService.GetAvailableSources();
 
         // Assert
         result.Should().HaveCount(2);
@@ -45,11 +48,11 @@ public sealed class FeedServiceTests
         source2.Setup(s => s.SourceId).Returns("source2");
         source2.Setup(s => s.Priority).Returns(10);
 
-        var sources = new[] { source1.Object, source2.Object };
+        object[] sources = new[] { source1.Object, source2.Object };
         var feedService = new FeedService(sources, mockTenantService.Object);
 
         // Act
-        var result = feedService.GetAvailableSources();
+        IReadOnlyList<IFeedDataSource> result = feedService.GetAvailableSources();
 
         // Assert
         result.Should().HaveCount(2);
@@ -97,13 +100,13 @@ public sealed class FeedServiceTests
         source2.Setup(s => s.GetFeedItemsAsync(It.IsAny<FeedQueryOptions>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<FeedItem> { item2 });
 
-        var sources = new[] { source1.Object, source2.Object };
+        object[] sources = new[] { source1.Object, source2.Object };
         var feedService = new FeedService(sources, mockTenantService.Object);
 
         var options = new FeedQueryOptions { Limit = 10 };
 
         // Act
-        var result = await feedService.GetFeedAsync(options);
+        IReadOnlyList<FeedItem> result = await feedService.GetFeedAsync(options);
 
         // Assert
         result.Should().HaveCount(2);
@@ -144,13 +147,13 @@ public sealed class FeedServiceTests
         source.Setup(s => s.GetFeedItemsAsync(It.IsAny<FeedQueryOptions>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<FeedItem> { olderItem, newerItem });
 
-        var sources = new[] { source.Object };
+        object[] sources = new[] { source.Object };
         var feedService = new FeedService(sources, mockTenantService.Object);
 
         var options = new FeedQueryOptions { Limit = 10 };
 
         // Act
-        var result = await feedService.GetFeedAsync(options);
+        IReadOnlyList<FeedItem> result = await feedService.GetFeedAsync(options);
 
         // Assert
         result.Should().HaveCount(2);
@@ -183,13 +186,13 @@ public sealed class FeedServiceTests
         source.Setup(s => s.GetFeedItemsAsync(It.IsAny<FeedQueryOptions>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(items);
 
-        var sources = new[] { source.Object };
+        object[] sources = new[] { source.Object };
         var feedService = new FeedService(sources, mockTenantService.Object);
 
         var options = new FeedQueryOptions { Limit = 5 };
 
         // Act
-        var result = await feedService.GetFeedAsync(options);
+        IReadOnlyList<FeedItem> result = await feedService.GetFeedAsync(options);
 
         // Assert
         result.Should().HaveCount(5);
@@ -205,7 +208,7 @@ public sealed class FeedServiceTests
         var feedService = new FeedService([], mockTenantService.Object);
 
         // Act
-        var result = feedService.GetConfiguration();
+        FeedConfiguration result = feedService.GetConfiguration();
 
         // Assert
         result.Should().NotBeNull();
@@ -221,7 +224,7 @@ public sealed class FeedServiceTests
         var mockMetadata = new Vitarish.Entities.Server.Models.Metadata();
         var config = new FeedConfiguration
         {
-            EnabledSourceIds = new[] { "source1" }.ToList()
+            EnabledSourceIds = ["source1"]
         };
         mockMetadata["feed.configuration"] = System.Text.Json.JsonSerializer.Serialize(config);
 
@@ -240,7 +243,7 @@ public sealed class FeedServiceTests
         source2.Setup(s => s.Priority).Returns(20);
         source2.Setup(s => s.EnabledByDefault).Returns(true);
 
-        var sources = new[] { source1.Object, source2.Object };
+        object[] sources = new[] { source1.Object, source2.Object };
         var feedService = new FeedService(sources, mockTenantService.Object);
 
         var options = new FeedQueryOptions { Limit = 10 };

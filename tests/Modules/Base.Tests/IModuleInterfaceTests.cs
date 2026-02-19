@@ -1,4 +1,7 @@
-namespace Vitarish.Modules.Base.Tests;
+using System.Reflection;
+using Vitarish.Modules.Base;
+
+namespace Modules.Base.Tests;
 
 public class IModuleInterfaceTests
 {
@@ -6,7 +9,7 @@ public class IModuleInterfaceTests
     public void IModule_HasNameProperty()
     {
         // Arrange & Act
-        var property = typeof(IModule).GetProperty("Name");
+        PropertyInfo? property = typeof(IModule).GetProperty("Name");
 
         // Assert
         property.Should().NotBeNull();
@@ -18,7 +21,7 @@ public class IModuleInterfaceTests
     public void IModule_HasRegisterMethod()
     {
         // Arrange & Act
-        var method = typeof(IModule).GetMethod("Register");
+        MethodInfo? method = typeof(IModule).GetMethod("Register");
 
         // Assert
         method.Should().NotBeNull();
@@ -32,7 +35,7 @@ public class IModuleInterfaceTests
     public void IModule_HasMapEndpointsMethod()
     {
         // Arrange & Act
-        var method = typeof(IModule).GetMethod("Initialize");
+        MethodInfo? method = typeof(IModule).GetMethod("Initialize");
 
         // Assert
         method.Should().NotBeNull();

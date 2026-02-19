@@ -165,10 +165,7 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
         string descriptorAttributeName,
         INamedTypeSymbol? entityBase,
         INamedTypeSymbol? descriptorBase,
-        Dictionary<INamedTypeSymbol, INamedTypeSymbol> descriptors)
-    {
-        FindDescriptorsInNamespace(assembly.GlobalNamespace, descriptorAttributeName, entityBase, descriptorBase, descriptors);
-    }
+        Dictionary<INamedTypeSymbol, INamedTypeSymbol> descriptors) => FindDescriptorsInNamespace(assembly.GlobalNamespace, descriptorAttributeName, entityBase, descriptorBase, descriptors);
 
     private static void FindDescriptorsInNamespace(
         INamespaceSymbol namespaceSymbol,

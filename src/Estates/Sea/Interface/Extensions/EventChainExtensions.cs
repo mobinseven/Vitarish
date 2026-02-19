@@ -8,7 +8,7 @@ public static class EventChainExtensions
         EventReadDto? first = events.FirstOrDefault(e => e.PreviousEventId is null || !map.ContainsKey(e.PreviousEventId.Value));
         if (first is null)
         {
-            return events.ToList();
+            return [.. events];
         }
 
         List<EventReadDto> ordered = [first];
@@ -39,9 +39,7 @@ public static class EventChainExtensions
 
     public static EventReadDto? GetLastByChain(this IEnumerable<EventReadDto> events)
     {
-        HashSet<Guid> referenced = events.Where(e => e.PreviousEventId.HasValue)
-            .Select(e => e.PreviousEventId!.Value)
-            .ToHashSet();
+        HashSet<Guid> referenced = [.. events.Where(e => e.PreviousEventId.HasValue).Select(e => e.PreviousEventId!.Value)];
         return events.FirstOrDefault(e => !referenced.Contains(e.Id));
     }
 

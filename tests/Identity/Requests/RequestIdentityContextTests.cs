@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Infrastructure.Services;
 
-namespace Vitarish.Requests.Tests;
+namespace Requests.Tests;
 
 public class RequestIdentityContextTests
 {

@@ -1,4 +1,4 @@
-namespace Vitarish.Files.Infrastructure.Interfaces;
+namespace Vitarish.Files.Application.Abstractions;
 
 public interface IObjectStorageService
 {

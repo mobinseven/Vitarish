@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Infrastructure.Services.Dispatching;
 
-namespace Vitarish.Intelligence.Tests;
+namespace Intelligence.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="ProviderDispatchingTranscriber"/> class.
@@ -16,7 +16,7 @@ public sealed class ProviderDispatchingTranscriberTests
     public void Constructor_InitializesCorrectly()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
         var modelRegistry = new ModelRegistry(aiOptions);
 
         // Act
@@ -31,13 +31,13 @@ public sealed class ProviderDispatchingTranscriberTests
     public async Task TranscribeAsync_WithInvalidModel_ThrowsInvalidOperationException()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
         var modelRegistry = new ModelRegistry(aiOptions);
         var transcriber = new ProviderDispatchingTranscriber(aiOptions, modelRegistry);
-        using var audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
+        using MemoryStream audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
 
         // Act
-        var act = () => transcriber.TranscribeAsync(audioStream, "audio/wav", null, "unknown-model", CancellationToken.None);
+        Func<Task<string?>> act = () => transcriber.TranscribeAsync(audioStream, "audio/wav", null, "unknown-model", CancellationToken.None);
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
@@ -51,7 +51,7 @@ public sealed class ProviderDispatchingTranscriberTests
     public void Constructor_WithOpenAiTranscriptionModels_InitializesCorrectly(string model)
     {
         // Arrange
-        var aiOptions = Options.Create(new AiOptions
+        IOptionsMonitor<AiOptions> aiOptions = Options.Create(new AiOptions
         {
             DefaultTranscriptionModel = model,
             OpenAi = new OpenAiOptions { ApiKey = "test-api-key" }
@@ -73,7 +73,7 @@ public sealed class ProviderDispatchingTranscriberTests
     public void Constructor_WithGoogleTranscriptionModels_InitializesCorrectly(string model)
     {
         // Arrange
-        var aiOptions = Options.Create(new AiOptions
+        IOptionsMonitor<AiOptions> aiOptions = Options.Create(new AiOptions
         {
             DefaultTranscriptionModel = model,
             Google = new GoogleOptions
@@ -103,7 +103,7 @@ public sealed class ProviderDispatchingTranscriberTests
     public void Constructor_WithOllamaTranscriptionModels_InitializesCorrectly(string model)
     {
         // Arrange
-        var aiOptions = Options.Create(new AiOptions
+        IOptionsMonitor<AiOptions> aiOptions = Options.Create(new AiOptions
         {
             DefaultTranscriptionModel = model,
             Ollama = new OllamaOptions { BaseUrl = "http://localhost:11434" }
@@ -121,13 +121,13 @@ public sealed class ProviderDispatchingTranscriberTests
     public async Task StreamTranscribeAsync_ReturnsAsyncEnumerable()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
         var modelRegistry = new ModelRegistry(aiOptions);
         var transcriber = new ProviderDispatchingTranscriber(aiOptions, modelRegistry);
         var channel = System.Threading.Channels.Channel.CreateBounded<byte[]>(10);
 
         // Act
-        var stream = transcriber.StreamTranscribeAsync(
+        IAsyncEnumerable<string> stream = transcriber.StreamTranscribeAsync(
             channel.Reader,
             "audio/wav",
             "en-US",

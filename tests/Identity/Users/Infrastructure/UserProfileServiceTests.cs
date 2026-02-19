@@ -3,7 +3,7 @@ using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Infrastructure.Service;
 
-namespace Vitarish.Users.Tests.Infrastructure;
+namespace Users.Tests.Infrastructure;
 
 public class UserProfileServiceTests
 {

@@ -1,6 +1,6 @@
 using System.Text.Json;
 
-namespace Vitarish.Files.Tests;
+namespace Files.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="FileInformationReadDto"/> record.
@@ -55,7 +55,7 @@ public sealed class FileInformationDtoTests
         var dto = new FileInformationReadDto();
 
         // Act
-        var metadata = dto.Metadata;
+        FileMetadata metadata = dto.Metadata;
 
         // Assert
         metadata.Should().NotBeNull();
@@ -135,7 +135,7 @@ public sealed class FileInformationDtoTests
 
         // Act
         dto.MetadataJson = metadataJson;
-        var metadata = dto.Metadata;
+        FileMetadata metadata = dto.Metadata;
 
         // Assert
         metadata.Size.Should().Be(4096);
@@ -151,7 +151,7 @@ public sealed class FileInformationDtoTests
 
         // Act
         dto.MetadataJson = metadataJson;
-        var metadata = dto.Metadata;
+        FileMetadata metadata = dto.Metadata;
 
         // Assert
         metadata.Size.Should().Be(1024);
@@ -170,7 +170,7 @@ public sealed class FileInformationDtoTests
 
         // Act
         dto.MetadataJson = invalidJson;
-        var metadata = dto.Metadata;
+        FileMetadata metadata = dto.Metadata;
 
         // Assert
         metadata.Should().NotBeNull();
@@ -186,7 +186,7 @@ public sealed class FileInformationDtoTests
 
         // Act
         dto.MetadataJson = "";
-        var metadata = dto.Metadata;
+        FileMetadata metadata = dto.Metadata;
 
         // Assert
         metadata.Should().NotBeNull();
@@ -201,7 +201,7 @@ public sealed class FileInformationDtoTests
 
         // Act
         dto.MetadataJson = "   ";
-        var metadata = dto.Metadata;
+        FileMetadata metadata = dto.Metadata;
 
         // Assert
         metadata.Should().NotBeNull();
@@ -255,7 +255,7 @@ public sealed class FileInformationDtoTests
 
         // Act
         dto.MetadataJson = """{"size":512,"extension":"jpg"}""";
-        var metadata = dto.Metadata;
+        FileMetadata metadata = dto.Metadata;
 
         // Assert
         metadata.Size.Should().Be(512);
@@ -332,7 +332,7 @@ public sealed class FileInformationDtoTests
         """;
 
         // Act
-        var dto = JsonSerializer.Deserialize<FileInformationReadDto>(json, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        FileInformationReadDto? dto = JsonSerializer.Deserialize<FileInformationReadDto>(json, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
         // Assert
         dto.Should().NotBeNull();
@@ -358,7 +358,7 @@ public sealed class FileInformationDtoTests
         """;
 
         // Act
-        var dto = JsonSerializer.Deserialize<FileInformationReadDto>(json, new JsonSerializerOptions(JsonSerializerDefaults.Web));
+        FileInformationReadDto? dto = JsonSerializer.Deserialize<FileInformationReadDto>(json, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
         // Assert
         dto.Should().NotBeNull();

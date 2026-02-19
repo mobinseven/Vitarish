@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging.Abstractions;
 
-namespace Vitarish.Instagram.Scraper.Tests;
+namespace Instagram.Scraper.Tests;
 
 public sealed class InstagramScraperServiceTests
 {
@@ -79,7 +79,7 @@ public sealed class InstagramScraperServiceTests
     {
         Mock<IInstagramScraperApiClient> client = new();
         using var ms = new MemoryStream(Encoding.UTF8.GetBytes("{\"ok\":true}"));
-        var raw = await KeyValueStoreOutput.FromStreamAsync(ms, CancellationToken.None);
+        KeyValueStoreOutput raw = await KeyValueStoreOutput.FromStreamAsync(ms, CancellationToken.None);
 
         client.Setup(c => c.RunScraperSyncAsync(It.IsAny<InputSchema>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(raw);

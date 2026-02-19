@@ -1,12 +1,12 @@
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
+using Users.Tests.TestHelpers;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Extensions;
 using Vitarish.Users.Infrastructure.Handlers;
-using Vitarish.Users.Tests.TestHelpers;
 
-namespace Vitarish.Users.Tests.Infrastructure;
+namespace Users.Tests.Infrastructure;
 
 public class GetUserByNameQueryHandlerTests
 {

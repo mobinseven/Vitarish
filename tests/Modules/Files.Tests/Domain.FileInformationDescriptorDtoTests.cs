@@ -1,4 +1,4 @@
-namespace Vitarish.Files.Tests;
+namespace Files.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="FileInformationDescriptorDto"/> record.
@@ -113,7 +113,7 @@ public sealed class FileInformationDescriptorDtoTests
         };
 
         // Act
-        var copy = original with { Owner = "tenant-2" };
+        FileInformationDescriptorDto copy = original with { Owner = "tenant-2" };
 
         // Assert
         copy.Checksum.Should().Be("abc123");

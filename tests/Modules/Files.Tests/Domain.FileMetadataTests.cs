@@ -1,4 +1,4 @@
-namespace Vitarish.Files.Tests;
+namespace Files.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="FileMetadata"/> record.
@@ -182,7 +182,7 @@ public sealed class FileMetadataTests
         };
 
         // Act
-        var copy = original with { Size = 2048 };
+        FileMetadata copy = original with { Size = 2048 };
 
         // Assert
         copy.Size.Should().Be(2048);

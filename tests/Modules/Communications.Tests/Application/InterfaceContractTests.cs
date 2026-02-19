@@ -1,4 +1,4 @@
-namespace Vitarish.Communications.Tests.Application;
+namespace Communications.Tests.Application;
 
 /// <summary>
 /// Unit tests for abstraction interfaces to ensure they are correctly defined.

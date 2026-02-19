@@ -16,14 +16,14 @@ internal class EventRolesService(IMediator mediator)
     {
         IReadOnlyList<EventRoleReadDto> roles = (await GetListAsync(new EventRoleDescriptorDto { EventId = eventId }, cancellationToken))
             .EnsureValue("Get event roles");
-        List<Guid> read = roles.Where(r => r.Type == RoleType.Read).Select(r => r.RoleId).ToList();
-        List<Guid> write = roles.Where(r => r.Type == RoleType.Write).Select(r => r.RoleId).ToList();
+        List<Guid> read = [.. roles.Where(r => r.Type == RoleType.Read).Select(r => r.RoleId)];
+        List<Guid> write = [.. roles.Where(r => r.Type == RoleType.Write).Select(r => r.RoleId)];
         return (read, write);
     }
 
     public async Task<IReadOnlyDictionary<Guid, (IReadOnlyList<Guid> ReadRoleIds, IReadOnlyList<Guid> WriteRoleIds)>> GetIdsForEventsAsync(IEnumerable<Guid> eventIds, CancellationToken cancellationToken)
     {
-        Guid[] ids = eventIds.Distinct().ToArray();
+        Guid[] ids = [.. eventIds.Distinct()];
         if (ids.Length == 0)
         {
             return new Dictionary<Guid, (IReadOnlyList<Guid>, IReadOnlyList<Guid>)>();
@@ -38,8 +38,8 @@ internal class EventRolesService(IMediator mediator)
             .ToDictionary(
                 group => group.Key,
                 group => (
-                    (IReadOnlyList<Guid>)group.Where(role => role.Type == RoleType.Read).Select(role => role.RoleId).ToList(),
-                    (IReadOnlyList<Guid>)group.Where(role => role.Type == RoleType.Write).Select(role => role.RoleId).ToList()));
+                    (IReadOnlyList<Guid>)[.. group.Where(role => role.Type == RoleType.Read).Select(role => role.RoleId)],
+                    (IReadOnlyList<Guid>)[.. group.Where(role => role.Type == RoleType.Write).Select(role => role.RoleId)]));
 
         foreach (Guid id in ids)
         {

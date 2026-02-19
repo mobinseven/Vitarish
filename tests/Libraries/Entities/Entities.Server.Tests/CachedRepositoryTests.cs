@@ -188,9 +188,7 @@ public class CachedRepositoryTests : IDisposable
         _ = await _mediator.Send(new AddEntityCommand<TestEntity, TestDescriptor>(entity));
 
         // Act - Perform 50 concurrent reads
-        List<Task<TestEntity?>> tasks = Enumerable.Range(0, 50)
-            .Select(_ => _mediator.Send(new GetEntityByIdQuery<TestEntity, TestDescriptor>(entity.Id)))
-            .ToList();
+        List<Task<TestEntity?>> tasks = [.. Enumerable.Range(0, 50).Select(_ => _mediator.Send(new GetEntityByIdQuery<TestEntity, TestDescriptor>(entity.Id)))];
 
         TestEntity?[] results = await Task.WhenAll(tasks);
 
@@ -234,9 +232,7 @@ public class CachedRepositoryTests : IDisposable
     public async Task BulkOperations_WorkWithCache()
     {
         // Arrange - Add multiple entities
-        List<TestEntity> entities = Enumerable.Range(0, 10)
-            .Select(i => new TestEntity { Name = $"Bulk-{i}" })
-            .ToList();
+        List<TestEntity> entities = [.. Enumerable.Range(0, 10).Select(i => new TestEntity { Name = $"Bulk-{i}" })];
 
         // Act - Add in bulk
         IReadOnlyList<TestEntity> added = await _mediator.Send(new AddEntitiesCommand<TestEntity, TestDescriptor>(entities));

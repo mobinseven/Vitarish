@@ -1,4 +1,4 @@
-namespace Vitarish.Intelligence.Tests;
+namespace Intelligence.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="AiOptions"/> class.

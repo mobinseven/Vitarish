@@ -1,6 +1,6 @@
 using Vitarish.Users.Domain.Options;
 
-namespace Vitarish.Users.Tests.Domain;
+namespace Users.Tests.Domain;
 
 public class WebAuthnOptionsTests
 {

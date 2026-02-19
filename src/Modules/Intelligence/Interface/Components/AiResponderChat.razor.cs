@@ -308,9 +308,7 @@ public partial class AiResponderChat : CommonBase
     {
         if (OnConversationChanged.HasDelegate)
         {
-            IReadOnlyList<AiResponderChatTurn> snapshot = _turns
-                .Select(turn => turn.Clone())
-                .ToList();
+            IReadOnlyList<AiResponderChatTurn> snapshot = [.. _turns.Select(turn => turn.Clone())];
 
             await OnConversationChanged.InvokeAsync(snapshot);
         }

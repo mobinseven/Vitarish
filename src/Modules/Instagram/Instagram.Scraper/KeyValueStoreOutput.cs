@@ -11,8 +11,8 @@ public sealed record KeyValueStoreOutput(JsonElement Data)
             throw new InvalidOperationException("Instagram scraper did not return any key-value store output.");
         }
 
-        using var document = await JsonDocument.ParseAsync(stream, cancellationToken: ct).ConfigureAwait(false);
-        var root = document.RootElement.Clone();
+        using JsonDocument document = await JsonDocument.ParseAsync(stream, cancellationToken: ct).ConfigureAwait(false);
+        JsonElement root = document.RootElement.Clone();
         return new KeyValueStoreOutput(root);
     }
 }

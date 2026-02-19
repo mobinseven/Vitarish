@@ -43,24 +43,14 @@ public sealed class AmbientEntityInterceptionProvider : IEntityInterceptionProvi
         return new Pop(() => _current.Value = prior);
     }
 
-    private sealed class Holder
+    private sealed class Holder(EntityInterceptionConfig? value)
     {
-        public Holder(EntityInterceptionConfig? value)
-        {
-            Value = value;
-        }
-
-        public EntityInterceptionConfig? Value { get; }
+        public EntityInterceptionConfig? Value { get; } = value;
     }
 
-    private sealed class Pop : IDisposable
+    private sealed class Pop(Action action) : IDisposable
     {
-        private readonly Action _action;
         private bool _done;
-        public Pop(Action action)
-        {
-            _action = action;
-        }
 
         public void Dispose()
         {
@@ -70,7 +60,7 @@ public sealed class AmbientEntityInterceptionProvider : IEntityInterceptionProvi
             }
 
             _done = true;
-            _action();
+            action();
         }
     }
 }

@@ -1,7 +1,7 @@
 using MediatR;
-using Vitarish.Modules.Feed.Domain.Abstractions;
+using Vitarish.Feed.Domain.Abstractions;
 
-namespace Vitarish.Modules.Feed.Application.Queries;
+namespace Vitarish.Feed.Application.Queries;
 
 /// <summary>
 /// Query to get all available feed data sources

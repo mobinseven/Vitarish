@@ -13,7 +13,7 @@ public class Metadata : Dictionary<string, object?>
         {
             return;
         }
-        foreach (var kv in source)
+        foreach (KeyValuePair<string, object?> kv in source)
         {
             TryAdd(kv.Key, kv.Value);
         }

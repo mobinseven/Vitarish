@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using Vitarish.Intelligence.Application.Abstractions;
 
-namespace Vitarish.Intelligence.Tests;
+namespace Intelligence.Tests;
 
 /// <summary>
 /// Helper extensions for testing async enumerables.
@@ -23,15 +23,10 @@ public static class AsyncEnumerableTestExtensions
     }
 }
 
-public sealed class TestOptionsMonitor<T> : IOptionsMonitor<T>
+public sealed class TestOptionsMonitor<T>(T currentValue) : IOptionsMonitor<T>
     where T : class, new()
 {
-    public TestOptionsMonitor(T currentValue)
-    {
-        CurrentValue = currentValue;
-    }
-
-    public T CurrentValue { get; }
+    public T CurrentValue { get; } = currentValue;
 
     public T Get(string? name) => CurrentValue;
 
@@ -50,21 +45,10 @@ public sealed class TestOptionsMonitor<T> : IOptionsMonitor<T>
 /// <summary>
 /// A mock implementation of IResponder for testing purposes.
 /// </summary>
-public sealed class MockResponder : IResponder
+public sealed class MockResponder(IReadOnlyList<ResponderOutput>? generateResult = null, IAsyncEnumerable<ResponderOutput>? streamResult = null, Exception? exception = null) : IResponder
 {
-    private readonly IReadOnlyList<ResponderOutput>? _generateResult;
-    private readonly IAsyncEnumerable<ResponderOutput>? _streamResult;
-    private readonly Exception? _exception;
-
     public List<(IReadOnlyList<ResponderInput> Input, ResponderOptions Options)> GenerateCalls { get; } = [];
     public List<(IReadOnlyList<ResponderInput> Input, ResponderOptions Options)> StreamCalls { get; } = [];
-
-    public MockResponder(IReadOnlyList<ResponderOutput>? generateResult = null, IAsyncEnumerable<ResponderOutput>? streamResult = null, Exception? exception = null)
-    {
-        _generateResult = generateResult;
-        _streamResult = streamResult;
-        _exception = exception;
-    }
 
     public static MockResponder WithTextResponse(string text) => new(
             generateResult: [ResponderOutput.TextOutput(text)],
@@ -76,23 +60,23 @@ public sealed class MockResponder : IResponder
     {
         GenerateCalls.Add((input, options));
 
-        return _exception is not null
-            ? throw _exception
-            : Task.FromResult(_generateResult ?? Array.Empty<ResponderOutput>());
+        return exception is not null
+            ? throw exception
+            : Task.FromResult(generateResult ?? Array.Empty<ResponderOutput>());
     }
 
     public async IAsyncEnumerable<ResponderOutput> StreamAsync(IReadOnlyList<ResponderInput> input, ResponderOptions options, [EnumeratorCancellation] CancellationToken ct = default)
     {
         StreamCalls.Add((input, options));
 
-        if (_exception is not null)
+        if (exception is not null)
         {
-            throw _exception;
+            throw exception;
         }
 
-        if (_streamResult is not null)
+        if (streamResult is not null)
         {
-            await foreach (ResponderOutput? output in _streamResult.WithCancellation(ct))
+            await foreach (ResponderOutput? output in streamResult.WithCancellation(ct))
             {
                 yield return output;
             }
@@ -103,21 +87,10 @@ public sealed class MockResponder : IResponder
 /// <summary>
 /// A mock implementation of ITranscriber for testing purposes.
 /// </summary>
-public sealed class MockTranscriber : ITranscriber
+public sealed class MockTranscriber(string? transcribeResult = null, IAsyncEnumerable<string>? streamResult = null, Exception? exception = null) : ITranscriber
 {
-    private readonly string? _transcribeResult;
-    private readonly IAsyncEnumerable<string>? _streamResult;
-    private readonly Exception? _exception;
-
     public List<(Stream Audio, string MimeType, string? Language, string? ModelId)> TranscribeCalls { get; } = [];
     public List<(string MimeType, string? Language, string? ModelId)> StreamCalls { get; } = [];
-
-    public MockTranscriber(string? transcribeResult = null, IAsyncEnumerable<string>? streamResult = null, Exception? exception = null)
-    {
-        _transcribeResult = transcribeResult;
-        _streamResult = streamResult;
-        _exception = exception;
-    }
 
     public static MockTranscriber WithResult(string result) => new(
             transcribeResult: result,
@@ -129,21 +102,21 @@ public sealed class MockTranscriber : ITranscriber
     {
         TranscribeCalls.Add((audio, mimeType, language, modelId));
 
-        return _exception is not null ? throw _exception : Task.FromResult(_transcribeResult);
+        return exception is not null ? throw exception : Task.FromResult(transcribeResult);
     }
 
     public async IAsyncEnumerable<string> StreamTranscribeAsync(ChannelReader<byte[]> audio, string mimeType, string? language, string? modelId, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         StreamCalls.Add((mimeType, language, modelId));
 
-        if (_exception is not null)
+        if (exception is not null)
         {
-            throw _exception;
+            throw exception;
         }
 
-        if (_streamResult is not null)
+        if (streamResult is not null)
         {
-            await foreach (var chunk in _streamResult.WithCancellation(cancellationToken))
+            await foreach (var chunk in streamResult.WithCancellation(cancellationToken))
             {
                 yield return chunk;
             }
@@ -154,27 +127,16 @@ public sealed class MockTranscriber : ITranscriber
 /// <summary>
 /// A mock implementation of ITranscriptionProvider for testing purposes.
 /// </summary>
-public sealed class MockTranscriptionProvider : ITranscriptionProvider
+public sealed class MockTranscriptionProvider(
+    IEnumerable<string>? supportedModels = null,
+    string? transcribeResult = null,
+    IAsyncEnumerable<string>? streamResult = null,
+    Exception? exception = null) : ITranscriptionProvider
 {
-    private readonly HashSet<string> _supportedModels;
-    private readonly string? _transcribeResult;
-    private readonly IAsyncEnumerable<string>? _streamResult;
-    private readonly Exception? _exception;
+    private readonly HashSet<string> _supportedModels = supportedModels?.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
 
     public List<(Stream Audio, string MimeType, string? Language, string? ModelId)> TranscribeCalls { get; } = [];
     public List<string?> SupportsModelCalls { get; } = [];
-
-    public MockTranscriptionProvider(
-        IEnumerable<string>? supportedModels = null,
-        string? transcribeResult = null,
-        IAsyncEnumerable<string>? streamResult = null,
-        Exception? exception = null)
-    {
-        _supportedModels = supportedModels?.ToHashSet(StringComparer.OrdinalIgnoreCase) ?? [];
-        _transcribeResult = transcribeResult;
-        _streamResult = streamResult;
-        _exception = exception;
-    }
 
     public static MockTranscriptionProvider WithSupportedModels(params string[] models) => new(supportedModels: models);
 
@@ -188,19 +150,19 @@ public sealed class MockTranscriptionProvider : ITranscriptionProvider
     {
         TranscribeCalls.Add((audio, mimeType, language, modelId));
 
-        return _exception is not null ? throw _exception : Task.FromResult(_transcribeResult);
+        return exception is not null ? throw exception : Task.FromResult(transcribeResult);
     }
 
     public async IAsyncEnumerable<string> StreamTranscribeAsync(ChannelReader<byte[]> audio, string mimeType, string? language, string? modelId, [EnumeratorCancellation] CancellationToken cancellationToken)
     {
-        if (_exception is not null)
+        if (exception is not null)
         {
-            throw _exception;
+            throw exception;
         }
 
-        if (_streamResult is not null)
+        if (streamResult is not null)
         {
-            await foreach (var chunk in _streamResult.WithCancellation(cancellationToken))
+            await foreach (var chunk in streamResult.WithCancellation(cancellationToken))
             {
                 yield return chunk;
             }

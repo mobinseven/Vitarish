@@ -83,8 +83,5 @@ public class ValidationTests : IDisposable
         Assert.Contains("Name must not exceed 50 characters", nameErrors);
     }
 
-    public void Dispose()
-    {
-        _provider.Dispose();
-    }
+    public void Dispose() => _provider.Dispose();
 }

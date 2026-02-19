@@ -57,7 +57,7 @@ public sealed class InstagramScraperService(IInstagramScraperApiClient client, I
 
         InputSchema input = new()
         {
-            DirectUrls = hasUrls ? directUrls.Where(url => !string.IsNullOrWhiteSpace(url)).ToList() : null,
+            DirectUrls = hasUrls ? [.. directUrls.Where(url => !string.IsNullOrWhiteSpace(url))] : null,
             ResultsType = MapResultsType(descriptor.DataType),
             ResultsLimit = descriptor.MaxResultsPerUrl,
             Search = descriptor.SearchQuery,

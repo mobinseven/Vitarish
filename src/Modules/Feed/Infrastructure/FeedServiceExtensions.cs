@@ -1,8 +1,8 @@
 using Microsoft.Extensions.DependencyInjection;
-using Vitarish.Modules.Feed.Domain.Abstractions;
-using Vitarish.Modules.Feed.Infrastructure.Services;
+using Vitarish.Feed.Domain.Abstractions;
+using Vitarish.Feed.Infrastructure.Services;
 
-namespace Vitarish.Modules.Feed.Infrastructure;
+namespace Vitarish.Feed.Infrastructure;
 
 public static class FeedServiceExtensions
 {

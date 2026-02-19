@@ -1,7 +1,7 @@
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Entities.Server.Abstractions;
 
-namespace Vitarish.Files.Tests;
+namespace Files.Tests;
 
 /// <summary>
 /// Unit tests for the IFileInformationService interface behavior.
@@ -13,17 +13,13 @@ namespace Vitarish.Files.Tests;
 public sealed class FileInformationServiceInterfaceTests
 {
     [Fact]
-    public void IFileInformationService_InheritsFromIEntityService()
-    {
+    public void IFileInformationService_InheritsFromIEntityService() =>
         // Assert
         typeof(IFileInformationService)
             .Should().Implement<IEntityService<FileInformationReadDto, FileInformationWriteDto, FileInformationDescriptorDto>>();
-    }
 
     [Fact]
-    public void IFileInformationService_IsInterface()
-    {
+    public void IFileInformationService_IsInterface() =>
         // Assert
         typeof(IFileInformationService).IsInterface.Should().BeTrue();
-    }
 }

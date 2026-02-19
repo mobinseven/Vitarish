@@ -1,4 +1,4 @@
-namespace Vitarish.Communications.Tests.Application;
+namespace Communications.Tests.Application;
 
 /// <summary>
 /// Unit tests for <see cref="SendSmsCode"/> command.

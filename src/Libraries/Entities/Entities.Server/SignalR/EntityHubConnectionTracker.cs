@@ -22,17 +22,11 @@ public class EntityHubConnectionTracker : IEntityHubConnectionTracker
     private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte>> _groupConnections = new();
     private readonly object _groupLock = new();
 
-    private class ConnectionInfo
+    private class ConnectionInfo(string connectionId, string? userId)
     {
-        public string ConnectionId { get; }
-        public string? UserId { get; }
+        public string ConnectionId { get; } = connectionId;
+        public string? UserId { get; } = userId;
         public ConcurrentDictionary<string, byte> Groups { get; } = new(StringComparer.OrdinalIgnoreCase);
-
-        public ConnectionInfo(string connectionId, string? userId)
-        {
-            ConnectionId = connectionId;
-            UserId = userId;
-        }
     }
 
     public void AddConnection(string connectionId, string? userId)
@@ -71,7 +65,7 @@ public class EntityHubConnectionTracker : IEntityHubConnectionTracker
             // between creating snapshot and removing from _groupConnections
             lock (_groupLock)
             {
-                List<string> groupsToRemove = info.Groups.Keys.ToList();
+                List<string> groupsToRemove = [.. info.Groups.Keys];
                 foreach (string group in groupsToRemove)
                 {
                     if (_groupConnections.TryGetValue(group, out ConcurrentDictionary<string, byte>? groupConnections))
@@ -131,7 +125,7 @@ public class EntityHubConnectionTracker : IEntityHubConnectionTracker
         }
     }
 
-    public IReadOnlyCollection<string> GetConnections() => _connections.Keys.ToList();
+    public IReadOnlyCollection<string> GetConnections() => [.. _connections.Keys];
 
     public IReadOnlyCollection<string> GetConnectionsByUser(string userId) => _userConnections.TryGetValue(userId, out ConcurrentDictionary<string, byte>? connections)
                 ? connections.Keys.ToList()

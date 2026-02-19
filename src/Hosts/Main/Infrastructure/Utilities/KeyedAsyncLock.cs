@@ -43,23 +43,12 @@ internal sealed class KeyedAsyncLock
         }
     }
 
-    public readonly struct Releaser : IAsyncDisposable, IDisposable
+    public readonly struct Releaser(ConcurrentDictionary<string, KeyedAsyncLock.Entry> entries, string key, KeyedAsyncLock.Entry entry) : IAsyncDisposable, IDisposable
     {
-        private readonly ConcurrentDictionary<string, Entry> _entries;
-        private readonly string _key;
-        private readonly Entry _entry;
-
-        public Releaser(ConcurrentDictionary<string, Entry> entries, string key, Entry entry)
-        {
-            _entries = entries;
-            _key = key;
-            _entry = entry;
-        }
-
         public void Dispose()
         {
-            _ = _entry.Semaphore.Release();
-            ReleaseRef(_entries, _key, _entry);
+            _ = entry.Semaphore.Release();
+            ReleaseRef(entries, key, entry);
         }
 
         public ValueTask DisposeAsync()

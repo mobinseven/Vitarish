@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Data;
 
-namespace Vitarish.Users.Tests.TestHelpers;
+namespace Users.Tests.TestHelpers;
 
 internal static class UserManagerFactory
 {

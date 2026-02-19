@@ -43,8 +43,5 @@ public static class IdentityUsersExtensions
     /// <summary>
     /// Maps Users module endpoints.
     /// </summary>
-    public static void MapUsersEndpoints(this WebApplication app)
-    {
-        _ = app.MapWebAuthnManagementEndpoints();
-    }
+    public static void MapUsersEndpoints(this WebApplication app) => _ = app.MapWebAuthnManagementEndpoints();
 }

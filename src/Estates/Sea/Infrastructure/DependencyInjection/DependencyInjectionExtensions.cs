@@ -1,4 +1,4 @@
-using Vitarish.Modules.Feed.Domain.Abstractions;
+using Vitarish.Feed.Domain.Abstractions;
 using Vitarish.Sea.Infrastructure.FeedSources;
 using Vitarish.Sea.Infrastructure.Services;
 

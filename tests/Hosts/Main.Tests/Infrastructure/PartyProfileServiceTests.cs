@@ -13,7 +13,7 @@ using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Service;
 using IdentityOptions = Microsoft.AspNetCore.Identity.IdentityOptions;
 
-namespace Vitarish.Host.Tests.Infrastructure;
+namespace Main.Tests.Infrastructure;
 
 public class PartyProfileServiceTests
 {

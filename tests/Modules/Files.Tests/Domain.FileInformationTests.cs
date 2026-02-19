@@ -1,4 +1,4 @@
-namespace Vitarish.Files.Tests;
+namespace Files.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="FileInformation"/> entity.

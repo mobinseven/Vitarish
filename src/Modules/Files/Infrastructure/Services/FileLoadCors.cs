@@ -10,30 +10,19 @@ using Vitarish.Files.Infrastructure.Extensions;
 
 namespace Vitarish.Files.Infrastructure.Services;
 
-public class FileLoadCors
+public class FileLoadCors(
+    RequestDelegate next,
+    IOptions<FilesOptions> options,
+    IServiceScopeFactory serviceScopeFactory,
+    IMultiTenantContextAccessor<TenantInfo> tenantAccessor)
 {
-    private readonly RequestDelegate _next;
-    private readonly FilesOptions _options;
-    private readonly IServiceScopeFactory _serviceScopeFactory;
-    private readonly IMultiTenantContextAccessor<TenantInfo> _tenantAccessor;
-
-    public FileLoadCors(
-        RequestDelegate next,
-        IOptions<FilesOptions> options,
-        IServiceScopeFactory serviceScopeFactory,
-        IMultiTenantContextAccessor<TenantInfo> tenantAccessor)
-    {
-        _next = next;
-        _options = options.Value;
-        _serviceScopeFactory = serviceScopeFactory;
-        _tenantAccessor = tenantAccessor;
-    }
+    private readonly FilesOptions _options = options.Value;
 
     public async Task InvokeAsync(HttpContext context)
     {
         if (!context.Request.Path.StartsWithSegments("/" + _options.UploadPath))
         {
-            await _next(context);
+            await next(context);
             return;
         }
 
@@ -45,8 +34,8 @@ public class FileLoadCors
             return;
         }
 
-        using IDisposable tenantScope = _tenantAccessor.UseTenant(TenantDefaults.RootTenant);
-        using IServiceScope scope = _serviceScopeFactory.CreateScope();
+        using IDisposable tenantScope = tenantAccessor.UseTenant(TenantDefaults.RootTenant);
+        using IServiceScope scope = serviceScopeFactory.CreateScope();
         IFileInformationService fileInformations = scope.ServiceProvider.GetRequiredService<IFileInformationService>();
         EntityResult<IReadOnlyList<FileInformationReadDto>> fisRes = await fileInformations.GetListAsync(new FileInformationDescriptorDto { Name = fileName }, context.RequestAborted);
         IReadOnlyList<FileInformationReadDto>? fis = fisRes.Value;
@@ -82,7 +71,7 @@ public class FileLoadCors
         context.Response.Headers.Append("Access-Control-Allow-Origin", "*");
         context.Response.Headers.Append("Access-Control-Allow-Methods", "GET");
 
-        await _next(context);
+        await next(context);
     }
 
     private static bool IsAllowedOrigin(string[] allowedOrigins, string[] origins) => allowedOrigins.Intersect(origins).Any() || allowedOrigins.Contains("*");

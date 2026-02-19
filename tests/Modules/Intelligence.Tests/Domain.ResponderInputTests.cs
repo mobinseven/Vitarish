@@ -1,4 +1,4 @@
-namespace Vitarish.Intelligence.Tests;
+namespace Intelligence.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="ResponderInput"/> record.
@@ -173,7 +173,7 @@ public sealed class ResponderInputTests
         var original = ResponderInput.TextInput("Hello");
 
         // Act
-        var copy = original with { Text = "Updated" };
+        ResponderInput copy = original with { Text = "Updated" };
 
         // Assert
         copy.Text.Should().Be("Updated");
@@ -227,11 +227,9 @@ public sealed class ResponderInputTypeTests
     [InlineData(ResponderInputType.Image, 1)]
     [InlineData(ResponderInputType.File, 2)]
     [InlineData(ResponderInputType.McpToolCallApproval, 3)]
-    public void ResponderInputType_HasCorrectIntValues(ResponderInputType type, int expectedValue)
-    {
+    public void ResponderInputType_HasCorrectIntValues(ResponderInputType type, int expectedValue) =>
         // Assert
         ((int)type).Should().Be(expectedValue);
-    }
 }
 
 /// <summary>
@@ -252,9 +250,7 @@ public sealed class ResponderInputImageDetailTests
     [InlineData(ResponderInputImageDetail.Low, 0)]
     [InlineData(ResponderInputImageDetail.High, 1)]
     [InlineData(ResponderInputImageDetail.Auto, 2)]
-    public void ResponderInputImageDetail_HasCorrectIntValues(ResponderInputImageDetail detail, int expectedValue)
-    {
+    public void ResponderInputImageDetail_HasCorrectIntValues(ResponderInputImageDetail detail, int expectedValue) =>
         // Assert
         ((int)detail).Should().Be(expectedValue);
-    }
 }

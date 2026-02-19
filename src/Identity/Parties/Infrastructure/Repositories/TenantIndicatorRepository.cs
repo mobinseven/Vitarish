@@ -44,10 +44,7 @@ internal class TenantIndicatorRepository(PartiesDbContext dbContext)
         return query;
     }
 
-    protected override bool IsDuplicateKeyException(DbUpdateException exception)
-    {
-        return exception.InnerException?.Message?.Contains("IX_TenantIndicators_Method_Value", StringComparison.OrdinalIgnoreCase) == true
+    protected override bool IsDuplicateKeyException(DbUpdateException exception) => exception.InnerException?.Message?.Contains("IX_TenantIndicators_Method_Value", StringComparison.OrdinalIgnoreCase) == true
             || exception.InnerException?.Message?.Contains("duplicate key", StringComparison.OrdinalIgnoreCase) == true
             || exception.InnerException?.Message?.Contains("unique constraint", StringComparison.OrdinalIgnoreCase) == true;
-    }
 }

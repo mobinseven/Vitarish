@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -9,16 +9,11 @@ namespace Vitarish.Main.Migrations.SeaDb
     public partial class UsageConfigRemoved : Migration
     {
         /// <inheritdoc />
-        protected override void Up(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.DropTable(
+        protected override void Up(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(
                 name: "UsageConfigurations");
-        }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.CreateTable(
+        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.CreateTable(
                 name: "UsageConfigurations",
                 columns: table => new
                 {
@@ -37,6 +32,5 @@ namespace Vitarish.Main.Migrations.SeaDb
                 {
                     table.PrimaryKey("PK_UsageConfigurations", x => x.Id);
                 });
-        }
     }
 }

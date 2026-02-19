@@ -19,7 +19,7 @@ internal sealed class CreateTenantRolesCommandHandler(UsersDbContext dbContext)
         ];
 
         // Fetch existing roles in a single query
-        var existingRoles = await dbContext.Roles
+        List<string> existingRoles = await dbContext.Roles
             .Where(r => tenantRoles.Contains(r.Name!))
             .Select(r => r.Name!)
             .ToListAsync(cancellationToken);

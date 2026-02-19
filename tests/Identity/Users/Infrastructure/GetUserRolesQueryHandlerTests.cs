@@ -1,9 +1,9 @@
 using Microsoft.AspNetCore.Identity;
+using Users.Tests.TestHelpers;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Infrastructure.Handlers;
-using Vitarish.Users.Tests.TestHelpers;
 
-namespace Vitarish.Users.Tests.Infrastructure;
+namespace Users.Tests.Infrastructure;
 
 public class GetUserRolesQueryHandlerTests
 {

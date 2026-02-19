@@ -153,17 +153,13 @@ public sealed class PreviewUserRoleStore : IUserStore<User>, IUserSecurityStampS
 
     public Task<IList<User>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
     {
-        List<User> usersInRole = _userRoles
+        List<User> usersInRole = [.. _userRoles
             .Where(kvp => kvp.Value.ContainsKey(roleName))
             .Select(kvp => _users.GetValueOrDefault(kvp.Key))
-            .OfType<User>()
-            .ToList();
+            .OfType<User>()];
 
         return Task.FromResult<IList<User>>(usersInRole);
     }
 
-    private ConcurrentDictionary<string, byte> GetOrCreateRoles(string userId)
-    {
-        return _userRoles.GetOrAdd(userId, _ => new ConcurrentDictionary<string, byte>(StringComparer.OrdinalIgnoreCase));
-    }
+    private ConcurrentDictionary<string, byte> GetOrCreateRoles(string userId) => _userRoles.GetOrAdd(userId, _ => new ConcurrentDictionary<string, byte>(StringComparer.OrdinalIgnoreCase));
 }

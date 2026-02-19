@@ -144,18 +144,11 @@ public partial class UserRoleEditor
         }
     }
 
-    private sealed class UserRoleEntry
+    private sealed class UserRoleEntry(User user, List<string> assignedRoles, List<UserRoleEditor.RoleDetail> roleDetails)
     {
-        public UserRoleEntry(User user, List<string> assignedRoles, List<RoleDetail> roleDetails)
-        {
-            User = user;
-            AssignedRoles = assignedRoles;
-            RoleDetails = roleDetails;
-        }
-
-        public User User { get; }
-        public List<string> AssignedRoles { get; }
-        public List<RoleDetail> RoleDetails { get; }
+        public User User { get; } = user;
+        public List<string> AssignedRoles { get; } = assignedRoles;
+        public List<RoleDetail> RoleDetails { get; } = roleDetails;
         public bool IsExpanded { get; set; }
     }
 

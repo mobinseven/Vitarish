@@ -1,7 +1,6 @@
 using System.Security.Cryptography;
 using System.Threading.Channels;
 using Vitarish.Files.Application.Abstractions;
-using Vitarish.Files.Infrastructure.Interfaces;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Files.Infrastructure.Services;

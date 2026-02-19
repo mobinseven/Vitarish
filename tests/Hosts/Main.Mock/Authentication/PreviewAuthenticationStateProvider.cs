@@ -8,8 +8,5 @@ public sealed class PreviewAuthenticationStateProvider : AuthenticationStateProv
     private static readonly ClaimsPrincipal PreviewUser =
         PreviewAuthenticationDefaults.CreatePrincipal(authenticationType: "Preview");
 
-    public override Task<AuthenticationState> GetAuthenticationStateAsync()
-    {
-        return Task.FromResult(new AuthenticationState(PreviewUser));
-    }
+    public override Task<AuthenticationState> GetAuthenticationStateAsync() => Task.FromResult(new AuthenticationState(PreviewUser));
 }

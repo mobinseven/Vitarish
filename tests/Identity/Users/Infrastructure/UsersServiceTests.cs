@@ -7,7 +7,7 @@ using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Domain.Models;
 using Vitarish.Users.Infrastructure.Service;
 
-namespace Vitarish.Users.Tests.Infrastructure;
+namespace Users.Tests.Infrastructure;
 
 public class UsersServiceTests
 {

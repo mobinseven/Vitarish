@@ -52,7 +52,7 @@ internal static class EntitySearchHelper
             }
         }
 
-        return fragments.Select(static fragment => $"%{EscapeLikeFragment(fragment)}%").ToArray();
+        return [.. fragments.Select(static fragment => $"%{EscapeLikeFragment(fragment)}%")];
     }
 
     public static Expression<Func<TEntity, bool>> BuildSearchPredicate<TEntity>(

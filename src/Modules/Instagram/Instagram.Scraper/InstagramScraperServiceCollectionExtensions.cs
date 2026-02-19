@@ -13,9 +13,9 @@ public static class InstagramScraperServiceCollectionExtensions
 
         _ = services.AddSingleton<IInstagramScraperApiClient>(provider =>
         {
-            var options = provider.GetRequiredService<IOptions<InstagramScraperOptions>>().Value;
-            var logger = provider.GetRequiredService<ILogger<InstagramScraperClient>>();
-            var httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
+            InstagramScraperOptions options = provider.GetRequiredService<IOptions<InstagramScraperOptions>>().Value;
+            ILogger<InstagramScraperClient> logger = provider.GetRequiredService<ILogger<InstagramScraperClient>>();
+            IHttpClientFactory httpClientFactory = provider.GetRequiredService<IHttpClientFactory>();
 
             return new InstagramScraperClient(options.ApifyToken, httpClientFactory.CreateClient(InstagramScraperHttpClient.Name), logger);
         });

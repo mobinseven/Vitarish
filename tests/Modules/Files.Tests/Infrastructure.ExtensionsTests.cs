@@ -1,6 +1,6 @@
 using Vitarish.Files.Infrastructure.Extensions;
 
-namespace Vitarish.Files.Tests;
+namespace Files.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="FilesExtensions"/> class.
@@ -58,7 +58,7 @@ public sealed class FilesExtensionsTests
         var prefix = "files";
 
         // Act
-        var act = () => FilesExtensions.ExtractId(fileName, prefix);
+        Func<string> act = () => FilesExtensions.ExtractId(fileName, prefix);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
@@ -73,7 +73,7 @@ public sealed class FilesExtensionsTests
         string prefix = null!;
 
         // Act
-        var act = () => FilesExtensions.ExtractId(fileName, prefix);
+        Func<string> act = () => FilesExtensions.ExtractId(fileName, prefix);
 
         // Assert
         act.Should().Throw<ArgumentNullException>()
@@ -88,7 +88,7 @@ public sealed class FilesExtensionsTests
         var prefix = "uploads"; // Wrong prefix
 
         // Act
-        var act = () => FilesExtensions.ExtractId(fileName, prefix);
+        Func<string> act = () => FilesExtensions.ExtractId(fileName, prefix);
 
         // Assert
         act.Should().Throw<FormatException>()
@@ -103,7 +103,7 @@ public sealed class FilesExtensionsTests
         var prefix = "files";
 
         // Act
-        var act = () => FilesExtensions.ExtractId(fileName, prefix);
+        Func<string> act = () => FilesExtensions.ExtractId(fileName, prefix);
 
         // Assert
         act.Should().Throw<FormatException>()

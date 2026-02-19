@@ -1,4 +1,4 @@
-namespace Vitarish.Communications.Tests.Application;
+namespace Communications.Tests.Application;
 
 public sealed class GetSmsDeliveryStateTests
 {
@@ -62,11 +62,9 @@ public sealed class GetSmsDeliveryStateTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_WithNullService_ThrowsArgumentNullException()
-    {
+    public async Task ExecuteAsync_WithNullService_ThrowsArgumentNullException() =>
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentNullException>(() => GetSmsDeliveryState.ExecuteAsync(null!, 1));
-    }
 
     [Theory]
     [InlineData(0)]

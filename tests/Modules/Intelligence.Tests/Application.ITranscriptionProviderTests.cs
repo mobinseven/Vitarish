@@ -1,7 +1,7 @@
 using System.Threading.Channels;
 using Vitarish.Intelligence.Application.Abstractions;
 
-namespace Vitarish.Intelligence.Tests;
+namespace Intelligence.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="ITranscriptionProvider"/> interface contract.
@@ -56,7 +56,7 @@ public sealed class ITranscriptionProviderInterfaceTests
     {
         // Arrange
         var mockProvider = new Mock<ITranscriptionProvider>();
-        using var audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
+        using MemoryStream audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
         var expectedText = "Test transcription result";
 
         mockProvider
@@ -81,7 +81,7 @@ public sealed class ITranscriptionProviderInterfaceTests
     {
         // Arrange
         var mockProvider = new Mock<ITranscriptionProvider>();
-        using var audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
+        using MemoryStream audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
         using var cts = new CancellationTokenSource();
         cts.Cancel();
 
@@ -95,7 +95,7 @@ public sealed class ITranscriptionProviderInterfaceTests
             .ThrowsAsync(new OperationCanceledException());
 
         // Act
-        var act = () => mockProvider.Object.TranscribeAsync(
+        Func<Task<string?>> act = () => mockProvider.Object.TranscribeAsync(
             audioStream, "audio/wav", "en-US", "whisper", cts.Token);
 
         // Assert
@@ -151,7 +151,7 @@ public sealed class ITranscriptionProviderInterfaceTests
             .Returns(AsyncEnumerableTestExtensions.ThrowOnEnumerateAsync<string>(new OperationCanceledException()));
 
         // Act
-        var act = async () =>
+        Func<Task> act = async () =>
         {
             await foreach (var _ in mockProvider.Object.StreamTranscribeAsync(
                 channel.Reader, "audio/wav", "en-US", "whisper", cts.Token))

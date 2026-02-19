@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Caching.Distributed;
 
-namespace Vitarish.Users.Tests.TestHelpers;
+namespace Users.Tests.TestHelpers;
 
 internal static class DistributedCacheMockFactory
 {

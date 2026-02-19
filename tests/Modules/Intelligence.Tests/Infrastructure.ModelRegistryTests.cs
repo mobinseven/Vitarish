@@ -1,6 +1,6 @@
 using Vitarish.Intelligence.Infrastructure.Services.Dispatching;
 
-namespace Vitarish.Intelligence.Tests;
+namespace Intelligence.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="ModelRegistry"/> class.
@@ -11,7 +11,7 @@ public sealed class ModelRegistryTests
     public void GetProviderForModel_WithOpenAiResponseModel_ReturnsOpenAI()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
@@ -25,7 +25,7 @@ public sealed class ModelRegistryTests
     public void GetProviderForModel_WithOpenAiTranscriptionModel_ReturnsOpenAI()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
@@ -39,7 +39,7 @@ public sealed class ModelRegistryTests
     public void GetProviderForModel_WithGoogleResponderModel_ReturnsGoogle()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithGoogle().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithGoogle().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
@@ -53,7 +53,7 @@ public sealed class ModelRegistryTests
     public void GetProviderForModel_WithGoogleTranscriberModel_ReturnsGoogle()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithGoogle().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithGoogle().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
@@ -67,7 +67,7 @@ public sealed class ModelRegistryTests
     public void GetProviderForModel_WithOllamaResponderModel_ReturnsOllama()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOllama().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOllama().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
@@ -81,7 +81,7 @@ public sealed class ModelRegistryTests
     public void GetProviderForModel_WithOllamaTranscriberModel_ReturnsOllama()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOllama().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOllama().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
@@ -95,7 +95,7 @@ public sealed class ModelRegistryTests
     public void GetProviderForModel_WithUnknownModel_ReturnsNull()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
@@ -109,7 +109,7 @@ public sealed class ModelRegistryTests
     public void GetProviderForModel_WithNullModelId_ReturnsNull()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
@@ -123,7 +123,7 @@ public sealed class ModelRegistryTests
     public void GetProviderForModel_WithEmptyModelId_ReturnsNull()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
@@ -137,7 +137,7 @@ public sealed class ModelRegistryTests
     public void GetProviderForModel_WithWhitespaceModelId_ReturnsNull()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
@@ -151,7 +151,7 @@ public sealed class ModelRegistryTests
     public void GetProviderForModel_IsCaseInsensitive()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
@@ -167,11 +167,11 @@ public sealed class ModelRegistryTests
     public void GetAvailableModels_WhenOpenAiConfigured_IncludesOpenAiModels()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var availableModels = registry.GetAvailableModels();
+        AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
         availableModels.ResponderModels.Should().Contain(m => m.Provider == "OpenAI");
@@ -182,14 +182,14 @@ public sealed class ModelRegistryTests
     public void GetAvailableModels_WhenOpenAiNotConfigured_ExcludesOpenAiModels()
     {
         // Arrange
-        var aiOptions = Options.Create(new AiOptions
+        IOptionsMonitor<AiOptions> aiOptions = Options.Create(new AiOptions
         {
             OpenAi = new OpenAiOptions { ApiKey = "" }
         }).ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var availableModels = registry.GetAvailableModels();
+        AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
         availableModels.ResponderModels.Should().NotContain(m => m.Provider == "OpenAI");
@@ -200,11 +200,11 @@ public sealed class ModelRegistryTests
     public void GetAvailableModels_WhenOllamaConfigured_IncludesOllamaModels()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOllama().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOllama().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var availableModels = registry.GetAvailableModels();
+        AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
         availableModels.ResponderModels.Should().Contain(m => m.Provider == "Ollama");
@@ -215,14 +215,14 @@ public sealed class ModelRegistryTests
     public void GetAvailableModels_WhenOllamaNotConfigured_ExcludesOllamaModels()
     {
         // Arrange
-        var aiOptions = Options.Create(new AiOptions
+        IOptionsMonitor<AiOptions> aiOptions = Options.Create(new AiOptions
         {
             Ollama = new OllamaOptions { BaseUrl = "" }
         }).ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var availableModels = registry.GetAvailableModels();
+        AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
         availableModels.ResponderModels.Should().NotContain(m => m.Provider == "Ollama");
@@ -233,11 +233,11 @@ public sealed class ModelRegistryTests
     public void GetAvailableModels_WhenGoogleSpeechConfigured_IncludesGoogleTranscriberModels()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithGoogle().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithGoogle().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var availableModels = registry.GetAvailableModels();
+        AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
         availableModels.TranscriberModels.Should().Contain(m => m.Provider == "Google");
@@ -247,11 +247,11 @@ public sealed class ModelRegistryTests
     public void GetAvailableModels_WhenGoogleGeminiConfigured_IncludesGoogleResponderModels()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithGoogle().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithGoogle().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var availableModels = registry.GetAvailableModels();
+        AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
         availableModels.ResponderModels.Should().Contain(m => m.Provider == "Google");
@@ -261,7 +261,7 @@ public sealed class ModelRegistryTests
     public void GetAvailableModels_WhenGoogleNotConfigured_ExcludesGoogleModels()
     {
         // Arrange
-        var aiOptions = Options.Create(new AiOptions
+        IOptionsMonitor<AiOptions> aiOptions = Options.Create(new AiOptions
         {
             Google = new GoogleOptions
             {
@@ -272,7 +272,7 @@ public sealed class ModelRegistryTests
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var availableModels = registry.GetAvailableModels();
+        AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
         availableModels.ResponderModels.Should().NotContain(m => m.Provider == "Google");
@@ -283,11 +283,11 @@ public sealed class ModelRegistryTests
     public void GetAvailableModels_WhenAllProvidersConfigured_IncludesAllModels()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithAllProviders().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithAllProviders().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var availableModels = registry.GetAvailableModels();
+        AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
         availableModels.ResponderModels.Should().Contain(m => m.Provider == "OpenAI");
@@ -302,7 +302,7 @@ public sealed class ModelRegistryTests
     public void GetAvailableModels_WhenNoProvidersConfigured_ReturnsEmptyLists()
     {
         // Arrange
-        var aiOptions = Options.Create(new AiOptions
+        IOptionsMonitor<AiOptions> aiOptions = Options.Create(new AiOptions
         {
             OpenAi = new OpenAiOptions { ApiKey = "" },
             Ollama = new OllamaOptions { BaseUrl = "" },
@@ -315,7 +315,7 @@ public sealed class ModelRegistryTests
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var availableModels = registry.GetAvailableModels();
+        AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
         availableModels.ResponderModels.Should().BeEmpty();
@@ -335,7 +335,7 @@ public sealed class ModelRegistryTests
     public void GetProviderForModel_ResponderModels_ReturnCorrectProvider(string modelId, string expectedProvider)
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithAllProviders().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithAllProviders().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
@@ -362,7 +362,7 @@ public sealed class ModelRegistryTests
     public void GetProviderForModel_TranscriberModels_ReturnCorrectProvider(string modelId, string expectedProvider)
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithAllProviders().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithAllProviders().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
@@ -376,11 +376,11 @@ public sealed class ModelRegistryTests
     public void GetAvailableModels_ResponderModels_ContainExpectedOpenAiModels()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var availableModels = registry.GetAvailableModels();
+        AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
         availableModels.ResponderModels.Should().Contain(m => m.Id == "gpt-5-2025-08-07");
@@ -392,11 +392,11 @@ public sealed class ModelRegistryTests
     public void GetAvailableModels_TranscriberModels_ContainExpectedOpenAiModels()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var availableModels = registry.GetAvailableModels();
+        AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
         availableModels.TranscriberModels.Should().Contain(m => m.Id == "gpt-4o-mini-transcribe");

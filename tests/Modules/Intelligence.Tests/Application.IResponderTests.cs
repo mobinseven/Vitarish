@@ -1,6 +1,6 @@
 using Vitarish.Intelligence.Application.Abstractions;
 
-namespace Vitarish.Intelligence.Tests;
+namespace Intelligence.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="IResponder"/> interface contract.
@@ -22,7 +22,7 @@ public sealed class IResponderInterfaceTests
             .ReturnsAsync(expectedOutput);
 
         // Act
-        var result = await mockResponder.Object.GenerateAsync(input, options, CancellationToken.None);
+        IReadOnlyList<ResponderOutput> result = await mockResponder.Object.GenerateAsync(input, options, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -52,7 +52,7 @@ public sealed class IResponderInterfaceTests
             .ReturnsAsync(expectedOutput);
 
         // Act
-        var result = await mockResponder.Object.GenerateAsync(input, options, CancellationToken.None);
+        IReadOnlyList<ResponderOutput> result = await mockResponder.Object.GenerateAsync(input, options, CancellationToken.None);
 
         // Assert
         result.Should().NotBeNull();
@@ -77,7 +77,7 @@ public sealed class IResponderInterfaceTests
             .ThrowsAsync(new OperationCanceledException());
 
         // Act
-        var act = () => mockResponder.Object.GenerateAsync(input, options, cts.Token);
+        Func<Task<IReadOnlyList<ResponderOutput>>> act = () => mockResponder.Object.GenerateAsync(input, options, cts.Token);
 
         // Assert
         await act.Should().ThrowAsync<OperationCanceledException>();
@@ -96,7 +96,7 @@ public sealed class IResponderInterfaceTests
             .ReturnsAsync(Array.Empty<ResponderOutput>());
 
         // Act
-        var result = await mockResponder.Object.GenerateAsync(input, options, CancellationToken.None);
+        IReadOnlyList<ResponderOutput> result = await mockResponder.Object.GenerateAsync(input, options, CancellationToken.None);
 
         // Assert
         result.Should().BeEmpty();
@@ -122,7 +122,7 @@ public sealed class IResponderInterfaceTests
             .ReturnsAsync(expectedOutput);
 
         // Act
-        var result = await mockResponder.Object.GenerateAsync(input, options, CancellationToken.None);
+        IReadOnlyList<ResponderOutput> result = await mockResponder.Object.GenerateAsync(input, options, CancellationToken.None);
 
         // Assert
         result.Should().HaveCount(1);
@@ -149,7 +149,7 @@ public sealed class IResponderInterfaceTests
 
         // Act
         var results = new List<ResponderOutput>();
-        await foreach (var output in mockResponder.Object.StreamAsync(input, options, CancellationToken.None))
+        await foreach (ResponderOutput output in mockResponder.Object.StreamAsync(input, options, CancellationToken.None))
         {
             results.Add(output);
         }
@@ -175,9 +175,9 @@ public sealed class IResponderInterfaceTests
             .Returns(AsyncEnumerableTestExtensions.ThrowOnEnumerateAsync<ResponderOutput>(new OperationCanceledException()));
 
         // Act
-        var act = async () =>
+        Func<Task> act = async () =>
         {
-            await foreach (var _ in mockResponder.Object.StreamAsync(input, options, cts.Token))
+            await foreach (ResponderOutput _ in mockResponder.Object.StreamAsync(input, options, cts.Token))
             {
                 // Intentionally left empty: we only want to trigger enumeration to test cancellation.
             }

@@ -136,7 +136,7 @@ public sealed class PersonalAccessTokenGenerator(
         PersonalAccessTokenCacheEntry entry = new(
             securityToken,
             now.Add(lifetime),
-            scopeSet.ToArray(),
+            [.. scopeSet],
             isReferenceToken);
 
         await StoreTokenAsync(user, entry, cancellationToken);

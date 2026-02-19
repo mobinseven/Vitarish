@@ -5,16 +5,13 @@ using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Hosting.DependencyInjection;
 using Vitarish.Requests.Infrastructure.Services;
 
-namespace Vitarish.Requests.Tests;
+namespace Requests.Tests;
 
 public class DependencyInjectionTests
 {
-    private static IConfiguration CreateConfiguration()
-    {
-        return new ConfigurationBuilder()
+    private static IConfiguration CreateConfiguration() => new ConfigurationBuilder()
             .AddInMemoryCollection(new Dictionary<string, string?>())
             .Build();
-    }
 
     [Fact]
     public void AddRequestIdentityContext_RegistersIRequestIdentityContext()

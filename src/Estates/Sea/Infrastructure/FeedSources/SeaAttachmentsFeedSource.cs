@@ -1,6 +1,6 @@
 using MediatR;
-using Vitarish.Modules.Feed.Domain.Abstractions;
-using Vitarish.Modules.Feed.Domain.Models;
+using Vitarish.Feed.Domain.Abstractions;
+using Vitarish.Feed.Domain.Models;
 using Vitarish.Sea.Application.Queries.Events;
 using Vitarish.Sea.Domain.Entities;
 
@@ -35,7 +35,7 @@ public class SeaAttachmentsFeedSource(IAttachmentsService attachmentsService) : 
             //     new GetRecentAttachmentsQuery(options.Limit), 
             //     cancellationToken);
 
-            foreach (var attachment in await attachmentsService.GetListAsync(new AttachmentDescriptorDto { Take = 5 }, cancellationToken).GetValueOrDefaultAsync() ?? [])
+            foreach (AttachmentReadDto? attachment in await attachmentsService.GetListAsync(new AttachmentDescriptorDto { Take = 5 }, cancellationToken).GetValueOrDefaultAsync() ?? [])
             {
                 feedItems.Add(CreateFeedItem(attachment));
             }

@@ -2,10 +2,9 @@ using System.Collections.Concurrent;
 using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using Vitarish.Files.Application.Abstractions;
-using Vitarish.Files.Infrastructure.Interfaces;
 using Vitarish.Entities.Server.Models;
 
-namespace Vitarish.Files.Tests;
+namespace Files.Tests;
 
 /// <summary>
 /// A test tenant accessor that allows specifying a tenant for tests.
@@ -87,7 +86,7 @@ public sealed class InMemoryFileInformationService : IFileInformationService
 
         if (!string.IsNullOrWhiteSpace(descriptor.Name))
         {
-            if (byName.TryGetValue(descriptor.Name, out var match))
+            if (byName.TryGetValue(descriptor.Name, out FileInformationReadDto? match))
             {
                 query = query.Where(i => i == match);
             }
@@ -102,7 +101,7 @@ public sealed class InMemoryFileInformationService : IFileInformationService
             query = query.Where(info => string.Equals(info.Tag, descriptor.Tag, StringComparison.OrdinalIgnoreCase));
         }
 
-        IReadOnlyList<FileInformationReadDto> result = query.ToList();
+        IReadOnlyList<FileInformationReadDto> result = [.. query];
         return Task.FromResult(EntityResult<IReadOnlyList<FileInformationReadDto>>.Success(result));
     }
 
@@ -226,7 +225,7 @@ public sealed class RecordingObjectStorageService : IObjectStorageService
             items = items.Take(takeCount);
         }
 
-        return Task.FromResult(new ObjectListResult(items.ToList(), null, false));
+        return Task.FromResult(new ObjectListResult([.. items], null, false));
     }
 
     public Task<string> GetPresignedUrlAsync(string objectKey, TimeSpan expiresIn, string httpMethod = "GET", CancellationToken cancellationToken = default) =>

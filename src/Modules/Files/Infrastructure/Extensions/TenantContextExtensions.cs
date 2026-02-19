@@ -32,17 +32,9 @@ internal static class TenantContextExtensions
         return new TenantScope(setter, previous);
     }
 
-    private sealed class TenantScope : IDisposable
+    private sealed class TenantScope(IMultiTenantContextSetter setter, IMultiTenantContext<TenantInfo> previous) : IDisposable
     {
-        private readonly IMultiTenantContextSetter setter;
-        private readonly IMultiTenantContext<TenantInfo> previous;
         private bool disposed;
-
-        public TenantScope(IMultiTenantContextSetter setter, IMultiTenantContext<TenantInfo> previous)
-        {
-            this.setter = setter;
-            this.previous = previous;
-        }
 
         public void Dispose()
         {

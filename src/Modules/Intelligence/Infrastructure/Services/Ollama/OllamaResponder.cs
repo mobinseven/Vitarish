@@ -414,7 +414,7 @@ public sealed class OllamaResponder(IOptionsMonitor<AiOptions> aiOptions) : IRes
 
             if (message.Images is { Length: > 0 } images)
             {
-                copy.Images = images.ToArray();
+                copy.Images = [.. images];
             }
 
             if (message.ToolCalls is { } toolCalls)

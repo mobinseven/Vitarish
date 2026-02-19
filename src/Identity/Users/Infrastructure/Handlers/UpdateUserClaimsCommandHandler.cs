@@ -17,14 +17,14 @@ public class UpdateUserClaimsCommandHandler(UserManager<User> userManager) : IRe
     public async Task<IdentityResult> Handle(UpdateUserClaimsCommand request, CancellationToken cancellationToken)
     {
         IList<Claim> oldClaims = await userManager.GetClaimsAsync(request.User);
-        List<Claim> claimsToRemove = oldClaims.Except(request.Claims, new ClaimEqualityComparer()).ToList();
+        List<Claim> claimsToRemove = [.. oldClaims.Except(request.Claims, new ClaimEqualityComparer())];
         IdentityResult res = await userManager.RemoveClaimsAsync(request.User, claimsToRemove);
         if (!res.Succeeded)
         {
             return res;
         }
 
-        List<Claim> claimsToAdd = request.Claims.Except(oldClaims, new ClaimEqualityComparer()).ToList();
+        List<Claim> claimsToAdd = [.. request.Claims.Except(oldClaims, new ClaimEqualityComparer())];
         res = await userManager.AddClaimsAsync(request.User, claimsToAdd);
         return res;
     }

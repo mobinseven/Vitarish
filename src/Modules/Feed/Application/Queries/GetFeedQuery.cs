@@ -1,7 +1,7 @@
 using MediatR;
-using Vitarish.Modules.Feed.Domain.Models;
+using Vitarish.Feed.Domain.Models;
 
-namespace Vitarish.Modules.Feed.Application.Queries;
+namespace Vitarish.Feed.Application.Queries;
 
 /// <summary>
 /// Query to fetch aggregated feed items from all enabled sources

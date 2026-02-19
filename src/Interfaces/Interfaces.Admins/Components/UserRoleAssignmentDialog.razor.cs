@@ -37,17 +37,16 @@ public partial class UserRoleAssignmentDialog
             IEnumerable<TenantReadDto> tenants = await PartiesService.GetTenantsAsync();
             Dictionary<Guid, TenantReadDto> tenantDict = tenants.ToDictionary(t => t.Id);
 
-            List<Guid> ownerIds = tenants.Select(t => t.OwnerId).Distinct().ToList();
+            List<Guid> ownerIds = [.. tenants.Select(t => t.OwnerId).Distinct()];
             Dictionary<Guid, Task<OwnerReadDto?>> ownerTasks = ownerIds.ToDictionary(id => id, id => PartiesService.GetOwnerAsync(id));
             Dictionary<Guid, OwnerReadDto?> owners = (await Task.WhenAll(
                 ownerTasks.Select(async kvp => new { kvp.Key, Value = await kvp.Value })
             )).ToDictionary(x => x.Key, x => x.Value);
 
-            List<string> clientIds = tenants
+            List<string> clientIds = [.. tenants
                 .Where(t => !string.IsNullOrWhiteSpace(t.ClientId))
                 .Select(t => t.ClientId!)
-                .Distinct(StringComparer.OrdinalIgnoreCase)
-                .ToList();
+                .Distinct(StringComparer.OrdinalIgnoreCase)];
 
             List<ParsedTenantRole> parsedRoles = RoleParser.ParseTenantRoles(AvailableRoles, tenantDict, owners);
 

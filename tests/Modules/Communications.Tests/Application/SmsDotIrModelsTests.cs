@@ -1,6 +1,6 @@
 using Vitarish.Communications.Infrastructure.Wrappers.SmsDotIr;
 
-namespace Vitarish.Communications.Tests.Application;
+namespace Communications.Tests.Application;
 
 /// <summary>
 /// Unit tests for SmsDotIr API model classes.

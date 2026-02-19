@@ -18,7 +18,7 @@ public class PageBase : CommonBase
             return;
         }
 
-        var cookieCulture = await CultureProvider.GetCultureFromCookieAsync();
+        CultureInfo? cookieCulture = await CultureProvider.GetCultureFromCookieAsync();
         if (cookieCulture is not null)
         {
             if (await CultureProvider.TryApplyCultureAsync(cookieCulture.Name))

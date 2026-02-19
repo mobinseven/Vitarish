@@ -3,7 +3,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Extensions;
 
-namespace Vitarish.Users.Tests.Infrastructure;
+namespace Users.Tests.Infrastructure;
 
 public class UserCacheExtensionsTests
 {

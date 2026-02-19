@@ -21,7 +21,7 @@ public class MinioOptions
 
     public MinioOptions(IConfiguration configuration, string name = "Minio")
     {
-        var opts = Load(configuration, name);
+        MinioOptions opts = Load(configuration, name);
         Endpoint = opts.Endpoint;
         Port = opts.Port;
         UseSsl = opts.UseSsl;

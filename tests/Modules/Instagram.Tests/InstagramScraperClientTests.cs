@@ -1,6 +1,4 @@
-using Vitarish.Instagram.Scraper;
-
-namespace Vitarish.Instagram.Scraper.Tests;
+namespace Instagram.Scraper.Tests;
 
 public class InstagramScraperClientTests
 {
@@ -12,7 +10,7 @@ public class InstagramScraperClientTests
             Content = new StringContent("[{\"id\":1},{\"id\":2}]", Encoding.UTF8, "application/json"),
         });
 
-        using var httpClient = handler.CreateClient();
+        using HttpClient httpClient = handler.CreateClient();
         var client = new InstagramScraperClient("test-token", httpClient);
 
         var input = new InputSchema
@@ -20,7 +18,7 @@ public class InstagramScraperClientTests
             DirectUrls = new List<string> { "https://instagram.com/p/abc" },
         };
 
-        var response = await client.RunScraperAndGetDatasetItemsAsync(input);
+        DatasetItemsResponse response = await client.RunScraperAndGetDatasetItemsAsync(input);
 
         response.Items.Should().HaveCount(2);
         response.Raw.ValueKind.Should().Be(JsonValueKind.Array);
@@ -41,10 +39,10 @@ public class InstagramScraperClientTests
                 Content = new StringContent("{\"ok\":true}", Encoding.UTF8, "application/json"),
             });
 
-        using var httpClient = handler.CreateClient();
+        using HttpClient httpClient = handler.CreateClient();
         var client = new InstagramScraperClient("retry-token", httpClient, retryOptions: new RetryOptions(MaxAttempts: 2, InitialDelay: TimeSpan.FromMilliseconds(1), MaxDelay: TimeSpan.FromMilliseconds(2)));
 
-        var result = await client.RunScraperSyncAsync(new InputSchema());
+        KeyValueStoreOutput result = await client.RunScraperSyncAsync(new InputSchema());
 
         handler.Requests.Should().HaveCount(2);
         result.Data.GetProperty("ok").GetBoolean().Should().BeTrue();
@@ -58,7 +56,7 @@ public class InstagramScraperClientTests
             Content = new StringContent("null", Encoding.UTF8, "application/json"),
         });
 
-        using var httpClient = handler.CreateClient();
+        using HttpClient httpClient = handler.CreateClient();
         var client = new InstagramScraperClient("missing-response", httpClient);
 
         await Assert.ThrowsAsync<InvalidOperationException>(() => client.StartScraperRunAsync(new InputSchema()));

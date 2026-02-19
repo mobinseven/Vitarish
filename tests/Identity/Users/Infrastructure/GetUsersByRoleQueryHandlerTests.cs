@@ -1,7 +1,7 @@
+using Users.Tests.TestHelpers;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Handlers;
-using Vitarish.Users.Tests.TestHelpers;
 
 namespace Users.Tests.Infrastructure;
 

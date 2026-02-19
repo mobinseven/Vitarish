@@ -33,7 +33,7 @@ public partial class ProjectEditForm : ProjectsBase
     {
         if (Project is null)
         {
-            var created = await ProjectsService.AddAsync(name, description, template, metadata, CancellationToken.None);
+            Guid created = await ProjectsService.AddAsync(name, description, template, metadata, CancellationToken.None);
             await OnCreate.InvokeAsync(created);
         }
         else

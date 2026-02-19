@@ -11,7 +11,7 @@ using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
 
-namespace Vitarish.Host.Tests.Authorization;
+namespace Main.Tests.Authorization;
 
 public class AuthorizerTests
 {

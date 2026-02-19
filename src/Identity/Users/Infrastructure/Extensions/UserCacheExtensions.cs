@@ -16,7 +16,7 @@ internal static class UserCacheExtensions
 
     internal static Task SetUsersAsync(IDistributedCache cache, IReadOnlyCollection<User> users, CancellationToken ct)
     {
-        User[] payload = users as User[] ?? users.ToArray();
+        User[] payload = users as User[] ?? [.. users];
         return cache.SetAsync(UsersKey, Serialize(payload), CacheOptions, ct);
     }
 

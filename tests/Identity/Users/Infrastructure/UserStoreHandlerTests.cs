@@ -1,13 +1,13 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Caching.Distributed;
+using Users.Tests.TestHelpers;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Handlers;
-using Vitarish.Users.Tests.TestHelpers;
 
-namespace Vitarish.Users.Tests.Infrastructure;
+namespace Users.Tests.Infrastructure;
 
 public class CreateUserCommandHandlerTests
 {

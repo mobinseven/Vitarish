@@ -39,9 +39,9 @@ public partial class ProceduresGrid : ProceduresBase
             { nameof(ProcedureCreateDialog.ProjectName), Project.Name }
         };
 
-        var dialog = await DialogService.ShowAsync<ProcedureCreateDialog>(null, parameters);
+        IDialogReference dialog = await DialogService.ShowAsync<ProcedureCreateDialog>(null, parameters);
 
-        var result = await dialog.Result;
+        DialogResult? result = await dialog.Result;
 
         if (result?.Canceled ?? true)
         {

@@ -35,8 +35,8 @@ public partial class AdminUserPage
             { nameof(StrictConfirmDialog.Color), Color.Error }
         };
 
-        var dialog = await DialogService.ShowAsync<StrictConfirmDialog>(null, parameters);
-        var result = await dialog.Result;
+        IDialogReference dialog = await DialogService.ShowAsync<StrictConfirmDialog>(null, parameters);
+        DialogResult? result = await dialog.Result;
 
         if(result is null || result.Canceled)
         {

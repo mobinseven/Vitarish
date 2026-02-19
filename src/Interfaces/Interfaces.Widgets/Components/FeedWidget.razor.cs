@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web.Virtualization;
+using Vitarish.Feed.Domain.Models;
 using Vitarish.Interfaces.Base.Plugins;
 using Vitarish.Modules.Feed.Application.Queries;
 using Vitarish.Modules.Feed.Domain.Models;
@@ -23,10 +24,7 @@ public partial class FeedWidget
     private string? _error;
     private int _totalItemsLoaded;
 
-    protected override async Task OnInitializedAsync()
-    {
-        await RefreshAsync();
-    }
+    protected override async Task OnInitializedAsync() => await RefreshAsync();
 
     private async ValueTask<ItemsProviderResult<FeedItem>> LoadFeedItemsAsync(
         ItemsProviderRequest request)

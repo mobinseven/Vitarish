@@ -1,7 +1,7 @@
 using System.Threading.Channels;
 using Vitarish.Files.Domain.Models;
 
-namespace Vitarish.Files.Infrastructure.Interfaces
+namespace Vitarish.Files.Application.Abstractions
 {
     public interface IFilesService
     {

@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.Extensions.Primitives;
 using System.Net;
 
 namespace Vitarish.Interfaces.Base.Common;
@@ -10,8 +11,8 @@ public static class SearchQueryHelper
     public static string? ExtractQuery(NavigationManager navigationManager, string uri)
     {
         Uri absolute = navigationManager.ToAbsoluteUri(uri);
-        var query = QueryHelpers.ParseQuery(absolute.Query);
+        Dictionary<string, StringValues> query = QueryHelpers.ParseQuery(absolute.Query);
 
-        return !query.TryGetValue(QueryParameterName, out var values) || values.Count == 0 ? null : WebUtility.UrlDecode(values[0]);
+        return !query.TryGetValue(QueryParameterName, out StringValues values) || values.Count == 0 ? null : WebUtility.UrlDecode(values[0]);
     }
 }

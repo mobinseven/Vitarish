@@ -1,6 +1,6 @@
-using Vitarish.Modules.Feed.Domain.Models;
+using Vitarish.Feed.Domain.Models;
 
-namespace Vitarish.Modules.Feed.Domain.Abstractions;
+namespace Vitarish.Feed.Domain.Abstractions;
 
 /// <summary>
 /// Service that aggregates feed items from multiple data sources.

@@ -1,7 +1,7 @@
 using System.Text.Json;
 using Vitarish.Users.Domain.Entities;
 
-namespace Vitarish.Users.Tests.Domain;
+namespace Users.Tests.Domain;
 
 public class UserTests
 {

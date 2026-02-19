@@ -27,20 +27,11 @@ public class InMemoryRepository : IEntityRepository<TestEntity, TestDescriptor>
         return Task.FromResult<TestEntity?>(entity);
     }
 
-    public Task<int> CountAsync(TestDescriptor descriptor, CancellationToken cancellationToken)
-    {
-        return Task.FromResult(_store.Count);
-    }
+    public Task<int> CountAsync(TestDescriptor descriptor, CancellationToken cancellationToken) => Task.FromResult(_store.Count);
 
-    public Task<IReadOnlyList<TestEntity>> GetAsync(TestDescriptor descriptor, CancellationToken cancellationToken)
-    {
-        return Task.FromResult<IReadOnlyList<TestEntity>>(_store.Values.ToArray());
-    }
+    public Task<IReadOnlyList<TestEntity>> GetAsync(TestDescriptor descriptor, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<TestEntity>>([.. _store.Values]);
 
-    public Task<TestEntity?> GetAsync(Guid id, CancellationToken cancellationToken)
-    {
-        return Task.FromResult(_store.TryGetValue(id, out TestEntity? entity) ? entity : null);
-    }
+    public Task<TestEntity?> GetAsync(Guid id, CancellationToken cancellationToken) => Task.FromResult(_store.TryGetValue(id, out TestEntity? entity) ? entity : null);
 
     public Task RemoveAsync(TestEntity entity, CancellationToken cancellationToken)
     {

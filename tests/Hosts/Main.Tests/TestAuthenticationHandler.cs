@@ -6,16 +6,11 @@ using System.Text.Encodings.Web;
 
 namespace Main.Tests;
 
-internal sealed class TestAuthenticationHandler : AuthenticationHandler<AuthenticationSchemeOptions>
+internal sealed class TestAuthenticationHandler(
+    IOptionsMonitor<AuthenticationSchemeOptions> options,
+    ILoggerFactory logger,
+    UrlEncoder encoder) : AuthenticationHandler<AuthenticationSchemeOptions>(options, logger, encoder)
 {
-    public TestAuthenticationHandler(
-        IOptionsMonitor<AuthenticationSchemeOptions> options,
-        ILoggerFactory logger,
-        UrlEncoder encoder)
-        : base(options, logger, encoder)
-    {
-    }
-
     protected override Task<AuthenticateResult> HandleAuthenticateAsync()
     {
         if (Context.User?.Identities.Any(identity => identity.IsAuthenticated) == true)

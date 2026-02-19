@@ -12,8 +12,5 @@ public sealed class MockRequestIdentitiesService : IRequestIdentitiesService
         string? search = null,
         RequestDescriptor? filters = null,
         IReadOnlyCollection<RequestIdentitySort>? sorts = null,
-        CancellationToken ct = default)
-    {
-        return Task.FromResult(new GetRequestIdentitiesResult(Array.Empty<Request>(), 0));
-    }
+        CancellationToken ct = default) => Task.FromResult(new GetRequestIdentitiesResult(Array.Empty<Request>(), 0));
 }

@@ -38,7 +38,7 @@ public sealed class MockUsersService : IUsersService
     }
 
     public Task<IEnumerable<User>> GetUsersAsync(CancellationToken ct = default)
-        => Task.FromResult<IEnumerable<User>>(users.Values.ToList());
+        => Task.FromResult<IEnumerable<User>>([.. users.Values]);
 
     public Task<User?> GetUserAsync(string id, CancellationToken ct = default)
         => Task.FromResult(users.TryGetValue(id, out User? user) ? user : null);
@@ -129,7 +129,7 @@ public sealed class MockUsersService : IUsersService
             return Task.FromResult<IList<Claim>>(new List<Claim>());
         }
 
-        return Task.FromResult<IList<Claim>>(claims.ToList());
+        return Task.FromResult<IList<Claim>>([.. claims]);
     }
 
     public Task<IdentityResult> UpdateUserClaimsAsync(UpdateUserClaimsCommand command, CancellationToken ct = default)
@@ -139,7 +139,7 @@ public sealed class MockUsersService : IUsersService
             return Task.FromResult(UserNotFound());
         }
 
-        userClaims[command.User.Id] = command.Claims.ToList();
+        userClaims[command.User.Id] = [.. command.Claims];
         return Task.FromResult(IdentityResult.Success);
     }
 
@@ -187,25 +187,19 @@ public sealed class MockUsersService : IUsersService
         return Task.FromResult(IdentityResult.Success);
     }
 
-    public Task<IdentityResult> SetUserPhoneNumberAsync(string userId, string phoneNumber, CancellationToken ct = default)
-    {
-        return UpdateUserAsync(userId, existingUser =>
-        {
-            User updatedUser = CloneUser(existingUser);
-            updatedUser.PhoneNumber = phoneNumber;
-            return updatedUser;
-        });
-    }
+    public Task<IdentityResult> SetUserPhoneNumberAsync(string userId, string phoneNumber, CancellationToken ct = default) => UpdateUserAsync(userId, existingUser =>
+                                                                                                                                   {
+                                                                                                                                       User updatedUser = CloneUser(existingUser);
+                                                                                                                                       updatedUser.PhoneNumber = phoneNumber;
+                                                                                                                                       return updatedUser;
+                                                                                                                                   });
 
-    public Task<IdentityResult> SetUserEmailAsync(string userId, string email, CancellationToken ct = default)
-    {
-        return UpdateUserAsync(userId, existingUser =>
-        {
-            User updatedUser = CloneUser(existingUser);
-            updatedUser.Email = email;
-            return updatedUser;
-        });
-    }
+    public Task<IdentityResult> SetUserEmailAsync(string userId, string email, CancellationToken ct = default) => UpdateUserAsync(userId, existingUser =>
+                                                                                                                       {
+                                                                                                                           User updatedUser = CloneUser(existingUser);
+                                                                                                                           updatedUser.Email = email;
+                                                                                                                           return updatedUser;
+                                                                                                                       });
 
     public Task<IdentityResult> CreateAsync(User user, CancellationToken cancellationToken)
     {
@@ -297,7 +291,7 @@ public sealed class MockUsersService : IUsersService
     public Task<IList<string>> GetRolesAsync(User user, CancellationToken cancellationToken)
     {
         IList<string> roles = userRoles.TryGetValue(user.Id, out HashSet<string>? entries)
-            ? entries.ToList()
+            ? [.. entries]
             : new List<string>();
         return Task.FromResult(roles);
     }
@@ -310,10 +304,9 @@ public sealed class MockUsersService : IUsersService
 
     public Task<IList<User>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
     {
-        IList<User> result = users.Values.Where(u =>
+        IList<User> result = [.. users.Values.Where(u =>
                 userRoles.TryGetValue(u.Id, out HashSet<string>? roles) &&
-                roles.Any(r => string.Equals(r, roleName, StringComparison.OrdinalIgnoreCase)))
-            .ToList();
+                roles.Any(r => string.Equals(r, roleName, StringComparison.OrdinalIgnoreCase)))];
         return Task.FromResult(result);
     }
 

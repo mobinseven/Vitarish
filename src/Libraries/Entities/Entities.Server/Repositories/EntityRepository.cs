@@ -81,7 +81,7 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
         }
         else
         {
-            return entities.Skip(startIndex).Take(currentBatchSize).ToList();
+            return [.. entities.Skip(startIndex).Take(currentBatchSize)];
         }
     }
 

@@ -72,7 +72,7 @@ public partial class AiJsonGeneratorChatInput : AiResponderChatInput
     protected override async Task HandleOutputEndAsync(IEnumerable<ResponderOutput> outputs)
     {
         List<ResponderOutput> materialized = outputs as List<ResponderOutput>
-            ?? outputs.ToList();
+            ?? [.. outputs];
 
         string text = materialized.LastOrDefault(o => o.Type == ResponderOutputType.Text)?.Text
             ?? _bufferedOutputs.LastOrDefault(o => o.Type == ResponderOutputType.Text)?.Text

@@ -3,33 +3,25 @@ using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Entities.Server.Services;
 
-public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, TDescriptorDto> : IEntityService<TReadDto, TWriteDto, TDescriptorDto>
+/// <summary>
+/// Constructor using mapping functions (use auto-generated extension methods: entity => entity.ToDto(), dto => dto.ToDomain()).
+/// </summary>
+public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, TDescriptorDto>(
+    IMediator mediator,
+    Func<TEntity, TReadDto> outgoingMap,
+    Func<TWriteDto, TEntity> incomingMap,
+    Func<TDescriptorDto, TDescriptor> descriptorMap) : IEntityService<TReadDto, TWriteDto, TDescriptorDto>
     where TEntity : Entity
     where TDescriptor : EntityDescriptor
     where TReadDto : EntityReadDto
     where TWriteDto : EntityWriteDto
     where TDescriptorDto : EntityDescriptorDto
 {
-    private readonly Func<TEntity, TReadDto> _outgoingMap;
-    private readonly Func<TWriteDto, TEntity> _incomingMap;
-    private readonly Func<TDescriptorDto, TDescriptor> _descriptorMap;
+    private readonly Func<TEntity, TReadDto> _outgoingMap = outgoingMap ?? throw new ArgumentNullException(nameof(outgoingMap));
+    private readonly Func<TWriteDto, TEntity> _incomingMap = incomingMap ?? throw new ArgumentNullException(nameof(incomingMap));
+    private readonly Func<TDescriptorDto, TDescriptor> _descriptorMap = descriptorMap ?? throw new ArgumentNullException(nameof(descriptorMap));
 
-    /// <summary>
-    /// Constructor using mapping functions (use auto-generated extension methods: entity => entity.ToDto(), dto => dto.ToDomain()).
-    /// </summary>
-    protected EntityService(
-        IMediator mediator,
-        Func<TEntity, TReadDto> outgoingMap,
-        Func<TWriteDto, TEntity> incomingMap,
-        Func<TDescriptorDto, TDescriptor> descriptorMap)
-    {
-        Mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-        _outgoingMap = outgoingMap ?? throw new ArgumentNullException(nameof(outgoingMap));
-        _incomingMap = incomingMap ?? throw new ArgumentNullException(nameof(incomingMap));
-        _descriptorMap = descriptorMap ?? throw new ArgumentNullException(nameof(descriptorMap));
-    }
-
-    protected IMediator Mediator { get; }
+    protected IMediator Mediator { get; } = mediator ?? throw new ArgumentNullException(nameof(mediator));
 
     public Task<EntityResult<TReadDto>> AddAsync(TWriteDto dto, CancellationToken cancellationToken) => ExecuteDtoAsync(
                 mediator => mediator.Send(new AddEntityCommand<TEntity, TDescriptor>(_incomingMap(dto)), cancellationToken),
@@ -186,7 +178,7 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
 
         if (itemsResult.IsFailure || itemsResult.Value is null)
         {
-            return EntityResult<PartedResult<TReadDto>>.Failure(itemsResult.Errors.ToArray());
+            return EntityResult<PartedResult<TReadDto>>.Failure([.. itemsResult.Errors]);
         }
 
         TDescriptor countDescriptor = descriptor with { Skip = null, Take = null };
@@ -195,7 +187,7 @@ public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, T
             cancellationToken);
 
         return countResult.IsFailure
-            ? EntityResult<PartedResult<TReadDto>>.Failure(countResult.Errors.ToArray())
+            ? EntityResult<PartedResult<TReadDto>>.Failure([.. countResult.Errors])
             : EntityResult<PartedResult<TReadDto>>.Success(new PartedResult<TReadDto>(itemsResult.Value, countResult.Value));
     }
 

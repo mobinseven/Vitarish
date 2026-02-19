@@ -55,10 +55,7 @@ public sealed class ProviderDispatchingTranscriber : ITranscriber
         };
     }
 
-    private string ResolveModel(string? requestedModel)
-    {
-        return string.IsNullOrWhiteSpace(requestedModel)
+    private string ResolveModel(string? requestedModel) => string.IsNullOrWhiteSpace(requestedModel)
                 ? _aiOptions.CurrentValue.DefaultTranscriptionModel
                 : requestedModel.Trim();
-    }
 }

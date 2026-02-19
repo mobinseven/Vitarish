@@ -46,7 +46,7 @@ public sealed class InstagramScraperClient : IDisposable, IInstagramScraperApiCl
     {
         ArgumentNullException.ThrowIfNull(input);
 
-        var stream = await ExecuteWithRetryAsync(
+        Stream? stream = await ExecuteWithRetryAsync(
             () => _api.Acts.ApifyInstagramScraper.RunSyncGetDatasetItems.PostAsync(
                 input,
                 request => request.QueryParameters.Token = _apifyToken,
@@ -61,7 +61,7 @@ public sealed class InstagramScraperClient : IDisposable, IInstagramScraperApiCl
     {
         ArgumentNullException.ThrowIfNull(input);
 
-        var response = await ExecuteWithRetryAsync(
+        RunsResponseSchema? response = await ExecuteWithRetryAsync(
             () => _api.Acts.ApifyInstagramScraper.Runs.PostAsync(
                 input,
                 request => request.QueryParameters.Token = _apifyToken,
@@ -78,7 +78,7 @@ public sealed class InstagramScraperClient : IDisposable, IInstagramScraperApiCl
     {
         ArgumentNullException.ThrowIfNull(input);
 
-        var stream = await ExecuteWithRetryAsync(
+        Stream? stream = await ExecuteWithRetryAsync(
             () => _api.Acts.ApifyInstagramScraper.RunSync.PostAsync(
                 input,
                 request => request.QueryParameters.Token = _apifyToken,
@@ -121,7 +121,7 @@ public sealed class InstagramScraperClient : IDisposable, IInstagramScraperApiCl
     private async Task<T> ExecuteWithRetryAsync<T>(Func<Task<T>> operation, string operationName, CancellationToken ct)
     {
         var attempt = 0;
-        var delay = _retryOptions.InitialDelay;
+        TimeSpan delay = _retryOptions.InitialDelay;
 
         while (true)
         {

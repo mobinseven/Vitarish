@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Vitarish.Users.Domain.Entities;
 
-namespace Vitarish.Users.Tests.TestHelpers;
+namespace Users.Tests.TestHelpers;
 
 internal static class UserManagerMockFactory
 {

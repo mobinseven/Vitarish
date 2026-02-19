@@ -51,9 +51,7 @@ internal class ProcedureRepository(SeaDbContext dbContext)
             return;
         }
 
-        List<Guid> procedureIds = procedures
-            .Select(procedure => procedure.Id)
-            .ToList();
+        List<Guid> procedureIds = [.. procedures.Select(procedure => procedure.Id)];
 
         Dictionary<Guid, ProcedureStats> stats = await dbContext.Set<ProcedureStats>()
             .AsNoTracking()

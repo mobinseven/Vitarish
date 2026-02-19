@@ -2,8 +2,8 @@ using Amazon.S3;
 using Amazon.S3.Model;
 using Amazon.S3.Transfer;
 using Microsoft.Extensions.Options;
+using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
-using Vitarish.Files.Infrastructure.Interfaces;
 
 namespace Vitarish.Files.Infrastructure.Services;
 
@@ -151,14 +151,11 @@ public sealed class AwsS3ObjectStorageService(
         await response.ResponseStream.CopyToAsync(destination, cancellationToken);
     }
 
-    public async Task RemoveAsync(string objectKey, CancellationToken cancellationToken = default)
+    public async Task RemoveAsync(string objectKey, CancellationToken cancellationToken = default) => _ = await client.DeleteObjectAsync(new DeleteObjectRequest
     {
-        _ = await client.DeleteObjectAsync(new DeleteObjectRequest
-        {
-            BucketName = options.BucketName,
-            Key = objectKey
-        }, cancellationToken);
-    }
+        BucketName = options.BucketName,
+        Key = objectKey
+    }, cancellationToken);
 
     public async Task<ObjectListResult> ListAsync(
         string? prefix = null,
@@ -174,15 +171,14 @@ public sealed class AwsS3ObjectStorageService(
             MaxKeys = maxKeys
         };
         ListObjectsV2Response response = await client.ListObjectsV2Async(request, cancellationToken);
-        IReadOnlyList<ObjectListItem> items = response.S3Objects
+        IReadOnlyList<ObjectListItem> items = [.. response.S3Objects
             .Select(o => new ObjectListItem(
                 o.Key,
                 o.Size ?? throw new InvalidOperationException($"S3 object size is missing for '{o.Key}'."),
                 o.LastModified.HasValue
                     ? new DateTimeOffset(o.LastModified.Value)
                     : throw new InvalidOperationException($"S3 object last-modified timestamp is missing for '{o.Key}'."),
-                o.ETag))
-            .ToList();
+                o.ETag))];
         return new ObjectListResult(items, response.NextContinuationToken, response.IsTruncated ?? false);
     }
 

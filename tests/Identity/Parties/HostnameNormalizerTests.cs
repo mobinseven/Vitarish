@@ -1,6 +1,6 @@
 using Vitarish.Parties.Infrastructure.Extensions;
 
-namespace Vitarish.Parties.Tests;
+namespace Parties.Tests;
 
 /// <summary>
 /// Tests for hostname normalization functionality.

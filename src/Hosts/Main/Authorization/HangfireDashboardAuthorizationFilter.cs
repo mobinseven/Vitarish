@@ -11,8 +11,8 @@ public class HangfireDashboardAuthorizationFilter: IDashboardAuthorizationFilter
     public bool Authorize(DashboardContext context)
     {
         HttpContext httpContext = context.GetHttpContext();
-        var authorizationService = httpContext.RequestServices.GetRequiredService<IAuthorizationService>();
-        var res = authorizationService.AuthorizeAsync(httpContext.User, IdentityDefinitions.PlatformAdmin).ConfigureAwait(false).GetAwaiter().GetResult();
+        IAuthorizationService authorizationService = httpContext.RequestServices.GetRequiredService<IAuthorizationService>();
+        AuthorizationResult res = authorizationService.AuthorizeAsync(httpContext.User, IdentityDefinitions.PlatformAdmin).ConfigureAwait(false).GetAwaiter().GetResult();
         return res.Succeeded;
     }
 }

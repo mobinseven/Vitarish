@@ -9,8 +9,8 @@ internal class UpdateEventsChainHandler(IEntityRepository<Event, EventDescriptor
         IReadOnlyList<Event> all = await repository.GetAsync(new DomainEventDescriptor { ProcedureId = request.ProcedureId }, cancellationToken);
         Dictionary<Guid, Event> map = all.ToDictionary(e => e.Id);
 
-        HashSet<Guid> ids = request.Events.Where(e => e.Id.HasValue).Select(e => e.Id!.Value).ToHashSet();
-        List<Event> toRemove = all.Where(e => !ids.Contains(e.Id)).ToList();
+        HashSet<Guid> ids = [.. request.Events.Where(e => e.Id.HasValue).Select(e => e.Id!.Value)];
+        List<Event> toRemove = [.. all.Where(e => !ids.Contains(e.Id))];
         if (toRemove.Count > 0)
         {
             await repository.RemoveRangeAsync(toRemove, cancellationToken);

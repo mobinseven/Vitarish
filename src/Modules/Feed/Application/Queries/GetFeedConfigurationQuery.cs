@@ -1,7 +1,7 @@
 using MediatR;
-using Vitarish.Modules.Feed.Domain.Models;
+using Vitarish.Feed.Domain.Models;
 
-namespace Vitarish.Modules.Feed.Application.Queries;
+namespace Vitarish.Feed.Application.Queries;
 
 /// <summary>
 /// Query to get the current feed configuration

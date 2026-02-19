@@ -3,10 +3,10 @@ using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Extensions;
 using Vitarish.Users.Infrastructure.Handlers;
-using Vitarish.Users.Tests.TestHelpers;
 using Microsoft.Extensions.Caching.Memory;
+using Users.Tests.TestHelpers;
 
-namespace Vitarish.Users.Tests.Infrastructure;
+namespace Users.Tests.Infrastructure;
 
 public class GetUserQueryHandlerTests
 {

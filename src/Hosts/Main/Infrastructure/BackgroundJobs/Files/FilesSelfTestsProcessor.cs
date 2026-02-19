@@ -2,7 +2,6 @@ using System.Buffers;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Extensions;
-using Vitarish.Files.Infrastructure.Interfaces;
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 
 public class FilesSelfTestsProcessor(

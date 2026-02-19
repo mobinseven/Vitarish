@@ -168,15 +168,9 @@ public sealed class GoogleTranscriber(IOptionsMonitor<AiOptions> aiOptions) : IT
         return resolved.Contains('/', StringComparison.Ordinal) ? resolved : modelResourceNames.GetOrAdd(resolved, BuildModelResourceName);
     }
 
-    private string BuildModelResourceName(string modelId)
-    {
-        return $"projects/{Options.ProjectId}/locations/{Options.Location}/models/{modelId}";
-    }
+    private string BuildModelResourceName(string modelId) => $"projects/{Options.ProjectId}/locations/{Options.Location}/models/{modelId}";
 
-    private string BuildRecognizerName()
-    {
-        return RecognizerName.FromProjectLocationRecognizer(Options.ProjectId, Options.Location, Options.RecognizerId).ToString();
-    }
+    private string BuildRecognizerName() => RecognizerName.FromProjectLocationRecognizer(Options.ProjectId, Options.Location, Options.RecognizerId).ToString();
 
     private static string? BuildTranscript(IEnumerable<SpeechRecognitionAlternative> alternatives)
     {

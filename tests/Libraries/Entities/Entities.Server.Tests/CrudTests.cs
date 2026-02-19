@@ -43,13 +43,12 @@ public class CrudTests : IDisposable
         IReadOnlyList<TestEntity> all = await mediator.Send(new GetEntitiesQuery<TestEntity, TestDescriptor>(new TestDescriptor()));
         Assert.Equal(3, all.Count);
 
-        List<TestEntity> toUpdate = all
+        List<TestEntity> toUpdate = [.. all
             .Select(e =>
             {
                 e.Name += "-Updated";
                 return e;
-            })
-            .ToList();
+            })];
 
         IReadOnlyList<TestEntity> updatedBulk = await mediator.Send(new UpdateEntitiesCommand<TestEntity, TestDescriptor>(toUpdate));
         Assert.All(updatedBulk, e => Assert.EndsWith("-Updated", e.Name));
@@ -165,8 +164,5 @@ public class CrudTests : IDisposable
         Assert.Equal(0, count);
     }
 
-    public void Dispose()
-    {
-        _provider.Dispose();
-    }
+    public void Dispose() => _provider.Dispose();
 }

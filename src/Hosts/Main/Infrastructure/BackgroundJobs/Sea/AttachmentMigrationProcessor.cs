@@ -3,7 +3,6 @@ using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Models;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Extensions;
-using Vitarish.Files.Infrastructure.Interfaces;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
@@ -72,10 +71,10 @@ public class AttachmentMigrationProcessor(
 
                 string id = FilesExtensions.ExtractId(fileInfo.Url, "VITARISH");
                 string fileName = Path.GetFileName(fileInfo.Url);
-                var attchs = attachments.Where(a => a.Content.Contains(fileName));
-                foreach (var attch in attchs)
+                IEnumerable<AttachmentReadDto> attchs = attachments.Where(a => a.Content.Contains(fileName));
+                foreach (AttachmentReadDto? attch in attchs)
                 {
-                    var wrt = attch.ToWrite() with { Content = fileInfo.Id.ToString() };
+                    AttachmentWriteDto wrt = attch.ToWrite() with { Content = fileInfo.Id.ToString() };
                     await attachmentsService.UpdateAsync(wrt, cancellationToken);
                 }
 

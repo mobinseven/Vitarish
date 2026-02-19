@@ -42,13 +42,7 @@ public sealed class ProviderDispatchingResponder : IResponder
         };
     }
 
-    public Task<IReadOnlyList<ResponderOutput>> GenerateAsync(IReadOnlyList<ResponderInput> input, ResponderOptions options, CancellationToken ct = default)
-    {
-        return GetResponder(options).GenerateAsync(input, options, ct);
-    }
+    public Task<IReadOnlyList<ResponderOutput>> GenerateAsync(IReadOnlyList<ResponderInput> input, ResponderOptions options, CancellationToken ct = default) => GetResponder(options).GenerateAsync(input, options, ct);
 
-    public IAsyncEnumerable<ResponderOutput> StreamAsync(IReadOnlyList<ResponderInput> input, ResponderOptions options, CancellationToken ct = default)
-    {
-        return GetResponder(options).StreamAsync(input, options, ct);
-    }
+    public IAsyncEnumerable<ResponderOutput> StreamAsync(IReadOnlyList<ResponderInput> input, ResponderOptions options, CancellationToken ct = default) => GetResponder(options).StreamAsync(input, options, ct);
 }

@@ -28,9 +28,7 @@ public class ScalabilityTests : IDisposable
         _ = await _mediator.Send(new AddEntityCommand<TestEntity, TestDescriptor>(entity));
 
         // Act - Perform 100 concurrent reads
-        List<Task<TestEntity?>> tasks = Enumerable.Range(0, 100)
-            .Select(_ => _mediator.Send(new GetEntityByIdQuery<TestEntity, TestDescriptor>(entity.Id)))
-            .ToList();
+        List<Task<TestEntity?>> tasks = [.. Enumerable.Range(0, 100).Select(_ => _mediator.Send(new GetEntityByIdQuery<TestEntity, TestDescriptor>(entity.Id)))];
 
         Stopwatch stopwatch = Stopwatch.StartNew();
         TestEntity?[] results = await Task.WhenAll(tasks);
@@ -48,14 +46,10 @@ public class ScalabilityTests : IDisposable
     public async Task Concurrent_Writes_Should_Not_Cause_Conflicts()
     {
         // Arrange - Create 50 entities concurrently
-        List<TestEntity> entities = Enumerable.Range(0, 50)
-            .Select(i => new TestEntity { Name = $"Entity-{i}" })
-            .ToList();
+        List<TestEntity> entities = [.. Enumerable.Range(0, 50).Select(i => new TestEntity { Name = $"Entity-{i}" })];
 
         // Act
-        List<Task<TestEntity?>> tasks = entities
-            .Select(e => _mediator.Send(new AddEntityCommand<TestEntity, TestDescriptor>(e)))
-            .ToList();
+        List<Task<TestEntity?>> tasks = [.. entities.Select(e => _mediator.Send(new AddEntityCommand<TestEntity, TestDescriptor>(e)))];
 
         TestEntity?[] results = await Task.WhenAll(tasks);
 
@@ -75,7 +69,7 @@ public class ScalabilityTests : IDisposable
         int iterations = 20;
 
         // Act - Multiple threads try to add/update the same entity
-        List<Task<TestEntity?>> tasks = Enumerable.Range(0, iterations)
+        List<Task<TestEntity?>> tasks = [.. Enumerable.Range(0, iterations)
             .Select(i => Task.Run(async () =>
             {
                 TestEntity entity = new()
@@ -84,8 +78,7 @@ public class ScalabilityTests : IDisposable
                     Name = $"Version-{i}"
                 };
                 return await _mediator.Send(new AddOrUpdateEntityCommand<TestEntity, TestDescriptor>(entity));
-            }))
-            .ToList();
+            }))];
 
         TestEntity?[] results = await Task.WhenAll(tasks);
 
@@ -106,9 +99,7 @@ public class ScalabilityTests : IDisposable
     public async Task Bulk_Operations_Should_Handle_Large_Collections()
     {
         // Arrange - Create 1000 entities
-        List<TestEntity> entities = Enumerable.Range(0, 1000)
-            .Select(i => new TestEntity { Name = $"Bulk-{i}" })
-            .ToList();
+        List<TestEntity> entities = [.. Enumerable.Range(0, 1000).Select(i => new TestEntity { Name = $"Bulk-{i}" })];
 
         // Act
         Stopwatch stopwatch = Stopwatch.StartNew();
@@ -130,9 +121,7 @@ public class ScalabilityTests : IDisposable
     public async Task Mixed_Read_Write_Load_Should_Be_Consistent()
     {
         // Arrange - Add initial entities
-        List<TestEntity> initialEntities = Enumerable.Range(0, 20)
-            .Select(i => new TestEntity { Name = $"Initial-{i}" })
-            .ToList();
+        List<TestEntity> initialEntities = [.. Enumerable.Range(0, 20).Select(i => new TestEntity { Name = $"Initial-{i}" })];
 
         _ = await _mediator.Send(new AddEntitiesCommand<TestEntity, TestDescriptor>(initialEntities));
 
@@ -197,9 +186,7 @@ public class ScalabilityTests : IDisposable
     public async Task Bulk_Update_Should_Handle_Batching_Correctly()
     {
         // Arrange - Create 1500 entities (should trigger batching at 500)
-        List<TestEntity> entities = Enumerable.Range(0, 1500)
-            .Select(i => new TestEntity { Name = $"Original-{i}" })
-            .ToList();
+        List<TestEntity> entities = [.. Enumerable.Range(0, 1500).Select(i => new TestEntity { Name = $"Original-{i}" })];
 
         _ = await _mediator.Send(new AddEntitiesCommand<TestEntity, TestDescriptor>(entities));
 
@@ -227,9 +214,7 @@ public class ScalabilityTests : IDisposable
     public async Task Bulk_Remove_Should_Handle_Large_Collections()
     {
         // Arrange - Create 800 entities
-        List<TestEntity> entities = Enumerable.Range(0, 800)
-            .Select(i => new TestEntity { Name = $"ToRemove-{i}" })
-            .ToList();
+        List<TestEntity> entities = [.. Enumerable.Range(0, 800).Select(i => new TestEntity { Name = $"ToRemove-{i}" })];
 
         _ = await _mediator.Send(new AddEntitiesCommand<TestEntity, TestDescriptor>(entities));
 
@@ -247,8 +232,5 @@ public class ScalabilityTests : IDisposable
         Assert.Equal(0, count);
     }
 
-    public void Dispose()
-    {
-        _provider.Dispose();
-    }
+    public void Dispose() => _provider.Dispose();
 }

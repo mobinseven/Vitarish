@@ -1,6 +1,6 @@
 using Vitarish.Communications.Infrastructure.Services;
 
-namespace Vitarish.Communications.Tests.Application;
+namespace Communications.Tests.Application;
 
 /// <summary>
 /// Unit tests for <see cref="MessagesService"/>.

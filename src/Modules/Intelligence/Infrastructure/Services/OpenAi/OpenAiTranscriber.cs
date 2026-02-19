@@ -114,15 +114,12 @@ public sealed class OpenAiTranscriber(IOptionsMonitor<AiOptions> aiOptions) : IT
         return client.GetAudioClient(modelId);
     }
 
-    private static string GetExtension(string mimeType)
+    private static string GetExtension(string mimeType) => mimeType switch
     {
-        return mimeType switch
-        {
-            "audio/webm" => "webm",
-            "audio/ogg" => "ogg",
-            "audio/mpeg" => "mp3",
-            "video/mp4" => "mp4",
-            _ => "webm"
-        };
-    }
+        "audio/webm" => "webm",
+        "audio/ogg" => "ogg",
+        "audio/mpeg" => "mp3",
+        "video/mp4" => "mp4",
+        _ => "webm"
+    };
 }

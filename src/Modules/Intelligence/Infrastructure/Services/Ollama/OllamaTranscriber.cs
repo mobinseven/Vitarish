@@ -129,31 +129,22 @@ public sealed class OllamaTranscriber(IOptionsMonitor<AiOptions> aiOptions) : IT
         return string.IsNullOrWhiteSpace(configured) ? "whisper" : configured;
     }
 
-    private static string ResolveAudioFormat(string mimeType)
+    private static string ResolveAudioFormat(string mimeType) => mimeType switch
     {
-        return mimeType switch
-        {
-            "audio/webm" => "webm",
-            "audio/ogg" => "ogg",
-            "audio/mpeg" => "mp3",
-            "audio/wav" => "wav",
-            "audio/x-wav" => "wav",
-            "video/mp4" => "mp4",
-            _ => "wav"
-        };
-    }
+        "audio/webm" => "webm",
+        "audio/ogg" => "ogg",
+        "audio/mpeg" => "mp3",
+        "audio/wav" => "wav",
+        "audio/x-wav" => "wav",
+        "video/mp4" => "mp4",
+        _ => "wav"
+    };
 
-    private static string BuildPrompt(string? language)
-    {
-        return string.IsNullOrWhiteSpace(language)
+    private static string BuildPrompt(string? language) => string.IsNullOrWhiteSpace(language)
                 ? "Transcribe the supplied audio to text."
                 : $"Transcribe the supplied audio to {language} text.";
-    }
 
-    private static string? ExtractTranscript(OllamaChatResponse? response)
-    {
-        return response?.Message?.Content?.FirstOrDefault(c => string.Equals(c.Type, "output_text", StringComparison.OrdinalIgnoreCase))?.Text;
-    }
+    private static string? ExtractTranscript(OllamaChatResponse? response) => response?.Message?.Content?.FirstOrDefault(c => string.Equals(c.Type, "output_text", StringComparison.OrdinalIgnoreCase))?.Text;
 
     private sealed class OllamaChatRequest
     {

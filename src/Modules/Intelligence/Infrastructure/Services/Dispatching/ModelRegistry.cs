@@ -4,15 +4,9 @@ using Vitarish.Intelligence.Domain.Options;
 
 namespace Vitarish.Intelligence.Infrastructure.Services.Dispatching;
 
-public sealed class ModelRegistry
+public sealed class ModelRegistry(IOptionsMonitor<AiOptions> aiOptions)
 {
-    private readonly IOptionsMonitor<AiOptions> _aiOptions;
-    private AiOptions CurrentOptions => _aiOptions.CurrentValue;
-
-    public ModelRegistry(IOptionsMonitor<AiOptions> aiOptions)
-    {
-        _aiOptions = aiOptions;
-    }
+    private AiOptions CurrentOptions => aiOptions.CurrentValue;
 
     private static readonly IReadOnlyList<ModelInfo> AllTranscriberModels = [
         // Google models
@@ -123,15 +117,9 @@ public sealed class ModelRegistry
         return models;
     }
 
-    private bool IsGoogleSpeechConfigured()
-    {
-        return !string.IsNullOrWhiteSpace(CurrentOptions.Google.Speech.ProjectId)
+    private bool IsGoogleSpeechConfigured() => !string.IsNullOrWhiteSpace(CurrentOptions.Google.Speech.ProjectId)
                 && !string.IsNullOrWhiteSpace(CurrentOptions.Google.Speech.Location)
                 && !string.IsNullOrWhiteSpace(CurrentOptions.Google.Speech.RecognizerId);
-    }
 
-    private bool IsGoogleGeminiConfigured()
-    {
-        return !string.IsNullOrWhiteSpace(CurrentOptions.Google.Gemini.ApiKey);
-    }
+    private bool IsGoogleGeminiConfigured() => !string.IsNullOrWhiteSpace(CurrentOptions.Google.Gemini.ApiKey);
 }

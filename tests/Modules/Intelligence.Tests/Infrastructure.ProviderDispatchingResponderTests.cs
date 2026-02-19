@@ -2,7 +2,7 @@ using Microsoft.Extensions.Options;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Infrastructure.Services.Dispatching;
 
-namespace Vitarish.Intelligence.Tests;
+namespace Intelligence.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="ProviderDispatchingResponder"/> class.
@@ -15,7 +15,7 @@ public sealed class ProviderDispatchingResponderTests
     public void Constructor_WithValidOptions_InitializesCorrectly()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
         var modelRegistry = new ModelRegistry(aiOptions);
 
         // Act
@@ -30,14 +30,14 @@ public sealed class ProviderDispatchingResponderTests
     public void StreamAsync_ReturnsAsyncEnumerable()
     {
         // Arrange
-        var aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
+        IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
         var modelRegistry = new ModelRegistry(aiOptions);
         var responder = new ProviderDispatchingResponder(aiOptions, modelRegistry);
         var input = new List<ResponderInput> { ResponderInput.TextInput("Hello") };
         var options = new ResponderOptions { Model = DefaultResponseModel };
 
         // Act
-        var stream = responder.StreamAsync(input, options);
+        IAsyncEnumerable<ResponderOutput> stream = responder.StreamAsync(input, options);
 
         // Assert
         stream.Should().NotBeNull();
@@ -50,7 +50,7 @@ public sealed class ProviderDispatchingResponderTests
     public void Constructor_WithOpenAiModels_InitializesCorrectly(string model)
     {
         // Arrange
-        var aiOptions = Options.Create(new AiOptions
+        IOptionsMonitor<AiOptions> aiOptions = Options.Create(new AiOptions
         {
             DefaultResponseModel = model,
             OpenAi = new OpenAiOptions { ApiKey = "test-api-key" }
@@ -71,7 +71,7 @@ public sealed class ProviderDispatchingResponderTests
     public void Constructor_WithGoogleModels_InitializesCorrectly(string model)
     {
         // Arrange
-        var aiOptions = Options.Create(new AiOptions
+        IOptionsMonitor<AiOptions> aiOptions = Options.Create(new AiOptions
         {
             DefaultResponseModel = model,
             Google = new GoogleOptions
@@ -95,7 +95,7 @@ public sealed class ProviderDispatchingResponderTests
     public void Constructor_WithOllamaModels_InitializesCorrectly(string model)
     {
         // Arrange
-        var aiOptions = Options.Create(new AiOptions
+        IOptionsMonitor<AiOptions> aiOptions = Options.Create(new AiOptions
         {
             DefaultResponseModel = model,
             Ollama = new OllamaOptions { BaseUrl = "http://localhost:11434" }

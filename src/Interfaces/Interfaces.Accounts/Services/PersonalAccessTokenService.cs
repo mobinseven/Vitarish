@@ -46,7 +46,7 @@ public sealed class PersonalAccessTokenService(IPersonalAccessTokenGenerator gen
         cancellationToken.ThrowIfCancellationRequested();
         return !tokenStore.TryGetValue(subjectId, out ConcurrentDictionary<string, byte>? tokens)
             ? Task.FromResult<IReadOnlyCollection<string>>(Array.Empty<string>())
-            : Task.FromResult<IReadOnlyCollection<string>>(tokens.Keys.ToArray());
+            : Task.FromResult<IReadOnlyCollection<string>>([.. tokens.Keys]);
     }
 
     public Task RevokeTokenAsync(

@@ -63,7 +63,7 @@ public sealed class MockPartiesService : IPartiesService
 
     public Task<IEnumerable<TenantReadDto>> GetTenantsAsync(CancellationToken ct = default) => Task.FromResult<IEnumerable<TenantReadDto>>(tenants.Values);
 
-    public Task<IEnumerable<TenantReadDto>> GetTenantsByOwnerAsync(Guid ownerId, CancellationToken ct = default) => Task.FromResult<IEnumerable<TenantReadDto>>(tenants.Values.Where(tenant => tenant.OwnerId == ownerId).ToList());
+    public Task<IEnumerable<TenantReadDto>> GetTenantsByOwnerAsync(Guid ownerId, CancellationToken ct = default) => Task.FromResult<IEnumerable<TenantReadDto>>([.. tenants.Values.Where(tenant => tenant.OwnerId == ownerId)]);
 
     public Task<TenantReadDto?> CreateTenantAsync(TenantWriteDto dto, CancellationToken ct = default)
     {
@@ -116,7 +116,7 @@ public sealed class MockPartiesService : IPartiesService
     }
 
     public Task<IEnumerable<TenantIndicatorReadDto>> GetTenantIndicatorsByTenantAsync(Guid tenantId, CancellationToken ct = default) => Task.FromResult<IEnumerable<TenantIndicatorReadDto>>(
-            indicators.Values.Where(indicator => indicator.TenantId == tenantId).ToList());
+            [.. indicators.Values.Where(indicator => indicator.TenantId == tenantId)]);
 
     public Task<TenantIndicatorReadDto?> CreateTenantIndicatorAsync(TenantIndicatorWriteDto dto, CancellationToken ct = default)
     {

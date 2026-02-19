@@ -41,7 +41,7 @@ public partial class ProcedureEditDialog : ProceduresBase
             return;
         }
 
-        var updated = await ProceduresService.UpdateAsync(procedure, CancellationToken.None).GetValueOrDefaultAsync();
+        ProcedureReadDto? updated = await ProceduresService.UpdateAsync(procedure, CancellationToken.None).GetValueOrDefaultAsync();
 
         MudDialog.Close(DialogResult.Ok(true));
     }

@@ -20,8 +20,5 @@ public sealed class PreviewAuthenticationHandler(
         return Task.FromResult(AuthenticateResult.Success(ticket));
     }
 
-    public Task SignOutAsync(AuthenticationProperties? properties)
-    {
-        return Task.CompletedTask;
-    }
+    public Task SignOutAsync(AuthenticationProperties? properties) => Task.CompletedTask;
 }

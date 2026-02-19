@@ -1,4 +1,4 @@
-namespace Vitarish.Intelligence.Tests;
+namespace Intelligence.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="ModelInfo"/> record.
@@ -88,7 +88,7 @@ public sealed class ModelInfoTests
         };
 
         // Act
-        var copy = original with { DisplayName = "GPT-4o Updated" };
+        ModelInfo copy = original with { DisplayName = "GPT-4o Updated" };
 
         // Assert
         copy.Id.Should().Be("gpt-4o");

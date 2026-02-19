@@ -13,9 +13,9 @@ using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using Vitarish.Entities.Server.Models;
 using Vitarish.Files.Application.Abstractions;
-using Vitarish.Files.Infrastructure.Interfaces;
+using Vitarish.Files.Tests;
 
-namespace Vitarish.Files.Tests;
+namespace Files.Tests;
 
 public sealed class Infrastructure_FilesApiTests
 {
@@ -23,12 +23,12 @@ public sealed class Infrastructure_FilesApiTests
     public async Task GetFileById_NonExistentFile_Returns404()
     {
         // Arrange
-        using var host = CreateHost();
-        var client = host.GetTestClient();
+        using IHost host = CreateHost();
+        HttpClient client = host.GetTestClient();
         var fileId = Guid.NewGuid();
 
         // Act
-        var response = await client.GetAsync($"/files/{fileId}");
+        HttpResponseMessage response = await client.GetAsync($"/files/{fileId}");
 
         // Assert
         _ = response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
@@ -38,11 +38,11 @@ public sealed class Infrastructure_FilesApiTests
     public async Task GetFileById_InvalidGuid_ReturnsNotFound()
     {
         // Arrange
-        using var host = CreateHost();
-        var client = host.GetTestClient();
+        using IHost host = CreateHost();
+        HttpClient client = host.GetTestClient();
 
         // Act
-        var response = await client.GetAsync("/files/not-a-guid");
+        HttpResponseMessage response = await client.GetAsync("/files/not-a-guid");
 
         // Assert
         _ = response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
@@ -60,11 +60,11 @@ public sealed class Infrastructure_FilesApiTests
             Metadata = new FileMetadata { Extension = "txt" }
         };
 
-        using var host = CreateHost(fileInfo);
-        var client = host.GetTestClient();
+        using IHost host = CreateHost(fileInfo);
+        HttpClient client = host.GetTestClient();
 
         // Act
-        var response = await client.GetAsync($"/files/{fileId}");
+        HttpResponseMessage response = await client.GetAsync($"/files/{fileId}");
 
         // Assert
         _ = response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
@@ -82,12 +82,12 @@ public sealed class Infrastructure_FilesApiTests
             Metadata = new FileMetadata { Extension = "txt" }
         };
 
-        using var host = CreateHost(fileInfo);
-        var client = host.GetTestClient();
+        using IHost host = CreateHost(fileInfo);
+        HttpClient client = host.GetTestClient();
 
         // Act
         var request = new HttpRequestMessage(HttpMethod.Head, $"/files/{fileId}");
-        var response = await client.SendAsync(request);
+        HttpResponseMessage response = await client.SendAsync(request);
 
         // Assert
         _ = response.StatusCode.Should().Be(System.Net.HttpStatusCode.OK);
@@ -100,13 +100,13 @@ public sealed class Infrastructure_FilesApiTests
     public async Task HeadRequest_NonExistentFile_Returns404()
     {
         // Arrange
-        using var host = CreateHost();
-        var client = host.GetTestClient();
+        using IHost host = CreateHost();
+        HttpClient client = host.GetTestClient();
         var fileId = Guid.NewGuid();
 
         // Act
         var request = new HttpRequestMessage(HttpMethod.Head, $"/files/{fileId}");
-        var response = await client.SendAsync(request);
+        HttpResponseMessage response = await client.SendAsync(request);
 
         // Assert
         _ = response.StatusCode.Should().Be(System.Net.HttpStatusCode.NotFound);
@@ -126,17 +126,17 @@ public sealed class Infrastructure_FilesApiTests
 
         long? capturedOffset = null;
         long? capturedLength = null;
-        using var host = CreateHost(fileInfo, (offset, length) =>
+        using IHost host = CreateHost(fileInfo, (offset, length) =>
         {
             capturedOffset = offset;
             capturedLength = length;
         });
-        var client = host.GetTestClient();
+        HttpClient client = host.GetTestClient();
 
         // Act
         var request = new HttpRequestMessage(HttpMethod.Get, $"/files/{fileId}");
         request.Headers.Add("Range", "bytes=5-11");
-        var response = await client.SendAsync(request);
+        HttpResponseMessage response = await client.SendAsync(request);
 
         // Assert
         _ = capturedOffset.Should().Be(5);
@@ -209,10 +209,9 @@ public sealed class Infrastructure_FilesApiTests
             .Start();
     }
 
-    private sealed class OptionsWrapper<T> : IOptionsSnapshot<T> where T : class
+    private sealed class OptionsWrapper<T>(T value) : IOptionsSnapshot<T> where T : class
     {
-        public OptionsWrapper(T value) => Value = value;
-        public T Value { get; }
+        public T Value { get; } = value;
         public T Get(string? name) => Value;
     }
 }

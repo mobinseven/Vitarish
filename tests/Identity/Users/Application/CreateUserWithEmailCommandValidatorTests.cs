@@ -1,7 +1,7 @@
 using FluentValidation.TestHelper;
 using Vitarish.Users.Application.Commands;
 
-namespace Vitarish.Users.Tests.Application;
+namespace Users.Tests.Application;
 
 public class CreateUserWithEmailCommandValidatorTests
 {

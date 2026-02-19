@@ -84,14 +84,13 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
         }
 
         // Collect deleted indicators for event publishing
-        List<TenantIndicatorDeletedEvent> deletedIndicators = ChangeTracker.Entries<TenantIndicator>()
+        List<TenantIndicatorDeletedEvent> deletedIndicators = [.. ChangeTracker.Entries<TenantIndicator>()
             .Where(e => e.State == EntityState.Deleted)
             .Select(e => new Domain.Events.TenantIndicatorDeletedEvent(
                 e.Entity.TenantId,
                 e.Entity.Id,
                 e.Entity.Method,
-                e.Entity.Value))
-            .ToList();
+                e.Entity.Value))];
 
         int result = await base.SaveChangesAsync(cancellationToken);
 

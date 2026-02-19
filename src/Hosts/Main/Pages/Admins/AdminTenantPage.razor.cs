@@ -32,8 +32,8 @@ public partial class AdminTenantPage
         {
             {"Tenant",   Tenant }
         };
-        var dialog = await DialogService.ShowAsync<TenantEditDialog>(null, parameters);
-        var result = await dialog.Result;
+        IDialogReference dialog = await DialogService.ShowAsync<TenantEditDialog>(null, parameters);
+        DialogResult? result = await dialog.Result;
         if(result is null || result.Canceled)
         {
             return;

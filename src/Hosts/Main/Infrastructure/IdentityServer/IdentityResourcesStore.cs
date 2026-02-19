@@ -28,10 +28,7 @@ public class IdentityResourcesStore : IResourceStore
         //return [.. scopes.Where(apiscope => scopeNames.Any(scope => scope == apiscope)).Select(s => new ApiScope(s))];
         [];
 
-    Task<IEnumerable<IdentityResource>> IResourceStore.FindIdentityResourcesByScopeNameAsync(IEnumerable<string> scopeNames)
-    {
-        return Task.FromResult(ResourceDefinitions.IdentityResources.Where(ir => scopeNames.Any(scope => scope == ir.Name)).Select(ir => ir));
-    }
+    Task<IEnumerable<IdentityResource>> IResourceStore.FindIdentityResourcesByScopeNameAsync(IEnumerable<string> scopeNames) => Task.FromResult(ResourceDefinitions.IdentityResources.Where(ir => scopeNames.Any(scope => scope == ir.Name)).Select(ir => ir));
 
     async Task<Resources> IResourceStore.GetAllResourcesAsync() =>
         //List<ApiClient> apiclients = await apiClients.ApiClients.ToListAsync();

@@ -1,6 +1,6 @@
 using MediatR;
-using Vitarish.Modules.Feed.Domain.Abstractions;
-using Vitarish.Modules.Feed.Domain.Models;
+using Vitarish.Feed.Domain.Abstractions;
+using Vitarish.Feed.Domain.Models;
 using Vitarish.Sea.Domain.Entities;
 
 namespace Vitarish.Sea.Infrastructure.FeedSources;
@@ -8,15 +8,8 @@ namespace Vitarish.Sea.Infrastructure.FeedSources;
 /// <summary>
 /// Feed data source that provides recent projects from the Sea estate
 /// </summary>
-public class SeaProjectsFeedSource : IFeedDataSource
+public class SeaProjectsFeedSource(IMediator mediator) : IFeedDataSource
 {
-    private readonly IMediator _mediator;
-
-    public SeaProjectsFeedSource(IMediator mediator)
-    {
-        _mediator = mediator;
-    }
-
     public string SourceId => "sea.projects";
     public string SourceName => "Sea Projects";
     public string Description => "Recently created or updated Sea projects";
@@ -54,25 +47,22 @@ public class SeaProjectsFeedSource : IFeedDataSource
         }
     }
 
-    private FeedItem CreateFeedItem(Project project)
+    private FeedItem CreateFeedItem(Project project) => new FeedItem
     {
-        return new FeedItem
+        Id = project.Id,
+        SourceId = SourceId,
+        SourceName = SourceName,
+        Title = project.Name,
+        Description = project.Description,
+        Timestamp = project.UpdatedAt ?? project.CreatedAt,
+        ItemType = "project",
+        IconUrl = null, // Could extract from project metadata
+        NavigationUrl = $"/sea/projects/{project.Id}",
+        CreatedBy = project.CreatedBy,
+        Metadata = new Dictionary<string, object?>
         {
-            Id = project.Id,
-            SourceId = SourceId,
-            SourceName = SourceName,
-            Title = project.Name,
-            Description = project.Description,
-            Timestamp = project.UpdatedAt ?? project.CreatedAt,
-            ItemType = "project",
-            IconUrl = null, // Could extract from project metadata
-            NavigationUrl = $"/sea/projects/{project.Id}",
-            CreatedBy = project.CreatedBy,
-            Metadata = new Dictionary<string, object?>
-            {
-                ["isTemplate"] = project.Template,
-                ["metadata"] = project.Metadata
-            }
-        };
-    }
+            ["isTemplate"] = project.Template,
+            ["metadata"] = project.Metadata
+        }
+    };
 }

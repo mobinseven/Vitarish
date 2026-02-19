@@ -1,4 +1,4 @@
-namespace Vitarish.Communications.Tests.Application;
+namespace Communications.Tests.Application;
 
 public sealed class SendSmsTests
 {

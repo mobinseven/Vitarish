@@ -5,21 +5,15 @@ namespace Vitarish.Interfaces.Accounts.Services;
 /// <summary>
 /// Service for WebAuthn interop operations with improved error handling.
 /// </summary>
-public sealed class WebAuthnInteropService : IWebAuthnInterop, IAsyncDisposable
+public sealed class WebAuthnInteropService(IJSRuntime jsRuntime, ILogger<WebAuthnInteropService> logger) : IWebAuthnInterop, IAsyncDisposable
 {
     private const string ModulePath = "./_content/Vitarish.Interfaces.Accounts/Components/WebAuthnInterop.razor.js";
-    private readonly IJSRuntime _jsRuntime;
-    private readonly ILogger<WebAuthnInteropService> _logger;
+    private readonly IJSRuntime _jsRuntime = jsRuntime ?? throw new ArgumentNullException(nameof(jsRuntime));
+    private readonly ILogger<WebAuthnInteropService> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly SemaphoreSlim _initializationGate = new(1, 1);
     private IJSObjectReference? _module;
     private bool _initialized;
     private bool _disposed;
-
-    public WebAuthnInteropService(IJSRuntime jsRuntime, ILogger<WebAuthnInteropService> logger)
-    {
-        _jsRuntime = jsRuntime ?? throw new ArgumentNullException(nameof(jsRuntime));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-    }
 
     /// <inheritdoc />
     public async Task InitializeAsync(CancellationToken cancellationToken = default)

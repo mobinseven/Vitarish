@@ -1,4 +1,4 @@
-namespace Vitarish.Intelligence.Tests;
+namespace Intelligence.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="AvailableModels"/> record.
@@ -153,7 +153,7 @@ public sealed class AvailableModelsTests
         };
 
         // Act
-        var copy = original with
+        AvailableModels copy = original with
         {
             ResponderModels = [new() { Id = "gpt-5", DisplayName = "GPT-5", Provider = "OpenAI" }]
         };

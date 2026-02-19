@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Options;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
-using Vitarish.Files.Infrastructure.Interfaces;
 
 namespace Vitarish.Files.Infrastructure.Api;
 

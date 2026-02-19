@@ -1,4 +1,4 @@
-namespace Vitarish.Modules.Feed.Domain.Models;
+namespace Vitarish.Feed.Domain.Models;
 
 /// <summary>
 /// Configuration options for feed fetching and filtering

@@ -27,13 +27,13 @@ public partial class CurrentUserTenantsWidget : CommonBase
 
         foreach (Guid id in tenantIds)
         {
-            var tenant = await PartiesService.GetTenantAsync(id);
+            TenantReadDto? tenant = await PartiesService.GetTenantAsync(id);
             if (tenant == null)
             {
                 continue;
             }
-            var tenantInds = await PartiesService.GetTenantIndicatorsByTenantAsync(id);
-            var ind = tenantInds.FirstOrDefault();
+            IEnumerable<TenantIndicatorReadDto> tenantInds = await PartiesService.GetTenantIndicatorsByTenantAsync(id);
+            TenantIndicatorReadDto? ind = tenantInds.FirstOrDefault();
             if (ind == null)
             {
                 continue;

@@ -30,8 +30,8 @@ public partial class TenantIndicatorsEditor
         {
             {"TenantId", Tenant.Id }
         };
-        var dialog = await DialogService.ShowAsync<TenantIndicatorEditDialog>(null, parameters);
-        var result = await dialog.Result;
+        IDialogReference dialog = await DialogService.ShowAsync<TenantIndicatorEditDialog>(null, parameters);
+        DialogResult? result = await dialog.Result;
         if (result is null || result.Canceled)
         {
             return;
@@ -47,8 +47,8 @@ public partial class TenantIndicatorsEditor
             {"TenantId", Tenant.Id },
             {"TenantIndicator", tenantIndicator }
         };
-        var dialog = await DialogService.ShowAsync<TenantIndicatorEditDialog>(null, parameters);
-        var result = await dialog.Result;
+        IDialogReference dialog = await DialogService.ShowAsync<TenantIndicatorEditDialog>(null, parameters);
+        DialogResult? result = await dialog.Result;
         if (result is null || result.Canceled)
         {
             return;

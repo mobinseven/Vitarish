@@ -1,4 +1,4 @@
-namespace Vitarish.Parties.Tests.TestHelpers;
+namespace Parties.Tests.TestHelpers;
 
 using MediatR;
 

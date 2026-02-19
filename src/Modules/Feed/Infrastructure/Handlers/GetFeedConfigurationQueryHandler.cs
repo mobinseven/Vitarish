@@ -1,24 +1,17 @@
 using MediatR;
-using Vitarish.Modules.Feed.Application.Queries;
-using Vitarish.Modules.Feed.Domain.Abstractions;
-using Vitarish.Modules.Feed.Domain.Models;
+using Vitarish.Feed.Application.Queries;
+using Vitarish.Feed.Domain.Abstractions;
+using Vitarish.Feed.Domain.Models;
 
-namespace Vitarish.Modules.Feed.Infrastructure.Handlers;
+namespace Vitarish.Feed.Infrastructure.Handlers;
 
-public class GetFeedConfigurationQueryHandler : IRequestHandler<GetFeedConfigurationQuery, FeedConfiguration>
+public class GetFeedConfigurationQueryHandler(IFeedService feedService) : IRequestHandler<GetFeedConfigurationQuery, FeedConfiguration>
 {
-    private readonly IFeedService _feedService;
-
-    public GetFeedConfigurationQueryHandler(IFeedService feedService)
-    {
-        _feedService = feedService;
-    }
-
     public Task<FeedConfiguration> Handle(
         GetFeedConfigurationQuery request,
         CancellationToken cancellationToken)
     {
-        var configuration = _feedService.GetConfiguration();
+        FeedConfiguration configuration = feedService.GetConfiguration();
         return Task.FromResult(configuration);
     }
 }

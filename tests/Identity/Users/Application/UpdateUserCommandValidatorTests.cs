@@ -2,7 +2,7 @@ using FluentValidation.TestHelper;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Domain.Entities;
 
-namespace Vitarish.Users.Tests.Application;
+namespace Users.Tests.Application;
 
 public class UpdateUserCommandValidatorTests
 {

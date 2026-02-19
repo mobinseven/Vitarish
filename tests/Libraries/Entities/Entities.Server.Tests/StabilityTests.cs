@@ -114,9 +114,7 @@ public class StabilityTests : IDisposable
 
         for(int batch = 0; batch < totalEntities / batchSize; batch++)
         {
-            List<TestEntity> entities = Enumerable.Range(batch * batchSize, batchSize)
-                .Select(i => new TestEntity { Name = $"MemTest-{i}" })
-                .ToList();
+            List<TestEntity> entities = [.. Enumerable.Range(batch * batchSize, batchSize).Select(i => new TestEntity { Name = $"MemTest-{i}" })];
 
             _ = await mediator.Send(new AddEntitiesCommand<TestEntity, TestDescriptor>(entities));
 
@@ -138,7 +136,7 @@ public class StabilityTests : IDisposable
         _ = await mediator.Send(new AddEntityCommand<TestEntity, TestDescriptor>(entity));
 
         // Act - Multiple concurrent updates to the same entity
-        List<Task<TestEntity?>> updateTasks = Enumerable.Range(0, 20)
+        List<Task<TestEntity?>> updateTasks = [.. Enumerable.Range(0, 20)
             .Select(i => Task.Run(async () =>
             {
                 TestEntity toUpdate = new()
@@ -147,8 +145,7 @@ public class StabilityTests : IDisposable
                     Name = $"Update-{i}"
                 };
                 return await mediator.Send(new UpdateEntityCommand<TestEntity, TestDescriptor>(toUpdate));
-            }))
-            .ToList();
+            }))];
 
         TestEntity?[] results = await Task.WhenAll(updateTasks);
 
@@ -172,18 +169,14 @@ public class StabilityTests : IDisposable
         IMediator mediator = _provider.GetRequiredService<IMediator>();
 
         // Add some entities successfully
-        List<TestEntity> firstBatch = Enumerable.Range(0, 10)
-            .Select(i => new TestEntity { Name = $"Batch1-{i}" })
-            .ToList();
+        List<TestEntity> firstBatch = [.. Enumerable.Range(0, 10).Select(i => new TestEntity { Name = $"Batch1-{i}" })];
         _ = await mediator.Send(new AddEntitiesCommand<TestEntity, TestDescriptor>(firstBatch));
 
         int initialCount = await mediator.Send(new CountEntitiesQuery<TestEntity, TestDescriptor>(new TestDescriptor()));
         Assert.Equal(10, initialCount);
 
         // Act - Add another batch
-        List<TestEntity> secondBatch = Enumerable.Range(0, 10)
-            .Select(i => new TestEntity { Name = $"Batch2-{i}" })
-            .ToList();
+        List<TestEntity> secondBatch = [.. Enumerable.Range(0, 10).Select(i => new TestEntity { Name = $"Batch2-{i}" })];
         _ = await mediator.Send(new AddEntitiesCommand<TestEntity, TestDescriptor>(secondBatch));
 
         // Assert - System should be in consistent state
@@ -196,8 +189,5 @@ public class StabilityTests : IDisposable
         Assert.Equal(10, all.Count(e => e.Name.StartsWith("Batch2-")));
     }
 
-    public void Dispose()
-    {
-        _provider.Dispose();
-    }
+    public void Dispose() => _provider.Dispose();
 }

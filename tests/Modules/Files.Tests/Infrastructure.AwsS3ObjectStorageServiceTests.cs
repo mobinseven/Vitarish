@@ -7,7 +7,7 @@ using System.Net;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Services;
 
-namespace Vitarish.Files.Tests;
+namespace Files.Tests;
 
 public sealed class Infrastructure_AwsS3ObjectStorageServiceTests
 {

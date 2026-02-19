@@ -1,6 +1,6 @@
 using Vitarish.Users.Application.Queries;
 
-namespace Vitarish.Users.Tests.Application;
+namespace Users.Tests.Application;
 
 public class GetCurrentUserQueryTests
 {

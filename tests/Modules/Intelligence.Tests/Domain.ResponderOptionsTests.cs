@@ -1,4 +1,4 @@
-namespace Vitarish.Intelligence.Tests;
+namespace Intelligence.Tests;
 
 /// <summary>
 /// Unit tests for the <see cref="ResponderOptions"/> record.
@@ -175,7 +175,7 @@ public sealed class ResponderOptionsTests
         var original = new ResponderOptions { Model = "gpt-4", Instructions = "Original" };
 
         // Act
-        var copy = original with { Model = "gpt-5" };
+        ResponderOptions copy = original with { Model = "gpt-5" };
 
         // Assert
         copy.Model.Should().Be("gpt-5");
@@ -285,11 +285,9 @@ public sealed class ResponseTextFormatTests
     [Theory]
     [InlineData(ResponseTextFormat.Text, 0)]
     [InlineData(ResponseTextFormat.JsonObject, 1)]
-    public void ResponseTextFormat_HasCorrectIntValues(ResponseTextFormat format, int expectedValue)
-    {
+    public void ResponseTextFormat_HasCorrectIntValues(ResponseTextFormat format, int expectedValue) =>
         // Assert
         ((int)format).Should().Be(expectedValue);
-    }
 }
 
 /// <summary>
@@ -308,9 +306,7 @@ public sealed class ResponderToolApprovalRequirementTests
     [Theory]
     [InlineData(ResponderToolApprovalRequirement.Never, 0)]
     [InlineData(ResponderToolApprovalRequirement.Always, 1)]
-    public void ResponderToolApprovalRequirement_HasCorrectIntValues(ResponderToolApprovalRequirement requirement, int expectedValue)
-    {
+    public void ResponderToolApprovalRequirement_HasCorrectIntValues(ResponderToolApprovalRequirement requirement, int expectedValue) =>
         // Assert
         ((int)requirement).Should().Be(expectedValue);
-    }
 }

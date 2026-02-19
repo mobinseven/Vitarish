@@ -29,9 +29,7 @@ namespace Vitarish.Main.Migrations.SeaDb
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder)
-        {
-            migrationBuilder.AlterColumn<string>(
+        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.AlterColumn<string>(
                 name: "Metadata",
                 table: "Procedures",
                 type: "nvarchar(max)",
@@ -39,6 +37,5 @@ namespace Vitarish.Main.Migrations.SeaDb
                 oldClrType: typeof(string),
                 oldType: "nvarchar(max)",
                 oldDefaultValueSql: "'{}'");
-        }
     }
 }

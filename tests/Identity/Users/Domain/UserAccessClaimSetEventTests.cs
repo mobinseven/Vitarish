@@ -1,6 +1,6 @@
 using Vitarish.Users.Domain.Events;
 
-namespace Vitarish.Users.Tests.Domain;
+namespace Users.Tests.Domain;
 
 public class UserAccessClaimSetEventTests
 {

@@ -1,7 +1,7 @@
 using Vitarish.Parties.Domain.Enums;
 using Vitarish.Parties.Infrastructure.Extensions;
 
-namespace Vitarish.Parties.Tests;
+namespace Parties.Tests;
 
 /// <summary>
 /// Tests for /allow endpoint behavior for on-demand TLS.
@@ -216,8 +216,5 @@ public class OnDemandAllowEndpointTests : IDisposable
         Assert.True(allowed);
     }
 
-    public void Dispose()
-    {
-        _dbContext?.Dispose();
-    }
+    public void Dispose() => _dbContext?.Dispose();
 }

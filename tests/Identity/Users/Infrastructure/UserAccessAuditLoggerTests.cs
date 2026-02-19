@@ -1,8 +1,8 @@
+using Users.Tests.TestHelpers;
 using Vitarish.Users.Domain.Models;
 using Vitarish.Users.Infrastructure.Service;
-using Vitarish.Users.Tests.TestHelpers;
 
-namespace Vitarish.Users.Tests.Infrastructure;
+namespace Users.Tests.Infrastructure;
 
 public class UserAccessAuditLoggerTests
 {

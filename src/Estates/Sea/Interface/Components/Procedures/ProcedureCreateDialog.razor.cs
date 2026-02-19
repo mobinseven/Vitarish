@@ -58,7 +58,7 @@ public partial class ProcedureCreateDialog : ProceduresBase
             return;
         }
 
-        var added = await ProceduresService.AddAsync(new ProcedureWriteDto { ProjectId = ProjectId, Name = name }, CancellationToken.None).EnsureValueAsync();
+        ProcedureReadDto added = await ProceduresService.AddAsync(new ProcedureWriteDto { ProjectId = ProjectId, Name = name }, CancellationToken.None).EnsureValueAsync();
         if (templateProcedure is not null)
         {
             await CopyEventsAsync(templateProcedure.Id, added.Id);

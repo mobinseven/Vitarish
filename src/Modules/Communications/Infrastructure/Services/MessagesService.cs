@@ -7,16 +7,10 @@ using Vitarish.Communications.Domain.Options;
 
 namespace Vitarish.Communications.Infrastructure.Services;
 
-public class MessagesService : IMessagesService
+public class MessagesService(IOptionsMonitor<ProvidersOptions> providersOptions, ISmsProvider smsProvider) : IMessagesService
 {
-    private readonly IOptionsMonitor<ProvidersOptions> providersOptions;
-    private readonly ISmsProvider smsProvider;
-
-    public MessagesService(IOptionsMonitor<ProvidersOptions> providersOptions, ISmsProvider smsProvider)
-    {
-        this.providersOptions = providersOptions ?? throw new ArgumentNullException(nameof(providersOptions));
-        this.smsProvider = smsProvider ?? throw new ArgumentNullException(nameof(smsProvider));
-    }
+    private readonly IOptionsMonitor<ProvidersOptions> providersOptions = providersOptions ?? throw new ArgumentNullException(nameof(providersOptions));
+    private readonly ISmsProvider smsProvider = smsProvider ?? throw new ArgumentNullException(nameof(smsProvider));
 
     public async Task SendEmail(Message message, CancellationToken cancellationToken = default)
     {

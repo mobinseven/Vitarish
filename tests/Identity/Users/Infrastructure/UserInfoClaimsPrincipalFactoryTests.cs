@@ -5,7 +5,7 @@ using System.Security.Claims;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Service;
 
-namespace Vitarish.Users.Tests.Infrastructure;
+namespace Users.Tests.Infrastructure;
 
 public class UserInfoClaimsPrincipalFactoryTests
 {

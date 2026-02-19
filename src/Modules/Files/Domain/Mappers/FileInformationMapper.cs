@@ -30,20 +30,8 @@ public partial class FileInformationMapper
 public static class FilesEntityMapperExtensions
 {
     private static FileInformationMapper Mapper = new FileInformationMapper();
-    public static FileInformationReadDto ToDto(this FileInformation src)
-    {
-        return Mapper.ToDto(src);
-    }
-    public static FileInformation ToDomain(this FileInformationWriteDto src)
-    {
-        return Mapper.ToDomain(src);
-    }
-    public static FileInformationWriteDto Clone(this FileInformationWriteDto src)
-    {
-        return Mapper.Clone(src);
-    }
-    public static FileInformationDescriptor ToDescriptor(this FileInformationDescriptorDto src)
-    {
-        return Mapper.ToDomain(src);
-    }
+    public static FileInformationReadDto ToDto(this FileInformation src) => Mapper.ToDto(src);
+    public static FileInformation ToDomain(this FileInformationWriteDto src) => Mapper.ToDomain(src);
+    public static FileInformationWriteDto Clone(this FileInformationWriteDto src) => Mapper.Clone(src);
+    public static FileInformationDescriptor ToDescriptor(this FileInformationDescriptorDto src) => Mapper.ToDomain(src);
 }

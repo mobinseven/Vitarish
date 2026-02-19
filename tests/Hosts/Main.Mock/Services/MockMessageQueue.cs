@@ -14,8 +14,5 @@ public sealed class MockMessageQueue : IMessageQueue
     {
     }
 
-    public MessageQueueMessage Dequeue()
-    {
-        throw new InvalidOperationException("The queue is empty.");
-    }
+    public MessageQueueMessage Dequeue() => throw new InvalidOperationException("The queue is empty.");
 }

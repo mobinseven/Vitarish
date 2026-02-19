@@ -7,16 +7,13 @@ namespace Vitarish.Intelligence.Infrastructure.Extensions
     {
 #pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates.
 
-        internal static ResponseImageDetailLevel? MapImageDetail(ResponderInputImageDetail? detail)
+        internal static ResponseImageDetailLevel? MapImageDetail(ResponderInputImageDetail? detail) => detail switch
         {
-            return detail switch
-            {
-                ResponderInputImageDetail.Low => ResponseImageDetailLevel.Low,
-                ResponderInputImageDetail.High => ResponseImageDetailLevel.High,
-                ResponderInputImageDetail.Auto => ResponseImageDetailLevel.Auto,
-                _ => null,
-            };
-        }
+            ResponderInputImageDetail.Low => ResponseImageDetailLevel.Low,
+            ResponderInputImageDetail.High => ResponseImageDetailLevel.High,
+            ResponderInputImageDetail.Auto => ResponseImageDetailLevel.Auto,
+            _ => null,
+        };
 
         internal static IEnumerable<ResponseItem> MapInput(IEnumerable<ResponderInput> inputs)
         {
@@ -85,9 +82,7 @@ namespace Vitarish.Intelligence.Infrastructure.Extensions
                         completionContent.Add(callOutput);
                         break;
                     case McpToolDefinitionListItem list:
-                        List<McpToolDescription> tools = list.ToolDefinitions
-                            .Select(t => new McpToolDescription(t.Name, t.Description))
-                            .ToList();
+                        List<McpToolDescription> tools = [.. list.ToolDefinitions.Select(t => new McpToolDescription(t.Name, t.Description))];
                         ResponderOutput listOutput = ResponderOutput.McpListToolsOutput(list.ServerLabel, tools);
                         outputs.Add(listOutput);
                         completionContent.Add(listOutput);

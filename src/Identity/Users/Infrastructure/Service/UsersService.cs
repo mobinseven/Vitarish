@@ -131,9 +131,7 @@ public sealed class UsersService(ISender sender) : IUsersService
     public async Task<IList<string>> GetRolesAsync(User user, CancellationToken cancellationToken)
     {
         IEnumerable<IdentityRole> roles = await GetUserRolesAsync(user.Id, cancellationToken);
-        return roles.Where(r => !string.IsNullOrWhiteSpace(r.Name))
-            .Select(r => r.Name!)
-            .ToList();
+        return [.. roles.Where(r => !string.IsNullOrWhiteSpace(r.Name)).Select(r => r.Name!)];
     }
 
     public async Task<bool> IsInRoleAsync(User user, string roleName, CancellationToken cancellationToken)
@@ -145,7 +143,7 @@ public sealed class UsersService(ISender sender) : IUsersService
     public async Task<IList<User>> GetUsersInRoleAsync(string roleName, CancellationToken cancellationToken)
     {
         IEnumerable<User> users = await sender.Send(new GetUsersByRoleQuery(roleName), cancellationToken);
-        return users.ToList();
+        return [.. users];
     }
 
     public void Dispose()

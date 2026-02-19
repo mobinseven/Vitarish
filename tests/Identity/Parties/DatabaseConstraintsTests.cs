@@ -1,4 +1,4 @@
-namespace Vitarish.Parties.Tests;
+namespace Parties.Tests;
 
 using Vitarish.Parties.Domain.Enums;
 using Vitarish.Parties.Tests.TestHelpers;
@@ -179,8 +179,5 @@ public class DatabaseConstraintsTests : IDisposable
         Assert.Single(indicators, i => i.IsPrimary);
     }
 
-    public void Dispose()
-    {
-        _dbContext?.Dispose();
-    }
+    public void Dispose() => _dbContext?.Dispose();
 }

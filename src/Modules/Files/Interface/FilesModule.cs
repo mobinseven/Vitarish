@@ -11,7 +11,6 @@ using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Api;
 using Vitarish.Files.Infrastructure.Data;
-using Vitarish.Files.Infrastructure.Interfaces;
 using Vitarish.Files.Infrastructure.Services;
 using Vitarish.Files.Interface.DependencyInjection;
 using Vitarish.Modules.Base;
@@ -57,8 +56,5 @@ public class FilesModule : Module, IFilesModule
 
         _ = services.ConfigureFilesInterface();
     }
-    public override async Task Initialize(WebApplication app)
-    {
-        _ = app.MapFilesApi();
-    }
+    public override async Task Initialize(WebApplication app) => _ = app.MapFilesApi();
 }

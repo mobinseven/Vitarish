@@ -1,6 +1,6 @@
 using Microsoft.JSInterop;
 using System.Threading.Channels;
-using Vitarish.Files.Infrastructure.Interfaces;
+using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Interface.Components;
 
 namespace Vitarish.Files.Interface.Services;

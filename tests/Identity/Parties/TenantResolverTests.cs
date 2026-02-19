@@ -1,4 +1,4 @@
-namespace Vitarish.Parties.Tests;
+namespace Parties.Tests;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
@@ -32,7 +32,7 @@ public class TenantResolverTests : IDisposable
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Host = new HostString("");
 
-        var result = await _resolver.ResolveAsync(httpContext);
+        Tenant? result = await _resolver.ResolveAsync(httpContext);
 
         Assert.Null(result);
     }
@@ -61,7 +61,7 @@ public class TenantResolverTests : IDisposable
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Host = new HostString("app.customer.com");
 
-        var result = await _resolver.ResolveAsync(httpContext);
+        Tenant? result = await _resolver.ResolveAsync(httpContext);
 
         Assert.NotNull(result);
         Assert.Equal(tenant.Id, result.Id);
@@ -91,7 +91,7 @@ public class TenantResolverTests : IDisposable
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Host = new HostString("pending.customer.com");
 
-        var result = await _resolver.ResolveAsync(httpContext);
+        Tenant? result = await _resolver.ResolveAsync(httpContext);
 
         Assert.Null(result);
     }
@@ -120,7 +120,7 @@ public class TenantResolverTests : IDisposable
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Host = new HostString("verified.customer.com");
 
-        var result = await _resolver.ResolveAsync(httpContext);
+        Tenant? result = await _resolver.ResolveAsync(httpContext);
 
         Assert.Null(result);
     }
@@ -149,7 +149,7 @@ public class TenantResolverTests : IDisposable
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Host = new HostString("disabled.customer.com");
 
-        var result = await _resolver.ResolveAsync(httpContext);
+        Tenant? result = await _resolver.ResolveAsync(httpContext);
 
         Assert.Null(result);
     }
@@ -178,7 +178,7 @@ public class TenantResolverTests : IDisposable
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Host = new HostString("APP.CUSTOMER.COM");
 
-        var result = await _resolver.ResolveAsync(httpContext);
+        Tenant? result = await _resolver.ResolveAsync(httpContext);
 
         Assert.NotNull(result);
         Assert.Equal(tenant.Id, result.Id);
@@ -207,7 +207,7 @@ public class TenantResolverTests : IDisposable
 
         var httpContext1 = new DefaultHttpContext();
         httpContext1.Request.Host = new HostString("app.customer.com");
-        var result1 = await _resolver.ResolveAsync(httpContext1);
+        Tenant? result1 = await _resolver.ResolveAsync(httpContext1);
 
         // Remove tenant from DB to ensure cache is used
         _dbContext.Tenants.Remove(tenant);
@@ -215,7 +215,7 @@ public class TenantResolverTests : IDisposable
 
         var httpContext2 = new DefaultHttpContext();
         httpContext2.Request.Host = new HostString("app.customer.com");
-        var result2 = await _resolver.ResolveAsync(httpContext2);
+        Tenant? result2 = await _resolver.ResolveAsync(httpContext2);
 
         Assert.NotNull(result1);
         Assert.NotNull(result2);
@@ -246,7 +246,7 @@ public class TenantResolverTests : IDisposable
         var httpContext = new DefaultHttpContext();
         httpContext.Request.Host = new HostString("customer.saas.example.com");
 
-        var result = await _resolver.ResolveAsync(httpContext);
+        Tenant? result = await _resolver.ResolveAsync(httpContext);
 
         Assert.NotNull(result);
         Assert.Equal(tenant.Id, result.Id);

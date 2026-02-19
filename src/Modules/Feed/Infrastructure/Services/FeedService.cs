@@ -1,44 +1,28 @@
 using System.Text.Json;
+using Vitarish.Feed.Domain.Abstractions;
+using Vitarish.Feed.Domain.Models;
 using Vitarish.Modules.Base;
-using Vitarish.Modules.Feed.Domain.Abstractions;
-using Vitarish.Modules.Feed.Domain.Models;
 
-namespace Vitarish.Modules.Feed.Infrastructure.Services;
+namespace Vitarish.Feed.Infrastructure.Services;
 
 /// <summary>
 /// Service that aggregates feed items from multiple data sources.
 /// Auto-discovers all registered IFeedDataSource implementations via DI.
 /// </summary>
-public class FeedService : IFeedService
+public class FeedService(
+    IEnumerable<IFeedDataSource> dataSources,
+    ITenantService tenantService) : IFeedService
 {
-    private readonly IEnumerable<IFeedDataSource> _dataSources;
-    private readonly ITenantService _tenantService;
-
-    public FeedService(
-        IEnumerable<IFeedDataSource> dataSources,
-        ITenantService tenantService)
-    {
-        _dataSources = dataSources;
-        _tenantService = tenantService;
-    }
-
-    public IReadOnlyList<IFeedDataSource> GetAvailableSources()
-    {
-        return _dataSources
-            .OrderBy(s => s.Priority)
-            .ToList();
-    }
+    public IReadOnlyList<IFeedDataSource> GetAvailableSources() => [.. dataSources.OrderBy(s => s.Priority)];
 
     public async Task<IReadOnlyList<FeedItem>> GetFeedAsync(
         FeedQueryOptions options,
         CancellationToken cancellationToken = default)
     {
-        var config = GetConfiguration();
-        
+        FeedConfiguration config = GetConfiguration();
+
         // Filter sources based on configuration and options
-        var sourcesToQuery = _dataSources
-            .Where(s => ShouldIncludeSource(s, config, options))
-            .ToList();
+        List<IFeedDataSource> sourcesToQuery = [.. dataSources.Where(s => ShouldIncludeSource(s, config, options))];
 
         if (sourcesToQuery.Count == 0)
         {
@@ -46,19 +30,16 @@ public class FeedService : IFeedService
         }
 
         // Fetch from all sources in parallel
-        var fetchTasks = sourcesToQuery
-            .Select(source => FetchFromSourceAsync(source, options, cancellationToken))
-            .ToList();
+        List<Task<IReadOnlyList<FeedItem>>> fetchTasks = [.. sourcesToQuery.Select(source => FetchFromSourceAsync(source, options, cancellationToken))];
 
-        var results = await Task.WhenAll(fetchTasks);
+        IReadOnlyList<FeedItem>[] results = await Task.WhenAll(fetchTasks);
 
         // Aggregate and sort all items
-        var allItems = results
+        List<FeedItem> allItems = [.. results
             .SelectMany(items => items)
             .OrderByDescending(item => item.Timestamp)
             .Skip(options.Skip)
-            .Take(options.Limit)
-            .ToList();
+            .Take(options.Limit)];
 
         return allItems;
     }
@@ -80,7 +61,7 @@ public class FeedService : IFeedService
         }
     }
 
-    private bool ShouldIncludeSource(
+    private static bool ShouldIncludeSource(
         IFeedDataSource source,
         FeedConfiguration config,
         FeedQueryOptions options)
@@ -106,13 +87,13 @@ public class FeedService : IFeedService
         const string configKey = "feed.configuration";
 
         // Try to get from tenant metadata
-        if (_tenantService.Metadata?.TryGetValue(configKey, out var configValue) == true
+        if (tenantService.Metadata?.TryGetValue(configKey, out var configValue) == true
             && configValue is string configJson
             && !string.IsNullOrEmpty(configJson))
         {
             try
             {
-                var config = JsonSerializer.Deserialize<FeedConfiguration>(configJson);
+                FeedConfiguration? config = JsonSerializer.Deserialize<FeedConfiguration>(configJson);
                 if (config != null)
                 {
                     return config;
@@ -134,11 +115,11 @@ public class FeedService : IFeedService
     {
         const string configKey = "feed.configuration";
 
-        if (_tenantService.Metadata != null)
+        if (tenantService.Metadata != null)
         {
             var configJson = JsonSerializer.Serialize(configuration);
-            _tenantService.Metadata[configKey] = configJson;
-            
+            tenantService.Metadata[configKey] = configJson;
+
             // Trigger metadata update event
             await Task.CompletedTask; // Placeholder for actual persistence logic
         }
