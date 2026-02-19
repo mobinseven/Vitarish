@@ -9,7 +9,6 @@ namespace Vitarish.Interfaces.Widgets.Components;
 
 public partial class FeedWidget
 {
-    [Inject] private IEnumerable<IFeedPlugin> FeedPlugins { get; set; } = [];
     [Inject] private IMediator Mediator { get; set; } = default!;
 
     [Parameter] public string Title { get; set; } = "Activity Feed";

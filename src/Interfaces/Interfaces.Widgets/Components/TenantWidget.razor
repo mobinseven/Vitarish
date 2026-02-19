@@ -6,16 +6,5 @@
 }
 else
 {
-
-    <Stack>
-        <StackField>
-            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Style="width: 100%;">
-                <MudText Typo="Typo.h3">
-                    @Tenant.Name
-                </MudText>
-            </MudStack>
-        </StackField>
-        <StackButton Size="Size.Large" Color="Color.Primary" Label="@Localizer["Enter"]" OnClick="@(() => NavigationManager.NavigateTo(Tenant.ClientId))" />
-    </Stack>
-
+    NavigationManager.NavigateTo(Tenant.ClientId);
 }

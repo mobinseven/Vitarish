@@ -1,5 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
   <ItemGroup>
+    <ProjectReference Include="..\..\Modules\Feed\Domain\Feed.Domain.csproj" />
     <ProjectReference Include="..\Interfaces.Accounts\Interfaces.Accounts.csproj" />
     <ProjectReference Include="..\..\Modules\Feed\Application\Feed.Application.csproj" />
   </ItemGroup>

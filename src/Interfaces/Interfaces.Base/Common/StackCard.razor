@@ -1,0 +1,48 @@
+@inherits MudButton
+<MudButton Variant="Variant.Text"
+           ButtonType="@ButtonType"
+           Disabled="@Disabled"
+           Class="stack-item"
+           FullWidth
+           Style="@Style"
+           Href="@Href"
+           Color="@Color"
+           IconColor="@Color"
+           IconSize="@Size"
+           OnClick="@OnClick"
+           DropShadow="false">
+    <MudStack Spacing="0" AlignItems="AlignItems.Start" Justify="Justify.FlexStart" StretchItems="StretchItems.Middle">
+        <MudText Typo="Typo.caption" Color="Color.Secondary">@Caption</MudText>
+        <MudStack Row Style="width: 100%" AlignItems="AlignItems.Center" Justify="Justify.FlexStart" StretchItems="StretchItems.Middle">
+            <div>
+                <MudText Typo="@LabelSize" Align="Align.Start">
+                    <MudHighlighter HighlightedText="@HighlightString" Text="@Label" />
+                </MudText>
+                @if(!string.IsNullOrWhiteSpace(HelperText))
+                {
+                    <MudText Typo="Typo.caption">
+                        @HelperText
+                    </MudText>
+                }
+            </div>
+            <div />
+            <div>
+                @ChildContent
+            </div>
+        </MudStack>
+    </MudStack>
+</MudButton>
+@code {
+    [Parameter] public string? Caption { get; set; }
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string? HighlightString { get; set; }
+    [Parameter] public string? HelperText { get; set; }
+
+    private Typo LabelSize => Size switch
+    {
+        Size.Small => Typo.caption,
+        Size.Large => Typo.h3,
+        _ => Typo.body1
+    };
+
+}

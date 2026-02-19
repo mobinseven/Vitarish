@@ -15,8 +15,8 @@ public static class FeedServiceExtensions
         // Register the core feed service
         services.AddScoped<IFeedService, FeedService>();
 
-        // MediatR handlers are auto-registered by scanning the assembly
-        // No need to manually register query handlers
+
+        _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(FeedServiceExtensions).Assembly));
 
         return services;
     }

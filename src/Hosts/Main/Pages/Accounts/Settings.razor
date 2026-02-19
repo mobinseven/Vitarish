@@ -6,6 +6,13 @@
     return;
 }
 <MudStack Spacing="3">
+    <AuthorizeView Context="admin" Policy="@IdentityDefinitions.PlatformAdmin">
+        <Stack>
+            <StackButton Label="@Localizer["Admin"]"
+                         StartIcon="fa-regular fa-user-shield"
+                         OnClick="@(() => NavigationManager.NavigateTo("/Admin"))" />
+        </Stack>
+    </AuthorizeView>
     <Stack>
         <StackField Label="@Localizer["DetailsOf", Localizer["Account"]]">
             <MudText Typo="Typo.body2" Color="Color.Secondary">@User?.UserName</MudText>

@@ -13,17 +13,6 @@
     <Authorized>
 
         <TenantWidget />
-
-        <Stack>
-            <AuthorizeView Context="admin" Policy="@IdentityDefinitions.PlatformAdmin">
-                <StackButton Label="@Localizer["Admin"]"
-                             StartIcon="fa-regular fa-user-shield"
-                             OnClick="@(() => NavigationManager.NavigateTo("/Admin"))" />
-            </AuthorizeView>
-            <StackButton Label="@Localizer["Settings"]"
-                         StartIcon="fa-regular fa-user-gear"
-                         OnClick="@(() => NavigationManager.NavigateTo("/Settings"))" />
-        </Stack>
     </Authorized>
     <NotAuthorized>
         <Stack>
