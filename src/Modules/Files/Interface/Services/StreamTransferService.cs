@@ -92,12 +92,7 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
         {
             foreach (PendingFileDto file in _pendingFiles.ToArray())
             {
-                await using IJSStreamReference? streamRef = await _module.InvokeAsync<IJSStreamReference>("getFileStream", _id, file.Name);
-
-                if (streamRef is null)
-                {
-                    throw new Exception("StartTransferAsync getFileStream");
-                }
+                await using IJSStreamReference? streamRef = await _module.InvokeAsync<IJSStreamReference>("getFileStream", _id, file.Name) ?? throw new Exception("StartTransferAsync getFileStream");
 
                 await using Stream stream = await streamRef.OpenReadStreamAsync(file.Size, cancellationToken);
 

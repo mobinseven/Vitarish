@@ -349,7 +349,7 @@ public partial class AiResponderChat : CommonBase
         return materialized;
     }
 
-    private string? ExtractUserText(IReadOnlyList<ResponderInput> inputs)
+    private static string? ExtractUserText(IReadOnlyList<ResponderInput> inputs)
     {
         for (int i = inputs.Count - 1; i >= 0; i--)
         {

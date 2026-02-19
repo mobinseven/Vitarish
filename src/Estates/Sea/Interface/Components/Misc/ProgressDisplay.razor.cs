@@ -5,7 +5,7 @@ public partial class ProgressDisplay
     [Parameter, EditorRequired] public StatsReadDto Stats { get; set; }
     [Parameter, EditorRequired] public string Title { get; set; }
 
-    private string ProgressIcon(ProgressState? state) => state switch
+    private static string ProgressIcon(ProgressState? state) => state switch
     {
         ProgressState.NotStarted => "fa-regular fa-circle",
         ProgressState.Quarter => "fa-regular fa-circle-quarter",

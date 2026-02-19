@@ -38,14 +38,14 @@ public class IntelligenceProcessor(IIntelligenceModule intelligenceModule,
         string defaultResponseModel = CurrentOptions.DefaultResponseModel;
         string defaultTranscriptionModel = CurrentOptions.DefaultTranscriptionModel;
 
-        string? responseProvider = modelRegistry.GetProviderForModel(defaultResponseModel);
+        string? responseProvider = ModelRegistry.GetProviderForModel(defaultResponseModel);
         if (string.IsNullOrEmpty(responseProvider))
         {
             throw new InvalidOperationException(
                 $"Default response model '{defaultResponseModel}' is not mapped to any known provider in ModelRegistry.");
         }
 
-        string? transcriptionProvider = modelRegistry.GetProviderForModel(defaultTranscriptionModel);
+        string? transcriptionProvider = ModelRegistry.GetProviderForModel(defaultTranscriptionModel);
         if (string.IsNullOrEmpty(transcriptionProvider))
         {
             throw new InvalidOperationException(

@@ -15,7 +15,7 @@ public sealed class ModelRegistryTests
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = registry.GetProviderForModel("gpt-5-nano-2025-08-07");
+        var provider = ModelRegistry.GetProviderForModel("gpt-5-nano-2025-08-07");
 
         // Assert
         provider.Should().Be("OpenAI");
@@ -29,7 +29,7 @@ public sealed class ModelRegistryTests
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = registry.GetProviderForModel("gpt-4o-mini-transcribe");
+        var provider = ModelRegistry.GetProviderForModel("gpt-4o-mini-transcribe");
 
         // Assert
         provider.Should().Be("OpenAI");
@@ -43,7 +43,7 @@ public sealed class ModelRegistryTests
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = registry.GetProviderForModel("gemini-2.5-pro");
+        var provider = ModelRegistry.GetProviderForModel("gemini-2.5-pro");
 
         // Assert
         provider.Should().Be("Google");
@@ -57,7 +57,7 @@ public sealed class ModelRegistryTests
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = registry.GetProviderForModel("chirp");
+        var provider = ModelRegistry.GetProviderForModel("chirp");
 
         // Assert
         provider.Should().Be("Google");
@@ -71,7 +71,7 @@ public sealed class ModelRegistryTests
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = registry.GetProviderForModel("qwen3:4b");
+        var provider = ModelRegistry.GetProviderForModel("qwen3:4b");
 
         // Assert
         provider.Should().Be("Ollama");
@@ -85,7 +85,7 @@ public sealed class ModelRegistryTests
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = registry.GetProviderForModel("whisper");
+        var provider = ModelRegistry.GetProviderForModel("whisper");
 
         // Assert
         provider.Should().Be("Ollama");
@@ -99,7 +99,7 @@ public sealed class ModelRegistryTests
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = registry.GetProviderForModel("unknown-model");
+        var provider = ModelRegistry.GetProviderForModel("unknown-model");
 
         // Assert
         provider.Should().BeNull();
@@ -113,7 +113,7 @@ public sealed class ModelRegistryTests
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = registry.GetProviderForModel(null);
+        var provider = ModelRegistry.GetProviderForModel(null);
 
         // Assert
         provider.Should().BeNull();
@@ -127,7 +127,7 @@ public sealed class ModelRegistryTests
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = registry.GetProviderForModel("");
+        var provider = ModelRegistry.GetProviderForModel("");
 
         // Assert
         provider.Should().BeNull();
@@ -141,7 +141,7 @@ public sealed class ModelRegistryTests
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = registry.GetProviderForModel("   ");
+        var provider = ModelRegistry.GetProviderForModel("   ");
 
         // Assert
         provider.Should().BeNull();
@@ -155,8 +155,8 @@ public sealed class ModelRegistryTests
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var provider1 = registry.GetProviderForModel("GPT-5-NANO-2025-08-07");
-        var provider2 = registry.GetProviderForModel("gpt-5-nano-2025-08-07");
+        var provider1 = ModelRegistry.GetProviderForModel("GPT-5-NANO-2025-08-07");
+        var provider2 = ModelRegistry.GetProviderForModel("gpt-5-nano-2025-08-07");
 
         // Assert
         provider1.Should().Be("OpenAI");
@@ -339,7 +339,7 @@ public sealed class ModelRegistryTests
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = registry.GetProviderForModel(modelId);
+        var provider = ModelRegistry.GetProviderForModel(modelId);
 
         // Assert
         provider.Should().Be(expectedProvider);
@@ -366,7 +366,7 @@ public sealed class ModelRegistryTests
         var registry = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = registry.GetProviderForModel(modelId);
+        var provider = ModelRegistry.GetProviderForModel(modelId);
 
         // Assert
         provider.Should().Be(expectedProvider);

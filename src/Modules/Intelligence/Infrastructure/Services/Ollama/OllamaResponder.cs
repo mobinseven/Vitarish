@@ -315,7 +315,7 @@ public sealed class OllamaResponder(IOptionsMonitor<AiOptions> aiOptions) : IRes
         return messages;
     }
 
-    private async Task<McpToolsContext?> BuildMcpToolsContextAsync(ResponderOptions options, CancellationToken ct)
+    private static async Task<McpToolsContext?> BuildMcpToolsContextAsync(ResponderOptions options, CancellationToken ct)
     {
         if (options.Tools is null || options.Tools.Count == 0)
         {

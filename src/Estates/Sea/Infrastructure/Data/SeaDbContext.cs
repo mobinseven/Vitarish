@@ -135,7 +135,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
             .Ignore(e => e.Stats);
     }
 
-    private void ConfigureTenantEntity<TEntity>(ModelBuilder modelBuilder)
+    private static void ConfigureTenantEntity<TEntity>(ModelBuilder modelBuilder)
         where TEntity : Entity
     {
         EntityTypeBuilder<TEntity> entityBuilder = modelBuilder.Entity<TEntity>();

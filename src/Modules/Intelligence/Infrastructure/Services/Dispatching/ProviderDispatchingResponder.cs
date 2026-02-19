@@ -31,7 +31,7 @@ public sealed class ProviderDispatchingResponder : IResponder
             ? _aiOptions.CurrentValue.DefaultResponseModel
             : options.Model.Trim();
 
-        string? provider = _modelRegistry.GetProviderForModel(model);
+        string? provider = ModelRegistry.GetProviderForModel(model);
 
         return provider switch
         {

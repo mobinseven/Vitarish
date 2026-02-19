@@ -56,7 +56,7 @@ public partial class TenantIndicatorsEditor
         await ReloadRequired();
     }
 
-    private string GetStatusIcon(IndicatorStatus status) => status switch
+    private static string GetStatusIcon(IndicatorStatus status) => status switch
     {
         IndicatorStatus.PendingVerification => "fa-regular fa-seal-exclamation",
         IndicatorStatus.Verified => "fa-regular fa-check",

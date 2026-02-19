@@ -192,5 +192,5 @@ public partial class AdvancedInput : CommonBase
         }
     }
 
-    private void RemovePendingFile(StreamTransfer transfer, PendingFileDto item) => transfer.RemovePendingFileAsync(item);
+    private static void RemovePendingFile(StreamTransfer transfer, PendingFileDto item) => transfer.RemovePendingFileAsync(item);
 }

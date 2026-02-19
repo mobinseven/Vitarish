@@ -18,7 +18,7 @@ public partial class AttachmentsDisplay : SeaCommonBase
         _ = await DialogService.ShowAsync<AttachmentDetailsDialog>(Localizer["Attachment"], parameters);
     }
 
-    private string Icon(string contentType) => contentType.StartsWith("image")
+    private static string Icon(string contentType) => contentType.StartsWith("image")
             ? "fa-regular fa-file-image"
             : contentType.StartsWith("video") ? "fa-regular fa-file-video" : "fa-regular fa-file-lines";
 }

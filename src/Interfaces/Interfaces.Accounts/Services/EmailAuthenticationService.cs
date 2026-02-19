@@ -44,7 +44,7 @@ public class EmailAuthenticationService(
         return !result.Succeeded ? throw new Exception(string.Join('\n', result.Errors.Select(e => $"{e.Code}:{e.Description}"))) : user;
     }
 
-    public (string HtmlBody, string TextBody) GetAuthenticationCodeEmail(string userName, string authCode)
+    public static (string HtmlBody, string TextBody) GetAuthenticationCodeEmail(string userName, string authCode)
     {
         if (string.IsNullOrWhiteSpace(userName))
         {

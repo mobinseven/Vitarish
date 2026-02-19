@@ -56,7 +56,7 @@ public sealed class ModelRegistry(IOptionsMonitor<AiOptions> aiOptions)
 
     private static readonly IReadOnlyList<ModelInfo> AllModels = [.. AllResponderModels, .. AllTranscriberModels];
 
-    public string? GetProviderForModel(string? modelId)
+    public static string? GetProviderForModel(string? modelId)
     {
         if(string.IsNullOrWhiteSpace(modelId))
         {

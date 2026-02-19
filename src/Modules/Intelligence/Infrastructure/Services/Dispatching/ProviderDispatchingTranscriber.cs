@@ -45,7 +45,7 @@ public sealed class ProviderDispatchingTranscriber : ITranscriber
     private void GetModelAndTranscriber(string? modelId, out string model, out ITranscriber transcriber)
     {
         model = ResolveModel(modelId);
-        string? provider = _modelRegistry.GetProviderForModel(model)?.ToLower();
+        string? provider = ModelRegistry.GetProviderForModel(model)?.ToLower();
         transcriber = provider switch
         {
             "ollama" => _ollamaTranscriber.Value,

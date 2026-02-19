@@ -63,7 +63,7 @@ public partial class ExpandableItem : ComponentBase, IExpandableItem
         }
     }
 
-    private async void OnAnimationEnd()
+    private static async void OnAnimationEnd()
     {
 
     }

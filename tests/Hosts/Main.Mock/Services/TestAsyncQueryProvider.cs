@@ -23,7 +23,7 @@ internal class TestAsyncQueryProvider<TEntity> : IAsyncQueryProvider
     public TResult Execute<TResult>(Expression expression) =>
         _inner.Execute<TResult>(expression);
 
-    public IAsyncEnumerable<TResult> ExecuteAsync<TResult>(Expression expression) =>
+    public static IAsyncEnumerable<TResult> ExecuteAsync<TResult>(Expression expression) =>
         new TestAsyncEnumerable<TResult>(expression);
 
     public Task<TResult> ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken) =>

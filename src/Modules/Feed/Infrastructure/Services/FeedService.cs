@@ -44,7 +44,7 @@ public class FeedService(
         return allItems;
     }
 
-    private async Task<IReadOnlyList<FeedItem>> FetchFromSourceAsync(
+    private static async Task<IReadOnlyList<FeedItem>> FetchFromSourceAsync(
         IFeedDataSource source,
         FeedQueryOptions options,
         CancellationToken cancellationToken)
