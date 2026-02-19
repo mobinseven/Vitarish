@@ -1,0 +1,27 @@
+@using Vitarish.Modules.Feed.Application.Queries
+@using Vitarish.Modules.Feed.Domain.Models
+@using MediatR
+
+<Stack>
+    <StackButton Label="@Title" OnClick="RefreshAsync" Disabled="_isLoading" EndIcon="@(ShowRefreshButton ? "fa-regular fa-refresh" : "")" />
+
+    @if(_error != null)
+    {
+        <StackField Label="@_error" Color="Color.Error" />
+    }
+    @if(_feedItems.Any())
+    {
+    }
+    <Virtualize ItemsProvider="LoadFeedItemsAsync" Context="item" ItemSize="120">
+        <ItemContent>
+            <FeedItemComponent Item="item" OnClick="() => OnItemClick(item)" />
+        </ItemContent>
+        <Placeholder>
+            <MudProgressLinear Indeterminate />
+        </Placeholder>
+    </Virtualize>
+    <div style="height:500px; overflow-y:scroll" tabindex="-1">
+    </div>
+
+</Stack>
+
