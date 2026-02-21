@@ -44,8 +44,8 @@ public partial class UserRoleAssignmentDialog
             )).ToDictionary(x => x.Key, x => x.Value);
 
             List<string> clientIds = [.. tenants
-                .Where(t => !string.IsNullOrWhiteSpace(t.ClientId))
-                .Select(t => t.ClientId!)
+                .Where(t => !string.IsNullOrWhiteSpace(t.EstateId))
+                .Select(t => t.EstateId!)
                 .Distinct(StringComparer.OrdinalIgnoreCase)];
 
             List<ParsedTenantRole> parsedRoles = RoleParser.ParseTenantRoles(AvailableRoles, tenantDict, owners);

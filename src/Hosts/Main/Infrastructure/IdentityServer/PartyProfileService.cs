@@ -37,7 +37,7 @@ public sealed class PartyProfileService(
             Tenant? tenant = await tenantsService.ResolveAsync(httpContext, CancellationToken.None);
             if (tenant is not null)
             {
-                context.IssuedClaims.Add(new Claim(IdentityDefinitions.ClientIdClaim, tenant.ClientId));
+                context.IssuedClaims.Add(new Claim(IdentityDefinitions.ClientIdClaim, tenant.EstateId));
                 context.IssuedClaims.Add(new Claim(IdentityDefinitions.OwnerIdClaim, tenant.OwnerId.ToString()));
                 context.IssuedClaims.Add(new Claim(IdentityDefinitions.TenantIdClaim, tenant.Id.ToString()));
 

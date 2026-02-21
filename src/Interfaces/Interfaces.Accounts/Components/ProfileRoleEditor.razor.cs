@@ -109,7 +109,7 @@ public partial class ProfileRoleEditor
             string tenantName = tenant?.Name ?? tenantId.ToString();
             string ownerName = owner?.Name ?? tenant?.OwnerId.ToString() ?? "-";
             string ownerId = tenant?.OwnerId.ToString() ?? "-";
-            string clientId = tenant?.ClientId ?? "-";
+            string clientId = tenant?.EstateId ?? "-";
 
             parsedRoles.Add(new RoleDetail(
                 tenantId,

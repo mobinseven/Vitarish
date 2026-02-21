@@ -23,7 +23,7 @@ public partial class TenantEditDialog
             newTenantName = Tenant.Name;
             newTenantLogoUrl = Tenant.LogoUrl ?? string.Empty;
             newTenantDescription = Tenant.Description ?? string.Empty;
-            selectedEstateId = Tenant.ClientId ?? string.Empty;
+            selectedEstateId = Tenant.EstateId ?? string.Empty;
         }
     }
 
@@ -50,7 +50,7 @@ public partial class TenantEditDialog
                 Id = Guid.NewGuid(),
                 OwnerId = selectedOwnerId,
                 Name = newTenantName,
-                ClientId = selectedEstateId,
+                EstateId = selectedEstateId,
                 LogoUrl = string.IsNullOrWhiteSpace(newTenantLogoUrl) ? null : newTenantLogoUrl,
                 Description = string.IsNullOrWhiteSpace(newTenantDescription) ? null : newTenantDescription
             };
@@ -67,7 +67,7 @@ public partial class TenantEditDialog
                 Id = Tenant.Id,
                 OwnerId = selectedOwnerId,
                 Name = newTenantName,
-                ClientId = selectedEstateId,
+                EstateId = selectedEstateId,
                 LogoUrl = string.IsNullOrWhiteSpace(newTenantLogoUrl) ? null : newTenantLogoUrl,
                 Description = string.IsNullOrWhiteSpace(newTenantDescription) ? null : newTenantDescription,
                 Metadata = Tenant.Metadata

@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 using Vitarish.Entities.Server.Core;
 
 namespace Vitarish.Parties.Domain.Entities;
@@ -36,10 +37,11 @@ public class Tenant : Entity
     }
 
     /// <summary>Client application identifier.</summary>
-    public required string ClientId
+    [Column("EstateId")]
+    public required string EstateId
     {
         get;
-        set => SetField(ref field, value, nameof(ClientId));
+        set => SetField(ref field, value, nameof(EstateId));
     } = string.Empty;
 
     public Dictionary<string, object?> Metadata

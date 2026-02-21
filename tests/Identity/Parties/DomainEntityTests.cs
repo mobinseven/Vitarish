@@ -13,7 +13,7 @@ public class DomainEntityTests
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
             Name = "Tenant",
-            ClientId = "client-id"
+            EstateId = "client-id"
         };
 
         Assert.NotNull(tenant.Indicators);
@@ -28,7 +28,7 @@ public class DomainEntityTests
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
             Name = "Tenant",
-            ClientId = "client-id",
+            EstateId = "client-id",
             CreatedAt = DateTimeOffset.UtcNow
         };
 

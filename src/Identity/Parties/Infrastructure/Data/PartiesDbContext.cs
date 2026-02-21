@@ -30,7 +30,7 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
 
         _ = modelBuilder.Entity<Tenant>(entity =>
         {
-            _ = entity.HasIndex(t => t.ClientId);
+            _ = entity.HasIndex(t => t.EstateId);
 
             _ = entity.Property(e => e.Metadata)
                         .HasConversion(

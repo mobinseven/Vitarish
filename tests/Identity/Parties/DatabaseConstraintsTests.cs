@@ -27,7 +27,7 @@ public class DatabaseConstraintsTests : IDisposable
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
             Name = "Test Tenant",
-            ClientId = "test-client",
+            EstateId = "test-client",
         };
         var indicator = new TenantIndicator
         {
@@ -54,7 +54,7 @@ public class DatabaseConstraintsTests : IDisposable
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
             Name = "Test Tenant",
-            ClientId = "test-client",
+            EstateId = "test-client",
         };
         var indicator = new TenantIndicator
         {
@@ -81,7 +81,7 @@ public class DatabaseConstraintsTests : IDisposable
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
             Name = "Test Tenant",
-            ClientId = "test-client",
+            EstateId = "test-client",
         };
         var indicator = new TenantIndicator
         {
@@ -111,7 +111,7 @@ public class DatabaseConstraintsTests : IDisposable
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
             Name = "Test Tenant",
-            ClientId = "test-client",
+            EstateId = "test-client",
         };
         _dbContext.Tenants.Add(tenant);
         await _dbContext.SaveChangesAsync();
@@ -143,7 +143,7 @@ public class DatabaseConstraintsTests : IDisposable
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
             Name = "Test Tenant",
-            ClientId = "test-client",
+            EstateId = "test-client",
         };
         var indicator1 = new TenantIndicator
         {

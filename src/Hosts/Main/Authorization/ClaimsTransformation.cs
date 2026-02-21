@@ -17,7 +17,7 @@ public class ClaimsTransformation(IHttpContextAccessor httpContextAccessor) : IC
                 if (tenant is not null)
                 {
                     ClaimsIdentity partyIdentity = new(IdentityDefinitions.PartyScope);
-                    string clientId = tenant.ClientId;
+                    string clientId = tenant.EstateId;
                     string ownerId = tenant.OwnerId.ToString();
                     string tenantId = tenant.Id.ToString();
                     partyIdentity.AddClaim(new Claim(IdentityDefinitions.ClientIdClaim, clientId));

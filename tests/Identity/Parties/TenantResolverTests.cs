@@ -45,7 +45,7 @@ public class TenantResolverTests : IDisposable
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
             Name = "Test Tenant",
-            ClientId = "test-client",
+            EstateId = "test-client",
         };
         tenant.Indicators.Add(new TenantIndicator
         {
@@ -75,7 +75,7 @@ public class TenantResolverTests : IDisposable
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
             Name = "Test Tenant",
-            ClientId = "test-client",
+            EstateId = "test-client",
         };
         tenant.Indicators.Add(new TenantIndicator
         {
@@ -104,7 +104,7 @@ public class TenantResolverTests : IDisposable
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
             Name = "Test Tenant",
-            ClientId = "test-client",
+            EstateId = "test-client",
         };
         tenant.Indicators.Add(new TenantIndicator
         {
@@ -133,7 +133,7 @@ public class TenantResolverTests : IDisposable
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
             Name = "Test Tenant",
-            ClientId = "test-client",
+            EstateId = "test-client",
         };
         tenant.Indicators.Add(new TenantIndicator
         {
@@ -162,7 +162,7 @@ public class TenantResolverTests : IDisposable
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
             Name = "Test Tenant",
-            ClientId = "test-client",
+            EstateId = "test-client",
         };
         tenant.Indicators.Add(new TenantIndicator
         {
@@ -192,7 +192,7 @@ public class TenantResolverTests : IDisposable
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
             Name = "Test Tenant",
-            ClientId = "test-client",
+            EstateId = "test-client",
         };
         tenant.Indicators.Add(new TenantIndicator
         {
@@ -230,7 +230,7 @@ public class TenantResolverTests : IDisposable
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
             Name = "Test Tenant",
-            ClientId = "test-client",
+            EstateId = "test-client",
         };
         tenant.Indicators.Add(new TenantIndicator
         {
