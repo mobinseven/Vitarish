@@ -11,7 +11,6 @@ global using Vitarish.Sea.Application.Abstractions;
 global using Vitarish.Sea.Domain.Dto;
 global using Vitarish.Sea.Domain.Enums;
 global using Vitarish.Sea.Interface.Components.Base;
-global using Vitarish.Sea.Interface.Components.Plugins;
 global using Vitarish.Sea.Interface.Extensions;
 global using Vitarish.Sea.Interface.Plugins;
 global using Vitarish.Users.Domain.Models;

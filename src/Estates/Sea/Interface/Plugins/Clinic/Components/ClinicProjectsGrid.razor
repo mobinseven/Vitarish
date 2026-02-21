@@ -17,7 +17,7 @@
     {
         @foreach(var project in projects)
         {
-            <ClinicProjectEditForm Project="project" OnUpdate="ReloadRequired" />
+            <ClinicProjectEditForm @key="project.Id" Project="project" OnUpdate="ReloadRequired" />
         }
         return;
     }

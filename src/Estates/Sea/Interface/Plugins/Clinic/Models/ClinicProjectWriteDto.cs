@@ -4,8 +4,6 @@ namespace Vitarish.Sea.Interface.Plugins.Clinic.Models;
 
 internal record ClinicProjectWriteDto : ProjectWriteDto
 {
-    public static ClinicProjectWriteDto? ToWrite(ProjectReadDto project) => JsonSerializer.Deserialize<ClinicProjectWriteDto>(JsonSerializer.Serialize(project.ToWrite()));
-
     public string? FirstName { get => GetField<string>(); set => SetField(value); }
 
     public string? LastName { get => GetField<string>(); set => SetField(value); }

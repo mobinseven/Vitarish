@@ -23,10 +23,11 @@ public partial class ClinicProjectsGrid
         IReadOnlyList<ProjectReadDto> Items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
 
         projects = [.. Items];
-        List<ClinicProjectReadDto> clinicProjects = [.. Items.Select(p => ClinicProjectReadDto.ToRead(p)!)];
+
+        List<ClinicProjectReadDto> clinicProjects = [.. Items.Select(p => p.ToClinicRead()!)];
         projectsViaSurgeryData = [.. clinicProjects.Where(c => c.DateOfSurgery is not null)];
         projectsLackSurgeryData = [.. clinicProjects.Where(c => c.DateOfSurgery is null)];
-        StateHasChanged();
+        await InvokeAsync(StateHasChanged);
     }
     private SortMethod[] SortMethodsViaSurgeryData => [
         new SortMethod(
