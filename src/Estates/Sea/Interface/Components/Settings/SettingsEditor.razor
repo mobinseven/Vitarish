@@ -3,7 +3,7 @@
 <AuthorizeView Policy="@IdentityDefinitions.PlatformAdmin">
     <Stack>
         <StackField Label="@Localizer["Plugin"]">
-            <MudSelect T="string" @bind-Value="MetadataService.PluginIdentifier" Clearable="true" Underline="false">
+            <MudSelect T="string" @bind-Value="TenantService.PluginIdentifier" Clearable="true" Underline="false">
                 <MudSelectItem T="string" Value="null">@Localizer["None"]</MudSelectItem>
                 @foreach(PluginIdentifier plugin in PluginIdentifiers.List)
                 {

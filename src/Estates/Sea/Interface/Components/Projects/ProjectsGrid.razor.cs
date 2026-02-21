@@ -6,7 +6,7 @@ public partial class ProjectsGrid : ProjectsBase, IDisposable
     [Parameter] public EventCallback<Guid> OnClicked { get; set; }
     [Parameter] public EventCallback OnAdd { get; set; }
     [Inject] private IEnumerable<IProjectsGridPlugin> ProjectsGridPlugins { get; set; } = [];
-    private IProjectsGridPlugin? Plugin => ProjectsGridPlugins.SingleOrDefault(p => p.Id == MetadataService?.PluginIdentifier);
+    private IProjectsGridPlugin? Plugin => ProjectsGridPlugins.SingleOrDefault(p => p.Id == TenantService?.PluginIdentifier);
 
     protected List<ProjectReadDto> projects = [];
     protected override Task OnSearchedAsync() => ReloadRequired();

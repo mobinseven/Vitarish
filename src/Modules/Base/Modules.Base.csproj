@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.*" />
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -13,5 +13,6 @@
 		<ProjectReference Include="..\..\Identity\Parties\Domain\Parties.Domain.csproj" />
 		<ProjectReference Include="..\..\Identity\Requests\Application\Requests.Application.csproj" />
 		<ProjectReference Include="..\..\Identity\Users\Domain\Users.Domain.csproj" />
+		<ProjectReference Include="..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
 	</ItemGroup>
 </Project>

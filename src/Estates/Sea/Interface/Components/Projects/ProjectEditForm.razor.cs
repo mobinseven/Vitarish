@@ -11,7 +11,7 @@ public partial class ProjectEditForm : ProjectsBase
     [Parameter] public bool TemplateMode { get; set; } = false;
 
     private ProjectWriteDto projectWriteDto = new();
-    private IProjectEditPlugin? Plugin => ProjectEditPlugins.SingleOrDefault(p => p.Id == MetadataService?.PluginIdentifier);
+    private IProjectEditPlugin? Plugin => ProjectEditPlugins.SingleOrDefault(p => p.Id == TenantService?.PluginIdentifier);
 
 
     protected override void OnInitialized()

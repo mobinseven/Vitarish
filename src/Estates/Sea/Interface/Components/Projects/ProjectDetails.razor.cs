@@ -6,7 +6,7 @@ public partial class ProjectDetails : ProjectsBase
     [Parameter] public EventCallback OnDeleted { get; set; }
     [Parameter] public EventCallback<Guid> OnEdit { get; set; }
     [Inject] private IEnumerable<IProjectDetailsPlugin> Plugins { get; set; } = [];
-    private IProjectDetailsPlugin? Plugin => Plugins.SingleOrDefault(p => p.Id == MetadataService?.PluginIdentifier);
+    private IProjectDetailsPlugin? Plugin => Plugins.SingleOrDefault(p => p.Id == TenantService?.PluginIdentifier);
 
     protected virtual Task EditProject() => OnEdit.InvokeAsync(Project.Id);
 
