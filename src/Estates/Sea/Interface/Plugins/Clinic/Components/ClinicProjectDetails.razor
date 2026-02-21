@@ -6,15 +6,15 @@
         {
             <MudText HtmlTag="p" Typo="Typo.caption" Class="py-3">@Project.Description</MudText>
         }
-        @if(Metadata is not null)
+        @if(project is not null)
         {
-            @if(!string.IsNullOrWhiteSpace(Metadata.ClinicalNotes))
+            @if(!string.IsNullOrWhiteSpace(project.ClinicalNotes))
             {
-                <MudText HtmlTag="p" Typo="Typo.caption" Class="py-3">@Localizer["ClinicalNotes"]: @Metadata.ClinicalNotes</MudText>
+                <MudText HtmlTag="p" Typo="Typo.caption" Class="py-3">@Localizer["ClinicalNotes"]: @project.ClinicalNotes</MudText>
             }
-            @if(Metadata.DateOfSurgery.HasValue)
+            @if(project.DateOfSurgery.HasValue)
             {
-                <MudText HtmlTag="p" Typo="Typo.caption" Class="py-3">@Localizer["DateOf", Localizer["Surgery"]]: @Metadata.DateOfSurgery.Value.ToShortDateString()</MudText>
+                <MudText HtmlTag="p" Typo="Typo.caption" Class="py-3">@Localizer["DateOf", Localizer["Surgery"]]: @project.DateOfSurgery.Value.ToShortDateString()</MudText>
             }
         }
     </StackField>
@@ -32,10 +32,10 @@
 </Stack>
 
 @code {
-    ClinicProjectReadDto? Metadata;
+    ClinicProjectReadDto? project;
 
-    protected override void OnParametersSet()
+    protected override void OnInitialized()
     {
-        Metadata = ClinicProjectReadDto.ToRead(Project);
+        project = Project.ToClinicRead();
     }
 }

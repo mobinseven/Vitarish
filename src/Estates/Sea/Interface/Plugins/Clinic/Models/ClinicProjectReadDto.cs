@@ -4,8 +4,6 @@ namespace Vitarish.Sea.Interface.Plugins.Clinic.Models;
 
 internal record ClinicProjectReadDto : ProjectReadDto
 {
-    public static ClinicProjectReadDto? ToRead(ProjectReadDto project) => JsonSerializer.Deserialize<ClinicProjectReadDto>(JsonSerializer.Serialize(project));
-
     public string? FirstName => GetField<string>();
 
     public string? LastName => GetField<string>();
