@@ -4,12 +4,19 @@
     <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Style="width: 100%;">
         @if(SearchActive)
         {
-            <MudTextField T="string" @bind-Value="NavService.SearchString" Style="border-radius: 70px; width: 100%;" AutoFocus DebounceInterval="1000" Variant="Variant.Text" />
+            <MudTextField T="string" Class="mx-2" @bind-Value="NavService.SearchString" Style="border-radius: 70px; width: 100%;" AutoFocus DebounceInterval="1000" Variant="Variant.Text" />
             <MudFab Size=Size StartIcon="fa-regular fa-xmark" DropShadow=false OnClick="Close" />
         }
         else
         {
-            <MudFab Size=Size StartIcon="fa-regular fa-house-blank" DropShadow=false OnClick="HandleHomeClick" />
+            @if(ScrollToTopVisible)
+            {
+                <MudFab Size="Size" StartIcon="fa-regular fa-chevron-up" DropShadow="false" OnClick="OnScrollToTopClick" />
+            }
+            else
+            {
+                <MudFab Size=Size StartIcon="fa-regular fa-house-blank" DropShadow=false OnClick="HandleHomeClick" />
+            }
             <MudFab Size=Size StartIcon="fa-regular fa-magnifying-glass" DropShadow=false OnClick="Open" Disabled="!Search" />
             <MudFab Size=Size StartIcon="fa-regular fa-level-up-alt" DropShadow=false OnClick="HandleBackClick" Disabled="@(NavigationManager.Uri == NavigationManager.BaseUri)" />
             <MudFab Size=Size StartIcon="fa-regular fa-gear" DropShadow=false OnClick="HandleProfileClick" />
