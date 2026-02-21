@@ -1,10 +1,8 @@
 using MediatR;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Web.Virtualization;
+using Vitarish.Feed.Application.Queries;
 using Vitarish.Feed.Domain.Models;
-using Vitarish.Interfaces.Base.Plugins;
-using Vitarish.Modules.Feed.Application.Queries;
-using Vitarish.Modules.Feed.Domain.Models;
 
 namespace Vitarish.Interfaces.Widgets.Components;
 
@@ -19,7 +17,7 @@ public partial class FeedWidget
     [Parameter] public IReadOnlyList<string>? SourceIds { get; set; }
     [Parameter] public EventCallback<FeedItem> OnItemClicked { get; set; }
 
-    private List<FeedItem> _feedItems = [];
+    private readonly List<FeedItem> _feedItems = [];
     private bool _isLoading;
     private string? _error;
     private int _totalItemsLoaded;
@@ -40,8 +38,8 @@ public partial class FeedWidget
             _error = null;
 
             // Calculate how many items we need to fetch
-            var skip = request.StartIndex;
-            var take = Math.Min(request.Count, PageSize);
+            int skip = request.StartIndex;
+            int take = Math.Min(request.Count, PageSize);
 
             // If we already have these items cached, return them
             if (skip < _feedItems.Count)
@@ -50,7 +48,7 @@ public partial class FeedWidget
                     .Skip(skip)
                     .Take(take)
                     .ToList();
-                
+
                 if (cachedItems.Count >= take || _totalItemsLoaded >= MaxItems)
                 {
                     return new ItemsProviderResult<FeedItem>(cachedItems, _feedItems.Count);
