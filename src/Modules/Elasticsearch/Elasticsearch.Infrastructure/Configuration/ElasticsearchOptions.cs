@@ -32,7 +32,23 @@ public class ElasticsearchOptions
 
     [Range(0, 10)]
     public int MaxRetries { get; init; } = 2;
+
+
+    public ElasticsearchIndexingProcessorOptions IndexingProcessor { get; init; } = new();
 }
+
+public class ElasticsearchIndexingProcessorOptions
+{
+    [Range(1, 20)]
+    public int MaxAttempts { get; init; } = 5;
+
+    [Range(typeof(TimeSpan), "00:00:00.100", "00:05:00")]
+    public TimeSpan BaseBackoff { get; init; } = TimeSpan.FromSeconds(1);
+
+    [Range(typeof(TimeSpan), "00:00:00.100", "00:15:00")]
+    public TimeSpan MaxBackoff { get; init; } = TimeSpan.FromSeconds(30);
+}
+
 
 public class ElasticsearchAuthOptions
 {
