@@ -6,4 +6,8 @@
   <ItemGroup>
     <ProjectReference Include="..\Elasticsearch.Application\Elasticsearch.Application.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.17.1" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.0" />
+  </ItemGroup>
 </Project>
