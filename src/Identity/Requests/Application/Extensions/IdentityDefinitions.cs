@@ -12,6 +12,7 @@ public static partial class IdentityDefinitions
     public const string TenantAdmin = nameof(TenantAdmin);
     public const string TenantUser = nameof(TenantUser);
     public const string TenantOwner = nameof(TenantOwner);
+    public const string TenantAdminOrOwner = $"{nameof(TenantAdmin)},{nameof(TenantOwner)}";
     public const string AccessClaim = "access";
     public const string AccessScope = "access";
 }

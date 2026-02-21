@@ -51,6 +51,19 @@ public sealed class Authorizer(IUsersService usersService, IDistributedCache cac
                 }
                 break;
 
+            case IdentityDefinitions.TenantAdminOrOwner:
+
+                result = await ControlAndCache(context, $"{requestContext.TenantId}:{IdentityDefinitions.TenantAdmin}", subjectId) || await ControlAndCache(context, $"{requestContext.TenantId}:{IdentityDefinitions.TenantOwner}", subjectId);
+                if (result)
+                {
+                    context.Succeed(requirement);
+                }
+                else
+                {
+                    context.Fail();
+                }
+                break;
+
             case IdentityDefinitions.TenantAdmin:
 
                 requiredRole = $"{requestContext.TenantId}:{IdentityDefinitions.TenantAdmin}";
