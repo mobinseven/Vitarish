@@ -42,6 +42,7 @@ public static class DependencyInjectionExtensions
 
         _ = services.AddScoped<ISearchIndexNameResolver, SearchIndexNameResolver>();
         _ = services.AddScoped<ISearchIndexService, ElasticsearchIndexService>();
+        _ = services.AddScoped<IndexLifecycleService>();
         _ = services.AddScoped<ISearchQueryService, ElasticsearchQueryService>();
 
         return services;
