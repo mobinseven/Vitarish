@@ -190,7 +190,7 @@
     <value>ثبت انجام شده توسط</value>
   </data>
   <data name="Confirm" xml:space="preserve">
-    <value>تأیید جزئیات</value>
+    <value>تأیید</value>
   </data>
   <data name="ConfirmationQuestion" xml:space="preserve">
     <value>آیا مطمئن هستید؟</value>
@@ -407,9 +407,6 @@
   </data>
   <data name="Reports" xml:space="preserve">
     <value>گزارشها</value>
-  </data>
-  <data name="RequiredError" xml:space="preserve">
-    <value>{0} نباید خالی باشد</value>
   </data>
   <data name="Reset" xml:space="preserve">
     <value>بازنشانی</value>
@@ -1020,9 +1017,6 @@
   <data name="Preview" xml:space="preserve">
     <value>پیشنمایش</value>
   </data>
-  <data name="RequiredValue" xml:space="preserve">
-    <value>تعیین {0} اجباری است.</value>
-  </data>
   <data name="Or" xml:space="preserve">
     <value>{0} یا {1}</value>
   </data>
@@ -1569,10 +1563,19 @@
   <data name="CurrentItem" xml:space="preserve">
     <value>{0} کنونی</value>
   </data>
+  <data name="MassEditMode" xml:space="preserve">
+    <value>ویرایش گروهی</value>
+  </data>
+  <data name="Unauthorized" xml:space="preserve">
+    <value>عدم دسترسی</value>
+  </data>
   <data name="Gender_Unspecified" xml:space="preserve">
     <value>نامشخص</value>
   </data>
-  <data name="MassEditMode" xml:space="preserve">
-    <value>ویرایش گروهی</value>
+  <data name="RequiredItem" xml:space="preserve">
+    <value>{0} باید داده شود</value>
+  </data>
+  <data name="End" xml:space="preserve">
+    <value>پایان</value>
   </data>
 </root>

@@ -1,4 +1,4 @@
-namespace Vitarish.Sea.Interface.Components.Plugins;
+namespace Vitarish.Sea.Interface.Plugins;
 
 public record EventItemPlugin(
     ProjectReadDto Project,

@@ -7,7 +7,10 @@
                      OnClick="AddProject"
                      StartIcon="fa-regular fa-folder-plus"
                      Label="@Localizer["AddItem", Localizer["Project"]]" />
-        <StackCheckbox @bind-Value="MassEditMode" Label="@Localizer["MassEditMode"]" />
+        <StackButton Color="Color.Primary"
+                     OnClick="@(() => MassEditMode = !MassEditMode)"
+                     StartIcon="@(MassEditMode ? "fa-regular fa-check" : "fa-regular fa-edit")"
+                     Label="@(MassEditMode ? Localizer["End"] : Localizer["MassEditMode"])" />
     </Stack>
 
     @if(MassEditMode)

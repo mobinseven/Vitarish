@@ -1,5 +1,3 @@
-using Vitarish.Users.Domain.Entities;
-
 namespace Vitarish.Sea.Interface.Components.Reminders;
 
 public partial class ReminderDetailsDialog : RemindersBase

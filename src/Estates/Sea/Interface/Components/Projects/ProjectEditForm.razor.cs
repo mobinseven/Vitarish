@@ -10,35 +10,27 @@ public partial class ProjectEditForm : ProjectsBase
     [Parameter] public EventCallback OnCancel { get; set; }
     [Parameter] public bool TemplateMode { get; set; } = false;
 
-
+    private ProjectWriteDto projectWriteDto = new();
     private IProjectEditPlugin? Plugin => ProjectEditPlugins.SingleOrDefault(p => p.Id == MetadataService?.PluginIdentifier);
 
 
-    private string name = string.Empty;
-    private string description = string.Empty;
-    private bool template;
-    private string metadata = "{}";
-
-    protected override void OnParametersSet()
+    protected override void OnInitialized()
     {
         if (Project is not null)
         {
-            name = Project.Name;
-            description = Project.Description;
-            template = Project.Template;
-            metadata = Project.Metadata;
+            projectWriteDto = Project.ToWrite();
         }
     }
     protected virtual async Task SaveAsync()
     {
         if (Project is null)
         {
-            Guid created = await ProjectsService.AddAsync(name, description, template, metadata, CancellationToken.None);
-            await OnCreate.InvokeAsync(created);
+            ProjectReadDto created = await ProjectsService.AddAsync(projectWriteDto, CancellationToken.None).EnsureValueAsync();
+            await OnCreate.InvokeAsync(created.Id);
         }
         else
         {
-            await ProjectsService.UpdateAsync(Project.Id, name, description, template, metadata, CancellationToken.None);
+            _ = await ProjectsService.UpdateAsync(projectWriteDto, CancellationToken.None);
             await OnUpdate.InvokeAsync(Project.Id);
         }
     }

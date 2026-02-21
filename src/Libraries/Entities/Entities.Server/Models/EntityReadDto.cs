@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
 namespace Vitarish.Entities.Server.Models;
@@ -29,12 +30,4 @@ public abstract record EntityReadDto : EntityWriteDto
     [JsonPropertyName("deletedBy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? DeletedBy { get; set; }
-
-    [JsonPropertyName("metadata")]
-    public Dictionary<string, object?> Metadata { get; set; } = [];
-    public Metadata MetadataValues
-    {
-        get;
-        init => field = new(Metadata);
-    }
 }

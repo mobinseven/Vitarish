@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
 namespace Vitarish.Entities.Server.Models;
@@ -14,5 +15,13 @@ public abstract record EntityWriteDto
     {
         get;
         init => field = new(Metadata);
+    }
+
+    public T? GetField<T>([CallerMemberName] string propertyName = null!) => MetadataValues.GetField<T>(Metadata, propertyName);
+
+    public void SetField<T>(T value, [CallerMemberName] string propertyName = null!)
+    {
+        MetadataValues.SetField(value, propertyName);
+        Metadata = MetadataValues.ToDictionary();
     }
 }

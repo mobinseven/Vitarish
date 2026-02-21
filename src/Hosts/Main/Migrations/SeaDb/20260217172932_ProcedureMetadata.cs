@@ -13,6 +13,7 @@ namespace Vitarish.Main.Migrations.SeaDb
             // First, update any existing NULL values to the default '{}'
             migrationBuilder.Sql(
                 @"UPDATE Procedures
+                    WHERE Metadata IS NULL OR Metadata = ''
                   SET Metadata = N'{}'"
             );
 

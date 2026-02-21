@@ -28,7 +28,7 @@ public class SeaEstate : Estate, ISeaEstate
         _ = builder.Services.ConfigureHttpJsonOptions(options =>
             options.SerializerOptions.TypeInfoResolverChain.Insert(0, SeaJsonSerializerContext.Default));
 
-        _ = builder.Services.ConfigureSeaInterface();
+        _ = builder.Services.ConfigureInterface();
     }
 
     public override async Task Initialize(WebApplication app) => await app.InitializeViews();

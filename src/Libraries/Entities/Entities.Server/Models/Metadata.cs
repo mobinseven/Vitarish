@@ -1,6 +1,3 @@
-using System.Runtime.CompilerServices;
-using System.Text.Json;
-
 namespace Vitarish.Entities.Server.Models;
 
 public class Metadata : Dictionary<string, object?>
@@ -9,18 +6,18 @@ public class Metadata : Dictionary<string, object?>
     public Metadata() : base() { }
     public Metadata(IDictionary<string, object?>? source = null)
     {
-        if(source == null)
+        if (source == null)
         {
             return;
         }
         foreach (KeyValuePair<string, object?> kv in source)
         {
-            TryAdd(kv.Key, kv.Value);
+            _ = TryAdd(kv.Key, kv.Value);
         }
     }
     public new void Add(string key, object? value)
     {
-        base.TryAdd(key, value);
+        _ = base.TryAdd(key, value);
         OnUpdate?.Invoke(key, value);
     }
 

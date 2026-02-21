@@ -1,4 +1,4 @@
-namespace Vitarish.Sea.Interface.Components.Plugins;
+namespace Vitarish.Sea.Interface.Plugins;
 
 internal sealed record ProjectsGridPlugin(
     EventCallback<Guid> OnClicked,

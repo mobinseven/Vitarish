@@ -16,7 +16,7 @@ public partial class ProceduresGrid : ProceduresBase
             StateHasChanged();
         }
     }
-        
+
     private async Task ReloadData()
     {
         ProcedureDescriptorDto descriptor = new()

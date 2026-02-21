@@ -408,9 +408,6 @@
   <data name="Reports" xml:space="preserve">
     <value>Reports</value>
   </data>
-  <data name="RequiredError" xml:space="preserve">
-    <value>The field '{0} is required</value>
-  </data>
   <data name="Reset" xml:space="preserve">
     <value>Reset</value>
   </data>
@@ -721,24 +718,6 @@ of project "{2}"</value>
   </data>
   <data name="EmergencyContactLabel" xml:space="preserve">
     <value>Emergency contact: {0} ({1})</value>
-  </data>
-  <data name="GenderOnlyLabel" xml:space="preserve">
-    <value>Gender: {0}</value>
-  </data>
-  <data name="GoalsLabel" xml:space="preserve">
-    <value>Goals: {0}</value>
-  </data>
-  <data name="Gym trainee" xml:space="preserve">
-    <value>Gym trainee</value>
-  </data>
-  <data name="InsuranceSectionLabel" xml:space="preserve">
-    <value>Insurance section: {0}</value>
-  </data>
-  <data name="InsuranceSummaryLabel" xml:space="preserve">
-    <value>Insurance: {0} · Policy: {1}</value>
-  </data>
-  <data name="IntakeChecklistLabel" xml:space="preserve">
-    <value>Intake checklist: {0}</value>
   </data>
   <data name="MedicalNotesLabel" xml:space="preserve">
     <value>Medical notes: {0}</value>
@@ -1084,9 +1063,6 @@ of project "{2}"</value>
   </data>
   <data name="Preview" xml:space="preserve">
     <value>Preview</value>
-  </data>
-  <data name="RequiredValue" xml:space="preserve">
-    <value>The {0} is required.</value>
   </data>
   <data name="Or" xml:space="preserve">
     <value>{0} or {1}</value>
@@ -1669,5 +1645,14 @@ of project "{2}"</value>
   </data>
   <data name="MassEditMode" xml:space="preserve">
     <value>Mass Edit Mode</value>
+  </data>
+  <data name="Unauthorized" xml:space="preserve">
+    <value>Unauthorized</value>
+  </data>
+  <data name="RequiredItem" xml:space="preserve">
+    <value>{0} is required</value>
+  </data>
+  <data name="End" xml:space="preserve">
+    <value>End</value>
   </data>
 </root>

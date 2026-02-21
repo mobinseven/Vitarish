@@ -14,6 +14,6 @@ public record ProcedureReadDto : EntityReadDto
     [JsonPropertyName("stats")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public StatsReadDto? Stats { get; set; }
-    public string? Description => MetadataValues.GetField<string>(Metadata);
+    public string? Description => GetField<string>();
 }
 

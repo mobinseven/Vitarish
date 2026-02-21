@@ -252,7 +252,9 @@ namespace Vitarish.Main.Migrations.SeaDb
 
                     b.Property<string>("Metadata")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValueSql("'{}'");
 
                     b.Property<string>("Name")
                         .IsRequired()

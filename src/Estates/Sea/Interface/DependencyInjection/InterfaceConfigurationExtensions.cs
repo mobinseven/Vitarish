@@ -1,12 +1,12 @@
 namespace Vitarish.Sea.Interface.DependencyInjection;
 
-public static class SeaInterfaceConfigurations
+public static class InterfaceConfigurationExtensions
 {
     extension(IServiceCollection services)
     {
-        public IServiceCollection ConfigureSeaInterface()
+        public IServiceCollection ConfigureInterface()
         {
-            _ = services.ConfigureSeaPlugins();
+            _ = services.ConfigurePlugins();
             _ = services.AddScoped<IEventItemPlugin, AttachmentPlugin>();
             _ = services.AddScoped<IEventItemPlugin, ReminderPlugin>();
             _ = services.AddVitarishSeaInterface();

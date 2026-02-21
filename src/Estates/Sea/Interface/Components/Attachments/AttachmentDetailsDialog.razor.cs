@@ -1,5 +1,3 @@
-using Vitarish.Users.Domain.Entities;
-
 namespace Vitarish.Sea.Interface.Components.Attachments;
 
 public partial class AttachmentDetailsDialog : SeaCommonBase

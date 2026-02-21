@@ -1,6 +1,8 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public record ProjectWriteDto(
-    [property: JsonPropertyName("name")] string Name,
-    [property: JsonPropertyName("description")] string Description,
-    [property: JsonPropertyName("template")] bool Template) : EntityWriteDto;
+public record ProjectWriteDto : EntityWriteDto
+{
+    public string? Name { get; set; }
+    public string? Description { get; set; }
+    public bool Template { get; set; }
+}

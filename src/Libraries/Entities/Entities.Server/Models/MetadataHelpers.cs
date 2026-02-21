@@ -1,28 +1,43 @@
 using System.Runtime.CompilerServices;
-using System.Text.Json;
 public static class MetadataHelpers
 {
 
     extension(Metadata Metadata)
     {
-        public T? GetField<T>(Dictionary<string, object?> source, [CallerMemberName] string propertyName = null!)
+        public T? GetField<T>(
+        Dictionary<string, object?> source,
+        [CallerMemberName] string propertyName = null!)
         {
             if (source.Count != Metadata.Count)
             {
                 Metadata = new(source);
             }
-            T? val;
-            if (Metadata[propertyName] is JsonElement jsonElement)
+
+            string pascalKey = ToPascal(propertyName);
+            string camelKey = JsonNamingPolicy.CamelCase.ConvertName(pascalKey);
+
+            if (!Metadata.TryGetValue(pascalKey, out object? raw))
             {
-                T? res = JsonSerializer.Deserialize<T>(jsonElement);
-                val = res;
+                if (Metadata.TryGetValue(camelKey, out raw))
+                {
+                    if (!Metadata.ContainsKey(pascalKey))
+                    {
+                        Metadata[pascalKey] = raw;
+                    }
+
+                    _ = Metadata.Remove(camelKey);
+                }
+                else
+                {
+                    return default;
+                }
             }
-            else
-            {
-                val = Metadata[propertyName] is T sameType ? sameType : default;
-            }
-            return val;
+
+            return raw is null ? default : raw is JsonElement je ? je.Deserialize<T>() : raw is T t ? t : default;
         }
+
+        private static string ToPascal(string name)
+            => string.IsNullOrEmpty(name) ? name : char.ToUpperInvariant(name[0]) + name[1..];
 
         public void SetField<T>(T value, [CallerMemberName] string propertyName = null!) => Metadata[propertyName] = value ?? default!;
     }

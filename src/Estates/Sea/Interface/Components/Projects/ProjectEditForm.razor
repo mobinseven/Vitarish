@@ -2,12 +2,12 @@
 @if(Plugin is null)
 {
     <Stack>
-        <StackTextField @bind-Value="name" Label="@Localizer["Project"]" />
-        <StackTextField @bind-Value="description" AutoGrow Lines=3 Label="@Localizer["Description"]" />
-        <StackCheckbox @bind-Value="template" Label="@Localizer["Template"]" />
+        <StackTextField @bind-Value="projectWriteDto.Name" Label="@Localizer["Project"]" />
+        <StackTextField @bind-Value="projectWriteDto.Description" AutoGrow Lines=3 Label="@Localizer["Description"]" />
+        <StackCheckbox @bind-Value="projectWriteDto.Template" Label="@Localizer["Template"]" />
     </Stack>
     <Stack>
-        <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" Disabled="@string.IsNullOrWhiteSpace(name)" />
+        <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" Disabled="@string.IsNullOrWhiteSpace(projectWriteDto.Name)" />
         <StackButton Label="@Localizer["Close"]" OnClick="Cancel" />
     </Stack>
 }

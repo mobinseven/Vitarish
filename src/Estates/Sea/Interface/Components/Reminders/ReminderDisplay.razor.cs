@@ -15,12 +15,12 @@ public partial class ReminderDisplay : SeaCommonBase
         IDialogReference dialog = await DialogService.ShowAsync<ReminderDetailsDialog>(Localizer["Reminder"], parameters);
         DialogResult? result = await dialog.Result;
 
-        if(result is null || result.Canceled)
+        if (result is null || result.Canceled)
         {
             return;
         }
 
-        if(result.Data is bool deleted && deleted)
+        if (result.Data is bool deleted && deleted)
         {
             await OnDeleted.InvokeAsync();
         }

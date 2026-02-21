@@ -8,7 +8,7 @@ public partial class ProcedureEditDialog : ProceduresBase
     [Parameter] public ProcedureReadDto? Procedure { get; set; }
     [Parameter] public string ProjectName { get; set; } = string.Empty;
 
-    ProcedureWriteDto procedure = new();
+    private ProcedureWriteDto procedure = new();
     protected override void OnInitialized()
     {
         if (Procedure is not null)

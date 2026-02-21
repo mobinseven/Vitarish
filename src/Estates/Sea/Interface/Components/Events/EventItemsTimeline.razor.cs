@@ -40,7 +40,7 @@ public partial class EventItemsTimeline : EventsBase
     {
         pluginContexts.Clear();
 
-        EventCallback OnDelete = EventCallback.Factory.Create(this, () => ReloadRequired());
+        EventCallback OnDelete = EventCallback.Factory.Create(this, ReloadRequired);
 
         foreach (IEventItemPlugin plugin in Plugins)
         {

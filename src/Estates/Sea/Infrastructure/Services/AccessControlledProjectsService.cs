@@ -30,8 +30,6 @@ internal class AccessControlledProjectsService(
         ProjectReadDto? project = res.SingleOrDefault();
         return project is null ? EntityResult<ProjectReadDto>.Failure() : EntityResult<ProjectReadDto>.Success(project);
     }
-
-    public async Task<Guid> AddAsync(string name, string description, bool template, string metadata, CancellationToken cancellationToken) => await IsAdmin() ? await Service.AddAsync(name, description, template, metadata, cancellationToken) : throw AdminRoleRequired;
     public async Task<EntityResult<ProjectReadDto>> AddAsync(ProjectWriteDto dto, CancellationToken cancellationToken) => await IsAdmin() ? await Service.AddAsync(dto, cancellationToken) : throw AdminRoleRequired;
     public async Task<EntityResult<IReadOnlyList<ProjectReadDto>>> AddAsync(IReadOnlyList<ProjectWriteDto> dtos, CancellationToken cancellationToken) => await IsAdmin() ? await Service.AddAsync(dtos, cancellationToken) : throw AdminRoleRequired;
     public async Task<EntityResult<ProjectReadDto>> AddOrUpdateAsync(ProjectWriteDto dto, CancellationToken cancellationToken) => await IsAdmin() ? await Service.AddOrUpdateAsync(dto, cancellationToken) : throw AdminRoleRequired;
@@ -42,8 +40,7 @@ internal class AccessControlledProjectsService(
     public async Task<EntityResult> RemoveAsync(IReadOnlyList<ProjectWriteDto> dtos, CancellationToken cancellationToken) => await IsAdmin() ? await Service.RemoveAsync(dtos, cancellationToken) : throw AdminRoleRequired;
     public async Task<EntityResult> RemoveAsync(Guid id, CancellationToken cancellationToken) => await IsAdmin() ? await Service.RemoveAsync(id, cancellationToken) : throw AdminRoleRequired;
     public async Task<EntityResult> RemoveByDescriptorAsync(ProjectDescriptorDto descriptor, CancellationToken cancellationToken) => await IsAdmin() ? await Service.RemoveByDescriptorAsync(descriptor, cancellationToken) : throw AdminRoleRequired;
-    public Task UpdateAsync(Guid id, string name, string description, bool template, string metadata, CancellationToken cancellationToken) => Service.UpdateAsync(id, name, description, template, metadata, cancellationToken);
     public async Task<EntityResult<ProjectReadDto>> UpdateAsync(ProjectWriteDto dto, CancellationToken cancellationToken) => await IsAdmin() ? await Service.UpdateAsync(dto, cancellationToken) : throw AdminRoleRequired;
     public async Task<EntityResult<IReadOnlyList<ProjectReadDto>>> UpdateAsync(IReadOnlyList<ProjectWriteDto> dtos, CancellationToken cancellationToken) => await IsAdmin() ? await Service.UpdateAsync(dtos, cancellationToken) : throw AdminRoleRequired;
-    public Task UpdateMetadataAsync(Guid id, string metadata, CancellationToken cancellationToken) => Service.UpdateMetadataAsync(id, metadata, cancellationToken);
+
 }

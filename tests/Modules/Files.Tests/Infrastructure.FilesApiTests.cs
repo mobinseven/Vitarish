@@ -1,19 +1,13 @@
+using Finbuckle.MultiTenant;
+using Finbuckle.MultiTenant.Abstractions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
-using Moq;
-using Vitarish.Files.Domain.Models;
-using Vitarish.Files.Domain.Options;
-using Vitarish.Files.Infrastructure.Api;
-using Finbuckle.MultiTenant;
-using Finbuckle.MultiTenant.Abstractions;
-using Vitarish.Entities.Server.Models;
 using Vitarish.Files.Application.Abstractions;
-using Vitarish.Files.Tests;
+using Vitarish.Files.Infrastructure.Api;
 
 namespace Files.Tests;
 
@@ -25,7 +19,7 @@ public sealed class Infrastructure_FilesApiTests
         // Arrange
         using IHost host = CreateHost();
         HttpClient client = host.GetTestClient();
-        var fileId = Guid.NewGuid();
+        Guid fileId = Guid.NewGuid();
 
         // Act
         HttpResponseMessage response = await client.GetAsync($"/files/{fileId}");
@@ -52,8 +46,8 @@ public sealed class Infrastructure_FilesApiTests
     public async Task GetFileById_ExistingFile_Returns200()
     {
         // Arrange
-        var fileId = Guid.NewGuid();
-        var fileInfo = new FileInformationReadDto
+        Guid fileId = Guid.NewGuid();
+        FileInformationReadDto fileInfo = new()
         {
             Id = fileId,
             ContentType = "text/plain",
@@ -74,8 +68,8 @@ public sealed class Infrastructure_FilesApiTests
     public async Task HeadRequest_ExistingFile_Returns200WithoutBody()
     {
         // Arrange
-        var fileId = Guid.NewGuid();
-        var fileInfo = new FileInformationReadDto
+        Guid fileId = Guid.NewGuid();
+        FileInformationReadDto fileInfo = new()
         {
             Id = fileId,
             ContentType = "text/plain",
@@ -86,7 +80,7 @@ public sealed class Infrastructure_FilesApiTests
         HttpClient client = host.GetTestClient();
 
         // Act
-        var request = new HttpRequestMessage(HttpMethod.Head, $"/files/{fileId}");
+        HttpRequestMessage request = new(HttpMethod.Head, $"/files/{fileId}");
         HttpResponseMessage response = await client.SendAsync(request);
 
         // Assert
@@ -102,10 +96,10 @@ public sealed class Infrastructure_FilesApiTests
         // Arrange
         using IHost host = CreateHost();
         HttpClient client = host.GetTestClient();
-        var fileId = Guid.NewGuid();
+        Guid fileId = Guid.NewGuid();
 
         // Act
-        var request = new HttpRequestMessage(HttpMethod.Head, $"/files/{fileId}");
+        HttpRequestMessage request = new(HttpMethod.Head, $"/files/{fileId}");
         HttpResponseMessage response = await client.SendAsync(request);
 
         // Assert
@@ -116,8 +110,8 @@ public sealed class Infrastructure_FilesApiTests
     public async Task GetFileById_WithRangeHeader_ForwardsRangeRequest()
     {
         // Arrange
-        var fileId = Guid.NewGuid();
-        var fileInfo = new FileInformationReadDto
+        Guid fileId = Guid.NewGuid();
+        FileInformationReadDto fileInfo = new()
         {
             Id = fileId,
             ContentType = "video/mp4",
@@ -134,7 +128,7 @@ public sealed class Infrastructure_FilesApiTests
         HttpClient client = host.GetTestClient();
 
         // Act
-        var request = new HttpRequestMessage(HttpMethod.Get, $"/files/{fileId}");
+        HttpRequestMessage request = new(HttpMethod.Get, $"/files/{fileId}");
         request.Headers.Add("Range", "bytes=5-11");
         HttpResponseMessage response = await client.SendAsync(request);
 
@@ -146,13 +140,13 @@ public sealed class Infrastructure_FilesApiTests
 
     private static IHost CreateHost(FileInformationReadDto? fileInfo = null, Action<long?, long?>? captureRangeParams = null)
     {
-        var storageServiceMock = new Mock<IObjectStorageService>();
-        
-        storageServiceMock
+        Mock<IObjectStorageService> storageServiceMock = new();
+
+        _ = storageServiceMock
             .Setup(s => s.GetMetadataAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new ObjectMetadata(1000, "application/octet-stream"));
 
-        storageServiceMock
+        _ = storageServiceMock
             .Setup(s => s.StreamToAsync(
                 It.IsAny<string>(),
                 It.IsAny<Stream>(),
@@ -168,26 +162,26 @@ public sealed class Infrastructure_FilesApiTests
         return new HostBuilder()
             .ConfigureWebHost(webBuilder =>
             {
-                webBuilder
+                _ = webBuilder
                     .UseTestServer()
                     .ConfigureServices(services =>
                     {
-                        services.AddSingleton(storageServiceMock.Object);
+                        _ = services.AddSingleton(storageServiceMock.Object);
 
-                        var tenantAccessor = new TestTenantAccessor("root");
-                        services.AddSingleton<IMultiTenantContextAccessor<TenantInfo>>(tenantAccessor);
-                        services.AddSingleton<IMultiTenantContextSetter>(tenantAccessor);
+                        TestTenantAccessor tenantAccessor = new("root");
+                        _ = services.AddSingleton<IMultiTenantContextAccessor<TenantInfo>>(tenantAccessor);
+                        _ = services.AddSingleton<IMultiTenantContextSetter>(tenantAccessor);
 
-                        var fileInfoService = new InMemoryFileInformationService();
+                        InMemoryFileInformationService fileInfoService = new();
                         if (fileInfo is not null)
                         {
                             fileInfoService.Seed("test-file", fileInfo);
                         }
-                        services.AddScoped<IFileInformationService>(_ => fileInfoService);
+                        _ = services.AddScoped<IFileInformationService>(_ => fileInfoService);
 
-                        services.AddSingleton<IServiceScopeFactory>(sp => sp.GetRequiredService<IServiceScopeFactory>());
+                        _ = services.AddSingleton<IServiceScopeFactory>(sp => sp.GetRequiredService<IServiceScopeFactory>());
 
-                        services.AddSingleton<IOptionsSnapshot<FilesOptions>>(new OptionsWrapper<FilesOptions>(
+                        _ = services.AddSingleton<IOptionsSnapshot<FilesOptions>>(new OptionsWrapper<FilesOptions>(
                             new FilesOptions
                             {
                                 Prefix = "files",
@@ -195,14 +189,14 @@ public sealed class Infrastructure_FilesApiTests
                                 UploadPath = "uploads"
                             }));
 
-                        services.AddRouting();
+                        _ = services.AddRouting();
                     })
                     .Configure(app =>
                     {
-                        app.UseRouting();
-                        app.UseEndpoints(endpoints =>
+                        _ = app.UseRouting();
+                        _ = app.UseEndpoints(endpoints =>
                         {
-                            endpoints.MapFilesApi();
+                            _ = endpoints.MapFilesApi();
                         });
                     });
             })

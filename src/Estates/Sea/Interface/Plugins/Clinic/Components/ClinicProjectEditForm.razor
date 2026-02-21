@@ -1,40 +1,40 @@
-@inherits ProjectFormBase<ClinicProjectMetadata, ClinicProjectMetadataModel>
+@inherits ProjectEditForm
 
 
-@if(EditableMetadata is null)
+@if(projectWriteDto is null)
 {
     return;
 }
 <Stack>
     @if(TemplateMode)
     {
-        <StackTextField @bind-Value="EditableMetadata.LastName"
+        <StackTextField @bind-Value="projectWriteDto.LastName"
                         Required
                         Label="@Localizer["Title"]" />
 
-        <StackTextField @bind-Value="EditableMetadata.ClinicalNotes"
+        <StackTextField @bind-Value="projectWriteDto.ClinicalNotes"
                         Lines="4"
                         Label="@Localizer["Description"]" />
     }
     else
     {
-        <StackTextField @bind-Value="EditableMetadata.FirstName"
+        <StackTextField @bind-Value="projectWriteDto.FirstName"
                         Label="@Localizer["FirstName"]" />
 
-        <StackTextField @bind-Value="EditableMetadata.LastName"
+        <StackTextField @bind-Value="projectWriteDto.LastName"
                         DebounceInterval="500"
                         Required
                         Label="@Localizer["LastName"]" />
 
         <StackField>
-            <MudDatePicker @bind-Date="EditableMetadata.DateOfBirth"
+            <MudDatePicker @bind-Date="projectWriteDto.DateOfBirth"
                            Variant="Variant.Filled"
                            DateFormat="dd/MM/yyyy"
                            Label="@Localizer["DateOfBirth"]" />
         </StackField>
 
         <StackField>
-            <MudDatePicker @bind-Date="EditableMetadata.DateOfSurgery"
+            <MudDatePicker @bind-Date="projectWriteDto.DateOfSurgery"
                            Variant="Variant.Filled"
                            DateFormat="dd/MM/yyyy"
                            Label="@Localizer["DateOf", Localizer["Surgery"]]" />
@@ -42,96 +42,82 @@
 
         <StackField>
             <MudRadioGroup T="Gender"
-                           @bind-Value="EditableMetadata.Gender">
+                           @bind-Value="projectWriteDto.Gender">
                 <MudRadio Value="@Gender.Female">@Localizer["Female"]</MudRadio>
                 <MudRadio Value="@Gender.Male">@Localizer["Male"]</MudRadio>
             </MudRadioGroup>
         </StackField>
 
-        <StackTextField @bind-Value="EditableMetadata.ClinicalNotes"
+        <StackTextField @bind-Value="projectWriteDto.ClinicalNotes"
                         Lines="4"
                         Label="@Localizer["Notes"]" />
 
         <StackExpandable Label="@Localizer["ClinicalData"]">
-            <MudTextField @bind-Value="EditableMetadata.PlaceOfBirth"
+            <MudTextField @bind-Value="projectWriteDto.PlaceOfBirth"
                           Label="@Localizer["PlaceOfBirth"]" />
-            <MudTextField @bind-Value="EditableMetadata.Email"
+            <MudTextField @bind-Value="projectWriteDto.Email"
                           Label="@Localizer["Email"]"
                           InputType="InputType.Email" />
-            <MudTextField @bind-Value="EditableMetadata.Phone"
+            <MudTextField @bind-Value="projectWriteDto.Phone"
                           Label="@Localizer["Phone"]"
                           InputType="InputType.Telephone" />
             <MudDivider Class="my-1" />
-            <MudTextField @bind-Value="EditableMetadata.InsuranceProvider"
+            <MudTextField @bind-Value="projectWriteDto.InsuranceProvider"
                           Label="@Localizer["InsuranceProvider"]" />
             <MudDivider Class="my-1" />
-            <MudTextField @bind-Value="EditableMetadata.VisitReason"
+            <MudTextField @bind-Value="projectWriteDto.VisitReason"
                           Label="@Localizer["VisitReason"]" />
-            <MudTextField @bind-Value="EditableMetadata.Allergies"
+            <MudTextField @bind-Value="projectWriteDto.Allergies"
                           Label="@Localizer["Allergies"]" />
-            <MudTextField @bind-Value="EditableMetadata.CurrentMedications"
+            <MudTextField @bind-Value="projectWriteDto.CurrentMedications"
                           Label="@Localizer["CurrentMedications"]" />
             <MudDivider Class="my-1" />
-            <MudTextField @bind-Value="EditableMetadata.EmergencyContactName"
+            <MudTextField @bind-Value="projectWriteDto.EmergencyContactName"
                           Label="@Localizer["EmergencyContactName"]" />
-            <MudTextField @bind-Value="EditableMetadata.EmergencyContactPhone"
+            <MudTextField @bind-Value="projectWriteDto.EmergencyContactPhone"
                           Label="@Localizer["EmergencyContactPhone"]" />
         </StackExpandable>
     }
-    <StackButton Label="@Localizer["Save"]" EndIcon="fa-regular fa-save" Color="Color.Primary" OnClick="SaveAsync" Disabled="@(!isValid)" />
+    <StackButton Label="@Localizer["Save"]" EndIcon="fa-regular fa-save" Color="Color.Primary" OnClick="SaveAsync" />
     @if(OnCancel.HasDelegate)
     {
         <StackButton Label="@Localizer["Cancel"]" EndIcon="fa-regular fa-xmark" OnClick="() => OnCancel.InvokeAsync()" />
     }
 </Stack>
 
-@code {
-
+    @code {
+    private ClinicProjectWriteDto projectWriteDto = new();
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        var model = new ClinicProjectMetadataModel(OnMetadataChenged);
         if(Project is not null)
         {
-            model.LoadFrom(Project.GetClinicProjectMetadata());
+            projectWriteDto = ClinicProjectWriteDto.ToWrite(Project)!;
         }
-        else
-        {
-            model.LoadFrom(new ClinicProjectMetadata());
-        }
-        InitializeEditableMetadata(model);
 
-        if(Project is not null && string.IsNullOrWhiteSpace(EditableMetadata.LastName))
+        if(Project is not null && string.IsNullOrWhiteSpace(projectWriteDto.LastName))
         {
-            EditableMetadata.LastName = Project.Name;
+            projectWriteDto.LastName = Project.Name;
         }
         StateHasChanged();
     }
-
-    private async void OnMetadataChenged()
-    {
-        SetMetadata(EditableMetadata.GetModel());
-        StateHasChanged();
-    }
-
-    string? title => (string.IsNullOrWhiteSpace(EditableMetadata.FirstName) ? Metadata?.LastName : $"{Metadata?.FirstName} {Metadata?.LastName}");
-
-    private bool isValid => !string.IsNullOrWhiteSpace(title);
 
     protected override async Task SaveAsync()
     {
-        if(!isValid)
+        projectWriteDto.Name = $"{projectWriteDto.FirstName} {projectWriteDto.LastName}".TrimEnd(' ', ',');
+        if(string.IsNullOrWhiteSpace(projectWriteDto.Name))
         {
+            await DialogService.ShowMessageBox(null, Localizer["RequiredItem", Localizer["LastName"]]);
             return;
         }
         if(Project is null)
         {
-            var created = await ProjectsService.AddAsync(title, Metadata?.ClinicalNotes ?? string.Empty, TemplateMode, MetadataJson, CancellationToken.None);
-            await OnCreate.InvokeAsync(created);
+            var created = await ProjectsService.AddAsync(projectWriteDto, CancellationToken.None).EnsureValueAsync();
+            await OnCreate.InvokeAsync(created.Id);
         }
         else
         {
-            await ProjectsService.UpdateAsync(Project.Id, title, Metadata?.ClinicalNotes ?? string.Empty, TemplateMode, MetadataJson, CancellationToken.None);
+            await ProjectsService.UpdateAsync(projectWriteDto, CancellationToken.None);
             await OnUpdate.InvokeAsync(Project.Id);
         }
     }

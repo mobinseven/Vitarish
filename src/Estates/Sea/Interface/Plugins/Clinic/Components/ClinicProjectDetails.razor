@@ -32,10 +32,10 @@
 </Stack>
 
 @code {
-    ClinicProjectMetadata? Metadata;
+    ClinicProjectReadDto? Metadata;
 
     protected override void OnParametersSet()
     {
-        Metadata = Project.GetClinicProjectMetadata();
+        Metadata = ClinicProjectReadDto.ToRead(Project);
     }
 }

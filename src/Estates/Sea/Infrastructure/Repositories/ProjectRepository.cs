@@ -20,8 +20,7 @@ internal class ProjectRepository(SeaDbContext dbContext)
                 Expression<Func<Project, bool>> predicate = EntitySearchHelper.BuildSearchPredicate<Project>(
                     patterns,
                     project => project.Name,
-                    project => project.Description,
-                    project => project.Metadata);
+                    project => project.Description);
 
                 query = query.Where(predicate);
             }

@@ -1,10 +1,10 @@
-using Vitarish.Sea.Interface.Plugins.Clinic.Projects;
+using Vitarish.Sea.Interface.Plugins.Clinic.Components;
 
-namespace Vitarish.Sea.Interface.Plugins.Clinic.Plugins;
+namespace Vitarish.Sea.Interface.Plugins.Clinic;
 
 internal class ClinicProjectDetailsPlugin : IProjectDetailsPlugin
 {
-    public string Id => SeaPluginIdentifiers.Clinic;
+    public string Id => PluginIdentifiers.Clinic;
 
     public RenderFragment Render(ProjectDetailsPlugin context) => builder =>
     {

@@ -16,7 +16,8 @@ public partial class UserReminderCreatorDialog : RemindersBase
     {
         await base.OnInitializedAsync();
         string? phone = RequestContext.User?.GetUserPhoneNumber();
-        string? email = RequestContext.User?.GetUserEmail();
+
+        _ = RequestContext.User?.GetUserEmail();
         kind = !string.IsNullOrWhiteSpace(phone) ? ReminderKind.Sms : ReminderKind.Email;
     }
 
