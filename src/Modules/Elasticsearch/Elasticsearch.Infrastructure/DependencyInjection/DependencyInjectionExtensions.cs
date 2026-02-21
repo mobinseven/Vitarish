@@ -1,5 +1,6 @@
 using Elastic.Clients.Elasticsearch;
 using Elastic.Transport;
+using MediatR;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -44,6 +45,10 @@ public static class DependencyInjectionExtensions
         _ = services.AddScoped<ISearchIndexService, ElasticsearchIndexService>();
         _ = services.AddScoped<IndexLifecycleService>();
         _ = services.AddScoped<ISearchQueryService, ElasticsearchQueryService>();
+        _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(DependencyInjectionExtensions).Assembly));
+
+        _ = services.AddSingleton<IEntityIndexingMessageQueue, InMemoryEntityIndexingMessageQueue>();
+        _ = services.AddHostedService<EntityIndexingProcessor>();
 
         return services;
     }

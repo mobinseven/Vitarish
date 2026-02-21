@@ -5,9 +5,11 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\Elasticsearch.Application\Elasticsearch.Application.csproj" />
+    <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Elastic.Clients.Elasticsearch" Version="8.17.1" />
+    <PackageReference Include="MediatR" Version="14.0.*" />
     <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="9.0.0" />
   </ItemGroup>
 </Project>
