@@ -11,7 +11,7 @@ namespace Vitarish.Host.Migrations.PartiesDb
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.RenameColumn(
-                name: "EstateId",
+                name: "ClientId",
                 table: "Tenants",
                 newName: "EstateId");
 
@@ -27,7 +27,7 @@ namespace Vitarish.Host.Migrations.PartiesDb
             migrationBuilder.RenameColumn(
                 name: "EstateId",
                 table: "Tenants",
-                newName: "EstateId");
+                newName: "ClientId");
 
             migrationBuilder.RenameIndex(
                 name: "IX_Tenants_EstateId",
