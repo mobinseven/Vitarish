@@ -15,7 +15,7 @@ public abstract record EntityWriteDto
     {
         get;
         init => field = new(Metadata);
-    }
+    } = [];
 
     public T? GetField<T>([CallerMemberName] string propertyName = null!) => MetadataValues.GetField<T>(Metadata, propertyName);
 
