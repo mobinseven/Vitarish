@@ -1,15 +1,9 @@
 @inherits EventsBase
 
-@if(!string.IsNullOrWhiteSpace(Event.Description))
-{
-    <Stack>
-        <StackField Label="@Event.Title" HelperText="@Event.Description" />
-    </Stack>
-}
-
-@if(Event.IsCommitted)
-{
-    <Stack>
+<Stack>
+    <StackField Label="@Event.Title" HelperText="@Event.Description" />
+    @if(Event.IsCommitted)
+    {
         <StackField Label="@Localizer["Committed"]"
                     Color="Color.Primary"
                     AdornmentIcon="fa-duotone fa-circle-check fa-2x"
@@ -31,23 +25,24 @@
         {
             <StackButton StartIcon="fa-regular fa-xmark" Color="Color.Error" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Uncommit"]" />
         }
-    </Stack>
-}
-else if(CanWrite)
-{
-    <Stack>
+    }
+    else if(CanWrite)
+    {
         <StackButton StartIcon="fa-regular fa-check" Color="Color.Primary" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Commit"]" />
-    </Stack>
-}
+    }
+</Stack>
 
 
 @if(AdminMode)
 {
     <Stack>
+        <StackButton StartIcon="fa-regular fa-edit"
+                     OnClick="EditEvent"
+                     Label="@Localizer["EditItem", Localizer["Event"]]" />
         <StackButton StartIcon="fa-regular fa-users"
                      OnClick="EditEventRoles"
                      Label="@Localizer["EditRoles", Localizer["Event"]]" />
-        <StackButton StartIcon="fa-regular fa-trash"
+        <StackButton EndIcon="fa-regular fa-trash"
                      OnClick="DeleteEvent"
                      Label="@Localizer["DeleteItem", Localizer["Event"]]"
                      Color="Color.Error" />
@@ -62,6 +57,17 @@ else if(CanWrite)
     [Parameter] public EventCallback OnDelete { get; set; }
     [Parameter] public EventCallback OnUpdate { get; set; }
 
+    private async Task EditEvent()
+    {
+        DialogParameters parameters = new()
+        {
+            { nameof(EventEditDialog.Event), Event }
+        };
+
+        var dialog = await DialogService.ShowAsync<EventEditDialog>(null, parameters);
+        await dialog.Result;
+    }
+
     private async Task EditEventRoles()
     {
         DialogParameters parameters = new()
@@ -70,7 +76,19 @@ else if(CanWrite)
         };
 
         var dialog = await DialogService.ShowAsync<EventRolesEditDialog>(null, parameters);
-        await dialog.Result;
+        DialogResult? result = await dialog.Result;
+
+        if(result is null)
+        {
+            return;
+        }
+
+        if(result.Canceled)
+        {
+            return;
+        }
+
+        await OnUpdate.InvokeAsync();
     }
 
     private async Task DeleteEvent()

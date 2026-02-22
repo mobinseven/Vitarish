@@ -1,10 +1,12 @@
 namespace Vitarish.Sea.Domain.Dto;
 
-public record EventWriteDto(
-    [property: JsonPropertyName("projectId")] Guid ProjectId,
-    [property: JsonPropertyName("procedureId")] Guid ProcedureId,
-    [property: JsonPropertyName("title")] string Title,
-    [property: JsonPropertyName("description")] string Description,
-    [property: JsonPropertyName("previousEventId")] Guid? PreviousEventId,
-    [property: JsonPropertyName("committedAt")] DateTimeOffset? CommittedAt,
-    [property: JsonPropertyName("committedBy")] Guid CommittedBy) : EntityWriteDto;
+public record EventWriteDto : EntityWriteDto
+{
+    public Guid ProjectId { get; set; }
+    public Guid ProcedureId { get; set; }
+    public string Title { get; set; }
+    public string Description { get; set; }
+    public Guid? PreviousEventId { get; set; }
+    public DateTimeOffset? CommittedAt { get; set; }
+    public Guid CommittedBy { get; set; }
+}

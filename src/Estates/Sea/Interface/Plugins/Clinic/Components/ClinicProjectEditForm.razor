@@ -8,11 +8,11 @@
 <Stack>
     @if(TemplateMode)
     {
-        <StackTextField @bind-Value="projectWriteDto.LastName"
+        <StackTextField @bind-Value="projectWriteDto.Name"
                         Required
                         Label="@Localizer["Title"]" />
 
-        <StackTextField @bind-Value="projectWriteDto.ClinicalNotes"
+        <StackTextField @bind-Value="projectWriteDto.Description"
                         Lines="4"
                         Label="@Localizer["Description"]" />
     }
@@ -49,7 +49,8 @@
         </StackField>
 
         <StackTextField @bind-Value="projectWriteDto.ClinicalNotes"
-                        Lines="4"
+                        Lines="1"
+                        AutoGrow
                         Label="@Localizer["Notes"]" />
 
         <StackExpandable Label="@Localizer["ClinicalData"]">

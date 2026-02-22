@@ -6,8 +6,7 @@ public partial class EventEditDialog : EventsBase
 
     [Parameter] public EventReadDto? Event { get; set; }
 
-    private string title = string.Empty;
-    private string description = string.Empty;
+    private EventWriteDto EventWrite = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -17,8 +16,7 @@ public partial class EventEditDialog : EventsBase
             MudDialog.Cancel();
             return;
         }
-        title = Event.Title;
-        description = Event.Description;
+        EventWrite = Event.ToWrite();
     }
 
     private async Task SaveAsync()
@@ -30,7 +28,7 @@ public partial class EventEditDialog : EventsBase
         }
         else
         {
-            EventReadDto? updated = await EventsService.UpdateAsync(Event.Id, title, description, CancellationToken.None);
+            EventReadDto? updated = await EventsService.UpdateAsync(EventWrite, CancellationToken.None).EnsureValueAsync();
             MudDialog.Close(DialogResult.Ok(updated));
         }
     }
