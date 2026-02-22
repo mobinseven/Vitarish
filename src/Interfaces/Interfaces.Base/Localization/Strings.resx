@@ -1655,4 +1655,10 @@ of project "{2}"</value>
   <data name="End" xml:space="preserve">
     <value>End</value>
   </data>
+  <data name="Reconnecting" xml:space="preserve">
+    <value>Reconnecting to the server</value>
+  </data>
+  <data name="Reload" xml:space="preserve">
+    <value>Reload</value>
+  </data>
 </root>

@@ -1344,6 +1344,9 @@
   <data name="TokenCreationFailed" xml:space="preserve">
     <value>ایجاد توکن دسترسی شخصی ناموفق بود.</value>
   </data>
+  <data name="Refresh" xml:space="preserve">
+    <value>تازه سازی</value>
+  </data>
   <data name="TenantId" type="System.Resources.ResXNullRef, System.Windows.Forms">
     <value />
   </data>
@@ -1569,13 +1572,19 @@
   <data name="Unauthorized" xml:space="preserve">
     <value>عدم دسترسی</value>
   </data>
-  <data name="Gender_Unspecified" xml:space="preserve">
-    <value>نامشخص</value>
-  </data>
   <data name="RequiredItem" xml:space="preserve">
     <value>{0} باید داده شود</value>
   </data>
   <data name="End" xml:space="preserve">
     <value>پایان</value>
+  </data>
+  <data name="Gender_Unspecified" xml:space="preserve">
+    <value>نامشخص</value>
+  </data>
+  <data name="Reconnecting" xml:space="preserve">
+    <value>ارتباط با سرور</value>
+  </data>
+  <data name="Reload" xml:space="preserve">
+    <value>بازنشانی</value>
   </data>
 </root>
