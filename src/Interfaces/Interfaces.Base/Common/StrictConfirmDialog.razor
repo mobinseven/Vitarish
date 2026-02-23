@@ -1,13 +1,15 @@
 @inherits CommonBase
 <MudDialog>
     <DialogContent>
-        <MudText>@ContentText</MudText>
-        <MudTextField @bind-Value="confirmation"
-                      Label="@Localizer["TypeNameToConfirm", ItemName]"
-                      Immediate="true" />
+        <Stack>
+            <StackField Label="@ContentText" />
+            <StackTextField @bind-Value="confirmation"
+                            Label="@Localizer["TypeNameToConfirm", ItemName]"
+                            Immediate="true" />
+        </Stack>
+        <Stack>
+            <StackButton Label="@(ButtonText is null ? Localizer["Confirm"] : ButtonText)" OnClick="Submit" Disabled="!IsMatch" />
+            <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" EndIcon="fa-regular fa-xmark" />
+        </Stack>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">@Localizer["Close"]</MudButton>
-        <MudButton Color="@Color" Variant="Variant.Filled" OnClick="Submit" Disabled="!IsMatch">@ButtonText</MudButton>
-    </DialogActions>
 </MudDialog>

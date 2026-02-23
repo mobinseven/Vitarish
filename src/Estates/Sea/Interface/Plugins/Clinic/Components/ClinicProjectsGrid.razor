@@ -10,7 +10,7 @@
         <StackButton Color="Color.Primary"
                      OnClick="@(() => MassEditMode = !MassEditMode)"
                      EndIcon="@(MassEditMode ? "fa-regular fa-check" : "fa-regular fa-edit")"
-                     Label="@(MassEditMode ? Localizer["End"] : Localizer["MassEditMode"])" />
+                     Label="@(MassEditMode ? Localizer["EndItem", Localizer["MassEditMode"]] : Localizer["MassEditMode"])" />
     </Stack>
 
     @if(MassEditMode)

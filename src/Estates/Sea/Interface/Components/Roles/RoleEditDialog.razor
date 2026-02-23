@@ -2,12 +2,12 @@
 
 <MudDialog>
     <DialogContent>
-        <MudStack Spacing="2">
-            <MudTextField @bind-Value="name" Label="@Localizer["Role"]" />
-        </MudStack>
+        <Stack>
+            <StackTextField @bind-Value="name" Label="@Localizer["Role"]" />
+        </Stack>
+        <Stack>
+            <StackButton Color="Color.Primary" OnClick="SaveAsync" Label="@Localizer["Save"]" Disabled="@string.IsNullOrWhiteSpace(name)" EndIcon="fa-regular fa-save" />
+            <StackButton EndIcon="fa-regular fa-xmark" Label="@Localizer["Cancel"]" OnClick="Cancel" />
+        </Stack>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">@Localizer["Close"]</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync" Disabled="@string.IsNullOrWhiteSpace(name)">@Localizer["Save"]</MudButton>
-    </DialogActions>
 </MudDialog>

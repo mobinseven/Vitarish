@@ -5,10 +5,10 @@ public partial class EventsGrid : EventsBase
     [Parameter, EditorRequired] public ProjectReadDto Project { get; set; }
     [Parameter, EditorRequired] public ProcedureReadDto Procedure { get; set; }
     [Parameter] public EventCallback<Guid?> EventClicked { get; set; }
-
+    [Parameter] public EventCallback OnUpdate { get; set; }
     private List<EventReadDto> events = [];
 
-    private async Task ReloadData()
+    protected override async Task ReloadRequired()
     {
         events = [.. (await EventsService.GetByProcedureAsync(Procedure.Id, CancellationToken.None)).SortByChain()];
 
@@ -18,14 +18,12 @@ public partial class EventsGrid : EventsBase
 
     }
 
-    protected override Task ReloadRequired() => ReloadData();
-
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         if (Procedure is not null)
         {
-            await ReloadData();
+            await ReloadRequired();
         }
     }
 
@@ -56,7 +54,14 @@ public partial class EventsGrid : EventsBase
             { nameof(EventEditDialog.Event), item }
         };
 
-        _ = await DialogService.ShowAsync<EventEditDialog>(null, parameters);
+        var dialog = await DialogService.ShowAsync<EventEditDialog>(null, parameters);
+        var result = dialog.Result;
+        if (result is null || result.IsCanceled)
+        {
+            return;
+        }
+        await ReloadRequired();
+        await OnUpdate.InvokeAsync();
     }
 
 
@@ -64,7 +69,7 @@ public partial class EventsGrid : EventsBase
     {
         if (await EventsService.MoveUpAsync(Procedure.Id, item.Id, CancellationToken.None))
         {
-            await ReloadData();
+            await ReloadRequired();
         }
     }
 
@@ -72,7 +77,7 @@ public partial class EventsGrid : EventsBase
     {
         if (await EventsService.MoveDownAsync(Procedure.Id, item.Id, CancellationToken.None))
         {
-            await ReloadData();
+            await ReloadRequired();
         }
     }
 }

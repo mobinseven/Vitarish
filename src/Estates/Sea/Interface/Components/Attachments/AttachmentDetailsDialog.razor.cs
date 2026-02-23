@@ -15,7 +15,8 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
 
     private Guid FileId => Guid.TryParse(Attachment.Content, out Guid id) ? id : Guid.Empty;
 
-    private bool CanWrite { get; set; }
+    private bool CanEdit { get; set; }
+    private bool CanDelete { get; set; }
     private bool editing;
     private string editContent = string.Empty;
     private IReadOnlyList<Guid> readers = [];
@@ -24,7 +25,8 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
     {
         await base.OnInitializedAsync();
         await LoadReadersAsync();
-        CanWrite = await EventsService.CanWriteEvent(Event.Id);
+        CanEdit = await EventsService.CanWriteEvent(Event.Id) && Event.CommittedBy.ToString() == RequestContext.UserId;
+        CanDelete = await EventsService.CanWriteEvent(Event.Id);
         StateHasChanged();
     }
 
@@ -47,6 +49,7 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
             Attachment.Id,
             editContent,
             CancellationToken.None);
+
         if (updated is not null)
         {
             Attachment = updated;
@@ -75,6 +78,7 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
 
         return names;
     }
+
     private async Task DeleteAttachment()
     {
         DialogParameters parameters = new()

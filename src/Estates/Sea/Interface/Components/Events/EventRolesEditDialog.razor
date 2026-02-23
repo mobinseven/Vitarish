@@ -19,9 +19,9 @@
                 <StackCheckbox Label="@role.Name" Value="writeRoleIds.Contains(role.Id)" ValueChanged="@((bool b) => OnWriteRoleChanged(role.Id, b))" />
             }
         </Stack>
+        <Stack>
+            <StackButton Color="Color.Primary" OnClick="SaveAsync" Label="@Localizer["Save"]" EndIcon="fa-regular fa-save" />
+            <StackButton EndIcon="fa-regular fa-xmark" Label="@Localizer["Cancel"]" OnClick="Cancel" />
+        </Stack>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">@Localizer["Close"]</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync">@Localizer["Save"]</MudButton>
-    </DialogActions>
 </MudDialog>

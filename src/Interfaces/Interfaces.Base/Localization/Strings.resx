@@ -608,9 +608,6 @@ of project "{2}"</value>
   <data name="VoiceToText" xml:space="preserve">
     <value>Voice to text</value>
   </data>
-  <data name="EndRecording" xml:space="preserve">
-    <value>End Recording</value>
-  </data>
   <data name="Transcribing" xml:space="preserve">
     <value>Transcribing</value>
   </data>
@@ -684,7 +681,7 @@ of project "{2}"</value>
     <value>Uploading</value>
   </data>
   <data name="SeenBy" xml:space="preserve">
-    <value>Seen by</value>
+    <value>Seen by {0}</value>
   </data>
   <data name="AllergiesLabel" xml:space="preserve">
     <value>Allergies: {0}</value>
@@ -1660,5 +1657,20 @@ of project "{2}"</value>
   </data>
   <data name="Reload" xml:space="preserve">
     <value>Reload</value>
+  </data>
+  <data name="ReconnectionFailed" xml:space="preserve">
+    <value>Reconnection failed</value>
+  </data>
+  <data name="EndItem" xml:space="preserve">
+    <value>End {0}</value>
+  </data>
+  <data name="PersonCount" xml:space="preserve">
+    <value>{0}</value>
+  </data>
+  <data name="UpdatedAt" xml:space="preserve">
+    <value>Updated at</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>Details</value>
   </data>
 </root>

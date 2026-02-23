@@ -23,12 +23,12 @@
         </StackField>
         @if(AdminMode)
         {
-            <StackButton StartIcon="fa-regular fa-xmark" Color="Color.Error" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Uncommit"]" />
+            <StackButton EndIcon="fa-regular fa-xmark" Color="Color.Error" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Uncommit"]" />
         }
     }
     else if(CanWrite)
     {
-        <StackButton StartIcon="fa-regular fa-check" Color="Color.Primary" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Commit"]" />
+        <StackButton EndIcon="fa-regular fa-check" Color="Color.Primary" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Commit"]" />
     }
 </Stack>
 
@@ -36,10 +36,10 @@
 @if(AdminMode)
 {
     <Stack>
-        <StackButton StartIcon="fa-regular fa-edit"
+        <StackButton EndIcon="fa-regular fa-edit"
                      OnClick="EditEvent"
                      Label="@Localizer["EditItem", Localizer["Event"]]" />
-        <StackButton StartIcon="fa-regular fa-users"
+        <StackButton EndIcon="fa-regular fa-users"
                      OnClick="EditEventRoles"
                      Label="@Localizer["EditRoles", Localizer["Event"]]" />
         <StackButton EndIcon="fa-regular fa-trash"
@@ -65,7 +65,12 @@
         };
 
         var dialog = await DialogService.ShowAsync<EventEditDialog>(null, parameters);
-        await dialog.Result;
+        var result = await dialog.Result;
+        if(result is null || result.Canceled)
+        {
+            return;
+        }
+        await OnUpdate.InvokeAsync();
     }
 
     private async Task EditEventRoles()

@@ -8,7 +8,8 @@
 <CascadingValue Value="IsAdmin">
     <EventsGrid Project="@Project"
                 EventClicked=@(id => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}/{id}"))
-                Procedure="Procedure" />
+                Procedure="Procedure"
+                OnUpdate="ReloadRequired" />
     <ProcedureDetails Procedure="Procedure" Project="Project" OnUpdate="ReloadRequired" OnDelete="@(() => NavigationManager.NavigateTo($"/sea/Projects/{projectId}"))" />
 </CascadingValue>
 

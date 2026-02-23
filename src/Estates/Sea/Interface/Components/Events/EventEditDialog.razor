@@ -2,13 +2,13 @@
 
 <MudDialog>
     <DialogContent>
-        <MudStack Spacing="2">
-            <MudTextField @bind-Value="EventWrite.Title" Variant=Variant.Outlined Label="@Localizer["Title"]" Immediate />
-            <MudTextField @bind-Value="EventWrite.Description" Variant=Variant.Outlined Label="@Localizer["Description"]" AutoGrow />
-        </MudStack>
+        <Stack>
+            <StackTextField Label="@Localizer["Title"]" @bind-Value="EventWrite.Title" />
+            <StackTextField Label="@Localizer["Description"]" @bind-Value="EventWrite.Description" />
+        </Stack>
+        <Stack>
+            <StackButton Color="Color.Primary" OnClick="SaveAsync" Label="@Localizer["Save"]" EndIcon="fa-regular fa-save" />
+            <StackButton EndIcon="fa-regular fa-xmark" Label="@Localizer["Cancel"]" OnClick="Cancel" />
+        </Stack>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">@Localizer["Close"]</MudButton>
-        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync">@Localizer["Save"]</MudButton>
-    </DialogActions>
 </MudDialog>

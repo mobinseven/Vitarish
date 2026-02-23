@@ -1,12 +1,14 @@
 @inherits CommonBase
 <MudDialog>
     <DialogContent>
-        <MudText>@ContentText</MudText>
+        <Stack>
+            <StackField Label="@ContentText" />
+        </Stack>
+        <Stack>
+            <StackButton Label="@(ButtonText is null ? Localizer["Confirm"] : ButtonText)" Color="@Color" OnClick="Submit" />
+            <StackButton Label="@Localizer["Close"]" OnClick="Cancel" EndIcon="fa-regular fa-xmark" />
+        </Stack>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">@Localizer["Close"]</MudButton>
-        <MudButton Color="@Color" Variant="Variant.Filled" OnClick="Submit">@ButtonText</MudButton>
-    </DialogActions>
 </MudDialog>
 
 @code {
@@ -14,7 +16,7 @@
 
     [Parameter] public string? ContentText { get; set; }
 
-    [Parameter] public required string ButtonText { get; set; }
+    [Parameter] public string? ButtonText { get; set; }
 
     [Parameter] public Color Color { get; set; } = Color.Error;
 

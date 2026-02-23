@@ -1,75 +1,77 @@
 @inherits SeaCommonBase
 <MudDialog>
     <DialogContent>
-        <MudStack Spacing="2">
-            @if(Attachment.ContentType.StartsWith("image"))
-            {
-                @if(FileId != Guid.Empty)
-                {
-                    <Vitarish.Files.Interface.Components.FileImage FileId="@FileId" Type="@Attachment.ContentType" />
-                }
-                else
-                {
-                    <ImageElement Src="@Attachment.Content" Type="@Attachment.ContentType" />
-                }
-            }
-            @if(Attachment.ContentType.StartsWith("video"))
-            {
-                @if(FileId != Guid.Empty)
-                {
-                    <Vitarish.Files.Interface.Components.FileVideo FileId="@FileId" Type="@Attachment.ContentType" />
-                }
-                else
-                {
-                    <VideoElement Src="@Attachment.Content" Type="@Attachment.ContentType" />
-                }
-            }
-            @if(Attachment.ContentType.StartsWith("text"))
-            {
-                if(editing)
-                {
-                    <MudTextField @bind-Value="editContent" Style="width:100%;" AutoGrow Immediate Variant="ThemeService.SecondaryVariant" />
-                }
-                else
-                {
-                    <TextChip Color="Color" Class="pa-2 glass" Text="@Attachment.Content" />
-                }
-            }
-            <MudText Typo="Typo.body2">@($"{Localizer["Attacher"]}: {GetUserFullNameById(Attachment.CreatedBy)}")</MudText>
-            <MudText Typo="Typo.body2">@($"{Localizer["CreatedAt"]}: {Attachment.CreatedAt.ToLocalTime()}")</MudText>
-            @if(Attachment.UpdatedAt is not null)
-            {
-                <MudText Typo="Typo.body2">@($"{Localizer["Updated"]}: {Attachment.UpdatedAt}")</MudText>
-            }
-            <MudText Typo="Typo.caption">@($"{Localizer["ContentType"]}: {Attachment.ContentType}")</MudText>
-            @if(readers.Count > 0)
-            {
-                <MudList T="string">
-                    <MudListSubheader>
-                        @Localizer["SeenBy"]
-                    </MudListSubheader>
-                    @foreach(var reader in GetReaders())
-                    {
-                        <MudListItem Dense="true" Icon="fa-regular fa-check-double" Text="@reader" />
-                    }
-                </MudList>
-            }
-        </MudStack>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Close">@Localizer["Close"]</MudButton>
         @if(editing)
         {
-            <MudButton Variant="Variant.Filled" OnClick="SaveAsync" Color="Color.Primary" DropShadow="false">@Localizer["Save"]</MudButton>
-            <MudButton OnClick="CancelEdit" DropShadow="false">@Localizer["Cancel"]</MudButton>
+            <Stack>
+                <StackTextField Label="@Localizer["Attachment"]" @bind-Value="editContent" AutoGrow Immediate />
+                <StackButton EndIcon="fa-regular fa-save" Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" />
+                <StackButton EndIcon="fa-regular fa-xmark" Label="@Localizer["Cancel"]" OnClick="CancelEdit" />
+            </Stack>
         }
-        else if(CanWrite)
+        else
         {
-            if(Attachment.ContentType.StartsWith("text"))
-            {
-                <MudButton Variant="Variant.Filled" OnClick="StartEdit" DropShadow="false">@Localizer["Edit"]</MudButton>
-            }
-            <MudButton Variant="Variant.Filled" OnClick="DeleteAttachment" Color="Color.Error" DropShadow="false">@Localizer["DeleteItem", Localizer["Attachment"]]</MudButton>
+            <Stack>
+                @if(Attachment.ContentType.StartsWith("text"))
+                {
+                    <StackField Color="Color" Label="@Attachment.Content" HelperText="@GetUserFullNameById(Attachment.CreatedBy)" />
+                }
+                else
+                {
+                    <StackField Color="Color" HelperText="@GetUserFullNameById(Attachment.CreatedBy)">
+                        @if(Attachment.ContentType.StartsWith("image"))
+                        {
+                            @if(FileId != Guid.Empty)
+                            {
+                                <Vitarish.Files.Interface.Components.FileImage FileId="@FileId" Type="@Attachment.ContentType" />
+                            }
+                            else
+                            {
+                                <ImageElement Src="@Attachment.Content" Type="@Attachment.ContentType" />
+                            }
+                        }
+                        @if(Attachment.ContentType.StartsWith("video"))
+                        {
+                            @if(FileId != Guid.Empty)
+                            {
+                                <Vitarish.Files.Interface.Components.FileVideo FileId="@FileId" Type="@Attachment.ContentType" />
+                            }
+                            else
+                            {
+                                <VideoElement Src="@Attachment.Content" Type="@Attachment.ContentType" />
+                            }
+                        }
+                    </StackField>
+                }
+                @if(readers.Count > 0)
+                {
+                    <StackExpandable StartIcon="fa-regular fa-check-double" Label="@Localizer["SeenBy", Localizer["PersonCount", readers.Count]]">
+                        @foreach(var reader in GetReaders())
+                        {
+                            <MudText Typo="Typo.caption">@reader</MudText>
+                        }
+                    </StackExpandable>
+                }
+                <StackExpandable Label="@Localizer["Details"]">
+                    <StackField Label="@Localizer["CreatedAt"]" HelperText="@Attachment.CreatedAt.DateTime.ToShortDateString()" />
+                    @if(Attachment.UpdatedAt is not null)
+                    {
+                        <StackField Label="@Localizer["UpdatedAt"]" HelperText="@Attachment.UpdatedAt.Value.DateTime.ToShortDateString()" />
+                    }
+                    <StackField Label="@Localizer["ContentType"]" HelperText="@Attachment.ContentType" />
+                </StackExpandable>
+            </Stack>
+            <Stack>
+                @if(CanEdit && Attachment.ContentType.StartsWith("text"))
+                {
+                    <StackButton EndIcon="fa-regular fa-edit" Label="@Localizer["Edit"]" OnClick="StartEdit" />
+                }
+                @if(CanDelete)
+                {
+                    <StackButton EndIcon="fa-regular fa-trash" Label="@Localizer["DeleteItem", Localizer["Attachment"]]" OnClick="DeleteAttachment" Color="Color.Error" />
+                }
+                <StackButton EndIcon="fa-regular fa-xmark" Label="@Localizer["Close"]" OnClick="Close" />
+            </Stack>
         }
-    </DialogActions>
+    </DialogContent>
 </MudDialog>

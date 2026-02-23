@@ -608,9 +608,6 @@
   <data name="VoiceToText" xml:space="preserve">
     <value>تبدیل گفتار به نوشتار</value>
   </data>
-  <data name="EndRecording" xml:space="preserve">
-    <value>پایان دریافت صدا</value>
-  </data>
   <data name="Transcribing" xml:space="preserve">
     <value>در حال شناسایی گفتار</value>
   </data>
@@ -684,7 +681,7 @@
     <value>بارگذاری</value>
   </data>
   <data name="SeenBy" xml:space="preserve">
-    <value>دیده شده از سوی</value>
+    <value>دیده شده از سوی {0}</value>
   </data>
   <data name="DepartmentLabel" xml:space="preserve">
     <value>سازمان: {0}</value>
@@ -1582,9 +1579,24 @@
     <value>نامشخص</value>
   </data>
   <data name="Reconnecting" xml:space="preserve">
-    <value>ارتباط با سرور</value>
+    <value>تلاش برای ارتباط با سرور</value>
   </data>
   <data name="Reload" xml:space="preserve">
     <value>بازنشانی</value>
+  </data>
+  <data name="ReconnectionFailed" xml:space="preserve">
+    <value>تلاش برای ارتباط با سرور ناکام بود</value>
+  </data>
+  <data name="EndItem" xml:space="preserve">
+    <value>پایان {0}</value>
+  </data>
+  <data name="PersonCount" xml:space="preserve">
+    <value>{0} نفر</value>
+  </data>
+  <data name="UpdatedAt" xml:space="preserve">
+    <value>زمان بروز رسانی</value>
+  </data>
+  <data name="Details" xml:space="preserve">
+    <value>جزییات</value>
   </data>
 </root>
