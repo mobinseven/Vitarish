@@ -1,5 +1,5 @@
 @inherits SeaEventPage
-@page "/sea/Projects/Templates/{projectId}/{procedureId}/{eventId}"
+@page "/sea/Admin/Settings/Projects/Templates/{projectId}/{procedureId}/{eventId}"
 
 @if(Project is null || Procedure is null || Event is null)
 {
@@ -9,5 +9,5 @@
 <CascadingValue Value="IsAdmin">
     <EventItemsTimeline Event="Event" Procedure="Procedure" Project="Project" />
     <EventDetails Event="Event" Procedure="Procedure" Project="Project"
-                  OnDelete="@(() => NavigationManager.NavigateTo($"/sea/Projects/Templates/{projectId}/{procedureId}"))" />
+                  OnDelete="@(() => NavigationManager.NavigateTo($"/sea/Admin/Settings/Projects/Templates/{projectId}/{procedureId}"))" />
 </CascadingValue>

@@ -17,7 +17,7 @@
                 <MudText Typo="@Typo" Color="@Color" Align="@Align">@Label</MudText>
                 @if(!string.IsNullOrWhiteSpace(HelperText))
                 {
-                    <MudText Typo="Typo.caption" Align="@Align">@HelperText</MudText>
+                    <MudText Typo="Typo.caption" Color="@Color" Align="@Align">@HelperText</MudText>
                 }
             </div>
             <div>@EndContent</div>
@@ -26,14 +26,14 @@
     }
     else if(PageBreakpoint < Breakpoint.Sm)
     {
-        <MudStack Style="width: 100%;" AlignItems="AlignItems.Start">
-            <div>
-                <MudText Color="@Color" Typo="@Typo" Align="@Align">@Label</MudText>
-                @if(!string.IsNullOrWhiteSpace(HelperText))
-                {
-                    <MudText Typo="Typo.caption" Align="@Align">@HelperText</MudText>
-                }
-            </div>
+        <div>
+            <MudText Color="@Color" Typo="@Typo" Align="@Align">@Label</MudText>
+            @if(!string.IsNullOrWhiteSpace(HelperText))
+            {
+                <MudText Typo="Typo.caption" Align="@Align">@HelperText</MudText>
+            }
+        </div>
+        <MudStack Style="width: 100%;" AlignItems="AlignItems.Start" StretchItems="StretchItems.Start">
             @if(EndContent is not null)
             {
                 <div>@EndContent</div>

@@ -1673,4 +1673,13 @@ of project "{2}"</value>
   <data name="Details" xml:space="preserve">
     <value>Details</value>
   </data>
+  <data name="Administration" xml:space="preserve">
+    <value>Administration</value>
+  </data>
+  <data name="MayBeSlowWarning" xml:space="preserve">
+    <value>May be slow and heavy.</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>Warning</value>
+  </data>
 </root>

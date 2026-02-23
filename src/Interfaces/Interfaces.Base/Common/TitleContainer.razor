@@ -1,7 +1,7 @@
 @inherits CommonBase
 @if(NavService.Breadcrumbs.Length > 1)
 {
-    <Stack Class="my-0">
-        <StackField Typo="Typo.h4" Label="@Localizer[NavService.Breadcrumbs.Last().Text]" Align="Align.Center" />
+    <Stack Class="my-0 sticky-top">
+        <StackField Typo="Typo.h5" Label="@Localizer[NavService.Breadcrumbs.Last().Text]" Align="Align.Center" />
     </Stack>
 }

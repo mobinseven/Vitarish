@@ -15,6 +15,9 @@
 
     @if(MassEditMode)
     {
+        <Stack>
+            <StackField AdornmentIcon="fa-regular fa-warning" AdornmentColor="Color.Warning" Label="@Localizer["Warning"]" HelperText="@Localizer["MayBeSlowWarning"]" Color="Color.Warning" />
+        </Stack>
         @foreach(var project in projects)
         {
             <ClinicProjectEditForm @key="project.Id" Project="project" OnUpdate="ReloadRequired" />

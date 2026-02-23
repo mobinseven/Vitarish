@@ -6,4 +6,4 @@
     return;
 }
 
-<ThemeSettingsForm SettingsSaved="@(s => UserService.SetThemeAsync(User.Id, s))" />
+<ThemeSettingsForm SettingsSaved="@(async s => { await UserService.SetThemeAsync(User.Id, s); NavigationManager.Refresh(true); })" />

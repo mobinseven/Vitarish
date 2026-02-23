@@ -3,7 +3,7 @@
 @inject IAccessControlledProjectsService ProjectsService
 
 <Stack>
-    <StackButton Href="/sea/Projects" Label="@Localizer["Projects"]">
+    <StackButton Href="/sea/Projects" Label="@Localizer["Projects"]" EndIcon="fa-regular fa-3x fa-folders">
         @if(projectsCount > 0)
         {
             @projectsCount
@@ -11,13 +11,20 @@
     </StackButton>
 </Stack>
 
+@if(IsAdmin)
+{
+    <Stack>
+        <StackField Label="@Localizer["Administration"]" />
+        <StackButton Href="/sea/Admin/Settings/Projects/Templates" Label="@Localizer["Templates"]" EndIcon="fa-regular fa-folder-gear" />
+    </Stack>
+}
+
 @if(IsOwner)
 {
     <Stack>
         <StackField Label="@Localizer["Ownership"]" />
-        <StackButton Href="/sea/Reminders" Label="@Localizer["Reminders"]" StartIcon="fa-regular fa-comments" />
-        <StackButton Href="/sea/Projects/Templates" Label="@Localizer["Templates"]" StartIcon="fa-regular fa-folder-gear" />
-        <StackButton Href="/sea/Owner/Settings" Label="@Localizer["Settings"]" StartIcon="fa-regular fa-gear-complex" />
+        <StackButton Href="/sea/Owner/Settings/Users" Label="@Localizer["Users"]" EndIcon="fa-regular fa-users" />
+        <StackButton Href="/sea/Owner/Settings/Advanced" Label="@Localizer["Advanced"]" EndIcon="fa-regular fa-gear-complex" />
     </Stack>
 }
 

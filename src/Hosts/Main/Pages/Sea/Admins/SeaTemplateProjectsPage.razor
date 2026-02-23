@@ -1,7 +1,7 @@
-@page "/sea/Projects/Templates"
+@page "/sea/Admin/Settings/Projects/Templates"
 
 <CascadingValue Value="IsAdmin">
-    <ProjectsGrid OnClicked="@(id => NavigationManager.NavigateTo($"/sea/Projects/Templates/{id}"))"
-                  OnAdd="@(() => NavigationManager.NavigateTo($"/sea/Projects/Templates/New"))"
+    <ProjectsGrid OnClicked="@(id => NavigationManager.NavigateTo($"/sea/Admin/Settings/Projects/Templates/{id}"))"
+                  OnAdd="@(() => NavigationManager.NavigateTo($"/sea/Admin/Settings/Projects/Templates/New"))"
                   TemplateMode="true" />
 </CascadingValue>

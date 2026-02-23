@@ -1575,9 +1575,6 @@
   <data name="End" xml:space="preserve">
     <value>پایان</value>
   </data>
-  <data name="Gender_Unspecified" xml:space="preserve">
-    <value>نامشخص</value>
-  </data>
   <data name="Reconnecting" xml:space="preserve">
     <value>تلاش برای ارتباط با سرور</value>
   </data>
@@ -1598,5 +1595,17 @@
   </data>
   <data name="Details" xml:space="preserve">
     <value>جزییات</value>
+  </data>
+  <data name="Gender_Unspecified" xml:space="preserve">
+    <value>نامشخص</value>
+  </data>
+  <data name="Administration" xml:space="preserve">
+    <value>مدیریت</value>
+  </data>
+  <data name="MayBeSlowWarning" xml:space="preserve">
+    <value>میتواند کمی کند و سنگین باشد.</value>
+  </data>
+  <data name="Warning" xml:space="preserve">
+    <value>هشدار</value>
   </data>
 </root>
