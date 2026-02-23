@@ -185,7 +185,6 @@ public class UserService : IUserService
         // Update distributed cache
         byte[] bytes = JsonSerializer.SerializeToUtf8Bytes(preferences);
         await _cache.SetAsync(CacheKeys.Profile(userId), bytes, _cacheOptions);
-        // Also update derived theme
         if (preferences.TryGetValue(Keys.Culture, out string? culture))
         {
             await _cache.SetStringAsync(CacheKeys.Culture(userId), culture, _cacheOptions);
@@ -193,6 +192,14 @@ public class UserService : IUserService
         else
         {
             await _cache.RemoveAsync(CacheKeys.Culture(userId));
+        }
+        if (preferences.TryGetValue(CacheKeys.Theme(userId), out string? theme))
+        {
+            await _cache.SetStringAsync(CacheKeys.Theme(userId), theme, _cacheOptions);
+        }
+        else
+        {
+            await _cache.RemoveAsync(CacheKeys.Theme(userId));
         }
     }
 

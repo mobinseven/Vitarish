@@ -2,7 +2,8 @@
 
 @inject IThemeService ThemeService
 
-<MudThemeProvider @key="@($"theme-{ThemeService.ThemeVersion}")"
+<MudThemeProvider @ref="_provider"
+                  @key="@($"theme-{ThemeService.ThemeVersion}")"
                   @rendermode="InteractiveServer"
                   Theme="@ThemeService.Theme"
                   IsDarkMode="@ThemeService.IsDarkMode"
