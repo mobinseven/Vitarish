@@ -1,4 +1,4 @@
-using Vitarish.Sea.Interface.Plugins.Base.Enums;
+using Vitarish.Sea.Interface.Plugins.Common.Enums;
 
 namespace Vitarish.Sea.Interface.Plugins.Clinic.Models;
 
