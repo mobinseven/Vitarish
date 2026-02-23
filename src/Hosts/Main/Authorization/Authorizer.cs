@@ -39,7 +39,7 @@ public sealed class Authorizer(IUsersService usersService, IDistributedCache cac
 
             case IdentityDefinitions.PlatformAdmin:
 
-                requiredRole = $"Admin";
+                requiredRole = IdentityDefinitions.PlatformAdmin;
                 result = await ControlAndCache(context, requiredRole, subjectId);
                 if (result)
                 {
