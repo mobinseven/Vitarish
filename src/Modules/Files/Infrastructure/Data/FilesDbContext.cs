@@ -91,7 +91,7 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
         // Note: Files module allows RootTenant to access all files across tenants
         _ = entityBuilder.HasQueryFilter(e =>
             EF.Property<DateTimeOffset?>(e, "DeletedAt") == null &&
-            (TenantInfo!.Id == TenantDefaults.RootTenant || 
+            (TenantInfo!.Id == TenantDefaults.RootTenant ||
              e.TenantId == TenantInfo.Id));
 
         // Do NOT call IsMultiTenant() as we have custom tenant filtering logic above

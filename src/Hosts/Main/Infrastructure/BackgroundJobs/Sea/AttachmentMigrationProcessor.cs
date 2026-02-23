@@ -26,7 +26,6 @@ public class AttachmentMigrationProcessor(
         static async Task perTenantAsync(IServiceProvider provider, CancellationToken shutdownToken)
         {
             await ProcessTenantMigrationAsync(
-                provider.GetRequiredService<IOptions<FilesOptions>>(),
                 provider.GetRequiredService<IEventsService>(),
                 provider.GetRequiredService<IAttachmentsService>(),
                 provider.GetRequiredService<IRequestContext>(),
@@ -42,7 +41,6 @@ public class AttachmentMigrationProcessor(
     }
 
     private static async Task ProcessTenantMigrationAsync(
-        IOptions<FilesOptions> options,
         IEventsService eventsService,
         IAttachmentsService attachmentsService,
         IRequestContext requestContext,

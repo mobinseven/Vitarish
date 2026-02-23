@@ -35,7 +35,7 @@ public sealed class AwsS3ObjectStorageService(
     public async Task RenameAsync(
         string objectKey,
         string newObjectKey,
-        CancellationToken cancellationToken =default)
+        CancellationToken cancellationToken = default)
     {
         CopyObjectRequest request = new()
         {

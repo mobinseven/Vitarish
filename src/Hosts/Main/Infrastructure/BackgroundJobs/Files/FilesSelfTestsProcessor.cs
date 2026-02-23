@@ -6,8 +6,7 @@ namespace Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 
 public class FilesSelfTestsProcessor(
     IFilesModule filesModule,
-    IObjectStorageService storage,
-    IOptionsMonitor<FilesOptions> filesOptions)
+    IObjectStorageService storage)
 {
 
     private const string SelfTestFileName = "_startup-self-test.bin";

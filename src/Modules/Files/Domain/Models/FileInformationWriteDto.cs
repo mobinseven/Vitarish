@@ -1,7 +1,5 @@
 namespace Vitarish.Files.Domain.Models;
 
-using System.Text.Json.Serialization;
-
 public record FileInformationWriteDto : EntityWriteDto
 {
     [JsonPropertyName("allowedOrigins")]

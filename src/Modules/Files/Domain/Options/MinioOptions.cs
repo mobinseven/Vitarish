@@ -1,5 +1,5 @@
-using System.Data.Common;
 using Microsoft.Extensions.Configuration;
+using System.Data.Common;
 
 namespace Vitarish.Files.Domain.Options;
 
@@ -35,38 +35,57 @@ public class MinioOptions
 
     public static MinioOptions Load(IConfiguration configuration, string name = "Minio")
     {
-        var opts = new MinioOptions();
-        var cs = configuration.GetConnectionString(name);
+        MinioOptions opts = new();
+        string? cs = configuration.GetConnectionString(name);
         if (string.IsNullOrEmpty(cs))
+        {
             throw new InvalidOperationException($"Connection string '{name}' not found.");
+        }
 
-        var csb = new DbConnectionStringBuilder
+        DbConnectionStringBuilder csb = new()
         {
             ConnectionString = cs
         };
 
         if (csb.TryGetValue("Endpoint", out object? value) && value != null)
+        {
             opts.Endpoint = value.ToString()!;
+        }
 
-        if (csb.TryGetValue("Port", out value) && int.TryParse(value?.ToString(), out var port))
+        if (csb.TryGetValue("Port", out value) && int.TryParse(value?.ToString(), out int port))
+        {
             opts.Port = port;
+        }
 
-        if (csb.TryGetValue("UseSsl", out value) && bool.TryParse(value?.ToString(), out var ssl))
+        if (csb.TryGetValue("UseSsl", out value) && bool.TryParse(value?.ToString(), out bool ssl))
+        {
             opts.UseSsl = ssl;
-        if (csb.TryGetValue("ForcePathStyle", out value) && bool.TryParse(value?.ToString(), out var forcePathStyle))
+        }
+
+        if (csb.TryGetValue("ForcePathStyle", out value) && bool.TryParse(value?.ToString(), out bool forcePathStyle))
+        {
             opts.ForcePathStyle = forcePathStyle;
+        }
 
         if (csb.TryGetValue("AccessKey", out value) && value != null)
+        {
             opts.AccessKey = value.ToString()!;
+        }
 
         if (csb.TryGetValue("SecretKey", out value) && value != null)
+        {
             opts.SecretKey = value.ToString()!;
+        }
 
         if (csb.TryGetValue("BucketName", out value) && value != null)
+        {
             opts.BucketName = value.ToString()!;
+        }
 
         if (csb.TryGetValue("Region", out value))
+        {
             opts.Region = value?.ToString();
+        }
 
         if (csb.TryGetValue("HttpRequestTimeoutSeconds", out value)
             && int.TryParse(value?.ToString(), out int timeoutSeconds)

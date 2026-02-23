@@ -1,10 +1,9 @@
-namespace Vitarish.Files.Domain.Entities;
 
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json;
-using System.Text.Json.Serialization;
-using Vitarish.Entities.Server.Core;
 using Vitarish.Files.Domain.Models;
+
+namespace Vitarish.Files.Domain.Entities;
 
 public class FileInformation : Entity
 {

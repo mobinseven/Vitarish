@@ -1,9 +1,5 @@
 namespace Vitarish.Files.Domain.Models;
 
-using System.Text.Json;
-using System.Text.Json.Serialization;
-using Vitarish.Entities.Server.Models;
-
 public record FileInformationReadDto : EntityReadDto
 {
     private static readonly JsonSerializerOptions MetadataSerializerOptions = new(JsonSerializerDefaults.Web)
@@ -41,12 +37,12 @@ public record FileInformationReadDto : EntityReadDto
     {
         get
         {
-            if(_metadata is not null)
+            if (_metadata is not null)
             {
                 return _metadata;
             }
 
-            if(!string.IsNullOrWhiteSpace(_metadataJson))
+            if (!string.IsNullOrWhiteSpace(_metadataJson))
             {
                 _metadata = DeserializeMetadata(_metadataJson);
                 return _metadata;
@@ -70,14 +66,9 @@ public record FileInformationReadDto : EntityReadDto
         {
             FileMetadata? metadata = JsonSerializer.Deserialize<FileMetadata>(metadataJson, MetadataSerializerOptions);
 
-            if(metadata is null)
-            {
-                return new FileMetadata();
-            }
-
-            return metadata;
+            return metadata is null ? new FileMetadata() : metadata;
         }
-        catch(JsonException)
+        catch (JsonException)
         {
             return new FileMetadata();
         }

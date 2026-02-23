@@ -55,10 +55,6 @@ public static class ApplicationOptionsExtensions
         _ = services.AddOptions<Intelligence.Domain.Options.AiOptions>()
             .BindConfiguration($"{ApplicationOptions.Section}:Ai");
 
-        // Files module options
-        _ = services.AddOptions<FilesOptions>()
-            .BindConfiguration($"{ApplicationOptions.Section}:Files");
-
         _ = services.AddOptions<MinioOptions>()
             .BindConfiguration($"{ApplicationOptions.Section}:Minio");
 

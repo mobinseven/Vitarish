@@ -1,5 +1,3 @@
-using Vitarish.Entities.Server.Models;
-
 namespace Vitarish.Files.Domain.Models;
 
 public sealed record FileInformationDescriptorDto : EntityDescriptorDto

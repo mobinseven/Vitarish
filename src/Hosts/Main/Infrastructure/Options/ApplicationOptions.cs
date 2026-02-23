@@ -24,11 +24,6 @@ public class ApplicationOptions
     /// <summary>
     /// Files module options.
     /// </summary>
-    public FilesOptions Files { get; set; } = new();
-
-    /// <summary>
-    /// Files module options.
-    /// </summary>
     public MinioOptions Minio { get; set; } = new();
 
     /// <summary>

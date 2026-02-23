@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
-using Microsoft.Extensions.Options;
 using Vitarish.Files.Application.Abstractions;
-using Vitarish.Files.Domain.Options;
 
 namespace Vitarish.Files.Infrastructure.Api;
 
@@ -23,8 +21,7 @@ public static class FilesApi
         Guid id,
         HttpContext context,
         IObjectStorageService storageService,
-         IFileInformationService fileInfoService,
-        IOptionsSnapshot<FilesOptions> filesOptions)
+         IFileInformationService fileInfoService)
     {
         FileInformationReadDto? fileInfo = await fileInfoService.GetAsync(id, context.RequestAborted).GetValueOrDefaultAsync();
 
