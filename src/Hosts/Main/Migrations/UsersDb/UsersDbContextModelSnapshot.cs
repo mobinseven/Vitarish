@@ -8,7 +8,7 @@ using Vitarish.Users.Infrastructure.Data;
 
 #nullable disable
 
-namespace Vitarish.Host.Migrations.UsersDb
+namespace Vitarish.Main.Migrations.UsersDb
 {
     [DbContext(typeof(UsersDbContext))]
     partial class UsersDbContextModelSnapshot : ModelSnapshot
@@ -17,7 +17,7 @@ namespace Vitarish.Host.Migrations.UsersDb
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.1")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);

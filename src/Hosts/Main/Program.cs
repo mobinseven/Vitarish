@@ -130,9 +130,7 @@ builder.Services.AddSingleton<INotificationHandler<EntityNotification>, EntityNo
 WebApplication app = builder.Build();
 
 _ = await app.MigrateDatabaseAsync<UsersDbContext>();
-_ = await app.MigrateDatabaseAsync<RequestsDbContext>();
 _ = await app.MigrateDatabaseAsync<PartiesDbContext>();
-_ = await app.MigrateDatabaseAsync<PersistedGrantDbContext>();
 _ = await app.MigrateDatabaseAsync<FilesDbContext>();
 _ = await app.MigrateDatabaseAsync<SeaDbContext>();
 

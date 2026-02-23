@@ -9,10 +9,10 @@ using Vitarish.Files.Infrastructure.Data;
 
 #nullable disable
 
-namespace Vitarish.Host.Migrations.FilesDb
+namespace Vitarish.Main.Migrations.FilesDb
 {
     [DbContext(typeof(FilesDbContext))]
-    [Migration("20251208123854_Initialization")]
+    [Migration("20260223091945_Initialization")]
     partial class Initialization
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace Vitarish.Host.Migrations.FilesDb
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.0")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);

@@ -12,15 +12,15 @@ using Vitarish.Users.Infrastructure.Data;
 namespace Vitarish.Main.Migrations.UsersDb
 {
     [DbContext(typeof(UsersDbContext))]
-    [Migration("20251223082235_IdentityRole")]
-    partial class IdentityRole
+    [Migration("20260223092004_Initialization")]
+    partial class Initialization
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.1")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);

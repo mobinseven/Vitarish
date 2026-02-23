@@ -8,7 +8,7 @@ using Vitarish.Files.Infrastructure.Data;
 
 #nullable disable
 
-namespace Vitarish.Host.Migrations.FilesDb
+namespace Vitarish.Main.Migrations.FilesDb
 {
     [DbContext(typeof(FilesDbContext))]
     partial class FilesDbContextModelSnapshot : ModelSnapshot
@@ -17,7 +17,7 @@ namespace Vitarish.Host.Migrations.FilesDb
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.0")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);

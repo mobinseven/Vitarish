@@ -1,8 +1,9 @@
+﻿using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
-namespace Vitarish.Host.Migrations.FilesDb
+namespace Vitarish.Main.Migrations.FilesDb
 {
     /// <inheritdoc />
     public partial class Initialization : Migration
@@ -10,7 +11,7 @@ namespace Vitarish.Host.Migrations.FilesDb
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            _ = migrationBuilder.CreateTable(
+            migrationBuilder.CreateTable(
                 name: "Files",
                 columns: table => new
                 {
@@ -34,17 +35,20 @@ namespace Vitarish.Host.Migrations.FilesDb
                 },
                 constraints: table =>
                 {
-                    _ = table.PrimaryKey("PK_Files", x => x.Id);
+                    table.PrimaryKey("PK_Files", x => x.Id);
                 });
 
-            _ = migrationBuilder.CreateIndex(
+            migrationBuilder.CreateIndex(
                 name: "IX_Files_Checksum",
                 table: "Files",
                 column: "Checksum");
         }
 
         /// <inheritdoc />
-        protected override void Down(MigrationBuilder migrationBuilder) => migrationBuilder.DropTable(
+        protected override void Down(MigrationBuilder migrationBuilder)
+        {
+            migrationBuilder.DropTable(
                 name: "Files");
+        }
     }
 }

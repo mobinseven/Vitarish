@@ -12,8 +12,8 @@ using Vitarish.Sea.Infrastructure.Data;
 namespace Vitarish.Main.Migrations.SeaDb
 {
     [DbContext(typeof(SeaDbContext))]
-    [Migration("20260220115938_ProjectMetadata")]
-    partial class ProjectMetadata
+    [Migration("20260223091912_Initialization")]
+    partial class Initialization
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)

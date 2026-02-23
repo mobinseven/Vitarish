@@ -9,18 +9,18 @@ using Vitarish.Parties.Infrastructure.Data;
 
 #nullable disable
 
-namespace Vitarish.Host.Migrations.PartiesDb
+namespace Vitarish.Main.Migrations.PartiesDb
 {
     [DbContext(typeof(PartiesDbContext))]
-    [Migration("20260201100559_EntityBased")]
-    partial class EntityBased
+    [Migration("20260223092036_Initialization")]
+    partial class Initialization
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.2")
+                .HasAnnotation("ProductVersion", "10.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -70,10 +70,6 @@ namespace Vitarish.Host.Migrations.PartiesDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("ClientId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -88,6 +84,11 @@ namespace Vitarish.Host.Migrations.PartiesDb
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("EstateId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnName("EstateId");
 
                     b.Property<string>("LogoUrl")
                         .HasColumnType("nvarchar(max)");
@@ -113,7 +114,7 @@ namespace Vitarish.Host.Migrations.PartiesDb
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ClientId");
+                    b.HasIndex("EstateId");
 
                     b.ToTable("Tenants");
                 });
