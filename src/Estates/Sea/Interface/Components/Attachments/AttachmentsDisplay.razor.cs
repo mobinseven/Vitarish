@@ -15,7 +15,7 @@ public partial class AttachmentsDisplay : SeaCommonBase
             { nameof(AttachmentDetailsDialog.Color), Color }
         };
 
-        _ = await DialogService.ShowAsync<AttachmentDetailsDialog>(Localizer["Attachment"], parameters);
+        _ = await DialogService.ShowAsync<AttachmentDetailsDialog>(null, parameters);
     }
 
     private static string Icon(string contentType) => contentType.StartsWith("image")

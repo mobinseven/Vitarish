@@ -1,6 +1,6 @@
 @inherits SeaCommonBase
 
-<StackField AdornmentIcon="@Icon(Attachment.ContentType)" Color="Color" OnAdornmentClick="() => ShowDetails()">
+<StackField HelperText="@GetUserFullNameById(Attachment.CreatedBy)" AdornmentIcon="@Icon(Attachment.ContentType)" Color="Color" OnAdornmentClick="() => ShowDetails()" Align="Align.Start">
     @if(Attachment.ContentType.StartsWith("image") || Attachment.ContentType.StartsWith("video"))
     {
         <Chip Color="Color" Style="@($"white-space: pre-wrap;height:auto; overflow: auto; background-image: url('{Attachment.ContentThumbnail}'); background-size: cover;")">

@@ -11,14 +11,16 @@
         }
         else
         {
+            string created = $"{GetUserFullNameById(Attachment.CreatedBy)}\t{Attachment.CreatedAt.DateTime.ToShortDateString()} {Attachment.CreatedAt.DateTime.ToShortTimeString()}";
             <Stack>
+                
                 @if(Attachment.ContentType.StartsWith("text"))
                 {
-                    <StackField Color="Color" Label="@Attachment.Content" HelperText="@GetUserFullNameById(Attachment.CreatedBy)" />
+                    <StackField Color="Color" Label="@Attachment.Content" HelperText="@created" />
                 }
                 else
                 {
-                    <StackField Color="Color" HelperText="@GetUserFullNameById(Attachment.CreatedBy)">
+                    <StackField Color="Color" HelperText="@created">
                         @if(Attachment.ContentType.StartsWith("image"))
                         {
                             @if(FileId != Guid.Empty)
@@ -43,18 +45,17 @@
                         }
                     </StackField>
                 }
-                @if(readers.Count > 0)
+                @if(readers.Length > 0)
                 {
-                    <StackExpandable StartIcon="fa-regular fa-check-double" Label="@Localizer["SeenBy", Localizer["PersonCount", readers.Count]]">
+                    <StackExpandable StartIcon="fa-regular fa-check-double" Label="@Localizer["SeenBy", Localizer["PersonCount", readers.Length]]">
                         @foreach(var reader in GetReaders())
                         {
-                            <MudText Typo="Typo.caption">@reader</MudText>
+                            <MudText Typo="Typo.caption" HtmlTag="p">@reader</MudText>
                         }
                     </StackExpandable>
                 }
                 <StackExpandable Label="@Localizer["Details"]">
-                    <StackField Label="@Localizer["CreatedAt"]" HelperText="@Attachment.CreatedAt.DateTime.ToShortDateString()" />
-                    @if(Attachment.UpdatedAt is not null)
+                    @if(Attachment.UpdatedAt.HasValue)
                     {
                         <StackField Label="@Localizer["UpdatedAt"]" HelperText="@Attachment.UpdatedAt.Value.DateTime.ToShortDateString()" />
                     }

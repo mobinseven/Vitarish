@@ -19,7 +19,7 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
     private bool CanDelete { get; set; }
     private bool editing;
     private string editContent = string.Empty;
-    private IReadOnlyList<Guid> readers = [];
+    private Guid[] readers = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -30,7 +30,7 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
         StateHasChanged();
     }
 
-    private async Task LoadReadersAsync() => readers = await ReceiptsService.GetReadersAsync(Attachment.Id, CancellationToken.None) ?? Array.Empty<Guid>();
+    private async Task LoadReadersAsync() => readers = [.. (await ReceiptsService.GetReadersAsync(Attachment.Id, CancellationToken.None) ?? Array.Empty<Guid>()).Except([Guid.Parse(Attachment.CreatedBy ?? Guid.Empty.ToString())])];
 
     private void Close() => MudDialog.Close();
 
@@ -66,7 +66,7 @@ public partial class AttachmentDetailsDialog : SeaCommonBase
 
     private string[] GetReaders()
     {
-        if (readers.Count == 0)
+        if (readers.Length == 0)
         {
             return [];
         }
