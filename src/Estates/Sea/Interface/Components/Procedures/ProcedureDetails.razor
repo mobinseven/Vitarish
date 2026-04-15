@@ -1,15 +1,14 @@
 @inherits ProceduresBase
 
-
 @if(AdminMode)
 {
     <Stack>
         <StackField Label="@Procedure.Name" HelperText="@Procedure.Description" />
-        <StackButton Label="@Localizer["EditItem", Localizer["Procedure"]]" OnClick="EditProcedure" StartIcon="fa-regular fa-edit" />
-        <StackButton Label="@Localizer["DeleteItem", Localizer["Procedure"]]" Color="Color.Error" OnClick="DeleteProcedure" StartIcon="fa-regular fa-trash" />
+        <StackButton Label="@Localizer["EditItem", Localizer["Procedure"]]" OnClick="EditProcedure" EndIcon="fa-regular fa-edit" />
+        <StackButton Label="@Localizer["DeleteItem", Localizer["Procedure"]]" Color="Color.Error" OnClick="DeleteProcedure" EndIcon="fa-regular fa-trash" />
     </Stack>
-
 }
+
 @code {
 
     [Parameter, EditorRequired] public required ProjectReadDto Project { get; set; }
@@ -26,16 +25,11 @@
             { nameof(ProcedureEditDialog.Procedure), Procedure },
             { nameof(ProcedureEditDialog.ProjectName), Project.Name }
         };
-        IDialogReference dialog = await DialogService.ShowAsync<ProcedureEditDialog>(Localizer["Procedure"], parameters);
+        IDialogReference dialog = await DialogService.ShowAsync<ProcedureEditDialog>(null, parameters);
         DialogResult? result = await dialog.Result;
 
 
-        if(result is null)
-        {
-            return;
-        }
-
-        if(result.Canceled)
+        if(result is null || result.Canceled)
         {
             return;
         }
@@ -53,16 +47,11 @@
             { nameof(StrictConfirmDialog.ItemName), Procedure.Name },
             { nameof(StrictConfirmDialog.Color), Color.Error }
         };
+
         IDialogReference dialog = await DialogService.ShowAsync<StrictConfirmDialog>(Localizer["DeleteItem", Localizer["Procedure"]], parameters);
         DialogResult? result = await dialog.Result;
 
-
-        if(result is null)
-        {
-            return;
-        }
-
-        if(result.Canceled)
+        if(result is null || result.Canceled)
         {
             return;
         }

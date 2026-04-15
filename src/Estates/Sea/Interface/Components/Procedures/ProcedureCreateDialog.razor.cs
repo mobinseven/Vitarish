@@ -7,58 +7,44 @@ public partial class ProcedureCreateDialog : ProceduresBase
     [Parameter] public Guid ProjectId { get; set; }
     [Parameter] public string ProjectName { get; set; } = string.Empty;
 
-    private string name = string.Empty;
-    private ProcedureReadDto? templateProcedure;
+    private ProcedureWriteDto ProcedureWriteDto = new();
+
+    private ProcedureReadDto? templateProcedure
+    {
+        get;
+        set
+        {
+            field = value;
+            if (value is null)
+            {
+                return;
+            }
+            ProcedureWriteDto.Name = value.Name;
+        }
+    }
 
     [Inject] private IAttachmentsService AttachmentsService { get; set; } = default!;
     [Inject] private IEventRolesService EventRolesService { get; set; } = default!;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-
-        if (firstRender)
-        {
-            await PromptTemplateAsync();
-        }
-    }
-
-    private async Task PromptTemplateAsync() => await SelectTemplateInternalAsync();
-
-    private async Task SelectTemplateAsync() => await SelectTemplateInternalAsync();
-
-    private async Task SelectTemplateInternalAsync()
-    {
-        IDialogReference dialog = await DialogService.ShowAsync<ProcedureTemplatesBrowser>(Localizer["TemplateItem", Localizer["Procedure"]]);
-        DialogResult? result = await dialog.Result;
-        if (result?.Canceled == false && result.Data is ProcedureReadDto procedure)
-        {
-            templateProcedure = procedure;
-            name = procedure.Name;
-        }
-
-        StateHasChanged();
-    }
 
     private async Task SaveAsync()
     {
         ProcedureDescriptorDto descriptor = new()
         {
             ProjectId = ProjectId,
-            Search = name
+            Search = ProcedureWriteDto.Name
         };
 
         IReadOnlyList<ProcedureReadDto> existing = await ProceduresService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
-        if (existing.Any(p => string.Equals(p.Name, name, StringComparison.CurrentCultureIgnoreCase)))
+        if (existing.Any(p => string.Equals(p.Name, ProcedureWriteDto.Name, StringComparison.CurrentCultureIgnoreCase)))
         {
             _ = await DialogService.ShowMessageBox(
                 Localizer["Procedure"],
-                Localizer["ProcedureExistsError", ProjectName, name],
+                Localizer["ProcedureExistsError", ProjectName, ProcedureWriteDto.Name],
                 yesText: Localizer["Ok"]);
             return;
         }
 
-        ProcedureReadDto added = await ProceduresService.AddAsync(new ProcedureWriteDto { ProjectId = ProjectId, Name = name }, CancellationToken.None).EnsureValueAsync();
+        ProcedureReadDto added = await ProceduresService.AddAsync(new ProcedureWriteDto { ProjectId = ProjectId, Name = ProcedureWriteDto.Name }, CancellationToken.None).EnsureValueAsync();
         if (templateProcedure is not null)
         {
             await CopyEventsAsync(templateProcedure.Id, added.Id);

@@ -3,13 +3,9 @@
 <MudDialog>
     <DialogContent>
         <Stack>
-            <StackButton Label="@Localizer["SelectItem", Localizer["TemplateItem", Localizer["Procedure"]]]" OnClick="SelectTemplateAsync">
-                @if(templateProcedure is not null)
-                {
-                    <Chip Color="Color.Primary">@templateProcedure.Name</Chip>
-                }
-            </StackButton>
-            <StackTextField @bind-Value="name" Label="@Localizer["NameItem", Localizer["Procedure"]]" />
+            <StackField Label="@Localizer["AddItem", Localizer["Procedure"]]" />
+            <ProcedureTemplatesBrowser @bind-Value="templateProcedure" />
+            <StackTextField @bind-Value="ProcedureWriteDto.Name" Label="@Localizer["NameItem", Localizer["Procedure"]]" />
         </Stack>
         <Stack>
             <StackButton Color="Color.Primary" OnClick="SaveAsync" Label="@Localizer["Confirm"]" EndIcon="fa-regular fa-check" />

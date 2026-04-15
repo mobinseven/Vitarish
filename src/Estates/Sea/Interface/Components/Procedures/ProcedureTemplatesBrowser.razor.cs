@@ -1,8 +1,10 @@
+using Microsoft.Extensions.Localization;
+
 namespace Vitarish.Sea.Interface.Components.Procedures;
 
-public partial class ProcedureTemplatesBrowser : SeaCommonBase
+public partial class ProcedureTemplatesBrowser
 {
-    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Inject] private IStringLocalizer Localizer { get; set; } = default!;
     [Inject] private IProjectsService ProjectsService { get; set; } = default!;
     [Inject] private IProceduresService ProceduresService { get; set; } = default!;
 
@@ -18,7 +20,4 @@ public partial class ProcedureTemplatesBrowser : SeaCommonBase
             procedures[p.Id] = [.. await ProceduresService.GetListAsync(new ProcedureDescriptorDto { ProjectId = p.Id }, CancellationToken.None).GetValueOrDefaultAsync() ?? []];
         }
     }
-
-    private void Select(ProcedureReadDto procedure) => MudDialog.Close(DialogResult.Ok(procedure));
-    private void Cancel() => MudDialog.Cancel();
 }

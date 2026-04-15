@@ -1,22 +1,15 @@
-@inherits SeaCommonBase
+@inherits MudSelect<ProcedureReadDto>
 
-<MudDialog>
-    <DialogContent>
-        <MudList T="ProcedureReadDto" Dense="true">
-            @foreach (var proj in projects)
+<StackSelect T="ProcedureReadDto" Value="@Value" ValueChanged="@ValueChanged" Label="@Localizer["SelectItem", Localizer["TemplateItem", Localizer["Procedure"]]]">
+    <MudSelectItem T="ProcedureReadDto" Value="null">@Localizer["None"]</MudSelectItem>
+    @foreach(var proj in projects)
+    {
+        @if(procedures.TryGetValue(proj.Id, out var list))
+        {
+            @foreach(var proc in list)
             {
-                <MudListSubheader>@proj.Name</MudListSubheader>
-                @if (procedures.TryGetValue(proj.Id, out var list))
-                {
-                    @foreach (var proc in list)
-                    {
-                        <MudListItem T="ProcedureReadDto" OnClick="@(() => Select(proc))">@proc.Name</MudListItem>
-                    }
-                }
+                <MudSelectItem T="ProcedureReadDto" Value="@proc">@proj.Name : @proc.Name</MudSelectItem>
             }
-        </MudList>
-    </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">@Localizer["Close"]</MudButton>
-    </DialogActions>
-</MudDialog>
+        }
+    }
+</StackSelect>
