@@ -12,7 +12,7 @@ public partial class ReminderDisplay : SeaCommonBase
             { nameof(ReminderDetailsDialog.Reminder), Reminder }
         };
 
-        IDialogReference dialog = await DialogService.ShowAsync<ReminderDetailsDialog>(Localizer["Reminder"], parameters);
+        IDialogReference dialog = await DialogService.ShowAsync<ReminderDetailsDialog>(null, parameters);
         DialogResult? result = await dialog.Result;
 
         if (result is null || result.Canceled)

@@ -14,8 +14,8 @@ public partial class ReminderAction : EventsBase
         };
 
         IDialogReference dialog = AdminMode
-            ? await DialogService.ShowAsync<ReminderCreatorDialog>(Localizer["Reminder"], parameters)
-            : await DialogService.ShowAsync<UserReminderCreatorDialog>(Localizer["Reminder"], parameters);
+            ? await DialogService.ShowAsync<ReminderCreatorDialog>(null, parameters)
+            : await DialogService.ShowAsync<UserReminderCreatorDialog>(null, parameters);
 
         DialogResult? result = await dialog.Result;
         if (result is null || result.Canceled)

@@ -10,16 +10,12 @@
                     <MudRadio T="ReminderKind" Value="ReminderKind.Email" Label="@Localizer["Email"]" />
                 </MudRadioGroup>
             </StackField>
-            <StackField Label="@Localizer["Date"]">
-                <MudDatePicker PickerVariant="PickerVariant.Inline" @bind-Date="remindDate" Culture="@System.Globalization.CultureInfo.CurrentCulture" />
-            </StackField>
-            <StackField Label="@Localizer["Time"]">
-                <MudTimePicker PickerVariant="PickerVariant.Inline" @bind-Time="remindTime" Culture="@System.Globalization.CultureInfo.CurrentCulture" />
-            </StackField>
+            <StackDatePicker Label="@Localizer["Date"]" @bind-Date="remindDate" MinDate="@DateTime.Now.Date" />
+            <StackTimePicker Label="@Localizer["Time"]" @bind-Time="remindTime" />
             <StackButton Label="@Localizer["Recipients"]" OnClick="AddRecipientAsync" Color="@(recipients.Count == 0 ? Color.Warning : Color.Default)">
-                @foreach(var recipients in recipients)
+                @if(recipients.Count > 0)
                 {
-                    <MudChip Color=Color.Primary T="string">@recipients.Recipient</MudChip>
+                    @recipients.Count
                 }
             </StackButton>
         </Stack>

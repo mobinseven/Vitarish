@@ -1,6 +1,6 @@
 @inherits EventsBase
 
-<MudButton StartIcon="fa-regular fa-bell-plus"
-           OnClick="AddReminderAsync"
-           Color="Color.Primary"
-           DropShadow=false>@Localizer["AddItem",Localizer["Reminder"]]</MudButton>
+<StackButton Label="@Localizer["AddItem", Localizer["Reminder"]]"
+             EndIcon="fa-regular fa-bell-plus"
+             OnClick="AddReminderAsync"
+             Color="Color.Primary" />

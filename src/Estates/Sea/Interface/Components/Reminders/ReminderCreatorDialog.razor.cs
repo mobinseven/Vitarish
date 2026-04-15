@@ -23,7 +23,7 @@ public partial class ReminderCreatorDialog : RemindersBase
     private async Task AddRecipientAsync()
     {
         DialogParameters parameters = new() { [nameof(AddressBookDialog.Kind)] = kind, [nameof(AddressBookDialog.Recipients)] = recipients };
-        IDialogReference dialog = await DialogService.ShowAsync<AddressBookDialog>(Localizer["Receivers"], parameters);
+        IDialogReference dialog = await DialogService.ShowAsync<AddressBookDialog>(null, parameters);
         DialogResult? result = await dialog.Result;
 
         if (result is null)

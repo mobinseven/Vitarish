@@ -10,12 +10,12 @@ public partial class AddressBookDialog : SeaCommonBase
     private HashSet<ReminderRecipientReadDto> selected = [];
     private string customAddress = string.Empty;
 
-
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
         selected = Recipients is not null ? [.. Recipients] : [];
     }
+
     private void ToggleUser(UserDto user)
     {
         string? address = GetUserAddressById(user.Id, Kind);
@@ -23,23 +23,18 @@ public partial class AddressBookDialog : SeaCommonBase
         {
             return;
         }
-        ReminderRecipientReadDto recipient = new() { Kind = Kind, RecipientUserId = user.Id, Recipient = address };
-        if (!selected.Add(recipient))
-        {
-            _ = selected.Remove(recipient);
-        }
+        ReminderRecipientReadDto? recipient = selected.SingleOrDefault(r => r.RecipientUserId == user.Id);
+        _ = recipient is null
+            ? selected.Add(new() { Kind = Kind, RecipientUserId = user.Id, Recipient = address })
+            : selected.Remove(recipient);
+        StateHasChanged();
     }
 
     private void RemoveRecipient(ReminderRecipientReadDto recipient) => selected.Remove(recipient);
     private bool IsSelected(UserDto user)
     {
         string? address = GetUserAddressById(user.Id, Kind);
-        if (address is null)
-        {
-            return false;
-        }
-        ReminderRecipientReadDto recipient = new() { Kind = Kind, RecipientUserId = user.Id, Recipient = address };
-        return selected.Contains(recipient);
+        return address is not null && selected.Any(r => r.RecipientUserId == user.Id);
     }
 
     private void AddCustom()
