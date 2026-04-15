@@ -1,7 +1,13 @@
 @inherits CommonBase
 @if(NavService.Breadcrumbs.Length > 1)
 {
-    <Stack Class="my-0 sticky-top">
-        <StackField Typo="Typo.h5" Label="@Localizer[NavService.Breadcrumbs.Last().Text]" Align="Align.Center" />
-    </Stack>
+    string title = Localizer[NavService.Breadcrumbs.Last().Text];
+    if(string.IsNullOrWhiteSpace(title))
+    {
+        return;
+    }
+    string cut = title.Length > 50 ? title.Substring(0, 50) + "..." : title;
+    <div class="stack sticky-top">
+        <StackField Typo="Typo.h5" Label="@cut" Align="Align.Center" />
+    </div>
 }

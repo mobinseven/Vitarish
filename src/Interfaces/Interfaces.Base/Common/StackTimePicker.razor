@@ -1,0 +1,36 @@
+@inherits MudTimePicker
+@inject IStringLocalizer Localizer
+<StackField Label="@Label">
+    <MudStack Row Justify="Justify.Center" AlignItems="AlignItems.Center" Reverse="@(Culture.TextInfo.IsRightToLeft ? true : false)">
+        <MudNumericField T="int" Value="hour" ValueChanged="h => SetHour(h)" Underline="false" Variant="Variant.Outlined" Min="0" Max="24" />
+        <MudText Typo="Typo.caption">:</MudText>
+        <MudNumericField T="int" Value="minute" ValueChanged="m => SetMinute(m)" Underline="false" Variant="Variant.Outlined" Min="0" Max="60" />
+    </MudStack>
+</StackField>
+
+@code {
+
+    private int hour = 0;
+    private int minute = 0;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        hour = Time?.Hours ?? 0;
+        minute = Time?.Minutes ?? 0;
+    }
+
+    private async void SetHour(int h)
+    {
+        hour = h;
+        Time = new TimeSpan(hour, minute, 0);
+        await TimeChanged.InvokeAsync(Time);
+    }
+
+    private async Task SetMinute(int m)
+    {
+        minute = m;
+        Time = new TimeSpan(hour, minute, 0);
+        await TimeChanged.InvokeAsync(Time);
+    }
+}

@@ -2,17 +2,38 @@
 
 @inject IThemeService ThemeService
 
-<MudThemeProvider @ref="_provider"
-                  @key="@($"theme-{ThemeService.ThemeVersion}")"
-                  @rendermode="InteractiveServer"
-                  Theme="@ThemeService.Theme"
-                  IsDarkMode="@ThemeService.IsDarkMode"
-                  IsDarkModeChanged="OnDarkModeChanged"
-                  ObserveSystemThemeChange="@ThemeService.ObserveSystemThemeChange" />
+@if(ThemeService.IsDarkMode)
+{
+    <div style="width: 100dvw; height: 100dvh; background-image: url('/bg/bd.webp'); background-size: cover; position: fixed; top: 0; right: 0; z-index: -100; pointer-events: none; filter: brightness(20%) contrast(1.3); "></div>
+}
+else
+{
+    <div style="width: 100dvw; height: 100dvh; background-image: url('/bg/bl.webp'); background-size: cover; position: fixed; top: 0; right: 0; z-index: -100; pointer-events: none; opacity: .4;"></div>
+}
 
-<ThemeSurfaceConfigurator @rendermode="InteractiveServer" />
+@if(RendererInfo.IsInteractive)
+{
+    <MudThemeProvider @ref="_provider"
+                      @key="@($"theme-{ThemeService.ThemeVersion}")"
+                      @rendermode="InteractiveServer"
+                      Theme="@ThemeService.Theme"
+                      IsDarkMode="@ThemeService.IsDarkMode"
+                      IsDarkModeChanged="OnDarkModeChanged"
+                      ObserveSystemThemeChange="@ThemeService.ObserveSystemThemeChange" />
+}
+else
+{
+    <MudThemeProvider @key="@($"theme-{ThemeService.ThemeVersion}")"
+                      @rendermode="InteractiveServer"
+                      Theme="@ThemeService.Theme"
+                      IsDarkMode="@ThemeService.IsDarkMode"
+                      IsDarkModeChanged="OnDarkModeChanged"
+                      ObserveSystemThemeChange="@ThemeService.ObserveSystemThemeChange" />
+}
 
-<div style="height: 100%">
+@* <ThemeSurfaceConfigurator @rendermode="InteractiveServer" /> *@
+
+<div style="height: 100%" class="glass-theme glass--transparent">
     @ChildContent
 </div>
 

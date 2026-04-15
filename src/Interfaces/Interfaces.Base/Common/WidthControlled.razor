@@ -1,9 +1,11 @@
 @inherits CommonBase
-<MudStack AlignItems=AlignItems.Center Justify=Justify.Center Style="width: 100%;" Spacing="0" Class="@Class">
-    <div style="@ContentWidth">
+
+<MudGrid Justify="Justify.Center" Class="pa-0" Spacing="0">
+    <MudItem lg="5" md="8" sm="12" Style="width: 100%;">
         @ChildContent
-    </div>
-</MudStack>
+    </MudItem>
+</MudGrid>
+
 @code {
     /// <summary>
     /// Width to use when the current viewport is below the configured <see cref="PageBreakpoint"/>.

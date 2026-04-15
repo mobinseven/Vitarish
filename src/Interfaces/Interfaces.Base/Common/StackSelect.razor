@@ -1,0 +1,16 @@
+@typeparam T
+@inherits MudSelect<T>
+
+<MudSelect T="T"
+           Label="@Label"
+           OuterClass="stack-item"
+           Variant="Variant.Filled"
+           Value="@Value"
+           ValueChanged="@ValueChanged"
+           AdornmentColor="@AdornmentColor"
+           AdornmentIcon="@AdornmentIcon"
+           Adornment="@Adornment"
+           OnAdornmentClick="@OnAdornmentClick"
+           Underline="false">
+    @ChildContent
+</MudSelect>

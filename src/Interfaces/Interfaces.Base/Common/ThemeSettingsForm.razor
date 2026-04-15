@@ -2,64 +2,47 @@
 @implements IDisposable
 
 <Stack>
+
     <StackField Label="@Localizer["Appearance"]" />
 
-    <StackField Label="@Localizer["Theme"]">
-        <EndContent>
-            <MudSelect T="ThemePreference"
-                       Variant="Variant.Filled"
-                       Value="@_settings.Theme"
-                       ValueChanged="OnThemeChanged"
-                       Underline="false">
-                <MudSelectItem T="ThemePreference" Value="ThemePreference.Light">@Localizer["Light"]</MudSelectItem>
-                <MudSelectItem T="ThemePreference" Value="ThemePreference.Dark">@Localizer["Dark"]</MudSelectItem>
-                <MudSelectItem T="ThemePreference" Value="ThemePreference.Auto">@Localizer["Auto"]</MudSelectItem>
-            </MudSelect>
-        </EndContent>
+    <StackSelect T="ThemePreference"
+                 Label="@Localizer["Theme"]"
+                 Value="@_settings.Theme"
+                 ValueChanged="OnThemeChanged">
+        <MudSelectItem T="ThemePreference" Value="ThemePreference.Light">@Localizer["Light"]</MudSelectItem>
+        <MudSelectItem T="ThemePreference" Value="ThemePreference.Dark">@Localizer["Dark"]</MudSelectItem>
+        <MudSelectItem T="ThemePreference" Value="ThemePreference.Auto">@Localizer["Auto"]</MudSelectItem>
+    </StackSelect>
 
-    </StackField>
+    <StackSelect T="TypographySize"
+                 Label="@Localizer["Typography"]"
+                 Value="@_settings.Typography"
+                 ValueChanged="OnTypographyChanged">
+        <MudSelectItem T="TypographySize" Value="TypographySize.Compact">@Localizer["Compact"]</MudSelectItem>
+        <MudSelectItem T="TypographySize" Value="TypographySize.Normal">@Localizer["Normal"]</MudSelectItem>
+        <MudSelectItem T="TypographySize" Value="TypographySize.Large">@Localizer["Large"]</MudSelectItem>
+        <MudSelectItem T="TypographySize" Value="TypographySize.ExtraLarge">@Localizer["ExtraLarge"]</MudSelectItem>
+    </StackSelect>
 
-    <StackField Label="@Localizer["Typography"]">
-        <EndContent>
-            <MudSelect T="TypographySize"
-                       Variant="Variant.Filled"
-                       Value="@_settings.Typography"
-                       ValueChanged="OnTypographyChanged"
-                       Underline="false">
-                <MudSelectItem T="TypographySize" Value="TypographySize.Compact">@Localizer["Compact"]</MudSelectItem>
-                <MudSelectItem T="TypographySize" Value="TypographySize.Normal">@Localizer["Normal"]</MudSelectItem>
-                <MudSelectItem T="TypographySize" Value="TypographySize.Large">@Localizer["Large"]</MudSelectItem>
-                <MudSelectItem T="TypographySize" Value="TypographySize.ExtraLarge">@Localizer["ExtraLarge"]</MudSelectItem>
-            </MudSelect>
-        </EndContent>
-
-    </StackField>
-
-    <StackField Label="@Localizer["Transparency"]">
-        <EndContent>
-            <MudSelect T="ThemeSurfaceType"
-                       Variant="Variant.Filled"
-                       Value="@_settings.Surface"
-                       ValueChanged="OnSurfaceChanged"
-                       Underline="false">
-                <MudSelectItem T="ThemeSurfaceType" Value="ThemeSurfaceType.Opaque">@Localizer["Opaque"]</MudSelectItem>
-                <MudSelectItem T="ThemeSurfaceType" Value="ThemeSurfaceType.Translucent">@Localizer["Translucent"]</MudSelectItem>
-                <MudSelectItem T="ThemeSurfaceType" Value="ThemeSurfaceType.Transparent">@Localizer["Transparent"]</MudSelectItem>
-            </MudSelect>
-        </EndContent>
-
-    </StackField>
+    <StackSelect Label="@Localizer["Transparency"]"
+                 T="ThemeSurfaceType"
+                 Value="@_settings.Surface"
+                 ValueChanged="OnSurfaceChanged">
+        <MudSelectItem T="ThemeSurfaceType" Value="ThemeSurfaceType.Opaque">@Localizer["Opaque"]</MudSelectItem>
+        <MudSelectItem T="ThemeSurfaceType" Value="ThemeSurfaceType.Translucent">@Localizer["Translucent"]</MudSelectItem>
+        <MudSelectItem T="ThemeSurfaceType" Value="ThemeSurfaceType.Transparent">@Localizer["Transparent"]</MudSelectItem>
+    </StackSelect>
 
     <StackField Label="@Localizer["Preview"]">
         <MudStack Spacing="2">
             <MudText Typo="Typo.h3">
-                @Localizer["PreviewOf",Localizer["Heading"]]
+                @Localizer["PreviewOf", Localizer["Heading"]]
             </MudText>
             <MudText Typo="Typo.body1">
                 @Localizer["PreviewOf", Localizer["TextBody"]]
             </MudText>
             <MudText Typo="Typo.caption">
-                @Localizer["PreviewOf",Localizer["Caption"]]
+                @Localizer["PreviewOf", Localizer["Caption"]]
             </MudText>
 
             <MudStack Spacing="2">
@@ -79,6 +62,7 @@
     <StackField>
         <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="ResetAsync">@Localizer["Reset"]</MudButton>
     </StackField>
+
 </Stack>
 
 @code {

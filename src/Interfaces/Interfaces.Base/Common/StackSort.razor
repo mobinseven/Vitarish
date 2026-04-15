@@ -1,16 +1,12 @@
 @inherits CommonBase
 @if(Methods.Length > 1)
 {
-    <StackField Label="@Localizer["SortBy"]">
-        <EndContent>
-            <MudSelect T="SortMethod" Value="selectedValue" ValueChanged="v => OnChanged(v)" Underline="false">
-                @foreach(var method in Methods)
-                {
-                    <MudSelectItem Value="method">@method.LabelAction()</MudSelectItem>
-                }
-            </MudSelect>
-        </EndContent>
-    </StackField>
+    <StackSelect Label="@Localizer["SortBy"]" T="SortMethod" Value="selectedValue" ValueChanged="v => OnChanged(v)">
+        @foreach(var method in Methods)
+        {
+            <MudSelectItem Value="method">@method.LabelAction()</MudSelectItem>
+        }
+    </StackSelect>
 }
 
 @code {

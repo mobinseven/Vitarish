@@ -1,0 +1,16 @@
+@inherits MudDatePicker
+
+<StackField Label="@Label">
+    <MudDatePicker Date="@Date"
+                   DateChanged="@DateChanged"
+                   Color="Color.Default" IconSize="Size.Small" OverflowBehavior="OverflowBehavior.FlipOnOpen"
+                   Variant="Variant.Outlined"
+                   DateFormat="dd/MM/yyyy"
+                   Underline="false"
+                   Elevation="0"
+                   PickerVariant="@PickerVariant.Inline"
+                   MinDate="@MinDate"
+                   MaxDate="@MaxDate"
+                   IsDateDisabledFunc="@IsDateDisabledFunc"
+                   />
+</StackField>

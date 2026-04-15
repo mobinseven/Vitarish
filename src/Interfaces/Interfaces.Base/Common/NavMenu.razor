@@ -4,7 +4,7 @@
     <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Style="width: 100%;">
         @if(SearchActive)
         {
-            <MudTextField T="string" Class="mx-2" @bind-Value="NavService.SearchString" Style="border-radius: 70px; width: 100%;" AutoFocus DebounceInterval="1000" Variant="Variant.Text" />
+            <MudTextField T="string" Class="mx-2" @bind-Value="NavService.SearchString" Style="border-radius: 70px; width: 100%;" AutoFocus DebounceInterval="1000" Underline="false" Variant="Variant.Text" />
             <MudFab Size=Size StartIcon="fa-regular fa-xmark" DropShadow=false OnClick="Close" />
         }
         else
