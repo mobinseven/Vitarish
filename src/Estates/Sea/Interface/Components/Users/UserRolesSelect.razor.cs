@@ -76,16 +76,17 @@ public partial class UserRolesSelect : UsersBase
     private bool IsAssigned(Guid id, RoleType type)
         => type == RoleType.Read ? readRoles.Contains(id) : writeRoles.Contains(id);
 
-    private void OnRoleChanged(Guid id, RoleType type, bool value)
+    private async void OnRoleChanged(Guid id, RoleType type, bool value)
     {
         HashSet<Guid> set = type == RoleType.Read ? readRoles : writeRoles;
 
         _ = value ? set.Add(id) : set.Remove(id);
 
         UpdateSelectAllStates();
+        await SaveAsync();
     }
 
-    private void OnSelectAllChanged(RoleType type, bool? value)
+    private async void OnSelectAllChanged(RoleType type, bool? value)
     {
         value ??= true;
 
@@ -107,6 +108,7 @@ public partial class UserRolesSelect : UsersBase
         }
 
         UpdateSelectAllStates();
+        await SaveAsync();
     }
 
     private void UpdateSelectAllStates()

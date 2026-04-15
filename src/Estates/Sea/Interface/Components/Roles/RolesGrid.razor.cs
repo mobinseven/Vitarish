@@ -12,7 +12,7 @@ public partial class RolesGrid : RolesBase
 
     private async Task AddRole()
     {
-        IDialogReference dialog = await DialogService.ShowAsync<RoleEditDialog>(Localizer["Role"]);
+        IDialogReference dialog = await DialogService.ShowAsync<RoleEditDialog>(null);
         DialogResult? result = await dialog.Result;
 
         if (result is null)
@@ -38,7 +38,7 @@ public partial class RolesGrid : RolesBase
         {
             { nameof(RoleEditDialog.Role), role }
         };
-        IDialogReference dialog = await DialogService.ShowAsync<RoleEditDialog>(Localizer["Role"], parameters);
+        IDialogReference dialog = await DialogService.ShowAsync<RoleEditDialog>(null, parameters);
         DialogResult? result = await dialog.Result;
 
         if (result is null)

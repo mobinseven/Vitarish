@@ -1,10 +1,16 @@
 @inherits UsersBase
 
 <Stack>
-    @foreach(var user in GetUsers())
+    @foreach(var user in users)
     {
         <StackExpandable Label="@user.FullName" HighlightString="@SearchString">
             <UserRolesSelect User="@user" />
         </StackExpandable>
+    }
+    @if(users.Length == 0)
+    {
+        <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["User"]]" HelperText="@Localizer["NoItemsHelp", Localizer["User"]]" EndIcon="fa-regular fa-refresh">
+            @Localizer["Reload"]
+        </StackButton>
     }
 </Stack>

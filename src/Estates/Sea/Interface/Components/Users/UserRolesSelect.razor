@@ -4,12 +4,10 @@
     <HeaderContent>
         <MudTh>@Localizer["Role"]</MudTh>
         <MudTh>
-            <MudCheckBox T="bool?" TriState="true" Value="@selectAllRead" ValueChanged="@((bool? b) => OnSelectAllChanged(RoleType.Read, b))" />
-            @Localizer["Reader"]
+            <MudCheckBox T="bool?" TriState="true" Value="@selectAllRead" ValueChanged="@((bool? b) => OnSelectAllChanged(RoleType.Read, b))" Label="@Localizer["Read"]" />
         </MudTh>
         <MudTh>
-            <MudCheckBox T="bool?" TriState="true" Value="@selectAllWrite" ValueChanged="@((bool? b) => OnSelectAllChanged(RoleType.Write, b))" />
-            @Localizer["Writer"]
+            <MudCheckBox T="bool?" TriState="true" Value="@selectAllWrite" ValueChanged="@((bool? b) => OnSelectAllChanged(RoleType.Write, b))" Label="@Localizer["Write"]" />
         </MudTh>
     </HeaderContent>
     <RowTemplate>
@@ -22,5 +20,3 @@
         </MudTd>
     </RowTemplate>
 </MudTable>
-
-<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="SaveAsync">@Localizer["Save"]</MudButton>
