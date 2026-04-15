@@ -1,34 +1,18 @@
 @inherits EventsBase
 
-<Stack>
-    <StackField Label="@Event.Title" HelperText="@Event.Description" />
+<Stack Class="mt-0">
+    <StackField Label="@Event.Title" HelperText="@Event.Description" Align="Align.Center" />
     @if(Event.IsCommitted)
     {
-        <StackField Label="@Localizer["Committed"]"
-                    Color="Color.Primary"
-                    AdornmentIcon="fa-duotone fa-circle-check fa-2x"
-                    AdornmentColor="Color.Primary">
-            @{
-                var userName = GetUserFullNameById(Event.CommittedBy);
-            }
-            @if(!string.IsNullOrWhiteSpace(userName))
-            {
-                <MudText Typo="Typo.caption">
-                    @($" {Localizer["By"]}: {userName} ")
-                </MudText>
-            }
-            <MudText Typo="Typo.caption">
-                @($" {Localizer["At"]}: {Event.CommittedAt!.Value.DateTime.ToLocalTime().ToShortDateString()} {Event.CommittedAt!.Value.DateTime.ToLocalTime().ToShortTimeString()} ")
-            </MudText>
-        </StackField>
-        @if(AdminMode)
-        {
-            <StackButton EndIcon="fa-regular fa-xmark" Color="Color.Error" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Uncommit"]" />
-        }
+        <StackButton Label="@Localizer["Committed"]"
+                     EndIcon="fa-duotone fa-circle-check fa-2x"
+                     OnClick="() => ToggleCommitAsync()">
+        </StackButton>
+
     }
     else if(CanWrite)
     {
-        <StackButton EndIcon="fa-regular fa-check" Color="Color.Primary" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Commit"]" />
+        <StackButton EndIcon="fa-regular fa-circle" Color="Color.Primary" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Commit"]" />
     }
 </Stack>
 

@@ -1,29 +1,12 @@
 @inherits EventsBase
 
 <Stack>
-    <StackField Label="@Localizer["Attachments"]" />
+    <StackField Label="@Localizer["Attachments"]" Align="Align.Center" />
     @foreach(var item in items)
     {
         @if(!string.IsNullOrWhiteSpace(item.Placeholder))
         {
-            <MudStack Row
-                      AlignItems="AlignItems.Center"
-                      Justify="Justify.FlexStart"
-                      Style="width: 100%">
-                <div>
-                    <MudFab Size=Size.Small
-                            DropShadow=false
-                            StartIcon="fa-regular fa-circle-notch fa-spin" />
-                </div>
-                <div>
-                    <Chip Class="py-2 glass">
-                        <MudText Typo="Typo.caption"
-                                 Class="shimmer">
-                            @item.Placeholder
-                        </MudText>
-                    </Chip>
-                </div>
-            </MudStack>
+            <StackField Label="@item.Placeholder" AdornmentIcon="fa-regular fa-circle-notch fa-spin" />
         }
         else
         {
@@ -32,9 +15,7 @@
     }
     @if(CanWrite)
     {
-        <StackField>
-            <EventItemsInput Project="Project" Procedure="Procedure" Event="Event" OnCreated="ReloadRequired" />
-        </StackField>
+        <EventItemsInput Project="Project" Procedure="Procedure" Event="Event" OnCreated="ReloadRequired" />
     }
 
 </Stack>
