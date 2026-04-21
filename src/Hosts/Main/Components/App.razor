@@ -1,7 +1,8 @@
 @using Microsoft.AspNetCore.Components.Web
 @using MudBlazor
+@using Vitarish.Interfaces.Base.Abstractions
 @using static Microsoft.AspNetCore.Components.Web.RenderMode
-
+@inject IThemeService ThemeService
 <!DOCTYPE html>
 <html lang="en">
 
@@ -10,21 +11,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
     <ResourcePreloader />
-    <link rel="stylesheet" href="@Assets["Vitarish.Main.styles.css"]" />
     <link rel="apple-touch-icon" href="/logo/512.webp" crossorigin="">
     <link rel="icon" type="image/png" href="/logo/favicon.ico" crossorigin="">
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+    <link href="fa/v7/css/all.min.css" rel="stylesheet">
+    <link href="css/glass.css" rel="stylesheet" />
+    <link rel="stylesheet" href="@Assets["Vitarish.Main.styles.css"]" />
     <ImportMap />
     <HeadOutlet @rendermode="InteractiveServer" />
-    <div style="width: 100dvw; height: 100dvh; background-image: url('/bg/persepolis.jpeg'); background-size: cover; position: fixed; top: 0; right: 0; z-index: -100; pointer-events: none;"></div>
 </head> 
 
-<body>
+<body class="mud-glass">
     <Routes @rendermode="RenderModeForPage" />
     <ReconnectModal />
     <script src="@Assets["_framework/blazor.web.js"]"></script>
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
-    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
-    <link href="fa/v7/css/all.min.css" rel="stylesheet">
 </body>
 
 </html>

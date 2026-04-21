@@ -1,0 +1,85 @@
+/* =========================================================
+   MudBlazor Glass Skin (NO gradients)
+   Enable by scoping your app with: class="mud-glass"
+   e.g. <MudLayout Class="mud-glass"> ... </MudLayout>
+   ========================================================= */
+
+/* Helps native controls match light/dark schemes */
+:root {
+    color-scheme: light dark;
+}
+
+/* -----------------------------
+   1) Adjustable tokens (common)
+   ----------------------------- */
+:root {
+    /* Frost */
+    --glass-blur: 18px;
+    --glass-saturation: 1.35;
+    --glass-backdrop: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+    /* Shape */
+    --glass-radius: 18px;
+    --glass-radius-sm: 14px;
+    --glass-border-width: 1px;
+    /* Depth */
+    --glass-shadow-y: 18px;
+    --glass-shadow-blur: 45px;
+    /* Focus ring */
+    --glass-ring-width: 3px;
+    --glass-ring-alpha: 0.22;
+    /* ---------- LIGHT defaults ---------- */
+    --glass-surface-rgb: 255 255 255;
+    --glass-border-rgb: 255 255 255;
+    --glass-shadow-rgb: 0 0 0;
+    --glass-ring-rgb: 255 255 255;
+    --glass-surface-a: 0.8;
+    --glass-surface-hover-a: 0.18;
+    --glass-surface-active-a: 0.22;
+    --glass-border-a: 0.22;
+    --glass-shadow-a: 0.28;
+    --glass-inset-a: 0.10;
+    /* Buttons */
+    --glass-btn-a: 0.14;
+    --glass-btn-hover-a: 0.18;
+    --glass-btn-active-a: 0.22;
+    /* Inputs */
+    --glass-input-a: 0.10;
+    --glass-input-hover-a: 0.14;
+    --glass-input-focus-a: 0.18;
+}
+
+/* -----------------------------
+   2) Dark scheme overrides
+   (automatic system mode)
+   ----------------------------- */
+@media (prefers-color-scheme: dark) { 
+    :root {
+        --glass-surface-rgb: 18 22 35; /* deep bluish glass */
+        --glass-border-rgb: 255 255 255;
+        --glass-shadow-rgb: 0 0 0;
+        --glass-ring-rgb: 120 170 255;
+        --glass-surface-a: 0.8;
+        --glass-surface-hover-a: 0.28;
+        --glass-surface-active-a: 0.32;
+        --glass-border-a: 0.02;
+        --glass-shadow-a: 0.55;
+        --glass-inset-a: 0.12;
+        --glass-ring-alpha: 0.34;
+        --glass-btn-a: 0.20;
+        --glass-btn-hover-a: 0.26;
+        --glass-btn-active-a: 0.30;
+        --glass-input-a: 0.16;
+        --glass-input-hover-a: 0.22;
+        --glass-input-focus-a: 0.28;
+    }
+}
+
+:root {
+    --glass-bg: rgb(var(--glass-surface-rgb) / var(--glass-surface-a));
+    --glass-bg-hover: rgb(var(--glass-surface-rgb) / var(--glass-surface-hover-a));
+    --glass-bg-active: rgb(var(--glass-surface-rgb) / var(--glass-surface-active-a));
+    --glass-border: rgb(var(--glass-border-rgb) / var(--glass-border-a));
+    --glass-shadow: 0 var(--glass-shadow-y) var(--glass-shadow-blur) rgb(var(--glass-shadow-rgb) / var(--glass-shadow-a));
+    --glass-inset: inset 0 1px 0 rgb(var(--glass-border-rgb) / var(--glass-inset-a));
+    --glass-ring: 0 0 0 var(--glass-ring-width) rgb(var(--glass-ring-rgb) / var(--glass-ring-alpha));
+}

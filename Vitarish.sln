@@ -147,7 +147,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Instagram.Interface", "src\
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Estates", "Estates", "{4E9728B1-5CB5-4351-B0C9-97F9C121FF93}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Base", "Base", "{338CF791-0CE6-4679-B588-7F61251D9F1C}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Common", "Common", "{338CF791-0CE6-4679-B588-7F61251D9F1C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Estates.Base", "src\Estates\Base\Estates.Base\Estates.Base.csproj", "{E93270F4-F23A-4C83-BA6D-48073C9B44C1}"
 EndProject

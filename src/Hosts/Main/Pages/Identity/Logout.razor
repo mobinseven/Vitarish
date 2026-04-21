@@ -8,21 +8,21 @@
     <EditForm Model="Input" method="post" OnValidSubmit="LogoutUser" FormName="Logout">
         <Stack>
             <StackField Label="@Localizer["LogoutMessage"]" />
-            <StackButton Label="@Localizer["Continue"]" ButtonType="ButtonType.Submit" />
+            <StackButton Label="@Localizer["Continue"]" ButtonType="ButtonType.Submit" Color="Color.Error" EndIcon="fa-regular fa-sign-out" />
         </Stack>
     </EditForm>
 }
 else
 {
     <Stack>
-        <StackField Label="@Localizer["LogoutSuccessful"]" />
+        <StackField Color="Color.Primary" Label="@Localizer["LogoutSuccessful"]" />
         @if(PostLogoutRedirectUri != null)
         {
-            <StackButton FullWidth="true" Variant="Variant.Filled" Color="Color.Warning" Href="@PostLogoutRedirectUri">@Localizer["Continue"]</StackButton>
+            <StackButton Color="Color.Primary" Href="@PostLogoutRedirectUri" Label="@Localizer["Continue"]"/>
         }
         else
         {
-            <StackButton FullWidth="true" Variant="Variant.Filled" Color="Color.Warning" Href="/">@Localizer["Continue"]</StackButton>
+            <StackButton Color="Color.Primary" Href="/" Label="@Localizer["Continue"]"/>
         }
         @if(SignOutIframeUrl != null)
         {

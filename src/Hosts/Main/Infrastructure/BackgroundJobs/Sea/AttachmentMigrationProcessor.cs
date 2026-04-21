@@ -1,12 +1,9 @@
-using Vitarish.Entities.Server.Models;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Models;
-using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Extensions;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
-using Vitarish.Sea.Domain.Mappers;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 
@@ -73,7 +70,7 @@ public class AttachmentMigrationProcessor(
                 foreach (AttachmentReadDto? attch in attchs)
                 {
                     AttachmentWriteDto wrt = attch.ToWrite() with { Content = fileInfo.Id.ToString() };
-                    await attachmentsService.UpdateAsync(wrt, cancellationToken);
+                    _ = await attachmentsService.UpdateAsync(wrt, cancellationToken);
                 }
 
                 bool ex = await objectStorageService.ExistsAsync(fileInfo.Checksum, cancellationToken);
