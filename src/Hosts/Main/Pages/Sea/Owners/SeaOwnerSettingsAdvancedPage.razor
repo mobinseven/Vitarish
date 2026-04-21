@@ -1,2 +1,21 @@
 @page "/sea/Owner/Settings/Advanced"
-<SettingsEditor />
+@using Vitarish.Sea.Interface.Plugins
+
+<AuthorizeView Policy="@IdentityDefinitions.PlatformAdmin">
+    <Stack>
+        <StackSelect Label="@Localizer["Plugin"]" T="string" @bind-Value="TenantService.PluginIdentifier">
+            <MudSelectItem T="string" Value="null">@Localizer["None"]</MudSelectItem>
+            @foreach(PluginIdentifier plugin in PluginIdentifiers.List)
+            {
+                <MudSelectItem T="string" Value="@plugin.Title">
+                    <MudStack Row Spacing="1" AlignItems="AlignItems.Center">
+                        <MudIcon Icon="@plugin.Icon" />
+                        <MudText Typo="Typo.body2">
+                            @Localizer[plugin.Title]
+                        </MudText>
+                    </MudStack>
+                </MudSelectItem>
+            }
+        </StackSelect>
+    </Stack>
+</AuthorizeView>

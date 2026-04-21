@@ -6,10 +6,10 @@
 }
 
 <CascadingValue Value="IsAdmin">
-    <EventItemsTimeline Event="Event" Procedure="Procedure" Project="Project" />
     <EventDetails Event="Event" Procedure="Procedure" Project="Project"
                   OnDelete="@(() => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}"))"
-                  OnUpdate="ReloadRequired"/>
+                  OnUpdate="ReloadRequired" />
+    <EventItemsTimeline Event="Event" Procedure="Procedure" Project="Project" />
 </CascadingValue>
 
 @code {
@@ -65,7 +65,7 @@
 
         NavService.OverridePageTitle(Project.Id.ToString(), Project.Name);
         NavService.OverridePageTitle(Procedure.Id.ToString(), Procedure.Name);
-        NavService.OverridePageTitle(Event.Id.ToString(), Event.Title);
+        NavService.OverridePageTitle(Event.Id.ToString(), null);
 
         await InvokeAsync(StateHasChanged);
     }
