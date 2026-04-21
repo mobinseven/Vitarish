@@ -251,11 +251,11 @@ public sealed class ThemeService : IThemeService
   --background: rgba(43, 43, 43, .85);
   --border: none;
   --blur: 5px;
-  --brightness: 80%;" : $@"
+  --brightness: 110%;" : $@"
   --background: rgba(255, 255, 255, .85);
   --border: none;
   --blur: 5px;
-  --brightness: 100%;"
+  --brightness: 120%;"
         ,
     };
     public string BuildCustomCss()

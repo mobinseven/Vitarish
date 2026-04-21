@@ -112,6 +112,9 @@
     background-color: rgb(var(--glass-surface-rgb) / var(--glass-btn-active-a)) !important;
 }
 
+::deep [centered], ::deep .centered input{
+    text-align: center;
+}
 
 /*
 

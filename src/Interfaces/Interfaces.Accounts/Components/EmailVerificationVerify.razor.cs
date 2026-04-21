@@ -7,6 +7,7 @@ public partial class EmailVerificationVerify
 
     protected VerifyEmailCodeModel VerifyCodeInput { get; private set; } = new();
 
+    private bool IsValid => VerifyCodeInput.Code?.Length == 6;
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();

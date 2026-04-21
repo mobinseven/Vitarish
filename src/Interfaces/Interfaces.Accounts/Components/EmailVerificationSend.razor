@@ -2,11 +2,12 @@
 <StackTextField @bind-Value="@Email"
                 Label="@Localizer["Email"]"
                 Placeholder="email@example.com"
-                Style="text-align: center"
                 UserAttributes="@(new() { { "dir", "ltr" }, { "autocomplete", "email" }, { "aria-required", "true" } } )"
                 ShrinkLabel=true
                 DebounceInterval="500"
-                Immediate />
-<StackButton Disabled="@(!isValid || submitting)"
-             Label="@Localizer["Continue"]"
-             OnClick="ValidSubmit" />
+                Immediate
+                Centered />
+<StackButton Label="@Localizer["Continue"]"
+             Disabled="!IsValid"
+             OnClick="ValidSubmit"
+             Color="Color.Primary" />

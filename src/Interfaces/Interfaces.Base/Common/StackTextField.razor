@@ -7,7 +7,7 @@
               OnAdornmentClick="@OnAdornmentClick"
               ValueChanged="@ValueChanged"
               Style="@Style"
-              Class="stack-item"
+              Class="@($"stack-item {(Centered ? "centered" : "")}")"
               Underline="false"
               Variant="Variant.Outlined"
               Required="@Required"
@@ -21,4 +21,9 @@
               MaxLines="@MaxLines"
               MaxLength="@MaxLength"
               AutoGrow="@AutoGrow"
-              UserAttributes="@UserAttributes"/>
+              InputMode="@InputMode"
+              UserAttributes="@UserAttributes"
+              HelperText="@HelperText"/>
+@code {
+    [Parameter] public bool Centered { get; set; }
+}

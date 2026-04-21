@@ -7,6 +7,7 @@ public partial class PhoneVerificationVerify
     [Parameter] public string PhoneNumber { get; set; } = string.Empty;
 
     protected VerifySmsCodeModel VerifyCodeInput { get; private set; } = new();
+    private bool IsValid => VerifyCodeInput.Code?.Length == 6;
 
     protected override async Task OnInitializedAsync()
     {

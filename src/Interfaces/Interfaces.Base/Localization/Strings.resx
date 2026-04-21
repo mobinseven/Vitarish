@@ -1682,4 +1682,10 @@ of project "{2}"</value>
   <data name="Warning" xml:space="preserve">
     <value>Warning</value>
   </data>
+  <data name="Signout" xml:space="preserve">
+    <value>Sign out</value>
+  </data>
+  <data name="None" xml:space="preserve">
+    <value>None</value>
+  </data>
 </root>

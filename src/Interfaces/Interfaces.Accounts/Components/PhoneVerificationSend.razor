@@ -1,12 +1,12 @@
 <StackTextField @bind-Value="@PhoneNumber"
                 Label="@Localizer["PhoneNumber"]"
-                Placeholder="09---------"
+                Placeholder="09xxxxxxxxx"
                 MaxLength="11"
-                Style="text-align: center"
                 UserAttributes="@(new() { { "dir", "ltr" }, { "autocomplete", "tel" }, { "aria-required", "true" } } )"
                 Margin="Margin.Normal"
                 DebounceInterval="500"
-                Immediate />
+                Immediate
+                Centered/>
 <StackButton Disabled="!isValid"
              Label="@Localizer["Continue"]"
              Color="Color.Primary"

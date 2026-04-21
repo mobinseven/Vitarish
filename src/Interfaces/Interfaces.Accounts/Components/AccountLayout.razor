@@ -12,8 +12,14 @@
             <hr />
         </div>
         <WidthControlled>
-            <TitleContainer />
-
+            @* <TitleContainer @rendermode=InteractiveServer /> *@
+            <div class="stack sticky-top">
+                <StackField>
+                    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Style="width: 100%;">
+                        <MudImage Src="/logo/brandmark-opacity50.webp" Height="100" />
+                    </MudStack>
+                </StackField>
+            </div>
             @Body
 
             <Stack>

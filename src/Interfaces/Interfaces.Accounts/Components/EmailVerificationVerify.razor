@@ -2,24 +2,25 @@
 @inherits CommonBase
 @if(VerifyCodeInput is not null)
 {
-    <MudAlert Severity="Severity.Success">@Localizer["CodeSent", VerifyCodeInput.Email]</MudAlert>
     <AntiforgeryToken />
     <input type="hidden" name="Input.UserId" value="@User.Id" />
     <input type="hidden" name="Input.Provider" value="@TokenOptions.DefaultEmailProvider" />
     <input type="hidden" name="Input.Email" value="@Email" />
-    <StackField Style="direction: ltr;">
-        <MudStack AlignItems="AlignItems.Center" Style="width: 100%;">
-            <input name="Input.Code"
-                   @bind="VerifyCodeInput.Code"
-                   @bind:event="oninput"
-                   type="text"
-                   autocomplete="one-time-code"
-                   inputmode="numeric"
-                   maxlength="6"
-                   autofocus>
-        </MudStack>
-    </StackField>
+    <StackTextField @bind-Value="VerifyCodeInput.Code"
+                    name="Input.Code"
+                    For="@(() => VerifyCodeInput.Code)"
+                    Label="@Localizer["Code"]"
+                    Placeholder="XXXXXX"
+                    HelperText="@Localizer["CodeSent", VerifyCodeInput.Email]"
+                    InputMode="@InputMode.numeric"
+                    InputType="InputType.Text"
+                    Immediate="true"
+                    Maxlength="6"
+                    Pattern="\\d{6}"
+                    autocomplete="one-time-code"
+                    Centered />
     <StackButton Label="@Localizer["Continue"]"
                  ButtonType="ButtonType.Submit"
+                 Disabled="!IsValid"
                  Color="Color.Primary" />
 }

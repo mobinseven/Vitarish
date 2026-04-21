@@ -2,24 +2,26 @@
 
 @if(VerifyCodeInput is not null)
 {
-    <StackField Label="@Localizer["CodeSent", VerifyCodeInput.PhoneNumber]" />
     <input type="hidden" name="Input.UserId" value="@User.Id" />
     <input type="hidden" name="Input.Provider" value="@TokenOptions.DefaultPhoneProvider" />
     <input type="hidden" name="Input.PhoneNumber" value="@PhoneNumber" />
     <AntiforgeryToken />
-    <StackField Style="direction: ltr;">
-        <MudStack AlignItems="AlignItems.Center" Style="width: 100%;">
-            <input name="Input.Code"
-                   @bind="VerifyCodeInput.Code"
-                   @bind:event="oninput"
-                   type="text"
-                   autocomplete="one-time-code"
-                   inputmode="numeric"
-                   maxlength="6"
-                   autofocus>
-        </MudStack>
-    </StackField>
+    <span>@VerifyCodeInput.Code?.Length</span>
+    <StackTextField @bind-Value="VerifyCodeInput.Code"
+                    name="Input.Code"
+                    Label="@Localizer["Code"]"
+                    Placeholder="XXXXXX"
+                    For="@(() => VerifyCodeInput.Code)"
+                    HelperText="@Localizer["CodeSent", VerifyCodeInput.PhoneNumber]"
+                    InputMode="@InputMode.numeric"
+                    InputType="InputType.Text"
+                    Immediate="true"
+                    Maxlength="6"
+                    Pattern="\\d{6}"
+                    autocomplete="one-time-code"
+                    Centered />
     <StackButton Label="@Localizer["Continue"]"
                  Color="Color.Primary"
+                 Disabled="!IsValid"
                  ButtonType="ButtonType.Submit" />
 }
