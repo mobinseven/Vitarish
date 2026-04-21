@@ -21,7 +21,9 @@
         }
         @if(projects.Count == 0)
         {
-            <StackField Label="@Localizer["NoItems", Localizer["Project"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Project"]]" />
+            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Project"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Project"]]" EndIcon="fa-regular fa-refresh">
+                @Localizer["Reload"]
+            </StackButton>
         }
     </Stack>
 }

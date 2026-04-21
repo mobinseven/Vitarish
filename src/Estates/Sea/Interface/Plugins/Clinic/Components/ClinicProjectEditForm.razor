@@ -26,21 +26,16 @@
                         Required
                         Label="@Localizer["LastName"]" />
 
-        <StackField>
-            <MudDatePicker @bind-Date="projectWriteDto.DateOfBirth"
-                           Variant="Variant.Filled"
-                           DateFormat="dd/MM/yyyy"
-                           Label="@Localizer["DateOfBirth"]" />
-        </StackField>
+        <StackTextField @bind-Value="projectWriteDto.Description"
+                        AutoGrow
+                        Label="@Localizer["Description"]" />
 
-        <StackField>
-            <MudDatePicker @bind-Date="projectWriteDto.DateOfSurgery"
-                           Variant="Variant.Filled"
-                           DateFormat="dd/MM/yyyy"
-                           Label="@Localizer["DateOf", Localizer["Surgery"]]" />
-        </StackField>
+        <StackDatePicker @bind-Date="projectWriteDto.DateOfBirth"
+                         Label="@Localizer["DateOfBirth"]" />
 
-        <StackField>
+        <StackDatePicker @bind-Date="projectWriteDto.DateOfSurgery"
+                         Label="@Localizer["DateOf", Localizer["Surgery"]]" />
+        <StackField Label="@Localizer["Gender"]">
             <MudRadioGroup T="Gender"
                            @bind-Value="projectWriteDto.Gender">
                 <MudRadio Value="@Gender.Female">@Localizer["Female"]</MudRadio>
@@ -49,34 +44,30 @@
         </StackField>
 
         <StackTextField @bind-Value="projectWriteDto.ClinicalNotes"
-                        Lines="1"
                         AutoGrow
                         Label="@Localizer["Notes"]" />
 
         <StackExpandable Label="@Localizer["ClinicalData"]">
-            <MudTextField @bind-Value="projectWriteDto.PlaceOfBirth"
-                          Label="@Localizer["PlaceOfBirth"]" />
-            <MudTextField @bind-Value="projectWriteDto.Email"
-                          Label="@Localizer["Email"]"
-                          InputType="InputType.Email" />
-            <MudTextField @bind-Value="projectWriteDto.Phone"
-                          Label="@Localizer["Phone"]"
-                          InputType="InputType.Telephone" />
-            <MudDivider Class="my-1" />
-            <MudTextField @bind-Value="projectWriteDto.InsuranceProvider"
-                          Label="@Localizer["InsuranceProvider"]" />
-            <MudDivider Class="my-1" />
-            <MudTextField @bind-Value="projectWriteDto.VisitReason"
-                          Label="@Localizer["VisitReason"]" />
-            <MudTextField @bind-Value="projectWriteDto.Allergies"
-                          Label="@Localizer["Allergies"]" />
-            <MudTextField @bind-Value="projectWriteDto.CurrentMedications"
-                          Label="@Localizer["CurrentMedications"]" />
-            <MudDivider Class="my-1" />
-            <MudTextField @bind-Value="projectWriteDto.EmergencyContactName"
-                          Label="@Localizer["EmergencyContactName"]" />
-            <MudTextField @bind-Value="projectWriteDto.EmergencyContactPhone"
-                          Label="@Localizer["EmergencyContactPhone"]" />
+            <StackTextField @bind-Value="projectWriteDto.PlaceOfBirth"
+                            Label="@Localizer["PlaceOfBirth"]" />
+            <StackTextField @bind-Value="projectWriteDto.Email"
+                            Label="@Localizer["Email"]"
+                            InputType="InputType.Email" />
+            <StackTextField @bind-Value="projectWriteDto.Phone"
+                            Label="@Localizer["Phone"]"
+                            InputType="InputType.Telephone" />
+            <StackTextField @bind-Value="projectWriteDto.InsuranceProvider"
+                            Label="@Localizer["InsuranceProvider"]" />
+            <StackTextField @bind-Value="projectWriteDto.VisitReason"
+                            Label="@Localizer["VisitReason"]" />
+            <StackTextField @bind-Value="projectWriteDto.Allergies"
+                            Label="@Localizer["Allergies"]" />
+            <StackTextField @bind-Value="projectWriteDto.CurrentMedications"
+                            Label="@Localizer["CurrentMedications"]" />
+            <StackTextField @bind-Value="projectWriteDto.EmergencyContactName"
+                            Label="@Localizer["EmergencyContactName"]" />
+            <StackTextField @bind-Value="projectWriteDto.EmergencyContactPhone"
+                            Label="@Localizer["EmergencyContactPhone"]" />
         </StackExpandable>
     }
     <StackButton Label="@Localizer["Save"]" EndIcon="fa-regular fa-save" Color="Color.Primary" OnClick="SaveAsync" />
