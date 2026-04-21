@@ -43,5 +43,15 @@ public static class IdentityUsersExtensions
     /// <summary>
     /// Maps Users module endpoints.
     /// </summary>
-    public static void InitializeUsers(this WebApplication app) => _ = app.MapWebAuthnManagementEndpoints();
+    public static async Task InitializeUsers(this WebApplication app)
+    {
+        using var scope = app.Services.CreateScope();
+        var rm = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        var roleExists = await rm.RoleExistsAsync(IdentityDefinitions.PlatformAdmin);
+        if (!roleExists)
+        {
+            await rm.CreateAsync(new IdentityRole(IdentityDefinitions.PlatformAdmin));
+        }
+        _ = app.MapWebAuthnManagementEndpoints();
+    }
 }
