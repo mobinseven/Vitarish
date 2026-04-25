@@ -1,0 +1,11 @@
+@inherits AppointmentsBase
+
+<Stack>
+    <StackDatePicker @bind-Date="scheduledAtDate" Label="@Localizer["Date"]" />
+    <StackTimePicker @bind-Time="scheduledAtTime" Label="@Localizer["Time"]" />
+    <StackTextField @bind-Value="Appointment.Notes" AutoGrow Lines=3 Label="@Localizer["Notes"]" />
+</Stack>
+<Stack>
+    <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" />
+    <StackButton Label="@Localizer["Close"]" OnClick="Cancel" />
+</Stack>
