@@ -1,5 +1,7 @@
 using Vitarish.Feed.Domain.Abstractions;
+using Vitarish.Search.Domain.Abstractions;
 using Vitarish.Sea.Infrastructure.FeedSources;
+using Vitarish.Sea.Infrastructure.SearchProviders;
 using Vitarish.Sea.Infrastructure.Services;
 
 namespace Vitarish.Sea.Infrastructure.DependencyInjection;
@@ -17,6 +19,9 @@ public static class DependencyInjectionExtensions
         // Register feed data sources
         _ = services.AddScoped<IFeedDataSource, SeaAttachmentsFeedSource>();
         _ = services.AddScoped<IFeedDataSource, SeaProjectsFeedSource>();
+
+        // Register search index providers
+        _ = services.AddScoped<ISearchIndexProvider, SeaProjectsSearchProvider>();
         
         return services;
     }
