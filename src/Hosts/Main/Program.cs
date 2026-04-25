@@ -173,7 +173,7 @@ _ = app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 _ = app.MapRazorPages();
 
 app.MapAccountsInterface();
-app.InitializeUsers();
+await app.InitializeUsers();
 
 app.MapHangfireDashboard();
 
