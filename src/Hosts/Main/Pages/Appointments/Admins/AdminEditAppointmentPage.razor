@@ -1,0 +1,37 @@
+@page "/appointments/admin/{appointmentId}/edit"
+
+@if (appointment is null)
+{
+    return;
+}
+
+<CascadingValue Value="true">
+    <AppointmentForm Appointment="@appointment"
+                     OnSaved="@(id => NavigationManager.NavigateTo($"/appointments/admin/{id}"))"
+                     OnCancelled="@(() => NavigationManager.NavigateTo($"/appointments/admin/{appointmentId}"))" />
+</CascadingValue>
+
+@code {
+    [Parameter] public string? appointmentId { get; set; }
+
+    private AppointmentReadDto? appointment;
+
+    protected override async Task ReloadRequired()
+    {
+        if (!Guid.TryParse(appointmentId, out Guid id))
+        {
+            NavigationManager.NavigateTo("/appointments/admin");
+            return;
+        }
+
+        appointment = await AppointmentsService.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (appointment is null)
+        {
+            NavigationManager.NavigateTo("/appointments/admin");
+            return;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

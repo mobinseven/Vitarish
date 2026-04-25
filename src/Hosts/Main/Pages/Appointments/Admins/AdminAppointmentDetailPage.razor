@@ -1,0 +1,140 @@
+@page "/appointments/admin/{appointmentId}"
+
+@if (appointment is null)
+{
+    return;
+}
+
+<Stack>
+    <StackField Label="@appointment.ScheduledAt.ToString("f")" HelperText="@Localizer["ScheduledAt"]">
+        <AppointmentStatusBadge Status="@appointment.Status" />
+    </StackField>
+    @if (!string.IsNullOrWhiteSpace(appointment.CreatedBy))
+    {
+        <StackField Label="@appointment.CreatedBy" HelperText="@Localizer["User"]" />
+    }
+    @if (!string.IsNullOrWhiteSpace(appointment.Notes))
+    {
+        <StackField Label="@appointment.Notes" HelperText="@Localizer["Notes"]" />
+    }
+</Stack>
+
+<Stack>
+    <StackButton Label="@Localizer["EditItem", Localizer["Appointment"]]"
+                 EndIcon="fa-regular fa-calendar-pen"
+                 OnClick="@(() => NavigationManager.NavigateTo($"/appointments/admin/{appointmentId}/edit"))" />
+</Stack>
+
+@if (appointment.Status is AppointmentStatus.Pending)
+{
+    <Stack>
+        <StackButton Color="Color.Success"
+                     Label="@Localizer["ConfirmAppointment"]"
+                     EndIcon="fa-regular fa-calendar-check"
+                     OnClick="@(() => ChangeStatusAsync(AppointmentStatus.Confirmed))" />
+    </Stack>
+}
+
+@if (appointment.Status is AppointmentStatus.Confirmed)
+{
+    <Stack>
+        <StackButton Color="Color.Secondary"
+                     Label="@Localizer["CompleteAppointment"]"
+                     EndIcon="fa-regular fa-calendar-circle-exclamation"
+                     OnClick="@(() => ChangeStatusAsync(AppointmentStatus.Completed))" />
+    </Stack>
+}
+
+@if (appointment.Status is not (AppointmentStatus.Completed or AppointmentStatus.Cancelled))
+{
+    <Stack>
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelAppointment"]"
+                     EndIcon="fa-regular fa-calendar-xmark"
+                     OnClick="@(() => ChangeStatusAsync(AppointmentStatus.Cancelled))" />
+    </Stack>
+}
+
+<Stack>
+    <StackButton Color="Color.Error"
+                 Label="@Localizer["DeleteItem", Localizer["Appointment"]]"
+                 EndIcon="fa-regular fa-trash"
+                 OnClick="DeleteAppointmentAsync" />
+</Stack>
+
+@code {
+    [Parameter] public string? appointmentId { get; set; }
+
+    private AppointmentReadDto? appointment;
+
+    protected override async Task ReloadRequired()
+    {
+        if (!Guid.TryParse(appointmentId, out Guid id))
+        {
+            NavigationManager.NavigateTo("/appointments/admin");
+            return;
+        }
+
+        appointment = await AppointmentsService.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (appointment is null)
+        {
+            NavigationManager.NavigateTo("/appointments/admin");
+            return;
+        }
+
+        NavService.OverridePageTitle(id.ToString(), appointment.ScheduledAt.ToString("f"));
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ChangeStatusAsync(AppointmentStatus status)
+    {
+        string label = status switch
+        {
+            AppointmentStatus.Confirmed => Localizer["ConfirmAppointment"].Value,
+            AppointmentStatus.Completed => Localizer["CompleteAppointment"].Value,
+            AppointmentStatus.Cancelled => Localizer["CancelAppointment"].Value,
+            _ => Localizer["Confirm"].Value
+        };
+
+        DialogParameters parameters = new()
+        {
+            { nameof(ConfirmDialog.ContentText), Localizer["ConfirmationQuestion"].Value },
+            { nameof(ConfirmDialog.ButtonText), label },
+            { nameof(ConfirmDialog.Color), status == AppointmentStatus.Cancelled ? Color.Error : Color.Primary }
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>(label, parameters);
+        DialogResult? result = await dialog.Result;
+
+        if (result is null || result.Canceled)
+        {
+            return;
+        }
+
+        await AppointmentsService.UpdateStatusAsync(appointment!.Id, status, CancellationToken.None);
+        await ReloadRequired();
+    }
+
+    private async Task DeleteAppointmentAsync()
+    {
+        DialogParameters parameters = new()
+        {
+            { nameof(ConfirmDialog.ContentText), Localizer["DeleteItemConfirm", Localizer["Appointment"]].Value },
+            { nameof(ConfirmDialog.ButtonText), Localizer["Delete"].Value },
+            { nameof(ConfirmDialog.Color), Color.Error }
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>(Localizer["DeleteItem", Localizer["Appointment"]], parameters);
+        DialogResult? result = await dialog.Result;
+
+        if (result is null || result.Canceled)
+        {
+            return;
+        }
+
+        await AppointmentsService.RemoveAsync(appointment!.Id, CancellationToken.None);
+        NavigationManager.NavigateTo("/appointments/admin");
+    }
+}
