@@ -25,7 +25,6 @@
 		<ProjectReference Include="..\..\Interfaces\Interfaces.Admins\Interfaces.Admins.csproj" />
 		<ProjectReference Include="..\..\Interfaces\Interfaces.Widgets\Interfaces.Widgets.csproj" />
 		<ProjectReference Include="..\..\Modules\Aggregator\Modules.Aggregator\Modules.Aggregator.csproj" />
-		<ProjectReference Include="..\..\Modules\Feed\Infrastructure\Feed.Infrastructure.csproj" />
 	</ItemGroup>
 
 </Project>
