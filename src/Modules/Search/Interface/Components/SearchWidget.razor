@@ -1,0 +1,56 @@
+@inherits CommonBase
+
+<MudStack Spacing="2">
+    <MudTextField @bind-Value="_query"
+                  Placeholder="@Localizer["Search"]"
+                  Adornment="Adornment.End"
+                  AdornmentIcon="@Icons.Material.Filled.Search"
+                  OnAdornmentClick="SearchAsync"
+                  OnKeyUp="HandleKeyUpAsync"
+                  Immediate="false"
+                  Variant="Variant.Outlined"
+                  FullWidth />
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate Color="Color.Primary" />
+    }
+
+    @if (_errorMessage is not null)
+    {
+        <MudAlert Severity="Severity.Error">@_errorMessage</MudAlert>
+    }
+    else if (_result is not null)
+    {
+        @if (_result.Items.Count == 0)
+        {
+            <MudText Typo="Typo.body2" Color="Color.Secondary">@Localizer["NoResults"]</MudText>
+        }
+        else
+        {
+            <MudList T="SearchDocument">
+                @foreach (SearchDocument item in _result.Items)
+                {
+                    <MudListItem T="SearchDocument"
+                                 Value="item"
+                                 OnClick="() => Navigate(item)">
+                        <MudStack Spacing="0">
+                            <MudText Typo="Typo.body1">@item.Title</MudText>
+                            @if (!string.IsNullOrWhiteSpace(item.Body))
+                            {
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">@item.Body</MudText>
+                            }
+                        </MudStack>
+                    </MudListItem>
+                }
+            </MudList>
+
+            @if (_result.TotalCount > Options.Limit)
+            {
+                <MudText Typo="Typo.caption" Color="Color.Secondary">
+                    @string.Format(Localizer["ShowingOf"], _result.Items.Count, _result.TotalCount)
+                </MudText>
+            }
+        }
+    }
+</MudStack>

@@ -7,6 +7,7 @@ using Vitarish.Files.Interface;
 using Vitarish.Instagram.Interface;
 using Vitarish.Intelligence.Interface;
 using Vitarish.Modules.Base;
+using Vitarish.Search.Interface;
 public static class ModulesExtensions
 {
     public static List<IModule> GetModules() =>
@@ -15,6 +16,7 @@ public static class ModulesExtensions
                 Activator.CreateInstance<IntelligenceModule>(),
                 Activator.CreateInstance<FilesModule>(),
                 Activator.CreateInstance<InstagramModule>(),
+                Activator.CreateInstance<SearchModule>(),
             ];
     public static async Task<WebApplicationBuilder> RegisterModules(
         this WebApplicationBuilder builder,
