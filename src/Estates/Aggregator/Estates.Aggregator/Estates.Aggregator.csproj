@@ -3,8 +3,9 @@
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.*" />
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
-  <ItemGroup>
+	<ItemGroup>
     <ProjectReference Include="..\..\Sea\Interface\Sea.Interface.csproj" />
+    <ProjectReference Include="..\..\Appointments\Interface\Appointments.Interface.csproj" />
   </ItemGroup>
 
 </Project>

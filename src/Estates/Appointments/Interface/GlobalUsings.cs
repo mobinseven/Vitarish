@@ -1,0 +1,11 @@
+global using Microsoft.AspNetCore.Builder;
+global using Microsoft.AspNetCore.Components;
+global using Microsoft.Extensions.DependencyInjection;
+global using MudBlazor;
+global using System.Text.Json.Serialization;
+global using Vitarish.Interfaces.Base.Common;
+global using Vitarish.Appointments.Application.Abstractions;
+global using Vitarish.Appointments.Domain.Dto;
+global using Vitarish.Appointments.Domain.Enums;
+global using Vitarish.Appointments.Interface.Components.Base;
+global using Vitarish.Appointments.Interface.Plugins;

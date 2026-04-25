@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Vitarish.Appointments.Interface;
 using Vitarish.Estates.Base;
 using Vitarish.Sea.Interface;
 
@@ -10,6 +11,7 @@ public static class EstatesExtensions
     public static List<IEstate> GetEstates() =>
             [
                 Activator.CreateInstance<SeaEstate>(),
+                Activator.CreateInstance<AppointmentEstate>(),
                 //Activator.CreateInstance<CmsEstate>(),
             ];
     public static async Task<WebApplicationBuilder> RegisterEstates(

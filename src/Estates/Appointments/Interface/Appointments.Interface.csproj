@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Injectio" Version="5.0.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\Identity\Requests\Application\Requests.Application.csproj" />
+		<ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
+		<ProjectReference Include="..\..\..\Modules\Base\Modules.Base.csproj" />
+		<ProjectReference Include="..\..\Base\Estates.Base\Estates.Base.csproj" />
+		<ProjectReference Include="..\Application\Appointments.Application.csproj" />
+		<ProjectReference Include="..\Domain\Appointments.Domain.csproj" />
+		<ProjectReference Include="..\Infrastructure\Appointments.Infrastructure.csproj" />
+	</ItemGroup>
+
+</Project>
