@@ -1,0 +1,56 @@
+@inherits CommonBase
+
+<StackExpandable Label="@Localizer["Filters"]" StartIcon="fa-regular fa-sliders">
+    <Stack>
+        <StackSelect T="AppointmentStatus?" Label="@Localizer["AppointmentStatusFilter"]"
+                     Value="@descriptor.Status"
+                     ValueChanged="@(v => ApplyFilter(descriptor with { Status = v }))">
+            <MudSelectItem T="AppointmentStatus?" Value="null">@Localizer["None"]</MudSelectItem>
+            @foreach (var status in Enum.GetValues<AppointmentStatus>())
+            {
+                <MudSelectItem T="AppointmentStatus?" Value="status">@Localizer[status.ToString()]</MudSelectItem>
+            }
+        </StackSelect>
+        <StackDatePicker Label="@Localizer["DateFrom"]"
+                         Date="@descriptor.DateFrom?.LocalDateTime"
+                         DateChanged="@(d => ApplyFilter(descriptor with { DateFrom = d.HasValue ? new DateTimeOffset(d.Value, DateTimeOffset.Now.Offset) : null }))" />
+        <StackDatePicker Label="@Localizer["DateTo"]"
+                         Date="@descriptor.DateTo?.LocalDateTime"
+                         DateChanged="@(d => ApplyFilter(descriptor with { DateTo = d.HasValue ? new DateTimeOffset(d.Value, DateTimeOffset.Now.Offset) : null }))" />
+        <StackSort Methods="sortMethods" />
+    </Stack>
+</StackExpandable>
+
+@code {
+    [Parameter] public AppointmentDescriptorDto Descriptor { get; set; } = new();
+    [Parameter] public EventCallback<AppointmentDescriptorDto> DescriptorChanged { get; set; }
+
+    private AppointmentDescriptorDto descriptor = new();
+    private SortMethod[] sortMethods = [];
+
+    protected override void OnInitialized()
+    {
+        descriptor = Descriptor;
+        sortMethods =
+        [
+            new(
+                () => Localizer["DateAscending"],
+                () => ApplyFilter(descriptor with { SortBy = AppointmentSortBy.ScheduledAt, Descending = false })),
+            new(
+                () => Localizer["DateDescending"],
+                () => ApplyFilter(descriptor with { SortBy = AppointmentSortBy.ScheduledAt, Descending = true })),
+            new(
+                () => Localizer["StatusAscending"],
+                () => ApplyFilter(descriptor with { SortBy = AppointmentSortBy.Status, Descending = false })),
+            new(
+                () => Localizer["StatusDescending"],
+                () => ApplyFilter(descriptor with { SortBy = AppointmentSortBy.Status, Descending = true })),
+        ];
+    }
+
+    private void ApplyFilter(AppointmentDescriptorDto updated)
+    {
+        descriptor = updated;
+        DescriptorChanged.InvokeAsync(descriptor);
+    }
+}
