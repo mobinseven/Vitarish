@@ -25,6 +25,8 @@
     [Parameter] public AppointmentDescriptorDto Descriptor { get; set; } = new();
     [Parameter] public EventCallback<AppointmentDescriptorDto> DescriptorChanged { get; set; }
 
+    // Local mutable copy of Descriptor; kept in sync via OnParametersSet
+    // so in-component filter changes can be accumulated before being emitted.
     private AppointmentDescriptorDto descriptor = new();
     private SortMethod[] sortMethods = [];
 
