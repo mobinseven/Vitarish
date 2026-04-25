@@ -1,5 +1,3 @@
-using Vitarish.Search.Domain.Models;
-
 namespace Vitarish.Search.Domain.Models;
 
 /// <summary>

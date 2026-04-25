@@ -30,6 +30,7 @@ public partial class SearchWidget : CommonBase
     private string _query = string.Empty;
     private SearchResult? _result;
     private bool _loading;
+    private string? _errorMessage;
 
     private async Task HandleKeyUpAsync(KeyboardEventArgs args)
     {
@@ -48,6 +49,7 @@ public partial class SearchWidget : CommonBase
         }
 
         _loading = true;
+        _errorMessage = null;
 
         try
         {
@@ -57,7 +59,8 @@ public partial class SearchWidget : CommonBase
         }
         catch
         {
-            _result = new SearchResult { Items = [], TotalCount = 0, Query = _query };
+            _result = null;
+            _errorMessage = Localizer["SearchFailed"];
         }
         finally
         {

@@ -16,7 +16,11 @@
         <MudProgressLinear Indeterminate Color="Color.Primary" />
     }
 
-    @if (_result is not null)
+    @if (_errorMessage is not null)
+    {
+        <MudAlert Severity="Severity.Error">@_errorMessage</MudAlert>
+    }
+    else if (_result is not null)
     {
         @if (_result.Items.Count == 0)
         {
