@@ -1688,4 +1688,61 @@ of project "{2}"</value>
   <data name="None" xml:space="preserve">
     <value>None</value>
   </data>
+  <data name="Appointment" xml:space="preserve">
+    <value>Appointment</value>
+  </data>
+  <data name="Appointments" xml:space="preserve">
+    <value>Appointments</value>
+  </data>
+  <data name="AppointmentsAdmin" xml:space="preserve">
+    <value>Appointments</value>
+  </data>
+  <data name="MyAppointments" xml:space="preserve">
+    <value>My Appointments</value>
+  </data>
+  <data name="BookAppointment" xml:space="preserve">
+    <value>Book Appointment</value>
+  </data>
+  <data name="Reschedule" xml:space="preserve">
+    <value>Reschedule</value>
+  </data>
+  <data name="CancelAppointment" xml:space="preserve">
+    <value>Cancel Appointment</value>
+  </data>
+  <data name="ConfirmAppointment" xml:space="preserve">
+    <value>Confirm Appointment</value>
+  </data>
+  <data name="CompleteAppointment" xml:space="preserve">
+    <value>Complete Appointment</value>
+  </data>
+  <data name="AppointmentStatusFilter" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="DateFrom" xml:space="preserve">
+    <value>Date from</value>
+  </data>
+  <data name="DateTo" xml:space="preserve">
+    <value>Date to</value>
+  </data>
+  <data name="ScheduledAt" xml:space="preserve">
+    <value>Scheduled at</value>
+  </data>
+  <data name="StatusAscending" xml:space="preserve">
+    <value>Status (A → Z)</value>
+  </data>
+  <data name="StatusDescending" xml:space="preserve">
+    <value>Status (Z → A)</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>Pending</value>
+  </data>
+  <data name="Confirmed" xml:space="preserve">
+    <value>Confirmed</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>Cancelled</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>Completed</value>
+  </data>
 </root>

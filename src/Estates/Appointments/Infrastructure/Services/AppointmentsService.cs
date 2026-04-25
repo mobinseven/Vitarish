@@ -9,4 +9,9 @@ internal class AppointmentsService(IMediator mediator)
         appointment => appointment.ToDomain()),
       IAppointmentsService
 {
+    public async Task<EntityResult> UpdateStatusAsync(Guid id, AppointmentStatus status, CancellationToken cancellationToken)
+    {
+        await mediator.Send(new UpdateAppointmentStatusCommand(id, status), cancellationToken);
+        return EntityResult.Success();
+    }
 }

@@ -1614,4 +1614,61 @@
   <data name="None" xml:space="preserve">
     <value>هیچکدام</value>
   </data>
+  <data name="Appointment" xml:space="preserve">
+    <value>نوبت</value>
+  </data>
+  <data name="Appointments" xml:space="preserve">
+    <value>نوبت‌ها</value>
+  </data>
+  <data name="AppointmentsAdmin" xml:space="preserve">
+    <value>نوبت‌ها</value>
+  </data>
+  <data name="MyAppointments" xml:space="preserve">
+    <value>نوبت‌های من</value>
+  </data>
+  <data name="BookAppointment" xml:space="preserve">
+    <value>رزرو نوبت</value>
+  </data>
+  <data name="Reschedule" xml:space="preserve">
+    <value>تغییر زمان</value>
+  </data>
+  <data name="CancelAppointment" xml:space="preserve">
+    <value>لغو نوبت</value>
+  </data>
+  <data name="ConfirmAppointment" xml:space="preserve">
+    <value>تأیید نوبت</value>
+  </data>
+  <data name="CompleteAppointment" xml:space="preserve">
+    <value>اتمام نوبت</value>
+  </data>
+  <data name="AppointmentStatusFilter" xml:space="preserve">
+    <value>وضعیت</value>
+  </data>
+  <data name="DateFrom" xml:space="preserve">
+    <value>از تاریخ</value>
+  </data>
+  <data name="DateTo" xml:space="preserve">
+    <value>تا تاریخ</value>
+  </data>
+  <data name="ScheduledAt" xml:space="preserve">
+    <value>زمان برنامه‌ریزی‌شده</value>
+  </data>
+  <data name="StatusAscending" xml:space="preserve">
+    <value>وضعیت (صعودی)</value>
+  </data>
+  <data name="StatusDescending" xml:space="preserve">
+    <value>وضعیت (نزولی)</value>
+  </data>
+  <data name="Pending" xml:space="preserve">
+    <value>در انتظار</value>
+  </data>
+  <data name="Confirmed" xml:space="preserve">
+    <value>تأییدشده</value>
+  </data>
+  <data name="Cancelled" xml:space="preserve">
+    <value>لغوشده</value>
+  </data>
+  <data name="Completed" xml:space="preserve">
+    <value>تکمیل‌شده</value>
+  </data>
 </root>

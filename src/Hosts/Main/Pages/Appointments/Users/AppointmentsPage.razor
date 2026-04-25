@@ -1,0 +1,16 @@
+@page "/appointments"
+
+<Stack>
+    <StackButton Color="Color.Primary"
+                 OnClick="@(() => NavigationManager.NavigateTo("/appointments/new"))"
+                 StartIcon="fa-regular fa-calendar-plus"
+                 Label="@Localizer["BookAppointment"]" />
+</Stack>
+
+<CascadingValue Value="false">
+    <AppointmentsList OnClicked="@(id => NavigationManager.NavigateTo($"/appointments/{id}"))" />
+</CascadingValue>
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}
