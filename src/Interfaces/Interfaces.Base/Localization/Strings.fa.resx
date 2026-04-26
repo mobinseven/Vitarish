@@ -319,7 +319,7 @@
     <value>بدون گروه پاسخگو (تنها مدیر این گزارش را میبیند)</value>
   </data>
   <data name="Notes" xml:space="preserve">
-    <value>یادداشت‌های بالینی</value>
+    <value>یادداشت‌ها</value>
   </data>
   <data name="NotFound" xml:space="preserve">
     <value>یافت نشد</value>
@@ -928,7 +928,7 @@
     <value>دستیار هوش مصنوعی هیچ خروجی JSON برنگرداند.</value>
   </data>
   <data name="MetadataEmpty" xml:space="preserve">
-    <value>محموله فراداده خالی است.</value>
+    <value>بدون فراداده</value>
   </data>
   <data name="AiResponseParse" xml:space="preserve">
     <value>تجزیه پاسخ هوش مصنوعی امکان‌پذیر نیست: {0}</value>
@@ -1608,9 +1608,6 @@
   <data name="Signout" xml:space="preserve">
     <value>خروج از کاربری</value>
   </data>
-  <data name="Gender_Unspecified" xml:space="preserve">
-    <value>نامشخص</value>
-  </data>
   <data name="None" xml:space="preserve">
     <value>هیچکدام</value>
   </data>
@@ -1670,5 +1667,14 @@
   </data>
   <data name="Completed" xml:space="preserve">
     <value>تکمیل‌شده</value>
+  </data>
+  <data name="Gender_Unspecified" xml:space="preserve">
+    <value>نامشخص</value>
+  </data>
+  <data name="Hour" xml:space="preserve">
+    <value>ساعت</value>
+  </data>
+  <data name="Minute" xml:space="preserve">
+    <value>دقیقه</value>
   </data>
 </root>

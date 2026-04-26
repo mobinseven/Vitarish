@@ -319,7 +319,7 @@
     <value>No role defined (only admin can see this report)</value>
   </data>
   <data name="Notes" xml:space="preserve">
-    <value>Clinical notes</value>
+    <value>Notes</value>
   </data>
   <data name="NotFound" xml:space="preserve">
     <value>Not found</value>
@@ -975,7 +975,7 @@ of project "{2}"</value>
     <value>The AI assistant did not return any JSON output.</value>
   </data>
   <data name="MetadataEmpty" xml:space="preserve">
-    <value>The metadata payload is empty.</value>
+    <value>No Metadata</value>
   </data>
   <data name="AiResponseParse" xml:space="preserve">
     <value>Unable to parse the AI response: {0}</value>
@@ -1744,5 +1744,11 @@ of project "{2}"</value>
   </data>
   <data name="Completed" xml:space="preserve">
     <value>Completed</value>
+  </data>
+  <data name="Hour" xml:space="preserve">
+    <value>Hour</value>
+  </data>
+  <data name="Minute" xml:space="preserve">
+    <value>Minute</value>
   </data>
 </root>

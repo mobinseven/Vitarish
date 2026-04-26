@@ -2,9 +2,9 @@
 @inject IStringLocalizer Localizer
 <StackField Label="@Label">
     <MudStack Row Justify="Justify.Center" AlignItems="AlignItems.Center" Reverse="@(Culture.TextInfo.IsRightToLeft ? true : false)">
-        <MudNumericField T="int" Value="hour" ValueChanged="h => SetHour(h)" Underline="false" Variant="Variant.Outlined" Min="0" Max="24" />
+        <MudNumericField T="int" Value="hour" ValueChanged="h => SetHour(h)" Underline="false" Variant="Variant.Outlined" Min="0" Max="24" Label="@Localizer["Hour"]" />
         <MudText Typo="Typo.caption">:</MudText>
-        <MudNumericField T="int" Value="minute" ValueChanged="m => SetMinute(m)" Underline="false" Variant="Variant.Outlined" Min="0" Max="60" />
+        <MudNumericField T="int" Value="minute" ValueChanged="m => SetMinute(m)" Underline="false" Variant="Variant.Outlined" Min="0" Max="60" Label="@Localizer["Minute"]" />
     </MudStack>
 </StackField>
 
