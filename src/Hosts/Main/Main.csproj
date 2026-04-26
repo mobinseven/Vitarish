@@ -17,7 +17,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Estates\Aggregator\Estates.Aggregator\Estates.Aggregator.csproj" />
+		<ProjectReference Include="..\..\Apps\Aggregator\Apps.Aggregator.csproj" />
 		<ProjectReference Include="..\..\Identity\Parties\Hosting\Parties.Hosting.csproj" />
 		<ProjectReference Include="..\..\Identity\Requests\Hosting\Requests.Hosting.csproj" />
 		<ProjectReference Include="..\..\Identity\Users\Hosting\Users.Hosting.csproj" />

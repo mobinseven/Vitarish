@@ -2,9 +2,9 @@ using Finbuckle.MultiTenant;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Appointments.Infrastructure.Data;
+using Vitarish.Apps.Aggregator;
 using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
-using Vitarish.Estates.Aggregator;
 using Vitarish.Feed.Infrastructure;
 using Vitarish.Files.Infrastructure.Data;
 using Vitarish.Main.Authorization;
@@ -38,7 +38,7 @@ void configureSqlServer(DbContextOptionsBuilder options)
 
 _ = builder.Services.AddScoped<ITenantService, TenantService>();
 
-await builder.RegisterEstates(configureSqlServer);
+await builder.RegisterApps(configureSqlServer);
 await builder.RegisterModules(configureSqlServer);
 
 // Register Feed infrastructure
@@ -118,7 +118,7 @@ _ = builder.Services.AddMultiTenant<TenantInfo>()
 builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
 builder.Services.AddVitarishInterfacesBase();
 
-builder.Services.AddSingleton<IEstatesProvider, EstatesProvider>();
+builder.Services.AddSingleton<IAppsProvider, AppsProvider>();
 
 builder.Services.AddScoped<EntityDataProvider>();
 builder.Services.AddScoped<IEntityUserService>(sp => sp.GetRequiredService<EntityDataProvider>());
@@ -169,7 +169,7 @@ _ = app.UseAntiforgery();
 _ = app.UseMultiTenant();
 
 await app.InitializeModules();
-await app.InitializeEstates();
+await app.InitializeApps();
 
 _ = app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 _ = app.MapRazorPages();

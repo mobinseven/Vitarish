@@ -3,11 +3,11 @@ using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Appointments.Infrastructure.DependencyInjection;
 using Vitarish.Appointments.Infrastructure.Serializers;
 using Vitarish.Appointments.Interface.DependencyInjection;
-using Vitarish.Estates.Base;
+using Vitarish.Modules.Base;
 
 namespace Vitarish.Appointments.Interface;
 
-public class AppointmentEstate : Estate, IAppointmentEstate
+public class AppointmentsModule :Module, IAppointmentsModule
 {
     public override string Name => "Appointments";
 
@@ -15,7 +15,7 @@ public class AppointmentEstate : Estate, IAppointmentEstate
     {
         builder.Services.AddVitarishAppointmentsDomainEntityHandlers();
 
-        _ = builder.Services.AddSingleton<IAppointmentEstate, AppointmentEstate>();
+        _ = builder.Services.AddSingleton<IAppointmentsModule, AppointmentsModule>();
         _ = builder.Services.AddMemoryCache();
 
         _ = builder.Services.AddDbContext<AppointmentsDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);

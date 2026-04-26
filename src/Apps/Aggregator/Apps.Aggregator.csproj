@@ -4,8 +4,7 @@
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 	<ItemGroup>
-    <ProjectReference Include="..\..\Sea\Interface\Sea.Interface.csproj" />
-    <ProjectReference Include="..\..\Appointments\Interface\Appointments.Interface.csproj" />
-  </ItemGroup>
+	  <ProjectReference Include="..\Base\Apps.Base.csproj" />
+	</ItemGroup>
 
 </Project>

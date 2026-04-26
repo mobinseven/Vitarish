@@ -16,9 +16,8 @@
 		<ProjectReference Include="..\..\..\Identity\Users\Domain\Users.Domain.csproj" />
 		<ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
-		<ProjectReference Include="..\..\..\Modules\Aggregator\Modules.Aggregator\Modules.Aggregator.csproj" />
-		<ProjectReference Include="..\..\..\Modules\Files\Interface\Files.Interface.csproj" />
-		<ProjectReference Include="..\..\Base\Estates.Base\Estates.Base.csproj" />
+		<ProjectReference Include="..\..\Files\Interface\Files.Interface.csproj" />
+		<ProjectReference Include="..\..\Intelligence\Interface\Intelligence.Interface.csproj" />
 		<ProjectReference Include="..\Application\Sea.Application.csproj" />
 		<ProjectReference Include="..\Domain\Sea.Domain.csproj" />
 		<ProjectReference Include="..\Infrastructure\Sea.Infrastructure.csproj" />

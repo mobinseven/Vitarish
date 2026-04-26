@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 
-namespace Vitarish.Estates.Base;
+namespace Vitarish.Apps.Base;
 /// <summary>
-/// Estate is a package that can be assigned to a tenant. The name is chosen as such to resemble real estates being owned by tenants.
+/// App is a package supporting a certain functionality.
 /// </summary>
-public abstract class Estate : IEstate
+public abstract class App : IApp
 {
     public abstract string Name { get; }
 
@@ -13,7 +13,7 @@ public abstract class Estate : IEstate
     public abstract Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null);
 }
 
-public interface IEstate
+public interface IApp
 {
     string Name { get; }
     Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null);

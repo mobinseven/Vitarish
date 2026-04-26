@@ -12,8 +12,6 @@
 		<ProjectReference Include="..\..\..\Identity\Requests\Application\Requests.Application.csproj" />
 		<ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
-		<ProjectReference Include="..\..\..\Modules\Base\Modules.Base.csproj" />
-		<ProjectReference Include="..\..\Base\Estates.Base\Estates.Base.csproj" />
 		<ProjectReference Include="..\Application\Appointments.Application.csproj" />
 		<ProjectReference Include="..\Domain\Appointments.Domain.csproj" />
 		<ProjectReference Include="..\Infrastructure\Appointments.Infrastructure.csproj" />

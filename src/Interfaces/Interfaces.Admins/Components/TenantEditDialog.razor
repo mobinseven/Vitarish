@@ -20,7 +20,7 @@
             </StackField>
             <StackField>
                 <MudSelect @bind-Value="selectedEstateId" Label="@Localizer["Estate"]" Required>
-                    @foreach(var estate in EstatesProvider.GetEstateRecords())
+                    @foreach(var estate in EstatesProvider.GetAppRecords())
                     {
                         <MudSelectItem Value="@estate.Id">@(estate.Name)</MudSelectItem>
                     }

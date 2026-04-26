@@ -3,7 +3,7 @@ using Vitarish.Feed.Domain.Models;
 namespace Vitarish.Feed.Domain.Abstractions;
 
 /// <summary>
-/// Interface that estates/modules must implement to provide feed items.
+/// Interface that blocks/modules must implement to provide feed items.
 /// Each implementation represents a specific data source (e.g., Sea Attachments, Sea Projects).
 /// Feed sources are auto-discovered via dependency injection.
 /// </summary>

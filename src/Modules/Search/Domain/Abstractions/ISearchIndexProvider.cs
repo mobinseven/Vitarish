@@ -3,7 +3,7 @@ using Vitarish.Search.Domain.Models;
 namespace Vitarish.Search.Domain.Abstractions;
 
 /// <summary>
-/// Extension point that any module or estate implements to expose its data for indexing.
+/// Extension point that any module or block implements to expose its data for indexing.
 /// Register implementations in DI; they are auto-discovered by <see cref="ISearchService"/>.
 /// </summary>
 public interface ISearchIndexProvider

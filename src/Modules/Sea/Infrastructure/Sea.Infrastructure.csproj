@@ -16,8 +16,8 @@
 		<ProjectReference Include="..\..\..\Identity\Requests\Application\Requests.Application.csproj" />
 		<ProjectReference Include="..\..\..\Identity\Users\Application\Users.Application.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
-		<ProjectReference Include="..\..\..\Modules\Feed\Domain\Feed.Domain.csproj" />
-		<ProjectReference Include="..\..\..\Modules\Search\Domain\Search.Domain.csproj" />
+		<ProjectReference Include="..\..\Feed\Domain\Feed.Domain.csproj" />
+		<ProjectReference Include="..\..\Search\Domain\Search.Domain.csproj" />
 		<ProjectReference Include="..\Application\Sea.Application.csproj" />
 		<ProjectReference Include="..\Domain\Sea.Domain.csproj" />
 	</ItemGroup>

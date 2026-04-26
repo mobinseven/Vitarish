@@ -7,7 +7,7 @@ using Vitarish.Sea.Domain.Entities;
 namespace Vitarish.Sea.Infrastructure.FeedSources;
 
 /// <summary>
-/// Feed data source that provides recent attachments from the Sea estate
+/// Feed data source that provides recent attachments from the Sea block
 /// </summary>
 public class SeaAttachmentsFeedSource(IAttachmentsService attachmentsService) : IFeedDataSource
 {

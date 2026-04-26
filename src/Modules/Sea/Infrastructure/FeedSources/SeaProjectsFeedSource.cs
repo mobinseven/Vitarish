@@ -6,7 +6,7 @@ using Vitarish.Sea.Domain.Entities;
 namespace Vitarish.Sea.Infrastructure.FeedSources;
 
 /// <summary>
-/// Feed data source that provides recent projects from the Sea estate
+/// Feed data source that provides recent projects from the Sea block
 /// </summary>
 public class SeaProjectsFeedSource(IMediator mediator) : IFeedDataSource
 {

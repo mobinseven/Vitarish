@@ -1,11 +1,11 @@
-using Vitarish.Estates.Aggregator;
+using Vitarish.Apps.Aggregator;
 using Vitarish.Parties.Domain.Dtos;
 
 namespace Vitarish.Interfaces.Admins.Components;
 
 public partial class TenantEditDialog
 {
-    [Inject] protected IEstatesProvider EstatesProvider { get; set; } = default!;
+    [Inject] protected IAppsProvider EstatesProvider { get; set; } = default!;
     [Parameter] public TenantReadDto? Tenant { get; set; }
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
