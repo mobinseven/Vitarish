@@ -8,8 +8,8 @@
         <StackTextField @bind-Value="appointmentWriteDto.Notes" AutoGrow Lines=3 Label="@Localizer["Notes"]" />
     </Stack>
     <Stack>
-        <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" />
-        <StackButton Label="@Localizer["Close"]" OnClick="Cancel" />
+        <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" EndIcon="fa-regular fa-save" />
+        <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" EndIcon="fa-regular fa-xmark" />
     </Stack>
 }
 else

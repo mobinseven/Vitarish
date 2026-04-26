@@ -4,10 +4,10 @@ public partial class AppointmentsList : AppointmentsBase
 {
     [Parameter] public EventCallback<Guid> OnClicked { get; set; }
     [Parameter] public EventCallback OnAdd { get; set; }
-    [Parameter] public AppointmentDescriptorDto? Descriptor { get; set; }
+    [Parameter] public AppointmentDescriptorDto? Descriptor { get; set; } = new();
 
-    [Inject] private IEnumerable<IAppointmentCardPlugin> CardPlugins { get; set; } = [];
-    private IAppointmentCardPlugin? Plugin => CardPlugins.SingleOrDefault(p => p.Id == TenantService?.PluginIdentifier);
+    [Inject] private IEnumerable<IAppointmentsGridPlugin> CardPlugins { get; set; } = [];
+    private IAppointmentsGridPlugin? Plugin => CardPlugins.SingleOrDefault(p => p.Id == TenantService?.PluginIdentifier);
 
     private AppointmentDescriptorDto? previousDescriptor;
 

@@ -1,40 +1,37 @@
 @inherits AppointmentsBase
 
-@if (IsAdmin)
+
+@if(Plugin is null)
 {
-    <Stack>
-        <StackButton Color="Color.Primary"
-                     OnClick="AddAppointment"
-                     StartIcon="fa-regular fa-calendar-plus"
-                     Label="@Localizer["AddItem", Localizer["Appointment"]]" />
-    </Stack>
-}
-@if (appointments.Count == 0)
-{
-    <Stack>
-        <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Appointment"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Appointment"]]" EndIcon="fa-regular fa-refresh">
-            @Localizer["Reload"]
-        </StackButton>
-    </Stack>
+    @if(IsAdmin)
+    {
+        <Stack>
+            <AppointmentFilters @bind-Descriptor="Descriptor" />
+        </Stack>
+    }
+    @if(appointments.Count == 0)
+    {
+        <Stack>
+            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Appointment"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Appointment"]]" EndIcon="fa-regular fa-refresh">
+                @Localizer["Reload"]
+            </StackButton>
+        </Stack>
+    }
+    else
+    {
+        <Stack>
+            @foreach(var appointment in appointments)
+            {
+                <StackButton OnClick="() => OnClicked.InvokeAsync(appointment.Id)"
+                             Label="@appointment.ScheduledAt.ToString("g")"
+                             HighlightString="@SearchString">
+                    <AppointmentStatusBadge Status="appointment.Status" />
+                </StackButton>
+            }
+        </Stack>
+    }
 }
 else
 {
-    @foreach (var appointment in appointments)
-    {
-        @if (Plugin is null)
-        {
-            <StackButton OnClick="() => OnClicked.InvokeAsync(appointment.Id)"
-                         Label="@appointment.ScheduledAt.ToString("g")"
-                         HighlightString="@SearchString">
-                <MudText Typo="Typo.caption">@Localizer[appointment.Status.ToString()]</MudText>
-            </StackButton>
-        }
-        else
-        {
-            @Plugin.Render(new AppointmentCardPluginContext(
-                appointment,
-                EventCallback.Factory.Create(this, () => OnClicked.InvokeAsync(appointment.Id)),
-                EventCallback.Factory.Create(this, ReloadRequired)))
-        }
-    }
+    @Plugin.Render(new AppointmentsGridPluginContext(OnClicked, OnAdd))
 }

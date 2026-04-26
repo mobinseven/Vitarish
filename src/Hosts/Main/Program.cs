@@ -1,6 +1,7 @@
 using Finbuckle.MultiTenant;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Estates.Aggregator;
@@ -131,6 +132,7 @@ _ = await app.MigrateDatabaseAsync<UsersDbContext>();
 _ = await app.MigrateDatabaseAsync<PartiesDbContext>();
 _ = await app.MigrateDatabaseAsync<FilesDbContext>();
 _ = await app.MigrateDatabaseAsync<SeaDbContext>();
+_ = await app.MigrateDatabaseAsync<AppointmentsDbContext>();
 
 CookiePolicyOptions cookiePolicyOptions = new()
 {

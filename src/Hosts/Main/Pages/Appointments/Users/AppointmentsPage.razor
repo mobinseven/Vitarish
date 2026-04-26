@@ -6,11 +6,7 @@
                  StartIcon="fa-regular fa-calendar-plus"
                  Label="@Localizer["BookAppointment"]" />
 </Stack>
-
-<CascadingValue Value="false">
-    <AppointmentsList OnClicked="@(id => NavigationManager.NavigateTo($"/appointments/{id}"))" />
-</CascadingValue>
-
+<AppointmentsList OnClicked="@(id => NavigationManager.NavigateTo($"/appointments/{id}"))" />
 @code {
     protected override void OnInitialized() => NavService.EnableSearch();
 }

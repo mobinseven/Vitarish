@@ -1,19 +1,10 @@
 @page "/appointments/admin"
 
-<CascadingValue Value="true">
-    <AppointmentFilters @bind-Descriptor="descriptor" />
-    <Stack>
-        <StackButton Color="Color.Primary"
-                     OnClick="@(() => NavigationManager.NavigateTo("/appointments/admin/new"))"
-                     StartIcon="fa-regular fa-calendar-plus"
-                     Label="@Localizer["AddItem", Localizer["Appointment"]]" />
-    </Stack>
-    <AppointmentsList Descriptor="@descriptor"
-                      OnClicked="@(id => NavigationManager.NavigateTo($"/appointments/admin/{id}"))" />
+<CascadingValue Value="IsAdmin">
+    <AppointmentsList OnClicked="@(id => NavigationManager.NavigateTo($"/appointments/admin/{id}"))" />
 </CascadingValue>
 
 @code {
-    private AppointmentDescriptorDto descriptor = new();
 
     protected override void OnInitialized() => NavService.EnableSearch();
 }

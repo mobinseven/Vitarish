@@ -1,7 +1,6 @@
 using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Text.Json;
@@ -13,13 +12,12 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
 {
     private readonly IEnumerable<IInterceptor> _interceptors;
     private readonly IRequestContext _requestContext;
-    private readonly IHttpContextAccessor _httpContextAccessor;
 
     public ITenantInfo? TenantInfo
     {
         get
         {
-            string tenantId = _requestContext.TenantId ?? (_httpContextAccessor.HttpContext?.GetTenantId()) ?? throw new InvalidOperationException("Tenant ID can not be recognized.");
+            string tenantId = _requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID can not be recognized.");
             return new TenantInfo
             {
                 Id = tenantId,
@@ -37,12 +35,10 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
     public AppointmentsDbContext(
         DbContextOptions<AppointmentsDbContext> options,
         IEnumerable<IInterceptor> interceptors,
-        IRequestContext requestContext,
-        IHttpContextAccessor httpContextAccessor) : base(options)
+        IRequestContext requestContext) : base(options)
     {
         _interceptors = interceptors;
         _requestContext = requestContext;
-        _httpContextAccessor = httpContextAccessor;
 
         this.EnforceMultiTenantOnTracking();
     }
