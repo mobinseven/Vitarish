@@ -2,7 +2,7 @@ using Vitarish.Sea.Application.Queries.Statistics;
 
 namespace Vitarish.Sea.Infrastructure.Handlers;
 
-internal class GetDatabaseStatisticsHandler(SeaDbContext dbContext)
+internal class GetDatabaseStatisticsHandler(SeaDbContext dbContext, Vitarish.Reminders.Infrastructure.Data.RemindersDbContext remindersDbContext)
     : IRequestHandler<GetDatabaseStatisticsQuery, DatabaseStatistics>
 {
     public async Task<DatabaseStatistics> Handle(GetDatabaseStatisticsQuery request, CancellationToken cancellationToken) => new(
@@ -11,6 +11,6 @@ internal class GetDatabaseStatisticsHandler(SeaDbContext dbContext)
                 await dbContext.Events.CountAsync(cancellationToken),
                 await dbContext.Roles.CountAsync(cancellationToken),
                 await dbContext.Attachments.CountAsync(cancellationToken),
-                await dbContext.Reminders.CountAsync(cancellationToken));
+                await remindersDbContext.Reminders.CountAsync(cancellationToken));
 }
 

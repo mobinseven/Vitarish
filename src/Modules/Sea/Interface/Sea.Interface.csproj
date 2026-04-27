@@ -18,6 +18,7 @@
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
 		<ProjectReference Include="..\..\Files\Interface\Files.Interface.csproj" />
 		<ProjectReference Include="..\..\Intelligence\Interface\Intelligence.Interface.csproj" />
+		<ProjectReference Include="..\..\Reminders\Interface\Reminders.Interface.csproj" />
 		<ProjectReference Include="..\Application\Sea.Application.csproj" />
 		<ProjectReference Include="..\Domain\Sea.Domain.csproj" />
 		<ProjectReference Include="..\Infrastructure\Sea.Infrastructure.csproj" />

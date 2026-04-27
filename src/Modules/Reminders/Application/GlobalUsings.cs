@@ -1,0 +1,9 @@
+global using Vitarish.Reminders.Domain.Dto;
+global using Vitarish.Reminders.Domain.Entities;
+global using Vitarish.Reminders.Domain.Enums;
+global using Vitarish.Reminders.Domain.Models;
+global using Vitarish.Reminders.Application.Abstractions;
+global using MediatR;
+global using Vitarish.Entities.Server.Core;
+global using Vitarish.Entities.Server.Models;
+global using Vitarish.Entities.Server.Services;

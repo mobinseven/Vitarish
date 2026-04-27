@@ -1,10 +1,11 @@
-using Vitarish.Sea.Interface.Components.Reminders;
+using Vitarish.Reminders.Application.Abstractions;
+using Vitarish.Reminders.Domain.Dto;
+using Vitarish.Reminders.Interface.Components.Reminders;
 
 namespace Vitarish.Sea.Interface.Plugins;
 
 internal sealed class ReminderPlugin(IRemindersService remindersService) : IEventItemPlugin
 {
-
     public string Id => "event-items/reminders";
 
     public EventItemCreationPlacement Placement => EventItemCreationPlacement.Action;
@@ -16,17 +17,15 @@ internal sealed class ReminderPlugin(IRemindersService remindersService) : IEven
         => builder =>
         {
             builder.OpenComponent<ReminderAction>(0);
-            builder.AddAttribute(1, nameof(ReminderAction.Project), context.Project);
-            builder.AddAttribute(2, nameof(ReminderAction.Procedure), context.Procedure);
-            builder.AddAttribute(3, nameof(ReminderAction.Event), context.Event);
-            builder.AddAttribute(4, nameof(ReminderAction.OnCreated), EventCallback.Factory.Create(this, context.OnCreated));
+            builder.AddAttribute(1, nameof(ReminderAction.SourceId), context.Event.Id);
+            builder.AddAttribute(2, nameof(ReminderAction.OnCreated), EventCallback.Factory.Create(this, context.OnCreated));
             builder.CloseComponent();
         };
 
     public async Task<IReadOnlyList<EventTimelineItem>> GetItemsAsync(EventTimelineContext context, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(context);
-        IReadOnlyList<ReminderReadDto> reminders = await remindersService.GetByEventAsync(context.Event.Id, cancellationToken);
+        IReadOnlyList<ReminderReadDto> reminders = await remindersService.GetBySourceAsync(context.Event.Id, cancellationToken);
 
         return [.. reminders
             .Select(reminder => new EventTimelineItem(
