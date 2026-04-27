@@ -55,14 +55,6 @@ public static partial class EntityMappingExtensions
 
     public static global::Vitarish.Sea.Domain.Models.ReceiptDescriptor ToDomain(this global::Vitarish.Sea.Domain.Dto.ReceiptDescriptorDto dto) => Mapper.ToDomain(dto);
 
-    public static global::Vitarish.Sea.Domain.Dto.ReminderReadDto ToDto(this global::Vitarish.Sea.Domain.Entities.Reminder entity) => Mapper.ToDto(entity);
-
-    public static global::Vitarish.Sea.Domain.Entities.Reminder ToDomain(this global::Vitarish.Sea.Domain.Dto.ReminderWriteDto dto) => Mapper.ToDomain(dto);
-
-    public static global::Vitarish.Sea.Domain.Dto.ReminderWriteDto ToWrite(this global::Vitarish.Sea.Domain.Dto.ReminderReadDto dto) => Mapper.ToWrite(dto);
-
-    public static global::Vitarish.Sea.Domain.Models.ReminderDescriptor ToDomain(this global::Vitarish.Sea.Domain.Dto.ReminderDescriptorDto dto) => Mapper.ToDomain(dto);
-
     public static global::Vitarish.Sea.Domain.Dto.RoleReadDto ToDto(this global::Vitarish.Sea.Domain.Entities.Role entity) => Mapper.ToDto(entity);
 
     public static global::Vitarish.Sea.Domain.Entities.Role ToDomain(this global::Vitarish.Sea.Domain.Dto.RoleWriteDto dto) => Mapper.ToDomain(dto);

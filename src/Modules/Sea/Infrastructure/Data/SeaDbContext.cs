@@ -38,7 +38,6 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     //public DbSet<EventItem> EventItems => Set<EventItem>();
     public DbSet<Attachment> Attachments => Set<Attachment>();
     public DbSet<Role> Roles => Set<Role>();
-    public DbSet<Reminder> Reminders => Set<Reminder>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<EventRole> EventRoles => Set<EventRole>();
     public DbSet<Receipt> Receipts => Set<Receipt>();
@@ -88,7 +87,6 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         ConfigureTenantEntity<Event>(modelBuilder);
         ConfigureTenantEntity<Attachment>(modelBuilder);
         ConfigureTenantEntity<Role>(modelBuilder);
-        ConfigureTenantEntity<Reminder>(modelBuilder);
         ConfigureTenantEntity<UserRole>(modelBuilder);
         ConfigureTenantEntity<EventRole>(modelBuilder);
         ConfigureTenantEntity<Receipt>(modelBuilder);

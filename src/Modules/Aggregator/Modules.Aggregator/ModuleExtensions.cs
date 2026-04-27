@@ -8,6 +8,7 @@ using Vitarish.Files.Interface;
 using Vitarish.Instagram.Interface;
 using Vitarish.Intelligence.Interface;
 using Vitarish.Modules.Base;
+using Vitarish.Reminders.Interface;
 using Vitarish.Sea.Interface;
 using Vitarish.Search.Interface;
 public static class ModulesExtensions
@@ -19,6 +20,7 @@ public static class ModulesExtensions
                 Activator.CreateInstance<FilesModule>(),
                 Activator.CreateInstance<InstagramModule>(),
                 Activator.CreateInstance<SearchModule>(),
+                Activator.CreateInstance<RemindersModule>(),
                 Activator.CreateInstance<SeaModule>(),
                 Activator.CreateInstance<AppointmentsModule>(),
             ];
