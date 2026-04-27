@@ -3,7 +3,7 @@ using Vitarish.Search.Domain.Models;
 namespace Vitarish.Search.Domain.Abstractions;
 
 /// <summary>
-/// Shared search capability exposed to all modules and estates.
+/// Shared search capability exposed to all modules and apps.
 /// </summary>
 public interface ISearchService
 {

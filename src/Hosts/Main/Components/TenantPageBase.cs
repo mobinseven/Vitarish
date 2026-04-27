@@ -47,7 +47,7 @@ public class TenantPageBase : PageBase, IDisposable
         TenantService.Metadata.OnUpdate += OnUpdatedMetadata;
         TenantService.Users = [.. (await UsersService.GetUsersInRoleAsync(RequestContext.GetTenantUserRole(), CancellationToken.None)).Select(u => new UserDto(u))];
 
-        NavService.OverridePageTitle(Tenant.EstateId, Tenant.Name);
+        NavService.OverridePageTitle(Tenant.AppId, Tenant.Name);
 
         IsAdmin = RequestContext.IsTenantAdmin() || RequestContext.IsTenantOwner();
         IsOwner = RequestContext.IsTenantOwner();
@@ -66,7 +66,7 @@ public class TenantPageBase : PageBase, IDisposable
             Id = Tenant!.Id,
             OwnerId = Tenant.OwnerId,
             Name = Tenant.Name,
-            EstateId = Tenant.EstateId,
+            AppId = Tenant.AppId,
             LogoUrl = Tenant.LogoUrl,
             Description = Tenant.Description,
             Metadata = metadata

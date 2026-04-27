@@ -26,7 +26,7 @@ public class SecurityEventLogger(ILogger<SecurityEventLogger> logger) : IEventSi
             evt.Name,
             evt.Category,
             evt.EventType,
-            ClientId = GetDetail(evt, "ClientId"),
+            AppId = GetDetail(evt, "AppId"),
             SubjectId = GetDetail(evt, "SubjectId"),
             evt.TimeStamp,
             Error = GetError(evt),

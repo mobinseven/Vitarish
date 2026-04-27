@@ -12,5 +12,5 @@ public record TenantDescriptor : EntityDescriptor
 {
     public Guid? OwnerId { get; init; }
     public string? Name { get; init; }
-    public string? ClientId { get; init; }
+    public string? AppId { get; init; }
 }

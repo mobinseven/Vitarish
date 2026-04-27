@@ -11,7 +11,7 @@ public class IdentityClientsStore : IClientStore
         //{
         //    Client client = new()
         //    {
-        //        ClientId = authenticationClient.Id,
+        //        EstateId = authenticationClient.Id,
         //        ClientName = authenticationClient.Title,
         //        ClientUri = authenticationClient.Url,
         //        AllowedGrantTypes = GrantTypes.Implicit,
@@ -33,7 +33,7 @@ public class IdentityClientsStore : IClientStore
         //    // which resolves them from the HTTP request context (similar to PartyProfileService).
         //    Client client = new()
         //    {
-        //        ClientId = apiClient.Id,
+        //        EstateId = apiClient.Id,
         //        ClientUri = apiClient.HostUri,
         //        ClientSecrets = [new Secret(apiClient.Secret.Sha256())],
         //        AllowedScopes = [apiClient.Scopes],

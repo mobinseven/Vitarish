@@ -51,7 +51,7 @@ public sealed class TenantBackgroundExecutor(
 
     private static void InitializeRequestContext(IRequestContextWriter contextWriter, string resourceId, TenantReadDto tenant) => contextWriter.SetContext(
             authority: BackgroundAuthority,
-            clientId: tenant.EstateId,
+            clientId: tenant.AppId,
             ownerId: tenant.OwnerId.ToString(),
             tenantId: tenant.Id.ToString(),
             resourceId: resourceId,

@@ -33,7 +33,7 @@ internal static class RoleParser
             string tenantName = tenant?.Name ?? tenantId.ToString();
             string ownerName = owner?.Name ?? tenant?.OwnerId.ToString() ?? "-";
             string ownerId = tenant?.OwnerId.ToString() ?? "-";
-            string clientId = tenant?.EstateId ?? "-";
+            string clientId = tenant?.AppId ?? "-";
 
             parsedRoles.Add(new ParsedTenantRole(
                 tenantId,

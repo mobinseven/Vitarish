@@ -46,7 +46,7 @@ public partial class CurrentUserTenantsWidget : CommonBase
 
     private void NavigateToTenant(Guid id)
     {
-        string url = $"https://{tenantsIndicators[id].Value}/{tenants[id].EstateId}";
+        string url = $"https://{tenantsIndicators[id].Value}/{tenants[id].AppId}";
         NavigationManager.NavigateTo(url, forceLoad: true);
     }
     private static List<Guid> ParseTenantRoles(IEnumerable<string> roles)

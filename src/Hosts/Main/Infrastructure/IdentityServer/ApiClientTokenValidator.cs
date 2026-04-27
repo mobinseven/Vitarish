@@ -31,7 +31,7 @@ public sealed class ApiClientTokenValidator(
         HttpContext? httpContext = httpContextAccessor.HttpContext;
         if (httpContext is null)
         {
-            logger.LogDebug("HttpContext is null, skipping tenant/Owner claim resolution for client {EstateId}",
+            logger.LogDebug("HttpContext is null, skipping tenant/Owner claim resolution for client {AppId}",
                 request.Client?.ClientId);
             return;
         }
@@ -41,26 +41,17 @@ public sealed class ApiClientTokenValidator(
             Tenant? tenant = await tenantsService.ResolveAsync(httpContext, httpContext.RequestAborted);
             if (tenant is not null)
             {
-                request.ClientClaims.Add(new Claim(IdentityDefinitions.ClientIdClaim, tenant.EstateId));
+                request.ClientClaims.Add(new Claim(IdentityDefinitions.ClientIdClaim, tenant.AppId));
                 request.ClientClaims.Add(new Claim(IdentityDefinitions.OwnerIdClaim, tenant.OwnerId.ToString()));
                 request.ClientClaims.Add(new Claim(IdentityDefinitions.TenantIdClaim, tenant.Id.ToString()));
-
-                logger.LogDebug(
-                    "Added tenant/Owner claims for API client {EstateId}: TenantId={TenantId}, OwnerId={OwnerId}",
-                    request.Client?.ClientId,
-                    tenant.Id,
-                    tenant.OwnerId);
             }
             else
             {
-                logger.LogDebug(
-                    "No tenant resolved from host for API client {EstateId}, tenant/Owner claims not added",
-                    request.Client?.ClientId);
             }
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Failed to resolve tenant for API client {EstateId}",
+            logger.LogWarning(ex, "Failed to resolve tenant for API client {AppId}",
                 request.Client?.ClientId);
         }
     }

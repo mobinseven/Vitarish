@@ -19,10 +19,10 @@
                 <MudTextField @bind-Value=newTenantDescription Label="@Localizer["Description"]" />
             </StackField>
             <StackField>
-                <MudSelect @bind-Value="selectedEstateId" Label="@Localizer["Estate"]" Required>
-                    @foreach(var estate in EstatesProvider.GetAppRecords())
+                <MudSelect @bind-Value="selectedAppId" Label="@Localizer["App"]" Required>
+                    @foreach(var app in AppsProvider.GetAppRecords())
                     {
-                        <MudSelectItem Value="@estate.Id">@(estate.Name)</MudSelectItem>
+                        <MudSelectItem Value="@app.Id">@(app.Name)</MudSelectItem>
                     }
                 </MudSelect>
             </StackField>

@@ -57,7 +57,7 @@ public class PartyProfileServiceTests
             Id = tenantId,
             OwnerId = ownerId,
             Name = "Test Tenant",
-            EstateId = "test-client"
+            AppId = "test-client"
         };
 
         HttpContext httpContext = new DefaultHttpContext();
@@ -166,7 +166,7 @@ public class PartyProfileServiceTests
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
             Name = "Test Tenant",
-            EstateId = "test-client"
+            AppId = "test-client"
         };
 
         HttpContext httpContext = new DefaultHttpContext();
@@ -225,7 +225,7 @@ public class PartyProfileServiceTests
             Id = tenantId,
             OwnerId = ownerId,
             Name = "Test Tenant",
-            EstateId = "test-client"
+            AppId = "test-client"
         };
 
         HttpContext httpContext = new DefaultHttpContext();
@@ -265,7 +265,7 @@ public class PartyProfileServiceTests
             Id = tenantId,
             OwnerId = ownerId,
             Name = "Test Tenant",
-            EstateId = "test-client"
+            AppId = "test-client"
         };
 
         HttpContext httpContext = new DefaultHttpContext();

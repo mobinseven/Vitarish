@@ -37,11 +37,11 @@ public class Tenant : Entity
     }
 
     /// <summary>Client application identifier.</summary>
-    [Column("EstateId")]
-    public required string EstateId
+    [Column("AppId")]
+    public required string AppId
     {
         get;
-        set => SetField(ref field, value, nameof(EstateId));
+        set => SetField(ref field, value, nameof(AppId));
     } = string.Empty;
 
     public Dictionary<string, object?> Metadata

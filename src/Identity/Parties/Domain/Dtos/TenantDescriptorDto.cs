@@ -9,5 +9,5 @@ public record TenantDescriptorDto : EntityDescriptorDto
 {
     public Guid? OwnerId { get; set; }
     public string? Name { get; set; }
-    public string? EstateId { get; set; }
+    public string? AppId { get; set; }
 }

@@ -26,9 +26,9 @@ internal class TenantRepository(PartiesDbContext dbContext)
             query = query.Where(t => t.Name.Contains(descriptor.Name));
         }
 
-        if (!string.IsNullOrWhiteSpace(descriptor.ClientId))
+        if (!string.IsNullOrWhiteSpace(descriptor.AppId))
         {
-            query = query.Where(t => t.EstateId == descriptor.ClientId);
+            query = query.Where(t => t.AppId == descriptor.AppId);
         }
 
         return query;

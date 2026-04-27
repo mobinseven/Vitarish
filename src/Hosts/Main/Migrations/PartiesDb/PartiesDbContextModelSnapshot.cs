@@ -17,7 +17,7 @@ namespace Vitarish.Main.Migrations.PartiesDb
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.3")
+                .HasAnnotation("ProductVersion", "10.0.7")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -67,6 +67,11 @@ namespace Vitarish.Main.Migrations.PartiesDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("AppId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)")
+                        .HasColumnName("AppId");
+
                     b.Property<DateTimeOffset>("CreatedAt")
                         .HasColumnType("datetimeoffset");
 
@@ -81,11 +86,6 @@ namespace Vitarish.Main.Migrations.PartiesDb
 
                     b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("EstateId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)")
-                        .HasColumnName("EstateId");
 
                     b.Property<string>("LogoUrl")
                         .HasColumnType("nvarchar(max)");
@@ -111,7 +111,7 @@ namespace Vitarish.Main.Migrations.PartiesDb
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EstateId");
+                    b.HasIndex("AppId");
 
                     b.ToTable("Tenants");
                 });

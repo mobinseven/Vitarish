@@ -74,7 +74,7 @@ public sealed class MockPartiesService : IPartiesService
             Name = dto.Name,
             LogoUrl = dto.LogoUrl,
             Description = dto.Description,
-            EstateId = dto.EstateId,
+            AppId = dto.AppId,
             Metadata = dto.Metadata,
             CreatedAt = DateTimeOffset.UtcNow
         };
@@ -95,7 +95,7 @@ public sealed class MockPartiesService : IPartiesService
             Name = dto.Name,
             LogoUrl = dto.LogoUrl,
             Description = dto.Description,
-            EstateId = dto.EstateId,
+            AppId = dto.AppId,
             Metadata = dto.Metadata,
             UpdatedAt = DateTimeOffset.UtcNow
         };
