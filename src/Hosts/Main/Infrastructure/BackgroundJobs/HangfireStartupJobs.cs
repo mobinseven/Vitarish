@@ -20,6 +20,10 @@ public static class HangfireStartupJobs
         seaJobs.ScheduleProcessing();
         seaJobs.TriggerProcessing();
 
+        HangfireSeaIndexingJobManager seaIndexingJobs = app.Services.GetRequiredService<HangfireSeaIndexingJobManager>();
+        seaIndexingJobs.ScheduleProcessing();
+        seaIndexingJobs.TriggerProcessing();
+
         HangfireRemindersJobManager reminderJobs = app.Services.GetRequiredService<HangfireRemindersJobManager>();
         reminderJobs.ScheduleProcessing();
         reminderJobs.TriggerProcessing();

@@ -64,8 +64,10 @@ public static class HostHangfireExtensions
         _ = builder.Services.AddTransient<FilesSelfTestsProcessor>();
         _ = builder.Services.AddTransient<IntelligenceProcessor>();
         _ = builder.Services.AddTransient<AttachmentMigrationProcessor>();
+        _ = builder.Services.AddTransient<SeaIndexingProcessor>();
         _ = builder.Services.AddSingleton<HangfireRemindersJobManager>();
         _ = builder.Services.AddSingleton<HangfireSeaJobManager>();
+        _ = builder.Services.AddSingleton<HangfireSeaIndexingJobManager>();
         _ = builder.Services.AddSingleton<HangfireFilesJobManager>();
         _ = builder.Services.AddSingleton<HangfireIntelligenceJobManager>();
         _ = builder.Services.AddSingleton<HangfireCommunicationsJobManager>();
