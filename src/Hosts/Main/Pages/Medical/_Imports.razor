@@ -2,8 +2,12 @@
 @inherits TenantPageBase
 
 @inject IAccessControlledProjectsService ProjectsService
+@inject IAccessControlledProceduresService ProcedureService
+@inject IAccessControlledEventsService EventService
 
 @using Vitarish.Sea.Domain.Dto
+@using Vitarish.Sea.Interface.Components.Procedures
+@using Vitarish.Sea.Interface.Components.Events
 @using Vitarish.Medical.Interface.Components.Patients
 @using Vitarish.Medical.Interface.Components.Appointments
 @using Vitarish.Medical.Interface.Components.Reminders

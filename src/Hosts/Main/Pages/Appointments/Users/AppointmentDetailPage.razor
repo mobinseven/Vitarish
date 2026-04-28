@@ -5,34 +5,9 @@
     return;
 }
 
-<Stack>
-    <StackField Label="@appointment.ScheduledAt.ToString("f")" HelperText="@Localizer["ScheduledAt"]">
-        <AppointmentStatusBadge Status="@appointment.Status" />
-    </StackField>
-    @if (!string.IsNullOrWhiteSpace(appointment.Notes))
-    {
-        <StackField Label="@appointment.Notes" HelperText="@Localizer["Notes"]" />
-    }
-</Stack>
-
-@if (appointment.Status is AppointmentStatus.Pending or AppointmentStatus.Confirmed)
-{
-    <Stack>
-        <StackButton Label="@Localizer["Reschedule"]"
-                     EndIcon="fa-regular fa-calendar-clock"
-                     OnClick="@(() => NavigationManager.NavigateTo($"/appointments/{appointmentId}/edit"))" />
-    </Stack>
-}
-
-@if (appointment.Status is not (AppointmentStatus.Completed or AppointmentStatus.Cancelled))
-{
-    <Stack>
-        <StackButton Color="Color.Error"
-                     Label="@Localizer["CancelAppointment"]"
-                     EndIcon="fa-regular fa-calendar-xmark"
-                     OnClick="CancelAppointmentAsync" />
-    </Stack>
-}
+<AppointmentDetail Appointment="@appointment"
+                   OnReschedule="@(() => NavigationManager.NavigateTo($"/appointments/{appointmentId}/edit"))"
+                   OnCancelled="ReloadRequired" />
 
 @code {
     [Parameter] public string? appointmentId { get; set; }
@@ -58,25 +33,5 @@
         NavService.OverridePageTitle(id.ToString(), appointment.ScheduledAt.ToString("f"));
 
         await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task CancelAppointmentAsync()
-    {
-        DialogParameters parameters = new()
-        {
-            { nameof(ConfirmDialog.ContentText), Localizer["ConfirmationQuestion"].Value },
-            { nameof(ConfirmDialog.ButtonText), Localizer["CancelAppointment"].Value },
-            { nameof(ConfirmDialog.Color), Color.Error }
-        };
-        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>(Localizer["CancelAppointment"], parameters);
-        DialogResult? result = await dialog.Result;
-
-        if (result is null || result.Canceled)
-        {
-            return;
-        }
-
-        await AppointmentsService.UpdateStatusAsync(appointment!.Id, AppointmentStatus.Cancelled, CancellationToken.None);
-        await ReloadRequired();
     }
 }

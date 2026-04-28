@@ -15,7 +15,7 @@
     <Stack>
         @foreach(var appointment in appointments)
         {
-            <StackButton OnClick="() => OnClicked.InvokeAsync(appointment.Id)"
+            <StackButton OnClick="() => OpenAppointmentDetailAsync(appointment.Id)"
                          Label="@appointment.ScheduledAt.ToString("g")">
                 <AppointmentStatusBadge Status="appointment.Status" />
             </StackButton>
@@ -25,7 +25,6 @@
 
 @code {
     [Parameter, EditorRequired] public ProjectReadDto Patient { get; set; } = default!;
-    [Parameter] public EventCallback<Guid> OnClicked { get; set; }
 
     [Inject] private IAccessControlledAppointmentsService AppointmentsService { get; set; } = default!;
 
@@ -47,6 +46,28 @@
             .OrderBy(a => a.ScheduledAt)];
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OpenAppointmentDetailAsync(Guid id)
+    {
+        AppointmentReadDto? appointment = await AppointmentsService.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+        if (appointment is null)
+        {
+            return;
+        }
+
+        DialogParameters parameters = new()
+        {
+            { nameof(AdminAppointmentDetailDialog.Appointment), appointment }
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<AdminAppointmentDetailDialog>(appointment.ScheduledAt.ToString("f"), parameters);
+        DialogResult? result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await LoadAsync();
+        }
     }
 
     private async Task AddAppointmentAsync()

@@ -20,6 +20,7 @@
     [Parameter, EditorRequired] public Guid SubjectId { get; set; }
 
     [Inject] private IAccessControlledAppointmentsService AppointmentsService { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
     private DateTime? scheduledAtDate = DateTime.Now.Date;
     private TimeSpan? scheduledAtTime = DateTime.Now.ToLocalTime().TimeOfDay;
@@ -39,6 +40,7 @@
         dto.Metadata[MetadataKeys.SubjectId] = SubjectId.ToString();
 
         AppointmentReadDto saved = await AppointmentsService.AddAsync(dto, CancellationToken.None).EnsureValueAsync();
+        _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
         MudDialog.Close(DialogResult.Ok(saved.Id));
     }
 
