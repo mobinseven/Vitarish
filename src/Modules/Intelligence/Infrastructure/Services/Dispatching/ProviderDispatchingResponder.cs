@@ -2,6 +2,7 @@ using Microsoft.Extensions.Options;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Domain.Models;
 using Vitarish.Intelligence.Domain.Options;
+using Vitarish.Intelligence.Infrastructure.Services.DeepSeek;
 using Vitarish.Intelligence.Infrastructure.Services.Google;
 using Vitarish.Intelligence.Infrastructure.Services.Ollama;
 using Vitarish.Intelligence.Infrastructure.Services.OpenAi;
@@ -15,6 +16,7 @@ public sealed class ProviderDispatchingResponder : IResponder
     private readonly Lazy<OpenAiResponder> _openAiResponder;
     private readonly Lazy<OllamaResponder> _ollamaResponder;
     private readonly Lazy<GoogleResponder> _googleResponder;
+    private readonly Lazy<DeepSeekResponder> _deepSeekResponder;
 
     public ProviderDispatchingResponder(IOptionsMonitor<AiOptions> aiOptions, ModelRegistry modelRegistry)
     {
@@ -23,6 +25,7 @@ public sealed class ProviderDispatchingResponder : IResponder
         _openAiResponder = new(() => new OpenAiResponder(_aiOptions));
         _ollamaResponder = new(() => new OllamaResponder(_aiOptions));
         _googleResponder = new(() => new GoogleResponder(_aiOptions));
+        _deepSeekResponder = new(() => new DeepSeekResponder(_aiOptions));
     }
 
     private IResponder GetResponder(ResponderOptions options)
@@ -38,6 +41,7 @@ public sealed class ProviderDispatchingResponder : IResponder
             "Ollama" => _ollamaResponder.Value,
             "Google" => _googleResponder.Value,
             "OpenAI" => _openAiResponder.Value,
+            "DeepSeek" => _deepSeekResponder.Value,
             _ => _openAiResponder.Value
         };
     }
