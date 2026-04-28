@@ -20,7 +20,7 @@
         </Stack>
         @foreach(var project in projects)
         {
-            <ClinicProjectEditForm @key="project.Id" Project="project" OnUpdate="ReloadRequired" />
+            <PatientEditForm @key="project.Id" Project="project" OnUpdate="ReloadRequired" />
         }
         return;
     }
@@ -84,4 +84,3 @@
         }
     </Stack>
 }
-

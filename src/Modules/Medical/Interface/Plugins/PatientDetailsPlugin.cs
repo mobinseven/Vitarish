@@ -1,14 +1,15 @@
-using Vitarish.Sea.Interface.Plugins.Clinic.Components;
+using Vitarish.Medical.Interface.Components.Patients;
+using Vitarish.Sea.Interface.Plugins;
 
-namespace Vitarish.Sea.Interface.Plugins.Clinic;
+namespace Vitarish.Medical.Interface.Plugins;
 
-internal class ClinicProjectDetailsPlugin : IProjectDetailsPlugin
+internal class PatientDetailsPlugin : IProjectDetailsPlugin
 {
-    public string Id => PluginIdentifiers.Clinic;
+    public string Id => Sea.Interface.Plugins.PluginIdentifiers.Clinic;
 
     public RenderFragment Render(ProjectDetailsPlugin context) => builder =>
     {
-        builder.OpenComponent<ClinicProjectDetails>(0);
+        builder.OpenComponent<PatientDetails>(0);
         builder.AddAttribute(1, nameof(context.Project), context.Project);
         builder.AddAttribute(2, nameof(context.OnEdit), EventCallback.Factory.Create(this, context.OnEdit));
         builder.AddAttribute(3, nameof(context.OnDeleted), EventCallback.Factory.Create(this, context.OnDeleted));

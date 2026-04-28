@@ -1,0 +1,46 @@
+@page "/medical/patients/{patientId}"
+
+@if(patient is null)
+{
+    return;
+}
+
+<CascadingValue Value="IsAdmin">
+
+    <PatientDetails Project="@patient"
+                    OnEdit="@(id => NavigationManager.NavigateTo($"/medical/patients/{id}/edit"))"
+                    OnDeleted="@(() => NavigationManager.NavigateTo("/medical/patients"))" />
+
+    <PatientAppointmentsPanel Patient="@patient"
+                               OnClicked="@(id => NavigationManager.NavigateTo($"/appointments/admin/{id}"))" />
+
+    <PatientRemindersPanel PatientId="@patient.Id" />
+
+</CascadingValue>
+
+@code {
+    [Parameter] public string? patientId { get; set; }
+
+    private ProjectReadDto? patient;
+    private bool initialized;
+
+    protected override async Task ReloadRequired()
+    {
+        if (!Guid.TryParse(patientId, out Guid id))
+        {
+            NavigationManager.NavigateTo("/medical/patients");
+            return;
+        }
+
+        patient = await ProjectsService.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (patient is null)
+        {
+            NavigationManager.NavigateTo("/medical/patients");
+            return;
+        }
+
+        NavService.OverridePageTitle(patient.Id.ToString(), patient.Name);
+        initialized = true;
+    }
+}

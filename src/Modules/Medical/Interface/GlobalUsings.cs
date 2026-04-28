@@ -1,0 +1,17 @@
+global using Microsoft.AspNetCore.Builder;
+global using Microsoft.AspNetCore.Components;
+global using Microsoft.Extensions.DependencyInjection;
+global using MudBlazor;
+global using System.Text.Json.Serialization;
+global using Vitarish.Appointments.Application.Abstractions;
+global using Vitarish.Appointments.Domain.Dto;
+global using Vitarish.Appointments.Domain.Enums;
+global using Vitarish.Interfaces.Base.Common;
+global using Vitarish.Medical.Interface.Enums;
+global using Vitarish.Medical.Interface.Mappers;
+global using Vitarish.Medical.Interface.Models;
+global using Vitarish.Medical.Interface.Plugins;
+global using Vitarish.Reminders.Application.Abstractions;
+global using Vitarish.Reminders.Domain.Dto;
+global using Vitarish.Sea.Domain.Dto;
+global using Vitarish.Sea.Interface.Plugins;

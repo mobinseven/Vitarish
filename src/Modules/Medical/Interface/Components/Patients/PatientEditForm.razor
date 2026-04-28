@@ -78,13 +78,13 @@
 </Stack>
 
 @code {
-    private ClinicProjectWriteDto projectWriteDto = new();
+    private PatientWriteDto projectWriteDto = new();
     protected override void OnInitialized()
     {
         base.OnInitialized();
         if(Project is not null)
         {
-            projectWriteDto = Project.ToClinicWrite()!;
+            projectWriteDto = Project.ToPatientWrite()!;
         }
 
         if(Project is not null && string.IsNullOrWhiteSpace(projectWriteDto.LastName))

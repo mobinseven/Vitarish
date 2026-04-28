@@ -1,0 +1,39 @@
+@page "/medical/patients/{patientId}/edit"
+
+@if(initialized)
+{
+    <CascadingValue Value="IsAdmin">
+
+        <PatientEditForm Project="patient"
+                         OnUpdate="@(id => NavigationManager.NavigateTo($"/medical/patients/{id}"))"
+                         OnCreate="@(id => NavigationManager.NavigateTo($"/medical/patients/{id}"))"
+                         OnCancel="@(() => NavigationManager.NavigateTo($"/medical/patients/{patientId}"))" />
+
+    </CascadingValue>
+}
+
+@code {
+    [Parameter] public string? patientId { get; set; }
+
+    private ProjectReadDto? patient;
+    private bool initialized;
+
+    protected override async Task ReloadRequired()
+    {
+        if (!Guid.TryParse(patientId, out Guid id))
+        {
+            NavigationManager.NavigateTo("/medical/patients");
+            return;
+        }
+
+        patient = await ProjectsService.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (patient is null)
+        {
+            NavigationManager.NavigateTo("/medical/patients");
+            return;
+        }
+
+        initialized = true;
+    }
+}

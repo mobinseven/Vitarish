@@ -1,0 +1,10 @@
+@page "/medical/patients"
+
+<CascadingValue Value="IsAdmin">
+    <PatientsGrid OnClicked="@(id => NavigationManager.NavigateTo($"/medical/patients/{id}"))"
+                  OnAdd="@(() => NavigationManager.NavigateTo("/medical/patients/new"))" />
+</CascadingValue>
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}
