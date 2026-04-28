@@ -36,16 +36,25 @@ public class SeaIndexingProcessor(
     {
         ISearchService searchService = provider.GetRequiredService<ISearchService>();
 
+        int succeeded = 0;
+        int failed = 0;
+
         foreach (string indexName in IndexNames)
         {
             try
             {
                 await searchService.RebuildIndexAsync(indexName, shutdownToken);
+                succeeded++;
             }
             catch (Exception ex)
             {
                 logger.LogError(ex, "Failed to rebuild search index '{IndexName}'.", indexName);
+                failed++;
             }
         }
+
+        logger.LogInformation(
+            "Sea search re-index complete: {Succeeded} succeeded, {Failed} failed.",
+            succeeded, failed);
     }
 }

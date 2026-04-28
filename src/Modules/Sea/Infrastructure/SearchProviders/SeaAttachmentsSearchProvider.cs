@@ -51,6 +51,9 @@ internal sealed class SeaAttachmentsSearchProvider(
 
                 if (fileInfo is null)
                 {
+                    logger.LogWarning(
+                        "Attachment {AttachmentId} references file {FileId} that was not found in the Files service; skipping.",
+                        attachment.Id, fileId);
                     continue;
                 }
 
@@ -59,10 +62,14 @@ internal sealed class SeaAttachmentsSearchProvider(
 
                 string body = await ReadTruncatedTextAsync(fileStream, MaxBodyBytes, cancellationToken);
 
+                string title = string.IsNullOrWhiteSpace(fileInfo.Metadata.Extension)
+                    ? attachment.ContentType
+                    : $"Attachment (.{fileInfo.Metadata.Extension})";
+
                 documents.Add(new SearchDocument
                 {
                     Id = attachment.Id.ToString(),
-                    Title = attachment.ContentType,
+                    Title = title,
                     Body = body,
                     Type = "attachment",
                     NavigationUrl = $"/sea/attachments/{attachment.Id}",
@@ -90,7 +97,22 @@ internal sealed class SeaAttachmentsSearchProvider(
         CancellationToken cancellationToken)
     {
         byte[] buffer = new byte[maxBytes];
-        int bytesRead = await stream.ReadAtLeastAsync(buffer, 0, throwOnEndOfStream: false, cancellationToken);
-        return System.Text.Encoding.UTF8.GetString(buffer, 0, bytesRead);
+        int totalRead = 0;
+
+        while (totalRead < maxBytes)
+        {
+            int read = await stream.ReadAsync(
+                buffer.AsMemory(totalRead, maxBytes - totalRead),
+                cancellationToken);
+
+            if (read == 0)
+            {
+                break;
+            }
+
+            totalRead += read;
+        }
+
+        return System.Text.Encoding.UTF8.GetString(buffer, 0, totalRead);
     }
 }
