@@ -1,4 +1,4 @@
-namespace Vitarish.Sea.Interface.Plugins.Common.Enums;
+namespace Vitarish.Medical.Interface.Enums;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum Gender { Unspecified, Female, Male }

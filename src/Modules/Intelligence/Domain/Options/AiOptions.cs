@@ -7,6 +7,7 @@ public class AiOptions
     public OllamaOptions Ollama { get; set; } = new();
     public OpenAiOptions OpenAi { get; set; } = new();
     public GoogleOptions Google { get; set; } = new();
+    public DeepSeekOptions DeepSeek { get; set; } = new();
     public string QuickRewriteInstructions { get; set; } = @"
 Rewrite the provided text in a quick, clear manner while retaining the original meaning. 
 The rewrite should be in the same language as the input text. 

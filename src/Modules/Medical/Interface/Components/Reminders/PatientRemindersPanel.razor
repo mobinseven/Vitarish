@@ -1,0 +1,57 @@
+@inherits Vitarish.Modules.Base.TenantCommonBase
+
+@if(AdminMode)
+{
+    <Stack>
+        <ReminderAction SourceId="PatientId" OnCreated="LoadAsync" />
+    </Stack>
+}
+
+@if(reminders is not null)
+{
+    <Stack>
+        @if(reminders.Count == 0)
+        {
+            <StackField Label="@Localizer["NoItems", Localizer["Reminder"]]" />
+        }
+        else
+        {
+            @foreach(var reminder in reminders)
+            {
+                <StackButton OnClick="() => OnReminderClicked(reminder)"
+                             Label="@reminder.Subject">
+                    @reminder.RemindAt.LocalDateTime.ToString("g")
+                </StackButton>
+            }
+        }
+    </Stack>
+}
+
+@code {
+    [Parameter, EditorRequired] public Guid PatientId { get; set; }
+
+    [Inject] private IRemindersService RemindersService { get; set; } = default!;
+
+    private IReadOnlyList<ReminderReadDto>? reminders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        reminders = await RemindersService.GetBySourceAsync(PatientId, CancellationToken.None);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnReminderClicked(ReminderReadDto reminder)
+    {
+        DialogParameters parameters = new()
+        {
+            { nameof(ReminderDetailsDialog.Reminder), reminder }
+        };
+
+        _ = await DialogService.ShowAsync<ReminderDetailsDialog>(null, parameters);
+    }
+}

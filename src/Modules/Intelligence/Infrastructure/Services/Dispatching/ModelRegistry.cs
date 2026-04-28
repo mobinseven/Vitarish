@@ -39,7 +39,10 @@ public sealed class ModelRegistry(IOptionsMonitor<AiOptions> aiOptions)
         // Ollama models
         new() { Id = "qwen3:0.6b", DisplayName = "Qwen3 0.6B", Provider = "Ollama" },
         new() { Id = "qwen3:1.7b", DisplayName = "Qwen3 1.7B", Provider = "Ollama" },
-        new() { Id = "qwen3:4b", DisplayName = "Qwen3 4B", Provider = "Ollama" }
+        new() { Id = "qwen3:4b", DisplayName = "Qwen3 4B", Provider = "Ollama" },
+        // DeepSeek models
+        new() { Id = "deepseek-chat", DisplayName = "DeepSeek Chat", Provider = "DeepSeek" },
+        new() { Id = "deepseek-reasoner", DisplayName = "DeepSeek Reasoner", Provider = "DeepSeek" }
     ];
 
     public AvailableModels GetAvailableModels()
@@ -114,6 +117,12 @@ public sealed class ModelRegistry(IOptionsMonitor<AiOptions> aiOptions)
             models.AddRange(AllResponderModels.Where(m => m.Provider == "Google"));
         }
 
+        // Include DeepSeek models if API key is configured
+        if(IsDeepSeekConfigured())
+        {
+            models.AddRange(AllResponderModels.Where(m => m.Provider == "DeepSeek"));
+        }
+
         return models;
     }
 
@@ -122,4 +131,6 @@ public sealed class ModelRegistry(IOptionsMonitor<AiOptions> aiOptions)
                 && !string.IsNullOrWhiteSpace(CurrentOptions.Google.Speech.RecognizerId);
 
     private bool IsGoogleGeminiConfigured() => !string.IsNullOrWhiteSpace(CurrentOptions.Google.Gemini.ApiKey);
+
+    private bool IsDeepSeekConfigured() => !string.IsNullOrWhiteSpace(CurrentOptions.DeepSeek.ApiKey);
 }

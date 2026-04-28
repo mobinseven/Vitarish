@@ -1,14 +1,14 @@
 using Vitarish.Interfaces.Base.Models;
-using Vitarish.Sea.Interface.Plugins.Clinic.Models;
+using Vitarish.Medical.Interface.Models;
 
-namespace Vitarish.Sea.Interface.Plugins.Clinic.Components;
+namespace Vitarish.Medical.Interface.Components.Patients;
 
-public partial class ClinicProjectsGrid
+public partial class PatientsGrid
 {
     private bool MassEditMode;
 
-    private IReadOnlyList<ClinicProjectReadDto>? projectsViaSurgeryData;
-    private IReadOnlyList<ClinicProjectReadDto>? projectsLackSurgeryData;
+    private IReadOnlyList<PatientReadDto>? projectsViaSurgeryData;
+    private IReadOnlyList<PatientReadDto>? projectsLackSurgeryData;
 
     protected override async Task ReloadRequired()
     {
@@ -24,11 +24,12 @@ public partial class ClinicProjectsGrid
 
         projects = [.. Items];
 
-        List<ClinicProjectReadDto> clinicProjects = [.. Items.Select(p => p.ToClinicRead()!)];
-        projectsViaSurgeryData = [.. clinicProjects.Where(c => c.DateOfSurgery is not null)];
-        projectsLackSurgeryData = [.. clinicProjects.Where(c => c.DateOfSurgery is null)];
+        List<PatientReadDto> patientProjects = [.. Items.Select(p => p.ToPatientRead()!)];
+        projectsViaSurgeryData = [.. patientProjects.Where(c => c.DateOfSurgery is not null)];
+        projectsLackSurgeryData = [.. patientProjects.Where(c => c.DateOfSurgery is null)];
         await InvokeAsync(StateHasChanged);
     }
+
     private SortMethod[] SortMethodsViaSurgeryData => [
         new SortMethod(
             () => Localizer["SurgeryDateDesc"],
