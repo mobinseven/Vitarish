@@ -7,6 +7,7 @@ using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Intelligence;
+using Vitarish.Main.Infrastructure.BackgroundJobs.Reminders;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 
 namespace Vitarish.Main.DependencyInjection;
@@ -63,7 +64,7 @@ public static class HostHangfireExtensions
         _ = builder.Services.AddTransient<FilesSelfTestsProcessor>();
         _ = builder.Services.AddTransient<IntelligenceProcessor>();
         _ = builder.Services.AddTransient<AttachmentMigrationProcessor>();
-        _ = builder.Services.AddSingleton<HangfireSeaJobManager>();
+        _ = builder.Services.AddSingleton<HangfireRemindersJobManager>();
         _ = builder.Services.AddSingleton<HangfireFilesJobManager>();
         _ = builder.Services.AddSingleton<HangfireIntelligenceJobManager>();
         _ = builder.Services.AddSingleton<HangfireCommunicationsJobManager>();

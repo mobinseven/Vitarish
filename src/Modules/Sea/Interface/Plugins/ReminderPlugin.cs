@@ -1,5 +1,3 @@
-using Vitarish.Reminders.Application.Abstractions;
-using Vitarish.Reminders.Domain.Dto;
 using Vitarish.Reminders.Interface.Components.Reminders;
 
 namespace Vitarish.Sea.Interface.Plugins;

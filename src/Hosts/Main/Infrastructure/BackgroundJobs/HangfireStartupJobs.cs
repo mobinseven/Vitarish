@@ -1,6 +1,7 @@
 using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Intelligence;
+using Vitarish.Main.Infrastructure.BackgroundJobs.Reminders;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs;
@@ -15,7 +16,11 @@ public static class HangfireStartupJobs
     /// </summary>
     public static void ScheduleSelfTriggeringJobs(this WebApplication app)
     {
-        HangfireSeaJobManager reminderJobs = app.Services.GetRequiredService<HangfireSeaJobManager>();
+        HangfireSeaJobManager seaJobs = app.Services.GetRequiredService<HangfireSeaJobManager>();
+        seaJobs.ScheduleProcessing();
+        seaJobs.TriggerProcessing();
+
+        HangfireRemindersJobManager reminderJobs = app.Services.GetRequiredService<HangfireRemindersJobManager>();
         reminderJobs.ScheduleProcessing();
         reminderJobs.TriggerProcessing();
 

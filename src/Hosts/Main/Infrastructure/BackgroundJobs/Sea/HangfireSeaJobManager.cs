@@ -1,4 +1,5 @@
 using Hangfire;
+using Vitarish.Main.Infrastructure.BackgroundJobs.Reminders;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 
@@ -7,7 +8,6 @@ namespace Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 /// </summary>
 public class HangfireSeaJobManager(IRecurringJobManager recurringJobManager)
 {
-    private const string ProcessRemindersJobId = "sea:reminders:process-due";
     private const string MigrationJobId = "sea:attachments:migrate-url-to-id";
 
     /// <summary>
@@ -15,10 +15,6 @@ public class HangfireSeaJobManager(IRecurringJobManager recurringJobManager)
     /// </summary>
     public void ScheduleProcessing()
     {
-        recurringJobManager.AddOrUpdate<ReminderProcessor>(
-            ProcessRemindersJobId,
-            processor => processor.ProcessDueReminders(),
-            Cron.MinuteInterval(1));
         recurringJobManager.AddOrUpdate<AttachmentMigrationProcessor>(
             MigrationJobId,
             processor => processor.ProcessMigration(CancellationToken.None),
@@ -30,7 +26,6 @@ public class HangfireSeaJobManager(IRecurringJobManager recurringJobManager)
     /// </summary>
     public void TriggerProcessing()
     {
-        recurringJobManager.Trigger(ProcessRemindersJobId);
         recurringJobManager.Trigger(MigrationJobId);
     }
 }

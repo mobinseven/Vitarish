@@ -8,7 +8,7 @@ using Vitarish.Reminders.Domain.Enums;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 
-namespace Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
+namespace Vitarish.Main.Infrastructure.BackgroundJobs.Reminders;
 
 /// <summary>
 /// Processes Sea reminders using Hangfire.
