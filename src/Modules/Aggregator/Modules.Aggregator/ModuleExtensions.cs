@@ -7,6 +7,7 @@ using Vitarish.Communications.Hosting;
 using Vitarish.Files.Interface;
 using Vitarish.Instagram.Interface;
 using Vitarish.Intelligence.Interface;
+using Vitarish.Medical.Interface;
 using Vitarish.Modules.Base;
 using Vitarish.Reminders.Interface;
 using Vitarish.Sea.Interface;
@@ -23,6 +24,7 @@ public static class ModulesExtensions
                 Activator.CreateInstance<RemindersModule>(),
                 Activator.CreateInstance<SeaModule>(),
                 Activator.CreateInstance<AppointmentsModule>(),
+                Activator.CreateInstance<MedicalModule>(),
             ];
 
     extension(WebApplicationBuilder builder)

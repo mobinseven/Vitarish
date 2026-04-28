@@ -1,0 +1,75 @@
+@inherits Vitarish.Modules.Base.TenantCommonBase
+
+<Stack>
+    @if(AdminMode)
+    {
+        <StackButton Color="Color.Primary"
+                     OnClick="AddAppointmentAsync"
+                     StartIcon="fa-regular fa-calendar-plus"
+                     Label="@Localizer["AddItem", Localizer["Appointment"]]" />
+    }
+</Stack>
+
+@if(appointments.Count == 0)
+{
+    <Stack>
+        <StackField Label="@Localizer["NoItems", Localizer["Appointment"]]" />
+    </Stack>
+}
+else
+{
+    <Stack>
+        @foreach(var appointment in appointments)
+        {
+            <StackButton OnClick="() => OnClicked.InvokeAsync(appointment.Id)"
+                         Label="@appointment.ScheduledAt.ToString("g")">
+                <AppointmentStatusBadge Status="appointment.Status" />
+            </StackButton>
+        }
+    </Stack>
+}
+
+@code {
+    [Parameter, EditorRequired] public ProjectReadDto Patient { get; set; } = default!;
+    [Parameter] public EventCallback<Guid> OnClicked { get; set; }
+
+    [Inject] private IAccessControlledAppointmentsService AppointmentsService { get; set; } = default!;
+
+    private List<AppointmentReadDto> appointments = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        AppointmentDescriptorDto descriptor = new() { Skip = 0, Take = int.MaxValue };
+        IReadOnlyList<AppointmentReadDto> all = await AppointmentsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+
+        string subjectKey = Patient.Id.ToString();
+        appointments = [.. all
+            .Where(a => a.Metadata.TryGetValue(MetadataKeys.SubjectId, out object? v) && v?.ToString() == subjectKey)
+            .OrderBy(a => a.ScheduledAt)];
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AddAppointmentAsync()
+    {
+        DialogParameters parameters = new()
+        {
+            { nameof(PatientAppointmentFormDialog.SubjectId), Patient.Id }
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<PatientAppointmentFormDialog>(Localizer["AddItem", Localizer["Appointment"]], parameters);
+        DialogResult? result = await dialog.Result;
+
+        if (result is null || result.Canceled)
+        {
+            return;
+        }
+
+        await LoadAsync();
+    }
+}

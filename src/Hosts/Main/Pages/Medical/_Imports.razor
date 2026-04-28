@@ -1,0 +1,10 @@
+@attribute [Authorize(Policy = IdentityDefinitions.TenantAdminOrOwner)]
+@inherits TenantPageBase
+
+@inject IAccessControlledProjectsService ProjectsService
+
+@using Vitarish.Sea.Domain.Dto
+@using Vitarish.Medical.Interface.Components.Patients
+@using Vitarish.Medical.Interface.Components.Appointments
+@using Vitarish.Medical.Interface.Components.Reminders
+@using Vitarish.Interfaces.Base.Extensions

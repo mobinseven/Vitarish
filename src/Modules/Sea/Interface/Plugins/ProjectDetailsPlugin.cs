@@ -1,7 +1,7 @@
 namespace Vitarish.Sea.Interface.Plugins;
 
-internal sealed record ProjectDetailsPlugin(
+public sealed record ProjectDetailsPlugin(
     ProjectReadDto Project,
     EventCallback<Guid> OnEdit = default,
     EventCallback OnDeleted = default) : PluginContext();
-internal interface IProjectDetailsPlugin : IPlugin<ProjectDetailsPlugin>;
+public interface IProjectDetailsPlugin : IPlugin<ProjectDetailsPlugin>;

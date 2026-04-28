@@ -1,8 +1,6 @@
-using Vitarish.Sea.Interface.Plugins.Common.Enums;
+namespace Vitarish.Medical.Interface.Models;
 
-namespace Vitarish.Sea.Interface.Plugins.Clinic.Models;
-
-internal record ClinicProjectReadDto : ProjectReadDto
+internal record PatientReadDto : ProjectReadDto
 {
     public string? FirstName => GetField<string>();
 
