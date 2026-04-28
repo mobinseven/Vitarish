@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Appointments.Interface;
 using Vitarish.Communications.Hosting;
 using Vitarish.Files.Interface;
-using Vitarish.Instagram.Interface;
 using Vitarish.Intelligence.Interface;
 using Vitarish.Modules.Base;
 using Vitarish.Reminders.Interface;
@@ -18,7 +17,6 @@ public static class ModulesExtensions
                 Activator.CreateInstance<CommunicationModule>(),
                 Activator.CreateInstance<IntelligenceModule>(),
                 Activator.CreateInstance<FilesModule>(),
-                Activator.CreateInstance<InstagramModule>(),
                 Activator.CreateInstance<SearchModule>(),
                 Activator.CreateInstance<RemindersModule>(),
                 Activator.CreateInstance<SeaModule>(),

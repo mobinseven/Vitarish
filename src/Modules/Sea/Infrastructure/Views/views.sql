@@ -27,7 +27,7 @@ SELECT
       UNION ALL
       SELECT r.Id AS ItemId
       FROM dbo.Reminders r
-      JOIN dbo.Events e ON e.Id = r.EventId
+      JOIN dbo.Events e ON e.Id = r.SourceId
       WHERE e.ProjectId = p.Id
         AND r.DeletedAt IS NULL
         AND e.DeletedAt IS NULL
@@ -50,7 +50,7 @@ SELECT
       UNION ALL
       SELECT r.Id AS ItemId
       FROM dbo.Reminders r
-      JOIN dbo.Events e ON e.Id = r.EventId
+      JOIN dbo.Events e ON e.Id = r.SourceId
       WHERE e.ProjectId = p.Id
         AND r.DeletedAt IS NULL
         AND e.DeletedAt IS NULL
@@ -105,7 +105,7 @@ SELECT
       OR EXISTS (
         SELECT 1
         FROM dbo.Reminders r
-        JOIN dbo.Events e ON e.Id = r.EventId
+        JOIN dbo.Events e ON e.Id = r.SourceId
         WHERE e.ProjectId = p.Id
           AND r.DeletedAt IS NULL
           AND e.DeletedAt IS NULL
@@ -175,7 +175,7 @@ SELECT
 
       SELECT MAX(T5.v)
       FROM dbo.Reminders r
-      JOIN dbo.Events ev3 ON ev3.Id = r.EventId
+      JOIN dbo.Events ev3 ON ev3.Id = r.SourceId
       CROSS APPLY (VALUES (
                      r.CreatedAt
                    ), (
@@ -217,7 +217,7 @@ SELECT
       UNION ALL
       SELECT r.Id AS ItemId
       FROM dbo.Reminders r
-      JOIN dbo.Events e ON e.Id = r.EventId
+      JOIN dbo.Events e ON e.Id = r.SourceId
       WHERE e.ProcedureId = pr.Id
         AND r.DeletedAt IS NULL
         AND e.DeletedAt IS NULL
@@ -240,7 +240,7 @@ SELECT
       UNION ALL
       SELECT r.Id AS ItemId
       FROM dbo.Reminders r
-      JOIN dbo.Events e ON e.Id = r.EventId
+      JOIN dbo.Events e ON e.Id = r.SourceId
       WHERE e.ProcedureId = pr.Id
         AND r.DeletedAt IS NULL
         AND e.DeletedAt IS NULL
@@ -285,7 +285,7 @@ SELECT
       OR EXISTS (
         SELECT 1
         FROM dbo.Reminders r
-        JOIN dbo.Events e ON e.Id = r.EventId
+        JOIN dbo.Events e ON e.Id = r.SourceId
         WHERE e.ProcedureId = pr.Id
           AND r.DeletedAt IS NULL
           AND e.DeletedAt IS NULL
@@ -342,7 +342,7 @@ SELECT
 
       SELECT MAX(T4.v)
       FROM dbo.Reminders r
-      JOIN dbo.Events ev3 ON ev3.Id = r.EventId
+      JOIN dbo.Events ev3 ON ev3.Id = r.SourceId
       CROSS APPLY (VALUES (
                      r.CreatedAt
                    ), (
@@ -378,7 +378,7 @@ SELECT
       UNION ALL
       SELECT r.Id AS ItemId
       FROM dbo.Reminders r
-      WHERE r.EventId = e.Id
+      WHERE r.SourceId = e.Id
         AND r.DeletedAt IS NULL
     ) AS items
   ) AS EventItems,
@@ -397,7 +397,7 @@ SELECT
       UNION ALL
       SELECT r.Id AS ItemId
       FROM dbo.Reminders r
-      WHERE r.EventId = e.Id
+      WHERE r.SourceId = e.Id
         AND r.DeletedAt IS NULL
         AND NOT EXISTS (
           SELECT 1 FROM dbo.Receipts rc
@@ -428,7 +428,7 @@ SELECT
       OR EXISTS (
         SELECT 1
         FROM dbo.Reminders r
-        WHERE r.EventId = e.Id
+        WHERE r.SourceId = e.Id
           AND r.DeletedAt IS NULL
           AND NOT EXISTS (
             SELECT 1 FROM dbo.Receipts rc
@@ -478,7 +478,7 @@ SELECT
                    ), (
                      COALESCE(r.SentAt, r.CreatedAt)
                    )) AS T3(v)
-      WHERE r.EventId = e.Id
+      WHERE r.SourceId = e.Id
     ) AS S
   ) AS LastUpdate
 
