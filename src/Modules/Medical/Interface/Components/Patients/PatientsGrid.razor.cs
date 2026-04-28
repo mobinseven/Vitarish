@@ -1,5 +1,4 @@
 using Vitarish.Interfaces.Base.Models;
-using Vitarish.Medical.Interface.Models;
 
 namespace Vitarish.Medical.Interface.Components.Patients;
 

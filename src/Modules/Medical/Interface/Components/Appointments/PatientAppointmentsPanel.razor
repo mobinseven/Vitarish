@@ -10,13 +10,7 @@
     }
 </Stack>
 
-@if(appointments.Count == 0)
-{
-    <Stack>
-        <StackField Label="@Localizer["NoItems", Localizer["Appointment"]]" />
-    </Stack>
-}
-else
+@if(appointments.Count > 0)
 {
     <Stack>
         @foreach(var appointment in appointments)

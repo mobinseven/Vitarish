@@ -10,11 +10,7 @@
 @if(reminders is not null)
 {
     <Stack>
-        @if(reminders.Count == 0)
-        {
-            <StackField Label="@Localizer["NoItems", Localizer["Reminder"]]" />
-        }
-        else
+        @if(reminders.Count > 0)
         {
             @foreach(var reminder in reminders)
             {
