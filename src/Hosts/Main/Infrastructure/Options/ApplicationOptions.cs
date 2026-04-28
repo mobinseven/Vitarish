@@ -1,6 +1,5 @@
 using Vitarish.Communications.Domain.Options;
 using Vitarish.Files.Domain.Options;
-using Vitarish.Instagram.Scraper;
 using Vitarish.Intelligence.Domain.Options;
 
 namespace Vitarish.Main.Infrastructure.Options;
@@ -35,8 +34,5 @@ public class ApplicationOptions
     /// Notification options.
     /// </summary>
     public NotificationOptions Notifications { get; set; } = new();
-
-
-    public InstagramScraperOptions InstagramScraper { get; set; } = new();
 
 }

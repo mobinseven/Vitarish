@@ -1,6 +1,4 @@
 using Vitarish.Files.Domain.Options;
-using Vitarish.Instagram.Scraper;
-using Vitarish.Modules.Instagram.Scraper;
 
 namespace Vitarish.Main.Infrastructure.Options;
 
@@ -36,8 +34,6 @@ public static class ApplicationOptionsExtensions
         _ = services.AddOptions<ApplicationOptions>()
             .BindConfiguration(ApplicationOptions.Section)
             .ValidateDataAnnotations()
-            .Validate(o => !string.IsNullOrEmpty(o.InstagramScraper.ApifyToken),
-                     $"{ApplicationOptions.Section}:{nameof(InstagramScraper)}:{nameof(InstagramScraperOptions.ApifyToken)} is not defined")
             .Validate(o => !string.IsNullOrEmpty(o.Minio.Endpoint),
                      $"{ApplicationOptions.Section}:{nameof(ApplicationOptions.Minio)}:{nameof(ApplicationOptions.Minio.Endpoint)} is not defined")
             .ValidateOnStart();

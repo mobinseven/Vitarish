@@ -18,6 +18,7 @@ using Vitarish.Modules.Base;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Hosting.DependencyInjection;
 using Vitarish.Parties.Infrastructure.Data;
+using Vitarish.Reminders.Infrastructure.Data;
 using Vitarish.Requests.Hosting.DependencyInjection;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Users.Hosting.DependencyInjection;
@@ -131,6 +132,7 @@ WebApplication app = builder.Build();
 _ = await app.MigrateDatabaseAsync<UsersDbContext>();
 _ = await app.MigrateDatabaseAsync<PartiesDbContext>();
 _ = await app.MigrateDatabaseAsync<FilesDbContext>();
+_ = await app.MigrateDatabaseAsync<RemindersDbContext>();
 _ = await app.MigrateDatabaseAsync<SeaDbContext>();
 _ = await app.MigrateDatabaseAsync<AppointmentsDbContext>();
 
