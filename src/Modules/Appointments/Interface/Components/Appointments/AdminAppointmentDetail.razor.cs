@@ -11,7 +11,7 @@ public partial class AdminAppointmentDetail : AppointmentsBase
 
     protected override void OnParametersSet()
     {
-        current ??= Appointment;
+        current = Appointment;
     }
 
     private async Task ChangeStatusAsync(AppointmentStatus status)

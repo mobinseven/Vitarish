@@ -10,7 +10,7 @@ public partial class AppointmentDetail : AppointmentsBase
 
     protected override void OnParametersSet()
     {
-        current ??= Appointment;
+        current = Appointment;
     }
 
     private async Task CancelAppointmentAsync()
