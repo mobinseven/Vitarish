@@ -2,6 +2,12 @@ namespace Vitarish.Appointments.Domain.Entities;
 
 public class Appointment : Entity
 {
+    public Guid? SessionId
+    {
+        get;
+        set => SetField(ref field, value, nameof(SessionId));
+    }
+
     public DateTimeOffset ScheduledAt
     {
         get;

@@ -4,6 +4,7 @@ namespace Vitarish.Appointments.Domain.Models;
 public record AppointmentDescriptor : EntityDescriptor
 {
     public AppointmentStatus? Status { get; init; }
+    public Guid? SessionId { get; init; }
     public DateTimeOffset? DateFrom { get; init; }
     public DateTimeOffset? DateTo { get; init; }
     public AppointmentSortBy? SortBy { get; init; }

@@ -6,6 +6,10 @@ public record AppointmentDescriptorDto : EntityDescriptorDto
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public AppointmentStatus? Status { get; set; }
 
+    [JsonPropertyName("sessionId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? SessionId { get; set; }
+
     [JsonPropertyName("dateFrom")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DateTimeOffset? DateFrom { get; set; }

@@ -2,6 +2,8 @@ namespace Vitarish.Appointments.Domain.Dto;
 
 public record AppointmentReadDto : EntityReadDto
 {
+    public Guid? SessionId { get; set; }
+
     public DateTimeOffset ScheduledAt { get; set; }
 
     public AppointmentStatus Status { get; set; }
