@@ -19,45 +19,53 @@
     }
 </Stack>
 
-<Stack>
-    <StackButton Label="@Localizer["EditItem", Localizer["Appointment"]]"
-                 EndIcon="fa-regular fa-calendar-pen"
-                 OnClick="OnEdit" />
-</Stack>
-
-@if (current.Status is AppointmentStatus.Pending)
+@switch(current.Status)
 {
+    case AppointmentStatus.Pending:
     <Stack>
+        <StackButton Label="@Localizer["EditItem", Localizer["Appointment"]]"
+                     EndIcon="fa-regular fa-calendar-pen"
+                     OnClick="OnEdit" />
         <StackButton Color="Color.Success"
                      Label="@Localizer["ConfirmAppointment"]"
                      EndIcon="fa-regular fa-calendar-check"
                      OnClick="@(() => ChangeStatusAsync(AppointmentStatus.Confirmed))" />
-    </Stack>
-}
-
-@if (current.Status is AppointmentStatus.Confirmed)
-{
-    <Stack>
-        <StackButton Color="Color.Secondary"
-                     Label="@Localizer["CompleteAppointment"]"
-                     EndIcon="fa-regular fa-calendar-circle-exclamation"
-                     OnClick="@(() => ChangeStatusAsync(AppointmentStatus.Completed))" />
-    </Stack>
-}
-
-@if (current.Status is not (AppointmentStatus.Completed or AppointmentStatus.Cancelled))
-{
-    <Stack>
         <StackButton Color="Color.Error"
                      Label="@Localizer["CancelAppointment"]"
                      EndIcon="fa-regular fa-calendar-xmark"
                      OnClick="@(() => ChangeStatusAsync(AppointmentStatus.Cancelled))" />
     </Stack>
-}
+    break;
 
-<Stack>
-    <StackButton Color="Color.Error"
-                 Label="@Localizer["DeleteItem", Localizer["Appointment"]]"
-                 EndIcon="fa-regular fa-trash"
-                 OnClick="DeleteAppointmentAsync" />
-</Stack>
+    case AppointmentStatus.Confirmed:
+    <Stack>
+        <StackButton Color="Color.Secondary"
+                     Label="@Localizer["PresentAppointment"]"
+                     EndIcon="fa-regular fa-person-check"
+                     OnClick="@(() => ChangeStatusAsync(AppointmentStatus.Present))" />
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelAppointment"]"
+                     EndIcon="fa-regular fa-calendar-xmark"
+                     OnClick="@(() => ChangeStatusAsync(AppointmentStatus.Cancelled))" />
+    </Stack>
+    break;
+
+    case AppointmentStatus.Present:
+    <Stack>
+        <StackButton Color="Color.Secondary"
+                     Label="@Localizer["CompleteAppointment"]"
+                     EndIcon="fa-regular fa-check"
+                     OnClick="@(() => ChangeStatusAsync(AppointmentStatus.Completed))" />
+    </Stack>
+    break;
+
+    case AppointmentStatus.Completed:
+    case AppointmentStatus.Cancelled:
+        // No action buttons for terminal states
+        break;
+
+    default:
+    // Fallback for any unexpected or future status values
+    // (matches original behavior: Cancel appears for statuses other than Completed/Cancelled/Present)
+    break;
+}

@@ -1,6 +1,6 @@
 @inherits AppointmentsBase
 
-@if (current is null)
+@if(current is null)
 {
     return;
 }
@@ -9,27 +9,42 @@
     <StackField Label="@current.ScheduledAt.ToString("f")" HelperText="@Localizer["ScheduledAt"]">
         <AppointmentStatusBadge Status="@current.Status" />
     </StackField>
-    @if (!string.IsNullOrWhiteSpace(current.Notes))
+    @if(!string.IsNullOrWhiteSpace(current.Notes))
     {
         <StackField Label="@current.Notes" HelperText="@Localizer["Notes"]" />
     }
 </Stack>
 
-@if (current.Status is AppointmentStatus.Pending or AppointmentStatus.Confirmed)
+@switch(current.Status)
 {
-    <Stack>
-        <StackButton Label="@Localizer["Reschedule"]"
-                     EndIcon="fa-regular fa-calendar-clock"
-                     OnClick="OnReschedule" />
-    </Stack>
-}
+    case AppointmentStatus.Present:
+        return;
 
-@if (current.Status is not (AppointmentStatus.Completed or AppointmentStatus.Cancelled))
-{
+    case AppointmentStatus.Pending:
     <Stack>
         <StackButton Color="Color.Error"
                      Label="@Localizer["CancelAppointment"]"
                      EndIcon="fa-regular fa-calendar-xmark"
                      OnClick="CancelAppointmentAsync" />
     </Stack>
+    break;
+    case AppointmentStatus.Confirmed:
+    <Stack>
+        <StackButton Label="@Localizer["Reschedule"]"
+                     EndIcon="fa-regular fa-calendar-clock"
+                     OnClick="OnReschedule" />
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelAppointment"]"
+                     EndIcon="fa-regular fa-calendar-xmark"
+                     OnClick="CancelAppointmentAsync" />
+    </Stack>
+    break;
+
+    case AppointmentStatus.Completed:
+    case AppointmentStatus.Cancelled:
+        // No actions for terminal statuses
+        break;
+
+    default:
+        break;
 }
