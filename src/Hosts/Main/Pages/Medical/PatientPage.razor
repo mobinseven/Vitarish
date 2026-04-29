@@ -7,12 +7,15 @@
 
 <CascadingValue Value="IsAdmin">
 
+    <ProceduresGrid Project="@patient"
+                    OnClicked="@(procedureId => NavigationManager.NavigateTo($"/medical/patients/{patientId}/{procedureId}"))"
+                    OnCreated="@(procedureId => NavigationManager.NavigateTo($"/medical/patients/{patientId}/{procedureId}"))" />
+
     <PatientDetails Project="@patient"
                     OnEdit="@(id => NavigationManager.NavigateTo($"/medical/patients/{id}/edit"))"
                     OnDeleted="@(() => NavigationManager.NavigateTo("/medical/patients"))" />
 
-    <PatientAppointmentsPanel Patient="@patient"
-                               OnClicked="@(id => NavigationManager.NavigateTo($"/appointments/admin/{id}"))" />
+    <PatientAppointmentsPanel Patient="@patient" />
 
     <PatientRemindersPanel PatientId="@patient.Id" />
 

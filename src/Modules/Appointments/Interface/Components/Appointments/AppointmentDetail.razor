@@ -1,0 +1,35 @@
+@inherits AppointmentsBase
+
+@if (current is null)
+{
+    return;
+}
+
+<Stack>
+    <StackField Label="@current.ScheduledAt.ToString("f")" HelperText="@Localizer["ScheduledAt"]">
+        <AppointmentStatusBadge Status="@current.Status" />
+    </StackField>
+    @if (!string.IsNullOrWhiteSpace(current.Notes))
+    {
+        <StackField Label="@current.Notes" HelperText="@Localizer["Notes"]" />
+    }
+</Stack>
+
+@if (current.Status is AppointmentStatus.Pending or AppointmentStatus.Confirmed)
+{
+    <Stack>
+        <StackButton Label="@Localizer["Reschedule"]"
+                     EndIcon="fa-regular fa-calendar-clock"
+                     OnClick="OnReschedule" />
+    </Stack>
+}
+
+@if (current.Status is not (AppointmentStatus.Completed or AppointmentStatus.Cancelled))
+{
+    <Stack>
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelAppointment"]"
+                     EndIcon="fa-regular fa-calendar-xmark"
+                     OnClick="CancelAppointmentAsync" />
+    </Stack>
+}
