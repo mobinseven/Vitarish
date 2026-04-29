@@ -1,0 +1,58 @@
+@page "/medical/patients/{patientId}/{procedureId}"
+
+@if(patient is null || procedure is null)
+{
+    return;
+}
+
+<CascadingValue Value="IsAdmin">
+    <EventsGrid Project="@patient"
+                EventClicked="@(id => NavigationManager.NavigateTo($"/medical/patients/{patientId}/{procedureId}/{id}"))"
+                Procedure="@procedure"
+                OnUpdate="ReloadRequired" />
+    <ProcedureDetails Procedure="@procedure"
+                      Project="@patient"
+                      OnUpdate="ReloadRequired"
+                      OnDelete="@(() => NavigationManager.NavigateTo($"/medical/patients/{patientId}"))" />
+</CascadingValue>
+
+@code {
+    [Parameter] public string? patientId { get; set; }
+    [Parameter] public string? procedureId { get; set; }
+
+    private ProjectReadDto? patient;
+    private ProcedureReadDto? procedure;
+
+    protected override async Task ReloadRequired()
+    {
+        Guid.TryParse(patientId, out Guid patientGuid);
+        Guid.TryParse(procedureId, out Guid procedureGuid);
+
+        if (patientGuid == Guid.Empty)
+        {
+            NavigationManager.NavigateTo("/medical/patients");
+            return;
+        }
+
+        patient = await ProjectsService.GetAsync(patientGuid, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (patient is null)
+        {
+            NavigationManager.NavigateTo("/medical/patients");
+            return;
+        }
+
+        procedure = await ProcedureService.GetAsync(procedureGuid, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (procedure is null)
+        {
+            NavigationManager.NavigateTo($"/medical/patients/{patientId}");
+            return;
+        }
+
+        NavService.OverridePageTitle(patient.Id.ToString(), patient.Name);
+        NavService.OverridePageTitle(procedure.Id.ToString(), procedure.Name);
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

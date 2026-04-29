@@ -22,6 +22,9 @@ public static class DependencyInjectionExtensions
 
         // Register search index providers
         _ = services.AddScoped<ISearchIndexProvider, SeaProjectsSearchProvider>();
+        _ = services.AddScoped<ISearchIndexProvider, SeaProceduresSearchProvider>();
+        _ = services.AddScoped<ISearchIndexProvider, SeaEventsSearchProvider>();
+        _ = services.AddScoped<ISearchIndexProvider, SeaAttachmentsSearchProvider>();
         
         return services;
     }

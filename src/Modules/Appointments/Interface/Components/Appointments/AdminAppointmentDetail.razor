@@ -1,0 +1,63 @@
+@inherits AppointmentsBase
+
+@if (current is null)
+{
+    return;
+}
+
+<Stack>
+    <StackField Label="@current.ScheduledAt.ToString("f")" HelperText="@Localizer["ScheduledAt"]">
+        <AppointmentStatusBadge Status="@current.Status" />
+    </StackField>
+    @if (!string.IsNullOrWhiteSpace(current.CreatedBy))
+    {
+        <StackField Label="@current.CreatedBy" HelperText="@Localizer["User"]" />
+    }
+    @if (!string.IsNullOrWhiteSpace(current.Notes))
+    {
+        <StackField Label="@current.Notes" HelperText="@Localizer["Notes"]" />
+    }
+</Stack>
+
+<Stack>
+    <StackButton Label="@Localizer["EditItem", Localizer["Appointment"]]"
+                 EndIcon="fa-regular fa-calendar-pen"
+                 OnClick="OnEdit" />
+</Stack>
+
+@if (current.Status is AppointmentStatus.Pending)
+{
+    <Stack>
+        <StackButton Color="Color.Success"
+                     Label="@Localizer["ConfirmAppointment"]"
+                     EndIcon="fa-regular fa-calendar-check"
+                     OnClick="@(() => ChangeStatusAsync(AppointmentStatus.Confirmed))" />
+    </Stack>
+}
+
+@if (current.Status is AppointmentStatus.Confirmed)
+{
+    <Stack>
+        <StackButton Color="Color.Secondary"
+                     Label="@Localizer["CompleteAppointment"]"
+                     EndIcon="fa-regular fa-calendar-circle-exclamation"
+                     OnClick="@(() => ChangeStatusAsync(AppointmentStatus.Completed))" />
+    </Stack>
+}
+
+@if (current.Status is not (AppointmentStatus.Completed or AppointmentStatus.Cancelled))
+{
+    <Stack>
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelAppointment"]"
+                     EndIcon="fa-regular fa-calendar-xmark"
+                     OnClick="@(() => ChangeStatusAsync(AppointmentStatus.Cancelled))" />
+    </Stack>
+}
+
+<Stack>
+    <StackButton Color="Color.Error"
+                 Label="@Localizer["DeleteItem", Localizer["Appointment"]]"
+                 EndIcon="fa-regular fa-trash"
+                 OnClick="DeleteAppointmentAsync" />
+</Stack>
