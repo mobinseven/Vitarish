@@ -66,7 +66,7 @@ internal class SessionRepository(AppointmentsDbContext dbContext)
         return sessions;
     }
 
-    internal async Task PopulateStatsAsync(IEnumerable<AppointmentSession> sessions, CancellationToken cancellationToken)
+    private async Task PopulateStatsAsync(IEnumerable<AppointmentSession> sessions, CancellationToken cancellationToken)
     {
         List<Guid> sessionIds = [.. sessions.Select(s => s.Id)];
         if (sessionIds.Count == 0)

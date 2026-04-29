@@ -6,8 +6,8 @@ public partial class SessionsList : SessionsBase
     [Parameter] public EventCallback OnAdd { get; set; }
     [Parameter] public AppointmentSessionDescriptorDto? Descriptor { get; set; } = new();
 
-    [Inject] private IEnumerable<ISessionsGridPlugin> CardPlugins { get; set; } = [];
-    private ISessionsGridPlugin? Plugin => CardPlugins.SingleOrDefault(p => p.Id == TenantService?.PluginIdentifier);
+    [Inject] private IEnumerable<ISessionsGridPlugin> GridPlugins { get; set; } = [];
+    private ISessionsGridPlugin? Plugin => GridPlugins.SingleOrDefault(p => p.Id == TenantService?.PluginIdentifier);
 
     private AppointmentSessionDescriptorDto? previousDescriptor;
 
