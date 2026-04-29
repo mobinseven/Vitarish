@@ -734,12 +734,6 @@ of project "{2}"</value>
   <data name="PatientNameLabel" xml:space="preserve">
     <value>Patient: {0}</value>
   </data>
-  <data name="PatientOverviewHeading" xml:space="preserve">
-    <value>Clinic patient overview</value>
-  </data>
-  <data name="PatientTemplateHeading" xml:space="preserve">
-    <value>Clinic template defaults</value>
-  </data>
   <data name="PreferredPharmacyLabel" xml:space="preserve">
     <value>Preferred pharmacy: {0}</value>
   </data>
@@ -1750,5 +1744,11 @@ of project "{2}"</value>
   </data>
   <data name="Minute" xml:space="preserve">
     <value>Minute</value>
+  </data>
+  <data name="PresentAppointment" xml:space="preserve">
+    <value>Set as present</value>
+  </data>
+  <data name="Present" xml:space="preserve">
+    <value>Present</value>
   </data>
 </root>

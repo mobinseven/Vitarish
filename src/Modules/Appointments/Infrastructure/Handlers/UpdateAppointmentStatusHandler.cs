@@ -6,23 +6,13 @@ internal class UpdateAppointmentStatusHandler(IEntityRepository<Appointment, App
     public async Task Handle(UpdateAppointmentStatusCommand request, CancellationToken cancellationToken)
     {
         Appointment? entity = await repository.GetAsync(request.AppointmentId, cancellationToken);
+
         if (entity is null)
         {
             return;
         }
 
-        switch (request.Status)
-        {
-            case AppointmentStatus.Confirmed:
-                entity.Confirm();
-                break;
-            case AppointmentStatus.Cancelled:
-                entity.Cancel();
-                break;
-            case AppointmentStatus.Completed:
-                entity.Complete();
-                break;
-        }
+        entity.Status = request.Status;
 
         _ = await repository.UpdateAsync(entity, cancellationToken);
     }

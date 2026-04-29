@@ -5,23 +5,20 @@
     {
         <StackButton Color="Color.Primary"
                      OnClick="AddAppointmentAsync"
-                     StartIcon="fa-regular fa-calendar-plus"
+                     EndIcon="fa-regular fa-calendar-plus"
                      Label="@Localizer["AddItem", Localizer["Appointment"]]" />
     }
-</Stack>
-
-@if(appointments.Count > 0)
-{
-    <Stack>
+    @if(appointments is not null && appointments.Count > 0)
+    {
         @foreach(var appointment in appointments)
         {
             <StackButton OnClick="() => OnClicked.InvokeAsync(appointment.Id)"
                          Label="@appointment.ScheduledAt.ToString("g")">
                 <AppointmentStatusBadge Status="appointment.Status" />
             </StackButton>
-        }
-    </Stack>
-}
+        } 
+    }
+</Stack>
 
 @code {
     [Parameter, EditorRequired] public ProjectReadDto Patient { get; set; } = default!;

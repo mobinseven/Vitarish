@@ -1,27 +1,23 @@
 @inherits Vitarish.Modules.Base.TenantCommonBase
 
-@if(AdminMode)
-{
-    <Stack>
-        <ReminderAction SourceId="PatientId" OnCreated="LoadAsync" />
-    </Stack>
-}
+<Stack>
 
-@if(reminders is not null)
-{
-    <Stack>
-        @if(reminders.Count > 0)
+    @if(AdminMode)
+    {
+        <ReminderAction SourceId="PatientId" OnCreated="LoadAsync" />
+    }
+
+    @if(reminders is not null && reminders.Count > 0)
+    {
+        @foreach(var reminder in reminders)
         {
-            @foreach(var reminder in reminders)
-            {
-                <StackButton OnClick="() => OnReminderClicked(reminder)"
-                             Label="@reminder.Subject">
-                    @reminder.RemindAt.LocalDateTime.ToString("g")
-                </StackButton>
-            }
+            <StackButton OnClick="() => OnReminderClicked(reminder)"
+                         Label="@reminder.Subject">
+                @reminder.RemindAt.LocalDateTime.ToString("g")
+            </StackButton>
         }
-    </Stack>
-}
+    }
+</Stack>
 
 @code {
     [Parameter, EditorRequired] public Guid PatientId { get; set; }

@@ -1668,13 +1668,19 @@
   <data name="Completed" xml:space="preserve">
     <value>تکمیل‌شده</value>
   </data>
-  <data name="Gender_Unspecified" xml:space="preserve">
-    <value>نامشخص</value>
-  </data>
   <data name="Hour" xml:space="preserve">
     <value>ساعت</value>
   </data>
   <data name="Minute" xml:space="preserve">
     <value>دقیقه</value>
+  </data>
+  <data name="Gender_Unspecified" xml:space="preserve">
+    <value>نامشخص</value>
+  </data>
+  <data name="PresentAppointment" xml:space="preserve">
+    <value>ثبت حاضری</value>
+  </data>
+  <data name="Present" xml:space="preserve">
+    <value>حاضر</value>
   </data>
 </root>
