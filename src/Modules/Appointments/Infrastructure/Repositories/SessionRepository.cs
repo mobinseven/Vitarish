@@ -39,5 +39,64 @@ internal class SessionRepository(AppointmentsDbContext dbContext)
         return query;
     }
 
+    // ── Stats population ────────────────────────────────────────────────────────
+
+    private async Task PopulateStatsAsync(IReadOnlyList<Session> sessions, CancellationToken cancellationToken)
+    {
+        if (sessions.Count == 0)
+        {
+            return;
+        }
+
+        List<Guid> sessionIds = [.. sessions.Select(s => s.Id)];
+
+        Dictionary<Guid, SessionStats> stats = await dbContext.Set<SessionStats>()
+            .AsNoTracking()
+            .Where(stat => sessionIds.Contains(stat.SessionId))
+            .ToDictionaryAsync(stat => stat.SessionId, cancellationToken);
+
+        foreach (Session session in sessions)
+        {
+            session.Stats = stats.TryGetValue(session.Id, out SessionStats? stat)
+                ? stat
+                : new SessionStats { SessionId = session.Id };
+        }
+    }
+
+    private Task PopulateStatsAsync(Session session, CancellationToken cancellationToken)
+        => PopulateStatsAsync([session], cancellationToken);
+
+    public new async Task<Session?> GetAsync(Guid id, CancellationToken cancellationToken)
+    {
+        Session? session = await base.GetAsync(id, cancellationToken);
+
+        if (session is null)
+        {
+            return null;
+        }
+
+        await PopulateStatsAsync(session, cancellationToken);
+
+        return session;
+    }
+
+    public new async Task<IReadOnlyList<Session>> GetAsync(SessionDescriptor descriptor, CancellationToken cancellationToken)
+    {
+        IReadOnlyList<Session> sessions = await base.GetAsync(descriptor, cancellationToken);
+
+        if (sessions.Count > 0)
+        {
+            await PopulateStatsAsync(sessions, cancellationToken);
+        }
+
+        return sessions;
+    }
+
+    Task<Session?> IEntityRepository<Session, SessionDescriptor>.GetAsync(Guid id, CancellationToken cancellationToken)
+        => GetAsync(id, cancellationToken);
+
+    Task<IReadOnlyList<Session>> IEntityRepository<Session, SessionDescriptor>.GetAsync(SessionDescriptor descriptor, CancellationToken cancellationToken)
+        => GetAsync(descriptor, cancellationToken);
+
     protected override bool IsDuplicateKeyException(DbUpdateException exception) => false;
 }

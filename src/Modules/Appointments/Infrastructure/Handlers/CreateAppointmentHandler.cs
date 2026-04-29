@@ -6,8 +6,7 @@ namespace Vitarish.Appointments.Infrastructure.Handlers;
 /// </summary>
 internal class CreateAppointmentHandler(
     IEntityRepository<Appointment, AppointmentDescriptor> appointmentRepository,
-    IEntityRepository<Session, SessionDescriptor> sessionRepository,
-    AppointmentsDbContext dbContext)
+    IEntityRepository<Session, SessionDescriptor> sessionRepository)
     : IRequestHandler<CreateAppointmentCommand, Appointment?>
 {
     public async Task<Appointment?> Handle(CreateAppointmentCommand request, CancellationToken cancellationToken)
@@ -29,12 +28,7 @@ internal class CreateAppointmentHandler(
             throw new EntityFailureException(EntityError.Validation("Cannot reserve a seat in a cancelled session."));
         }
 
-        int reservationCount = await dbContext.Appointments
-            .AsNoTracking()
-            .Where(a => a.SessionId == sessionId && a.Status != AppointmentStatus.Cancelled)
-            .CountAsync(cancellationToken);
-
-        if (session.IsFull(reservationCount))
+        if (session.IsFull())
         {
             throw new EntityFailureException(EntityError.Validation("The session is fully booked."));
         }

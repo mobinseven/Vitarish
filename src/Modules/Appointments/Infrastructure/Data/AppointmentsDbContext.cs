@@ -88,6 +88,12 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
                 .IsRequired(false);
         });
 
+        _ = modelBuilder.Entity<SessionStats>(eb =>
+        {
+            _ = eb.ToView("vw_SessionStats");
+            _ = eb.HasNoKey();
+        });
+
         _ = modelBuilder.Entity<Session>(entity =>
         {
             _ = entity.Property(e => e.Metadata)
@@ -96,6 +102,8 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
                     v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
+
+            _ = entity.Ignore(s => s.Stats);
         });
 
         if (Database.IsSqlite())

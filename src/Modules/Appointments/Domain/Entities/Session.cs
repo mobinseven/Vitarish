@@ -26,7 +26,9 @@ public class Session : Entity
         private set => SetField(ref field, value, nameof(Status));
     } = SessionStatus.Active;
 
-    public bool IsFull(int currentReservations) => currentReservations >= Capacity;
+    public SessionStats Stats { get; set; } = new();
+
+    public bool IsFull() => Stats.ReservationCount >= Capacity;
 
     public void Cancel()
     {

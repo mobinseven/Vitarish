@@ -23,12 +23,13 @@ public partial class EntityMapper
 
     public partial global::Vitarish.Appointments.Domain.Models.AppointmentDescriptor ToDomain(global::Vitarish.Appointments.Domain.Dto.AppointmentDescriptorDto src);
 
+    [MapProperty(["Stats", "ReservationCount"], [nameof(global::Vitarish.Appointments.Domain.Dto.SessionReadDto.ReservationCount)])]
     public partial global::Vitarish.Appointments.Domain.Dto.SessionReadDto ToDto(global::Vitarish.Appointments.Domain.Entities.Session src);
 
     public partial global::Vitarish.Appointments.Domain.Entities.Session ToDomain(global::Vitarish.Appointments.Domain.Dto.SessionWriteDto src);
 
     /// <summary>
-    /// ReservationCount is computed externally; ignore it when converting a read DTO back to a write DTO.
+    /// ReservationCount comes from Stats (view-backed); ignore it when converting a read DTO back to a write DTO.
     /// </summary>
     [MapperIgnoreSource(nameof(SessionReadDto.ReservationCount))]
     public partial global::Vitarish.Appointments.Domain.Dto.SessionWriteDto ToWrite(global::Vitarish.Appointments.Domain.Dto.SessionReadDto src);
