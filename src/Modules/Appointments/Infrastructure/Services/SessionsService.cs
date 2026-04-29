@@ -71,7 +71,7 @@ internal class SessionsService(IMediator mediator, AppointmentsDbContext dbConte
     private async Task EnrichWithReservationCountsAsync(
         IReadOnlyList<SessionReadDto> sessions, CancellationToken cancellationToken)
     {
-        Guid[] sessionIds = [.. sessions.Select(s => s.Id)];
+        HashSet<Guid> sessionIds = [.. sessions.Select(s => s.Id)];
 
         var counts = await dbContext.Appointments
             .AsNoTracking()

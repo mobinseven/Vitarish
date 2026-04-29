@@ -79,7 +79,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
 
-            _ = entity.HasIndex(e => e.SessionId);
+            _ = entity.HasIndex(e => e.SessionId).HasDatabaseName("IX_Appointments_SessionId");
 
             _ = entity.HasOne<Session>()
                 .WithMany()
