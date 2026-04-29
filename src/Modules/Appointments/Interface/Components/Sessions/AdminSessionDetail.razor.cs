@@ -31,7 +31,7 @@ public partial class AdminSessionDetail : SessionsBase
             return;
         }
 
-        await SessionsService.CancelAsync(current.Id, CancellationToken.None);
+        await SessionsService.UpdateAsync(current.ToWrite(), CancellationToken.None);
 
         SessionReadDto? updated = await SessionsService.GetAsync(current.Id, CancellationToken.None).GetValueOrDefaultAsync();
         if (updated is not null)

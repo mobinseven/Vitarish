@@ -54,12 +54,6 @@ internal class SessionsService(IMediator mediator, AppointmentsDbContext dbConte
         return EntityResult<int>.Success(session.Capacity - reservationCount);
     }
 
-    public async Task<EntityResult> CancelAsync(Guid id, CancellationToken cancellationToken)
-    {
-        await mediator.Send(new CancelSessionCommand(id), cancellationToken);
-        return EntityResult.Success();
-    }
-
     // ── Helpers ────────────────────────────────────────────────────────────────
 
     private Task<int> CountReservationsAsync(Guid sessionId, CancellationToken cancellationToken)

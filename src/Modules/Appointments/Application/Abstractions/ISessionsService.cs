@@ -6,5 +6,4 @@ public interface ISessionsService : IEntityService<SessionReadDto, SessionWriteD
 {
     Task<EntityResult<int>> GetAvailableCapacityAsync(Guid sessionId, CancellationToken cancellationToken);
 
-    Task<EntityResult> CancelAsync(Guid id, CancellationToken cancellationToken);
 }

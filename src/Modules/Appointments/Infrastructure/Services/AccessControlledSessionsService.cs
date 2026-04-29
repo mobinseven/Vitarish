@@ -57,14 +57,11 @@ internal class AccessControlledSessionsService(
     public Task<EntityResult> RemoveByDescriptorAsync(SessionDescriptorDto descriptor, CancellationToken cancellationToken)
         => IsAdmin ? sessionsService.RemoveByDescriptorAsync(descriptor, cancellationToken) : throw AdminRoleRequired;
 
-    public Task<EntityResult> CancelAsync(Guid id, CancellationToken cancellationToken)
-        => IsAdmin ? sessionsService.CancelAsync(id, cancellationToken) : throw AdminRoleRequired;
-
     // ── Helpers ────────────────────────────────────────────────────────────────
 
     /// <summary>
     /// Non-admin callers only see active sessions.
     /// </summary>
     private SessionDescriptorDto ScopeDescriptor(SessionDescriptorDto descriptor)
-        => IsAdmin ? descriptor : descriptor with { Status = SessionStatus.Active };
+        => descriptor;
 }
