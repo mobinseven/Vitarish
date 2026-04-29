@@ -32,8 +32,6 @@ internal class SessionRepository(AppointmentsDbContext dbContext)
                 (SessionSortBy.ScheduledAt, false) => query.OrderBy(s => s.ScheduledAt),
                 (SessionSortBy.Capacity, true) => query.OrderByDescending(s => s.Capacity),
                 (SessionSortBy.Capacity, false) => query.OrderBy(s => s.Capacity),
-                (SessionSortBy.Name, true) => query.OrderByDescending(s => s.Name),
-                (SessionSortBy.Name, false) => query.OrderBy(s => s.Name),
                 _ => query
             };
         }

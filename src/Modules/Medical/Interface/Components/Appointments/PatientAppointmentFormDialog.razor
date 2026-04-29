@@ -11,8 +11,7 @@
                 {
                     int available = session.Capacity - session.ReservationCount;
                     <MudSelectItem T="Guid?" Value="@((Guid?)session.Id)">
-                        @(string.IsNullOrWhiteSpace(session.Name) ? session.ScheduledAt.ToString("f") : session.Name)
-                        — @session.ScheduledAt.ToString("f")
+                        @session.ScheduledAt.ToString("f")
                         (@available @Localizer["Available"])
                     </MudSelectItem>
                 }

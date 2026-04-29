@@ -2,7 +2,7 @@
 @using Vitarish.Main.Components
 
 <TitleContainer>
-    <PageTitle>@(session?.Name ?? Localizer["SessionDetail"].Value)</PageTitle>
+    <PageTitle>@(session?.ScheduledAt.ToString("f") ?? Localizer["SessionDetail"].Value)</PageTitle>
     <Breadcrumbs>
         <BreadcrumbItem Icon="fa-regular fa-calendar" Href="/appointments">@Localizer["Appointments"]</BreadcrumbItem>
         <BreadcrumbItem Icon="fa-regular fa-calendar-days" Href="/appointments/sessions">@Localizer["Sessions"]</BreadcrumbItem>

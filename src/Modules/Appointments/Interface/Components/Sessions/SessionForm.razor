@@ -3,9 +3,6 @@
 @if (Plugin is null)
 {
     <Stack>
-        <StackTextField @bind-Value="sessionWriteDto.Name" Label="@Localizer["Name"]" />
-        <StackTextField @bind-Value="sessionWriteDto.Description" AutoGrow Lines="3" Label="@Localizer["Description"]" />
-        <StackTextField @bind-Value="sessionWriteDto.AvatarUrl" Label="@Localizer["AvatarUrl"]" />
         <StackDatePicker @bind-Date="scheduledAtDate" Label="@Localizer["Date"]" />
         <StackTimePicker @bind-Time="scheduledAtTime" Label="@Localizer["Time"]" />
         <MudNumericField @bind-Value="sessionWriteDto.Capacity" Label="@Localizer["Capacity"]" Min="1" Variant="Variant.Outlined" />

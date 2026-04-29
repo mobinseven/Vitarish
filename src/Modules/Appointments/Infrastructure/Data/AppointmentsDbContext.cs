@@ -90,13 +90,11 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
 
         _ = modelBuilder.Entity<Session>(entity =>
         {
-            _ = entity.Property(e => e.Name)
-                .HasColumnType("nvarchar(256)");
-
-            _ = entity.Property(e => e.Description)
-                .HasColumnType("nvarchar(max)");
-
-            _ = entity.Property(e => e.AvatarUrl)
+            _ = entity.Property(e => e.Metadata)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
+                .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
         });
 

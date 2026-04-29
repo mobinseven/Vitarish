@@ -88,9 +88,6 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("AvatarUrl")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("Capacity")
                         .HasColumnType("int");
 
@@ -106,14 +103,11 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.Property<string>("DeletedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Description")
+                    b.Property<string>("Metadata")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(256)
-                        .HasColumnType("nvarchar(256)");
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("nvarchar(max)")
+                        .HasDefaultValueSql("'{}'");
 
                     b.Property<DateTimeOffset>("ScheduledAt")
                         .HasColumnType("datetimeoffset");

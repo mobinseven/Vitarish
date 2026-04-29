@@ -25,7 +25,7 @@
             @foreach (var session in sessions)
             {
                 <StackButton OnClick="() => OnClicked.InvokeAsync(session.Id)"
-                             Label="@(string.IsNullOrWhiteSpace(session.Name) ? session.ScheduledAt.ToString("f") : session.Name)"
+                             Label="@session.ScheduledAt.ToString("f")"
                              HelperText="@session.ScheduledAt.ToString("f")"
                              HighlightString="@SearchString">
                     <SessionStatusBadge Status="@session.Status" />

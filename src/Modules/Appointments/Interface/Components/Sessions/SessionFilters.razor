@@ -43,12 +43,6 @@
             new(
                 () => Localizer["CapacityDescending"],
                 () => ApplyFilter(descriptor with { SortBy = SessionSortBy.Capacity, Descending = true })),
-            new(
-                () => Localizer["NameAscending"],
-                () => ApplyFilter(descriptor with { SortBy = SessionSortBy.Name, Descending = false })),
-            new(
-                () => Localizer["NameDescending"],
-                () => ApplyFilter(descriptor with { SortBy = SessionSortBy.Name, Descending = true })),
         ];
     }
 

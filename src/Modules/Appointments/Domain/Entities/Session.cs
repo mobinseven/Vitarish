@@ -14,23 +14,11 @@ public class Session : Entity
         set => SetField(ref field, value, nameof(Capacity));
     }
 
-    public string Name
+    public Dictionary<string, object?> Metadata
     {
         get;
-        set => SetField(ref field, value, nameof(Name));
-    } = string.Empty;
-
-    public string Description
-    {
-        get;
-        set => SetField(ref field, value, nameof(Description));
-    } = string.Empty;
-
-    public string? AvatarUrl
-    {
-        get;
-        set => SetField(ref field, value, nameof(AvatarUrl));
-    }
+        set => SetField(ref field, value, nameof(Metadata));
+    } = [];
 
     public SessionStatus Status
     {
