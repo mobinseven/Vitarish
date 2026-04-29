@@ -2,9 +2,9 @@
 
 <Stack>
     <StackButton Color="Color.Primary"
-                 OnClick="@(() => NavigationManager.NavigateTo("/appointments/new"))"
-                 StartIcon="fa-regular fa-calendar-plus"
-                 Label="@Localizer["BookAppointment"]" />
+                 OnClick="@(() => NavigationManager.NavigateTo("/appointments/sessions"))"
+                 StartIcon="fa-regular fa-calendar-days"
+                 Label="@Localizer["BrowseSessions"]" />
 </Stack>
 <AppointmentsList OnClicked="@(id => NavigationManager.NavigateTo($"/appointments/{id}"))" />
 @code {

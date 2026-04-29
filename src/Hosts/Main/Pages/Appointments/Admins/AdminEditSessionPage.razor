@@ -1,0 +1,37 @@
+@page "/appointments/admin/sessions/{sessionId}/edit"
+@using Vitarish.Main.Components
+
+<TitleContainer>
+    <PageTitle>@Localizer["EditItem", Localizer["Session"]]</PageTitle>
+    <Breadcrumbs>
+        <BreadcrumbItem Icon="fa-regular fa-calendar" Href="/appointments/admin">@Localizer["Appointments"]</BreadcrumbItem>
+        <BreadcrumbItem Icon="fa-regular fa-calendar-days" Href="/appointments/admin/sessions">@Localizer["Sessions"]</BreadcrumbItem>
+        <BreadcrumbItem Href="@($"/appointments/admin/sessions/{sessionId}")">@Localizer["Detail"]</BreadcrumbItem>
+        <BreadcrumbItem Icon="fa-regular fa-calendar-pen">@Localizer["Edit"]</BreadcrumbItem>
+    </Breadcrumbs>
+</TitleContainer>
+
+@if (session is null)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else
+{
+    <SessionForm Session="@session"
+                 OnSaved="@(id => NavigationManager.NavigateTo($"/appointments/admin/sessions/{id}"))"
+                 OnCancelled="@(() => NavigationManager.NavigateTo($"/appointments/admin/sessions/{sessionId}"))" />
+}
+
+@code {
+    [Parameter] public string sessionId { get; set; } = string.Empty;
+
+    private SessionReadDto? session;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Guid.TryParse(sessionId, out Guid id))
+        {
+            session = await SessionsService.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+        }
+    }
+}

@@ -1,0 +1,41 @@
+@inherits SessionsBase
+
+@if (current is null)
+{
+    return;
+}
+
+<Stack>
+    @if (!string.IsNullOrWhiteSpace(current.AvatarUrl))
+    {
+        <MudImage Src="@current.AvatarUrl" Alt="@current.Name" Class="mx-auto" Height="100" ObjectFit="ObjectFit.Cover" />
+    }
+    @if (!string.IsNullOrWhiteSpace(current.Name))
+    {
+        <StackField Label="@current.Name" HelperText="@Localizer["Name"]">
+            <SessionStatusBadge Status="@current.Status" />
+        </StackField>
+    }
+    else
+    {
+        <StackField Label="@current.ScheduledAt.ToString("f")" HelperText="@Localizer["ScheduledAt"]">
+            <SessionStatusBadge Status="@current.Status" />
+        </StackField>
+    }
+    @if (!string.IsNullOrWhiteSpace(current.Description))
+    {
+        <StackField Label="@current.Description" HelperText="@Localizer["Description"]" />
+    }
+    <StackField Label="@current.ScheduledAt.ToString("f")" HelperText="@Localizer["ScheduledAt"]" />
+    <StackField Label="@((current.Capacity - current.ReservationCount).ToString())" HelperText="@Localizer["AvailableSeats"]" />
+</Stack>
+
+@if (current.Status is SessionStatus.Active && current.Capacity > current.ReservationCount)
+{
+    <Stack>
+        <StackButton Color="Color.Primary"
+                     Label="@Localizer["ReserveASeat"]"
+                     EndIcon="fa-regular fa-calendar-plus"
+                     OnClick="OnReserve" />
+    </Stack>
+}

@@ -3,8 +3,25 @@
 @if (Plugin is null)
 {
     <Stack>
-        <StackDatePicker @bind-Date="scheduledAtDate" Label="@Localizer["Date"]" />
-        <StackTimePicker @bind-Time="scheduledAtTime" Label="@Localizer["Time"]" />
+        <StackSelect T="Guid?"
+                     Value="@appointmentWriteDto.SessionId"
+                     ValueChanged="@(id => SelectSession(id))"
+                     Label="@Localizer["Session"]">
+            @foreach (var session in availableSessions)
+            {
+                int available = session.Capacity - session.ReservationCount;
+                <MudSelectItem T="Guid?" Value="@((Guid?)session.Id)">
+                    @(string.IsNullOrWhiteSpace(session.Name) ? session.ScheduledAt.ToString("f") : session.Name)
+                    — @session.ScheduledAt.ToString("f")
+                    (@available @Localizer["Available"])
+                </MudSelectItem>
+            }
+        </StackSelect>
+        @if (selectedSession is not null)
+        {
+            <StackField Label="@selectedSession.ScheduledAt.ToString("f")" HelperText="@Localizer["ScheduledAt"]" />
+            <StackField Label="@((selectedSession.Capacity - selectedSession.ReservationCount).ToString())" HelperText="@Localizer["AvailableSeats"]" />
+        }
         <StackTextField @bind-Value="appointmentWriteDto.Notes" AutoGrow Lines=3 Label="@Localizer["Notes"]" />
     </Stack>
     <Stack>

@@ -3,8 +3,24 @@
 <MudDialog>
     <DialogContent>
         <Stack>
-            <StackDatePicker @bind-Date="scheduledAtDate" Label="@Localizer["Date"]" />
-            <StackTimePicker @bind-Time="scheduledAtTime" Label="@Localizer["Time"]" />
+            <StackSelect T="Guid?"
+                         Value="@selectedSessionId"
+                         ValueChanged="@(id => SelectSession(id))"
+                         Label="@Localizer["Session"]">
+                @foreach (var session in availableSessions)
+                {
+                    int available = session.Capacity - session.ReservationCount;
+                    <MudSelectItem T="Guid?" Value="@((Guid?)session.Id)">
+                        @(string.IsNullOrWhiteSpace(session.Name) ? session.ScheduledAt.ToString("f") : session.Name)
+                        — @session.ScheduledAt.ToString("f")
+                        (@available @Localizer["Available"])
+                    </MudSelectItem>
+                }
+            </StackSelect>
+            @if (selectedSession is not null)
+            {
+                <StackField Label="@selectedSession.ScheduledAt.ToString("f")" HelperText="@Localizer["ScheduledAt"]" />
+            }
             <StackTextField @bind-Value="notes" AutoGrow Lines=3 Label="@Localizer["Notes"]" />
         </Stack>
         <Stack>
@@ -20,21 +36,43 @@
     [Parameter, EditorRequired] public Guid SubjectId { get; set; }
 
     [Inject] private IAccessControlledAppointmentsService AppointmentsService { get; set; } = default!;
+    [Inject] private IAccessControlledSessionsService SessionsService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
-    private DateTime? scheduledAtDate = DateTime.Now.Date;
-    private TimeSpan? scheduledAtTime = DateTime.Now.ToLocalTime().TimeOfDay;
+    private List<SessionReadDto> availableSessions = [];
+    private SessionReadDto? selectedSession;
+    private Guid? selectedSessionId;
     private string? notes;
+
+    protected override async Task OnInitializedAsync()
+    {
+        SessionDescriptorDto descriptor = new()
+        {
+            Status = SessionStatus.Active,
+            Skip = 0,
+            Take = int.MaxValue
+        };
+
+        IReadOnlyList<SessionReadDto> sessions = await SessionsService
+            .GetListAsync(descriptor, CancellationToken.None)
+            .GetValueOrDefaultAsync() ?? [];
+
+        availableSessions = [.. sessions.OrderBy(s => s.ScheduledAt)];
+    }
+
+    private void SelectSession(Guid? sessionId)
+    {
+        selectedSessionId = sessionId;
+        selectedSession = sessionId is not null
+            ? availableSessions.FirstOrDefault(s => s.Id == sessionId)
+            : null;
+    }
 
     private async Task SaveAsync()
     {
-        DateTimeOffset scheduledAt = scheduledAtDate.HasValue
-            ? new DateTimeOffset(scheduledAtDate.Value.Add(scheduledAtTime ?? TimeSpan.Zero), DateTimeOffset.Now.Offset)
-            : DateTimeOffset.Now;
-
         AppointmentWriteDto dto = new()
         {
-            ScheduledAt = scheduledAt,
+            SessionId = selectedSessionId,
             Notes = notes
         };
         dto.Metadata[MetadataKeys.SubjectId] = SubjectId.ToString();

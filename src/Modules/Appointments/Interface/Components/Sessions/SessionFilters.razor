@@ -1,0 +1,60 @@
+@inherits CommonBase
+
+<StackExpandable Label="@Localizer["Filters"]" StartIcon="fa-regular fa-sliders">
+    <StackDatePicker Label="@Localizer["DateFrom"]"
+                     Date="@descriptor.DateFrom?.LocalDateTime"
+                     DateChanged="@(d => ApplyFilter(descriptor with { DateFrom = d.HasValue ? new DateTimeOffset(d.Value, DateTimeOffset.Now.Offset) : null }))" />
+    <StackDatePicker Label="@Localizer["DateTo"]"
+                     Date="@descriptor.DateTo?.LocalDateTime"
+                     DateChanged="@(d => ApplyFilter(descriptor with { DateTo = d.HasValue ? new DateTimeOffset(d.Value, DateTimeOffset.Now.Offset) : null }))" />
+    <StackSelect T="SessionStatus?" Label="@Localizer["SessionStatusFilter"]"
+                 Value="@descriptor.Status"
+                 ValueChanged="@(v => ApplyFilter(descriptor with { Status = v }))">
+        <MudSelectItem T="SessionStatus?" Value="null">@Localizer["None"]</MudSelectItem>
+        @foreach (var status in Enum.GetValues<SessionStatus>())
+        {
+            <MudSelectItem T="SessionStatus?" Value="status">@Localizer[status.ToString()]</MudSelectItem>
+        }
+    </StackSelect>
+    <StackSort Methods="sortMethods" />
+</StackExpandable>
+
+@code {
+    [Parameter] public SessionDescriptorDto Descriptor { get; set; } = new();
+    [Parameter] public EventCallback<SessionDescriptorDto> DescriptorChanged { get; set; }
+
+    private SessionDescriptorDto descriptor = new();
+    private SortMethod[] sortMethods = [];
+
+    protected override void OnInitialized()
+    {
+        descriptor = Descriptor;
+        sortMethods =
+        [
+            new(
+                () => Localizer["DateAscending"],
+                () => ApplyFilter(descriptor with { SortBy = SessionSortBy.ScheduledAt, Descending = false })),
+            new(
+                () => Localizer["DateDescending"],
+                () => ApplyFilter(descriptor with { SortBy = SessionSortBy.ScheduledAt, Descending = true })),
+            new(
+                () => Localizer["CapacityAscending"],
+                () => ApplyFilter(descriptor with { SortBy = SessionSortBy.Capacity, Descending = false })),
+            new(
+                () => Localizer["CapacityDescending"],
+                () => ApplyFilter(descriptor with { SortBy = SessionSortBy.Capacity, Descending = true })),
+            new(
+                () => Localizer["NameAscending"],
+                () => ApplyFilter(descriptor with { SortBy = SessionSortBy.Name, Descending = false })),
+            new(
+                () => Localizer["NameDescending"],
+                () => ApplyFilter(descriptor with { SortBy = SessionSortBy.Name, Descending = true })),
+        ];
+    }
+
+    private void ApplyFilter(SessionDescriptorDto updated)
+    {
+        descriptor = updated;
+        DescriptorChanged.InvokeAsync(descriptor);
+    }
+}

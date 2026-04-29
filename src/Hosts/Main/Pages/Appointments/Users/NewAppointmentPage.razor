@@ -1,6 +1,13 @@
 @page "/appointments/new"
 
+@code {
+    [SupplyParameterFromQuery]
+    [Parameter]
+    public string? sessionId { get; set; }
+}
+
 <CascadingValue Value="false">
-    <AppointmentForm OnSaved="@(id => NavigationManager.NavigateTo($"/appointments/{id}"))"
-                     OnCancelled="@(() => NavigationManager.NavigateTo("/appointments"))" />
+    <AppointmentForm PreselectedSessionId="@(Guid.TryParse(sessionId, out var preId) ? preId : null)"
+                     OnSaved="@(id => NavigationManager.NavigateTo($"/appointments/{id}"))"
+                     OnCancelled="@(() => NavigationManager.NavigateTo("/appointments/sessions"))" />
 </CascadingValue>

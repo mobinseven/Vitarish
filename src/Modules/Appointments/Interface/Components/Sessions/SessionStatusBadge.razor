@@ -1,0 +1,16 @@
+@inherits CommonBase
+
+<MudChip T="string" Color="@StatusColor" Size="Size.Small" Variant="Variant.Filled">
+    @Localizer[Status.ToString()]
+</MudChip>
+
+@code {
+    [Parameter, EditorRequired] public SessionStatus Status { get; set; }
+
+    private Color StatusColor => Status switch
+    {
+        SessionStatus.Active => Color.Success,
+        SessionStatus.Cancelled => Color.Error,
+        _ => Color.Default
+    };
+}
