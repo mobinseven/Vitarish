@@ -1,0 +1,39 @@
+@page "/appointments/sessions/{sessionId}"
+
+@inject IAccessControlledSessionsService SessionsService
+
+@if (session is null)
+{
+    return;
+}
+
+<CascadingValue Value="false">
+    <SessionDetail Session="@session" OnReserved="ReloadRequired" OnCancelled="ReloadRequired" />
+</CascadingValue>
+
+@code {
+    [Parameter] public string? sessionId { get; set; }
+
+    private AppointmentSessionReadDto? session;
+
+    protected override async Task ReloadRequired()
+    {
+        if (!Guid.TryParse(sessionId, out Guid id))
+        {
+            NavigationManager.NavigateTo("/appointments/sessions");
+            return;
+        }
+
+        session = await SessionsService.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (session is null)
+        {
+            NavigationManager.NavigateTo("/appointments/sessions");
+            return;
+        }
+
+        NavService.OverridePageTitle(id.ToString(), session.DateTime.ToString("f"));
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

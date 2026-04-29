@@ -7,5 +7,6 @@ global using Vitarish.Interfaces.Base.Common;
 global using Vitarish.Appointments.Application.Abstractions;
 global using Vitarish.Appointments.Domain.Dto;
 global using Vitarish.Appointments.Domain.Enums;
+global using Vitarish.Appointments.Domain.Models;
 global using Vitarish.Appointments.Interface.Components.Base;
 global using Vitarish.Appointments.Interface.Plugins;

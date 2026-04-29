@@ -31,6 +31,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
     public TenantNotSetMode TenantNotSetMode { get; set; } = TenantNotSetMode.Throw;
 
     public DbSet<Appointment> Appointments => Set<Appointment>();
+    public DbSet<AppointmentSession> Sessions => Set<AppointmentSession>();
 
     public AppointmentsDbContext(
         DbContextOptions<AppointmentsDbContext> options,
@@ -67,6 +68,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
         _ = modelBuilder.ConfigureMultiTenant();
 
         ConfigureTenantEntity<Appointment>(modelBuilder);
+        ConfigureTenantEntity<AppointmentSession>(modelBuilder);
 
         _ = modelBuilder.Entity<Appointment>(entity =>
         {
@@ -76,6 +78,18 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
                     v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
+        });
+
+        _ = modelBuilder.Entity<AppointmentSession>(entity =>
+        {
+            _ = entity.Property(e => e.Metadata)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
+                .HasDefaultValueSql("'{}'")
+                .HasColumnType("nvarchar(max)");
+
+            _ = entity.Ignore(e => e.Stats);
         });
 
         if (Database.IsSqlite())

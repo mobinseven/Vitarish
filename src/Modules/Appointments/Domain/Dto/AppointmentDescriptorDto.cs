@@ -20,4 +20,8 @@ public record AppointmentDescriptorDto : EntityDescriptorDto
 
     [JsonPropertyName("descending")]
     public bool Descending { get; set; } = true;
+
+    [JsonPropertyName("sessionId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? SessionId { get; set; }
 }

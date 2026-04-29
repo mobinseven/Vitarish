@@ -9,6 +9,7 @@ public static class DependencyInjectionExtensions
     {
         _ = services.AddVitarishAppointmentsInfrastructure();
         _ = services.AddTransient<IAccessControlledAppointmentsService, AccessControlledAppointmentsService>();
+        _ = services.AddTransient<IAccessControlledSessionsService, AccessControlledSessionsService>();
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AppointmentsDbContext).Assembly));
         return services;
     }

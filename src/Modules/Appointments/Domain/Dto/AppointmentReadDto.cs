@@ -7,4 +7,6 @@ public record AppointmentReadDto : EntityReadDto
     public AppointmentStatus Status { get; set; }
 
     public string Notes { get; set; } = string.Empty;
+
+    public Guid? SessionId { get; set; }
 }

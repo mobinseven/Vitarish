@@ -7,4 +7,6 @@ public record AppointmentWriteDto : EntityWriteDto
     public AppointmentStatus Status { get; set; }
 
     public string? Notes { get; set; }
+
+    public Guid? SessionId { get; set; }
 }

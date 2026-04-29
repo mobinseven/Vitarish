@@ -1,0 +1,35 @@
+@inherits SessionsBase
+
+@if (current is null)
+{
+    return;
+}
+
+<Stack>
+    <StackField Label="@current.DateTime.ToString("f")" HelperText="@Localizer["SessionDateTime"]">
+        <SessionStatusBadge Status="@current.Status" />
+    </StackField>
+    <StackField Label="@($"{current.Stats.ReservationCount} / {current.Capacity}")" HelperText="@Localizer["Capacity"]" />
+</Stack>
+
+@if (current.Status == AppointmentSessionStatus.Open)
+{
+    @if (hasReservation)
+    {
+        <Stack>
+            <StackButton Color="Color.Error"
+                         Label="@Localizer["CancelReservation"]"
+                         EndIcon="fa-regular fa-calendar-xmark"
+                         OnClick="CancelReservationAsync" />
+        </Stack>
+    }
+    else if (current.Stats.ReservationCount < current.Capacity)
+    {
+        <Stack>
+            <StackButton Color="Color.Primary"
+                         Label="@Localizer["Reserve"]"
+                         EndIcon="fa-regular fa-calendar-check"
+                         OnClick="ReserveAsync" />
+        </Stack>
+    }
+}
