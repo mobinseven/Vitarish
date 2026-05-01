@@ -8,4 +8,5 @@ public record AppointmentDescriptor : EntityDescriptor
     public DateTimeOffset? DateTo { get; init; }
     public AppointmentSortBy? SortBy { get; init; }
     public bool Descending { get; init; }
+    public Guid? SessionId { get; init; }
 }

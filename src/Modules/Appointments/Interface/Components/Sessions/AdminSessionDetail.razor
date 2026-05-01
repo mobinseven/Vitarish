@@ -1,0 +1,57 @@
+@inherits SessionsBase
+
+@if (current is null)
+{
+    return;
+}
+
+<Stack>
+    <StackField Label="@current.DateTime.ToString("f")" HelperText="@Localizer["SessionDateTime"]">
+        <SessionStatusBadge Status="@current.Status" />
+    </StackField>
+    <StackField Label="@($"{current.Stats.ReservationCount} / {current.Capacity}")" HelperText="@Localizer["Capacity"]" />
+    @if (!string.IsNullOrWhiteSpace(current.CreatedBy))
+    {
+        <StackField Label="@current.CreatedBy" HelperText="@Localizer["User"]" />
+    }
+</Stack>
+
+@switch (current.Status)
+{
+    case AppointmentSessionStatus.Open:
+    case AppointmentSessionStatus.Full:
+    <Stack>
+        <StackButton Label="@Localizer["EditItem", Localizer["Session"]]"
+                     EndIcon="fa-regular fa-calendar-pen"
+                     OnClick="OnEdit" />
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelItem", Localizer["Session"]]"
+                     EndIcon="fa-regular fa-calendar-xmark"
+                     OnClick="@(() => ChangeStatusAsync(AppointmentSessionStatus.Cancelled))" />
+        <StackButton Color="Color.Dark"
+                     Label="@Localizer["CompleteItem", Localizer["Session"]]"
+                     EndIcon="fa-regular fa-check"
+                     OnClick="@(() => ChangeStatusAsync(AppointmentSessionStatus.Completed))" />
+    </Stack>
+    break;
+
+    case AppointmentSessionStatus.Cancelled:
+    case AppointmentSessionStatus.Completed:
+        // No actions for terminal statuses
+        break;
+
+    default:
+        break;
+}
+
+@if (linkedAppointments.Count > 0)
+{
+    <Stack>
+        @foreach (var appointment in linkedAppointments)
+        {
+            <StackField Label="@appointment.ScheduledAt.ToString("g")" HelperText="@appointment.CreatedBy">
+                <AppointmentStatusBadge Status="@appointment.Status" />
+            </StackField>
+        }
+    </Stack>
+}

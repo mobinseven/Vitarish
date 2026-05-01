@@ -1,0 +1,11 @@
+@page "/appointments/sessions"
+
+@inject IAccessControlledSessionsService SessionsService
+
+<CascadingValue Value="false">
+    <SessionsList OnClicked="@(id => NavigationManager.NavigateTo($"/appointments/sessions/{id}"))" />
+</CascadingValue>
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}

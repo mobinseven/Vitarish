@@ -38,6 +38,11 @@ internal class AppointmentRepository(AppointmentsDbContext dbContext)
             };
         }
 
+        if (descriptor.SessionId is { } sessionId)
+        {
+            query = query.Where(a => a.SessionId == sessionId);
+        }
+
         return query;
     }
 

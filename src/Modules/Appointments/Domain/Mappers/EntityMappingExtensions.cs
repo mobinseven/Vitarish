@@ -12,4 +12,12 @@ public static partial class EntityMappingExtensions
     public static global::Vitarish.Appointments.Domain.Dto.AppointmentWriteDto ToWrite(this global::Vitarish.Appointments.Domain.Dto.AppointmentReadDto dto) => Mapper.ToWrite(dto);
 
     public static global::Vitarish.Appointments.Domain.Models.AppointmentDescriptor ToDomain(this global::Vitarish.Appointments.Domain.Dto.AppointmentDescriptorDto dto) => Mapper.ToDomain(dto);
+
+    public static global::Vitarish.Appointments.Domain.Dto.AppointmentSessionReadDto ToDto(this global::Vitarish.Appointments.Domain.Entities.AppointmentSession entity) => Mapper.ToDto(entity);
+
+    public static global::Vitarish.Appointments.Domain.Entities.AppointmentSession ToDomain(this global::Vitarish.Appointments.Domain.Dto.AppointmentSessionWriteDto dto) => Mapper.ToDomain(dto);
+
+    public static global::Vitarish.Appointments.Domain.Dto.AppointmentSessionWriteDto ToWrite(this global::Vitarish.Appointments.Domain.Dto.AppointmentSessionReadDto dto) => Mapper.ToWrite(dto);
+
+    public static global::Vitarish.Appointments.Domain.Models.AppointmentSessionDescriptor ToDomain(this global::Vitarish.Appointments.Domain.Dto.AppointmentSessionDescriptorDto dto) => Mapper.ToDomain(dto);
 }

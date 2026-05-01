@@ -1,0 +1,39 @@
+@page "/appointments/admin/sessions/{sessionId}/edit"
+
+@inject IAccessControlledSessionsService SessionsService
+
+@if (session is null)
+{
+    return;
+}
+
+<CascadingValue Value="true">
+    <SessionForm Session="@session"
+                 OnSaved="@(id => NavigationManager.NavigateTo($"/appointments/admin/sessions/{id}"))"
+                 OnCancelled="@(() => NavigationManager.NavigateTo($"/appointments/admin/sessions/{sessionId}"))" />
+</CascadingValue>
+
+@code {
+    [Parameter] public string? sessionId { get; set; }
+
+    private AppointmentSessionReadDto? session;
+
+    protected override async Task ReloadRequired()
+    {
+        if (!Guid.TryParse(sessionId, out Guid id))
+        {
+            NavigationManager.NavigateTo("/appointments/admin/sessions");
+            return;
+        }
+
+        session = await SessionsService.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (session is null)
+        {
+            NavigationManager.NavigateTo("/appointments/admin/sessions");
+            return;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

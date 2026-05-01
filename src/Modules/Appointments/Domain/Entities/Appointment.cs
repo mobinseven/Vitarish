@@ -25,4 +25,10 @@ public class Appointment : Entity
         get;
         set => SetField(ref field, value, nameof(Metadata));
     } = [];
+
+    public Guid? SessionId
+    {
+        get;
+        set => SetField(ref field, value, nameof(SessionId));
+    }
 }
