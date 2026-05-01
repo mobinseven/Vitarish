@@ -31,7 +31,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
     public TenantNotSetMode TenantNotSetMode { get; set; } = TenantNotSetMode.Throw;
 
     public DbSet<Appointment> Appointments => Set<Appointment>();
-    public DbSet<AppointmentSession> Sessions => Set<AppointmentSession>();
+    public DbSet<AppointmentSession> AppointmentSessions => Set<AppointmentSession>();
 
     public AppointmentsDbContext(
         DbContextOptions<AppointmentsDbContext> options,

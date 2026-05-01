@@ -3,13 +3,13 @@ using Vitarish.Requests.Application.Abstractions;
 namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
-internal class SessionsService(IMediator mediator, IRequestContext requestContext)
+internal class AppointmentSessionsService(IMediator mediator, IRequestContext requestContext)
     : EntityService<AppointmentSession, AppointmentSessionDescriptor, AppointmentSessionReadDto, AppointmentSessionWriteDto, AppointmentSessionDescriptorDto>(
         mediator,
         session => session.ToDto(),
         session => session.ToDomain(),
         session => session.ToDomain()),
-      ISessionsService
+      IAppointmentSessionsService
 {
     public async Task<EntityResult> ReserveAsync(Guid sessionId, CancellationToken cancellationToken)
     {

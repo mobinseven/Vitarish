@@ -1,7 +1,7 @@
 namespace Vitarish.Appointments.Infrastructure.Repositories;
 
 [RegisterTransient]
-internal class SessionRepository(AppointmentsDbContext dbContext)
+internal class AppointmentSessionRepository(AppointmentsDbContext dbContext)
     : EntityRepository<AppointmentSession, AppointmentSessionDescriptor, AppointmentsDbContext>(dbContext),
       IEntityRepository<AppointmentSession, AppointmentSessionDescriptor>
 {

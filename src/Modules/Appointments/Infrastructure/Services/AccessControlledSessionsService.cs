@@ -5,7 +5,7 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 
 internal class AccessControlledSessionsService(
     IRequestContext requestContext,
-    ISessionsService sessionsService) : IAccessControlledSessionsService
+    IAppointmentSessionsService sessionsService) : IAccessControlledSessionsService
 {
     private bool IsAdmin => requestContext.IsTenantAdmin() || requestContext.IsTenantOwner();
 
