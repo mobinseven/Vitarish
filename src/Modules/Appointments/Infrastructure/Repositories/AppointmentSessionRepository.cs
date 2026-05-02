@@ -75,10 +75,9 @@ internal class AppointmentSessionRepository(AppointmentsDbContext dbContext)
         }
 
         Dictionary<Guid, int> counts = await dbContext.Appointments
-            .Where(a => a.SessionId != null
-                     && sessionIds.Contains(a.SessionId.Value)
+            .Where(a => sessionIds.Contains(a.SessionId)
                      && a.Status != AppointmentStatus.Cancelled)
-            .GroupBy(a => a.SessionId!.Value)
+            .GroupBy(a => a.SessionId)
             .Select(g => new { SessionId = g.Key, Count = g.Count() })
             .ToDictionaryAsync(x => x.SessionId, x => x.Count, cancellationToken);
 

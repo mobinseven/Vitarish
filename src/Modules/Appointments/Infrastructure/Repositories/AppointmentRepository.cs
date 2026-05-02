@@ -16,35 +16,41 @@ internal class AppointmentRepository(AppointmentsDbContext dbContext)
             query = query.Where(a => a.Status == status);
         }
 
-        if (descriptor.DateFrom is { } dateFrom)
-        {
-            query = query.Where(a => a.ScheduledAt >= dateFrom);
-        }
-
-        if (descriptor.DateTo is { } dateTo)
-        {
-            query = query.Where(a => a.ScheduledAt <= dateTo);
-        }
-
-        if (descriptor.SortBy is { } sort)
-        {
-            query = (sort, descriptor.Descending) switch
-            {
-                (AppointmentSortBy.ScheduledAt, true) => query.OrderByDescending(a => a.ScheduledAt),
-                (AppointmentSortBy.ScheduledAt, false) => query.OrderBy(a => a.ScheduledAt),
-                (AppointmentSortBy.Status, true) => query.OrderByDescending(a => a.Status),
-                (AppointmentSortBy.Status, false) => query.OrderBy(a => a.Status),
-                _ => query
-            };
-        }
-
         if (descriptor.SessionId is { } sessionId)
         {
             query = query.Where(a => a.SessionId == sessionId);
+        }
+
+        if (descriptor.UserId is { } userId)
+        {
+            query = query.Where(a => a.UserId == userId);
         }
 
         return query;
     }
 
     protected override bool IsDuplicateKeyException(DbUpdateException exception) => false;
+
+    // Explicit interface implementations add eager-loading of Session to every read path.
+
+    async Task<Appointment?> IEntityRepository<Appointment, AppointmentDescriptor>.GetAsync(
+        Guid id, CancellationToken cancellationToken)
+    {
+        return await Set.AsNoTracking()
+            .Include(a => a.Session)
+            .FirstOrDefaultAsync(a => a.Id == id, cancellationToken);
+    }
+
+    async Task<IReadOnlyList<Appointment>> IEntityRepository<Appointment, AppointmentDescriptor>.GetAsync(
+        AppointmentDescriptor descriptor, CancellationToken cancellationToken)
+    {
+        IQueryable<Appointment> query = Apply(Set.AsNoTracking().Include(a => a.Session), descriptor);
+
+        if (query is not IOrderedQueryable<Appointment>)
+        {
+            query = query.OrderByDescending(e => e.UpdatedAt ?? e.CreatedAt);
+        }
+
+        return await query.ApplyPagination(descriptor).ToListAsync(cancellationToken);
+    }
 }

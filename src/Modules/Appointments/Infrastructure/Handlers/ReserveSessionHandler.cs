@@ -8,7 +8,7 @@ internal class ReserveSessionHandler(IEntityRepository<Appointment, AppointmentD
         Appointment appointment = new()
         {
             SessionId = request.SessionId,
-            ScheduledAt = request.SessionDateTime,
+            UserId = request.UserId,
             Status = AppointmentStatus.Pending
         };
 

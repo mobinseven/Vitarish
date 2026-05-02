@@ -13,6 +13,12 @@ internal class AppointmentSessionsService(IMediator mediator, IRequestContext re
 {
     public async Task<EntityResult> ReserveAsync(Guid sessionId, CancellationToken cancellationToken)
     {
+        string? userId = requestContext.UserId;
+        return await ReserveForUserAsync(sessionId, userId, cancellationToken);
+    }
+
+    public async Task<EntityResult> ReserveForUserAsync(Guid sessionId, string? userId, CancellationToken cancellationToken)
+    {
         EntityResult<AppointmentSession> sessionResult = await GetEntityAsync(sessionId, cancellationToken);
 
         if (sessionResult.IsFailure || sessionResult.Value is null)
@@ -35,7 +41,7 @@ internal class AppointmentSessionsService(IMediator mediator, IRequestContext re
             return EntityResult.Failure(EntityError.Conflict("Session is at full capacity."));
         }
 
-        await Mediator.Send(new ReserveSessionCommand(sessionId, session.DateTime), cancellationToken);
+        await Mediator.Send(new ReserveSessionCommand(sessionId, userId), cancellationToken);
         return EntityResult.Success();
     }
 

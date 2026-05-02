@@ -1,4 +1,0 @@
-@page "/Appointments/New"
-
-<AppointmentForm OnSaved="@(id => NavigationManager.NavigateTo($"/Appointments/{id}"))"
-                 OnCancelled="@(() => NavigationManager.NavigateTo("/Appointments"))" />

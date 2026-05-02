@@ -44,12 +44,22 @@
         break;
 }
 
+@if (AdminMode && current.Status == AppointmentSessionStatus.Open)
+{
+    <Stack>
+        <StackButton Color="Color.Primary"
+                     Label="@Localizer["AddItem", Localizer["Appointment"]]"
+                     EndIcon="fa-regular fa-calendar-plus"
+                     OnClick="AddAppointmentAsync" />
+    </Stack>
+}
+
 @if (linkedAppointments.Count > 0)
 {
     <Stack>
         @foreach (var appointment in linkedAppointments)
         {
-            <StackField Label="@appointment.ScheduledAt.ToString("g")" HelperText="@appointment.CreatedBy">
+            <StackField Label="@GetUserFullNameById(appointment.UserId)" HelperText="@Localizer["User"]">
                 <AppointmentStatusBadge Status="@appointment.Status" />
             </StackField>
         }

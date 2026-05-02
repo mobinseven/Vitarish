@@ -1,10 +1,6 @@
 @page "/Appointments"
 
 <Stack>
-    <StackButton Color="Color.Primary"
-                 OnClick="@(() => NavigationManager.NavigateTo("/Appointments/New"))"
-                 StartIcon="fa-regular fa-calendar-plus"
-                 Label="@Localizer["BookAppointment"]" />
     <StackButton Color="Color.Secondary"
                  OnClick="@(() => NavigationManager.NavigateTo("/AppointmentSessions"))"
                  StartIcon="fa-regular fa-calendar-days"

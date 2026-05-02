@@ -3,7 +3,6 @@ namespace Vitarish.Appointments.Interface.Components.Appointments;
 public partial class AppointmentDetail : AppointmentsBase
 {
     [Parameter, EditorRequired] public AppointmentReadDto Appointment { get; set; } = default!;
-    [Parameter] public EventCallback OnReschedule { get; set; }
     [Parameter] public EventCallback OnCancelled { get; set; }
 
     private AppointmentReadDto current = default!;

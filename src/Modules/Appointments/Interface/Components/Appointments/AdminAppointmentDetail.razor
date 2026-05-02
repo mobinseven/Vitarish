@@ -6,16 +6,21 @@
 }
 
 <Stack>
-    <StackField Label="@current.ScheduledAt.ToString("f")" HelperText="@Localizer["ScheduledAt"]">
-        <AppointmentStatusBadge Status="@current.Status" />
-    </StackField>
-    @if (!string.IsNullOrWhiteSpace(current.CreatedBy))
+    @if (current.Session is not null)
     {
-        <StackField Label="@current.CreatedBy" HelperText="@Localizer["User"]" />
+        <StackField Label="@current.Session.DateTime.ToString("f")" HelperText="@Localizer["SessionDateTime"]">
+            <AppointmentStatusBadge Status="@current.Status" />
+        </StackField>
     }
-    @if (!string.IsNullOrWhiteSpace(current.Notes))
+    else
     {
-        <StackField Label="@current.Notes" HelperText="@Localizer["Notes"]" />
+        <StackField Label="@Localizer["SessionUnavailable"].Value" HelperText="@Localizer["Appointment"]">
+            <AppointmentStatusBadge Status="@current.Status" />
+        </StackField>
+    }
+    @if (!string.IsNullOrWhiteSpace(current.UserId))
+    {
+        <StackField Label="@GetUserFullNameById(current.UserId)" HelperText="@Localizer["User"]" />
     }
 </Stack>
 
@@ -23,9 +28,6 @@
 {
     case AppointmentStatus.Pending:
     <Stack>
-        <StackButton Label="@Localizer["EditItem", Localizer["Appointment"]]"
-                     EndIcon="fa-regular fa-calendar-pen"
-                     OnClick="OnEdit" />
         <StackButton Color="Color.Success"
                      Label="@Localizer["ConfirmAppointment"]"
                      EndIcon="fa-regular fa-calendar-check"
@@ -65,7 +67,5 @@
         break;
 
     default:
-    // Fallback for any unexpected or future status values
-    // (matches original behavior: Cancel appears for statuses other than Completed/Cancelled/Present)
-    break;
+        break;
 }

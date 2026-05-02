@@ -40,20 +40,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.Property<string>("DeletedBy")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Metadata")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
-                        .HasDefaultValueSql("'{}'");
-
-                    b.Property<string>("Notes")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("ScheduledAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<Guid?>("SessionId")
+                    b.Property<Guid>("SessionId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Status")
@@ -70,7 +57,12 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.Property<string>("UpdatedBy")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(max)");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("SessionId");
 
                     b.ToTable("Appointments");
 
@@ -126,6 +118,17 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.ToTable("AppointmentSessions");
 
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
+                });
+
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.Appointment", b =>
+                {
+                    b.HasOne("Vitarish.Appointments.Domain.Entities.AppointmentSession", "Session")
+                        .WithMany()
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Session");
                 });
 #pragma warning restore 612, 618
         }

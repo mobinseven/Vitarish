@@ -22,7 +22,7 @@
             @foreach(var appointment in appointments)
             {
                 <StackButton OnClick="() => OnClicked.InvokeAsync(appointment.Id)"
-                             Label="@appointment.ScheduledAt.ToString("g")"
+                             Label="@(appointment.Session?.DateTime.ToString("g") ?? Localizer["SessionUnavailable"].Value)"
                              HighlightString="@SearchString">
                     <AppointmentStatusBadge Status="appointment.Status" />
                 </StackButton>

@@ -32,7 +32,7 @@ public partial class AppointmentsList : AppointmentsBase
 
         IReadOnlyList<AppointmentReadDto> items = await AppointmentsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
 
-        appointments = [.. items.OrderBy(a => a.ScheduledAt)];
+        appointments = [.. items.OrderBy(a => a.Session?.DateTime)];
 
         await InvokeAsync(StateHasChanged);
     }

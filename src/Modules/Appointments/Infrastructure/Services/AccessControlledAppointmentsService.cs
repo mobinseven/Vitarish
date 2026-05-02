@@ -21,7 +21,7 @@ internal class AccessControlledAppointmentsService(
     {
         EntityResult<AppointmentReadDto> result = await appointmentsService.GetAsync(id, cancellationToken);
 
-        if (!IsAdmin && result.Value is not null && result.Value.CreatedBy != UserId)
+        if (!IsAdmin && result.Value is not null && result.Value.UserId != UserId)
         {
             return EntityResult<AppointmentReadDto>.Failure(EntityError.NotFound("Appointment not found.", nameof(id)));
         }
@@ -100,19 +100,19 @@ internal class AccessControlledAppointmentsService(
 
     /// <summary>
     /// For non-admin users, restricts the descriptor so that only the current user's
-    /// appointments are visible, by setting <c>CreatedBy</c> to the current user ID.
+    /// appointments are visible, by setting <c>UserId</c> to the current user ID.
     /// </summary>
     private AppointmentDescriptorDto ScopeDescriptor(AppointmentDescriptorDto descriptor)
-        => IsAdmin ? descriptor : descriptor with { CreatedBy = UserId };
+        => IsAdmin ? descriptor : descriptor with { UserId = UserId };
 
     /// <summary>
     /// Fetches the appointment by <paramref name="id"/> and throws <see cref="AccessDenied"/>
-    /// if the current user is not its creator.
+    /// if the current user is not its owner.
     /// </summary>
     private async Task EnsureOwnershipAsync(Guid id, CancellationToken cancellationToken)
     {
         EntityResult<AppointmentReadDto> existing = await appointmentsService.GetAsync(id, cancellationToken);
-        if (existing.Value?.CreatedBy != UserId)
+        if (existing.Value?.UserId != UserId)
         {
             throw AccessDenied;
         }

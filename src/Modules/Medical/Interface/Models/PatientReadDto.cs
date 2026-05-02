@@ -31,4 +31,6 @@ internal record PatientReadDto : ProjectReadDto
     public string? EmergencyContactName => GetField<string>();
 
     public string? EmergencyContactPhone => GetField<string>();
+
+    public string? LinkedUserId => GetField<string>();
 }
