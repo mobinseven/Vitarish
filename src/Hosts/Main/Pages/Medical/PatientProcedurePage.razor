@@ -1,5 +1,7 @@
 @page "/Medical/Patients/{patientId}/{procedureId}"
 
+@inject IEnumerable<IMedicalProcedureSectionPlugin> ProcedureSectionPlugins
+
 @if(patient is null || procedure is null)
 {
     return;
@@ -14,6 +16,14 @@
                       Project="@patient"
                       OnUpdate="ReloadRequired"
                       OnDelete="@(() => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}"))" />
+
+    @foreach (var plugin in ProcedureSectionPlugins)
+    {
+        <Stack>
+            <StackField Label="@plugin.Label" />
+            @plugin.Render(patient, procedure)
+        </Stack>
+    }
 </CascadingValue>
 
 @code {

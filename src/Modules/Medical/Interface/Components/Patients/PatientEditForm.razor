@@ -68,6 +68,13 @@
                             Label="@Localizer["EmergencyContactName"]" />
             <StackTextField @bind-Value="projectWriteDto.EmergencyContactPhone"
                             Label="@Localizer["EmergencyContactPhone"]" />
+            <StackSelect T="string?" @bind-Value="projectWriteDto.LinkedUserId" Label="@Localizer["LinkedUser"]">
+                <MudSelectItem T="string?" Value="@(null as string)">@Localizer["None"]</MudSelectItem>
+                @foreach (var user in GetUsers())
+                {
+                    <MudSelectItem T="string?" Value="user.Id">@user.FullName</MudSelectItem>
+                }
+            </StackSelect>
         </StackExpandable>
     }
     <StackButton Label="@Localizer["Save"]" EndIcon="fa-regular fa-save" Color="Color.Primary" OnClick="SaveAsync" />

@@ -31,4 +31,6 @@ internal record PatientWriteDto : ProjectWriteDto
     public string? EmergencyContactName { get => GetField<string>(); set => SetField(value); }
 
     public string? EmergencyContactPhone { get => GetField<string>(); set => SetField(value); }
+
+    public string? LinkedUserId { get => GetField<string>(); set => SetField(value); }
 }

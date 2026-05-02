@@ -1,29 +1,37 @@
 @inherits Vitarish.Modules.Base.TenantCommonBase
 
 <Stack>
-    @if(AdminMode && !string.IsNullOrWhiteSpace(patientUserId) && OnAdd.HasDelegate)
+    @if (AdminMode)
     {
-        <StackButton Color="Color.Primary"
-                     OnClick="@(() => OnAdd.InvokeAsync(patientUserId))"
-                     EndIcon="fa-regular fa-calendar-plus"
-                     Label="@Localizer["AddItem", Localizer["Appointment"]]" />
-    }
-    @if(appointments is not null && appointments.Count > 0)
-    {
-        @foreach(var appointment in appointments)
+        @if (string.IsNullOrWhiteSpace(patientUserId))
         {
-            <StackButton OnClick="@(() => OnClicked.InvokeAsync(appointment.Id))"
+            <StackField Label="@Localizer["LinkUserAccountRequired"]"
+                         HelperText="@Localizer["LinkUserAccountRequiredHelp"]"
+                         AdornmentIcon="fa-regular fa-triangle-exclamation"
+                         AdornmentColor="Color.Warning" />
+        }
+        else
+        {
+            <StackButton Color="Color.Primary"
+                         OnClick="OpenBookingDialogAsync"
+                         EndIcon="fa-regular fa-calendar-plus"
+                         Label="@Localizer["AddItem", Localizer["Appointment"]]" />
+        }
+    }
+    @if (appointments is not null && appointments.Count > 0)
+    {
+        @foreach (var appointment in appointments)
+        {
+            <StackButton OnClick="@(() => OpenDetailDialogAsync(appointment))"
                          Label="@(appointment.Session?.DateTime.ToString("g") ?? Localizer["SessionUnavailable"].Value)">
                 <AppointmentStatusBadge Status="appointment.Status" />
             </StackButton>
-        } 
+        }
     }
 </Stack>
 
-    @code {
+@code {
     [Parameter, EditorRequired] public ProjectReadDto Patient { get; set; } = default!;
-    [Parameter] public EventCallback<string> OnAdd { get; set; }
-    [Parameter] public EventCallback<Guid> OnClicked { get; set; }
 
     [Inject] private IAccessControlledAppointmentsService AppointmentsService { get; set; } = default!;
 
@@ -47,9 +55,32 @@
 
         AppointmentDescriptorDto descriptor = new() { UserId = patientUserId, Skip = 0, Take = int.MaxValue };
         IReadOnlyList<AppointmentReadDto> all = await AppointmentsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
-
         appointments = [.. all.OrderBy(a => a.Session?.DateTime)];
-
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OpenBookingDialogAsync()
+    {
+        DialogParameters parameters = new()
+        {
+            { nameof(PatientAppointmentBookingDialog.Patient), Patient }
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<PatientAppointmentBookingDialog>(
+            Localizer["AddItem", Localizer["Appointment"]], parameters);
+        _ = await dialog.Result;
+        await LoadAsync();
+    }
+
+    private async Task OpenDetailDialogAsync(AppointmentReadDto appointment)
+    {
+        DialogParameters parameters = new()
+        {
+            { nameof(AdminAppointmentDetailDialog.Appointment), appointment }
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<AdminAppointmentDetailDialog>(null, parameters);
+        _ = await dialog.Result;
+        await LoadAsync();
     }
 }
