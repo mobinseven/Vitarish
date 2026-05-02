@@ -46,7 +46,12 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
             return;
         }
 
-        await SessionsService.ReserveForUserAsync(session.Id, patientUserId, CancellationToken.None);
+        var result = await SessionsService.ReserveForUserAsync(session.Id, patientUserId, CancellationToken.None);
+        if (result.IsFailure)
+        {
+            return;
+        }
+
         _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
 
         if (createReminder)

@@ -39,9 +39,17 @@
     private PatientReadDto? patient;
     private string? linkedUserId;
 
-    private string AgeText => patient?.DateOfBirth.HasValue == true
-        ? $"{(int)((DateTime.Today - patient.DateOfBirth.Value).TotalDays / 365.25)} {Localizer["Years"]}"
-        : string.Empty;
+    private string AgeText
+    {
+        get
+        {
+            if (patient?.DateOfBirth is not DateTime dob) return string.Empty;
+            DateTime today = DateTime.Today;
+            int age = today.Year - dob.Year;
+            if (dob.AddYears(age) > today) age--;
+            return $"{age} {Localizer["Years"]}";
+        }
+    }
 
     protected override void OnInitialized()
     {

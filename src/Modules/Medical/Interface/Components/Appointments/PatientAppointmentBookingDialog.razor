@@ -27,7 +27,7 @@
             <Stack>
                 @foreach (var session in sessions)
                 {
-                    bool isFull = session.Stats.ReservationCount >= session.Capacity;
+                    bool isFull = (session.Stats?.ReservationCount ?? 0) >= session.Capacity;
                     <StackButton OnClick="@(() => ReserveAsync(session))"
                                  Label="@session.DateTime.ToString("g")"
                                  HelperText="@($"{session.Stats.ReservationCount}/{session.Capacity}")"
