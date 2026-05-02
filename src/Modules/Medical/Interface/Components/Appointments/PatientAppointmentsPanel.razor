@@ -13,7 +13,7 @@
         @foreach(var appointment in appointments)
         {
             <StackButton Href="@(AdminMode ? $"/Appointments/Admin/{appointment.Id}" : $"/Appointments/{appointment.Id}")"
-                         Label="@(appointment.Session?.DateTime.ToString("g") ?? appointment.Id.ToString())">
+                         Label="@(appointment.Session?.DateTime.ToString("g") ?? Localizer["SessionUnavailable"].Value)">
                 <AppointmentStatusBadge Status="appointment.Status" />
             </StackButton>
         } 

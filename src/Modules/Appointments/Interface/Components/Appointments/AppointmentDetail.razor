@@ -14,7 +14,7 @@
     }
     else
     {
-        <StackField Label="@current.Id.ToString()" HelperText="@Localizer["Appointment"]">
+        <StackField Label="@Localizer["SessionUnavailable"].Value" HelperText="@Localizer["Appointment"]">
             <AppointmentStatusBadge Status="@current.Status" />
         </StackField>
     }

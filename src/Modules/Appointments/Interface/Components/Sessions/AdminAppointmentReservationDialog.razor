@@ -37,6 +37,7 @@
     {
         if (selectedUserId is null)
         {
+            _ = Snackbar.Add(Localizer["UserSelectionRequired"].Value, Severity.Warning);
             return;
         }
 

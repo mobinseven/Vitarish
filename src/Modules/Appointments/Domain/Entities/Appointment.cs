@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace Vitarish.Appointments.Domain.Entities;
 
 public class Appointment : Entity
