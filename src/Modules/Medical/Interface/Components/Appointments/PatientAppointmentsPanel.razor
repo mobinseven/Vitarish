@@ -40,7 +40,7 @@
 
     protected override async Task OnInitializedAsync()
     {
-        patientUserId = Patient.Metadata.TryGetValue(MetadataKeys.LinkedUserId, out object? v) ? v?.ToString() : null;
+        patientUserId = Patient.UserIds.FirstOrDefault();
         await LoadAsync();
     }
 
