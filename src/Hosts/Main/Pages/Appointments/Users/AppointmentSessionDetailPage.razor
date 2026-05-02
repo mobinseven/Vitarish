@@ -1,26 +1,29 @@
-@page "/appointments/sessions/{sessionId}"
+@page "/AppointmentSessions/{sessionId}"
 
-@inject IAccessControlledSessionsService SessionsService
+@inject IAccessControlledAppointmentSessionsService SessionsService
 
 @if (session is null)
 {
     return;
 }
 
-<CascadingValue Value="false">
-    <SessionDetail Session="@session" OnReserved="ReloadRequired" OnCancelled="ReloadRequired" />
-</CascadingValue>
+<AppointmentSessionDetail Session="@session" OnReserved="ReloadRequired" OnCancelled="ReloadRequired" />
 
 @code {
     [Parameter] public string? sessionId { get; set; }
 
     private AppointmentSessionReadDto? session;
 
+    private void Back()
+    {
+        NavigationManager.NavigateTo("/AppointmentSessions");
+    }
+
     protected override async Task ReloadRequired()
     {
         if (!Guid.TryParse(sessionId, out Guid id))
         {
-            NavigationManager.NavigateTo("/appointments/sessions");
+            Back();
             return;
         }
 
@@ -28,7 +31,7 @@
 
         if (session is null)
         {
-            NavigationManager.NavigateTo("/appointments/sessions");
+            Back();
             return;
         }
 

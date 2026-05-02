@@ -1,4 +1,4 @@
-@page "/medical/patients/{patientId}/{procedureId}/{eventId}"
+@page "/Medical/Patients/{patientId}/{procedureId}/{eventId}"
 
 @if(patient is null || procedure is null || evt is null)
 {
@@ -9,7 +9,7 @@
     <EventDetails Event="@evt"
                   Procedure="@procedure"
                   Project="@patient"
-                  OnDelete="@(() => NavigationManager.NavigateTo($"/medical/patients/{patientId}/{procedureId}"))"
+                  OnDelete="@(() => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}/{procedureId}"))"
                   OnUpdate="ReloadRequired" />
     <EventItemsTimeline Event="@evt" Procedure="@procedure" Project="@patient" />
 </CascadingValue>
@@ -31,7 +31,7 @@
 
         if (patientGuid == Guid.Empty)
         {
-            NavigationManager.NavigateTo("/medical/patients");
+            NavigationManager.NavigateTo("/Medical/Patients");
             return;
         }
 
@@ -39,7 +39,7 @@
 
         if (patient is null)
         {
-            NavigationManager.NavigateTo("/medical/patients");
+            NavigationManager.NavigateTo("/Medical/Patients");
             return;
         }
 
@@ -47,7 +47,7 @@
 
         if (procedure is null)
         {
-            NavigationManager.NavigateTo($"/medical/patients/{patientId}");
+            NavigationManager.NavigateTo($"/Medical/Patients/{patientId}");
             return;
         }
 
@@ -55,7 +55,7 @@
 
         if (evt is null)
         {
-            NavigationManager.NavigateTo($"/medical/patients/{patientId}/{procedureId}");
+            NavigationManager.NavigateTo($"/Medical/Patients/{patientId}/{procedureId}");
             return;
         }
 

@@ -1,4 +1,4 @@
-@page "/medical/patients/{patientId}"
+@page "/Medical/Patients/{patientId}"
 
 @if(patient is null)
 {
@@ -8,12 +8,12 @@
 <CascadingValue Value="IsAdmin">
 
     <ProceduresGrid Project="@patient"
-                    OnClicked="@(procedureId => NavigationManager.NavigateTo($"/medical/patients/{patientId}/{procedureId}"))"
-                    OnCreated="@(procedureId => NavigationManager.NavigateTo($"/medical/patients/{patientId}/{procedureId}"))" />
+                    OnClicked="@(procedureId => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}/{procedureId}"))"
+                    OnCreated="@(procedureId => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}/{procedureId}"))" />
 
     <PatientDetails Project="@patient"
-                    OnEdit="@(id => NavigationManager.NavigateTo($"/medical/patients/{id}/edit"))"
-                    OnDeleted="@(() => NavigationManager.NavigateTo("/medical/patients"))" />
+                    OnEdit="@(id => NavigationManager.NavigateTo($"/Medical/Patients/{id}/Edit"))"
+                    OnDeleted="@(() => NavigationManager.NavigateTo("/Medical/Patients"))" />
 
     <PatientAppointmentsPanel Patient="@patient" />
 
@@ -31,7 +31,7 @@
     {
         if (!Guid.TryParse(patientId, out Guid id))
         {
-            NavigationManager.NavigateTo("/medical/patients");
+            NavigationManager.NavigateTo("/Medical/Patients");
             return;
         }
 
@@ -39,7 +39,7 @@
 
         if (patient is null)
         {
-            NavigationManager.NavigateTo("/medical/patients");
+            NavigationManager.NavigateTo("/Medical/Patients");
             return;
         }
 

@@ -1,6 +1,6 @@
 namespace Vitarish.Appointments.Interface.Components.Sessions;
 
-public partial class SessionsList : SessionsBase
+public partial class AppointmentSessionsList : AppointmentSessionsBase
 {
     [Parameter] public EventCallback<Guid> OnClicked { get; set; }
     [Parameter] public EventCallback OnAdd { get; set; }

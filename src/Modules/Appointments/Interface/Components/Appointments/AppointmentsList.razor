@@ -9,17 +9,16 @@
             <AppointmentFilters @bind-Descriptor="Descriptor" />
         </Stack>
     }
-    @if(appointments.Count == 0)
-    {
-        <Stack>
+
+    <Stack>
+        @if(appointments.Count == 0)
+        {
             <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Appointment"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Appointment"]]" EndIcon="fa-regular fa-refresh">
                 @Localizer["Reload"]
             </StackButton>
-        </Stack>
-    }
-    else
-    {
-        <Stack>
+        }
+        else
+        {
             @foreach(var appointment in appointments)
             {
                 <StackButton OnClick="() => OnClicked.InvokeAsync(appointment.Id)"
@@ -28,8 +27,8 @@
                     <AppointmentStatusBadge Status="appointment.Status" />
                 </StackButton>
             }
-        </Stack>
-    }
+        }
+    </Stack>
 }
 else
 {

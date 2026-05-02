@@ -1,4 +1,4 @@
-@inherits SessionsBase
+@inherits AppointmentSessionsBase
 
 @if (current is null)
 {
@@ -6,8 +6,8 @@
 }
 
 <Stack>
-    <StackField Label="@current.DateTime.ToString("f")" HelperText="@Localizer["SessionDateTime"]">
-        <SessionStatusBadge Status="@current.Status" />
+    <StackField Label="@current.DateTime.ToString("f")" HelperText="@Localizer["DateTimeOf", Localizer["AppointmentSession"]]">
+        <AppointmentSessionStatusBadge Status="@current.Status" />
     </StackField>
     <StackField Label="@($"{current.Stats.ReservationCount} / {current.Capacity}")" HelperText="@Localizer["Capacity"]" />
     @if (!string.IsNullOrWhiteSpace(current.CreatedBy))
@@ -21,15 +21,15 @@
     case AppointmentSessionStatus.Open:
     case AppointmentSessionStatus.Full:
     <Stack>
-        <StackButton Label="@Localizer["EditItem", Localizer["Session"]]"
+        <StackButton Label="@Localizer["EditItem", Localizer["AppointmentSession"]]"
                      EndIcon="fa-regular fa-calendar-pen"
                      OnClick="OnEdit" />
         <StackButton Color="Color.Error"
-                     Label="@Localizer["CancelItem", Localizer["Session"]]"
+                     Label="@Localizer["CancelItem", Localizer["AppointmentSession"]]"
                      EndIcon="fa-regular fa-calendar-xmark"
                      OnClick="@(() => ChangeStatusAsync(AppointmentSessionStatus.Cancelled))" />
         <StackButton Color="Color.Dark"
-                     Label="@Localizer["CompleteItem", Localizer["Session"]]"
+                     Label="@Localizer["CompleteItem", Localizer["AppointmentSession"]]"
                      EndIcon="fa-regular fa-check"
                      OnClick="@(() => ChangeStatusAsync(AppointmentSessionStatus.Completed))" />
     </Stack>

@@ -1,0 +1,9 @@
+@page "/AppointmentSessions/Admin/New"
+
+@inject IAccessControlledAppointmentSessionsService SessionsService
+
+<CascadingValue Value="IsAdmin">
+    <AppointmentSessionForm OnSaved="@(id => NavigationManager.NavigateTo($"/AppointmentSessions/Admin/{id}"))"
+                            OnCancelled="@(() => NavigationManager.NavigateTo("/AppointmentSessions/Admin"))" />
+</CascadingValue>
+

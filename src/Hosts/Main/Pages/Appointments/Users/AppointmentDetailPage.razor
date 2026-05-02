@@ -1,4 +1,4 @@
-@page "/appointments/{appointmentId}"
+@page "/Appointments/{appointmentId}"
 
 @if (appointment is null)
 {
@@ -6,7 +6,7 @@
 }
 
 <AppointmentDetail Appointment="@appointment"
-                   OnReschedule="@(() => NavigationManager.NavigateTo($"/appointments/{appointmentId}/edit"))"
+                   OnReschedule="@(() => NavigationManager.NavigateTo($"/Appointments/{appointmentId}/Edit"))"
                    OnCancelled="ReloadRequired" />
 
 @code {
@@ -18,7 +18,7 @@
     {
         if (!Guid.TryParse(appointmentId, out Guid id))
         {
-            NavigationManager.NavigateTo("/appointments");
+            NavigationManager.NavigateTo("/Appointments");
             return;
         }
 
@@ -26,7 +26,7 @@
 
         if (appointment is null)
         {
-            NavigationManager.NavigateTo("/appointments");
+            NavigationManager.NavigateTo("/Appointments");
             return;
         }
 

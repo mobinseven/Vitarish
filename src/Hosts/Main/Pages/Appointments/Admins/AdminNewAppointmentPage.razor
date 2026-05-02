@@ -1,6 +1,0 @@
-@page "/appointments/admin/new"
-
-<CascadingValue Value="true">
-    <AppointmentForm OnSaved="@(id => NavigationManager.NavigateTo($"/appointments/admin/{id}"))"
-                     OnCancelled="@(() => NavigationManager.NavigateTo("/appointments/admin"))" />
-</CascadingValue>

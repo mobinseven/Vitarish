@@ -12,7 +12,7 @@
     {
         @foreach(var appointment in appointments)
         {
-            <StackButton OnClick="() => OpenAppointmentDetailAsync(appointment.Id)"
+            <StackButton Href="@($"/Appointments/{appointment.Id}")"
                          Label="@appointment.ScheduledAt.ToString("g")">
                 <AppointmentStatusBadge Status="appointment.Status" />
             </StackButton>
@@ -43,28 +43,6 @@
             .OrderBy(a => a.ScheduledAt)];
 
         await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task OpenAppointmentDetailAsync(Guid id)
-    {
-        AppointmentReadDto? appointment = await AppointmentsService.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
-        if (appointment is null)
-        {
-            return;
-        }
-
-        DialogParameters parameters = new()
-        {
-            { nameof(AdminAppointmentDetailDialog.Appointment), appointment }
-        };
-
-        IDialogReference dialog = await DialogService.ShowAsync<AdminAppointmentDetailDialog>(appointment.ScheduledAt.ToString("f"), parameters);
-        DialogResult? result = await dialog.Result;
-
-        if (result is not null && !result.Canceled)
-        {
-            await LoadAsync();
-        }
     }
 
     private async Task AddAppointmentAsync()

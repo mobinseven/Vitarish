@@ -1,6 +1,6 @@
 namespace Vitarish.Appointments.Interface.Components.Sessions;
 
-public partial class AdminSessionDetail : SessionsBase
+public partial class AdminAppointmentSessionDetail : AppointmentSessionsBase
 {
     [Parameter, EditorRequired] public AppointmentSessionReadDto Session { get; set; } = default!;
     [Parameter] public EventCallback OnEdit { get; set; }
@@ -41,8 +41,8 @@ public partial class AdminSessionDetail : SessionsBase
     {
         string label = status switch
         {
-            AppointmentSessionStatus.Cancelled => Localizer["CancelItem", Localizer["Session"]].Value,
-            AppointmentSessionStatus.Completed => Localizer["CompleteItem", Localizer["Session"]].Value,
+            AppointmentSessionStatus.Cancelled => Localizer["CancelItem", Localizer["AppointmentSession"]].Value,
+            AppointmentSessionStatus.Completed => Localizer["CompleteItem", Localizer["AppointmentSession"]].Value,
             _ => Localizer["Confirm"].Value
         };
 
@@ -79,12 +79,12 @@ public partial class AdminSessionDetail : SessionsBase
     {
         DialogParameters parameters = new()
         {
-            { nameof(ConfirmDialog.ContentText), Localizer["DeleteItemConfirm", Localizer["Session"]].Value },
+            { nameof(ConfirmDialog.ContentText), Localizer["DeleteItemConfirm", Localizer["AppointmentSession"]].Value },
             { nameof(ConfirmDialog.ButtonText), Localizer["Delete"].Value },
             { nameof(ConfirmDialog.Color), Color.Error }
         };
 
-        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>(Localizer["DeleteItem", Localizer["Session"]], parameters);
+        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>(Localizer["DeleteItem", Localizer["AppointmentSession"]], parameters);
         DialogResult? result = await dialog.Result;
 
         if (result is null || result.Canceled)

@@ -1,16 +1,16 @@
-@page "/appointments"
+@page "/Appointments"
 
 <Stack>
     <StackButton Color="Color.Primary"
-                 OnClick="@(() => NavigationManager.NavigateTo("/appointments/new"))"
+                 OnClick="@(() => NavigationManager.NavigateTo("/Appointments/New"))"
                  StartIcon="fa-regular fa-calendar-plus"
                  Label="@Localizer["BookAppointment"]" />
     <StackButton Color="Color.Secondary"
-                 OnClick="@(() => NavigationManager.NavigateTo("/appointments/sessions"))"
+                 OnClick="@(() => NavigationManager.NavigateTo("/AppointmentSessions"))"
                  StartIcon="fa-regular fa-calendar-days"
                  Label="@Localizer["BrowseSessions"]" />
 </Stack>
-<AppointmentsList OnClicked="@(id => NavigationManager.NavigateTo($"/appointments/{id}"))" />
+<AppointmentsList OnClicked="@(id => NavigationManager.NavigateTo($"/Appointments/{id}"))" />
 @code {
     protected override void OnInitialized() => NavService.EnableSearch();
 }

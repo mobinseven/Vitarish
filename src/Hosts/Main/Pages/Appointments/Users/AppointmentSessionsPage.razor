@@ -1,0 +1,8 @@
+@page "/AppointmentSessions"
+
+@inject IAccessControlledAppointmentSessionsService SessionsService
+<AppointmentSessionsList OnClicked="@(id => NavigationManager.NavigateTo($"/AppointmentSessions/{id}"))" />
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}

@@ -1,0 +1,47 @@
+@page "/AppointmentSessions/Admin/{sessionId}"
+
+@inject IAccessControlledAppointmentSessionsService SessionsService
+
+@if(session is null)
+{
+    return;
+}
+
+<CascadingValue Value="IsAdmin">
+    <AdminAppointmentSessionDetail Session="@session"
+                                   OnEdit="@(() => NavigationManager.NavigateTo($"/AppointmentSessions/Admin/{sessionId}/Edit"))"
+                                   OnDeleted="Back"
+                                   OnStatusChanged="ReloadRequired" />
+</CascadingValue>
+
+@code {
+    [Parameter] public string? sessionId { get; set; }
+
+    private AppointmentSessionReadDto? session;
+
+    private void Back()
+    {
+        NavigationManager.NavigateTo("/AppointmentSessions/Admin");
+    }
+
+    protected override async Task ReloadRequired()
+    {
+        if(!Guid.TryParse(sessionId, out Guid id))
+        {
+            Back();
+            return;
+        }
+
+        session = await SessionsService.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if(session is null)
+        {
+            Back();
+            return;
+        }
+
+        NavService.OverridePageTitle(id.ToString(), session.DateTime.ToString("f"));
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

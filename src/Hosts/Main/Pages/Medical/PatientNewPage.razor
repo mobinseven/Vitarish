@@ -1,6 +1,6 @@
-@page "/medical/patients/new"
+@page "/Medical/Patients/New"
 
 <CascadingValue Value="IsAdmin">
-    <PatientEditForm OnCreate="@(patientId => NavigationManager.NavigateTo($"/medical/patients/{patientId}"))"
-                     OnCancel="@(() => NavigationManager.NavigateTo("/medical/patients"))" />
+    <PatientEditForm OnCreate="@(patientId => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}"))"
+                     OnCancel="@(() => NavigationManager.NavigateTo("/Medical/Patients"))" />
 </CascadingValue>

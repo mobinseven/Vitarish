@@ -139,7 +139,7 @@
     <value>افزودن {0}</value>
   </data>
   <data name="Admin" xml:space="preserve">
-    <value>مدیر سامانه</value>
+    <value>مدیریت</value>
   </data>
   <data name="After" xml:space="preserve">
     <value>پس از {0}</value>

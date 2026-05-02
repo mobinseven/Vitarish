@@ -1,4 +1,4 @@
-@inherits SessionsBase
+@inherits AppointmentSessionsBase
 
 @if (current is null)
 {
@@ -7,7 +7,7 @@
 
 <Stack>
     <StackField Label="@current.DateTime.ToString("f")" HelperText="@Localizer["SessionDateTime"]">
-        <SessionStatusBadge Status="@current.Status" />
+        <AppointmentSessionStatusBadge Status="@current.Status" />
     </StackField>
     <StackField Label="@($"{current.Stats.ReservationCount} / {current.Capacity}")" HelperText="@Localizer["Capacity"]" />
 </Stack>

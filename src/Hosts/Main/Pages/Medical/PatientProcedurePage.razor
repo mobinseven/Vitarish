@@ -1,4 +1,4 @@
-@page "/medical/patients/{patientId}/{procedureId}"
+@page "/Medical/Patients/{patientId}/{procedureId}"
 
 @if(patient is null || procedure is null)
 {
@@ -7,13 +7,13 @@
 
 <CascadingValue Value="IsAdmin">
     <EventsGrid Project="@patient"
-                EventClicked="@(id => NavigationManager.NavigateTo($"/medical/patients/{patientId}/{procedureId}/{id}"))"
+                EventClicked="@(id => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}/{procedureId}/{id}"))"
                 Procedure="@procedure"
                 OnUpdate="ReloadRequired" />
     <ProcedureDetails Procedure="@procedure"
                       Project="@patient"
                       OnUpdate="ReloadRequired"
-                      OnDelete="@(() => NavigationManager.NavigateTo($"/medical/patients/{patientId}"))" />
+                      OnDelete="@(() => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}"))" />
 </CascadingValue>
 
 @code {
@@ -30,7 +30,7 @@
 
         if (patientGuid == Guid.Empty)
         {
-            NavigationManager.NavigateTo("/medical/patients");
+            NavigationManager.NavigateTo("/Medical/Patients");
             return;
         }
 
@@ -38,7 +38,7 @@
 
         if (patient is null)
         {
-            NavigationManager.NavigateTo("/medical/patients");
+            NavigationManager.NavigateTo("/Medical/Patients");
             return;
         }
 
@@ -46,7 +46,7 @@
 
         if (procedure is null)
         {
-            NavigationManager.NavigateTo($"/medical/patients/{patientId}");
+            NavigationManager.NavigateTo($"/Medical/Patients/{patientId}");
             return;
         }
 

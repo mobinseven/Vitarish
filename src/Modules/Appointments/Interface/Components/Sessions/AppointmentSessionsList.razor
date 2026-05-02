@@ -1,4 +1,4 @@
-@inherits SessionsBase
+@inherits AppointmentSessionsBase
 
 @if (Plugin is null)
 {
@@ -6,7 +6,7 @@
     {
         <Stack>
             <StackButton Color="Color.Primary"
-                         Label="@Localizer["AddItem", Localizer["Session"]]"
+                         Label="@Localizer["AddItem", Localizer["AppointmentSession"]]"
                          EndIcon="fa-regular fa-calendar-plus"
                          OnClick="AddSession" />
         </Stack>
@@ -14,7 +14,7 @@
     @if (sessions.Count == 0)
     {
         <Stack>
-            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Session"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Session"]]" EndIcon="fa-regular fa-refresh">
+            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["AppointmentSession"]]" HelperText="@Localizer["NoItemsHelp", Localizer["AppointmentSession"]]" EndIcon="fa-regular fa-refresh">
                 @Localizer["Reload"]
             </StackButton>
         </Stack>
@@ -28,7 +28,7 @@
                              Label="@session.DateTime.ToString("g")"
                              HelperText="@($"{session.Stats.ReservationCount}/{session.Capacity}")"
                              HighlightString="@SearchString">
-                    <SessionStatusBadge Status="session.Status" />
+                    <AppointmentSessionStatusBadge Status="session.Status" />
                 </StackButton>
             }
         </Stack>

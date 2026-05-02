@@ -9,7 +9,7 @@
             @projectsCount
         }
     </StackButton>
-    <StackButton Href="/appointments" Label="@Localizer["MyAppointments"]" EndIcon="fa-regular fa-calendar-days" />
+    <StackButton Href="/Appointments" Label="@Localizer["MyAppointments"]" EndIcon="fa-regular fa-calendar-days" />
 </Stack>
 
 @if(IsAdmin)
@@ -17,7 +17,7 @@
     <Stack>
         <StackField Label="@Localizer["Administration"]" />
         <StackButton Href="/sea/Admin/Settings/Projects/Templates" Label="@Localizer["Templates"]" EndIcon="fa-regular fa-folder-gear" />
-        <StackButton Href="/appointments/admin" Label="@Localizer["AppointmentsAdmin"]" EndIcon="fa-regular fa-calendar-star" />
+        <StackButton Href="/Appointments/Admin" Label="@Localizer["AppointmentsAdmin"]" EndIcon="fa-regular fa-calendar-star" />
     </Stack>
 }
 

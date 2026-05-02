@@ -1,14 +1,14 @@
-@page "/appointments/{appointmentId}/edit"
+@page "/Appointments/Admin/{appointmentId}/Edit"
 
 @if (appointment is null)
 {
     return;
 }
 
-<CascadingValue Value="false">
+<CascadingValue Value="IsAdmin">
     <AppointmentForm Appointment="@appointment"
-                     OnSaved="@(id => NavigationManager.NavigateTo($"/appointments/{id}"))"
-                     OnCancelled="@(() => NavigationManager.NavigateTo($"/appointments/{appointmentId}"))" />
+                     OnSaved="@(id => NavigationManager.NavigateTo($"/Appointments/Admin/{id}"))"
+                     OnCancelled="Back" />
 </CascadingValue>
 
 @code {
@@ -16,11 +16,16 @@
 
     private AppointmentReadDto? appointment;
 
+    private void Back()
+    {
+        NavigationManager.NavigateTo($"/Appointments/Admin/{appointmentId}");
+    }
+
     protected override async Task ReloadRequired()
     {
         if (!Guid.TryParse(appointmentId, out Guid id))
         {
-            NavigationManager.NavigateTo("/appointments");
+            Back();
             return;
         }
 
@@ -28,7 +33,7 @@
 
         if (appointment is null)
         {
-            NavigationManager.NavigateTo("/appointments");
+            Back();
             return;
         }
 

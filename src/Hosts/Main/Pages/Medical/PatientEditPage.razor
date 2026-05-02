@@ -1,13 +1,13 @@
-@page "/medical/patients/{patientId}/edit"
+@page "/Medical/Patients/{patientId}/Edit"
 
 @if(initialized)
 {
     <CascadingValue Value="IsAdmin">
 
         <PatientEditForm Project="patient"
-                         OnUpdate="@(id => NavigationManager.NavigateTo($"/medical/patients/{id}"))"
-                         OnCreate="@(id => NavigationManager.NavigateTo($"/medical/patients/{id}"))"
-                         OnCancel="@(() => NavigationManager.NavigateTo($"/medical/patients/{patientId}"))" />
+                         OnUpdate="@(id => NavigationManager.NavigateTo($"/Medical/Patients/{id}"))"
+                         OnCreate="@(id => NavigationManager.NavigateTo($"/Medical/Patients/{id}"))"
+                         OnCancel="@(() => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}"))" />
 
     </CascadingValue>
 }
@@ -18,11 +18,16 @@
     private ProjectReadDto? patient;
     private bool initialized;
 
+    private void Back()
+    {
+        NavigationManager.NavigateTo("/Medical/Patients");
+    }
+
     protected override async Task ReloadRequired()
     {
         if (!Guid.TryParse(patientId, out Guid id))
         {
-            NavigationManager.NavigateTo("/medical/patients");
+            Back();
             return;
         }
 
@@ -30,7 +35,7 @@
 
         if (patient is null)
         {
-            NavigationManager.NavigateTo("/medical/patients");
+            Back();
             return;
         }
 

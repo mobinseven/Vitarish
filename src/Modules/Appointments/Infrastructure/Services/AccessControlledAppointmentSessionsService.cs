@@ -1,11 +1,10 @@
-using Vitarish.Entities.Server.Extensions;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Appointments.Infrastructure.Services;
 
-internal class AccessControlledSessionsService(
+internal class AccessControlledAppointmentSessionsService(
     IRequestContext requestContext,
-    IAppointmentSessionsService sessionsService) : IAccessControlledSessionsService
+    IAppointmentSessionsService sessionsService) : IAccessControlledAppointmentSessionsService
 {
     private bool IsAdmin => requestContext.IsTenantAdmin() || requestContext.IsTenantOwner();
 

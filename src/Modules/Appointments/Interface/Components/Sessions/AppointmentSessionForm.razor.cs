@@ -1,6 +1,6 @@
 namespace Vitarish.Appointments.Interface.Components.Sessions;
 
-public partial class SessionForm : SessionsBase
+public partial class AppointmentSessionForm : AppointmentSessionsBase
 {
     [Parameter] public AppointmentSessionReadDto? Session { get; set; }
     [Parameter] public EventCallback<Guid> OnSaved { get; set; }

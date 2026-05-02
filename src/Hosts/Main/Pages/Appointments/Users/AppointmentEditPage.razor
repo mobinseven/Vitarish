@@ -1,15 +1,13 @@
-@page "/appointments/admin/{appointmentId}/edit"
+@page "/Appointments/{appointmentId}/Edit"
 
 @if (appointment is null)
 {
     return;
 }
 
-<CascadingValue Value="true">
-    <AppointmentForm Appointment="@appointment"
-                     OnSaved="@(id => NavigationManager.NavigateTo($"/appointments/admin/{id}"))"
-                     OnCancelled="@(() => NavigationManager.NavigateTo($"/appointments/admin/{appointmentId}"))" />
-</CascadingValue>
+<AppointmentForm Appointment="@appointment"
+                 OnSaved="@(id => NavigationManager.NavigateTo($"/Appointments/{id}"))"
+                 OnCancelled="@(() => NavigationManager.NavigateTo($"/Appointments/{appointmentId}"))" />
 
 @code {
     [Parameter] public string? appointmentId { get; set; }
@@ -20,7 +18,7 @@
     {
         if (!Guid.TryParse(appointmentId, out Guid id))
         {
-            NavigationManager.NavigateTo("/appointments/admin");
+            NavigationManager.NavigateTo("/Appointments");
             return;
         }
 
@@ -28,7 +26,7 @@
 
         if (appointment is null)
         {
-            NavigationManager.NavigateTo("/appointments/admin");
+            NavigationManager.NavigateTo("/Appointments");
             return;
         }
 

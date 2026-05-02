@@ -1,9 +1,9 @@
-@inherits SessionsBase
+@inherits AppointmentSessionsBase
 
 <Stack>
     <StackDatePicker @bind-Date="sessionAtDate" Label="@Localizer["Date"]" />
     <StackTimePicker @bind-Time="sessionAtTime" Label="@Localizer["Time"]" />
-    <MudNumericField T="int" @bind-Value="sessionWriteDto.Capacity" Label="@Localizer["Capacity"]" Min="1" Variant="Variant.Outlined" />
+    <StackNumericField @bind-Value="sessionWriteDto.Capacity" Label="@Localizer["Capacity"]" Min="1" />
     @if (IsAdmin)
     {
         <StackSelect T="AppointmentSessionStatus" Label="@Localizer["Status"]" @bind-Value="sessionWriteDto.Status">

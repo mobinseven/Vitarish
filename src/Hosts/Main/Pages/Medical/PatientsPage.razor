@@ -1,8 +1,8 @@
-@page "/medical/patients"
+@page "/Medical/Patients"
 
 <CascadingValue Value="IsAdmin">
-    <PatientsGrid OnClicked="@(id => NavigationManager.NavigateTo($"/medical/patients/{id}"))"
-                  OnAdd="@(() => NavigationManager.NavigateTo("/medical/patients/new"))" />
+    <PatientsGrid OnClicked="@(id => NavigationManager.NavigateTo($"/Medical/Patients/{id}"))"
+                  OnAdd="@(() => NavigationManager.NavigateTo("/Medical/Patients/New"))" />
 </CascadingValue>
 
 @code {

@@ -1,16 +1,16 @@
-@page "/appointments/admin/sessions/{sessionId}/edit"
+@page "/AppointmentSessions/Admin/{sessionId}/Edit"
 
-@inject IAccessControlledSessionsService SessionsService
+@inject IAccessControlledAppointmentSessionsService SessionsService
 
 @if (session is null)
 {
     return;
 }
 
-<CascadingValue Value="true">
-    <SessionForm Session="@session"
-                 OnSaved="@(id => NavigationManager.NavigateTo($"/appointments/admin/sessions/{id}"))"
-                 OnCancelled="@(() => NavigationManager.NavigateTo($"/appointments/admin/sessions/{sessionId}"))" />
+<CascadingValue Value="IsAdmin">
+    <AppointmentSessionForm Session="@session"
+                 OnSaved="@(id => NavigationManager.NavigateTo($"/AppointmentSessions/Admin/{id}"))"
+                 OnCancelled="Back" />
 </CascadingValue>
 
 @code {
@@ -18,11 +18,16 @@
 
     private AppointmentSessionReadDto? session;
 
+    private void Back()
+    {
+        NavigationManager.NavigateTo($"/AppointmentSessions/Admin");
+    }
+
     protected override async Task ReloadRequired()
     {
         if (!Guid.TryParse(sessionId, out Guid id))
         {
-            NavigationManager.NavigateTo("/appointments/admin/sessions");
+            Back();
             return;
         }
 
@@ -30,7 +35,7 @@
 
         if (session is null)
         {
-            NavigationManager.NavigateTo("/appointments/admin/sessions");
+            Back();
             return;
         }
 

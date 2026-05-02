@@ -2,9 +2,9 @@ using Vitarish.Modules.Base;
 
 namespace Vitarish.Appointments.Interface.Components.Base;
 
-public class SessionsBase : TenantCommonBase
+public class AppointmentSessionsBase : TenantCommonBase
 {
-    [Inject] protected IAccessControlledSessionsService SessionsService { get; set; } = default!;
+    [Inject] protected IAccessControlledAppointmentSessionsService SessionsService { get; set; } = default!;
 
     protected override void OnInitialized()
     {
