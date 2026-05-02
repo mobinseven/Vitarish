@@ -7,7 +7,6 @@
 
 <CascadingValue Value="IsAdmin">
     <AdminAppointmentDetail Appointment="@appointment"
-                            OnEdit="@(() => NavigationManager.NavigateTo($"/Appointments/Admin/{appointmentId}/Edit"))"
                             OnDeleted="Back"
                             OnStatusChanged="ReloadRequired" />
 </CascadingValue>
@@ -34,7 +33,7 @@
             return;
         }
 
-        NavService.OverridePageTitle(id.ToString(), appointment.ScheduledAt.ToString("f"));
+        NavService.OverridePageTitle(id.ToString(), appointment.Session?.DateTime.ToString("f") ?? id.ToString());
 
         await InvokeAsync(StateHasChanged);
     }

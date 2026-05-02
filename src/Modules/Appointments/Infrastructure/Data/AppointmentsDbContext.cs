@@ -72,12 +72,10 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
 
         _ = modelBuilder.Entity<Appointment>(entity =>
         {
-            _ = entity.Property(e => e.Metadata)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
-                .HasDefaultValueSql("'{}'")
-                .HasColumnType("nvarchar(max)");
+            _ = entity.HasOne(a => a.Session)
+                .WithMany()
+                .HasForeignKey(a => a.SessionId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
 
         _ = modelBuilder.Entity<AppointmentSession>(entity =>

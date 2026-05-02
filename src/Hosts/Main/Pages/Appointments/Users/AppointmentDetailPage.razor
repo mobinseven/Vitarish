@@ -6,7 +6,6 @@
 }
 
 <AppointmentDetail Appointment="@appointment"
-                   OnReschedule="@(() => NavigationManager.NavigateTo($"/Appointments/{appointmentId}/Edit"))"
                    OnCancelled="ReloadRequired" />
 
 @code {
@@ -30,7 +29,7 @@
             return;
         }
 
-        NavService.OverridePageTitle(id.ToString(), appointment.ScheduledAt.ToString("f"));
+        NavService.OverridePageTitle(id.ToString(), appointment.Session?.DateTime.ToString("f") ?? id.ToString());
 
         await InvokeAsync(StateHasChanged);
     }

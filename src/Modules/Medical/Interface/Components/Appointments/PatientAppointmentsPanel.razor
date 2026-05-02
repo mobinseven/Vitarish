@@ -1,10 +1,10 @@
 @inherits Vitarish.Modules.Base.TenantCommonBase
 
 <Stack>
-    @if(AdminMode)
+    @if(AdminMode && !string.IsNullOrWhiteSpace(patientUserId))
     {
         <StackButton Color="Color.Primary"
-                     OnClick="AddAppointmentAsync"
+                     Href="@($"/AppointmentSessions/Admin")"
                      EndIcon="fa-regular fa-calendar-plus"
                      Label="@Localizer["AddItem", Localizer["Appointment"]]" />
     }
@@ -12,8 +12,8 @@
     {
         @foreach(var appointment in appointments)
         {
-            <StackButton Href="@($"/Appointments/{appointment.Id}")"
-                         Label="@appointment.ScheduledAt.ToString("g")">
+            <StackButton Href="@(AdminMode ? $"/Appointments/Admin/{appointment.Id}" : $"/Appointments/{appointment.Id}")"
+                         Label="@(appointment.Session?.DateTime.ToString("g") ?? appointment.Id.ToString())">
                 <AppointmentStatusBadge Status="appointment.Status" />
             </StackButton>
         } 
@@ -26,40 +26,28 @@
     [Inject] private IAccessControlledAppointmentsService AppointmentsService { get; set; } = default!;
 
     private List<AppointmentReadDto> appointments = [];
+    private string? patientUserId;
 
     protected override async Task OnInitializedAsync()
     {
+        patientUserId = Patient.Metadata.TryGetValue(MetadataKeys.LinkedUserId, out object? v) ? v?.ToString() : null;
         await LoadAsync();
     }
 
     private async Task LoadAsync()
     {
-        AppointmentDescriptorDto descriptor = new() { Skip = 0, Take = int.MaxValue };
-        IReadOnlyList<AppointmentReadDto> all = await AppointmentsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
-
-        string subjectKey = Patient.Id.ToString();
-        appointments = [.. all
-            .Where(a => a.Metadata.TryGetValue(MetadataKeys.SubjectId, out object? v) && v?.ToString() == subjectKey)
-            .OrderBy(a => a.ScheduledAt)];
-
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task AddAppointmentAsync()
-    {
-        DialogParameters parameters = new()
+        if (string.IsNullOrWhiteSpace(patientUserId))
         {
-            { nameof(PatientAppointmentFormDialog.SubjectId), Patient.Id }
-        };
-
-        IDialogReference dialog = await DialogService.ShowAsync<PatientAppointmentFormDialog>(Localizer["AddItem", Localizer["Appointment"]], parameters);
-        DialogResult? result = await dialog.Result;
-
-        if (result is null || result.Canceled)
-        {
+            appointments = [];
+            await InvokeAsync(StateHasChanged);
             return;
         }
 
-        await LoadAsync();
+        AppointmentDescriptorDto descriptor = new() { UserId = patientUserId, Skip = 0, Take = int.MaxValue };
+        IReadOnlyList<AppointmentReadDto> all = await AppointmentsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+
+        appointments = [.. all.OrderBy(a => a.Session?.DateTime)];
+
+        await InvokeAsync(StateHasChanged);
     }
 }

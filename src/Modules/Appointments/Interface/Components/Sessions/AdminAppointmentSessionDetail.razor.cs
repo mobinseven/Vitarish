@@ -37,6 +37,25 @@ public partial class AdminAppointmentSessionDetail : AppointmentSessionsBase
         await InvokeAsync(StateHasChanged);
     }
 
+    private async Task AddAppointmentAsync()
+    {
+        DialogParameters parameters = new()
+        {
+            { nameof(AdminAppointmentReservationDialog.Session), current }
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<AdminAppointmentReservationDialog>(
+            Localizer["AddItem", Localizer["Appointment"]], parameters);
+        DialogResult? result = await dialog.Result;
+
+        if (result is null || result.Canceled)
+        {
+            return;
+        }
+
+        await LoadLinkedAppointmentsAsync();
+    }
+
     private async Task ChangeStatusAsync(AppointmentSessionStatus status)
     {
         string label = status switch

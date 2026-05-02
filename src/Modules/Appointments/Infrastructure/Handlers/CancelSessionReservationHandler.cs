@@ -8,7 +8,7 @@ internal class CancelSessionReservationHandler(IEntityRepository<Appointment, Ap
         AppointmentDescriptor descriptor = new()
         {
             SessionId = request.SessionId,
-            CreatedBy = request.UserId
+            UserId = request.UserId
         };
 
         IReadOnlyList<Appointment> appointments = await appointmentRepository.GetAsync(descriptor, cancellationToken);

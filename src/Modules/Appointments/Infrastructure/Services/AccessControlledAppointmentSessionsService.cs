@@ -29,6 +29,9 @@ internal class AccessControlledAppointmentSessionsService(
     public Task<EntityResult> ReserveAsync(Guid sessionId, CancellationToken cancellationToken)
         => sessionsService.ReserveAsync(sessionId, cancellationToken);
 
+    public Task<EntityResult> ReserveForUserAsync(Guid sessionId, string? userId, CancellationToken cancellationToken)
+        => IsAdmin ? sessionsService.ReserveForUserAsync(sessionId, userId, cancellationToken) : throw AdminRoleRequired;
+
     public Task<EntityResult> CancelReservationAsync(Guid sessionId, CancellationToken cancellationToken)
         => sessionsService.CancelReservationAsync(sessionId, cancellationToken);
 

@@ -3,7 +3,6 @@ namespace Vitarish.Appointments.Interface.Components.Appointments;
 public partial class AdminAppointmentDetail : AppointmentsBase
 {
     [Parameter, EditorRequired] public AppointmentReadDto Appointment { get; set; } = default!;
-    [Parameter] public EventCallback OnEdit { get; set; }
     [Parameter] public EventCallback OnDeleted { get; set; }
     [Parameter] public EventCallback OnStatusChanged { get; set; }
 
