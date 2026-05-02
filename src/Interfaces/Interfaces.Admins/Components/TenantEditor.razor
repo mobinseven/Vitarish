@@ -1,0 +1,54 @@
+@using Vitarish.Parties.Domain.Dtos
+
+<Stack>
+
+    <StackTextField @bind-Value=write.Name Label="@Localizer["Name"]" Required />
+    <StackTextField @bind-Value=write.LogoUrl Label="@Localizer["LogoUrl"]" />
+    <StackTextField @bind-Value=write.Description Label="@Localizer["Description"]" />
+    <StackTextField @bind-Value=write.AppId Label="@Localizer["App"]" />
+
+    @if(OnUpdateRoles.HasDelegate)
+    {
+        <StackButton Label="@Localizer["UpdateRoles"]" OnClick="OnUpdateRoles" EndIcon="fa-regular fa-sync" />
+    }
+    <StackButton Label="@Localizer["Save"]" OnClick="SaveTenant" Color="Color.Primary" EndIcon="fa-regular fa-save" />
+    @if(OnCancelled.HasDelegate)
+    {
+        <StackButton Label="@Localizer["Cancel"]" OnClick="OnCancelled" EndIcon="fa-regular fa-xmark" />
+    }
+</Stack>
+
+    @code {
+    TenantWriteDto write = new();
+    [Parameter, EditorRequired] public TenantReadDto Tenant { get; set; }
+    [Parameter] public EventCallback<TenantReadDto> TenantChanged { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+    [Parameter] public EventCallback OnCancelled { get; set; }
+    [Parameter] public EventCallback OnUpdateRoles { get; set; }
+
+    protected override void OnInitialized()
+    {
+        write = Tenant?.ToWrite() ?? new();
+    }
+
+    private async Task SaveTenant()
+    {
+        if(string.IsNullOrWhiteSpace(write.AppId))
+        {
+            _ = Snackbar.Add(Localizer["App"], Severity.Error);
+            return;
+        }
+        TenantReadDto? updated = await PartiesService.UpdateTenantAsync(write);
+        if(updated is null)
+        {
+            Snackbar.Add(Localizer["Error"], Severity.Error);
+            return;
+        }
+        await TenantChanged.InvokeAsync(updated);
+        Tenant = updated;
+        write = updated.ToWrite();
+        await InvokeAsync(StateHasChanged);
+        await OnSaved.InvokeAsync();
+        Snackbar.Add(Localizer["Saved"], Severity.Success);
+    }
+}

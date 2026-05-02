@@ -6,12 +6,10 @@
 }
 
 <Stack>
+    <StackField Label="@Localizer["TenantIndicators"]" />
     @foreach(var indicator in Indicators)
     {
         <StackButton Label="@indicator.Value" StartIcon="@GetStatusIcon(indicator.Status)" OnClick="() => EditIndicator(indicator)" />
     }
-</Stack>
-
-<Stack>
     <StackButton OnClick="AddIndicator" EndIcon="fa-regular fa-plus" Color="Color.Primary" Label="@Localizer["AddItem", Localizer["TenantIndicator"]]" />
 </Stack>

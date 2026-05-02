@@ -1,0 +1,42 @@
+@using Vitarish.Parties.Domain.Dtos
+
+<Stack>
+
+    <StackTextField @bind-Value=write.Name Label="@Localizer["Name"]" Required />
+    <StackTextField @bind-Value=write.LogoUrl Label="@Localizer["LogoUrl"]" />
+    <StackTextField @bind-Value=write.Description Label="@Localizer["Description"]" />
+    <StackButton Label="@Localizer["Save"]" OnClick="Save" Color="Color.Primary" EndIcon="fa-regular fa-save" />
+    @if(OnCancelled.HasDelegate)
+    {
+        <StackButton Label="@Localizer["Cancel"]" OnClick="OnCancelled" EndIcon="fa-regular fa-xmark" />
+    }
+</Stack>
+
+@code {
+    OwnerWriteDto write = new();
+    [Parameter, EditorRequired] public OwnerReadDto Owner { get; set; }
+    [Parameter] public EventCallback<OwnerReadDto> OwnerChanged { get; set; }
+    [Parameter] public EventCallback OnSaved { get; set; }
+    [Parameter] public EventCallback OnCancelled { get; set; }
+
+    protected override void OnInitialized()
+    {
+        write = Owner?.ToWrite() ?? new();
+    }
+
+    private async Task Save()
+    {
+        OwnerReadDto? updated = await PartiesService.UpdateOwnerAsync(write);
+        if(updated is null)
+        {
+            Snackbar.Add(Localizer["Error"], Severity.Error);
+            return;
+        }
+        await OwnerChanged.InvokeAsync(updated);
+        Owner = updated;
+        write = updated.ToWrite();
+        await InvokeAsync(StateHasChanged);
+        await OnSaved.InvokeAsync();
+        Snackbar.Add(Localizer["Saved"], Severity.Success);
+    }
+}

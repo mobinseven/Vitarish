@@ -36,8 +36,6 @@ public class Tenant : Entity
         set => SetField(ref field, value, nameof(Description));
     }
 
-    /// <summary>Client application identifier.</summary>
-    [Column("AppId")]
     public required string AppId
     {
         get;

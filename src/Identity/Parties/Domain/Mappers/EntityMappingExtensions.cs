@@ -1,8 +1,6 @@
-#nullable enable
-
-using Vitarish;
-
-namespace Vitarish.Parties.Domain.Mappers;
+using Vitarish.Parties.Domain.Descriptors;
+using Vitarish.Parties.Domain.Dtos;
+using Vitarish.Parties.Domain.Entities;
 
 /// <summary>
 /// Auto-generated mapping extension methods for VitarishPartiesDomain entities.
@@ -10,51 +8,53 @@ namespace Vitarish.Parties.Domain.Mappers;
 /// </summary>
 public static partial class EntityMappingExtensions
 {
-    private static readonly EntityMapper Mapper = new EntityMapper();
+    private static readonly Vitarish.Parties.Domain.Mappers.EntityMapper Mapper = new();
 
     /// <summary>
     /// Converts a Owner entity to its read DTO representation.
     /// </summary>
-    public static Dtos.OwnerReadDto ToDto(this Entities.Owner entity) => Mapper.ToDto(entity);
+    public static OwnerReadDto ToDto(this Owner entity) => Mapper.ToDto(entity);
 
     /// <summary>
     /// Converts a Owner write DTO to its entity representation.
     /// </summary>
-    public static Entities.Owner ToDomain(this Dtos.OwnerWriteDto dto) => Mapper.ToDomain(dto);
+    public static Owner ToDomain(this OwnerWriteDto dto) => Mapper.ToDomain(dto);
+    public static OwnerWriteDto ToWrite(this OwnerReadDto dto) => Mapper.ToWrite(dto);
 
     /// <summary>
     /// Converts a Owner descriptor DTO to its descriptor representation.
     /// </summary>
-    public static Descriptors.OwnerDescriptor ToDomain(this Dtos.OwnerDescriptorDto dto) => Mapper.ToDomain(dto);
+    public static OwnerDescriptor ToDomain(this OwnerDescriptorDto dto) => Mapper.ToDomain(dto);
 
     /// <summary>
     /// Converts a Tenant entity to its read DTO representation.
     /// </summary>
-    public static Dtos.TenantReadDto ToDto(this Entities.Tenant entity) => Mapper.ToDto(entity);
+    public static TenantReadDto ToDto(this Tenant entity) => Mapper.ToDto(entity);
 
     /// <summary>
     /// Converts a Tenant write DTO to its entity representation.
     /// </summary>
-    public static Entities.Tenant ToDomain(this Dtos.TenantWriteDto dto) => Mapper.ToDomain(dto);
+    public static Tenant ToDomain(this TenantWriteDto dto) => Mapper.ToDomain(dto);
+    public static TenantWriteDto ToWrite(this TenantReadDto dto) => Mapper.ToWrite(dto);
 
     /// <summary>
     /// Converts a Tenant descriptor DTO to its descriptor representation.
     /// </summary>
-    public static Descriptors.TenantDescriptor ToDomain(this Dtos.TenantDescriptorDto dto) => Mapper.ToDomain(dto);
+    public static TenantDescriptor ToDomain(this TenantDescriptorDto dto) => Mapper.ToDomain(dto);
 
     /// <summary>
     /// Converts a TenantIndicator entity to its read DTO representation.
     /// </summary>
-    public static Dtos.TenantIndicatorReadDto ToDto(this Entities.TenantIndicator entity) => Mapper.ToDto(entity);
+    public static TenantIndicatorReadDto ToDto(this TenantIndicator entity) => Mapper.ToDto(entity);
 
     /// <summary>
     /// Converts a TenantIndicator write DTO to its entity representation.
     /// </summary>
-    public static Entities.TenantIndicator ToDomain(this Dtos.TenantIndicatorWriteDto dto) => Mapper.ToDomain(dto);
+    public static TenantIndicator ToDomain(this TenantIndicatorWriteDto dto) => Mapper.ToDomain(dto);
 
     /// <summary>
     /// Converts a TenantIndicator descriptor DTO to its descriptor representation.
     /// </summary>
-    public static Descriptors.TenantIndicatorDescriptor ToDomain(this Dtos.TenantIndicatorDescriptorDto dto) => Mapper.ToDomain(dto);
+    public static TenantIndicatorDescriptor ToDomain(this TenantIndicatorDescriptorDto dto) => Mapper.ToDomain(dto);
 
 }

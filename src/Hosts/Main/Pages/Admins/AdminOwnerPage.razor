@@ -1,0 +1,71 @@
+@inherits AdminCommonBase
+@page "/Admin/Owners/{OwnerId}"
+@using Vitarish.Parties.Domain.Dtos
+
+@if(Owner is null)
+{
+    return;
+}
+
+<OwnerEditor Owner="Owner" />
+
+
+<Stack>
+    <StackField Label="@Localizer["Tenants"]" />
+    @foreach(var tenant in Tenants)
+    {
+        <StackButton Label="@tenant.Name" Href="@($"/Admin/Owners/{ownerGuid}/{tenant.Id}")" />
+    }
+    <StackButton Label="@Localizer["AddItem", Localizer["Tenant"]]" Color="Color.Primary" OnClick="AddTenant" EndIcon="fa-regular fa-plus" />
+</Stack>
+
+@code {
+
+    [Parameter] public string? OwnerId { get; set; }
+
+    private Guid ownerGuid;
+    private OwnerReadDto? Owner;
+    private List<TenantReadDto> Tenants = new();
+
+    private void Back()
+    {
+        NavigationManager.NavigateTo("/Admin/Owners");
+    }
+
+    protected override async Task ReloadRequired()
+    {
+        if(OwnerId is null)
+        {
+            Back();
+            return;
+        }
+
+        ownerGuid = Guid.Parse(OwnerId);
+
+        Owner = await PartiesService.GetOwnerAsync(ownerGuid);
+
+        if(Owner == null)
+        {
+            Back();
+        }
+
+        Tenants = [.. await PartiesService.GetTenantsByOwnerAsync(ownerGuid)];
+    }
+
+    private async Task AddTenant()
+    {
+        TenantReadDto? added = await PartiesService.CreateTenantAsync(new TenantWriteDto { OwnerId = ownerGuid, Name = Localizer["Tenant"], AppId = "Default" });
+        if(added is null)
+        {
+            Snackbar.Add(Localizer["Error"], Severity.Error);
+            return;
+        }
+        NavigationManager.NavigateTo($"/Admin/Owners/{ownerGuid}/{added.Id}");
+    }
+
+    private async Task Remove()
+    {
+        await PartiesService.DeleteOwnerAsync(ownerGuid);
+        Back();
+    }
+}

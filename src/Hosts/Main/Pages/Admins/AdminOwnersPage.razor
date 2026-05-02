@@ -3,29 +3,10 @@
 @inherits AdminCommonBase
 
 <Stack>
+    <StackField Label="@Localizer["Owners"]" />
     @foreach(var owner in Owners)
     {
-        <StackButton Label="@owner.Name" OnClick="() => RowClicked(owner)" />
+        <StackButton Label="@owner.Name" Href="@($"/Admin/Owners/{owner.Id}")" />
     }
-</Stack>
-
-<Stack>
-    <StackField>
-        <MudTextField @bind-Value=newOwnerName Label="@Localizer["Name"]" Required />
-        <MudTextField @bind-Value=newOwnerLogoUrl Label="@Localizer["LogoUrl"]" />
-        <MudTextField @bind-Value=newOwnerDescription Label="@Localizer["Description"]" />
-        <MudFab StartIcon="@(editingOwner is null ? Icons.Material.Filled.Add : Icons.Material.Filled.Save)"
-                Size="Size.Small" OnClick="SaveOwner" DropShadow="false" />
-        @if(editingOwner is not null)
-        {
-            <MudFab StartIcon="@Icons.Material.Filled.Cancel"
-                    Size="Size.Small"
-                    OnClick="CancelEditOwner"
-                    Color="Color.Default"
-                    DropShadow="false" />
-            <MudIconButton Icon="@Icons.Material.Filled.Delete"
-                           Color="Color.Error"
-                           OnClick="() => RemoveOwner(editingOwner)" />
-        }
-    </StackField>
+    <StackButton OnClick="Add" Color="Color.Primary" Label="@(Localizer["AddItem", Localizer["Owner"]])" EndIcon="fa-regular fa-plus" />
 </Stack>

@@ -1285,19 +1285,19 @@
     <value>هیچ نقشی نیست</value>
   </data>
   <data name="NoTenantAccess" xml:space="preserve">
-    <value>هیچ نقش دسترسی برای مستاجر اختصاص داده نشده است.</value>
+    <value>هیچ نقش دسترسی برای فضای کاری اختصاص داده نشده است.</value>
   </data>
   <data name="NoTenants" xml:space="preserve">
-    <value>مستاجری وجود ندارد</value>
+    <value>فضای کاری پیدا نشد</value>
   </data>
   <data name="OpenTenant" xml:space="preserve">
-    <value>باز کردن مستاجر</value>
+    <value>باز کردن فضای کاری</value>
   </data>
   <data name="PersonalDetails" xml:space="preserve">
     <value>جزئیات شخصی</value>
   </data>
   <data name="SelectTenant" xml:space="preserve">
-    <value>مستاجر را انتخاب کنید</value>
+    <value>فضای کاری را انتخاب کنید</value>
   </data>
   <data name="TryAgain" xml:space="preserve">
     <value>دوباره تلاش کنید</value>
@@ -1324,10 +1324,10 @@
     <value>توکن</value>
   </data>
   <data name="Tenant" xml:space="preserve">
-    <value>مستاجر</value>
+    <value>فضای کاری</value>
   </data>
   <data name="TenantAccess" xml:space="preserve">
-    <value>دسترسی مستاجر</value>
+    <value>دسترسی فضای کاری</value>
   </data>
   <data name="ManagePersonalAccessTokens" xml:space="preserve">
     <value>مدیریت توکن‌های دسترسی شخصی</value>
@@ -1674,13 +1674,13 @@
   <data name="Minute" xml:space="preserve">
     <value>دقیقه</value>
   </data>
-  <data name="Gender_Unspecified" xml:space="preserve">
-    <value>نامشخص</value>
-  </data>
   <data name="PresentAppointment" xml:space="preserve">
     <value>ثبت حاضری</value>
   </data>
   <data name="Present" xml:space="preserve">
     <value>حاضر</value>
+  </data>
+  <data name="Gender_Unspecified" xml:space="preserve">
+    <value>نامشخص</value>
   </data>
 </root>

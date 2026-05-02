@@ -16,6 +16,7 @@ public partial class EntityMapper
     /// Converts a Tenant write DTO to its entity representation.
     /// </summary>
     public partial global::Vitarish.Parties.Domain.Entities.Tenant ToDomain(global::Vitarish.Parties.Domain.Dtos.TenantWriteDto src);
+    public partial global::Vitarish.Parties.Domain.Dtos.TenantWriteDto ToWrite(global::Vitarish.Parties.Domain.Dtos.TenantReadDto src);
 
     /// <summary>
     /// Converts a Tenant descriptor DTO to its descriptor representation.
