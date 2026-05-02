@@ -1,11 +1,15 @@
 @page "/Medical/Patients/{patientId}"
 
+@inject IEnumerable<IMedicalPatientSectionPlugin> PatientSectionPlugins
+
 @if(patient is null)
 {
     return;
 }
 
 <CascadingValue Value="IsAdmin">
+
+    <PatientOverviewPanel Project="@patient" />
 
     <ProceduresGrid Project="@patient"
                     OnClicked="@(procedureId => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}/{procedureId}"))"
@@ -15,11 +19,17 @@
                     OnEdit="@(id => NavigationManager.NavigateTo($"/Medical/Patients/{id}/Edit"))"
                     OnDeleted="@(() => NavigationManager.NavigateTo("/Medical/Patients"))" />
 
-    <PatientAppointmentsPanel Patient="@patient"
-                              OnAdd="@(userId => NavigationManager.NavigateTo("/Appointemnts/"))"
-                              OnClicked="@(appointmentId => NavigationManager.NavigateTo($"/Appointments/{appointmentId}"))" />
+    <PatientAppointmentsPanel Patient="@patient" />
 
     <PatientRemindersPanel PatientId="@patient.Id" />
+
+    @foreach (var plugin in PatientSectionPlugins)
+    {
+        <Stack>
+            <StackField Label="@plugin.Label" />
+            @plugin.Render(patient)
+        </Stack>
+    }
 
 </CascadingValue>
 

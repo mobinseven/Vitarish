@@ -1,7 +1,55 @@
 @page "/Medical/Admin"
 @page "/Medical/"
 
+@if (!initialized)
+{
+    return;
+}
+
+<CascadingValue Value="IsAdmin">
+    <Stack>
+        <StackField Label="@Localizer["MedicalDashboard"]"
+                     HelperText="@($"{patients.Count} {Localizer["Patients"]}")" />
+    </Stack>
+
+    @if (patients.Count == 0)
+    {
+        <Stack>
+            <StackButton OnClick="ReloadRequired"
+                         Label="@Localizer["NoItems", Localizer["Patient"]]"
+                         HelperText="@Localizer["NoItemsHelp", Localizer["Patient"]]"
+                         EndIcon="fa-regular fa-refresh">
+                @Localizer["Reload"]
+            </StackButton>
+        </Stack>
+    }
+    else
+    {
+        @foreach (var patient in patients)
+        {
+            <PatientSummaryCard Project="@patient"
+                                OnClicked="@(id => NavigationManager.NavigateTo($"/Medical/Patients/{id}"))" />
+        }
+    }
+</CascadingValue>
 
 @code {
+    private List<ProjectReadDto> patients = [];
+    private bool initialized;
 
+    protected override async Task ReloadRequired()
+    {
+        ProjectDescriptorDto descriptor = new()
+        {
+            Skip = 0,
+            Take = 20,
+            Template = false,
+            Descending = true
+        };
+
+        IReadOnlyList<ProjectReadDto> items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        patients = [.. items.OrderByDescending(p => p.Stats?.LastUpdate).ThenBy(p => p.Name)];
+        initialized = true;
+        await InvokeAsync(StateHasChanged);
+    }
 }

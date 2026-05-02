@@ -1,0 +1,52 @@
+@inherits Vitarish.Modules.Base.TenantCommonBase
+
+<MudDialog>
+    <DialogContent>
+        @if (string.IsNullOrWhiteSpace(patientUserId))
+        {
+            <Stack>
+                <StackField Label="@Localizer["LinkUserAccountRequired"]"
+                             HelperText="@Localizer["LinkUserAccountRequiredHelp"]"
+                             AdornmentIcon="fa-regular fa-triangle-exclamation"
+                             AdornmentColor="Color.Warning" />
+            </Stack>
+        }
+        else if (sessions.Count == 0)
+        {
+            <Stack>
+                <StackButton Label="@Localizer["NoItems", Localizer["AppointmentSession"]]"
+                             HelperText="@Localizer["NoItemsHelp", Localizer["AppointmentSession"]]"
+                             EndIcon="fa-regular fa-refresh"
+                             OnClick="LoadSessionsAsync">
+                    @Localizer["Reload"]
+                </StackButton>
+            </Stack>
+        }
+        else
+        {
+            <Stack>
+                @foreach (var session in sessions)
+                {
+                    bool isFull = (session.Stats?.ReservationCount ?? 0) >= session.Capacity;
+                    <StackButton OnClick="@(() => ReserveAsync(session))"
+                                 Label="@session.DateTime.ToString("g")"
+                                 HelperText="@($"{session.Stats.ReservationCount}/{session.Capacity}")"
+                                 Disabled="@isFull">
+                        <AppointmentSessionStatusBadge Status="session.Status" />
+                    </StackButton>
+                }
+            </Stack>
+            <Stack>
+                <StackCheckbox @bind-Value="createReminder"
+                               Label="@Localizer["CreateReminderAfterBooking"]" />
+            </Stack>
+        }
+    </DialogContent>
+    <DialogActions>
+        <Stack>
+            <StackButton Label="@Localizer["Cancel"]"
+                         EndIcon="fa-regular fa-xmark"
+                         OnClick="Cancel" />
+        </Stack>
+    </DialogActions>
+</MudDialog>
