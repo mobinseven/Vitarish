@@ -16,6 +16,10 @@ public record ProjectDescriptorDto : EntityDescriptorDto
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public IReadOnlyList<Guid>? RoleIds { get; set; }
 
+    [JsonPropertyName("userIds")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public IReadOnlyList<string>? UserIds { get; set; }
+
     //[JsonPropertyName("includeStats")]
     //public bool IncludeStats { get; set; } = true;
 }

@@ -38,6 +38,12 @@ internal class ProjectRepository(SeaDbContext dbContext)
                            dbContext.EventRoles.Any(er => er.EventId == ev.Id && descriptor.RoleIds.Contains(er.RoleId))));
         }
 
+        if (descriptor.UserIds is not null)
+        {
+            query = query.Where(p => dbContext.ProjectUsers
+                .Any(pu => pu.ProjectId == p.Id && descriptor.UserIds.Contains(pu.UserId)));
+        }
+
         if (descriptor.SortBy is { } sort)
         {
             query = (sort, descriptor.Descending) switch
@@ -78,6 +84,31 @@ internal class ProjectRepository(SeaDbContext dbContext)
     private Task PopulateStatsAsync(Project project, CancellationToken cancellationToken)
         => PopulateStatsAsync([project], cancellationToken);
 
+    private async Task PopulateUserIdsAsync(IReadOnlyList<Project> projects, CancellationToken cancellationToken)
+    {
+        if (projects.Count == 0)
+        {
+            return;
+        }
+
+        List<Guid> projectIds = [.. projects.Select(p => p.Id)];
+
+        ILookup<Guid, string> userIdsByProject = (await dbContext.ProjectUsers
+            .AsNoTracking()
+            .Where(pu => projectIds.Contains(pu.ProjectId))
+            .Select(pu => new { pu.ProjectId, pu.UserId })
+            .ToListAsync(cancellationToken))
+            .ToLookup(pu => pu.ProjectId, pu => pu.UserId);
+
+        foreach (Project project in projects)
+        {
+            project.UserIds = [.. userIdsByProject[project.Id]];
+        }
+    }
+
+    private Task PopulateUserIdsAsync(Project project, CancellationToken cancellationToken)
+        => PopulateUserIdsAsync([project], cancellationToken);
+
     public new async Task<Project?> GetAsync(Guid id, CancellationToken cancellationToken)
     {
         Project? project = await base.GetAsync(id, cancellationToken);
@@ -88,6 +119,7 @@ internal class ProjectRepository(SeaDbContext dbContext)
         }
 
         await PopulateStatsAsync(project, cancellationToken);
+        await PopulateUserIdsAsync(project, cancellationToken);
 
         return project;
     }
@@ -96,12 +128,17 @@ internal class ProjectRepository(SeaDbContext dbContext)
     {
         IReadOnlyList<Project> projects = await base.GetAsync(descriptor, cancellationToken);
 
-        if (projects.Count == 0 || descriptor.IncludeStats == false)
+        if (projects.Count == 0)
         {
             return projects;
         }
 
-        await PopulateStatsAsync(projects, cancellationToken);
+        if (descriptor.IncludeStats != false)
+        {
+            await PopulateStatsAsync(projects, cancellationToken);
+        }
+
+        await PopulateUserIdsAsync(projects, cancellationToken);
 
         return projects;
     }

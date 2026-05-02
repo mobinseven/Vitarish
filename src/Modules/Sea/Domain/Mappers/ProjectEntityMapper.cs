@@ -1,3 +1,4 @@
+using Riok.Mapperly.Abstractions;
 
 namespace Vitarish.Sea.Domain.Mappers;
 
@@ -8,6 +9,7 @@ public partial class EntityMapper
 {
     public partial global::Vitarish.Sea.Domain.Dto.ProjectReadDto ToDto(global::Vitarish.Sea.Domain.Entities.Project src);
 
+    [MapperIgnoreSource("UserIds")]
     public partial global::Vitarish.Sea.Domain.Entities.Project ToDomain(global::Vitarish.Sea.Domain.Dto.ProjectWriteDto src);
 
     public partial global::Vitarish.Sea.Domain.Dto.ProjectWriteDto ToWrite(global::Vitarish.Sea.Domain.Dto.ProjectReadDto src);

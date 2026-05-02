@@ -24,4 +24,6 @@ public class Project : Entity
     } = [];
 
     public ProjectStats Stats { get; set; } = new();
+
+    public IReadOnlyList<string> UserIds { get; set; } = [];
 }
