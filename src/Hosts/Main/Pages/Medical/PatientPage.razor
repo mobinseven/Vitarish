@@ -15,7 +15,9 @@
                     OnEdit="@(id => NavigationManager.NavigateTo($"/Medical/Patients/{id}/Edit"))"
                     OnDeleted="@(() => NavigationManager.NavigateTo("/Medical/Patients"))" />
 
-    <PatientAppointmentsPanel Patient="@patient" />
+    <PatientAppointmentsPanel Patient="@patient"
+                              OnAdd="@(userId => NavigationManager.NavigateTo("/Appointemnts/"))"
+                              OnClicked="@(appointmentId => NavigationManager.NavigateTo($"/Appointments/{appointmentId}"))" />
 
     <PatientRemindersPanel PatientId="@patient.Id" />
 
@@ -29,7 +31,7 @@
 
     protected override async Task ReloadRequired()
     {
-        if (!Guid.TryParse(patientId, out Guid id))
+        if(!Guid.TryParse(patientId, out Guid id))
         {
             NavigationManager.NavigateTo("/Medical/Patients");
             return;
@@ -37,7 +39,7 @@
 
         patient = await ProjectsService.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
 
-        if (patient is null)
+        if(patient is null)
         {
             NavigationManager.NavigateTo("/Medical/Patients");
             return;

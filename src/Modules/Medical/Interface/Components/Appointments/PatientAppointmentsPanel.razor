@@ -1,10 +1,10 @@
 @inherits Vitarish.Modules.Base.TenantCommonBase
 
 <Stack>
-    @if(AdminMode && !string.IsNullOrWhiteSpace(patientUserId))
+    @if(AdminMode && !string.IsNullOrWhiteSpace(patientUserId) && OnAdd.HasDelegate)
     {
         <StackButton Color="Color.Primary"
-                     Href="@($"/AppointmentSessions/Admin")"
+                     OnClick="@(() => OnAdd.InvokeAsync(patientUserId))"
                      EndIcon="fa-regular fa-calendar-plus"
                      Label="@Localizer["AddItem", Localizer["Appointment"]]" />
     }
@@ -12,7 +12,7 @@
     {
         @foreach(var appointment in appointments)
         {
-            <StackButton Href="@(AdminMode ? $"/Appointments/Admin/{appointment.Id}" : $"/Appointments/{appointment.Id}")"
+            <StackButton OnClick="@(() => OnClicked.InvokeAsync(appointment.Id))"
                          Label="@(appointment.Session?.DateTime.ToString("g") ?? Localizer["SessionUnavailable"].Value)">
                 <AppointmentStatusBadge Status="appointment.Status" />
             </StackButton>
@@ -20,8 +20,10 @@
     }
 </Stack>
 
-@code {
+    @code {
     [Parameter, EditorRequired] public ProjectReadDto Patient { get; set; } = default!;
+    [Parameter] public EventCallback<string> OnAdd { get; set; }
+    [Parameter] public EventCallback<Guid> OnClicked { get; set; }
 
     [Inject] private IAccessControlledAppointmentsService AppointmentsService { get; set; } = default!;
 

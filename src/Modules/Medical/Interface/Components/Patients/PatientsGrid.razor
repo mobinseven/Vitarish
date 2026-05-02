@@ -32,20 +32,6 @@
     return;
 }
 
-@if(TemplateMode)
-{
-    <Stack>
-        @foreach(var project in projects)
-        {
-            <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
-                         Label="@project.Name"
-                         HighlightString="@SearchString" />
-        }
-    </Stack>
-
-    return;
-}
-
 @if(!string.IsNullOrWhiteSpace(SearchString) && projects.Count == 0)
 {
     <Stack>
