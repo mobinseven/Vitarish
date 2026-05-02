@@ -14,19 +14,13 @@ internal class ProjectsService(
     IProjectsService
 {
     public new async Task<EntityResult<ProjectReadDto>> AddAsync(ProjectWriteDto dto, CancellationToken cancellationToken)
-    {
-        EntityResult<ProjectReadDto> result = await base.AddAsync(dto, cancellationToken);
-        if (result.IsSuccess && dto.UserIds is not null)
-        {
-            await SyncProjectUsersAsync(result.Value!.Id, dto.UserIds, cancellationToken);
-            result.Value!.UserIds = [.. dto.UserIds];
-        }
-        return result;
-    }
+        => await SyncUserIdsAfterWriteAsync(await base.AddAsync(dto, cancellationToken), dto, cancellationToken);
 
     public new async Task<EntityResult<ProjectReadDto>> UpdateAsync(ProjectWriteDto dto, CancellationToken cancellationToken)
+        => await SyncUserIdsAfterWriteAsync(await base.UpdateAsync(dto, cancellationToken), dto, cancellationToken);
+
+    private async Task<EntityResult<ProjectReadDto>> SyncUserIdsAfterWriteAsync(EntityResult<ProjectReadDto> result, ProjectWriteDto dto, CancellationToken cancellationToken)
     {
-        EntityResult<ProjectReadDto> result = await base.UpdateAsync(dto, cancellationToken);
         if (result.IsSuccess && dto.UserIds is not null)
         {
             await SyncProjectUsersAsync(result.Value!.Id, dto.UserIds, cancellationToken);

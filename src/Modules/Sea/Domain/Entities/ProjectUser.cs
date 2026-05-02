@@ -21,7 +21,7 @@ public class ProjectUser : Entity
     public ProjectUser(Guid projectId, string userId)
     {
         Id = Guid.NewGuid();
-        _projectId = projectId;
-        _userId = userId;
+        ProjectId = projectId;
+        UserId = userId;
     }
 }
