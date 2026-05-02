@@ -55,6 +55,6 @@
     {
         base.OnInitialized();
         patient = Project.ToPatientRead();
-        linkedUserId = Project.Metadata.TryGetValue(MetadataKeys.LinkedUserId, out object? v) ? v?.ToString() : null;
+        linkedUserId = Project.UserIds.FirstOrDefault();
     }
 }

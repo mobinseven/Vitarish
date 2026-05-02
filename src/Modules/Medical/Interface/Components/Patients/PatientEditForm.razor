@@ -68,7 +68,7 @@
                             Label="@Localizer["EmergencyContactName"]" />
             <StackTextField @bind-Value="projectWriteDto.EmergencyContactPhone"
                             Label="@Localizer["EmergencyContactPhone"]" />
-            <StackSelect T="string?" @bind-Value="projectWriteDto.LinkedUserId" Label="@Localizer["LinkedUser"]">
+            <StackSelect T="string?" @bind-Value="LinkedUserId" Label="@Localizer["LinkedUser"]">
                 <MudSelectItem T="string?" Value="@(null as string)">@Localizer["None"]</MudSelectItem>
                 @foreach (var user in GetUsers())
                 {
@@ -86,6 +86,13 @@
 
 @code {
     private PatientWriteDto projectWriteDto = new();
+
+    private string? LinkedUserId
+    {
+        get => projectWriteDto.UserIds?.FirstOrDefault();
+        set => projectWriteDto.UserIds = value is null ? [] : [value];
+    }
+
     protected override void OnInitialized()
     {
         base.OnInitialized();

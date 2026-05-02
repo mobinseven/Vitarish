@@ -17,7 +17,7 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
 
     protected override async Task OnInitializedAsync()
     {
-        patientUserId = Patient.Metadata.TryGetValue(MetadataKeys.LinkedUserId, out object? v) ? v?.ToString() : null;
+        patientUserId = Patient.UserIds.FirstOrDefault();
         if (!string.IsNullOrWhiteSpace(patientUserId))
         {
             await LoadSessionsAsync();

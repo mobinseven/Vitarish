@@ -12,4 +12,6 @@ public record ProjectReadDto : EntityReadDto
 
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public StatsReadDto? Stats { get; set; }
+
+    public IReadOnlyList<string> UserIds { get; set; } = [];
 }

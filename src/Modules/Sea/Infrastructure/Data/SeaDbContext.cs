@@ -41,6 +41,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<EventRole> EventRoles => Set<EventRole>();
     public DbSet<Receipt> Receipts => Set<Receipt>();
+    public DbSet<ProjectUser> ProjectUsers => Set<ProjectUser>();
 
     public SeaDbContext(
         DbContextOptions<SeaDbContext> options,
@@ -90,6 +91,12 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         ConfigureTenantEntity<UserRole>(modelBuilder);
         ConfigureTenantEntity<EventRole>(modelBuilder);
         ConfigureTenantEntity<Receipt>(modelBuilder);
+        ConfigureTenantEntity<ProjectUser>(modelBuilder);
+
+        _ = modelBuilder.Entity<ProjectUser>(entity =>
+        {
+            _ = entity.HasIndex(pu => new { pu.ProjectId, pu.UserId });
+        });
 
         if (Database.IsSqlite())
         {
@@ -111,6 +118,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
             entity.Ignore(p => p.Stats);
+            entity.Ignore(p => p.UserIds);
         });
 
         _ = modelBuilder.Entity<ProcedureStats>(eb =>
