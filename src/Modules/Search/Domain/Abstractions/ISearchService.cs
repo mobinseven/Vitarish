@@ -22,4 +22,10 @@ public interface ISearchService
     /// from the matching <see cref="ISearchIndexProvider"/> and re-indexing them.
     /// </summary>
     Task RebuildIndexAsync(string indexName, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns a status report for every registered index, including document count and store size.
+    /// Indexes that do not yet exist in Elasticsearch are reported with zero counts.
+    /// </summary>
+    Task<IReadOnlyList<IndexStatusReport>> GetIndexStatusAsync(CancellationToken cancellationToken = default);
 }
