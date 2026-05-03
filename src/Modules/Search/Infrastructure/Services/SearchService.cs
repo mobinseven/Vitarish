@@ -97,15 +97,15 @@ internal sealed class SearchService(
     public async Task<IReadOnlyList<IndexStatusReport>> GetIndexStatusAsync(
         CancellationToken cancellationToken = default)
     {
-        string[] logicalNames = [.. providers.Select(p => p.IndexName)];
+        string[] logicalNames = providers.Select(p => p.IndexName).ToArray();
 
         if (logicalNames.Length == 0)
         {
             return [];
         }
 
-        string[] fullNames = [.. logicalNames.Select(BuildIndexName)];
-        Indices indices = Indices.Parse(string.Join(",", fullNames));
+        string[] fullNames = logicalNames.Select(BuildIndexName).ToArray();
+        Indices indices = fullNames;
 
         IndicesStatsResponse statsResponse = await client.Indices.StatsAsync(
             indices,
