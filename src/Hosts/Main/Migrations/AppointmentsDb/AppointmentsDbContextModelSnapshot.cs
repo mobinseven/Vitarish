@@ -125,7 +125,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.HasOne("Vitarish.Appointments.Domain.Entities.AppointmentSession", "Session")
                         .WithMany()
                         .HasForeignKey("SessionId")
-                        .OnDelete(DeleteBehavior.Restrict)
+                        .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("Session");
