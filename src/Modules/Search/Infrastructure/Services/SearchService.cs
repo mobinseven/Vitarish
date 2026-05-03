@@ -1,5 +1,6 @@
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Bulk;
+using Elastic.Clients.Elasticsearch.IndexManagement;
 using Elastic.Clients.Elasticsearch.QueryDsl;
 using Vitarish.Search.Domain.Abstractions;
 using Vitarish.Search.Domain.Models;
@@ -91,6 +92,55 @@ internal sealed class SearchService(
         IReadOnlyList<SearchDocument> documents = await provider.GetDocumentsAsync(cancellationToken);
 
         await IndexAsync(indexName, documents, cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<IndexStatusReport>> GetIndexStatusAsync(
+        CancellationToken cancellationToken = default)
+    {
+        string[] logicalNames = [.. providers.Select(p => p.IndexName)];
+
+        if (logicalNames.Length == 0)
+        {
+            return [];
+        }
+
+        string[] fullNames = [.. logicalNames.Select(BuildIndexName)];
+        Indices indices = Indices.Parse(string.Join(",", fullNames));
+
+        IndicesStatsResponse statsResponse = await client.Indices.StatsAsync(
+            indices,
+            [CommonStatsFlag.Docs, CommonStatsFlag.Store],
+            cancellationToken);
+
+        IReadOnlyDictionary<string, IndicesStats> indexMap =
+            statsResponse.IsValidResponse && statsResponse.Indices is not null
+                ? statsResponse.Indices
+                : new Dictionary<string, IndicesStats>();
+
+        List<IndexStatusReport> reports = [];
+
+        foreach (string logicalName in logicalNames)
+        {
+            string fullName = BuildIndexName(logicalName);
+
+            long docCount = 0;
+            long storeBytes = 0;
+
+            if (indexMap.TryGetValue(fullName, out IndicesStats? stats) && stats.Primaries is not null)
+            {
+                docCount = stats.Primaries.Docs?.Count ?? 0;
+                storeBytes = stats.Primaries.Store?.SizeInBytes ?? 0;
+            }
+
+            reports.Add(new IndexStatusReport
+            {
+                IndexName = logicalName,
+                DocumentCount = docCount,
+                StoreSizeBytes = storeBytes
+            });
+        }
+
+        return reports;
     }
 
     private string BuildIndexName(string indexName) =>

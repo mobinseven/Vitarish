@@ -1,0 +1,50 @@
+@inherits CommonBase
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate Color="Color.Primary" />
+}
+else if (_errorMessage is not null)
+{
+    <MudAlert Severity="Severity.Error">@_errorMessage</MudAlert>
+}
+else if (_reports is not null)
+{
+    @if (_reports.Count == 0)
+    {
+        <MudText Typo="Typo.body2" Color="Color.Secondary">@Localizer["NoIndexesFound"]</MudText>
+    }
+    else
+    {
+        <MudSimpleTable Elevation="0">
+            <thead>
+                <tr>
+                    <th>@Localizer["IndexName"]</th>
+                    <th>@Localizer["DocumentCount"]</th>
+                    <th>@Localizer["StoreSize"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (IndexStatusReport report in _reports)
+                {
+                    <tr>
+                        <td>@report.IndexName</td>
+                        <td>@report.DocumentCount.ToString("N0")</td>
+                        <td>@FormatSize(report.StoreSizeBytes)</td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td><strong>@Localizer["TotalIndexed"]</strong></td>
+                    <td><strong>@_reports.Sum(r => r.DocumentCount).ToString("N0")</strong></td>
+                    <td><strong>@FormatSize(_reports.Sum(r => r.StoreSizeBytes))</strong></td>
+                </tr>
+            </tfoot>
+        </MudSimpleTable>
+    }
+}
+
+<Stack>
+    <StackButton Label="@Localizer["Refresh"]" StartIcon="fa-regular fa-rotate-right" OnClick="LoadAsync" />
+</Stack>
