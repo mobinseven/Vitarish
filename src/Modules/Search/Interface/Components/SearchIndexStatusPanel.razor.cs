@@ -11,9 +11,7 @@ public partial class SearchIndexStatusPanel : CommonBase
     private bool _loading;
     private string? _errorMessage;
 
-    protected override Task OnInitializedAsync() => LoadAsync();
-
-    private async Task LoadAsync()
+    protected override async Task ReloadRequired()
     {
         _loading = true;
         _errorMessage = null;
@@ -31,6 +29,8 @@ public partial class SearchIndexStatusPanel : CommonBase
         {
             _loading = false;
         }
+
+        await InvokeAsync(StateHasChanged);
     }
 
     private static string FormatSize(long bytes)
