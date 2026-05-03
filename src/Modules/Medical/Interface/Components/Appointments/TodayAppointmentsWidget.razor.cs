@@ -7,7 +7,7 @@ public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommo
     [Inject] private IAccessControlledAppointmentSessionsService SessionsService { get; set; } = default!;
     [Inject] private IAccessControlledAppointmentsService AppointmentsService { get; set; } = default!;
 
-    private List<(AppointmentSessionReadDto Session, List<AppointmentReadDto> Appointments)> items = [];
+    private List<(AppointmentSessionReadDto Session, List<AppointmentReadDto> Appointments)> todaySessions = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -52,7 +52,7 @@ public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommo
             result.Add((session, [.. appointments]));
         }
 
-        items = result;
+        todaySessions = result;
         await InvokeAsync(StateHasChanged);
     }
 
@@ -76,12 +76,9 @@ public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommo
         }
 
         string[] parts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-        return parts.Length switch
-        {
-            0 => "?",
-            1 => parts[0][..1].ToUpperInvariant(),
-            _ => $"{parts[0][..1]}{parts[1][..1]}".ToUpperInvariant()
-        };
+        string first = parts.Length > 0 && parts[0].Length > 0 ? parts[0][..1] : "?";
+        string second = parts.Length > 1 && parts[1].Length > 0 ? parts[1][..1] : string.Empty;
+        return $"{first}{second}".ToUpperInvariant();
     }
 
     private static Color GetAvatarColor(AppointmentStatus status) => status switch

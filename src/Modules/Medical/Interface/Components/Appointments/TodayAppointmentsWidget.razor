@@ -2,7 +2,7 @@
 
 <Stack>
     <StackField Label="@Localizer["TodayAppointments"]" />
-    @if (items.Count == 0)
+    @if (todaySessions.Count == 0)
     {
         <StackButton OnClick="LoadAsync"
                      Label="@Localizer["NoItems", Localizer["AppointmentSession"]]"
@@ -13,7 +13,7 @@
     }
     else
     {
-        @foreach (var (session, appointments) in items)
+        @foreach (var (session, appointments) in todaySessions)
         {
             <StackField Label="@session.DateTime.ToString("t")"
                         HelperText="@($"{session.Stats.ReservationCount}/{session.Capacity}")">
