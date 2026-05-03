@@ -1772,4 +1772,7 @@ of project "{2}"</value>
   <data name="IndexStatusLoadFailed" xml:space="preserve">
     <value>Failed to load index status</value>
   </data>
+  <data name="TodayAppointments" xml:space="preserve">
+    <value>Today's Appointments</value>
+  </data>
 </root>
