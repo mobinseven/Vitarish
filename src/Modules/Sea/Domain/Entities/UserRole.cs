@@ -30,6 +30,4 @@ public class UserRole : Entity
         _roleId = roleId;
         _type = type;
     }
-
-    public void SetType(RoleType type) => Type = type;
 }

@@ -2,19 +2,16 @@ namespace Vitarish.Sea.Domain.Entities;
 
 public class ProjectUser : Entity
 {
-    private Guid _projectId = Guid.Empty;
     public Guid ProjectId
     {
-        get => _projectId;
-        private set => SetField(ref _projectId, value, nameof(ProjectId));
-    }
-
-    private string _userId = string.Empty;
+        get;
+        private set => SetField(ref field, value, nameof(ProjectId));
+    } = Guid.Empty;
     public string UserId
     {
-        get => _userId;
-        private set => SetField(ref _userId, value, nameof(UserId));
-    }
+        get;
+        private set => SetField(ref field, value, nameof(UserId));
+    } = string.Empty;
 
     public ProjectUser() { }
 

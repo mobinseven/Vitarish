@@ -75,7 +75,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
             _ = entity.HasOne(a => a.Session)
                 .WithMany()
                 .HasForeignKey(a => a.SessionId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         _ = modelBuilder.Entity<AppointmentSession>(entity =>
