@@ -1683,4 +1683,7 @@
   <data name="Gender_Unspecified" xml:space="preserve">
     <value>نامشخص</value>
   </data>
+  <data name="TodayAppointments" xml:space="preserve">
+    <value>نوبت‌های امروز</value>
+  </data>
 </root>
