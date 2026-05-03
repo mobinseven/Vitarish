@@ -1,14 +1,16 @@
 @inherits Vitarish.Modules.Base.TenantCommonBase
 
 <Stack>
+    <StackField Label="@Localizer["Appointments"]" />
     @if (AdminMode)
     {
         @if (string.IsNullOrWhiteSpace(patientUserId))
         {
-            <StackField Label="@Localizer["LinkUserAccountRequired"]"
+            <StackButton Label="@Localizer["LinkUserAccountRequired"]"
                          HelperText="@Localizer["LinkUserAccountRequiredHelp"]"
-                         AdornmentIcon="fa-regular fa-triangle-exclamation"
-                         AdornmentColor="Color.Warning" />
+                         StartIcon="fa-regular fa-triangle-exclamation"
+                         OnClick="OnEdit"
+                         Color="Color.Warning" />
         }
         else
         {
@@ -30,8 +32,9 @@
     }
 </Stack>
 
-@code {
+    @code {
     [Parameter, EditorRequired] public ProjectReadDto Patient { get; set; } = default!;
+    [Parameter] public EventCallback OnEdit { get; set; }
 
     [Inject] private IAccessControlledAppointmentsService AppointmentsService { get; set; } = default!;
 

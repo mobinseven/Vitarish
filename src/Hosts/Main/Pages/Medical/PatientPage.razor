@@ -19,9 +19,9 @@
                     OnEdit="@(id => NavigationManager.NavigateTo($"/Medical/Patients/{id}/Edit"))"
                     OnDeleted="@(() => NavigationManager.NavigateTo("/Medical/Patients"))" />
 
-    <PatientAppointmentsPanel Patient="@patient" />
+    <PatientAppointmentsPanel Patient="@patient" OnEdit="@(() => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}/Edit"))" />
 
-    <PatientRemindersPanel PatientId="@patient.Id" />
+    @* <PatientRemindersPanel PatientId="@patient.Id" /> *@
 
     @foreach (var plugin in PatientSectionPlugins)
     {
