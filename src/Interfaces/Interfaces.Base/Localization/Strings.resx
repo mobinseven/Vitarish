@@ -1751,4 +1751,25 @@ of project "{2}"</value>
   <data name="Present" xml:space="preserve">
     <value>Present</value>
   </data>
+  <data name="SearchIndexes" xml:space="preserve">
+    <value>Search Indexes</value>
+  </data>
+  <data name="IndexName" xml:space="preserve">
+    <value>Index</value>
+  </data>
+  <data name="DocumentCount" xml:space="preserve">
+    <value>Documents</value>
+  </data>
+  <data name="StoreSize" xml:space="preserve">
+    <value>Size</value>
+  </data>
+  <data name="TotalIndexed" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="NoIndexesFound" xml:space="preserve">
+    <value>No indexes found</value>
+  </data>
+  <data name="IndexStatusLoadFailed" xml:space="preserve">
+    <value>Failed to load index status</value>
+  </data>
 </root>
