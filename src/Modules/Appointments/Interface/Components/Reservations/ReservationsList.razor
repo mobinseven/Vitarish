@@ -1,0 +1,35 @@
+@inherits ReservationsBase
+
+@if (Plugin is null)
+{
+    @if (IsAdmin)
+    {
+        <Stack>
+            <ReservationFilters @bind-Descriptor="Descriptor" />
+        </Stack>
+    }
+
+    <Stack>
+        @if (reservations.Count == 0)
+        {
+            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Reservation"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Reservation"]]" EndIcon="fa-regular fa-refresh">
+                @Localizer["Reload"]
+            </StackButton>
+        }
+        else
+        {
+            @foreach (var reservation in reservations)
+            {
+                <StackButton OnClick="() => OnClicked.InvokeAsync(reservation.Id)"
+                             Label="@(reservation.Occurrence?.OccurrenceStart.ToString("g") ?? Localizer["OccurrenceUnavailable"].Value)"
+                             HighlightString="@SearchString">
+                    <ReservationStatusBadge Status="reservation.Status" />
+                </StackButton>
+            }
+        }
+    </Stack>
+}
+else
+{
+    @Plugin.Render(new AppointmentsGridPluginContext(OnClicked, OnAdd))
+}

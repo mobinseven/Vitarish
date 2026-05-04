@@ -2,20 +2,20 @@
 
 <Stack>
     <StackField Label="@Localizer["TodayAppointments"]" />
-    @foreach(var (session, appointments) in todaySessions)
+    @foreach(var (session, reservations) in todaySessions)
     {
-        <StackButton Label="@session.DateTime.ToString("t")"
+        <StackButton Label="@session.Title"
                      EndIcon=""
                      OnClick="@(() => OnSessionClicked.InvokeAsync(session.Id))"
-                     HelperText="@($"{session.Stats.ReservationCount}/{session.Capacity}")">
-            <AppointmentSessionStatusBadge Status="session.Status" />
+                     HelperText="@($"{session.Stats.ReservationCount} {Localizer["Reservations"]}")">
+            <SessionStatusBadge Status="session.Status" />
             <MudAvatarGroup Spacing="3" Max="10" Class="px-4 pb-3">
-                @foreach(var appointment in appointments)
+                @foreach(var reservation in reservations)
                 {
-                    <MudTooltip Text="@(GetUserFullNameById(appointment.UserId) ?? appointment.UserId ?? "?")" Arrow="true">
-                        <MudAvatar Color="@GetAvatarColor(appointment.Status)"
+                    <MudTooltip Text="@(GetUserFullNameById(reservation.ReservingPartyId) ?? reservation.ReservingPartyId ?? "?")" Arrow="true">
+                        <MudAvatar Color="@GetAvatarColor(reservation.Status)"
                                    Style="cursor:pointer">
-                            @GetInitials(GetUserFullNameById(appointment.UserId))
+                            @GetInitials(GetUserFullNameById(reservation.ReservingPartyId))
                         </MudAvatar>
                     </MudTooltip>
                 }

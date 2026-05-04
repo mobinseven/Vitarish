@@ -8,8 +8,8 @@ public static class DependencyInjectionExtensions
     public static IServiceCollection AddAppointmentsInfrastructure(this IServiceCollection services)
     {
         _ = services.AddVitarishAppointmentsInfrastructure();
-        _ = services.AddTransient<IAccessControlledAppointmentsService, AccessControlledAppointmentsService>();
-        _ = services.AddTransient<IAccessControlledAppointmentSessionsService, AccessControlledAppointmentSessionsService>();
+        _ = services.AddTransient<IAccessControlledSessionManager, AccessControlledSessionManager>();
+        _ = services.AddTransient<IAccessControlledReservationManager, AccessControlledReservationManager>();
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AppointmentsDbContext).Assembly));
         return services;
     }

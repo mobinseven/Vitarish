@@ -1,0 +1,13 @@
+@page "/Reservations"
+
+<Stack>
+    <StackButton Color="Color.Secondary"
+                 OnClick="@(() => NavigationManager.NavigateTo("/Sessions"))"
+                 StartIcon="fa-regular fa-calendar-days"
+                 Label="@Localizer["BrowseSessions"]" />
+</Stack>
+<ReservationsList OnClicked="@(id => NavigationManager.NavigateTo($"/Reservations/{id}"))" />
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}

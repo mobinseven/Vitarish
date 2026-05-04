@@ -1,0 +1,16 @@
+@inherits ReservationsBase
+
+<MudDialog>
+    <DialogContent>
+        <AdminReservationDetail Reservation="@Reservation"
+                                OnDeleted="OnDeletedInternal"
+                                OnStatusChanged="OnStatusChanged" />
+    </DialogContent>
+    <DialogActions>
+        <Stack>
+            <StackButton Label="@Localizer["Close"]"
+                         EndIcon="fa-regular fa-xmark"
+                         OnClick="Close" />
+        </Stack>
+    </DialogActions>
+</MudDialog>

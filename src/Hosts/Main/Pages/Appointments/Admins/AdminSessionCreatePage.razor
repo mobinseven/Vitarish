@@ -1,0 +1,6 @@
+@page "/Admin/Sessions/New"
+
+<CascadingValue Value="IsAdmin">
+    <SessionForm OnSaved="@(id => NavigationManager.NavigateTo($"/Admin/Sessions/{id}"))"
+                 OnCancelled="@(() => NavigationManager.NavigateTo("/Admin/Sessions"))" />
+</CascadingValue>

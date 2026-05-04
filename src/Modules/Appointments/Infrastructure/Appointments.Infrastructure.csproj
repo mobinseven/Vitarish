@@ -18,5 +18,6 @@
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
 		<ProjectReference Include="..\Application\Appointments.Application.csproj" />
 		<ProjectReference Include="..\Domain\Appointments.Domain.csproj" />
+		<ProjectReference Include="..\..\Calendar\Application\Calendar.Application.csproj" />
 	</ItemGroup>
 </Project>

@@ -1,0 +1,32 @@
+@inherits SessionsBase
+
+@if (Session is null)
+{
+    return;
+}
+
+<Stack>
+    <StackField Label="@Session.Title" HelperText="@Localizer["Session"]">
+        <SessionStatusBadge Status="@Session.Status" />
+    </StackField>
+    <StackField Label="@($"{Session.Stats.ReservationCount} {Localizer["Reservations"]}")" HelperText="@Localizer["Reservations"]" />
+</Stack>
+
+@if (Session.Status == SessionStatus.Active && !hasReservation)
+{
+    <Stack>
+        <StackButton Color="Color.Primary"
+                     Label="@Localizer["Reserve"]"
+                     EndIcon="fa-regular fa-calendar-check"
+                     OnClick="ReserveAsync" />
+    </Stack>
+}
+else if (hasReservation)
+{
+    <Stack>
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelReservation"]"
+                     EndIcon="fa-regular fa-calendar-xmark"
+                     OnClick="CancelReservationAsync" />
+    </Stack>
+}

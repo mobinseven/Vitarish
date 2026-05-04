@@ -1,0 +1,28 @@
+@inherits SessionsBase
+
+@if (Plugin is null)
+{
+    <Stack>
+        <StackTextField @bind-Value="sessionWriteDto.Title" Label="@Localizer["Title"]" />
+        <StackSelect T="SessionStatus" Label="@Localizer["Status"]" @bind-Value="sessionWriteDto.Status">
+            @foreach (var status in Enum.GetValues<SessionStatus>())
+            {
+                <MudSelectItem T="SessionStatus" Value="status">@Localizer[status.ToString()]</MudSelectItem>
+            }
+        </StackSelect>
+        <StackSelect T="SessionVisibility" Label="@Localizer["Visibility"]" @bind-Value="sessionWriteDto.Visibility">
+            @foreach (var visibility in Enum.GetValues<SessionVisibility>())
+            {
+                <MudSelectItem T="SessionVisibility" Value="visibility">@Localizer[visibility.ToString()]</MudSelectItem>
+            }
+        </StackSelect>
+    </Stack>
+    <Stack>
+        <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" EndIcon="fa-regular fa-save" />
+        <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" EndIcon="fa-regular fa-xmark" />
+    </Stack>
+}
+else
+{
+    @Plugin.Render(new SessionFormPluginContext(sessionWriteDto, OnSaved, OnCancelled))
+}

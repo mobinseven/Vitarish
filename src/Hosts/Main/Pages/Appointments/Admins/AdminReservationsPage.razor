@@ -1,0 +1,9 @@
+@page "/Admin/Reservations"
+
+<CascadingValue Value="IsAdmin">
+    <ReservationsList OnClicked="@(id => NavigationManager.NavigateTo($"/Admin/Reservations/{id}"))" />
+</CascadingValue>
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}

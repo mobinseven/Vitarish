@@ -1,0 +1,22 @@
+@inherits CommonBase
+
+<MudChip T="string" Color="@StatusColor" Size="Size.Small" Variant="Variant.Filled">
+    @Localizer[Status.ToString()]
+</MudChip>
+
+@code {
+    [Parameter, EditorRequired] public ReservationStatus Status { get; set; }
+
+    private Color StatusColor => Status switch
+    {
+        ReservationStatus.Pending => Color.Warning,
+        ReservationStatus.Confirmed => Color.Success,
+        ReservationStatus.Present => Color.Secondary,
+        ReservationStatus.Cancelled => Color.Error,
+        ReservationStatus.Rejected => Color.Error,
+        ReservationStatus.Expired => Color.Default,
+        ReservationStatus.Waitlisted => Color.Info,
+        ReservationStatus.Completed => Color.Dark,
+        _ => Color.Default
+    };
+}

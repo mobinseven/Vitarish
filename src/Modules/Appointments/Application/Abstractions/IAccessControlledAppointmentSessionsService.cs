@@ -1,3 +1,0 @@
-namespace Vitarish.Appointments.Application.Abstractions;
-
-public interface IAccessControlledAppointmentSessionsService : IAppointmentSessionsService;

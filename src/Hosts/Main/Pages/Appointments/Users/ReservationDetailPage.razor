@@ -1,0 +1,35 @@
+@page "/Reservations/{reservationId}"
+
+@if (reservation is null)
+{
+    return;
+}
+
+<ReservationDetail Reservation="@reservation"
+                   OnCancelled="ReloadRequired" />
+
+@code {
+    [Parameter] public string? reservationId { get; set; }
+
+    private ReservationReadDto? reservation;
+
+    protected override async Task ReloadRequired()
+    {
+        if (!Guid.TryParse(reservationId, out Guid id))
+        {
+            NavigationManager.NavigateTo("/Reservations");
+            return;
+        }
+
+        reservation = await ReservationManager.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (reservation is null)
+        {
+            NavigationManager.NavigateTo("/Reservations");
+            return;
+        }
+
+        NavService.OverridePageTitle(id.ToString(), reservation.Occurrence?.OccurrenceStart.ToString("f") ?? id.ToString());
+        await InvokeAsync(StateHasChanged);
+    }
+}

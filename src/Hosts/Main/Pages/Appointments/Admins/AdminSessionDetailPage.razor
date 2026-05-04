@@ -1,0 +1,41 @@
+@page "/Admin/Sessions/{sessionId}"
+
+@if (session is null)
+{
+    return;
+}
+
+<CascadingValue Value="IsAdmin">
+    <AdminSessionDetail Session="@session"
+                        OnEdit="@(() => NavigationManager.NavigateTo($"/Admin/Sessions/{sessionId}/Edit"))"
+                        OnDeleted="Back"
+                        OnStatusChanged="ReloadRequired" />
+</CascadingValue>
+
+@code {
+    [Parameter] public string? sessionId { get; set; }
+
+    private SessionReadDto? session;
+
+    private void Back() => NavigationManager.NavigateTo("/Admin/Sessions");
+
+    protected override async Task ReloadRequired()
+    {
+        if (!Guid.TryParse(sessionId, out Guid id))
+        {
+            Back();
+            return;
+        }
+
+        session = await SessionManager.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (session is null)
+        {
+            Back();
+            return;
+        }
+
+        NavService.OverridePageTitle(id.ToString(), session.Title);
+        await InvokeAsync(StateHasChanged);
+    }
+}
