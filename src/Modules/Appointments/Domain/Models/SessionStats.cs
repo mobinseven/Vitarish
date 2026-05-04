@@ -1,6 +1,6 @@
 namespace Vitarish.Appointments.Domain.Models;
 
-public record AppointmentSessionStats
+public record SessionStats
 {
     public int ReservationCount { get; init; }
 }

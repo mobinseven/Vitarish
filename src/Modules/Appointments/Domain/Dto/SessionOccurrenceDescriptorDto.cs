@@ -1,10 +1,10 @@
 namespace Vitarish.Appointments.Domain.Dto;
 
-public record AppointmentSessionDescriptorDto : EntityDescriptorDto
+public record SessionOccurrenceDescriptorDto : EntityDescriptorDto
 {
-    [JsonPropertyName("status")]
+    [JsonPropertyName("sessionId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public AppointmentSessionStatus? Status { get; set; }
+    public Guid? SessionId { get; set; }
 
     [JsonPropertyName("dateFrom")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -14,10 +14,7 @@ public record AppointmentSessionDescriptorDto : EntityDescriptorDto
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public DateTimeOffset? DateTo { get; set; }
 
-    [JsonPropertyName("sortBy")]
+    [JsonPropertyName("isCancelled")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public AppointmentSessionSortBy? SortBy { get; set; }
-
-    [JsonPropertyName("descending")]
-    public bool Descending { get; set; } = true;
+    public bool? IsCancelled { get; set; }
 }
