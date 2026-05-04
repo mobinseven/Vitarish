@@ -1,7 +1,7 @@
 using Elastic.Clients.Elasticsearch;
 using Elastic.Transport;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Vitarish.Search.Domain.Abstractions;
 using Vitarish.Search.Domain.Options;
 using Vitarish.Search.Infrastructure.Services;
@@ -15,17 +15,12 @@ public static class SearchServiceExtensions
     /// and MediatR handlers. Call this from your module's registration code.
     /// </summary>
     public static IServiceCollection AddSearchInfrastructure(
-        this IServiceCollection services,
-        IConfiguration configuration)
+        this IServiceCollection services)
     {
-        ElasticSearchOptions esOptions = configuration
-            .GetSection(ElasticSearchOptions.SectionName)
-            .Get<ElasticSearchOptions>() ?? new ElasticSearchOptions();
-
-        _ = services.AddSingleton(esOptions);
-
-        _ = services.AddSingleton<ElasticsearchClient>(_ =>
+        _ = services.AddSingleton<ElasticsearchClient>(sp =>
         {
+            ElasticSearchOptions esOptions = sp.GetRequiredService<IOptions<ElasticSearchOptions>>().Value;
+
             ElasticsearchClientSettings settings = new(new Uri(esOptions.Url));
 
             if (!string.IsNullOrWhiteSpace(esOptions.Username) &&
