@@ -7,14 +7,7 @@ public partial class AppointmentSessionDetail : AppointmentSessionsBase
     [Parameter] public EventCallback OnCancelled { get; set; }
 
     [Inject] protected IAccessControlledAppointmentsService AppointmentsService { get; set; } = default!;
-
-    private AppointmentSessionReadDto current = default!;
     private bool hasReservation;
-
-    protected override void OnParametersSet()
-    {
-        current = Session;
-    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -26,7 +19,7 @@ public partial class AppointmentSessionDetail : AppointmentSessionsBase
     {
         AppointmentDescriptorDto descriptor = new()
         {
-            SessionId = current.Id,
+            SessionId = Session.Id,
             Skip = 0,
             Take = 1
         };
@@ -37,7 +30,7 @@ public partial class AppointmentSessionDetail : AppointmentSessionsBase
 
     private async Task ReserveAsync()
     {
-        await SessionsService.ReserveAsync(current.Id, CancellationToken.None);
+        await SessionsService.ReserveAsync(Session.Id, CancellationToken.None);
         await OnReserved.InvokeAsync();
         await CheckReservationAsync();
     }
@@ -59,7 +52,7 @@ public partial class AppointmentSessionDetail : AppointmentSessionsBase
             return;
         }
 
-        await SessionsService.CancelReservationAsync(current.Id, CancellationToken.None);
+        await SessionsService.CancelReservationAsync(Session.Id, CancellationToken.None);
         await OnCancelled.InvokeAsync();
         await CheckReservationAsync();
     }

@@ -7,6 +7,9 @@ public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommo
     [Inject] private IAccessControlledAppointmentSessionsService SessionsService { get; set; } = default!;
     [Inject] private IAccessControlledAppointmentsService AppointmentsService { get; set; } = default!;
 
+    [Parameter] public EventCallback<Guid> OnSessionClicked { get; set; }
+    [Parameter] public EventCallback OnSessionsClicked { get; set; }
+
     private List<(AppointmentSessionReadDto Session, List<AppointmentReadDto> Appointments)> todaySessions = [];
 
     protected override async Task OnInitializedAsync()
@@ -54,18 +57,6 @@ public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommo
 
         todaySessions = result;
         await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task OpenDetailAsync(AppointmentReadDto appointment)
-    {
-        DialogParameters parameters = new()
-        {
-            { nameof(AdminAppointmentDetailDialog.Appointment), appointment }
-        };
-
-        IDialogReference dialog = await DialogService.ShowAsync<AdminAppointmentDetailDialog>(null, parameters);
-        _ = await dialog.Result;
-        await LoadAsync();
     }
 
     private static string GetInitials(string? fullName)

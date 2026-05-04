@@ -2,35 +2,25 @@
 
 <Stack>
     <StackField Label="@Localizer["TodayAppointments"]" />
-    @if (todaySessions.Count == 0)
+    @foreach(var (session, appointments) in todaySessions)
     {
-        <StackButton OnClick="LoadAsync"
-                     Label="@Localizer["NoItems", Localizer["AppointmentSession"]]"
-                     HelperText="@Localizer["NoItemsHelp", Localizer["AppointmentSession"]]"
-                     EndIcon="fa-regular fa-refresh">
-            @Localizer["Reload"]
-        </StackButton>
-    }
-    else
-    {
-        @foreach (var (session, appointments) in todaySessions)
-        {
-            <StackField Label="@session.DateTime.ToString("t")"
-                        HelperText="@($"{session.Stats.ReservationCount}/{session.Capacity}")">
-                <AppointmentSessionStatusBadge Status="session.Status" />
-            </StackField>
+        <StackButton Label="@session.DateTime.ToString("t")"
+                     EndIcon=""
+                     OnClick="@(() => OnSessionClicked.InvokeAsync(session.Id))"
+                     HelperText="@($"{session.Stats.ReservationCount}/{session.Capacity}")">
+            <AppointmentSessionStatusBadge Status="session.Status" />
             <MudAvatarGroup Spacing="3" Max="10" Class="px-4 pb-3">
-                @foreach (var appointment in appointments)
+                @foreach(var appointment in appointments)
                 {
                     <MudTooltip Text="@(GetUserFullNameById(appointment.UserId) ?? appointment.UserId ?? "?")" Arrow="true">
                         <MudAvatar Color="@GetAvatarColor(appointment.Status)"
-                                   Style="cursor:pointer"
-                                   @onclick="@(() => OpenDetailAsync(appointment))">
+                                   Style="cursor:pointer">
                             @GetInitials(GetUserFullNameById(appointment.UserId))
                         </MudAvatar>
                     </MudTooltip>
                 }
             </MudAvatarGroup>
-        }
+        </StackButton>
     }
+    <StackButton Label="@Localizer["Appointments"]" Color="Color.Primary" OnClick="OnSessionsClicked" />
 </Stack>

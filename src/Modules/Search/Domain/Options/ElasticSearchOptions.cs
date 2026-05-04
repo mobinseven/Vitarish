@@ -6,8 +6,6 @@ namespace Vitarish.Search.Domain.Options;
 /// </summary>
 public class ElasticSearchOptions
 {
-    public const string SectionName = "ElasticSearch";
-
     /// <summary>
     /// Elasticsearch node URL (e.g. "http://localhost:9200").
     /// </summary>

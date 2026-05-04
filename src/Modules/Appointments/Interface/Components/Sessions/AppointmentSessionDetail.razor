@@ -1,18 +1,18 @@
 @inherits AppointmentSessionsBase
 
-@if (current is null)
+@if(Session is null)
 {
     return;
 }
 
 <Stack>
-    <StackField Label="@current.DateTime.ToString("f")" HelperText="@Localizer["SessionDateTime"]">
-        <AppointmentSessionStatusBadge Status="@current.Status" />
+    <StackField Label="@Session.DateTime.ToString("f")" HelperText="@Localizer["SessionDateTime"]">
+        <AppointmentSessionStatusBadge Status="@Session.Status" />
     </StackField>
-    <StackField Label="@($"{current.Stats.ReservationCount} / {current.Capacity}")" HelperText="@Localizer["Capacity"]" />
+    <StackField Label="@($"{Session.Stats.ReservationCount} / {Session.Capacity}")" HelperText="@Localizer["Capacity"]" />
 </Stack>
 
-@if (current.Status == AppointmentSessionStatus.Open)
+@if(Session.Status == AppointmentSessionStatus.Open)
 {
     @if (hasReservation)
     {
@@ -23,7 +23,7 @@
                          OnClick="CancelReservationAsync" />
         </Stack>
     }
-    else if (current.Stats.ReservationCount < current.Capacity)
+    else if(Session.Stats.ReservationCount < Session.Capacity)
     {
         <Stack>
             <StackButton Color="Color.Primary"
