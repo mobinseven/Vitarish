@@ -12,7 +12,8 @@
                      Href="/Medical/Patients"
                      HelperText="@($"{patients} {Localizer["Patients"]}")" />
     </Stack>
-    <TodayAppointmentsWidget />
+    <TodayAppointmentsWidget OnSessionClicked="@(id => NavigationManager.NavigateTo($"/Admin/AppointmentSessions/{id}"))"
+                             OnSessionsClicked="@(() => NavigationManager.NavigateTo($"/Admin/AppointmentSessions"))" />
 </CascadingValue>
 
 @code {
@@ -24,7 +25,7 @@
         ProjectDescriptorDto descriptor = new()
         {
             Skip = 0,
-            Take = 20,
+            Take = int.MaxValue,
             Template = false,
             Descending = true
         };

@@ -1,7 +1,10 @@
 @page "/AppointmentSessions"
 
 @inject IAccessControlledAppointmentSessionsService SessionsService
-<AppointmentSessionsList OnClicked="@(id => NavigationManager.NavigateTo($"/AppointmentSessions/{id}"))" />
+<CascadingValue Value="IsAdmin">
+    <AppointmentSessionsList OnClicked="@(id => NavigationManager.NavigateTo($"/Admin/AppointmentSessions/{id}"))"
+                             OnAdd="@(() => NavigationManager.NavigateTo($"/Admin/AppointmentSessions/New"))" />
+</CascadingValue>
 
 @code {
     protected override void OnInitialized() => NavService.EnableSearch();

@@ -1,7 +1,7 @@
-@page "/Appointments/Admin"
+@page "/Admin/Appointments"
 
 <CascadingValue Value="IsAdmin">
-    <AppointmentsList OnClicked="@(id => NavigationManager.NavigateTo($"/Appointments/Admin/{id}"))" />
+    <AppointmentsList OnClicked="@(id => NavigationManager.NavigateTo($"/Admin/Appointments/{id}"))" />
 </CascadingValue>
 
 @code {

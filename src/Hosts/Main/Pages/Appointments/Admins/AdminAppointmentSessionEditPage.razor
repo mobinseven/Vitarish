@@ -1,4 +1,4 @@
-@page "/AppointmentSessions/Admin/{sessionId}/Edit"
+@page "/Admin/AppointmentSessions/{sessionId}/Edit"
 
 @inject IAccessControlledAppointmentSessionsService SessionsService
 
@@ -9,7 +9,7 @@
 
 <CascadingValue Value="IsAdmin">
     <AppointmentSessionForm Session="@session"
-                 OnSaved="@(id => NavigationManager.NavigateTo($"/AppointmentSessions/Admin/{id}"))"
+                 OnSaved="@(id => NavigationManager.NavigateTo($"/Admin/AppointmentSessions/{id}"))"
                  OnCancelled="Back" />
 </CascadingValue>
 
@@ -20,7 +20,7 @@
 
     private void Back()
     {
-        NavigationManager.NavigateTo($"/AppointmentSessions/Admin");
+        NavigationManager.NavigateTo($"/Admin/AppointmentSessions");
     }
 
     protected override async Task ReloadRequired()

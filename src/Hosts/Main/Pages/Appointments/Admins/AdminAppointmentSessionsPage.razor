@@ -1,10 +1,10 @@
-@page "/AppointmentSessions/Admin"
+@page "/Admin/AppointmentSessions"
 
 @inject IAccessControlledAppointmentSessionsService SessionsService
 
 <CascadingValue Value="IsAdmin">
-    <AppointmentSessionsList OnClicked="@(id => NavigationManager.NavigateTo($"/AppointmentSessions/Admin/{id}"))"
-                  OnAdd="@(() => NavigationManager.NavigateTo("/AppointmentSessions/Admin/New"))" />
+    <AppointmentSessionsList OnClicked="@(id => NavigationManager.NavigateTo($"/Admin/AppointmentSessions/{id}"))"
+                  OnAdd="@(() => NavigationManager.NavigateTo("/Admin/AppointmentSessions/New"))" />
 </CascadingValue>
 
 @code {

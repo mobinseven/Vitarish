@@ -1,4 +1,4 @@
-@page "/Appointments/Admin/{appointmentId}"
+@page "/Admin/Appointments/{appointmentId}"
 
 @if (appointment is null)
 {
@@ -15,7 +15,7 @@
     [Parameter] public string? appointmentId { get; set; }
 
     private AppointmentReadDto? appointment;
-    private void Back() => NavigationManager.NavigateTo("/Appointments/Admin");
+    private void Back() => NavigationManager.NavigateTo("/Admin/Appointments");
 
     protected override async Task ReloadRequired()
     {
