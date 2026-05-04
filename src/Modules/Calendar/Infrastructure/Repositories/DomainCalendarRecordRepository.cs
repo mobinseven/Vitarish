@@ -19,9 +19,9 @@ internal class DomainCalendarRecordRepository(CalendarDbContext dbContext)
             query = query.Where(r => r.Visibility == visibility);
         }
 
-        if (descriptor.OwnerId is { } ownerId)
+        if (descriptor.TenantEntityId is { } tenantEntityId)
         {
-            query = query.Where(r => r.OwnerId == ownerId);
+            query = query.Where(r => r.TenantEntityId == tenantEntityId);
         }
 
         if (descriptor.ProviderId is { } providerId)
@@ -29,9 +29,9 @@ internal class DomainCalendarRecordRepository(CalendarDbContext dbContext)
             query = query.Where(r => r.ProviderId == providerId);
         }
 
-        if (descriptor.PatientId is { } patientId)
+        if (descriptor.SubjectId is { } subjectId)
         {
-            query = query.Where(r => r.PatientId == patientId);
+            query = query.Where(r => r.SubjectId == subjectId);
         }
 
         if (descriptor.BusinessStatus is { } businessStatus)

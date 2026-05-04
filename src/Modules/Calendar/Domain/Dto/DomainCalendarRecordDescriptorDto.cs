@@ -10,17 +10,17 @@ public record DomainCalendarRecordDescriptorDto : EntityDescriptorDto
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public CalendarObjectVisibility? Visibility { get; set; }
 
-    [JsonPropertyName("ownerId")]
+    [JsonPropertyName("tenantEntityId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? OwnerId { get; set; }
+    public string? TenantEntityId { get; set; }
 
     [JsonPropertyName("providerId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? ProviderId { get; set; }
 
-    [JsonPropertyName("patientId")]
+    [JsonPropertyName("subjectId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? PatientId { get; set; }
+    public string? SubjectId { get; set; }
 
     [JsonPropertyName("businessStatus")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

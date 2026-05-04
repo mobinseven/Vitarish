@@ -26,10 +26,10 @@ public class DomainCalendarRecord : Entity
         set => SetField(ref field, value, nameof(Visibility));
     } = CalendarObjectVisibility.Private;
 
-    public string? OwnerId
+    public string? TenantEntityId
     {
         get;
-        set => SetField(ref field, value, nameof(OwnerId));
+        set => SetField(ref field, value, nameof(TenantEntityId));
     }
 
     public string? ProviderId
@@ -44,10 +44,10 @@ public class DomainCalendarRecord : Entity
         set => SetField(ref field, value, nameof(ResourceId));
     }
 
-    public string? PatientId
+    public string? SubjectId
     {
         get;
-        set => SetField(ref field, value, nameof(PatientId));
+        set => SetField(ref field, value, nameof(SubjectId));
     }
 
     public Dictionary<string, object?> Metadata

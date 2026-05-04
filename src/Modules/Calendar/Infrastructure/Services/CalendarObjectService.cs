@@ -121,10 +121,10 @@ internal class CalendarObjectService(
             record.Category = dto.Category;
             record.BusinessStatus = dto.BusinessStatus;
             record.Visibility = dto.Visibility;
-            record.OwnerId = dto.OwnerId;
+            record.TenantEntityId = dto.TenantEntityId;
             record.ProviderId = dto.ProviderId;
             record.ResourceId = dto.ResourceId;
-            record.PatientId = dto.PatientId;
+            record.SubjectId = dto.SubjectId;
             await recordRepository.UpdateAsync(record, ct);
         }
 
