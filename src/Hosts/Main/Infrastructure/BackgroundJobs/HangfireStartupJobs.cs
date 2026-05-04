@@ -1,3 +1,4 @@
+using Vitarish.Main.Infrastructure.BackgroundJobs.Calendar;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Intelligence;
@@ -39,5 +40,8 @@ public static class HangfireStartupJobs
         HangfireCommunicationsJobManager commJobs = app.Services.GetRequiredService<HangfireCommunicationsJobManager>();
         commJobs.ScheduleProcessing();
         commJobs.TriggerProcessing();
+
+        HangfireCalendarJobManager calendarJobs = app.Services.GetRequiredService<HangfireCalendarJobManager>();
+        calendarJobs.ScheduleProcessing();
     }
 }
