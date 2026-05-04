@@ -2,6 +2,7 @@ using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Bulk;
 using Elastic.Clients.Elasticsearch.IndexManagement;
 using Elastic.Clients.Elasticsearch.QueryDsl;
+using Microsoft.Extensions.Options;
 using Vitarish.Search.Domain.Abstractions;
 using Vitarish.Search.Domain.Models;
 using Vitarish.Search.Domain.Options;
@@ -15,7 +16,7 @@ namespace Vitarish.Search.Infrastructure.Services;
 internal sealed class SearchService(
     ElasticsearchClient client,
     IEnumerable<ISearchIndexProvider> providers,
-    ElasticSearchOptions options) : ISearchService
+    IOptions<ElasticSearchOptions> options) : ISearchService
 {
     public async Task IndexAsync(
         string indexName,
@@ -144,9 +145,9 @@ internal sealed class SearchService(
     }
 
     private string BuildIndexName(string indexName) =>
-        string.IsNullOrWhiteSpace(options.DefaultIndexPrefix)
+        string.IsNullOrWhiteSpace(options.Value.DefaultIndexPrefix)
             ? indexName
-            : $"{options.DefaultIndexPrefix}{indexName}";
+            : $"{options.Value.DefaultIndexPrefix}{indexName}";
 
     private static Query BuildQuery(string query, SearchOptions searchOptions)
     {

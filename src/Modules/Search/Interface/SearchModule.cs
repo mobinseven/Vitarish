@@ -20,7 +20,7 @@ public class SearchModule : Module, ISearchModule
         Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         _ = builder.Services.AddSingleton<ISearchModule, SearchModule>();
-        _ = builder.Services.AddSearchInfrastructure(builder.Configuration);
+        _ = builder.Services.AddSearchInfrastructure();
         _ = builder.Services.ConfigureSearchInterface();
 
         return Task.CompletedTask;

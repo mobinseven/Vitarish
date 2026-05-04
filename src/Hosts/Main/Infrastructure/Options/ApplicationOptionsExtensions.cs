@@ -1,4 +1,5 @@
 using Vitarish.Files.Domain.Options;
+using Vitarish.Search.Domain.Options;
 
 namespace Vitarish.Main.Infrastructure.Options;
 
@@ -60,6 +61,9 @@ public static class ApplicationOptionsExtensions
 
         _ = services.AddOptions<Communications.Domain.Options.NotificationOptions>()
             .BindConfiguration($"{ApplicationOptions.Section}:Notifications");
+
+        _ = services.AddOptions<ElasticSearchOptions>()
+            .BindConfiguration($"{ApplicationOptions.Section}:Search");
 
         return services;
     }
