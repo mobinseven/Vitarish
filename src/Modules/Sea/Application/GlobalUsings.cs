@@ -1,9 +1,5 @@
+global using MediatR;
+global using Vitarish.Sea.Domain.Dto;
 global using Vitarish.Sea.Domain.Entities;
 global using Vitarish.Sea.Domain.Enums;
 global using Vitarish.Sea.Domain.Models;
-global using Vitarish.Sea.Application.Abstractions;
-global using Vitarish.Sea.Domain.Dto;
-global using MediatR;
-global using Vitarish.Entities.Server.Core;
-global using Vitarish.Entities.Server.Models;
-global using Vitarish.Entities.Server.Services;

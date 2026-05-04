@@ -256,7 +256,7 @@ internal class CalendarObjectService(
             ObjectMappingId = objectMappingId,
             AccountId = accountId,
             Action = action,
-            PerformedBy = requestContext.OwnerId ?? string.Empty,
+            PerformedBy = requestContext.UserId ?? string.Empty,
             PerformedAt = DateTimeOffset.UtcNow,
             OldValue = oldValue,
             NewValue = newValue

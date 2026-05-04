@@ -1,7 +1,7 @@
-namespace Vitarish.Sea.Application.Abstractions;
 
 using Vitarish.Entities.Server.Abstractions;
-using Vitarish.Sea.Domain.Dto;
+
+namespace Vitarish.Sea.Application.Abstractions;
 
 public interface IProceduresService : IEntityService<ProcedureReadDto, ProcedureWriteDto, ProcedureDescriptorDto>
 {
