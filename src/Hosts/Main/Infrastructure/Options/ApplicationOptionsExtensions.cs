@@ -64,11 +64,11 @@ public static class ApplicationOptionsExtensions
             .BindConfiguration($"{ApplicationOptions.Section}:Notifications");
 
         _ = services.AddOptions<ElasticSearchOptions>()
-            .BindConfiguration($"{ApplicationOptions.Section}:Search");
+            .BindConfiguration($"{ApplicationOptions.Section}:ElasticSearch");
 
         // Calendar module options
         _ = services.AddOptions<RadicaleOptions>()
-            .BindConfiguration("Calendar:Radicale");
+            .BindConfiguration($"{ApplicationOptions.Section}:Radicale");
 
         return services;
     }
