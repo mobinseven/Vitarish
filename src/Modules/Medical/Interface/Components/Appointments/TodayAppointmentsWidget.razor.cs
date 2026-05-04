@@ -1,16 +1,14 @@
-using Vitarish.Appointments.Interface.Components.Appointments;
-
 namespace Vitarish.Medical.Interface.Components.Appointments;
 
 public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommonBase
 {
-    [Inject] private IAccessControlledAppointmentSessionsService SessionsService { get; set; } = default!;
-    [Inject] private IAccessControlledAppointmentsService AppointmentsService { get; set; } = default!;
+    [Inject] private IAccessControlledSessionManager SessionsService { get; set; } = default!;
+    [Inject] private IAccessControlledReservationManager ReservationManager { get; set; } = default!;
 
     [Parameter] public EventCallback<Guid> OnSessionClicked { get; set; }
     [Parameter] public EventCallback OnSessionsClicked { get; set; }
 
-    private List<(AppointmentSessionReadDto Session, List<AppointmentReadDto> Appointments)> todaySessions = [];
+    private List<(SessionReadDto Session, List<ReservationReadDto> Reservations)> todaySessions = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -20,39 +18,33 @@ public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommo
 
     private async Task LoadAsync()
     {
-        DateTimeOffset today = DateTimeOffset.Now.Date;
-
-        AppointmentSessionDescriptorDto sessionDescriptor = new()
+        SessionDescriptorDto sessionDescriptor = new()
         {
-            DateFrom = today,
-            DateTo = today.AddDays(1).AddTicks(-1),
-            Descending = false,
             Skip = 0,
             Take = int.MaxValue
         };
 
-        IReadOnlyList<AppointmentSessionReadDto> sessions = await SessionsService
+        IReadOnlyList<SessionReadDto> sessions = await SessionsService
             .GetListAsync(sessionDescriptor, CancellationToken.None)
             .GetValueOrDefaultAsync() ?? [];
 
-        sessions = [.. sessions.OrderBy(s => s.DateTime)];
+        sessions = [.. sessions.OrderBy(s => s.Title)];
 
-        List<(AppointmentSessionReadDto, List<AppointmentReadDto>)> result = [];
+        List<(SessionReadDto, List<ReservationReadDto>)> result = [];
 
-        foreach (AppointmentSessionReadDto session in sessions)
+        foreach (SessionReadDto session in sessions)
         {
-            AppointmentDescriptorDto appointmentDescriptor = new()
+            ReservationDescriptorDto reservationDescriptor = new()
             {
-                SessionId = session.Id,
                 Skip = 0,
                 Take = int.MaxValue
             };
 
-            IReadOnlyList<AppointmentReadDto> appointments = await AppointmentsService
-                .GetListAsync(appointmentDescriptor, CancellationToken.None)
+            IReadOnlyList<ReservationReadDto> reservations = await ReservationManager
+                .GetListAsync(reservationDescriptor, CancellationToken.None)
                 .GetValueOrDefaultAsync() ?? [];
 
-            result.Add((session, [.. appointments]));
+            result.Add((session, [.. reservations]));
         }
 
         todaySessions = result;
@@ -72,13 +64,13 @@ public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommo
         return $"{first}{second}".ToUpperInvariant();
     }
 
-    private static Color GetAvatarColor(AppointmentStatus status) => status switch
+    private static Color GetAvatarColor(ReservationStatus status) => status switch
     {
-        AppointmentStatus.Pending => Color.Warning,
-        AppointmentStatus.Confirmed => Color.Success,
-        AppointmentStatus.Present => Color.Secondary,
-        AppointmentStatus.Completed => Color.Dark,
-        AppointmentStatus.Cancelled => Color.Default,
+        ReservationStatus.Pending => Color.Warning,
+        ReservationStatus.Confirmed => Color.Success,
+        ReservationStatus.Present => Color.Secondary,
+        ReservationStatus.Completed => Color.Dark,
+        ReservationStatus.Cancelled => Color.Default,
         _ => Color.Default
     };
 }

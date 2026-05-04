@@ -20,13 +20,13 @@
                          Label="@Localizer["AddItem", Localizer["Appointment"]]" />
         }
     }
-    @if (appointments is not null && appointments.Count > 0)
+    @if (reservations is not null && reservations.Count > 0)
     {
-        @foreach (var appointment in appointments)
+        @foreach (var reservation in reservations)
         {
-            <StackButton OnClick="@(() => OpenDetailDialogAsync(appointment))"
-                         Label="@(appointment.Session?.DateTime.ToString("g") ?? Localizer["SessionUnavailable"].Value)">
-                <AppointmentStatusBadge Status="appointment.Status" />
+            <StackButton OnClick="@(() => OpenDetailDialogAsync(reservation))"
+                         Label="@(reservation.Occurrence?.OccurrenceStart.ToString("g") ?? Localizer["SessionUnavailable"].Value)">
+                <ReservationStatusBadge Status="reservation.Status" />
             </StackButton>
         }
     }
@@ -36,9 +36,9 @@
     [Parameter, EditorRequired] public ProjectReadDto Patient { get; set; } = default!;
     [Parameter] public EventCallback OnEdit { get; set; }
 
-    [Inject] private IAccessControlledAppointmentsService AppointmentsService { get; set; } = default!;
+    [Inject] private IAccessControlledReservationManager ReservationManager { get; set; } = default!;
 
-    private List<AppointmentReadDto> appointments = [];
+    private List<ReservationReadDto> reservations = [];
     private string? patientUserId;
 
     protected override async Task OnInitializedAsync()
@@ -51,14 +51,14 @@
     {
         if (string.IsNullOrWhiteSpace(patientUserId))
         {
-            appointments = [];
+            reservations = [];
             await InvokeAsync(StateHasChanged);
             return;
         }
 
-        AppointmentDescriptorDto descriptor = new() { UserId = patientUserId, Skip = 0, Take = int.MaxValue };
-        IReadOnlyList<AppointmentReadDto> all = await AppointmentsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
-        appointments = [.. all.OrderBy(a => a.Session?.DateTime)];
+        ReservationDescriptorDto descriptor = new() { ReservingPartyId = patientUserId, Skip = 0, Take = int.MaxValue };
+        IReadOnlyList<ReservationReadDto> all = await ReservationManager.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        reservations = [.. all.OrderBy(r => r.Occurrence?.OccurrenceStart)];
         await InvokeAsync(StateHasChanged);
     }
 
@@ -75,14 +75,14 @@
         await LoadAsync();
     }
 
-    private async Task OpenDetailDialogAsync(AppointmentReadDto appointment)
+    private async Task OpenDetailDialogAsync(ReservationReadDto reservation)
     {
         DialogParameters parameters = new()
         {
-            { nameof(AdminAppointmentDetailDialog.Appointment), appointment }
+            { nameof(AdminReservationDetailDialog.Reservation), reservation }
         };
 
-        IDialogReference dialog = await DialogService.ShowAsync<AdminAppointmentDetailDialog>(null, parameters);
+        IDialogReference dialog = await DialogService.ShowAsync<AdminReservationDetailDialog>(null, parameters);
         _ = await dialog.Result;
         await LoadAsync();
     }

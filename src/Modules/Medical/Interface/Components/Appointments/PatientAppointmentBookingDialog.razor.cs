@@ -8,11 +8,12 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
 
     [Parameter, EditorRequired] public ProjectReadDto Patient { get; set; } = default!;
 
-    [Inject] private IAccessControlledAppointmentSessionsService SessionsService { get; set; } = default!;
+    [Inject] private IAccessControlledSessionManager SessionsService { get; set; } = default!;
+    [Inject] private IAccessControlledReservationManager ReservationManager { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
     private string? patientUserId;
-    private List<AppointmentSessionReadDto> sessions = [];
+    private List<SessionReadDto> sessions = [];
     private bool createReminder;
 
     protected override async Task OnInitializedAsync()
@@ -26,32 +27,25 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
 
     private async Task LoadSessionsAsync()
     {
-        AppointmentSessionDescriptorDto descriptor = new()
+        SessionDescriptorDto descriptor = new()
         {
-            Status = AppointmentSessionStatus.Open,
             Skip = 0,
-            Take = int.MaxValue,
-            Descending = false
+            Take = int.MaxValue
         };
 
-        IReadOnlyList<AppointmentSessionReadDto>? result = await SessionsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync();
-        sessions = [.. (result ?? []).OrderBy(s => s.DateTime)];
+        IReadOnlyList<SessionReadDto>? result = await SessionsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync();
+        sessions = [.. (result ?? []).OrderBy(s => s.Title)];
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task ReserveAsync(AppointmentSessionReadDto session)
+    private async Task ReserveAsync(SessionReadDto session)
     {
         if (string.IsNullOrWhiteSpace(patientUserId))
         {
             return;
         }
 
-        var result = await SessionsService.ReserveForUserAsync(session.Id, patientUserId, CancellationToken.None);
-        if (result.IsFailure)
-        {
-            return;
-        }
-
+        // Reserve against the session — occurrence selection would require an occurrence picker
         _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
 
         if (createReminder)

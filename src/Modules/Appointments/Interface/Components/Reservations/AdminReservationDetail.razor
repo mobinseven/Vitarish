@@ -1,0 +1,90 @@
+@inherits ReservationsBase
+
+@if (current is null)
+{
+    return;
+}
+
+<Stack>
+    @if (current.Occurrence is not null)
+    {
+        <StackField Label="@current.Occurrence.OccurrenceStart.ToString("f")" HelperText="@Localizer["OccurrenceStart"]">
+            <ReservationStatusBadge Status="@current.Status" />
+        </StackField>
+    }
+    else
+    {
+        <StackField Label="@Localizer["OccurrenceUnavailable"].Value" HelperText="@Localizer["Reservation"]">
+            <ReservationStatusBadge Status="@current.Status" />
+        </StackField>
+    }
+    @if (!string.IsNullOrWhiteSpace(current.ReservingPartyId))
+    {
+        <StackField Label="@GetUserFullNameById(current.ReservingPartyId)" HelperText="@Localizer["User"]" />
+    }
+</Stack>
+
+@switch (current.Status)
+{
+    case ReservationStatus.Pending:
+    <Stack>
+        <StackButton Color="Color.Success"
+                     Label="@Localizer["ConfirmReservation"]"
+                     EndIcon="fa-regular fa-calendar-check"
+                     OnClick="@(() => ChangeStatusAsync(ReservationStatus.Confirmed))" />
+        <StackButton Color="Color.Warning"
+                     Label="@Localizer["RejectReservation"]"
+                     EndIcon="fa-regular fa-calendar-xmark"
+                     OnClick="@(() => ChangeStatusAsync(ReservationStatus.Rejected))" />
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelReservation"]"
+                     EndIcon="fa-regular fa-calendar-xmark"
+                     OnClick="@(() => ChangeStatusAsync(ReservationStatus.Cancelled))" />
+    </Stack>
+    break;
+
+    case ReservationStatus.Confirmed:
+    <Stack>
+        <StackButton Color="Color.Secondary"
+                     Label="@Localizer["PresentReservation"]"
+                     EndIcon="fa-regular fa-person-check"
+                     OnClick="@(() => ChangeStatusAsync(ReservationStatus.Present))" />
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelReservation"]"
+                     EndIcon="fa-regular fa-calendar-xmark"
+                     OnClick="@(() => ChangeStatusAsync(ReservationStatus.Cancelled))" />
+    </Stack>
+    break;
+
+    case ReservationStatus.Present:
+    <Stack>
+        <StackButton Color="Color.Secondary"
+                     Label="@Localizer["CompleteReservation"]"
+                     EndIcon="fa-regular fa-check"
+                     OnClick="@(() => ChangeStatusAsync(ReservationStatus.Completed))" />
+    </Stack>
+    break;
+
+    case ReservationStatus.Waitlisted:
+    <Stack>
+        <StackButton Color="Color.Success"
+                     Label="@Localizer["ConfirmReservation"]"
+                     EndIcon="fa-regular fa-calendar-check"
+                     OnClick="@(() => ChangeStatusAsync(ReservationStatus.Confirmed))" />
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelReservation"]"
+                     EndIcon="fa-regular fa-calendar-xmark"
+                     OnClick="@(() => ChangeStatusAsync(ReservationStatus.Cancelled))" />
+    </Stack>
+    break;
+
+    case ReservationStatus.Completed:
+    case ReservationStatus.Cancelled:
+    case ReservationStatus.Rejected:
+    case ReservationStatus.Expired:
+        // No action buttons for terminal states
+        break;
+
+    default:
+        break;
+}

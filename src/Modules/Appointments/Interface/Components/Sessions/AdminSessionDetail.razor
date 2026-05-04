@@ -1,0 +1,100 @@
+@inherits SessionsBase
+
+@if (current is null)
+{
+    return;
+}
+
+<Stack>
+    <StackField Label="@current.Title" HelperText="@Localizer["DateTimeOf", Localizer["Session"]]">
+        <SessionStatusBadge Status="@current.Status" />
+    </StackField>
+    <StackField Label="@($"{current.Stats.ReservationCount} {Localizer["Reservations"]}")" HelperText="@Localizer["Reservations"]" />
+    @if (!string.IsNullOrWhiteSpace(current.OwnerId))
+    {
+        <StackField Label="@current.OwnerId" HelperText="@Localizer["Owner"]" />
+    }
+</Stack>
+
+@switch (current.Status)
+{
+    case SessionStatus.Draft:
+    <Stack>
+        <StackButton Color="Color.Success"
+                     Label="@Localizer["ActivateItem", Localizer["Session"]]"
+                     EndIcon="fa-regular fa-play"
+                     OnClick="@(() => ChangeStatusAsync(SessionStatus.Active))" />
+        <StackButton Label="@Localizer["EditItem", Localizer["Session"]]"
+                     EndIcon="fa-regular fa-pen"
+                     OnClick="OnEdit" />
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelItem", Localizer["Session"]]"
+                     EndIcon="fa-regular fa-xmark"
+                     OnClick="@(() => ChangeStatusAsync(SessionStatus.Cancelled))" />
+    </Stack>
+    break;
+
+    case SessionStatus.Active:
+    <Stack>
+        <StackButton Label="@Localizer["EditItem", Localizer["Session"]]"
+                     EndIcon="fa-regular fa-pen"
+                     OnClick="OnEdit" />
+        <StackButton Color="Color.Warning"
+                     Label="@Localizer["PauseItem", Localizer["Session"]]"
+                     EndIcon="fa-regular fa-pause"
+                     OnClick="@(() => ChangeStatusAsync(SessionStatus.Paused))" />
+        <StackButton Color="Color.Dark"
+                     Label="@Localizer["CloseItem", Localizer["Session"]]"
+                     EndIcon="fa-regular fa-lock"
+                     OnClick="@(() => ChangeStatusAsync(SessionStatus.Closed))" />
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelItem", Localizer["Session"]]"
+                     EndIcon="fa-regular fa-xmark"
+                     OnClick="@(() => ChangeStatusAsync(SessionStatus.Cancelled))" />
+    </Stack>
+    break;
+
+    case SessionStatus.Paused:
+    <Stack>
+        <StackButton Color="Color.Success"
+                     Label="@Localizer["ActivateItem", Localizer["Session"]]"
+                     EndIcon="fa-regular fa-play"
+                     OnClick="@(() => ChangeStatusAsync(SessionStatus.Active))" />
+        <StackButton Color="Color.Dark"
+                     Label="@Localizer["CloseItem", Localizer["Session"]]"
+                     EndIcon="fa-regular fa-lock"
+                     OnClick="@(() => ChangeStatusAsync(SessionStatus.Closed))" />
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelItem", Localizer["Session"]]"
+                     EndIcon="fa-regular fa-xmark"
+                     OnClick="@(() => ChangeStatusAsync(SessionStatus.Cancelled))" />
+    </Stack>
+    break;
+
+    case SessionStatus.Closed:
+    case SessionStatus.Cancelled:
+    <Stack>
+        <StackButton Color="Color.Dark"
+                     Label="@Localizer["ArchiveItem", Localizer["Session"]]"
+                     EndIcon="fa-regular fa-box-archive"
+                     OnClick="@(() => ChangeStatusAsync(SessionStatus.Archived))" />
+    </Stack>
+    break;
+
+    case SessionStatus.Archived:
+        // No actions for archived
+        break;
+
+    default:
+        break;
+}
+
+@if (AdminMode && current.Status == SessionStatus.Active)
+{
+    <Stack>
+        <StackButton Color="Color.Primary"
+                     Label="@Localizer["AddItem", Localizer["Reservation"]]"
+                     EndIcon="fa-regular fa-calendar-plus"
+                     OnClick="AddReservationAsync" />
+    </Stack>
+}

@@ -1,0 +1,31 @@
+@inherits CommonBase
+
+<StackExpandable Label="@Localizer["Filters"]" StartIcon="fa-regular fa-sliders">
+    <StackSelect T="ReservationStatus?" Label="@Localizer["ReservationStatusFilter"]"
+                 Value="@descriptor.Status"
+                 ValueChanged="@(v => ApplyFilter(descriptor with { Status = v }))">
+        <MudSelectItem T="ReservationStatus?" Value="null">@Localizer["None"]</MudSelectItem>
+        @foreach (var status in Enum.GetValues<ReservationStatus>())
+        {
+            <MudSelectItem T="ReservationStatus?" Value="status">@Localizer[status.ToString()]</MudSelectItem>
+        }
+    </StackSelect>
+</StackExpandable>
+
+@code {
+    [Parameter] public ReservationDescriptorDto Descriptor { get; set; } = new();
+    [Parameter] public EventCallback<ReservationDescriptorDto> DescriptorChanged { get; set; }
+
+    private ReservationDescriptorDto descriptor = new();
+
+    protected override void OnInitialized()
+    {
+        descriptor = Descriptor;
+    }
+
+    private void ApplyFilter(ReservationDescriptorDto updated)
+    {
+        descriptor = updated;
+        DescriptorChanged.InvokeAsync(descriptor);
+    }
+}

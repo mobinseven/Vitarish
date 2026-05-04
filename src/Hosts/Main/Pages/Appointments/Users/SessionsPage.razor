@@ -1,0 +1,9 @@
+@page "/Sessions"
+
+<CascadingValue Value="IsAdmin">
+    <SessionsList OnClicked="@(id => NavigationManager.NavigateTo($"/Sessions/{id}"))" />
+</CascadingValue>
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}

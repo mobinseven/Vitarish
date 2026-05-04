@@ -27,12 +27,12 @@
             <Stack>
                 @foreach (var session in sessions)
                 {
-                    bool isFull = (session.Stats?.ReservationCount ?? 0) >= session.Capacity;
+                    bool isFull = session.Stats.ReservationCount >= 0;
                     <StackButton OnClick="@(() => ReserveAsync(session))"
-                                 Label="@session.DateTime.ToString("g")"
-                                 HelperText="@($"{session.Stats.ReservationCount}/{session.Capacity}")"
+                                 Label="@session.Title"
+                                 HelperText="@($"{session.Stats.ReservationCount} {Localizer["Reservations"]}")"
                                  Disabled="@isFull">
-                        <AppointmentSessionStatusBadge Status="session.Status" />
+                        <SessionStatusBadge Status="session.Status" />
                     </StackButton>
                 }
             </Stack>

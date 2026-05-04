@@ -1,0 +1,47 @@
+@inherits ReservationsBase
+
+@if (current is null)
+{
+    return;
+}
+
+<Stack>
+    @if (current.Occurrence is not null)
+    {
+        <StackField Label="@current.Occurrence.OccurrenceStart.ToString("f")" HelperText="@Localizer["OccurrenceStart"]">
+            <ReservationStatusBadge Status="@current.Status" />
+        </StackField>
+    }
+    else
+    {
+        <StackField Label="@Localizer["OccurrenceUnavailable"].Value" HelperText="@Localizer["Reservation"]">
+            <ReservationStatusBadge Status="@current.Status" />
+        </StackField>
+    }
+</Stack>
+
+@switch (current.Status)
+{
+    case ReservationStatus.Present:
+        return;
+
+    case ReservationStatus.Pending:
+    case ReservationStatus.Confirmed:
+    <Stack>
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelReservation"]"
+                     EndIcon="fa-regular fa-calendar-xmark"
+                     OnClick="CancelReservationAsync" />
+    </Stack>
+    break;
+
+    case ReservationStatus.Completed:
+    case ReservationStatus.Cancelled:
+    case ReservationStatus.Rejected:
+    case ReservationStatus.Expired:
+        // No actions for terminal statuses
+        break;
+
+    default:
+        break;
+}

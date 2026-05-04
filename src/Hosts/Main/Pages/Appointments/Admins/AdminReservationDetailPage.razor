@@ -1,0 +1,40 @@
+@page "/Admin/Reservations/{reservationId}"
+
+@if (reservation is null)
+{
+    return;
+}
+
+<CascadingValue Value="IsAdmin">
+    <AdminReservationDetail Reservation="@reservation"
+                            OnDeleted="Back"
+                            OnStatusChanged="ReloadRequired" />
+</CascadingValue>
+
+@code {
+    [Parameter] public string? reservationId { get; set; }
+
+    private ReservationReadDto? reservation;
+
+    private void Back() => NavigationManager.NavigateTo("/Admin/Reservations");
+
+    protected override async Task ReloadRequired()
+    {
+        if (!Guid.TryParse(reservationId, out Guid id))
+        {
+            Back();
+            return;
+        }
+
+        reservation = await ReservationManager.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (reservation is null)
+        {
+            Back();
+            return;
+        }
+
+        NavService.OverridePageTitle(id.ToString(), reservation.Occurrence?.OccurrenceStart.ToString("f") ?? id.ToString());
+        await InvokeAsync(StateHasChanged);
+    }
+}
