@@ -30,8 +30,12 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
     public TenantMismatchMode TenantMismatchMode { get; set; } = TenantMismatchMode.Throw;
     public TenantNotSetMode TenantNotSetMode { get; set; } = TenantNotSetMode.Throw;
 
-    public DbSet<Appointment> Appointments => Set<Appointment>();
-    public DbSet<AppointmentSession> AppointmentSessions => Set<AppointmentSession>();
+    public DbSet<Session> Sessions => Set<Session>();
+    public DbSet<SessionOccurrence> SessionOccurrences => Set<SessionOccurrence>();
+    public DbSet<Reservation> Reservations => Set<Reservation>();
+    public DbSet<CapacityPolicy> CapacityPolicies => Set<CapacityPolicy>();
+    public DbSet<BookingPolicy> BookingPolicies => Set<BookingPolicy>();
+    public DbSet<AppointmentAuditEntry> AuditEntries => Set<AppointmentAuditEntry>();
 
     public AppointmentsDbContext(
         DbContextOptions<AppointmentsDbContext> options,
@@ -67,18 +71,42 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
 
         _ = modelBuilder.ConfigureMultiTenant();
 
-        ConfigureTenantEntity<Appointment>(modelBuilder);
-        ConfigureTenantEntity<AppointmentSession>(modelBuilder);
+        ConfigureTenantEntity<Session>(modelBuilder);
+        ConfigureTenantEntity<SessionOccurrence>(modelBuilder);
+        ConfigureTenantEntity<Reservation>(modelBuilder);
+        ConfigureTenantEntity<CapacityPolicy>(modelBuilder);
+        ConfigureTenantEntity<BookingPolicy>(modelBuilder);
+        ConfigureTenantEntity<AppointmentAuditEntry>(modelBuilder);
 
-        _ = modelBuilder.Entity<Appointment>(entity =>
+        _ = modelBuilder.Entity<SessionOccurrence>(entity =>
         {
-            _ = entity.HasOne(a => a.Session)
+            _ = entity.HasOne(o => o.Session)
                 .WithMany()
-                .HasForeignKey(a => a.SessionId)
+                .HasForeignKey(o => o.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.Ignore(e => e.Stats);
+        });
+
+        _ = modelBuilder.Entity<Reservation>(entity =>
+        {
+            _ = entity.HasOne(r => r.Occurrence)
+                .WithMany()
+                .HasForeignKey(r => r.SessionOccurrenceId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
-        _ = modelBuilder.Entity<AppointmentSession>(entity =>
+        _ = modelBuilder.Entity<CapacityPolicy>(entity =>
+        {
+            _ = entity.HasIndex(p => p.SessionId).IsUnique();
+        });
+
+        _ = modelBuilder.Entity<BookingPolicy>(entity =>
+        {
+            _ = entity.HasIndex(p => p.SessionId).IsUnique();
+        });
+
+        _ = modelBuilder.Entity<Session>(entity =>
         {
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
