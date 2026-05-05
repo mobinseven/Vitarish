@@ -37,57 +37,61 @@ internal class SessionOccurrenceRepository(AppointmentsDbContext dbContext)
     async Task<SessionOccurrence?> IEntityRepository<SessionOccurrence, SessionOccurrenceDescriptor>.GetAsync(
         Guid id, CancellationToken cancellationToken)
     {
-        SessionOccurrence? occurrence = await Set.AsNoTracking()
-            .Include(o => o.Session)
-            .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
+        var result = await Set.AsNoTracking()
+            .Where(o => o.Id == id)
+            .Select(o => new
+            {
+                Entity = o,
+                Session = o.Session,
+                ReservationCount = dbContext.Reservations
+                    .Count(r => r.SessionOccurrenceId == o.Id
+                             && r.Status != ReservationStatus.Cancelled
+                             && r.Status != ReservationStatus.Expired
+                             && r.Status != ReservationStatus.Rejected
+                             && !r.IsHold)
+            })
+            .FirstOrDefaultAsync(cancellationToken);
 
-        if (occurrence is not null)
+        if (result is null)
         {
-            await PopulateStatsAsync([occurrence], cancellationToken);
+            return null;
         }
 
-        return occurrence;
+        result.Entity.Session = result.Session;
+        result.Entity.Stats = new SessionOccurrenceStats { ReservationCount = result.ReservationCount };
+        return result.Entity;
     }
 
     async Task<IReadOnlyList<SessionOccurrence>> IEntityRepository<SessionOccurrence, SessionOccurrenceDescriptor>.GetAsync(
         SessionOccurrenceDescriptor descriptor, CancellationToken cancellationToken)
     {
-        IQueryable<SessionOccurrence> query = Apply(Set.AsNoTracking().Include(o => o.Session), descriptor);
+        IQueryable<SessionOccurrence> query = Apply(Set.AsNoTracking(), descriptor);
 
         if (query is not IOrderedQueryable<SessionOccurrence>)
         {
             query = query.OrderBy(o => o.OccurrenceStart);
         }
 
-        IReadOnlyList<SessionOccurrence> occurrences = await query.ApplyPagination(descriptor).ToListAsync(cancellationToken);
-        await PopulateStatsAsync(occurrences, cancellationToken);
-        return occurrences;
-    }
-
-    private async Task PopulateStatsAsync(IEnumerable<SessionOccurrence> occurrences, CancellationToken cancellationToken)
-    {
-        List<Guid> occurrenceIds = [.. occurrences.Select(o => o.Id)];
-        if (occurrenceIds.Count == 0)
-        {
-            return;
-        }
-
-        Dictionary<Guid, int> counts = await dbContext.Reservations
-            .Where(r => occurrenceIds.Contains(r.SessionOccurrenceId)
-                     && r.Status != ReservationStatus.Cancelled
-                     && r.Status != ReservationStatus.Expired
-                     && r.Status != ReservationStatus.Rejected
-                     && !r.IsHold)
-            .GroupBy(r => r.SessionOccurrenceId)
-            .Select(g => new { OccurrenceId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.OccurrenceId, x => x.Count, cancellationToken);
-
-        foreach (SessionOccurrence occurrence in occurrences)
-        {
-            occurrence.Stats = new SessionOccurrenceStats
+        var results = await query.ApplyPagination(descriptor)
+            .Select(o => new
             {
-                ReservationCount = counts.GetValueOrDefault(occurrence.Id, 0)
-            };
+                Entity = o,
+                Session = o.Session,
+                ReservationCount = dbContext.Reservations
+                    .Count(r => r.SessionOccurrenceId == o.Id
+                             && r.Status != ReservationStatus.Cancelled
+                             && r.Status != ReservationStatus.Expired
+                             && r.Status != ReservationStatus.Rejected
+                             && !r.IsHold)
+            })
+            .ToListAsync(cancellationToken);
+
+        foreach (var result in results)
+        {
+            result.Entity.Session = result.Session;
+            result.Entity.Stats = new SessionOccurrenceStats { ReservationCount = result.ReservationCount };
         }
+
+        return results.ConvertAll(r => r.Entity);
     }
 }
