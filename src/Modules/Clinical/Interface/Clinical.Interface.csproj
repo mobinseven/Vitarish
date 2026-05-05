@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+<ItemGroup>
+<SupportedPlatform Include="browser" />
+</ItemGroup>
+
+<ItemGroup>
+<ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+<ProjectReference Include="..\Application\Clinical.Application.csproj" />
+<ProjectReference Include="..\Domain\Clinical.Domain.csproj" />
+<ProjectReference Include="..\Infrastructure\Clinical.Infrastructure.csproj" />
+<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+</ItemGroup>
+</Project>

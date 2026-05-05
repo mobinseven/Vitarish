@@ -1,3 +1,4 @@
+using Vitarish.Clinical.Domain.Options;
 using Vitarish.Communications.Domain.Options;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Intelligence.Domain.Options;
@@ -15,6 +16,11 @@ public class ApplicationOptions
     /// The configuration section name for application options.
     /// </summary>
     public const string Section = "Vitarish";
+
+    /// <summary>
+    /// Clinical module options.
+    /// </summary>
+    public ClinicalOptions Clinical { get; set; } = new();
 
     /// <summary>
     /// AI/Intelligence module options.

@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Apps.Aggregator;
+using Vitarish.Clinical.Infrastructure.Data;
 using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Feed.Infrastructure;
@@ -133,6 +134,7 @@ _ = await app.MigrateDatabaseAsync<UsersDbContext>();
 _ = await app.MigrateDatabaseAsync<PartiesDbContext>();
 _ = await app.MigrateDatabaseAsync<FilesDbContext>();
 _ = await app.MigrateDatabaseAsync<RemindersDbContext>();
+_ = await app.MigrateDatabaseAsync<ClinicalDbContext>();
 _ = await app.MigrateDatabaseAsync<SeaDbContext>();
 _ = await app.MigrateDatabaseAsync<AppointmentsDbContext>();
 

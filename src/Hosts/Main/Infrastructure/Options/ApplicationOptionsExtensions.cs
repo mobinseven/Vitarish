@@ -1,4 +1,5 @@
 using Vitarish.Calendar.Infrastructure.Options;
+using Vitarish.Clinical.Domain.Options;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Search.Domain.Options;
 
@@ -65,6 +66,9 @@ public static class ApplicationOptionsExtensions
 
         _ = services.AddOptions<ElasticSearchOptions>()
             .BindConfiguration($"{ApplicationOptions.Section}:ElasticSearch");
+
+        _ = services.AddOptions<ClinicalOptions>()
+            .BindConfiguration($"{ApplicationOptions.Section}:{ClinicalOptions.Section}");
 
         // Calendar module options
         _ = services.AddOptions<RadicaleOptions>()

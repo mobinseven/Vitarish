@@ -1,0 +1,5 @@
+<Project Sdk="Microsoft.NET.Sdk">
+<ItemGroup>
+<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
+</ItemGroup>
+</Project>

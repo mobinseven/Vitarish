@@ -1,0 +1,49 @@
+@inherits CommonBase
+
+@if (_loading)
+{
+    <MudProgressLinear Indeterminate Color="Color.Primary" />
+}
+else if (_report is not null)
+{
+    <MudPaper Class="pa-4 d-flex flex-column gap-4">
+        <div class="d-flex justify-space-between align-center gap-2 flex-wrap">
+            <MudText Typo="Typo.h6">@Localizer["ClinicalConnectorHealth"]</MudText>
+            <MudChip T="string" Color="@GetStateColor(_report.State)" Variant="Variant.Filled">@_report.State.ToString()</MudChip>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_report.FailureMessage))
+        {
+            <MudAlert Severity="@GetSeverity(_report.State)">@_report.FailureMessage</MudAlert>
+        }
+
+        <MudSimpleTable Elevation="0">
+            <tbody>
+                <tr>
+                    <td><strong>@Localizer["Endpoint"]</strong></td>
+                    <td>@(_report.Endpoint.Length == 0 ? Localizer["NotConfigured"] : _report.Endpoint)</td>
+                </tr>
+                <tr>
+                    <td><strong>@Localizer["CheckedAt"]</strong></td>
+                    <td>@_report.CheckedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss zzz")</td>
+                </tr>
+                <tr>
+                    <td><strong>@Localizer["FHIRVersion"]</strong></td>
+                    <td>@(_report.FhirVersion ?? Localizer["Unavailable"])</td>
+                </tr>
+                <tr>
+                    <td><strong>@Localizer["Software"]</strong></td>
+                    <td>@FormatSoftware(_report)</td>
+                </tr>
+                <tr>
+                    <td><strong>@Localizer["SupportedResourceTypes"]</strong></td>
+                    <td>@FormatResources(_report.SupportedResourceTypes)</td>
+                </tr>
+            </tbody>
+        </MudSimpleTable>
+
+        <Stack>
+            <StackButton Label="@Localizer["Refresh"]" EndIcon="fa-regular fa-rotate-right" OnClick="ReloadRequired" />
+        </Stack>
+    </MudPaper>
+}

@@ -4,6 +4,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Appointments.Interface;
 using Vitarish.Calendar.Hosting;
+using Vitarish.Clinical.Interface;
 using Vitarish.Communications.Hosting;
 using Vitarish.Files.Interface;
 using Vitarish.Intelligence.Interface;
@@ -22,6 +23,7 @@ public static class ModulesExtensions
                 Activator.CreateInstance<FilesModule>(),
                 Activator.CreateInstance<SearchModule>(),
                 Activator.CreateInstance<RemindersModule>(),
+                Activator.CreateInstance<ClinicalModule>(),
                 Activator.CreateInstance<SeaModule>(),
                 Activator.CreateInstance<AppointmentsModule>(),
                 Activator.CreateInstance<MedicalModule>(),
