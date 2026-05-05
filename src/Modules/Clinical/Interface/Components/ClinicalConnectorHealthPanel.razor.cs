@@ -5,6 +5,8 @@ namespace Vitarish.Clinical.Interface.Components;
 
 public partial class ClinicalConnectorHealthPanel : CommonBase
 {
+    private const int MaxDisplayedResourceTypes = 8;
+
     [Inject] private IMediator Mediator { get; set; } = default!;
 
     private ConnectorHealthReport? _report;
@@ -42,7 +44,10 @@ public partial class ClinicalConnectorHealthPanel : CommonBase
     };
 
     private string FormatResources(IReadOnlyList<string> resources) =>
-        resources.Count == 0 ? Localizer["Unavailable"] : string.Join(", ", resources.Take(8)) + (resources.Count > 8 ? "…" : string.Empty);
+        resources.Count == 0
+            ? Localizer["Unavailable"]
+            : string.Join(", ", resources.Take(MaxDisplayedResourceTypes))
+                + (resources.Count > MaxDisplayedResourceTypes ? "…" : string.Empty);
 
     private string FormatSoftware(ConnectorHealthReport report)
     {

@@ -21,7 +21,7 @@ public sealed class ClinicalDbContext : DbContext, IMultiTenantDbContext
         {
             string tenantId = _requestContext.TenantId
                 ?? _httpContextAccessor.HttpContext?.GetTenantId()
-                ?? throw new InvalidOperationException("Tenant ID can not be recognized.");
+                ?? throw new InvalidOperationException("Tenant ID cannot be recognized.");
 
             return new TenantInfo
             {
