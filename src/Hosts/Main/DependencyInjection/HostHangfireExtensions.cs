@@ -1,8 +1,10 @@
 using Hangfire;
 using Hangfire.SqlServer;
+using Vitarish.Appointments.Application.Abstractions;
 using Vitarish.Interfaces.Accounts.Services;
 using Vitarish.Main.Authorization;
 using Vitarish.Main.DependencyInjection;
+using Vitarish.Main.Infrastructure.BackgroundJobs.Appointments;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Calendar;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
@@ -68,6 +70,8 @@ public static class HostHangfireExtensions
         _ = builder.Services.AddTransient<SeaIndexingProcessor>();
         _ = builder.Services.AddTransient<CalendarSyncProcessor>();
         _ = builder.Services.AddTransient<OccurrenceProjectionProcessor>();
+        _ = builder.Services.AddTransient<SessionOccurrenceSyncProcessor>();
+        _ = builder.Services.AddTransient<ISessionOccurrenceSyncQueue, HangfireSessionOccurrenceSyncQueue>();
         _ = builder.Services.AddSingleton<HangfireRemindersJobManager>();
         _ = builder.Services.AddSingleton<HangfireSeaJobManager>();
         _ = builder.Services.AddSingleton<HangfireSeaIndexingJobManager>();
