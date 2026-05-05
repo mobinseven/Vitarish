@@ -9,10 +9,10 @@ internal class ReservationManager(IMediator mediator)
         reservation => reservation.ToDomain()),
       IReservationManager
 {
-    public async Task<EntityResult> ReserveAsync(Guid sessionOccurrenceId, string? reservingPartyId, CancellationToken cancellationToken)
+    public async Task<EntityResult<ReservationReadDto>> ReserveAsync(Guid sessionOccurrenceId, string? reservingPartyId, CancellationToken cancellationToken)
     {
-        await Mediator.Send(new CreateReservationCommand(sessionOccurrenceId, reservingPartyId), cancellationToken);
-        return EntityResult.Success();
+        Guid reservationId = await Mediator.Send(new CreateReservationCommand(sessionOccurrenceId, reservingPartyId), cancellationToken);
+        return await GetAsync(reservationId, cancellationToken);
     }
 
     public Task<EntityResult> ConfirmReservationAsync(Guid reservationId, CancellationToken cancellationToken)

@@ -57,7 +57,7 @@ public partial class SessionDetail : SessionsBase
 
     private async Task ReserveAsync(Guid occurrenceId)
     {
-        EntityResult result = await ReservationManager.ReserveAsync(occurrenceId, null, CancellationToken.None);
+        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(occurrenceId, null, CancellationToken.None);
         if (result.IsFailure)
         {
             return;

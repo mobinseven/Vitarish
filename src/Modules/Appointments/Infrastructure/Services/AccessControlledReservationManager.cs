@@ -93,12 +93,12 @@ internal class AccessControlledReservationManager(
     public Task<EntityResult> RemoveByDescriptorAsync(ReservationDescriptorDto descriptor, CancellationToken cancellationToken)
         => IsAdmin ? reservationManager.RemoveByDescriptorAsync(descriptor, cancellationToken) : throw AdminRoleRequired;
 
-    public async Task<EntityResult> ReserveAsync(Guid sessionOccurrenceId, string? reservingPartyId, CancellationToken cancellationToken)
+    public async Task<EntityResult<ReservationReadDto>> ReserveAsync(Guid sessionOccurrenceId, string? reservingPartyId, CancellationToken cancellationToken)
     {
         string? effectivePartyId = IsAdmin ? reservingPartyId : UserId;
         if (string.IsNullOrWhiteSpace(effectivePartyId))
         {
-            return EntityResult.Failure(EntityError.Validation("A reserving user is required.", new Dictionary<string, string>
+            return EntityResult<ReservationReadDto>.Failure(EntityError.Validation("A reserving user is required.", new Dictionary<string, string>
             {
                 [nameof(reservingPartyId)] = "A reserving user is required."
             }));
@@ -107,66 +107,69 @@ internal class AccessControlledReservationManager(
         SessionOccurrence? occurrence = await occurrenceRepository.GetAsync(sessionOccurrenceId, cancellationToken);
         if (occurrence?.Session is null)
         {
-            return EntityResult.Failure(EntityError.NotFound("Session occurrence not found.", nameof(sessionOccurrenceId)));
+            return EntityResult<ReservationReadDto>.Failure(EntityError.NotFound("Session occurrence not found.", nameof(sessionOccurrenceId)));
         }
 
         if (occurrence.IsCancelled || occurrence.Session.Status != SessionStatus.Active)
         {
-            return EntityResult.Failure(EntityError.Conflict("This session occurrence is not open for reservations."));
+            return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("This session occurrence is not open for reservations."));
         }
 
         if (!await bookingPolicyEngine.IsBookingOpenAsync(sessionOccurrenceId, cancellationToken))
         {
-            return EntityResult.Failure(EntityError.Conflict("Booking is not open for this session occurrence."));
+            return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("Booking is not open for this session occurrence."));
         }
 
         if (!await bookingPolicyEngine.HasCapacityForPartyAsync(sessionOccurrenceId, effectivePartyId, cancellationToken))
         {
-            return EntityResult.Failure(EntityError.Conflict("The reserving party has reached the reservation limit for this session occurrence."));
+            return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("The reserving party has reached the reservation limit for this session occurrence."));
         }
 
         if (!await capacityEngine.IsAvailableAsync(sessionOccurrenceId, cancellationToken))
         {
-            return EntityResult.Failure(EntityError.Conflict("No seats are available for this session occurrence."));
+            return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("No seats are available for this session occurrence."));
         }
 
-        EntityResult<IReadOnlyList<ReservationReadDto>> existingReservations = await reservationManager.GetListAsync(new ReservationDescriptorDto
+        ReservationDescriptorDto descriptor = new()
         {
             SessionOccurrenceId = sessionOccurrenceId,
             ReservingPartyId = effectivePartyId,
             Skip = 0,
             Take = int.MaxValue
-        }, cancellationToken);
+        };
+
+        EntityResult<IReadOnlyList<ReservationReadDto>> existingReservations = await reservationManager.GetListAsync(descriptor, cancellationToken);
 
         if (existingReservations.Value?.Any(IsActiveReservation) == true)
         {
-            return EntityResult.Failure(EntityError.Conflict("An active reservation already exists for this session occurrence."));
+            return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("An active reservation already exists for this session occurrence."));
         }
 
-        EntityResult reserveResult = await reservationManager.ReserveAsync(sessionOccurrenceId, effectivePartyId, cancellationToken);
-        if (reserveResult.IsFailure)
+        EntityResult<ReservationReadDto> reserveResult = await reservationManager.ReserveAsync(sessionOccurrenceId, effectivePartyId, cancellationToken);
+        if (reserveResult.IsFailure || reserveResult.Value is null)
+        {
+            return reserveResult.IsFailure
+                ? reserveResult
+                : EntityResult<ReservationReadDto>.Failure(EntityError.Unknown("Reservation was not returned after creation."));
+        }
+
+        if (occurrence.Session.RequiresApproval)
         {
             return reserveResult;
         }
 
-        EntityResult<IReadOnlyList<ReservationReadDto>> createdReservations = await reservationManager.GetListAsync(new ReservationDescriptorDto
-        {
-            SessionOccurrenceId = sessionOccurrenceId,
-            ReservingPartyId = effectivePartyId,
-            Skip = 0,
-            Take = int.MaxValue
-        }, cancellationToken);
+        EntityResult confirmResult = await statusCoordinator.TransitionReservationAsync(
+            reserveResult.Value.Id,
+            ReservationStatus.Confirmed,
+            requestContext.UserId,
+            cancellationToken);
 
-        ReservationReadDto? created = createdReservations.Value?
-            .OrderByDescending(r => r.CreatedAt)
-            .FirstOrDefault(r => IsActiveReservation(r));
-
-        if (created is null || occurrence.Session.RequiresApproval)
+        if (confirmResult.IsFailure)
         {
-            return EntityResult.Success();
+            return EntityResult<ReservationReadDto>.Failure([.. confirmResult.Errors]);
         }
 
-        return await statusCoordinator.TransitionReservationAsync(created.Id, ReservationStatus.Confirmed, requestContext.UserId, cancellationToken);
+        return await reservationManager.GetAsync(reserveResult.Value.Id, cancellationToken);
     }
 
     public Task<EntityResult> ConfirmReservationAsync(Guid reservationId, CancellationToken cancellationToken)

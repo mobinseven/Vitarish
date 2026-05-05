@@ -65,7 +65,7 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
             return;
         }
 
-        EntityResult result = await ReservationManager.ReserveAsync(occurrence.Id, patientUserId, CancellationToken.None);
+        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(occurrence.Id, patientUserId, CancellationToken.None);
         if (result.IsFailure)
         {
             _ = Snackbar.Add(result.Errors.FirstOrDefault().Message, Severity.Error);

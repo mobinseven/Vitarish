@@ -37,33 +37,20 @@ public class AccessControlledReservationManagerTests
         bookingPolicyEngine.Setup(x => x.IsBookingOpenAsync(occurrenceId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         bookingPolicyEngine.Setup(x => x.HasCapacityForPartyAsync(occurrenceId, "user-1", It.IsAny<CancellationToken>())).ReturnsAsync(true);
         capacityEngine.Setup(x => x.IsAvailableAsync(occurrenceId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
-        reservationManager.Setup(x => x.ReserveAsync(occurrenceId, "user-1", It.IsAny<CancellationToken>())).ReturnsAsync(EntityResult.Success());
+        reservationManager
+            .Setup(x => x.ReserveAsync(occurrenceId, "user-1", It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<ReservationReadDto>.Success(new ReservationReadDto
+            {
+                Id = reservationId,
+                SessionOccurrenceId = occurrenceId,
+                ReservingPartyId = "user-1",
+                Status = ReservationStatus.Pending,
+                CreatedAt = DateTimeOffset.UtcNow
+            }));
 
-        int listCall = 0;
         reservationManager
             .Setup(x => x.GetListAsync(It.IsAny<ReservationDescriptorDto>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(() =>
-            {
-                listCall++;
-                if (listCall == 1)
-                {
-                    return EntityResult<IReadOnlyList<ReservationReadDto>>.Success([]);
-                }
-
-                IReadOnlyList<ReservationReadDto> created =
-                [
-                    new ReservationReadDto
-                    {
-                        Id = reservationId,
-                        SessionOccurrenceId = occurrenceId,
-                        ReservingPartyId = "user-1",
-                        Status = ReservationStatus.Pending,
-                        CreatedAt = DateTimeOffset.UtcNow
-                    }
-                ];
-
-                return EntityResult<IReadOnlyList<ReservationReadDto>>.Success(created);
-            });
+            .ReturnsAsync(EntityResult<IReadOnlyList<ReservationReadDto>>.Success([]));
 
         statusCoordinator
             .Setup(x => x.TransitionReservationAsync(reservationId, ReservationStatus.Confirmed, "user-1", It.IsAny<CancellationToken>()))
@@ -77,7 +64,7 @@ public class AccessControlledReservationManagerTests
             capacityEngine.Object,
             statusCoordinator.Object);
 
-        EntityResult result = await sut.ReserveAsync(occurrenceId, null, CancellationToken.None);
+        EntityResult<ReservationReadDto> result = await sut.ReserveAsync(occurrenceId, null, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         reservationManager.Verify(x => x.ReserveAsync(occurrenceId, "user-1", It.IsAny<CancellationToken>()), Times.Once);

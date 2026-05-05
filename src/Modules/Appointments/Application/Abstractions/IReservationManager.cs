@@ -4,7 +4,7 @@ namespace Vitarish.Appointments.Application.Abstractions;
 
 public interface IReservationManager : IEntityService<ReservationReadDto, ReservationWriteDto, ReservationDescriptorDto>
 {
-    Task<EntityResult> ReserveAsync(Guid sessionOccurrenceId, string? reservingPartyId, CancellationToken cancellationToken);
+    Task<EntityResult<ReservationReadDto>> ReserveAsync(Guid sessionOccurrenceId, string? reservingPartyId, CancellationToken cancellationToken);
     Task<EntityResult> ConfirmReservationAsync(Guid reservationId, CancellationToken cancellationToken);
     Task<EntityResult> PresentReservationAsync(Guid reservationId, CancellationToken cancellationToken);
     Task<EntityResult> CompleteReservationAsync(Guid reservationId, CancellationToken cancellationToken);
