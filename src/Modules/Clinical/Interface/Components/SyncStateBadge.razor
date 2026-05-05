@@ -1,0 +1,17 @@
+@inherits CommonBase
+
+<MudChip T="string" Color="@StatusColor" Size="Size.Small" Variant="Variant.Filled">
+    @Localizer[State.ToString()]
+</MudChip>
+
+@code {
+    [Parameter, EditorRequired] public FhirOperationState State { get; set; }
+
+    private Color StatusColor => State switch
+    {
+        FhirOperationState.Succeeded => Color.Success,
+        FhirOperationState.Failed => Color.Error,
+        FhirOperationState.Pending => Color.Warning,
+        _ => Color.Default
+    };
+}

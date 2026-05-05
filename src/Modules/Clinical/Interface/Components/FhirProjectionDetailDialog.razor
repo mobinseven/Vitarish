@@ -1,0 +1,43 @@
+@inherits CommonBase
+
+<MudDialog>
+    <DialogContent>
+        <Stack>
+            <StackField Label="@($"{Projection.ResourceType}/{Projection.ResourceId}")" HelperText="@Localizer["Resource"]">
+                <SyncStateBadge State="@Projection.SyncState" />
+            </StackField>
+            @if (!string.IsNullOrWhiteSpace(Projection.DisplayName))
+            {
+                <StackField Label="@Projection.DisplayName" HelperText="@Localizer["DisplayName"]" />
+            }
+            @if (!string.IsNullOrWhiteSpace(Projection.PatientReference))
+            {
+                <StackField Label="@Projection.PatientReference" HelperText="@Localizer["PatientReference"]" />
+            }
+            @if (Projection.LastSyncedAt.HasValue)
+            {
+                <StackField Label="@Projection.LastSyncedAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm")" HelperText="@Localizer["LastSynced"]" />
+            }
+            @if (Projection.ExpiresAt.HasValue)
+            {
+                <StackField Label="@Projection.ExpiresAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm")" HelperText="@Localizer["Expires"]" />
+            }
+            @if (!string.IsNullOrWhiteSpace(_resultMessage))
+            {
+                <StackField Label="@_resultMessage" HelperText="@Localizer["SyncResult"]" Color="@_resultColor" />
+            }
+        </Stack>
+    </DialogContent>
+    <DialogActions>
+        <Stack>
+            <StackButton Color="Color.Primary"
+                         Label="@Localizer["Sync"]"
+                         EndIcon="fa-regular fa-rotate-right"
+                         Disabled="@_syncing"
+                         OnClick="SyncAsync" />
+            <StackButton Label="@Localizer["Close"]"
+                         EndIcon="fa-regular fa-xmark"
+                         OnClick="Close" />
+        </Stack>
+    </DialogActions>
+</MudDialog>

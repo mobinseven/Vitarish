@@ -1,167 +1,106 @@
 @inherits CommonBase
 
-<MudStack Spacing="3">
-    <MudPaper Class="pa-4 d-flex flex-column gap-4">
-        <MudText Typo="Typo.h6">@Localizer["ClinicalOperations"]</MudText>
-
-        @if (_configuration is not null)
-        {
-            <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1">
+<Stack>
+    <StackExpandable Label="@Localizer["ExecuteFhirOperation"]" StartIcon="fa-regular fa-bolt">
+        <StackSelect T="string?" Label="@Localizer["ResourceType"]"
+                     Value="@_resourceType"
+                     ValueChanged="OnResourceTypeChanged">
+            @if (_configuration is not null)
+            {
                 @foreach (string resourceType in _configuration.AllowedResourceTypes)
                 {
-                    <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined">@resourceType</MudChip>
+                    <MudSelectItem T="string?" Value="@resourceType">@resourceType</MudSelectItem>
                 }
-            </MudStack>
-
-            <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1">
-                @foreach (FhirInteractionType operation in _configuration.AllowedOperations)
-                {
-                    <MudChip T="string" Color="Color.Secondary" Variant="Variant.Outlined">@operation</MudChip>
-                }
-            </MudStack>
-        }
-
-        <MudGrid>
-            <MudItem xs="12" md="3">
-                <MudSelect T="string" Label="@Localizer["ResourceType"]" Value="@_resourceType" ValueChanged="OnResourceTypeChanged">
-                    @if (_configuration is not null)
-                    {
-                        @foreach (string resourceType in _configuration.AllowedResourceTypes)
-                        {
-                            <MudSelectItem T="string" Value="@resourceType">@resourceType</MudSelectItem>
-                        }
-                    }
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudSelect T="FhirInteractionType" Label="@Localizer["Operation"]" Value="@_interaction" ValueChanged="OnInteractionChanged">
-                    @foreach (FhirInteractionType operation in Enum.GetValues<FhirInteractionType>())
-                    {
-                        <MudSelectItem T="FhirInteractionType" Value="@operation">@operation</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudTextField T="string" Label="@Localizer["ResourceId"]" Value="@_resourceId" ValueChanged="value => _resourceId = value" />
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudTextField T="string" Label="@Localizer["IdempotencyKey"]" Value="@_idempotencyKey" ValueChanged="value => _idempotencyKey = value" />
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField T="string" Label="@Localizer["Query"]" HelperText="@Localizer["UseAmpersandSeparatedSearchTerms"]" Value="@_query" ValueChanged="value => _query = value" />
-            </MudItem>
-            <MudItem xs="12">
-                <MudTextField T="string" Label="@Localizer["PayloadJson"]" Lines="8" AutoGrow="true" Value="@_payloadJson" ValueChanged="value => _payloadJson = value" />
-            </MudItem>
-        </MudGrid>
-
-        @if (!string.IsNullOrWhiteSpace(_resultMessage))
-        {
-            <MudAlert Severity="@_resultSeverity">@_resultMessage</MudAlert>
-        }
-
-        <MudStack Row="true" Spacing="2">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_running" OnClick="ExecuteAsync">@Localizer["Execute"]</MudButton>
-            <MudButton Variant="Variant.Outlined" Color="Color.Default" Disabled="@_loading" OnClick="ReloadRequired">@Localizer["Refresh"]</MudButton>
-        </MudStack>
-    </MudPaper>
-
-    <MudPaper Class="pa-4 d-flex flex-column gap-4">
-        <MudText Typo="Typo.h6">@Localizer["OperationHistory"]</MudText>
-
-        <MudGrid>
-            <MudItem xs="12" md="4">
-                <MudTextField T="string" Label="@Localizer["Search"]" Value="@_searchText" ValueChanged="value => _searchText = value" />
-            </MudItem>
-            <MudItem xs="12" md="4">
-                <MudSelect T="FhirInteractionType?" Label="@Localizer["OperationFilter"]" Value="@_interactionFilter" ValueChanged="value => _interactionFilter = value">
-                    <MudSelectItem T="FhirInteractionType?" Value="@((FhirInteractionType?)null)">@Localizer["All"]</MudSelectItem>
-                    @foreach (FhirInteractionType operation in Enum.GetValues<FhirInteractionType>())
-                    {
-                        <MudSelectItem T="FhirInteractionType?" Value="@operation">@operation</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12" md="4">
-                <MudSelect T="FhirOperationStatus?" Label="@Localizer["StatusFilter"]" Value="@_statusFilter" ValueChanged="value => _statusFilter = value">
-                    <MudSelectItem T="FhirOperationStatus?" Value="@((FhirOperationStatus?)null)">@Localizer["All"]</MudSelectItem>
-                    @foreach (FhirOperationStatus status in Enum.GetValues<FhirOperationStatus>())
-                    {
-                        <MudSelectItem T="FhirOperationStatus?" Value="@status">@status</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-        </MudGrid>
-
-        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="LoadOperationsAsync">@Localizer["ApplyFilters"]</MudButton>
-
-        @if (_loading)
-        {
-            <MudProgressLinear Indeterminate Color="Color.Primary" />
-        }
-        else if (_operations.Count == 0)
-        {
-            <MudText Typo="Typo.body2">@Localizer["NoOperationsFound"]</MudText>
-        }
-        else
-        {
-            <MudTable Items="@_operations" Dense="true" Hover="true" Elevation="0">
-                <HeaderContent>
-                    <MudTh>@Localizer["Started"]</MudTh>
-                    <MudTh>@Localizer["Resource"]</MudTh>
-                    <MudTh>@Localizer["Operation"]</MudTh>
-                    <MudTh>@Localizer["Status"]</MudTh>
-                    <MudTh>@Localizer["CorrelationId"]</MudTh>
-                    <MudTh>@Localizer["Actions"]</MudTh>
-                </HeaderContent>
-                <RowTemplate Context="operation">
-                    <MudTd>@operation.StartedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</MudTd>
-                    <MudTd>@FormatResource(operation)</MudTd>
-                    <MudTd>@operation.Interaction</MudTd>
-                    <MudTd>
-                        <MudChip T="string" Color="@GetStatusColor(operation.Status)" Variant="Variant.Filled">@operation.Status.ToString()</MudChip>
-                    </MudTd>
-                    <MudTd>@operation.CorrelationId</MudTd>
-                    <MudTd>
-                        <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@(() => SelectOperation(operation))">@Localizer["View"]</MudButton>
-                    </MudTd>
-                </RowTemplate>
-            </MudTable>
-        }
-    </MudPaper>
-
-    @if (_selectedOperation is not null)
-    {
-        <MudPaper Class="pa-4 d-flex flex-column gap-3">
-            <MudText Typo="Typo.h6">@Localizer["OperationDetail"]</MudText>
-            <MudSimpleTable Elevation="0">
-                <tbody>
-                    <tr><td><strong>@Localizer["Resource"]</strong></td><td>@FormatResource(_selectedOperation)</td></tr>
-                    <tr><td><strong>@Localizer["Operation"]</strong></td><td>@_selectedOperation.Interaction</td></tr>
-                    <tr><td><strong>@Localizer["Status"]</strong></td><td>@_selectedOperation.Status</td></tr>
-                    <tr><td><strong>@Localizer["FailureKind"]</strong></td><td>@_selectedOperation.FailureKind</td></tr>
-                    <tr><td><strong>@Localizer["CorrelationId"]</strong></td><td>@_selectedOperation.CorrelationId</td></tr>
-                    <tr><td><strong>@Localizer["IdempotencyKey"]</strong></td><td>@(_selectedOperation.IdempotencyKey ?? Localizer["Unavailable"])</td></tr>
-                    <tr><td><strong>@Localizer["ResponseStatus"]</strong></td><td>@(_selectedOperation.ResponseStatusCode?.ToString() ?? Localizer["Unavailable"])</td></tr>
-                    <tr><td><strong>@Localizer["ResultCount"]</strong></td><td>@(_selectedOperation.ResultCount?.ToString() ?? Localizer["Unavailable"])</td></tr>
-                    <tr><td><strong>@Localizer["Started"]</strong></td><td>@_selectedOperation.StartedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</td></tr>
-                    <tr><td><strong>@Localizer["Completed"]</strong></td><td>@(_selectedOperation.CompletedAt?.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss") ?? Localizer["Unavailable"])</td></tr>
-                </tbody>
-            </MudSimpleTable>
-
-            @if (!string.IsNullOrWhiteSpace(_selectedOperation.FailureMessage))
-            {
-                <MudAlert Severity="Severity.Error">@_selectedOperation.FailureMessage</MudAlert>
             }
-
-            <MudText Typo="Typo.subtitle2">@Localizer["RequestJson"]</MudText>
-            <MudPaper Class="pa-3"><pre>@(_selectedOperation.RequestJson ?? Localizer["Unavailable"])</pre></MudPaper>
-
-            <MudText Typo="Typo.subtitle2">@Localizer["ResponseJson"]</MudText>
-            <MudPaper Class="pa-3"><pre>@(_selectedOperation.ResponseJson ?? Localizer["Unavailable"])</pre></MudPaper>
-
-            <MudText Typo="Typo.subtitle2">@Localizer["OutcomeJson"]</MudText>
-            <MudPaper Class="pa-3"><pre>@(_selectedOperation.OutcomeJson ?? Localizer["Unavailable"])</pre></MudPaper>
-        </MudPaper>
+        </StackSelect>
+        <StackSelect T="FhirInteractionType" Label="@Localizer["Operation"]"
+                     Value="@_interaction"
+                     ValueChanged="OnInteractionChanged">
+            @foreach (FhirInteractionType operation in Enum.GetValues<FhirInteractionType>())
+            {
+                <MudSelectItem T="FhirInteractionType" Value="@operation">@operation</MudSelectItem>
+            }
+        </StackSelect>
+        <StackTextField Label="@Localizer["ResourceId"]"
+                        Value="@_resourceId"
+                        ValueChanged="@(v => { _resourceId = v; })" />
+        <StackTextField Label="@Localizer["IdempotencyKey"]"
+                        Value="@_idempotencyKey"
+                        ValueChanged="@(v => { _idempotencyKey = v; })" />
+        <StackTextField Label="@Localizer["Query"]"
+                        Value="@_query"
+                        ValueChanged="@(v => { _query = v; })" />
+        <StackTextField Label="@Localizer["PayloadJson"]"
+                        Lines="6"
+                        AutoGrow="true"
+                        Value="@_payloadJson"
+                        ValueChanged="@(v => { _payloadJson = v; })" />
+    </StackExpandable>
+    <StackButton Color="Color.Primary"
+                 Label="@Localizer["Execute"]"
+                 EndIcon="fa-regular fa-play"
+                 Disabled="@_running"
+                 OnClick="ExecuteAsync" />
+    @if (!string.IsNullOrWhiteSpace(_resultMessage))
+    {
+        <StackField Label="@_resultMessage" HelperText="@Localizer["Status"]">
+            @if (_lastResponse is not null)
+            {
+                <FhirOperationStatusBadge Status="@_lastResponse.Status" />
+            }
+        </StackField>
     }
-</MudStack>
+</Stack>
+
+<Stack>
+    <StackExpandable Label="@Localizer["Filters"]" StartIcon="fa-regular fa-sliders">
+        <StackSelect T="FhirInteractionType?" Label="@Localizer["OperationFilter"]"
+                     Value="@_interactionFilter"
+                     ValueChanged="@(v => { _interactionFilter = v; })">
+            <MudSelectItem T="FhirInteractionType?" Value="@((FhirInteractionType?)null)">@Localizer["All"]</MudSelectItem>
+            @foreach (FhirInteractionType operation in Enum.GetValues<FhirInteractionType>())
+            {
+                <MudSelectItem T="FhirInteractionType?" Value="@operation">@operation</MudSelectItem>
+            }
+        </StackSelect>
+        <StackSelect T="FhirOperationStatus?" Label="@Localizer["StatusFilter"]"
+                     Value="@_statusFilter"
+                     ValueChanged="@(v => { _statusFilter = v; })">
+            <MudSelectItem T="FhirOperationStatus?" Value="@((FhirOperationStatus?)null)">@Localizer["All"]</MudSelectItem>
+            @foreach (FhirOperationStatus status in Enum.GetValues<FhirOperationStatus>())
+            {
+                <MudSelectItem T="FhirOperationStatus?" Value="@status">@status</MudSelectItem>
+            }
+        </StackSelect>
+        <StackTextField Label="@Localizer["Search"]"
+                        Value="@_searchText"
+                        ValueChanged="@(v => { _searchText = v; })" />
+        <StackButton Label="@Localizer["ApplyFilters"]"
+                     EndIcon="fa-regular fa-magnifying-glass"
+                     OnClick="LoadOperationsAsync" />
+    </StackExpandable>
+</Stack>
+
+<Stack>
+    @if (_loading)
+    {
+        <StackButton Label="@Localizer["OperationHistory"]" Disabled="true" EndIcon="fa-regular fa-spinner" />
+    }
+    else if (_operations.Count == 0)
+    {
+        <StackButton Label="@Localizer["NoOperationsFound"]"
+                     EndIcon="fa-regular fa-rotate-right"
+                     OnClick="LoadOperationsAsync" />
+    }
+    else
+    {
+        @foreach (ClinicalFhirOperationRecord operation in _operations)
+        {
+            <StackButton Label="@FormatOperationLabel(operation)"
+                         HelperText="@operation.StartedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")"
+                         OnClick="@(() => OpenOperationDetailAsync(operation))">
+                <FhirOperationStatusBadge Status="@operation.Status" />
+            </StackButton>
+        }
+    }
+</Stack>

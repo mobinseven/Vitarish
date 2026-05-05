@@ -1,0 +1,36 @@
+@inherits CommonBase
+
+<MudDialog>
+    <DialogContent>
+        <Stack>
+            <StackField Label="@Entry.Action" HelperText="@Localizer["Action"]">
+                <ClinicalOutcomeBadge Outcome="@Entry.Outcome" />
+            </StackField>
+            <StackField Label="@Entry.Category" HelperText="@Localizer["Category"]" />
+            @if (!string.IsNullOrWhiteSpace(Entry.ActorId))
+            {
+                <StackField Label="@Entry.ActorId" HelperText="@Localizer["Actor"]" />
+            }
+            @if (!string.IsNullOrWhiteSpace(Entry.ResourceType))
+            {
+                <StackField Label="@($"{Entry.ResourceType}{(Entry.ResourceId != null ? "/" + Entry.ResourceId : "")}")" HelperText="@Localizer["Resource"]" />
+            }
+            @if (!string.IsNullOrWhiteSpace(Entry.Reason))
+            {
+                <StackField Label="@Entry.Reason" HelperText="@Localizer["Reason"]" />
+            }
+            @if (!string.IsNullOrWhiteSpace(Entry.CorrelationId))
+            {
+                <StackField Label="@Entry.CorrelationId" HelperText="@Localizer["CorrelationId"]" />
+            }
+            <StackField Label="@Entry.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")" HelperText="@Localizer["Time"]" />
+        </Stack>
+    </DialogContent>
+    <DialogActions>
+        <Stack>
+            <StackButton Label="@Localizer["Close"]"
+                         EndIcon="fa-regular fa-xmark"
+                         OnClick="Close" />
+        </Stack>
+    </DialogActions>
+</MudDialog>

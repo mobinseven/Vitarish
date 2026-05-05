@@ -1,0 +1,17 @@
+@inherits CommonBase
+
+<MudChip T="string" Color="@StatusColor" Size="Size.Small" Variant="Variant.Filled">
+    @Localizer[State.ToString()]
+</MudChip>
+
+@code {
+    [Parameter, EditorRequired] public ConnectorHealthState State { get; set; }
+
+    private Color StatusColor => State switch
+    {
+        ConnectorHealthState.Healthy => Color.Success,
+        ConnectorHealthState.Degraded => Color.Warning,
+        ConnectorHealthState.Unreachable => Color.Error,
+        _ => Color.Default
+    };
+}

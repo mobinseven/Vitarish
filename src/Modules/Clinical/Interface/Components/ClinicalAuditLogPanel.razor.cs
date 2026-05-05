@@ -39,4 +39,22 @@ public partial class ClinicalAuditLogPanel : CommonBase
 
         await InvokeAsync(StateHasChanged);
     }
+
+    private async Task OpenEntryDetailAsync(AuditLogReadDto entry)
+    {
+        DialogParameters parameters = new()
+        {
+            { nameof(AuditEntryDetailDialog.Entry), entry }
+        };
+
+        _ = await DialogService.ShowAsync<AuditEntryDetailDialog>(Localizer["AuditLog"], parameters);
+    }
+
+    private string FormatEntryLabel(AuditLogReadDto entry) =>
+        entry.ResourceType != null
+            ? $"{entry.Action} {entry.ResourceType}{(entry.ResourceId != null ? "/" + entry.ResourceId : "")}"
+            : entry.Action;
+
+    private string FormatEntryHelperText(AuditLogReadDto entry) =>
+        $"{entry.CreatedAt.ToLocalTime():yyyy-MM-dd HH:mm:ss}{(entry.ActorId != null ? " · " + entry.ActorId : "")}";
 }

@@ -1,105 +1,61 @@
 @inherits CommonBase
 
-<MudStack Spacing="3">
-    <MudPaper Class="pa-4 d-flex flex-column gap-4">
-        <MudText Typo="Typo.h6">@Localizer["ResourceLinks"]</MudText>
+<Stack>
+    <StackExpandable Label="@Localizer["Filters"]" StartIcon="fa-regular fa-sliders">
+        <StackTextField Label="@Localizer["LocalEntityType"]"
+                        Value="@_localEntityType"
+                        ValueChanged="@(v => { _localEntityType = v; })" />
+        <StackTextField Label="@Localizer["LocalEntityId"]"
+                        Value="@_localEntityIdText"
+                        ValueChanged="@(v => { _localEntityIdText = v; })" />
+        <StackTextField Label="@Localizer["Search"]"
+                        Value="@_searchText"
+                        ValueChanged="@(v => { _searchText = v; })" />
+        <StackCheckbox Label="@Localizer["IncludeArchived"]"
+                       Value="@_includeArchived"
+                       ValueChanged="@(v => { _includeArchived = v; })" />
+        <StackButton Label="@Localizer["ApplyFilters"]"
+                     EndIcon="fa-regular fa-magnifying-glass"
+                     OnClick="LoadLinksAsync" />
+    </StackExpandable>
+    <StackButton Label="@Localizer["AddLink"]"
+                 EndIcon="fa-regular fa-link"
+                 Color="Color.Primary"
+                 OnClick="OpenLinkDialogAsync" />
+</Stack>
 
-        <MudGrid>
-            <MudItem xs="12" md="4">
-                <MudTextField T="string" Label="@Localizer["LocalEntityType"]" Value="@_localEntityType" ValueChanged="value => _localEntityType = value" />
-            </MudItem>
-            <MudItem xs="12" md="4">
-                <MudTextField T="string" Label="@Localizer["LocalEntityId"]" Value="@_localEntityIdText" ValueChanged="value => _localEntityIdText = value" />
-            </MudItem>
-            <MudItem xs="12" md="4">
-                <MudTextField T="string" Label="@Localizer["Search"]" Value="@_searchText" ValueChanged="value => _searchText = value" />
-            </MudItem>
-            <MudItem xs="12" md="4">
-                <MudCheckBox T="bool" Label="@Localizer["IncludeArchived"]" Value="@_includeArchived" ValueChanged="value => _includeArchived = value" />
-            </MudItem>
-        </MudGrid>
+@if (!string.IsNullOrWhiteSpace(_errorMessage))
+{
+    <Stack>
+        <StackField Label="@_errorMessage" HelperText="@Localizer["Error"]" Color="Color.Error" />
+    </Stack>
+}
 
-        <MudStack Row="true" Spacing="2">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_loading" OnClick="LoadLinksAsync">@Localizer["ApplyFilters"]</MudButton>
-            <MudButton Variant="Variant.Outlined" Color="Color.Success" OnClick="OpenLinkDialog">@Localizer["AddLink"]</MudButton>
-        </MudStack>
-
-        @if (!string.IsNullOrWhiteSpace(_errorMessage))
-        {
-            <MudAlert Severity="Severity.Error" Dense="true">@_errorMessage</MudAlert>
-        }
-
-        @if (_loading)
-        {
-            <MudProgressLinear Indeterminate Color="Color.Primary" />
-        }
-        else if (_links.Count == 0)
-        {
-            <MudText Typo="Typo.body2">@Localizer["NoResourceLinksFound"]</MudText>
-        }
-        else
-        {
-            <MudTable Items="@_links" Dense="true" Hover="true" Elevation="0">
-                <HeaderContent>
-                    <MudTh>@Localizer["LocalEntity"]</MudTh>
-                    <MudTh>@Localizer["FhirResource"]</MudTh>
-                    <MudTh>@Localizer["Version"]</MudTh>
-                    <MudTh>@Localizer["PatientReference"]</MudTh>
-                    <MudTh>@Localizer["Status"]</MudTh>
-                    <MudTh>@Localizer["Created"]</MudTh>
-                    <MudTh>@Localizer["Actions"]</MudTh>
-                </HeaderContent>
-                <RowTemplate Context="link">
-                    <MudTd>@link.LocalEntityType/@link.LocalEntityId.ToString()[..8]…</MudTd>
-                    <MudTd>@link.ResourceType/@link.ResourceId</MudTd>
-                    <MudTd>@(link.ResourceVersionId ?? "—")</MudTd>
-                    <MudTd>@(link.PatientReference ?? "—")</MudTd>
-                    <MudTd>
-                        <MudChip T="string" Color="@(link.IsArchived ? Color.Default : Color.Success)" Variant="Variant.Filled">
-                            @(link.IsArchived ? Localizer["Archived"] : Localizer["Active"])
-                        </MudChip>
-                    </MudTd>
-                    <MudTd>@link.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</MudTd>
-                    <MudTd>
-                        @if (!link.IsArchived)
-                        {
-                            <MudButton Variant="Variant.Text" Color="Color.Error" OnClick="@(() => UnlinkAsync(link.Id))">@Localizer["Unlink"]</MudButton>
-                        }
-                    </MudTd>
-                </RowTemplate>
-            </MudTable>
-        }
-    </MudPaper>
-
-    @if (_showLinkDialog)
+<Stack>
+    @if (_loading)
     {
-        <MudPaper Class="pa-4 d-flex flex-column gap-4">
-            <MudText Typo="Typo.subtitle1">@Localizer["AddResourceLink"]</MudText>
-            <MudGrid>
-                <MudItem xs="12" md="6">
-                    <MudTextField T="string" Label="@Localizer["LocalEntityType"]" @bind-Value="_newLocalEntityType" Required="true" />
-                </MudItem>
-                <MudItem xs="12" md="6">
-                    <MudTextField T="string" Label="@Localizer["LocalEntityId"]" @bind-Value="_newLocalEntityIdText" Required="true" />
-                </MudItem>
-                <MudItem xs="12" md="4">
-                    <MudTextField T="string" Label="@Localizer["ResourceType"]" @bind-Value="_newResourceType" Required="true" />
-                </MudItem>
-                <MudItem xs="12" md="4">
-                    <MudTextField T="string" Label="@Localizer["ResourceId"]" @bind-Value="_newResourceId" Required="true" />
-                </MudItem>
-                <MudItem xs="12" md="4">
-                    <MudTextField T="string" Label="@Localizer["PatientReference"]" @bind-Value="_newPatientReference" />
-                </MudItem>
-            </MudGrid>
-            @if (!string.IsNullOrWhiteSpace(_linkErrorMessage))
-            {
-                <MudAlert Severity="Severity.Error" Dense="true">@_linkErrorMessage</MudAlert>
-            }
-            <MudStack Row="true" Spacing="2">
-                <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@_linking" OnClick="ConfirmLinkAsync">@Localizer["Save"]</MudButton>
-                <MudButton Variant="Variant.Outlined" Color="Color.Default" OnClick="@(() => _showLinkDialog = false)">@Localizer["Cancel"]</MudButton>
-            </MudStack>
-        </MudPaper>
+        <StackButton Label="@Localizer["ResourceLinks"]" Disabled="true" EndIcon="fa-regular fa-spinner" />
     }
-</MudStack>
+    else if (_links.Count == 0)
+    {
+        <StackButton Label="@Localizer["NoResourceLinksFound"]"
+                     EndIcon="fa-regular fa-rotate-right"
+                     OnClick="ReloadRequired" />
+    }
+    else
+    {
+        @foreach (ResourceLinkReadDto link in _links)
+        {
+            <StackButton Label="@($"{link.ResourceType}/{link.ResourceId}")"
+                         HelperText="@($"{link.LocalEntityType} · {link.CreatedAt.ToLocalTime():yyyy-MM-dd HH:mm}")"
+                         OnClick="@(() => OpenLinkDetailAsync(link))">
+                <MudChip T="string"
+                         Color="@(link.IsArchived ? Color.Default : Color.Success)"
+                         Size="Size.Small"
+                         Variant="Variant.Filled">
+                    @(link.IsArchived ? Localizer["Archived"] : Localizer["Active"])
+                </MudChip>
+            </StackButton>
+        }
+    }
+</Stack>
