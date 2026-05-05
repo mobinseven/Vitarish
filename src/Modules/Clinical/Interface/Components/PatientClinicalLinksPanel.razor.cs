@@ -16,15 +16,8 @@ public partial class PatientClinicalLinksPanel : CommonBase
 
     private IReadOnlyList<ResourceLinkReadDto> _links = [];
     private bool _loaded;
-    private bool _linking;
-    private bool _showLinkDialog;
     private bool _hasLinks;
     private string? _errorMessage;
-    private string? _linkError;
-
-    private string? _newResourceType;
-    private string? _newResourceId;
-    private string? _newPatientReference;
 
     protected override async Task ReloadRequired()
     {
@@ -56,47 +49,20 @@ public partial class PatientClinicalLinksPanel : CommonBase
         await InvokeAsync(StateHasChanged);
     }
 
-    private void OpenLinkDialog()
+    private async Task OpenLinkDialogAsync()
     {
-        _newResourceType = "Patient";
-        _newResourceId = null;
-        _newPatientReference = null;
-        _linkError = null;
-        _showLinkDialog = true;
-    }
-
-    private async Task ConfirmLinkAsync()
-    {
-        if (string.IsNullOrWhiteSpace(_newResourceType) || string.IsNullOrWhiteSpace(_newResourceId))
+        DialogParameters parameters = new()
         {
-            _linkError = Localizer["ResourceTypeAndIdRequired"];
-            return;
-        }
+            { nameof(LinkFhirResourceDialog.PatientProjectId), PatientProjectId }
+        };
 
-        _linking = true;
-        _linkError = null;
+        IDialogReference dialog = await DialogService.ShowAsync<LinkFhirResourceDialog>(
+            Localizer["LinkFhirResource"], parameters);
+        DialogResult? result = await dialog.Result;
 
-        try
+        if (result is not null && !result.Canceled)
         {
-            _ = await Mediator.Send(new CreateResourceLinkCommand(new ResourceLinkWriteDto
-            {
-                LocalEntityId = PatientProjectId,
-                LocalEntityType = LocalEntityType,
-                ResourceId = _newResourceId,
-                ResourceType = _newResourceType,
-                PatientReference = _newPatientReference
-            }));
-
-            _showLinkDialog = false;
             await LoadLinksAsync();
-        }
-        catch (Exception exception)
-        {
-            _linkError = exception.Message;
-        }
-        finally
-        {
-            _linking = false;
         }
     }
 

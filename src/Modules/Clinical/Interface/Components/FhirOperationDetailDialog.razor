@@ -1,0 +1,60 @@
+@inherits CommonBase
+
+<MudDialog>
+    <DialogContent>
+        <Stack>
+            <StackField Label="@FormatResource(Operation)" HelperText="@Localizer["Resource"]">
+                <FhirOperationStatusBadge Status="@Operation.Status" />
+            </StackField>
+            <StackField Label="@Operation.Interaction.ToString()" HelperText="@Localizer["Operation"]" />
+            <StackField Label="@Operation.FailureKind.ToString()" HelperText="@Localizer["FailureKind"]" />
+            <StackField Label="@Operation.CorrelationId" HelperText="@Localizer["CorrelationId"]" />
+            @if (!string.IsNullOrWhiteSpace(Operation.IdempotencyKey))
+            {
+                <StackField Label="@Operation.IdempotencyKey" HelperText="@Localizer["IdempotencyKey"]" />
+            }
+            @if (Operation.ResponseStatusCode.HasValue)
+            {
+                <StackField Label="@Operation.ResponseStatusCode.Value.ToString()" HelperText="@Localizer["ResponseStatus"]" />
+            }
+            @if (Operation.ResultCount.HasValue)
+            {
+                <StackField Label="@Operation.ResultCount.Value.ToString()" HelperText="@Localizer["ResultCount"]" />
+            }
+            <StackField Label="@Operation.StartedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")" HelperText="@Localizer["Started"]" />
+            @if (Operation.CompletedAt.HasValue)
+            {
+                <StackField Label="@Operation.CompletedAt.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")" HelperText="@Localizer["Completed"]" />
+            }
+            @if (!string.IsNullOrWhiteSpace(Operation.FailureMessage))
+            {
+                <StackField Label="@Operation.FailureMessage" HelperText="@Localizer["FailureMessage"]" Color="Color.Error" />
+            }
+            @if (!string.IsNullOrWhiteSpace(Operation.RequestJson))
+            {
+                <StackExpandable Label="@Localizer["RequestJson"]">
+                    <pre style="overflow-x:auto;white-space:pre-wrap;font-size:0.8em">@Operation.RequestJson</pre>
+                </StackExpandable>
+            }
+            @if (!string.IsNullOrWhiteSpace(Operation.ResponseJson))
+            {
+                <StackExpandable Label="@Localizer["ResponseJson"]">
+                    <pre style="overflow-x:auto;white-space:pre-wrap;font-size:0.8em">@Operation.ResponseJson</pre>
+                </StackExpandable>
+            }
+            @if (!string.IsNullOrWhiteSpace(Operation.OutcomeJson))
+            {
+                <StackExpandable Label="@Localizer["OutcomeJson"]">
+                    <pre style="overflow-x:auto;white-space:pre-wrap;font-size:0.8em">@Operation.OutcomeJson</pre>
+                </StackExpandable>
+            }
+        </Stack>
+    </DialogContent>
+    <DialogActions>
+        <Stack>
+            <StackButton Label="@Localizer["Close"]"
+                         EndIcon="fa-regular fa-xmark"
+                         OnClick="Close" />
+        </Stack>
+    </DialogActions>
+</MudDialog>

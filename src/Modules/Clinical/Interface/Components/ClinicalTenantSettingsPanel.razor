@@ -2,60 +2,37 @@
 
 @if (_loading)
 {
-    <MudProgressLinear Indeterminate Color="Color.Primary" />
+    <Stack>
+        <StackButton Label="@Localizer["ClinicalTenantSettings"]" Disabled="true" EndIcon="fa-regular fa-spinner" />
+    </Stack>
 }
 else if (_settings is not null)
 {
-    <MudPaper Class="pa-4 d-flex flex-column gap-4">
-        <div class="d-flex justify-space-between align-center gap-2 flex-wrap">
-            <MudText Typo="Typo.h6">@Localizer["ClinicalTenantSettings"]</MudText>
-            <MudChip T="string" Color="@(_settings.Enabled ? Color.Success : Color.Default)" Variant="Variant.Filled">
+    <Stack>
+        <StackField Label="@(_settings.Enabled ? Localizer["Enabled"].Value : Localizer["Disabled"].Value)"
+                    HelperText="@Localizer["TenantSettingsAreReadOnly"]">
+            <MudChip T="string" Color="@(_settings.Enabled ? Color.Success : Color.Default)" Size="Size.Small" Variant="Variant.Filled">
                 @(_settings.Enabled ? Localizer["Enabled"] : Localizer["Disabled"])
             </MudChip>
-        </div>
-
-        <MudSimpleTable Elevation="0">
-            <tbody>
-                <tr>
-                    <td><strong>@Localizer["EndpointOverride"]</strong></td>
-                    <td>@(_settings.EndpointOverride ?? Localizer["InheritedFromConfiguration"])</td>
-                </tr>
-                <tr>
-                    <td><strong>@Localizer["Environment"]</strong></td>
-                    <td>@(_settings.Environment ?? "—")</td>
-                </tr>
-                <tr>
-                    <td><strong>@Localizer["Organization"]</strong></td>
-                    <td>@(_settings.Organization ?? "—")</td>
-                </tr>
-                <tr>
-                    <td><strong>@Localizer["Clinic"]</strong></td>
-                    <td>@(_settings.Clinic ?? "—")</td>
-                </tr>
-                <tr>
-                    <td><strong>@Localizer["RequireAccessReason"]</strong></td>
-                    <td>@(_settings.RequireAccessReason ? Localizer["Yes"] : Localizer["No"])</td>
-                </tr>
-            </tbody>
-        </MudSimpleTable>
-
+        </StackField>
+        <StackField Label="@(_settings.EndpointOverride ?? Localizer["InheritedFromConfiguration"].Value)" HelperText="@Localizer["EndpointOverride"]" />
+        @if (!string.IsNullOrWhiteSpace(_settings.Environment))
+        {
+            <StackField Label="@_settings.Environment" HelperText="@Localizer["Environment"]" />
+        }
+        @if (!string.IsNullOrWhiteSpace(_settings.Organization))
+        {
+            <StackField Label="@_settings.Organization" HelperText="@Localizer["Organization"]" />
+        }
+        @if (!string.IsNullOrWhiteSpace(_settings.Clinic))
+        {
+            <StackField Label="@_settings.Clinic" HelperText="@Localizer["Clinic"]" />
+        }
+        <StackField Label="@(_settings.RequireAccessReason ? Localizer["Yes"].Value : Localizer["No"].Value)" HelperText="@Localizer["RequireAccessReason"]" />
         @if (_settings.AllowedResourceTypes.Count > 0)
         {
-            <div>
-                <MudText Typo="Typo.subtitle2" Class="mb-1">@Localizer["AllowedResourceTypes"]</MudText>
-                <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="1">
-                    @foreach (string resourceType in _settings.AllowedResourceTypes)
-                    {
-                        <MudChip T="string" Color="Color.Primary" Variant="Variant.Outlined">@resourceType</MudChip>
-                    }
-                </MudStack>
-            </div>
+            <StackField Label="@string.Join(", ", _settings.AllowedResourceTypes)" HelperText="@Localizer["AllowedResourceTypes"]" />
         }
-
-        <MudAlert Severity="Severity.Info" Dense="true">@Localizer["TenantSettingsAreReadOnly"]</MudAlert>
-
-        <Stack>
-            <StackButton Label="@Localizer["Refresh"]" EndIcon="fa-regular fa-rotate-right" OnClick="ReloadRequired" />
-        </Stack>
-    </MudPaper>
+        <StackButton Label="@Localizer["Refresh"]" EndIcon="fa-regular fa-rotate-right" OnClick="ReloadRequired" />
+    </Stack>
 }

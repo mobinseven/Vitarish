@@ -1,0 +1,17 @@
+@inherits CommonBase
+
+@if (!string.IsNullOrWhiteSpace(Outcome))
+{
+    <MudChip T="string" Color="@StatusColor" Size="Size.Small" Variant="Variant.Filled">
+        @Outcome
+    </MudChip>
+}
+
+@code {
+    [Parameter] public string? Outcome { get; set; }
+
+    private Color StatusColor =>
+        Outcome?.StartsWith("Fail", StringComparison.OrdinalIgnoreCase) == true
+            ? Color.Error
+            : Color.Success;
+}

@@ -11,7 +11,6 @@ public partial class ClinicalOperationsPanel : CommonBase
 
     private IReadOnlyList<ClinicalFhirOperationRecord> _operations = [];
     private ClinicalOperationsConfiguration? _configuration;
-    private ClinicalFhirOperationRecord? _selectedOperation;
     private bool _loading;
     private bool _running;
     private string? _resourceType;
@@ -24,7 +23,7 @@ public partial class ClinicalOperationsPanel : CommonBase
     private FhirInteractionType? _interactionFilter;
     private FhirOperationStatus? _statusFilter;
     private string? _resultMessage;
-    private Severity _resultSeverity = Severity.Info;
+    private FhirOperationResponse? _lastResponse;
 
     protected override async Task ReloadRequired()
     {
@@ -54,7 +53,6 @@ public partial class ClinicalOperationsPanel : CommonBase
             Take = 100
         }));
 
-        _selectedOperation ??= _operations.FirstOrDefault();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -62,8 +60,8 @@ public partial class ClinicalOperationsPanel : CommonBase
     {
         if (string.IsNullOrWhiteSpace(_resourceType))
         {
-            _resultSeverity = Severity.Warning;
             _resultMessage = Localizer["ResourceTypeIsRequired"];
+            _lastResponse = null;
             return;
         }
 
@@ -82,10 +80,15 @@ public partial class ClinicalOperationsPanel : CommonBase
                 ResourceType = _resourceType
             }));
 
-            _resultSeverity = response.Status == FhirOperationStatus.Succeeded ? Severity.Success : response.Status == FhirOperationStatus.Denied ? Severity.Warning : Severity.Error;
+            _lastResponse = response;
             _resultMessage = $"{response.Status} · {response.CorrelationId}";
             await LoadOperationsAsync();
-            _selectedOperation = _operations.FirstOrDefault(operation => operation.Id == response.OperationId) ?? _operations.FirstOrDefault();
+        }
+        catch (Exception exception)
+        {
+            _lastResponse = null;
+            _resultMessage = exception.Message;
+            await InvokeAsync(StateHasChanged);
         }
         finally
         {
@@ -105,17 +108,23 @@ public partial class ClinicalOperationsPanel : CommonBase
         return Task.CompletedTask;
     }
 
-    private void SelectOperation(ClinicalFhirOperationRecord operation) => _selectedOperation = operation;
-
-    private static string FormatResource(ClinicalFhirOperationRecord operation) =>
-        string.IsNullOrWhiteSpace(operation.ResourceId) ? operation.ResourceType : $"{operation.ResourceType}/{operation.ResourceId}";
-
-    private static Color GetStatusColor(FhirOperationStatus status) => status switch
+    private async Task OpenOperationDetailAsync(ClinicalFhirOperationRecord operation)
     {
-        FhirOperationStatus.Succeeded => Color.Success,
-        FhirOperationStatus.Denied => Color.Warning,
-        FhirOperationStatus.Failed => Color.Error,
-        FhirOperationStatus.Running => Color.Info,
-        _ => Color.Default
-    };
+        DialogParameters parameters = new()
+        {
+            { nameof(FhirOperationDetailDialog.Operation), operation }
+        };
+
+        _ = await DialogService.ShowAsync<FhirOperationDetailDialog>(
+            Localizer["OperationDetail"], parameters);
+    }
+
+    private static string FormatOperationLabel(ClinicalFhirOperationRecord operation)
+    {
+        string resource = string.IsNullOrWhiteSpace(operation.ResourceId)
+            ? operation.ResourceType
+            : $"{operation.ResourceType}/{operation.ResourceId}";
+        return $"{operation.Interaction} {resource}";
+    }
 }
+

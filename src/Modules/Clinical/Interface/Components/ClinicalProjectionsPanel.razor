@@ -1,86 +1,52 @@
 @inherits CommonBase
 
-<MudStack Spacing="3">
-    <MudPaper Class="pa-4 d-flex flex-column gap-4">
-        <MudText Typo="Typo.h6">@Localizer["FhirProjections"]</MudText>
+<Stack>
+    <StackExpandable Label="@Localizer["Filters"]" StartIcon="fa-regular fa-sliders">
+        <StackTextField Label="@Localizer["ResourceType"]"
+                        Value="@_resourceType"
+                        ValueChanged="@(v => { _resourceType = v; })" />
+        <StackTextField Label="@Localizer["ResourceId"]"
+                        Value="@_resourceId"
+                        ValueChanged="@(v => { _resourceId = v; })" />
+        <StackTextField Label="@Localizer["PatientReference"]"
+                        Value="@_patientReference"
+                        ValueChanged="@(v => { _patientReference = v; })" />
+        <StackCheckbox Label="@Localizer["IncludeExpired"]"
+                       Value="@_includeExpired"
+                       ValueChanged="@(v => { _includeExpired = v; })" />
+        <StackButton Label="@Localizer["ApplyFilters"]"
+                     EndIcon="fa-regular fa-magnifying-glass"
+                     OnClick="LoadAsync" />
+    </StackExpandable>
+    <StackButton Label="@Localizer["SyncResource"]"
+                 EndIcon="fa-regular fa-rotate-right"
+                 OnClick="OpenSyncDialogAsync" />
+</Stack>
 
-        <MudGrid>
-            <MudItem xs="12" md="3">
-                <MudTextField T="string" Label="@Localizer["ResourceType"]" @bind-Value="_resourceType" />
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudTextField T="string" Label="@Localizer["ResourceId"]" @bind-Value="_resourceId" />
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudTextField T="string" Label="@Localizer["PatientReference"]" @bind-Value="_patientReference" />
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudCheckBox T="bool" Label="@Localizer["IncludeExpired"]" @bind-Value="_includeExpired" />
-            </MudItem>
-        </MudGrid>
-
-        <MudStack Row="true" Spacing="2">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_loading" OnClick="LoadAsync">@Localizer["ApplyFilters"]</MudButton>
-        </MudStack>
-
-        @if (!string.IsNullOrWhiteSpace(_errorMessage))
+<Stack>
+    @if (_loading)
+    {
+        <StackButton Label="@Localizer["FhirProjections"]" Disabled="true" EndIcon="fa-regular fa-spinner" />
+    }
+    else if (!string.IsNullOrWhiteSpace(_errorMessage))
+    {
+        <StackField Label="@_errorMessage" HelperText="@Localizer["Error"]" Color="Color.Error" />
+    }
+    else if (_projections.Count == 0)
+    {
+        <StackButton Label="@Localizer["NoProjectionsFound"]"
+                     EndIcon="fa-regular fa-rotate-right"
+                     OnClick="ReloadRequired" />
+    }
+    else
+    {
+        @foreach (ProjectionReadDto proj in _projections)
         {
-            <MudAlert Severity="Severity.Error" Dense="true">@_errorMessage</MudAlert>
+            <StackButton Label="@($"{proj.ResourceType}/{proj.ResourceId}")"
+                         HelperText="@FormatProjectionHelperText(proj)"
+                         OnClick="@(() => OpenProjectionDetailAsync(proj))">
+                <SyncStateBadge State="@proj.SyncState" />
+            </StackButton>
         }
-
-        @if (_loading)
-        {
-            <MudProgressLinear Indeterminate Color="Color.Primary" />
-        }
-        else if (_projections.Count == 0)
-        {
-            <MudText Typo="Typo.body2">@Localizer["NoProjectionsFound"]</MudText>
-        }
-        else
-        {
-            <MudTable Items="@_projections" Dense="true" Hover="true" Elevation="0">
-                <HeaderContent>
-                    <MudTh>@Localizer["Resource"]</MudTh>
-                    <MudTh>@Localizer["DisplayName"]</MudTh>
-                    <MudTh>@Localizer["Patient"]</MudTh>
-                    <MudTh>@Localizer["State"]</MudTh>
-                    <MudTh>@Localizer["LastSynced"]</MudTh>
-                    <MudTh>@Localizer["Expires"]</MudTh>
-                    <MudTh>@Localizer["Actions"]</MudTh>
-                </HeaderContent>
-                <RowTemplate Context="proj">
-                    <MudTd>@proj.ResourceType/@proj.ResourceId</MudTd>
-                    <MudTd>@proj.DisplayName</MudTd>
-                    <MudTd>@(proj.PatientReference ?? "—")</MudTd>
-                    <MudTd>
-                        <MudChip T="string" Color="@GetStateColor(proj.SyncState)" Variant="Variant.Filled">@proj.SyncState</MudChip>
-                    </MudTd>
-                    <MudTd>@(proj.LastSyncedAt?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "—")</MudTd>
-                    <MudTd>@(proj.ExpiresAt?.ToLocalTime().ToString("yyyy-MM-dd HH:mm") ?? "—")</MudTd>
-                    <MudTd>
-                        <MudStack Row="true" Spacing="1">
-                            <MudButton Variant="Variant.Text" Color="Color.Primary" Disabled="@_syncing" OnClick="@(() => SyncAsync(proj.ResourceType, proj.ResourceId))">@Localizer["Sync"]</MudButton>
-                        </MudStack>
-                    </MudTd>
-                </RowTemplate>
-            </MudTable>
-        }
-    </MudPaper>
-
-    <MudPaper Class="pa-4 d-flex flex-column gap-4">
-        <MudText Typo="Typo.h6">@Localizer["SyncFhirResource"]</MudText>
-        <MudGrid>
-            <MudItem xs="12" md="5">
-                <MudTextField T="string" Label="@Localizer["ResourceType"]" @bind-Value="_syncResourceType" Required="true" />
-            </MudItem>
-            <MudItem xs="12" md="5">
-                <MudTextField T="string" Label="@Localizer["ResourceId"]" @bind-Value="_syncResourceId" Required="true" />
-            </MudItem>
-        </MudGrid>
-        @if (!string.IsNullOrWhiteSpace(_syncResult))
-        {
-            <MudAlert Severity="@_syncSeverity" Dense="true">@_syncResult</MudAlert>
-        }
-        <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@_syncing" OnClick="SyncNewAsync">@Localizer["Sync"]</MudButton>
-    </MudPaper>
-</MudStack>
+    }
+</Stack>

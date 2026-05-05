@@ -1,0 +1,26 @@
+@inherits CommonBase
+
+<MudDialog>
+    <DialogContent>
+        <Stack>
+            <StackTextField Label="@Localizer["ResourceType"]" @bind-Value="_resourceType" Required="true" />
+            <StackTextField Label="@Localizer["ResourceId"]" @bind-Value="_resourceId" Required="true" />
+            @if (!string.IsNullOrWhiteSpace(_resultMessage))
+            {
+                <StackField Label="@_resultMessage" HelperText="@Localizer["Result"]" Color="@_resultColor" />
+            }
+        </Stack>
+    </DialogContent>
+    <DialogActions>
+        <Stack>
+            <StackButton Color="Color.Primary"
+                         Label="@Localizer["Sync"]"
+                         EndIcon="fa-regular fa-rotate-right"
+                         Disabled="@_syncing"
+                         OnClick="SyncAsync" />
+            <StackButton Label="@Localizer["Cancel"]"
+                         EndIcon="fa-regular fa-xmark"
+                         OnClick="Cancel" />
+        </Stack>
+    </DialogActions>
+</MudDialog>

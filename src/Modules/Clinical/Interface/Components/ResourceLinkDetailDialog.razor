@@ -1,0 +1,42 @@
+@inherits CommonBase
+
+<MudDialog>
+    <DialogContent>
+        <Stack>
+            <StackField Label="@($"{Link.ResourceType}/{Link.ResourceId}")" HelperText="@Localizer["FhirResource"]">
+                <MudChip T="string" Color="@(Link.IsArchived ? Color.Default : Color.Success)" Size="Size.Small" Variant="Variant.Filled">
+                    @(Link.IsArchived ? Localizer["Archived"] : Localizer["Active"])
+                </MudChip>
+            </StackField>
+            <StackField Label="@($"{Link.LocalEntityType}/{Link.LocalEntityId}")" HelperText="@Localizer["LocalEntity"]" />
+            @if (!string.IsNullOrWhiteSpace(Link.ResourceVersionId))
+            {
+                <StackField Label="@Link.ResourceVersionId" HelperText="@Localizer["Version"]" />
+            }
+            @if (!string.IsNullOrWhiteSpace(Link.PatientReference))
+            {
+                <StackField Label="@Link.PatientReference" HelperText="@Localizer["PatientReference"]" />
+            }
+            <StackField Label="@Link.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")" HelperText="@Localizer["Created"]" />
+            @if (!string.IsNullOrWhiteSpace(_errorMessage))
+            {
+                <StackField Label="@_errorMessage" HelperText="@Localizer["Error"]" Color="Color.Error" />
+            }
+        </Stack>
+    </DialogContent>
+    <DialogActions>
+        <Stack>
+            @if (!Link.IsArchived)
+            {
+                <StackButton Color="Color.Error"
+                             Label="@Localizer["Unlink"]"
+                             EndIcon="fa-regular fa-link-slash"
+                             Disabled="@_unlinking"
+                             OnClick="UnlinkAsync" />
+            }
+            <StackButton Label="@Localizer["Close"]"
+                         EndIcon="fa-regular fa-xmark"
+                         OnClick="Close" />
+        </Stack>
+    </DialogActions>
+</MudDialog>
