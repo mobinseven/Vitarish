@@ -10,6 +10,7 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
 
     [Inject] private IAccessControlledSessionManager SessionsService { get; set; } = default!;
     [Inject] private IAccessControlledReservationManager ReservationManager { get; set; } = default!;
+    [Inject] private ISessionOccurrenceResolver SessionOccurrenceResolver { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
     private string? patientUserId;
@@ -34,7 +35,10 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
         };
 
         IReadOnlyList<SessionReadDto>? result = await SessionsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync();
-        sessions = [.. (result ?? []).OrderBy(s => s.Title)];
+        sessions = [.. (result ?? [])
+            .Where(s => s.Status == SessionStatus.Active && s.StartAt is not null && s.EndAt > DateTimeOffset.UtcNow)
+            .OrderBy(s => s.StartAt)
+            .ThenBy(s => s.Title)];
         await InvokeAsync(StateHasChanged);
     }
 
@@ -45,14 +49,36 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
             return;
         }
 
-        // Reserve against the session — occurrence selection would require an occurrence picker
+        TimeRangeQuery range = new()
+        {
+            Start = DateTimeOffset.UtcNow.AddDays(-1),
+            End = DateTimeOffset.UtcNow.AddYears(1)
+        };
+
+        SessionOccurrenceReadDto? occurrence = (await SessionOccurrenceResolver.ResolveOccurrencesAsync(session.Id, range, CancellationToken.None))
+            .OrderBy(o => o.OccurrenceStart)
+            .FirstOrDefault(o => !o.IsCancelled && o.OccurrenceEnd > DateTimeOffset.UtcNow);
+
+        if (occurrence is null)
+        {
+            _ = Snackbar.Add(Localizer["OccurrenceUnavailable"].Value, Severity.Warning);
+            return;
+        }
+
+        EntityResult result = await ReservationManager.ReserveAsync(occurrence.Id, patientUserId, CancellationToken.None);
+        if (result.IsFailure)
+        {
+            _ = Snackbar.Add(result.Errors.FirstOrDefault().Message, Severity.Error);
+            return;
+        }
+
         _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
 
         if (createReminder)
         {
             DialogParameters parameters = new()
             {
-                { nameof(ReminderCreatorDialog.SourceId), Patient.Id }
+                { nameof(ReminderCreatorDialog.SourceId), occurrence.Id }
             };
             IDialogReference reminderDialog = await DialogService.ShowAsync<ReminderCreatorDialog>(null, parameters);
             _ = await reminderDialog.Result;

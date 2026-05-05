@@ -66,8 +66,20 @@ public partial class AdminSessionDetail : SessionsBase
         }
     }
 
-    private async Task AddReservationAsync()
+    private async Task AddReservationAsync(Guid occurrenceId)
     {
-        await OnEdit.InvokeAsync();
+        DialogParameters parameters = new()
+        {
+            { nameof(AdminReservationForSessionDialog.SessionOccurrenceId), occurrenceId }
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<AdminReservationForSessionDialog>(
+            Localizer["AddItem", Localizer["Reservation"]], parameters);
+        DialogResult? result = await dialog.Result;
+
+        if (result is not null && !result.Canceled)
+        {
+            await OnStatusChanged.InvokeAsync();
+        }
     }
 }

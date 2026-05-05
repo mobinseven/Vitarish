@@ -18,6 +18,12 @@ internal class ReservationManager(IMediator mediator)
     public Task<EntityResult> ConfirmReservationAsync(Guid reservationId, CancellationToken cancellationToken)
         => UpdateStatusAsync(reservationId, ReservationStatus.Confirmed, cancellationToken);
 
+    public Task<EntityResult> PresentReservationAsync(Guid reservationId, CancellationToken cancellationToken)
+        => UpdateStatusAsync(reservationId, ReservationStatus.Present, cancellationToken);
+
+    public Task<EntityResult> CompleteReservationAsync(Guid reservationId, CancellationToken cancellationToken)
+        => UpdateStatusAsync(reservationId, ReservationStatus.Completed, cancellationToken);
+
     public Task<EntityResult> CancelReservationAsync(Guid reservationId, CancellationToken cancellationToken)
         => UpdateStatusAsync(reservationId, ReservationStatus.Cancelled, cancellationToken);
 

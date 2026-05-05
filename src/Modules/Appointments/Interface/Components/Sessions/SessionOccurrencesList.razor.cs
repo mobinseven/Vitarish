@@ -5,6 +5,8 @@ public partial class SessionOccurrencesList : SessionsBase
     [Parameter] public Guid? SessionId { get; set; }
     [Parameter] public EventCallback<Guid> OnClicked { get; set; }
 
+    [Inject] private ISessionOccurrenceResolver SessionOccurrenceResolver { get; set; } = default!;
+
     private List<SessionOccurrenceReadDto> occurrences = [];
 
     protected override async Task OnParametersSetAsync()
@@ -21,8 +23,14 @@ public partial class SessionOccurrencesList : SessionsBase
             return;
         }
 
-        // Occurrences are resolved via a dedicated service; loaded empty until a resolver is wired up.
-        occurrences = [];
+        TimeRangeQuery range = new()
+        {
+            Start = DateTimeOffset.UtcNow.AddDays(-1),
+            End = DateTimeOffset.UtcNow.AddYears(1)
+        };
+
+        IReadOnlyList<SessionOccurrenceReadDto> resolved = await SessionOccurrenceResolver.ResolveOccurrencesAsync(SessionId.Value, range, CancellationToken.None);
+        occurrences = [.. resolved.OrderBy(o => o.OccurrenceStart)];
         await InvokeAsync(StateHasChanged);
     }
 }

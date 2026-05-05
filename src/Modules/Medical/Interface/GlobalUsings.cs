@@ -3,6 +3,7 @@ global using Microsoft.AspNetCore.Components;
 global using Microsoft.Extensions.DependencyInjection;
 global using MudBlazor;
 global using System.Text.Json.Serialization;
+global using Vitarish.Calendar.Domain.Models;
 global using Vitarish.Appointments.Application.Abstractions;
 global using Vitarish.Appointments.Domain.Dto;
 global using Vitarish.Appointments.Domain.Enums;

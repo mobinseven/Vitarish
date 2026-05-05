@@ -1,6 +1,10 @@
+using Vitarish.Appointments.Application.Events;
+
 namespace Vitarish.Appointments.Infrastructure.Handlers;
 
-internal class CreateReservationHandler(IEntityRepository<Reservation, ReservationDescriptor> reservationRepository)
+internal class CreateReservationHandler(
+    IEntityRepository<Reservation, ReservationDescriptor> reservationRepository,
+    IAppointmentsEventPublisher eventPublisher)
     : IRequestHandler<CreateReservationCommand, Guid>
 {
     public async Task<Guid> Handle(CreateReservationCommand request, CancellationToken cancellationToken)
@@ -17,6 +21,9 @@ internal class CreateReservationHandler(IEntityRepository<Reservation, Reservati
         };
 
         Reservation created = await reservationRepository.AddAsync(reservation, cancellationToken);
+        await eventPublisher.PublishReservationCreatedAsync(
+            new ReservationCreatedEvent(created.Id, created.SessionOccurrenceId, created.ReservingPartyId),
+            cancellationToken);
         return created.Id;
     }
 }

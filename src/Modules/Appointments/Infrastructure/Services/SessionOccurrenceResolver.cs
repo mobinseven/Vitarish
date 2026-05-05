@@ -4,7 +4,6 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
 internal class SessionOccurrenceResolver(
-    ICalendarGateway calendarGateway,
     IEntityRepository<Session, SessionDescriptor> sessionRepository,
     IEntityRepository<SessionOccurrence, SessionOccurrenceDescriptor> occurrenceRepository,
     AppointmentsDbContext dbContext) : ISessionOccurrenceResolver
@@ -43,41 +42,34 @@ internal class SessionOccurrenceResolver(
     {
         Session? session = await sessionRepository.GetAsync(sessionId, cancellationToken);
 
-        if (session?.CalendarMappingId is null)
+        if (session?.StartAt is null || session.EndAt is null)
         {
             return;
         }
 
-        TimeRangeQuery range = new()
+        const string singleOccurrenceRecurrenceId = "single";
+
+        SessionOccurrence? existing = await dbContext.SessionOccurrences
+            .FirstOrDefaultAsync(o => o.SessionId == sessionId && o.RecurrenceId == singleOccurrenceRecurrenceId, cancellationToken);
+
+        if (existing is null)
         {
-            Start = DateTimeOffset.UtcNow,
-            End = DateTimeOffset.UtcNow.AddMonths(3)
-        };
-
-        IReadOnlyList<(string RecurrenceId, DateTimeOffset Start, DateTimeOffset End)> calendarOccurrences =
-            await calendarGateway.GetUpcomingOccurrencesAsync(session.CalendarMappingId.Value, range, cancellationToken);
-
-        foreach ((string recurrenceId, DateTimeOffset start, DateTimeOffset end) in calendarOccurrences)
+            dbContext.SessionOccurrences.Add(new SessionOccurrence
+            {
+                SessionId = sessionId,
+                CalendarMappingId = session.CalendarMappingId ?? Guid.Empty,
+                RecurrenceId = singleOccurrenceRecurrenceId,
+                OccurrenceStart = session.StartAt.Value,
+                OccurrenceEnd = session.EndAt.Value,
+                IsCancelled = session.Status == SessionStatus.Cancelled
+            });
+        }
+        else
         {
-            SessionOccurrence? existing = await dbContext.SessionOccurrences
-                .FirstOrDefaultAsync(o => o.SessionId == sessionId && o.RecurrenceId == recurrenceId, cancellationToken);
-
-            if (existing is null)
-            {
-                dbContext.SessionOccurrences.Add(new SessionOccurrence
-                {
-                    SessionId = sessionId,
-                    CalendarMappingId = session.CalendarMappingId.Value,
-                    RecurrenceId = recurrenceId,
-                    OccurrenceStart = start,
-                    OccurrenceEnd = end
-                });
-            }
-            else
-            {
-                existing.OccurrenceStart = start;
-                existing.OccurrenceEnd = end;
-            }
+            existing.CalendarMappingId = session.CalendarMappingId ?? Guid.Empty;
+            existing.OccurrenceStart = session.StartAt.Value;
+            existing.OccurrenceEnd = session.EndAt.Value;
+            existing.IsCancelled = session.Status == SessionStatus.Cancelled;
         }
 
         _ = await dbContext.SaveChangesAsync(cancellationToken);
