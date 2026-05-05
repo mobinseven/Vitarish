@@ -5,6 +5,7 @@ using Vitarish.Main.Authorization;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Calendar;
+using Vitarish.Main.Infrastructure.BackgroundJobs.Clinical;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Intelligence;
@@ -68,6 +69,7 @@ public static class HostHangfireExtensions
         _ = builder.Services.AddTransient<SeaIndexingProcessor>();
         _ = builder.Services.AddTransient<CalendarSyncProcessor>();
         _ = builder.Services.AddTransient<OccurrenceProjectionProcessor>();
+        _ = builder.Services.AddTransient<ClinicalHealthProbeProcessor>();
         _ = builder.Services.AddSingleton<HangfireRemindersJobManager>();
         _ = builder.Services.AddSingleton<HangfireSeaJobManager>();
         _ = builder.Services.AddSingleton<HangfireSeaIndexingJobManager>();
@@ -75,6 +77,7 @@ public static class HostHangfireExtensions
         _ = builder.Services.AddSingleton<HangfireIntelligenceJobManager>();
         _ = builder.Services.AddSingleton<HangfireCommunicationsJobManager>();
         _ = builder.Services.AddSingleton<HangfireCalendarJobManager>();
+        _ = builder.Services.AddSingleton<HangfireClinicalJobManager>();
     }
 
     /// <summary>

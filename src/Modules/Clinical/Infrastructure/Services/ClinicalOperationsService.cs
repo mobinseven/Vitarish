@@ -227,13 +227,8 @@ internal sealed class ClinicalOperationsService(
     private bool IsAllowedResourceType(string resourceType) =>
         _options.AllowedResourceTypes.Any(value => string.Equals(value, resourceType, StringComparison.OrdinalIgnoreCase));
 
-    private static string BuildDeniedMessage(string resourceType, FhirInteractionType interaction)
-    {
-        List<string> denied = [];
-
-        denied.Add($"Operation '{interaction}' is not allowed or resource type '{resourceType}' is not enabled.");
-        return string.Join(' ', denied);
-    }
+    private static string BuildDeniedMessage(string resourceType, FhirInteractionType interaction) =>
+        $"Operation '{interaction}' is not allowed or resource type '{resourceType}' is not enabled.";
 
     private static FhirFailureKind ClassifyFailure(Exception exception) => exception switch
     {

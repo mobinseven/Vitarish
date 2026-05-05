@@ -130,7 +130,12 @@ internal sealed class FhirGateway(IOptionsMonitor<ClinicalOptions> options) : IF
             .GetMethod(nameof(PatchAsyncGeneric), BindingFlags.NonPublic | BindingFlags.Static)!
             .MakeGenericMethod(resourceType);
 
-        return await (Task<Resource>)method.Invoke(null, [client, request.ResourceId ?? throw new InvalidOperationException("Patch operations require a resource id."), request.PayloadJson ?? throw new InvalidOperationException("Patch operations require a JSON payload."), cancellationToken])!;
+        string resourceId = request.ResourceId
+            ?? throw new InvalidOperationException("Patch operations require a resource id.");
+        string payloadJson = request.PayloadJson
+            ?? throw new InvalidOperationException("Patch operations require a JSON payload.");
+
+        return await (Task<Resource>)method.Invoke(null, [client, resourceId, payloadJson, cancellationToken])!;
     }
 
     private Task ExecuteDeleteAsync(FhirClient client, FhirOperationRequest request, CancellationToken cancellationToken)
