@@ -39,6 +39,7 @@ public sealed class ClinicalDbContext : DbContext, IMultiTenantDbContext
     public DbSet<ClinicalResourceProjection> ResourceProjections => Set<ClinicalResourceProjection>();
     public DbSet<ClinicalAuditEntry> AuditEntries => Set<ClinicalAuditEntry>();
     public DbSet<ConnectorHealthSnapshot> ConnectorHealthSnapshots => Set<ConnectorHealthSnapshot>();
+    public DbSet<ClinicalFhirOperation> FhirOperations => Set<ClinicalFhirOperation>();
 
     public ClinicalDbContext(
         DbContextOptions<ClinicalDbContext> options,
@@ -79,6 +80,7 @@ public sealed class ClinicalDbContext : DbContext, IMultiTenantDbContext
         ConfigureTenantEntity<ClinicalResourceProjection>(modelBuilder);
         ConfigureTenantEntity<ClinicalAuditEntry>(modelBuilder);
         ConfigureTenantEntity<ConnectorHealthSnapshot>(modelBuilder);
+        ConfigureTenantEntity<ClinicalFhirOperation>(modelBuilder);
 
         _ = modelBuilder.Entity<ClinicalResourceLink>(entity =>
         {
@@ -127,6 +129,22 @@ public sealed class ClinicalDbContext : DbContext, IMultiTenantDbContext
             _ = entity.Property(snapshot => snapshot.SoftwareVersion).HasMaxLength(64);
             _ = entity.Property(snapshot => snapshot.FailureMessage).HasMaxLength(1024);
             _ = entity.Property(snapshot => snapshot.SupportedResourceTypes).HasMaxLength(2048);
+        });
+
+        _ = modelBuilder.Entity<ClinicalFhirOperation>(entity =>
+        {
+            _ = entity.HasIndex(operation => new { operation.CorrelationId, operation.StartedAt });
+            _ = entity.HasIndex(operation => new { operation.IdempotencyKey, operation.ResourceType, operation.Interaction });
+            _ = entity.Property(operation => operation.ResourceType).HasMaxLength(128);
+            _ = entity.Property(operation => operation.ResourceId).HasMaxLength(256);
+            _ = entity.Property(operation => operation.Interaction).HasConversion<string>().HasMaxLength(32);
+            _ = entity.Property(operation => operation.Status).HasConversion<string>().HasMaxLength(32);
+            _ = entity.Property(operation => operation.FailureKind).HasConversion<string>().HasMaxLength(32);
+            _ = entity.Property(operation => operation.CorrelationId).HasMaxLength(128);
+            _ = entity.Property(operation => operation.IdempotencyKey).HasMaxLength(128);
+            _ = entity.Property(operation => operation.RemoteVersionId).HasMaxLength(128);
+            _ = entity.Property(operation => operation.ETag).HasMaxLength(128);
+            _ = entity.Property(operation => operation.FailureMessage).HasMaxLength(1024);
         });
 
         if (Database.IsSqlite())

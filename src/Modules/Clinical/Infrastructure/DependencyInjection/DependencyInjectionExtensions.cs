@@ -11,6 +11,7 @@ public static class DependencyInjectionExtensions
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ClinicalDbContext).Assembly));
         _ = services.AddScoped<IFhirGateway, FhirGateway>();
         _ = services.AddScoped<IClinicalConnectorHealthService, ClinicalConnectorHealthService>();
+        _ = services.AddScoped<IClinicalOperationsService, ClinicalOperationsService>();
         return services;
     }
 }

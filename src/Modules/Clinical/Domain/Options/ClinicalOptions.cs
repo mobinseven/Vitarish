@@ -16,6 +16,13 @@ public sealed class ClinicalOptions
         "Encounter",
         "DocumentReference"
     ];
+    public IList<string> AllowedOperations { get; set; } =
+    [
+        nameof(Models.FhirInteractionType.Read),
+        nameof(Models.FhirInteractionType.Search),
+        nameof(Models.FhirInteractionType.Validate),
+        nameof(Models.FhirInteractionType.History)
+    ];
 
     public ClinicalFhirOptions Fhir { get; set; } = new();
 }
