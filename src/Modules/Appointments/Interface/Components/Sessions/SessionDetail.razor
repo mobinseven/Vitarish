@@ -9,16 +9,23 @@
     <StackField Label="@Session.Title" HelperText="@Localizer["Session"]">
         <SessionStatusBadge Status="@Session.Status" />
     </StackField>
+    @if (Session.StartAt is not null)
+    {
+        <StackField Label="@Session.StartAt.Value.ToString("f")" HelperText="@Localizer["StartTime"]" />
+    }
+    @if (Session.EndAt is not null)
+    {
+        <StackField Label="@Session.EndAt.Value.ToString("f")" HelperText="@Localizer["EndTime"]" />
+    }
+    <StackField Label="@Session.TimeZone" HelperText="@Localizer["TimeZone"]" />
+    <StackField Label="@Session.TotalSeats.ToString()" HelperText="@Localizer["TotalSeats"]" />
     <StackField Label="@($"{Session.Stats.ReservationCount} {Localizer["Reservations"]}")" HelperText="@Localizer["Reservations"]" />
 </Stack>
 
 @if (Session.Status == SessionStatus.Active && !hasReservation)
 {
     <Stack>
-        <StackButton Color="Color.Primary"
-                     Label="@Localizer["Reserve"]"
-                     EndIcon="fa-regular fa-calendar-check"
-                     OnClick="ReserveAsync" />
+        <SessionOccurrencesList SessionId="@Session.Id" OnClicked="ReserveAsync" />
     </Stack>
 }
 else if (hasReservation)

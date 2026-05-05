@@ -22,7 +22,16 @@ internal class CapacityEngine(
         }
 
         CapacityPolicy? policy = await capacityPolicyRepository.GetBySessionIdAsync(occurrence.SessionId, cancellationToken);
-        return policy?.TotalSeats ?? 0;
+        if (policy is not null)
+        {
+            return policy.TotalSeats;
+        }
+
+        Session? session = await dbContext.Sessions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(s => s.Id == occurrence.SessionId, cancellationToken);
+
+        return session?.TotalSeats ?? 0;
     }
 
     public async Task<int> GetAvailableSeatsAsync(Guid sessionOccurrenceId, CancellationToken cancellationToken)

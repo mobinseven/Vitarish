@@ -45,6 +45,8 @@ public partial class AdminReservationDetail : ReservationsBase
         EntityResult entityResult = status switch
         {
             ReservationStatus.Confirmed => await ReservationManager.ConfirmReservationAsync(current.Id, CancellationToken.None),
+            ReservationStatus.Present => await ReservationManager.PresentReservationAsync(current.Id, CancellationToken.None),
+            ReservationStatus.Completed => await ReservationManager.CompleteReservationAsync(current.Id, CancellationToken.None),
             ReservationStatus.Cancelled => await ReservationManager.CancelReservationAsync(current.Id, CancellationToken.None),
             ReservationStatus.Rejected => await ReservationManager.RejectReservationAsync(current.Id, CancellationToken.None),
             _ => await ReservationManager.UpdateAsync(current.ToWrite() with { Status = status }, CancellationToken.None).ContinueWith(_ => EntityResult.Success())

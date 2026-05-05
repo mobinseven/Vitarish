@@ -34,6 +34,42 @@ public class Session : Entity
         set => SetField(ref field, value, nameof(CalendarMappingId));
     }
 
+    public DateTimeOffset? StartAt
+    {
+        get;
+        set => SetField(ref field, value, nameof(StartAt));
+    }
+
+    public DateTimeOffset? EndAt
+    {
+        get;
+        set => SetField(ref field, value, nameof(EndAt));
+    }
+
+    public string TimeZone
+    {
+        get;
+        set => SetField(ref field, value, nameof(TimeZone));
+    } = "UTC";
+
+    public int TotalSeats
+    {
+        get;
+        set => SetField(ref field, value, nameof(TotalSeats));
+    } = 1;
+
+    public bool RequiresApproval
+    {
+        get;
+        set => SetField(ref field, value, nameof(RequiresApproval));
+    }
+
+    public bool AllowRescheduling
+    {
+        get;
+        set => SetField(ref field, value, nameof(AllowRescheduling));
+    }
+
     public Dictionary<string, object?> Metadata
     {
         get;

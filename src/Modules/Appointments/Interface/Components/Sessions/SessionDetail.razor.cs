@@ -39,21 +39,32 @@ public partial class SessionDetail : SessionsBase
             .GetValueOrDefaultAsync();
 
         hasReservation = reservations?.Any(r =>
+            r.Occurrence?.SessionId == Session.Id &&
             r.Status != ReservationStatus.Cancelled &&
             r.Status != ReservationStatus.Rejected &&
-            r.Status != ReservationStatus.Expired) == true;
+            r.Status != ReservationStatus.Expired &&
+            r.Status != ReservationStatus.Completed) == true;
 
         activeReservationId = reservations?.FirstOrDefault(r =>
+            r.Occurrence?.SessionId == Session.Id &&
             r.Status != ReservationStatus.Cancelled &&
             r.Status != ReservationStatus.Rejected &&
-            r.Status != ReservationStatus.Expired)?.Id;
+            r.Status != ReservationStatus.Expired &&
+            r.Status != ReservationStatus.Completed)?.Id;
 
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task ReserveAsync()
+    private async Task ReserveAsync(Guid occurrenceId)
     {
+        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(occurrenceId, null, CancellationToken.None);
+        if (result.IsFailure)
+        {
+            return;
+        }
+
         await OnReserved.InvokeAsync();
+        await CheckReservationAsync();
     }
 
     private async Task CancelReservationAsync()

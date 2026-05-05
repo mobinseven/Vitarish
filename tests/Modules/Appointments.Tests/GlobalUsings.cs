@@ -1,0 +1,13 @@
+global using System.Security.Claims;
+global using FluentAssertions;
+global using Moq;
+global using Vitarish.Appointments.Application.Abstractions;
+global using Vitarish.Appointments.Domain.Dto;
+global using Vitarish.Appointments.Domain.Entities;
+global using Vitarish.Appointments.Domain.Enums;
+global using Vitarish.Appointments.Domain.Models;
+global using Vitarish.Appointments.Infrastructure.Services;
+global using Vitarish.Entities.Server.Repositories;
+global using Vitarish.Entities.Server.Models;
+global using Vitarish.Requests.Application.Abstractions;
+global using Xunit;

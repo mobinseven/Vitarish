@@ -50,6 +50,7 @@ internal class BookingPolicyEngine(
         Reservation? reservation = await dbContext.Reservations
             .AsNoTracking()
             .Include(r => r.Occurrence)
+                .ThenInclude(o => o!.Session)
             .FirstOrDefaultAsync(r => r.Id == reservationId, cancellationToken);
 
         if (reservation?.Occurrence is null)
@@ -73,6 +74,7 @@ internal class BookingPolicyEngine(
         Reservation? reservation = await dbContext.Reservations
             .AsNoTracking()
             .Include(r => r.Occurrence)
+                .ThenInclude(o => o!.Session)
             .FirstOrDefaultAsync(r => r.Id == reservationId, cancellationToken);
 
         if (reservation?.Occurrence is null)
@@ -81,7 +83,7 @@ internal class BookingPolicyEngine(
         }
 
         BookingPolicy? policy = await bookingPolicyRepository.GetBySessionIdAsync(reservation.Occurrence.SessionId, cancellationToken);
-        return policy?.AllowRescheduling ?? false;
+        return policy?.AllowRescheduling ?? reservation.Occurrence.Session?.AllowRescheduling ?? false;
     }
 
     public async Task<bool> HasCapacityForPartyAsync(Guid sessionOccurrenceId, string? reservingPartyId, CancellationToken cancellationToken)

@@ -4,6 +4,12 @@
 {
     <Stack>
         <StackTextField @bind-Value="sessionWriteDto.Title" Label="@Localizer["Title"]" />
+        <StackDatePicker @bind-Date="startDate" Label="@Localizer["StartDate"]" />
+        <StackTimePicker @bind-Time="startTime" Label="@Localizer["StartTime"]" />
+        <StackDatePicker @bind-Date="endDate" Label="@Localizer["EndDate"]" />
+        <StackTimePicker @bind-Time="endTime" Label="@Localizer["EndTime"]" />
+        <StackTextField @bind-Value="sessionWriteDto.TimeZone" Label="@Localizer["TimeZone"]" />
+        <StackNumericField @bind-Value="sessionWriteDto.TotalSeats" Label="@Localizer["TotalSeats"]" Min="1" />
         <StackSelect T="SessionStatus" Label="@Localizer["Status"]" @bind-Value="sessionWriteDto.Status">
             @foreach (var status in Enum.GetValues<SessionStatus>())
             {
@@ -16,6 +22,8 @@
                 <MudSelectItem T="SessionVisibility" Value="visibility">@Localizer[visibility.ToString()]</MudSelectItem>
             }
         </StackSelect>
+        <StackCheckbox @bind-Value="sessionWriteDto.RequiresApproval" Label="@Localizer["RequiresApproval"]" />
+        <StackCheckbox @bind-Value="sessionWriteDto.AllowRescheduling" Label="@Localizer["AllowRescheduling"]" />
     </Stack>
     <Stack>
         <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" EndIcon="fa-regular fa-save" />
