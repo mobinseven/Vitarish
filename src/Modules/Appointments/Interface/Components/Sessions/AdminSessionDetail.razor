@@ -22,7 +22,7 @@
     <StackField Label="@($"{current.Stats.ReservationCount} {Localizer["Reservations"]}")" HelperText="@Localizer["Reservations"]" />
     @if (!string.IsNullOrWhiteSpace(current.HostUserId))
     {
-        <StackField Label="@current.HostUserId" HelperText="@Localizer["Owner"]" />
+        <StackField Label="@current.HostUserId" HelperText="@Localizer["Host"]" />
     }
 </Stack>
 
