@@ -9,4 +9,5 @@ public sealed record FhirOperationRequest
     public string? Query { get; init; }
     public string? IdempotencyKey { get; init; }
     public string? CorrelationId { get; init; }
+    public string? AccessReason { get; init; }
 }

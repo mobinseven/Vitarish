@@ -9,5 +9,6 @@
 <ProjectReference Include="..\Domain\Clinical.Domain.csproj" />
 <ProjectReference Include="..\Infrastructure\Clinical.Infrastructure.csproj" />
 <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+<ProjectReference Include="..\..\Medical\Interface\Medical.Interface.csproj" />
 </ItemGroup>
 </Project>

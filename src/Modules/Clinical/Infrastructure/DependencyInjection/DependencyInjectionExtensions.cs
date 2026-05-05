@@ -12,6 +12,8 @@ public static class DependencyInjectionExtensions
         _ = services.AddScoped<IFhirGateway, FhirGateway>();
         _ = services.AddScoped<IClinicalConnectorHealthService, ClinicalConnectorHealthService>();
         _ = services.AddScoped<IClinicalOperationsService, ClinicalOperationsService>();
+        _ = services.AddScoped<IClinicalResourceLinkService, ClinicalResourceLinkService>();
+        _ = services.AddScoped<IClinicalAuditWriter, ClinicalAuditWriter>();
         return services;
     }
 }

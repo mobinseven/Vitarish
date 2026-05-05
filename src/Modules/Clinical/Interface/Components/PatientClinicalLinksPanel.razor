@@ -1,0 +1,78 @@
+@inherits CommonBase
+@using Vitarish.Clinical.Interface.Components
+
+@if (!_loaded)
+{
+    <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+}
+else if (!_hasLinks && !IsAdmin)
+{
+}
+else
+{
+    <MudStack Spacing="2">
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween">
+            <MudText Typo="Typo.subtitle2">@Localizer["FhirResources"] (@_links.Count)</MudText>
+            @if (IsAdmin)
+            {
+                <MudButton Variant="Variant.Text" Color="Color.Primary" Size="Size.Small" OnClick="OpenLinkDialog">@Localizer["LinkResource"]</MudButton>
+            }
+        </MudStack>
+
+        @if (!string.IsNullOrWhiteSpace(_errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Dense="true">@_errorMessage</MudAlert>
+        }
+
+        @if (_links.Count == 0)
+        {
+            <MudText Typo="Typo.caption">@Localizer["NoFhirResourcesLinked"]</MudText>
+        }
+        else
+        {
+            @foreach (ResourceLinkReadDto link in _links)
+            {
+                <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.SpaceBetween" Class="pa-2" Style="border: 1px solid var(--mud-palette-lines-default); border-radius: 4px;">
+                    <MudStack Spacing="0">
+                        <MudText Typo="Typo.body2">@link.ResourceType/@link.ResourceId</MudText>
+                        @if (!string.IsNullOrWhiteSpace(link.ResourceVersionId))
+                        {
+                            <MudText Typo="Typo.caption">@Localizer["Version"]: @link.ResourceVersionId</MudText>
+                        }
+                    </MudStack>
+                    @if (IsAdmin)
+                    {
+                        <MudIconButton Icon="@Icons.Material.Outlined.LinkOff" Color="Color.Error" Size="Size.Small"
+                                       OnClick="@(() => UnlinkAsync(link.Id))" Title="@Localizer["Unlink"]" />
+                    }
+                </MudStack>
+            }
+        }
+
+        @if (_showLinkDialog)
+        {
+            <MudPaper Class="pa-3 d-flex flex-column gap-3">
+                <MudText Typo="Typo.subtitle2">@Localizer["LinkFhirResource"]</MudText>
+                <MudGrid>
+                    <MudItem xs="12" md="6">
+                        <MudTextField T="string" Label="@Localizer["ResourceType"]" @bind-Value="_newResourceType" Required="true" />
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <MudTextField T="string" Label="@Localizer["ResourceId"]" @bind-Value="_newResourceId" Required="true" />
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudTextField T="string" Label="@Localizer["PatientReference"]" @bind-Value="_newPatientReference" />
+                    </MudItem>
+                </MudGrid>
+                @if (!string.IsNullOrWhiteSpace(_linkError))
+                {
+                    <MudAlert Severity="Severity.Error" Dense="true">@_linkError</MudAlert>
+                }
+                <MudStack Row="true" Spacing="2">
+                    <MudButton Variant="Variant.Filled" Color="Color.Success" Disabled="@_linking" OnClick="ConfirmLinkAsync">@Localizer["Save"]</MudButton>
+                    <MudButton Variant="Variant.Outlined" OnClick="@(() => _showLinkDialog = false)">@Localizer["Cancel"]</MudButton>
+                </MudStack>
+            </MudPaper>
+        }
+    </MudStack>
+}

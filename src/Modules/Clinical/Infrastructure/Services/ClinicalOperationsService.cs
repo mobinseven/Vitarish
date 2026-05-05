@@ -17,6 +17,7 @@ internal sealed class ClinicalOperationsService(
     ClinicalDbContext dbContext,
     IFhirGateway gateway,
     IRequestContext requestContext,
+    IClinicalAuditWriter auditWriter,
     IOptionsMonitor<ClinicalOptions> options) : IClinicalOperationsService
 {
     private readonly ClinicalOptions _options = options.CurrentValue;
@@ -90,6 +91,7 @@ internal sealed class ClinicalOperationsService(
             operation.ETag = response.ETag;
             operation.CompletedAt = response.CompletedAt ?? DateTimeOffset.UtcNow;
             await dbContext.SaveChangesAsync(cancellationToken);
+            await WriteAuditAsync(normalizedRequest, operation, outcome: response.Status.ToString(), cancellationToken);
             return response with { OperationId = operation.Id, StartedAt = operation.StartedAt };
         }
         catch (Exception exception) when (exception is HttpRequestException or TaskCanceledException or InvalidOperationException)
@@ -99,8 +101,25 @@ internal sealed class ClinicalOperationsService(
             operation.FailureMessage = exception.Message;
             operation.CompletedAt = DateTimeOffset.UtcNow;
             await dbContext.SaveChangesAsync(cancellationToken);
+            await WriteAuditAsync(normalizedRequest, operation, outcome: "Failed", cancellationToken);
             return Map(operation);
         }
+    }
+
+    private Task WriteAuditAsync(FhirOperationRequest request, ClinicalFhirOperation operation, string outcome, CancellationToken cancellationToken)
+    {
+        return auditWriter.WriteAsync(new AuditWriteRequest
+        {
+            Category = "FhirOperation",
+            Action = request.Interaction.ToString(),
+            ActorId = requestContext.UserId,
+            CorrelationId = request.CorrelationId,
+            Outcome = outcome,
+            Reason = request.AccessReason,
+            ResourceId = request.ResourceId,
+            ResourceType = request.ResourceType,
+            Details = new { operation.Id, request.IdempotencyKey, operation.FailureKind }
+        }, cancellationToken);
     }
 
     public async Task<IReadOnlyList<ClinicalFhirOperationRecord>> ListAsync(ClinicalFhirOperationFilter filter, CancellationToken cancellationToken = default)

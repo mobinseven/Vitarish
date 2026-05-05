@@ -1,0 +1,66 @@
+@inherits CommonBase
+
+<MudStack Spacing="3">
+    <MudPaper Class="pa-4 d-flex flex-column gap-4">
+        <MudText Typo="Typo.h6">@Localizer["AuditLog"]</MudText>
+
+        <MudGrid>
+            <MudItem xs="12" md="3">
+                <MudTextField T="string" Label="@Localizer["Category"]" @bind-Value="_category" />
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudTextField T="string" Label="@Localizer["Action"]" @bind-Value="_action" />
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudTextField T="string" Label="@Localizer["ResourceType"]" @bind-Value="_resourceType" />
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudTextField T="string" Label="@Localizer["ActorId"]" @bind-Value="_actorId" />
+            </MudItem>
+        </MudGrid>
+
+        <MudStack Row="true">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Disabled="@_loading" OnClick="LoadAsync">@Localizer["ApplyFilters"]</MudButton>
+        </MudStack>
+
+        @if (_loading)
+        {
+            <MudProgressLinear Indeterminate Color="Color.Primary" />
+        }
+        else if (_entries.Count == 0)
+        {
+            <MudText Typo="Typo.body2">@Localizer["NoAuditEntriesFound"]</MudText>
+        }
+        else
+        {
+            <MudTable Items="@_entries" Dense="true" Hover="true" Elevation="0">
+                <HeaderContent>
+                    <MudTh>@Localizer["Time"]</MudTh>
+                    <MudTh>@Localizer["Category"]</MudTh>
+                    <MudTh>@Localizer["Action"]</MudTh>
+                    <MudTh>@Localizer["Actor"]</MudTh>
+                    <MudTh>@Localizer["Resource"]</MudTh>
+                    <MudTh>@Localizer["Outcome"]</MudTh>
+                    <MudTh>@Localizer["Reason"]</MudTh>
+                    <MudTh>@Localizer["Correlation"]</MudTh>
+                </HeaderContent>
+                <RowTemplate Context="entry">
+                    <MudTd>@entry.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")</MudTd>
+                    <MudTd>@entry.Category</MudTd>
+                    <MudTd>@entry.Action</MudTd>
+                    <MudTd>@(entry.ActorId ?? "—")</MudTd>
+                    <MudTd>@(entry.ResourceType != null ? $"{entry.ResourceType}/{entry.ResourceId}" : "—")</MudTd>
+                    <MudTd>
+                        <MudChip T="string"
+                                 Color="@(entry.Outcome?.StartsWith("Fail", StringComparison.OrdinalIgnoreCase) == true ? Color.Error : Color.Success)"
+                                 Variant="Variant.Filled">
+                            @(entry.Outcome ?? "—")
+                        </MudChip>
+                    </MudTd>
+                    <MudTd>@(entry.Reason ?? "—")</MudTd>
+                    <MudTd>@(entry.CorrelationId?[..Math.Min(8, entry.CorrelationId.Length)] ?? "—")…</MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </MudPaper>
+</MudStack>
