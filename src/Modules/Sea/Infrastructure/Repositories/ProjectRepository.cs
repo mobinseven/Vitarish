@@ -86,51 +86,31 @@ internal class ProjectRepository(SeaDbContext dbContext)
 
     public new async Task<IReadOnlyList<Project>> GetAsync(ProjectDescriptor descriptor, CancellationToken cancellationToken)
     {
-        IQueryable<Project> query = ApplyCore(Set.AsNoTracking(), descriptor);
         bool includeStats = descriptor.IncludeStats != false;
 
-        if (includeStats)
-        {
-            var results = await query
-                .Select(p => new
-                {
-                    Entity = p,
-                    Stats = dbContext.Set<ProjectStats>().FirstOrDefault(s => s.ProjectId == p.Id),
-                    UserIds = dbContext.ProjectUsers
-                        .Where(pu => pu.ProjectId == p.Id)
-                        .Select(pu => pu.UserId)
-                        .ToList()
-                })
-                .ToListAsync(cancellationToken);
+        var results = await ApplyCore(Set.AsNoTracking(), descriptor)
+            .Select(p => new
+            {
+                Entity = p,
+                Stats = dbContext.Set<ProjectStats>().FirstOrDefault(s => s.ProjectId == p.Id),
+                UserIds = dbContext.ProjectUsers
+                    .Where(pu => pu.ProjectId == p.Id)
+                    .Select(pu => pu.UserId)
+                    .ToList()
+            })
+            .ToListAsync(cancellationToken);
 
-            foreach (var result in results)
+        foreach (var result in results)
+        {
+            if (includeStats)
             {
                 result.Entity.Stats = result.Stats ?? new ProjectStats { ProjectId = result.Entity.Id };
-                result.Entity.UserIds = result.UserIds;
             }
 
-            return results.ConvertAll(r => r.Entity);
+            result.Entity.UserIds = result.UserIds;
         }
-        else
-        {
-            var results = await query
-                .Select(p => new
-                {
-                    Entity = p,
-                    UserIds = dbContext.ProjectUsers
-                        .Where(pu => pu.ProjectId == p.Id)
-                        .Select(pu => pu.UserId)
-                        .ToList()
-                })
-                .ToListAsync(cancellationToken);
 
-            foreach (var result in results)
-            {
-                result.Entity.UserIds = result.UserIds;
-            }
-
-            return results.ConvertAll(r => r.Entity);
-        }
+        return results.ConvertAll(r => r.Entity);
     }
 
     Task<Project?> IEntityRepository<Project, ProjectDescriptor>.GetAsync(Guid id, CancellationToken cancellationToken)
