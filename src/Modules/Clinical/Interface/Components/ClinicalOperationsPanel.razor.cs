@@ -1,5 +1,4 @@
 using MediatR;
-using MudBlazor;
 using Vitarish.Clinical.Application.Commands;
 using Vitarish.Clinical.Application.Queries;
 using Vitarish.Clinical.Domain.Models;
@@ -89,6 +88,7 @@ public partial class ClinicalOperationsPanel : CommonBase
         {
             _lastResponse = null;
             _resultMessage = exception.Message;
+            await InvokeAsync(StateHasChanged);
         }
         finally
         {
