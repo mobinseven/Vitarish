@@ -10,10 +10,6 @@ public record SessionDescriptorDto : EntityDescriptorDto
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public SessionVisibility? Visibility { get; set; }
 
-    [JsonPropertyName("ownerId")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public string? OwnerId { get; set; }
-
     [JsonPropertyName("calendarMappingId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Guid? CalendarMappingId { get; set; }

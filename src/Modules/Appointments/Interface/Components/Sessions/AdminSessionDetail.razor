@@ -20,10 +20,6 @@
     <StackField Label="@current.TimeZone" HelperText="@Localizer["TimeZone"]" />
     <StackField Label="@current.TotalSeats.ToString()" HelperText="@Localizer["TotalSeats"]" />
     <StackField Label="@($"{current.Stats.ReservationCount} {Localizer["Reservations"]}")" HelperText="@Localizer["Reservations"]" />
-    @if (!string.IsNullOrWhiteSpace(current.OwnerId))
-    {
-        <StackField Label="@current.OwnerId" HelperText="@Localizer["Owner"]" />
-    }
 </Stack>
 
 @switch (current.Status)
