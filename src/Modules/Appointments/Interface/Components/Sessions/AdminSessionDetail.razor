@@ -20,9 +20,9 @@
     <StackField Label="@current.TimeZone" HelperText="@Localizer["TimeZone"]" />
     <StackField Label="@current.TotalSeats.ToString()" HelperText="@Localizer["TotalSeats"]" />
     <StackField Label="@($"{current.Stats.ReservationCount} {Localizer["Reservations"]}")" HelperText="@Localizer["Reservations"]" />
-    @if (!string.IsNullOrWhiteSpace(current.OwnerId))
+    @if (!string.IsNullOrWhiteSpace(current.HostUserId))
     {
-        <StackField Label="@current.OwnerId" HelperText="@Localizer["Owner"]" />
+        <StackField Label="@current.HostUserId" HelperText="@Localizer["Owner"]" />
     }
 </Stack>
 
