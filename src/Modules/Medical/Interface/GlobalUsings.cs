@@ -7,6 +7,7 @@ global using Vitarish.Calendar.Domain.Models;
 global using Vitarish.Appointments.Application.Abstractions;
 global using Vitarish.Appointments.Domain.Dto;
 global using Vitarish.Appointments.Domain.Enums;
+global using Vitarish.Entities.Server.Models;
 global using Vitarish.Interfaces.Base.Common;
 global using Vitarish.Medical.Interface.Enums;
 global using Vitarish.Medical.Interface.Mappers;
