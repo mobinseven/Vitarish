@@ -19,11 +19,6 @@ internal class SessionRepository(AppointmentsDbContext dbContext)
             query = query.Where(s => s.Visibility == visibility);
         }
 
-        if (descriptor.HostUserId is { } hostUserId)
-        {
-            query = query.Where(s => s.HostUserId == hostUserId);
-        }
-
         if (descriptor.CalendarMappingId is { } calendarMappingId)
         {
             query = query.Where(s => s.CalendarMappingId == calendarMappingId);

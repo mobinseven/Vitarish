@@ -10,12 +10,6 @@ public class Session : Entity
         set => SetField(ref field, value, nameof(Title));
     } = string.Empty;
 
-    public string? HostUserId
-    {
-        get;
-        set => SetField(ref field, value, nameof(HostUserId));
-    }
-
     public SessionStatus Status
     {
         get;
