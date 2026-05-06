@@ -8,7 +8,7 @@
         <StackTimePicker @bind-Time="startTime" Label="@Localizer["StartTime"]" />
         <StackDatePicker @bind-Date="endDate" Label="@Localizer["EndDate"]" />
         <StackTimePicker @bind-Time="endTime" Label="@Localizer["EndTime"]" />
-        <StackTextField @bind-Value="sessionWriteDto.TimeZone" Label="@Localizer["TimeZone"]" />
+        @* <StackTextField @bind-Value="sessionWriteDto.TimeZone" Label="@Localizer["TimeZone"]" /> *@
         <StackNumericField @bind-Value="sessionWriteDto.TotalSeats" Label="@Localizer["TotalSeats"]" Min="1" />
         <StackSelect T="SessionStatus" Label="@Localizer["Status"]" @bind-Value="sessionWriteDto.Status">
             @foreach (var status in Enum.GetValues<SessionStatus>())

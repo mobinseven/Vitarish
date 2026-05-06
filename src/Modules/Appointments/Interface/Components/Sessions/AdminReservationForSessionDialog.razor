@@ -3,15 +3,13 @@
 <MudDialog>
     <DialogContent>
         <Stack>
-            <StackSelect T="string?" Label="@Localizer["User"]" @bind-Value="selectedUserId">
-                @foreach (var user in GetUsers())
+            <StackSelect T="string" Label="@Localizer["User"]" @bind-Value="selectedUserId">
+                @foreach(var user in GetUsers())
                 {
-                    <MudSelectItem T="string?" Value="user.Id">@user.FullName</MudSelectItem>
+                    <MudSelectItem T="string" Value="user.Id">@user.FullName</MudSelectItem>
                 }
             </StackSelect>
         </Stack>
-    </DialogContent>
-    <DialogActions>
         <Stack>
             <StackButton Color="Color.Primary"
                          Label="@Localizer["Save"]"
@@ -21,7 +19,7 @@
                          EndIcon="fa-regular fa-xmark"
                          OnClick="Cancel" />
         </Stack>
-    </DialogActions>
+    </DialogContent>
 </MudDialog>
 
 @code {
@@ -35,7 +33,7 @@
 
     private async Task SaveAsync()
     {
-        if (selectedUserId is null)
+        if(selectedUserId is null)
         {
             _ = Snackbar.Add(Localizer["UserSelectionRequired"].Value, Severity.Warning);
             return;

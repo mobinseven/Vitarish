@@ -9,11 +9,6 @@ public partial class SessionOccurrencesList : SessionsBase
 
     private List<SessionOccurrenceReadDto> occurrences = [];
 
-    protected override async Task OnParametersSetAsync()
-    {
-        await ReloadRequired();
-    }
-
     protected override async Task ReloadRequired()
     {
         if (SessionId is null)
