@@ -1,0 +1,9 @@
+global using Vitarish.Communications.Domain.Dto;
+global using Vitarish.Communications.Domain.Entities;
+global using Vitarish.Communications.Domain.Enums;
+global using Vitarish.Communications.Domain.Models;
+global using Vitarish.Communications.Application.Abstractions;
+global using MediatR;
+global using Vitarish.Entities.Server.Core;
+global using Vitarish.Entities.Server.Models;
+global using Vitarish.Entities.Server.Services;

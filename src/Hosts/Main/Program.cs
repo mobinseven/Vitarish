@@ -18,7 +18,7 @@ using Vitarish.Modules.Base;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Hosting.DependencyInjection;
 using Vitarish.Parties.Infrastructure.Data;
-using Vitarish.Reminders.Infrastructure.Data;
+using Vitarish.Communications.Infrastructure.Data;
 using Vitarish.Requests.Hosting.DependencyInjection;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Users.Hosting.DependencyInjection;

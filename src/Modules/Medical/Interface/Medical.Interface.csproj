@@ -13,7 +13,7 @@
 		<ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
 		<ProjectReference Include="..\..\Appointments\Interface\Appointments.Interface.csproj" />
-		<ProjectReference Include="..\..\Reminders\Interface\Reminders.Interface.csproj" />
+		<ProjectReference Include="..\..\Communications\Interface\Communications.Interface.csproj" />
 		<ProjectReference Include="..\..\Sea\Interface\Sea.Interface.csproj" />
 	</ItemGroup>
 

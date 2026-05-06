@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Vitarish.Reminders.Infrastructure.Data;
+using Vitarish.Communications.Infrastructure.Data;
 
 #nullable disable
 
@@ -25,7 +25,7 @@ namespace Vitarish.Main.Migrations.RemindersDb
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Vitarish.Reminders.Domain.Entities.Reminder", b =>
+            modelBuilder.Entity("Vitarish.Communications.Domain.Entities.Reminder", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()

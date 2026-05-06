@@ -9,7 +9,6 @@ using Vitarish.Files.Interface;
 using Vitarish.Intelligence.Interface;
 using Vitarish.Medical.Interface;
 using Vitarish.Modules.Base;
-using Vitarish.Reminders.Interface;
 using Vitarish.Sea.Interface;
 using Vitarish.Search.Interface;
 public static class ModulesExtensions
@@ -21,7 +20,6 @@ public static class ModulesExtensions
                 Activator.CreateInstance<IntelligenceModule>(),
                 Activator.CreateInstance<FilesModule>(),
                 Activator.CreateInstance<SearchModule>(),
-                Activator.CreateInstance<RemindersModule>(),
                 Activator.CreateInstance<SeaModule>(),
                 Activator.CreateInstance<AppointmentsModule>(),
                 Activator.CreateInstance<MedicalModule>(),

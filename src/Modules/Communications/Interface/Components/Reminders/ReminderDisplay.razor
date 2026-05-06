@@ -1,0 +1,5 @@
+@inherits RemindersBase
+
+<StackField AdornmentIcon="@(Reminder.IsSent ? "fa-regular fa-bell-on" : "fa-regular fa-bell")" OnAdornmentClick="() => ShowDetails()">
+    <MudText Typo="Typo.caption">@($"{Localizer["Remind", $"{GetUserFullNameById(Reminder.RecipientUserId)!} ({Localizer[Reminder.Kind.ToString()]})"]}")</MudText>
+</StackField>

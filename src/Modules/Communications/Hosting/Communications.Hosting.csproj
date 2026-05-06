@@ -11,5 +11,6 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
 		<ProjectReference Include="..\Infrastructure\Communications.Infrastructure.csproj" />
+		<ProjectReference Include="..\Interface\Communications.Interface.csproj" />
 	</ItemGroup>
 </Project>

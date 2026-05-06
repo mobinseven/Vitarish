@@ -1,0 +1,27 @@
+@inherits RemindersBase
+
+<MudDialog>
+    <DialogContent>
+
+        <Stack>
+            <StackField Label="@Localizer["Kind"]">
+                <MudRadioGroup T="ReminderKind" @bind-Value=kind>
+                    <MudRadio T="ReminderKind" Value="ReminderKind.Sms" Disabled="RequestContext.User?.GetUserPhoneNumber() is null" Label="@Localizer["Sms"]" />
+                    <MudRadio T="ReminderKind" Value="ReminderKind.Email" Disabled="RequestContext.User?.GetUserEmail() is null" Label="@Localizer["Email"]" />
+                </MudRadioGroup>
+            </StackField>
+            <StackField Label="@Localizer["Date"]">
+                <MudDatePicker PickerVariant="PickerVariant.Inline" @bind-Date="remindDate" Culture="@System.Globalization.CultureInfo.CurrentCulture" />
+            </StackField>
+            <StackField Label="@Localizer["Time"]">
+                <MudTimePicker PickerVariant="PickerVariant.Inline" @bind-Time="remindTime" Culture="@System.Globalization.CultureInfo.CurrentCulture" />
+            </StackField>
+        </Stack>
+
+        <Stack>
+            <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" EndIcon="fa-regular fa-save" />
+            <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" EndIcon="fa-regular fa-xmark" />
+        </Stack>
+
+    </DialogContent>
+</MudDialog>

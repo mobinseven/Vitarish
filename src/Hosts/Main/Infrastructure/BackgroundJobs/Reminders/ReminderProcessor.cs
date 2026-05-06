@@ -1,10 +1,9 @@
 using Vitarish.Communications.Application.Abstractions;
+using Vitarish.Communications.Domain.Dto;
+using Vitarish.Communications.Domain.Enums;
 using Vitarish.Communications.Domain.Models;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Parties.Domain.Dtos;
-using Vitarish.Reminders.Application.Abstractions;
-using Vitarish.Reminders.Domain.Dto;
-using Vitarish.Reminders.Domain.Enums;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 
