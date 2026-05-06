@@ -16,6 +16,18 @@ public static class DependencyInjectionExtensions
         _ = services.AddScoped<IClinicalAuditWriter, ClinicalAuditWriter>();
         _ = services.AddScoped<IClinicalResourceProjectionService, ClinicalResourceProjectionService>();
         _ = services.AddScoped<IClinicalAccessPolicyService, ClinicalAccessPolicyService>();
+
+        // Workflow orchestration services
+        _ = services.AddScoped<IVisitWorkflowService, VisitWorkflowService>();
+        _ = services.AddScoped<IClinicalActionService, ClinicalActionService>();
+        _ = services.AddScoped<IWorkflowPolicyEngine, WorkflowPolicyEngine>();
+        _ = services.AddScoped<IFhirResourceMapper, FhirResourceMapperService>();
+        _ = services.AddScoped<IValidationCoordinator, ValidationCoordinatorService>();
+        _ = services.AddScoped<IStatusCoordinator, StatusCoordinatorService>();
+        _ = services.AddScoped<IConflictHandler, ConflictHandlerService>();
+        _ = services.AddScoped<IProjectionBuilder, ProjectionBuilderService>();
+        _ = services.AddScoped<IWorkflowEventPublisher, WorkflowEventPublisher>();
+
         return services;
     }
 }

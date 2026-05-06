@@ -40,6 +40,10 @@ public sealed class ClinicalDbContext : DbContext, IMultiTenantDbContext
     public DbSet<ClinicalAuditEntry> AuditEntries => Set<ClinicalAuditEntry>();
     public DbSet<ConnectorHealthSnapshot> ConnectorHealthSnapshots => Set<ConnectorHealthSnapshot>();
     public DbSet<ClinicalFhirOperation> FhirOperations => Set<ClinicalFhirOperation>();
+    public DbSet<ClinicalWorkflow> ClinicalWorkflows => Set<ClinicalWorkflow>();
+    public DbSet<WorkflowStateHistory> WorkflowStateHistories => Set<WorkflowStateHistory>();
+    public DbSet<ClinicalActionRecord> ClinicalActionRecords => Set<ClinicalActionRecord>();
+    public DbSet<WorkflowPolicy> WorkflowPolicies => Set<WorkflowPolicy>();
 
     public ClinicalDbContext(
         DbContextOptions<ClinicalDbContext> options,
@@ -81,6 +85,10 @@ public sealed class ClinicalDbContext : DbContext, IMultiTenantDbContext
         ConfigureTenantEntity<ClinicalAuditEntry>(modelBuilder);
         ConfigureTenantEntity<ConnectorHealthSnapshot>(modelBuilder);
         ConfigureTenantEntity<ClinicalFhirOperation>(modelBuilder);
+        ConfigureTenantEntity<ClinicalWorkflow>(modelBuilder);
+        ConfigureTenantEntity<WorkflowStateHistory>(modelBuilder);
+        ConfigureTenantEntity<ClinicalActionRecord>(modelBuilder);
+        ConfigureTenantEntity<WorkflowPolicy>(modelBuilder);
 
         _ = modelBuilder.Entity<ClinicalResourceLink>(entity =>
         {
@@ -145,6 +153,44 @@ public sealed class ClinicalDbContext : DbContext, IMultiTenantDbContext
             _ = entity.Property(operation => operation.RemoteVersionId).HasMaxLength(128);
             _ = entity.Property(operation => operation.ETag).HasMaxLength(128);
             _ = entity.Property(operation => operation.FailureMessage).HasMaxLength(1024);
+        });
+
+        _ = modelBuilder.Entity<ClinicalWorkflow>(entity =>
+        {
+            _ = entity.HasIndex(w => new { w.Status, w.AssignedLocationId });
+            _ = entity.HasIndex(w => w.PatientFhirReference);
+            _ = entity.Property(w => w.PatientFhirReference).HasMaxLength(256);
+            _ = entity.Property(w => w.EncounterFhirReference).HasMaxLength(256);
+            _ = entity.Property(w => w.AppointmentFhirReference).HasMaxLength(256);
+            _ = entity.Property(w => w.VisitType).HasMaxLength(128);
+            _ = entity.Property(w => w.AssignedProviderId).HasMaxLength(128);
+            _ = entity.Property(w => w.AssignedLocationId).HasMaxLength(128);
+            _ = entity.Property(w => w.Status).HasConversion<string>().HasMaxLength(32);
+        });
+
+        _ = modelBuilder.Entity<WorkflowStateHistory>(entity =>
+        {
+            _ = entity.HasIndex(h => new { h.WorkflowId, h.OccurredAt });
+            _ = entity.Property(h => h.PreviousStatus).HasConversion<string>().HasMaxLength(32);
+            _ = entity.Property(h => h.NewStatus).HasConversion<string>().HasMaxLength(32);
+            _ = entity.Property(h => h.ActorId).HasMaxLength(128);
+            _ = entity.Property(h => h.Reason).HasMaxLength(512);
+        });
+
+        _ = modelBuilder.Entity<ClinicalActionRecord>(entity =>
+        {
+            _ = entity.HasIndex(r => new { r.WorkflowId, r.ActionType, r.OccurredAt });
+            _ = entity.Property(r => r.ActionType).HasConversion<string>().HasMaxLength(64);
+            _ = entity.Property(r => r.ActorId).HasMaxLength(128);
+            _ = entity.Property(r => r.ValidationStatus).HasMaxLength(32);
+            _ = entity.Property(r => r.CommitStatus).HasMaxLength(32);
+            _ = entity.Property(r => r.FhirTransactionReference).HasMaxLength(256);
+        });
+
+        _ = modelBuilder.Entity<WorkflowPolicy>(entity =>
+        {
+            _ = entity.HasIndex(p => new { p.VisitType, p.IsActive });
+            _ = entity.Property(p => p.VisitType).HasMaxLength(128);
         });
 
         if (Database.IsSqlite())
