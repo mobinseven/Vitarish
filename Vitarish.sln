@@ -225,8 +225,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calendar.Hosting", "src\Mod
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Appointments.Tests", "tests\Modules\Appointments.Tests\Appointments.Tests.csproj", "{DEC73377-5229-4D82-A2BF-BE4FC338EC06}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{D2DD2C27-EE6B-0892-55BF-94C01C6D770F}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -1227,7 +1225,6 @@ Global
 		{16279CD1-EB53-7890-57EA-6284240C93BF} = {718CFA14-BA97-E46D-DE71-82B2C50C3FEE}
 		{E2BBAA39-C1EA-4096-8731-1BDF02129272} = {16279CD1-EB53-7890-57EA-6284240C93BF}
 		{DEC73377-5229-4D82-A2BF-BE4FC338EC06} = {1E2379F9-36AB-4C86-919F-F073160FD906}
-		{D2DD2C27-EE6B-0892-55BF-94C01C6D770F} = {9737A9BB-7055-7F3C-CCFC-950773C3ABCF}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {F2B6AAC6-DF77-4C4F-A1B2-B8FE449A7661}
