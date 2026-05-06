@@ -6,7 +6,7 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 internal class AccessControlledSessionManager(
     IRequestContext requestContext,
     ISessionManager sessionManager,
-    ISessionOccurrenceResolver sessionOccurrenceResolver,
+    ISessionOccurrenceSyncQueue sessionOccurrenceSyncQueue,
     IStatusCoordinator statusCoordinator) : IAccessControlledSessionManager
 {
     private bool IsAdmin => requestContext.IsTenantAdmin() || requestContext.IsTenantOwner();
@@ -60,7 +60,7 @@ internal class AccessControlledSessionManager(
         }
 
         EntityResult<SessionReadDto> result = await sessionManager.AddAsync(dto, cancellationToken);
-        return await SyncOccurrencesAfterWriteAsync(result, cancellationToken);
+        return SyncOccurrencesAfterWrite(result);
     }
 
     public Task<EntityResult<IReadOnlyList<SessionReadDto>>> AddAsync(IReadOnlyList<SessionWriteDto> dtos, CancellationToken cancellationToken)
@@ -77,7 +77,7 @@ internal class AccessControlledSessionManager(
         }
 
         EntityResult<SessionReadDto> result = await sessionManager.UpdateAsync(dto, cancellationToken);
-        return await SyncOccurrencesAfterWriteAsync(result, cancellationToken);
+        return SyncOccurrencesAfterWrite(result);
     }
 
     public Task<EntityResult<IReadOnlyList<SessionReadDto>>> UpdateAsync(IReadOnlyList<SessionWriteDto> dtos, CancellationToken cancellationToken)
@@ -115,7 +115,7 @@ internal class AccessControlledSessionManager(
             return validation;
         }
 
-        await sessionOccurrenceResolver.SyncOccurrencesAsync(sessionId, cancellationToken);
+        sessionOccurrenceSyncQueue.EnqueueSync(sessionId);
         return await statusCoordinator.TransitionSessionAsync(sessionId, SessionStatus.Active, requestContext.UserId, cancellationToken);
     }
 
@@ -137,20 +137,15 @@ internal class AccessControlledSessionManager(
         return await statusCoordinator.TransitionSessionAsync(sessionId, status, requestContext.UserId, cancellationToken);
     }
 
-    private async Task<EntityResult<SessionReadDto>> SyncOccurrencesAfterWriteAsync(
-        EntityResult<SessionReadDto> result,
-        CancellationToken cancellationToken)
+    private EntityResult<SessionReadDto> SyncOccurrencesAfterWrite(EntityResult<SessionReadDto> result)
     {
         if (result.IsFailure || result.Value is null)
         {
             return result;
         }
 
-        await sessionOccurrenceResolver.SyncOccurrencesAsync(result.Value.Id, cancellationToken);
-        EntityResult<SessionReadDto> refreshed = await sessionManager.GetAsync(result.Value.Id, cancellationToken);
-        return refreshed.IsSuccess && refreshed.Value is not null
-            ? refreshed
-            : result;
+        sessionOccurrenceSyncQueue.EnqueueSync(result.Value.Id);
+        return result;
     }
 
     private IReadOnlyList<SessionReadDto> FilterList(IReadOnlyList<SessionReadDto> sessions)
