@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Apps.Aggregator;
+using Vitarish.Calendar.Infrastructure.Data;
 using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Feed.Infrastructure;
@@ -135,6 +136,7 @@ _ = await app.MigrateDatabaseAsync<FilesDbContext>();
 _ = await app.MigrateDatabaseAsync<RemindersDbContext>();
 _ = await app.MigrateDatabaseAsync<SeaDbContext>();
 _ = await app.MigrateDatabaseAsync<AppointmentsDbContext>();
+_ = await app.MigrateDatabaseAsync<CalendarDbContext>();
 
 CookiePolicyOptions cookiePolicyOptions = new()
 {
