@@ -39,9 +39,7 @@
 
             @if(_result.TotalCount > Options.Limit)
             {
-                <MudText Typo="Typo.caption" Color="Color.Secondary">
-                    @string.Format(Localizer["ShowingOf"], _result.Items.Count, _result.TotalCount)
-                </MudText>
+                <StackField Label="@string.Format(Localizer["ShowingOf"], _result.Items.Count, _result.TotalCount)" Color="Color.Secondary" />
             }
         }
     }
