@@ -8,13 +8,13 @@
 <Stack>
     @if (current.Occurrence is not null)
     {
-        <StackField Label="@current.Occurrence.OccurrenceStart.ToString("f")" HelperText="@Localizer["OccurrenceStart"]">
+        <StackField Label="@current.Occurrence.OccurrenceStart.ToString("f")" HelperText="@Localizer["StartTime"]">
             <ReservationStatusBadge Status="@current.Status" />
         </StackField>
     }
     else
     {
-        <StackField Label="@Localizer["OccurrenceUnavailable"].Value" HelperText="@Localizer["Reservation"]">
+        <StackField Label="@Localizer["NotProvided"].Value" HelperText="@Localizer["Reservation"]">
             <ReservationStatusBadge Status="@current.Status" />
         </StackField>
     }
@@ -29,15 +29,15 @@
     case ReservationStatus.Pending:
     <Stack>
         <StackButton Color="Color.Success"
-                     Label="@Localizer["ConfirmReservation"]"
+                     Label="@Localizer["ConfirmItem", Localizer["Reservation"]]"
                      EndIcon="fa-regular fa-calendar-check"
                      OnClick="@(() => ChangeStatusAsync(ReservationStatus.Confirmed))" />
         <StackButton Color="Color.Warning"
-                     Label="@Localizer["RejectReservation"]"
+                     Label="@Localizer["RejectItem", Localizer["Reservation"]]"
                      EndIcon="fa-regular fa-calendar-xmark"
                      OnClick="@(() => ChangeStatusAsync(ReservationStatus.Rejected))" />
         <StackButton Color="Color.Error"
-                     Label="@Localizer["CancelReservation"]"
+                     Label="@Localizer["CancelItem", Localizer["Reservation"]]"
                      EndIcon="fa-regular fa-calendar-xmark"
                      OnClick="@(() => ChangeStatusAsync(ReservationStatus.Cancelled))" />
     </Stack>
@@ -46,11 +46,11 @@
     case ReservationStatus.Confirmed:
     <Stack>
         <StackButton Color="Color.Secondary"
-                     Label="@Localizer["PresentReservation"]"
+                     Label="@Localizer["PresentItem", Localizer["Reservation"]]"
                      EndIcon="fa-regular fa-person-check"
                      OnClick="@(() => ChangeStatusAsync(ReservationStatus.Present))" />
         <StackButton Color="Color.Error"
-                     Label="@Localizer["CancelReservation"]"
+                     Label="@Localizer["CancelItem", Localizer["Reservation"]]"
                      EndIcon="fa-regular fa-calendar-xmark"
                      OnClick="@(() => ChangeStatusAsync(ReservationStatus.Cancelled))" />
     </Stack>
@@ -59,7 +59,7 @@
     case ReservationStatus.Present:
     <Stack>
         <StackButton Color="Color.Secondary"
-                     Label="@Localizer["CompleteReservation"]"
+                     Label="@Localizer["CompleteItem", Localizer["Reservation"]]"
                      EndIcon="fa-regular fa-check"
                      OnClick="@(() => ChangeStatusAsync(ReservationStatus.Completed))" />
     </Stack>
@@ -68,11 +68,11 @@
     case ReservationStatus.Waitlisted:
     <Stack>
         <StackButton Color="Color.Success"
-                     Label="@Localizer["ConfirmReservation"]"
+                     Label="@Localizer["ConfirmItem", Localizer["Reservation"]]"
                      EndIcon="fa-regular fa-calendar-check"
                      OnClick="@(() => ChangeStatusAsync(ReservationStatus.Confirmed))" />
         <StackButton Color="Color.Error"
-                     Label="@Localizer["CancelReservation"]"
+                     Label="@Localizer["CancelItem", Localizer["Reservation"]]"
                      EndIcon="fa-regular fa-calendar-xmark"
                      OnClick="@(() => ChangeStatusAsync(ReservationStatus.Cancelled))" />
     </Stack>

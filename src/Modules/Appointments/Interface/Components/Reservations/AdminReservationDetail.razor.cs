@@ -17,11 +17,11 @@ public partial class AdminReservationDetail : ReservationsBase
     {
         string label = status switch
         {
-            ReservationStatus.Confirmed => Localizer["ConfirmReservation"].Value,
-            ReservationStatus.Completed => Localizer["CompleteReservation"].Value,
-            ReservationStatus.Cancelled => Localizer["CancelReservation"].Value,
-            ReservationStatus.Rejected => Localizer["RejectReservation"].Value,
-            ReservationStatus.Present => Localizer["PresentReservation"].Value,
+            ReservationStatus.Confirmed => Localizer["ConfirmItem", Localizer["Reservation"]].Value,
+            ReservationStatus.Completed => Localizer["CompleteItem", Localizer["Reservation"]].Value,
+            ReservationStatus.Cancelled => Localizer["CancelItem", Localizer["Reservation"]].Value,
+            ReservationStatus.Rejected => Localizer["RejectItem", Localizer["Reservation"]].Value,
+            ReservationStatus.Present => Localizer["PresentItem", Localizer["Reservation"]].Value,
             _ => Localizer["Confirm"].Value
         };
 
