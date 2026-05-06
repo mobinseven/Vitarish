@@ -1,0 +1,43 @@
+@inherits CommonBase
+
+@if (_steps.Count > 0)
+{
+    <MudStepper ActiveIndex="@_activeIndex" NonLinear="true" DisableAnimation="true">
+        @foreach (string step in _steps)
+        {
+            <MudStep Title="@step" Disabled="true" />
+        }
+    </MudStepper>
+}
+
+@code {
+    [Parameter, EditorRequired] public VisitWorkflowStatus Status { get; set; }
+
+    private List<string> _steps = [];
+    private int _activeIndex;
+
+    private static readonly List<VisitWorkflowStatus> _orderedStatuses =
+    [
+        VisitWorkflowStatus.Draft,
+        VisitWorkflowStatus.CheckedIn,
+        VisitWorkflowStatus.InTriage,
+        VisitWorkflowStatus.ReadyForProvider,
+        VisitWorkflowStatus.InProgress,
+        VisitWorkflowStatus.Signed,
+        VisitWorkflowStatus.Completed
+    ];
+
+    protected override void OnParametersSet()
+    {
+        _steps = _orderedStatuses
+            .Where(s => s != VisitWorkflowStatus.Cancelled)
+            .Select(s => s.ToString())
+            .ToList();
+
+        _activeIndex = _orderedStatuses.IndexOf(Status);
+        if (_activeIndex < 0)
+        {
+            _activeIndex = 0;
+        }
+    }
+}

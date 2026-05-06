@@ -1,0 +1,34 @@
+@inherits CommonBase
+
+<Stack>
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" />
+    }
+    else if (_worklist.Count == 0)
+    {
+        <StackButton Label="@Localizer["NoActivePatients"]"
+                     EndIcon="fa-regular fa-rotate-right"
+                     OnClick="LoadAsync" />
+    }
+    else
+    {
+        <MudList T="OperationalProjectionSummary">
+            @foreach (OperationalProjectionSummary item in _worklist)
+            {
+                <MudListItem>
+                    <ChildContent>
+                        <Stack Row="true">
+                            <StackButton Label="@item.PatientFhirReference" OnClick="@(() => OnSelected.InvokeAsync(item))" />
+                            <WorkflowStatusBadge Status="@item.Status" />
+                            <StackButton Label="@item.VisitType" Disabled="true" />
+                        </Stack>
+                    </ChildContent>
+                </MudListItem>
+            }
+        </MudList>
+        <StackButton EndIcon="fa-regular fa-rotate-right"
+                     Label="@Localizer["Refresh"]"
+                     OnClick="LoadAsync" />
+    }
+</Stack>

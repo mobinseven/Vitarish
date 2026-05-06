@@ -1,0 +1,27 @@
+@inherits CommonBase
+
+<MudDialog>
+    <DialogContent>
+        <Stack>
+            <StackTextField Label="@Localizer["NoteType"]" @bind-Value="_noteType" Required="true" />
+            <StackTextField Label="@Localizer["Title"]" @bind-Value="_title" />
+            <MudTextField T="string" @bind-Value="_content" Label="@Localizer["Content"]" Lines="8" Required="true" />
+            @if (!string.IsNullOrWhiteSpace(_errorMessage))
+            {
+                <StackField Label="@_errorMessage" HelperText="@Localizer["Error"]" Color="Color.Error" />
+            }
+        </Stack>
+    </DialogContent>
+    <DialogActions>
+        <Stack>
+            <StackButton Color="Color.Primary"
+                         Label="@Localizer["SaveNote"]"
+                         EndIcon="fa-regular fa-pen-to-square"
+                         Disabled="@_saving"
+                         OnClick="SaveAsync" />
+            <StackButton Label="@Localizer["Cancel"]"
+                         EndIcon="fa-regular fa-xmark"
+                         OnClick="Cancel" />
+        </Stack>
+    </DialogActions>
+</MudDialog>

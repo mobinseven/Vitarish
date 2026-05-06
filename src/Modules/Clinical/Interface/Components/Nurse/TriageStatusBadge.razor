@@ -1,0 +1,7 @@
+@inherits CommonBase
+
+<WorkflowStatusBadge Status="@Status" />
+
+@code {
+    [Parameter, EditorRequired] public VisitWorkflowStatus Status { get; set; }
+}

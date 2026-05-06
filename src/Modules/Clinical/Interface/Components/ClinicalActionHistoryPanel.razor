@@ -1,0 +1,24 @@
+@inherits CommonBase
+
+<Stack>
+    @if (_loading)
+    {
+        <StackButton Label="@Localizer["ActionHistory"]" Disabled="true" EndIcon="fa-regular fa-spinner" />
+    }
+    else if (_records.Count == 0)
+    {
+        <StackButton Label="@Localizer["NoActionsRecorded"]"
+                     EndIcon="fa-regular fa-rotate-right"
+                     OnClick="LoadAsync" />
+    }
+    else
+    {
+        @foreach (ClinicalActionRecordReadDto record in _records)
+        {
+            <StackButton Label="@($"{record.ActionType} — {record.CommitStatus}")"
+                         HelperText="@record.OccurredAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")">
+                <ClinicalOutcomeBadge Outcome="@record.CommitStatus" />
+            </StackButton>
+        }
+    }
+</Stack>

@@ -8,6 +8,8 @@ namespace Vitarish.Main.Infrastructure.BackgroundJobs.Clinical;
 public class HangfireClinicalJobManager(IRecurringJobManager recurringJobManager)
 {
     private const string HealthProbeJobId = "clinical:health:probe";
+    private const string ProjectionRefreshJobId = "clinical:projection:refresh";
+    private const string StaleVisitDetectorJobId = "clinical:stale:detector";
 
     /// <summary>
     /// Adds or updates the recurring health probe job (runs every 15 minutes).
@@ -18,6 +20,16 @@ public class HangfireClinicalJobManager(IRecurringJobManager recurringJobManager
             HealthProbeJobId,
             processor => processor.ProcessAsync(CancellationToken.None),
             "*/15 * * * *");
+
+        recurringJobManager.AddOrUpdate<ClinicalProjectionRefreshProcessor>(
+            ProjectionRefreshJobId,
+            processor => processor.ProcessAsync(CancellationToken.None),
+            "*/5 * * * *");
+
+        recurringJobManager.AddOrUpdate<StaleVisitDetectorProcessor>(
+            StaleVisitDetectorJobId,
+            processor => processor.ProcessAsync(CancellationToken.None),
+            "0 * * * *");
     }
 
     /// <summary>

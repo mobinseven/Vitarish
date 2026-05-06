@@ -1,0 +1,26 @@
+@inherits CommonBase
+
+<Stack>
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" />
+    }
+    else if (_workflow is not null)
+    {
+        <MudText Typo="Typo.h6">@Localizer["VisitSummary"]</MudText>
+        <StackButton Label="@($"{Localizer["Patient"]}: {_workflow.PatientFhirReference}")" Disabled="true" />
+        <StackButton Label="@($"{Localizer["VisitType"]}: {_workflow.VisitType}")" Disabled="true" />
+        <WorkflowStatusBadge Status="@_workflow.Status" />
+        @if (!string.IsNullOrWhiteSpace(_workflow.EncounterFhirReference))
+        {
+            <StackButton Label="@($"{Localizer["Encounter"]}: {_workflow.EncounterFhirReference}")" Disabled="true" />
+        }
+        <MudDivider />
+        <MudText Typo="Typo.subtitle1">@Localizer["ActionHistory"]</MudText>
+        <ClinicalActionHistoryPanel WorkflowId="@WorkflowId" />
+    }
+    else
+    {
+        <StackButton Label="@Localizer["WorkflowNotFound"]" Disabled="true" />
+    }
+</Stack>

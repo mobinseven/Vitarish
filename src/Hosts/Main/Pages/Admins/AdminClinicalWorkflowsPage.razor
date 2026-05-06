@@ -1,0 +1,52 @@
+@page "/Admin/Clinical/Workflows"
+@inherits AdminCommonBase
+@using Vitarish.Clinical.Interface.Components
+@using Vitarish.Clinical.Domain.Models
+
+<MudStack>
+    <MudText Typo="Typo.h5">Clinical Workflows</MudText>
+    <MudStack Row="true" Spacing="2">
+        <MudSelect T="VisitWorkflowStatus?" @bind-Value="_statusFilter" Label="Status" Clearable="true">
+            @foreach (VisitWorkflowStatus status in Enum.GetValues<VisitWorkflowStatus>())
+            {
+                <MudSelectItem T="VisitWorkflowStatus?" Value="status">@status</MudSelectItem>
+            }
+        </MudSelect>
+        <MudTextField @bind-Value="_locationFilter" Label="Location" />
+        <MudTextField @bind-Value="_providerFilter" Label="Provider" />
+        <MudButton Color="Color.Primary" OnClick="LoadAsync" StartIcon="fa-regular fa-search">Search</MudButton>
+    </MudStack>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" />
+    }
+    else
+    {
+        <MudTable Items="@_workflows" Dense="true" Hover="true">
+            <HeaderContent>
+                <MudTh>Status</MudTh>
+                <MudTh>Patient</MudTh>
+                <MudTh>Visit Type</MudTh>
+                <MudTh>Location</MudTh>
+                <MudTh>Provider</MudTh>
+                <MudTh>Created</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd><WorkflowStatusBadge Status="@context.Status" /></MudTd>
+                <MudTd>@context.PatientFhirReference</MudTd>
+                <MudTd>@context.VisitType</MudTd>
+                <MudTd>@(context.AssignedLocationId ?? "-")</MudTd>
+                <MudTd>@(context.AssignedProviderId ?? "-")</MudTd>
+                <MudTd>@context.CreatedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</MudTd>
+                <MudTd>
+                    @if (context.Status is not VisitWorkflowStatus.Completed and not VisitWorkflowStatus.Cancelled)
+                    {
+                        <MudButton Size="Size.Small" Color="Color.Error" OnClick="@(() => CancelWorkflowAsync(context.Id))">Cancel</MudButton>
+                    }
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+</MudStack>
