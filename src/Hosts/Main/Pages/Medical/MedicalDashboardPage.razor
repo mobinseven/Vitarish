@@ -12,8 +12,8 @@
                      Href="/Medical/Patients"
                      HelperText="@($"{patients} {Localizer["Patients"]}")" />
     </Stack>
-    <TodayAppointmentsWidget OnSessionClicked="@(id => NavigationManager.NavigateTo($"/Admin/AppointmentSessions/{id}"))"
-                             OnSessionsClicked="@(() => NavigationManager.NavigateTo($"/Admin/AppointmentSessions"))" />
+    <TodayAppointmentsWidget OnSessionClicked="@(id => NavigationManager.NavigateTo($"/Admin/Sessions/{id}"))"
+                             OnSessionsClicked="@(() => NavigationManager.NavigateTo($"/Admin/Sessions"))" />
 </CascadingValue>
 
 @code {
