@@ -33,13 +33,9 @@ public partial class SearchWidget : CommonBase
     private bool _loading;
     private string? _errorMessage;
     private int _pageIndex;
+    private IReadOnlyList<SearchResultGroup> _resultGroups = [];
 
-    private const int DefaultPageSize = 20;
-    private const int MaxPageSize = 100;
-
-    private int PageSize => Options.Limit <= 0
-        ? DefaultPageSize
-        : Math.Min(Options.Limit, MaxPageSize);
+    private int PageSize => SearchOptions.NormalizeLimit(Options.Limit);
 
     private long TotalPages => _result is null || _result.TotalCount == 0
         ? 0
@@ -48,9 +44,6 @@ public partial class SearchWidget : CommonBase
     private bool HasPreviousPage => _pageIndex > 0 && !_loading;
 
     private bool HasNextPage => _result is not null && _pageIndex + 1 < TotalPages && !_loading;
-
-    private IEnumerable<IGrouping<string, SearchDocument>> ResultGroups => _result?.Items
-        .GroupBy(GetIndexDisplayName) ?? [];
 
     private async Task HandleKeyUpAsync(KeyboardEventArgs args)
     {
@@ -71,6 +64,7 @@ public partial class SearchWidget : CommonBase
         if (string.IsNullOrWhiteSpace(_query))
         {
             _result = null;
+            _resultGroups = [];
             _errorMessage = null;
             _pageIndex = 0;
             return;
@@ -89,10 +83,12 @@ public partial class SearchWidget : CommonBase
             };
 
             _result = await Mediator.Send(new SearchQuery(IndexName, _query, options));
+            _resultGroups = CreateResultGroups(_result.Items);
         }
         catch
         {
             _result = null;
+            _resultGroups = [];
             _errorMessage = Localizer["SearchFailed"];
         }
         finally
@@ -123,6 +119,11 @@ public partial class SearchWidget : CommonBase
         await SearchPageAsync();
     }
 
+    private IReadOnlyList<SearchResultGroup> CreateResultGroups(IReadOnlyList<SearchDocument> items) =>
+        [.. items
+            .GroupBy(GetIndexDisplayName)
+            .Select(group => new SearchResultGroup(group.Key, [.. group]))];
+
     private string GetIndexDisplayName(SearchDocument item) =>
         string.IsNullOrWhiteSpace(item.IndexName)
             ? Localizer["UnknownIndex"]
@@ -148,4 +149,6 @@ public partial class SearchWidget : CommonBase
             NavigationManager.NavigateTo(item.NavigationUrl);
         }
     }
+
+    private sealed record SearchResultGroup(string IndexName, IReadOnlyList<SearchDocument> Items);
 }

@@ -54,7 +54,7 @@ internal sealed class SearchService(
         SearchOptions searchOptions,
         CancellationToken cancellationToken = default)
     {
-        SearchOptions normalizedOptions = NormalizeOptions(searchOptions);
+        SearchOptions normalizedOptions = searchOptions.Normalize();
         string[] logicalIndexNames = ResolveLogicalIndexNames(indexName);
 
         if (logicalIndexNames.Length == 0 || string.IsNullOrWhiteSpace(query))
@@ -68,7 +68,6 @@ internal sealed class SearchService(
         }
 
         Dictionary<string, string> fullToLogicalIndexNames = logicalIndexNames
-            .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToDictionary(BuildIndexName, logicalName => logicalName, StringComparer.OrdinalIgnoreCase);
 
         Indices indices = fullToLogicalIndexNames.Keys.ToArray();
@@ -172,22 +171,6 @@ internal sealed class SearchService(
             .Select(p => p.IndexName)
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .Distinct(StringComparer.OrdinalIgnoreCase)];
-    }
-
-    private static SearchOptions NormalizeOptions(SearchOptions searchOptions)
-    {
-        const int defaultLimit = 20;
-        const int maxLimit = 100;
-
-        int limit = searchOptions.Limit <= 0
-            ? defaultLimit
-            : Math.Min(searchOptions.Limit, maxLimit);
-
-        return searchOptions with
-        {
-            Skip = Math.Max(0, searchOptions.Skip),
-            Limit = limit
-        };
     }
 
     private static string? ResolveLogicalIndexName(

@@ -30,11 +30,11 @@
         }
         else
         {
-            @foreach(IGrouping<string, SearchDocument> group in ResultGroups)
+            @foreach(SearchResultGroup group in _resultGroups)
             {
                 <Stack>
-                    <StackField Label="@group.Key" Color="Color.Primary" />
-                    @foreach(SearchDocument item in group)
+                    <StackField Label="@group.IndexName" Color="Color.Primary" />
+                    @foreach(SearchDocument item in group.Items)
                     {
                         <StackButton Label="@item.Title" HelperText="@item.Body" OnClick="() => Navigate(item)" />
                     }
