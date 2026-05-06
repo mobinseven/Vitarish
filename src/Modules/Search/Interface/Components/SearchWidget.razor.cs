@@ -10,10 +10,11 @@ public partial class SearchWidget : CommonBase
     [Inject] private IMediator Mediator { get; set; } = default!;
 
     /// <summary>
-    /// The logical index name to search (e.g. "sea.projects").
+    /// Optional logical index name to search (e.g. "sea.projects").
+    /// When null, the widget performs a global search across every registered index.
     /// </summary>
-    [Parameter, EditorRequired]
-    public string IndexName { get; set; } = string.Empty;
+    [Parameter]
+    public string? IndexName { get; set; }
 
     /// <summary>
     /// Optional document type filter passed to <see cref="SearchOptions.Type"/>.
@@ -31,6 +32,25 @@ public partial class SearchWidget : CommonBase
     private SearchResult? _result;
     private bool _loading;
     private string? _errorMessage;
+    private int _pageIndex;
+
+    private const int DefaultPageSize = 20;
+    private const int MaxPageSize = 100;
+
+    private int PageSize => Options.Limit <= 0
+        ? DefaultPageSize
+        : Math.Min(Options.Limit, MaxPageSize);
+
+    private long TotalPages => _result is null || _result.TotalCount == 0
+        ? 0
+        : (long)Math.Ceiling((double)_result.TotalCount / PageSize);
+
+    private bool HasPreviousPage => _pageIndex > 0 && !_loading;
+
+    private bool HasNextPage => _result is not null && _pageIndex + 1 < TotalPages && !_loading;
+
+    private IEnumerable<IGrouping<string, SearchDocument>> ResultGroups => _result?.Items
+        .GroupBy(GetIndexDisplayName) ?? [];
 
     private async Task HandleKeyUpAsync(KeyboardEventArgs args)
     {
@@ -42,9 +62,17 @@ public partial class SearchWidget : CommonBase
 
     private async Task SearchAsync()
     {
+        _pageIndex = 0;
+        await SearchPageAsync();
+    }
+
+    private async Task SearchPageAsync()
+    {
         if (string.IsNullOrWhiteSpace(_query))
         {
             _result = null;
+            _errorMessage = null;
+            _pageIndex = 0;
             return;
         }
 
@@ -53,7 +81,12 @@ public partial class SearchWidget : CommonBase
 
         try
         {
-            SearchOptions options = Options with { Type = Type ?? Options.Type };
+            SearchOptions options = Options with
+            {
+                Skip = _pageIndex * PageSize,
+                Limit = PageSize,
+                Type = Type ?? Options.Type
+            };
 
             _result = await Mediator.Send(new SearchQuery(IndexName, _query, options));
         }
@@ -66,6 +99,46 @@ public partial class SearchWidget : CommonBase
         {
             _loading = false;
         }
+    }
+
+    private async Task GoToPreviousPageAsync()
+    {
+        if (!HasPreviousPage)
+        {
+            return;
+        }
+
+        _pageIndex--;
+        await SearchPageAsync();
+    }
+
+    private async Task GoToNextPageAsync()
+    {
+        if (!HasNextPage)
+        {
+            return;
+        }
+
+        _pageIndex++;
+        await SearchPageAsync();
+    }
+
+    private string GetIndexDisplayName(SearchDocument item) =>
+        string.IsNullOrWhiteSpace(item.IndexName)
+            ? Localizer["UnknownIndex"]
+            : item.IndexName;
+
+    private string GetPageSummary()
+    {
+        if (_result is null || _result.TotalCount == 0)
+        {
+            return string.Empty;
+        }
+
+        long firstItem = _pageIndex * PageSize + 1;
+        long lastItem = Math.Min((_pageIndex + 1) * PageSize, _result.TotalCount);
+
+        return string.Format(Localizer["SearchPageSummary"], firstItem, lastItem, _result.TotalCount);
     }
 
     private void Navigate(SearchDocument item)

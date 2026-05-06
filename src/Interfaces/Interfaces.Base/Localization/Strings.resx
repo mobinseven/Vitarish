@@ -1856,4 +1856,19 @@ of project "{2}"</value>
   <data name="BrowseItems" xml:space="preserve">
     <value>Browse {0}</value>
   </data>
+  <data name="NoResults" xml:space="preserve">
+    <value>No results found</value>
+  </data>
+  <data name="Retry" xml:space="preserve">
+    <value>Retry</value>
+  </data>
+  <data name="SearchFailed" xml:space="preserve">
+    <value>Search failed</value>
+  </data>
+  <data name="SearchPageSummary" xml:space="preserve">
+    <value>Showing {0}-{1} of {2}</value>
+  </data>
+  <data name="UnknownIndex" xml:space="preserve">
+    <value>Unknown index</value>
+  </data>
 </root>

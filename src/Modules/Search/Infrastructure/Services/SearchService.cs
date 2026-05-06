@@ -49,27 +49,44 @@ internal sealed class SearchService(
     }
 
     public async Task<SearchResult> SearchAsync(
-        string indexName,
+        string? indexName,
         string query,
         SearchOptions searchOptions,
         CancellationToken cancellationToken = default)
     {
-        string fullIndexName = BuildIndexName(indexName);
+        SearchOptions normalizedOptions = NormalizeOptions(searchOptions);
+        string[] logicalIndexNames = ResolveLogicalIndexNames(indexName);
 
-        Query esQuery = BuildQuery(query, searchOptions);
+        if (logicalIndexNames.Length == 0 || string.IsNullOrWhiteSpace(query))
+        {
+            return new SearchResult
+            {
+                Items = [],
+                TotalCount = 0,
+                Query = query
+            };
+        }
 
-        SearchRequest<SearchDocument> request = new(fullIndexName)
+        Dictionary<string, string> fullToLogicalIndexNames = logicalIndexNames
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToDictionary(BuildIndexName, logicalName => logicalName, StringComparer.OrdinalIgnoreCase);
+
+        Indices indices = fullToLogicalIndexNames.Keys.ToArray();
+
+        Query esQuery = BuildQuery(query, normalizedOptions);
+
+        SearchRequest<SearchDocument> request = new(indices)
         {
             Query = esQuery,
-            From = searchOptions.Skip,
-            Size = searchOptions.Limit
+            From = normalizedOptions.Skip,
+            Size = normalizedOptions.Limit
         };
 
         SearchResponse<SearchDocument> response = await client.SearchAsync<SearchDocument>(request, cancellationToken);
 
         IReadOnlyList<SearchDocument> items = [.. response.Hits
             .Where(h => h.Source is not null)
-            .Select(h => h.Source!)];
+            .Select(h => h.Source! with { IndexName = ResolveLogicalIndexName(h.Index?.ToString(), fullToLogicalIndexNames) })];
 
         return new SearchResult
         {
@@ -142,6 +159,49 @@ internal sealed class SearchService(
         }
 
         return reports;
+    }
+
+    private string[] ResolveLogicalIndexNames(string? indexName)
+    {
+        if (!string.IsNullOrWhiteSpace(indexName))
+        {
+            return [indexName.Trim()];
+        }
+
+        return [.. providers
+            .Select(p => p.IndexName)
+            .Where(name => !string.IsNullOrWhiteSpace(name))
+            .Distinct(StringComparer.OrdinalIgnoreCase)];
+    }
+
+    private static SearchOptions NormalizeOptions(SearchOptions searchOptions)
+    {
+        const int defaultLimit = 20;
+        const int maxLimit = 100;
+
+        int limit = searchOptions.Limit <= 0
+            ? defaultLimit
+            : Math.Min(searchOptions.Limit, maxLimit);
+
+        return searchOptions with
+        {
+            Skip = Math.Max(0, searchOptions.Skip),
+            Limit = limit
+        };
+    }
+
+    private static string? ResolveLogicalIndexName(
+        string? fullIndexName,
+        IReadOnlyDictionary<string, string> fullToLogicalIndexNames)
+    {
+        if (string.IsNullOrWhiteSpace(fullIndexName))
+        {
+            return null;
+        }
+
+        return fullToLogicalIndexNames.TryGetValue(fullIndexName, out string? logicalIndexName)
+            ? logicalIndexName
+            : fullIndexName;
     }
 
     private string BuildIndexName(string indexName) =>

@@ -1,7 +1,5 @@
 @inherits CommonBase
 
-
-
 <Stack>
     <StackTextField @bind-Value="_query"
                     Placeholder="@Localizer["Search"]"
@@ -22,7 +20,7 @@
 
     @if(_errorMessage is not null)
     {
-        <StackButton Label="@Localizer["Retry"]" Color="Color.Error" EndIcon="fa-regular fa-refresh" OnClick="SearchAsync" />
+        <StackButton Label="@Localizer["Retry"]" Color="Color.Error" EndIcon="fa-regular fa-refresh" OnClick="SearchPageAsync" />
     }
     else if(_result is not null)
     {
@@ -32,14 +30,23 @@
         }
         else
         {
-            @foreach(SearchDocument item in _result.Items)
+            @foreach(IGrouping<string, SearchDocument> group in ResultGroups)
             {
-                <StackButton Label="@item.Title" HelperText="@item.Body" OnClick="() => Navigate(item)" />
+                <Stack>
+                    <StackField Label="@group.Key" Color="Color.Primary" />
+                    @foreach(SearchDocument item in group)
+                    {
+                        <StackButton Label="@item.Title" HelperText="@item.Body" OnClick="() => Navigate(item)" />
+                    }
+                </Stack>
             }
 
-            @if(_result.TotalCount > Options.Limit)
+            <StackField Label="@GetPageSummary()" Color="Color.Secondary" />
+
+            @if(TotalPages > 1)
             {
-                <StackField Label="@string.Format(Localizer["ShowingOf"], _result.Items.Count, _result.TotalCount)" Color="Color.Secondary" />
+                <StackButton Label="@Localizer["Previous"]" Disabled="@(!HasPreviousPage)" StartIcon="fa-regular fa-chevron-left" OnClick="GoToPreviousPageAsync" />
+                <StackButton Label="@Localizer["Next"]" Disabled="@(!HasNextPage)" EndIcon="fa-regular fa-chevron-right" OnClick="GoToNextPageAsync" />
             }
         }
     }

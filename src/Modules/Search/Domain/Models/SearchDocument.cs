@@ -31,6 +31,11 @@ public record SearchDocument
     public string? NavigationUrl { get; init; }
 
     /// <summary>
+    /// Logical index that produced this document when returned from search.
+    /// </summary>
+    public string? IndexName { get; init; }
+
+    /// <summary>
     /// Arbitrary extra fields supplied by the provider.
     /// </summary>
     public IReadOnlyDictionary<string, object?> Metadata { get; init; } = new Dictionary<string, object?>();
