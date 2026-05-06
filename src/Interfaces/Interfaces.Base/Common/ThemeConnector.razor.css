@@ -19,7 +19,7 @@
 }
 ::deep .stack > .stack-item {
     margin: 0 0 0 0;
-    padding: 15px;
+    padding: 5px 10px 5px 10px;
     border-radius: unset !important;
 }
 

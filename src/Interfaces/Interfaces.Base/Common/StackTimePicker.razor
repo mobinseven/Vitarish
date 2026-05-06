@@ -2,9 +2,30 @@
 @inject IStringLocalizer Localizer
 <StackField Label="@Label">
     <MudStack Row Justify="Justify.Center" AlignItems="AlignItems.Center" Reverse="@(Culture.TextInfo.IsRightToLeft ? true : false)">
-        <MudNumericField T="int" Value="hour" ValueChanged="h => SetHour(h)" Underline="false" Variant="Variant.Outlined" Min="0" Max="24" Label="@Localizer["Hour"]" />
+        <MudSelect T="int" Value="hour" ValueChanged="h => SetHour(h)" Underline="false" Variant="Variant.Outlined" Label="@Localizer["Hour"]">
+            @for(int i = 0; i < 24; i++)
+            {
+                var item = i;
+                <MudSelectItem @key="item" Value="item">@item</MudSelectItem>
+            }
+        </MudSelect>
         <MudText Typo="Typo.caption">:</MudText>
-        <MudNumericField T="int" Value="minute" ValueChanged="m => SetMinute(m)" Underline="false" Variant="Variant.Outlined" Min="0" Max="60" Label="@Localizer["Minute"]" />
+        <MudSelect T="int"
+                   Value="@minute"
+                   ValueChanged="@(m => SetMinute(m))"
+                   Underline="false"
+                   Variant="Variant.Outlined"
+                   Label="@Localizer["Minute"]">
+
+            @for(int i = 0; i < 60; i += 15)
+            {
+                var item = i;
+
+                <MudSelectItem T="int" @key="item" Value="@item">
+                    @item
+                </MudSelectItem>
+            }
+        </MudSelect>
     </MudStack>
 </StackField>
 
