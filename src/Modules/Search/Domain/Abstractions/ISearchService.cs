@@ -14,8 +14,9 @@ public interface ISearchService
 
     /// <summary>
     /// Queries the specified index and returns matching documents.
+    /// When <paramref name="indexName"/> is <see langword="null"/>, all registered indexes are searched.
     /// </summary>
-    Task<SearchResult> SearchAsync(string indexName, string query, SearchOptions options, CancellationToken cancellationToken = default);
+    Task<SearchResult> SearchAsync(string? indexName, string query, SearchOptions options, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Rebuilds the index for <paramref name="indexName"/> by fetching all documents

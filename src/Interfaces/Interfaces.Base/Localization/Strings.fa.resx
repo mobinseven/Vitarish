@@ -1686,4 +1686,19 @@
   <data name="TodayAppointments" xml:space="preserve">
     <value>نوبت‌های امروز</value>
   </data>
+  <data name="NoResults" xml:space="preserve">
+    <value>نتیجه‌ای یافت نشد</value>
+  </data>
+  <data name="Retry" xml:space="preserve">
+    <value>تلاش دوباره</value>
+  </data>
+  <data name="SearchFailed" xml:space="preserve">
+    <value>جستجو ناموفق بود</value>
+  </data>
+  <data name="SearchPageSummary" xml:space="preserve">
+    <value>نمایش {0}-{1} از {2}</value>
+  </data>
+  <data name="UnknownIndex" xml:space="preserve">
+    <value>نمایه نامشخص</value>
+  </data>
 </root>
