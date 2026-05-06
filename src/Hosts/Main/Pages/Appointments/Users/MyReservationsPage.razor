@@ -4,7 +4,7 @@
     <StackButton Color="Color.Secondary"
                  OnClick="@(() => NavigationManager.NavigateTo("/Sessions"))"
                  StartIcon="fa-regular fa-calendar-days"
-                 Label="@Localizer["BrowseSessions"]" />
+                 Label="@Localizer["BrowseItems", Localizer["Session"]]" />
 </Stack>
 <ReservationsList OnClicked="@(id => NavigationManager.NavigateTo($"/Reservations/{id}"))" />
 

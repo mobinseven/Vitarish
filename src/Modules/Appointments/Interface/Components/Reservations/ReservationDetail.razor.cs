@@ -17,11 +17,11 @@ public partial class ReservationDetail : ReservationsBase
         DialogParameters parameters = new()
         {
             { nameof(ConfirmDialog.ContentText), Localizer["ConfirmationQuestion"].Value },
-            { nameof(ConfirmDialog.ButtonText), Localizer["CancelReservation"].Value },
+            { nameof(ConfirmDialog.ButtonText), Localizer["CancelItem", Localizer["Reservation"]].Value },
             { nameof(ConfirmDialog.Color), Color.Error }
         };
 
-        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>(Localizer["CancelReservation"], parameters);
+        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>(Localizer["CancelItem", Localizer["Reservation"]], parameters);
         DialogResult? result = await dialog.Result;
 
         if (result is null || result.Canceled)
