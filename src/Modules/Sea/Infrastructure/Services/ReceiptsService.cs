@@ -116,7 +116,7 @@ internal class ReceiptsService(
         }
 
         IReadOnlyList<Vitarish.Communications.Domain.Dto.ReminderReadDto> reminders = await remindersService.GetBySourceAsync(eventId, cancellationToken);
-        foreach (Vitarish.Reminders.Domain.Dto.ReminderReadDto reminder in reminders)
+        foreach (Vitarish.Communications.Domain.Dto.ReminderReadDto reminder in reminders)
         {
             await RemoveReceiptAsync(createdBy, reminder.Id, cancellationToken);
         }
