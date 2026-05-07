@@ -1,0 +1,34 @@
+@inherits ReservationsBase
+
+<MudDialog>
+    <DialogContent>
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <MudAlert Severity="Severity.Error" Class="mb-4">@errorMessage</MudAlert>
+        }
+
+        <Stack>
+            <StackField Label="@Localizer["Kind"]">
+                <MudRadioGroup T="ReminderKind" @bind-Value="kind">
+                    <MudRadio T="ReminderKind" Value="ReminderKind.Sms" Disabled="@(!HasSms)" Label="@Localizer["Sms"]" />
+                    <MudRadio T="ReminderKind" Value="ReminderKind.Email" Disabled="@(!HasEmail)" Label="@Localizer["Email"]" />
+                </MudRadioGroup>
+            </StackField>
+            <StackField Label="@Localizer["Date"]">
+                <MudDatePicker PickerVariant="PickerVariant.Inline" @bind-Date="remindDate" Culture="@System.Globalization.CultureInfo.CurrentCulture" />
+            </StackField>
+            <StackField Label="@Localizer["Time"]">
+                <MudTimePicker PickerVariant="PickerVariant.Inline" @bind-Time="remindTime" Culture="@System.Globalization.CultureInfo.CurrentCulture" />
+            </StackField>
+        </Stack>
+
+        <Stack>
+            <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" EndIcon="fa-regular fa-save" Disabled="@isSaving" />
+            @if (Reminder is not null)
+            {
+                <StackButton Label="@Localizer["DeleteItem", Localizer["Reminder"]]" OnClick="DeleteAsync" Color="Color.Error" EndIcon="fa-regular fa-trash" Disabled="@isSaving" />
+            }
+            <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" EndIcon="fa-regular fa-xmark" Disabled="@isSaving" />
+        </Stack>
+    </DialogContent>
+</MudDialog>

@@ -4,6 +4,8 @@ global using Microsoft.Extensions.DependencyInjection;
 global using MudBlazor;
 global using System.Text.Json.Serialization;
 global using Vitarish.Calendar.Domain.Models;
+global using Vitarish.Communications.Domain.Dto;
+global using Vitarish.Communications.Domain.Enums;
 global using Vitarish.Entities.Server.Models;
 global using Vitarish.Interfaces.Base.Common;
 global using Vitarish.Appointments.Application.Abstractions;

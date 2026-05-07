@@ -1710,4 +1710,31 @@
   <data name="PageSize" xml:space="preserve">
     <value>اندازه صفحه</value>
   </data>
+  <data name="ReservationReminderHelp" xml:space="preserve">
+    <value>یادآورها را برای این رزرو مدیریت کنید.</value>
+  </data>
+  <data name="TerminalReservationReminderHelp" xml:space="preserve">
+    <value>برای رزروهای نهایی فقط یادآورهای موجود نمایش داده می‌شوند.</value>
+  </data>
+  <data name="ReminderContactRequired" xml:space="preserve">
+    <value>برای دریافت یادآورها ایمیل یا شماره تلفن اضافه کنید.</value>
+  </data>
+  <data name="EmailRequiredForReminder" xml:space="preserve">
+    <value>برای فعال‌سازی یادآور ایمیلی، ایمیل اضافه کنید.</value>
+  </data>
+  <data name="PhoneRequiredForReminder" xml:space="preserve">
+    <value>برای فعال‌سازی یادآور پیامکی، شماره تلفن اضافه کنید.</value>
+  </data>
+  <data name="ReminderDateTimeRequired" xml:space="preserve">
+    <value>تاریخ و زمان یادآور الزامی است.</value>
+  </data>
+  <data name="ReminderMustBeFuture" xml:space="preserve">
+    <value>زمان یادآور باید در آینده باشد.</value>
+  </data>
+  <data name="ReservationOccurrenceRequired" xml:space="preserve">
+    <value>رخداد رزرو الزامی است.</value>
+  </data>
+  <data name="ReminderMustBeBeforeReservationStart" xml:space="preserve">
+    <value>زمان یادآور باید پیش از شروع رزرو باشد.</value>
+  </data>
 </root>
