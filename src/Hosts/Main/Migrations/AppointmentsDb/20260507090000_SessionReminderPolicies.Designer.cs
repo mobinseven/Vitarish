@@ -311,8 +311,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SessionId", "Kind", "OffsetBeforeOccurrenceStart")
-                        .IsUnique();
+                    b.HasIndex("SessionId", "Kind", "OffsetBeforeOccurrenceStart");
 
                     b.ToTable("SessionReminderPolicies");
 

@@ -45,8 +45,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
             migrationBuilder.CreateIndex(
                 name: "IX_SessionReminderPolicies_SessionId_Kind_OffsetBeforeOccurrenceStart",
                 table: "SessionReminderPolicies",
-                columns: new[] { "SessionId", "Kind", "OffsetBeforeOccurrenceStart" },
-                unique: true);
+                columns: new[] { "SessionId", "Kind", "OffsetBeforeOccurrenceStart" });
         }
 
         /// <inheritdoc />
