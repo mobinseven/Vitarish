@@ -11,16 +11,18 @@
     <StackNumericField Label="@Localizer["PageSize"]" @bind-Value="Limit" Min="1" Max="@SearchOptions.MaxLimit" />
 </Stack>
 
-<SearchWidget IndexName="@IndexName" Type="@SearchType" Options="@Options" />
+<SearchWidget IndexName="@IndexName" Type="@SearchType" Options="@_options" />
 
 @code {
     private string? _indexName;
     private string? _searchType;
     private int _limit = SearchOptions.DefaultLimit;
-    private SearchOptions _options = new()
+    private SearchOptions _options = default!;
+
+    protected override void OnInitialized()
     {
-        Limit = SearchOptions.DefaultLimit
-    };
+        _options = CreateOptions(_limit);
+    }
 
     private int Limit
     {
@@ -28,10 +30,7 @@
         set
         {
             _limit = value;
-            _options = new SearchOptions
-            {
-                Limit = SearchOptions.NormalizeLimit(value)
-            };
+            _options = CreateOptions(value);
         }
     }
 
@@ -43,5 +42,8 @@
         ? null
         : _searchType.Trim();
 
-    private SearchOptions Options => _options;
+    private static SearchOptions CreateOptions(int limit) => new()
+    {
+        Limit = SearchOptions.NormalizeLimit(limit)
+    };
 }
