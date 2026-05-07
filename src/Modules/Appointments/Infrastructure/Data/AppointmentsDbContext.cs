@@ -116,7 +116,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
                 .HasForeignKey(p => p.SessionId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            _ = entity.HasIndex(p => new { p.SessionId, p.Kind, p.OffsetBeforeOccurrenceStart });
+            _ = entity.HasIndex(p => new { p.SessionId, p.Kind, p.OffsetBeforeOccurrenceStart }).IsUnique();
 
             var statusesProperty = entity.Property(p => p.QualifyingReservationStatuses)
                 .HasConversion(
@@ -125,7 +125,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
 
             statusesProperty.Metadata.SetValueComparer(new ValueComparer<HashSet<ReservationStatus>>(
                 (left, right) => left != null && right != null && left.SetEquals(right),
-                statuses => statuses.Aggregate(0, (hash, status) => HashCode.Combine(hash, status.GetHashCode())),
+                statuses => statuses.Aggregate(0, (hash, status) => hash ^ status.GetHashCode()),
                 statuses => statuses.ToHashSet()));
         });
 
