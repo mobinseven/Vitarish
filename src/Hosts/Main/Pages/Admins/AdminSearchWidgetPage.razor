@@ -8,7 +8,7 @@
     <StackField Label="@Localizer["SearchWidgetTesterHint"]" Color="Color.Secondary" />
     <StackTextField Label="@Localizer["IndexName"]" @bind-Value="_indexName" />
     <StackTextField Label="@Localizer["Type"]" @bind-Value="_searchType" />
-    <StackNumericField Label="@Localizer["PageSize"]" @bind-Value="_limit" Min="1" Max="@SearchOptions.MaxLimit" />
+    <StackNumericField Label="@Localizer["PageSize"]" @bind-Value="Limit" Min="1" Max="@SearchOptions.MaxLimit" />
 </Stack>
 
 <SearchWidget IndexName="@IndexName" Type="@SearchType" Options="@Options" />
@@ -17,6 +17,23 @@
     private string? _indexName;
     private string? _searchType;
     private int _limit = SearchOptions.DefaultLimit;
+    private SearchOptions _options = new()
+    {
+        Limit = SearchOptions.DefaultLimit
+    };
+
+    private int Limit
+    {
+        get => _limit;
+        set
+        {
+            _limit = value;
+            _options = new SearchOptions
+            {
+                Limit = SearchOptions.NormalizeLimit(value)
+            };
+        }
+    }
 
     private string? IndexName => string.IsNullOrWhiteSpace(_indexName)
         ? null
@@ -26,8 +43,5 @@
         ? null
         : _searchType.Trim();
 
-    private SearchOptions Options => new()
-    {
-        Limit = SearchOptions.NormalizeLimit(_limit)
-    };
+    private SearchOptions Options => _options;
 }
