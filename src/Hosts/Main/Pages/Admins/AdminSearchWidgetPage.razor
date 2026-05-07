@@ -11,7 +11,7 @@
     <StackNumericField Label="@Localizer["PageSize"]" @bind-Value="_limit" Min="1" Max="@SearchOptions.MaxLimit" />
 </Stack>
 
-<SearchWidget IndexName="IndexName" Type="SearchType" Options="Options" />
+<SearchWidget IndexName="@IndexName" Type="@SearchType" Options="@Options" />
 
 @code {
     private string? _indexName;
