@@ -2,7 +2,7 @@ namespace Vitarish.Appointments.Infrastructure.Repositories;
 
 [RegisterTransient]
 internal class SessionReminderPolicyRepository(AppointmentsDbContext dbContext)
-    : EntityRepository<SessionReminderPolicy, SessionReminderPolicyDescriptor, AppointmentsDbContext>,
+    : EntityRepository<SessionReminderPolicy, SessionReminderPolicyDescriptor, AppointmentsDbContext>(dbContext),
       IEntityRepository<SessionReminderPolicy, SessionReminderPolicyDescriptor>
 {
     protected override IQueryable<SessionReminderPolicy> Apply(IQueryable<SessionReminderPolicy> query, SessionReminderPolicyDescriptor descriptor)

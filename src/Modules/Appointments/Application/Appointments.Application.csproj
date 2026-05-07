@@ -8,5 +8,6 @@
 		<ProjectReference Include="..\Domain\Appointments.Domain.csproj" />
 		<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
 		<ProjectReference Include="..\..\Calendar\Domain\Calendar.Domain.csproj" />
+		<ProjectReference Include="..\..\Communications\Domain\Communications.Domain.csproj" />
 	</ItemGroup>
 </Project>
