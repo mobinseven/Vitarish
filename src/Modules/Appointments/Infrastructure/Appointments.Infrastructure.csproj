@@ -19,7 +19,5 @@
 		<ProjectReference Include="..\Application\Appointments.Application.csproj" />
 		<ProjectReference Include="..\Domain\Appointments.Domain.csproj" />
 		<ProjectReference Include="..\..\Calendar\Application\Calendar.Application.csproj" />
-		<ProjectReference Include="..\..\Communications\Application\Communications.Application.csproj" />
-		<ProjectReference Include="..\..\Communications\Domain\Communications.Domain.csproj" />
 	</ItemGroup>
 </Project>
