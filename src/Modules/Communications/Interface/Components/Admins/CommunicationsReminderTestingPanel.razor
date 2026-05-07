@@ -1,0 +1,173 @@
+@inherits RemindersBase
+
+<Stack>
+    <StackField Label="@Localizer["CommunicationsReminders"]" />
+
+    <StackTextField Label="@Localizer["SourceId"]" @bind-Value="sourceIdInput" />
+    <StackButton Label="@Localizer["NewSourceId"]"
+                 EndIcon="fa-regular fa-shuffle"
+                 OnClick="GenerateSourceId" />
+
+    <StackSelect T="string" Label="@Localizer["User"]" @bind-Value="recipientUserId">
+        @foreach (var user in GetUsers())
+        {
+            <MudSelectItem T="string" Value="@user.Id">@user.FullName</MudSelectItem>
+        }
+    </StackSelect>
+
+    <StackSelect T="ReminderKind" Label="@Localizer["Kind"]" Value="@kind" ValueChanged="OnKindChanged">
+        <MudSelectItem T="ReminderKind" Value="ReminderKind.Email">@Localizer["Email"]</MudSelectItem>
+        <MudSelectItem T="ReminderKind" Value="ReminderKind.Sms">@Localizer["Sms"]</MudSelectItem>
+    </StackSelect>
+
+    <StackTextField Label="@Localizer["Recipient"]" @bind-Value="recipient" />
+    <StackButton Label="@Localizer["UseUserAddress"]"
+                 EndIcon="fa-regular fa-address-book"
+                 OnClick="UseUserAddress" />
+
+    <StackTextField Label="@Localizer["Subject"]" @bind-Value="subject" />
+    <StackTextField Label="@Localizer["Body"]" @bind-Value="textBody" Lines="4" AutoGrow />
+
+    <StackDatePicker Label="@Localizer["Date"]" @bind-Date="remindDate" />
+    <StackTimePicker Label="@Localizer["Time"]" @bind-Time="remindTime" />
+
+    <StackButton Label="@Localizer["CreateReminder"]"
+                 EndIcon="fa-regular fa-bell-plus"
+                 Color="Color.Primary"
+                 OnClick="CreateReminderAsync" />
+    <StackButton Label="@Localizer["RefreshReminders"]"
+                 EndIcon="fa-regular fa-rotate-right"
+                 OnClick="ReloadRemindersAsync" />
+
+    @if (!string.IsNullOrWhiteSpace(status))
+    {
+        <MudAlert Severity="@statusSeverity">@status</MudAlert>
+    }
+
+    @if (sourceReminders.Count > 0)
+    {
+        <MudSimpleTable Dense Elevation="0">
+            <thead>
+                <tr>
+                    <th>@Localizer["Subject"]</th>
+                    <th>@Localizer["Recipient"]</th>
+                    <th>@Localizer["RemindAt"]</th>
+                    <th>@Localizer["SentAt"]</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var reminder in sourceReminders)
+                {
+                    <tr>
+                        <td>@reminder.Subject</td>
+                        <td>@reminder.Recipient</td>
+                        <td>@reminder.RemindAt.ToLocalTime().DateTime.ToString("g")</td>
+                        <td>@(reminder.SentAt?.ToLocalTime().DateTime.ToString("g") ?? "-")</td>
+                    </tr>
+                }
+            </tbody>
+        </MudSimpleTable>
+    }
+</Stack>
+
+@code {
+    private string sourceIdInput = Guid.NewGuid().ToString();
+    private string? recipientUserId;
+    private ReminderKind kind = ReminderKind.Email;
+    private string recipient = string.Empty;
+    private string subject = "Manual Reminder Test";
+    private string textBody = "Manual reminder test.";
+    private DateTime? remindDate = DateTime.Now.Date;
+    private TimeSpan? remindTime = DateTime.Now.AddMinutes(5).TimeOfDay;
+
+    private IReadOnlyList<ReminderReadDto> sourceReminders = [];
+    private string? status;
+    private Severity statusSeverity = Severity.Info;
+
+    private void GenerateSourceId()
+    {
+        sourceIdInput = Guid.NewGuid().ToString();
+        sourceReminders = [];
+        status = null;
+    }
+
+    private Task OnKindChanged(ReminderKind value)
+    {
+        kind = value;
+        return UseUserAddress();
+    }
+
+    private Task UseUserAddress()
+    {
+        if (!string.IsNullOrWhiteSpace(recipientUserId))
+        {
+            recipient = GetUserAddressById(recipientUserId, kind) ?? recipient;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private async Task CreateReminderAsync()
+    {
+        if (!Guid.TryParse(sourceIdInput, out Guid sourceId))
+        {
+            SetStatus(Localizer["InvalidSourceId"].Value, Severity.Warning);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(recipientUserId))
+        {
+            SetStatus(Localizer["UserSelectionRequired"].Value, Severity.Warning);
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(recipient))
+        {
+            SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
+            return;
+        }
+
+        DateTime date = remindDate?.Date ?? DateTime.Now.Date;
+        TimeSpan time = remindTime ?? DateTime.Now.TimeOfDay;
+        DateTimeOffset remindAt = new(date.Add(time), DateTimeOffset.Now.Offset);
+
+        ReminderReadDto? created = await RemindersService.AddAsync(new ReminderWriteDto(
+            sourceId,
+            kind,
+            recipientUserId,
+            recipient,
+            subject,
+            textBody,
+            remindAt,
+            null,
+            false
+        ), CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (created is null)
+        {
+            SetStatus(Localizer["ReminderCreationFailed"].Value, Severity.Error);
+            return;
+        }
+
+        SetStatus($"{Localizer["ReminderCreated"]}: {created.Id}", Severity.Success);
+        await ReloadRemindersAsync();
+    }
+
+    private async Task ReloadRemindersAsync()
+    {
+        if (!Guid.TryParse(sourceIdInput, out Guid sourceId))
+        {
+            SetStatus(Localizer["InvalidSourceId"].Value, Severity.Warning);
+            sourceReminders = [];
+            return;
+        }
+
+        sourceReminders = await RemindersService.GetBySourceAsync(sourceId, CancellationToken.None);
+    }
+
+    private void SetStatus(string message, Severity severity)
+    {
+        status = message;
+        statusSeverity = severity;
+    }
+}

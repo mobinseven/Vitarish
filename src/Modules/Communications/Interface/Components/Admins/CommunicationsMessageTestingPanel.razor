@@ -1,0 +1,172 @@
+@inherits CommonBase
+
+<Stack>
+    <StackField Label="@Localizer["CommunicationsMessages"]" />
+    <StackTextField Label="@Localizer["Recipient"]" @bind-Value="recipient" />
+    <StackTextField Label="@Localizer["Subject"]" @bind-Value="subject" />
+    <StackTextField Label="@Localizer["Body"]" @bind-Value="body" Lines="4" AutoGrow />
+    <StackTextField Label="@Localizer["HtmlBody"]" @bind-Value="htmlBody" Lines="4" AutoGrow />
+
+    <StackButton Label="@Localizer["SendEmail"]"
+                 EndIcon="fa-regular fa-envelope"
+                 Color="Color.Primary"
+                 OnClick="SendEmailAsync" />
+    <StackButton Label="@Localizer["SendSms"]"
+                 EndIcon="fa-regular fa-message-sms"
+                 Color="Color.Primary"
+                 OnClick="SendSmsAsync" />
+    <StackButton Label="@Localizer["SendSmsCode"]"
+                 EndIcon="fa-regular fa-key"
+                 Color="Color.Default"
+                 OnClick="SendSmsCodeAsync" />
+    <StackButton Label="@Localizer["SendSmsReminder"]"
+                 EndIcon="fa-regular fa-bell-ring"
+                 Color="Color.Default"
+                 OnClick="SendSmsReminderAsync" />
+
+    @if (!string.IsNullOrWhiteSpace(lastSmsMessageId))
+    {
+        <StackTextField Label="@Localizer["MessageId"]" @bind-Value="lastSmsMessageId" />
+        <StackButton Label="@Localizer["CheckSmsDeliveryState"]"
+                     EndIcon="fa-regular fa-chart-line-up-down"
+                     OnClick="CheckDeliveryStateAsync" />
+    }
+
+    @if (!string.IsNullOrWhiteSpace(status))
+    {
+        <MudAlert Severity="@statusSeverity">@status</MudAlert>
+    }
+</Stack>
+
+@code {
+    [Inject] private IMessagesService MessagesService { get; set; } = default!;
+
+    private string recipient = string.Empty;
+    private string subject = "Manual Communications Test";
+    private string body = "Manual communications message test.";
+    private string htmlBody = "<p>Manual communications message test.</p>";
+
+    private string? lastSmsMessageId;
+    private string? status;
+    private Severity statusSeverity = Severity.Info;
+
+    private async Task SendEmailAsync()
+    {
+        if (string.IsNullOrWhiteSpace(recipient))
+        {
+            SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            await MessagesService.SendEmail(new Vitarish.Communications.Domain.Models.Message
+            {
+                Recipient = recipient,
+                Subject = subject,
+                Body = body,
+                HtmlBody = htmlBody
+            }, CancellationToken.None);
+
+            SetStatus(Localizer["EmailSent"].Value, Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            SetStatus(ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task SendSmsAsync()
+    {
+        if (string.IsNullOrWhiteSpace(recipient))
+        {
+            SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            Vitarish.Communications.Domain.Models.SmsSendResult result = await MessagesService.SendSms(new Vitarish.Communications.Domain.Models.Message
+            {
+                Recipient = recipient,
+                Subject = subject,
+                Body = body
+            }, CancellationToken.None);
+
+            lastSmsMessageId = result.MessageId;
+            SetStatus($"{Localizer["SmsSent"]}: {result.MessageId}", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            SetStatus(ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task SendSmsCodeAsync()
+    {
+        if (string.IsNullOrWhiteSpace(recipient))
+        {
+            SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            await MessagesService.SendSmsCode(new Vitarish.Communications.Domain.Models.Message
+            {
+                Recipient = recipient,
+                Body = body
+            }, CancellationToken.None);
+
+            SetStatus(Localizer["SmsCodeSent"].Value, Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            SetStatus(ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task SendSmsReminderAsync()
+    {
+        if (string.IsNullOrWhiteSpace(recipient))
+        {
+            SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            await MessagesService.SendSmsReminder(recipient, cancellationToken: CancellationToken.None);
+            SetStatus(Localizer["SmsReminderSent"].Value, Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            SetStatus(ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task CheckDeliveryStateAsync()
+    {
+        if (!long.TryParse(lastSmsMessageId, out long messageId))
+        {
+            SetStatus(Localizer["InvalidMessageId"].Value, Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            Vitarish.Communications.Domain.Models.SmsDeliveryState state = await MessagesService.GetSmsDeliveryStateAsync(messageId, CancellationToken.None);
+            SetStatus($"{state.Status ?? Localizer["Unknown"]}: {state.MessageText ?? string.Empty}", Severity.Info);
+        }
+        catch (Exception ex)
+        {
+            SetStatus(ex.Message, Severity.Error);
+        }
+    }
+
+    private void SetStatus(string message, Severity severity)
+    {
+        status = message;
+        statusSeverity = severity;
+    }
+}
