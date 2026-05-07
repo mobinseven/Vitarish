@@ -1,0 +1,33 @@
+@page "/Admin/Search/Widget"
+@inherits AdminCommonBase
+@using Vitarish.Search.Domain.Models
+@using Vitarish.Search.Interface.Components
+
+<Stack>
+    <StackField Label="@Localizer["SearchWidgetTester"]" Color="Color.Primary" />
+    <StackField Label="@Localizer["SearchWidgetTesterHint"]" Color="Color.Secondary" />
+    <StackTextField Label="@Localizer["IndexName"]" @bind-Value="_indexName" />
+    <StackTextField Label="@Localizer["Type"]" @bind-Value="_searchType" />
+    <StackNumericField Label="@Localizer["PageSize"]" @bind-Value="_limit" Min="1" Max="@SearchOptions.MaxLimit" />
+</Stack>
+
+<SearchWidget IndexName="IndexName" Type="SearchType" Options="Options" />
+
+@code {
+    private string? _indexName;
+    private string? _searchType;
+    private int _limit = SearchOptions.DefaultLimit;
+
+    private string? IndexName => string.IsNullOrWhiteSpace(_indexName)
+        ? null
+        : _indexName.Trim();
+
+    private string? SearchType => string.IsNullOrWhiteSpace(_searchType)
+        ? null
+        : _searchType.Trim();
+
+    private SearchOptions Options => new()
+    {
+        Limit = SearchOptions.NormalizeLimit(_limit)
+    };
+}

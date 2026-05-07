@@ -1871,4 +1871,13 @@ of project "{2}"</value>
   <data name="UnknownIndex" xml:space="preserve">
     <value>Unknown index</value>
   </data>
+  <data name="SearchWidgetTester" xml:space="preserve">
+    <value>Search Widget Tester</value>
+  </data>
+  <data name="SearchWidgetTesterHint" xml:space="preserve">
+    <value>Leave Index and Type empty to test global search across all indexes.</value>
+  </data>
+  <data name="PageSize" xml:space="preserve">
+    <value>Page Size</value>
+  </data>
 </root>
