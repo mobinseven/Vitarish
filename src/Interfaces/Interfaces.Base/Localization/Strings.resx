@@ -1880,4 +1880,31 @@ of project "{2}"</value>
   <data name="PageSize" xml:space="preserve">
     <value>Page Size</value>
   </data>
+  <data name="ReservationReminderHelp" xml:space="preserve">
+    <value>Manage reminders for this reservation.</value>
+  </data>
+  <data name="TerminalReservationReminderHelp" xml:space="preserve">
+    <value>Terminal reservations can only show existing reminders.</value>
+  </data>
+  <data name="ReminderContactRequired" xml:space="preserve">
+    <value>Add an email address or phone number to receive reminders.</value>
+  </data>
+  <data name="EmailRequiredForReminder" xml:space="preserve">
+    <value>Add an email address to enable email reminders.</value>
+  </data>
+  <data name="PhoneRequiredForReminder" xml:space="preserve">
+    <value>Add a phone number to enable SMS reminders.</value>
+  </data>
+  <data name="ReminderDateTimeRequired" xml:space="preserve">
+    <value>Reminder date and time are required.</value>
+  </data>
+  <data name="ReminderMustBeFuture" xml:space="preserve">
+    <value>Reminder time must be in the future.</value>
+  </data>
+  <data name="ReservationOccurrenceRequired" xml:space="preserve">
+    <value>Reservation occurrence is required.</value>
+  </data>
+  <data name="ReminderMustBeBeforeReservationStart" xml:space="preserve">
+    <value>Reminder time must be before the reservation start.</value>
+  </data>
 </root>

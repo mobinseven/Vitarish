@@ -1,0 +1,28 @@
+@inherits ReservationsBase
+
+<Stack>
+    <StackField Label="@Localizer["Reminders"]" HelperText="@PanelHelperText">
+        @if (isLoading)
+        {
+            <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+        }
+    </StackField>
+</Stack>
+
+@if (!string.IsNullOrWhiteSpace(errorMessage))
+{
+    <MudAlert Severity="Severity.Error" Class="mb-4">@errorMessage</MudAlert>
+}
+
+<ReservationReminderList Reminders="reminders" CanManage="CanManage" EditReminder="EditReminderAsync" />
+
+@if (CanManage)
+{
+    <Stack>
+        <StackButton Label="@Localizer["AddItem", Localizer["Reminder"]]"
+                     EndIcon="fa-regular fa-bell-plus"
+                     Color="Color.Primary"
+                     OnClick="AddReminderAsync"
+                     Disabled="@(!CanAddReminder)" />
+    </Stack>
+}

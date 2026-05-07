@@ -1,0 +1,23 @@
+@inherits ReservationsBase
+
+@if (Reminders.Count == 0)
+{
+    <Stack>
+        <StackButton Label="@Localizer["NoItems", Localizer["Reminder"]]"
+                     HelperText="@Localizer["NoItemsHelp", Localizer["Reminder"]]"
+                     EndIcon="fa-regular fa-bell-slash" />
+    </Stack>
+}
+else
+{
+    <Stack>
+        @foreach (ReminderReadDto reminder in Reminders.OrderBy(static r => r.RemindAt))
+        {
+            <StackButton Label="@ReminderLabel(reminder)"
+                         HelperText="@ReminderHelperText(reminder)"
+                         EndIcon="@(reminder.IsSent ? "fa-regular fa-bell-on" : "fa-regular fa-bell")"
+                         Disabled="@(!CanManage)"
+                         OnClick="@(() => EditReminder.InvokeAsync(reminder))" />
+        }
+    </Stack>
+}
