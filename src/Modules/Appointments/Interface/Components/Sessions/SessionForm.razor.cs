@@ -14,6 +14,9 @@ public partial class SessionForm : SessionsBase
     private TimeSpan? startTime;
     private DateTime? endDate;
     private TimeSpan? endTime;
+    private IReadOnlyList<SessionReminderPolicyWriteDto> reminderPolicies = [];
+    private bool reminderPoliciesReady;
+    private string? errorMessage;
 
     protected override void OnParametersSet()
     {
@@ -34,6 +37,7 @@ public partial class SessionForm : SessionsBase
 
     private async Task SaveAsync()
     {
+        errorMessage = null;
         sessionWriteDto.StartAt = ComposeDateTimeOffset(startDate, startTime, sessionWriteDto.TimeZone);
         sessionWriteDto.EndAt = ComposeDateTimeOffset(endDate, endTime, sessionWriteDto.TimeZone);
 
@@ -43,8 +47,31 @@ public partial class SessionForm : SessionsBase
 
         if (result.IsSuccess && result.Value is not null)
         {
+            if (AdminMode && (sessionWriteDto.Id == Guid.Empty || reminderPoliciesReady))
+            {
+                EntityResult<IReadOnlyList<SessionReminderPolicyReadDto>> reminderResult = await AppointmentReminderService.SaveSessionReminderPoliciesAsync(
+                    result.Value.Id,
+                    reminderPolicies,
+                    CancellationToken.None);
+                if (reminderResult.IsFailure)
+                {
+                    errorMessage = FormatErrors(reminderResult.Errors);
+                    return;
+                }
+            }
+
             await OnSaved.InvokeAsync(result.Value.Id);
         }
+    }
+
+    private static string FormatErrors(IEnumerable<EntityError> errors)
+        => string.Join(Environment.NewLine, errors.Select(static error => error.Message));
+
+    private Task SetReminderPoliciesAsync(IReadOnlyList<SessionReminderPolicyWriteDto> policies)
+    {
+        reminderPolicies = policies;
+        reminderPoliciesReady = true;
+        return Task.CompletedTask;
     }
 
     private async Task Cancel() => await OnCancelled.InvokeAsync();

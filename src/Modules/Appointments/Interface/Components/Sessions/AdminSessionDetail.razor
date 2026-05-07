@@ -22,6 +22,8 @@
     <StackField Label="@($"{current.Stats.ReservationCount} {Localizer["Reservations"]}")" HelperText="@Localizer["Reservations"]" />
 </Stack>
 
+<SessionReminderPolicySummary SessionId="current.Id" />
+
 @switch (current.Status)
 {
     case SessionStatus.Draft:
