@@ -121,7 +121,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
             var statusesProperty = entity.Property(p => p.QualifyingReservationStatuses)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
-                    v => JsonSerializer.Deserialize<HashSet<ReservationStatus>>(v, (JsonSerializerOptions)null) ?? []);
+                    v => JsonSerializer.Deserialize<HashSet<ReservationStatus>>(v, (JsonSerializerOptions)null) ?? new HashSet<ReservationStatus>());
 
             statusesProperty.Metadata.SetValueComparer(new ValueComparer<HashSet<ReservationStatus>>(
                 (left, right) => left != null && right != null && left.SetEquals(right),
