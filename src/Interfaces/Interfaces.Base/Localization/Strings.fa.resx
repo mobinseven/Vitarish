@@ -1701,4 +1701,13 @@
   <data name="UnknownIndex" xml:space="preserve">
     <value>نمایه نامشخص</value>
   </data>
+  <data name="SearchWidgetTester" xml:space="preserve">
+    <value>آزمایش ابزارک جستجو</value>
+  </data>
+  <data name="SearchWidgetTesterHint" xml:space="preserve">
+    <value>برای آزمایش جستجوی سراسری در همه نمایه‌ها، فیلدهای نمایه و نوع را خالی بگذارید.</value>
+  </data>
+  <data name="PageSize" xml:space="preserve">
+    <value>اندازه صفحه</value>
+  </data>
 </root>
