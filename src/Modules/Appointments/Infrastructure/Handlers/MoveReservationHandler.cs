@@ -1,10 +1,6 @@
-using Vitarish.Appointments.Application.Events;
-
 namespace Vitarish.Appointments.Infrastructure.Handlers;
 
-internal class MoveReservationHandler(
-    IEntityRepository<Reservation, ReservationDescriptor> repository,
-    IAppointmentsEventPublisher eventPublisher)
+internal class MoveReservationHandler(IEntityRepository<Reservation, ReservationDescriptor> repository)
     : IRequestHandler<MoveReservationCommand>
 {
     public async Task Handle(MoveReservationCommand request, CancellationToken cancellationToken)
@@ -16,16 +12,7 @@ internal class MoveReservationHandler(
             return;
         }
 
-        Guid previousSessionOccurrenceId = entity.SessionOccurrenceId;
         entity.SessionOccurrenceId = request.NewSessionOccurrenceId;
         _ = await repository.UpdateAsync(entity, cancellationToken);
-
-        await eventPublisher.PublishReservationMovedAsync(
-            new ReservationMovedEvent(
-                entity.Id,
-                previousSessionOccurrenceId,
-                entity.SessionOccurrenceId,
-                entity.ReservingPartyId),
-            cancellationToken);
     }
 }
