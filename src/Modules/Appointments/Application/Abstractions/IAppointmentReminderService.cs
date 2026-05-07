@@ -44,4 +44,16 @@ public interface IAppointmentReminderService
     Task<EntityResult<IReadOnlyList<ReminderReadDto>>> MaterializeAutoRemindersAsync(
         Guid reservationId,
         CancellationToken cancellationToken);
+
+    Task<EntityResult> RemoveUnsentReservationRemindersAsync(
+        Guid reservationId,
+        CancellationToken cancellationToken);
+
+    Task<EntityResult<IReadOnlyList<ReminderReadDto>>> RecalculateUnsentReservationRemindersAsync(
+        Guid reservationId,
+        CancellationToken cancellationToken);
+
+    Task<EntityResult> RemoveUnsentSessionRemindersAsync(
+        Guid sessionId,
+        CancellationToken cancellationToken);
 }

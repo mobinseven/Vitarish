@@ -7,6 +7,7 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 
 internal sealed class AppointmentReminderService(
     IAccessControlledReservationManager reservationManager,
+    IEntityRepository<Reservation, ReservationDescriptor> reservationRepository,
     ISessionReminderPolicyManager policyManager,
     IEntityRepository<Session, SessionDescriptor> sessionRepository,
     IEntityRepository<SessionOccurrence, SessionOccurrenceDescriptor> occurrenceRepository,
@@ -260,6 +261,9 @@ internal sealed class AppointmentReminderService(
         }
 
         IReadOnlyList<ReminderReadDto> existingReminders = await remindersService.GetBySourceAsync(reservationId, cancellationToken);
+        HashSet<(ReminderKind Kind, DateTimeOffset RemindAt, string RecipientUserId, string Recipient)> materializedReminderKeys = [
+            .. existingReminders.Select(static r => (r.Kind, r.RemindAt, r.RecipientUserId, r.Recipient))
+        ];
         List<ReminderRecipientReadDto> recipients = [];
         List<(SessionReminderPolicyReadDto Policy, DateTimeOffset RemindAt)> materializablePolicies = [];
         foreach (SessionReminderPolicyReadDto policy in policiesResult.Value.Where(p => p.QualifyingReservationStatuses.Contains(reservation.Status)))
@@ -272,7 +276,9 @@ internal sealed class AppointmentReminderService(
             }
 
             EntityResult<ReminderRecipientReadDto> recipientResult = BuildRecipient(reminderKind, reservation.ReservingPartyId, null);
-            if (recipientResult.IsSuccess && recipientResult.Value is not null && !HasExistingReminder(existingReminders, recipientResult.Value, reminderKind, remindAt))
+            if (recipientResult.IsSuccess
+                && recipientResult.Value is not null
+                && materializedReminderKeys.Add((reminderKind, remindAt, recipientResult.Value.RecipientUserId, recipientResult.Value.Recipient)))
             {
                 recipients.Add(recipientResult.Value);
                 materializablePolicies.Add((policy, remindAt));
@@ -294,6 +300,73 @@ internal sealed class AppointmentReminderService(
         }
 
         return EntityResult<IReadOnlyList<ReminderReadDto>>.Success(reminders);
+    }
+
+    public async Task<EntityResult> RemoveUnsentReservationRemindersAsync(
+        Guid reservationId,
+        CancellationToken cancellationToken)
+    {
+        IReadOnlyList<ReminderReadDto> reminders = await remindersService.GetBySourceAsync(reservationId, cancellationToken);
+        foreach (ReminderReadDto reminder in reminders.Where(static r => !r.IsSent))
+        {
+            EntityResult removeResult = await remindersService.RemoveAsync(reminder.Id, cancellationToken);
+            if (removeResult.IsFailure)
+            {
+                return EntityResult.Failure([.. removeResult.Errors]);
+            }
+        }
+
+        return EntityResult.Success();
+    }
+
+    public async Task<EntityResult<IReadOnlyList<ReminderReadDto>>> RecalculateUnsentReservationRemindersAsync(
+        Guid reservationId,
+        CancellationToken cancellationToken)
+    {
+        EntityResult removeResult = await RemoveUnsentReservationRemindersAsync(reservationId, cancellationToken);
+        if (removeResult.IsFailure)
+        {
+            return EntityResult<IReadOnlyList<ReminderReadDto>>.Failure([.. removeResult.Errors]);
+        }
+
+        return await MaterializeAutoRemindersAsync(reservationId, cancellationToken);
+    }
+
+    public async Task<EntityResult> RemoveUnsentSessionRemindersAsync(
+        Guid sessionId,
+        CancellationToken cancellationToken)
+    {
+        IReadOnlyList<SessionOccurrence> occurrences = await occurrenceRepository.GetAsync(
+            new SessionOccurrenceDescriptor
+            {
+                SessionId = sessionId,
+                Skip = 0,
+                Take = int.MaxValue
+            },
+            cancellationToken);
+
+        foreach (Guid occurrenceId in occurrences.Select(static occurrence => occurrence.Id))
+        {
+            IReadOnlyList<Reservation> reservations = await reservationRepository.GetAsync(
+                new ReservationDescriptor
+                {
+                    SessionOccurrenceId = occurrenceId,
+                    Skip = 0,
+                    Take = int.MaxValue
+                },
+                cancellationToken);
+
+            foreach (Reservation reservation in reservations)
+            {
+                EntityResult removeResult = await RemoveUnsentReservationRemindersAsync(reservation.Id, cancellationToken);
+                if (removeResult.IsFailure)
+                {
+                    return removeResult;
+                }
+            }
+        }
+
+        return EntityResult.Success();
     }
 
     private async Task<EntityResult<ReservationReadDto>> GetManageableReservationAsync(Guid reservationId, CancellationToken cancellationToken)
@@ -430,16 +503,6 @@ internal sealed class AppointmentReminderService(
 
         return EntityResult.Success();
     }
-
-    private static bool HasExistingReminder(
-        IReadOnlyList<ReminderReadDto> existingReminders,
-        ReminderRecipientReadDto recipient,
-        ReminderKind kind,
-        DateTimeOffset remindAt)
-        => existingReminders.Any(r => r.Kind == kind
-            && r.RemindAt == remindAt
-            && r.RecipientUserId == recipient.RecipientUserId
-            && r.Recipient == recipient.Recipient);
 
     private static bool IsTerminal(ReservationStatus status) => status is ReservationStatus.Cancelled
         or ReservationStatus.Rejected
