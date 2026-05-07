@@ -1,4 +1,4 @@
-using Vitarish.Reminders.Interface.Components.Reminders;
+using Vitarish.Communications.Interface.Components.Reminders;
 
 namespace Vitarish.Medical.Interface.Components.Appointments;
 

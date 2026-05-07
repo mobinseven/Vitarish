@@ -7,7 +7,7 @@
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
 		<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
 		<ProjectReference Include="..\Domain\Sea.Domain.csproj" />
-		<ProjectReference Include="..\..\Reminders\Application\Reminders.Application.csproj" />
+		<ProjectReference Include="..\..\Communications\Application\Communications.Application.csproj" />
 	</ItemGroup>
 
 </Project>

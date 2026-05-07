@@ -23,7 +23,7 @@
 		<ProjectReference Include="..\..\Search\Domain\Search.Domain.csproj" />
 		<ProjectReference Include="..\Application\Sea.Application.csproj" />
 		<ProjectReference Include="..\Domain\Sea.Domain.csproj" />
-		<ProjectReference Include="..\..\Reminders\Infrastructure\Reminders.Infrastructure.csproj" />
+		<ProjectReference Include="..\..\Communications\Infrastructure\Communications.Infrastructure.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -80,7 +80,7 @@ internal class EventsService(
     public Task<int> UncommitAllByProcedureAsync(Guid procedureId, CancellationToken cancellationToken)
         => Mediator.Send(new UncommitProcedureEventsCommand(procedureId), cancellationToken);
 
-    public async Task<int> GetRemindersCountAsync(Guid eventId, CancellationToken cancellationToken) => (await CountAsync<Vitarish.Reminders.Domain.Entities.Reminder, Vitarish.Reminders.Domain.Models.ReminderDescriptor>(new() { SourceId = eventId }, cancellationToken))
+    public async Task<int> GetRemindersCountAsync(Guid eventId, CancellationToken cancellationToken) => (await CountAsync<Vitarish.Communications.Domain.Entities.Reminder, Vitarish.Communications.Domain.Models.ReminderDescriptor>(new() { SourceId = eventId }, cancellationToken))
             .EnsureValue("Count event reminders");
 
     public async Task<EventSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken)

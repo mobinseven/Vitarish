@@ -3,8 +3,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Communications.Application.Abstractions;
+using Vitarish.Communications.Infrastructure.Data;
+using Vitarish.Communications.Infrastructure.DependencyInjection;
+using Vitarish.Communications.Infrastructure.Serializers;
 using Vitarish.Communications.Infrastructure.Services;
 using Vitarish.Communications.Infrastructure.Wrappers.SmsDotIr;
+using Vitarish.Communications.Interface.DependencyInjection;
 using Vitarish.Modules.Base;
 
 namespace Vitarish.Communications.Hosting;
@@ -15,9 +19,20 @@ public class CommunicationModule : Module, ICommunicationsModule
     public override Task Initialize(WebApplication app) => Task.CompletedTask;
     public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
-
         _ = builder.Services.AddSingleton<ICommunicationsModule, CommunicationModule>();
         _ = builder.Services.AddTransient<IMessagesService, MessagesService>();
         _ = builder.Services.AddTransient<ISmsProvider, SmsDotIrProvider>();
+
+        builder.Services.AddVitarishCommunicationsDomainEntityHandlers();
+
+        _ = builder.Services.AddDbContext<RemindersDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
+
+        _ = builder.Services.AddRemindersInfrastructure();
+
+        _ = builder.Services.ConfigureHttpJsonOptions(options =>
+            options.SerializerOptions.TypeInfoResolverChain.Insert(0, CommunicationsJsonSerializerContext.Default));
+
+        _ = builder.Services.ConfigureCommunicationsInterface();
     }
 }
+

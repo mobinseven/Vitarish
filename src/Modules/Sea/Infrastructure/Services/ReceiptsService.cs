@@ -4,7 +4,7 @@ namespace Vitarish.Sea.Infrastructure.Services;
 internal class ReceiptsService(
     IMediator mediator,
     IAttachmentsService attachmentsService,
-    Vitarish.Reminders.Application.Abstractions.IRemindersService remindersService)
+    Vitarish.Communications.Application.Abstractions.IRemindersService remindersService)
     : EntityService<Receipt, ReceiptDescriptor, ReceiptReadDto, ReceiptWriteDto, ReceiptDescriptorDto>
     (
         mediator,
@@ -97,8 +97,8 @@ internal class ReceiptsService(
             _ = await AddAsync(userId, attachment.Id, cancellationToken);
         }
 
-        IReadOnlyList<Vitarish.Reminders.Domain.Dto.ReminderReadDto> reminders = await remindersService.GetBySourceAsync(eventId, cancellationToken);
-        foreach (Vitarish.Reminders.Domain.Dto.ReminderReadDto reminder in reminders)
+        IReadOnlyList<Vitarish.Communications.Domain.Dto.ReminderReadDto> reminders = await remindersService.GetBySourceAsync(eventId, cancellationToken);
+        foreach (Vitarish.Communications.Domain.Dto.ReminderReadDto reminder in reminders)
         {
             _ = await AddAsync(userId, reminder.Id, cancellationToken);
         }
@@ -115,8 +115,8 @@ internal class ReceiptsService(
             await RemoveReceiptAsync(createdBy, attachment.Id, cancellationToken);
         }
 
-        IReadOnlyList<Vitarish.Reminders.Domain.Dto.ReminderReadDto> reminders = await remindersService.GetBySourceAsync(eventId, cancellationToken);
-        foreach (Vitarish.Reminders.Domain.Dto.ReminderReadDto reminder in reminders)
+        IReadOnlyList<Vitarish.Communications.Domain.Dto.ReminderReadDto> reminders = await remindersService.GetBySourceAsync(eventId, cancellationToken);
+        foreach (Vitarish.Communications.Domain.Dto.ReminderReadDto reminder in reminders)
         {
             await RemoveReceiptAsync(createdBy, reminder.Id, cancellationToken);
         }
