@@ -1,11 +1,14 @@
-@page "/Admin/Search/Widget"
+@page "/Admin/Search"
 @inherits AdminCommonBase
-@using Vitarish.Search.Domain.Models
 @using Vitarish.Search.Interface.Components
 
+
+@using Vitarish.Search.Domain.Models
+
+<SearchIndexStatusPanel />
+
 <Stack>
-    <StackField Label="@Localizer["SearchWidgetTester"]" Color="Color.Primary" />
-    <StackField Label="@Localizer["SearchWidgetTesterHint"]" Color="Color.Secondary" />
+    <StackField Label="@Localizer["SearchWidgetTester"]" HelperText="@Localizer["SearchWidgetTesterHint"]" />
     <StackTextField Label="@Localizer["IndexName"]" @bind-Value="_indexName" />
     <StackTextField Label="@Localizer["Type"]" @bind-Value="_searchType" />
     <StackNumericField Label="@Localizer["PageSize"]" @bind-Value="SearchLimit" Min="1" Max="@SearchOptions.MaxLimit" />
