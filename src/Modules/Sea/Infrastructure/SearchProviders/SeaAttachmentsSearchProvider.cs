@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Search.Domain.Abstractions;
 using Vitarish.Search.Domain.Models;
 using Vitarish.Sea.Infrastructure.Data;
@@ -10,13 +11,17 @@ namespace Vitarish.Sea.Infrastructure.SearchProviders;
 /// Only attachments with a text-based content type (e.g. text/plain, text/csv) are indexed;
 /// binary attachments are skipped. The attachment's Content column is indexed directly.
 /// </summary>
-internal sealed class SeaAttachmentsSearchProvider(SeaDbContext dbContext) : ISearchIndexProvider
+internal sealed class SeaAttachmentsSearchProvider(SeaDbContext dbContext, IRequestContext requestContext) : ISearchIndexProvider
 {
     public string IndexName => "sea.attachments";
 
     public async Task<IReadOnlyList<SearchDocument>> GetDocumentsAsync(
         CancellationToken cancellationToken = default)
     {
+        string tenantId = !string.IsNullOrWhiteSpace(requestContext.TenantId)
+            ? requestContext.TenantId
+            : throw new InvalidOperationException("Tenant ID must be set before indexing search documents.");
+
         var rows = await dbContext.Attachments
             .AsNoTracking()
             .Where(a => a.ContentType.StartsWith("text/"))
@@ -29,6 +34,7 @@ internal sealed class SeaAttachmentsSearchProvider(SeaDbContext dbContext) : ISe
             Title = a.ContentType,
             Body = a.Content,
             Type = "attachment",
+            TenantId = tenantId,
             NavigationUrl = $"/sea/attachments/{a.Id}",
             Metadata = new Dictionary<string, object?>
             {
