@@ -254,68 +254,6 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.SessionReminderPolicy", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("BodyTemplate")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("Kind")
-                        .HasColumnType("int");
-
-                    b.Property<TimeSpan>("OffsetBeforeOccurrenceStart")
-                        .HasColumnType("time");
-
-                    b.Property<string>("QualifyingReservationStatuses")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("SessionId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("SubjectTemplate")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SessionId", "Kind", "OffsetBeforeOccurrenceStart");
-
-                    b.ToTable("SessionReminderPolicies");
-
-                    b.HasAnnotation("Finbuckle:MultiTenant", true);
-                });
-
             modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.Session", b =>
                 {
                     b.Property<Guid>("Id")
@@ -471,15 +409,6 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
 
                     b.Navigation("Session");
                 });
-            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.SessionReminderPolicy", b =>
-                {
-                    b.HasOne("Vitarish.Appointments.Domain.Entities.Session", null)
-                        .WithMany()
-                        .HasForeignKey("SessionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
 #pragma warning restore 612, 618
         }
     }
