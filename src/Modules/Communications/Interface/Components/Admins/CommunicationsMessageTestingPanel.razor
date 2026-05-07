@@ -1,4 +1,5 @@
 @inherits CommonBase
+@using Vitarish.Communications.Domain.Models
 
 <Stack>
     <StackField Label="@Localizer["CommunicationsMessages"]" />
@@ -6,6 +7,10 @@
     <StackTextField Label="@Localizer["Subject"]" @bind-Value="subject" />
     <StackTextField Label="@Localizer["Body"]" @bind-Value="body" Lines="4" AutoGrow />
     <StackTextField Label="@Localizer["HtmlBody"]" @bind-Value="htmlBody" Lines="4" AutoGrow />
+    <StackTextField Label="@Localizer["Project"]" @bind-Value="reminderProject" />
+    <StackTextField Label="@Localizer["Procedure"]" @bind-Value="reminderProcedure" />
+    <StackTextField Label="@Localizer["Event"]" @bind-Value="reminderEvent" />
+    <StackTextField Label="@Localizer["Tenant"]" @bind-Value="reminderTenant" />
 
     <StackButton Label="@Localizer["SendEmail"]"
                  EndIcon="fa-regular fa-envelope"
@@ -45,6 +50,10 @@
     private string subject = "Manual Communications Test";
     private string body = "Manual communications message test.";
     private string htmlBody = "<p>Manual communications message test.</p>";
+    private string? reminderProject;
+    private string? reminderProcedure;
+    private string? reminderEvent;
+    private string? reminderTenant;
 
     private string? lastSmsMessageId;
     private string? status;
@@ -60,7 +69,7 @@
 
         try
         {
-            await MessagesService.SendEmail(new Vitarish.Communications.Domain.Models.Message
+            await MessagesService.SendEmail(new Message
             {
                 Recipient = recipient,
                 Subject = subject,
@@ -86,7 +95,7 @@
 
         try
         {
-            Vitarish.Communications.Domain.Models.SmsSendResult result = await MessagesService.SendSms(new Vitarish.Communications.Domain.Models.Message
+            SmsSendResult result = await MessagesService.SendSms(new Message
             {
                 Recipient = recipient,
                 Subject = subject,
@@ -112,7 +121,7 @@
 
         try
         {
-            await MessagesService.SendSmsCode(new Vitarish.Communications.Domain.Models.Message
+            await MessagesService.SendSmsCode(new Message
             {
                 Recipient = recipient,
                 Body = body
@@ -136,7 +145,13 @@
 
         try
         {
-            await MessagesService.SendSmsReminder(recipient, cancellationToken: CancellationToken.None);
+            await MessagesService.SendSmsReminder(
+                recipient,
+                project: reminderProject,
+                procedure: reminderProcedure,
+                evnt: reminderEvent,
+                tenant: reminderTenant,
+                cancellationToken: CancellationToken.None);
             SetStatus(Localizer["SmsReminderSent"].Value, Severity.Success);
         }
         catch (Exception ex)
@@ -155,8 +170,12 @@
 
         try
         {
-            Vitarish.Communications.Domain.Models.SmsDeliveryState state = await MessagesService.GetSmsDeliveryStateAsync(messageId, CancellationToken.None);
-            SetStatus($"{state.Status ?? Localizer["Unknown"]}: {state.MessageText ?? string.Empty}", Severity.Info);
+            SmsDeliveryState state = await MessagesService.GetSmsDeliveryStateAsync(messageId, CancellationToken.None);
+            string stateStatus = state.Status ?? Localizer["Unknown"].Value;
+            string stateMessage = string.IsNullOrWhiteSpace(state.MessageText)
+                ? stateStatus
+                : $"{stateStatus}: {state.MessageText}";
+            SetStatus(stateMessage, Severity.Info);
         }
         catch (Exception ex)
         {

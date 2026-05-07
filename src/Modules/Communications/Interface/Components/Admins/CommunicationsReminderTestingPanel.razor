@@ -26,7 +26,7 @@
                  OnClick="UseUserAddress" />
 
     <StackTextField Label="@Localizer["Subject"]" @bind-Value="subject" />
-    <StackTextField Label="@Localizer["Body"]" @bind-Value="textBody" Lines="4" AutoGrow />
+    <StackTextField Label="@Localizer["Body"]" @bind-Value="body" Lines="4" AutoGrow />
 
     <StackDatePicker Label="@Localizer["Date"]" @bind-Date="remindDate" />
     <StackTimePicker Label="@Localizer["Time"]" @bind-Time="remindTime" />
@@ -61,8 +61,8 @@
                     <tr>
                         <td>@reminder.Subject</td>
                         <td>@reminder.Recipient</td>
-                        <td>@reminder.RemindAt.ToLocalTime().DateTime.ToString("g")</td>
-                        <td>@(reminder.SentAt?.ToLocalTime().DateTime.ToString("g") ?? "-")</td>
+                        <td>@reminder.RemindAt.ToLocalTime().DateTime.ToString(ReminderDateTimeFormat)</td>
+                        <td>@(reminder.SentAt?.ToLocalTime().DateTime.ToString(ReminderDateTimeFormat) ?? "-")</td>
                     </tr>
                 }
             </tbody>
@@ -71,18 +71,30 @@
 </Stack>
 
 @code {
-    private string sourceIdInput = Guid.NewGuid().ToString();
+    private const int DefaultReminderDelayMinutes = 5;
+    private const string ReminderDateTimeFormat = "g";
+
+    private string sourceIdInput = string.Empty;
     private string? recipientUserId;
     private ReminderKind kind = ReminderKind.Email;
     private string recipient = string.Empty;
-    private string subject = "Manual Reminder Test";
-    private string textBody = "Manual reminder test.";
-    private DateTime? remindDate = DateTime.Now.Date;
-    private TimeSpan? remindTime = DateTime.Now.AddMinutes(5).TimeOfDay;
+    private string subject = "Manual reminder test";
+    private string body = "Manual reminder test.";
+    private DateTime? remindDate;
+    private TimeSpan? remindTime;
 
     private IReadOnlyList<ReminderReadDto> sourceReminders = [];
     private string? status;
     private Severity statusSeverity = Severity.Info;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        DateTimeOffset now = DateTimeOffset.Now;
+        sourceIdInput = Guid.NewGuid().ToString();
+        remindDate = now.Date;
+        remindTime = now.AddMinutes(DefaultReminderDelayMinutes).TimeOfDay;
+    }
 
     private void GenerateSourceId()
     {
@@ -91,20 +103,18 @@
         status = null;
     }
 
-    private Task OnKindChanged(ReminderKind value)
+    private void OnKindChanged(ReminderKind value)
     {
         kind = value;
-        return UseUserAddress();
+        UseUserAddress();
     }
 
-    private Task UseUserAddress()
+    private void UseUserAddress()
     {
         if (!string.IsNullOrWhiteSpace(recipientUserId))
         {
             recipient = GetUserAddressById(recipientUserId, kind) ?? recipient;
         }
-
-        return Task.CompletedTask;
     }
 
     private async Task CreateReminderAsync()
@@ -127,9 +137,16 @@
             return;
         }
 
-        DateTime date = remindDate?.Date ?? DateTime.Now.Date;
-        TimeSpan time = remindTime ?? DateTime.Now.TimeOfDay;
-        DateTimeOffset remindAt = new(date.Add(time), DateTimeOffset.Now.Offset);
+        if (remindDate is null || remindTime is null)
+        {
+            SetStatus(Localizer["ReminderDateTimeIsRequired"].Value, Severity.Warning);
+            return;
+        }
+
+        DateTime date = remindDate.Value.Date;
+        TimeSpan time = remindTime.Value;
+        DateTime remindAtDateTime = date.Add(time);
+        DateTimeOffset remindAt = new(remindAtDateTime, TimeZoneInfo.Local.GetUtcOffset(remindAtDateTime));
 
         ReminderReadDto? created = await RemindersService.AddAsync(new ReminderWriteDto(
             sourceId,
@@ -137,7 +154,7 @@
             recipientUserId,
             recipient,
             subject,
-            textBody,
+            body,
             remindAt,
             null,
             false
