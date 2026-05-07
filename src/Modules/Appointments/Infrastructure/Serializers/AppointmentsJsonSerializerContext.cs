@@ -27,5 +27,12 @@ namespace Vitarish.Appointments.Infrastructure.Serializers;
 [JsonSerializable(typeof(CapacityPolicyWriteDto))]
 [JsonSerializable(typeof(BookingPolicyReadDto))]
 [JsonSerializable(typeof(BookingPolicyWriteDto))]
+[JsonSerializable(typeof(SessionReminderPolicyReadDto))]
+[JsonSerializable(typeof(SessionReminderPolicyWriteDto))]
+[JsonSerializable(typeof(SessionReminderPolicyDescriptorDto))]
+[JsonSerializable(typeof(SessionReminderKind))]
+[JsonSerializable(typeof(HashSet<ReservationStatus>))]
+[JsonSerializable(typeof(IReadOnlyList<SessionReminderPolicyReadDto>))]
+[JsonSerializable(typeof(IReadOnlyList<SessionReminderPolicyWriteDto>))]
 [JsonSerializable(typeof(AuditEntryReadDto))]
 public partial class AppointmentsJsonSerializerContext : JsonSerializerContext;

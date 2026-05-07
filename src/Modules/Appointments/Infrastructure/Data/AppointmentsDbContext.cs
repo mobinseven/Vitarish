@@ -2,6 +2,7 @@ using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Text.Json;
 using Vitarish.Requests.Application.Abstractions;
@@ -35,6 +36,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
     public DbSet<Reservation> Reservations => Set<Reservation>();
     public DbSet<CapacityPolicy> CapacityPolicies => Set<CapacityPolicy>();
     public DbSet<BookingPolicy> BookingPolicies => Set<BookingPolicy>();
+    public DbSet<SessionReminderPolicy> SessionReminderPolicies => Set<SessionReminderPolicy>();
     public DbSet<AppointmentAuditEntry> AuditEntries => Set<AppointmentAuditEntry>();
 
     public AppointmentsDbContext(
@@ -76,6 +78,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
         ConfigureTenantEntity<Reservation>(modelBuilder);
         ConfigureTenantEntity<CapacityPolicy>(modelBuilder);
         ConfigureTenantEntity<BookingPolicy>(modelBuilder);
+        ConfigureTenantEntity<SessionReminderPolicy>(modelBuilder);
         ConfigureTenantEntity<AppointmentAuditEntry>(modelBuilder);
 
         _ = modelBuilder.Entity<SessionOccurrence>(entity =>
@@ -104,6 +107,26 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
         _ = modelBuilder.Entity<BookingPolicy>(entity =>
         {
             _ = entity.HasIndex(p => p.SessionId).IsUnique();
+        });
+
+        _ = modelBuilder.Entity<SessionReminderPolicy>(entity =>
+        {
+            _ = entity.HasOne<Session>()
+                .WithMany()
+                .HasForeignKey(p => p.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasIndex(p => new { p.SessionId, p.Kind, p.OffsetBeforeOccurrenceStart });
+
+            var statusesProperty = entity.Property(p => p.QualifyingReservationStatuses)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => JsonSerializer.Deserialize<HashSet<ReservationStatus>>(v, (JsonSerializerOptions)null) ?? []);
+
+            statusesProperty.Metadata.SetValueComparer(new ValueComparer<HashSet<ReservationStatus>>(
+                (left, right) => left != null && right != null && left.SetEquals(right),
+                statuses => statuses.Aggregate(0, (hash, status) => HashCode.Combine(hash, status.GetHashCode())),
+                statuses => statuses.ToHashSet()));
         });
 
         _ = modelBuilder.Entity<Session>(entity =>
