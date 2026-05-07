@@ -1,0 +1,191 @@
+@inherits CommonBase
+@using Vitarish.Communications.Domain.Models
+
+<Stack>
+    <StackField Label="@Localizer["CommunicationsMessages"]" />
+    <StackTextField Label="@Localizer["Recipient"]" @bind-Value="recipient" />
+    <StackTextField Label="@Localizer["Subject"]" @bind-Value="subject" />
+    <StackTextField Label="@Localizer["Body"]" @bind-Value="body" Lines="4" AutoGrow />
+    <StackTextField Label="@Localizer["HtmlBody"]" @bind-Value="htmlBody" Lines="4" AutoGrow />
+    <StackTextField Label="@Localizer["Project"]" @bind-Value="reminderProject" />
+    <StackTextField Label="@Localizer["Procedure"]" @bind-Value="reminderProcedure" />
+    <StackTextField Label="@Localizer["Event"]" @bind-Value="reminderEvent" />
+    <StackTextField Label="@Localizer["Tenant"]" @bind-Value="reminderTenant" />
+
+    <StackButton Label="@Localizer["SendEmail"]"
+                 EndIcon="fa-regular fa-envelope"
+                 Color="Color.Primary"
+                 OnClick="SendEmailAsync" />
+    <StackButton Label="@Localizer["SendSms"]"
+                 EndIcon="fa-regular fa-message-sms"
+                 Color="Color.Primary"
+                 OnClick="SendSmsAsync" />
+    <StackButton Label="@Localizer["SendSmsCode"]"
+                 EndIcon="fa-regular fa-key"
+                 Color="Color.Default"
+                 OnClick="SendSmsCodeAsync" />
+    <StackButton Label="@Localizer["SendSmsReminder"]"
+                 EndIcon="fa-regular fa-bell-ring"
+                 Color="Color.Default"
+                 OnClick="SendSmsReminderAsync" />
+
+    @if (!string.IsNullOrWhiteSpace(lastSmsMessageId))
+    {
+        <StackTextField Label="@Localizer["MessageId"]" @bind-Value="lastSmsMessageId" />
+        <StackButton Label="@Localizer["CheckSmsDeliveryState"]"
+                     EndIcon="fa-regular fa-chart-line-up-down"
+                     OnClick="CheckDeliveryStateAsync" />
+    }
+
+    @if (!string.IsNullOrWhiteSpace(status))
+    {
+        <MudAlert Severity="@statusSeverity">@status</MudAlert>
+    }
+</Stack>
+
+@code {
+    [Inject] private IMessagesService MessagesService { get; set; } = default!;
+
+    private string recipient = string.Empty;
+    private string subject = "Manual Communications Test";
+    private string body = "Manual communications message test.";
+    private string htmlBody = "<p>Manual communications message test.</p>";
+    private string? reminderProject;
+    private string? reminderProcedure;
+    private string? reminderEvent;
+    private string? reminderTenant;
+
+    private string? lastSmsMessageId;
+    private string? status;
+    private Severity statusSeverity = Severity.Info;
+
+    private async Task SendEmailAsync()
+    {
+        if (string.IsNullOrWhiteSpace(recipient))
+        {
+            SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            await MessagesService.SendEmail(new Message
+            {
+                Recipient = recipient,
+                Subject = subject,
+                Body = body,
+                HtmlBody = htmlBody
+            }, CancellationToken.None);
+
+            SetStatus(Localizer["EmailSent"].Value, Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            SetStatus(ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task SendSmsAsync()
+    {
+        if (string.IsNullOrWhiteSpace(recipient))
+        {
+            SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            SmsSendResult result = await MessagesService.SendSms(new Message
+            {
+                Recipient = recipient,
+                Subject = subject,
+                Body = body
+            }, CancellationToken.None);
+
+            lastSmsMessageId = result.MessageId;
+            SetStatus($"{Localizer["SmsSent"]}: {result.MessageId}", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            SetStatus(ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task SendSmsCodeAsync()
+    {
+        if (string.IsNullOrWhiteSpace(recipient))
+        {
+            SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            await MessagesService.SendSmsCode(new Message
+            {
+                Recipient = recipient,
+                Body = body
+            }, CancellationToken.None);
+
+            SetStatus(Localizer["SmsCodeSent"].Value, Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            SetStatus(ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task SendSmsReminderAsync()
+    {
+        if (string.IsNullOrWhiteSpace(recipient))
+        {
+            SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            await MessagesService.SendSmsReminder(
+                recipient,
+                project: reminderProject,
+                procedure: reminderProcedure,
+                evnt: reminderEvent,
+                tenant: reminderTenant,
+                cancellationToken: CancellationToken.None);
+            SetStatus(Localizer["SmsReminderSent"].Value, Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            SetStatus(ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task CheckDeliveryStateAsync()
+    {
+        if (!long.TryParse(lastSmsMessageId, out long messageId))
+        {
+            SetStatus(Localizer["InvalidMessageId"].Value, Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            SmsDeliveryState state = await MessagesService.GetSmsDeliveryStateAsync(messageId, CancellationToken.None);
+            string stateStatus = state.Status ?? Localizer["Unknown"].Value;
+            string stateMessage = string.IsNullOrWhiteSpace(state.MessageText)
+                ? stateStatus
+                : $"{stateStatus}: {state.MessageText}";
+            SetStatus(stateMessage, Severity.Info);
+        }
+        catch (Exception ex)
+        {
+            SetStatus(ex.Message, Severity.Error);
+        }
+    }
+
+    private void SetStatus(string message, Severity severity)
+    {
+        status = message;
+        statusSeverity = severity;
+    }
+}
