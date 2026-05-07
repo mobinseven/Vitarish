@@ -17,12 +17,7 @@
     private string? _indexName;
     private string? _searchType;
     private int _limit = SearchOptions.DefaultLimit;
-    private SearchOptions _options = default!;
-
-    protected override void OnInitialized()
-    {
-        _options = CreateOptions(_limit);
-    }
+    private SearchOptions _options = CreateOptions(SearchOptions.DefaultLimit);
 
     private int Limit
     {
@@ -30,7 +25,11 @@
         set
         {
             _limit = value;
-            _options = CreateOptions(value);
+            int normalizedLimit = SearchOptions.NormalizeLimit(value);
+            if (_options.Limit != normalizedLimit)
+            {
+                _options = CreateOptions(normalizedLimit);
+            }
         }
     }
 
