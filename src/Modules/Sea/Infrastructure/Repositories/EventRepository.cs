@@ -81,47 +81,57 @@ internal class EventRepository(SeaDbContext dbContext)
         return query;
     }
 
+    private async Task PopulateStatsAsync(IReadOnlyList<Event> events, CancellationToken cancellationToken)
+    {
+        if (events.Count == 0)
+        {
+            return;
+        }
+
+        List<Guid> eventIds = [.. events.Select(@event => @event.Id)];
+
+        Dictionary<Guid, EventStats> stats = await dbContext.Set<EventStats>()
+            .AsNoTracking()
+            .Where(stat => eventIds.Contains(stat.EventId))
+            .ToDictionaryAsync(stat => stat.EventId, cancellationToken);
+
+        foreach (Event @event in events)
+        {
+            @event.Stats = stats.TryGetValue(@event.Id, out EventStats? stat)
+                ? stat
+                : new EventStats { EventId = @event.Id };
+        }
+    }
+
+    private Task PopulateStatsAsync(Event @event, CancellationToken cancellationToken)
+        => PopulateStatsAsync([@event], cancellationToken);
+
     public new async Task<Event?> GetAsync(Guid id, CancellationToken cancellationToken)
     {
-        var result = await Set.AsNoTracking()
-            .Where(e => e.Id == id)
-            .Select(e => new
-            {
-                Entity = e,
-                Stats = dbContext.Set<EventStats>().FirstOrDefault(s => s.EventId == e.Id)
-            })
-            .FirstOrDefaultAsync(cancellationToken);
+        Event? @event = await base.GetAsync(id, cancellationToken);
 
-        if (result is null)
+        if (@event is null)
         {
             return null;
         }
 
-        result.Entity.Stats = result.Stats ?? new EventStats { EventId = id };
-        return result.Entity;
+        await PopulateStatsAsync(@event, cancellationToken);
+
+        return @event;
     }
 
     public new async Task<IReadOnlyList<Event>> GetAsync(EventDescriptor descriptor, CancellationToken cancellationToken)
     {
-        if (descriptor.IncludeStats == false)
+        IReadOnlyList<Event> events = await base.GetAsync(descriptor, cancellationToken);
+
+        if (events.Count == 0 || descriptor.IncludeStats == false)
         {
-            return await base.GetAsync(descriptor, cancellationToken);
+            return events;
         }
 
-        var results = await ApplyCore(Set.AsNoTracking(), descriptor)
-            .Select(e => new
-            {
-                Entity = e,
-                Stats = dbContext.Set<EventStats>().FirstOrDefault(s => s.EventId == e.Id)
-            })
-            .ToListAsync(cancellationToken);
+        await PopulateStatsAsync(events, cancellationToken);
 
-        foreach (var result in results)
-        {
-            result.Entity.Stats = result.Stats ?? new EventStats { EventId = result.Entity.Id };
-        }
-
-        return results.ConvertAll(r => r.Entity);
+        return events;
     }
 
     Task<Event?> IEntityRepository<Event, EventDescriptor>.GetAsync(Guid id, CancellationToken cancellationToken)

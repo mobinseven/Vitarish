@@ -44,47 +44,57 @@ internal class ProcedureRepository(SeaDbContext dbContext)
         return query;
     }
 
+    private async Task PopulateStatsAsync(IReadOnlyList<Procedure> procedures, CancellationToken cancellationToken)
+    {
+        if (procedures.Count == 0)
+        {
+            return;
+        }
+
+        List<Guid> procedureIds = [.. procedures.Select(procedure => procedure.Id)];
+
+        Dictionary<Guid, ProcedureStats> stats = await dbContext.Set<ProcedureStats>()
+            .AsNoTracking()
+            .Where(stat => procedureIds.Contains(stat.ProcedureId))
+            .ToDictionaryAsync(stat => stat.ProcedureId, cancellationToken);
+
+        foreach (Procedure procedure in procedures)
+        {
+            procedure.Stats = stats.TryGetValue(procedure.Id, out ProcedureStats? stat)
+                ? stat
+                : new ProcedureStats { ProcedureId = procedure.Id };
+        }
+    }
+
+    private Task PopulateStatsAsync(Procedure procedure, CancellationToken cancellationToken)
+        => PopulateStatsAsync(new[] { procedure }, cancellationToken);
+
     public new async Task<Procedure?> GetAsync(Guid id, CancellationToken cancellationToken)
     {
-        var result = await Set.AsNoTracking()
-            .Where(p => p.Id == id)
-            .Select(p => new
-            {
-                Entity = p,
-                Stats = dbContext.Set<ProcedureStats>().FirstOrDefault(s => s.ProcedureId == p.Id)
-            })
-            .FirstOrDefaultAsync(cancellationToken);
+        Procedure? procedure = await base.GetAsync(id, cancellationToken);
 
-        if (result is null)
+        if (procedure is null)
         {
             return null;
         }
 
-        result.Entity.Stats = result.Stats ?? new ProcedureStats { ProcedureId = id };
-        return result.Entity;
+        await PopulateStatsAsync(procedure, cancellationToken);
+
+        return procedure;
     }
 
     public new async Task<IReadOnlyList<Procedure>> GetAsync(ProcedureDescriptor descriptor, CancellationToken cancellationToken)
     {
-        if (descriptor.IncludeStats == false)
+        IReadOnlyList<Procedure> procedures = await base.GetAsync(descriptor, cancellationToken);
+
+        if (procedures.Count == 0 || descriptor.IncludeStats == false)
         {
-            return await base.GetAsync(descriptor, cancellationToken);
+            return procedures;
         }
 
-        var results = await ApplyCore(Set.AsNoTracking(), descriptor)
-            .Select(p => new
-            {
-                Entity = p,
-                Stats = dbContext.Set<ProcedureStats>().FirstOrDefault(s => s.ProcedureId == p.Id)
-            })
-            .ToListAsync(cancellationToken);
+        await PopulateStatsAsync(procedures, cancellationToken);
 
-        foreach (var result in results)
-        {
-            result.Entity.Stats = result.Stats ?? new ProcedureStats { ProcedureId = result.Entity.Id };
-        }
-
-        return results.ConvertAll(r => r.Entity);
+        return procedures;
     }
 
     Task<Procedure?> IEntityRepository<Procedure, ProcedureDescriptor>.GetAsync(Guid id, CancellationToken cancellationToken)

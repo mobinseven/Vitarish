@@ -46,56 +46,53 @@ internal class SessionRepository(AppointmentsDbContext dbContext)
     async Task<Session?> IEntityRepository<Session, SessionDescriptor>.GetAsync(
         Guid id, CancellationToken cancellationToken)
     {
-        var result = await Set.AsNoTracking()
-            .Where(s => s.Id == id)
-            .Select(s => new
-            {
-                Entity = s,
-                ReservationCount = dbContext.Reservations
-                    .Count(r => dbContext.SessionOccurrences
-                        .Where(o => o.SessionId == s.Id)
-                        .Select(o => o.Id)
-                        .Contains(r.SessionOccurrenceId)
-                        && r.Status != ReservationStatus.Cancelled
-                        && r.Status != ReservationStatus.Expired
-                        && r.Status != ReservationStatus.Rejected
-                        && !r.IsHold)
-            })
-            .FirstOrDefaultAsync(cancellationToken);
-
-        if (result is null)
+        Session? session = await base.GetAsync(id, cancellationToken);
+        if (session is not null)
         {
-            return null;
+            await PopulateStatsAsync([session], cancellationToken);
         }
-
-        result.Entity.Stats = new SessionStats { ReservationCount = result.ReservationCount };
-        return result.Entity;
+        return session;
     }
 
     async Task<IReadOnlyList<Session>> IEntityRepository<Session, SessionDescriptor>.GetAsync(
         SessionDescriptor descriptor, CancellationToken cancellationToken)
     {
-        var results = await ApplyCore(Set.AsNoTracking(), descriptor)
-            .Select(s => new
-            {
-                Entity = s,
-                ReservationCount = dbContext.Reservations
-                    .Count(r => dbContext.SessionOccurrences
-                        .Where(o => o.SessionId == s.Id)
-                        .Select(o => o.Id)
-                        .Contains(r.SessionOccurrenceId)
-                        && r.Status != ReservationStatus.Cancelled
-                        && r.Status != ReservationStatus.Expired
-                        && r.Status != ReservationStatus.Rejected
-                        && !r.IsHold)
-            })
-            .ToListAsync(cancellationToken);
+        IReadOnlyList<Session> sessions = await base.GetAsync(descriptor, cancellationToken);
+        await PopulateStatsAsync(sessions, cancellationToken);
+        return sessions;
+    }
 
-        foreach (var result in results)
+    private async Task PopulateStatsAsync(IEnumerable<Session> sessions, CancellationToken cancellationToken)
+    {
+        List<Guid> sessionIds = [.. sessions.Select(s => s.Id)];
+        if (sessionIds.Count == 0)
         {
-            result.Entity.Stats = new SessionStats { ReservationCount = result.ReservationCount };
+            return;
         }
 
-        return results.ConvertAll(r => r.Entity);
+        Dictionary<Guid, int> counts = await dbContext.Reservations
+            .Where(r => dbContext.SessionOccurrences
+                .Where(o => sessionIds.Contains(o.SessionId))
+                .Select(o => o.Id)
+                .Contains(r.SessionOccurrenceId)
+                && r.Status != ReservationStatus.Cancelled
+                && r.Status != ReservationStatus.Expired
+                && r.Status != ReservationStatus.Rejected
+                && !r.IsHold)
+            .Join(dbContext.SessionOccurrences,
+                r => r.SessionOccurrenceId,
+                o => o.Id,
+                (r, o) => new { o.SessionId })
+            .GroupBy(x => x.SessionId)
+            .Select(g => new { SessionId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.SessionId, x => x.Count, cancellationToken);
+
+        foreach (Session session in sessions)
+        {
+            session.Stats = new SessionStats
+            {
+                ReservationCount = counts.GetValueOrDefault(session.Id, 0)
+            };
+        }
     }
 }

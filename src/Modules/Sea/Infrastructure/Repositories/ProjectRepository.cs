@@ -59,58 +59,88 @@ internal class ProjectRepository(SeaDbContext dbContext)
         return query;
     }
 
+    private async Task PopulateStatsAsync(IReadOnlyList<Project> projects, CancellationToken cancellationToken)
+    {
+        if (projects.Count == 0)
+        {
+            return;
+        }
+
+        List<Guid> projectIds = [.. projects.Select(project => project.Id)];
+
+        Dictionary<Guid, ProjectStats> stats = await dbContext.Set<ProjectStats>()
+            .AsNoTracking()
+            .Where(stat => projectIds.Contains(stat.ProjectId))
+            .ToDictionaryAsync(stat => stat.ProjectId, cancellationToken);
+
+        foreach (Project project in projects)
+        {
+            project.Stats = stats.TryGetValue(project.Id, out ProjectStats? stat)
+                ? stat
+                : new ProjectStats { ProjectId = project.Id };
+        }
+    }
+
+    private Task PopulateStatsAsync(Project project, CancellationToken cancellationToken)
+        => PopulateStatsAsync([project], cancellationToken);
+
+    private async Task PopulateUserIdsAsync(IReadOnlyList<Project> projects, CancellationToken cancellationToken)
+    {
+        if (projects.Count == 0)
+        {
+            return;
+        }
+
+        List<Guid> projectIds = [.. projects.Select(p => p.Id)];
+
+        ILookup<Guid, string> userIdsByProject = (await dbContext.ProjectUsers
+            .AsNoTracking()
+            .Where(pu => projectIds.Contains(pu.ProjectId))
+            .Select(pu => new { pu.ProjectId, pu.UserId })
+            .ToListAsync(cancellationToken))
+            .ToLookup(pu => pu.ProjectId, pu => pu.UserId);
+
+        foreach (Project project in projects)
+        {
+            project.UserIds = [.. userIdsByProject[project.Id]];
+        }
+    }
+
+    private Task PopulateUserIdsAsync(Project project, CancellationToken cancellationToken)
+        => PopulateUserIdsAsync([project], cancellationToken);
+
     public new async Task<Project?> GetAsync(Guid id, CancellationToken cancellationToken)
     {
-        var result = await Set.AsNoTracking()
-            .Where(p => p.Id == id)
-            .Select(p => new
-            {
-                Entity = p,
-                Stats = dbContext.Set<ProjectStats>().FirstOrDefault(s => s.ProjectId == p.Id),
-                UserIds = dbContext.ProjectUsers
-                    .Where(pu => pu.ProjectId == p.Id)
-                    .Select(pu => pu.UserId)
-                    .ToList()
-            })
-            .FirstOrDefaultAsync(cancellationToken);
+        Project? project = await base.GetAsync(id, cancellationToken);
 
-        if (result is null)
+        if (project is null)
         {
             return null;
         }
 
-        result.Entity.Stats = result.Stats ?? new ProjectStats { ProjectId = id };
-        result.Entity.UserIds = result.UserIds;
-        return result.Entity;
+        await PopulateStatsAsync(project, cancellationToken);
+        await PopulateUserIdsAsync(project, cancellationToken);
+
+        return project;
     }
 
     public new async Task<IReadOnlyList<Project>> GetAsync(ProjectDescriptor descriptor, CancellationToken cancellationToken)
     {
-        bool includeStats = descriptor.IncludeStats != false;
+        IReadOnlyList<Project> projects = await base.GetAsync(descriptor, cancellationToken);
 
-        var results = await ApplyCore(Set.AsNoTracking(), descriptor)
-            .Select(p => new
-            {
-                Entity = p,
-                Stats = dbContext.Set<ProjectStats>().FirstOrDefault(s => s.ProjectId == p.Id),
-                UserIds = dbContext.ProjectUsers
-                    .Where(pu => pu.ProjectId == p.Id)
-                    .Select(pu => pu.UserId)
-                    .ToList()
-            })
-            .ToListAsync(cancellationToken);
-
-        foreach (var result in results)
+        if (projects.Count == 0)
         {
-            if (includeStats)
-            {
-                result.Entity.Stats = result.Stats ?? new ProjectStats { ProjectId = result.Entity.Id };
-            }
-
-            result.Entity.UserIds = result.UserIds;
+            return projects;
         }
 
-        return results.ConvertAll(r => r.Entity);
+        if (descriptor.IncludeStats != false)
+        {
+            await PopulateStatsAsync(projects, cancellationToken);
+        }
+
+        await PopulateUserIdsAsync(projects, cancellationToken);
+
+        return projects;
     }
 
     Task<Project?> IEntityRepository<Project, ProjectDescriptor>.GetAsync(Guid id, CancellationToken cancellationToken)
