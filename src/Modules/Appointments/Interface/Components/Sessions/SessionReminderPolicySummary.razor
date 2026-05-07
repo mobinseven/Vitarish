@@ -1,0 +1,27 @@
+@inherits SessionsBase
+
+@if (AdminMode)
+{
+    <Stack>
+        <StackField Label="@Localizer["AutoReminders"]" HelperText="@SummaryHelperText" />
+        @if (isLoading)
+        {
+            <MudProgressLinear Indeterminate="true" />
+        }
+        else if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+        }
+        else if (enabledPolicies.Count == 0)
+        {
+            <StackField Label="@Localizer["Disabled"]" HelperText="@Localizer["NoItems", Localizer["Reminder"]]" />
+        }
+        else
+        {
+            @foreach (SessionReminderPolicyReadDto policy in enabledPolicies)
+            {
+                <StackField Label="@PolicyLabel(policy)" HelperText="@Localizer["Reminder"]" />
+            }
+        }
+    </Stack>
+}

@@ -3,6 +3,10 @@
 @if (Plugin is null)
 {
     <Stack>
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+        }
         <StackTextField @bind-Value="sessionWriteDto.Title" Label="@Localizer["Title"]" />
         <StackDatePicker @bind-Date="startDate" Label="@Localizer["StartDate"]" />
         <StackTimePicker @bind-Time="startTime" Label="@Localizer["StartTime"]" />
@@ -24,6 +28,7 @@
         </StackSelect>
         <StackCheckbox @bind-Value="sessionWriteDto.RequiresApproval" Label="@Localizer["RequiresApproval"]" />
         <StackCheckbox @bind-Value="sessionWriteDto.AllowRescheduling" Label="@Localizer["AllowRescheduling"]" />
+        <SessionReminderPoliciesEditor SessionId="sessionWriteDto.Id" PoliciesChanged="SetReminderPoliciesAsync" />
     </Stack>
     <Stack>
         <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" EndIcon="fa-regular fa-save" />

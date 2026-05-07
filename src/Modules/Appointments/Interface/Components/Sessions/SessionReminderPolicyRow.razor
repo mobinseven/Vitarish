@@ -1,0 +1,25 @@
+@inherits SessionsBase
+
+<Stack>
+    <MudCheckBox T="bool" Value="Policy.IsEnabled" ValueChanged="SetEnabledAsync" Label="@Localizer["Enabled"]" Disabled="@Disabled" />
+    <MudSelect T="SessionReminderKind" Label="@Localizer["Channel"]" Value="Policy.Kind" ValueChanged="SetKindAsync" Disabled="@Disabled">
+        @foreach (SessionReminderKind kind in SupportedChannels)
+        {
+            <MudSelectItem T="SessionReminderKind" Value="kind">@Localizer[kind.ToString()]</MudSelectItem>
+        }
+    </MudSelect>
+    <MudNumericField T="int"
+                     Label="@Localizer["HoursBefore"]"
+                     Value="OffsetHours"
+                     ValueChanged="SetOffsetHours"
+                     Min="1"
+                     Immediate="true"
+                     Disabled="@Disabled"
+                     Error="@(OffsetHours < 1)"
+                     ErrorText="@Localizer["ReminderPolicyOffsetMustBePositive"]" />
+    <StackButton Label="@Localizer["DeleteItem", Localizer["Reminder"]]"
+                 OnClick="RemoveAsync"
+                 Color="Color.Error"
+                 EndIcon="fa-regular fa-trash"
+                 Disabled="@Disabled" />
+</Stack>

@@ -1,0 +1,36 @@
+@inherits SessionsBase
+
+@if (AdminMode)
+{
+    <Stack>
+        <StackField Label="@Localizer["AutoReminders"]" HelperText="@Localizer["SessionReminderPoliciesHelp"]" />
+        @if (isLoading)
+        {
+            <MudProgressLinear Indeterminate="true" />
+        }
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+        }
+        <MudCheckBox T="bool"
+                     Value="autoRemindersEnabled"
+                     ValueChanged="SetAutoRemindersEnabledAsync"
+                     Label="@Localizer["EnableAutoReminders"]"
+                     Disabled="@isSaving" />
+    </Stack>
+
+    @if (autoRemindersEnabled)
+    {
+        <Stack>
+            @foreach (SessionReminderPolicyWriteDto policy in policies)
+            {
+                <SessionReminderPolicyRow Policy="policy" Disabled="@isSaving" OnRemove="RemovePolicyAsync" OnChanged="NotifyPoliciesChangedAsync" />
+            }
+            <StackButton Label="@Localizer["AddItem", Localizer["Reminder"]]"
+                         OnClick="AddPolicyAsync"
+                         Color="Color.Primary"
+                         EndIcon="fa-regular fa-plus"
+                         Disabled="@isSaving" />
+        </Stack>
+    }
+}
