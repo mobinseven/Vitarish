@@ -1880,4 +1880,49 @@ of project "{2}"</value>
   <data name="PageSize" xml:space="preserve">
     <value>Page Size</value>
   </data>
+  <data name="RemoveItem" xml:space="preserve">
+    <value>Remove {0}</value>
+  </data>
+  <data name="Policy" xml:space="preserve">
+    <value>Policy</value>
+  </data>
+  <data name="ReminderPolicies" xml:space="preserve">
+    <value>Reminder Policies</value>
+  </data>
+  <data name="Channel" xml:space="preserve">
+    <value>Channel</value>
+  </data>
+  <data name="Enabled" xml:space="preserve">
+    <value>Enabled</value>
+  </data>
+  <data name="Disabled" xml:space="preserve">
+    <value>Disabled</value>
+  </data>
+  <data name="HoursBefore" xml:space="preserve">
+    <value>Hours Before</value>
+  </data>
+  <data name="QualifyingStatuses" xml:space="preserve">
+    <value>Qualifying Statuses</value>
+  </data>
+  <data name="SubjectTemplate" xml:space="preserve">
+    <value>Subject Template</value>
+  </data>
+  <data name="BodyTemplate" xml:space="preserve">
+    <value>Body Template</value>
+  </data>
+  <data name="ReminderTemplateHelp" xml:space="preserve">
+    <value>Available variables: {{SessionTitle}}, {{OccurrenceStart}}</value>
+  </data>
+  <data name="PolicySummary" xml:space="preserve">
+    <value>{0} · {1}h before</value>
+  </data>
+  <data name="Waitlisted" xml:space="preserve">
+    <value>Waitlisted</value>
+  </data>
+  <data name="Rejected" xml:space="preserve">
+    <value>Rejected</value>
+  </data>
+  <data name="Expired" xml:space="preserve">
+    <value>Expired</value>
+  </data>
 </root>
