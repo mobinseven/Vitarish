@@ -29,7 +29,7 @@ public static class SearchServiceExtensions
                 settings = settings.Authentication(
                     new BasicAuthentication(esOptions.Username, esOptions.Password));
             }
-
+            settings.EnableDebugMode();
             return new ElasticsearchClient(settings);
         });
 
