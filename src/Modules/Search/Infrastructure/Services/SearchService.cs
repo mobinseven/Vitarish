@@ -2,6 +2,7 @@ using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Bulk;
 using Elastic.Clients.Elasticsearch.IndexManagement;
 using Elastic.Clients.Elasticsearch.QueryDsl;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Search.Domain.Abstractions;
@@ -14,12 +15,28 @@ namespace Vitarish.Search.Infrastructure.Services;
 /// Elasticsearch-backed implementation of <see cref="ISearchService"/>.
 /// Auto-discovers all registered <see cref="ISearchIndexProvider"/> instances via DI.
 /// </summary>
-internal sealed class SearchService(
-    ElasticsearchClient client,
-    IEnumerable<ISearchIndexProvider> providers,
-    IOptions<ElasticSearchOptions> options,
-    IRequestContext requestContext) : ISearchService
+internal sealed class SearchService : ISearchService
 {
+    private readonly ElasticsearchClient client;
+    private readonly IReadOnlyList<ISearchIndexProvider> providers;
+    private readonly ElasticSearchOptions options;
+    private readonly IRequestContext requestContext;
+
+    public SearchService(
+        ElasticsearchClient client,
+        IEnumerable<ISearchIndexProvider> providers,
+        IOptions<ElasticSearchOptions> options,
+        IRequestContext requestContext,
+        ILogger<SearchService> logger)
+    {
+        this.client = client;
+        this.providers = [.. providers];
+        this.options = options.Value;
+        this.requestContext = requestContext;
+
+        WarnIfNativeInferenceIsUnavailable(logger);
+    }
+
     public async Task IndexAsync(
         string indexName,
         IEnumerable<SearchDocument> documents,
@@ -113,6 +130,24 @@ internal sealed class SearchService(
         await IndexAsync(indexName, documents, cancellationToken);
     }
 
+    public IReadOnlyList<SearchIndexPolicyReport> GetIndexPolicyReports() =>
+    [
+        .. providers
+            .GroupBy(provider => provider.IndexName, StringComparer.OrdinalIgnoreCase)
+            .Select(group =>
+            {
+                ISearchIndexProvider provider = group.First();
+                SearchExactMatchPolicy policy = provider.ExactMatchPolicy.Normalize();
+
+                return new SearchIndexPolicyReport
+                {
+                    IndexName = provider.IndexName,
+                    ExactMatchPolicy = policy
+                };
+            })
+            .OrderBy(report => report.IndexName, StringComparer.OrdinalIgnoreCase)
+    ];
+
     public async Task<IReadOnlyList<IndexStatusReport>> GetIndexStatusAsync(
         CancellationToken cancellationToken = default)
     {
@@ -201,9 +236,26 @@ internal sealed class SearchService(
     }
 
     private string BuildIndexName(string indexName) =>
-        string.IsNullOrWhiteSpace(options.Value.DefaultIndexPrefix)
+        string.IsNullOrWhiteSpace(options.DefaultIndexPrefix)
             ? indexName
-            : $"{options.Value.DefaultIndexPrefix}{indexName}";
+            : $"{options.DefaultIndexPrefix}{indexName}";
+
+    private void WarnIfNativeInferenceIsUnavailable(ILogger<SearchService> logger)
+    {
+        if (!options.UseNativeInferenceOnly)
+        {
+            logger.LogWarning(
+                "Search module only supports Elasticsearch native inference. " +
+                "External inference configuration is unsupported and will be ignored.");
+        }
+
+        if (string.IsNullOrWhiteSpace(options.InferenceEndpointId))
+        {
+            logger.LogWarning(
+                "Elasticsearch native inference endpoint is not configured (Vitarish:ElasticSearch:InferenceEndpointId). " +
+                "Semantic retrieval should stay disabled until this endpoint is available.");
+        }
+    }
 
     private static Query BuildQuery(string query, SearchOptions searchOptions, string tenantId)
     {
