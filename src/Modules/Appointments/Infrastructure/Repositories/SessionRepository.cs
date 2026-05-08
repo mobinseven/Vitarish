@@ -70,29 +70,20 @@ internal class SessionRepository(AppointmentsDbContext dbContext)
             return;
         }
 
-        Dictionary<Guid, int> counts = await dbContext.Reservations
-            .Where(r => dbContext.SessionOccurrences
-                .Where(o => sessionIds.Contains(o.SessionId))
-                .Select(o => o.Id)
-                .Contains(r.SessionOccurrenceId)
-                && r.Status != ReservationStatus.Cancelled
-                && r.Status != ReservationStatus.Expired
-                && r.Status != ReservationStatus.Rejected
-                && !r.IsHold)
-            .Join(dbContext.SessionOccurrences,
-                r => r.SessionOccurrenceId,
-                o => o.Id,
-                (r, o) => new { o.SessionId })
-            .GroupBy(x => x.SessionId)
-            .Select(g => new { SessionId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.SessionId, x => x.Count, cancellationToken);
+        Dictionary<Guid, SessionStats> stats = await dbContext.Set<SessionStats>()
+            .AsNoTracking()
+            .Where(stat => sessionIds.Contains(stat.SessionId))
+            .ToDictionaryAsync(stat => stat.SessionId, cancellationToken);
 
         foreach (Session session in sessions)
         {
-            session.Stats = new SessionStats
-            {
-                ReservationCount = counts.GetValueOrDefault(session.Id, 0)
-            };
+            session.Stats = stats.TryGetValue(session.Id, out SessionStats? stat)
+                ? stat
+                : new SessionStats
+                {
+                    SessionId = session.Id,
+                    ReservationCount = 0
+                };
         }
     }
 }
