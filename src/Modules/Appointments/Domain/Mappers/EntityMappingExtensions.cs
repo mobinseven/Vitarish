@@ -24,4 +24,12 @@ public static partial class EntityMappingExtensions
     public static global::Vitarish.Appointments.Domain.Dto.SessionOccurrenceReadDto ToDto(this global::Vitarish.Appointments.Domain.Entities.SessionOccurrence entity) => Mapper.ToDto(entity);
 
     public static global::Vitarish.Appointments.Domain.Models.SessionOccurrenceDescriptor ToDomain(this global::Vitarish.Appointments.Domain.Dto.SessionOccurrenceDescriptorDto dto) => Mapper.ToDomain(dto);
+
+    public static global::Vitarish.Appointments.Domain.Dto.SessionReminderPolicyReadDto ToDto(this global::Vitarish.Appointments.Domain.Entities.SessionReminderPolicy entity) => Mapper.ToDto(entity);
+
+    public static global::Vitarish.Appointments.Domain.Entities.SessionReminderPolicy ToDomain(this global::Vitarish.Appointments.Domain.Dto.SessionReminderPolicyWriteDto dto) => Mapper.ToDomain(dto);
+
+    public static global::Vitarish.Appointments.Domain.Dto.SessionReminderPolicyWriteDto ToWrite(this global::Vitarish.Appointments.Domain.Dto.SessionReminderPolicyReadDto dto) => Mapper.ToWrite(dto);
+
+    public static global::Vitarish.Appointments.Domain.Models.SessionReminderPolicyDescriptor ToDomain(this global::Vitarish.Appointments.Domain.Dto.SessionReminderPolicyDescriptorDto dto) => Mapper.ToDomain(dto);
 }

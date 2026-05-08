@@ -70,6 +70,31 @@ public class ReminderProcessor(
         DateTimeOffset now,
         CancellationToken cancellationToken)
     {
+        bool shouldSkipQuietHours = false;
+        if (reminder.Kind is ReminderKind.Sms)
+        {
+            int hour = _timeProvider.GetLocalNow().Hour;
+            // TODO: This is temporary as our provider will not send sms in these hours. Also, checking delivery is not the
+            // responsibility of this service. So, until managing this issue in CaaS side we will just avoid sending sms in these hours.
+            if (hour is >= 22 or < 8)
+            {
+                shouldSkipQuietHours = true;
+            }
+        }
+
+        if (shouldSkipQuietHours)
+        {
+            return;
+        }
+
+        // Pre-rendered reminders (e.g. from session reminder policies) carry fully rendered
+        // subject and body so they can be sent directly without looking up the Sea source entity.
+        if (!string.IsNullOrWhiteSpace(reminder.TextBody))
+        {
+            await SendPreRenderedReminderAsync(tenantContext, reminder, now, cancellationToken);
+            return;
+        }
+
         TenantReadDto? tenant = await tenantContext.PartiesService.GetTenantAsync(Guid.Parse(tenantContext.RequestContext.TenantId!), cancellationToken);
         if (tenant is null)
         {
@@ -94,24 +119,6 @@ public class ReminderProcessor(
             return;
         }
 
-
-        bool shouldSkipQuietHours = false;
-        if (reminder.Kind is ReminderKind.Sms)
-        {
-            int hour = _timeProvider.GetLocalNow().Hour;
-            // TODO: This is temporary as our provider will not send sms in these hours. Also, checking delivery is not the
-            // responsibility of this service. So, until managing this issue in CaaS side we will just avoid sending sms in these hours.
-            if (hour is >= 22 or < 8)
-            {
-                shouldSkipQuietHours = true;
-            }
-        }
-
-        if (shouldSkipQuietHours)
-        {
-            return;
-        }
-
         switch (reminder.Kind)
         {
             case ReminderKind.Email:
@@ -130,6 +137,36 @@ public class ReminderProcessor(
 
                 await tenantContext.MessagesService.SendSmsReminder(reminder.Recipient, proj.Name, proc.Name, evnt.Title, tenant.Name, cancellationToken);
 
+                break;
+        }
+
+        await tenantContext.RemindersService.MarkSentAsync(reminder.Id, now, cancellationToken);
+    }
+
+    private async Task SendPreRenderedReminderAsync(
+        TenantReminderContext tenantContext,
+        ReminderReadDto reminder,
+        DateTimeOffset now,
+        CancellationToken cancellationToken)
+    {
+        switch (reminder.Kind)
+        {
+            case ReminderKind.Email:
+                await tenantContext.MessagesService.SendEmail(new Message
+                {
+                    Recipient = reminder.Recipient,
+                    Subject = reminder.Subject,
+                    Body = reminder.TextBody,
+                    HtmlBody = $"<p>{System.Net.WebUtility.HtmlEncode(reminder.TextBody).Replace("\n", "<br>", StringComparison.Ordinal)}</p>",
+                    Sender = null
+                }, cancellationToken);
+                break;
+            case ReminderKind.Sms:
+                await tenantContext.MessagesService.SendSms(new Message
+                {
+                    Recipient = reminder.Recipient,
+                    Body = reminder.TextBody
+                }, cancellationToken);
                 break;
         }
 

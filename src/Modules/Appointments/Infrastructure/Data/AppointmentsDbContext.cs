@@ -36,6 +36,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
     public DbSet<CapacityPolicy> CapacityPolicies => Set<CapacityPolicy>();
     public DbSet<BookingPolicy> BookingPolicies => Set<BookingPolicy>();
     public DbSet<AppointmentAuditEntry> AuditEntries => Set<AppointmentAuditEntry>();
+    public DbSet<SessionReminderPolicy> SessionReminderPolicies => Set<SessionReminderPolicy>();
 
     public AppointmentsDbContext(
         DbContextOptions<AppointmentsDbContext> options,
@@ -77,6 +78,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
         ConfigureTenantEntity<CapacityPolicy>(modelBuilder);
         ConfigureTenantEntity<BookingPolicy>(modelBuilder);
         ConfigureTenantEntity<AppointmentAuditEntry>(modelBuilder);
+        ConfigureTenantEntity<SessionReminderPolicy>(modelBuilder);
 
         _ = modelBuilder.Entity<SessionOccurrence>(entity =>
         {
@@ -104,6 +106,23 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
         _ = modelBuilder.Entity<BookingPolicy>(entity =>
         {
             _ = entity.HasIndex(p => p.SessionId).IsUnique();
+        });
+
+        _ = modelBuilder.Entity<SessionReminderPolicy>(entity =>
+        {
+            _ = entity.HasOne<Session>()
+                .WithMany()
+                .HasForeignKey(p => p.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasIndex(p => p.SessionId);
+
+            _ = entity.Property(p => p.QualifyingStatuses)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<List<ReservationStatus>>(v, (JsonSerializerOptions?)null)
+                         ?? new List<ReservationStatus>())
+                .HasColumnType("nvarchar(max)");
         });
 
         _ = modelBuilder.Entity<Session>(entity =>

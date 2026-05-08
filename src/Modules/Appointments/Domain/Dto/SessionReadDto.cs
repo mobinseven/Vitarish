@@ -13,4 +13,5 @@ public record SessionReadDto : EntityReadDto
     public bool RequiresApproval { get; set; }
     public bool AllowRescheduling { get; set; }
     public SessionStats Stats { get; set; } = new();
+    public IReadOnlyList<SessionReminderPolicyReadDto> ReminderPolicies { get; set; } = [];
 }

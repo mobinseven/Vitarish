@@ -5,3 +5,4 @@ global using Vitarish.Entities.Server.Models;
 global using Vitarish.Appointments.Domain.Entities;
 global using Vitarish.Appointments.Domain.Enums;
 global using Vitarish.Appointments.Domain.Models;
+global using Vitarish.Communications.Domain.Enums;
