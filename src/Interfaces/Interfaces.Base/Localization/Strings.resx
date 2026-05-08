@@ -1925,4 +1925,7 @@ of project "{2}"</value>
   <data name="Expired" xml:space="preserve">
     <value>Expired</value>
   </data>
+  <data name="SaveFailed" xml:space="preserve">
+    <value>Save failed. Please try again.</value>
+  </data>
 </root>

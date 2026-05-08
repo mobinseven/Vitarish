@@ -1755,4 +1755,7 @@
   <data name="Expired" xml:space="preserve">
     <value>منقضی‌شده</value>
   </data>
+  <data name="SaveFailed" xml:space="preserve">
+    <value>ذخیره ناموفق بود. لطفاً دوباره تلاش کنید.</value>
+  </data>
 </root>

@@ -55,7 +55,7 @@ public partial class SessionReminderPolicyForm : SessionReminderPoliciesBase
         {
             string message = result.Errors.Count > 0
                 ? string.Join(" ", result.Errors.Select(e => e.Message))
-                : Localizer["SaveRequired"].Value;
+                : Localizer["SaveFailed"].Value;
             _ = Snackbar.Add(message, Severity.Error);
         }
     }
