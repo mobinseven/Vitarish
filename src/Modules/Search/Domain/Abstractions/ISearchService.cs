@@ -25,6 +25,12 @@ public interface ISearchService
     Task RebuildIndexAsync(string indexName, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Returns provider-level policy declarations so modules can discover
+    /// exact-match-first classes and their configured field/priority metadata.
+    /// </summary>
+    IReadOnlyList<SearchIndexPolicyReport> GetIndexPolicyReports();
+
+    /// <summary>
     /// Returns a status report for every registered index, including document count and store size.
     /// Indexes that do not yet exist in Elasticsearch are reported with zero counts.
     /// </summary>

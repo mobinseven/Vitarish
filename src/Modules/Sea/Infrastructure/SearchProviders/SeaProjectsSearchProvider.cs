@@ -12,6 +12,12 @@ namespace Vitarish.Sea.Infrastructure.SearchProviders;
 internal sealed class SeaProjectsSearchProvider(SeaDbContext dbContext, IRequestContext requestContext) : ISearchIndexProvider
 {
     public string IndexName => "sea.projects";
+    public SearchExactMatchPolicy ExactMatchPolicy => new()
+    {
+        IsExactMatchFirst = true,
+        FieldNames = ["title.keyword"],
+        PriorityTier = SearchPriorityTier.High
+    };
 
     public async Task<IReadOnlyList<SearchDocument>> GetDocumentsAsync(
         CancellationToken cancellationToken = default)
