@@ -41,9 +41,10 @@ public partial class ProjectEditForm : ProjectsBase
         return InvokeAsync(StateHasChanged);
     }
 
-    protected void RemoveAvatar()
+    protected Task RemoveAvatar()
     {
         projectWriteDto.AvatarFileId = null;
+        return InvokeAsync(StateHasChanged);
     }
 
     protected void Cancel() => OnCancel.InvokeAsync();

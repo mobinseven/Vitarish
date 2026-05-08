@@ -118,9 +118,10 @@
         return InvokeAsync(StateHasChanged);
     }
 
-    private void RemoveAvatar()
+    private Task RemoveAvatar()
     {
         projectWriteDto.AvatarFileId = null;
+        return InvokeAsync(StateHasChanged);
     }
 
     protected override void OnInitialized()
