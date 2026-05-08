@@ -79,7 +79,11 @@ internal class SessionRepository(AppointmentsDbContext dbContext)
         {
             session.Stats = stats.TryGetValue(session.Id, out SessionStats? stat)
                 ? stat
-                : new SessionStats { SessionId = session.Id };
+                : new SessionStats
+                {
+                    SessionId = session.Id,
+                    ReservationCount = 0
+                };
         }
     }
 }

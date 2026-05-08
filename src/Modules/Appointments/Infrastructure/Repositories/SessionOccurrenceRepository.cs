@@ -81,7 +81,11 @@ internal class SessionOccurrenceRepository(AppointmentsDbContext dbContext)
         {
             occurrence.Stats = stats.TryGetValue(occurrence.Id, out SessionOccurrenceStats? stat)
                 ? stat
-                : new SessionOccurrenceStats { SessionOccurrenceId = occurrence.Id };
+                : new SessionOccurrenceStats
+                {
+                    SessionOccurrenceId = occurrence.Id,
+                    ReservationCount = 0
+                };
         }
     }
 }
