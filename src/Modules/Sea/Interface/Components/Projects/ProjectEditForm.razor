@@ -4,6 +4,20 @@
     <Stack>
         <StackTextField @bind-Value="projectWriteDto.Name" Label="@Localizer["Project"]" />
         <StackTextField @bind-Value="projectWriteDto.Description" AutoGrow Lines=3 Label="@Localizer["Description"]" />
+        <StackField Label="@Localizer["Image"]">
+            <ProjectAvatar AvatarFileId="@projectWriteDto.AvatarFileId" Size="96" Style="margin-bottom: 0.5rem;" />
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                <Vitarish.Files.Interface.Components.StreamTransfer OnFileUploaded="OnAvatarUploaded">
+                    <ActivatorContent>
+                        <MudButton Variant="Variant.Outlined" StartIcon="fa-regular fa-upload" Color="Color.Primary">@Localizer["Select"]</MudButton>
+                    </ActivatorContent>
+                </Vitarish.Files.Interface.Components.StreamTransfer>
+                @if(projectWriteDto.AvatarFileId.HasValue)
+                {
+                    <MudButton Variant="Variant.Text" StartIcon="fa-regular fa-xmark" Color="Color.Error" OnClick="RemoveAvatar">@Localizer["Remove"]</MudButton>
+                }
+            </MudStack>
+        </StackField>
         <StackCheckbox @bind-Value="projectWriteDto.Template" Label="@Localizer["Template"]" />
     </Stack>
     <Stack>

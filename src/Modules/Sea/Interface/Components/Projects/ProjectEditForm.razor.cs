@@ -35,5 +35,17 @@ public partial class ProjectEditForm : ProjectsBase
         }
     }
 
+    protected Task OnAvatarUploaded(FileInformationReadDto fileInfo)
+    {
+        projectWriteDto.AvatarFileId = fileInfo.Id;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    protected Task RemoveAvatar()
+    {
+        projectWriteDto.AvatarFileId = null;
+        return InvokeAsync(StateHasChanged);
+    }
+
     protected void Cancel() => OnCancel.InvokeAsync();
 }
