@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Appointments.Infrastructure.DependencyInjection;
+using Vitarish.Appointments.Infrastructure.Services;
 using Vitarish.Appointments.Infrastructure.Serializers;
 using Vitarish.Appointments.Interface.DependencyInjection;
 using Vitarish.Modules.Base;
@@ -30,5 +31,5 @@ public class AppointmentsModule :Module, IAppointmentsModule
         return Task.CompletedTask;
     }
 
-    public override Task Initialize(WebApplication app) => Task.CompletedTask;
+    public override async Task Initialize(WebApplication app) => await app.InitializeViews();
 }

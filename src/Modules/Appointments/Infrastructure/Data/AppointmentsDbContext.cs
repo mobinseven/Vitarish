@@ -88,6 +88,12 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
             _ = entity.Ignore(e => e.Stats);
         });
 
+        _ = modelBuilder.Entity<SessionOccurrenceStats>(eb =>
+        {
+            _ = eb.ToView("vw_SessionOccurrenceStats");
+            _ = eb.HasNoKey();
+        });
+
         _ = modelBuilder.Entity<Reservation>(entity =>
         {
             _ = entity.HasOne(r => r.Occurrence)
@@ -116,6 +122,12 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
                 .HasColumnType("nvarchar(max)");
 
             _ = entity.Ignore(e => e.Stats);
+        });
+
+        _ = modelBuilder.Entity<SessionStats>(eb =>
+        {
+            _ = eb.ToView("vw_SessionStats");
+            _ = eb.HasNoKey();
         });
 
         if (Database.IsSqlite())
