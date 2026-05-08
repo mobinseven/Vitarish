@@ -6,6 +6,8 @@ public partial class SessionReminderPolicyForm : SessionReminderPoliciesBase
     [Parameter] public SessionReminderPolicyReadDto? Policy { get; set; }
     [Parameter] public EventCallback<SessionReminderPolicyReadDto> OnSaved { get; set; }
 
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+
     private SessionReminderPolicyWriteDto dto = new();
     private double offsetHours = 1;
 
@@ -46,7 +48,15 @@ public partial class SessionReminderPolicyForm : SessionReminderPoliciesBase
 
         if (result.IsSuccess && result.Value is not null)
         {
+            _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
             await OnSaved.InvokeAsync(result.Value);
+        }
+        else if (result.IsFailure)
+        {
+            string message = result.Errors.Count > 0
+                ? string.Join(" ", result.Errors.Select(e => e.Message))
+                : Localizer["SaveFailed"].Value;
+            _ = Snackbar.Add(message, Severity.Error);
         }
     }
 }
