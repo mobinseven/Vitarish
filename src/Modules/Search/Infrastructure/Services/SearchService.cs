@@ -3,6 +3,7 @@ using Elastic.Clients.Elasticsearch.Core.Bulk;
 using Elastic.Clients.Elasticsearch.IndexManagement;
 using Elastic.Clients.Elasticsearch.QueryDsl;
 using Microsoft.Extensions.Options;
+using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Search.Domain.Abstractions;
 using Vitarish.Search.Domain.Models;
 using Vitarish.Search.Domain.Options;
@@ -16,7 +17,8 @@ namespace Vitarish.Search.Infrastructure.Services;
 internal sealed class SearchService(
     ElasticsearchClient client,
     IEnumerable<ISearchIndexProvider> providers,
-    IOptions<ElasticSearchOptions> options) : ISearchService
+    IOptions<ElasticSearchOptions> options,
+    IRequestContext requestContext) : ISearchService
 {
     public async Task IndexAsync(
         string indexName,
@@ -72,7 +74,7 @@ internal sealed class SearchService(
 
         Indices indices = fullToLogicalIndexNames.Keys.ToArray();
 
-        Query esQuery = BuildQuery(query, normalizedOptions);
+        Query esQuery = BuildQuery(query, normalizedOptions, ResolveTenantId());
 
         SearchRequest<SearchDocument> request = new(indices)
         {
@@ -126,7 +128,7 @@ internal sealed class SearchService(
 
         IndicesStatsResponse statsResponse = await client.Indices.StatsAsync(
             indices,
-            [CommonStatsFlag.Docs, CommonStatsFlag.Store],
+            [CommonStatsFlag.Store],
             cancellationToken);
 
         IReadOnlyDictionary<string, IndicesStats> indexMap =
@@ -134,18 +136,24 @@ internal sealed class SearchService(
                 ? statsResponse.Indices
                 : new Dictionary<string, IndicesStats>();
 
+        string tenantId = ResolveTenantId();
+        Query tenantFilter = new TermQuery { Field = new Field("tenantId.keyword"), Value = tenantId };
+
         List<IndexStatusReport> reports = [];
 
         foreach (string logicalName in logicalNames)
         {
             string fullName = BuildIndexName(logicalName);
 
-            long docCount = 0;
-            long storeBytes = 0;
+            CountResponse countResponse = await client.CountAsync(
+                new CountRequest(fullName) { Query = tenantFilter },
+                cancellationToken);
 
+            long docCount = countResponse.IsValidResponse ? countResponse.Count : 0;
+
+            long storeBytes = 0;
             if (indexMap.TryGetValue(fullName, out IndicesStats? stats) && stats.Primaries is not null)
             {
-                docCount = stats.Primaries.Docs?.Count ?? 0;
                 storeBytes = stats.Primaries.Store?.SizeInBytes ?? 0;
             }
 
@@ -159,6 +167,11 @@ internal sealed class SearchService(
 
         return reports;
     }
+
+    private string ResolveTenantId() =>
+        !string.IsNullOrWhiteSpace(requestContext.TenantId)
+            ? requestContext.TenantId
+            : throw new InvalidOperationException("Tenant ID must be set before performing search operations.");
 
     private string[] ResolveLogicalIndexNames(string? indexName)
     {
@@ -192,7 +205,7 @@ internal sealed class SearchService(
             ? indexName
             : $"{options.Value.DefaultIndexPrefix}{indexName}";
 
-    private static Query BuildQuery(string query, SearchOptions searchOptions)
+    private static Query BuildQuery(string query, SearchOptions searchOptions, string tenantId)
     {
         Query textQuery = new MultiMatchQuery
         {
@@ -200,15 +213,20 @@ internal sealed class SearchService(
             Fields = Fields.FromStrings(["title^3", "body"])
         };
 
-        if (string.IsNullOrWhiteSpace(searchOptions.Type))
+        List<Query> filters =
+        [
+            new TermQuery { Field = new Field("tenantId.keyword"), Value = tenantId }
+        ];
+
+        if (!string.IsNullOrWhiteSpace(searchOptions.Type))
         {
-            return textQuery;
+            filters.Add(new TermQuery { Field = new Field("type.keyword"), Value = searchOptions.Type });
         }
 
         return new BoolQuery
         {
             Must = [textQuery],
-            Filter = [new TermQuery { Field = new Field("type.keyword"), Value = searchOptions.Type }]
+            Filter = filters
         };
     }
 }

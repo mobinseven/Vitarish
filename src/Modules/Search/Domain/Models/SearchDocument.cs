@@ -21,6 +21,12 @@ public record SearchDocument
     public string? Body { get; init; }
 
     /// <summary>
+    /// Tenant that owns this document. Used as a mandatory filter on every search query
+    /// so that results are always scoped to the requesting tenant (Option B isolation).
+    /// </summary>
+    public required string TenantId { get; init; }
+
+    /// <summary>
     /// Document type used for filtering (e.g. "project", "event").
     /// </summary>
     public required string Type { get; init; }
