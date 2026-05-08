@@ -242,14 +242,14 @@ internal sealed class SearchService : ISearchService
 
     private void WarnIfNativeInferenceIsUnavailable(ILogger<SearchService> logger)
     {
-        if (!options.UseNativeInferenceOnly)
+        if (options.EnableSemanticRetrieval && !options.UseNativeInferenceOnly)
         {
             logger.LogWarning(
                 "Search module only supports Elasticsearch native inference. " +
-                "External inference configuration is unsupported and will be ignored.");
+                "EnableSemanticRetrieval is set but UseNativeInferenceOnly is false, so semantic retrieval must remain disabled.");
         }
 
-        if (string.IsNullOrWhiteSpace(options.InferenceEndpointId))
+        if (options.EnableSemanticRetrieval && string.IsNullOrWhiteSpace(options.InferenceEndpointId))
         {
             logger.LogWarning(
                 "Elasticsearch native inference endpoint is not configured (Vitarish:ElasticSearch:InferenceEndpointId). " +

@@ -33,6 +33,12 @@ public class ElasticSearchOptions
     public bool UseNativeInferenceOnly { get; set; } = true;
 
     /// <summary>
+    /// Enables semantic retrieval pathways in Search.
+    /// Keep disabled unless the Elasticsearch native inference endpoint is configured.
+    /// </summary>
+    public bool EnableSemanticRetrieval { get; set; } = false;
+
+    /// <summary>
     /// Elasticsearch inference endpoint identifier used by semantic retrieval workflows.
     /// Leave null when semantic retrieval is not configured yet.
     /// </summary>
