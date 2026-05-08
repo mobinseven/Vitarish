@@ -5,7 +5,7 @@ using System.Globalization;
 using System.Text;
 using Vitarish.Appointments.Infrastructure.Data;
 
-namespace Vitarish.Appointments.Infrastructure.Services;
+namespace Vitarish.Appointments.Infrastructure.DependencyInjection;
 
 public static class ViewsInitializerExtensions
 {

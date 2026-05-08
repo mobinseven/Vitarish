@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Appointments.Infrastructure.DependencyInjection;
-using Vitarish.Appointments.Infrastructure.Services;
 using Vitarish.Appointments.Infrastructure.Serializers;
 using Vitarish.Appointments.Interface.DependencyInjection;
 using Vitarish.Modules.Base;
