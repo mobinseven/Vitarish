@@ -48,7 +48,8 @@
         {
             <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
                          Label="@project.Name"
-                         HighlightString="@SearchString">
+                         HighlightString="@SearchString"
+                         EndIcon="">
                 <StatsDisplay Stats="project.Stats" />
             </StackButton>
         }
@@ -64,7 +65,8 @@
         {
             <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
                          Label="@project.Name"
-                         HighlightString="@SearchString">
+                         HighlightString="@SearchString"
+                         EndIcon="">
                 <StatsDisplay Stats="project.Stats" />
             </StackButton>
         }
