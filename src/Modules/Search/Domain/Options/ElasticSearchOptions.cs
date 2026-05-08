@@ -25,4 +25,22 @@ public class ElasticSearchOptions
     /// Prefix prepended to every index name (e.g. "vitarish-").
     /// </summary>
     public string DefaultIndexPrefix { get; set; } = "vitarish-";
+
+    /// <summary>
+    /// When enabled, semantic retrieval is expected to use only Elasticsearch native inference endpoints.
+    /// External embedding/inference providers are intentionally unsupported.
+    /// </summary>
+    public bool UseNativeInferenceOnly { get; set; } = true;
+
+    /// <summary>
+    /// Enables semantic retrieval pathways in Search.
+    /// Keep disabled unless the Elasticsearch native inference endpoint is configured.
+    /// </summary>
+    public bool EnableSemanticRetrieval { get; set; } = false;
+
+    /// <summary>
+    /// Elasticsearch inference endpoint identifier used by semantic retrieval workflows.
+    /// Leave null when semantic retrieval is not configured yet.
+    /// </summary>
+    public string? InferenceEndpointId { get; set; }
 }

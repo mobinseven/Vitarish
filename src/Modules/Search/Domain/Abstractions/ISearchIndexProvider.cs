@@ -14,6 +14,12 @@ public interface ISearchIndexProvider
     string IndexName { get; }
 
     /// <summary>
+    /// Optional exact-match-first declaration for this provider.
+    /// Modules can use this rich policy (field list + priority tier) to protect precision-sensitive classes.
+    /// </summary>
+    SearchExactMatchPolicy ExactMatchPolicy => SearchExactMatchPolicy.Disabled;
+
+    /// <summary>
     /// Returns all documents that should be indexed by this provider.
     /// </summary>
     Task<IReadOnlyList<SearchDocument>> GetDocumentsAsync(CancellationToken cancellationToken = default);

@@ -1,0 +1,14 @@
+@if(AvatarFileId.HasValue)
+{
+    <div class="@Class" style="@($"width:{Size}px;height:{Size}px;overflow:hidden;border-radius:{(Circle ? "50%" : "8px")};{Style}")">
+        <Vitarish.Files.Interface.Components.FileImage FileId="@AvatarFileId.Value" />
+    </div>
+}
+
+@code {
+    [Parameter] public Guid? AvatarFileId { get; set; }
+    [Parameter] public int Size { get; set; } = 96;
+    [Parameter] public bool Circle { get; set; } = true;
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public string? Style { get; set; }
+}
