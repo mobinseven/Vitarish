@@ -12,7 +12,7 @@ using Vitarish.Appointments.Infrastructure.Data;
 namespace Vitarish.Main.Migrations.AppointmentsDb
 {
     [DbContext(typeof(AppointmentsDbContext))]
-    [Migration("20260505103657_AppointmentsInitialization")]
+    [Migration("20260508082105_AppointmentsInitialization")]
     partial class AppointmentsInitialization
     {
         /// <inheritdoc />
@@ -391,6 +391,94 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.SessionReminderPolicy", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BodyTemplate")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Channel")
+                        .HasColumnType("int");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("bit");
+
+                    b.Property<TimeSpan>("OffsetBefore")
+                        .HasColumnType("time");
+
+                    b.Property<string>("QualifyingStatuses")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("SubjectTemplate")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionId");
+
+                    b.ToTable("SessionReminderPolicies");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
+                });
+
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Models.SessionOccurrenceStats", b =>
+                {
+                    b.Property<int>("ReservationCount")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SessionOccurrenceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("vw_SessionOccurrenceStats", (string)null);
+                });
+
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Models.SessionStats", b =>
+                {
+                    b.Property<int>("ReservationCount")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("vw_SessionStats", (string)null);
+                });
+
             modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.Reservation", b =>
                 {
                     b.HasOne("Vitarish.Appointments.Domain.Entities.SessionOccurrence", "Occurrence")
@@ -411,6 +499,15 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                         .IsRequired();
 
                     b.Navigation("Session");
+                });
+
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.SessionReminderPolicy", b =>
+                {
+                    b.HasOne("Vitarish.Appointments.Domain.Entities.Session", null)
+                        .WithMany()
+                        .HasForeignKey("SessionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
                 });
 #pragma warning restore 612, 618
         }

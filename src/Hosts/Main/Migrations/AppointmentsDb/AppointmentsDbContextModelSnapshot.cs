@@ -450,6 +450,32 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Models.SessionOccurrenceStats", b =>
+                {
+                    b.Property<int>("ReservationCount")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SessionOccurrenceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("vw_SessionOccurrenceStats", (string)null);
+                });
+
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Models.SessionStats", b =>
+                {
+                    b.Property<int>("ReservationCount")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("SessionId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("vw_SessionStats", (string)null);
+                });
+
             modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.Reservation", b =>
                 {
                     b.HasOne("Vitarish.Appointments.Domain.Entities.SessionOccurrence", "Occurrence")
