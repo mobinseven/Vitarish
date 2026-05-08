@@ -2,14 +2,19 @@
 @inherits AdminCommonBase
 @using Vitarish.Search.Interface.Components
 
-
 @using Vitarish.Search.Domain.Models
 
 <SearchIndexStatusPanel />
 
 <Stack>
     <StackField Label="@Localizer["SearchWidgetTester"]" HelperText="@Localizer["SearchWidgetTesterHint"]" />
-    <StackTextField Label="@Localizer["IndexName"]" @bind-Value="_indexName" />
+    <StackSelect T="string" @bind-Value="_indexName">
+        <StackSelectItem Value="null as string">@Localizer["None"]</StackSelectItem>
+        @foreach(var indexProvider in IndexProviders)
+        {
+            <StackSelectItem Value="indexProvider.IndexName">@indexProvider.IndexName</StackSelectItem>
+        }
+    </StackSelect>
     <StackTextField Label="@Localizer["Type"]" @bind-Value="_searchType" />
     <StackNumericField Label="@Localizer["PageSize"]" @bind-Value="SearchLimit" Min="1" Max="@SearchOptions.MaxLimit" />
 </Stack>
@@ -17,6 +22,8 @@
 <SearchWidget IndexName="@IndexName" Type="@SearchType" Options="@_options" />
 
 @code {
+    [Inject] protected IEnumerable<Search.Domain.Abstractions.ISearchIndexProvider> IndexProviders { get; set; } = [];
+
     private string? _indexName;
     private string? _searchType;
     private int _searchLimit = SearchOptions.DefaultLimit;
