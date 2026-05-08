@@ -31,37 +31,27 @@ internal class SessionReminderPolicyRepository(AppointmentsDbContext dbContext)
 
     protected override bool IsDuplicateKeyException(DbUpdateException exception) => false;
 
-    public Task<IReadOnlyList<SessionReminderPolicy>> GetBySessionIdAsync(
+    public async Task<IReadOnlyList<SessionReminderPolicy>> GetBySessionIdAsync(
         Guid sessionId,
         CancellationToken cancellationToken)
     {
-        IQueryable<SessionReminderPolicy> query = Set.AsNoTracking()
+        List<SessionReminderPolicy> result = await Set.AsNoTracking()
             .Where(p => p.SessionId == sessionId)
-            .OrderBy(p => p.CreatedAt);
+            .OrderBy(p => p.CreatedAt)
+            .ToListAsync(cancellationToken);
 
-        return query
-            .ToListAsync(cancellationToken)
-            .ContinueWith(
-                t => (IReadOnlyList<SessionReminderPolicy>)[.. t.Result],
-                cancellationToken,
-                System.Threading.Tasks.TaskContinuationOptions.ExecuteSynchronously,
-                System.Threading.Tasks.TaskScheduler.Default);
+        return result;
     }
 
-    public Task<IReadOnlyList<SessionReminderPolicy>> GetEnabledBySessionIdAsync(
+    public async Task<IReadOnlyList<SessionReminderPolicy>> GetEnabledBySessionIdAsync(
         Guid sessionId,
         CancellationToken cancellationToken)
     {
-        IQueryable<SessionReminderPolicy> query = Set.AsNoTracking()
+        List<SessionReminderPolicy> result = await Set.AsNoTracking()
             .Where(p => p.SessionId == sessionId && p.IsEnabled)
-            .OrderBy(p => p.CreatedAt);
+            .OrderBy(p => p.CreatedAt)
+            .ToListAsync(cancellationToken);
 
-        return query
-            .ToListAsync(cancellationToken)
-            .ContinueWith(
-                t => (IReadOnlyList<SessionReminderPolicy>)[.. t.Result],
-                cancellationToken,
-                System.Threading.Tasks.TaskContinuationOptions.ExecuteSynchronously,
-                System.Threading.Tasks.TaskScheduler.Default);
+        return result;
     }
 }

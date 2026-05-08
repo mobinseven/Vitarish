@@ -8,6 +8,7 @@ namespace Vitarish.Appointments.Infrastructure.Handlers;
 internal class SessionReminderPolicyTriggeredHandler(
     ISessionReminderPolicyRepository policyRepository,
     IEntityRepository<SessionOccurrence, SessionOccurrenceDescriptor> occurrenceRepository,
+    IEntityRepository<Session, SessionDescriptor> sessionRepository,
     IRemindersService remindersService,
     IMediator mediator,
     TimeProvider? timeProvider = null)
@@ -22,8 +23,14 @@ internal class SessionReminderPolicyTriggeredHandler(
             return;
         }
 
+        SessionOccurrence? occurrence = await occurrenceRepository.GetAsync(notification.SessionOccurrenceId, cancellationToken);
+        if (occurrence is null)
+        {
+            return;
+        }
+
         IReadOnlyList<SessionReminderPolicy> policies = await policyRepository.GetEnabledBySessionIdAsync(
-            await ResolveSessionIdAsync(notification.SessionOccurrenceId, cancellationToken),
+            occurrence.SessionId,
             cancellationToken);
 
         if (policies.Count == 0)
@@ -32,6 +39,9 @@ internal class SessionReminderPolicyTriggeredHandler(
         }
 
         DateTimeOffset now = _timeProvider.GetUtcNow();
+
+        Session? session = await sessionRepository.GetAsync(occurrence.SessionId, cancellationToken);
+        string sessionTitle = session?.Title ?? string.Empty;
 
         foreach (SessionReminderPolicy policy in policies)
         {
@@ -56,8 +66,8 @@ internal class SessionReminderPolicyTriggeredHandler(
                 continue;
             }
 
-            string subject = RenderTemplate(policy.SubjectTemplate, notification);
-            string body = RenderTemplate(policy.BodyTemplate, notification);
+            string subject = RenderTemplate(policy.SubjectTemplate, sessionTitle, notification.OccurrenceStart);
+            string body = RenderTemplate(policy.BodyTemplate, sessionTitle, notification.OccurrenceStart);
 
             _ = await remindersService.AddRangeAsync(
                 notification.SessionOccurrenceId,
@@ -72,12 +82,6 @@ internal class SessionReminderPolicyTriggeredHandler(
                 remindAt,
                 cancellationToken);
         }
-    }
-
-    private async Task<Guid> ResolveSessionIdAsync(Guid occurrenceId, CancellationToken cancellationToken)
-    {
-        SessionOccurrence? occurrence = await occurrenceRepository.GetAsync(occurrenceId, cancellationToken);
-        return occurrence?.SessionId ?? Guid.Empty;
     }
 
     private async Task<string?> ResolveRecipientAsync(
@@ -99,7 +103,9 @@ internal class SessionReminderPolicyTriggeredHandler(
         };
     }
 
-    private static string RenderTemplate(string template, SessionReminderPolicyTriggeredEvent notification)
+    private static string RenderTemplate(string template, string sessionTitle, DateTimeOffset occurrenceStart)
         => template
-            .Replace("{{OccurrenceStart}}", notification.OccurrenceStart.ToString("f"), StringComparison.Ordinal);
+            .Replace("{{SessionTitle}}", sessionTitle, StringComparison.Ordinal)
+            .Replace("{{OccurrenceStart}}", occurrenceStart.ToString("f"), StringComparison.Ordinal);
 }
+

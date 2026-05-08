@@ -9,12 +9,14 @@ public class SessionReminderPolicyTriggeredHandlerTests
 {
     private readonly Mock<ISessionReminderPolicyRepository> _policyRepository = new();
     private readonly Mock<IEntityRepository<SessionOccurrence, SessionOccurrenceDescriptor>> _occurrenceRepository = new();
+    private readonly Mock<IEntityRepository<Session, SessionDescriptor>> _sessionRepository = new();
     private readonly Mock<IRemindersService> _remindersService = new();
     private readonly Mock<IMediator> _mediator = new();
     private readonly TestTimeProvider _timeProvider = new();
 
     private SessionReminderPolicyTriggeredHandler CreateSut()
-        => new(_policyRepository.Object, _occurrenceRepository.Object, _remindersService.Object, _mediator.Object, _timeProvider);
+        => new(_policyRepository.Object, _occurrenceRepository.Object, _sessionRepository.Object,
+               _remindersService.Object, _mediator.Object, _timeProvider);
 
     [Fact]
     public async Task Handle_ShouldNotCreateReminder_WhenNoPoliciesExist()
@@ -40,9 +42,12 @@ public class SessionReminderPolicyTriggeredHandlerTests
     {
         var sut = CreateSut();
         var occurrence = CreateOccurrence();
+        var session = new Session { Id = occurrence.SessionId, Title = "Test Session" };
 
         _occurrenceRepository.Setup(r => r.GetAsync(occurrence.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(occurrence);
+        _sessionRepository.Setup(r => r.GetAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
         _policyRepository.Setup(r => r.GetEnabledBySessionIdAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
             .ReturnsAsync([CreatePolicy(occurrence.SessionId, [ReservationStatus.Confirmed])]);
 
@@ -62,10 +67,13 @@ public class SessionReminderPolicyTriggeredHandlerTests
         // OccurrenceStart 30 minutes in the future, offset 1 hour → remindAt = 30 min in the past
         var occurrenceStart = _timeProvider.UtcNow.AddMinutes(30);
         var occurrence = CreateOccurrence(start: occurrenceStart);
+        var session = new Session { Id = occurrence.SessionId, Title = "Test Session" };
         var policy = CreatePolicy(occurrence.SessionId, [ReservationStatus.Pending], offset: TimeSpan.FromHours(1));
 
         _occurrenceRepository.Setup(r => r.GetAsync(occurrence.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(occurrence);
+        _sessionRepository.Setup(r => r.GetAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
         _policyRepository.Setup(r => r.GetEnabledBySessionIdAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
             .ReturnsAsync([policy]);
 
@@ -83,11 +91,14 @@ public class SessionReminderPolicyTriggeredHandlerTests
         var sut = CreateSut();
         var occurrenceStart = _timeProvider.UtcNow.AddDays(2);
         var occurrence = CreateOccurrence(start: occurrenceStart);
+        var session = new Session { Id = occurrence.SessionId, Title = "Test Session" };
         var policy1 = CreatePolicy(occurrence.SessionId, [ReservationStatus.Pending], offset: TimeSpan.FromHours(24));
         var policy2 = CreatePolicy(occurrence.SessionId, [ReservationStatus.Pending], offset: TimeSpan.FromHours(1));
 
         _occurrenceRepository.Setup(r => r.GetAsync(occurrence.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(occurrence);
+        _sessionRepository.Setup(r => r.GetAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
         _policyRepository.Setup(r => r.GetEnabledBySessionIdAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
             .ReturnsAsync([policy1, policy2]);
 
@@ -125,12 +136,15 @@ public class SessionReminderPolicyTriggeredHandlerTests
         var sut = CreateSut();
         var occurrenceStart = _timeProvider.UtcNow.AddDays(2);
         var occurrence = CreateOccurrence(start: occurrenceStart);
+        var session = new Session { Id = occurrence.SessionId, Title = "My Session" };
         var policy = CreatePolicy(occurrence.SessionId, [ReservationStatus.Confirmed],
-            subjectTemplate: "Appointment at {{OccurrenceStart}}",
-            bodyTemplate: "Your session starts at {{OccurrenceStart}}");
+            subjectTemplate: "Appointment: {{SessionTitle}} at {{OccurrenceStart}}",
+            bodyTemplate: "Your session {{SessionTitle}} starts at {{OccurrenceStart}}.");
 
         _occurrenceRepository.Setup(r => r.GetAsync(occurrence.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(occurrence);
+        _sessionRepository.Setup(r => r.GetAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
         _policyRepository.Setup(r => r.GetEnabledBySessionIdAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
             .ReturnsAsync([policy]);
 
@@ -150,8 +164,12 @@ public class SessionReminderPolicyTriggeredHandlerTests
         await sut.Handle(CreateEvent(occurrence, ReservationStatus.Confirmed, "user-1"), CancellationToken.None);
 
         capturedSubject.Should().NotBeNull();
+        capturedSubject.Should().NotContain("{{SessionTitle}}");
         capturedSubject.Should().NotContain("{{OccurrenceStart}}");
+        capturedSubject.Should().Contain("My Session");
+        capturedBody.Should().NotContain("{{SessionTitle}}");
         capturedBody.Should().NotContain("{{OccurrenceStart}}");
+        capturedBody.Should().Contain("My Session");
     }
 
     private static SessionOccurrence CreateOccurrence(DateTimeOffset? start = null)
@@ -171,8 +189,8 @@ public class SessionReminderPolicyTriggeredHandlerTests
         Guid sessionId,
         IList<ReservationStatus> statuses,
         TimeSpan? offset = null,
-        string subjectTemplate = "Reminder: {{OccurrenceStart}}",
-        string bodyTemplate = "Your appointment is at {{OccurrenceStart}}.")
+        string subjectTemplate = "Reminder: {{SessionTitle}} {{OccurrenceStart}}",
+        string bodyTemplate = "Your appointment {{SessionTitle}} is at {{OccurrenceStart}}.")
     {
         var policy = new SessionReminderPolicy
         {

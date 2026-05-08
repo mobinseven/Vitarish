@@ -157,7 +157,7 @@ public class ReminderProcessor(
                     Recipient = reminder.Recipient,
                     Subject = reminder.Subject,
                     Body = reminder.TextBody,
-                    HtmlBody = $"<p>{System.Net.WebUtility.HtmlEncode(reminder.TextBody)}</p>",
+                    HtmlBody = $"<p>{System.Net.WebUtility.HtmlEncode(reminder.TextBody).Replace("\n", "<br>", StringComparison.Ordinal)}</p>",
                     Sender = null
                 }, cancellationToken);
                 break;
