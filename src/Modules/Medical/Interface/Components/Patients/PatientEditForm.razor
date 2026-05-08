@@ -112,7 +112,7 @@
         set => projectWriteDto.UserIds = value is null ? [] : [value];
     }
 
-    private Task OnAvatarUploaded(FileInformationReadDto fileInfo)
+    private Task OnAvatarUploaded(Vitarish.Files.Domain.Models.FileInformationReadDto fileInfo)
     {
         projectWriteDto.AvatarFileId = fileInfo.Id;
         return InvokeAsync(StateHasChanged);
