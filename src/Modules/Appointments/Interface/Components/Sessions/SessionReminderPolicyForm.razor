@@ -1,0 +1,45 @@
+@inherits SessionReminderPoliciesBase
+@using Vitarish.Communications.Domain.Enums
+
+<Stack>
+    <MudRadioGroup T="ReminderKind" @bind-Value="dto.Channel">
+        <MudRadio T="ReminderKind" Value="ReminderKind.Email" Label="@Localizer["Email"]" />
+        <MudRadio T="ReminderKind" Value="ReminderKind.Sms" Label="@Localizer["Sms"]" />
+    </MudRadioGroup>
+
+    <StackField Label="@Localizer["OffsetBefore"]">
+        <MudNumericField T="double"
+                         Label="@Localizer["HoursBefore"]"
+                         Value="@offsetHours"
+                         ValueChanged="@(v => offsetHours = v)"
+                         Min="0.25"
+                         Step="0.25" />
+    </StackField>
+
+    <StackField Label="@Localizer["QualifyingStatuses"]">
+        @foreach (ReservationStatus status in Enum.GetValues<ReservationStatus>())
+        {
+            <MudCheckBox T="bool"
+                         Label="@status.ToString()"
+                         Value="@dto.QualifyingStatuses.Contains(status)"
+                         ValueChanged="@(v => ToggleStatus(status, v))" />
+        }
+    </StackField>
+
+    <MudTextField Label="@Localizer["SubjectTemplate"]"
+                  @bind-Value="dto.SubjectTemplate"
+                  HelperText="{{OccurrenceStart}}" />
+
+    <MudTextField Label="@Localizer["BodyTemplate"]"
+                  @bind-Value="dto.BodyTemplate"
+                  Lines="4"
+                  HelperText="{{OccurrenceStart}}" />
+
+    <MudSwitch T="bool"
+               @bind-Value="dto.IsEnabled"
+               Label="@Localizer["Enabled"]" />
+
+    <StackButton Label="@Localizer["Save"]"
+                 EndIcon="fa-regular fa-floppy-disk"
+                 OnClick="SaveAsync" />
+</Stack>

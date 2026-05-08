@@ -101,3 +101,11 @@
         <SessionOccurrencesList SessionId="@current.Id" OnClicked="AddReservationAsync" />
     </Stack>
 }
+
+@if (AdminMode)
+{
+    <Stack>
+        <StackField Label="@Localizer["ReminderPolicies"]" />
+        <SessionReminderPoliciesList SessionId="@current.Id" />
+    </Stack>
+}

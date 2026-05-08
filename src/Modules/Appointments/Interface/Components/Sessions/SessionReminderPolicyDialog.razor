@@ -1,0 +1,14 @@
+@inherits SessionReminderPoliciesBase
+
+<MudDialog>
+    <DialogContent>
+        <SessionReminderPolicyForm SessionId="@SessionId"
+                                   Policy="@Policy"
+                                   OnSaved="OnSavedInternal" />
+        <Stack>
+            <StackButton Label="@Localizer["Close"]"
+                         EndIcon="fa-regular fa-xmark"
+                         OnClick="Close" />
+        </Stack>
+    </DialogContent>
+</MudDialog>

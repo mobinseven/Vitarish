@@ -1,0 +1,31 @@
+@inherits SessionReminderPoliciesBase
+@using Vitarish.Communications.Domain.Enums
+
+@if (policies.Count == 0)
+{
+    <StackField Label="@Localizer["NoItems"]" />
+}
+else
+{
+    @foreach (var policy in policies)
+    {
+        <StackField Label="@($"{policy.Channel} — {policy.OffsetBefore.TotalHours:F0}h before")"
+                    HelperText="@(policy.IsEnabled ? Localizer["Enabled"] : Localizer["Disabled"])">
+            <MudStack Row>
+                <StackButton Label="@Localizer["EditItem", Localizer["Policy"]]"
+                             EndIcon="fa-regular fa-pen"
+                             OnClick="@(() => EditAsync(policy))" />
+                <StackButton Color="Color.Error"
+                             Label="@Localizer["RemoveItem", Localizer["Policy"]]"
+                             EndIcon="fa-regular fa-trash"
+                             OnClick="@(() => RemoveAsync(policy))" />
+            </MudStack>
+        </StackField>
+    }
+}
+
+<Stack>
+    <StackButton Label="@Localizer["AddItem", Localizer["Policy"]]"
+                 EndIcon="fa-regular fa-plus"
+                 OnClick="AddAsync" />
+</Stack>

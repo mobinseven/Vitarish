@@ -7,4 +7,5 @@ global using MediatR;
 global using Vitarish.Entities.Server.Abstractions;
 global using Vitarish.Entities.Server.Core;
 global using Vitarish.Entities.Server.Models;
+global using Vitarish.Entities.Server.Repositories;
 global using Vitarish.Entities.Server.Services;

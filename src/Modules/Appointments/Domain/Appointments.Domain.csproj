@@ -6,5 +6,6 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Generators\Entities.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" />
+		<ProjectReference Include="..\..\Communications\Domain\Communications.Domain.csproj" />
 	</ItemGroup>
 </Project>
