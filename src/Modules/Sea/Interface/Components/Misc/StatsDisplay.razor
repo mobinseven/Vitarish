@@ -1,17 +1,35 @@
 @inherits SeaCommonBase
-<MudStack Row AlignItems="AlignItems.Center" Spacing="1">
-    <MudBadge Content="@BadgeContent" Visible="@(BadgeCount > 0)" Color="@BlinkColor" Overlap Style="background-color: unset;" BadgeClass="glass">
-        <MudIcon Icon="@BlinkIcon" Color="Color.Inherit" Style="@EventItemsStyle" />
-    </MudBadge>
-</MudStack>
+@((MarkupString)BlinkIcon)
+@using System.Text.Encodings.Web
+
 @code {
     [Parameter, EditorRequired] public StatsReadDto? Stats { get; set; }
+
     private bool HasNewItems => Stats?.NewItems > 0;
+
     private int BadgeCount => HasNewItems
-        ? (Stats!.NewItems)
+        ? Stats!.NewItems
         : Stats?.EventItems ?? 0;
-    private string BadgeContent => NumberExtensions.LocalizeNumerals(BadgeCount.ToString());
-    private string EventItemsStyle => HasNewItems ? "opacity: 1; background-color: unset;" : BadgeCount > 0 ? "opacity: 1; background-color: unset;" : "opacity: 0;";
-    private string BlinkIcon => HasNewItems ? "fa-regular  fa-envelope fa-fade fa-xl" : BadgeCount > 0 ? "fa-regular  fa-envelope-open fa-xl" : "fa-regular fa-fw";
-    private Color BlinkColor => HasNewItems ? Color.Primary : Color.Default;
+
+    private string BadgeContent =>
+        NumberExtensions.LocalizeNumerals(BadgeCount.ToString());
+
+    private string TextColor => HasNewItems
+        ? "var(--mud-palette-primary)"
+        : "currentColor";
+
+    private MarkupString BlinkIcon => new(BadgeCount <= 0
+        ? ""
+        : $"""
+          <span class="fa-layers fa-fw" style="color:{TextColor}">
+              <i class="{IconClass}"></i>
+              <span class="fa-layers-counter" style="color:inherit;background:transparent">
+                  {HtmlEncoder.Default.Encode(BadgeContent)}
+              </span>
+          </span>
+          """);
+
+    private string IconClass => HasNewItems
+        ? "fa-regular fa-envelope fa-fade fa-xl"
+        : "fa-regular fa-envelope-open fa-xl";
 }

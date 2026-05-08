@@ -4,7 +4,7 @@
     <StackField Label="@Localizer["Procedures"]" />
     @foreach(var procedure in procedures)
     {
-        <StackButton Label="@procedure.Name" OnClick="@(() => OnClicked.InvokeAsync(procedure.Id))">
+        <StackButton Label="@procedure.Name" OnClick="@(() => OnClicked.InvokeAsync(procedure.Id))" EndIcon="">
             <StatsDisplay Stats="procedure.Stats ?? new StatsReadDto()" />
         </StackButton>
     }
