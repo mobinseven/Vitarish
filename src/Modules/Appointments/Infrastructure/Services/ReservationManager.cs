@@ -1,7 +1,7 @@
 namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
-internal class ReservationManager(IMediator mediator)
+internal class ReservationManager(IMediator mediator, ISessionOccurrenceFactory occurrenceFactory)
     : EntityService<Reservation, ReservationDescriptor, ReservationReadDto, ReservationWriteDto, ReservationDescriptorDto>(
         mediator,
         reservation => reservation.ToDto(),
@@ -13,6 +13,14 @@ internal class ReservationManager(IMediator mediator)
     {
         Guid reservationId = await Mediator.Send(new CreateReservationCommand(sessionOccurrenceId, reservingPartyId), cancellationToken);
         return await GetAsync(reservationId, cancellationToken);
+    }
+
+    public async Task<EntityResult<ReservationReadDto>> ReserveAsync(Guid sessionId, DateOnly date, string? reservingPartyId, CancellationToken cancellationToken)
+    {
+        EntityResult<Guid> occurrenceResult = await occurrenceFactory.GetOrCreateAsync(sessionId, date, cancellationToken);
+        return occurrenceResult.IsFailure
+            ? EntityResult<ReservationReadDto>.Failure([.. occurrenceResult.Errors])
+            : await ReserveAsync(occurrenceResult.Value, reservingPartyId, cancellationToken);
     }
 
     public Task<EntityResult> ConfirmReservationAsync(Guid reservationId, CancellationToken cancellationToken)

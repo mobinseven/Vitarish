@@ -6,7 +6,6 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 internal class AccessControlledSessionManager(
     IRequestContext requestContext,
     ISessionManager sessionManager,
-    ISessionOccurrenceSyncQueue sessionOccurrenceSyncQueue,
     IStatusCoordinator statusCoordinator) : IAccessControlledSessionManager
 {
     private bool IsAdmin => requestContext.IsTenantAdmin() || requestContext.IsTenantOwner();
@@ -59,8 +58,7 @@ internal class AccessControlledSessionManager(
             return EntityResult<SessionReadDto>.Failure([.. validation.Errors]);
         }
 
-        EntityResult<SessionReadDto> result = await sessionManager.AddAsync(dto, cancellationToken);
-        return SyncOccurrencesAfterWrite(result);
+        return await sessionManager.AddAsync(dto, cancellationToken);
     }
 
     public Task<EntityResult<IReadOnlyList<SessionReadDto>>> AddAsync(IReadOnlyList<SessionWriteDto> dtos, CancellationToken cancellationToken)
@@ -76,8 +74,7 @@ internal class AccessControlledSessionManager(
             return EntityResult<SessionReadDto>.Failure([.. validation.Errors]);
         }
 
-        EntityResult<SessionReadDto> result = await sessionManager.UpdateAsync(dto, cancellationToken);
-        return SyncOccurrencesAfterWrite(result);
+        return await sessionManager.UpdateAsync(dto, cancellationToken);
     }
 
     public Task<EntityResult<IReadOnlyList<SessionReadDto>>> UpdateAsync(IReadOnlyList<SessionWriteDto> dtos, CancellationToken cancellationToken)
@@ -115,7 +112,6 @@ internal class AccessControlledSessionManager(
             return validation;
         }
 
-        sessionOccurrenceSyncQueue.EnqueueSync(sessionId);
         return await statusCoordinator.TransitionSessionAsync(sessionId, SessionStatus.Active, requestContext.UserId, cancellationToken);
     }
 
@@ -135,17 +131,6 @@ internal class AccessControlledSessionManager(
     {
         EnsureAdmin();
         return await statusCoordinator.TransitionSessionAsync(sessionId, status, requestContext.UserId, cancellationToken);
-    }
-
-    private EntityResult<SessionReadDto> SyncOccurrencesAfterWrite(EntityResult<SessionReadDto> result)
-    {
-        if (result.IsFailure || result.Value is null)
-        {
-            return result;
-        }
-
-        sessionOccurrenceSyncQueue.EnqueueSync(result.Value.Id);
-        return result;
     }
 
     private IReadOnlyList<SessionReadDto> FilterList(IReadOnlyList<SessionReadDto> sessions)

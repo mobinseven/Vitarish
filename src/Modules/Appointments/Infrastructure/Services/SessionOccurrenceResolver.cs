@@ -8,29 +8,39 @@ internal class SessionOccurrenceResolver(
     IEntityRepository<SessionOccurrence, SessionOccurrenceDescriptor> occurrenceRepository,
     AppointmentsDbContext dbContext) : ISessionOccurrenceResolver
 {
-    private const string WeeklyRecurrenceId = "weekly";
-
     public async Task<IReadOnlyList<SessionOccurrenceReadDto>> ResolveOccurrencesAsync(
         Guid sessionId, TimeRangeQuery range, CancellationToken cancellationToken)
     {
-        await SyncOccurrencesAsync(
-            sessionId,
-            DateOnly.FromDateTime(range.Start.DateTime),
-            DateOnly.FromDateTime(range.End.DateTime),
-            cancellationToken);
+        DateOnly dateFrom = DateOnly.FromDateTime(range.Start.DateTime);
+        DateOnly dateTo = DateOnly.FromDateTime(range.End.DateTime);
+
+        if (dateTo < dateFrom)
+        {
+            return [];
+        }
+
+        Session? session = await sessionRepository.GetAsync(sessionId, cancellationToken);
+        if (session is null)
+        {
+            return [];
+        }
 
         SessionOccurrenceDescriptor descriptor = new()
         {
             SessionId = sessionId,
-            DateFrom = DateOnly.FromDateTime(range.Start.DateTime),
-            DateTo = DateOnly.FromDateTime(range.End.DateTime),
-            IsCancelled = false,
+            DateFrom = dateFrom,
+            DateTo = dateTo,
             Skip = 0,
             Take = int.MaxValue
         };
 
-        IReadOnlyList<SessionOccurrence> occurrences = await occurrenceRepository.GetAsync(descriptor, cancellationToken);
-        return [.. occurrences.Select(o => o.ToDto())];
+        IReadOnlyList<SessionOccurrence> existingOccurrences = await occurrenceRepository.GetAsync(descriptor, cancellationToken);
+        Dictionary<DateOnly, SessionOccurrence> existingByDate = existingOccurrences.ToDictionary(o => o.Date);
+
+        return [.. GetScheduledDates(session.DayOfWeek, dateFrom, dateTo)
+            .Select(date => existingByDate.TryGetValue(date, out SessionOccurrence? existing)
+                ? existing.ToDto()
+                : CreateProjectedOccurrence(session, date).ToDto())];
     }
 
     public async Task<SessionOccurrenceReadDto?> GetOccurrenceAsync(
@@ -44,44 +54,10 @@ internal class SessionOccurrenceResolver(
         return occurrence?.ToDto();
     }
 
-    public async Task SyncOccurrencesAsync(Guid sessionId, CancellationToken cancellationToken)
+    public Task SyncOccurrencesAsync(Guid sessionId, CancellationToken cancellationToken)
     {
-        DateOnly today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.DateTime);
-        await SyncOccurrencesAsync(sessionId, today, today.AddYears(1), cancellationToken);
-    }
-
-    private async Task SyncOccurrencesAsync(Guid sessionId, DateOnly dateFrom, DateOnly dateTo, CancellationToken cancellationToken)
-    {
-        if (dateTo < dateFrom)
-        {
-            return;
-        }
-
-        Session? session = await sessionRepository.GetAsync(sessionId, cancellationToken);
-        if (session is null)
-        {
-            return;
-        }
-
-        foreach (DateOnly date in GetScheduledDates(session.DayOfWeek, dateFrom, dateTo))
-        {
-            SessionOccurrence occurrence = CreateOccurrence(session, date);
-            await ValidateOccurrenceForSessionAsync(occurrence, session, cancellationToken);
-
-            SessionOccurrence? existing = await dbContext.SessionOccurrences
-                .FirstOrDefaultAsync(o => o.SessionId == sessionId && o.Date == occurrence.Date, cancellationToken);
-
-            if (existing is null)
-            {
-                dbContext.SessionOccurrences.Add(occurrence);
-            }
-            else
-            {
-                ApplyOccurrence(existing, occurrence);
-            }
-        }
-
-        await SaveOccurrenceChangesAsync(sessionId, cancellationToken);
+        cancellationToken.ThrowIfCancellationRequested();
+        return Task.CompletedTask;
     }
 
     private static IEnumerable<DateOnly> GetScheduledDates(DayOfWeek dayOfWeek, DateOnly dateFrom, DateOnly dateTo)
@@ -94,70 +70,13 @@ internal class SessionOccurrenceResolver(
         }
     }
 
-    private static SessionOccurrence CreateOccurrence(Session session, DateOnly date) => new()
+    private static SessionOccurrence CreateProjectedOccurrence(Session session, DateOnly date) => new()
     {
         SessionId = session.Id,
         Date = date,
         StartTime = session.StartTime,
         EndTime = session.EndTime,
         Capacity = session.TotalSeats,
-        Metadata = BuildMetadata(session),
         IsCancelled = session.Status == SessionStatus.Cancelled
     };
-
-    private static Dictionary<string, object?> BuildMetadata(Session session)
-    {
-        Dictionary<string, object?> metadata = new(session.Metadata);
-        metadata["recurrenceId"] = WeeklyRecurrenceId;
-        return metadata;
-    }
-
-    private static void ApplyOccurrence(SessionOccurrence target, SessionOccurrence source)
-    {
-        target.StartTime = source.StartTime;
-        target.EndTime = source.EndTime;
-        target.Capacity = source.Capacity;
-        target.Metadata = source.Metadata;
-        target.IsCancelled = source.IsCancelled;
-    }
-
-    private static Task ValidateOccurrenceForSessionAsync(
-        SessionOccurrence occurrence, Session session, CancellationToken cancellationToken)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-
-        if (occurrence.Date.DayOfWeek != session.DayOfWeek)
-        {
-            throw new InvalidOperationException("Occurrence date must match the session day of week.");
-        }
-
-        return Task.CompletedTask;
-    }
-
-    private async Task SaveOccurrenceChangesAsync(Guid sessionId, CancellationToken cancellationToken)
-    {
-        try
-        {
-            _ = await dbContext.SaveChangesAsync(cancellationToken);
-        }
-        catch (DbUpdateException exception) when (IsDuplicateSessionOccurrenceException(exception))
-        {
-            foreach (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<SessionOccurrence> entry in dbContext.ChangeTracker
-                .Entries<SessionOccurrence>()
-                .Where(entry => entry.Entity.SessionId == sessionId && entry.State == EntityState.Added))
-            {
-                entry.State = EntityState.Detached;
-            }
-
-            _ = await dbContext.SaveChangesAsync(cancellationToken);
-        }
-    }
-
-    private static bool IsDuplicateSessionOccurrenceException(DbUpdateException exception)
-    {
-        string message = exception.InnerException?.Message ?? exception.Message;
-        return message.Contains("IX_SessionOccurrences_SessionId_Date", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("duplicate key", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("unique constraint", StringComparison.OrdinalIgnoreCase);
-    }
 }

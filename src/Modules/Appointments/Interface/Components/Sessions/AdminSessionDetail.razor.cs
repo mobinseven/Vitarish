@@ -7,6 +7,8 @@ public partial class AdminSessionDetail : SessionsBase
     [Parameter] public EventCallback OnDeleted { get; set; }
     [Parameter] public EventCallback OnStatusChanged { get; set; }
 
+    [Inject] private ISessionOccurrenceFactory SessionOccurrenceFactory { get; set; } = default!;
+
     private async Task ChangeStatusAsync(SessionStatus status)
     {
         string label = status switch
@@ -59,8 +61,15 @@ public partial class AdminSessionDetail : SessionsBase
         }
     }
 
-    private async Task AddReservationAsync(Guid occurrenceId)
+    private async Task AddReservationAsync(DateOnly date)
     {
+        EntityResult<Guid> occurrenceResult = await SessionOccurrenceFactory.GetOrCreateAsync(Session.Id, date, CancellationToken.None);
+        if (occurrenceResult.IsFailure)
+        {
+            return;
+        }
+
+        Guid occurrenceId = occurrenceResult.Value;
         DialogParameters parameters = new()
         {
             { nameof(AdminReservationForSessionDialog.SessionOccurrenceId), occurrenceId }
