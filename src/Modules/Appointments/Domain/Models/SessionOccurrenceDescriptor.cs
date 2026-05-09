@@ -4,7 +4,7 @@ namespace Vitarish.Appointments.Domain.Models;
 public record SessionOccurrenceDescriptor : EntityDescriptor
 {
     public Guid? SessionId { get; init; }
-    public DateTimeOffset? DateFrom { get; init; }
-    public DateTimeOffset? DateTo { get; init; }
+    public DateOnly? DateFrom { get; init; }
+    public DateOnly? DateTo { get; init; }
     public bool? IsCancelled { get; init; }
 }

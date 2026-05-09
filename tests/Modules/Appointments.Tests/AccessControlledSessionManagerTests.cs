@@ -20,6 +20,8 @@ public class AccessControlledSessionManagerTests
         {
             Title = "Missing schedule",
             TimeZone = TimeZoneInfo.Utc.Id,
+            StartAt = null,
+            EndAt = null,
             TotalSeats = 1
         };
 

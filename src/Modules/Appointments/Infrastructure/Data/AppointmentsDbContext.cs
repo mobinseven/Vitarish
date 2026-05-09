@@ -87,6 +87,17 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
                 .HasForeignKey(o => o.SessionId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            _ = entity.HasIndex(o => new { o.SessionId, o.Date })
+                .IsUnique()
+                .HasDatabaseName("IX_SessionOccurrences_SessionId_Date");
+
+            _ = entity.Property(e => e.Metadata)
+                .HasConversion(
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, (JsonSerializerOptions?)null) ?? new())
+                .HasDefaultValueSql("'{}'")
+                .HasColumnType("nvarchar(max)");
+
             _ = entity.Ignore(e => e.Stats);
         });
 

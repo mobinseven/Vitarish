@@ -46,6 +46,9 @@ public class Session : Entity
         set => SetField(ref field, value, nameof(TimeZone));
     } = "UTC";
 
+    [NotMapped]
+    public DayOfWeek? DayOfWeek => StartAt?.DayOfWeek;
+
     public int TotalSeats
     {
         get;

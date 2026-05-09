@@ -10,40 +10,40 @@ public class SessionOccurrence : Entity
         set => SetField(ref field, value, nameof(SessionId));
     }
 
-    public Guid CalendarMappingId
+    public DateOnly Date
     {
         get;
-        set => SetField(ref field, value, nameof(CalendarMappingId));
+        set => SetField(ref field, value, nameof(Date));
     }
 
-    public string RecurrenceId
+    public TimeOnly StartTime
     {
         get;
-        set => SetField(ref field, value, nameof(RecurrenceId));
-    } = string.Empty;
-
-    public DateTimeOffset OccurrenceStart
-    {
-        get;
-        set => SetField(ref field, value, nameof(OccurrenceStart));
+        set => SetField(ref field, value, nameof(StartTime));
     }
 
-    public DateTimeOffset OccurrenceEnd
+    public TimeOnly EndTime
     {
         get;
-        set => SetField(ref field, value, nameof(OccurrenceEnd));
+        set => SetField(ref field, value, nameof(EndTime));
     }
+
+    public int Capacity
+    {
+        get;
+        set => SetField(ref field, value, nameof(Capacity));
+    }
+
+    public Dictionary<string, object?> Metadata
+    {
+        get;
+        set => SetField(ref field, value, nameof(Metadata));
+    } = [];
 
     public bool IsCancelled
     {
         get;
         set => SetField(ref field, value, nameof(IsCancelled));
-    }
-
-    public int? CapacityOverride
-    {
-        get;
-        set => SetField(ref field, value, nameof(CapacityOverride));
     }
 
     public Session? Session { get; set; }

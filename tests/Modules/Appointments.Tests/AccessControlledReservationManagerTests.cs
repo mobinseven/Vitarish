@@ -15,21 +15,26 @@ public class AccessControlledReservationManagerTests
         Guid occurrenceId = Guid.NewGuid();
         Guid reservationId = Guid.NewGuid();
 
+        DateTimeOffset occurrenceStart = DateTimeOffset.UtcNow.AddHours(2);
+        DateTimeOffset occurrenceEnd = DateTimeOffset.UtcNow.AddHours(3);
+
         occurrenceRepository
             .Setup(x => x.GetAsync(occurrenceId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new SessionOccurrence
             {
                 Id = occurrenceId,
-                OccurrenceStart = DateTimeOffset.UtcNow.AddHours(2),
-                OccurrenceEnd = DateTimeOffset.UtcNow.AddHours(3),
+                Date = DateOnly.FromDateTime(occurrenceStart.DateTime),
+                StartTime = TimeOnly.FromDateTime(occurrenceStart.DateTime),
+                EndTime = TimeOnly.FromDateTime(occurrenceEnd.DateTime),
+                Capacity = 2,
                 Session = new Session
                 {
                     Id = Guid.NewGuid(),
                     Status = SessionStatus.Active,
                     RequiresApproval = false,
                     TotalSeats = 2,
-                    StartAt = DateTimeOffset.UtcNow.AddHours(2),
-                    EndAt = DateTimeOffset.UtcNow.AddHours(3),
+                    StartAt = occurrenceStart,
+                    EndAt = occurrenceEnd,
                     TimeZone = TimeZoneInfo.Utc.Id
                 }
             });
@@ -51,6 +56,17 @@ public class AccessControlledReservationManagerTests
         reservationManager
             .Setup(x => x.GetListAsync(It.IsAny<ReservationDescriptorDto>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(EntityResult<IReadOnlyList<ReservationReadDto>>.Success([]));
+
+        reservationManager
+            .Setup(x => x.GetAsync(reservationId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<ReservationReadDto>.Success(new ReservationReadDto
+            {
+                Id = reservationId,
+                SessionOccurrenceId = occurrenceId,
+                ReservingPartyId = "user-1",
+                Status = ReservationStatus.Confirmed,
+                CreatedAt = DateTimeOffset.UtcNow
+            }));
 
         statusCoordinator
             .Setup(x => x.TransitionReservationAsync(reservationId, ReservationStatus.Confirmed, "user-1", It.IsAny<CancellationToken>()))

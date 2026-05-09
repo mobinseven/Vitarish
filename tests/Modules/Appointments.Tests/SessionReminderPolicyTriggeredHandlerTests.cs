@@ -174,14 +174,22 @@ public class SessionReminderPolicyTriggeredHandlerTests
 
     private static SessionOccurrence CreateOccurrence(DateTimeOffset? start = null)
     {
+        DateTimeOffset occurrenceStart = start ?? DateTimeOffset.UtcNow.AddDays(3);
+        DateTimeOffset occurrenceEnd = occurrenceStart.AddHours(1);
+
         return new SessionOccurrence
         {
             Id = Guid.NewGuid(),
             SessionId = Guid.NewGuid(),
-            OccurrenceStart = start ?? DateTimeOffset.UtcNow.AddDays(3),
-            OccurrenceEnd = (start ?? DateTimeOffset.UtcNow.AddDays(3)).AddHours(1),
-            RecurrenceId = "rec-1",
-            CalendarMappingId = Guid.NewGuid()
+            Date = DateOnly.FromDateTime(occurrenceStart.DateTime),
+            StartTime = TimeOnly.FromDateTime(occurrenceStart.DateTime),
+            EndTime = TimeOnly.FromDateTime(occurrenceEnd.DateTime),
+            Capacity = 1,
+            Metadata = new Dictionary<string, object?>
+            {
+                ["recurrenceId"] = "rec-1",
+                ["calendarMappingId"] = Guid.NewGuid()
+            }
         };
     }
 
@@ -215,7 +223,7 @@ public class SessionReminderPolicyTriggeredHandlerTests
             occurrence.Id,
             reservingPartyId,
             status,
-            occurrence.OccurrenceStart);
+            new DateTimeOffset(occurrence.Date.ToDateTime(occurrence.StartTime), TimeSpan.Zero));
 
     private sealed class TestTimeProvider : TimeProvider
     {

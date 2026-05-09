@@ -16,22 +16,7 @@ internal class CapacityEngine(
             return 0;
         }
 
-        if (occurrence.CapacityOverride.HasValue)
-        {
-            return occurrence.CapacityOverride.Value;
-        }
-
-        CapacityPolicy? policy = await capacityPolicyRepository.GetBySessionIdAsync(occurrence.SessionId, cancellationToken);
-        if (policy is not null)
-        {
-            return policy.TotalSeats;
-        }
-
-        Session? session = await dbContext.Sessions
-            .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Id == occurrence.SessionId, cancellationToken);
-
-        return session?.TotalSeats ?? 0;
+        return occurrence.Capacity;
     }
 
     public async Task<int> GetAvailableSeatsAsync(Guid sessionOccurrenceId, CancellationToken cancellationToken)
