@@ -45,10 +45,10 @@
 
 @code {
     [Parameter]
-    public global::System.TimeOnly TimeOnly { get; set; } = global::System.TimeOnly.MinValue;
+    public global::System.TimeOnly TimeOnlyValue { get; set; } = global::System.TimeOnly.MinValue;
 
     [Parameter]
-    public EventCallback<global::System.TimeOnly> TimeOnlyChanged { get; set; }
+    public EventCallback<global::System.TimeOnly> TimeOnlyValueChanged { get; set; }
 
     [Parameter]
     public int MinuteStep { get; set; } = 15;
@@ -89,8 +89,8 @@
         base.OnParametersSet();
 
         var selectedTime =
-            TimeOnlyChanged.HasDelegate || TimeOnly != global::System.TimeOnly.MinValue || Time is null
-                ? TimeOnly
+            TimeOnlyValueChanged.HasDelegate || TimeOnlyValue != global::System.TimeOnly.MinValue || Time is null
+                ? TimeOnlyValue
                 : global::System.TimeOnly.FromTimeSpan(Time.Value);
 
         _hour = selectedTime.Hour;
@@ -110,12 +110,12 @@
 
         var value = new global::System.TimeOnly(hour, minute);
 
-        TimeOnly = value;
+        TimeOnlyValue = value;
 
         // Keep inherited MudTimePicker API in sync too.
         Time = value.ToTimeSpan();
 
-        await TimeOnlyChanged.InvokeAsync(value);
+        await TimeOnlyValueChanged.InvokeAsync(value);
         await TimeChanged.InvokeAsync(Time);
     }
 }

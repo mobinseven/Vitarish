@@ -19,17 +19,17 @@
 
 @code {
     [Parameter]
-    public DateOnly? DateOnly { get; set; }
+    public DateOnly? DateOnlyValue { get; set; }
 
     [Parameter]
-    public EventCallback<DateOnly?> DateOnlyChanged { get; set; }
+    public EventCallback<DateOnly?> DateOnlyValueChanged { get; set; }
 
     private bool UsesDateOnlyBinding =>
-        DateOnly.HasValue || DateOnlyChanged.HasDelegate;
+        DateOnlyValue.HasValue || DateOnlyValueChanged.HasDelegate;
 
     private DateTime? PickerDate =>
         UsesDateOnlyBinding
-            ? DateOnly?.ToDateTime(TimeOnly.MinValue)
+            ? DateOnlyValue?.ToDateTime(TimeOnly.MinValue)
             : Date;
 
     private async Task OnPickerDateChanged(DateTime? value)
@@ -38,10 +38,10 @@
         await DateChanged.InvokeAsync(value);
 
         // Add DateOnly? binding support.
-        var dateOnlyValue = value.HasValue
-            ? DateOnly.FromDateTime(value.Value)
+        DateOnly? dateOnlyValue = value.HasValue
+            ? System.DateOnly.FromDateTime(value.Value)
             : null;
 
-        await DateOnlyChanged.InvokeAsync(dateOnlyValue);
+        await DateOnlyValueChanged.InvokeAsync(dateOnlyValue);
     }
 }

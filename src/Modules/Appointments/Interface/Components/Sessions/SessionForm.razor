@@ -10,8 +10,8 @@
                 <MudSelectItem T="DayOfWeek" Value="day">@Localizer[day.ToString()]</MudSelectItem>
             }
         </StackSelect>
-        <StackTimePicker @bind-TimeOnly="sessionWriteDto.StartTime" Label="@Localizer["StartTime"]" />
-        <StackTimePicker @bind-TimeOnly="sessionWriteDto.EndTime" Label="@Localizer["EndTime"]" />
+        <StackTimePicker @bind-TimeOnlyValue="sessionWriteDto.StartTime" Label="@Localizer["StartTime"]" />
+        <StackTimePicker @bind-TimeOnlyValue="sessionWriteDto.EndTime" Label="@Localizer["EndTime"]" />
         @* <StackTextField @bind-Value="sessionWriteDto.TimeZone" Label="@Localizer["TimeZone"]" /> *@
         <StackNumericField @bind-Value="sessionWriteDto.TotalSeats" Label="@Localizer["TotalSeats"]" Min="1" />
         <StackSelect T="SessionStatus" Label="@Localizer["Status"]" @bind-Value="sessionWriteDto.Status">
