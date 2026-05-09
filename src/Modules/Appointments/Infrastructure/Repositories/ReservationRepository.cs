@@ -21,12 +21,12 @@ internal class ReservationRepository(AppointmentsDbContext dbContext)
 
         if (descriptor.SessionId is { } sessionId)
         {
-            query = query.Where(r => r.Occurrence != null && r.Occurrence.SessionId == sessionId);
+            query = query.Where(r => r.Occurrence!.SessionId == sessionId);
         }
 
         if (descriptor.Date is { } date)
         {
-            query = query.Where(r => r.Occurrence != null && r.Occurrence.Date == date);
+            query = query.Where(r => r.Occurrence!.Date == date);
         }
 
         if (descriptor.ReservingPartyId is { } partyId)

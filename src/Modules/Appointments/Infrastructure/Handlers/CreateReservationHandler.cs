@@ -12,17 +12,38 @@ internal class CreateReservationHandler(
 {
     public async Task<EntityResult<Guid>> Handle(CreateReservationCommand request, CancellationToken cancellationToken)
     {
-        EntityResult<Guid> occurrenceResult = await occurrenceFactory.GetOrCreateAsync(
-            request.SessionId,
-            request.Date,
-            cancellationToken);
-
-        if (occurrenceResult.IsFailure)
+        SessionOccurrence occurrence;
+        if (request.SessionOccurrenceId is { } existingOccurrenceId)
         {
-            return EntityResult<Guid>.Failure([.. occurrenceResult.Errors]);
+            SessionOccurrence? existingOccurrence = await occurrenceRepository.GetAsync(existingOccurrenceId, cancellationToken);
+            if (existingOccurrence is null)
+            {
+                return EntityResult<Guid>.Failure(EntityError.NotFound("Session occurrence not found.", nameof(request.SessionOccurrenceId)));
+            }
+
+            occurrence = existingOccurrence;
+        }
+        else
+        {
+            EntityResult<SessionOccurrence> occurrenceResult = await occurrenceFactory.GetOrCreateOccurrenceAsync(
+                request.SessionId,
+                request.Date,
+                cancellationToken);
+
+            if (occurrenceResult.IsFailure)
+            {
+                return EntityResult<Guid>.Failure([.. occurrenceResult.Errors]);
+            }
+
+            if (occurrenceResult.Value is null)
+            {
+                return EntityResult<Guid>.Failure(EntityError.Conflict("Session occurrence could not be created."));
+            }
+
+            occurrence = occurrenceResult.Value;
         }
 
-        Guid sessionOccurrenceId = occurrenceResult.Value;
+        Guid sessionOccurrenceId = occurrence.Id;
         Reservation reservation = new()
         {
             SessionOccurrenceId = sessionOccurrenceId,
@@ -44,18 +65,14 @@ internal class CreateReservationHandler(
             new ReservationCreatedEvent(created.Id, created.SessionOccurrenceId, created.ReservingPartyId),
             cancellationToken);
 
-        SessionOccurrence? occurrence = await occurrenceRepository.GetAsync(sessionOccurrenceId, cancellationToken);
-        if (occurrence is not null)
-        {
-            await publisher.Publish(
-                new SessionReminderPolicyTriggeredEvent(
-                    created.Id,
-                    created.SessionOccurrenceId,
-                    created.ReservingPartyId,
-                    ReservationStatus.Pending,
-                    new DateTimeOffset(occurrence.Date.ToDateTime(occurrence.StartTime), TimeSpan.Zero)),
-                cancellationToken);
-        }
+        await publisher.Publish(
+            new SessionReminderPolicyTriggeredEvent(
+                created.Id,
+                created.SessionOccurrenceId,
+                created.ReservingPartyId,
+                ReservationStatus.Pending,
+                new DateTimeOffset(occurrence.Date.ToDateTime(occurrence.StartTime), TimeSpan.Zero)),
+            cancellationToken);
 
         return EntityResult<Guid>.Success(created.Id);
     }

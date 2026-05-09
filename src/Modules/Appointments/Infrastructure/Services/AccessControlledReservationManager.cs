@@ -94,7 +94,12 @@ internal class AccessControlledReservationManager(
     public Task<EntityResult> RemoveByDescriptorAsync(ReservationDescriptorDto descriptor, CancellationToken cancellationToken)
         => IsAdmin ? reservationManager.RemoveByDescriptorAsync(descriptor, cancellationToken) : throw AdminRoleRequired;
 
-    public async Task<EntityResult<ReservationReadDto>> ReserveAsync(Guid sessionId, DateOnly date, string? reservingPartyId, CancellationToken cancellationToken)
+    public async Task<EntityResult<ReservationReadDto>> ReserveAsync(
+        Guid sessionId,
+        DateOnly date,
+        string? reservingPartyId,
+        CancellationToken cancellationToken,
+        Guid? sessionOccurrenceId = null)
     {
         string? effectivePartyId = IsAdmin ? reservingPartyId : UserId;
         if (string.IsNullOrWhiteSpace(effectivePartyId))
@@ -103,6 +108,11 @@ internal class AccessControlledReservationManager(
             {
                 [nameof(reservingPartyId)] = "A reserving user is required."
             }));
+        }
+
+        if (sessionOccurrenceId is { } occurrenceId)
+        {
+            return await ReserveOccurrenceAsync(sessionId, date, occurrenceId, effectivePartyId, cancellationToken);
         }
 
         EntityResult<Guid> occurrenceResult = await occurrenceFactory.GetOrCreateAsync(sessionId, date, cancellationToken);
@@ -161,7 +171,12 @@ internal class AccessControlledReservationManager(
             return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("An active reservation already exists for this session occurrence."));
         }
 
-        EntityResult<ReservationReadDto> reserveResult = await reservationManager.ReserveAsync(sessionId, date, reservingPartyId, cancellationToken);
+        EntityResult<ReservationReadDto> reserveResult = await reservationManager.ReserveAsync(
+            sessionId,
+            date,
+            reservingPartyId,
+            cancellationToken,
+            sessionOccurrenceId);
         if (reserveResult.IsFailure || reserveResult.Value is null)
         {
             return reserveResult.IsFailure

@@ -9,9 +9,16 @@ internal class ReservationManager(IMediator mediator)
         reservation => reservation.ToDomain()),
       IReservationManager
 {
-    public async Task<EntityResult<ReservationReadDto>> ReserveAsync(Guid sessionId, DateOnly date, string? reservingPartyId, CancellationToken cancellationToken)
+    public async Task<EntityResult<ReservationReadDto>> ReserveAsync(
+        Guid sessionId,
+        DateOnly date,
+        string? reservingPartyId,
+        CancellationToken cancellationToken,
+        Guid? sessionOccurrenceId = null)
     {
-        EntityResult<Guid> reservationResult = await Mediator.Send(new CreateReservationCommand(sessionId, date, reservingPartyId), cancellationToken);
+        EntityResult<Guid> reservationResult = await Mediator.Send(
+            new CreateReservationCommand(sessionId, date, reservingPartyId, SessionOccurrenceId: sessionOccurrenceId),
+            cancellationToken);
         return reservationResult.IsFailure
             ? EntityResult<ReservationReadDto>.Failure([.. reservationResult.Errors])
             : await GetAsync(reservationResult.Value, cancellationToken);
