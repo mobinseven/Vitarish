@@ -15,10 +15,30 @@ public abstract class Entity : INotifyPropertyChanged
         get;
         set => SetField(ref field, value, nameof(CreatedAt));
     }
+    public string? CreatedBy
+    {
+        get;
+        set => SetField(ref field, value, nameof(CreatedBy));
+    }
+    public DateTimeOffset? UpdatedAt
+    {
+        get;
+        set => SetField(ref field, value, nameof(UpdatedAt));
+    }
+    public string? UpdatedBy
+    {
+        get;
+        set => SetField(ref field, value, nameof(UpdatedBy));
+    }
     public DateTimeOffset? DeletedAt
     {
         get;
         set => SetField(ref field, value, nameof(DeletedAt));
+    }
+    public string? DeletedBy
+    {
+        get;
+        set => SetField(ref field, value, nameof(DeletedBy));
     }
 
     internal bool IsMarkedForHardDelete { get; set; }

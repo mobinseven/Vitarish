@@ -2,9 +2,6 @@ namespace Vitarish.Sea.Domain.Dto;
 
 public record ReceiptDescriptorDto : EntityDescriptorDto
 {
-    [JsonPropertyName("readerId")]
-    public string? ReaderId { get; init; }
-
     [JsonPropertyName("projectId")]
     public Guid? ProjectId { get; init; }
 

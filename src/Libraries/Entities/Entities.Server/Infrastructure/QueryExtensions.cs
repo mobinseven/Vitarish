@@ -11,7 +11,7 @@ public static class QueryExtensions
         {
             query = query.Where(e => e.Id == descriptor.Id);
         }
-        if (descriptor is { DeletedFrom: not null } or { DeletedTo: not null })
+        if (descriptor is { DeletedFrom: not null } or { DeletedTo: not null } or { DeletedBy: not null })
         {
             query = query.IgnoreQueryFilters([EntityQueryFilterNames.SoftDelete]);
         }
@@ -26,6 +26,26 @@ public static class QueryExtensions
             query = query.Where(e => e.CreatedAt <= descriptor.CreatedTo);
         }
 
+        if (!string.IsNullOrWhiteSpace(descriptor.CreatedBy))
+        {
+            query = query.Where(e => e.CreatedBy == descriptor.CreatedBy);
+        }
+
+        if (descriptor.UpdatedFrom is not null)
+        {
+            query = query.Where(e => e.UpdatedAt >= descriptor.UpdatedFrom);
+        }
+
+        if (descriptor.UpdatedTo is not null)
+        {
+            query = query.Where(e => e.UpdatedAt <= descriptor.UpdatedTo);
+        }
+
+        if (!string.IsNullOrWhiteSpace(descriptor.UpdatedBy))
+        {
+            query = query.Where(e => e.UpdatedBy == descriptor.UpdatedBy);
+        }
+
         if (descriptor.DeletedFrom is not null)
         {
             query = query.Where(e => e.DeletedAt >= descriptor.DeletedFrom);
@@ -34,6 +54,11 @@ public static class QueryExtensions
         if (descriptor.DeletedTo is not null)
         {
             query = query.Where(e => e.DeletedAt <= descriptor.DeletedTo);
+        }
+
+        if (!string.IsNullOrWhiteSpace(descriptor.DeletedBy))
+        {
+            query = query.Where(e => e.DeletedBy == descriptor.DeletedBy);
         }
 
         return query;
@@ -48,7 +73,7 @@ public static class QueryExtensions
 
         if (!HasOrdering(query.Expression))
         {
-            query = query.OrderByDescending(e => e.CreatedAt);
+            query = query.OrderByDescending(e => e.UpdatedAt ?? e.CreatedAt);
         }
 
         if (descriptor.Skip is not null)

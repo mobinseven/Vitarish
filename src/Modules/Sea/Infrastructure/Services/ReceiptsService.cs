@@ -14,17 +14,17 @@ internal class ReceiptsService(
     ),
     IReceiptsService
 {
-    private async Task RemoveReceiptAsync(string readerId, Guid objectId, CancellationToken cancellationToken) => (await RemoveByDescriptorAsync(
+    private async Task RemoveReceiptAsync(string createdBy, Guid objectId, CancellationToken cancellationToken) => (await RemoveByDescriptorAsync(
             new ReceiptDescriptor
             {
-                ReaderId = readerId,
+                CreatedBy = createdBy,
                 ObjectId = objectId
             },
             cancellationToken)).EnsureSuccess("Remove receipt");
 
     public async Task<bool> HasReceiptAsync(Guid userId, Guid objectId, CancellationToken cancellationToken)
     {
-        ReceiptReadDto? receiptDto = (await GetListAsync(new ReceiptDescriptorDto { ReaderId = userId.ToString(), ObjectId = objectId }, cancellationToken))
+        ReceiptReadDto? receiptDto = (await GetListAsync(new ReceiptDescriptorDto { CreatedBy = userId.ToString(), ObjectId = objectId }, cancellationToken))
             .EnsureValue("Get receipts")
             .FirstOrDefault();
         return receiptDto is not null;
@@ -38,7 +38,7 @@ internal class ReceiptsService(
             return new Dictionary<Guid, bool>();
         }
 
-        IReadOnlyList<ReceiptReadDto> receipts = (await GetListAsync(new ReceiptDescriptorDto { ReaderId = userId.ToString() }, cancellationToken))
+        IReadOnlyList<ReceiptReadDto> receipts = (await GetListAsync(new ReceiptDescriptorDto { CreatedBy = userId.ToString() }, cancellationToken))
             .EnsureValue("Get receipts");
 
         HashSet<Guid> receiptIds = [.. receipts.Select(r => r.ObjectId)];
@@ -47,14 +47,14 @@ internal class ReceiptsService(
     }
     public async Task<Guid> AddAsync(Guid userId, Guid objectId, CancellationToken cancellationToken)
     {
-        ReceiptReadDto? receiptDto = (await GetListAsync(new ReceiptDescriptorDto { ReaderId = userId.ToString(), ObjectId = objectId }, CancellationToken.None))
+        ReceiptReadDto? receiptDto = (await GetListAsync(new ReceiptDescriptorDto { CreatedBy = userId.ToString(), ObjectId = objectId }, CancellationToken.None))
             .EnsureValue()
             .FirstOrDefault();
         if (receiptDto is not null)
         {
             return receiptDto.Id;
         }
-        Receipt receipt = new(objectId, userId.ToString());
+        Receipt receipt = new(objectId);
         _ = (await AddEntityAsync(receipt, cancellationToken)).EnsureValue("Add receipt");
         return receipt.Id;
     }
@@ -68,7 +68,7 @@ internal class ReceiptsService(
 
         foreach (ReceiptReadDto receipt in receipts)
         {
-            if (Guid.TryParse(receipt.ReaderId, out Guid userId))
+            if (Guid.TryParse(receipt.CreatedBy, out Guid userId))
             {
                 _ = readers.Add(userId);
             }
@@ -106,19 +106,19 @@ internal class ReceiptsService(
 
     public async Task MarkEventUnreadAsync(Guid userId, Guid eventId, CancellationToken cancellationToken)
     {
-        string readerId = userId.ToString();
-        await RemoveReceiptAsync(readerId, eventId, cancellationToken);
+        string createdBy = userId.ToString();
+        await RemoveReceiptAsync(createdBy, eventId, cancellationToken);
 
         IReadOnlyList<AttachmentReadDto> attachments = await attachmentsService.GetByEventAsync(eventId, cancellationToken);
         foreach (AttachmentReadDto attachment in attachments)
         {
-            await RemoveReceiptAsync(readerId, attachment.Id, cancellationToken);
+            await RemoveReceiptAsync(createdBy, attachment.Id, cancellationToken);
         }
 
         IReadOnlyList<Vitarish.Communications.Domain.Dto.ReminderReadDto> reminders = await remindersService.GetBySourceAsync(eventId, cancellationToken);
         foreach (Vitarish.Communications.Domain.Dto.ReminderReadDto reminder in reminders)
         {
-            await RemoveReceiptAsync(readerId, reminder.Id, cancellationToken);
+            await RemoveReceiptAsync(createdBy, reminder.Id, cancellationToken);
         }
     }
 }

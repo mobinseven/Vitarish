@@ -22,7 +22,7 @@ public sealed class EntityInterceptor(
         if (eventData.Context is DbContext context)
         {
             DateTimeOffset now = timeService.Now;
-            UpdateEntities(context, now);
+            UpdateEntities(context, now, userService.UserId);
             CaptureChanges(context, now, userService.UserId);
             InvalidateCache(context, cacheInvalidationService);
         }
@@ -38,7 +38,7 @@ public sealed class EntityInterceptor(
         if (eventData.Context is DbContext context)
         {
             DateTimeOffset now = timeService.Now;
-            UpdateEntities(context, now);
+            UpdateEntities(context, now, userService.UserId);
             CaptureChanges(context, now, userService.UserId);
             InvalidateCache(context, cacheInvalidationService);
         }
@@ -98,7 +98,7 @@ public sealed class EntityInterceptor(
         await base.SaveChangesFailedAsync(eventData, cancellationToken);
     }
 
-    private static void UpdateEntities(DbContext context, DateTimeOffset now)
+    private static void UpdateEntities(DbContext context, DateTimeOffset now, string? actorId)
     {
         context.ChangeTracker.CascadeChanges();
 
@@ -108,12 +108,18 @@ public sealed class EntityInterceptor(
             {
                 case EntityState.Added:
                     entry.Entity.CreatedAt = now;
+                    entry.Entity.CreatedBy = actorId;
+                    break;
+                case EntityState.Modified:
+                    entry.Entity.UpdatedAt = now;
+                    entry.Entity.UpdatedBy = actorId;
                     break;
                 case EntityState.Deleted:
                     if (!entry.Entity.IsMarkedForHardDelete)
                     {
                         entry.State = EntityState.Modified;
                         entry.Entity.DeletedAt = now;
+                        entry.Entity.DeletedBy = actorId;
                     }
                     break;
             }

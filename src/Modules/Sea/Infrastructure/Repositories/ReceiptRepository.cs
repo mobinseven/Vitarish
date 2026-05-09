@@ -30,9 +30,9 @@ internal class ReceiptRepository(SeaDbContext dbContext)
                 dbContext.Events.Any(e => e.Id == r.ObjectId && e.Id == eventId));
         }
 
-        if (!string.IsNullOrWhiteSpace(descriptor.ReaderId))
+        if (!string.IsNullOrWhiteSpace(descriptor.CreatedBy))
         {
-            query = query.Where(r => r.ReaderId == descriptor.ReaderId);
+            query = query.Where(r => r.CreatedBy == descriptor.CreatedBy);
         }
 
         if (descriptor.ObjectId is not null)
