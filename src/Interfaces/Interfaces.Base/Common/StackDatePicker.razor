@@ -1,9 +1,12 @@
 @inherits MudDatePicker
+@using Microsoft.AspNetCore.Components
 
 <StackField Label="@Label">
-    <MudDatePicker Date="@Date"
-                   DateChanged="@DateChanged"
-                   Color="Color.Default" IconSize="Size.Small" OverflowBehavior="OverflowBehavior.FlipOnOpen"
+    <MudDatePicker Date="@PickerDate"
+                   DateChanged="@OnPickerDateChanged"
+                   Color="Color.Default"
+                   IconSize="Size.Small"
+                   OverflowBehavior="OverflowBehavior.FlipOnOpen"
                    Variant="Variant.Outlined"
                    DateFormat="dd/MM/yyyy"
                    Underline="false"
@@ -11,6 +14,34 @@
                    PickerVariant="@PickerVariant.Inline"
                    MinDate="@MinDate"
                    MaxDate="@MaxDate"
-                   IsDateDisabledFunc="@IsDateDisabledFunc"
-                   />
+                   IsDateDisabledFunc="@IsDateDisabledFunc" />
 </StackField>
+
+@code {
+    [Parameter]
+    public DateOnly? DateOnly { get; set; }
+
+    [Parameter]
+    public EventCallback<DateOnly?> DateOnlyChanged { get; set; }
+
+    private bool UsesDateOnlyBinding =>
+        DateOnly.HasValue || DateOnlyChanged.HasDelegate;
+
+    private DateTime? PickerDate =>
+        UsesDateOnlyBinding
+            ? DateOnly?.ToDateTime(TimeOnly.MinValue)
+            : Date;
+
+    private async Task OnPickerDateChanged(DateTime? value)
+    {
+        // Keep existing DateTime? binding support from MudDatePicker.
+        await DateChanged.InvokeAsync(value);
+
+        // Add DateOnly? binding support.
+        var dateOnlyValue = value.HasValue
+            ? DateOnly.FromDateTime(value.Value)
+            : null;
+
+        await DateOnlyChanged.InvokeAsync(dateOnlyValue);
+    }
+}
