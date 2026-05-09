@@ -1,0 +1,40 @@
+@inherits CommerceComponentBase
+
+<MudText Typo="Typo.h4">My Orders</MudText>
+
+@if (_orders is null)
+{
+    <MudProgressCircular Indeterminate />
+}
+else if (!_orders.Any())
+{
+    <MudText Typo="Typo.body2">No orders found.</MudText>
+}
+else
+{
+    <MudTable Items="_orders" Dense Hover>
+        <HeaderContent>
+            <MudTh>Order ID</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Total</MudTh>
+            <MudTh>Date</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.MedusaId</MudTd>
+            <MudTd><MudChip T="string" Size="Size.Small">@context.Status</MudChip></MudTd>
+            <MudTd>@context.TotalAmount @context.CurrencyCode.ToUpperInvariant()</MudTd>
+            <MudTd>@context.CreatedAt.ToString("d")</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private IReadOnlyList<OrderReadDto>? _orders;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _orders = await OrderService.GetListAsync(
+            new OrderDescriptorDto(),
+            CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+    }
+}

@@ -1,0 +1,27 @@
+@inject IStoreService StoreService
+
+<MudText Typo="Typo.h4">Provision Store</MudText>
+
+<MudForm @ref="_form" @bind-IsValid="_isValid">
+    <MudTextField @bind-Value="_model.Name" Label="Store Name" Required />
+    <MudTextField @bind-Value="_model.CurrencyCode" Label="Currency Code" Required />
+    <MudTextField @bind-Value="_model.MedusaBaseUrl" Label="MedusaJS Base URL" Required />
+    <MudTextField @bind-Value="_model.AdminApiToken" Label="Admin API Token" InputType="InputType.Password" Required />
+    <MudTextField @bind-Value="_model.StorefrontPublishableKey" Label="Storefront Publishable Key" Required />
+    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="ProvisionAsync" Disabled="!_isValid">
+        Provision Store
+    </MudButton>
+</MudForm>
+
+@code {
+    private MudForm _form = default!;
+    private bool _isValid;
+    private StoreWriteDto _model = new();
+
+    private async Task ProvisionAsync()
+    {
+        await _form.Validate();
+        if (!_isValid) return;
+        await StoreService.AddAsync(_model, CancellationToken.None);
+    }
+}

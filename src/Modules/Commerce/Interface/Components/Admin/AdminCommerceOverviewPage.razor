@@ -1,0 +1,36 @@
+@inherits CommerceComponentBase
+
+<MudText Typo="Typo.h4">Commerce Overview</MudText>
+<MudText Typo="Typo.body2">Platform-wide commerce statistics and controls.</MudText>
+
+<MudGrid Class="mt-4">
+    <MudItem xs="12" md="4">
+        <MudCard>
+            <MudCardContent>
+                <MudText Typo="Typo.h6">Total Orders</MudText>
+                <MudText Typo="Typo.h4">@_totalOrders</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" md="4">
+        <MudCard>
+            <MudCardContent>
+                <MudText Typo="Typo.h6">Total Products</MudText>
+                <MudText Typo="Typo.h4">@_totalProducts</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private int _totalOrders;
+    private int _totalProducts;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _totalOrders = await OrderService.CountAsync(new OrderDescriptorDto(), CancellationToken.None)
+            .GetValueOrDefaultAsync();
+        _totalProducts = await ProductService.CountAsync(new ProductDescriptorDto(), CancellationToken.None)
+            .GetValueOrDefaultAsync();
+    }
+}

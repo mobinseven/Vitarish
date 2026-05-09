@@ -1,0 +1,17 @@
+@inject ICommerceJobManager CommerceJobManager
+
+<MudText Typo="Typo.h4">Commerce Sync Status</MudText>
+
+<MudStack Row Spacing="2" Class="mt-4">
+    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="TriggerCatalogSync">
+        Sync Catalog Now
+    </MudButton>
+    <MudButton Variant="Variant.Filled" Color="Color.Secondary" OnClick="TriggerOrderSync">
+        Sync Orders Now
+    </MudButton>
+</MudStack>
+
+@code {
+    private void TriggerCatalogSync() => CommerceJobManager.TriggerCatalogSync();
+    private void TriggerOrderSync() => CommerceJobManager.TriggerOrderSync();
+}

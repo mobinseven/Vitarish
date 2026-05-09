@@ -1,0 +1,34 @@
+@inherits CommerceComponentBase
+
+<MudText Typo="Typo.h4">Products</MudText>
+
+@if (_products is null)
+{
+    <MudProgressCircular Indeterminate />
+}
+else
+{
+    <MudTable Items="_products" Dense Hover>
+        <HeaderContent>
+            <MudTh>Title</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Handle</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.Title</MudTd>
+            <MudTd><MudChip T="string" Size="Size.Small">@context.Status</MudChip></MudTd>
+            <MudTd>@context.Handle</MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private IReadOnlyList<ProductReadDto>? _products;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _products = await ProductService.GetListAsync(
+            new ProductDescriptorDto(),
+            CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+    }
+}

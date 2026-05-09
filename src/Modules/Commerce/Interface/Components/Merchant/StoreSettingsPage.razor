@@ -1,0 +1,27 @@
+@inherits CommerceComponentBase
+
+@inject IStoreService StoreService
+
+<MudText Typo="Typo.h4">Store Settings</MudText>
+
+@if (_store is null)
+{
+    <MudText Typo="Typo.body2">No store configured for this tenant.</MudText>
+}
+else
+{
+    <MudForm>
+        <MudTextField Label="Store Name" Value="@_store.Name" ReadOnly />
+        <MudTextField Label="Currency" Value="@_store.CurrencyCode" ReadOnly />
+        <MudTextField Label="MedusaJS Base URL" Value="@_store.MedusaBaseUrl" ReadOnly />
+    </MudForm>
+}
+
+@code {
+    private StoreReadDto? _store;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _store = await StoreService.GetStoreByTenantAsync(CancellationToken.None);
+    }
+}
