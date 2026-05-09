@@ -137,17 +137,27 @@ internal sealed class CommerceSyncService(
                 upserted++;
             }
 
-            // Deterministic backfill for any historical rows that still do not have an order number.
-            List<Order> missingOrderNumbers = await dbContext.Orders
-                .Where(o => o.OrderNumber <= 0)
-                .OrderBy(o => o.CreatedAt)
-                .ThenBy(o => o.Id)
-                .ToListAsync(cancellationToken);
-
-            foreach (Order order in missingOrderNumbers)
+            // Deterministic backfill for any historical rows that still do not have an order number (batched).
+            const int BackfillBatchSize = 500;
+            while (true)
             {
-                nextOrderNumber++;
-                order.OrderNumber = nextOrderNumber;
+                List<Order> missingOrderNumbers = await dbContext.Orders
+                    .Where(o => o.OrderNumber <= 0)
+                    .OrderBy(o => o.CreatedAt)
+                    .ThenBy(o => o.Id)
+                    .Take(BackfillBatchSize)
+                    .ToListAsync(cancellationToken);
+
+                if (missingOrderNumbers.Count == 0)
+                {
+                    break;
+                }
+
+                foreach (Order order in missingOrderNumbers)
+                {
+                    nextOrderNumber++;
+                    order.OrderNumber = nextOrderNumber;
+                }
             }
 
             _ = await dbContext.SaveChangesAsync(cancellationToken);

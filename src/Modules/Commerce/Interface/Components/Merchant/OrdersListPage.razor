@@ -88,17 +88,12 @@ else
         {
             OrderNumber = _orderNumberFilter,
             Status = _statusFilter,
+            Search = string.IsNullOrWhiteSpace(_customerFilter) ? null : _customerFilter,
             CreatedFrom = _fromDate is null ? null : new DateTimeOffset(_fromDate.Value.Date, TimeSpan.Zero),
             CreatedTo = _toDate is null ? null : new DateTimeOffset(_toDate.Value.Date.AddDays(1).AddTicks(-1), TimeSpan.Zero)
         };
 
         _orders = await OrderService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
-
-        if (!string.IsNullOrWhiteSpace(_customerFilter))
-        {
-            _orders = [.. _orders.Where(order =>
-                order.CustomerDisplay.Contains(_customerFilter, StringComparison.OrdinalIgnoreCase))];
-        }
     }
 
     private async Task ClearFiltersAsync()

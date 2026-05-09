@@ -32,12 +32,15 @@ else
             <MudTd>@context.LastActivityAt?.ToString("yyyy-MM-dd HH:mm")</MudTd>
             <MudTd><MudChip T="string" Size="Size.Small">@context.RecoveryStatus</MudChip></MudTd>
             <MudTd>
-                <MudTextField Value="@GetNote(context.CartId)"
-                              ValueChanged="value => _notes[context.CartId] = value"
+                <MudTextField T="string"
+                              Value="@GetNote(context.CartId)"
+                              ValueChanged="value => SetNote(context.CartId, value)"
                               Placeholder="Internal note" />
+                <MudText Typo="Typo.caption">Save note with one of the actions or the Save button.</MudText>
             </MudTd>
             <MudTd>
                 <MudStack Row Spacing="1">
+                    <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="() => SaveNoteAsync(context.CartId)">Save</MudButton>
                     <MudButton Size="Size.Small" Variant="Variant.Outlined" OnClick="() => UpdateRecoveryAsync(context.CartId, CartRecoveryStatus.Contacted)">Contacted</MudButton>
                     <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Success" OnClick="() => UpdateRecoveryAsync(context.CartId, CartRecoveryStatus.Recovered)">Recovered</MudButton>
                     <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning" OnClick="() => UpdateRecoveryAsync(context.CartId, CartRecoveryStatus.Ignored)">Ignore</MudButton>
@@ -68,8 +71,21 @@ else
 
     private string GetNote(Guid cartId) => _notes.TryGetValue(cartId, out string? note) ? note : string.Empty;
 
+    private Task SetNote(Guid cartId, string value)
+    {
+        _notes[cartId] = value;
+        return Task.CompletedTask;
+    }
+
     private async Task UpdateRecoveryAsync(Guid cartId, CartRecoveryStatus status)
     {
+        _ = await CartService.UpdateRecoveryAsync(cartId, status, GetNote(cartId), CancellationToken.None);
+        await ReloadAsync();
+    }
+
+    private async Task SaveNoteAsync(Guid cartId)
+    {
+        CartRecoveryStatus status = _items?.FirstOrDefault(item => item.CartId == cartId)?.RecoveryStatus ?? CartRecoveryStatus.ContactPending;
         _ = await CartService.UpdateRecoveryAsync(cartId, status, GetNote(cartId), CancellationToken.None);
         await ReloadAsync();
     }
