@@ -13,11 +13,17 @@ public class AccessControlledReservationManagerTests
         Mock<ICapacityEngine> capacityEngine = new();
         Mock<IStatusCoordinator> statusCoordinator = new();
 
+        Guid sessionId = Guid.NewGuid();
         Guid occurrenceId = Guid.NewGuid();
         Guid reservationId = Guid.NewGuid();
 
         DateTimeOffset occurrenceStart = DateTimeOffset.UtcNow.AddHours(2);
         DateTimeOffset occurrenceEnd = DateTimeOffset.UtcNow.AddHours(3);
+        DateOnly date = DateOnly.FromDateTime(occurrenceStart.DateTime);
+
+        occurrenceFactory
+            .Setup(x => x.GetOrCreateAsync(sessionId, date, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<Guid>.Success(occurrenceId));
 
         occurrenceRepository
             .Setup(x => x.GetAsync(occurrenceId, It.IsAny<CancellationToken>()))
@@ -30,11 +36,11 @@ public class AccessControlledReservationManagerTests
                 Capacity = 2,
                 Session = new Session
                 {
-                    Id = Guid.NewGuid(),
+                    Id = sessionId,
                     Status = SessionStatus.Active,
                     RequiresApproval = false,
                     TotalSeats = 2,
-                    DayOfWeek = DateOnly.FromDateTime(occurrenceStart.DateTime).DayOfWeek,
+                    DayOfWeek = date.DayOfWeek,
                     StartTime = TimeOnly.FromDateTime(occurrenceStart.DateTime),
                     EndTime = TimeOnly.FromDateTime(occurrenceEnd.DateTime),
                     TimeZone = TimeZoneInfo.Utc.Id
@@ -45,11 +51,13 @@ public class AccessControlledReservationManagerTests
         bookingPolicyEngine.Setup(x => x.HasCapacityForPartyAsync(occurrenceId, "user-1", It.IsAny<CancellationToken>())).ReturnsAsync(true);
         capacityEngine.Setup(x => x.IsAvailableAsync(occurrenceId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         reservationManager
-            .Setup(x => x.ReserveAsync(occurrenceId, "user-1", It.IsAny<CancellationToken>()))
+            .Setup(x => x.ReserveAsync(sessionId, date, "user-1", It.IsAny<CancellationToken>(), occurrenceId))
             .ReturnsAsync(EntityResult<ReservationReadDto>.Success(new ReservationReadDto
             {
                 Id = reservationId,
                 SessionOccurrenceId = occurrenceId,
+                SessionId = sessionId,
+                Date = date,
                 ReservingPartyId = "user-1",
                 Status = ReservationStatus.Pending,
                 CreatedAt = DateTimeOffset.UtcNow
@@ -65,6 +73,8 @@ public class AccessControlledReservationManagerTests
             {
                 Id = reservationId,
                 SessionOccurrenceId = occurrenceId,
+                SessionId = sessionId,
+                Date = date,
                 ReservingPartyId = "user-1",
                 Status = ReservationStatus.Confirmed,
                 CreatedAt = DateTimeOffset.UtcNow
@@ -83,10 +93,10 @@ public class AccessControlledReservationManagerTests
             capacityEngine.Object,
             statusCoordinator.Object);
 
-        EntityResult<ReservationReadDto> result = await sut.ReserveAsync(occurrenceId, null, CancellationToken.None);
+        EntityResult<ReservationReadDto> result = await sut.ReserveAsync(sessionId, date, null, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        reservationManager.Verify(x => x.ReserveAsync(occurrenceId, "user-1", It.IsAny<CancellationToken>()), Times.Once);
+        reservationManager.Verify(x => x.ReserveAsync(sessionId, date, "user-1", It.IsAny<CancellationToken>(), occurrenceId), Times.Once);
         statusCoordinator.Verify(x => x.TransitionReservationAsync(reservationId, ReservationStatus.Confirmed, "user-1", It.IsAny<CancellationToken>()), Times.Once);
     }
 

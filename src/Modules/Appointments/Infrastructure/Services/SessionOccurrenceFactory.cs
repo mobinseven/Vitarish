@@ -5,9 +5,22 @@ internal class SessionOccurrenceFactory(AppointmentsDbContext dbContext) : ISess
 {
     public async Task<EntityResult<Guid>> GetOrCreateAsync(Guid sessionId, DateOnly date, CancellationToken cancellationToken)
     {
+        EntityResult<SessionOccurrence> occurrenceResult = await GetOrCreateOccurrenceAsync(sessionId, date, cancellationToken);
+        if (occurrenceResult.IsFailure)
+        {
+            return EntityResult<Guid>.Failure([.. occurrenceResult.Errors]);
+        }
+
+        return occurrenceResult.Value is null
+            ? EntityResult<Guid>.Failure(EntityError.Conflict("Session occurrence could not be created."))
+            : EntityResult<Guid>.Success(occurrenceResult.Value.Id);
+    }
+
+    public async Task<EntityResult<SessionOccurrence>> GetOrCreateOccurrenceAsync(Guid sessionId, DateOnly date, CancellationToken cancellationToken)
+    {
         if (sessionId == Guid.Empty)
         {
-            return EntityResult<Guid>.Failure(EntityError.Validation("Session is required.", new Dictionary<string, string>
+            return EntityResult<SessionOccurrence>.Failure(EntityError.Validation("Session is required.", new Dictionary<string, string>
             {
                 [nameof(sessionId)] = "Session is required."
             }));
@@ -19,13 +32,13 @@ internal class SessionOccurrenceFactory(AppointmentsDbContext dbContext) : ISess
 
         if (session is null)
         {
-            return EntityResult<Guid>.Failure(EntityError.NotFound("Session not found.", nameof(sessionId)));
+            return EntityResult<SessionOccurrence>.Failure(EntityError.NotFound("Session not found.", nameof(sessionId)));
         }
 
         EntityResult validation = ValidateSessionDate(session, date);
         if (validation.IsFailure)
         {
-            return EntityResult<Guid>.Failure([.. validation.Errors]);
+            return EntityResult<SessionOccurrence>.Failure([.. validation.Errors]);
         }
 
         SessionOccurrence? existing = await dbContext.SessionOccurrences
@@ -34,7 +47,8 @@ internal class SessionOccurrenceFactory(AppointmentsDbContext dbContext) : ISess
 
         if (existing is not null)
         {
-            return EntityResult<Guid>.Success(existing.Id);
+            existing.Session = session;
+            return EntityResult<SessionOccurrence>.Success(existing);
         }
 
         SessionOccurrence occurrence = CreateOccurrence(session, date);
@@ -43,7 +57,7 @@ internal class SessionOccurrenceFactory(AppointmentsDbContext dbContext) : ISess
         try
         {
             _ = await dbContext.SaveChangesAsync(cancellationToken);
-            return EntityResult<Guid>.Success(occurrence.Id);
+            return EntityResult<SessionOccurrence>.Success(occurrence);
         }
         catch (DbUpdateException exception) when (IsDuplicateSessionOccurrenceException(exception))
         {
@@ -53,9 +67,13 @@ internal class SessionOccurrenceFactory(AppointmentsDbContext dbContext) : ISess
                 .AsNoTracking()
                 .FirstOrDefaultAsync(o => o.SessionId == sessionId && o.Date == date, cancellationToken);
 
-            return concurrentOccurrence is not null
-                ? EntityResult<Guid>.Success(concurrentOccurrence.Id)
-                : EntityResult<Guid>.Failure(EntityError.Conflict("Session occurrence could not be created."));
+            if (concurrentOccurrence is not null)
+            {
+                concurrentOccurrence.Session = session;
+                return EntityResult<SessionOccurrence>.Success(concurrentOccurrence);
+            }
+
+            return EntityResult<SessionOccurrence>.Failure(EntityError.Conflict("Session occurrence could not be created."));
         }
     }
 

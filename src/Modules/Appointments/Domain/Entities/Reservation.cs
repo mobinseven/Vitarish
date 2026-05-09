@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace Vitarish.Appointments.Domain.Entities;
 
 public class Reservation : Entity
@@ -13,6 +15,12 @@ public class Reservation : Entity
         get;
         set => SetField(ref field, value, nameof(SessionOccurrenceId));
     }
+
+    [NotMapped]
+    public Guid? SessionId => Occurrence?.SessionId;
+
+    [NotMapped]
+    public DateOnly? Date => Occurrence?.Date;
 
     public string? ReservingPartyId
     {

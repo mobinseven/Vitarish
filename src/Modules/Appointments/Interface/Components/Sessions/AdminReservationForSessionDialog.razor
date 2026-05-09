@@ -25,7 +25,8 @@
 @code {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
-    [Parameter, EditorRequired] public Guid SessionOccurrenceId { get; set; }
+    [Parameter, EditorRequired] public Guid SessionId { get; set; }
+    [Parameter, EditorRequired] public DateOnly Date { get; set; }
 
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
@@ -39,7 +40,7 @@
             return;
         }
 
-        await ReservationManager.ReserveAsync(SessionOccurrenceId, selectedUserId, CancellationToken.None);
+        await ReservationManager.ReserveAsync(SessionId, Date, selectedUserId, CancellationToken.None);
         _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
         MudDialog.Close(DialogResult.Ok(true));
     }

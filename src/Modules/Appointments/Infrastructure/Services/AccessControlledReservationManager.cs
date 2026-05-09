@@ -94,7 +94,12 @@ internal class AccessControlledReservationManager(
     public Task<EntityResult> RemoveByDescriptorAsync(ReservationDescriptorDto descriptor, CancellationToken cancellationToken)
         => IsAdmin ? reservationManager.RemoveByDescriptorAsync(descriptor, cancellationToken) : throw AdminRoleRequired;
 
-    public async Task<EntityResult<ReservationReadDto>> ReserveAsync(Guid sessionId, DateOnly date, string? reservingPartyId, CancellationToken cancellationToken)
+    public async Task<EntityResult<ReservationReadDto>> ReserveAsync(
+        Guid sessionId,
+        DateOnly date,
+        string? reservingPartyId,
+        CancellationToken cancellationToken,
+        Guid? sessionOccurrenceId = null)
     {
         string? effectivePartyId = IsAdmin ? reservingPartyId : UserId;
         if (string.IsNullOrWhiteSpace(effectivePartyId))
@@ -103,25 +108,26 @@ internal class AccessControlledReservationManager(
             {
                 [nameof(reservingPartyId)] = "A reserving user is required."
             }));
+        }
+
+        if (sessionOccurrenceId is { } occurrenceId)
+        {
+            return await ReserveOccurrenceAsync(sessionId, date, occurrenceId, effectivePartyId, cancellationToken);
         }
 
         EntityResult<Guid> occurrenceResult = await occurrenceFactory.GetOrCreateAsync(sessionId, date, cancellationToken);
         return occurrenceResult.IsFailure
             ? EntityResult<ReservationReadDto>.Failure([.. occurrenceResult.Errors])
-            : await ReserveAsync(occurrenceResult.Value, effectivePartyId, cancellationToken);
+            : await ReserveOccurrenceAsync(sessionId, date, occurrenceResult.Value, effectivePartyId, cancellationToken);
     }
 
-    public async Task<EntityResult<ReservationReadDto>> ReserveAsync(Guid sessionOccurrenceId, string? reservingPartyId, CancellationToken cancellationToken)
+    private async Task<EntityResult<ReservationReadDto>> ReserveOccurrenceAsync(
+        Guid sessionId,
+        DateOnly date,
+        Guid sessionOccurrenceId,
+        string reservingPartyId,
+        CancellationToken cancellationToken)
     {
-        string? effectivePartyId = IsAdmin ? reservingPartyId : UserId;
-        if (string.IsNullOrWhiteSpace(effectivePartyId))
-        {
-            return EntityResult<ReservationReadDto>.Failure(EntityError.Validation("A reserving user is required.", new Dictionary<string, string>
-            {
-                [nameof(reservingPartyId)] = "A reserving user is required."
-            }));
-        }
-
         SessionOccurrence? occurrence = await occurrenceRepository.GetAsync(sessionOccurrenceId, cancellationToken);
         if (occurrence?.Session is null)
         {
@@ -138,7 +144,7 @@ internal class AccessControlledReservationManager(
             return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("Booking is not open for this session occurrence."));
         }
 
-        if (!await bookingPolicyEngine.HasCapacityForPartyAsync(sessionOccurrenceId, effectivePartyId, cancellationToken))
+        if (!await bookingPolicyEngine.HasCapacityForPartyAsync(sessionOccurrenceId, reservingPartyId, cancellationToken))
         {
             return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("The reserving party has reached the reservation limit for this session occurrence."));
         }
@@ -151,7 +157,9 @@ internal class AccessControlledReservationManager(
         ReservationDescriptorDto descriptor = new()
         {
             SessionOccurrenceId = sessionOccurrenceId,
-            ReservingPartyId = effectivePartyId,
+            SessionId = sessionId,
+            Date = date,
+            ReservingPartyId = reservingPartyId,
             Skip = 0,
             Take = int.MaxValue
         };
@@ -163,7 +171,12 @@ internal class AccessControlledReservationManager(
             return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("An active reservation already exists for this session occurrence."));
         }
 
-        EntityResult<ReservationReadDto> reserveResult = await reservationManager.ReserveAsync(sessionOccurrenceId, effectivePartyId, cancellationToken);
+        EntityResult<ReservationReadDto> reserveResult = await reservationManager.ReserveAsync(
+            sessionId,
+            date,
+            reservingPartyId,
+            cancellationToken,
+            sessionOccurrenceId);
         if (reserveResult.IsFailure || reserveResult.Value is null)
         {
             return reserveResult.IsFailure
