@@ -2,68 +2,22 @@
 
 <MudText Typo="Typo.h4">Commerce Operations</MudText>
 
-<MudGrid>
-    <MudItem xs="12" md="3">
-        <MudCard>
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6">Orders</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudText Typo="Typo.body2">@_orderCount orders total</MudText>
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-    <MudItem xs="12" md="3">
-        <MudCard>
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6">Pending Fulfillment</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudText Typo="Typo.body2">@_pendingFulfillment orders</MudText>
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-    <MudItem xs="12" md="3">
-        <MudCard>
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6">Sales (Today)</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudText Typo="Typo.body2">@_todaySales.ToString("0.##")</MudText>
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-    <MudItem xs="12" md="3">
-        <MudCard>
-            <MudCardHeader>
-                <CardHeaderContent>
-                    <MudText Typo="Typo.h6">Abandoned Carts (Registered)</MudText>
-                </CardHeaderContent>
-            </MudCardHeader>
-            <MudCardContent>
-                <MudText Typo="Typo.body2">@_recoveryQueueCount pending</MudText>
-            </MudCardContent>
-        </MudCard>
-    </MudItem>
-</MudGrid>
+<Stack>
+    <StackCard Caption="Orders" Label="@_orderCount.ToString()" HelperText="orders total" />
+    <StackCard Caption="Pending Fulfillment" Label="@_pendingFulfillment.ToString()" HelperText="orders" />
+    <StackCard Caption="Sales (Today)" Label="@_todaySales.ToString("0.##")" />
+    <StackCard Caption="Abandoned Carts (Registered)" Label="@_recoveryQueueCount.ToString()" HelperText="pending" />
+</Stack>
 
-<MudPaper Class="pa-4 mt-4" Outlined>
-    <MudText Typo="Typo.h6">Quick Actions</MudText>
-    <MudStack Row Spacing="2" Class="mt-2">
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/Owners/Commerce/Orders">Orders</MudButton>
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/Owners/Commerce/Products">Products</MudButton>
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/Owners/Commerce/Recovery">Recovery Queue</MudButton>
-        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/Owners/Commerce/Settings">Settings</MudButton>
-    </MudStack>
-    <MudText Typo="Typo.body2" Class="mt-4">Sales (7d): @_weekSales.ToString("0.##")</MudText>
-    <MudText Typo="Typo.body2">Products: @_productCount</MudText>
-</MudPaper>
+<Stack>
+    <StackField Label="Quick Actions" />
+    <StackButton Color="Color.Primary" Href="/Owners/Commerce/Orders" Label="Orders" EndIcon="fa-regular fa-receipt" />
+    <StackButton Color="Color.Primary" Href="/Owners/Commerce/Products" Label="Products" EndIcon="fa-regular fa-box" />
+    <StackButton Color="Color.Primary" Href="/Owners/Commerce/Recovery" Label="Recovery Queue" EndIcon="fa-regular fa-cart-shopping" />
+    <StackButton Color="Color.Primary" Href="/Owners/Commerce/Settings" Label="Settings" EndIcon="fa-regular fa-gear" />
+    <StackField Label="Sales (7d)" HelperText="@_weekSales.ToString("0.##")" />
+    <StackField Label="Products" HelperText="@_productCount.ToString()" />
+</Stack>
 
 @code {
     private int _orderCount;
