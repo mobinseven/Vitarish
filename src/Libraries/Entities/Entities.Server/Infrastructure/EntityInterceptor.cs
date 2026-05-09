@@ -255,14 +255,14 @@ public sealed class EntityInterceptor(
     private static IReadOnlyDictionary<string, object?> GetSnapshot(PropertyValues values, bool includePrimaryKey)
     {
         Dictionary<string, object?> snapshot = new(StringComparer.Ordinal);
-        foreach (var property in values.Properties)
+        foreach (var propertyMetadata in values.Properties)
         {
-            if (!includePrimaryKey && property.IsPrimaryKey())
+            if (!includePrimaryKey && propertyMetadata.IsPrimaryKey())
             {
                 continue;
             }
 
-            snapshot[property.Name] = values[property.Name];
+            snapshot[propertyMetadata.Name] = values[propertyMetadata.Name];
         }
 
         return snapshot;

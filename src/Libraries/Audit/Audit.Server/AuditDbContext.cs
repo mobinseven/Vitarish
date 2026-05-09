@@ -22,7 +22,7 @@ public sealed class AuditDbContext : DbContext, IMultiTenantDbContext
     {
         get
         {
-            string tenantId = _requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID can not be recognized.");
+            string tenantId = _requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.");
             return new TenantInfo
             {
                 Id = tenantId,

@@ -263,7 +263,7 @@ internal class CalendarObjectService(
             SnapshotBefore = oldValue,
             SnapshotAfter = newValue,
             OccurredAt = DateTimeOffset.UtcNow,
-            TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID can not be recognized.")
+            TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.")
         };
 
         await auditWriter.WriteAsync(entry, ct);

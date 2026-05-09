@@ -42,7 +42,7 @@ internal class SessionReminderPolicyManager(
             EntityType = PolicyEntityType,
             EntityId = created.Id,
             OccurredAt = DateTimeOffset.UtcNow,
-            TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID can not be recognized.")
+            TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.")
         }, cancellationToken);
 
         return EntityResult<SessionReminderPolicyReadDto>.Success(created.ToDto());
@@ -81,7 +81,7 @@ internal class SessionReminderPolicyManager(
             EntityType = PolicyEntityType,
             EntityId = updated.Id,
             OccurredAt = DateTimeOffset.UtcNow,
-            TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID can not be recognized.")
+            TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.")
         }, cancellationToken);
 
         return EntityResult<SessionReminderPolicyReadDto>.Success(updated.ToDto());
@@ -104,7 +104,7 @@ internal class SessionReminderPolicyManager(
             EntityType = PolicyEntityType,
             EntityId = policyId,
             OccurredAt = DateTimeOffset.UtcNow,
-            TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID can not be recognized.")
+            TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.")
         }, cancellationToken);
 
         return EntityResult.Success();

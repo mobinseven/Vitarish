@@ -23,6 +23,11 @@ public class Receipt : Entity
 
     public Receipt(Guid objectId, string readerId)
     {
+        if (string.IsNullOrWhiteSpace(readerId))
+        {
+            throw new ArgumentException("Reader ID cannot be null or whitespace.", nameof(readerId));
+        }
+
         Id = Guid.NewGuid();
         _objectId = objectId;
         _readerId = readerId;
