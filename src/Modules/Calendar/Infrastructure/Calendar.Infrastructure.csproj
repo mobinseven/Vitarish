@@ -16,6 +16,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Identity\Requests\Application\Requests.Application.csproj" />
 		<ProjectReference Include="..\..\..\Identity\Users\Application\Users.Application.csproj" />
+		<ProjectReference Include="..\..\..\Libraries\Audit\Audit.Application\Audit.Application.csproj" />
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
 		<ProjectReference Include="..\Application\Calendar.Application.csproj" />
 		<ProjectReference Include="..\Domain\Calendar.Domain.csproj" />

@@ -19,7 +19,7 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
 
         if (query is not IOrderedQueryable<TEntity>)
         {
-            query = query.OrderByDescending(e => e.UpdatedAt ?? e.CreatedAt);
+            query = query.OrderByDescending(e => e.CreatedAt);
         }
 
         return query.ApplyPagination(descriptor);

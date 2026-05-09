@@ -28,7 +28,7 @@ public class CommerceFeedSource(
                 .AsNoTracking()
                 .OrderByDescending(o => o.CreatedAt)
                 .Take(5)
-                .Select(o => new { o.Id, o.MedusaId, o.CustomerId, o.Status, o.TotalAmount, o.CurrencyCode, o.CreatedAt, o.CreatedBy })
+                .Select(o => new { o.Id, o.MedusaId, o.CustomerId, o.Status, o.TotalAmount, o.CurrencyCode, o.CreatedAt })
                 .ToListAsync(cancellationToken);
 
             items.AddRange(recentOrders.Select(o => new FeedItem
@@ -41,7 +41,7 @@ public class CommerceFeedSource(
                 Timestamp = o.CreatedAt,
                 ItemType = "order",
                 NavigationUrl = $"/shop/orders/{o.Id}",
-                CreatedBy = o.CreatedBy,
+                CreatedBy = null,
                 Metadata = new Dictionary<string, object?>
                 {
                     ["customerId"] = o.CustomerId,
@@ -56,7 +56,7 @@ public class CommerceFeedSource(
                 .Where(p => p.Status == ProductStatus.Published)
                 .OrderByDescending(p => p.CreatedAt)
                 .Take(5)
-                .Select(p => new { p.Id, p.Title, p.Handle, p.CreatedAt, p.CreatedBy })
+                .Select(p => new { p.Id, p.Title, p.Handle, p.CreatedAt })
                 .ToListAsync(cancellationToken);
 
             items.AddRange(newProducts.Select(p => new FeedItem
@@ -69,7 +69,7 @@ public class CommerceFeedSource(
                 Timestamp = p.CreatedAt,
                 ItemType = "product",
                 NavigationUrl = $"/shop/products/{p.Handle}",
-                CreatedBy = p.CreatedBy
+                CreatedBy = null
             }));
 
             return [.. items.OrderByDescending(i => i.Timestamp).Take(options.Limit)];

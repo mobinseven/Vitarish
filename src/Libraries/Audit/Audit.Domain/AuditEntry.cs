@@ -1,7 +1,8 @@
-namespace Vitarish.Appointments.Domain.Dto;
+namespace Vitarish.Audit.Domain;
 
-public record AuditEntryReadDto : EntityReadDto
+public sealed class AuditEntry
 {
+    public Guid Id { get; set; }
     public string Action { get; set; } = string.Empty;
     public string? ActorId { get; set; }
     public string EntityType { get; set; } = string.Empty;
@@ -9,4 +10,5 @@ public record AuditEntryReadDto : EntityReadDto
     public string? SnapshotBefore { get; set; }
     public string? SnapshotAfter { get; set; }
     public DateTimeOffset OccurredAt { get; set; }
+    public string TenantId { get; set; } = string.Empty;
 }

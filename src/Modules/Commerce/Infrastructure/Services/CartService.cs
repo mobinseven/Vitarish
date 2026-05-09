@@ -116,6 +116,6 @@ internal class CartService(
                 cart.RecoveryStatus,
                 cart.RecoveryNote,
                 cart.CreatedAt,
-                cart.UpdatedAt ?? cart.CreatedAt);
+                cart.CreatedAt);
     }
 }

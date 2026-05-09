@@ -1,5 +1,7 @@
 using Vitarish.Appointments.Application.Events;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Audit.Application;
+using Vitarish.Audit.Domain;
 
 namespace Vitarish.Appointments.Infrastructure.Services;
 
@@ -8,7 +10,7 @@ internal class StatusCoordinator(
     IEntityRepository<Session, SessionDescriptor> sessionRepository,
     IEntityRepository<Reservation, ReservationDescriptor> reservationRepository,
     IAppointmentsEventPublisher eventPublisher,
-    IAuditLogger auditLogger,
+    IAuditWriter auditWriter,
     IRequestContext requestContext) : IStatusCoordinator
 {
     private static readonly Dictionary<SessionStatus, SessionStatus[]> SessionTransitions = new()
@@ -50,13 +52,14 @@ internal class StatusCoordinator(
         session.Status = newStatus;
         _ = await sessionRepository.UpdateAsync(session, cancellationToken);
 
-        await auditLogger.LogAsync(new AppointmentAuditEntry
+        await auditWriter.WriteAsync(new AuditEntry
         {
             Action = $"SessionStatus:{previousStatus}→{newStatus}",
             ActorId = actorId,
             EntityType = nameof(Session),
             EntityId = sessionId,
-            OccurredAt = DateTimeOffset.UtcNow
+            OccurredAt = DateTimeOffset.UtcNow,
+            TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID can not be recognized.")
         }, cancellationToken);
 
         await PublishSessionEventAsync(sessionId, newStatus, cancellationToken);
@@ -92,13 +95,14 @@ internal class StatusCoordinator(
 
         _ = await reservationRepository.UpdateAsync(reservation, cancellationToken);
 
-        await auditLogger.LogAsync(new AppointmentAuditEntry
+        await auditWriter.WriteAsync(new AuditEntry
         {
             Action = $"ReservationStatus:{previousStatus}→{newStatus}",
             ActorId = actorId,
             EntityType = nameof(Reservation),
             EntityId = reservationId,
-            OccurredAt = DateTimeOffset.UtcNow
+            OccurredAt = DateTimeOffset.UtcNow,
+            TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID can not be recognized.")
         }, cancellationToken);
 
         await PublishReservationEventAsync(reservation, newStatus, cancellationToken);

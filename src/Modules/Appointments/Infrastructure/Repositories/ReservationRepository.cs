@@ -64,7 +64,7 @@ internal class ReservationRepository(AppointmentsDbContext dbContext)
 
         if (query is not IOrderedQueryable<Reservation>)
         {
-            query = query.OrderByDescending(r => r.UpdatedAt ?? r.CreatedAt);
+            query = query.OrderByDescending(r => r.CreatedAt);
         }
 
         return await query.ApplyPagination(descriptor).ToListAsync(cancellationToken);

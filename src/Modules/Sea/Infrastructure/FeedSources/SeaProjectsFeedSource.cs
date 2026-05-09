@@ -54,11 +54,11 @@ public class SeaProjectsFeedSource(IMediator mediator) : IFeedDataSource
         SourceName = SourceName,
         Title = project.Name,
         Description = project.Description,
-        Timestamp = project.UpdatedAt ?? project.CreatedAt,
+        Timestamp = project.CreatedAt,
         ItemType = "project",
         IconUrl = null, // Could extract from project metadata
         NavigationUrl = $"/sea/projects/{project.Id}",
-        CreatedBy = project.CreatedBy,
+        CreatedBy = null,
         Metadata = new Dictionary<string, object?>
         {
             ["isTemplate"] = project.Template,
