@@ -10,7 +10,6 @@ namespace Vitarish.Appointments.Domain.Mappers;
 /// </summary>
 public partial class EntityMapper
 {
-    [MapperIgnoreSource(nameof(Session.DayOfWeek))]
     public partial global::Vitarish.Appointments.Domain.Dto.SessionReadDto ToDto(global::Vitarish.Appointments.Domain.Entities.Session src);
 
     public partial global::Vitarish.Appointments.Domain.Entities.Session ToDomain(global::Vitarish.Appointments.Domain.Dto.SessionWriteDto src);

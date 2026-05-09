@@ -19,9 +19,19 @@ internal class SessionRepository(AppointmentsDbContext dbContext)
             query = query.Where(s => s.Visibility == visibility);
         }
 
-        if (descriptor.CalendarMappingId is { } calendarMappingId)
+        if (descriptor.DayOfWeek is { } dayOfWeek)
         {
-            query = query.Where(s => s.CalendarMappingId == calendarMappingId);
+            query = query.Where(s => s.DayOfWeek == dayOfWeek);
+        }
+
+        if (descriptor.StartTime is { } startTime)
+        {
+            query = query.Where(s => s.StartTime == startTime);
+        }
+
+        if (descriptor.EndTime is { } endTime)
+        {
+            query = query.Where(s => s.EndTime == endTime);
         }
 
         if (descriptor.SortBy is { } sort)

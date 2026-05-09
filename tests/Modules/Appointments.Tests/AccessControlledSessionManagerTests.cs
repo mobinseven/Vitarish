@@ -3,7 +3,7 @@ namespace Appointments.Tests;
 public class AccessControlledSessionManagerTests
 {
     [Fact]
-    public async Task AddAsync_ShouldRejectSessionsWithoutSchedule()
+    public async Task AddAsync_ShouldRejectSessionsWithInvalidTimeRange()
     {
         Mock<IRequestContext> requestContext = CreateRequestContext(isAdmin: true);
         Mock<ISessionManager> sessionManager = new();
@@ -18,17 +18,18 @@ public class AccessControlledSessionManagerTests
 
         SessionWriteDto dto = new()
         {
-            Title = "Missing schedule",
+            Title = "Invalid schedule",
             TimeZone = TimeZoneInfo.Utc.Id,
-            StartAt = null,
-            EndAt = null,
+            DayOfWeek = System.DayOfWeek.Monday,
+            StartTime = new TimeOnly(10, 0),
+            EndTime = new TimeOnly(9, 0),
             TotalSeats = 1
         };
 
         EntityResult<SessionReadDto> result = await sut.AddAsync(dto, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
-        result.Errors.Should().ContainSingle(e => e.Message.Contains("start and end time", StringComparison.OrdinalIgnoreCase));
+        result.Errors.Should().ContainSingle(e => e.Message.Contains("end time", StringComparison.OrdinalIgnoreCase));
         sessionManager.Verify(m => m.AddAsync(It.IsAny<SessionWriteDto>(), It.IsAny<CancellationToken>()), Times.Never);
         syncQueue.Verify(m => m.EnqueueSync(It.IsAny<Guid>()), Times.Never);
     }

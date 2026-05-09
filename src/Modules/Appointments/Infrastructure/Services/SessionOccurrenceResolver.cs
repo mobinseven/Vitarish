@@ -8,12 +8,16 @@ internal class SessionOccurrenceResolver(
     IEntityRepository<SessionOccurrence, SessionOccurrenceDescriptor> occurrenceRepository,
     AppointmentsDbContext dbContext) : ISessionOccurrenceResolver
 {
-    private const string SingleOccurrenceRecurrenceId = "single";
+    private const string WeeklyRecurrenceId = "weekly";
 
     public async Task<IReadOnlyList<SessionOccurrenceReadDto>> ResolveOccurrencesAsync(
         Guid sessionId, TimeRangeQuery range, CancellationToken cancellationToken)
     {
-        await SyncOccurrencesAsync(sessionId, cancellationToken);
+        await SyncOccurrencesAsync(
+            sessionId,
+            DateOnly.FromDateTime(range.Start.DateTime),
+            DateOnly.FromDateTime(range.End.DateTime),
+            cancellationToken);
 
         SessionOccurrenceDescriptor descriptor = new()
         {
@@ -42,37 +46,60 @@ internal class SessionOccurrenceResolver(
 
     public async Task SyncOccurrencesAsync(Guid sessionId, CancellationToken cancellationToken)
     {
-        Session? session = await sessionRepository.GetAsync(sessionId, cancellationToken);
+        DateOnly today = DateOnly.FromDateTime(DateTimeOffset.UtcNow.DateTime);
+        await SyncOccurrencesAsync(sessionId, today, today.AddYears(1), cancellationToken);
+    }
 
-        if (session?.StartAt is null || session.EndAt is null)
+    private async Task SyncOccurrencesAsync(Guid sessionId, DateOnly dateFrom, DateOnly dateTo, CancellationToken cancellationToken)
+    {
+        if (dateTo < dateFrom)
         {
             return;
         }
 
-        SessionOccurrence occurrence = CreateOccurrence(session);
-        await ValidateOccurrenceForSessionAsync(occurrence, session, cancellationToken);
-
-        SessionOccurrence? existing = await dbContext.SessionOccurrences
-            .FirstOrDefaultAsync(o => o.SessionId == sessionId && o.Date == occurrence.Date, cancellationToken);
-
-        if (existing is null)
+        Session? session = await sessionRepository.GetAsync(sessionId, cancellationToken);
+        if (session is null)
         {
-            dbContext.SessionOccurrences.Add(occurrence);
-        }
-        else
-        {
-            ApplyOccurrence(existing, occurrence);
+            return;
         }
 
-        await SaveOccurrenceChangesAsync(occurrence.SessionId, occurrence.Date, cancellationToken);
+        foreach (DateOnly date in GetScheduledDates(session.DayOfWeek, dateFrom, dateTo))
+        {
+            SessionOccurrence occurrence = CreateOccurrence(session, date);
+            await ValidateOccurrenceForSessionAsync(occurrence, session, cancellationToken);
+
+            SessionOccurrence? existing = await dbContext.SessionOccurrences
+                .FirstOrDefaultAsync(o => o.SessionId == sessionId && o.Date == occurrence.Date, cancellationToken);
+
+            if (existing is null)
+            {
+                dbContext.SessionOccurrences.Add(occurrence);
+            }
+            else
+            {
+                ApplyOccurrence(existing, occurrence);
+            }
+        }
+
+        await SaveOccurrenceChangesAsync(sessionId, cancellationToken);
     }
 
-    private static SessionOccurrence CreateOccurrence(Session session) => new()
+    private static IEnumerable<DateOnly> GetScheduledDates(DayOfWeek dayOfWeek, DateOnly dateFrom, DateOnly dateTo)
+    {
+        int daysUntilScheduledDay = ((int)dayOfWeek - (int)dateFrom.DayOfWeek + 7) % 7;
+
+        for (DateOnly date = dateFrom.AddDays(daysUntilScheduledDay); date <= dateTo; date = date.AddDays(7))
+        {
+            yield return date;
+        }
+    }
+
+    private static SessionOccurrence CreateOccurrence(Session session, DateOnly date) => new()
     {
         SessionId = session.Id,
-        Date = DateOnly.FromDateTime(session.StartAt!.Value.DateTime),
-        StartTime = TimeOnly.FromDateTime(session.StartAt.Value.DateTime),
-        EndTime = TimeOnly.FromDateTime(session.EndAt!.Value.DateTime),
+        Date = date,
+        StartTime = session.StartTime,
+        EndTime = session.EndTime,
         Capacity = session.TotalSeats,
         Metadata = BuildMetadata(session),
         IsCancelled = session.Status == SessionStatus.Cancelled
@@ -81,12 +108,7 @@ internal class SessionOccurrenceResolver(
     private static Dictionary<string, object?> BuildMetadata(Session session)
     {
         Dictionary<string, object?> metadata = new(session.Metadata);
-        metadata["recurrenceId"] = SingleOccurrenceRecurrenceId;
-        if (session.CalendarMappingId is { } calendarMappingId)
-        {
-            metadata["calendarMappingId"] = calendarMappingId;
-        }
-
+        metadata["recurrenceId"] = WeeklyRecurrenceId;
         return metadata;
     }
 
@@ -104,7 +126,7 @@ internal class SessionOccurrenceResolver(
     {
         cancellationToken.ThrowIfCancellationRequested();
 
-        if (session.DayOfWeek is { } sessionDayOfWeek && occurrence.Date.DayOfWeek != sessionDayOfWeek)
+        if (occurrence.Date.DayOfWeek != session.DayOfWeek)
         {
             throw new InvalidOperationException("Occurrence date must match the session day of week.");
         }
@@ -112,7 +134,7 @@ internal class SessionOccurrenceResolver(
         return Task.CompletedTask;
     }
 
-    private async Task SaveOccurrenceChangesAsync(Guid sessionId, DateOnly date, CancellationToken cancellationToken)
+    private async Task SaveOccurrenceChangesAsync(Guid sessionId, CancellationToken cancellationToken)
     {
         try
         {
@@ -122,19 +144,12 @@ internal class SessionOccurrenceResolver(
         {
             foreach (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<SessionOccurrence> entry in dbContext.ChangeTracker
                 .Entries<SessionOccurrence>()
-                .Where(entry => entry.State == EntityState.Added))
+                .Where(entry => entry.Entity.SessionId == sessionId && entry.State == EntityState.Added))
             {
                 entry.State = EntityState.Detached;
             }
 
-            SessionOccurrence? existing = await dbContext.SessionOccurrences
-                .AsNoTracking()
-                .FirstOrDefaultAsync(o => o.SessionId == sessionId && o.Date == date, cancellationToken);
-
-            if (existing is null)
-            {
-                throw new InvalidOperationException("Concurrent occurrence creation failed to load the existing occurrence.", exception);
-            }
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 

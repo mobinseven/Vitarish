@@ -159,10 +159,7 @@ internal class AccessControlledSessionManager(
             : EntityResult<SessionReadDto>.Failure(EntityError.NotFound("Session not found.", nameof(session.Id)));
 
     private static bool IsVisibleToTenantUser(SessionReadDto session)
-        => session.Status == SessionStatus.Active
-            && session.StartAt.HasValue
-            && session.EndAt.HasValue
-            && session.EndAt > DateTimeOffset.UtcNow;
+        => session.Status == SessionStatus.Active;
 
     private static EntityResult ValidateSchedule(SessionWriteDto dto)
     {
@@ -174,20 +171,11 @@ internal class AccessControlledSessionManager(
             }));
         }
 
-        if (dto.StartAt is null || dto.EndAt is null)
-        {
-            return EntityResult.Failure(EntityError.Validation("Session start and end time are required.", new Dictionary<string, string>
-            {
-                [nameof(dto.StartAt)] = "Start time is required.",
-                [nameof(dto.EndAt)] = "End time is required."
-            }));
-        }
-
-        if (dto.EndAt <= dto.StartAt)
+        if (dto.StartTime >= dto.EndTime)
         {
             return EntityResult.Failure(EntityError.Validation("Session end time must be later than start time.", new Dictionary<string, string>
             {
-                [nameof(dto.EndAt)] = "End time must be later than start time."
+                [nameof(dto.EndTime)] = "End time must be later than start time."
             }));
         }
 

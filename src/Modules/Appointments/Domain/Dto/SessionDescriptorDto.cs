@@ -10,9 +10,17 @@ public record SessionDescriptorDto : EntityDescriptorDto
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public SessionVisibility? Visibility { get; set; }
 
-    [JsonPropertyName("calendarMappingId")]
+    [JsonPropertyName("dayOfWeek")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Guid? CalendarMappingId { get; set; }
+    public DayOfWeek? DayOfWeek { get; set; }
+
+    [JsonPropertyName("startTime")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TimeOnly? StartTime { get; set; }
+
+    [JsonPropertyName("endTime")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public TimeOnly? EndTime { get; set; }
 
     [JsonPropertyName("sortBy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

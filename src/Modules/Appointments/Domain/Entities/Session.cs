@@ -22,32 +22,29 @@ public class Session : Entity
         set => SetField(ref field, value, nameof(Visibility));
     } = SessionVisibility.Public;
 
-    public Guid? CalendarMappingId
+    public DayOfWeek DayOfWeek
     {
         get;
-        set => SetField(ref field, value, nameof(CalendarMappingId));
+        set => SetField(ref field, value, nameof(DayOfWeek));
     }
 
-    public DateTimeOffset? StartAt
+    public TimeOnly StartTime
     {
         get;
-        set => SetField(ref field, value, nameof(StartAt));
-    }
+        set => SetField(ref field, value, nameof(StartTime));
+    } = new(9, 0);
 
-    public DateTimeOffset? EndAt
+    public TimeOnly EndTime
     {
         get;
-        set => SetField(ref field, value, nameof(EndAt));
-    }
+        set => SetField(ref field, value, nameof(EndTime));
+    } = new(10, 0);
 
     public string TimeZone
     {
         get;
         set => SetField(ref field, value, nameof(TimeZone));
     } = "UTC";
-
-    [NotMapped]
-    public DayOfWeek? DayOfWeek => StartAt?.DayOfWeek;
 
     public int TotalSeats
     {

@@ -4,9 +4,13 @@
 {
     <Stack>
         <StackTextField @bind-Value="sessionWriteDto.Title" Label="@Localizer["Title"]" />
-        <StackDatePicker @bind-Date="startDate" Label="@Localizer["StartDate"]" />
+        <StackSelect T="DayOfWeek" Label="@Localizer["DayOfWeek"]" @bind-Value="sessionWriteDto.DayOfWeek">
+            @foreach (var day in Enum.GetValues<DayOfWeek>())
+            {
+                <MudSelectItem T="DayOfWeek" Value="day">@Localizer[day.ToString()]</MudSelectItem>
+            }
+        </StackSelect>
         <StackTimePicker @bind-Time="startTime" Label="@Localizer["StartTime"]" />
-        <StackDatePicker @bind-Date="endDate" Label="@Localizer["EndDate"]" />
         <StackTimePicker @bind-Time="endTime" Label="@Localizer["EndTime"]" />
         @* <StackTextField @bind-Value="sessionWriteDto.TimeZone" Label="@Localizer["TimeZone"]" /> *@
         <StackNumericField @bind-Value="sessionWriteDto.TotalSeats" Label="@Localizer["TotalSeats"]" Min="1" />
