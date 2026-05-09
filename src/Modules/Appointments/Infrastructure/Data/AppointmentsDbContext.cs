@@ -33,7 +33,6 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
     public DbSet<Session> Sessions => Set<Session>();
     public DbSet<SessionOccurrence> SessionOccurrences => Set<SessionOccurrence>();
     public DbSet<Reservation> Reservations => Set<Reservation>();
-    public DbSet<CapacityPolicy> CapacityPolicies => Set<CapacityPolicy>();
     public DbSet<BookingPolicy> BookingPolicies => Set<BookingPolicy>();
     public DbSet<AppointmentAuditEntry> AuditEntries => Set<AppointmentAuditEntry>();
     public DbSet<SessionReminderPolicy> SessionReminderPolicies => Set<SessionReminderPolicy>();
@@ -75,7 +74,6 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
         ConfigureTenantEntity<Session>(modelBuilder);
         ConfigureTenantEntity<SessionOccurrence>(modelBuilder);
         ConfigureTenantEntity<Reservation>(modelBuilder);
-        ConfigureTenantEntity<CapacityPolicy>(modelBuilder);
         ConfigureTenantEntity<BookingPolicy>(modelBuilder);
         ConfigureTenantEntity<AppointmentAuditEntry>(modelBuilder);
         ConfigureTenantEntity<SessionReminderPolicy>(modelBuilder);
@@ -113,11 +111,6 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
                 .WithMany()
                 .HasForeignKey(r => r.SessionOccurrenceId)
                 .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        _ = modelBuilder.Entity<CapacityPolicy>(entity =>
-        {
-            _ = entity.HasIndex(p => p.SessionId).IsUnique();
         });
 
         _ = modelBuilder.Entity<BookingPolicy>(entity =>

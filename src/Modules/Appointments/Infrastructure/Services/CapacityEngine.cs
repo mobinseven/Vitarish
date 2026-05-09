@@ -1,9 +1,7 @@
 namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
-internal class CapacityEngine(
-    CapacityPolicyRepository capacityPolicyRepository,
-    AppointmentsDbContext dbContext) : ICapacityEngine
+internal class CapacityEngine(AppointmentsDbContext dbContext) : ICapacityEngine
 {
     public async Task<int> GetEffectiveCapacityAsync(Guid sessionOccurrenceId, CancellationToken cancellationToken)
     {
@@ -23,26 +21,13 @@ internal class CapacityEngine(
     {
         int capacity = await GetEffectiveCapacityAsync(sessionOccurrenceId, cancellationToken);
 
-        SessionOccurrence? occurrence = await dbContext.SessionOccurrences
-            .AsNoTracking()
-            .FirstOrDefaultAsync(o => o.Id == sessionOccurrenceId, cancellationToken);
-
-        if (occurrence is null)
-        {
-            return 0;
-        }
-
-        CapacityPolicy? policy = await capacityPolicyRepository.GetBySessionIdAsync(occurrence.SessionId, cancellationToken);
-        bool pendingConsumes = policy?.PendingConsumesCapacity ?? true;
-
         int occupied = await dbContext.Reservations
             .Where(r => r.SessionOccurrenceId == sessionOccurrenceId
                      && r.Status != ReservationStatus.Cancelled
                      && r.Status != ReservationStatus.Expired
                      && r.Status != ReservationStatus.Rejected
                      && r.Status != ReservationStatus.Waitlisted
-                     && !r.IsHold
-                     && (pendingConsumes || r.Status != ReservationStatus.Pending))
+                     && !r.IsHold)
             .CountAsync(cancellationToken);
 
         return Math.Max(0, capacity - occupied);
