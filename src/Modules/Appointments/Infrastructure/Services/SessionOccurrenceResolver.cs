@@ -63,15 +63,16 @@ internal class SessionOccurrenceResolver(
             return;
         }
 
+        Dictionary<DateOnly, SessionOccurrence> existingOccurrences = await dbContext.SessionOccurrences
+            .Where(o => o.SessionId == sessionId && o.Date >= dateFrom && o.Date <= dateTo)
+            .ToDictionaryAsync(o => o.Date, cancellationToken);
+
         foreach (DateOnly date in GetScheduledDates(session.DayOfWeek, dateFrom, dateTo))
         {
             SessionOccurrence occurrence = CreateOccurrence(session, date);
             await ValidateOccurrenceForSessionAsync(occurrence, session, cancellationToken);
 
-            SessionOccurrence? existing = await dbContext.SessionOccurrences
-                .FirstOrDefaultAsync(o => o.SessionId == sessionId && o.Date == occurrence.Date, cancellationToken);
-
-            if (existing is null)
+            if (!existingOccurrences.TryGetValue(date, out SessionOccurrence? existing))
             {
                 dbContext.SessionOccurrences.Add(occurrence);
             }
