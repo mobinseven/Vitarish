@@ -11,5 +11,5 @@ public enum FulfillmentStatus
     PartiallyReturned,
     Returned,
     Canceled,
-    Requires_Action
+    RequiresAction
 }
