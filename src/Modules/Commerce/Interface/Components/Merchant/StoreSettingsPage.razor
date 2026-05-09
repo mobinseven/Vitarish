@@ -13,8 +13,12 @@ else
     <MudForm>
         <MudTextField Label="Store Name" Value="@_store.Name" ReadOnly />
         <MudTextField Label="Currency" Value="@_store.CurrencyCode" ReadOnly />
-        <MudTextField Label="MedusaJS Base URL" Value="@_store.MedusaBaseUrl" ReadOnly />
     </MudForm>
+    <MudExpansionPanels Class="mt-3">
+        <MudExpansionPanel Text="Technical integration details">
+            <MudTextField Label="MedusaJS Base URL" Value="@_store.MedusaBaseUrl" ReadOnly />
+        </MudExpansionPanel>
+    </MudExpansionPanels>
 }
 
 @code {

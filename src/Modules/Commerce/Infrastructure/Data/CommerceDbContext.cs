@@ -124,7 +124,18 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
                     v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, _jsonOptions))
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
+            _ = entity.Property(e => e.RefundNote)
+                .HasMaxLength(2048);
+            _ = entity.HasIndex("TenantId", nameof(Order.OrderNumber))
+                .IsUnique()
+                .HasFilter($"[{nameof(Order.OrderNumber)}] > 0");
             entity.Ignore(o => o.Stats);
+        });
+
+        _ = modelBuilder.Entity<Cart>(entity =>
+        {
+            _ = entity.Property(e => e.RecoveryNote)
+                .HasMaxLength(2048);
         });
 
         _ = modelBuilder.Entity<Product>(entity =>

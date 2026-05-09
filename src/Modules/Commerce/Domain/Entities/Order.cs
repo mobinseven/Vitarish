@@ -2,6 +2,12 @@ namespace Vitarish.Commerce.Domain.Entities;
 
 public class Order : Entity
 {
+    public int OrderNumber
+    {
+        get;
+        set => SetField(ref field, value, nameof(OrderNumber));
+    }
+
     public string MedusaId
     {
         get;
@@ -37,6 +43,18 @@ public class Order : Entity
         get;
         set => SetField(ref field, value, nameof(CurrencyCode));
     } = "usd";
+
+    public RefundStatus RefundStatus
+    {
+        get;
+        set => SetField(ref field, value, nameof(RefundStatus));
+    } = RefundStatus.None;
+
+    public string RefundNote
+    {
+        get;
+        set => SetField(ref field, value, nameof(RefundNote));
+    } = string.Empty;
 
     public Dictionary<string, object?> Metadata
     {

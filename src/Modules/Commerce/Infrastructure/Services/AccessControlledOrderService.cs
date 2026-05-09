@@ -60,4 +60,7 @@ internal class AccessControlledOrderService(
 
     public Task<EntityResult> CancelAsync(Guid orderId, CancellationToken cancellationToken)
         => IsAdmin() ? orderService.CancelAsync(orderId, cancellationToken) : throw AdminRoleRequired;
+
+    public Task<EntityResult> RequestRefundAsync(Guid orderId, string? note, CancellationToken cancellationToken)
+        => IsAdmin() ? orderService.RequestRefundAsync(orderId, note, cancellationToken) : throw AdminRoleRequired;
 }

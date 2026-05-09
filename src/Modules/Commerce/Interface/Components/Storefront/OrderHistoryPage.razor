@@ -14,13 +14,13 @@ else
 {
     <MudTable Items="_orders" Dense Hover>
         <HeaderContent>
-            <MudTh>Order ID</MudTh>
+            <MudTh>Order Number</MudTh>
             <MudTh>Status</MudTh>
             <MudTh>Total</MudTh>
             <MudTh>Date</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd>@context.MedusaId</MudTd>
+            <MudTd>#@context.OrderNumber</MudTd>
             <MudTd><MudChip T="string" Size="Size.Small">@context.Status</MudChip></MudTd>
             <MudTd>@context.TotalAmount @context.CurrencyCode.ToUpperInvariant()</MudTd>
             <MudTd>@context.CreatedAt.ToString("d")</MudTd>
