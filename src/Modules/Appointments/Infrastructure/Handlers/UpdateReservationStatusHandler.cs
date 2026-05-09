@@ -41,7 +41,7 @@ internal class UpdateReservationStatusHandler(
                     entity.SessionOccurrenceId,
                     entity.ReservingPartyId,
                     request.Status,
-                    occurrence.OccurrenceStart),
+                    new DateTimeOffset(occurrence.Date.ToDateTime(occurrence.StartTime), TimeSpan.Zero)),
                 cancellationToken);
         }
     }

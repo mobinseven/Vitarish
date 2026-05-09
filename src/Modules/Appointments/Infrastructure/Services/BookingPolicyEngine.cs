@@ -18,15 +18,16 @@ internal class BookingPolicyEngine(
 
         BookingPolicy? policy = await bookingPolicyRepository.GetBySessionIdAsync(occurrence.SessionId, cancellationToken);
         DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset occurrenceStart = ToDateTimeOffset(occurrence.Date, occurrence.StartTime);
 
         if (policy is null)
         {
-            return now < occurrence.OccurrenceStart;
+            return now < occurrenceStart;
         }
 
         if (policy.BookingOpensBefore.HasValue)
         {
-            DateTimeOffset opensAt = occurrence.OccurrenceStart - policy.BookingOpensBefore.Value;
+            DateTimeOffset opensAt = occurrenceStart - policy.BookingOpensBefore.Value;
             if (now < opensAt)
             {
                 return false;
@@ -35,7 +36,7 @@ internal class BookingPolicyEngine(
 
         if (policy.BookingCloseBefore.HasValue)
         {
-            DateTimeOffset closesAt = occurrence.OccurrenceStart - policy.BookingCloseBefore.Value;
+            DateTimeOffset closesAt = occurrenceStart - policy.BookingCloseBefore.Value;
             if (now >= closesAt)
             {
                 return false;
@@ -65,7 +66,7 @@ internal class BookingPolicyEngine(
             return true;
         }
 
-        DateTimeOffset deadline = reservation.Occurrence.OccurrenceStart - policy.CancellationDeadline.Value;
+        DateTimeOffset deadline = ToDateTimeOffset(reservation.Occurrence.Date, reservation.Occurrence.StartTime) - policy.CancellationDeadline.Value;
         return DateTimeOffset.UtcNow < deadline;
     }
 
@@ -119,4 +120,7 @@ internal class BookingPolicyEngine(
 
         return partyCount < policy.MaxReservationsPerParty.Value;
     }
+
+    private static DateTimeOffset ToDateTimeOffset(DateOnly date, TimeOnly time)
+        => new(date.ToDateTime(time), TimeSpan.Zero);
 }

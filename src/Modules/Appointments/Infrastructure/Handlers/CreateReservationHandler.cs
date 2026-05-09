@@ -36,7 +36,7 @@ internal class CreateReservationHandler(
                     created.SessionOccurrenceId,
                     created.ReservingPartyId,
                     ReservationStatus.Pending,
-                    occurrence.OccurrenceStart),
+                    new DateTimeOffset(occurrence.Date.ToDateTime(occurrence.StartTime), TimeSpan.Zero)),
                 cancellationToken);
         }
 

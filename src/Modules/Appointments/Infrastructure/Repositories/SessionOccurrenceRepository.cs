@@ -16,12 +16,12 @@ internal class SessionOccurrenceRepository(AppointmentsDbContext dbContext)
 
         if (descriptor.DateFrom is { } dateFrom)
         {
-            query = query.Where(o => o.OccurrenceStart >= dateFrom);
+            query = query.Where(o => o.Date >= dateFrom);
         }
 
         if (descriptor.DateTo is { } dateTo)
         {
-            query = query.Where(o => o.OccurrenceStart <= dateTo);
+            query = query.Where(o => o.Date <= dateTo);
         }
 
         if (descriptor.IsCancelled is { } isCancelled)
@@ -32,7 +32,13 @@ internal class SessionOccurrenceRepository(AppointmentsDbContext dbContext)
         return query;
     }
 
-    protected override bool IsDuplicateKeyException(DbUpdateException exception) => false;
+    protected override bool IsDuplicateKeyException(DbUpdateException exception)
+    {
+        string? message = exception.InnerException?.Message ?? exception.Message;
+        return message.Contains("IX_SessionOccurrences_SessionId_Date", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("duplicate key", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("unique constraint", StringComparison.OrdinalIgnoreCase);
+    }
 
     async Task<SessionOccurrence?> IEntityRepository<SessionOccurrence, SessionOccurrenceDescriptor>.GetAsync(
         Guid id, CancellationToken cancellationToken)
@@ -56,7 +62,7 @@ internal class SessionOccurrenceRepository(AppointmentsDbContext dbContext)
 
         if (query is not IOrderedQueryable<SessionOccurrence>)
         {
-            query = query.OrderBy(o => o.OccurrenceStart);
+            query = query.OrderBy(o => o.Date).ThenBy(o => o.StartTime);
         }
 
         IReadOnlyList<SessionOccurrence> occurrences = await query.ApplyPagination(descriptor).ToListAsync(cancellationToken);
