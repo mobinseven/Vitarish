@@ -1,28 +1,42 @@
 @inherits MudTimePicker
 @inject IStringLocalizer Localizer
+
 <StackField Label="@Label">
-    <MudStack Row Justify="Justify.Center" AlignItems="AlignItems.Center" Reverse="@(Culture.TextInfo.IsRightToLeft ? true : false)">
-        <MudSelect T="int" Value="hour" ValueChanged="h => SetHour(h)" Underline="false" Variant="Variant.Outlined" Label="@Localizer["Hour"]">
-            @for(int i = 0; i < 24; i++)
-            {
-                var item = i;
-                <MudSelectItem @key="item" Value="item">@item</MudSelectItem>
-            }
-        </MudSelect>
-        <MudText Typo="Typo.caption">:</MudText>
+    <MudStack Row
+              Justify="Justify.Center"
+              AlignItems="AlignItems.Center"
+              Reverse="@Culture.TextInfo.IsRightToLeft">
+
         <MudSelect T="int"
-                   Value="@minute"
-                   ValueChanged="@(m => SetMinute(m))"
+                   Value="_hour"
+                   ValueChanged="SetHourAsync"
                    Underline="false"
                    Variant="Variant.Outlined"
-                   Label="@Localizer["Minute"]">
+                   Label="@Localizer["Hour"]">
 
-            @for(int i = 0; i < 60; i += 15)
+            @for(var i = 0; i < 24; i++)
             {
                 var item = i;
 
                 <MudSelectItem T="int" @key="item" Value="@item">
-                    @item
+                    @item.ToString("00", Culture)
+                </MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudText Typo="Typo.caption">:</MudText>
+
+        <MudSelect T="int"
+                   Value="_minute"
+                   ValueChanged="SetMinuteAsync"
+                   Underline="false"
+                   Variant="Variant.Outlined"
+                   Label="@Localizer["Minute"]">
+
+            @foreach(var item in MinuteItems)
+            {
+                <MudSelectItem T="int" @key="item" Value="@item">
+                    @item.ToString("00", Culture)
                 </MudSelectItem>
             }
         </MudSelect>
@@ -30,28 +44,78 @@
 </StackField>
 
 @code {
+    [Parameter]
+    public global::System.TimeOnly TimeOnly { get; set; } = global::System.TimeOnly.MinValue;
 
-    private int hour = 0;
-    private int minute = 0;
+    [Parameter]
+    public EventCallback<global::System.TimeOnly> TimeOnlyChanged { get; set; }
 
-    protected override void OnInitialized()
+    [Parameter]
+    public int MinuteStep { get; set; } = 15;
+
+    private int _hour;
+    private int _minute;
+
+    private int NormalizedMinuteStep => Math.Clamp(MinuteStep, 1, 60);
+
+    private IEnumerable<int> MinuteItems
     {
-        base.OnInitialized();
-        hour = Time?.Hours ?? 0;
-        minute = Time?.Minutes ?? 0;
+        get
+        {
+            var step = NormalizedMinuteStep;
+            var emittedCurrentMinute = false;
+
+            for(var i = 0; i < 60; i += step)
+            {
+                if(i == _minute)
+                    emittedCurrentMinute = true;
+
+                yield return i;
+
+                if(!emittedCurrentMinute && _minute > i && _minute < i + step)
+                {
+                    emittedCurrentMinute = true;
+                    yield return _minute;
+                }
+            }
+
+            if(!emittedCurrentMinute)
+                yield return _minute;
+        }
     }
 
-    private async void SetHour(int h)
+    protected override void OnParametersSet()
     {
-        hour = h;
-        Time = new TimeSpan(hour, minute, 0);
-        await TimeChanged.InvokeAsync(Time);
+        base.OnParametersSet();
+
+        var selectedTime =
+            TimeOnlyChanged.HasDelegate || TimeOnly != global::System.TimeOnly.MinValue || Time is null
+                ? TimeOnly
+                : global::System.TimeOnly.FromTimeSpan(Time.Value);
+
+        _hour = selectedTime.Hour;
+        _minute = selectedTime.Minute;
     }
 
-    private async Task SetMinute(int m)
+    private Task SetHourAsync(int hour)
+        => SetSelectedTimeAsync(hour, _minute);
+
+    private Task SetMinuteAsync(int minute)
+        => SetSelectedTimeAsync(_hour, minute);
+
+    private async Task SetSelectedTimeAsync(int hour, int minute)
     {
-        minute = m;
-        Time = new TimeSpan(hour, minute, 0);
+        _hour = hour;
+        _minute = minute;
+
+        var value = new global::System.TimeOnly(hour, minute);
+
+        TimeOnly = value;
+
+        // Keep inherited MudTimePicker API in sync too.
+        Time = value.ToTimeSpan();
+
+        await TimeOnlyChanged.InvokeAsync(value);
         await TimeChanged.InvokeAsync(Time);
     }
 }
