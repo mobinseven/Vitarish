@@ -3,7 +3,7 @@ namespace Vitarish.Appointments.Interface.Components.Sessions;
 public partial class SessionOccurrencesList : SessionsBase
 {
     [Parameter] public Guid? SessionId { get; set; }
-    [Parameter] public EventCallback<Guid> OnClicked { get; set; }
+    [Parameter] public EventCallback<DateOnly> OnClicked { get; set; }
 
     [Inject] private ISessionOccurrenceResolver SessionOccurrenceResolver { get; set; } = default!;
 

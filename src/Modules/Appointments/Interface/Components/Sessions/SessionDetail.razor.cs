@@ -55,9 +55,9 @@ public partial class SessionDetail : SessionsBase
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task ReserveAsync(Guid occurrenceId)
+    private async Task ReserveAsync(DateOnly date)
     {
-        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(occurrenceId, null, CancellationToken.None);
+        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(Session.Id, date, null, CancellationToken.None);
         if (result.IsFailure)
         {
             return;
