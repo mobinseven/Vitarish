@@ -34,10 +34,7 @@ internal class SessionOccurrenceRepository(AppointmentsDbContext dbContext)
 
     protected override bool IsDuplicateKeyException(DbUpdateException exception)
     {
-        string? message = exception.InnerException?.Message ?? exception.Message;
-        return message.Contains("IX_SessionOccurrences_SessionId_Date", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("duplicate key", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("unique constraint", StringComparison.OrdinalIgnoreCase);
+        return AppointmentsDatabaseExceptions.IsUniqueConstraintViolation(exception);
     }
 
     async Task<SessionOccurrence?> IEntityRepository<SessionOccurrence, SessionOccurrenceDescriptor>.GetAsync(
