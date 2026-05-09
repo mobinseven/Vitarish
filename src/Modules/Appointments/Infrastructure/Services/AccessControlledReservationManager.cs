@@ -7,6 +7,7 @@ internal class AccessControlledReservationManager(
     IRequestContext requestContext,
     IReservationManager reservationManager,
     IEntityRepository<SessionOccurrence, SessionOccurrenceDescriptor> occurrenceRepository,
+    ISessionOccurrenceFactory occurrenceFactory,
     IBookingPolicyEngine bookingPolicyEngine,
     ICapacityEngine capacityEngine,
     IStatusCoordinator statusCoordinator) : IAccessControlledReservationManager
@@ -92,6 +93,23 @@ internal class AccessControlledReservationManager(
 
     public Task<EntityResult> RemoveByDescriptorAsync(ReservationDescriptorDto descriptor, CancellationToken cancellationToken)
         => IsAdmin ? reservationManager.RemoveByDescriptorAsync(descriptor, cancellationToken) : throw AdminRoleRequired;
+
+    public async Task<EntityResult<ReservationReadDto>> ReserveAsync(Guid sessionId, DateOnly date, string? reservingPartyId, CancellationToken cancellationToken)
+    {
+        string? effectivePartyId = IsAdmin ? reservingPartyId : UserId;
+        if (string.IsNullOrWhiteSpace(effectivePartyId))
+        {
+            return EntityResult<ReservationReadDto>.Failure(EntityError.Validation("A reserving user is required.", new Dictionary<string, string>
+            {
+                [nameof(reservingPartyId)] = "A reserving user is required."
+            }));
+        }
+
+        EntityResult<Guid> occurrenceResult = await occurrenceFactory.GetOrCreateAsync(sessionId, date, cancellationToken);
+        return occurrenceResult.IsFailure
+            ? EntityResult<ReservationReadDto>.Failure([.. occurrenceResult.Errors])
+            : await ReserveAsync(occurrenceResult.Value, effectivePartyId, cancellationToken);
+    }
 
     public async Task<EntityResult<ReservationReadDto>> ReserveAsync(Guid sessionOccurrenceId, string? reservingPartyId, CancellationToken cancellationToken)
     {

@@ -8,6 +8,7 @@ public class AccessControlledReservationManagerTests
         Mock<IRequestContext> requestContext = CreateRequestContext();
         Mock<IReservationManager> reservationManager = new();
         Mock<IEntityRepository<SessionOccurrence, SessionOccurrenceDescriptor>> occurrenceRepository = new();
+        Mock<ISessionOccurrenceFactory> occurrenceFactory = new();
         Mock<IBookingPolicyEngine> bookingPolicyEngine = new();
         Mock<ICapacityEngine> capacityEngine = new();
         Mock<IStatusCoordinator> statusCoordinator = new();
@@ -77,6 +78,7 @@ public class AccessControlledReservationManagerTests
             requestContext.Object,
             reservationManager.Object,
             occurrenceRepository.Object,
+            occurrenceFactory.Object,
             bookingPolicyEngine.Object,
             capacityEngine.Object,
             statusCoordinator.Object);

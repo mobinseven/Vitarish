@@ -66,20 +66,21 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
             return;
         }
 
-        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(occurrence.Id, patientUserId, CancellationToken.None);
-        if (result.IsFailure)
+        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(session.Id, occurrence.Date, patientUserId, CancellationToken.None);
+        if (result.IsFailure || result.Value is null)
         {
-            _ = Snackbar.Add(result.Errors.FirstOrDefault().Message, Severity.Error);
+            _ = Snackbar.Add(result.Errors.FirstOrDefault()?.Message ?? Localizer["Error"].Value, Severity.Error);
             return;
         }
 
+        ReservationReadDto reservation = result.Value;
         _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
 
         if (createReminder)
         {
             DialogParameters parameters = new()
             {
-                { nameof(ReminderCreatorDialog.SourceId), occurrence.Id }
+                { nameof(ReminderCreatorDialog.SourceId), reservation.SessionOccurrenceId }
             };
             IDialogReference reminderDialog = await DialogService.ShowAsync<ReminderCreatorDialog>(null, parameters);
             _ = await reminderDialog.Result;

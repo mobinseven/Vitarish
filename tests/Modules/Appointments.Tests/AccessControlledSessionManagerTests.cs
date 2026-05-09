@@ -7,13 +7,11 @@ public class AccessControlledSessionManagerTests
     {
         Mock<IRequestContext> requestContext = CreateRequestContext(isAdmin: true);
         Mock<ISessionManager> sessionManager = new();
-        Mock<ISessionOccurrenceSyncQueue> syncQueue = new();
         Mock<IStatusCoordinator> statusCoordinator = new();
 
         AccessControlledSessionManager sut = new(
             requestContext.Object,
             sessionManager.Object,
-            syncQueue.Object,
             statusCoordinator.Object);
 
         SessionWriteDto dto = new()
@@ -31,7 +29,6 @@ public class AccessControlledSessionManagerTests
         result.IsFailure.Should().BeTrue();
         result.Errors.Should().ContainSingle(e => e.Message.Contains("end time", StringComparison.OrdinalIgnoreCase));
         sessionManager.Verify(m => m.AddAsync(It.IsAny<SessionWriteDto>(), It.IsAny<CancellationToken>()), Times.Never);
-        syncQueue.Verify(m => m.EnqueueSync(It.IsAny<Guid>()), Times.Never);
     }
 
     private static Mock<IRequestContext> CreateRequestContext(bool isAdmin)

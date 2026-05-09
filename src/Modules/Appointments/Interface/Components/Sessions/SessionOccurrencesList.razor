@@ -13,7 +13,7 @@ else
     <Stack>
         @foreach (var occurrence in occurrences)
         {
-            <StackButton OnClick="() => OnClicked.InvokeAsync(occurrence.Id)"
+            <StackButton OnClick="() => OnClicked.InvokeAsync(occurrence.Date)"
                          Label="@occurrence.OccurrenceStart.ToString("g")"
                          HelperText="@($"{Localizer["Count", Localizer["Reservations"]]}: {occurrence.Stats.ReservationCount}")"
                          Disabled="@occurrence.IsCancelled">
