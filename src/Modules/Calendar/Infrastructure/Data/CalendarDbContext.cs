@@ -37,6 +37,7 @@ public class CalendarDbContext : DbContext, IMultiTenantDbContext
     public DbSet<AvailabilityPolicy> AvailabilityPolicies => Set<AvailabilityPolicy>();
     public DbSet<OccurrenceProjection> OccurrenceProjections => Set<OccurrenceProjection>();
     public DbSet<CalendarSyncLedger> CalendarSyncLedgers => Set<CalendarSyncLedger>();
+    public DbSet<AuditEntry> CentralAuditEntries => Set<AuditEntry>();
     public DbSet<CalendarAuditEntry> CalendarAuditEntries => Set<CalendarAuditEntry>();
 
     public CalendarDbContext(
@@ -80,7 +81,9 @@ public class CalendarDbContext : DbContext, IMultiTenantDbContext
         ConfigureTenantEntity<AvailabilityPolicy>(modelBuilder);
         ConfigureTenantEntity<OccurrenceProjection>(modelBuilder);
         ConfigureTenantEntity<CalendarSyncLedger>(modelBuilder);
+        ConfigureTenantEntity<AuditEntry>(modelBuilder);
         ConfigureTenantEntity<CalendarAuditEntry>(modelBuilder);
+        ConfigureAuditEntry(modelBuilder);
 
         _ = modelBuilder.Entity<DomainCalendarRecord>(entity =>
         {
@@ -107,5 +110,16 @@ public class CalendarDbContext : DbContext, IMultiTenantDbContext
             EF.Property<DateTimeOffset?>(e, "DeletedAt") == null);
 
         _ = entityBuilder.IsMultiTenant();
+    }
+
+    private static void ConfigureAuditEntry(ModelBuilder modelBuilder)
+    {
+        _ = modelBuilder.Entity<AuditEntry>(entity =>
+        {
+            _ = entity.ToTable("AuditEntries");
+            _ = entity.HasIndex("TenantId", nameof(AuditEntry.OccurredAt));
+            _ = entity.HasIndex(nameof(AuditEntry.EntityType), nameof(AuditEntry.EntityId), nameof(AuditEntry.OccurredAt));
+            _ = entity.HasIndex(nameof(AuditEntry.ActorId), nameof(AuditEntry.OccurredAt));
+        });
     }
 }

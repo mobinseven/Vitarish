@@ -1,29 +1,49 @@
 namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
-internal class AuditLogger(AuditRepository auditRepository) : IAuditLogger
+internal class AuditLogger(AppointmentsDbContext dbContext) : IAuditLogger
 {
     private const string SessionEntityType = nameof(Session);
     private const string ReservationEntityType = nameof(Reservation);
 
     public async Task LogAsync(AppointmentAuditEntry entry, CancellationToken cancellationToken)
     {
-        _ = await auditRepository.AddAsync(entry, cancellationToken);
+        AuditEntry auditEntry = new()
+        {
+            Action = entry.Action,
+            ActorId = entry.ActorId,
+            EntityType = entry.EntityType,
+            EntityId = entry.EntityId,
+            SnapshotBefore = entry.SnapshotBefore,
+            SnapshotAfter = entry.SnapshotAfter,
+            OccurredAt = entry.OccurredAt
+        };
+
+        _ = await dbContext.Set<AuditEntry>().AddAsync(auditEntry, cancellationToken);
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<IReadOnlyList<AuditEntryReadDto>> GetSessionAuditAsync(Guid sessionId, CancellationToken cancellationToken)
     {
-        IReadOnlyList<AppointmentAuditEntry> entries = await auditRepository.GetByEntityAsync(SessionEntityType, sessionId, cancellationToken);
+        List<AuditEntry> entries = await dbContext.Set<AuditEntry>()
+            .AsNoTracking()
+            .Where(e => e.EntityType == SessionEntityType && e.EntityId == sessionId)
+            .OrderByDescending(e => e.OccurredAt)
+            .ToListAsync(cancellationToken);
         return [.. entries.Select(ToDto)];
     }
 
     public async Task<IReadOnlyList<AuditEntryReadDto>> GetReservationAuditAsync(Guid reservationId, CancellationToken cancellationToken)
     {
-        IReadOnlyList<AppointmentAuditEntry> entries = await auditRepository.GetByEntityAsync(ReservationEntityType, reservationId, cancellationToken);
+        List<AuditEntry> entries = await dbContext.Set<AuditEntry>()
+            .AsNoTracking()
+            .Where(e => e.EntityType == ReservationEntityType && e.EntityId == reservationId)
+            .OrderByDescending(e => e.OccurredAt)
+            .ToListAsync(cancellationToken);
         return [.. entries.Select(ToDto)];
     }
 
-    private static AuditEntryReadDto ToDto(AppointmentAuditEntry e) => new()
+    private static AuditEntryReadDto ToDto(AuditEntry e) => new()
     {
         Id = e.Id,
         Action = e.Action,

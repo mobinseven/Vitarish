@@ -13,7 +13,7 @@ namespace Vitarish.Calendar.Infrastructure.Services;
 internal class CalendarObjectService(
     IEntityRepository<CalendarObjectMapping, CalendarObjectMappingDescriptor> mappingRepository,
     IEntityRepository<DomainCalendarRecord, DomainCalendarRecordDescriptor> recordRepository,
-    IEntityRepository<CalendarAuditEntry, CalendarAuditEntryDescriptor> auditRepository,
+    CalendarDbContext dbContext,
     IEntityRepository<CalendarAccount, CalendarAccountDescriptor> accountRepository,
     IRadicaleAdapter radicaleAdapter,
     ICalendarHelper calendarHelper,
@@ -251,17 +251,18 @@ internal class CalendarObjectService(
         string? newValue,
         CancellationToken ct)
     {
-        CalendarAuditEntry entry = new()
+        AuditEntry entry = new()
         {
-            ObjectMappingId = objectMappingId,
-            AccountId = accountId,
-            Action = action,
-            PerformedBy = requestContext.UserId ?? string.Empty,
-            PerformedAt = DateTimeOffset.UtcNow,
-            OldValue = oldValue,
-            NewValue = newValue
+            Action = action.ToString(),
+            ActorId = requestContext.UserId,
+            EntityType = nameof(CalendarObjectMapping),
+            EntityId = objectMappingId,
+            SnapshotBefore = oldValue,
+            SnapshotAfter = newValue,
+            OccurredAt = DateTimeOffset.UtcNow
         };
 
-        await auditRepository.AddAsync(entry, ct);
+        _ = await dbContext.Set<AuditEntry>().AddAsync(entry, ct);
+        _ = await dbContext.SaveChangesAsync(ct);
     }
 }

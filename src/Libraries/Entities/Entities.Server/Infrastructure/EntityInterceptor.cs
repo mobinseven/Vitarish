@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
+using System.Text.Json;
 using Vitarish.Entities.Server.Abstractions;
 
 namespace Vitarish.Entities.Server.Infrastructure;
@@ -10,6 +12,34 @@ public sealed class EntityInterceptor(
         IEntityCacheInvalidationService cacheInvalidationService,
         IPublisher publisher) : SaveChangesInterceptor
 {
+    private const int MaxPayloadLength = 16000;
+    private static readonly JsonSerializerOptions JsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
+    private static readonly HashSet<string> IgnoredAuditProperties = new(StringComparer.OrdinalIgnoreCase)
+    {
+        nameof(Entity.CreatedAt),
+        nameof(Entity.CreatedBy),
+        nameof(Entity.UpdatedAt),
+        nameof(Entity.UpdatedBy),
+        nameof(Entity.DeletedAt),
+        nameof(Entity.DeletedBy)
+    };
+    private static readonly string[] SensitiveMarkers =
+    [
+        "password",
+        "secret",
+        "token",
+        "apikey",
+        "api_key",
+        "authorization",
+        "credential",
+        "cookie",
+        "bearer",
+        "hash",
+        "salt"
+    ];
 
     private readonly ConcurrentDictionary<DbContext, List<EntityNotification>> _notifications = new(10, 100); // TODO: adjust these numbers with realistic scenarios. This interceptor is used per scope so it won't grow too much.
 
@@ -20,6 +50,7 @@ public sealed class EntityInterceptor(
         {
             DateTimeOffset now = timeService.Now;
             UpdateEntities(context, now, userService);
+            AppendAuditEntries(context, now, userService);
             CaptureChanges(context, now);
             InvalidateCache(context, cacheInvalidationService);
         }
@@ -36,6 +67,7 @@ public sealed class EntityInterceptor(
         {
             DateTimeOffset now = timeService.Now;
             UpdateEntities(context, now, userService);
+            AppendAuditEntries(context, now, userService);
             CaptureChanges(context, now);
             InvalidateCache(context, cacheInvalidationService);
         }
@@ -122,6 +154,63 @@ public sealed class EntityInterceptor(
         }
     }
 
+    private static void AppendAuditEntries(DbContext context, DateTimeOffset now, IEntityUserService userService)
+    {
+        if (context.Model.FindEntityType(typeof(AuditEntry)) is null)
+        {
+            return;
+        }
+
+        List<EntityEntry<Entity>> trackedEntries = context.ChangeTracker.Entries<Entity>()
+            .Where(e => e.Entity is not AuditEntry && e.State is EntityState.Added or EntityState.Modified or EntityState.Deleted)
+            .ToList();
+
+        if (trackedEntries.Count == 0)
+        {
+            return;
+        }
+
+        string? actorId = userService.UserId;
+        List<AuditEntry> auditEntries = [];
+
+        foreach (EntityEntry<Entity> trackedEntry in trackedEntries)
+        {
+            (string? action, string? before, string? after, string? changes) = CaptureAuditPayload(trackedEntry);
+            if (action is null)
+            {
+                continue;
+            }
+
+            string? tenantId = ResolveTenantId(trackedEntry);
+            if (string.IsNullOrWhiteSpace(tenantId))
+            {
+                continue;
+            }
+
+            auditEntries.Add(new AuditEntry
+            {
+                Id = Guid.NewGuid(),
+                Action = action,
+                ActorId = actorId,
+                EntityType = trackedEntry.Entity.GetType().Name,
+                EntityId = trackedEntry.Entity.Id,
+                SnapshotBefore = before,
+                SnapshotAfter = after,
+                Changes = changes,
+                OccurredAt = now,
+                CorrelationId = tenantId,
+                RequestId = null
+            });
+        }
+
+        if (auditEntries.Count == 0)
+        {
+            return;
+        }
+
+        context.Set<AuditEntry>().AddRange(auditEntries);
+    }
+
     private static void InvalidateCache(DbContext context, IEntityCacheInvalidationService cacheInvalidatorService)
     {
         foreach (EntityEntry<Entity> entry in context.ChangeTracker.Entries<Entity>())
@@ -136,6 +225,11 @@ public sealed class EntityInterceptor(
 
         foreach (EntityEntry<Entity> entry in context.ChangeTracker.Entries<Entity>())
         {
+            if (entry.Entity is AuditEntry)
+            {
+                continue;
+            }
+
             EntityOperation? operation = entry.State switch
             {
                 EntityState.Added => EntityOperation.Created,
@@ -166,6 +260,129 @@ public sealed class EntityInterceptor(
         {
             _notifications[context] = list;
         }
+    }
+
+    private static (string? Action, string? Before, string? After, string? Changes) CaptureAuditPayload(EntityEntry<Entity> entry)
+    {
+        string? action = entry.State switch
+        {
+            EntityState.Added => "Created",
+            EntityState.Modified when entry.Property(nameof(Entity.DeletedAt)).IsModified && entry.Entity.DeletedAt != null => "Deleted",
+            EntityState.Modified => "Updated",
+            EntityState.Deleted => "Deleted",
+            _ => null
+        };
+
+        if (action is null)
+        {
+            return (null, null, null, null);
+        }
+
+        Dictionary<string, object?>? before = entry.State is EntityState.Modified or EntityState.Deleted
+            ? GetSnapshot(entry, currentValues: false)
+            : null;
+        Dictionary<string, object?>? after = entry.State is EntityState.Added or EntityState.Modified
+            ? GetSnapshot(entry, currentValues: true)
+            : null;
+        Dictionary<string, (object? Old, object? New)>? changes = entry.State == EntityState.Modified
+            ? GetChanges(entry)
+            : null;
+
+        return (
+            action,
+            SerializeWithLimit(before),
+            SerializeWithLimit(after),
+            SerializeWithLimit(changes));
+    }
+
+    private static Dictionary<string, object?> GetSnapshot(EntityEntry<Entity> entry, bool currentValues)
+    {
+        Dictionary<string, object?> snapshot = [];
+        PropertyValues values = currentValues ? entry.CurrentValues : entry.OriginalValues;
+
+        foreach (PropertyEntry propertyEntry in entry.Properties)
+        {
+            IProperty metadata = propertyEntry.Metadata;
+            if (!ShouldCaptureProperty(metadata))
+            {
+                continue;
+            }
+
+            object? value = values[metadata];
+            snapshot[metadata.Name] = SanitizeValue(metadata.Name, value);
+        }
+
+        return snapshot;
+    }
+
+    private static Dictionary<string, (object? Old, object? New)> GetChanges(EntityEntry<Entity> entry)
+    {
+        Dictionary<string, (object? Old, object? New)> changes = [];
+
+        foreach (PropertyEntry propertyEntry in entry.Properties.Where(p => p.IsModified))
+        {
+            IProperty metadata = propertyEntry.Metadata;
+            if (!ShouldCaptureProperty(metadata))
+            {
+                continue;
+            }
+
+            object? original = SanitizeValue(metadata.Name, propertyEntry.OriginalValue);
+            object? current = SanitizeValue(metadata.Name, propertyEntry.CurrentValue);
+            changes[metadata.Name] = (original, current);
+        }
+
+        return changes;
+    }
+
+    private static bool ShouldCaptureProperty(IProperty property) =>
+        !property.IsIndexerProperty() &&
+        !property.IsShadowProperty() &&
+        !IgnoredAuditProperties.Contains(property.Name);
+
+    private static object? SanitizeValue(string name, object? value)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        if (SensitiveMarkers.Any(marker => name.Contains(marker, StringComparison.OrdinalIgnoreCase)))
+        {
+            return "[REDACTED]";
+        }
+
+        return value switch
+        {
+            byte[] bytes => $"[binary:{bytes.Length}]",
+            string text when text.Length > 2048 => $"{text[..2048]}…[truncated]",
+            _ => value
+        };
+    }
+
+    private static string? SerializeWithLimit<T>(T? value)
+    {
+        if (value is null)
+        {
+            return null;
+        }
+
+        string payload = JsonSerializer.Serialize(value, JsonOptions);
+        return payload.Length <= MaxPayloadLength
+            ? payload
+            : $"{payload[..MaxPayloadLength]}…[truncated]";
+    }
+
+    private static string? ResolveTenantId(EntityEntry<Entity> entry)
+    {
+        PropertyEntry? tenantProperty = entry.Properties.FirstOrDefault(p => p.Metadata.Name == "TenantId");
+        string? tenantId = tenantProperty?.CurrentValue?.ToString();
+        if (!string.IsNullOrWhiteSpace(tenantId))
+        {
+            return tenantId;
+        }
+
+        return tenantProperty?.OriginalValue?.ToString();
     }
 
     private async Task PublishNotificationsAsync(DbContext? context, IPublisher publisher, CancellationToken cancellationToken)

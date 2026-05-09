@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
+using Vitarish.Entities.Server.Core;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Files.Infrastructure.Data;
@@ -32,6 +33,7 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
     public TenantMismatchMode TenantMismatchMode { get; set; } = TenantMismatchMode.Throw;
     public TenantNotSetMode TenantNotSetMode { get; set; } = TenantNotSetMode.Throw;
 
+    internal DbSet<AuditEntry> CentralAuditEntries => Set<AuditEntry>();
     internal DbSet<FileInformation> Files => Set<FileInformation>();
 
     public FilesDbContext(
@@ -74,6 +76,7 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
         // Apply soft-delete filter first, then mark as multi-tenant
         // Finbuckle automatically merges its tenant filter with the existing filter
         ConfigureTenantEntity(modelBuilder);
+        ConfigureAuditEntity(modelBuilder);
 
         _ = modelBuilder.Entity<FileInformation>()
             .Property(entity => entity.TenantId)
@@ -95,5 +98,20 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
              e.TenantId == TenantInfo.Id));
 
         // Do NOT call IsMultiTenant() as we have custom tenant filtering logic above
+    }
+
+    private void ConfigureAuditEntity(ModelBuilder modelBuilder)
+    {
+        EntityTypeBuilder<AuditEntry> entityBuilder = modelBuilder.Entity<AuditEntry>();
+        _ = entityBuilder.ToTable("AuditEntries");
+        _ = entityBuilder.HasQueryFilter(e =>
+            EF.Property<DateTimeOffset?>(e, "DeletedAt") == null &&
+            (TenantInfo!.Id == TenantDefaults.RootTenant ||
+             EF.Property<string>(e, "TenantId") == TenantInfo.Id));
+
+        _ = entityBuilder.HasIndex("TenantId", nameof(AuditEntry.OccurredAt));
+        _ = entityBuilder.HasIndex(nameof(AuditEntry.EntityType), nameof(AuditEntry.EntityId), nameof(AuditEntry.OccurredAt));
+        _ = entityBuilder.HasIndex(nameof(AuditEntry.ActorId), nameof(AuditEntry.OccurredAt));
+        _ = entityBuilder.IsMultiTenant();
     }
 }

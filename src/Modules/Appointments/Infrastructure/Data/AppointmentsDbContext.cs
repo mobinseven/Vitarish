@@ -34,6 +34,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
     public DbSet<SessionOccurrence> SessionOccurrences => Set<SessionOccurrence>();
     public DbSet<Reservation> Reservations => Set<Reservation>();
     public DbSet<BookingPolicy> BookingPolicies => Set<BookingPolicy>();
+    public DbSet<AuditEntry> CentralAuditEntries => Set<AuditEntry>();
     public DbSet<AppointmentAuditEntry> AuditEntries => Set<AppointmentAuditEntry>();
     public DbSet<SessionReminderPolicy> SessionReminderPolicies => Set<SessionReminderPolicy>();
 
@@ -75,8 +76,10 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
         ConfigureTenantEntity<SessionOccurrence>(modelBuilder);
         ConfigureTenantEntity<Reservation>(modelBuilder);
         ConfigureTenantEntity<BookingPolicy>(modelBuilder);
+        ConfigureTenantEntity<AuditEntry>(modelBuilder);
         ConfigureTenantEntity<AppointmentAuditEntry>(modelBuilder);
         ConfigureTenantEntity<SessionReminderPolicy>(modelBuilder);
+        ConfigureAuditEntry(modelBuilder);
 
         _ = modelBuilder.Entity<SessionOccurrence>(entity =>
         {
@@ -168,5 +171,16 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
             EF.Property<DateTimeOffset?>(e, "DeletedAt") == null);
 
         _ = entityBuilder.IsMultiTenant();
+    }
+
+    private static void ConfigureAuditEntry(ModelBuilder modelBuilder)
+    {
+        _ = modelBuilder.Entity<AuditEntry>(entity =>
+        {
+            _ = entity.ToTable("AuditEntries");
+            _ = entity.HasIndex("TenantId", nameof(AuditEntry.OccurredAt));
+            _ = entity.HasIndex(nameof(AuditEntry.EntityType), nameof(AuditEntry.EntityId), nameof(AuditEntry.OccurredAt));
+            _ = entity.HasIndex(nameof(AuditEntry.ActorId), nameof(AuditEntry.OccurredAt));
+        });
     }
 }

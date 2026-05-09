@@ -29,6 +29,7 @@ public class RemindersDbContext : DbContext, IMultiTenantDbContext
     public TenantMismatchMode TenantMismatchMode { get; set; } = TenantMismatchMode.Throw;
     public TenantNotSetMode TenantNotSetMode { get; set; } = TenantNotSetMode.Throw;
 
+    public DbSet<AuditEntry> CentralAuditEntries => Set<AuditEntry>();
     public DbSet<Reminder> Reminders => Set<Reminder>();
 
     public RemindersDbContext(
@@ -65,7 +66,9 @@ public class RemindersDbContext : DbContext, IMultiTenantDbContext
 
         _ = modelBuilder.ConfigureMultiTenant();
 
+        ConfigureTenantEntity<AuditEntry>(modelBuilder);
         ConfigureTenantEntity<Reminder>(modelBuilder);
+        ConfigureAuditEntry(modelBuilder);
 
         if (Database.IsSqlite())
         {
@@ -82,5 +85,16 @@ public class RemindersDbContext : DbContext, IMultiTenantDbContext
             EF.Property<DateTimeOffset?>(e, "DeletedAt") == null);
 
         _ = entityBuilder.IsMultiTenant();
+    }
+
+    private static void ConfigureAuditEntry(ModelBuilder modelBuilder)
+    {
+        _ = modelBuilder.Entity<AuditEntry>(entity =>
+        {
+            _ = entity.ToTable("AuditEntries");
+            _ = entity.HasIndex("TenantId", nameof(AuditEntry.OccurredAt));
+            _ = entity.HasIndex(nameof(AuditEntry.EntityType), nameof(AuditEntry.EntityId), nameof(AuditEntry.OccurredAt));
+            _ = entity.HasIndex(nameof(AuditEntry.ActorId), nameof(AuditEntry.OccurredAt));
+        });
     }
 }

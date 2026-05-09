@@ -40,6 +40,7 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
     public DbSet<OrderItem> OrderItems => Set<OrderItem>();
     public DbSet<Cart> Carts => Set<Cart>();
     public DbSet<CartItem> CartItems => Set<CartItem>();
+    public DbSet<AuditEntry> CentralAuditEntries => Set<AuditEntry>();
     public DbSet<CustomerProfile> CustomerProfiles => Set<CustomerProfile>();
 
     public CommerceDbContext(
@@ -86,7 +87,9 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
         ConfigureTenantEntity<OrderItem>(modelBuilder);
         ConfigureTenantEntity<Cart>(modelBuilder);
         ConfigureTenantEntity<CartItem>(modelBuilder);
+        ConfigureTenantEntity<AuditEntry>(modelBuilder);
         ConfigureTenantEntity<CustomerProfile>(modelBuilder);
+        ConfigureAuditEntry(modelBuilder);
 
         if (Database.IsSqlite())
         {
@@ -156,5 +159,16 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
         _ = entityBuilder.HasQueryFilter(e =>
             EF.Property<DateTimeOffset?>(e, "DeletedAt") == null);
         _ = entityBuilder.IsMultiTenant();
+    }
+
+    private static void ConfigureAuditEntry(ModelBuilder modelBuilder)
+    {
+        _ = modelBuilder.Entity<AuditEntry>(entity =>
+        {
+            _ = entity.ToTable("AuditEntries");
+            _ = entity.HasIndex("TenantId", nameof(AuditEntry.OccurredAt));
+            _ = entity.HasIndex(nameof(AuditEntry.EntityType), nameof(AuditEntry.EntityId), nameof(AuditEntry.OccurredAt));
+            _ = entity.HasIndex(nameof(AuditEntry.ActorId), nameof(AuditEntry.OccurredAt));
+        });
     }
 }

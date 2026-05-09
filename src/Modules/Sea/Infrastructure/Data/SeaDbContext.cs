@@ -41,6 +41,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     public DbSet<UserRole> UserRoles => Set<UserRole>();
     public DbSet<EventRole> EventRoles => Set<EventRole>();
     public DbSet<Receipt> Receipts => Set<Receipt>();
+    public DbSet<AuditEntry> CentralAuditEntries => Set<AuditEntry>();
     public DbSet<ProjectUser> ProjectUsers => Set<ProjectUser>();
 
     public SeaDbContext(
@@ -91,7 +92,9 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         ConfigureTenantEntity<UserRole>(modelBuilder);
         ConfigureTenantEntity<EventRole>(modelBuilder);
         ConfigureTenantEntity<Receipt>(modelBuilder);
+        ConfigureTenantEntity<AuditEntry>(modelBuilder);
         ConfigureTenantEntity<ProjectUser>(modelBuilder);
+        ConfigureAuditEntry(modelBuilder);
 
         _ = modelBuilder.Entity<ProjectUser>(entity =>
         {
@@ -160,5 +163,16 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
 
         // Mark as multi-tenant - Finbuckle will merge its tenant filter with the soft-delete filter
         _ = entityBuilder.IsMultiTenant();
+    }
+
+    private static void ConfigureAuditEntry(ModelBuilder modelBuilder)
+    {
+        _ = modelBuilder.Entity<AuditEntry>(entity =>
+        {
+            _ = entity.ToTable("AuditEntries");
+            _ = entity.HasIndex("TenantId", nameof(AuditEntry.OccurredAt));
+            _ = entity.HasIndex(nameof(AuditEntry.EntityType), nameof(AuditEntry.EntityId), nameof(AuditEntry.OccurredAt));
+            _ = entity.HasIndex(nameof(AuditEntry.ActorId), nameof(AuditEntry.OccurredAt));
+        });
     }
 }
