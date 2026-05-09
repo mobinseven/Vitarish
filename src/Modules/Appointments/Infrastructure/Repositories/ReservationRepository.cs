@@ -19,6 +19,16 @@ internal class ReservationRepository(AppointmentsDbContext dbContext)
             query = query.Where(r => r.SessionOccurrenceId == occurrenceId);
         }
 
+        if (descriptor.SessionId is { } sessionId)
+        {
+            query = query.Where(r => r.Occurrence != null && r.Occurrence.SessionId == sessionId);
+        }
+
+        if (descriptor.Date is { } date)
+        {
+            query = query.Where(r => r.Occurrence != null && r.Occurrence.Date == date);
+        }
+
         if (descriptor.ReservingPartyId is { } partyId)
         {
             query = query.Where(r => r.ReservingPartyId == partyId);
