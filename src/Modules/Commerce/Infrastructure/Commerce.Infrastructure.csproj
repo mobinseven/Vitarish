@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<ItemGroup>
+	  <None Remove="Views\views.sql" />
+	</ItemGroup>
+	<ItemGroup>
+		<PackageReference Include="Injectio" Version="5.0.0" />
+		<PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="9.*" />
+		<PackageReference Include="MediatR" Version="14.0.*" />
+		<PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.*" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.*" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.*" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.*" />
+	</ItemGroup>
+	<ItemGroup>
+		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\..\Identity\Requests\Application\Requests.Application.csproj" />
+		<ProjectReference Include="..\..\..\Identity\Users\Application\Users.Application.csproj" />
+		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
+		<ProjectReference Include="..\..\Feed\Domain\Feed.Domain.csproj" />
+		<ProjectReference Include="..\..\Search\Domain\Search.Domain.csproj" />
+		<ProjectReference Include="..\Application\Commerce.Application.csproj" />
+		<ProjectReference Include="..\Domain\Commerce.Domain.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Resource Include="Views\views.sql">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Resource>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Compile Update="Resources.Designer.cs">
+	    <DesignTime>True</DesignTime>
+	    <AutoGen>True</AutoGen>
+	    <DependentUpon>Resources.resx</DependentUpon>
+	  </Compile>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <EmbeddedResource Update="Resources.resx">
+	    <Generator>ResXFileCodeGenerator</Generator>
+	    <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+	  </EmbeddedResource>
+	</ItemGroup>
+</Project>

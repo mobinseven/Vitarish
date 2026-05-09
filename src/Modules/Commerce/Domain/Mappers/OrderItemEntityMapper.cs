@@ -7,4 +7,6 @@ public partial class EntityMapper
     public partial global::Vitarish.Commerce.Domain.Entities.OrderItem ToDomain(global::Vitarish.Commerce.Domain.Dto.OrderItemWriteDto src);
 
     public partial global::Vitarish.Commerce.Domain.Dto.OrderItemWriteDto ToWrite(global::Vitarish.Commerce.Domain.Dto.OrderItemReadDto src);
+
+    public partial global::Vitarish.Commerce.Domain.Models.OrderItemDescriptor ToDomain(global::Vitarish.Commerce.Domain.Dto.OrderItemDescriptorDto src);
 }
