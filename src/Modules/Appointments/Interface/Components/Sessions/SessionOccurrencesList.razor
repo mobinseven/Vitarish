@@ -14,8 +14,8 @@ else
         @foreach (var occurrence in occurrences)
         {
             <StackButton OnClick="() => OnClicked.InvokeAsync(occurrence.Date)"
-                         Label="@occurrence.OccurrenceStart.ToString("g")"
-                         HelperText="@($"{Localizer["Count", Localizer["Reservations"]]}: {occurrence.Stats.ReservationCount}")"
+                         Label="@($"{occurrence.Date:d} {occurrence.StartTime:t}–{occurrence.EndTime:t}")"
+                         HelperText="@($"{Localizer["Capacity"]}: {occurrence.Capacity} · {Localizer["Count", Localizer["Reservations"]]}: {occurrence.Stats.ReservationCount}")"
                          Disabled="@occurrence.IsCancelled">
                 @if (occurrence.IsCancelled)
                 {

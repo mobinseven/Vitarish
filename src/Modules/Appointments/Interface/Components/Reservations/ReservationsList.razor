@@ -21,7 +21,7 @@
             @foreach (var reservation in reservations)
             {
                 <StackButton OnClick="() => OnClicked.InvokeAsync(reservation.Id)"
-                             Label="@(reservation.Occurrence?.OccurrenceStart.ToString("g") ?? Localizer["NotProvided"].Value)"
+                             Label="@(reservation.Date.HasValue ? $"{reservation.Date:d} {reservation.Occurrence?.StartTime:t}" : Localizer["NotProvided"].Value)"
                              HighlightString="@SearchString">
                     <ReservationStatusBadge Status="reservation.Status" />
                 </StackButton>

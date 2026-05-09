@@ -25,7 +25,7 @@
         @foreach (var reservation in reservations)
         {
             <StackButton OnClick="@(() => OpenDetailDialogAsync(reservation))"
-                         Label="@(reservation.Occurrence?.OccurrenceStart.ToString("g") ?? Localizer["SessionUnavailable"].Value)">
+                         Label="@(reservation.Date.HasValue ? $"{reservation.Date:d} {reservation.Occurrence?.StartTime:t}" : Localizer["SessionUnavailable"].Value)">
                 <ReservationStatusBadge Status="reservation.Status" />
             </StackButton>
         }
@@ -58,7 +58,7 @@
 
         ReservationDescriptorDto descriptor = new() { ReservingPartyId = patientUserId, Skip = 0, Take = int.MaxValue };
         IReadOnlyList<ReservationReadDto> all = await ReservationManager.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
-        reservations = [.. all.OrderBy(r => r.Occurrence?.OccurrenceStart)];
+        reservations = [.. all.OrderBy(r => r.Date).ThenBy(r => r.Occurrence?.StartTime)];
         await InvokeAsync(StateHasChanged);
     }
 

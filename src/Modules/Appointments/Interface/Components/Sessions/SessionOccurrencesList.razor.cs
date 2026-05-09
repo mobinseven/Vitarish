@@ -26,7 +26,7 @@ public partial class SessionOccurrencesList : SessionsBase
         };
 
         IReadOnlyList<SessionOccurrenceReadDto> resolved = await BookableDateQueryService.GetBookableDatesAsync(SessionId.Value, range, CancellationToken.None);
-        occurrences = [.. resolved.OrderBy(o => o.OccurrenceStart)];
+        occurrences = [.. resolved.OrderBy(o => o.Date).ThenBy(o => o.StartTime)];
         await InvokeAsync(StateHasChanged);
     }
 }

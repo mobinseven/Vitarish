@@ -8,7 +8,13 @@
 <Stack>
     @if (current.Occurrence is not null)
     {
-        <StackField Label="@current.Occurrence.OccurrenceStart.ToString("f")" HelperText="@Localizer["StartTime"]">
+        <StackField Label="@($"{current.Date:d} {current.Occurrence.StartTime:t}–{current.Occurrence.EndTime:t}")" HelperText="@Localizer["Reservation"]">
+            <ReservationStatusBadge Status="@current.Status" />
+        </StackField>
+    }
+    else if (current.Date is not null)
+    {
+        <StackField Label="@($"{current.Date:d}")" HelperText="@Localizer["Reservation"]">
             <ReservationStatusBadge Status="@current.Status" />
         </StackField>
     }
