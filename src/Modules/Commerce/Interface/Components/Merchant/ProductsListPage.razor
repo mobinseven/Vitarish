@@ -8,18 +8,19 @@
 }
 else
 {
-    <MudTable Items="_products" Dense Hover>
-        <HeaderContent>
-            <MudTh>Title</MudTh>
-            <MudTh>Status</MudTh>
-            <MudTh>Handle</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd>@context.Title</MudTd>
-            <MudTd><MudChip T="string" Size="Size.Small">@context.Status</MudChip></MudTd>
-            <MudTd>@context.Handle</MudTd>
-        </RowTemplate>
-    </MudTable>
+    <Stack>
+        <StackField Label="Products" HelperText="@($"{_products.Count} products found")" />
+        @foreach (ProductReadDto product in _products)
+        {
+            <StackCard Label="@product.Title" HelperText="@product.Handle">
+                <MudChip T="string" Size="Size.Small">@product.Status</MudChip>
+            </StackCard>
+        }
+        @if (_products.Count == 0)
+        {
+            <StackField Label="No products found" />
+        }
+    </Stack>
 }
 
 @code {

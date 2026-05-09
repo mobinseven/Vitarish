@@ -6,19 +6,19 @@
 
 @if (_store is null)
 {
-    <MudText Typo="Typo.body2">No store configured for this tenant.</MudText>
+    <Stack>
+        <StackField Label="No store configured for this tenant." />
+    </Stack>
 }
 else
 {
-    <MudForm>
-        <MudTextField Label="Store Name" Value="@_store.Name" ReadOnly />
-        <MudTextField Label="Currency" Value="@_store.CurrencyCode" ReadOnly />
-    </MudForm>
-    <MudExpansionPanels Class="mt-3">
-        <MudExpansionPanel Text="Technical integration details">
-            <MudTextField Label="MedusaJS Base URL" Value="@_store.MedusaBaseUrl" ReadOnly />
-        </MudExpansionPanel>
-    </MudExpansionPanels>
+    <Stack>
+        <StackField Label="Store Name" HelperText="@_store.Name" />
+        <StackField Label="Currency" HelperText="@_store.CurrencyCode" />
+        <StackExpandable Label="Technical integration details" StartIcon="fa-regular fa-plug">
+            <StackField Label="MedusaJS Base URL" HelperText="@_store.MedusaBaseUrl" />
+        </StackExpandable>
+    </Stack>
 }
 
 @code {

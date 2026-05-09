@@ -13,41 +13,30 @@ else if (_items.Count == 0)
 }
 else
 {
-    <MudTable Items="_items" Dense Hover Class="mt-4">
-        <HeaderContent>
-            <MudTh>Customer</MudTh>
-            <MudTh>Contact</MudTh>
-            <MudTh>Estimated Value</MudTh>
-            <MudTh>Age</MudTh>
-            <MudTh>Last Activity</MudTh>
-            <MudTh>Status</MudTh>
-            <MudTh>Notes</MudTh>
-            <MudTh>Actions</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd>@context.CustomerDisplay</MudTd>
-            <MudTd>@(context.HasContact ? "Available" : "Missing")</MudTd>
-            <MudTd>@context.EstimatedValue.ToString("0.##")</MudTd>
-            <MudTd>@((DateTimeOffset.UtcNow - context.CreatedAt).TotalHours.ToString("0"))h</MudTd>
-            <MudTd>@context.LastActivityAt?.ToString("yyyy-MM-dd HH:mm")</MudTd>
-            <MudTd><MudChip T="string" Size="Size.Small">@context.RecoveryStatus</MudChip></MudTd>
-            <MudTd>
-                <MudTextField T="string"
-                              Value="@GetNote(context.CartId)"
-                              ValueChanged="value => SetNote(context.CartId, value)"
-                              Placeholder="Internal note" />
-                <MudText Typo="Typo.caption">Save note with one of the actions or the Save button.</MudText>
-            </MudTd>
-            <MudTd>
-                <MudStack Row Spacing="1">
-                    <MudButton Size="Size.Small" Variant="Variant.Text" OnClick="() => SaveNoteAsync(context.CartId)">Save</MudButton>
-                    <MudButton Size="Size.Small" Variant="Variant.Outlined" OnClick="() => UpdateRecoveryAsync(context.CartId, CartRecoveryStatus.Contacted)">Contacted</MudButton>
-                    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Success" OnClick="() => UpdateRecoveryAsync(context.CartId, CartRecoveryStatus.Recovered)">Recovered</MudButton>
-                    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning" OnClick="() => UpdateRecoveryAsync(context.CartId, CartRecoveryStatus.Ignored)">Ignore</MudButton>
-                </MudStack>
-            </MudTd>
-        </RowTemplate>
-    </MudTable>
+    <Stack>
+        <StackField Label="Recovery Queue" HelperText="@($"{_items.Count} carts awaiting review")" />
+        @foreach (MerchantRecoveryCartReadDto item in _items)
+        {
+            <StackExpandable Label="@item.CustomerDisplay" StartIcon="fa-regular fa-cart-shopping">
+                <StackField Label="Contact" HelperText="@(item.HasContact ? "Available" : "Missing")" />
+                <StackField Label="Estimated Value" HelperText="@item.EstimatedValue.ToString("0.##")" />
+                <StackField Label="Age" HelperText="@($"{(DateTimeOffset.UtcNow - item.CreatedAt).TotalHours:0}h")" />
+                <StackField Label="Last Activity" HelperText="@item.LastActivityAt?.ToString("yyyy-MM-dd HH:mm")" />
+                <StackField Label="Status">
+                    <MudChip T="string" Size="Size.Small">@item.RecoveryStatus</MudChip>
+                </StackField>
+                <StackTextField Value="@GetNote(item.CartId)"
+                                ValueChanged="value => SetNote(item.CartId, value)"
+                                Label="Notes"
+                                Placeholder="Internal note"
+                                HelperText="Save note with one of the actions or the Save button." />
+                <StackButton EndIcon="fa-regular fa-save" OnClick="() => SaveNoteAsync(item.CartId)" Label="Save" />
+                <StackButton EndIcon="fa-regular fa-message" OnClick="() => UpdateRecoveryAsync(item.CartId, CartRecoveryStatus.Contacted)" Label="Contacted" />
+                <StackButton Color="Color.Success" EndIcon="fa-regular fa-check" OnClick="() => UpdateRecoveryAsync(item.CartId, CartRecoveryStatus.Recovered)" Label="Recovered" />
+                <StackButton Color="Color.Warning" EndIcon="fa-regular fa-ban" OnClick="() => UpdateRecoveryAsync(item.CartId, CartRecoveryStatus.Ignored)" Label="Ignore" />
+            </StackExpandable>
+        }
+    </Stack>
 }
 
 @code {
