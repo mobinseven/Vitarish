@@ -31,17 +31,13 @@ public class CommerceCartCleanupProcessor(
         {
             DateTimeOffset cutoff = DateTimeOffset.UtcNow.AddHours(-48);
 
-            List<Vitarish.Commerce.Domain.Entities.Cart> abandoned = await dbContext.Carts
+            int count = await dbContext.Carts
                 .Where(c => c.Status == CartStatus.Open && c.CreatedAt < cutoff)
-                .ToListAsync(shutdownToken);
+                .ExecuteUpdateAsync(
+                    setters => setters.SetProperty(c => c.Status, CartStatus.Abandoned),
+                    shutdownToken);
 
-            foreach (Vitarish.Commerce.Domain.Entities.Cart cart in abandoned)
-            {
-                cart.Status = CartStatus.Abandoned;
-            }
-
-            _ = await dbContext.SaveChangesAsync(shutdownToken);
-            logger.LogInformation("Commerce cart cleanup: marked {Count} carts as abandoned.", abandoned.Count);
+            logger.LogInformation("Commerce cart cleanup: marked {Count} carts as abandoned.", count);
         }
         catch (Exception ex)
         {

@@ -12,6 +12,15 @@ internal record MedusaListResponse<T>
 
     [JsonPropertyName("product_categories")]
     public IReadOnlyList<T>? ProductCategories { get; init; }
+
+    [JsonPropertyName("count")]
+    public int Count { get; init; }
+
+    [JsonPropertyName("offset")]
+    public int Offset { get; init; }
+
+    [JsonPropertyName("limit")]
+    public int Limit { get; init; }
 }
 
 internal record MedusaProduct

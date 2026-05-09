@@ -9,12 +9,60 @@ namespace Vitarish.Commerce.Infrastructure.Clients;
 /// </summary>
 internal class MedusaAdminClient(HttpClient httpClient, ILogger<MedusaAdminClient> logger)
 {
+    private const int PageSize = 100;
+
     /// <summary>
-    /// Lists products from the MedusaJS Admin API.
+    /// Fetches all products from the MedusaJS Admin API, handling pagination automatically.
+    /// </summary>
+    public async Task<IReadOnlyList<MedusaProduct>> ListAllProductsAsync(
+        CancellationToken cancellationToken = default)
+    {
+        List<MedusaProduct> all = [];
+        int offset = 0;
+
+        while (true)
+        {
+            IReadOnlyList<MedusaProduct> page = await ListProductsAsync(offset, PageSize, cancellationToken);
+            all.AddRange(page);
+            if (page.Count < PageSize)
+            {
+                break;
+            }
+            offset += PageSize;
+        }
+
+        return all;
+    }
+
+    /// <summary>
+    /// Fetches all orders from the MedusaJS Admin API, handling pagination automatically.
+    /// </summary>
+    public async Task<IReadOnlyList<MedusaOrder>> ListAllOrdersAsync(
+        CancellationToken cancellationToken = default)
+    {
+        List<MedusaOrder> all = [];
+        int offset = 0;
+
+        while (true)
+        {
+            IReadOnlyList<MedusaOrder> page = await ListOrdersAsync(offset, PageSize, cancellationToken);
+            all.AddRange(page);
+            if (page.Count < PageSize)
+            {
+                break;
+            }
+            offset += PageSize;
+        }
+
+        return all;
+    }
+
+    /// <summary>
+    /// Lists products from the MedusaJS Admin API (single page).
     /// </summary>
     public async Task<IReadOnlyList<MedusaProduct>> ListProductsAsync(
         int offset = 0,
-        int limit = 100,
+        int limit = PageSize,
         CancellationToken cancellationToken = default)
     {
         try
@@ -27,17 +75,17 @@ internal class MedusaAdminClient(HttpClient httpClient, ILogger<MedusaAdminClien
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Failed to list products from MedusaJS Admin API.");
+            logger.LogWarning(ex, "Failed to list products from MedusaJS Admin API (offset={Offset}).", offset);
             return [];
         }
     }
 
     /// <summary>
-    /// Lists orders from the MedusaJS Admin API.
+    /// Lists orders from the MedusaJS Admin API (single page).
     /// </summary>
     public async Task<IReadOnlyList<MedusaOrder>> ListOrdersAsync(
         int offset = 0,
-        int limit = 100,
+        int limit = PageSize,
         CancellationToken cancellationToken = default)
     {
         try
@@ -50,7 +98,7 @@ internal class MedusaAdminClient(HttpClient httpClient, ILogger<MedusaAdminClien
         }
         catch (Exception ex)
         {
-            logger.LogWarning(ex, "Failed to list orders from MedusaJS Admin API.");
+            logger.LogWarning(ex, "Failed to list orders from MedusaJS Admin API (offset={Offset}).", offset);
             return [];
         }
     }
@@ -60,7 +108,7 @@ internal class MedusaAdminClient(HttpClient httpClient, ILogger<MedusaAdminClien
     /// </summary>
     public async Task<IReadOnlyList<MedusaCategory>> ListCategoriesAsync(
         int offset = 0,
-        int limit = 100,
+        int limit = PageSize,
         CancellationToken cancellationToken = default)
     {
         try

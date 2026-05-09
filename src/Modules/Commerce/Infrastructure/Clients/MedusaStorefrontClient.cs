@@ -53,7 +53,8 @@ internal class MedusaStorefrontClient(HttpClient httpClient, ILogger<MedusaStore
     }
 
     /// <summary>
-    /// Initiates checkout for a MedusaJS cart, returning the payment session URL.
+    /// Initiates checkout for a MedusaJS cart by creating a payment session.
+    /// Returns the Medusa cart ID on success, or <c>null</c> on failure.
     /// </summary>
     public async Task<string?> InitiateCheckoutAsync(string cartId, CancellationToken cancellationToken = default)
     {

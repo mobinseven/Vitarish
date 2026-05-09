@@ -22,24 +22,28 @@ internal sealed class CommerceSyncService(
 
         try
         {
-            var products = await medusaClient.ListProductsAsync(cancellationToken: cancellationToken);
-            int upserted = 0;
+            // Paginate: fetch all products across all pages
+            var products = await medusaClient.ListAllProductsAsync(cancellationToken);
 
+            // Batch-load all existing products matching incoming MedusaIds (avoids N+1)
+            List<string> incomingIds = [.. products.Select(p => p.Id)];
+            Dictionary<string, Product> existing = await dbContext.Products
+                .Where(p => incomingIds.Contains(p.MedusaId))
+                .ToDictionaryAsync(p => p.MedusaId, cancellationToken);
+
+            int upserted = 0;
             foreach (var mp in products)
             {
-                Product? existing = await dbContext.Products
-                    .FirstOrDefaultAsync(p => p.MedusaId == mp.Id, cancellationToken);
-
-                if (existing is null)
+                if (!existing.TryGetValue(mp.Id, out Product? product))
                 {
-                    existing = new Product { Id = Guid.NewGuid(), MedusaId = mp.Id };
-                    _ = await dbContext.Products.AddAsync(existing, cancellationToken);
+                    product = new Product { Id = Guid.NewGuid(), MedusaId = mp.Id };
+                    _ = await dbContext.Products.AddAsync(product, cancellationToken);
                 }
 
-                existing.Handle = mp.Handle;
-                existing.Title = mp.Title;
-                existing.Description = mp.Description ?? string.Empty;
-                existing.Status = mp.Status switch
+                product.Handle = mp.Handle;
+                product.Title = mp.Title;
+                product.Description = mp.Description ?? string.Empty;
+                product.Status = mp.Status switch
                 {
                     "published" => ProductStatus.Published,
                     "proposed" => ProductStatus.Proposed,
@@ -69,24 +73,28 @@ internal sealed class CommerceSyncService(
 
         try
         {
-            var orders = await medusaClient.ListOrdersAsync(cancellationToken: cancellationToken);
-            int upserted = 0;
+            // Paginate: fetch all orders across all pages
+            var orders = await medusaClient.ListAllOrdersAsync(cancellationToken);
 
+            // Batch-load all existing orders matching incoming MedusaIds (avoids N+1)
+            List<string> incomingIds = [.. orders.Select(o => o.Id)];
+            Dictionary<string, Order> existing = await dbContext.Orders
+                .Where(o => incomingIds.Contains(o.MedusaId))
+                .ToDictionaryAsync(o => o.MedusaId, cancellationToken);
+
+            int upserted = 0;
             foreach (var mo in orders)
             {
-                Order? existing = await dbContext.Orders
-                    .FirstOrDefaultAsync(o => o.MedusaId == mo.Id, cancellationToken);
-
-                if (existing is null)
+                if (!existing.TryGetValue(mo.Id, out Order? order))
                 {
-                    existing = new Order { Id = Guid.NewGuid(), MedusaId = mo.Id };
-                    _ = await dbContext.Orders.AddAsync(existing, cancellationToken);
+                    order = new Order { Id = Guid.NewGuid(), MedusaId = mo.Id };
+                    _ = await dbContext.Orders.AddAsync(order, cancellationToken);
                 }
 
-                existing.CustomerId = mo.CustomerId ?? string.Empty;
-                existing.TotalAmount = mo.Total / 100m;
-                existing.CurrencyCode = mo.CurrencyCode;
-                existing.Status = mo.Status switch
+                order.CustomerId = mo.CustomerId ?? string.Empty;
+                order.TotalAmount = mo.Total / 100m;
+                order.CurrencyCode = mo.CurrencyCode;
+                order.Status = mo.Status switch
                 {
                     "confirmed" => OrderStatus.Confirmed,
                     "processing" => OrderStatus.Processing,
@@ -96,7 +104,7 @@ internal sealed class CommerceSyncService(
                     "refunded" => OrderStatus.Refunded,
                     _ => OrderStatus.Pending
                 };
-                existing.FulfillmentStatus = mo.FulfillmentStatus switch
+                order.FulfillmentStatus = mo.FulfillmentStatus switch
                 {
                     "partially_fulfilled" => FulfillmentStatus.PartiallyFulfilled,
                     "fulfilled" => FulfillmentStatus.Fulfilled,
@@ -105,7 +113,7 @@ internal sealed class CommerceSyncService(
                     "partially_returned" => FulfillmentStatus.PartiallyReturned,
                     "returned" => FulfillmentStatus.Returned,
                     "canceled" => FulfillmentStatus.Canceled,
-                    "requires_action" => FulfillmentStatus.Requires_Action,
+                    "requires_action" => FulfillmentStatus.RequiresAction,
                     _ => FulfillmentStatus.NotFulfilled
                 };
                 upserted++;

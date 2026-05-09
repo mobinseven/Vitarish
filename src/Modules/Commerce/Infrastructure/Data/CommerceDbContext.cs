@@ -71,6 +71,8 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
         return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
     }
 
+    private static readonly JsonSerializerOptions _jsonOptions = new();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -101,8 +103,8 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
         {
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, (JsonSerializerOptions)null))
+                    v => JsonSerializer.Serialize(v, _jsonOptions),
+                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, _jsonOptions))
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
             entity.Ignore(s => s.Stats);
@@ -118,8 +120,8 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
         {
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, (JsonSerializerOptions)null))
+                    v => JsonSerializer.Serialize(v, _jsonOptions),
+                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, _jsonOptions))
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
             entity.Ignore(o => o.Stats);
@@ -129,8 +131,8 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
         {
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, (JsonSerializerOptions)null))
+                    v => JsonSerializer.Serialize(v, _jsonOptions),
+                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, _jsonOptions))
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
         });
