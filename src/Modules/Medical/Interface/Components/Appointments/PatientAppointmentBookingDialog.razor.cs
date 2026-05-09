@@ -10,7 +10,7 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
 
     [Inject] private IAccessControlledSessionManager SessionsService { get; set; } = default!;
     [Inject] private IAccessControlledReservationManager ReservationManager { get; set; } = default!;
-    [Inject] private ISessionOccurrenceResolver SessionOccurrenceResolver { get; set; } = default!;
+    [Inject] private ISessionBookableDateQueryService BookableDateQueryService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
     private string? patientUserId;
@@ -50,13 +50,14 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
             return;
         }
 
-        TimeRangeQuery range = new()
+        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+        SessionDateRangeQuery range = new()
         {
-            Start = DateTimeOffset.UtcNow.AddDays(-1),
-            End = DateTimeOffset.UtcNow.AddYears(1)
+            DateFrom = today,
+            DateTo = today.AddYears(1)
         };
 
-        SessionOccurrenceReadDto? occurrence = (await SessionOccurrenceResolver.ResolveOccurrencesAsync(session.Id, range, CancellationToken.None))
+        SessionOccurrenceReadDto? occurrence = (await BookableDateQueryService.GetBookableDatesAsync(session.Id, range, CancellationToken.None))
             .OrderBy(o => o.OccurrenceStart)
             .FirstOrDefault(o => !o.IsCancelled && o.OccurrenceEnd > DateTimeOffset.UtcNow);
 

@@ -5,7 +5,7 @@ public partial class SessionOccurrencesList : SessionsBase
     [Parameter] public Guid? SessionId { get; set; }
     [Parameter] public EventCallback<DateOnly> OnClicked { get; set; }
 
-    [Inject] private ISessionOccurrenceResolver SessionOccurrenceResolver { get; set; } = default!;
+    [Inject] private ISessionBookableDateQueryService BookableDateQueryService { get; set; } = default!;
 
     private List<SessionOccurrenceReadDto> occurrences = [];
 
@@ -18,13 +18,14 @@ public partial class SessionOccurrencesList : SessionsBase
             return;
         }
 
-        SessionOccurrenceRange range = new()
+        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+        SessionDateRangeQuery range = new()
         {
-            Start = DateTimeOffset.UtcNow.AddDays(-1),
-            End = DateTimeOffset.UtcNow.AddYears(1)
+            DateFrom = today,
+            DateTo = today.AddYears(1)
         };
 
-        IReadOnlyList<SessionOccurrenceReadDto> resolved = await SessionOccurrenceResolver.ResolveOccurrencesAsync(SessionId.Value, range, CancellationToken.None);
+        IReadOnlyList<SessionOccurrenceReadDto> resolved = await BookableDateQueryService.GetBookableDatesAsync(SessionId.Value, range, CancellationToken.None);
         occurrences = [.. resolved.OrderBy(o => o.OccurrenceStart)];
         await InvokeAsync(StateHasChanged);
     }
