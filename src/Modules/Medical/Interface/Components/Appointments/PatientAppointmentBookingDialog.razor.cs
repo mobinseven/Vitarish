@@ -36,8 +36,9 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
 
         IReadOnlyList<SessionReadDto>? result = await SessionsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync();
         sessions = [.. (result ?? [])
-            .Where(s => s.Status == SessionStatus.Active && s.StartAt is not null && s.EndAt > DateTimeOffset.UtcNow)
-            .OrderBy(s => s.StartAt)
+            .Where(s => s.Status == SessionStatus.Active)
+            .OrderBy(s => s.DayOfWeek)
+            .ThenBy(s => s.StartTime)
             .ThenBy(s => s.Title)];
         await InvokeAsync(StateHasChanged);
     }

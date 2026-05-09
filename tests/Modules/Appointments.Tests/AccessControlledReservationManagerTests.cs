@@ -33,8 +33,9 @@ public class AccessControlledReservationManagerTests
                     Status = SessionStatus.Active,
                     RequiresApproval = false,
                     TotalSeats = 2,
-                    StartAt = occurrenceStart,
-                    EndAt = occurrenceEnd,
+                    DayOfWeek = DateOnly.FromDateTime(occurrenceStart.DateTime).DayOfWeek,
+                    StartTime = TimeOnly.FromDateTime(occurrenceStart.DateTime),
+                    EndTime = TimeOnly.FromDateTime(occurrenceEnd.DateTime),
                     TimeZone = TimeZoneInfo.Utc.Id
                 }
             });
