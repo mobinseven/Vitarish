@@ -1,5 +1,5 @@
-using System.Data;
 using Vitarish.Appointments.Application.Events;
+using Vitarish.Appointments.Infrastructure.Services;
 
 namespace Vitarish.Appointments.Infrastructure.Handlers;
 
@@ -7,6 +7,7 @@ internal class CreateReservationHandler(
     AppointmentsDbContext dbContext,
     IBookingPolicyEngine bookingPolicyEngine,
     ICapacityEngine capacityEngine,
+    ISessionOccurrenceReservationLock occurrenceReservationLock,
     IAppointmentsEventPublisher eventPublisher,
     IPublisher publisher)
     : IRequestHandler<CreateReservationCommand, EntityResult<Guid>>
@@ -14,7 +15,7 @@ internal class CreateReservationHandler(
     public async Task<EntityResult<Guid>> Handle(CreateReservationCommand request, CancellationToken cancellationToken)
     {
         await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await dbContext.Database
-            .BeginTransactionAsync(IsolationLevel.Serializable, cancellationToken);
+            .BeginTransactionAsync(cancellationToken);
 
         EntityResult<SessionOccurrence> occurrenceResult = await ResolveOccurrenceAsync(request, cancellationToken);
         if (occurrenceResult.IsFailure || occurrenceResult.Value is null)
@@ -24,7 +25,15 @@ internal class CreateReservationHandler(
                 : EntityResult<Guid>.Failure(EntityError.Conflict("Session occurrence could not be resolved."));
         }
 
-        SessionOccurrence occurrence = occurrenceResult.Value;
+        EntityResult<SessionOccurrence> lockedOccurrenceResult = await occurrenceReservationLock.LockAsync(occurrenceResult.Value.Id, cancellationToken);
+        if (lockedOccurrenceResult.IsFailure || lockedOccurrenceResult.Value is null)
+        {
+            return lockedOccurrenceResult.IsFailure
+                ? EntityResult<Guid>.Failure([.. lockedOccurrenceResult.Errors])
+                : EntityResult<Guid>.Failure(EntityError.Conflict("Session occurrence could not be locked for reservation."));
+        }
+
+        SessionOccurrence occurrence = lockedOccurrenceResult.Value;
         EntityResult validationResult = await ValidateCapacityAsync(occurrence, request.ReservingPartyId, cancellationToken);
         if (validationResult.IsFailure)
         {
@@ -44,7 +53,7 @@ internal class CreateReservationHandler(
 
         try
         {
-            _ = await dbContext.Reservations.AddAsync(reservation, cancellationToken);
+            _ = dbContext.Reservations.Add(reservation);
             _ = await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
         }
@@ -138,7 +147,7 @@ internal class CreateReservationHandler(
             occurrence.Session = session;
             return EntityResult<SessionOccurrence>.Success(occurrence);
         }
-        catch (DbUpdateException exception) when (IsDuplicateSessionOccurrenceException(exception))
+        catch (DbUpdateException exception) when (AppointmentsDatabaseExceptions.IsUniqueConstraintViolation(exception))
         {
             dbContext.Entry(occurrence).State = EntityState.Detached;
 
@@ -219,11 +228,4 @@ internal class CreateReservationHandler(
         IsCancelled = false
     };
 
-    private static bool IsDuplicateSessionOccurrenceException(DbUpdateException exception)
-    {
-        string message = exception.InnerException?.Message ?? exception.Message;
-        return message.Contains("IX_SessionOccurrences_SessionId_Date", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("duplicate key", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("unique constraint", StringComparison.OrdinalIgnoreCase);
-    }
 }

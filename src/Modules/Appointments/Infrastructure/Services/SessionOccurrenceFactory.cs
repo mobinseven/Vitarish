@@ -59,7 +59,7 @@ internal class SessionOccurrenceFactory(AppointmentsDbContext dbContext) : ISess
             _ = await dbContext.SaveChangesAsync(cancellationToken);
             return EntityResult<SessionOccurrence>.Success(occurrence);
         }
-        catch (DbUpdateException exception) when (IsDuplicateSessionOccurrenceException(exception))
+        catch (DbUpdateException exception) when (AppointmentsDatabaseExceptions.IsUniqueConstraintViolation(exception))
         {
             dbContext.Entry(occurrence).State = EntityState.Detached;
 
@@ -106,11 +106,4 @@ internal class SessionOccurrenceFactory(AppointmentsDbContext dbContext) : ISess
         IsCancelled = false
     };
 
-    private static bool IsDuplicateSessionOccurrenceException(DbUpdateException exception)
-    {
-        string message = exception.InnerException?.Message ?? exception.Message;
-        return message.Contains("IX_SessionOccurrences_SessionId_Date", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("duplicate key", StringComparison.OrdinalIgnoreCase)
-            || message.Contains("unique constraint", StringComparison.OrdinalIgnoreCase);
-    }
 }
