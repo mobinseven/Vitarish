@@ -1,0 +1,43 @@
+@inherits CommerceComponentBase
+
+<MudText Typo="Typo.h4">Merchant Dashboard</MudText>
+
+<MudGrid>
+    <MudItem xs="12" md="6">
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Recent Orders</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText Typo="Typo.body2">@_orderCount orders total</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" md="6">
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Products</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText Typo="Typo.body2">@_productCount products</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+</MudGrid>
+
+@code {
+    private int _orderCount;
+    private int _productCount;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _orderCount = await OrderService.CountAsync(new OrderDescriptorDto(), CancellationToken.None)
+            .GetValueOrDefaultAsync();
+        _productCount = await ProductService.CountAsync(new ProductDescriptorDto(), CancellationToken.None)
+            .GetValueOrDefaultAsync();
+    }
+}

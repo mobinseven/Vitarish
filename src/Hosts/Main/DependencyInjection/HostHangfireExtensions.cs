@@ -1,12 +1,14 @@
 using Hangfire;
 using Hangfire.SqlServer;
 using Vitarish.Appointments.Application.Abstractions;
+using Vitarish.Commerce.Application.Abstractions;
 using Vitarish.Interfaces.Accounts.Services;
 using Vitarish.Main.Authorization;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Appointments;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Calendar;
+using Vitarish.Main.Infrastructure.BackgroundJobs.Commerce;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Intelligence;
@@ -79,6 +81,11 @@ public static class HostHangfireExtensions
         _ = builder.Services.AddSingleton<HangfireIntelligenceJobManager>();
         _ = builder.Services.AddSingleton<HangfireCommunicationsJobManager>();
         _ = builder.Services.AddSingleton<HangfireCalendarJobManager>();
+        _ = builder.Services.AddTransient<CommerceCatalogSyncProcessor>();
+        _ = builder.Services.AddTransient<CommerceOrderSyncProcessor>();
+        _ = builder.Services.AddTransient<CommerceCartCleanupProcessor>();
+        _ = builder.Services.AddSingleton<HangfireCommerceJobManager>();
+        _ = builder.Services.AddSingleton<ICommerceJobManager>(sp => sp.GetRequiredService<HangfireCommerceJobManager>());
     }
 
     /// <summary>

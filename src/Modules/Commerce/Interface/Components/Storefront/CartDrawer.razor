@@ -1,0 +1,21 @@
+@inherits CommerceComponentBase
+
+<MudText Typo="Typo.h5">Cart</MudText>
+
+@if (_cart is null)
+{
+    <MudText Typo="Typo.body2">Your cart is empty.</MudText>
+}
+else
+{
+    <MudText Typo="Typo.body2">Cart ID: @_cart.MedusaId</MudText>
+}
+
+@code {
+    private CartReadDto? _cart;
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Cart loading handled via ICartService
+    }
+}
