@@ -9,16 +9,12 @@
         </MudRadioGroup>
     </StackField>
 
-    <MudNumericField T="double"
-                     Class="stack-item"
-                     Variant="Variant.Outlined"
-                     Label="@Localizer["HoursBefore"]"
-                     @bind-Value="offsetHours"
-                     Min="0.25"
-                     Step="0.25" />
+    <StackTimePicker Label="@Localizer["Offset"]"
+                     HelperText="@Localizer["SessionReminderOffsetHelp"]"
+                     @bind-Value="dto.OffsetBefore" />
 
     <StackField Label="@Localizer["QualifyingStatuses"]">
-        @foreach (ReservationStatus status in Enum.GetValues<ReservationStatus>())
+        @foreach(ReservationStatus status in Enum.GetValues<ReservationStatus>())
         {
             <MudCheckBox T="bool"
                          Label="@Localizer[status.ToString()]"

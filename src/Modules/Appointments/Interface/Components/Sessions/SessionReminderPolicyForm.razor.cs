@@ -9,21 +9,8 @@ public partial class SessionReminderPolicyForm : SessionReminderPoliciesBase
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
     private SessionReminderPolicyWriteDto dto = new();
-    private double offsetHours = 1;
 
-    protected override void OnParametersSet()
-    {
-        if (Policy is not null)
-        {
-            dto = Policy.ToWrite();
-            offsetHours = Policy.OffsetBefore.TotalHours;
-        }
-        else
-        {
-            dto = new SessionReminderPolicyWriteDto { SessionId = SessionId, IsEnabled = true };
-            offsetHours = 1;
-        }
-    }
+    protected override void OnInitialized() => dto = Policy is not null ? Policy.ToWrite() : new SessionReminderPolicyWriteDto { SessionId = SessionId, IsEnabled = true };
 
     private void ToggleStatus(ReservationStatus status, bool include)
     {
@@ -40,7 +27,6 @@ public partial class SessionReminderPolicyForm : SessionReminderPoliciesBase
     private async Task SaveAsync()
     {
         dto.SessionId = SessionId;
-        dto.OffsetBefore = TimeSpan.FromHours(offsetHours);
 
         EntityResult<SessionReminderPolicyReadDto> result = dto.Id == Guid.Empty
             ? await ReminderPolicyManager.AddPolicyAsync(dto, CancellationToken.None)

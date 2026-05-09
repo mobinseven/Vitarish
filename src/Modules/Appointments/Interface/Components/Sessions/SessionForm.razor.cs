@@ -10,8 +10,6 @@ public partial class SessionForm : SessionsBase
     private ISessionFormPlugin? Plugin => FormPlugins.SingleOrDefault(p => p.Id == TenantService?.PluginIdentifier);
 
     private SessionWriteDto sessionWriteDto = new();
-    private TimeSpan? startTime;
-    private TimeSpan? endTime;
 
     protected override void OnParametersSet()
     {
@@ -23,16 +21,10 @@ public partial class SessionForm : SessionsBase
         sessionWriteDto.TimeZone = string.IsNullOrWhiteSpace(sessionWriteDto.TimeZone)
             ? TimeZoneInfo.Local.Id
             : sessionWriteDto.TimeZone;
-
-        startTime = sessionWriteDto.StartTime.ToTimeSpan();
-        endTime = sessionWriteDto.EndTime.ToTimeSpan();
     }
 
     private async Task SaveAsync()
     {
-        sessionWriteDto.StartTime = TimeOnly.FromTimeSpan(startTime ?? sessionWriteDto.StartTime.ToTimeSpan());
-        sessionWriteDto.EndTime = TimeOnly.FromTimeSpan(endTime ?? sessionWriteDto.EndTime.ToTimeSpan());
-
         EntityResult<SessionReadDto> result = sessionWriteDto.Id == Guid.Empty
             ? await SessionManager.AddAsync(sessionWriteDto, CancellationToken.None)
             : await SessionManager.UpdateAsync(sessionWriteDto, CancellationToken.None);
