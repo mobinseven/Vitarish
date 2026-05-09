@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Vitarish.Entities.Server.Abstractions;
 
 namespace Vitarish.Entities.Server.Infrastructure;
@@ -15,7 +16,9 @@ public sealed class EntityInterceptor(
     private const int MaxPayloadLength = 16000;
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
-        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        ReferenceHandler = ReferenceHandler.IgnoreCycles,
+        DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
     };
     private static readonly HashSet<string> IgnoredAuditProperties = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -198,7 +201,7 @@ public sealed class EntityInterceptor(
                 SnapshotAfter = after,
                 Changes = changes,
                 OccurredAt = now,
-                CorrelationId = tenantId,
+                CorrelationId = null,
                 RequestId = null
             });
         }
