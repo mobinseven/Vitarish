@@ -58,8 +58,8 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
         };
 
         SessionOccurrenceReadDto? occurrence = (await BookableDateQueryService.GetBookableDatesAsync(session.Id, range, CancellationToken.None))
-            .OrderBy(o => o.OccurrenceStart)
-            .FirstOrDefault(o => !o.IsCancelled && o.OccurrenceEnd > DateTimeOffset.UtcNow);
+            .OrderBy(o => o.Date).ThenBy(o => o.StartTime)
+            .FirstOrDefault(o => !o.IsCancelled && o.Date >= today);
 
         if (occurrence is null)
         {
@@ -81,7 +81,7 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
         {
             DialogParameters parameters = new()
             {
-                { nameof(ReminderCreatorDialog.SourceId), reservation.SessionOccurrenceId }
+                { nameof(ReminderCreatorDialog.SourceId), reservation.Id }
             };
             IDialogReference reminderDialog = await DialogService.ShowAsync<ReminderCreatorDialog>(null, parameters);
             _ = await reminderDialog.Result;
