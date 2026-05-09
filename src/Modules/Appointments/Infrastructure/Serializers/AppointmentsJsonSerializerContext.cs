@@ -23,8 +23,6 @@ namespace Vitarish.Appointments.Infrastructure.Serializers;
 [JsonSerializable(typeof(ReservationStatus))]
 [JsonSerializable(typeof(IReadOnlyList<ReservationReadDto>))]
 [JsonSerializable(typeof(IReadOnlyList<ReservationWriteDto>))]
-[JsonSerializable(typeof(CapacityPolicyReadDto))]
-[JsonSerializable(typeof(CapacityPolicyWriteDto))]
 [JsonSerializable(typeof(BookingPolicyReadDto))]
 [JsonSerializable(typeof(BookingPolicyWriteDto))]
 [JsonSerializable(typeof(AuditEntryReadDto))]
