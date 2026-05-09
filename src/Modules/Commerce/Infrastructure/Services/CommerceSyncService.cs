@@ -82,18 +82,30 @@ internal sealed class CommerceSyncService(
                 .Where(o => incomingIds.Contains(o.MedusaId))
                 .ToDictionaryAsync(o => o.MedusaId, cancellationToken);
 
+            int nextOrderNumber = await dbContext.Orders
+                .Where(o => o.OrderNumber > 0)
+                .Select(o => (int?)o.OrderNumber)
+                .MaxAsync(cancellationToken) ?? 0;
+
             int upserted = 0;
             foreach (var mo in orders)
             {
+                bool isNew = false;
                 if (!existing.TryGetValue(mo.Id, out Order? order))
                 {
                     order = new Order { Id = Guid.NewGuid(), MedusaId = mo.Id };
                     _ = await dbContext.Orders.AddAsync(order, cancellationToken);
+                    isNew = true;
                 }
 
                 order.CustomerId = mo.CustomerId ?? string.Empty;
                 order.TotalAmount = mo.Total / 100m;
                 order.CurrencyCode = mo.CurrencyCode;
+                if (isNew || order.OrderNumber <= 0)
+                {
+                    nextOrderNumber++;
+                    order.OrderNumber = nextOrderNumber;
+                }
                 order.Status = mo.Status switch
                 {
                     "confirmed" => OrderStatus.Confirmed,
@@ -103,6 +115,12 @@ internal sealed class CommerceSyncService(
                     "canceled" => OrderStatus.Canceled,
                     "refunded" => OrderStatus.Refunded,
                     _ => OrderStatus.Pending
+                };
+                order.RefundStatus = mo.Status switch
+                {
+                    "refunded" => RefundStatus.Refunded,
+                    _ when order.RefundStatus == RefundStatus.Refunded => RefundStatus.Refunded,
+                    _ => order.RefundStatus
                 };
                 order.FulfillmentStatus = mo.FulfillmentStatus switch
                 {
@@ -117,6 +135,19 @@ internal sealed class CommerceSyncService(
                     _ => FulfillmentStatus.NotFulfilled
                 };
                 upserted++;
+            }
+
+            // Deterministic backfill for any historical rows that still do not have an order number.
+            List<Order> missingOrderNumbers = await dbContext.Orders
+                .Where(o => o.OrderNumber <= 0)
+                .OrderBy(o => o.CreatedAt)
+                .ThenBy(o => o.Id)
+                .ToListAsync(cancellationToken);
+
+            foreach (Order order in missingOrderNumbers)
+            {
+                nextOrderNumber++;
+                order.OrderNumber = nextOrderNumber;
             }
 
             _ = await dbContext.SaveChangesAsync(cancellationToken);

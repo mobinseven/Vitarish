@@ -34,7 +34,9 @@ public class CommerceCartCleanupProcessor(
             int count = await dbContext.Carts
                 .Where(c => c.Status == CartStatus.Open && c.CreatedAt < cutoff)
                 .ExecuteUpdateAsync(
-                    setters => setters.SetProperty(c => c.Status, CartStatus.Abandoned),
+                    setters => setters
+                        .SetProperty(c => c.Status, CartStatus.Abandoned)
+                        .SetProperty(c => c.RecoveryStatus, CartRecoveryStatus.ContactPending),
                     shutdownToken);
 
             logger.LogInformation("Commerce cart cleanup: marked {Count} carts as abandoned.", count);

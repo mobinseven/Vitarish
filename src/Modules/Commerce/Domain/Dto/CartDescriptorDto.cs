@@ -9,4 +9,8 @@ public record CartDescriptorDto : EntityDescriptorDto
     [JsonPropertyName("status")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public CartStatus? Status { get; set; }
+
+    [JsonPropertyName("recoveryStatus")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public CartRecoveryStatus? RecoveryStatus { get; set; }
 }

@@ -1,13 +1,13 @@
 @inherits CommerceComponentBase
 
-<MudText Typo="Typo.h4">Merchant Dashboard</MudText>
+<MudText Typo="Typo.h4">Commerce Operations</MudText>
 
 <MudGrid>
-    <MudItem xs="12" md="6">
+    <MudItem xs="12" md="3">
         <MudCard>
             <MudCardHeader>
                 <CardHeaderContent>
-                    <MudText Typo="Typo.h6">Recent Orders</MudText>
+                    <MudText Typo="Typo.h6">Orders</MudText>
                 </CardHeaderContent>
             </MudCardHeader>
             <MudCardContent>
@@ -15,23 +15,63 @@
             </MudCardContent>
         </MudCard>
     </MudItem>
-    <MudItem xs="12" md="6">
+    <MudItem xs="12" md="3">
         <MudCard>
             <MudCardHeader>
                 <CardHeaderContent>
-                    <MudText Typo="Typo.h6">Products</MudText>
+                    <MudText Typo="Typo.h6">Pending Fulfillment</MudText>
                 </CardHeaderContent>
             </MudCardHeader>
             <MudCardContent>
-                <MudText Typo="Typo.body2">@_productCount products</MudText>
+                <MudText Typo="Typo.body2">@_pendingFulfillment orders</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" md="3">
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Sales (Today)</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText Typo="Typo.body2">@_todaySales.ToString("0.##")</MudText>
+            </MudCardContent>
+        </MudCard>
+    </MudItem>
+    <MudItem xs="12" md="3">
+        <MudCard>
+            <MudCardHeader>
+                <CardHeaderContent>
+                    <MudText Typo="Typo.h6">Abandoned Carts (Registered)</MudText>
+                </CardHeaderContent>
+            </MudCardHeader>
+            <MudCardContent>
+                <MudText Typo="Typo.body2">@_recoveryQueueCount pending</MudText>
             </MudCardContent>
         </MudCard>
     </MudItem>
 </MudGrid>
 
+<MudPaper Class="pa-4 mt-4" Outlined>
+    <MudText Typo="Typo.h6">Quick Actions</MudText>
+    <MudStack Row Spacing="2" Class="mt-2">
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/Owners/Commerce/Orders">Orders</MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/Owners/Commerce/Products">Products</MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/Owners/Commerce/Recovery">Recovery Queue</MudButton>
+        <MudButton Variant="Variant.Outlined" Color="Color.Primary" Href="/Owners/Commerce/Settings">Settings</MudButton>
+    </MudStack>
+    <MudText Typo="Typo.body2" Class="mt-4">Sales (7d): @_weekSales.ToString("0.##")</MudText>
+    <MudText Typo="Typo.body2">Products: @_productCount</MudText>
+</MudPaper>
+
 @code {
     private int _orderCount;
     private int _productCount;
+    private int _pendingFulfillment;
+    private int _recoveryQueueCount;
+    private decimal _todaySales;
+    private decimal _weekSales;
 
     protected override async Task OnInitializedAsync()
     {
@@ -39,5 +79,25 @@
             .GetValueOrDefaultAsync();
         _productCount = await ProductService.CountAsync(new ProductDescriptorDto(), CancellationToken.None)
             .GetValueOrDefaultAsync();
+        _recoveryQueueCount = await CartService.CountRecoveryQueueAsync(CancellationToken.None);
+
+        IReadOnlyList<OrderReadDto> pending = await OrderService.GetListAsync(
+            new OrderDescriptorDto { Status = OrderStatus.Pending },
+            CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        _pendingFulfillment = pending.Count(order => order.FulfillmentStatus != FulfillmentStatus.Fulfilled);
+
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset dayStart = now.Date;
+        DateTimeOffset weekStart = now.Date.AddDays(-7);
+
+        IReadOnlyList<OrderReadDto> todayOrders = await OrderService.GetListAsync(
+            new OrderDescriptorDto { CreatedFrom = dayStart },
+            CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        _todaySales = todayOrders.Sum(order => order.TotalAmount);
+
+        IReadOnlyList<OrderReadDto> weekOrders = await OrderService.GetListAsync(
+            new OrderDescriptorDto { CreatedFrom = weekStart },
+            CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        _weekSales = weekOrders.Sum(order => order.TotalAmount);
     }
 }

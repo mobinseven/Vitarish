@@ -2,6 +2,36 @@
 
 <MudText Typo="Typo.h4">Orders</MudText>
 
+<MudPaper Class="pa-4 mb-4" Outlined>
+    <MudGrid>
+        <MudItem xs="12" md="3">
+            <MudNumericField T="int?" Label="Order Number" @bind-Value="_orderNumberFilter" />
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudTextField Label="Customer" @bind-Value="_customerFilter" />
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudSelect T="OrderStatus?" Label="Status" @bind-Value="_statusFilter">
+                <MudSelectItem T="OrderStatus?" Value="@((OrderStatus?)null)">All</MudSelectItem>
+                @foreach (OrderStatus status in Enum.GetValues<OrderStatus>())
+                {
+                    <MudSelectItem T="OrderStatus?" Value="@status">@status</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudDatePicker Label="From" @bind-Date="_fromDate" />
+        </MudItem>
+        <MudItem xs="12" md="3">
+            <MudDatePicker Label="To" @bind-Date="_toDate" />
+        </MudItem>
+        <MudItem xs="12" md="9" Class="d-flex align-center gap-2">
+            <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="LoadOrdersAsync">Apply Filters</MudButton>
+            <MudButton Color="Color.Default" Variant="Variant.Outlined" OnClick="ClearFiltersAsync">Reset</MudButton>
+        </MudItem>
+    </MudGrid>
+</MudPaper>
+
 @if (_orders is null)
 {
     <MudProgressCircular Indeterminate />
@@ -10,27 +40,80 @@ else
 {
     <MudTable Items="_orders" Dense Hover>
         <HeaderContent>
-            <MudTh>Order ID</MudTh>
+            <MudTh>Order Number</MudTh>
             <MudTh>Customer</MudTh>
             <MudTh>Status</MudTh>
+            <MudTh>Fulfillment</MudTh>
             <MudTh>Total</MudTh>
+            <MudTh>Date</MudTh>
+            <MudTh>Refund</MudTh>
         </HeaderContent>
         <RowTemplate>
-            <MudTd>@context.MedusaId</MudTd>
-            <MudTd>@context.CustomerId</MudTd>
+            <MudTd>#@context.OrderNumber</MudTd>
+            <MudTd>@context.CustomerDisplay</MudTd>
             <MudTd><MudChip T="string" Size="Size.Small">@context.Status</MudChip></MudTd>
+            <MudTd><MudChip T="string" Size="Size.Small" Color="Color.Info">@context.FulfillmentStatus</MudChip></MudTd>
             <MudTd>@context.TotalAmount @context.CurrencyCode.ToUpperInvariant()</MudTd>
+            <MudTd>@context.CreatedAt.ToString("yyyy-MM-dd")</MudTd>
+            <MudTd>
+                @if (context.RefundStatus == RefundStatus.None)
+                {
+                    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Secondary" OnClick="() => RequestRefundAsync(context.Id)">Request</MudButton>
+                }
+                else
+                {
+                    <MudChip T="string" Size="Size.Small" Color="Color.Warning">@context.RefundStatus</MudChip>
+                }
+            </MudTd>
         </RowTemplate>
     </MudTable>
 }
 
 @code {
     private IReadOnlyList<OrderReadDto>? _orders;
+    private int? _orderNumberFilter;
+    private string _customerFilter = string.Empty;
+    private OrderStatus? _statusFilter;
+    private DateTime? _fromDate;
+    private DateTime? _toDate;
 
     protected override async Task OnInitializedAsync()
     {
-        _orders = await OrderService.GetListAsync(
-            new OrderDescriptorDto(),
-            CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        await LoadOrdersAsync();
+    }
+
+    private async Task LoadOrdersAsync()
+    {
+        OrderDescriptorDto descriptor = new()
+        {
+            OrderNumber = _orderNumberFilter,
+            Status = _statusFilter,
+            CreatedFrom = _fromDate is null ? null : new DateTimeOffset(_fromDate.Value.Date, TimeSpan.Zero),
+            CreatedTo = _toDate is null ? null : new DateTimeOffset(_toDate.Value.Date.AddDays(1).AddTicks(-1), TimeSpan.Zero)
+        };
+
+        _orders = await OrderService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+
+        if (!string.IsNullOrWhiteSpace(_customerFilter))
+        {
+            _orders = [.. _orders.Where(order =>
+                order.CustomerDisplay.Contains(_customerFilter, StringComparison.OrdinalIgnoreCase))];
+        }
+    }
+
+    private async Task ClearFiltersAsync()
+    {
+        _orderNumberFilter = null;
+        _customerFilter = string.Empty;
+        _statusFilter = null;
+        _fromDate = null;
+        _toDate = null;
+        await LoadOrdersAsync();
+    }
+
+    private async Task RequestRefundAsync(Guid orderId)
+    {
+        _ = await OrderService.RequestRefundAsync(orderId, "Requested by merchant.", CancellationToken.None);
+        await LoadOrdersAsync();
     }
 }

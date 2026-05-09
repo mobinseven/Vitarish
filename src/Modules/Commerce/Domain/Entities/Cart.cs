@@ -19,4 +19,16 @@ public class Cart : Entity
         get;
         set => SetField(ref field, value, nameof(Status));
     } = CartStatus.Open;
+
+    public CartRecoveryStatus RecoveryStatus
+    {
+        get;
+        set => SetField(ref field, value, nameof(RecoveryStatus));
+    } = CartRecoveryStatus.None;
+
+    public string RecoveryNote
+    {
+        get;
+        set => SetField(ref field, value, nameof(RecoveryNote));
+    } = string.Empty;
 }

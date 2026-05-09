@@ -1,0 +1,76 @@
+@inherits CommerceComponentBase
+
+<MudText Typo="Typo.h4">Abandoned Cart Recovery (Registered Customers)</MudText>
+<MudText Typo="Typo.body2">Manual follow-up only. Guest carts are excluded.</MudText>
+
+@if (_items is null)
+{
+    <MudProgressCircular Indeterminate Class="mt-4" />
+}
+else if (_items.Count == 0)
+{
+    <MudAlert Severity="Severity.Info" Class="mt-4">No registered abandoned carts are waiting for recovery.</MudAlert>
+}
+else
+{
+    <MudTable Items="_items" Dense Hover Class="mt-4">
+        <HeaderContent>
+            <MudTh>Customer</MudTh>
+            <MudTh>Contact</MudTh>
+            <MudTh>Estimated Value</MudTh>
+            <MudTh>Age</MudTh>
+            <MudTh>Last Activity</MudTh>
+            <MudTh>Status</MudTh>
+            <MudTh>Notes</MudTh>
+            <MudTh>Actions</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.CustomerDisplay</MudTd>
+            <MudTd>@(context.HasContact ? "Available" : "Missing")</MudTd>
+            <MudTd>@context.EstimatedValue.ToString("0.##")</MudTd>
+            <MudTd>@((DateTimeOffset.UtcNow - context.CreatedAt).TotalHours.ToString("0"))h</MudTd>
+            <MudTd>@context.LastActivityAt?.ToString("yyyy-MM-dd HH:mm")</MudTd>
+            <MudTd><MudChip T="string" Size="Size.Small">@context.RecoveryStatus</MudChip></MudTd>
+            <MudTd>
+                <MudTextField Value="@GetNote(context.CartId)"
+                              ValueChanged="value => _notes[context.CartId] = value"
+                              Placeholder="Internal note" />
+            </MudTd>
+            <MudTd>
+                <MudStack Row Spacing="1">
+                    <MudButton Size="Size.Small" Variant="Variant.Outlined" OnClick="() => UpdateRecoveryAsync(context.CartId, CartRecoveryStatus.Contacted)">Contacted</MudButton>
+                    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Success" OnClick="() => UpdateRecoveryAsync(context.CartId, CartRecoveryStatus.Recovered)">Recovered</MudButton>
+                    <MudButton Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning" OnClick="() => UpdateRecoveryAsync(context.CartId, CartRecoveryStatus.Ignored)">Ignore</MudButton>
+                </MudStack>
+            </MudTd>
+        </RowTemplate>
+    </MudTable>
+}
+
+@code {
+    private IReadOnlyList<MerchantRecoveryCartReadDto>? _items;
+    private readonly Dictionary<Guid, string> _notes = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ReloadAsync();
+    }
+
+    private async Task ReloadAsync()
+    {
+        _items = await CartService.GetRecoveryQueueAsync(CancellationToken.None);
+        _notes.Clear();
+        foreach (MerchantRecoveryCartReadDto item in _items)
+        {
+            _notes[item.CartId] = item.RecoveryNote;
+        }
+    }
+
+    private string GetNote(Guid cartId) => _notes.TryGetValue(cartId, out string? note) ? note : string.Empty;
+
+    private async Task UpdateRecoveryAsync(Guid cartId, CartRecoveryStatus status)
+    {
+        _ = await CartService.UpdateRecoveryAsync(cartId, status, GetNote(cartId), CancellationToken.None);
+        await ReloadAsync();
+    }
+}
