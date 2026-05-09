@@ -1587,9 +1587,6 @@
   <data name="EndItem" xml:space="preserve">
     <value>پایان {0}</value>
   </data>
-  <data name="PersonCount" xml:space="preserve">
-    <value>{0} نفر</value>
-  </data>
   <data name="UpdatedAt" xml:space="preserve">
     <value>زمان بروز رسانی</value>
   </data>
@@ -1680,11 +1677,14 @@
   <data name="Present" xml:space="preserve">
     <value>حاضر</value>
   </data>
-  <data name="Gender_Unspecified" xml:space="preserve">
-    <value>نامشخص</value>
-  </data>
   <data name="TodayAppointments" xml:space="preserve">
     <value>نوبت‌های امروز</value>
+  </data>
+  <data name="Reservation" xml:space="preserve">
+    <value>رزرو</value>
+  </data>
+  <data name="Reservations" xml:space="preserve">
+    <value>رزروها</value>
   </data>
   <data name="NoResults" xml:space="preserve">
     <value>نتیجه‌ای یافت نشد</value>
@@ -1757,5 +1757,8 @@
   </data>
   <data name="SaveFailed" xml:space="preserve">
     <value>ذخیره ناموفق بود. لطفاً دوباره تلاش کنید.</value>
+  </data>
+  <data name="Gender_Unspecified" xml:space="preserve">
+    <value>نامشخص</value>
   </data>
 </root>

@@ -7,13 +7,6 @@ public partial class AdminSessionDetail : SessionsBase
     [Parameter] public EventCallback OnDeleted { get; set; }
     [Parameter] public EventCallback OnStatusChanged { get; set; }
 
-    private SessionReadDto current = default!;
-
-    protected override void OnParametersSet()
-    {
-        current = Session;
-    }
-
     private async Task ChangeStatusAsync(SessionStatus status)
     {
         string label = status switch
@@ -45,20 +38,20 @@ public partial class AdminSessionDetail : SessionsBase
 
         EntityResult entityResult = status switch
         {
-            SessionStatus.Active => await SessionManager.ActivateSessionAsync(current.Id, CancellationToken.None),
-            SessionStatus.Paused => await SessionManager.PauseSessionAsync(current.Id, CancellationToken.None),
-            SessionStatus.Closed => await SessionManager.CloseSessionAsync(current.Id, CancellationToken.None),
-            SessionStatus.Cancelled => await SessionManager.CancelSessionAsync(current.Id, CancellationToken.None),
-            SessionStatus.Archived => await SessionManager.ArchiveSessionAsync(current.Id, CancellationToken.None),
+            SessionStatus.Active => await SessionManager.ActivateSessionAsync(Session.Id, CancellationToken.None),
+            SessionStatus.Paused => await SessionManager.PauseSessionAsync(Session.Id, CancellationToken.None),
+            SessionStatus.Closed => await SessionManager.CloseSessionAsync(Session.Id, CancellationToken.None),
+            SessionStatus.Cancelled => await SessionManager.CancelSessionAsync(Session.Id, CancellationToken.None),
+            SessionStatus.Archived => await SessionManager.ArchiveSessionAsync(Session.Id, CancellationToken.None),
             _ => EntityResult.Success()
         };
 
         if (entityResult.IsSuccess)
         {
-            SessionReadDto? updated = await SessionManager.GetAsync(current.Id, CancellationToken.None).GetValueOrDefaultAsync();
+            SessionReadDto? updated = await SessionManager.GetAsync(Session.Id, CancellationToken.None).GetValueOrDefaultAsync();
             if (updated is not null)
             {
-                current = updated;
+                Session = updated;
             }
 
             await OnStatusChanged.InvokeAsync();

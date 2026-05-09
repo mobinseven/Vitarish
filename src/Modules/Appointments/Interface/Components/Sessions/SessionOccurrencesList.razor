@@ -15,7 +15,7 @@ else
         {
             <StackButton OnClick="() => OnClicked.InvokeAsync(occurrence.Id)"
                          Label="@occurrence.OccurrenceStart.ToString("g")"
-                         HelperText="@($"{occurrence.Stats.ReservationCount} {Localizer["Reservations"]}")"
+                         HelperText="@($"{Localizer["Count", Localizer["Reservations"]]}: {occurrence.Stats.ReservationCount}")"
                          Disabled="@occurrence.IsCancelled">
                 @if (occurrence.IsCancelled)
                 {

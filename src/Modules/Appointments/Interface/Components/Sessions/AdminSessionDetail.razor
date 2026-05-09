@@ -1,28 +1,27 @@
 @inherits SessionsBase
 
-@if (current is null)
+@if (Session is null)
 {
     return;
 }
 
 <Stack>
-    <StackField Label="@current.Title" HelperText="@Localizer["DateTimeOf", Localizer["Session"]]">
-        <SessionStatusBadge Status="@current.Status" />
+    <StackField Label="@Session.Title" HelperText="@Localizer["DateTimeOf", Localizer["Session"]]">
+        <SessionStatusBadge Status="@Session.Status" />
     </StackField>
-    @if (current.StartAt is not null)
+    @if (Session.StartAt is not null)
     {
-        <StackField Label="@current.StartAt.Value.ToString("f")" HelperText="@Localizer["StartTime"]" />
+        <StackField Label="@Session.StartAt.Value.ToString("f")" HelperText="@Localizer["StartTime"]" />
     }
-    @if (current.EndAt is not null)
+    @if (Session.EndAt is not null)
     {
-        <StackField Label="@current.EndAt.Value.ToString("f")" HelperText="@Localizer["EndTime"]" />
+        <StackField Label="@Session.EndAt.Value.ToString("f")" HelperText="@Localizer["EndTime"]" />
     }
-    <StackField Label="@current.TimeZone" HelperText="@Localizer["TimeZone"]" />
-    <StackField Label="@current.TotalSeats.ToString()" HelperText="@Localizer["TotalSeats"]" />
-    <StackField Label="@($"{current.Stats.ReservationCount} {Localizer["Reservations"]}")" HelperText="@Localizer["Reservations"]" />
+    <StackField Label="@Session.TotalSeats.ToString()" HelperText="@Localizer["TotalSeats"]" />
+    <StackField Label="@Session.Stats.ReservationCount.ToString()" HelperText="@Localizer["Count", Localizer["Reservations"]]" />
 </Stack>
 
-@switch (current.Status)
+@switch (Session.Status)
 {
     case SessionStatus.Draft:
     <Stack>
@@ -95,10 +94,10 @@
         break;
 }
 
-@if (AdminMode && current.Status == SessionStatus.Active)
+@if (AdminMode && Session.Status == SessionStatus.Active)
 {
     <Stack>
-        <SessionOccurrencesList SessionId="@current.Id" OnClicked="AddReservationAsync" />
+        <SessionOccurrencesList SessionId="@Session.Id" OnClicked="AddReservationAsync" />
     </Stack>
 }
 
@@ -106,6 +105,6 @@
 {
     <Stack>
         <StackField Label="@Localizer["ReminderPolicies"]" />
-        <SessionReminderPoliciesList SessionId="@current.Id" />
+        <SessionReminderPoliciesList SessionId="@Session.Id" />
     </Stack>
 }
