@@ -18,7 +18,7 @@ public partial class SessionOccurrencesList : SessionsBase
             return;
         }
 
-        TimeRangeQuery range = new()
+        SessionOccurrenceRange range = new()
         {
             Start = DateTimeOffset.UtcNow.AddDays(-1),
             End = DateTimeOffset.UtcNow.AddYears(1)

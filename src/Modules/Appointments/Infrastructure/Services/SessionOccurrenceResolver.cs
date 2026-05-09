@@ -1,5 +1,3 @@
-using Vitarish.Calendar.Domain.Models;
-
 namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
@@ -9,7 +7,7 @@ internal class SessionOccurrenceResolver(
     AppointmentsDbContext dbContext) : ISessionOccurrenceResolver
 {
     public async Task<IReadOnlyList<SessionOccurrenceReadDto>> ResolveOccurrencesAsync(
-        Guid sessionId, TimeRangeQuery range, CancellationToken cancellationToken)
+        Guid sessionId, SessionOccurrenceRange range, CancellationToken cancellationToken)
     {
         DateOnly dateFrom = DateOnly.FromDateTime(range.Start.DateTime);
         DateOnly dateTo = DateOnly.FromDateTime(range.End.DateTime);

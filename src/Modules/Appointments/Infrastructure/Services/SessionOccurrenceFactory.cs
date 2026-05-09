@@ -3,8 +3,6 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 [RegisterTransient]
 internal class SessionOccurrenceFactory(AppointmentsDbContext dbContext) : ISessionOccurrenceFactory
 {
-    private const string WeeklyRecurrenceId = "weekly";
-
     public async Task<EntityResult<Guid>> GetOrCreateAsync(Guid sessionId, DateOnly date, CancellationToken cancellationToken)
     {
         if (sessionId == Guid.Empty)
@@ -86,16 +84,9 @@ internal class SessionOccurrenceFactory(AppointmentsDbContext dbContext) : ISess
         StartTime = session.StartTime,
         EndTime = session.EndTime,
         Capacity = session.TotalSeats,
-        Metadata = BuildMetadata(session),
+        Metadata = new Dictionary<string, object?>(session.Metadata),
         IsCancelled = false
     };
-
-    private static Dictionary<string, object?> BuildMetadata(Session session)
-    {
-        Dictionary<string, object?> metadata = new(session.Metadata);
-        metadata["recurrenceId"] = WeeklyRecurrenceId;
-        return metadata;
-    }
 
     private static bool IsDuplicateSessionOccurrenceException(DbUpdateException exception)
     {
