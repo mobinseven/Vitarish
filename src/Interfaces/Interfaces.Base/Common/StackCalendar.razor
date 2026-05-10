@@ -1,228 +1,551 @@
-@typeparam TItem
-@inherits MudDatePicker
-
-@using System.Reflection
+@using System.Globalization
 @using MudBlazor
-@inject IDialogService DialogService
 
-<div class="stack-item">
-    <MudDatePicker Class="@CalendarClass"
-                   PickerVariant="PickerVariant.Static"
-                   Variant="Variant.Outlined"
-                   Underline="false"
-                   MaxDate="@MaxDate"
-                   MinDate="@MinDate"
-                   MaxMonthColumns="2"
-                   Date="@Date"
-                   DateChanged="@HandleDateChanged"
-                   Color="@Color"
-                   DisplayMonths="@DisplayMonths"
-                   FirstDayOfWeek="@firstDow"
-                   Elevation="0"
-                   AdditionalDateClassesFunc="@BuildDateClasses"
-                   IsDateDisabledFunc="@IsDateDisabledFunc" />
+@inherits MudComponentBase
+
+<div Class="@($"mud-calendar stack-item {Class}")" style="align-self: anchor-center;"
+          dir="@RootDirection">
+
+    <div class="mud-calendar__header">
+        <MudIconButton Icon="@PreviousIcon"
+                       Size="Size.Small"
+                       Disabled="@Disabled"
+                       OnClick="GoPreviousAsync" />
+
+        <MudButton Variant="Variant.Text"
+                   Disabled="@Disabled"
+                   OnClick="MoveUpView">
+            @HeaderText
+        </MudButton>
+
+        <MudIconButton Icon="@NextIcon"
+                       Size="Size.Small"
+                       Disabled="@Disabled"
+                       OnClick="GoNextAsync" />
+    </div>
+
+    @if(_view == OpenTo.Date)
+    {
+        <div class="mud-calendar__weekdays">
+            @foreach(var dayOfWeek in GetDayOfWeekContexts())
+            {
+                <div class="mud-calendar__weekday">
+                    @if(DayOfWeekTemplate is null)
+                    {
+                        @dayOfWeek.ShortName
+                    }
+                    else
+                    {
+                        @DayOfWeekTemplate(dayOfWeek)
+                    }
+                </div>
+            }
+        </div>
+
+        <div class="mud-calendar__days" role="grid">
+            @foreach(var day in GetDayContexts())
+            {
+                @if(!ShowAdjacentMonthDays && day.IsOutsideMonth)
+                {
+                    <span class="mud-calendar__day-empty"></span>
+                }
+                else
+                {
+                    <button type="button"
+                            class="@day.CssClass"
+                            disabled="@(Disabled || day.IsDisabled)"
+                            aria-current="@(day.IsToday ? "date" : null)"
+                            aria-selected="@day.IsSelected"
+                            @onclick="() => SelectDayAsync(day)">
+                        @if(DayTemplate is null)
+                        {
+                            @day.DisplayDayNumber
+                        }
+                        else
+                        {
+                            @DayTemplate(day)
+                        }
+                    </button>
+                }
+            }
+        </div>
+    }
+    else if(_view == OpenTo.Month)
+    {
+        <div class="mud-calendar__months" role="grid">
+            @foreach(var month in GetMonthContexts())
+            {
+                <button type="button"
+                        class="@month.CssClass"
+                        disabled="@(Disabled || month.IsDisabled)"
+                        aria-selected="@month.IsSelected"
+                        @onclick="() => SelectMonthAsync(month)">
+                    @if(MonthTemplate is null)
+                    {
+                        @month.ShortName
+                    }
+                    else
+                    {
+                        @MonthTemplate(month)
+                    }
+                </button>
+            }
+        </div>
+    }
+    else if(_view == OpenTo.Year)
+    {
+        <div class="mud-calendar__years" role="grid">
+            @foreach(var year in GetYearContexts())
+            {
+                <button type="button"
+                        class="@year.CssClass"
+                        disabled="@(Disabled || year.IsDisabled)"
+                        aria-selected="@year.IsSelected"
+                        @onclick="() => SelectYearAsync(year)">
+                    @if(YearTemplate is null)
+                    {
+                        @year.DisplayName
+                    }
+                    else
+                    {
+                        @YearTemplate(year)
+                    }
+                </button>
+            }
+        </div>
+    }
 </div>
+
 @code {
-    [Parameter] public IEnumerable<TItem>? Items { get; set; }
+    private DateTime? _currentDate;
+    private DateTime _visibleMonth;
+    private OpenTo _view;
+    private bool _initialized;
 
-    // Optional. Only needed if your item date is not named Date, Start, StartDate, OccursOn, or OccurrenceDate.
-    [Parameter] public Func<TItem, DateTime?>? ItemDate { get; set; }
+    [Parameter] public DateTime? Date { get; set; }
+    [Parameter] public EventCallback<DateTime?> DateChanged { get; set; }
 
-    [Parameter] public Func<TItem, DateOnly?>? ItemDateOnly { get; set; }
+    [Parameter] public DateTime? PickerMonth { get; set; }
+    [Parameter] public EventCallback<DateTime?> PickerMonthChanged { get; set; }
 
-    // Optional. Used in the tiny selector dialog.
-    [Parameter] public Func<TItem, string>? ItemText { get; set; }
+    [Parameter] public DateTime? MinDate { get; set; }
+    [Parameter] public DateTime? MaxDate { get; set; }
 
-    [Parameter] public EventCallback<TItem> OnItemSelected { get; set; }
+    [Parameter] public OpenTo OpenTo { get; set; } = OpenTo.Date;
+    [Parameter] public DayOfWeek? FirstDayOfWeek { get; set; } = DayOfWeek.Saturday;
+    [Parameter] public CultureInfo? Culture { get; set; }
 
-    // Default: one item = select immediately; many items = open selector.
-    [Parameter] public bool OpenSelectorForSingleItem { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public bool Square { get; set; }
+    [Parameter] public bool Outlined { get; set; }
+    [Parameter] public int Elevation { get; set; } = 1;
 
-    private readonly string[] _datePropertyNames =
-    [
-        "Date",
-        "Start",
-        "StartDate",
-        "OccursOn",
-        "OccurrenceDate"
-    ];
+    [Parameter] public bool ShowAdjacentMonthDays { get; set; } = true;
 
-    private readonly string[] _textPropertyNames =
-    [
-        "Title",
-        "Name",
-        "Label",
-        "Description"
-    ];
+    [Parameter] public Func<DateTime, bool>? IsDateDisabledFunc { get; set; }
+    [Parameter] public Func<DateTime, string?>? AdditionalDateClassesFunc { get; set; }
 
-    private Dictionary<DateTime, List<TItem>> _itemsByDate = new();
+    [Parameter] public RenderFragment<CalendarDayContext>? DayTemplate { get; set; }
+    [Parameter] public RenderFragment<CalendarMonthContext>? MonthTemplate { get; set; }
+    [Parameter] public RenderFragment<CalendarYearContext>? YearTemplate { get; set; }
+    [Parameter] public RenderFragment<CalendarDayOfWeekContext>? DayOfWeekTemplate { get; set; }
 
-    private DayOfWeek firstDow =>
-        FirstDayOfWeek is null ? DayOfWeek.Saturday : FirstDayOfWeek.Value;
+    private CultureInfo EffectiveCulture => Culture ?? CultureInfo.CurrentCulture;
 
-    private string CalendarClass =>
-        string.Join(" ", new[] { Class }.Where(x => !string.IsNullOrWhiteSpace(x)));
+    private DateTimeFormatInfo EffectiveDateTimeFormat => EffectiveCulture.DateTimeFormat;
+
+    private Calendar EffectiveCalendar => EffectiveDateTimeFormat.Calendar;
+
+    private DayOfWeek ResolvedFirstDayOfWeek =>
+        FirstDayOfWeek ?? EffectiveDateTimeFormat.FirstDayOfWeek;
+
+    private bool IsRtl => EffectiveCulture.TextInfo.IsRightToLeft;
+
+    private string RootDirection => IsRtl ? "rtl" : "ltr";
+
+    private string PreviousIcon =>
+        IsRtl
+            ? Icons.Material.Filled.ChevronRight
+            : Icons.Material.Filled.ChevronLeft;
+
+    private string NextIcon =>
+        IsRtl
+            ? Icons.Material.Filled.ChevronLeft
+            : Icons.Material.Filled.ChevronRight;
+
+    private int VisibleEra => EffectiveCalendar.GetEra(_visibleMonth);
+
+    private int VisibleCalendarYear => EffectiveCalendar.GetYear(_visibleMonth);
+
+    private int VisibleCalendarMonth => EffectiveCalendar.GetMonth(_visibleMonth);
+
+    private int YearPageStart => VisibleCalendarYear - ((VisibleCalendarYear - 1) % 12);
+
+    private string HeaderText =>
+        _view switch
+        {
+            OpenTo.Date => _visibleMonth.ToString("MMMM yyyy", EffectiveCulture),
+            OpenTo.Month => FormatYear(VisibleCalendarYear),
+            OpenTo.Year => $"{FormatYear(YearPageStart)} - {FormatYear(YearPageStart + 11)}",
+            _ => _visibleMonth.ToString("MMMM yyyy", EffectiveCulture)
+        };
 
     protected override void OnParametersSet()
     {
-        var grouped = new Dictionary<DateTime, List<TItem>>();
+        _currentDate = Date?.Date;
 
-        if(Items is not null)
+        if(!_initialized)
         {
-            foreach(var item in Items)
-            {
-                var date = ResolveItemDate(item)?.Date;
-                if(date is null)
-                    continue;
-
-                if(!grouped.TryGetValue(date.Value, out var list))
-                {
-                    list = new List<TItem>();
-                    grouped[date.Value] = list;
-                }
-
-                list.Add(item);
-            }
+            _view = OpenTo;
+            _visibleMonth = StartOfMonth(PickerMonth ?? Date ?? DateTime.Today);
+            _initialized = true;
         }
+        else if(PickerMonth.HasValue)
+        {
+            var normalizedPickerMonth = StartOfMonth(PickerMonth.Value);
 
-        _itemsByDate = grouped;
+            if(normalizedPickerMonth != _visibleMonth)
+                _visibleMonth = normalizedPickerMonth;
+        }
     }
 
-    private string BuildDateClasses(DateTime date)
+    private void MoveUpView()
     {
-        var classes = new List<string>();
-
-        // Preserve classes passed by consumers of StackCalendar.
-        var userClasses = AdditionalDateClassesFunc?.Invoke(date);
-        if(!string.IsNullOrWhiteSpace(userClasses))
-            classes.Add(userClasses);
-
-        if(_itemsByDate.TryGetValue(date.Date, out var items))
-        {
-            classes.Add("stack-cal-has-items");
-            classes.Add(items.Count > 1 ? "stack-cal-has-many" : "stack-cal-has-one");
-        }
-
-        return string.Join(" ", classes);
+        if(_view == OpenTo.Date)
+            _view = OpenTo.Month;
+        else if(_view == OpenTo.Month)
+            _view = OpenTo.Year;
     }
 
-    private async Task HandleDateChanged(DateTime? date)
+    private async Task GoPreviousAsync()
     {
-        await DateChanged.InvokeAsync(date);
+        if(_view == OpenTo.Date)
+            await SetVisibleMonthAsync(AddCalendarMonths(_visibleMonth, -1));
+        else if(_view == OpenTo.Month)
+            await SetVisibleMonthAsync(AddCalendarYears(_visibleMonth, -1));
+        else if(_view == OpenTo.Year)
+            await SetVisibleMonthAsync(AddCalendarYears(_visibleMonth, -12));
+    }
 
-        if(date is null)
+    private async Task GoNextAsync()
+    {
+        if(_view == OpenTo.Date)
+            await SetVisibleMonthAsync(AddCalendarMonths(_visibleMonth, 1));
+        else if(_view == OpenTo.Month)
+            await SetVisibleMonthAsync(AddCalendarYears(_visibleMonth, 1));
+        else if(_view == OpenTo.Year)
+            await SetVisibleMonthAsync(AddCalendarYears(_visibleMonth, 12));
+    }
+
+    private async Task SelectDayAsync(CalendarDayContext day)
+    {
+        if(day.IsDisabled)
             return;
 
-        if(!_itemsByDate.TryGetValue(date.Value.Date, out var matches) || matches.Count == 0)
+        _currentDate = day.Date.Date;
+
+        if(day.IsOutsideMonth)
+            await SetVisibleMonthAsync(StartOfMonth(day.Date));
+
+        await DateChanged.InvokeAsync(_currentDate);
+    }
+
+    private async Task SelectMonthAsync(CalendarMonthContext month)
+    {
+        if(month.IsDisabled)
             return;
 
-        if(matches.Count == 1 && !OpenSelectorForSingleItem)
-        {
-            await SelectItem(matches[0]);
+        await SetVisibleMonthAsync(month.Month);
+        _view = OpenTo.Date;
+    }
+
+    private async Task SelectYearAsync(CalendarYearContext year)
+    {
+        if(year.IsDisabled)
             return;
-        }
 
-        await OpenItemSelector(date.Value.Date, matches);
+        var targetMonth = VisibleCalendarMonth;
+        var monthsInTargetYear = EffectiveCalendar.GetMonthsInYear(year.Year, year.Era);
+
+        if(targetMonth > monthsInTargetYear)
+            targetMonth = monthsInTargetYear;
+
+        var newVisibleMonth = ToCalendarDate(year.Year, targetMonth, 1, year.Era);
+
+        await SetVisibleMonthAsync(newVisibleMonth);
+        _view = OpenTo.Month;
     }
 
-    private async Task OpenItemSelector(DateTime day, IReadOnlyList<TItem> matches)
+    private async Task SetVisibleMonthAsync(DateTime month)
     {
-        var parameters = new DialogParameters
-        {
-            ["Day"] = day,
-            ["Items"] = matches,
-            ["ItemText"] = ItemText ?? DefaultItemText
-        };
-
-        var options = new DialogOptions
-        {
-            CloseButton = true,
-            CloseOnEscapeKey = true,
-            FullWidth = true,
-            MaxWidth = MudBlazor.MaxWidth.ExtraSmall
-        };
-
-        var dialog = await DialogService.ShowAsync<StackCalendarItemPicker<TItem>>(
-            $"{day:MMM d}",
-            parameters,
-            options);
-
-        var result = await dialog.Result;
-
-        if(result is not null && !result.Canceled && result.Data is TItem selected)
-            await SelectItem(selected);
+        _visibleMonth = StartOfMonth(month);
+        await PickerMonthChanged.InvokeAsync(_visibleMonth);
     }
 
-    private Task SelectItem(TItem item) =>
-        OnItemSelected.InvokeAsync(item);
-
-    private DateTime? ResolveItemDate(TItem item)
+    private IEnumerable<CalendarDayOfWeekContext> GetDayOfWeekContexts()
     {
-        if(ItemDateOnly is not null)
-            return ItemDateOnly(item)?.ToDateTime(TimeOnly.MinValue);
+        var names = EffectiveDateTimeFormat.AbbreviatedDayNames;
+        var first = ResolvedFirstDayOfWeek;
 
-        if(ItemDate is not null)
-            return ItemDate(item);
-
-        if(item is null)
-            return null;
-
-        if(item is DateTime dt)
-            return dt.Date;
-
-        if(item is DateTimeOffset dto)
-            return dto.Date;
-
-        if(item is DateOnly dateOnly)
-            return dateOnly.ToDateTime(TimeOnly.MinValue);
-
-        var type = item.GetType();
-
-        foreach(var propertyName in _datePropertyNames)
+        for(var i = 0; i < 7; i++)
         {
-            var property = type.GetProperty(
-            propertyName,
-            BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+            var day = (DayOfWeek)(((int)first + i) % 7);
 
-            if(property is null)
-                continue;
-
-            var value = property.GetValue(item);
-            var date = CoerceToDate(value);
-
-            if(date is not null)
-                return date.Value.Date;
+            yield return new CalendarDayOfWeekContext(
+                DayOfWeek: day,
+                Index: i,
+                ShortName: names[(int)day],
+                IsWeekend: day is DayOfWeek.Saturday or DayOfWeek.Sunday
+            );
         }
-
-        return null;
     }
 
-    private static DateTime? CoerceToDate(object? value) =>
-        value switch
-        {
-            DateTime dt => dt.Date,
-            DateTimeOffset dto => dto.Date,
-            DateOnly d => d.ToDateTime(TimeOnly.MinValue),
-            _ => null
-        };
-
-    private string DefaultItemText(TItem item)
+    private IEnumerable<CalendarDayContext> GetDayContexts()
     {
-        if(item is null)
-            return string.Empty;
+        var firstOfMonth = StartOfMonth(_visibleMonth);
+        var firstDayOfWeek = ResolvedFirstDayOfWeek;
 
-        var type = item.GetType();
+        var offset = ((int)firstOfMonth.DayOfWeek - (int)firstDayOfWeek + 7) % 7;
+        var firstCell = firstOfMonth.AddDays(-offset);
 
-        foreach(var propertyName in _textPropertyNames)
+        for(var i = 0; i < 42; i++)
         {
-            var property = type.GetProperty(
-                propertyName,
-                BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+            var date = firstCell.AddDays(i).Date;
 
-            if(property?.GetValue(item) is string value && !string.IsNullOrWhiteSpace(value))
-                return value;
+            var calendarYear = EffectiveCalendar.GetYear(date);
+            var calendarMonth = EffectiveCalendar.GetMonth(date);
+            var calendarDay = EffectiveCalendar.GetDayOfMonth(date);
+
+            var outsideMonth =
+                calendarYear != VisibleCalendarYear ||
+                calendarMonth != VisibleCalendarMonth;
+
+            var disabled = IsDisabledDate(date);
+
+            var css = new List<string> { "mud-calendar__day" };
+
+            if(outsideMonth)
+                css.Add("mud-calendar__day--outside");
+
+            if(date == DateTime.Today)
+                css.Add("mud-calendar__day--today");
+
+            if(_currentDate?.Date == date)
+                css.Add("mud-calendar__day--selected");
+
+            if(disabled)
+                css.Add("mud-calendar__day--disabled");
+
+            var extra = AdditionalDateClassesFunc?.Invoke(date);
+            if(!string.IsNullOrWhiteSpace(extra))
+                css.Add(extra);
+
+            yield return new CalendarDayContext(
+                Date: date,
+                DayNumber: calendarDay,
+                DisplayDayNumber: calendarDay.ToString(EffectiveCulture),
+                CalendarYear: calendarYear,
+                CalendarMonth: calendarMonth,
+                IsToday: date == DateTime.Today,
+                IsSelected: _currentDate?.Date == date,
+                IsOutsideMonth: outsideMonth,
+                IsDisabled: disabled,
+                CssClass: string.Join(" ", css)
+            );
         }
-
-        return item.ToString() ?? string.Empty;
     }
+
+    private IEnumerable<CalendarMonthContext> GetMonthContexts()
+    {
+        var era = VisibleEra;
+        var calendarYear = VisibleCalendarYear;
+        var monthsInYear = EffectiveCalendar.GetMonthsInYear(calendarYear, era);
+
+        for(var month = 1; month <= monthsInYear; month++)
+        {
+            var date = ToCalendarDate(calendarYear, month, 1, era);
+
+            var selected =
+                _currentDate.HasValue &&
+                EffectiveCalendar.GetEra(_currentDate.Value) == era &&
+                EffectiveCalendar.GetYear(_currentDate.Value) == calendarYear &&
+                EffectiveCalendar.GetMonth(_currentDate.Value) == month;
+
+            var disabled = IsDisabledMonth(date);
+
+            var css = new List<string> { "mud-calendar__month" };
+
+            if(selected)
+                css.Add("mud-calendar__month--selected");
+
+            if(disabled)
+                css.Add("mud-calendar__month--disabled");
+
+            yield return new CalendarMonthContext(
+                Month: date,
+                MonthNumber: month,
+                ShortName: date.ToString("MMM", EffectiveCulture),
+                Name: date.ToString("MMMM", EffectiveCulture),
+                CalendarYear: calendarYear,
+                Era: era,
+                IsSelected: selected,
+                IsDisabled: disabled,
+                CssClass: string.Join(" ", css)
+            );
+        }
+    }
+
+    private IEnumerable<CalendarYearContext> GetYearContexts()
+    {
+        var era = VisibleEra;
+
+        for(var calendarYear = YearPageStart; calendarYear < YearPageStart + 12; calendarYear++)
+        {
+            var selected =
+                _currentDate.HasValue &&
+                EffectiveCalendar.GetEra(_currentDate.Value) == era &&
+                EffectiveCalendar.GetYear(_currentDate.Value) == calendarYear;
+
+            var disabled = IsDisabledYear(calendarYear, era);
+
+            var css = new List<string> { "mud-calendar__year" };
+
+            if(selected)
+                css.Add("mud-calendar__year--selected");
+
+            if(disabled)
+                css.Add("mud-calendar__year--disabled");
+
+            yield return new CalendarYearContext(
+                Year: calendarYear,
+                DisplayName: FormatYear(calendarYear),
+                Era: era,
+                IsSelected: selected,
+                IsDisabled: disabled,
+                CssClass: string.Join(" ", css)
+            );
+        }
+    }
+
+    private bool IsDisabledDate(DateTime date)
+    {
+        if(MinDate.HasValue && date < MinDate.Value.Date)
+            return true;
+
+        if(MaxDate.HasValue && date > MaxDate.Value.Date)
+            return true;
+
+        return IsDateDisabledFunc?.Invoke(date) == true;
+    }
+
+    private bool IsDisabledMonth(DateTime monthStart)
+    {
+        var era = EffectiveCalendar.GetEra(monthStart);
+        var year = EffectiveCalendar.GetYear(monthStart);
+        var month = EffectiveCalendar.GetMonth(monthStart);
+        var daysInMonth = EffectiveCalendar.GetDaysInMonth(year, month, era);
+
+        var start = ToCalendarDate(year, month, 1, era).Date;
+        var end = ToCalendarDate(year, month, daysInMonth, era).Date;
+
+        if(MinDate.HasValue && end < MinDate.Value.Date)
+            return true;
+
+        if(MaxDate.HasValue && start > MaxDate.Value.Date)
+            return true;
+
+        return false;
+    }
+
+    private bool IsDisabledYear(int calendarYear, int era)
+    {
+        try
+        {
+            var monthsInYear = EffectiveCalendar.GetMonthsInYear(calendarYear, era);
+            var daysInLastMonth = EffectiveCalendar.GetDaysInMonth(calendarYear, monthsInYear, era);
+
+            var start = ToCalendarDate(calendarYear, 1, 1, era).Date;
+            var end = ToCalendarDate(calendarYear, monthsInYear, daysInLastMonth, era).Date;
+
+            if(MinDate.HasValue && end < MinDate.Value.Date)
+                return true;
+
+            if(MaxDate.HasValue && start > MaxDate.Value.Date)
+                return true;
+
+            return false;
+        }
+        catch(ArgumentOutOfRangeException)
+        {
+            return true;
+        }
+    }
+
+    private DateTime StartOfMonth(DateTime date)
+    {
+        var era = EffectiveCalendar.GetEra(date);
+        var year = EffectiveCalendar.GetYear(date);
+        var month = EffectiveCalendar.GetMonth(date);
+
+        return ToCalendarDate(year, month, 1, era);
+    }
+
+    private DateTime ToCalendarDate(int year, int month, int day, int era)
+    {
+        return EffectiveCalendar.ToDateTime(
+            year,
+            month,
+            day,
+            0,
+            0,
+            0,
+            0,
+            era);
+    }
+
+    private DateTime AddCalendarMonths(DateTime date, int months) =>
+        StartOfMonth(EffectiveCalendar.AddMonths(date, months));
+
+    private DateTime AddCalendarYears(DateTime date, int years) =>
+        StartOfMonth(EffectiveCalendar.AddYears(date, years));
+
+    private string FormatYear(int calendarYear) =>
+        calendarYear.ToString(EffectiveCulture);
+
+    public sealed record CalendarDayContext(
+        DateTime Date,
+        int DayNumber,
+        string DisplayDayNumber,
+        int CalendarYear,
+        int CalendarMonth,
+        bool IsToday,
+        bool IsSelected,
+        bool IsOutsideMonth,
+        bool IsDisabled,
+        string CssClass);
+
+    public sealed record CalendarMonthContext(
+        DateTime Month,
+        int MonthNumber,
+        string ShortName,
+        string Name,
+        int CalendarYear,
+        int Era,
+        bool IsSelected,
+        bool IsDisabled,
+        string CssClass);
+
+    public sealed record CalendarYearContext(
+        int Year,
+        string DisplayName,
+        int Era,
+        bool IsSelected,
+        bool IsDisabled,
+        string CssClass);
+
+    public sealed record CalendarDayOfWeekContext(
+        DayOfWeek DayOfWeek,
+        int Index,
+        string ShortName,
+        bool IsWeekend);
 }

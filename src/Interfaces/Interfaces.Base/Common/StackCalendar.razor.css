@@ -1,21 +1,82 @@
-::deep .stack-cal-has-items {
-    position: relative;
-    font-weight: 600;
-    background: var(--mud-palette-primary);
+::deep .mud-calendar {
+    width: 320px;
+    padding: 12px;
 }
 
-    ::deep .stack-cal-has-items::after {
-        content: "";
-        position: absolute;
-        left: 50%;
-        bottom: 4px;
-        width: 6px;
-        height: 6px;
-        border-radius: 999px;
-        transform: translateX(-50%);
-        background: var(--mud-palette-primary);
+::deep .mud-calendar__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+::deep .mud-calendar__weekdays,
+::deep .mud-calendar__days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+}
+
+::deep .mud-calendar__months,
+::deep .mud-calendar__years {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+::deep .mud-calendar__weekday {
+    text-align: center;
+    font-size: 0.75rem;
+    opacity: 0.75;
+    padding: 4px 0;
+}
+
+::deep .mud-calendar__day,
+::deep .mud-calendar__month,
+::deep .mud-calendar__year {
+    border: 0;
+    background: transparent;
+    border-radius: 999px;
+    min-height: 40px;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+}
+
+::deep .mud-calendar__month,
+::deep .mud-calendar__year {
+    border-radius: 8px;
+    min-height: 56px;
+}
+
+    ::deep .mud-calendar__day:hover,
+    ::deep .mud-calendar__month:hover,
+    ::deep .mud-calendar__year:hover {
+        background: var(--mud-palette-action-default-hover);
     }
 
-::deep .stack-cal-has-many::after {
-    width: 14px;
+::deep .mud-calendar__day--outside {
+    opacity: 0.45;
+}
+
+::deep .mud-calendar__day--today {
+    outline: 1px solid var(--mud-palette-primary);
+}
+
+::deep .mud-calendar__day--selected,
+::deep .mud-calendar__month--selected,
+::deep .mud-calendar__year--selected {
+    background: var(--mud-palette-primary);
+    color: var(--mud-palette-primary-text);
+}
+
+::deep .mud-calendar__day--disabled,
+::deep .mud-calendar__month--disabled,
+::deep .mud-calendar__year--disabled {
+    opacity: 0.35;
+    cursor: default;
+}
+
+::deep .mud-calendar__day-empty {
+    min-height: 40px;
 }
