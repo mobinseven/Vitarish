@@ -97,3 +97,49 @@ The maps below are intentionally short. Current-state maps document implemented 
 4. **Appointment scheduling:** Add patient-facing reschedule/edit UI, explicit date/slot selection, provider and room assignment, and follow-up creation.
 5. **Scheduling conflict model:** Extend conflict checks to provider and room once those fields exist.
 6. **Patient overview:** Build a consolidated overview panel with flags, upcoming appointments, appointment history, procedure status, and activity feed.
+
+## Technical implementation inventory and issue map
+
+### Patient profile CRUD
+
+| Component / unit | Responsibility today | Issues needing attention |
+| --- | --- | --- |
+| `PatientsPage.razor` | Hosts `/Medical/Patients`, enables global search, and renders `PatientsGrid`. | Page has no dedicated patient filter model beyond global search. |
+| PatientsGrid | Inherits ProjectsGrid, loads Sea projects, maps them to patients, groups by surgery-date presence, and supports a mass-edit mode for bulk patient updates. | Add status, duplicate-risk, linked-user, demographic, and clinical-data filters without hard-coding service internals into the grid. |
+| `PatientEditForm` | Creates/updates a patient-backed project; handles avatar, demographics, clinical notes, linked user, and extended clinical data. | Validation only enforces a non-empty composed name; add duplicate checks, stronger required-field validation, and status controls before saving. |
+| `PatientDetails` / `ProjectDetails` | Displays patient metadata and delegates edit/delete actions to Sea project behavior. | Clarify archive versus delete; introduce patient-specific status and audit-friendly removal semantics. |
+| `PatientReadDto` / `PatientWriteDto` | Medical metadata wrappers over Sea project DTOs. | Add one source-of-truth patient status and duplicate-match fields/normalization strategy. |
+
+### Patient procedures
+
+| Component / unit | Responsibility today | Issues needing attention |
+| --- | --- | --- |
+| `ProceduresGrid` | Lists procedures for `ProjectId`, sorts unread/new procedures first, and opens create dialog. | Cannot display provider, explicit status, cancellation state, or next clinical step because these fields are not modeled. |
+| `ProcedureCreateDialog` | Creates a procedure under the patient project and optionally copies template events, roles, and attachments. | Template copy is useful, but provider assignment and initial workflow status are absent from creation. |
+| `ProcedureDetails` / `ProcedureEditDialog` | Shows name/description and supports edit/delete. | Edit fields are too generic for medical procedures; delete should be complemented by cancel/close with reason. |
+| `EventsGrid`, `EventDetails`, `EventItemsTimeline` | Provide step/event history, commit state, role editing, and attachment timeline. | Event commits are not a substitute for procedure-level status; role editing is not clinical provider assignment. |
+
+### Patient appointments
+
+| Component / unit | Responsibility today | Issues needing attention |
+| --- | --- | --- |
+| `PatientAppointmentsPanel` | Requires a linked user, queries reservations by `ReservingPartyId`, lists reservation status badges, and opens booking/detail dialogs. | Split upcoming/history, add patient-specific filters, and replace implicit `UserIds.FirstOrDefault()` scheduling identity with an explicit model. |
+| `PatientAppointmentBookingDialog` | Lists active sessions and reserves the earliest future non-cancelled bookable occurrence. | Add slot/date selection, provider/room context, and clearer availability presentation before reservation creation. |
+| `ReservationDetail` / `ReservationDetailDialog` | Performs reservation status transitions and terminal-state display. | Add reschedule UI, cancellation/rejection reasons, and follow-up creation actions while keeping read detail separate from state changes. |
+| `ReservationFilters` / `ReservationsList` | Provides global reservation status filtering. | Extend filters for date range, patient, session, provider/room, and upcoming/history use cases. |
+
+### Patient overview
+
+| Component / unit | Responsibility today | Issues needing attention |
+| --- | --- | --- |
+| `PatientPage.razor` | Stacks details, procedures, appointments, and plugin sections as the current patient page. | Introduce a single overview read model rather than forcing the page to compose module-specific context. |
+| `PatientOverviewPanel` | Displays compact profile facts, stats, and linked user information. | Not currently the primary overview; expand it into a read-only summary for flags, next appointment, procedure statuses, and recent activity. |
+| `PatientSummaryCard` | Provides a small navigable patient card with surgery date and stats. | Add status/flag badges once patient status and risk flags exist. |
+| `IMedicalPatientSectionPlugin` / `IMedicalProcedureSectionPlugin` | Allows medical sections to extend patient/procedure pages. | Define stable ordered slots so extensions do not compete with safety-critical overview content. |
+
+## Cross-cutting technical recommendations
+
+1. Create patient-specific DTOs/view models for status, duplicate candidates, overview facts, and appointment scheduling identity instead of leaking Sea `Project` and Appointments `Reservation` details into every component.
+2. Keep read-only overview queries separate from state-changing commands: overview components should aggregate, while `PatientEditForm`, `ProcedureDetails`, and `ReservationDetail` should own mutations.
+3. Add validation and audit-friendly failure handling at the component boundary before service calls, then keep deeper service validation as the source of truth for concurrency/capacity rules.
+4. Prefer extension points around medical abstractions (`PatientOverviewSection`, `MedicalProcedureAssignment`, `PatientAppointmentSlot`) so future clinical fields do not require rewriting stable Sea/Appointments components.

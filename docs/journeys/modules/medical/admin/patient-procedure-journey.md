@@ -94,3 +94,21 @@
 - Separate procedure status from event history.
 - Keep notes close to the clinical step they describe.
 - Make assignment explicit, not inferred.
+
+## 6. Technical Detail Addendum
+
+### Current implementation touchpoints
+- `PatientPage.razor` embeds Sea `ProceduresGrid` below `PatientDetails`; created or clicked procedures navigate to `/Medical/Patients/{patientId}/{procedureId}`.
+- `ProceduresGrid` queries `IProceduresService.GetListAsync` with `ProcedureDescriptorDto.ProjectId`, sorts unread/new procedures first, and opens `ProcedureCreateDialog` for admin users.
+- `ProcedureCreateDialog` can copy a template procedure by duplicating event chain entries, event role assignments, and attachments into the new patient procedure.
+- `PatientProcedurePage.razor` renders `EventsGrid` and `ProcedureDetails`; `ProcedureDetails` exposes edit and delete actions through `ProcedureEditDialog` and `ProceduresService.DeleteAsync`.
+- PatientEventPage.razor renders EventDetails plus EventItemsTimeline; EventDetails checks write permissions, commits/uncommits events through EventsService, and writes a text attachment noting the change.
+- `EventItemsTimeline` renders attachment/activity items and delegates new timeline content to `EventItemsInput` plugin slots when the current user can write the event.
+
+### Issues to address
+- `ProcedureReadDto`/`ProcedureWriteDto` are used as generic Sea procedure records and do not include medical-specific provider, room, planned date, procedure status, cancellation reason, or clinical owner fields.
+- `ProceduresGrid` labels each procedure and shows aggregate stats, but it cannot show assigned provider, status, cancellation state, next step, or overdue risk because those values are not modeled.
+- Procedure status is inferred from event commits and stats. Add an explicit procedure workflow state machine independent from event history, while keeping event commits as auditable step-level facts.
+- `ProcedureDetails.DeleteProcedure()` permanently removes the procedure from the user journey; add a cancel/close action with a reason and timestamp for stopped clinical work.
+- Event role editing in `EventDetails` is authorization/access management, not provider assignment. Provider assignment should be a medical abstraction rather than leaking Sea role semantics into clinical scheduling.
+- `ProcedureEditDialog` supports only name and description. Add structured fields through a medical procedure wrapper or extension plugin so future fields do not require rewriting Sea procedure components.

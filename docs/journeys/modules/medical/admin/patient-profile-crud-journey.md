@@ -94,3 +94,19 @@
 - Prevent bad records before they are saved.
 - Keep the form short but extensible.
 - Make patient state visible everywhere.
+
+## 6. Technical Detail Addendum
+
+### Current implementation touchpoints
+- `PatientsPage.razor` owns the `/Medical/Patients` route and enables the global navigation search before rendering `PatientsGrid`.
+- `PatientsGrid` inherits `ProjectsGrid`, loads `ProjectReadDto` records through `IAccessControlledProjectsService.GetListAsync`, maps them to `PatientReadDto`, then splits the list into `projectsViaSurgeryData` and `projectsLackSurgeryData`.
+- `PatientNewPage.razor` and `PatientEditPage.razor` both render `PatientEditForm`; `PatientEditForm` inherits `ProjectEditForm`, composes `Name` from `FirstName` and `LastName`, and calls `ProjectsService.AddAsync` or `ProjectsService.UpdateAsync`.
+- `PatientDetails` inherits `ProjectDetails`, displays patient metadata from `PatientReadDto`, and delegates deletion to the base `ProjectDetails.DeleteProject()` strict-confirm flow.
+- PatientWriteDto and PatientReadDto store medical fields as typed metadata on top of Sea ProjectWriteDto/ProjectReadDto; the mapper uses ModelMapper and includes fallback logic to map the base project name to the patient's last name.
+
+### Issues to address
+- `PatientEditForm.SaveAsync()` only blocks an empty composed name; it should validate date of birth, contact fields, linked user selection rules, and clinically required fields before calling the Sea project service.
+- Duplicate detection is absent in the patient save flow. Add a read-only duplicate-candidate query before mutation, ideally matching normalized name plus date of birth and/or phone/email/linked user.
+- Patient status is not represented in `PatientReadDto`/`PatientWriteDto`; add one source-of-truth status field (for example `Active`, `Inactive`, `Archived`) before adding UI filters or badges.
+- `PatientsGrid` only filters through global search and surgery-date grouping. Add explicit filter state for status, linked user, demographics, date-of-birth range, and missing clinical data without coupling grid rendering to service-specific query details.
+- Deletion currently removes the underlying project; if the product means archive, introduce a patient archive/status action rather than overloading `ProjectDetails.DeleteProject()`.
