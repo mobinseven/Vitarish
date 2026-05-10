@@ -1,5 +1,6 @@
 using Finbuckle.MultiTenant;
 using MediatR;
+using Vitarish.Audit.Server;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Apps.Aggregator;
@@ -40,6 +41,7 @@ void configureSqlServer(DbContextOptionsBuilder options)
 }
 
 _ = builder.Services.AddScoped<ITenantService, TenantService>();
+_ = builder.Services.AddAuditInfrastructure(configureSqlServer);
 
 await builder.RegisterApps(configureSqlServer);
 await builder.RegisterModules(configureSqlServer);
@@ -136,6 +138,7 @@ _ = await app.MigrateDatabaseAsync<PartiesDbContext>();
 _ = await app.MigrateDatabaseAsync<FilesDbContext>();
 _ = await app.MigrateDatabaseAsync<RemindersDbContext>();
 _ = await app.MigrateDatabaseAsync<SeaDbContext>();
+_ = await app.MigrateDatabaseAsync<AuditDbContext>();
 _ = await app.MigrateDatabaseAsync<AppointmentsDbContext>();
 _ = await app.MigrateDatabaseAsync<CalendarDbContext>();
 _ = await app.MigrateDatabaseAsync<CommerceDbContext>();

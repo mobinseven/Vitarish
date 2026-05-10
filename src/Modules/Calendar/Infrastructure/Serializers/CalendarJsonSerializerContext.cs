@@ -19,7 +19,6 @@ namespace Vitarish.Calendar.Infrastructure.Serializers;
 [JsonSerializable(typeof(OccurrenceProjectionDescriptorDto))]
 [JsonSerializable(typeof(CalendarSyncLedgerReadDto))]
 [JsonSerializable(typeof(CalendarSyncLedgerDescriptorDto))]
-[JsonSerializable(typeof(CalendarAuditEntryReadDto))]
 [JsonSerializable(typeof(CalendarViewDto))]
 [JsonSerializable(typeof(CalendarEventViewDto))]
 public partial class CalendarJsonSerializerContext : JsonSerializerContext;

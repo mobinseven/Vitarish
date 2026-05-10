@@ -34,7 +34,6 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
     public DbSet<SessionOccurrence> SessionOccurrences => Set<SessionOccurrence>();
     public DbSet<Reservation> Reservations => Set<Reservation>();
     public DbSet<BookingPolicy> BookingPolicies => Set<BookingPolicy>();
-    public DbSet<AppointmentAuditEntry> AuditEntries => Set<AppointmentAuditEntry>();
     public DbSet<SessionReminderPolicy> SessionReminderPolicies => Set<SessionReminderPolicy>();
 
     public AppointmentsDbContext(
@@ -75,7 +74,6 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
         ConfigureTenantEntity<SessionOccurrence>(modelBuilder);
         ConfigureTenantEntity<Reservation>(modelBuilder);
         ConfigureTenantEntity<BookingPolicy>(modelBuilder);
-        ConfigureTenantEntity<AppointmentAuditEntry>(modelBuilder);
         ConfigureTenantEntity<SessionReminderPolicy>(modelBuilder);
 
         _ = modelBuilder.Entity<SessionOccurrence>(entity =>

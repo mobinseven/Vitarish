@@ -20,4 +20,3 @@ public class Receipt : Entity
         _objectId = objectId;
     }
 }
-

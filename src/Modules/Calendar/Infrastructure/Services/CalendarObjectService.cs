@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Logging;
+using Vitarish.Audit.Application;
+using Vitarish.Audit.Domain;
 using Vitarish.Calendar.Application.Events;
 using Vitarish.Calendar.Infrastructure.Helpers;
 using Vitarish.Calendar.Infrastructure.Repositories;
@@ -13,7 +15,7 @@ namespace Vitarish.Calendar.Infrastructure.Services;
 internal class CalendarObjectService(
     IEntityRepository<CalendarObjectMapping, CalendarObjectMappingDescriptor> mappingRepository,
     IEntityRepository<DomainCalendarRecord, DomainCalendarRecordDescriptor> recordRepository,
-    IEntityRepository<CalendarAuditEntry, CalendarAuditEntryDescriptor> auditRepository,
+    IAuditWriter auditWriter,
     IEntityRepository<CalendarAccount, CalendarAccountDescriptor> accountRepository,
     IRadicaleAdapter radicaleAdapter,
     ICalendarHelper calendarHelper,
@@ -251,17 +253,19 @@ internal class CalendarObjectService(
         string? newValue,
         CancellationToken ct)
     {
-        CalendarAuditEntry entry = new()
+        AuditEntry entry = new()
         {
-            ObjectMappingId = objectMappingId,
-            AccountId = accountId,
-            Action = action,
-            PerformedBy = requestContext.UserId ?? string.Empty,
-            PerformedAt = DateTimeOffset.UtcNow,
-            OldValue = oldValue,
-            NewValue = newValue
+            Id = Guid.NewGuid(),
+            Action = action.ToString(),
+            ActorId = requestContext.UserId,
+            EntityType = nameof(CalendarObjectMapping),
+            EntityId = objectMappingId,
+            SnapshotBefore = oldValue,
+            SnapshotAfter = newValue,
+            OccurredAt = DateTimeOffset.UtcNow,
+            TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.")
         };
 
-        await auditRepository.AddAsync(entry, ct);
+        await auditWriter.WriteAsync(entry, ct);
     }
 }

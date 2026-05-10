@@ -37,7 +37,6 @@ public class CalendarDbContext : DbContext, IMultiTenantDbContext
     public DbSet<AvailabilityPolicy> AvailabilityPolicies => Set<AvailabilityPolicy>();
     public DbSet<OccurrenceProjection> OccurrenceProjections => Set<OccurrenceProjection>();
     public DbSet<CalendarSyncLedger> CalendarSyncLedgers => Set<CalendarSyncLedger>();
-    public DbSet<CalendarAuditEntry> CalendarAuditEntries => Set<CalendarAuditEntry>();
 
     public CalendarDbContext(
         DbContextOptions<CalendarDbContext> options,
@@ -80,7 +79,6 @@ public class CalendarDbContext : DbContext, IMultiTenantDbContext
         ConfigureTenantEntity<AvailabilityPolicy>(modelBuilder);
         ConfigureTenantEntity<OccurrenceProjection>(modelBuilder);
         ConfigureTenantEntity<CalendarSyncLedger>(modelBuilder);
-        ConfigureTenantEntity<CalendarAuditEntry>(modelBuilder);
 
         _ = modelBuilder.Entity<DomainCalendarRecord>(entity =>
         {
