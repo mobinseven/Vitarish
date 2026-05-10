@@ -102,7 +102,7 @@
 - `ProceduresGrid` queries `IProceduresService.GetListAsync` with `ProcedureDescriptorDto.ProjectId`, sorts unread/new procedures first, and opens `ProcedureCreateDialog` for admin users.
 - `ProcedureCreateDialog` can copy a template procedure by duplicating event chain entries, event role assignments, and attachments into the new patient procedure.
 - `PatientProcedurePage.razor` renders `EventsGrid` and `ProcedureDetails`; `ProcedureDetails` exposes edit and delete actions through `ProcedureEditDialog` and `ProceduresService.DeleteAsync`.
-- `PatientEventPage.razor` renders `EventDetails` plus `EventItemsTimeline`; `EventDetails` commits/uncommits events through `EventsService.CommitAsync`/`UncommitAsync` and writes a text attachment noting the change.
+- PatientEventPage.razor renders EventDetails plus EventItemsTimeline; EventDetails checks write permissions, commits/uncommits events through EventsService, and writes a text attachment noting the change.
 - `EventItemsTimeline` renders attachment/activity items and delegates new timeline content to `EventItemsInput` plugin slots when the current user can write the event.
 
 ### Issues to address
