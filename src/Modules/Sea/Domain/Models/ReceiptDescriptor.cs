@@ -8,4 +8,3 @@ public record ReceiptDescriptor : EntityDescriptor
     public Guid? EventId { get; init; }
     public Guid? ObjectId { get; init; }
 }
-

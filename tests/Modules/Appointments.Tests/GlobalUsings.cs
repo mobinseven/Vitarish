@@ -1,6 +1,8 @@
 global using System.Security.Claims;
 global using FluentAssertions;
 global using Moq;
+global using Vitarish.Audit.Application;
+global using Vitarish.Audit.Domain;
 global using Vitarish.Appointments.Application.Abstractions;
 global using Vitarish.Appointments.Application.Events;
 global using Vitarish.Appointments.Domain.Dto;

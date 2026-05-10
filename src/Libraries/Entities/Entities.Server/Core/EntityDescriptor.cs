@@ -16,4 +16,3 @@ public record EntityDescriptor
     public DateTimeOffset? DeletedTo { get; init; }
     public string? DeletedBy { get; init; }
 }
-

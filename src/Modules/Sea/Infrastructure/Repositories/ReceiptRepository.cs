@@ -45,4 +45,3 @@ internal class ReceiptRepository(SeaDbContext dbContext)
 
     protected override bool IsDuplicateKeyException(DbUpdateException exception) => false;
 }
-

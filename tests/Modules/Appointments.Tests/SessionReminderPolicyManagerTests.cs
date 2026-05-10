@@ -3,14 +3,14 @@ namespace Appointments.Tests;
 public class SessionReminderPolicyManagerTests
 {
     private readonly Mock<ISessionReminderPolicyRepository> _repository = new();
-    private readonly Mock<IAuditLogger> _auditLogger = new();
+    private readonly Mock<IAuditWriter> _auditWriter = new();
     private readonly Mock<IRequestContext> _requestContext = new();
 
     private SessionReminderPolicyManager CreateSut()
     {
         _requestContext.SetupGet(x => x.UserId).Returns("user-1");
         _requestContext.SetupGet(x => x.TenantId).Returns("tenant-a");
-        return new SessionReminderPolicyManager(_repository.Object, _auditLogger.Object, _requestContext.Object);
+        return new SessionReminderPolicyManager(_repository.Object, _auditWriter.Object, _requestContext.Object);
     }
 
     [Fact]
@@ -98,7 +98,7 @@ public class SessionReminderPolicyManagerTests
 
         result.IsSuccess.Should().BeTrue();
         _repository.Verify(r => r.AddAsync(It.IsAny<SessionReminderPolicy>(), It.IsAny<CancellationToken>()), Times.Once);
-        _auditLogger.Verify(a => a.LogAsync(It.Is<AppointmentAuditEntry>(e => e.Action == "Created"), It.IsAny<CancellationToken>()), Times.Once);
+        _auditWriter.Verify(a => a.WriteAsync(It.Is<AuditEntry>(e => e.Action == "Created"), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
@@ -126,7 +126,7 @@ public class SessionReminderPolicyManagerTests
         var result = await sut.RemovePolicyAsync(existing.Id, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        _auditLogger.Verify(a => a.LogAsync(It.Is<AppointmentAuditEntry>(e => e.Action == "Removed"), It.IsAny<CancellationToken>()), Times.Once);
+        _auditWriter.Verify(a => a.WriteAsync(It.Is<AuditEntry>(e => e.Action == "Removed"), It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private static SessionReminderPolicyWriteDto ValidDto() => new()

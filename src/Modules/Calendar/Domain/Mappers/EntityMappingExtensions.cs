@@ -42,7 +42,4 @@ public static partial class EntityMappingExtensions
     // CalendarSyncLedger (read-only)
     public static global::Vitarish.Calendar.Domain.Dto.CalendarSyncLedgerReadDto ToDto(this global::Vitarish.Calendar.Domain.Entities.CalendarSyncLedger entity) => Mapper.ToDto(entity);
     public static global::Vitarish.Calendar.Domain.Models.CalendarSyncLedgerDescriptor ToDomain(this global::Vitarish.Calendar.Domain.Dto.CalendarSyncLedgerDescriptorDto dto) => Mapper.ToDomain(dto);
-
-    // CalendarAuditEntry (append-only)
-    public static global::Vitarish.Calendar.Domain.Dto.CalendarAuditEntryReadDto ToDto(this global::Vitarish.Calendar.Domain.Entities.CalendarAuditEntry entity) => Mapper.ToDto(entity);
 }

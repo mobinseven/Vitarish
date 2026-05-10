@@ -1,11 +1,13 @@
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Audit.Application;
+using Vitarish.Audit.Domain;
 
 namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
 internal class SessionReminderPolicyManager(
     ISessionReminderPolicyRepository repository,
-    IAuditLogger auditLogger,
+    IAuditWriter auditWriter,
     IRequestContext requestContext) : ISessionReminderPolicyManager
 {
     private const string PolicyEntityType = nameof(SessionReminderPolicy);
@@ -33,13 +35,14 @@ internal class SessionReminderPolicyManager(
 
         SessionReminderPolicy created = await repository.AddAsync(policy, cancellationToken);
 
-        await auditLogger.LogAsync(new AppointmentAuditEntry
+        await auditWriter.WriteAsync(new AuditEntry
         {
             Action = "Created",
             ActorId = requestContext.UserId,
             EntityType = PolicyEntityType,
             EntityId = created.Id,
-            OccurredAt = DateTimeOffset.UtcNow
+            OccurredAt = DateTimeOffset.UtcNow,
+            TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.")
         }, cancellationToken);
 
         return EntityResult<SessionReminderPolicyReadDto>.Success(created.ToDto());
@@ -71,13 +74,14 @@ internal class SessionReminderPolicyManager(
 
         SessionReminderPolicy updated = await repository.UpdateAsync(existing, cancellationToken);
 
-        await auditLogger.LogAsync(new AppointmentAuditEntry
+        await auditWriter.WriteAsync(new AuditEntry
         {
             Action = "Updated",
             ActorId = requestContext.UserId,
             EntityType = PolicyEntityType,
             EntityId = updated.Id,
-            OccurredAt = DateTimeOffset.UtcNow
+            OccurredAt = DateTimeOffset.UtcNow,
+            TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.")
         }, cancellationToken);
 
         return EntityResult<SessionReminderPolicyReadDto>.Success(updated.ToDto());
@@ -93,13 +97,14 @@ internal class SessionReminderPolicyManager(
 
         await repository.RemoveAsync(existing, cancellationToken);
 
-        await auditLogger.LogAsync(new AppointmentAuditEntry
+        await auditWriter.WriteAsync(new AuditEntry
         {
             Action = "Removed",
             ActorId = requestContext.UserId,
             EntityType = PolicyEntityType,
             EntityId = policyId,
-            OccurredAt = DateTimeOffset.UtcNow
+            OccurredAt = DateTimeOffset.UtcNow,
+            TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.")
         }, cancellationToken);
 
         return EntityResult.Success();
