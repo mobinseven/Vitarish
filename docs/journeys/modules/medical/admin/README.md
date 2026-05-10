@@ -105,7 +105,7 @@ The maps below are intentionally short. Current-state maps document implemented 
 | Component / unit | Responsibility today | Issues needing attention |
 | --- | --- | --- |
 | `PatientsPage.razor` | Hosts `/Medical/Patients`, enables global search, and renders `PatientsGrid`. | Page has no dedicated patient filter model beyond global search. |
-| `PatientsGrid` | Inherits `ProjectsGrid`, loads Sea projects, maps them to patients, and groups by surgery-date presence. | Add status, duplicate-risk, linked-user, demographic, and clinical-data filters without hard-coding service internals into the grid. |
+| PatientsGrid | Inherits ProjectsGrid, loads Sea projects, maps them to patients, groups by surgery-date presence, and supports a mass-edit mode for bulk patient updates. | Add status, duplicate-risk, linked-user, demographic, and clinical-data filters without hard-coding service internals into the grid. |
 | `PatientEditForm` | Creates/updates a patient-backed project; handles avatar, demographics, clinical notes, linked user, and extended clinical data. | Validation only enforces a non-empty composed name; add duplicate checks, stronger required-field validation, and status controls before saving. |
 | `PatientDetails` / `ProjectDetails` | Displays patient metadata and delegates edit/delete actions to Sea project behavior. | Clarify archive versus delete; introduce patient-specific status and audit-friendly removal semantics. |
 | `PatientReadDto` / `PatientWriteDto` | Medical metadata wrappers over Sea project DTOs. | Add one source-of-truth patient status and duplicate-match fields/normalization strategy. |
