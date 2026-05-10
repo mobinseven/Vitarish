@@ -1,0 +1,38 @@
+@page "/Admin/Clinical/Policies"
+@inherits AdminCommonBase
+@using Vitarish.Clinical.Interface.Components
+@using Vitarish.Clinical.Domain.Models
+
+<MudStack>
+    <MudText Typo="Typo.h5">Workflow Policies</MudText>
+
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" />
+    }
+    else
+    {
+        <MudTable Items="@_policies" Dense="true" Hover="true">
+            <HeaderContent>
+                <MudTh>Visit Type</MudTh>
+                <MudTh>Active</MudTh>
+                <MudTh>Effective From</MudTh>
+                <MudTh>Effective To</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.VisitType</MudTd>
+                <MudTd>
+                    <MudChip T="string" Color="@(context.IsActive ? Color.Success : Color.Default)" Size="Size.Small">
+                        @(context.IsActive ? "Active" : "Inactive")
+                    </MudChip>
+                </MudTd>
+                <MudTd>@context.EffectiveFrom.ToLocalTime().ToString("yyyy-MM-dd")</MudTd>
+                <MudTd>@(context.EffectiveTo.HasValue ? context.EffectiveTo.Value.ToLocalTime().ToString("yyyy-MM-dd") : "-")</MudTd>
+                <MudTd>
+                    <MudButton Size="Size.Small" OnClick="@(() => EditPolicyAsync(context))">Edit</MudButton>
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+</MudStack>

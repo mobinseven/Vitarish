@@ -1,0 +1,34 @@
+@inherits CommonBase
+
+<Stack>
+    <MudTextField @bind-Value="_searchTerm"
+                  Label="@Localizer["SearchByNameDobOrId"]"
+                  Adornment="Adornment.End"
+                  AdornmentIcon="fa-regular fa-search"
+                  OnAdornmentClick="SearchAsync"
+                  OnKeyUp="OnKeyUp" />
+    @if (_loading)
+    {
+        <MudProgressLinear Indeterminate="true" />
+    }
+    else if (_results.Count > 0)
+    {
+        <MudList T="VisitWorkflowReadDto">
+            @foreach (VisitWorkflowReadDto workflow in _results)
+            {
+                <MudListItem OnClick="@(() => OnSelected.InvokeAsync(workflow))">
+                    <ChildContent>
+                        <Stack Row="true">
+                            <StackButton Label="@workflow.PatientFhirReference" />
+                            <WorkflowStatusBadge Status="@workflow.Status" />
+                        </Stack>
+                    </ChildContent>
+                </MudListItem>
+            }
+        </MudList>
+    }
+    else if (_searched)
+    {
+        <StackButton Label="@Localizer["NoResultsFound"]" Disabled="true" />
+    }
+</Stack>

@@ -1,0 +1,29 @@
+@inherits CommonBase
+
+<MudDialog>
+    <DialogContent>
+        <Stack>
+            <StackTextField Label="@Localizer["DiagnosisCode"]" @bind-Value="_code" Required="true" />
+            <StackTextField Label="@Localizer["CodeSystem"]" @bind-Value="_codeSystem" Required="true" />
+            <StackTextField Label="@Localizer["DisplayText"]" @bind-Value="_displayText" />
+            <StackTextField Label="@Localizer["ClinicalStatus"]" @bind-Value="_clinicalStatus" />
+            <StackTextField Label="@Localizer["Notes"]" @bind-Value="_notes" />
+            @if (!string.IsNullOrWhiteSpace(_errorMessage))
+            {
+                <StackField Label="@_errorMessage" HelperText="@Localizer["Error"]" Color="Color.Error" />
+            }
+        </Stack>
+    </DialogContent>
+    <DialogActions>
+        <Stack>
+            <StackButton Color="Color.Primary"
+                         Label="@Localizer["AddDiagnosis"]"
+                         EndIcon="fa-regular fa-file-medical"
+                         Disabled="@_saving"
+                         OnClick="SaveAsync" />
+            <StackButton Label="@Localizer["Cancel"]"
+                         EndIcon="fa-regular fa-xmark"
+                         OnClick="Cancel" />
+        </Stack>
+    </DialogActions>
+</MudDialog>

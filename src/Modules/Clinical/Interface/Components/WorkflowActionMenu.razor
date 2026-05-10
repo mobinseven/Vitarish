@@ -1,0 +1,70 @@
+@inherits CommonBase
+
+<Stack>
+    @if (_items.Count == 0)
+    {
+        <StackButton Label="@Localizer["NoActionsAvailable"]" Disabled="true" />
+    }
+    else
+    {
+        @foreach ((ClinicalActionType action, string label, string icon) in _items)
+        {
+            <StackButton Label="@label"
+                         EndIcon="@icon"
+                         OnClick="@(() => OnAction.InvokeAsync(action))" />
+        }
+    }
+</Stack>
+
+@code {
+    [Parameter, EditorRequired] public VisitWorkflowStatus CurrentStatus { get; set; }
+    [Parameter] public IReadOnlyList<string> ActorRoles { get; set; } = [];
+    [Parameter] public WorkflowPolicyDefinition? Policy { get; set; }
+    [Parameter] public EventCallback<ClinicalActionType> OnAction { get; set; }
+
+    private List<(ClinicalActionType Action, string Label, string Icon)> _items = [];
+
+    protected override void OnParametersSet()
+    {
+        _items = BuildActions();
+    }
+
+    private List<(ClinicalActionType, string, string)> BuildActions()
+    {
+        List<(ClinicalActionType, string, string)> result = [];
+
+        if (CurrentStatus == VisitWorkflowStatus.Draft)
+        {
+            result.Add((ClinicalActionType.CheckInPatient, Localizer["CheckIn"], "fa-regular fa-arrow-right-to-city"));
+        }
+
+        if (CurrentStatus == VisitWorkflowStatus.CheckedIn)
+        {
+            result.Add((ClinicalActionType.RecordVitals, Localizer["RecordVitals"], "fa-regular fa-heart-pulse"));
+        }
+
+        if (CurrentStatus is VisitWorkflowStatus.CheckedIn or VisitWorkflowStatus.InTriage)
+        {
+            result.Add((ClinicalActionType.StartEncounter, Localizer["StartEncounter"], "fa-regular fa-stethoscope"));
+        }
+
+        if (CurrentStatus is VisitWorkflowStatus.InProgress)
+        {
+            result.Add((ClinicalActionType.AddDiagnosis, Localizer["AddDiagnosis"], "fa-regular fa-file-medical"));
+            result.Add((ClinicalActionType.AddMedicationRequest, Localizer["AddMedication"], "fa-regular fa-pills"));
+            result.Add((ClinicalActionType.AddClinicalNote, Localizer["AddNote"], "fa-regular fa-pen-to-square"));
+        }
+
+        if (CurrentStatus is VisitWorkflowStatus.InProgress or VisitWorkflowStatus.Signed)
+        {
+            result.Add((ClinicalActionType.CompleteVisit, Localizer["CompleteVisit"], "fa-regular fa-circle-check"));
+        }
+
+        if (CurrentStatus is not VisitWorkflowStatus.Completed and not VisitWorkflowStatus.Cancelled)
+        {
+            result.Add((ClinicalActionType.CancelVisit, Localizer["CancelVisit"], "fa-regular fa-xmark"));
+        }
+
+        return result;
+    }
+}
