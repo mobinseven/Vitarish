@@ -1,6 +1,6 @@
 @inherits SessionsBase
 
-@if (occurrences.Count == 0)
+@if(occurrences.Count == 0)
 {
     <Stack>
         <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["SessionOccurrence"]]" HelperText="@Localizer["NoItemsHelp", Localizer["SessionOccurrence"]]" EndIcon="fa-regular fa-refresh">
@@ -10,18 +10,22 @@
 }
 else
 {
-    <Stack>
-        @foreach (var occurrence in occurrences)
+@*     <Stack>
+        @foreach(var occurrence in occurrences)
         {
             <StackButton OnClick="() => OnClicked.InvokeAsync(occurrence.Date)"
                          Label="@($"{occurrence.Date:d} {occurrence.StartTime:t}–{occurrence.EndTime:t}")"
                          HelperText="@($"{Localizer["Capacity"]}: {occurrence.Capacity} · {Localizer["Count", Localizer["Reservations"]]}: {occurrence.Stats.ReservationCount}")"
                          Disabled="@occurrence.IsCancelled">
-                @if (occurrence.IsCancelled)
+                @if(occurrence.IsCancelled)
                 {
                     <MudChip T="string" Color="Color.Error" Size="Size.Small">@Localizer["Cancelled"]</MudChip>
                 }
             </StackButton>
         }
+    </Stack> *@
+
+    <Stack>
+        <StackCalendar TItem="SessionOccurrenceReadDto" Items="occurrences" ItemDateOnly="i => i.Date" ItemText="i => i.SessionId.ToString()" OnItemSelected="i => OnClicked.InvokeAsync(i.Date)" />
     </Stack>
 }

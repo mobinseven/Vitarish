@@ -1,0 +1,36 @@
+@inherits CommonBase
+@typeparam TItem
+
+@using MudBlazor
+
+<MudDialog Class="stack-calendar-dialog">
+    <DialogContent>
+        <Stack>
+            @foreach(var item in Items)
+            {
+                <StackButton OnClick="@(() => Select(item))" Label="@GetText(item)" />
+            }
+        </Stack>
+        <Stack>
+            <StackButton EndIcon="fa-regular fa-xmark" OnClick="MudDialog.Cancel" Label="@Localizer["Cancel"]" />
+        </Stack>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter] public DateTime Day { get; set; }
+
+    [Parameter] public IReadOnlyList<TItem> Items { get; set; } = Array.Empty<TItem>();
+
+    [Parameter] public Func<TItem, string>? ItemText { get; set; }
+
+    private string GetText(TItem item) =>
+        ItemText?.Invoke(item) ?? item?.ToString() ?? string.Empty;
+
+    private void Select(TItem item)
+    {
+        MudDialog.Close(DialogResult.Ok(item));
+    }
+}

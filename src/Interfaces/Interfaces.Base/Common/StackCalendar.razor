@@ -1,0 +1,228 @@
+@typeparam TItem
+@inherits MudDatePicker
+
+@using System.Reflection
+@using MudBlazor
+@inject IDialogService DialogService
+
+<div class="stack-item">
+    <MudDatePicker Class="@CalendarClass"
+                   PickerVariant="PickerVariant.Static"
+                   Variant="Variant.Outlined"
+                   Underline="false"
+                   MaxDate="@MaxDate"
+                   MinDate="@MinDate"
+                   MaxMonthColumns="2"
+                   Date="@Date"
+                   DateChanged="@HandleDateChanged"
+                   Color="@Color"
+                   DisplayMonths="@DisplayMonths"
+                   FirstDayOfWeek="@firstDow"
+                   Elevation="0"
+                   AdditionalDateClassesFunc="@BuildDateClasses"
+                   IsDateDisabledFunc="@IsDateDisabledFunc" />
+</div>
+@code {
+    [Parameter] public IEnumerable<TItem>? Items { get; set; }
+
+    // Optional. Only needed if your item date is not named Date, Start, StartDate, OccursOn, or OccurrenceDate.
+    [Parameter] public Func<TItem, DateTime?>? ItemDate { get; set; }
+
+    [Parameter] public Func<TItem, DateOnly?>? ItemDateOnly { get; set; }
+
+    // Optional. Used in the tiny selector dialog.
+    [Parameter] public Func<TItem, string>? ItemText { get; set; }
+
+    [Parameter] public EventCallback<TItem> OnItemSelected { get; set; }
+
+    // Default: one item = select immediately; many items = open selector.
+    [Parameter] public bool OpenSelectorForSingleItem { get; set; }
+
+    private readonly string[] _datePropertyNames =
+    [
+        "Date",
+        "Start",
+        "StartDate",
+        "OccursOn",
+        "OccurrenceDate"
+    ];
+
+    private readonly string[] _textPropertyNames =
+    [
+        "Title",
+        "Name",
+        "Label",
+        "Description"
+    ];
+
+    private Dictionary<DateTime, List<TItem>> _itemsByDate = new();
+
+    private DayOfWeek firstDow =>
+        FirstDayOfWeek is null ? DayOfWeek.Saturday : FirstDayOfWeek.Value;
+
+    private string CalendarClass =>
+        string.Join(" ", new[] { Class }.Where(x => !string.IsNullOrWhiteSpace(x)));
+
+    protected override void OnParametersSet()
+    {
+        var grouped = new Dictionary<DateTime, List<TItem>>();
+
+        if(Items is not null)
+        {
+            foreach(var item in Items)
+            {
+                var date = ResolveItemDate(item)?.Date;
+                if(date is null)
+                    continue;
+
+                if(!grouped.TryGetValue(date.Value, out var list))
+                {
+                    list = new List<TItem>();
+                    grouped[date.Value] = list;
+                }
+
+                list.Add(item);
+            }
+        }
+
+        _itemsByDate = grouped;
+    }
+
+    private string BuildDateClasses(DateTime date)
+    {
+        var classes = new List<string>();
+
+        // Preserve classes passed by consumers of StackCalendar.
+        var userClasses = AdditionalDateClassesFunc?.Invoke(date);
+        if(!string.IsNullOrWhiteSpace(userClasses))
+            classes.Add(userClasses);
+
+        if(_itemsByDate.TryGetValue(date.Date, out var items))
+        {
+            classes.Add("stack-cal-has-items");
+            classes.Add(items.Count > 1 ? "stack-cal-has-many" : "stack-cal-has-one");
+        }
+
+        return string.Join(" ", classes);
+    }
+
+    private async Task HandleDateChanged(DateTime? date)
+    {
+        await DateChanged.InvokeAsync(date);
+
+        if(date is null)
+            return;
+
+        if(!_itemsByDate.TryGetValue(date.Value.Date, out var matches) || matches.Count == 0)
+            return;
+
+        if(matches.Count == 1 && !OpenSelectorForSingleItem)
+        {
+            await SelectItem(matches[0]);
+            return;
+        }
+
+        await OpenItemSelector(date.Value.Date, matches);
+    }
+
+    private async Task OpenItemSelector(DateTime day, IReadOnlyList<TItem> matches)
+    {
+        var parameters = new DialogParameters
+        {
+            ["Day"] = day,
+            ["Items"] = matches,
+            ["ItemText"] = ItemText ?? DefaultItemText
+        };
+
+        var options = new DialogOptions
+        {
+            CloseButton = true,
+            CloseOnEscapeKey = true,
+            FullWidth = true,
+            MaxWidth = MudBlazor.MaxWidth.ExtraSmall
+        };
+
+        var dialog = await DialogService.ShowAsync<StackCalendarItemPicker<TItem>>(
+            $"{day:MMM d}",
+            parameters,
+            options);
+
+        var result = await dialog.Result;
+
+        if(result is not null && !result.Canceled && result.Data is TItem selected)
+            await SelectItem(selected);
+    }
+
+    private Task SelectItem(TItem item) =>
+        OnItemSelected.InvokeAsync(item);
+
+    private DateTime? ResolveItemDate(TItem item)
+    {
+        if(ItemDateOnly is not null)
+            return ItemDateOnly(item)?.ToDateTime(TimeOnly.MinValue);
+
+        if(ItemDate is not null)
+            return ItemDate(item);
+
+        if(item is null)
+            return null;
+
+        if(item is DateTime dt)
+            return dt.Date;
+
+        if(item is DateTimeOffset dto)
+            return dto.Date;
+
+        if(item is DateOnly dateOnly)
+            return dateOnly.ToDateTime(TimeOnly.MinValue);
+
+        var type = item.GetType();
+
+        foreach(var propertyName in _datePropertyNames)
+        {
+            var property = type.GetProperty(
+            propertyName,
+            BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+            if(property is null)
+                continue;
+
+            var value = property.GetValue(item);
+            var date = CoerceToDate(value);
+
+            if(date is not null)
+                return date.Value.Date;
+        }
+
+        return null;
+    }
+
+    private static DateTime? CoerceToDate(object? value) =>
+        value switch
+        {
+            DateTime dt => dt.Date,
+            DateTimeOffset dto => dto.Date,
+            DateOnly d => d.ToDateTime(TimeOnly.MinValue),
+            _ => null
+        };
+
+    private string DefaultItemText(TItem item)
+    {
+        if(item is null)
+            return string.Empty;
+
+        var type = item.GetType();
+
+        foreach(var propertyName in _textPropertyNames)
+        {
+            var property = type.GetProperty(
+                propertyName,
+                BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+
+            if(property?.GetValue(item) is string value && !string.IsNullOrWhiteSpace(value))
+                return value;
+        }
+
+        return item.ToString() ?? string.Empty;
+    }
+}

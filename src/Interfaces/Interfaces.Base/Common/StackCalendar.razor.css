@@ -1,0 +1,21 @@
+::deep .stack-cal-has-items {
+    position: relative;
+    font-weight: 600;
+    background: var(--mud-palette-primary);
+}
+
+    ::deep .stack-cal-has-items::after {
+        content: "";
+        position: absolute;
+        left: 50%;
+        bottom: 4px;
+        width: 6px;
+        height: 6px;
+        border-radius: 999px;
+        transform: translateX(-50%);
+        background: var(--mud-palette-primary);
+    }
+
+::deep .stack-cal-has-many::after {
+    width: 14px;
+}
