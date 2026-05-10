@@ -14,10 +14,15 @@
 
 ## 2. Persona Snapshot
 **Name / segment:** Scheduler
+
 **Situation:** Booking patients into available sessions.
+
 **Motivation:** Fill schedules without conflicts.
+
 **Key needs:** Book, cancel, status, search, reschedule.
+
 **Constraints:** Patient must be linked to a user; provider/room data is absent.
+
 **Success means:** The right patient has the right appointment at the right time.
 
 ## 3. Journey Summary
@@ -33,26 +38,44 @@
 
 ### Stage 1: Book
 **User goal:** Create an appointment for a patient.
+
 **User actions:** Open patient; click add appointment; select active session.
+
 **Touchpoints / channels:** Patient appointments panel; booking dialog.
+
 **User thoughts / questions:** “Which appointment slot is available?”
+
 **Emotions:** Confident, 3, if sessions exist; frustrated, 4, if user linkage is missing.
+
 **Pain points:** No explicit date picker; first bookable occurrence is chosen.
+
 **Needs:** Visible slot/date choice and clear capacity.
+
 **Opportunities:** Add date selection and room/provider context.
+
 **Success metrics:** Booking completion; booking errors; linked-user blockers.
+
 **Evidence:** Static code review assumption.
 
 ### Stage 2: Manage
 **User goal:** Update appointment state.
+
 **User actions:** Open appointment; confirm, mark present/completed, cancel/reject.
+
 **Touchpoints / channels:** Reservation detail dialog.
+
 **User thoughts / questions:** “Has the patient arrived?”
+
 **Emotions:** In control, 3, because status actions are clear.
+
 **Pain points:** Reschedule is not exposed in UI.
+
 **Needs:** Reschedule, follow-up, calendar/list toggle.
+
 **Opportunities:** Add edit/reschedule and follow-up action from details.
+
 **Success metrics:** Reschedule completion; cancellation rate; no-show workflow completion.
+
 **Evidence:** Static code review assumption.
 
 ## 5. Cross-Journey Insights

@@ -14,10 +14,15 @@
 
 ## 2. Persona Snapshot
 **Name / segment:** Clinician
+
 **Situation:** Documenting patient procedure progress.
+
 **Motivation:** Keep procedure history understandable.
+
 **Key needs:** Add procedure, update details, record events/notes.
+
 **Constraints:** No procedure provider assignment or cancel status.
+
 **Success means:** Team can see what happened and what is next.
 
 ## 3. Journey Summary
@@ -33,26 +38,44 @@
 
 ### Stage 1: Add or open procedure
 **User goal:** Select the procedure to work on.
+
 **User actions:** Open patient; add procedure or select existing procedure.
+
 **Touchpoints / channels:** Patient details; Procedures grid.
+
 **User thoughts / questions:** “Which procedure does this note belong to?”
+
 **Emotions:** Focused, 3, because the list is simple.
+
 **Pain points:** No provider/status at a glance.
+
 **Needs:** Clear ownership and status.
+
 **Opportunities:** Show procedure status and assigned provider in the list.
+
 **Success metrics:** Procedure selection errors; time to locate procedure.
+
 **Evidence:** Static code review assumption.
 
 ### Stage 2: Record history
 **User goal:** Document progress.
+
 **User actions:** Add/edit events; commit a step; add notes/attachments.
+
 **Touchpoints / channels:** Procedure page; event page; timeline.
+
 **User thoughts / questions:** “Is this step complete?”
+
 **Emotions:** Careful, 4, because clinical history matters.
+
 **Pain points:** Procedure-level cancellation is missing.
+
 **Needs:** Status, cancel reason, provider responsibility.
+
 **Opportunities:** Add a procedure workflow state machine.
+
 **Success metrics:** Completed procedure documentation; missing-note rate.
+
 **Evidence:** Static code review assumption.
 
 ## 5. Cross-Journey Insights

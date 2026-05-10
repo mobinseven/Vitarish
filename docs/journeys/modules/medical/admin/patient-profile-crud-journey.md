@@ -14,10 +14,15 @@
 
 ## 2. Persona Snapshot
 **Name / segment:** Clinic admin
+
 **Situation:** Managing patient records during daily operations.
+
 **Motivation:** Find and update patient information quickly.
+
 **Key needs:** Simple create, search, edit, delete.
+
 **Constraints:** Duplicate and active/inactive controls are absent.
+
 **Success means:** The correct patient record is current and reachable.
 
 ## 3. Journey Summary
@@ -33,26 +38,44 @@
 
 ### Stage 1: Find or start
 **User goal:** Locate an existing patient or start a new one.
+
 **User actions:** Open Patients; search; select Add Patient.
+
 **Touchpoints / channels:** Medical Patients page.
+
 **User thoughts / questions:** “Is this patient already here?”
+
 **Emotions:** Confident, 3, because search exists.
+
 **Pain points:** Limited filters; no duplicate hints.
+
 **Needs:** Search and clear empty states.
+
 **Opportunities:** Add filters and duplicate candidates.
+
 **Success metrics:** Search success rate; duplicate creation rate.
+
 **Evidence:** Static code review assumption.
 
 ### Stage 2: Save and maintain
 **User goal:** Create or update the patient safely.
+
 **User actions:** Enter demographics/clinical fields; save; edit; delete if needed.
+
 **Touchpoints / channels:** Patient edit form and details page.
+
 **User thoughts / questions:** “Did I enter enough information?”
+
 **Emotions:** Cautious, 3, because medical data must be accurate.
+
 **Pain points:** Required validation is minimal.
+
 **Needs:** Validation, status, audit-friendly deletion.
+
 **Opportunities:** Add active/inactive status and stronger validation.
+
 **Success metrics:** Save failures; missing required data; restoration requests.
+
 **Evidence:** Static code review assumption.
 
 ## 5. Cross-Journey Insights
