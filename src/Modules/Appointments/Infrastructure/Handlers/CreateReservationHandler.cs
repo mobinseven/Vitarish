@@ -1,5 +1,6 @@
 using Vitarish.Appointments.Application.Events;
 using Vitarish.Appointments.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Vitarish.Appointments.Infrastructure.Handlers;
 
