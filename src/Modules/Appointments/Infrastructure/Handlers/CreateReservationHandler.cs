@@ -65,19 +65,19 @@ internal class CreateReservationHandler(
                 }
                 catch (DbUpdateConcurrencyException)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     return EntityResult<(Reservation Reservation, SessionOccurrence Occurrence)>.Failure(EntityError.Concurrency("Reservation capacity changed while creating the reservation. Please try again."));
                 }
                 catch (DbUpdateException)
                 {
+                    await transaction.RollbackAsync(cancellationToken);
                     return EntityResult<(Reservation Reservation, SessionOccurrence Occurrence)>.Failure(EntityError.Conflict("Reservation could not be created because the booking state changed."));
                 }
             });
 
-        if (createResult.IsFailure || createResult.Value.Reservation is null || createResult.Value.Occurrence is null)
+        if (createResult.IsFailure)
         {
-            return createResult.IsFailure
-                ? EntityResult<Guid>.Failure([.. createResult.Errors])
-                : EntityResult<Guid>.Failure(EntityError.Conflict("Reservation could not be created."));
+            return EntityResult<Guid>.Failure([.. createResult.Errors]);
         }
 
         Reservation createdReservation = createResult.Value.Reservation;
