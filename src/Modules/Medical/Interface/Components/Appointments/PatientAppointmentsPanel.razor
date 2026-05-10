@@ -79,10 +79,10 @@
     {
         DialogParameters parameters = new()
         {
-            { nameof(AdminReservationDetailDialog.Reservation), reservation }
+            { nameof(ReservationDetailDialog.Reservation), reservation }
         };
 
-        IDialogReference dialog = await DialogService.ShowAsync<AdminReservationDetailDialog>(null, parameters);
+        IDialogReference dialog = await DialogService.ShowAsync<ReservationDetailDialog>(null, parameters);
         _ = await dialog.Result;
         await LoadAsync();
     }

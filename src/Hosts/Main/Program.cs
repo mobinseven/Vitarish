@@ -140,7 +140,7 @@ _ = await app.MigrateDatabaseAsync<RemindersDbContext>();
 _ = await app.MigrateDatabaseAsync<SeaDbContext>();
 _ = await app.MigrateDatabaseAsync<AuditDbContext>();
 _ = await app.MigrateDatabaseAsync<AppointmentsDbContext>();
-_ = await app.MigrateDatabaseAsync<CalendarDbContext>();
+//_ = await app.MigrateDatabaseAsync<CalendarDbContext>();
 _ = await app.MigrateDatabaseAsync<CommerceDbContext>();
 
 CookiePolicyOptions cookiePolicyOptions = new()

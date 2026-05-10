@@ -1,0 +1,24 @@
+@inherits ReservationsBase
+@foreach(var reservation in reservations)
+{
+    <StackExpandable Label="@GetUserFullNameById(reservation.ReservingPartyId)" >
+        <ReservationDetail Reservation="reservation" OnStatusChanged="ReloadRequired" OnDeleted="ReloadRequired" />
+    </StackExpandable>
+}
+@code {
+    [Parameter, EditorRequired] public SessionOccurrenceReadDto SessionOccurrence { get; set; }
+    protected List<ReservationReadDto> reservations = [];
+
+    protected override async Task ReloadRequired()
+    {
+        ReservationDescriptorDto descriptor = new()
+        {
+            SessionOccurrenceId = SessionOccurrence.Id
+        };
+
+        IReadOnlyList<ReservationReadDto> items = await ReservationManager.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        reservations = [.. items.OrderBy(r => r.Date).ThenBy(r => r.Occurrence?.StartTime)];
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

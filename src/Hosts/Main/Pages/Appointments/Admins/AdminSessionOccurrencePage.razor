@@ -1,0 +1,52 @@
+@page "/Admin/Sessions/{sessionId}/SessionOccurrence"
+@using Vitarish.Appointments.Domain.Models
+@if(sessionOccurrence is null)
+{
+    return;
+}
+<Stack>
+    <SessionOccurrenceDetails SessionOccurrence="sessionOccurrence" />
+    <StackButton Label="@Localizer["Back"]" OnClick="() => Back()" EndIcon="fa-regular fa-xmark" />
+</Stack>
+@code {
+    [Parameter] public string? sessionId { get; set; }
+    [Inject] private ISessionBookableDateQueryService BookableDateQueryService { get; set; } = default!;
+
+    private SessionReadDto? session;
+    private SessionOccurrenceReadDto? sessionOccurrence;
+
+    private void Back() => NavigationManager.NavigateTo($"/Admin/Sessions/{sessionId}");
+
+    protected override async Task ReloadRequired()
+    {
+        if(!Guid.TryParse(sessionId, out Guid id))
+        {
+            Back();
+            return;
+        }
+
+        session = await SessionManager.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if(session is null)
+        {
+            Back();
+            return;
+        }
+        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+        SessionDateRangeQuery range = new()
+        {
+            DateFrom = today,
+            DateTo = today.AddDays(1)
+        };
+
+        NavService.OverridePageTitle(id.ToString(), session.Title);
+        IReadOnlyList<SessionOccurrenceReadDto> resolved = await BookableDateQueryService.GetBookableDatesAsync(session.Id, range, CancellationToken.None);
+        sessionOccurrence = resolved.FirstOrDefault();
+        if(sessionOccurrence is null)
+        {
+            Back();
+            return;
+        }
+        await InvokeAsync(StateHasChanged);
+    }
+}

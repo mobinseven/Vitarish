@@ -1,6 +1,6 @@
 namespace Vitarish.Appointments.Interface.Components.Reservations;
 
-public partial class AdminReservationDetailDialog : ReservationsBase
+public partial class ReservationDetailDialog : ReservationsBase
 {
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 

@@ -24,20 +24,63 @@
             <ReservationStatusBadge Status="@current.Status" />
         </StackField>
     }
+    @if (!string.IsNullOrWhiteSpace(current.ReservingPartyId))
+    {
+        <StackField Label="@GetUserFullNameById(current.ReservingPartyId)" HelperText="@Localizer["User"]" />
+    }
 </Stack>
 
 @switch (current.Status)
 {
-    case ReservationStatus.Present:
-        return;
-
     case ReservationStatus.Pending:
-    case ReservationStatus.Confirmed:
     <Stack>
+        <StackButton Color="Color.Success"
+                     Label="@Localizer["ConfirmItem", Localizer["Reservation"]]"
+                     EndIcon="fa-regular fa-calendar-check"
+                     OnClick="@(() => ChangeStatusAsync(ReservationStatus.Confirmed))" />
+        <StackButton Color="Color.Warning"
+                     Label="@Localizer["RejectItem", Localizer["Reservation"]]"
+                     EndIcon="fa-regular fa-calendar-xmark"
+                     OnClick="@(() => ChangeStatusAsync(ReservationStatus.Rejected))" />
         <StackButton Color="Color.Error"
                      Label="@Localizer["CancelItem", Localizer["Reservation"]]"
                      EndIcon="fa-regular fa-calendar-xmark"
-                     OnClick="CancelReservationAsync" />
+                     OnClick="@(() => ChangeStatusAsync(ReservationStatus.Cancelled))" />
+    </Stack>
+    break;
+
+    case ReservationStatus.Confirmed:
+    <Stack>
+        <StackButton Color="Color.Secondary"
+                     Label="@Localizer["PresentItem", Localizer["Reservation"]]"
+                     EndIcon="fa-regular fa-person-check"
+                     OnClick="@(() => ChangeStatusAsync(ReservationStatus.Present))" />
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelItem", Localizer["Reservation"]]"
+                     EndIcon="fa-regular fa-calendar-xmark"
+                     OnClick="@(() => ChangeStatusAsync(ReservationStatus.Cancelled))" />
+    </Stack>
+    break;
+
+    case ReservationStatus.Present:
+    <Stack>
+        <StackButton Color="Color.Secondary"
+                     Label="@Localizer["CompleteItem", Localizer["Reservation"]]"
+                     EndIcon="fa-regular fa-check"
+                     OnClick="@(() => ChangeStatusAsync(ReservationStatus.Completed))" />
+    </Stack>
+    break;
+
+    case ReservationStatus.Waitlisted:
+    <Stack>
+        <StackButton Color="Color.Success"
+                     Label="@Localizer["ConfirmItem", Localizer["Reservation"]]"
+                     EndIcon="fa-regular fa-calendar-check"
+                     OnClick="@(() => ChangeStatusAsync(ReservationStatus.Confirmed))" />
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelItem", Localizer["Reservation"]]"
+                     EndIcon="fa-regular fa-calendar-xmark"
+                     OnClick="@(() => ChangeStatusAsync(ReservationStatus.Cancelled))" />
     </Stack>
     break;
 
@@ -45,7 +88,7 @@
     case ReservationStatus.Cancelled:
     case ReservationStatus.Rejected:
     case ReservationStatus.Expired:
-        // No actions for terminal statuses
+        // No action buttons for terminal states
         break;
 
     default:

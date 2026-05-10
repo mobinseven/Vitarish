@@ -1,10 +1,9 @@
 namespace Vitarish.Appointments.Interface.Components.Sessions;
 
-public partial class SessionOccurrencesList : SessionsBase
+public partial class SessionOccurrencesCalendar
 {
     [Parameter] public Guid? SessionId { get; set; }
-    [Parameter] public EventCallback<DateOnly> OnClicked { get; set; }
-
+    [Parameter] public EventCallback<SessionOccurrenceReadDto> OnSelected { get; set; }
     [Inject] private ISessionBookableDateQueryService BookableDateQueryService { get; set; } = default!;
 
     private List<SessionOccurrenceReadDto> occurrences = [];

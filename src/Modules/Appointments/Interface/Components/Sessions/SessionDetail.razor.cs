@@ -3,85 +3,33 @@ namespace Vitarish.Appointments.Interface.Components.Sessions;
 public partial class SessionDetail : SessionsBase
 {
     [Parameter, EditorRequired] public SessionReadDto Session { get; set; } = default!;
-    [Parameter] public EventCallback OnReserved { get; set; }
-    [Parameter] public EventCallback OnCancelled { get; set; }
+    [Parameter] public EventCallback OnEdit { get; set; }
+    [Parameter] public EventCallback OnDeleted { get; set; }
+    [Parameter] public EventCallback OnStatusChanged { get; set; }
+    [Parameter] public EventCallback<SessionOccurrenceReadDto> OnSessionOccurrenceSelected { get; set; }
 
-    [Inject] protected IAccessControlledReservationManager ReservationManager { get; set; } = default!;
-
-    private bool hasReservation;
-    private Guid? activeReservationId;
-
-    protected override async Task OnInitializedAsync()
+    private async Task ChangeStatusAsync(SessionStatus status)
     {
-        await base.OnInitializedAsync();
-        await CheckReservationAsync();
-    }
-
-    private async Task CheckReservationAsync()
-    {
-        hasReservation = false;
-        activeReservationId = null;
-
-        if (string.IsNullOrWhiteSpace(RequestContext.UserId))
+        string label = status switch
         {
-            return;
-        }
-
-        ReservationDescriptorDto descriptor = new()
-        {
-            ReservingPartyId = RequestContext.UserId,
-            Skip = 0,
-            Take = 10
+            SessionStatus.Active => Localizer["ActivateItem", Localizer["Session"]].Value,
+            SessionStatus.Paused => Localizer["PauseItem", Localizer["Session"]].Value,
+            SessionStatus.Closed => Localizer["CloseItem", Localizer["Session"]].Value,
+            SessionStatus.Cancelled => Localizer["CancelItem", Localizer["Session"]].Value,
+            SessionStatus.Archived => Localizer["ArchiveItem", Localizer["Session"]].Value,
+            _ => Localizer["Confirm"].Value
         };
 
-        IReadOnlyList<ReservationReadDto>? reservations = await ReservationManager
-            .GetListAsync(descriptor, CancellationToken.None)
-            .GetValueOrDefaultAsync();
-
-        hasReservation = reservations?.Any(r =>
-            r.Occurrence?.SessionId == Session.Id &&
-            r.Status != ReservationStatus.Cancelled &&
-            r.Status != ReservationStatus.Rejected &&
-            r.Status != ReservationStatus.Expired &&
-            r.Status != ReservationStatus.Completed) == true;
-
-        activeReservationId = reservations?.FirstOrDefault(r =>
-            r.Occurrence?.SessionId == Session.Id &&
-            r.Status != ReservationStatus.Cancelled &&
-            r.Status != ReservationStatus.Rejected &&
-            r.Status != ReservationStatus.Expired &&
-            r.Status != ReservationStatus.Completed)?.Id;
-
-        await InvokeAsync(StateHasChanged);
-    }
-
-    private async Task ReserveAsync(DateOnly date)
-    {
-        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(Session.Id, date, null, CancellationToken.None);
-        if (result.IsFailure)
-        {
-            return;
-        }
-
-        await OnReserved.InvokeAsync();
-        await CheckReservationAsync();
-    }
-
-    private async Task CancelReservationAsync()
-    {
-        if (activeReservationId is null)
-        {
-            return;
-        }
+        Color color = status is SessionStatus.Cancelled or SessionStatus.Archived ? Color.Error : Color.Primary;
 
         DialogParameters parameters = new()
         {
             { nameof(ConfirmDialog.ContentText), Localizer["ConfirmationQuestion"].Value },
-            { nameof(ConfirmDialog.ButtonText), Localizer["CancelItem", Localizer["Reservation"]].Value },
-            { nameof(ConfirmDialog.Color), Color.Error }
+            { nameof(ConfirmDialog.ButtonText), label },
+            { nameof(ConfirmDialog.Color), color }
         };
 
-        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>(Localizer["CancelItem", Localizer["Reservation"]], parameters);
+        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>(label, parameters);
         DialogResult? result = await dialog.Result;
 
         if (result is null || result.Canceled)
@@ -89,8 +37,26 @@ public partial class SessionDetail : SessionsBase
             return;
         }
 
-        await ReservationManager.CancelReservationAsync(activeReservationId.Value, CancellationToken.None);
-        await OnCancelled.InvokeAsync();
-        await CheckReservationAsync();
+        EntityResult entityResult = status switch
+        {
+            SessionStatus.Active => await SessionManager.ActivateSessionAsync(Session.Id, CancellationToken.None),
+            SessionStatus.Paused => await SessionManager.PauseSessionAsync(Session.Id, CancellationToken.None),
+            SessionStatus.Closed => await SessionManager.CloseSessionAsync(Session.Id, CancellationToken.None),
+            SessionStatus.Cancelled => await SessionManager.CancelSessionAsync(Session.Id, CancellationToken.None),
+            SessionStatus.Archived => await SessionManager.ArchiveSessionAsync(Session.Id, CancellationToken.None),
+            _ => EntityResult.Success()
+        };
+
+        if (entityResult.IsSuccess)
+        {
+            SessionReadDto? updated = await SessionManager.GetAsync(Session.Id, CancellationToken.None).GetValueOrDefaultAsync();
+            if (updated is not null)
+            {
+                Session = updated;
+            }
+
+            await OnStatusChanged.InvokeAsync();
+            await InvokeAsync(StateHasChanged);
+        }
     }
 }

@@ -5,7 +5,7 @@
     return;
 }
 
-<SessionDetail Session="@session" OnReserved="ReloadRequired" OnCancelled="ReloadRequired" />
+<UserSessionDetail Session="@session" OnReserved="ReloadRequired" OnCancelled="ReloadRequired" />
 
 @code {
     [Parameter] public string? sessionId { get; set; }

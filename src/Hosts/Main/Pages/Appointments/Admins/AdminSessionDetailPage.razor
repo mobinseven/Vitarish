@@ -1,15 +1,16 @@
 @page "/Admin/Sessions/{sessionId}"
 
-@if (session is null)
+@if(session is null)
 {
     return;
 }
 
 <CascadingValue Value="IsAdmin">
-    <AdminSessionDetail Session="@session"
-                        OnEdit="@(() => NavigationManager.NavigateTo($"/Admin/Sessions/{sessionId}/Edit"))"
-                        OnDeleted="Back"
-                        OnStatusChanged="ReloadRequired" />
+    <SessionDetail Session="@session"
+                   OnEdit="@(() => NavigationManager.NavigateTo($"/Admin/Sessions/{sessionId}/Edit"))"
+                   OnDeleted="Back"
+                   OnStatusChanged="ReloadRequired"
+                   OnSessionOccurrenceSelected="@(() => NavigationManager.NavigateTo($"/Admin/Sessions/{sessionId}/SessionOccurrence"))" />
 </CascadingValue>
 
 @code {
@@ -21,7 +22,7 @@
 
     protected override async Task ReloadRequired()
     {
-        if (!Guid.TryParse(sessionId, out Guid id))
+        if(!Guid.TryParse(sessionId, out Guid id))
         {
             Back();
             return;
@@ -29,7 +30,7 @@
 
         session = await SessionManager.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
 
-        if (session is null)
+        if(session is null)
         {
             Back();
             return;
