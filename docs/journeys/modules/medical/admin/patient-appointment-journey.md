@@ -94,3 +94,21 @@
 - Show availability before committing.
 - Prevent conflicts in services, not only the UI.
 - Keep follow-up close to completed/cancelled appointments.
+
+## 6. Technical Detail Addendum
+
+### Current implementation touchpoints
+- `PatientPage.razor` renders `PatientAppointmentsPanel` with the current patient project and routes missing user-link remediation back to `PatientEditPage.razor`.
+- `PatientAppointmentsPanel` reads `Patient.UserIds.FirstOrDefault()` as the patient appointment identity, loads reservations with `ReservationDescriptorDto.ReservingPartyId`, orders them by date/start time, and opens `ReservationDetailDialog` for status management.
+- `PatientAppointmentBookingDialog` injects `IAccessControlledSessionManager`, `IAccessControlledReservationManager`, and `ISessionBookableDateQueryService`; it lists active sessions and reserves the first future non-cancelled bookable occurrence returned for the selected session.
+- `ReservationDetail` exposes status transitions for pending, confirmed, present, and waitlisted reservations, then delegates to reservation manager methods such as confirm, present, complete, cancel, and reject.
+- Global appointment lists use `ReservationsList` and `ReservationFilters`; the current filter component only exposes `ReservationStatus`.
+
+### Issues to address
+- Booking depends on `ProjectReadDto.UserIds.FirstOrDefault()` rather than a dedicated patient scheduling identity. This should be made explicit to avoid ambiguous behavior when a patient has zero or multiple linked users.
+- `PatientAppointmentBookingDialog.ReserveAsync()` automatically selects the earliest bookable occurrence; add a date/time picker or occurrence list so schedulers choose a specific appointment slot.
+- `PatientAppointmentsPanel` has no patient-specific filters for upcoming/history, status, session/provider, or date range; all reservations are displayed as one chronological list.
+- Rescheduling is not exposed from `ReservationDetailDialog` or `ReservationDetail`, even though appointment services may support moving reservations elsewhere. Add a UI flow that separates read-only detail from state-changing move/cancel/transition commands.
+- Provider and room assignment are absent from the patient appointment flow. Model these on sessions/occurrences or reservation metadata before displaying them in the patient panel.
+- Cancellation and rejection transitions do not collect a reason in the visible UI. Add reason capture for auditability and follow-up workflows.
+- Follow-up creation is not linked from completed/cancelled reservation states; add a follow-up action that reuses the booking dialog with patient context and a suggested date range.
