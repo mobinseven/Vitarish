@@ -12,7 +12,7 @@ using Vitarish.Appointments.Infrastructure.Data;
 namespace Vitarish.Main.Migrations.AppointmentsDb
 {
     [DbContext(typeof(AppointmentsDbContext))]
-    [Migration("20260509102639_AppointmentsInitialization")]
+    [Migration("20260510065155_AppointmentsInitialization")]
     partial class AppointmentsInitialization
     {
         /// <inheritdoc />
@@ -24,65 +24,6 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
-
-            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.AppointmentAuditEntry", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("Action")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ActorId")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("CreatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("CreatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset?>("DeletedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("DeletedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<Guid>("EntityId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<string>("EntityType")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTimeOffset>("OccurredAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("SnapshotAfter")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("SnapshotBefore")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("TenantId")
-                        .IsRequired()
-                        .HasMaxLength(64)
-                        .HasColumnType("nvarchar(64)");
-
-                    b.Property<DateTimeOffset?>("UpdatedAt")
-                        .HasColumnType("datetimeoffset");
-
-                    b.Property<string>("UpdatedBy")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AuditEntries");
-
-                    b.HasAnnotation("Finbuckle:MultiTenant", true);
-                });
 
             modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.BookingPolicy", b =>
                 {
