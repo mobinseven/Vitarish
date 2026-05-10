@@ -1,5 +1,6 @@
 using Vitarish.Appointments.Application.Events;
 using Vitarish.Appointments.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Vitarish.Appointments.Infrastructure.Handlers;
 
@@ -14,72 +15,88 @@ internal class CreateReservationHandler(
 {
     public async Task<EntityResult<Guid>> Handle(CreateReservationCommand request, CancellationToken cancellationToken)
     {
-        await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await dbContext.Database
-            .BeginTransactionAsync(cancellationToken);
+        IExecutionStrategy executionStrategy = dbContext.Database.CreateExecutionStrategy();
+        EntityResult<(Reservation Reservation, SessionOccurrence Occurrence)> createResult = await executionStrategy.ExecuteAsync(
+            async () =>
+            {
+                await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await dbContext.Database
+                    .BeginTransactionAsync(cancellationToken);
 
-        EntityResult<SessionOccurrence> occurrenceResult = await ResolveOccurrenceAsync(request, cancellationToken);
-        if (occurrenceResult.IsFailure || occurrenceResult.Value is null)
+                EntityResult<SessionOccurrence> occurrenceResult = await ResolveOccurrenceAsync(request, cancellationToken);
+                if (occurrenceResult.IsFailure || occurrenceResult.Value is null)
+                {
+                    return occurrenceResult.IsFailure
+                        ? EntityResult<(Reservation Reservation, SessionOccurrence Occurrence)>.Failure([.. occurrenceResult.Errors])
+                        : EntityResult<(Reservation Reservation, SessionOccurrence Occurrence)>.Failure(EntityError.Conflict("Session occurrence could not be resolved."));
+                }
+
+                EntityResult<SessionOccurrence> lockedOccurrenceResult = await occurrenceReservationLock.LockAsync(occurrenceResult.Value.Id, cancellationToken);
+                if (lockedOccurrenceResult.IsFailure || lockedOccurrenceResult.Value is null)
+                {
+                    return lockedOccurrenceResult.IsFailure
+                        ? EntityResult<(Reservation Reservation, SessionOccurrence Occurrence)>.Failure([.. lockedOccurrenceResult.Errors])
+                        : EntityResult<(Reservation Reservation, SessionOccurrence Occurrence)>.Failure(EntityError.Conflict("Session occurrence could not be locked for reservation."));
+                }
+
+                SessionOccurrence occurrence = lockedOccurrenceResult.Value;
+                EntityResult validationResult = await ValidateCapacityAsync(occurrence, request.ReservingPartyId, cancellationToken);
+                if (validationResult.IsFailure)
+                {
+                    return EntityResult<(Reservation Reservation, SessionOccurrence Occurrence)>.Failure([.. validationResult.Errors]);
+                }
+
+                Reservation reservation = new()
+                {
+                    SessionOccurrenceId = occurrence.Id,
+                    ReservingPartyId = request.ReservingPartyId,
+                    Status = ReservationStatus.Pending,
+                    IsHold = request.IsHold,
+                    ExpiresAt = request.IsHold && request.HoldDuration.HasValue
+                        ? DateTimeOffset.UtcNow.Add(request.HoldDuration.Value)
+                        : null
+                };
+
+                try
+                {
+                    _ = dbContext.Reservations.Add(reservation);
+                    _ = await dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    return EntityResult<(Reservation Reservation, SessionOccurrence Occurrence)>.Success((reservation, occurrence));
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    return EntityResult<(Reservation Reservation, SessionOccurrence Occurrence)>.Failure(EntityError.Concurrency("Reservation capacity changed while creating the reservation. Please try again."));
+                }
+                catch (DbUpdateException)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    return EntityResult<(Reservation Reservation, SessionOccurrence Occurrence)>.Failure(EntityError.Conflict("Reservation could not be created because the booking state changed."));
+                }
+            });
+
+        if (createResult.IsFailure)
         {
-            return occurrenceResult.IsFailure
-                ? EntityResult<Guid>.Failure([.. occurrenceResult.Errors])
-                : EntityResult<Guid>.Failure(EntityError.Conflict("Session occurrence could not be resolved."));
+            return EntityResult<Guid>.Failure([.. createResult.Errors]);
         }
 
-        EntityResult<SessionOccurrence> lockedOccurrenceResult = await occurrenceReservationLock.LockAsync(occurrenceResult.Value.Id, cancellationToken);
-        if (lockedOccurrenceResult.IsFailure || lockedOccurrenceResult.Value is null)
-        {
-            return lockedOccurrenceResult.IsFailure
-                ? EntityResult<Guid>.Failure([.. lockedOccurrenceResult.Errors])
-                : EntityResult<Guid>.Failure(EntityError.Conflict("Session occurrence could not be locked for reservation."));
-        }
-
-        SessionOccurrence occurrence = lockedOccurrenceResult.Value;
-        EntityResult validationResult = await ValidateCapacityAsync(occurrence, request.ReservingPartyId, cancellationToken);
-        if (validationResult.IsFailure)
-        {
-            return EntityResult<Guid>.Failure([.. validationResult.Errors]);
-        }
-
-        Reservation reservation = new()
-        {
-            SessionOccurrenceId = occurrence.Id,
-            ReservingPartyId = request.ReservingPartyId,
-            Status = ReservationStatus.Pending,
-            IsHold = request.IsHold,
-            ExpiresAt = request.IsHold && request.HoldDuration.HasValue
-                ? DateTimeOffset.UtcNow.Add(request.HoldDuration.Value)
-                : null
-        };
-
-        try
-        {
-            _ = dbContext.Reservations.Add(reservation);
-            _ = await dbContext.SaveChangesAsync(cancellationToken);
-            await transaction.CommitAsync(cancellationToken);
-        }
-        catch (DbUpdateConcurrencyException)
-        {
-            return EntityResult<Guid>.Failure(EntityError.Concurrency("Reservation capacity changed while creating the reservation. Please try again."));
-        }
-        catch (DbUpdateException)
-        {
-            return EntityResult<Guid>.Failure(EntityError.Conflict("Reservation could not be created because the booking state changed."));
-        }
+        Reservation createdReservation = createResult.Value.Reservation;
+        SessionOccurrence createdOccurrence = createResult.Value.Occurrence;
 
         await eventPublisher.PublishReservationCreatedAsync(
-            new ReservationCreatedEvent(reservation.Id, reservation.SessionOccurrenceId, reservation.ReservingPartyId),
+            new ReservationCreatedEvent(createdReservation.Id, createdReservation.SessionOccurrenceId, createdReservation.ReservingPartyId),
             cancellationToken);
 
         await publisher.Publish(
             new SessionReminderPolicyTriggeredEvent(
-                reservation.Id,
-                reservation.SessionOccurrenceId,
-                reservation.ReservingPartyId,
+                createdReservation.Id,
+                createdReservation.SessionOccurrenceId,
+                createdReservation.ReservingPartyId,
                 ReservationStatus.Pending,
-                new DateTimeOffset(occurrence.Date.ToDateTime(occurrence.StartTime), TimeSpan.Zero)),
+                new DateTimeOffset(createdOccurrence.Date.ToDateTime(createdOccurrence.StartTime), TimeSpan.Zero)),
             cancellationToken);
 
-        return EntityResult<Guid>.Success(reservation.Id);
+        return EntityResult<Guid>.Success(createdReservation.Id);
     }
 
     private async Task<EntityResult<SessionOccurrence>> ResolveOccurrenceAsync(
