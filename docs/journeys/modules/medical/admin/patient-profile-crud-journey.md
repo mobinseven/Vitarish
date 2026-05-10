@@ -102,7 +102,7 @@
 - `PatientsGrid` inherits `ProjectsGrid`, loads `ProjectReadDto` records through `IAccessControlledProjectsService.GetListAsync`, maps them to `PatientReadDto`, then splits the list into `projectsViaSurgeryData` and `projectsLackSurgeryData`.
 - `PatientNewPage.razor` and `PatientEditPage.razor` both render `PatientEditForm`; `PatientEditForm` inherits `ProjectEditForm`, composes `Name` from `FirstName` and `LastName`, and calls `ProjectsService.AddAsync` or `ProjectsService.UpdateAsync`.
 - `PatientDetails` inherits `ProjectDetails`, displays patient metadata from `PatientReadDto`, and delegates deletion to the base `ProjectDetails.DeleteProject()` strict-confirm flow.
-- `PatientWriteDto` and `PatientReadDto` store medical fields as typed metadata on top of Sea `ProjectWriteDto`/`ProjectReadDto`; the mapper is `ModelMapper` via `ToPatientRead()`/`ToPatientWrite()` extension usage.
+- PatientWriteDto and PatientReadDto store medical fields as typed metadata on top of Sea ProjectWriteDto/ProjectReadDto; the mapper uses ModelMapper and includes fallback logic to map the base project name to the patient's last name.
 
 ### Issues to address
 - `PatientEditForm.SaveAsync()` only blocks an empty composed name; it should validate date of birth, contact fields, linked user selection rules, and clinically required fields before calling the Sea project service.
