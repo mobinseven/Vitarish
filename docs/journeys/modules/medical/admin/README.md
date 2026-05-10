@@ -1,10 +1,10 @@
-# Medical Module User Journey Assessment
+# Medical Module Admin User Journey Assessment
 
 Date assessed: 2026-05-10
 
 ## Scope and method
 
-This report maps the requested medical-module objectives to the journeys that currently exist in the codebase and the smallest future journeys needed to close gaps. Evidence comes from static code review of the Medical, Sea, and Appointments modules.
+This report maps the requested medical-module objectives to the admin-only journeys that currently exist in the codebase and the smallest future journeys needed to close gaps. Evidence comes from static code review of the Medical, Sea, and Appointments modules.
 
 Implementation levels:
 
