@@ -19,6 +19,7 @@ Implementation levels:
 | Patients Profile Management (CRUD) | **Partially implemented** | Create, view, edit, delete/archive, and global search exist. Active/inactive status and duplicate prevention are missing. Filtering is minimal and implicit, not a dedicated patient filter journey. |
 | Patients Procedures Management | **Partially implemented** | Procedures can be created under a patient, viewed, edited, deleted, and progressed through event/status-like steps with notes/attachments. Provider assignment, explicit procedure status, and procedure cancellation are not modeled. |
 | Patients Appointments Management | **Partially implemented** | Appointment booking, status changes, cancellation, capacity protection, session list/search, and status filtering exist. Direct appointment edit/reschedule UI, provider/room assignment, calendar view, follow-up creation, and patient-specific appointment search/filter are missing or indirect. |
+| Patient Check-In | **Journey described** | Target-state receptionist journey covers profile retrieval/creation, duplicate-safe intake, current-session capacity checks, and future-session fallback when the current session is full. |
 | Patients Overview | **Partially implemented** | Patient profile, stats, procedures, appointment list, and appointment booking quick action exist. Upcoming vs history separation, activity feed, flags, and a consolidated overview panel are missing. |
 
 ## Evidence highlights
