@@ -161,6 +161,18 @@ internal class CreateReservationHandler(
         return EntityResult.Success();
     }
 
+    private static Reservation BuildReservation(CreateReservationCommand request) => new()
+    {
+        SessionId = request.SessionId,
+        Date = request.Date,
+        ReservingPartyId = request.ReservingPartyId,
+        Status = ReservationStatus.Pending,
+        IsHold = request.IsHold,
+        ExpiresAt = request.IsHold && request.HoldDuration.HasValue
+            ? DateTimeOffset.UtcNow.Add(request.HoldDuration.Value)
+            : null
+    };
+
     private Task<int> CountActiveReservationsAsync(Guid sessionId, DateOnly date, CancellationToken cancellationToken) =>
         dbContext.Reservations.CountAsync(r =>
             r.SessionId == sessionId &&

@@ -1,4 +1,3 @@
-using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Requests.Application.Abstractions;
 
@@ -8,8 +7,7 @@ internal class AccessControlledReservationManager(
     IRequestContext requestContext,
     IReservationManager reservationManager,
     ISessionBookingPolicyEngine bookingPolicyEngine,
-    IStatusCoordinator statusCoordinator,
-    AppointmentsDbContext dbContext) : IAccessControlledReservationManager
+    IStatusCoordinator statusCoordinator) : IAccessControlledReservationManager
 {
     private bool IsAdmin => requestContext.IsTenantAdmin() || requestContext.IsTenantOwner();
 
@@ -146,7 +144,7 @@ internal class AccessControlledReservationManager(
                 : EntityResult<ReservationReadDto>.Failure(EntityError.Unknown("Reservation was not returned after creation."));
         }
 
-        bool requiresApproval = await LoadRequiresApprovalAsync(sessionId, cancellationToken);
+        bool requiresApproval = await bookingPolicyEngine.RequiresApprovalAsync(sessionId, cancellationToken);
 
         if (!requiresApproval)
         {
@@ -229,14 +227,4 @@ internal class AccessControlledReservationManager(
             and not ReservationStatus.Rejected
             and not ReservationStatus.Expired
             and not ReservationStatus.Completed;
-
-    private async Task<bool> LoadRequiresApprovalAsync(Guid sessionId, CancellationToken cancellationToken)
-    {
-        Session? session = await dbContext.Sessions
-            .AsNoTracking()
-            .Include(s => s.BookingPolicy)
-            .FirstOrDefaultAsync(s => s.Id == sessionId, cancellationToken);
-
-        return session?.BookingPolicy?.RequiresApproval ?? false;
-    }
 }

@@ -50,6 +50,10 @@ public class AccessControlledReservationManagerTests
             .Setup(x => x.TransitionReservationAsync(reservationId, ReservationStatus.Confirmed, "user-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(EntityResult.Success());
 
+        bookingPolicyEngine
+            .Setup(x => x.RequiresApprovalAsync(sessionId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+
         AccessControlledReservationManager sut = new(
             requestContext.Object,
             reservationManager.Object,

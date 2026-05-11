@@ -141,6 +141,16 @@ internal class SessionBookingPolicyEngine(AppointmentsDbContext dbContext) : ISe
         return partyCount < maxPerParty.Value;
     }
 
+    public async Task<bool> RequiresApprovalAsync(Guid sessionId, CancellationToken cancellationToken)
+    {
+        Session? session = await dbContext.Sessions
+            .AsNoTracking()
+            .Include(s => s.BookingPolicy)
+            .FirstOrDefaultAsync(s => s.Id == sessionId, cancellationToken);
+
+        return session?.BookingPolicy?.RequiresApproval ?? false;
+    }
+
     private static DateTimeOffset ToDateTimeOffset(DateOnly date, TimeOnly time)
         => new(date.ToDateTime(time), TimeSpan.Zero);
 }
