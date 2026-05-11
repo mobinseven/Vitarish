@@ -1,3 +1,4 @@
+using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Requests.Application.Abstractions;
 
@@ -7,7 +8,8 @@ internal class AccessControlledReservationManager(
     IRequestContext requestContext,
     IReservationManager reservationManager,
     ISessionBookingPolicyEngine bookingPolicyEngine,
-    IStatusCoordinator statusCoordinator) : IAccessControlledReservationManager
+    IStatusCoordinator statusCoordinator,
+    AppointmentsDbContext dbContext) : IAccessControlledReservationManager
 {
     private bool IsAdmin => requestContext.IsTenantAdmin() || requestContext.IsTenantOwner();
 
@@ -144,20 +146,20 @@ internal class AccessControlledReservationManager(
                 : EntityResult<ReservationReadDto>.Failure(EntityError.Unknown("Reservation was not returned after creation."));
         }
 
-        // Auto-confirm if policy doesn't require approval (checked inline via engine)
-        bool requiresApproval = !await bookingPolicyEngine.IsBookingOpenAsync(sessionId, date, cancellationToken);
-        // Use the CanReschedule logic as proxy — actually load policy state from reservation result
-        // Simpler: if the engine allows booking, check RequiresApproval via separate load.
-        // For now, always attempt confirm unless explicitly blocked.
-        EntityResult confirmResult = await statusCoordinator.TransitionReservationAsync(
-            reserveResult.Value.Id,
-            ReservationStatus.Confirmed,
-            requestContext.UserId,
-            cancellationToken);
+        bool requiresApproval = await LoadRequiresApprovalAsync(sessionId, cancellationToken);
 
-        if (confirmResult.IsFailure)
+        if (!requiresApproval)
         {
-            return EntityResult<ReservationReadDto>.Failure([.. confirmResult.Errors]);
+            EntityResult confirmResult = await statusCoordinator.TransitionReservationAsync(
+                reserveResult.Value.Id,
+                ReservationStatus.Confirmed,
+                requestContext.UserId,
+                cancellationToken);
+
+            if (confirmResult.IsFailure)
+            {
+                return EntityResult<ReservationReadDto>.Failure([.. confirmResult.Errors]);
+            }
         }
 
         return await reservationManager.GetAsync(reserveResult.Value.Id, cancellationToken);
@@ -227,4 +229,14 @@ internal class AccessControlledReservationManager(
             and not ReservationStatus.Rejected
             and not ReservationStatus.Expired
             and not ReservationStatus.Completed;
+
+    private async Task<bool> LoadRequiresApprovalAsync(Guid sessionId, CancellationToken cancellationToken)
+    {
+        Session? session = await dbContext.Sessions
+            .AsNoTracking()
+            .Include(s => s.BookingPolicy)
+            .FirstOrDefaultAsync(s => s.Id == sessionId, cancellationToken);
+
+        return session?.BookingPolicy?.RequiresApproval ?? false;
+    }
 }

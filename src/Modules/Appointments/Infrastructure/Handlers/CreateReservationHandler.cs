@@ -77,17 +77,7 @@ internal class CreateReservationHandler(
                         return EntityResult<Reservation>.Failure(EntityError.Conflict("No seats are available for this session slot."));
                     }
 
-                    Reservation reservation = new()
-                    {
-                        SessionId = request.SessionId,
-                        Date = request.Date,
-                        ReservingPartyId = request.ReservingPartyId,
-                        Status = ReservationStatus.Pending,
-                        IsHold = request.IsHold,
-                        ExpiresAt = request.IsHold && request.HoldDuration.HasValue
-                            ? DateTimeOffset.UtcNow.Add(request.HoldDuration.Value)
-                            : null
-                    };
+                    Reservation reservation = BuildReservation(request);
 
                     dbContext.Reservations.Add(reservation);
                     dbContext.SessionReservationLocks.Remove(lockEntry);
@@ -113,18 +103,7 @@ internal class CreateReservationHandler(
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("No seats are available for this session slot."));
                 }
 
-                Reservation fallbackReservation = new()
-                {
-                    SessionId = request.SessionId,
-                    Date = request.Date,
-                    ReservingPartyId = request.ReservingPartyId,
-                    Status = ReservationStatus.Pending,
-                    IsHold = request.IsHold,
-                    ExpiresAt = request.IsHold && request.HoldDuration.HasValue
-                        ? DateTimeOffset.UtcNow.Add(request.HoldDuration.Value)
-                        : null
-                };
-
+                Reservation fallbackReservation = BuildReservation(request);
                 dbContext.Reservations.Add(fallbackReservation);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
