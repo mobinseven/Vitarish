@@ -58,7 +58,7 @@ public partial class SessionReminderPoliciesList : SessionReminderPoliciesBase
 
     private async Task RemoveAsync(SessionReminderPolicyReadDto policy)
     {
-        EntityResult result = await ReminderPolicyManager.RemovePolicyAsync(policy.Id, CancellationToken.None);
+        EntityResult result = await ReminderPolicyManager.RemovePolicyAsync(SessionId, policy.Id, CancellationToken.None);
 
         if (result.IsSuccess)
         {

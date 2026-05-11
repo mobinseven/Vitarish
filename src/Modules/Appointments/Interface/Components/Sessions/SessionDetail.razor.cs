@@ -6,7 +6,7 @@ public partial class SessionDetail : SessionsBase
     [Parameter] public EventCallback OnEdit { get; set; }
     [Parameter] public EventCallback OnDeleted { get; set; }
     [Parameter] public EventCallback OnStatusChanged { get; set; }
-    [Parameter] public EventCallback<SessionOccurrenceReadDto> OnSessionOccurrenceSelected { get; set; }
+    [Parameter] public EventCallback<SessionReservationReadDto> OnSessionOccurrenceSelected { get; set; }
 
     private async Task ChangeStatusAsync(SessionStatus status)
     {

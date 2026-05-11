@@ -30,7 +30,7 @@ public partial class ReservationsList : ReservationsBase
             : new() { Skip = 0, Take = int.MaxValue, Search = SearchString };
 
         IReadOnlyList<ReservationReadDto> items = await ReservationManager.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
-        reservations = [.. items.OrderBy(r => r.Date).ThenBy(r => r.Occurrence?.StartTime)];
+        reservations = [.. items.OrderBy(r => r.Date)];
 
         await InvokeAsync(StateHasChanged);
     }

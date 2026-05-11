@@ -10,8 +10,7 @@ public record SessionReadDto : EntityReadDto
     public TimeOnly EndTime { get; set; }
     public string TimeZone { get; set; } = "UTC";
     public int TotalSeats { get; set; } = 1;
-    public bool RequiresApproval { get; set; }
-    public bool AllowRescheduling { get; set; }
     public SessionStats Stats { get; set; } = new();
+    public SessionBookingPolicyReadDto? BookingPolicy { get; set; }
     public IReadOnlyList<SessionReminderPolicyReadDto> ReminderPolicies { get; set; } = [];
 }

@@ -6,18 +6,19 @@
     </StackExpandable>
 }
 @code {
-    [Parameter, EditorRequired] public SessionOccurrenceReadDto SessionOccurrence { get; set; }
+    [Parameter, EditorRequired] public SessionReservationReadDto SessionReservation { get; set; }
     protected List<ReservationReadDto> reservations = [];
 
     protected override async Task ReloadRequired()
     {
         ReservationDescriptorDto descriptor = new()
         {
-            SessionOccurrenceId = SessionOccurrence.Id
+            SessionId = SessionReservation.SessionId,
+            Date = SessionReservation.Date
         };
 
         IReadOnlyList<ReservationReadDto> items = await ReservationManager.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
-        reservations = [.. items.OrderBy(r => r.Date).ThenBy(r => r.Occurrence?.StartTime)];
+        reservations = [.. items.OrderBy(r => r.Date)];
 
         await InvokeAsync(StateHasChanged);
     }

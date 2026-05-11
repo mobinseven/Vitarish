@@ -6,24 +6,9 @@
 }
 
 <Stack>
-    @if (current.Occurrence is not null)
-    {
-        <StackField Label="@($"{current.Date:d} {current.Occurrence.StartTime:t}–{current.Occurrence.EndTime:t}")" HelperText="@Localizer["Reservation"]">
-            <ReservationStatusBadge Status="@current.Status" />
-        </StackField>
-    }
-    else if (current.Date is not null)
-    {
-        <StackField Label="@($"{current.Date:d}")" HelperText="@Localizer["Reservation"]">
-            <ReservationStatusBadge Status="@current.Status" />
-        </StackField>
-    }
-    else
-    {
-        <StackField Label="@Localizer["NotProvided"].Value" HelperText="@Localizer["Reservation"]">
-            <ReservationStatusBadge Status="@current.Status" />
-        </StackField>
-    }
+    <StackField Label="@($"{current.Date:d}")" HelperText="@Localizer["Reservation"]">
+        <ReservationStatusBadge Status="@current.Status" />
+    </StackField>
 </Stack>
 
 @switch (current.Status)

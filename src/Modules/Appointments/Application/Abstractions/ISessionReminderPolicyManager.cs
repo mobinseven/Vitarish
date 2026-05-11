@@ -8,5 +8,5 @@ public interface ISessionReminderPolicyManager
 
     Task<EntityResult<SessionReminderPolicyReadDto>> UpdatePolicyAsync(SessionReminderPolicyWriteDto dto, CancellationToken cancellationToken);
 
-    Task<EntityResult> RemovePolicyAsync(Guid policyId, CancellationToken cancellationToken);
+    Task<EntityResult> RemovePolicyAsync(Guid sessionId, Guid policyId, CancellationToken cancellationToken);
 }

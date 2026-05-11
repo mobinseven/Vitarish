@@ -10,6 +10,5 @@ public record SessionWriteDto : EntityWriteDto
     public TimeOnly EndTime { get; set; } = new(10, 0);
     public string TimeZone { get; set; } = "UTC";
     public int TotalSeats { get; set; } = 10;
-    public bool RequiresApproval { get; set; }
-    public bool AllowRescheduling { get; set; }
+    public SessionBookingPolicyWriteDto? BookingPolicy { get; set; }
 }

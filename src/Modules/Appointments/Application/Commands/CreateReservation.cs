@@ -7,5 +7,4 @@ public record CreateReservationCommand(
     DateOnly Date,
     string? ReservingPartyId,
     bool IsHold = false,
-    TimeSpan? HoldDuration = null,
-    Guid? SessionOccurrenceId = null) : IRequest<EntityResult<Guid>>;
+    TimeSpan? HoldDuration = null) : IRequest<EntityResult<Guid>>;

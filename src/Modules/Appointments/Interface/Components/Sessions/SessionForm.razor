@@ -26,8 +26,8 @@
                 <MudSelectItem T="SessionVisibility" Value="visibility">@Localizer[visibility.ToString()]</MudSelectItem>
             }
         </StackSelect>
-        <StackCheckbox @bind-Value="sessionWriteDto.RequiresApproval" Label="@Localizer["RequiresApproval"]" />
-        <StackCheckbox @bind-Value="sessionWriteDto.AllowRescheduling" Label="@Localizer["AllowRescheduling"]" />
+        <StackCheckbox @bind-Value="sessionWriteDto.BookingPolicy!.RequiresApproval" Label="@Localizer["RequiresApproval"]" />
+        <StackCheckbox @bind-Value="sessionWriteDto.BookingPolicy!.AllowRescheduling" Label="@Localizer["AllowRescheduling"]" />
     </Stack>
     <Stack>
         <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" EndIcon="fa-regular fa-save" />

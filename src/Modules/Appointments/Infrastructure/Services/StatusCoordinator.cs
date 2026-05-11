@@ -123,13 +123,13 @@ internal class StatusCoordinator(
         newStatus switch
         {
             ReservationStatus.Confirmed => eventPublisher.PublishReservationConfirmedAsync(
-                new ReservationConfirmedEvent(reservation.Id, reservation.SessionOccurrenceId, reservation.ReservingPartyId), cancellationToken),
+                new ReservationConfirmedEvent(reservation.Id, reservation.SessionId, reservation.Date, reservation.ReservingPartyId), cancellationToken),
             ReservationStatus.Cancelled => eventPublisher.PublishReservationCancelledAsync(
-                new ReservationCancelledEvent(reservation.Id, reservation.SessionOccurrenceId, reservation.ReservingPartyId), cancellationToken),
+                new ReservationCancelledEvent(reservation.Id, reservation.SessionId, reservation.Date, reservation.ReservingPartyId), cancellationToken),
             ReservationStatus.Rejected => eventPublisher.PublishReservationRejectedAsync(
-                new ReservationRejectedEvent(reservation.Id, reservation.SessionOccurrenceId, reservation.ReservingPartyId), cancellationToken),
+                new ReservationRejectedEvent(reservation.Id, reservation.SessionId, reservation.Date, reservation.ReservingPartyId), cancellationToken),
             ReservationStatus.Expired => eventPublisher.PublishReservationExpiredAsync(
-                new ReservationExpiredEvent(reservation.Id, reservation.SessionOccurrenceId, reservation.ReservingPartyId), cancellationToken),
+                new ReservationExpiredEvent(reservation.Id, reservation.SessionId, reservation.Date, reservation.ReservingPartyId), cancellationToken),
             _ => Task.CompletedTask
         };
 }

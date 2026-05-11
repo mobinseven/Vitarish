@@ -14,7 +14,7 @@ else
             @{
                 var occurrence = occurrences.FirstOrDefault(i => i.Date == DateOnly.FromDateTime(day.Date));
             }
-            <MudBadge Dot Visible="occurrence is not null" Color="occurrence?.Stats.ReservationCount > 0 ? Color.Primary : Color.Default">
+            <MudBadge Dot Visible="occurrence is not null" Color="occurrence?.ReservationCount > 0 ? Color.Primary : Color.Default">
                 <span @onclick="() => OnSelected.InvokeAsync(occurrence)">@day.DayNumber</span>
             </MudBadge>
         </DayTemplate>

@@ -1,7 +1,8 @@
 namespace Vitarish.Appointments.Domain.Dto;
 
-public record SessionReminderPolicyWriteDto : EntityWriteDto
+public record SessionReminderPolicyWriteDto
 {
+    public Guid Id { get; set; }
     public Guid SessionId { get; set; }
     public bool IsEnabled { get; set; } = true;
     public ReminderKind Channel { get; set; }

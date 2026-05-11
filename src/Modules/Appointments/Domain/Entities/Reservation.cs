@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace Vitarish.Appointments.Domain.Entities;
 
 public class Reservation : Entity
@@ -10,17 +8,17 @@ public class Reservation : Entity
         set => SetField(ref field, value, nameof(Status));
     } = ReservationStatus.Pending;
 
-    public Guid SessionOccurrenceId
+    public Guid SessionId
     {
         get;
-        set => SetField(ref field, value, nameof(SessionOccurrenceId));
+        set => SetField(ref field, value, nameof(SessionId));
     }
 
-    [NotMapped]
-    public Guid? SessionId => Occurrence?.SessionId;
-
-    [NotMapped]
-    public DateOnly? Date => Occurrence?.Date;
+    public DateOnly Date
+    {
+        get;
+        set => SetField(ref field, value, nameof(Date));
+    }
 
     public string? ReservingPartyId
     {
@@ -51,6 +49,4 @@ public class Reservation : Entity
         get;
         set => SetField(ref field, value, nameof(ExpiresAt));
     }
-
-    public SessionOccurrence? Occurrence { get; set; }
 }

@@ -1,0 +1,13 @@
+using Riok.Mapperly.Abstractions;
+using Vitarish.Appointments.Domain.Dto;
+using Vitarish.Appointments.Domain.Models;
+
+namespace Vitarish.Appointments.Domain.Mappers;
+
+/// <summary>
+/// Mapper declarations for SessionReservation keyless read model.
+/// </summary>
+public partial class EntityMapper
+{
+    public partial global::Vitarish.Appointments.Domain.Dto.SessionReservationReadDto ToDto(global::Vitarish.Appointments.Domain.Models.SessionReservation src);
+}
