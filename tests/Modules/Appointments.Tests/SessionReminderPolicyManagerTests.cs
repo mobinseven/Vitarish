@@ -2,7 +2,7 @@ namespace Appointments.Tests;
 
 public class SessionReminderPolicyManagerTests
 {
-    private readonly Mock<ISessionReminderPolicyRepository> _repository = new();
+    private readonly Mock<ISessionAggregateLoader> _aggregateLoader = new();
     private readonly Mock<IAuditWriter> _auditWriter = new();
     private readonly Mock<IRequestContext> _requestContext = new();
 
@@ -10,29 +10,27 @@ public class SessionReminderPolicyManagerTests
     {
         _requestContext.SetupGet(x => x.UserId).Returns("user-1");
         _requestContext.SetupGet(x => x.TenantId).Returns("tenant-a");
-        return new SessionReminderPolicyManager(_repository.Object, _auditWriter.Object, _requestContext.Object);
+        return new SessionReminderPolicyManager(_aggregateLoader.Object, _auditWriter.Object, _requestContext.Object);
     }
 
     [Fact]
     public async Task AddPolicyAsync_ShouldFail_WhenOffsetIsZero()
     {
         var sut = CreateSut();
-        var dto = ValidDto() with { OffsetBefore = TimeSpan.Zero };
+        var dto = ValidDto();
 
-        var result = await sut.AddPolicyAsync(dto, CancellationToken.None);
+        var result = await sut.AddPolicyAsync(dto with { OffsetBefore = TimeSpan.Zero }, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
         result.Errors.Should().ContainSingle(e => e.Message.Contains("positive", StringComparison.OrdinalIgnoreCase));
-        _repository.Verify(r => r.AddAsync(It.IsAny<SessionReminderPolicy>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task AddPolicyAsync_ShouldFail_WhenOffsetIsNegative()
     {
         var sut = CreateSut();
-        var dto = ValidDto() with { OffsetBefore = TimeSpan.FromHours(-1) };
 
-        var result = await sut.AddPolicyAsync(dto, CancellationToken.None);
+        var result = await sut.AddPolicyAsync(ValidDto() with { OffsetBefore = TimeSpan.FromHours(-1) }, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
         result.Errors.Should().ContainSingle(e => e.Message.Contains("positive", StringComparison.OrdinalIgnoreCase));
@@ -42,9 +40,8 @@ public class SessionReminderPolicyManagerTests
     public async Task AddPolicyAsync_ShouldFail_WhenQualifyingStatusesIsEmpty()
     {
         var sut = CreateSut();
-        var dto = ValidDto() with { QualifyingStatuses = [] };
 
-        var result = await sut.AddPolicyAsync(dto, CancellationToken.None);
+        var result = await sut.AddPolicyAsync(ValidDto() with { QualifyingStatuses = [] }, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
         result.Errors.Should().ContainSingle(e => e.Message.Contains("status", StringComparison.OrdinalIgnoreCase));
@@ -54,9 +51,8 @@ public class SessionReminderPolicyManagerTests
     public async Task AddPolicyAsync_ShouldFail_WhenSubjectTemplateIsEmpty()
     {
         var sut = CreateSut();
-        var dto = ValidDto() with { SubjectTemplate = string.Empty };
 
-        var result = await sut.AddPolicyAsync(dto, CancellationToken.None);
+        var result = await sut.AddPolicyAsync(ValidDto() with { SubjectTemplate = string.Empty }, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
         result.Errors.Should().ContainSingle(e => e.Message.Contains("subject", StringComparison.OrdinalIgnoreCase));
@@ -66,9 +62,8 @@ public class SessionReminderPolicyManagerTests
     public async Task AddPolicyAsync_ShouldFail_WhenBodyTemplateIsEmpty()
     {
         var sut = CreateSut();
-        var dto = ValidDto() with { BodyTemplate = string.Empty };
 
-        var result = await sut.AddPolicyAsync(dto, CancellationToken.None);
+        var result = await sut.AddPolicyAsync(ValidDto() with { BodyTemplate = string.Empty }, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
         result.Errors.Should().ContainSingle(e => e.Message.Contains("body", StringComparison.OrdinalIgnoreCase));
@@ -79,36 +74,41 @@ public class SessionReminderPolicyManagerTests
     {
         var sut = CreateSut();
         var dto = ValidDto();
-        var entity = new SessionReminderPolicy
-        {
-            Id = Guid.NewGuid(),
-            SessionId = dto.SessionId,
-            Channel = dto.Channel,
-            OffsetBefore = dto.OffsetBefore,
-            IsEnabled = dto.IsEnabled,
-            SubjectTemplate = dto.SubjectTemplate,
-            BodyTemplate = dto.BodyTemplate
-        };
-        entity.QualifyingStatuses = [ReservationStatus.Pending];
+        var session = new Session { Id = dto.SessionId };
 
-        _repository.Setup(r => r.AddAsync(It.IsAny<SessionReminderPolicy>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(entity);
+        _aggregateLoader.Setup(r => r.LoadWithPoliciesAsync(dto.SessionId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        _aggregateLoader.Setup(r => r.SaveAsync(It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         var result = await sut.AddPolicyAsync(dto, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
-        _repository.Verify(r => r.AddAsync(It.IsAny<SessionReminderPolicy>(), It.IsAny<CancellationToken>()), Times.Once);
         _auditWriter.Verify(a => a.WriteAsync(It.Is<AuditEntry>(e => e.Action == "Created"), It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RemovePolicyAsync_ShouldFail_WhenSessionNotFound()
+    {
+        var sut = CreateSut();
+        _aggregateLoader.Setup(r => r.LoadWithPoliciesAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync((Session?)null);
+
+        var result = await sut.RemovePolicyAsync(Guid.NewGuid(), Guid.NewGuid(), CancellationToken.None);
+
+        result.IsFailure.Should().BeTrue();
     }
 
     [Fact]
     public async Task RemovePolicyAsync_ShouldFail_WhenPolicyNotFound()
     {
         var sut = CreateSut();
-        _repository.Setup(r => r.GetAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync((SessionReminderPolicy?)null);
+        var session = new Session { Id = Guid.NewGuid() };
 
-        var result = await sut.RemovePolicyAsync(Guid.NewGuid(), CancellationToken.None);
+        _aggregateLoader.Setup(r => r.LoadWithPoliciesAsync(session.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+
+        var result = await sut.RemovePolicyAsync(session.Id, Guid.NewGuid(), CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
     }
@@ -117,13 +117,17 @@ public class SessionReminderPolicyManagerTests
     public async Task RemovePolicyAsync_ShouldSucceed_WhenPolicyExists()
     {
         var sut = CreateSut();
-        var existing = new SessionReminderPolicy { Id = Guid.NewGuid() };
-        _repository.Setup(r => r.GetAsync(existing.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(existing);
-        _repository.Setup(r => r.RemoveAsync(existing, It.IsAny<CancellationToken>()))
+        var policyId = Guid.NewGuid();
+        var session = new Session { Id = Guid.NewGuid() };
+        var policy = new SessionReminderPolicy { Id = policyId, SessionId = session.Id };
+        session.ReminderPolicies.Add(policy);
+
+        _aggregateLoader.Setup(r => r.LoadWithPoliciesAsync(session.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
+        _aggregateLoader.Setup(r => r.SaveAsync(It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
-        var result = await sut.RemovePolicyAsync(existing.Id, CancellationToken.None);
+        var result = await sut.RemovePolicyAsync(session.Id, policyId, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         _auditWriter.Verify(a => a.WriteAsync(It.Is<AuditEntry>(e => e.Action == "Removed"), It.IsAny<CancellationToken>()), Times.Once);

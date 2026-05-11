@@ -3,10 +3,10 @@ namespace Vitarish.Appointments.Interface.Components.Sessions;
 public partial class SessionOccurrencesCalendar
 {
     [Parameter] public Guid? SessionId { get; set; }
-    [Parameter] public EventCallback<SessionOccurrenceReadDto> OnSelected { get; set; }
+    [Parameter] public EventCallback<SessionReservationReadDto> OnSelected { get; set; }
     [Inject] private ISessionBookableDateQueryService BookableDateQueryService { get; set; } = default!;
 
-    private List<SessionOccurrenceReadDto> occurrences = [];
+    private List<SessionReservationReadDto> occurrences = [];
 
     protected override async Task ReloadRequired()
     {
@@ -24,7 +24,7 @@ public partial class SessionOccurrencesCalendar
             DateTo = today.AddYears(1)
         };
 
-        IReadOnlyList<SessionOccurrenceReadDto> resolved = await BookableDateQueryService.GetBookableDatesAsync(SessionId.Value, range, CancellationToken.None);
+        IReadOnlyList<SessionReservationReadDto> resolved = await BookableDateQueryService.GetBookableDatesAsync(SessionId.Value, range, CancellationToken.None);
         occurrences = [.. resolved.OrderBy(o => o.Date).ThenBy(o => o.StartTime)];
         await InvokeAsync(StateHasChanged);
     }

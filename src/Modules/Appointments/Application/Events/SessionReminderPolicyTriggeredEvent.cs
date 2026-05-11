@@ -4,7 +4,7 @@ namespace Vitarish.Appointments.Application.Events;
 
 public record SessionReminderPolicyTriggeredEvent(
     Guid ReservationId,
-    Guid SessionOccurrenceId,
+    Guid SessionId,
+    DateOnly Date,
     string? ReservingPartyId,
-    ReservationStatus NewStatus,
-    DateTimeOffset OccurrenceStart) : INotification;
+    ReservationStatus NewStatus) : INotification;

@@ -21,6 +21,11 @@ public partial class SessionForm : SessionsBase
         sessionWriteDto.TimeZone = string.IsNullOrWhiteSpace(sessionWriteDto.TimeZone)
             ? TimeZoneInfo.Local.Id
             : sessionWriteDto.TimeZone;
+
+        sessionWriteDto = sessionWriteDto with
+        {
+            BookingPolicy = sessionWriteDto.BookingPolicy ?? new SessionBookingPolicyWriteDto()
+        };
     }
 
     private async Task SaveAsync()

@@ -6,11 +6,12 @@ internal class TemporaryHoldManager(
     AppointmentsDbContext dbContext) : ITemporaryHoldManager
 {
     public async Task<EntityResult<Guid>> CreateHoldAsync(
-        Guid sessionOccurrenceId, string? reservingPartyId, TimeSpan duration, CancellationToken cancellationToken)
+        Guid sessionId, DateOnly date, string? reservingPartyId, TimeSpan duration, CancellationToken cancellationToken)
     {
         Reservation hold = new()
         {
-            SessionOccurrenceId = sessionOccurrenceId,
+            SessionId = sessionId,
+            Date = date,
             ReservingPartyId = reservingPartyId,
             Status = ReservationStatus.Pending,
             IsHold = true,

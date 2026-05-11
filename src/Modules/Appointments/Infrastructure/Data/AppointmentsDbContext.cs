@@ -31,10 +31,8 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
     public TenantNotSetMode TenantNotSetMode { get; set; } = TenantNotSetMode.Throw;
 
     public DbSet<Session> Sessions => Set<Session>();
-    public DbSet<SessionOccurrence> SessionOccurrences => Set<SessionOccurrence>();
     public DbSet<Reservation> Reservations => Set<Reservation>();
-    public DbSet<BookingPolicy> BookingPolicies => Set<BookingPolicy>();
-    public DbSet<SessionReminderPolicy> SessionReminderPolicies => Set<SessionReminderPolicy>();
+    public DbSet<SessionReservationLock> SessionReservationLocks => Set<SessionReservationLock>();
 
     public AppointmentsDbContext(
         DbContextOptions<AppointmentsDbContext> options,
@@ -71,67 +69,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
         _ = modelBuilder.ConfigureMultiTenant();
 
         ConfigureTenantEntity<Session>(modelBuilder);
-        ConfigureTenantEntity<SessionOccurrence>(modelBuilder);
         ConfigureTenantEntity<Reservation>(modelBuilder);
-        ConfigureTenantEntity<BookingPolicy>(modelBuilder);
-        ConfigureTenantEntity<SessionReminderPolicy>(modelBuilder);
-
-        _ = modelBuilder.Entity<SessionOccurrence>(entity =>
-        {
-            _ = entity.HasOne(o => o.Session)
-                .WithMany()
-                .HasForeignKey(o => o.SessionId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            _ = entity.HasIndex(o => new { o.SessionId, o.Date })
-                .IsUnique()
-                .HasDatabaseName("IX_SessionOccurrences_SessionId_Date");
-
-            _ = entity.Property(e => e.Metadata)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, (JsonSerializerOptions?)null) ?? new())
-                .HasDefaultValueSql("'{}'")
-                .HasColumnType("nvarchar(max)");
-
-            _ = entity.Ignore(e => e.Stats);
-        });
-
-        _ = modelBuilder.Entity<SessionOccurrenceStats>(eb =>
-        {
-            _ = eb.ToView("vw_SessionOccurrenceStats");
-            _ = eb.HasNoKey();
-        });
-
-        _ = modelBuilder.Entity<Reservation>(entity =>
-        {
-            _ = entity.HasOne(r => r.Occurrence)
-                .WithMany()
-                .HasForeignKey(r => r.SessionOccurrenceId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        _ = modelBuilder.Entity<BookingPolicy>(entity =>
-        {
-            _ = entity.HasIndex(p => p.SessionId).IsUnique();
-        });
-
-        _ = modelBuilder.Entity<SessionReminderPolicy>(entity =>
-        {
-            _ = entity.HasOne<Session>()
-                .WithMany()
-                .HasForeignKey(p => p.SessionId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            _ = entity.HasIndex(p => p.SessionId);
-
-            _ = entity.Property(p => p.QualifyingStatuses)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<List<ReservationStatus>>(v, (JsonSerializerOptions?)null)
-                         ?? new List<ReservationStatus>())
-                .HasColumnType("nvarchar(max)");
-        });
 
         _ = modelBuilder.Entity<Session>(entity =>
         {
@@ -143,6 +81,53 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
                 .HasColumnType("nvarchar(max)");
 
             _ = entity.Ignore(e => e.Stats);
+
+            _ = entity.OwnsOne(s => s.BookingPolicy, b =>
+            {
+                b.ToTable("SessionBookingPolicies");
+                b.Property(p => p.ClosedDates)
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                        v => JsonSerializer.Deserialize<List<ClosedDate>>(v, (JsonSerializerOptions?)null) ?? new List<ClosedDate>())
+                    .HasColumnType("nvarchar(max)");
+            });
+
+            _ = entity.OwnsMany(s => s.ReminderPolicies, b =>
+            {
+                b.ToTable("SessionReminderPolicies");
+                b.WithOwner().HasForeignKey("SessionId");
+                b.HasKey("Id");
+                b.Property(p => p.QualifyingStatuses)
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                        v => JsonSerializer.Deserialize<List<ReservationStatus>>(v, (JsonSerializerOptions?)null)
+                             ?? new List<ReservationStatus>())
+                    .HasColumnType("nvarchar(max)");
+                b.HasIndex("SessionId");
+            });
+        });
+
+        _ = modelBuilder.Entity<Reservation>(entity =>
+        {
+            _ = entity.HasOne<Session>()
+                .WithMany()
+                .HasForeignKey(r => r.SessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            _ = entity.HasIndex(r => new { r.SessionId, r.Date })
+                .HasDatabaseName("IX_Reservations_SessionId_Date");
+        });
+
+        _ = modelBuilder.Entity<SessionReservationLock>(entity =>
+        {
+            entity.ToTable("SessionReservationLocks");
+            entity.HasKey(l => new { l.TenantId, l.SessionId, l.Date });
+        });
+
+        _ = modelBuilder.Entity<SessionReservation>(entity =>
+        {
+            entity.ToView("vw_SessionReservation");
+            entity.HasNoKey();
         });
 
         _ = modelBuilder.Entity<SessionStats>(eb =>

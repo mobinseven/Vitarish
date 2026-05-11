@@ -13,11 +13,10 @@ internal class ReservationManager(IMediator mediator)
         Guid sessionId,
         DateOnly date,
         string? reservingPartyId,
-        CancellationToken cancellationToken,
-        Guid? sessionOccurrenceId = null)
+        CancellationToken cancellationToken)
     {
         EntityResult<Guid> reservationResult = await Mediator.Send(
-            new CreateReservationCommand(sessionId, date, reservingPartyId, SessionOccurrenceId: sessionOccurrenceId),
+            new CreateReservationCommand(sessionId, date, reservingPartyId),
             cancellationToken);
         return reservationResult.IsFailure
             ? EntityResult<ReservationReadDto>.Failure([.. reservationResult.Errors])
@@ -42,9 +41,9 @@ internal class ReservationManager(IMediator mediator)
     public Task<EntityResult> ExpireReservationAsync(Guid reservationId, CancellationToken cancellationToken)
         => UpdateStatusAsync(reservationId, ReservationStatus.Expired, cancellationToken);
 
-    public async Task<EntityResult> MoveReservationAsync(Guid reservationId, Guid newSessionOccurrenceId, CancellationToken cancellationToken)
+    public async Task<EntityResult> MoveReservationAsync(Guid reservationId, Guid targetSessionId, DateOnly targetDate, CancellationToken cancellationToken)
     {
-        await Mediator.Send(new MoveReservationCommand(reservationId, newSessionOccurrenceId), cancellationToken);
+        await Mediator.Send(new MoveReservationCommand(reservationId, targetSessionId, targetDate), cancellationToken);
         return EntityResult.Success();
     }
 

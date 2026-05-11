@@ -52,23 +52,15 @@ public class Session : Entity
         set => SetField(ref field, value, nameof(TotalSeats));
     } = 1;
 
-    public bool RequiresApproval
-    {
-        get;
-        set => SetField(ref field, value, nameof(RequiresApproval));
-    }
-
-    public bool AllowRescheduling
-    {
-        get;
-        set => SetField(ref field, value, nameof(AllowRescheduling));
-    }
-
     public Dictionary<string, object?> Metadata
     {
         get;
         set => SetField(ref field, value, nameof(Metadata));
     } = [];
+
+    public SessionBookingPolicy? BookingPolicy { get; set; }
+
+    public IList<SessionReminderPolicy> ReminderPolicies { get; set; } = [];
 
     [NotMapped]
     public SessionStats Stats { get; set; } = new();

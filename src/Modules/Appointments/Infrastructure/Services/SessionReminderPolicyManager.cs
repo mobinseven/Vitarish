@@ -6,7 +6,7 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
 internal class SessionReminderPolicyManager(
-    ISessionReminderPolicyRepository repository,
+    ISessionAggregateLoader aggregateLoader,
     IAuditWriter auditWriter,
     IRequestContext requestContext) : ISessionReminderPolicyManager
 {
@@ -16,8 +16,8 @@ internal class SessionReminderPolicyManager(
         Guid sessionId,
         CancellationToken cancellationToken)
     {
-        IReadOnlyList<SessionReminderPolicy> policies = await repository.GetBySessionIdAsync(sessionId, cancellationToken);
-        return [.. policies.Select(p => p.ToDto())];
+        Session? session = await aggregateLoader.LoadWithPoliciesAsync(sessionId, cancellationToken);
+        return session is null ? [] : [.. session.ReminderPolicies.Select(p => p.ToDto())];
     }
 
     public async Task<EntityResult<SessionReminderPolicyReadDto>> AddPolicyAsync(
@@ -30,22 +30,30 @@ internal class SessionReminderPolicyManager(
             return EntityResult<SessionReminderPolicyReadDto>.Failure([.. validationResult.Errors]);
         }
 
+        Session? session = await aggregateLoader.LoadWithPoliciesAsync(dto.SessionId, cancellationToken);
+        if (session is null)
+        {
+            return EntityResult<SessionReminderPolicyReadDto>.Failure(
+                EntityError.NotFound("Session not found.", nameof(dto.SessionId)));
+        }
+
         SessionReminderPolicy policy = dto.ToDomain();
         policy.SessionId = dto.SessionId;
+        session.ReminderPolicies.Add(policy);
 
-        SessionReminderPolicy created = await repository.AddAsync(policy, cancellationToken);
+        await aggregateLoader.SaveAsync(cancellationToken);
 
         await auditWriter.WriteAsync(new AuditEntry
         {
             Action = "Created",
             ActorId = requestContext.UserId,
             EntityType = PolicyEntityType,
-            EntityId = created.Id,
+            EntityId = policy.Id,
             OccurredAt = DateTimeOffset.UtcNow,
             TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.")
         }, cancellationToken);
 
-        return EntityResult<SessionReminderPolicyReadDto>.Success(created.ToDto());
+        return EntityResult<SessionReminderPolicyReadDto>.Success(policy.ToDto());
     }
 
     public async Task<EntityResult<SessionReminderPolicyReadDto>> UpdatePolicyAsync(
@@ -58,7 +66,14 @@ internal class SessionReminderPolicyManager(
             return EntityResult<SessionReminderPolicyReadDto>.Failure([.. validationResult.Errors]);
         }
 
-        SessionReminderPolicy? existing = await repository.GetAsync(dto.Id, cancellationToken);
+        Session? session = await aggregateLoader.LoadWithPoliciesAsync(dto.SessionId, cancellationToken);
+        if (session is null)
+        {
+            return EntityResult<SessionReminderPolicyReadDto>.Failure(
+                EntityError.NotFound("Session not found.", nameof(dto.SessionId)));
+        }
+
+        SessionReminderPolicy? existing = session.ReminderPolicies.FirstOrDefault(p => p.Id == dto.Id);
         if (existing is null)
         {
             return EntityResult<SessionReminderPolicyReadDto>.Failure(
@@ -72,30 +87,38 @@ internal class SessionReminderPolicyManager(
         existing.SubjectTemplate = dto.SubjectTemplate;
         existing.BodyTemplate = dto.BodyTemplate;
 
-        SessionReminderPolicy updated = await repository.UpdateAsync(existing, cancellationToken);
+        await aggregateLoader.SaveAsync(cancellationToken);
 
         await auditWriter.WriteAsync(new AuditEntry
         {
             Action = "Updated",
             ActorId = requestContext.UserId,
             EntityType = PolicyEntityType,
-            EntityId = updated.Id,
+            EntityId = existing.Id,
             OccurredAt = DateTimeOffset.UtcNow,
             TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.")
         }, cancellationToken);
 
-        return EntityResult<SessionReminderPolicyReadDto>.Success(updated.ToDto());
+        return EntityResult<SessionReminderPolicyReadDto>.Success(existing.ToDto());
     }
 
-    public async Task<EntityResult> RemovePolicyAsync(Guid policyId, CancellationToken cancellationToken)
+    public async Task<EntityResult> RemovePolicyAsync(Guid sessionId, Guid policyId, CancellationToken cancellationToken)
     {
-        SessionReminderPolicy? existing = await repository.GetAsync(policyId, cancellationToken);
+        Session? session = await aggregateLoader.LoadWithPoliciesAsync(sessionId, cancellationToken);
+        if (session is null)
+        {
+            return EntityResult.Failure(EntityError.NotFound("Session not found.", nameof(sessionId)));
+        }
+
+        SessionReminderPolicy? existing = session.ReminderPolicies.FirstOrDefault(p => p.Id == policyId);
         if (existing is null)
         {
             return EntityResult.Failure(EntityError.NotFound("Reminder policy not found.", nameof(policyId)));
         }
 
-        await repository.RemoveAsync(existing, cancellationToken);
+        session.ReminderPolicies.Remove(existing);
+
+        await aggregateLoader.SaveAsync(cancellationToken);
 
         await auditWriter.WriteAsync(new AuditEntry
         {

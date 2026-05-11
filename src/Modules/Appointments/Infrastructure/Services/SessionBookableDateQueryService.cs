@@ -3,9 +3,9 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 [RegisterTransient]
 internal class SessionBookableDateQueryService(
     IEntityRepository<Session, SessionDescriptor> sessionRepository,
-    IEntityRepository<SessionOccurrence, SessionOccurrenceDescriptor> occurrenceRepository) : ISessionBookableDateQueryService
+    AppointmentsDbContext dbContext) : ISessionBookableDateQueryService
 {
-    public async Task<IReadOnlyList<SessionOccurrenceReadDto>> GetBookableDatesAsync(
+    public async Task<IReadOnlyList<SessionReservationReadDto>> GetBookableDatesAsync(
         Guid sessionId, SessionDateRangeQuery range, CancellationToken cancellationToken)
     {
         if (!TryNormalizeRange(range, out DateOnly dateFrom, out DateOnly dateTo))
@@ -19,22 +19,20 @@ internal class SessionBookableDateQueryService(
             return [];
         }
 
-        SessionOccurrenceDescriptor descriptor = new()
-        {
-            SessionId = sessionId,
-            DateFrom = dateFrom,
-            DateTo = dateTo,
-            Skip = 0,
-            Take = int.MaxValue
-        };
+        HashSet<DateOnly> closedDates = session.BookingPolicy is { } policy
+            ? [.. policy.ClosedDates.Select(cd => cd.Date)]
+            : [];
 
-        IReadOnlyList<SessionOccurrence> existingOccurrences = await occurrenceRepository.GetAsync(descriptor, cancellationToken);
-        Dictionary<DateOnly, SessionOccurrence> existingByDate = existingOccurrences.ToDictionary(o => o.Date);
+        Dictionary<DateOnly, SessionReservation> existingByDate = await dbContext.Set<SessionReservation>()
+            .AsNoTracking()
+            .Where(sr => sr.SessionId == sessionId && sr.Date >= dateFrom && sr.Date <= dateTo)
+            .ToDictionaryAsync(sr => sr.Date, cancellationToken);
 
         return [.. GetScheduledDates(session.DayOfWeek, dateFrom, dateTo)
-            .Select(date => existingByDate.TryGetValue(date, out SessionOccurrence? existing)
+            .Where(date => !closedDates.Contains(date))
+            .Select(date => existingByDate.TryGetValue(date, out SessionReservation? existing)
                 ? existing.ToDto()
-                : CreateProjectedOccurrence(session, date).ToDto())];
+                : CreateProjectedReservation(session, date).ToDto())];
     }
 
     private static bool TryNormalizeRange(SessionDateRangeQuery range, out DateOnly dateFrom, out DateOnly dateTo)
@@ -55,14 +53,14 @@ internal class SessionBookableDateQueryService(
         }
     }
 
-    private static SessionOccurrence CreateProjectedOccurrence(Session session, DateOnly date) => new()
+    private static SessionReservation CreateProjectedReservation(Session session, DateOnly date) => new()
     {
         SessionId = session.Id,
         Date = date,
         StartTime = session.StartTime,
         EndTime = session.EndTime,
-        Capacity = session.TotalSeats,
-        Metadata = new Dictionary<string, object?>(session.Metadata),
-        IsCancelled = false
+        TotalSeats = session.TotalSeats,
+        ReservationCount = 0,
+        AvailableSeats = session.TotalSeats
     };
 }

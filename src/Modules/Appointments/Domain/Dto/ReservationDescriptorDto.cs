@@ -6,10 +6,6 @@ public record ReservationDescriptorDto : EntityDescriptorDto
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ReservationStatus? Status { get; set; }
 
-    [JsonPropertyName("sessionOccurrenceId")]
-    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public Guid? SessionOccurrenceId { get; set; }
-
     [JsonPropertyName("sessionId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Guid? SessionId { get; set; }

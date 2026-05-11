@@ -4,7 +4,7 @@ namespace Vitarish.Appointments.Infrastructure.Handlers;
 
 internal class UpdateReservationStatusHandler(
     IEntityRepository<Reservation, ReservationDescriptor> repository,
-    IEntityRepository<SessionOccurrence, SessionOccurrenceDescriptor> occurrenceRepository,
+    IEntityRepository<Session, SessionDescriptor> sessionRepository,
     IPublisher publisher)
     : IRequestHandler<UpdateReservationStatusCommand>
 {
@@ -32,16 +32,16 @@ internal class UpdateReservationStatusHandler(
 
         _ = await repository.UpdateAsync(entity, cancellationToken);
 
-        SessionOccurrence? occurrence = await occurrenceRepository.GetAsync(entity.SessionOccurrenceId, cancellationToken);
-        if (occurrence is not null)
+        Session? session = await sessionRepository.GetAsync(entity.SessionId, cancellationToken);
+        if (session is not null)
         {
             await publisher.Publish(
                 new SessionReminderPolicyTriggeredEvent(
                     entity.Id,
-                    entity.SessionOccurrenceId,
+                    entity.SessionId,
+                    entity.Date,
                     entity.ReservingPartyId,
-                    request.Status,
-                    new DateTimeOffset(occurrence.Date.ToDateTime(occurrence.StartTime), TimeSpan.Zero)),
+                    request.Status),
                 cancellationToken);
         }
     }

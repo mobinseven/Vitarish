@@ -14,19 +14,14 @@ internal class ReservationRepository(AppointmentsDbContext dbContext)
             query = query.Where(r => r.Status == status);
         }
 
-        if (descriptor.SessionOccurrenceId is { } occurrenceId)
-        {
-            query = query.Where(r => r.SessionOccurrenceId == occurrenceId);
-        }
-
         if (descriptor.SessionId is { } sessionId)
         {
-            query = query.Where(r => r.Occurrence!.SessionId == sessionId);
+            query = query.Where(r => r.SessionId == sessionId);
         }
 
         if (descriptor.Date is { } date)
         {
-            query = query.Where(r => r.Occurrence!.Date == date);
+            query = query.Where(r => r.Date == date);
         }
 
         if (descriptor.ReservingPartyId is { } partyId)
@@ -44,23 +39,17 @@ internal class ReservationRepository(AppointmentsDbContext dbContext)
 
     protected override bool IsDuplicateKeyException(DbUpdateException exception) => false;
 
-    async Task<Reservation?> IEntityRepository<Reservation, ReservationDescriptor>.GetAsync(
+    Task<Reservation?> IEntityRepository<Reservation, ReservationDescriptor>.GetAsync(
         Guid id, CancellationToken cancellationToken)
     {
-        return await Set.AsNoTracking()
-            .Include(r => r.Occurrence)
-                .ThenInclude(o => o!.Session)
+        return Set.AsNoTracking()
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
     }
 
     async Task<IReadOnlyList<Reservation>> IEntityRepository<Reservation, ReservationDescriptor>.GetAsync(
         ReservationDescriptor descriptor, CancellationToken cancellationToken)
     {
-        IQueryable<Reservation> query = Apply(
-            Set.AsNoTracking()
-               .Include(r => r.Occurrence)
-                   .ThenInclude(o => o!.Session),
-            descriptor);
+        IQueryable<Reservation> query = Apply(Set.AsNoTracking(), descriptor);
 
         if (query is not IOrderedQueryable<Reservation>)
         {

@@ -7,29 +7,24 @@ namespace Appointments.Tests;
 
 public class SessionReminderPolicyTriggeredHandlerTests
 {
-    private readonly Mock<ISessionReminderPolicyRepository> _policyRepository = new();
-    private readonly Mock<IEntityRepository<SessionOccurrence, SessionOccurrenceDescriptor>> _occurrenceRepository = new();
     private readonly Mock<IEntityRepository<Session, SessionDescriptor>> _sessionRepository = new();
     private readonly Mock<IRemindersService> _remindersService = new();
     private readonly Mock<IMediator> _mediator = new();
     private readonly TestTimeProvider _timeProvider = new();
 
     private SessionReminderPolicyTriggeredHandler CreateSut()
-        => new(_policyRepository.Object, _occurrenceRepository.Object, _sessionRepository.Object,
-               _remindersService.Object, _mediator.Object, _timeProvider);
+        => new(_sessionRepository.Object, _remindersService.Object, _mediator.Object, _timeProvider);
 
     [Fact]
     public async Task Handle_ShouldNotCreateReminder_WhenNoPoliciesExist()
     {
         var sut = CreateSut();
-        var occurrence = CreateOccurrence();
+        var (session, _, date) = CreateSession();
 
-        _occurrenceRepository.Setup(r => r.GetAsync(occurrence.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(occurrence);
-        _policyRepository.Setup(r => r.GetEnabledBySessionIdAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([]);
+        _sessionRepository.Setup(r => r.GetAsync(session.Id, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(session);
 
-        await sut.Handle(CreateEvent(occurrence, ReservationStatus.Pending), CancellationToken.None);
+        await sut.Handle(CreateEvent(session.Id, date, ReservationStatus.Pending), CancellationToken.None);
 
         _remindersService.Verify(r => r.AddRangeAsync(
             It.IsAny<Guid>(), It.IsAny<IReadOnlyList<ReminderRecipientReadDto>>(),
@@ -41,18 +36,13 @@ public class SessionReminderPolicyTriggeredHandlerTests
     public async Task Handle_ShouldNotCreateReminder_WhenStatusDoesNotQualify()
     {
         var sut = CreateSut();
-        var occurrence = CreateOccurrence();
-        var session = new Session { Id = occurrence.SessionId, Title = "Test Session" };
+        var (session, _, date) = CreateSession(policies: [CreatePolicy([ReservationStatus.Confirmed])]);
 
-        _occurrenceRepository.Setup(r => r.GetAsync(occurrence.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(occurrence);
-        _sessionRepository.Setup(r => r.GetAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
+        _sessionRepository.Setup(r => r.GetAsync(session.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(session);
-        _policyRepository.Setup(r => r.GetEnabledBySessionIdAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([CreatePolicy(occurrence.SessionId, [ReservationStatus.Confirmed])]);
 
         // Event has Pending status, policy qualifies only Confirmed
-        await sut.Handle(CreateEvent(occurrence, ReservationStatus.Pending), CancellationToken.None);
+        await sut.Handle(CreateEvent(session.Id, date, ReservationStatus.Pending), CancellationToken.None);
 
         _remindersService.Verify(r => r.AddRangeAsync(
             It.IsAny<Guid>(), It.IsAny<IReadOnlyList<ReminderRecipientReadDto>>(),
@@ -64,20 +54,16 @@ public class SessionReminderPolicyTriggeredHandlerTests
     public async Task Handle_ShouldNotCreateReminder_WhenRemindAtIsInThePast()
     {
         var sut = CreateSut();
-        // OccurrenceStart 30 minutes in the future, offset 1 hour → remindAt = 30 min in the past
-        var occurrenceStart = _timeProvider.UtcNow.AddMinutes(30);
-        var occurrence = CreateOccurrence(start: occurrenceStart);
-        var session = new Session { Id = occurrence.SessionId, Title = "Test Session" };
-        var policy = CreatePolicy(occurrence.SessionId, [ReservationStatus.Pending], offset: TimeSpan.FromHours(1));
+        // Session starts 30 minutes in the future, offset 1 hour → remindAt = 30 min in the past
+        var startTime = _timeProvider.UtcNow.AddMinutes(30);
+        var (session, _, date) = CreateSession(
+            startTime: TimeOnly.FromDateTime(startTime.DateTime),
+            policies: [CreatePolicy([ReservationStatus.Pending], offset: TimeSpan.FromHours(1))]);
 
-        _occurrenceRepository.Setup(r => r.GetAsync(occurrence.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(occurrence);
-        _sessionRepository.Setup(r => r.GetAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
+        _sessionRepository.Setup(r => r.GetAsync(session.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(session);
-        _policyRepository.Setup(r => r.GetEnabledBySessionIdAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([policy]);
 
-        await sut.Handle(CreateEvent(occurrence, ReservationStatus.Pending), CancellationToken.None);
+        await sut.Handle(CreateEvent(session.Id, date, ReservationStatus.Pending), CancellationToken.None);
 
         _remindersService.Verify(r => r.AddRangeAsync(
             It.IsAny<Guid>(), It.IsAny<IReadOnlyList<ReminderRecipientReadDto>>(),
@@ -89,18 +75,16 @@ public class SessionReminderPolicyTriggeredHandlerTests
     public async Task Handle_ShouldCreateOneReminderPerMatchingPolicy()
     {
         var sut = CreateSut();
-        var occurrenceStart = _timeProvider.UtcNow.AddDays(2);
-        var occurrence = CreateOccurrence(start: occurrenceStart);
-        var session = new Session { Id = occurrence.SessionId, Title = "Test Session" };
-        var policy1 = CreatePolicy(occurrence.SessionId, [ReservationStatus.Pending], offset: TimeSpan.FromHours(24));
-        var policy2 = CreatePolicy(occurrence.SessionId, [ReservationStatus.Pending], offset: TimeSpan.FromHours(1));
+        var startTime = _timeProvider.UtcNow.AddDays(2);
+        var policies = new[]
+        {
+            CreatePolicy([ReservationStatus.Pending], offset: TimeSpan.FromHours(24)),
+            CreatePolicy([ReservationStatus.Pending], offset: TimeSpan.FromHours(1))
+        };
+        var (session, _, date) = CreateSession(startTime: TimeOnly.FromDateTime(startTime.DateTime), policies: policies);
 
-        _occurrenceRepository.Setup(r => r.GetAsync(occurrence.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(occurrence);
-        _sessionRepository.Setup(r => r.GetAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
+        _sessionRepository.Setup(r => r.GetAsync(session.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(session);
-        _policyRepository.Setup(r => r.GetEnabledBySessionIdAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([policy1, policy2]);
 
         var user = new User { Email = "user@example.com", UserName = "user" };
         _mediator.Setup(m => m.Send(It.IsAny<GetUserQuery>(), It.IsAny<CancellationToken>()))
@@ -111,7 +95,7 @@ public class SessionReminderPolicyTriggeredHandlerTests
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
-        await sut.Handle(CreateEvent(occurrence, ReservationStatus.Pending, "user-1"), CancellationToken.None);
+        await sut.Handle(CreateEvent(session.Id, date, ReservationStatus.Pending, "user-1"), CancellationToken.None);
 
         _remindersService.Verify(r => r.AddRangeAsync(
             It.IsAny<Guid>(), It.IsAny<IReadOnlyList<ReminderRecipientReadDto>>(),
@@ -123,30 +107,32 @@ public class SessionReminderPolicyTriggeredHandlerTests
     public async Task Handle_ShouldSkipReminder_WhenReservingPartyIdIsNull()
     {
         var sut = CreateSut();
-        var occurrence = CreateOccurrence();
+        var (session, _, date) = CreateSession();
 
-        await sut.Handle(CreateEvent(occurrence, ReservationStatus.Pending, reservingPartyId: null), CancellationToken.None);
+        await sut.Handle(CreateEvent(session.Id, date, ReservationStatus.Pending, reservingPartyId: null), CancellationToken.None);
 
-        _policyRepository.Verify(r => r.GetEnabledBySessionIdAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
+        _sessionRepository.Verify(r => r.GetAsync(It.IsAny<Guid>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
     [Fact]
     public async Task Handle_ShouldRenderTemplateTokens()
     {
         var sut = CreateSut();
-        var occurrenceStart = _timeProvider.UtcNow.AddDays(2);
-        var occurrence = CreateOccurrence(start: occurrenceStart);
-        var session = new Session { Id = occurrence.SessionId, Title = "My Session" };
-        var policy = CreatePolicy(occurrence.SessionId, [ReservationStatus.Confirmed],
-            subjectTemplate: "Appointment: {{SessionTitle}} at {{OccurrenceStart}}",
-            bodyTemplate: "Your session {{SessionTitle}} starts at {{OccurrenceStart}}.");
+        var startTime = _timeProvider.UtcNow.AddDays(2);
+        var policies = new[]
+        {
+            CreatePolicy(
+                [ReservationStatus.Confirmed],
+                subjectTemplate: "Appointment: {{SessionTitle}} at {{OccurrenceStart}}",
+                bodyTemplate: "Your session {{SessionTitle}} starts at {{OccurrenceStart}}.")
+        };
+        var (session, _, date) = CreateSession(
+            title: "My Session",
+            startTime: TimeOnly.FromDateTime(startTime.DateTime),
+            policies: policies);
 
-        _occurrenceRepository.Setup(r => r.GetAsync(occurrence.Id, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(occurrence);
-        _sessionRepository.Setup(r => r.GetAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
+        _sessionRepository.Setup(r => r.GetAsync(session.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(session);
-        _policyRepository.Setup(r => r.GetEnabledBySessionIdAsync(occurrence.SessionId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync([policy]);
 
         var user = new User { Email = "user@example.com", UserName = "user" };
         _mediator.Setup(m => m.Send(It.IsAny<GetUserQuery>(), It.IsAny<CancellationToken>()))
@@ -161,7 +147,7 @@ public class SessionReminderPolicyTriggeredHandlerTests
                 (_, _, subject, body, _, _) => { capturedSubject = subject; capturedBody = body; })
             .ReturnsAsync([]);
 
-        await sut.Handle(CreateEvent(occurrence, ReservationStatus.Confirmed, "user-1"), CancellationToken.None);
+        await sut.Handle(CreateEvent(session.Id, date, ReservationStatus.Confirmed, "user-1"), CancellationToken.None);
 
         capturedSubject.Should().NotBeNull();
         capturedSubject.Should().NotContain("{{SessionTitle}}");
@@ -172,29 +158,36 @@ public class SessionReminderPolicyTriggeredHandlerTests
         capturedBody.Should().Contain("My Session");
     }
 
-    private static SessionOccurrence CreateOccurrence(DateTimeOffset? start = null)
+    private (Session Session, Guid SessionId, DateOnly Date) CreateSession(
+        string title = "Test Session",
+        TimeOnly? startTime = null,
+        IEnumerable<SessionReminderPolicy>? policies = null)
     {
-        DateTimeOffset occurrenceStart = start ?? DateTimeOffset.UtcNow.AddDays(3);
-        DateTimeOffset occurrenceEnd = occurrenceStart.AddHours(1);
+        var sessionId = Guid.NewGuid();
+        var resolvedStart = startTime ?? TimeOnly.FromDateTime(_timeProvider.UtcNow.AddDays(3).DateTime);
+        var date = DateOnly.FromDateTime(_timeProvider.UtcNow.AddDays(3).DateTime);
 
-        return new SessionOccurrence
+        var session = new Session
         {
-            Id = Guid.NewGuid(),
-            SessionId = Guid.NewGuid(),
-            Date = DateOnly.FromDateTime(occurrenceStart.DateTime),
-            StartTime = TimeOnly.FromDateTime(occurrenceStart.DateTime),
-            EndTime = TimeOnly.FromDateTime(occurrenceEnd.DateTime),
-            Capacity = 1,
-            Metadata = new Dictionary<string, object?>
-            {
-                ["recurrenceId"] = "rec-1",
-                ["calendarMappingId"] = Guid.NewGuid()
-            }
+            Id = sessionId,
+            Title = title,
+            StartTime = resolvedStart,
+            EndTime = resolvedStart.AddHours(1)
         };
+
+        if (policies is not null)
+        {
+            foreach (var p in policies)
+            {
+                p.SessionId = sessionId;
+                session.ReminderPolicies.Add(p);
+            }
+        }
+
+        return (session, sessionId, date);
     }
 
     private static SessionReminderPolicy CreatePolicy(
-        Guid sessionId,
         IList<ReservationStatus> statuses,
         TimeSpan? offset = null,
         string subjectTemplate = "Reminder: {{SessionTitle}} {{OccurrenceStart}}",
@@ -203,7 +196,6 @@ public class SessionReminderPolicyTriggeredHandlerTests
         var policy = new SessionReminderPolicy
         {
             Id = Guid.NewGuid(),
-            SessionId = sessionId,
             IsEnabled = true,
             Channel = ReminderKind.Email,
             OffsetBefore = offset ?? TimeSpan.FromHours(24),
@@ -215,15 +207,11 @@ public class SessionReminderPolicyTriggeredHandlerTests
     }
 
     private static SessionReminderPolicyTriggeredEvent CreateEvent(
-        SessionOccurrence occurrence,
+        Guid sessionId,
+        DateOnly date,
         ReservationStatus status,
         string? reservingPartyId = "user-1")
-        => new(
-            Guid.NewGuid(),
-            occurrence.Id,
-            reservingPartyId,
-            status,
-            new DateTimeOffset(occurrence.Date.ToDateTime(occurrence.StartTime), TimeSpan.Zero));
+        => new(Guid.NewGuid(), sessionId, date, reservingPartyId, status);
 
     private sealed class TestTimeProvider : TimeProvider
     {

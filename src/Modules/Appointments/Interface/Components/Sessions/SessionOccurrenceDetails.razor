@@ -1,19 +1,19 @@
 @inherits CommonBase
-<StackField Label="@SessionOccurrence.Date.ToShortDateString()" />
-<StackField Label="@($"{Localizer["Count", Localizer["Reservations"]]}: {SessionOccurrence.Stats.ReservationCount}")" />
-<SessionReservationList SessionOccurrence="SessionOccurrence" />
+<StackField Label="@SessionReservation.Date.ToShortDateString()" />
+<StackField Label="@($"{Localizer["Count", Localizer["Reservations"]]}: {SessionReservation.ReservationCount}")" />
+<SessionReservationList SessionReservation="SessionReservation" />
 <StackButton Label="@Localizer["AddItem", Localizer["Reservation"]]" OnClick="AddReservationAsync" EndIcon="fa-regular fa-plus" Color="Color.Primary" />
 
 @code {
-    [Parameter, EditorRequired] public SessionOccurrenceReadDto SessionOccurrence { get; set; }
+    [Parameter, EditorRequired] public SessionReservationReadDto SessionReservation { get; set; }
     [Parameter] public EventCallback OnStatusChanged { get; set; }
 
     private async Task AddReservationAsync()
     {
         DialogParameters parameters = new()
         {
-            { nameof(ReservationForSessionDialog.SessionId), SessionOccurrence.SessionId },
-            { nameof(ReservationForSessionDialog.Date), SessionOccurrence.Date }
+            { nameof(ReservationForSessionDialog.SessionId), SessionReservation.SessionId },
+            { nameof(ReservationForSessionDialog.Date), SessionReservation.Date }
         };
 
         IDialogReference dialog = await DialogService.ShowAsync<ReservationForSessionDialog>(Localizer["AddItem", Localizer["Reservation"]], parameters);

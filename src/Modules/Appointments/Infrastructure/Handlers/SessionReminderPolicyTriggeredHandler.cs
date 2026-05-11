@@ -6,8 +6,6 @@ using Vitarish.Users.Application.Queries;
 namespace Vitarish.Appointments.Infrastructure.Handlers;
 
 internal class SessionReminderPolicyTriggeredHandler(
-    ISessionReminderPolicyRepository policyRepository,
-    IEntityRepository<SessionOccurrence, SessionOccurrenceDescriptor> occurrenceRepository,
     IEntityRepository<Session, SessionDescriptor> sessionRepository,
     IRemindersService remindersService,
     IMediator mediator,
@@ -23,34 +21,29 @@ internal class SessionReminderPolicyTriggeredHandler(
             return;
         }
 
-        SessionOccurrence? occurrence = await occurrenceRepository.GetAsync(notification.SessionOccurrenceId, cancellationToken);
-        if (occurrence is null)
+        Session? session = await sessionRepository.GetAsync(notification.SessionId, cancellationToken);
+        if (session is null)
         {
             return;
         }
 
-        IReadOnlyList<SessionReminderPolicy> policies = await policyRepository.GetEnabledBySessionIdAsync(
-            occurrence.SessionId,
-            cancellationToken);
-
-        if (policies.Count == 0)
+        IEnumerable<SessionReminderPolicy> enabledPolicies = session.ReminderPolicies.Where(p => p.IsEnabled);
+        if (!enabledPolicies.Any())
         {
             return;
         }
 
+        DateTimeOffset occurrenceStart = new(notification.Date.ToDateTime(session.StartTime), TimeSpan.Zero);
         DateTimeOffset now = _timeProvider.GetUtcNow();
 
-        Session? session = await sessionRepository.GetAsync(occurrence.SessionId, cancellationToken);
-        string sessionTitle = session?.Title ?? string.Empty;
-
-        foreach (SessionReminderPolicy policy in policies)
+        foreach (SessionReminderPolicy policy in enabledPolicies)
         {
             if (!policy.QualifyingStatuses.Contains(notification.NewStatus))
             {
                 continue;
             }
 
-            DateTimeOffset remindAt = notification.OccurrenceStart - policy.OffsetBefore;
+            DateTimeOffset remindAt = occurrenceStart - policy.OffsetBefore;
             if (remindAt <= now)
             {
                 continue;
@@ -66,11 +59,11 @@ internal class SessionReminderPolicyTriggeredHandler(
                 continue;
             }
 
-            string subject = RenderTemplate(policy.SubjectTemplate, sessionTitle, notification.OccurrenceStart);
-            string body = RenderTemplate(policy.BodyTemplate, sessionTitle, notification.OccurrenceStart);
+            string subject = RenderTemplate(policy.SubjectTemplate, session.Title, occurrenceStart);
+            string body = RenderTemplate(policy.BodyTemplate, session.Title, occurrenceStart);
 
             _ = await remindersService.AddRangeAsync(
-                notification.SessionOccurrenceId,
+                notification.SessionId,
                 [new ReminderRecipientReadDto
                 {
                     Kind = policy.Channel,
