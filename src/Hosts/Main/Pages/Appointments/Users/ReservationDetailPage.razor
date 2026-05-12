@@ -29,7 +29,7 @@
             return;
         }
 
-        NavService.OverridePageTitle(id.ToString(), reservation.Occurrence?.OccurrenceStart.ToString("f") ?? id.ToString());
+        NavService.OverridePageTitle(id.ToString(), reservation.Date.ToString("f") ?? id.ToString());
         await InvokeAsync(StateHasChanged);
     }
 }
