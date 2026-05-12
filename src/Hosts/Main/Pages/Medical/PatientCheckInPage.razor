@@ -8,7 +8,8 @@
     @switch (context.CurrentStep)
     {
         case CheckInStep.Identify:
-            <PatientFindOrCreate Context="patientContext"
+            <PatientFindOrCreate SearchContext="patientSearchContext"
+                                 CreateContext="patientCreateContext"
                                  OnPatientSelected="OnPatientSelected"
                                  OnPatientCreated="OnPatientCreated" />
             break;
@@ -29,7 +30,8 @@
 
 @code {
     private PatientCheckInContext context = new();
-    private PatientFindOrCreateContext patientContext = new();
+    private PatientAdvancedSearchContext patientSearchContext = new();
+    private PatientCreateContext patientCreateContext = new();
 
     private Task OnPatientSelected(ProjectReadDto patient)
     {
@@ -60,7 +62,8 @@
     private Task RestartAsync()
     {
         context.Reset();
-        patientContext.Reset();
+        patientSearchContext.Reset();
+        patientCreateContext.Reset();
         return Task.CompletedTask;
     }
 }

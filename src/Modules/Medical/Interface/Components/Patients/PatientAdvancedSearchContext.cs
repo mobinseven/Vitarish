@@ -1,6 +1,6 @@
 namespace Vitarish.Medical.Interface.Components.Patients;
 
-public class PatientFindOrCreateContext
+public class PatientAdvancedSearchContext
 {
     /// <summary>The IdentificationCode typed by the user (primary lookup key).</summary>
     public string? IdentificationCode { get; set; }
@@ -22,10 +22,6 @@ public class PatientFindOrCreateContext
 
     public IReadOnlyList<ProjectReadDto> SearchResults { get; set; } = [];
 
-    public IReadOnlyList<ProjectReadDto> DuplicateCandidates { get; set; } = [];
-
-    public ProjectWriteDto? NewPatientDraft { get; set; }
-
     public void Reset()
     {
         IdentificationCode = null;
@@ -35,7 +31,5 @@ public class PatientFindOrCreateContext
         SearchPhone = null;
         SearchEmail = null;
         SearchResults = [];
-        DuplicateCandidates = [];
-        NewPatientDraft = null;
     }
 }
