@@ -4,37 +4,31 @@
     <StackField Label="@Localizer["SelectSession"]"
                 HelperText="@(Context.SelectedPatient?.Name ?? string.Empty)" />
 
-    @if (string.IsNullOrWhiteSpace(patientUserId))
+    @if(string.IsNullOrWhiteSpace(patientUserId))
     {
-        <Stack>
-            <StackField Label="@Localizer["LinkUserAccountRequired"]"
-                        HelperText="@Localizer["LinkUserAccountRequiredHelp"]"
-                        AdornmentIcon="fa-regular fa-triangle-exclamation"
-                        AdornmentColor="Color.Warning"
-                        Color="Color.Warning" />
+        <StackField Label="@Localizer["LinkUserAccountRequired"]"
+                    HelperText="@Localizer["LinkUserAccountRequiredHelp"]"
+                    AdornmentIcon="fa-regular fa-triangle-exclamation"
+                    AdornmentColor="Color.Warning"
+                    Color="Color.Warning" />
 
-            <StackButton Label="@Localizer["EditItem", Localizer["Patient"]]"
-                         EndIcon="fa-regular fa-pencil"
-                         Color="Color.Warning"
-                         OnClick="GoToEditPatient" />
-        </Stack>
+        <StackButton Label="@Localizer["EditItem", Localizer["Patient"]]"
+                     EndIcon="fa-regular fa-pencil"
+                     Color="Color.Warning"
+                     OnClick="GoToEditPatient" />
     }
-    else if (loading)
+    else if(loading)
     {
-        <Stack>
-            <StackField Label="@Localizer["Loading"]" AdornmentIcon="fa-regular fa-spinner" />
-        </Stack>
+        <StackField Label="@Localizer["Loading"]" AdornmentIcon="fa-regular fa-spinner" />
     }
-    else if (Context.TodaySessions.Count == 0)
+    else if(Context.TodaySessions.Count == 0)
     {
-        <Stack>
-            <StackField Label="@Localizer["NoItems", Localizer["AppointmentSession"]]"
-                        HelperText="@Localizer["NoItemsHelp", Localizer["AppointmentSession"]]" />
-        </Stack>
+        <StackField Label="@Localizer["NoItems", Localizer["AppointmentSession"]]"
+                    HelperText="@Localizer["NoItemsHelp", Localizer["AppointmentSession"]]" />
     }
     else
     {
-        @foreach (var (session, occurrence) in Context.TodaySessions)
+        @foreach(var (session, occurrence) in Context.TodaySessions)
         {
             bool alreadyBooked = Context.PatientTodayReservations.Any(r =>
                 r.SessionId == session.Id &&
@@ -49,61 +43,55 @@
                 ? $"{occurrence.StartTime:t}–{occurrence.EndTime:t} · {occurrence.ReservationCount}/{occurrence.TotalSeats} {Localizer["Seats"]}"
                 : $"{session.StartTime:t}–{session.EndTime:t}";
 
-            <Stack>
-                <StackButton Label="@session.Title"
-                             HelperText="@helperText"
-                             EndIcon="">
-                    <SessionStatusBadge Status="session.Status" />
-                </StackButton>
+            <StackButton Label="@session.Title"
+                         HelperText="@helperText"
+                         EndIcon="">
+                <SessionStatusBadge Status="session.Status" />
+            </StackButton>
 
-                @if (alreadyBooked)
-                {
-                    <StackField Label="@Localizer["AlreadyBooked"]"
-                                AdornmentIcon="fa-regular fa-circle-check"
-                                AdornmentColor="Color.Success"
-                                Color="Color.Success" />
-                }
-                else if (available && occurrence is not null)
-                {
-                    <StackButton Label="@Localizer["BookNow"]"
-                                 Color="Color.Primary"
-                                 EndIcon="fa-regular fa-calendar-plus"
-                                 Disabled="@booking"
-                                 OnClick="@(() => BookCurrentSessionAsync(session, occurrence))" />
-                }
-                else if (full)
-                {
-                    <StackButton Label="@Localizer["SessionFull"]"
-                                 HelperText="@Localizer["PickFutureDate"]"
-                                 Color="Color.Warning"
-                                 EndIcon="fa-regular fa-calendar-arrow-down"
-                                 OnClick="@(() => OpenFutureSessionAsync(session))" />
-                }
-                else
-                {
-                    <StackField Label="@Localizer["SessionUnavailable"]"
-                                AdornmentIcon="fa-regular fa-circle-xmark"
-                                AdornmentColor="Color.Default" />
-                }
-            </Stack>
+            @if(alreadyBooked)
+            {
+                <StackField Label="@Localizer["AlreadyBooked"]"
+                            AdornmentIcon="fa-regular fa-circle-check"
+                            AdornmentColor="Color.Success"
+                            Color="Color.Success" />
+            }
+            else if(available && occurrence is not null)
+            {
+                <StackButton Label="@Localizer["BookNow"]"
+                             Color="Color.Primary"
+                             EndIcon="fa-regular fa-calendar-plus"
+                             Disabled="@booking"
+                             OnClick="@(() => BookCurrentSessionAsync(session, occurrence))" />
+            }
+            else if(full)
+            {
+                <StackButton Label="@Localizer["SessionFull"]"
+                             HelperText="@Localizer["PickFutureDate"]"
+                             Color="Color.Warning"
+                             EndIcon="fa-regular fa-calendar-arrow-down"
+                             OnClick="@(() => OpenFutureSessionAsync(session))" />
+            }
+            else
+            {
+                <StackField Label="@Localizer["SessionUnavailable"]"
+                            AdornmentIcon="fa-regular fa-circle-xmark"
+                            AdornmentColor="Color.Default" />
+            }
         }
     }
 
-    @if (!string.IsNullOrWhiteSpace(bookingError))
+    @if(!string.IsNullOrWhiteSpace(bookingError))
     {
-        <Stack>
-            <StackField Label="@bookingError"
-                        AdornmentIcon="fa-regular fa-circle-xmark"
-                        AdornmentColor="Color.Error"
-                        Color="Color.Error" />
-        </Stack>
+        <StackField Label="@bookingError"
+                    AdornmentIcon="fa-regular fa-circle-xmark"
+                    AdornmentColor="Color.Error"
+                    Color="Color.Error" />
     }
-
-    <Stack>
-        <StackButton Label="@Localizer["Back"]"
-                     EndIcon="fa-regular fa-arrow-left"
-                     OnClick="OnBack" />
-    </Stack>
+    
+    <StackButton Label="@Localizer["Back"]"
+                 EndIcon="fa-regular fa-arrow-left"
+                 OnClick="OnBack" />
 </Stack>
 
 @code {
@@ -125,7 +113,7 @@
     protected override async Task OnInitializedAsync()
     {
         patientUserId = Context.SelectedPatient?.UserIds.FirstOrDefault();
-        if (!string.IsNullOrWhiteSpace(patientUserId))
+        if(!string.IsNullOrWhiteSpace(patientUserId))
         {
             await LoadAsync();
         }
@@ -153,7 +141,7 @@
 
         List<(SessionReadDto, SessionReservationReadDto?)> todaySessions = [];
 
-        foreach (SessionReadDto session in sessions)
+        foreach(SessionReadDto session in sessions)
         {
             SessionDateRangeQuery range = new()
             {
@@ -188,7 +176,7 @@
 
     private async Task BookCurrentSessionAsync(SessionReadDto session, SessionReservationReadDto occurrence)
     {
-        if (string.IsNullOrWhiteSpace(patientUserId))
+        if(string.IsNullOrWhiteSpace(patientUserId))
         {
             return;
         }
@@ -200,7 +188,7 @@
         EntityResult<ReservationReadDto> reserveResult = await ReservationManager
             .ReserveAsync(session.Id, occurrence.Date, patientUserId, CancellationToken.None);
 
-        if (reserveResult.IsFailure || reserveResult.Value is null)
+        if(reserveResult.IsFailure || reserveResult.Value is null)
         {
             bookingError = reserveResult.Errors.FirstOrDefault()?.Message ?? Localizer["Error"].Value;
             booking = false;
@@ -210,12 +198,12 @@
 
         ReservationReadDto reservation = reserveResult.Value;
 
-        if (Context.Intent == CheckInIntent.WalkIn)
+        if(Context.Intent == CheckInIntent.WalkIn)
         {
             EntityResult confirmResult = await ReservationManager
                 .ConfirmReservationAsync(reservation.Id, CancellationToken.None);
 
-            if (!confirmResult.IsFailure)
+            if(!confirmResult.IsFailure)
             {
                 _ = await ReservationManager
                     .PresentReservationAsync(reservation.Id, CancellationToken.None);
@@ -239,7 +227,7 @@
 
     private void GoToEditPatient()
     {
-        if (Context.SelectedPatient is not null)
+        if(Context.SelectedPatient is not null)
         {
             NavigationManager.NavigateTo($"/Medical/Patients/{Context.SelectedPatient.Id}/Edit");
         }

@@ -1,81 +1,77 @@
 @inherits Vitarish.Modules.Base.TenantCommonBase
 
 <Stack>
-    @if (Context.DuplicateCandidates.Count > 0)
+    @if(Context.DuplicateCandidates.Count > 0)
     {
-        <Stack>
-            <StackField Label="@Localizer["DuplicateWarning"]"
-                        HelperText="@Localizer["DuplicateWarningHelp"]"
-                        AdornmentIcon="fa-regular fa-triangle-exclamation"
-                        AdornmentColor="Color.Warning"
-                        Color="Color.Warning" />
+        <StackField Label="@Localizer["DuplicateWarning"]"
+                    HelperText="@Localizer["DuplicateWarningHelp"]"
+                    AdornmentIcon="fa-regular fa-triangle-exclamation"
+                    AdornmentColor="Color.Warning"
+                    Color="Color.Warning" />
 
-            @foreach (var candidate in Context.DuplicateCandidates)
-            {
-                <StackButton Label="@candidate.Name"
-                             HelperText="@GetCandidateHelperText(candidate)"
-                             Color="Color.Warning"
-                             EndIcon="fa-regular fa-user-check"
-                             OnClick="@(() => SelectExistingAsync(candidate))" />
-            }
-        </Stack>
+        @foreach(var candidate in Context.DuplicateCandidates)
+        {
+            <StackButton Label="@candidate.Name"
+                         HelperText="@GetCandidateHelperText(candidate)"
+                         Color="Color.Warning"
+                         EndIcon="fa-regular fa-user-check"
+                         OnClick="@(() => SelectExistingAsync(candidate))" />
+        }
     }
+</Stack>
 
-    <Stack>
-        <StackField Label="@Localizer["NewPatientIntake"]" />
+<Stack>
+    <StackField Label="@Localizer["NewPatientIntake"]" />
 
-        <StackTextField @bind-Value="draft.LastName"
-                        Required
-                        Label="@Localizer["LastName"]" />
+    <StackTextField @bind-Value="draft.LastName"
+                    Required
+                    Label="@Localizer["LastName"]" />
 
-        <StackTextField @bind-Value="draft.FirstName"
-                        Label="@Localizer["FirstName"]" />
+    <StackTextField @bind-Value="draft.FirstName"
+                    Label="@Localizer["FirstName"]" />
 
-        <StackDatePicker @bind-Date="draft.DateOfBirth"
-                         Label="@Localizer["DateOfBirth"]" />
+    <StackDatePicker @bind-Date="draft.DateOfBirth"
+                     Label="@Localizer["DateOfBirth"]" />
 
-        <StackTextField @bind-Value="draft.Phone"
-                        Label="@Localizer["Phone"]"
-                        InputType="InputType.Telephone" />
+    <StackTextField @bind-Value="draft.Phone"
+                    Label="@Localizer["Phone"]"
+                    InputType="InputType.Telephone" />
 
-        <StackTextField @bind-Value="draft.Email"
-                        Label="@Localizer["Email"]"
-                        InputType="InputType.Email" />
+    <StackTextField @bind-Value="draft.Email"
+                    Label="@Localizer["Email"]"
+                    InputType="InputType.Email" />
 
-        <StackSelect T="string"
-                     @bind-Value="LinkedUserId"
-                     Label="@Localizer["LinkedUser"]"
-                     AdornmentIcon="@(LinkedUserId is null ? "fa-regular fa-triangle-exclamation" : "")"
-                     AdornmentColor="@(LinkedUserId is null ? Color.Warning : Color.Default)">
-            <MudSelectItem T="string" Value="@(null as string)">@Localizer["None"]</MudSelectItem>
-            @foreach (var user in GetUsers())
-            {
-                <MudSelectItem T="string" Value="user.Id">@user.FullName</MudSelectItem>
-            }
-        </StackSelect>
-    </Stack>
-
-    @if (!string.IsNullOrWhiteSpace(validationError))
+    <StackSelect T="string"
+                 @bind-Value="LinkedUserId"
+                 Label="@Localizer["LinkedUser"]"
+                 AdornmentIcon="@(LinkedUserId is null ? "fa-regular fa-triangle-exclamation" : "")"
+                 AdornmentColor="@(LinkedUserId is null ? Color.Warning : Color.Default)">
+        <MudSelectItem T="string" Value="@(null as string)">@Localizer["None"]</MudSelectItem>
+        @foreach(var user in GetUsers())
+        {
+            <MudSelectItem T="string" Value="user.Id">@user.FullName</MudSelectItem>
+        }
+    </StackSelect>
+    @if(!string.IsNullOrWhiteSpace(validationError))
     {
-        <Stack>
-            <StackField Label="@validationError"
-                        AdornmentIcon="fa-regular fa-circle-xmark"
-                        AdornmentColor="Color.Error"
-                        Color="Color.Error" />
-        </Stack>
+        <StackField Label="@validationError"
+                    AdornmentIcon="fa-regular fa-circle-xmark"
+                    AdornmentColor="Color.Error"
+                    Color="Color.Error" />
     }
+</Stack>
 
-    <Stack>
-        <StackButton Label="@Localizer["Save"]"
-                     EndIcon="fa-regular fa-save"
-                     Color="Color.Primary"
-                     Disabled="@saving"
-                     OnClick="SaveAsync" />
 
-        <StackButton Label="@Localizer["Back"]"
-                     EndIcon="fa-regular fa-arrow-left"
-                     OnClick="OnBack" />
-    </Stack>
+<Stack>
+    <StackButton Label="@Localizer["Save"]"
+                 EndIcon="fa-regular fa-save"
+                 Color="Color.Primary"
+                 Disabled="@saving"
+                 OnClick="SaveAsync" />
+
+    <StackButton Label="@Localizer["Back"]"
+                 EndIcon="fa-regular fa-arrow-left"
+                 OnClick="OnBack" />
 </Stack>
 
 @code {
@@ -100,15 +96,15 @@
     {
         base.OnInitialized();
         draft = Context.NewPatientDraft as PatientWriteDto ?? new PatientWriteDto();
-        if (!string.IsNullOrWhiteSpace(Context.SearchQuery))
+        if(!string.IsNullOrWhiteSpace(Context.SearchQuery))
         {
             string[] parts = Context.SearchQuery.Trim().Split(' ', 2);
-            if (string.IsNullOrWhiteSpace(draft.LastName))
+            if(string.IsNullOrWhiteSpace(draft.LastName))
             {
                 draft.LastName = parts.Length > 1 ? parts[1] : parts[0];
             }
 
-            if (string.IsNullOrWhiteSpace(draft.FirstName) && parts.Length > 1)
+            if(string.IsNullOrWhiteSpace(draft.FirstName) && parts.Length > 1)
             {
                 draft.FirstName = parts[0];
             }
@@ -119,19 +115,19 @@
     {
         validationError = null;
 
-        if (string.IsNullOrWhiteSpace(draft.LastName))
+        if(string.IsNullOrWhiteSpace(draft.LastName))
         {
             validationError = Localizer["RequiredItem", Localizer["LastName"]].Value;
             return;
         }
 
-        if (draft.DateOfBirth is null)
+        if(draft.DateOfBirth is null)
         {
             validationError = Localizer["RequiredItem", Localizer["DateOfBirth"]].Value;
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(draft.Phone) && string.IsNullOrWhiteSpace(draft.Email))
+        if(string.IsNullOrWhiteSpace(draft.Phone) && string.IsNullOrWhiteSpace(draft.Email))
         {
             validationError = Localizer["RequiredPhoneOrEmail"].Value;
             return;
@@ -146,7 +142,7 @@
 
         saving = false;
 
-        if (result.IsFailure || result.Value is null)
+        if(result.IsFailure || result.Value is null)
         {
             validationError = result.Errors.FirstOrDefault()?.Message ?? Localizer["Error"].Value;
             await InvokeAsync(StateHasChanged);
@@ -161,16 +157,16 @@
     {
         PatientReadDto patient = project.ToPatientRead();
         List<string> parts = [];
-        if (patient.DateOfBirth.HasValue)
+        if(patient.DateOfBirth.HasValue)
         {
             parts.Add(patient.DateOfBirth.Value.ToShortDateString());
         }
 
-        if (!string.IsNullOrWhiteSpace(patient.Phone))
+        if(!string.IsNullOrWhiteSpace(patient.Phone))
         {
             parts.Add(patient.Phone);
         }
-        else if (!string.IsNullOrWhiteSpace(patient.Email))
+        else if(!string.IsNullOrWhiteSpace(patient.Email))
         {
             parts.Add(patient.Email);
         }

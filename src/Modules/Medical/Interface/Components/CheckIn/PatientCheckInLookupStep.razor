@@ -4,65 +4,54 @@
     <StackField Label="@Localizer["SearchResults"]"
                 HelperText="@Localizer["SearchResultsFor", Context.SearchQuery ?? string.Empty]" />
 
-    @if (loading)
+    @if(loading)
     {
-        <Stack>
-            <StackField Label="@Localizer["Loading"]" AdornmentIcon="fa-regular fa-spinner" />
-        </Stack>
+        <StackField Label="@Localizer["Loading"]" AdornmentIcon="fa-regular fa-spinner" />
     }
-    else if (Context.DuplicateCandidates.Count > 0)
+    else if(Context.DuplicateCandidates.Count > 0)
     {
-        <Stack>
-            <StackField Label="@Localizer["DuplicateCandidates"]"
-                        HelperText="@Localizer["DuplicateCandidatesHelp"]"
-                        AdornmentIcon="fa-regular fa-triangle-exclamation"
-                        AdornmentColor="Color.Warning"
-                        Color="Color.Warning" />
+        <StackField Label="@Localizer["DuplicateCandidates"]"
+                    HelperText="@Localizer["DuplicateCandidatesHelp"]"
+                    AdornmentIcon="fa-regular fa-triangle-exclamation"
+                    AdornmentColor="Color.Warning"
+                    Color="Color.Warning" />
 
-            @foreach (var candidate in Context.DuplicateCandidates)
-            {
-                <StackButton Label="@candidate.Name"
-                             HelperText="@GetCandidateHelperText(candidate)"
-                             Color="Color.Warning"
-                             EndIcon="fa-regular fa-user-check"
-                             OnClick="@(() => SelectPatientAsync(candidate))" />
-            }
-        </Stack>
+        @foreach(var candidate in Context.DuplicateCandidates)
+        {
+            <StackButton Label="@candidate.Name"
+                         HelperText="@GetCandidateHelperText(candidate)"
+                         Color="Color.Warning"
+                         EndIcon="fa-regular fa-user-check"
+                         OnClick="@(() => SelectPatientAsync(candidate))" />
+        }
     }
 
-    @if (Context.SearchResults.Except(Context.DuplicateCandidates).Any())
+    @if(Context.SearchResults.Except(Context.DuplicateCandidates).Any())
     {
-        <Stack>
-            <StackField Label="@Localizer["OtherResults"]" />
+        <StackField Label="@Localizer["OtherResults"]" />
 
-            @foreach (var result in Context.SearchResults.Except(Context.DuplicateCandidates))
-            {
-                <StackButton Label="@result.Name"
-                             HelperText="@GetCandidateHelperText(result)"
-                             EndIcon="fa-regular fa-user-check"
-                             OnClick="@(() => SelectPatientAsync(result))" />
-            }
-        </Stack>
+        @foreach(var result in Context.SearchResults.Except(Context.DuplicateCandidates))
+        {
+            <StackButton Label="@result.Name"
+                         HelperText="@GetCandidateHelperText(result)"
+                         EndIcon="fa-regular fa-user-check"
+                         OnClick="@(() => SelectPatientAsync(result))" />
+        }
     }
 
-    @if (!loading && Context.SearchResults.Count == 0)
+    @if(!loading && Context.SearchResults.Count == 0)
     {
-        <Stack>
-            <StackField Label="@Localizer["NoSearchItems", Context.SearchQuery ?? string.Empty]" />
-        </Stack>
+        <StackField Label="@Localizer["NoSearchItems", Context.SearchQuery ?? string.Empty]" />
     }
+    <StackButton Label="@Localizer["CreateNewPatient"]"
+                 HelperText="@Localizer["CreateNewPatientHelp"]"
+                 EndIcon="fa-regular fa-user-plus"
+                 Color="Color.Primary"
+                 OnClick="OnCreateNew" />
 
-    <Stack>
-        <StackButton Label="@Localizer["CreateNewPatient"]"
-                     HelperText="@Localizer["CreateNewPatientHelp"]"
-                     EndIcon="fa-regular fa-user-plus"
-                     Color="Color.Primary"
-                     OnClick="OnCreateNew" />
-
-        <StackButton Label="@Localizer["Back"]"
-                     EndIcon="fa-regular fa-arrow-left"
-                     OnClick="OnBack" />
-    </Stack>
+    <StackButton Label="@Localizer["Back"]"
+                 EndIcon="fa-regular fa-arrow-left"
+                 OnClick="OnBack" />
 </Stack>
 
 @code {
@@ -107,18 +96,18 @@
         string? query = Context.SearchQuery;
         string? secondary = Context.SecondaryIdentifier?.Trim();
 
-        if (string.IsNullOrWhiteSpace(query))
+        if(string.IsNullOrWhiteSpace(query))
         {
             return false;
         }
 
         bool nameMatch = project.Name.Contains(query.Trim(), StringComparison.OrdinalIgnoreCase);
-        if (!nameMatch)
+        if(!nameMatch)
         {
             return false;
         }
 
-        if (string.IsNullOrWhiteSpace(secondary))
+        if(string.IsNullOrWhiteSpace(secondary))
         {
             return false;
         }
@@ -140,16 +129,16 @@
         PatientReadDto patient = project.ToPatientRead();
         List<string> parts = [];
 
-        if (patient.DateOfBirth.HasValue)
+        if(patient.DateOfBirth.HasValue)
         {
             parts.Add(patient.DateOfBirth.Value.ToShortDateString());
         }
 
-        if (!string.IsNullOrWhiteSpace(patient.Phone))
+        if(!string.IsNullOrWhiteSpace(patient.Phone))
         {
             parts.Add(patient.Phone);
         }
-        else if (!string.IsNullOrWhiteSpace(patient.Email))
+        else if(!string.IsNullOrWhiteSpace(patient.Email))
         {
             parts.Add(patient.Email);
         }

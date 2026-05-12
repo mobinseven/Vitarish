@@ -7,59 +7,51 @@
 
     @if (Context.SelectedPatient is not null)
     {
-        <Stack>
-            <StackField Label="@Localizer["Patient"]" />
-            <StackButton Label="@Context.SelectedPatient.Name"
-                         EndIcon="fa-regular fa-user"
-                         OnClick="GoToPatient" />
-        </Stack>
+        <StackField Label="@Localizer["Patient"]" />
+        <StackButton Label="@Context.SelectedPatient.Name"
+                     EndIcon="fa-regular fa-user"
+                     OnClick="GoToPatient" />
     }
 
     @if (Context.Outcome == CheckInOutcome.CurrentSession)
     {
-        <Stack>
-            <StackField Label="@Localizer["CheckedInToday"]"
-                        HelperText="@GetOutcomeHelperText()"
-                        AdornmentIcon="fa-regular fa-hospital"
-                        AdornmentColor="Color.Success"
-                        Color="Color.Success" />
-        </Stack>
+        <StackField Label="@Localizer["CheckedInToday"]"
+                    HelperText="@GetOutcomeHelperText()"
+                    AdornmentIcon="fa-regular fa-hospital"
+                    AdornmentColor="Color.Success"
+                    Color="Color.Success" />
     }
     else if (Context.Outcome == CheckInOutcome.FutureSession)
     {
-        <Stack>
-            <StackField Label="@Localizer["BookedForFuture"]"
-                        HelperText="@GetOutcomeHelperText()"
-                        AdornmentIcon="fa-regular fa-calendar-check"
-                        AdornmentColor="Color.Info"
-                        Color="Color.Info" />
-        </Stack>
+        <StackField Label="@Localizer["BookedForFuture"]"
+                    HelperText="@GetOutcomeHelperText()"
+                    AdornmentIcon="fa-regular fa-calendar-check"
+                    AdornmentColor="Color.Info"
+                    Color="Color.Info" />
     }
 
     @if (Context.ConfirmedReservation is not null)
     {
-        <Stack>
-            <StackField Label="@Localizer["Appointment"]" />
-            <StackField Label="@GetSessionLabel()"
-                        HelperText="@GetDateTimeLabel()">
-                <ReservationStatusBadge Status="Context.ConfirmedReservation.Status" />
-            </StackField>
-        </Stack>
+        <StackField Label="@Localizer["Appointment"]" />
+        <StackField Label="@GetSessionLabel()"
+                    HelperText="@GetDateTimeLabel()">
+            <ReservationStatusBadge Status="Context.ConfirmedReservation.Status" />
+        </StackField>
+    }
+</Stack>
+
+<Stack>
+    @if(Context.SelectedPatient is not null)
+    {
+        <StackButton Label="@Localizer["GoToPatient"]"
+                     EndIcon="fa-regular fa-arrow-right"
+                     Color="Color.Primary"
+                     OnClick="GoToPatient" />
     }
 
-    <Stack>
-        @if (Context.SelectedPatient is not null)
-        {
-            <StackButton Label="@Localizer["GoToPatient"]"
-                         EndIcon="fa-regular fa-arrow-right"
-                         Color="Color.Primary"
-                         OnClick="GoToPatient" />
-        }
-
-        <StackButton Label="@Localizer["StartAnotherCheckIn"]"
-                     EndIcon="fa-regular fa-rotate-right"
-                     OnClick="OnStartAnother" />
-    </Stack>
+    <StackButton Label="@Localizer["StartAnotherCheckIn"]"
+                 EndIcon="fa-regular fa-rotate-right"
+                 OnClick="OnStartAnother" />
 </Stack>
 
 @code {
