@@ -129,6 +129,9 @@ else
     private bool showAdvancedSearch;
     private bool advancedSearchDone;
     private bool showCreateForm;
+    private const int MaxSearchResults = 50;
+    private const int MaxAdvancedSearchCandidates = 500;
+
     private PatientWriteDto draft = new();
     private int createFormKey;
 
@@ -181,9 +184,10 @@ else
         Context.DuplicateCandidates = [];
         await InvokeAsync(StateHasChanged);
 
-        IReadOnlyList<ProjectReadDto> items = await LoadAdvancedSearchCandidatesAsync();
+        AdvancedSearchCriteria criteria = AdvancedSearchCriteria.From(Context);
+        IReadOnlyList<ProjectReadDto> items = await LoadAdvancedSearchCandidatesAsync(criteria);
 
-        Context.SearchResults = [.. items.Where(MatchesAdvancedSearch).Take(50)];
+        Context.SearchResults = [.. items.Where(project => MatchesAdvancedSearch(project, criteria)).Take(MaxSearchResults)];
         Context.DuplicateCandidates = [];
         advancedSearchDone = true;
         await InvokeAsync(StateHasChanged);
@@ -271,15 +275,15 @@ else
            || !string.IsNullOrWhiteSpace(Context.SearchPhone)
            || !string.IsNullOrWhiteSpace(Context.SearchEmail);
 
-    private async Task<IReadOnlyList<ProjectReadDto>> LoadAdvancedSearchCandidatesAsync()
+    private async Task<IReadOnlyList<ProjectReadDto>> LoadAdvancedSearchCandidatesAsync(AdvancedSearchCriteria criteria)
     {
         ProjectDescriptorDto descriptor = new()
         {
-            IdentificationCode = string.IsNullOrWhiteSpace(Context.SearchIdentificationCode) ? null : Context.SearchIdentificationCode.Trim(),
-            Search = string.IsNullOrWhiteSpace(Context.SearchIdentificationCode) ? Context.SearchQuery : null,
+            IdentificationCode = criteria.IdentificationCode,
+            Search = criteria.IdentificationCode is null ? criteria.Name : null,
             Template = false,
             Skip = 0,
-            Take = NeedsClientSideSearch() ? null : 50
+            Take = criteria.NeedsClientSideSearch ? MaxAdvancedSearchCandidates : MaxSearchResults
         };
 
         return await ProjectsService
@@ -287,36 +291,27 @@ else
             .GetValueOrDefaultAsync() ?? [];
     }
 
-    private bool NeedsClientSideSearch()
-        => Context.SearchDateOfBirth.HasValue
-           || !string.IsNullOrWhiteSpace(Context.SearchPhone)
-           || !string.IsNullOrWhiteSpace(Context.SearchEmail);
-
-    private bool MatchesAdvancedSearch(ProjectReadDto project)
-    {
-        PatientReadDto patient = project.ToPatientRead();
-
-        return MatchesText(project.Name, Context.SearchQuery)
-               && MatchesIdentificationCode(project, Context.SearchIdentificationCode)
-               && MatchesDate(patient.DateOfBirth, Context.SearchDateOfBirth)
-               && MatchesPhone(patient.Phone, Context.SearchPhone)
-               && MatchesText(patient.Email, Context.SearchEmail);
-    }
+    private static bool MatchesAdvancedSearch(ProjectReadDto project, AdvancedSearchCriteria criteria)
+        => MatchesText(project.Name, criteria.Name)
+           && MatchesIdentificationCode(project, criteria.IdentificationCode)
+           && MatchesDate(project.GetField<DateTime?>(nameof(PatientReadDto.DateOfBirth)), criteria.DateOfBirth)
+           && MatchesPhone(project.GetField<string>(nameof(PatientReadDto.Phone)), criteria)
+           && MatchesText(project.GetField<string>(nameof(PatientReadDto.Email)), criteria.Email);
 
     private static bool MatchesIdentificationCode(ProjectReadDto project, string? identificationCode)
-        => string.IsNullOrWhiteSpace(identificationCode)
-           || string.Equals(project.IdentificationCode?.Trim(), identificationCode.Trim(), StringComparison.OrdinalIgnoreCase);
+        => identificationCode is null
+           || string.Equals(project.IdentificationCode?.Trim(), identificationCode, StringComparison.OrdinalIgnoreCase);
 
     private static bool MatchesDate(DateTime? value, DateTime? expected)
         => !expected.HasValue || (value.HasValue && value.Value.Date == expected.Value.Date);
 
     private static bool MatchesText(string? value, string? expected)
-        => string.IsNullOrWhiteSpace(expected)
-           || (!string.IsNullOrWhiteSpace(value) && value.Contains(expected.Trim(), StringComparison.OrdinalIgnoreCase));
+        => expected is null
+           || (!string.IsNullOrWhiteSpace(value) && value.Contains(expected, StringComparison.OrdinalIgnoreCase));
 
-    private static bool MatchesPhone(string? value, string? expected)
+    private static bool MatchesPhone(string? value, AdvancedSearchCriteria criteria)
     {
-        if(string.IsNullOrWhiteSpace(expected))
+        if(criteria.Phone is null)
         {
             return true;
         }
@@ -326,15 +321,44 @@ else
             return false;
         }
 
-        string expectedDigits = DigitsOnly(expected);
-        string valueDigits = DigitsOnly(value);
+        if(criteria.PhoneDigits.Length > 0)
+        {
+            string valueDigits = DigitsOnly(value);
+            return valueDigits.Contains(criteria.PhoneDigits, StringComparison.Ordinal);
+        }
 
-        return expectedDigits.Length > 0
-            ? valueDigits.Contains(expectedDigits, StringComparison.Ordinal)
-            : value.Contains(expected.Trim(), StringComparison.OrdinalIgnoreCase);
+        return value.Contains(criteria.Phone, StringComparison.OrdinalIgnoreCase);
     }
 
     private static string DigitsOnly(string value) => new(value.Where(char.IsDigit).ToArray());
+
+    private sealed record AdvancedSearchCriteria(
+        string? Name,
+        string? IdentificationCode,
+        DateTime? DateOfBirth,
+        string? Phone,
+        string PhoneDigits,
+        string? Email)
+    {
+        public bool NeedsClientSideSearch
+            => DateOfBirth.HasValue || Phone is not null || Email is not null;
+
+        public static AdvancedSearchCriteria From(PatientFindOrCreateContext context)
+        {
+            string? phone = NormalizeText(context.SearchPhone);
+
+            return new(
+                NormalizeText(context.SearchQuery),
+                NormalizeText(context.SearchIdentificationCode),
+                context.SearchDateOfBirth?.Date,
+                phone,
+                phone is null ? string.Empty : DigitsOnly(phone),
+                NormalizeText(context.SearchEmail));
+        }
+
+        private static string? NormalizeText(string? value)
+            => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
 
     private string GetAdvancedSearchSummary()
     {
