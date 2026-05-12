@@ -10,50 +10,8 @@ internal class SessionBookingPolicyEngine(AppointmentsDbContext dbContext) : ISe
             .Include(s => s.BookingPolicy)
             .FirstOrDefaultAsync(s => s.Id == sessionId, cancellationToken);
 
-        if (session is null || session.Status != SessionStatus.Active)
-        {
-            return false;
-        }
-
-        SessionBookingPolicy? policy = session.BookingPolicy;
-
-        if (policy?.ClosedDates.Any(cd => cd.Date == date) == true)
-        {
-            return false;
-        }
-
-        DateTimeOffset now = DateTimeOffset.UtcNow;
-        DateTimeOffset slotStart = ToDateTimeOffset(date, session.StartTime);
-
-        if (now >= slotStart)
-        {
-            return false;
-        }
-
-        if (policy is null)
-        {
-            return true;
-        }
-
-        if (policy.BookingOpensBefore.HasValue)
-        {
-            DateTimeOffset opensAt = slotStart - policy.BookingOpensBefore.Value;
-            if (now < opensAt)
-            {
-                return false;
-            }
-        }
-
-        if (policy.BookingCloseBefore.HasValue)
-        {
-            DateTimeOffset closesAt = slotStart - policy.BookingCloseBefore.Value;
-            if (now >= closesAt)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return session is not null
+            && SessionBookingRules.IsBookingOpen(session, date, DateTimeOffset.UtcNow);
     }
 
     public async Task<bool> CanCancelAsync(Guid reservationId, CancellationToken cancellationToken)
