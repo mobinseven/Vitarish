@@ -10,7 +10,7 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
 
     [Inject] private IAccessControlledSessionManager SessionsService { get; set; } = default!;
     [Inject] private IAccessControlledReservationManager ReservationManager { get; set; } = default!;
-    [Inject] private ISessionBookableDateQueryService BookableDateQueryService { get; set; } = default!;
+    [Inject] private ISessionOccurrenceQueryService OccurrenceQueryService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
     private string? patientUserId;
@@ -55,7 +55,7 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
             DateTo = today.AddYears(1)
         };
 
-        SessionReservationReadDto? sessionReservation = (await BookableDateQueryService.GetBookableDatesAsync(session.Id, range, CancellationToken.None))
+        SessionReservationReadDto? sessionReservation = (await OccurrenceQueryService.GetBookableDatesAsync(session.Id, range, CancellationToken.None))
             .OrderBy(sr => sr.Date).ThenBy(sr => sr.StartTime)
             .FirstOrDefault(sr => sr.Date >= today && sr.AvailableSeats > 0);
 

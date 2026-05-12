@@ -7,7 +7,7 @@ namespace Vitarish.Appointments.Infrastructure.Handlers;
 
 internal class MoveReservationHandler(
     AppointmentsDbContext dbContext,
-    ISessionBookingPolicyEngine bookingPolicyEngine,
+    ISessionBookingPolicy bookingPolicy,
     IAppointmentsEventPublisher eventPublisher,
     IRequestContext requestContext)
     : IRequestHandler<MoveReservationCommand>
@@ -39,7 +39,7 @@ internal class MoveReservationHandler(
                 return;
             }
 
-            if (!await bookingPolicyEngine.IsBookingOpenAsync(request.TargetSessionId, request.TargetDate, cancellationToken))
+            if (!await bookingPolicy.IsBookingOpenAsync(request.TargetSessionId, request.TargetDate, cancellationToken))
             {
                 await transaction.RollbackAsync(cancellationToken);
                 return;

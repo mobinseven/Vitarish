@@ -1,7 +1,7 @@
 namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
-internal class SessionBookingPolicyEngine(AppointmentsDbContext dbContext) : ISessionBookingPolicyEngine
+internal class SessionBookingPolicyService(AppointmentsDbContext dbContext) : ISessionBookingPolicy
 {
     public async Task<bool> IsBookingOpenAsync(Guid sessionId, DateOnly date, CancellationToken cancellationToken)
     {

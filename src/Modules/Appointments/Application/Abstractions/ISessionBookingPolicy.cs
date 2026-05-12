@@ -1,6 +1,9 @@
 namespace Vitarish.Appointments.Application.Abstractions;
 
-public interface ISessionBookingPolicyEngine
+/// <summary>
+/// Answers command-side booking policy decisions for reservation workflows.
+/// </summary>
+public interface ISessionBookingPolicy
 {
     Task<bool> IsBookingOpenAsync(Guid sessionId, DateOnly date, CancellationToken cancellationToken);
     Task<bool> CanCancelAsync(Guid reservationId, CancellationToken cancellationToken);

@@ -4,7 +4,7 @@ public partial class SessionReservationsCalendar
 {
     [Parameter] public Guid? SessionId { get; set; }
     [Parameter] public EventCallback<SessionReservationReadDto> OnSelected { get; set; }
-    [Inject] private ISessionBookableDateQueryService BookableDateQueryService { get; set; } = default!;
+    [Inject] private ISessionOccurrenceQueryService OccurrenceQueryService { get; set; } = default!;
 
     private List<SessionReservationReadDto> occurrences = [];
 
@@ -24,7 +24,7 @@ public partial class SessionReservationsCalendar
             DateTo = today.AddYears(1)
         };
 
-        IReadOnlyList<SessionReservationReadDto> resolved = await BookableDateQueryService.GetBookableDatesAsync(SessionId.Value, range, CancellationToken.None);
+        IReadOnlyList<SessionReservationReadDto> resolved = await OccurrenceQueryService.GetBookableDatesAsync(SessionId.Value, range, CancellationToken.None);
         occurrences = [.. resolved.OrderBy(o => o.Date).ThenBy(o => o.StartTime)];
         await InvokeAsync(StateHasChanged);
     }

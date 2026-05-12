@@ -1,9 +1,9 @@
 namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
-internal class SessionBookableDateQueryService(
+internal class SessionOccurrenceQueryService(
     IEntityRepository<Session, SessionDescriptor> sessionRepository,
-    AppointmentsDbContext dbContext) : ISessionBookableDateQueryService
+    AppointmentsDbContext dbContext) : ISessionOccurrenceQueryService
 {
     public async Task<IReadOnlyList<SessionReservationReadDto>> GetBookableDatesAsync(
         Guid sessionId, SessionDateRangeQuery range, CancellationToken cancellationToken)

@@ -11,7 +11,7 @@ public static class DependencyInjectionExtensions
         _ = services.AddTransient<IAccessControlledSessionManager, AccessControlledSessionManager>();
         _ = services.AddTransient<IAccessControlledReservationManager, AccessControlledReservationManager>();
         _ = services.AddTransient<ISessionReminderPolicyManager, SessionReminderPolicyManager>();
-        _ = services.AddTransient<ISessionBookingPolicyEngine, SessionBookingPolicyEngine>();
+        _ = services.AddTransient<ISessionBookingPolicy, SessionBookingPolicyService>();
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AppointmentsDbContext).Assembly));
         return services;
     }

@@ -6,7 +6,7 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 internal class AccessControlledReservationManager(
     IRequestContext requestContext,
     IReservationManager reservationManager,
-    ISessionBookingPolicyEngine bookingPolicyEngine,
+    ISessionBookingPolicy bookingPolicy,
     IStatusCoordinator statusCoordinator) : IAccessControlledReservationManager
 {
     private bool IsAdmin => requestContext.IsTenantAdmin() || requestContext.IsTenantOwner();
@@ -106,12 +106,12 @@ internal class AccessControlledReservationManager(
             }));
         }
 
-        if (!await bookingPolicyEngine.IsBookingOpenAsync(sessionId, date, cancellationToken))
+        if (!await bookingPolicy.IsBookingOpenAsync(sessionId, date, cancellationToken))
         {
             return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("Booking is not open for this session slot."));
         }
 
-        if (!await bookingPolicyEngine.HasCapacityForPartyAsync(sessionId, date, effectivePartyId, cancellationToken))
+        if (!await bookingPolicy.HasCapacityForPartyAsync(sessionId, date, effectivePartyId, cancellationToken))
         {
             return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("The reserving party has reached the reservation limit for this session slot."));
         }
@@ -144,7 +144,7 @@ internal class AccessControlledReservationManager(
                 : EntityResult<ReservationReadDto>.Failure(EntityError.Unknown("Reservation was not returned after creation."));
         }
 
-        bool requiresApproval = await bookingPolicyEngine.RequiresApprovalAsync(sessionId, cancellationToken);
+        bool requiresApproval = await bookingPolicy.RequiresApprovalAsync(sessionId, cancellationToken);
 
         if (!requiresApproval)
         {
@@ -179,7 +179,7 @@ internal class AccessControlledReservationManager(
             await EnsureOwnershipAsync(reservationId, cancellationToken);
         }
 
-        if (!await bookingPolicyEngine.CanCancelAsync(reservationId, cancellationToken))
+        if (!await bookingPolicy.CanCancelAsync(reservationId, cancellationToken))
         {
             return EntityResult.Failure(EntityError.Conflict("This reservation can no longer be cancelled."));
         }

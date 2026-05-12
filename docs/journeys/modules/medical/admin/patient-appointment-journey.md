@@ -100,7 +100,7 @@
 ### Current implementation touchpoints
 - `PatientPage.razor` renders `PatientAppointmentsPanel` with the current patient project and routes missing user-link remediation back to `PatientEditPage.razor`.
 - `PatientAppointmentsPanel` reads `Patient.UserIds.FirstOrDefault()` as the patient appointment identity, loads reservations with `ReservationDescriptorDto.ReservingPartyId`, orders them by date/start time, and opens `ReservationDetailDialog` for status management.
-- PatientAppointmentBookingDialog injects IAccessControlledSessionManager, IAccessControlledReservationManager, and ISessionBookableDateQueryService; it lists active sessions, reserves the first future non-cancelled bookable occurrence, and optionally creates a post-booking reminder.
+- PatientAppointmentBookingDialog injects IAccessControlledSessionManager, IAccessControlledReservationManager, and ISessionOccurrenceQueryService; it lists active sessions, reserves the first future non-cancelled bookable occurrence, and optionally creates a post-booking reminder.
 - `ReservationDetail` exposes status transitions for pending, confirmed, present, and waitlisted reservations, then delegates to reservation manager methods such as confirm, present, complete, cancel, and reject.
 - Global appointment lists use `ReservationsList` and `ReservationFilters`; the current filter component only exposes `ReservationStatus`.
 

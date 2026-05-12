@@ -49,7 +49,7 @@
 
     [Inject] private IAccessControlledSessionManager SessionsService { get; set; } = default!;
     [Inject] private IAccessControlledReservationManager ReservationManager { get; set; } = default!;
-    [Inject] private ISessionBookableDateQueryService BookableDateQueryService { get; set; } = default!;
+    [Inject] private ISessionOccurrenceQueryService OccurrenceQueryService { get; set; } = default!;
 
     private record FutureSlot(SessionReadDto Session, SessionReservationReadDto Occurrence);
 
@@ -92,7 +92,7 @@
                 DateTo = until
             };
 
-            IReadOnlyList<SessionReservationReadDto> bookable = await BookableDateQueryService
+            IReadOnlyList<SessionReservationReadDto> bookable = await OccurrenceQueryService
                 .GetBookableDatesAsync(session.Id, range, CancellationToken.None);
 
             foreach (SessionReservationReadDto occurrence in bookable.Where(o => o.AvailableSeats > 0))

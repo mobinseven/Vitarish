@@ -7,7 +7,7 @@ namespace Vitarish.Appointments.Infrastructure.Handlers;
 
 internal class CreateReservationHandler(
     AppointmentsDbContext dbContext,
-    ISessionBookingPolicyEngine bookingPolicyEngine,
+    ISessionBookingPolicy bookingPolicy,
     IAppointmentsEventPublisher eventPublisher,
     IPublisher publisher,
     IRequestContext requestContext)
@@ -34,13 +34,13 @@ internal class CreateReservationHandler(
                     return EntityResult<Reservation>.Failure([.. sessionValidation.Errors]);
                 }
 
-                if (!await bookingPolicyEngine.IsBookingOpenAsync(request.SessionId, request.Date, cancellationToken))
+                if (!await bookingPolicy.IsBookingOpenAsync(request.SessionId, request.Date, cancellationToken))
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("The booking window is closed for this session slot."));
                 }
 
-                if (!await bookingPolicyEngine.HasCapacityForPartyAsync(request.SessionId, request.Date, request.ReservingPartyId, cancellationToken))
+                if (!await bookingPolicy.HasCapacityForPartyAsync(request.SessionId, request.Date, request.ReservingPartyId, cancellationToken))
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("The reservation limit for this party has been reached."));

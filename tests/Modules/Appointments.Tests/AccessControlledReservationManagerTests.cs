@@ -7,7 +7,7 @@ public class AccessControlledReservationManagerTests
     {
         Mock<IRequestContext> requestContext = CreateRequestContext();
         Mock<IReservationManager> reservationManager = new();
-        Mock<ISessionBookingPolicyEngine> bookingPolicyEngine = new();
+        Mock<ISessionBookingPolicy> bookingPolicy = new();
         Mock<IStatusCoordinator> statusCoordinator = new();
 
         Guid sessionId = Guid.NewGuid();
@@ -16,8 +16,8 @@ public class AccessControlledReservationManagerTests
         DateTimeOffset slotStart = DateTimeOffset.UtcNow.AddHours(2);
         DateOnly date = DateOnly.FromDateTime(slotStart.DateTime);
 
-        bookingPolicyEngine.Setup(x => x.IsBookingOpenAsync(sessionId, date, It.IsAny<CancellationToken>())).ReturnsAsync(true);
-        bookingPolicyEngine.Setup(x => x.HasCapacityForPartyAsync(sessionId, date, "user-1", It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        bookingPolicy.Setup(x => x.IsBookingOpenAsync(sessionId, date, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        bookingPolicy.Setup(x => x.HasCapacityForPartyAsync(sessionId, date, "user-1", It.IsAny<CancellationToken>())).ReturnsAsync(true);
         reservationManager
             .Setup(x => x.ReserveAsync(sessionId, date, "user-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(EntityResult<ReservationReadDto>.Success(new ReservationReadDto
@@ -50,14 +50,14 @@ public class AccessControlledReservationManagerTests
             .Setup(x => x.TransitionReservationAsync(reservationId, ReservationStatus.Confirmed, "user-1", It.IsAny<CancellationToken>()))
             .ReturnsAsync(EntityResult.Success());
 
-        bookingPolicyEngine
+        bookingPolicy
             .Setup(x => x.RequiresApprovalAsync(sessionId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         AccessControlledReservationManager sut = new(
             requestContext.Object,
             reservationManager.Object,
-            bookingPolicyEngine.Object,
+            bookingPolicy.Object,
             statusCoordinator.Object);
 
         EntityResult<ReservationReadDto> result = await sut.ReserveAsync(sessionId, date, null, CancellationToken.None);
