@@ -25,7 +25,7 @@
         @foreach (var reservation in reservations)
         {
             <StackButton OnClick="@(() => OpenDetailDialogAsync(reservation))"
-                         Label="@(reservation.Date.HasValue ? $"{reservation.Date:d} {reservation.Occurrence?.StartTime:t}" : Localizer["SessionUnavailable"].Value)">
+                         Label="@GetReservationLabel(reservation)">
                 <ReservationStatusBadge Status="reservation.Status" />
             </StackButton>
         }
@@ -37,8 +37,10 @@
     [Parameter] public EventCallback OnEdit { get; set; }
 
     [Inject] private IAccessControlledReservationManager ReservationManager { get; set; } = default!;
+    [Inject] private IAccessControlledSessionManager SessionsService { get; set; } = default!;
 
     private List<ReservationReadDto> reservations = [];
+    private Dictionary<Guid, SessionReadDto> reservationSessions = [];
     private string? patientUserId;
 
     protected override async Task OnInitializedAsync()
@@ -52,15 +54,49 @@
         if (string.IsNullOrWhiteSpace(patientUserId))
         {
             reservations = [];
+            reservationSessions = [];
             await InvokeAsync(StateHasChanged);
             return;
         }
 
         ReservationDescriptorDto descriptor = new() { ReservingPartyId = patientUserId, Skip = 0, Take = int.MaxValue };
         IReadOnlyList<ReservationReadDto> all = await ReservationManager.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
-        reservations = [.. all.OrderBy(r => r.Date).ThenBy(r => r.Occurrence?.StartTime)];
+        reservationSessions = await LoadReservationSessionsAsync(all);
+        reservations = [.. all.OrderBy(r => r.Date).ThenBy(r => GetSessionStartTime(r.SessionId)).ThenBy(r => GetSessionTitle(r.SessionId))];
         await InvokeAsync(StateHasChanged);
     }
+
+    private async Task<Dictionary<Guid, SessionReadDto>> LoadReservationSessionsAsync(IReadOnlyList<ReservationReadDto> reservationItems)
+    {
+        Dictionary<Guid, SessionReadDto> sessionsById = [];
+
+        foreach (Guid sessionId in reservationItems.Select(r => r.SessionId).Distinct())
+        {
+            SessionReadDto? session = await SessionsService.GetAsync(sessionId, CancellationToken.None).GetValueOrDefaultAsync();
+            if (session is not null)
+            {
+                sessionsById[session.Id] = session;
+            }
+        }
+
+        return sessionsById;
+    }
+
+    private string GetReservationLabel(ReservationReadDto reservation)
+    {
+        if (!reservationSessions.TryGetValue(reservation.SessionId, out SessionReadDto? session))
+        {
+            return $"{reservation.Date:d} {Localizer["SessionUnavailable"].Value}";
+        }
+
+        return $"{reservation.Date:d} {session.StartTime:t} {session.Title}";
+    }
+
+    private TimeOnly GetSessionStartTime(Guid sessionId)
+        => reservationSessions.TryGetValue(sessionId, out SessionReadDto? session) ? session.StartTime : TimeOnly.MinValue;
+
+    private string GetSessionTitle(Guid sessionId)
+        => reservationSessions.TryGetValue(sessionId, out SessionReadDto? session) ? session.Title : string.Empty;
 
     private async Task OpenBookingDialogAsync()
     {

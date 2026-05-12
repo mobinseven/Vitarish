@@ -57,17 +57,17 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
             DateTo = today.AddYears(1)
         };
 
-        SessionOccurrenceReadDto? occurrence = (await BookableDateQueryService.GetBookableDatesAsync(session.Id, range, CancellationToken.None))
-            .OrderBy(o => o.Date).ThenBy(o => o.StartTime)
-            .FirstOrDefault(o => !o.IsCancelled && o.Date >= today);
+        SessionReservationReadDto? sessionReservation = (await BookableDateQueryService.GetBookableDatesAsync(session.Id, range, CancellationToken.None))
+            .OrderBy(sr => sr.Date).ThenBy(sr => sr.StartTime)
+            .FirstOrDefault(sr => sr.Date >= today && sr.AvailableSeats > 0);
 
-        if (occurrence is null)
+        if (sessionReservation is null)
         {
             _ = Snackbar.Add(Localizer["OccurrenceUnavailable"].Value, Severity.Warning);
             return;
         }
 
-        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(session.Id, occurrence.Date, patientUserId, CancellationToken.None);
+        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(session.Id, sessionReservation.Date, patientUserId, CancellationToken.None);
         if (result.IsFailure || result.Value is null)
         {
             _ = Snackbar.Add(result.Errors.FirstOrDefault()?.Message ?? Localizer["Error"].Value, Severity.Error);

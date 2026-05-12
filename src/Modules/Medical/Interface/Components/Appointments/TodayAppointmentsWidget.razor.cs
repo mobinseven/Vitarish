@@ -18,8 +18,10 @@ public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommo
 
     private async Task LoadAsync()
     {
+        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
         SessionDescriptorDto sessionDescriptor = new()
         {
+            Status = SessionStatus.Active,
             Skip = 0,
             Take = int.MaxValue
         };
@@ -36,6 +38,8 @@ public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommo
         {
             ReservationDescriptorDto reservationDescriptor = new()
             {
+                SessionId = session.Id,
+                Date = today,
                 Skip = 0,
                 Take = int.MaxValue
             };
@@ -44,7 +48,7 @@ public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommo
                 .GetListAsync(reservationDescriptor, CancellationToken.None)
                 .GetValueOrDefaultAsync() ?? [];
 
-            result.Add((session, [.. reservations]));
+            result.Add((session, [.. reservations.OrderBy(r => r.Status).ThenBy(r => r.ReservingPartyId)]));
         }
 
         todaySessions = result;
