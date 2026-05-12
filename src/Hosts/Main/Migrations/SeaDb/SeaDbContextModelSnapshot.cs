@@ -250,6 +250,9 @@ namespace Vitarish.Main.Migrations.SeaDb
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("IdentificationCode")
+                        .HasColumnType("nvarchar(256)");
+
                     b.Property<string>("Metadata")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -275,6 +278,10 @@ namespace Vitarish.Main.Migrations.SeaDb
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("TenantId", "IdentificationCode")
+                        .IsUnique()
+                        .HasFilter("[IdentificationCode] IS NOT NULL AND [IdentificationCode] != ''");
 
                     b.ToTable("Projects");
 

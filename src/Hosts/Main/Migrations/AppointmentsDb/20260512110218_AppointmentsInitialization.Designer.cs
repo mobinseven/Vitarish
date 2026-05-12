@@ -12,7 +12,7 @@ using Vitarish.Appointments.Infrastructure.Data;
 namespace Vitarish.Main.Migrations.AppointmentsDb
 {
     [DbContext(typeof(AppointmentsDbContext))]
-    [Migration("20260512082456_AppointmentsInitialization")]
+    [Migration("20260512110218_AppointmentsInitialization")]
     partial class AppointmentsInitialization
     {
         /// <inheritdoc />
