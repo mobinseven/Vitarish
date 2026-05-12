@@ -1,0 +1,64 @@
+@inherits Vitarish.Modules.Base.TenantCommonBase
+
+<Stack>
+    <StackField Label="@Localizer["CheckInIntent"]" />
+
+    <Stack>
+        <StackButton Label="@Localizer["WalkIn"]"
+                     HelperText="@Localizer["WalkInHelp"]"
+                     Color="@(Context.Intent == CheckInIntent.WalkIn ? Color.Primary : Color.Default)"
+                     EndIcon="fa-regular fa-person-walking"
+                     OnClick="@(() => SelectIntent(CheckInIntent.WalkIn))" />
+
+        <StackButton Label="@Localizer["ArrivalForExisting"]"
+                     HelperText="@Localizer["ArrivalForExistingHelp"]"
+                     Color="@(Context.Intent == CheckInIntent.ArrivalForExisting ? Color.Primary : Color.Default)"
+                     EndIcon="fa-regular fa-calendar-check"
+                     OnClick="@(() => SelectIntent(CheckInIntent.ArrivalForExisting))" />
+
+        <StackButton Label="@Localizer["ScheduleForLater"]"
+                     HelperText="@Localizer["ScheduleForLaterHelp"]"
+                     Color="@(Context.Intent == CheckInIntent.ScheduleForLater ? Color.Primary : Color.Default)"
+                     EndIcon="fa-regular fa-calendar-plus"
+                     OnClick="@(() => SelectIntent(CheckInIntent.ScheduleForLater))" />
+    </Stack>
+
+    <Stack>
+        <StackTextField @bind-Value="Context.SearchQuery"
+                        Label="@Localizer["PatientName"]"
+                        Required />
+
+        <StackTextField @bind-Value="Context.SecondaryIdentifier"
+                        Label="@Localizer["PhoneOrDateOfBirth"]"
+                        HelperText="@Localizer["PhoneOrDateOfBirthHelp"]" />
+    </Stack>
+
+    <Stack>
+        <StackButton Label="@Localizer["Continue"]"
+                     EndIcon="fa-regular fa-arrow-right"
+                     Color="Color.Primary"
+                     Disabled="@string.IsNullOrWhiteSpace(Context.SearchQuery)"
+                     OnClick="ContinueAsync" />
+    </Stack>
+</Stack>
+
+@code {
+    [Parameter, EditorRequired] public PatientCheckInContext Context { get; set; } = default!;
+    [Parameter] public EventCallback OnContinue { get; set; }
+
+    private void SelectIntent(CheckInIntent intent)
+    {
+        Context.Intent = intent;
+        StateHasChanged();
+    }
+
+    private async Task ContinueAsync()
+    {
+        if (string.IsNullOrWhiteSpace(Context.SearchQuery))
+        {
+            return;
+        }
+
+        await OnContinue.InvokeAsync();
+    }
+}

@@ -1,0 +1,110 @@
+@page "/Medical/CheckIn"
+
+@using Vitarish.Medical.Interface.Components.CheckIn
+@using Vitarish.Appointments.Domain.Dto
+
+<CascadingValue Value="IsAdmin">
+
+    @switch (context.CurrentStep)
+    {
+        case CheckInStep.Intent:
+            <PatientCheckInIntentStep Context="context"
+                                      OnContinue="StartLookupAsync" />
+            break;
+
+        case CheckInStep.Lookup:
+            <PatientCheckInLookupStep Context="context"
+                                      OnSelectPatient="OnPatientSelected"
+                                      OnCreateNew="GoToCreate"
+                                      OnBack="GoBack" />
+            break;
+
+        case CheckInStep.Create:
+            <PatientCheckInCreateStep Context="context"
+                                      OnCreated="OnPatientCreated"
+                                      OnSelectExisting="OnPatientSelected"
+                                      OnBack="GoBack" />
+            break;
+
+        case CheckInStep.Session:
+            <PatientCheckInSessionStep Context="context"
+                                       OnBooked="GoToConfirm"
+                                       OnPickFuture="GoToFutureSession"
+                                       OnBack="GoBack" />
+            break;
+
+        case CheckInStep.FutureSession:
+            <PatientCheckInFutureStep Context="context"
+                                      OnBooked="GoToConfirm"
+                                      OnBack="GoBack" />
+            break;
+
+        case CheckInStep.Confirm:
+            <PatientCheckInConfirmStep Context="context"
+                                       OnStartAnother="RestartAsync" />
+            break;
+    }
+
+</CascadingValue>
+
+@code {
+    private PatientCheckInContext context = new();
+
+    private Task StartLookupAsync()
+    {
+        context.CurrentStep = CheckInStep.Lookup;
+        return Task.CompletedTask;
+    }
+
+    private Task OnPatientSelected(ProjectReadDto patient)
+    {
+        context.SelectedPatient = patient;
+        context.CurrentStep = CheckInStep.Session;
+        return Task.CompletedTask;
+    }
+
+    private Task OnPatientCreated(ProjectReadDto patient)
+    {
+        context.SelectedPatient = patient;
+        context.CurrentStep = CheckInStep.Session;
+        return Task.CompletedTask;
+    }
+
+    private Task GoToCreate()
+    {
+        context.CurrentStep = CheckInStep.Create;
+        return Task.CompletedTask;
+    }
+
+    private Task GoToConfirm()
+    {
+        context.CurrentStep = CheckInStep.Confirm;
+        return Task.CompletedTask;
+    }
+
+    private Task GoToFutureSession(SessionReadDto session)
+    {
+        context.SelectedSession = session;
+        context.CurrentStep = CheckInStep.FutureSession;
+        return Task.CompletedTask;
+    }
+
+    private Task GoBack()
+    {
+        context.CurrentStep = context.CurrentStep switch
+        {
+            CheckInStep.Lookup => CheckInStep.Intent,
+            CheckInStep.Create => CheckInStep.Lookup,
+            CheckInStep.Session => CheckInStep.Lookup,
+            CheckInStep.FutureSession => CheckInStep.Session,
+            _ => CheckInStep.Intent
+        };
+        return Task.CompletedTask;
+    }
+
+    private Task RestartAsync()
+    {
+        context.Reset();
+        return Task.CompletedTask;
+    }
+}

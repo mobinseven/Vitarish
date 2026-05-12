@@ -1,0 +1,164 @@
+@inherits Vitarish.Modules.Base.TenantCommonBase
+
+<Stack>
+    <StackField Label="@Localizer["SearchResults"]"
+                HelperText="@Localizer["SearchResultsFor", Context.SearchQuery ?? string.Empty]" />
+
+    @if (loading)
+    {
+        <Stack>
+            <StackField Label="@Localizer["Loading"]" AdornmentIcon="fa-regular fa-spinner" />
+        </Stack>
+    }
+    else if (Context.DuplicateCandidates.Count > 0)
+    {
+        <Stack>
+            <StackField Label="@Localizer["DuplicateCandidates"]"
+                        HelperText="@Localizer["DuplicateCandidatesHelp"]"
+                        AdornmentIcon="fa-regular fa-triangle-exclamation"
+                        AdornmentColor="Color.Warning"
+                        Color="Color.Warning" />
+
+            @foreach (var candidate in Context.DuplicateCandidates)
+            {
+                <StackButton Label="@candidate.Name"
+                             HelperText="@GetCandidateHelperText(candidate)"
+                             Color="Color.Warning"
+                             EndIcon="fa-regular fa-user-check"
+                             OnClick="@(() => SelectPatientAsync(candidate))" />
+            }
+        </Stack>
+    }
+
+    @if (Context.SearchResults.Except(Context.DuplicateCandidates).Any())
+    {
+        <Stack>
+            <StackField Label="@Localizer["OtherResults"]" />
+
+            @foreach (var result in Context.SearchResults.Except(Context.DuplicateCandidates))
+            {
+                <StackButton Label="@result.Name"
+                             HelperText="@GetCandidateHelperText(result)"
+                             EndIcon="fa-regular fa-user-check"
+                             OnClick="@(() => SelectPatientAsync(result))" />
+            }
+        </Stack>
+    }
+
+    @if (!loading && Context.SearchResults.Count == 0)
+    {
+        <Stack>
+            <StackField Label="@Localizer["NoSearchItems", Context.SearchQuery ?? string.Empty]" />
+        </Stack>
+    }
+
+    <Stack>
+        <StackButton Label="@Localizer["CreateNewPatient"]"
+                     HelperText="@Localizer["CreateNewPatientHelp"]"
+                     EndIcon="fa-regular fa-user-plus"
+                     Color="Color.Primary"
+                     OnClick="OnCreateNew" />
+
+        <StackButton Label="@Localizer["Back"]"
+                     EndIcon="fa-regular fa-arrow-left"
+                     OnClick="OnBack" />
+    </Stack>
+</Stack>
+
+@code {
+    [Parameter, EditorRequired] public PatientCheckInContext Context { get; set; } = default!;
+    [Parameter] public EventCallback<ProjectReadDto> OnSelectPatient { get; set; }
+    [Parameter] public EventCallback OnCreateNew { get; set; }
+    [Parameter] public EventCallback OnBack { get; set; }
+
+    [Inject] private IAccessControlledProjectsService ProjectsService { get; set; } = default!;
+
+    private bool loading;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadAsync();
+    }
+
+    private async Task LoadAsync()
+    {
+        loading = true;
+        await InvokeAsync(StateHasChanged);
+
+        ProjectDescriptorDto descriptor = new()
+        {
+            Skip = 0,
+            Take = 50,
+            Search = Context.SearchQuery,
+            Template = false
+        };
+
+        IReadOnlyList<ProjectReadDto> items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+        Context.SearchResults = items;
+        Context.DuplicateCandidates = [.. items.Where(IsDuplicateCandidate)];
+
+        loading = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private bool IsDuplicateCandidate(ProjectReadDto project)
+    {
+        PatientReadDto patient = project.ToPatientRead();
+        string? query = Context.SearchQuery;
+        string? secondary = Context.SecondaryIdentifier?.Trim();
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return false;
+        }
+
+        bool nameMatch = project.Name.Contains(query.Trim(), StringComparison.OrdinalIgnoreCase);
+        if (!nameMatch)
+        {
+            return false;
+        }
+
+        if (string.IsNullOrWhiteSpace(secondary))
+        {
+            return false;
+        }
+
+        bool dobMatch = patient.DateOfBirth.HasValue &&
+                        patient.DateOfBirth.Value.ToString("d").Contains(secondary, StringComparison.OrdinalIgnoreCase);
+
+        bool phoneMatch = !string.IsNullOrWhiteSpace(patient.Phone) &&
+                          patient.Phone.Contains(secondary, StringComparison.OrdinalIgnoreCase);
+
+        bool emailMatch = !string.IsNullOrWhiteSpace(patient.Email) &&
+                          patient.Email.Contains(secondary, StringComparison.OrdinalIgnoreCase);
+
+        return dobMatch || phoneMatch || emailMatch;
+    }
+
+    private string GetCandidateHelperText(ProjectReadDto project)
+    {
+        PatientReadDto patient = project.ToPatientRead();
+        List<string> parts = [];
+
+        if (patient.DateOfBirth.HasValue)
+        {
+            parts.Add(patient.DateOfBirth.Value.ToShortDateString());
+        }
+
+        if (!string.IsNullOrWhiteSpace(patient.Phone))
+        {
+            parts.Add(patient.Phone);
+        }
+        else if (!string.IsNullOrWhiteSpace(patient.Email))
+        {
+            parts.Add(patient.Email);
+        }
+
+        return string.Join(" · ", parts);
+    }
+
+    private async Task SelectPatientAsync(ProjectReadDto patient)
+    {
+        await OnSelectPatient.InvokeAsync(patient);
+    }
+}
