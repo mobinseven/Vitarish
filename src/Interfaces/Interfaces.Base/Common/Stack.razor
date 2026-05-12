@@ -1,4 +1,10 @@
 @inherits MudStack
+
+@*
+    `<Stack>` is a container component for wrapping other `<Stack*>` group of components. (`<StackButton>`, `<StackField>`, etc.)
+
+    - Multiple `<Stack>` components should not be nested into each other. 
+*@
 <MudStack Spacing="0" Class="@cssClass" Style="@Style">
     @ChildContent
 </MudStack>
