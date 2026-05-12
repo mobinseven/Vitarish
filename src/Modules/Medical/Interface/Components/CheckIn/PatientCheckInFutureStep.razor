@@ -1,8 +1,9 @@
 @inherits Vitarish.Modules.Base.TenantCommonBase
-
 <Stack>
     <StackField Label="@Localizer["FutureSessionTitle"]"
                 HelperText="@(Context.SelectedPatient?.Name ?? string.Empty)" />
+</Stack>
+<Stack>
 
     @if (loading)
     {

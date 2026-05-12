@@ -6,21 +6,11 @@
                     Label="@Localizer["IdentificationCode"]"
                     HelperText="@Localizer["PatientIdentificationCodeHelp"]"
                     Adornment="Adornment.End"
-                    AdornmentIcon="@(Context.IdentificationLookupInProgress ? "fa-regular fa-circle-notch fa-spin" : Context.ExactIdentificationCodeMatch is not null ? "fa-regular fa-user-check" : "fa-regular fa-search")"
-                    AdornmentColor="@(Context.IdentificationLookupInProgress ? Color.Default : Context.ExactIdentificationCodeMatch is not null ? Color.Success : Color.Default)"
+                    AdornmentIcon="@(Context.IdentificationLookupInProgress ? "fa-regular fa-circle-notch fa-spin" : "fa-regular fa-search")"
+                    AdornmentColor="@(Context.IdentificationLookupInProgress ? Color.Secondary : Color.Default)"
                     OnAdornmentClick="() => OnIdentificationCodeChangedAsync(Context.IdentificationCode)"
                     DebounceInterval="400"
                     dir="ltr"/>
-
-    @if(Context.ExactIdentificationCodeMatch is not null)
-    {
-        <StackButton Label="@Context.ExactIdentificationCodeMatch.Name"
-                     Color="Color.Success"
-                     OnClick="@(() => SelectPatientAsync(Context.ExactIdentificationCodeMatch))" />
-    }
-</Stack>
-
-<Stack>
     <StackButton Label="@Localizer["AdvancedSearch"]"
                  EndIcon="@(showAdvancedSearch ? "fa-regular fa-chevron-up" : "fa-regular fa-chevron-down")"
                  OnClick="ToggleAdvancedSearch" />
@@ -53,22 +43,37 @@
                      Disabled="@(!HasAdvancedSearchCriteria() || searching)"
                      OnClick="OnContinueWithSearch" />
 
-        @if(Context.SearchResults.Count > 0)
-        {
-            @foreach(var result in Context.SearchResults)
-            {
-                <StackButton Label="@result.Name"
-                             HelperText="@GetPatientHelperText(result)"
-                             EndIcon="fa-regular fa-user-check"
-                             OnClick="@(() => SelectPatientAsync(result))" />
-            }
-        }
-        else if(Context.AdvancedSearchDone)
-        {
-            <StackField Label="@Localizer["NoSearchItems", GetAdvancedSearchSummary()]" />
-        }
     }
 </Stack>
+
+
+@if(Context.SearchResults.Count > 0)
+{
+    <Stack>
+        @foreach(var result in Context.SearchResults)
+        {
+            <StackButton Label="@result.Name"
+                         HelperText="@GetPatientHelperText(result)"
+                         EndIcon="fa-regular fa-user-check"
+                         OnClick="@(() => SelectPatientAsync(result))" />
+        }
+    </Stack>
+}
+else if(Context.AdvancedSearchDone)
+{
+    <Stack>
+        <StackField Label="@Localizer["NoSearchItems", GetAdvancedSearchSummary()]" />
+    </Stack>
+}
+
+@if(Context.ExactIdentificationCodeMatch is not null)
+{
+    <Stack>
+        <StackButton Label="@Context.ExactIdentificationCodeMatch.Name"
+                     Color="Color.Success"
+                     OnClick="@(() => SelectPatientAsync(Context.ExactIdentificationCodeMatch))" />
+    </Stack>
+}
 
 @code {
     [Parameter, EditorRequired] public PatientAdvancedSearchContext Context { get; set; } = default!;

@@ -3,10 +3,13 @@
 <Stack>
     <StackField Label="@Localizer["SelectSession"]"
                 HelperText="@(Context.SelectedPatient?.Name ?? string.Empty)" />
+</Stack>
+
+<Stack>
 
     @if(loading)
     {
-        <StackField Label="@Localizer["Loading"]" AdornmentIcon="fa-regular fa-spinner" />
+        <StackField Label="@Localizer["Loading"]" AdornmentIcon="fa-regular fa-circle-notch fa-spin" />
     }
     else if(allSlots.Count == 0)
     {
@@ -34,34 +37,28 @@
 
             <StackButton Label="@slot.Session.Title"
                          HelperText="@helperText"
+                         Disabled="@booking"
                          EndIcon="">
                 <SessionStatusBadge Status="slot.Session.Status" />
+
+                @if(alreadyBooked)
+                {
+                    <MudChip T="string" Color="Color.Success" Text="@Localizer["AlreadyBooked"]" />
+                }
+                else if(available)
+                {
+                    <MudChip T="string" Color="Color.Primary"
+                             Icon="fa-regular fa-calendar-plus"
+                             OnClick="@(() => BookSlotAsync(slot.Session, slot.Occurrence))"
+                             Text="@(isToday ? Localizer["BookNow"] : Localizer["BookForDate", slot.Occurrence.Date.ToString("d")])" />
+                }
+                else
+                {
+                    <MudChip T="string" Icon="fa-regular fa-circle-xmark"
+                             Color="Color.Warning"
+                             Text="@Localizer["SessionFull"]" />
+                }
             </StackButton>
-
-            @if(alreadyBooked)
-            {
-                <StackField Label="@Localizer["AlreadyBooked"]"
-                            AdornmentIcon="fa-regular fa-circle-check"
-                            AdornmentColor="Color.Success"
-                            Color="Color.Success" />
-            }
-            else if(available && slot.Occurrence is not null)
-            {
-                <StackCheckbox @bind-Value="Context.MarkAsArrived"
-                               Label="@Localizer["MarkAsArrived"]" />
-
-                <StackButton Label="@(isToday ? Localizer["BookNow"] : Localizer["BookForDate", slot.Occurrence.Date.ToString("d")])"
-                             Color="Color.Primary"
-                             EndIcon="fa-regular fa-calendar-plus"
-                             Disabled="@booking"
-                             OnClick="@(() => BookSlotAsync(slot.Session, slot.Occurrence))" />
-            }
-            else
-            {
-                <StackField Label="@Localizer["SessionFull"]"
-                            AdornmentIcon="fa-regular fa-circle-xmark"
-                            AdornmentColor="Color.Warning" />
-            }
         }
     }
 
