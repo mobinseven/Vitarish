@@ -4,49 +4,38 @@
     <StackField Label="@Localizer["SelectSession"]"
                 HelperText="@(Context.SelectedPatient?.Name ?? string.Empty)" />
 
-    @if(string.IsNullOrWhiteSpace(patientUserId))
-    {
-        <StackField Label="@Localizer["LinkUserAccountRequired"]"
-                    HelperText="@Localizer["LinkUserAccountRequiredHelp"]"
-                    AdornmentIcon="fa-regular fa-triangle-exclamation"
-                    AdornmentColor="Color.Warning"
-                    Color="Color.Warning" />
-
-        <StackButton Label="@Localizer["EditItem", Localizer["Patient"]]"
-                     EndIcon="fa-regular fa-pencil"
-                     Color="Color.Warning"
-                     OnClick="GoToEditPatient" />
-    }
-    else if(loading)
+    @if(loading)
     {
         <StackField Label="@Localizer["Loading"]" AdornmentIcon="fa-regular fa-spinner" />
     }
-    else if(Context.TodaySessions.Count == 0)
+    else if(allSlots.Count == 0)
     {
         <StackField Label="@Localizer["NoItems", Localizer["AppointmentSession"]]"
                     HelperText="@Localizer["NoItemsHelp", Localizer["AppointmentSession"]]" />
     }
     else
     {
-        @foreach(var (session, occurrence) in Context.TodaySessions)
+        @foreach(var slot in allSlots)
         {
             bool alreadyBooked = Context.PatientTodayReservations.Any(r =>
-                r.SessionId == session.Id &&
+                r.SessionId == slot.Session.Id &&
                 r.Status != ReservationStatus.Cancelled &&
                 r.Status != ReservationStatus.Rejected &&
                 r.Status != ReservationStatus.Expired);
 
-            bool available = occurrence is not null && occurrence.AvailableSeats > 0;
-            bool full = occurrence is not null && occurrence.AvailableSeats <= 0;
+            bool isToday = slot.Occurrence?.Date == today;
+            bool available = slot.Occurrence is not null && slot.Occurrence.AvailableSeats > 0;
 
-            string helperText = occurrence is not null
-                ? $"{occurrence.StartTime:t}–{occurrence.EndTime:t} · {occurrence.ReservationCount}/{occurrence.TotalSeats} {Localizer["Seats"]}"
-                : $"{session.StartTime:t}–{session.EndTime:t}";
+            string helperText = slot.Occurrence is not null
+                ? (isToday
+                    ? $"{slot.Occurrence.StartTime:t}–{slot.Occurrence.EndTime:t} · {slot.Occurrence.ReservationCount}/{slot.Occurrence.TotalSeats} {Localizer["Seats"]}"
+                    : $"{slot.Occurrence.Date:d} {slot.Occurrence.StartTime:t}–{slot.Occurrence.EndTime:t} · {slot.Occurrence.AvailableSeats} {Localizer["SeatsAvailable"]}")
+                : $"{slot.Session.StartTime:t}–{slot.Session.EndTime:t}";
 
-            <StackButton Label="@session.Title"
+            <StackButton Label="@slot.Session.Title"
                          HelperText="@helperText"
                          EndIcon="">
-                <SessionStatusBadge Status="session.Status" />
+                <SessionStatusBadge Status="slot.Session.Status" />
             </StackButton>
 
             @if(alreadyBooked)
@@ -56,27 +45,22 @@
                             AdornmentColor="Color.Success"
                             Color="Color.Success" />
             }
-            else if(available && occurrence is not null)
+            else if(available && slot.Occurrence is not null)
             {
-                <StackButton Label="@Localizer["BookNow"]"
+                <StackCheckbox @bind-Value="Context.MarkAsArrived"
+                               Label="@Localizer["MarkAsArrived"]" />
+
+                <StackButton Label="@(isToday ? Localizer["BookNow"] : Localizer["BookForDate", slot.Occurrence.Date.ToString("d")])"
                              Color="Color.Primary"
                              EndIcon="fa-regular fa-calendar-plus"
                              Disabled="@booking"
-                             OnClick="@(() => BookCurrentSessionAsync(session, occurrence))" />
-            }
-            else if(full)
-            {
-                <StackButton Label="@Localizer["SessionFull"]"
-                             HelperText="@Localizer["PickFutureDate"]"
-                             Color="Color.Warning"
-                             EndIcon="fa-regular fa-calendar-arrow-down"
-                             OnClick="@(() => OpenFutureSessionAsync(session))" />
+                             OnClick="@(() => BookSlotAsync(slot.Session, slot.Occurrence))" />
             }
             else
             {
-                <StackField Label="@Localizer["SessionUnavailable"]"
+                <StackField Label="@Localizer["SessionFull"]"
                             AdornmentIcon="fa-regular fa-circle-xmark"
-                            AdornmentColor="Color.Default" />
+                            AdornmentColor="Color.Warning" />
             }
         }
     }
@@ -88,7 +72,7 @@
                     AdornmentColor="Color.Error"
                     Color="Color.Error" />
     }
-    
+
     <StackButton Label="@Localizer["Back"]"
                  EndIcon="fa-regular fa-arrow-left"
                  OnClick="OnBack" />
@@ -97,7 +81,6 @@
 @code {
     [Parameter, EditorRequired] public PatientCheckInContext Context { get; set; } = default!;
     [Parameter] public EventCallback OnBooked { get; set; }
-    [Parameter] public EventCallback<SessionReadDto> OnPickFuture { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
 
     [Inject] private IAccessControlledSessionManager SessionsService { get; set; } = default!;
@@ -105,26 +88,24 @@
     [Inject] private ISessionBookableDateQueryService BookableDateQueryService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
-    private string? patientUserId;
+    private record SlotEntry(SessionReadDto Session, SessionReservationReadDto? Occurrence);
+
+    private List<SlotEntry> allSlots = [];
+    private DateOnly today;
     private bool loading;
     private bool booking;
     private string? bookingError;
 
     protected override async Task OnInitializedAsync()
     {
-        patientUserId = Context.SelectedPatient?.UserIds.FirstOrDefault();
-        if(!string.IsNullOrWhiteSpace(patientUserId))
-        {
-            await LoadAsync();
-        }
+        today = DateOnly.FromDateTime(DateTime.UtcNow);
+        await LoadAsync();
     }
 
     private async Task LoadAsync()
     {
         loading = true;
         await InvokeAsync(StateHasChanged);
-
-        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
 
         SessionDescriptorDto sessionDescriptor = new()
         {
@@ -139,28 +120,65 @@
 
         sessions = [.. sessions.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime).ThenBy(s => s.Title)];
 
-        List<(SessionReadDto, SessionReservationReadDto?)> todaySessions = [];
+        List<SlotEntry> slots = [];
 
         foreach(SessionReadDto session in sessions)
         {
-            SessionDateRangeQuery range = new()
+            // Try to find a slot for today first
+            SessionDateRangeQuery todayRange = new()
             {
                 DateFrom = today,
                 DateTo = today
             };
 
-            IReadOnlyList<SessionReservationReadDto> bookable = await BookableDateQueryService
-                .GetBookableDatesAsync(session.Id, range, CancellationToken.None);
+            IReadOnlyList<SessionReservationReadDto> todayBookable = await BookableDateQueryService
+                .GetBookableDatesAsync(session.Id, todayRange, CancellationToken.None);
 
-            SessionReservationReadDto? todayOccurrence = bookable.FirstOrDefault(o => o.Date == today);
-            todaySessions.Add((session, todayOccurrence));
+            SessionReservationReadDto? todayOccurrence = todayBookable.FirstOrDefault(o => o.Date == today);
+
+            if(todayOccurrence is not null)
+            {
+                slots.Add(new SlotEntry(session, todayOccurrence));
+            }
+            else
+            {
+                // Fall back to next available future slot in the next 30 days
+                SessionDateRangeQuery futureRange = new()
+                {
+                    DateFrom = today.AddDays(1),
+                    DateTo = today.AddDays(30)
+                };
+
+                IReadOnlyList<SessionReservationReadDto> futureBookable = await BookableDateQueryService
+                    .GetBookableDatesAsync(session.Id, futureRange, CancellationToken.None);
+
+                SessionReservationReadDto? nextSlot = futureBookable
+                    .Where(o => o.AvailableSeats > 0)
+                    .OrderBy(o => o.Date)
+                    .FirstOrDefault();
+
+                slots.Add(new SlotEntry(session, nextSlot));
+            }
         }
 
-        Context.TodaySessions = todaySessions;
+        Context.TodaySessions = [.. sessions.Select(s =>
+        {
+            SessionReservationReadDto? todayOcc = slots.FirstOrDefault(sl => sl.Session.Id == s.Id && sl.Occurrence?.Date == today)?.Occurrence;
+            return (s, todayOcc);
+        })];
+
+        allSlots = slots;
+
+        // Load existing patient reservations using the same party identifier that will be
+        // used when booking: linked user ID if available, otherwise the patient's project ID.
+        string? patientUserId = Context.SelectedPatient?.UserIds.FirstOrDefault();
+        string reservingPartyId = !string.IsNullOrWhiteSpace(patientUserId)
+            ? patientUserId
+            : Context.SelectedPatient!.Id.ToString();
 
         ReservationDescriptorDto reservationDescriptor = new()
         {
-            ReservingPartyId = patientUserId,
+            ReservingPartyId = reservingPartyId,
             Date = today,
             Skip = 0,
             Take = int.MaxValue
@@ -174,19 +192,21 @@
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task BookCurrentSessionAsync(SessionReadDto session, SessionReservationReadDto occurrence)
+    private async Task BookSlotAsync(SessionReadDto session, SessionReservationReadDto occurrence)
     {
-        if(string.IsNullOrWhiteSpace(patientUserId))
-        {
-            return;
-        }
-
         bookingError = null;
         booking = true;
         await InvokeAsync(StateHasChanged);
 
+        // Prefer the linked user account; fall back to the patient's own project ID as a
+        // stable party identifier — the Appointments module treats it as an opaque string.
+        string? patientUserId = Context.SelectedPatient?.UserIds.FirstOrDefault();
+        string reservingPartyId = !string.IsNullOrWhiteSpace(patientUserId)
+            ? patientUserId
+            : Context.SelectedPatient!.Id.ToString();
+
         EntityResult<ReservationReadDto> reserveResult = await ReservationManager
-            .ReserveAsync(session.Id, occurrence.Date, patientUserId, CancellationToken.None);
+            .ReserveAsync(session.Id, occurrence.Date, reservingPartyId, CancellationToken.None);
 
         if(reserveResult.IsFailure || reserveResult.Value is null)
         {
@@ -198,7 +218,7 @@
 
         ReservationReadDto reservation = reserveResult.Value;
 
-        if(Context.Intent == CheckInIntent.WalkIn)
+        if(Context.MarkAsArrived && occurrence.Date == today)
         {
             EntityResult confirmResult = await ReservationManager
                 .ConfirmReservationAsync(reservation.Id, CancellationToken.None);
@@ -213,23 +233,9 @@
         Context.SelectedSession = session;
         Context.SelectedOccurrence = occurrence;
         Context.ConfirmedReservation = reservation;
-        Context.Outcome = CheckInOutcome.CurrentSession;
+        Context.Outcome = occurrence.Date == today ? CheckInOutcome.CurrentSession : CheckInOutcome.FutureSession;
 
         booking = false;
         await OnBooked.InvokeAsync();
-    }
-
-    private async Task OpenFutureSessionAsync(SessionReadDto session)
-    {
-        Context.SelectedSession = session;
-        await OnPickFuture.InvokeAsync(session);
-    }
-
-    private void GoToEditPatient()
-    {
-        if(Context.SelectedPatient is not null)
-        {
-            NavigationManager.NavigateTo($"/Medical/Patients/{Context.SelectedPatient.Id}/Edit");
-        }
     }
 }

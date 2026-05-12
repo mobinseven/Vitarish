@@ -40,6 +40,12 @@
                         Required
                         Label="@Localizer["LastName"]" />
 
+        <StackTextField @bind-Value="projectWriteDto.IdentificationCode"
+                        Label="@Localizer["IdentificationCode"]"
+                        HelperText="@Localizer["IdentificationCodeHelp"]"
+                        AdornmentIcon="@(string.IsNullOrWhiteSpace(projectWriteDto.IdentificationCode) ? "fa-regular fa-triangle-exclamation" : "fa-regular fa-id-card")"
+                        AdornmentColor="@(string.IsNullOrWhiteSpace(projectWriteDto.IdentificationCode) ? Color.Warning : Color.Default)" />
+
         <StackTextField @bind-Value="projectWriteDto.Description"
                         AutoGrow
                         Label="@Localizer["Description"]" />

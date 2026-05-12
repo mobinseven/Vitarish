@@ -3,6 +3,10 @@
 <Stack>
     <StackField Label="@Project.Name">
         <ProjectAvatar AvatarFileId="@Project.AvatarFileId" Size="96" Style="margin-bottom: 0.5rem;" />
+        @if(!string.IsNullOrWhiteSpace(Project.IdentificationCode))
+        {
+            <MudText HtmlTag="p" Typo="Typo.caption" Class="py-1">@Localizer["IdentificationCode"]: @Project.IdentificationCode</MudText>
+        }
         @if(!string.IsNullOrWhiteSpace(Project.Description))
         {
             <MudText HtmlTag="p" Typo="Typo.caption" Class="py-3">@Project.Description</MudText>

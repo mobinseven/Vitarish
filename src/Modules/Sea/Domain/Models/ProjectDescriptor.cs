@@ -4,6 +4,7 @@ namespace Vitarish.Sea.Domain.Models;
 public record ProjectDescriptor : EntityDescriptor
 {
     public bool? Template { get; init; } = false;
+    public string? IdentificationCode { get; init; }
     public ProjectSortBy? SortBy { get; init; }
     public bool Descending { get; init; }
     public IReadOnlyList<Guid>? RoleIds { get; init; }

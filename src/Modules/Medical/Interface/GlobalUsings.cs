@@ -15,5 +15,6 @@ global using Vitarish.Medical.Interface.Models;
 global using Vitarish.Medical.Interface.Plugins;
 global using Vitarish.Communications.Application.Abstractions;
 global using Vitarish.Communications.Domain.Dto;
+global using Vitarish.Sea.Application.Abstractions;
 global using Vitarish.Sea.Domain.Dto;
 global using Vitarish.Sea.Interface.Plugins;

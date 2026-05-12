@@ -4,6 +4,10 @@
 {
     <Stack>
         <StackField Label="@Localizer["Overview"]">
+            @if (!string.IsNullOrWhiteSpace(Project.IdentificationCode))
+            {
+                <MudText HtmlTag="p" Typo="Typo.caption" Class="py-1">@Localizer["IdentificationCode"]: @Project.IdentificationCode</MudText>
+            }
             @if (patient.Gender != Gender.Unspecified)
             {
                 <MudText HtmlTag="p" Typo="Typo.caption" Class="py-1">@Localizer["Gender"]: @Localizer[patient.Gender.ToString()]</MudText>

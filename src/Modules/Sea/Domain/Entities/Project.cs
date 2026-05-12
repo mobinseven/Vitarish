@@ -12,6 +12,12 @@ public class Project : Entity
         get;
         set => SetField(ref field, value, nameof(Description));
     } = string.Empty;
+    public string? IdentificationCode
+    {
+        get;
+        set => SetField(ref field, value, nameof(IdentificationCode));
+    }
+
     public bool Template
     {
         get;

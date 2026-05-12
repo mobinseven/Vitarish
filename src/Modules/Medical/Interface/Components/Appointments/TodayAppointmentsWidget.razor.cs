@@ -4,11 +4,14 @@ public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommo
 {
     [Inject] private IAccessControlledSessionManager SessionsService { get; set; } = default!;
     [Inject] private IAccessControlledReservationManager ReservationManager { get; set; } = default!;
+    [Inject] private IAccessControlledProjectsService ProjectsService { get; set; } = default!;
 
     [Parameter] public EventCallback<Guid> OnSessionClicked { get; set; }
     [Parameter] public EventCallback OnSessionsClicked { get; set; }
 
     private List<(SessionReadDto Session, List<ReservationReadDto> Reservations)> todaySessions = [];
+    // Cache: party ID string → display name (user full name or patient name)
+    private Dictionary<string, string> displayNameByPartyId = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -52,7 +55,49 @@ public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommo
         }
 
         todaySessions = result;
+
+        // Pre-resolve display names. First try user lookup (fast, in-memory); for opaque
+        // GUID-shaped IDs that don't match any user, attempt a project lookup — these are
+        // patients booked without a linked user account (Medical-layer responsibility only).
+        displayNameByPartyId = [];
+        IEnumerable<string> distinctPartyIds = todaySessions
+            .SelectMany(s => s.Item2)
+            .Select(r => r.ReservingPartyId)
+            .Where(id => !string.IsNullOrWhiteSpace(id))
+            .Distinct()!;
+
+        foreach (string partyId in distinctPartyIds)
+        {
+            string? userName = GetUserFullNameById(partyId);
+            if (!string.IsNullOrWhiteSpace(userName))
+            {
+                displayNameByPartyId[partyId] = userName;
+                continue;
+            }
+
+            // No matching user — try to interpret as a patient project ID.
+            if (Guid.TryParse(partyId, out Guid projectId))
+            {
+                ProjectReadDto? project = await ProjectsService.GetAsync(projectId, CancellationToken.None).GetValueOrDefaultAsync();
+                if (project is not null)
+                {
+                    displayNameByPartyId[partyId] = project.Name;
+                }
+            }
+        }
+
         await InvokeAsync(StateHasChanged);
+    }
+
+    private string GetReservationDisplayName(ReservationReadDto reservation)
+    {
+        if (reservation.ReservingPartyId is not null &&
+            displayNameByPartyId.TryGetValue(reservation.ReservingPartyId, out string? name))
+        {
+            return name;
+        }
+
+        return reservation.ReservingPartyId ?? "?";
     }
 
     private static string GetInitials(string? fullName)

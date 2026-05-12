@@ -2,16 +2,7 @@
 
 <MudDialog>
     <DialogContent>
-        @if (string.IsNullOrWhiteSpace(patientUserId))
-        {
-            <Stack>
-                <StackField Label="@Localizer["LinkUserAccountRequired"]"
-                             HelperText="@Localizer["LinkUserAccountRequiredHelp"]"
-                             AdornmentIcon="fa-regular fa-triangle-exclamation"
-                             AdornmentColor="Color.Warning" />
-            </Stack>
-        }
-        else if (sessions.Count == 0)
+        @if (sessions.Count == 0)
         {
             <Stack>
                 <StackButton Label="@Localizer["NoItems", Localizer["AppointmentSession"]]"

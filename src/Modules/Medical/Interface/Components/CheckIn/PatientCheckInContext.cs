@@ -1,19 +1,12 @@
 namespace Vitarish.Medical.Interface.Components.CheckIn;
 
-public enum CheckInIntent
-{
-    WalkIn,
-    ArrivalForExisting,
-    ScheduleForLater
-}
-
 public enum CheckInStep
 {
-    Intent,
-    Lookup,
-    Create,
-    Session,
-    FutureSession,
+    /// <summary>Identify the patient by IdentificationCode or advanced search, or create a new patient.</summary>
+    Identify,
+    /// <summary>Select a session slot and confirm the booking.</summary>
+    Book,
+    /// <summary>Display the outcome summary.</summary>
     Confirm
 }
 
@@ -26,13 +19,13 @@ public enum CheckInOutcome
 
 public class PatientCheckInContext
 {
-    public CheckInIntent Intent { get; set; } = CheckInIntent.WalkIn;
+    public CheckInStep CurrentStep { get; set; } = CheckInStep.Identify;
 
-    public CheckInStep CurrentStep { get; set; } = CheckInStep.Intent;
+    /// <summary>The IdentificationCode typed by the receptionist (primary lookup key).</summary>
+    public string? IdentificationCode { get; set; }
 
+    /// <summary>Advanced search query (name / phone / DoB). Shown only behind the advanced-search toggle.</summary>
     public string? SearchQuery { get; set; }
-
-    public string? SecondaryIdentifier { get; set; }
 
     public IReadOnlyList<ProjectReadDto> SearchResults { get; set; } = [];
 
@@ -54,12 +47,14 @@ public class PatientCheckInContext
 
     public CheckInOutcome Outcome { get; set; } = CheckInOutcome.None;
 
+    /// <summary>When true the booking step will also mark the reservation as Present (walk-in).</summary>
+    public bool MarkAsArrived { get; set; } = true;
+
     public void Reset()
     {
-        Intent = CheckInIntent.WalkIn;
-        CurrentStep = CheckInStep.Intent;
+        CurrentStep = CheckInStep.Identify;
+        IdentificationCode = null;
         SearchQuery = null;
-        SecondaryIdentifier = null;
         SearchResults = [];
         DuplicateCandidates = [];
         SelectedPatient = null;
@@ -70,5 +65,6 @@ public class PatientCheckInContext
         SelectedOccurrence = null;
         ConfirmedReservation = null;
         Outcome = CheckInOutcome.None;
+        MarkAsArrived = true;
     }
 }

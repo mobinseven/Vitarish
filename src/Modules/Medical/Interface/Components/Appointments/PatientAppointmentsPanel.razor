@@ -4,21 +4,10 @@
     <StackField Label="@Localizer["Appointments"]" />
     @if (AdminMode)
     {
-        @if (string.IsNullOrWhiteSpace(patientUserId))
-        {
-            <StackButton Label="@Localizer["LinkUserAccountRequired"]"
-                         HelperText="@Localizer["LinkUserAccountRequiredHelp"]"
-                         StartIcon="fa-regular fa-triangle-exclamation"
-                         OnClick="OnEdit"
-                         Color="Color.Warning" />
-        }
-        else
-        {
-            <StackButton Color="Color.Primary"
-                         OnClick="OpenBookingDialogAsync"
-                         EndIcon="fa-regular fa-calendar-plus"
-                         Label="@Localizer["AddItem", Localizer["Appointment"]]" />
-        }
+        <StackButton Color="Color.Primary"
+                     OnClick="OpenBookingDialogAsync"
+                     EndIcon="fa-regular fa-calendar-plus"
+                     Label="@Localizer["AddItem", Localizer["Appointment"]]" />
     }
     @if (reservations is not null && reservations.Count > 0)
     {
@@ -41,25 +30,22 @@
 
     private List<ReservationReadDto> reservations = [];
     private Dictionary<Guid, SessionReadDto> reservationSessions = [];
-    private string? patientUserId;
 
     protected override async Task OnInitializedAsync()
     {
-        patientUserId = Patient.UserIds.FirstOrDefault();
         await LoadAsync();
     }
 
     private async Task LoadAsync()
     {
-        if (string.IsNullOrWhiteSpace(patientUserId))
-        {
-            reservations = [];
-            reservationSessions = [];
-            await InvokeAsync(StateHasChanged);
-            return;
-        }
+        // Prefer the linked user ID; fall back to the patient's own project ID as a stable
+        // party identifier — the Appointments module treats it as an opaque string.
+        string? userId = Patient.UserIds.FirstOrDefault();
+        string reservingPartyId = !string.IsNullOrWhiteSpace(userId)
+            ? userId
+            : Patient.Id.ToString();
 
-        ReservationDescriptorDto descriptor = new() { ReservingPartyId = patientUserId, Skip = 0, Take = int.MaxValue };
+        ReservationDescriptorDto descriptor = new() { ReservingPartyId = reservingPartyId, Skip = 0, Take = int.MaxValue };
         IReadOnlyList<ReservationReadDto> all = await ReservationManager.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
         reservationSessions = await LoadReservationSessionsAsync(all);
         reservations = [.. all.OrderBy(r => r.Date).ThenBy(r => GetSessionStartTime(r.SessionId)).ThenBy(r => GetSessionTitle(r.SessionId))];
