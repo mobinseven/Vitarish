@@ -21,19 +21,7 @@ public class PatientCheckInContext
 {
     public CheckInStep CurrentStep { get; set; } = CheckInStep.Identify;
 
-    /// <summary>The IdentificationCode typed by the receptionist (primary lookup key).</summary>
-    public string? IdentificationCode { get; set; }
-
-    /// <summary>Advanced search query (name / phone / DoB). Shown only behind the advanced-search toggle.</summary>
-    public string? SearchQuery { get; set; }
-
-    public IReadOnlyList<ProjectReadDto> SearchResults { get; set; } = [];
-
-    public IReadOnlyList<ProjectReadDto> DuplicateCandidates { get; set; } = [];
-
     public ProjectReadDto? SelectedPatient { get; set; }
-
-    public ProjectWriteDto? NewPatientDraft { get; set; }
 
     public IReadOnlyList<(SessionReadDto Session, SessionReservationReadDto? Occurrence)> TodaySessions { get; set; } = [];
 
@@ -53,12 +41,7 @@ public class PatientCheckInContext
     public void Reset()
     {
         CurrentStep = CheckInStep.Identify;
-        IdentificationCode = null;
-        SearchQuery = null;
-        SearchResults = [];
-        DuplicateCandidates = [];
         SelectedPatient = null;
-        NewPatientDraft = null;
         TodaySessions = [];
         PatientTodayReservations = [];
         SelectedSession = null;

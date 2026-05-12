@@ -5,47 +5,36 @@
 
 <CascadingValue Value="IsAdmin">
 
-    @if (inCreateSubStep)
+    @switch (context.CurrentStep)
     {
-        <PatientCheckInCreateStep Context="context"
-                                  OnCreated="OnPatientCreated"
-                                  OnSelectExisting="OnPatientSelected"
-                                  OnBack="GoBack" />
-    }
-    else
-    {
-        @switch (context.CurrentStep)
-        {
-            case CheckInStep.Identify:
-                <PatientCheckInIntentStep Context="context"
-                                          OnSelectPatient="OnPatientSelected"
-                                          OnCreateNew="GoToCreate" />
-                break;
+        case CheckInStep.Identify:
+            <PatientFindOrCreate Context="patientContext"
+                                 OnPatientSelected="OnPatientSelected"
+                                 OnPatientCreated="OnPatientCreated" />
+            break;
 
-            case CheckInStep.Book:
-                <PatientCheckInSessionStep Context="context"
-                                           OnBooked="GoToConfirm"
-                                           OnBack="GoBack" />
-                break;
+        case CheckInStep.Book:
+            <PatientCheckInSessionStep Context="context"
+                                       OnBooked="GoToConfirm"
+                                       OnBack="GoBack" />
+            break;
 
-            case CheckInStep.Confirm:
-                <PatientCheckInConfirmStep Context="context"
-                                           OnStartAnother="RestartAsync" />
-                break;
-        }
+        case CheckInStep.Confirm:
+            <PatientCheckInConfirmStep Context="context"
+                                       OnStartAnother="RestartAsync" />
+            break;
     }
 
 </CascadingValue>
 
 @code {
     private PatientCheckInContext context = new();
-    private bool inCreateSubStep;
+    private PatientFindOrCreateContext patientContext = new();
 
     private Task OnPatientSelected(ProjectReadDto patient)
     {
         context.SelectedPatient = patient;
         context.CurrentStep = CheckInStep.Book;
-        inCreateSubStep = false;
         return Task.CompletedTask;
     }
 
@@ -53,13 +42,6 @@
     {
         context.SelectedPatient = patient;
         context.CurrentStep = CheckInStep.Book;
-        inCreateSubStep = false;
-        return Task.CompletedTask;
-    }
-
-    private Task GoToCreate()
-    {
-        inCreateSubStep = true;
         return Task.CompletedTask;
     }
 
@@ -71,7 +53,6 @@
 
     private Task GoBack()
     {
-        inCreateSubStep = false;
         context.CurrentStep = CheckInStep.Identify;
         return Task.CompletedTask;
     }
@@ -79,7 +60,7 @@
     private Task RestartAsync()
     {
         context.Reset();
-        inCreateSubStep = false;
+        patientContext.Reset();
         return Task.CompletedTask;
     }
 }
