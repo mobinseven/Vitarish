@@ -1,0 +1,99 @@
+@inherits Vitarish.Modules.Base.TenantCommonBase
+
+<Stack>
+    <StackField Label="@Localizer["CheckInComplete"]"
+                AdornmentIcon="fa-regular fa-circle-check"
+                AdornmentColor="@(Context.Outcome == CheckInOutcome.CurrentSession ? Color.Success : Color.Info)" />
+
+    @if (Context.SelectedPatient is not null)
+    {
+        <Stack>
+            <StackField Label="@Localizer["Patient"]" />
+            <StackButton Label="@Context.SelectedPatient.Name"
+                         EndIcon="fa-regular fa-user"
+                         OnClick="GoToPatient" />
+        </Stack>
+    }
+
+    @if (Context.Outcome == CheckInOutcome.CurrentSession)
+    {
+        <Stack>
+            <StackField Label="@Localizer["CheckedInToday"]"
+                        HelperText="@GetOutcomeHelperText()"
+                        AdornmentIcon="fa-regular fa-hospital"
+                        AdornmentColor="Color.Success"
+                        Color="Color.Success" />
+        </Stack>
+    }
+    else if (Context.Outcome == CheckInOutcome.FutureSession)
+    {
+        <Stack>
+            <StackField Label="@Localizer["BookedForFuture"]"
+                        HelperText="@GetOutcomeHelperText()"
+                        AdornmentIcon="fa-regular fa-calendar-check"
+                        AdornmentColor="Color.Info"
+                        Color="Color.Info" />
+        </Stack>
+    }
+
+    @if (Context.ConfirmedReservation is not null)
+    {
+        <Stack>
+            <StackField Label="@Localizer["Appointment"]" />
+            <StackField Label="@GetSessionLabel()"
+                        HelperText="@GetDateTimeLabel()">
+                <ReservationStatusBadge Status="Context.ConfirmedReservation.Status" />
+            </StackField>
+        </Stack>
+    }
+
+    <Stack>
+        @if (Context.SelectedPatient is not null)
+        {
+            <StackButton Label="@Localizer["GoToPatient"]"
+                         EndIcon="fa-regular fa-arrow-right"
+                         Color="Color.Primary"
+                         OnClick="GoToPatient" />
+        }
+
+        <StackButton Label="@Localizer["StartAnotherCheckIn"]"
+                     EndIcon="fa-regular fa-rotate-right"
+                     OnClick="OnStartAnother" />
+    </Stack>
+</Stack>
+
+@code {
+    [Parameter, EditorRequired] public PatientCheckInContext Context { get; set; } = default!;
+    [Parameter] public EventCallback OnStartAnother { get; set; }
+
+    private string GetOutcomeHelperText()
+    {
+        if (Context.SelectedSession is null || Context.SelectedOccurrence is null)
+        {
+            return string.Empty;
+        }
+
+        return $"{Context.SelectedSession.Title} · {Context.SelectedOccurrence.Date:d} {Context.SelectedOccurrence.StartTime:t}";
+    }
+
+    private string GetSessionLabel()
+        => Context.SelectedSession?.Title ?? string.Empty;
+
+    private string GetDateTimeLabel()
+    {
+        if (Context.SelectedOccurrence is null)
+        {
+            return string.Empty;
+        }
+
+        return $"{Context.SelectedOccurrence.Date:d} {Context.SelectedOccurrence.StartTime:t}–{Context.SelectedOccurrence.EndTime:t}";
+    }
+
+    private void GoToPatient()
+    {
+        if (Context.SelectedPatient is not null)
+        {
+            NavigationManager.NavigateTo($"/Medical/Patients/{Context.SelectedPatient.Id}");
+        }
+    }
+}

@@ -11,6 +11,10 @@
         <StackButton Label="@Localizer["MedicalDashboard"]"
                      Href="/Medical/Patients"
                      HelperText="@($"{patients} {Localizer["Patients"]}")" />
+        <StackButton Label="@Localizer["CheckInPatient"]"
+                     Href="/Medical/CheckIn"
+                     EndIcon="fa-regular fa-person-walking-arrow-right"
+                     Color="Color.Primary" />
     </Stack>
     <TodayAppointmentsWidget OnSessionClicked="@(id => NavigationManager.NavigateTo($"/Admin/Sessions/{id}"))"
                              OnSessionsClicked="@(() => NavigationManager.NavigateTo($"/Admin/Sessions"))" />

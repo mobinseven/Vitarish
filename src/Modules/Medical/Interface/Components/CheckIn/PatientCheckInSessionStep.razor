@@ -1,0 +1,247 @@
+@inherits Vitarish.Modules.Base.TenantCommonBase
+
+<Stack>
+    <StackField Label="@Localizer["SelectSession"]"
+                HelperText="@(Context.SelectedPatient?.Name ?? string.Empty)" />
+
+    @if (string.IsNullOrWhiteSpace(patientUserId))
+    {
+        <Stack>
+            <StackField Label="@Localizer["LinkUserAccountRequired"]"
+                        HelperText="@Localizer["LinkUserAccountRequiredHelp"]"
+                        AdornmentIcon="fa-regular fa-triangle-exclamation"
+                        AdornmentColor="Color.Warning"
+                        Color="Color.Warning" />
+
+            <StackButton Label="@Localizer["EditItem", Localizer["Patient"]]"
+                         EndIcon="fa-regular fa-pencil"
+                         Color="Color.Warning"
+                         OnClick="GoToEditPatient" />
+        </Stack>
+    }
+    else if (loading)
+    {
+        <Stack>
+            <StackField Label="@Localizer["Loading"]" AdornmentIcon="fa-regular fa-spinner" />
+        </Stack>
+    }
+    else if (Context.TodaySessions.Count == 0)
+    {
+        <Stack>
+            <StackField Label="@Localizer["NoItems", Localizer["AppointmentSession"]]"
+                        HelperText="@Localizer["NoItemsHelp", Localizer["AppointmentSession"]]" />
+        </Stack>
+    }
+    else
+    {
+        @foreach (var (session, occurrence) in Context.TodaySessions)
+        {
+            bool alreadyBooked = Context.PatientTodayReservations.Any(r =>
+                r.SessionId == session.Id &&
+                r.Status != ReservationStatus.Cancelled &&
+                r.Status != ReservationStatus.Rejected &&
+                r.Status != ReservationStatus.Expired);
+
+            bool available = occurrence is not null && occurrence.AvailableSeats > 0;
+            bool full = occurrence is not null && occurrence.AvailableSeats <= 0;
+
+            string helperText = occurrence is not null
+                ? $"{occurrence.StartTime:t}–{occurrence.EndTime:t} · {occurrence.ReservationCount}/{occurrence.TotalSeats} {Localizer["Seats"]}"
+                : $"{session.StartTime:t}–{session.EndTime:t}";
+
+            <Stack>
+                <StackButton Label="@session.Title"
+                             HelperText="@helperText"
+                             EndIcon="">
+                    <SessionStatusBadge Status="session.Status" />
+                </StackButton>
+
+                @if (alreadyBooked)
+                {
+                    <StackField Label="@Localizer["AlreadyBooked"]"
+                                AdornmentIcon="fa-regular fa-circle-check"
+                                AdornmentColor="Color.Success"
+                                Color="Color.Success" />
+                }
+                else if (available && occurrence is not null)
+                {
+                    <StackButton Label="@Localizer["BookNow"]"
+                                 Color="Color.Primary"
+                                 EndIcon="fa-regular fa-calendar-plus"
+                                 Disabled="@booking"
+                                 OnClick="@(() => BookCurrentSessionAsync(session, occurrence))" />
+                }
+                else if (full)
+                {
+                    <StackButton Label="@Localizer["SessionFull"]"
+                                 HelperText="@Localizer["PickFutureDate"]"
+                                 Color="Color.Warning"
+                                 EndIcon="fa-regular fa-calendar-arrow-down"
+                                 OnClick="@(() => OpenFutureSessionAsync(session))" />
+                }
+                else
+                {
+                    <StackField Label="@Localizer["SessionUnavailable"]"
+                                AdornmentIcon="fa-regular fa-circle-xmark"
+                                AdornmentColor="Color.Default" />
+                }
+            </Stack>
+        }
+    }
+
+    @if (!string.IsNullOrWhiteSpace(bookingError))
+    {
+        <Stack>
+            <StackField Label="@bookingError"
+                        AdornmentIcon="fa-regular fa-circle-xmark"
+                        AdornmentColor="Color.Error"
+                        Color="Color.Error" />
+        </Stack>
+    }
+
+    <Stack>
+        <StackButton Label="@Localizer["Back"]"
+                     EndIcon="fa-regular fa-arrow-left"
+                     OnClick="OnBack" />
+    </Stack>
+</Stack>
+
+@code {
+    [Parameter, EditorRequired] public PatientCheckInContext Context { get; set; } = default!;
+    [Parameter] public EventCallback OnBooked { get; set; }
+    [Parameter] public EventCallback<SessionReadDto> OnPickFuture { get; set; }
+    [Parameter] public EventCallback OnBack { get; set; }
+
+    [Inject] private IAccessControlledSessionManager SessionsService { get; set; } = default!;
+    [Inject] private IAccessControlledReservationManager ReservationManager { get; set; } = default!;
+    [Inject] private ISessionBookableDateQueryService BookableDateQueryService { get; set; } = default!;
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+
+    private string? patientUserId;
+    private bool loading;
+    private bool booking;
+    private string? bookingError;
+
+    protected override async Task OnInitializedAsync()
+    {
+        patientUserId = Context.SelectedPatient?.UserIds.FirstOrDefault();
+        if (!string.IsNullOrWhiteSpace(patientUserId))
+        {
+            await LoadAsync();
+        }
+    }
+
+    private async Task LoadAsync()
+    {
+        loading = true;
+        await InvokeAsync(StateHasChanged);
+
+        DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
+
+        SessionDescriptorDto sessionDescriptor = new()
+        {
+            Status = SessionStatus.Active,
+            Skip = 0,
+            Take = int.MaxValue
+        };
+
+        IReadOnlyList<SessionReadDto> sessions = await SessionsService
+            .GetListAsync(sessionDescriptor, CancellationToken.None)
+            .GetValueOrDefaultAsync() ?? [];
+
+        sessions = [.. sessions.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime).ThenBy(s => s.Title)];
+
+        List<(SessionReadDto, SessionReservationReadDto?)> todaySessions = [];
+
+        foreach (SessionReadDto session in sessions)
+        {
+            SessionDateRangeQuery range = new()
+            {
+                DateFrom = today,
+                DateTo = today
+            };
+
+            IReadOnlyList<SessionReservationReadDto> bookable = await BookableDateQueryService
+                .GetBookableDatesAsync(session.Id, range, CancellationToken.None);
+
+            SessionReservationReadDto? todayOccurrence = bookable.FirstOrDefault(o => o.Date == today);
+            todaySessions.Add((session, todayOccurrence));
+        }
+
+        Context.TodaySessions = todaySessions;
+
+        ReservationDescriptorDto reservationDescriptor = new()
+        {
+            ReservingPartyId = patientUserId,
+            Date = today,
+            Skip = 0,
+            Take = int.MaxValue
+        };
+
+        Context.PatientTodayReservations = await ReservationManager
+            .GetListAsync(reservationDescriptor, CancellationToken.None)
+            .GetValueOrDefaultAsync() ?? [];
+
+        loading = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task BookCurrentSessionAsync(SessionReadDto session, SessionReservationReadDto occurrence)
+    {
+        if (string.IsNullOrWhiteSpace(patientUserId))
+        {
+            return;
+        }
+
+        bookingError = null;
+        booking = true;
+        await InvokeAsync(StateHasChanged);
+
+        EntityResult<ReservationReadDto> reserveResult = await ReservationManager
+            .ReserveAsync(session.Id, occurrence.Date, patientUserId, CancellationToken.None);
+
+        if (reserveResult.IsFailure || reserveResult.Value is null)
+        {
+            bookingError = reserveResult.Errors.FirstOrDefault()?.Message ?? Localizer["Error"].Value;
+            booking = false;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        ReservationReadDto reservation = reserveResult.Value;
+
+        if (Context.Intent == CheckInIntent.WalkIn)
+        {
+            EntityResult confirmResult = await ReservationManager
+                .ConfirmReservationAsync(reservation.Id, CancellationToken.None);
+
+            if (!confirmResult.IsFailure)
+            {
+                _ = await ReservationManager
+                    .PresentReservationAsync(reservation.Id, CancellationToken.None);
+            }
+        }
+
+        Context.SelectedSession = session;
+        Context.SelectedOccurrence = occurrence;
+        Context.ConfirmedReservation = reservation;
+        Context.Outcome = CheckInOutcome.CurrentSession;
+
+        booking = false;
+        await OnBooked.InvokeAsync();
+    }
+
+    private async Task OpenFutureSessionAsync(SessionReadDto session)
+    {
+        Context.SelectedSession = session;
+        await OnPickFuture.InvokeAsync(session);
+    }
+
+    private void GoToEditPatient()
+    {
+        if (Context.SelectedPatient is not null)
+        {
+            NavigationManager.NavigateTo($"/Medical/Patients/{Context.SelectedPatient.Id}/Edit");
+        }
+    }
+}

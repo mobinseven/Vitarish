@@ -1,6 +1,17 @@
 @page "/Medical/Patients"
 
+@using Vitarish.Medical.Interface.Components.CheckIn
+
 <CascadingValue Value="IsAdmin">
+    <Stack>
+        @if (IsAdmin)
+        {
+            <StackButton Label="@Localizer["CheckInPatient"]"
+                         Href="/Medical/CheckIn"
+                         EndIcon="fa-regular fa-person-walking-arrow-right"
+                         Color="Color.Primary" />
+        }
+    </Stack>
     <PatientsGrid OnClicked="@(id => NavigationManager.NavigateTo($"/Medical/Patients/{id}"))"
                   OnAdd="@(() => NavigationManager.NavigateTo("/Medical/Patients/New"))" />
 </CascadingValue>
