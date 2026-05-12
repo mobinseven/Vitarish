@@ -1,36 +1,30 @@
 @inherits Vitarish.Modules.Base.TenantCommonBase
 
 <Stack>
-    <StackTextField @bind-Value="Context.IdentificationCode"
+    <StackTextField Value="@Context.IdentificationCode"
+                    ValueChanged="v => OnIdentificationCodeChangedAsync(v)"
                     Label="@Localizer["IdentificationCode"]"
-                    HelperText="@Localizer["IdentificationCodeHelp"]"
-                    AdornmentIcon="fa-regular fa-id-card"
+                    HelperText="@Localizer["PatientIdentificationCodeHelp"]"
+                    Adornment="Adornment.End"
+                    AdornmentIcon="@(lookingUpCode ? "fa-regular fa-circle-notch fa-spin" : exactMatch is not null ? "fa-regular fa-user-check" : "fa-regular fa-search")"
+                    AdornmentColor="@(lookingUpCode ? Color.Default : exactMatch is not null ? Color.Success : Color.Default)"
+                    OnAdornmentClick="() => OnIdentificationCodeChangedAsync(Context.IdentificationCode)"
                     DebounceInterval="400"
-                    OnDebounceIntervalElapsed="OnIdentificationCodeChangedAsync" />
+                    dir="ltr"/>
 
-    @if (lookingUpCode)
+    @if(exactMatch is not null)
     {
-        <StackField Label="@Localizer["Loading"]" AdornmentIcon="fa-regular fa-spinner" />
-    }
-    else if (exactMatch is not null)
-    {
-        <StackField Label="@Localizer["PatientFound"]"
-                    AdornmentIcon="fa-regular fa-circle-check"
-                    AdornmentColor="Color.Success"
-                    Color="Color.Success" />
         <StackButton Label="@exactMatch.Name"
-                     HelperText="@GetPatientHelperText(exactMatch)"
-                     EndIcon="fa-regular fa-user-check"
-                     Color="Color.Primary"
+                     Color="Color.Success"
                      OnClick="@(() => SelectPatientAsync(exactMatch))" />
     }
-    else if (!string.IsNullOrWhiteSpace(Context.IdentificationCode) && !lookingUpCode)
+    else if(!string.IsNullOrWhiteSpace(Context.IdentificationCode) && !lookingUpCode)
     {
-        <StackField Label="@Localizer["IdentificationCodeNotFound"]"
-                    HelperText="@Localizer["IdentificationCodeNotFoundHelp"]"
-                    AdornmentIcon="fa-regular fa-triangle-exclamation"
-                    AdornmentColor="Color.Warning"
-                    Color="Color.Warning" />
+        <StackButton Label="@Localizer["CreateNewPatient"]"
+                     HelperText="@Localizer["CreateNewPatientHelp"]"
+                     EndIcon="fa-regular fa-user-plus"
+                     Color="Color.Default"
+                     OnClick="OnCreateNew" />
     }
 </Stack>
 
@@ -39,10 +33,11 @@
                  EndIcon="@(showAdvancedSearch ? "fa-regular fa-chevron-up" : "fa-regular fa-chevron-down")"
                  OnClick="ToggleAdvancedSearch" />
 
-    @if (showAdvancedSearch)
+    @if(showAdvancedSearch)
     {
         <StackTextField @bind-Value="Context.SearchQuery"
                         Label="@Localizer["PatientName"]"
+                        Adornment="Adornment.End"
                         HelperText="@Localizer["PatientNameHelp"]" />
 
         <StackButton Label="@Localizer["Search"]"
@@ -51,9 +46,9 @@
                      Disabled="@(string.IsNullOrWhiteSpace(Context.SearchQuery))"
                      OnClick="OnContinueWithSearch" />
 
-        @if (advancedSearchResults.Count > 0)
+        @if(advancedSearchResults.Count > 0)
         {
-            @foreach (var result in advancedSearchResults)
+            @foreach(var result in advancedSearchResults)
             {
                 <StackButton Label="@result.Name"
                              HelperText="@GetPatientHelperText(result)"
@@ -61,19 +56,11 @@
                              OnClick="@(() => SelectPatientAsync(result))" />
             }
         }
-        else if (advancedSearchDone)
+        else if(advancedSearchDone)
         {
             <StackField Label="@Localizer["NoSearchItems", Context.SearchQuery ?? string.Empty]" />
         }
     }
-</Stack>
-
-<Stack>
-    <StackButton Label="@Localizer["CreateNewPatient"]"
-                 HelperText="@Localizer["CreateNewPatientHelp"]"
-                 EndIcon="fa-regular fa-user-plus"
-                 Color="Color.Default"
-                 OnClick="OnCreateNew" />
 </Stack>
 
 @code {
@@ -89,14 +76,15 @@
     private bool advancedSearchDone;
     private List<ProjectReadDto> advancedSearchResults = [];
 
-    private async Task OnIdentificationCodeChangedAsync()
+    private async Task OnIdentificationCodeChangedAsync(string? value)
     {
+        Context.IdentificationCode = value;
         exactMatch = null;
         advancedSearchResults = [];
         advancedSearchDone = false;
 
         string? code = Context.IdentificationCode?.Trim();
-        if (string.IsNullOrWhiteSpace(code))
+        if(string.IsNullOrWhiteSpace(code))
         {
             await InvokeAsync(StateHasChanged);
             return;
@@ -126,7 +114,7 @@
 
     private async Task OnContinueWithSearch()
     {
-        if (string.IsNullOrWhiteSpace(Context.SearchQuery))
+        if(string.IsNullOrWhiteSpace(Context.SearchQuery))
         {
             return;
         }
@@ -170,17 +158,17 @@
         PatientReadDto patient = project.ToPatientRead();
         List<string> parts = [];
 
-        if (!string.IsNullOrWhiteSpace(project.IdentificationCode))
+        if(!string.IsNullOrWhiteSpace(project.IdentificationCode))
         {
             parts.Add($"{Localizer["IdentificationCode"]}: {project.IdentificationCode}");
         }
 
-        if (patient.DateOfBirth.HasValue)
+        if(patient.DateOfBirth.HasValue)
         {
             parts.Add(patient.DateOfBirth.Value.ToShortDateString());
         }
 
-        if (!string.IsNullOrWhiteSpace(patient.Phone))
+        if(!string.IsNullOrWhiteSpace(patient.Phone))
         {
             parts.Add(patient.Phone);
         }

@@ -69,12 +69,11 @@
                  OnClick="OnBack" />
 </Stack>
 
-@code {
+    @code {
     [Parameter, EditorRequired] public PatientCheckInContext Context { get; set; } = default!;
     [Parameter] public EventCallback<ProjectReadDto> OnCreated { get; set; }
     [Parameter] public EventCallback<ProjectReadDto> OnSelectExisting { get; set; }
     [Parameter] public EventCallback OnBack { get; set; }
-
     [Inject] private IAccessControlledProjectsService ProjectsService { get; set; } = default!;
 
     private PatientWriteDto draft = new();
