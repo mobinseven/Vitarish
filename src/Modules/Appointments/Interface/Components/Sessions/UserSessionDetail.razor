@@ -20,7 +20,7 @@
 @if (Session.Status == SessionStatus.Active)
 {
     <Stack>
-        <SessionOccurrencesCalendar SessionId="@Session.Id" OnSelected="ReserveAsync" />
+        <SessionReservationsCalendar SessionId="@Session.Id" OnSelected="ReserveAsync" />
     </Stack>
 }
 else if (hasReservation)

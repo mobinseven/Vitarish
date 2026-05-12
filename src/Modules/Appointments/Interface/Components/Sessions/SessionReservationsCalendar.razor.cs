@@ -1,6 +1,6 @@
 namespace Vitarish.Appointments.Interface.Components.Sessions;
 
-public partial class SessionOccurrencesCalendar
+public partial class SessionReservationsCalendar
 {
     [Parameter] public Guid? SessionId { get; set; }
     [Parameter] public EventCallback<SessionReservationReadDto> OnSelected { get; set; }
