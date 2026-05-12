@@ -30,8 +30,16 @@
 else
 {
     <PatientAdvancedSearch Context="SearchContext"
-                           OnPatientSelected="SelectPatientAsync"
-                           OnCreateRequested="ShowCreate" />
+                           OnPatientSelected="SelectPatientAsync" />
+
+    @if(CanCreatePatient)
+    {
+        <StackButton Label="@Localizer["CreateNewPatient"]"
+                     HelperText="@Localizer["CreateNewPatientHelp"]"
+                     EndIcon="fa-regular fa-user-plus"
+                     Color="Color.Primary"
+                     OnClick="ShowCreate" />
+    }
 }
 
 @code {
@@ -45,6 +53,13 @@ else
     private bool showCreateForm;
     private PatientWriteDto draft = new();
     private int createFormKey;
+
+    private bool CanCreatePatient
+        => SearchContext.IdentificationLookupDone
+               && SearchContext.ExactIdentificationCodeMatch is null
+               && !string.IsNullOrWhiteSpace(SearchContext.IdentificationCode)
+           || SearchContext.AdvancedSearchDone
+               && SearchContext.SearchResults.Count == 0;
 
     private async Task SelectPatientAsync(ProjectReadDto patient)
     {

@@ -6,25 +6,17 @@
                     Label="@Localizer["IdentificationCode"]"
                     HelperText="@Localizer["PatientIdentificationCodeHelp"]"
                     Adornment="Adornment.End"
-                    AdornmentIcon="@(lookingUpCode ? "fa-regular fa-circle-notch fa-spin" : exactMatch is not null ? "fa-regular fa-user-check" : "fa-regular fa-search")"
-                    AdornmentColor="@(lookingUpCode ? Color.Default : exactMatch is not null ? Color.Success : Color.Default)"
+                    AdornmentIcon="@(Context.IdentificationLookupInProgress ? "fa-regular fa-circle-notch fa-spin" : Context.ExactIdentificationCodeMatch is not null ? "fa-regular fa-user-check" : "fa-regular fa-search")"
+                    AdornmentColor="@(Context.IdentificationLookupInProgress ? Color.Default : Context.ExactIdentificationCodeMatch is not null ? Color.Success : Color.Default)"
                     OnAdornmentClick="() => OnIdentificationCodeChangedAsync(Context.IdentificationCode)"
                     DebounceInterval="400"
                     dir="ltr"/>
 
-    @if(exactMatch is not null)
+    @if(Context.ExactIdentificationCodeMatch is not null)
     {
-        <StackButton Label="@exactMatch.Name"
+        <StackButton Label="@Context.ExactIdentificationCodeMatch.Name"
                      Color="Color.Success"
-                     OnClick="@(() => SelectPatientAsync(exactMatch))" />
-    }
-    else if(!string.IsNullOrWhiteSpace(Context.IdentificationCode) && !lookingUpCode)
-    {
-        <StackButton Label="@Localizer["CreateNewPatient"]"
-                     HelperText="@Localizer["CreateNewPatientHelp"]"
-                     EndIcon="fa-regular fa-user-plus"
-                     Color="Color.Default"
-                     OnClick="RequestCreate" />
+                     OnClick="@(() => SelectPatientAsync(Context.ExactIdentificationCodeMatch))" />
     }
 </Stack>
 
@@ -71,18 +63,9 @@
                              OnClick="@(() => SelectPatientAsync(result))" />
             }
         }
-        else if(advancedSearchDone)
+        else if(Context.AdvancedSearchDone)
         {
             <StackField Label="@Localizer["NoSearchItems", GetAdvancedSearchSummary()]" />
-        }
-
-        @if(advancedSearchDone)
-        {
-            <StackButton Label="@Localizer["CreateNewPatient"]"
-                         HelperText="@Localizer["CreateNewPatientHelp"]"
-                         EndIcon="fa-regular fa-user-plus"
-                         Color="Color.Primary"
-                         OnClick="RequestCreate" />
         }
     }
 </Stack>
@@ -90,33 +73,30 @@
 @code {
     [Parameter, EditorRequired] public PatientAdvancedSearchContext Context { get; set; } = default!;
     [Parameter] public EventCallback<ProjectReadDto> OnPatientSelected { get; set; }
-    [Parameter] public EventCallback OnCreateRequested { get; set; }
-
     [Inject] private IAccessControlledProjectsService ProjectsService { get; set; } = default!;
 
     private const int MaxSearchResults = 50;
     private const int MaxAdvancedSearchCandidates = 500;
 
-    private ProjectReadDto? exactMatch;
-    private bool lookingUpCode;
     private bool showAdvancedSearch;
-    private bool advancedSearchDone;
 
     private async Task OnIdentificationCodeChangedAsync(string? value)
     {
         Context.IdentificationCode = value;
-        exactMatch = null;
+        Context.ExactIdentificationCodeMatch = null;
+        Context.IdentificationLookupDone = false;
         Context.SearchResults = [];
-        advancedSearchDone = false;
+        Context.AdvancedSearchDone = false;
 
         string? code = Context.IdentificationCode?.Trim();
         if(string.IsNullOrWhiteSpace(code))
         {
+            Context.IdentificationLookupInProgress = false;
             await InvokeAsync(StateHasChanged);
             return;
         }
 
-        lookingUpCode = true;
+        Context.IdentificationLookupInProgress = true;
         await InvokeAsync(StateHasChanged);
 
         // Take = 1: IdentificationCode has a unique-per-tenant index, so at most one
@@ -133,8 +113,9 @@
             .GetListAsync(descriptor, CancellationToken.None)
             .GetValueOrDefaultAsync() ?? [];
 
-        exactMatch = results.FirstOrDefault();
-        lookingUpCode = false;
+        Context.ExactIdentificationCodeMatch = results.FirstOrDefault();
+        Context.IdentificationLookupInProgress = false;
+        Context.IdentificationLookupDone = true;
         await InvokeAsync(StateHasChanged);
     }
 
@@ -145,7 +126,7 @@
             return;
         }
 
-        advancedSearchDone = false;
+        Context.AdvancedSearchDone = false;
         Context.SearchResults = [];
         await InvokeAsync(StateHasChanged);
 
@@ -153,18 +134,13 @@
         IReadOnlyList<ProjectReadDto> items = await LoadAdvancedSearchCandidatesAsync(criteria);
 
         Context.SearchResults = [.. items.Where(project => MatchesAdvancedSearch(project, criteria)).Take(MaxSearchResults)];
-        advancedSearchDone = true;
+        Context.AdvancedSearchDone = true;
         await InvokeAsync(StateHasChanged);
     }
 
     private async Task SelectPatientAsync(ProjectReadDto patient)
     {
         await OnPatientSelected.InvokeAsync(patient);
-    }
-
-    private async Task RequestCreate()
-    {
-        await OnCreateRequested.InvokeAsync();
     }
 
     private void ToggleAdvancedSearch()

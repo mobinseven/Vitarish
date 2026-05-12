@@ -20,6 +20,14 @@ public class PatientAdvancedSearchContext
     /// <summary>Advanced search email address.</summary>
     public string? SearchEmail { get; set; }
 
+    public ProjectReadDto? ExactIdentificationCodeMatch { get; set; }
+
+    public bool IdentificationLookupInProgress { get; set; }
+
+    public bool IdentificationLookupDone { get; set; }
+
+    public bool AdvancedSearchDone { get; set; }
+
     public IReadOnlyList<ProjectReadDto> SearchResults { get; set; } = [];
 
     public void Reset()
@@ -30,6 +38,10 @@ public class PatientAdvancedSearchContext
         SearchDateOfBirth = null;
         SearchPhone = null;
         SearchEmail = null;
+        ExactIdentificationCodeMatch = null;
+        IdentificationLookupInProgress = false;
+        IdentificationLookupDone = false;
+        AdvancedSearchDone = false;
         SearchResults = [];
     }
 }
