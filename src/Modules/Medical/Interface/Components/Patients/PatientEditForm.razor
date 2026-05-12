@@ -110,6 +110,8 @@
 </Stack>
 
 @code {
+    [Parameter] public ProjectWriteDto? InitialProject { get; set; }
+
     private PatientWriteDto projectWriteDto = new();
 
     private string? LinkedUserId
@@ -136,6 +138,24 @@
         if(Project is not null)
         {
             projectWriteDto = Project.ToPatientWrite()!;
+        }
+        else if(InitialProject is PatientWriteDto initialPatient)
+        {
+            projectWriteDto = initialPatient;
+        }
+        else if(InitialProject is not null)
+        {
+            projectWriteDto = new PatientWriteDto
+            {
+                Id = InitialProject.Id,
+                Name = InitialProject.Name,
+                Description = InitialProject.Description,
+                IdentificationCode = InitialProject.IdentificationCode,
+                Template = InitialProject.Template,
+                UserIds = InitialProject.UserIds,
+                Metadata = InitialProject.Metadata,
+                MetadataValues = InitialProject.MetadataValues
+            };
         }
 
         if(Project is not null && string.IsNullOrWhiteSpace(projectWriteDto.LastName))

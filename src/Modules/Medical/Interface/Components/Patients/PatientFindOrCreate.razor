@@ -22,53 +22,10 @@
         }
     </Stack>
 
-    <Stack>
-        <StackField Label="@Localizer["NewPatientIntake"]" />
-
-        <StackTextField @bind-Value="draft.IdentificationCode"
-                        Label="@Localizer["IdentificationCode"]"
-                        HelperText="@Localizer["IdentificationCodeHelp"]"
-                        AdornmentIcon="@(string.IsNullOrWhiteSpace(draft.IdentificationCode) ? "fa-regular fa-triangle-exclamation" : "fa-regular fa-id-card")"
-                        AdornmentColor="@(string.IsNullOrWhiteSpace(draft.IdentificationCode) ? Color.Warning : Color.Default)" />
-
-        <StackTextField @bind-Value="draft.LastName"
-                        Required
-                        Label="@Localizer["LastName"]" />
-
-        <StackTextField @bind-Value="draft.FirstName"
-                        Label="@Localizer["FirstName"]" />
-
-        <StackDatePicker @bind-Date="draft.DateOfBirth"
-                         Label="@Localizer["DateOfBirth"]" />
-
-        <StackTextField @bind-Value="draft.Phone"
-                        Label="@Localizer["Phone"]"
-                        InputType="InputType.Telephone" />
-
-        <StackTextField @bind-Value="draft.Email"
-                        Label="@Localizer["Email"]"
-                        InputType="InputType.Email" />
-
-        @if(!string.IsNullOrWhiteSpace(validationError))
-        {
-            <StackField Label="@validationError"
-                        AdornmentIcon="fa-regular fa-circle-xmark"
-                        AdornmentColor="Color.Error"
-                        Color="Color.Error" />
-        }
-    </Stack>
-
-    <Stack>
-        <StackButton Label="@Localizer["Save"]"
-                     EndIcon="fa-regular fa-save"
-                     Color="Color.Primary"
-                     Disabled="@saving"
-                     OnClick="SaveAsync" />
-
-        <StackButton Label="@Localizer["Back"]"
-                     EndIcon="fa-regular fa-arrow-left"
-                     OnClick="ShowLookup" />
-    </Stack>
+    <PatientEditForm @key="createFormKey"
+                     InitialProject="draft"
+                     OnCreate="OnPatientCreatedAsync"
+                     OnCancel="ShowLookup" />
 }
 else
 {
@@ -112,10 +69,25 @@ else
                             Adornment="Adornment.End"
                             HelperText="@Localizer["PatientNameHelp"]" />
 
+            <StackTextField @bind-Value="Context.SearchIdentificationCode"
+                            Label="@Localizer["IdentificationCode"]"
+                            HelperText="@Localizer["PatientIdentificationCodeHelp"]" />
+
+            <StackDatePicker @bind-Date="Context.SearchDateOfBirth"
+                             Label="@Localizer["DateOfBirth"]" />
+
+            <StackTextField @bind-Value="Context.SearchPhone"
+                            Label="@Localizer["Phone"]"
+                            InputType="InputType.Telephone" />
+
+            <StackTextField @bind-Value="Context.SearchEmail"
+                            Label="@Localizer["Email"]"
+                            InputType="InputType.Email" />
+
             <StackButton Label="@Localizer["Search"]"
                          Color="Color.Primary"
                          EndIcon="fa-regular fa-magnifying-glass"
-                         Disabled="@(string.IsNullOrWhiteSpace(Context.SearchQuery))"
+                         Disabled="@(!HasAdvancedSearchCriteria())"
                          OnClick="OnContinueWithSearch" />
 
             @if(Context.SearchResults.Count > 0)
@@ -130,7 +102,7 @@ else
             }
             else if(advancedSearchDone)
             {
-                <StackField Label="@Localizer["NoSearchItems", Context.SearchQuery ?? string.Empty]" />
+                <StackField Label="@Localizer["NoSearchItems", GetAdvancedSearchSummary()]" />
             }
 
             @if(advancedSearchDone)
@@ -158,8 +130,7 @@ else
     private bool advancedSearchDone;
     private bool showCreateForm;
     private PatientWriteDto draft = new();
-    private string? validationError;
-    private bool saving;
+    private int createFormKey;
 
     private async Task OnIdentificationCodeChangedAsync(string? value)
     {
@@ -200,7 +171,7 @@ else
 
     private async Task OnContinueWithSearch()
     {
-        if(string.IsNullOrWhiteSpace(Context.SearchQuery))
+        if(!HasAdvancedSearchCriteria())
         {
             return;
         }
@@ -210,19 +181,9 @@ else
         Context.DuplicateCandidates = [];
         await InvokeAsync(StateHasChanged);
 
-        ProjectDescriptorDto descriptor = new()
-        {
-            Search = Context.SearchQuery,
-            Template = false,
-            Skip = 0,
-            Take = 50
-        };
+        IReadOnlyList<ProjectReadDto> items = await LoadAdvancedSearchCandidatesAsync();
 
-        IReadOnlyList<ProjectReadDto> items = await ProjectsService
-            .GetListAsync(descriptor, CancellationToken.None)
-            .GetValueOrDefaultAsync() ?? [];
-
-        Context.SearchResults = items;
+        Context.SearchResults = [.. items.Where(MatchesAdvancedSearch).Take(50)];
         Context.DuplicateCandidates = [];
         advancedSearchDone = true;
         await InvokeAsync(StateHasChanged);
@@ -244,7 +205,7 @@ else
         Context.DuplicateCandidates = Context.SearchResults;
         draft = Context.NewPatientDraft as PatientWriteDto ?? new PatientWriteDto();
         PrefillDraft();
-        validationError = null;
+        createFormKey++;
         showCreateForm = true;
         StateHasChanged();
     }
@@ -252,7 +213,6 @@ else
     private void ShowLookup()
     {
         Context.NewPatientDraft = draft;
-        validationError = null;
         showCreateForm = false;
         StateHasChanged();
     }
@@ -260,9 +220,13 @@ else
     private void PrefillDraft()
     {
         // Pre-fill IdentificationCode if the user typed one in the identify step.
-        if(!string.IsNullOrWhiteSpace(Context.IdentificationCode) && string.IsNullOrWhiteSpace(draft.IdentificationCode))
+        string? identificationCode = !string.IsNullOrWhiteSpace(Context.SearchIdentificationCode)
+            ? Context.SearchIdentificationCode
+            : Context.IdentificationCode;
+
+        if(!string.IsNullOrWhiteSpace(identificationCode) && string.IsNullOrWhiteSpace(draft.IdentificationCode))
         {
-            draft.IdentificationCode = Context.IdentificationCode;
+            draft.IdentificationCode = identificationCode;
         }
 
         // Pre-fill name from advanced search query. Assumes Western name order
@@ -276,36 +240,121 @@ else
                 draft.FirstName = parts[0];
             }
         }
+
+        if(Context.SearchDateOfBirth.HasValue && !draft.DateOfBirth.HasValue)
+        {
+            draft.DateOfBirth = Context.SearchDateOfBirth;
+        }
+
+        if(!string.IsNullOrWhiteSpace(Context.SearchPhone) && string.IsNullOrWhiteSpace(draft.Phone))
+        {
+            draft.Phone = Context.SearchPhone;
+        }
+
+        if(!string.IsNullOrWhiteSpace(Context.SearchEmail) && string.IsNullOrWhiteSpace(draft.Email))
+        {
+            draft.Email = Context.SearchEmail;
+        }
     }
 
-    private async Task SaveAsync()
+    private async Task OnPatientCreatedAsync(Guid patientId)
     {
-        validationError = null;
-
-        if(string.IsNullOrWhiteSpace(draft.LastName))
-        {
-            validationError = Localizer["RequiredItem", Localizer["LastName"]].Value;
-            return;
-        }
-
-        saving = true;
-        await InvokeAsync(StateHasChanged);
-
-        draft.Name = $"{draft.FirstName} {draft.LastName}".TrimEnd(' ', ',');
-
-        EntityResult<ProjectReadDto> result = await ProjectsService.AddAsync(draft, CancellationToken.None);
-
-        saving = false;
-
-        if(result.IsFailure || result.Value is null)
-        {
-            validationError = result.Errors.FirstOrDefault()?.Message ?? Localizer["Error"].Value;
-            await InvokeAsync(StateHasChanged);
-            return;
-        }
-
+        ProjectReadDto created = await ProjectsService.GetAsync(patientId, CancellationToken.None).EnsureValueAsync();
         Context.NewPatientDraft = draft;
-        await OnPatientCreated.InvokeAsync(result.Value);
+        await OnPatientCreated.InvokeAsync(created);
+    }
+
+    private bool HasAdvancedSearchCriteria()
+        => !string.IsNullOrWhiteSpace(Context.SearchQuery)
+           || !string.IsNullOrWhiteSpace(Context.SearchIdentificationCode)
+           || Context.SearchDateOfBirth.HasValue
+           || !string.IsNullOrWhiteSpace(Context.SearchPhone)
+           || !string.IsNullOrWhiteSpace(Context.SearchEmail);
+
+    private async Task<IReadOnlyList<ProjectReadDto>> LoadAdvancedSearchCandidatesAsync()
+    {
+        ProjectDescriptorDto descriptor = new()
+        {
+            IdentificationCode = string.IsNullOrWhiteSpace(Context.SearchIdentificationCode) ? null : Context.SearchIdentificationCode.Trim(),
+            Search = string.IsNullOrWhiteSpace(Context.SearchIdentificationCode) ? Context.SearchQuery : null,
+            Template = false,
+            Skip = 0,
+            Take = NeedsClientSideSearch() ? null : 50
+        };
+
+        return await ProjectsService
+            .GetListAsync(descriptor, CancellationToken.None)
+            .GetValueOrDefaultAsync() ?? [];
+    }
+
+    private bool NeedsClientSideSearch()
+        => Context.SearchDateOfBirth.HasValue
+           || !string.IsNullOrWhiteSpace(Context.SearchPhone)
+           || !string.IsNullOrWhiteSpace(Context.SearchEmail);
+
+    private bool MatchesAdvancedSearch(ProjectReadDto project)
+    {
+        PatientReadDto patient = project.ToPatientRead();
+
+        return MatchesText(project.Name, Context.SearchQuery)
+               && MatchesIdentificationCode(project, Context.SearchIdentificationCode)
+               && MatchesDate(patient.DateOfBirth, Context.SearchDateOfBirth)
+               && MatchesPhone(patient.Phone, Context.SearchPhone)
+               && MatchesText(patient.Email, Context.SearchEmail);
+    }
+
+    private static bool MatchesIdentificationCode(ProjectReadDto project, string? identificationCode)
+        => string.IsNullOrWhiteSpace(identificationCode)
+           || string.Equals(project.IdentificationCode?.Trim(), identificationCode.Trim(), StringComparison.OrdinalIgnoreCase);
+
+    private static bool MatchesDate(DateTime? value, DateTime? expected)
+        => !expected.HasValue || (value.HasValue && value.Value.Date == expected.Value.Date);
+
+    private static bool MatchesText(string? value, string? expected)
+        => string.IsNullOrWhiteSpace(expected)
+           || (!string.IsNullOrWhiteSpace(value) && value.Contains(expected.Trim(), StringComparison.OrdinalIgnoreCase));
+
+    private static bool MatchesPhone(string? value, string? expected)
+    {
+        if(string.IsNullOrWhiteSpace(expected))
+        {
+            return true;
+        }
+
+        if(string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        string expectedDigits = DigitsOnly(expected);
+        string valueDigits = DigitsOnly(value);
+
+        return expectedDigits.Length > 0
+            ? valueDigits.Contains(expectedDigits, StringComparison.Ordinal)
+            : value.Contains(expected.Trim(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string DigitsOnly(string value) => new(value.Where(char.IsDigit).ToArray());
+
+    private string GetAdvancedSearchSummary()
+    {
+        List<string> parts = [];
+
+        AddCriteria(parts, Localizer["PatientName"].Value, Context.SearchQuery);
+        AddCriteria(parts, Localizer["IdentificationCode"].Value, Context.SearchIdentificationCode);
+        AddCriteria(parts, Localizer["DateOfBirth"].Value, Context.SearchDateOfBirth?.ToShortDateString());
+        AddCriteria(parts, Localizer["Phone"].Value, Context.SearchPhone);
+        AddCriteria(parts, Localizer["Email"].Value, Context.SearchEmail);
+
+        return string.Join(" · ", parts);
+    }
+
+    private static void AddCriteria(List<string> parts, string label, string? value)
+    {
+        if(!string.IsNullOrWhiteSpace(value))
+        {
+            parts.Add($"{label}: {value.Trim()}");
+        }
     }
 
     private string GetPatientHelperText(ProjectReadDto project)
