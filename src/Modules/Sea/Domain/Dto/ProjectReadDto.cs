@@ -8,6 +8,8 @@ public record ProjectReadDto : EntityReadDto
 
     public Guid? AvatarFileId => GetField<Guid?>();
 
+    public string? IdentificationCode { get; set; }
+
     public bool Template { get; set; }
 
     public string Url => $"/sea/projects/{Id}";

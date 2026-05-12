@@ -119,6 +119,13 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
                 .HasColumnType("nvarchar(max)");
             entity.Ignore(p => p.Stats);
             entity.Ignore(p => p.UserIds);
+
+            _ = entity.Property(e => e.IdentificationCode)
+                .HasColumnType("nvarchar(256)");
+
+            _ = entity.HasIndex("TenantId", nameof(Project.IdentificationCode))
+                .IsUnique()
+                .HasFilter("[IdentificationCode] IS NOT NULL AND [IdentificationCode] != ''");
         });
 
         _ = modelBuilder.Entity<ProcedureStats>(eb =>

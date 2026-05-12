@@ -23,6 +23,12 @@
 <Stack>
     <StackField Label="@Localizer["NewPatientIntake"]" />
 
+    <StackTextField @bind-Value="draft.IdentificationCode"
+                    Label="@Localizer["IdentificationCode"]"
+                    HelperText="@Localizer["IdentificationCodeHelp"]"
+                    AdornmentIcon="@(string.IsNullOrWhiteSpace(draft.IdentificationCode) ? "fa-regular fa-triangle-exclamation" : "fa-regular fa-id-card")"
+                    AdornmentColor="@(string.IsNullOrWhiteSpace(draft.IdentificationCode) ? Color.Warning : Color.Default)" />
+
     <StackTextField @bind-Value="draft.LastName"
                     Required
                     Label="@Localizer["LastName"]" />
@@ -41,17 +47,6 @@
                     Label="@Localizer["Email"]"
                     InputType="InputType.Email" />
 
-    <StackSelect T="string"
-                 @bind-Value="LinkedUserId"
-                 Label="@Localizer["LinkedUser"]"
-                 AdornmentIcon="@(LinkedUserId is null ? "fa-regular fa-triangle-exclamation" : "")"
-                 AdornmentColor="@(LinkedUserId is null ? Color.Warning : Color.Default)">
-        <MudSelectItem T="string" Value="@(null as string)">@Localizer["None"]</MudSelectItem>
-        @foreach(var user in GetUsers())
-        {
-            <MudSelectItem T="string" Value="user.Id">@user.FullName</MudSelectItem>
-        }
-    </StackSelect>
     @if(!string.IsNullOrWhiteSpace(validationError))
     {
         <StackField Label="@validationError"
@@ -86,25 +81,24 @@
     private string? validationError;
     private bool saving;
 
-    private string? LinkedUserId
-    {
-        get => draft.UserIds?.FirstOrDefault();
-        set => draft.UserIds = value is null ? [] : [value];
-    }
-
     protected override void OnInitialized()
     {
         base.OnInitialized();
         draft = Context.NewPatientDraft as PatientWriteDto ?? new PatientWriteDto();
-        if(!string.IsNullOrWhiteSpace(Context.SearchQuery))
+
+        // Pre-fill IdentificationCode if the user typed one in the identify step
+        if (!string.IsNullOrWhiteSpace(Context.IdentificationCode) && string.IsNullOrWhiteSpace(draft.IdentificationCode))
+        {
+            draft.IdentificationCode = Context.IdentificationCode;
+        }
+
+        // Pre-fill name from advanced search query. Assumes Western name order
+        // (first-name last-name); receptionist can correct the split before saving.
+        if (!string.IsNullOrWhiteSpace(Context.SearchQuery) && string.IsNullOrWhiteSpace(draft.LastName))
         {
             string[] parts = Context.SearchQuery.Trim().Split(' ', 2);
-            if(string.IsNullOrWhiteSpace(draft.LastName))
-            {
-                draft.LastName = parts.Length > 1 ? parts[1] : parts[0];
-            }
-
-            if(string.IsNullOrWhiteSpace(draft.FirstName) && parts.Length > 1)
+            draft.LastName = parts.Length > 1 ? parts[1] : parts[0];
+            if (parts.Length > 1)
             {
                 draft.FirstName = parts[0];
             }
@@ -118,18 +112,6 @@
         if(string.IsNullOrWhiteSpace(draft.LastName))
         {
             validationError = Localizer["RequiredItem", Localizer["LastName"]].Value;
-            return;
-        }
-
-        if(draft.DateOfBirth is null)
-        {
-            validationError = Localizer["RequiredItem", Localizer["DateOfBirth"]].Value;
-            return;
-        }
-
-        if(string.IsNullOrWhiteSpace(draft.Phone) && string.IsNullOrWhiteSpace(draft.Email))
-        {
-            validationError = Localizer["RequiredPhoneOrEmail"].Value;
             return;
         }
 
@@ -157,6 +139,12 @@
     {
         PatientReadDto patient = project.ToPatientRead();
         List<string> parts = [];
+
+        if(!string.IsNullOrWhiteSpace(project.IdentificationCode))
+        {
+            parts.Add($"{Localizer["IdentificationCode"]}: {project.IdentificationCode}");
+        }
+
         if(patient.DateOfBirth.HasValue)
         {
             parts.Add(patient.DateOfBirth.Value.ToShortDateString());

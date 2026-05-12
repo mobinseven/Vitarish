@@ -5,6 +5,10 @@ public record ProjectDescriptorDto : EntityDescriptorDto
     [JsonPropertyName("template")]
     public bool? Template { get; set; } = false;
 
+    [JsonPropertyName("identificationCode")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public string? IdentificationCode { get; set; }
+
     [JsonPropertyName("sortBy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public ProjectSortBy? SortBy { get; set; }

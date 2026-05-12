@@ -20,7 +20,8 @@ internal class ProjectRepository(SeaDbContext dbContext)
                 Expression<Func<Project, bool>> predicate = EntitySearchHelper.BuildSearchPredicate<Project>(
                     patterns,
                     project => project.Name,
-                    project => project.Description);
+                    project => project.Description,
+                    project => project.IdentificationCode);
 
                 query = query.Where(predicate);
             }
@@ -29,6 +30,12 @@ internal class ProjectRepository(SeaDbContext dbContext)
         if (descriptor.Template is not null)
         {
             query = query.Where(p => p.Template == descriptor.Template);
+        }
+
+        if (!string.IsNullOrWhiteSpace(descriptor.IdentificationCode))
+        {
+            string code = descriptor.IdentificationCode.Trim();
+            query = query.Where(p => p.IdentificationCode == code);
         }
 
         if (descriptor.RoleIds is not null)

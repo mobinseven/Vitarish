@@ -92,36 +92,14 @@
 
     private bool IsDuplicateCandidate(ProjectReadDto project)
     {
-        PatientReadDto patient = project.ToPatientRead();
         string? query = Context.SearchQuery;
-        string? secondary = Context.SecondaryIdentifier?.Trim();
 
         if(string.IsNullOrWhiteSpace(query))
         {
             return false;
         }
 
-        bool nameMatch = project.Name.Contains(query.Trim(), StringComparison.OrdinalIgnoreCase);
-        if(!nameMatch)
-        {
-            return false;
-        }
-
-        if(string.IsNullOrWhiteSpace(secondary))
-        {
-            return false;
-        }
-
-        bool dobMatch = patient.DateOfBirth.HasValue &&
-                        patient.DateOfBirth.Value.ToString("d").Contains(secondary, StringComparison.OrdinalIgnoreCase);
-
-        bool phoneMatch = !string.IsNullOrWhiteSpace(patient.Phone) &&
-                          patient.Phone.Contains(secondary, StringComparison.OrdinalIgnoreCase);
-
-        bool emailMatch = !string.IsNullOrWhiteSpace(patient.Email) &&
-                          patient.Email.Contains(secondary, StringComparison.OrdinalIgnoreCase);
-
-        return dobMatch || phoneMatch || emailMatch;
+        return project.Name.Contains(query.Trim(), StringComparison.OrdinalIgnoreCase);
     }
 
     private string GetCandidateHelperText(ProjectReadDto project)

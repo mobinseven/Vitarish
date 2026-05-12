@@ -5,74 +5,61 @@
 
 <CascadingValue Value="IsAdmin">
 
-    @switch (context.CurrentStep)
+    @if (inCreateSubStep)
     {
-        case CheckInStep.Intent:
-            <PatientCheckInIntentStep Context="context"
-                                      OnContinue="StartLookupAsync" />
-            break;
+        <PatientCheckInCreateStep Context="context"
+                                  OnCreated="OnPatientCreated"
+                                  OnSelectExisting="OnPatientSelected"
+                                  OnBack="GoBack" />
+    }
+    else
+    {
+        @switch (context.CurrentStep)
+        {
+            case CheckInStep.Identify:
+                <PatientCheckInIntentStep Context="context"
+                                          OnSelectPatient="OnPatientSelected"
+                                          OnCreateNew="GoToCreate" />
+                break;
 
-        case CheckInStep.Lookup:
-            <PatientCheckInLookupStep Context="context"
-                                      OnSelectPatient="OnPatientSelected"
-                                      OnCreateNew="GoToCreate"
-                                      OnBack="GoBack" />
-            break;
+            case CheckInStep.Book:
+                <PatientCheckInSessionStep Context="context"
+                                           OnBooked="GoToConfirm"
+                                           OnBack="GoBack" />
+                break;
 
-        case CheckInStep.Create:
-            <PatientCheckInCreateStep Context="context"
-                                      OnCreated="OnPatientCreated"
-                                      OnSelectExisting="OnPatientSelected"
-                                      OnBack="GoBack" />
-            break;
-
-        case CheckInStep.Session:
-            <PatientCheckInSessionStep Context="context"
-                                       OnBooked="GoToConfirm"
-                                       OnPickFuture="GoToFutureSession"
-                                       OnBack="GoBack" />
-            break;
-
-        case CheckInStep.FutureSession:
-            <PatientCheckInFutureStep Context="context"
-                                      OnBooked="GoToConfirm"
-                                      OnBack="GoBack" />
-            break;
-
-        case CheckInStep.Confirm:
-            <PatientCheckInConfirmStep Context="context"
-                                       OnStartAnother="RestartAsync" />
-            break;
+            case CheckInStep.Confirm:
+                <PatientCheckInConfirmStep Context="context"
+                                           OnStartAnother="RestartAsync" />
+                break;
+        }
     }
 
 </CascadingValue>
 
 @code {
     private PatientCheckInContext context = new();
-
-    private Task StartLookupAsync()
-    {
-        context.CurrentStep = CheckInStep.Lookup;
-        return Task.CompletedTask;
-    }
+    private bool inCreateSubStep;
 
     private Task OnPatientSelected(ProjectReadDto patient)
     {
         context.SelectedPatient = patient;
-        context.CurrentStep = CheckInStep.Session;
+        context.CurrentStep = CheckInStep.Book;
+        inCreateSubStep = false;
         return Task.CompletedTask;
     }
 
     private Task OnPatientCreated(ProjectReadDto patient)
     {
         context.SelectedPatient = patient;
-        context.CurrentStep = CheckInStep.Session;
+        context.CurrentStep = CheckInStep.Book;
+        inCreateSubStep = false;
         return Task.CompletedTask;
     }
 
     private Task GoToCreate()
     {
-        context.CurrentStep = CheckInStep.Create;
+        inCreateSubStep = true;
         return Task.CompletedTask;
     }
 
@@ -82,29 +69,17 @@
         return Task.CompletedTask;
     }
 
-    private Task GoToFutureSession(SessionReadDto session)
-    {
-        context.SelectedSession = session;
-        context.CurrentStep = CheckInStep.FutureSession;
-        return Task.CompletedTask;
-    }
-
     private Task GoBack()
     {
-        context.CurrentStep = context.CurrentStep switch
-        {
-            CheckInStep.Lookup => CheckInStep.Intent,
-            CheckInStep.Create => CheckInStep.Lookup,
-            CheckInStep.Session => CheckInStep.Lookup,
-            CheckInStep.FutureSession => CheckInStep.Session,
-            _ => CheckInStep.Intent
-        };
+        inCreateSubStep = false;
+        context.CurrentStep = CheckInStep.Identify;
         return Task.CompletedTask;
     }
 
     private Task RestartAsync()
     {
         context.Reset();
+        inCreateSubStep = false;
         return Task.CompletedTask;
     }
 }

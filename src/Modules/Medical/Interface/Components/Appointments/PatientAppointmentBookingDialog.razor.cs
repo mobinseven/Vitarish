@@ -20,10 +20,7 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
     protected override async Task OnInitializedAsync()
     {
         patientUserId = Patient.UserIds.FirstOrDefault();
-        if (!string.IsNullOrWhiteSpace(patientUserId))
-        {
-            await LoadSessionsAsync();
-        }
+        await LoadSessionsAsync();
     }
 
     private async Task LoadSessionsAsync()
@@ -45,10 +42,11 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
 
     private async Task ReserveAsync(SessionReadDto session)
     {
-        if (string.IsNullOrWhiteSpace(patientUserId))
-        {
-            return;
-        }
+        // Prefer the linked user account; fall back to the patient's own project ID as a
+        // stable party identifier — the Appointments module treats it as an opaque string.
+        string reservingPartyId = !string.IsNullOrWhiteSpace(patientUserId)
+            ? patientUserId
+            : Patient.Id.ToString();
 
         DateOnly today = DateOnly.FromDateTime(DateTime.UtcNow);
         SessionDateRangeQuery range = new()
@@ -67,7 +65,7 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
             return;
         }
 
-        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(session.Id, sessionReservation.Date, patientUserId, CancellationToken.None);
+        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(session.Id, sessionReservation.Date, reservingPartyId, CancellationToken.None);
         if (result.IsFailure || result.Value is null)
         {
             _ = Snackbar.Add(result.Errors.FirstOrDefault()?.Message ?? Localizer["Error"].Value, Severity.Error);

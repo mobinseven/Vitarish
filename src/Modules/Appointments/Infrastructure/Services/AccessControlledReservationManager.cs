@@ -100,9 +100,9 @@ internal class AccessControlledReservationManager(
         string? effectivePartyId = IsAdmin ? reservingPartyId : UserId;
         if (string.IsNullOrWhiteSpace(effectivePartyId))
         {
-            return EntityResult<ReservationReadDto>.Failure(EntityError.Validation("A reserving user is required.", new Dictionary<string, string>
+            return EntityResult<ReservationReadDto>.Failure(EntityError.Validation("A reserving party is required.", new Dictionary<string, string>
             {
-                [nameof(reservingPartyId)] = "A reserving user is required."
+                [nameof(reservingPartyId)] = "A reserving party is required."
             }));
         }
 
