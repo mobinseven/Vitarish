@@ -49,8 +49,8 @@
 
         <StackButton Label="@Localizer["Search"]"
                      Color="Color.Primary"
-                     EndIcon="fa-regular fa-magnifying-glass"
-                     Disabled="@(!HasAdvancedSearchCriteria())"
+                     EndIcon="@(searching ? "fa-regular fa-circle-notch fa-spin" : "fa-regular fa-magnifying-glass")"
+                     Disabled="@(!HasAdvancedSearchCriteria() || searching)"
                      OnClick="OnContinueWithSearch" />
 
         @if(Context.SearchResults.Count > 0)
@@ -79,9 +79,15 @@
     private const int MaxAdvancedSearchCandidates = 500;
 
     private bool showAdvancedSearch;
+    private bool searching;
 
     private async Task OnIdentificationCodeChangedAsync(string? value)
     {
+        if(Context.IdentificationLookupInProgress)
+        {
+            return;
+        }
+
         Context.IdentificationCode = value;
         Context.ExactIdentificationCodeMatch = null;
         Context.IdentificationLookupDone = false;
@@ -96,46 +102,60 @@
             return;
         }
 
-        Context.IdentificationLookupInProgress = true;
-        await InvokeAsync(StateHasChanged);
-
-        // Take = 1: IdentificationCode has a unique-per-tenant index, so at most one
-        // result can match; this short-circuits the query as early as possible.
-        ProjectDescriptorDto descriptor = new()
+        try
         {
-            IdentificationCode = code,
-            Template = false,
-            Skip = 0,
-            Take = 1
-        };
+            Context.IdentificationLookupInProgress = true;
+            await InvokeAsync(StateHasChanged);
 
-        IReadOnlyList<ProjectReadDto> results = await ProjectsService
-            .GetListAsync(descriptor, CancellationToken.None)
-            .GetValueOrDefaultAsync() ?? [];
+            // Take = 1: IdentificationCode has a unique-per-tenant index, so at most one
+            // result can match; this short-circuits the query as early as possible.
+            ProjectDescriptorDto descriptor = new()
+            {
+                IdentificationCode = code,
+                Template = false,
+                Skip = 0,
+                Take = 1
+            };
 
-        Context.ExactIdentificationCodeMatch = results.FirstOrDefault();
-        Context.IdentificationLookupInProgress = false;
-        Context.IdentificationLookupDone = true;
-        await InvokeAsync(StateHasChanged);
+            IReadOnlyList<ProjectReadDto> results = await ProjectsService
+                .GetListAsync(descriptor, CancellationToken.None)
+                .GetValueOrDefaultAsync() ?? [];
+
+            Context.ExactIdentificationCodeMatch = results.FirstOrDefault();
+            Context.IdentificationLookupDone = true;
+        }
+        finally
+        {
+            Context.IdentificationLookupInProgress = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private async Task OnContinueWithSearch()
     {
-        if(!HasAdvancedSearchCriteria())
+        if(!HasAdvancedSearchCriteria() || searching)
         {
             return;
         }
 
-        Context.AdvancedSearchDone = false;
-        Context.SearchResults = [];
-        await InvokeAsync(StateHasChanged);
+        try
+        {
+            searching = true;
+            Context.AdvancedSearchDone = false;
+            Context.SearchResults = [];
+            await InvokeAsync(StateHasChanged);
 
-        AdvancedSearchCriteria criteria = AdvancedSearchCriteria.From(Context);
-        IReadOnlyList<ProjectReadDto> items = await LoadAdvancedSearchCandidatesAsync(criteria);
+            AdvancedSearchCriteria criteria = AdvancedSearchCriteria.From(Context);
+            IReadOnlyList<ProjectReadDto> items = await LoadAdvancedSearchCandidatesAsync(criteria);
 
-        Context.SearchResults = [.. items.Where(project => MatchesAdvancedSearch(project, criteria)).Take(MaxSearchResults)];
-        Context.AdvancedSearchDone = true;
-        await InvokeAsync(StateHasChanged);
+            Context.SearchResults = [.. items.Where(project => MatchesAdvancedSearch(project, criteria)).Take(MaxSearchResults)];
+            Context.AdvancedSearchDone = true;
+        }
+        finally
+        {
+            searching = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private async Task SelectPatientAsync(ProjectReadDto patient)
