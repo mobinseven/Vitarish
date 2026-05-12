@@ -17,7 +17,8 @@
                              Color="Color.Warning"
                              EndIcon="fa-regular fa-user-check"
                              OnClick="@(() => SelectExistingAsync(candidate))" />
-            }        </Stack>
+            }
+        </Stack>
     }
 
     <Stack>
@@ -139,7 +140,7 @@
         saving = true;
         await InvokeAsync(StateHasChanged);
 
-        draft.Name = $"{draft.FirstName} {draft.LastName}".Trim().TrimEnd(' ', ',');
+        draft.Name = $"{draft.FirstName} {draft.LastName}".TrimEnd(' ', ',');
 
         EntityResult<ProjectReadDto> result = await ProjectsService.AddAsync(draft, CancellationToken.None);
 
