@@ -1,0 +1,307 @@
+@inherits Vitarish.Modules.Base.TenantCommonBase
+
+<Stack>
+    <StackTextField Value="@Context.IdentificationCode"
+                    ValueChanged="v => OnIdentificationCodeChangedAsync(v)"
+                    Label="@Localizer["IdentificationCode"]"
+                    HelperText="@Localizer["PatientIdentificationCodeHelp"]"
+                    Adornment="Adornment.End"
+                    AdornmentIcon="@(Context.IdentificationLookupInProgress ? "fa-regular fa-circle-notch fa-spin" : Context.ExactIdentificationCodeMatch is not null ? "fa-regular fa-user-check" : "fa-regular fa-search")"
+                    AdornmentColor="@(Context.IdentificationLookupInProgress ? Color.Default : Context.ExactIdentificationCodeMatch is not null ? Color.Success : Color.Default)"
+                    OnAdornmentClick="() => OnIdentificationCodeChangedAsync(Context.IdentificationCode)"
+                    DebounceInterval="400"
+                    dir="ltr"/>
+
+    @if(Context.ExactIdentificationCodeMatch is not null)
+    {
+        <StackButton Label="@Context.ExactIdentificationCodeMatch.Name"
+                     Color="Color.Success"
+                     OnClick="@(() => SelectPatientAsync(Context.ExactIdentificationCodeMatch))" />
+    }
+</Stack>
+
+<Stack>
+    <StackButton Label="@Localizer["AdvancedSearch"]"
+                 EndIcon="@(showAdvancedSearch ? "fa-regular fa-chevron-up" : "fa-regular fa-chevron-down")"
+                 OnClick="ToggleAdvancedSearch" />
+
+    @if(showAdvancedSearch)
+    {
+        <StackTextField @bind-Value="Context.SearchQuery"
+                        Label="@Localizer["PatientName"]"
+                        Adornment="Adornment.End"
+                        HelperText="@Localizer["PatientNameHelp"]" />
+
+        <StackTextField @bind-Value="Context.SearchIdentificationCode"
+                        Label="@Localizer["IdentificationCode"]"
+                        HelperText="@Localizer["PatientIdentificationCodeHelp"]" />
+
+        <StackDatePicker @bind-Date="Context.SearchDateOfBirth"
+                         Label="@Localizer["DateOfBirth"]" />
+
+        <StackTextField @bind-Value="Context.SearchPhone"
+                        Label="@Localizer["Phone"]"
+                        InputType="InputType.Telephone" />
+
+        <StackTextField @bind-Value="Context.SearchEmail"
+                        Label="@Localizer["Email"]"
+                        InputType="InputType.Email" />
+
+        <StackButton Label="@Localizer["Search"]"
+                     Color="Color.Primary"
+                     EndIcon="@(searching ? "fa-regular fa-circle-notch fa-spin" : "fa-regular fa-magnifying-glass")"
+                     Disabled="@(!HasAdvancedSearchCriteria() || searching)"
+                     OnClick="OnContinueWithSearch" />
+
+        @if(Context.SearchResults.Count > 0)
+        {
+            @foreach(var result in Context.SearchResults)
+            {
+                <StackButton Label="@result.Name"
+                             HelperText="@GetPatientHelperText(result)"
+                             EndIcon="fa-regular fa-user-check"
+                             OnClick="@(() => SelectPatientAsync(result))" />
+            }
+        }
+        else if(Context.AdvancedSearchDone)
+        {
+            <StackField Label="@Localizer["NoSearchItems", GetAdvancedSearchSummary()]" />
+        }
+    }
+</Stack>
+
+@code {
+    [Parameter, EditorRequired] public PatientAdvancedSearchContext Context { get; set; } = default!;
+    [Parameter] public EventCallback<ProjectReadDto> OnPatientSelected { get; set; }
+    [Inject] private IAccessControlledProjectsService ProjectsService { get; set; } = default!;
+
+    private const int MaxSearchResults = 50;
+    private const int MaxAdvancedSearchCandidates = 500;
+
+    private bool showAdvancedSearch;
+    private bool searching;
+
+    private async Task OnIdentificationCodeChangedAsync(string? value)
+    {
+        if(Context.IdentificationLookupInProgress)
+        {
+            return;
+        }
+
+        Context.IdentificationCode = value;
+        Context.ExactIdentificationCodeMatch = null;
+        Context.IdentificationLookupDone = false;
+        Context.SearchResults = [];
+        Context.AdvancedSearchDone = false;
+
+        string? code = Context.IdentificationCode?.Trim();
+        if(string.IsNullOrWhiteSpace(code))
+        {
+            Context.IdentificationLookupInProgress = false;
+            await InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        try
+        {
+            Context.IdentificationLookupInProgress = true;
+            await InvokeAsync(StateHasChanged);
+
+            // Take = 1: IdentificationCode has a unique-per-tenant index, so at most one
+            // result can match; this short-circuits the query as early as possible.
+            ProjectDescriptorDto descriptor = new()
+            {
+                IdentificationCode = code,
+                Template = false,
+                Skip = 0,
+                Take = 1
+            };
+
+            IReadOnlyList<ProjectReadDto> results = await ProjectsService
+                .GetListAsync(descriptor, CancellationToken.None)
+                .GetValueOrDefaultAsync() ?? [];
+
+            Context.ExactIdentificationCodeMatch = results.FirstOrDefault();
+            Context.IdentificationLookupDone = true;
+        }
+        finally
+        {
+            Context.IdentificationLookupInProgress = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OnContinueWithSearch()
+    {
+        if(!HasAdvancedSearchCriteria() || searching)
+        {
+            return;
+        }
+
+        try
+        {
+            searching = true;
+            Context.AdvancedSearchDone = false;
+            Context.SearchResults = [];
+            await InvokeAsync(StateHasChanged);
+
+            AdvancedSearchCriteria criteria = AdvancedSearchCriteria.From(Context);
+            IReadOnlyList<ProjectReadDto> items = await LoadAdvancedSearchCandidatesAsync(criteria);
+
+            Context.SearchResults = [.. items.Where(project => MatchesAdvancedSearch(project, criteria)).Take(MaxSearchResults)];
+            Context.AdvancedSearchDone = true;
+        }
+        finally
+        {
+            searching = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task SelectPatientAsync(ProjectReadDto patient)
+    {
+        await OnPatientSelected.InvokeAsync(patient);
+    }
+
+    private void ToggleAdvancedSearch()
+    {
+        showAdvancedSearch = !showAdvancedSearch;
+        StateHasChanged();
+    }
+
+    private bool HasAdvancedSearchCriteria()
+        => !string.IsNullOrWhiteSpace(Context.SearchQuery)
+           || !string.IsNullOrWhiteSpace(Context.SearchIdentificationCode)
+           || Context.SearchDateOfBirth.HasValue
+           || !string.IsNullOrWhiteSpace(Context.SearchPhone)
+           || !string.IsNullOrWhiteSpace(Context.SearchEmail);
+
+    private async Task<IReadOnlyList<ProjectReadDto>> LoadAdvancedSearchCandidatesAsync(AdvancedSearchCriteria criteria)
+    {
+        ProjectDescriptorDto descriptor = new()
+        {
+            IdentificationCode = criteria.IdentificationCode,
+            Search = criteria.IdentificationCode is null ? criteria.Name : null,
+            Template = false,
+            Skip = 0,
+            Take = criteria.NeedsClientSideSearch ? MaxAdvancedSearchCandidates : MaxSearchResults
+        };
+
+        return await ProjectsService
+            .GetListAsync(descriptor, CancellationToken.None)
+            .GetValueOrDefaultAsync() ?? [];
+    }
+
+    private static bool MatchesAdvancedSearch(ProjectReadDto project, AdvancedSearchCriteria criteria)
+        => MatchesText(project.Name, criteria.Name)
+           && MatchesIdentificationCode(project, criteria.IdentificationCode)
+           && MatchesDate(project.GetField<DateTime?>(nameof(PatientReadDto.DateOfBirth)), criteria.DateOfBirth)
+           && MatchesPhone(project.GetField<string>(nameof(PatientReadDto.Phone)), criteria)
+           && MatchesText(project.GetField<string>(nameof(PatientReadDto.Email)), criteria.Email);
+
+    private static bool MatchesIdentificationCode(ProjectReadDto project, string? identificationCode)
+        => identificationCode is null
+           || string.Equals(project.IdentificationCode?.Trim(), identificationCode, StringComparison.OrdinalIgnoreCase);
+
+    private static bool MatchesDate(DateTime? value, DateTime? expected)
+        => !expected.HasValue || (value.HasValue && value.Value.Date == expected.Value.Date);
+
+    private static bool MatchesText(string? value, string? expected)
+        => expected is null
+           || (!string.IsNullOrWhiteSpace(value) && value.Contains(expected, StringComparison.OrdinalIgnoreCase));
+
+    private static bool MatchesPhone(string? value, AdvancedSearchCriteria criteria)
+    {
+        if(criteria.Phone is null)
+        {
+            return true;
+        }
+
+        if(string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        if(criteria.PhoneDigits.Length > 0)
+        {
+            string valueDigits = DigitsOnly(value);
+            return valueDigits.Contains(criteria.PhoneDigits, StringComparison.Ordinal);
+        }
+
+        return value.Contains(criteria.Phone, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string DigitsOnly(string value) => new(value.Where(char.IsDigit).ToArray());
+
+    private sealed record AdvancedSearchCriteria(
+        string? Name,
+        string? IdentificationCode,
+        DateTime? DateOfBirth,
+        string? Phone,
+        string PhoneDigits,
+        string? Email)
+    {
+        public bool NeedsClientSideSearch
+            => DateOfBirth.HasValue || Phone is not null || Email is not null;
+
+        public static AdvancedSearchCriteria From(PatientAdvancedSearchContext context)
+        {
+            string? phone = NormalizeText(context.SearchPhone);
+
+            return new(
+                NormalizeText(context.SearchQuery),
+                NormalizeText(context.SearchIdentificationCode),
+                context.SearchDateOfBirth?.Date,
+                phone,
+                phone is null ? string.Empty : DigitsOnly(phone),
+                NormalizeText(context.SearchEmail));
+        }
+
+        private static string? NormalizeText(string? value)
+            => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    }
+
+    private string GetAdvancedSearchSummary()
+    {
+        List<string> parts = [];
+
+        AddCriteria(parts, Localizer["PatientName"].Value, Context.SearchQuery);
+        AddCriteria(parts, Localizer["IdentificationCode"].Value, Context.SearchIdentificationCode);
+        AddCriteria(parts, Localizer["DateOfBirth"].Value, Context.SearchDateOfBirth?.ToShortDateString());
+        AddCriteria(parts, Localizer["Phone"].Value, Context.SearchPhone);
+        AddCriteria(parts, Localizer["Email"].Value, Context.SearchEmail);
+
+        return string.Join(" · ", parts);
+    }
+
+    private static void AddCriteria(List<string> parts, string label, string? value)
+    {
+        if(!string.IsNullOrWhiteSpace(value))
+        {
+            parts.Add($"{label}: {value.Trim()}");
+        }
+    }
+
+    private string GetPatientHelperText(ProjectReadDto project)
+    {
+        PatientReadDto patient = project.ToPatientRead();
+        List<string> parts = [];
+
+        if(!string.IsNullOrWhiteSpace(project.IdentificationCode))
+        {
+            parts.Add($"{Localizer["IdentificationCode"]}: {project.IdentificationCode}");
+        }
+
+        if(patient.DateOfBirth.HasValue)
+        {
+            parts.Add(patient.DateOfBirth.Value.ToShortDateString());
+        }
+
+        if(!string.IsNullOrWhiteSpace(patient.Phone))
+        {
+            parts.Add(patient.Phone);
+        }
+
+        return string.Join(" · ", parts);
+    }
+}
