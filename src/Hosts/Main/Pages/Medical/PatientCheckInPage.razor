@@ -5,31 +5,34 @@
 
 <CascadingValue Value="IsAdmin">
 
-    @switch (context.CurrentStep)
+    @if (inCreateSubStep)
     {
-        case CheckInStep.Identify:
-            <PatientCheckInIntentStep Context="context"
-                                      OnSelectPatient="OnPatientSelected"
-                                      OnCreateNew="GoToCreate" />
-            break;
+        <PatientCheckInCreateStep Context="context"
+                                  OnCreated="OnPatientCreated"
+                                  OnSelectExisting="OnPatientSelected"
+                                  OnBack="GoBack" />
+    }
+    else
+    {
+        @switch (context.CurrentStep)
+        {
+            case CheckInStep.Identify:
+                <PatientCheckInIntentStep Context="context"
+                                          OnSelectPatient="OnPatientSelected"
+                                          OnCreateNew="GoToCreate" />
+                break;
 
-        case CheckInStep.Book:
-            <PatientCheckInSessionStep Context="context"
-                                       OnBooked="GoToConfirm"
-                                       OnBack="GoBack" />
-            break;
+            case CheckInStep.Book:
+                <PatientCheckInSessionStep Context="context"
+                                           OnBooked="GoToConfirm"
+                                           OnBack="GoBack" />
+                break;
 
-        case CheckInStep.Confirm:
-            <PatientCheckInConfirmStep Context="context"
-                                       OnStartAnother="RestartAsync" />
-            break;
-
-        default:
-            <PatientCheckInCreateStep Context="context"
-                                      OnCreated="OnPatientCreated"
-                                      OnSelectExisting="OnPatientSelected"
-                                      OnBack="GoBack" />
-            break;
+            case CheckInStep.Confirm:
+                <PatientCheckInConfirmStep Context="context"
+                                           OnStartAnother="RestartAsync" />
+                break;
+        }
     }
 
 </CascadingValue>
@@ -57,7 +60,6 @@
     private Task GoToCreate()
     {
         inCreateSubStep = true;
-        context.CurrentStep = (CheckInStep)99;
         return Task.CompletedTask;
     }
 

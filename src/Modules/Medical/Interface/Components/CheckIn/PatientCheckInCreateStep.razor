@@ -92,7 +92,8 @@
             draft.IdentificationCode = Context.IdentificationCode;
         }
 
-        // Pre-fill name from advanced search query if present
+        // Pre-fill name from advanced search query. Assumes Western name order
+        // (first-name last-name); receptionist can correct the split before saving.
         if (!string.IsNullOrWhiteSpace(Context.SearchQuery) && string.IsNullOrWhiteSpace(draft.LastName))
         {
             string[] parts = Context.SearchQuery.Trim().Split(' ', 2);

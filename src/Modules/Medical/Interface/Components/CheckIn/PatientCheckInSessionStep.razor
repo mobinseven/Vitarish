@@ -88,9 +88,9 @@
     [Inject] private ISessionBookableDateQueryService BookableDateQueryService { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
-    private record SlotEntry(SessionReadDto Session, SessionReservationReadDto? Occurrence);
+    private record SessionSlot(SessionReadDto Session, SessionReservationReadDto? Occurrence);
 
-    private List<SlotEntry> allSlots = [];
+    private List<SessionSlot> allSlots = [];
     private DateOnly today;
     private bool loading;
     private bool booking;
@@ -120,7 +120,7 @@
 
         sessions = [.. sessions.OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime).ThenBy(s => s.Title)];
 
-        List<SlotEntry> slots = [];
+        List<SessionSlot> slots = [];
 
         foreach(SessionReadDto session in sessions)
         {
@@ -138,11 +138,13 @@
 
             if(todayOccurrence is not null)
             {
-                slots.Add(new SlotEntry(session, todayOccurrence));
+                slots.Add(new SessionSlot(session, todayOccurrence));
             }
             else
             {
-                // Fall back to next available future slot in the next 30 days
+                // 30-day lookahead: enough to surface the next scheduled occurrence for
+                // sessions that don't run daily; receptionist can see and book the nearest
+                // available future slot without leaving the check-in screen.
                 SessionDateRangeQuery futureRange = new()
                 {
                     DateFrom = today.AddDays(1),
@@ -157,10 +159,12 @@
                     .OrderBy(o => o.Date)
                     .FirstOrDefault();
 
-                slots.Add(new SlotEntry(session, nextSlot));
+                slots.Add(new SessionSlot(session, nextSlot));
             }
         }
 
+        // Context.TodaySessions records today-only occurrences, used by other consumers
+        // (e.g. the confirm step). allSlots covers today + future and drives this UI.
         Context.TodaySessions = [.. sessions.Select(s =>
         {
             SessionReservationReadDto? todayOcc = slots.FirstOrDefault(sl => sl.Session.Id == s.Id && sl.Occurrence?.Date == today)?.Occurrence;

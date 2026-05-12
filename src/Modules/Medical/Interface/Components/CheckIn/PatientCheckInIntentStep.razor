@@ -105,6 +105,8 @@
         lookingUpCode = true;
         await InvokeAsync(StateHasChanged);
 
+        // Take = 1: IdentificationCode has a unique-per-tenant index, so at most one
+        // result can match; this short-circuits the query as early as possible.
         ProjectDescriptorDto descriptor = new()
         {
             IdentificationCode = code,

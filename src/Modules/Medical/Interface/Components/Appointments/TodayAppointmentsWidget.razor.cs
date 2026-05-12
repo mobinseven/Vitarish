@@ -59,13 +59,16 @@ public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommo
         // Pre-resolve display names. First try user lookup (fast, in-memory); for opaque
         // GUID-shaped IDs that don't match any user, attempt a project lookup — these are
         // patients booked without a linked user account (Medical-layer responsibility only).
+        // Lookups for GUID-shaped IDs are issued in parallel to avoid sequential N+1 fetches.
         displayNameByPartyId = [];
-        IEnumerable<string> distinctPartyIds = todaySessions
+        IReadOnlyList<string> distinctPartyIds = todaySessions
             .SelectMany(s => s.Item2)
             .Select(r => r.ReservingPartyId)
             .Where(id => !string.IsNullOrWhiteSpace(id))
-            .Distinct()!;
+            .Distinct()
+            .ToList()!;
 
+        List<Task> lookupTasks = [];
         foreach (string partyId in distinctPartyIds)
         {
             string? userName = GetUserFullNameById(partyId);
@@ -75,15 +78,23 @@ public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommo
                 continue;
             }
 
-            // No matching user — try to interpret as a patient project ID.
+            // No matching user — issue project lookups in parallel for GUID-shaped IDs.
             if (Guid.TryParse(partyId, out Guid projectId))
             {
-                ProjectReadDto? project = await ProjectsService.GetAsync(projectId, CancellationToken.None).GetValueOrDefaultAsync();
-                if (project is not null)
+                lookupTasks.Add(Task.Run(async () =>
                 {
-                    displayNameByPartyId[partyId] = project.Name;
-                }
+                    ProjectReadDto? project = await ProjectsService.GetAsync(projectId, CancellationToken.None).GetValueOrDefaultAsync();
+                    if (project is not null)
+                    {
+                        displayNameByPartyId[partyId] = project.Name;
+                    }
+                }));
             }
+        }
+
+        if (lookupTasks.Count > 0)
+        {
+            await Task.WhenAll(lookupTasks);
         }
 
         await InvokeAsync(StateHasChanged);
