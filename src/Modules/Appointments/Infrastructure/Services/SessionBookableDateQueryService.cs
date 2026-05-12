@@ -20,6 +20,9 @@ internal class SessionBookableDateQueryService(
         }
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
+        HashSet<DateOnly> closedDates = session.BookingPolicy?.ClosedDates
+            .Select(cd => cd.Date)
+            .ToHashSet() ?? [];
 
         Dictionary<DateOnly, SessionReservation> existingByDate = await dbContext.Set<SessionReservation>()
             .AsNoTracking()
@@ -27,7 +30,7 @@ internal class SessionBookableDateQueryService(
             .ToDictionaryAsync(sr => sr.Date, cancellationToken);
 
         return [.. GetScheduledDates(session.DayOfWeek, dateFrom, dateTo)
-            .Where(date => SessionBookingRules.IsBookingOpen(session, date, now))
+            .Where(date => SessionBookingRules.IsBookingOpen(session, date, now, closedDates))
             .Select(date => existingByDate.TryGetValue(date, out SessionReservation? existing)
                 ? existing.ToDto()
                 : CreateProjectedReservation(session, date).ToDto())];

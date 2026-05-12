@@ -2,7 +2,11 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 
 internal static class SessionBookingRules
 {
-    internal static bool IsBookingOpen(Session session, DateOnly date, DateTimeOffset now)
+    internal static bool IsBookingOpen(
+        Session session,
+        DateOnly date,
+        DateTimeOffset now,
+        IReadOnlySet<DateOnly>? closedDates = null)
     {
         if (session.Status != SessionStatus.Active)
         {
@@ -11,12 +15,15 @@ internal static class SessionBookingRules
 
         SessionBookingPolicy? policy = session.BookingPolicy;
 
-        if (policy?.ClosedDates.Any(cd => cd.Date == date) == true)
+        if (IsClosedDate(policy, closedDates, date))
         {
             return false;
         }
 
-        DateTimeOffset slotStart = ToDateTimeOffset(date, session.StartTime);
+        if (!TryGetSlotStart(session, date, out DateTimeOffset slotStart))
+        {
+            return false;
+        }
 
         if (now >= slotStart)
         {
@@ -49,6 +56,38 @@ internal static class SessionBookingRules
         return true;
     }
 
-    private static DateTimeOffset ToDateTimeOffset(DateOnly date, TimeOnly time)
-        => new(date.ToDateTime(time), TimeSpan.Zero);
+    private static bool IsClosedDate(
+        SessionBookingPolicy? policy,
+        IReadOnlySet<DateOnly>? closedDates,
+        DateOnly date)
+        => closedDates?.Contains(date)
+            ?? policy?.ClosedDates.Any(cd => cd.Date == date)
+            ?? false;
+
+    private static bool TryGetSlotStart(Session session, DateOnly date, out DateTimeOffset slotStart)
+    {
+        slotStart = default;
+
+        if (string.IsNullOrWhiteSpace(session.TimeZone))
+        {
+            return false;
+        }
+
+        DateTime dateTime = DateTime.SpecifyKind(date.ToDateTime(session.StartTime), DateTimeKind.Unspecified);
+
+        try
+        {
+            TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(session.TimeZone);
+            slotStart = new DateTimeOffset(dateTime, timeZone.GetUtcOffset(dateTime));
+            return true;
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return false;
+        }
+        catch (InvalidTimeZoneException)
+        {
+            return false;
+        }
+    }
 }
