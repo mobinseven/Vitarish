@@ -46,7 +46,8 @@ public partial class PatientCheckInSessionStep : Vitarish.Modules.Base.TenantCom
         ReservationDescriptorDto reservationDescriptor = new()
         {
             ReservingPartyId = GetReservingPartyId(),
-            Date = today,
+            DateFrom = today,
+            DateTo = today,
             Skip = 0,
             Take = int.MaxValue
         };

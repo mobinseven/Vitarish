@@ -42,7 +42,8 @@ public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommo
             ReservationDescriptorDto reservationDescriptor = new()
             {
                 SessionId = session.Id,
-                Date = today,
+                DateFrom = today,
+                DateTo = today,
                 Skip = 0,
                 Take = int.MaxValue
             };
