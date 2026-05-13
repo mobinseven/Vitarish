@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Data;
 using Vitarish.Entities.Server.Infrastructure;
+using Vitarish.Entities.Server.Repositories.Operations;
 
 namespace Vitarish.Entities.Server.Repositories;
 
@@ -11,7 +12,22 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
     where TDbContext : DbContext
 {
     protected TDbContext DbContext { get; } = dbContext;
+
+    /// <summary>
+    /// Exposes the default tracked set on the constructor-injected context.
+    /// Available for derived classes that have not yet migrated to operation-scoped contexts.
+    /// </summary>
     protected DbSet<TEntity> Set => DbContext.Set<TEntity>();
+
+    /// <summary>
+    /// Creates a context scope for a single repository operation.
+    /// The default implementation returns an ambient scope that wraps the constructor-injected
+    /// context, preserving existing behavior with zero overhead.
+    /// Override within this assembly to return a <see cref="TransientEntityContextScope{TDbContext}"/>
+    /// for full per-operation context isolation.
+    /// </summary>
+    private protected virtual IEntityContextScope<TDbContext> CreateOperationScope()
+        => new AmbientEntityContextScope<TDbContext>(DbContext);
 
     protected virtual IQueryable<TEntity> ApplyCore(IQueryable<TEntity> query, TDescriptor descriptor)
     {
@@ -27,17 +43,30 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
 
     protected virtual IQueryable<TEntity> Apply(IQueryable<TEntity> query, TDescriptor descriptor) => query.ApplyDescription(descriptor);
 
-    public Task<int> CountAsync(TDescriptor descriptor, CancellationToken cancellationToken) => ApplyCore(Set.AsNoTracking(), descriptor).CountAsync(cancellationToken);
+    public async Task<int> CountAsync(TDescriptor descriptor, CancellationToken cancellationToken)
+    {
+        await using IEntityContextScope<TDbContext> scope = CreateOperationScope();
+        return await ApplyCore(scope.Context.Set<TEntity>().AsNoTracking(), descriptor).CountAsync(cancellationToken);
+    }
 
-    public Task<TEntity?> GetAsync(Guid id, CancellationToken cancellationToken) => Set.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+    public async Task<TEntity?> GetAsync(Guid id, CancellationToken cancellationToken)
+    {
+        await using IEntityContextScope<TDbContext> scope = CreateOperationScope();
+        return await scope.Context.Set<TEntity>().AsNoTracking().FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+    }
 
-    public async Task<IReadOnlyList<TEntity>> GetAsync(TDescriptor descriptor, CancellationToken cancellationToken) => await ApplyCore(Set.AsNoTracking(), descriptor).ToListAsync(cancellationToken);
+    public async Task<IReadOnlyList<TEntity>> GetAsync(TDescriptor descriptor, CancellationToken cancellationToken)
+    {
+        await using IEntityContextScope<TDbContext> scope = CreateOperationScope();
+        return await ApplyCore(scope.Context.Set<TEntity>().AsNoTracking(), descriptor).ToListAsync(cancellationToken);
+    }
 
     public async Task<TEntity?> AddAsync(TEntity entity, CancellationToken cancellationToken)
     {
-        EntityEntry<TEntity> entry = await Set.AddAsync(entity, cancellationToken);
-        await SaveChangesWithHandlingAsync(cancellationToken);
-        DbContext.Entry(entity).State = EntityState.Detached;
+        await using IEntityContextScope<TDbContext> scope = CreateOperationScope();
+        EntityEntry<TEntity> entry = await scope.Context.Set<TEntity>().AddAsync(entity, cancellationToken);
+        await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
+        scope.Context.Entry(entity).State = EntityState.Detached;
         return entry.Entity;
     }
 
@@ -87,34 +116,35 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
 
     public async Task<IReadOnlyList<TEntity>> AddRangeAsync(IReadOnlyList<TEntity> entities, CancellationToken cancellationToken)
     {
-        // Batch large operations to prevent parameter overflow and memory issues
+        await using IEntityContextScope<TDbContext> scope = CreateOperationScope();
+        DbSet<TEntity> set = scope.Context.Set<TEntity>();
         int batchSize = BatchSize;
 
         if (entities.Count <= batchSize)
         {
-            await Set.AddRangeAsync(entities, cancellationToken);
-            await SaveChangesWithHandlingAsync(cancellationToken);
+            await set.AddRangeAsync(entities, cancellationToken);
+            await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
 
             foreach (TEntity entity in entities)
             {
-                DbContext.Entry(entity).State = EntityState.Detached;
+                scope.Context.Entry(entity).State = EntityState.Detached;
             }
 
             return entities;
         }
 
-        // Process in batches - optimize for list/array types
+        // Batch large operations to prevent parameter overflow and memory issues
         List<TEntity> results = new(entities.Count);
         for (int i = 0; i < entities.Count; i += batchSize)
         {
             IReadOnlyList<TEntity> batch = GetBatch(entities, i, batchSize);
 
-            await Set.AddRangeAsync(batch, cancellationToken);
-            await SaveChangesWithHandlingAsync(cancellationToken);
+            await set.AddRangeAsync(batch, cancellationToken);
+            await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
 
             foreach (TEntity entity in batch)
             {
-                DbContext.Entry(entity).State = EntityState.Detached;
+                scope.Context.Entry(entity).State = EntityState.Detached;
                 results.Add(entity);
             }
         }
@@ -124,37 +154,40 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
 
     public async Task<TEntity?> AddOrUpdateAsync(TEntity entity, CancellationToken cancellationToken)
     {
+        await using IEntityContextScope<TDbContext> scope = CreateOperationScope();
+        DbSet<TEntity> set = scope.Context.Set<TEntity>();
+
         // Optimistic approach: try update first (most common case in production)
         // This avoids race condition of check-then-act pattern
         try
         {
-            _ = Set.Update(entity);
-            await SaveChangesWithHandlingAsync(cancellationToken);
-            DbContext.Entry(entity).State = EntityState.Detached;
+            _ = set.Update(entity);
+            await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
+            scope.Context.Entry(entity).State = EntityState.Detached;
             return entity;
         }
         catch (DbUpdateConcurrencyException)
         {
             // Entity doesn't exist, detach and try insert
-            DbContext.Entry(entity).State = EntityState.Detached;
+            scope.Context.Entry(entity).State = EntityState.Detached;
 
             try
             {
-                _ = await Set.AddAsync(entity, cancellationToken);
-                await SaveChangesWithHandlingAsync(cancellationToken);
-                DbContext.Entry(entity).State = EntityState.Detached;
+                _ = await set.AddAsync(entity, cancellationToken);
+                await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
+                scope.Context.Entry(entity).State = EntityState.Detached;
                 return entity;
             }
             catch (DbUpdateException ex) when (IsDuplicateKeyException(ex))
             {
                 // Race condition: another thread inserted between our attempts
                 // Fall back to update - wrap in try-catch to handle potential update failures
-                DbContext.Entry(entity).State = EntityState.Detached;
+                scope.Context.Entry(entity).State = EntityState.Detached;
                 try
                 {
-                    _ = Set.Update(entity);
-                    await SaveChangesWithHandlingAsync(cancellationToken);
-                    DbContext.Entry(entity).State = EntityState.Detached;
+                    _ = set.Update(entity);
+                    await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
+                    scope.Context.Entry(entity).State = EntityState.Detached;
                     return entity;
                 }
                 catch (DbUpdateConcurrencyException)
@@ -178,8 +211,7 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
 
     /// <summary>
     /// Determines if the given DbUpdateException is caused by a duplicate key violation.
-    /// Default implementation checks for common error messages across database providers.
-    /// Override in derived classes for database-specific detection using error codes.
+    /// Must be implemented in derived classes for database-specific detection.
     /// </summary>
     /// <remarks>
     /// For production use, consider database-specific implementations:
@@ -187,24 +219,22 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
     /// - PostgreSQL: Check PostgresException with SqlState "23505"
     /// - MySQL: Check MySqlException with error number 1062
     /// </remarks>
-    /// <summary>
-    /// Determines if the given DbUpdateException is caused by a duplicate key violation.
-    /// Must be implemented in derived classes for database-specific detection.
-    /// </summary>
     protected abstract bool IsDuplicateKeyException(DbUpdateException exception);
 
     public async Task<TEntity?> UpdateAsync(TEntity entity, CancellationToken cancellationToken)
     {
-        _ = Set.Update(entity);
-        await SaveChangesWithHandlingAsync(cancellationToken);
-        DbContext.Entry(entity).State = EntityState.Detached;
+        await using IEntityContextScope<TDbContext> scope = CreateOperationScope();
+        _ = scope.Context.Set<TEntity>().Update(entity);
+        await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
+        scope.Context.Entry(entity).State = EntityState.Detached;
         return entity;
     }
 
     public async Task RemoveAsync(TEntity entity, CancellationToken cancellationToken)
     {
-        _ = Set.Remove(entity);
-        await SaveChangesWithHandlingAsync(cancellationToken);
+        await using IEntityContextScope<TDbContext> scope = CreateOperationScope();
+        _ = scope.Context.Set<TEntity>().Remove(entity);
+        await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
     }
 
     public async Task RemoveAsync(TDescriptor descriptor, CancellationToken cancellationToken)
@@ -215,62 +245,65 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
 
     public async Task UpdateRangeAsync(IReadOnlyList<TEntity> entities, CancellationToken cancellationToken)
     {
-        // Batch large operations to prevent parameter overflow and memory issues
+        await using IEntityContextScope<TDbContext> scope = CreateOperationScope();
+        DbSet<TEntity> set = scope.Context.Set<TEntity>();
         int batchSize = BatchSize;
 
         if (entities.Count <= batchSize)
         {
-            Set.UpdateRange(entities);
-            await SaveChangesWithHandlingAsync(cancellationToken);
+            set.UpdateRange(entities);
+            await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
 
             foreach (TEntity entity in entities)
             {
-                DbContext.Entry(entity).State = EntityState.Detached;
+                scope.Context.Entry(entity).State = EntityState.Detached;
             }
             return;
         }
 
-        // Process in batches - optimize for list/array types
+        // Batch large operations to prevent parameter overflow and memory issues
         for (int i = 0; i < entities.Count; i += batchSize)
         {
             IReadOnlyList<TEntity> batch = GetBatch(entities, i, batchSize);
 
-            Set.UpdateRange(batch);
-            await SaveChangesWithHandlingAsync(cancellationToken);
+            set.UpdateRange(batch);
+            await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
 
             foreach (TEntity entity in batch)
             {
-                DbContext.Entry(entity).State = EntityState.Detached;
+                scope.Context.Entry(entity).State = EntityState.Detached;
             }
         }
     }
 
     public async Task RemoveRangeAsync(IReadOnlyList<TEntity> entities, CancellationToken cancellationToken)
     {
-        // Batch large operations to prevent parameter overflow and memory issues
+        await using IEntityContextScope<TDbContext> scope = CreateOperationScope();
+        DbSet<TEntity> set = scope.Context.Set<TEntity>();
         int batchSize = BatchSize;
 
         if (entities.Count <= batchSize)
         {
-            Set.RemoveRange(entities);
-            await SaveChangesWithHandlingAsync(cancellationToken);
+            set.RemoveRange(entities);
+            await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
             return;
         }
 
-        // Process in batches - optimize for list/array types
+        // Batch large operations to prevent parameter overflow and memory issues
         for (int i = 0; i < entities.Count; i += batchSize)
         {
             IReadOnlyList<TEntity> batch = GetBatch(entities, i, batchSize);
-            Set.RemoveRange(batch);
-            await SaveChangesWithHandlingAsync(cancellationToken);
+            set.RemoveRange(batch);
+            await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
         }
     }
 
     public async Task HardDeleteAsync(TEntity entity, CancellationToken cancellationToken)
     {
         entity.HardDelete();
-        _ = Set.Remove(entity);
-        await SaveChangesWithHandlingAsync(cancellationToken);
+        await using IEntityContextScope<TDbContext> scope = CreateOperationScope();
+        _ = scope.Context.Set<TEntity>().Remove(entity);
+        await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
     }
 
     public async Task HardDeleteAsync(TDescriptor descriptor, CancellationToken cancellationToken)
@@ -281,38 +314,38 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
 
     public async Task HardDeleteRangeAsync(IReadOnlyList<TEntity> entities, CancellationToken cancellationToken)
     {
-        // Mark all entities for hard delete
         foreach (TEntity entity in entities)
         {
             entity.HardDelete();
         }
 
-        // Batch large operations to prevent parameter overflow and memory issues
+        await using IEntityContextScope<TDbContext> scope = CreateOperationScope();
+        DbSet<TEntity> set = scope.Context.Set<TEntity>();
         int batchSize = BatchSize;
 
         if (entities.Count <= batchSize)
         {
-            Set.RemoveRange(entities);
-            await SaveChangesWithHandlingAsync(cancellationToken);
+            set.RemoveRange(entities);
+            await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
             return;
         }
 
-        // Process in batches - optimize for list/array types
+        // Batch large operations to prevent parameter overflow and memory issues
         for (int i = 0; i < entities.Count; i += batchSize)
         {
             IReadOnlyList<TEntity> batch = GetBatch(entities, i, batchSize);
-            Set.RemoveRange(batch);
-            await SaveChangesWithHandlingAsync(cancellationToken);
+            set.RemoveRange(batch);
+            await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
         }
     }
 
     protected virtual EntityError TranslateException(DbUpdateException exception) => EntityError.Conflict("A persistence conflict occurred while saving the entity state.");
 
-    private async Task SaveChangesWithHandlingAsync(CancellationToken cancellationToken)
+    private async Task SaveChangesWithHandlingAsync(TDbContext ctx, CancellationToken cancellationToken)
     {
         try
         {
-            _ = await DbContext.SaveChangesAsync(cancellationToken);
+            _ = await ctx.SaveChangesAsync(cancellationToken);
         }
         catch (DbUpdateConcurrencyException ex)
         {

@@ -1,3 +1,6 @@
+using Vitarish.Entities.Server.Repositories.Operations;
+using Vitarish.Entities.Server.Repositories.UnitOfWork;
+
 namespace Vitarish.Entities.Server.Extensions;
 /// <summary>
 /// Extension methods for configuring Vitarish.Entities services with enhanced features.
@@ -94,6 +97,42 @@ public static class ServiceCollectionExtensions
         // Note: If decorated is false, base repository wasn't registered
         // Application will still work but without caching layer
 
+        return services;
+    }
+
+    /// <summary>
+    /// Registers <see cref="IEntityContextFactory{TDbContext}"/> so that repositories whose
+    /// <c>CreateOperationScope</c> method is overridden to use the factory will receive a fresh
+    /// <typeparamref name="TDbContext"/> per repository call instead of reusing the
+    /// constructor-injected context.
+    /// </summary>
+    /// <remarks>
+    /// Requires <see cref="IDbContextFactory{TContext}"/> to be registered in the container.
+    /// Call <c>AddDbContextFactory&lt;TDbContext&gt;</c> (or use the overload of
+    /// <c>AddDbContext</c> that registers the factory) before calling this method.
+    /// </remarks>
+    public static IServiceCollection AddEntityContextFactory<TDbContext>(
+        this IServiceCollection services)
+        where TDbContext : DbContext
+    {
+        _ = services.AddSingleton<IEntityContextFactory<TDbContext>, TransientEntityContextFactory<TDbContext>>();
+        return services;
+    }
+
+    /// <summary>
+    /// Registers <see cref="IEntityUnitOfWorkFactory{TDbContext}"/> for coordinating multiple
+    /// repository operations within a single database transaction.
+    /// </summary>
+    /// <remarks>
+    /// Requires <see cref="IDbContextFactory{TContext}"/> to be registered in the container.
+    /// Call <c>AddDbContextFactory&lt;TDbContext&gt;</c> (or use the overload of
+    /// <c>AddDbContext</c> that registers the factory) before calling this method.
+    /// </remarks>
+    public static IServiceCollection AddEntityUnitOfWorkFactory<TDbContext>(
+        this IServiceCollection services)
+        where TDbContext : DbContext
+    {
+        _ = services.AddTransient<IEntityUnitOfWorkFactory<TDbContext>, EntityUnitOfWorkFactory<TDbContext>>();
         return services;
     }
 }

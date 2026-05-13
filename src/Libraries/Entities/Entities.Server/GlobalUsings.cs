@@ -14,4 +14,5 @@ global using Vitarish.Entities.Server.HealthChecks;
 global using Vitarish.Entities.Server.Models;
 global using Vitarish.Entities.Server.Queries;
 global using Vitarish.Entities.Server.Repositories;
+global using Vitarish.Entities.Server.Repositories.UnitOfWork;
 global using Vitarish.Entities.Server.Validation;

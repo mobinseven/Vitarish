@@ -19,6 +19,12 @@
 		<Compile Include="../Entities.Generators/GeneratorAttributes.cs" Link="GeneratorAttributes.cs" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>Entities.Server.Tests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
+
 	<PropertyGroup>
 		<PackageId>Vitarish.Entities.Server</PackageId>
 		<Title>Vitarish.Entities.Server</Title>
