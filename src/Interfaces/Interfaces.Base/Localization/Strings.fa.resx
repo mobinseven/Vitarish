@@ -1755,6 +1755,24 @@
   <data name="Expired" xml:space="preserve">
     <value>منقضی‌شده</value>
   </data>
+  <data name="SessionReminderPolicySessionNotFoundError" xml:space="preserve">
+    <value>جلسه یافت نشد.</value>
+  </data>
+  <data name="SessionReminderPolicyNotFoundError" xml:space="preserve">
+    <value>رویه یادآور یافت نشد.</value>
+  </data>
+  <data name="SessionReminderPolicyOffsetBeforePositiveError" xml:space="preserve">
+    <value>زمان قبل از یادآور باید یک مدت مثبت باشد.</value>
+  </data>
+  <data name="SessionReminderPolicyQualifyingStatusesRequiredError" xml:space="preserve">
+    <value>دست‌کم یک وضعیت واجد شرایط لازم است.</value>
+  </data>
+  <data name="SessionReminderPolicySubjectTemplateRequiredError" xml:space="preserve">
+    <value>قالب موضوع لازم است.</value>
+  </data>
+  <data name="SessionReminderPolicyBodyTemplateRequiredError" xml:space="preserve">
+    <value>قالب متن لازم است.</value>
+  </data>
   <data name="SaveFailed" xml:space="preserve">
     <value>ذخیره ناموفق بود. لطفاً دوباره تلاش کنید.</value>
   </data>
