@@ -207,7 +207,7 @@ public class SessionBookableSlotsTests
     {
         DateOnly start = DateOnly.FromDateTime(DateTime.UtcNow).AddDays(7);
         int days = ((int)dayOfWeek - (int)start.DayOfWeek + 7) % 7;
-        return days == 0 ? start.AddDays(7) : start.AddDays(days);
+        return start.AddDays(days == 0 ? 7 : days);
     }
 
     private static Session CreateActiveSession(DayOfWeek dayOfWeek) => new()

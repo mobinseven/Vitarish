@@ -43,6 +43,8 @@ internal class SessionBookableDateQueryService(
             return [];
         }
 
+        // Pagination from the caller is intentionally overridden: the calendar must evaluate
+        // all matching sessions to project a complete date range view.
         SessionDescriptor domainDescriptor = (descriptor with { Skip = 0, Take = int.MaxValue }).ToDomain();
         IReadOnlyList<Session> sessions = await sessionRepository.GetAsync(domainDescriptor, cancellationToken);
         if (sessions.Count == 0)

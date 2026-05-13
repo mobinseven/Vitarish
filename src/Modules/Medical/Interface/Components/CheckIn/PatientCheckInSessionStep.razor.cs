@@ -43,16 +43,9 @@ public partial class PatientCheckInSessionStep : Vitarish.Modules.Base.TenantCom
         loadingReservations = true;
         await InvokeAsync(StateHasChanged);
 
-        // Prefer the linked user account; fall back to the patient's own project ID as a
-        // stable party identifier — the Appointments module treats it as an opaque string.
-        string? patientUserId = Context.SelectedPatient?.UserIds.FirstOrDefault();
-        string reservingPartyId = !string.IsNullOrWhiteSpace(patientUserId)
-            ? patientUserId
-            : Context.SelectedPatient!.Id.ToString();
-
         ReservationDescriptorDto reservationDescriptor = new()
         {
-            ReservingPartyId = reservingPartyId,
+            ReservingPartyId = GetReservingPartyId(),
             Date = today,
             Skip = 0,
             Take = int.MaxValue
@@ -72,15 +65,8 @@ public partial class PatientCheckInSessionStep : Vitarish.Modules.Base.TenantCom
         booking = true;
         await InvokeAsync(StateHasChanged);
 
-        // Prefer the linked user account; fall back to the patient's own project ID as a
-        // stable party identifier — the Appointments module treats it as an opaque string.
-        string? patientUserId = Context.SelectedPatient?.UserIds.FirstOrDefault();
-        string reservingPartyId = !string.IsNullOrWhiteSpace(patientUserId)
-            ? patientUserId
-            : Context.SelectedPatient!.Id.ToString();
-
         EntityResult<ReservationReadDto> reserveResult = await ReservationManager
-            .ReserveAsync(session.Id, occurrence.Date, reservingPartyId, CancellationToken.None);
+            .ReserveAsync(session.Id, occurrence.Date, GetReservingPartyId(), CancellationToken.None);
 
         if (reserveResult.IsFailure || reserveResult.Value is null)
         {
@@ -111,5 +97,18 @@ public partial class PatientCheckInSessionStep : Vitarish.Modules.Base.TenantCom
 
         booking = false;
         await OnBooked.InvokeAsync();
+    }
+
+    /// <summary>
+    /// Returns the reserving-party identifier for the selected patient.
+    /// Prefers the linked user account; falls back to the patient's own project ID as a
+    /// stable opaque identifier the Appointments module accepts.
+    /// </summary>
+    private string GetReservingPartyId()
+    {
+        string? userId = Context.SelectedPatient?.UserIds.FirstOrDefault();
+        return !string.IsNullOrWhiteSpace(userId)
+            ? userId
+            : Context.SelectedPatient!.Id.ToString();
     }
 }
