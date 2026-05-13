@@ -14,10 +14,8 @@
                    Variant="Variant.Outlined"
                    Label="@Localizer["Hour"]">
 
-            @for(var i = 0; i < 24; i++)
+            @foreach(var item in HourItems)
             {
-                var item = i;
-
                 <MudSelectItem T="int" @key="item" Value="@item">
                     @item.ToString("00", Culture)
                 </MudSelectItem>
@@ -53,34 +51,70 @@
     [Parameter]
     public int MinuteStep { get; set; } = 15;
 
+    [Parameter]
+    public global::System.TimeOnly? Min { get; set; }
+
+    [Parameter]
+    public global::System.TimeOnly? Max { get; set; }
+
     private int _hour;
     private int _minute;
 
     private int NormalizedMinuteStep => Math.Clamp(MinuteStep, 1, 60);
+
+    private global::System.TimeOnly EffectiveMin
+    {
+        get
+        {
+            if(Min is not null && Max is not null && Min > Max)
+                return Max.Value;
+
+            return Min ?? global::System.TimeOnly.MinValue;
+        }
+    }
+
+    private global::System.TimeOnly EffectiveMax
+    {
+        get
+        {
+            if(Min is not null && Max is not null && Min > Max)
+                return Min.Value;
+
+            return Max ?? global::System.TimeOnly.MaxValue;
+        }
+    }
+
+    private IEnumerable<int> HourItems
+    {
+        get
+        {
+            for(var hour = 0; hour < 24; hour++)
+            {
+                var firstMinuteOfHour = new global::System.TimeOnly(hour, 0);
+                var lastMinuteOfHour = new global::System.TimeOnly(hour, 59, 59, 999);
+
+                if(firstMinuteOfHour <= EffectiveMax && lastMinuteOfHour >= EffectiveMin)
+                    yield return hour;
+            }
+        }
+    }
 
     private IEnumerable<int> MinuteItems
     {
         get
         {
             var step = NormalizedMinuteStep;
-            var emittedCurrentMinute = false;
+            var items = Enumerable.Range(0, 60 / step + 1)
+                .Select(index => index * step)
+                .Where(minute => minute < 60);
 
-            for(var i = 0; i < 60; i += step)
-            {
-                if(i == _minute)
-                    emittedCurrentMinute = true;
+            if(IsMinuteAllowed(_minute))
+                items = items.Append(_minute);
 
-                yield return i;
-
-                if(!emittedCurrentMinute && _minute > i && _minute < i + step)
-                {
-                    emittedCurrentMinute = true;
-                    yield return _minute;
-                }
-            }
-
-            if(!emittedCurrentMinute)
-                yield return _minute;
+            return items
+                .Where(IsMinuteAllowed)
+                .Distinct()
+                .Order();
         }
     }
 
@@ -92,6 +126,8 @@
             TimeOnlyValueChanged.HasDelegate || TimeOnlyValue != global::System.TimeOnly.MinValue || Time is null
                 ? TimeOnlyValue
                 : global::System.TimeOnly.FromTimeSpan(Time.Value);
+
+        selectedTime = ClampToLimits(selectedTime);
 
         _hour = selectedTime.Hour;
         _minute = selectedTime.Minute;
@@ -105,10 +141,10 @@
 
     private async Task SetSelectedTimeAsync(int hour, int minute)
     {
-        _hour = hour;
-        _minute = minute;
+        var value = ClampToLimits(new global::System.TimeOnly(hour, minute));
 
-        var value = new global::System.TimeOnly(hour, minute);
+        _hour = value.Hour;
+        _minute = value.Minute;
 
         TimeOnlyValue = value;
 
@@ -117,5 +153,23 @@
 
         await TimeOnlyValueChanged.InvokeAsync(value);
         await TimeChanged.InvokeAsync(Time);
+    }
+
+    private bool IsMinuteAllowed(int minute)
+    {
+        var value = new global::System.TimeOnly(_hour, minute);
+
+        return value >= EffectiveMin && value <= EffectiveMax;
+    }
+
+    private global::System.TimeOnly ClampToLimits(global::System.TimeOnly value)
+    {
+        if(value < EffectiveMin)
+            return EffectiveMin;
+
+        if(value > EffectiveMax)
+            return EffectiveMax;
+
+        return value;
     }
 }
