@@ -40,7 +40,7 @@ public partial class SessionReminderPolicyForm : SessionReminderPoliciesBase
         else if (result.IsFailure)
         {
             string message = result.Errors.Count > 0
-                ? string.Join(" ", result.Errors.Select(e => e.Message))
+                ? string.Join(" ", result.Errors.Select(e => Localizer[e.Message].Value))
                 : Localizer["SaveFailed"].Value;
             _ = Snackbar.Add(message, Severity.Error);
         }

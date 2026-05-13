@@ -11,6 +11,12 @@ internal class SessionReminderPolicyManager(
     IRequestContext requestContext) : ISessionReminderPolicyManager
 {
     private const string PolicyEntityType = nameof(SessionReminderPolicy);
+    private const string SessionNotFound = "SessionReminderPolicySessionNotFoundError";
+    private const string PolicyNotFound = "SessionReminderPolicyNotFoundError";
+    private const string OffsetBeforePositive = "SessionReminderPolicyOffsetBeforePositiveError";
+    private const string QualifyingStatusesRequired = "SessionReminderPolicyQualifyingStatusesRequiredError";
+    private const string SubjectTemplateRequired = "SessionReminderPolicySubjectTemplateRequiredError";
+    private const string BodyTemplateRequired = "SessionReminderPolicyBodyTemplateRequiredError";
 
     public async Task<IReadOnlyList<SessionReminderPolicyReadDto>> GetBySessionAsync(
         Guid sessionId,
@@ -34,7 +40,7 @@ internal class SessionReminderPolicyManager(
         if (session is null)
         {
             return EntityResult<SessionReminderPolicyReadDto>.Failure(
-                EntityError.NotFound("Session not found.", nameof(dto.SessionId)));
+                EntityError.NotFound(SessionNotFound, nameof(dto.SessionId)));
         }
 
         SessionReminderPolicy policy = dto.ToDomain();
@@ -70,14 +76,14 @@ internal class SessionReminderPolicyManager(
         if (session is null)
         {
             return EntityResult<SessionReminderPolicyReadDto>.Failure(
-                EntityError.NotFound("Session not found.", nameof(dto.SessionId)));
+                EntityError.NotFound(SessionNotFound, nameof(dto.SessionId)));
         }
 
         SessionReminderPolicy? existing = session.ReminderPolicies.FirstOrDefault(p => p.Id == dto.Id);
         if (existing is null)
         {
             return EntityResult<SessionReminderPolicyReadDto>.Failure(
-                EntityError.NotFound("Reminder policy not found.", nameof(dto.Id)));
+                EntityError.NotFound(PolicyNotFound, nameof(dto.Id)));
         }
 
         existing.IsEnabled = dto.IsEnabled;
@@ -107,13 +113,13 @@ internal class SessionReminderPolicyManager(
         Session? session = await aggregateLoader.LoadWithPoliciesAsync(sessionId, cancellationToken);
         if (session is null)
         {
-            return EntityResult.Failure(EntityError.NotFound("Session not found.", nameof(sessionId)));
+            return EntityResult.Failure(EntityError.NotFound(SessionNotFound, nameof(sessionId)));
         }
 
         SessionReminderPolicy? existing = session.ReminderPolicies.FirstOrDefault(p => p.Id == policyId);
         if (existing is null)
         {
-            return EntityResult.Failure(EntityError.NotFound("Reminder policy not found.", nameof(policyId)));
+            return EntityResult.Failure(EntityError.NotFound(PolicyNotFound, nameof(policyId)));
         }
 
         session.ReminderPolicies.Remove(existing);
@@ -140,29 +146,29 @@ internal class SessionReminderPolicyManager(
         if (dto.OffsetBefore <= TimeSpan.Zero)
         {
             errors.Add(EntityError.Validation(
-                "Offset before must be a positive duration.",
-                new Dictionary<string, string> { [nameof(dto.OffsetBefore)] = "Must be positive." }));
+                OffsetBeforePositive,
+                new Dictionary<string, string> { [nameof(dto.OffsetBefore)] = OffsetBeforePositive }));
         }
 
         if (dto.QualifyingStatuses.Count == 0)
         {
             errors.Add(EntityError.Validation(
-                "At least one qualifying status is required.",
-                new Dictionary<string, string> { [nameof(dto.QualifyingStatuses)] = "Required." }));
+                QualifyingStatusesRequired,
+                new Dictionary<string, string> { [nameof(dto.QualifyingStatuses)] = QualifyingStatusesRequired }));
         }
 
         if (string.IsNullOrWhiteSpace(dto.SubjectTemplate))
         {
             errors.Add(EntityError.Validation(
-                "Subject template is required.",
-                new Dictionary<string, string> { [nameof(dto.SubjectTemplate)] = "Required." }));
+                SubjectTemplateRequired,
+                new Dictionary<string, string> { [nameof(dto.SubjectTemplate)] = SubjectTemplateRequired }));
         }
 
         if (string.IsNullOrWhiteSpace(dto.BodyTemplate))
         {
             errors.Add(EntityError.Validation(
-                "Body template is required.",
-                new Dictionary<string, string> { [nameof(dto.BodyTemplate)] = "Required." }));
+                BodyTemplateRequired,
+                new Dictionary<string, string> { [nameof(dto.BodyTemplate)] = BodyTemplateRequired }));
         }
 
         return errors.Count == 0 ? EntityResult.Success() : EntityResult.Failure([.. errors]);
