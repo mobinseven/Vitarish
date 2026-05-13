@@ -1,3 +1,5 @@
+using Google.Protobuf.Reflection;
+
 namespace Vitarish.Medical.Interface.Components.CheckIn;
 
 public partial class PatientCheckInSessionStep : Vitarish.Modules.Base.TenantCommonBase
@@ -7,10 +9,12 @@ public partial class PatientCheckInSessionStep : Vitarish.Modules.Base.TenantCom
     [Parameter] public EventCallback OnBack { get; set; }
 
     [Inject] private IAccessControlledReservationManager ReservationManager { get; set; } = default!;
+    [Inject] private ISessionBookableDateQueryService BookableDateQueryService { get; set; } = default!;
 
     private SessionDescriptorDto sessionDescriptor = default!;
     private SessionDateRangeQuery sessionRange = default!;
-    private IReadOnlyList<ReservationReadDto> patientTodayReservations = [];
+    private IReadOnlyList<ReservationReadDto> patientReservations = [];
+    private IReadOnlyList<BookableSessionSlot> slots = [];
     private DateOnly today;
     private bool loadingReservations;
     private bool booking;
@@ -35,23 +39,28 @@ public partial class PatientCheckInSessionStep : Vitarish.Modules.Base.TenantCom
 
     protected override async Task ReloadRequired()
     {
-        await LoadPatientReservationsAsync();
-    }
-
-    private async Task LoadPatientReservationsAsync()
-    {
         loadingReservations = true;
         await InvokeAsync(StateHasChanged);
+
+        IReadOnlyList<BookableSessionSlot> result = await BookableDateQueryService
+            .GetBookableSlotsAsync(sessionDescriptor, sessionRange, CancellationToken.None);
+        if (result.Count == 0)
+        {
+            slots = [.. result
+            .OrderBy(s => s.Occurrence?.Date ?? DateOnly.MaxValue)
+            .ThenBy(s => s.Occurrence?.StartTime ?? TimeOnly.MaxValue)
+            .ThenBy(s => s.Session.Title)];
+        }
+        slots = [.. result];
 
         ReservationDescriptorDto reservationDescriptor = new()
         {
             ReservingPartyId = GetReservingPartyId(),
-            Date = today,
             Skip = 0,
             Take = int.MaxValue
         };
 
-        patientTodayReservations = await ReservationManager
+        patientReservations = await ReservationManager
             .GetListAsync(reservationDescriptor, CancellationToken.None)
             .GetValueOrDefaultAsync() ?? [];
 

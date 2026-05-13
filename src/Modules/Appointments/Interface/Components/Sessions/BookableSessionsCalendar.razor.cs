@@ -5,6 +5,7 @@ public partial class BookableSessionsCalendar : Vitarish.Modules.Base.TenantComm
     [Parameter] public SessionDescriptorDto? Descriptor { get; set; }
     [Parameter] public SessionDateRangeQuery? Range { get; set; }
     [Parameter] public RenderFragment<BookableSessionSlot>? SlotActions { get; set; }
+    [Parameter] public EventCallback<BookableSessionSlot> OnSelected { get; set; }
 
     [Inject] private ISessionBookableDateQueryService BookableDateQueryService { get; set; } = default!;
 

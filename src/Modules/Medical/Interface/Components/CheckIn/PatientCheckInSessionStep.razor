@@ -7,48 +7,56 @@
 
 <Stack>
 
-    @if (loadingReservations)
+    @if(loadingReservations)
     {
         <StackField Label="@Localizer["Loading"]" AdornmentIcon="fa-regular fa-circle-notch fa-spin" />
     }
     else
     {
-        <BookableSessionsCalendar Descriptor="@sessionDescriptor"
-                                  Range="@sessionRange">
-            <SlotActions Context="slot">
+        <StackCalendar MinDate="@DateTime.Today" ViewMode="Interfaces.Base.Enums.StackCalendarViewMode.Week">
+            <DayTemplate Context="day">
                 @{
-                    bool alreadyBooked = patientTodayReservations.Any(r =>
-                        r.SessionId == slot.Session.Id &&
+                    var slot = slots.FirstOrDefault(i => i.Occurrence?.Date == DateOnly.FromDateTime(day.Date));
+                    bool alreadyBooked = patientReservations.Any(r =>
+                        DateOnly.FromDateTime(day.Date) == r.Date &&
+                        r.SessionId == slot?.Session.Id &&
                         r.Status != ReservationStatus.Cancelled &&
                         r.Status != ReservationStatus.Rejected &&
                         r.Status != ReservationStatus.Expired);
-
-                    bool isToday = slot.Occurrence?.Date == today;
-                    bool available = slot.Occurrence is not null && slot.Occurrence.AvailableSeats > 0;
+                    bool available = slot?.Occurrence is not null && slot.Occurrence.AvailableSeats > 0;
+                    bool sessionIsFull = slot?.Occurrence is not null && slot.Occurrence.AvailableSeats == 0;
                 }
-                @if (alreadyBooked)
+                @if(alreadyBooked)
                 {
-                    <MudChip T="string" Color="Color.Success" Text="@Localizer["AlreadyBooked"]" />
+                    <MudBadge Dot
+                              Color="Color.Success">
+                        @day.DayNumber
+                    </MudBadge>
                 }
-                else if (available)
+                else if(available)
                 {
-                    <MudChip T="string" Color="Color.Primary"
-                             Icon="fa-regular fa-calendar-plus"
-                             OnClick="@(() => BookSlotAsync(slot.Session, slot.Occurrence!))"
-                             Disabled="@booking"
-                             Text="@(isToday ? Localizer["BookNow"] : Localizer["BookForDate", slot.Occurrence!.Date.ToString("d")])" />
+                    <MudBadge Dot
+                              Color="slot?.Occurrence?.AvailableSeats > 0 ? Color.Primary : Color.Default"
+                              OnClick="() => BookSlotAsync(slot!.Session, slot.Occurrence!)">
+                        @day.DayNumber
+                    </MudBadge>
+                }
+                else if(sessionIsFull)
+                {
+                    <MudBadge Dot
+                              Color="Color.Info">
+                        @day.DayNumber
+                    </MudBadge>
                 }
                 else
                 {
-                    <MudChip T="string" Icon="fa-regular fa-circle-xmark"
-                             Color="Color.Warning"
-                             Text="@Localizer["SessionFull"]" />
+                    @day.DayNumber
                 }
-            </SlotActions>
-        </BookableSessionsCalendar>
+            </DayTemplate>
+        </StackCalendar>
     }
 
-    @if (!string.IsNullOrWhiteSpace(bookingError))
+    @if(!string.IsNullOrWhiteSpace(bookingError))
     {
         <StackField Label="@bookingError"
                     AdornmentIcon="fa-regular fa-circle-xmark"
