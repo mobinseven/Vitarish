@@ -4,7 +4,7 @@
 @inherits MudComponentBase
 
 <div Class="@($"mud-calendar stack-item {Class}")" style="align-self: anchor-center;"
-          dir="@RootDirection">
+     dir="@RootDirection">
 
     <div class="mud-calendar__header">
         <MudIconButton Icon="@PreviousIcon"
@@ -51,21 +51,21 @@
                 }
                 else
                 {
-                    <button type="button"
-                            class="@day.CssClass"
-                            disabled="@(Disabled || day.IsDisabled)"
-                            aria-current="@(day.IsToday ? "date" : null)"
-                            aria-selected="@day.IsSelected"
-                            @onclick="() => SelectDayAsync(day)">
-                        @if(DayTemplate is null)
-                        {
+                    @if(DayTemplate is null)
+                    {
+                        <button type="button"
+                                class="@day.CssClass"
+                                disabled="@(Disabled || day.IsDisabled)"
+                                aria-current="@(day.IsToday ? "date" : null)"
+                                aria-selected="@day.IsSelected"
+                                @onclick="() => SelectDayAsync(day)">
                             @day.DisplayDayNumber
-                        }
-                        else
-                        {
-                            @DayTemplate(day)
-                        }
-                    </button>
+                        </button>
+                    }
+                    else
+                    {
+                        @DayTemplate(day)
+                    }
                 }
             }
         </div>
