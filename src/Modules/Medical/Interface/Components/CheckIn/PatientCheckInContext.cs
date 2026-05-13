@@ -23,10 +23,6 @@ public class PatientCheckInContext
 
     public ProjectReadDto? SelectedPatient { get; set; }
 
-    public IReadOnlyList<(SessionReadDto Session, SessionReservationReadDto? Occurrence)> TodaySessions { get; set; } = [];
-
-    public IReadOnlyList<ReservationReadDto> PatientTodayReservations { get; set; } = [];
-
     public SessionReadDto? SelectedSession { get; set; }
 
     public SessionReservationReadDto? SelectedOccurrence { get; set; }
@@ -42,8 +38,6 @@ public class PatientCheckInContext
     {
         CurrentStep = CheckInStep.Identify;
         SelectedPatient = null;
-        TodaySessions = [];
-        PatientTodayReservations = [];
         SelectedSession = null;
         SelectedOccurrence = null;
         ConfirmedReservation = null;
