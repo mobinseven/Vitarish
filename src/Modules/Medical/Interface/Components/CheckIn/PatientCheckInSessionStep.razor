@@ -26,44 +26,32 @@
                     bool available = slot?.Occurrence is not null && slot.Occurrence.AvailableSeats > 0;
                     bool sessionIsFull = slot?.Occurrence is not null && slot.Occurrence.AvailableSeats == 0;
                 }
-                <button type="button"
-                        class="@day.CssClass"
-                        disabled="@day.IsDisabledForInteraction"
-                        aria-current="@(day.IsToday ? "date" : null)"
-                        aria-selected="@day.IsSelected"
-                        @onclick="async () =>
-                        {
-                            await day.SelectAsync();
-
-                            if(available && slot?.Occurrence is not null)
-                                await BookSlotAsync(slot.Session, slot.Occurrence);
-                        }">
-                    @if(alreadyBooked)
-                    {
-                        <MudBadge Dot
-                                  Color="Color.Success">
-                            @day.DayNumber
-                        </MudBadge>
-                    }
-                    else if(available)
-                    {
-                        <MudBadge Dot
-                                  Color="slot?.Occurrence?.AvailableSeats > 0 ? Color.Primary : Color.Default">
-                            @day.DayNumber
-                        </MudBadge>
-                    }
-                    else if(sessionIsFull)
-                    {
-                        <MudBadge Dot
-                                  Color="Color.Info">
-                            @day.DayNumber
-                        </MudBadge>
-                    }
-                    else
-                    {
+                @if(alreadyBooked)
+                {
+                    <MudBadge Dot
+                              Color="Color.Success">
                         @day.DayNumber
-                    }
-                </button>
+                    </MudBadge>
+                }
+                else if(available)
+                {
+                    <MudBadge Dot
+                              Color="slot?.Occurrence?.AvailableSeats > 0 ? Color.Primary : Color.Default"
+                              OnClick="() => BookSlotAsync(slot!.Session, slot.Occurrence!)">
+                        @day.DayNumber
+                    </MudBadge>
+                }
+                else if(sessionIsFull)
+                {
+                    <MudBadge Dot
+                              Color="Color.Info">
+                        @day.DayNumber
+                    </MudBadge>
+                }
+                else
+                {
+                    @day.DayNumber
+                }
             </DayTemplate>
         </StackCalendar>
     }

@@ -49,20 +49,23 @@
                 {
                     <span class="mud-calendar__day-empty"></span>
                 }
-                else if(DayTemplate is null)
+                else
                 {
                     <button type="button"
                             class="@day.CssClass"
                             disabled="@(Disabled || day.IsDisabled)"
                             aria-current="@(day.IsToday ? "date" : null)"
                             aria-selected="@day.IsSelected"
-                            @onclick="day.SelectAsync">
-                        @day.DisplayDayNumber
+                            @onclick="() => SelectDayAsync(day)">
+                        @if(DayTemplate is null)
+                        {
+                            @day.DisplayDayNumber
+                        }
+                        else
+                        {
+                            @DayTemplate(day)
+                        }
                     </button>
-                }
-                else
-                {
-                    @DayTemplate(day)
                 }
             }
         </div>
@@ -349,9 +352,7 @@
                 IsSelected: _currentDate?.Date == date,
                 IsOutsideMonth: outsideMonth,
                 IsDisabled: disabled,
-                CssClass: string.Join(" ", css),
-                IsCalendarDisabled: Disabled,
-                SelectDayAsync: SelectDayAsync
+                CssClass: string.Join(" ", css)
             );
         }
     }
@@ -544,14 +545,7 @@
         bool IsSelected,
         bool IsOutsideMonth,
         bool IsDisabled,
-        string CssClass,
-        bool IsCalendarDisabled,
-        Func<CalendarDayContext, Task> SelectDayAsync)
-    {
-        public bool IsDisabledForInteraction => IsCalendarDisabled || IsDisabled;
-
-        public Task SelectAsync() => SelectDayAsync(this);
-    }
+        string CssClass);
 
     public sealed record CalendarMonthContext(
         DateTime Month,
