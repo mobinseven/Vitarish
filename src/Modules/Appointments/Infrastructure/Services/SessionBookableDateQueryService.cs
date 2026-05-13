@@ -3,7 +3,7 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 [RegisterTransient]
 internal class SessionBookableDateQueryService(
     IEntityRepository<Session, SessionDescriptor> sessionRepository,
-    AppointmentsDbContext dbContext) : ISessionBookableDateQueryService
+    ISessionReservationViewRepository reservationViewRepository) : ISessionBookableDateQueryService
 {
     public async Task<IReadOnlyList<SessionReservationReadDto>> GetBookableDatesAsync(
         Guid sessionId, SessionDateRangeQuery range, CancellationToken cancellationToken)
@@ -24,16 +24,63 @@ internal class SessionBookableDateQueryService(
             .Select(cd => cd.Date)
             .ToHashSet() ?? [];
 
-        Dictionary<DateOnly, SessionReservation> existingByDate = await dbContext.Set<SessionReservation>()
-            .AsNoTracking()
-            .Where(sr => sr.SessionId == sessionId && sr.Date >= dateFrom && sr.Date <= dateTo)
-            .ToDictionaryAsync(sr => sr.Date, cancellationToken);
+        Dictionary<DateOnly, SessionReservation> existingByDate =
+            (await reservationViewRepository.GetAsync([sessionId], dateFrom, dateTo, cancellationToken))
+            .ToDictionary(sr => sr.Date);
 
         return [.. GetScheduledDates(session.DayOfWeek, dateFrom, dateTo)
             .Where(date => SessionBookingRules.IsBookingOpen(session, date, now, closedDates))
             .Select(date => existingByDate.TryGetValue(date, out SessionReservation? existing)
                 ? existing.ToDto()
                 : CreateProjectedReservation(session, date).ToDto())];
+    }
+
+    public async Task<IReadOnlyList<BookableSessionSlot>> GetBookableSlotsAsync(
+        SessionDescriptorDto descriptor, SessionDateRangeQuery range, CancellationToken cancellationToken)
+    {
+        if (!TryNormalizeRange(range, out DateOnly dateFrom, out DateOnly dateTo))
+        {
+            return [];
+        }
+
+        SessionDescriptor domainDescriptor = (descriptor with { Skip = 0, Take = int.MaxValue }).ToDomain();
+        IReadOnlyList<Session> sessions = await sessionRepository.GetAsync(domainDescriptor, cancellationToken);
+        if (sessions.Count == 0)
+        {
+            return [];
+        }
+
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        IReadOnlyList<Guid> sessionIds = [.. sessions.Select(s => s.Id)];
+
+        Dictionary<Guid, Dictionary<DateOnly, SessionReservation>> reservationsBySession =
+            (await reservationViewRepository.GetAsync(sessionIds, dateFrom, dateTo, cancellationToken))
+            .GroupBy(sr => sr.SessionId)
+            .ToDictionary(g => g.Key, g => g.ToDictionary(sr => sr.Date));
+
+        List<BookableSessionSlot> slots = [];
+
+        foreach (Session session in sessions)
+        {
+            HashSet<DateOnly> closedDates = session.BookingPolicy?.ClosedDates
+                .Select(cd => cd.Date)
+                .ToHashSet() ?? [];
+
+            Dictionary<DateOnly, SessionReservation> existingByDate =
+                reservationsBySession.GetValueOrDefault(session.Id) ?? [];
+
+            foreach (DateOnly date in GetScheduledDates(session.DayOfWeek, dateFrom, dateTo)
+                .Where(date => SessionBookingRules.IsBookingOpen(session, date, now, closedDates)))
+            {
+                SessionReservationReadDto occurrence = existingByDate.TryGetValue(date, out SessionReservation? existing)
+                    ? existing.ToDto()
+                    : CreateProjectedReservation(session, date).ToDto();
+
+                slots.Add(new BookableSessionSlot(session.ToDto(), occurrence));
+            }
+        }
+
+        return slots;
     }
 
     private static bool TryNormalizeRange(SessionDateRangeQuery range, out DateOnly dateFrom, out DateOnly dateTo)

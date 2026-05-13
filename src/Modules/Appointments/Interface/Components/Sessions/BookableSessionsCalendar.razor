@@ -1,0 +1,32 @@
+@inherits Vitarish.Modules.Base.TenantCommonBase
+
+@if (loading)
+{
+    <StackField Label="@Localizer["Loading"]" AdornmentIcon="fa-regular fa-circle-notch fa-spin" />
+}
+else if (slots.Count == 0)
+{
+    <StackField Label="@Localizer["NoItems", Localizer["AppointmentSession"]]"
+                HelperText="@Localizer["NoItemsHelp", Localizer["AppointmentSession"]]" />
+}
+else
+{
+    @foreach (var slot in slots)
+    {
+        string helperText = slot.Occurrence is not null
+            ? (slot.Occurrence.Date == today
+                ? $"{slot.Occurrence.StartTime:t}–{slot.Occurrence.EndTime:t} · {slot.Occurrence.ReservationCount}/{slot.Occurrence.TotalSeats} {Localizer["Seats"]}"
+                : $"{slot.Occurrence.Date:d} {slot.Occurrence.StartTime:t}–{slot.Occurrence.EndTime:t} · {slot.Occurrence.AvailableSeats} {Localizer["SeatsAvailable"]}")
+            : $"{slot.Session.StartTime:t}–{slot.Session.EndTime:t}";
+
+        <StackButton Label="@slot.Session.Title"
+                     HelperText="@helperText"
+                     EndIcon="">
+            <SessionStatusBadge Status="slot.Session.Status" />
+            @if (SlotActions is not null)
+            {
+                @SlotActions(slot)
+            }
+        </StackButton>
+    }
+}
