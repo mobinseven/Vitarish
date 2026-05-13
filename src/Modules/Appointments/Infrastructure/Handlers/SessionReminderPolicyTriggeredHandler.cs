@@ -59,8 +59,8 @@ internal class SessionReminderPolicyTriggeredHandler(
                 continue;
             }
 
-            string subject = RenderTemplate(policy.SubjectTemplate, session.Title, occurrenceStart);
-            string body = RenderTemplate(policy.BodyTemplate, session.Title, occurrenceStart);
+            string subject = RenderTemplate(policy.SubjectTemplate, occurrenceStart);
+            string body = RenderTemplate(policy.BodyTemplate, occurrenceStart);
 
             _ = await remindersService.AddRangeAsync(
                 notification.SessionId,
@@ -96,9 +96,7 @@ internal class SessionReminderPolicyTriggeredHandler(
         };
     }
 
-    private static string RenderTemplate(string template, string sessionTitle, DateTimeOffset occurrenceStart)
-        => template
-            .Replace("{{SessionTitle}}", sessionTitle, StringComparison.Ordinal)
-            .Replace("{{OccurrenceStart}}", occurrenceStart.ToString("f"), StringComparison.Ordinal);
+    private static string RenderTemplate(string template, DateTimeOffset occurrenceStart)
+        => template.Replace("{{OccurrenceStart}}", occurrenceStart.ToString("f"), StringComparison.Ordinal);
 }
 

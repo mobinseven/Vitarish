@@ -33,7 +33,10 @@ public partial class TodayAppointmentsWidget : Vitarish.Modules.Base.TenantCommo
             .GetListAsync(sessionDescriptor, CancellationToken.None)
             .GetValueOrDefaultAsync() ?? [];
 
-        sessions = [.. sessions.OrderBy(s => s.Title)];
+        sessions = [.. sessions
+            .OrderBy(s => s.DayOfWeek)
+            .ThenBy(s => s.StartTime)
+            .ThenBy(s => s.EndTime)];
 
         List<(SessionReadDto, List<ReservationReadDto>)> result = [];
 

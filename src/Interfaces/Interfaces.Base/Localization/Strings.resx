@@ -1905,7 +1905,7 @@ of project "{2}"</value>
     <value>Body Template</value>
   </data>
   <data name="ReminderTemplateHelp" xml:space="preserve">
-    <value>Available variables: {{SessionTitle}}, {{OccurrenceStart}}</value>
+    <value>Available variables: {{OccurrenceStart}}</value>
   </data>
   <data name="PolicySummary" xml:space="preserve">
     <value>{0} · {1}h before</value>
