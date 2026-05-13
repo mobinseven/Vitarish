@@ -1919,6 +1919,24 @@ of project "{2}"</value>
   <data name="Expired" xml:space="preserve">
     <value>Expired</value>
   </data>
+  <data name="SessionReminderPolicySessionNotFoundError" xml:space="preserve">
+    <value>Session not found.</value>
+  </data>
+  <data name="SessionReminderPolicyNotFoundError" xml:space="preserve">
+    <value>Reminder policy not found.</value>
+  </data>
+  <data name="SessionReminderPolicyOffsetBeforePositiveError" xml:space="preserve">
+    <value>Offset before must be a positive duration.</value>
+  </data>
+  <data name="SessionReminderPolicyQualifyingStatusesRequiredError" xml:space="preserve">
+    <value>At least one qualifying status is required.</value>
+  </data>
+  <data name="SessionReminderPolicySubjectTemplateRequiredError" xml:space="preserve">
+    <value>Subject template is required.</value>
+  </data>
+  <data name="SessionReminderPolicyBodyTemplateRequiredError" xml:space="preserve">
+    <value>Body template is required.</value>
+  </data>
   <data name="SaveFailed" xml:space="preserve">
     <value>Save failed. Please try again.</value>
   </data>

@@ -22,7 +22,7 @@ public class SessionReminderPolicyManagerTests
         var result = await sut.AddPolicyAsync(dto with { OffsetBefore = TimeSpan.Zero }, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
-        result.Errors.Should().ContainSingle(e => e.Message.Contains("positive", StringComparison.OrdinalIgnoreCase));
+        result.Errors.Should().ContainSingle(e => e.Message == "SessionReminderPolicyOffsetBeforePositiveError");
     }
 
     [Fact]
@@ -33,7 +33,7 @@ public class SessionReminderPolicyManagerTests
         var result = await sut.AddPolicyAsync(ValidDto() with { OffsetBefore = TimeSpan.FromHours(-1) }, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
-        result.Errors.Should().ContainSingle(e => e.Message.Contains("positive", StringComparison.OrdinalIgnoreCase));
+        result.Errors.Should().ContainSingle(e => e.Message == "SessionReminderPolicyOffsetBeforePositiveError");
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public class SessionReminderPolicyManagerTests
         var result = await sut.AddPolicyAsync(ValidDto() with { QualifyingStatuses = [] }, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
-        result.Errors.Should().ContainSingle(e => e.Message.Contains("status", StringComparison.OrdinalIgnoreCase));
+        result.Errors.Should().ContainSingle(e => e.Message == "SessionReminderPolicyQualifyingStatusesRequiredError");
     }
 
     [Fact]
@@ -55,7 +55,7 @@ public class SessionReminderPolicyManagerTests
         var result = await sut.AddPolicyAsync(ValidDto() with { SubjectTemplate = string.Empty }, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
-        result.Errors.Should().ContainSingle(e => e.Message.Contains("subject", StringComparison.OrdinalIgnoreCase));
+        result.Errors.Should().ContainSingle(e => e.Message == "SessionReminderPolicySubjectTemplateRequiredError");
     }
 
     [Fact]
@@ -66,7 +66,7 @@ public class SessionReminderPolicyManagerTests
         var result = await sut.AddPolicyAsync(ValidDto() with { BodyTemplate = string.Empty }, CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
-        result.Errors.Should().ContainSingle(e => e.Message.Contains("body", StringComparison.OrdinalIgnoreCase));
+        result.Errors.Should().ContainSingle(e => e.Message == "SessionReminderPolicyBodyTemplateRequiredError");
     }
 
     [Fact]
@@ -97,6 +97,7 @@ public class SessionReminderPolicyManagerTests
         var result = await sut.RemovePolicyAsync(Guid.NewGuid(), Guid.NewGuid(), CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
+        result.Errors.Should().ContainSingle(e => e.Message == "SessionReminderPolicySessionNotFoundError");
     }
 
     [Fact]
@@ -111,6 +112,7 @@ public class SessionReminderPolicyManagerTests
         var result = await sut.RemovePolicyAsync(session.Id, Guid.NewGuid(), CancellationToken.None);
 
         result.IsFailure.Should().BeTrue();
+        result.Errors.Should().ContainSingle(e => e.Message == "SessionReminderPolicyNotFoundError");
     }
 
     [Fact]
