@@ -68,25 +68,25 @@ internal class SessionRepository(AppointmentsDbContext dbContext)
         return session;
     }
 
-    async Task<IReadOnlyList<Session>> IEntityRepository<Session, SessionDescriptor>.GetAsync(
-        SessionDescriptor descriptor, CancellationToken cancellationToken)
-    {
-        IQueryable<Session> query = Apply(
-            dbContext.Sessions
-                .AsNoTracking()
-                .Include(s => s.BookingPolicy)
-                .Include(s => s.ReminderPolicies),
-            descriptor);
+    //async Task<IReadOnlyList<Session>> IEntityRepository<Session, SessionDescriptor>.GetAsync(
+    //    SessionDescriptor descriptor, CancellationToken cancellationToken)
+    //{
+    //    IQueryable<Session> query = Apply(
+    //        dbContext.Sessions
+    //            .AsNoTracking()
+    //            .Include(s => s.BookingPolicy)
+    //            .Include(s => s.ReminderPolicies),
+    //        descriptor);
 
-        if (query is not IOrderedQueryable<Session>)
-        {
-            query = query.OrderByDescending(s => s.UpdatedAt ?? s.CreatedAt);
-        }
+    //    if (query is not IOrderedQueryable<Session>)
+    //    {
+    //        query = query.OrderByDescending(s => s.UpdatedAt ?? s.CreatedAt);
+    //    }
 
-        IReadOnlyList<Session> sessions = await query.ApplyPagination(descriptor).ToListAsync(cancellationToken);
-        await PopulateStatsAsync(sessions, cancellationToken);
-        return sessions;
-    }
+    //    IReadOnlyList<Session> sessions = await query.ApplyPagination(descriptor).ToListAsync(cancellationToken);
+    //    await PopulateStatsAsync(sessions, cancellationToken);
+    //    return sessions;
+    //}
 
     private async Task PopulateStatsAsync(IEnumerable<Session> sessions, CancellationToken cancellationToken)
     {

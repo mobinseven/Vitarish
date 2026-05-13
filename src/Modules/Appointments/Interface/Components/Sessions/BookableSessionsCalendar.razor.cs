@@ -46,11 +46,13 @@ public partial class BookableSessionsCalendar : Vitarish.Modules.Base.TenantComm
 
         IReadOnlyList<BookableSessionSlot> result = await BookableDateQueryService
             .GetBookableSlotsAsync(Descriptor, Range, CancellationToken.None);
-
-        slots = [.. result
+        if (result.Count == 0)
+        {
+            slots = [.. result
             .OrderBy(s => s.Occurrence?.Date ?? DateOnly.MaxValue)
             .ThenBy(s => s.Occurrence?.StartTime ?? TimeOnly.MaxValue)
             .ThenBy(s => s.Session.Title)];
+        }
 
         loading = false;
         await InvokeAsync(StateHasChanged);

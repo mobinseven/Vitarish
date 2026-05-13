@@ -5,7 +5,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Appointments\Interface\Appointments.Interface.csproj" />
-    <ProjectReference Include="..\..\Calendar\Hosting\Calendar.Hosting.csproj" />
     <ProjectReference Include="..\..\Commerce\Interface\Commerce.Interface.csproj" />
     <ProjectReference Include="..\..\Medical\Interface\Medical.Interface.csproj" />
     <ProjectReference Include="..\..\Sea\Interface\Sea.Interface.csproj" />

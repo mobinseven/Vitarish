@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Appointments.Interface;
-using Vitarish.Calendar.Hosting;
 using Vitarish.Commerce.Interface;
 using Vitarish.Communications.Hosting;
 using Vitarish.Files.Interface;
@@ -17,7 +16,6 @@ public static class ModulesExtensions
     public static List<IModule> GetModules() =>
             [
                 Activator.CreateInstance<CommunicationModule>(),
-                Activator.CreateInstance<CalendarModule>(),
                 Activator.CreateInstance<IntelligenceModule>(),
                 Activator.CreateInstance<FilesModule>(),
                 Activator.CreateInstance<SearchModule>(),
