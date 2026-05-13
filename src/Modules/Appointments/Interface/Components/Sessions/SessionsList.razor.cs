@@ -3,7 +3,7 @@ namespace Vitarish.Appointments.Interface.Components.Sessions;
 public partial class SessionsList : SessionsBase
 {
     [Parameter] public EventCallback<Guid> OnClicked { get; set; }
-    [Parameter] public EventCallback OnAdd { get; set; }
+    [Parameter] public EventCallback<DayOfWeek?> OnAdd { get; set; }
     [Parameter] public SessionDescriptorDto? Descriptor { get; set; } = new();
 
     [Inject] private IEnumerable<ISessionsGridPlugin> GridPlugins { get; set; } = [];
@@ -34,6 +34,4 @@ public partial class SessionsList : SessionsBase
 
         await InvokeAsync(StateHasChanged);
     }
-
-    protected virtual Task AddSession() => OnAdd.InvokeAsync();
 }

@@ -5,7 +5,7 @@ public partial class SessionForm : SessionsBase
     [Parameter] public SessionReadDto? Session { get; set; }
     [Parameter] public EventCallback<Guid> OnSaved { get; set; }
     [Parameter] public EventCallback OnCancelled { get; set; }
-
+    [Parameter] public DayOfWeek? DayOfWeek { get; set; }
     [Inject] private IEnumerable<ISessionFormPlugin> FormPlugins { get; set; } = [];
     private ISessionFormPlugin? Plugin => FormPlugins.SingleOrDefault(p => p.Id == TenantService?.PluginIdentifier);
 
@@ -17,6 +17,12 @@ public partial class SessionForm : SessionsBase
         {
             sessionWriteDto = Session.ToWrite();
         }
+        else
+        {
+            if (DayOfWeek is not null)
+                sessionWriteDto.DayOfWeek = DayOfWeek.Value;
+        }
+
 
         sessionWriteDto.TimeZone = string.IsNullOrWhiteSpace(sessionWriteDto.TimeZone)
             ? TimeZoneInfo.Local.Id

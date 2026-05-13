@@ -1,17 +1,8 @@
 @inherits SessionsBase
 
-@if (Plugin is null)
+@if(Plugin is null)
 {
-    @if (IsAdmin)
-    {
-        <Stack>
-            <StackButton Color="Color.Primary"
-                         Label="@Localizer["AddItem", Localizer["Session"]]"
-                         EndIcon="fa-regular fa-calendar-plus"
-                         OnClick="AddSession" />
-        </Stack>
-    }
-    @if (sessions.Count == 0)
+    @if(sessions.Count == 0)
     {
         <Stack>
             <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Session"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Session"]]" EndIcon="fa-regular fa-refresh">
@@ -21,17 +12,28 @@
     }
     else
     {
-        <Stack>
-            @foreach (var session in sessions)
-            {
-                <StackButton OnClick="() => OnClicked.InvokeAsync(session.Id)"
-                             Label="@session.Title"
-                             HelperText="@($"{session.Stats.ReservationCount} {Localizer["Reservations"]}")"
-                             HighlightString="@SearchString">
-                    <SessionStatusBadge Status="session.Status" />
-                </StackButton>
-            }
-        </Stack>
+        @foreach(var day in Enum.GetValues<DayOfWeek>())
+        {
+            <Stack>
+                <StackField Label="@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(day)" />
+                @foreach(var session in sessions.Where(s => s.DayOfWeek == day))
+                {
+                    <StackButton OnClick="() => OnClicked.InvokeAsync(session.Id)"
+                                 Label="@session.Title"
+                                 HelperText="@($"{session.Stats.ReservationCount} {Localizer["Reservations"]}")"
+                                 HighlightString="@SearchString">
+                        <SessionStatusBadge Status="session.Status" />
+                    </StackButton>
+                }
+                @if(IsAdmin)
+                {
+                    <StackButton Color="Color.Primary"
+                                 Label="@Localizer["AddItem", Localizer["Session"]]"
+                                 EndIcon="fa-regular fa-calendar-plus"
+                                 OnClick="() => OnAdd.InvokeAsync(day)" />
+                }
+            </Stack>
+        }
     }
 }
 else

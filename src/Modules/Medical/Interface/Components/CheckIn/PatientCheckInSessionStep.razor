@@ -13,45 +13,66 @@
     }
     else
     {
+        <StackCalendar MinDate="@DateTime.Today" ViewMode="Interfaces.Base.Enums.StackCalendarViewMode.Week"/>
         <StackCalendar MinDate="@DateTime.Today" ViewMode="Interfaces.Base.Enums.StackCalendarViewMode.Week">
             <DayTemplate Context="day">
                 @{
-                    var slot = slots.FirstOrDefault(i => i.Occurrence?.Date == DateOnly.FromDateTime(day.Date));
-                    bool alreadyBooked = patientReservations.Any(r =>
+                    var thisDaySlots = slots.Where(i => i.Occurrence?.Date == DateOnly.FromDateTime(day.Date));
+                }
+                <div style="height: 100%">
+                    <div style="place-self: center;">
+                        @day.DayNumber
+                    </div>
+                    @foreach(var slot in thisDaySlots)
+                    {
+                        bool alreadyBooked = patientReservations.Any(r =>
                         DateOnly.FromDateTime(day.Date) == r.Date &&
                         r.SessionId == slot?.Session.Id &&
                         r.Status != ReservationStatus.Cancelled &&
                         r.Status != ReservationStatus.Rejected &&
                         r.Status != ReservationStatus.Expired);
-                    bool available = slot?.Occurrence is not null && slot.Occurrence.AvailableSeats > 0;
-                    bool sessionIsFull = slot?.Occurrence is not null && slot.Occurrence.AvailableSeats == 0;
-                }
-                @if(alreadyBooked)
-                {
-                    <MudBadge Dot
-                              Color="Color.Success">
-                        @day.DayNumber
-                    </MudBadge>
-                }
-                else if(available)
-                {
-                    <MudBadge Dot
-                              Color="slot?.Occurrence?.AvailableSeats > 0 ? Color.Primary : Color.Default"
-                              OnClick="() => BookSlotAsync(slot!.Session, slot.Occurrence!)">
-                        @day.DayNumber
-                    </MudBadge>
-                }
-                else if(sessionIsFull)
-                {
-                    <MudBadge Dot
-                              Color="Color.Info">
-                        @day.DayNumber
-                    </MudBadge>
-                }
-                else
-                {
-                    @day.DayNumber
-                }
+                        bool available = slot?.Occurrence is not null && slot.Occurrence.AvailableSeats > 0;
+                        bool sessionIsFull = slot?.Occurrence is not null && slot.Occurrence.AvailableSeats == 0;
+
+                        if(alreadyBooked)
+                        {
+                            <MudButton Color="Color.Success">
+                                <span>
+                                    @slot!.Session.StartTime.ToShortTimeString()
+                                </span>
+                                -
+                                <span>
+                                    @slot!.Session.EndTime.ToShortTimeString()
+                                </span>
+                            </MudButton>
+                        }
+                        else if(slot?.Occurrence?.AvailableSeats > 0)
+                        {
+                            <MudButton Color="Color.Primary" FullWidth OnClick="() => BookSlotAsync(slot!.Session, slot.Occurrence!)">
+                                <span>
+                                    @slot!.Session.StartTime.ToShortTimeString()
+                                </span>
+                                -
+                                <span>
+                                    @slot!.Session.EndTime.ToShortTimeString()
+                                </span>
+                            </MudButton>
+                        }
+                        else if(sessionIsFull)
+                        {
+                            <MudButton Color="Color.Warning" OnClick="() => BookSlotAsync(slot!.Session, slot.Occurrence!)">
+                                <span>
+                                    @slot!.Session.StartTime.ToShortTimeString()
+                                </span>
+                                -
+                                <span>
+                                    @slot!.Session.EndTime.ToShortTimeString()
+                                </span>
+                            </MudButton>
+                        }
+
+                    }
+                </div>
             </DayTemplate>
         </StackCalendar>
     }

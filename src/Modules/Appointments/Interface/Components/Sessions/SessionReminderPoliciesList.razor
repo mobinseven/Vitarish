@@ -1,31 +1,30 @@
 @inherits SessionReminderPoliciesBase
-@using Vitarish.Communications.Domain.Enums
 
-@if (policies.Count == 0)
+@if(policies.Count == 0)
 {
     <StackField Label="@Localizer["NoItems", Localizer["Policy"]]" />
 }
 else
 {
-    @foreach (var policy in policies)
+    @foreach(var policy in policies)
     {
         <StackField Label="@Localizer["PolicySummary", Localizer[policy.Channel.ToString()], policy.OffsetBefore.TotalHours.ToString("F0")]"
                     HelperText="@(policy.IsEnabled ? Localizer["Enabled"] : Localizer["Disabled"])">
             <MudStack Row>
-                <StackButton Label="@Localizer["EditItem", Localizer["Policy"]]"
-                             EndIcon="fa-regular fa-pen"
-                             OnClick="@(() => EditAsync(policy))" />
-                <StackButton Color="Color.Error"
-                             Label="@Localizer["RemoveItem", Localizer["Policy"]]"
-                             EndIcon="fa-regular fa-trash"
-                             OnClick="@(() => RemoveAsync(policy))" />
+                <MudFab Label="@Localizer["EditItem", Localizer["Policy"]]"
+                        EndIcon="fa-regular fa-pen"
+                        OnClick="@(() => EditAsync(policy))"
+                        DropShadow="false" />
+                <MudFab Color="Color.Error"
+                        Label="@Localizer["RemoveItem", Localizer["Policy"]]"
+                        EndIcon="fa-regular fa-trash"
+                        OnClick="@(() => RemoveAsync(policy))"
+                        DropShadow="false" />
             </MudStack>
         </StackField>
     }
 }
 
-<Stack>
-    <StackButton Label="@Localizer["AddItem", Localizer["Policy"]]"
-                 EndIcon="fa-regular fa-plus"
-                 OnClick="AddAsync" />
-</Stack>
+<StackButton Label="@Localizer["AddItem", Localizer["Policy"]]"
+             EndIcon="fa-regular fa-plus"
+             OnClick="AddAsync" />

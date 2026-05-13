@@ -6,7 +6,7 @@
 }
 
 <Stack>
-    <StackField Label="@Localizer[Session.DayOfWeek.ToString()]" HelperText="@Localizer["DayOfWeek"]" />
+    <StackField Label="@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(Session.DayOfWeek)" HelperText="@Localizer["DayOfWeek"]" />
     <StackField Label="@Session.StartTime.ToString("t")" HelperText="@Localizer["StartTime"]" />
     <StackField Label="@Session.EndTime.ToString("t")" HelperText="@Localizer["EndTime"]" />
     <StackField Label="@Session.TotalSeats.ToString()" HelperText="@Localizer["Capacity"]" />
