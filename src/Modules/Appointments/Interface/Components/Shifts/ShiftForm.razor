@@ -1,0 +1,39 @@
+@inherits ShiftsBase
+
+@if (Plugin is null)
+{
+    <Stack>
+        <StackSelect T="DayOfWeek" Label="@Localizer["DayOfWeek"]" @bind-Value="shiftWriteDto.DayOfWeek">
+            @foreach (var day in Enum.GetValues<DayOfWeek>())
+            {
+                <MudSelectItem T="DayOfWeek" Value="day">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(day)</MudSelectItem>
+            }
+        </StackSelect>
+        <StackTimePicker @bind-TimeOnlyValue="shiftWriteDto.StartTime" Label="@Localizer["StartTime"]" />
+        <StackTimePicker @bind-TimeOnlyValue="shiftWriteDto.EndTime" Label="@Localizer["EndTime"]" />
+        @* <StackTextField @bind-Value="shiftWriteDto.TimeZone" Label="@Localizer["TimeZone"]" /> *@
+        <StackNumericField @bind-Value="shiftWriteDto.TotalSeats" Label="@Localizer["TotalSeats"]" Min="1" />
+        <StackSelect T="ShiftStatus" Label="@Localizer["Status"]" @bind-Value="shiftWriteDto.Status">
+            @foreach (var status in Enum.GetValues<ShiftStatus>())
+            {
+                <MudSelectItem T="ShiftStatus" Value="status">@Localizer[status.ToString()]</MudSelectItem>
+            }
+        </StackSelect>
+        <StackSelect T="ShiftVisibility" Label="@Localizer["Visibility"]" @bind-Value="shiftWriteDto.Visibility">
+            @foreach (var visibility in Enum.GetValues<ShiftVisibility>())
+            {
+                <MudSelectItem T="ShiftVisibility" Value="visibility">@Localizer[visibility.ToString()]</MudSelectItem>
+            }
+        </StackSelect>
+        <StackCheckbox @bind-Value="shiftWriteDto.BookingPolicy!.RequiresApproval" Label="@Localizer["RequiresApproval"]" />
+        <StackCheckbox @bind-Value="shiftWriteDto.BookingPolicy!.AllowRescheduling" Label="@Localizer["AllowRescheduling"]" />
+    </Stack>
+    <Stack>
+        <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" EndIcon="fa-regular fa-save" />
+        <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" EndIcon="fa-regular fa-xmark" />
+    </Stack>
+}
+else
+{
+    @Plugin.Render(new ShiftFormPluginContext(shiftWriteDto, OnSaved, OnCancelled))
+}

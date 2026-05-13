@@ -14,9 +14,9 @@ internal class ReservationRepository(AppointmentsDbContext dbContext)
             query = query.Where(r => r.Status == status);
         }
 
-        if (descriptor.SessionId is { } sessionId)
+        if (descriptor.ShiftId is { } shiftId)
         {
-            query = query.Where(r => r.SessionId == sessionId);
+            query = query.Where(r => r.ShiftId == shiftId);
         }
 
         if (descriptor.DateFrom is { } dateFrom)

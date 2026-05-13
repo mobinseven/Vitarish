@@ -4,9 +4,9 @@ namespace Vitarish.Appointments.Application.Events;
 
 public record ReservationMovedEvent(
     Guid ReservationId,
-    Guid FromSessionId,
+    Guid FromShiftId,
     DateOnly FromDate,
     Guid NewReservationId,
-    Guid ToSessionId,
+    Guid ToShiftId,
     DateOnly ToDate,
     string? ReservingPartyId) : INotification;

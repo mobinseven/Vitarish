@@ -1,0 +1,9 @@
+@page "/Shifts"
+
+<CascadingValue Value="IsAdmin">
+    <ShiftsList OnClicked="@(id => NavigationManager.NavigateTo($"/Shifts/{id}"))" />
+</CascadingValue>
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}

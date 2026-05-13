@@ -7,20 +7,20 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
 internal class StatusCoordinator(
-    IEntityRepository<Session, SessionDescriptor> sessionRepository,
+    IEntityRepository<Shift, ShiftDescriptor> shiftRepository,
     IEntityRepository<Reservation, ReservationDescriptor> reservationRepository,
     IAppointmentsEventPublisher eventPublisher,
     IAuditWriter auditWriter,
     IRequestContext requestContext) : IStatusCoordinator
 {
-    private static readonly Dictionary<SessionStatus, SessionStatus[]> SessionTransitions = new()
+    private static readonly Dictionary<ShiftStatus, ShiftStatus[]> ShiftTransitions = new()
     {
-        [SessionStatus.Draft] = [SessionStatus.Active, SessionStatus.Cancelled],
-        [SessionStatus.Active] = [SessionStatus.Paused, SessionStatus.Closed, SessionStatus.Cancelled],
-        [SessionStatus.Paused] = [SessionStatus.Active, SessionStatus.Closed, SessionStatus.Cancelled],
-        [SessionStatus.Closed] = [SessionStatus.Archived],
-        [SessionStatus.Cancelled] = [SessionStatus.Archived],
-        [SessionStatus.Archived] = []
+        [ShiftStatus.Draft] = [ShiftStatus.Active, ShiftStatus.Cancelled],
+        [ShiftStatus.Active] = [ShiftStatus.Paused, ShiftStatus.Closed, ShiftStatus.Cancelled],
+        [ShiftStatus.Paused] = [ShiftStatus.Active, ShiftStatus.Closed, ShiftStatus.Cancelled],
+        [ShiftStatus.Closed] = [ShiftStatus.Archived],
+        [ShiftStatus.Cancelled] = [ShiftStatus.Archived],
+        [ShiftStatus.Archived] = []
     };
 
     private static readonly Dictionary<ReservationStatus, ReservationStatus[]> ReservationTransitions = new()
@@ -35,34 +35,34 @@ internal class StatusCoordinator(
         [ReservationStatus.Completed] = []
     };
 
-    public async Task<EntityResult> TransitionSessionAsync(Guid sessionId, SessionStatus newStatus, string? actorId, CancellationToken cancellationToken)
+    public async Task<EntityResult> TransitionShiftAsync(Guid shiftId, ShiftStatus newStatus, string? actorId, CancellationToken cancellationToken)
     {
-        Session? session = await sessionRepository.GetAsync(sessionId, cancellationToken);
-        if (session is null)
+        Shift? shift = await shiftRepository.GetAsync(shiftId, cancellationToken);
+        if (shift is null)
         {
-            return EntityResult.Failure(EntityError.NotFound("Session not found.", nameof(sessionId)));
+            return EntityResult.Failure(EntityError.NotFound("Shift not found.", nameof(shiftId)));
         }
 
-        if (!SessionTransitions.TryGetValue(session.Status, out SessionStatus[]? allowed) || !allowed.Contains(newStatus))
+        if (!ShiftTransitions.TryGetValue(shift.Status, out ShiftStatus[]? allowed) || !allowed.Contains(newStatus))
         {
-            return EntityResult.Failure(EntityError.Conflict($"Cannot transition session from {session.Status} to {newStatus}."));
+            return EntityResult.Failure(EntityError.Conflict($"Cannot transition shift from {shift.Status} to {newStatus}."));
         }
 
-        SessionStatus previousStatus = session.Status;
-        session.Status = newStatus;
-        _ = await sessionRepository.UpdateAsync(session, cancellationToken);
+        ShiftStatus previousStatus = shift.Status;
+        shift.Status = newStatus;
+        _ = await shiftRepository.UpdateAsync(shift, cancellationToken);
 
         await auditWriter.WriteAsync(new AuditEntry
         {
-            Action = $"SessionStatus:{previousStatus}→{newStatus}",
+            Action = $"ShiftStatus:{previousStatus}→{newStatus}",
             ActorId = actorId,
-            EntityType = nameof(Session),
-            EntityId = sessionId,
+            EntityType = nameof(Shift),
+            EntityId = shiftId,
             OccurredAt = DateTimeOffset.UtcNow,
             TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.")
         }, cancellationToken);
 
-        await PublishSessionEventAsync(sessionId, newStatus, cancellationToken);
+        await PublishShiftEventAsync(shiftId, newStatus, cancellationToken);
         return EntityResult.Success();
     }
 
@@ -109,13 +109,13 @@ internal class StatusCoordinator(
         return EntityResult.Success();
     }
 
-    private Task PublishSessionEventAsync(Guid sessionId, SessionStatus newStatus, CancellationToken cancellationToken) =>
+    private Task PublishShiftEventAsync(Guid shiftId, ShiftStatus newStatus, CancellationToken cancellationToken) =>
         newStatus switch
         {
-            SessionStatus.Active => eventPublisher.PublishSessionOpenedAsync(new SessionOpenedEvent(sessionId), cancellationToken),
-            SessionStatus.Closed => eventPublisher.PublishSessionClosedAsync(new SessionClosedEvent(sessionId), cancellationToken),
-            SessionStatus.Cancelled => eventPublisher.PublishSessionCancelledAsync(new SessionCancelledEvent(sessionId), cancellationToken),
-            SessionStatus.Archived => eventPublisher.PublishSessionArchivedAsync(new SessionArchivedEvent(sessionId), cancellationToken),
+            ShiftStatus.Active => eventPublisher.PublishShiftOpenedAsync(new ShiftOpenedEvent(shiftId), cancellationToken),
+            ShiftStatus.Closed => eventPublisher.PublishShiftClosedAsync(new ShiftClosedEvent(shiftId), cancellationToken),
+            ShiftStatus.Cancelled => eventPublisher.PublishShiftCancelledAsync(new ShiftCancelledEvent(shiftId), cancellationToken),
+            ShiftStatus.Archived => eventPublisher.PublishShiftArchivedAsync(new ShiftArchivedEvent(shiftId), cancellationToken),
             _ => Task.CompletedTask
         };
 
@@ -123,13 +123,13 @@ internal class StatusCoordinator(
         newStatus switch
         {
             ReservationStatus.Confirmed => eventPublisher.PublishReservationConfirmedAsync(
-                new ReservationConfirmedEvent(reservation.Id, reservation.SessionId, reservation.Date, reservation.ReservingPartyId), cancellationToken),
+                new ReservationConfirmedEvent(reservation.Id, reservation.ShiftId, reservation.Date, reservation.ReservingPartyId), cancellationToken),
             ReservationStatus.Cancelled => eventPublisher.PublishReservationCancelledAsync(
-                new ReservationCancelledEvent(reservation.Id, reservation.SessionId, reservation.Date, reservation.ReservingPartyId), cancellationToken),
+                new ReservationCancelledEvent(reservation.Id, reservation.ShiftId, reservation.Date, reservation.ReservingPartyId), cancellationToken),
             ReservationStatus.Rejected => eventPublisher.PublishReservationRejectedAsync(
-                new ReservationRejectedEvent(reservation.Id, reservation.SessionId, reservation.Date, reservation.ReservingPartyId), cancellationToken),
+                new ReservationRejectedEvent(reservation.Id, reservation.ShiftId, reservation.Date, reservation.ReservingPartyId), cancellationToken),
             ReservationStatus.Expired => eventPublisher.PublishReservationExpiredAsync(
-                new ReservationExpiredEvent(reservation.Id, reservation.SessionId, reservation.Date, reservation.ReservingPartyId), cancellationToken),
+                new ReservationExpiredEvent(reservation.Id, reservation.ShiftId, reservation.Date, reservation.ReservingPartyId), cancellationToken),
             _ => Task.CompletedTask
         };
 }

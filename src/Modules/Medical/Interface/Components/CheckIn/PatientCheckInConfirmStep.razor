@@ -3,7 +3,7 @@
 <Stack>
     <StackField Label="@Localizer["CheckInComplete"]"
                 AdornmentIcon="fa-regular fa-circle-check"
-                AdornmentColor="@(Context.Outcome == CheckInOutcome.CurrentSession ? Color.Success : Color.Info)" />
+                AdornmentColor="@(Context.Outcome == CheckInOutcome.CurrentShift ? Color.Success : Color.Info)" />
 
     @if (Context.SelectedPatient is not null)
     {
@@ -13,7 +13,7 @@
                      OnClick="GoToPatient" />
     }
 
-    @if (Context.Outcome == CheckInOutcome.CurrentSession)
+    @if (Context.Outcome == CheckInOutcome.CurrentShift)
     {
         <StackField Label="@Localizer["CheckedInToday"]"
                     HelperText="@GetOutcomeHelperText()"
@@ -21,7 +21,7 @@
                     AdornmentColor="Color.Success"
                     Color="Color.Success" />
     }
-    else if (Context.Outcome == CheckInOutcome.FutureSession)
+    else if (Context.Outcome == CheckInOutcome.FutureShift)
     {
         <StackField Label="@Localizer["BookedForFuture"]"
                     HelperText="@GetOutcomeHelperText()"
@@ -33,7 +33,7 @@
     @if (Context.ConfirmedReservation is not null)
     {
         <StackField Label="@Localizer["Appointment"]" />
-        <StackField Label="@GetSessionLabel()"
+        <StackField Label="@GetShiftLabel()"
                     HelperText="@GetDateTimeLabel()">
             <ReservationStatusBadge Status="Context.ConfirmedReservation.Status" />
         </StackField>
@@ -60,22 +60,22 @@
 
     private string GetOutcomeHelperText()
     {
-        if (Context.SelectedSession is null || Context.SelectedOccurrence is null)
+        if (Context.SelectedShift is null || Context.SelectedOccurrence is null)
         {
             return string.Empty;
         }
 
-        return $"{GetSessionLabel()} · {Context.SelectedOccurrence.Date:d} {Context.SelectedOccurrence.StartTime:t}";
+        return $"{GetShiftLabel()} · {Context.SelectedOccurrence.Date:d} {Context.SelectedOccurrence.StartTime:t}";
     }
 
-    private string GetSessionLabel()
+    private string GetShiftLabel()
     {
-        if (Context.SelectedSession is null)
+        if (Context.SelectedShift is null)
         {
             return string.Empty;
         }
 
-        return $"{Localizer[Context.SelectedSession.DayOfWeek.ToString()]} {Context.SelectedSession.StartTime:t}-{Context.SelectedSession.EndTime:t}";
+        return $"{Localizer[Context.SelectedShift.DayOfWeek.ToString()]} {Context.SelectedShift.StartTime:t}-{Context.SelectedShift.EndTime:t}";
     }
 
     private string GetDateTimeLabel()

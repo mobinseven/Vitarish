@@ -1,0 +1,11 @@
+@page "/Admin/Shifts/New/{dayOfWeek:int}"
+
+<CascadingValue Value="IsAdmin">
+    <ShiftForm OnSaved="@(id => NavigationManager.NavigateTo($"/Admin/Shifts/{id}"))"
+                 OnCancelled="@(() => NavigationManager.NavigateTo("/Admin/Shifts"))"
+                 DayOfWeek="@((DayOfWeek?)dayOfWeek)" />
+</CascadingValue>
+
+@code {
+    [Parameter] public int? dayOfWeek { get; set; }
+}

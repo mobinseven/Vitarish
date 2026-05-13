@@ -5,13 +5,13 @@ public static partial class EntityMappingExtensions
 {
     private static readonly global::Vitarish.Appointments.Domain.Mappers.EntityMapper Mapper = new();
 
-    public static global::Vitarish.Appointments.Domain.Dto.SessionReadDto ToDto(this global::Vitarish.Appointments.Domain.Entities.Session entity) => Mapper.ToDto(entity);
+    public static global::Vitarish.Appointments.Domain.Dto.ShiftReadDto ToDto(this global::Vitarish.Appointments.Domain.Entities.Shift entity) => Mapper.ToDto(entity);
 
-    public static global::Vitarish.Appointments.Domain.Entities.Session ToDomain(this global::Vitarish.Appointments.Domain.Dto.SessionWriteDto dto) => Mapper.ToDomain(dto);
+    public static global::Vitarish.Appointments.Domain.Entities.Shift ToDomain(this global::Vitarish.Appointments.Domain.Dto.ShiftWriteDto dto) => Mapper.ToDomain(dto);
 
-    public static global::Vitarish.Appointments.Domain.Dto.SessionWriteDto ToWrite(this global::Vitarish.Appointments.Domain.Dto.SessionReadDto dto) => Mapper.ToWrite(dto);
+    public static global::Vitarish.Appointments.Domain.Dto.ShiftWriteDto ToWrite(this global::Vitarish.Appointments.Domain.Dto.ShiftReadDto dto) => Mapper.ToWrite(dto);
 
-    public static global::Vitarish.Appointments.Domain.Models.SessionDescriptor ToDomain(this global::Vitarish.Appointments.Domain.Dto.SessionDescriptorDto dto) => Mapper.ToDomain(dto);
+    public static global::Vitarish.Appointments.Domain.Models.ShiftDescriptor ToDomain(this global::Vitarish.Appointments.Domain.Dto.ShiftDescriptorDto dto) => Mapper.ToDomain(dto);
 
     public static global::Vitarish.Appointments.Domain.Dto.ReservationReadDto ToDto(this global::Vitarish.Appointments.Domain.Entities.Reservation entity) => Mapper.ToDto(entity);
 
@@ -21,15 +21,15 @@ public static partial class EntityMappingExtensions
 
     public static global::Vitarish.Appointments.Domain.Models.ReservationDescriptor ToDomain(this global::Vitarish.Appointments.Domain.Dto.ReservationDescriptorDto dto) => Mapper.ToDomain(dto);
 
-    public static global::Vitarish.Appointments.Domain.Dto.SessionReminderPolicyReadDto ToDto(this global::Vitarish.Appointments.Domain.Entities.SessionReminderPolicy entity) => Mapper.ToDto(entity);
+    public static global::Vitarish.Appointments.Domain.Dto.ShiftReminderPolicyReadDto ToDto(this global::Vitarish.Appointments.Domain.Entities.ShiftReminderPolicy entity) => Mapper.ToDto(entity);
 
-    public static global::Vitarish.Appointments.Domain.Entities.SessionReminderPolicy ToDomain(this global::Vitarish.Appointments.Domain.Dto.SessionReminderPolicyWriteDto dto) => Mapper.ToDomain(dto);
+    public static global::Vitarish.Appointments.Domain.Entities.ShiftReminderPolicy ToDomain(this global::Vitarish.Appointments.Domain.Dto.ShiftReminderPolicyWriteDto dto) => Mapper.ToDomain(dto);
 
-    public static global::Vitarish.Appointments.Domain.Dto.SessionReminderPolicyWriteDto ToWrite(this global::Vitarish.Appointments.Domain.Dto.SessionReminderPolicyReadDto dto) => Mapper.ToWrite(dto);
+    public static global::Vitarish.Appointments.Domain.Dto.ShiftReminderPolicyWriteDto ToWrite(this global::Vitarish.Appointments.Domain.Dto.ShiftReminderPolicyReadDto dto) => Mapper.ToWrite(dto);
 
-    public static global::Vitarish.Appointments.Domain.Dto.SessionBookingPolicyReadDto ToDto(this global::Vitarish.Appointments.Domain.Entities.SessionBookingPolicy entity) => Mapper.ToDto(entity);
+    public static global::Vitarish.Appointments.Domain.Dto.ShiftBookingPolicyReadDto ToDto(this global::Vitarish.Appointments.Domain.Entities.ShiftBookingPolicy entity) => Mapper.ToDto(entity);
 
-    public static global::Vitarish.Appointments.Domain.Entities.SessionBookingPolicy ToDomain(this global::Vitarish.Appointments.Domain.Dto.SessionBookingPolicyWriteDto dto) => Mapper.ToDomain(dto);
+    public static global::Vitarish.Appointments.Domain.Entities.ShiftBookingPolicy ToDomain(this global::Vitarish.Appointments.Domain.Dto.ShiftBookingPolicyWriteDto dto) => Mapper.ToDomain(dto);
 
-    public static global::Vitarish.Appointments.Domain.Dto.SessionReservationReadDto ToDto(this global::Vitarish.Appointments.Domain.Models.SessionReservation model) => Mapper.ToDto(model);
+    public static global::Vitarish.Appointments.Domain.Dto.ShiftReservationReadDto ToDto(this global::Vitarish.Appointments.Domain.Models.ShiftReservation model) => Mapper.ToDto(model);
 }

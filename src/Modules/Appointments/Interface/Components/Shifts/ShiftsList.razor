@@ -1,0 +1,42 @@
+@inherits ShiftsBase
+
+@if(Plugin is null)
+{
+    @if(shifts.Count == 0)
+    {
+        <Stack>
+            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Shift"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Shift"]]" EndIcon="fa-regular fa-refresh">
+                @Localizer["Reload"]
+            </StackButton>
+        </Stack>
+    }
+    else
+    {
+        @foreach(var day in Enum.GetValues<DayOfWeek>())
+        {
+            <Stack>
+                <StackField Label="@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(day)" />
+                @foreach(var shift in shifts.Where(s => s.DayOfWeek == day))
+                {
+                    <StackButton OnClick="() => OnClicked.InvokeAsync(shift.Id)"
+                                 Label="@shift.Title"
+                                 HelperText="@($"{shift.Stats.ReservationCount} {Localizer["Reservations"]}")"
+                                 HighlightString="@SearchString">
+                        <ShiftStatusBadge Status="shift.Status" />
+                    </StackButton>
+                }
+                @if(IsAdmin)
+                {
+                    <StackButton Color="Color.Primary"
+                                 Label="@Localizer["AddItem", Localizer["Shift"]]"
+                                 EndIcon="fa-regular fa-calendar-plus"
+                                 OnClick="() => OnAdd.InvokeAsync(day)" />
+                }
+            </Stack>
+        }
+    }
+}
+else
+{
+    @Plugin.Render(new ShiftsGridPluginContext(OnClicked, OnAdd))
+}

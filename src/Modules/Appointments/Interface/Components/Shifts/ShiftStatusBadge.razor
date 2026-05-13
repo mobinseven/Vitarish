@@ -1,0 +1,20 @@
+@inherits CommonBase
+
+<MudChip T="string" Color="@StatusColor" Size="Size.Small" Variant="Variant.Filled">
+    @Localizer[Status.ToString()]
+</MudChip>
+
+@code {
+    [Parameter, EditorRequired] public ShiftStatus Status { get; set; }
+
+    private Color StatusColor => Status switch
+    {
+        ShiftStatus.Draft => Color.Default,
+        ShiftStatus.Active => Color.Success,
+        ShiftStatus.Paused => Color.Warning,
+        ShiftStatus.Closed => Color.Dark,
+        ShiftStatus.Cancelled => Color.Error,
+        ShiftStatus.Archived => Color.Dark,
+        _ => Color.Default
+    };
+}

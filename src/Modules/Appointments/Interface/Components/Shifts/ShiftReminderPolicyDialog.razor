@@ -1,0 +1,14 @@
+@inherits ShiftReminderPoliciesBase
+
+<MudDialog>
+    <DialogContent>
+        <ShiftReminderPolicyForm ShiftId="@ShiftId"
+                                   Policy="@Policy"
+                                   OnSaved="OnSavedInternal" />
+        <Stack>
+            <StackButton Label="@Localizer["Cancel"]"
+                         EndIcon="fa-regular fa-xmark"
+                         OnClick="Close" />
+        </Stack>
+    </DialogContent>
+</MudDialog>

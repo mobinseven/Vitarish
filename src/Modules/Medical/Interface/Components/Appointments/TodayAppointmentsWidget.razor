@@ -2,13 +2,13 @@
 
 <Stack>
     <StackField Label="@Localizer["TodayAppointments"]" />
-    @foreach(var (session, reservations) in todaySessions)
+    @foreach(var (shift, reservations) in todayShifts)
     {
-        <StackButton Label="@Localizer[session.DayOfWeek.ToString()]"
+        <StackButton Label="@Localizer[shift.DayOfWeek.ToString()]"
                      EndIcon=""
-                     OnClick="@(() => OnSessionClicked.InvokeAsync(session.Id))"
-                     HelperText="@($"{session.StartTime:t}-{session.EndTime:t} · {session.Stats.ReservationCount} {Localizer["Reservations"]}")">
-            <SessionStatusBadge Status="session.Status" />
+                     OnClick="@(() => OnShiftClicked.InvokeAsync(shift.Id))"
+                     HelperText="@($"{shift.StartTime:t}-{shift.EndTime:t} · {shift.Stats.ReservationCount} {Localizer["Reservations"]}")">
+            <ShiftStatusBadge Status="shift.Status" />
             <MudAvatarGroup Spacing="3" Max="10" Class="px-4 pb-3">
                 @foreach(var reservation in reservations)
                 {
@@ -22,5 +22,5 @@
             </MudAvatarGroup>
         </StackButton>
     }
-    <StackButton Label="@Localizer["Appointments"]" Color="Color.Primary" OnClick="OnSessionsClicked" />
+    <StackButton Label="@Localizer["Appointments"]" Color="Color.Primary" OnClick="OnShiftsClicked" />
 </Stack>

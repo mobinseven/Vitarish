@@ -1,0 +1,36 @@
+@page "/Shifts/{shiftId}"
+
+@if (shift is null)
+{
+    return;
+}
+
+<UserShiftDetail Shift="@shift" OnReserved="ReloadRequired" OnCancelled="ReloadRequired" />
+
+@code {
+    [Parameter] public string? shiftId { get; set; }
+
+    private ShiftReadDto? shift;
+
+    private void Back() => NavigationManager.NavigateTo("/Shifts");
+
+    protected override async Task ReloadRequired()
+    {
+        if (!Guid.TryParse(shiftId, out Guid id))
+        {
+            Back();
+            return;
+        }
+
+        shift = await ShiftManager.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (shift is null)
+        {
+            Back();
+            return;
+        }
+
+        NavService.OverridePageTitle(id.ToString(), Localizer["Shift"]);
+        await InvokeAsync(StateHasChanged);
+    }
+}

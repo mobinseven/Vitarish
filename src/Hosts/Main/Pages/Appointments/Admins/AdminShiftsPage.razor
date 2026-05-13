@@ -1,0 +1,10 @@
+@page "/Admin/Shifts"
+
+<CascadingValue Value="IsAdmin">
+    <ShiftsList OnClicked="@(id => NavigationManager.NavigateTo($"/Admin/Shifts/{id}"))"
+                  OnAdd="@(dayOfWeek => NavigationManager.NavigateTo($"/Admin/Shifts/New/{(dayOfWeek is null ? string.Empty : (int)dayOfWeek)}"))" />
+</CascadingValue>
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}

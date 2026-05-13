@@ -2,9 +2,9 @@
 
 <Stack>
     <StackButton Color="Color.Secondary"
-                 OnClick="@(() => NavigationManager.NavigateTo("/Sessions"))"
+                 OnClick="@(() => NavigationManager.NavigateTo("/Shifts"))"
                  StartIcon="fa-regular fa-calendar-days"
-                 Label="@Localizer["BrowseItems", Localizer["Session"]]" />
+                 Label="@Localizer["BrowseItems", Localizer["Shift"]]" />
 </Stack>
 <ReservationsList OnClicked="@(id => NavigationManager.NavigateTo($"/Reservations/{id}"))" />
 

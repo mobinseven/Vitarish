@@ -26,10 +26,10 @@
     [Parameter] public EventCallback OnEdit { get; set; }
 
     [Inject] private IAccessControlledReservationManager ReservationManager { get; set; } = default!;
-    [Inject] private IAccessControlledSessionManager SessionsService { get; set; } = default!;
+    [Inject] private IAccessControlledShiftManager ShiftsService { get; set; } = default!;
 
     private List<ReservationReadDto> reservations = [];
-    private Dictionary<Guid, SessionReadDto> reservationSessions = [];
+    private Dictionary<Guid, ShiftReadDto> reservationShifts = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -47,42 +47,42 @@
 
         ReservationDescriptorDto descriptor = new() { ReservingPartyId = reservingPartyId, Skip = 0, Take = int.MaxValue };
         IReadOnlyList<ReservationReadDto> all = await ReservationManager.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
-        reservationSessions = await LoadReservationSessionsAsync(all);
-        reservations = [.. all.OrderBy(r => r.Date).ThenBy(r => GetSessionStartTime(r.SessionId)).ThenBy(r => GetSessionEndTime(r.SessionId))];
+        reservationShifts = await LoadReservationShiftsAsync(all);
+        reservations = [.. all.OrderBy(r => r.Date).ThenBy(r => GetShiftStartTime(r.ShiftId)).ThenBy(r => GetShiftEndTime(r.ShiftId))];
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task<Dictionary<Guid, SessionReadDto>> LoadReservationSessionsAsync(IReadOnlyList<ReservationReadDto> reservationItems)
+    private async Task<Dictionary<Guid, ShiftReadDto>> LoadReservationShiftsAsync(IReadOnlyList<ReservationReadDto> reservationItems)
     {
-        Dictionary<Guid, SessionReadDto> sessionsById = [];
+        Dictionary<Guid, ShiftReadDto> shiftsById = [];
 
-        foreach (Guid sessionId in reservationItems.Select(r => r.SessionId).Distinct())
+        foreach (Guid shiftId in reservationItems.Select(r => r.ShiftId).Distinct())
         {
-            SessionReadDto? session = await SessionsService.GetAsync(sessionId, CancellationToken.None).GetValueOrDefaultAsync();
-            if (session is not null)
+            ShiftReadDto? shift = await ShiftsService.GetAsync(shiftId, CancellationToken.None).GetValueOrDefaultAsync();
+            if (shift is not null)
             {
-                sessionsById[session.Id] = session;
+                shiftsById[shift.Id] = shift;
             }
         }
 
-        return sessionsById;
+        return shiftsById;
     }
 
     private string GetReservationLabel(ReservationReadDto reservation)
     {
-        if (!reservationSessions.TryGetValue(reservation.SessionId, out SessionReadDto? session))
+        if (!reservationShifts.TryGetValue(reservation.ShiftId, out ShiftReadDto? shift))
         {
-            return $"{reservation.Date:d} {Localizer["SessionUnavailable"].Value}";
+            return $"{reservation.Date:d} {Localizer["ShiftUnavailable"].Value}";
         }
 
-        return $"{reservation.Date:d} {Localizer[session.DayOfWeek.ToString()]} {session.StartTime:t}-{session.EndTime:t}";
+        return $"{reservation.Date:d} {Localizer[shift.DayOfWeek.ToString()]} {shift.StartTime:t}-{shift.EndTime:t}";
     }
 
-    private TimeOnly GetSessionStartTime(Guid sessionId)
-        => reservationSessions.TryGetValue(sessionId, out SessionReadDto? session) ? session.StartTime : TimeOnly.MinValue;
+    private TimeOnly GetShiftStartTime(Guid shiftId)
+        => reservationShifts.TryGetValue(shiftId, out ShiftReadDto? shift) ? shift.StartTime : TimeOnly.MinValue;
 
-    private TimeOnly GetSessionEndTime(Guid sessionId)
-        => reservationSessions.TryGetValue(sessionId, out SessionReadDto? session) ? session.EndTime : TimeOnly.MinValue;
+    private TimeOnly GetShiftEndTime(Guid shiftId)
+        => reservationShifts.TryGetValue(shiftId, out ShiftReadDto? shift) ? shift.EndTime : TimeOnly.MinValue;
 
     private async Task OpenBookingDialogAsync()
     {

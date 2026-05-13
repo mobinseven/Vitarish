@@ -8,10 +8,10 @@ public class Reservation : Entity
         set => SetField(ref field, value, nameof(Status));
     } = ReservationStatus.Pending;
 
-    public Guid SessionId
+    public Guid ShiftId
     {
         get;
-        set => SetField(ref field, value, nameof(SessionId));
+        set => SetField(ref field, value, nameof(ShiftId));
     }
 
     public DateOnly Date
