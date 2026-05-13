@@ -13,14 +13,21 @@ else
 {
     <StackCalendar MinDate="@DateTime.Today">
         <DayTemplate Context="day">
-            @day.DayNumber
-            @{
-                var slot = slots.FirstOrDefault(i => i.Occurrence?.Date == DateOnly.FromDateTime(day.Date));
-            }
-            @if(SlotActions is not null)
-            {
-                @SlotActions(slot)
-            }
+            <button type="button"
+                    class="@day.CssClass"
+                    disabled="@day.IsDisabledForInteraction"
+                    aria-current="@(day.IsToday ? "date" : null)"
+                    aria-selected="@day.IsSelected"
+                    @onclick="day.SelectAsync">
+                @day.DayNumber
+                @{
+                    var slot = slots.FirstOrDefault(i => i.Occurrence?.Date == DateOnly.FromDateTime(day.Date));
+                }
+                @if(SlotActions is not null && slot is not null)
+                {
+                    @SlotActions(slot)
+                }
+            </button>
         </DayTemplate>
     </StackCalendar>
 }
