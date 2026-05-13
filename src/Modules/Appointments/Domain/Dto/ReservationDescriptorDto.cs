@@ -10,9 +10,13 @@ public record ReservationDescriptorDto : EntityDescriptorDto
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public Guid? SessionId { get; set; }
 
-    [JsonPropertyName("date")]
+    [JsonPropertyName("dateFrom")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateOnly? Date { get; set; }
+    public DateOnly? DateFrom { get; set; }
+
+    [JsonPropertyName("dateTo")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public DateOnly? DateTo { get; set; }
 
     [JsonPropertyName("reservingPartyId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

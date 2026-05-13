@@ -63,6 +63,13 @@ public class AccessControlledReservationManagerTests
         EntityResult<ReservationReadDto> result = await sut.ReserveAsync(sessionId, date, null, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
+        reservationManager.Verify(x => x.GetListAsync(
+            It.Is<ReservationDescriptorDto>(descriptor =>
+                descriptor.SessionId == sessionId &&
+                descriptor.DateFrom == date &&
+                descriptor.DateTo == date &&
+                descriptor.ReservingPartyId == "user-1"),
+            It.IsAny<CancellationToken>()), Times.Once);
         reservationManager.Verify(x => x.ReserveAsync(sessionId, date, "user-1", It.IsAny<CancellationToken>()), Times.Once);
         statusCoordinator.Verify(x => x.TransitionReservationAsync(reservationId, ReservationStatus.Confirmed, "user-1", It.IsAny<CancellationToken>()), Times.Once);
     }

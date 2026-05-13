@@ -14,7 +14,8 @@
         ReservationDescriptorDto descriptor = new()
         {
             SessionId = SessionReservation.SessionId,
-            Date = SessionReservation.Date
+            DateFrom = SessionReservation.Date,
+            DateTo = SessionReservation.Date
         };
 
         IReadOnlyList<ReservationReadDto> items = await ReservationManager.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
