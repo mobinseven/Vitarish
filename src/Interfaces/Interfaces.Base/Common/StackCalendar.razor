@@ -200,7 +200,7 @@
         if(!_initialized)
         {
             _view = OpenTo;
-            _visibleDate = NormalizeVisibleDate(Date ?? PickerMonth ?? DateTime.Today);
+            _visibleDate = NormalizeVisibleDate(PickerMonth ?? Date ?? DateTime.Today);
             _initialized = true;
         }
         else if(PickerMonth.HasValue)
@@ -247,7 +247,7 @@
 
         _currentDate = day.Date.Date;
 
-        if(day.IsOutsideMonth)
+        if(!IsWeekView && day.IsOutsideMonth)
             await SetVisibleDateAsync(day.Date);
 
         await DateChanged.InvokeAsync(_currentDate);
@@ -498,18 +498,11 @@
         var start = StartOfWeek(_visibleDate);
         var end = start.AddDays(6);
 
-        if(start.Year == end.Year)
-        {
-            if(start.Month == end.Month)
-                return $"{start.ToString("MMMM", EffectiveCulture)} {start.Day.ToString(EffectiveCulture)} - " +
-                    $"{end.Day.ToString(EffectiveCulture)}, {FormatYear(EffectiveCalendar.GetYear(end))}";
-
-            return $"{start.ToString("MMM d", EffectiveCulture)} - {end.ToString("MMM d", EffectiveCulture)}, " +
-                FormatYear(EffectiveCalendar.GetYear(end));
-        }
-
-        return $"{start.ToString("MMM d, yyyy", EffectiveCulture)} - {end.ToString("MMM d, yyyy", EffectiveCulture)}";
+        return $"{FormatShortDate(start)} - {FormatShortDate(end)}";
     }
+
+    private string FormatShortDate(DateTime date) =>
+        date.ToString("d", EffectiveCulture);
 
     private DateTime StartOfMonth(DateTime date)
     {
