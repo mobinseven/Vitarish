@@ -130,6 +130,10 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("TotalSeats")
                         .HasColumnType("int");
 
