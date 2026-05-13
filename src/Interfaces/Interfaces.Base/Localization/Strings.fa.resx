@@ -1741,7 +1741,7 @@
     <value>قالب متن</value>
   </data>
   <data name="ReminderTemplateHelp" xml:space="preserve">
-    <value>متغیرهای قابل استفاده: {{SessionTitle}}، {{OccurrenceStart}}</value>
+    <value>متغیرهای قابل استفاده: {{OccurrenceStart}}</value>
   </data>
   <data name="PolicySummary" xml:space="preserve">
     <value>{0} · {1} ساعت قبل</value>

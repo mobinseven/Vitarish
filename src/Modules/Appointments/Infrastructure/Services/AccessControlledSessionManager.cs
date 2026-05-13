@@ -148,14 +148,6 @@ internal class AccessControlledSessionManager(
 
     private static EntityResult ValidateSchedule(SessionWriteDto dto)
     {
-        if (string.IsNullOrWhiteSpace(dto.Title))
-        {
-            return EntityResult.Failure(EntityError.Validation("Session title is required.", new Dictionary<string, string>
-            {
-                [nameof(dto.Title)] = "Title is required."
-            }));
-        }
-
         if (dto.StartTime >= dto.EndTime)
         {
             return EntityResult.Failure(EntityError.Validation("Session end time must be later than start time.", new Dictionary<string, string>

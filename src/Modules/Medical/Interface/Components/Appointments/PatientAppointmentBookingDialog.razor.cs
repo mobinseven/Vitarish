@@ -36,7 +36,7 @@ public partial class PatientAppointmentBookingDialog : Vitarish.Modules.Base.Ten
             .Where(s => s.Status == SessionStatus.Active)
             .OrderBy(s => s.DayOfWeek)
             .ThenBy(s => s.StartTime)
-            .ThenBy(s => s.Title)];
+            .ThenBy(s => s.EndTime)];
         await InvokeAsync(StateHasChanged);
     }
 

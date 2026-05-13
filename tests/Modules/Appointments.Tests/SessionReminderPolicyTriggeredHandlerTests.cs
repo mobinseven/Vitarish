@@ -123,11 +123,10 @@ public class SessionReminderPolicyTriggeredHandlerTests
         {
             CreatePolicy(
                 [ReservationStatus.Confirmed],
-                subjectTemplate: "Appointment: {{SessionTitle}} at {{OccurrenceStart}}",
-                bodyTemplate: "Your session {{SessionTitle}} starts at {{OccurrenceStart}}.")
+                subjectTemplate: "Appointment at {{OccurrenceStart}}",
+                bodyTemplate: "Your session starts at {{OccurrenceStart}}.")
         };
         var (session, _, date) = CreateSession(
-            title: "My Session",
             startTime: TimeOnly.FromDateTime(startTime.DateTime),
             policies: policies);
 
@@ -150,16 +149,13 @@ public class SessionReminderPolicyTriggeredHandlerTests
         await sut.Handle(CreateEvent(session.Id, date, ReservationStatus.Confirmed, "user-1"), CancellationToken.None);
 
         capturedSubject.Should().NotBeNull();
-        capturedSubject.Should().NotContain("{{SessionTitle}}");
         capturedSubject.Should().NotContain("{{OccurrenceStart}}");
-        capturedSubject.Should().Contain("My Session");
-        capturedBody.Should().NotContain("{{SessionTitle}}");
+        capturedSubject.Should().Contain("Appointment at");
         capturedBody.Should().NotContain("{{OccurrenceStart}}");
-        capturedBody.Should().Contain("My Session");
+        capturedBody.Should().Contain("Your session starts at");
     }
 
     private (Session Session, Guid SessionId, DateOnly Date) CreateSession(
-        string title = "Test Session",
         TimeOnly? startTime = null,
         IEnumerable<SessionReminderPolicy>? policies = null)
     {
@@ -170,7 +166,6 @@ public class SessionReminderPolicyTriggeredHandlerTests
         var session = new Session
         {
             Id = sessionId,
-            Title = title,
             StartTime = resolvedStart,
             EndTime = resolvedStart.AddHours(1)
         };
@@ -190,8 +185,8 @@ public class SessionReminderPolicyTriggeredHandlerTests
     private static SessionReminderPolicy CreatePolicy(
         IList<ReservationStatus> statuses,
         TimeSpan? offset = null,
-        string subjectTemplate = "Reminder: {{SessionTitle}} {{OccurrenceStart}}",
-        string bodyTemplate = "Your appointment {{SessionTitle}} is at {{OccurrenceStart}}.")
+        string subjectTemplate = "Reminder: {{OccurrenceStart}}",
+        string bodyTemplate = "Your appointment is at {{OccurrenceStart}}.")
     {
         var policy = new SessionReminderPolicy
         {

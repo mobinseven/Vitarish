@@ -38,8 +38,6 @@ internal class SessionRepository(AppointmentsDbContext dbContext)
         {
             query = (sort, descriptor.Descending) switch
             {
-                (SessionSortBy.Title, true) => query.OrderByDescending(s => s.Title),
-                (SessionSortBy.Title, false) => query.OrderBy(s => s.Title),
                 (SessionSortBy.Status, true) => query.OrderByDescending(s => s.Status),
                 (SessionSortBy.Status, false) => query.OrderBy(s => s.Status),
                 (SessionSortBy.Visibility, true) => query.OrderByDescending(s => s.Visibility),

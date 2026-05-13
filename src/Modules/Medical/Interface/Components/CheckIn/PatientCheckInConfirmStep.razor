@@ -65,11 +65,18 @@
             return string.Empty;
         }
 
-        return $"{Context.SelectedSession.Title} · {Context.SelectedOccurrence.Date:d} {Context.SelectedOccurrence.StartTime:t}";
+        return $"{GetSessionLabel()} · {Context.SelectedOccurrence.Date:d} {Context.SelectedOccurrence.StartTime:t}";
     }
 
     private string GetSessionLabel()
-        => Context.SelectedSession?.Title ?? string.Empty;
+    {
+        if (Context.SelectedSession is null)
+        {
+            return string.Empty;
+        }
+
+        return $"{Localizer[Context.SelectedSession.DayOfWeek.ToString()]} {Context.SelectedSession.StartTime:t}-{Context.SelectedSession.EndTime:t}";
+    }
 
     private string GetDateTimeLabel()
     {

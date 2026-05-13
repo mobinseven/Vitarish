@@ -2,7 +2,6 @@ namespace Vitarish.Appointments.Domain.Dto;
 
 public record SessionWriteDto : EntityWriteDto
 {
-    public string Title { get; set; } = string.Empty;
     public SessionStatus Status { get; set; } = SessionStatus.Active;
     public SessionVisibility Visibility { get; set; } = SessionVisibility.Public;
     public DayOfWeek DayOfWeek { get; set; } = System.DayOfWeek.Monday;
