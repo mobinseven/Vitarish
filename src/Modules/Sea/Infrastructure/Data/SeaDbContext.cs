@@ -98,11 +98,6 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
             _ = entity.HasIndex(pu => new { pu.ProjectId, pu.UserId });
         });
 
-        if (Database.IsSqlite())
-        {
-            _ = modelBuilder.ConfigureEntityDateTimeOffsetConversions();
-        }
-
         _ = modelBuilder.Entity<ProjectStats>(eb =>
         {
             _ = eb.ToView("vw_ProjectStats");

@@ -66,11 +66,6 @@ public class RemindersDbContext : DbContext, IMultiTenantDbContext
         _ = modelBuilder.ConfigureMultiTenant();
 
         ConfigureTenantEntity<Reminder>(modelBuilder);
-
-        if (Database.IsSqlite())
-        {
-            _ = modelBuilder.ConfigureEntityDateTimeOffsetConversions();
-        }
     }
 
     private static void ConfigureTenantEntity<TEntity>(ModelBuilder modelBuilder)

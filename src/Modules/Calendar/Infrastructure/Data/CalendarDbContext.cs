@@ -89,11 +89,6 @@ public class CalendarDbContext : DbContext, IMultiTenantDbContext
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
         });
-
-        if (Database.IsSqlite())
-        {
-            _ = modelBuilder.ConfigureEntityDateTimeOffsetConversions();
-        }
     }
 
     private static void ConfigureTenantEntity<TEntity>(ModelBuilder modelBuilder)

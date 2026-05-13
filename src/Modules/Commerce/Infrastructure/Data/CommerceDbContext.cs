@@ -88,11 +88,6 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
         ConfigureTenantEntity<CartItem>(modelBuilder);
         ConfigureTenantEntity<CustomerProfile>(modelBuilder);
 
-        if (Database.IsSqlite())
-        {
-            _ = modelBuilder.ConfigureEntityDateTimeOffsetConversions();
-        }
-
         _ = modelBuilder.Entity<StoreStats>(eb =>
         {
             _ = eb.ToView("vw_StoreStats");

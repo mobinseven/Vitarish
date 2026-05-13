@@ -135,11 +135,6 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
             _ = eb.ToView("vw_SessionStats");
             _ = eb.HasNoKey();
         });
-
-        if (Database.IsSqlite())
-        {
-            _ = modelBuilder.ConfigureEntityDateTimeOffsetConversions();
-        }
     }
 
     private static void ConfigureTenantEntity<TEntity>(ModelBuilder modelBuilder)
