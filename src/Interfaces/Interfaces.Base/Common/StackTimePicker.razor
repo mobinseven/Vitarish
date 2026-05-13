@@ -66,13 +66,10 @@
     {
         get
         {
-            if(Min is null)
-                return global::System.TimeOnly.MinValue;
+            if(Min is not null && Max is not null && Min > Max)
+                return Max.Value;
 
-            if(Max is null || Min <= Max)
-                return Min.Value;
-
-            return Max.Value;
+            return Min ?? global::System.TimeOnly.MinValue;
         }
     }
 
@@ -80,13 +77,10 @@
     {
         get
         {
-            if(Max is null)
-                return global::System.TimeOnly.MaxValue;
+            if(Min is not null && Max is not null && Min > Max)
+                return Min.Value;
 
-            if(Min is null || Min <= Max)
-                return Max.Value;
-
-            return Min.Value;
+            return Max ?? global::System.TimeOnly.MaxValue;
         }
     }
 
@@ -97,7 +91,7 @@
             for(var hour = 0; hour < 24; hour++)
             {
                 var firstMinuteOfHour = new global::System.TimeOnly(hour, 0);
-                var lastMinuteOfHour = new global::System.TimeOnly(hour, 59, 59, 999, 999);
+                var lastMinuteOfHour = new global::System.TimeOnly(hour, 59, 59, 999);
 
                 if(firstMinuteOfHour <= EffectiveMax && lastMinuteOfHour >= EffectiveMin)
                     yield return hour;
