@@ -8,7 +8,7 @@ namespace Vitarish.Appointments.Infrastructure.Handlers;
 
 internal class MoveReservationHandler(
     AppointmentsDbContext dbContext,
-    SessionBookingPolicyEvaluator policyEvaluator,
+    ShiftBookingPolicyEvaluator policyEvaluator,
     IAppointmentsEventPublisher eventPublisher,
     IRequestContext requestContext)
     : IRequestHandler<MoveReservationCommand>
@@ -29,37 +29,37 @@ internal class MoveReservationHandler(
                 return;
             }
 
-            Session? targetSession = await dbContext.Sessions
+            Shift? targetShift = await dbContext.Shifts
                 .AsNoTracking()
                 .Include(s => s.BookingPolicy)
-                .FirstOrDefaultAsync(s => s.Id == request.TargetSessionId, cancellationToken);
+                .FirstOrDefaultAsync(s => s.Id == request.TargetShiftId, cancellationToken);
 
-            if (targetSession is null || targetSession.Status != SessionStatus.Active)
+            if (targetShift is null || targetShift.Status != ShiftStatus.Active)
             {
                 await transaction.RollbackAsync(cancellationToken);
                 return;
             }
 
-            if (!policyEvaluator.IsBookingOpen(targetSession, request.TargetDate))
+            if (!policyEvaluator.IsBookingOpen(targetShift, request.TargetDate))
             {
                 await transaction.RollbackAsync(cancellationToken);
                 return;
             }
 
-            Guid fromSessionId = original.SessionId;
+            Guid fromShiftId = original.ShiftId;
             DateOnly fromDate = original.Date;
 
             original.Status = ReservationStatus.Cancelled;
             original.CancelledAt = DateTimeOffset.UtcNow;
 
             string? tenantId = requestContext.TenantId;
-            SessionReservationLock? lockEntry = tenantId is not null
-                ? new() { SessionId = request.TargetSessionId, Date = request.TargetDate, TenantId = tenantId }
+            ShiftReservationLock? lockEntry = tenantId is not null
+                ? new() { ShiftId = request.TargetShiftId, Date = request.TargetDate, TenantId = tenantId }
                 : null;
 
             if (lockEntry is not null)
             {
-                dbContext.SessionReservationLocks.Add(lockEntry);
+                dbContext.ShiftReservationLocks.Add(lockEntry);
             }
 
             try
@@ -73,7 +73,7 @@ internal class MoveReservationHandler(
             }
 
             int seats = await dbContext.Reservations.CountAsync(r =>
-                r.SessionId == request.TargetSessionId &&
+                r.ShiftId == request.TargetShiftId &&
                 r.Date == request.TargetDate &&
                 r.Status != ReservationStatus.Cancelled &&
                 r.Status != ReservationStatus.Rejected &&
@@ -81,11 +81,11 @@ internal class MoveReservationHandler(
                 !r.IsHold,
                 cancellationToken);
 
-            if (seats >= targetSession.TotalSeats)
+            if (seats >= targetShift.TotalSeats)
             {
                 if (lockEntry is not null)
                 {
-                    dbContext.SessionReservationLocks.Remove(lockEntry);
+                    dbContext.ShiftReservationLocks.Remove(lockEntry);
                 }
                 await transaction.RollbackAsync(cancellationToken);
                 return;
@@ -93,7 +93,7 @@ internal class MoveReservationHandler(
 
             Reservation newReservation = new()
             {
-                SessionId = request.TargetSessionId,
+                ShiftId = request.TargetShiftId,
                 Date = request.TargetDate,
                 ReservingPartyId = original.ReservingPartyId,
                 Status = ReservationStatus.Pending
@@ -103,7 +103,7 @@ internal class MoveReservationHandler(
 
             if (lockEntry is not null)
             {
-                dbContext.SessionReservationLocks.Remove(lockEntry);
+                dbContext.ShiftReservationLocks.Remove(lockEntry);
             }
 
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -112,10 +112,10 @@ internal class MoveReservationHandler(
             await eventPublisher.PublishReservationMovedAsync(
                 new ReservationMovedEvent(
                     original.Id,
-                    fromSessionId,
+                    fromShiftId,
                     fromDate,
                     newReservation.Id,
-                    request.TargetSessionId,
+                    request.TargetShiftId,
                     request.TargetDate,
                     original.ReservingPartyId),
                 cancellationToken);

@@ -1,0 +1,49 @@
+@inherits ReservationsBase
+
+<MudDialog>
+    <DialogContent>
+        <Stack>
+            <StackSelect T="string" Label="@Localizer["User"]" @bind-Value="selectedUserId">
+                @foreach(var user in GetUsers())
+                {
+                    <MudSelectItem T="string" Value="user.Id">@user.FullName</MudSelectItem>
+                }
+            </StackSelect>
+        </Stack>
+        <Stack>
+            <StackButton Color="Color.Primary"
+                         Label="@Localizer["Save"]"
+                         EndIcon="fa-regular fa-save"
+                         OnClick="SaveAsync" />
+            <StackButton Label="@Localizer["Cancel"]"
+                         EndIcon="fa-regular fa-xmark"
+                         OnClick="Cancel" />
+        </Stack>
+    </DialogContent>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    [Parameter, EditorRequired] public Guid ShiftId { get; set; }
+    [Parameter, EditorRequired] public DateOnly Date { get; set; }
+
+    [Inject] private ISnackbar Snackbar { get; set; } = default!;
+
+    private string? selectedUserId;
+
+    private async Task SaveAsync()
+    {
+        if(selectedUserId is null)
+        {
+            _ = Snackbar.Add(Localizer["UserSelectionRequired"].Value, Severity.Warning);
+            return;
+        }
+
+        await ReservationManager.ReserveAsync(ShiftId, Date, selectedUserId, CancellationToken.None);
+        _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
+        MudDialog.Close(DialogResult.Ok(true));
+    }
+
+    private void Cancel() => MudDialog.Cancel();
+}

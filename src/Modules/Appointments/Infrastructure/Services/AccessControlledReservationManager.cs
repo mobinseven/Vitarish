@@ -6,7 +6,7 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 internal class AccessControlledReservationManager(
     IRequestContext requestContext,
     IReservationManager reservationManager,
-    ISessionBookingPolicyEngine bookingPolicyEngine,
+    IShiftBookingPolicyEngine bookingPolicyEngine,
     IStatusCoordinator statusCoordinator) : IAccessControlledReservationManager
 {
     private bool IsAdmin => requestContext.IsTenantAdmin() || requestContext.IsTenantOwner();
@@ -92,7 +92,7 @@ internal class AccessControlledReservationManager(
         => IsAdmin ? reservationManager.RemoveByDescriptorAsync(descriptor, cancellationToken) : throw AdminRoleRequired;
 
     public async Task<EntityResult<ReservationReadDto>> ReserveAsync(
-        Guid sessionId,
+        Guid shiftId,
         DateOnly date,
         string? reservingPartyId,
         CancellationToken cancellationToken)
@@ -106,19 +106,19 @@ internal class AccessControlledReservationManager(
             }));
         }
 
-        if (!await bookingPolicyEngine.IsBookingOpenAsync(sessionId, date, cancellationToken))
+        if (!await bookingPolicyEngine.IsBookingOpenAsync(shiftId, date, cancellationToken))
         {
-            return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("Booking is not open for this session slot."));
+            return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("Booking is not open for this shift slot."));
         }
 
-        if (!await bookingPolicyEngine.HasCapacityForPartyAsync(sessionId, date, effectivePartyId, cancellationToken))
+        if (!await bookingPolicyEngine.HasCapacityForPartyAsync(shiftId, date, effectivePartyId, cancellationToken))
         {
-            return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("The reserving party has reached the reservation limit for this session slot."));
+            return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("The reserving party has reached the reservation limit for this shift slot."));
         }
 
         ReservationDescriptorDto descriptor = new()
         {
-            SessionId = sessionId,
+            ShiftId = shiftId,
             DateFrom = date,
             DateTo = date,
             ReservingPartyId = effectivePartyId,
@@ -130,11 +130,11 @@ internal class AccessControlledReservationManager(
 
         if (existingReservations.Value?.Any(IsActiveReservation) == true)
         {
-            return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("An active reservation already exists for this session slot."));
+            return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("An active reservation already exists for this shift slot."));
         }
 
         EntityResult<ReservationReadDto> reserveResult = await reservationManager.ReserveAsync(
-            sessionId,
+            shiftId,
             date,
             effectivePartyId,
             cancellationToken);
@@ -145,7 +145,7 @@ internal class AccessControlledReservationManager(
                 : EntityResult<ReservationReadDto>.Failure(EntityError.Unknown("Reservation was not returned after creation."));
         }
 
-        bool requiresApproval = await bookingPolicyEngine.RequiresApprovalAsync(sessionId, cancellationToken);
+        bool requiresApproval = await bookingPolicyEngine.RequiresApprovalAsync(shiftId, cancellationToken);
 
         if (!requiresApproval)
         {
@@ -194,8 +194,8 @@ internal class AccessControlledReservationManager(
     public Task<EntityResult> ExpireReservationAsync(Guid reservationId, CancellationToken cancellationToken)
         => TransitionReservationAsync(reservationId, ReservationStatus.Expired, cancellationToken, requireAdmin: true);
 
-    public Task<EntityResult> MoveReservationAsync(Guid reservationId, Guid targetSessionId, DateOnly targetDate, CancellationToken cancellationToken)
-        => IsAdmin ? reservationManager.MoveReservationAsync(reservationId, targetSessionId, targetDate, cancellationToken) : throw AdminRoleRequired;
+    public Task<EntityResult> MoveReservationAsync(Guid reservationId, Guid targetShiftId, DateOnly targetDate, CancellationToken cancellationToken)
+        => IsAdmin ? reservationManager.MoveReservationAsync(reservationId, targetShiftId, targetDate, cancellationToken) : throw AdminRoleRequired;
 
     private ReservationDescriptorDto ScopeDescriptor(ReservationDescriptorDto descriptor)
         => IsAdmin ? descriptor : descriptor with { ReservingPartyId = UserId };

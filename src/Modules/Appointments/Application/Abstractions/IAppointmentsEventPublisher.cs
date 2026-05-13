@@ -10,9 +10,9 @@ public interface IAppointmentsEventPublisher
     Task PublishReservationRejectedAsync(ReservationRejectedEvent @event, CancellationToken cancellationToken);
     Task PublishReservationExpiredAsync(ReservationExpiredEvent @event, CancellationToken cancellationToken);
     Task PublishReservationMovedAsync(ReservationMovedEvent @event, CancellationToken cancellationToken);
-    Task PublishSessionOpenedAsync(SessionOpenedEvent @event, CancellationToken cancellationToken);
-    Task PublishSessionClosedAsync(SessionClosedEvent @event, CancellationToken cancellationToken);
-    Task PublishSessionCancelledAsync(SessionCancelledEvent @event, CancellationToken cancellationToken);
-    Task PublishSessionArchivedAsync(SessionArchivedEvent @event, CancellationToken cancellationToken);
+    Task PublishShiftOpenedAsync(ShiftOpenedEvent @event, CancellationToken cancellationToken);
+    Task PublishShiftClosedAsync(ShiftClosedEvent @event, CancellationToken cancellationToken);
+    Task PublishShiftCancelledAsync(ShiftCancelledEvent @event, CancellationToken cancellationToken);
+    Task PublishShiftArchivedAsync(ShiftArchivedEvent @event, CancellationToken cancellationToken);
     Task PublishCapacityChangedAsync(CapacityChangedEvent @event, CancellationToken cancellationToken);
 }

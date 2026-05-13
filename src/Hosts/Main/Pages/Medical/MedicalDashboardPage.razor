@@ -16,8 +16,8 @@
                      EndIcon="fa-regular fa-person-walking-arrow-right"
                      Color="Color.Primary" />
     </Stack>
-    <TodayAppointmentsWidget OnSessionClicked="@(id => NavigationManager.NavigateTo($"/Admin/Sessions/{id}"))"
-                             OnSessionsClicked="@(() => NavigationManager.NavigateTo($"/Admin/Sessions"))" />
+    <TodayAppointmentsWidget OnShiftClicked="@(id => NavigationManager.NavigateTo($"/Admin/Shifts/{id}"))"
+                             OnShiftsClicked="@(() => NavigationManager.NavigateTo($"/Admin/Shifts"))" />
 </CascadingValue>
 
 @code {

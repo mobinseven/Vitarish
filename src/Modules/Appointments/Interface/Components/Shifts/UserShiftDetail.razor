@@ -1,0 +1,34 @@
+@inherits ShiftsBase
+
+@if (Shift is null)
+{
+    return;
+}
+
+<Stack>
+    <StackField Label="@Localizer["Shift"]">
+        <ShiftStatusBadge Status="@Shift.Status" />
+    </StackField>
+    <StackField Label="@Localizer[Shift.DayOfWeek.ToString()]" HelperText="@Localizer["DayOfWeek"]" />
+    <StackField Label="@Shift.StartTime.ToString("t")" HelperText="@Localizer["StartTime"]" />
+    <StackField Label="@Shift.EndTime.ToString("t")" HelperText="@Localizer["EndTime"]" />
+    @* <StackField Label="@Shift.TimeZone" HelperText="@Localizer["TimeZone"]" /> *@
+    <StackField Label="@Shift.TotalSeats.ToString()" HelperText="@Localizer["TotalSeats"]" />
+    <StackField Label="@($"{Shift.Stats.ReservationCount} {Localizer["Reservations"]}")" HelperText="@Localizer["Reservations"]" />
+</Stack>
+
+@if (Shift.Status == ShiftStatus.Active)
+{
+    <Stack>
+        <ShiftReservationsCalendar ShiftId="@Shift.Id" OnSelected="ReserveAsync" />
+    </Stack>
+}
+else if (hasReservation)
+{
+    <Stack>
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelItem", Localizer["Reservation"]]"
+                     EndIcon="fa-regular fa-calendar-xmark"
+                     OnClick="CancelReservationAsync" />
+    </Stack>
+}

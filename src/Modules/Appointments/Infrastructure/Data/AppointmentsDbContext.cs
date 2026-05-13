@@ -30,9 +30,9 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
     public TenantMismatchMode TenantMismatchMode { get; set; } = TenantMismatchMode.Throw;
     public TenantNotSetMode TenantNotSetMode { get; set; } = TenantNotSetMode.Throw;
 
-    public DbSet<Session> Sessions => Set<Session>();
+    public DbSet<Shift> Shifts => Set<Shift>();
     public DbSet<Reservation> Reservations => Set<Reservation>();
-    public DbSet<SessionReservationLock> SessionReservationLocks => Set<SessionReservationLock>();
+    public DbSet<ShiftReservationLock> ShiftReservationLocks => Set<ShiftReservationLock>();
 
     public AppointmentsDbContext(
         DbContextOptions<AppointmentsDbContext> options,
@@ -68,10 +68,10 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
 
         _ = modelBuilder.ConfigureMultiTenant();
 
-        ConfigureTenantEntity<Session>(modelBuilder);
+        ConfigureTenantEntity<Shift>(modelBuilder);
         ConfigureTenantEntity<Reservation>(modelBuilder);
 
-        _ = modelBuilder.Entity<Session>(entity =>
+        _ = modelBuilder.Entity<Shift>(entity =>
         {
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
@@ -84,7 +84,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
 
             _ = entity.OwnsOne(s => s.BookingPolicy, b =>
             {
-                b.ToTable("SessionBookingPolicies");
+                b.ToTable("ShiftBookingPolicies");
                 b.Property(p => p.ClosedDates)
                     .HasConversion(
                         v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
@@ -94,8 +94,8 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
 
             _ = entity.OwnsMany(s => s.ReminderPolicies, b =>
             {
-                b.ToTable("SessionReminderPolicies");
-                b.WithOwner().HasForeignKey("SessionId");
+                b.ToTable("ShiftReminderPolicies");
+                b.WithOwner().HasForeignKey("ShiftId");
                 b.HasKey("Id");
                 b.Property(p => p.QualifyingStatuses)
                     .HasConversion(
@@ -103,36 +103,36 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
                         v => JsonSerializer.Deserialize<List<ReservationStatus>>(v, (JsonSerializerOptions?)null)
                              ?? new List<ReservationStatus>())
                     .HasColumnType("nvarchar(max)");
-                b.HasIndex("SessionId");
+                b.HasIndex("ShiftId");
             });
         });
 
         _ = modelBuilder.Entity<Reservation>(entity =>
         {
-            _ = entity.HasOne<Session>()
+            _ = entity.HasOne<Shift>()
                 .WithMany()
-                .HasForeignKey(r => r.SessionId)
+                .HasForeignKey(r => r.ShiftId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            _ = entity.HasIndex(r => new { r.SessionId, r.Date })
-                .HasDatabaseName("IX_Reservations_SessionId_Date");
+            _ = entity.HasIndex(r => new { r.ShiftId, r.Date })
+                .HasDatabaseName("IX_Reservations_ShiftId_Date");
         });
 
-        _ = modelBuilder.Entity<SessionReservationLock>(entity =>
+        _ = modelBuilder.Entity<ShiftReservationLock>(entity =>
         {
-            entity.ToTable("SessionReservationLocks");
-            entity.HasKey(l => new { l.TenantId, l.SessionId, l.Date });
+            entity.ToTable("ShiftReservationLocks");
+            entity.HasKey(l => new { l.TenantId, l.ShiftId, l.Date });
         });
 
-        _ = modelBuilder.Entity<SessionReservation>(entity =>
+        _ = modelBuilder.Entity<ShiftReservation>(entity =>
         {
-            entity.ToView("vw_SessionReservation");
+            entity.ToView("vw_ShiftReservation");
             entity.HasNoKey();
         });
 
-        _ = modelBuilder.Entity<SessionStats>(eb =>
+        _ = modelBuilder.Entity<ShiftStats>(eb =>
         {
-            _ = eb.ToView("vw_SessionStats");
+            _ = eb.ToView("vw_ShiftStats");
             _ = eb.HasNoKey();
         });
     }

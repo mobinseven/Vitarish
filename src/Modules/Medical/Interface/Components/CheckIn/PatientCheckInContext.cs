@@ -4,7 +4,7 @@ public enum CheckInStep
 {
     /// <summary>Identify the patient by IdentificationCode or advanced search, or create a new patient.</summary>
     Identify,
-    /// <summary>Select a session slot and confirm the booking.</summary>
+    /// <summary>Select a shift slot and confirm the booking.</summary>
     Book,
     /// <summary>Display the outcome summary.</summary>
     Confirm
@@ -13,8 +13,8 @@ public enum CheckInStep
 public enum CheckInOutcome
 {
     None,
-    CurrentSession,
-    FutureSession
+    CurrentShift,
+    FutureShift
 }
 
 public class PatientCheckInContext
@@ -23,9 +23,9 @@ public class PatientCheckInContext
 
     public ProjectReadDto? SelectedPatient { get; set; }
 
-    public SessionReadDto? SelectedSession { get; set; }
+    public ShiftReadDto? SelectedShift { get; set; }
 
-    public SessionReservationReadDto? SelectedOccurrence { get; set; }
+    public ShiftReservationReadDto? SelectedOccurrence { get; set; }
 
     public ReservationReadDto? ConfirmedReservation { get; set; }
 
@@ -38,7 +38,7 @@ public class PatientCheckInContext
     {
         CurrentStep = CheckInStep.Identify;
         SelectedPatient = null;
-        SelectedSession = null;
+        SelectedShift = null;
         SelectedOccurrence = null;
         ConfirmedReservation = null;
         Outcome = CheckInOutcome.None;

@@ -1,0 +1,39 @@
+@page "/Admin/Shifts/{shiftId}/Edit"
+
+@if (shift is null)
+{
+    return;
+}
+
+<CascadingValue Value="IsAdmin">
+    <ShiftForm Shift="@shift"
+                 OnSaved="@(id => NavigationManager.NavigateTo($"/Admin/Shifts/{id}"))"
+                 OnCancelled="Back" />
+</CascadingValue>
+
+@code {
+    [Parameter] public string? shiftId { get; set; }
+
+    private ShiftReadDto? shift;
+
+    private void Back() => NavigationManager.NavigateTo("/Admin/Shifts");
+
+    protected override async Task ReloadRequired()
+    {
+        if (!Guid.TryParse(shiftId, out Guid id))
+        {
+            Back();
+            return;
+        }
+
+        shift = await ShiftManager.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (shift is null)
+        {
+            Back();
+            return;
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+}

@@ -23,16 +23,16 @@ internal class AppointmentsEventPublisher(IPublisher publisher) : IAppointmentsE
     public Task PublishReservationMovedAsync(ReservationMovedEvent @event, CancellationToken cancellationToken)
         => publisher.Publish(@event, cancellationToken);
 
-    public Task PublishSessionOpenedAsync(SessionOpenedEvent @event, CancellationToken cancellationToken)
+    public Task PublishShiftOpenedAsync(ShiftOpenedEvent @event, CancellationToken cancellationToken)
         => publisher.Publish(@event, cancellationToken);
 
-    public Task PublishSessionClosedAsync(SessionClosedEvent @event, CancellationToken cancellationToken)
+    public Task PublishShiftClosedAsync(ShiftClosedEvent @event, CancellationToken cancellationToken)
         => publisher.Publish(@event, cancellationToken);
 
-    public Task PublishSessionCancelledAsync(SessionCancelledEvent @event, CancellationToken cancellationToken)
+    public Task PublishShiftCancelledAsync(ShiftCancelledEvent @event, CancellationToken cancellationToken)
         => publisher.Publish(@event, cancellationToken);
 
-    public Task PublishSessionArchivedAsync(SessionArchivedEvent @event, CancellationToken cancellationToken)
+    public Task PublishShiftArchivedAsync(ShiftArchivedEvent @event, CancellationToken cancellationToken)
         => publisher.Publish(@event, cancellationToken);
 
     public Task PublishCapacityChangedAsync(CapacityChangedEvent @event, CancellationToken cancellationToken)

@@ -4,7 +4,7 @@ namespace Vitarish.Appointments.Infrastructure.Handlers;
 
 internal class UpdateReservationStatusHandler(
     IEntityRepository<Reservation, ReservationDescriptor> repository,
-    IEntityRepository<Session, SessionDescriptor> sessionRepository,
+    IEntityRepository<Shift, ShiftDescriptor> shiftRepository,
     IPublisher publisher)
     : IRequestHandler<UpdateReservationStatusCommand>
 {
@@ -32,13 +32,13 @@ internal class UpdateReservationStatusHandler(
 
         _ = await repository.UpdateAsync(entity, cancellationToken);
 
-        Session? session = await sessionRepository.GetAsync(entity.SessionId, cancellationToken);
-        if (session is not null)
+        Shift? shift = await shiftRepository.GetAsync(entity.ShiftId, cancellationToken);
+        if (shift is not null)
         {
             await publisher.Publish(
-                new SessionReminderPolicyTriggeredEvent(
+                new ShiftReminderPolicyTriggeredEvent(
                     entity.Id,
-                    entity.SessionId,
+                    entity.ShiftId,
                     entity.Date,
                     entity.ReservingPartyId,
                     request.Status),

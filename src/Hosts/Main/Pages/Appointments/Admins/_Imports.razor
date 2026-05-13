@@ -1,5 +1,5 @@
 @attribute [Authorize(Policy = IdentityDefinitions.TenantAdminOrOwner)]
 @inherits TenantPageBase
 
-@inject IAccessControlledSessionManager SessionManager
+@inject IAccessControlledShiftManager ShiftManager
 @inject IAccessControlledReservationManager ReservationManager

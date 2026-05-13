@@ -8,7 +8,7 @@ namespace Vitarish.Appointments.Infrastructure.Handlers;
 
 internal class CreateReservationHandler(
     AppointmentsDbContext dbContext,
-    SessionBookingPolicyEvaluator policyEvaluator,
+    ShiftBookingPolicyEvaluator policyEvaluator,
     IAppointmentsEventPublisher eventPublisher,
     IPublisher publisher,
     IRequestContext requestContext)
@@ -23,25 +23,25 @@ internal class CreateReservationHandler(
                 await using IDbContextTransaction transaction = await dbContext.Database
                     .BeginTransactionAsync(cancellationToken);
 
-                Session? session = await dbContext.Sessions
+                Shift? shift = await dbContext.Shifts
                     .AsNoTracking()
                     .Include(s => s.BookingPolicy)
-                    .FirstOrDefaultAsync(s => s.Id == request.SessionId, cancellationToken);
+                    .FirstOrDefaultAsync(s => s.Id == request.ShiftId, cancellationToken);
 
-                EntityResult sessionValidation = ValidateSession(session, request.Date);
-                if (sessionValidation.IsFailure)
+                EntityResult shiftValidation = ValidateShift(shift, request.Date);
+                if (shiftValidation.IsFailure)
                 {
                     await transaction.RollbackAsync(cancellationToken);
-                    return EntityResult<Reservation>.Failure([.. sessionValidation.Errors]);
+                    return EntityResult<Reservation>.Failure([.. shiftValidation.Errors]);
                 }
 
-                if (!policyEvaluator.IsBookingOpen(session!, request.Date))
+                if (!policyEvaluator.IsBookingOpen(shift!, request.Date))
                 {
                     await transaction.RollbackAsync(cancellationToken);
-                    return EntityResult<Reservation>.Failure(EntityError.Conflict("The booking window is closed for this session slot."));
+                    return EntityResult<Reservation>.Failure(EntityError.Conflict("The booking window is closed for this shift slot."));
                 }
 
-                if (!await HasCapacityForPartyAsync(session!, request.Date, request.ReservingPartyId, cancellationToken))
+                if (!await HasCapacityForPartyAsync(shift!, request.Date, request.ReservingPartyId, cancellationToken))
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("The reservation limit for this party has been reached."));
@@ -51,14 +51,14 @@ internal class CreateReservationHandler(
 
                 if (tenantId is not null)
                 {
-                    SessionReservationLock lockEntry = new()
+                    ShiftReservationLock lockEntry = new()
                     {
-                        SessionId = request.SessionId,
+                        ShiftId = request.ShiftId,
                         Date = request.Date,
                         TenantId = tenantId
                     };
 
-                    dbContext.SessionReservationLocks.Add(lockEntry);
+                    dbContext.ShiftReservationLocks.Add(lockEntry);
                     try
                     {
                         await dbContext.SaveChangesAsync(cancellationToken);
@@ -69,19 +69,19 @@ internal class CreateReservationHandler(
                         return EntityResult<Reservation>.Failure(EntityError.Concurrency("This slot is temporarily locked. Please try again."));
                     }
 
-                    int occupiedSeats = await CountActiveReservationsAsync(request.SessionId, request.Date, cancellationToken);
-                    if (occupiedSeats >= session!.TotalSeats)
+                    int occupiedSeats = await CountActiveReservationsAsync(request.ShiftId, request.Date, cancellationToken);
+                    if (occupiedSeats >= shift!.TotalSeats)
                     {
-                        dbContext.SessionReservationLocks.Remove(lockEntry);
+                        dbContext.ShiftReservationLocks.Remove(lockEntry);
                         await dbContext.SaveChangesAsync(cancellationToken);
                         await transaction.RollbackAsync(cancellationToken);
-                        return EntityResult<Reservation>.Failure(EntityError.Conflict("No seats are available for this session slot."));
+                        return EntityResult<Reservation>.Failure(EntityError.Conflict("No seats are available for this shift slot."));
                     }
 
                     Reservation reservation = BuildReservation(request);
 
                     dbContext.Reservations.Add(reservation);
-                    dbContext.SessionReservationLocks.Remove(lockEntry);
+                    dbContext.ShiftReservationLocks.Remove(lockEntry);
 
                     try
                     {
@@ -97,11 +97,11 @@ internal class CreateReservationHandler(
                 }
 
                 // Fallback path (no tenant, e.g. test environment without multi-tenancy)
-                int seats = await CountActiveReservationsAsync(request.SessionId, request.Date, cancellationToken);
-                if (seats >= session!.TotalSeats)
+                int seats = await CountActiveReservationsAsync(request.ShiftId, request.Date, cancellationToken);
+                if (seats >= shift!.TotalSeats)
                 {
                     await transaction.RollbackAsync(cancellationToken);
-                    return EntityResult<Reservation>.Failure(EntityError.Conflict("No seats are available for this session slot."));
+                    return EntityResult<Reservation>.Failure(EntityError.Conflict("No seats are available for this shift slot."));
                 }
 
                 Reservation fallbackReservation = BuildReservation(request);
@@ -122,13 +122,13 @@ internal class CreateReservationHandler(
         }
 
         await eventPublisher.PublishReservationCreatedAsync(
-            new ReservationCreatedEvent(created.Id, created.SessionId, created.Date, created.ReservingPartyId),
+            new ReservationCreatedEvent(created.Id, created.ShiftId, created.Date, created.ReservingPartyId),
             cancellationToken);
 
         await publisher.Publish(
-            new SessionReminderPolicyTriggeredEvent(
+            new ShiftReminderPolicyTriggeredEvent(
                 created.Id,
-                created.SessionId,
+                created.ShiftId,
                 created.Date,
                 created.ReservingPartyId,
                 ReservationStatus.Pending),
@@ -137,27 +137,27 @@ internal class CreateReservationHandler(
         return EntityResult<Guid>.Success(created.Id);
     }
 
-    private static EntityResult ValidateSession(Session? session, DateOnly date)
+    private static EntityResult ValidateShift(Shift? shift, DateOnly date)
     {
-        if (session is null)
+        if (shift is null)
         {
-            return EntityResult.Failure(EntityError.NotFound("Session not found.", "sessionId"));
+            return EntityResult.Failure(EntityError.NotFound("Shift not found.", "shiftId"));
         }
 
-        if (session.Status != SessionStatus.Active)
+        if (shift.Status != ShiftStatus.Active)
         {
-            return EntityResult.Failure(EntityError.Conflict("This session is not open for reservations."));
+            return EntityResult.Failure(EntityError.Conflict("This shift is not open for reservations."));
         }
 
-        if (date.DayOfWeek != session.DayOfWeek)
+        if (date.DayOfWeek != shift.DayOfWeek)
         {
-            return EntityResult.Failure(EntityError.Validation("Reservation date must match the session day of week.", new Dictionary<string, string>
+            return EntityResult.Failure(EntityError.Validation("Reservation date must match the shift day of week.", new Dictionary<string, string>
             {
-                ["date"] = "Reservation date must match the session day of week."
+                ["date"] = "Reservation date must match the shift day of week."
             }));
         }
 
-        if (session.BookingPolicy?.ClosedDates.Any(cd => cd.Date == date) == true)
+        if (shift.BookingPolicy?.ClosedDates.Any(cd => cd.Date == date) == true)
         {
             return EntityResult.Failure(EntityError.Conflict("This date is closed for reservations."));
         }
@@ -166,18 +166,18 @@ internal class CreateReservationHandler(
     }
 
     private async Task<bool> HasCapacityForPartyAsync(
-        Session session,
+        Shift shift,
         DateOnly date,
         string? reservingPartyId,
         CancellationToken cancellationToken)
     {
-        if (!policyEvaluator.NeedsPartyCapacityCheck(session, reservingPartyId))
+        if (!policyEvaluator.NeedsPartyCapacityCheck(shift, reservingPartyId))
         {
             return true;
         }
 
         int partyCount = await dbContext.Reservations.CountAsync(r =>
-            r.SessionId == session.Id &&
+            r.ShiftId == shift.Id &&
             r.Date == date &&
             r.ReservingPartyId == reservingPartyId &&
             r.Status != ReservationStatus.Cancelled &&
@@ -185,12 +185,12 @@ internal class CreateReservationHandler(
             r.Status != ReservationStatus.Rejected,
             cancellationToken);
 
-        return policyEvaluator.HasCapacityForParty(session, reservingPartyId, partyCount);
+        return policyEvaluator.HasCapacityForParty(shift, reservingPartyId, partyCount);
     }
 
     private static Reservation BuildReservation(CreateReservationCommand request) => new()
     {
-        SessionId = request.SessionId,
+        ShiftId = request.ShiftId,
         Date = request.Date,
         ReservingPartyId = request.ReservingPartyId,
         Status = ReservationStatus.Pending,
@@ -200,9 +200,9 @@ internal class CreateReservationHandler(
             : null
     };
 
-    private Task<int> CountActiveReservationsAsync(Guid sessionId, DateOnly date, CancellationToken cancellationToken) =>
+    private Task<int> CountActiveReservationsAsync(Guid shiftId, DateOnly date, CancellationToken cancellationToken) =>
         dbContext.Reservations.CountAsync(r =>
-            r.SessionId == sessionId &&
+            r.ShiftId == shiftId &&
             r.Date == date &&
             r.Status != ReservationStatus.Cancelled &&
             r.Status != ReservationStatus.Rejected &&

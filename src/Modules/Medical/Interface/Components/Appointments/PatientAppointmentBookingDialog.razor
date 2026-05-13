@@ -2,13 +2,13 @@
 
 <MudDialog>
     <DialogContent>
-        @if (sessions.Count == 0)
+        @if (shifts.Count == 0)
         {
             <Stack>
-                <StackButton Label="@Localizer["NoItems", Localizer["AppointmentSession"]]"
-                             HelperText="@Localizer["NoItemsHelp", Localizer["AppointmentSession"]]"
+                <StackButton Label="@Localizer["NoItems", Localizer["AppointmentShift"]]"
+                             HelperText="@Localizer["NoItemsHelp", Localizer["AppointmentShift"]]"
                              EndIcon="fa-regular fa-refresh"
-                             OnClick="LoadSessionsAsync">
+                             OnClick="LoadShiftsAsync">
                     @Localizer["Reload"]
                 </StackButton>
             </Stack>
@@ -16,14 +16,14 @@
         else
         {
             <Stack>
-                @foreach (var session in sessions)
+                @foreach (var shift in shifts)
                 {
-                    bool isFull = session.Stats.ReservationCount >= session.TotalSeats;
-                    <StackButton OnClick="@(() => ReserveAsync(session))"
-                                 Label="@Localizer[session.DayOfWeek.ToString()]"
-                                 HelperText="@($"{session.StartTime:t}-{session.EndTime:t} · {session.Stats.ReservationCount}/{session.TotalSeats}")"
+                    bool isFull = shift.Stats.ReservationCount >= shift.TotalSeats;
+                    <StackButton OnClick="@(() => ReserveAsync(shift))"
+                                 Label="@Localizer[shift.DayOfWeek.ToString()]"
+                                 HelperText="@($"{shift.StartTime:t}-{shift.EndTime:t} · {shift.Stats.ReservationCount}/{shift.TotalSeats}")"
                                  Disabled="@isFull">
-                        <SessionStatusBadge Status="session.Status" />
+                        <ShiftStatusBadge Status="shift.Status" />
                     </StackButton>
                 }
             </Stack>
