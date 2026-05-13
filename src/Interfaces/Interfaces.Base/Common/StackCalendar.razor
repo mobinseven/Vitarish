@@ -58,7 +58,7 @@
                                 disabled="@(Disabled || day.IsDisabled)"
                                 aria-current="@(day.IsToday ? "date" : null)"
                                 aria-selected="@day.IsSelected"
-                                @onclick="() => SelectDayAsync(day)">
+                                @onclick="() => day.SelectDayAsync(day)">
                             @day.DisplayDayNumber
                         </button>
                     }
@@ -352,7 +352,8 @@
                 IsSelected: _currentDate?.Date == date,
                 IsOutsideMonth: outsideMonth,
                 IsDisabled: disabled,
-                CssClass: string.Join(" ", css)
+                CssClass: string.Join(" ", css),
+                SelectDayAsync: SelectDayAsync
             );
         }
     }
@@ -545,7 +546,8 @@
         bool IsSelected,
         bool IsOutsideMonth,
         bool IsDisabled,
-        string CssClass);
+        string CssClass,
+        Func<CalendarDayContext, Task> SelectDayAsync);
 
     public sealed record CalendarMonthContext(
         DateTime Month,
