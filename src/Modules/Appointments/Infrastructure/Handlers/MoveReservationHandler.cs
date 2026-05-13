@@ -1,5 +1,6 @@
 using Vitarish.Appointments.Application.Events;
 using Vitarish.Appointments.Infrastructure.Data;
+using Vitarish.Appointments.Infrastructure.Services;
 using Vitarish.Requests.Application.Abstractions;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -7,7 +8,7 @@ namespace Vitarish.Appointments.Infrastructure.Handlers;
 
 internal class MoveReservationHandler(
     AppointmentsDbContext dbContext,
-    ISessionBookingPolicyEngine bookingPolicyEngine,
+    SessionBookingPolicyEvaluator policyEvaluator,
     IAppointmentsEventPublisher eventPublisher,
     IRequestContext requestContext)
     : IRequestHandler<MoveReservationCommand>
@@ -39,7 +40,7 @@ internal class MoveReservationHandler(
                 return;
             }
 
-            if (!await bookingPolicyEngine.IsBookingOpenAsync(request.TargetSessionId, request.TargetDate, cancellationToken))
+            if (!policyEvaluator.IsBookingOpen(targetSession, request.TargetDate))
             {
                 await transaction.RollbackAsync(cancellationToken);
                 return;

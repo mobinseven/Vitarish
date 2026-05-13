@@ -1,7 +1,9 @@
 namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
-internal class SessionBookingPolicyEngine(AppointmentsDbContext dbContext) : ISessionBookingPolicyEngine
+internal class SessionBookingPolicyEngine(
+    AppointmentsDbContext dbContext,
+    SessionBookingPolicyEvaluator policyEvaluator) : ISessionBookingPolicyEngine
 {
     public async Task<bool> IsBookingOpenAsync(Guid sessionId, DateOnly date, CancellationToken cancellationToken)
     {
@@ -11,7 +13,7 @@ internal class SessionBookingPolicyEngine(AppointmentsDbContext dbContext) : ISe
             .FirstOrDefaultAsync(s => s.Id == sessionId, cancellationToken);
 
         return session is not null
-            && SessionBookingRules.IsBookingOpen(session, date, DateTimeOffset.UtcNow);
+            && policyEvaluator.IsBookingOpen(session, date);
     }
 
     public async Task<bool> CanCancelAsync(Guid reservationId, CancellationToken cancellationToken)
@@ -35,14 +37,7 @@ internal class SessionBookingPolicyEngine(AppointmentsDbContext dbContext) : ISe
             return false;
         }
 
-        TimeSpan? deadline = session.BookingPolicy?.CancellationDeadline;
-        if (deadline is null)
-        {
-            return true;
-        }
-
-        DateTimeOffset cutoff = ToDateTimeOffset(reservation.Date, session.StartTime) - deadline.Value;
-        return DateTimeOffset.UtcNow < cutoff;
+        return policyEvaluator.CanCancel(session, reservation);
     }
 
     public async Task<bool> CanRescheduleAsync(Guid reservationId, CancellationToken cancellationToken)
@@ -61,7 +56,7 @@ internal class SessionBookingPolicyEngine(AppointmentsDbContext dbContext) : ISe
             .Include(s => s.BookingPolicy)
             .FirstOrDefaultAsync(s => s.Id == reservation.SessionId, cancellationToken);
 
-        return session?.BookingPolicy?.AllowRescheduling ?? false;
+        return session is not null && policyEvaluator.CanReschedule(session);
     }
 
     public async Task<bool> HasCapacityForPartyAsync(Guid sessionId, DateOnly date, string? reservingPartyId, CancellationToken cancellationToken)
@@ -81,8 +76,7 @@ internal class SessionBookingPolicyEngine(AppointmentsDbContext dbContext) : ISe
             return false;
         }
 
-        int? maxPerParty = session.BookingPolicy?.MaxReservationsPerParty;
-        if (maxPerParty is null)
+        if (!policyEvaluator.NeedsPartyCapacityCheck(session, reservingPartyId))
         {
             return true;
         }
@@ -96,7 +90,7 @@ internal class SessionBookingPolicyEngine(AppointmentsDbContext dbContext) : ISe
                           && r.Status != ReservationStatus.Rejected,
                 cancellationToken);
 
-        return partyCount < maxPerParty.Value;
+        return policyEvaluator.HasCapacityForParty(session, reservingPartyId, partyCount);
     }
 
     public async Task<bool> RequiresApprovalAsync(Guid sessionId, CancellationToken cancellationToken)
@@ -106,9 +100,6 @@ internal class SessionBookingPolicyEngine(AppointmentsDbContext dbContext) : ISe
             .Include(s => s.BookingPolicy)
             .FirstOrDefaultAsync(s => s.Id == sessionId, cancellationToken);
 
-        return session?.BookingPolicy?.RequiresApproval ?? false;
+        return session is not null && policyEvaluator.RequiresApproval(session);
     }
-
-    private static DateTimeOffset ToDateTimeOffset(DateOnly date, TimeOnly time)
-        => new(date.ToDateTime(time), TimeSpan.Zero);
 }

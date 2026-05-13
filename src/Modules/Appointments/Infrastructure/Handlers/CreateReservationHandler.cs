@@ -1,5 +1,6 @@
 using Vitarish.Appointments.Application.Events;
 using Vitarish.Appointments.Infrastructure.Data;
+using Vitarish.Appointments.Infrastructure.Services;
 using Vitarish.Requests.Application.Abstractions;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -7,7 +8,7 @@ namespace Vitarish.Appointments.Infrastructure.Handlers;
 
 internal class CreateReservationHandler(
     AppointmentsDbContext dbContext,
-    ISessionBookingPolicyEngine bookingPolicyEngine,
+    SessionBookingPolicyEvaluator policyEvaluator,
     IAppointmentsEventPublisher eventPublisher,
     IPublisher publisher,
     IRequestContext requestContext)
@@ -34,13 +35,13 @@ internal class CreateReservationHandler(
                     return EntityResult<Reservation>.Failure([.. sessionValidation.Errors]);
                 }
 
-                if (!await bookingPolicyEngine.IsBookingOpenAsync(request.SessionId, request.Date, cancellationToken))
+                if (!policyEvaluator.IsBookingOpen(session!, request.Date))
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("The booking window is closed for this session slot."));
                 }
 
-                if (!await bookingPolicyEngine.HasCapacityForPartyAsync(request.SessionId, request.Date, request.ReservingPartyId, cancellationToken))
+                if (!await HasCapacityForPartyAsync(session!, request.Date, request.ReservingPartyId, cancellationToken))
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("The reservation limit for this party has been reached."));
@@ -115,7 +116,10 @@ internal class CreateReservationHandler(
             return EntityResult<Guid>.Failure([.. createResult.Errors]);
         }
 
-        Reservation created = createResult.Value;
+        if (createResult.Value is not Reservation created)
+        {
+            return EntityResult<Guid>.Failure(EntityError.Unknown("Reservation was not returned after creation."));
+        }
 
         await eventPublisher.PublishReservationCreatedAsync(
             new ReservationCreatedEvent(created.Id, created.SessionId, created.Date, created.ReservingPartyId),
@@ -159,6 +163,29 @@ internal class CreateReservationHandler(
         }
 
         return EntityResult.Success();
+    }
+
+    private async Task<bool> HasCapacityForPartyAsync(
+        Session session,
+        DateOnly date,
+        string? reservingPartyId,
+        CancellationToken cancellationToken)
+    {
+        if (!policyEvaluator.NeedsPartyCapacityCheck(session, reservingPartyId))
+        {
+            return true;
+        }
+
+        int partyCount = await dbContext.Reservations.CountAsync(r =>
+            r.SessionId == session.Id &&
+            r.Date == date &&
+            r.ReservingPartyId == reservingPartyId &&
+            r.Status != ReservationStatus.Cancelled &&
+            r.Status != ReservationStatus.Expired &&
+            r.Status != ReservationStatus.Rejected,
+            cancellationToken);
+
+        return policyEvaluator.HasCapacityForParty(session, reservingPartyId, partyCount);
     }
 
     private static Reservation BuildReservation(CreateReservationCommand request) => new()
