@@ -22,8 +22,9 @@ public partial class BookableSessionsCalendar : Vitarish.Modules.Base.TenantComm
         RenderForType<SessionReadDto>();
     }
 
-    protected override async Task OnParametersSetAsync()
+    protected override async Task OnInitializedAsync()
     {
+        await base.OnInitializedAsync();
         if (Descriptor != previousDescriptor || Range != previousRange)
         {
             previousDescriptor = Descriptor;
@@ -53,7 +54,7 @@ public partial class BookableSessionsCalendar : Vitarish.Modules.Base.TenantComm
             .ThenBy(s => s.Occurrence?.StartTime ?? TimeOnly.MaxValue)
             .ThenBy(s => s.Session.Title)];
         }
-
+        slots = [.. result];
         loading = false;
         await InvokeAsync(StateHasChanged);
     }
