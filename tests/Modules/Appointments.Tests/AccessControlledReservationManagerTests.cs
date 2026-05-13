@@ -63,8 +63,56 @@ public class AccessControlledReservationManagerTests
         EntityResult<ReservationReadDto> result = await sut.ReserveAsync(sessionId, date, null, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
+        reservationManager.Verify(x => x.GetListAsync(
+            It.Is<ReservationDescriptorDto>(descriptor =>
+                descriptor.SessionId == sessionId &&
+                descriptor.DateFrom == date &&
+                descriptor.DateTo == date &&
+                descriptor.ReservingPartyId == "user-1"),
+            It.IsAny<CancellationToken>()), Times.Once);
         reservationManager.Verify(x => x.ReserveAsync(sessionId, date, "user-1", It.IsAny<CancellationToken>()), Times.Once);
         statusCoordinator.Verify(x => x.TransitionReservationAsync(reservationId, ReservationStatus.Confirmed, "user-1", It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetListAsync_ShouldScopeNonAdminDescriptorAndPreserveDateRange()
+    {
+        Mock<IRequestContext> requestContext = CreateRequestContext();
+        Mock<IReservationManager> reservationManager = new();
+        Mock<ISessionBookingPolicyEngine> bookingPolicyEngine = new();
+        Mock<IStatusCoordinator> statusCoordinator = new();
+
+        Guid sessionId = Guid.NewGuid();
+        DateOnly dateFrom = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        DateOnly dateTo = dateFrom.AddDays(7);
+        ReservationDescriptorDto descriptor = new()
+        {
+            SessionId = sessionId,
+            DateFrom = dateFrom,
+            DateTo = dateTo,
+            ReservingPartyId = "other-user"
+        };
+
+        reservationManager
+            .Setup(x => x.GetListAsync(It.IsAny<ReservationDescriptorDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<IReadOnlyList<ReservationReadDto>>.Success([]));
+
+        AccessControlledReservationManager sut = new(
+            requestContext.Object,
+            reservationManager.Object,
+            bookingPolicyEngine.Object,
+            statusCoordinator.Object);
+
+        EntityResult<IReadOnlyList<ReservationReadDto>> result = await sut.GetListAsync(descriptor, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        reservationManager.Verify(x => x.GetListAsync(
+            It.Is<ReservationDescriptorDto>(scopedDescriptor =>
+                scopedDescriptor.SessionId == sessionId &&
+                scopedDescriptor.DateFrom == dateFrom &&
+                scopedDescriptor.DateTo == dateTo &&
+                scopedDescriptor.ReservingPartyId == "user-1"),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private static Mock<IRequestContext> CreateRequestContext()

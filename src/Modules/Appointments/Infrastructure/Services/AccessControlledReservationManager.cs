@@ -119,7 +119,8 @@ internal class AccessControlledReservationManager(
         ReservationDescriptorDto descriptor = new()
         {
             SessionId = sessionId,
-            Date = date,
+            DateFrom = date,
+            DateTo = date,
             ReservingPartyId = effectivePartyId,
             Skip = 0,
             Take = int.MaxValue
