@@ -4,10 +4,10 @@
     <StackField Label="@Localizer["TodayAppointments"]" />
     @foreach(var (session, reservations) in todaySessions)
     {
-        <StackButton Label="@session.Title"
+        <StackButton Label="@Localizer[session.DayOfWeek.ToString()]"
                      EndIcon=""
                      OnClick="@(() => OnSessionClicked.InvokeAsync(session.Id))"
-                     HelperText="@($"{session.Stats.ReservationCount} {Localizer["Reservations"]}")">
+                     HelperText="@($"{session.StartTime:t}-{session.EndTime:t} · {session.Stats.ReservationCount} {Localizer["Reservations"]}")">
             <SessionStatusBadge Status="session.Status" />
             <MudAvatarGroup Spacing="3" Max="10" Class="px-4 pb-3">
                 @foreach(var reservation in reservations)

@@ -4,12 +4,6 @@ namespace Vitarish.Appointments.Domain.Entities;
 
 public class Session : Entity
 {
-    public string Title
-    {
-        get;
-        set => SetField(ref field, value, nameof(Title));
-    } = string.Empty;
-
     public SessionStatus Status
     {
         get;

@@ -30,7 +30,10 @@ public partial class SessionsList : SessionsBase
             : new() { Skip = 0, Take = int.MaxValue, Search = SearchString };
 
         IReadOnlyList<SessionReadDto> items = await SessionManager.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
-        sessions = [.. items.OrderBy(s => s.Title)];
+        sessions = [.. items
+            .OrderBy(s => s.DayOfWeek)
+            .ThenBy(s => s.StartTime)
+            .ThenBy(s => s.EndTime)];
 
         await InvokeAsync(StateHasChanged);
     }

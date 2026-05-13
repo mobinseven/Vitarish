@@ -20,8 +20,8 @@
                 {
                     bool isFull = session.Stats.ReservationCount >= session.TotalSeats;
                     <StackButton OnClick="@(() => ReserveAsync(session))"
-                                 Label="@session.Title"
-                                 HelperText="@($"{Localizer[session.DayOfWeek.ToString()]} {session.StartTime:t}-{session.EndTime:t} · {session.Stats.ReservationCount}/{session.TotalSeats}")"
+                                 Label="@Localizer[session.DayOfWeek.ToString()]"
+                                 HelperText="@($"{session.StartTime:t}-{session.EndTime:t} · {session.Stats.ReservationCount}/{session.TotalSeats}")"
                                  Disabled="@isFull">
                         <SessionStatusBadge Status="session.Status" />
                     </StackButton>

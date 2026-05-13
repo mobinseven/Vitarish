@@ -16,7 +16,6 @@ public class AccessControlledSessionManagerTests
 
         SessionWriteDto dto = new()
         {
-            Title = "Invalid schedule",
             TimeZone = TimeZoneInfo.Utc.Id,
             DayOfWeek = System.DayOfWeek.Monday,
             StartTime = new TimeOnly(10, 0),

@@ -218,7 +218,6 @@ public class SessionBookableSlotsTests
         StartTime = new TimeOnly(9, 0),
         EndTime = new TimeOnly(10, 0),
         TimeZone = "UTC",
-        TotalSeats = 10,
-        Title = $"Test session ({dayOfWeek})"
+        TotalSeats = 10
     };
 }

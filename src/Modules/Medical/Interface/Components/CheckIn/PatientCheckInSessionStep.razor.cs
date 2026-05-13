@@ -44,14 +44,11 @@ public partial class PatientCheckInSessionStep : Vitarish.Modules.Base.TenantCom
 
         IReadOnlyList<BookableSessionSlot> result = await BookableDateQueryService
             .GetBookableSlotsAsync(sessionDescriptor, sessionRange, CancellationToken.None);
-        if (result.Count == 0)
-        {
-            slots = [.. result
+        slots = [.. result
             .OrderBy(s => s.Occurrence?.Date ?? DateOnly.MaxValue)
             .ThenBy(s => s.Occurrence?.StartTime ?? TimeOnly.MaxValue)
-            .ThenBy(s => s.Session.Title)];
-        }
-        slots = [.. result];
+            .ThenBy(s => s.Session.DayOfWeek)
+            .ThenBy(s => s.Session.EndTime)];
 
         ReservationDescriptorDto reservationDescriptor = new()
         {

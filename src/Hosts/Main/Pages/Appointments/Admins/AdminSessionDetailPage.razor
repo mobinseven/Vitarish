@@ -36,7 +36,7 @@
             return;
         }
 
-        NavService.OverridePageTitle(id.ToString(), session.Title);
+        NavService.OverridePageTitle(id.ToString(), Localizer["Session"]);
         await InvokeAsync(StateHasChanged);
     }
 }
