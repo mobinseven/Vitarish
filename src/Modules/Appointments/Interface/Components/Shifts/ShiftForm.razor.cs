@@ -11,6 +11,28 @@ public partial class ShiftForm : ShiftsBase
 
     private ShiftWriteDto shiftWriteDto = new();
 
+    private const int ShiftTimeStepMinutes = 15;
+    private static readonly TimeOnly LastSelectableEndTime = new(23, 59);
+
+    private TimeOnly MinimumEndTime => GetMinimumEndTime(shiftWriteDto.StartTime);
+
+    private static TimeOnly GetMinimumEndTime(TimeOnly startTime)
+    {
+        var minimumEndTime = startTime.AddMinutes(ShiftTimeStepMinutes);
+
+        return minimumEndTime > startTime
+            ? minimumEndTime
+            : LastSelectableEndTime;
+    }
+
+    private void SetStartTime(TimeOnly startTime)
+    {
+        shiftWriteDto.StartTime = startTime;
+
+        if (shiftWriteDto.EndTime <= shiftWriteDto.StartTime)
+            shiftWriteDto.EndTime = MinimumEndTime;
+    }
+
     protected override void OnParametersSet()
     {
         if (Shift is not null)

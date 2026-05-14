@@ -9,8 +9,14 @@
                 <MudSelectItem T="DayOfWeek" Value="day">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(day)</MudSelectItem>
             }
         </StackSelect>
-        <StackTimePicker @bind-TimeOnlyValue="shiftWriteDto.StartTime" Label="@Localizer["StartTime"]" />
-        <StackTimePicker @bind-TimeOnlyValue="shiftWriteDto.EndTime" Label="@Localizer["EndTime"]" />
+        <StackTimePicker TimeOnlyValue="shiftWriteDto.StartTime"
+                         TimeOnlyValueChanged="SetStartTime"
+                         Label="@Localizer["StartTime"]"
+                         MinuteStep="ShiftTimeStepMinutes" />
+        <StackTimePicker @bind-TimeOnlyValue="shiftWriteDto.EndTime"
+                         Label="@Localizer["EndTime"]"
+                         Min="MinimumEndTime"
+                         MinuteStep="ShiftTimeStepMinutes" />
         @* <StackTextField @bind-Value="shiftWriteDto.TimeZone" Label="@Localizer["TimeZone"]" /> *@
         <StackNumericField @bind-Value="shiftWriteDto.TotalSeats" Label="@Localizer["TotalSeats"]" Min="1" />
         <StackSelect T="ShiftStatus" Label="@Localizer["Status"]" @bind-Value="shiftWriteDto.Status">
