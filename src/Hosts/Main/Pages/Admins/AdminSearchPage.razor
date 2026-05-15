@@ -19,7 +19,7 @@
     <StackNumericField Label="@Localizer["PageSize"]" @bind-Value="SearchLimit" Min="1" Max="@SearchOptions.MaxLimit" />
 </Stack>
 
-<SearchWidget IndexName="@IndexName" Type="@SearchType" Options="@_options" />
+<SearchWidget IndexName="@IndexName" Type="@SearchType" Options="@_options" OnNavigate="NavigateFromSearch" />
 
 @code {
     [Inject] protected IEnumerable<Search.Domain.Abstractions.ISearchIndexProvider> IndexProviders { get; set; } = [];
@@ -55,4 +55,14 @@
     {
         Limit = limit
     };
+
+    private Task NavigateFromSearch(SearchDocument item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.NavigationUrl))
+        {
+            NavigationManager.NavigateTo(item.NavigationUrl);
+        }
+
+        return Task.CompletedTask;
+    }
 }

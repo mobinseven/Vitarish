@@ -1,9 +1,14 @@
 @inject NavigationManager Nav
 
 @code {
+    [Parameter] public string UnauthorizedRoute { get; set; } = "/Account/Unauthorized";
 
     protected override void OnInitialized()
     {
-        Nav.NavigateTo(AppRoutes.Account.UnauthorizedWithRequestedPath(new Uri(Nav.Uri).PathAndQuery));
+        string requestedPath = new Uri(Nav.Uri).PathAndQuery;
+        string redirectUrl = string.IsNullOrWhiteSpace(requestedPath)
+            ? UnauthorizedRoute
+            : $"{UnauthorizedRoute}?RequestedPath={Uri.EscapeDataString(requestedPath)}";
+        Nav.NavigateTo(redirectUrl);
     }
 }

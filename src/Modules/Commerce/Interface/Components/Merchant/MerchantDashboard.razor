@@ -11,15 +11,20 @@
 
 <Stack>
     <StackField Label="Quick Actions" />
-    <StackButton Color="Color.Primary" Href="@AppRoutes.Commerce.OwnerOrders" Label="Orders" EndIcon="fa-regular fa-receipt" />
-    <StackButton Color="Color.Primary" Href="@AppRoutes.Commerce.OwnerProducts" Label="Products" EndIcon="fa-regular fa-box" />
-    <StackButton Color="Color.Primary" Href="@AppRoutes.Commerce.OwnerRecovery" Label="Recovery Queue" EndIcon="fa-regular fa-cart-shopping" />
-    <StackButton Color="Color.Primary" Href="@AppRoutes.Commerce.OwnerSettings" Label="Settings" EndIcon="fa-regular fa-gear" />
+    <StackButton Color="Color.Primary" Href="@OrdersHref" Label="Orders" EndIcon="fa-regular fa-receipt" />
+    <StackButton Color="Color.Primary" Href="@ProductsHref" Label="Products" EndIcon="fa-regular fa-box" />
+    <StackButton Color="Color.Primary" Href="@RecoveryHref" Label="Recovery Queue" EndIcon="fa-regular fa-cart-shopping" />
+    <StackButton Color="Color.Primary" Href="@SettingsHref" Label="Settings" EndIcon="fa-regular fa-gear" />
     <StackField Label="Sales (7d)" HelperText="@_weekSales.ToString("0.##")" />
     <StackField Label="Products" HelperText="@_productCount.ToString()" />
 </Stack>
 
 @code {
+    [Parameter] public string OrdersHref { get; set; } = string.Empty;
+    [Parameter] public string ProductsHref { get; set; } = string.Empty;
+    [Parameter] public string RecoveryHref { get; set; } = string.Empty;
+    [Parameter] public string SettingsHref { get; set; } = string.Empty;
+
     private int _orderCount;
     private int _productCount;
     private int _pendingFulfillment;

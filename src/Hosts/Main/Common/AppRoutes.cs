@@ -1,7 +1,7 @@
 using System.Globalization;
 using Microsoft.AspNetCore.WebUtilities;
 
-namespace Vitarish.Interfaces.Base.Common;
+namespace Vitarish.Main.Common;
 
 public static class AppRoutes
 {

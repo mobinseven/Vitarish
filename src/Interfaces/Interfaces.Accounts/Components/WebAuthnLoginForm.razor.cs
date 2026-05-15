@@ -1,6 +1,5 @@
 using System.Net.Http.Json;
 using System.Text.Json;
-using Vitarish.Interfaces.Base.Common;
 
 namespace Vitarish.Interfaces.Accounts.Components;
 
@@ -82,7 +81,7 @@ public partial class WebAuthnLoginForm : IdentityCommonBase
             {
                 // Authentication successful - redirect to return URL
                 string? redirectUrl = ReturnUrlManager.ConsumeReturnUrl();
-                NavigationManager.NavigateTo(!string.IsNullOrEmpty(redirectUrl) ? redirectUrl : AppRoutes.Home, forceLoad: true);
+                NavigationManager.NavigateTo(!string.IsNullOrEmpty(redirectUrl) ? redirectUrl : "/", forceLoad: true);
             }
             else
             {

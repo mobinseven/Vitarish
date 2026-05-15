@@ -11,7 +11,7 @@
 
 <AuthorizeView>
     <Authorized>
-        <TenantWidget />
+        <TenantWidget OnTenantNavigate="NavigateToTenant" />
     </Authorized>
     <NotAuthorized>
         <Stack>
@@ -21,3 +21,11 @@
         </Stack>
     </NotAuthorized>
 </AuthorizeView>
+
+@code {
+    private Task NavigateToTenant(string route)
+    {
+        NavigationManager.NavigateTo(route, forceLoad: true);
+        return Task.CompletedTask;
+    }
+}

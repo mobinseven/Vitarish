@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Authentication;
-using Vitarish.Interfaces.Base.Common;
 
 namespace Vitarish.Interfaces.Accounts.Components;
 
@@ -10,7 +9,7 @@ public class LoginBase : IdentityBase
         await base.OnInitializedAsync();
         if (HttpContext?.User.Identity?.IsAuthenticated ?? false)
         {
-            NavigationManager.NavigateTo(ReturnUrlManager.GetReturnUrl() ?? AppRoutes.Home);
+            NavigationManager.NavigateTo(ReturnUrlManager.GetReturnUrl() ?? "/");
         }
         if (HttpMethods.IsGet(HttpContext?.Request.Method))
         {

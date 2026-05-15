@@ -27,6 +27,12 @@ public partial class SearchWidget : CommonBase
     /// </summary>
     [Parameter]
     public SearchOptions Options { get; set; } = new();
+    
+    /// <summary>
+    /// Optional navigation callback. When provided, the parent owns redirect behavior.
+    /// </summary>
+    [Parameter]
+    public EventCallback<SearchDocument> OnNavigate { get; set; }
 
     private string _query = string.Empty;
     private SearchResult? _result;
@@ -142,8 +148,14 @@ public partial class SearchWidget : CommonBase
         return string.Format(Localizer["SearchPageSummary"], firstItem, lastItem, _result.TotalCount);
     }
 
-    private void Navigate(SearchDocument item)
+    private async Task NavigateAsync(SearchDocument item)
     {
+        if (OnNavigate.HasDelegate)
+        {
+            await OnNavigate.InvokeAsync(item);
+            return;
+        }
+
         if (!string.IsNullOrWhiteSpace(item.NavigationUrl))
         {
             NavigationManager.NavigateTo(item.NavigationUrl);
