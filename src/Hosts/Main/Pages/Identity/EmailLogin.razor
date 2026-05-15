@@ -1,4 +1,4 @@
-@page "/Account/Login/Email"
+@attribute [Route(AppRoutes.Account.LoginEmail)]
 
 @inherits LoginBase
 @attribute [RequireAntiforgeryToken]
@@ -8,7 +8,7 @@
 <AntiforgeryToken />
 <EmailLoginForm @rendermode=@InteractiveServer />
 <Stack>
-    <StackButton Label="@Localizer["LoginVia", Localizer["Phone"]]" EndIcon="fa-regular fa-phone" Href="Account/Login/Phone" />
-    <StackButton Label="@Localizer["LoginVia", Localizer["Password"]]" EndIcon="fa-regular fa-asterisk" Href="Account/Login/Password" />
-    <StackButton Label="@Localizer["LoginVia", Localizer["Passkey"]]" EndIcon="fa-regular fa-key" Href="Account/Login/Passkey" />
+    <StackButton Label="@Localizer["LoginVia", Localizer["Phone"]]" EndIcon="fa-regular fa-phone" Href="@AppRoutes.Account.LoginPhone" />
+    <StackButton Label="@Localizer["LoginVia", Localizer["Password"]]" EndIcon="fa-regular fa-asterisk" Href="@AppRoutes.Account.LoginPassword" />
+    <StackButton Label="@Localizer["LoginVia", Localizer["Passkey"]]" EndIcon="fa-regular fa-key" Href="@AppRoutes.Account.LoginPasskey" />
 </Stack>

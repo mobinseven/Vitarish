@@ -1,12 +1,12 @@
-@page "/Account/Login"
-@page "/Account/Login/Phone"
+@attribute [Route(AppRoutes.Account.Login)]
+@attribute [Route(AppRoutes.Account.LoginPhone)]
 @inherits LoginBase
 @attribute [RequireAntiforgeryToken]
 
 <HttpStatus CookieName="@IdentityCookieNames.StatusCookieName" />
 <PhoneLoginForm @rendermode=@InteractiveServer />
 <Stack>
-    <StackButton Label="@Localizer["LoginVia", Localizer["Password"]]" EndIcon="fa-regular fa-asterisk" Href="Account/Login/Password" />
-    <StackButton Label="@Localizer["LoginVia", Localizer["Email"]]" EndIcon="fa-regular fa-at" Href="Account/Login/Email" />
-    <StackButton Label="@Localizer["LoginVia", Localizer["Passkey"]]" EndIcon="fa-regular fa-key" Href="Account/Login/Passkey" />
+    <StackButton Label="@Localizer["LoginVia", Localizer["Password"]]" EndIcon="fa-regular fa-asterisk" Href="@AppRoutes.Account.LoginPassword" />
+    <StackButton Label="@Localizer["LoginVia", Localizer["Email"]]" EndIcon="fa-regular fa-at" Href="@AppRoutes.Account.LoginEmail" />
+    <StackButton Label="@Localizer["LoginVia", Localizer["Passkey"]]" EndIcon="fa-regular fa-key" Href="@AppRoutes.Account.LoginPasskey" />
 </Stack>

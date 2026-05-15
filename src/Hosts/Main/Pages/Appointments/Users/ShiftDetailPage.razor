@@ -1,4 +1,4 @@
-@page "/Shifts/{shiftId}"
+@attribute [Route(AppRoutes.Appointments.ShiftTemplate)]
 
 @if (shift is null)
 {
@@ -12,7 +12,7 @@
 
     private ShiftReadDto? shift;
 
-    private void Back() => NavigationManager.NavigateTo("/Shifts");
+    private void Back() => NavigationManager.NavigateTo(AppRoutes.Appointments.Shifts);
 
     protected override async Task ReloadRequired()
     {

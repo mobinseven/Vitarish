@@ -1,5 +1,5 @@
-@page "/Medical/Admin"
-@page "/Medical/"
+@attribute [Route(AppRoutes.Medical.Dashboard)]
+@attribute [Route(AppRoutes.Medical.DashboardLegacy)]
 
 @if(!initialized)
 {
@@ -9,15 +9,15 @@
 <CascadingValue Value="IsAdmin">
     <Stack>
         <StackButton Label="@Localizer["MedicalDashboard"]"
-                     Href="/Medical/Patients"
+                     Href="@AppRoutes.Medical.Patients"
                      HelperText="@($"{patients} {Localizer["Patients"]}")" />
         <StackButton Label="@Localizer["CheckInPatient"]"
-                     Href="/Medical/CheckIn"
+                     Href="@AppRoutes.Medical.CheckIn"
                      EndIcon="fa-regular fa-person-walking-arrow-right"
                      Color="Color.Primary" />
     </Stack>
-    <TodayAppointmentsWidget OnShiftClicked="@(id => NavigationManager.NavigateTo($"/Admin/Shifts/{id}"))"
-                             OnShiftsClicked="@(() => NavigationManager.NavigateTo($"/Admin/Shifts"))" />
+    <TodayAppointmentsWidget OnShiftClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(id)))"
+                             OnShiftsClicked="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShifts))" />
 </CascadingValue>
 
 @code {

@@ -1,12 +1,13 @@
-@page "/Reservations"
+@attribute [Route(AppRoutes.Appointments.Reservations)]
+@attribute [Route(AppRoutes.Appointments.LegacyReservations)]
 
 <Stack>
     <StackButton Color="Color.Secondary"
-                 OnClick="@(() => NavigationManager.NavigateTo("/Shifts"))"
+                 OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.Shifts))"
                  StartIcon="fa-regular fa-calendar-days"
                  Label="@Localizer["BrowseItems", Localizer["Shift"]]" />
 </Stack>
-<ReservationsList OnClicked="@(id => NavigationManager.NavigateTo($"/Reservations/{id}"))" />
+<ReservationsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.Reservation(id)))" />
 
 @code {
     protected override void OnInitialized() => NavService.EnableSearch();

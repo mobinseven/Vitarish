@@ -92,7 +92,7 @@
     {
         if (Context.SelectedPatient is not null)
         {
-            NavigationManager.NavigateTo($"/Medical/Patients/{Context.SelectedPatient.Id}");
+            NavigationManager.NavigateTo(AppRoutes.Medical.Patient(Context.SelectedPatient.Id));
         }
     }
 }

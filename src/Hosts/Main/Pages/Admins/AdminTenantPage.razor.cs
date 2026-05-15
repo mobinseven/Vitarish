@@ -1,4 +1,5 @@
 using Vitarish.Parties.Domain.Dtos;
+using Vitarish.Interfaces.Base.Common;
 
 namespace Vitarish.Main.Pages.Admins;
 
@@ -9,7 +10,7 @@ public partial class AdminTenantPage
 
     private Guid tenantGuid;
     private TenantReadDto? Tenant;
-    private void Back() => NavigationManager.NavigateTo($"/Admin/Owners/{OwnerId}");
+    private void Back() => NavigationManager.NavigateTo(AppRoutes.Admin.Owner(OwnerId));
     protected override async Task ReloadRequired()
     {
         if (TenantId is null)

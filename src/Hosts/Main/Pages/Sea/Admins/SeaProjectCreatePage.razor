@@ -1,8 +1,8 @@
-@page "/sea/Projects/New"
+@attribute [Route(AppRoutes.Sea.ProjectNew)]
 
 <CascadingValue Value="IsAdmin">
 
-    <ProjectEditForm OnCreate="@(projectId => NavigationManager.NavigateTo($"/sea/Projects/{projectId}"))"
-                     OnCancel="@(() => NavigationManager.NavigateTo($"/sea/Projects/"))" />
+    <ProjectEditForm OnCreate="@(projectId => NavigationManager.NavigateTo(AppRoutes.Sea.Project(projectId)))"
+                     OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Projects))" />
 
 </CascadingValue>

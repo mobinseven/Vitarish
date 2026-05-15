@@ -1,4 +1,4 @@
-@page "/sea/Projects/{projectId}"
+@attribute [Route(AppRoutes.Sea.ProjectTemplate)]
 
 @if(Project is null)
 {
@@ -8,12 +8,12 @@
 <CascadingValue Value="IsAdmin">
 
     <ProceduresGrid Project="@Project"
-                    OnClicked="@(procedureId => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}"))"
-                    OnCreated="@(procedureId => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}"))" />
+                    OnClicked="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Sea.Procedure(projectId, procedureId)))"
+                    OnCreated="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Sea.Procedure(projectId, procedureId)))" />
 
     <ProjectDetails Project="@Project"
-                    OnEdit="@(projectId =>NavigationManager.NavigateTo($"/sea/Projects/Edit/{projectId}"))"
-                    OnDeleted="@(() => NavigationManager.NavigateTo("/sea/Projects"))" />
+                    OnEdit="@(projectId =>NavigationManager.NavigateTo(AppRoutes.Sea.ProjectEdit(projectId)))"
+                    OnDeleted="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Projects))" />
 
 </CascadingValue>
 
@@ -45,7 +45,7 @@
 
         if(ProjectId == Guid.Empty)
         {
-            NavigationManager.NavigateTo("/sea/Projects");
+            NavigationManager.NavigateTo(AppRoutes.Sea.Projects);
             return;
         }
 
@@ -53,7 +53,7 @@
 
         if(Project is null)
         {
-            NavigationManager.NavigateTo("/sea/Projects");
+            NavigationManager.NavigateTo(AppRoutes.Sea.Projects);
             return;
         }
 

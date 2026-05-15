@@ -1,4 +1,4 @@
-@page "/Medical/Patients/{patientId}"
+@attribute [Route(AppRoutes.Medical.PatientTemplate)]
 
 @inject IEnumerable<IMedicalPatientSectionPlugin> PatientSectionPlugins
 
@@ -10,14 +10,14 @@
 <CascadingValue Value="IsAdmin">
 
     <PatientDetails Project="@patient"
-                    OnEdit="@(id => NavigationManager.NavigateTo($"/Medical/Patients/{id}/Edit"))"
-                    OnDeleted="@(() => NavigationManager.NavigateTo("/Medical/Patients"))" />
+                    OnEdit="@(id => NavigationManager.NavigateTo(AppRoutes.Medical.PatientEdit(id)))"
+                    OnDeleted="@(() => NavigationManager.NavigateTo(AppRoutes.Medical.Patients))" />
 
     <ProceduresGrid Project="@patient"
-                    OnClicked="@(procedureId => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}/{procedureId}"))"
-                    OnCreated="@(procedureId => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}/{procedureId}"))" />
+                    OnClicked="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Medical.PatientProcedure(patientId, procedureId)))"
+                    OnCreated="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Medical.PatientProcedure(patientId, procedureId)))" />
 
-    <PatientAppointmentsPanel Patient="@patient" OnEdit="@(() => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}/Edit"))" />
+    <PatientAppointmentsPanel Patient="@patient" OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Medical.PatientEdit(patientId)))" />
 
     @* <PatientRemindersPanel PatientId="@patient.Id" /> *@
 
@@ -41,7 +41,7 @@
     {
         if(!Guid.TryParse(patientId, out Guid id))
         {
-            NavigationManager.NavigateTo("/Medical/Patients");
+            NavigationManager.NavigateTo(AppRoutes.Medical.Patients);
             return;
         }
 
@@ -49,7 +49,7 @@
 
         if(patient is null)
         {
-            NavigationManager.NavigateTo("/Medical/Patients");
+            NavigationManager.NavigateTo(AppRoutes.Medical.Patients);
             return;
         }
 

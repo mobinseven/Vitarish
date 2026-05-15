@@ -1,8 +1,8 @@
-@page "/Admin/Shifts"
+@attribute [Route(AppRoutes.Appointments.AdminShifts)]
 
 <CascadingValue Value="IsAdmin">
-    <ShiftsList OnClicked="@(id => NavigationManager.NavigateTo($"/Admin/Shifts/{id}"))"
-                  OnAdd="@(dayOfWeek => NavigationManager.NavigateTo($"/Admin/Shifts/New/{(dayOfWeek is null ? string.Empty : (int)dayOfWeek)}"))" />
+    <ShiftsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(id)))"
+                  OnAdd="@(dayOfWeek => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShiftCreateForDay(dayOfWeek is null ? null : (int)dayOfWeek)))" />
 </CascadingValue>
 
 @code {

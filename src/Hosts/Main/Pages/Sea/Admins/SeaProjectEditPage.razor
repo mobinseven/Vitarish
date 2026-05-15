@@ -1,15 +1,15 @@
 @inherits SeaProjectPage
 
-@page "/sea/Projects/Edit/{projectId}"
+@attribute [Route(AppRoutes.Sea.ProjectEditTemplate)]
 
 @if(initialized)
 {
     <CascadingValue Value="IsAdmin">
 
         <ProjectEditForm Project="Project"
-                         OnUpdate="@(projectId => NavigationManager.NavigateTo($"/sea/Projects/{projectId}"))"
-                         OnCreate="@(projectId => NavigationManager.NavigateTo($"/sea/Projects/{projectId}"))"
-                         OnCancel="@(() => NavigationManager.NavigateTo($"/sea/Projects/{projectId}"))" />
+                         OnUpdate="@(projectId => NavigationManager.NavigateTo(AppRoutes.Sea.Project(projectId)))"
+                         OnCreate="@(projectId => NavigationManager.NavigateTo(AppRoutes.Sea.Project(projectId)))"
+                         OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Project(projectId)))" />
 
     </CascadingValue>
 

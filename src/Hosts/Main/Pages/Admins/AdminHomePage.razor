@@ -1,9 +1,9 @@
-@page "/Admin"
+@attribute [Route(AppRoutes.Admin.Home)]
 @inherits AdminCommonBase
 
 <Stack>
-    <StackButton Label="@Localizer["Users"]" Href="/Admin/Users" StartIcon="fa-regular fa-users" />
-    <StackButton Label="@Localizer["Owners"]" Href="/Admin/Owners" StartIcon="fa-regular fa-users-crown" />
-    <StackButton Label="@Localizer["Search"]" Href="/Admin/Search" StartIcon="fa-regular fa-magnifying-glass-chart" />
-    <StackButton Label="@Localizer["Communications"]" Href="/Admin/Communications" EndIcon="fa-regular fa-messages" />
+    <StackButton Label="@Localizer["Users"]" Href="@AppRoutes.Admin.Users" StartIcon="fa-regular fa-users" />
+    <StackButton Label="@Localizer["Owners"]" Href="@AppRoutes.Admin.Owners" StartIcon="fa-regular fa-users-crown" />
+    <StackButton Label="@Localizer["Search"]" Href="@AppRoutes.Admin.Search" StartIcon="fa-regular fa-magnifying-glass-chart" />
+    <StackButton Label="@Localizer["Communications"]" Href="@AppRoutes.Admin.Communications" EndIcon="fa-regular fa-messages" />
 </Stack>

@@ -1,4 +1,4 @@
-@page "/Medical/Patients"
+@attribute [Route(AppRoutes.Medical.Patients)]
 
 @using Vitarish.Medical.Interface.Components.CheckIn
 
@@ -7,13 +7,13 @@
         @if (IsAdmin)
         {
             <StackButton Label="@Localizer["CheckInPatient"]"
-                         Href="/Medical/CheckIn"
+                         Href="@AppRoutes.Medical.CheckIn"
                          EndIcon="fa-regular fa-person-walking-arrow-right"
                          Color="Color.Primary" />
         }
     </Stack>
-    <PatientsGrid OnClicked="@(id => NavigationManager.NavigateTo($"/Medical/Patients/{id}"))"
-                  OnAdd="@(() => NavigationManager.NavigateTo("/Medical/Patients/New"))" />
+    <PatientsGrid OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Medical.Patient(id)))"
+                  OnAdd="@(() => NavigationManager.NavigateTo(AppRoutes.Medical.PatientNew))" />
 </CascadingValue>
 
 @code {

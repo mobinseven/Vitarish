@@ -1,4 +1,4 @@
-@page "/Account/Login/Passkey"
+@attribute [Route(AppRoutes.Account.LoginPasskey)]
 @inherits LoginBase
 @attribute [RequireAntiforgeryToken]
 
@@ -7,7 +7,7 @@
 <AntiforgeryToken />
 <WebAuthnLoginForm @rendermode=@InteractiveServer />
 <Stack>
-    <StackButton Label="@Localizer["LoginVia", Localizer["Phone"]]" EndIcon="fa-regular fa-phone" Href="Account/Login/Phone" />
-    <StackButton Label="@Localizer["LoginVia", Localizer["Email"]]" EndIcon="fa-regular fa-at" Href="Account/Login/Email" />
-    <StackButton Label="@Localizer["LoginVia", Localizer["Password"]]" EndIcon="fa-regular fa-asterisk" Href="Account/Login/Password" />
+    <StackButton Label="@Localizer["LoginVia", Localizer["Phone"]]" EndIcon="fa-regular fa-phone" Href="@AppRoutes.Account.LoginPhone" />
+    <StackButton Label="@Localizer["LoginVia", Localizer["Email"]]" EndIcon="fa-regular fa-at" Href="@AppRoutes.Account.LoginEmail" />
+    <StackButton Label="@Localizer["LoginVia", Localizer["Password"]]" EndIcon="fa-regular fa-asterisk" Href="@AppRoutes.Account.LoginPassword" />
 </Stack>

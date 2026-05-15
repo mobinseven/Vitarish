@@ -1,5 +1,5 @@
 @inherits AdminCommonBase
-@page "/Admin/Owners/{OwnerId}/{TenantId}"
+@attribute [Route(AppRoutes.Admin.OwnerTenantTemplate)]
 
 @if(Tenant is null)
 {

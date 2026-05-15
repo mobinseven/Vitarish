@@ -4,6 +4,6 @@
 
     protected override void OnInitialized()
     {
-        Nav.NavigateTo($"/Account/Unauthorized?RequestedPath={new Uri(Nav.Uri).PathAndQuery}");
+        Nav.NavigateTo(AppRoutes.Account.UnauthorizedWithRequestedPath(new Uri(Nav.Uri).PathAndQuery));
     }
 }

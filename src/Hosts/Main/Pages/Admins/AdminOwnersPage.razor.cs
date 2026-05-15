@@ -1,3 +1,4 @@
+using Vitarish.Interfaces.Base.Common;
 using Vitarish.Parties.Domain.Dtos;
 
 namespace Vitarish.Main.Pages.Admins;
@@ -16,6 +17,6 @@ public partial class AdminOwnersPage
             Snackbar.Add(Localizer["Error"], Severity.Error);
             return;
         }
-        NavigationManager.NavigateTo($"/Admin/Owners/{added.Id}");
+        NavigationManager.NavigateTo(AppRoutes.Admin.Owner(added.Id));
     }
 }

@@ -1,4 +1,4 @@
-@page "/Settings"
+@attribute [Route(AppRoutes.Account.Settings)]
 @inherits IdentityCommonBase
 
 @if(User is null)
@@ -10,34 +10,34 @@
         <Stack>
             <StackButton Label="@Localizer["Admin"]"
                          StartIcon="fa-regular fa-user-shield"
-                         OnClick="@(() => NavigationManager.NavigateTo("/Admin"))" />
+                         OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Admin.Home))" />
         </Stack>
     </AuthorizeView>
     <Stack>
         <StackField Label="@Localizer["DetailsOf", Localizer["Account"]]">
             <MudText Typo="Typo.body2" Color="Color.Secondary">@User?.UserName</MudText>
         </StackField>
-        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/Name"))"
+        <StackButton OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.SettingsName))"
                      StartIcon="fa-regular fa-person"
                      Label="@Localizer["Name"]">
             @User?.FullName
         </StackButton>
-        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/Email"))"
+        <StackButton OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.SettingsEmail))"
                      StartIcon="fa-regular fa-envelope"
                      Label="@Localizer["Email"]">
             @User?.Email
         </StackButton>
-        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/Phone"))"
+        <StackButton OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.SettingsPhone))"
                      StartIcon="fa-regular fa-mobile"
                      Label="@Localizer["PhoneNumber"]">
             @User?.PhoneNumber
         </StackButton>
-        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/Password"))"
+        <StackButton OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.SettingsPassword))"
                      StartIcon="fa-regular fa-lock"
                      Label="@Localizer["EditPassword"]">
             ***********
         </StackButton>
-        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/Passkeys"))"
+        <StackButton OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.SettingsPasskeys))"
                      StartIcon="fa-regular fa-key"
                      Label="@Localizer["Passkeys"]">
             
@@ -50,7 +50,7 @@
     </Stack>
     <Stack>
 
-        <StackButton OnClick="@(() => NavigationManager.NavigateTo("/Settings/Appearance"))"
+        <StackButton OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.SettingsAppearance))"
                      StartIcon="fa-regular fa-paint-brush-alt"
                      Label="@Localizer["Appearance"]" />
     </Stack>
@@ -61,6 +61,6 @@
         <StackButton Label="@Localizer["Logout"]"
                      Color="Color.Error"
                      EndIcon="fa-regular fa-sign-out-alt"
-                     OnClick="@(() => NavigationManager.NavigateTo("/Account/Signout"))" />
+                     OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.Logout))" />
     </Stack>
 </MudStack>

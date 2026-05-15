@@ -1,4 +1,4 @@
-@page "/Medical/Patients/{patientId}/{procedureId}"
+@attribute [Route(AppRoutes.Medical.PatientProcedureTemplate)]
 
 @inject IEnumerable<IMedicalProcedureSectionPlugin> ProcedureSectionPlugins
 
@@ -9,13 +9,13 @@
 
 <CascadingValue Value="IsAdmin">
     <EventsGrid Project="@patient"
-                EventClicked="@(id => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}/{procedureId}/{id}"))"
+                EventClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Medical.PatientEvent(patientId, procedureId, id)))"
                 Procedure="@procedure"
                 OnUpdate="ReloadRequired" />
     <ProcedureDetails Procedure="@procedure"
                       Project="@patient"
                       OnUpdate="ReloadRequired"
-                      OnDelete="@(() => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}"))" />
+                      OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Medical.Patient(patientId)))" />
 
     @foreach (var plugin in ProcedureSectionPlugins)
     {
@@ -40,7 +40,7 @@
 
         if (patientGuid == Guid.Empty)
         {
-            NavigationManager.NavigateTo("/Medical/Patients");
+            NavigationManager.NavigateTo(AppRoutes.Medical.Patients);
             return;
         }
 
@@ -48,7 +48,7 @@
 
         if (patient is null)
         {
-            NavigationManager.NavigateTo("/Medical/Patients");
+            NavigationManager.NavigateTo(AppRoutes.Medical.Patients);
             return;
         }
 
@@ -56,7 +56,7 @@
 
         if (procedure is null)
         {
-            NavigationManager.NavigateTo($"/Medical/Patients/{patientId}");
+            NavigationManager.NavigateTo(AppRoutes.Medical.Patient(patientId));
             return;
         }
 
