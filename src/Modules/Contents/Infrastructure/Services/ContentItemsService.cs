@@ -92,8 +92,9 @@ internal sealed class ContentItemsService(
     {
         int nextVersion = await dbContext.ContentRevisions
             .Where(r => r.ContentId == contentId)
-            .Select(r => (int?)r.Version)
-            .MaxAsync(cancellationToken) ?? 0;
+            .Select(r => r.Version)
+            .DefaultIfEmpty(0)
+            .MaxAsync(cancellationToken);
 
         string snapshot = JsonSerializer.Serialize(new
         {
