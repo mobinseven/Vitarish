@@ -12,24 +12,23 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "SessionReservationLocks",
+                name: "ShiftReservationLocks",
                 columns: table => new
                 {
-                    SessionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ShiftId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Date = table.Column<DateOnly>(type: "date", nullable: false),
                     TenantId = table.Column<string>(type: "nvarchar(450)", nullable: false)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SessionReservationLocks", x => new { x.TenantId, x.SessionId, x.Date });
+                    table.PrimaryKey("PK_ShiftReservationLocks", x => new { x.TenantId, x.ShiftId, x.Date });
                 });
 
             migrationBuilder.CreateTable(
-                name: "Sessions",
+                name: "Shifts",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Title = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
                     Visibility = table.Column<int>(type: "int", nullable: false),
                     DayOfWeek = table.Column<int>(type: "int", nullable: false),
@@ -48,7 +47,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Sessions", x => x.Id);
+                    table.PrimaryKey("PK_Shifts", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -57,7 +56,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Status = table.Column<int>(type: "int", nullable: false),
-                    SessionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ShiftId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Date = table.Column<DateOnly>(type: "date", nullable: false),
                     ReservingPartyId = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     ConfirmedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
@@ -76,18 +75,18 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                 {
                     table.PrimaryKey("PK_Reservations", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_Reservations_Sessions_SessionId",
-                        column: x => x.SessionId,
-                        principalTable: "Sessions",
+                        name: "FK_Reservations_Shifts_ShiftId",
+                        column: x => x.ShiftId,
+                        principalTable: "Shifts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "SessionBookingPolicies",
+                name: "ShiftBookingPolicies",
                 columns: table => new
                 {
-                    SessionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ShiftId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     BookingOpensBefore = table.Column<TimeSpan>(type: "time", nullable: true),
                     BookingCloseBefore = table.Column<TimeSpan>(type: "time", nullable: true),
@@ -99,21 +98,21 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SessionBookingPolicies", x => x.SessionId);
+                    table.PrimaryKey("PK_ShiftBookingPolicies", x => x.ShiftId);
                     table.ForeignKey(
-                        name: "FK_SessionBookingPolicies_Sessions_SessionId",
-                        column: x => x.SessionId,
-                        principalTable: "Sessions",
+                        name: "FK_ShiftBookingPolicies_Shifts_ShiftId",
+                        column: x => x.ShiftId,
+                        principalTable: "Shifts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateTable(
-                name: "SessionReminderPolicies",
+                name: "ShiftReminderPolicies",
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    SessionId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    ShiftId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     IsEnabled = table.Column<bool>(type: "bit", nullable: false),
                     Channel = table.Column<int>(type: "int", nullable: false),
                     OffsetBefore = table.Column<TimeSpan>(type: "time", nullable: false),
@@ -123,24 +122,24 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_SessionReminderPolicies", x => x.Id);
+                    table.PrimaryKey("PK_ShiftReminderPolicies", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_SessionReminderPolicies_Sessions_SessionId",
-                        column: x => x.SessionId,
-                        principalTable: "Sessions",
+                        name: "FK_ShiftReminderPolicies_Shifts_ShiftId",
+                        column: x => x.ShiftId,
+                        principalTable: "Shifts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_Reservations_SessionId_Date",
+                name: "IX_Reservations_ShiftId_Date",
                 table: "Reservations",
-                columns: new[] { "SessionId", "Date" });
+                columns: new[] { "ShiftId", "Date" });
 
             migrationBuilder.CreateIndex(
-                name: "IX_SessionReminderPolicies_SessionId",
-                table: "SessionReminderPolicies",
-                column: "SessionId");
+                name: "IX_ShiftReminderPolicies_ShiftId",
+                table: "ShiftReminderPolicies",
+                column: "ShiftId");
         }
 
         /// <inheritdoc />
@@ -150,16 +149,16 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                 name: "Reservations");
 
             migrationBuilder.DropTable(
-                name: "SessionBookingPolicies");
+                name: "ShiftBookingPolicies");
 
             migrationBuilder.DropTable(
-                name: "SessionReminderPolicies");
+                name: "ShiftReminderPolicies");
 
             migrationBuilder.DropTable(
-                name: "SessionReservationLocks");
+                name: "ShiftReservationLocks");
 
             migrationBuilder.DropTable(
-                name: "Sessions");
+                name: "Shifts");
         }
     }
 }
