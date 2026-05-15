@@ -11,6 +11,7 @@ public sealed class NavService : INavService, IDisposable
     private readonly IRenderNotifier renderNotifier;
     private readonly IStringLocalizer localizer;
     private readonly NavigationManager navigationManager;
+    private readonly NavServiceRoutes routes;
     private List<Breadcrumb>? breadcrumbs;
     private string CurrentLocation => navigationManager.ToBaseRelativePath(navigationManager.Uri.RemoveAllQueryParams()).TrimEnd('/');
     public Breadcrumb[] Breadcrumbs => breadcrumbs?.ToArray() ?? [];
@@ -29,11 +30,16 @@ public sealed class NavService : INavService, IDisposable
         }
     }
 
-    public NavService(NavigationManager navigationManager, IStringLocalizer localizer, IRenderNotifier renderNotifier)
+    public NavService(
+        NavigationManager navigationManager,
+        IStringLocalizer localizer,
+        IRenderNotifier renderNotifier,
+        NavServiceRoutes routes)
     {
         this.renderNotifier = renderNotifier;
         this.localizer = localizer;
         this.navigationManager = navigationManager;
+        this.routes = routes;
         GenerateCurrentBreadcrumbs();
         navigationManager.LocationChanged += HandleLocationChanged;
     }
@@ -66,7 +72,7 @@ public sealed class NavService : INavService, IDisposable
             return;
         }
         string[] subs = CurrentLocation.Split('/');
-        breadcrumbs = [new Breadcrumb { Path = AppRoutes.Home, Text = localizer["Dashboard"] }];
+        breadcrumbs = [new Breadcrumb { Path = "/", Text = localizer["Dashboard"] }];
         string path = string.Empty;
         foreach (string sub in subs)
         {
@@ -100,13 +106,13 @@ public sealed class NavService : INavService, IDisposable
             ? absolutePath.TrimEnd('/')
             : absolutePath;
 
-        if (string.IsNullOrEmpty(normalizedPath) || normalizedPath == AppRoutes.Home)
+        if (string.IsNullOrEmpty(normalizedPath) || normalizedPath == "/")
         {
-            navigationManager.NavigateTo(AppRoutes.Home);
+            navigationManager.NavigateTo("/");
         }
 
         int lastSlashIndex = normalizedPath.LastIndexOf('/');
-        string parentPath = lastSlashIndex <= 0 ? AppRoutes.Home : normalizedPath[..lastSlashIndex];
+        string parentPath = lastSlashIndex <= 0 ? "/" : normalizedPath[..lastSlashIndex];
         navigationManager.NavigateTo(parentPath);
     }
 
@@ -117,6 +123,6 @@ public sealed class NavService : INavService, IDisposable
     }
 
     public void Back() => NavigateUpOneLevel();
-    public void Home() => navigationManager.NavigateTo(AppRoutes.Home);
-    public void Profile() => navigationManager.NavigateTo(AppRoutes.Account.Settings);
+    public void Home() => navigationManager.NavigateTo("/");
+    public void Profile() => navigationManager.NavigateTo(routes.ProfileRoute);
 }

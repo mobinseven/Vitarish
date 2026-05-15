@@ -14,6 +14,7 @@ public partial class CurrentUserTenantsWidget : CommonBase
 
     [Inject] private IUserService UserService { get; set; } = default!;
     [Inject] private IPartiesService PartiesService { get; set; } = default!;
+    [Parameter] public EventCallback<string> OnTenantNavigate { get; set; }
 
     protected override async Task ReloadRequired()
     {
@@ -44,10 +45,10 @@ public partial class CurrentUserTenantsWidget : CommonBase
         }
     }
 
-    private void NavigateToTenant(Guid id)
+    private Task NavigateToTenant(Guid id)
     {
         string url = $"https://{tenantsIndicators[id].Value}/{tenants[id].AppId}";
-        NavigationManager.NavigateTo(url, forceLoad: true);
+        return OnTenantNavigate.InvokeAsync(url);
     }
     private static List<Guid> ParseTenantRoles(IEnumerable<string> roles)
     {

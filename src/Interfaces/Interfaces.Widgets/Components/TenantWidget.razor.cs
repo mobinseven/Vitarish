@@ -7,6 +7,7 @@ namespace Vitarish.Interfaces.Widgets.Components;
 public partial class TenantWidget
 {
     [Inject] protected IPartiesService PartiesService { get; set; } = default!;
+    [Parameter] public EventCallback<string> OnTenantNavigate { get; set; }
 
     protected TenantReadDto? Tenant;
     protected override async Task OnInitializedAsync()
@@ -16,6 +17,10 @@ public partial class TenantWidget
         {
             Tenant = await PartiesService.GetTenantAsync(Guid.Parse(RequestContext.TenantId));
         }
-        StateHasChanged();
+
+        if (Tenant is not null)
+        {
+            await OnTenantNavigate.InvokeAsync(Tenant.AppId);
+        }
     }
 }

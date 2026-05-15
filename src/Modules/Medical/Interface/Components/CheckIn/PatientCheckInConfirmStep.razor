@@ -10,7 +10,7 @@
         <StackField Label="@Localizer["Patient"]" />
         <StackButton Label="@Context.SelectedPatient.Name"
                      EndIcon="fa-regular fa-user"
-                     OnClick="GoToPatient" />
+                     OnClick="HandleGoToPatientAsync" />
     }
 
     @if (Context.Outcome == CheckInOutcome.CurrentShift)
@@ -46,7 +46,7 @@
         <StackButton Label="@Localizer["GoToPatient"]"
                      EndIcon="fa-regular fa-arrow-right"
                      Color="Color.Primary"
-                     OnClick="GoToPatient" />
+                     OnClick="HandleGoToPatientAsync" />
     }
 
     <StackButton Label="@Localizer["StartAnotherCheckIn"]"
@@ -57,6 +57,7 @@
 @code {
     [Parameter, EditorRequired] public PatientCheckInContext Context { get; set; } = default!;
     [Parameter] public EventCallback OnStartAnother { get; set; }
+    [Parameter] public EventCallback<Guid> OnGoToPatient { get; set; }
 
     private string GetOutcomeHelperText()
     {
@@ -88,11 +89,10 @@
         return $"{Context.SelectedOccurrence.Date:d} {Context.SelectedOccurrence.StartTime:t}–{Context.SelectedOccurrence.EndTime:t}";
     }
 
-    private void GoToPatient()
+    private Task HandleGoToPatientAsync()
     {
-        if (Context.SelectedPatient is not null)
-        {
-            NavigationManager.NavigateTo(AppRoutes.Medical.Patient(Context.SelectedPatient.Id));
-        }
+        return Context.SelectedPatient is null
+            ? Task.CompletedTask
+            : OnGoToPatient.InvokeAsync(Context.SelectedPatient.Id);
     }
 }

@@ -2,9 +2,5 @@
 
 @if(Tenant is null)
 {
-    <CurrentUserTenantsWidget />
-}
-else
-{
-    NavigationManager.NavigateTo(Tenant.AppId);
+    <CurrentUserTenantsWidget OnTenantNavigate="OnTenantNavigate" />
 }

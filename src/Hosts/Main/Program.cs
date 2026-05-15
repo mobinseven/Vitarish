@@ -18,6 +18,7 @@ using Vitarish.Main.Infrastructure.Handlers;
 using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Modules.Base;
+using Vitarish.Interfaces.Base.Services;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Hosting.DependencyInjection;
 using Vitarish.Parties.Infrastructure.Data;
@@ -121,6 +122,7 @@ _ = builder.Services.AddMultiTenant<TenantInfo>()
 
 builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
 builder.Services.AddVitarishInterfacesBase();
+_ = builder.Services.AddSingleton(new NavServiceRoutes { ProfileRoute = AppRoutes.Account.Settings });
 
 builder.Services.AddSingleton<IAppsProvider, AppsProvider>();
 

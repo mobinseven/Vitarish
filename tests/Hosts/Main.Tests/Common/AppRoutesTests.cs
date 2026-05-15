@@ -1,6 +1,7 @@
-using Vitarish.Interfaces.Base.Common;
+using FluentAssertions;
+using Vitarish.Main.Common;
 
-namespace Vitarish.Interfaces.Base.Tests.Common;
+namespace Main.Tests.Common;
 
 public class AppRoutesTests
 {

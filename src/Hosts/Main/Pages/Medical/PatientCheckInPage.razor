@@ -22,6 +22,7 @@
 
         case CheckInStep.Confirm:
             <PatientCheckInConfirmStep Context="context"
+                                       OnGoToPatient="GoToPatient"
                                        OnStartAnother="RestartAsync" />
             break;
     }
@@ -64,6 +65,12 @@
         context.Reset();
         patientSearchContext.Reset();
         patientCreateContext.Reset();
+        return Task.CompletedTask;
+    }
+
+    private Task GoToPatient(Guid patientId)
+    {
+        NavigationManager.NavigateTo(AppRoutes.Medical.Patient(patientId));
         return Task.CompletedTask;
     }
 }
