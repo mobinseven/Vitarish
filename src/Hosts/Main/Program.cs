@@ -6,6 +6,7 @@ using Vitarish.Apps.Aggregator;
 using Vitarish.Audit.Server;
 using Vitarish.Commerce.Infrastructure.Data;
 using Vitarish.Communications.Infrastructure.Data;
+using Vitarish.Contents.Infrastructure.Data;
 using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Feed.Infrastructure;
@@ -143,6 +144,7 @@ _ = await app.MigrateDatabaseAsync<AuditDbContext>();
 _ = await app.MigrateDatabaseAsync<AppointmentsDbContext>();
 //_ = await app.MigrateDatabaseAsync<CalendarDbContext>();
 _ = await app.MigrateDatabaseAsync<CommerceDbContext>();
+_ = await app.MigrateDatabaseAsync<ContentsDbContext>();
 
 CookiePolicyOptions cookiePolicyOptions = new()
 {
