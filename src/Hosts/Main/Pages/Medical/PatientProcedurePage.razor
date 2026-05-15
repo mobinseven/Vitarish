@@ -9,13 +9,13 @@
 
 <CascadingValue Value="IsAdmin">
     <EventsGrid Project="@patient"
-                EventClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Medical.PatientEvent(patientId, procedureId, id)))"
+                EventClicked="@(id => { if (id.HasValue) NavigationManager.NavigateTo(AppRoutes.Medical.PatientEvent(_patientGuid, _procedureGuid, id.Value)); })"
                 Procedure="@procedure"
                 OnUpdate="ReloadRequired" />
     <ProcedureDetails Procedure="@procedure"
                       Project="@patient"
                       OnUpdate="ReloadRequired"
-                      OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Medical.Patient(patientId)))" />
+                      OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Medical.Patient(_patientGuid)))" />
 
     @foreach (var plugin in ProcedureSectionPlugins)
     {
@@ -32,19 +32,21 @@
 
     private ProjectReadDto? patient;
     private ProcedureReadDto? procedure;
+    private Guid _patientGuid;
+    private Guid _procedureGuid;
 
     protected override async Task ReloadRequired()
     {
-        Guid.TryParse(patientId, out Guid patientGuid);
-        Guid.TryParse(procedureId, out Guid procedureGuid);
+        Guid.TryParse(patientId, out _patientGuid);
+        Guid.TryParse(procedureId, out _procedureGuid);
 
-        if (patientGuid == Guid.Empty)
+        if (_patientGuid == Guid.Empty)
         {
             NavigationManager.NavigateTo(AppRoutes.Medical.Patients);
             return;
         }
 
-        patient = await ProjectsService.GetAsync(patientGuid, CancellationToken.None).GetValueOrDefaultAsync();
+        patient = await ProjectsService.GetAsync(_patientGuid, CancellationToken.None).GetValueOrDefaultAsync();
 
         if (patient is null)
         {
@@ -52,11 +54,11 @@
             return;
         }
 
-        procedure = await ProcedureService.GetAsync(procedureGuid, CancellationToken.None).GetValueOrDefaultAsync();
+        procedure = await ProcedureService.GetAsync(_procedureGuid, CancellationToken.None).GetValueOrDefaultAsync();
 
         if (procedure is null)
         {
-            NavigationManager.NavigateTo(AppRoutes.Medical.Patient(patientId));
+            NavigationManager.NavigateTo(AppRoutes.Medical.Patient(_patientGuid));
             return;
         }
 

@@ -8,7 +8,7 @@
 
 <CascadingValue Value="IsAdmin">
     <EventsGrid Project="@Project"
-                EventClicked=@(id => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateEvent(projectId, procedureId, id)))
+                EventClicked="@(id => { if (id.HasValue) NavigationManager.NavigateTo(AppRoutes.Sea.TemplateEvent(ProjectId, ProcedureId, id.Value)); })"
                 Procedure="Procedure" />
-    <ProcedureDetails Procedure="Procedure" Project="Project" OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProject(projectId)))" />
+    <ProcedureDetails Procedure="Procedure" Project="Project" OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProject(ProjectId)))" />
 </CascadingValue>

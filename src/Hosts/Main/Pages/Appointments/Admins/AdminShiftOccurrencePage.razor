@@ -1,0 +1,43 @@
+@attribute [Route(AppRoutes.Appointments.AdminShiftOccurrenceTemplate)]
+
+@if (shift is null)
+{
+    return;
+}
+
+<CascadingValue Value="IsAdmin">
+    <ShiftDetail Shift="@shift"
+                   OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShiftEdit(_shiftId)))"
+                   OnDeleted="Back"
+                   OnStatusChanged="ReloadRequired"
+                   OnShiftOccurrenceSelected="@(_ => { })" />
+</CascadingValue>
+
+@code {
+    [Parameter] public string? shiftId { get; set; }
+
+    private ShiftReadDto? shift;
+    private Guid _shiftId;
+
+    private void Back() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(_shiftId));
+
+    protected override async Task ReloadRequired()
+    {
+        if (!Guid.TryParse(shiftId, out _shiftId))
+        {
+            NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShifts);
+            return;
+        }
+
+        shift = await ShiftManager.GetAsync(_shiftId, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (shift is null)
+        {
+            NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShifts);
+            return;
+        }
+
+        NavService.OverridePageTitle(_shiftId.ToString(), Localizer["Shift"]);
+        await InvokeAsync(StateHasChanged);
+    }
+}

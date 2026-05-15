@@ -7,10 +7,10 @@
 
 <CascadingValue Value="IsAdmin">
     <EventsGrid Project="@Project"
-                EventClicked=@(id => NavigationManager.NavigateTo(AppRoutes.Sea.Event(projectId, procedureId, id)))
+                EventClicked="@(id => { if (id.HasValue) NavigationManager.NavigateTo(AppRoutes.Sea.Event(ProjectId, ProcedureId, id.Value)); })"
                 Procedure="Procedure"
                 OnUpdate="ReloadRequired" />
-    <ProcedureDetails Procedure="Procedure" Project="Project" OnUpdate="ReloadRequired" OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Project(projectId)))" />
+    <ProcedureDetails Procedure="Procedure" Project="Project" OnUpdate="ReloadRequired" OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Project(ProjectId)))" />
 </CascadingValue>
 
 @code {
@@ -47,7 +47,7 @@
 
         if(Procedure is null)
         {
-            NavigationManager.NavigateTo(AppRoutes.Sea.Project(projectId));
+            NavigationManager.NavigateTo(AppRoutes.Sea.Project(ProjectId));
             return;
         }
 

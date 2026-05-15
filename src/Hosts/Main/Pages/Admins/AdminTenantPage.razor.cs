@@ -9,8 +9,10 @@ public partial class AdminTenantPage
     [Parameter] public string? OwnerId { get; set; }
 
     private Guid tenantGuid;
+    private Guid _ownerGuid;
     private TenantReadDto? Tenant;
-    private void Back() => NavigationManager.NavigateTo(AppRoutes.Admin.Owner(OwnerId));
+    private void Back() => NavigationManager.NavigateTo(
+        _ownerGuid != Guid.Empty ? AppRoutes.Admin.Owner(_ownerGuid) : AppRoutes.Admin.Owners);
     protected override async Task ReloadRequired()
     {
         if (TenantId is null)
@@ -19,6 +21,7 @@ public partial class AdminTenantPage
             return;
         }
         tenantGuid = Guid.Parse(TenantId);
+        Guid.TryParse(OwnerId, out _ownerGuid);
 
         Tenant = await PartiesService.GetTenantAsync(tenantGuid);
 
