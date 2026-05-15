@@ -7,7 +7,7 @@
 
 <CascadingValue Value="IsAdmin">
     <EventDetails Event="Event" Procedure="Procedure" Project="Project"
-                  OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Procedure(projectId, procedureId)))"
+                  OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Procedure(ProjectId, ProcedureId)))"
                   OnUpdate="ReloadRequired" />
     <EventItemsTimeline Event="Event" Procedure="Procedure" Project="Project" />
 </CascadingValue>
@@ -51,7 +51,7 @@
 
         if(Procedure is null)
         {
-            NavigationManager.NavigateTo(AppRoutes.Sea.Project(projectId));
+            NavigationManager.NavigateTo(AppRoutes.Sea.Project(ProjectId));
             return;
         }
 
@@ -59,7 +59,7 @@
 
         if(Event is null)
         {
-            NavigationManager.NavigateTo(AppRoutes.Sea.Procedure(projectId, procedureId));
+            NavigationManager.NavigateTo(AppRoutes.Sea.Procedure(ProjectId, ProcedureId));
             return;
         }
 

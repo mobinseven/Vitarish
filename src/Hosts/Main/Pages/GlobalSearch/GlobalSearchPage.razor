@@ -1,0 +1,11 @@
+@attribute [Route(AppRoutes.Search.Global)]
+@attribute [Route(AppRoutes.Search.ScopedTemplate)]
+@inherits CommonBase
+
+@code {
+    [Parameter] public string? scope { get; set; }
+
+    [Parameter]
+    [SupplyParameterFromQuery(Name = AppRoutes.QueryKeys.Q)]
+    public string? Query { get; set; }
+}

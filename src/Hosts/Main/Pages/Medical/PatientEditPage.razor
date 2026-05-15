@@ -7,7 +7,7 @@
         <PatientEditForm Project="patient"
                          OnUpdate="@(id => NavigationManager.NavigateTo(AppRoutes.Medical.Patient(id)))"
                          OnCreate="@(id => NavigationManager.NavigateTo(AppRoutes.Medical.Patient(id)))"
-                         OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Medical.Patient(patientId)))" />
+                         OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Medical.Patient(_id)))" />
 
     </CascadingValue>
 }
@@ -16,6 +16,7 @@
     [Parameter] public string? patientId { get; set; }
 
     private ProjectReadDto? patient;
+    private Guid _id;
     private bool initialized;
 
     private void Back()
@@ -25,13 +26,13 @@
 
     protected override async Task ReloadRequired()
     {
-        if (!Guid.TryParse(patientId, out Guid id))
+        if (!Guid.TryParse(patientId, out _id))
         {
             Back();
             return;
         }
 
-        patient = await ProjectsService.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+        patient = await ProjectsService.GetAsync(_id, CancellationToken.None).GetValueOrDefaultAsync();
 
         if (patient is null)
         {

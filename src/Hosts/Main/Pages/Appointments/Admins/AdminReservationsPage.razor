@@ -1,5 +1,4 @@
 @attribute [Route(AppRoutes.Appointments.AdminReservations)]
-@attribute [Route(AppRoutes.Appointments.LegacyAdminReservations)]
 
 <CascadingValue Value="IsAdmin">
     <ReservationsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminReservation(id)))" />

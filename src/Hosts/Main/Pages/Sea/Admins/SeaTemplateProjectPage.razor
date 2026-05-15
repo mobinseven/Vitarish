@@ -10,8 +10,8 @@
 <CascadingValue Value="IsAdmin">
 
     <ProceduresGrid Project="@Project"
-                    OnClicked="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProcedure(projectId, procedureId)))"
-                    OnCreated="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProcedure(projectId, procedureId)))" />
+                    OnClicked="@(procedureId => { if (procedureId.HasValue) NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProcedure(ProjectId, procedureId.Value)); })"
+                    OnCreated="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProcedure(ProjectId, procedureId)))" />
 
     <ProjectDetails Project="@Project"
                     OnEdit="@(projectId =>NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProjectEdit(projectId)))"

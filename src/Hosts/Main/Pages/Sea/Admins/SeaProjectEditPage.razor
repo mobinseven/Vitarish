@@ -9,7 +9,7 @@
         <ProjectEditForm Project="Project"
                          OnUpdate="@(projectId => NavigationManager.NavigateTo(AppRoutes.Sea.Project(projectId)))"
                          OnCreate="@(projectId => NavigationManager.NavigateTo(AppRoutes.Sea.Project(projectId)))"
-                         OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Project(projectId)))" />
+                         OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Project(ProjectId)))" />
 
     </CascadingValue>
 

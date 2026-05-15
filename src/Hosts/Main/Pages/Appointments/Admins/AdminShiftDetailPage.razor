@@ -1,5 +1,4 @@
 @attribute [Route(AppRoutes.Appointments.AdminShiftTemplate)]
-@attribute [Route(AppRoutes.Appointments.AdminShiftOccurrenceTemplate)]
 
 @if(shift is null)
 {
@@ -8,28 +7,29 @@
 
 <CascadingValue Value="IsAdmin">
     <ShiftDetail Shift="@shift"
-                   OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShiftEdit(shiftId)))"
+                   OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShiftEdit(_shiftId)))"
                    OnDeleted="Back"
                    OnStatusChanged="ReloadRequired"
-                   OnShiftOccurrenceSelected="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShiftOccurrence(shiftId)))" />
+                   OnShiftOccurrenceSelected="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShiftOccurrence(_shiftId)))" />
 </CascadingValue>
 
 @code {
     [Parameter] public string? shiftId { get; set; }
 
     private ShiftReadDto? shift;
+    private Guid _shiftId;
 
     private void Back() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShifts);
 
     protected override async Task ReloadRequired()
     {
-        if(!Guid.TryParse(shiftId, out Guid id))
+        if(!Guid.TryParse(shiftId, out _shiftId))
         {
             Back();
             return;
         }
 
-        shift = await ShiftManager.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+        shift = await ShiftManager.GetAsync(_shiftId, CancellationToken.None).GetValueOrDefaultAsync();
 
         if(shift is null)
         {
@@ -37,7 +37,7 @@
             return;
         }
 
-        NavService.OverridePageTitle(id.ToString(), Localizer["Shift"]);
+        NavService.OverridePageTitle(_shiftId.ToString(), Localizer["Shift"]);
         await InvokeAsync(StateHasChanged);
     }
 }

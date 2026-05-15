@@ -14,10 +14,10 @@
                     OnDeleted="@(() => NavigationManager.NavigateTo(AppRoutes.Medical.Patients))" />
 
     <ProceduresGrid Project="@patient"
-                    OnClicked="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Medical.PatientProcedure(patientId, procedureId)))"
-                    OnCreated="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Medical.PatientProcedure(patientId, procedureId)))" />
+                    OnClicked="@(procedureId => { if (procedureId.HasValue) NavigationManager.NavigateTo(AppRoutes.Medical.PatientProcedure(patient.Id, procedureId.Value)); })"
+                    OnCreated="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Medical.PatientProcedure(patient.Id, procedureId)))" />
 
-    <PatientAppointmentsPanel Patient="@patient" OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Medical.PatientEdit(patientId)))" />
+    <PatientAppointmentsPanel Patient="@patient" OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Medical.PatientEdit(patient.Id)))" />
 
     @* <PatientRemindersPanel PatientId="@patient.Id" /> *@
 

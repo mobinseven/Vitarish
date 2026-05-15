@@ -1,0 +1,12 @@
+@attribute [Route(AppRoutes.Links.ShortTemplate)]
+@inherits CommonBase
+
+@code {
+    [Parameter] public string? code { get; set; }
+
+    protected override void OnInitialized()
+    {
+        // TODO: resolve short link and redirect
+        NavigationManager.NavigateTo(AppRoutes.Home);
+    }
+}
