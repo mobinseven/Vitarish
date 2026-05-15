@@ -12,7 +12,7 @@ using Vitarish.Appointments.Infrastructure.Data;
 namespace Vitarish.Main.Migrations.AppointmentsDb
 {
     [DbContext(typeof(AppointmentsDbContext))]
-    [Migration("20260512110218_AppointmentsInitialization")]
+    [Migration("20260513144031_AppointmentsInitialization")]
     partial class AppointmentsInitialization
     {
         /// <inheritdoc />
@@ -20,7 +20,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "10.0.7")
+                .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -61,7 +61,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.Property<string>("ReservingPartyId")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<Guid>("SessionId")
+                    b.Property<Guid>("ShiftId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("Status")
@@ -80,15 +80,15 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
 
                     b.HasKey("Id");
 
-                    b.HasIndex("SessionId", "Date")
-                        .HasDatabaseName("IX_Reservations_SessionId_Date");
+                    b.HasIndex("ShiftId", "Date")
+                        .HasDatabaseName("IX_Reservations_ShiftId_Date");
 
                     b.ToTable("Reservations");
 
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.Session", b =>
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.Shift", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -133,10 +133,6 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<int>("TotalSeats")
                         .HasColumnType("int");
 
@@ -151,28 +147,28 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
 
                     b.HasKey("Id");
 
-                    b.ToTable("Sessions");
+                    b.ToTable("Shifts");
 
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
 
-            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.SessionReservationLock", b =>
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.ShiftReservationLock", b =>
                 {
                     b.Property<string>("TenantId")
                         .HasColumnType("nvarchar(450)");
 
-                    b.Property<Guid>("SessionId")
+                    b.Property<Guid>("ShiftId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
-                    b.HasKey("TenantId", "SessionId", "Date");
+                    b.HasKey("TenantId", "ShiftId", "Date");
 
-                    b.ToTable("SessionReservationLocks", (string)null);
+                    b.ToTable("ShiftReservationLocks", (string)null);
                 });
 
-            modelBuilder.Entity("Vitarish.Appointments.Domain.Models.SessionReservation", b =>
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Models.ShiftReservation", b =>
                 {
                     b.Property<int>("AvailableSeats")
                         .HasColumnType("int");
@@ -186,7 +182,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.Property<int>("ReservationCount")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("SessionId")
+                    b.Property<Guid>("ShiftId")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<TimeOnly>("StartTime")
@@ -197,36 +193,36 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
 
                     b.ToTable((string)null);
 
-                    b.ToView("vw_SessionReservation", (string)null);
+                    b.ToView("vw_ShiftReservation", (string)null);
                 });
 
-            modelBuilder.Entity("Vitarish.Appointments.Domain.Models.SessionStats", b =>
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Models.ShiftStats", b =>
                 {
                     b.Property<int>("ReservationCount")
                         .HasColumnType("int");
 
-                    b.Property<Guid>("SessionId")
+                    b.Property<Guid>("ShiftId")
                         .HasColumnType("uniqueidentifier");
 
                     b.ToTable((string)null);
 
-                    b.ToView("vw_SessionStats", (string)null);
+                    b.ToView("vw_ShiftStats", (string)null);
                 });
 
             modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.Reservation", b =>
                 {
-                    b.HasOne("Vitarish.Appointments.Domain.Entities.Session", null)
+                    b.HasOne("Vitarish.Appointments.Domain.Entities.Shift", null)
                         .WithMany()
-                        .HasForeignKey("SessionId")
+                        .HasForeignKey("ShiftId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.Session", b =>
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.Shift", b =>
                 {
-                    b.OwnsOne("Vitarish.Appointments.Domain.Entities.SessionBookingPolicy", "BookingPolicy", b1 =>
+                    b.OwnsOne("Vitarish.Appointments.Domain.Entities.ShiftBookingPolicy", "BookingPolicy", b1 =>
                         {
-                            b1.Property<Guid>("SessionId")
+                            b1.Property<Guid>("ShiftId")
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<bool>("AllowRescheduling")
@@ -254,15 +250,15 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                             b1.Property<bool>("RequiresApproval")
                                 .HasColumnType("bit");
 
-                            b1.HasKey("SessionId");
+                            b1.HasKey("ShiftId");
 
-                            b1.ToTable("SessionBookingPolicies", (string)null);
+                            b1.ToTable("ShiftBookingPolicies", (string)null);
 
                             b1.WithOwner()
-                                .HasForeignKey("SessionId");
+                                .HasForeignKey("ShiftId");
                         });
 
-                    b.OwnsMany("Vitarish.Appointments.Domain.Entities.SessionReminderPolicy", "ReminderPolicies", b1 =>
+                    b.OwnsMany("Vitarish.Appointments.Domain.Entities.ShiftReminderPolicy", "ReminderPolicies", b1 =>
                         {
                             b1.Property<Guid>("Id")
                                 .ValueGeneratedOnAdd()
@@ -285,7 +281,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                                 .IsRequired()
                                 .HasColumnType("nvarchar(max)");
 
-                            b1.Property<Guid>("SessionId")
+                            b1.Property<Guid>("ShiftId")
                                 .HasColumnType("uniqueidentifier");
 
                             b1.Property<string>("SubjectTemplate")
@@ -294,12 +290,12 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
 
                             b1.HasKey("Id");
 
-                            b1.HasIndex("SessionId");
+                            b1.HasIndex("ShiftId");
 
-                            b1.ToTable("SessionReminderPolicies", (string)null);
+                            b1.ToTable("ShiftReminderPolicies", (string)null);
 
                             b1.WithOwner()
-                                .HasForeignKey("SessionId");
+                                .HasForeignKey("ShiftId");
                         });
 
                     b.Navigation("BookingPolicy");

@@ -12,4 +12,5 @@ public record ShiftReadDto : EntityReadDto
     public ShiftStats Stats { get; set; } = new();
     public ShiftBookingPolicyReadDto? BookingPolicy { get; set; }
     public IReadOnlyList<ShiftReminderPolicyReadDto> ReminderPolicies { get; set; } = [];
+    public string Title => $"{StartTime:t} - {EndTime:t}";
 }

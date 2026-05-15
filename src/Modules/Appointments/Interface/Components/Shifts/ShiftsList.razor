@@ -10,30 +10,27 @@
             </StackButton>
         </Stack>
     }
-    else
+    @foreach(var day in Enum.GetValues<DayOfWeek>().OrderBy(d => ((int)d - (int)DayOfWeek.Saturday + 7) % 7))
     {
-        @foreach(var day in Enum.GetValues<DayOfWeek>())
-        {
-            <Stack>
-                <StackField Label="@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(day)" />
-                @foreach(var shift in shifts.Where(s => s.DayOfWeek == day))
-                {
-                    <StackButton OnClick="() => OnClicked.InvokeAsync(shift.Id)"
-                                 Label="@shift.Title"
-                                 HelperText="@($"{shift.Stats.ReservationCount} {Localizer["Reservations"]}")"
-                                 HighlightString="@SearchString">
-                        <ShiftStatusBadge Status="shift.Status" />
-                    </StackButton>
-                }
-                @if(IsAdmin)
-                {
-                    <StackButton Color="Color.Primary"
-                                 Label="@Localizer["AddItem", Localizer["Shift"]]"
-                                 EndIcon="fa-regular fa-calendar-plus"
-                                 OnClick="() => OnAdd.InvokeAsync(day)" />
-                }
-            </Stack>
-        }
+        <Stack>
+            <StackField Label="@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(day)" />
+            @foreach(var shift in shifts.Where(s => s.DayOfWeek == day))
+            {
+                <StackButton OnClick="() => OnClicked.InvokeAsync(shift.Id)"
+                             Label="@shift.Title"
+                             HelperText="@($"{shift.Stats.ReservationCount} {Localizer["Reservations"]}")"
+                             HighlightString="@SearchString">
+                    <ShiftStatusBadge Status="shift.Status" />
+                </StackButton>
+            }
+            @if(IsAdmin)
+            {
+                <StackButton Color="Color.Primary"
+                             Label="@Localizer["AddItem", Localizer["Shift"]]"
+                             EndIcon="fa-regular fa-calendar-plus"
+                             OnClick="() => OnAdd.InvokeAsync(day)" />
+            }
+        </Stack>
     }
 }
 else
