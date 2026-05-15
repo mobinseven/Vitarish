@@ -1,6 +1,6 @@
-@page "/sea/Owner"
-@page "/sea/Owner/Settings"
+@attribute [Route(AppRoutes.Sea.OwnerDashboard)]
+@attribute [Route(AppRoutes.Sea.OwnerSettings)]
 
 @code{
-    protected override void OnInitialized() => NavigationManager.NavigateTo("/sea");
+    protected override void OnInitialized() => NavigationManager.NavigateTo(AppRoutes.Sea.Dashboard);
 }

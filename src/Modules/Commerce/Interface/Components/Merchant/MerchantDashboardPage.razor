@@ -11,10 +11,10 @@
 
 <Stack>
     <StackField Label="Quick Actions" />
-    <StackButton Color="Color.Primary" Href="/Owners/Commerce/Orders" Label="Orders" EndIcon="fa-regular fa-receipt" />
-    <StackButton Color="Color.Primary" Href="/Owners/Commerce/Products" Label="Products" EndIcon="fa-regular fa-box" />
-    <StackButton Color="Color.Primary" Href="/Owners/Commerce/Recovery" Label="Recovery Queue" EndIcon="fa-regular fa-cart-shopping" />
-    <StackButton Color="Color.Primary" Href="/Owners/Commerce/Settings" Label="Settings" EndIcon="fa-regular fa-gear" />
+    <StackButton Color="Color.Primary" Href="@AppRoutes.Commerce.OwnerOrders" Label="Orders" EndIcon="fa-regular fa-receipt" />
+    <StackButton Color="Color.Primary" Href="@AppRoutes.Commerce.OwnerProducts" Label="Products" EndIcon="fa-regular fa-box" />
+    <StackButton Color="Color.Primary" Href="@AppRoutes.Commerce.OwnerRecovery" Label="Recovery Queue" EndIcon="fa-regular fa-cart-shopping" />
+    <StackButton Color="Color.Primary" Href="@AppRoutes.Commerce.OwnerSettings" Label="Settings" EndIcon="fa-regular fa-gear" />
     <StackField Label="Sales (7d)" HelperText="@_weekSales.ToString("0.##")" />
     <StackField Label="Products" HelperText="@_productCount.ToString()" />
 </Stack>

@@ -1,8 +1,9 @@
-@page "/Admin/Shifts/New/{dayOfWeek:int}"
+@attribute [Route(AppRoutes.Appointments.AdminShiftCreate)]
+@attribute [Route(AppRoutes.Appointments.AdminShiftCreateTemplate)]
 
 <CascadingValue Value="IsAdmin">
-    <ShiftForm OnSaved="@(id => NavigationManager.NavigateTo($"/Admin/Shifts/{id}"))"
-                 OnCancelled="@(() => NavigationManager.NavigateTo("/Admin/Shifts"))"
+    <ShiftForm OnSaved="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(id)))"
+                 OnCancelled="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShifts))"
                  DayOfWeek="@((DayOfWeek?)dayOfWeek)" />
 </CascadingValue>
 

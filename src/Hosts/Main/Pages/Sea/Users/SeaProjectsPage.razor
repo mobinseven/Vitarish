@@ -1,7 +1,7 @@
-@page "/sea/Projects"
+@attribute [Route(AppRoutes.Sea.Projects)]
 <CascadingValue Value="IsAdmin">
-    <ProjectsGrid OnClicked="@(id => NavigationManager.NavigateTo($"/sea/Projects/{id}"))"
-                  OnAdd="@(() => NavigationManager.NavigateTo($"/sea/Projects/New"))" />
+    <ProjectsGrid OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Sea.Project(id)))"
+                  OnAdd="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.ProjectNew))" />
 </CascadingValue>
 
 @code {

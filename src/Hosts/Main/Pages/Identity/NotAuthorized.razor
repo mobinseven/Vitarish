@@ -1,5 +1,5 @@
 @inject ReturnUrlManager ReturnUrlManager
-@page "/Account/Unauthorized"
+@attribute [Route(AppRoutes.Account.Unauthorized)]
 
 <AuthorizeView>
     <Authorized>
@@ -10,7 +10,7 @@
     <NotAuthorized>
         <Stack>
             <StackField Label="@Localizer["LoginRequired"]" />
-            <StackButton @rendermode="null" Label="@Localizer["Continue"]" Href="/Account/Login" />
+            <StackButton @rendermode="null" Label="@Localizer["Continue"]" Href="@AppRoutes.Account.Login" />
         </Stack>
     </NotAuthorized>
 </AuthorizeView>

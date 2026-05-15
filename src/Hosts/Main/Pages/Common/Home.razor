@@ -1,4 +1,4 @@
-@page "/"
+@attribute [Route(AppRoutes.Home)]
 
 <Stack>
     <StackField>
@@ -17,7 +17,7 @@
         <Stack>
             <StackButton Label="@Localizer["Login"]"
                          EndIcon="fa-regular fa-sign-in"
-                         OnClick="@(() => NavigationManager.NavigateTo("/Account/Login"))" />
+                         OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.Login))" />
         </Stack>
     </NotAuthorized>
 </AuthorizeView>

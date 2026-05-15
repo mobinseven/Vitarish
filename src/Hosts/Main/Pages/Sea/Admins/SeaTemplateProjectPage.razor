@@ -1,6 +1,6 @@
 @inherits SeaProjectPage
 
-@page "/sea/Admin/Settings/Projects/Templates/{projectId}"
+@attribute [Route(AppRoutes.Sea.TemplateProjectTemplate)]
 
 @if(Project is null)
 {
@@ -10,11 +10,11 @@
 <CascadingValue Value="IsAdmin">
 
     <ProceduresGrid Project="@Project"
-                    OnClicked="@(procedureId => NavigationManager.NavigateTo($"/sea/Admin/Settings/Projects/Templates/{projectId}/{procedureId}"))"
-                    OnCreated="@(procedureId => NavigationManager.NavigateTo($"/sea/Admin/Settings/Projects/Templates/{projectId}/{procedureId}"))" />
+                    OnClicked="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProcedure(projectId, procedureId)))"
+                    OnCreated="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProcedure(projectId, procedureId)))" />
 
     <ProjectDetails Project="@Project"
-                    OnEdit="@(projectId =>NavigationManager.NavigateTo($"/sea/Admin/Settings/Projects/Templates/Edit/{projectId}"))"
-                    OnDeleted="@(() => NavigationManager.NavigateTo("/sea/Admin/Settings/Projects/Templates/"))" />
+                    OnEdit="@(projectId =>NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProjectEdit(projectId)))"
+                    OnDeleted="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProjects))" />
 
 </CascadingValue>

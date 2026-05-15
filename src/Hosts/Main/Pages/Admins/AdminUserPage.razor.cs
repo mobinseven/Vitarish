@@ -68,6 +68,6 @@ public partial class AdminUserPage
         _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
     }
 
-    private void Back() => NavigationManager.NavigateTo("/Admin/Users");
+    private void Back() => NavigationManager.NavigateTo(AppRoutes.Admin.Users);
 
 }

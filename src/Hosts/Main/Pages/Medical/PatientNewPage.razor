@@ -1,6 +1,6 @@
-@page "/Medical/Patients/New"
+@attribute [Route(AppRoutes.Medical.PatientNew)]
 
 <CascadingValue Value="IsAdmin">
-    <PatientEditForm OnCreate="@(patientId => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}"))"
-                     OnCancel="@(() => NavigationManager.NavigateTo("/Medical/Patients"))" />
+    <PatientEditForm OnCreate="@(patientId => NavigationManager.NavigateTo(AppRoutes.Medical.Patient(patientId)))"
+                     OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Medical.Patients))" />
 </CascadingValue>

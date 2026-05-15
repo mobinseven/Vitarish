@@ -1,9 +1,9 @@
-@page "/sea/Admin/Settings/Projects/Templates/New"
+@attribute [Route(AppRoutes.Sea.TemplateProjectNew)]
 
 <CascadingValue Value="IsAdmin">
 
-    <ProjectEditForm OnCreate="@(projectId => NavigationManager.NavigateTo($"/sea/Admin/Settings/Projects/Templates/{projectId}"))"
-                     OnCancel="@(() => NavigationManager.NavigateTo($"/sea/Admin/Settings/Projects/Templates"))"
+    <ProjectEditForm OnCreate="@(projectId => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProject(projectId)))"
+                     OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProjects))"
                      TemplateMode="true"/>
 
 </CascadingValue>

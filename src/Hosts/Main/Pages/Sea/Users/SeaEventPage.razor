@@ -1,4 +1,4 @@
-@page "/sea/Projects/{projectId}/{procedureId}/{eventId}"
+@attribute [Route(AppRoutes.Sea.EventTemplate)]
 
 @if(Project is null || Procedure is null || Event is null)
 {
@@ -7,7 +7,7 @@
 
 <CascadingValue Value="IsAdmin">
     <EventDetails Event="Event" Procedure="Procedure" Project="Project"
-                  OnDelete="@(() => NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}"))"
+                  OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Procedure(projectId, procedureId)))"
                   OnUpdate="ReloadRequired" />
     <EventItemsTimeline Event="Event" Procedure="Procedure" Project="Project" />
 </CascadingValue>
@@ -35,7 +35,7 @@
 
         if(ProjectId == Guid.Empty)
         {
-            NavigationManager.NavigateTo("/sea/Projects");
+            NavigationManager.NavigateTo(AppRoutes.Sea.Projects);
             return;
         }
 
@@ -43,7 +43,7 @@
 
         if(Project is null)
         {
-            NavigationManager.NavigateTo("/sea/Projects");
+            NavigationManager.NavigateTo(AppRoutes.Sea.Projects);
             return;
         }
 
@@ -51,7 +51,7 @@
 
         if(Procedure is null)
         {
-            NavigationManager.NavigateTo($"/sea/Projects/{projectId}");
+            NavigationManager.NavigateTo(AppRoutes.Sea.Project(projectId));
             return;
         }
 
@@ -59,7 +59,7 @@
 
         if(Event is null)
         {
-            NavigationManager.NavigateTo($"/sea/Projects/{projectId}/{procedureId}");
+            NavigationManager.NavigateTo(AppRoutes.Sea.Procedure(projectId, procedureId));
             return;
         }
 

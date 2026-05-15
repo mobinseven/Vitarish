@@ -1,23 +1,23 @@
-@page "/sea"
+@attribute [Route(AppRoutes.Sea.Dashboard)]
 @inherits TenantPageBase
 @inject IAccessControlledProjectsService ProjectsService
 
 <Stack>
-    <StackButton Href="/sea/Projects" Label="@Localizer["Projects"]" EndIcon="fa-regular fa-3x fa-folders">
+    <StackButton Href="@AppRoutes.Sea.Projects" Label="@Localizer["Projects"]" EndIcon="fa-regular fa-3x fa-folders">
         @if(projectsCount > 0)
         {
             @projectsCount
         }
     </StackButton>
-    <StackButton Href="/Appointments" Label="@Localizer["MyAppointments"]" EndIcon="fa-regular fa-calendar-days" />
+    <StackButton Href="@AppRoutes.Appointments.Reservations" Label="@Localizer["MyAppointments"]" EndIcon="fa-regular fa-calendar-days" />
 </Stack>
 
 @if(IsAdmin)
 {
     <Stack>
         <StackField Label="@Localizer["Administration"]" />
-        <StackButton Href="/sea/Admin/Settings/Projects/Templates" Label="@Localizer["Templates"]" EndIcon="fa-regular fa-folder-gear" />
-        <StackButton Href="/Admin/Appointments" Label="@Localizer["AppointmentsAdmin"]" EndIcon="fa-regular fa-calendar-star" />
+        <StackButton Href="@AppRoutes.Sea.TemplateProjects" Label="@Localizer["Templates"]" EndIcon="fa-regular fa-folder-gear" />
+        <StackButton Href="@AppRoutes.Appointments.AdminReservations" Label="@Localizer["AppointmentsAdmin"]" EndIcon="fa-regular fa-calendar-star" />
     </Stack>
 }
 
@@ -25,8 +25,8 @@
 {
     <Stack>
         <StackField Label="@Localizer["Ownership"]" />
-        <StackButton Href="/sea/Owner/Settings/Users" Label="@Localizer["Users"]" EndIcon="fa-regular fa-users" />
-        <StackButton Href="/sea/Owner/Settings/Advanced" Label="@Localizer["Advanced"]" EndIcon="fa-regular fa-gear-complex" />
+        <StackButton Href="@AppRoutes.Sea.OwnerSettingsUsers" Label="@Localizer["Users"]" EndIcon="fa-regular fa-users" />
+        <StackButton Href="@AppRoutes.Sea.OwnerSettingsAdvanced" Label="@Localizer["Advanced"]" EndIcon="fa-regular fa-gear-complex" />
     </Stack>
 }
 

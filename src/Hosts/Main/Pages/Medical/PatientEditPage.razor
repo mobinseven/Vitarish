@@ -1,13 +1,13 @@
-@page "/Medical/Patients/{patientId}/Edit"
+@attribute [Route(AppRoutes.Medical.PatientEditTemplate)]
 
 @if(initialized)
 {
     <CascadingValue Value="IsAdmin">
 
         <PatientEditForm Project="patient"
-                         OnUpdate="@(id => NavigationManager.NavigateTo($"/Medical/Patients/{id}"))"
-                         OnCreate="@(id => NavigationManager.NavigateTo($"/Medical/Patients/{id}"))"
-                         OnCancel="@(() => NavigationManager.NavigateTo($"/Medical/Patients/{patientId}"))" />
+                         OnUpdate="@(id => NavigationManager.NavigateTo(AppRoutes.Medical.Patient(id)))"
+                         OnCreate="@(id => NavigationManager.NavigateTo(AppRoutes.Medical.Patient(id)))"
+                         OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Medical.Patient(patientId)))" />
 
     </CascadingValue>
 }
@@ -20,7 +20,7 @@
 
     private void Back()
     {
-        NavigationManager.NavigateTo("/Medical/Patients");
+        NavigationManager.NavigateTo(AppRoutes.Medical.Patients);
     }
 
     protected override async Task ReloadRequired()

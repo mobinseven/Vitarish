@@ -1,4 +1,4 @@
-@page "/Admin/Shifts/{shiftId}/Edit"
+@attribute [Route(AppRoutes.Appointments.AdminShiftEditTemplate)]
 
 @if (shift is null)
 {
@@ -7,7 +7,7 @@
 
 <CascadingValue Value="IsAdmin">
     <ShiftForm Shift="@shift"
-                 OnSaved="@(id => NavigationManager.NavigateTo($"/Admin/Shifts/{id}"))"
+                 OnSaved="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(id)))"
                  OnCancelled="Back" />
 </CascadingValue>
 
@@ -16,7 +16,7 @@
 
     private ShiftReadDto? shift;
 
-    private void Back() => NavigationManager.NavigateTo("/Admin/Shifts");
+    private void Back() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShifts);
 
     protected override async Task ReloadRequired()
     {

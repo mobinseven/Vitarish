@@ -1,4 +1,4 @@
-@page "/Admin/Reservations/{reservationId}"
+@attribute [Route(AppRoutes.Appointments.AdminReservationTemplate)]
 
 @if (reservation is null)
 {
@@ -16,7 +16,7 @@
 
     private ReservationReadDto? reservation;
 
-    private void Back() => NavigationManager.NavigateTo("/Admin/Reservations");
+    private void Back() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminReservations);
 
     protected override async Task ReloadRequired()
     {

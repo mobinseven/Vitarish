@@ -1,4 +1,4 @@
-@page "/Account/Signout"
+@attribute [Route(AppRoutes.Account.Logout)]
 @inherits IdentityBase
 
 @inject IIdentityServerInteractionService interactionService
@@ -22,7 +22,7 @@ else
         }
         else
         {
-            <StackButton Color="Color.Primary" Href="/" Label="@Localizer["Continue"]"/>
+            <StackButton Color="Color.Primary" Href="@AppRoutes.Home" Label="@Localizer["Continue"]"/>
         }
         @if(SignOutIframeUrl != null)
         {

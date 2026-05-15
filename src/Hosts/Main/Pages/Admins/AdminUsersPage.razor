@@ -1,9 +1,9 @@
-@page "/Admin/Users"
+@attribute [Route(AppRoutes.Admin.Users)]
 @inherits AdminCommonBase
 
 <Stack>
     @foreach(var user in Users)
     {
-        <StackButton Label="@user.FullName" OnClick="@(() => NavigationManager.NavigateTo("/Admin/Users/" + user.Id))" />
+        <StackButton Label="@user.FullName" OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Admin.User(user.Id)))" />
     }
 </Stack>

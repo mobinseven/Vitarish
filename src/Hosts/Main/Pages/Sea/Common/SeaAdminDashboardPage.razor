@@ -1,6 +1,6 @@
-@page "/sea/Admin"
-@page "/sea/Admin/Settings/Projects"
+@attribute [Route(AppRoutes.Sea.AdminDashboard)]
+@attribute [Route(AppRoutes.Sea.AdminProjectsSettings)]
 
 @code {
-    protected override void OnInitialized() => NavigationManager.NavigateTo("/sea");
+    protected override void OnInitialized() => NavigationManager.NavigateTo(AppRoutes.Sea.Dashboard);
 }

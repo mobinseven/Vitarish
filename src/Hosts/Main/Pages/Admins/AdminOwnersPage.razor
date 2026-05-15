@@ -1,4 +1,4 @@
-@page "/Admin/Owners"
+@attribute [Route(AppRoutes.Admin.Owners)]
 
 @inherits AdminCommonBase
 
@@ -6,7 +6,7 @@
     <StackField Label="@Localizer["Owners"]" />
     @foreach(var owner in Owners)
     {
-        <StackButton Label="@owner.Name" Href="@($"/Admin/Owners/{owner.Id}")" />
+        <StackButton Label="@owner.Name" Href="@AppRoutes.Admin.Owner(owner.Id)" />
     }
     <StackButton OnClick="Add" Color="Color.Primary" Label="@(Localizer["AddItem", Localizer["Owner"]])" EndIcon="fa-regular fa-plus" />
 </Stack>

@@ -1,4 +1,5 @@
-@page "/Admin/Shifts/{shiftId}"
+@attribute [Route(AppRoutes.Appointments.AdminShiftTemplate)]
+@attribute [Route(AppRoutes.Appointments.AdminShiftOccurrenceTemplate)]
 
 @if(shift is null)
 {
@@ -7,10 +8,10 @@
 
 <CascadingValue Value="IsAdmin">
     <ShiftDetail Shift="@shift"
-                   OnEdit="@(() => NavigationManager.NavigateTo($"/Admin/Shifts/{shiftId}/Edit"))"
+                   OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShiftEdit(shiftId)))"
                    OnDeleted="Back"
                    OnStatusChanged="ReloadRequired"
-                   OnShiftOccurrenceSelected="@(() => NavigationManager.NavigateTo($"/Admin/Shifts/{shiftId}/ShiftOccurrence"))" />
+                   OnShiftOccurrenceSelected="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShiftOccurrence(shiftId)))" />
 </CascadingValue>
 
 @code {
@@ -18,7 +19,7 @@
 
     private ShiftReadDto? shift;
 
-    private void Back() => NavigationManager.NavigateTo("/Admin/Shifts");
+    private void Back() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShifts);
 
     protected override async Task ReloadRequired()
     {
