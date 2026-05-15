@@ -66,6 +66,7 @@ public static class AppRoutes
         public const string LegacyAdminReservations = "/Admin/Appointments";
         public const string AdminShifts = "/Admin/Shifts";
         public const string AdminShiftTemplate = "/Admin/Shifts/{shiftId}";
+        public const string AdminShiftOccurrenceTemplate = "/Admin/Shifts/{shiftId}/ShiftOccurrence";
         public const string AdminShiftEditTemplate = "/Admin/Shifts/{shiftId}/Edit";
         public const string AdminShiftCreate = "/Admin/Shifts/New";
         public const string AdminShiftCreateTemplate = "/Admin/Shifts/New/{dayOfWeek:int}";
@@ -74,6 +75,7 @@ public static class AppRoutes
         public static string Shift(object? shiftId) => $"{Shifts}/{Value(shiftId)}";
         public static string AdminReservation(object? reservationId) => $"{AdminReservations}/{Value(reservationId)}";
         public static string AdminShift(object? shiftId) => $"{AdminShifts}/{Value(shiftId)}";
+        public static string AdminShiftOccurrence(object? shiftId) => $"{AdminShift(shiftId)}/ShiftOccurrence";
         public static string AdminShiftEdit(object? shiftId) => $"{AdminShift(shiftId)}/Edit";
         public static string AdminShiftCreateForDay(int? dayOfWeek = null) =>
             dayOfWeek is null

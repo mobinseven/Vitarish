@@ -19,6 +19,14 @@ public class AppRoutesTests
     }
 
     [Fact]
+    public void AdminShiftOccurrence_AppendsOccurrenceSegment()
+    {
+        AppRoutes.Appointments.AdminShiftOccurrence("shift-1")
+            .Should()
+            .Be("/Admin/Shifts/shift-1/ShiftOccurrence");
+    }
+
+    [Fact]
     public void PatientEvent_ComposesNestedRoute()
     {
         AppRoutes.Medical.PatientEvent("patient-1", "procedure-2", "event-3")

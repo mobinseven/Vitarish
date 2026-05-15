@@ -1,4 +1,5 @@
 @attribute [Route(AppRoutes.Appointments.AdminShiftTemplate)]
+@attribute [Route(AppRoutes.Appointments.AdminShiftOccurrenceTemplate)]
 
 @if(shift is null)
 {
@@ -9,7 +10,8 @@
     <ShiftDetail Shift="@shift"
                    OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShiftEdit(shiftId)))"
                    OnDeleted="Back"
-                   OnStatusChanged="ReloadRequired" />
+                   OnStatusChanged="ReloadRequired"
+                   OnShiftOccurrenceSelected="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShiftOccurrence(shiftId)))" />
 </CascadingValue>
 
 @code {

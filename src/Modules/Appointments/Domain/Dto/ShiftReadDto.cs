@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Vitarish.Appointments.Domain.Dto;
 
 public record ShiftReadDto : EntityReadDto
@@ -12,4 +14,7 @@ public record ShiftReadDto : EntityReadDto
     public ShiftStats Stats { get; set; } = new();
     public ShiftBookingPolicyReadDto? BookingPolicy { get; set; }
     public IReadOnlyList<ShiftReminderPolicyReadDto> ReminderPolicies { get; set; } = [];
+
+    [JsonIgnore]
+    public string Title => $"{DayOfWeek} {StartTime:t}-{EndTime:t}";
 }
