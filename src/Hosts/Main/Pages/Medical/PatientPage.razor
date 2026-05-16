@@ -32,20 +32,20 @@
 </CascadingValue>
 
 @code {
-    [Parameter] public string? patientId { get; set; }
+    [Parameter] public Guid? patientId { get; set; }
 
     private ProjectReadDto? patient;
     private bool initialized;
 
     protected override async Task ReloadRequired()
     {
-        if(!Guid.TryParse(patientId, out Guid id))
+        if(patientId is null)
         {
             NavigationManager.NavigateTo(AppRoutes.Medical.Patients);
             return;
         }
 
-        patient = await ProjectsService.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+        patient = await ProjectsService.GetAsync(patientId.Value, CancellationToken.None).GetValueOrDefaultAsync();
 
         if(patient is null)
         {
