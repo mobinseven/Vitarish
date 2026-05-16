@@ -488,13 +488,13 @@ namespace Vitarish.Main.Migrations.ContentsDb
                     b.HasOne("Vitarish.Contents.Domain.Entities.ContentItem", null)
                         .WithMany()
                         .HasForeignKey("FromContentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Vitarish.Contents.Domain.Entities.ContentItem", null)
                         .WithMany()
                         .HasForeignKey("ToContentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 

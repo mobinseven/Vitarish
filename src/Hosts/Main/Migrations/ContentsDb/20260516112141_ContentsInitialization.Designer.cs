@@ -12,7 +12,7 @@ using Vitarish.Contents.Infrastructure.Data;
 namespace Vitarish.Main.Migrations.ContentsDb
 {
     [DbContext(typeof(ContentsDbContext))]
-    [Migration("20260515185620_ContentsInitialization")]
+    [Migration("20260516112141_ContentsInitialization")]
     partial class ContentsInitialization
     {
         /// <inheritdoc />
@@ -491,13 +491,13 @@ namespace Vitarish.Main.Migrations.ContentsDb
                     b.HasOne("Vitarish.Contents.Domain.Entities.ContentItem", null)
                         .WithMany()
                         .HasForeignKey("FromContentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Vitarish.Contents.Domain.Entities.ContentItem", null)
                         .WithMany()
                         .HasForeignKey("ToContentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 

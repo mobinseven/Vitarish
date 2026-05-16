@@ -173,12 +173,12 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
             _ = entity.HasOne<ContentItem>()
                 .WithMany()
                 .HasForeignKey(e => e.FromContentId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             _ = entity.HasOne<ContentItem>()
                 .WithMany()
                 .HasForeignKey(e => e.ToContentId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction);
 
             _ = entity.HasIndex(e => new { e.FromContentId, e.ToContentId, e.RelationType }).IsUnique();
             _ = entity.HasIndex(e => new { e.ToContentId, e.RelationType });

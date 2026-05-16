@@ -151,14 +151,12 @@ namespace Vitarish.Main.Migrations.ContentsDb
                         name: "FK_ContentRelations_ContentItems_FromContentId",
                         column: x => x.FromContentId,
                         principalTable: "ContentItems",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_ContentRelations_ContentItems_ToContentId",
                         column: x => x.ToContentId,
                         principalTable: "ContentItems",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
