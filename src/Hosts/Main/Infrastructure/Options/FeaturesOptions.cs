@@ -10,4 +10,9 @@ public class FeaturesOptions
     /// When false the wizard is inaccessible and the setup button is hidden.
     /// </summary>
     public bool TenantOnboarding { get; set; }
+
+    /// <summary>
+    /// Enables social integration module surfaces and webhook endpoints.
+    /// </summary>
+    public bool SocialIntegrations { get; set; }
 }

@@ -1,0 +1,109 @@
+@page "/social/connections"
+
+@if (!featureEnabled)
+{
+    <MudAlert Severity="Severity.Info">Social integrations are disabled.</MudAlert>
+}
+else
+{
+    <MudStack Spacing="2">
+        <MudText Typo="Typo.h5">Social Connections</MudText>
+        <MudText Typo="Typo.body2">Connected accounts, latest webhook status, and dead-letter replay.</MudText>
+
+        <MudTable Items="connections" Dense="true" Hover="true" Loading="loading">
+            <HeaderContent>
+                <MudTh>Provider</MudTh>
+                <MudTh>External Account</MudTh>
+                <MudTh>Status</MudTh>
+                <MudTh>Last Webhook</MudTh>
+                <MudTh>Last Error</MudTh>
+                <MudTh>Actions</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.Provider</MudTd>
+                <MudTd>@context.ExternalAccountId</MudTd>
+                <MudTd>
+                    <MudChip Color="@GetStatusColor(context.Status)">@context.Status</MudChip>
+                </MudTd>
+                <MudTd>@GetLastWebhookText(context.Id)</MudTd>
+                <MudTd>@GetLastError(context.Id)</MudTd>
+                <MudTd>
+                    @if (CanReplay(context.Id))
+                    {
+                        <MudButton Variant="Variant.Text" Color="Color.Warning" OnClick="@(async () => await ReplayAsync(context.Id))">
+                            Replay Dead-Letter
+                        </MudButton>
+                    }
+                </MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudStack>
+}
+
+@code {
+    [Inject] private ISocialConnectionsService SocialConnectionsService { get; set; } = default!;
+    [Inject] private ISocialWebhookGatewayService SocialWebhookGatewayService { get; set; } = default!;
+    [Inject] private IConfiguration Configuration { get; set; } = default!;
+
+    private bool loading;
+    private bool featureEnabled;
+    private IReadOnlyList<SocialConnection> connections = [];
+    private readonly Dictionary<Guid, RawWebhookEvent?> latestWebhooks = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        featureEnabled = Configuration.GetValue<bool>("Vitarish:Features:SocialIntegrations");
+        if (!featureEnabled)
+        {
+            return;
+        }
+
+        loading = true;
+        try
+        {
+            connections = await SocialConnectionsService.GetConnectionsAsync(CancellationToken.None);
+            foreach (SocialConnection connection in connections)
+            {
+                latestWebhooks[connection.Id] = await SocialConnectionsService.GetLastWebhookAsync(connection.Id, CancellationToken.None);
+            }
+        }
+        finally
+        {
+            loading = false;
+        }
+    }
+
+    private static Color GetStatusColor(SocialConnectionStatus status) => status switch
+    {
+        SocialConnectionStatus.Active => Color.Success,
+        SocialConnectionStatus.TokenExpired => Color.Warning,
+        SocialConnectionStatus.ReconnectRequired => Color.Warning,
+        _ => Color.Default,
+    };
+
+    private string GetLastWebhookText(Guid connectionId)
+        => latestWebhooks.TryGetValue(connectionId, out RawWebhookEvent? raw) && raw is not null
+            ? raw.ReceivedAt.ToLocalTime().ToString("yyyy-MM-dd HH:mm:ss")
+            : "-";
+
+    private string GetLastError(Guid connectionId)
+        => latestWebhooks.TryGetValue(connectionId, out RawWebhookEvent? raw) && raw is not null
+            ? raw.ProcessingError ?? "-"
+            : "-";
+
+    private bool CanReplay(Guid connectionId)
+        => latestWebhooks.TryGetValue(connectionId, out RawWebhookEvent? raw)
+            && raw is not null
+            && raw.ProcessingStatus == WebhookProcessingStatus.DeadLetter;
+
+    private async Task ReplayAsync(Guid connectionId)
+    {
+        if (!latestWebhooks.TryGetValue(connectionId, out RawWebhookEvent? rawEvent) || rawEvent is null)
+        {
+            return;
+        }
+
+        await SocialWebhookGatewayService.ReplayAsync(rawEvent.Id, CancellationToken.None);
+        latestWebhooks[connectionId] = await SocialConnectionsService.GetLastWebhookAsync(connectionId, CancellationToken.None);
+    }
+}

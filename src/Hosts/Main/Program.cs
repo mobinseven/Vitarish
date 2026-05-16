@@ -24,6 +24,7 @@ using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Hosting.DependencyInjection;
 using Vitarish.Parties.Infrastructure.Data;
 using Vitarish.Requests.Hosting.DependencyInjection;
+using Vitarish.Social.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Users.Hosting.DependencyInjection;
 using Vitarish.Users.Infrastructure.Data;
@@ -145,6 +146,7 @@ _ = await app.MigrateDatabaseAsync<AppointmentsDbContext>();
 //_ = await app.MigrateDatabaseAsync<CalendarDbContext>();
 _ = await app.MigrateDatabaseAsync<CommerceDbContext>();
 _ = await app.MigrateDatabaseAsync<ContentsDbContext>();
+_ = await app.MigrateDatabaseAsync<SocialDbContext>();
 
 CookiePolicyOptions cookiePolicyOptions = new()
 {

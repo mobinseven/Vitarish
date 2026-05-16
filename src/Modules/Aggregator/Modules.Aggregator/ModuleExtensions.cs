@@ -10,6 +10,7 @@ using Vitarish.Files.Interface;
 using Vitarish.Intelligence.Interface;
 using Vitarish.Medical.Interface;
 using Vitarish.Modules.Base;
+using Vitarish.Social.Hosting;
 using Vitarish.Sea.Interface;
 using Vitarish.Search.Interface;
 public static class ModulesExtensions
@@ -25,6 +26,7 @@ public static class ModulesExtensions
                 Activator.CreateInstance<AppointmentsModule>(),
                 Activator.CreateInstance<MedicalModule>(),
                 Activator.CreateInstance<CommerceModule>(),
+                Activator.CreateInstance<SocialModule>(),
             ];
 
     extension(WebApplicationBuilder builder)
