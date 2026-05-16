@@ -33,7 +33,7 @@ public sealed class LinksDbContext : DbContext
             entity.HasQueryFilter(e => e.DeletedAt == null);
 
             _ = entity.Property(e => e.Domain).HasColumnType("nvarchar(253)");
-            _ = entity.Property(e => e.Slug).HasColumnType("nvarchar(32)");
+            _ = entity.Property(e => e.Slug).HasColumnType("nvarchar(32)").UseCollation(LinkRules.SlugCollation);
             _ = entity.Property(e => e.DestinationUrl).HasColumnType("nvarchar(2048)");
             _ = entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(32);
 

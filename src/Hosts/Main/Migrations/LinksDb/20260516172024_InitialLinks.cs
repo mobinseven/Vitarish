@@ -18,7 +18,7 @@ namespace Vitarish.Main.Migrations.LinksDb
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     TenantId = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Domain = table.Column<string>(type: "nvarchar(253)", nullable: false),
-                    Slug = table.Column<string>(type: "nvarchar(32)", nullable: false),
+                    Slug = table.Column<string>(type: "nvarchar(32)", nullable: false, collation: "Latin1_General_100_CS_AS_SC_UTF8"),
                     DestinationUrl = table.Column<string>(type: "nvarchar(2048)", nullable: false),
                     Status = table.Column<string>(type: "nvarchar(32)", maxLength: 32, nullable: false),
                     ExpiresAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),

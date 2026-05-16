@@ -53,7 +53,8 @@ namespace Vitarish.Main.Migrations.LinksDb
 
                     b.Property<string>("Slug")
                         .IsRequired()
-                        .HasColumnType("nvarchar(32)");
+                        .HasColumnType("nvarchar(32)")
+                        .UseCollation("Latin1_General_100_CS_AS_SC_UTF8");
 
                     b.Property<string>("Status")
                         .IsRequired()

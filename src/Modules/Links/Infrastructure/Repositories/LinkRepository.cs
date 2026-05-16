@@ -19,7 +19,7 @@ internal sealed class LinkRepository(LinksDbContext dbContext)
 
         if (!string.IsNullOrWhiteSpace(descriptor.Domain))
         {
-            string domain = descriptor.Domain.Trim();
+            string domain = LinkRules.NormalizeDomain(descriptor.Domain);
             query = query.Where(l => l.Domain == domain);
         }
 

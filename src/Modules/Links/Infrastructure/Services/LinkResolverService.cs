@@ -5,13 +5,16 @@ namespace Vitarish.Links.Infrastructure.Services;
 /// Does not require a tenant context; operates across all tenants.
 /// </summary>
 [RegisterTransient]
-internal sealed class LinkResolverService(LinksDbContext context) : ILinkResolverService
+internal sealed class LinkResolverService(LinksDbContext context, TimeProvider timeProvider) : ILinkResolverService
 {
     public async Task<LinkResolutionResult> ResolveAsync(string domain, string slug, CancellationToken cancellationToken = default)
     {
+        string normalizedDomain = LinkRules.NormalizeDomain(domain);
+        string normalizedSlug = slug.Trim();
+
         Link? link = await context.Links
             .AsNoTracking()
-            .Where(l => l.Domain == domain && l.Slug == slug)
+            .Where(l => l.Domain == normalizedDomain && l.Slug == normalizedSlug)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (link is null)
@@ -24,7 +27,7 @@ internal sealed class LinkResolverService(LinksDbContext context) : ILinkResolve
             return new LinkResolutionResult.Disabled();
         }
 
-        if (link.ExpiresAt.HasValue && link.ExpiresAt.Value < DateTimeOffset.UtcNow)
+        if (link.ExpiresAt.HasValue && link.ExpiresAt.Value < timeProvider.GetUtcNow())
         {
             return new LinkResolutionResult.Expired();
         }
