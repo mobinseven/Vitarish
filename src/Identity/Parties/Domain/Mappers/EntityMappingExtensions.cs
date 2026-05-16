@@ -38,6 +38,16 @@ public static partial class EntityMappingExtensions
     public static TenantWriteDto ToWrite(this TenantReadDto dto) => Mapper.ToWrite(dto);
 
     /// <summary>
+    /// Converts a Tenant read DTO to a write DTO while preserving tenant metadata.
+    /// </summary>
+    public static TenantWriteDto ToWriteWithMetadata(this TenantReadDto dto)
+    {
+        TenantWriteDto write = dto.ToWrite();
+        write.Metadata = new Dictionary<string, object?>(dto.Metadata);
+        return write;
+    }
+
+    /// <summary>
     /// Converts a Tenant descriptor DTO to its descriptor representation.
     /// </summary>
     public static TenantDescriptor ToDomain(this TenantDescriptorDto dto) => Mapper.ToDomain(dto);

@@ -30,11 +30,7 @@
 
     private void ResetWrite()
     {
-        write = Tenant?.ToWrite() ?? new();
-        if (Tenant is not null)
-        {
-            write.Metadata = new Dictionary<string, object?>(Tenant.Metadata);
-        }
+        write = Tenant?.ToWriteWithMetadata() ?? new();
     }
 
     private async Task SaveTenant()

@@ -41,17 +41,6 @@ public partial class AdminTenantPage
         selectedModules = new HashSet<string>(TenantMetadata.GetActiveModules(tenant.Metadata), StringComparer.OrdinalIgnoreCase);
     }
 
-    private static TenantWriteDto CreateTenantWriteDto(TenantReadDto tenant) => new()
-    {
-        Id = tenant.Id,
-        OwnerId = tenant.OwnerId,
-        Name = tenant.Name,
-        LogoUrl = tenant.LogoUrl,
-        Description = tenant.Description,
-        AppId = tenant.AppId,
-        Metadata = new Dictionary<string, object?>(tenant.Metadata)
-    };
-
     private async Task SaveTenantModules()
     {
         if (Tenant is null)
@@ -62,7 +51,7 @@ public partial class AdminTenantPage
         savingModules = true;
         try
         {
-            TenantWriteDto write = CreateTenantWriteDto(Tenant);
+            TenantWriteDto write = Tenant.ToWriteWithMetadata();
             TenantMetadata.SetActiveModules(write.Metadata, selectedModules);
 
             TenantReadDto? updated = await PartiesService.UpdateTenantAsync(write);

@@ -20,6 +20,7 @@ public static class TenantMetadata
                 JsonElement element => element.Deserialize<string[]>() ?? [],
                 string[] modules => modules,
                 IEnumerable<string> modules => [.. modules],
+                System.Collections.IEnumerable modules => [.. modules.OfType<string>()],
                 _ => []
             };
         }
