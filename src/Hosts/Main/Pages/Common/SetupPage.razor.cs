@@ -34,11 +34,8 @@ public partial class SetupPage
 
     private Task GoToIndicator()
     {
-        if (string.IsNullOrWhiteSpace(context.OwnerName) ||
-            string.IsNullOrWhiteSpace(context.TenantName) ||
-            string.IsNullOrWhiteSpace(context.AppId))
+        if (!RequireFields(context.OwnerName, context.TenantName, context.AppId))
         {
-            Snackbar.Add(Localizer["RequiredFields"], Severity.Warning);
             return Task.CompletedTask;
         }
 
@@ -48,14 +45,23 @@ public partial class SetupPage
 
     private Task GoToModules()
     {
-        if (string.IsNullOrWhiteSpace(context.IndicatorValue))
+        if (!RequireFields(context.IndicatorValue))
         {
-            Snackbar.Add(Localizer["RequiredFields"], Severity.Warning);
             return Task.CompletedTask;
         }
 
         context.CurrentStep = SetupStep.Modules;
         return Task.CompletedTask;
+    }
+
+    private bool RequireFields(params string[] fields)
+    {
+        if (fields.Any(string.IsNullOrWhiteSpace))
+        {
+            Snackbar.Add(Localizer["RequiredFields"], Severity.Warning);
+            return false;
+        }
+        return true;
     }
 
     private Task GoBack()
@@ -85,27 +91,31 @@ public partial class SetupPage
         }
 
         submitting = true;
-
-        SetupTenantRequest request = new(
-            OwnerName: context.OwnerName,
-            TenantName: context.TenantName,
-            AppId: context.AppId,
-            IndicatorMethod: context.IndicatorMethod,
-            IndicatorValue: context.IndicatorValue,
-            IndicatorStatus: IndicatorStatus.Active,
-            SelectedModules: [.. context.SelectedModules],
-            UserId: RequestContext.UserId);
-
-        TenantReadDto? tenant = await PartiesService.SetupTenantAsync(request);
-
-        submitting = false;
-
-        if (tenant is null)
+        try
         {
-            Snackbar.Add(Localizer["Error"], Severity.Error);
-            return;
-        }
+            SetupTenantRequest request = new(
+                OwnerName: context.OwnerName,
+                TenantName: context.TenantName,
+                AppId: context.AppId,
+                IndicatorMethod: context.IndicatorMethod,
+                IndicatorValue: context.IndicatorValue,
+                IndicatorStatus: IndicatorStatus.Active,
+                SelectedModules: [.. context.SelectedModules],
+                UserId: RequestContext.UserId);
 
-        NavigationManager.NavigateTo(AppRoutes.Home, forceLoad: true);
+            TenantReadDto? tenant = await PartiesService.SetupTenantAsync(request);
+
+            if (tenant is null)
+            {
+                Snackbar.Add(Localizer["Error"], Severity.Error);
+                return;
+            }
+
+            NavigationManager.NavigateTo(AppRoutes.Home, forceLoad: true);
+        }
+        finally
+        {
+            submitting = false;
+        }
     }
 }

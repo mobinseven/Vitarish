@@ -37,13 +37,20 @@ public partial class Home
             TenantReadDto? tenant = await PartiesService.GetTenantAsync(tenantGuid);
             if (tenant is not null && tenant.Metadata.TryGetValue("activeModules", out object? raw))
             {
-                string[] modules = raw is JsonElement je
-                    ? je.Deserialize<string[]>() ?? []
-                    : raw as string[] ?? [];
+                try
+                {
+                    string[] modules = raw is JsonElement je
+                        ? je.Deserialize<string[]>() ?? []
+                        : raw as string[] ?? [];
 
-                activeDashboards = [.. modules
-                    .Where(m => ModuleDashboardRoutes.ContainsKey(m))
-                    .Select(m => (m, ModuleDashboardRoutes[m]))];
+                    activeDashboards = [.. modules
+                        .Where(m => ModuleDashboardRoutes.ContainsKey(m))
+                        .Select(m => (m, ModuleDashboardRoutes[m]))];
+                }
+                catch (JsonException)
+                {
+                    // Malformed activeModules metadata – degrade gracefully with no dashboards.
+                }
             }
         }
     }
