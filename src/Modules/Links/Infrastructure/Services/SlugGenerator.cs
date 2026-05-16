@@ -1,3 +1,5 @@
+using System.Security.Cryptography;
+
 namespace Vitarish.Links.Infrastructure.Services;
 
 /// <summary>
@@ -14,7 +16,7 @@ internal sealed class SlugGenerator
         char[] chars = new char[SlugLength];
         for (int i = 0; i < SlugLength; i++)
         {
-            chars[i] = Chars[Random.Shared.Next(Chars.Length)];
+            chars[i] = Chars[RandomNumberGenerator.GetInt32(Chars.Length)];
         }
 
         return new string(chars);
