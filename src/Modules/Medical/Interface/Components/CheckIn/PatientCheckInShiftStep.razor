@@ -13,8 +13,7 @@
     }
     else
     {
-        <StackCalendar MinDate="@DateTime.Today" ViewMode="Interfaces.Base.Enums.StackCalendarViewMode.Week"/>
-        <StackCalendar MinDate="@DateTime.Today" ViewMode="Interfaces.Base.Enums.StackCalendarViewMode.Week">
+        <StackCalendar MinDate="@DateTime.Today" DayCount="3">
             <DayTemplate Context="day">
                 @{
                     var thisDaySlots = slots.Where(i => i.Occurrence?.Date == DateOnly.FromDateTime(day.Date));
