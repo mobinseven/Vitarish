@@ -16,6 +16,7 @@ using Vitarish.Main.Components;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
 using Vitarish.Main.Infrastructure.Handlers;
+using Vitarish.Main.Infrastructure.Links;
 using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Modules.Base;
@@ -126,6 +127,7 @@ builder.Services.AddVitarishInterfacesBase();
 builder.Services.AddSingleton(new NavServiceRoutes { ProfileRoute = AppRoutes.Account.Settings });
 
 builder.Services.AddSingleton<IAppsProvider, AppsProvider>();
+builder.Services.AddSingleton<IQrCodePngGenerator, QrCodePngGenerator>();
 
 builder.Services.AddScoped<EntityDataProvider>();
 builder.Services.AddScoped<IEntityUserService>(sp => sp.GetRequiredService<EntityDataProvider>());
@@ -179,6 +181,8 @@ _ = app.UseAuthorization();
 _ = app.UseAntiforgery();
 
 _ = app.UseMultiTenant();
+
+_ = app.MapLinkEndpoints();
 
 await app.InitializeModules();
 await app.InitializeApps();

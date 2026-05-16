@@ -10,4 +10,9 @@ public class FeaturesOptions
     /// When false the wizard is inaccessible and the setup button is hidden.
     /// </summary>
     public bool TenantOnboarding { get; set; }
+
+    /// <summary>
+    /// Enables PNG QR-code generation endpoint on /qr/{code}.
+    /// </summary>
+    public bool QrLinks { get; set; }
 }
