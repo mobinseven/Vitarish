@@ -28,4 +28,10 @@ public interface IPartiesService
     Task<TenantIndicatorReadDto?> UpdateTenantIndicatorAsync(TenantIndicatorWriteDto dto, CancellationToken ct = default);
     Task DeleteTenantIndicatorAsync(Guid id, CancellationToken ct = default);
     Task CreateTenantRolesAsync(Guid tenantId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Full self-service onboarding: creates Owner, Tenant, TenantIndicator,
+    /// tenant roles, and assigns the caller to TenantOwner / TenantAdmin / TenantUser.
+    /// </summary>
+    Task<TenantReadDto?> SetupTenantAsync(SetupTenantRequest request, CancellationToken ct = default);
 }

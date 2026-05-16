@@ -65,6 +65,9 @@ public static class ApplicationOptionsExtensions
         _ = services.AddOptions<ElasticSearchOptions>()
             .BindConfiguration($"{ApplicationOptions.Section}:ElasticSearch");
 
+        _ = services.AddOptions<FeaturesOptions>()
+            .BindConfiguration($"{ApplicationOptions.Section}:Features");
+
         return services;
     }
 }
