@@ -84,7 +84,7 @@ public sealed class NavService : INavService, IDisposable
             path += sub + "/";
             if (localizer[sub].ResourceNotFound)
             {
-                breadcrumbs.Add(new Breadcrumb { Path = path, Id = sub });
+                breadcrumbs.Add(new Breadcrumb { Path = path, Text = sub, Id = sub });
             }
             else
             {
