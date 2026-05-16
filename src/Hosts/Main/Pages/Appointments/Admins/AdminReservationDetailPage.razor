@@ -12,7 +12,7 @@
 </CascadingValue>
 
 @code {
-    [Parameter] public string? reservationId { get; set; }
+    [Parameter] public Guid? reservationId { get; set; }
 
     private ReservationReadDto? reservation;
 
@@ -20,7 +20,7 @@
 
     protected override async Task ReloadRequired()
     {
-        if (!Guid.TryParse(reservationId, out Guid id))
+        if (reservationId is not { } id)
         {
             Back();
             return;

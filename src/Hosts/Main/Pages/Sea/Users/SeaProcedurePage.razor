@@ -14,8 +14,8 @@
 </CascadingValue>
 
 @code {
-    [Parameter] public string? projectId { get; set; }
-    [Parameter] public string? procedureId { get; set; }
+    [Parameter] public Guid? projectId { get; set; }
+    [Parameter] public Guid? procedureId { get; set; }
 
     protected Guid ProjectId;
     protected Guid ProcedureId;
@@ -27,13 +27,20 @@
 
     protected override async Task ReloadRequired()
     {
-        Guid.TryParse(projectId, out ProjectId);
-        Guid.TryParse(procedureId, out ProcedureId);
-
-        if(ProjectId == Guid.Empty)
+        if(projectId is not { } parsedProjectId)
         {
+            NavigationManager.NavigateTo(AppRoutes.Sea.Projects);
             return;
         }
+
+        if(procedureId is not { } parsedProcedureId)
+        {
+            NavigationManager.NavigateTo(AppRoutes.Sea.Project(parsedProjectId));
+            return;
+        }
+
+        ProjectId = parsedProjectId;
+        ProcedureId = parsedProcedureId;
 
         Project = await ProjectsService.GetAsync(ProjectId, CancellationToken.None).GetValueOrDefaultAsync();
 

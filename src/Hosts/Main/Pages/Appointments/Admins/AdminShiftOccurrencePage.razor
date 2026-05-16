@@ -14,7 +14,7 @@
 </CascadingValue>
 
 @code {
-    [Parameter] public string? shiftId { get; set; }
+    [Parameter] public Guid? shiftId { get; set; }
 
     private ShiftReadDto? shift;
     private Guid _shiftId;
@@ -23,12 +23,13 @@
 
     protected override async Task ReloadRequired()
     {
-        if (!Guid.TryParse(shiftId, out _shiftId))
+        if (shiftId is not { } id)
         {
             NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShifts);
             return;
         }
 
+        _shiftId = id;
         shift = await ShiftManager.GetAsync(_shiftId, CancellationToken.None).GetValueOrDefaultAsync();
 
         if (shift is null)
