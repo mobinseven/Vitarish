@@ -13,7 +13,7 @@
 }
 
 @code {
-    [Parameter] public string? patientId { get; set; }
+    [Parameter] public Guid? patientId { get; set; }
 
     private ProjectReadDto? patient;
     private Guid _id;
@@ -26,12 +26,15 @@
 
     protected override async Task ReloadRequired()
     {
-        if (!Guid.TryParse(patientId, out _id))
+        if (patientId is null)
         {
             Back();
             return;
         }
 
+        var id = patientId.Value;
+
+        _id = id;
         patient = await ProjectsService.GetAsync(_id, CancellationToken.None).GetValueOrDefaultAsync();
 
         if (patient is null)

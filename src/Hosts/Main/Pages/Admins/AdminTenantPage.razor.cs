@@ -6,8 +6,8 @@ namespace Vitarish.Main.Pages.Admins;
 
 public partial class AdminTenantPage
 {
-    [Parameter] public string? TenantId { get; set; }
-    [Parameter] public string? OwnerId { get; set; }
+    [Parameter] public Guid? TenantId { get; set; }
+    [Parameter] public Guid? OwnerId { get; set; }
 
     private Guid tenantGuid;
     private Guid _ownerGuid;
@@ -23,8 +23,11 @@ public partial class AdminTenantPage
             Back();
             return;
         }
-        tenantGuid = Guid.Parse(TenantId);
-        Guid.TryParse(OwnerId, out _ownerGuid);
+
+        var id = TenantId.Value;
+
+        tenantGuid = id;
+        _ownerGuid = OwnerId ?? Guid.Empty;
 
         Tenant = await PartiesService.GetTenantAsync(tenantGuid);
         selectedModules = new HashSet<string>(TenantMetadata.GetActiveModules(Tenant?.Metadata), StringComparer.OrdinalIgnoreCase);

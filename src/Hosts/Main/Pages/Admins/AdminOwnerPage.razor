@@ -21,7 +21,7 @@
 
 @code {
 
-    [Parameter] public string? OwnerId { get; set; }
+    [Parameter] public Guid? OwnerId { get; set; }
 
     private Guid ownerGuid;
     private OwnerReadDto? Owner;
@@ -34,13 +34,15 @@
 
     protected override async Task ReloadRequired()
     {
-        if(OwnerId is null)
+        if (OwnerId is null)
         {
             Back();
             return;
         }
 
-        ownerGuid = Guid.Parse(OwnerId);
+        var id = OwnerId.Value;
+
+        ownerGuid = id;
 
         Owner = await PartiesService.GetOwnerAsync(ownerGuid);
 

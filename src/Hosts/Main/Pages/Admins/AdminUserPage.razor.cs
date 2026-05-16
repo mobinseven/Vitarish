@@ -5,21 +5,28 @@ namespace Vitarish.Main.Pages.Admins;
 
 public partial class AdminUserPage
 {
-    [Parameter] public string? UserId { get; set; }
+    [Parameter] public Guid? UserId { get; set; }
     private string password = string.Empty;
     [Inject] private IPasswordHasher<User> PasswordHasher { get; set; } = default!;
     private User? User;
     protected override async Task OnParametersSetAsync()
     {
-        if (UserId is not null)
-        {
-            User = await UsersService.GetUserAsync(UserId);
-            NavService.OverridePageTitle(User.Id, User.FullName);
-        }
-        else
+        if (UserId is null)
         {
             Back();
+            return;
         }
+
+        var id = UserId.Value;
+
+        User = await UsersService.GetUserAsync(id.ToString("D"));
+        if (User is null)
+        {
+            Back();
+            return;
+        }
+
+        NavService.OverridePageTitle(User.Id, User.FullName);
     }
     private async void Delete()
     {

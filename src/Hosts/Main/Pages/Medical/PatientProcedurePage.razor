@@ -27,8 +27,8 @@
 </CascadingValue>
 
 @code {
-    [Parameter] public string? patientId { get; set; }
-    [Parameter] public string? procedureId { get; set; }
+    [Parameter] public Guid? patientId { get; set; }
+    [Parameter] public Guid? procedureId { get; set; }
 
     private ProjectReadDto? patient;
     private ProcedureReadDto? procedure;
@@ -37,14 +37,24 @@
 
     protected override async Task ReloadRequired()
     {
-        Guid.TryParse(patientId, out _patientGuid);
-        Guid.TryParse(procedureId, out _procedureGuid);
-
-        if (_patientGuid == Guid.Empty)
+        if (patientId is null)
         {
             NavigationManager.NavigateTo(AppRoutes.Medical.Patients);
             return;
         }
+
+        var parsedPatientId = patientId.Value;
+
+        if (procedureId is null)
+        {
+            NavigationManager.NavigateTo(AppRoutes.Medical.Patient(parsedPatientId));
+            return;
+        }
+
+        var parsedProcedureId = procedureId.Value;
+
+        _patientGuid = parsedPatientId;
+        _procedureGuid = parsedProcedureId;
 
         patient = await ProjectsService.GetAsync(_patientGuid, CancellationToken.None).GetValueOrDefaultAsync();
 

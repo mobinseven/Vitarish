@@ -9,17 +9,19 @@
                    OnCancelled="ReloadRequired" />
 
 @code {
-    [Parameter] public string? reservationId { get; set; }
+    [Parameter] public Guid? reservationId { get; set; }
 
     private ReservationReadDto? reservation;
 
     protected override async Task ReloadRequired()
     {
-        if (!Guid.TryParse(reservationId, out Guid id))
+        if (reservationId is null)
         {
             NavigationManager.NavigateTo(AppRoutes.Appointments.Reservations);
             return;
         }
+
+        var id = reservationId.Value;
 
         reservation = await ReservationManager.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
 

@@ -8,7 +8,7 @@
 <UserShiftDetail Shift="@shift" OnReserved="ReloadRequired" OnCancelled="ReloadRequired" />
 
 @code {
-    [Parameter] public string? shiftId { get; set; }
+    [Parameter] public Guid? shiftId { get; set; }
 
     private ShiftReadDto? shift;
 
@@ -16,11 +16,13 @@
 
     protected override async Task ReloadRequired()
     {
-        if (!Guid.TryParse(shiftId, out Guid id))
+        if (shiftId is null)
         {
             Back();
             return;
         }
+
+        var id = shiftId.Value;
 
         shift = await ShiftManager.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
 
