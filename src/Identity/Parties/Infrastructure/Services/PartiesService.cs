@@ -1,6 +1,7 @@
 using MediatR;
 using Vitarish.Entities.Server.Models;
 using Vitarish.Parties.Application.Abstractions;
+using Vitarish.Parties.Domain;
 using Vitarish.Parties.Domain.Descriptors;
 using Vitarish.Parties.Domain.Dtos;
 using Vitarish.Users.Application.Commands;
@@ -124,7 +125,7 @@ public sealed class PartiesService(OwnersService ownerService, TenantsService te
             OwnerId = owner.Id,
             Name = request.TenantName,
             AppId = request.AppId,
-            Metadata = new Dictionary<string, object?> { ["activeModules"] = request.SelectedModules }
+            Metadata = new Dictionary<string, object?> { [TenantMetadata.ActiveModulesKey] = request.SelectedModules }
         };
         // CreateTenantAsync also issues CreateTenantRolesCommand internally.
         TenantReadDto? tenant = await CreateTenantAsync(tenantDto, ct);

@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Options;
 using Vitarish.Main.Infrastructure.Options;
-using Vitarish.Modules.Base;
 using Vitarish.Parties.Domain.Dtos;
 using Vitarish.Parties.Domain.Enums;
 
@@ -10,7 +9,6 @@ public partial class SetupPage
 {
     [Inject] private IPartiesService PartiesService { get; set; } = default!;
     [Inject] private IOptions<FeaturesOptions> FeaturesOptions { get; set; } = default!;
-    [Inject] private IReadOnlyList<IModule> Modules { get; set; } = default!;
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
     private readonly TenantSetupContext context = new();
@@ -73,14 +71,6 @@ public partial class SetupPage
             _ => SetupStep.Details
         };
         return Task.CompletedTask;
-    }
-
-    private void ToggleModule(string moduleName, bool selected)
-    {
-        if (selected)
-            context.SelectedModules.Add(moduleName);
-        else
-            context.SelectedModules.Remove(moduleName);
     }
 
     private async Task Submit()

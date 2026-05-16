@@ -26,9 +26,11 @@
     [Parameter] public EventCallback OnCancelled { get; set; }
     [Parameter] public EventCallback OnUpdateRoles { get; set; }
 
-    protected override void OnInitialized()
+    protected override void OnInitialized() => ResetWrite();
+
+    private void ResetWrite()
     {
-        write = Tenant?.ToWrite() ?? new();
+        write = Tenant?.ToWriteWithMetadata() ?? new();
     }
 
     private async Task SaveTenant()
@@ -46,7 +48,7 @@
         }
         await TenantChanged.InvokeAsync(updated);
         Tenant = updated;
-        write = updated.ToWrite();
+        ResetWrite();
         await InvokeAsync(StateHasChanged);
         await OnSaved.InvokeAsync();
         Snackbar.Add(Localizer["Saved"], Severity.Success);

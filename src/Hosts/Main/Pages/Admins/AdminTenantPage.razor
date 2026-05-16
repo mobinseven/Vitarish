@@ -6,9 +6,15 @@
     return;
 }
 
-<TenantEditor Tenant="Tenant" />
+<TenantEditor Tenant="Tenant" TenantChanged="SetTenant" />
 
 <TenantIndicatorsEditor Tenant="Tenant" />
+
+<TenantModulesSelector SelectedModuleNames="selectedModules" Label="@Localizer["SelectModules"]">
+    <StackButton Label="@Localizer["Save"]" OnClick="SaveTenantModules"
+                 Color="Color.Primary" EndIcon="fa-regular fa-save"
+                 Disabled="savingModules" />
+</TenantModulesSelector>
 
 <Stack>
     <StackButton Color="Color.Error" EndIcon="fa-regular fa-trash" OnClick="RemoveTenant" Label="@Localizer["DeleteItem", Localizer["Tenant"]]" />
