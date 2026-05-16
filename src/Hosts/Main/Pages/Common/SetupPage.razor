@@ -33,19 +33,12 @@
         break;
 
     case SetupStep.Modules:
-        <Stack>
-            <StackField Label="@Localizer["SelectModules"]" />
-            @foreach (var module in Modules)
-            {
-                <StackCheckbox Value="context.SelectedModules.Contains(module.Name)"
-                               ValueChanged="@(v => ToggleModule(module.Name, v))"
-                               Label="@module.Name" />
-            }
+        <TenantModulesSelector SelectedModuleNames="context.SelectedModules" Label="@Localizer["SelectModules"]">
             <StackButton Label="@Localizer["Finish"]" OnClick="Submit"
                          EndIcon="fa-regular fa-check" Color="Color.Primary"
                          Disabled="submitting" />
             <StackButton Label="@Localizer["Back"]" OnClick="GoBack"
                          EndIcon="fa-regular fa-arrow-left" />
-        </Stack>
+        </TenantModulesSelector>
         break;
 }

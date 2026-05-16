@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Options;
-using System.Text.Json;
 using Vitarish.Main.Infrastructure.Options;
+using Vitarish.Parties.Domain;
 using Vitarish.Parties.Domain.Dtos;
 
 namespace Vitarish.Main.Pages.Common;
@@ -35,22 +35,13 @@ public partial class Home
         if (hasTenantContext && Guid.TryParse(RequestContext.TenantId, out Guid tenantGuid))
         {
             TenantReadDto? tenant = await PartiesService.GetTenantAsync(tenantGuid);
-            if (tenant is not null && tenant.Metadata.TryGetValue("activeModules", out object? raw))
+            if (tenant is not null)
             {
-                try
-                {
-                    string[] modules = raw is JsonElement je
-                        ? je.Deserialize<string[]>() ?? []
-                        : raw as string[] ?? [];
+                IReadOnlyList<string> modules = TenantMetadata.GetActiveModules(tenant.Metadata);
 
-                    activeDashboards = [.. modules
-                        .Where(m => ModuleDashboardRoutes.ContainsKey(m))
-                        .Select(m => (m, ModuleDashboardRoutes[m]))];
-                }
-                catch (JsonException)
-                {
-                    // Malformed activeModules metadata – degrade gracefully with no dashboards.
-                }
+                activeDashboards = [.. modules
+                    .Where(m => ModuleDashboardRoutes.ContainsKey(m))
+                    .Select(m => (m, ModuleDashboardRoutes[m]))];
             }
         }
     }
