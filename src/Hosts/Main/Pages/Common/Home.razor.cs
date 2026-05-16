@@ -48,7 +48,6 @@ public partial class Home
 
     private Task NavigateToTenant(string route)
     {
-        NavigationManager.NavigateTo(route, forceLoad: true);
         return Task.CompletedTask;
     }
 }
