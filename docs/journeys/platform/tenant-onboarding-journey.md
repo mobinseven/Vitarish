@@ -3,16 +3,28 @@
 ## 1. Context
 
 - Product / service: Vitarish platform onboarding
-- Journey type: Future-state, low-friction target flow
-- Scenario: A new user registers, logs in, creates a tenant, becomes tenant owner automatically, defines the tenant's domain/sub-domain indicators, and activates modules.
-- User goal: Start using a configured tenant as quickly as possible.
-- Business goal: Convert a registered user into an active tenant owner with the right modules enabled.
-- Scope start: Anonymous user opens registration.
-- Scope end: User lands in the tenant workspace with selected modules active.
+- Journey type: Current-state self-service tenant setup flow, delivered behind a feature flag
+- Entry point: Authenticated user selects **Create Workspace** from the home page or navigates to `/setup`
+- Scenario: A signed-in user without the desired tenant context creates an owner record, tenant, primary tenant indicator, tenant role assignments, and active module list through a short wizard.
+- User goal: Create a usable workspace and start from the correct tenant context quickly.
+- Business goal: Let an authenticated customer bootstrap their own tenant without support intervention while keeping the feature safely gated.
+- Scope start: Authenticated user reaches the home page with `Vitarish:Features:TenantOnboarding` enabled.
+- Scope end: Tenant setup is submitted successfully and the user is returned to the home page, where tenant module dashboard shortcuts can appear after tenant context resolves.
 - Primary persona: Organization owner / first administrator
-- Friction principle: Minimize clicks by combining setup into one guided path, using defaults, and asking only for data required to create a usable tenant.
+- Friction principle: Ask only for the fields required to create a tenant, one primary indicator, and the initial active-module list.
 
-## 2. Persona Snapshot
+## 2. Feature Gate and Access Rules
+
+The onboarding journey is controlled by the `TenantOnboarding` feature flag in the `Vitarish:Features` configuration section. The template default is `false`, so operators must explicitly enable the flow before users can access it.
+
+| Condition | System behavior | User impact |
+| --- | --- | --- |
+| Feature flag disabled | `/setup` redirects to home and the home page setup button is hidden. | No unfinished self-service path is exposed. |
+| Feature flag enabled and user authenticated | Home page can show **Create Workspace** when no tenant dashboard is available. | The user has a visible self-service entry point. |
+| Feature flag enabled and user unauthenticated | `/setup` redirects to login. | Tenant creation remains tied to an authenticated user. |
+| Tenant context resolved with active modules | Home page shows dashboard shortcuts for active modules that have known dashboard routes. | Returning users can jump directly into enabled work areas. |
+
+## 3. Persona Snapshot
 
 **Name / segment:** First-time organization owner
 
@@ -20,218 +32,128 @@
 
 **Motivation:** Create a secure workspace and activate only the modules needed now.
 
-**Key needs:** Fast registration, clear ownership, trustworthy tenant identity, and obvious module selection.
+**Key needs:** Clear ownership, trustworthy tenant identity, obvious module selection, and a safe retry path if setup fails.
 
-**Constraints:** The user may not understand internal platform terms such as tenant, owner, domain, or sub-domain.
+**Constraints:** The user may not understand internal platform terms such as owner, tenant, app id, hostname, subdomain, or module.
 
-**Success means:** The user reaches an initialized tenant without support, duplicate setup, or unnecessary decisions.
+**Success means:** The user creates a tenant without support, manual role assignment, or separate admin screens for the initial indicator and module activation.
 
-## 3. Journey Summary
+## 4. Journey Summary
 
-**Narrative:** The user registers once, is signed in automatically when possible, completes a short tenant setup form, reviews recommended modules, and enters the tenant dashboard as owner.
+**Narrative:** The authenticated user starts the setup wizard, completes workspace details, defines one primary hostname or subdomain indicator, selects modules from the registered module list, and submits once. The system creates the owner, tenant, primary indicator, active-module metadata, and tenant role assignments on behalf of the user.
 
-**Emotional arc:** Curious -> reassured -> in control -> ready to work
+**Emotional arc:** Motivated -> guided -> in control -> ready to enter the workspace
 
-**Biggest friction point:** Splitting account creation, login, tenant creation, indicator setup, and module activation across separate screens.
+**Biggest friction point addressed:** The previous target journey required tenant creation, indicator setup, module activation, and role assignment to feel like one action instead of multiple unrelated admin tasks.
 
-**Highest-value opportunity:** Use a single post-registration setup wizard that creates the tenant, owner membership, indicators, and module activations in one submit action.
+**Current implementation shape:** Three wizard steps share one `TenantSetupContext` until final submission.
 
-**Target click budget:**
+**Important current limitation:** The wizard does not yet generate suggested slugs, preselect recommended modules, resolve module dependencies, or automatically enter the newly created tenant context after submit. Those remain future iteration opportunities.
 
-| Flow segment | Target user clicks | Friction control |
-| --- | ---: | --- |
-| Register | 1 primary submit | Auto-login after successful email/password or identity-provider registration. |
-| Create tenant + indicators | 1 primary continue | One form with sensible defaults and inline validation. |
-| Select modules | 1 primary finish | Preselect recommended modules and allow later changes. |
-| Enter workspace | 0 extra clicks | Redirect automatically to the new tenant dashboard. |
+## 5. Wizard Screen Model
 
-## 4. Recommended Low-Friction Flow
-
-### Happy path
-
-1. User opens **Register**.
-2. User enters only required account fields, accepts required terms, and submits.
-3. System creates the account and starts an authenticated session immediately.
-4. System detects that the user has no active tenant and redirects to **Create your workspace**.
-5. User enters tenant name.
-6. System generates a tenant slug/sub-domain suggestion from the tenant name.
-7. User selects or confirms the primary domain indicator and optional sub-domain indicator from searchable lists or suggested chips.
-8. User continues to module activation.
-9. System shows module cards grouped by business outcome, with recommended modules preselected from the indicators.
-10. User confirms selected modules.
-11. System creates the tenant, assigns the user as owner, stores indicators, activates modules, and initializes required module data.
-12. User is redirected to the tenant dashboard with an owner onboarding checklist.
-
-### Minimum viable screen model
-
-| Screen | Required inputs | Defaults / automation | Primary CTA | Notes |
+| Step | Required inputs | Defaults / automation | Primary CTA | Validation / guardrail |
 | --- | --- | --- | --- | --- |
-| Register | Name, email, password or identity provider | Auto-login after success | Create account | Do not ask for tenant data here unless registration is explicitly organization-first. |
-| Create your workspace | Tenant name, domain indicator, optional sub-domain indicator | Suggested slug/sub-domain from tenant name; suggested indicators from email/domain or previous choice | Continue | Inline availability checks prevent late failures. |
-| Activate modules | Module selection | Recommended modules preselected by indicators; dependencies auto-selected | Finish setup | Allow skip only if a usable default module set exists. |
-| Tenant dashboard | None | Owner role, active tenant context, active modules | None | Show next-best actions, not another required setup step. |
-
-## 5. Journey Stages
-
-### Stage 1: Register
-
-**User goal:** Create an account quickly and safely.
-
-**User actions:** Open registration, enter required credentials or choose identity provider, submit.
-
-**Touchpoints / channels:** Registration page, identity provider, email verification if required by policy.
-
-**User thoughts / questions:** “Can I get in without a long setup process?”
-
-**Emotions:** Hopeful, 4, because the task feels familiar when the form is short.
-
-**Pain points:** Extra profile fields, separate login after registration, or requiring email verification before the user sees setup context.
-
-**Needs:** Short form, clear password rules, secure validation, and immediate continuation.
-
-**Opportunities:** Auto-login after registration; defer nonessential profile data; support identity-provider registration.
-
-**Success metrics:** Registration completion rate, time to authenticated session, registration validation error rate.
-
-### Stage 2: Login / authenticated continuation
-
-**User goal:** Continue without repeating work.
-
-**User actions:** If auto-login is unavailable, enter credentials and submit.
-
-**Touchpoints / channels:** Login page, session redirect, tenant resolver.
-
-**User thoughts / questions:** “Why am I logging in again?”
-
-**Emotions:** Neutral, 3, if login is required; reassured, 4, if auto-login works.
-
-**Pain points:** Losing context after registration or landing on an empty page with no tenant.
-
-**Needs:** Preserve intent, return path, and setup state.
-
-**Opportunities:** Treat login as an exception path; redirect authenticated users without tenants directly to tenant setup.
-
-**Success metrics:** Login success rate after registration, setup redirect success rate, abandoned no-tenant sessions.
-
-### Stage 3: Create tenant and ownership
-
-**User goal:** Create a workspace and know they control it.
-
-**User actions:** Enter tenant name, confirm slug/sub-domain, continue.
-
-**Touchpoints / channels:** Create workspace form, slug availability check, owner-role confirmation copy.
-
-**User thoughts / questions:** “What will this workspace be called, and who can administer it?”
-
-**Emotions:** In control, 4, when ownership is explicit and automatic.
-
-**Pain points:** Asking the user to manually assign themselves as owner, choose technical identifiers, or understand tenant internals.
-
-**Needs:** Plain-language labels, automatic owner assignment, recoverable validation errors.
-
-**Opportunities:** Create tenant and owner membership in the same transaction; explain “You will be the owner” near the submit action.
-
-**Success metrics:** Tenant creation completion rate, slug collision rate, tenant creation rollback rate.
-
-### Stage 4: Define domain/sub-domain indicators
-
-**User goal:** Classify the tenant enough for correct defaults and recommendations.
-
-**User actions:** Choose a domain indicator and optional sub-domain indicator; accept suggestions when accurate.
-
-**Touchpoints / channels:** Indicator chips, searchable selector, helper text, recommendation engine.
-
-**User thoughts / questions:** “Which category best describes my organization?”
-
-**Emotions:** Decisive, 3, if options are clear; uncertain, 2, if taxonomy is too detailed.
-
-**Pain points:** Too many categories, internal naming, or requiring sub-domain decisions too early.
-
-**Needs:** A short list of common domains, search, examples, and a safe “not sure” option when sub-domain is optional.
-
-**Opportunities:** Suggest indicators from email domain, organization name, invitation context, or market defaults; let owners edit indicators later.
-
-**Success metrics:** Indicator selection time, “not sure” rate, later indicator correction rate.
-
-### Stage 5: Activate modules
-
-**User goal:** Enable the capabilities needed now without understanding the full module catalog.
-
-**User actions:** Review recommended modules, optionally add/remove modules, finish setup.
-
-**Touchpoints / channels:** Module selection cards, dependency notices, module recommendations.
-
-**User thoughts / questions:** “Which modules do I need to start?”
-
-**Emotions:** Confident, 4, when recommended modules are preselected.
-
-**Pain points:** Showing every module equally, forcing technical dependency choices, or requiring configuration before the user can enter the workspace.
-
-**Needs:** Recommended bundle, clear module benefits, dependency automation, and ability to change later.
-
-**Opportunities:** Auto-select modules based on indicators; hide advanced modules under “more options”; initialize module defaults in the background.
-
-**Success metrics:** Module activation completion rate, modules changed after first session, setup finish failures.
-
-### Stage 6: Enter tenant workspace
-
-**User goal:** Start working immediately.
-
-**User actions:** Land in dashboard; optionally follow checklist.
-
-**Touchpoints / channels:** Tenant dashboard, owner onboarding checklist, module navigation.
-
-**User thoughts / questions:** “What should I do first?”
-
-**Emotions:** Ready, 4, if the workspace looks complete.
-
-**Pain points:** Another required setup screen, empty navigation, or unclear active tenant context.
-
-**Needs:** Active tenant indicator, owner status, visible modules, and next-best actions.
-
-**Opportunities:** Show a dismissible checklist for optional profile, team, branding, and module-specific setup tasks.
-
-**Success metrics:** First workspace action rate, time to first module use, checklist engagement.
-
-## 6. Service Blueprint
-
-| User-facing step | Frontstage behavior | Backstage action | Failure handling |
-| --- | --- | --- | --- |
-| Register | Validate account form inline and submit once. | Create user and authenticated session. | Keep entered values, show field-level errors, and avoid restarting setup. |
-| Login / continue | Redirect authenticated user to setup if no tenant exists. | Resolve active user and tenant membership. | If session fails, return to login with preserved return URL. |
-| Tenant setup | Show one form for name, slug, and indicators. | Validate tenant name, slug uniqueness, and indicator IDs. | Show recoverable inline errors before any module choices are lost. |
-| Finish setup | Confirm selected modules once. | In one orchestrated setup operation: create tenant, create owner membership, persist indicators, activate modules, initialize module defaults. | Use an all-or-nothing transaction where possible; otherwise show retry with setup draft retained. |
-| Dashboard | Redirect into the new tenant context. | Set active tenant context and load activated module navigation. | If module initialization is delayed, show “setting up” status while core tenant remains available. |
-
-## 7. Friction Reduction Rules
-
-1. **One source of truth:** Keep tenant setup state in one draft model until final submission.
-2. **Do not ask twice:** Registration captures user identity; tenant setup captures workspace identity; module setup captures capabilities.
-3. **Make ownership automatic:** The creator becomes owner without a separate role assignment screen.
-4. **Recommend before asking:** Use indicators to preselect modules and explain recommendations.
-5. **Validate early:** Check required fields, slug availability, indicator validity, and module dependencies before final submission.
-6. **Defer optional work:** Branding, invitations, billing, advanced module configuration, and profile enrichment happen after dashboard entry.
-7. **Keep recovery simple:** On errors, keep the user's setup draft and show one clear retry path.
-
-## 8. Click and Decision Inventory
-
-| Step | User decision | Required? | Can be defaulted? | Recommendation |
+| Details | Owner name, tenant name, app id | Empty draft values held in the wizard context | Next | Required-field check before moving forward. |
+| Indicator | Method, address | Method defaults to `Subdomain`; submitted status is `Active`; indicator is primary | Next | Indicator address is required before module selection. |
+| Modules | Selected module names | Module list comes from the registered `IReadOnlyList<IModule>` collection | Finish | Submit button is disabled while the request is in progress. |
+
+## 6. Happy Path
+
+1. User signs in.
+2. System loads the home page.
+3. If `TenantOnboarding` is enabled and no tenant dashboard is available, the user selects **Create Workspace**.
+4. System opens `/setup` and verifies that the feature flag is still enabled.
+5. System verifies that the request has an authenticated user id; otherwise it redirects to login.
+6. User enters owner name, tenant name, and app id.
+7. User selects the indicator method: hostname or subdomain.
+8. User enters the indicator address.
+9. User selects the modules that should be active for the tenant.
+10. User submits setup.
+11. System sends one setup request containing the collected details, indicator data, selected module names, and authenticated user id.
+12. System creates the owner record.
+13. System creates the tenant and stores `activeModules` in tenant metadata.
+14. System creates the primary active tenant indicator.
+15. System assigns the user to the tenant owner, tenant admin, and tenant user roles using fully qualified tenant role names.
+16. System redirects back to home with a full page reload.
+17. Once tenant context resolves, the home page reads `activeModules` and shows dashboard shortcuts for active modules that have known routes.
+
+## 7. Service Orchestration
+
+The setup submit action maps directly to a single application-service operation: `SetupTenantAsync`.
+
+| Sequence | Responsibility | Notes |
+| ---: | --- | --- |
+| 1 | Create owner | The audit `CreatedBy` value provides the implicit owner-to-user link. |
+| 2 | Create tenant | The selected module names are persisted under tenant metadata key `activeModules`; tenant role creation is triggered by tenant creation. |
+| 3 | Create primary indicator | The wizard supplies method and value; setup submits `Active` status and marks it primary. |
+| 4 | Assign roles | The authenticated user is added to `{tenantId}:TenantOwner`, `{tenantId}:TenantAdmin`, and `{tenantId}:TenantUser`. |
+| 5 | Return tenant | A null result indicates setup failed and the UI shows a recoverable error. |
+
+## 8. Home Page Continuation
+
+After setup, home is responsible for presenting the next useful action:
+
+- If a tenant context exists and tenant metadata contains valid `activeModules`, the page filters those module names through the known dashboard-route map.
+- Dashboard buttons are shown only for activated modules with mapped routes: Sea, Medical, Commerce, and Appointments.
+- If `activeModules` metadata is malformed, the page degrades safely by showing no dashboard shortcuts instead of failing the home page.
+- If no tenant context is available and onboarding is enabled, the existing tenant widget remains available and the **Create Workspace** button gives the user an explicit setup path.
+
+## 9. Failure and Recovery Rules
+
+| Failure point | Current behavior | Recommended next improvement |
+| --- | --- | --- |
+| Feature disabled | Redirect to home. | Add operator-facing documentation that explains how to enable the flag in non-production environments. |
+| User unauthenticated | Redirect to login. | Preserve a return URL to `/setup` after login. |
+| Required fields missing | Show a warning snackbar and keep the current wizard state. | Add field-level messages for clearer correction. |
+| Setup service returns null | Show a generic error snackbar and keep the page active. | Surface a safer user-readable error reason and add telemetry. |
+| Indicator creation or role assignment partial failure | The current service continues through sequential operations without an explicit transaction boundary. | Wrap setup in an all-or-nothing transaction or compensating cleanup path. |
+| Malformed active-module metadata | Home page catches JSON parsing errors and shows no dashboard shortcuts. | Add metadata validation at write time and migration/repair tooling. |
+
+## 10. Friction Reduction Rules
+
+1. **One source of setup truth:** Keep all wizard state in `TenantSetupContext` until the final submit.
+2. **One orchestration call:** Keep owner creation, tenant creation, indicator creation, module activation metadata, and role assignment behind `SetupTenantAsync`.
+3. **No manual owner assignment:** The authenticated setup user becomes tenant owner automatically.
+4. **Gate unfinished functionality:** Keep the wizard behind `TenantOnboarding` until setup recovery, tenant-context switching, and recommendations are mature enough for broad rollout.
+5. **Validate before transitions:** Do not let users advance past required setup data.
+6. **Defer optional work:** Branding, invitations, billing, profile enrichment, and advanced module configuration happen after the tenant exists.
+7. **Degrade safely:** Missing or malformed active-module metadata should not block the home page.
+
+## 11. Click and Decision Inventory
+
+| Step | User decision | Required? | Current default | Recommendation |
 | --- | --- | --- | --- | --- |
-| Account credentials | Who am I? | Yes | Partly, through identity provider | Keep on registration only. |
-| Tenant name | What is my workspace called? | Yes | No | Single text input. |
-| Slug/sub-domain | Where is my tenant reached? | Yes, if sub-domain routing is used | Yes | Auto-generate and allow edit. |
-| Domain indicator | What type of tenant is this? | Yes | Sometimes | Suggest from context and allow search. |
-| Sub-domain indicator | What specialty/category applies? | No unless required by domain | Yes | Make optional or recommended. |
-| Modules | What capabilities start active? | Yes | Yes | Preselect recommended bundle. |
-| Owner assignment | Who owns this tenant? | Yes | Fully | Automatic; no user decision. |
+| Owner name | Who owns the workspace record? | Yes | None | Consider deriving an initial value from the authenticated profile. |
+| Tenant name | What is the workspace called? | Yes | None | Keep as a single text input. |
+| App id | Which app id should the tenant use? | Yes | None | Explain expected format or provide a generated suggestion. |
+| Indicator method | How should the tenant be resolved? | Yes | Subdomain | Keep the default, but explain when to choose hostname. |
+| Indicator address | What hostname or subdomain identifies this tenant? | Yes | None | Add availability and format checks before final submit. |
+| Modules | Which capabilities start active? | No explicit minimum in UI | None selected | Preselect recommended modules once recommendation rules exist. |
+| Owner/admin/user roles | What access should the creator receive? | Yes | Fully automatic | Keep hidden from the user. |
 
-## 9. Acceptance Criteria
+## 12. Acceptance Criteria Reflected by the Current PR
 
-- A newly registered user can complete setup without manually logging in when security policy allows it.
-- A user without a tenant is routed directly to tenant setup after authentication.
-- Tenant creation automatically assigns the creator as owner.
-- Domain and sub-domain indicators are collected in the tenant setup flow, not in separate admin pages.
-- Module recommendations are derived from indicators and can be accepted with one primary action.
-- Module dependencies are resolved automatically or explained inline before setup completion.
-- Setup can complete in three primary clicks after landing on registration: create account, continue workspace setup, finish setup.
-- Optional setup tasks are deferred to the tenant dashboard checklist.
+- The self-service onboarding route is available at `/setup` only when `Vitarish:Features:TenantOnboarding` is enabled.
+- The feature flag defaults to disabled in template configuration.
+- Unauthenticated users cannot create a tenant through `/setup`.
+- The wizard uses three steps: details, indicator, and modules.
+- Required fields are checked before moving from details to indicator and from indicator to modules.
+- The final submit sends one setup request with owner, tenant, app id, indicator, selected modules, and authenticated user id.
+- Tenant creation stores selected module names in tenant metadata under `activeModules`.
+- Tenant setup creates a primary active tenant indicator.
+- The setup user is assigned tenant owner, tenant admin, and tenant user roles for the new tenant.
+- The home page can show **Create Workspace** when onboarding is enabled.
+- The home page can show dashboard shortcuts for active modules with known routes after tenant context resolves.
+- Malformed `activeModules` metadata does not crash the home page.
+
+## 13. Future Iteration Opportunities
+
+- Preserve `/setup` as the post-login return URL for users who start setup before authentication.
+- Enter or switch to the newly created tenant context immediately after successful setup.
+- Generate app id, slug, hostname, or subdomain suggestions from tenant name and user profile context.
+- Validate indicator format and uniqueness before final submit.
+- Recommend and preselect modules from tenant type, email domain, indicator, or onboarding answers.
+- Add module dependency handling so required supporting modules are selected automatically or explained inline.
+- Add transactionality or compensating cleanup across owner, tenant, indicator, metadata, and role-assignment writes.
+- Add setup telemetry for starts, step transitions, validation failures, successful completions, and service failures.
