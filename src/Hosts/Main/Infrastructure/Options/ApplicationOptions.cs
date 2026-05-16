@@ -41,4 +41,9 @@ public class ApplicationOptions
     /// </summary>
     public ElasticSearchOptions Search { get; set; } = new();
 
+    /// <summary>
+    /// Feature-flag switches for in-development functionality.
+    /// </summary>
+    public FeaturesOptions Features { get; set; } = new();
+
 }

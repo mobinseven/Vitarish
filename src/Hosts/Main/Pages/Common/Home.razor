@@ -8,24 +8,36 @@
     </StackField>
 </Stack>
 
-
-<AuthorizeView>
-    <Authorized>
-        <TenantWidget OnTenantNavigate="NavigateToTenant" />
-    </Authorized>
-    <NotAuthorized>
-        <Stack>
-            <StackButton Label="@Localizer["Login"]"
-                         EndIcon="fa-regular fa-sign-in"
-                         OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.Login))" />
-        </Stack>
-    </NotAuthorized>
-</AuthorizeView>
-
-@code {
-    private Task NavigateToTenant(string route)
-    {
-        NavigationManager.NavigateTo(route, forceLoad: true);
-        return Task.CompletedTask;
-    }
+@if (hasTenantContext && activeDashboards.Count > 0)
+{
+    <Stack>
+        @foreach (var (name, route) in activeDashboards)
+        {
+            <StackButton Label="@name" Href="@route" StartIcon="fa-regular fa-grid" />
+        }
+    </Stack>
 }
+else
+{
+    <AuthorizeView>
+        <Authorized>
+            <TenantWidget OnTenantNavigate="NavigateToTenant" />
+            @if (onboardingEnabled)
+            {
+                <Stack>
+                    <StackButton Label="@Localizer["CreateWorkspace"]"
+                                 Href="@AppRoutes.Setup.Index"
+                                 EndIcon="fa-regular fa-plus" />
+                </Stack>
+            }
+        </Authorized>
+        <NotAuthorized>
+            <Stack>
+                <StackButton Label="@Localizer["Login"]"
+                             EndIcon="fa-regular fa-sign-in"
+                             OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.Login))" />
+            </Stack>
+        </NotAuthorized>
+    </AuthorizeView>
+}
+

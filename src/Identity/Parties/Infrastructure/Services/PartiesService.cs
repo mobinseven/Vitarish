@@ -4,6 +4,8 @@ using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Descriptors;
 using Vitarish.Parties.Domain.Dtos;
 using Vitarish.Users.Application.Commands;
+using Vitarish.Users.Application.Queries;
+using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Parties.Infrastructure.Services;
 
@@ -103,4 +105,58 @@ public sealed class PartiesService(OwnersService ownerService, TenantsService te
     }
 
     public async Task DeleteTenantIndicatorAsync(Guid id, CancellationToken ct = default) => await tenantIndicatorService.RemoveAsync(id, ct);
+
+    public async Task<TenantReadDto?> SetupTenantAsync(SetupTenantRequest request, CancellationToken ct = default)
+    {
+        // 1. Create the owner entity (CreatedBy is set automatically by the entity interceptor,
+        //    establishing the implicit Owner↔User mapping).
+        OwnerReadDto? owner = await CreateOwnerAsync(
+            new OwnerWriteDto { Id = Guid.NewGuid(), Name = request.OwnerName }, ct);
+        if (owner is null)
+        {
+            return null;
+        }
+
+        // 2. Create the tenant, persisting the selected module list in metadata.
+        TenantWriteDto tenantDto = new()
+        {
+            Id = Guid.NewGuid(),
+            OwnerId = owner.Id,
+            Name = request.TenantName,
+            AppId = request.AppId,
+            Metadata = new Dictionary<string, object?> { ["activeModules"] = request.SelectedModules }
+        };
+        // CreateTenantAsync also issues CreateTenantRolesCommand internally.
+        TenantReadDto? tenant = await CreateTenantAsync(tenantDto, ct);
+        if (tenant is null)
+        {
+            return null;
+        }
+
+        // 3. Create the primary indicator so the tenant can be resolved by hostname/subdomain.
+        await CreateTenantIndicatorAsync(new TenantIndicatorWriteDto
+        {
+            Id = Guid.NewGuid(),
+            TenantId = tenant.Id,
+            Method = request.IndicatorMethod,
+            Value = request.IndicatorValue,
+            Status = request.IndicatorStatus,
+            IsPrimary = true
+        }, ct);
+
+        // 4. Assign the onboarding user to all three tenant roles so they have full access.
+        User? user = await sender.Send(new GetUserQuery(request.UserId), ct);
+        if (user is not null)
+        {
+            foreach (string roleSuffix in new[] { IdentityDefinitions.TenantOwner, IdentityDefinitions.TenantAdmin, IdentityDefinitions.TenantUser })
+            {
+                // Roles were already created by CreateTenantRolesCommand above.
+                // The AddUserToRoleCommand handler uses the role name as-is when no tenant
+                // is active in the request context, so we pass the fully-qualified name.
+                _ = await sender.Send(new AddUserToRoleCommand(user, $"{tenant.Id}:{roleSuffix}"), ct);
+            }
+        }
+
+        return tenant;
+    }
 }
