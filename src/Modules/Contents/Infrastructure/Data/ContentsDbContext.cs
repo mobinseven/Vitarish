@@ -9,6 +9,8 @@ namespace Vitarish.Contents.Infrastructure.Data;
 
 public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
 {
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerOptions.Web);
+
     private readonly IEnumerable<IInterceptor> _interceptors;
     private readonly IRequestContext _requestContext;
 
@@ -26,7 +28,12 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
     {
         get
         {
-            string tenantId = _requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID can not be recognized.");
+            string? tenantId = _requestContext.TenantId;
+            if (tenantId is null)
+            {
+                return null;
+            }
+
             return new TenantInfo
             {
                 Id = tenantId,
@@ -87,14 +94,14 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
             _ = entity.Property(e => e.Locale).HasColumnType("nvarchar(32)");
             _ = entity.Property(e => e.Body)
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<IReadOnlyList<ContentBodyBlock>>(v, (JsonSerializerOptions?)null) ?? new List<ContentBodyBlock>())
+                    v => JsonSerializer.Serialize(v, JsonOptions),
+                    v => JsonSerializer.Deserialize<IReadOnlyList<ContentBodyBlock>>(v, JsonOptions) ?? new List<ContentBodyBlock>())
                 .HasDefaultValueSql("'[]'")
                 .HasColumnType("nvarchar(max)");
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, object?>())
+                    v => JsonSerializer.Serialize(v, JsonOptions),
+                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, JsonOptions) ?? new Dictionary<string, object?>())
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
 
@@ -118,8 +125,8 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
             _ = entity.Property(e => e.Name).HasColumnType("nvarchar(256)");
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, object?>())
+                    v => JsonSerializer.Serialize(v, JsonOptions),
+                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, JsonOptions) ?? new Dictionary<string, object?>())
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
 
@@ -158,8 +165,8 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
             _ = entity.Property(e => e.Weight).HasColumnType("decimal(9,4)");
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, object?>())
+                    v => JsonSerializer.Serialize(v, JsonOptions),
+                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, JsonOptions) ?? new Dictionary<string, object?>())
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
 
@@ -184,8 +191,8 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
             _ = entity.Property(e => e.AltText).HasColumnType("nvarchar(1024)");
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, (JsonSerializerOptions?)null) ?? new Dictionary<string, object?>())
+                    v => JsonSerializer.Serialize(v, JsonOptions),
+                    v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, JsonOptions) ?? new Dictionary<string, object?>())
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
 

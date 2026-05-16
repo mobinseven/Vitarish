@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore.Storage;
+using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Search.Domain.Abstractions;
 using Vitarish.Contents.Infrastructure.SearchProviders;
 
@@ -8,6 +10,7 @@ internal sealed class ContentItemsService(
     IMediator mediator,
     ContentsDbContext dbContext,
     IEntityTimeService timeService,
+    IRequestContext requestContext,
     ISearchService? searchService = null)
     : EntityService<ContentItem, ContentItemDescriptor, ContentItemReadDto, ContentItemWriteDto, ContentItemDescriptorDto>(
         mediator,
@@ -35,18 +38,30 @@ internal sealed class ContentItemsService(
             dto.PublishedAt = timeService.Now;
         }
 
-        EntityResult<ContentItemReadDto> result = await base.AddAsync(dto, cancellationToken);
+        EntityResult<ContentItemReadDto> result = await ExecuteInContentTransactionAsync(
+            async () =>
+            {
+                EntityResult<ContentItemReadDto> addResult = await base.AddAsync(dto, cancellationToken);
+                if (addResult.IsFailure || addResult.Value is null)
+                {
+                    return addResult;
+                }
+
+                if (ShouldCreateRevision(dto.Status))
+                {
+                    await CreateRevisionAsync(addResult.Value.Id, dto, cancellationToken);
+                }
+
+                return addResult;
+            },
+            cancellationToken);
+
         if (result.IsFailure || result.Value is null)
         {
             return result;
         }
 
-        if (ShouldCreateRevision(dto.Status))
-        {
-            await CreateRevisionAsync(result.Value.Id, dto, cancellationToken);
-        }
-
-        await TryReindexAsync(cancellationToken);
+        await TryIndexContentAsync(result.Value.Id, dto, cancellationToken);
 
         return result;
     }
@@ -70,23 +85,57 @@ internal sealed class ContentItemsService(
             dto.PublishedAt = timeService.Now;
         }
 
-        EntityResult<ContentItemReadDto> result = await base.UpdateAsync(dto, cancellationToken);
+        EntityResult<ContentItemReadDto> result = await ExecuteInContentTransactionAsync(
+            async () =>
+            {
+                EntityResult<ContentItemReadDto> updateResult = await base.UpdateAsync(dto, cancellationToken);
+                if (updateResult.IsFailure || updateResult.Value is null)
+                {
+                    return updateResult;
+                }
+
+                if (previousStatus is not null && previousStatus != dto.Status && ShouldCreateRevision(dto.Status))
+                {
+                    await CreateRevisionAsync(dto.Id, dto, cancellationToken);
+                }
+
+                return updateResult;
+            },
+            cancellationToken);
+
         if (result.IsFailure || result.Value is null)
         {
             return result;
         }
 
-        if (previousStatus is not null && previousStatus != dto.Status && ShouldCreateRevision(dto.Status))
-        {
-            await CreateRevisionAsync(dto.Id, dto, cancellationToken);
-        }
-
-        await TryReindexAsync(cancellationToken);
+        await TryIndexContentAsync(result.Value.Id, dto, cancellationToken);
 
         return result;
     }
 
     private static bool ShouldCreateRevision(ContentStatus status) => RevisionStatuses.Contains(status);
+
+    private async Task<EntityResult<ContentItemReadDto>> ExecuteInContentTransactionAsync(
+        Func<Task<EntityResult<ContentItemReadDto>>> operation,
+        CancellationToken cancellationToken)
+    {
+        if (dbContext.Database.CurrentTransaction is not null)
+        {
+            return await operation();
+        }
+
+        await using IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        EntityResult<ContentItemReadDto> result = await operation();
+
+        if (result.IsFailure)
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            return result;
+        }
+
+        await transaction.CommitAsync(cancellationToken);
+        return result;
+    }
 
     private async Task CreateRevisionAsync(Guid contentId, ContentItemWriteDto dto, CancellationToken cancellationToken)
     {
@@ -109,7 +158,7 @@ internal sealed class ContentItemsService(
             dto.AuthorId,
             dto.Locale,
             dto.PublishedAt
-        });
+        }, JsonSerializerOptions.Web);
 
         ContentRevision revision = new()
         {
@@ -155,13 +204,20 @@ internal sealed class ContentItemsService(
         return errors.Count == 0 ? EntityResult.Success() : EntityResult.Failure([.. errors]);
     }
 
-    private async Task TryReindexAsync(CancellationToken cancellationToken)
+    private async Task TryIndexContentAsync(Guid contentId, ContentItemWriteDto dto, CancellationToken cancellationToken)
     {
         if (searchService is null)
         {
             return;
         }
 
-        await searchService.RebuildIndexAsync(ContentItemsSearchProvider.IndexNameValue, cancellationToken);
+        string tenantId = !string.IsNullOrWhiteSpace(requestContext.TenantId)
+            ? requestContext.TenantId
+            : throw new InvalidOperationException("Tenant ID must be set before indexing content documents.");
+
+        await searchService.IndexAsync(
+            ContentItemsSearchProvider.IndexNameValue,
+            [ContentItemsSearchProvider.CreateDocument(contentId, dto, tenantId)],
+            cancellationToken);
     }
 }

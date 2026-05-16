@@ -12,6 +12,22 @@ internal sealed class ContentItemsSearchProvider(
 
     public string IndexName => IndexNameValue;
 
+    internal static SearchDocument CreateDocument(Guid contentId, ContentItemWriteDto dto, string tenantId) => new()
+    {
+        Id = contentId.ToString(),
+        Title = dto.Title,
+        Body = BuildSearchBody(dto.Excerpt, dto.Body),
+        Type = dto.Type.ToString(),
+        TenantId = tenantId,
+        NavigationUrl = dto.CanonicalPath,
+        Metadata = new Dictionary<string, object?>
+        {
+            ["locale"] = dto.Locale,
+            ["authorId"] = dto.AuthorId,
+            ["publishedAt"] = dto.PublishedAt
+        }
+    };
+
     public async Task<IReadOnlyList<SearchDocument>> GetDocumentsAsync(CancellationToken cancellationToken = default)
     {
         string tenantId = !string.IsNullOrWhiteSpace(requestContext.TenantId)
@@ -38,7 +54,7 @@ internal sealed class ContentItemsSearchProvider(
         {
             Id = c.Id.ToString(),
             Title = c.Title,
-            Body = $"{c.Excerpt}\n{JsonSerializer.Serialize(c.Body)}",
+            Body = BuildSearchBody(c.Excerpt, c.Body),
             Type = c.Type.ToString(),
             TenantId = tenantId,
             NavigationUrl = c.CanonicalPath,
@@ -49,5 +65,11 @@ internal sealed class ContentItemsSearchProvider(
                 ["publishedAt"] = c.PublishedAt
             }
         })];
+    }
+
+    private static string BuildSearchBody(string? excerpt, IEnumerable<ContentBodyBlock> blocks)
+    {
+        IEnumerable<string> blockText = blocks.Select(block => block.Text).OfType<string>();
+        return $"{excerpt}\n{string.Join(" ", blockText)}";
     }
 }

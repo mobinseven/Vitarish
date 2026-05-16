@@ -6,8 +6,7 @@ internal sealed class ContentItemRepository(ContentsDbContext dbContext)
       IEntityRepository<ContentItem, ContentItemDescriptor>
 {
     protected override bool IsDuplicateKeyException(DbUpdateException ex)
-        => ex.InnerException?.Message?.Contains("duplicate key", StringComparison.OrdinalIgnoreCase) == true
-           || ex.InnerException?.Message?.Contains("unique", StringComparison.OrdinalIgnoreCase) == true;
+        => ContentsDatabaseExceptions.IsUniqueConstraintViolation(ex);
 
     protected override IQueryable<ContentItem> Apply(IQueryable<ContentItem> query, ContentItemDescriptor descriptor)
     {

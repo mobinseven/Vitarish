@@ -6,8 +6,7 @@ internal sealed class TermRepository(ContentsDbContext dbContext)
       IEntityRepository<Term, TermDescriptor>
 {
     protected override bool IsDuplicateKeyException(DbUpdateException ex)
-        => ex.InnerException?.Message?.Contains("duplicate key", StringComparison.OrdinalIgnoreCase) == true
-           || ex.InnerException?.Message?.Contains("unique", StringComparison.OrdinalIgnoreCase) == true;
+        => ContentsDatabaseExceptions.IsUniqueConstraintViolation(ex);
 
     protected override IQueryable<Term> Apply(IQueryable<Term> query, TermDescriptor descriptor)
     {
