@@ -37,17 +37,21 @@
 
     protected override async Task ReloadRequired()
     {
-        if (patientId is not { } parsedPatientId)
+        if (patientId is null)
         {
             NavigationManager.NavigateTo(AppRoutes.Medical.Patients);
             return;
         }
 
-        if (procedureId is not { } parsedProcedureId)
+        var parsedPatientId = patientId.Value;
+
+        if (procedureId is null)
         {
             NavigationManager.NavigateTo(AppRoutes.Medical.Patient(parsedPatientId));
             return;
         }
+
+        var parsedProcedureId = procedureId.Value;
 
         _patientGuid = parsedPatientId;
         _procedureGuid = parsedProcedureId;

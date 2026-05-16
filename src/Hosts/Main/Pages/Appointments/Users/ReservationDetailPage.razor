@@ -15,11 +15,13 @@
 
     protected override async Task ReloadRequired()
     {
-        if (reservationId is not { } id)
+        if (reservationId is null)
         {
             NavigationManager.NavigateTo(AppRoutes.Appointments.Reservations);
             return;
         }
+
+        var id = reservationId.Value;
 
         reservation = await ReservationManager.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
 

@@ -20,11 +20,13 @@
 
     protected override async Task ReloadRequired()
     {
-        if (reservationId is not { } id)
+        if (reservationId is null)
         {
             Back();
             return;
         }
+
+        var id = reservationId.Value;
 
         reservation = await ReservationManager.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
 

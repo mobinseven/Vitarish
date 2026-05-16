@@ -23,11 +23,13 @@
 
     protected override async Task ReloadRequired()
     {
-        if(shiftId is not { } id)
+        if (shiftId is null)
         {
             Back();
             return;
         }
+
+        var id = shiftId.Value;
 
         _shiftId = id;
         shift = await ShiftManager.GetAsync(_shiftId, CancellationToken.None).GetValueOrDefaultAsync();

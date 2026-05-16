@@ -41,11 +41,13 @@
 
     protected override async Task ReloadRequired()
     {
-        if(projectId is not { } id)
+        if (projectId is null)
         {
             NavigationManager.NavigateTo(AppRoutes.Sea.Projects);
             return;
         }
+
+        var id = projectId.Value;
 
         ProjectId = id;
 

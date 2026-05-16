@@ -11,11 +11,13 @@ public partial class AdminUserPage
     private User? User;
     protected override async Task OnParametersSetAsync()
     {
-        if (UserId is not { } id)
+        if (UserId is null)
         {
             Back();
             return;
         }
+
+        var id = UserId.Value;
 
         User = await UsersService.GetUserAsync(id.ToString("D"));
         if (User is null)

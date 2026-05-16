@@ -26,11 +26,13 @@
 
     protected override async Task ReloadRequired()
     {
-        if (patientId is not { } id)
+        if (patientId is null)
         {
             Back();
             return;
         }
+
+        var id = patientId.Value;
 
         _id = id;
         patient = await ProjectsService.GetAsync(_id, CancellationToken.None).GetValueOrDefaultAsync();

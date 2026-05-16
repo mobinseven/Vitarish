@@ -34,11 +34,13 @@
 
     protected override async Task ReloadRequired()
     {
-        if(OwnerId is not { } id)
+        if (OwnerId is null)
         {
             Back();
             return;
         }
+
+        var id = OwnerId.Value;
 
         ownerGuid = id;
 

@@ -27,17 +27,21 @@
 
     protected override async Task ReloadRequired()
     {
-        if(projectId is not { } parsedProjectId)
+        if (projectId is null)
         {
             NavigationManager.NavigateTo(AppRoutes.Sea.Projects);
             return;
         }
 
-        if(procedureId is not { } parsedProcedureId)
+        var parsedProjectId = projectId.Value;
+
+        if (procedureId is null)
         {
             NavigationManager.NavigateTo(AppRoutes.Sea.Project(parsedProjectId));
             return;
         }
+
+        var parsedProcedureId = procedureId.Value;
 
         ProjectId = parsedProjectId;
         ProcedureId = parsedProcedureId;

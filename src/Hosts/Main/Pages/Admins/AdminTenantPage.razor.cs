@@ -18,11 +18,13 @@ public partial class AdminTenantPage
         _ownerGuid != Guid.Empty ? AppRoutes.Admin.Owner(_ownerGuid) : AppRoutes.Admin.Owners);
     protected override async Task ReloadRequired()
     {
-        if (TenantId is not { } id)
+        if (TenantId is null)
         {
             Back();
             return;
         }
+
+        var id = TenantId.Value;
 
         tenantGuid = id;
         _ownerGuid = OwnerId ?? Guid.Empty;
