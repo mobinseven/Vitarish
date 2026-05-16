@@ -1,0 +1,30 @@
+using Microsoft.AspNetCore.Builder;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Contents.Application.Abstractions;
+using Vitarish.Contents.Infrastructure.Data;
+using Vitarish.Contents.Infrastructure.DependencyInjection;
+using Vitarish.Modules.Base;
+
+namespace Vitarish.Contents.Interface;
+
+public sealed class ContentsModule : Module, IContentsModule
+{
+    public override string Name => "Contents";
+
+    public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
+    {
+        builder.Services.AddVitarishContentsDomainEntityHandlers();
+
+        _ = builder.Services.AddSingleton<IContentsModule, ContentsModule>();
+        _ = builder.Services.AddMemoryCache();
+
+        _ = builder.Services.AddDbContext<ContentsDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
+
+        _ = builder.Services.AddContentsInfrastructure();
+
+        return Task.CompletedTask;
+    }
+
+    public override Task Initialize(WebApplication app) => Task.CompletedTask;
+}
