@@ -18,7 +18,7 @@ internal sealed class TokenVault(
             throw new InvalidOperationException($"Social connection '{connectionId}' was not found.");
         }
 
-        SocialConnectionTokenDescriptor descriptor = new() { ConnectionId = connectionId, Limit = 1 };
+        SocialConnectionTokenDescriptor descriptor = new() { ConnectionId = connectionId, Take = 1 };
         SocialConnectionToken? existing = (await tokenRepository.GetAsync(descriptor, cancellationToken)).FirstOrDefault();
 
         string encryptedAccess = _protector.Protect(token.AccessToken);
@@ -59,7 +59,7 @@ internal sealed class TokenVault(
 
     public async Task<SocialTokenPayload?> RetrieveTokenAsync(Guid connectionId, CancellationToken cancellationToken)
     {
-        SocialConnectionTokenDescriptor descriptor = new() { ConnectionId = connectionId, Limit = 1 };
+        SocialConnectionTokenDescriptor descriptor = new() { ConnectionId = connectionId, Take = 1 };
         SocialConnectionToken? token = (await tokenRepository.GetAsync(descriptor, cancellationToken)).FirstOrDefault();
         if (token is null)
         {

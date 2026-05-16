@@ -23,7 +23,7 @@ else
                 <MudTd>@context.Provider</MudTd>
                 <MudTd>@context.ExternalAccountId</MudTd>
                 <MudTd>
-                    <MudChip Color="@GetStatusColor(context.Status)">@context.Status</MudChip>
+                    <MudChip T="string" Color="@GetStatusColor(context.Status)">@context.Status</MudChip>
                 </MudTd>
                 <MudTd>@GetLastWebhookText(context.Id)</MudTd>
                 <MudTd>@GetLastError(context.Id)</MudTd>

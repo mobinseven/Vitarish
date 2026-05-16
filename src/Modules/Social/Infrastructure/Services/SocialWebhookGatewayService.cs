@@ -65,7 +65,7 @@ internal sealed class SocialWebhookGatewayService(
         {
             IdempotencyKey = idempotencyKey,
             Skip = 0,
-            Limit = 2,
+            Take = 2,
         };
 
         IReadOnlyList<RawWebhookEvent> duplicates = await rawWebhookRepository.GetAsync(duplicateDescriptor, cancellationToken);
@@ -126,7 +126,7 @@ internal sealed class SocialWebhookGatewayService(
             Provider = provider,
             Status = SocialConnectionStatus.Active,
             Skip = 0,
-            Limit = 2,
+            Take = 2,
         };
 
         IReadOnlyList<SocialConnection> connections = await connectionRepository.GetAsync(descriptor, cancellationToken);

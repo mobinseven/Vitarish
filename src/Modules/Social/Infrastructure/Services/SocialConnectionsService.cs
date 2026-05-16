@@ -10,7 +10,7 @@ internal sealed class SocialConnectionsService(
         SocialConnectionDescriptor descriptor = new()
         {
             Skip = 0,
-            Limit = 200,
+            Take = 200,
         };
 
         return await connectionRepository.GetAsync(descriptor, cancellationToken);
@@ -22,7 +22,7 @@ internal sealed class SocialConnectionsService(
         {
             ConnectionId = connectionId,
             Skip = 0,
-            Limit = 1,
+            Take = 1,
         };
 
         return (await rawWebhookRepository.GetAsync(descriptor, cancellationToken)).FirstOrDefault();

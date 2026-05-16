@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 using Vitarish.Modules.Base;
 using Vitarish.Social.Application.Abstractions;
 using Vitarish.Social.Hosting.Endpoints;

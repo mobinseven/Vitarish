@@ -1,5 +1,7 @@
 namespace Vitarish.Social.Infrastructure.DependencyInjection;
 
+using Vitarish.Social.Infrastructure.Adapters;
+
 public static class DependencyInjectionExtensions
 {
     public static IServiceCollection AddSocialInfrastructure(this IServiceCollection services)
