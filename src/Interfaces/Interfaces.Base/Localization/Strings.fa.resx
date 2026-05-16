@@ -1779,4 +1779,56 @@
   <data name="Gender_Unspecified" xml:space="preserve">
     <value>نامشخص</value>
   </data>
+  <!-- Route segment labels used by NavService breadcrumbs. -->
+  <data name="check-in" xml:space="preserve">
+    <value>پذیرش</value>
+  </data>
+  <data name="commerce" xml:space="preserve">
+    <value>تجارت</value>
+  </data>
+  <data name="communications" xml:space="preserve">
+    <value>ارتباطات</value>
+  </data>
+  <data name="medical" xml:space="preserve">
+    <value>پزشکی</value>
+  </data>
+  <data name="occurrence" xml:space="preserve">
+    <value>رخداد</value>
+  </data>
+  <data name="orders" xml:space="preserve">
+    <value>سفارش‌ها</value>
+  </data>
+  <data name="patients" xml:space="preserve">
+    <value>بیماران</value>
+  </data>
+  <data name="products" xml:space="preserve">
+    <value>محصولات</value>
+  </data>
+  <data name="provision" xml:space="preserve">
+    <value>راه‌اندازی</value>
+  </data>
+  <data name="qr" xml:space="preserve">
+    <value>کد QR</value>
+  </data>
+  <data name="r" xml:space="preserve">
+    <value>لینک کوتاه</value>
+  </data>
+  <data name="recovery" xml:space="preserve">
+    <value>بازیابی</value>
+  </data>
+  <data name="sea" xml:space="preserve">
+    <value>دریا</value>
+  </data>
+  <data name="setup" xml:space="preserve">
+    <value>راه‌اندازی</value>
+  </data>
+  <data name="shifts" xml:space="preserve">
+    <value>شیفت‌ها</value>
+  </data>
+  <data name="shop" xml:space="preserve">
+    <value>فروشگاه</value>
+  </data>
+  <data name="sync" xml:space="preserve">
+    <value>همگام‌سازی</value>
+  </data>
 </root>

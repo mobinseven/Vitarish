@@ -1,3 +1,5 @@
+using System.Reflection;
+using System.Xml.Linq;
 using FluentAssertions;
 using Vitarish.Main.Common;
 
@@ -179,6 +181,86 @@ public class AppRoutesTests
             segment.Should().Be(segment.ToLowerInvariant(),
                 because: $"route segment '{segment}' in '{route}' should be lowercase");
         }
+    }
+
+
+    [Fact]
+    public void RouteSegments_HaveLocalizationEntries()
+    {
+        ISet<string> resourceNames = LoadStringsResourceNames("Strings.resx");
+        string[] missingSegments = GetRouteSegments()
+            .Where(segment => !resourceNames.Contains(segment))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        missingSegments.Should().BeEmpty(
+            because: "NavService uses literal route segments as breadcrumb localization keys");
+    }
+
+
+    [Fact]
+    public void RouteSegments_HavePersianLocalizationEntries()
+    {
+        ISet<string> resourceNames = LoadStringsResourceNames("Strings.fa.resx");
+        string[] missingSegments = GetRouteSegments()
+            .Where(segment => !resourceNames.Contains(segment))
+            .Order(StringComparer.Ordinal)
+            .ToArray();
+
+        missingSegments.Should().BeEmpty(
+            because: "NavService uses literal route segments as breadcrumb localization keys in every culture resource");
+    }
+
+    private static IEnumerable<string> GetRouteSegments()
+    {
+        return GetRouteFields(typeof(AppRoutes))
+            .Select(field => field.GetRawConstantValue() as string)
+            .OfType<string>()
+            .Where(route => !string.IsNullOrWhiteSpace(route))
+            .SelectMany(GetLiteralSegments)
+            .Distinct(StringComparer.Ordinal);
+    }
+
+    private static IEnumerable<FieldInfo> GetRouteFields(Type type)
+    {
+        if (type == typeof(AppRoutes.QueryKeys))
+        {
+            return [];
+        }
+
+        IEnumerable<FieldInfo> fields = type.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+            .Where(field => field.IsLiteral && !field.IsInitOnly && field.FieldType == typeof(string));
+
+        return fields.Concat(type.GetNestedTypes(BindingFlags.Public).SelectMany(GetRouteFields));
+    }
+
+    private static IEnumerable<string> GetLiteralSegments(string route)
+    {
+        return route.Trim('/')
+            .Split('/', StringSplitOptions.RemoveEmptyEntries)
+            .Where(segment => !segment.StartsWith('{'));
+    }
+
+    private static ISet<string> LoadStringsResourceNames(string resourceFileName)
+    {
+        string? directory = AppContext.BaseDirectory;
+        while (!string.IsNullOrWhiteSpace(directory))
+        {
+            string resourcePath = Path.Combine(directory, "src", "Interfaces", "Interfaces.Base", "Localization", resourceFileName);
+            if (File.Exists(resourcePath))
+            {
+                return XDocument.Load(resourcePath)
+                    .Root!
+                    .Elements("data")
+                    .Select(element => element.Attribute("name")?.Value)
+                    .Where(name => !string.IsNullOrWhiteSpace(name))
+                    .ToHashSet(StringComparer.OrdinalIgnoreCase)!;
+            }
+
+            directory = Directory.GetParent(directory)?.FullName;
+        }
+
+        throw new FileNotFoundException($"Could not locate src/Interfaces/Interfaces.Base/Localization/{resourceFileName}.");
     }
 
     // ── Search ───────────────────────────────────────────────────────────────
