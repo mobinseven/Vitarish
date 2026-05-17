@@ -12,6 +12,7 @@ using Vitarish.Medical.Interface;
 using Vitarish.Modules.Base;
 using Vitarish.Social.Hosting;
 using Vitarish.Sea.Interface;
+using Vitarish.Links.Interface;
 using Vitarish.Search.Interface;
 public static class ModulesExtensions
 {
@@ -22,6 +23,7 @@ public static class ModulesExtensions
                 Activator.CreateInstance<FilesModule>(),
                 Activator.CreateInstance<SearchModule>(),
                 Activator.CreateInstance<ContentsModule>(),
+                Activator.CreateInstance<LinksModule>(),
                 Activator.CreateInstance<SeaModule>(),
                 Activator.CreateInstance<AppointmentsModule>(),
                 Activator.CreateInstance<MedicalModule>(),

@@ -1,0 +1,8 @@
+@attribute [Route(AppRoutes.Links.Expired)]
+
+@layout SimpleLayout
+
+<Stack>
+    <StackField Label="@Localizer["LinkExpired"]" HelperText="@Localizer["LinkExpiredHelp"]" />
+    <StackButton Label="@Localizer["Home"]" Href="@AppRoutes.Home" />
+</Stack>

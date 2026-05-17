@@ -1,0 +1,16 @@
+global using Injectio.Attributes;
+global using MediatR;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.Extensions.DependencyInjection;
+global using Vitarish.Links.Application.Abstractions;
+global using Vitarish.Links.Domain.Dto;
+global using Vitarish.Links.Domain.Entities;
+global using Vitarish.Links.Domain.Enums;
+global using Vitarish.Links.Domain.Mappers;
+global using Vitarish.Links.Domain.Models;
+global using Vitarish.Links.Infrastructure.Data;
+global using Vitarish.Entities.Server.Abstractions;
+global using Vitarish.Entities.Server.Core;
+global using Vitarish.Entities.Server.Models;
+global using Vitarish.Entities.Server.Repositories;
+global using Vitarish.Entities.Server.Services;
