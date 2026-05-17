@@ -1,4 +1,4 @@
-# Vitarish Solution Map for Agents
+# Vitarish Solution Instructions
 
 Use this map before scanning the repository. It captures the stable structure and the placement rules that are easy to miss.
 
