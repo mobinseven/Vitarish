@@ -26,6 +26,5 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Modules\Financial\Infrastructure\Financial.Infrastructure.csproj" />
-    <ProjectReference Include="..\..\..\src\Modules\Financial\Interface\Financial.Interface.csproj" />
   </ItemGroup>
 </Project>

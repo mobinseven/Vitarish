@@ -7,6 +7,7 @@ using Vitarish.Financial.Domain.Entities;
 using Vitarish.Financial.Domain.Enums;
 using Vitarish.Financial.Infrastructure.Data;
 using Vitarish.Financial.Infrastructure.DependencyInjection;
+using Xunit;
 
 namespace Financial.Tests;
 

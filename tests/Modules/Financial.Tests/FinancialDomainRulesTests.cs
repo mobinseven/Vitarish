@@ -2,6 +2,7 @@ using FluentAssertions;
 using Vitarish.Financial.Domain.Entities;
 using Vitarish.Financial.Domain.Enums;
 using Vitarish.Financial.Domain.Models;
+using Xunit;
 
 namespace Financial.Tests;
 

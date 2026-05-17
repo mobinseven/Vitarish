@@ -6,9 +6,9 @@ public static class DependencyInjectionExtensions
     {
         _ = services.AddVitarishFinancialInfrastructure();
 
-        services.TryAddTransient<IFinancialLedgerCommandService, FinancialLedgerService>();
-        services.TryAddTransient<IFinancialLedgerQueryService, FinancialLedgerService>();
-        services.TryAddTransient<IFinancialAdapterIngressService, FinancialAdapterIngressService>();
+        services.TryAddTransient<IFinancialLedgerCommandService, Services.FinancialLedgerService>();
+        services.TryAddTransient<IFinancialLedgerQueryService, Services.FinancialLedgerService>();
+        services.TryAddTransient<IFinancialAdapterIngressService, Services.FinancialAdapterIngressService>();
 
         return services;
     }
