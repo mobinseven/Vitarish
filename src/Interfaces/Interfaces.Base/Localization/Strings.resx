@@ -1940,4 +1940,56 @@ of project "{2}"</value>
   <data name="SaveFailed" xml:space="preserve">
     <value>Save failed. Please try again.</value>
   </data>
+  <!-- Route segment labels used by NavService breadcrumbs. -->
+  <data name="check-in" xml:space="preserve">
+    <value>Check-in</value>
+  </data>
+  <data name="commerce" xml:space="preserve">
+    <value>Commerce</value>
+  </data>
+  <data name="communications" xml:space="preserve">
+    <value>Communications</value>
+  </data>
+  <data name="medical" xml:space="preserve">
+    <value>Medical</value>
+  </data>
+  <data name="occurrence" xml:space="preserve">
+    <value>Occurrence</value>
+  </data>
+  <data name="orders" xml:space="preserve">
+    <value>Orders</value>
+  </data>
+  <data name="patients" xml:space="preserve">
+    <value>Patients</value>
+  </data>
+  <data name="products" xml:space="preserve">
+    <value>Products</value>
+  </data>
+  <data name="provision" xml:space="preserve">
+    <value>Provision</value>
+  </data>
+  <data name="qr" xml:space="preserve">
+    <value>QR</value>
+  </data>
+  <data name="r" xml:space="preserve">
+    <value>Short link</value>
+  </data>
+  <data name="recovery" xml:space="preserve">
+    <value>Recovery</value>
+  </data>
+  <data name="sea" xml:space="preserve">
+    <value>Sea</value>
+  </data>
+  <data name="setup" xml:space="preserve">
+    <value>Setup</value>
+  </data>
+  <data name="shifts" xml:space="preserve">
+    <value>Shifts</value>
+  </data>
+  <data name="shop" xml:space="preserve">
+    <value>Shop</value>
+  </data>
+  <data name="sync" xml:space="preserve">
+    <value>Sync</value>
+  </data>
 </root>
