@@ -1,0 +1,157 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Folder Name="/src/" />
+  <Folder Name="/src/Apps/" />
+  <Folder Name="/src/Apps/Aggregator/">
+    <Project Path="src/Apps/Aggregator/Apps.Aggregator.csproj" />
+  </Folder>
+  <Folder Name="/src/Apps/Base/">
+    <Project Path="src/Apps/Base/Apps.Base.csproj" />
+  </Folder>
+  <Folder Name="/src/Hosts/">
+    <Project Path="src/Hosts/Main/Main.csproj" />
+  </Folder>
+  <Folder Name="/src/Identity/" />
+  <Folder Name="/src/Identity/Parties/">
+    <Project Path="src/Identity/Parties/Application/Parties.Application.csproj" />
+    <Project Path="src/Identity/Parties/Domain/Parties.Domain.csproj" />
+    <Project Path="src/Identity/Parties/Hosting/Parties.Hosting.csproj" />
+    <Project Path="src/Identity/Parties/Infrastructure/Parties.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Identity/Requests/">
+    <Project Path="src/Identity/Requests/Application/Requests.Application.csproj" />
+    <Project Path="src/Identity/Requests/Domain/Requests.Domain.csproj" />
+    <Project Path="src/Identity/Requests/Hosting/Requests.Hosting.csproj" />
+    <Project Path="src/Identity/Requests/Infrastructure/Requests.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Identity/Requests/Application/" />
+  <Folder Name="/src/Identity/Users/">
+    <Project Path="src/Identity/Users/Application/Users.Application.csproj" />
+    <Project Path="src/Identity/Users/Domain/Users.Domain.csproj" />
+    <Project Path="src/Identity/Users/Hosting/Users.Hosting.csproj" />
+    <Project Path="src/Identity/Users/Infrastructure/Users.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Identity/Users/Application/" />
+  <Folder Name="/src/Interfaces/">
+    <Project Path="src/Interfaces/Interfaces.Accounts/Interfaces.Accounts.csproj" />
+    <Project Path="src/Interfaces/Interfaces.Admins/Interfaces.Admins.csproj" />
+    <Project Path="src/Interfaces/Interfaces.Base/Interfaces.Base.csproj" />
+    <Project Path="src/Interfaces/Interfaces.Widgets/Interfaces.Widgets.csproj" />
+  </Folder>
+  <Folder Name="/src/Libraries/" />
+  <Folder Name="/src/Libraries/Audit/">
+    <Project Path="src/Libraries/Audit/Audit.Application/Audit.Application.csproj" />
+    <Project Path="src/Libraries/Audit/Audit.Domain/Audit.Domain.csproj" />
+    <Project Path="src/Libraries/Audit/Audit.Server/Audit.Server.csproj" />
+  </Folder>
+  <Folder Name="/src/Libraries/Entities/">
+    <Project Path="src/Libraries/Entities/Entities.Client/Entities.Client.csproj" />
+    <Project Path="src/Libraries/Entities/Entities.Generators/Entities.Generators.csproj" />
+    <Project Path="src/Libraries/Entities/Entities.Server/Entities.Server.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/" />
+  <Folder Name="/src/Modules/Appointments/">
+    <Project Path="src/Modules/Appointments/Application/Appointments.Application.csproj" />
+    <Project Path="src/Modules/Appointments/Domain/Appointments.Domain.csproj" />
+    <Project Path="src/Modules/Appointments/Infrastructure/Appointments.Infrastructure.csproj" />
+    <Project Path="src/Modules/Appointments/Interface/Appointments.Interface.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Base/">
+    <Project Path="src/Modules/Aggregator/Modules.Aggregator/Modules.Aggregator.csproj" />
+    <Project Path="src/Modules/Base/Modules.Base.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Commerce/">
+    <Project Path="src/Modules/Commerce/Application/Commerce.Application.csproj" />
+    <Project Path="src/Modules/Commerce/Domain/Commerce.Domain.csproj" />
+    <Project Path="src/Modules/Commerce/Infrastructure/Commerce.Infrastructure.csproj" />
+    <Project Path="src/Modules/Commerce/Interface/Commerce.Interface.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Communications/">
+    <Project Path="src/Modules/Communications/Application/Communications.Application.csproj" />
+    <Project Path="src/Modules/Communications/Domain/Communications.Domain.csproj" />
+    <Project Path="src/Modules/Communications/Hosting/Communications.Hosting.csproj" />
+    <Project Path="src/Modules/Communications/Infrastructure/Communications.Infrastructure.csproj" />
+    <Project Path="src/Modules/Communications/Interface/Communications.Interface.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Contents/">
+    <Project Path="src/Modules/Contents/Application/Contents.Application.csproj" />
+    <Project Path="src/Modules/Contents/Domain/Contents.Domain.csproj" />
+    <Project Path="src/Modules/Contents/Infrastructure/Contents.Infrastructure.csproj" />
+    <Project Path="src/Modules/Contents/Interface/Contents.Interface.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Feed/">
+    <Project Path="src/Modules/Feed/Application/Feed.Application.csproj" />
+    <Project Path="src/Modules/Feed/Domain/Feed.Domain.csproj" />
+    <Project Path="src/Modules/Feed/Infrastructure/Feed.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Files/">
+    <Project Path="src/Modules/Files/Application/Files.Application.csproj" />
+    <Project Path="src/Modules/Files/Domain/Files.Domain.csproj" />
+    <Project Path="src/Modules/Files/Infrastructure/Files.Infrastructure.csproj" />
+    <Project Path="src/Modules/Files/Interface/Files.Interface.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Intelligence/">
+    <Project Path="src/Modules/Intelligence/Application/Intelligence.Application.csproj" />
+    <Project Path="src/Modules/Intelligence/Domain/Intelligence.Domain.csproj" />
+    <Project Path="src/Modules/Intelligence/Infrastructure/Intelligence.Infrastructure.csproj" />
+    <Project Path="src/Modules/Intelligence/Interface/Intelligence.Interface.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Links/">
+    <Project Path="src/Modules/Links/Application/Links.Application.csproj" />
+    <Project Path="src/Modules/Links/Domain/Links.Domain.csproj" />
+    <Project Path="src/Modules/Links/Infrastructure/Links.Infrastructure.csproj" />
+    <Project Path="src/Modules/Links/Interface/Links.Interface.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Medical/">
+    <Project Path="src/Modules/Medical/Interface/Medical.Interface.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Sea/">
+    <Project Path="src/Modules/Sea/Application/Sea.Application.csproj" />
+    <Project Path="src/Modules/Sea/Domain/Sea.Domain.csproj" />
+    <Project Path="src/Modules/Sea/Infrastructure/Sea.Infrastructure.csproj" />
+    <Project Path="src/Modules/Sea/Interface/Sea.Interface.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Search/">
+    <Project Path="src/Modules/Search/Application/Search.Application.csproj" />
+    <Project Path="src/Modules/Search/Domain/Search.Domain.csproj" />
+    <Project Path="src/Modules/Search/Infrastructure/Search.Infrastructure.csproj" />
+    <Project Path="src/Modules/Search/Interface/Search.Interface.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Social/">
+    <Project Path="src/Modules/Social/Application/Social.Application.csproj" />
+    <Project Path="src/Modules/Social/Domain/Social.Domain.csproj" />
+    <Project Path="src/Modules/Social/Hosting/Social.Hosting.csproj" />
+    <Project Path="src/Modules/Social/Infrastructure/Social.Infrastructure.csproj" />
+    <Project Path="src/Modules/Social/Interface/Social.Interface.csproj" />
+  </Folder>
+  <Folder Name="/tests/" />
+  <Folder Name="/tests/Hosts/" />
+  <Folder Name="/tests/Hosts/Main/">
+    <Project Path="tests/Hosts/Main.Mock/Main.Mock.csproj" />
+    <Project Path="tests/Hosts/Main.Tests/Main.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Identity/">
+    <Project Path="tests/Identity/Parties/Parties.Tests.csproj" />
+    <Project Path="tests/Identity/Requests/Requests.Tests.csproj" />
+    <Project Path="tests/Identity/Users/Users.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Interfaces/">
+    <Project Path="tests/Interfaces/Interfaces.Base.Tests/Interfaces.Base.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Libraries/" />
+  <Folder Name="/tests/Libraries/Entities/">
+    <Project Path="tests/Libraries/Entities/Entities.Server.Tests/Entities.Server.Tests.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/">
+    <Project Path="tests/Modules/Appointments.Tests/Appointments.Tests.csproj" />
+    <Project Path="tests/Modules/Base.Tests/Modules.Base.Tests.csproj" />
+    <Project Path="tests/Modules/Communications.Tests/Communications.Tests.csproj" />
+    <Project Path="tests/Modules/Feed.Tests/Feed.Tests.csproj" />
+    <Project Path="tests/Modules/Files.Tests/Files.Tests.csproj" />
+    <Project Path="tests/Modules/Intelligence.Tests/Intelligence.Tests.csproj" />
+  </Folder>
+</Solution>
