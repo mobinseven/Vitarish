@@ -14,7 +14,8 @@ namespace Vitarish.Users.Infrastructure.Service;
 
 public sealed class TemporaryAutoAuthLinkIssuer(
     UsersDbContext dbContext,
-    IOptions<TemporaryAutoAuthLinkOptions> options) : ITemporaryAutoAuthLinkIssuer
+    IOptions<TemporaryAutoAuthLinkOptions> options,
+    TimeProvider? timeProvider = null) : ITemporaryAutoAuthLinkIssuer
 {
     public async Task<IssueTemporaryAutoAuthLinkResult> IssueAsync(
         IssueTemporaryAutoAuthLinkRequest request,
@@ -39,7 +40,7 @@ public sealed class TemporaryAutoAuthLinkIssuer(
 
         string rawCode = TemporaryAutoAuthLinkSecurity.GenerateRawCode();
         string codeHash = TemporaryAutoAuthLinkSecurity.ComputeCodeHash(rawCode, options.Value);
-        DateTimeOffset createdAt = DateTimeOffset.UtcNow;
+        DateTimeOffset createdAt = (timeProvider ?? TimeProvider.System).GetUtcNow();
         DateTimeOffset expiresAt = createdAt.AddMinutes(purposeOptions.LifetimeMinutes);
 
         TemporaryAutoAuthLink entity = TemporaryAutoAuthLink.Create(

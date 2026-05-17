@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
-using System.Collections.Concurrent;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Application.Contracts;
 using Vitarish.Users.Domain.Entities;
@@ -13,9 +12,10 @@ namespace Vitarish.Users.Infrastructure.Service;
 public sealed class TemporaryAutoAuthLinkRedeemer(
     UsersDbContext dbContext,
     UserManager<User> userManager,
-    IOptions<TemporaryAutoAuthLinkOptions> options) : ITemporaryAutoAuthLinkRedeemer
+    IOptions<TemporaryAutoAuthLinkOptions> options,
+    TimeProvider? timeProvider = null) : ITemporaryAutoAuthLinkRedeemer
 {
-    private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> InMemoryLocks = new();
+    private static readonly SemaphoreSlim FallbackLock = new(1, 1);
 
     public async Task<RedeemTemporaryAutoAuthLinkResult> RedeemAsync(
         RedeemTemporaryAutoAuthLinkRequest request,
@@ -36,7 +36,7 @@ public sealed class TemporaryAutoAuthLinkRedeemer(
         }
 
         string codeHash = TemporaryAutoAuthLinkSecurity.ComputeCodeHash(request.RawCode, options.Value);
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset now = (timeProvider ?? TimeProvider.System).GetUtcNow();
 
         TemporaryAutoAuthLink? link = await dbContext.TemporaryAutoAuthLinks
             .AsNoTracking()
@@ -100,8 +100,7 @@ public sealed class TemporaryAutoAuthLinkRedeemer(
         string? consumedByUserAgent,
         CancellationToken cancellationToken)
     {
-        SemaphoreSlim lockHandle = InMemoryLocks.GetOrAdd(linkId, _ => new SemaphoreSlim(1, 1));
-        await lockHandle.WaitAsync(cancellationToken);
+        await FallbackLock.WaitAsync(cancellationToken);
         try
         {
             TemporaryAutoAuthLink? tracked = await dbContext.TemporaryAutoAuthLinks
@@ -122,7 +121,7 @@ public sealed class TemporaryAutoAuthLinkRedeemer(
         }
         finally
         {
-            _ = lockHandle.Release();
+            _ = FallbackLock.Release();
         }
     }
 }
