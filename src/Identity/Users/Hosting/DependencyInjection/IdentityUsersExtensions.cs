@@ -33,9 +33,13 @@ public static class IdentityUsersExtensions
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = builder.Services.AddValidatorsFromAssemblyContaining(typeof(AssemblyMarker));
         _ = builder.Services.Configure<PersonalAccessTokenOptions>(builder.Configuration.GetSection("PersonalAccessTokens"));
+        _ = builder.Services.Configure<TemporaryAutoAuthLinkOptions>(builder.Configuration.GetSection(TemporaryAutoAuthLinkOptions.SectionName));
         _ = builder.Services.AddSingleton<IUserAccessAuditLogger, UserAccessAuditLogger>();
         _ = builder.Services.AddTransient<IUserProfileService, UserProfileService>();
         _ = builder.Services.AddTransient<IPersonalAccessTokenGenerator, PersonalAccessTokenGenerator>();
+        _ = builder.Services.AddTransient<ITemporaryAutoAuthLinkIssuer, TemporaryAutoAuthLinkIssuer>();
+        _ = builder.Services.AddTransient<ITemporaryAutoAuthLinkRedeemer, TemporaryAutoAuthLinkRedeemer>();
+        _ = builder.Services.AddTransient<ITemporaryAutoAuthLinkCleanup, TemporaryAutoAuthLinkCleanup>();
         _ = builder.Services.AddTransient<IUsersService, UsersService>();
         _ = builder.Services.AddTransient<IWebAuthnService, WebAuthnService>();
     }
