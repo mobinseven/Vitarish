@@ -12,6 +12,7 @@ using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Feed.Infrastructure;
 using Vitarish.Files.Infrastructure.Data;
+using Vitarish.Financial.Infrastructure.Data;
 using Vitarish.Main.Authorization;
 using Vitarish.Main.Components;
 using Vitarish.Main.DependencyInjection;
@@ -149,6 +150,7 @@ _ = await app.MigrateDatabaseAsync<CommerceDbContext>();
 _ = await app.MigrateDatabaseAsync<ContentsDbContext>();
 _ = await app.MigrateDatabaseAsync<SocialDbContext>();
 _ = await app.MigrateDatabaseAsync<LinksDbContext>();
+_ = await app.MigrateDatabaseAsync<FinancialDbContext>();
 
 CookiePolicyOptions cookiePolicyOptions = new()
 {
