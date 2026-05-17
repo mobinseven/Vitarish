@@ -352,6 +352,7 @@ namespace Vitarish.Main.Migrations.UsersDb
 
                     b.Navigation("User");
                 });
+
 #pragma warning restore 612, 618
         }
     }
