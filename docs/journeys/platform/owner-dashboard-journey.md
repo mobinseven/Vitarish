@@ -251,20 +251,20 @@ Create one future read model for the dashboard instead of letting the Razor page
 - Tenant identity and active modules use existing tenant DTO/metadata rules.
 - State-changing owner actions are not implemented directly in the placeholder dashboard.
 - Danger-zone controls are present only as disabled/design-pending placeholders.
-- Each capability in the requested list has a named dedicated journey map still to be created before implementation.
+- Each capability in the requested list has a named dedicated journey map to guide implementation before code work begins.
 
 ## 14. Future Journey Map Creation Order
 
 Recommended order, because each step unlocks safer dashboard functionality:
 
-1. Tenant switcher journey.
-2. Global tenant list journey.
-3. Tenant overview journey.
-4. Create tenant journey for existing owners.
-5. Members & roles journey.
-6. Invite/remove users journey.
-7. Tenant settings journey.
-8. Audit log journey.
-9. Basic action inbox journey.
-10. Billing page journey.
-11. Danger zone archive/delete journey.
+1. [Tenant switcher journey](owner-tenant-switcher-journey.md).
+2. [Global tenant list journey](owner-global-tenant-list-journey.md).
+3. [Tenant overview journey](owner-tenant-overview-journey.md).
+4. [Create tenant journey for existing owners](owner-create-tenant-journey.md).
+5. [Members & roles journey](owner-members-roles-journey.md).
+6. [Invite/remove users journey](owner-invite-remove-users-journey.md).
+7. [Tenant settings journey](owner-tenant-settings-journey.md).
+8. [Audit log journey](owner-audit-log-journey.md).
+9. [Basic action inbox journey](owner-action-inbox-journey.md).
+10. [Billing page journey](owner-billing-page-journey.md).
+11. [Danger zone archive/delete journey](owner-danger-zone-journey.md).
