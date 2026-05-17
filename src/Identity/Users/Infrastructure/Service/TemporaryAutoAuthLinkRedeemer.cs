@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using System.Collections.Concurrent;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Application.Contracts;
 using Vitarish.Users.Domain.Entities;
@@ -14,6 +15,8 @@ public sealed class TemporaryAutoAuthLinkRedeemer(
     UserManager<User> userManager,
     IOptions<TemporaryAutoAuthLinkOptions> options) : ITemporaryAutoAuthLinkRedeemer
 {
+    private static readonly ConcurrentDictionary<Guid, SemaphoreSlim> InMemoryLocks = new();
+
     public async Task<RedeemTemporaryAutoAuthLinkResult> RedeemAsync(
         RedeemTemporaryAutoAuthLinkRequest request,
         CancellationToken cancellationToken = default)
@@ -63,17 +66,19 @@ public sealed class TemporaryAutoAuthLinkRedeemer(
             return new RedeemTemporaryAutoAuthLinkResult(false);
         }
 
-        int updated = await dbContext.TemporaryAutoAuthLinks
-            .Where(l => l.Id == link.Id
-                        && l.CodeHash == codeHash
-                        && l.ConsumedAt == null
-                        && l.ExpiresAt > now)
-            .ExecuteUpdateAsync(setters =>
-                setters
-                    .SetProperty(l => l.ConsumedAt, now)
-                    .SetProperty(l => l.ConsumedByIp, request.ConsumedByIp)
-                    .SetProperty(l => l.ConsumedByUserAgent, request.ConsumedByUserAgent),
-                cancellationToken);
+        int updated = dbContext.Database.IsRelational()
+            ? await dbContext.TemporaryAutoAuthLinks
+                .Where(l => l.Id == link.Id
+                            && l.CodeHash == codeHash
+                            && l.ConsumedAt == null
+                            && l.ExpiresAt > now)
+                .ExecuteUpdateAsync(setters =>
+                    setters
+                        .SetProperty(l => l.ConsumedAt, now)
+                        .SetProperty(l => l.ConsumedByIp, request.ConsumedByIp)
+                        .SetProperty(l => l.ConsumedByUserAgent, request.ConsumedByUserAgent),
+                    cancellationToken)
+            : await ConsumeWithInMemoryFallbackAsync(link.Id, codeHash, now, request.ConsumedByIp, request.ConsumedByUserAgent, cancellationToken);
 
         if (updated != 1)
         {
@@ -85,5 +90,39 @@ public sealed class TemporaryAutoAuthLinkRedeemer(
             link.Id,
             link.UserId,
             link.DestinationPath);
+    }
+
+    private async Task<int> ConsumeWithInMemoryFallbackAsync(
+        Guid linkId,
+        string codeHash,
+        DateTimeOffset now,
+        string? consumedByIp,
+        string? consumedByUserAgent,
+        CancellationToken cancellationToken)
+    {
+        SemaphoreSlim lockHandle = InMemoryLocks.GetOrAdd(linkId, _ => new SemaphoreSlim(1, 1));
+        await lockHandle.WaitAsync(cancellationToken);
+        try
+        {
+            TemporaryAutoAuthLink? tracked = await dbContext.TemporaryAutoAuthLinks
+                .SingleOrDefaultAsync(
+                    l => l.Id == linkId
+                         && l.CodeHash == codeHash
+                         && l.ConsumedAt == null
+                         && l.ExpiresAt > now,
+                    cancellationToken);
+            if (tracked is null)
+            {
+                return 0;
+            }
+
+            tracked.MarkConsumed(now, consumedByIp, consumedByUserAgent);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
+            return 1;
+        }
+        finally
+        {
+            _ = lockHandle.Release();
+        }
     }
 }

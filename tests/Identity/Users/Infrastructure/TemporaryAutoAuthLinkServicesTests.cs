@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Users.Tests.TestHelpers;
 using Vitarish.Users.Application.Contracts;
 using Vitarish.Users.Application.TemporaryAutoAuthLinks;
 using Vitarish.Users.Domain.Entities;
@@ -247,7 +248,7 @@ public class TemporaryAutoAuthLinkServicesTests
             now.AddMinutes(-1),
             now.AddMinutes(30));
 
-        _ = context.TemporaryAutoAuthLinks.AddRange(consumedOld, expiredOld, active);
+        context.TemporaryAutoAuthLinks.AddRange(consumedOld, expiredOld, active);
         await context.SaveChangesAsync();
 
         TemporaryAutoAuthLinkCleanup cleanup = new(context, CreateOptions());
