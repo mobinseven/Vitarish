@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+  <ItemGroup>
+    <SupportedPlatform Include="browser" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+    <ProjectReference Include="..\Application\Social.Application.csproj" />
+    <ProjectReference Include="..\Domain\Social.Domain.csproj" />
+    <ProjectReference Include="..\Infrastructure\Social.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
+  </ItemGroup>
+</Project>

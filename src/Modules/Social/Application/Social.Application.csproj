@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="14.0.*" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
+    <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+    <ProjectReference Include="..\Domain\Social.Domain.csproj" />
+  </ItemGroup>
+</Project>
