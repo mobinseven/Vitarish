@@ -157,40 +157,47 @@ internal sealed class SocialWebhookGatewayService(
 
     private static string? TryExtractProviderEventId(SocialProvider provider, IReadOnlyDictionary<string, string> headers, string body)
     {
-        if (provider == SocialProvider.Telegram)
+        try
         {
-            using JsonDocument doc = JsonDocument.Parse(body);
-            if (doc.RootElement.TryGetProperty("update_id", out JsonElement updateId))
+            if (provider == SocialProvider.Telegram)
             {
-                return updateId.ToString();
-            }
-
-            if (headers.TryGetValue("X-Telegram-Bot-Api-Update-Id", out string? headerId) && !string.IsNullOrWhiteSpace(headerId))
-            {
-                return headerId;
-            }
-
-            return null;
-        }
-
-        if (provider == SocialProvider.Instagram)
-        {
-            using JsonDocument doc = JsonDocument.Parse(body);
-            if (doc.RootElement.TryGetProperty("entry", out JsonElement entry)
-                && entry.ValueKind == JsonValueKind.Array
-                && entry.GetArrayLength() > 0)
-            {
-                JsonElement first = entry[0];
-                if (first.TryGetProperty("id", out JsonElement id))
+                using JsonDocument doc = JsonDocument.Parse(body);
+                if (doc.RootElement.TryGetProperty("update_id", out JsonElement updateId))
                 {
-                    return id.ToString();
+                    return updateId.ToString();
+                }
+
+                if (headers.TryGetValue("X-Telegram-Bot-Api-Update-Id", out string? headerId) && !string.IsNullOrWhiteSpace(headerId))
+                {
+                    return headerId;
+                }
+
+                return null;
+            }
+
+            if (provider == SocialProvider.Instagram)
+            {
+                using JsonDocument doc = JsonDocument.Parse(body);
+                if (doc.RootElement.TryGetProperty("entry", out JsonElement entry)
+                    && entry.ValueKind == JsonValueKind.Array
+                    && entry.GetArrayLength() > 0)
+                {
+                    JsonElement first = entry[0];
+                    if (first.TryGetProperty("id", out JsonElement id))
+                    {
+                        return id.ToString();
+                    }
+                }
+
+                if (headers.TryGetValue("X-Hub-Signature-256", out string? signature) && !string.IsNullOrWhiteSpace(signature))
+                {
+                    return signature;
                 }
             }
-
-            if (headers.TryGetValue("X-Hub-Signature-256", out string? signature) && !string.IsNullOrWhiteSpace(signature))
-            {
-                return signature;
-            }
+        }
+        catch (JsonException)
+        {
+            return null;
         }
 
         return null;

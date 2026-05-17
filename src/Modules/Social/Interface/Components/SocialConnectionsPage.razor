@@ -62,9 +62,15 @@ else
         try
         {
             connections = await SocialConnectionsService.GetConnectionsAsync(CancellationToken.None);
-            foreach (SocialConnection connection in connections)
+            var webhookTasks = connections.Select(async connection =>
             {
-                latestWebhooks[connection.Id] = await SocialConnectionsService.GetLastWebhookAsync(connection.Id, CancellationToken.None);
+                RawWebhookEvent? lastWebhook = await SocialConnectionsService.GetLastWebhookAsync(connection.Id, CancellationToken.None);
+                return (connection.Id, LastWebhook: lastWebhook);
+            });
+
+            foreach ((Guid id, RawWebhookEvent? lastWebhook) in await Task.WhenAll(webhookTasks))
+            {
+                latestWebhooks[id] = lastWebhook;
             }
         }
         finally

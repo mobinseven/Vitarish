@@ -1,3 +1,6 @@
+using System.Buffers;
+using System.IO.Pipelines;
+using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
@@ -8,6 +11,8 @@ namespace Vitarish.Social.Hosting.Endpoints;
 
 public static class SocialWebhookEndpointRouteBuilderExtensions
 {
+    private const int MaxWebhookBodyBytes = 1024 * 1024;
+
     public static IEndpointRouteBuilder MapSocialWebhookEndpoints(this IEndpointRouteBuilder endpoints)
     {
         _ = endpoints.MapPost("/webhooks/social/{provider}", HandleWebhookAsync)
@@ -40,9 +45,13 @@ public static class SocialWebhookEndpointRouteBuilderExtensions
         }
 
         string body;
-        using (StreamReader reader = new(httpContext.Request.Body))
+        try
         {
-            body = await reader.ReadToEndAsync(cancellationToken);
+            body = await ReadRequestBodyAsync(httpContext, cancellationToken);
+        }
+        catch (InvalidDataException)
+        {
+            return Results.StatusCode(StatusCodes.Status413PayloadTooLarge);
         }
 
         Dictionary<string, string> headers = new(StringComparer.OrdinalIgnoreCase);
@@ -54,6 +63,36 @@ public static class SocialWebhookEndpointRouteBuilderExtensions
         Guid rawEventId = await gateway.IngestAsync(parsedProvider, connectionId, headers, body, cancellationToken);
 
         return Results.Ok(new { accepted = true, rawEventId });
+    }
+
+    private static async Task<string> ReadRequestBodyAsync(HttpContext httpContext, CancellationToken cancellationToken)
+    {
+        ArrayBufferWriter<byte> buffer = new();
+
+        while (true)
+        {
+            ReadResult result = await httpContext.Request.BodyReader.ReadAsync(cancellationToken);
+            ReadOnlySequence<byte> segment = result.Buffer;
+
+            foreach (ReadOnlyMemory<byte> memory in segment)
+            {
+                if (buffer.WrittenCount + memory.Length > MaxWebhookBodyBytes)
+                {
+                    httpContext.Request.BodyReader.AdvanceTo(segment.End);
+                    throw new InvalidDataException("Webhook request body is too large.");
+                }
+
+                buffer.Write(memory.Span);
+            }
+
+            httpContext.Request.BodyReader.AdvanceTo(segment.End);
+            if (result.IsCompleted)
+            {
+                break;
+            }
+        }
+
+        return Encoding.UTF8.GetString(buffer.WrittenSpan);
     }
 
     private static IResult HandleWebhookChallengeAsync(string provider, HttpContext httpContext)

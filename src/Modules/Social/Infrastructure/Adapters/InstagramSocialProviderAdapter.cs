@@ -35,11 +35,33 @@ internal sealed class InstagramSocialProviderAdapter(IHttpClientFactory httpClie
         byte[] key = Encoding.UTF8.GetBytes(secret);
         byte[] payload = Encoding.UTF8.GetBytes(body);
         using HMACSHA256 hmac = new(key);
-        string expected = $"sha256={Convert.ToHexStringLower(hmac.ComputeHash(payload))}";
+        byte[] expectedHash = hmac.ComputeHash(payload);
 
-        return CryptographicOperations.FixedTimeEquals(
-            Encoding.UTF8.GetBytes(expected),
-            Encoding.UTF8.GetBytes(signatureHeader));
+        return TryDecodeSignature(signatureHeader, expectedHash.Length, out byte[]? providedHash)
+            && CryptographicOperations.FixedTimeEquals(expectedHash, providedHash);
+    }
+
+    private static bool TryDecodeSignature(string signatureHeader, int hashByteLength, out byte[]? providedHash)
+    {
+        providedHash = null;
+        string providedHex = signatureHeader.StartsWith("sha256=", StringComparison.OrdinalIgnoreCase)
+            ? signatureHeader[7..]
+            : signatureHeader;
+
+        if (providedHex.Length != hashByteLength * 2)
+        {
+            return false;
+        }
+
+        try
+        {
+            providedHash = Convert.FromHexString(providedHex);
+            return true;
+        }
+        catch (FormatException)
+        {
+            return false;
+        }
     }
 
     public SocialEvent? ParseWebhook(SocialConnection connection, RawWebhookEvent rawEvent)
