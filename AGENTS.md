@@ -10,3 +10,5 @@ Follow these architecture rules:
 - Protect core logic from unnecessary change.
 - The most CRITICAL rule: Keep the design simple. Keep it simple stupid.  
 - Use one source of truth for shared data and rules.
+
+Before adding or moving code, read `INSTRUCTIONS.md`.

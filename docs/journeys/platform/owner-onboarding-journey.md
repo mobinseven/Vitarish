@@ -1,4 +1,4 @@
-# Tenant Onboarding Journey Map
+# Owner Onboarding Journey Map
 
 ## 1. Context
 
