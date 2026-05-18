@@ -122,8 +122,8 @@ flowchart LR
 
     MedicalDashboard --> PatientCrud
     MedicalDashboard --> PatientCheckIn
-    MedicalDashboard --> PatientOverview
-    PatientCrud -->|open saved profile| PatientOverview
+    MedicalDashboard -.-> PatientOverview
+    PatientCrud -. open saved profile .-> PatientOverview
     PatientCrud -->|book for linked user| PatientAppointments
     PatientCheckIn -->|select or create profile| PatientCrud
     PatientCheckIn -->|current or future booking| PatientAppointments
