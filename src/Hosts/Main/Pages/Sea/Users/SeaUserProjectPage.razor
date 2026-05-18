@@ -4,18 +4,13 @@
 {
     return;
 }
+<ProceduresGrid Project="@Project"
+                OnClicked="@(procedureId => { if (procedureId.HasValue) NavigationManager.NavigateTo(AppRoutes.Sea.Procedure(ProjectId, procedureId.Value)); })"
+                OnCreated="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Sea.Procedure(ProjectId, procedureId)))" />
 
-<CascadingValue Value="IsOwner">
-
-    <ProceduresGrid Project="@Project"
-                    OnClicked="@(procedureId => { if (procedureId.HasValue) NavigationManager.NavigateTo(AppRoutes.Sea.Procedure(ProjectId, procedureId.Value)); })"
-                    OnCreated="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Sea.Procedure(ProjectId, procedureId)))" />
-
-    <ProjectDetails Project="@Project"
-                    OnEdit="@(projectId =>NavigationManager.NavigateTo(AppRoutes.Sea.ProjectEdit(projectId)))"
-                    OnDeleted="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Projects))" />
-
-</CascadingValue>
+<ProjectDetails Project="@Project"
+                OnEdit="@(projectId =>NavigationManager.NavigateTo(AppRoutes.Sea.ProjectEdit(projectId)))"
+                OnDeleted="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Projects))" />
 
 @code {
 

@@ -23,7 +23,7 @@
                     <ShiftStatusBadge Status="shift.Status" />
                 </StackButton>
             }
-            @if(IsOwner)
+            @if(AdminMode)
             {
                 <StackButton Color="Color.Primary"
                              Label="@Localizer["AddItem", Localizer["Shift"]]"

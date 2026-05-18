@@ -1,10 +1,7 @@
 @attribute [Route(AppRoutes.Appointments.OwnerShifts)]
 
-<CascadingValue Value="IsOwner">
-    <ShiftsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(id)))"
-                  OnAdd="@(dayOfWeek => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShiftCreateForDay(dayOfWeek is null ? null : (int)dayOfWeek)))" />
-</CascadingValue>
-
+<ShiftsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(id)))"
+            OnAdd="@(dayOfWeek => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShiftCreateForDay(dayOfWeek is null ? null : (int)dayOfWeek)))" />
 @code {
     protected override void OnInitialized() => NavService.EnableSearch();
 }

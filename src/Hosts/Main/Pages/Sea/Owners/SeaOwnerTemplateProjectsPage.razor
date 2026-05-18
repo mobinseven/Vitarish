@@ -1,7 +1,5 @@
 @attribute [Route(AppRoutes.Sea.OwnerTemplateProjects)]
 
-<CascadingValue Value="IsOwner">
-    <ProjectsGrid OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProject(id)))"
-                  OnAdd="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.OwnerTemplateProjectNew))"
-                  TemplateMode="true" />
-</CascadingValue>
+<ProjectsGrid OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProject(id)))"
+              OnAdd="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.OwnerTemplateProjectNew))"
+              TemplateMode="true" />

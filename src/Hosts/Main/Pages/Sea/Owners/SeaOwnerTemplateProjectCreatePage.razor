@@ -1,9 +1,5 @@
 @attribute [Route(AppRoutes.Sea.OwnerTemplateProjectNew)]
 
-<CascadingValue Value="IsOwner">
-
-    <ProjectEditForm OnCreate="@(projectId => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProject(projectId)))"
-                     OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.OwnerTemplateProjects))"
-                     TemplateMode="true"/>
-
-</CascadingValue>
+<ProjectEditForm OnCreate="@(projectId => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProject(projectId)))"
+                 OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.OwnerTemplateProjects))"
+                 TemplateMode="true" />

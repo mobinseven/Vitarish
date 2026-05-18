@@ -4,15 +4,12 @@
 {
     return;
 }
-
-<CascadingValue Value="IsOwner">
-    <EventDetails Event="@evt"
-                  Procedure="@procedure"
-                  Project="@patient"
-                  OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientProcedure(_patientGuid, _procedureGuid)))"
-                  OnUpdate="ReloadRequired" />
-    <EventItemsTimeline Event="@evt" Procedure="@procedure" Project="@patient" />
-</CascadingValue>
+<EventDetails Event="@evt"
+              Procedure="@procedure"
+              Project="@patient"
+              OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientProcedure(_patientGuid, _procedureGuid)))"
+              OnUpdate="ReloadRequired" />
+<EventItemsTimeline Event="@evt" Procedure="@procedure" Project="@patient" />
 
 @code {
     [Parameter] public Guid? patientId { get; set; }

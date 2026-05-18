@@ -5,10 +5,7 @@
 {
     return;
 }
-
-<CascadingValue Value="IsOwner">
-    <EventsGrid Project="@Project"
-                EventClicked="@(id => { if (id.HasValue) NavigationManager.NavigateTo(AppRoutes.Sea.TemplateEvent(ProjectId, ProcedureId, id.Value)); })"
-                Procedure="Procedure" />
-    <ProcedureDetails Procedure="Procedure" Project="Project" OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProject(ProjectId)))" />
-</CascadingValue>
+<EventsGrid Project="@Project"
+            EventClicked="@(id => { if (id.HasValue) NavigationManager.NavigateTo(AppRoutes.Sea.TemplateEvent(ProjectId, ProcedureId, id.Value)); })"
+            Procedure="Procedure" />
+<ProcedureDetails Procedure="Procedure" Project="Project" OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProject(ProjectId)))" />

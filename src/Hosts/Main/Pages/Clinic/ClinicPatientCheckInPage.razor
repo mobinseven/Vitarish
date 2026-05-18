@@ -2,31 +2,27 @@
 
 @using Vitarish.Clinical.Interface.Components.CheckIn
 
-<CascadingValue Value="IsOwner">
+    @switch(context.CurrentStep)
+{
+    case CheckInStep.Identify:
+        <PatientFindOrCreate SearchContext="patientSearchContext"
+                             CreateContext="patientCreateContext"
+                             OnPatientSelected="OnPatientSelected"
+                             OnPatientCreated="OnPatientCreated" />
+        break;
 
-    @switch (context.CurrentStep)
-    {
-        case CheckInStep.Identify:
-            <PatientFindOrCreate SearchContext="patientSearchContext"
-                                 CreateContext="patientCreateContext"
-                                 OnPatientSelected="OnPatientSelected"
-                                 OnPatientCreated="OnPatientCreated" />
-            break;
+    case CheckInStep.Book:
+        <PatientCheckInShiftStep Context="context"
+                                 OnBooked="GoToConfirm"
+                                 OnBack="GoBack" />
+        break;
 
-        case CheckInStep.Book:
-            <PatientCheckInShiftStep Context="context"
-                                       OnBooked="GoToConfirm"
-                                       OnBack="GoBack" />
-            break;
-
-        case CheckInStep.Confirm:
-            <PatientCheckInConfirmStep Context="context"
-                                       OnGoToPatient="GoToPatient"
-                                       OnStartAnother="RestartAsync" />
-            break;
-    }
-
-</CascadingValue>
+    case CheckInStep.Confirm:
+        <PatientCheckInConfirmStep Context="context"
+                                   OnGoToPatient="GoToPatient"
+                                   OnStartAnother="RestartAsync" />
+        break;
+}
 
 @code {
     private PatientCheckInContext context = new();

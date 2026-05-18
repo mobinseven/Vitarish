@@ -5,19 +5,17 @@
     return;
 }
 
-<CascadingValue Value="IsOwner">
-    <Stack>
-        <StackButton Label="@Localizer["Patients"]"
-                     Href="@AppRoutes.Clinic.Patients"
-                     HelperText="@($"{patients} {Localizer["Patients"]}")" />
-        <StackButton Label="@Localizer["CheckIn"]"
-                     Href="@AppRoutes.Clinic.CheckIn"
-                     EndIcon="fa-regular fa-person-walking-arrow-right"
-                     Color="Color.Primary" />
-    </Stack>
-    <TodayAppointmentsWidget OnShiftClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(id)))"
-                             OnShiftsClicked="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.OwnerShifts))" />
-</CascadingValue>
+<Stack>
+    <StackButton Label="@Localizer["Patients"]"
+                 Href="@AppRoutes.Clinic.Patients"
+                 HelperText="@($"{patients} {Localizer["Patients"]}")" />
+    <StackButton Label="@Localizer["CheckIn"]"
+                 Href="@AppRoutes.Clinic.CheckIn"
+                 EndIcon="fa-regular fa-person-walking-arrow-right"
+                 Color="Color.Primary" />
+</Stack>
+<TodayAppointmentsWidget OnShiftClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(id)))"
+                         OnShiftsClicked="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.OwnerShifts))" />
 
 @code {
     private int patients = 0;

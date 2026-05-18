@@ -4,13 +4,10 @@
 {
     return;
 }
-
-<CascadingValue Value="IsOwner">
-    <EventDetails Event="Event" Procedure="Procedure" Project="Project"
-                  OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Procedure(ProjectId, ProcedureId)))"
-                  OnUpdate="ReloadRequired" />
-    <EventItemsTimeline Event="Event" Procedure="Procedure" Project="Project" />
-</CascadingValue>
+<EventDetails Event="Event" Procedure="Procedure" Project="Project"
+              OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Procedure(ProjectId, ProcedureId)))"
+              OnUpdate="ReloadRequired" />
+<EventItemsTimeline Event="Event" Procedure="Procedure" Project="Project" />
 
 @code {
     [Parameter] public Guid? projectId { get; set; }

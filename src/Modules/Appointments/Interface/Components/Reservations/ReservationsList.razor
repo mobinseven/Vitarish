@@ -2,7 +2,7 @@
 
 @if (Plugin is null)
 {
-    @if (IsOwner)
+    @if (AdminMode)
     {
         <Stack>
             <ReservationFilters @bind-Descriptor="Descriptor" />

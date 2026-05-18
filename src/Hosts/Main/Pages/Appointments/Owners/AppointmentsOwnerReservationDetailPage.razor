@@ -5,11 +5,9 @@
     return;
 }
 
-<CascadingValue Value="IsOwner">
-    <ReservationDetail Reservation="@reservation"
-                            OnDeleted="Back"
-                            OnStatusChanged="ReloadRequired" />
-</CascadingValue>
+<ReservationDetail Reservation="@reservation"
+                   OnDeleted="Back"
+                   OnStatusChanged="ReloadRequired" />
 
 @code {
     [Parameter] public Guid? reservationId { get; set; }

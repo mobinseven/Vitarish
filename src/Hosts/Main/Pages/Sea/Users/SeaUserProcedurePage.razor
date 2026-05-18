@@ -4,14 +4,11 @@
 {
     return;
 }
-
-<CascadingValue Value="IsOwner">
-    <EventsGrid Project="@Project"
-                EventClicked="@(id => { if (id.HasValue) NavigationManager.NavigateTo(AppRoutes.Sea.Event(ProjectId, ProcedureId, id.Value)); })"
-                Procedure="Procedure"
-                OnUpdate="ReloadRequired" />
-    <ProcedureDetails Procedure="Procedure" Project="Project" OnUpdate="ReloadRequired" OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Project(ProjectId)))" />
-</CascadingValue>
+<EventsGrid Project="@Project"
+            EventClicked="@(id => { if (id.HasValue) NavigationManager.NavigateTo(AppRoutes.Sea.Event(ProjectId, ProcedureId, id.Value)); })"
+            Procedure="Procedure"
+            OnUpdate="ReloadRequired" />
+<ProcedureDetails Procedure="Procedure" Project="Project" OnUpdate="ReloadRequired" OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Project(ProjectId)))" />
 
 @code {
     [Parameter] public Guid? projectId { get; set; }

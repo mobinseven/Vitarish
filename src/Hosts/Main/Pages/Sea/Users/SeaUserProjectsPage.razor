@@ -1,8 +1,7 @@
 @attribute [Route(AppRoutes.Sea.Projects)]
-<CascadingValue Value="IsOwner">
-    <ProjectsGrid OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Sea.Project(id)))"
-                  OnAdd="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.ProjectNew))" />
-</CascadingValue>
+
+<ProjectsGrid OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Sea.Project(id)))"
+              OnAdd="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.ProjectNew))" />
 
 @code {
     protected override void OnInitialized() => NavService.EnableSearch();

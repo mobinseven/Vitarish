@@ -4,14 +4,11 @@
 {
     return;
 }
-
-<CascadingValue Value="IsOwner">
-    <ShiftDetail Shift="@shift"
-                   OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShiftEdit(_shiftId)))"
-                   OnDeleted="Back"
-                   OnStatusChanged="ReloadRequired"
-                   OnShiftOccurrenceSelected="@(_ => { })" />
-</CascadingValue>
+<ShiftDetail Shift="@shift"
+             OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShiftEdit(_shiftId)))"
+             OnDeleted="Back"
+             OnStatusChanged="ReloadRequired"
+             OnShiftOccurrenceSelected="@(_ => { })" />
 
 @code {
     [Parameter] public Guid? shiftId { get; set; }

@@ -2,14 +2,10 @@
 
 @if(initialized)
 {
-    <CascadingValue Value="IsOwner">
-
-        <PatientEditForm Project="patient"
-                         OnUpdate="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(id)))"
-                         OnCreate="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(id)))"
-                         OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(_id)))" />
-
-    </CascadingValue>
+    <PatientEditForm Project="patient"
+                     OnUpdate="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(id)))"
+                     OnCreate="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(id)))"
+                     OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(_id)))" />
 }
 
 @code {

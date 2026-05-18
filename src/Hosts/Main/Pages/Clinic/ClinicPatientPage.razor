@@ -5,21 +5,17 @@
     return;
 }
 
-<CascadingValue Value="IsOwner">
+<PatientDetails Project="@patient"
+                OnEdit="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientEdit(id)))"
+                OnDeleted="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.Patients))" />
 
-    <PatientDetails Project="@patient"
-                    OnEdit="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientEdit(id)))"
-                    OnDeleted="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.Patients))" />
+<ProceduresGrid Project="@patient"
+                OnClicked="@(procedureId => { if (procedureId.HasValue) NavigationManager.NavigateTo(AppRoutes.Clinic.PatientProcedure(patient.Id, procedureId.Value)); })"
+                OnCreated="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientProcedure(patient.Id, procedureId)))" />
 
-    <ProceduresGrid Project="@patient"
-                    OnClicked="@(procedureId => { if (procedureId.HasValue) NavigationManager.NavigateTo(AppRoutes.Clinic.PatientProcedure(patient.Id, procedureId.Value)); })"
-                    OnCreated="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientProcedure(patient.Id, procedureId)))" />
+<PatientAppointmentsPanel Patient="@patient" OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientEdit(patient.Id)))" />
 
-    <PatientAppointmentsPanel Patient="@patient" OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientEdit(patient.Id)))" />
-
-    @* <PatientRemindersPanel PatientId="@patient.Id" /> *@
-
-</CascadingValue>
+@* <PatientRemindersPanel PatientId="@patient.Id" /> *@
 
 @code {
     [Parameter] public Guid? patientId { get; set; }
