@@ -19,11 +19,11 @@
 
 | Area | Current behavior | Danger-zone implication |
 | --- | --- | --- |
-| Dashboard | Danger zone is identified as disabled/design-pending. | Do not enable destructive controls until lifecycle policy is approved. |
-| Open question | Dashboard asks whether delete should be allowed or only archive with platform-admin hard delete. | First release should prefer archive/deactivate over hard delete. |
-| Tenant data | Tenant is a core context for modules, roles, indicators, billing, and audit. | Lifecycle actions affect multiple bounded contexts and need careful orchestration. |
-| Audit | Sensitive actions should write audit records. | Archive/delete attempts and completions must be auditable. |
-| Permissions | Owner/admin/member labels are planned. | Only explicitly authorized owners should reach destructive actions. |
+| Route and host page | Danger zone is implemented as a tenant-scoped route at `/owner/tenants/{tenantId:guid}/danger`. | The journey has a stable destination route from tenant overview. |
+| Component | `OwnerDangerZoneCard` renders pending copy plus disabled **Archive Tenant** and **Delete Tenant** buttons. | Destructive actions are intentionally visible but unavailable; the journey should not describe archive/delete as implemented. |
+| Dashboard reuse | The dashboard also renders the same danger-zone card. | Dashboard exposure remains safe because controls are disabled and no tenant lifecycle command is wired. |
+| Lifecycle service | No owner-facing archive/delete command, recovery model, or audit integration is connected in this surface. | Archive/delete semantics, confirmation, retention, and support workflows remain future work. |
+| Tenant context | The route carries `TenantId`, but the current component does not load tenant lifecycle state. | Future implementation must validate tenant id/access before enabling any destructive control. |
 
 ## 3. Persona Snapshot
 

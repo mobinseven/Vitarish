@@ -3,8 +3,8 @@
 ## 1. Context
 
 - Product / service: Vitarish platform owner experience
-- Journey type: Future-state everyday dashboard experience, grounded in current static code review
-- Entry point: Authenticated user completes tenant onboarding, resolves a tenant context, and opens the platform owner dashboard from home or a tenant shortcut
+- Journey type: Current-state owner command center with future-state capability placeholders
+- Entry point: Authenticated user opens `/owner/dashboard` from the owner header, global navigation, or a tenant-management link
 - Scenario: A user who owns one or more tenants needs a calm daily command center to understand tenant health, switch tenants, create tenants, manage access, review sensitive activity, and find billing or settings tasks without jumping into module-specific dashboards first.
 - User goal: Know what needs attention across owned tenants and start the right owner/admin action quickly.
 - Business goal: Make self-service tenant ownership trustworthy enough that support does not need to perform routine tenant administration.
@@ -12,22 +12,22 @@
 - Scope end: Owner either resolves their daily action from the dashboard or intentionally enters a deeper tenant-management journey.
 - Primary persona: Organization owner / first administrator
 - Secondary personas: Tenant admin delegated by the owner, platform support/admin observing ownership state
-- Evidence sources: Static code review of owner, tenant, routing, home, setup, and authorization surfaces
+- Evidence sources: Static code review of owner routes, host pages, Parties.Interface owner components, tenant metadata, setup, and authorization surfaces
 - Confidence level: Medium for current-state evidence; low-to-medium for future dashboard details because most requested owner features are placeholders.
 
 ## 2. Current Implementation Snapshot
 
-The dashboard journey is not functionally implemented yet. The important current facts are:
+The owner dashboard has moved from a stub to a simple host-composed command center. It is intentionally lightweight: implemented tenant discovery and navigation are visible, while data sources that do not exist yet remain honest placeholders.
 
-| Area | Current code behavior | Dashboard implication |
+| Area | Current behavior | Dashboard implication |
 | --- | --- | --- |
-| Owner dashboard page | `OwnerDashboardPage.razor` only renders `OwnerIndex` and has no visible owner command center. | Treat the owner dashboard as a placeholder design target, not an existing surface to refine. |
-| Home continuation | Home can show module dashboard shortcuts when a tenant context exists and `activeModules` metadata maps to a known module route. | The platform owner dashboard should become the cross-tenant command center that sits above module dashboards. |
-| Onboarding result | `SetupTenantAsync` creates an owner, creates a tenant, stores selected modules in metadata, creates a primary tenant indicator, and assigns the onboarding user to owner/admin/user tenant roles. | The dashboard can assume the onboarding creator starts with full tenant access, but still needs safe empty/error states if role or tenant context resolution fails. |
-| Tenant APIs | `IPartiesService` exposes owner CRUD, tenant CRUD, tenant listing by owner, tenant indicators, and setup. | Early dashboard placeholders can be backed by a small owner-dashboard read model later, instead of binding every card directly to separate entity services. |
-| Tenant metadata | `TenantReadDto` includes tenant identity, logo/description, app id, owner id, and metadata; `TenantMetadata` defines `activeModules`. | Dashboard overview cards can show tenant identity and module activation without inventing a second metadata source. |
-| Role model | Tenant roles are currently `TenantOwner`, `TenantAdmin`, and `TenantUser`; request helpers check tenant-scoped role names. | Dashboard permissions should stay simple: owner sees everything, admin can manage operational settings, member sees read/action surfaces only where explicitly allowed. |
-| Admin owner pages | Platform admin owner pages can list tenants for an owner and create a tenant with defaults. | Owner-facing tenant management should not reuse admin pages directly; it needs safer copy, explicit validation, and owner-scoped permissions. |
+| Route and host ownership | The dashboard is routable at `/owner/dashboard`; owner routes live in `AppRoutes.Owners`, and the legacy `/owner` constant is documented as a redirect target. | Journey maps should reference `/owner/dashboard` and tenant-scoped `/owner/tenants/{tenantId:guid}` routes instead of an unspecified owner route. |
+| Owner dashboard page | `OwnerDashboardPage` resolves the owner id from request context, loads tenants with `GetTenantsByOwnerAsync`, renders up to three `OwnerTenantCard` entries, links to the full tenant list when there are more than three tenants, and shows **Create Workspace** when the initialized list is empty. | The dashboard journey is now a real first-stop owner surface for tenant discovery and creation, not only a future design scaffold. |
+| Dashboard capability cards | Action inbox, billing, audit log, and danger zone render reusable Parties.Interface owner components with pending/coming-soon copy; danger-zone archive/delete buttons are disabled. | Keep these cards in the journey as discoverable placeholders and do not describe them as live data, counts, or mutations. |
+| Owner interface layer | Reusable owner components now live under `Identity/Parties/Interface/Components/Owners`; host pages only compose those components and provide route URLs/callbacks. | Journey maps should keep route decisions in the host and component behavior in the Parties interface layer. |
+| Shared owner page base | Owner pages inherit `OwnerPageBase`, which injects `IPartiesService`/`ISnackbar`, parses `RequestContext.OwnerId`, and provides `LoadTenantOrRedirectAsync`. | Tenant loading/failure behavior should be described as a shared owner-page pattern, not duplicated per page. |
+| Tenant context header | The app shell renders `TenantContextHeader`, which loads the current owner and links to home and the owner dashboard. | The current navigation aid is an owner-context header, not a full tenant switcher with role labels. |
+| Tenant settings | Tenant settings can edit safe display fields and save active modules through tenant metadata. | Dashboard settings links point to a partially implemented journey rather than a pure placeholder. |
 
 ## 3. Persona Snapshot
 
@@ -45,28 +45,28 @@ The dashboard journey is not functionally implemented yet. The important current
 
 ## 4. Journey Summary
 
-**Narrative:** The owner signs in and lands on a dashboard that recognizes their active tenant, shows a switcher for all owned tenants, summarizes tenant health, and presents placeholder sections for the owner capabilities that will later become dedicated journeys. The owner scans the action inbox, confirms no urgent issues, optionally switches tenant context, and follows one clear entry point into tenant overview, members, settings, billing, audit, or danger-zone flows.
+**Narrative:** The owner opens `/owner/dashboard` and sees a lightweight command center. The page lists up to three owned tenants, links to the full tenant list when needed, offers **Create Workspace** when the owner has no tenants, and shows honest placeholder cards for action inbox, billing, audit, and danger-zone work. The owner opens a tenant overview from the list, then follows tenant-scoped links into settings, members, billing, audit, or danger-zone routes.
 
-**Emotional arc:** Uncertain after login -> oriented by tenant context -> reassured by status -> in control of next action
+**Emotional arc:** Uncertain after login -> oriented by owner navigation -> focused on a tenant -> clear about what is implemented versus pending
 
-**Biggest current friction point:** There is no owner command center; current home navigation favors module dashboards once a tenant context exists, while `OwnerDashboardPage.razor` is only a stub.
+**Biggest current friction point:** The dashboard now exists, but several high-value owner capabilities are intentionally placeholder-only and the current header is owner-oriented rather than a full tenant switcher.
 
-**Highest-value opportunity:** Design one owner-dashboard placeholder model that makes future owner features discoverable without prematurely implementing each feature.
+**Highest-value opportunity:** Keep the current simple command center and progressively replace placeholders with tenant-scoped read models and dedicated journeys without changing route ownership or inventing fake data.
 
-## 5. Dashboard Placeholder Information Architecture
+## 5. Current Dashboard Information Architecture
 
-The first approved dashboard should be a design scaffold. It should communicate the intended experience while avoiding fake functionality.
+The current dashboard is a working scaffold. It should communicate what is available now while avoiding fake functionality.
 
-| Placeholder region | Primary question answered | Content to show now | Later owning journey |
+| Region | Primary question answered | Content shown now | Related journey |
 | --- | --- | --- | --- |
-| Tenant context header | “Which tenant am I acting on?” | Active tenant name/app id, role badge, switcher placeholder, create-tenant placeholder CTA | Tenant switcher; Create tenant |
-| Global tenant list preview | “What tenants do I own?” | Cards/table skeleton for tenant name, modules, status, and last activity; safe empty state | Global tenant list |
-| Tenant overview card | “Is this tenant healthy?” | Tenant identity, active modules, primary indicator placeholder, member count placeholder, billing status placeholder | Tenant overview |
-| Action inbox | “What needs my attention today?” | Placeholder count groups: invites pending, billing attention, security review, failed setup/context tasks | Basic action inbox |
-| People and access | “Who can access this tenant?” | Members & roles placeholder, invite/remove user placeholder, role-model summary for Owner/Admin/Member | Members & roles; Invite/remove users; Basic roles |
-| Operations | “How do I configure the tenant?” | Settings and billing entry cards marked “Coming soon” or “Design pending” | Tenant settings; Billing page |
-| Trust and safety | “What changed, and what can damage the tenant?” | Audit-log placeholder and danger-zone placeholder with disabled destructive controls | Audit log; Danger zone |
-| Module shortcuts | “Where do daily module workspaces live?” | Existing active module dashboard links, kept secondary to owner administration | Module-specific dashboards |
+| Owner context header | “Where can I return for owner work?” | Owner name when resolved, plus links to home and owner dashboard. | Tenant switcher |
+| Tenant preview | “What tenants do I own?” | Up to three `OwnerTenantCard` entries with tenant name/app id; **View All** when more than three tenants exist. | Global tenant list; Tenant overview |
+| Empty owner state | “How do I start?” | **Create Workspace** link after the owner-scoped tenant list initializes empty. | Create tenant |
+| Action inbox | “What needs my attention?” | `ActionInboxPending` placeholder only. | Basic action inbox |
+| Billing | “Where will billing live?” | Coming-soon billing card only. | Billing page |
+| Audit log | “Where will sensitive history live?” | `AuditLogPending` placeholder only. | Audit log |
+| Danger zone | “Where will destructive actions live?” | Pending copy with disabled archive/delete buttons. | Danger zone |
+| Tenant management routes | “Where do I manage this tenant?” | Tenant overview links to settings, members, billing, audit, and danger-zone routes. | Tenant overview; Settings; Members; Billing; Audit; Danger zone |
 
 ## 6. Dashboard Stage Map
 
@@ -76,17 +76,17 @@ The first approved dashboard should be a design scaffold. It should communicate 
 
 **User actions:** Sign in, land on home or owner dashboard, scan current tenant name, role, and available tenants.
 
-**Touchpoints / channels:** Home page tenant/module shortcut area; future owner dashboard header; tenant context resolver.
+**Touchpoints / channels:** Owner dashboard, owner context header, tenant list preview, tenant overview routes, and home/module shortcuts.
 
 **User thoughts / questions:** “Am I managing the right workspace?” “Do I own more than one tenant?” “Can I switch without losing my place?”
 
 **Emotions:** Cautious, 2/5, because wrong-tenant actions are high risk.
 
-**Pain points:** Tenant switcher is not implemented; `NavigateToTenant` is currently a no-op in home; the owner dashboard stub gives no context.
+**Pain points:** Tenant switcher is not implemented; dashboard tenant selection is route-scoped rather than a global active-context switch; role labels are not yet shown.
 
 **Needs:** One active tenant source of truth, clear role badge, graceful no-tenant and multi-tenant states.
 
-**Opportunities:** Put the active tenant and role at the top of the dashboard before any actions; make switch/create actions visible but safely marked as placeholders until implemented.
+**Opportunities:** Keep the owner header visible, make tenant route selection explicit, and add role labels before enabling sensitive tenant switching.
 
 **Success metrics:** Time to identify active tenant; switcher use rate; wrong-tenant support incidents; bounce rate from owner dashboard.
 
@@ -98,13 +98,13 @@ The first approved dashboard should be a design scaffold. It should communicate 
 
 **User actions:** Review status cards, action inbox, tenant overview, module shortcut availability, and any warning/empty states.
 
-**Touchpoints / channels:** Dashboard summary cards, action inbox placeholder, active modules list, tenant overview placeholder.
+**Touchpoints / channels:** Tenant preview cards, action inbox placeholder, billing placeholder, audit placeholder, danger-zone placeholder, and tenant overview links.
 
 **User thoughts / questions:** “Is anything broken, unpaid, insecure, or waiting for me?” “Can my team keep working?”
 
 **Emotions:** Reassured, 4/5, if the dashboard is quiet and clear; anxious if unknown placeholders look like errors.
 
-**Pain points:** Billing, action inbox, audit, member counts, and tenant health are not implemented; empty placeholder copy could be mistaken for missing data.
+**Pain points:** Billing, action inbox, audit rows, member counts, and tenant health summaries are not connected; placeholder copy must remain explicit.
 
 **Needs:** Honest labels such as “Coming soon,” “No data connected yet,” or “Design pending”; no fake counts; clear distinction between implemented links and disabled future controls.
 
@@ -120,17 +120,17 @@ The first approved dashboard should be a design scaffold. It should communicate 
 
 **User actions:** Click tenant overview, members, invite users, settings, billing, audit log, danger zone, create tenant, or module dashboard shortcut.
 
-**Touchpoints / channels:** Dashboard cards, CTAs, disabled placeholders, route constants, future owner-management pages.
+**Touchpoints / channels:** Dashboard cards, tenant overview links, route constants, current owner-management pages, and disabled placeholders.
 
 **User thoughts / questions:** “Where do I manage this?” “Is this safe?” “Do I have permission?”
 
 **Emotions:** Focused, 3/5, because owner actions can affect access, money, or data.
 
-**Pain points:** Most target actions have no owner-facing route or implementation; platform admin pages exist but are not suitable as owner-facing UX.
+**Pain points:** Most target actions now have owner-facing routes, but several routes still render placeholder components rather than connected read models or commands.
 
 **Needs:** One primary CTA per card, stable future route plan, permission-aware disabled states, safe fallback to home when tenant context is missing.
 
-**Opportunities:** Define dashboard cards as navigation placeholders first, then implement each card as its own journey without rewriting the dashboard layout.
+**Opportunities:** Keep host route composition stable and replace placeholder cards with focused Parties.Interface components as each journey becomes real.
 
 **Success metrics:** Card CTR by task, failed authorization rate, route-not-found incidents, completion rate after leaving dashboard.
 
@@ -164,17 +164,17 @@ Each owner capability needs its own dedicated journey map before implementation.
 
 | Capability | Dashboard placeholder promise | Dedicated journey map focus | Implementation status |
 | --- | --- | --- | --- |
-| Tenant switcher | Select another owned tenant from the header. | Switching context safely, preserving return path, and making active tenant unmistakable. | Not implemented. |
-| Create tenant | Start a new tenant setup from the dashboard. | Reusing onboarding concepts for an existing owner, module selection, indicators, and role assignment. | Partially covered by onboarding; owner-created additional tenants not implemented. |
-| Global tenant list | Show all owned tenants with status and quick filters. | Cross-tenant list, search/filter, ownership boundaries, empty states. | Admin-only owner tenant list exists; owner-facing list not implemented. |
-| Tenant overview | Summarize one tenant’s identity, modules, members, billing, and activity. | One read model for tenant health, active modules, primary indicator, and recent changes. | Not implemented. |
-| Members & roles | Preview member count and role distribution. | Member table, role assignment, permission guardrails. | Basic roles exist; owner UI not implemented. |
-| Invite/remove users | Show pending invites and removal entry point. | Invitation flow, revocation/removal, failure recovery, email/status handling. | Not implemented. |
+| Tenant switcher | Confirm or change active tenant context. | Switching context safely, preserving return path, and making active tenant unmistakable. | Not implemented; owner header and route-scoped tenant opening exist. |
+| Create tenant | Start a new tenant setup from the dashboard/list. | Current direct form plus future module selection, duplicate checks, and recovery. | Implemented as a simple tenant + primary indicator form. |
+| Global tenant list | Show all owned tenants. | Cross-tenant list, future search/filter, ownership boundaries, empty states. | Implemented as a simple owner-scoped list without search/filter. |
+| Tenant overview | Summarize one tenant and route to management tasks. | Current identity/navigation panel plus future health, modules, primary indicator, and recent changes. | Implemented as identity + management links. |
+| Members & roles | Preview member count and role distribution. | Member table, role assignment, permission guardrails. | Placeholder route implemented; data/model not connected. |
+| Invite/remove users | Show pending invites and removal entry point. | Invitation flow, revocation/removal, failure recovery, email/status handling. | Invite placeholder route implemented; remove not implemented. |
 | Basic Owner/Admin/Member roles | Explain current role model simply. | Role definitions, upgrade/downgrade rules, self-demotion prevention. | TenantOwner/TenantAdmin/TenantUser exist in code; UX naming needs Owner/Admin/Member. |
-| Tenant settings | Link to tenant identity/configuration. | Tenant name, logo, description, indicators, active modules, safe validation. | Not implemented owner-facing; tenant metadata update exists through `TenantPageBase`. |
-| Billing page | Show billing status placeholder. | Plan, payment method, invoices, usage, failed payment recovery. | Not implemented. |
-| Basic action inbox | Surface urgent owner tasks. | Prioritization, dismissal, ownership, and read/state separation. | Not implemented. |
-| Audit log for sensitive actions | Show recent sensitive events. | Immutable events for access, billing, settings, and danger-zone actions. | Audit infrastructure exists in some modules; owner audit UI not implemented. |
+| Tenant settings | Link to tenant identity/configuration. | Tenant name, logo, description, active modules, and future indicators. | Implemented for display fields and active modules; indicators/audit/conflict handling pending. |
+| Billing page | Show billing status placeholder. | Plan, payment method, invoices, usage, failed payment recovery. | Placeholder route/card implemented. |
+| Basic action inbox | Surface urgent owner tasks. | Prioritization, dismissal, ownership, and read/state separation. | Dashboard placeholder card implemented. |
+| Audit log for sensitive actions | Show recent sensitive events. | Immutable events for access, billing, settings, and danger-zone actions. | Placeholder route/card implemented; event source not connected. |
 | Danger zone with delete/archive controls | Show disabled destructive controls until journey is approved. | Archive vs delete, confirmations, dependencies, retention, audit, recovery. | Admin delete exists; owner-safe archive/delete not implemented. |
 
 ## 8. Happy Path: Everyday Dashboard Visit
@@ -233,7 +233,7 @@ Create one future read model for the dashboard instead of letting the Razor page
 
 ## 12. Open Clarifying Questions Before UI Implementation
 
-1. Should the owner dashboard have a platform route such as `/owner`, `/owners/dashboard`, or should it be tenant-scoped under a tenant route? Current `OwnerDashboardPage.razor` has no route.
+1. Should the legacy `/owner` entry point redirect to `/owner/dashboard`, and should any additional aliases be supported?
 2. After onboarding creates a tenant, should the success redirect go directly to the owner dashboard instead of home once tenant context switching is available?
 3. What is the canonical relationship between authenticated users and owners when a user can own multiple owners or tenants? Current onboarding relies on creation/audit context, while tenant records carry `OwnerId`.
 4. Should user-facing roles be named **Owner/Admin/Member** while internal roles remain `TenantOwner`, `TenantAdmin`, and `TenantUser`?
@@ -244,14 +244,14 @@ Create one future read model for the dashboard instead of letting the Razor page
 ## 13. Acceptance Criteria for the Placeholder Dashboard Design
 
 - Dashboard clearly communicates it is an owner command center, not a module dashboard.
-- Active tenant and effective role are visible before any management card.
-- Implemented links are visually distinct from disabled placeholders.
+- Owner context is visible before management cards; tenant role labels remain a follow-up for switcher/members work.
+- Implemented links such as tenant overview, full tenant list, create workspace, and settings are visually distinct from disabled or pending placeholders.
 - Every requested owner capability has a visible placeholder or planned entry point.
 - The dashboard does not invent unavailable data.
-- Tenant identity and active modules use existing tenant DTO/metadata rules.
+- Tenant identity and active modules use existing tenant DTO/metadata rules where currently rendered or saved.
 - State-changing owner actions are not implemented directly in the placeholder dashboard.
 - Danger-zone controls are present only as disabled/design-pending placeholders.
-- Each capability in the requested list has a named dedicated journey map to guide implementation before code work begins.
+- Each capability in the requested list has a named dedicated journey map that reflects current route/component status before further code work begins.
 
 ## 14. Future Journey Map Creation Order
 

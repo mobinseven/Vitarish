@@ -19,11 +19,11 @@
 
 | Area | Current behavior | Action-inbox implication |
 | --- | --- | --- |
-| Dashboard placeholders | Action inbox is listed as future data. | First release should show placeholder/unavailable state unless a real query exists. |
-| Dedicated journeys | Members, billing, settings, audit, and danger zone are planned. | Inbox items should deep-link to these journeys when item types are approved. |
-| Tenant context | Owner dashboard depends on active tenant context. | Inbox must be tenant-scoped first; cross-tenant rollup can come later. |
-| Billing/access/audit data | Not connected in dashboard. | Do not invent item counts or severity. |
-| State changes | Dashboard should separate read-only queries from mutations. | Inbox should read items and route actions; mutations happen in owning journeys. |
+| Dashboard card | `OwnerActionInboxCard` renders **Action Inbox** with `ActionInboxPending` copy on the owner dashboard. | The inbox is visible as a planned capability but has no item source yet. |
+| Tenant-specific entry | There is no dedicated action-inbox route or tenant-level item detail page. | Action items should remain a dashboard placeholder until a real read model and destinations exist. |
+| Related destinations | Tenant overview now links to settings, members, billing, audit, and danger-zone routes. | Future inbox items can deep-link to existing owner routes once their source rules are approved. |
+| Data sources | Billing, audit, invite/member, and lifecycle sources are placeholders. | Do not invent item counts, severity, due dates, or all-clear states. |
+| Mutation boundary | The inbox card performs no state changes. | Keep dismissal/review behavior future until ownership, audit, and source reconciliation rules exist. |
 
 ## 3. Persona Snapshot
 
