@@ -4,3 +4,11 @@
     <StackField Label="@Localizer["NotFound"]" HelperText="@Localizer["NotFoundHelp"]" />
     <StackButton Label="@Localizer["Home"]" Href="@AppRoutes.Home" />
 </Stack>
+
+@code {
+    protected override void OnInitialized()
+    {
+        if(NavService.Breadcrumbs.Any())
+            NavService.Back();
+    }
+}

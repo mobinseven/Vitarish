@@ -145,7 +145,6 @@ _ = await app.MigrateDatabaseAsync<RemindersDbContext>();
 _ = await app.MigrateDatabaseAsync<SeaDbContext>();
 _ = await app.MigrateDatabaseAsync<AuditDbContext>();
 _ = await app.MigrateDatabaseAsync<AppointmentsDbContext>();
-//_ = await app.MigrateDatabaseAsync<CalendarDbContext>();
 _ = await app.MigrateDatabaseAsync<CommerceDbContext>();
 _ = await app.MigrateDatabaseAsync<ContentsDbContext>();
 _ = await app.MigrateDatabaseAsync<SocialDbContext>();

@@ -35,7 +35,6 @@
     <Project Path="src/Identity/Users/Hosting/Users.Hosting.csproj" />
     <Project Path="src/Identity/Users/Infrastructure/Users.Infrastructure.csproj" />
   </Folder>
-  <Folder Name="/src/Identity/Users/Application/" />
   <Folder Name="/src/Interfaces/">
     <Project Path="src/Interfaces/Interfaces.Accounts/Interfaces.Accounts.csproj" />
     <Project Path="src/Interfaces/Interfaces.Admins/Interfaces.Admins.csproj" />
@@ -93,6 +92,12 @@
     <Project Path="src/Modules/Files/Domain/Files.Domain.csproj" />
     <Project Path="src/Modules/Files/Infrastructure/Files.Infrastructure.csproj" />
     <Project Path="src/Modules/Files/Interface/Files.Interface.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Financial/">
+    <Project Path="src/Modules/Financial/Application/Financial.Application.csproj" />
+    <Project Path="src/Modules/Financial/Domain/Financial.Domain.csproj" />
+    <Project Path="src/Modules/Financial/Infrastructure/Financial.Infrastructure.csproj" />
+    <Project Path="src/Modules/Financial/Interface/Financial.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Intelligence/">
     <Project Path="src/Modules/Intelligence/Application/Intelligence.Application.csproj" />
