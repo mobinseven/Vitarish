@@ -1,10 +1,11 @@
 using Vitarish.Parties.Domain;
 using Vitarish.Parties.Domain.Dtos;
 using Vitarish.Interfaces.Base.Common;
+using Vitarish.Interfaces.Admins.Components;
 
-namespace Vitarish.Main.Pages.Admins;
+namespace Vitarish.Main.Pages.Platform;
 
-public partial class PlatformAdminTenantPage
+public partial class PlatformAdminTenantPage : PlatformAdminCommonBase
 {
     [Parameter] public Guid? TenantId { get; set; }
     [Parameter] public Guid? OwnerId { get; set; }

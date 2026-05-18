@@ -16,6 +16,8 @@ namespace Vitarish.Main.Common;
 public static partial class AppRoutes
 {
     public const string Home = "/";
+    public const string Owner = "/owner";
+    public const string User = "/user";
 
     /// <summary>Well-known query-string key constants.</summary>
     public static class QueryKeys

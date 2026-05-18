@@ -14,7 +14,6 @@ public class TenantPageBase : PageBase, IDisposable
 
     protected TenantReadDto? Tenant;
     protected bool IsUser;
-    protected bool IsAdmin;
     protected bool IsOwner;
 
     protected Guid? UserId => Guid.Parse(RequestContext.UserId ?? Guid.Empty.ToString());
@@ -50,7 +49,6 @@ public class TenantPageBase : PageBase, IDisposable
 
         NavService.OverridePageTitle(Tenant.AppId, Tenant.Name);
 
-        IsAdmin = RequestContext.IsTenantAdmin() || RequestContext.IsTenantOwner();
         IsOwner = RequestContext.IsTenantOwner();
 
         await base.OnInitializedAsync();

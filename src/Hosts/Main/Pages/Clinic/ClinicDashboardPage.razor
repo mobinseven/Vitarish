@@ -1,0 +1,40 @@
+@attribute [Route(AppRoutes.Clinic.OwnerDashboard)]
+
+@if(!initialized)
+{
+    return;
+}
+
+<CascadingValue Value="IsOwner">
+    <Stack>
+        <StackButton Label="@Localizer["Patients"]"
+                     Href="@AppRoutes.Clinic.Patients"
+                     HelperText="@($"{patients} {Localizer["Patients"]}")" />
+        <StackButton Label="@Localizer["CheckIn"]"
+                     Href="@AppRoutes.Clinic.CheckIn"
+                     EndIcon="fa-regular fa-person-walking-arrow-right"
+                     Color="Color.Primary" />
+    </Stack>
+    <TodayAppointmentsWidget OnShiftClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(id)))"
+                             OnShiftsClicked="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.OwnerShifts))" />
+</CascadingValue>
+
+@code {
+    private int patients = 0;
+    private bool initialized;
+
+    protected override async Task ReloadRequired()
+    {
+        ProjectDescriptorDto descriptor = new()
+        {
+            Skip = 0,
+            Take = int.MaxValue,
+            Template = false,
+            Descending = true
+        };
+
+        patients = await ProjectsService.CountAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync();
+        initialized = true;
+        await InvokeAsync(StateHasChanged);
+    }
+}

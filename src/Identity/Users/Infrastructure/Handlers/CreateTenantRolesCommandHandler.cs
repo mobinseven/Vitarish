@@ -14,7 +14,6 @@ internal sealed class CreateTenantRolesCommandHandler(UsersDbContext dbContext)
         string[] tenantRoles =
         [
             $"{request.TenantId}:{IdentityDefinitions.TenantOwner}",
-            $"{request.TenantId}:{IdentityDefinitions.TenantAdmin}",
             $"{request.TenantId}:{IdentityDefinitions.TenantUser}"
         ];
 

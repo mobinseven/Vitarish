@@ -9,16 +9,16 @@ internal class AccessControlledServiceBase(
 {
     protected Guid UserId;
     protected bool loaded = false;
-    protected bool isAdmin;
+    protected bool ElevatedAccess;
     protected async Task<bool> IsAdmin()
     {
         await EnsureInitialized();
-        return isAdmin;
+        return ElevatedAccess;
     }
     protected HashSet<Guid> userReadRoleIds = [];
     protected HashSet<Guid> userWriteRoleIds = [];
 
-    protected static Exception AdminRoleRequired => new InvalidOperationException("Admin role is required to perform this operation");
+    protected static Exception ElevatedAccessRequired => new InvalidOperationException("Elevated access is required to perform this operation");
     protected static Exception ReadRoleRequired => new InvalidOperationException("Read role is required to perform this operation");
     protected static Exception WriteRoleRequired => new InvalidOperationException("Write role is required to perform this operation");
 
@@ -36,7 +36,7 @@ internal class AccessControlledServiceBase(
             userReadRoleIds = [.. userroles.Where(r => r.Type == RoleType.Read).Select(r => r.RoleId)];
             userWriteRoleIds = [.. userroles.Where(r => r.Type == RoleType.Write).Select(r => r.RoleId)];
             userReadRoleIds = [.. userWriteRoleIds.Union(userReadRoleIds)];
-            isAdmin = requestContext.IsTenantAdmin() || requestContext.IsTenantOwner();
+            ElevatedAccess = requestContext.IsPlatformAdmin() || requestContext.IsTenantOwner();
 
             loaded = true;
         }
@@ -46,7 +46,7 @@ internal class AccessControlledServiceBase(
     public async Task<bool> CanReadEvent(Guid eventId)
     {
         await EnsureInitialized();
-        if (isAdmin)
+        if (ElevatedAccess)
         {
             return true;
         }
@@ -58,7 +58,7 @@ internal class AccessControlledServiceBase(
     public async Task<bool> CanWriteEvent(Guid eventId)
     {
         await EnsureInitialized();
-        if (isAdmin)
+        if (ElevatedAccess)
         {
             return true;
         }

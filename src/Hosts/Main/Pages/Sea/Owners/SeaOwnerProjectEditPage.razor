@@ -4,7 +4,7 @@
 
 @if(initialized)
 {
-    <CascadingValue Value="IsAdmin">
+    <CascadingValue Value="IsOwner">
 
         <ProjectEditForm Project="Project"
                          OnUpdate="@(projectId => NavigationManager.NavigateTo(AppRoutes.Sea.Project(projectId)))"

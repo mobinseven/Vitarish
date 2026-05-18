@@ -6,36 +6,36 @@ internal class AccessControlledProductService(
     IRequestContext requestContext,
     IProductService productService) : IAccessControlledProductService
 {
-    private bool IsAdmin() => requestContext.IsTenantAdmin() || requestContext.IsTenantOwner();
+    private bool ElevatedAccess() => requestContext.IsPlatformAdmin() || requestContext.IsTenantOwner();
 
-    private static Exception AdminRoleRequired => new InvalidOperationException("Admin role is required to perform this operation");
+    private static Exception ElevatedAccessRequired => new InvalidOperationException("Elevated access is required to perform this operation");
 
     public Task<EntityResult<ProductReadDto>> AddAsync(ProductWriteDto dto, CancellationToken cancellationToken)
-        => IsAdmin() ? productService.AddAsync(dto, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess() ? productService.AddAsync(dto, cancellationToken) : throw ElevatedAccessRequired;
 
     public Task<EntityResult<IReadOnlyList<ProductReadDto>>> AddAsync(IReadOnlyList<ProductWriteDto> dtos, CancellationToken cancellationToken)
-        => IsAdmin() ? productService.AddAsync(dtos, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess() ? productService.AddAsync(dtos, cancellationToken) : throw ElevatedAccessRequired;
 
     public Task<EntityResult<ProductReadDto>> UpdateAsync(ProductWriteDto dto, CancellationToken cancellationToken)
-        => IsAdmin() ? productService.UpdateAsync(dto, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess() ? productService.UpdateAsync(dto, cancellationToken) : throw ElevatedAccessRequired;
 
     public Task<EntityResult<IReadOnlyList<ProductReadDto>>> UpdateAsync(IReadOnlyList<ProductWriteDto> dtos, CancellationToken cancellationToken)
-        => IsAdmin() ? productService.UpdateAsync(dtos, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess() ? productService.UpdateAsync(dtos, cancellationToken) : throw ElevatedAccessRequired;
 
     public Task<EntityResult<ProductReadDto>> AddOrUpdateAsync(ProductWriteDto dto, CancellationToken cancellationToken)
-        => IsAdmin() ? productService.AddOrUpdateAsync(dto, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess() ? productService.AddOrUpdateAsync(dto, cancellationToken) : throw ElevatedAccessRequired;
 
     public Task<EntityResult> RemoveAsync(ProductWriteDto dto, CancellationToken cancellationToken)
-        => IsAdmin() ? productService.RemoveAsync(dto, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess() ? productService.RemoveAsync(dto, cancellationToken) : throw ElevatedAccessRequired;
 
     public Task<EntityResult> RemoveAsync(IReadOnlyList<ProductWriteDto> dtos, CancellationToken cancellationToken)
-        => IsAdmin() ? productService.RemoveAsync(dtos, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess() ? productService.RemoveAsync(dtos, cancellationToken) : throw ElevatedAccessRequired;
 
     public Task<EntityResult> RemoveAsync(Guid id, CancellationToken cancellationToken)
-        => IsAdmin() ? productService.RemoveAsync(id, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess() ? productService.RemoveAsync(id, cancellationToken) : throw ElevatedAccessRequired;
 
     public Task<EntityResult> RemoveByDescriptorAsync(ProductDescriptorDto descriptor, CancellationToken cancellationToken)
-        => IsAdmin() ? productService.RemoveByDescriptorAsync(descriptor, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess() ? productService.RemoveByDescriptorAsync(descriptor, cancellationToken) : throw ElevatedAccessRequired;
 
     public Task<EntityResult<ProductReadDto>> GetAsync(Guid id, CancellationToken cancellationToken)
         => productService.GetAsync(id, cancellationToken);

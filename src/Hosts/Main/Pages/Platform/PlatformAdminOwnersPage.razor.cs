@@ -1,9 +1,9 @@
-using Vitarish.Interfaces.Base.Common;
+using Vitarish.Interfaces.Admins.Components;
 using Vitarish.Parties.Domain.Dtos;
 
-namespace Vitarish.Main.Pages.Admins;
+namespace Vitarish.Main.Pages.Platform;
 
-public partial class PlatformAdminOwnersPage
+public partial class PlatformAdminOwnersPage : PlatformAdminCommonBase
 {
     private List<OwnerReadDto> Owners { get; set; } = [];
 

@@ -1,6 +1,6 @@
 @attribute [Route(AppRoutes.Sea.ProjectNew)]
 
-<CascadingValue Value="IsAdmin">
+<CascadingValue Value="IsOwner">
 
     <ProjectEditForm OnCreate="@(projectId => NavigationManager.NavigateTo(AppRoutes.Sea.Project(projectId)))"
                      OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.Projects))" />

@@ -5,7 +5,7 @@
     return;
 }
 
-<CascadingValue Value="IsAdmin">
+<CascadingValue Value="IsOwner">
 
     <ProceduresGrid Project="@Project"
                     OnClicked="@(procedureId => { if (procedureId.HasValue) NavigationManager.NavigateTo(AppRoutes.Sea.Procedure(ProjectId, procedureId.Value)); })"

@@ -6,7 +6,7 @@
     return;
 }
 
-<CascadingValue Value="IsAdmin">
+<CascadingValue Value="IsOwner">
     <EventItemsTimeline Event="Event" Procedure="Procedure" Project="Project" />
     <EventDetails Event="Event" Procedure="Procedure" Project="Project"
                   OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Sea.TemplateProcedure(ProjectId, ProcedureId)))" />

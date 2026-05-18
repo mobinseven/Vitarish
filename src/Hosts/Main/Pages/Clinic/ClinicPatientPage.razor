@@ -1,0 +1,49 @@
+@attribute [Route(AppRoutes.Clinic.PatientTemplate)]
+
+@if(patient is null)
+{
+    return;
+}
+
+<CascadingValue Value="IsOwner">
+
+    <PatientDetails Project="@patient"
+                    OnEdit="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientEdit(id)))"
+                    OnDeleted="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.Patients))" />
+
+    <ProceduresGrid Project="@patient"
+                    OnClicked="@(procedureId => { if (procedureId.HasValue) NavigationManager.NavigateTo(AppRoutes.Clinic.PatientProcedure(patient.Id, procedureId.Value)); })"
+                    OnCreated="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientProcedure(patient.Id, procedureId)))" />
+
+    <PatientAppointmentsPanel Patient="@patient" OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientEdit(patient.Id)))" />
+
+    @* <PatientRemindersPanel PatientId="@patient.Id" /> *@
+
+</CascadingValue>
+
+@code {
+    [Parameter] public Guid? patientId { get; set; }
+
+    private ProjectReadDto? patient;
+    private bool initialized;
+
+    protected override async Task ReloadRequired()
+    {
+        if(patientId is null)
+        {
+            NavigationManager.NavigateTo(AppRoutes.Clinic.Patients);
+            return;
+        }
+
+        patient = await ProjectsService.GetAsync(patientId.Value, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if(patient is null)
+        {
+            NavigationManager.NavigateTo(AppRoutes.Clinic.Patients);
+            return;
+        }
+
+        NavService.OverridePageTitle(patient.Id.ToString(), patient.Name);
+        initialized = true;
+    }
+}

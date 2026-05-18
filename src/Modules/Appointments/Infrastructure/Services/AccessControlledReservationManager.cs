@@ -1,4 +1,3 @@
-using Vitarish.Entities.Server.Extensions;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Appointments.Infrastructure.Services;
@@ -9,11 +8,11 @@ internal class AccessControlledReservationManager(
     IShiftBookingPolicyEngine bookingPolicyEngine,
     IStatusCoordinator statusCoordinator) : IAccessControlledReservationManager
 {
-    private bool IsAdmin => requestContext.IsTenantAdmin() || requestContext.IsTenantOwner();
+    private bool ElevatedAccess => requestContext.IsPlatformAdmin() || requestContext.IsTenantOwner();
 
     private string? UserId => requestContext.UserId;
 
-    private static InvalidOperationException AdminRoleRequired => new("Admin role is required to perform this operation.");
+    private static InvalidOperationException ElevatedAccessRequired => new("Elevated access is required to perform this operation.");
 
     private static InvalidOperationException AccessDenied => new("Access denied: you do not own this reservation.");
 
@@ -21,12 +20,9 @@ internal class AccessControlledReservationManager(
     {
         EntityResult<ReservationReadDto> result = await reservationManager.GetAsync(id, cancellationToken);
 
-        if (!IsAdmin && result.Value is not null && result.Value.ReservingPartyId != UserId)
-        {
-            return EntityResult<ReservationReadDto>.Failure(EntityError.NotFound("Reservation not found.", nameof(id)));
-        }
-
-        return result;
+        return !ElevatedAccess && result.Value is not null && result.Value.ReservingPartyId != UserId
+            ? EntityResult<ReservationReadDto>.Failure(EntityError.NotFound("Reservation not found.", nameof(id)))
+            : result;
     }
 
     public Task<EntityResult<IReadOnlyList<ReservationReadDto>>> GetListAsync(ReservationDescriptorDto descriptor, CancellationToken cancellationToken)
@@ -42,11 +38,11 @@ internal class AccessControlledReservationManager(
         => reservationManager.AddAsync(dto, cancellationToken);
 
     public Task<EntityResult<IReadOnlyList<ReservationReadDto>>> AddAsync(IReadOnlyList<ReservationWriteDto> dtos, CancellationToken cancellationToken)
-        => IsAdmin ? reservationManager.AddAsync(dtos, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess ? reservationManager.AddAsync(dtos, cancellationToken) : throw ElevatedAccessRequired;
 
     public async Task<EntityResult<ReservationReadDto>> UpdateAsync(ReservationWriteDto dto, CancellationToken cancellationToken)
     {
-        if (!IsAdmin)
+        if (!ElevatedAccess)
         {
             await EnsureOwnershipAsync(dto.Id, cancellationToken);
         }
@@ -67,20 +63,20 @@ internal class AccessControlledReservationManager(
     }
 
     public Task<EntityResult<IReadOnlyList<ReservationReadDto>>> UpdateAsync(IReadOnlyList<ReservationWriteDto> dtos, CancellationToken cancellationToken)
-        => IsAdmin ? reservationManager.UpdateAsync(dtos, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess ? reservationManager.UpdateAsync(dtos, cancellationToken) : throw ElevatedAccessRequired;
 
     public Task<EntityResult<ReservationReadDto>> AddOrUpdateAsync(ReservationWriteDto dto, CancellationToken cancellationToken)
-        => IsAdmin ? reservationManager.AddOrUpdateAsync(dto, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess ? reservationManager.AddOrUpdateAsync(dto, cancellationToken) : throw ElevatedAccessRequired;
 
     public Task<EntityResult> RemoveAsync(ReservationWriteDto dto, CancellationToken cancellationToken)
-        => IsAdmin ? reservationManager.RemoveAsync(dto, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess ? reservationManager.RemoveAsync(dto, cancellationToken) : throw ElevatedAccessRequired;
 
     public Task<EntityResult> RemoveAsync(IReadOnlyList<ReservationWriteDto> dtos, CancellationToken cancellationToken)
-        => IsAdmin ? reservationManager.RemoveAsync(dtos, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess ? reservationManager.RemoveAsync(dtos, cancellationToken) : throw ElevatedAccessRequired;
 
     public async Task<EntityResult> RemoveAsync(Guid id, CancellationToken cancellationToken)
     {
-        if (!IsAdmin)
+        if (!ElevatedAccess)
         {
             await EnsureOwnershipAsync(id, cancellationToken);
         }
@@ -89,7 +85,7 @@ internal class AccessControlledReservationManager(
     }
 
     public Task<EntityResult> RemoveByDescriptorAsync(ReservationDescriptorDto descriptor, CancellationToken cancellationToken)
-        => IsAdmin ? reservationManager.RemoveByDescriptorAsync(descriptor, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess ? reservationManager.RemoveByDescriptorAsync(descriptor, cancellationToken) : throw ElevatedAccessRequired;
 
     public async Task<EntityResult<ReservationReadDto>> ReserveAsync(
         Guid shiftId,
@@ -97,7 +93,7 @@ internal class AccessControlledReservationManager(
         string? reservingPartyId,
         CancellationToken cancellationToken)
     {
-        string? effectivePartyId = IsAdmin ? reservingPartyId : UserId;
+        string? effectivePartyId = ElevatedAccess ? reservingPartyId : UserId;
         if (string.IsNullOrWhiteSpace(effectivePartyId))
         {
             return EntityResult<ReservationReadDto>.Failure(EntityError.Validation("A reserving party is required.", new Dictionary<string, string>
@@ -175,7 +171,7 @@ internal class AccessControlledReservationManager(
 
     public async Task<EntityResult> CancelReservationAsync(Guid reservationId, CancellationToken cancellationToken)
     {
-        if (!IsAdmin)
+        if (!ElevatedAccess)
         {
             await EnsureOwnershipAsync(reservationId, cancellationToken);
         }
@@ -195,10 +191,10 @@ internal class AccessControlledReservationManager(
         => TransitionReservationAsync(reservationId, ReservationStatus.Expired, cancellationToken, requireAdmin: true);
 
     public Task<EntityResult> MoveReservationAsync(Guid reservationId, Guid targetShiftId, DateOnly targetDate, CancellationToken cancellationToken)
-        => IsAdmin ? reservationManager.MoveReservationAsync(reservationId, targetShiftId, targetDate, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess ? reservationManager.MoveReservationAsync(reservationId, targetShiftId, targetDate, cancellationToken) : throw ElevatedAccessRequired;
 
     private ReservationDescriptorDto ScopeDescriptor(ReservationDescriptorDto descriptor)
-        => IsAdmin ? descriptor : descriptor with { ReservingPartyId = UserId };
+        => ElevatedAccess ? descriptor : descriptor with { ReservingPartyId = UserId };
 
     private async Task EnsureOwnershipAsync(Guid id, CancellationToken cancellationToken)
     {
@@ -215,9 +211,9 @@ internal class AccessControlledReservationManager(
         CancellationToken cancellationToken,
         bool requireAdmin)
     {
-        if (requireAdmin && !IsAdmin)
+        if (requireAdmin && !ElevatedAccess)
         {
-            throw AdminRoleRequired;
+            throw ElevatedAccessRequired;
         }
 
         return await statusCoordinator.TransitionReservationAsync(reservationId, status, requestContext.UserId, cancellationToken);

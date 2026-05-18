@@ -63,6 +63,9 @@
     <Project Path="src/Modules/Aggregator/Modules.Aggregator/Modules.Aggregator.csproj" />
     <Project Path="src/Modules/Base/Modules.Base.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Clinical/">
+    <Project Path="src/Modules/Clinical/Interface/Clinical.Interface.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Commerce/">
     <Project Path="src/Modules/Commerce/Application/Commerce.Application.csproj" />
     <Project Path="src/Modules/Commerce/Domain/Commerce.Domain.csproj" />
@@ -110,9 +113,6 @@
     <Project Path="src/Modules/Links/Domain/Links.Domain.csproj" />
     <Project Path="src/Modules/Links/Infrastructure/Links.Infrastructure.csproj" />
     <Project Path="src/Modules/Links/Interface/Links.Interface.csproj" />
-  </Folder>
-  <Folder Name="/src/Modules/Medical/">
-    <Project Path="src/Modules/Medical/Interface/Medical.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Sea/">
     <Project Path="src/Modules/Sea/Application/Sea.Application.csproj" />

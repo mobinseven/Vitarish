@@ -64,7 +64,7 @@ public class AppRoutesTests
         Guid procedureId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
         Guid eventId = Guid.Parse("cccccccc-cccc-cccc-cccc-cccccccccccc");
 
-        AppRoutes.Medical.PatientEvent(patientId, procedureId, eventId)
+        AppRoutes.Clinic.PatientEvent(patientId, procedureId, eventId)
             .Should().Be($"/medical/patients/{patientId:D}/procedures/{procedureId:D}/events/{eventId:D}");
     }
 
@@ -74,7 +74,7 @@ public class AppRoutesTests
         Guid patientId = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
         Guid procedureId = Guid.Parse("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb");
 
-        AppRoutes.Medical.PatientProcedure(patientId, procedureId)
+        AppRoutes.Clinic.PatientProcedure(patientId, procedureId)
             .Should().Be($"/medical/patients/{patientId:D}/procedures/{procedureId:D}");
     }
 
@@ -82,7 +82,7 @@ public class AppRoutesTests
     public void PatientEdit_AppendsEditSegment()
     {
         Guid id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa");
-        AppRoutes.Medical.PatientEdit(id)
+        AppRoutes.Clinic.PatientEdit(id)
             .Should().Be($"/medical/patients/{id:D}/edit");
     }
 
@@ -162,8 +162,8 @@ public class AppRoutesTests
     [InlineData(AppRoutes.Commerce.Shop)]
     [InlineData(AppRoutes.Commerce.OwnerDashboard)]
     [InlineData(AppRoutes.Commerce.AdminDashboard)]
-    [InlineData(AppRoutes.Medical.OwnerDashboard)]
-    [InlineData(AppRoutes.Medical.Patients)]
+    [InlineData(AppRoutes.Clinic.OwnerDashboard)]
+    [InlineData(AppRoutes.Clinic.Patients)]
     [InlineData(AppRoutes.Sea.Dashboard)]
     [InlineData(AppRoutes.Sea.Projects)]
     [InlineData(AppRoutes.Sea.OwnerTemplateProjects)]

@@ -1,4 +1,3 @@
-using Vitarish.Entities.Server.Extensions;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Appointments.Infrastructure.Services;
@@ -8,9 +7,9 @@ internal class AccessControlledShiftManager(
     IShiftManager shiftManager,
     IStatusCoordinator statusCoordinator) : IAccessControlledShiftManager
 {
-    private bool IsAdmin => requestContext.IsTenantAdmin() || requestContext.IsTenantOwner();
+    private bool ElevatedAccess => requestContext.IsPlatformAdmin() || requestContext.IsTenantOwner();
 
-    private static InvalidOperationException AdminRoleRequired => new("Admin role is required to perform this operation.");
+    private static InvalidOperationException ElevatedAccessRequired => new("Elevated access is required to perform this operation.");
 
     public async Task<EntityResult<ShiftReadDto>> GetAsync(Guid id, CancellationToken cancellationToken)
     {
@@ -86,16 +85,16 @@ internal class AccessControlledShiftManager(
             : await UpdateAsync(dto, cancellationToken);
 
     public Task<EntityResult> RemoveAsync(ShiftWriteDto dto, CancellationToken cancellationToken)
-        => IsAdmin ? shiftManager.RemoveAsync(dto, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess ? shiftManager.RemoveAsync(dto, cancellationToken) : throw ElevatedAccessRequired;
 
     public Task<EntityResult> RemoveAsync(IReadOnlyList<ShiftWriteDto> dtos, CancellationToken cancellationToken)
-        => IsAdmin ? shiftManager.RemoveAsync(dtos, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess ? shiftManager.RemoveAsync(dtos, cancellationToken) : throw ElevatedAccessRequired;
 
     public Task<EntityResult> RemoveAsync(Guid id, CancellationToken cancellationToken)
-        => IsAdmin ? shiftManager.RemoveAsync(id, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess ? shiftManager.RemoveAsync(id, cancellationToken) : throw ElevatedAccessRequired;
 
     public Task<EntityResult> RemoveByDescriptorAsync(ShiftDescriptorDto descriptor, CancellationToken cancellationToken)
-        => IsAdmin ? shiftManager.RemoveByDescriptorAsync(descriptor, cancellationToken) : throw AdminRoleRequired;
+        => ElevatedAccess ? shiftManager.RemoveByDescriptorAsync(descriptor, cancellationToken) : throw ElevatedAccessRequired;
 
     public async Task<EntityResult> ActivateShiftAsync(Guid shiftId, CancellationToken cancellationToken)
     {
@@ -134,12 +133,12 @@ internal class AccessControlledShiftManager(
     }
 
     private IReadOnlyList<ShiftReadDto> FilterList(IReadOnlyList<ShiftReadDto> shifts)
-        => IsAdmin
+        => ElevatedAccess
             ? shifts
             : [.. shifts.Where(IsVisibleToTenantUser)];
 
     private EntityResult<ShiftReadDto> FilterSingle(ShiftReadDto shift)
-        => IsAdmin || IsVisibleToTenantUser(shift)
+        => ElevatedAccess || IsVisibleToTenantUser(shift)
             ? EntityResult<ShiftReadDto>.Success(shift)
             : EntityResult<ShiftReadDto>.Failure(EntityError.NotFound("Shift not found.", nameof(shift.Id)));
 
@@ -196,9 +195,9 @@ internal class AccessControlledShiftManager(
 
     private void EnsureAdmin()
     {
-        if (!IsAdmin)
+        if (!ElevatedAccess)
         {
-            throw AdminRoleRequired;
+            throw ElevatedAccessRequired;
         }
     }
 }

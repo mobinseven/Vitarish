@@ -5,7 +5,7 @@
     return;
 }
 
-<CascadingValue Value="IsAdmin">
+<CascadingValue Value="IsOwner">
     <ShiftDetail Shift="@shift"
                    OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShiftEdit(_shiftId)))"
                    OnDeleted="Back"

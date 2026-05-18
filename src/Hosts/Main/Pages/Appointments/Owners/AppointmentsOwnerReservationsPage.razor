@@ -1,6 +1,6 @@
 @attribute [Route(AppRoutes.Appointments.OwnerReservations)]
 
-<CascadingValue Value="IsAdmin">
+<CascadingValue Value="IsOwner">
     <ReservationsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminReservation(id)))" />
 </CascadingValue>
 

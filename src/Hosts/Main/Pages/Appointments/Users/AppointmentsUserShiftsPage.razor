@@ -1,6 +1,6 @@
 @attribute [Route(AppRoutes.Appointments.UserShifts)]
 
-<CascadingValue Value="IsAdmin">
+<CascadingValue Value="IsOwner">
     <ShiftsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.Shift(id)))" />
 </CascadingValue>
 

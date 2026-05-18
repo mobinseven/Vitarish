@@ -1,9 +1,9 @@
+using Vitarish.Interfaces.Admins.Components;
 using Vitarish.Interfaces.Base.Common;
 using Vitarish.Users.Application.Commands;
-using Vitarish.Users.Domain.Models;
-namespace Vitarish.Main.Pages.Admins;
+namespace Vitarish.Main.Pages.Platform;
 
-public partial class PlatformAdminUserPage
+public partial class PlatformAdminUserPage : PlatformAdminCommonBase
 {
     [Parameter] public Guid? UserId { get; set; }
     private string password = string.Empty;
@@ -45,7 +45,7 @@ public partial class PlatformAdminUserPage
         IDialogReference dialog = await DialogService.ShowAsync<StrictConfirmDialog>(null, parameters);
         DialogResult? result = await dialog.Result;
 
-        if(result is null || result.Canceled)
+        if (result is null || result.Canceled)
         {
             return;
         }

@@ -149,7 +149,7 @@ public sealed class PartiesService(OwnersService ownerService, TenantsService te
         User? user = await sender.Send(new GetUserQuery(request.UserId), ct);
         if (user is not null)
         {
-            foreach (string roleSuffix in new[] { IdentityDefinitions.TenantOwner, IdentityDefinitions.TenantAdmin, IdentityDefinitions.TenantUser })
+            foreach (string roleSuffix in new[] { IdentityDefinitions.TenantOwner, IdentityDefinitions.TenantUser })
             {
                 // Roles were already created by CreateTenantRolesCommand above.
                 // The AddUserToRoleCommand handler uses the role name as-is when no tenant

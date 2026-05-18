@@ -6,7 +6,7 @@
     return;
 }
 
-<CascadingValue Value="IsAdmin">
+<CascadingValue Value="IsOwner">
     <EventsGrid Project="@Project"
                 EventClicked="@(id => { if (id.HasValue) NavigationManager.NavigateTo(AppRoutes.Sea.TemplateEvent(ProjectId, ProcedureId, id.Value)); })"
                 Procedure="Procedure" />

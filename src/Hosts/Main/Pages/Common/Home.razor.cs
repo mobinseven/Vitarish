@@ -18,7 +18,7 @@ public partial class Home
         new(StringComparer.OrdinalIgnoreCase)
         {
             ["Sea"]          = AppRoutes.Sea.Dashboard,
-            ["Medical"]      = AppRoutes.Medical.OwnerDashboard,
+            ["Medical"]      = AppRoutes.Clinic.OwnerDashboard,
             ["Commerce"]     = AppRoutes.Commerce.OwnerDashboard,
             ["Appointments"] = AppRoutes.Appointments.OwnerShifts,
         };

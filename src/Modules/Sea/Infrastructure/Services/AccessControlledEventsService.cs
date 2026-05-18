@@ -9,12 +9,12 @@ internal class AccessControlledEventsService(
     IEventsService eventsService) : AccessControlledServiceBase(requestContext, eventRolesService, userRolesService), IAccessControlledEventsService
 {
     private IEventsService Service => eventsService;
-    public async Task<EventReadDto?> AddAsync(Guid projectId, Guid procedureId, Guid? previousEventId, CancellationToken cancellationToken) => await IsAdmin() ? await Service.AddAsync(projectId, procedureId, previousEventId, cancellationToken) : throw AdminRoleRequired;
-    public async Task<EntityResult<EventReadDto>> AddAsync(EventWriteDto dto, CancellationToken cancellationToken) => await IsAdmin() ? await Service.AddAsync(dto, cancellationToken) : throw AdminRoleRequired;
-    public async Task<EntityResult<IReadOnlyList<EventReadDto>>> AddAsync(IReadOnlyList<EventWriteDto> dtos, CancellationToken cancellationToken) => await IsAdmin() ? await Service.AddAsync(dtos, cancellationToken) : throw AdminRoleRequired;
-    public async Task<EntityResult<EventReadDto>> AddOrUpdateAsync(EventWriteDto dto, CancellationToken cancellationToken) => await IsAdmin() ? await Service.AddOrUpdateAsync(dto, cancellationToken) : throw AdminRoleRequired;
+    public async Task<EventReadDto?> AddAsync(Guid projectId, Guid procedureId, Guid? previousEventId, CancellationToken cancellationToken) => await IsAdmin() ? await Service.AddAsync(projectId, procedureId, previousEventId, cancellationToken) : throw ElevatedAccessRequired;
+    public async Task<EntityResult<EventReadDto>> AddAsync(EventWriteDto dto, CancellationToken cancellationToken) => await IsAdmin() ? await Service.AddAsync(dto, cancellationToken) : throw ElevatedAccessRequired;
+    public async Task<EntityResult<IReadOnlyList<EventReadDto>>> AddAsync(IReadOnlyList<EventWriteDto> dtos, CancellationToken cancellationToken) => await IsAdmin() ? await Service.AddAsync(dtos, cancellationToken) : throw ElevatedAccessRequired;
+    public async Task<EntityResult<EventReadDto>> AddOrUpdateAsync(EventWriteDto dto, CancellationToken cancellationToken) => await IsAdmin() ? await Service.AddOrUpdateAsync(dto, cancellationToken) : throw ElevatedAccessRequired;
     public async Task<EventSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken) => await CanReadEvent(id) ? await Service.CaptureSnapshotAsync(id, cancellationToken) : throw ReadRoleRequired;
-    public async Task<int> CommitAllByProcedureAsync(Guid procedureId, Guid reporterUserId, DateTimeOffset commitTime, CancellationToken cancellationToken) => await IsAdmin() ? await Service.CommitAllByProcedureAsync(procedureId, reporterUserId, commitTime, cancellationToken) : throw AdminRoleRequired;
+    public async Task<int> CommitAllByProcedureAsync(Guid procedureId, Guid reporterUserId, DateTimeOffset commitTime, CancellationToken cancellationToken) => await IsAdmin() ? await Service.CommitAllByProcedureAsync(procedureId, reporterUserId, commitTime, cancellationToken) : throw ElevatedAccessRequired;
     public async Task CommitAsync(Guid eventId, CancellationToken cancellationToken)
     {
         bool res = await CanWriteEvent(eventId);
@@ -59,14 +59,14 @@ internal class AccessControlledEventsService(
         return EntityResult<IReadOnlyList<EventReadDto>>.Success(res);
     }
     public Task<EntityResult<PartedResult<EventReadDto>>> GetPartedAsync(EventDescriptorDto descriptor, CancellationToken cancellationToken) => throw new NotImplementedException(); // TODO: return redacted result
-    public async Task<int> GetRemindersCountAsync(Guid eventId, CancellationToken cancellationToken) => await IsAdmin() ? await Service.GetRemindersCountAsync(eventId, cancellationToken) : throw AdminRoleRequired;
-    public async Task<bool> MoveDownAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken) => await IsAdmin() ? await Service.MoveDownAsync(procedureId, eventId, cancellationToken) : throw AdminRoleRequired;
-    public async Task<bool> MoveUpAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken) => await IsAdmin() ? await Service.MoveUpAsync(procedureId, eventId, cancellationToken) : throw AdminRoleRequired;
-    public async Task<EntityResult> RemoveAsync(EventWriteDto dto, CancellationToken cancellationToken) => await IsAdmin() ? await Service.RemoveAsync(dto, cancellationToken) : throw AdminRoleRequired;
-    public async Task<EntityResult> RemoveAsync(IReadOnlyList<EventWriteDto> dtos, CancellationToken cancellationToken) => await IsAdmin() ? await Service.RemoveAsync(dtos, cancellationToken) : throw AdminRoleRequired;
-    public async Task<EntityResult> RemoveAsync(Guid id, CancellationToken cancellationToken) => await IsAdmin() ? await Service.RemoveAsync(id, cancellationToken) : throw AdminRoleRequired;
-    public async Task<EntityResult> RemoveByDescriptorAsync(EventDescriptorDto descriptor, CancellationToken cancellationToken) => await IsAdmin() ? await Service.RemoveByDescriptorAsync(descriptor, cancellationToken) : throw AdminRoleRequired;
-    public async Task<bool> RemoveEventAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken) => await IsAdmin() ? await Service.RemoveEventAsync(procedureId, eventId, cancellationToken) : throw AdminRoleRequired;
+    public async Task<int> GetRemindersCountAsync(Guid eventId, CancellationToken cancellationToken) => await IsAdmin() ? await Service.GetRemindersCountAsync(eventId, cancellationToken) : throw ElevatedAccessRequired;
+    public async Task<bool> MoveDownAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken) => await IsAdmin() ? await Service.MoveDownAsync(procedureId, eventId, cancellationToken) : throw ElevatedAccessRequired;
+    public async Task<bool> MoveUpAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken) => await IsAdmin() ? await Service.MoveUpAsync(procedureId, eventId, cancellationToken) : throw ElevatedAccessRequired;
+    public async Task<EntityResult> RemoveAsync(EventWriteDto dto, CancellationToken cancellationToken) => await IsAdmin() ? await Service.RemoveAsync(dto, cancellationToken) : throw ElevatedAccessRequired;
+    public async Task<EntityResult> RemoveAsync(IReadOnlyList<EventWriteDto> dtos, CancellationToken cancellationToken) => await IsAdmin() ? await Service.RemoveAsync(dtos, cancellationToken) : throw ElevatedAccessRequired;
+    public async Task<EntityResult> RemoveAsync(Guid id, CancellationToken cancellationToken) => await IsAdmin() ? await Service.RemoveAsync(id, cancellationToken) : throw ElevatedAccessRequired;
+    public async Task<EntityResult> RemoveByDescriptorAsync(EventDescriptorDto descriptor, CancellationToken cancellationToken) => await IsAdmin() ? await Service.RemoveByDescriptorAsync(descriptor, cancellationToken) : throw ElevatedAccessRequired;
+    public async Task<bool> RemoveEventAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken) => await IsAdmin() ? await Service.RemoveEventAsync(procedureId, eventId, cancellationToken) : throw ElevatedAccessRequired;
     public async Task RepairChainAsync(Guid procedureId, CancellationToken cancellationToken)
     {
         bool res = await IsAdmin();
@@ -76,10 +76,10 @@ internal class AccessControlledEventsService(
         }
         else
         {
-            throw AdminRoleRequired;
+            throw ElevatedAccessRequired;
         }
     }
-    public async Task<int> UncommitAllByProcedureAsync(Guid procedureId, CancellationToken cancellationToken) => await IsAdmin() ? await Service.UncommitAllByProcedureAsync(procedureId, cancellationToken) : throw AdminRoleRequired;
+    public async Task<int> UncommitAllByProcedureAsync(Guid procedureId, CancellationToken cancellationToken) => await IsAdmin() ? await Service.UncommitAllByProcedureAsync(procedureId, cancellationToken) : throw ElevatedAccessRequired;
     public async Task UncommitAsync(Guid eventId, CancellationToken cancellationToken)
     {
         bool res = await CanWriteEvent(eventId);
@@ -93,9 +93,9 @@ internal class AccessControlledEventsService(
             throw WriteRoleRequired;
         }
     }
-    public async Task<EventReadDto?> UpdateAsync(Guid Id, string Title, string Description, CancellationToken cancellationToken) => await IsAdmin() ? await Service.UpdateAsync(Id, Title, Description, cancellationToken) : throw AdminRoleRequired;
-    public async Task<EntityResult<EventReadDto>> UpdateAsync(EventWriteDto dto, CancellationToken cancellationToken) => await IsAdmin() ? await Service.UpdateAsync(dto, cancellationToken) : throw AdminRoleRequired;
-    public async Task<EntityResult<IReadOnlyList<EventReadDto>>> UpdateAsync(IReadOnlyList<EventWriteDto> dtos, CancellationToken cancellationToken) => await IsAdmin() ? await Service.UpdateAsync(dtos, cancellationToken) : throw AdminRoleRequired;
+    public async Task<EventReadDto?> UpdateAsync(Guid Id, string Title, string Description, CancellationToken cancellationToken) => await IsAdmin() ? await Service.UpdateAsync(Id, Title, Description, cancellationToken) : throw ElevatedAccessRequired;
+    public async Task<EntityResult<EventReadDto>> UpdateAsync(EventWriteDto dto, CancellationToken cancellationToken) => await IsAdmin() ? await Service.UpdateAsync(dto, cancellationToken) : throw ElevatedAccessRequired;
+    public async Task<EntityResult<IReadOnlyList<EventReadDto>>> UpdateAsync(IReadOnlyList<EventWriteDto> dtos, CancellationToken cancellationToken) => await IsAdmin() ? await Service.UpdateAsync(dtos, cancellationToken) : throw ElevatedAccessRequired;
     public async Task UpdateChainAsync(Guid procedureId, IEnumerable<EventsChainChangeReadDto> chainChangeDtos, CancellationToken cancellationToken)
     {
         bool res = await IsAdmin();
@@ -105,7 +105,7 @@ internal class AccessControlledEventsService(
         }
         else
         {
-            throw AdminRoleRequired;
+            throw ElevatedAccessRequired;
         }
     }
 

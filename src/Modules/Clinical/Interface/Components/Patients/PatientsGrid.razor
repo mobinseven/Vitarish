@@ -1,0 +1,74 @@
+@inherits ProjectsGrid
+
+@if(IsOwner)
+{
+    <Stack>
+        <StackButton Color="Color.Primary"
+                     OnClick="AddProject"
+                     EndIcon="fa-regular fa-folder-plus"
+                     Label="@Localizer["AddItem", Localizer["Project"]]" />
+        <StackButton Color="Color.Primary"
+                     OnClick="@(() => MassEditMode = !MassEditMode)"
+                     EndIcon="@(MassEditMode ? "fa-regular fa-check" : "fa-regular fa-edit")"
+                     Label="@(MassEditMode ? Localizer["EndItem", Localizer["MassEditMode"]] : Localizer["MassEditMode"])" />
+    </Stack>
+
+    @if(MassEditMode)
+    {
+        <Stack>
+            <StackField AdornmentIcon="fa-regular fa-warning" AdornmentColor="Color.Warning" Label="@Localizer["Warning"]" HelperText="@Localizer["MayBeSlowWarning"]" Color="Color.Warning" />
+        </Stack>
+        @foreach(var project in projects)
+        {
+            <PatientEditForm @key="project.Id" Project="project" OnUpdate="ReloadRequired" />
+        }
+        return;
+    }
+
+}
+
+@if(projects is null)
+{
+    return;
+}
+
+@if(!string.IsNullOrWhiteSpace(SearchString) && projects.Count == 0)
+{
+    <Stack>
+        <StackField Label="@Localizer["NoSearchItems", SearchString]" />
+    </Stack>
+}
+
+@if(projectsViaSurgeryData?.Count > 0)
+{
+    <Stack>
+        <StackSort Methods="SortMethodsViaSurgeryData" />
+
+        @foreach(var project in projectsViaSurgeryData)
+        {
+            <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
+                         Label="@project.Name"
+                         HighlightString="@SearchString"
+                         EndIcon="">
+                <StatsDisplay Stats="project.Stats" />
+            </StackButton>
+        }
+    </Stack>
+}
+
+@if(projectsLackSurgeryData?.Count > 0)
+{
+    <Stack>
+        <StackField Label="@Localizer["NoItems", Localizer["DateOf", Localizer["Surgery"]]]" />
+        <StackSort Methods="SortMethodsLackSurgeryData" />
+        @foreach(var project in projectsLackSurgeryData)
+        {
+            <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
+                         Label="@project.Name"
+                         HighlightString="@SearchString"
+                         EndIcon="">
+                <StatsDisplay Stats="project.Stats" />
+            </StackButton>
+        }
+    </Stack>
+}

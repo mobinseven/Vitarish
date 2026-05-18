@@ -1,0 +1,12 @@
+@attribute [Route(AppRoutes.Clinic.Patients)]
+
+@using Vitarish.Clinical.Interface.Components.CheckIn
+
+<CascadingValue Value="IsOwner">
+    <PatientsGrid OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(id)))"
+                  OnAdd="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientNew))" />
+</CascadingValue>
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}

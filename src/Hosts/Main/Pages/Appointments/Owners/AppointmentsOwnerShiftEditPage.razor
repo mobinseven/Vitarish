@@ -5,7 +5,7 @@
     return;
 }
 
-<CascadingValue Value="IsAdmin">
+<CascadingValue Value="IsOwner">
     <ShiftForm Shift="@shift"
                  OnSaved="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(id)))"
                  OnCancelled="Back" />

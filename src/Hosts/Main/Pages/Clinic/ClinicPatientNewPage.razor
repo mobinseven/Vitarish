@@ -1,0 +1,6 @@
+@attribute [Route(AppRoutes.Clinic.PatientNew)]
+
+<CascadingValue Value="IsOwner">
+    <PatientEditForm OnCreate="@(patientId => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(patientId)))"
+                     OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.Patients))" />
+</CascadingValue>
