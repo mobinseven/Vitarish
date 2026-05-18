@@ -8,7 +8,7 @@ public static partial class AppRoutes
     {
         public const string Global = "/search";
         public const string ScopedTemplate = "/search/{scope}";
-        public const string AdminRoute = "/admin/search";
+        public const string PlatformAdminRoute = "/platformadmin/search";
 
         /// <summary>Generates <c>/search</c> or <c>/search?q={query}</c>.</summary>
         public static string GlobalSearch(string? query = null) =>
@@ -28,7 +28,7 @@ public static partial class AppRoutes
         /// <summary>Generates <c>/admin/search</c> or <c>/admin/search?q={query}</c>.</summary>
         public static string AdminSearch(string? query = null) =>
             string.IsNullOrWhiteSpace(query)
-                ? AdminRoute
-                : QueryHelpers.AddQueryString(AdminRoute, QueryKeys.Q, query);
+                ? PlatformAdminRoute
+                : QueryHelpers.AddQueryString(PlatformAdminRoute, QueryKeys.Q, query);
     }
 }

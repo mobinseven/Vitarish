@@ -1,0 +1,42 @@
+@attribute [Route(AppRoutes.Appointments.OwnerReservationTemplate)]
+
+@if (reservation is null)
+{
+    return;
+}
+
+<CascadingValue Value="IsAdmin">
+    <ReservationDetail Reservation="@reservation"
+                            OnDeleted="Back"
+                            OnStatusChanged="ReloadRequired" />
+</CascadingValue>
+
+@code {
+    [Parameter] public Guid? reservationId { get; set; }
+
+    private ReservationReadDto? reservation;
+
+    private void Back() => NavigationManager.NavigateTo(AppRoutes.Appointments.OwnerReservations);
+
+    protected override async Task ReloadRequired()
+    {
+        if (reservationId is null)
+        {
+            Back();
+            return;
+        }
+
+        var id = reservationId.Value;
+
+        reservation = await ReservationManager.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (reservation is null)
+        {
+            Back();
+            return;
+        }
+
+        NavService.OverridePageTitle(id.ToString(), reservation.Date.ToString("f") ?? id.ToString());
+        await InvokeAsync(StateHasChanged);
+    }
+}

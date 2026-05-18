@@ -4,17 +4,17 @@ public static partial class AppRoutes
 {
     public static class Commerce
     {
-        public const string Shop = "/commerce/shop";
-        public const string ShopOrders = "/commerce/shop/orders";
+        public const string Shop = "/user/commerce/shop";
+        public const string ShopOrders = "/user/commerce/shop/orders";
 
-        public const string OwnerDashboard = "/commerce/owner";
-        public const string OwnerOrders = "/commerce/owner/orders";
-        public const string OwnerProducts = "/commerce/owner/products";
-        public const string OwnerRecovery = "/commerce/owner/recovery";
-        public const string OwnerSettings = "/commerce/owner/settings";
+        public const string OwnerDashboard = "/owner/commerce";
+        public const string OwnerOrders = "/owner/commerce/orders";
+        public const string OwnerProducts = "/owner/commerce/products";
+        public const string OwnerRecovery = "/owner/commerce/recovery";
+        public const string OwnerSettings = "/owner/commerce/settings";
 
-        public const string AdminDashboard = "/commerce/admin";
-        public const string AdminProvision = "/commerce/admin/provision";
-        public const string AdminSync = "/commerce/admin/sync";
+        public const string AdminDashboard = "/platformadmin/commerce";
+        public const string AdminProvision = "/platformadmin/commerce/provision";
+        public const string AdminSync = "/platformadmin/commerce/sync";
     }
 }

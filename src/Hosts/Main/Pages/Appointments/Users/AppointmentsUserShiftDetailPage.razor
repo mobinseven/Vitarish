@@ -1,0 +1,38 @@
+@attribute [Route(AppRoutes.Appointments.UserShiftTemplate)]
+
+@if (shift is null)
+{
+    return;
+}
+
+<UserShiftDetail Shift="@shift" OnReserved="ReloadRequired" OnCancelled="ReloadRequired" />
+
+@code {
+    [Parameter] public Guid? shiftId { get; set; }
+
+    private ShiftReadDto? shift;
+
+    private void Back() => NavigationManager.NavigateTo(AppRoutes.Appointments.UserShifts);
+
+    protected override async Task ReloadRequired()
+    {
+        if (shiftId is null)
+        {
+            Back();
+            return;
+        }
+
+        var id = shiftId.Value;
+
+        shift = await ShiftManager.GetAsync(id, CancellationToken.None).GetValueOrDefaultAsync();
+
+        if (shift is null)
+        {
+            Back();
+            return;
+        }
+
+        NavService.OverridePageTitle(id.ToString(), Localizer["Shift"]);
+        await InvokeAsync(StateHasChanged);
+    }
+}

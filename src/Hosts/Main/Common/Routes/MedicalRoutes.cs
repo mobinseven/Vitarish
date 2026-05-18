@@ -4,7 +4,8 @@ public static partial class AppRoutes
 {
     public static class Medical
     {
-        public const string Dashboard = "/medical/admin";
+        public const string OwnerDashboard = "/owner/medical/";
+        public const string Dashboard = "/medical";
         public const string CheckIn = "/medical/check-in";
         public const string Patients = "/medical/patients";
         public const string PatientNew = "/medical/patients/new";

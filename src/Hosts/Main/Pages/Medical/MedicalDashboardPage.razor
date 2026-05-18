@@ -1,4 +1,4 @@
-@attribute [Route(AppRoutes.Medical.Dashboard)]
+@attribute [Route(AppRoutes.Medical.OwnerDashboard)]
 
 @if(!initialized)
 {
@@ -16,7 +16,7 @@
                      Color="Color.Primary" />
     </Stack>
     <TodayAppointmentsWidget OnShiftClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(id)))"
-                             OnShiftsClicked="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShifts))" />
+                             OnShiftsClicked="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.OwnerShifts))" />
 </CascadingValue>
 
 @code {

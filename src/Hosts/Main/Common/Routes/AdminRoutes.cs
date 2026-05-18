@@ -2,16 +2,16 @@ namespace Vitarish.Main.Common;
 
 public static partial class AppRoutes
 {
-    public static class Admin
+    public static class PlatformAdmin
     {
-        public const string Home = "/admin";
-        public const string Search = "/admin/search";
-        public const string Communications = "/admin/communications";
-        public const string Users = "/admin/users";
-        public const string UserTemplate = "/admin/users/{userId:guid}";
-        public const string Owners = "/admin/owners";
-        public const string OwnerTemplate = "/admin/owners/{ownerId:guid}";
-        public const string OwnerTenantTemplate = "/admin/owners/{ownerId:guid}/tenants/{tenantId:guid}";
+        public const string Home = "/platformadmin";
+        public const string Search = "/platformadmin/search";
+        public const string Communications = "/platformadmin/communications";
+        public const string Users = "/platformadmin/users";
+        public const string UserTemplate = "/platformadmin/users/{userId:guid}";
+        public const string Owners = "/platformadmin/owners";
+        public const string OwnerTemplate = "/platformadmin/owners/{ownerId:guid}";
+        public const string OwnerTenantTemplate = "/platformadmin/owners/{ownerId:guid}/tenants/{tenantId:guid}";
 
         // userId is a string (ASP.NET Identity), validated but not recast as Guid
         public static string User(string userId) => $"{Users}/{SlugValue(userId)}";

@@ -1,0 +1,9 @@
+@attribute [Route(AppRoutes.Appointments.UserShifts)]
+
+<CascadingValue Value="IsAdmin">
+    <ShiftsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.Shift(id)))" />
+</CascadingValue>
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}

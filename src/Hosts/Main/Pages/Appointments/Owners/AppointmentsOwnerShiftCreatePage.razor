@@ -1,0 +1,12 @@
+@attribute [Route(AppRoutes.Appointments.OwnerShiftCreate)]
+@attribute [Route(AppRoutes.Appointments.OwnerShiftCreateTemplate)]
+
+<CascadingValue Value="IsAdmin">
+    <ShiftForm OnSaved="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(id)))"
+                 OnCancelled="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.OwnerShifts))"
+                 DayOfWeek="@((DayOfWeek?)dayOfWeek)" />
+</CascadingValue>
+
+@code {
+    [Parameter] public int? dayOfWeek { get; set; }
+}

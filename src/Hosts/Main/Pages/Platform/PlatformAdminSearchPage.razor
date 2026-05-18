@@ -1,0 +1,68 @@
+@attribute [Route(AppRoutes.PlatformAdmin.Search)]
+@inherits PlatformAdminCommonBase
+@using Vitarish.Search.Interface.Components
+
+@using Vitarish.Search.Domain.Models
+
+<SearchIndexStatusPanel />
+
+<Stack>
+    <StackField Label="@Localizer["SearchWidgetTester"]" HelperText="@Localizer["SearchWidgetTesterHint"]" />
+    <StackSelect T="string" @bind-Value="_indexName">
+        <StackSelectItem Value="null as string">@Localizer["None"]</StackSelectItem>
+        @foreach(var indexProvider in IndexProviders)
+        {
+            <StackSelectItem Value="indexProvider.IndexName">@indexProvider.IndexName</StackSelectItem>
+        }
+    </StackSelect>
+    <StackTextField Label="@Localizer["Type"]" @bind-Value="_searchType" />
+    <StackNumericField Label="@Localizer["PageSize"]" @bind-Value="SearchLimit" Min="1" Max="@SearchOptions.MaxLimit" />
+</Stack>
+
+<SearchWidget IndexName="@IndexName" Type="@SearchType" Options="@_options" OnNavigate="NavigateFromSearch" />
+
+@code {
+    [Inject] protected IEnumerable<Search.Domain.Abstractions.ISearchIndexProvider> IndexProviders { get; set; } = [];
+
+    private string? _indexName;
+    private string? _searchType;
+    private int _searchLimit = SearchOptions.DefaultLimit;
+    private SearchOptions _options = CreateOptions(SearchOptions.DefaultLimit);
+
+    private int SearchLimit
+    {
+        get => _searchLimit;
+        set
+        {
+            _searchLimit = value;
+            int normalizedLimit = SearchOptions.NormalizeLimit(value);
+            if (_options.Limit != normalizedLimit)
+            {
+                _options = CreateOptions(normalizedLimit);
+            }
+        }
+    }
+
+    private string? IndexName => string.IsNullOrWhiteSpace(_indexName)
+        ? null
+        : _indexName.Trim();
+
+    private string? SearchType => string.IsNullOrWhiteSpace(_searchType)
+        ? null
+        : _searchType.Trim();
+
+    private static SearchOptions CreateOptions(int limit) => new()
+    {
+        Limit = limit
+    };
+
+    private Task NavigateFromSearch(SearchDocument item)
+    {
+        if (!string.IsNullOrWhiteSpace(item.NavigationUrl))
+        {
+            NavigationManager.NavigateTo(item.NavigationUrl);
+        }
+
+        return Task.CompletedTask;
+    }
+}

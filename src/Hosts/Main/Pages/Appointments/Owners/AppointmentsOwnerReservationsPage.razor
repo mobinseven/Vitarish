@@ -1,0 +1,9 @@
+@attribute [Route(AppRoutes.Appointments.OwnerReservations)]
+
+<CascadingValue Value="IsAdmin">
+    <ReservationsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminReservation(id)))" />
+</CascadingValue>
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}

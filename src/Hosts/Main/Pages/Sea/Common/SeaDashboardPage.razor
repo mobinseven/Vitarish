@@ -9,20 +9,16 @@
             @projectsCount
         }
     </StackButton>
-    <StackButton Href="@AppRoutes.Appointments.Reservations" Label="@Localizer["MyAppointments"]" EndIcon="fa-regular fa-calendar-days" />
+    <StackButton Href="@AppRoutes.Appointments.UserReservations" Label="@Localizer["MyAppointments"]" EndIcon="fa-regular fa-calendar-days" />
 </Stack>
-
-@if(IsAdmin)
-{
-    <Stack>
-        <StackField Label="@Localizer["Administration"]" />
-        <StackButton Href="@AppRoutes.Sea.TemplateProjects" Label="@Localizer["Templates"]" EndIcon="fa-regular fa-folder-gear" />
-        <StackButton Href="@AppRoutes.Appointments.AdminReservations" Label="@Localizer["AppointmentsAdmin"]" EndIcon="fa-regular fa-calendar-star" />
-    </Stack>
-}
 
 @if(IsOwner)
 {
+    <Stack>
+        <StackField Label="@Localizer["Administration"]" />
+        <StackButton Href="@AppRoutes.Sea.OwnerTemplateProjects" Label="@Localizer["Templates"]" EndIcon="fa-regular fa-folder-gear" />
+        <StackButton Href="@AppRoutes.Appointments.OwnerReservations" Label="@Localizer["AppointmentsAdmin"]" EndIcon="fa-regular fa-calendar-star" />
+    </Stack>
     <Stack>
         <StackField Label="@Localizer["Ownership"]" />
         <StackButton Href="@AppRoutes.Sea.OwnerSettingsUsers" Label="@Localizer["Users"]" EndIcon="fa-regular fa-users" />

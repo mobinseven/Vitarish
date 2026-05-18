@@ -1,0 +1,12 @@
+@attribute [Route(AppRoutes.PlatformAdmin.Owners)]
+
+@inherits PlatformAdminCommonBase
+
+<Stack>
+    <StackField Label="@Localizer["Owners"]" />
+    @foreach(var owner in Owners)
+    {
+        <StackButton Label="@owner.Name" Href="@AppRoutes.PlatformAdmin.Owner(owner.Id)" />
+    }
+    <StackButton OnClick="Add" Color="Color.Primary" Label="@(Localizer["AddItem", Localizer["Owner"]])" EndIcon="fa-regular fa-plus" />
+</Stack>

@@ -13,7 +13,7 @@ public class AppRoutesTests
     public void AdminShiftCreateForDay_WithoutDayOfWeek_UsesBaseRoute()
     {
         AppRoutes.Appointments.AdminShiftCreateForDay()
-            .Should().Be(AppRoutes.Appointments.AdminShiftCreate);
+            .Should().Be(AppRoutes.Appointments.OwnerShiftCreate);
     }
 
     [Fact]
@@ -122,7 +122,7 @@ public class AppRoutesTests
     {
         Guid ownerId = Guid.Parse("11111111-1111-1111-1111-111111111111");
         Guid tenantId = Guid.Parse("22222222-2222-2222-2222-222222222222");
-        AppRoutes.Admin.OwnerTenant(ownerId, tenantId)
+        AppRoutes.PlatformAdmin.OwnerTenant(ownerId, tenantId)
             .Should().Be($"/admin/owners/{ownerId:D}/tenants/{tenantId:D}");
     }
 
@@ -154,19 +154,19 @@ public class AppRoutesTests
     [InlineData(AppRoutes.Account.Logout)]
     [InlineData(AppRoutes.Account.Unauthorized)]
     [InlineData(AppRoutes.Account.Settings)]
-    [InlineData(AppRoutes.Admin.Home)]
-    [InlineData(AppRoutes.Appointments.Shifts)]
-    [InlineData(AppRoutes.Appointments.Reservations)]
-    [InlineData(AppRoutes.Appointments.AdminShifts)]
-    [InlineData(AppRoutes.Appointments.AdminReservations)]
+    [InlineData(AppRoutes.PlatformAdmin.Home)]
+    [InlineData(AppRoutes.Appointments.UserShifts)]
+    [InlineData(AppRoutes.Appointments.UserReservations)]
+    [InlineData(AppRoutes.Appointments.OwnerShifts)]
+    [InlineData(AppRoutes.Appointments.OwnerReservations)]
     [InlineData(AppRoutes.Commerce.Shop)]
     [InlineData(AppRoutes.Commerce.OwnerDashboard)]
     [InlineData(AppRoutes.Commerce.AdminDashboard)]
-    [InlineData(AppRoutes.Medical.Dashboard)]
+    [InlineData(AppRoutes.Medical.OwnerDashboard)]
     [InlineData(AppRoutes.Medical.Patients)]
     [InlineData(AppRoutes.Sea.Dashboard)]
     [InlineData(AppRoutes.Sea.Projects)]
-    [InlineData(AppRoutes.Sea.TemplateProjects)]
+    [InlineData(AppRoutes.Sea.OwnerTemplateProjects)]
     public void RouteConstant_IsLowercaseKebabCase(string route)
     {
         // Route templates may contain {param:constraint} segments – strip those before checking

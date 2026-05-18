@@ -18,9 +18,9 @@ public partial class Home
         new(StringComparer.OrdinalIgnoreCase)
         {
             ["Sea"]          = AppRoutes.Sea.Dashboard,
-            ["Medical"]      = AppRoutes.Medical.Dashboard,
+            ["Medical"]      = AppRoutes.Medical.OwnerDashboard,
             ["Commerce"]     = AppRoutes.Commerce.OwnerDashboard,
-            ["Appointments"] = AppRoutes.Appointments.AdminShifts,
+            ["Appointments"] = AppRoutes.Appointments.OwnerShifts,
         };
 
     private IReadOnlyList<(string Name, string Route)> activeDashboards = [];
