@@ -21,6 +21,7 @@
     <Project Path="src/Identity/Parties/Domain/Parties.Domain.csproj" />
     <Project Path="src/Identity/Parties/Hosting/Parties.Hosting.csproj" />
     <Project Path="src/Identity/Parties/Infrastructure/Parties.Infrastructure.csproj" />
+    <Project Path="src/Identity/Parties/Interface/Parties.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Identity/Requests/">
     <Project Path="src/Identity/Requests/Application/Requests.Application.csproj" />

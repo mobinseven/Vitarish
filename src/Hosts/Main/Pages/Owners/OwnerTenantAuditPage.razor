@@ -1,0 +1,10 @@
+@attribute [Route(AppRoutes.Owners.TenantAuditTemplate)]
+
+<OwnerTenantContextHeader DashboardHref="@AppRoutes.Owners.Dashboard"
+                          TenantsHref="@AppRoutes.Owners.Tenants" />
+
+<OwnerAuditLogCard />
+
+@code {
+    [Parameter] public Guid? TenantId { get; set; }
+}

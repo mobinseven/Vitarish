@@ -1,0 +1,10 @@
+@attribute [Route(AppRoutes.Owners.TenantInviteTemplate)]
+
+<OwnerTenantContextHeader DashboardHref="@AppRoutes.Owners.Dashboard"
+                          TenantsHref="@AppRoutes.Owners.Tenants" />
+
+<OwnerInviteUserPlaceholder />
+
+@code {
+    [Parameter] public Guid? TenantId { get; set; }
+}

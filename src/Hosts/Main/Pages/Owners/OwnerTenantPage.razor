@@ -1,0 +1,14 @@
+@attribute [Route(AppRoutes.Owners.TenantTemplate)]
+
+@if (tenant is not null)
+{
+    <OwnerTenantContextHeader DashboardHref="@AppRoutes.Owners.Dashboard"
+                              TenantsHref="@AppRoutes.Owners.Tenants" />
+
+    <OwnerTenantOverviewPanel Tenant="tenant"
+                              SettingsHref="@AppRoutes.Owners.TenantSettings(tenant.Id)"
+                              MembersHref="@AppRoutes.Owners.TenantMembers(tenant.Id)"
+                              BillingHref="@AppRoutes.Owners.TenantBilling(tenant.Id)"
+                              AuditHref="@AppRoutes.Owners.TenantAudit(tenant.Id)"
+                              DangerHref="@AppRoutes.Owners.TenantDanger(tenant.Id)" />
+}

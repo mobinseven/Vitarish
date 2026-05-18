@@ -1,0 +1,10 @@
+@attribute [Route(AppRoutes.Owners.TenantBillingTemplate)]
+
+<OwnerTenantContextHeader DashboardHref="@AppRoutes.Owners.Dashboard"
+                          TenantsHref="@AppRoutes.Owners.Tenants" />
+
+<OwnerBillingCard />
+
+@code {
+    [Parameter] public Guid? TenantId { get; set; }
+}

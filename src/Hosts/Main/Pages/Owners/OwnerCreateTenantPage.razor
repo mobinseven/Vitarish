@@ -1,0 +1,6 @@
+@attribute [Route(AppRoutes.Owners.CreateTenant)]
+
+<OwnerTenantContextHeader DashboardHref="@AppRoutes.Owners.Dashboard"
+                          TenantsHref="@AppRoutes.Owners.Tenants" />
+
+<OwnerCreateTenantForm OnTenantCreated="OnTenantCreated" />
