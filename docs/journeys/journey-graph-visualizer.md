@@ -127,7 +127,7 @@ flowchart LR
     PatientCrud -->|book for linked user| PatientAppointments
     PatientCheckIn -->|select or create profile| PatientCrud
     PatientCheckIn -->|current or future booking| PatientAppointments
-    PatientCheckIn -->|confirmation handoff| PatientOverview
+    PatientCheckIn -. confirmation handoff .-> PatientOverview
     PatientOverview --> PatientCrud
     PatientOverview --> PatientAppointments
     PatientOverview --> PatientProcedures
