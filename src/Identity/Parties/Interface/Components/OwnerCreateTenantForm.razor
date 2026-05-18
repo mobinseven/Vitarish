@@ -1,0 +1,75 @@
+<Stack>
+    <StackField Label="@Localizer["CreateTenant"]" />
+    <StackTextField @bind-Value="tenantName" Label="@Localizer["TenantName"]" Required />
+    <StackTextField @bind-Value="appId" Label="@Localizer["AppId"]" Required />
+    <StackField>
+        <MudSelect @bind-Value="indicatorMethod" Label="@Localizer["Method"]">
+            <MudSelectItem Value="@IndicatorMethod.Hostname">Hostname</MudSelectItem>
+            <MudSelectItem Value="@IndicatorMethod.Subdomain">Subdomain</MudSelectItem>
+        </MudSelect>
+    </StackField>
+    <StackTextField @bind-Value="indicatorValue" Label="@Localizer["Address"]" Required />
+    @ChildContent
+    <StackButton Label="@Localizer["Create"]" OnClick="Create" Color="Color.Primary"
+                 EndIcon="fa-regular fa-plus" Disabled="creating" />
+</Stack>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public EventCallback<TenantReadDto> OnTenantCreated { get; set; }
+
+    private string tenantName = string.Empty;
+    private string appId = string.Empty;
+    private IndicatorMethod indicatorMethod = IndicatorMethod.Subdomain;
+    private string indicatorValue = string.Empty;
+    private bool creating;
+
+    private async Task Create()
+    {
+        if (string.IsNullOrWhiteSpace(tenantName) || string.IsNullOrWhiteSpace(appId) || string.IsNullOrWhiteSpace(indicatorValue))
+        {
+            Snackbar.Add(Localizer["RequiredFields"], Severity.Warning);
+            return;
+        }
+
+        if (RequestContext.OwnerId is null || !Guid.TryParse(RequestContext.OwnerId, out Guid ownerGuid))
+        {
+            Snackbar.Add(Localizer["Error"], Severity.Error);
+            return;
+        }
+
+        creating = true;
+        try
+        {
+            TenantReadDto? tenant = await PartiesService.CreateTenantAsync(new TenantWriteDto
+            {
+                Id = Guid.NewGuid(),
+                OwnerId = ownerGuid,
+                Name = tenantName,
+                AppId = appId
+            });
+
+            if (tenant is null)
+            {
+                Snackbar.Add(Localizer["Error"], Severity.Error);
+                return;
+            }
+
+            await PartiesService.CreateTenantIndicatorAsync(new TenantIndicatorWriteDto
+            {
+                Id = Guid.NewGuid(),
+                TenantId = tenant.Id,
+                Method = indicatorMethod,
+                Value = indicatorValue,
+                Status = IndicatorStatus.Active,
+                IsPrimary = true
+            });
+
+            await OnTenantCreated.InvokeAsync(tenant);
+        }
+        finally
+        {
+            creating = false;
+        }
+    }
+}

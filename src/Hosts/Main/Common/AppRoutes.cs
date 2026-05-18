@@ -16,6 +16,7 @@ namespace Vitarish.Main.Common;
 public static partial class AppRoutes
 {
     public const string Home = "/";
+    /// <summary>Legacy /owner entry point — redirected to <see cref="Owners.Dashboard"/> by OwnerDashboardPage.</summary>
     public const string Owner = "/owner";
     public const string User = "/user";
 

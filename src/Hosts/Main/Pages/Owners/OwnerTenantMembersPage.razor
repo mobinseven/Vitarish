@@ -1,0 +1,19 @@
+@attribute [Route(AppRoutes.Owners.TenantMembersTemplate)]
+
+<OwnerTenantContextHeader DashboardHref="@AppRoutes.Owners.Dashboard"
+                          TenantsHref="@AppRoutes.Owners.Tenants" />
+
+<OwnerMembersPlaceholder />
+
+@if (TenantId.HasValue)
+{
+    <Stack>
+        <StackButton Label="@Localizer["InviteUser"]"
+                     Href="@AppRoutes.Owners.TenantInvite(TenantId.Value)"
+                     EndIcon="fa-regular fa-user-plus" />
+    </Stack>
+}
+
+@code {
+    [Parameter] public Guid? TenantId { get; set; }
+}

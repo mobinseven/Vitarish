@@ -1,0 +1,23 @@
+@if (owner is not null)
+{
+    <Stack>
+        <StackField Label="@owner.Name" />
+        <StackButton Size="Size.Small" Label="@Localizer["Dashboard"]" Href="@DashboardHref" StartIcon="fa-regular fa-grid" />
+        <StackButton Size="Size.Small" Label="@Localizer["MyTenants"]" Href="@TenantsHref" StartIcon="fa-regular fa-building" />
+    </Stack>
+}
+
+@code {
+    [Parameter] public string DashboardHref { get; set; } = string.Empty;
+    [Parameter] public string TenantsHref { get; set; } = string.Empty;
+
+    private OwnerReadDto? owner;
+
+    protected override async Task ReloadRequired()
+    {
+        if (RequestContext.OwnerId is null || !Guid.TryParse(RequestContext.OwnerId, out Guid ownerGuid))
+            return;
+
+        owner = await PartiesService.GetOwnerAsync(ownerGuid);
+    }
+}

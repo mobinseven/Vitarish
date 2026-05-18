@@ -1,0 +1,60 @@
+<Stack>
+    <StackField Label="@Localizer["TenantOverview"]" />
+    <StackField Label="@Localizer["Name"]">
+        <MudText>@Tenant.Name</MudText>
+    </StackField>
+    <StackField Label="@Localizer["App"]">
+        <MudText Typo="Typo.caption" Color="Color.Secondary">@Tenant.AppId</MudText>
+    </StackField>
+    @if (!string.IsNullOrWhiteSpace(Tenant.Description))
+    {
+        <StackField Label="@Localizer["Description"]">
+            <MudText>@Tenant.Description</MudText>
+        </StackField>
+    }
+    @if (modules.Count > 0)
+    {
+        <StackField Label="@Localizer["ActiveModules"]">
+            @foreach (var m in modules)
+            {
+                <Chip Label="@m" />
+            }
+        </StackField>
+    }
+    @if (!string.IsNullOrWhiteSpace(SettingsHref))
+    {
+        <StackButton Label="@Localizer["Settings"]" Href="@SettingsHref" StartIcon="fa-regular fa-cog" />
+    }
+    @if (!string.IsNullOrWhiteSpace(MembersHref))
+    {
+        <StackButton Label="@Localizer["MembersAndRoles"]" Href="@MembersHref" StartIcon="fa-regular fa-users" />
+    }
+    @if (!string.IsNullOrWhiteSpace(BillingHref))
+    {
+        <StackButton Label="@Localizer["Billing"]" Href="@BillingHref" StartIcon="fa-regular fa-credit-card" />
+    }
+    @if (!string.IsNullOrWhiteSpace(AuditHref))
+    {
+        <StackButton Label="@Localizer["AuditLog"]" Href="@AuditHref" StartIcon="fa-regular fa-history" />
+    }
+    @if (!string.IsNullOrWhiteSpace(DangerHref))
+    {
+        <StackButton Label="@Localizer["DangerZone"]" Href="@DangerHref" Color="Color.Error" StartIcon="fa-regular fa-triangle-exclamation" />
+    }
+</Stack>
+
+@code {
+    [Parameter, EditorRequired] public TenantReadDto Tenant { get; set; } = default!;
+    [Parameter] public string? SettingsHref { get; set; }
+    [Parameter] public string? MembersHref { get; set; }
+    [Parameter] public string? BillingHref { get; set; }
+    [Parameter] public string? AuditHref { get; set; }
+    [Parameter] public string? DangerHref { get; set; }
+
+    private IReadOnlyList<string> modules = [];
+
+    protected override void OnParametersSet()
+    {
+        modules = TenantMetadata.GetActiveModules(Tenant?.Metadata);
+    }
+}
