@@ -1,0 +1,7 @@
+@attribute [Route(AppRoutes.Clinic.UserShifts)]
+
+<ShiftsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.UserShift(id)))" />
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}

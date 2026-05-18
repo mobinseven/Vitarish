@@ -1,0 +1,11 @@
+@attribute [Route(AppRoutes.Clinic.OwnerReservationTemplate)]
+@inherits ClinicOwnerReservationPageBase
+
+@if (Reservation is null)
+{
+    return;
+}
+
+<ReservationDetail Reservation="@Reservation"
+                   OnDeleted="Back"
+                   OnStatusChanged="ReloadRequired" />

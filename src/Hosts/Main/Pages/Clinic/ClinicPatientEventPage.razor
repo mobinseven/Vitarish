@@ -1,4 +1,5 @@
 @attribute [Route(AppRoutes.Clinic.PatientEventTemplate)]
+@attribute [Authorize(Policy = IdentityDefinitions.TenantOwner)]
 @inherits ClinicPatientProcedurePageBase
 @inject IAccessControlledEventsService EventService
 

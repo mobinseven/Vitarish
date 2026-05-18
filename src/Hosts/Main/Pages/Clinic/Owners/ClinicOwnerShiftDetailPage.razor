@@ -1,0 +1,13 @@
+@attribute [Route(AppRoutes.Clinic.OwnerShiftTemplate)]
+@inherits ClinicOwnerShiftPageBase
+
+@if (Shift is null)
+{
+    return;
+}
+
+<ShiftDetail Shift="@Shift"
+             OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerShiftEdit(ShiftId)))"
+             OnDeleted="Back"
+             OnStatusChanged="ReloadRequired"
+             OnShiftOccurrenceSelected="@(_ => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerShiftOccurrence(ShiftId)))" />

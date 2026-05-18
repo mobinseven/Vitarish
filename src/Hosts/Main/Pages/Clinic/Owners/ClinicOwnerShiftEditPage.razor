@@ -1,0 +1,11 @@
+@attribute [Route(AppRoutes.Clinic.OwnerShiftEditTemplate)]
+@inherits ClinicOwnerShiftPageBase
+
+@if (Shift is null)
+{
+    return;
+}
+
+<ShiftForm Shift="@Shift"
+           OnSaved="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerShift(id)))"
+           OnCancelled="Back" />
