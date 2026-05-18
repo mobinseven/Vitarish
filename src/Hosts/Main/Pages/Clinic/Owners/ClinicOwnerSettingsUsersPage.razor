@@ -1,0 +1,7 @@
+@attribute [Route(AppRoutes.Clinic.OwnerSettingsUsers)]
+
+<UsersGrid />
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}

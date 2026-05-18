@@ -1,44 +1,12 @@
 @attribute [Route(AppRoutes.Clinic.PatientEditTemplate)]
+@inherits ClinicPatientPageBase
 
-@if(initialized)
+@if(Patient is null)
 {
-    <PatientEditForm Project="patient"
-                     OnUpdate="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(id)))"
-                     OnCreate="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(id)))"
-                     OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(_id)))" />
+    return;
 }
 
-@code {
-    [Parameter] public Guid? patientId { get; set; }
-
-    private ProjectReadDto? patient;
-    private Guid _id;
-    private bool initialized;
-
-    private void Back()
-    {
-        NavigationManager.NavigateTo(AppRoutes.Clinic.Patients);
-    }
-
-    protected override async Task ReloadRequired()
-    {
-        if (patientId is null)
-        {
-            Back();
-            return;
-        }
-
-        var id = patientId.Value;
-
-        _id = id;
-        patient = await ProjectsService.GetAsync(_id, CancellationToken.None).GetValueOrDefaultAsync();
-
-        if (patient is null)
-        {
-            Back();
-            return;
-        }
-
-        initialized = true;
-    }
-}
+<PatientEditForm Project="Patient"
+                 OnUpdate="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(id)))"
+                 OnCreate="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(id)))"
+                 OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(PatientId)))" />
