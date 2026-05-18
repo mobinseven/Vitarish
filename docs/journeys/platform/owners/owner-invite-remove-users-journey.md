@@ -19,11 +19,11 @@
 
 | Area | Current behavior | Invite/remove implication |
 | --- | --- | --- |
-| Tenant roles | Internal roles are `TenantOwner`, `TenantAdmin`, and `TenantUser`. | Invite flow should choose user-facing Owner/Admin/Member labels and map server-side. |
-| Onboarding assignment | Setup assigns creator to all tenant roles. | Invite/remove must handle additional users after setup, not initial bootstrap. |
-| Member source | A future member/access query is needed. | Removal should start from a reliable members list. |
-| Audit | Dashboard calls out audit for sensitive actions. | Invites, removals, and role changes should write audit events. |
-| Billing/action inbox | Future features may generate access-related tasks. | Invitation failures or pending invites may eventually appear in the action inbox. |
+| Invite route | Invite is implemented as a routable placeholder at `/owner/tenants/{tenantId:guid}/members/invite`. | The journey has a stable host route for future invite work. |
+| Invite component | `OwnerInviteUserPlaceholder` renders **Invite User** with coming-soon copy. | No invite form, email validation, delivery, resend, revoke, or acceptance flow exists yet. |
+| Members entry point | The members page links to invite only when a `TenantId` route parameter is present. | Invite remains tenant-scoped and should keep the tenant id in route context. |
+| Remove users | No remove-user UI or command exists in the owner surface. | Removal remains future work and should be added to members/roles or a dedicated confirmation flow before this journey becomes functional. |
+| Audit and access rules | There is no connected audit trail or member read model for invite/remove in this surface. | Future implementation must add permissions, last-owner protection, and audit-ready state changes before enabling mutations. |
 
 ## 3. Persona Snapshot
 

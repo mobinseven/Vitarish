@@ -3,9 +3,9 @@
 ## 1. Context
 
 - Product / service: Vitarish platform owner experience
-- Journey type: Future-state owned/accessed tenant directory journey
+- Journey type: Current-state owner-scoped tenant directory with future search/filter enhancements
 - Entry point: Owner dashboard tenant list card, tenant switcher, or global owner navigation
-- Scenario: An owner needs to see all tenants they own or can administer, compare basic identity, and open the right tenant overview.
+- Scenario: An owner needs to see the tenants currently associated with their owner id and open the right tenant overview.
 - User goal: Find and open a tenant without relying on memory or browser bookmarks.
 - Business goal: Make multi-tenant ownership self-service and reduce wrong-workspace support requests.
 - Scope start: Authenticated user opens the global tenant list from the owner dashboard.
@@ -13,17 +13,18 @@
 - Primary persona: Organization owner
 - Secondary personas: Tenant admin, platform support/admin
 - Evidence sources: Owner dashboard journey map and current owner/tenant service capabilities
-- Confidence level: Medium for list need; low for exact filters because the owner-facing list is not implemented.
+- Confidence level: Medium-high for the basic list route; low-to-medium for future filters, role labels, and delegated-access behavior.
 
 ## 2. Current Implementation Snapshot
 
 | Area | Current behavior | Tenant-list implication |
 | --- | --- | --- |
-| Tenant listing by owner | Services expose tenant listing by owner for admin/owner data. | A future owner list should wrap this behind owner-scoped authorization and not expose platform-admin pages directly. |
-| Tenant DTO | Tenant records include name, app id, logo, description, owner id, metadata, and status-like entity fields. | The list can show tenant identity and active modules without fake metrics. |
-| Admin owner pages | Platform admin pages can list tenants for an owner. | Owner-facing list needs safer copy, scoped permissions, and fewer platform/internal details. |
-| Active modules | Active modules are stored in tenant metadata. | Tenant rows can show module badges derived from existing metadata. |
-| Route ownership | Host app owns routable pages and `AppRoutes`. | The tenant list should become a host platform page when implemented. |
+| Route and host page | The global owner tenant list is implemented at `/owner/tenants` through `OwnerTenantsPage`. | This journey now documents an initial shipped directory, not only a future list. |
+| Query source | The page parses the current owner id from request context and calls `GetTenantsByOwnerAsync`. | The list is owner-scoped to the current owner claim; broader delegated/admin access remains future work. |
+| List component | `OwnerTenantList` renders a simple empty state or one button per tenant, using a host-provided `TenantHref` builder. | The current list is intentionally simple: no search, filters, role labels, counts, or health metrics yet. |
+| Tenant cards | Dashboard shows the first three tenants with `OwnerTenantCard` and links to the full list when more tenants exist. | The dashboard and full list share tenant identity as the entry point to tenant overview. |
+| Create path | The list always offers **Create Workspace** linking to `/owner/tenants/create`. | Empty-state and expansion journeys should route to the current simple create-tenant form. |
+| Component boundary | Host pages own routes; Parties.Interface components render reusable owner UI. | Future search/filter behavior should extend the list component without moving route ownership into the component. |
 
 ## 3. Persona Snapshot
 
@@ -33,21 +34,21 @@
 
 **Motivation:** Know what tenants exist, which are usable, and where to go next.
 
-**Key needs:** Accurate list, search, role/status clarity, module badges, and safe open actions.
+**Key needs:** Accurate owner-scoped list, clear empty state, create-workspace entry, and safe open actions; search, role/status clarity, and module badges are future enhancements.
 
 **Constraints:** The user should not see platform-admin internals or tenants they no longer have access to.
 
-**Success means:** The user can locate a tenant, understand their access level, and open its overview or switch into it.
+**Success means:** The user can locate a tenant by name, open its overview, or start creating a new workspace.
 
 ## 4. Journey Summary
 
-**Narrative:** The owner opens a global tenant list from the dashboard. The page loads a read-only directory of tenants the user owns or can access. The owner searches by tenant name or app id, scans role and module badges, and opens the selected tenant overview. Create-tenant is visible only if permitted and routes to the dedicated create-tenant journey.
+**Narrative:** The owner opens `/owner/tenants` from the dashboard. The page loads tenants for the current owner id and renders a simple read-only list of tenant buttons. The owner selects a tenant to open its overview or uses **Create Workspace** to start the create-tenant flow. Search, filters, role labels, active markers, module badges, and delegated-access behavior are future enhancements.
 
 **Emotional arc:** Scattered -> organized -> confident
 
-**Biggest current friction point:** Current tenant visibility is fragmented between context resolution and admin pages, with no owner-facing directory.
+**Biggest current friction point:** The current directory is intentionally minimal and owner-claim based; it does not yet solve delegated tenant access or rich portfolio filtering.
 
-**Highest-value opportunity:** Provide a simple, read-only list that becomes the safe launch point for tenant overview, switching, and creation.
+**Highest-value opportunity:** Preserve the simple owner-scoped list as the safe launch point and add search/filter badges only when backed by a read model.
 
 ## 5. Journey Stages
 
@@ -55,15 +56,15 @@
 
 **User goal:** See every tenant they can manage or access.
 
-**User actions:** Opens tenant list; scans total accessible tenants if a reliable count is available.
+**User actions:** Opens tenant list and scans tenant-name buttons.
 
 **Touchpoints / channels:** Owner tenant list page.
 
 **Pain points:** A missing list forces users to rely on active context or support.
 
-**Needs:** Empty state, loading state, and access-scoped query.
+**Needs:** Empty state and owner-scoped query.
 
-**Opportunities:** Use one future read model instead of stitching service calls in the page.
+**Opportunities:** Keep the current query simple and introduce a future directory read model when search/delegation is needed.
 
 **Success metrics:** Directory load success; empty-state exits; support requests for “missing tenant.”
 
@@ -71,29 +72,29 @@
 
 **User goal:** Locate the intended tenant quickly.
 
-**User actions:** Searches by name/app id; reviews role and module badges; optionally filters by role.
+**User actions:** Scans tenant names; future versions may search by name/app id and filter by role.
 
-**Touchpoints / channels:** Search box, tenant cards/table.
+**Touchpoints / channels:** Tenant list buttons today; search box and richer cards/table later.
 
 **Pain points:** Internal ids or metadata can overwhelm a nontechnical owner.
 
-**Needs:** Human-readable identity and minimal filters.
+**Needs:** Human-readable tenant names now; app id, role, and filter context later.
 
-**Opportunities:** Start with simple search before adding complex admin filters.
+**Opportunities:** Keep scan/open simple now; add search before complex admin filters when the list grows.
 
-**Success metrics:** Search-to-open completion; zero-result searches; filter usage.
+**Success metrics:** List-to-overview completion today; future zero-result searches and filter usage.
 
 ### Stage 3: Open tenant
 
 **User goal:** Enter the right tenant overview or context.
 
-**User actions:** Selects View overview or Switch tenant.
+**User actions:** Selects a tenant button to open overview.
 
 **Touchpoints / channels:** Row/card action buttons.
 
 **Pain points:** Opening admin actions from the wrong row can be risky.
 
-**Needs:** Explicit active marker, selected tenant name in CTA, and permission check.
+**Needs:** Selected tenant name in CTA and route/access validation; active marker is future work.
 
 **Opportunities:** Make tenant overview the default action and context switch an explicit secondary action.
 
@@ -103,13 +104,11 @@
 
 1. User opens the global tenant list from the owner dashboard.
 2. System verifies authentication and owner/admin/member access scope.
-3. System loads accessible tenants through one list query.
-4. Page renders tenant name, app id, logo/description when present, effective role, active marker, and active module badges.
-5. User searches by tenant name or app id.
-6. System filters the read-only list without changing tenant state.
-7. User selects **View overview** on the intended tenant.
-8. System validates access and opens that tenant’s overview.
-9. User can then switch active context or choose a dedicated management journey.
+3. System loads tenants for the current owner id through one list query.
+4. Page renders tenant-name buttons and an empty state when no tenants are returned.
+5. User selects the intended tenant.
+6. System opens that tenant’s overview route.
+7. User can then choose a dedicated management journey from the overview.
 
 ## 7. Alternate and Failure Paths
 
@@ -117,9 +116,8 @@
 | --- | --- | --- |
 | User has no tenants | List looks broken. | Show a clear empty state and create-tenant CTA only when allowed. |
 | Tenant query fails | User cannot trust the list. | Show retry and do not render stale management actions. |
-| User has member-only tenant access | Owner actions may be exposed incorrectly. | Show tenant row with Member role and read-appropriate action only. |
+| User has delegated/member-only tenant access | Owner actions may be exposed incorrectly. | Future read model should show role-appropriate rows/actions; current list is owner-id scoped. |
 | Tenant is archived or disabled | User may attempt normal actions on inactive workspace. | Mark status clearly and limit actions to approved recovery/support paths. |
-| Search has no results | User may think access is missing. | Show zero-state copy and reset-search action. |
 | Access changes during list use | User may open a revoked tenant. | Revalidate on row action and reload list on failure. |
 
 ## 8. Data and State Model Recommendation
@@ -127,9 +125,9 @@
 | Field | Source today or future source | Notes |
 | --- | --- | --- |
 | Tenant identity | `TenantReadDto` | Name, app id, logo, description, owner id. |
-| Effective role | Request context and future access query | Display user-facing role labels. |
-| Active context marker | Existing active tenant context | Read-only marker in the list. |
-| Active modules | `TenantMetadata.GetActiveModules` | Show badges only for known module names. |
+| Effective role | Future access query | Display user-facing role labels when delegated access is supported. |
+| Active context marker | Existing active tenant context | Future read-only marker in the list. |
+| Active modules | `TenantMetadata.GetActiveModules` | Future badges only for known module names. |
 | Tenant status | Existing entity status if available; future tenant lifecycle model | Do not infer billing or health status. |
 
 ## 9. UX and Guardrail Rules
@@ -137,16 +135,16 @@
 1. The list is read-only; mutations route to dedicated journeys.
 2. Do not expose platform-admin internals to owners.
 3. Use tenant name/app id over raw ids unless a support/debug mode is approved.
-4. Role labels must be legible and access-scoped.
+4. Future role labels must be legible and access-scoped.
 5. Empty, error, and revoked-access states must be explicit.
 6. Create-tenant is a separate journey and should not be embedded in the list form.
-7. The active tenant marker must come from the same active context as the dashboard.
+7. Future active tenant marker must come from the same active context as the dashboard.
 
 ## 10. Acceptance Criteria
 
 - Owner can open a directory of accessible tenants from the dashboard.
-- The directory shows tenant identity, effective role, active marker, and active module badges when available.
-- Search does not mutate active tenant context.
+- The directory shows tenant entries from the current owner-scoped source and keeps richer role/active/module badges as future enhancements.
+- Opening a tenant from the list does not mutate active tenant context; it navigates to the route-scoped overview.
 - Row actions revalidate access before navigation.
 - Users with no tenants get a safe empty state.
-- Owner/admin/member permissions affect available actions.
+- Owner/admin/member permissions are documented as future enhancements for delegated-access rows/actions.

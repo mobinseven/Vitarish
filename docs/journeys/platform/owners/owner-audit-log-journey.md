@@ -13,17 +13,17 @@
 - Primary persona: Organization owner
 - Secondary personas: Tenant admin, platform support/admin, auditor/compliance viewer if later approved
 - Evidence sources: Owner dashboard journey and current audit-library presence in repository structure
-- Confidence level: Medium for audit need; low for concrete event schema because owner audit query is not implemented.
+- Confidence level: Medium for the route/placeholder and audit need; low for concrete event schema because owner audit query is not connected.
 
 ## 2. Current Implementation Snapshot
 
-| Area | Current behavior | Audit implication |
+| Area | Current behavior | Audit-log implication |
 | --- | --- | --- |
-| Dashboard placeholders | Audit summary is identified as future data. | Do not show fake audit rows or counts before an audit query exists. |
-| Sensitive actions | Dashboard calls out invites/removals, role changes, settings, billing, and archive/delete as audit candidates. | These actions should emit audit events before audit log becomes useful. |
-| Existing libraries | The repository includes reusable audit-related library structure. | Owner audit should use existing audit abstractions where applicable instead of inventing a parallel log. |
-| Role model | Owner/admin/member labels derive from tenant roles. | Audit visibility should be permission-gated. |
-| State-changing journeys | Access, settings, billing, and danger zone are dedicated future flows. | Audit log should be read-only and link back to relevant records/actions where safe. |
+| Route and host page | Audit is implemented as a tenant-scoped route at `/owner/tenants/{tenantId:guid}/audit`. | The journey has a stable destination route from tenant overview. |
+| Component | `OwnerAuditLogCard` renders **Audit Log** with `AuditLogPending` copy. | No audit rows, filters, export, actor data, or event details are connected yet. |
+| Dashboard reuse | The dashboard renders the same audit card as a placeholder. | The dashboard can advertise the future capability without implying audit coverage exists. |
+| State changes | Current owner surfaces that mutate tenant display/module data do not surface an owner audit log here. | Audit requirements remain future work for settings, members, invites, billing, and danger-zone actions. |
+| Tenant context | The route carries `TenantId`, but the placeholder component does not query tenant-scoped events. | Future implementation should use a tenant-scoped audit read model and never show all-clear when the query fails. |
 
 ## 3. Persona Snapshot
 

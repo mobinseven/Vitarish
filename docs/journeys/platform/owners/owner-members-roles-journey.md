@@ -13,17 +13,17 @@
 - Primary persona: Organization owner
 - Secondary personas: Tenant admin, member with read-only visibility if allowed, platform support/admin
 - Evidence sources: Owner dashboard journey and current tenant role model
-- Confidence level: Medium for role model; low for member data source because member summary is not implemented.
+- Confidence level: Medium for the route/placeholder and role model; low for member data source because member summary is not connected.
 
 ## 2. Current Implementation Snapshot
 
 | Area | Current behavior | Members/roles implication |
 | --- | --- | --- |
-| Role model | Internal roles include `TenantOwner`, `TenantAdmin`, and `TenantUser`. | UI should map them to Owner/Admin/Member labels. |
-| Setup roles | Onboarding assigns the creator to owner/admin/user tenant roles. | Initial owner can be assumed to have full access after successful setup, but page still must validate. |
-| Member summary | Dashboard journey identifies member summary as future data. | Do not infer or display counts until a reliable member query exists. |
-| Invite/remove | Dedicated journey is still needed. | Members page can link to invite/remove actions but should not mix every workflow into one table. |
-| Audit | Sensitive access changes should be audit logged. | Role changes/removals need audit integration before production release. |
+| Route and host page | Members is implemented at `/owner/tenants/{tenantId:guid}/members`. | The journey should treat the page as a live placeholder route. |
+| Placeholder component | `OwnerMembersPlaceholder` renders **Members and Roles** with `MembersDataPending` copy. | No member rows, counts, role labels, or mutations are implemented yet. |
+| Invite link | When `TenantId` is present, the members page links to `/owner/tenants/{tenantId}/members/invite`. | Invite is discoverable from members but still handled as a separate placeholder journey. |
+| Access source | There is no connected owner-facing member read model in this surface. | The journey's read-model and role-change requirements remain future work. |
+| Mutation boundary | Role changes and removals are not exposed on the placeholder page. | The current implementation correctly separates read-only placeholder navigation from future state-changing commands. |
 
 ## 3. Persona Snapshot
 

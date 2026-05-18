@@ -13,17 +13,18 @@
 - Primary persona: Organization owner with multiple tenants
 - Secondary personas: Tenant admin, member with read-only tenant access, platform support/admin observing context
 - Evidence sources: Owner dashboard journey map and static code review of current tenant context, tenant DTO, metadata, role helper, and home shortcut behavior
-- Confidence level: Medium for need and guardrails; low for final UI because the switcher is not implemented.
+- Confidence level: Medium for need and guardrails; low for final UI because only owner-context navigation and route-scoped tenant opening exist today.
 
 ## 2. Current Implementation Snapshot
 
 | Area | Current behavior | Switcher implication |
 | --- | --- | --- |
-| Tenant context | The app can resolve an active tenant context for tenant-aware pages. | The switcher should reuse the existing context rather than create a second active-state model. |
-| Tenant identity | `TenantReadDto` carries tenant name, app id, owner id, logo, description, and metadata. | Switcher rows can show identity from the existing tenant DTO. |
-| Tenant list by owner | Owner/tenant services expose tenants by owner. | A future switcher can query owned tenants after the authenticated user-to-owner relationship is clarified. |
-| Role names | Tenant roles exist as `TenantOwner`, `TenantAdmin`, and `TenantUser`. | The switcher should show user-facing labels such as Owner/Admin/Member without changing internal roles. |
-| Home shortcuts | Home already reacts to the resolved tenant and `activeModules`. | Switching tenant should refresh downstream shortcuts from the newly active tenant metadata. |
+| Header context | The app shell renders `TenantContextHeader`, which loads the current owner and links to home and the owner dashboard. | Current navigation shows owner context, but it is not a tenant switcher with tenant list selection. |
+| Owner dashboard/list | The dashboard lists up to three owned tenants and links to `/owner/tenants`; the full list renders all tenants returned by `GetTenantsByOwnerAsync`. | The nearest current switching affordance is opening a tenant overview from the owner tenant list, not changing a global active tenant. |
+| Tenant overview | Tenant overview loads by explicit route id and updates page title to the tenant name. | Route-scoped tenant selection is implemented; active-context switching remains future work. |
+| Tenant context | Existing request context is still the source for `OwnerId`; owner pages avoid creating a second active-context state model. | Future switcher should continue reusing the existing context mechanism rather than storing parallel component state. |
+| Role labels | The current owner switch/list UI does not show Owner/Admin/Member labels. | Role display and delegated-access behavior remain future work. |
+| Module shortcuts | Home still reacts to active tenant metadata, while owner pages navigate by explicit tenant id. | Switching active tenant should refresh home/module shortcuts when implemented. |
 
 ## 3. Persona Snapshot
 

@@ -3,8 +3,8 @@
 ## 1. Context
 
 - Product / service: Vitarish platform owner experience
-- Journey type: Future-state tenant overview journey
-- Entry point: Owner dashboard, global tenant list, or post-switch confirmation
+- Journey type: Current-state tenant identity/navigation overview with future summary enhancements
+- Entry point: Owner dashboard tenant preview, global tenant list, or post-create navigation
 - Scenario: An owner opens one tenant to review identity, active modules, access readiness, billing placeholders, audit entry points, and available management journeys.
 - User goal: Understand one tenant’s administrative state and choose the correct next action.
 - Business goal: Provide a safe tenant command page that links owner capabilities without mixing unrelated module dashboards.
@@ -13,17 +13,18 @@
 - Primary persona: Organization owner
 - Secondary personas: Tenant admin, member with limited read access, platform support/admin
 - Evidence sources: Owner dashboard journey map and current tenant DTO/metadata behavior
-- Confidence level: Medium for information architecture; low for final UI because the overview is not implemented.
+- Confidence level: Medium-high for the current identity/navigation overview; low-to-medium for future health, module badges, member, billing, and audit summaries.
 
 ## 2. Current Implementation Snapshot
 
-| Area | Current behavior | Overview implication |
+| Area | Current behavior | Tenant-overview implication |
 | --- | --- | --- |
-| Tenant identity | Tenant DTO includes name, app id, owner id, description/logo, and metadata. | The overview can show identity from existing data. |
-| Active modules | `activeModules` metadata is already used for home dashboard shortcuts. | Module section should use the same metadata rule. |
-| Owner dashboard | Current owner page is a stub and dashboard is a future design target. | Tenant overview should be a deeper page linked from dashboard cards. |
-| Admin tenant actions | Admin pages can create/list tenants for owners. | Owner overview should not reuse admin pages directly for mutations. |
-| Permissions | Tenant role helpers exist. | Read/mutate cards must be gated by Owner/Admin/Member labels. |
+| Route and host page | Tenant overview is implemented at `/owner/tenants/{tenantId:guid}` through `OwnerTenantPage`. | This journey now describes a live owner tenant overview route. |
+| Tenant loading | The page uses the shared `LoadTenantOrRedirectAsync` helper and falls back to `/owner/tenants` when the id is missing or cannot be loaded. | Missing/stale tenant states already have a safe redirect pattern. |
+| Page title | When a tenant loads, the host overrides the page title with the tenant name. | The selected tenant is surfaced in page chrome, reducing wrong-tenant ambiguity. |
+| Overview panel | `OwnerTenantOverviewPanel` displays tenant name, app id, optional description, and links to settings, members, billing, audit, and danger-zone journeys. | The overview is a navigation hub; it does not yet show health, member counts, billing status, or audit summaries. |
+| Active modules | The overview component reads active modules from tenant metadata but does not render module badges yet. | Module visibility remains available for future UI without inventing a second source of truth. |
+| Sensitive actions | Destructive work is linked to the danger-zone route and remains disabled in the current danger-zone component. | The overview should continue routing sensitive actions away from the summary panel. |
 
 ## 3. Persona Snapshot
 
@@ -33,7 +34,7 @@
 
 **Motivation:** Confirm the workspace identity and see where to manage people, settings, billing, audit, or module entry.
 
-**Key needs:** Identity, role, active modules, management entry points, and safe unavailable states.
+**Key needs:** Identity, app id, optional description, management entry points, and safe unavailable states.
 
 **Constraints:** Detailed health, billing, members, and audit data are not all connected yet.
 
@@ -41,13 +42,13 @@
 
 ## 4. Journey Summary
 
-**Narrative:** The user opens a tenant overview and sees a read-only identity header, active module badges, role-aware management cards, and clear links to dedicated journeys. Cards with unavailable data display honest placeholder copy. The page does not perform destructive changes directly; it routes state-changing work to validated flows.
+**Narrative:** The user opens a tenant overview route and sees a read-only identity panel with tenant name, app id, optional description, and links to dedicated management journeys. The page updates the title to the tenant name and redirects safely when the tenant id is missing or stale. Health, role labels, active-module badges, member counts, billing status, and audit summaries remain future enhancements.
 
 **Emotional arc:** Curious -> oriented -> in control
 
-**Biggest current friction point:** Tenant-level administration is spread across onboarding, home shortcuts, and admin-only pages.
+**Biggest current friction point:** The overview is now a useful navigation hub, but it does not yet expose deeper tenant health or access context.
 
-**Highest-value opportunity:** Create one tenant-specific command page that remains read-only and delegates mutations to focused journeys.
+**Highest-value opportunity:** Keep the overview read-only and add summary fields only when they come from approved tenant-scoped read models.
 
 ## 5. Journey Stages
 
@@ -55,13 +56,13 @@
 
 **User goal:** Confirm the page is for the intended tenant.
 
-**User actions:** Reads name, app id, role, description/logo, and active context marker.
+**User actions:** Reads name, app id, optional description, and page title.
 
 **Touchpoints / channels:** Tenant overview header.
 
 **Pain points:** Wrong-tenant actions are high risk.
 
-**Needs:** Pinned tenant identity and explicit active/specific tenant indicator.
+**Needs:** Pinned tenant identity, explicit route-scoped tenant id, and safe redirect on stale ids.
 
 **Opportunities:** Show return-to-list and switcher actions near the header.
 
@@ -71,7 +72,7 @@
 
 **User goal:** See current module and setup state.
 
-**User actions:** Reviews active module badges and overview cards.
+**User actions:** Reviews available management links and notes placeholder destinations.
 
 **Touchpoints / channels:** Module cards, setup summary, placeholders.
 
@@ -79,7 +80,7 @@
 
 **Needs:** Honest placeholder labels and no fake counts/statuses.
 
-**Opportunities:** Use tenant metadata as the single source of truth for active modules.
+**Opportunities:** Use tenant metadata as the single source of truth for future active-module display.
 
 **Success metrics:** Module shortcut clicks; placeholder CTA clicks; support questions about unavailable data.
 
@@ -87,9 +88,9 @@
 
 **User goal:** Start the right deeper action.
 
-**User actions:** Opens members/roles, settings, billing, audit, action inbox, or danger-zone journey.
+**User actions:** Opens settings, members/roles, billing, audit, or danger-zone journey.
 
-**Touchpoints / channels:** Role-aware management cards.
+**Touchpoints / channels:** Management link buttons in the overview panel.
 
 **Pain points:** Too many actions on one page can blur read-only versus mutation.
 
@@ -102,24 +103,22 @@
 ## 6. Happy Path
 
 1. User opens tenant overview from dashboard or tenant list.
-2. System resolves tenant id and validates access.
-3. System loads tenant identity and metadata from the existing tenant DTO/read model.
-4. Page shows tenant name, app id, role label, description/logo if available, and active context state.
-5. Page displays active module shortcuts from `activeModules` metadata.
-6. Page displays management cards for members/roles, invites/removals, settings, billing, audit, action inbox, and danger zone.
-7. Cards with unavailable data show explicit placeholder copy.
-8. User selects a dedicated journey CTA.
-9. System validates role permissions again before opening the journey.
+2. System resolves the route tenant id through the shared load helper.
+3. System redirects to the tenant list when the id is missing or cannot be loaded.
+4. System loads tenant identity and metadata from the existing tenant DTO/read model.
+5. Page shows tenant name, app id, optional description, and management links for settings, members, billing, audit, and danger zone.
+6. User selects a dedicated journey link.
+7. The linked route or component handles any placeholder, validation, or mutation-specific behavior.
 
 ## 7. Alternate and Failure Paths
 
 | Situation | User risk | System behavior |
 | --- | --- | --- |
-| Tenant id missing or malformed | Data could load for the wrong tenant. | Return to safe dashboard/home state; do not render management cards. |
-| Tenant not found | Stale link can confuse users. | Show not-found state and return-to-list action. |
+| Tenant id missing or malformed | Data could load for the wrong tenant. | Current shared helper redirects to the tenant list; do not render management links for a null tenant. |
+| Tenant not found | Stale link can confuse users. | Current shared helper redirects to the tenant list. |
 | Access denied | Owner-only data could leak. | Show permission state and hide tenant details beyond safe context copy. |
-| Metadata malformed | Module section may fail. | Show no active modules and keep the rest of the page stable. |
-| User is member only | Management cards may imply permissions. | Show read-appropriate cards and disabled owner/admin actions with copy. |
+| Metadata malformed | Future module section may fail. | Keep the identity/navigation panel stable and show no fake module badges. |
+| User is member only | Management links may imply permissions. | Future role-aware UI should show read-appropriate links and disabled owner/admin actions with copy. |
 | Sensitive card clicked | User could start destructive change too easily. | Route to dedicated journey with validation and confirmation; never mutate on overview. |
 
 ## 8. Data and State Model Recommendation
@@ -147,6 +146,6 @@
 - Tenant overview validates tenant access before rendering details.
 - Identity, app id, role, and active modules are visible when available.
 - Overview cards link to dedicated journeys rather than mutating state directly.
-- Missing/unimplemented data appears as honest placeholders.
+- Missing or unimplemented summary data is omitted or appears as honest placeholders.
 - Member-only users cannot access owner/admin actions.
 - Malformed tenant metadata does not break the page.

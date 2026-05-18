@@ -19,11 +19,11 @@
 
 | Area | Current behavior | Billing implication |
 | --- | --- | --- |
-| Dashboard | Billing is listed as a planned placeholder. | Do not display fake plan, invoice, payment, or status data. |
-| Open questions | Dashboard asks what billing system, plan model, and invoice source should connect. | Billing journey must remain source-agnostic until a provider/contract is chosen. |
-| Tenant context | Dashboard is tenant-scoped. | Billing should be scoped to tenant or owner account according to future billing model. |
-| Permissions | Owner/Admin/Member labels are planned. | Billing visibility/actions need explicit role policy. |
-| Audit | Billing changes are candidate sensitive audit events. | Payment/plan changes should be audit-ready. |
+| Route and host page | Billing is implemented as a tenant-scoped route at `/owner/tenants/{tenantId:guid}/billing`. | The journey has a stable destination route from tenant overview. |
+| Component | `OwnerBillingCard` renders **Billing** with coming-soon copy. | No plan, payment method, invoice, usage, status, or billing-action data is connected yet. |
+| Dashboard reuse | The dashboard also renders the same billing card as a placeholder. | Billing copy should stay honest on both dashboard and tenant-specific route. |
+| Mutation boundary | No billing mutations are exposed. | Future payment/plan changes must be added behind explicit validation, permission, and provider-error handling. |
+| Tenant context | The route carries `TenantId`, but the current placeholder component does not load tenant billing data. | Future billing work should consume the tenant id through a focused billing read model/command surface. |
 
 ## 3. Persona Snapshot
 
