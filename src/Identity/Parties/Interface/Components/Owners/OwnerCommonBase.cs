@@ -1,7 +1,7 @@
 using Vitarish.Interfaces.Base.Common;
 using Vitarish.Parties.Application.Abstractions;
 
-namespace Vitarish.Parties.Interface.Components;
+namespace Vitarish.Parties.Interface.Components.Owners;
 
 /// <summary>
 /// Base class for all owner-facing interface components.
@@ -13,7 +13,7 @@ public class OwnerCommonBase : CommonBase
     [Inject] protected ISnackbar Snackbar { get; set; } = default!;
 
     /// <summary>
-    /// Parses <see cref="Vitarish.Requests.Application.Abstractions.IRequestContext.OwnerId"/> to a nullable Guid.
+    /// Parses <see cref="Requests.Application.Abstractions.IRequestContext.OwnerId"/> to a nullable Guid.
     /// Returns null when the claim is absent or not a valid Guid.
     /// </summary>
     protected Guid? GetOwnerGuid()

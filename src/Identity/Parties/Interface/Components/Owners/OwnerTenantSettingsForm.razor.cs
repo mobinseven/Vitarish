@@ -1,4 +1,4 @@
-namespace Vitarish.Parties.Interface.Components;
+namespace Vitarish.Parties.Interface.Components.Owners;
 
 public partial class OwnerTenantSettingsForm
 {
