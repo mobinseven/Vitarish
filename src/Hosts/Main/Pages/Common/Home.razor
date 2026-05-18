@@ -1,29 +1,22 @@
 @attribute [Route(AppRoutes.Home)]
+@attribute [Route(AppRoutes.Owner)]
 @attribute [Route(AppRoutes.User)]
 
-<Stack>
-    <StackField>
-        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Style="width: 100%;">
-            <MudImage Src="/logo/brandmark-opacity50.webp" Height="100" />
-        </MudStack>
-    </StackField>
-</Stack>
-
-@if (hasTenantContext && activeDashboards.Count > 0)
+@if(hasTenantContext && activeDashboards.Count > 0)
 {
-    <Stack>
-        @foreach (var (name, route) in activeDashboards)
-        {
-            <StackButton Label="@name" Href="@route" StartIcon="fa-regular fa-grid" />
-        }
-    </Stack>
+    @foreach(var (name, record) in activeDashboards)
+    {
+        <DynamicComponent @key="name"
+                          Type="@record.ComponentType" />
+    }
+
 }
 else
 {
     <AuthorizeView>
         <Authorized>
             <TenantWidget OnTenantNavigate="NavigateToTenant" />
-            @if (onboardingEnabled)
+            @if(onboardingEnabled)
             {
                 <Stack>
                     <StackButton Label="@Localizer["CreateWorkspace"]"

@@ -1,8 +1,5 @@
 @attribute [Route(AppRoutes.Owners.Tenants)]
 
-<OwnerTenantContextHeader DashboardHref="@AppRoutes.Owners.Dashboard"
-                          TenantsHref="@AppRoutes.Owners.Tenants" />
-
 <OwnerTenantList Tenants="tenants" TenantHref="@(id => AppRoutes.Owners.Tenant(id))" />
 
 <Stack>

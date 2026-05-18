@@ -1,25 +1,20 @@
 @attribute [Route(AppRoutes.Clinic.OwnerDashboard)]
 @inject IAccessControlledProjectsService ProjectsService
 
-@if(!initialized)
-{
-    return;
-}
 
 <Stack>
     <StackButton Label="@Localizer["Patients"]"
-                 Href="@AppRoutes.Clinic.Patients"
-                 HelperText="@($"{patients} {Localizer["Patients"]}")" />
+                 Href="@AppRoutes.Clinic.Patients"/>
     <StackButton Label="@Localizer["CheckIn"]"
                  Href="@AppRoutes.Clinic.CheckIn"
                  EndIcon="fa-regular fa-person-walking-arrow-right"
                  Color="Color.Primary" />
 </Stack>
 <TodayAppointmentsWidget OnShiftClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(id)))"
-                         OnShiftsClicked="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.OwnerShifts))" />
+                         OnShiftsClicked="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.OwnerReservations))" />
 <Stack>
     <StackField Label="@Localizer["Administration"]" />
-    <StackButton Href="@AppRoutes.Appointments.OwnerShifts" Label="@Localizer["AppointmentsAdmin"]" EndIcon="fa-regular fa-calendar-star" />
+    <StackButton Href="@AppRoutes.Appointments.OwnerShifts" Label="@Localizer["Shifts"]" EndIcon="fa-regular fa-calendar-star" />
     <StackButton Href="@AppRoutes.Clinic.OwnerReminders" Label="@Localizer["Reminders"]" EndIcon="fa-regular fa-bell" />
 </Stack>
 <Stack>
@@ -27,23 +22,3 @@
     <StackButton Href="@AppRoutes.Clinic.OwnerSettingsUsers" Label="@Localizer["Users"]" EndIcon="fa-regular fa-users" />
     <StackButton Href="@AppRoutes.Clinic.OwnerSettingsStatistics" Label="@Localizer["Statistics"]" EndIcon="fa-regular fa-chart-bar" />
 </Stack>
-
-@code {
-    private int patients = 0;
-    private bool initialized;
-
-    protected override async Task ReloadRequired()
-    {
-        ProjectDescriptorDto descriptor = new()
-        {
-            Skip = 0,
-            Take = int.MaxValue,
-            Template = false,
-            Descending = true
-        };
-
-        patients = await ProjectsService.CountAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync();
-        initialized = true;
-        await InvokeAsync(StateHasChanged);
-    }
-}

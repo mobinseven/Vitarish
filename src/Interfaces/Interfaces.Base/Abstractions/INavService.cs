@@ -10,9 +10,12 @@ public interface INavService
     string? SearchString { get; set; }
 
     Breadcrumb[] Breadcrumbs { get; }
+
+    event EventHandler<TitleChangeEventArgs> TitleChanged;
+
     void Back();
     void Home();
     void Profile();
     void EnableSearch();
-    void OverridePageTitle(string text,string title);
+    void OverridePageTitle(string id, string title);
 }

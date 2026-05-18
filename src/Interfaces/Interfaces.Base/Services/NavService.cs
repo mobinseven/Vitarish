@@ -29,6 +29,7 @@ public sealed class NavService : INavService, IDisposable
             _ = renderNotifier.Notify(new SearchArgs(value));
         }
     }
+    public event EventHandler<TitleChangeEventArgs>? TitleChanged;
 
     public NavService(
         NavigationManager navigationManager,
@@ -44,18 +45,15 @@ public sealed class NavService : INavService, IDisposable
         navigationManager.LocationChanged += HandleLocationChanged;
     }
 
-    public void OverridePageTitle(string id, string text)
+    public void OverridePageTitle(string id, string title)
     {
         Breadcrumb? bc = breadcrumbs?.FirstOrDefault(b => b.Id == id);
         if (bc is null)
         {
             return;
         }
-        if (!string.IsNullOrEmpty(bc.Text))
-        {
-            return;
-        }
-        bc.Text = text;
+        bc.Text = title;
+        TitleChanged?.Invoke(this, new TitleChangeEventArgs(title));
         _ = renderNotifier.Notify();
     }
 
@@ -125,4 +123,10 @@ public sealed class NavService : INavService, IDisposable
     public void Back() => NavigateUpOneLevel();
     public void Home() => navigationManager.NavigateTo("/");
     public void Profile() => navigationManager.NavigateTo(routes.ProfileRoute);
+}
+
+
+public class TitleChangeEventArgs(string Title) : EventArgs
+{
+    public string Title { get; } = Title;
 }

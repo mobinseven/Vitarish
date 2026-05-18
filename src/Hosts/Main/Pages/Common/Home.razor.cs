@@ -1,5 +1,8 @@
 using Microsoft.Extensions.Options;
 using Vitarish.Main.Infrastructure.Options;
+using Vitarish.Main.Pages.Clinic;
+using Vitarish.Main.Pages.Commerce.Owners;
+using Vitarish.Main.Pages.Sea.Common;
 using Vitarish.Parties.Domain;
 using Vitarish.Parties.Domain.Dtos;
 
@@ -14,16 +17,30 @@ public partial class Home
     /// Module names that expose a meaningful dashboard route within a tenant context.
     /// Extend this map as further modules gain tenant-scoped dashboard pages.
     /// </summary>
-    private static readonly Dictionary<string, string> ModuleDashboardRoutes =
-        new(StringComparer.OrdinalIgnoreCase)
-        {
-            ["Sea"]          = AppRoutes.Sea.Dashboard,
-            ["Medical"]      = AppRoutes.Clinic.OwnerDashboard,
-            ["Commerce"]     = AppRoutes.Commerce.OwnerDashboard,
-            ["Appointments"] = AppRoutes.Appointments.OwnerShifts,
-        };
+    private sealed record ModuleDashboardDefinition(
+    string Route,
+    Type ComponentType
+);
+    private static readonly Dictionary<string, ModuleDashboardDefinition> ModuleDashboards =
+    new(StringComparer.OrdinalIgnoreCase)
+    {
+        ["Sea"] = new(
+            AppRoutes.Sea.Dashboard,
+            typeof(SeaDashboardPage)
+        ),
 
-    private IReadOnlyList<(string Name, string Route)> activeDashboards = [];
+        ["Clinic"] = new(
+            AppRoutes.Clinic.OwnerDashboard,
+            typeof(ClinicDashboardPage)
+        ),
+
+        ["Commerce"] = new(
+            AppRoutes.Commerce.OwnerDashboard,
+            typeof(CommerceOwnerDashboardPage)
+        ),
+    };
+
+    private IReadOnlyList<(string Name, ModuleDashboardDefinition)> activeDashboards = [];
     private bool hasTenantContext;
     private bool onboardingEnabled;
 
@@ -40,8 +57,8 @@ public partial class Home
                 IReadOnlyList<string> modules = TenantMetadata.GetActiveModules(tenant.Metadata);
 
                 activeDashboards = [.. modules
-                    .Where(m => ModuleDashboardRoutes.ContainsKey(m))
-                    .Select(m => (m, ModuleDashboardRoutes[m]))];
+                    .Where(m => ModuleDashboards.ContainsKey(m))
+                    .Select(m => (m, ModuleDashboards[m]))];
             }
         }
     }

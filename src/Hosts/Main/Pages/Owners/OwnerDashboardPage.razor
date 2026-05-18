@@ -1,8 +1,4 @@
-@attribute [Route(AppRoutes.Owner)]
 @attribute [Route(AppRoutes.Owners.Dashboard)]
-
-<OwnerTenantContextHeader DashboardHref="@AppRoutes.Owners.Dashboard"
-                          TenantsHref="@AppRoutes.Owners.Tenants" />
 
 @if (tenants.Count > 0)
 {

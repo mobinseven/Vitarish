@@ -6,7 +6,7 @@ namespace Vitarish.Clinical.Interface;
 
 public class ClinicalModule : Module, IClinicalModule
 {
-    public override string Name => "Clinical";
+    public override string Name => "Clinic";
 
     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {

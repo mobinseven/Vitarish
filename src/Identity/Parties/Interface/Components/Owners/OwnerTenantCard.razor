@@ -1,19 +1,4 @@
-<Stack>
-    <StackField Label="@Tenant.Name">
-        <MudText Typo="Typo.caption" Color="Color.Secondary">@Tenant.AppId</MudText>
-    </StackField>
-    @if (modules.Count > 0)
-    {
-        <StackField>
-            @foreach (var m in modules)
-            {
-                <Chip Label="@m" />
-            }
-        </StackField>
-    }
-    <StackButton Label="@Localizer["Open"]" Href="@Href" EndIcon="fa-regular fa-arrow-right" />
-</Stack>
-
+<StackButton Label="@Tenant.Name" HelperText="@Tenant.AppId" Href="@Href" />
 @code {
     [Parameter, EditorRequired] public TenantReadDto Tenant { get; set; } = default!;
     [Parameter] public string Href { get; set; } = "#";

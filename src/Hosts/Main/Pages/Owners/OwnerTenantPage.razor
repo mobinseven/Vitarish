@@ -2,8 +2,6 @@
 
 @if (tenant is not null)
 {
-    <OwnerTenantContextHeader DashboardHref="@AppRoutes.Owners.Dashboard"
-                              TenantsHref="@AppRoutes.Owners.Tenants" />
 
     <OwnerTenantOverviewPanel Tenant="tenant"
                               SettingsHref="@AppRoutes.Owners.TenantSettings(tenant.Id)"

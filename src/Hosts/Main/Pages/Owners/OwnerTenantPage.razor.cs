@@ -11,5 +11,10 @@ public partial class OwnerTenantPage
     protected override async Task ReloadRequired()
     {
         tenant = await LoadTenantOrRedirectAsync(TenantId, AppRoutes.Owners.Tenants);
+        if(tenant is null)
+        {
+            return;
+        }
+        NavService.OverridePageTitle(tenant.Id.ToString(), tenant.Name);
     }
 }

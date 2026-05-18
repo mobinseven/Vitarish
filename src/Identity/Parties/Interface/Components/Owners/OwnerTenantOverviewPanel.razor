@@ -1,5 +1,5 @@
 <Stack>
-    <StackField Label="@Localizer["TenantOverview"]" />
+    <StackField Label="@Localizer["Overview"]" Align="Align.Center" />
     <StackField Label="@Localizer["Name"]">
         <MudText>@Tenant.Name</MudText>
     </StackField>
@@ -12,34 +12,25 @@
             <MudText>@Tenant.Description</MudText>
         </StackField>
     }
-    @if (modules.Count > 0)
-    {
-        <StackField Label="@Localizer["ActiveModules"]">
-            @foreach (var m in modules)
-            {
-                <Chip Label="@m" />
-            }
-        </StackField>
-    }
     @if (!string.IsNullOrWhiteSpace(SettingsHref))
     {
-        <StackButton Label="@Localizer["Settings"]" Href="@SettingsHref" StartIcon="fa-regular fa-cog" />
+        <StackButton Label="@Localizer["Settings"]" Href="@SettingsHref" EndIcon="fa-regular fa-cog" />
     }
     @if (!string.IsNullOrWhiteSpace(MembersHref))
     {
-        <StackButton Label="@Localizer["MembersAndRoles"]" Href="@MembersHref" StartIcon="fa-regular fa-users" />
+        <StackButton Label="@Localizer["MembersAndRoles"]" Href="@MembersHref" EndIcon="fa-regular fa-users" />
     }
     @if (!string.IsNullOrWhiteSpace(BillingHref))
     {
-        <StackButton Label="@Localizer["Billing"]" Href="@BillingHref" StartIcon="fa-regular fa-credit-card" />
+        <StackButton Label="@Localizer["Billing"]" Href="@BillingHref" EndIcon="fa-regular fa-credit-card" />
     }
     @if (!string.IsNullOrWhiteSpace(AuditHref))
     {
-        <StackButton Label="@Localizer["AuditLog"]" Href="@AuditHref" StartIcon="fa-regular fa-history" />
+        <StackButton Label="@Localizer["AuditLog"]" Href="@AuditHref" EndIcon="fa-regular fa-history" />
     }
     @if (!string.IsNullOrWhiteSpace(DangerHref))
     {
-        <StackButton Label="@Localizer["DangerZone"]" Href="@DangerHref" Color="Color.Error" StartIcon="fa-regular fa-triangle-exclamation" />
+        <StackButton Label="@Localizer["DangerZone"]" Href="@DangerHref" Color="Color.Error" EndIcon="fa-regular fa-triangle-exclamation" />
     }
 </Stack>
 

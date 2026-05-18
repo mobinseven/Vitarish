@@ -1,8 +1,5 @@
 @attribute [Route(AppRoutes.Owners.TenantMembersTemplate)]
 
-<OwnerTenantContextHeader DashboardHref="@AppRoutes.Owners.Dashboard"
-                          TenantsHref="@AppRoutes.Owners.Tenants" />
-
 <OwnerMembersPlaceholder />
 
 @if (TenantId.HasValue)
