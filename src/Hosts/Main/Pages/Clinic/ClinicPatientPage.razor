@@ -1,45 +1,19 @@
 @attribute [Route(AppRoutes.Clinic.PatientTemplate)]
+@inherits ClinicPatientPageBase
 
-@if(patient is null)
+@if(Patient is null)
 {
     return;
 }
 
-<PatientDetails Project="@patient"
+<PatientDetails Project="@Patient"
                 OnEdit="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientEdit(id)))"
                 OnDeleted="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.Patients))" />
 
-<ProceduresGrid Project="@patient"
-                OnClicked="@(procedureId => { if (procedureId.HasValue) NavigationManager.NavigateTo(AppRoutes.Clinic.PatientProcedure(patient.Id, procedureId.Value)); })"
-                OnCreated="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientProcedure(patient.Id, procedureId)))" />
+<ProceduresGrid Project="@Patient"
+                OnClicked="@(procedureId => { if (procedureId.HasValue) NavigationManager.NavigateTo(AppRoutes.Clinic.PatientProcedure(Patient.Id, procedureId.Value)); })"
+                OnCreated="@(procedureId => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientProcedure(Patient.Id, procedureId)))" />
 
-<PatientAppointmentsPanel Patient="@patient" OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientEdit(patient.Id)))" />
+<PatientAppointmentsPanel Patient="@Patient" OnEdit="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientEdit(Patient.Id)))" />
 
-@* <PatientRemindersPanel PatientId="@patient.Id" /> *@
-
-@code {
-    [Parameter] public Guid? patientId { get; set; }
-
-    private ProjectReadDto? patient;
-    private bool initialized;
-
-    protected override async Task ReloadRequired()
-    {
-        if(patientId is null)
-        {
-            NavigationManager.NavigateTo(AppRoutes.Clinic.Patients);
-            return;
-        }
-
-        patient = await ProjectsService.GetAsync(patientId.Value, CancellationToken.None).GetValueOrDefaultAsync();
-
-        if(patient is null)
-        {
-            NavigationManager.NavigateTo(AppRoutes.Clinic.Patients);
-            return;
-        }
-
-        NavService.OverridePageTitle(patient.Id.ToString(), patient.Name);
-        initialized = true;
-    }
-}
+@* <PatientRemindersPanel PatientId="@Patient.Id" /> *@

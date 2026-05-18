@@ -1,4 +1,5 @@
 @attribute [Route(AppRoutes.Clinic.OwnerDashboard)]
+@inject IAccessControlledProjectsService ProjectsService
 
 @if(!initialized)
 {
@@ -16,6 +17,16 @@
 </Stack>
 <TodayAppointmentsWidget OnShiftClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(id)))"
                          OnShiftsClicked="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.OwnerShifts))" />
+<Stack>
+    <StackField Label="@Localizer["Administration"]" />
+    <StackButton Href="@AppRoutes.Appointments.OwnerShifts" Label="@Localizer["AppointmentsAdmin"]" EndIcon="fa-regular fa-calendar-star" />
+    <StackButton Href="@AppRoutes.Clinic.OwnerReminders" Label="@Localizer["Reminders"]" EndIcon="fa-regular fa-bell" />
+</Stack>
+<Stack>
+    <StackField Label="@Localizer["Settings"]" />
+    <StackButton Href="@AppRoutes.Clinic.OwnerSettingsUsers" Label="@Localizer["Users"]" EndIcon="fa-regular fa-users" />
+    <StackButton Href="@AppRoutes.Clinic.OwnerSettingsStatistics" Label="@Localizer["Statistics"]" EndIcon="fa-regular fa-chart-bar" />
+</Stack>
 
 @code {
     private int patients = 0;
