@@ -1,0 +1,9 @@
+@attribute [Route(AppRoutes.Clinic.UserShiftTemplate)]
+@inherits ClinicUserShiftPageBase
+
+@if (Shift is null)
+{
+    return;
+}
+
+<UserShiftDetail Shift="@Shift" OnReserved="ReloadRequired" OnCancelled="ReloadRequired" />

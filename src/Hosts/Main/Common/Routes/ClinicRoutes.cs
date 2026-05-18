@@ -18,11 +18,39 @@ public static partial class AppRoutes
         public const string OwnerSettingsStatistics = "/owner/clinic/settings/statistics";
         public const string OwnerReminders = "/owner/clinic/reminders";
 
+        // Owner appointment routes (Appointments module hosted under Clinic)
+        public const string OwnerReservations = "/owner/clinic/reservations";
+        public const string OwnerReservationTemplate = "/owner/clinic/reservations/{reservationId:guid}";
+        public const string OwnerShifts = "/owner/clinic/shifts";
+        public const string OwnerShiftCreate = "/owner/clinic/shifts/new";
+        public const string OwnerShiftCreateTemplate = "/owner/clinic/shifts/new/{dayOfWeek:int}";
+        public const string OwnerShiftTemplate = "/owner/clinic/shifts/{shiftId:guid}";
+        public const string OwnerShiftEditTemplate = "/owner/clinic/shifts/{shiftId:guid}/edit";
+        public const string OwnerShiftOccurrenceTemplate = "/owner/clinic/shifts/{shiftId:guid}/occurrence";
+
+        // User appointment routes
+        public const string UserReservations = "/user/clinic/reservations";
+        public const string UserReservationTemplate = "/user/clinic/reservations/{reservationId:guid}";
+        public const string UserShifts = "/user/clinic/shifts";
+        public const string UserShiftTemplate = "/user/clinic/shifts/{shiftId:guid}";
+
         public static string Patient(Guid patientId) => $"{Patients}/{GuidValue(patientId)}";
         public static string PatientEdit(Guid patientId) => $"{Patient(patientId)}/edit";
         public static string PatientProcedure(Guid patientId, Guid procedureId) =>
             $"{Patient(patientId)}/procedures/{GuidValue(procedureId)}";
         public static string PatientEvent(Guid patientId, Guid procedureId, Guid eventId) =>
             $"{PatientProcedure(patientId, procedureId)}/events/{GuidValue(eventId)}";
+
+        // Owner appointment builders
+        public static string OwnerReservation(Guid reservationId) => $"{OwnerReservations}/{GuidValue(reservationId)}";
+        public static string OwnerShift(Guid shiftId) => $"{OwnerShifts}/{GuidValue(shiftId)}";
+        public static string OwnerShiftEdit(Guid shiftId) => $"{OwnerShift(shiftId)}/edit";
+        public static string OwnerShiftOccurrence(Guid shiftId) => $"{OwnerShift(shiftId)}/occurrence";
+        public static string OwnerShiftCreateForDay(int? dayOfWeek = null) =>
+            dayOfWeek is null ? OwnerShiftCreate : $"{OwnerShiftCreate}/{IntValue(dayOfWeek.Value)}";
+
+        // User appointment builders
+        public static string UserReservation(Guid reservationId) => $"{UserReservations}/{GuidValue(reservationId)}";
+        public static string UserShift(Guid shiftId) => $"{UserShifts}/{GuidValue(shiftId)}";
     }
 }

@@ -1,4 +1,5 @@
 @attribute [Route(AppRoutes.Clinic.PatientNew)]
+@attribute [Authorize(Policy = IdentityDefinitions.TenantOwner)]
 
 <PatientEditForm OnCreate="@(patientId => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(patientId)))"
                  OnCancel="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.Patients))" />

@@ -1,0 +1,10 @@
+@attribute [Route(AppRoutes.Clinic.OwnerShiftCreate)]
+@attribute [Route(AppRoutes.Clinic.OwnerShiftCreateTemplate)]
+
+<ShiftForm OnSaved="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerShift(id)))"
+           OnCancelled="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerShifts))"
+           DayOfWeek="@((DayOfWeek?)dayOfWeek)" />
+
+@code {
+    [Parameter] public int? dayOfWeek { get; set; }
+}

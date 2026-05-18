@@ -1,0 +1,8 @@
+@attribute [Route(AppRoutes.Clinic.OwnerShifts)]
+
+<ShiftsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerShift(id)))"
+            OnAdd="@(dayOfWeek => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerShiftCreateForDay(dayOfWeek is null ? null : (int)dayOfWeek)))" />
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}

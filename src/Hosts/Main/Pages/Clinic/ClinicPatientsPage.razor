@@ -1,4 +1,5 @@
 @attribute [Route(AppRoutes.Clinic.Patients)]
+@attribute [Authorize(Policy = IdentityDefinitions.TenantOwner)]
 
 @using Vitarish.Clinical.Interface.Components.CheckIn
 

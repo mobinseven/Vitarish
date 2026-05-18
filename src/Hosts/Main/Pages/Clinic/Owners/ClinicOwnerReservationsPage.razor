@@ -1,0 +1,7 @@
+@attribute [Route(AppRoutes.Clinic.OwnerReservations)]
+
+<ReservationsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerReservation(id)))" />
+
+@code {
+    protected override void OnInitialized() => NavService.EnableSearch();
+}

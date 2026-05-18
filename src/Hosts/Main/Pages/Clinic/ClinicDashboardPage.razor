@@ -1,4 +1,5 @@
 @attribute [Route(AppRoutes.Clinic.OwnerDashboard)]
+@attribute [Authorize(Policy = IdentityDefinitions.TenantOwner)]
 @inject IAccessControlledProjectsService ProjectsService
 
 
@@ -10,11 +11,12 @@
                  EndIcon="fa-regular fa-person-walking-arrow-right"
                  Color="Color.Primary" />
 </Stack>
-<TodayAppointmentsWidget OnShiftClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminShift(id)))"
-                         OnShiftsClicked="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.OwnerReservations))" />
+<TodayAppointmentsWidget OnShiftClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerShift(id)))"
+                         OnShiftsClicked="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerReservations))" />
 <Stack>
     <StackField Label="@Localizer["Administration"]" />
-    <StackButton Href="@AppRoutes.Appointments.OwnerShifts" Label="@Localizer["Shifts"]" EndIcon="fa-regular fa-calendar-star" />
+    <StackButton Href="@AppRoutes.Clinic.OwnerShifts" Label="@Localizer["Shifts"]" EndIcon="fa-regular fa-calendar-star" />
+    <StackButton Href="@AppRoutes.Clinic.OwnerReservations" Label="@Localizer["Reservations"]" EndIcon="fa-regular fa-calendar-check" />
     <StackButton Href="@AppRoutes.Clinic.OwnerReminders" Label="@Localizer["Reminders"]" EndIcon="fa-regular fa-bell" />
 </Stack>
 <Stack>
