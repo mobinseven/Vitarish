@@ -160,21 +160,21 @@ flowchart LR
 
 ## Source Journey Documents
 
-- `docs/journeys/modules/medical/admin/patient-appointment-journey.md`
-- `docs/journeys/modules/medical/admin/patient-check-in-journey.md`
-- `docs/journeys/modules/medical/admin/patient-overview-journey.md`
-- `docs/journeys/modules/medical/admin/patient-procedure-journey.md`
-- `docs/journeys/modules/medical/admin/patient-profile-crud-journey.md`
-- `docs/journeys/platform/owners/owner-action-inbox-journey.md`
-- `docs/journeys/platform/owners/owner-audit-log-journey.md`
-- `docs/journeys/platform/owners/owner-billing-page-journey.md`
-- `docs/journeys/platform/owners/owner-create-tenant-journey.md`
-- `docs/journeys/platform/owners/owner-danger-zone-journey.md`
-- `docs/journeys/platform/owners/owner-dashboard-journey.md`
-- `docs/journeys/platform/owners/owner-global-tenant-list-journey.md`
-- `docs/journeys/platform/owners/owner-invite-remove-users-journey.md`
-- `docs/journeys/platform/owners/owner-members-roles-journey.md`
-- `docs/journeys/platform/owners/owner-onboarding-journey.md`
-- `docs/journeys/platform/owners/owner-tenant-overview-journey.md`
-- `docs/journeys/platform/owners/owner-tenant-settings-journey.md`
-- `docs/journeys/platform/owners/owner-tenant-switcher-journey.md`
+- [docs/journeys/modules/medical/admin/patient-appointment-journey.md](./modules/medical/admin/patient-appointment-journey.md)
+- [docs/journeys/modules/medical/admin/patient-check-in-journey.md](./modules/medical/admin/patient-check-in-journey.md)
+- [docs/journeys/modules/medical/admin/patient-overview-journey.md](./modules/medical/admin/patient-overview-journey.md)
+- [docs/journeys/modules/medical/admin/patient-procedure-journey.md](./modules/medical/admin/patient-procedure-journey.md)
+- [docs/journeys/modules/medical/admin/patient-profile-crud-journey.md](./modules/medical/admin/patient-profile-crud-journey.md)
+- [docs/journeys/platform/owners/owner-action-inbox-journey.md](./platform/owners/owner-action-inbox-journey.md)
+- [docs/journeys/platform/owners/owner-audit-log-journey.md](./platform/owners/owner-audit-log-journey.md)
+- [docs/journeys/platform/owners/owner-billing-page-journey.md](./platform/owners/owner-billing-page-journey.md)
+- [docs/journeys/platform/owners/owner-create-tenant-journey.md](./platform/owners/owner-create-tenant-journey.md)
+- [docs/journeys/platform/owners/owner-danger-zone-journey.md](./platform/owners/owner-danger-zone-journey.md)
+- [docs/journeys/platform/owners/owner-dashboard-journey.md](./platform/owners/owner-dashboard-journey.md)
+- [docs/journeys/platform/owners/owner-global-tenant-list-journey.md](./platform/owners/owner-global-tenant-list-journey.md)
+- [docs/journeys/platform/owners/owner-invite-remove-users-journey.md](./platform/owners/owner-invite-remove-users-journey.md)
+- [docs/journeys/platform/owners/owner-members-roles-journey.md](./platform/owners/owner-members-roles-journey.md)
+- [docs/journeys/platform/owners/owner-onboarding-journey.md](./platform/owners/owner-onboarding-journey.md)
+- [docs/journeys/platform/owners/owner-tenant-overview-journey.md](./platform/owners/owner-tenant-overview-journey.md)
+- [docs/journeys/platform/owners/owner-tenant-settings-journey.md](./platform/owners/owner-tenant-settings-journey.md)
+- [docs/journeys/platform/owners/owner-tenant-switcher-journey.md](./platform/owners/owner-tenant-switcher-journey.md)
