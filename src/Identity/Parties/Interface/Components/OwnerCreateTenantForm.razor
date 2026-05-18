@@ -55,7 +55,7 @@
                 return;
             }
 
-            await PartiesService.CreateTenantIndicatorAsync(new TenantIndicatorWriteDto
+            TenantIndicatorReadDto? indicator = await PartiesService.CreateTenantIndicatorAsync(new TenantIndicatorWriteDto
             {
                 Id = Guid.NewGuid(),
                 TenantId = tenant.Id,
@@ -64,6 +64,12 @@
                 Status = IndicatorStatus.Active,
                 IsPrimary = true
             });
+
+            if (indicator is null)
+            {
+                Snackbar.Add(Localizer["Error"], Severity.Error);
+                return;
+            }
 
             await OnTenantCreated.InvokeAsync(tenant);
         }

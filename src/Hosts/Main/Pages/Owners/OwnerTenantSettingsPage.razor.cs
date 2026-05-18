@@ -13,20 +13,9 @@ public partial class OwnerTenantSettingsPage
 
     protected override async Task ReloadRequired()
     {
-        if (TenantId is null)
-        {
-            NavigationManager.NavigateTo(AppRoutes.Owners.Tenants);
-            return;
-        }
-
-        tenant = await PartiesService.GetTenantAsync(TenantId.Value);
-        if (tenant is null)
-        {
-            NavigationManager.NavigateTo(AppRoutes.Owners.Tenants);
-            return;
-        }
-
-        selectedModules = new HashSet<string>(TenantMetadata.GetActiveModules(tenant.Metadata), StringComparer.OrdinalIgnoreCase);
+        tenant = await LoadTenantOrRedirectAsync(TenantId, AppRoutes.Owners.Tenants);
+        if (tenant is not null)
+            selectedModules = new HashSet<string>(TenantMetadata.GetActiveModules(tenant.Metadata), StringComparer.OrdinalIgnoreCase);
     }
 
     private void SetTenant(TenantReadDto updated)

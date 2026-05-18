@@ -10,14 +10,6 @@ public partial class OwnerTenantPage
 
     protected override async Task ReloadRequired()
     {
-        if (TenantId is null)
-        {
-            NavigationManager.NavigateTo(AppRoutes.Owners.Tenants);
-            return;
-        }
-
-        tenant = await PartiesService.GetTenantAsync(TenantId.Value);
-        if (tenant is null)
-            NavigationManager.NavigateTo(AppRoutes.Owners.Tenants);
+        tenant = await LoadTenantOrRedirectAsync(TenantId, AppRoutes.Owners.Tenants);
     }
 }

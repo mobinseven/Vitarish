@@ -11,4 +11,16 @@ public class OwnerCommonBase : CommonBase
 {
     [Inject] protected IPartiesService PartiesService { get; set; } = default!;
     [Inject] protected ISnackbar Snackbar { get; set; } = default!;
+
+    /// <summary>
+    /// Parses <see cref="Vitarish.Requests.Application.Abstractions.IRequestContext.OwnerId"/> to a nullable Guid.
+    /// Returns null when the claim is absent or not a valid Guid.
+    /// </summary>
+    protected Guid? GetOwnerGuid()
+    {
+        if (RequestContext.OwnerId is null)
+            return null;
+
+        return Guid.TryParse(RequestContext.OwnerId, out Guid g) ? g : null;
+    }
 }

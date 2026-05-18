@@ -15,9 +15,10 @@
 
     protected override async Task ReloadRequired()
     {
-        if (RequestContext.OwnerId is null || !Guid.TryParse(RequestContext.OwnerId, out Guid ownerGuid))
+        Guid? ownerGuid = GetOwnerGuid();
+        if (ownerGuid is null)
             return;
 
-        owner = await PartiesService.GetOwnerAsync(ownerGuid);
+        owner = await PartiesService.GetOwnerAsync(ownerGuid.Value);
     }
 }
