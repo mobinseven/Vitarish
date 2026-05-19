@@ -64,19 +64,22 @@
     {
         query = value ?? string.Empty;
 
-        debounceCts?.Cancel();
-        debounceCts?.Dispose();
-        debounceCts = new CancellationTokenSource();
-        CancellationToken token = debounceCts.Token;
+        CancellationTokenSource? previous = debounceCts;
+        CancellationTokenSource current = debounceCts = new CancellationTokenSource();
+        previous?.Cancel();
 
         try
         {
-            await Task.Delay(DebounceMs, token);
+            await Task.Delay(DebounceMs, current.Token);
             await RefreshResultsAsync();
         }
-        catch (TaskCanceledException)
+        catch (OperationCanceledException)
         {
             // superseded by newer keystroke
+        }
+        finally
+        {
+            previous?.Dispose();
         }
     }
 

@@ -10,7 +10,7 @@ public sealed class SearchUsersQueryHandler(UsersDbContext db) : IRequestHandler
 {
     public async Task<IEnumerable<User>> Handle(SearchUsersQuery request, CancellationToken cancellationToken)
     {
-        string q = request.Query.Trim();
+        string q = request.Query.Trim().ToLowerInvariant();
 
         if (string.IsNullOrWhiteSpace(q))
         {
@@ -20,10 +20,10 @@ public sealed class SearchUsersQueryHandler(UsersDbContext db) : IRequestHandler
         return await db.Users
             .AsNoTracking()
             .Where(u =>
-                (u.FirstName != null && u.FirstName.Contains(q)) ||
-                (u.LastName != null && u.LastName.Contains(q)) ||
-                (u.UserName != null && u.UserName.Contains(q)) ||
-                (u.Email != null && u.Email.Contains(q)) ||
+                (u.FirstName != null && u.FirstName.ToLower().Contains(q)) ||
+                (u.LastName != null && u.LastName.ToLower().Contains(q)) ||
+                (u.UserName != null && u.UserName.ToLower().Contains(q)) ||
+                (u.Email != null && u.Email.ToLower().Contains(q)) ||
                 (u.PhoneNumber != null && u.PhoneNumber.Contains(q)) ||
                 (u.IdentificationCode != null && u.IdentificationCode.Contains(q)) ||
                 u.Id.Contains(q))
