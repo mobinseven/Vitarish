@@ -67,17 +67,9 @@
                         AutoGrow
                         Label="@Localizer["Notes"]" />
 
-        <StackSelect T="string"
-                     @bind-Value="LinkedUserId"
-                     Label="@Localizer["LinkedUser"]"
-                     AdornmentIcon="@(LinkedUserId is null ? "fa-regular fa-triangle-exclamation" : "")"
-                     AdornmentColor="@(LinkedUserId is null ? Color.Warning : Color.Default)">
-            <MudSelectItem T="string" Value="@(null as string)">@Localizer["None"]</MudSelectItem>
-            @foreach(var user in GetUsers())
-            {
-                <MudSelectItem T="string" Value="user.Id">@user.FullName</MudSelectItem>
-            }
-        </StackSelect>
+        <UserFindOrCreate Value="@LinkedUserId"
+                          ValueChanged="OnLinkedUserChangedAsync"
+                          Options="@LinkedUserPickerOptions" />
 
         <StackExpandable Label="@Localizer["ClinicalData"]">
             <StackTextField @bind-Value="projectWriteDto.PlaceOfBirth"
@@ -113,6 +105,16 @@
     [Parameter] public ProjectWriteDto? InitialProject { get; set; }
 
     private PatientWriteDto projectWriteDto = new();
+    private static readonly UserFindOrCreateOptions LinkedUserPickerOptions = new()
+    {
+        AllowCreate = true,
+        AllowUnlink = true,
+        ShowSearchScopeSelector = true,
+        DefaultSearchScope = UserSearchScope.TenantUsers,
+        AutoLinkExistingUser = true,
+        AllowAutoLinkToggle = true,
+        EnsureTenantUserRoleOnLink = true
+    };
 
     private string? LinkedUserId
     {
@@ -129,6 +131,12 @@
     private Task RemoveAvatar()
     {
         projectWriteDto.AvatarFileId = null;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnLinkedUserChangedAsync(string? userId)
+    {
+        LinkedUserId = userId;
         return InvokeAsync(StateHasChanged);
     }
 

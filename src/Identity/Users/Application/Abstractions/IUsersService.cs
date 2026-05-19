@@ -29,5 +29,6 @@ public interface IUsersService : IUserStore<User>, IUserSecurityStampStore<User>
     Task<IdentityResult> SetUserEmailAsync(string userId, string email, CancellationToken ct = default);
     Task<IEnumerable<IdentityRole>> GetUserRolesAsync(string userId, CancellationToken ct = default);
     Task<IEnumerable<User>> GetUsersByIdentificationCodeAsync(string identificationCode, CancellationToken ct = default);
+    Task<IEnumerable<User>> SearchUsersAsync(string query, int maxResults, CancellationToken ct = default);
     Task<bool> CheckUserRoleAsync(string userId, string roleName, CancellationToken ct = default);
 }

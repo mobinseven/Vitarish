@@ -8,12 +8,9 @@
                  EndIcon="fa-regular fa-shuffle"
                  OnClick="GenerateSourceId" />
 
-    <StackSelect T="string" Label="@Localizer["User"]" @bind-Value="recipientUserId">
-        @foreach (var user in GetUsers())
-        {
-            <MudSelectItem T="string" Value="@user.Id">@user.FullName</MudSelectItem>
-        }
-    </StackSelect>
+    <UserFindOrCreate Value="@recipientUserId"
+                      ValueChanged="OnRecipientUserChangedAsync"
+                      Options="@UserPickerOptions" />
 
     <StackSelect T="ReminderKind" Label="@Localizer["Kind"]" Value="@kind" ValueChanged="OnKindChanged">
         <MudSelectItem T="ReminderKind" Value="ReminderKind.Email">@Localizer["Email"]</MudSelectItem>
@@ -86,6 +83,16 @@
     private IReadOnlyList<ReminderReadDto> sourceReminders = [];
     private string? status;
     private Severity statusSeverity = Severity.Info;
+    private static readonly UserFindOrCreateOptions UserPickerOptions = new()
+    {
+        AllowCreate = true,
+        AllowUnlink = true,
+        ShowSearchScopeSelector = true,
+        DefaultSearchScope = UserSearchScope.TenantUsers,
+        AutoLinkExistingUser = true,
+        AllowAutoLinkToggle = true,
+        EnsureTenantUserRoleOnLink = true
+    };
 
     protected override void OnInitialized()
     {
@@ -115,6 +122,13 @@
         {
             recipient = GetUserAddressById(recipientUserId, kind) ?? recipient;
         }
+    }
+
+    private Task OnRecipientUserChangedAsync(string? userId)
+    {
+        recipientUserId = userId;
+        UseUserAddress();
+        return Task.CompletedTask;
     }
 
     private async Task CreateReminderAsync()

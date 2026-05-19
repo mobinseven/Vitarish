@@ -1,0 +1,164 @@
+@inherits TenantCommonBase
+
+<Stack>
+    <StackTextField Value="@query"
+                    ValueChanged="OnQueryChangedAsync"
+                    Label="@Localizer["Search"]"
+                    HelperText="@Localizer["User"]"
+                    Adornment="Adornment.End"
+                    AdornmentIcon="@(searching ? "fa-regular fa-circle-notch fa-spin" : "fa-regular fa-search")" />
+
+    @if (ShowSearchScopeSelector)
+    {
+        <StackSelect T="UserSearchScope"
+                     Value="@SearchScope"
+                     ValueChanged="OnScopeChangedAsync"
+                     Label="@Localizer["Scope"]">
+            <MudSelectItem T="UserSearchScope" Value="@UserSearchScope.TenantUsers">@Localizer["TenantUsers"]</MudSelectItem>
+            <MudSelectItem T="UserSearchScope" Value="@UserSearchScope.AllPlatformUsers">@Localizer["AllPlatformUsers"]</MudSelectItem>
+        </StackSelect>
+    }
+
+    @if (results.Count == 0 && !string.IsNullOrWhiteSpace(query) && !searching)
+    {
+        <StackField Label="@Localizer["NoItems", Localizer["User"]]" />
+    }
+    else
+    {
+        @foreach (var user in results)
+        {
+            <StackButton Label="@GetDisplayName(user)"
+                         HelperText="@GetHelperText(user)"
+                         EndIcon="fa-regular fa-user-check"
+                         OnClick="() => SelectUserAsync(user.Id)" />
+        }
+    }
+</Stack>
+
+@code {
+    [Parameter] public UserSearchScope SearchScope { get; set; } = UserSearchScope.TenantUsers;
+    [Parameter] public EventCallback<UserSearchScope> SearchScopeChanged { get; set; }
+    [Parameter] public bool ShowSearchScopeSelector { get; set; } = true;
+    [Parameter] public EventCallback<string> OnUserSelected { get; set; }
+
+    [Inject] private IUsersService UsersService { get; set; } = default!;
+
+    private const int MaxResults = 50;
+    private const int DebounceMs = 300;
+
+    private string query = string.Empty;
+    private bool searching;
+    private IReadOnlyList<UserDto> results = [];
+    private CancellationTokenSource? debounceCts;
+
+    protected override Task OnInitializedAsync() => RefreshResultsAsync();
+
+    private async Task OnScopeChangedAsync(UserSearchScope scope)
+    {
+        SearchScope = scope;
+        await SearchScopeChanged.InvokeAsync(scope);
+        await RefreshResultsAsync();
+    }
+
+    private async Task OnQueryChangedAsync(string? value)
+    {
+        query = value ?? string.Empty;
+
+        CancellationTokenSource? previous = debounceCts;
+        CancellationTokenSource current = debounceCts = new CancellationTokenSource();
+        previous?.Cancel();
+
+        try
+        {
+            await Task.Delay(DebounceMs, current.Token);
+            await RefreshResultsAsync(current.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // superseded by newer keystroke
+        }
+        finally
+        {
+            previous?.Dispose();
+        }
+    }
+
+    private async Task RefreshResultsAsync(CancellationToken ct = default)
+    {
+        searching = true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            results = [.. await GetResultsAsync(ct)];
+        }
+        finally
+        {
+            searching = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task<IEnumerable<UserDto>> GetResultsAsync(CancellationToken ct = default)
+    {
+        if (SearchScope == UserSearchScope.TenantUsers)
+        {
+            IEnumerable<UserDto> tenantUsers = GetUsers();
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return tenantUsers.Take(MaxResults);
+            }
+
+            return tenantUsers.Where(MatchesQuery).Take(MaxResults);
+        }
+
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return [];
+        }
+
+        IEnumerable<User> found = await UsersService.SearchUsersAsync(query.Trim(), MaxResults, ct);
+        return found.Select(u => new UserDto(u));
+    }
+
+    private bool MatchesQuery(UserDto user)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return true;
+        }
+
+        string q = query.Trim();
+        return Contains(user.FullName, q)
+               || Contains(user.PhoneNumber, q)
+               || Contains(user.Email, q)
+               || Contains(user.UserName, q)
+               || Contains(user.IdentificationCode, q)
+               || Contains(user.Id, q);
+    }
+
+    private static bool Contains(string? value, string query)
+        => !string.IsNullOrWhiteSpace(value) && value.Contains(query, StringComparison.OrdinalIgnoreCase);
+
+    private async Task SelectUserAsync(string userId) => await OnUserSelected.InvokeAsync(userId);
+
+    private static string GetDisplayName(UserDto user)
+        => string.IsNullOrWhiteSpace(user.FullName) ? user.UserName ?? user.Id : user.FullName;
+
+    private static string GetHelperText(UserDto user)
+    {
+        List<string> parts = [];
+        if (!string.IsNullOrWhiteSpace(user.PhoneNumber))
+        {
+            parts.Add(user.PhoneNumber!);
+        }
+        if (!string.IsNullOrWhiteSpace(user.Email))
+        {
+            parts.Add(user.Email!);
+        }
+        if (!string.IsNullOrWhiteSpace(user.IdentificationCode))
+        {
+            parts.Add(user.IdentificationCode!);
+        }
+        return string.Join(" · ", parts);
+    }
+}

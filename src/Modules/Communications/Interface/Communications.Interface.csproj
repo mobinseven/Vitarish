@@ -7,6 +7,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Identity\Requests\Application\Requests.Application.csproj" />
+    <ProjectReference Include="..\..\..\Identity\Users\Interface\Users.Interface.csproj" />
     <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
     <ProjectReference Include="..\..\Base\Modules.Base.csproj" />

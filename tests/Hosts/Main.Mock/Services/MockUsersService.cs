@@ -365,4 +365,32 @@ public sealed class MockUsersService : IUsersService
             UserName = user.UserName
         };
     public Task<bool> CheckUserRoleAsync(string userId, string roleName, CancellationToken ct = default) => Task.FromResult(true);
+
+    public Task<IEnumerable<User>> GetUsersByIdentificationCodeAsync(string identificationCode, CancellationToken ct = default)
+    {
+        IEnumerable<User> result = users.Values.Where(u =>
+            string.Equals(u.IdentificationCode, identificationCode, StringComparison.OrdinalIgnoreCase));
+        return Task.FromResult(result);
+    }
+
+    public Task<IEnumerable<User>> SearchUsersAsync(string query, int maxResults, CancellationToken ct = default)
+    {
+        string q = query.Trim();
+        if (string.IsNullOrWhiteSpace(q))
+        {
+            return Task.FromResult<IEnumerable<User>>([]);
+        }
+
+        IEnumerable<User> result = users.Values
+            .Where(u =>
+                Contains(u.FirstName, q) || Contains(u.LastName, q) ||
+                Contains(u.UserName, q) || Contains(u.Email, q) ||
+                Contains(u.PhoneNumber, q) || Contains(u.IdentificationCode, q) ||
+                Contains(u.Id, q))
+            .Take(maxResults);
+        return Task.FromResult(result);
+
+        static bool Contains(string? value, string query)
+            => !string.IsNullOrWhiteSpace(value) && value.Contains(query, StringComparison.OrdinalIgnoreCase);
+    }
 }
