@@ -35,6 +35,7 @@
     <Project Path="src/Identity/Users/Domain/Users.Domain.csproj" />
     <Project Path="src/Identity/Users/Hosting/Users.Hosting.csproj" />
     <Project Path="src/Identity/Users/Infrastructure/Users.Infrastructure.csproj" />
+    <Project Path="src/Identity/Users/Interface/Users.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Interfaces/">
     <Project Path="src/Interfaces/Interfaces.Accounts/Interfaces.Accounts.csproj" />

@@ -1,0 +1,116 @@
+@inherits TenantCommonBase
+
+<Stack>
+    <StackTextField @bind-Value="firstName" Label="@Localizer["FirstName"]" />
+    <StackTextField @bind-Value="lastName" Label="@Localizer["LastName"]" />
+    <StackTextField @bind-Value="phoneNumber" Label="@Localizer["Phone"]" InputType="InputType.Telephone" />
+    <StackTextField @bind-Value="email" Label="@Localizer["Email"]" InputType="InputType.Email" />
+    <StackTextField @bind-Value="identificationCode" Label="@Localizer["IdentificationCode"]" />
+
+    @if (AllowAutoLinkToggle)
+    {
+        <StackField Label="Auto-link existing user">
+            <MudSwitch T="bool" Value="@autoLinkExisting" ValueChanged="v => autoLinkExisting = v" />
+        </StackField>
+    }
+
+    <StackButton Label="@Localizer["Create"]"
+                 EndIcon="@(submitting ? "fa-regular fa-circle-notch fa-spin" : "fa-regular fa-plus")"
+                 Color="Color.Primary"
+                 Disabled="@submitting"
+                 OnClick="SubmitAsync" />
+    @if (OnCancel.HasDelegate)
+    {
+        <StackButton Label="@Localizer["Cancel"]" EndIcon="fa-regular fa-xmark" OnClick="() => OnCancel.InvokeAsync()" />
+    }
+</Stack>
+
+@if (!string.IsNullOrWhiteSpace(error))
+{
+    <MudAlert Severity="Severity.Warning">@error</MudAlert>
+}
+
+@code {
+    [Parameter] public bool AutoLinkExistingUser { get; set; } = true;
+    [Parameter] public bool AllowAutoLinkToggle { get; set; } = true;
+    [Parameter] public EventCallback<string> OnUserReady { get; set; }
+    [Parameter] public EventCallback OnCancel { get; set; }
+
+    [Inject] private IUsersService UsersService { get; set; } = default!;
+
+    private string? firstName;
+    private string? lastName;
+    private string? phoneNumber;
+    private string? email;
+    private string? identificationCode;
+    private string? error;
+    private bool submitting;
+    private bool autoLinkExisting;
+
+    protected override void OnParametersSet() => autoLinkExisting = AutoLinkExistingUser;
+
+    private async Task SubmitAsync()
+    {
+        error = null;
+        string? phone = Normalize(phoneNumber);
+        string? mail = Normalize(email);
+        string? idCode = Normalize(identificationCode);
+        string? fName = Normalize(firstName);
+        string? lName = Normalize(lastName);
+
+        if (phone is null && mail is null)
+        {
+            error = "Phone or email is required.";
+            return;
+        }
+
+        submitting = true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            if (!autoLinkExisting)
+            {
+                if (phone is not null && await UsersService.CheckUserPhoneNumberInUseAsync(phone, null, CancellationToken.None))
+                {
+                    error = "A user with this phone already exists.";
+                    return;
+                }
+
+                if (mail is not null && await UsersService.CheckUserEmailInUseAsync(mail, null, CancellationToken.None))
+                {
+                    error = "A user with this email already exists.";
+                    return;
+                }
+            }
+
+            User? user = phone is not null
+                ? await UsersService.CreateUserWithPhoneAsync(new CreateUserWithPhoneCommand(phone, fName, lName, idCode), CancellationToken.None)
+                : await UsersService.CreateUserWithEmailAsync(new CreateUserWithEmailCommand(mail!, fName, lName, idCode), CancellationToken.None);
+
+            if (user is null)
+            {
+                error = "Failed to create or link user.";
+                return;
+            }
+
+            if (mail is not null && !string.Equals(user.Email, mail, StringComparison.OrdinalIgnoreCase))
+            {
+                bool emailInUse = await UsersService.CheckUserEmailInUseAsync(mail, user.Id, CancellationToken.None);
+                if (!emailInUse)
+                {
+                    _ = await UsersService.SetUserEmailAsync(user.Id, mail, CancellationToken.None);
+                }
+            }
+
+            await OnUserReady.InvokeAsync(user.Id);
+        }
+        finally
+        {
+            submitting = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private static string? Normalize(string? value)
+        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+}

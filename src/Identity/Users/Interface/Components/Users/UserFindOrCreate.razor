@@ -1,0 +1,184 @@
+@inherits TenantCommonBase
+
+<Stack>
+    @if (!string.IsNullOrWhiteSpace(Value))
+    {
+        <StackField Label="@Localizer["User"]"
+                    HelperText="@selectedUserSubtitle"
+                    AdornmentIcon="fa-regular fa-user-check" />
+
+        <StackButton Label="Change user"
+                     EndIcon="fa-regular fa-arrow-rotate-right"
+                     OnClick="ShowFindForm" />
+
+        @if (ResolvedOptions.AllowUnlink)
+        {
+            <StackButton Label="@Localizer["None"]"
+                         EndIcon="fa-regular fa-link-slash"
+                         OnClick="ClearAsync" />
+        }
+    }
+    else
+    {
+        <StackButton Label="Find existing user"
+                     EndIcon="fa-regular fa-magnifying-glass"
+                     Color="@(!showCreateForm ? Color.Primary : Color.Default)"
+                     OnClick="ShowFindForm" />
+
+        @if (ResolvedOptions.AllowCreate)
+        {
+            <StackButton Label="Create or auto-link user"
+                         EndIcon="fa-regular fa-user-plus"
+                         Color="@(showCreateForm ? Color.Primary : Color.Default)"
+                         OnClick="ShowCreateForm" />
+        }
+
+        @if (!showCreateForm || !ResolvedOptions.AllowCreate)
+        {
+            <UserFindForm SearchScope="@searchScope"
+                          SearchScopeChanged="OnScopeChangedAsync"
+                          ShowSearchScopeSelector="@ResolvedOptions.ShowSearchScopeSelector"
+                          OnUserSelected="OnUserSelectedAsync" />
+        }
+        else
+        {
+            <UserCreateForm AutoLinkExistingUser="@ResolvedOptions.AutoLinkExistingUser"
+                            AllowAutoLinkToggle="@ResolvedOptions.AllowAutoLinkToggle"
+                            OnUserReady="OnUserSelectedAsync"
+                            OnCancel="ShowFindForm" />
+        }
+    }
+</Stack>
+
+@if (!string.IsNullOrWhiteSpace(warning))
+{
+    <MudAlert Severity="Severity.Warning">@warning</MudAlert>
+}
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+    [Parameter] public EventCallback<UserDto?> SelectedUserChanged { get; set; }
+    [Parameter] public UserFindOrCreateOptions? Options { get; set; }
+
+    [Inject] private IUsersService UsersService { get; set; } = default!;
+
+    private bool showCreateForm;
+    private UserSearchScope searchScope = UserSearchScope.TenantUsers;
+    private string selectedUserSubtitle = string.Empty;
+    private string? warning;
+    private string? lastValue;
+
+    private UserFindOrCreateOptions ResolvedOptions => Options ?? new UserFindOrCreateOptions();
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (lastValue != Value)
+        {
+            lastValue = Value;
+            selectedUserSubtitle = await ResolveSelectedUserSubtitleAsync(Value);
+        }
+
+        searchScope = ResolvedOptions.DefaultSearchScope;
+    }
+
+    private Task OnScopeChangedAsync(UserSearchScope scope)
+    {
+        searchScope = scope;
+        return Task.CompletedTask;
+    }
+
+    private void ShowFindForm()
+    {
+        warning = null;
+        showCreateForm = false;
+    }
+
+    private void ShowCreateForm()
+    {
+        warning = null;
+        showCreateForm = true;
+    }
+
+    private async Task OnUserSelectedAsync(string userId)
+    {
+        warning = null;
+        User? user = await UsersService.GetUserAsync(userId, CancellationToken.None);
+        if (user is null)
+        {
+            warning = Localizer["Error"];
+            return;
+        }
+
+        if (ResolvedOptions.EnsureTenantUserRoleOnLink)
+        {
+            await EnsureTenantUserRoleAsync(user);
+        }
+
+        showCreateForm = false;
+        await SetValueAsync(user.Id);
+        await SelectedUserChanged.InvokeAsync(new UserDto(user));
+    }
+
+    private async Task EnsureTenantUserRoleAsync(User user)
+    {
+        if (string.IsNullOrWhiteSpace(RequestContext.TenantId))
+        {
+            return;
+        }
+
+        string tenantUserRole = $"{RequestContext.TenantId}:{IdentityDefinitions.TenantUser}";
+        bool hasRole = await UsersService.CheckUserRoleAsync(user.Id, tenantUserRole, CancellationToken.None);
+        if (hasRole)
+        {
+            return;
+        }
+
+        try
+        {
+            await UsersService.AddToRoleAsync(user, tenantUserRole, CancellationToken.None);
+        }
+        catch (Exception)
+        {
+            warning = Localizer["Error"];
+        }
+    }
+
+    private async Task ClearAsync()
+    {
+        warning = null;
+        await SetValueAsync(null);
+        await SelectedUserChanged.InvokeAsync(null);
+    }
+
+    private async Task SetValueAsync(string? value)
+    {
+        Value = value;
+        lastValue = value;
+        selectedUserSubtitle = await ResolveSelectedUserSubtitleAsync(value);
+        await ValueChanged.InvokeAsync(value);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task<string> ResolveSelectedUserSubtitleAsync(string? userId)
+    {
+        if (string.IsNullOrWhiteSpace(userId))
+        {
+            return string.Empty;
+        }
+
+        User? user = await UsersService.GetUserAsync(userId, CancellationToken.None);
+        if (user is null)
+        {
+            return userId;
+        }
+
+        UserDto dto = new(user);
+        return string.Join(" · ", new[]
+        {
+            string.IsNullOrWhiteSpace(dto.FullName) ? dto.UserName ?? dto.Id : dto.FullName,
+            dto.PhoneNumber,
+            dto.Email
+        }.Where(v => !string.IsNullOrWhiteSpace(v)));
+    }
+}

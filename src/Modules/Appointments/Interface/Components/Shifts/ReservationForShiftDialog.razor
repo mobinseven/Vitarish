@@ -3,12 +3,9 @@
 <MudDialog>
     <DialogContent>
         <Stack>
-            <StackSelect T="string" Label="@Localizer["User"]" @bind-Value="selectedUserId">
-                @foreach(var user in GetUsers())
-                {
-                    <MudSelectItem T="string" Value="user.Id">@user.FullName</MudSelectItem>
-                }
-            </StackSelect>
+            <UserFindOrCreate Value="@selectedUserId"
+                              ValueChanged="OnSelectedUserChangedAsync"
+                              Options="@UserPickerOptions" />
         </Stack>
         <Stack>
             <StackButton Color="Color.Primary"
@@ -30,7 +27,24 @@
 
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
+    private static readonly UserFindOrCreateOptions UserPickerOptions = new()
+    {
+        AllowCreate = true,
+        AllowUnlink = true,
+        ShowSearchScopeSelector = true,
+        DefaultSearchScope = UserSearchScope.TenantUsers,
+        AutoLinkExistingUser = true,
+        AllowAutoLinkToggle = true,
+        EnsureTenantUserRoleOnLink = true
+    };
+
     private string? selectedUserId;
+
+    private Task OnSelectedUserChangedAsync(string? userId)
+    {
+        selectedUserId = userId;
+        return Task.CompletedTask;
+    }
 
     private async Task SaveAsync()
     {
