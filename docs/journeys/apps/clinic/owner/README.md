@@ -3,7 +3,7 @@
 Date assessed: 2026-05-10
 
 ## Scope and method
-This folder documents clinic owner patient journeys and the current implementation evidence behind them. The implementation status source of truth now lives in the [implementation matrix](./implementation-matrix.md), while the detailed journey narratives stay in the focused journey files.
+This folder documents Clinic Owner patient journeys and the current implementation evidence behind them. The implementation status source of truth now lives in the [implementation matrix](./implementation-matrix.md), while the detailed journey narratives stay in the focused journey files.
 
 Implementation levels in the matrix:
 

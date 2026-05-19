@@ -1,6 +1,6 @@
 # Clinic Owner Journey Implementation Matrix
 
-This matrix is the source of truth for clinic owner patient journey implementation status in this folder.
+This matrix is the source of truth for Clinic Owner patient journey implementation status in this folder.
 Status enum values: `implemented`, `partial`, `missing`.
 
 ## Patients Profile Management (CRUD)
