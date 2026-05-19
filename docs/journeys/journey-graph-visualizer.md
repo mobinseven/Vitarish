@@ -160,11 +160,11 @@ flowchart LR
 
 ## Source Journey Documents
 
-- [docs/journeys/modules/medical/admin/patient-appointment-journey.md](./modules/medical/admin/patient-appointment-journey.md)
-- [docs/journeys/modules/medical/admin/patient-check-in-journey.md](./modules/medical/admin/patient-check-in-journey.md)
-- [docs/journeys/modules/medical/admin/patient-overview-journey.md](./modules/medical/admin/patient-overview-journey.md)
-- [docs/journeys/modules/medical/admin/patient-procedure-journey.md](./modules/medical/admin/patient-procedure-journey.md)
-- [docs/journeys/modules/medical/admin/patient-profile-crud-journey.md](./modules/medical/admin/patient-profile-crud-journey.md)
+- [docs/journeys/apps/clinic/owner/patient-appointment-journey.md](./apps/clinic/owner/patient-appointment-journey.md)
+- [docs/journeys/apps/clinic/owner/patient-check-in-journey.md](./apps/clinic/owner/patient-check-in-journey.md)
+- [docs/journeys/apps/clinic/owner/patient-overview-journey.md](./apps/clinic/owner/patient-overview-journey.md)
+- [docs/journeys/apps/clinic/owner/patient-procedure-journey.md](./apps/clinic/owner/patient-procedure-journey.md)
+- [docs/journeys/apps/clinic/owner/patient-profile-crud-journey.md](./apps/clinic/owner/patient-profile-crud-journey.md)
 - [docs/journeys/platform/owners/owner-action-inbox-journey.md](./platform/owners/owner-action-inbox-journey.md)
 - [docs/journeys/platform/owners/owner-audit-log-journey.md](./platform/owners/owner-audit-log-journey.md)
 - [docs/journeys/platform/owners/owner-billing-page-journey.md](./platform/owners/owner-billing-page-journey.md)
