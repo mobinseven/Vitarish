@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Vitarish.Users.Application.Common;
 using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Users.Infrastructure.Extensions;
@@ -10,13 +11,21 @@ internal static class UserManagerExtensions
         string userName,
         string? firstName,
         string? lastName,
-        Func<User, Task> setUserContact)
+        Func<User, Task> setUserContact,
+        string? identificationCode = null,
+        DateOnly? dateOfBirth = null,
+        string? birthCountryCode = null,
+        string? birthCity = null)
     {
         User user = Activator.CreateInstance<User>();
         _ = await userManager.SetUserNameAsync(user, userName);
         await setUserContact(user);
         user.FirstName = firstName;
         user.LastName = lastName;
+        user.IdentificationCode = UserIdentityNormalization.NormalizeIdentificationCode(identificationCode);
+        user.DateOfBirth = dateOfBirth;
+        user.BirthCountryCode = birthCountryCode?.Trim();
+        user.BirthCity = birthCity?.Trim();
         IdentityResult result = await userManager.CreateAsync(user);
         return !result.Succeeded ? throw new Exception(string.Join('\n', result.Errors.Select(e => $"{e.Code}:{e.Description}"))) : user;
     }

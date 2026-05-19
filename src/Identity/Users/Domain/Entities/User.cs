@@ -12,6 +12,21 @@ public class User : IdentityUser
     public string? LastName { get; set; }
 
     [PersonalData]
+    [MaxLength(64)]
+    public string? IdentificationCode { get; set; }
+
+    [PersonalData]
+    public DateOnly? DateOfBirth { get; set; }
+
+    [PersonalData]
+    [MaxLength(8)]
+    public string? BirthCountryCode { get; set; }
+
+    [PersonalData]
+    [MaxLength(128)]
+    public string? BirthCity { get; set; }
+
+    [PersonalData]
     public string? ProfileJson { get; set; }
 
     [NotMapped]
