@@ -19,7 +19,15 @@ public partial class StreamTransfer : ComponentBase
     public string? UserId { get; set; }
 
     [Parameter]
-    public bool EnableImageCapture { get; set; }
+    private void ApplyParameters()
+    {
+        Service.UserId = UserId;
+        Service.EnableImageCapture = EnableImageCapture;
+        Service.CaptureDevice = CaptureDevice;
+        // Enforce mutual exclusivity: if capture is enabled, disable multiple selection
+        Service.AllowMultipleSelection = EnableImageCapture ? false : AllowMultipleSelection;
+        Service.SetActivatorContent(ActivatorContent);
+    }
 
     [Parameter]
     public CaptureDeviceMode CaptureDevice { get; set; } = CaptureDeviceMode.Environment;
