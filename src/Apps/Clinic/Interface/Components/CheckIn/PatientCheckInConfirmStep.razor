@@ -4,6 +4,10 @@
     <StackField Label="@Localizer["CheckInComplete"]"
                 AdornmentIcon="fa-regular fa-circle-check"
                 AdornmentColor="@(Context.Outcome == CheckInOutcome.CurrentShift ? Color.Success : Color.Info)" />
+    <StackField Label="@Localizer["ReservationSuccessful"]"
+                AdornmentIcon="fa-regular fa-calendar-check"
+                AdornmentColor="Color.Success"
+                Color="Color.Success" />
 
     @if (Context.SelectedPatient is not null)
     {
@@ -30,6 +34,23 @@
                     Color="Color.Info" />
     }
 
+    @if (!string.IsNullOrWhiteSpace(Context.OperationalWarning))
+    {
+        <StackField Label="@Context.OperationalWarning"
+                    AdornmentIcon="fa-regular fa-triangle-exclamation"
+                    AdornmentColor="Color.Warning"
+                    Color="Color.Warning" />
+    }
+
+    @if (Context.NotificationStatus != CheckInNotificationStatus.None)
+    {
+        <StackField Label="@GetNotificationLabel()"
+                    HelperText="@Context.NotificationMessage"
+                    AdornmentIcon="@(Context.NotificationStatus == CheckInNotificationStatus.Sent ? "fa-regular fa-paper-plane" : "fa-regular fa-circle-xmark")"
+                    AdornmentColor="@(Context.NotificationStatus == CheckInNotificationStatus.Sent ? Color.Success : Color.Error)"
+                    Color="@(Context.NotificationStatus == CheckInNotificationStatus.Sent ? Color.Success : Color.Error)" />
+    }
+
     @if (Context.ConfirmedReservation is not null)
     {
         <StackField Label="@Localizer["Appointment"]" />
@@ -47,6 +68,10 @@
                      EndIcon="fa-regular fa-arrow-right"
                      Color="Color.Primary"
                      OnClick="HandleGoToPatientAsync" />
+        <StackButton Label="@Localizer["SendSmsConfirmation"]"
+                     EndIcon="fa-regular fa-paper-plane"
+                     Variant="Variant.Outlined"
+                     OnClick="SendConfirmationAsync" />
     }
 
     <StackButton Label="@Localizer["StartAnotherCheckIn"]"
@@ -58,6 +83,11 @@
     [Parameter, EditorRequired] public PatientCheckInContext Context { get; set; } = default!;
     [Parameter] public EventCallback OnStartAnother { get; set; }
     [Parameter] public EventCallback<Guid> OnGoToPatient { get; set; }
+    [Inject] private IMessagesService MessagesService { get; set; } = default!;
+
+    private string GetNotificationLabel() => Context.NotificationStatus == CheckInNotificationStatus.Sent
+        ? Localizer["SmsConfirmationSent"]
+        : Localizer["SmsConfirmationFailed"];
 
     private string GetOutcomeHelperText()
     {
@@ -94,5 +124,44 @@
         return Context.SelectedPatient is null
             ? Task.CompletedTask
             : OnGoToPatient.InvokeAsync(Context.SelectedPatient.Id);
+    }
+
+    private async Task SendConfirmationAsync()
+    {
+        if (Context.NotificationChannel != CheckInNotificationChannel.Sms || Context.SelectedPatient is null || Context.SelectedOccurrence is null)
+        {
+            Context.NotificationStatus = CheckInNotificationStatus.Failed;
+            Context.NotificationMessage = Localizer["SmsConfirmationFailedMissingRecipient"];
+            return;
+        }
+
+        string? linkedUserId = Context.SelectedPatient.UserIds.FirstOrDefault();
+        string? phoneNumber = TenantService.Users?.FirstOrDefault(u => u.Id == linkedUserId)?.PhoneNumber;
+
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+        {
+            Context.NotificationStatus = CheckInNotificationStatus.Failed;
+            Context.NotificationMessage = Localizer["SmsConfirmationFailedMissingRecipient"];
+            return;
+        }
+
+        try
+        {
+            string body = $"{Context.SelectedPatient.Name} - {GetDateTimeLabel()}";
+            Vitarish.Communications.Domain.Models.SmsSendResult sendResult = await MessagesService.SendSms(new Vitarish.Communications.Domain.Models.Message
+            {
+                Recipient = phoneNumber,
+                Body = body
+            }, CancellationToken.None);
+            Context.NotificationStatus = CheckInNotificationStatus.Sent;
+            Context.NotificationMessage = sendResult.MessageId;
+        }
+        catch (Exception ex)
+        {
+            Context.NotificationStatus = CheckInNotificationStatus.Failed;
+            Context.NotificationMessage = ex.Message;
+        }
+
+        await InvokeAsync(StateHasChanged);
     }
 }

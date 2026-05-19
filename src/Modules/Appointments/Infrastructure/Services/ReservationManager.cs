@@ -14,9 +14,24 @@ internal class ReservationManager(IMediator mediator)
         DateOnly date,
         string? reservingPartyId,
         CancellationToken cancellationToken)
+        => await ReserveAsyncCore(shiftId, date, reservingPartyId, capacityOverride: false, cancellationToken);
+
+    public async Task<EntityResult<ReservationReadDto>> ReserveWithOverrideAsync(
+        Guid shiftId,
+        DateOnly date,
+        string? reservingPartyId,
+        CancellationToken cancellationToken)
+        => await ReserveAsyncCore(shiftId, date, reservingPartyId, capacityOverride: true, cancellationToken);
+
+    private async Task<EntityResult<ReservationReadDto>> ReserveAsyncCore(
+        Guid shiftId,
+        DateOnly date,
+        string? reservingPartyId,
+        bool capacityOverride,
+        CancellationToken cancellationToken)
     {
         EntityResult<Guid> reservationResult = await Mediator.Send(
-            new CreateReservationCommand(shiftId, date, reservingPartyId),
+            new CreateReservationCommand(shiftId, date, reservingPartyId, CapacityOverride: capacityOverride),
             cancellationToken);
         return reservationResult.IsFailure
             ? EntityResult<ReservationReadDto>.Failure([.. reservationResult.Errors])

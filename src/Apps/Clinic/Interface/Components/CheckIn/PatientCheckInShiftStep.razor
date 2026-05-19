@@ -30,7 +30,6 @@
                         r.Status != ReservationStatus.Cancelled &&
                         r.Status != ReservationStatus.Rejected &&
                         r.Status != ReservationStatus.Expired);
-                        bool available = slot?.Occurrence is not null && slot.Occurrence.AvailableSeats > 0;
                         bool shiftIsFull = slot?.Occurrence is not null && slot.Occurrence.AvailableSeats == 0;
 
                         if(alreadyBooked)
@@ -59,7 +58,7 @@
                         }
                         else if(shiftIsFull)
                         {
-                            <MudButton Color="Color.Warning" OnClick="() => BookSlotAsync(slot!.Shift, slot.Occurrence!)">
+                            <MudButton Color="Color.Warning" Disabled="true">
                                 <span>
                                     @slot!.Shift.StartTime.ToShortTimeString()
                                 </span>
@@ -68,6 +67,18 @@
                                     @slot!.Shift.EndTime.ToShortTimeString()
                                 </span>
                             </MudButton>
+                            @if(AdminMode)
+                            {
+                                <MudButton Color="Color.Warning" Variant="Variant.Outlined" OnClick="() => BookSlotAsync(slot!.Shift, slot.Occurrence!, true)">
+                                    @Localizer["OverrideCapacity"]
+                                </MudButton>
+                            }
+                            @if(waitlistEnabled && !HasSameDayCapacity(slot!.Occurrence!.Date))
+                            {
+                                <MudButton Color="Color.Info" Variant="Variant.Text" OnClick="() => JoinWaitlistAsync(slot!.Shift, slot.Occurrence!)">
+                                    @Localizer["JoinWaitlist"]
+                                </MudButton>
+                            }
                         }
 
                     }
@@ -88,4 +99,3 @@
                  EndIcon="fa-regular fa-arrow-left"
                  OnClick="OnBack" />
 </Stack>
-

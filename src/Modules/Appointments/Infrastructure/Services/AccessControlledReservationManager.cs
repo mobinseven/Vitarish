@@ -92,7 +92,27 @@ internal class AccessControlledReservationManager(
         DateOnly date,
         string? reservingPartyId,
         CancellationToken cancellationToken)
+        => await ReserveInternalAsync(shiftId, date, reservingPartyId, capacityOverride: false, cancellationToken);
+
+    public async Task<EntityResult<ReservationReadDto>> ReserveWithOverrideAsync(
+        Guid shiftId,
+        DateOnly date,
+        string? reservingPartyId,
+        CancellationToken cancellationToken)
+        => await ReserveInternalAsync(shiftId, date, reservingPartyId, capacityOverride: true, cancellationToken);
+
+    private async Task<EntityResult<ReservationReadDto>> ReserveInternalAsync(
+        Guid shiftId,
+        DateOnly date,
+        string? reservingPartyId,
+        bool capacityOverride,
+        CancellationToken cancellationToken)
     {
+        if (capacityOverride && !ElevatedAccess)
+        {
+            throw ElevatedAccessRequired;
+        }
+
         string? effectivePartyId = ElevatedAccess ? reservingPartyId : UserId;
         if (string.IsNullOrWhiteSpace(effectivePartyId))
         {
@@ -107,7 +127,8 @@ internal class AccessControlledReservationManager(
             return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("Booking is not open for this shift slot."));
         }
 
-        if (!await bookingPolicyEngine.HasCapacityForPartyAsync(shiftId, date, effectivePartyId, cancellationToken))
+        if (!capacityOverride &&
+            !await bookingPolicyEngine.HasCapacityForPartyAsync(shiftId, date, effectivePartyId, cancellationToken))
         {
             return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("The reserving party has reached the reservation limit for this shift slot."));
         }
@@ -129,11 +150,17 @@ internal class AccessControlledReservationManager(
             return EntityResult<ReservationReadDto>.Failure(EntityError.Conflict("An active reservation already exists for this shift slot."));
         }
 
-        EntityResult<ReservationReadDto> reserveResult = await reservationManager.ReserveAsync(
-            shiftId,
-            date,
-            effectivePartyId,
-            cancellationToken);
+        EntityResult<ReservationReadDto> reserveResult = capacityOverride
+            ? await reservationManager.ReserveWithOverrideAsync(
+                shiftId,
+                date,
+                effectivePartyId,
+                cancellationToken)
+            : await reservationManager.ReserveAsync(
+                shiftId,
+                date,
+                effectivePartyId,
+                cancellationToken);
         if (reserveResult.IsFailure || reserveResult.Value is null)
         {
             return reserveResult.IsFailure
