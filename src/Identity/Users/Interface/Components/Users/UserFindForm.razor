@@ -71,7 +71,7 @@
         try
         {
             await Task.Delay(DebounceMs, current.Token);
-            await RefreshResultsAsync();
+            await RefreshResultsAsync(current.Token);
         }
         catch (OperationCanceledException)
         {
@@ -83,13 +83,13 @@
         }
     }
 
-    private async Task RefreshResultsAsync()
+    private async Task RefreshResultsAsync(CancellationToken ct = default)
     {
         searching = true;
         await InvokeAsync(StateHasChanged);
         try
         {
-            results = [.. await GetResultsAsync()];
+            results = [.. await GetResultsAsync(ct)];
         }
         finally
         {
@@ -98,7 +98,7 @@
         }
     }
 
-    private async Task<IEnumerable<UserDto>> GetResultsAsync()
+    private async Task<IEnumerable<UserDto>> GetResultsAsync(CancellationToken ct = default)
     {
         if (SearchScope == UserSearchScope.TenantUsers)
         {
@@ -116,7 +116,7 @@
             return [];
         }
 
-        IEnumerable<User> found = await UsersService.SearchUsersAsync(query.Trim(), MaxResults, CancellationToken.None);
+        IEnumerable<User> found = await UsersService.SearchUsersAsync(query.Trim(), MaxResults, ct);
         return found.Select(u => new UserDto(u));
     }
 
