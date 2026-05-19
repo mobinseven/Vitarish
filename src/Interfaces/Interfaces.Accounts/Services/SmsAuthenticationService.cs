@@ -10,7 +10,7 @@ public interface ISmsAuthenticationService
 public class SmsAuthenticationService(
         UserManager<User> userManager,
         ILogger<SmsAuthenticationService> logger,
-        IMessageQueue messageQueue) : ISmsAuthenticationService
+        ICommunicationCommandQueue communicationCommandQueue) : ISmsAuthenticationService
 {
     public async Task SendCode(User user, string phonenumber)
     {
@@ -21,7 +21,7 @@ public class SmsAuthenticationService(
         }
 
         string code = await userManager.GenerateTwoFactorTokenAsync(user, TokenOptions.DefaultPhoneProvider);
-        messageQueue.EnqueueSms(phonenumber, code);
+        communicationCommandQueue.Enqueue(new SmsCodeCommunicationCommand(phonenumber, code));
     }
 
     public async Task<bool> VerifyCode(User user, string code) => await userManager.VerifyTwoFactorTokenAsync(user, TokenOptions.DefaultPhoneProvider, code);

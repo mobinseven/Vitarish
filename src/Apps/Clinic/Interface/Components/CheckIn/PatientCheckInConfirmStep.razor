@@ -1,6 +1,4 @@
 @inherits Vitarish.Modules.Base.TenantCommonBase
-@using Vitarish.Communications.Domain.Models
-
 <Stack>
     <StackField Label="@Localizer["CheckInComplete"]"
                 AdornmentIcon="fa-regular fa-circle-check"
@@ -87,7 +85,7 @@
     [Parameter, EditorRequired] public PatientCheckInContext Context { get; set; } = default!;
     [Parameter] public EventCallback OnStartAnother { get; set; }
     [Parameter] public EventCallback<Guid> OnGoToPatient { get; set; }
-    [Inject] private IMessagesService MessagesService { get; set; } = default!;
+    [Inject] private ICommunicationCommandQueue CommunicationCommandQueue { get; set; } = default!;
 
     private string GetNotificationLabel() => Context.NotificationStatus == CheckInNotificationStatus.Sent
         ? Localizer["SmsConfirmationSent"]
@@ -152,13 +150,9 @@
         try
         {
             string body = Localizer["SmsConfirmationBody", Context.SelectedPatient.Name, GetDateTimeLabel()];
-            SmsSendResult sendResult = await MessagesService.SendSms(new Message
-            {
-                Recipient = phoneNumber,
-                Body = body
-            }, CancellationToken.None);
+            CommunicationCommandQueue.Enqueue(new SmsCommunicationCommand(phoneNumber, body));
             Context.NotificationStatus = CheckInNotificationStatus.Sent;
-            Context.NotificationMessage = sendResult.MessageId;
+            Context.NotificationMessage = GetLocalizedText("SmsConfirmationQueued", "SMS confirmation queued.");
         }
         catch (Exception)
         {
@@ -167,5 +161,11 @@
         }
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private string GetLocalizedText(string key, string fallback)
+    {
+        LocalizedString localized = Localizer[key];
+        return localized.ResourceNotFound ? fallback : localized.Value;
     }
 }

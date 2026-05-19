@@ -1,6 +1,6 @@
-@inherits CommonBase
 @using Vitarish.Communications.Domain.Models
 
+@inherits CommonBase
 <Stack>
     <StackField Label="@Localizer["CommunicationsMessages"]" />
     <StackTextField Label="@Localizer["Recipient"]" @bind-Value="recipient" />
@@ -44,6 +44,7 @@
 </Stack>
 
 @code {
+    [Inject] private ICommunicationCommandQueue CommunicationCommandQueue { get; set; } = default!;
     [Inject] private IMessagesService MessagesService { get; set; } = default!;
 
     private string recipient = string.Empty;
@@ -59,105 +60,93 @@
     private string? status;
     private Severity statusSeverity = Severity.Info;
 
-    private async Task SendEmailAsync()
+    private Task SendEmailAsync()
     {
         if (string.IsNullOrWhiteSpace(recipient))
         {
             SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
-            return;
+            return Task.CompletedTask;
         }
 
         try
         {
-            await MessagesService.SendEmail(new Message
-            {
-                Recipient = recipient,
-                Subject = subject,
-                Body = body,
-                HtmlBody = htmlBody
-            }, CancellationToken.None);
-
-            SetStatus(Localizer["EmailSent"].Value, Severity.Success);
+            CommunicationCommandQueue.Enqueue(new EmailCommunicationCommand(recipient, subject, body, htmlBody));
+            SetStatus(GetLocalizedText("EmailQueued", "Email queued."), Severity.Success);
         }
         catch (Exception ex)
         {
             SetStatus(ex.Message, Severity.Error);
         }
+
+        return Task.CompletedTask;
     }
 
-    private async Task SendSmsAsync()
+    private Task SendSmsAsync()
     {
         if (string.IsNullOrWhiteSpace(recipient))
         {
             SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
-            return;
+            return Task.CompletedTask;
         }
 
         try
         {
-            SmsSendResult result = await MessagesService.SendSms(new Message
-            {
-                Recipient = recipient,
-                Subject = subject,
-                Body = body
-            }, CancellationToken.None);
-
-            lastSmsMessageId = result.MessageId;
-            SetStatus($"{Localizer["SmsSent"]}: {result.MessageId}", Severity.Success);
+            CommunicationCommandQueue.Enqueue(new SmsCommunicationCommand(recipient, body));
+            SetStatus(GetLocalizedText("SmsQueued", "SMS queued."), Severity.Success);
         }
         catch (Exception ex)
         {
             SetStatus(ex.Message, Severity.Error);
         }
+
+        return Task.CompletedTask;
     }
 
-    private async Task SendSmsCodeAsync()
+    private Task SendSmsCodeAsync()
     {
         if (string.IsNullOrWhiteSpace(recipient))
         {
             SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
-            return;
+            return Task.CompletedTask;
         }
 
         try
         {
-            await MessagesService.SendSmsCode(new Message
-            {
-                Recipient = recipient,
-                Body = body
-            }, CancellationToken.None);
-
-            SetStatus(Localizer["SmsCodeSent"].Value, Severity.Success);
+            CommunicationCommandQueue.Enqueue(new SmsCodeCommunicationCommand(recipient, body));
+            SetStatus(GetLocalizedText("SmsCodeQueued", "SMS code queued."), Severity.Success);
         }
         catch (Exception ex)
         {
             SetStatus(ex.Message, Severity.Error);
         }
+
+        return Task.CompletedTask;
     }
 
-    private async Task SendSmsReminderAsync()
+    private Task SendSmsReminderAsync()
     {
         if (string.IsNullOrWhiteSpace(recipient))
         {
             SetStatus(Localizer["RecipientIsRequired"].Value, Severity.Warning);
-            return;
+            return Task.CompletedTask;
         }
 
         try
         {
-            await MessagesService.SendSmsReminder(
+            CommunicationCommandQueue.Enqueue(new SmsReminderCommunicationCommand(
                 recipient,
-                project: reminderProject,
-                procedure: reminderProcedure,
-                evnt: reminderEvent,
-                tenant: reminderTenant,
-                cancellationToken: CancellationToken.None);
-            SetStatus(Localizer["SmsReminderSent"].Value, Severity.Success);
+                Project: reminderProject,
+                Procedure: reminderProcedure,
+                Event: reminderEvent,
+                Tenant: reminderTenant));
+            SetStatus(GetLocalizedText("SmsReminderQueued", "SMS reminder queued."), Severity.Success);
         }
         catch (Exception ex)
         {
             SetStatus(ex.Message, Severity.Error);
         }
+
+        return Task.CompletedTask;
     }
 
     private async Task CheckDeliveryStateAsync()
@@ -187,5 +176,11 @@
     {
         status = message;
         statusSeverity = severity;
+    }
+
+    private string GetLocalizedText(string key, string fallback)
+    {
+        LocalizedString localized = Localizer[key];
+        return localized.ResourceNotFound ? fallback : localized.Value;
     }
 }

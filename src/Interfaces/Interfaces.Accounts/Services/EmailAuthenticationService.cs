@@ -12,7 +12,7 @@ public interface IEmailAuthenticationService
 public class EmailAuthenticationService(
         UserManager<User> userManager,
         ILogger<EmailAuthenticationService> logger,
-        IMessageQueue messageQueue) : IEmailAuthenticationService
+        ICommunicationCommandQueue communicationCommandQueue) : IEmailAuthenticationService
 {
     public async Task SendCode(User user, string email)
     {
@@ -24,7 +24,7 @@ public class EmailAuthenticationService(
 
         string code = await userManager.GenerateTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider);
         (string HtmlBody, string TextBody) = GetAuthenticationCodeEmail(user.UserName, code);
-        messageQueue.EnqueueEmail(email, "Code", TextBody, HtmlBody);
+        communicationCommandQueue.Enqueue(new EmailCommunicationCommand(email, "Code", TextBody, HtmlBody));
     }
 
     public async Task<bool> VerifyCode(User user, string code) => await userManager.VerifyTwoFactorTokenAsync(user, TokenOptions.DefaultEmailProvider, code);
