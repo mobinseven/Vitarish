@@ -1,7 +1,5 @@
 @attribute [Route(AppRoutes.Appointments.UserShifts)]
+@attribute [EnableSearch]
 
 <ShiftsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.Shift(id)))" />
 
-@code {
-    protected override void OnInitialized() => NavService.EnableSearch();
-}

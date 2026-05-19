@@ -3,14 +3,16 @@
 @inject IStringLocalizer Localizer
 <Router AppAssembly="typeof(App).Assembly">
     <Found Context="routeData">
-        <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)">
+        <SearchRouteState RouteData="routeData">
+            <AuthorizeRouteView RouteData="routeData" DefaultLayout="typeof(MainLayout)">
             <NotAuthorized>
                 <RedirectToUnauthorized UnauthorizedRoute="@AppRoutes.Account.Unauthorized" />
             </NotAuthorized>
             <Authorizing>
                 <MudProgressLinear Indeterminate />
             </Authorizing>
-        </AuthorizeRouteView>
+            </AuthorizeRouteView>
+        </SearchRouteState>
     </Found>
     <NotFound>
         <RouteView RouteData="new RouteData(typeof(NotFound), new Dictionary<string,object?>())" DefaultLayout="typeof(SimpleLayout)" />

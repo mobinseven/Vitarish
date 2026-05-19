@@ -1,7 +1,5 @@
 @attribute [Route(AppRoutes.Appointments.OwnerReservations)]
+@attribute [EnableSearch]
 
 <ReservationsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.AdminReservation(id)))" />
 
-@code {
-    protected override void OnInitialized() => NavService.EnableSearch();
-}

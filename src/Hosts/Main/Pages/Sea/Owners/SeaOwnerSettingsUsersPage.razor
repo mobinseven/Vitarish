@@ -1,6 +1,4 @@
 @attribute [Route(AppRoutes.Sea.OwnerSettingsUsers)]
 <UsersGrid />
+@attribute [EnableSearch]
 
-@code {
-    protected override void OnInitialized() => NavService.EnableSearch();
-}
