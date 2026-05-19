@@ -1,7 +1,7 @@
 # Patient Overview Journey
 
 ## 1. Context
-- Product / service: Vitarish Medical module
+- Product / service: Vitarish Clinic owner app
 - Journey type: Future state, based on partial current state
 - Scenario: Clinician opens a patient and needs a concise care snapshot.
 - User goal: Understand the patient quickly and act.
@@ -98,7 +98,7 @@
 ## 6. Technical Detail Addendum
 
 ### Current implementation touchpoints
-- `PatientPage.razor` is the current de facto patient overview: it stacks `PatientDetails`, `ProceduresGrid`, `PatientAppointmentsPanel`, and any `IMedicalPatientSectionPlugin` sections.
+- `ClinicOwnerPatientPage.razor` is the current de facto patient overview: it stacks `PatientDetails`, `ProceduresGrid`, `PatientAppointmentsPanel`, and any `IMedicalPatientSectionPlugin` sections.
 - `PatientOverviewPanel` and `PatientSummaryCard` exist as compact read components, but `PatientPage.razor` does not currently render `PatientOverviewPanel` as the primary patient overview surface.
 - `PatientDetails` displays profile description, clinical notes, surgery date, gender, date of birth/age, Sea stats, and linked user name.
 - `ProceduresGrid` contributes procedure-level counts and navigation, while `PatientAppointmentsPanel` contributes reservation status badges and booking entry points.

@@ -1,7 +1,7 @@
 # Patient Procedure Journey
 
 ## 1. Context
-- Product / service: Vitarish Medical + Sea modules
+- Product / service: Vitarish Clinic owner app + Sea modules
 - Journey type: Current state with gaps
 - Scenario: Admin adds a procedure and records step-level history.
 - User goal: Track care/procedure work for a patient.
@@ -98,7 +98,7 @@
 ## 6. Technical Detail Addendum
 
 ### Current implementation touchpoints
-- `PatientPage.razor` embeds Sea `ProceduresGrid` below `PatientDetails`; created or clicked procedures navigate to `/Medical/Patients/{patientId}/{procedureId}`.
+- `ClinicOwnerPatientPage.razor` embeds Sea `ProceduresGrid` below `PatientDetails`; created or clicked procedures navigate to `/owner/clinic/patients/{patientId}/procedures/{procedureId}`.
 - `ProceduresGrid` queries `IProceduresService.GetListAsync` with `ProcedureDescriptorDto.ProjectId`, sorts unread/new procedures first, and opens `ProcedureCreateDialog` for admin users.
 - `ProcedureCreateDialog` can copy a template procedure by duplicating event chain entries, event role assignments, and attachments into the new patient procedure.
 - `PatientProcedurePage.razor` renders `EventsGrid` and `ProcedureDetails`; `ProcedureDetails` exposes edit and delete actions through `ProcedureEditDialog` and `ProceduresService.DeleteAsync`.

@@ -1,10 +1,10 @@
-# Medical Module Admin User Journey Assessment
+# Clinic Owner Patient Journey Assessment
 
 Date assessed: 2026-05-10
 
 ## Scope and method
 
-This report maps the requested medical-module objectives to the admin-only journeys that currently exist in the codebase and the smallest future journeys needed to close gaps. Evidence comes from static code review of the Medical, Sea, and Appointments modules.
+This report maps the requested clinic-owner patient objectives to the admin-only journeys that currently exist in the codebase and the smallest future journeys needed to close gaps. Evidence comes from static code review of the Clinic app host, Sea, Clinic, and Appointments modules.
 
 Implementation levels:
 
@@ -24,8 +24,8 @@ Implementation levels:
 
 ## Evidence highlights
 
-- Medical pages expose patient list, new, detail, edit, procedure, and procedure-event routes under `/Medical/Patients`.
-- Patient data is represented as a Medical wrapper around Sea `Project` records, with patient-specific fields stored in metadata and user linkage through `UserIds`.
+- Clinic owner pages expose patient list, new, detail, edit, procedure, and procedure-event routes under `/owner/clinic/patients`.
+- Patient data is represented through clinic patient wrappers around Sea `Project` records, with patient-specific fields stored in metadata and user linkage through `UserIds`.
 - Procedures and event timelines are provided by the Sea module and embedded into patient pages.
 - Patient appointment booking uses the Appointments reservation/session model and requires a linked user account.
 - Reservation creation validates active sessions, booking windows, per-party limits, capacity, and occurrence availability.
@@ -36,9 +36,9 @@ Implementation levels:
 
 | Requested objective | Status | Evidence / notes |
 | --- | --- | --- |
-| Create patient profiles | **Implemented** | `/Medical/Patients/New` renders `PatientEditForm`; saving creates a project/patient. |
+| Create patient profiles | **Implemented** | `/owner/clinic/patients/new` renders `PatientEditForm`; saving creates a project/patient. |
 | View patient details | **Implemented** | Patient detail page renders `PatientDetails`, procedures, appointments, and plugin sections. |
-| Edit patient information | **Implemented** | `/Medical/Patients/{patientId}/Edit` loads the patient and renders `PatientEditForm`. |
+| Edit patient information | **Implemented** | `/owner/clinic/patients/{patientId}/edit` loads the patient and renders `PatientEditForm`. |
 | Archive/delete patient profiles | **Implemented** | `PatientDetails` inherits project deletion; delete uses a strict confirmation then removes the record. This appears to be soft-delete through common entity filters. |
 | Search and filter patients | **Partially implemented** | Patient list consumes global search text and groups by presence of surgery date; no dedicated patient filters for status, demographics, linked user, etc. |
 | Manage patient status (active/inactive) | **Not implemented** | No patient status field, enum, UI control, or filter was found. |
@@ -105,7 +105,7 @@ The maps below are intentionally short. Current-state maps document implemented 
 
 | Component / unit | Responsibility today | Issues needing attention |
 | --- | --- | --- |
-| `PatientsPage.razor` | Hosts `/Medical/Patients`, enables global search, and renders `PatientsGrid`. | Page has no dedicated patient filter model beyond global search. |
+| `ClinicOwnerPatientsPage.razor` | Hosts `/owner/clinic/patients`, enables global search, and renders `PatientsGrid`. | Page has no dedicated patient filter model beyond global search. |
 | PatientsGrid | Inherits ProjectsGrid, loads Sea projects, maps them to patients, groups by surgery-date presence, and supports a mass-edit mode for bulk patient updates. | Add status, duplicate-risk, linked-user, demographic, and clinical-data filters without hard-coding service internals into the grid. |
 | `PatientEditForm` | Creates/updates a patient-backed project; handles avatar, demographics, clinical notes, linked user, and extended clinical data. | Validation only enforces a non-empty composed name; add duplicate checks, stronger required-field validation, and status controls before saving. |
 | `PatientDetails` / `ProjectDetails` | Displays patient metadata and delegates edit/delete actions to Sea project behavior. | Clarify archive versus delete; introduce patient-specific status and audit-friendly removal semantics. |
@@ -133,7 +133,7 @@ The maps below are intentionally short. Current-state maps document implemented 
 
 | Component / unit | Responsibility today | Issues needing attention |
 | --- | --- | --- |
-| `PatientPage.razor` | Stacks details, procedures, appointments, and plugin sections as the current patient page. | Introduce a single overview read model rather than forcing the page to compose module-specific context. |
+| `ClinicOwnerPatientPage.razor` | Stacks details, procedures, appointments, and plugin sections as the current patient page. | Introduce a single overview read model rather than forcing the page to compose module-specific context. |
 | `PatientOverviewPanel` | Displays compact profile facts, stats, and linked user information. | Not currently the primary overview; expand it into a read-only summary for flags, next appointment, procedure statuses, and recent activity. |
 | `PatientSummaryCard` | Provides a small navigable patient card with surgery date and stats. | Add status/flag badges once patient status and risk flags exist. |
 | `IMedicalPatientSectionPlugin` / `IMedicalProcedureSectionPlugin` | Allows medical sections to extend patient/procedure pages. | Define stable ordered slots so extensions do not compete with safety-critical overview content. |
