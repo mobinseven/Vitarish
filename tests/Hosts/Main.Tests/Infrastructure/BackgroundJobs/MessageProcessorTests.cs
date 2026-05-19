@@ -1,114 +1,131 @@
 using Microsoft.Extensions.Logging;
 using Moq;
 using Vitarish.Communications.Application.Abstractions;
+using Vitarish.Communications.Domain.Models;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
-using CommunicationsMessage = Vitarish.Communications.Domain.Models.Message;
+using DeliveryMessage = Vitarish.Communications.Domain.Models.Message;
 
 namespace Main.Tests.Infrastructure.BackgroundJobs;
 
 public class MessageProcessorTests
 {
-    private readonly Mock<ILogger<MessageProcessor>> mockLogger;
-    private readonly Mock<IMessagesService> mockMessagesService;
-    private readonly Mock<ICommunicationsModule> mockCommunicationModule;
-    private readonly MessageProcessor sut;
+    private readonly Mock<ILogger<MessageProcessor>> _mockLogger;
+    private readonly Mock<IMessagesService> _mockMessagesService;
+    private readonly Mock<ICommunicationsModule> _mockCommunicationModule;
+    private readonly MessageProcessor _sut;
 
     public MessageProcessorTests()
     {
-        mockLogger = new Mock<ILogger<MessageProcessor>>();
-        mockMessagesService = new Mock<IMessagesService>();
-        mockCommunicationModule = new Mock<ICommunicationsModule>();
-        sut = new MessageProcessor(mockLogger.Object, mockMessagesService.Object, mockCommunicationModule.Object);
+        _mockLogger = new Mock<ILogger<MessageProcessor>>();
+        _mockMessagesService = new Mock<IMessagesService>();
+        _mockCommunicationModule = new Mock<ICommunicationsModule>();
+        _sut = new MessageProcessor(_mockLogger.Object, _mockMessagesService.Object, _mockCommunicationModule.Object);
     }
 
     [Fact]
-    public async Task ProcessMessage_WithEmailMessage_SendsEmail()
+    public async Task ProcessCommand_WithEmailCommand_SendsEmail()
     {
-        EmailMessage message = new(
-            To: "test@example.com",
-            Subject: "Test Subject",
-            TextBody: "Test Text",
-            HtmlBody: "<p>Test HTML</p>"
-        );
+        EmailCommunicationCommand command = new("test@example.com", "Test Subject", "Test Text", "<p>Test HTML</p>");
 
-        await sut.ProcessMessage(message);
+        await _sut.ProcessCommand(command);
 
-        mockMessagesService.Verify(
+        _mockMessagesService.Verify(
             x => x.SendEmail(
-                It.Is<CommunicationsMessage>(m =>
-                    m.Recipient == message.To &&
-                    m.Subject == message.Subject &&
-                    m.Body == message.TextBody &&
-                    m.HtmlBody == message.HtmlBody)),
-            Times.Once);
-    }
-
-    [Fact]
-    public async Task ProcessMessage_WithSmsMessage_SendsSms()
-    {
-        SmsMessage message = new(
-            PhoneNumber: "+1234567890",
-            Code: "123456"
-        );
-
-        await sut.ProcessMessage(message);
-
-        mockMessagesService.Verify(
-            x => x.SendSmsCode(
-                It.Is<CommunicationsMessage>(m =>
-                    m.Recipient == message.PhoneNumber &&
-                    m.Body == message.Code),
+                It.Is<DeliveryMessage>(m =>
+                    m.Recipient == command.Recipient &&
+                    m.Subject == command.Subject &&
+                    m.Body == command.TextBody &&
+                    m.HtmlBody == command.HtmlBody),
                 It.IsAny<CancellationToken>()),
             Times.Once);
     }
 
     [Fact]
-    public async Task ProcessMessage_WithNullMessage_ThrowsArgumentNullException()
+    public async Task ProcessCommand_WithSmsCommand_SendsSms()
     {
-        Message? message = null;
+        SmsCommunicationCommand command = new("+1234567890", "Test SMS");
 
-        await Assert.ThrowsAsync<ArgumentNullException>(() =>
-            sut.ProcessMessage(message!));
+        _ = _mockMessagesService
+            .Setup(x => x.SendSms(It.IsAny<DeliveryMessage>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new SmsSendResult("queued", command.Recipient, 0m, null, null, null, null));
+
+        await _sut.ProcessCommand(command);
+
+        _mockMessagesService.Verify(
+            x => x.SendSms(
+                It.Is<DeliveryMessage>(m =>
+                    m.Recipient == command.Recipient &&
+                    m.Body == command.Body),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     [Fact]
-    public async Task ProcessMessage_WhenEmailSendingFails_ThrowsException()
+    public async Task ProcessCommand_WithSmsCodeCommand_SendsSmsCode()
     {
-        EmailMessage message = new(
-            To: "test@example.com",
-            Subject: "Test Subject",
-            TextBody: "Test Text",
-            HtmlBody: "<p>Test HTML</p>"
-        );
+        SmsCodeCommunicationCommand command = new("+1234567890", "123456");
 
+        await _sut.ProcessCommand(command);
+
+        _mockMessagesService.Verify(
+            x => x.SendSmsCode(
+                It.Is<DeliveryMessage>(m =>
+                    m.Recipient == command.Recipient &&
+                    m.Body == command.Code),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessCommand_WithSmsReminderCommand_SendsSmsReminder()
+    {
+        SmsReminderCommunicationCommand command = new("+1234567890", "Project", "Procedure", "Event", "Tenant");
+
+        await _sut.ProcessCommand(command);
+
+        _mockMessagesService.Verify(
+            x => x.SendSmsReminder(
+                command.Recipient,
+                command.Project,
+                command.Procedure,
+                command.Event,
+                command.Tenant,
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task ProcessCommand_WithNullCommand_ThrowsArgumentNullException()
+    {
+        await Assert.ThrowsAsync<ArgumentNullException>(() => _sut.ProcessCommand(null!));
+    }
+
+    [Fact]
+    public async Task ProcessCommand_WhenEmailSendingFails_ThrowsException()
+    {
+        EmailCommunicationCommand command = new("test@example.com", "Test Subject", "Test Text", "<p>Test HTML</p>");
         Exception expectedException = new("Email send failed");
-        _ = mockMessagesService
-            .Setup(x => x.SendEmail(It.IsAny<CommunicationsMessage>()))
+
+        _ = _mockMessagesService
+            .Setup(x => x.SendEmail(It.IsAny<DeliveryMessage>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(expectedException);
 
-        Exception exception = await Assert.ThrowsAsync<Exception>(() =>
-            sut.ProcessMessage(message));
+        Exception exception = await Assert.ThrowsAsync<Exception>(() => _sut.ProcessCommand(command));
 
         Assert.Equal(expectedException, exception);
     }
 
     [Fact]
-    public async Task ProcessMessage_WhenSmsSendingFails_ThrowsException()
+    public async Task ProcessCommand_WhenSmsSendingFails_ThrowsException()
     {
-        SmsMessage message = new(
-            PhoneNumber: "+1234567890",
-            Code: "123456"
-        );
-
+        SmsCommunicationCommand command = new("+1234567890", "Test SMS");
         Exception expectedException = new("SMS send failed");
-        _ = mockMessagesService
-            .Setup(x => x.SendSmsCode(
-                It.IsAny<CommunicationsMessage>(),
-                It.IsAny<CancellationToken>()))
+
+        _ = _mockMessagesService
+            .Setup(x => x.SendSms(It.IsAny<DeliveryMessage>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(expectedException);
 
-        Exception exception = await Assert.ThrowsAsync<Exception>(() =>
-            sut.ProcessMessage(message));
+        Exception exception = await Assert.ThrowsAsync<Exception>(() => _sut.ProcessCommand(command));
 
         Assert.Equal(expectedException, exception);
     }

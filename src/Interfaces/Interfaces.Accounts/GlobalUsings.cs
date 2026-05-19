@@ -10,6 +10,7 @@ global using Microsoft.AspNetCore.Components.Authorization;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.Extensions.Localization;
 global using Microsoft.JSInterop;
+global using Vitarish.Communications.Application.Abstractions;
 // Third‑party UI libraries
 global using MudBlazor;
 global using MudBlazor.Services;

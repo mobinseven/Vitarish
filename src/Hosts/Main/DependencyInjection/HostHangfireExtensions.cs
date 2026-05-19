@@ -1,6 +1,7 @@
 using Hangfire;
 using Hangfire.SqlServer;
 using Vitarish.Commerce.Application.Abstractions;
+using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Main.Authorization;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
@@ -59,7 +60,7 @@ public static class HostHangfireExtensions
 
         // Register message queue / processors and tenant executor
         _ = builder.Services.AddScoped<TenantBackgroundExecutor>();
-        _ = builder.Services.AddTransient<IMessageQueue, HangfireMessageQueue>();
+        _ = builder.Services.AddTransient<ICommunicationCommandQueue, HangfireMessageQueue>();
         _ = builder.Services.AddTransient<MessageProcessor>();
         _ = builder.Services.AddTransient<ReminderProcessor>();
         _ = builder.Services.AddTransient<FilesSelfTestsProcessor>();

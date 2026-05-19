@@ -1,12 +1,12 @@
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Communications.Domain.Models;
 using Vitarish.Communications.Domain.Options;
-using CommunicationsMessage = Vitarish.Communications.Domain.Models.Message;
+using DeliveryMessage = Vitarish.Communications.Domain.Models.Message;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 
 /// <summary>
-/// Processes messages enqueued via IMessageQueue using Hangfire.
+/// Processes communications commands enqueued via ICommunicationCommandQueue using Hangfire.
 /// </summary>
 public class MessageProcessor(ILogger<MessageProcessor> logger, IMessagesService messagesService, ICommunicationsModule communicationsModule, IOptionsMonitor<NotificationOptions>? options = null)
 {
@@ -16,7 +16,7 @@ public class MessageProcessor(ILogger<MessageProcessor> logger, IMessagesService
         {
             string recipient = options.CurrentValue.StartupSmsRecipient;
 
-            CommunicationsMessage msg = new()
+            DeliveryMessage msg = new()
             {
                 Recipient = recipient,
                 Body = "Startup health check SMS from Vorn Communications"
@@ -31,43 +31,65 @@ public class MessageProcessor(ILogger<MessageProcessor> logger, IMessagesService
         }
     }
     /// <summary>
-    /// Processes a message by sending it via the appropriate channel.
+    /// Processes a communications command by sending it via the appropriate channel.
     /// This method is invoked by Hangfire as a background job.
     /// </summary>
-    public async Task ProcessMessage(Message message)
+    public async Task ProcessCommand(CommunicationCommand command)
     {
-        ArgumentNullException.ThrowIfNull(message);
+        ArgumentNullException.ThrowIfNull(command);
 
-        string descriptor = $"{nameof(MessageProcessor)}:{message.GetType().Name}";
+        string descriptor = $"{nameof(MessageProcessor)}:{command.GetType().Name}";
 
         try
         {
-            switch (message)
+            switch (command)
             {
-                case EmailMessage email:
-                    logger.LogInformation("Processing email message to {MaskedTo}", MaskEmail(email.To));
-                    await messagesService.SendEmail(new CommunicationsMessage
+                case EmailCommunicationCommand email:
+                    logger.LogInformation("Processing email message to {MaskedTo}", MaskEmail(email.Recipient));
+                    await messagesService.SendEmail(new DeliveryMessage
                     {
-                        Recipient = email.To,
+                        Recipient = email.Recipient,
                         Subject = email.Subject,
                         Body = email.TextBody,
                         HtmlBody = email.HtmlBody
                     });
-                    logger.LogInformation("Successfully sent email to {MaskedTo}", MaskEmail(email.To));
+                    logger.LogInformation("Successfully sent email to {MaskedTo}", MaskEmail(email.Recipient));
                     break;
 
-                case SmsMessage sms:
-                    logger.LogInformation("Processing SMS message to {MaskedPhoneNumber}", MaskPhoneNumber(sms.PhoneNumber));
-                    await messagesService.SendSmsCode(new CommunicationsMessage
+                case SmsCommunicationCommand sms:
+                    logger.LogInformation("Processing SMS message to {MaskedPhoneNumber}", MaskPhoneNumber(sms.Recipient));
+                    await messagesService.SendSms(new DeliveryMessage
                     {
-                        Recipient = sms.PhoneNumber,
-                        Body = sms.Code
+                        Recipient = sms.Recipient,
+                        Body = sms.Body
                     }, CancellationToken.None);
-                    logger.LogInformation("Successfully sent SMS to {MaskedPhoneNumber}", MaskPhoneNumber(sms.PhoneNumber));
+                    logger.LogInformation("Successfully sent SMS to {MaskedPhoneNumber}", MaskPhoneNumber(sms.Recipient));
+                    break;
+
+                case SmsCodeCommunicationCommand smsCode:
+                    logger.LogInformation("Processing SMS code message to {MaskedPhoneNumber}", MaskPhoneNumber(smsCode.Recipient));
+                    await messagesService.SendSmsCode(new DeliveryMessage
+                    {
+                        Recipient = smsCode.Recipient,
+                        Body = smsCode.Code
+                    }, CancellationToken.None);
+                    logger.LogInformation("Successfully sent SMS code to {MaskedPhoneNumber}", MaskPhoneNumber(smsCode.Recipient));
+                    break;
+
+                case SmsReminderCommunicationCommand reminder:
+                    logger.LogInformation("Processing SMS reminder to {MaskedPhoneNumber}", MaskPhoneNumber(reminder.Recipient));
+                    await messagesService.SendSmsReminder(
+                        reminder.Recipient,
+                        reminder.Project,
+                        reminder.Procedure,
+                        reminder.Event,
+                        reminder.Tenant,
+                        CancellationToken.None);
+                    logger.LogInformation("Successfully sent SMS reminder to {MaskedPhoneNumber}", MaskPhoneNumber(reminder.Recipient));
                     break;
 
                 default:
-                    logger.LogWarning("Unknown message type: {MessageType}", message.GetType().Name);
+                    logger.LogWarning("Unknown communication command type: {CommandType}", command.GetType().Name);
                     break;
             }
         }
