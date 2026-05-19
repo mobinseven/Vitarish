@@ -8,7 +8,7 @@
 - Business goal: Register arrivals quickly while protecting patient data quality and appointment capacity.
 - Scope start: Patient arrives or contacts reception for check-in.
 - Scope end: Patient has a verified profile and a confirmed current-session reservation/check-in or future-session reservation. Waitlist remains a future extension.
-- Primary persona: Clinic receptionist / admin
+- Primary persona: Clinic receptionist
 - Secondary personas: Patient, scheduler, provider admin
 - Evidence sources: Product scenario supplied for this journey; implemented `/Medical/CheckIn` flow and check-in components
 - Confidence level: High for current implemented behavior; Medium for future extensions
