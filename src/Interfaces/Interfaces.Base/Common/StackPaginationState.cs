@@ -6,8 +6,8 @@ public sealed class StackPaginationState
     public int TotalItems { get; private set; }
     public int PageSize { get; private set; } = 10;
 
-    public int TotalPages => Math.Max(1, (int)Math.Ceiling(TotalItems / (double)Math.Max(1, PageSize)));
-    public int Skip => (Page - 1) * Math.Max(1, PageSize);
+    public int TotalPages => Math.Max(1, (int)Math.Ceiling(TotalItems / (double)PageSize));
+    public int Skip => (Page - 1) * PageSize;
 
     public event Action? StateChanged;
 

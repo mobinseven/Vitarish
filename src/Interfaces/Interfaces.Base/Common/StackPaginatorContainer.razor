@@ -22,7 +22,20 @@
     [Parameter] public string? Class { get; set; }
     [Parameter] public string? Style { get; set; }
 
-    private IEnumerable<TItem> PagedItems => Items?.Skip(_state.Skip).Take(_state.PageSize) ?? Enumerable.Empty<TItem>();
+    private IEnumerable<TItem> PagedItems
+    {
+        get
+        {
+            if(Items is null || Items.Count == 0)
+                yield break;
+
+            var start = Math.Min(_state.Skip, Items.Count);
+            var endExclusive = Math.Min(start + _state.PageSize, Items.Count);
+
+            for(var index = start; index < endExclusive; index++)
+                yield return Items[index];
+        }
+    }
 
     protected override void OnInitialized()
     {
