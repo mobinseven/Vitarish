@@ -1,7 +1,7 @@
 # Patient Appointment Journey
 
 ## 1. Context
-- Product / service: Vitarish Medical + Appointments modules
+- Product / service: Vitarish Clinic owner app + Appointments modules
 - Journey type: Current state with gaps
 - Scenario: Admin books and manages a patient reservation.
 - User goal: Schedule and update patient appointments.
