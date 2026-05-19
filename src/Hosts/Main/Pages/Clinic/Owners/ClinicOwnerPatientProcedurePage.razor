@@ -1,5 +1,4 @@
 @attribute [Route(AppRoutes.Clinic.PatientProcedureTemplate)]
-@attribute [Authorize(Policy = IdentityDefinitions.TenantOwner)]
 @inherits ClinicPatientProcedurePageBase
 
 @if(Patient is null || Procedure is null)
