@@ -45,7 +45,7 @@ public class MessageProcessor(ILogger<MessageProcessor> logger, IMessagesService
             switch (command)
             {
                 case EmailCommunicationCommand email:
-                    logger.LogInformation("Processing email message to {MaskedTo}", MaskEmail(email.Recipient));
+                    logger.LogInformation("Processing email command to {MaskedTo}", MaskEmail(email.Recipient));
                     await messagesService.SendEmail(new DeliveryMessage
                     {
                         Recipient = email.Recipient,
@@ -57,7 +57,7 @@ public class MessageProcessor(ILogger<MessageProcessor> logger, IMessagesService
                     break;
 
                 case SmsCommunicationCommand sms:
-                    logger.LogInformation("Processing SMS message to {MaskedPhoneNumber}", MaskPhoneNumber(sms.Recipient));
+                    logger.LogInformation("Processing SMS command to {MaskedPhoneNumber}", MaskPhoneNumber(sms.Recipient));
                     await messagesService.SendSms(new DeliveryMessage
                     {
                         Recipient = sms.Recipient,
@@ -67,7 +67,7 @@ public class MessageProcessor(ILogger<MessageProcessor> logger, IMessagesService
                     break;
 
                 case SmsCodeCommunicationCommand smsCode:
-                    logger.LogInformation("Processing SMS code message to {MaskedPhoneNumber}", MaskPhoneNumber(smsCode.Recipient));
+                    logger.LogInformation("Processing SMS code command to {MaskedPhoneNumber}", MaskPhoneNumber(smsCode.Recipient));
                     await messagesService.SendSmsCode(new DeliveryMessage
                     {
                         Recipient = smsCode.Recipient,

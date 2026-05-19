@@ -68,7 +68,7 @@
         try
         {
             CommunicationCommandQueue.Enqueue(new EmailCommunicationCommand(recipient, subject, body, htmlBody));
-            SetStatus("Email queued.", Severity.Success);
+            SetStatus(GetLocalizedText("EmailQueued", "Email queued."), Severity.Success);
         }
         catch (Exception ex)
         {
@@ -89,7 +89,7 @@
         try
         {
             CommunicationCommandQueue.Enqueue(new SmsCommunicationCommand(recipient, body));
-            SetStatus("SMS queued.", Severity.Success);
+            SetStatus(GetLocalizedText("SmsQueued", "SMS queued."), Severity.Success);
         }
         catch (Exception ex)
         {
@@ -110,7 +110,7 @@
         try
         {
             CommunicationCommandQueue.Enqueue(new SmsCodeCommunicationCommand(recipient, body));
-            SetStatus("SMS code queued.", Severity.Success);
+            SetStatus(GetLocalizedText("SmsCodeQueued", "SMS code queued."), Severity.Success);
         }
         catch (Exception ex)
         {
@@ -136,7 +136,7 @@
                 Procedure: reminderProcedure,
                 Event: reminderEvent,
                 Tenant: reminderTenant));
-            SetStatus("SMS reminder queued.", Severity.Success);
+            SetStatus(GetLocalizedText("SmsReminderQueued", "SMS reminder queued."), Severity.Success);
         }
         catch (Exception ex)
         {
@@ -173,5 +173,11 @@
     {
         status = message;
         statusSeverity = severity;
+    }
+
+    private string GetLocalizedText(string key, string fallback)
+    {
+        LocalizedString localized = Localizer[key];
+        return localized.ResourceNotFound ? fallback : localized.Value;
     }
 }

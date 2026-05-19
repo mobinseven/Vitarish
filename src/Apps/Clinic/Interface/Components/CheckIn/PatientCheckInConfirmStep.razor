@@ -152,7 +152,7 @@
             string body = Localizer["SmsConfirmationBody", Context.SelectedPatient.Name, GetDateTimeLabel()];
             CommunicationCommandQueue.Enqueue(new SmsCommunicationCommand(phoneNumber, body));
             Context.NotificationStatus = CheckInNotificationStatus.Sent;
-            Context.NotificationMessage = "SMS confirmation queued.";
+            Context.NotificationMessage = GetLocalizedText("SmsConfirmationQueued", "SMS confirmation queued.");
         }
         catch (Exception)
         {
@@ -161,5 +161,11 @@
         }
 
         await InvokeAsync(StateHasChanged);
+    }
+
+    private string GetLocalizedText(string key, string fallback)
+    {
+        LocalizedString localized = Localizer[key];
+        return localized.ResourceNotFound ? fallback : localized.Value;
     }
 }
