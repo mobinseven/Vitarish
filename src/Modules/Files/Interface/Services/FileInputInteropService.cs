@@ -30,6 +30,12 @@ public sealed class FileInputInteropService(IJSRuntime jsRuntime) : IFileInputIn
             ? Task.CompletedTask
             : _module.InvokeVoidAsync("removeFile", cancellationToken, inputId, fileName).AsTask();
 
+
+    public Task DisposeInputAsync(string inputId)
+        => _module is null
+            ? Task.CompletedTask
+            : _module.InvokeVoidAsync("disposeFileInput", inputId).AsTask();
+
     public async Task<IJSStreamReference?> GetFileStreamAsync(string inputId, string fileName, CancellationToken cancellationToken = default)
     {
         if (_module is null)

@@ -9,6 +9,7 @@ public interface IFileTransferCoordinator
         IReadOnlyList<PendingFileDto> pendingFiles,
         string inputId,
         string? userId,
+        FileSelectionMode mode,
         Func<Task> onProgressAsync,
         Func<FileInformationReadDto, Task> onUploadedAsync,
         Func<PendingFileDto, FileSelectionMode, bool> onPendingRemoved,

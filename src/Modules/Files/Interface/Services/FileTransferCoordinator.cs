@@ -12,6 +12,7 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
         IReadOnlyList<PendingFileDto> pendingFiles,
         string inputId,
         string? userId,
+        FileSelectionMode mode,
         Func<Task> onProgressAsync,
         Func<FileInformationReadDto, Task> onUploadedAsync,
         Func<PendingFileDto, FileSelectionMode, bool> onPendingRemoved,
@@ -31,24 +32,32 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
 
             Task pump = Task.Run(async () =>
             {
-                const int bufferLength = 20 * 1024;
-                byte[] buffer = new byte[bufferLength];
-                while (true)
+                try
                 {
-                    int read = await stream.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken);
-                    if (read == 0)
+                    const int bufferLength = 20 * 1024;
+                    byte[] buffer = new byte[bufferLength];
+                    while (true)
                     {
-                        break;
+                        int read = await stream.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken);
+                        if (read == 0)
+                        {
+                            break;
+                        }
+
+                        byte[] chunk = new byte[read];
+                        Array.Copy(buffer, 0, chunk, 0, read);
+                        await channel.Writer.WriteAsync(chunk, cancellationToken);
+                        file.Progress += 100d * Convert.ToDouble(read) / file.Size;
+                        await onProgressAsync();
                     }
 
-                    byte[] chunk = new byte[read];
-                    Array.Copy(buffer, 0, chunk, 0, read);
-                    await channel.Writer.WriteAsync(chunk, cancellationToken);
-                    file.Progress += 100d * Convert.ToDouble(read) / file.Size;
-                    await onProgressAsync();
+                    channel.Writer.Complete();
                 }
-
-                channel.Writer.Complete();
+                catch (Exception ex)
+                {
+                    _ = channel.Writer.TryComplete(ex);
+                    throw;
+                }
             }, cancellationToken);
 
             file.UserId = userId;
@@ -65,7 +74,7 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
                 ?? throw new InvalidDataException("The returned result must not be null");
 
             await pump.ConfigureAwait(false);
-            _ = onPendingRemoved(file, FileSelectionMode.GeneralMulti);
+            _ = onPendingRemoved(file, mode);
             await onUploadedAsync(fileInfo);
         }
     }

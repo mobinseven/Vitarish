@@ -22,6 +22,7 @@ public sealed class StreamTransferService(
     public Func<Task>? OnStateChangedAsync { get; set; }
     public Func<FileInformationReadDto, Task>? OnFileUploadedAsync { get; set; }
     public string? UserId { get; set; }
+    public FileSelectionMode SelectionMode { get; set; } = FileSelectionMode.GeneralMulti;
     public bool Transferring { get; private set; }
     public RenderFragment ActContent { get => field ??= BuildInputHost(); private set; }
     public IReadOnlyList<PendingFileDto> PendingFiles => fileSelectionSession.PendingFiles;
@@ -60,7 +61,7 @@ public sealed class StreamTransferService(
 
     public async Task RemovePendingFileAsync(PendingFileDto file, CancellationToken cancellationToken = default)
     {
-        bool removed = fileSelectionSession.Remove(file, FileSelectionMode.GeneralMulti);
+        bool removed = fileSelectionSession.Remove(file, SelectionMode);
         if (!removed)
         {
             return;
@@ -86,6 +87,7 @@ public sealed class StreamTransferService(
                 PendingFiles,
                 _id,
                 UserId,
+                SelectionMode,
                 TriggerStateChangedAsync,
                 async fileInfo =>
                 {
@@ -117,7 +119,7 @@ public sealed class StreamTransferService(
     [JSInvokable]
     public async Task OnPendingFilesChanged(List<PendingFileDto> files)
     {
-        fileSelectionSession.ReplaceWith(files, FileSelectionMode.GeneralMulti);
+        fileSelectionSession.ReplaceWith(files, SelectionMode);
         await TriggerStateChangedAsync();
     }
 
@@ -125,7 +127,7 @@ public sealed class StreamTransferService(
     {
         _selfRef?.Dispose();
         _selfRef = null;
-        await fileInputInterop.DisposeAsync();
+        await fileInputInterop.DisposeInputAsync(_id);
         GC.SuppressFinalize(this);
     }
 
@@ -147,7 +149,7 @@ public sealed class StreamTransferService(
             return Task.CompletedTask;
         }
 
-        FileInputOptions options = fileInputOptionsFactory.Create(FileSelectionMode.GeneralMulti, hidden: _activatorContent is not null);
+        FileInputOptions options = fileInputOptionsFactory.Create(SelectionMode, hidden: _activatorContent is not null);
         return fileInputInterop.EnsureInitializedAsync(_id, _selfRef, options, cancellationToken);
     }
 

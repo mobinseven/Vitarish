@@ -10,4 +10,6 @@ public interface IFileInputInterop : IAsyncDisposable
     Task RemoveFileAsync(string inputId, string fileName, CancellationToken cancellationToken = default);
 
     Task<IJSStreamReference?> GetFileStreamAsync(string inputId, string fileName, CancellationToken cancellationToken = default);
+
+    Task DisposeInputAsync(string inputId);
 }
