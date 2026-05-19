@@ -7,7 +7,7 @@
                     HelperText="@selectedUserSubtitle"
                     AdornmentIcon="fa-regular fa-user-check" />
 
-        <StackButton Label="Change user"
+        <StackButton Label="@Localizer["ChangeUser"]"
                      EndIcon="fa-regular fa-arrow-rotate-right"
                      OnClick="ShowFindForm" />
 
@@ -20,14 +20,14 @@
     }
     else
     {
-        <StackButton Label="Find existing user"
+        <StackButton Label="@Localizer["FindExistingUser"]"
                      EndIcon="fa-regular fa-magnifying-glass"
                      Color="@(!showCreateForm ? Color.Primary : Color.Default)"
                      OnClick="ShowFindForm" />
 
         @if (ResolvedOptions.AllowCreate)
         {
-            <StackButton Label="Create or auto-link user"
+            <StackButton Label="@Localizer["CreateOrAutoLinkUser"]"
                          EndIcon="fa-regular fa-user-plus"
                          Color="@(showCreateForm ? Color.Primary : Color.Default)"
                          OnClick="ShowCreateForm" />
@@ -85,7 +85,7 @@
     private Task OnScopeChangedAsync(UserSearchScope scope)
     {
         searchScope = scope;
-        return Task.CompletedTask;
+        return InvokeAsync(StateHasChanged);
     }
 
     private void ShowFindForm()
@@ -140,7 +140,7 @@
         }
         catch (Exception)
         {
-            warning = Localizer["Error"];
+            warning = Localizer["FailedToAssignTenantRole"];
         }
     }
 

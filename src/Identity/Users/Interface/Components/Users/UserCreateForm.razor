@@ -9,7 +9,7 @@
 
     @if (AllowAutoLinkToggle)
     {
-        <StackField Label="Auto-link existing user">
+        <StackField Label="@Localizer["AutoLinkExistingUser"]">
             <MudSwitch T="bool" Value="@autoLinkExisting" ValueChanged="v => autoLinkExisting = v" />
         </StackField>
     }
@@ -60,7 +60,7 @@
 
         if (phone is null && mail is null)
         {
-            error = "Phone or email is required.";
+            error = Localizer["PhoneOrEmailRequired"];
             return;
         }
 
@@ -72,13 +72,13 @@
             {
                 if (phone is not null && await UsersService.CheckUserPhoneNumberInUseAsync(phone, null, CancellationToken.None))
                 {
-                    error = "A user with this phone already exists.";
+                    error = Localizer["UserWithPhoneExists"];
                     return;
                 }
 
                 if (mail is not null && await UsersService.CheckUserEmailInUseAsync(mail, null, CancellationToken.None))
                 {
-                    error = "A user with this email already exists.";
+                    error = Localizer["UserWithEmailExists"];
                     return;
                 }
             }
@@ -89,7 +89,7 @@
 
             if (user is null)
             {
-                error = "Failed to create or link user.";
+                error = Localizer["FailedToCreateOrLinkUser"];
                 return;
             }
 
