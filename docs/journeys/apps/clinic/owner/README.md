@@ -42,13 +42,15 @@ Implementation levels in the matrix:
 
 ## Acceptance Criteria by Objective
 
+Each objective below uses the same delivery schema: user-visible completion criteria, route/UI entry point, state mutation/query boundary, validation/error behavior, audit/logging expectation, and definition-of-done test coverage locations.
+
 ### Patients Profile Management (CRUD)
 
 #### [Search and filter patients](./patient-profile-crud-journey.md)
 - **User-visible completion criteria:** Operators can filter the patient list by status, linked user, key demographics, date-of-birth range, and missing-clinical-data flags without losing the existing global text search.
 - **Required route/UI action entry point:** `AppRoutes.Clinic.Patients` (`/owner/clinic/patients`) via `ClinicOwnerPatientsPage.razor` and `PatientsGrid` filter controls.
 - **Required state mutation/query boundary:** Extend the patient list read boundary behind `IAccessControlledProjectsService.GetListAsync` so filters are expressed as patient-specific query criteria rather than ad hoc UI-only filtering.
-- **Validation/error behavior:** Invalid filter combinations are blocked inline; empty-result states remain honest; query failures preserve the current filter state and show an operator-friendly retry/error message.
+- **Validation/error behavior:** Invalid filter combinations are blocked inline; the UI explicitly shows when no patients match the active filters; query failures preserve the current filter state and show an operator-friendly retry/error message.
 - **Audit/logging expectation:** No audit event is required for read-only filtering, but failed queries should emit standard telemetry/error logs.
 - **Definition of done test coverage locations:** Unit tests in a mirrored clinic interface/component test area for `PatientsGrid`; integration coverage in `tests/Hosts/Main.Tests/Common/AppRoutesTests.cs` plus a future mirrored clinic owner query test area; UI coverage in a clinic owner patient-list flow suite for filter persistence and empty/error states.
 
