@@ -64,8 +64,8 @@
     <Project Path="src/Modules/Aggregator/Modules.Aggregator/Modules.Aggregator.csproj" />
     <Project Path="src/Modules/Base/Modules.Base.csproj" />
   </Folder>
-  <Folder Name="/src/Modules/Clinical/">
-    <Project Path="src/Modules/Clinical/Interface/Clinical.Interface.csproj" />
+  <Folder Name="/src/Apps/Clinic/">
+    <Project Path="src/Apps/Clinic/Interface/Clinic.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Commerce/">
     <Project Path="src/Modules/Commerce/Application/Commerce.Application.csproj" />

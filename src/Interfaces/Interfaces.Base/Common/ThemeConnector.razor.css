@@ -28,6 +28,10 @@
         border-top-right-radius: var(--mud-default-borderradius) !important;
     }
 
+        ::deep .stack > .stack-item:first-child .stack-field {
+            backdrop-filter: brightness(var(--brightness));
+        }
+
     ::deep .stack > .stack-item:not(:last-child) {
         border-bottom: var(--glass-border-width) solid var(--glass-border) !important;
     }

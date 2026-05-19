@@ -14,7 +14,6 @@ using Vitarish.Social.Hosting;
 using Vitarish.Sea.Interface;
 using Vitarish.Links.Interface;
 using Vitarish.Search.Interface;
-using Vitarish.Clinical.Interface;
 public static class ModulesExtensions
 {
     public static List<IModule> GetModules() =>
@@ -28,7 +27,6 @@ public static class ModulesExtensions
                 Activator.CreateInstance<LinksModule>(),
                 Activator.CreateInstance<SeaModule>(),
                 Activator.CreateInstance<AppointmentsModule>(),
-                Activator.CreateInstance<ClinicalModule>(),
                 Activator.CreateInstance<CommerceModule>(),
                 Activator.CreateInstance<SocialModule>(),
             ];

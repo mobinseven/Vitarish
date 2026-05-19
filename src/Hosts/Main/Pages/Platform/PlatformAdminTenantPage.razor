@@ -1,4 +1,3 @@
-
 @attribute [Route(AppRoutes.PlatformAdmin.OwnerTenantTemplate)]
 
 @if(Tenant is null)
@@ -10,12 +9,19 @@
 
 <TenantIndicatorsEditor Tenant="Tenant" />
 
-<TenantModulesSelector SelectedModuleNames="selectedModules" Label="@Localizer["SelectModules"]">
-    <StackButton Label="@Localizer["Save"]" OnClick="SaveTenantModules"
-                 Color="Color.Primary" EndIcon="fa-regular fa-save"
-                 Disabled="savingModules" />
-</TenantModulesSelector>
+<TenantModulesSelector SelectedModuleNames="selectedModules" Label="@Localizer["ActiveModules"]" />
+
+<TenantAppsSelector SelectedAppNames="selectedApps" Label="@Localizer["ActiveApps"]" />
 
 <Stack>
-    <StackButton Color="Color.Error" EndIcon="fa-regular fa-trash" OnClick="RemoveTenant" Label="@Localizer["DeleteItem", Localizer["Tenant"]]" />
+    <StackButton Label="@Localizer["Save"]"
+                 OnClick="Save"
+                 Color="Color.Primary"
+                 EndIcon="fa-regular fa-save"
+                 Disabled="saving" />
+    <StackButton Color="Color.Error"
+                 EndIcon="fa-regular fa-trash"
+                 OnClick="RemoveTenant"
+                 Label="@Localizer["DeleteItem", Localizer["Tenant"]]"
+                 Disabled="saving" />
 </Stack>

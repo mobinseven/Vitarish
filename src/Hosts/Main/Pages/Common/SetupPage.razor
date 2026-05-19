@@ -33,12 +33,12 @@
         break;
 
     case SetupStep.Modules:
-        <TenantModulesSelector SelectedModuleNames="context.SelectedModules" Label="@Localizer["SelectModules"]">
+        <TenantAppsSelector SelectedAppNames="context.SelectedModules" Label="@Localizer["SelectModules"]">
             <StackButton Label="@Localizer["Finish"]" OnClick="Submit"
                          EndIcon="fa-regular fa-check" Color="Color.Primary"
                          Disabled="submitting" />
             <StackButton Label="@Localizer["Back"]" OnClick="GoBack"
                          EndIcon="fa-regular fa-arrow-left" />
-        </TenantModulesSelector>
+        </TenantAppsSelector>
         break;
 }

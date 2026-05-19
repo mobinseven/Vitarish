@@ -1,0 +1,42 @@
+@using Vitarish.Apps.Base
+
+<Stack>
+    @if(!string.IsNullOrWhiteSpace(Label))
+    {
+        <StackField Label="@Label" />
+    }
+    @foreach(var App in Apps)
+    {
+        <StackCheckbox Value="IsSelected(App.Name)"
+                       ValueChanged="@(selected => ToggleApp(App.Name, selected))"
+                       Label="@App.Name"
+                       Disabled="Disabled" />
+    }
+    @ChildContent
+</Stack>
+
+@code {
+    [Inject] private IReadOnlyList<IApp> Apps { get; set; } = default!;
+
+    [Parameter] public ISet<string> SelectedAppNames { get; set; } = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+    [Parameter] public EventCallback<ISet<string>> SelectedAppNamesChanged { get; set; }
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private bool IsSelected(string AppName) => SelectedAppNames.Contains(AppName);
+
+    private async Task ToggleApp(string AppName, bool selected)
+    {
+        if(selected)
+        {
+            SelectedAppNames.Add(AppName);
+        }
+        else
+        {
+            SelectedAppNames.Remove(AppName);
+        }
+
+        await SelectedAppNamesChanged.InvokeAsync(SelectedAppNames);
+    }
+}

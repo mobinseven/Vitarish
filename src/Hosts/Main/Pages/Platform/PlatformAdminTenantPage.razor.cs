@@ -1,7 +1,8 @@
+using Vitarish.Interfaces.Admins.Components;
+using Vitarish.Interfaces.Base.Common;
 using Vitarish.Parties.Domain;
 using Vitarish.Parties.Domain.Dtos;
-using Vitarish.Interfaces.Base.Common;
-using Vitarish.Interfaces.Admins.Components;
+using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Main.Pages.Platform;
 
@@ -14,7 +15,8 @@ public partial class PlatformAdminTenantPage : PlatformAdminCommonBase
     private Guid _ownerGuid;
     private TenantReadDto? Tenant;
     private HashSet<string> selectedModules = new(StringComparer.OrdinalIgnoreCase);
-    private bool savingModules;
+    private HashSet<string> selectedApps = new(StringComparer.OrdinalIgnoreCase);
+    private bool saving;
     private void Back() => NavigationManager.NavigateTo(
         _ownerGuid != Guid.Empty ? AppRoutes.PlatformAdmin.Owner(_ownerGuid) : AppRoutes.PlatformAdmin.Owners);
     protected override async Task ReloadRequired()
@@ -30,47 +32,52 @@ public partial class PlatformAdminTenantPage : PlatformAdminCommonBase
         tenantGuid = id;
         _ownerGuid = OwnerId ?? Guid.Empty;
 
-        Tenant = await PartiesService.GetTenantAsync(tenantGuid);
-        selectedModules = new HashSet<string>(TenantMetadata.GetActiveModules(Tenant?.Metadata), StringComparer.OrdinalIgnoreCase);
-
-        if (Tenant == null)
+        var ten = await PartiesService.GetTenantAsync(tenantGuid);
+        if (ten is not null)
+        {
+            SetTenant(ten);
+        }
+        else
         {
             Back();
         }
     }
 
-    private void SetTenant(TenantReadDto tenant)
+
+    private void SetTenant(TenantReadDto updated)
     {
-        Tenant = tenant;
-        selectedModules = new HashSet<string>(TenantMetadata.GetActiveModules(tenant.Metadata), StringComparer.OrdinalIgnoreCase);
+        Tenant = updated;
+        selectedModules = new HashSet<string>(TenantMetadata.GetActiveModules(updated.Metadata), StringComparer.OrdinalIgnoreCase);
+        selectedApps = new HashSet<string>(TenantMetadata.GetActiveApps(updated.Metadata), StringComparer.OrdinalIgnoreCase);
     }
 
-    private async Task SaveTenantModules()
+    private async Task Save()
     {
         if (Tenant is null)
         {
             return;
         }
 
-        savingModules = true;
+        saving = true;
         try
         {
             TenantWriteDto write = Tenant.ToWriteWithMetadata();
             TenantMetadata.SetActiveModules(write.Metadata, selectedModules);
+            TenantMetadata.SetActiveApps(write.Metadata, selectedApps);
 
             TenantReadDto? updated = await PartiesService.UpdateTenantAsync(write);
             if (updated is null)
             {
-                Snackbar.Add(Localizer["Error"], Severity.Error);
+                _ = Snackbar.Add(Localizer["Error"], Severity.Error);
                 return;
             }
 
             SetTenant(updated);
-            Snackbar.Add(Localizer["Saved"], Severity.Success);
+            _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
         }
         finally
         {
-            savingModules = false;
+            saving = false;
         }
     }
 

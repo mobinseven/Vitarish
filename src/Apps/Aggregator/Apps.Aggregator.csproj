@@ -5,6 +5,7 @@
 	</ItemGroup>
 	<ItemGroup>
 	  <ProjectReference Include="..\Base\Apps.Base.csproj" />
+	  <ProjectReference Include="..\Clinic\Interface\Clinic.Interface.csproj" />
 	</ItemGroup>
 
 </Project>

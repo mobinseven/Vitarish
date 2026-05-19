@@ -1,12 +1,16 @@
 @attribute [Route(AppRoutes.Owners.TenantSettingsTemplate)]
 
-@if (tenant is not null)
+@if(tenant is not null)
 {
     <OwnerTenantSettingsForm Tenant="tenant" TenantChanged="SetTenant" />
 
-    <TenantModulesSelector SelectedModuleNames="selectedModules" Label="@Localizer["ActiveModules"]">
-        <StackButton Label="@Localizer["Save"]" OnClick="SaveModules"
+    <TenantModulesSelector SelectedModuleNames="selectedModules" Label="@Localizer["ActiveModules"]" />
+
+    <TenantAppsSelector SelectedAppNames="selectedApps" Label="@Localizer["ActiveApps"]" />
+
+    <Stack>
+        <StackButton Label="@Localizer["Save"]" OnClick="Save"
                      Color="Color.Primary" EndIcon="fa-regular fa-save"
-                     Disabled="savingModules" />
-    </TenantModulesSelector>
+                     Disabled="saving" />
+    </Stack>
 }

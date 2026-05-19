@@ -3,12 +3,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Apps.Base;
+using Vitarish.Clinic.Interface;
 
 public static class AppsExtensions
 {
     public static List<IApp> GetApps() =>
             [
-                //Activator.CreateInstance<SeaModule>(),
+                Activator.CreateInstance<ClinicApp>(),
             ];
     public static async Task<WebApplicationBuilder> RegisterApps(
         this WebApplicationBuilder builder,

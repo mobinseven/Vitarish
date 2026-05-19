@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+	<ItemGroup>
+		<SupportedPlatform Include="browser" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Injectio" Version="5.0.0" />
+		<PackageReference Include="Riok.Mapperly" Version="4.*" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\..\Base\Apps.Base.csproj" />
+	</ItemGroup>
+
+</Project>

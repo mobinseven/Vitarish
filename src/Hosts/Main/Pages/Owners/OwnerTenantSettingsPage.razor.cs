@@ -9,45 +9,52 @@ public partial class OwnerTenantSettingsPage
 
     private TenantReadDto? tenant;
     private HashSet<string> selectedModules = new(StringComparer.OrdinalIgnoreCase);
-    private bool savingModules;
+    private HashSet<string> selectedApps = new(StringComparer.OrdinalIgnoreCase);
+    private bool saving;
 
     protected override async Task ReloadRequired()
     {
-        tenant = await LoadTenantOrRedirectAsync(TenantId, AppRoutes.Owners.Tenants);
-        if (tenant is not null)
-            selectedModules = new HashSet<string>(TenantMetadata.GetActiveModules(tenant.Metadata), StringComparer.OrdinalIgnoreCase);
+        TenantReadDto? ten = await LoadTenantOrRedirectAsync(TenantId, AppRoutes.Owners.Tenants);
+        if (ten is not null)
+        {
+            SetTenant(ten);
+        }
     }
 
     private void SetTenant(TenantReadDto updated)
     {
         tenant = updated;
         selectedModules = new HashSet<string>(TenantMetadata.GetActiveModules(updated.Metadata), StringComparer.OrdinalIgnoreCase);
+        selectedApps = new HashSet<string>(TenantMetadata.GetActiveApps(updated.Metadata), StringComparer.OrdinalIgnoreCase);
     }
 
-    private async Task SaveModules()
+    private async Task Save()
     {
         if (tenant is null)
+        {
             return;
+        }
 
-        savingModules = true;
+        saving = true;
         try
         {
             TenantWriteDto write = tenant.ToWriteWithMetadata();
             TenantMetadata.SetActiveModules(write.Metadata, selectedModules);
+            TenantMetadata.SetActiveApps(write.Metadata, selectedApps);
 
             TenantReadDto? updated = await PartiesService.UpdateTenantAsync(write);
             if (updated is null)
             {
-                Snackbar.Add(Localizer["Error"], Severity.Error);
+                _ = Snackbar.Add(Localizer["Error"], Severity.Error);
                 return;
             }
 
             SetTenant(updated);
-            Snackbar.Add(Localizer["Saved"], Severity.Success);
+            _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
         }
         finally
         {
-            savingModules = false;
+            saving = false;
         }
     }
 }

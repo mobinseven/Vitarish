@@ -37,4 +37,38 @@ public static class TenantMetadata
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
     }
+
+    public const string ActiveAppsKey = "activeApps";
+
+    public static IReadOnlyList<string> GetActiveApps(IReadOnlyDictionary<string, object?>? metadata)
+    {
+        if (metadata is null || !metadata.TryGetValue(ActiveAppsKey, out object? raw) || raw is null)
+        {
+            return [];
+        }
+
+        try
+        {
+            return raw switch
+            {
+                JsonElement element => element.Deserialize<string[]>() ?? [],
+                string[] Apps => Apps,
+                IEnumerable<string> Apps => [.. Apps],
+                System.Collections.IEnumerable Apps => [.. Apps.OfType<string>()],
+                _ => []
+            };
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+
+    public static void SetActiveApps(IDictionary<string, object?> metadata, IEnumerable<string> Apps)
+    {
+        metadata[ActiveAppsKey] = Apps
+            .Where(App => !string.IsNullOrWhiteSpace(App))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+    }
 }
