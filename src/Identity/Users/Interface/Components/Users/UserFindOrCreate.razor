@@ -1,4 +1,5 @@
 @inherits TenantCommonBase
+@implements IDisposable
 
 <Stack>
     @if (!string.IsNullOrWhiteSpace(Value))
@@ -69,6 +70,7 @@
     private string? warning;
     private string? lastValue;
     private UserFindOrCreateOptions? lastOptions;
+    private readonly CancellationTokenSource lifecycleCts = new();
 
     private UserFindOrCreateOptions ResolvedOptions => Options ?? new UserFindOrCreateOptions();
 
@@ -108,7 +110,7 @@
     private async Task OnUserSelectedAsync(string userId)
     {
         warning = null;
-        User? user = await UsersService.GetUserAsync(userId, CancellationToken.None);
+        User? user = await UsersService.GetUserAsync(userId, lifecycleCts.Token);
         if (user is null)
         {
             warning = Localizer["Error"];
@@ -133,7 +135,7 @@
         }
 
         string tenantUserRole = $"{RequestContext.TenantId}:{IdentityDefinitions.TenantUser}";
-        bool hasRole = await UsersService.CheckUserRoleAsync(user.Id, tenantUserRole, CancellationToken.None);
+        bool hasRole = await UsersService.CheckUserRoleAsync(user.Id, tenantUserRole, lifecycleCts.Token);
         if (hasRole)
         {
             return;
@@ -141,7 +143,11 @@
 
         try
         {
-            await UsersService.AddToRoleAsync(user, tenantUserRole, CancellationToken.None);
+            await UsersService.AddToRoleAsync(user, tenantUserRole, lifecycleCts.Token);
+        }
+        catch (OperationCanceledException)
+        {
+            // component disposed or operation superseded
         }
         catch (Exception)
         {
@@ -172,7 +178,7 @@
             return string.Empty;
         }
 
-        User? user = await UsersService.GetUserAsync(userId, CancellationToken.None);
+        User? user = await UsersService.GetUserAsync(userId, lifecycleCts.Token);
         if (user is null)
         {
             return userId;
@@ -185,5 +191,11 @@
             dto.PhoneNumber,
             dto.Email
         }.Where(v => !string.IsNullOrWhiteSpace(v)));
+    }
+
+    public void Dispose()
+    {
+        lifecycleCts.Cancel();
+        lifecycleCts.Dispose();
     }
 }
