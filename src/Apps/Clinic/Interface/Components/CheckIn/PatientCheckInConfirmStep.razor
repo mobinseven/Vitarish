@@ -1,4 +1,5 @@
 @inherits Vitarish.Modules.Base.TenantCommonBase
+@using Vitarish.Communications.Domain.Models
 
 <Stack>
     <StackField Label="@Localizer["CheckInComplete"]"
@@ -147,8 +148,8 @@
 
         try
         {
-            string body = $"{Context.SelectedPatient.Name} - {GetDateTimeLabel()}";
-            Vitarish.Communications.Domain.Models.SmsSendResult sendResult = await MessagesService.SendSms(new Vitarish.Communications.Domain.Models.Message
+            string body = Localizer["SmsConfirmationBody", Context.SelectedPatient.Name, GetDateTimeLabel()];
+            SmsSendResult sendResult = await MessagesService.SendSms(new Message
             {
                 Recipient = phoneNumber,
                 Body = body
@@ -156,10 +157,10 @@
             Context.NotificationStatus = CheckInNotificationStatus.Sent;
             Context.NotificationMessage = sendResult.MessageId;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Context.NotificationStatus = CheckInNotificationStatus.Failed;
-            Context.NotificationMessage = ex.Message;
+            Context.NotificationMessage = Localizer["SmsConfirmationSendFailed"];
         }
 
         await InvokeAsync(StateHasChanged);

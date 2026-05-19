@@ -130,6 +130,7 @@ public partial class PatientCheckInShiftStep : Modules.Base.TenantCommonBase
 
     private async Task JoinWaitlistAsync(ShiftReadDto shift, ShiftReservationReadDto occurrence)
     {
+        Context.OperationalWarning = null;
         Context.SelectedShift = shift;
         Context.SelectedOccurrence = occurrence;
         Context.OperationalWarning = Localizer["WaitlistRegistered"];
