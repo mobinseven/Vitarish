@@ -5,10 +5,13 @@
     <StackField Label="@Localizer["CheckInComplete"]"
                 AdornmentIcon="fa-regular fa-circle-check"
                 AdornmentColor="@(Context.Outcome == CheckInOutcome.CurrentShift ? Color.Success : Color.Info)" />
-    <StackField Label="@Localizer["ReservationSuccessful"]"
-                AdornmentIcon="fa-regular fa-calendar-check"
-                AdornmentColor="Color.Success"
-                Color="Color.Success" />
+    @if (Context.ConfirmedReservation is not null)
+    {
+        <StackField Label="@Localizer["ReservationSuccessful"]"
+                    AdornmentIcon="fa-regular fa-calendar-check"
+                    AdornmentColor="Color.Success"
+                    Color="Color.Success" />
+    }
 
     @if (Context.SelectedPatient is not null)
     {
