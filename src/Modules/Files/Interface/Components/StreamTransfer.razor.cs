@@ -22,7 +22,7 @@ public partial class StreamTransfer : ComponentBase
     public bool EnableImageCapture { get; set; }
 
     [Parameter]
-    public string? CaptureDevice { get; set; }
+    public CaptureDeviceMode CaptureDevice { get; set; } = CaptureDeviceMode.Environment;
 
     public RenderFragment ActContent => Service.ActContent;
 

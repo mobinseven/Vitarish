@@ -25,7 +25,7 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
 
     public string? UserId { get; set; }
     public bool EnableImageCapture { get; set; }
-    public string? CaptureDevice { get; set; }
+    public CaptureDeviceMode CaptureDevice { get; set; } = CaptureDeviceMode.Environment;
 
     public bool Transferring { get; private set; }
 
@@ -233,17 +233,24 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
         _selfRef ??= DotNetObjectReference.Create(this);
     }
 
-    private ValueTask EnsureInputElementAsync() => _module is null || _selfRef is null
-            ? ValueTask.CompletedTask
-            : _module.InvokeVoidAsync("ensureFileInput", new
-            {
-                inputId = _id,
-                dotNetRef = _selfRef,
-                accept = Accept,
-                capture = ResolveCaptureMode(),
-                hidden = _activatorContent is not null,
-                multiple = true
-            });
+    private ValueTask EnsureInputElementAsync()
+    {
+        if (_module is null || _selfRef is null)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        string? captureMode = ResolveCaptureMode();
+        return _module.InvokeVoidAsync("ensureFileInput", new
+        {
+            inputId = _id,
+            dotNetRef = _selfRef,
+            accept = Accept,
+            capture = captureMode,
+            hidden = _activatorContent is not null,
+            multiple = captureMode is null
+        });
+    }
 
     private string? ResolveCaptureMode()
     {
@@ -252,13 +259,11 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
             return null;
         }
 
-        if (string.Equals(CaptureDevice, "user", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(CaptureDevice, "environment", StringComparison.OrdinalIgnoreCase))
+        return CaptureDevice switch
         {
-            return CaptureDevice.ToLowerInvariant();
-        }
-
-        return "environment";
+            CaptureDeviceMode.User => "user",
+            _ => "environment"
+        };
     }
 
     private void TriggerStateChanged() => _ = TriggerStateChangedAsync();
