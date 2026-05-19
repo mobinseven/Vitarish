@@ -18,7 +18,8 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
         Func<PendingFileDto, FileSelectionMode, bool> onPendingRemoved,
         CancellationToken cancellationToken = default)
     {
-        foreach (PendingFileDto file in pendingFiles.ToArray())
+        List<PendingFileDto> filesToTransfer = [.. pendingFiles];
+        foreach (PendingFileDto file in filesToTransfer)
         {
             if (file.Size <= 0 || string.IsNullOrWhiteSpace(file.Name))
             {
@@ -28,7 +29,14 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
             await using IJSStreamReference? streamRef = await fileInputInterop.GetFileStreamAsync(inputId, file.Name, cancellationToken) ?? throw new InvalidOperationException("Unable to read selected file stream.");
             await using Stream stream = await streamRef.OpenReadStreamAsync(file.Size, cancellationToken);
 
-            Channel<byte[]> channel = Channel.CreateBounded<byte[]>(new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.Wait });
+            Channel<byte[]> channel = Channel.CreateBounded<byte[]>(new BoundedChannelOptions(1)
+            {
+                FullMode = BoundedChannelFullMode.Wait,
+                SingleReader = true,
+                SingleWriter = true
+            });
+            using CancellationTokenSource pumpCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            CancellationToken pumpCancellationToken = pumpCancellationTokenSource.Token;
 
             Task pump = Task.Run(async () =>
             {
@@ -38,7 +46,7 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
                     byte[] buffer = new byte[bufferLength];
                     while (true)
                     {
-                        int read = await stream.ReadAsync(buffer.AsMemory(0, buffer.Length), cancellationToken);
+                        int read = await stream.ReadAsync(buffer.AsMemory(0, buffer.Length), pumpCancellationToken);
                         if (read == 0)
                         {
                             break;
@@ -46,12 +54,12 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
 
                         byte[] chunk = new byte[read];
                         Array.Copy(buffer, 0, chunk, 0, read);
-                        await channel.Writer.WriteAsync(chunk, cancellationToken);
+                        await channel.Writer.WriteAsync(chunk, pumpCancellationToken);
                         file.Progress += 100d * Convert.ToDouble(read) / file.Size;
                         await onProgressAsync();
                     }
 
-                    channel.Writer.Complete();
+                    _ = channel.Writer.TryComplete();
                 }
                 catch (Exception ex)
                 {
@@ -81,7 +89,20 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
             }
             finally
             {
+                if (!pumpCancellationTokenSource.IsCancellationRequested)
+                {
+                    pumpCancellationTokenSource.Cancel();
+                }
+
                 _ = channel.Writer.TryComplete();
+                try
+                {
+                    await pump.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (pumpCancellationTokenSource.IsCancellationRequested)
+                {
+                    // Pump cancellation is expected when upload fails or finishes early.
+                }
             }
         }
     }
