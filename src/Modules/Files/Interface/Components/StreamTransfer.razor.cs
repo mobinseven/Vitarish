@@ -19,7 +19,7 @@ public partial class StreamTransfer : ComponentBase
     public string? UserId { get; set; }
 
     [Parameter]
-    public bool EnableImageCapture { get; set; } = true;
+    public bool EnableImageCapture { get; set; }
 
     [Parameter]
     public string? CaptureDevice { get; set; }

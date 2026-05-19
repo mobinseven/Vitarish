@@ -24,7 +24,7 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
     public Func<FileInformationReadDto, Task>? OnFileUploadedAsync { get; set; }
 
     public string? UserId { get; set; }
-    public bool EnableImageCapture { get; set; } = true;
+    public bool EnableImageCapture { get; set; }
     public string? CaptureDevice { get; set; }
 
     public bool Transferring { get; private set; }
