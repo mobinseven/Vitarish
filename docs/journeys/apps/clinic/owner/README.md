@@ -3,7 +3,7 @@
 Date assessed: 2026-05-10
 
 ## Scope and method
-This folder documents clinic-owner patient journeys and the current implementation evidence behind them. The implementation status source of truth now lives in the [implementation matrix](./implementation-matrix.md), while the detailed journey narratives stay in the focused journey files.
+This folder documents clinic owner patient journeys and the current implementation evidence behind them. The implementation status source of truth now lives in the [implementation matrix](./implementation-matrix.md), while the detailed journey narratives stay in the focused journey files.
 
 Implementation levels in the matrix:
 
@@ -50,7 +50,7 @@ Implementation levels in the matrix:
 - **Required state mutation/query boundary:** Extend the patient list read boundary behind `IAccessControlledProjectsService.GetListAsync` so filters are expressed as patient-specific query criteria rather than ad hoc UI-only filtering.
 - **Validation/error behavior:** Invalid filter combinations are blocked inline; empty-result states remain honest; query failures preserve the current filter state and show an operator-friendly retry/error message.
 - **Audit/logging expectation:** No audit event is required for read-only filtering, but failed queries should emit standard telemetry/error logs.
-- **Definition of done test coverage locations:** Unit tests in a mirrored clinic interface/component test area for `PatientsGrid`; integration coverage in `tests/Hosts/Main.Tests/Common/AppRoutesTests.cs` plus a future mirrored clinic-owner query test area; UI coverage in a clinic-owner patient-list flow suite for filter persistence and empty/error states.
+- **Definition of done test coverage locations:** Unit tests in a mirrored clinic interface/component test area for `PatientsGrid`; integration coverage in `tests/Hosts/Main.Tests/Common/AppRoutesTests.cs` plus a future mirrored clinic owner query test area; UI coverage in a clinic owner patient-list flow suite for filter persistence and empty/error states.
 
 #### [Manage patient status (active/inactive)](./patient-profile-crud-journey.md)
 - **User-visible completion criteria:** Operators can see a patient lifecycle badge everywhere patient identity is shown and can change status explicitly between supported states without deleting the record.
@@ -58,7 +58,7 @@ Implementation levels in the matrix:
 - **Required state mutation/query boundary:** Add a dedicated patient status field to the patient read/write contract so status reads, updates, and list filters use one source of truth.
 - **Validation/error behavior:** Unsupported transitions are blocked with explicit reasons; concurrent updates return a non-destructive retry message; status changes do not silently remove patients from visible lists.
 - **Audit/logging expectation:** Record an audit event for status changes because they alter patient lifecycle visibility and downstream workflows.
-- **Definition of done test coverage locations:** Unit tests in a mirrored patient form/details test area; integration coverage in a mirrored clinic-owner patient command test area plus route coverage in `tests/Hosts/Main.Tests/Common/AppRoutesTests.cs`; UI coverage in a patient-details lifecycle-status flow suite.
+- **Definition of done test coverage locations:** Unit tests in a mirrored patient form/details test area; integration coverage in a mirrored clinic owner patient command test area plus route coverage in `tests/Hosts/Main.Tests/Common/AppRoutesTests.cs`; UI coverage in a patient-details lifecycle-status flow suite.
 
 #### [Prevent duplicate patient records](./patient-profile-crud-journey.md)
 - **User-visible completion criteria:** Before create or update commits, operators see duplicate candidates based on normalized identity inputs and must explicitly confirm creating a new record when a likely match exists.
@@ -66,7 +66,7 @@ Implementation levels in the matrix:
 - **Required state mutation/query boundary:** Add a dedicated duplicate-candidate query ahead of create/update so duplicate review stays read-only until the operator confirms the mutation.
 - **Validation/error behavior:** The form blocks save until duplicate review is resolved; failed duplicate queries show a recoverable error; confirmed overrides are explicit and never implicit.
 - **Audit/logging expectation:** Log duplicate warnings and explicit operator overrides for traceability when a likely match is bypassed.
-- **Definition of done test coverage locations:** Unit tests in a mirrored patient form test area for duplicate decision rules; integration coverage in a mirrored clinic-owner patient create/update command test area; UI coverage in a patient-create duplicate-review flow suite.
+- **Definition of done test coverage locations:** Unit tests in a mirrored patient form test area for duplicate decision rules; integration coverage in a mirrored clinic owner patient create/update command test area; UI coverage in a patient-create duplicate-review flow suite.
 
 ### Patients Procedures Management
 
@@ -76,7 +76,7 @@ Implementation levels in the matrix:
 - **Required state mutation/query boundary:** Keep patient assignment on the procedure record while adding a medical-specific provider assignment read/write boundary instead of reusing generic Sea event-role editing.
 - **Validation/error behavior:** Missing or invalid provider assignments are surfaced inline; save failures preserve unsaved form values; unauthorized assignment attempts show an explicit permission error.
 - **Audit/logging expectation:** Provider assignment changes should create auditable change events because they alter clinical responsibility.
-- **Definition of done test coverage locations:** Unit tests in mirrored procedure dialog/details component tests; integration coverage in a mirrored clinic-owner procedure command test area; UI coverage in patient-procedure assignment flows.
+- **Definition of done test coverage locations:** Unit tests in mirrored procedure dialog/details component tests; integration coverage in a mirrored clinic owner procedure command test area; UI coverage in patient-procedure assignment flows.
 
 #### [Track procedure status](./patient-procedure-journey.md)
 - **User-visible completion criteria:** Each procedure exposes a clear lifecycle status (for example planned, active, completed, cancelled) that is visible in the patient list and procedure detail pages without forcing users to infer status from event commits.

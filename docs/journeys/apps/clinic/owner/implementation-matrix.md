@@ -1,6 +1,6 @@
 # Clinic Owner Journey Implementation Matrix
 
-This matrix is the source of truth for clinic-owner patient journey implementation status in this folder.
+This matrix is the source of truth for clinic owner patient journey implementation status in this folder.
 Status enum values: `implemented`, `partial`, `missing`.
 
 ## Patients Profile Management (CRUD)
@@ -8,7 +8,7 @@ Status enum values: `implemented`, `partial`, `missing`.
 | Objective | Canonical journey file path | Implementation status | Required route(s) | Required page/component identifiers | Required backend/query/command identifiers | Known gaps |
 | --- | --- | --- | --- | --- | --- | --- |
 | Create patient profiles | `docs/journeys/apps/clinic/owner/patient-profile-crud-journey.md` | `implemented` | `AppRoutes.Clinic.PatientNew` (`/owner/clinic/patients/new`) | `ClinicOwnerPatientNewPage.razor`<br/>`PatientEditForm` | `IAccessControlledProjectsService.AddAsync`<br/>`PatientWriteDto` | Save validation is still minimal before create. |
-| View patient details | `docs/journeys/apps/clinic/owner/patient-profile-crud-journey.md` | `implemented` | `AppRoutes.Clinic.PatientTemplate` / `AppRoutes.Clinic.Patient(patientId)` | `ClinicOwnerPatientPage.razor`<br/>`PatientDetails` | `IAccessControlledProjectsService.GetAsync` via patient page base loading<br/>`PatientReadDto` | Patient detail acts as the de facto overview and does not prioritize safety-critical summary state. |
+| View patient details | `docs/journeys/apps/clinic/owner/patient-profile-crud-journey.md` | `implemented` | `AppRoutes.Clinic.PatientTemplate` / `AppRoutes.Clinic.Patient(patientId)` | `ClinicOwnerPatientPage.razor`<br/>`PatientDetails` | `IAccessControlledProjectsService.GetAsync` via patient page base loading<br/>`PatientReadDto` | Patient detail acts as the *de facto* overview and does not prioritize safety-critical summary state. |
 | Edit patient information | `docs/journeys/apps/clinic/owner/patient-profile-crud-journey.md` | `implemented` | `AppRoutes.Clinic.PatientEditTemplate` / `AppRoutes.Clinic.PatientEdit(patientId)` | `ClinicOwnerPatientEditPage.razor`<br/>`PatientEditForm` | `IAccessControlledProjectsService.UpdateAsync`<br/>`PatientWriteDto` | Update flow still lacks stronger required-field validation and duplicate checks. |
 | Archive/delete patient profiles | `docs/journeys/apps/clinic/owner/patient-profile-crud-journey.md` | `implemented` | `AppRoutes.Clinic.PatientTemplate` / `AppRoutes.Clinic.Patient(patientId)` | `ClinicOwnerPatientPage.razor`<br/>`PatientDetails` | `ProjectDetails.DeleteProject()` strict-confirm flow<br/>underlying Sea project delete command path | Current UX appears as delete rather than explicit patient archive/status mutation. |
 | Search and filter patients | `docs/journeys/apps/clinic/owner/patient-profile-crud-journey.md` | `partial` | `AppRoutes.Clinic.Patients` (`/owner/clinic/patients`) | `ClinicOwnerPatientsPage.razor`<br/>`PatientsGrid` | `IAccessControlledProjectsService.GetListAsync`<br/>`ProjectDescriptorDto`/patient mapping | Only global search and surgery-date grouping exist; no dedicated status, linked-user, demographic, or missing-data filters. |
