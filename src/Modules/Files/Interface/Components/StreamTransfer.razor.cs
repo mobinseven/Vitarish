@@ -24,6 +24,9 @@ public partial class StreamTransfer : ComponentBase
     [Parameter]
     public CaptureDeviceMode CaptureDevice { get; set; } = CaptureDeviceMode.Environment;
 
+    [Parameter]
+    public bool AllowMultipleSelection { get; set; } = true;
+
     public RenderFragment ActContent => Service.ActContent;
 
     public IReadOnlyList<PendingFileDto> PendingFiles => Service.PendingFiles;
@@ -71,6 +74,7 @@ public partial class StreamTransfer : ComponentBase
         Service.UserId = UserId;
         Service.EnableImageCapture = EnableImageCapture;
         Service.CaptureDevice = CaptureDevice;
+        Service.AllowMultipleSelection = AllowMultipleSelection;
         Service.SetActivatorContent(ActivatorContent);
     }
 }

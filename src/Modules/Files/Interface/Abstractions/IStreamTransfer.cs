@@ -16,6 +16,7 @@ public interface IStreamTransfer
     string? UserId { get; set; }
     bool EnableImageCapture { get; set; }
     CaptureDeviceMode CaptureDevice { get; set; }
+    bool AllowMultipleSelection { get; set; }
 
     void ClearPendings();
     Task InitializeAsync(CancellationToken cancellationToken = default);

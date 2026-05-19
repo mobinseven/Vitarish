@@ -26,6 +26,7 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
     public string? UserId { get; set; }
     public bool EnableImageCapture { get; set; }
     public CaptureDeviceMode CaptureDevice { get; set; } = CaptureDeviceMode.Environment;
+    public bool AllowMultipleSelection { get; set; } = true;
 
     public bool Transferring { get; private set; }
 
@@ -248,7 +249,7 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
             accept = Accept,
             capture = captureMode,
             hidden = _activatorContent is not null,
-            multiple = captureMode is null
+            multiple = AllowMultipleSelection
         });
     }
 
