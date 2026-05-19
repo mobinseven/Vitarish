@@ -29,10 +29,13 @@
                  Color="Color.Default"
                  OnClick="SendSmsReminderAsync" />
 
-    <StackTextField Label="@Localizer["MessageId"]" @bind-Value="lastSmsMessageId" />
-    <StackButton Label="@Localizer["CheckSmsDeliveryState"]"
-                 EndIcon="fa-regular fa-chart-line-up-down"
-                 OnClick="CheckDeliveryStateAsync" />
+    @if (!string.IsNullOrWhiteSpace(lastSmsMessageId))
+    {
+        <StackTextField Label="@Localizer["MessageId"]" @bind-Value="lastSmsMessageId" />
+        <StackButton Label="@Localizer["CheckSmsDeliveryState"]"
+                     EndIcon="fa-regular fa-chart-line-up-down"
+                     OnClick="CheckDeliveryStateAsync" />
+    }
 
     @if (!string.IsNullOrWhiteSpace(status))
     {

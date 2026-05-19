@@ -52,7 +52,7 @@ public class MessageProcessor(ILogger<MessageProcessor> logger, IMessagesService
                         Subject = email.Subject,
                         Body = email.TextBody,
                         HtmlBody = email.HtmlBody
-                    });
+                    }, CancellationToken.None);
                     logger.LogInformation("Successfully sent email to {MaskedTo}", MaskEmail(email.Recipient));
                     break;
 
@@ -89,8 +89,8 @@ public class MessageProcessor(ILogger<MessageProcessor> logger, IMessagesService
                     break;
 
                 default:
-                    logger.LogWarning("Unknown communication command type: {CommandType}", command.GetType().Name);
-                    break;
+                    logger.LogWarning("Unsupported communication command type: {CommandType}", command.GetType().Name);
+                    throw new NotSupportedException($"Unsupported communication command type '{command.GetType().Name}'.");
             }
         }
         catch (Exception ex)
