@@ -14,6 +14,7 @@
 
 @code {
     [CascadingParameter] private StackPaginationState? _state { get; set; }
+    private StackPaginationState? _activeState;
 
     protected override void OnParametersSet()
     {
@@ -22,11 +23,16 @@
 
     private void SubscribeToState()
     {
-        if(_state is null)
+        if(_activeState == _state)
             return;
 
-        _state.StateChanged -= OnPaginationStateChanged;
-        _state.StateChanged += OnPaginationStateChanged;
+        if(_activeState is not null)
+            _activeState.StateChanged -= OnPaginationStateChanged;
+
+        _activeState = _state;
+
+        if(_activeState is not null)
+            _activeState.StateChanged += OnPaginationStateChanged;
     }
 
     private Task OnPageChanged(int selected)
@@ -39,7 +45,7 @@
 
     public void Dispose()
     {
-        if(_state is not null)
-            _state.StateChanged -= OnPaginationStateChanged;
+        if(_activeState is not null)
+            _activeState.StateChanged -= OnPaginationStateChanged;
     }
 }

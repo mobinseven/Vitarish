@@ -16,13 +16,13 @@
 @code {
     private readonly StackPaginationState _state = new();
 
-    [Parameter] public IReadOnlyList<TItem> Items { get; set; } = Array.Empty<TItem>();
+    [Parameter] public IReadOnlyList<TItem>? Items { get; set; } = Array.Empty<TItem>();
     [Parameter] public RenderFragment<TItem>? StackItemTemplate { get; set; }
-    [Parameter] public int MaxItems { get; set; } = 10;
+    [Parameter] public int PageSize { get; set; } = 10;
     [Parameter] public string? Class { get; set; }
     [Parameter] public string? Style { get; set; }
 
-    private IEnumerable<TItem> PagedItems => Items.Skip(_state.Skip).Take(_state.PageSize);
+    private IEnumerable<TItem> PagedItems => Items?.Skip(_state.Skip).Take(_state.PageSize) ?? Enumerable.Empty<TItem>();
 
     protected override void OnInitialized()
     {
@@ -31,7 +31,7 @@
 
     protected override void OnParametersSet()
     {
-        _state.Configure(Items.Count, MaxItems);
+        _state.Configure(Items?.Count ?? 0, PageSize);
     }
 
     private void OnPaginationStateChanged() => _ = InvokeAsync(StateHasChanged);

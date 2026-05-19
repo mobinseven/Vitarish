@@ -13,8 +13,14 @@ public sealed class StackPaginationState
 
     public void Configure(int totalItems, int pageSize)
     {
-        TotalItems = Math.Max(0, totalItems);
-        PageSize = Math.Max(1, pageSize);
+        var newTotalItems = Math.Max(0, totalItems);
+        var newPageSize = Math.Max(1, pageSize);
+
+        if(TotalItems == newTotalItems && PageSize == newPageSize)
+            return;
+
+        TotalItems = newTotalItems;
+        PageSize = newPageSize;
 
         if(Page > TotalPages)
             Page = TotalPages;
