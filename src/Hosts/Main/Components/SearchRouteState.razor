@@ -1,9 +1,12 @@
 @using Vitarish.Interfaces.Base.Abstractions
+@using System.Collections.Concurrent
 @using System.Reflection
 
 @ChildContent
 
 @code {
+    private static readonly ConcurrentDictionary<Type, bool> SearchEnabledByPageType = new();
+
     [Inject]
     public required INavService NavService { get; set; }
 
@@ -15,7 +18,9 @@
 
     protected override void OnParametersSet()
     {
-        bool searchEnabled = RouteData.PageType.GetCustomAttribute<EnableSearchAttribute>(inherit: true) is not null;
+        bool searchEnabled = SearchEnabledByPageType.GetOrAdd(
+            RouteData.PageType,
+            static pageType => pageType.GetCustomAttribute<EnableSearchAttribute>(inherit: true) is not null);
         if (searchEnabled)
         {
             NavService.EnableSearch();

@@ -65,9 +65,16 @@ public sealed class NavService : INavService, IDisposable
 
     public void DisableSearch()
     {
-        navigationManager.NavigateTo(navigationManager.GetUriWithQueryParameter(nameof(NavMenu.Search), (bool?)null));
-        SearchString = null;
-        _ = renderNotifier.Notify();
+        string uriWithoutSearch = navigationManager.GetUriWithQueryParameter(nameof(NavMenu.Search), (bool?)null);
+        if (navigationManager.Uri != uriWithoutSearch)
+        {
+            navigationManager.NavigateTo(uriWithoutSearch);
+        }
+
+        if (SearchString is not null)
+        {
+            SearchString = null;
+        }
     }
 
     private void GenerateCurrentBreadcrumbs(bool force = false)
