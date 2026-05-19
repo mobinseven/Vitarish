@@ -6,10 +6,8 @@
   </Configurations>
   <Folder Name="/src/" />
   <Folder Name="/src/Apps/" />
-  <Folder Name="/src/Apps/Aggregator/">
+  <Folder Name="/src/Apps/Common/">
     <Project Path="src/Apps/Aggregator/Apps.Aggregator.csproj" />
-  </Folder>
-  <Folder Name="/src/Apps/Base/">
     <Project Path="src/Apps/Base/Apps.Base.csproj" />
   </Folder>
   <Folder Name="/src/Hosts/">
@@ -29,7 +27,6 @@
     <Project Path="src/Identity/Requests/Hosting/Requests.Hosting.csproj" />
     <Project Path="src/Identity/Requests/Infrastructure/Requests.Infrastructure.csproj" />
   </Folder>
-  <Folder Name="/src/Identity/Requests/Application/" />
   <Folder Name="/src/Identity/Users/">
     <Project Path="src/Identity/Users/Application/Users.Application.csproj" />
     <Project Path="src/Identity/Users/Domain/Users.Domain.csproj" />
@@ -63,10 +60,6 @@
     <Project Path="src/Modules/Appointments/Infrastructure/Appointments.Infrastructure.csproj" />
     <Project Path="src/Modules/Appointments/Interface/Appointments.Interface.csproj" />
   </Folder>
-  <Folder Name="/src/Modules/Base/">
-    <Project Path="src/Modules/Aggregator/Modules.Aggregator/Modules.Aggregator.csproj" />
-    <Project Path="src/Modules/Base/Modules.Base.csproj" />
-  </Folder>
   <Folder Name="/src/Apps/Clinic/">
     <Project Path="src/Apps/Clinic/Interface/Clinic.Interface.csproj" />
   </Folder>
@@ -75,6 +68,10 @@
     <Project Path="src/Modules/Commerce/Domain/Commerce.Domain.csproj" />
     <Project Path="src/Modules/Commerce/Infrastructure/Commerce.Infrastructure.csproj" />
     <Project Path="src/Modules/Commerce/Interface/Commerce.Interface.csproj" />
+  </Folder>
+  <Folder Name="/src/Modules/Common/">
+    <Project Path="src/Modules/Aggregator/Modules.Aggregator/Modules.Aggregator.csproj" />
+    <Project Path="src/Modules/Base/Modules.Base.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Communications/">
     <Project Path="src/Modules/Communications/Application/Communications.Application.csproj" />

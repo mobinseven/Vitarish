@@ -1,10 +1,8 @@
-@if (owner is not null)
+@if(owner is not null)
 {
-    <Stack>
-        <StackField Label="@owner.Name" />
-        <StackButton Size="Size.Small" Label="@Localizer["Dashboard"]" Href="@DashboardHref" EndIcon="fa-regular fa-grid" />
-        <StackButton Size="Size.Small" Label="@Localizer["Owner"]" Href="@TenantsHref" EndIcon="fa-regular fa-building" />
-    </Stack>
+    <StackField Align="Align.Center" Label="@tenant?.Name" HelperText="@owner.Name" />
+    <StackButton Size="Size.Small" Label="@Localizer["Dashboard"]" Href="@DashboardHref" EndIcon="fa-regular fa-grid" />
+    <StackButton Size="Size.Small" Label="@Localizer["Owner"]" Href="@TenantsHref" EndIcon="fa-regular fa-building" />
 }
 
 @code {
@@ -12,13 +10,15 @@
     [Parameter] public string TenantsHref { get; set; } = string.Empty;
 
     private OwnerReadDto? owner;
-
+    private TenantReadDto? tenant;
     protected override async Task ReloadRequired()
     {
         Guid? ownerGuid = GetOwnerGuid();
-        if (ownerGuid is null)
+        if(ownerGuid is null)
             return;
 
         owner = await PartiesService.GetOwnerAsync(ownerGuid.Value);
+        if(RequestContext.TenantId is not null)
+            tenant = await PartiesService.GetTenantAsync(Guid.Parse(RequestContext.TenantId));
     }
 }

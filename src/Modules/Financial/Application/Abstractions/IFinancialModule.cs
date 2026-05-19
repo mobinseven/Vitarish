@@ -1,3 +1,5 @@
+using Vitarish.Modules.Base;
+
 namespace Vitarish.Financial.Application.Abstractions;
 
-public interface IFinancialModule;
+public interface IFinancialModule : IModule;
