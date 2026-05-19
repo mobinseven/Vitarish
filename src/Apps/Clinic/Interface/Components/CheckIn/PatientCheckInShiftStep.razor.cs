@@ -1,4 +1,4 @@
-using Google.Protobuf.Reflection;
+using Microsoft.Extensions.Configuration;
 
 namespace Vitarish.Clinic.Interface.Components.CheckIn;
 
@@ -10,6 +10,7 @@ public partial class PatientCheckInShiftStep : Modules.Base.TenantCommonBase
 
     [Inject] private IAccessControlledReservationManager ReservationManager { get; set; } = default!;
     [Inject] private IShiftBookableDateQueryService BookableDateQueryService { get; set; } = default!;
+    [Inject] private IConfiguration Configuration { get; set; } = default!;
 
     private ShiftDescriptorDto shiftDescriptor = default!;
     private ShiftDateRangeQuery shiftRange = default!;
@@ -19,11 +20,13 @@ public partial class PatientCheckInShiftStep : Modules.Base.TenantCommonBase
     private bool loadingReservations;
     private bool booking;
     private string? bookingError;
+    private bool waitlistEnabled;
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
         today = DateOnly.FromDateTime(DateTime.UtcNow);
+        waitlistEnabled = Configuration.GetValue<bool>("Vitarish:Features:CheckInWaitlist");
         shiftDescriptor = new ShiftDescriptorDto
         {
             Status = ShiftStatus.Active,
@@ -68,13 +71,18 @@ public partial class PatientCheckInShiftStep : Modules.Base.TenantCommonBase
     }
 
     private async Task BookSlotAsync(ShiftReadDto shift, ShiftReservationReadDto occurrence)
+        => await BookSlotAsync(shift, occurrence, capacityOverride: false);
+
+    private async Task BookSlotAsync(ShiftReadDto shift, ShiftReservationReadDto occurrence, bool capacityOverride)
     {
         bookingError = null;
+        Context.OperationalWarning = null;
         booking = true;
         await InvokeAsync(StateHasChanged);
 
-        EntityResult<ReservationReadDto> reserveResult = await ReservationManager
-            .ReserveAsync(shift.Id, occurrence.Date, GetReservingPartyId(), CancellationToken.None);
+        EntityResult<ReservationReadDto> reserveResult = capacityOverride
+            ? await ReservationManager.ReserveWithOverrideAsync(shift.Id, occurrence.Date, GetReservingPartyId(), CancellationToken.None)
+            : await ReservationManager.ReserveAsync(shift.Id, occurrence.Date, GetReservingPartyId(), CancellationToken.None);
 
         if (reserveResult.IsFailure || reserveResult.Value is null)
         {
@@ -91,11 +99,21 @@ public partial class PatientCheckInShiftStep : Modules.Base.TenantCommonBase
             EntityResult confirmResult = await ReservationManager
                 .ConfirmReservationAsync(reservation.Id, CancellationToken.None);
 
-            if (!confirmResult.IsFailure)
+            if (confirmResult.IsFailure)
             {
-                _ = await ReservationManager
-                    .PresentReservationAsync(reservation.Id, CancellationToken.None);
+                Context.OperationalWarning = Localizer["ReservationCreatedArrivalStatusNeedsManualFollowUp"];
             }
+            else
+            {
+                EntityResult presentResult = await ReservationManager
+                    .PresentReservationAsync(reservation.Id, CancellationToken.None);
+                if (presentResult.IsFailure)
+                {
+                    Context.OperationalWarning = Localizer["ReservationCreatedArrivalStatusNeedsManualFollowUp"];
+                }
+            }
+
+            reservation = await ReservationManager.GetAsync(reservation.Id, CancellationToken.None).GetValueOrDefaultAsync() ?? reservation;
         }
 
         Context.SelectedShift = shift;
@@ -105,6 +123,18 @@ public partial class PatientCheckInShiftStep : Modules.Base.TenantCommonBase
 
         booking = false;
         await OnBooked.InvokeAsync();
+    }
+
+    private bool HasSameDayCapacity(DateOnly date) =>
+        slots.Any(slot => slot.Occurrence?.Date == date && slot.Occurrence.AvailableSeats > 0);
+
+    private async Task JoinWaitlistAsync(ShiftReadDto shift, ShiftReservationReadDto occurrence)
+    {
+        Context.OperationalWarning = null;
+        Context.SelectedShift = shift;
+        Context.SelectedOccurrence = occurrence;
+        Context.OperationalWarning = Localizer["WaitlistRegistered"];
+        await InvokeAsync(StateHasChanged);
     }
 
     /// <summary>

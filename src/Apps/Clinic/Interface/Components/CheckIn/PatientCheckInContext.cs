@@ -17,6 +17,18 @@ public enum CheckInOutcome
     FutureShift
 }
 
+public enum CheckInNotificationChannel
+{
+    Sms
+}
+
+public enum CheckInNotificationStatus
+{
+    None,
+    Sent,
+    Failed
+}
+
 public class PatientCheckInContext
 {
     public CheckInStep CurrentStep { get; set; } = CheckInStep.Identify;
@@ -34,6 +46,15 @@ public class PatientCheckInContext
     /// <summary>When true the booking step will also mark the reservation as Present (walk-in).</summary>
     public bool MarkAsArrived { get; set; } = true;
 
+    /// <summary>Non-blocking warning for follow-up operations (for example confirm/present after reserve).</summary>
+    public string? OperationalWarning { get; set; }
+
+    public CheckInNotificationChannel NotificationChannel { get; set; } = CheckInNotificationChannel.Sms;
+
+    public CheckInNotificationStatus NotificationStatus { get; set; } = CheckInNotificationStatus.None;
+
+    public string? NotificationMessage { get; set; }
+
     public void Reset()
     {
         CurrentStep = CheckInStep.Identify;
@@ -43,5 +64,9 @@ public class PatientCheckInContext
         ConfirmedReservation = null;
         Outcome = CheckInOutcome.None;
         MarkAsArrived = true;
+        OperationalWarning = null;
+        NotificationChannel = CheckInNotificationChannel.Sms;
+        NotificationStatus = CheckInNotificationStatus.None;
+        NotificationMessage = null;
     }
 }

@@ -41,7 +41,8 @@ internal class CreateReservationHandler(
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("The booking window is closed for this shift slot."));
                 }
 
-                if (!await HasCapacityForPartyAsync(shift!, request.Date, request.ReservingPartyId, cancellationToken))
+                if (!request.CapacityOverride &&
+                    !await HasCapacityForPartyAsync(shift!, request.Date, request.ReservingPartyId, cancellationToken))
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("The reservation limit for this party has been reached."));
@@ -70,7 +71,7 @@ internal class CreateReservationHandler(
                     }
 
                     int occupiedSeats = await CountActiveReservationsAsync(request.ShiftId, request.Date, cancellationToken);
-                    if (occupiedSeats >= shift!.TotalSeats)
+                    if (!request.CapacityOverride && occupiedSeats >= shift!.TotalSeats)
                     {
                         dbContext.ShiftReservationLocks.Remove(lockEntry);
                         await dbContext.SaveChangesAsync(cancellationToken);
@@ -98,7 +99,7 @@ internal class CreateReservationHandler(
 
                 // Fallback path (no tenant, e.g. test environment without multi-tenancy)
                 int seats = await CountActiveReservationsAsync(request.ShiftId, request.Date, cancellationToken);
-                if (seats >= shift!.TotalSeats)
+                if (!request.CapacityOverride && seats >= shift!.TotalSeats)
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("No seats are available for this shift slot."));
