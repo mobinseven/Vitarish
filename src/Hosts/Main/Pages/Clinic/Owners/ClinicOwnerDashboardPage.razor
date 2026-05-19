@@ -11,8 +11,7 @@
                  EndIcon="fa-regular fa-person-walking-arrow-right"
                  Color="Color.Primary" />
 </Stack>
-<TodayAppointmentsWidget OnShiftClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerShift(id)))"
-                         OnShiftsClicked="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerReservations))" />
+
 <Stack>
     <StackField Label="@Localizer["Administration"]" />
     <StackButton Href="@AppRoutes.Clinic.OwnerShifts" Label="@Localizer["Shifts"]" EndIcon="fa-regular fa-calendar-star" />

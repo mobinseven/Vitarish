@@ -1,8 +1,6 @@
 using Vitarish.Interfaces.Admins.Components;
-using Vitarish.Interfaces.Base.Common;
 using Vitarish.Parties.Domain;
 using Vitarish.Parties.Domain.Dtos;
-using Vitarish.Parties.Domain.Entities;
 
 namespace Vitarish.Main.Pages.Platform;
 
@@ -27,12 +25,12 @@ public partial class PlatformAdminTenantPage : PlatformAdminCommonBase
             return;
         }
 
-        var id = TenantId.Value;
+        Guid id = TenantId.Value;
 
         tenantGuid = id;
         _ownerGuid = OwnerId ?? Guid.Empty;
 
-        var ten = await PartiesService.GetTenantAsync(tenantGuid);
+        TenantReadDto? ten = await PartiesService.GetTenantAsync(tenantGuid);
         if (ten is not null)
         {
             SetTenant(ten);

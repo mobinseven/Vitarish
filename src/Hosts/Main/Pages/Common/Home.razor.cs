@@ -1,6 +1,5 @@
-using Microsoft.Extensions.Options;
 using Vitarish.Main.Infrastructure.Options;
-using Vitarish.Main.Pages.Clinic;
+using Vitarish.Main.Pages.Clinic.Owners;
 using Vitarish.Main.Pages.Commerce.Owners;
 using Vitarish.Main.Pages.Sea.Common;
 using Vitarish.Parties.Domain;
@@ -13,15 +12,11 @@ public partial class Home
     [Inject] private IOptions<FeaturesOptions> FeaturesOptions { get; set; } = default!;
     [Inject] private IPartiesService PartiesService { get; set; } = default!;
 
-    /// <summary>
-    /// Module names that expose a meaningful dashboard route within a tenant context.
-    /// Extend this map as further modules gain tenant-scoped dashboard pages.
-    /// </summary>
-    private sealed record ModuleDashboardDefinition(
+    private sealed record DashboardDefinition(
     string Route,
     Type ComponentType
 );
-    private static readonly Dictionary<string, ModuleDashboardDefinition> ModuleDashboards =
+    private static readonly Dictionary<string, DashboardDefinition> Dashboards =
     new(StringComparer.OrdinalIgnoreCase)
     {
         ["Sea"] = new(
@@ -31,7 +26,7 @@ public partial class Home
 
         ["Clinic"] = new(
             AppRoutes.Clinic.OwnerDashboard,
-            typeof(ClinicDashboardPage)
+            typeof(ClinicOwnerDashboardPage)
         ),
 
         ["Commerce"] = new(
@@ -40,7 +35,7 @@ public partial class Home
         ),
     };
 
-    private IReadOnlyList<(string Name, ModuleDashboardDefinition)> activeDashboards = [];
+    private IReadOnlyList<(string Name, DashboardDefinition)> activeDashboards = [];
     private bool hasTenantContext;
     private bool onboardingEnabled;
 
@@ -55,16 +50,14 @@ public partial class Home
             if (tenant is not null)
             {
                 IReadOnlyList<string> modules = TenantMetadata.GetActiveModules(tenant.Metadata);
+                IReadOnlyList<string> apps = TenantMetadata.GetActiveApps(tenant.Metadata);
 
-                activeDashboards = [.. modules
-                    .Where(m => ModuleDashboards.ContainsKey(m))
-                    .Select(m => (m, ModuleDashboards[m]))];
+                activeDashboards = [.. modules.Union(apps)
+                    .Where(Dashboards.ContainsKey)
+                    .Select(m => (m, Dashboards[m]))];
             }
         }
     }
 
-    private Task NavigateToTenant(string route)
-    {
-        return Task.CompletedTask;
-    }
+    private Task<Action> NavigateToTenant(string route) => Task.FromResult(() => NavigationManager.NavigateTo(route));
 }
