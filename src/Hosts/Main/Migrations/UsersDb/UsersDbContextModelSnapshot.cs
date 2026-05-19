@@ -224,9 +224,20 @@ namespace Vitarish.Main.Migrations.UsersDb
                     b.Property<int>("AccessFailedCount")
                         .HasColumnType("int");
 
+                    b.Property<string>("BirthCity")
+                        .HasMaxLength(128)
+                        .HasColumnType("nvarchar(128)");
+
+                    b.Property<string>("BirthCountryCode")
+                        .HasMaxLength(8)
+                        .HasColumnType("nvarchar(8)");
+
                     b.Property<string>("ConcurrencyStamp")
                         .IsConcurrencyToken()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateOnly?>("DateOfBirth")
+                        .HasColumnType("date");
 
                     b.Property<string>("Email")
                         .HasMaxLength(256)
@@ -236,6 +247,10 @@ namespace Vitarish.Main.Migrations.UsersDb
                         .HasColumnType("bit");
 
                     b.Property<string>("FirstName")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<string>("IdentificationCode")
                         .HasMaxLength(64)
                         .HasColumnType("nvarchar(64)");
 
