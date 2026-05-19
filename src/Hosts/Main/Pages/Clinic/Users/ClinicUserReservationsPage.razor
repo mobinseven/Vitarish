@@ -1,4 +1,5 @@
 @attribute [Route(AppRoutes.Clinic.UserReservations)]
+@attribute [EnableSearch]
 
 <Stack>
     <StackButton Color="Color.Secondary"
@@ -8,6 +9,3 @@
 </Stack>
 <ReservationsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.UserReservation(id)))" />
 
-@code {
-    protected override void OnInitialized() => NavService.EnableSearch();
-}

@@ -17,5 +17,6 @@ public interface INavService
     void Home();
     void Profile();
     void EnableSearch();
+    void DisableSearch();
     void OverridePageTitle(string id, string title);
 }
