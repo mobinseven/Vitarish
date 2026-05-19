@@ -70,3 +70,7 @@ tests/                    tests mirror the source area they verify
 - New Social connections page: create `src/Hosts/Main/Pages/Social/SocialConnectionsPage.razor`, add `AppRoutes.Social.Connections`, and compose reusable Social UI from `src/Modules/Social/Interface/Components`.
 - New Social connections grid: create `src/Modules/Social/Interface/Components/SocialConnectionsGrid.razor`; no `@page` directive.
 - New webhook endpoint: keep endpoint mapping in `src/Modules/Social/Hosting/Endpoints` and initialize from `SocialModule`, not from a Razor page.
+
+## Journey maps
+
+Journey maps, which are directions about UX, are stored in `docs\journeys\*`.
