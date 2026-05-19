@@ -93,11 +93,15 @@ The maps below are intentionally short. Current-state maps document implemented 
 
 ## Additional clinic owner reservation journeys
 
+These are MVP journeys with non-overlapping scope boundaries.
 
-- [Reservation Overview Journey](./owner-reservation-overview-journey.md)
-- [Reservation List and Calendar Journey](./owner-reservation-list-calendar-journey.md)
-- [Reservation Management Journey](./owner-reservation-management-journey.md)
-- [Reservation Module Capability Journeys](./owner-reservation-module-capabilities-journey.md)
+- [Admin Onboarding and Reservation Setup](./owner-admin-onboarding-reservation-setup-journey.md)
+- [Provider Availability Management](./owner-provider-availability-management-journey.md)
+- [Service / Appointment-Type Setup](./owner-service-appointment-type-setup-journey.md)
+- [Manual Appointment Creation](./owner-manual-appointment-creation-journey.md)
+- [Edit / Reschedule / Cancel Appointment](./owner-edit-reschedule-cancel-appointment-journey.md)
+- [Daily Schedule Review](./owner-daily-schedule-review-journey.md)
+- [No-Show Handling](./owner-no-show-handling-journey.md)
 
 ## Recommended implementation backlog
 1. **Patient integrity:** Add patient active/inactive status, duplicate candidate detection, and stronger required-field validation.
