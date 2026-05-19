@@ -19,11 +19,13 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
     private RenderFragment? _activatorContent;
     private readonly SemaphoreSlim _initializationGate = new(1, 1);
     private bool _initialized;
+    private CaptureOptions _captureOptions = new();
 
     public Func<Task>? OnStateChangedAsync { get; set; }
     public Func<FileInformationReadDto, Task>? OnFileUploadedAsync { get; set; }
 
     public string? UserId { get; set; }
+    public CaptureOptions CaptureOptions => _captureOptions;
 
     public bool Transferring { get; private set; }
 
@@ -185,6 +187,11 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
         TriggerStateChanged();
     }
 
+    public void UpdateCaptureOptions(CaptureOptions options)
+    {
+        _captureOptions = options;
+    }
+
     [JSInvokable]
     public async Task OnPendingFilesChanged(List<PendingFileDto> files)
     {
@@ -231,16 +238,32 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
         _selfRef ??= DotNetObjectReference.Create(this);
     }
 
-    private ValueTask EnsureInputElementAsync() => _module is null || _selfRef is null
-            ? ValueTask.CompletedTask
-            : _module.InvokeVoidAsync("ensureFileInput", new
+    private ValueTask EnsureInputElementAsync()
+    {
+        if (_module is null || _selfRef is null)
+        {
+            return ValueTask.CompletedTask;
+        }
+
+        string? captureMode = ResolveCaptureMode();
+        return _module.InvokeVoidAsync("ensureFileInput", new
+        {
+            inputId = _id,
+            dotNetRef = _selfRef,
+            accept = Accept,
+            capture = captureMode,
+            hidden = _activatorContent is not null,
+            multiple = _captureOptions.AllowMultipleSelection && captureMode is null
+        });
+    }
+
+    private string? ResolveCaptureMode() => _captureOptions.EnableImageCapture
+            ? _captureOptions.CaptureDevice switch
             {
-                inputId = _id,
-                dotNetRef = _selfRef,
-                accept = Accept,
-                hidden = _activatorContent is not null,
-                multiple = true
-            });
+                CaptureDeviceMode.User => "user",
+                _ => "environment"
+            }
+            : null;
 
     private void TriggerStateChanged() => _ = TriggerStateChangedAsync();
 

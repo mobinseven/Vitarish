@@ -18,6 +18,15 @@ public partial class StreamTransfer : ComponentBase
     [Parameter]
     public string? UserId { get; set; }
 
+    [Parameter]
+    public bool EnableImageCapture { get; set; }
+
+    [Parameter]
+    public CaptureDeviceMode CaptureDevice { get; set; } = CaptureDeviceMode.Environment;
+
+    [Parameter]
+    public bool AllowMultipleSelection { get; set; } = true;
+
     public RenderFragment ActContent => Service.ActContent;
 
     public IReadOnlyList<PendingFileDto> PendingFiles => Service.PendingFiles;
@@ -40,7 +49,16 @@ public partial class StreamTransfer : ComponentBase
             await OnFileUploaded.InvokeAsync(file);
             await OnStateChange.InvokeAsync();
         });
-        ApplyParameters();
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        bool effectiveMultipleSelection = EnableImageCapture ? false : AllowMultipleSelection;
+        Service.UpdateCaptureOptions(new CaptureOptions(EnableImageCapture, CaptureDevice, effectiveMultipleSelection));
+        Service.UserId = UserId;
+        Service.SetActivatorContent(ActivatorContent);
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -60,9 +78,4 @@ public partial class StreamTransfer : ComponentBase
     public Task StartTransferAsync(CancellationToken cancellationToken = default)
         => Service.StartTransferAsync(cancellationToken);
 
-    private void ApplyParameters()
-    {
-        Service.UserId = UserId;
-        Service.SetActivatorContent(ActivatorContent);
-    }
 }

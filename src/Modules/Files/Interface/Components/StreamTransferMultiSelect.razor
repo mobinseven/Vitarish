@@ -1,0 +1,29 @@
+@namespace Vitarish.Files.Interface.Components
+
+<StreamTransfer UserId="@UserId"
+                EnableImageCapture="@EnableImageCapture"
+                CaptureDevice="@CaptureDevice"
+                AllowMultipleSelection="true"
+                OnFileUploaded="@OnFileUploaded"
+                OnStateChange="@OnStateChange"
+                ActivatorContent="@ActivatorContent" />
+
+@code {
+    [Parameter]
+    public EventCallback<FileInformationReadDto> OnFileUploaded { get; set; }
+
+    [Parameter]
+    public EventCallback<FileInformationReadDto> OnStateChange { get; set; }
+
+    [Parameter]
+    public RenderFragment? ActivatorContent { get; set; }
+
+    [Parameter]
+    public string? UserId { get; set; }
+
+    [Parameter]
+    public bool EnableImageCapture { get; set; }
+
+    [Parameter]
+    public CaptureDeviceMode CaptureDevice { get; set; } = CaptureDeviceMode.Environment;
+}
