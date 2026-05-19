@@ -2,23 +2,16 @@
 
 <MudDialog>
     <DialogContent>
-        <div>
-            <MudStack Row Justify="Justify.Center">
-                <MudIcon Icon="@Icon" Size="Size.Large" />
-            </MudStack>
-            <MudSimpleTable Elevation="0">
-                <tbody>
-                    <tr><td>@Localizer["Events"]</td><td>@Stats.Events</td></tr>
-                    <tr><td>@Localizer["Committed"]</td><td>@Stats.CommittedEvents</td></tr>
-                    <tr><td>@Localizer["Attachments"]</td><td>@Stats.EventItems</td></tr>
-                    <tr><td>@Localizer["NewItems"]</td><td>@Stats.NewItems</td></tr>
-                </tbody>
-            </MudSimpleTable>
-        </div>
+        <Stack>
+            <StackField Label="@Localizer["Events"]" HelperText="@Stats.Events.ToString()" />
+            <StackField Label="@Localizer["Committed"]" HelperText="@Stats.CommittedEvents.ToString()" />
+            <StackField Label="@Localizer["Attachments"]" HelperText="@Stats.EventItems.ToString()" />
+            <StackField Label="@Localizer["NewItems"]" HelperText="@Stats.NewItems.ToString()" />
+        </Stack>
+        <Stack>
+            <StackButton Label="@Localizer["Close"]" OnClick="Cancel" />
+        </Stack>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">@Localizer["Close"]</MudButton>
-    </DialogActions>
 </MudDialog>
 
 

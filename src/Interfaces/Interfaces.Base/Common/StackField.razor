@@ -5,23 +5,29 @@
           Style="cursor: pointer"
           Underline="false"
           FullWidth>
-    <MudField AdornmentIcon="@AdornmentIcon"
-              IconSize="Size.Small"
-              Adornment="@Adornment.Start"
-              AdornmentColor="@AdornmentColor"
-              OnAdornmentClick="@OnAdornmentClick"
-              Underline="false"
-              FullWidth>
-        <div class="my-1">
-            <MudText Color="@Color" Typo="@Typo" Align="@Align">@Label</MudText>
-        </div>
-        @if(!string.IsNullOrWhiteSpace(HelperText))
-        {
-            <div>
-                <MudText Typo="Typo.caption" Align="@Align" HtmlTag="p">@HelperText</MudText>
-            </div>
-        }
-    </MudField>
+    @if(!string.IsNullOrWhiteSpace(Label) || !string.IsNullOrWhiteSpace(HelperText))
+    {
+        <MudField AdornmentIcon="@AdornmentIcon"
+                  IconSize="Size.Small"
+                  Adornment="@Adornment.Start"
+                  AdornmentColor="@AdornmentColor"
+                  OnAdornmentClick="@OnAdornmentClick"
+                  Underline="false"
+                  FullWidth>
+            @if(!string.IsNullOrWhiteSpace(Label))
+            {
+                <div class="my-1">
+                    <MudText Color="@Color" Typo="@Typo" Align="@Align">@Label</MudText>
+                </div>
+            }
+            @if(!string.IsNullOrWhiteSpace(HelperText))
+            {
+                <div>
+                    <MudText Typo="Typo.caption" Align="@Align" HtmlTag="p">@HelperText</MudText>
+                </div>
+            }
+        </MudField>
+    }
     @if(ChildContent is not null)
     {
         @ChildContent

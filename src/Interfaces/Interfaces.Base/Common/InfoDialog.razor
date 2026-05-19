@@ -1,11 +1,15 @@
-﻿@inherits CommonBase
+@inherits CommonBase
 <MudDialog>
     <DialogContent>
-        @Info
+        <Stack>
+            <StackField>
+                @Info
+            </StackField>
+        </Stack>
+        <Stack>
+            <StackButton Label="@Localizer["Close"]" OnClick="MudDialog.Cancel" />
+        </Stack>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="MudDialog.Cancel">@Localizer["Close"]</MudButton>
-    </DialogActions>
 </MudDialog>
 
 @code {
