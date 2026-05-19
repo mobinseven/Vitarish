@@ -7,13 +7,27 @@ public sealed class FileInputInteropService(IJSRuntime jsRuntime) : IFileInputIn
 {
     private const string ModulePath = "./_content/Vitarish.Files.Interface/Components/StreamTransfer.razor.js";
     private IJSObjectReference? _module;
+    private readonly SemaphoreSlim _moduleGate = new(1, 1);
     private bool _disposed;
 
     public async Task EnsureInitializedAsync(string inputId, object selfRef, FileInputOptions options, CancellationToken cancellationToken = default)
     {
         ObjectDisposedException.ThrowIf(_disposed, this);
 
-        _module ??= await jsRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
+        if (_module is null)
+        {
+            await _moduleGate.WaitAsync(cancellationToken).ConfigureAwait(false);
+            try
+            {
+                ObjectDisposedException.ThrowIf(_disposed, this);
+                _module ??= await jsRuntime.InvokeAsync<IJSObjectReference>("import", ModulePath);
+            }
+            finally
+            {
+                _ = _moduleGate.Release();
+            }
+        }
+
         await _module.InvokeVoidAsync("ensureFileInput", new
         {
             inputId,
@@ -53,11 +67,25 @@ public sealed class FileInputInteropService(IJSRuntime jsRuntime) : IFileInputIn
             return;
         }
 
-        _disposed = true;
-
-        if (_module is not null)
+        await _moduleGate.WaitAsync().ConfigureAwait(false);
+        try
         {
-            await _module.DisposeAsync();
+            if (_disposed)
+            {
+                return;
+            }
+
+            _disposed = true;
+
+            if (_module is not null)
+            {
+                await _module.DisposeAsync();
+                _module = null;
+            }
+        }
+        finally
+        {
+            _ = _moduleGate.Release();
         }
     }
 }

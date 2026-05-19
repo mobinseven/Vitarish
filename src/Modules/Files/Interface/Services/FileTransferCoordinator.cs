@@ -70,12 +70,19 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
                 Metadata = new FileMetadata { Size = file.Size }
             };
 
-            FileInformationReadDto fileInfo = await filesService.SaveFile(channel.Reader, info, cancellationToken).ConfigureAwait(false)
-                ?? throw new InvalidDataException("The returned result must not be null");
+            try
+            {
+                FileInformationReadDto fileInfo = await filesService.SaveFile(channel.Reader, info, cancellationToken).ConfigureAwait(false)
+                    ?? throw new InvalidDataException("The returned result must not be null");
 
-            await pump.ConfigureAwait(false);
-            _ = onPendingRemoved(file, mode);
-            await onUploadedAsync(fileInfo);
+                await pump.ConfigureAwait(false);
+                _ = onPendingRemoved(file, mode);
+                await onUploadedAsync(fileInfo);
+            }
+            finally
+            {
+                _ = channel.Writer.TryComplete();
+            }
         }
     }
 }

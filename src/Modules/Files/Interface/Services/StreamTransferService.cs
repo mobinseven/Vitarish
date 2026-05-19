@@ -125,10 +125,20 @@ public sealed class StreamTransferService(
 
     public async ValueTask DisposeAsync()
     {
-        _selfRef?.Dispose();
-        _selfRef = null;
-        await fileInputInterop.DisposeInputAsync(_id);
-        GC.SuppressFinalize(this);
+        try
+        {
+            _selfRef?.Dispose();
+            _selfRef = null;
+            await fileInputInterop.DisposeInputAsync(_id);
+        }
+        catch (JSDisconnectedException)
+        {
+            // Expected when the JS runtime is no longer available.
+        }
+        finally
+        {
+            GC.SuppressFinalize(this);
+        }
     }
 
     private RenderFragment BuildInputHost() => builder =>
