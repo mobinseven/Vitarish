@@ -17,7 +17,11 @@ public class CreateUserWithPhoneCommandHandler(UserManager<User> userManager, ID
             request.PhoneNumber,
             request.FirstName,
             request.LastName,
-            u => userManager.SetPhoneNumberAsync(u, request.PhoneNumber));
+            u => userManager.SetPhoneNumberAsync(u, request.PhoneNumber),
+            request.IdentificationCode,
+            request.DateOfBirth,
+            request.BirthCountryCode,
+            request.BirthCity);
 
         await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
         await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);

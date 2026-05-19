@@ -17,7 +17,11 @@ public class CreateUserWithEmailCommandHandler(UserManager<User> userManager, ID
             request.Email,
             request.FirstName,
             request.LastName,
-            u => userManager.SetEmailAsync(u, request.Email));
+            u => userManager.SetEmailAsync(u, request.Email),
+            request.IdentificationCode,
+            request.DateOfBirth,
+            request.BirthCountryCode,
+            request.BirthCity);
 
         await UserCacheExtensions.SetUserAsync(cache, user, cancellationToken);
         await UserCacheExtensions.RemoveUsersAsync(cache, cancellationToken);
