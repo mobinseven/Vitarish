@@ -16,14 +16,14 @@
     [Parameter]
     public RenderFragment? ChildContent { get; set; }
 
-    protected override void OnParametersSet()
+    protected override void OnInitialized()
     {
         bool searchEnabled = SearchEnabledByPageType.GetOrAdd(
             RouteData.PageType,
             static pageType => pageType.GetCustomAttribute<EnableSearchAttribute>(inherit: true) is not null);
         if (searchEnabled)
         {
-            NavService.EnableSearch();
+            //NavService.EnableSearch();
             return;
         }
 

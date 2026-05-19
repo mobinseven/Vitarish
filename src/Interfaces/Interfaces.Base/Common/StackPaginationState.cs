@@ -13,26 +13,32 @@ public sealed class StackPaginationState
 
     public void Configure(int totalItems, int pageSize)
     {
-        var newTotalItems = Math.Max(0, totalItems);
-        var newPageSize = Math.Max(1, pageSize);
+        int newTotalItems = Math.Max(0, totalItems);
+        int newPageSize = Math.Max(1, pageSize);
 
-        if(TotalItems == newTotalItems && PageSize == newPageSize)
+        if (TotalItems == newTotalItems && PageSize == newPageSize)
+        {
             return;
+        }
 
         TotalItems = newTotalItems;
         PageSize = newPageSize;
 
-        if(Page > TotalPages)
+        if (Page > TotalPages)
+        {
             Page = TotalPages;
+        }
 
         NotifyStateChanged();
     }
 
     public void SetPage(int page)
     {
-        var boundedPage = Math.Clamp(page, 1, TotalPages);
-        if(boundedPage == Page)
+        int boundedPage = Math.Clamp(page, 1, TotalPages);
+        if (boundedPage == Page)
+        {
             return;
+        }
 
         Page = boundedPage;
         NotifyStateChanged();

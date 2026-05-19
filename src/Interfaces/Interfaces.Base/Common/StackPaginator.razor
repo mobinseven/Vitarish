@@ -1,24 +1,45 @@
+@inherits CommonBase
 @implements IDisposable
 
-@if(State is not null && State.TotalPages > 1)
+@if(State is not null)
 {
-    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Class="my-2">
-        <MudPagination Class="glass"
-                       ShowFirstButton="true"
-                       ShowLastButton="true"
-                       Count="@State.TotalPages"
-                       Selected="@State.Page"
-                       SelectedChanged="OnPageChanged" />
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Class="ma-1 pa-1">
+        <MudSelect T="int" Value="PageSize" ValueChanged="v => SetPageSize(v)" Underline="false" Variant="Variant.Outlined">
+            <MudSelectItem T="int" Value="5">5</MudSelectItem>
+            <MudSelectItem T="int" Value="10">10</MudSelectItem>
+            <MudSelectItem T="int" Value="20">50</MudSelectItem>
+            <MudSelectItem T="int" Value="100">100</MudSelectItem>
+            <MudSelectItem T="int" Value="int.MaxValue">@Localizer["Infinite"]</MudSelectItem>
+        </MudSelect>
+        @if(State.TotalPages > 1)
+        {
+            <MudPagination Class="glass"
+                           ShowFirstButton="true"
+                           ShowLastButton="true"
+                           Count="@State.TotalPages"
+                           Selected="@State.Page"
+                           SelectedChanged="OnPageChanged" />
+        }
     </MudStack>
 }
 
 @code {
-    [CascadingParameter] public StackPaginationState? State { get; set; }
+    private int PageSize;
+
+    [Parameter] public StackPaginationState? State { get; set; }
+    [Parameter] public EventCallback<StackPaginationState?> StateChanged { get; set; }
     private StackPaginationState? _activeState;
 
-    protected override void OnParametersSet()
+    protected override void OnInitialized()
     {
         SubscribeToState();
+        PageSize = State.PageSize;
+    }
+
+    private void SetPageSize(int size)
+    {
+        PageSize = size;
+        State?.Configure(State?.TotalItems ?? 0, PageSize);
     }
 
     private void SubscribeToState()
@@ -35,9 +56,10 @@
             _activeState.StateChanged += OnPaginationStateChanged;
     }
 
-    private void OnPageChanged(int selected)
+    private async Task OnPageChanged(int selected)
     {
         State?.SetPage(selected);
+        await StateChanged.InvokeAsync(State);
     }
 
     private void OnPaginationStateChanged() => _ = InvokeAsync(StateHasChanged);

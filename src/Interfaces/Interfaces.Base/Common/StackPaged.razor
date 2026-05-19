@@ -1,8 +1,10 @@
 @typeparam TItem
 @implements IDisposable
 
-<CascadingValue Value="_state" IsFixed="true">
-    <Stack Class="@Class" Style="@Style">
+@if(IncludeStack)
+{
+    <Stack>
+        <StackPaginator @bind-State="_state" />
         @foreach(var item in PagedItems)
         {
             @if(StackItemTemplate is not null)
@@ -11,17 +13,29 @@
             }
         }
     </Stack>
-</CascadingValue>
+}
+else
+{
+
+    <Stack>
+        <StackPaginator @bind-State="_state" />
+    </Stack>
+    @foreach(var item in PagedItems)
+    {
+        @if(StackItemTemplate is not null)
+        {
+            @StackItemTemplate(item)
+        }
+    }
+}
 
 @code {
-    private readonly StackPaginationState _state = new();
+    private StackPaginationState _state = new();
 
     [Parameter] public IReadOnlyList<TItem>? Items { get; set; } = Array.Empty<TItem>();
     [Parameter] public RenderFragment<TItem>? StackItemTemplate { get; set; }
     [Parameter] public int PageSize { get; set; } = 10;
-    [Parameter] public string? Class { get; set; }
-    [Parameter] public string? Style { get; set; }
-
+    [Parameter] public bool IncludeStack { get; set; }
     private IEnumerable<TItem> PagedItems
     {
         get
@@ -40,11 +54,7 @@
     protected override void OnInitialized()
     {
         _state.StateChanged += OnPaginationStateChanged;
-    }
-
-    protected override void OnParametersSet()
-    {
-        _state.Configure(Items?.Count ?? 0, PageSize);
+        _state?.Configure(Items?.Count ?? 0, 5);
     }
 
     private void OnPaginationStateChanged() => _ = InvokeAsync(StateHasChanged);
