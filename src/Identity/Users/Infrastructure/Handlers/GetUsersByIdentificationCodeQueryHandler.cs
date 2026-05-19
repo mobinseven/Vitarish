@@ -18,7 +18,7 @@ public sealed class GetUsersByIdentificationCodeQueryHandler(UsersDbContext dbCo
         }
 
         return await dbContext.Users
-            .Where(u => u.IdentificationCode != null && UserIdentityNormalization.NormalizeIdentificationCode(u.IdentificationCode) == normalized)
+            .Where(u => u.IdentificationCode == normalized)
             .ToListAsync(cancellationToken);
     }
 }
