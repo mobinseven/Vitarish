@@ -91,6 +91,14 @@ The maps below are intentionally short. Current-state maps document implemented 
 - [Patient Appointment Journey](./patient-appointment-journey.md)
 - [Patient Overview Journey](./patient-overview-journey.md)
 
+## Additional clinic owner reservation journeys
+
+
+- [Reservation Overview Journey](./owner-reservation-overview-journey.md)
+- [Reservation List and Calendar Journey](./owner-reservation-list-calendar-journey.md)
+- [Reservation Management Journey](./owner-reservation-management-journey.md)
+- [Reservation Module Capability Journeys](./owner-reservation-module-capabilities-journey.md)
+
 ## Recommended implementation backlog
 1. **Patient integrity:** Add patient active/inactive status, duplicate candidate detection, and stronger required-field validation.
 2. **Patient filtering:** Add patient filters for status, surgery date, linked user/provider, and key demographic/clinical fields.
