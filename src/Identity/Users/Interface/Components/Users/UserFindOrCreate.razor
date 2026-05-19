@@ -68,6 +68,7 @@
     private string selectedUserSubtitle = string.Empty;
     private string? warning;
     private string? lastValue;
+    private UserFindOrCreateOptions? lastOptions;
 
     private UserFindOrCreateOptions ResolvedOptions => Options ?? new UserFindOrCreateOptions();
 
@@ -79,7 +80,11 @@
             selectedUserSubtitle = await ResolveSelectedUserSubtitleAsync(Value);
         }
 
-        searchScope = ResolvedOptions.DefaultSearchScope;
+        if (!ReferenceEquals(lastOptions, Options))
+        {
+            lastOptions = Options;
+            searchScope = ResolvedOptions.DefaultSearchScope;
+        }
     }
 
     private Task OnScopeChangedAsync(UserSearchScope scope)

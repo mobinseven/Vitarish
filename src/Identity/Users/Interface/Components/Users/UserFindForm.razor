@@ -44,10 +44,12 @@
     [Inject] private IUsersService UsersService { get; set; } = default!;
 
     private const int MaxResults = 50;
+    private const int DebounceMs = 300;
+
     private string query = string.Empty;
     private bool searching;
     private IReadOnlyList<UserDto> results = [];
-    private IReadOnlyList<UserDto>? allUsersCache;
+    private CancellationTokenSource? debounceCts;
 
     protected override Task OnInitializedAsync() => RefreshResultsAsync();
 
@@ -61,7 +63,21 @@
     private async Task OnQueryChangedAsync(string? value)
     {
         query = value ?? string.Empty;
-        await RefreshResultsAsync();
+
+        debounceCts?.Cancel();
+        debounceCts?.Dispose();
+        debounceCts = new CancellationTokenSource();
+        CancellationToken token = debounceCts.Token;
+
+        try
+        {
+            await Task.Delay(DebounceMs, token);
+            await RefreshResultsAsync();
+        }
+        catch (TaskCanceledException)
+        {
+            // superseded by newer keystroke
+        }
     }
 
     private async Task RefreshResultsAsync()
@@ -70,8 +86,7 @@
         await InvokeAsync(StateHasChanged);
         try
         {
-            IReadOnlyList<UserDto> source = await GetSourceAsync();
-            results = [.. source.Where(MatchesQuery).Take(MaxResults)];
+            results = [.. await GetResultsAsync()];
         }
         finally
         {
@@ -80,21 +95,26 @@
         }
     }
 
-    private async Task<IReadOnlyList<UserDto>> GetSourceAsync()
+    private async Task<IEnumerable<UserDto>> GetResultsAsync()
     {
         if (SearchScope == UserSearchScope.TenantUsers)
         {
-            return [.. GetUsers()];
+            IEnumerable<UserDto> tenantUsers = GetUsers();
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                return tenantUsers.Take(MaxResults);
+            }
+
+            return tenantUsers.Where(MatchesQuery).Take(MaxResults);
         }
 
-        if (allUsersCache is not null)
+        if (string.IsNullOrWhiteSpace(query))
         {
-            return allUsersCache;
+            return [];
         }
 
-        IEnumerable<User> users = await UsersService.GetUsersAsync(CancellationToken.None);
-        allUsersCache = [.. users.Select(u => new UserDto(u))];
-        return allUsersCache;
+        IEnumerable<User> found = await UsersService.SearchUsersAsync(query.Trim(), MaxResults, CancellationToken.None);
+        return found.Select(u => new UserDto(u));
     }
 
     private bool MatchesQuery(UserDto user)

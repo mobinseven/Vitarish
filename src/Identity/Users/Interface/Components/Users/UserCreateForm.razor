@@ -98,7 +98,12 @@
                 bool emailInUse = await UsersService.CheckUserEmailInUseAsync(mail, user.Id, CancellationToken.None);
                 if (!emailInUse)
                 {
-                    _ = await UsersService.SetUserEmailAsync(user.Id, mail, CancellationToken.None);
+                    IdentityResult emailResult = await UsersService.SetUserEmailAsync(user.Id, mail, CancellationToken.None);
+                    if (!emailResult.Succeeded)
+                    {
+                        error = string.Join("; ", emailResult.Errors.Select(e => e.Description));
+                        return;
+                    }
                 }
             }
 

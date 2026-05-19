@@ -1,0 +1,33 @@
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Vitarish.Users.Application.Queries;
+using Vitarish.Users.Domain.Entities;
+using Vitarish.Users.Infrastructure.Data;
+
+namespace Vitarish.Users.Infrastructure.Handlers;
+
+public sealed class SearchUsersQueryHandler(UsersDbContext db) : IRequestHandler<SearchUsersQuery, IEnumerable<User>>
+{
+    public async Task<IEnumerable<User>> Handle(SearchUsersQuery request, CancellationToken cancellationToken)
+    {
+        string q = request.Query.Trim();
+
+        if (string.IsNullOrWhiteSpace(q))
+        {
+            return [];
+        }
+
+        return await db.Users
+            .AsNoTracking()
+            .Where(u =>
+                (u.FirstName != null && u.FirstName.Contains(q)) ||
+                (u.LastName != null && u.LastName.Contains(q)) ||
+                (u.UserName != null && u.UserName.Contains(q)) ||
+                (u.Email != null && u.Email.Contains(q)) ||
+                (u.PhoneNumber != null && u.PhoneNumber.Contains(q)) ||
+                (u.IdentificationCode != null && u.IdentificationCode.Contains(q)) ||
+                u.Id.Contains(q))
+            .Take(request.MaxResults)
+            .ToListAsync(cancellationToken);
+    }
+}

@@ -63,6 +63,9 @@ public sealed class UsersService(ISender sender) : IUsersService
     public Task<IEnumerable<User>> GetUsersByIdentificationCodeAsync(string identificationCode, CancellationToken ct = default) =>
         sender.Send(new GetUsersByIdentificationCodeQuery(identificationCode), ct);
 
+    public Task<IEnumerable<User>> SearchUsersAsync(string query, int maxResults, CancellationToken ct = default) =>
+        sender.Send(new SearchUsersQuery(query, maxResults), ct);
+
     public Task<bool> CheckUserRoleAsync(string userId, string roleName, CancellationToken ct = default) =>
         sender.Send(new CheckUserRoleQuery(userId, roleName), ct);
     public Task<bool> CheckUserPasswordAsync(string userId, string password, CancellationToken ct = default) =>
