@@ -106,7 +106,7 @@
 - `EventItemsTimeline` renders attachment/activity items and delegates new timeline content to `EventItemsInput` plugin slots when the current user can write the event.
 
 ### Issues to address
-- `ProcedureReadDto`/`ProcedureWriteDto` are used as generic Sea procedure records and do not include medical-specific provider, room, planned date, procedure status, cancellation reason, or clinical owner fields.
+- `ProcedureReadDto`/`ProcedureWriteDto` are used as generic Sea procedure records and do not include medical-specific provider, room, planned date, procedure status, cancellation reason, or clinical owner fields. Such fields can be stored in the procedure metadata.
 - `ProceduresGrid` labels each procedure and shows aggregate stats, but it cannot show assigned provider, status, cancellation state, next step, or overdue risk because those values are not modeled.
 - Procedure status is inferred from event commits and stats. Add an explicit procedure workflow state machine independent from event history, while keeping event commits as auditable step-level facts.
 - `ProcedureDetails.DeleteProcedure()` permanently removes the procedure from the user journey; add a cancel/close action with a reason and timestamp for stopped clinical work.
