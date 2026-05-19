@@ -249,7 +249,7 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
             accept = Accept,
             capture = captureMode,
             hidden = _activatorContent is not null,
-            multiple = AllowMultipleSelection
+            multiple = AllowMultipleSelection && captureMode is null
         });
     }
 
