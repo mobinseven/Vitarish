@@ -1,0 +1,56 @@
+@typeparam TItem
+@implements IDisposable
+
+<CascadingValue Value="_state" IsFixed="true">
+    <Stack Class="@Class" Style="@Style">
+        @foreach(var item in PagedItems)
+        {
+            @if(StackItemTemplate is not null)
+            {
+                @StackItemTemplate(item)
+            }
+        }
+    </Stack>
+</CascadingValue>
+
+@code {
+    private readonly StackPaginationState _state = new();
+
+    [Parameter] public IReadOnlyList<TItem>? Items { get; set; } = Array.Empty<TItem>();
+    [Parameter] public RenderFragment<TItem>? StackItemTemplate { get; set; }
+    [Parameter] public int PageSize { get; set; } = 10;
+    [Parameter] public string? Class { get; set; }
+    [Parameter] public string? Style { get; set; }
+
+    private IEnumerable<TItem> PagedItems
+    {
+        get
+        {
+            if(Items is null || Items.Count == 0)
+                yield break;
+
+            var start = Math.Min(_state.Skip, Items.Count);
+            var endExclusive = Math.Min(start + _state.PageSize, Items.Count);
+
+            for(var index = start; index < endExclusive; index++)
+                yield return Items[index];
+        }
+    }
+
+    protected override void OnInitialized()
+    {
+        _state.StateChanged += OnPaginationStateChanged;
+    }
+
+    protected override void OnParametersSet()
+    {
+        _state.Configure(Items?.Count ?? 0, PageSize);
+    }
+
+    private void OnPaginationStateChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        _state.StateChanged -= OnPaginationStateChanged;
+    }
+}

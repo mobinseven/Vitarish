@@ -1,0 +1,50 @@
+@implements IDisposable
+
+@if(State is not null && State.TotalItems > 0)
+{
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Class="my-2">
+        <MudPagination Class="glass"
+                       ShowFirstButton="true"
+                       ShowLastButton="true"
+                       Count="@State.TotalPages"
+                       Selected="@State.Page"
+                       SelectedChanged="OnPageChanged" />
+    </MudStack>
+}
+
+@code {
+    [CascadingParameter] public StackPaginationState? State { get; set; }
+    private StackPaginationState? _activeState;
+
+    protected override void OnParametersSet()
+    {
+        SubscribeToState();
+    }
+
+    private void SubscribeToState()
+    {
+        if(_activeState == State)
+            return;
+
+        if(_activeState is not null)
+            _activeState.StateChanged -= OnPaginationStateChanged;
+
+        _activeState = State;
+
+        if(_activeState is not null)
+            _activeState.StateChanged += OnPaginationStateChanged;
+    }
+
+    private void OnPageChanged(int selected)
+    {
+        State?.SetPage(selected);
+    }
+
+    private void OnPaginationStateChanged() => _ = InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        if(_activeState is not null)
+            _activeState.StateChanged -= OnPaginationStateChanged;
+    }
+}
