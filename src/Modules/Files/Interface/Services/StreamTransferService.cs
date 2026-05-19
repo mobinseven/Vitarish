@@ -24,6 +24,8 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
     public Func<FileInformationReadDto, Task>? OnFileUploadedAsync { get; set; }
 
     public string? UserId { get; set; }
+    public bool EnableImageCapture { get; set; } = true;
+    public string? CaptureDevice { get; set; }
 
     public bool Transferring { get; private set; }
 
@@ -238,9 +240,26 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
                 inputId = _id,
                 dotNetRef = _selfRef,
                 accept = Accept,
+                capture = ResolveCaptureMode(),
                 hidden = _activatorContent is not null,
                 multiple = true
             });
+
+    private string? ResolveCaptureMode()
+    {
+        if (!EnableImageCapture)
+        {
+            return null;
+        }
+
+        if (string.Equals(CaptureDevice, "user", StringComparison.OrdinalIgnoreCase)
+            || string.Equals(CaptureDevice, "environment", StringComparison.OrdinalIgnoreCase))
+        {
+            return CaptureDevice.ToLowerInvariant();
+        }
+
+        return "environment";
+    }
 
     private void TriggerStateChanged() => _ = TriggerStateChangedAsync();
 

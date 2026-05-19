@@ -18,6 +18,12 @@ public partial class StreamTransfer : ComponentBase
     [Parameter]
     public string? UserId { get; set; }
 
+    [Parameter]
+    public bool EnableImageCapture { get; set; } = true;
+
+    [Parameter]
+    public string? CaptureDevice { get; set; }
+
     public RenderFragment ActContent => Service.ActContent;
 
     public IReadOnlyList<PendingFileDto> PendingFiles => Service.PendingFiles;
@@ -63,6 +69,8 @@ public partial class StreamTransfer : ComponentBase
     private void ApplyParameters()
     {
         Service.UserId = UserId;
+        Service.EnableImageCapture = EnableImageCapture;
+        Service.CaptureDevice = CaptureDevice;
         Service.SetActivatorContent(ActivatorContent);
     }
 }

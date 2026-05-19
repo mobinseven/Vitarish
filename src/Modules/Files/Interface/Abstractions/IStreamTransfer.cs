@@ -14,6 +14,8 @@ public interface IStreamTransfer
     Func<Task>? OnStateChangedAsync { get; set; }
     Func<FileInformationReadDto, Task>? OnFileUploadedAsync { get; set; }
     string? UserId { get; set; }
+    bool EnableImageCapture { get; set; }
+    string? CaptureDevice { get; set; }
 
     void ClearPendings();
     Task InitializeAsync(CancellationToken cancellationToken = default);
