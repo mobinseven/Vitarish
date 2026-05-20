@@ -62,6 +62,7 @@ public class ServiceProviderManagerTests
             .Include(sp => sp.UserLinks)
             .FirstOrDefaultAsync(sp => sp.Id == provider.Id);
 
+        updated.Should().NotBeNull();
         updated!.UserLinks.Should().ContainSingle(l => l.UserId == "user-1");
     }
 
