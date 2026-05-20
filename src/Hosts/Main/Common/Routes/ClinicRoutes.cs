@@ -52,5 +52,18 @@ public static partial class AppRoutes
         // User appointment builders
         public static string UserReservation(Guid reservationId) => $"{UserReservations}/{GuidValue(reservationId)}";
         public static string UserShift(Guid shiftId) => $"{UserShifts}/{GuidValue(shiftId)}";
+
+        // Service catalog routes
+        public const string OwnerServiceTypes = "/owner/clinic/service-types";
+        public const string OwnerServiceTypeTemplate = "/owner/clinic/service-types/{serviceTypeId:guid}";
+        public const string OwnerServices = "/owner/clinic/services";
+        public const string OwnerServiceTemplate = "/owner/clinic/services/{serviceId:guid}";
+        public const string OwnerServiceProviders = "/owner/clinic/service-providers";
+        public const string OwnerServiceProviderTemplate = "/owner/clinic/service-providers/{serviceProviderId:guid}";
+
+        // Service catalog builders
+        public static string OwnerServiceType(Guid serviceTypeId) => $"{OwnerServiceTypes}/{GuidValue(serviceTypeId)}";
+        public static string OwnerService(Guid serviceId) => $"{OwnerServices}/{GuidValue(serviceId)}";
+        public static string OwnerServiceProvider(Guid serviceProviderId) => $"{OwnerServiceProviders}/{GuidValue(serviceProviderId)}";
     }
 }

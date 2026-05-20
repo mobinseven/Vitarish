@@ -13,6 +13,14 @@
     <StackField Label="@Localizer["Status"]">
         <ShiftStatusBadge Status="@Shift.Status" />
     </StackField>
+    @if (!string.IsNullOrWhiteSpace(serviceProviderName))
+    {
+        <StackField Label="@serviceProviderName" HelperText="@Localizer["ServiceProvider"]" />
+    }
+    @if (!string.IsNullOrWhiteSpace(serviceName))
+    {
+        <StackField Label="@serviceName" HelperText="@Localizer["Service"]" />
+    }
 </Stack>
 
 @switch (Shift.Status)

@@ -1,5 +1,7 @@
 global using System.Security.Claims;
 global using FluentAssertions;
+global using MediatR;
+global using Microsoft.EntityFrameworkCore;
 global using Moq;
 global using Vitarish.Audit.Application;
 global using Vitarish.Audit.Domain;
@@ -17,3 +19,5 @@ global using Vitarish.Entities.Server.Repositories;
 global using Vitarish.Entities.Server.Models;
 global using Vitarish.Requests.Application.Abstractions;
 global using Xunit;
+// Aliases for types that conflict with Microsoft.Extensions.DependencyInjection names
+global using AppointmentServiceProvider = Vitarish.Appointments.Domain.Entities.ServiceProvider;

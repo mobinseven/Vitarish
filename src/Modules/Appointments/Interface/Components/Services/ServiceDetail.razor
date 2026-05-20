@@ -1,0 +1,30 @@
+@inherits ServicesBase
+
+@if (current is null)
+{
+    return;
+}
+
+<Stack>
+    <StackField Label="@current.Name" HelperText="@Localizer["Service"]" />
+    @if (!string.IsNullOrWhiteSpace(current.Description))
+    {
+        <StackField Label="@current.Description" HelperText="@Localizer["Description"]" />
+    }
+    @if (!string.IsNullOrWhiteSpace(current.ServiceTypeName))
+    {
+        <StackField Label="@current.ServiceTypeName" HelperText="@Localizer["ServiceType"]" />
+    }
+</Stack>
+<Stack>
+    @if (AdminMode)
+    {
+        <StackButton Label="@Localizer["EditItem", Localizer["Service"]]"
+                     EndIcon="fa-regular fa-pen"
+                     OnClick="OnEdit" />
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["DeleteItem", Localizer["Service"]]"
+                     EndIcon="fa-regular fa-trash"
+                     OnClick="DeleteAsync" />
+    }
+</Stack>

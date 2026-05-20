@@ -28,4 +28,12 @@ public record ShiftDescriptorDto : EntityDescriptorDto
 
     [JsonPropertyName("descending")]
     public bool Descending { get; set; } = true;
+
+    [JsonPropertyName("serviceProviderId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? ServiceProviderId { get; set; }
+
+    [JsonPropertyName("serviceId")]
+    [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+    public Guid? ServiceId { get; set; }
 }

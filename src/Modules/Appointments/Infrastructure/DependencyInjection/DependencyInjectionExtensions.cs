@@ -12,6 +12,9 @@ public static class DependencyInjectionExtensions
         _ = services.AddTransient<IAccessControlledReservationManager, AccessControlledReservationManager>();
         _ = services.AddTransient<IShiftReminderPolicyManager, ShiftReminderPolicyManager>();
         _ = services.AddTransient<IShiftBookingPolicyEngine, ShiftBookingPolicyEngine>();
+        _ = services.AddTransient<IServiceTypeManager, ServiceTypeManager>();
+        _ = services.AddTransient<IServiceManager, ServiceManager>();
+        _ = services.AddTransient<IServiceProviderManager, ServiceProviderManager>();
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AppointmentsDbContext).Assembly));
         return services;
     }

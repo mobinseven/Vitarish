@@ -8,6 +8,36 @@ public partial class ShiftDetail : ShiftsBase
     [Parameter] public EventCallback OnStatusChanged { get; set; }
     [Parameter] public EventCallback<ShiftReservationReadDto> OnShiftOccurrenceSelected { get; set; }
 
+    [Inject] private IServiceProviderManager ServiceProviderManager { get; set; } = default!;
+    [Inject] private IServiceManager ServiceManager { get; set; } = default!;
+
+    private string? serviceProviderName;
+    private string? serviceName;
+    private Guid? lastShiftId;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (lastShiftId == Shift?.Id)
+        {
+            return;
+        }
+
+        lastShiftId = Shift?.Id;
+
+        Task<ServiceProviderReadDto?> providerTask = Shift?.ServiceProviderId is { } spId
+            ? ServiceProviderManager.GetAsync(spId, CancellationToken.None).GetValueOrDefaultAsync()
+            : Task.FromResult<ServiceProviderReadDto?>(null);
+
+        Task<ServiceReadDto?> serviceTask = Shift?.ServiceId is { } svcId
+            ? ServiceManager.GetAsync(svcId, CancellationToken.None).GetValueOrDefaultAsync()
+            : Task.FromResult<ServiceReadDto?>(null);
+
+        await Task.WhenAll(providerTask, serviceTask);
+
+        serviceProviderName = providerTask.Result?.Name;
+        serviceName = serviceTask.Result?.Name;
+    }
+
     private async Task ChangeStatusAsync(ShiftStatus status)
     {
         string label = status switch

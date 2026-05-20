@@ -10,4 +10,6 @@ public record ShiftDescriptor : EntityDescriptor
     public TimeOnly? EndTime { get; init; }
     public ShiftSortBy? SortBy { get; init; }
     public bool Descending { get; init; }
+    public Guid? ServiceProviderId { get; init; }
+    public Guid? ServiceId { get; init; }
 }

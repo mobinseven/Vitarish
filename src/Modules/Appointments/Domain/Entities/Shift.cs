@@ -52,6 +52,18 @@ public class Shift : Entity
         set => SetField(ref field, value, nameof(Metadata));
     } = [];
 
+    public Guid? ServiceProviderId
+    {
+        get;
+        set => SetField(ref field, value, nameof(ServiceProviderId));
+    }
+
+    public Guid? ServiceId
+    {
+        get;
+        set => SetField(ref field, value, nameof(ServiceId));
+    }
+
     public ShiftBookingPolicy? BookingPolicy { get; set; }
 
     public IList<ShiftReminderPolicy> ReminderPolicies { get; set; } = [];

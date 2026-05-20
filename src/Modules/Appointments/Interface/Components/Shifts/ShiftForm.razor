@@ -33,6 +33,26 @@
         </StackSelect>
         <StackCheckbox @bind-Value="shiftWriteDto.BookingPolicy!.RequiresApproval" Label="@Localizer["RequiresApproval"]" />
         <StackCheckbox @bind-Value="shiftWriteDto.BookingPolicy!.AllowRescheduling" Label="@Localizer["AllowRescheduling"]" />
+        @if (serviceProviders.Count > 0)
+        {
+            <StackSelect T="Guid?" Label="@Localizer["ServiceProvider"]" @bind-Value="shiftWriteDto.ServiceProviderId">
+                <MudSelectItem T="Guid?" Value="@((Guid?)null)">@Localizer["None"]</MudSelectItem>
+                @foreach (var sp in serviceProviders)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)sp.Id)">@sp.Name</MudSelectItem>
+                }
+            </StackSelect>
+        }
+        @if (availableServices.Count > 0)
+        {
+            <StackSelect T="Guid?" Label="@Localizer["Service"]" @bind-Value="shiftWriteDto.ServiceId">
+                <MudSelectItem T="Guid?" Value="@((Guid?)null)">@Localizer["None"]</MudSelectItem>
+                @foreach (var svc in availableServices)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)svc.Id)">@svc.Name</MudSelectItem>
+                }
+            </StackSelect>
+        }
     </Stack>
     <Stack>
         <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" EndIcon="fa-regular fa-save" />

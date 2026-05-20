@@ -11,3 +11,5 @@ global using Vitarish.Appointments.Domain.Enums;
 global using Vitarish.Appointments.Domain.Models;
 global using Vitarish.Appointments.Interface.Components.Base;
 global using Vitarish.Appointments.Interface.Plugins;
+// Aliases for types that conflict with Microsoft.Extensions.DependencyInjection names
+global using AppointmentServiceDescriptor = Vitarish.Appointments.Domain.Models.ServiceDescriptor;

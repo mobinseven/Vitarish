@@ -46,6 +46,16 @@ internal class ShiftRepository(AppointmentsDbContext dbContext)
             };
         }
 
+        if (descriptor.ServiceProviderId is { } serviceProviderId)
+        {
+            query = query.Where(s => s.ServiceProviderId == serviceProviderId);
+        }
+
+        if (descriptor.ServiceId is { } serviceId)
+        {
+            query = query.Where(s => s.ServiceId == serviceId);
+        }
+
         return query;
     }
 
