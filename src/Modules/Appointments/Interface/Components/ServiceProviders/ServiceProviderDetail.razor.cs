@@ -12,6 +12,7 @@ public partial class ServiceProviderDetail : ServiceProvidersBase
     private string? linkUserId;
     private readonly UserFindOrCreateOptions linkOptions = new()
     {
+        // Unlinking is handled by the explicit unlink buttons per user; only linking is done here.
         AllowUnlink = false,
         AllowCreate = true,
         EnsureTenantUserRoleOnLink = false

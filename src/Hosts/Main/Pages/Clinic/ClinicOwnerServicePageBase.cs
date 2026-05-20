@@ -32,7 +32,7 @@ public class ClinicOwnerServicePageBase : TenantPageBase
             return;
         }
 
-        NavService.OverridePageTitle(ServiceId.ToString(), Localizer["Service"]);
+        NavService.OverridePageTitle(Service.Name, Localizer["Service"]);
         await InvokeAsync(StateHasChanged);
     }
 }
