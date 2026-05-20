@@ -19,7 +19,7 @@ The platform currently lacks a first-class Service entity. This journey defines 
 
 | Field group | Required | Purpose | Minimum rule |
 | --- | --- | --- | --- |
-| Service identity (name, internal key) | Yes | Uniquely identifies appointment type | Name is non-empty; key is unique within tenant. |
+| Service identity (name, internal key) | Yes | Uniquely identifies appointment type | Name is non-empty; key is auto-generated and unique within tenant. |
 | Duration and timing (duration, buffer) | Yes | Determines slot calculation and schedule fit | Duration is positive; buffer is zero or positive. |
 | Booking visibility (active/inactive, display name) | Yes | Controls whether customers can see/book service | Service can only be published when active + valid. |
 | Assignment defaults (provider/team/resource requirement) | Yes | Ensures reservations can be routed | At least one valid assignment path is configured. |
