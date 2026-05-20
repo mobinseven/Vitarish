@@ -64,15 +64,18 @@ public partial class ShiftForm : ShiftsBase
     {
         await base.OnInitializedAsync();
 
-        IReadOnlyList<ServiceProviderReadDto> providerItems = await ServiceProviderManager
+        Task<IReadOnlyList<ServiceProviderReadDto>?> providersTask = ServiceProviderManager
             .GetListAsync(new ServiceProviderDescriptorDto { Skip = 0, Take = int.MaxValue }, CancellationToken.None)
-            .GetValueOrDefaultAsync() ?? [];
-        serviceProviders = [.. providerItems];
+            .GetValueOrDefaultAsync();
 
-        IReadOnlyList<ServiceReadDto> serviceItems = await ServiceManager
+        Task<IReadOnlyList<ServiceReadDto>?> servicesTask = ServiceManager
             .GetListAsync(new ServiceDescriptorDto { Skip = 0, Take = int.MaxValue }, CancellationToken.None)
-            .GetValueOrDefaultAsync() ?? [];
-        availableServices = [.. serviceItems];
+            .GetValueOrDefaultAsync();
+
+        await Task.WhenAll(providersTask, servicesTask);
+
+        serviceProviders = [.. (providersTask.Result ?? [])];
+        availableServices = [.. (servicesTask.Result ?? [])];
     }
 
     private async Task SaveAsync()
