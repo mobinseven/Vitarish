@@ -40,7 +40,7 @@ Use one onboarding state model to back all UI panels:
   - id
   - serviceTypeId
   - name
-  - duration
+  - duration (in minutes)
   - price (optional initially)
   - assignedProviderIds[]
 - **ProviderNode**
