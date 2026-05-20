@@ -23,20 +23,19 @@ public partial class ShiftDetail : ShiftsBase
         }
 
         lastShiftId = Shift?.Id;
-        serviceProviderName = null;
-        serviceName = null;
 
-        if (Shift?.ServiceProviderId is { } spId)
-        {
-            ServiceProviderReadDto? sp = await ServiceProviderManager.GetAsync(spId, CancellationToken.None).GetValueOrDefaultAsync();
-            serviceProviderName = sp?.Name;
-        }
+        Task<ServiceProviderReadDto?> providerTask = Shift?.ServiceProviderId is { } spId
+            ? ServiceProviderManager.GetAsync(spId, CancellationToken.None).GetValueOrDefaultAsync()
+            : Task.FromResult<ServiceProviderReadDto?>(null);
 
-        if (Shift?.ServiceId is { } svcId)
-        {
-            ServiceReadDto? svc = await ServiceManager.GetAsync(svcId, CancellationToken.None).GetValueOrDefaultAsync();
-            serviceName = svc?.Name;
-        }
+        Task<ServiceReadDto?> serviceTask = Shift?.ServiceId is { } svcId
+            ? ServiceManager.GetAsync(svcId, CancellationToken.None).GetValueOrDefaultAsync()
+            : Task.FromResult<ServiceReadDto?>(null);
+
+        await Task.WhenAll(providerTask, serviceTask);
+
+        serviceProviderName = providerTask.Result?.Name;
+        serviceName = serviceTask.Result?.Name;
     }
 
     private async Task ChangeStatusAsync(ShiftStatus status)
