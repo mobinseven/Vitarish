@@ -7,9 +7,13 @@ public partial class ShiftForm : ShiftsBase
     [Parameter] public EventCallback OnCancelled { get; set; }
     [Parameter] public DayOfWeek? DayOfWeek { get; set; }
     [Inject] private IEnumerable<IShiftFormPlugin> FormPlugins { get; set; } = [];
+    [Inject] private IServiceProviderManager ServiceProviderManager { get; set; } = default!;
+    [Inject] private IServiceManager ServiceManager { get; set; } = default!;
     private IShiftFormPlugin? Plugin => FormPlugins.SingleOrDefault(p => p.Id == TenantService?.PluginIdentifier);
 
     private ShiftWriteDto shiftWriteDto = new();
+    private List<ServiceProviderReadDto> serviceProviders = [];
+    private List<ServiceReadDto> availableServices = [];
 
     private const int ShiftTimeStepMinutes = 15;
     private static readonly TimeOnly LastSelectableEndTime = new(23, 59);
@@ -54,6 +58,21 @@ public partial class ShiftForm : ShiftsBase
         {
             BookingPolicy = shiftWriteDto.BookingPolicy ?? new ShiftBookingPolicyWriteDto()
         };
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        IReadOnlyList<ServiceProviderReadDto> providerItems = await ServiceProviderManager
+            .GetListAsync(new ServiceProviderDescriptorDto { Skip = 0, Take = int.MaxValue }, CancellationToken.None)
+            .GetValueOrDefaultAsync() ?? [];
+        serviceProviders = [.. providerItems];
+
+        IReadOnlyList<ServiceReadDto> serviceItems = await ServiceManager
+            .GetListAsync(new ServiceDescriptorDto { Skip = 0, Take = int.MaxValue }, CancellationToken.None)
+            .GetValueOrDefaultAsync() ?? [];
+        availableServices = [.. serviceItems];
     }
 
     private async Task SaveAsync()

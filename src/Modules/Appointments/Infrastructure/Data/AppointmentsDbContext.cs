@@ -33,6 +33,9 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
     public DbSet<Shift> Shifts => Set<Shift>();
     public DbSet<Reservation> Reservations => Set<Reservation>();
     public DbSet<ShiftReservationLock> ShiftReservationLocks => Set<ShiftReservationLock>();
+    public DbSet<ServiceType> ServiceTypes => Set<ServiceType>();
+    public DbSet<Service> Services => Set<Service>();
+    public DbSet<AppointmentServiceProvider> ServiceProviders => Set<AppointmentServiceProvider>();
 
     public AppointmentsDbContext(
         DbContextOptions<AppointmentsDbContext> options,
@@ -70,6 +73,9 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
 
         ConfigureTenantEntity<Shift>(modelBuilder);
         ConfigureTenantEntity<Reservation>(modelBuilder);
+        ConfigureTenantEntity<ServiceType>(modelBuilder);
+        ConfigureTenantEntity<Service>(modelBuilder);
+        ConfigureTenantEntity<AppointmentServiceProvider>(modelBuilder);
 
         _ = modelBuilder.Entity<Shift>(entity =>
         {
@@ -134,6 +140,49 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
         {
             _ = eb.ToView("vw_ShiftStats");
             _ = eb.HasNoKey();
+        });
+
+        _ = modelBuilder.Entity<Service>(entity =>
+        {
+            _ = entity.HasOne(s => s.ServiceType)
+                .WithMany()
+                .HasForeignKey(s => s.ServiceTypeId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        _ = modelBuilder.Entity<AppointmentServiceProvider>(entity =>
+        {
+            _ = entity.HasMany(sp => sp.UserLinks)
+                .WithOne()
+                .HasForeignKey(l => l.ServiceProviderId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        _ = modelBuilder.Entity<ServiceProviderUserLink>(entity =>
+        {
+            entity.ToTable("ServiceProviderUserLinks");
+            entity.HasKey(l => new { l.ServiceProviderId, l.UserId });
+        });
+
+        _ = modelBuilder.Entity<Shift>(entity =>
+        {
+            _ = entity.HasOne<AppointmentServiceProvider>()
+                .WithMany()
+                .HasForeignKey(s => s.ServiceProviderId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
+
+            _ = entity.HasOne<Service>()
+                .WithMany()
+                .HasForeignKey(s => s.ServiceId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .IsRequired(false);
+
+            _ = entity.HasIndex(s => s.ServiceProviderId)
+                .HasDatabaseName("IX_Shifts_ServiceProviderId");
+
+            _ = entity.HasIndex(s => s.ServiceId)
+                .HasDatabaseName("IX_Shifts_ServiceId");
         });
     }
 

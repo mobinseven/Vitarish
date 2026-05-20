@@ -1,0 +1,10 @@
+@inherits ServiceProvidersBase
+
+<Stack>
+    <StackTextField @bind-Value="writeDto.Name" Label="@Localizer["Name"]" />
+    <StackTextField @bind-Value="writeDto.Description" Label="@Localizer["Description"]" />
+</Stack>
+<Stack>
+    <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" EndIcon="fa-regular fa-save" />
+    <StackButton Label="@Localizer["Cancel"]" OnClick="() => OnCancelled.InvokeAsync()" EndIcon="fa-regular fa-xmark" />
+</Stack>

@@ -1,0 +1,43 @@
+@inherits ServiceProvidersBase
+
+@if (current is null)
+{
+    return;
+}
+
+<Stack>
+    <StackField Label="@current.Name" HelperText="@Localizer["ServiceProvider"]" />
+    @if (!string.IsNullOrWhiteSpace(current.Description))
+    {
+        <StackField Label="@current.Description" HelperText="@Localizer["Description"]" />
+    }
+</Stack>
+
+@if (AdminMode)
+{
+    <Stack>
+        <StackField Label="@Localizer["LinkedUsers"]" />
+        @foreach (var userId in current.LinkedUserIds)
+        {
+            <StackField Label="@userId" AdornmentIcon="fa-regular fa-user">
+                <StackButton Color="Color.Error"
+                             Label="@Localizer["Unlink"]"
+                             EndIcon="fa-regular fa-link-slash"
+                             OnClick="() => UnlinkUserAsync(userId)" />
+            </StackField>
+        }
+        <UserFindOrCreate Value="@linkUserId"
+                          ValueChanged="LinkUserAsync"
+                          Options="@linkOptions" />
+    </Stack>
+
+    <Stack>
+        <StackButton Label="@Localizer["EditItem", Localizer["ServiceProvider"]]"
+                     EndIcon="fa-regular fa-pen"
+                     OnClick="OnEdit" />
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["DeleteItem", Localizer["ServiceProvider"]]"
+                     EndIcon="fa-regular fa-trash"
+                     OnClick="DeleteAsync" />
+    </Stack>
+}

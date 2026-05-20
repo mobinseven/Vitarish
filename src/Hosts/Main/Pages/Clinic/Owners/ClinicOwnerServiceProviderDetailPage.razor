@@ -1,0 +1,28 @@
+@attribute [Route(AppRoutes.Clinic.OwnerServiceProviderTemplate)]
+@inherits ClinicOwnerServiceProviderPageBase
+
+@if (showForm)
+{
+    <ServiceProviderForm Provider="@Provider"
+                         OnSaved="@(id => { NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerServiceProvider(id)); })"
+                         OnCancelled="@(() => { showForm = false; StateHasChanged(); })" />
+}
+else
+{
+    @if (Provider is null)
+    {
+        <ServiceProviderForm Provider="null"
+                             OnSaved="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerServiceProvider(id)))"
+                             OnCancelled="Back" />
+    }
+    else
+    {
+        <ServiceProviderDetail Provider="@Provider"
+                               OnEdit="@(() => { showForm = true; StateHasChanged(); })"
+                               OnDeleted="Back" />
+    }
+}
+
+@code {
+    private bool showForm;
+}
