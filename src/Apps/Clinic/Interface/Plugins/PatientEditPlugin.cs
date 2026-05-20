@@ -1,11 +1,10 @@
 using Vitarish.Clinic.Interface.Components.Patients;
-using Vitarish.Sea.Interface.Plugins;
 
 namespace Vitarish.Clinic.Interface.Plugins;
 
 internal class PatientEditPlugin : IProjectEditPlugin
 {
-    public string Id => Sea.Interface.Plugins.PluginIdentifiers.Clinic;
+    public string Id => PluginIdentifiers.Clinic;
 
     public RenderFragment Render(ProjectEditPlugin context) => builder =>
     {

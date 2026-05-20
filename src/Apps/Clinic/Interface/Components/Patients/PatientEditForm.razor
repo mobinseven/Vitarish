@@ -6,20 +6,7 @@
     return;
 }
 <Stack>
-    <StackField Label="@Localizer["Image"]">
-        <ProjectAvatar AvatarFileId="@projectWriteDto.AvatarFileId" Size="96" Style="margin-bottom: 0.5rem;" />
-        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-            <Vitarish.Files.Interface.Components.StreamTransfer OnFileUploaded="OnAvatarUploaded">
-                <ActivatorContent>
-                    <MudButton Variant="Variant.Outlined" StartIcon="fa-regular fa-upload" Color="Color.Primary">@Localizer["Select"]</MudButton>
-                </ActivatorContent>
-            </Vitarish.Files.Interface.Components.StreamTransfer>
-            @if(projectWriteDto.AvatarFileId.HasValue)
-            {
-                <MudButton Variant="Variant.Text" StartIcon="fa-regular fa-xmark" Color="Color.Error" OnClick="RemoveAvatar">@Localizer["Remove"]</MudButton>
-            }
-        </MudStack>
-    </StackField>
+
     @if(TemplateMode)
     {
         <StackTextField @bind-Value="projectWriteDto.Name"
@@ -70,7 +57,20 @@
         <UserFindOrCreate Value="@LinkedUserId"
                           ValueChanged="OnLinkedUserChangedAsync"
                           Options="@LinkedUserPickerOptions" />
-
+        <StackField Label="@Localizer["Image"]">
+            <ProjectAvatar AvatarFileId="@projectWriteDto.AvatarFileId" Size="96" Style="margin-bottom: 0.5rem;" />
+            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
+                <Vitarish.Files.Interface.Components.StreamTransfer OnFileUploaded="OnAvatarUploaded">
+                    <ActivatorContent>
+                        <MudButton Variant="Variant.Outlined" StartIcon="fa-regular fa-upload" Color="Color.Primary">@Localizer["Select"]</MudButton>
+                    </ActivatorContent>
+                </Vitarish.Files.Interface.Components.StreamTransfer>
+                @if(projectWriteDto.AvatarFileId.HasValue)
+                {
+                    <MudButton Variant="Variant.Text" StartIcon="fa-regular fa-xmark" Color="Color.Error" OnClick="RemoveAvatar">@Localizer["Remove"]</MudButton>
+                }
+            </MudStack>
+        </StackField>
         <StackExpandable Label="@Localizer["ClinicalData"]">
             <StackTextField @bind-Value="projectWriteDto.PlaceOfBirth"
                             Label="@Localizer["PlaceOfBirth"]" />
