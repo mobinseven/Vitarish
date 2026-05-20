@@ -83,7 +83,7 @@ The platform currently lacks a first-class Service entity. This journey defines 
 | Missing assignment defaults | Publish blocked with missing routing details | Owner configures assignment and retries |
 | Pricing mode misconfiguration | Save/publish blocked with pricing rule errors | Owner selects valid mode and retries |
 | Persistence conflict | Version conflict warning on stale edits | Owner reloads latest version, reapplies intended changes |
-| Downstream reservation cache stale | Newly published service not visible immediately | System refreshes selector cache or owner retries after refresh |
+| Downstream reservation cache stale | Newly published service not visible immediately | System invalidates selector cache to ensure immediate visibility |
 
 ## 8. UX Simplicity Rules
 
