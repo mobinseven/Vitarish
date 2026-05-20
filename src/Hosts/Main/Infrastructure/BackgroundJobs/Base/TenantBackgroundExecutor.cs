@@ -34,18 +34,13 @@ public sealed class TenantBackgroundExecutor(
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            try
-            {
-                await using AsyncServiceScope scope = serviceScopeFactory.CreateAsyncScope();
+            await using AsyncServiceScope scope = serviceScopeFactory.CreateAsyncScope();
 
-                IRequestContextWriter contextWriter = scope.ServiceProvider.GetRequiredService<IRequestContextWriter>();
-                InitializeRequestContext(contextWriter, resourceId, tenant);
+            IRequestContextWriter contextWriter = scope.ServiceProvider.GetRequiredService<IRequestContextWriter>();
+            InitializeRequestContext(contextWriter, resourceId, tenant);
 
-                await perTenantAsync(scope.ServiceProvider, cancellationToken);
-            }
-            catch
-            {
-            }
+            await perTenantAsync(scope.ServiceProvider, cancellationToken);
+
         }
     }
 
