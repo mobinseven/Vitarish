@@ -12,7 +12,7 @@ using Vitarish.Appointments.Infrastructure.Data;
 namespace Vitarish.Main.Migrations.AppointmentsDb
 {
     [DbContext(typeof(AppointmentsDbContext))]
-    [Migration("20260513144031_AppointmentsInitialization")]
+    [Migration("20260520094303_AppointmentsInitialization")]
     partial class AppointmentsInitialization
     {
         /// <inheritdoc />
@@ -20,6 +20,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
         {
 #pragma warning disable 612, 618
             modelBuilder
+                .HasDefaultSchema("Appointments")
                 .HasAnnotation("ProductVersion", "10.0.8")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
@@ -83,7 +84,154 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.HasIndex("ShiftId", "Date")
                         .HasDatabaseName("IX_Reservations_ShiftId_Date");
 
-                    b.ToTable("Reservations");
+                    b.ToTable("Reservations", "Appointments");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
+                });
+
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.Service", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ServiceTypeId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ServiceTypeId");
+
+                    b.ToTable("Services", "Appointments");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
+                });
+
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.ServiceProvider", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ServiceProviders", "Appointments");
+
+                    b.HasAnnotation("Finbuckle:MultiTenant", true);
+                });
+
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.ServiceProviderUserLink", b =>
+                {
+                    b.Property<Guid>("ServiceProviderId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("ServiceProviderId", "UserId");
+
+                    b.ToTable("ServiceProviderUserLinks", "Appointments");
+                });
+
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.ServiceType", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTimeOffset>("CreatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("CreatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTimeOffset?>("DeletedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("DeletedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TenantId")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.Property<DateTimeOffset?>("UpdatedAt")
+                        .HasColumnType("datetimeoffset");
+
+                    b.Property<string>("UpdatedBy")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("ServiceTypes", "Appointments");
 
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
@@ -118,6 +266,12 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValueSql("'{}'");
 
+                    b.Property<Guid?>("ServiceId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ServiceProviderId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<TimeOnly>("StartTime")
                         .HasColumnType("time");
 
@@ -147,7 +301,13 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
 
                     b.HasKey("Id");
 
-                    b.ToTable("Shifts");
+                    b.HasIndex("ServiceId")
+                        .HasDatabaseName("IX_Shifts_ServiceId");
+
+                    b.HasIndex("ServiceProviderId")
+                        .HasDatabaseName("IX_Shifts_ServiceProviderId");
+
+                    b.ToTable("Shifts", "Appointments");
 
                     b.HasAnnotation("Finbuckle:MultiTenant", true);
                 });
@@ -165,7 +325,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
 
                     b.HasKey("TenantId", "ShiftId", "Date");
 
-                    b.ToTable("ShiftReservationLocks", (string)null);
+                    b.ToTable("ShiftReservationLocks", "Appointments");
                 });
 
             modelBuilder.Entity("Vitarish.Appointments.Domain.Models.ShiftReservation", b =>
@@ -193,7 +353,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
 
                     b.ToTable((string)null);
 
-                    b.ToView("vw_ShiftReservation", (string)null);
+                    b.ToView("vw_ShiftReservation", "Appointments");
                 });
 
             modelBuilder.Entity("Vitarish.Appointments.Domain.Models.ShiftStats", b =>
@@ -206,7 +366,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
 
                     b.ToTable((string)null);
 
-                    b.ToView("vw_ShiftStats", (string)null);
+                    b.ToView("vw_ShiftStats", "Appointments");
                 });
 
             modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.Reservation", b =>
@@ -218,8 +378,38 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.Service", b =>
+                {
+                    b.HasOne("Vitarish.Appointments.Domain.Entities.ServiceType", "ServiceType")
+                        .WithMany()
+                        .HasForeignKey("ServiceTypeId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ServiceType");
+                });
+
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.ServiceProviderUserLink", b =>
+                {
+                    b.HasOne("Vitarish.Appointments.Domain.Entities.ServiceProvider", null)
+                        .WithMany("UserLinks")
+                        .HasForeignKey("ServiceProviderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.Shift", b =>
                 {
+                    b.HasOne("Vitarish.Appointments.Domain.Entities.Service", null)
+                        .WithMany()
+                        .HasForeignKey("ServiceId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("Vitarish.Appointments.Domain.Entities.ServiceProvider", null)
+                        .WithMany()
+                        .HasForeignKey("ServiceProviderId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
                     b.OwnsOne("Vitarish.Appointments.Domain.Entities.ShiftBookingPolicy", "BookingPolicy", b1 =>
                         {
                             b1.Property<Guid>("ShiftId")
@@ -252,7 +442,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
 
                             b1.HasKey("ShiftId");
 
-                            b1.ToTable("ShiftBookingPolicies", (string)null);
+                            b1.ToTable("ShiftBookingPolicies", "Appointments");
 
                             b1.WithOwner()
                                 .HasForeignKey("ShiftId");
@@ -292,7 +482,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
 
                             b1.HasIndex("ShiftId");
 
-                            b1.ToTable("ShiftReminderPolicies", (string)null);
+                            b1.ToTable("ShiftReminderPolicies", "Appointments");
 
                             b1.WithOwner()
                                 .HasForeignKey("ShiftId");
@@ -301,6 +491,11 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.Navigation("BookingPolicy");
 
                     b.Navigation("ReminderPolicies");
+                });
+
+            modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.ServiceProvider", b =>
+                {
+                    b.Navigation("UserLinks");
                 });
 #pragma warning restore 612, 618
         }
