@@ -58,35 +58,28 @@ Use one onboarding state model to back all UI panels:
 ## Journey Stages
 
 ### Stage 0 - Entry and Intent
-**Trigger**: Owner selects "appointments settings".
+**Trigger**: Owner selects "appointments settings" from clinic dashboard.
 
 **System response**:
 - Open onboarding workspace in focused mode.
 
-**Friction reduction**:
-- Auto-save draft immediately.
-
 ---
 
 ### Stage 1 - Build Service Tree (Types -> Services)
-**Goal**: Define what can be booked.
+**Goal**: Define what can be booked/reserved.
 
 **UI pattern**:
-- Left pane: editable tree.
-- Right pane: contextual properties for selected node.
+- Editable tree.
 
 **Key interactions**:
 - Add service type inline (`+ Type`).
 - Add service under selected type (`+ Service`).
-- Reorder by drag-and-drop.
-- Bulk-add services via comma/newline paste.
 
 **Validation**:
 - Service type name required.
 
 **Microcopy examples**:
 - "Start with broad categories, then add bookable services."
-- "Tip: Paste a list to add multiple services quickly."
 
 ---
 
@@ -94,10 +87,11 @@ Use one onboarding state model to back all UI panels:
 **Goal**: Define who performs services and tie to account identity.
 
 **UI pattern**:
-- Tree view with provider list as drop down and ability to add new one on each instance.
+- Same Tree view from stage 1 with provider list as drop down and ability to add new one on each service instance.
 
 **Key interactions**:
-- Quick-add provider rows (name-first, details later).
+- Select from providers list.
+- Quick-add provider nodes (name-first, details later).
 - Link to existing users via searchable dropdown.
 - Show linkage status badges: Linked / Invited / Missing.
 
