@@ -1,9 +1,9 @@
 /* ===================== vw_ShiftReservation ===================== */
-IF OBJECT_ID(N'dbo.vw_ShiftReservation', N'V') IS NOT NULL
-    DROP VIEW dbo.vw_ShiftReservation;
+IF OBJECT_ID(N'Appointments.vw_ShiftReservation', N'V') IS NOT NULL
+    DROP VIEW Appointments.vw_ShiftReservation;
 
 EXEC sys.sp_executesql N'
-CREATE VIEW dbo.vw_ShiftReservation AS
+CREATE VIEW Appointments.vw_ShiftReservation AS
 WITH ExcludedReservationStatuses(Status) AS
 (
     /* ReservationStatus: Cancelled = 2, Rejected = 3, Expired = 4 */
@@ -18,8 +18,8 @@ SELECT
     s.TotalSeats,
     COUNT(r.Id) AS ReservationCount,
     CASE WHEN s.TotalSeats - COUNT(r.Id) < 0 THEN 0 ELSE s.TotalSeats - COUNT(r.Id) END AS AvailableSeats
-FROM dbo.Shifts s
-LEFT JOIN dbo.Reservations r
+FROM Appointments.Shifts s
+LEFT JOIN Appointments.Reservations r
     ON r.ShiftId = s.Id
     AND r.Status NOT IN (SELECT Status FROM ExcludedReservationStatuses)
     AND r.IsHold = 0
@@ -29,11 +29,11 @@ GROUP BY s.Id, r.Date, s.StartTime, s.EndTime, s.TotalSeats;
 ';
 
 /* ===================== vw_ShiftStats ===================== */
-IF OBJECT_ID(N'dbo.vw_ShiftStats', N'V') IS NOT NULL
-    DROP VIEW dbo.vw_ShiftStats;
+IF OBJECT_ID(N'Appointments.vw_ShiftStats', N'V') IS NOT NULL
+    DROP VIEW Appointments.vw_ShiftStats;
 
 EXEC sys.sp_executesql N'
-CREATE VIEW dbo.vw_ShiftStats AS
+CREATE VIEW Appointments.vw_ShiftStats AS
 WITH ExcludedReservationStatuses(Status) AS
 (
     /* ReservationStatus: Cancelled = 2, Rejected = 3, Expired = 4 */
@@ -43,8 +43,8 @@ WITH ExcludedReservationStatuses(Status) AS
 SELECT
     s.Id AS ShiftId,
     COUNT(r.Id) AS ReservationCount
-FROM dbo.Shifts s
-LEFT JOIN dbo.Reservations r
+FROM Appointments.Shifts s
+LEFT JOIN Appointments.Reservations r
     ON r.ShiftId = s.Id
     AND r.Status NOT IN (SELECT Status FROM ExcludedReservationStatuses)
     AND r.IsHold = 0

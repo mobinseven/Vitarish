@@ -69,6 +69,8 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        modelBuilder.HasDefaultSchema("Appointments");
+
         _ = modelBuilder.ConfigureMultiTenant();
 
         ConfigureTenantEntity<Shift>(modelBuilder);
