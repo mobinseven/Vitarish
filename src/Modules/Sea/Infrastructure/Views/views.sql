@@ -209,7 +209,8 @@ SELECT
   a.ContentType AS ContentType,
   a.ContentThumbnail AS ContentThumbnail,
   a.CreatedAt AS CreatedAt,
-  a.CreatedBy AS CreatedBy
+  a.CreatedBy AS CreatedBy,
+  a.TenantId AS TenantId
 FROM dbo.Attachments a
 JOIN dbo.Events e ON e.Id = a.EventId
 JOIN dbo.Procedures pr ON pr.Id = e.ProcedureId

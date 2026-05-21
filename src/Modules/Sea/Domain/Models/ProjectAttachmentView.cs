@@ -8,7 +8,8 @@ public sealed class ProjectAttachmentView
     public Guid EventId { get; init; }
     public string Content { get; init; } = string.Empty;
     public string ContentType { get; init; } = string.Empty;
-    public string ContentThumbnail { get; init; } = string.Empty;
+    public string? ContentThumbnail { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
     public string CreatedBy { get; init; } = string.Empty;
+    public string TenantId { get; init; } = string.Empty;
 }

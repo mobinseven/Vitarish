@@ -110,6 +110,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         {
             _ = eb.ToView("vw_ProjectAttachments");
             _ = eb.HasNoKey();
+            _ = eb.IsMultiTenant();
         });
 
         _ = modelBuilder.Entity<Project>(entity =>
