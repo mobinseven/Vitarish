@@ -1,11 +1,10 @@
-# Clinic Appointment Onboarding Setup Journey Map
+# Clinic Appointment Settings Journey Map
 
 ## Purpose
-Define a first-time onboarding journey for a **clinic owner** to configure appointment scheduling using a **single tree-based setup experience**:
+Define a journey for a **clinic owner** to configure appointment scheduling using a **single tree-based setup experience**:
 
-- Service Types -> Services
-- Service Providers -> Linked Users
-- Provider-to-Service assignment
+- Service Types -> Services -> Service Providers -> Linked Users
+
 
 The design goal is a compact, intuitive flow with minimum clicks and context switches, replacing fragmented `list -> add/edit` CRUD screens per entity.
 
@@ -18,10 +17,9 @@ By the end of onboarding, the clinic owner can:
 2. Register providers.
 3. Link providers to existing users.
 4. Assign which providers can perform which services.
-5. Publish the setup so appointments can be booked.
 
 ## UX Principles
-1. **Single active setup context**: one wizard/session controls the whole onboarding state.
+1. **Single active setup context**: one tree controls the whole flow.
 2. **Tree-first interaction**: nested relationships are visible and editable in-place.
 3. **Progressive disclosure**: start minimal, expand details only when needed.
 4. **Inline actions over page hops**: quick add, rename, assign from the same canvas.
