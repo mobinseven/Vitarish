@@ -42,6 +42,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     public DbSet<EventRole> EventRoles => Set<EventRole>();
     public DbSet<Receipt> Receipts => Set<Receipt>();
     public DbSet<ProjectUser> ProjectUsers => Set<ProjectUser>();
+    public DbSet<ProjectAttachmentView> ProjectAttachmentsView => Set<ProjectAttachmentView>();
 
     public SeaDbContext(
         DbContextOptions<SeaDbContext> options,
@@ -101,6 +102,13 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         _ = modelBuilder.Entity<ProjectStats>(eb =>
         {
             _ = eb.ToView("vw_ProjectStats");
+            _ = eb.HasNoKey();
+        });
+
+
+        _ = modelBuilder.Entity<ProjectAttachmentView>(eb =>
+        {
+            _ = eb.ToView("vw_ProjectAttachments");
             _ = eb.HasNoKey();
         });
 
