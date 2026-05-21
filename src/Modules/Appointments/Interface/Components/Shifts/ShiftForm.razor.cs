@@ -49,15 +49,9 @@ public partial class ShiftForm : ShiftsBase
                 shiftWriteDto.DayOfWeek = DayOfWeek.Value;
         }
 
-
         shiftWriteDto.TimeZone = string.IsNullOrWhiteSpace(shiftWriteDto.TimeZone)
             ? TimeZoneInfo.Local.Id
             : shiftWriteDto.TimeZone;
-
-        shiftWriteDto = shiftWriteDto with
-        {
-            BookingPolicy = shiftWriteDto.BookingPolicy ?? new ShiftBookingPolicyWriteDto()
-        };
     }
 
     protected override async Task OnInitializedAsync()

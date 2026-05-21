@@ -4,11 +4,15 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 internal class ShiftBookingPolicyEvaluator
 {
     public bool IsBookingOpen(Shift shift, DateOnly date)
-        => ShiftBookingRules.IsBookingOpen(shift, date, DateTimeOffset.UtcNow);
+    {
+        ShiftBookingPolicy? datePolicy = ResolvePolicy(shift, date);
+        return ShiftBookingRules.IsBookingOpen(shift, date, DateTimeOffset.UtcNow, datePolicy);
+    }
 
     public bool CanCancel(Shift shift, Reservation reservation)
     {
-        TimeSpan? deadline = shift.BookingPolicy?.CancellationDeadline;
+        ShiftBookingPolicy? datePolicy = ResolvePolicy(shift, reservation.Date);
+        TimeSpan? deadline = datePolicy?.CancellationDeadline;
         if (deadline is null)
         {
             return true;
@@ -18,25 +22,48 @@ internal class ShiftBookingPolicyEvaluator
         return DateTimeOffset.UtcNow < cutoff;
     }
 
-    public bool CanReschedule(Shift shift)
-        => shift.BookingPolicy?.AllowRescheduling ?? false;
-
-    public bool RequiresApproval(Shift shift)
-        => shift.BookingPolicy?.RequiresApproval ?? false;
-
-    public bool NeedsPartyCapacityCheck(Shift shift, string? reservingPartyId)
-        => !string.IsNullOrWhiteSpace(reservingPartyId)
-            && shift.BookingPolicy?.MaxReservationsPerParty is not null;
-
-    public bool HasCapacityForParty(Shift shift, string? reservingPartyId, int currentReservationCount)
+    public bool CanReschedule(Shift shift, Reservation reservation)
     {
-        if (!NeedsPartyCapacityCheck(shift, reservingPartyId))
+        ShiftBookingPolicy? datePolicy = ResolvePolicy(shift, reservation.Date);
+        return datePolicy?.AllowRescheduling ?? false;
+    }
+
+    public bool RequiresApproval(Shift shift, DateOnly date)
+    {
+        ShiftBookingPolicy? datePolicy = ResolvePolicy(shift, date);
+        return datePolicy?.RequiresApproval ?? false;
+    }
+
+    public bool NeedsPartyCapacityCheck(Shift shift, DateOnly date, string? reservingPartyId)
+    {
+        if (string.IsNullOrWhiteSpace(reservingPartyId))
+        {
+            return false;
+        }
+
+        ShiftBookingPolicy? datePolicy = ResolvePolicy(shift, date);
+        return datePolicy?.MaxReservationsPerParty is not null;
+    }
+
+    public bool HasCapacityForParty(Shift shift, DateOnly date, string? reservingPartyId, int currentReservationCount)
+    {
+        if (!NeedsPartyCapacityCheck(shift, date, reservingPartyId))
         {
             return true;
         }
 
-        return currentReservationCount < shift.BookingPolicy!.MaxReservationsPerParty!.Value;
+        ShiftBookingPolicy? datePolicy = ResolvePolicy(shift, date);
+        return currentReservationCount < datePolicy!.MaxReservationsPerParty!.Value;
     }
+
+    public int GetEffectiveCapacity(Shift shift, DateOnly date)
+    {
+        ShiftBookingPolicy? datePolicy = ResolvePolicy(shift, date);
+        return datePolicy?.Capacity ?? shift.TotalSeats;
+    }
+
+    private static ShiftBookingPolicy? ResolvePolicy(Shift shift, DateOnly date)
+        => shift.BookingPolicies.FirstOrDefault(p => p.Date == date);
 
     private static DateTimeOffset ToDateTimeOffset(DateOnly date, TimeOnly time)
         => new(date.ToDateTime(time), TimeSpan.Zero);

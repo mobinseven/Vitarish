@@ -66,7 +66,7 @@ internal class ShiftRepository(AppointmentsDbContext dbContext)
     {
         Shift? shift = await dbContext.Shifts
             .AsNoTracking()
-            .Include(s => s.BookingPolicy)
+            .Include(s => s.BookingPolicies)
             .Include(s => s.ReminderPolicies)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
         return shift;

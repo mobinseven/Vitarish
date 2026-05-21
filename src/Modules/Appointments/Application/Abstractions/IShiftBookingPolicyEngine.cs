@@ -6,5 +6,5 @@ public interface IShiftBookingPolicyEngine
     Task<bool> CanCancelAsync(Guid reservationId, CancellationToken cancellationToken);
     Task<bool> CanRescheduleAsync(Guid reservationId, CancellationToken cancellationToken);
     Task<bool> HasCapacityForPartyAsync(Guid shiftId, DateOnly date, string? reservingPartyId, CancellationToken cancellationToken);
-    Task<bool> RequiresApprovalAsync(Guid shiftId, CancellationToken cancellationToken);
+    Task<bool> RequiresApprovalAsync(Guid shiftId, DateOnly date, CancellationToken cancellationToken);
 }

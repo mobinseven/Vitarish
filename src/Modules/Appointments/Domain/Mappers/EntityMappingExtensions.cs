@@ -31,6 +31,8 @@ public static partial class EntityMappingExtensions
 
     public static global::Vitarish.Appointments.Domain.Entities.ShiftBookingPolicy ToDomain(this global::Vitarish.Appointments.Domain.Dto.ShiftBookingPolicyWriteDto dto) => Mapper.ToDomain(dto);
 
+    public static global::Vitarish.Appointments.Domain.Dto.ShiftBookingPolicyWriteDto ToWrite(this global::Vitarish.Appointments.Domain.Dto.ShiftBookingPolicyReadDto dto) => Mapper.ToWrite(dto);
+
     public static global::Vitarish.Appointments.Domain.Dto.ShiftReservationReadDto ToDto(this global::Vitarish.Appointments.Domain.Models.ShiftReservation model) => Mapper.ToDto(model);
 
     public static global::Vitarish.Appointments.Domain.Dto.ServiceTypeReadDto ToDto(this global::Vitarish.Appointments.Domain.Entities.ServiceType entity) => Mapper.ToDto(entity);

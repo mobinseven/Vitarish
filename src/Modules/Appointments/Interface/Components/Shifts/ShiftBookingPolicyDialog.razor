@@ -1,0 +1,14 @@
+@inherits ShiftBookingPoliciesBase
+
+<MudDialog>
+    <DialogContent>
+        <ShiftBookingPolicyForm ShiftId="@ShiftId"
+                                Policy="@Policy"
+                                OnSaved="OnSavedInternal" />
+        <Stack>
+            <StackButton Label="@Localizer["Cancel"]"
+                         EndIcon="fa-regular fa-xmark"
+                         OnClick="Close" />
+        </Stack>
+    </DialogContent>
+</MudDialog>

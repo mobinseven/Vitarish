@@ -31,7 +31,7 @@ internal class MoveReservationHandler(
 
             Shift? targetShift = await dbContext.Shifts
                 .AsNoTracking()
-                .Include(s => s.BookingPolicy)
+                .Include(s => s.BookingPolicies)
                 .FirstOrDefaultAsync(s => s.Id == request.TargetShiftId, cancellationToken);
 
             if (targetShift is null || targetShift.Status != ShiftStatus.Active)
@@ -81,7 +81,7 @@ internal class MoveReservationHandler(
                 !r.IsHold,
                 cancellationToken);
 
-            if (seats >= targetShift.TotalSeats)
+            if (seats >= policyEvaluator.GetEffectiveCapacity(targetShift, request.TargetDate))
             {
                 if (lockEntry is not null)
                 {

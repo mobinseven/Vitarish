@@ -5,6 +5,7 @@ internal class ShiftAggregateLoader(AppointmentsDbContext dbContext) : IShiftAgg
 {
     public Task<Shift?> LoadWithPoliciesAsync(Guid shiftId, CancellationToken cancellationToken) =>
         dbContext.Shifts
+            .Include(s => s.BookingPolicies)
             .Include(s => s.ReminderPolicies)
             .FirstOrDefaultAsync(s => s.Id == shiftId, cancellationToken);
 
