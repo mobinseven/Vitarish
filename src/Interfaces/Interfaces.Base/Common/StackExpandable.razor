@@ -73,8 +73,7 @@
     [Parameter] public string? Label { get; set; }
     [Parameter] public string? HighlightString { get; set; }
     [Parameter] public string? HelperText { get; set; }
-    [Parameter]
-    public RenderFragment<ExpansionContext>? ExpandableContent { get; set; }
+    [Parameter] public RenderFragment<ExpansionContext>? ExpandableContent { get; set; }
 
     private Typo LabelSize => Size switch
     {

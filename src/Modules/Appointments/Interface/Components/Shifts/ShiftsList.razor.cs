@@ -5,6 +5,7 @@ public partial class ShiftsList : ShiftsBase
     [Parameter] public EventCallback<Guid> OnClicked { get; set; }
     [Parameter] public EventCallback<DayOfWeek?> OnAdd { get; set; }
     [Parameter] public ShiftDescriptorDto? Descriptor { get; set; } = new();
+    [Parameter] public EventCallback<ShiftReservationReadDto> OnShiftOccurrenceSelected { get; set; }
 
     [Inject] private IEnumerable<IShiftsGridPlugin> GridPlugins { get; set; } = [];
     private IShiftsGridPlugin? Plugin => GridPlugins.SingleOrDefault(p => p.Id == TenantService?.PluginIdentifier);

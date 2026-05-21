@@ -9,7 +9,6 @@
 else
 {
     <StackCalendar MinDate="@DateTime.Today">
-
         <DayTemplate Context="day">
             @{
                 var occurrence = occurrences.FirstOrDefault(i => i.Date == DateOnly.FromDateTime(day.Date));

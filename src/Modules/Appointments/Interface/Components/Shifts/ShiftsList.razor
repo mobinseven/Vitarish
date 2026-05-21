@@ -16,12 +16,12 @@
             <StackField Label="@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(day)" />
             @foreach(var shift in shifts.Where(s => s.DayOfWeek == day))
             {
-                <StackButton OnClick="() => OnClicked.InvokeAsync(shift.Id)"
-                             Label="@shift.Title"
-                             HelperText="@($"{shift.TotalSeats} {Localizer["TotalSeats"]}")"
-                             HighlightString="@SearchString">
-                    <ShiftStatusBadge Status="shift.Status" />
-                </StackButton>
+                <StackExpandable OnClick="() => OnClicked.InvokeAsync(shift.Id)"
+                                 Label="@shift.Title"
+                                 HighlightString="@SearchString"
+                                 Color="@shift.Status.ToColor()">
+                    <ShiftReservationsCalendar ShiftId="shift.Id" OnSelected="OnShiftOccurrenceSelected" />
+                </StackExpandable>
             }
             @if(AdminMode)
             {

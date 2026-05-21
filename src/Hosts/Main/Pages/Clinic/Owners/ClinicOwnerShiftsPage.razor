@@ -2,5 +2,6 @@
 @attribute [EnableSearch]
 
 <ShiftsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerShift(id)))"
-            OnAdd="@(dayOfWeek => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerShiftCreateForDay(dayOfWeek is null ? null : (int)dayOfWeek)))" />
+            OnAdd="@(dayOfWeek => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerShiftCreateForDay(dayOfWeek is null ? null : (int)dayOfWeek)))"
+            OnShiftOccurrenceSelected="@(o => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerShiftOccurrence(o.ShiftId, o.Date.ToDateTime(TimeOnly.MinValue))))" />
 
