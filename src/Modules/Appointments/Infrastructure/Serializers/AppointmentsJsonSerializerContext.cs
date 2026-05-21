@@ -10,7 +10,6 @@ namespace Vitarish.Appointments.Infrastructure.Serializers;
 [JsonSerializable(typeof(ShiftStatus))]
 [JsonSerializable(typeof(ShiftVisibility))]
 [JsonSerializable(typeof(ShiftSortBy))]
-[JsonSerializable(typeof(ShiftStats))]
 [JsonSerializable(typeof(IReadOnlyList<ShiftReadDto>))]
 [JsonSerializable(typeof(IReadOnlyList<ShiftWriteDto>))]
 [JsonSerializable(typeof(ShiftReservationReadDto))]

@@ -353,19 +353,6 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.ToView("vw_ShiftReservation", "Appointments");
                 });
 
-            modelBuilder.Entity("Vitarish.Appointments.Domain.Models.ShiftStats", b =>
-                {
-                    b.Property<int>("ReservationCount")
-                        .HasColumnType("int");
-
-                    b.Property<Guid>("ShiftId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.ToTable((string)null);
-
-                    b.ToView("vw_ShiftStats", "Appointments");
-                });
-
             modelBuilder.Entity("Vitarish.Appointments.Domain.Entities.Reservation", b =>
                 {
                     b.HasOne("Vitarish.Appointments.Domain.Entities.Shift", null)

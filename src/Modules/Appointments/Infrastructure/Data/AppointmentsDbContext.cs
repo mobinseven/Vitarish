@@ -88,8 +88,6 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
 
-            _ = entity.Ignore(e => e.Stats);
-
             _ = entity.OwnsOne(s => s.BookingPolicy, b =>
             {
                 b.ToTable("ShiftBookingPolicies");
@@ -136,12 +134,6 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
         {
             entity.ToView("vw_ShiftReservation");
             entity.HasNoKey();
-        });
-
-        _ = modelBuilder.Entity<ShiftStats>(eb =>
-        {
-            _ = eb.ToView("vw_ShiftStats");
-            _ = eb.HasNoKey();
         });
 
         _ = modelBuilder.Entity<Service>(entity =>

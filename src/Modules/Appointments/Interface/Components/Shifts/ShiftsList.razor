@@ -18,7 +18,7 @@
             {
                 <StackButton OnClick="() => OnClicked.InvokeAsync(shift.Id)"
                              Label="@shift.Title"
-                             HelperText="@($"{shift.Stats.ReservationCount} {Localizer["Reservations"]}")"
+                             HelperText="@($"{shift.TotalSeats} {Localizer["TotalSeats"]}")"
                              HighlightString="@SearchString">
                     <ShiftStatusBadge Status="shift.Status" />
                 </StackButton>
