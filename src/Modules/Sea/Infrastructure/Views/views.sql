@@ -193,6 +193,34 @@ FROM dbo.Projects p
 WHERE p.DeletedAt IS NULL;
 ';
 
+
+/* ===================== vw_ProjectAttachments ===================== */
+IF OBJECT_ID(N'dbo.vw_ProjectAttachments', N'V') IS NOT NULL
+    DROP VIEW dbo.vw_ProjectAttachments;
+
+EXEC sys.sp_executesql N'
+CREATE VIEW dbo.vw_ProjectAttachments AS
+SELECT
+  a.Id AS AttachmentId,
+  e.ProjectId AS ProjectId,
+  e.ProcedureId AS ProcedureId,
+  a.EventId AS EventId,
+  a.Content AS Content,
+  a.ContentType AS ContentType,
+  a.ContentThumbnail AS ContentThumbnail,
+  a.CreatedAt AS CreatedAt,
+  a.CreatedBy AS CreatedBy,
+  a.TenantId AS TenantId
+FROM dbo.Attachments a
+JOIN dbo.Events e ON e.Id = a.EventId
+JOIN dbo.Procedures pr ON pr.Id = e.ProcedureId
+JOIN dbo.Projects p ON p.Id = e.ProjectId
+WHERE a.DeletedAt IS NULL
+  AND e.DeletedAt IS NULL
+  AND pr.DeletedAt IS NULL
+  AND p.DeletedAt IS NULL;
+';
+
 /* ===================== vw_ProcedureStats ===================== */
 IF OBJECT_ID(N'dbo.vw_ProcedureStats', N'V') IS NOT NULL
     DROP VIEW dbo.vw_ProcedureStats;
