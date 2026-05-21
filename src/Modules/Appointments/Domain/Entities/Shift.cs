@@ -1,5 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
-
 namespace Vitarish.Appointments.Domain.Entities;
 
 public class Shift : Entity
@@ -68,6 +66,4 @@ public class Shift : Entity
 
     public IList<ShiftReminderPolicy> ReminderPolicies { get; set; } = [];
 
-    [NotMapped]
-    public ShiftStats Stats { get; set; } = new();
 }

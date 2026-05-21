@@ -14,7 +14,6 @@
     <StackField Label="@Shift.EndTime.ToString("t")" HelperText="@Localizer["EndTime"]" />
     @* <StackField Label="@Shift.TimeZone" HelperText="@Localizer["TimeZone"]" /> *@
     <StackField Label="@Shift.TotalSeats.ToString()" HelperText="@Localizer["TotalSeats"]" />
-    <StackField Label="@($"{Shift.Stats.ReservationCount} {Localizer["Reservations"]}")" HelperText="@Localizer["Reservations"]" />
 </Stack>
 
 @if (Shift.Status == ShiftStatus.Active)

@@ -15,14 +15,12 @@
         }
         else
         {
-            <Stack>
+                <Stack>
                 @foreach (var shift in shifts)
                 {
-                    bool isFull = shift.Stats.ReservationCount >= shift.TotalSeats;
                     <StackButton OnClick="@(() => ReserveAsync(shift))"
                                  Label="@Localizer[shift.DayOfWeek.ToString()]"
-                                 HelperText="@($"{shift.StartTime:t}-{shift.EndTime:t} · {shift.Stats.ReservationCount}/{shift.TotalSeats}")"
-                                 Disabled="@isFull">
+                                 HelperText="@($"{shift.StartTime:t}-{shift.EndTime:t} · {shift.TotalSeats} {Localizer["TotalSeats"]}")">
                         <ShiftStatusBadge Status="shift.Status" />
                     </StackButton>
                 }

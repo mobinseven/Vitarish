@@ -69,10 +69,6 @@ internal class ShiftRepository(AppointmentsDbContext dbContext)
             .Include(s => s.BookingPolicy)
             .Include(s => s.ReminderPolicies)
             .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
-        if (shift is not null)
-        {
-            await PopulateStatsAsync([shift], cancellationToken);
-        }
         return shift;
     }
 
@@ -92,32 +88,6 @@ internal class ShiftRepository(AppointmentsDbContext dbContext)
     //    }
 
     //    IReadOnlyList<Shift> shifts = await query.ApplyPagination(descriptor).ToListAsync(cancellationToken);
-    //    await PopulateStatsAsync(shifts, cancellationToken);
     //    return shifts;
     //}
-
-    private async Task PopulateStatsAsync(IEnumerable<Shift> shifts, CancellationToken cancellationToken)
-    {
-        List<Guid> shiftIds = [.. shifts.Select(s => s.Id)];
-        if (shiftIds.Count == 0)
-        {
-            return;
-        }
-
-        Dictionary<Guid, ShiftStats> stats = await dbContext.Set<ShiftStats>()
-            .AsNoTracking()
-            .Where(stat => shiftIds.Contains(stat.ShiftId))
-            .ToDictionaryAsync(stat => stat.ShiftId, cancellationToken);
-
-        foreach (Shift shift in shifts)
-        {
-            shift.Stats = stats.TryGetValue(shift.Id, out ShiftStats? stat)
-                ? stat
-                : new ShiftStats
-                {
-                    ShiftId = shift.Id,
-                    ReservationCount = 0
-                };
-        }
-    }
 }

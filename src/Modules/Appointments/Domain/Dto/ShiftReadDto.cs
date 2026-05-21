@@ -13,7 +13,6 @@ public record ShiftReadDto : EntityReadDto
     public int TotalSeats { get; set; } = 1;
     public Guid? ServiceProviderId { get; set; }
     public Guid? ServiceId { get; set; }
-    public ShiftStats Stats { get; set; } = new();
     public ShiftBookingPolicyReadDto? BookingPolicy { get; set; }
     public IReadOnlyList<ShiftReminderPolicyReadDto> ReminderPolicies { get; set; } = [];
 
