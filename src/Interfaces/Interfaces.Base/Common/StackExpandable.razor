@@ -1,4 +1,5 @@
 @inherits MudButton
+
 <MudButton Variant="Variant.Text"
            Class="stack-item"
            FullWidth
@@ -10,27 +11,89 @@
            EndIcon="@ContinueIcon"
            OnClick="@Toggle"
            DropShadow="false">
-    <MudStack Row Style="width: 100%"
+    <MudStack Row
+              Style="width: 100%"
               AlignItems="AlignItems.Start"
               StretchItems="StretchItems.Middle">
-        <MudHighlighter HighlightedText="@HighlightString"
-                        Text="@Label" />
+        <div>
+            <MudText Typo="@LabelSize" Align="Align.Start">
+                <MudHighlighter HighlightedText="@HighlightString" Text="@Label" />
+            </MudText>
+
+            @if(!string.IsNullOrWhiteSpace(HelperText))
+            {
+                <MudText Typo="Typo.caption">
+                    @HelperText
+                </MudText>
+            }
+        </div>
     </MudStack>
 </MudButton>
 
 @if(expanded)
 {
     <div class="stack-item" style="margin-top: -1px;">
-        @ChildContent
+        @if(ExpandableContent is not null)
+        {
+            @ExpandableContent(Expansion)
+        }
+        else
+        {
+            @ChildContent
+        }
     </div>
 }
+
 @code {
     private bool expanded;
 
-    private void Toggle() => expanded = !expanded;
+    private ExpansionContext Expansion =>
+        new(
+            expanded,
+            Open,
+            Close,
+            Toggle
+        );
+
+    private Task Toggle() => SetExpanded(!expanded);
+
+    private Task Open() => SetExpanded(true);
+
+    private Task Close() => SetExpanded(false);
+
+    private Task SetExpanded(bool value)
+    {
+        if(expanded == value)
+            return Task.CompletedTask;
+
+        expanded = value;
+        return InvokeAsync(StateHasChanged);
+    }
 
     [Parameter] public string? Label { get; set; }
     [Parameter] public string? HighlightString { get; set; }
+    [Parameter] public string? HelperText { get; set; }
+    [Parameter]
+    public RenderFragment<ExpansionContext>? ExpandableContent { get; set; }
 
-    private string ContinueIcon => expanded ? "fa-regular fa-chevron-up" : "fa-regular fa-chevron-down";
+    private Typo LabelSize => Size switch
+    {
+        Size.Small => Typo.caption,
+        Size.Large => Typo.h3,
+        _ => Typo.body1
+    };
+
+    private string ContinueIcon =>
+        !string.IsNullOrWhiteSpace(EndIcon)
+            ? EndIcon
+            : expanded
+                ? "fa-regular fa-chevron-up"
+                : "fa-regular fa-chevron-down";
+
+    public sealed record ExpansionContext(
+        bool Expanded,
+        Func<Task> OpenAsync,
+        Func<Task> CloseAsync,
+        Func<Task> ToggleAsync
+    );
 }

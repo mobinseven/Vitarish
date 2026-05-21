@@ -3,7 +3,7 @@
 
 @if (showForm)
 {
-    <ServiceProviderForm Provider="@Provider"
+    <ServiceProviderForm ServiceProvider="@Provider"
                          OnSaved="@(id => { NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerServiceProvider(id)); })"
                          OnCancelled="@(() => { showForm = false; StateHasChanged(); })" />
 }
@@ -11,7 +11,7 @@ else
 {
     @if (Provider is null)
     {
-        <ServiceProviderForm Provider="null"
+        <ServiceProviderForm ServiceProvider="null"
                              OnSaved="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.OwnerServiceProvider(id)))"
                              OnCancelled="Back" />
     }

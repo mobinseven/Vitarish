@@ -33,5 +33,8 @@ public partial class ServiceForm : ServicesBase
         {
             await OnSaved.InvokeAsync(result.Value.Id);
         }
+
+        writeDto = Service is not null ? Service.ToWrite() : new ServiceWriteDto();
+
     }
 }

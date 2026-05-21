@@ -11,5 +11,5 @@ public record ShiftWriteDto : EntityWriteDto
     public int TotalSeats { get; set; } = 10;
     public Guid? ServiceProviderId { get; set; }
     public Guid? ServiceId { get; set; }
-    public ShiftBookingPolicyWriteDto? BookingPolicy { get; set; }
+    public ShiftBookingPolicyWriteDto? BookingPolicy { get; set; } = new();
 }

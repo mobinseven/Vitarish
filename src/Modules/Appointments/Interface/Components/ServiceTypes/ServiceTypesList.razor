@@ -1,7 +1,7 @@
 @inherits ServiceTypesBase
 
 <Stack>
-    @if (serviceTypes.Count == 0)
+    @if(serviceTypes.Count == 0)
     {
         <StackButton OnClick="ReloadRequired"
                      Label="@Localizer["NoItems", Localizer["ServiceType"]]"
@@ -12,19 +12,25 @@
     }
     else
     {
-        @foreach (var item in serviceTypes)
+        @foreach(var item in serviceTypes)
         {
-            <StackButton OnClick="() => OnClicked.InvokeAsync(item.Id)"
-                         Label="@item.Name"
-                         HelperText="@item.Description"
-                         HighlightString="@SearchString" />
+            <StackExpandable Label="@item.Name"
+                             HelperText="@item.Description"
+                             HighlightString="@SearchString">
+                <ExpandableContent>
+                    <ServiceTypeForm ServiceType="@item" OnCancelled="() => context.CloseAsync()" OnSaved="() => context.CloseAsync()" />
+                </ExpandableContent>
+            </StackExpandable>
         }
     }
-    @if (AdminMode)
+    @if(AdminMode)
     {
-        <StackButton Color="Color.Primary"
-                     Label="@Localizer["AddItem", Localizer["ServiceType"]]"
-                     EndIcon="fa-regular fa-plus"
-                     OnClick="() => OnAdd.InvokeAsync()" />
+        <StackExpandable Color="Color.Primary"
+                         Label="@Localizer["AddItem", Localizer["ServiceType"]]"
+                         EndIcon="fa-regular fa-plus">
+            <ExpandableContent>
+                <ServiceTypeForm OnCancelled="() => context.CloseAsync()" OnSaved="() => context.CloseAsync()" />
+            </ExpandableContent>
+        </StackExpandable>
     }
 </Stack>

@@ -17,6 +17,7 @@ public static partial class AppRoutes
         public const string OwnerSettingsUsers = "/owner/clinic/settings/users";
         public const string OwnerSettingsStatistics = "/owner/clinic/settings/statistics";
         public const string OwnerReminders = "/owner/clinic/reminders";
+        public const string OwnerAppointmentSettings = "/owner/clinic/appointment-settings";
 
         // Owner appointment routes (Appointments module hosted under Clinic)
         public const string OwnerReservations = "/owner/clinic/reservations";
@@ -26,7 +27,7 @@ public static partial class AppRoutes
         public const string OwnerShiftCreateTemplate = "/owner/clinic/shifts/new/{dayOfWeek:int}";
         public const string OwnerShiftTemplate = "/owner/clinic/shifts/{shiftId:guid}";
         public const string OwnerShiftEditTemplate = "/owner/clinic/shifts/{shiftId:guid}/edit";
-        public const string OwnerShiftOccurrenceTemplate = "/owner/clinic/shifts/{shiftId:guid}/occurrence";
+        public const string OwnerShiftOccurrenceTemplate = "/owner/clinic/shifts/{shiftId:guid}/occurrence/{occurrenceDate:datetime}";
 
         // User appointment routes
         public const string UserReservations = "/user/clinic/reservations";
@@ -45,7 +46,7 @@ public static partial class AppRoutes
         public static string OwnerReservation(Guid reservationId) => $"{OwnerReservations}/{GuidValue(reservationId)}";
         public static string OwnerShift(Guid shiftId) => $"{OwnerShifts}/{GuidValue(shiftId)}";
         public static string OwnerShiftEdit(Guid shiftId) => $"{OwnerShift(shiftId)}/edit";
-        public static string OwnerShiftOccurrence(Guid shiftId) => $"{OwnerShift(shiftId)}/occurrence";
+        public static string OwnerShiftOccurrence(Guid shiftId, DateTime dateTime) => $"{OwnerShift(shiftId)}/occurrence/{dateTime:yyyy-MM-dd}";
         public static string OwnerShiftCreateForDay(int? dayOfWeek = null) =>
             dayOfWeek is null ? OwnerShiftCreate : $"{OwnerShiftCreate}/{IntValue(dayOfWeek.Value)}";
 

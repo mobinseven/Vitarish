@@ -2,7 +2,7 @@ namespace Vitarish.Appointments.Interface.Components.ServiceProviders;
 
 public partial class ServiceProviderForm : ServiceProvidersBase
 {
-    [Parameter] public ServiceProviderReadDto? Provider { get; set; }
+    [Parameter] public ServiceProviderReadDto? ServiceProvider { get; set; }
     [Parameter] public EventCallback<Guid> OnSaved { get; set; }
     [Parameter] public EventCallback OnCancelled { get; set; }
 
@@ -10,7 +10,7 @@ public partial class ServiceProviderForm : ServiceProvidersBase
 
     protected override void OnParametersSet()
     {
-        writeDto = Provider is not null ? Provider.ToWrite() : new ServiceProviderWriteDto();
+        writeDto = ServiceProvider is not null ? ServiceProvider.ToWrite() : new ServiceProviderWriteDto();
     }
 
     private async Task SaveAsync()

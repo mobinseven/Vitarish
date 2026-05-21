@@ -14,17 +14,9 @@ else
             @{
                 var occurrence = occurrences.FirstOrDefault(i => i.Date == DateOnly.FromDateTime(day.Date));
             }
-            <MudBadge Dot Visible="occurrence is not null" Color="occurrence?.ReservationCount > 0 ? Color.Primary : Color.Default">
-                <span @onclick="() => OnSelected.InvokeAsync(occurrence)">@day.DayNumber</span>
-            </MudBadge>
+            <MudButton OnClick="() => OnSelected.InvokeAsync(occurrence)" Variant="@(occurrence is not null ? Variant.Outlined : Variant.Text)" Color="occurrence?.ReservationCount > 0 ? Color.Primary : Color.Default">
+                @day.DayNumber
+            </MudButton>
         </DayTemplate>
-
-        <MonthTemplate Context="month">
-            <span>@month.ShortName</span>
-        </MonthTemplate>
-
-        <YearTemplate Context="year">
-            <span>@year.Year</span>
-        </YearTemplate>
     </StackCalendar>
 }
