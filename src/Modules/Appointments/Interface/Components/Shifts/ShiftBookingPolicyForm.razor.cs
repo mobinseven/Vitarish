@@ -15,7 +15,7 @@ public partial class ShiftBookingPolicyForm : ShiftBookingPoliciesBase
     protected override async Task OnInitializedAsync()
     {
         model = Policy is null
-            ? new UpsertShiftBookingPolicyCommandModel { ShiftId = ShiftId, Date = DateOnly.FromDateTime(DateTime.Now) }
+            ? new UpsertShiftBookingPolicyCommandModel { ShiftId = ShiftId, Date = DateOnly.FromDateTime(DateTime.UtcNow) }
             : new UpsertShiftBookingPolicyCommandModel
             {
                 ShiftId = Policy.ShiftId, PolicyId = Policy.Id, Date = Policy.Date, BookingOpensBefore = Policy.BookingOpensBefore,
