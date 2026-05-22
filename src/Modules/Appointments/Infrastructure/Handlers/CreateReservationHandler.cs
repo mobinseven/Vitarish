@@ -8,7 +8,6 @@ namespace Vitarish.Appointments.Infrastructure.Handlers;
 
 internal class CreateReservationHandler(
     AppointmentsDbContext dbContext,
-    ShiftBookingPolicyEvaluator policyEvaluator,
     IAppointmentsEventPublisher eventPublisher,
     IPublisher publisher,
     IRequestContext requestContext)
@@ -35,7 +34,7 @@ internal class CreateReservationHandler(
                     return EntityResult<Reservation>.Failure([.. shiftValidation.Errors]);
                 }
 
-                if (!policyEvaluator.IsBookingOpen(shift!, request.Date))
+                if (!ShiftBookingPolicyEvaluator.IsBookingOpen(shift!, request.Date))
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("The booking window is closed for this shift slot."));
@@ -79,7 +78,7 @@ internal class CreateReservationHandler(
                     }
 
                     int occupiedSeats = await CountActiveReservationsAsync(request.ShiftId, request.Date, cancellationToken);
-                    if (!request.CapacityOverride && occupiedSeats >= policyEvaluator.GetEffectiveCapacity(shift!, request.Date))
+                    if (!request.CapacityOverride && occupiedSeats >= ShiftBookingPolicyEvaluator.GetEffectiveCapacity(shift!, request.Date))
                     {
                         dbContext.ShiftReservationLocks.Remove(lockEntry);
                         await dbContext.SaveChangesAsync(cancellationToken);
@@ -107,7 +106,7 @@ internal class CreateReservationHandler(
 
                 // Fallback path (no tenant, e.g. test environment without multi-tenancy)
                 int seats = await CountActiveReservationsAsync(request.ShiftId, request.Date, cancellationToken);
-                if (!request.CapacityOverride && seats >= policyEvaluator.GetEffectiveCapacity(shift!, request.Date))
+                if (!request.CapacityOverride && seats >= ShiftBookingPolicyEvaluator.GetEffectiveCapacity(shift!, request.Date))
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("No seats are available for this shift slot."));
@@ -180,7 +179,7 @@ internal class CreateReservationHandler(
         string? reservingPartyId,
         CancellationToken cancellationToken)
     {
-        if (!policyEvaluator.NeedsPartyCapacityCheck(shift, date, reservingPartyId))
+        if (!ShiftBookingPolicyEvaluator.NeedsPartyCapacityCheck(shift, date, reservingPartyId))
         {
             return true;
         }
@@ -194,7 +193,7 @@ internal class CreateReservationHandler(
             r.Status != ReservationStatus.Rejected,
             cancellationToken);
 
-        return policyEvaluator.HasCapacityForParty(shift, date, reservingPartyId, partyCount);
+        return ShiftBookingPolicyEvaluator.HasCapacityForParty(shift, date, reservingPartyId, partyCount);
     }
 
     private Reservation BuildReservation(Shift shift, CreateReservationCommand request) => new()
@@ -202,7 +201,7 @@ internal class CreateReservationHandler(
         ShiftId = request.ShiftId,
         Date = request.Date,
         ReservingPartyId = request.ReservingPartyId,
-        EstimatedSessionLength = policyEvaluator.GetEffectiveEstimatedSessionLength(shift, request.Date, request.EstimatedSessionLength),
+        EstimatedSessionLength = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, request.Date, request.EstimatedSessionLength),
         Status = ReservationStatus.Pending,
         IsHold = request.IsHold,
         ExpiresAt = request.IsHold && request.HoldDuration.HasValue

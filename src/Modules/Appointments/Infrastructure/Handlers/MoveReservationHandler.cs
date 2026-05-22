@@ -8,7 +8,6 @@ namespace Vitarish.Appointments.Infrastructure.Handlers;
 
 internal class MoveReservationHandler(
     AppointmentsDbContext dbContext,
-    ShiftBookingPolicyEvaluator policyEvaluator,
     IAppointmentsEventPublisher eventPublisher,
     IRequestContext requestContext)
     : IRequestHandler<MoveReservationCommand>
@@ -40,7 +39,7 @@ internal class MoveReservationHandler(
                 return;
             }
 
-            if (!policyEvaluator.IsBookingOpen(targetShift, request.TargetDate))
+            if (!ShiftBookingPolicyEvaluator.IsBookingOpen(targetShift, request.TargetDate))
             {
                 await transaction.RollbackAsync(cancellationToken);
                 return;
@@ -81,7 +80,7 @@ internal class MoveReservationHandler(
                 !r.IsHold,
                 cancellationToken);
 
-            if (seats >= policyEvaluator.GetEffectiveCapacity(targetShift, request.TargetDate))
+            if (seats >= ShiftBookingPolicyEvaluator.GetEffectiveCapacity(targetShift, request.TargetDate))
             {
                 if (lockEntry is not null)
                 {

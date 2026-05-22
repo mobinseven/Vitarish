@@ -2,8 +2,7 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
 internal class ShiftBookingPolicyEngine(
-    AppointmentsDbContext dbContext,
-    ShiftBookingPolicyEvaluator policyEvaluator) : IShiftBookingPolicyEngine
+    AppointmentsDbContext dbContext) : IShiftBookingPolicyEngine
 {
     public async Task<bool> IsBookingOpenAsync(Guid shiftId, DateOnly date, CancellationToken cancellationToken)
     {
@@ -13,7 +12,7 @@ internal class ShiftBookingPolicyEngine(
             .FirstOrDefaultAsync(s => s.Id == shiftId, cancellationToken);
 
         return shift is not null
-            && policyEvaluator.IsBookingOpen(shift, date);
+            && ShiftBookingPolicyEvaluator.IsBookingOpen(shift, date);
     }
 
     public async Task<bool> CanCancelAsync(Guid reservationId, CancellationToken cancellationToken)
@@ -37,7 +36,7 @@ internal class ShiftBookingPolicyEngine(
             return false;
         }
 
-        return policyEvaluator.CanCancel(shift, reservation);
+        return ShiftBookingPolicyEvaluator.CanCancel(shift, reservation);
     }
 
     public async Task<bool> CanRescheduleAsync(Guid reservationId, CancellationToken cancellationToken)
@@ -56,7 +55,7 @@ internal class ShiftBookingPolicyEngine(
             .Include(s => s.BookingPolicies)
             .FirstOrDefaultAsync(s => s.Id == reservation.ShiftId, cancellationToken);
 
-        return shift is not null && policyEvaluator.CanReschedule(shift, reservation);
+        return shift is not null && ShiftBookingPolicyEvaluator.CanReschedule(shift, reservation);
     }
 
     public async Task<bool> HasCapacityForPartyAsync(Guid shiftId, DateOnly date, string? reservingPartyId, CancellationToken cancellationToken)
@@ -76,7 +75,7 @@ internal class ShiftBookingPolicyEngine(
             return false;
         }
 
-        if (!policyEvaluator.NeedsPartyCapacityCheck(shift, date, reservingPartyId))
+        if (!ShiftBookingPolicyEvaluator.NeedsPartyCapacityCheck(shift, date, reservingPartyId))
         {
             return true;
         }
@@ -90,7 +89,7 @@ internal class ShiftBookingPolicyEngine(
                           && r.Status != ReservationStatus.Rejected,
                 cancellationToken);
 
-        return policyEvaluator.HasCapacityForParty(shift, date, reservingPartyId, partyCount);
+        return ShiftBookingPolicyEvaluator.HasCapacityForParty(shift, date, reservingPartyId, partyCount);
     }
 
     public async Task<bool> RequiresApprovalAsync(Guid shiftId, DateOnly date, CancellationToken cancellationToken)
@@ -100,6 +99,6 @@ internal class ShiftBookingPolicyEngine(
             .Include(s => s.BookingPolicies)
             .FirstOrDefaultAsync(s => s.Id == shiftId, cancellationToken);
 
-        return shift is not null && policyEvaluator.RequiresApproval(shift, date);
+        return shift is not null && ShiftBookingPolicyEvaluator.RequiresApproval(shift, date);
     }
 }

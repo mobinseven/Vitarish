@@ -5,11 +5,10 @@ public class ShiftBookingPolicyEvaluatorTests
     [Fact]
     public void GetEffectiveEstimatedSessionLength_ShouldReturnOverride()
     {
-        ShiftBookingPolicyEvaluator sut = new();
         Shift shift = CreateShift(TimeOnly.Parse("09:00"), TimeOnly.Parse("10:00"), 4);
         DateOnly date = FutureDate(DayOfWeek.Tuesday);
 
-        TimeSpan result = sut.GetEffectiveEstimatedSessionLength(shift, date, TimeSpan.FromMinutes(5));
+        TimeSpan result = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, date, TimeSpan.FromMinutes(5));
 
         result.Should().Be(TimeSpan.FromMinutes(5));
     }
@@ -17,7 +16,6 @@ public class ShiftBookingPolicyEvaluatorTests
     [Fact]
     public void GetEffectiveEstimatedSessionLength_ShouldReturnPolicyValueWhenOverrideNotProvided()
     {
-        ShiftBookingPolicyEvaluator sut = new();
         DateOnly date = FutureDate(DayOfWeek.Tuesday);
         Shift shift = CreateShift(TimeOnly.Parse("09:00"), TimeOnly.Parse("10:00"), 4);
         shift.BookingPolicies.Add(new ShiftBookingPolicy
@@ -27,7 +25,7 @@ public class ShiftBookingPolicyEvaluatorTests
             EstimatedSessionLength = TimeSpan.FromMinutes(15)
         });
 
-        TimeSpan result = sut.GetEffectiveEstimatedSessionLength(shift, date);
+        TimeSpan result = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, date);
 
         result.Should().Be(TimeSpan.FromMinutes(15));
     }
@@ -35,11 +33,10 @@ public class ShiftBookingPolicyEvaluatorTests
     [Fact]
     public void GetEffectiveEstimatedSessionLength_ShouldFallbackToRoundedDurationDividedByCapacity()
     {
-        ShiftBookingPolicyEvaluator sut = new();
         DateOnly date = FutureDate(DayOfWeek.Tuesday);
         Shift shift = CreateShift(TimeOnly.Parse("09:00"), TimeOnly.Parse("10:00"), 7);
 
-        TimeSpan result = sut.GetEffectiveEstimatedSessionLength(shift, date);
+        TimeSpan result = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, date);
 
         result.Should().Be(TimeSpan.FromMinutes(9));
     }

@@ -3,8 +3,7 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 [RegisterTransient]
 internal class ShiftBookableDateQueryService(
     IEntityRepository<Shift, ShiftDescriptor> shiftRepository,
-    IShiftReservationViewRepository reservationViewRepository,
-    ShiftBookingPolicyEvaluator policyEvaluator) : IShiftBookableDateQueryService
+    IShiftReservationViewRepository reservationViewRepository) : IShiftBookableDateQueryService
 {
     public async Task<IReadOnlyList<ShiftReservationReadDto>> GetBookableDatesAsync(
         Guid shiftId, ShiftDateRangeQuery range, CancellationToken cancellationToken)
@@ -32,12 +31,12 @@ internal class ShiftBookableDateQueryService(
                 ? existing.ToDto() with
                 {
                     IsClosed = t.policy?.Closed == true,
-                    EstimatedSessionLength = policyEvaluator.GetEffectiveEstimatedSessionLength(shift, t.date)
+                    EstimatedSessionLength = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, t.date)
                 }
                 : CreateProjectedReservation(shift, t.date, t.policy).ToDto() with
                 {
                     IsClosed = t.policy?.Closed == true,
-                    EstimatedSessionLength = policyEvaluator.GetEffectiveEstimatedSessionLength(shift, t.date)
+                    EstimatedSessionLength = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, t.date)
                 })];
     }
 
@@ -81,11 +80,11 @@ internal class ShiftBookableDateQueryService(
                     ? existing.ToDto() with
                     {
                         IsClosed = datePolicy?.Closed == true,
-                        EstimatedSessionLength = policyEvaluator.GetEffectiveEstimatedSessionLength(shift, date)
+                        EstimatedSessionLength = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, date)
                     }
                     : CreateProjectedReservation(shift, date, datePolicy).ToDto() with
                     {
-                        EstimatedSessionLength = policyEvaluator.GetEffectiveEstimatedSessionLength(shift, date)
+                        EstimatedSessionLength = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, date)
                     };
 
                 slots.Add(new BookableShiftSlot(shift.ToDto(), occurrence));
@@ -119,9 +118,9 @@ internal class ShiftBookableDateQueryService(
         Date = date,
         StartTime = shift.StartTime,
         EndTime = shift.EndTime,
-        TotalSeats = policyEvaluator.GetEffectiveCapacity(shift, date),
+        TotalSeats = ShiftBookingPolicyEvaluator.GetEffectiveCapacity(shift, date),
         ReservationCount = 0,
-        AvailableSeats = policyEvaluator.GetEffectiveCapacity(shift, date)
+        AvailableSeats = ShiftBookingPolicyEvaluator.GetEffectiveCapacity(shift, date)
     };
 
     private static ShiftBookingPolicy? ResolvePolicy(Shift shift, DateOnly date)

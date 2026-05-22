@@ -2,16 +2,15 @@ using Vitarish.Appointments.Domain.Services;
 
 namespace Vitarish.Appointments.Infrastructure.Services;
 
-[RegisterTransient]
-internal class ShiftBookingPolicyEvaluator
+public static class ShiftBookingPolicyEvaluator
 {
-    public bool IsBookingOpen(Shift shift, DateOnly date)
+    public static bool IsBookingOpen(Shift shift, DateOnly date)
     {
         ShiftBookingPolicy? datePolicy = ResolvePolicy(shift, date);
         return ShiftBookingRules.IsBookingOpen(shift, date, DateTimeOffset.UtcNow, datePolicy);
     }
 
-    public bool CanCancel(Shift shift, Reservation reservation)
+    public static bool CanCancel(Shift shift, Reservation reservation)
     {
         ShiftBookingPolicy? datePolicy = ResolvePolicy(shift, reservation.Date);
         TimeSpan? deadline = datePolicy?.CancellationDeadline;
@@ -24,19 +23,19 @@ internal class ShiftBookingPolicyEvaluator
         return DateTimeOffset.UtcNow < cutoff;
     }
 
-    public bool CanReschedule(Shift shift, Reservation reservation)
+    public static bool CanReschedule(Shift shift, Reservation reservation)
     {
         ShiftBookingPolicy? datePolicy = ResolvePolicy(shift, reservation.Date);
         return datePolicy?.AllowRescheduling ?? false;
     }
 
-    public bool RequiresApproval(Shift shift, DateOnly date)
+    public static bool RequiresApproval(Shift shift, DateOnly date)
     {
         ShiftBookingPolicy? datePolicy = ResolvePolicy(shift, date);
         return datePolicy?.RequiresApproval ?? false;
     }
 
-    public bool NeedsPartyCapacityCheck(Shift shift, DateOnly date, string? reservingPartyId)
+    public static bool NeedsPartyCapacityCheck(Shift shift, DateOnly date, string? reservingPartyId)
     {
         if (string.IsNullOrWhiteSpace(reservingPartyId))
         {
@@ -47,7 +46,7 @@ internal class ShiftBookingPolicyEvaluator
         return datePolicy?.MaxReservationsPerParty is not null;
     }
 
-    public bool HasCapacityForParty(Shift shift, DateOnly date, string? reservingPartyId, int currentReservationCount)
+    public static bool HasCapacityForParty(Shift shift, DateOnly date, string? reservingPartyId, int currentReservationCount)
     {
         if (!NeedsPartyCapacityCheck(shift, date, reservingPartyId))
         {
@@ -58,13 +57,13 @@ internal class ShiftBookingPolicyEvaluator
         return currentReservationCount < datePolicy!.MaxReservationsPerParty!.Value;
     }
 
-    public int GetEffectiveCapacity(Shift shift, DateOnly date)
+    public static int GetEffectiveCapacity(Shift shift, DateOnly date)
     {
         ShiftBookingPolicy? datePolicy = ResolvePolicy(shift, date);
         return datePolicy?.Capacity ?? shift.TotalSeats;
     }
 
-    public TimeSpan GetEffectiveEstimatedSessionLength(Shift shift, DateOnly date, TimeSpan? overrideEstimatedSessionLength = null)
+    public static TimeSpan GetEffectiveEstimatedSessionLength(Shift shift, DateOnly date, TimeSpan? overrideEstimatedSessionLength = null)
     {
         if (overrideEstimatedSessionLength.HasValue)
         {
