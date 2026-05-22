@@ -18,7 +18,7 @@ internal sealed class ShiftBookingPolicyCommandHandler(IShiftBookingPolicyReposi
 
     private async Task<EntityResult<ShiftBookingPolicyReadDto>> UpsertInternalAsync(UpsertShiftBookingPolicyCommandModel model, bool isCreate, CancellationToken cancellationToken)
     {
-        if (model.ShiftId == Guid.Empty || (isCreate && model.PolicyId is not null)) return EntityResult<ShiftBookingPolicyReadDto>.Failure(EntityError.Validation(ShiftBookingPolicyErrorCode.InvalidCommand.ToString(), nameof(model.ShiftId)));
+        if (model.ShiftId == Guid.Empty || (isCreate && model.PolicyId is not null) || (!isCreate && model.PolicyId is null)) return EntityResult<ShiftBookingPolicyReadDto>.Failure(EntityError.Validation(ShiftBookingPolicyErrorCode.InvalidCommand.ToString(), nameof(model.ShiftId)));
 
         Shift? shift = await repository.GetShiftWithPoliciesAsync(model.ShiftId, cancellationToken);
         if (shift is null) return EntityResult<ShiftBookingPolicyReadDto>.Failure(EntityError.NotFound(ShiftBookingPolicyErrorCode.ShiftNotFound.ToString(), nameof(model.ShiftId)));
