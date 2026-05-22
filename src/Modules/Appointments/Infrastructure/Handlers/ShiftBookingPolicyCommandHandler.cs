@@ -8,7 +8,7 @@ using Vitarish.Appointments.Domain.Services;
 namespace Vitarish.Appointments.Infrastructure.Handlers;
 
 [RegisterTransient]
-internal sealed class ShiftBookingPolicyCommandHandler(IShiftBookingPolicyRepository repository, IPublisher publisher) : IUpsertShiftBookingPolicyCommand, IRemoveShiftBookingPolicyCommand
+internal sealed class ShiftBookingPolicyCommandHandler(ISender sender, IPublisher publisher) : IUpsertShiftBookingPolicyCommand, IRemoveShiftBookingPolicyCommand
 {
     public Task<EntityResult<ShiftBookingPolicyReadDto>> CreateAsync(UpsertShiftBookingPolicyCommandModel model, CancellationToken cancellationToken)
         => UpsertInternalAsync(model, isCreate: true, cancellationToken);
@@ -20,7 +20,7 @@ internal sealed class ShiftBookingPolicyCommandHandler(IShiftBookingPolicyReposi
     {
         if (model.ShiftId == Guid.Empty || (isCreate && model.PolicyId is not null) || (!isCreate && model.PolicyId is null)) return EntityResult<ShiftBookingPolicyReadDto>.Failure(EntityError.Validation(ShiftBookingPolicyErrorCode.InvalidCommand.ToString(), nameof(model.ShiftId)));
 
-        Shift? shift = await repository.GetShiftWithPoliciesAsync(model.ShiftId, cancellationToken);
+        Shift? shift = await sender.Send(new GetShiftWithPoliciesCommand(model.ShiftId), cancellationToken);
         if (shift is null) return EntityResult<ShiftBookingPolicyReadDto>.Failure(EntityError.NotFound(ShiftBookingPolicyErrorCode.ShiftNotFound.ToString(), nameof(model.ShiftId)));
 
         ShiftBookingPolicy? policy = isCreate ? null : shift.BookingPolicies.FirstOrDefault(x => x.Id == model.PolicyId);
@@ -31,19 +31,19 @@ internal sealed class ShiftBookingPolicyCommandHandler(IShiftBookingPolicyReposi
 
         policy = isCreate ? ShiftBookingPolicyMutator.Create(shift, model) : policy!;
         if (!isCreate) ShiftBookingPolicyMutator.Update(policy, model);
-        await repository.SaveAsync(cancellationToken);
+        await sender.Send(new SaveShiftBookingPoliciesCommand(), cancellationToken);
         await publisher.Publish(isCreate ? new ShiftBookingPolicyCreated(policy.Id) : new ShiftBookingPolicyUpdated(policy.Id), cancellationToken);
         return EntityResult<ShiftBookingPolicyReadDto>.Success(policy.ToDto());
     }
 
     public async Task<EntityResult> ExecuteAsync(RemoveShiftBookingPolicyCommandModel model, CancellationToken cancellationToken)
     {
-        Shift? shift = await repository.GetShiftWithPoliciesAsync(model.ShiftId, cancellationToken);
+        Shift? shift = await sender.Send(new GetShiftWithPoliciesCommand(model.ShiftId), cancellationToken);
         if (shift is null) return EntityResult.Failure(EntityError.NotFound(ShiftBookingPolicyErrorCode.ShiftNotFound.ToString(), nameof(model.ShiftId)));
         ShiftBookingPolicy? policy = shift.BookingPolicies.FirstOrDefault(x => x.Id == model.PolicyId);
         if (policy is null) return EntityResult.Failure(EntityError.NotFound(ShiftBookingPolicyErrorCode.PolicyNotFound.ToString(), nameof(model.PolicyId)));
         ShiftBookingPolicyMutator.Remove(shift, policy);
-        await repository.SaveAsync(cancellationToken);
+        await sender.Send(new SaveShiftBookingPoliciesCommand(), cancellationToken);
         await publisher.Publish(new ShiftBookingPolicyRemoved(model.PolicyId), cancellationToken);
         return EntityResult.Success();
     }
