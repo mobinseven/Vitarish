@@ -1,8 +1,14 @@
 @inherits ShiftBookingPoliciesBase
 
+@if(Shift is null)
+{
+    return;
+}
+
 <Stack>
     <MudDatePicker Label="@Localizer["Date"]"
                    Date="@dto.Date.ToDateTime(TimeOnly.MinValue)"
+                   IsDateDisabledFunc="d=> Shift.DayOfWeek != d.DayOfWeek"
                    DateChanged="@(v => dto = dto with { Date = v.HasValue ? DateOnly.FromDateTime(v.Value) : default })"
                    HelperText="@Localizer["ShiftBookingPolicyDateHelp"]" />
 

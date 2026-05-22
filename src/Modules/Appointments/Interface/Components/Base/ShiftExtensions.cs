@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Text;
-
 public static class ShiftExtensions
 {
     public static Color ToColor(this ShiftStatus Status) => Status switch

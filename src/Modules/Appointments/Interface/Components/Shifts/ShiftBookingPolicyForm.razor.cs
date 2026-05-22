@@ -9,9 +9,12 @@ public partial class ShiftBookingPolicyForm : ShiftBookingPoliciesBase
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
     private ShiftBookingPolicyWriteDto dto = new();
-
-    protected override void OnInitialized()
-        => dto = Policy is not null ? Policy.ToWrite() : new ShiftBookingPolicyWriteDto { ShiftId = ShiftId };
+    private ShiftReadDto? Shift;
+    protected override async Task OnInitializedAsync()
+    {
+        dto = Policy is not null ? Policy.ToWrite() : new ShiftBookingPolicyWriteDto { ShiftId = ShiftId };
+        Shift = await ShiftManager.GetAsync(ShiftId, CancellationToken.None).GetValueOrDefaultAsync();
+    }
 
     private async Task SaveAsync()
     {
