@@ -28,9 +28,11 @@ internal class ShiftBookableDateQueryService(
 
         return [.. GetScheduledDates(shift.DayOfWeek, dateFrom, dateTo)
             .Select(date => (date, policy: ResolvePolicy(shift, date)))
-            .Where(t => ShiftBookingRules.IsBookingOpen(shift, t.date, now, t.policy))
+        return [.. GetScheduledDates(shift.DayOfWeek, dateFrom, dateTo)
+            .Select(date => (date, policy: ResolvePolicy(shift, date)))
             .Select(t => existingByDate.TryGetValue(t.date, out ShiftReservation? existing)
                 ? existing.ToDto() with { IsClosed = t.policy?.Closed == true }
+                : CreateProjectedReservation(shift, t.date, t.policy).ToDto() with { IsClosed = t.policy?.Closed == true })];
                 : CreateProjectedReservation(shift, t.date, t.policy).ToDto())];
     }
 
