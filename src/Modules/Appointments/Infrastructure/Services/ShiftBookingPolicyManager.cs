@@ -40,16 +40,25 @@ internal class ShiftBookingPolicyManager(
                 EntityError.Validation(InvalidDate, new Dictionary<string, string> { [nameof(dto.Date)] = InvalidDate }));
         }
 
-        ShiftBookingPolicy? existing = shift.BookingPolicies.FirstOrDefault(p => p.Date == dto.Date);
+        ShiftBookingPolicy? existing = null;
+
+        if (dto.Id != Guid.Empty)
+        {
+            existing = shift.BookingPolicies.FirstOrDefault(p => p.Id == dto.Id);
+        }
+
+        existing ??= shift.BookingPolicies.FirstOrDefault(p => p.Date == dto.Date);
 
         if (existing is null)
         {
             existing = dto.ToDomain();
+            existing.Id = dto.Id == Guid.Empty ? Guid.NewGuid() : dto.Id;
             existing.ShiftId = dto.ShiftId;
             shift.BookingPolicies.Add(existing);
         }
         else
         {
+            existing.Date = dto.Date;
             existing.BookingOpensBefore = dto.BookingOpensBefore;
             existing.BookingCloseBefore = dto.BookingCloseBefore;
             existing.Closed = dto.Closed;
@@ -58,6 +67,15 @@ internal class ShiftBookingPolicyManager(
             existing.CancellationDeadline = dto.CancellationDeadline;
             existing.AllowRescheduling = dto.AllowRescheduling;
             existing.MaxReservationsPerParty = dto.MaxReservationsPerParty;
+            existing.ShiftId = dto.ShiftId;
+        }
+
+        bool hasDateConflict = shift.BookingPolicies
+            .Any(p => p.Id != existing.Id && p.Date == dto.Date);
+        if (hasDateConflict)
+        {
+            return EntityResult<ShiftBookingPolicyReadDto>.Failure(
+                EntityError.Conflict("A policy for this date already exists."));
         }
 
         await aggregateLoader.SaveAsync(cancellationToken);
