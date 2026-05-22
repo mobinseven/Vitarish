@@ -1,0 +1,39 @@
+@inherits MudAutocomplete<string>
+
+<MudAutocomplete T="string"
+                 Value="@Value"
+                 SearchFunc="@(SearchFunc is null ? Search : SearchFunc)"
+                 Strict="@Strict"
+                 Variant="@Variant.Outlined"
+                 Underline="false"
+                 Label="@Label"
+                 Dense="@Dense"
+                 Style="@Style"
+                 Class="@($"stack-item {(Centered ? "centered" : "")}")"
+                 Disabled="@Disabled"
+                 ReadOnly="@ReadOnly"
+                 Placeholder="@Placeholder"
+                 HelperText="@HelperText"
+                 HelperTextOnFocus="@HelperTextOnFocus"
+                 Clearable="@Clearable"
+                 Modal="@Modal"
+                 Adornment="@Adornment"
+                 AdornmentText="@AdornmentText"
+                 AdornmentColor="@AdornmentColor"
+                 AdornmentIcon="@AdornmentIcon"
+                 OnAdornmentClick="OnAdornmentClick" />
+
+@code {
+    [Parameter] public bool Centered { get; set; }
+    [Parameter] public IEnumerable<string> Items { get; set; } = [];
+
+    private async Task<IEnumerable<string>> Search(string? value, CancellationToken token)
+    {
+        if(string.IsNullOrWhiteSpace(value))
+        {
+            return Items;
+        }
+
+        return Items.Where(x => x.Contains(value, StringComparison.InvariantCultureIgnoreCase));
+    }
+}
