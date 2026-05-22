@@ -185,6 +185,8 @@ public sealed class StreamTransferService(IFilesService _filesClient, IJSRuntime
         TriggerStateChanged();
     }
 
+    public string GetInputId() => _id;
+
     [JSInvokable]
     public async Task OnPendingFilesChanged(List<PendingFileDto> files)
     {

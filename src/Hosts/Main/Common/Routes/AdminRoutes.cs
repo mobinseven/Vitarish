@@ -7,6 +7,7 @@ public static partial class AppRoutes
         public const string Home = "/platformadmin";
         public const string Search = "/platformadmin/search";
         public const string Communications = "/platformadmin/communications";
+        public const string Files = "/platformadmin/files";
         public const string Users = "/platformadmin/users";
         public const string UserTemplate = "/platformadmin/users/{userId:guid}";
         public const string Owners = "/platformadmin/owners";

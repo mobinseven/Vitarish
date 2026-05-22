@@ -60,6 +60,8 @@ public partial class StreamTransfer : ComponentBase
     public Task StartTransferAsync(CancellationToken cancellationToken = default)
         => Service.StartTransferAsync(cancellationToken);
 
+    public string GetInputId() => Service.GetInputId();
+
     private void ApplyParameters()
     {
         Service.UserId = UserId;

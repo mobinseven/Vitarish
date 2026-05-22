@@ -20,4 +20,5 @@ public interface IStreamTransfer
     Task RemovePendingFileAsync(PendingFileDto file, CancellationToken cancellationToken = default);
     void SetActivatorContent(RenderFragment? activatorContent);
     Task StartTransferAsync(CancellationToken cancellationToken = default);
+    string GetInputId();
 }

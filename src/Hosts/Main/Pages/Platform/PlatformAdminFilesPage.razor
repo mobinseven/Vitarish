@@ -1,0 +1,133 @@
+@page "/platformadmin/files"
+@using Vitarish.Files.Interface.Components
+@using Vitarish.Files.Interface.Abstractions
+@using Vitarish.Files.Interface.Models
+@using Vitarish.Files.Domain.Models
+@attribute [Authorize]
+
+<MudContainer MaxWidth="MaxWidth.Large" Class="mt-4">
+    <MudText Typo="Typo.h3" GutterBottom="true">Files Module Demo</MudText>
+
+    <MudGrid>
+        <MudItem xs="12" md="6">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Camera Capture (Image)</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <FileCameraImage InputId="@_streamTransfer?.GetInputId()" />
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12" md="6">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Camera Capture (Video)</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <FileCameraVideo InputId="@_streamTransfer?.GetInputId()" />
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        <MudItem xs="12">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Upload Queue</MudText>
+                    </CardHeaderContent>
+                </MudCardHeader>
+                <MudCardContent>
+                    <StreamTransfer @ref="_streamTransfer" OnStateChange="StateHasChanged" />
+
+                    @if (_streamTransfer?.PendingFiles.Any() == true)
+                    {
+                        <MudList T="string" Class="mt-4">
+                            <MudListSubheader>Pending Files</MudListSubheader>
+                            @foreach (var file in _streamTransfer.PendingFiles)
+                            {
+                                <MudListItem T="string">
+                                    <div class="d-flex align-center">
+                                        @if (!string.IsNullOrEmpty(file.Thumbnail))
+                                        {
+                                            <MudImage Src="@file.Thumbnail" Width="50" Height="50" ObjectFit="ObjectFit.Cover" Class="mr-4" />
+                                        }
+                                        <div class="flex-grow-1">
+                                            <MudText>@file.Name (@(file.Size / 1024) KB)</MudText>
+                                            <MudProgressLinear Color="Color.Info" Value="@file.Progress" Class="my-2" />
+                                        </div>
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => _streamTransfer.RemovePendingFileAsync(file))" />
+                                    </div>
+                                </MudListItem>
+                            }
+                        </MudList>
+
+                        <div class="mt-4">
+                            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@(() => _streamTransfer.StartTransferAsync())" Disabled="@_streamTransfer.Transferring">
+                                @if (_streamTransfer.Transferring)
+                                {
+                                    <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                    <MudText Class="ms-2">Uploading...</MudText>
+                                }
+                                else
+                                {
+                                    <MudText>Start Upload</MudText>
+                                }
+                            </MudButton>
+                            <MudButton Variant="Variant.Outlined" Color="Color.Secondary" OnClick="@(() => _streamTransfer.ClearPendings())" Disabled="@_streamTransfer.Transferring" Class="ml-2">Clear All</MudButton>
+                        </div>
+                    }
+                    else
+                    {
+                        <MudAlert Severity="Severity.Info" Class="mt-4">No files in queue. Capture an image or video to start.</MudAlert>
+                    }
+                </MudCardContent>
+            </MudCard>
+        </MudItem>
+
+        @if (_streamTransfer?.UploadedFiles.Any() == true)
+        {
+            <MudItem xs="12">
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Uploaded Files</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudGrid>
+                            @foreach (var file in _streamTransfer.UploadedFiles)
+                            {
+                                <MudItem xs="12" sm="6" md="4" lg="3">
+                                    <MudCard Outlined="true">
+                                        @if (file.ContentType?.StartsWith("image/") == true)
+                                        {
+                                            <FileImage FileId="@file.Id" Type="@file.ContentType" />
+                                        }
+                                        else if (file.ContentType?.StartsWith("video/") == true)
+                                        {
+                                            <FileVideo FileId="@file.Id" Type="@file.ContentType" />
+                                        }
+                                        <MudCardContent>
+                                            <MudText Typo="Typo.body2">ID: @file.Id</MudText>
+                                            <MudText Typo="Typo.body2">Type: @file.ContentType</MudText>
+                                        </MudCardContent>
+                                    </MudCard>
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    </MudCardContent>
+                </MudCard>
+            </MudItem>
+        }
+    </MudGrid>
+</MudContainer>
+
+@code {
+    private StreamTransfer? _streamTransfer;
+}

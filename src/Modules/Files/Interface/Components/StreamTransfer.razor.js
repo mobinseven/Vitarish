@@ -190,6 +190,30 @@ export function removeFile(inputElId, name) {
     }
 }
 
+/**
+ * Programmatically add a file to the input's FileList.
+ * @param {HTMLInputElement|string} inputElOrId
+ * @param {File} file
+ */
+export function addFile(inputElOrId, file) {
+    const inputEl = resolveInputEl(inputElOrId);
+    if (!(inputEl instanceof HTMLInputElement) || inputEl.type !== "file") {
+        return;
+    }
+    const dt = new DataTransfer();
+    const currentFiles = inputEl.files ? Array.from(inputEl.files) : [];
+    for (const f of currentFiles) {
+        dt.items.add(f);
+    }
+    dt.items.add(file);
+    inputEl.files = dt.files;
+
+    const s = _fileInputStates.get(inputEl);
+    if (s?.changeHandler) {
+        s.changeHandler();
+    }
+}
+
 export async function getFileStream(inputElId, name) {
     const inputEl = resolveInputEl(inputElId);
     const fileList = inputEl.files ? Array.from(inputEl.files) : [];
