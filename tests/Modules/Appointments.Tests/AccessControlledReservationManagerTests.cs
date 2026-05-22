@@ -19,7 +19,7 @@ public class AccessControlledReservationManagerTests
         bookingPolicyEngine.Setup(x => x.IsBookingOpenAsync(shiftId, date, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         bookingPolicyEngine.Setup(x => x.HasCapacityForPartyAsync(shiftId, date, "user-1", It.IsAny<CancellationToken>())).ReturnsAsync(true);
         reservationManager
-            .Setup(x => x.ReserveAsync(shiftId, date, "user-1", It.IsAny<CancellationToken>()))
+            .Setup(x => x.ReserveAsync(shiftId, date, "user-1", null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(EntityResult<ReservationReadDto>.Success(new ReservationReadDto
             {
                 Id = reservationId,
@@ -60,7 +60,7 @@ public class AccessControlledReservationManagerTests
             bookingPolicyEngine.Object,
             statusCoordinator.Object);
 
-        EntityResult<ReservationReadDto> result = await sut.ReserveAsync(shiftId, date, null, CancellationToken.None);
+        EntityResult<ReservationReadDto> result = await sut.ReserveAsync(shiftId, date, null, null, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         reservationManager.Verify(x => x.GetListAsync(
@@ -70,7 +70,7 @@ public class AccessControlledReservationManagerTests
                 descriptor.DateTo == date &&
                 descriptor.ReservingPartyId == "user-1"),
             It.IsAny<CancellationToken>()), Times.Once);
-        reservationManager.Verify(x => x.ReserveAsync(shiftId, date, "user-1", It.IsAny<CancellationToken>()), Times.Once);
+        reservationManager.Verify(x => x.ReserveAsync(shiftId, date, "user-1", null, It.IsAny<CancellationToken>()), Times.Once);
         statusCoordinator.Verify(x => x.TransitionReservationAsync(reservationId, ReservationStatus.Confirmed, "user-1", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -129,7 +129,7 @@ public class AccessControlledReservationManagerTests
             bookingPolicyEngine.Object,
             statusCoordinator.Object);
 
-        Func<Task> act = () => sut.ReserveWithOverrideAsync(Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow), null, CancellationToken.None);
+        Func<Task> act = () => sut.ReserveWithOverrideAsync(Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow), null, null, CancellationToken.None);
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("Elevated access is required to perform this operation.");
@@ -153,7 +153,7 @@ public class AccessControlledReservationManagerTests
             .Setup(x => x.GetListAsync(It.IsAny<ReservationDescriptorDto>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(EntityResult<IReadOnlyList<ReservationReadDto>>.Success([]));
         reservationManager
-            .Setup(x => x.ReserveWithOverrideAsync(shiftId, date, "patient-1", It.IsAny<CancellationToken>()))
+            .Setup(x => x.ReserveWithOverrideAsync(shiftId, date, "patient-1", null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(EntityResult<ReservationReadDto>.Success(new ReservationReadDto
             {
                 Id = reservationId,
@@ -181,11 +181,87 @@ public class AccessControlledReservationManagerTests
             bookingPolicyEngine.Object,
             statusCoordinator.Object);
 
-        EntityResult<ReservationReadDto> result = await sut.ReserveWithOverrideAsync(shiftId, date, "patient-1", CancellationToken.None);
+        EntityResult<ReservationReadDto> result = await sut.ReserveWithOverrideAsync(shiftId, date, "patient-1", null, CancellationToken.None);
 
         result.IsSuccess.Should().BeTrue();
         bookingPolicyEngine.Verify(x => x.HasCapacityForPartyAsync(It.IsAny<Guid>(), It.IsAny<DateOnly>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()), Times.Never);
-        reservationManager.Verify(x => x.ReserveWithOverrideAsync(shiftId, date, "patient-1", It.IsAny<CancellationToken>()), Times.Once);
+        reservationManager.Verify(x => x.ReserveWithOverrideAsync(shiftId, date, "patient-1", null, It.IsAny<CancellationToken>()), Times.Once);
+
+    }
+
+    [Fact]
+    public async Task ReserveAsync_WithEstimatedSessionLength_ShouldRequireElevatedAccess()
+    {
+        Mock<IRequestContext> requestContext = CreateRequestContext();
+        Mock<IReservationManager> reservationManager = new();
+        Mock<IShiftBookingPolicyEngine> bookingPolicyEngine = new();
+        Mock<IStatusCoordinator> statusCoordinator = new();
+
+        AccessControlledReservationManager sut = new(
+            requestContext.Object,
+            reservationManager.Object,
+            bookingPolicyEngine.Object,
+            statusCoordinator.Object);
+
+        Func<Task> act = () => sut.ReserveAsync(Guid.NewGuid(), DateOnly.FromDateTime(DateTime.UtcNow), null, TimeSpan.FromMinutes(5), CancellationToken.None);
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("Elevated access is required to perform this operation.");
+    }
+
+    [Fact]
+    public async Task ReserveAsync_WithEstimatedSessionLength_ShouldForwardForOwner()
+    {
+        Mock<IRequestContext> requestContext = CreateOwnerRequestContext();
+        Mock<IReservationManager> reservationManager = new();
+        Mock<IShiftBookingPolicyEngine> bookingPolicyEngine = new();
+        Mock<IStatusCoordinator> statusCoordinator = new();
+
+        Guid shiftId = Guid.NewGuid();
+        Guid reservationId = Guid.NewGuid();
+        DateOnly date = DateOnly.FromDateTime(DateTime.UtcNow.Date);
+        TimeSpan estimatedSessionLength = TimeSpan.FromMinutes(5);
+
+        bookingPolicyEngine.Setup(x => x.IsBookingOpenAsync(shiftId, date, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        bookingPolicyEngine.Setup(x => x.HasCapacityForPartyAsync(shiftId, date, "patient-1", It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        bookingPolicyEngine.Setup(x => x.RequiresApprovalAsync(shiftId, date, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+
+        reservationManager
+            .Setup(x => x.GetListAsync(It.IsAny<ReservationDescriptorDto>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<IReadOnlyList<ReservationReadDto>>.Success([]));
+        reservationManager
+            .Setup(x => x.ReserveAsync(shiftId, date, "patient-1", estimatedSessionLength, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<ReservationReadDto>.Success(new ReservationReadDto
+            {
+                Id = reservationId,
+                ShiftId = shiftId,
+                Date = date,
+                ReservingPartyId = "patient-1",
+                Status = ReservationStatus.Pending,
+                CreatedAt = DateTimeOffset.UtcNow
+            }));
+        reservationManager
+            .Setup(x => x.GetAsync(reservationId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(EntityResult<ReservationReadDto>.Success(new ReservationReadDto
+            {
+                Id = reservationId,
+                ShiftId = shiftId,
+                Date = date,
+                ReservingPartyId = "patient-1",
+                Status = ReservationStatus.Pending,
+                CreatedAt = DateTimeOffset.UtcNow
+            }));
+
+        AccessControlledReservationManager sut = new(
+            requestContext.Object,
+            reservationManager.Object,
+            bookingPolicyEngine.Object,
+            statusCoordinator.Object);
+
+        EntityResult<ReservationReadDto> result = await sut.ReserveAsync(shiftId, date, "patient-1", estimatedSessionLength, CancellationToken.None);
+
+        result.IsSuccess.Should().BeTrue();
+        reservationManager.Verify(x => x.ReserveAsync(shiftId, date, "patient-1", estimatedSessionLength, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     private static Mock<IRequestContext> CreateRequestContext()

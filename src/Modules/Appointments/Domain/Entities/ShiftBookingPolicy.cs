@@ -13,6 +13,7 @@ public class ShiftBookingPolicy
     public int? Capacity { get; set; }
     public bool RequiresApproval { get; set; }
     public TimeSpan? CancellationDeadline { get; set; }
+    public TimeSpan? EstimatedSessionLength { get; set; }
     public bool AllowRescheduling { get; set; }
     public int? MaxReservationsPerParty { get; set; }
 }

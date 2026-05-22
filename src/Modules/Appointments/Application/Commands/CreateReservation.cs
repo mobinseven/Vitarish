@@ -7,5 +7,6 @@ public record CreateReservationCommand(
     DateOnly Date,
     string? ReservingPartyId,
     bool CapacityOverride = false,
+    TimeSpan? EstimatedSessionLength = null,
     bool IsHold = false,
     TimeSpan? HoldDuration = null) : IRequest<EntityResult<Guid>>;

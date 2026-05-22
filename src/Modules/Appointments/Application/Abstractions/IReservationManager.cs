@@ -8,11 +8,13 @@ public interface IReservationManager : IEntityService<ReservationReadDto, Reserv
         Guid shiftId,
         DateOnly date,
         string? reservingPartyId,
+        TimeSpan? estimatedSessionLength,
         CancellationToken cancellationToken);
     Task<EntityResult<ReservationReadDto>> ReserveWithOverrideAsync(
         Guid shiftId,
         DateOnly date,
         string? reservingPartyId,
+        TimeSpan? estimatedSessionLength,
         CancellationToken cancellationToken);
     Task<EntityResult> ConfirmReservationAsync(Guid reservationId, CancellationToken cancellationToken);
     Task<EntityResult> PresentReservationAsync(Guid reservationId, CancellationToken cancellationToken);

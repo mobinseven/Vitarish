@@ -26,6 +26,12 @@ public class Reservation : Entity
         set => SetField(ref field, value, nameof(ReservingPartyId));
     }
 
+    public TimeSpan? EstimatedSessionLength
+    {
+        get;
+        set => SetField(ref field, value, nameof(EstimatedSessionLength));
+    }
+
     public DateTimeOffset? ConfirmedAt
     {
         get;

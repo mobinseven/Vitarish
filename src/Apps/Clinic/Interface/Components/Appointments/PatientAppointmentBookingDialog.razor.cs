@@ -16,6 +16,7 @@ public partial class PatientAppointmentBookingDialog : Modules.Base.TenantCommon
     private string? patientUserId;
     private List<ShiftReadDto> shifts = [];
     private bool createReminder;
+    private TimeSpan? estimatedSessionLengthOverride;
 
     protected override async Task OnInitializedAsync()
     {
@@ -65,7 +66,12 @@ public partial class PatientAppointmentBookingDialog : Modules.Base.TenantCommon
             return;
         }
 
-        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(shift.Id, shiftReservation.Date, reservingPartyId, CancellationToken.None);
+        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(
+            shift.Id,
+            shiftReservation.Date,
+            reservingPartyId,
+            estimatedSessionLengthOverride,
+            CancellationToken.None);
         if (result.IsFailure || result.Value is null)
         {
             _ = Snackbar.Add(result.Errors.FirstOrDefault()?.Message ?? Localizer["Error"].Value, Severity.Error);

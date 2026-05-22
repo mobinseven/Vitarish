@@ -1,3 +1,5 @@
+using Vitarish.Appointments.Domain.Services;
+
 namespace Vitarish.Appointments.Interface.Components.Shifts;
 
 public partial class ShiftDetail : ShiftsBase
@@ -14,6 +16,17 @@ public partial class ShiftDetail : ShiftsBase
     private string? serviceProviderName;
     private string? serviceName;
     private Guid? lastShiftId;
+
+    private TimeSpan EffectiveEstimatedSessionLength
+    {
+        get
+        {
+            return ShiftEstimatedSessionLengthCalculator.Calculate(
+                Shift.StartTime,
+                Shift.EndTime,
+                Shift.TotalSeats);
+        }
+    }
 
     protected override async Task OnParametersSetAsync()
     {

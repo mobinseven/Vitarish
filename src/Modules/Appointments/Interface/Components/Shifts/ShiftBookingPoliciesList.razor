@@ -10,6 +10,11 @@ else
     {
         <StackField Label="@policy.Date.ToString("d")"
                     HelperText="@(policy.Closed ? Localizer["Closed"] : Localizer["Open"])">
+            @if (policy.EstimatedSessionLength.HasValue)
+            {
+                <StackField Label="@policy.EstimatedSessionLength.Value.ToString(@"hh\:mm")"
+                            HelperText="@Localizer["EstimatedSessionLength"]" />
+            }
             <MudStack Row>
                 <MudFab Label="@Localizer["EditItem", Localizer["BookingPolicy"]]"
                         EndIcon="fa-regular fa-pen"

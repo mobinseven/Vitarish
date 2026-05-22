@@ -91,24 +91,32 @@ internal class AccessControlledReservationManager(
         Guid shiftId,
         DateOnly date,
         string? reservingPartyId,
+        TimeSpan? estimatedSessionLength,
         CancellationToken cancellationToken)
-        => await ReserveInternalAsync(shiftId, date, reservingPartyId, capacityOverride: false, cancellationToken);
+        => await ReserveInternalAsync(shiftId, date, reservingPartyId, capacityOverride: false, estimatedSessionLength, cancellationToken);
 
     public async Task<EntityResult<ReservationReadDto>> ReserveWithOverrideAsync(
         Guid shiftId,
         DateOnly date,
         string? reservingPartyId,
+        TimeSpan? estimatedSessionLength,
         CancellationToken cancellationToken)
-        => await ReserveInternalAsync(shiftId, date, reservingPartyId, capacityOverride: true, cancellationToken);
+        => await ReserveInternalAsync(shiftId, date, reservingPartyId, capacityOverride: true, estimatedSessionLength, cancellationToken);
 
     private async Task<EntityResult<ReservationReadDto>> ReserveInternalAsync(
         Guid shiftId,
         DateOnly date,
         string? reservingPartyId,
         bool capacityOverride,
+        TimeSpan? estimatedSessionLength,
         CancellationToken cancellationToken)
     {
         if (capacityOverride && !ElevatedAccess)
+        {
+            throw ElevatedAccessRequired;
+        }
+
+        if (estimatedSessionLength.HasValue && !ElevatedAccess)
         {
             throw ElevatedAccessRequired;
         }
@@ -155,11 +163,13 @@ internal class AccessControlledReservationManager(
                 shiftId,
                 date,
                 effectivePartyId,
+                estimatedSessionLength,
                 cancellationToken)
             : await reservationManager.ReserveAsync(
                 shiftId,
                 date,
                 effectivePartyId,
+                estimatedSessionLength,
                 cancellationToken);
         if (reserveResult.IsFailure || reserveResult.Value is null)
         {

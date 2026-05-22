@@ -1,3 +1,5 @@
+using Vitarish.Appointments.Domain.Services;
+
 namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
@@ -60,6 +62,23 @@ internal class ShiftBookingPolicyEvaluator
     {
         ShiftBookingPolicy? datePolicy = ResolvePolicy(shift, date);
         return datePolicy?.Capacity ?? shift.TotalSeats;
+    }
+
+    public TimeSpan GetEffectiveEstimatedSessionLength(Shift shift, DateOnly date, TimeSpan? overrideEstimatedSessionLength = null)
+    {
+        if (overrideEstimatedSessionLength.HasValue)
+        {
+            return overrideEstimatedSessionLength.Value;
+        }
+
+        ShiftBookingPolicy? datePolicy = ResolvePolicy(shift, date);
+        if (datePolicy?.EstimatedSessionLength is { } policyEstimatedSessionLength)
+        {
+            return policyEstimatedSessionLength;
+        }
+
+        int capacity = datePolicy?.Capacity ?? shift.TotalSeats;
+        return ShiftEstimatedSessionLengthCalculator.Calculate(shift.StartTime, shift.EndTime, capacity);
     }
 
     private static ShiftBookingPolicy? ResolvePolicy(Shift shift, DateOnly date)
