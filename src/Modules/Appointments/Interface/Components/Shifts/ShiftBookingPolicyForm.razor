@@ -7,24 +7,24 @@
 
 <Stack>
     <MudDatePicker Label="@Localizer["Date"]"
-                   Date="@dto.Date.ToDateTime(TimeOnly.MinValue)"
+                   Date="@model.Date.ToDateTime(TimeOnly.MinValue)"
                    IsDateDisabledFunc="d=> Shift.DayOfWeek != d.DayOfWeek"
-                   DateChanged="@(v => dto = dto with { Date = v.HasValue ? DateOnly.FromDateTime(v.Value) : default })"
+                   DateChanged="@(v => model = model with { Date = v.HasValue ? DateOnly.FromDateTime(v.Value) : default })"
                    HelperText="@Localizer["ShiftBookingPolicyDateHelp"]" />
 
     <MudSwitch T="bool"
-               @bind-Value="dto.Closed"
+               @bind-Value="model.Closed"
                Label="@Localizer["Closed"]" />
 
-    <MudNumericField T="int?" Class="stack-item" @bind-Value="dto.Capacity" Label="@Localizer["CapacityOverride"]" Min="1" Variant="Variant.Outlined" Underline="false" />
-    <MudNumericField T="int?" Class="stack-item" @bind-Value="dto.BookingOpensBefore" Label="@Localizer["BookingOpensBefore"]" Min="0" Variant="Variant.Outlined" Underline="false" />
-    <MudNumericField T="int?" Class="stack-item" @bind-Value="dto.BookingCloseBefore" Label="@Localizer["BookingCloseBefore"]" Min="0" Variant="Variant.Outlined" Underline="false" />
+    <MudNumericField T="int?" Class="stack-item" @bind-Value="model.Capacity" Label="@Localizer["CapacityOverride"]" Min="1" Variant="Variant.Outlined" Underline="false" />
+    <MudNumericField T="int?" Class="stack-item" @bind-Value="model.BookingOpensBefore" Label="@Localizer["BookingOpensBefore"]" Min="0" Variant="Variant.Outlined" Underline="false" />
+    <MudNumericField T="int?" Class="stack-item" @bind-Value="model.BookingCloseBefore" Label="@Localizer["BookingCloseBefore"]" Min="0" Variant="Variant.Outlined" Underline="false" />
     <StackTimePicker Label="@Localizer["EstimatedSessionLength"]"
                      HelperText="@Localizer["EstimatedSessionLengthHelp"]"
-                     @bind-Value="dto.EstimatedSessionLength" />
+                     @bind-Value="model.EstimatedSessionLength" />
 
-    <StackCheckbox @bind-Value="dto.RequiresApproval" Label="@Localizer["RequiresApproval"]" />
-    <StackCheckbox @bind-Value="dto.AllowRescheduling" Label="@Localizer["AllowRescheduling"]" />
+    <StackCheckbox @bind-Value="model.RequiresApproval" Label="@Localizer["RequiresApproval"]" />
+    <StackCheckbox @bind-Value="model.AllowRescheduling" Label="@Localizer["AllowRescheduling"]" />
 
     <StackButton Label="@Localizer["Save"]"
                  EndIcon="fa-regular fa-floppy-disk"
