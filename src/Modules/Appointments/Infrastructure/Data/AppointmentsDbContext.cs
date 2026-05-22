@@ -88,14 +88,13 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
 
-            _ = entity.OwnsOne(s => s.BookingPolicy, b =>
+            _ = entity.OwnsMany(s => s.BookingPolicies, b =>
             {
                 b.ToTable("ShiftBookingPolicies");
-                b.Property(p => p.ClosedDates)
-                    .HasConversion(
-                        v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                        v => JsonSerializer.Deserialize<List<ClosedDate>>(v, (JsonSerializerOptions?)null) ?? new List<ClosedDate>())
-                    .HasColumnType("nvarchar(max)");
+                b.WithOwner().HasForeignKey("ShiftId");
+                b.HasKey("Id");
+                b.HasIndex("ShiftId");
+                b.HasIndex(p => new { p.ShiftId, p.Date });
             });
 
             _ = entity.OwnsMany(s => s.ReminderPolicies, b =>

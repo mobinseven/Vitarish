@@ -3,36 +3,32 @@ namespace Appointments.Tests;
 public class ShiftBookingRulesTests
 {
     [Fact]
-    public void IsBookingOpen_ShouldUseShiftTimeZoneForBookingWindow()
+    public void IsBookingOpen_ShouldReturnFalseBeforeBookingOpenWindow()
     {
         Shift shift = CreateActiveShift(new DateOnly(2026, 1, 15));
-        shift.TimeZone = "America/New_York";
-        shift.BookingPolicy = new ShiftBookingPolicy
-        {
-            BookingOpensBefore = TimeSpan.FromDays(7)
-        };
+        shift.BookingOpensBefore = 7; // opens 7 days before occurrence
 
+        // 2026-01-08 opens the window; now is one day before → not yet open
         bool result = ShiftBookingRules.IsBookingOpen(
             shift,
             new DateOnly(2026, 1, 15),
-            new DateTimeOffset(2026, 1, 8, 12, 0, 0, TimeSpan.Zero));
+            new DateTimeOffset(2026, 1, 7, 12, 0, 0, TimeSpan.Zero));
 
         result.Should().BeFalse();
     }
 
     [Fact]
-    public void IsBookingOpen_ShouldUseProvidedClosedDateSet()
+    public void IsBookingOpen_ShouldReturnFalseForClosedDatePolicy()
     {
         DateOnly shiftDate = new(2026, 1, 15);
         Shift shift = CreateActiveShift(shiftDate);
-        shift.BookingPolicy = new ShiftBookingPolicy();
-        HashSet<DateOnly> closedDates = [shiftDate];
+        ShiftBookingPolicy closedPolicy = new() { Date = shiftDate, Closed = true };
 
         bool result = ShiftBookingRules.IsBookingOpen(
             shift,
             shiftDate,
             new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero),
-            closedDates);
+            closedPolicy);
 
         result.Should().BeFalse();
     }

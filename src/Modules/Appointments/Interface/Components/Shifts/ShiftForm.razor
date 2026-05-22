@@ -19,6 +19,8 @@
                          MinuteStep="ShiftTimeStepMinutes" />
         @* <StackTextField @bind-Value="shiftWriteDto.TimeZone" Label="@Localizer["TimeZone"]" /> *@
         <StackNumericField @bind-Value="shiftWriteDto.TotalSeats" Label="@Localizer["TotalSeats"]" Min="1" />
+        <MudNumericField T="int?" Class="stack-item" @bind-Value="shiftWriteDto.BookingOpensBefore" Label="@Localizer["BookingOpensBefore"]" Min="0" Variant="Variant.Outlined" Underline="false" />
+        <MudNumericField T="int?" Class="stack-item" @bind-Value="shiftWriteDto.BookingCloseBefore" Label="@Localizer["BookingCloseBefore"]" Min="0" Variant="Variant.Outlined" Underline="false" />
         <StackSelect T="ShiftStatus" Label="@Localizer["Status"]" @bind-Value="shiftWriteDto.Status">
             @foreach (var status in Enum.GetValues<ShiftStatus>())
             {
@@ -31,8 +33,6 @@
                 <MudSelectItem T="ShiftVisibility" Value="visibility">@Localizer[visibility.ToString()]</MudSelectItem>
             }
         </StackSelect>
-        <StackCheckbox @bind-Value="shiftWriteDto.BookingPolicy!.RequiresApproval" Label="@Localizer["RequiresApproval"]" />
-        <StackCheckbox @bind-Value="shiftWriteDto.BookingPolicy!.AllowRescheduling" Label="@Localizer["AllowRescheduling"]" />
         @if (serviceProviders.Count > 0)
         {
             <StackSelect T="Guid?" Label="@Localizer["ServiceProvider"]" @bind-Value="shiftWriteDto.ServiceProviderId">

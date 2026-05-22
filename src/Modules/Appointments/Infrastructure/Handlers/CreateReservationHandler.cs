@@ -25,7 +25,7 @@ internal class CreateReservationHandler(
 
                 Shift? shift = await dbContext.Shifts
                     .AsNoTracking()
-                    .Include(s => s.BookingPolicy)
+                    .Include(s => s.BookingPolicies)
                     .FirstOrDefaultAsync(s => s.Id == request.ShiftId, cancellationToken);
 
                 EntityResult shiftValidation = ValidateShift(shift, request.Date);
@@ -71,7 +71,7 @@ internal class CreateReservationHandler(
                     }
 
                     int occupiedSeats = await CountActiveReservationsAsync(request.ShiftId, request.Date, cancellationToken);
-                    if (!request.CapacityOverride && occupiedSeats >= shift!.TotalSeats)
+                    if (!request.CapacityOverride && occupiedSeats >= policyEvaluator.GetEffectiveCapacity(shift!, request.Date))
                     {
                         dbContext.ShiftReservationLocks.Remove(lockEntry);
                         await dbContext.SaveChangesAsync(cancellationToken);
@@ -99,7 +99,7 @@ internal class CreateReservationHandler(
 
                 // Fallback path (no tenant, e.g. test environment without multi-tenancy)
                 int seats = await CountActiveReservationsAsync(request.ShiftId, request.Date, cancellationToken);
-                if (!request.CapacityOverride && seats >= shift!.TotalSeats)
+                if (!request.CapacityOverride && seats >= policyEvaluator.GetEffectiveCapacity(shift!, request.Date))
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("No seats are available for this shift slot."));
@@ -158,7 +158,7 @@ internal class CreateReservationHandler(
             }));
         }
 
-        if (shift.BookingPolicy?.ClosedDates.Any(cd => cd.Date == date) == true)
+        if (shift.BookingPolicies.Any(p => p.Date == date && p.Closed))
         {
             return EntityResult.Failure(EntityError.Conflict("This date is closed for reservations."));
         }
@@ -172,7 +172,7 @@ internal class CreateReservationHandler(
         string? reservingPartyId,
         CancellationToken cancellationToken)
     {
-        if (!policyEvaluator.NeedsPartyCapacityCheck(shift, reservingPartyId))
+        if (!policyEvaluator.NeedsPartyCapacityCheck(shift, date, reservingPartyId))
         {
             return true;
         }
@@ -186,7 +186,7 @@ internal class CreateReservationHandler(
             r.Status != ReservationStatus.Rejected,
             cancellationToken);
 
-        return policyEvaluator.HasCapacityForParty(shift, reservingPartyId, partyCount);
+        return policyEvaluator.HasCapacityForParty(shift, date, reservingPartyId, partyCount);
     }
 
     private static Reservation BuildReservation(CreateReservationCommand request) => new()

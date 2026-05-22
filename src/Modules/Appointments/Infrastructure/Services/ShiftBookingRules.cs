@@ -6,16 +6,14 @@ internal static class ShiftBookingRules
         Shift shift,
         DateOnly date,
         DateTimeOffset now,
-        IReadOnlySet<DateOnly>? closedDates = null)
+        ShiftBookingPolicy? datePolicy = null)
     {
         if (shift.Status != ShiftStatus.Active)
         {
             return false;
         }
 
-        ShiftBookingPolicy? policy = shift.BookingPolicy;
-
-        if (IsClosedDate(policy, closedDates, date))
+        if (datePolicy?.Closed == true)
         {
             return false;
         }
@@ -30,23 +28,21 @@ internal static class ShiftBookingRules
             return false;
         }
 
-        if (policy is null)
-        {
-            return true;
-        }
+        int? effectiveOpensBefore = datePolicy?.BookingOpensBefore ?? shift.BookingOpensBefore;
+        int? effectiveCloseBefore = datePolicy?.BookingCloseBefore ?? shift.BookingCloseBefore;
 
-        if (policy.BookingOpensBefore.HasValue)
+        if (effectiveOpensBefore.HasValue)
         {
-            DateTimeOffset opensAt = slotStart - policy.BookingOpensBefore.Value;
+            DateTimeOffset opensAt = slotStart.Date.AddDays(-effectiveOpensBefore.Value);
             if (now < opensAt)
             {
                 return false;
             }
         }
 
-        if (policy.BookingCloseBefore.HasValue)
+        if (effectiveCloseBefore.HasValue)
         {
-            DateTimeOffset closesAt = slotStart - policy.BookingCloseBefore.Value;
+            DateTimeOffset closesAt = slotStart.Date.AddDays(-effectiveCloseBefore.Value);
             if (now >= closesAt)
             {
                 return false;
@@ -55,14 +51,6 @@ internal static class ShiftBookingRules
 
         return true;
     }
-
-    private static bool IsClosedDate(
-        ShiftBookingPolicy? policy,
-        IReadOnlySet<DateOnly>? closedDates,
-        DateOnly date)
-        => closedDates?.Contains(date)
-            ?? policy?.ClosedDates.Any(cd => cd.Date == date)
-            ?? false;
 
     private static bool TryGetSlotStart(Shift shift, DateOnly date, out DateTimeOffset slotStart)
     {

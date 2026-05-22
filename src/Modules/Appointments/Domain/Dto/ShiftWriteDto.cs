@@ -9,7 +9,8 @@ public record ShiftWriteDto : EntityWriteDto
     public TimeOnly EndTime { get; set; } = new(10, 0);
     public string TimeZone { get; set; } = "UTC";
     public int TotalSeats { get; set; } = 10;
+    public int? BookingOpensBefore { get; set; }
+    public int? BookingCloseBefore { get; set; }
     public Guid? ServiceProviderId { get; set; }
     public Guid? ServiceId { get; set; }
-    public ShiftBookingPolicyWriteDto? BookingPolicy { get; set; } = new();
 }

@@ -1,0 +1,23 @@
+@inherits ShiftBookingPoliciesBase
+
+<Stack>
+    <MudDatePicker Label="@Localizer["Date"]"
+                   Date="@dto.Date.ToDateTime(TimeOnly.MinValue)"
+                   DateChanged="@(v => dto = dto with { Date = v.HasValue ? DateOnly.FromDateTime(v.Value) : default })"
+                   HelperText="@Localizer["ShiftBookingPolicyDateHelp"]" />
+
+    <MudSwitch T="bool"
+               @bind-Value="dto.Closed"
+               Label="@Localizer["Closed"]" />
+
+    <MudNumericField T="int?" Class="stack-item" @bind-Value="dto.Capacity" Label="@Localizer["CapacityOverride"]" Min="1" Variant="Variant.Outlined" Underline="false" />
+    <MudNumericField T="int?" Class="stack-item" @bind-Value="dto.BookingOpensBefore" Label="@Localizer["BookingOpensBefore"]" Min="0" Variant="Variant.Outlined" Underline="false" />
+    <MudNumericField T="int?" Class="stack-item" @bind-Value="dto.BookingCloseBefore" Label="@Localizer["BookingCloseBefore"]" Min="0" Variant="Variant.Outlined" Underline="false" />
+
+    <StackCheckbox @bind-Value="dto.RequiresApproval" Label="@Localizer["RequiresApproval"]" />
+    <StackCheckbox @bind-Value="dto.AllowRescheduling" Label="@Localizer["AllowRescheduling"]" />
+
+    <StackButton Label="@Localizer["Save"]"
+                 EndIcon="fa-regular fa-floppy-disk"
+                 OnClick="SaveAsync" />
+</Stack>

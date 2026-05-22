@@ -168,7 +168,7 @@ internal class AccessControlledReservationManager(
                 : EntityResult<ReservationReadDto>.Failure(EntityError.Unknown("Reservation was not returned after creation."));
         }
 
-        bool requiresApproval = await bookingPolicyEngine.RequiresApprovalAsync(shiftId, cancellationToken);
+        bool requiresApproval = await bookingPolicyEngine.RequiresApprovalAsync(shiftId, date, cancellationToken);
 
         if (!requiresApproval)
         {

@@ -51,7 +51,7 @@ public class AccessControlledReservationManagerTests
             .ReturnsAsync(EntityResult.Success());
 
         bookingPolicyEngine
-            .Setup(x => x.RequiresApprovalAsync(shiftId, It.IsAny<CancellationToken>()))
+            .Setup(x => x.RequiresApprovalAsync(shiftId, date, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         AccessControlledReservationManager sut = new(
@@ -148,7 +148,7 @@ public class AccessControlledReservationManagerTests
         DateOnly date = DateOnly.FromDateTime(DateTime.UtcNow.Date);
 
         bookingPolicyEngine.Setup(x => x.IsBookingOpenAsync(shiftId, date, It.IsAny<CancellationToken>())).ReturnsAsync(true);
-        bookingPolicyEngine.Setup(x => x.RequiresApprovalAsync(shiftId, It.IsAny<CancellationToken>())).ReturnsAsync(true);
+        bookingPolicyEngine.Setup(x => x.RequiresApprovalAsync(shiftId, date, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         reservationManager
             .Setup(x => x.GetListAsync(It.IsAny<ReservationDescriptorDto>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(EntityResult<IReadOnlyList<ReservationReadDto>>.Success([]));

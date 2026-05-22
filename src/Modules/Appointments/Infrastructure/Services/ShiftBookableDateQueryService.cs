@@ -3,7 +3,8 @@ namespace Vitarish.Appointments.Infrastructure.Services;
 [RegisterTransient]
 internal class ShiftBookableDateQueryService(
     IEntityRepository<Shift, ShiftDescriptor> shiftRepository,
-    IShiftReservationViewRepository reservationViewRepository) : IShiftBookableDateQueryService
+    IShiftReservationViewRepository reservationViewRepository,
+    ShiftBookingPolicyEvaluator policyEvaluator) : IShiftBookableDateQueryService
 {
     public async Task<IReadOnlyList<ShiftReservationReadDto>> GetBookableDatesAsync(
         Guid shiftId, ShiftDateRangeQuery range, CancellationToken cancellationToken)
@@ -20,19 +21,16 @@ internal class ShiftBookableDateQueryService(
         }
 
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        HashSet<DateOnly> closedDates = shift.BookingPolicy?.ClosedDates
-            .Select(cd => cd.Date)
-            .ToHashSet() ?? [];
 
         Dictionary<DateOnly, ShiftReservation> existingByDate =
             (await reservationViewRepository.GetAsync([shiftId], dateFrom, dateTo, cancellationToken))
             .ToDictionary(sr => sr.Date);
 
         return [.. GetScheduledDates(shift.DayOfWeek, dateFrom, dateTo)
-            .Where(date => ShiftBookingRules.IsBookingOpen(shift, date, now, closedDates))
-            .Select(date => existingByDate.TryGetValue(date, out ShiftReservation? existing)
-                ? existing.ToDto()
-                : CreateProjectedReservation(shift, date).ToDto())];
+            .Select(date => (date, policy: ResolvePolicy(shift, date)))
+            .Select(t => existingByDate.TryGetValue(t.date, out ShiftReservation? existing)
+                ? existing.ToDto() with { IsClosed = t.policy?.Closed == true }
+                : CreateProjectedReservation(shift, t.date, t.policy).ToDto() with { IsClosed = t.policy?.Closed == true })];
     }
 
     public async Task<IReadOnlyList<BookableShiftSlot>> GetBookableSlotsAsync(
@@ -64,19 +62,16 @@ internal class ShiftBookableDateQueryService(
 
         foreach (Shift shift in shifts)
         {
-            HashSet<DateOnly> closedDates = shift.BookingPolicy?.ClosedDates
-                .Select(cd => cd.Date)
-                .ToHashSet() ?? [];
-
             Dictionary<DateOnly, ShiftReservation> existingByDate =
                 reservationsByShift.GetValueOrDefault(shift.Id) ?? [];
 
-            foreach (DateOnly date in GetScheduledDates(shift.DayOfWeek, dateFrom, dateTo)
-                .Where(date => ShiftBookingRules.IsBookingOpen(shift, date, now, closedDates)))
+            foreach ((DateOnly date, ShiftBookingPolicy? datePolicy) in GetScheduledDates(shift.DayOfWeek, dateFrom, dateTo)
+                .Select(date => (date, policy: ResolvePolicy(shift, date)))
+                .Where(t => ShiftBookingRules.IsBookingOpen(shift, t.date, now, t.policy)))
             {
                 ShiftReservationReadDto occurrence = existingByDate.TryGetValue(date, out ShiftReservation? existing)
-                    ? existing.ToDto()
-                    : CreateProjectedReservation(shift, date).ToDto();
+                    ? existing.ToDto() with { IsClosed = datePolicy?.Closed == true }
+                    : CreateProjectedReservation(shift, date, datePolicy).ToDto();
 
                 slots.Add(new BookableShiftSlot(shift.ToDto(), occurrence));
             }
@@ -103,14 +98,17 @@ internal class ShiftBookableDateQueryService(
         }
     }
 
-    private static ShiftReservation CreateProjectedReservation(Shift shift, DateOnly date) => new()
+    private ShiftReservation CreateProjectedReservation(Shift shift, DateOnly date, ShiftBookingPolicy? datePolicy) => new()
     {
         ShiftId = shift.Id,
         Date = date,
         StartTime = shift.StartTime,
         EndTime = shift.EndTime,
-        TotalSeats = shift.TotalSeats,
+        TotalSeats = policyEvaluator.GetEffectiveCapacity(shift, date),
         ReservationCount = 0,
-        AvailableSeats = shift.TotalSeats
+        AvailableSeats = policyEvaluator.GetEffectiveCapacity(shift, date)
     };
+
+    private static ShiftBookingPolicy? ResolvePolicy(Shift shift, DateOnly date)
+        => shift.BookingPolicies.FirstOrDefault(p => p.Date == date);
 }

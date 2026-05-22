@@ -9,7 +9,7 @@ internal class ShiftBookingPolicyEngine(
     {
         Shift? shift = await dbContext.Shifts
             .AsNoTracking()
-            .Include(s => s.BookingPolicy)
+            .Include(s => s.BookingPolicies)
             .FirstOrDefaultAsync(s => s.Id == shiftId, cancellationToken);
 
         return shift is not null
@@ -29,7 +29,7 @@ internal class ShiftBookingPolicyEngine(
 
         Shift? shift = await dbContext.Shifts
             .AsNoTracking()
-            .Include(s => s.BookingPolicy)
+            .Include(s => s.BookingPolicies)
             .FirstOrDefaultAsync(s => s.Id == reservation.ShiftId, cancellationToken);
 
         if (shift is null)
@@ -53,10 +53,10 @@ internal class ShiftBookingPolicyEngine(
 
         Shift? shift = await dbContext.Shifts
             .AsNoTracking()
-            .Include(s => s.BookingPolicy)
+            .Include(s => s.BookingPolicies)
             .FirstOrDefaultAsync(s => s.Id == reservation.ShiftId, cancellationToken);
 
-        return shift is not null && policyEvaluator.CanReschedule(shift);
+        return shift is not null && policyEvaluator.CanReschedule(shift, reservation);
     }
 
     public async Task<bool> HasCapacityForPartyAsync(Guid shiftId, DateOnly date, string? reservingPartyId, CancellationToken cancellationToken)
@@ -68,7 +68,7 @@ internal class ShiftBookingPolicyEngine(
 
         Shift? shift = await dbContext.Shifts
             .AsNoTracking()
-            .Include(s => s.BookingPolicy)
+            .Include(s => s.BookingPolicies)
             .FirstOrDefaultAsync(s => s.Id == shiftId, cancellationToken);
 
         if (shift is null)
@@ -76,7 +76,7 @@ internal class ShiftBookingPolicyEngine(
             return false;
         }
 
-        if (!policyEvaluator.NeedsPartyCapacityCheck(shift, reservingPartyId))
+        if (!policyEvaluator.NeedsPartyCapacityCheck(shift, date, reservingPartyId))
         {
             return true;
         }
@@ -90,16 +90,16 @@ internal class ShiftBookingPolicyEngine(
                           && r.Status != ReservationStatus.Rejected,
                 cancellationToken);
 
-        return policyEvaluator.HasCapacityForParty(shift, reservingPartyId, partyCount);
+        return policyEvaluator.HasCapacityForParty(shift, date, reservingPartyId, partyCount);
     }
 
-    public async Task<bool> RequiresApprovalAsync(Guid shiftId, CancellationToken cancellationToken)
+    public async Task<bool> RequiresApprovalAsync(Guid shiftId, DateOnly date, CancellationToken cancellationToken)
     {
         Shift? shift = await dbContext.Shifts
             .AsNoTracking()
-            .Include(s => s.BookingPolicy)
+            .Include(s => s.BookingPolicies)
             .FirstOrDefaultAsync(s => s.Id == shiftId, cancellationToken);
 
-        return shift is not null && policyEvaluator.RequiresApproval(shift);
+        return shift is not null && policyEvaluator.RequiresApproval(shift, date);
     }
 }

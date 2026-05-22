@@ -9,6 +9,7 @@ public record ShiftReservationReadDto
     public int TotalSeats { get; set; }
     public int ReservationCount { get; set; }
     public int AvailableSeats { get; set; }
+    public bool IsClosed { get; set; }
 
     [JsonIgnore]
     public DateTimeOffset SlotStart => new(Date.ToDateTime(StartTime), TimeSpan.Zero);
