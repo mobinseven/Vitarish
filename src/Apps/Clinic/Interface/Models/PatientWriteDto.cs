@@ -16,9 +16,23 @@ internal record PatientWriteDto : ProjectWriteDto
 
     public string? PlaceOfBirth { get => GetField<string>(); set => SetField(value); }
 
+    public string? Address { get => GetField<string>(); set => SetField(value); }
+
+    public string? Education { get => GetField<string>(); set => SetField(value); }
+
+    public string? Occupation { get => GetField<string>(); set => SetField(value); }
+
+    public string? FatherName { get => GetField<string>(); set => SetField(value); }
+
+    public int Height { get => GetField<int>(); set => SetField(value); }
+
+    public int Weight { get => GetField<int>(); set => SetField(value); }
+
     public string? Email { get => GetField<string>(); set => SetField(value); }
 
     public string? Phone { get => GetField<string>(); set => SetField(value); }
+
+    public string? Referrer { get => GetField<string>(); set => SetField(value); }
 
     public string? InsuranceProvider { get => GetField<string>(); set => SetField(value); }
 
