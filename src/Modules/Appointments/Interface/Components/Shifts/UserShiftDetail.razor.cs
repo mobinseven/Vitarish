@@ -56,7 +56,7 @@ public partial class UserShiftDetail : ShiftsBase
 
     private async Task ReserveAsync(ShiftReservationReadDto shiftReservation)
     {
-        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(Shift.Id, shiftReservation.Date, null, CancellationToken.None);
+        EntityResult<ReservationReadDto> result = await ReservationManager.ReserveAsync(Shift.Id, shiftReservation.Date, null, null, CancellationToken.None);
         if (result.IsFailure)
         {
             return;

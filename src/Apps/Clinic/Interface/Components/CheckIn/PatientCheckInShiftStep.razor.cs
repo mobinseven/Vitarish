@@ -21,6 +21,7 @@ public partial class PatientCheckInShiftStep : Modules.Base.TenantCommonBase
     private bool booking;
     private string? bookingError;
     private bool waitlistEnabled;
+    private TimeSpan? estimatedSessionLengthOverride;
 
     protected override void OnInitialized()
     {
@@ -81,8 +82,8 @@ public partial class PatientCheckInShiftStep : Modules.Base.TenantCommonBase
         await InvokeAsync(StateHasChanged);
 
         EntityResult<ReservationReadDto> reserveResult = capacityOverride
-            ? await ReservationManager.ReserveWithOverrideAsync(shift.Id, occurrence.Date, GetReservingPartyId(), CancellationToken.None)
-            : await ReservationManager.ReserveAsync(shift.Id, occurrence.Date, GetReservingPartyId(), CancellationToken.None);
+            ? await ReservationManager.ReserveWithOverrideAsync(shift.Id, occurrence.Date, GetReservingPartyId(), estimatedSessionLengthOverride, CancellationToken.None)
+            : await ReservationManager.ReserveAsync(shift.Id, occurrence.Date, GetReservingPartyId(), estimatedSessionLengthOverride, CancellationToken.None);
 
         if (reserveResult.IsFailure || reserveResult.Value is null)
         {

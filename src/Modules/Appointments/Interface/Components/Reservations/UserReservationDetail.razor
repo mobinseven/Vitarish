@@ -9,6 +9,11 @@
     <StackField Label="@($"{current.Date:d}")" HelperText="@Localizer["Reservation"]">
         <ReservationStatusBadge Status="@current.Status" />
     </StackField>
+    @if (current.EstimatedSessionLength.HasValue)
+    {
+        <StackField Label="@current.EstimatedSessionLength.Value.ToString(@"hh\:mm")"
+                    HelperText="@Localizer["EstimatedSessionLength"]" />
+    }
 </Stack>
 
 @switch (current.Status)

@@ -1776,6 +1776,18 @@
   <data name="SaveFailed" xml:space="preserve">
     <value>ذخیره ناموفق بود. لطفاً دوباره تلاش کنید.</value>
   </data>
+  <data name="EstimatedSessionLength" xml:space="preserve">
+    <value>مدت زمان تخمینی جلسه</value>
+  </data>
+  <data name="EstimatedSessionLengthHelp" xml:space="preserve">
+    <value>مدت زمان پیش‌فرض جلسه برای تاریخ این سیاست.</value>
+  </data>
+  <data name="EstimatedSessionLengthOverride" xml:space="preserve">
+    <value>بازنویسی مدت زمان تخمینی جلسه</value>
+  </data>
+  <data name="EstimatedSessionLengthOverrideHelp" xml:space="preserve">
+    <value>اختیاری؛ بازنویسی مالک هنگام ایجاد نوبت.</value>
+  </data>
   <data name="Gender_Unspecified" xml:space="preserve">
     <value>نامشخص</value>
   </data>

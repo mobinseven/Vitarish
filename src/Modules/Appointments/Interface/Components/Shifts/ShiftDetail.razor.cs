@@ -15,6 +15,27 @@ public partial class ShiftDetail : ShiftsBase
     private string? serviceName;
     private Guid? lastShiftId;
 
+    private TimeSpan EffectiveEstimatedSessionLength
+    {
+        get
+        {
+            TimeSpan duration = Shift.EndTime.ToTimeSpan() - Shift.StartTime.ToTimeSpan();
+            if (duration <= TimeSpan.Zero)
+            {
+                duration = duration.Add(TimeSpan.FromDays(1));
+            }
+
+            if (duration <= TimeSpan.Zero)
+            {
+                return TimeSpan.FromMinutes(1);
+            }
+
+            int capacity = Math.Max(1, Shift.TotalSeats);
+            int roundedMinutes = Math.Max(1, (int)Math.Round(duration.TotalMinutes / capacity, MidpointRounding.AwayFromZero));
+            return TimeSpan.FromMinutes(roundedMinutes);
+        }
+    }
+
     protected override async Task OnParametersSetAsync()
     {
         if (lastShiftId == Shift?.Id)

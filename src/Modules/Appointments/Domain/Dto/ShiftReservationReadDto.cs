@@ -9,6 +9,7 @@ public record ShiftReservationReadDto
     public int TotalSeats { get; set; }
     public int ReservationCount { get; set; }
     public int AvailableSeats { get; set; }
+    public TimeSpan? EstimatedSessionLength { get; set; }
     public bool IsClosed { get; set; }
 
     [JsonIgnore]

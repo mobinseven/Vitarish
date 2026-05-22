@@ -1,6 +1,11 @@
 @inherits CommonBase
 <StackField Label="@ShiftReservation.Date.ToShortDateString()" />
 <StackField Label="@($"{Localizer["Count", Localizer["Reservations"]]}: {ShiftReservation.ReservationCount}")" />
+@if (ShiftReservation.EstimatedSessionLength.HasValue)
+{
+    <StackField Label="@ShiftReservation.EstimatedSessionLength.Value.ToString(@"hh\:mm")"
+                HelperText="@Localizer["EstimatedSessionLength"]" />
+}
 <ShiftReservationList ShiftReservation="ShiftReservation" />
 <StackButton Label="@Localizer["AddItem", Localizer["Reservation"]]" OnClick="AddReservationAsync" EndIcon="fa-regular fa-plus" Color="Color.Primary" />
 

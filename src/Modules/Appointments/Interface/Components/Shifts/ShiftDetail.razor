@@ -10,6 +10,7 @@
     <StackField Label="@Shift.StartTime.ToString("t")" HelperText="@Localizer["StartTime"]" />
     <StackField Label="@Shift.EndTime.ToString("t")" HelperText="@Localizer["EndTime"]" />
     <StackField Label="@Shift.TotalSeats.ToString()" HelperText="@Localizer["Capacity"]" />
+    <StackField Label="@EffectiveEstimatedSessionLength.ToString(@"hh\:mm")" HelperText="@Localizer["EstimatedSessionLength"]" />
     <StackField Label="@Localizer["Status"]">
         <ShiftStatusBadge Status="@Shift.Status" />
     </StackField>

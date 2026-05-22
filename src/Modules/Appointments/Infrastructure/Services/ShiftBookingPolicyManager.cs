@@ -65,6 +65,7 @@ internal class ShiftBookingPolicyManager(
             existing.Capacity = dto.Capacity;
             existing.RequiresApproval = dto.RequiresApproval;
             existing.CancellationDeadline = dto.CancellationDeadline;
+            existing.EstimatedSessionLength = dto.EstimatedSessionLength;
             existing.AllowRescheduling = dto.AllowRescheduling;
             existing.MaxReservationsPerParty = dto.MaxReservationsPerParty;
             existing.ShiftId = dto.ShiftId;

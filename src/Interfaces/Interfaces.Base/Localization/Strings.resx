@@ -1940,6 +1940,18 @@ of project "{2}"</value>
   <data name="SaveFailed" xml:space="preserve">
     <value>Save failed. Please try again.</value>
   </data>
+  <data name="EstimatedSessionLength" xml:space="preserve">
+    <value>Estimated session length</value>
+  </data>
+  <data name="EstimatedSessionLengthHelp" xml:space="preserve">
+    <value>Default session length for this policy date.</value>
+  </data>
+  <data name="EstimatedSessionLengthOverride" xml:space="preserve">
+    <value>Estimated session length override</value>
+  </data>
+  <data name="EstimatedSessionLengthOverrideHelp" xml:space="preserve">
+    <value>Optional owner override for reservation creation.</value>
+  </data>
   <!-- Route segment labels used by NavService breadcrumbs. -->
   <data name="check-in" xml:space="preserve">
     <value>Check-in</value>

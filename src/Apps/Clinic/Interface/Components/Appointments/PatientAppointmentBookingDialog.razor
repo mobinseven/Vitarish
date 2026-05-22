@@ -26,6 +26,9 @@
                 }
             </Stack>
             <Stack>
+                <StackTimePicker Label="@Localizer["EstimatedSessionLengthOverride"]"
+                                 HelperText="@Localizer["EstimatedSessionLengthOverrideHelp"]"
+                                 @bind-Value="estimatedSessionLengthOverride" />
                 <StackCheckbox @bind-Value="createReminder"
                                Label="@Localizer["CreateReminderAfterBooking"]" />
             </Stack>

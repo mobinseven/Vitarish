@@ -6,6 +6,12 @@
             <UserFindOrCreate Value="@selectedUserId"
                               ValueChanged="OnSelectedUserChangedAsync"
                               Options="@UserPickerOptions" />
+            @if (AdminMode)
+            {
+                <StackTimePicker Label="@Localizer["EstimatedSessionLengthOverride"]"
+                                 HelperText="@Localizer["EstimatedSessionLengthOverrideHelp"]"
+                                 @bind-Value="estimatedSessionLengthOverride" />
+            }
         </Stack>
         <Stack>
             <StackButton Color="Color.Primary"
@@ -39,6 +45,7 @@
     };
 
     private string? selectedUserId;
+    private TimeSpan? estimatedSessionLengthOverride;
 
     private Task OnSelectedUserChangedAsync(string? userId)
     {
@@ -54,7 +61,7 @@
             return;
         }
 
-        await ReservationManager.ReserveAsync(ShiftId, Date, selectedUserId, CancellationToken.None);
+        await ReservationManager.ReserveAsync(ShiftId, Date, selectedUserId, estimatedSessionLengthOverride, CancellationToken.None);
         _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
         MudDialog.Close(DialogResult.Ok(true));
     }

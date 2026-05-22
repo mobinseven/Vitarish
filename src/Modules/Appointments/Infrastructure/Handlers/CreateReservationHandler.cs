@@ -41,6 +41,14 @@ internal class CreateReservationHandler(
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("The booking window is closed for this shift slot."));
                 }
 
+                if (request.EstimatedSessionLength is { } estimatedSessionLength && estimatedSessionLength <= TimeSpan.Zero)
+                {
+                    await transaction.RollbackAsync(cancellationToken);
+                    return EntityResult<Reservation>.Failure(EntityError.Validation(
+                        "Estimated session length must be greater than zero.",
+                        new Dictionary<string, string> { [nameof(request.EstimatedSessionLength)] = "Estimated session length must be greater than zero." }));
+                }
+
                 if (!request.CapacityOverride &&
                     !await HasCapacityForPartyAsync(shift!, request.Date, request.ReservingPartyId, cancellationToken))
                 {
@@ -79,7 +87,7 @@ internal class CreateReservationHandler(
                         return EntityResult<Reservation>.Failure(EntityError.Conflict("No seats are available for this shift slot."));
                     }
 
-                    Reservation reservation = BuildReservation(request);
+                    Reservation reservation = BuildReservation(shift!, request);
 
                     dbContext.Reservations.Add(reservation);
                     dbContext.ShiftReservationLocks.Remove(lockEntry);
@@ -105,7 +113,7 @@ internal class CreateReservationHandler(
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("No seats are available for this shift slot."));
                 }
 
-                Reservation fallbackReservation = BuildReservation(request);
+                Reservation fallbackReservation = BuildReservation(shift!, request);
                 dbContext.Reservations.Add(fallbackReservation);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
@@ -189,11 +197,12 @@ internal class CreateReservationHandler(
         return policyEvaluator.HasCapacityForParty(shift, date, reservingPartyId, partyCount);
     }
 
-    private static Reservation BuildReservation(CreateReservationCommand request) => new()
+    private Reservation BuildReservation(Shift shift, CreateReservationCommand request) => new()
     {
         ShiftId = request.ShiftId,
         Date = request.Date,
         ReservingPartyId = request.ReservingPartyId,
+        EstimatedSessionLength = policyEvaluator.GetEffectiveEstimatedSessionLength(shift, request.Date, request.EstimatedSessionLength),
         Status = ReservationStatus.Pending,
         IsHold = request.IsHold,
         ExpiresAt = request.IsHold && request.HoldDuration.HasValue
