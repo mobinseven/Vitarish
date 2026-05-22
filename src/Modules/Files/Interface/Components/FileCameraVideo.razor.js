@@ -1,8 +1,7 @@
 /**
  * Handles camera access and recording video.
  */
-let mediaRecorder;
-let recordedChunks = [];
+const _recorders = new Map();
 
 export async function startCamera(videoElement) {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
@@ -26,6 +25,7 @@ export async function startCamera(videoElement) {
 export function stopCamera(videoElement, stream) {
     if (stream) {
         stream.getTracks().forEach(track => track.stop());
+        _recorders.delete(stream);
     }
     if (videoElement) {
         videoElement.srcObject = null;
@@ -33,8 +33,8 @@ export function stopCamera(videoElement, stream) {
 }
 
 export function startRecording(stream) {
-    recordedChunks = [];
-    mediaRecorder = new MediaRecorder(stream);
+    const recordedChunks = [];
+    const mediaRecorder = new MediaRecorder(stream);
 
     mediaRecorder.ondataavailable = (event) => {
         if (event.data.size > 0) {
@@ -42,14 +42,21 @@ export function startRecording(stream) {
         }
     };
 
+    _recorders.set(stream, { mediaRecorder, recordedChunks });
     mediaRecorder.start();
 }
 
-export async function stopRecording() {
+export async function stopRecording(stream) {
+    const data = _recorders.get(stream);
+    if (!data) return null;
+
+    const { mediaRecorder, recordedChunks } = data;
+
     return new Promise((resolve) => {
         mediaRecorder.onstop = () => {
             const blob = new Blob(recordedChunks, { type: "video/webm" });
             const file = new File([blob], `video_${new Date().getTime()}.webm`, { type: "video/webm" });
+            _recorders.delete(stream);
             resolve(file);
         };
         mediaRecorder.stop();

@@ -60,10 +60,9 @@
                 _isStreaming = true;
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _error = "Could not access camera/microphone. Please ensure you have given permission.";
-            Console.WriteLine(ex.Message);
         }
     }
 
@@ -100,16 +99,16 @@
 
     private async Task StopRecording()
     {
-        if (_module != null && _isRecording)
+        if (_module != null && _isRecording && _cameraStream != null)
         {
             _uiTimer?.Dispose();
             _uiTimer = null;
-            var file = await _module.InvokeAsync<IJSObjectReference>("stopRecording");
+            await using var file = await _module.InvokeAsync<IJSObjectReference>("stopRecording", _cameraStream);
             _isRecording = false;
 
             if (!string.IsNullOrEmpty(InputId))
             {
-                var streamTransferModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Vitarish.Files.Interface/Components/StreamTransfer.razor.js");
+                await using var streamTransferModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Vitarish.Files.Interface/Components/StreamTransfer.razor.js");
                 await streamTransferModule.InvokeVoidAsync("addFile", InputId, file);
             }
         }

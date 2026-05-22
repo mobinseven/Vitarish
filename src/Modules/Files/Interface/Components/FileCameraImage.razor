@@ -50,10 +50,9 @@
                 _isStreaming = true;
             }
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             _error = "Could not access camera. Please ensure you have given permission.";
-            Console.WriteLine(ex.Message);
         }
     }
 
@@ -72,8 +71,8 @@
     {
         if (_module != null && !string.IsNullOrEmpty(InputId))
         {
-            var file = await _module.InvokeAsync<IJSObjectReference>("captureImage", _videoElement);
-            var streamTransferModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Vitarish.Files.Interface/Components/StreamTransfer.razor.js");
+            await using var file = await _module.InvokeAsync<IJSObjectReference>("captureImage", _videoElement);
+            await using var streamTransferModule = await JSRuntime.InvokeAsync<IJSObjectReference>("import", "./_content/Vitarish.Files.Interface/Components/StreamTransfer.razor.js");
             await streamTransferModule.InvokeVoidAsync("addFile", InputId, file);
         }
     }
