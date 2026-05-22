@@ -4,7 +4,7 @@ public record ShiftBookingPolicyWriteDto
 {
     public Guid Id { get; set; }
     public Guid ShiftId { get; set; }
-    public DateOnly Date { get; set; }
+    public DateOnly Date { get; set; } = DateOnly.FromDateTime(DateTime.Now);
     public int? BookingOpensBefore { get; set; }
     public int? BookingCloseBefore { get; set; }
     public bool Closed { get; set; }
