@@ -5,6 +5,9 @@
 <Stack>
     <StackButton Label="@Localizer["Patients"]"
                  Href="@AppRoutes.Clinic.Patients"/>
+</Stack>
+
+<Stack>
     <StackButton Label="@Localizer["CheckIn"]"
                  Href="@AppRoutes.Clinic.CheckIn"
                  EndIcon="fa-regular fa-person-walking-arrow-right"
@@ -18,6 +21,7 @@
     <StackButton Href="@AppRoutes.Clinic.OwnerReminders" Label="@Localizer["Reminders"]" EndIcon="fa-regular fa-bell" />
     <StackButton Href="@AppRoutes.Clinic.OwnerAppointmentSettings" Label="@Localizer["AppointmentSettings"]" EndIcon="fa-regular fa-layer-group" />
 </Stack>
+
 <Stack>
     <StackField Label="@Localizer["Settings"]" />
     <StackButton Href="@AppRoutes.Clinic.OwnerSettingsUsers" Label="@Localizer["Users"]" EndIcon="fa-regular fa-users" />
