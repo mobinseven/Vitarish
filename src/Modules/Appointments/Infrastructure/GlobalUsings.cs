@@ -3,6 +3,7 @@ global using MediatR;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.DependencyInjection;
 global using System.Text.Json.Serialization;
+global using Vitarish.Entities.Server.Abstractions;
 global using Vitarish.Entities.Server.Commands;
 global using Vitarish.Entities.Server.Core;
 global using Vitarish.Entities.Server.Infrastructure;

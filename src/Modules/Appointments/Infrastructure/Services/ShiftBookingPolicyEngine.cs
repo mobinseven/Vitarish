@@ -96,8 +96,8 @@ internal class ShiftBookingPolicyEngine(
         return ShiftBookingPolicyEvaluator.RequiresApproval(shift, date, policies);
     }
 
-    private Task<List<ShiftBookingPolicy>> LoadPoliciesAsync(Guid shiftId, CancellationToken cancellationToken)
-        => dbContext.ShiftBookingPolicies
+    private async Task<IReadOnlyList<ShiftBookingPolicy>> LoadPoliciesAsync(Guid shiftId, CancellationToken cancellationToken)
+        => await dbContext.ShiftBookingPolicies
             .AsNoTracking()
             .Where(p => p.ShiftId == shiftId)
             .ToListAsync(cancellationToken);

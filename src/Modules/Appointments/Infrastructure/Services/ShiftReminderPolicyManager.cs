@@ -17,7 +17,7 @@ internal class ShiftReminderPolicyManager(
         dto => dto.ToDomain()),
       IShiftReminderPolicyManager
 {
-    public override async Task<EntityResult<ShiftReminderPolicyReadDto>> AddAsync(
+    async Task<EntityResult<ShiftReminderPolicyReadDto>> IEntityService<ShiftReminderPolicyReadDto, ShiftReminderPolicyWriteDto, ShiftReminderPolicyDescriptorDto>.AddAsync(
         ShiftReminderPolicyWriteDto dto,
         CancellationToken cancellationToken)
     {
@@ -36,7 +36,7 @@ internal class ShiftReminderPolicyManager(
         return result;
     }
 
-    public override async Task<EntityResult<ShiftReminderPolicyReadDto>> UpdateAsync(
+    async Task<EntityResult<ShiftReminderPolicyReadDto>> IEntityService<ShiftReminderPolicyReadDto, ShiftReminderPolicyWriteDto, ShiftReminderPolicyDescriptorDto>.UpdateAsync(
         ShiftReminderPolicyWriteDto dto,
         CancellationToken cancellationToken)
     {
@@ -55,7 +55,9 @@ internal class ShiftReminderPolicyManager(
         return result;
     }
 
-    public override async Task<EntityResult> RemoveAsync(Guid id, CancellationToken cancellationToken)
+    async Task<EntityResult> IEntityService<ShiftReminderPolicyReadDto, ShiftReminderPolicyWriteDto, ShiftReminderPolicyDescriptorDto>.RemoveAsync(
+        Guid id,
+        CancellationToken cancellationToken)
     {
         EntityResult result = await base.RemoveAsync(id, cancellationToken);
         if (result.IsSuccess)

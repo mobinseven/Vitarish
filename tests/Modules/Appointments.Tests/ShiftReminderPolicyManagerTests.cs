@@ -6,7 +6,7 @@ public class ShiftReminderPolicyManagerTests
     private readonly Mock<IAuditWriter> _auditWriter = new();
     private readonly Mock<IRequestContext> _requestContext = new();
 
-    private ShiftReminderPolicyManager CreateSut()
+    private IShiftReminderPolicyManager CreateSut()
     {
         _requestContext.SetupGet(x => x.UserId).Returns("user-1");
         _requestContext.SetupGet(x => x.TenantId).Returns("tenant-a");

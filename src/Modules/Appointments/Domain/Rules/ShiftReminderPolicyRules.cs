@@ -1,3 +1,5 @@
+using Vitarish.Appointments.Domain.Dto;
+
 namespace Vitarish.Appointments.Domain.Rules;
 
 public static class ShiftReminderPolicyRules

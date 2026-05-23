@@ -24,17 +24,20 @@ internal class CreateReservationHandler(
 
                 Shift? shift = await dbContext.Shifts
                     .AsNoTracking()
-                    .Include(s => s.BookingPolicies)
                     .FirstOrDefaultAsync(s => s.Id == request.ShiftId, cancellationToken);
 
-                EntityResult shiftValidation = ValidateShift(shift, request.Date);
+                IReadOnlyList<ShiftBookingPolicy> policies = shift is not null
+                    ? await LoadPoliciesAsync(request.ShiftId, cancellationToken)
+                    : [];
+
+                EntityResult shiftValidation = ValidateShift(shift, request.Date, policies);
                 if (shiftValidation.IsFailure)
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     return EntityResult<Reservation>.Failure([.. shiftValidation.Errors]);
                 }
 
-                if (!ShiftBookingPolicyEvaluator.IsBookingOpen(shift!, request.Date))
+                if (!ShiftBookingPolicyEvaluator.IsBookingOpen(shift!, request.Date, policies))
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("The booking window is closed for this shift slot."));
@@ -49,7 +52,7 @@ internal class CreateReservationHandler(
                 }
 
                 if (!request.CapacityOverride &&
-                    !await HasCapacityForPartyAsync(shift!, request.Date, request.ReservingPartyId, cancellationToken))
+                    !await HasCapacityForPartyAsync(shift!, request.Date, request.ReservingPartyId, policies, cancellationToken))
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("The reservation limit for this party has been reached."));
@@ -78,7 +81,7 @@ internal class CreateReservationHandler(
                     }
 
                     int occupiedSeats = await CountActiveReservationsAsync(request.ShiftId, request.Date, cancellationToken);
-                    if (!request.CapacityOverride && occupiedSeats >= ShiftBookingPolicyEvaluator.GetEffectiveCapacity(shift!, request.Date))
+                    if (!request.CapacityOverride && occupiedSeats >= ShiftBookingPolicyEvaluator.GetEffectiveCapacity(shift!, request.Date, policies))
                     {
                         dbContext.ShiftReservationLocks.Remove(lockEntry);
                         await dbContext.SaveChangesAsync(cancellationToken);
@@ -86,7 +89,7 @@ internal class CreateReservationHandler(
                         return EntityResult<Reservation>.Failure(EntityError.Conflict("No seats are available for this shift slot."));
                     }
 
-                    Reservation reservation = BuildReservation(shift!, request);
+                    Reservation reservation = BuildReservation(shift!, request, policies);
 
                     dbContext.Reservations.Add(reservation);
                     dbContext.ShiftReservationLocks.Remove(lockEntry);
@@ -106,13 +109,13 @@ internal class CreateReservationHandler(
 
                 // Fallback path (no tenant, e.g. test environment without multi-tenancy)
                 int seats = await CountActiveReservationsAsync(request.ShiftId, request.Date, cancellationToken);
-                if (!request.CapacityOverride && seats >= ShiftBookingPolicyEvaluator.GetEffectiveCapacity(shift!, request.Date))
+                if (!request.CapacityOverride && seats >= ShiftBookingPolicyEvaluator.GetEffectiveCapacity(shift!, request.Date, policies))
                 {
                     await transaction.RollbackAsync(cancellationToken);
                     return EntityResult<Reservation>.Failure(EntityError.Conflict("No seats are available for this shift slot."));
                 }
 
-                Reservation fallbackReservation = BuildReservation(shift!, request);
+                Reservation fallbackReservation = BuildReservation(shift!, request, policies);
                 dbContext.Reservations.Add(fallbackReservation);
                 await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
@@ -145,7 +148,7 @@ internal class CreateReservationHandler(
         return EntityResult<Guid>.Success(created.Id);
     }
 
-    private static EntityResult ValidateShift(Shift? shift, DateOnly date)
+    private static EntityResult ValidateShift(Shift? shift, DateOnly date, IReadOnlyList<ShiftBookingPolicy> policies)
     {
         if (shift is null)
         {
@@ -165,7 +168,7 @@ internal class CreateReservationHandler(
             }));
         }
 
-        if (shift.BookingPolicies.Any(p => p.Date == date && p.Closed))
+        if (policies.Any(p => p.Date == date && p.Closed))
         {
             return EntityResult.Failure(EntityError.Conflict("This date is closed for reservations."));
         }
@@ -177,9 +180,10 @@ internal class CreateReservationHandler(
         Shift shift,
         DateOnly date,
         string? reservingPartyId,
+        IReadOnlyList<ShiftBookingPolicy> policies,
         CancellationToken cancellationToken)
     {
-        if (!ShiftBookingPolicyEvaluator.NeedsPartyCapacityCheck(shift, date, reservingPartyId))
+        if (!ShiftBookingPolicyEvaluator.NeedsPartyCapacityCheck(shift, date, reservingPartyId, policies))
         {
             return true;
         }
@@ -193,15 +197,15 @@ internal class CreateReservationHandler(
             r.Status != ReservationStatus.Rejected,
             cancellationToken);
 
-        return ShiftBookingPolicyEvaluator.HasCapacityForParty(shift, date, reservingPartyId, partyCount);
+        return ShiftBookingPolicyEvaluator.HasCapacityForParty(shift, date, reservingPartyId, partyCount, policies);
     }
 
-    private Reservation BuildReservation(Shift shift, CreateReservationCommand request) => new()
+    private Reservation BuildReservation(Shift shift, CreateReservationCommand request, IReadOnlyList<ShiftBookingPolicy> policies) => new()
     {
         ShiftId = request.ShiftId,
         Date = request.Date,
         ReservingPartyId = request.ReservingPartyId,
-        EstimatedSessionLength = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, request.Date, request.EstimatedSessionLength),
+        EstimatedSessionLength = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, request.Date, policies, request.EstimatedSessionLength),
         Status = ReservationStatus.Pending,
         IsHold = request.IsHold,
         ExpiresAt = request.IsHold && request.HoldDuration.HasValue
@@ -218,4 +222,10 @@ internal class CreateReservationHandler(
             r.Status != ReservationStatus.Expired &&
             !r.IsHold,
             cancellationToken);
+
+    private async Task<IReadOnlyList<ShiftBookingPolicy>> LoadPoliciesAsync(Guid shiftId, CancellationToken cancellationToken)
+        => await dbContext.ShiftBookingPolicies
+            .AsNoTracking()
+            .Where(p => p.ShiftId == shiftId)
+            .ToListAsync(cancellationToken);
 }

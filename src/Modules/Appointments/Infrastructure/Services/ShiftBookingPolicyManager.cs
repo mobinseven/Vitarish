@@ -14,7 +14,7 @@ internal class ShiftBookingPolicyManager(
         dto => dto.ToDomain()),
       IShiftBookingPolicyManager
 {
-    public override async Task<EntityResult<ShiftBookingPolicyReadDto>> AddAsync(
+    async Task<EntityResult<ShiftBookingPolicyReadDto>> IEntityService<ShiftBookingPolicyReadDto, ShiftBookingPolicyWriteDto, ShiftBookingPolicyDescriptorDto>.AddAsync(
         ShiftBookingPolicyWriteDto dto,
         CancellationToken cancellationToken)
     {
@@ -28,7 +28,7 @@ internal class ShiftBookingPolicyManager(
         return await base.AddAsync(dto, cancellationToken);
     }
 
-    public override async Task<EntityResult<ShiftBookingPolicyReadDto>> UpdateAsync(
+    async Task<EntityResult<ShiftBookingPolicyReadDto>> IEntityService<ShiftBookingPolicyReadDto, ShiftBookingPolicyWriteDto, ShiftBookingPolicyDescriptorDto>.UpdateAsync(
         ShiftBookingPolicyWriteDto dto,
         CancellationToken cancellationToken)
     {

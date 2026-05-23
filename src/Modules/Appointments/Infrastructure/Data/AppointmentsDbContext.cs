@@ -110,6 +110,9 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
             _ = entity.HasIndex(s => s.ServiceId)
                 .HasDatabaseName("IX_Shifts_ServiceId");
         });
+
+        _ = modelBuilder.Entity<ShiftBookingPolicy>(entity =>
+        {
             entity.ToTable("ShiftBookingPolicies");
 
             _ = entity.HasOne<Shift>()
