@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations.Schema;
 namespace Vitarish.Appointments.Domain.Entities;
 
 public class Shift : Entity
@@ -74,8 +75,6 @@ public class Shift : Entity
         set => SetField(ref field, value, nameof(BookingCloseBefore));
     }
 
-    public IList<ShiftBookingPolicy> BookingPolicies { get; set; } = [];
-
-    public IList<ShiftReminderPolicy> ReminderPolicies { get; set; } = [];
-
+    [NotMapped] public IList<ShiftBookingPolicy> BookingPolicies { get; set; } = [];
+    [NotMapped] public IList<ShiftReminderPolicy> ReminderPolicies { get; set; } = [];
 }

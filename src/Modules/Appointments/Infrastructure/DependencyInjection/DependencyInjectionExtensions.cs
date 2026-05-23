@@ -13,12 +13,9 @@ public static class DependencyInjectionExtensions
         _ = services.AddVitarishAppointmentsInfrastructure();
         _ = services.AddTransient<IAccessControlledShiftManager, AccessControlledShiftManager>();
         _ = services.AddTransient<IAccessControlledReservationManager, AccessControlledReservationManager>();
-        _ = services.AddTransient<IShiftReminderPolicyManager, ShiftReminderPolicyManager>();
         _ = services.AddTransient<IShiftBookingPolicyEngine, ShiftBookingPolicyEngine>();
-        _ = services.AddTransient<IShiftBookingPolicyRepository, ShiftBookingPolicyRepository>();
-        _ = services.AddTransient<IGetShiftBookingPoliciesQuery, ShiftBookingPoliciesQuery>();
-        _ = services.AddTransient<IUpsertShiftBookingPolicyCommand, ShiftBookingPolicyCommandHandler>();
-        _ = services.AddTransient<IRemoveShiftBookingPolicyCommand, ShiftBookingPolicyCommandHandler>();
+        _ = services.AddTransient<IEntityRepository<ShiftBookingPolicy, ShiftBookingPolicyDescriptor>, ShiftBookingPolicyRepository>();
+        _ = services.AddTransient<IEntityRepository<ShiftReminderPolicy, ShiftReminderPolicyDescriptor>, ShiftReminderPolicyRepository>();
         _ = services.AddTransient<IServiceTypeManager, ServiceTypeManager>();
         _ = services.AddTransient<IServiceManager, ServiceManager>();
         _ = services.AddTransient<IServiceProviderManager, ServiceProviderManager>();
