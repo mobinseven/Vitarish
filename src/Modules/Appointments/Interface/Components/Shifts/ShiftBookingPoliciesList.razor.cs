@@ -1,4 +1,3 @@
-using Vitarish.Appointments.Domain.Models;
 namespace Vitarish.Appointments.Interface.Components.Shifts;
 
 public partial class ShiftBookingPoliciesList : ShiftBookingPoliciesBase
@@ -12,8 +11,9 @@ public partial class ShiftBookingPoliciesList : ShiftBookingPoliciesBase
 
     private async Task LoadAsync()
     {
-        IReadOnlyList<ShiftBookingPolicyReadDto> result = await BookingPoliciesQuery.ExecuteAsync(ShiftId, CancellationToken.None);
-        policies = [.. result];
+        EntityResult<IReadOnlyList<ShiftBookingPolicyReadDto>> result = await BookingPolicyManager.GetListAsync(
+            new ShiftBookingPolicyDescriptorDto { ShiftId = ShiftId }, CancellationToken.None);
+        policies = [.. result.Value ?? []];
         await InvokeAsync(StateHasChanged);
     }
 
@@ -34,7 +34,7 @@ public partial class ShiftBookingPoliciesList : ShiftBookingPoliciesBase
 
     private async Task RemoveAsync(ShiftBookingPolicyReadDto policy)
     {
-        EntityResult result = await RemoveBookingPolicyCommand.ExecuteAsync(new RemoveShiftBookingPolicyCommandModel { ShiftId = ShiftId, PolicyId = policy.Id }, CancellationToken.None);
+        EntityResult result = await BookingPolicyManager.RemoveAsync(policy.Id, CancellationToken.None);
         if (result.IsSuccess) { await LoadAsync(); await OnChanged.InvokeAsync(); }
     }
 }

@@ -15,8 +15,6 @@ public record ShiftReadDto : EntityReadDto
     public int? BookingCloseBefore { get; set; }
     public Guid? ServiceProviderId { get; set; }
     public Guid? ServiceId { get; set; }
-    public IReadOnlyList<ShiftReminderPolicyReadDto> ReminderPolicies { get; set; } = [];
-
     [JsonIgnore]
     public string Title => $"{DayOfWeek} {StartTime:t}-{EndTime:t}";
 }

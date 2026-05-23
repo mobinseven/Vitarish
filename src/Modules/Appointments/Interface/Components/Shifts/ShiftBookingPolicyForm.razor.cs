@@ -1,4 +1,3 @@
-using Vitarish.Appointments.Domain.Models;
 namespace Vitarish.Appointments.Interface.Components.Shifts;
 
 public partial class ShiftBookingPolicyForm : ShiftBookingPoliciesBase
@@ -9,16 +8,16 @@ public partial class ShiftBookingPolicyForm : ShiftBookingPoliciesBase
 
     [Inject] private ISnackbar Snackbar { get; set; } = default!;
 
-    private UpsertShiftBookingPolicyCommandModel model = new();
+    private ShiftBookingPolicyWriteDto model = new();
     private ShiftReadDto? Shift;
 
     protected override async Task OnInitializedAsync()
     {
         model = Policy is null
-            ? new UpsertShiftBookingPolicyCommandModel { ShiftId = ShiftId, Date = DateOnly.FromDateTime(DateTime.UtcNow) }
-            : new UpsertShiftBookingPolicyCommandModel
+            ? new ShiftBookingPolicyWriteDto { ShiftId = ShiftId, Date = DateOnly.FromDateTime(DateTime.UtcNow) }
+            : new ShiftBookingPolicyWriteDto
             {
-                ShiftId = Policy.ShiftId, PolicyId = Policy.Id, Date = Policy.Date, BookingOpensBefore = Policy.BookingOpensBefore,
+                Id = Policy.Id, ShiftId = Policy.ShiftId, Date = Policy.Date, BookingOpensBefore = Policy.BookingOpensBefore,
                 BookingCloseBefore = Policy.BookingCloseBefore, Closed = Policy.Closed, Capacity = Policy.Capacity,
                 RequiresApproval = Policy.RequiresApproval, CancellationDeadline = Policy.CancellationDeadline,
                 EstimatedSessionLength = Policy.EstimatedSessionLength, AllowRescheduling = Policy.AllowRescheduling, MaxReservationsPerParty = Policy.MaxReservationsPerParty
@@ -30,8 +29,8 @@ public partial class ShiftBookingPolicyForm : ShiftBookingPoliciesBase
     {
         model = model with { ShiftId = ShiftId };
         EntityResult<ShiftBookingPolicyReadDto> result = Policy is null
-            ? await UpsertBookingPolicyCommand.CreateAsync(model, CancellationToken.None)
-            : await UpsertBookingPolicyCommand.UpdateAsync(model, CancellationToken.None);
+            ? await BookingPolicyManager.AddAsync(model, CancellationToken.None)
+            : await BookingPolicyManager.UpdateAsync(model, CancellationToken.None);
 
         if (result.IsSuccess && result.Value is not null)
         {

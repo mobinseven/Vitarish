@@ -1,11 +1,12 @@
 using Riok.Mapperly.Abstractions;
 using Vitarish.Appointments.Domain.Dto;
 using Vitarish.Appointments.Domain.Entities;
+using Vitarish.Appointments.Domain.Models;
 
 namespace Vitarish.Appointments.Domain.Mappers;
 
 /// <summary>
-/// Mapper declarations for ShiftBookingPolicy owned entity.
+/// Mapper declarations for ShiftBookingPolicy entity.
 /// </summary>
 public partial class EntityMapper
 {
@@ -14,4 +15,6 @@ public partial class EntityMapper
     public partial global::Vitarish.Appointments.Domain.Entities.ShiftBookingPolicy ToDomain(global::Vitarish.Appointments.Domain.Dto.ShiftBookingPolicyWriteDto src);
 
     public partial global::Vitarish.Appointments.Domain.Dto.ShiftBookingPolicyWriteDto ToWrite(global::Vitarish.Appointments.Domain.Dto.ShiftBookingPolicyReadDto src);
+
+    public partial global::Vitarish.Appointments.Domain.Models.ShiftBookingPolicyDescriptor ToDomain(global::Vitarish.Appointments.Domain.Dto.ShiftBookingPolicyDescriptorDto src);
 }

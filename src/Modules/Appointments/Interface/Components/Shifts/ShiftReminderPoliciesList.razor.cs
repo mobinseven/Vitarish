@@ -14,8 +14,9 @@ public partial class ShiftReminderPoliciesList : ShiftReminderPoliciesBase
 
     private async Task LoadAsync()
     {
-        IReadOnlyList<ShiftReminderPolicyReadDto> result = await ReminderPolicyManager.GetByShiftAsync(ShiftId, CancellationToken.None);
-        policies = [.. result];
+        EntityResult<IReadOnlyList<ShiftReminderPolicyReadDto>> result = await ReminderPolicyManager.GetListAsync(
+            new ShiftReminderPolicyDescriptorDto { ShiftId = ShiftId }, CancellationToken.None);
+        policies = [.. result.Value ?? []];
         await InvokeAsync(StateHasChanged);
     }
 
@@ -58,7 +59,7 @@ public partial class ShiftReminderPoliciesList : ShiftReminderPoliciesBase
 
     private async Task RemoveAsync(ShiftReminderPolicyReadDto policy)
     {
-        EntityResult result = await ReminderPolicyManager.RemovePolicyAsync(ShiftId, policy.Id, CancellationToken.None);
+        EntityResult result = await ReminderPolicyManager.RemoveAsync(policy.Id, CancellationToken.None);
 
         if (result.IsSuccess)
         {

@@ -1,8 +1,7 @@
 namespace Vitarish.Appointments.Domain.Dto;
 
-public record ShiftReminderPolicyReadDto
+public record ShiftReminderPolicyReadDto : EntityReadDto
 {
-    public Guid Id { get; set; }
     public Guid ShiftId { get; set; }
     public bool IsEnabled { get; set; }
     public ReminderKind Channel { get; set; }

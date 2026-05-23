@@ -29,8 +29,8 @@ public partial class ShiftReminderPolicyForm : ShiftReminderPoliciesBase
         dto.ShiftId = ShiftId;
 
         EntityResult<ShiftReminderPolicyReadDto> result = dto.Id == Guid.Empty
-            ? await ReminderPolicyManager.AddPolicyAsync(dto, CancellationToken.None)
-            : await ReminderPolicyManager.UpdatePolicyAsync(dto, CancellationToken.None);
+            ? await ReminderPolicyManager.AddAsync(dto, CancellationToken.None)
+            : await ReminderPolicyManager.UpdateAsync(dto, CancellationToken.None);
 
         if (result.IsSuccess && result.Value is not null)
         {
