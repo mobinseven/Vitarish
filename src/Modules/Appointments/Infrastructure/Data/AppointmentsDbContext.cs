@@ -36,8 +36,6 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
     public DbSet<ServiceType> ServiceTypes => Set<ServiceType>();
     public DbSet<Service> Services => Set<Service>();
     public DbSet<AppointmentServiceProvider> ServiceProviders => Set<AppointmentServiceProvider>();
-    public DbSet<ShiftBookingPolicy> ShiftBookingPolicies => Set<ShiftBookingPolicy>();
-    public DbSet<ShiftReminderPolicy> ShiftReminderPolicies => Set<ShiftReminderPolicy>();
 
     public AppointmentsDbContext(
         DbContextOptions<AppointmentsDbContext> options,
@@ -89,35 +87,29 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
                     v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
-        });
 
+            _ = entity.OwnsMany(s => s.BookingPolicies, b =>
+            {
+                b.ToTable("ShiftBookingPolicies");
+                b.WithOwner().HasForeignKey("ShiftId");
+                b.HasKey("Id");
+                b.HasIndex("ShiftId");
+                b.HasIndex(p => new { p.ShiftId, p.Date });
+            });
 
-        _ = modelBuilder.Entity<ShiftBookingPolicy>(entity =>
-        {
-            entity.ToTable("ShiftBookingPolicies");
-            entity.HasKey(p => p.Id);
-            entity.HasIndex(p => new { p.ShiftId, p.Date });
-            entity.HasOne<Shift>()
-                .WithMany()
-                .HasForeignKey(p => p.ShiftId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
-
-        _ = modelBuilder.Entity<ShiftReminderPolicy>(entity =>
-        {
-            entity.ToTable("ShiftReminderPolicies");
-            entity.HasKey(p => p.Id);
-            entity.Property(p => p.QualifyingStatuses)
-                .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
-                    v => JsonSerializer.Deserialize<List<ReservationStatus>>(v, (JsonSerializerOptions?)null)
-                         ?? new List<ReservationStatus>())
-                .HasColumnType("nvarchar(max)");
-            entity.HasIndex(p => p.ShiftId);
-            entity.HasOne<Shift>()
-                .WithMany()
-                .HasForeignKey(p => p.ShiftId)
-                .OnDelete(DeleteBehavior.Cascade);
+            _ = entity.OwnsMany(s => s.ReminderPolicies, b =>
+            {
+                b.ToTable("ShiftReminderPolicies");
+                b.WithOwner().HasForeignKey("ShiftId");
+                b.HasKey("Id");
+                b.Property(p => p.QualifyingStatuses)
+                    .HasConversion(
+                        v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                        v => JsonSerializer.Deserialize<List<ReservationStatus>>(v, (JsonSerializerOptions?)null)
+                             ?? new List<ReservationStatus>())
+                    .HasColumnType("nvarchar(max)");
+                b.HasIndex("ShiftId");
+            });
         });
 
         _ = modelBuilder.Entity<Reservation>(entity =>

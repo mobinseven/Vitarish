@@ -7,7 +7,6 @@ namespace Vitarish.Appointments.Infrastructure.Handlers;
 
 internal class ShiftReminderPolicyTriggeredHandler(
     IEntityRepository<Shift, ShiftDescriptor> shiftRepository,
-    IEntityRepository<ShiftReminderPolicy, ShiftReminderPolicyDescriptor> reminderPolicyRepository,
     IRemindersService remindersService,
     IMediator mediator,
     TimeProvider? timeProvider = null)
@@ -28,10 +27,8 @@ internal class ShiftReminderPolicyTriggeredHandler(
             return;
         }
 
-        IReadOnlyList<ShiftReminderPolicy> enabledPolicies = await reminderPolicyRepository.GetAsync(
-            new ShiftReminderPolicyDescriptor { ShiftId = shift.Id, IsEnabled = true },
-            cancellationToken);
-        if (enabledPolicies.Count == 0)
+        IEnumerable<ShiftReminderPolicy> enabledPolicies = shift.ReminderPolicies.Where(p => p.IsEnabled);
+        if (!enabledPolicies.Any())
         {
             return;
         }
