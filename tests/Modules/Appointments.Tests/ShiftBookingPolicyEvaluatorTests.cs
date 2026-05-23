@@ -8,7 +8,7 @@ public class ShiftBookingPolicyEvaluatorTests
         Shift shift = CreateShift(TimeOnly.Parse("09:00"), TimeOnly.Parse("10:00"), 4);
         DateOnly date = FutureDate(DayOfWeek.Tuesday);
 
-        TimeSpan result = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, date, TimeSpan.FromMinutes(5));
+        TimeSpan result = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, date, [], TimeSpan.FromMinutes(5));
 
         result.Should().Be(TimeSpan.FromMinutes(5));
     }
@@ -18,14 +18,14 @@ public class ShiftBookingPolicyEvaluatorTests
     {
         DateOnly date = FutureDate(DayOfWeek.Tuesday);
         Shift shift = CreateShift(TimeOnly.Parse("09:00"), TimeOnly.Parse("10:00"), 4);
-        shift.BookingPolicies.Add(new ShiftBookingPolicy
+        IReadOnlyList<ShiftBookingPolicy> policies = [new ShiftBookingPolicy
         {
             ShiftId = shift.Id,
             Date = date,
             EstimatedSessionLength = TimeSpan.FromMinutes(15)
-        });
+        }];
 
-        TimeSpan result = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, date);
+        TimeSpan result = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, date, policies);
 
         result.Should().Be(TimeSpan.FromMinutes(15));
     }
@@ -36,7 +36,7 @@ public class ShiftBookingPolicyEvaluatorTests
         DateOnly date = FutureDate(DayOfWeek.Tuesday);
         Shift shift = CreateShift(TimeOnly.Parse("09:00"), TimeOnly.Parse("10:00"), 7);
 
-        TimeSpan result = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, date);
+        TimeSpan result = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, date, []);
 
         result.Should().Be(TimeSpan.FromMinutes(9));
     }

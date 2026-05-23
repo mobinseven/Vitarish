@@ -74,8 +74,4 @@ public class Shift : Entity
         set => SetField(ref field, value, nameof(BookingCloseBefore));
     }
 
-    public IList<ShiftBookingPolicy> BookingPolicies { get; set; } = [];
-
-    public IList<ShiftReminderPolicy> ReminderPolicies { get; set; } = [];
-
 }

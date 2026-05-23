@@ -6,10 +6,10 @@ public sealed record ShiftBookingPolicyViolation(ShiftBookingPolicyErrorCode Cod
 
 public static class ShiftBookingPolicyRules
 {
-    public static ShiftBookingPolicyViolation? ValidateWrite(Shift shift, DateOnly date, Guid? candidateId)
+    public static ShiftBookingPolicyViolation? ValidateWrite(DayOfWeek shiftDayOfWeek, DateOnly date, IEnumerable<ShiftBookingPolicy> existingPolicies, Guid? candidateId)
     {
-        if (date.DayOfWeek != shift.DayOfWeek) return new(ShiftBookingPolicyErrorCode.InvalidDateForShift, nameof(date));
-        bool duplicate = shift.BookingPolicies.Any(p => p.Date == date && p.Id != candidateId.GetValueOrDefault());
+        if (date.DayOfWeek != shiftDayOfWeek) return new(ShiftBookingPolicyErrorCode.InvalidDateForShift, nameof(date));
+        bool duplicate = existingPolicies.Any(p => p.Date == date && p.Id != candidateId.GetValueOrDefault());
         return duplicate ? new ShiftBookingPolicyViolation(ShiftBookingPolicyErrorCode.DuplicateDate, nameof(date)) : null;
     }
 }

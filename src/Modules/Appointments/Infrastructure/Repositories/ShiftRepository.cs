@@ -60,34 +60,4 @@ internal class ShiftRepository(AppointmentsDbContext dbContext)
     }
 
     protected override bool IsDuplicateKeyException(DbUpdateException exception) => false;
-
-    async Task<Shift?> IEntityRepository<Shift, ShiftDescriptor>.GetAsync(
-        Guid id, CancellationToken cancellationToken)
-    {
-        Shift? shift = await dbContext.Shifts
-            .AsNoTracking()
-            .Include(s => s.BookingPolicies)
-            .Include(s => s.ReminderPolicies)
-            .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
-        return shift;
-    }
-
-    //async Task<IReadOnlyList<Shift>> IEntityRepository<Shift, ShiftDescriptor>.GetAsync(
-    //    ShiftDescriptor descriptor, CancellationToken cancellationToken)
-    //{
-    //    IQueryable<Shift> query = Apply(
-    //        dbContext.Shifts
-    //            .AsNoTracking()
-    //            .Include(s => s.BookingPolicy)
-    //            .Include(s => s.ReminderPolicies),
-    //        descriptor);
-
-    //    if (query is not IOrderedQueryable<Shift>)
-    //    {
-    //        query = query.OrderByDescending(s => s.UpdatedAt ?? s.CreatedAt);
-    //    }
-
-    //    IReadOnlyList<Shift> shifts = await query.ApplyPagination(descriptor).ToListAsync(cancellationToken);
-    //    return shifts;
-    //}
 }

@@ -1,17 +1,31 @@
+using Microsoft.EntityFrameworkCore.Diagnostics;
+using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Appointments.Infrastructure.Repositories;
 using Vitarish.Appointments.Infrastructure.Services;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Appointments.Tests;
 
 public class ShiftBookableSlotsTests
 {
+    private static AppointmentsDbContext CreateDbContext()
+    {
+        DbContextOptions<AppointmentsDbContext> options = new DbContextOptionsBuilder<AppointmentsDbContext>()
+            .UseInMemoryDatabase(Guid.NewGuid().ToString())
+            .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
+            .Options;
+        Mock<IRequestContext> requestContext = new();
+        requestContext.SetupGet(x => x.TenantId).Returns("test-tenant");
+        return new AppointmentsDbContext(options, [], requestContext.Object);
+    }
 
     [Fact]
     public async Task GetBookableSlotsAsync_ShouldReturnEmptyForInvalidDateRange()
     {
         Mock<IEntityRepository<Shift, ShiftDescriptor>> shiftRepo = new();
         Mock<IShiftReservationViewRepository> viewRepo = new();
-        ShiftBookableDateQueryService sut = new(shiftRepo.Object, viewRepo.Object);
+        await using AppointmentsDbContext ctx = CreateDbContext();
+        ShiftBookableDateQueryService sut = new(shiftRepo.Object, viewRepo.Object, ctx);
 
         ShiftDescriptorDto descriptor = new() { Status = ShiftStatus.Active };
         ShiftDateRangeQuery range = new() { DateFrom = FutureDate(DayOfWeek.Tuesday).AddDays(7), DateTo = FutureDate(DayOfWeek.Tuesday) };
@@ -30,7 +44,8 @@ public class ShiftBookableSlotsTests
             .Setup(r => r.GetAsync(It.IsAny<ShiftDescriptor>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
         Mock<IShiftReservationViewRepository> viewRepo = new();
-        ShiftBookableDateQueryService sut = new(shiftRepo.Object, viewRepo.Object);
+        await using AppointmentsDbContext ctx = CreateDbContext();
+        ShiftBookableDateQueryService sut = new(shiftRepo.Object, viewRepo.Object, ctx);
 
         DateOnly date = FutureDate(DayOfWeek.Tuesday);
         ShiftDescriptorDto descriptor = new() { Status = ShiftStatus.Active };
@@ -58,7 +73,8 @@ public class ShiftBookableSlotsTests
             .Setup(r => r.GetAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
-        ShiftBookableDateQueryService sut = new(shiftRepo.Object, viewRepo.Object);
+        await using AppointmentsDbContext ctx = CreateDbContext();
+        ShiftBookableDateQueryService sut = new(shiftRepo.Object, viewRepo.Object, ctx);
 
         ShiftDescriptorDto descriptor = new() { Status = ShiftStatus.Active };
         ShiftDateRangeQuery range = new() { DateFrom = date, DateTo = date };
@@ -90,7 +106,8 @@ public class ShiftBookableSlotsTests
             .Setup(r => r.GetAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
-        ShiftBookableDateQueryService sut = new(shiftRepo.Object, viewRepo.Object);
+        await using AppointmentsDbContext ctx = CreateDbContext();
+        ShiftBookableDateQueryService sut = new(shiftRepo.Object, viewRepo.Object, ctx);
 
         // Range covers both the next Tuesday and the next Wednesday.
         DateOnly rangeStart = tuesday < wednesday ? tuesday : wednesday;
@@ -133,7 +150,8 @@ public class ShiftBookableSlotsTests
             .Setup(r => r.GetAsync(It.IsAny<IReadOnlyList<Guid>>(), date, date, It.IsAny<CancellationToken>()))
             .ReturnsAsync([existingReservation]);
 
-        ShiftBookableDateQueryService sut = new(shiftRepo.Object, viewRepo.Object);
+        await using AppointmentsDbContext ctx = CreateDbContext();
+        ShiftBookableDateQueryService sut = new(shiftRepo.Object, viewRepo.Object, ctx);
 
         ShiftDescriptorDto descriptor = new() { Status = ShiftStatus.Active };
         ShiftDateRangeQuery range = new() { DateFrom = date, DateTo = date };
@@ -150,12 +168,6 @@ public class ShiftBookableSlotsTests
     {
         DateOnly closedDate = FutureDate(DayOfWeek.Tuesday);
         Shift shift = CreateActiveShift(DayOfWeek.Tuesday);
-        shift.BookingPolicies.Add(new ShiftBookingPolicy
-        {
-            ShiftId = shift.Id,
-            Date = closedDate,
-            Closed = true
-        });
 
         Mock<IEntityRepository<Shift, ShiftDescriptor>> shiftRepo = new();
         shiftRepo
@@ -167,7 +179,19 @@ public class ShiftBookableSlotsTests
             .Setup(r => r.GetAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
-        ShiftBookableDateQueryService sut = new(shiftRepo.Object, viewRepo.Object);
+        await using AppointmentsDbContext ctx = CreateDbContext();
+
+        // Seed the closed policy into the in-memory DB
+        ctx.ShiftBookingPolicies.Add(new ShiftBookingPolicy
+        {
+            Id = Guid.NewGuid(),
+            ShiftId = shift.Id,
+            Date = closedDate,
+            Closed = true
+        });
+        await ctx.SaveChangesAsync();
+
+        ShiftBookableDateQueryService sut = new(shiftRepo.Object, viewRepo.Object, ctx);
 
         ShiftDescriptorDto descriptor = new() { Status = ShiftStatus.Active };
         ShiftDateRangeQuery range = new() { DateFrom = closedDate, DateTo = closedDate };
@@ -194,7 +218,8 @@ public class ShiftBookableSlotsTests
             .Setup(r => r.GetAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
-        ShiftBookableDateQueryService sut = new(shiftRepo.Object, viewRepo.Object);
+        await using AppointmentsDbContext ctx = CreateDbContext();
+        ShiftBookableDateQueryService sut = new(shiftRepo.Object, viewRepo.Object, ctx);
 
         // Range covers only the Tuesday — the Wednesday shift has no slot here.
         ShiftDescriptorDto descriptor = new() { Status = ShiftStatus.Active };

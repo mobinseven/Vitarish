@@ -1,8 +1,7 @@
 namespace Vitarish.Appointments.Domain.Dto;
 
-public record ShiftBookingPolicyWriteDto
+public record ShiftBookingPolicyWriteDto : EntityWriteDto
 {
-    public Guid Id { get; set; }
     public Guid ShiftId { get; set; }
     public DateOnly Date { get; set; } = DateOnly.FromDateTime(DateTime.Now);
     public int? BookingOpensBefore { get; set; }
