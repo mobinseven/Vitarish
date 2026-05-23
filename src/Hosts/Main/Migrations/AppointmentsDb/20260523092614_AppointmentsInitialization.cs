@@ -215,7 +215,14 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     CancellationDeadline = table.Column<TimeSpan>(type: "time", nullable: true),
                     EstimatedSessionLength = table.Column<TimeSpan>(type: "time", nullable: true),
                     AllowRescheduling = table.Column<bool>(type: "bit", nullable: false),
-                    MaxReservationsPerParty = table.Column<int>(type: "int", nullable: true)
+                    MaxReservationsPerParty = table.Column<int>(type: "int", nullable: true),
+                    TenantId = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    DeletedBy = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -241,7 +248,14 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     OffsetBefore = table.Column<TimeSpan>(type: "time", nullable: false),
                     QualifyingStatuses = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     SubjectTemplate = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    BodyTemplate = table.Column<string>(type: "nvarchar(max)", nullable: false)
+                    BodyTemplate = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    TenantId = table.Column<string>(type: "nvarchar(64)", maxLength: 64, nullable: false),
+                    CreatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: false),
+                    CreatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    UpdatedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    UpdatedBy = table.Column<string>(type: "nvarchar(max)", nullable: true),
+                    DeletedAt = table.Column<DateTimeOffset>(type: "datetimeoffset", nullable: true),
+                    DeletedBy = table.Column<string>(type: "nvarchar(max)", nullable: true)
                 },
                 constraints: table =>
                 {
