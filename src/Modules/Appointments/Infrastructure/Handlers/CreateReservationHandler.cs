@@ -22,12 +22,16 @@ internal class CreateReservationHandler(
                 await using IDbContextTransaction transaction = await dbContext.Database
                     .BeginTransactionAsync(cancellationToken);
 
-                Shift? shift = await dbContext.Shifts
+                Task<Shift?> shiftTask = dbContext.Shifts
                     .AsNoTracking()
                     .FirstOrDefaultAsync(s => s.Id == request.ShiftId, cancellationToken);
+                Task<IReadOnlyList<ShiftBookingPolicy>> policiesTask = LoadPoliciesAsync(request.ShiftId, cancellationToken);
 
+                await Task.WhenAll(shiftTask, policiesTask);
+
+                Shift? shift = await shiftTask;
                 IReadOnlyList<ShiftBookingPolicy> policies = shift is not null
-                    ? await LoadPoliciesAsync(request.ShiftId, cancellationToken)
+                    ? await policiesTask
                     : [];
 
                 EntityResult shiftValidation = ValidateShift(shift, request.Date, policies);

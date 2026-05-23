@@ -47,14 +47,19 @@ internal class ShiftBookingPolicyManager(
         Guid? candidateId,
         CancellationToken cancellationToken)
     {
-        Shift? shift = await shiftRepository.GetAsync(dto.ShiftId, cancellationToken);
+        Task<Shift?> shiftTask = shiftRepository.GetAsync(dto.ShiftId, cancellationToken);
+        Task<IReadOnlyList<ShiftBookingPolicy>> existingTask = policyRepository.GetAsync(
+            new ShiftBookingPolicyDescriptor { ShiftId = dto.ShiftId }, cancellationToken);
+
+        await Task.WhenAll(shiftTask, existingTask);
+
+        Shift? shift = await shiftTask;
         if (shift is null)
         {
             return new ShiftBookingPolicyViolation(ShiftBookingPolicyErrorCode.ShiftNotFound, nameof(dto.ShiftId));
         }
 
-        IReadOnlyList<ShiftBookingPolicy> existing = await policyRepository.GetAsync(
-            new ShiftBookingPolicyDescriptor { ShiftId = dto.ShiftId }, cancellationToken);
+        IReadOnlyList<ShiftBookingPolicy> existing = await existingTask;
 
         return ShiftBookingPolicyRules.ValidateWrite(shift.DayOfWeek, dto.Date, existing, candidateId);
     }

@@ -9,7 +9,7 @@ public static class ShiftReminderPolicyRules
         if (dto.OffsetBefore <= TimeSpan.Zero)
             return EntityResult.Failure(EntityError.Validation("ShiftReminderPolicyOffsetBeforePositiveError", nameof(dto.OffsetBefore)));
 
-        if (dto.QualifyingStatuses.Count == 0)
+        if (dto.QualifyingStatuses is not { Count: > 0 })
             return EntityResult.Failure(EntityError.Validation("ShiftReminderPolicyQualifyingStatusesRequiredError", nameof(dto.QualifyingStatuses)));
 
         if (string.IsNullOrWhiteSpace(dto.SubjectTemplate))
