@@ -1,11 +1,21 @@
 using System.Text.Json;
 using System.Web;
+using Microsoft.Extensions.Logging;
 
 namespace Vitarish.Interfaces.Base.Services.CalendarAnnotations;
 
 internal sealed class ExternalApiCalendarAnnotationSource : ICalendarAnnotationSource
 {
-    private static readonly HttpClient HttpClient = new();
+    private readonly IHttpClientFactory? httpClientFactory;
+    private readonly ILogger<ExternalApiCalendarAnnotationSource>? logger;
+
+    public ExternalApiCalendarAnnotationSource(
+        IHttpClientFactory? httpClientFactory = null,
+        ILogger<ExternalApiCalendarAnnotationSource>? logger = null)
+    {
+        this.httpClientFactory = httpClientFactory;
+        this.logger = logger;
+    }
 
     public async Task<CalendarAnnotationSourceResult> GetAnnotationsAsync(
         CalendarAnnotationSourceRequest request,
@@ -17,10 +27,16 @@ internal sealed class ExternalApiCalendarAnnotationSource : ICalendarAnnotationS
         }
 
         Uri endpoint = BuildEndpoint(request.ExternalApiEndpoint, request);
-        using HttpResponseMessage response = await HttpClient.GetAsync(endpoint, cancellationToken);
+
+        using HttpClient client = CreateClient();
+        using HttpResponseMessage response = await client.GetAsync(endpoint, cancellationToken);
 
         if (!response.IsSuccessStatusCode)
         {
+            logger?.LogWarning(
+                "Calendar external API source returned non-success status {StatusCode} for {Endpoint}.",
+                (int)response.StatusCode,
+                endpoint);
             return new CalendarAnnotationSourceResult(false, []);
         }
 
@@ -30,6 +46,10 @@ internal sealed class ExternalApiCalendarAnnotationSource : ICalendarAnnotationS
         List<CalendarAnnotation> annotations = Parse(document);
         return new CalendarAnnotationSourceResult(true, annotations);
     }
+
+    private HttpClient CreateClient() =>
+        httpClientFactory?.CreateClient("InterfacesBase.CalendarAnnotations")
+        ?? new HttpClient();
 
     private static Uri BuildEndpoint(Uri endpoint, CalendarAnnotationSourceRequest request)
     {

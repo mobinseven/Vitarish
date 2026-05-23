@@ -1,8 +1,19 @@
+using Microsoft.Extensions.Logging;
+
 namespace Vitarish.Interfaces.Base.Services.CalendarAnnotations;
 
 internal sealed class IcsCalendarAnnotationSource : ICalendarAnnotationSource
 {
-    private static readonly HttpClient HttpClient = new();
+    private readonly IHttpClientFactory? httpClientFactory;
+    private readonly ILogger<IcsCalendarAnnotationSource>? logger;
+
+    public IcsCalendarAnnotationSource(
+        IHttpClientFactory? httpClientFactory = null,
+        ILogger<IcsCalendarAnnotationSource>? logger = null)
+    {
+        this.httpClientFactory = httpClientFactory;
+        this.logger = logger;
+    }
 
     public async Task<CalendarAnnotationSourceResult> GetAnnotationsAsync(
         CalendarAnnotationSourceRequest request,
@@ -13,9 +24,14 @@ internal sealed class IcsCalendarAnnotationSource : ICalendarAnnotationSource
             return new CalendarAnnotationSourceResult(false, []);
         }
 
-        using HttpResponseMessage response = await HttpClient.GetAsync(request.IcsFeedUrl, cancellationToken);
+        using HttpClient client = CreateClient();
+        using HttpResponseMessage response = await client.GetAsync(request.IcsFeedUrl, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
+            logger?.LogWarning(
+                "Calendar ICS source returned non-success status {StatusCode} for {IcsFeedUrl}.",
+                (int)response.StatusCode,
+                request.IcsFeedUrl);
             return new CalendarAnnotationSourceResult(false, []);
         }
 
@@ -141,4 +157,8 @@ internal sealed class IcsCalendarAnnotationSource : ICalendarAnnotationSource
             ? parsed
             : null;
     }
+
+    private HttpClient CreateClient() =>
+        httpClientFactory?.CreateClient("InterfacesBase.CalendarAnnotations")
+        ?? new HttpClient();
 }

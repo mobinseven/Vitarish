@@ -27,7 +27,7 @@ internal static class CalendarAnnotationCultureResolver
 
             return new RegionInfo(regionCulture.Name).TwoLetterISORegionName.ToUpperInvariant();
         }
-        catch
+        catch (ArgumentException)
         {
             return "ZZ";
         }

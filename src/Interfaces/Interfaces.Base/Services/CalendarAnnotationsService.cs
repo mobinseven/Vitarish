@@ -1,4 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Vitarish.Interfaces.Base.Services.CalendarAnnotations;
 
 namespace Vitarish.Interfaces.Base.Services;
@@ -9,13 +11,21 @@ public sealed class CalendarAnnotationsService : ICalendarAnnotationsService
     private static readonly TimeSpan DefaultCacheDuration = TimeSpan.FromHours(6);
     private readonly IReadOnlyList<ICalendarAnnotationSource> sources;
     private readonly IMemoryCache cache;
+    private readonly ILogger<CalendarAnnotationsService>? logger;
 
-    public CalendarAnnotationsService(IMemoryCache cache)
+    public CalendarAnnotationsService(
+        IMemoryCache cache,
+        IServiceProvider serviceProvider)
         : this(
             cache,
+            serviceProvider.GetService<ILogger<CalendarAnnotationsService>>(),
             [
-                new ExternalApiCalendarAnnotationSource(),
-                new IcsCalendarAnnotationSource(),
+                new ExternalApiCalendarAnnotationSource(
+                    serviceProvider.GetService<IHttpClientFactory>(),
+                    serviceProvider.GetService<ILogger<ExternalApiCalendarAnnotationSource>>()),
+                new IcsCalendarAnnotationSource(
+                    serviceProvider.GetService<IHttpClientFactory>(),
+                    serviceProvider.GetService<ILogger<IcsCalendarAnnotationSource>>()),
                 new DeterministicCalendarAnnotationSource()
             ])
     {
@@ -23,9 +33,11 @@ public sealed class CalendarAnnotationsService : ICalendarAnnotationsService
 
     internal CalendarAnnotationsService(
         IMemoryCache cache,
+        ILogger<CalendarAnnotationsService>? logger,
         IReadOnlyList<ICalendarAnnotationSource> sources)
     {
         this.cache = cache;
+        this.logger = logger;
         this.sources = sources;
     }
 
@@ -68,9 +80,12 @@ public sealed class CalendarAnnotationsService : ICalendarAnnotationsService
                 annotations = result.Annotations;
                 break;
             }
-            catch
+            catch (Exception ex)
             {
-                // Fallback to next source.
+                logger?.LogWarning(
+                    ex,
+                    "Calendar annotation source {SourceType} failed; falling back to next source.",
+                    source.GetType().Name);
             }
         }
 

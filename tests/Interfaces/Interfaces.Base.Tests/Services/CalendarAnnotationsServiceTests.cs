@@ -19,7 +19,7 @@ public class CalendarAnnotationsServiceTests
             new CalendarAnnotation(new DateOnly(2026, 1, 2), new DateOnly(2026, 1, 2), Label: "B")
         ]));
 
-        var service = new CalendarAnnotationsService(cache, [first, second]);
+        var service = new CalendarAnnotationsService(cache, logger: null, [first, second]);
 
         IReadOnlyList<CalendarAnnotation> result = await service.GetAnnotationsAsync(
             new CalendarAnnotationQuery(new DateOnly(2026, 1, 1), new DateOnly(2026, 1, 31)));
@@ -40,7 +40,7 @@ public class CalendarAnnotationsServiceTests
             new CalendarAnnotation(new DateOnly(2026, 1, 2), new DateOnly(2026, 1, 2), Label: "Fallback")
         ]));
 
-        var service = new CalendarAnnotationsService(cache, [first, second]);
+        var service = new CalendarAnnotationsService(cache, logger: null, [first, second]);
 
         IReadOnlyList<CalendarAnnotation> result = await service.GetAnnotationsAsync(
             new CalendarAnnotationQuery(new DateOnly(2026, 1, 1), new DateOnly(2026, 1, 31)));
@@ -60,7 +60,7 @@ public class CalendarAnnotationsServiceTests
             new CalendarAnnotation(new DateOnly(2026, 1, 1), new DateOnly(2026, 1, 1), Label: "Cached")
         ]));
 
-        var service = new CalendarAnnotationsService(cache, [source]);
+        var service = new CalendarAnnotationsService(cache, logger: null, [source]);
         var query = new CalendarAnnotationQuery(
             new DateOnly(2026, 1, 1),
             new DateOnly(2026, 1, 31),
@@ -86,7 +86,7 @@ public class CalendarAnnotationsServiceTests
             new CalendarAnnotation(new DateOnly(2026, 1, 1), new DateOnly(2026, 1, 1), Label: "Expiring")
         ]));
 
-        var service = new CalendarAnnotationsService(cache, [source]);
+        var service = new CalendarAnnotationsService(cache, logger: null, [source]);
         var query = new CalendarAnnotationQuery(
             new DateOnly(2026, 1, 1),
             new DateOnly(2026, 1, 2),
