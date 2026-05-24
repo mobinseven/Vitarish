@@ -21,10 +21,10 @@ public sealed class CalendarAnnotationsService : ICalendarAnnotationsService
             serviceProvider.GetService<ILogger<CalendarAnnotationsService>>(),
             [
                 new ExternalApiCalendarAnnotationSource(
-                    serviceProvider.GetService<IHttpClientFactory>(),
+                    serviceProvider.GetRequiredService<IHttpClientFactory>(),
                     serviceProvider.GetService<ILogger<ExternalApiCalendarAnnotationSource>>()),
                 new IcsCalendarAnnotationSource(
-                    serviceProvider.GetService<IHttpClientFactory>(),
+                    serviceProvider.GetRequiredService<IHttpClientFactory>(),
                     serviceProvider.GetService<ILogger<IcsCalendarAnnotationSource>>()),
                 new EmbeddedIcsCalendarAnnotationSource()
             ])
@@ -66,28 +66,15 @@ public sealed class CalendarAnnotationsService : ICalendarAnnotationsService
             ExternalApiEndpoint: query.ExternalApiEndpoint,
             IcsFeedUrl: query.IcsFeedUrl);
 
-        IReadOnlyList<CalendarAnnotation> annotations = [];
-        foreach (ICalendarAnnotationSource source in sources)
-        {
-            try
-            {
-                CalendarAnnotationSourceResult result = await source.GetAnnotationsAsync(sourceRequest, cancellationToken);
-                if (!result.IsSuccess)
-                {
-                    continue;
-                }
+        Task<CalendarAnnotationSourceResult>[] sourceTasks = sources
+            .Select(source => GetSourceResultSafeAsync(source, sourceRequest, cancellationToken))
+            .ToArray();
 
-                annotations = result.Annotations;
-                break;
-            }
-            catch (Exception ex)
-            {
-                logger?.LogWarning(
-                    ex,
-                    "Calendar annotation source {SourceType} failed; falling back to next source.",
-                    source.GetType().Name);
-            }
-        }
+        CalendarAnnotationSourceResult[] sourceResults = await Task.WhenAll(sourceTasks);
+        List<CalendarAnnotation> annotations = sourceResults
+            .Where(result => result.IsSuccess)
+            .SelectMany(result => result.Annotations)
+            .ToList();
 
         TimeSpan ttl = query.CacheDuration.GetValueOrDefault(DefaultCacheDuration);
         if (ttl <= TimeSpan.Zero)
@@ -101,5 +88,24 @@ public sealed class CalendarAnnotationsService : ICalendarAnnotationsService
         });
 
         return annotations;
+    }
+
+    private async Task<CalendarAnnotationSourceResult> GetSourceResultSafeAsync(
+        ICalendarAnnotationSource source,
+        CalendarAnnotationSourceRequest sourceRequest,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await source.GetAnnotationsAsync(sourceRequest, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogWarning(
+                ex,
+                "Calendar annotation source {SourceType} failed and was skipped.",
+                source.GetType().Name);
+            return new CalendarAnnotationSourceResult(false, []);
+        }
     }
 }

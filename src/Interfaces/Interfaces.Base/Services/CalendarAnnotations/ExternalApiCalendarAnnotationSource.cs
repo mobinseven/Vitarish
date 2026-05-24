@@ -6,11 +6,11 @@ namespace Vitarish.Interfaces.Base.Services.CalendarAnnotations;
 
 internal sealed class ExternalApiCalendarAnnotationSource : ICalendarAnnotationSource
 {
-    private readonly IHttpClientFactory? httpClientFactory;
+    private readonly IHttpClientFactory httpClientFactory;
     private readonly ILogger<ExternalApiCalendarAnnotationSource>? logger;
 
     public ExternalApiCalendarAnnotationSource(
-        IHttpClientFactory? httpClientFactory = null,
+        IHttpClientFactory httpClientFactory,
         ILogger<ExternalApiCalendarAnnotationSource>? logger = null)
     {
         this.httpClientFactory = httpClientFactory;
@@ -48,8 +48,7 @@ internal sealed class ExternalApiCalendarAnnotationSource : ICalendarAnnotationS
     }
 
     private HttpClient CreateClient() =>
-        httpClientFactory?.CreateClient("InterfacesBase.CalendarAnnotations")
-        ?? new HttpClient();
+        httpClientFactory.CreateClient("InterfacesBase.CalendarAnnotations");
 
     private static Uri BuildEndpoint(Uri endpoint, CalendarAnnotationSourceRequest request)
     {

@@ -4,11 +4,11 @@ namespace Vitarish.Interfaces.Base.Services.CalendarAnnotations;
 
 internal sealed class IcsCalendarAnnotationSource : ICalendarAnnotationSource
 {
-    private readonly IHttpClientFactory? httpClientFactory;
+    private readonly IHttpClientFactory httpClientFactory;
     private readonly ILogger<IcsCalendarAnnotationSource>? logger;
 
     public IcsCalendarAnnotationSource(
-        IHttpClientFactory? httpClientFactory = null,
+        IHttpClientFactory httpClientFactory,
         ILogger<IcsCalendarAnnotationSource>? logger = null)
     {
         this.httpClientFactory = httpClientFactory;
@@ -35,30 +35,57 @@ internal sealed class IcsCalendarAnnotationSource : ICalendarAnnotationSource
             return new CalendarAnnotationSourceResult(false, []);
         }
 
-        string ics = await response.Content.ReadAsStringAsync(cancellationToken);
-        IReadOnlyList<CalendarAnnotation> annotations = Parse(ics, request.StartDate, request.EndDate);
+        await using Stream icsStream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        IReadOnlyList<CalendarAnnotation> annotations = await ParseAsync(icsStream, request.StartDate, request.EndDate, cancellationToken);
 
         return new CalendarAnnotationSourceResult(true, annotations);
     }
 
-    internal static IReadOnlyList<CalendarAnnotation> Parse(
-        string ics,
+    internal static async Task<IReadOnlyList<CalendarAnnotation>> ParseAsync(
+        Stream icsStream,
         DateOnly queryStart,
-        DateOnly queryEnd)
+        DateOnly queryEnd,
+        CancellationToken cancellationToken = default)
     {
-        string[] lines = ics
-            .Replace("\r\n", "\n", StringComparison.Ordinal)
-            .Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries);
-
         List<CalendarAnnotation> annotations = [];
         DateOnly? eventStart = null;
         DateOnly? eventEndExclusive = null;
         string? summary = null;
         bool inEvent = false;
+        using StreamReader reader = new(icsStream, leaveOpen: true);
+        string? pendingLine = null;
 
-        foreach (string rawLine in lines)
+        while (await reader.ReadLineAsync(cancellationToken) is { } rawLine)
         {
-            string line = rawLine.Trim();
+            if (rawLine.Length == 0)
+            {
+                continue;
+            }
+
+            if (rawLine[0] is ' ' or '\t')
+            {
+                pendingLine = (pendingLine ?? string.Empty) + rawLine[1..];
+                continue;
+            }
+
+            if (pendingLine is not null)
+            {
+                ProcessLine(pendingLine.Trim());
+            }
+
+            pendingLine = rawLine;
+        }
+
+        if (pendingLine is not null)
+        {
+            ProcessLine(pendingLine.Trim());
+        }
+
+        return annotations;
+
+        void ProcessLine(string line)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (line.Equals("BEGIN:VEVENT", StringComparison.OrdinalIgnoreCase))
             {
@@ -66,31 +93,31 @@ internal sealed class IcsCalendarAnnotationSource : ICalendarAnnotationSource
                 eventStart = null;
                 eventEndExclusive = null;
                 summary = null;
-                continue;
+                return;
             }
 
             if (!inEvent)
             {
-                continue;
+                return;
             }
 
             if (line.Equals("END:VEVENT", StringComparison.OrdinalIgnoreCase))
             {
                 TryAppendCurrentEvent();
                 inEvent = false;
-                continue;
+                return;
             }
 
             if (line.StartsWith("DTSTART", StringComparison.OrdinalIgnoreCase))
             {
                 eventStart = ParseIcsDateValue(line);
-                continue;
+                return;
             }
 
             if (line.StartsWith("DTEND", StringComparison.OrdinalIgnoreCase))
             {
                 eventEndExclusive = ParseIcsDateValue(line);
-                continue;
+                return;
             }
 
             if (line.StartsWith("SUMMARY", StringComparison.OrdinalIgnoreCase))
@@ -102,8 +129,6 @@ internal sealed class IcsCalendarAnnotationSource : ICalendarAnnotationSource
                 }
             }
         }
-
-        return annotations;
 
         void TryAppendCurrentEvent()
         {
@@ -139,6 +164,15 @@ internal sealed class IcsCalendarAnnotationSource : ICalendarAnnotationSource
         }
     }
 
+    internal static IReadOnlyList<CalendarAnnotation> Parse(
+        string ics,
+        DateOnly queryStart,
+        DateOnly queryEnd)
+    {
+        using MemoryStream stream = new(System.Text.Encoding.UTF8.GetBytes(ics));
+        return ParseAsync(stream, queryStart, queryEnd).GetAwaiter().GetResult();
+    }
+
     private static DateOnly? ParseIcsDateValue(string icsLine)
     {
         int separator = icsLine.IndexOf(':');
@@ -159,6 +193,5 @@ internal sealed class IcsCalendarAnnotationSource : ICalendarAnnotationSource
     }
 
     private HttpClient CreateClient() =>
-        httpClientFactory?.CreateClient("InterfacesBase.CalendarAnnotations")
-        ?? new HttpClient();
+        httpClientFactory.CreateClient("InterfacesBase.CalendarAnnotations");
 }

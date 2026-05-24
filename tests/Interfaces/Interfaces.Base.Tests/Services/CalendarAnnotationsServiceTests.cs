@@ -7,7 +7,7 @@ namespace Interfaces.Base.Tests.Services;
 public class CalendarAnnotationsServiceTests
 {
     [Fact]
-    public async Task Uses_First_Successful_Source_And_Skips_Remaining()
+    public async Task Aggregates_All_Successful_Sources()
     {
         using var cache = new MemoryCache(new MemoryCacheOptions());
         var first = new FakeSource(_ => new CalendarAnnotationSourceResult(true,
@@ -24,10 +24,10 @@ public class CalendarAnnotationsServiceTests
         IReadOnlyList<CalendarAnnotation> result = await service.GetAnnotationsAsync(
             new CalendarAnnotationQuery(new DateOnly(2026, 1, 1), new DateOnly(2026, 1, 31)));
 
-        result.Should().HaveCount(1);
-        result[0].Label.Should().Be("A");
+        result.Should().HaveCount(2);
+        result.Select(x => x.Label).Should().BeEquivalentTo(["A", "B"]);
         first.CallCount.Should().Be(1);
-        second.CallCount.Should().Be(0);
+        second.CallCount.Should().Be(1);
     }
 
     [Fact]
