@@ -223,7 +223,7 @@ Result: no silent warning/rejection paths.
 - Deliverables: end-to-end submit/retry/reconcile coverage.
 
 ### Phase 6 — Reference Sync + Observability
-- Implement scheduled/manual reference sync and freshness metrics.
+- Implement scheduled/manual reference sync (using logical version and checksum constraints) and freshness metrics.
 - Add support dashboards for failed transactions and queue depth.
 - Deliverables: operational dashboard + alerts + runbook draft.
 
