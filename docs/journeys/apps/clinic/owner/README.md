@@ -39,6 +39,7 @@ Implementation levels in the matrix:
 - [Patient Procedure Journey](./patient-procedure-journey.md)
 - [Patient Appointment Journey](./patient-appointment-journey.md)
 - [Patient Overview Journey](./patient-overview-journey.md)
+- [Social Security E-Prescription Journey Overview](./social-security-eprescription-overview-journey.md)
 
 ## Acceptance Criteria by Objective
 
