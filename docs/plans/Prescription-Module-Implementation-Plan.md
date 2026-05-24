@@ -1473,3 +1473,93 @@ Done means the multi-payer e-prescription module is functionally complete, secur
 ### Final Done Statement
 
 The module is Done only when it can safely support real doctor prescription workflows for at least one insurance provider in production, while the architecture, data model, security controls, audit model, provider adapter framework, and operational processes are ready to add and operate additional providers without redesigning the prescription domain or doctor UI.
+
+## Implementation Conventions (Vitarish-Specific)
+
+### Required placement by layer
+
+- **Host routable pages (`@page`)**: `src/Hosts/Main/Pages/Prescription/*`
+- **Host route constants/builders**: `src/Hosts/Main/Common/AppRoutes.cs` and `src/Hosts/Main/Common/Routes/*Routes.cs`
+- **Reusable Prescription UI components**: `src/Modules/Prescription/Interface/Components/*`
+- **Module entry/registration**: `src/Modules/Prescription/Interface/PrescriptionModule.cs` (or `Hosting/PrescriptionModule.cs` if endpoint-heavy)
+- **Use cases, CQS handlers, validators**: `src/Modules/Prescription/Application/*`
+- **Domain entities/value objects/state machine**: `src/Modules/Prescription/Domain/*`
+- **Provider adapters, EF, jobs, persistence**: `src/Modules/Prescription/Infrastructure/*`
+- **Module aggregation**: `src/Modules/Aggregator/Modules.Aggregator/ModuleExtensions.cs` and aggregator `.csproj`
+- **Tests (mirrored ownership)**: `tests/Modules/Prescription.Tests/*` and host behavior in `tests/Hosts/Main.Tests/*`
+
+### Non-negotiable boundaries
+
+1. Do not place routable pages in module Interface projects.
+2. Do not place provider DTOs or transport contracts in Domain.
+3. Do not call provider adapters directly from Host pages/components.
+4. Keep command handlers responsible for state change and query handlers read-only.
+5. Keep a single source of truth for route definitions (`AppRoutes` + route builders).
+
+### Delivery increments (keep simple)
+
+**Phase 1 — Core skeleton**
+- Prescription module scaffolding across Domain/Application/Infrastructure/Interface.
+- Provider registry + capability matrix + canonical lifecycle.
+- Host page shell with provider-aware workflow composition.
+
+**Phase 2 — First provider vertical slice (TAMIN)**
+- Eligibility check, draft submit, fetch status, cancel (if supported).
+- Transaction/audit logging + idempotency key handling.
+- Reference data sync for only required code systems.
+
+**Phase 3 — Second provider (SALAMAT)**
+- Reuse same application contracts and orchestration.
+- Add only adapter + mapping + provider capability config.
+
+**Phase 4 — Third provider (ARMED_FORCES or DITAS path)**
+- Integrate through direct/gateway mode behind the same `IInsuranceProviderAdapter` abstraction.
+
+**Phase 5 — Hardening**
+- Retry and timeout recovery workers.
+- Certification evidence pack automation per provider.
+- Operational dashboards and support queries.
+
+### Definition of done per provider
+
+1. Capability metadata is registered and environment-configurable.
+2. Adapter contract tests pass for success, warning, rejection, timeout, and duplicate-risk scenarios.
+3. Canonical-to-provider status mapping is documented and covered by tests.
+4. Provider-specific reference data sync completes with versioned records, enforcing non-overlapping effective-date intervals, including record_origin in uniqueness constraints, and implementing separate constraints for logical versions and source_checksum.
+5. Audit and API transaction logs include provider key and correlation identifiers.
+6. Host UI enables only operations declared by provider capability matrix.
+7. A rollback/fallback runbook exists for provider outages.
+
+### Suggested filesystem blueprint
+
+```text
+src/Modules/Prescription/
+  Domain/
+    Entities/
+    ValueObjects/
+    Enums/
+    Services/
+  Application/
+    Abstractions/
+    Commands/
+    Queries/
+    Validators/
+    Mappers/
+  Infrastructure/
+    Persistence/
+    Providers/
+      Tamin/
+      Salamat/
+      ArmedForces/
+      Ditas/
+    Jobs/
+    Configuration/
+  Interface/
+    Components/
+    DependencyInjection/
+    PrescriptionModule.cs
+
+src/Hosts/Main/
+  Pages/Prescription/
+  Common/Routes/PrescriptionRoutes.cs
+```
