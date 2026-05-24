@@ -173,7 +173,7 @@ Result: no silent warning/rejection paths.
 ### Storage boundaries
 - Canonical prescription/draft data in module DB context.
 - API transactions append-only for support and audit.
-- Reference code snapshots versioned; old codes inactivated, not deleted.
+- Reference code snapshots versioned using non-overlapping effective-date intervals (PostgreSQL EXCLUDE USING GIST) and 'record_origin' field.
 - Outbox table for guaranteed-safe asynchronous retries.
 
 ### Idempotency approach
