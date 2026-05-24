@@ -51,15 +51,26 @@
                 }
                 else
                 {
-                    @if(DayTemplate is null)
+                    var annotatedDay = BuildAnnotatedDay(day);
+
+                    @if(AnnotatedDayTemplate is not null)
+                    {
+                        @AnnotatedDayTemplate(annotatedDay)
+                    }
+                    else if(DayTemplate is null)
                     {
                         <button type="button"
-                                class="@day.CssClass"
+                                class="@annotatedDay.CssClass"
+                                style="@annotatedDay.InlineStyle"
                                 disabled="@(Disabled || day.IsDisabled)"
                                 aria-current="@(day.IsToday ? "date" : null)"
                                 aria-selected="@day.IsSelected"
                                 @onclick="() => day.SelectDayAsync(day)">
                             @day.DisplayDayNumber
+                            @if(!string.IsNullOrWhiteSpace(annotatedDay.Label))
+                            {
+                                <span class="mud-calendar__day-label">@annotatedDay.Label</span>
+                            }
                         </button>
                     }
                     else
@@ -146,8 +157,10 @@
 
     [Parameter] public Func<DateTime, bool>? IsDateDisabledFunc { get; set; }
     [Parameter] public Func<DateTime, string?>? AdditionalDateClassesFunc { get; set; }
+    [Parameter] public IReadOnlyList<CalendarAnnotation>? CalendarAnnotations { get; set; }
 
     [Parameter] public RenderFragment<CalendarDayContext>? DayTemplate { get; set; }
+    [Parameter] public RenderFragment<CalendarAnnotatedDayContext>? AnnotatedDayTemplate { get; set; }
     [Parameter] public RenderFragment<CalendarMonthContext>? MonthTemplate { get; set; }
     [Parameter] public RenderFragment<CalendarYearContext>? YearTemplate { get; set; }
     [Parameter] public RenderFragment<CalendarDayOfWeekContext>? DayOfWeekTemplate { get; set; }
@@ -564,6 +577,23 @@
     private string FormatYear(int calendarYear) =>
         calendarYear.ToString(EffectiveCulture);
 
+    private CalendarAnnotatedDayContext BuildAnnotatedDay(CalendarDayContext day)
+    {
+        CalendarAnnotation? annotation = StackCalendarAnnotationHelper.GetAnnotation(
+            CalendarAnnotations,
+            DateOnly.FromDateTime(day.Date));
+
+        var cssClass = StackCalendarAnnotationHelper.BuildCssClass(day.CssClass, annotation);
+        var inlineStyle = annotation?.HighlightStyle;
+
+        return new CalendarAnnotatedDayContext(
+            Day: day,
+            Annotation: annotation,
+            Label: annotation?.Label,
+            CssClass: cssClass,
+            InlineStyle: inlineStyle);
+    }
+
     public sealed record CalendarDayContext(
         DateTime Date,
         int DayNumber,
@@ -601,4 +631,11 @@
         int Index,
         string ShortName,
         bool IsWeekend);
+
+    public sealed record CalendarAnnotatedDayContext(
+        CalendarDayContext Day,
+        CalendarAnnotation? Annotation,
+        string? Label,
+        string CssClass,
+        string? InlineStyle);
 }
