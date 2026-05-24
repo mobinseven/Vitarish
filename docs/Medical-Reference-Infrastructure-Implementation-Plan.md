@@ -212,7 +212,7 @@ Use clear data ownership partitions.
 - `created_at`, `updated_at`
 
 **Constraints:**
-- Unique(`code_system_release_id`, `code`)
+- Unique(`code_system_release_id`, `code`, `record_origin`)
 - Every medical code belongs to exactly one release
 - Imported rows immutable post-import success
 
@@ -233,7 +233,7 @@ Use clear data ownership partitions.
 
 **Constraints:**
 - Source and target must exist
-- Optional uniqueness: Unique(`source_medical_code_id`, `target_medical_code_id`, `mapping_type`, `effective_from`)
+- Optional identity uniqueness: Unique(`source_medical_code_id`, `target_medical_code_id`, `mapping_type`, `record_origin`, `effective_from`)
 
 ### 3.5 Drug
 **Purpose:** Clinical drug concept.
@@ -250,7 +250,7 @@ Use clear data ownership partitions.
 - `import_batch_id` (nullable)
 
 **Constraints:**
-- Unique(`primary_identifier_type`, `primary_identifier_value`, `effective_from`) for imported
+- Unique(`primary_identifier_type`, `primary_identifier_value`, `record_origin`, `effective_from`)
 - `normalized_name` indexed for search
 
 ### 3.6 DrugProduct
@@ -326,7 +326,7 @@ Use clear data ownership partitions.
 
 **Constraints:**
 - Must reference valid service + release
-- Unique(`medical_service_id`, `code_system_release_id`, `code`, `effective_from`)
+- Unique(`medical_service_id`, `code_system_release_id`, `code`, `record_origin`, `effective_from`)
 
 ### 3.10 ServiceValuation
 **Purpose:** Versioned RVU/RBRVS valuation reference for service code.
@@ -348,7 +348,7 @@ Use clear data ownership partitions.
 - `import_batch_id`
 
 **Constraints:**
-- Unique(`service_code_id`, `valuation_year`, `locality`, `facility_indicator`, `effective_from`)
+- Unique(`service_code_id`, `valuation_year`, `locality`, `facility_indicator`, `record_origin`, `effective_from`)
 - Must not be treated as price fields by domain naming or API docs
 
 ### 3.11 ImportBatch
@@ -368,7 +368,9 @@ Use clear data ownership partitions.
 - `started_at`, `completed_at`
 
 **Constraints:**
-- Unique(`source_type`, `source_version`, `source_checksum`) optional by policy
+- Unique(`source_type`, `source_version`) to ensure one logical batch per published version
+- Unique(`source_checksum`) to guarantee checksum-level idempotency
+- If re-processing is needed, create an explicit reimport record linked to the original batch instead of inserting a second Imported batch for the same version
 
 ---
 
@@ -403,7 +405,7 @@ Use clear data ownership partitions.
 - Service valuation unique across service_code/year/locality/facility/effective_from
 
 ### Indexes
-- `medical_code(code_system_release_id, code)` unique + btree
+- `medical_code(code_system_release_id, code, record_origin)` unique + btree
 - `medical_code(display_name)` trigram/full-text index for typeahead
 - `drug(normalized_name)` full-text/trigram
 - `packaged_drug(identifier_source, package_identifier)`
@@ -569,7 +571,7 @@ Error branches:
 
 1. Every `MedicalCode` belongs to exactly one `CodeSystemRelease`.
 2. Every `CodeSystemRelease` belongs to exactly one `CodeSystem`.
-3. `(code_system_release_id, code)` must be unique.
+3. `(code_system_release_id, code, record_origin)` must be unique, allowing imported and local overlay rows to coexist.
 4. Imported records are immutable after import success.
 5. Local corrections never overwrite imported rows.
 6. `CodeMap` must point to valid source/target `MedicalCode` rows.
@@ -582,6 +584,7 @@ Error branches:
 13. Every imported row must be traceable to one `ImportBatch`.
 14. Every state-changing operation must go through platform audit mechanism.
 15. Effective date intervals must be valid (`from <= to`) and non-overlapping per uniqueness dimension unless explicitly allowed.
+16. For PostgreSQL deployments, enforce non-overlap with exclusion constraints (`EXCLUDE USING GIST`) on each interval-managed entity; for non-PostgreSQL engines, enforce the same invariant in command-handler validation before commit.
 
 ---
 
