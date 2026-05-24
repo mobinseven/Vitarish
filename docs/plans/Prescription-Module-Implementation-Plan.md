@@ -1525,7 +1525,7 @@ The module is Done only when it can safely support real doctor prescription work
 1. Capability metadata is registered and environment-configurable.
 2. Adapter contract tests pass for success, warning, rejection, timeout, and duplicate-risk scenarios.
 3. Canonical-to-provider status mapping is documented and covered by tests.
-4. Provider-specific reference data sync completes with versioned records.
+4. Provider-specific reference data sync completes with versioned records, enforcing non-overlapping effective-date intervals, including record_origin in uniqueness constraints, and implementing separate constraints for logical versions and source_checksum.
 5. Audit and API transaction logs include provider key and correlation identifiers.
 6. Host UI enables only operations declared by provider capability matrix.
 7. A rollback/fallback runbook exists for provider outages.
