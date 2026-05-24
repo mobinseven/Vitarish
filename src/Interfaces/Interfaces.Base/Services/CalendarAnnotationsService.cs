@@ -26,7 +26,7 @@ public sealed class CalendarAnnotationsService : ICalendarAnnotationsService
                 new IcsCalendarAnnotationSource(
                     serviceProvider.GetService<IHttpClientFactory>(),
                     serviceProvider.GetService<ILogger<IcsCalendarAnnotationSource>>()),
-                new DeterministicCalendarAnnotationSource()
+                new EmbeddedIcsCalendarAnnotationSource()
             ])
     {
     }
