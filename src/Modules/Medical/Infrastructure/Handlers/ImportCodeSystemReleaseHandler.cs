@@ -21,6 +21,8 @@ internal sealed class ImportCodeSystemReleaseHandler(MedicalDbContext dbContext)
         IExecutionStrategy executionStrategy = dbContext.Database.CreateExecutionStrategy();
         return await executionStrategy.ExecuteAsync(async () =>
         {
+            dbContext.ChangeTracker.Clear();
+
             await using IDbContextTransaction transaction = await dbContext.Database
                 .BeginTransactionAsync(cancellationToken);
 
@@ -85,6 +87,15 @@ internal sealed class ImportCodeSystemReleaseHandler(MedicalDbContext dbContext)
             var codes = new List<MedicalCode>(request.Codes.Count);
             foreach (ImportMedicalCodeItem item in request.Codes)
             {
+                if (!MedicalValidationRules.IsValidEffectiveDateRange(item.EffectiveFrom, item.EffectiveTo))
+                {
+                    importBatch.Status = ImportBatchStatus.Failed;
+                    importBatch.ErrorReport = $"Invalid effective date range for code '{item.Code}'.";
+                    _ = await dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    return EntityResult<Guid>.Failure(EntityError.Validation(importBatch.ErrorReport));
+                }
+
                 codes.Add(new MedicalCode
                 {
                     Id = Guid.NewGuid(),

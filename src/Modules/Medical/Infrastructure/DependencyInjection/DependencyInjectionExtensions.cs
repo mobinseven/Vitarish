@@ -6,6 +6,7 @@ public static class DependencyInjectionExtensions
     {
         _ = services.AddVitarishMedicalInfrastructure();
 
+
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(
             typeof(MedicalDbContext).Assembly));
 

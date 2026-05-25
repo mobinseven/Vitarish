@@ -16,6 +16,8 @@ internal sealed class ImportServiceCatalogHandler(MedicalDbContext dbContext)
         IExecutionStrategy executionStrategy = dbContext.Database.CreateExecutionStrategy();
         return await executionStrategy.ExecuteAsync(async () =>
         {
+            dbContext.ChangeTracker.Clear();
+
             await using IDbContextTransaction transaction = await dbContext.Database
                 .BeginTransactionAsync(cancellationToken);
 

@@ -128,7 +128,7 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
     {
         string normalizedText = text.ToUpperInvariant();
         IQueryable<Drug> query = dbContext.Drugs.AsNoTracking()
-            .Where(d => d.NormalizedName.Contains(normalizedText) || d.PrimaryName.Contains(text));
+            .Where(d => d.NormalizedName.Contains(normalizedText));
 
         if (activeOnly)
         {

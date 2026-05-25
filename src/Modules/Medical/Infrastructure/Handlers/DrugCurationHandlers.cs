@@ -10,6 +10,24 @@ internal sealed class CreateDrugHandler(MedicalDbContext dbContext)
             return EntityResult<Guid>.Failure(EntityError.Validation("EffectiveTo must be >= EffectiveFrom."));
         }
 
+        bool hasOverlappingInterval = await dbContext.Drugs
+            .AnyAsync(
+                d => d.PrimaryIdentifierType == request.PrimaryIdentifierType
+                    && d.PrimaryIdentifierValue == request.PrimaryIdentifierValue
+                    && d.RecordOrigin == RecordOrigin.Local
+                    && (
+                        request.EffectiveTo == null || d.EffectiveFrom == null || d.EffectiveFrom <= request.EffectiveTo
+                    )
+                    && (
+                        d.EffectiveTo == null || request.EffectiveFrom == null || request.EffectiveFrom <= d.EffectiveTo
+                    ),
+                cancellationToken);
+
+        if (hasOverlappingInterval)
+        {
+            return EntityResult<Guid>.Failure(EntityError.Validation("Effective date range overlaps an existing drug with the same identifier."));
+        }
+
         var entity = new Drug
         {
             Id = Guid.NewGuid(),
@@ -51,6 +69,25 @@ internal sealed class UpdateLocalDrugHandler(MedicalDbContext dbContext)
         if (!MedicalValidationRules.IsValidEffectiveDateRange(request.EffectiveFrom, request.EffectiveTo))
         {
             return EntityResult<Guid>.Failure(EntityError.Validation("EffectiveTo must be >= EffectiveFrom."));
+        }
+
+        bool hasOverlappingInterval = await dbContext.Drugs
+            .AnyAsync(
+                d => d.Id != request.DrugId
+                    && d.PrimaryIdentifierType == entity.PrimaryIdentifierType
+                    && d.PrimaryIdentifierValue == entity.PrimaryIdentifierValue
+                    && d.RecordOrigin == RecordOrigin.Local
+                    && (
+                        request.EffectiveTo == null || d.EffectiveFrom == null || d.EffectiveFrom <= request.EffectiveTo
+                    )
+                    && (
+                        d.EffectiveTo == null || request.EffectiveFrom == null || request.EffectiveFrom <= d.EffectiveTo
+                    ),
+                cancellationToken);
+
+        if (hasOverlappingInterval)
+        {
+            return EntityResult<Guid>.Failure(EntityError.Validation("Effective date range overlaps an existing drug with the same identifier."));
         }
 
         entity.PrimaryName = request.PrimaryName;
