@@ -31,6 +31,26 @@ internal sealed class CreateCodeMapHandler(MedicalDbContext dbContext)
             return EntityResult<Guid>.Failure(EntityError.Validation("Target medical code not found."));
         }
 
+
+        bool hasOverlappingInterval = await dbContext.CodeMaps
+            .AnyAsync(
+                c => c.SourceMedicalCodeId == request.SourceMedicalCodeId
+                    && c.TargetMedicalCodeId == request.TargetMedicalCodeId
+                    && c.MappingType == request.MappingType
+                    && c.RecordOrigin == RecordOrigin.Local
+                    && (
+                        request.EffectiveTo == null || c.EffectiveFrom == null || c.EffectiveFrom <= request.EffectiveTo
+                    )
+                    && (
+                        c.EffectiveTo == null || request.EffectiveFrom == null || request.EffectiveFrom <= c.EffectiveTo
+                    ),
+                cancellationToken);
+
+        if (hasOverlappingInterval)
+        {
+            return EntityResult<Guid>.Failure(EntityError.Validation("Effective date range overlaps an existing code map for the same source, target, and mapping type."));
+        }
+
         var entity = new CodeMap
         {
             Id = Guid.NewGuid(),

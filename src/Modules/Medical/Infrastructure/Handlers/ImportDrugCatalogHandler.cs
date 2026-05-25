@@ -45,6 +45,10 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
             }
 
             int drugCount = 0;
+            var drugs = new List<Drug>(request.Drugs.Count);
+            var products = new List<DrugProduct>();
+            var packages = new List<PackagedDrug>();
+
             foreach (ImportDrugItem drugItem in request.Drugs)
             {
                 var drug = new Drug
@@ -61,7 +65,7 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
                     ImportBatchId = importBatch.Id
                 };
 
-                _ = await dbContext.Drugs.AddAsync(drug, cancellationToken);
+                drugs.Add(drug);
                 drugCount++;
 
                 if (drugItem.Products is not null)
@@ -83,13 +87,13 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
                             ImportBatchId = importBatch.Id
                         };
 
-                        _ = await dbContext.DrugProducts.AddAsync(product, cancellationToken);
+                        products.Add(product);
 
                         if (productItem.Packages is not null)
                         {
                             foreach (ImportPackagedDrugItem packageItem in productItem.Packages)
                             {
-                                var package = new PackagedDrug
+                                packages.Add(new PackagedDrug
                                 {
                                     Id = Guid.NewGuid(),
                                     DrugProductId = product.Id,
@@ -103,14 +107,16 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
                                     MarketingEndDate = packageItem.MarketingEndDate,
                                     RecordOrigin = RecordOrigin.Imported,
                                     ImportBatchId = importBatch.Id
-                                };
-
-                                _ = await dbContext.PackagedDrugs.AddAsync(package, cancellationToken);
+                                });
                             }
                         }
                     }
                 }
             }
+
+            await dbContext.Drugs.AddRangeAsync(drugs, cancellationToken);
+            await dbContext.DrugProducts.AddRangeAsync(products, cancellationToken);
+            await dbContext.PackagedDrugs.AddRangeAsync(packages, cancellationToken);
 
             importBatch.Status = ImportBatchStatus.Imported;
             importBatch.ImportedAt = DateTimeOffset.UtcNow;

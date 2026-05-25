@@ -72,6 +72,9 @@ internal sealed class ImportServiceCatalogHandler(MedicalDbContext dbContext)
             }
 
             int serviceCount = 0;
+            var services = new List<MedicalService>(request.Services.Count);
+            var serviceCodes = new List<ServiceCode>();
+
             foreach (ImportServiceItem serviceItem in request.Services)
             {
                 var service = new MedicalService
@@ -86,14 +89,14 @@ internal sealed class ImportServiceCatalogHandler(MedicalDbContext dbContext)
                     ImportBatchId = importBatch.Id
                 };
 
-                _ = await dbContext.MedicalServices.AddAsync(service, cancellationToken);
+                services.Add(service);
                 serviceCount++;
 
                 if (serviceItem.Codes is not null)
                 {
                     foreach (ImportServiceCodeItem codeItem in serviceItem.Codes)
                     {
-                        var serviceCode = new ServiceCode
+                        serviceCodes.Add(new ServiceCode
                         {
                             Id = Guid.NewGuid(),
                             MedicalServiceId = service.Id,
@@ -104,12 +107,13 @@ internal sealed class ImportServiceCatalogHandler(MedicalDbContext dbContext)
                             Status = ServiceCodeStatus.Imported,
                             RecordOrigin = RecordOrigin.Imported,
                             ImportBatchId = importBatch.Id
-                        };
-
-                        _ = await dbContext.ServiceCodes.AddAsync(serviceCode, cancellationToken);
+                        });
                     }
                 }
             }
+
+            await dbContext.MedicalServices.AddRangeAsync(services, cancellationToken);
+            await dbContext.ServiceCodes.AddRangeAsync(serviceCodes, cancellationToken);
 
             importBatch.Status = ImportBatchStatus.Imported;
             importBatch.ImportedAt = DateTimeOffset.UtcNow;

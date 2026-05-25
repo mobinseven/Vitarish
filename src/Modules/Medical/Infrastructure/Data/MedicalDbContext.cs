@@ -153,7 +153,6 @@ public sealed class MedicalDbContext : DbContext
                 .HasDatabaseName("IX_CodeMap_TargetCode");
             _ = entity.HasIndex(e => new { e.SourceMedicalCodeId, e.TargetMedicalCodeId, e.MappingType, e.RecordOrigin, e.EffectiveFrom })
                 .IsUnique()
-                .HasFilter("[EffectiveFrom] IS NOT NULL")
                 .HasDatabaseName("IX_CodeMap_Uniqueness");
         });
     }
@@ -173,7 +172,6 @@ public sealed class MedicalDbContext : DbContext
                 .IsRequired(false);
             _ = entity.HasIndex(e => new { e.PrimaryIdentifierType, e.PrimaryIdentifierValue, e.RecordOrigin, e.EffectiveFrom })
                 .IsUnique()
-                .HasFilter("[EffectiveFrom] IS NOT NULL")
                 .HasDatabaseName("IX_Drug_Identifier_Origin_Effective");
             _ = entity.HasIndex(e => e.NormalizedName)
                 .HasDatabaseName("IX_Drug_NormalizedName");
@@ -275,7 +273,6 @@ public sealed class MedicalDbContext : DbContext
                 .IsRequired(false);
             _ = entity.HasIndex(e => new { e.MedicalServiceId, e.CodeSystemReleaseId, e.Code, e.RecordOrigin, e.EffectiveFrom })
                 .IsUnique()
-                .HasFilter("[EffectiveFrom] IS NOT NULL")
                 .HasDatabaseName("IX_ServiceCode_Service_Release_Code_Origin_Effective");
             _ = entity.HasIndex(e => new { e.CodeSystemReleaseId, e.Code })
                 .HasDatabaseName("IX_ServiceCode_Release_Code");
@@ -309,7 +306,6 @@ public sealed class MedicalDbContext : DbContext
                 .IsRequired(false);
             _ = entity.HasIndex(e => new { e.ServiceCodeId, e.ValuationYear, e.Locality, e.FacilityIndicator, e.RecordOrigin, e.EffectiveFrom })
                 .IsUnique()
-                .HasFilter("[EffectiveFrom] IS NOT NULL")
                 .HasDatabaseName("IX_ServiceValuation_Code_Year_Locality_Facility_Origin_Effective");
             _ = entity.HasIndex(e => new { e.ServiceCodeId, e.ValuationYear, e.Locality, e.FacilityIndicator })
                 .HasDatabaseName("IX_ServiceValuation_Lookup");

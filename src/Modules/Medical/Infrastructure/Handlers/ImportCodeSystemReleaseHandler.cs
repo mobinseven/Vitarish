@@ -28,7 +28,7 @@ internal sealed class ImportCodeSystemReleaseHandler(MedicalDbContext dbContext)
             var importBatch = new ImportBatch
             {
                 Id = Guid.NewGuid(),
-                SourceType = ImportSourceType.LocalCsv,
+                SourceType = request.SourceType,
                 SourceVersion = request.SourceVersion,
                 SourceLocator = request.SourceLocator,
                 SourceChecksum = request.SourceChecksum,

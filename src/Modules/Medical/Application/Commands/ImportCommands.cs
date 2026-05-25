@@ -11,6 +11,7 @@ public record ImportCodeSystemReleaseCommand(
     string SourceLocator,
     string SourceVersion,
     string? SourceChecksum,
+    ImportSourceType SourceType,
     IReadOnlyList<ImportMedicalCodeItem> Codes,
     bool DryRun = false) : IRequest<EntityResult<Guid>>;
 
