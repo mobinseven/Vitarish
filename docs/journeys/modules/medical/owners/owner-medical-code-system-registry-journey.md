@@ -12,7 +12,7 @@
 | --- | --- |
 | Registry | Register `CodeSystem` and `CodeSystemRelease` with uniqueness constraints. |
 | Activation | Activate/deactivate releases with policy checks. |
-| Invariants | Release uniqueness and effective date validity enforced. |
+| Invariants | Release uniqueness and non-overlapping effective date intervals enforced. |
 
 ## 3. Happy Path
 1. Owner opens code system registry.
