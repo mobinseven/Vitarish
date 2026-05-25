@@ -8,6 +8,8 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
         IExecutionStrategy executionStrategy = dbContext.Database.CreateExecutionStrategy();
         return await executionStrategy.ExecuteAsync(async () =>
         {
+            dbContext.ChangeTracker.Clear();
+
             await using IDbContextTransaction transaction = await dbContext.Database
                 .BeginTransactionAsync(cancellationToken);
 
@@ -51,6 +53,15 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
 
             foreach (ImportDrugItem drugItem in request.Drugs)
             {
+                if (!MedicalValidationRules.IsValidEffectiveDateRange(drugItem.EffectiveFrom, drugItem.EffectiveTo))
+                {
+                    importBatch.Status = ImportBatchStatus.Failed;
+                    importBatch.ErrorReport = $"Invalid effective date range for drug '{drugItem.PrimaryName}'.";
+                    _ = await dbContext.SaveChangesAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
+                    return EntityResult<Guid>.Failure(EntityError.Validation(importBatch.ErrorReport));
+                }
+
                 var drug = new Drug
                 {
                     Id = Guid.NewGuid(),

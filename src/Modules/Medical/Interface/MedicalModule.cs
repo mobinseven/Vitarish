@@ -15,7 +15,7 @@ public sealed class MedicalModule : Module, IMedicalModule
     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         _ = builder.Services.AddSingleton<IMedicalModule, MedicalModule>();
-        _ = builder.Services.AddDbContext<MedicalDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
+        _ = builder.Services.AddDbContext<MedicalDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Scoped);
         _ = builder.Services.AddMedicalInfrastructure();
 
         return Task.CompletedTask;
