@@ -27,7 +27,7 @@
 - Invalid status transition -> rejected.
 
 ## 5. UX and Guardrail Rules
-1. Local overlays coexist; they never overwrite imports.
+1. Local overlays coexist; they never overwrite imports (uniqueness constraints include record_origin to prevent conflicts).
 2. Curation commands are auditable and role-protected.
 3. Keep curation UI focused on local origin decisions and lifecycle.
 
