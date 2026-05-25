@@ -1,16 +1,16 @@
 namespace Vitarish.Medical.Infrastructure.Handlers;
 
 internal sealed class ImportServiceCatalogHandler(MedicalDbContext dbContext)
-    : IRequestHandler<ImportServiceCatalogCommand, EntityResult<Guid>>
+    : IRequestHandler<ImportServiceCatalogCommand, EntityResult<ImportResult>>
 {
-    public async Task<EntityResult<Guid>> Handle(ImportServiceCatalogCommand request, CancellationToken cancellationToken)
+    public async Task<EntityResult<ImportResult>> Handle(ImportServiceCatalogCommand request, CancellationToken cancellationToken)
     {
         bool codeSystemExists = await dbContext.CodeSystems
             .AnyAsync(cs => cs.Id == request.CodeSystemId, cancellationToken);
 
         if (!codeSystemExists)
         {
-            return EntityResult<Guid>.Failure(EntityError.Validation($"Code system '{request.CodeSystemId}' not found."));
+            return EntityResult<ImportResult>.Failure(EntityError.Validation($"Code system '{request.CodeSystemId}' not found."));
         }
 
         IExecutionStrategy executionStrategy = dbContext.Database.CreateExecutionStrategy();
@@ -39,11 +39,37 @@ internal sealed class ImportServiceCatalogHandler(MedicalDbContext dbContext)
 
                 if (checksumExists)
                 {
-                    return EntityResult<Guid>.Failure(EntityError.Validation("Import with this checksum already exists."));
+                    return EntityResult<ImportResult>.Failure(EntityError.Validation("Import with this checksum already exists."));
                 }
             }
 
+            bool versionExists = await dbContext.ImportBatches
+                .AnyAsync(b => b.SourceType == request.SourceType && b.SourceVersion == request.SourceVersion, cancellationToken);
+
+            if (versionExists)
+            {
+                return EntityResult<ImportResult>.Failure(EntityError.Validation(
+                    $"An import batch for source '{request.SourceType}' and version '{request.SourceVersion}' already exists."));
+            }
+
             _ = await dbContext.ImportBatches.AddAsync(importBatch, cancellationToken);
+
+            if (request.DryRun)
+            {
+                importBatch.Status = ImportBatchStatus.Pending;
+                importBatch.ValidationSummary = $"Dry run: {request.Services.Count} services would be imported.";
+                _ = await dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return EntityResult<ImportResult>.Success(
+                    new ImportResult(
+                        importBatch.Id,
+                        importBatch.Status,
+                        request.Services.Count,
+                        0,
+                        request.Services.Count,
+                        Array.Empty<string>(),
+                        Array.Empty<string>()));
+            }
 
             // Find or create release
             CodeSystemRelease? release = await dbContext.CodeSystemReleases
@@ -62,15 +88,6 @@ internal sealed class ImportServiceCatalogHandler(MedicalDbContext dbContext)
                     IsActive = false
                 };
                 _ = await dbContext.CodeSystemReleases.AddAsync(release, cancellationToken);
-            }
-
-            if (request.DryRun)
-            {
-                importBatch.Status = ImportBatchStatus.Pending;
-                importBatch.ValidationSummary = $"Dry run: {request.Services.Count} services would be imported.";
-                _ = await dbContext.SaveChangesAsync(cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
-                return EntityResult<Guid>.Success(importBatch.Id);
             }
 
             int serviceCount = 0;
@@ -125,7 +142,15 @@ internal sealed class ImportServiceCatalogHandler(MedicalDbContext dbContext)
             _ = await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            return EntityResult<Guid>.Success(importBatch.Id);
+            return EntityResult<ImportResult>.Success(
+                new ImportResult(
+                    importBatch.Id,
+                    importBatch.Status,
+                    request.Services.Count,
+                    serviceCount,
+                    Math.Max(request.Services.Count - serviceCount, 0),
+                    Array.Empty<string>(),
+                    Array.Empty<string>()));
         });
     }
 }

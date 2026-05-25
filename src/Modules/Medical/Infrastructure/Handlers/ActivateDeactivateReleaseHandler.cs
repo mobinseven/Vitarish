@@ -5,18 +5,37 @@ internal sealed class ActivateCodeSystemReleaseHandler(MedicalDbContext dbContex
 {
     public async Task<EntityResult<Guid>> Handle(ActivateCodeSystemReleaseCommand request, CancellationToken cancellationToken)
     {
-        CodeSystemRelease? release = await dbContext.CodeSystemReleases
-            .FirstOrDefaultAsync(r => r.Id == request.ReleaseId, cancellationToken);
-
-        if (release is null)
+        IExecutionStrategy executionStrategy = dbContext.Database.CreateExecutionStrategy();
+        return await executionStrategy.ExecuteAsync(async () =>
         {
-            return EntityResult<Guid>.Failure(EntityError.Validation($"Release '{request.ReleaseId}' not found."));
-        }
+            dbContext.ChangeTracker.Clear();
 
-        release.IsActive = true;
-        _ = await dbContext.SaveChangesAsync(cancellationToken);
+            await using IDbContextTransaction transaction = await dbContext.Database
+                .BeginTransactionAsync(cancellationToken);
 
-        return EntityResult<Guid>.Success(release.Id);
+            CodeSystemRelease? release = await dbContext.CodeSystemReleases
+                .FirstOrDefaultAsync(r => r.Id == request.ReleaseId, cancellationToken);
+
+            if (release is null)
+            {
+                return EntityResult<Guid>.Failure(EntityError.Validation($"Release '{request.ReleaseId}' not found."));
+            }
+
+            List<CodeSystemRelease> otherActiveReleases = await dbContext.CodeSystemReleases
+                .Where(r => r.CodeSystemId == release.CodeSystemId && r.Id != release.Id && r.IsActive)
+                .ToListAsync(cancellationToken);
+
+            foreach (CodeSystemRelease otherActiveRelease in otherActiveReleases)
+            {
+                otherActiveRelease.IsActive = false;
+            }
+
+            release.IsActive = true;
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+
+            return EntityResult<Guid>.Success(release.Id);
+        });
     }
 }
 

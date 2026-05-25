@@ -17,7 +17,7 @@ public interface IMedicalQueryService
 
     Task<Drug?> GetDrugAsync(Guid drugId, DateOnly? asOfDate = null, CancellationToken cancellationToken = default);
     Task<IReadOnlyList<Drug>> SearchDrugsAsync(string text, bool activeOnly = true, DateOnly? asOfDate = null, int limit = 20, CancellationToken cancellationToken = default);
-    Task<Drug?> ResolveDrugIdentifierAsync(DrugIdentifierType identifierType, string identifierValue, Guid? releaseId = null, DateOnly? asOfDate = null, CancellationToken cancellationToken = default);
+    Task<Drug?> ResolveDrugIdentifierAsync(DrugIdentifierType identifierType, string identifierValue, DateOnly? asOfDate = null, CancellationToken cancellationToken = default);
     Task<DrugProduct?> GetDrugProductAsync(Guid drugProductId, DateOnly? asOfDate = null, CancellationToken cancellationToken = default);
     Task<PackagedDrug?> GetPackagedDrugAsync(Guid packagedDrugId, CancellationToken cancellationToken = default);
 

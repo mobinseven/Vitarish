@@ -1,21 +1,21 @@
 namespace Vitarish.Medical.Infrastructure.Handlers;
 
 internal sealed class ImportCodeSystemReleaseHandler(MedicalDbContext dbContext)
-    : IRequestHandler<ImportCodeSystemReleaseCommand, EntityResult<Guid>>
+    : IRequestHandler<ImportCodeSystemReleaseCommand, EntityResult<ImportResult>>
 {
-    public async Task<EntityResult<Guid>> Handle(ImportCodeSystemReleaseCommand request, CancellationToken cancellationToken)
+    public async Task<EntityResult<ImportResult>> Handle(ImportCodeSystemReleaseCommand request, CancellationToken cancellationToken)
     {
         bool codeSystemExists = await dbContext.CodeSystems
             .AnyAsync(cs => cs.Id == request.CodeSystemId, cancellationToken);
 
         if (!codeSystemExists)
         {
-            return EntityResult<Guid>.Failure(EntityError.Validation($"Code system '{request.CodeSystemId}' not found."));
+            return EntityResult<ImportResult>.Failure(EntityError.Validation($"Code system '{request.CodeSystemId}' not found."));
         }
 
         if (!MedicalValidationRules.IsValidEffectiveDateRange(request.EffectiveFrom, request.EffectiveTo))
         {
-            return EntityResult<Guid>.Failure(EntityError.Validation("EffectiveTo must be >= EffectiveFrom."));
+            return EntityResult<ImportResult>.Failure(EntityError.Validation("EffectiveTo must be >= EffectiveFrom."));
         }
 
         IExecutionStrategy executionStrategy = dbContext.Database.CreateExecutionStrategy();
@@ -46,7 +46,7 @@ internal sealed class ImportCodeSystemReleaseHandler(MedicalDbContext dbContext)
 
                 if (checksumExists)
                 {
-                    return EntityResult<Guid>.Failure(EntityError.Validation("Import with this checksum already exists."));
+                    return EntityResult<ImportResult>.Failure(EntityError.Validation("Import with this checksum already exists."));
                 }
             }
 
@@ -55,11 +55,28 @@ internal sealed class ImportCodeSystemReleaseHandler(MedicalDbContext dbContext)
 
             if (versionExists)
             {
-                return EntityResult<Guid>.Failure(EntityError.Validation(
+                return EntityResult<ImportResult>.Failure(EntityError.Validation(
                     $"An import batch for source '{request.SourceType}' and version '{request.SourceVersion}' already exists."));
             }
 
             _ = await dbContext.ImportBatches.AddAsync(importBatch, cancellationToken);
+
+            if (request.DryRun)
+            {
+                importBatch.Status = ImportBatchStatus.Pending;
+                importBatch.ValidationSummary = $"Dry run: {request.Codes.Count} codes would be imported.";
+                _ = await dbContext.SaveChangesAsync(cancellationToken);
+                await transaction.CommitAsync(cancellationToken);
+                return EntityResult<ImportResult>.Success(
+                    new ImportResult(
+                        importBatch.Id,
+                        importBatch.Status,
+                        request.Codes.Count,
+                        0,
+                        request.Codes.Count,
+                        Array.Empty<string>(),
+                        Array.Empty<string>()));
+            }
 
             // Create or find release
             CodeSystemRelease? release = await dbContext.CodeSystemReleases
@@ -83,15 +100,6 @@ internal sealed class ImportCodeSystemReleaseHandler(MedicalDbContext dbContext)
                 _ = await dbContext.CodeSystemReleases.AddAsync(release, cancellationToken);
             }
 
-            if (request.DryRun)
-            {
-                importBatch.Status = ImportBatchStatus.Pending;
-                importBatch.ValidationSummary = $"Dry run: {request.Codes.Count} codes would be imported.";
-                _ = await dbContext.SaveChangesAsync(cancellationToken);
-                await transaction.CommitAsync(cancellationToken);
-                return EntityResult<Guid>.Success(importBatch.Id);
-            }
-
             // Import codes
             var codes = new List<MedicalCode>(request.Codes.Count);
             foreach (ImportMedicalCodeItem item in request.Codes)
@@ -102,7 +110,7 @@ internal sealed class ImportCodeSystemReleaseHandler(MedicalDbContext dbContext)
                     importBatch.ErrorReport = $"Invalid effective date range for code '{item.Code}'.";
                     _ = await dbContext.SaveChangesAsync(cancellationToken);
                     await transaction.CommitAsync(cancellationToken);
-                    return EntityResult<Guid>.Failure(EntityError.Validation(importBatch.ErrorReport));
+                    return EntityResult<ImportResult>.Failure(EntityError.Validation(importBatch.ErrorReport));
                 }
 
                 codes.Add(new MedicalCode
@@ -131,7 +139,15 @@ internal sealed class ImportCodeSystemReleaseHandler(MedicalDbContext dbContext)
             _ = await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            return EntityResult<Guid>.Success(importBatch.Id);
+            return EntityResult<ImportResult>.Success(
+                new ImportResult(
+                    importBatch.Id,
+                    importBatch.Status,
+                    request.Codes.Count,
+                    codes.Count,
+                    Math.Max(request.Codes.Count - codes.Count, 0),
+                    Array.Empty<string>(),
+                    Array.Empty<string>()));
         });
     }
 }

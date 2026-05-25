@@ -13,7 +13,7 @@ public record ImportCodeSystemReleaseCommand(
     string? SourceChecksum,
     ImportSourceType SourceType,
     IReadOnlyList<ImportMedicalCodeItem> Codes,
-    bool DryRun = false) : IRequest<EntityResult<Guid>>;
+    bool DryRun = false) : IRequest<EntityResult<ImportResult>>;
 
 public record ImportMedicalCodeItem(
     string Code,
@@ -29,7 +29,7 @@ public record ImportDrugCatalogCommand(
     string? SourceChecksum,
     ImportSourceType SourceType,
     IReadOnlyList<ImportDrugItem> Drugs,
-    bool DryRun = false) : IRequest<EntityResult<Guid>>;
+    bool DryRun = false) : IRequest<EntityResult<ImportResult>>;
 
 public record ImportDrugItem(
     string PrimaryName,
@@ -67,7 +67,7 @@ public record ImportServiceCatalogCommand(
     Guid CodeSystemId,
     string ReleaseName,
     IReadOnlyList<ImportServiceItem> Services,
-    bool DryRun = false) : IRequest<EntityResult<Guid>>;
+    bool DryRun = false) : IRequest<EntityResult<ImportResult>>;
 
 public record ImportServiceItem(
     string Name,
@@ -88,7 +88,7 @@ public record ImportServiceValuationsCommand(
     ImportSourceType SourceType,
     Guid? SourceReleaseId,
     IReadOnlyList<ImportServiceValuationItem> Valuations,
-    bool DryRun = false) : IRequest<EntityResult<Guid>>;
+    bool DryRun = false) : IRequest<EntityResult<ImportResult>>;
 
 public record ImportServiceValuationItem(
     Guid ServiceCodeId,

@@ -3,6 +3,8 @@ namespace Vitarish.Medical.Infrastructure.Services;
 [RegisterTransient]
 internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedicalQueryService
 {
+    private const int MaxSearchLimit = 200;
+
     public async Task<CodeSystem?> GetCodeSystemAsync(Guid id, CancellationToken cancellationToken)
         => await dbContext.CodeSystems.AsNoTracking()
             .FirstOrDefaultAsync(cs => cs.Id == id, cancellationToken);
@@ -76,6 +78,8 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
             return Array.Empty<MedicalCode>();
         }
 
+        int boundedLimit = NormalizeSearchLimit(limit);
+
         if (!releaseId.HasValue)
         {
             CodeSystemRelease? activeRelease = await GetActiveReleaseAsync(systemKey, asOfDate, cancellationToken);
@@ -98,7 +102,12 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
                 (c.EffectiveTo == null || c.EffectiveTo >= date));
         }
 
-        return await query.Take(limit).ToListAsync(cancellationToken);
+        return await query
+            .OrderBy(c => c.Code)
+            .ThenBy(c => c.DisplayName)
+            .ThenBy(c => c.Id)
+            .Take(boundedLimit)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<ImportBatch?> GetImportBatchAsync(Guid importBatchId, CancellationToken cancellationToken)
@@ -126,6 +135,7 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
             return Array.Empty<Drug>();
         }
 
+        int boundedLimit = NormalizeSearchLimit(limit);
         string normalizedText = text.ToUpperInvariant();
         IQueryable<Drug> query = dbContext.Drugs.AsNoTracking()
             .Where(d => d.NormalizedName.Contains(normalizedText));
@@ -142,10 +152,15 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
                 (d.EffectiveTo == null || d.EffectiveTo >= date));
         }
 
-        return await query.Take(limit).ToListAsync(cancellationToken);
+        return await query
+            .OrderBy(d => d.NormalizedName)
+            .ThenBy(d => d.PrimaryIdentifierValue)
+            .ThenBy(d => d.Id)
+            .Take(boundedLimit)
+            .ToListAsync(cancellationToken);
     }
 
-    public async Task<Drug?> ResolveDrugIdentifierAsync(DrugIdentifierType identifierType, string identifierValue, Guid? releaseId, DateOnly? asOfDate, CancellationToken cancellationToken)
+    public async Task<Drug?> ResolveDrugIdentifierAsync(DrugIdentifierType identifierType, string identifierValue, DateOnly? asOfDate, CancellationToken cancellationToken)
     {
         IQueryable<Drug> query = dbContext.Drugs.AsNoTracking()
             .Where(d => d.PrimaryIdentifierType == identifierType && d.PrimaryIdentifierValue == identifierValue);
@@ -201,6 +216,7 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
             return Array.Empty<MedicalService>();
         }
 
+        int boundedLimit = NormalizeSearchLimit(limit);
         IQueryable<MedicalService> query = dbContext.MedicalServices.AsNoTracking()
             .Where(s => s.Name.Contains(text) || (s.Description != null && s.Description.Contains(text)));
 
@@ -226,7 +242,11 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
                 (s.EffectiveTo == null || s.EffectiveTo >= date));
         }
 
-        return await query.Take(limit).ToListAsync(cancellationToken);
+        return await query
+            .OrderBy(s => s.Name)
+            .ThenBy(s => s.Id)
+            .Take(boundedLimit)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<ServiceCode?> ResolveServiceCodeAsync(string systemKey, string code, Guid? releaseId, DateOnly? asOfDate, CancellationToken cancellationToken)
@@ -248,7 +268,10 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
                 (sc.EffectiveTo == null || sc.EffectiveTo >= date));
         }
 
-        return await query.FirstOrDefaultAsync(cancellationToken);
+        return await query
+            .OrderByDescending(sv => sv.EffectiveFrom)
+            .ThenByDescending(sv => sv.Id)
+            .FirstOrDefaultAsync(cancellationToken);
     }
 
     public async Task<ServiceValuation?> GetServiceValuationAsync(Guid serviceCodeId, int year, string? locality, FacilityIndicator? facilityIndicator, DateOnly? asOfDate, CancellationToken cancellationToken)
@@ -283,11 +306,13 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
 
         if (!string.IsNullOrEmpty(targetSystemKey))
         {
-            query = query.Where(m => dbContext.MedicalCodes.Any(c =>
-                c.Id == m.TargetMedicalCodeId &&
-                dbContext.CodeSystemReleases.Any(r =>
-                    r.Id == c.CodeSystemReleaseId &&
-                    dbContext.CodeSystems.Any(cs => cs.Id == r.CodeSystemId && cs.SystemKey == targetSystemKey))));
+            query =
+                from map in query
+                join targetCode in dbContext.MedicalCodes.AsNoTracking() on map.TargetMedicalCodeId equals targetCode.Id
+                join release in dbContext.CodeSystemReleases.AsNoTracking() on targetCode.CodeSystemReleaseId equals release.Id
+                join codeSystem in dbContext.CodeSystems.AsNoTracking() on release.CodeSystemId equals codeSystem.Id
+                where codeSystem.SystemKey == targetSystemKey
+                select map;
         }
 
         if (mappingType.HasValue)
@@ -304,4 +329,6 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
 
         return await query.ToListAsync(cancellationToken);
     }
+
+    private static int NormalizeSearchLimit(int requestedLimit) => Math.Clamp(requestedLimit, 1, MaxSearchLimit);
 }

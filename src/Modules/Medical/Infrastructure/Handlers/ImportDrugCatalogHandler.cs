@@ -1,9 +1,9 @@
 namespace Vitarish.Medical.Infrastructure.Handlers;
 
 internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
-    : IRequestHandler<ImportDrugCatalogCommand, EntityResult<Guid>>
+    : IRequestHandler<ImportDrugCatalogCommand, EntityResult<ImportResult>>
 {
-    public async Task<EntityResult<Guid>> Handle(ImportDrugCatalogCommand request, CancellationToken cancellationToken)
+    public async Task<EntityResult<ImportResult>> Handle(ImportDrugCatalogCommand request, CancellationToken cancellationToken)
     {
         IExecutionStrategy executionStrategy = dbContext.Database.CreateExecutionStrategy();
         return await executionStrategy.ExecuteAsync(async () =>
@@ -31,7 +31,7 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
 
                 if (checksumExists)
                 {
-                    return EntityResult<Guid>.Failure(EntityError.Validation("Import with this checksum already exists."));
+                    return EntityResult<ImportResult>.Failure(EntityError.Validation("Import with this checksum already exists."));
                 }
             }
 
@@ -40,7 +40,7 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
 
             if (versionExists)
             {
-                return EntityResult<Guid>.Failure(EntityError.Validation(
+                return EntityResult<ImportResult>.Failure(EntityError.Validation(
                     $"An import batch for source '{request.SourceType}' and version '{request.SourceVersion}' already exists."));
             }
 
@@ -52,7 +52,15 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
                 importBatch.ValidationSummary = $"Dry run: {request.Drugs.Count} drugs would be imported.";
                 _ = await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
-                return EntityResult<Guid>.Success(importBatch.Id);
+                return EntityResult<ImportResult>.Success(
+                    new ImportResult(
+                        importBatch.Id,
+                        importBatch.Status,
+                        request.Drugs.Count,
+                        0,
+                        request.Drugs.Count,
+                        Array.Empty<string>(),
+                        Array.Empty<string>()));
             }
 
             int drugCount = 0;
@@ -74,7 +82,7 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
                     importBatch.ErrorReport = $"Invalid effective date range for drug '{drugItem.PrimaryName}'.";
                     _ = await dbContext.SaveChangesAsync(cancellationToken);
                     await transaction.CommitAsync(cancellationToken);
-                    return EntityResult<Guid>.Failure(EntityError.Validation(importBatch.ErrorReport));
+                    return EntityResult<ImportResult>.Failure(EntityError.Validation(importBatch.ErrorReport));
                 }
 
                 var drugKey = new DrugImportKey(
@@ -162,7 +170,15 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
             _ = await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            return EntityResult<Guid>.Success(importBatch.Id);
+            return EntityResult<ImportResult>.Success(
+                new ImportResult(
+                    importBatch.Id,
+                    importBatch.Status,
+                    request.Drugs.Count,
+                    drugCount,
+                    Math.Max(request.Drugs.Count - drugCount, 0),
+                    Array.Empty<string>(),
+                    Array.Empty<string>()));
         });
     }
 

@@ -1,9 +1,9 @@
 namespace Vitarish.Medical.Infrastructure.Handlers;
 
 internal sealed class ImportServiceValuationsHandler(MedicalDbContext dbContext)
-    : IRequestHandler<ImportServiceValuationsCommand, EntityResult<Guid>>
+    : IRequestHandler<ImportServiceValuationsCommand, EntityResult<ImportResult>>
 {
-    public async Task<EntityResult<Guid>> Handle(ImportServiceValuationsCommand request, CancellationToken cancellationToken)
+    public async Task<EntityResult<ImportResult>> Handle(ImportServiceValuationsCommand request, CancellationToken cancellationToken)
     {
         IExecutionStrategy executionStrategy = dbContext.Database.CreateExecutionStrategy();
         return await executionStrategy.ExecuteAsync(async () =>
@@ -31,8 +31,17 @@ internal sealed class ImportServiceValuationsHandler(MedicalDbContext dbContext)
 
                 if (checksumExists)
                 {
-                    return EntityResult<Guid>.Failure(EntityError.Validation("Import with this checksum already exists."));
+                    return EntityResult<ImportResult>.Failure(EntityError.Validation("Import with this checksum already exists."));
                 }
+            }
+
+            bool versionExists = await dbContext.ImportBatches
+                .AnyAsync(b => b.SourceType == request.SourceType && b.SourceVersion == request.SourceVersion, cancellationToken);
+
+            if (versionExists)
+            {
+                return EntityResult<ImportResult>.Failure(EntityError.Validation(
+                    $"An import batch for source '{request.SourceType}' and version '{request.SourceVersion}' already exists."));
             }
 
             _ = await dbContext.ImportBatches.AddAsync(importBatch, cancellationToken);
@@ -43,7 +52,15 @@ internal sealed class ImportServiceValuationsHandler(MedicalDbContext dbContext)
                 importBatch.ValidationSummary = $"Dry run: {request.Valuations.Count} valuations would be imported.";
                 _ = await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
-                return EntityResult<Guid>.Success(importBatch.Id);
+                return EntityResult<ImportResult>.Success(
+                    new ImportResult(
+                        importBatch.Id,
+                        importBatch.Status,
+                        request.Valuations.Count,
+                        0,
+                        request.Valuations.Count,
+                        Array.Empty<string>(),
+                        Array.Empty<string>()));
             }
 
             var valuations = new List<ServiceValuation>(request.Valuations.Count);
@@ -55,7 +72,7 @@ internal sealed class ImportServiceValuationsHandler(MedicalDbContext dbContext)
                     importBatch.ErrorReport = $"Invalid effective date range for service code '{item.ServiceCodeId}'.";
                     _ = await dbContext.SaveChangesAsync(cancellationToken);
                     await transaction.CommitAsync(cancellationToken);
-                    return EntityResult<Guid>.Failure(EntityError.Validation(importBatch.ErrorReport ?? "Validation failed."));
+                    return EntityResult<ImportResult>.Failure(EntityError.Validation(importBatch.ErrorReport ?? "Validation failed."));
                 }
 
                 valuations.Add(new ServiceValuation
@@ -88,7 +105,15 @@ internal sealed class ImportServiceValuationsHandler(MedicalDbContext dbContext)
             _ = await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
-            return EntityResult<Guid>.Success(importBatch.Id);
+            return EntityResult<ImportResult>.Success(
+                new ImportResult(
+                    importBatch.Id,
+                    importBatch.Status,
+                    request.Valuations.Count,
+                    valuations.Count,
+                    Math.Max(request.Valuations.Count - valuations.Count, 0),
+                    Array.Empty<string>(),
+                    Array.Empty<string>()));
         });
     }
 }
