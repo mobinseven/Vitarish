@@ -49,20 +49,15 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
 
     public async Task<MedicalCode?> ResolveMedicalCodeAsync(string systemKey, string code, Guid? releaseId, DateOnly? asOfDate, CancellationToken cancellationToken)
     {
-        IQueryable<MedicalCode> query = dbContext.MedicalCodes.AsNoTracking();
-
-        if (releaseId.HasValue)
+        if (!releaseId.HasValue)
         {
-            query = query.Where(c => c.CodeSystemReleaseId == releaseId.Value);
-        }
-        else
-        {
-            query = query.Where(c => dbContext.CodeSystemReleases.Any(r =>
-                r.Id == c.CodeSystemReleaseId && r.IsActive &&
-                dbContext.CodeSystems.Any(cs => cs.Id == r.CodeSystemId && cs.SystemKey == systemKey)));
+            CodeSystemRelease? activeRelease = await GetActiveReleaseAsync(systemKey, asOfDate, cancellationToken);
+            if (activeRelease is null) return null;
+            releaseId = activeRelease.Id;
         }
 
-        query = query.Where(c => c.Code == code);
+        IQueryable<MedicalCode> query = dbContext.MedicalCodes.AsNoTracking()
+            .Where(c => c.CodeSystemReleaseId == releaseId.Value && c.Code == code);
 
         if (asOfDate is { } date)
         {
@@ -76,20 +71,20 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
 
     public async Task<IReadOnlyList<MedicalCode>> SearchMedicalCodesAsync(string systemKey, string textOrCode, Guid? releaseId, bool activeOnly, DateOnly? asOfDate, int limit, CancellationToken cancellationToken)
     {
-        IQueryable<MedicalCode> query = dbContext.MedicalCodes.AsNoTracking();
-
-        if (releaseId.HasValue)
+        if (string.IsNullOrWhiteSpace(textOrCode))
         {
-            query = query.Where(c => c.CodeSystemReleaseId == releaseId.Value);
-        }
-        else
-        {
-            query = query.Where(c => dbContext.CodeSystemReleases.Any(r =>
-                r.Id == c.CodeSystemReleaseId && r.IsActive &&
-                dbContext.CodeSystems.Any(cs => cs.Id == r.CodeSystemId && cs.SystemKey == systemKey)));
+            return Array.Empty<MedicalCode>();
         }
 
-        query = query.Where(c => c.Code.Contains(textOrCode) || c.DisplayName.Contains(textOrCode));
+        if (!releaseId.HasValue)
+        {
+            CodeSystemRelease? activeRelease = await GetActiveReleaseAsync(systemKey, asOfDate, cancellationToken);
+            if (activeRelease is null) return Array.Empty<MedicalCode>();
+            releaseId = activeRelease.Id;
+        }
+
+        IQueryable<MedicalCode> query = dbContext.MedicalCodes.AsNoTracking()
+            .Where(c => c.CodeSystemReleaseId == releaseId.Value && (c.Code.Contains(textOrCode) || c.DisplayName.Contains(textOrCode)));
 
         if (activeOnly)
         {
@@ -126,6 +121,11 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
 
     public async Task<IReadOnlyList<Drug>> SearchDrugsAsync(string text, bool activeOnly, DateOnly? asOfDate, int limit, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return Array.Empty<Drug>();
+        }
+
         string normalizedText = text.ToUpperInvariant();
         IQueryable<Drug> query = dbContext.Drugs.AsNoTracking()
             .Where(d => d.NormalizedName.Contains(normalizedText));
@@ -196,6 +196,11 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
 
     public async Task<IReadOnlyList<MedicalService>> SearchMedicalServicesAsync(string text, string? category, string? specialty, bool activeOnly, DateOnly? asOfDate, int limit, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return Array.Empty<MedicalService>();
+        }
+
         IQueryable<MedicalService> query = dbContext.MedicalServices.AsNoTracking()
             .Where(s => s.Name.Contains(text) || (s.Description != null && s.Description.Contains(text)));
 
@@ -226,20 +231,15 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
 
     public async Task<ServiceCode?> ResolveServiceCodeAsync(string systemKey, string code, Guid? releaseId, DateOnly? asOfDate, CancellationToken cancellationToken)
     {
-        IQueryable<ServiceCode> query = dbContext.ServiceCodes.AsNoTracking();
-
-        if (releaseId.HasValue)
+        if (!releaseId.HasValue)
         {
-            query = query.Where(sc => sc.CodeSystemReleaseId == releaseId.Value);
-        }
-        else
-        {
-            query = query.Where(sc => dbContext.CodeSystemReleases.Any(r =>
-                r.Id == sc.CodeSystemReleaseId && r.IsActive &&
-                dbContext.CodeSystems.Any(cs => cs.Id == r.CodeSystemId && cs.SystemKey == systemKey)));
+            CodeSystemRelease? activeRelease = await GetActiveReleaseAsync(systemKey, asOfDate, cancellationToken);
+            if (activeRelease is null) return null;
+            releaseId = activeRelease.Id;
         }
 
-        query = query.Where(sc => sc.Code == code);
+        IQueryable<ServiceCode> query = dbContext.ServiceCodes.AsNoTracking()
+            .Where(sc => sc.CodeSystemReleaseId == releaseId.Value && sc.Code == code);
 
         if (asOfDate is { } date)
         {

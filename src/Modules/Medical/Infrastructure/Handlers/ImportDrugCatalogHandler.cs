@@ -35,6 +35,15 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
                 }
             }
 
+            bool versionExists = await dbContext.ImportBatches
+                .AnyAsync(b => b.SourceType == request.SourceType && b.SourceVersion == request.SourceVersion, cancellationToken);
+
+            if (versionExists)
+            {
+                return EntityResult<Guid>.Failure(EntityError.Validation(
+                    $"An import batch for source '{request.SourceType}' and version '{request.SourceVersion}' already exists."));
+            }
+
             _ = await dbContext.ImportBatches.AddAsync(importBatch, cancellationToken);
 
             if (request.DryRun)
@@ -50,6 +59,12 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
             var drugs = new List<Drug>(request.Drugs.Count);
             var products = new List<DrugProduct>();
             var packages = new List<PackagedDrug>();
+            var existingDrugs = await dbContext.Drugs.AsNoTracking()
+                .Where(d => d.RecordOrigin == RecordOrigin.Imported)
+                .ToDictionaryAsync(
+                    d => new DrugImportKey(d.PrimaryIdentifierType, d.PrimaryIdentifierValue, d.EffectiveFrom),
+                    d => d.Id,
+                    cancellationToken);
 
             foreach (ImportDrugItem drugItem in request.Drugs)
             {
@@ -62,22 +77,32 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
                     return EntityResult<Guid>.Failure(EntityError.Validation(importBatch.ErrorReport));
                 }
 
-                var drug = new Drug
-                {
-                    Id = Guid.NewGuid(),
-                    PrimaryName = drugItem.PrimaryName,
-                    NormalizedName = drugItem.PrimaryName.ToUpperInvariant(),
-                    PrimaryIdentifierType = drugItem.PrimaryIdentifierType,
-                    PrimaryIdentifierValue = drugItem.PrimaryIdentifierValue,
-                    Status = DrugStatus.Imported,
-                    EffectiveFrom = drugItem.EffectiveFrom,
-                    EffectiveTo = drugItem.EffectiveTo,
-                    RecordOrigin = RecordOrigin.Imported,
-                    ImportBatchId = importBatch.Id
-                };
+                var drugKey = new DrugImportKey(
+                    drugItem.PrimaryIdentifierType,
+                    drugItem.PrimaryIdentifierValue,
+                    drugItem.EffectiveFrom);
 
-                drugs.Add(drug);
-                drugCount++;
+                if (!existingDrugs.TryGetValue(drugKey, out Guid drugId))
+                {
+                    var drug = new Drug
+                    {
+                        Id = Guid.NewGuid(),
+                        PrimaryName = drugItem.PrimaryName,
+                        NormalizedName = drugItem.PrimaryName.ToUpperInvariant(),
+                        PrimaryIdentifierType = drugItem.PrimaryIdentifierType,
+                        PrimaryIdentifierValue = drugItem.PrimaryIdentifierValue,
+                        Status = DrugStatus.Imported,
+                        EffectiveFrom = drugItem.EffectiveFrom,
+                        EffectiveTo = drugItem.EffectiveTo,
+                        RecordOrigin = RecordOrigin.Imported,
+                        ImportBatchId = importBatch.Id
+                    };
+
+                    drugs.Add(drug);
+                    drugId = drug.Id;
+                    existingDrugs[drugKey] = drugId;
+                    drugCount++;
+                }
 
                 if (drugItem.Products is not null)
                 {
@@ -86,7 +111,7 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
                         var product = new DrugProduct
                         {
                             Id = Guid.NewGuid(),
-                            DrugId = drug.Id,
+                            DrugId = drugId,
                             BrandName = productItem.BrandName,
                             GenericName = productItem.GenericName,
                             DoseForm = productItem.DoseForm,
@@ -140,4 +165,9 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
             return EntityResult<Guid>.Success(importBatch.Id);
         });
     }
+
+    private readonly record struct DrugImportKey(
+        DrugIdentifierType IdentifierType,
+        string IdentifierValue,
+        DateOnly? EffectiveFrom);
 }

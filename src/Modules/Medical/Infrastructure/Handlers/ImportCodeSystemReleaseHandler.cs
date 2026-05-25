@@ -50,6 +50,15 @@ internal sealed class ImportCodeSystemReleaseHandler(MedicalDbContext dbContext)
                 }
             }
 
+            bool versionExists = await dbContext.ImportBatches
+                .AnyAsync(b => b.SourceType == request.SourceType && b.SourceVersion == request.SourceVersion, cancellationToken);
+
+            if (versionExists)
+            {
+                return EntityResult<Guid>.Failure(EntityError.Validation(
+                    $"An import batch for source '{request.SourceType}' and version '{request.SourceVersion}' already exists."));
+            }
+
             _ = await dbContext.ImportBatches.AddAsync(importBatch, cancellationToken);
 
             // Create or find release
