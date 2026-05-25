@@ -109,6 +109,12 @@
     <Project Path="src/Modules/Intelligence/Infrastructure/Intelligence.Infrastructure.csproj" />
     <Project Path="src/Modules/Intelligence/Interface/Intelligence.Interface.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Medical/">
+    <Project Path="src/Modules/Medical/Application/Medical.Application.csproj" />
+    <Project Path="src/Modules/Medical/Domain/Medical.Domain.csproj" />
+    <Project Path="src/Modules/Medical/Infrastructure/Medical.Infrastructure.csproj" />
+    <Project Path="src/Modules/Medical/Interface/Medical.Interface.csproj" />
+  </Folder>
   <Folder Name="/src/Modules/Links/">
     <Project Path="src/Modules/Links/Application/Links.Application.csproj" />
     <Project Path="src/Modules/Links/Domain/Links.Domain.csproj" />
