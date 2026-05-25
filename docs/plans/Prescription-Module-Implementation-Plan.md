@@ -5,9 +5,9 @@
 Deliver a production-ready multi-payer e-prescription capability as an integration layer inside existing HIS/EMR/clinic workflows.
 
 The module must support multiple base insurance providers, including:
-1. Social Security Insurance / Tamin
+1. [Social Security Insurance / Tamin](../apis/EP-TAMIN-E-PRESCRIPTION-SERVICES-API.md)
 2. Iran Health Insurance / Salamat / IHIO
-3. Armed Forces Medical Services Insurance
+3. [Armed Forces Medical Services Insurance](../apis/DITAS-E-PRESCRIPTION_SERVICES_API.md)
 4. Future base or complementary insurance providers
 
 The module must avoid duplicate data entry by keeping one clinical source of truth in existing patient, encounter, doctor, and prescription contexts, while isolating insurer-specific integration rules behind provider-specific adapters.
@@ -379,9 +379,6 @@ Example code systems:
 - IRC
 - ERX_IRC
 - NationalServiceCode
-- UCUM
-- ICD10
-- LocalCatalogCode
 
 Rules:
 
