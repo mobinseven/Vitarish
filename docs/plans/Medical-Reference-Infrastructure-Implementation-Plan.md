@@ -1,7 +1,7 @@
 # Medical Reference Infrastructure — Initial Implementation Plan
 
 ## Purpose
-Build a stable **Medical Reference Infrastructure** module that acts as the source of truth for shared medical reference data used by future clinical, reservation, billing, insurance, and prescription capabilities.
+Build a stable **Medical** module that acts as the source of truth for shared medical reference data used by future clinical, reservation, billing, insurance, and prescription (future) modules.
 
 This initial scope is **reference data only** (no patient-specific workflows).
 
