@@ -9,10 +9,17 @@ public partial class LocalDrugForm : MedicalBase
     [Parameter] public EventCallback OnCancelled { get; set; }
     [Parameter] public EventCallback OnRetired { get; set; }
 
+    private Guid? previousDrugId;
     private DrugWriteDto writeDto = new();
 
     protected override void OnParametersSet()
     {
+        if (Drug?.Id == previousDrugId)
+        {
+            return;
+        }
+
+        previousDrugId = Drug?.Id;
         writeDto = Drug is not null
             ? new DrugWriteDto
             {

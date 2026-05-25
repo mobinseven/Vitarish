@@ -9,10 +9,17 @@ public partial class LocalMedicalServiceForm : MedicalBase
     [Parameter] public EventCallback OnCancelled { get; set; }
     [Parameter] public EventCallback OnRetired { get; set; }
 
+    private Guid? previousServiceId;
     private ServiceWriteDto writeDto = new();
 
     protected override void OnParametersSet()
     {
+        if (Service?.Id == previousServiceId)
+        {
+            return;
+        }
+
+        previousServiceId = Service?.Id;
         writeDto = Service is not null
             ? new ServiceWriteDto
             {

@@ -18,14 +18,11 @@ public partial class LocalMedicalCodeForm : MedicalBase
 
     protected override async Task ReloadRequired()
     {
-        var systems = await QueryService.ListCodeSystemsAsync(activeOnly: true);
-        var allReleases = new List<CodeSystemRelease>();
-        foreach (var cs in systems)
-        {
-            allReleases.AddRange(await QueryService.ListReleasesAsync(cs.Id, activeOnly: true));
-        }
+        IReadOnlyList<CodeSystem> systems = [.. await QueryService.ListCodeSystemsAsync(activeOnly: true)];
+        Task<IReadOnlyList<CodeSystemRelease>>[] releaseTasks = [.. systems.Select(cs => QueryService.ListReleasesAsync(cs.Id, activeOnly: true))];
+        IReadOnlyList<CodeSystemRelease>[] releaseResults = await Task.WhenAll(releaseTasks);
 
-        releases = allReleases;
+        releases = [.. releaseResults.SelectMany(static result => result)];
         await InvokeAsync(StateHasChanged);
     }
 
