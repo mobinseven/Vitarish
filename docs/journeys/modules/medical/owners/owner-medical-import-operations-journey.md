@@ -12,7 +12,7 @@
 | --- | --- |
 | Adapters | Source-specific parsing normalized to canonical import commands. |
 | Batch tracking | `ImportBatch` stores version, checksum, status, diagnostics. |
-| Idempotency | Unique source version/checksum guards duplicate imports. |
+| Idempotency | Separate uniqueness constraints for logical version (source_type/version) and file content (checksum). |
 
 ## 3. Happy Path
 1. Importer selects source type/version and upload/locator.
