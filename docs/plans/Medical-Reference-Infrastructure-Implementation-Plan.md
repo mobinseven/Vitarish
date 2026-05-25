@@ -44,6 +44,7 @@ This initial scope is **reference data only** (no patient-specific workflows).
 - External source quirks hidden behind adapters
 - Use existing platform audit mechanism for all state changes
 - One source of truth per code system release
+- Strictly follow the code base conventions, implementation, and coding styles
 
 ---
 
