@@ -30,11 +30,11 @@ public class IntelligenceModule : Module, IIntelligenceModule
         _ = builder.Services.AddSingleton<ModelRegistry>();
         _ = builder.Services.AddTransient<IResponder, ProviderDispatchingResponder>();
         _ = builder.Services.AddSingleton<ITranscriber, ProviderDispatchingTranscriber>();
-        builder.Services.TryAddSingleton<IRagSearchBridge, NullRagSearchBridge>();
+        builder.Services.TryAddSingleton<IRagSearchBridge, SearchRagSearchBridge>();
         _ = builder.Services.AddScoped<IRagRetrievalService, RetrieveOnlyRagService>();
         _ = builder.Services.AddScoped<IRagHealthCheckService, RagHealthCheckService>();
         _ = builder.Services.AddSingleton<IRagCapabilityCatalog, RagCapabilityCatalog>();
-        _ = builder.Services.AddScoped<IRagGroundedGenerationService, PlaceholderRagGroundedGenerationService>();
+        _ = builder.Services.AddScoped<IRagGroundedGenerationService, GroundedGenerationRagService>();
         _ = builder.Services.AddScoped<IRagRerankingService, PlaceholderRagRerankingService>();
         _ = builder.Services.AddScoped<IRagPlatformAdminService, PlaceholderRagPlatformAdminService>();
         _ = builder.Services.AddAntiforgery();

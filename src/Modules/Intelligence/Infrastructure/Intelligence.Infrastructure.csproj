@@ -6,6 +6,7 @@
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\Application\Intelligence.Application.csproj" />
+		<ProjectReference Include="..\..\Search\Domain\Search.Domain.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Update="IntelligenceResource.Designer.cs">
