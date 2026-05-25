@@ -55,7 +55,7 @@ public sealed class RagServicesTests
 
         // Assert
         report.IsHealthy.Should().BeTrue();
-        report.Details.Should().Contain("available", StringComparison.OrdinalIgnoreCase);
+        report.Details.Should().ContainEquivalentOf("available");
     }
 
     [Fact]
@@ -72,9 +72,9 @@ public sealed class RagServicesTests
         string platformStatus = await platformAdmin.GetStatusAsync();
 
         // Assert
-        groundedStatus.Should().Contain("future phase", StringComparison.OrdinalIgnoreCase);
-        rerankingStatus.Should().Contain("future phase", StringComparison.OrdinalIgnoreCase);
-        platformStatus.Should().Contain("deferred", StringComparison.OrdinalIgnoreCase);
+        groundedStatus.Should().ContainEquivalentOf("future phase");
+        rerankingStatus.Should().ContainEquivalentOf("future phase");
+        platformStatus.Should().ContainEquivalentOf("deferred");
     }
 
     [Fact]
