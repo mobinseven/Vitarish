@@ -1,4 +1,4 @@
-# Medical Reference Infrastructure — Initial Implementation Plan
+# Medical — Initial Implementation Plan
 
 ## Purpose
 Build a stable **Medical** module that acts as the source of truth for shared medical reference data used by future clinical, reservation, billing, insurance, and prescription (future) modules.
@@ -50,7 +50,7 @@ This initial scope is **reference data only** (no patient-specific workflows).
 
 ## 1) Module Boundaries
 
-Create a module namespace: `MedicalReferenceCatalog` with clear internal submodules.
+Create a module namespace: `Medical` with clear internal submodules.
 
 ### 1. Code System Registry
 **Owns:**
