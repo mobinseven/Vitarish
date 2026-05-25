@@ -1,0 +1,19 @@
+@inherits MedicalBase
+
+<Stack>
+    <StackTextField @bind-Value="writeDto.SystemKey" Label="@Localizer["SystemKey"]" />
+    <StackTextField @bind-Value="writeDto.Name" Label="@Localizer["Name"]" />
+    <StackTextField @bind-Value="writeDto.Authority" Label="@Localizer["Authority"]" />
+    <StackTextField @bind-Value="writeDto.CanonicalUri" Label="@Localizer["CanonicalUri"]" />
+    <StackTextField @bind-Value="writeDto.Description" Label="@Localizer["Description"]" />
+    <StackSelect T="CodeSystemCategory" Label="@Localizer["Category"]" @bind-Value="writeDto.Category">
+        @foreach (var cat in Enum.GetValues<CodeSystemCategory>())
+        {
+            <MudSelectItem T="CodeSystemCategory" Value="cat">@Localizer[cat.ToString()]</MudSelectItem>
+        }
+    </StackSelect>
+</Stack>
+<Stack>
+    <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" EndIcon="fa-regular fa-save" />
+    <StackButton Label="@Localizer["Cancel"]" OnClick="() => OnCancelled.InvokeAsync()" EndIcon="fa-regular fa-xmark" />
+</Stack>

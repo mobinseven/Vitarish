@@ -1,0 +1,25 @@
+@inherits MedicalBase
+
+<Stack>
+    <StackTextField @bind-Value="writeDto.PrimaryName" Label="@Localizer["PrimaryName"]" />
+    <StackSelect T="DrugIdentifierType" Label="@Localizer["IdentifierType"]" @bind-Value="writeDto.PrimaryIdentifierType">
+        @foreach (var t in Enum.GetValues<DrugIdentifierType>())
+        {
+            <MudSelectItem T="DrugIdentifierType" Value="t">@Localizer[t.ToString()]</MudSelectItem>
+        }
+    </StackSelect>
+    <StackTextField @bind-Value="writeDto.PrimaryIdentifierValue" Label="@Localizer["IdentifierValue"]" />
+    <StackDatePicker @bind-DateOnlyValue="writeDto.EffectiveFrom" Label="@Localizer["EffectiveFrom"]" />
+    <StackDatePicker @bind-DateOnlyValue="writeDto.EffectiveTo" Label="@Localizer["EffectiveTo"]" />
+</Stack>
+<Stack>
+    @if (Drug is not null)
+    {
+        <StackButton Label="@Localizer["RetireItem", Localizer["Drug"]]"
+                     Color="Color.Error"
+                     EndIcon="fa-regular fa-ban"
+                     OnClick="RetireAsync" />
+    }
+    <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" EndIcon="fa-regular fa-save" />
+    <StackButton Label="@Localizer["Cancel"]" OnClick="() => OnCancelled.InvokeAsync()" EndIcon="fa-regular fa-xmark" />
+</Stack>

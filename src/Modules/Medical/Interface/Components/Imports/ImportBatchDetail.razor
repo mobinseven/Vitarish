@@ -1,0 +1,43 @@
+@inherits MedicalBase
+
+@if (batch is null && !loading)
+{
+    return;
+}
+
+@if (loading)
+{
+    <MudProgressCircular Indeterminate="true" />
+}
+else if (batch is not null)
+{
+    <Stack>
+        <StackField Label="@batch.SourceType.ToString()" HelperText="@Localizer["SourceType"]" />
+        <StackField Label="@batch.SourceVersion" HelperText="@Localizer["SourceVersion"]" />
+        <StackField Label="@batch.Status.ToString()" HelperText="@Localizer["Status"]" />
+        @if (batch.ImportedAt is { } at)
+        {
+            <StackField Label="@at.ToLocalTime().DateTime.ToString("g")" HelperText="@Localizer["ImportedAt"]" />
+        }
+        @if (!string.IsNullOrWhiteSpace(batch.ImportedBy))
+        {
+            <StackField Label="@batch.ImportedBy" HelperText="@Localizer["ImportedBy"]" />
+        }
+    </Stack>
+
+    @if (!string.IsNullOrWhiteSpace(batch.ValidationSummary))
+    {
+        <Stack>
+            <StackField Label="@Localizer["ValidationSummary"]" />
+            <StackField Label="@batch.ValidationSummary" />
+        </Stack>
+    }
+
+    @if (!string.IsNullOrWhiteSpace(batch.ErrorReport))
+    {
+        <Stack>
+            <StackField Label="@Localizer["ErrorReport"]" />
+            <StackField Label="@batch.ErrorReport" />
+        </Stack>
+    }
+}

@@ -1,0 +1,48 @@
+@inherits MedicalBase
+
+<Stack>
+    <StackSelect T="string" Label="@Localizer["SourceCodeSystem"]" @bind-Value="sourceSystemKey">
+        @foreach (var cs in codeSystems)
+        {
+            <MudSelectItem T="string" Value="cs.SystemKey">@cs.Name (@cs.SystemKey)</MudSelectItem>
+        }
+    </StackSelect>
+    <StackTextField @bind-Value="sourceCodeText" Label="@Localizer["SourceCode"]" />
+    <StackButton Label="@Localizer["FindSourceCode"]" OnClick="FindSourceCodeAsync"
+                 Color="Color.Default" EndIcon="fa-regular fa-magnifying-glass" />
+
+    @if (sourceCode is not null)
+    {
+        <StackField Label="@sourceCode.DisplayName" HelperText="@Localizer["SourceCode"]" />
+    }
+
+    <StackSelect T="string" Label="@Localizer["TargetCodeSystem"]" @bind-Value="targetSystemKey">
+        @foreach (var cs in codeSystems)
+        {
+            <MudSelectItem T="string" Value="cs.SystemKey">@cs.Name (@cs.SystemKey)</MudSelectItem>
+        }
+    </StackSelect>
+    <StackTextField @bind-Value="targetCodeText" Label="@Localizer["TargetCode"]" />
+    <StackButton Label="@Localizer["FindTargetCode"]" OnClick="FindTargetCodeAsync"
+                 Color="Color.Default" EndIcon="fa-regular fa-magnifying-glass" />
+
+    @if (targetCode is not null)
+    {
+        <StackField Label="@targetCode.DisplayName" HelperText="@Localizer["TargetCode"]" />
+    }
+
+    <StackSelect T="MappingType" Label="@Localizer["MappingType"]" @bind-Value="mappingType">
+        @foreach (var mt in Enum.GetValues<MappingType>())
+        {
+            <MudSelectItem T="MappingType" Value="mt">@Localizer[mt.ToString()]</MudSelectItem>
+        }
+    </StackSelect>
+    <StackDatePicker @bind-DateOnlyValue="effectiveFrom" Label="@Localizer["EffectiveFrom"]" />
+    <StackDatePicker @bind-DateOnlyValue="effectiveTo" Label="@Localizer["EffectiveTo"]" />
+</Stack>
+<Stack>
+    <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary"
+                 Disabled="@(sourceCode is null || targetCode is null)"
+                 EndIcon="fa-regular fa-save" />
+    <StackButton Label="@Localizer["Cancel"]" OnClick="() => OnCancelled.InvokeAsync()" EndIcon="fa-regular fa-xmark" />
+</Stack>

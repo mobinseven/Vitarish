@@ -1,0 +1,33 @@
+@inherits MedicalBase
+
+<Stack>
+    @if (codeSystems.Count == 0)
+    {
+        <StackButton OnClick="ReloadRequired"
+                     Label="@Localizer["NoItems", Localizer["CodeSystem"]]"
+                     HelperText="@Localizer["NoItemsHelp", Localizer["CodeSystem"]]"
+                     EndIcon="fa-regular fa-refresh">
+            @Localizer["Reload"]
+        </StackButton>
+    }
+    else
+    {
+        @foreach (var item in codeSystems)
+        {
+            <StackButton Label="@item.Name"
+                         HelperText="@item.SystemKey"
+                         HighlightString="@SearchString"
+                         OnClick="() => OnClicked.InvokeAsync(item.Id)" />
+        }
+    }
+    @if (AdminMode)
+    {
+        <StackExpandable Color="Color.Primary"
+                         Label="@Localizer["AddItem", Localizer["CodeSystem"]]"
+                         EndIcon="fa-regular fa-plus">
+            <ExpandableContent>
+                <CodeSystemForm OnSaved="() => context.CloseAsync()" OnCancelled="() => context.CloseAsync()" />
+            </ExpandableContent>
+        </StackExpandable>
+    }
+</Stack>
