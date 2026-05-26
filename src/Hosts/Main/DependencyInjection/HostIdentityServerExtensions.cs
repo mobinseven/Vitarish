@@ -11,7 +11,7 @@ using Vitarish.Main.Infrastructure.Security;
 public static class HostIdentityServerExtensions
 {
     private const string ConfigSection = $"{nameof(Vitarish)}:Identity";
-    public static async Task AddHostIdentityServer(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> configureSqlServer)
+    public static async Task AddHostIdentityServer(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> configureDb)
     {
         string domain = builder.Configuration[$"{ConfigSection}:Authority"] ?? throw new Exception($"{ConfigSection}:Authority not set");
         string pfxPassword = builder.Configuration[$"{ConfigSection}:DataProtectionPassword"] ?? throw new Exception($"{ConfigSection}:DataProtectionPassword not set");
@@ -33,7 +33,7 @@ public static class HostIdentityServerExtensions
             .AddSigningCredential(cert, SecurityAlgorithms.RsaSha256)
             .AddClientStore<IdentityClientsStore>()
             .AddResourceStore<IdentityResourcesStore>()
-            .AddOperationalStore(options => options.ConfigureDbContext = configureSqlServer)
+            .AddOperationalStore(options => options.ConfigureDbContext = configureDb)
             .AddAspNetIdentity<User>()
             .AddProfileService<PartyProfileService>()
             .AddCustomTokenRequestValidator<ApiClientTokenValidator>();

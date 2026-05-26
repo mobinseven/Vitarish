@@ -33,9 +33,9 @@ using Vitarish.Users.Infrastructure.Data;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
-void configureSqlServer(DbContextOptionsBuilder options)
+void configurePostgres(DbContextOptionsBuilder options)
 {
-    _ = options.UseSqlServer(
+    _ = options.UseNpgsql(
     builder.Configuration.GetConnectionString("Db"),
     b =>
     {
@@ -45,10 +45,10 @@ void configureSqlServer(DbContextOptionsBuilder options)
 }
 
 _ = builder.Services.AddScoped<ITenantService, TenantService>();
-_ = builder.Services.AddAuditInfrastructure(configureSqlServer);
+_ = builder.Services.AddAuditInfrastructure(configurePostgres);
 
-await builder.RegisterApps(configureSqlServer);
-await builder.RegisterModules(configureSqlServer);
+await builder.RegisterApps(configurePostgres);
+await builder.RegisterModules(configurePostgres);
 
 // Register Feed infrastructure
 _ = builder.Services.AddFeedInfrastructure();
@@ -71,11 +71,11 @@ _ = builder.Services.AddRazorPages(options =>
 builder.AddAccountsInterface();
 builder.AddApplicationOptions();
 
-builder.AddUsers(configureSqlServer);
-builder.AddRequests(configureSqlServer);
-builder.AddParties(configureSqlServer);
+builder.AddUsers(configurePostgres);
+builder.AddRequests(configurePostgres);
+builder.AddParties(configurePostgres);
 
-await builder.AddHostIdentityServer(configureSqlServer);
+await builder.AddHostIdentityServer(configurePostgres);
 
 builder.AddHostAuthentication();
 builder.AddHostAuthorization();

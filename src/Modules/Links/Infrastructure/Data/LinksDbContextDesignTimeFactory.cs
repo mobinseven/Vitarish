@@ -12,8 +12,8 @@ internal sealed class LinksDbContextDesignTimeFactory : IDesignTimeDbContextFact
     public LinksDbContext CreateDbContext(string[] args)
     {
         DbContextOptionsBuilder<LinksDbContext> optionsBuilder = new();
-        _ = optionsBuilder.UseSqlServer(
-            "Server=(localdb)\\mssqllocaldb;Database=Vitarish_Design;Trusted_Connection=true;",
+        _ = optionsBuilder.UseNpgsql(
+            "Host=localhost;Database=Vitarish_Design;Username=postgres;******;",
             b => b.MigrationsAssembly("Vitarish.Main"));
 
         return new LinksDbContext(optionsBuilder.Options, Enumerable.Empty<IInterceptor>());
