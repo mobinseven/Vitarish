@@ -170,13 +170,6 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
             entity.HasNoKey();
         });
 
-        _ = modelBuilder.Entity<OpenBookingShiftDate>(entity =>
-        {
-            entity.ToView("vw_OpenBookingShiftDates");
-            entity.HasNoKey();
-            entity.IsMultiTenant();
-        });
-
         _ = modelBuilder.Entity<Service>(entity =>
         {
             _ = entity.HasOne(s => s.ServiceType)
