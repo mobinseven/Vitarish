@@ -1,3 +1,4 @@
+using Vitarish.Entities.Server.Data;
 namespace Vitarish.Social.Infrastructure.Repositories;
 
 [RegisterTransient]
@@ -29,5 +30,5 @@ internal sealed class SocialConnectionRepository(SocialDbContext dbContext)
     }
 
     protected override bool IsDuplicateKeyException(DbUpdateException exception)
-        => SocialDatabaseExceptions.IsUniqueConstraintViolation(exception);
+        => DatabaseExceptions.IsUniqueConstraintViolation(exception);
 }

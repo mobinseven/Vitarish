@@ -1,3 +1,4 @@
+using Vitarish.Entities.Server.Data;
 namespace Vitarish.Contents.Infrastructure.Repositories;
 
 [RegisterTransient]
@@ -6,7 +7,7 @@ internal sealed class AssetRepository(ContentsDbContext dbContext)
       IEntityRepository<Asset, AssetDescriptor>
 {
     protected override bool IsDuplicateKeyException(DbUpdateException ex)
-        => ContentsDatabaseExceptions.IsUniqueConstraintViolation(ex);
+        => DatabaseExceptions.IsUniqueConstraintViolation(ex);
 
     protected override IQueryable<Asset> Apply(IQueryable<Asset> query, AssetDescriptor descriptor)
     {

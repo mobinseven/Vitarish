@@ -1,3 +1,5 @@
+using Vitarish.Entities.Server.Data;
+
 namespace Vitarish.Links.Infrastructure.Repositories;
 
 [RegisterTransient]
@@ -6,7 +8,7 @@ internal sealed class LinkRepository(LinksDbContext dbContext)
       IEntityRepository<Link, LinkDescriptor>
 {
     protected override bool IsDuplicateKeyException(DbUpdateException ex)
-        => LinksDatabaseExceptions.IsUniqueConstraintViolation(ex);
+        => DatabaseExceptions.IsUniqueConstraintViolation(ex);
 
     protected override IQueryable<Link> Apply(IQueryable<Link> query, LinkDescriptor descriptor)
     {

@@ -1,3 +1,4 @@
+using Vitarish.Entities.Server.Data;
 namespace Vitarish.Contents.Infrastructure.Repositories;
 
 [RegisterTransient]
@@ -6,7 +7,7 @@ internal sealed class ContentRevisionRepository(ContentsDbContext dbContext)
       IEntityRepository<ContentRevision, ContentRevisionDescriptor>
 {
     protected override bool IsDuplicateKeyException(DbUpdateException ex)
-        => ContentsDatabaseExceptions.IsUniqueConstraintViolation(ex);
+        => DatabaseExceptions.IsUniqueConstraintViolation(ex);
 
     protected override IQueryable<ContentRevision> Apply(IQueryable<ContentRevision> query, ContentRevisionDescriptor descriptor)
     {
