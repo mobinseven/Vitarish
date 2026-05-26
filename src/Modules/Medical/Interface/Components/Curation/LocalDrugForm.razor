@@ -13,7 +13,7 @@
     <StackDatePicker @bind-DateOnlyValue="writeDto.EffectiveTo" Label="@Localizer["EffectiveTo"]" />
 </Stack>
 <Stack>
-    @if (Drug is not null)
+    @if (Drug is not null && Drug.RecordOrigin == RecordOrigin.Local)
     {
         <StackButton Label="@Localizer["RetireItem", Localizer["Drug"]]"
                      Color="Color.Error"

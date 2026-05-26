@@ -35,6 +35,16 @@ public partial class LocalMedicalServiceForm : MedicalBase
 
     private async Task SaveAsync()
     {
+        if (string.IsNullOrWhiteSpace(writeDto.Name))
+        {
+            return;
+        }
+
+        if (writeDto.EffectiveFrom > writeDto.EffectiveTo)
+        {
+            return;
+        }
+
         if (Service is null)
         {
             EntityResult<Guid> result = await Mediator.Send(new CreateMedicalServiceCommand(

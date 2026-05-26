@@ -34,8 +34,23 @@ public partial class LocalDrugForm : MedicalBase
 
     private async Task SaveAsync()
     {
+        if (string.IsNullOrWhiteSpace(writeDto.PrimaryName))
+        {
+            return;
+        }
+
+        if (writeDto.EffectiveFrom > writeDto.EffectiveTo)
+        {
+            return;
+        }
+
         if (Drug is null)
         {
+            if (string.IsNullOrWhiteSpace(writeDto.PrimaryIdentifierValue))
+            {
+                return;
+            }
+
             EntityResult<Guid> result = await Mediator.Send(new CreateDrugCommand(
                 writeDto.PrimaryName,
                 writeDto.PrimaryIdentifierType,

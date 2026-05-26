@@ -12,6 +12,16 @@ public partial class CodeSystemReleaseForm : MedicalBase
 
     private async Task SaveAsync()
     {
+        if (string.IsNullOrWhiteSpace(writeDto.ReleaseName))
+        {
+            return;
+        }
+
+        if (writeDto.EffectiveFrom > writeDto.EffectiveTo)
+        {
+            return;
+        }
+
         EntityResult<Guid> result = await Mediator.Send(new RegisterCodeSystemReleaseCommand(
             CodeSystemId,
             writeDto.ReleaseName,

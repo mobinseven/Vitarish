@@ -11,6 +11,11 @@ public partial class CodeSystemForm : MedicalBase
 
     private async Task SaveAsync()
     {
+        if (string.IsNullOrWhiteSpace(writeDto.SystemKey) || string.IsNullOrWhiteSpace(writeDto.Name))
+        {
+            return;
+        }
+
         EntityResult<Guid> result = await Mediator.Send(new RegisterCodeSystemCommand(
             writeDto.SystemKey,
             writeDto.Name,

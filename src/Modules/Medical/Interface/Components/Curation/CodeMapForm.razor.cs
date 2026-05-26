@@ -21,6 +21,12 @@ public partial class CodeMapForm : MedicalBase
     protected override async Task ReloadRequired()
     {
         codeSystems = [.. await QueryService.ListCodeSystemsAsync(activeOnly: true)];
+        if (codeSystems.Count > 0)
+        {
+            sourceSystemKey = string.IsNullOrWhiteSpace(sourceSystemKey) ? codeSystems[0].SystemKey : sourceSystemKey;
+            targetSystemKey = string.IsNullOrWhiteSpace(targetSystemKey) ? codeSystems[0].SystemKey : targetSystemKey;
+        }
+
         await InvokeAsync(StateHasChanged);
     }
 
@@ -49,6 +55,11 @@ public partial class CodeMapForm : MedicalBase
     private async Task SaveAsync()
     {
         if (sourceCode is null || targetCode is null)
+        {
+            return;
+        }
+
+        if (effectiveFrom > effectiveTo)
         {
             return;
         }

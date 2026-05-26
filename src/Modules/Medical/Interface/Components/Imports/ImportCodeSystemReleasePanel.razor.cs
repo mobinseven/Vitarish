@@ -12,11 +12,26 @@ public partial class ImportCodeSystemReleasePanel : MedicalBase
     protected override async Task ReloadRequired()
     {
         codeSystems = [.. await QueryService.ListCodeSystemsAsync(activeOnly: false)];
+        if (writeDto.CodeSystemId == Guid.Empty && codeSystems.Count > 0)
+        {
+            writeDto.CodeSystemId = codeSystems[0].Id;
+        }
+
         await InvokeAsync(StateHasChanged);
     }
 
     private async Task RunAsync()
     {
+        if (writeDto.CodeSystemId == Guid.Empty || string.IsNullOrWhiteSpace(writeDto.ReleaseName))
+        {
+            return;
+        }
+
+        if (writeDto.EffectiveFrom > writeDto.EffectiveTo)
+        {
+            return;
+        }
+
         running = true;
         lastResult = null;
         await InvokeAsync(StateHasChanged);

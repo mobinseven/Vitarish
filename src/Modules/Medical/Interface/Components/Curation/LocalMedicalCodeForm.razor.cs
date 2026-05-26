@@ -23,11 +23,26 @@ public partial class LocalMedicalCodeForm : MedicalBase
         IReadOnlyList<CodeSystemRelease>[] releaseResults = await Task.WhenAll(releaseTasks);
 
         releases = [.. releaseResults.SelectMany(static result => result)];
+        if (writeDto.CodeSystemReleaseId == Guid.Empty && releases.Count > 0)
+        {
+            writeDto.CodeSystemReleaseId = releases[0].Id;
+        }
+
         await InvokeAsync(StateHasChanged);
     }
 
     private async Task SaveAsync()
     {
+        if (writeDto.CodeSystemReleaseId == Guid.Empty || string.IsNullOrWhiteSpace(writeDto.Code) || string.IsNullOrWhiteSpace(writeDto.DisplayName))
+        {
+            return;
+        }
+
+        if (writeDto.EffectiveFrom > writeDto.EffectiveTo)
+        {
+            return;
+        }
+
         EntityResult<Guid> result = await Mediator.Send(new CreateLocalMedicalCodeCommand(
             writeDto.CodeSystemReleaseId,
             writeDto.Code,
