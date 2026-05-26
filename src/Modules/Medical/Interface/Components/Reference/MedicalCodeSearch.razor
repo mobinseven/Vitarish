@@ -1,0 +1,45 @@
+@inherits MedicalBase
+
+<Stack>
+    <StackSelect T="string" Label="@Localizer["CodeSystem"]" @bind-Value="systemKey">
+        @foreach (var cs in codeSystems)
+        {
+            <MudSelectItem T="string" Value="cs.SystemKey">@cs.Name (@cs.SystemKey)</MudSelectItem>
+        }
+    </StackSelect>
+    <StackTextField @bind-Value="searchText" Label="@Localizer["SearchText"]" />
+    <StackButton Label="@Localizer["Search"]" OnClick="SearchAsync" Color="Color.Primary"
+                 EndIcon="fa-regular fa-magnifying-glass" />
+</Stack>
+
+@if (results.Count > 0)
+{
+    <Stack>
+        <StackField Label="@Localizer["Results"]" />
+        @foreach (var medCode in results)
+        {
+            <StackExpandable Label="@medCode.DisplayName"
+                             HelperText="@medCode.Code"
+                             HighlightString="@searchText">
+                <ExpandableContent>
+                    <Stack>
+                        <StackField Label="@medCode.Code" HelperText="@Localizer["Code"]" />
+                        <StackField Label="@medCode.DisplayName" HelperText="@Localizer["DisplayName"]" />
+                        @if (!string.IsNullOrWhiteSpace(medCode.LongDescription))
+                        {
+                            <StackField Label="@medCode.LongDescription" HelperText="@Localizer["LongDescription"]" />
+                        }
+                        <StackField Label="@Localizer[medCode.Status.ToString()]" HelperText="@Localizer["Status"]" />
+                        <StackField Label="@Localizer[medCode.RecordOrigin.ToString()]" HelperText="@Localizer["RecordOrigin"]" />
+                    </Stack>
+                </ExpandableContent>
+            </StackExpandable>
+        }
+    </Stack>
+}
+else if (searched)
+{
+    <Stack>
+        <StackField Label="@Localizer["NoResults"]" />
+    </Stack>
+}

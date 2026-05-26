@@ -1,0 +1,14 @@
+@inherits MedicalBase
+
+<Stack>
+    <StackTextField @bind-Value="writeDto.ReleaseName" Label="@Localizer["ReleaseName"]" />
+    <StackDatePicker @bind-DateOnlyValue="writeDto.ReleaseDate" Label="@Localizer["ReleaseDate"]" />
+    <StackDatePicker @bind-DateOnlyValue="writeDto.EffectiveFrom" Label="@Localizer["EffectiveFrom"]" />
+    <StackDatePicker @bind-DateOnlyValue="writeDto.EffectiveTo" Label="@Localizer["EffectiveTo"]" />
+    <StackTextField @bind-Value="writeDto.SourceLocator" Label="@Localizer["SourceLocator"]" />
+    <StackTextField @bind-Value="writeDto.SourceVersion" Label="@Localizer["SourceVersion"]" />
+</Stack>
+<Stack>
+    <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" EndIcon="fa-regular fa-save" />
+    <StackButton Label="@Localizer["Cancel"]" OnClick="() => OnCancelled.InvokeAsync()" EndIcon="fa-regular fa-xmark" />
+</Stack>

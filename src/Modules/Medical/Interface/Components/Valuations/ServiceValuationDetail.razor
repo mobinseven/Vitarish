@@ -1,0 +1,31 @@
+@inherits MedicalBase
+
+@if (Valuation is null)
+{
+    return;
+}
+
+<Stack>
+    <StackField Label="@Valuation.ValuationYear.ToString()" HelperText="@Localizer["ValuationYear"]" />
+    <StackField Label="@Valuation.FacilityIndicator.ToString()" HelperText="@Localizer["FacilityIndicator"]" />
+    @if (!string.IsNullOrWhiteSpace(Valuation.Locality))
+    {
+        <StackField Label="@Valuation.Locality" HelperText="@Localizer["Locality"]" />
+    }
+    <StackField Label="@Valuation.WorkRvu.ToString("N2")" HelperText="@Localizer["WorkRvu"]" />
+    <StackField Label="@Valuation.PracticeExpenseRvu.ToString("N2")" HelperText="@Localizer["PracticeExpenseRvu"]" />
+    <StackField Label="@Valuation.MalpracticeRvu.ToString("N2")" HelperText="@Localizer["MalpracticeRvu"]" />
+    @if (Valuation.ConversionFactor is { } cf)
+    {
+        <StackField Label="@cf.ToString("N4")" HelperText="@Localizer["ConversionFactor"]" />
+    }
+    @if (Valuation.EffectiveFrom is { } ef)
+    {
+        <StackField Label="@ef.ToString()" HelperText="@Localizer["EffectiveFrom"]" />
+    }
+    @if (Valuation.EffectiveTo is { } et)
+    {
+        <StackField Label="@et.ToString()" HelperText="@Localizer["EffectiveTo"]" />
+    }
+    <StackField Label="@Localizer[Valuation.RecordOrigin.ToString()]" HelperText="@Localizer["RecordOrigin"]" />
+</Stack>
