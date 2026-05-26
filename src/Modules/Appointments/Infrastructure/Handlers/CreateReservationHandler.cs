@@ -1,6 +1,7 @@
 using Vitarish.Appointments.Application.Events;
 using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Appointments.Infrastructure.Services;
+using Vitarish.Entities.Server.Data;
 using Vitarish.Requests.Application.Abstractions;
 using Microsoft.EntityFrameworkCore.Storage;
 
@@ -78,7 +79,7 @@ internal class CreateReservationHandler(
                     {
                         await dbContext.SaveChangesAsync(cancellationToken);
                     }
-                    catch (DbUpdateException lockEx) when (AppointmentsDatabaseExceptions.IsUniqueConstraintViolation(lockEx))
+                    catch (DbUpdateException lockEx) when (DatabaseExceptions.IsUniqueConstraintViolation(lockEx))
                     {
                         await transaction.RollbackAsync(cancellationToken);
                         return EntityResult<Reservation>.Failure(EntityError.Concurrency("This slot is temporarily locked. Please try again."));

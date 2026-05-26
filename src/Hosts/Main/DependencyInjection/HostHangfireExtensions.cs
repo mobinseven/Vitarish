@@ -1,5 +1,5 @@
 using Hangfire;
-using Hangfire.SqlServer;
+using Hangfire.PostgreSql;
 using Vitarish.Commerce.Application.Abstractions;
 using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Main.Authorization;
@@ -26,22 +26,19 @@ public static class HostHangfireExtensions
     {
         if (string.IsNullOrWhiteSpace(connectionString))
         {
-            throw new InvalidOperationException("Connection string is not configured. Hangfire requires a valid SQL Server connection string.");
+            throw new InvalidOperationException("Connection string is not configured. Hangfire requires a valid PostgreSQL connection string.");
         }
 
-        // Configure Hangfire to use SQL Server storage
+        // Configure Hangfire to use PostgreSQL storage
         _ = builder.Services.AddHangfire(config => config
             .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
             .UseSimpleAssemblyNameTypeSerializer()
             .UseRecommendedSerializerSettings()
-            .UseSqlServerStorage(connectionString, new SqlServerStorageOptions
+            .UsePostgreSqlStorage(c => c.UseNpgsqlConnection(connectionString), new PostgreSqlStorageOptions
             {
-                CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
-                SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                InvisibilityTimeout = TimeSpan.FromMinutes(5),
                 QueuePollInterval = TimeSpan.FromSeconds(1),
-                UseRecommendedIsolationLevel = true,
-                DisableGlobalLocks = true,
-                SchemaName = "Hangfire"
+                SchemaName = "hangfire"
             }));
 
         // Add the Hangfire server for background job processing
