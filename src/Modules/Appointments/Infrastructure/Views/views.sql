@@ -5,9 +5,14 @@ IF OBJECT_ID(N'Appointments.vw_OpenBookingShiftDates', N'V') IS NOT NULL
 EXEC sys.sp_executesql N'
 CREATE VIEW Appointments.vw_OpenBookingShiftDates AS
 WITH
+L0 AS (SELECT 1 AS c UNION ALL SELECT 1),
+L1 AS (SELECT 1 AS c FROM L0 AS a CROSS JOIN L0 AS b),
+L2 AS (SELECT 1 AS c FROM L1 AS a CROSS JOIN L1 AS b),
+L3 AS (SELECT 1 AS c FROM L2 AS a CROSS JOIN L2 AS b),
+L4 AS (SELECT 1 AS c FROM L3 AS a CROSS JOIN L1 AS b),
 Numbers AS (
     SELECT TOP 365 ROW_NUMBER() OVER (ORDER BY (SELECT NULL)) - 1 AS N
-    FROM sys.all_objects
+    FROM L4
 ),
 FutureDates AS (
     SELECT CAST(DATEADD(day, N, CAST(GETUTCDATE() AS date)) AS date) AS Date
@@ -15,6 +20,7 @@ FutureDates AS (
 ),
 ShiftDates AS (
     SELECT
+        s.TenantId,
         s.Id                 AS ShiftId,
         fd.Date,
         s.StartTime,
@@ -27,7 +33,7 @@ ShiftDates AS (
       -- Map .NET DayOfWeek (0=Sun..6=Sat) to SQL regardless of SET DATEFIRST
       AND s.DayOfWeek = (DATEPART(dw, fd.Date) + @@DATEFIRST - 1) % 7
 )
-SELECT sd.ShiftId, sd.Date
+SELECT sd.TenantId, sd.ShiftId, sd.Date
 FROM ShiftDates sd
 LEFT JOIN Appointments.ShiftBookingPolicies po
     ON  po.ShiftId   = sd.ShiftId
@@ -39,8 +45,7 @@ WHERE
     -- Slot has not yet started.
     -- StartTime is stored in IANA local time; SQL Server does not support IANA zone
     -- conversion natively, so StartTime is compared against UTC as an approximation.
-    AND GETUTCDATE() < CONVERT(datetime2(7),
-            CONVERT(char(10), sd.Date, 120) + ''T'' + CONVERT(char(8), sd.StartTime, 108))
+    AND GETUTCDATE() < DATEADD(second, DATEDIFF(second, CAST(''00:00:00'' AS time), sd.StartTime), CAST(sd.Date AS datetime2(7)))
     -- BookingOpensBefore: booking opens N days before the slot date
     AND (
         COALESCE(po.BookingOpensBefore, sd.ShiftOpensBefore) IS NULL

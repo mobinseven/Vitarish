@@ -174,6 +174,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
         {
             entity.ToView("vw_OpenBookingShiftDates");
             entity.HasNoKey();
+            entity.IsMultiTenant();
         });
 
         _ = modelBuilder.Entity<Service>(entity =>
