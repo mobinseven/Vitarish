@@ -5,20 +5,8 @@ internal class ShiftBookingPolicyEngine(
     AppointmentsDbContext dbContext) : IShiftBookingPolicyEngine
 {
     public async Task<bool> IsBookingOpenAsync(Guid shiftId, DateOnly date, CancellationToken cancellationToken)
-    {
-        Task<Shift?> shiftTask = dbContext.Shifts
-            .AsNoTracking()
-            .FirstOrDefaultAsync(s => s.Id == shiftId, cancellationToken);
-        Task<IReadOnlyList<ShiftBookingPolicy>> policiesTask = LoadPoliciesAsync(shiftId, cancellationToken);
-
-        await Task.WhenAll(shiftTask, policiesTask);
-
-        Shift? shift = await shiftTask;
-        if (shift is null) return false;
-
-        IReadOnlyList<ShiftBookingPolicy> policies = await policiesTask;
-        return ShiftBookingPolicyEvaluator.IsBookingOpen(shift, date, policies);
-    }
+        => await dbContext.Set<OpenBookingShiftDate>()
+            .AnyAsync(x => x.ShiftId == shiftId && x.Date == date, cancellationToken);
 
     public async Task<bool> CanCancelAsync(Guid reservationId, CancellationToken cancellationToken)
     {
