@@ -6,6 +6,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Appointments\Interface\Appointments.Interface.csproj" />
     <ProjectReference Include="..\..\Commerce\Interface\Commerce.Interface.csproj" />
+    <ProjectReference Include="..\..\Documents\Interface\Documents.Interface.csproj" />
     <ProjectReference Include="..\..\Sea\Interface\Sea.Interface.csproj" />
     <ProjectReference Include="..\..\Communications\Hosting\Communications.Hosting.csproj" />
     <ProjectReference Include="..\..\Feed\Infrastructure\Feed.Infrastructure.csproj" />
