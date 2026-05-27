@@ -9,15 +9,22 @@ public sealed class GotenbergPdfService(GotenbergSharpClient client) : IPdfServi
 {
     public async Task<Stream> ConvertOfficeToPdfAsync(IReadOnlyList<PdfDocument> documents, CancellationToken ct = default)
     {
+        ArgumentNullException.ThrowIfNull(documents);
+        if (documents.Count == 0)
+        {
+            throw new ArgumentException("At least one document must be provided for conversion.", nameof(documents));
+        }
+
         MergeOfficeBuilder builder = new MergeOfficeBuilder()
             .WithAssets(assets =>
             {
                 foreach (PdfDocument document in documents)
                 {
+                    ArgumentNullException.ThrowIfNull(document.Content);
                     assets.AddItem(document.FileName, document.Content);
                 }
             });
-        return await client.MergeOfficeDocsAsync(builder, ct);
+        return await client.MergeOfficeDocsAsync(builder.Build(), ct);
     }
 
     public async Task<Stream> MergePdfsAsync(IReadOnlyList<PdfDocument> pdfs, CancellationToken ct = default)
