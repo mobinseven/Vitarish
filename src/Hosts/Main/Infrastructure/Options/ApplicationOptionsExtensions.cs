@@ -1,3 +1,4 @@
+using Vitarish.Documents.Domain.Options;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Search.Domain.Options;
 
@@ -67,6 +68,9 @@ public static class ApplicationOptionsExtensions
 
         _ = services.AddOptions<FeaturesOptions>()
             .BindConfiguration($"{ApplicationOptions.Section}:Features");
+
+        _ = services.AddOptions<GotenbergOptions>()
+            .BindConfiguration($"{ApplicationOptions.Section}:Gotenberg");
 
         return services;
     }
