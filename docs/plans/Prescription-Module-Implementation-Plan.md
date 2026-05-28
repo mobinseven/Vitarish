@@ -6,7 +6,7 @@ Deliver a production-ready multi-payer e-prescription capability as an integrati
 
 The module must support multiple base insurance providers, including:
 1. [Social Security Insurance / Tamin](../apis/EP-TAMIN-E-PRESCRIPTION-SERVICES-API.md)
-2. Iran Health Insurance / Salamat / IHIO
+2. Iran Health Insurance / Salamat / IHIO (future)
 3. [Armed Forces Medical Services Insurance](../apis/DITAS-E-PRESCRIPTION_SERVICES_API.md)
 4. Future base or complementary insurance providers
 
@@ -18,7 +18,7 @@ The module must avoid duplicate data entry by keeping one clinical source of tru
 
 ### Architecture placement
 
-- Host Pages (`src/Hosts/Main/Pages`) own routable doctor-facing prescription screens.
+- User Journey Maps (`docs/journeys/modules/prescription/owner/*`)
 - Module Interface (`src/Modules/Prescription/Interface`) owns reusable components:
   - eligibility panel
   - payer selector
@@ -785,24 +785,14 @@ A user authorized for one provider must not automatically gain access to another
 
 ---
 
-## 10) Corrected Implementation Phases
+## 10) Implementation Phases
 
 ### Phase 1 — Multi-Payer Discovery and Contract Baseline
 
 Tasks:
 
-1. Confirm official API access for each provider.
-2. Confirm sandbox and production access per provider.
-3. Confirm provider operation scope:
-   - prescription writing
-   - dispensing
-   - paraclinic
-   - physiotherapy
-   - dental
-   - referral
-4. Confirm whether each provider is direct API, portal API, DITAS gateway, or manual fallback.
-5. Build provider capability matrix.
-6. Build endpoint and credential matrix.
+- Build provider capability matrix.
+- Build endpoint and credential matrix.
 
 Deliverables:
 
@@ -1505,14 +1495,12 @@ The module is Done only when it can safely support real doctor prescription work
 - Transaction/audit logging + idempotency key handling.
 - Reference data sync for only required code systems.
 
-**Phase 3 — Second provider (SALAMAT)**
-- Reuse same application contracts and orchestration.
-- Add only adapter + mapping + provider capability config.
-
-**Phase 4 — Third provider (ARMED_FORCES or DITAS path)**
+**Phase 3 — Third provider (ARMED_FORCES or DITAS path)**
+- Reuse same application contracts and orchestration (if applicable).
+- Add only adapter + mapping + provider capability config (if applicable).
 - Integrate through direct/gateway mode behind the same `IInsuranceProviderAdapter` abstraction.
 
-**Phase 5 — Hardening**
+**Phase 4 — Hardening**
 - Retry and timeout recovery workers.
 - Certification evidence pack automation per provider.
 - Operational dashboards and support queries.
