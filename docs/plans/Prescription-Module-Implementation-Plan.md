@@ -1,4 +1,4 @@
-# Multi-Payer E-Prescription Module — Implementation Plan
+# Prescription Module — Implementation Plan
 
 ## Purpose
 
