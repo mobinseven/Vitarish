@@ -8,7 +8,7 @@ The original plan is comprehensive but suffers from three weaknesses this enhanc
 - **Centralized cross-cutting concerns** — Audit, observability, error mapping, retry/recovery, and validation should be centralized services consumed by the module, not scattered per-submodule.
 - **Generalized abstractions** — Where the original plan creates prescription-specific infrastructure (outbox, error classification, capability matrix), we generalize these so other modules benefit and debugging is uniform platform-wide.
 
-## Pre-Phase: User Journey Maps (MUST come first)
+## Pre-Phase: User Journey Maps
 
 **Status: Complete**
 
@@ -41,9 +41,6 @@ Before any code, create journey maps under `docs/journeys/modules/prescription/o
 - Exit conditions
 - Acceptance criteria
 
-### Implementation matrix
-
-Create `docs/journeys/modules/prescription/owner/implementation-matrix.md` linking each objective to its journey file, implementation status, routes, components, and backend identifiers — same format as the clinic owner matrix.
 
 ## Phase 1: Centralized Platform Infrastructure (Generalized)
 
@@ -107,11 +104,6 @@ Implement prescription lifecycle with domain-enforced transition guards.
 Every transition emits a domain event (consumed by audit pipeline).
 
 States: Draft → ReadyForSubmission → Submitting → Submitted → AcceptedByProvider → Edited → Cancelled + error/recovery states.
-
-### 2.4 EF persistence
-`PrescriptionDbContext` with entity configurations.
-
-Initial migration.
 
 ## Phase 3: Adapter Framework & Provider Registry
 
