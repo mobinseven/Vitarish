@@ -1,0 +1,45 @@
+@inherits PrescriptionBase
+
+@if (string.IsNullOrEmpty(ProviderKey) || PatientNationalId is null)
+{
+    return;
+}
+
+<Stack>
+    <StackField Label="@Localizer["Eligibility"]" />
+
+    @if (isLoading)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+    }
+    else if (eligibility is not null)
+    {
+        <StackField Label="@Localizer[eligibility.Status.ToString()]" HelperText="@Localizer["EligibilityStatus"]">
+            <MudChip T="string" Color="@EligibilityColor" Size="Size.Small" Variant="Variant.Filled">
+                @Localizer[eligibility.Status.ToString()]
+            </MudChip>
+        </StackField>
+
+        @if (!string.IsNullOrEmpty(eligibility.CoverageIdentifier))
+        {
+            <StackField Label="@eligibility.CoverageIdentifier" HelperText="@Localizer["CoverageId"]" />
+        }
+        @if (!string.IsNullOrEmpty(eligibility.TrackingCode))
+        {
+            <StackField Label="@eligibility.TrackingCode" HelperText="@Localizer["TrackingCode"]" />
+        }
+        @if (eligibility.ExpiresAt.HasValue)
+        {
+            <StackField Label="@eligibility.ExpiresAt.Value.ToLocalTime().ToString("g")" HelperText="@Localizer["ExpiresAt"]" />
+        }
+        @if (!string.IsNullOrEmpty(eligibility.ErrorMessage))
+        {
+            <MudAlert Severity="Severity.Warning">@eligibility.ErrorMessage</MudAlert>
+        }
+    }
+
+    <StackButton Label="@Localizer["CheckEligibility"]"
+                 EndIcon="fa-regular fa-shield-check"
+                 OnClick="CheckEligibilityAsync"
+                 Color="Color.Info" />
+</Stack>

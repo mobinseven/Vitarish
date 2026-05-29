@@ -1,0 +1,31 @@
+@inherits CommonBase
+
+<MudChip T="string" Color="@StatusColor" Size="Size.Small" Variant="Variant.Filled">
+    @Localizer[Status.ToString()]
+</MudChip>
+
+@code {
+    [Parameter, EditorRequired] public PrescriptionStatus Status { get; set; }
+
+    private Color StatusColor => Status switch
+    {
+        PrescriptionStatus.Draft => Color.Default,
+        PrescriptionStatus.ReadyForSubmission => Color.Info,
+        PrescriptionStatus.Submitting => Color.Warning,
+        PrescriptionStatus.Submitted => Color.Primary,
+        PrescriptionStatus.AcceptedByProvider => Color.Success,
+        PrescriptionStatus.RejectedByProvider => Color.Error,
+        PrescriptionStatus.NeedsCorrection => Color.Warning,
+        PrescriptionStatus.EditRequested => Color.Info,
+        PrescriptionStatus.Edited => Color.Success,
+        PrescriptionStatus.CancelRequested => Color.Warning,
+        PrescriptionStatus.Cancelled => Color.Dark,
+        PrescriptionStatus.PaperFallback => Color.Secondary,
+        PrescriptionStatus.SyncPending => Color.Warning,
+        PrescriptionStatus.SyncFailed => Color.Error,
+        PrescriptionStatus.DuplicateRisk => Color.Error,
+        PrescriptionStatus.ProviderUnavailable => Color.Dark,
+        PrescriptionStatus.ManuallyReconciled => Color.Tertiary,
+        _ => Color.Default
+    };
+}

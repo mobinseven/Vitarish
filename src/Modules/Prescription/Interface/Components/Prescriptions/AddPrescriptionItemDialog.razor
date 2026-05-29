@@ -1,0 +1,52 @@
+@inherits PrescriptionBase
+
+<MudDialog>
+    <TitleContent>
+        <MudText Typo="Typo.h6">@Localizer["AddItem", Localizer["Item"]]</MudText>
+    </TitleContent>
+    <DialogContent>
+        <Stack>
+            <StackField Label="@Localizer["Category"]">
+                <MudSelect T="PrescriptionItemCategory" @bind-Value="category" Label="@Localizer["Category"]">
+                    @foreach (var cat in Enum.GetValues<PrescriptionItemCategory>())
+                    {
+                        <MudSelectItem Value="cat">@Localizer[cat.ToString()]</MudSelectItem>
+                    }
+                </MudSelect>
+            </StackField>
+
+            <StackTextField @bind-Value="searchTerm"
+                            Label="@Localizer["SearchCode"]"
+                            HelperText="@Localizer["SearchCodeHelp"]" />
+
+            <StackButton Label="@Localizer["Search"]"
+                         EndIcon="fa-regular fa-search"
+                         OnClick="SearchCodesAsync" />
+
+            @if (searchResults.Count > 0)
+            {
+                <MudList T="string" Dense="true" Class="mt-2">
+                    @foreach (var item in searchResults)
+                    {
+                        <MudListItem T="string" OnClick="() => SelectCode(item)">
+                            <MudText Typo="Typo.body2">@item.DisplayName</MudText>
+                            <MudText Typo="Typo.caption">@item.Code</MudText>
+                        </MudListItem>
+                    }
+                </MudList>
+            }
+
+            @if (selectedCode is not null)
+            {
+                <StackField Label="@selectedCode.DisplayName" HelperText="@selectedCode.Code" />
+            }
+
+            <StackNumericField @bind-Value="quantity" Label="@Localizer["Quantity"]" Min="1" />
+            <StackNumericField @bind-Value="durationDays" Label="@Localizer["DurationDays"]" Min="1" />
+        </Stack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" OnClick="AddAsync" Disabled="@(!CanAdd)">@Localizer["Add"]</MudButton>
+    </DialogActions>
+</MudDialog>

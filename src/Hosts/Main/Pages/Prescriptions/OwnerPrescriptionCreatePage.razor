@@ -1,0 +1,75 @@
+@attribute [Route(AppRoutes.Prescriptions.OwnerPrescriptionCreate)]
+@attribute [Route(AppRoutes.Prescriptions.OwnerPrescriptionCreateTemplate)]
+@inherits TenantPageBase
+
+<Stack>
+    <StackField Label="@Localizer["NewPrescription"]" />
+
+    <StackTextField @bind-Value="patientNationalId"
+                    Label="@Localizer["PatientNationalId"]"
+                    HelperText="@Localizer["PatientNationalIdHelp"]" />
+
+    @if (!string.IsNullOrEmpty(selectedProviderKey))
+    {
+        <StackField Label="@selectedProviderKey" HelperText="@Localizer["SelectedProvider"]" />
+    }
+
+    <StackButton Color="Color.Primary"
+                 Label="@Localizer["CreateDraft"]"
+                 EndIcon="fa-regular fa-file-medical"
+                 OnClick="CreateDraftAsync"
+                 Disabled="@(string.IsNullOrWhiteSpace(patientNationalId))" />
+</Stack>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <MudAlert Severity="Severity.Error" Class="mt-2">@errorMessage</MudAlert>
+}
+
+@code {
+    [Parameter] public Guid? patientId { get; set; }
+
+    [Inject] private IMediator Mediator { get; set; } = default!;
+
+    private string? patientNationalId;
+    private string selectedProviderKey = "tamin";
+    private string? errorMessage;
+
+    protected override Task ReloadRequired()
+    {
+        return Task.CompletedTask;
+    }
+
+    private async Task CreateDraftAsync()
+    {
+        if (string.IsNullOrWhiteSpace(patientNationalId))
+        {
+            return;
+        }
+
+        errorMessage = null;
+
+        Guid effectivePatientId = patientId ?? Guid.NewGuid();
+        Guid doctorId = UserId ?? Guid.Empty;
+        Guid clinicId = Guid.TryParse(RequestContext.TenantId, out Guid tid) ? tid : Guid.Empty;
+
+        CreateDraftResult result = await Mediator.Send(new CreateDraftCommand
+        {
+            PatientId = effectivePatientId,
+            DoctorId = doctorId,
+            ClinicId = clinicId,
+            SelectedProviderKey = selectedProviderKey,
+            TenantId = RequestContext.TenantId ?? string.Empty
+        });
+
+        if (result.IsSuccess && result.PrescriptionId.HasValue)
+        {
+            NavigationManager.NavigateTo(AppRoutes.Prescriptions.OwnerPrescription(result.PrescriptionId.Value));
+        }
+        else
+        {
+            errorMessage = result.ErrorMessage ?? Localizer["UnknownError"];
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}

@@ -138,7 +138,7 @@ For disabled/manual providers; returns graceful "not available" for all operatio
 
 ## Phase 4: First Provider Vertical Slice (Tamin)
 
-**Status: In Progress** (4.1 and 4.2 complete; 4.3 UI components pending)
+**Status: In Progress** (4.1, 4.2, and 4.3 complete; 4.4 integration pending verification)
 
 **Goal:** End-to-end working flow for one provider, guided by journey maps.
 
@@ -293,7 +293,7 @@ For disabled/manual providers; returns graceful "not available" for all operatio
 2. **Centralized Infrastructure (Phase 1)** — build once, use everywhere — Complete
 3. **Module Skeleton (Phase 2)** — domain + persistence foundation — Complete
 4. **Adapter Framework (Phase 3)** — multi-provider integration layer — Complete
-5. **First Provider Slice (Phase 4)** — end-to-end working flow — In Progress (4.1, 4.2, 4.4 complete)
+5. **First Provider Slice (Phase 4)** — end-to-end working flow — In Progress (4.1, 4.2, 4.3, 4.4 complete)
 6. **Multi-Provider (Phase 5)** — prove architecture extensibility
 7. **Recovery (Phase 6)** — production failure handling
 8. **Reference Data (Phase 7)** — code management and sync

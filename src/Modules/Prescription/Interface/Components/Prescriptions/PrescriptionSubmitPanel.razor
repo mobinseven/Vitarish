@@ -1,0 +1,35 @@
+@inherits PrescriptionBase
+
+@if (Prescription is null)
+{
+    return;
+}
+
+@if (Prescription.Status is PrescriptionStatus.AcceptedByProvider
+    or PrescriptionStatus.Submitted
+    or PrescriptionStatus.Edited)
+{
+    <Stack>
+        <StackField Label="@Localizer["SubmissionResult"]" />
+
+        @if (!string.IsNullOrEmpty(trackingCode))
+        {
+            <StackField Label="@trackingCode" HelperText="@Localizer["TrackingCode"]" />
+        }
+
+        <StackField Label="@Localizer[Prescription.Status.ToString()]" HelperText="@Localizer["FinalStatus"]">
+            <PrescriptionStatusBadge Status="@Prescription.Status" />
+        </StackField>
+    </Stack>
+}
+
+@if (Prescription.Status is PrescriptionStatus.RejectedByProvider
+    or PrescriptionStatus.SyncFailed
+    or PrescriptionStatus.DuplicateRisk)
+{
+    <Stack>
+        <MudAlert Severity="Severity.Error">
+            @Localizer[$"StatusDescription_{Prescription.Status}"]
+        </MudAlert>
+    </Stack>
+}
