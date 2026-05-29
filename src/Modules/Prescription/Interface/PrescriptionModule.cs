@@ -16,7 +16,7 @@ public sealed class PrescriptionModule : Module, IPrescriptionModule
     {
         _ = builder.Services.AddSingleton<IPrescriptionModule, PrescriptionModule>();
         _ = builder.Services.AddDbContext<PrescriptionDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
-        _ = builder.Services.AddPrescriptionInfrastructure();
+        _ = builder.Services.AddPrescriptionInfrastructure(builder.Configuration);
 
         return Task.CompletedTask;
     }
