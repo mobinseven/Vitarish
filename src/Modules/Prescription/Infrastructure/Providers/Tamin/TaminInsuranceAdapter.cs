@@ -21,6 +21,7 @@ public sealed class TaminInsuranceAdapter : IInsuranceProviderAdapter
     private readonly TaminOptions _options;
     private readonly PrescriptionDbContext _dbContext;
     private readonly ILogger<TaminInsuranceAdapter> _logger;
+    private Guid? _providerId;
 
     private static readonly HashSet<InsuranceProviderCapabilityType> SupportedCapabilities =
     [
@@ -62,8 +63,9 @@ public sealed class TaminInsuranceAdapter : IInsuranceProviderAdapter
 
     public async Task<AdapterResult> AuthenticateAsync(AuthenticateRequest request, CancellationToken cancellationToken = default)
     {
+        var providerId = await GetProviderIdAsync(cancellationToken);
         var credential = await _dbContext.DoctorProviderCredentials
-            .Where(c => c.DoctorId == request.DoctorId && c.InsuranceProviderId == GetProviderId())
+            .Where(c => c.DoctorId == request.DoctorId && c.InsuranceProviderId == providerId)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (credential is null)
@@ -452,8 +454,9 @@ public sealed class TaminInsuranceAdapter : IInsuranceProviderAdapter
 
     private async Task<TaminSession?> EnsureAuthenticatedAsync(Guid doctorId, Guid clinicId, CancellationToken cancellationToken)
     {
+        var providerId = await GetProviderIdAsync(cancellationToken);
         var credential = await _dbContext.DoctorProviderCredentials
-            .Where(c => c.DoctorId == doctorId && c.InsuranceProviderId == GetProviderId())
+            .Where(c => c.DoctorId == doctorId && c.InsuranceProviderId == providerId)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (credential is null)
@@ -481,12 +484,18 @@ public sealed class TaminInsuranceAdapter : IInsuranceProviderAdapter
         return new TaminSession { Token = credential.TokenSecretRef!, SessionId = credential.SessionId };
     }
 
-    private Guid GetProviderId()
+    private async Task<Guid> GetProviderIdAsync(CancellationToken cancellationToken)
     {
-        // This would normally be cached or injected; simplified for now
-        var provider = _dbContext.InsuranceProviders
-            .FirstOrDefault(p => p.ProviderKey == ProviderKeyConst);
-        return provider?.Id ?? Guid.Empty;
+        if (_providerId.HasValue)
+            return _providerId.Value;
+
+        _providerId = await _dbContext.InsuranceProviders
+            .AsNoTracking()
+            .Where(p => p.ProviderKey == ProviderKeyConst)
+            .Select(p => p.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return _providerId.Value;
     }
 
     private static TaminPrescriptionSubmitRequest MapToTaminSubmission(Domain.Entities.PrescriptionRecord prescription)

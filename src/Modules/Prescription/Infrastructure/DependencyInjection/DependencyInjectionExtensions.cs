@@ -1,5 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+using Vitarish.Modules.Base.Platform.Transactions;
 using Vitarish.Prescription.Application.Abstractions;
 using Vitarish.Prescription.Infrastructure.Data;
 using Vitarish.Prescription.Infrastructure.Providers;
@@ -32,7 +34,14 @@ public static class DependencyInjectionExtensions
     {
         _ = services.Configure<TaminOptions>(configuration.GetSection(TaminOptions.SectionName));
         _ = services.AddHttpClient<TaminInsuranceAdapter>();
-        _ = services.AddScoped<IInsuranceProviderAdapter, TaminInsuranceAdapter>();
-        _ = services.AddSingleton<IProviderErrorMapper, TaminErrorMapper>();
+        _ = services.AddSingleton<TaminErrorMapper>();
+        _ = services.AddSingleton<IProviderErrorMapper>(sp => sp.GetRequiredService<TaminErrorMapper>());
+        _ = services.AddScoped<IInsuranceProviderAdapter>(sp =>
+            new ResilientAdapterDecorator(
+                sp.GetRequiredService<TaminInsuranceAdapter>(),
+                sp.GetRequiredService<TaminErrorMapper>(),
+                sp.GetRequiredService<IProviderResiliencePipelineProvider>(),
+                sp.GetRequiredService<IExternalApiTransactionLogger>(),
+                sp.GetRequiredService<ILogger<ResilientAdapterDecorator>>()));
     }
 }
