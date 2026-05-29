@@ -14,6 +14,7 @@ using Vitarish.Modules.Base;
 using Vitarish.Social.Hosting;
 using Vitarish.Sea.Interface;
 using Vitarish.Links.Interface;
+using Vitarish.Prescription.Interface;
 using Vitarish.Search.Interface;
 public static class ModulesExtensions
 {
@@ -31,6 +32,7 @@ public static class ModulesExtensions
                 Activator.CreateInstance<CommerceModule>(),
                 Activator.CreateInstance<SocialModule>(),
                 Activator.CreateInstance<DocumentsModule>(),
+                Activator.CreateInstance<PrescriptionModule>(),
             ];
 
     extension(WebApplicationBuilder builder)
