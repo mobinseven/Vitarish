@@ -9,7 +9,7 @@ public static class DependencyInjectionExtensions
 {
     public static IServiceCollection AddPrescriptionInfrastructure(this IServiceCollection services)
     {
-        _ = services.AddSingleton<IInsuranceProviderRegistry, InsuranceProviderRegistry>();
+        _ = services.AddScoped<IInsuranceProviderRegistry, InsuranceProviderRegistry>();
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(
             typeof(PrescriptionDbContext).Assembly));
