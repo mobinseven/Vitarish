@@ -18,6 +18,9 @@
     <StackField Label="@Prescription.Items.Count.ToString()" HelperText="@Localizer["Items"]" />
 </Stack>
 
+<PayerSelectorPanel Prescription="@Prescription"
+                    OnProviderChanged="OnProviderChangedAsync" />
+
 <EligibilityPanel PrescriptionId="@Prescription.Id"
                   ProviderKey="@Prescription.SelectedProviderKey"
                   DoctorId="@Prescription.DoctorId"

@@ -155,3 +155,30 @@ public sealed class SearchReferenceCodesHandler(PrescriptionDbContext dbContext)
             .ToListAsync(cancellationToken);
     }
 }
+
+public sealed class GetPatientCoveragesHandler(PrescriptionDbContext dbContext)
+    : IRequestHandler<GetPatientCoveragesQuery, IReadOnlyList<PatientCoverageDto>>
+{
+    public async Task<IReadOnlyList<PatientCoverageDto>> Handle(GetPatientCoveragesQuery request, CancellationToken cancellationToken)
+    {
+        return await dbContext.PatientCoverages
+            .AsNoTracking()
+            .Where(c => c.PatientId == request.PatientId)
+            .Join(
+                dbContext.InsuranceProviders,
+                coverage => coverage.InsuranceProviderId,
+                provider => provider.Id,
+                (coverage, provider) => new PatientCoverageDto
+                {
+                    CoverageId = coverage.Id,
+                    InsuranceProviderId = coverage.InsuranceProviderId,
+                    ProviderKey = provider.ProviderKey,
+                    ProviderName = provider.Name,
+                    CoverageIdentifier = coverage.CoverageIdentifier,
+                    CoverageType = coverage.CoverageType,
+                    IsEligible = coverage.IsEligible,
+                    ExpiresAt = coverage.ExpiresAt
+                })
+            .ToListAsync(cancellationToken);
+    }
+}

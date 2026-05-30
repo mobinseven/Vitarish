@@ -38,6 +38,12 @@ public sealed record SearchReferenceCodesQuery : IRequest<IReadOnlyList<Referenc
     public int Take { get; init; } = 50;
 }
 
+/// <summary>Gets available insurance coverages for a patient (for payer selection).</summary>
+public sealed record GetPatientCoveragesQuery : IRequest<IReadOnlyList<PatientCoverageDto>>
+{
+    public required Guid PatientId { get; init; }
+}
+
 // DTOs
 
 public sealed record PrescriptionDto
@@ -92,4 +98,16 @@ public sealed record ReferenceCodeDto
     public string DisplayName { get; init; } = string.Empty;
     public string? Category { get; init; }
     public string CodeSystem { get; init; } = string.Empty;
+}
+
+public sealed record PatientCoverageDto
+{
+    public Guid CoverageId { get; init; }
+    public Guid InsuranceProviderId { get; init; }
+    public string ProviderKey { get; init; } = string.Empty;
+    public string ProviderName { get; init; } = string.Empty;
+    public string? CoverageIdentifier { get; init; }
+    public string? CoverageType { get; init; }
+    public bool IsEligible { get; init; }
+    public DateTimeOffset? ExpiresAt { get; init; }
 }

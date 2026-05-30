@@ -202,3 +202,36 @@ public sealed class ValidateDraftHandler(
         _ => null
     };
 }
+
+public sealed class SetProviderHandler(
+    PrescriptionDbContext dbContext,
+    IInsuranceProviderRegistry providerRegistry,
+    ILogger<SetProviderHandler> logger)
+    : IRequestHandler<SetProviderCommand, SetProviderResult>
+{
+    public async Task<SetProviderResult> Handle(SetProviderCommand request, CancellationToken cancellationToken)
+    {
+        var prescription = await dbContext.Prescriptions
+            .FirstOrDefaultAsync(p => p.Id == request.PrescriptionId, cancellationToken);
+
+        if (prescription is null)
+            return SetProviderResult.Failure("نسخه یافت نشد.");
+
+        if (prescription.Status != PrescriptionStatus.Draft)
+            return SetProviderResult.Failure("انتخاب بیمه‌گر فقط برای نسخه‌های پیش‌نویس امکان‌پذیر است.");
+
+        if (!providerRegistry.IsProviderAvailable(request.ProviderKey))
+            return SetProviderResult.Failure("بیمه‌گر انتخاب شده در سیستم موجود نیست.");
+
+        prescription.SelectedProviderKey = request.ProviderKey;
+        prescription.SelectedPatientCoverageId = request.PatientCoverageId;
+        prescription.UpdatedAt = DateTimeOffset.UtcNow;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Provider set to {ProviderKey} for prescription {PrescriptionId}",
+            request.ProviderKey, request.PrescriptionId);
+
+        return SetProviderResult.Success();
+    }
+}

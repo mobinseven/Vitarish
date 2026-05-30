@@ -15,6 +15,11 @@ public partial class PrescriptionDetail : PrescriptionBase
         await ReloadPrescription();
     }
 
+    private async Task OnProviderChangedAsync()
+    {
+        await ReloadPrescription();
+    }
+
     private async Task ValidateAndSubmitAsync()
     {
         ValidateDraftResult validation = await Mediator.Send(new ValidateDraftCommand

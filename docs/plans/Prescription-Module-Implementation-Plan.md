@@ -171,21 +171,29 @@ For disabled/manual providers; returns graceful "not available" for all operatio
 
 ## Phase 5: Multi-Provider Expansion
 
+**Status: Complete**
+
 **Goal:** Prove the architecture by adding second and third providers.
 
 ### 5.1 Armed Forces / DITAS adapter
-- Implement adapter behind same `IInsuranceProviderAdapter`.
-- Handle DITAS gateway mode if required.
-- Map provider-specific capabilities.
+- Implemented `DitasInsuranceAdapter` behind same `IInsuranceProviderAdapter`.
+- Capabilities: entitlement check, visit/drug/paraclinic submission, fetch, cancel. Edit returns NotSupported (DITAS requires cancel+resubmit).
+- API-key-per-clinic auth model (no per-doctor session).
+- `DitasErrorMapper` maps HTTP status codes to canonical error taxonomy.
+- `DitasOptions` config section: `Prescription:Providers:Ditas`.
 
-### 5.2 Salamat adapter (stub or full)
-- Implement based on available API documentation.
-- Capability flags control what's enabled.
+### 5.2 Salamat adapter (stub)
+- Implemented `SalamatInsuranceAdapter` as a full stub (all operations return NotSupported).
+- Capabilities declared: full set including edit and reference data sync.
+- Stub logs intent on every call; ready for HTTP wiring once Ministry of Health API access is obtained.
+- `SalamatOptions` config section: `Prescription:Providers:Salamat`.
 
 ### 5.3 Multi-coverage UX
-- Payer selector activates when patient has multiple active coverages.
-- UI dynamically enables/disables operations per selected provider's capabilities.
-- Journey map `multi-coverage-payer-selection.md` guides implementation.
+- Added `GetPatientCoveragesQuery` + `PatientCoverageDto` — queries PatientCoverages joined with InsuranceProviders.
+- Added `SetProviderCommand` + `SetProviderHandler` — updates SelectedProviderKey/SelectedPatientCoverageId on draft.
+- Created `PayerSelectorPanel` component: single-coverage shows read-only label; multi-coverage activates a `MudSelect` payer picker.
+- Auto-selects the sole provider when patient has exactly one active coverage.
+- Integrated into `PrescriptionDetail` above the eligibility panel, visible only while status is Draft.
 
 ## Phase 6: Recovery, Reconciliation & Fallback
 
@@ -294,7 +302,7 @@ For disabled/manual providers; returns graceful "not available" for all operatio
 3. **Module Skeleton (Phase 2)** — domain + persistence foundation — Complete
 4. **Adapter Framework (Phase 3)** — multi-provider integration layer — Complete
 5. **First Provider Slice (Phase 4)** — end-to-end working flow — **Complete**
-6. **Multi-Provider (Phase 5)** — prove architecture extensibility
+6. **Multi-Provider (Phase 5)** — prove architecture extensibility — **Complete**
 7. **Recovery (Phase 6)** — production failure handling
 8. **Reference Data (Phase 7)** — code management and sync
 9. **Observability (Phase 8)** — monitoring and support tools
