@@ -20,6 +20,7 @@ public sealed class PrescriptionDbContext : DbContext
     public DbSet<PrescriptionProviderSubmission> PrescriptionSubmissions => Set<PrescriptionProviderSubmission>();
     public DbSet<ReferenceCode> ReferenceCodes => Set<ReferenceCode>();
     public DbSet<ReferenceCodeCrosswalk> ReferenceCodeCrosswalks => Set<ReferenceCodeCrosswalk>();
+    public DbSet<PrescriptionOutboxRecord> OutboxRecords => Set<PrescriptionOutboxRecord>();
 
     public PrescriptionDbContext(
         DbContextOptions<PrescriptionDbContext> options,
@@ -47,6 +48,7 @@ public sealed class PrescriptionDbContext : DbContext
         ConfigurePrescriptionProviderSubmission(modelBuilder);
         ConfigureReferenceCode(modelBuilder);
         ConfigureReferenceCodeCrosswalk(modelBuilder);
+        ConfigureOutboxRecord(modelBuilder);
     }
 
     private static void ConfigureInsuranceProvider(ModelBuilder modelBuilder)
@@ -207,6 +209,21 @@ public sealed class PrescriptionDbContext : DbContext
             _ = entity.HasIndex(e => new { e.LocalCode, e.LocalCodeSystem, e.ProviderKey, e.ProviderCode, e.ProviderCodeSystem })
                 .IsUnique()
                 .HasDatabaseName("IX_Crosswalk_Local_Provider_Codes");
+        });
+    }
+
+    private static void ConfigureOutboxRecord(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<PrescriptionOutboxRecord>(entity =>
+        {
+            _ = entity.Property(e => e.ProviderKey).HasMaxLength(64);
+            _ = entity.Property(e => e.OperationName).HasMaxLength(128);
+            _ = entity.Property(e => e.IdempotencyKey).HasMaxLength(512);
+            _ = entity.Property(e => e.CorrelationId).HasMaxLength(256);
+            _ = entity.Property(e => e.Status).HasMaxLength(32);
+            _ = entity.Property(e => e.TenantId).HasMaxLength(128);
+            _ = entity.HasIndex(e => new { e.Status, e.NextRetryAt })
+                .HasDatabaseName("IX_OutboxRecord_Status_NextRetry");
         });
     }
 }

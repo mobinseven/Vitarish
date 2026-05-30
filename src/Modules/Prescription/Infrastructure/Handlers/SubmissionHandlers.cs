@@ -1,6 +1,11 @@
+using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Vitarish.Audit.Application;
+using Vitarish.Audit.Domain;
+using Vitarish.Modules.Base.Platform.Errors;
+using Vitarish.Modules.Base.Platform.Retry;
 using Vitarish.Prescription.Application.Abstractions;
 using Vitarish.Prescription.Application.Commands;
 using Vitarish.Prescription.Domain.Entities;
@@ -12,6 +17,8 @@ namespace Vitarish.Prescription.Infrastructure.Handlers;
 public sealed class SubmitPrescriptionHandler(
     PrescriptionDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
+    IOutboxService outboxService,
+    IAuditWriter auditWriter,
     ILogger<SubmitPrescriptionHandler> logger)
     : IRequestHandler<SubmitPrescriptionCommand, SubmitPrescriptionResult>
 {
@@ -72,6 +79,19 @@ public sealed class SubmitPrescriptionHandler(
             dbContext.PrescriptionSubmissions.Add(submission);
             await dbContext.SaveChangesAsync(cancellationToken);
 
+            await auditWriter.WriteAsync(new AuditEntry
+            {
+                EntityType = nameof(PrescriptionRecord),
+                EntityId = prescription.Id,
+                Action = "Submitted",
+                OldState = PrescriptionStatus.Submitting.ToString(),
+                NewState = targetStatus.ToString(),
+                CorrelationId = request.CorrelationId,
+                ProviderKey = prescription.SelectedProviderKey,
+                OccurredAt = DateTimeOffset.UtcNow,
+                TenantId = prescription.TenantId
+            }, cancellationToken);
+
             logger.LogInformation("Prescription {PrescriptionId} submitted successfully to {Provider}, remote ID: {RemoteId}",
                 prescription.Id, prescription.SelectedProviderKey, submissionResult.Data.RemotePrescriptionId);
 
@@ -91,14 +111,42 @@ public sealed class SubmitPrescriptionHandler(
         // Handle failure
         var errorStatus = submissionResult.Error?.Category switch
         {
-            Modules.Base.Platform.Errors.ErrorCategory.Timeout => PrescriptionStatus.SyncPending,
-            Modules.Base.Platform.Errors.ErrorCategory.Outage => PrescriptionStatus.ProviderUnavailable,
-            Modules.Base.Platform.Errors.ErrorCategory.DuplicateRisk => PrescriptionStatus.DuplicateRisk,
+            ErrorCategory.Timeout => PrescriptionStatus.SyncPending,
+            ErrorCategory.Outage => PrescriptionStatus.ProviderUnavailable,
+            ErrorCategory.DuplicateRisk => PrescriptionStatus.DuplicateRisk,
             _ => PrescriptionStatus.SyncPending
         };
 
         prescription.TransitionTo(errorStatus);
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        // Enqueue for retry if SyncPending
+        if (errorStatus == PrescriptionStatus.SyncPending)
+        {
+            _ = await outboxService.EnqueueAsync(new OutboxEntry
+            {
+                ProviderKey = prescription.SelectedProviderKey,
+                OperationName = "SubmitPrescription",
+                PayloadJson = JsonSerializer.Serialize(new { PrescriptionId = prescription.Id, request.CorrelationId }),
+                IdempotencyKey = idempotencyKey,
+                CorrelationId = request.CorrelationId,
+                NextRetryAt = DateTimeOffset.UtcNow.AddMinutes(1),
+                TenantId = prescription.TenantId
+            }, cancellationToken);
+        }
+
+        await auditWriter.WriteAsync(new AuditEntry
+        {
+            EntityType = nameof(PrescriptionRecord),
+            EntityId = prescription.Id,
+            Action = "SubmissionFailed",
+            OldState = PrescriptionStatus.Submitting.ToString(),
+            NewState = errorStatus.ToString(),
+            CorrelationId = request.CorrelationId,
+            ProviderKey = prescription.SelectedProviderKey,
+            OccurredAt = DateTimeOffset.UtcNow,
+            TenantId = prescription.TenantId
+        }, cancellationToken);
 
         logger.LogWarning("Prescription {PrescriptionId} submission failed: {Error}",
             prescription.Id, submissionResult.Error?.UserMessage);
@@ -119,6 +167,7 @@ public sealed class SubmitPrescriptionHandler(
 public sealed class EditPrescriptionHandler(
     PrescriptionDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
+    IAuditWriter auditWriter,
     ILogger<EditPrescriptionHandler> logger)
     : IRequestHandler<EditPrescriptionCommand, EditPrescriptionResult>
 {
@@ -162,14 +211,40 @@ public sealed class EditPrescriptionHandler(
             prescription.TransitionTo(targetStatus);
             await dbContext.SaveChangesAsync(cancellationToken);
 
+            await auditWriter.WriteAsync(new AuditEntry
+            {
+                EntityType = nameof(PrescriptionRecord),
+                EntityId = prescription.Id,
+                Action = "Edited",
+                OldState = PrescriptionStatus.Submitting.ToString(),
+                NewState = targetStatus.ToString(),
+                CorrelationId = request.CorrelationId,
+                ProviderKey = prescription.SelectedProviderKey,
+                OccurredAt = DateTimeOffset.UtcNow,
+                TenantId = prescription.TenantId
+            }, cancellationToken);
+
             logger.LogInformation("Prescription {PrescriptionId} edited successfully", prescription.Id);
 
             return EditPrescriptionResult.Success(editResult.Data.RemoteTrackingCode, targetStatus);
         }
 
-        // On failure, stay in Submitting (SyncPending)
+        // On failure, stay in SyncPending
         prescription.TransitionTo(PrescriptionStatus.SyncPending);
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        await auditWriter.WriteAsync(new AuditEntry
+        {
+            EntityType = nameof(PrescriptionRecord),
+            EntityId = prescription.Id,
+            Action = "EditFailed",
+            OldState = PrescriptionStatus.Submitting.ToString(),
+            NewState = PrescriptionStatus.SyncPending.ToString(),
+            CorrelationId = request.CorrelationId,
+            ProviderKey = prescription.SelectedProviderKey,
+            OccurredAt = DateTimeOffset.UtcNow,
+            TenantId = prescription.TenantId
+        }, cancellationToken);
 
         return EditPrescriptionResult.Failure(
             editResult.Error?.UserMessage ?? "خطا در ویرایش نسخه.",
@@ -180,6 +255,7 @@ public sealed class EditPrescriptionHandler(
 public sealed class CancelPrescriptionHandler(
     PrescriptionDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
+    IAuditWriter auditWriter,
     ILogger<CancelPrescriptionHandler> logger)
     : IRequestHandler<CancelPrescriptionCommand, CancelPrescriptionResult>
 {
@@ -226,6 +302,19 @@ public sealed class CancelPrescriptionHandler(
             prescription.TransitionTo(PrescriptionStatus.Cancelled);
             await dbContext.SaveChangesAsync(cancellationToken);
 
+            await auditWriter.WriteAsync(new AuditEntry
+            {
+                EntityType = nameof(PrescriptionRecord),
+                EntityId = prescription.Id,
+                Action = "Cancelled",
+                OldState = PrescriptionStatus.Submitting.ToString(),
+                NewState = PrescriptionStatus.Cancelled.ToString(),
+                CorrelationId = request.CorrelationId,
+                ProviderKey = prescription.SelectedProviderKey,
+                OccurredAt = DateTimeOffset.UtcNow,
+                TenantId = prescription.TenantId
+            }, cancellationToken);
+
             logger.LogInformation("Prescription {PrescriptionId} cancelled successfully", prescription.Id);
             return CancelPrescriptionResult.Success(PrescriptionStatus.Cancelled);
         }
@@ -233,6 +322,19 @@ public sealed class CancelPrescriptionHandler(
         // On failure
         prescription.TransitionTo(PrescriptionStatus.SyncPending);
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        await auditWriter.WriteAsync(new AuditEntry
+        {
+            EntityType = nameof(PrescriptionRecord),
+            EntityId = prescription.Id,
+            Action = "CancelFailed",
+            OldState = PrescriptionStatus.Submitting.ToString(),
+            NewState = PrescriptionStatus.SyncPending.ToString(),
+            CorrelationId = request.CorrelationId,
+            ProviderKey = prescription.SelectedProviderKey,
+            OccurredAt = DateTimeOffset.UtcNow,
+            TenantId = prescription.TenantId
+        }, cancellationToken);
 
         return CancelPrescriptionResult.Failure(
             cancelResult.Error?.UserMessage ?? "خطا در لغو نسخه.",

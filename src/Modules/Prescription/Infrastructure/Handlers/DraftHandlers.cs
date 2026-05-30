@@ -1,6 +1,8 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Vitarish.Audit.Application;
+using Vitarish.Audit.Domain;
 using Vitarish.Prescription.Application.Abstractions;
 using Vitarish.Prescription.Application.Commands;
 using Vitarish.Prescription.Domain.Entities;
@@ -11,6 +13,7 @@ namespace Vitarish.Prescription.Infrastructure.Handlers;
 
 public sealed class CreateDraftHandler(
     PrescriptionDbContext dbContext,
+    IAuditWriter auditWriter,
     ILogger<CreateDraftHandler> logger)
     : IRequestHandler<CreateDraftCommand, CreateDraftResult>
 {
@@ -33,6 +36,17 @@ public sealed class CreateDraftHandler(
 
         dbContext.Prescriptions.Add(prescription);
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        await auditWriter.WriteAsync(new AuditEntry
+        {
+            EntityType = nameof(PrescriptionRecord),
+            EntityId = prescription.Id,
+            Action = AuditAction.Created,
+            NewState = PrescriptionStatus.Draft.ToString(),
+            ProviderKey = request.SelectedProviderKey,
+            OccurredAt = DateTimeOffset.UtcNow,
+            TenantId = request.TenantId
+        }, cancellationToken);
 
         logger.LogInformation("Created draft prescription {PrescriptionId} for patient {PatientId}",
             prescription.Id, request.PatientId);
