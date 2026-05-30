@@ -1,6 +1,8 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Vitarish.DitasInsurance.Client;
 using Vitarish.Modules.Base.Platform.Retry;
 using Vitarish.Modules.Base.Platform.Transactions;
 using Vitarish.Prescription.Application.Abstractions;
@@ -10,6 +12,7 @@ using Vitarish.Prescription.Infrastructure.Providers.Ditas;
 using Vitarish.Prescription.Infrastructure.Providers.Salamat;
 using Vitarish.Prescription.Infrastructure.Providers.Tamin;
 using Vitarish.Prescription.Infrastructure.Services;
+using Vitarish.TaminInsurance.Client;
 
 namespace Vitarish.Prescription.Infrastructure.DependencyInjection;
 
@@ -46,7 +49,20 @@ public static class DependencyInjectionExtensions
     private static void RegisterTaminProvider(IServiceCollection services, IConfiguration configuration)
     {
         _ = services.Configure<TaminOptions>(configuration.GetSection(TaminOptions.SectionName));
-        _ = services.AddHttpClient<TaminInsuranceAdapter>();
+        _ = services.AddSingleton(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<TaminOptions>>().Value;
+            return new TaminInsuranceClientOptions
+            {
+                BaseUrl = options.BaseUrl,
+                ApiKey = options.ApiKey,
+                UseSandbox = options.UseSandbox,
+                SandboxBaseUrl = options.SandboxBaseUrl
+            };
+        });
+        _ = services.AddHttpClient<ITaminInsuranceClient, TaminInsuranceClient>();
+        _ = services.AddScoped<ITaminCredentialSessionStore, TaminCredentialSessionStore>();
+        _ = services.AddScoped<TaminInsuranceAdapter>();
         _ = services.AddSingleton<TaminErrorMapper>();
         _ = services.AddSingleton<IProviderErrorMapper>(sp => sp.GetRequiredService<TaminErrorMapper>());
         _ = services.AddScoped<IInsuranceProviderAdapter>(sp =>
@@ -61,7 +77,19 @@ public static class DependencyInjectionExtensions
     private static void RegisterDitasProvider(IServiceCollection services, IConfiguration configuration)
     {
         _ = services.Configure<DitasOptions>(configuration.GetSection(DitasOptions.SectionName));
-        _ = services.AddHttpClient<DitasInsuranceAdapter>();
+        _ = services.AddSingleton(sp =>
+        {
+            var options = sp.GetRequiredService<IOptions<DitasOptions>>().Value;
+            return new DitasInsuranceClientOptions
+            {
+                BaseUrl = options.BaseUrl,
+                ApiKey = options.ApiKey,
+                UseSandbox = options.UseSandbox,
+                SandboxBaseUrl = options.SandboxBaseUrl
+            };
+        });
+        _ = services.AddHttpClient<IDitasInsuranceClient, DitasInsuranceClient>();
+        _ = services.AddScoped<DitasInsuranceAdapter>();
         _ = services.AddSingleton<DitasErrorMapper>();
         _ = services.AddSingleton<IProviderErrorMapper>(sp => sp.GetRequiredService<DitasErrorMapper>());
         _ = services.AddScoped<IInsuranceProviderAdapter>(sp =>
