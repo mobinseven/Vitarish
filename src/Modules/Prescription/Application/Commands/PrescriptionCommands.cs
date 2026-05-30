@@ -7,6 +7,7 @@ namespace Vitarish.Prescription.Application.Commands;
 public sealed record CreateDraftCommand : IRequest<CreateDraftResult>
 {
     public required Guid PatientId { get; init; }
+    public string? PatientNationalId { get; init; }
     public required Guid DoctorId { get; init; }
     public required Guid ClinicId { get; init; }
     public Guid? EncounterId { get; init; }
@@ -135,4 +136,24 @@ public sealed record CancelPrescriptionResult
         => new() { IsSuccess = true, ResultStatus = status };
     public static CancelPrescriptionResult Failure(string error, PrescriptionStatus status)
         => new() { IsSuccess = false, ErrorMessage = error, ResultStatus = status };
+}
+
+/// <summary>
+/// Selects the insurance provider (payer) for a draft prescription.
+/// Only allowed while the prescription is in Draft status.
+/// </summary>
+public sealed record SetProviderCommand : IRequest<SetProviderResult>
+{
+    public required Guid PrescriptionId { get; init; }
+    public required string ProviderKey { get; init; }
+    public Guid? PatientCoverageId { get; init; }
+}
+
+public sealed record SetProviderResult
+{
+    public bool IsSuccess { get; init; }
+    public string? ErrorMessage { get; init; }
+
+    public static SetProviderResult Success() => new() { IsSuccess = true };
+    public static SetProviderResult Failure(string error) => new() { IsSuccess = false, ErrorMessage = error };
 }

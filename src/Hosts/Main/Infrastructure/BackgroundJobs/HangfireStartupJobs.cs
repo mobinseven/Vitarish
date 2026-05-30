@@ -2,6 +2,7 @@ using Vitarish.Main.Infrastructure.BackgroundJobs.Commerce;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Intelligence;
+using Vitarish.Main.Infrastructure.BackgroundJobs.Prescriptions;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Reminders;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 
@@ -45,5 +46,8 @@ public static class HangfireStartupJobs
         commerceJobs.ScheduleCatalogSync();
         commerceJobs.ScheduleOrderSync();
         commerceJobs.ScheduleCartCleanup();
+
+        HangfirePrescriptionJobManager prescriptionJobs = app.Services.GetRequiredService<HangfirePrescriptionJobManager>();
+        prescriptionJobs.ScheduleRetry();
     }
 }

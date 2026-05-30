@@ -1,0 +1,60 @@
+@inherits PrescriptionBase
+
+@if (Prescription is null)
+{
+    return;
+}
+
+<Stack>
+    <StackField Label="@Localizer["Status"]">
+        <PrescriptionStatusBadge Status="@Prescription.Status" />
+    </StackField>
+    <StackField Label="@(Prescription.SelectedProviderKey ?? "—")" HelperText="@Localizer["Provider"]" />
+    <StackField Label="@Prescription.CreatedAt.ToLocalTime().ToString("g")" HelperText="@Localizer["CreatedAt"]" />
+    @if (Prescription.SubmittedAt.HasValue)
+    {
+        <StackField Label="@Prescription.SubmittedAt.Value.ToLocalTime().ToString("g")" HelperText="@Localizer["SubmittedAt"]" />
+    }
+    <StackField Label="@Prescription.Items.Count.ToString()" HelperText="@Localizer["Items"]" />
+</Stack>
+
+<PayerSelectorPanel Prescription="@Prescription"
+                    OnProviderChanged="OnProviderChangedAsync" />
+
+<EligibilityPanel PrescriptionId="@Prescription.Id"
+                  ProviderKey="@Prescription.SelectedProviderKey"
+                  PatientNationalId="@Prescription.PatientNationalId"
+                  DoctorId="@Prescription.DoctorId"
+                  ClinicId="@Prescription.ClinicId" />
+
+<PrescriptionItemsGrid Prescription="@Prescription"
+                       OnItemAdded="OnItemAdded"
+                       OnItemRemoved="OnItemRemoved" />
+
+@if (Prescription.Status is PrescriptionStatus.Draft
+    or PrescriptionStatus.NeedsCorrection
+    or PrescriptionStatus.ReadyForSubmission)
+{
+    <Stack>
+        <StackButton Color="Color.Primary"
+                     Label="@Localizer["ValidateAndSubmit"]"
+                     EndIcon="fa-regular fa-paper-plane"
+                     OnClick="ValidateAndSubmitAsync" />
+    </Stack>
+}
+
+@if (Prescription.Status == PrescriptionStatus.AcceptedByProvider)
+{
+    <Stack>
+        <StackButton Label="@Localizer["EditItem", Localizer["Prescription"]]"
+                     EndIcon="fa-regular fa-pen"
+                     OnClick="EditAsync" />
+        <StackButton Color="Color.Error"
+                     Label="@Localizer["CancelItem", Localizer["Prescription"]]"
+                     EndIcon="fa-regular fa-xmark"
+                     OnClick="CancelAsync" />
+    </Stack>
+}
+
+<PrescriptionSubmitPanel Prescription="@Prescription" />
+<PrescriptionTimeline Prescription="@Prescription" />

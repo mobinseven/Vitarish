@@ -10,6 +10,7 @@ public sealed class PrescriptionRecord
 {
     public Guid Id { get; set; }
     public Guid PatientId { get; set; }
+    public string? PatientNationalId { get; set; }
     public Guid DoctorId { get; set; }
     public Guid ClinicId { get; set; }
     public Guid? EncounterId { get; set; }
@@ -66,6 +67,7 @@ public sealed class PrescriptionRecord
             (PrescriptionStatus.Submitted, PrescriptionStatus.AcceptedByProvider) => true,
             (PrescriptionStatus.RejectedByProvider, PrescriptionStatus.NeedsCorrection) => true,
             (PrescriptionStatus.NeedsCorrection, PrescriptionStatus.Draft) => true,
+            (PrescriptionStatus.NeedsCorrection, PrescriptionStatus.ReadyForSubmission) => true,
             (PrescriptionStatus.AcceptedByProvider, PrescriptionStatus.EditRequested) => true,
             (PrescriptionStatus.EditRequested, PrescriptionStatus.Submitting) => true,
             (PrescriptionStatus.Edited, PrescriptionStatus.AcceptedByProvider) => true,

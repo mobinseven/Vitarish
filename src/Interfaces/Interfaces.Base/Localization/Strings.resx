@@ -2004,4 +2004,10 @@ of project "{2}"</value>
   <data name="sync" xml:space="preserve">
     <value>Sync</value>
   </data>
+  <data name="prescriptions" xml:space="preserve">
+    <value>Prescriptions</value>
+  </data>
+  <data name="PatientContextRequired" xml:space="preserve">
+    <value>Open prescription creation from a patient context before creating a draft.</value>
+  </data>
 </root>

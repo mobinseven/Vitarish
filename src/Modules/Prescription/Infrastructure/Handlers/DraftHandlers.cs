@@ -1,6 +1,8 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Vitarish.Audit.Application;
+using Vitarish.Audit.Domain;
 using Vitarish.Prescription.Application.Abstractions;
 using Vitarish.Prescription.Application.Commands;
 using Vitarish.Prescription.Domain.Entities;
@@ -11,6 +13,7 @@ namespace Vitarish.Prescription.Infrastructure.Handlers;
 
 public sealed class CreateDraftHandler(
     PrescriptionDbContext dbContext,
+    IAuditWriter auditWriter,
     ILogger<CreateDraftHandler> logger)
     : IRequestHandler<CreateDraftCommand, CreateDraftResult>
 {
@@ -20,6 +23,7 @@ public sealed class CreateDraftHandler(
         {
             Id = Guid.NewGuid(),
             PatientId = request.PatientId,
+            PatientNationalId = request.PatientNationalId,
             DoctorId = request.DoctorId,
             ClinicId = request.ClinicId,
             EncounterId = request.EncounterId,
@@ -33,6 +37,17 @@ public sealed class CreateDraftHandler(
 
         dbContext.Prescriptions.Add(prescription);
         await dbContext.SaveChangesAsync(cancellationToken);
+
+        await auditWriter.WriteAsync(new AuditEntry
+        {
+            EntityType = nameof(PrescriptionRecord),
+            EntityId = prescription.Id,
+            Action = AuditAction.Created,
+            NewState = PrescriptionStatus.Draft.ToString(),
+            ProviderKey = request.SelectedProviderKey,
+            OccurredAt = DateTimeOffset.UtcNow,
+            TenantId = request.TenantId
+        }, cancellationToken);
 
         logger.LogInformation("Created draft prescription {PrescriptionId} for patient {PatientId}",
             prescription.Id, request.PatientId);
@@ -55,8 +70,8 @@ public sealed class AddItemHandler(
         if (prescription is null)
             return AddItemResult.Failure("نسخه یافت نشد.");
 
-        if (prescription.Status != PrescriptionStatus.Draft)
-            return AddItemResult.Failure("فقط نسخه‌های پیش‌نویس قابل ویرایش هستند.");
+        if (prescription.Status is not (PrescriptionStatus.Draft or PrescriptionStatus.NeedsCorrection))
+            return AddItemResult.Failure("فقط نسخه‌های پیش‌نویس یا نیازمند اصلاح قابل ویرایش هستند.");
 
         var item = new PrescriptionItem
         {
@@ -97,8 +112,8 @@ public sealed class RemoveItemHandler(
         if (prescription is null)
             return RemoveItemResult.Failure("نسخه یافت نشد.");
 
-        if (prescription.Status != PrescriptionStatus.Draft)
-            return RemoveItemResult.Failure("فقط نسخه‌های پیش‌نویس قابل ویرایش هستند.");
+        if (prescription.Status is not (PrescriptionStatus.Draft or PrescriptionStatus.NeedsCorrection))
+            return RemoveItemResult.Failure("فقط نسخه‌های پیش‌نویس یا نیازمند اصلاح قابل ویرایش هستند.");
 
         var item = prescription.Items.FirstOrDefault(i => i.Id == request.ItemId);
         if (item is null)
@@ -161,7 +176,7 @@ public sealed class ValidateDraftHandler(
         }
 
         // If valid, transition to ReadyForSubmission
-        if (errors.Count == 0 && prescription.Status == PrescriptionStatus.Draft)
+        if (errors.Count == 0 && prescription.Status is PrescriptionStatus.Draft or PrescriptionStatus.NeedsCorrection)
         {
             prescription.TransitionTo(PrescriptionStatus.ReadyForSubmission);
             await dbContext.SaveChangesAsync(cancellationToken);
@@ -187,4 +202,37 @@ public sealed class ValidateDraftHandler(
         PrescriptionItemCategory.Referral => InsuranceProviderCapabilityType.SupportsReferralPrescription,
         _ => null
     };
+}
+
+public sealed class SetProviderHandler(
+    PrescriptionDbContext dbContext,
+    IInsuranceProviderRegistry providerRegistry,
+    ILogger<SetProviderHandler> logger)
+    : IRequestHandler<SetProviderCommand, SetProviderResult>
+{
+    public async Task<SetProviderResult> Handle(SetProviderCommand request, CancellationToken cancellationToken)
+    {
+        var prescription = await dbContext.Prescriptions
+            .FirstOrDefaultAsync(p => p.Id == request.PrescriptionId, cancellationToken);
+
+        if (prescription is null)
+            return SetProviderResult.Failure("نسخه یافت نشد.");
+
+        if (prescription.Status != PrescriptionStatus.Draft)
+            return SetProviderResult.Failure("انتخاب بیمه‌گر فقط برای نسخه‌های پیش‌نویس امکان‌پذیر است.");
+
+        if (!providerRegistry.IsProviderAvailable(request.ProviderKey))
+            return SetProviderResult.Failure("بیمه‌گر انتخاب شده در سیستم موجود نیست.");
+
+        prescription.SelectedProviderKey = request.ProviderKey;
+        prescription.SelectedPatientCoverageId = request.PatientCoverageId;
+        prescription.UpdatedAt = DateTimeOffset.UtcNow;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        logger.LogInformation("Provider set to {ProviderKey} for prescription {PrescriptionId}",
+            request.ProviderKey, request.PrescriptionId);
+
+        return SetProviderResult.Success();
+    }
 }

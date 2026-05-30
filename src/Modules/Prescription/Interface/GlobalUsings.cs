@@ -1,0 +1,9 @@
+global using MediatR;
+global using Microsoft.AspNetCore.Components;
+global using MudBlazor;
+global using Vitarish.Entities.Server.Models;
+global using Vitarish.Interfaces.Base.Common;
+global using Vitarish.Prescription.Application.Commands;
+global using Vitarish.Prescription.Application.Queries;
+global using Vitarish.Prescription.Domain.Enums;
+global using Vitarish.Prescription.Interface.Components.Base;

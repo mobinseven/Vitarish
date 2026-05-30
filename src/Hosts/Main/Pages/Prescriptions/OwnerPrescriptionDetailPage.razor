@@ -1,0 +1,41 @@
+@attribute [Route(AppRoutes.Prescriptions.OwnerPrescriptionTemplate)]
+@inherits TenantPageBase
+
+@if (prescription is null)
+{
+    return;
+}
+
+<PrescriptionDetail Prescription="@prescription"
+                    OnStatusChanged="ReloadRequired" />
+
+@code {
+    [Parameter] public Guid? PrescriptionId { get; set; }
+
+    private PrescriptionDto? prescription;
+
+    [Inject] private IMediator Mediator { get; set; } = default!;
+
+    protected override async Task ReloadRequired()
+    {
+        if (PrescriptionId is null)
+        {
+            NavigationManager.NavigateTo(AppRoutes.Prescriptions.OwnerPrescriptions);
+            return;
+        }
+
+        prescription = await Mediator.Send(new GetPrescriptionQuery
+        {
+            PrescriptionId = PrescriptionId.Value
+        });
+
+        if (prescription is null)
+        {
+            NavigationManager.NavigateTo(AppRoutes.Prescriptions.OwnerPrescriptions);
+            return;
+        }
+
+        NavService.OverridePageTitle(PrescriptionId.Value.ToString(), Localizer["Prescription"]);
+        await InvokeAsync(StateHasChanged);
+    }
+}

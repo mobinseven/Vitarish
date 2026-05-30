@@ -13,7 +13,7 @@ public sealed record GetPrescriptionQuery : IRequest<PrescriptionDto?>
 /// <summary>Gets prescription history for a patient.</summary>
 public sealed record GetPrescriptionHistoryQuery : IRequest<IReadOnlyList<PrescriptionSummaryDto>>
 {
-    public required Guid PatientId { get; init; }
+    public Guid? PatientId { get; init; }
     public Guid? ClinicId { get; init; }
     public int Skip { get; init; }
     public int Take { get; init; } = 20;
@@ -38,12 +38,19 @@ public sealed record SearchReferenceCodesQuery : IRequest<IReadOnlyList<Referenc
     public int Take { get; init; } = 50;
 }
 
+/// <summary>Gets available insurance coverages for a patient (for payer selection).</summary>
+public sealed record GetPatientCoveragesQuery : IRequest<IReadOnlyList<PatientCoverageDto>>
+{
+    public required Guid PatientId { get; init; }
+}
+
 // DTOs
 
 public sealed record PrescriptionDto
 {
     public Guid Id { get; init; }
     public Guid PatientId { get; init; }
+    public string? PatientNationalId { get; init; }
     public Guid DoctorId { get; init; }
     public Guid ClinicId { get; init; }
     public string? SelectedProviderKey { get; init; }
@@ -51,6 +58,7 @@ public sealed record PrescriptionDto
     public int VersionNumber { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? SubmittedAt { get; init; }
+    public string? TrackingCode { get; init; }
     public IReadOnlyList<PrescriptionItemDto> Items { get; init; } = [];
 }
 
@@ -92,4 +100,16 @@ public sealed record ReferenceCodeDto
     public string DisplayName { get; init; } = string.Empty;
     public string? Category { get; init; }
     public string CodeSystem { get; init; } = string.Empty;
+}
+
+public sealed record PatientCoverageDto
+{
+    public Guid CoverageId { get; init; }
+    public Guid InsuranceProviderId { get; init; }
+    public string ProviderKey { get; init; } = string.Empty;
+    public string ProviderName { get; init; } = string.Empty;
+    public string? CoverageIdentifier { get; init; }
+    public string? CoverageType { get; init; }
+    public bool IsEligible { get; init; }
+    public DateTimeOffset? ExpiresAt { get; init; }
 }

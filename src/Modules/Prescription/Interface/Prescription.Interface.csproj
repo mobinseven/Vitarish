@@ -6,6 +6,7 @@
     <ProjectReference Include="..\Application\Prescription.Application.csproj" />
     <ProjectReference Include="..\Domain\Prescription.Domain.csproj" />
     <ProjectReference Include="..\Infrastructure\Prescription.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
 </Project>

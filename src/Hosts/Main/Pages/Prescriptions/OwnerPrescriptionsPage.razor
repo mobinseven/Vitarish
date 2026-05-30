@@ -1,0 +1,18 @@
+@attribute [Route(AppRoutes.Prescriptions.OwnerPrescriptions)]
+@attribute [EnableSearch]
+@inherits TenantPageBase
+
+<PrescriptionsList PatientId="@selectedPatientId"
+                   OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Prescriptions.OwnerPrescription(id)))"
+                   OnAdd="NavigateToCreate" />
+
+@code {
+    private Guid? selectedPatientId;
+
+    protected override Task ReloadRequired() => Task.CompletedTask;
+
+    private void NavigateToCreate()
+    {
+        NavigationManager.NavigateTo(AppRoutes.Prescriptions.OwnerPrescriptionCreate);
+    }
+}
