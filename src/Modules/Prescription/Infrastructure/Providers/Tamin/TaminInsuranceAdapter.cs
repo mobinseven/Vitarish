@@ -93,6 +93,8 @@ public sealed class TaminInsuranceAdapter : IInsuranceProviderAdapter
 
     public async Task<AdapterResult<SubmissionResponse>> SubmitPrescriptionAsync(SubmissionRequest request, CancellationToken cancellationToken = default)
     {
+        if (request.PrescriptionId == Guid.Empty)
+            return AdapterResult<SubmissionResponse>.Failure(ValidationError("شناسه نسخه مشخص نشده است.", "PrescriptionId is required."));
         if (string.IsNullOrWhiteSpace(request.IdempotencyKey))
             return AdapterResult<SubmissionResponse>.Failure(ValidationError("کلید یکتایی درخواست مشخص نشده است.", "IdempotencyKey is required."));
 
@@ -148,6 +150,8 @@ public sealed class TaminInsuranceAdapter : IInsuranceProviderAdapter
 
     public async Task<AdapterResult<SubmissionResponse>> EditPrescriptionAsync(EditRequest request, CancellationToken cancellationToken = default)
     {
+        if (request.PrescriptionId == Guid.Empty)
+            return AdapterResult<SubmissionResponse>.Failure(ValidationError("شناسه نسخه مشخص نشده است.", "PrescriptionId is required."));
         if (string.IsNullOrWhiteSpace(request.IdempotencyKey))
             return AdapterResult<SubmissionResponse>.Failure(ValidationError("کلید یکتایی درخواست مشخص نشده است.", "IdempotencyKey is required."));
 
@@ -240,19 +244,16 @@ public sealed class TaminInsuranceAdapter : IInsuranceProviderAdapter
 
     private async Task<Domain.Entities.PrescriptionRecord?> LoadPrescriptionByRemoteIdAsync(string remotePrescriptionId, bool includeItems, CancellationToken cancellationToken)
     {
-        var prescriptionId = await _dbContext.PrescriptionSubmissions
-            .Where(s => s.RemotePrescriptionId == remotePrescriptionId)
-            .Select(s => (Guid?)s.PrescriptionRecordId)
-            .FirstOrDefaultAsync(cancellationToken);
+        var query =
+            from submission in _dbContext.PrescriptionSubmissions
+            join prescription in _dbContext.Prescriptions on submission.PrescriptionRecordId equals prescription.Id
+            where submission.RemotePrescriptionId == remotePrescriptionId
+            select prescription;
 
-        if (prescriptionId is null)
-            return null;
-
-        var query = _dbContext.Prescriptions.AsQueryable();
         if (includeItems)
             query = query.Include(p => p.Items);
 
-        return await query.FirstOrDefaultAsync(p => p.Id == prescriptionId, cancellationToken);
+        return await query.FirstOrDefaultAsync(cancellationToken);
     }
 
     private static IntegrationError? ValidateDoctorContext(Guid doctorId, Guid clinicId)

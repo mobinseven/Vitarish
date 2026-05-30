@@ -49,9 +49,9 @@ public static class DependencyInjectionExtensions
     private static void RegisterTaminProvider(IServiceCollection services, IConfiguration configuration)
     {
         _ = services.Configure<TaminOptions>(configuration.GetSection(TaminOptions.SectionName));
-        _ = services.AddSingleton(sp =>
+        _ = services.AddTransient(sp =>
         {
-            var options = sp.GetRequiredService<IOptions<TaminOptions>>().Value;
+            var options = sp.GetRequiredService<IOptionsMonitor<TaminOptions>>().CurrentValue;
             return new TaminInsuranceClientOptions
             {
                 BaseUrl = options.BaseUrl,
@@ -77,9 +77,9 @@ public static class DependencyInjectionExtensions
     private static void RegisterDitasProvider(IServiceCollection services, IConfiguration configuration)
     {
         _ = services.Configure<DitasOptions>(configuration.GetSection(DitasOptions.SectionName));
-        _ = services.AddSingleton(sp =>
+        _ = services.AddTransient(sp =>
         {
-            var options = sp.GetRequiredService<IOptions<DitasOptions>>().Value;
+            var options = sp.GetRequiredService<IOptionsMonitor<DitasOptions>>().CurrentValue;
             return new DitasInsuranceClientOptions
             {
                 BaseUrl = options.BaseUrl,

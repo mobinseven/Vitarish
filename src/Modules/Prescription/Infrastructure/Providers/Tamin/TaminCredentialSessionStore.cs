@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Vitarish.Modules.Base.Platform.Errors;
 using Vitarish.Prescription.Application.Abstractions;
+using Vitarish.Prescription.Domain.Entities;
 using Vitarish.Prescription.Infrastructure.Data;
 using Vitarish.TaminInsurance.Client;
 
@@ -33,6 +34,26 @@ internal sealed class TaminCredentialSessionStore : ITaminCredentialSessionStore
         if (credential is null)
             return TaminSessionResult.Failure(MissingCredentialError(doctorId));
 
+        return await AuthenticateInternalAsync(credential, doctorId, clinicId, cancellationToken);
+    }
+
+    public async Task<TaminSessionResult> GetOrRefreshSessionAsync(Guid doctorId, Guid clinicId, CancellationToken cancellationToken = default)
+    {
+        var credential = await FindCredentialAsync(doctorId, cancellationToken);
+        if (credential is null)
+            return TaminSessionResult.Failure(MissingCredentialError(doctorId));
+
+        if (!string.IsNullOrWhiteSpace(credential.TokenSecretRef) &&
+            credential.TokenExpiresAt > DateTimeOffset.UtcNow.AddMinutes(2))
+        {
+            return TaminSessionResult.Success(new TaminSession { Token = credential.TokenSecretRef, SessionId = credential.SessionId });
+        }
+
+        return await AuthenticateInternalAsync(credential, doctorId, clinicId, cancellationToken);
+    }
+
+    private async Task<TaminSessionResult> AuthenticateInternalAsync(DoctorProviderCredential credential, Guid doctorId, Guid clinicId, CancellationToken cancellationToken)
+    {
         if (string.IsNullOrWhiteSpace(credential.ProviderUsername) || string.IsNullOrWhiteSpace(credential.CredentialSecretRef))
             return TaminSessionResult.Failure(MissingCredentialError(doctorId));
 
@@ -76,22 +97,7 @@ internal sealed class TaminCredentialSessionStore : ITaminCredentialSessionStore
         }
     }
 
-    public async Task<TaminSessionResult> GetOrRefreshSessionAsync(Guid doctorId, Guid clinicId, CancellationToken cancellationToken = default)
-    {
-        var credential = await FindCredentialAsync(doctorId, cancellationToken);
-        if (credential is null)
-            return TaminSessionResult.Failure(MissingCredentialError(doctorId));
-
-        if (!string.IsNullOrWhiteSpace(credential.TokenSecretRef) &&
-            credential.TokenExpiresAt > DateTimeOffset.UtcNow.AddMinutes(2))
-        {
-            return TaminSessionResult.Success(new TaminSession { Token = credential.TokenSecretRef, SessionId = credential.SessionId });
-        }
-
-        return await AuthenticateAsync(doctorId, clinicId, cancellationToken);
-    }
-
-    private async Task<Vitarish.Prescription.Domain.Entities.DoctorProviderCredential?> FindCredentialAsync(Guid doctorId, CancellationToken cancellationToken)
+    private async Task<DoctorProviderCredential?> FindCredentialAsync(Guid doctorId, CancellationToken cancellationToken)
     {
         var providerId = await GetProviderIdAsync(cancellationToken);
         if (providerId == Guid.Empty)

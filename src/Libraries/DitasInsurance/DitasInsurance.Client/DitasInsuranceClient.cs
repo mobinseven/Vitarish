@@ -1,10 +1,13 @@
+using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 
 namespace Vitarish.DitasInsurance.Client;
 
 public sealed class DitasInsuranceClient : IDitasInsuranceClient
 {
     private const string ApiKeyHeader = "X-Api-Key";
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private readonly HttpClient _httpClient;
     private readonly DitasInsuranceClientOptions _options;
 
@@ -64,11 +67,20 @@ public sealed class DitasInsuranceClient : IDitasInsuranceClient
 
         using var response = await _httpClient.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
-            throw new DitasInsuranceClientException(response.StatusCode, await response.Content.ReadAsStringAsync(cancellationToken));
+        {
+            var responseBody = response.Content is null
+                ? string.Empty
+                : await response.Content.ReadAsStringAsync(cancellationToken);
+            throw new DitasInsuranceClientException(response.StatusCode, responseBody);
+        }
 
-        if (response.Content.Headers.ContentLength == 0)
+        if (response.Content is null || response.StatusCode == HttpStatusCode.NoContent || response.Content.Headers.ContentLength == 0)
             return default;
 
-        return await response.Content.ReadFromJsonAsync<T>(cancellationToken);
+        var successBody = await response.Content.ReadAsStringAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(successBody))
+            return default;
+
+        return JsonSerializer.Deserialize<T>(successBody, JsonOptions);
     }
 }
