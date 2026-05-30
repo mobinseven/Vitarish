@@ -18,8 +18,13 @@
                  Label="@Localizer["CreateDraft"]"
                  EndIcon="fa-regular fa-file-medical"
                  OnClick="CreateDraftAsync"
-                 Disabled="@(string.IsNullOrWhiteSpace(patientNationalId))" />
+                 Disabled="@(PatientId is null || string.IsNullOrWhiteSpace(patientNationalId))" />
 </Stack>
+
+@if (PatientId is null)
+{
+    <MudAlert Severity="Severity.Warning" Class="mt-2">@Localizer["PatientContextRequired"]</MudAlert>
+}
 
 @if (!string.IsNullOrEmpty(errorMessage))
 {
@@ -27,12 +32,13 @@
 }
 
 @code {
-    [Parameter] public Guid? patientId { get; set; }
+    [Parameter] public Guid? PatientId { get; set; }
 
     [Inject] private IMediator Mediator { get; set; } = default!;
 
     private string? patientNationalId;
-    private string selectedProviderKey = "tamin";
+    private const string DefaultProviderKey = "TAMIN";
+    private string selectedProviderKey = DefaultProviderKey;
     private string? errorMessage;
 
     protected override Task ReloadRequired()
@@ -42,20 +48,22 @@
 
     private async Task CreateDraftAsync()
     {
-        if (string.IsNullOrWhiteSpace(patientNationalId))
+        if (PatientId is null || string.IsNullOrWhiteSpace(patientNationalId))
         {
+            errorMessage = PatientId is null ? Localizer["PatientContextRequired"] : null;
             return;
         }
 
         errorMessage = null;
 
-        Guid effectivePatientId = patientId ?? Guid.NewGuid();
+        Guid effectivePatientId = PatientId.Value;
         Guid doctorId = UserId ?? Guid.Empty;
         Guid clinicId = Guid.TryParse(RequestContext.TenantId, out Guid tid) ? tid : Guid.Empty;
 
         CreateDraftResult result = await Mediator.Send(new CreateDraftCommand
         {
             PatientId = effectivePatientId,
+            PatientNationalId = patientNationalId.Trim(),
             DoctorId = doctorId,
             ClinicId = clinicId,
             SelectedProviderKey = selectedProviderKey,

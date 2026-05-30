@@ -12,9 +12,9 @@
     <Stack>
         <StackField Label="@Localizer["SubmissionResult"]" />
 
-        @if (!string.IsNullOrEmpty(trackingCode))
+        @if (!string.IsNullOrEmpty(TrackingCode))
         {
-            <StackField Label="@trackingCode" HelperText="@Localizer["TrackingCode"]" />
+            <StackField Label="@TrackingCode" HelperText="@Localizer["TrackingCode"]" />
         }
 
         <StackField Label="@Localizer[Prescription.Status.ToString()]" HelperText="@Localizer["FinalStatus"]">

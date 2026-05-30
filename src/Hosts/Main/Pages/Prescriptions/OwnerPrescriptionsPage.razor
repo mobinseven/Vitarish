@@ -9,12 +9,7 @@
 @code {
     private Guid? selectedPatientId;
 
-    protected override Task ReloadRequired()
-    {
-        // Default: show all prescriptions for the clinic (PatientId null shows empty state)
-        // Patient selection will be handled via the check-in flow or patient picker
-        return Task.CompletedTask;
-    }
+    protected override Task ReloadRequired() => Task.CompletedTask;
 
     private void NavigateToCreate()
     {

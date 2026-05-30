@@ -132,6 +132,7 @@ public sealed class PrescriptionDbContext : DbContext
         {
             _ = entity.HasQueryFilter(e => e.DeletedAt == null);
             _ = entity.Property(e => e.SelectedProviderKey).HasMaxLength(64);
+            _ = entity.Property(e => e.PatientNationalId).HasMaxLength(32);
             _ = entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(32);
             _ = entity.Property(e => e.TenantId).HasMaxLength(128);
             _ = entity.HasIndex(e => new { e.PatientId, e.TenantId })
@@ -224,6 +225,8 @@ public sealed class PrescriptionDbContext : DbContext
             _ = entity.Property(e => e.TenantId).HasMaxLength(128);
             _ = entity.HasIndex(e => new { e.Status, e.NextRetryAt })
                 .HasDatabaseName("IX_OutboxRecord_Status_NextRetry");
+            _ = entity.HasIndex(e => e.PrescriptionId)
+                .HasDatabaseName("IX_OutboxRecord_PrescriptionId");
         });
     }
 }

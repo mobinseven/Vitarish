@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Modules.Base.Platform.Retry;
 using Vitarish.Prescription.Domain.Entities;
@@ -17,6 +18,7 @@ internal sealed class PrescriptionOutboxService(PrescriptionDbContext dbContext)
         var record = new PrescriptionOutboxRecord
         {
             Id = entry.Id,
+            PrescriptionId = TryReadPrescriptionId(entry.PayloadJson),
             ProviderKey = entry.ProviderKey,
             OperationName = entry.OperationName,
             PayloadJson = entry.PayloadJson,
@@ -116,5 +118,25 @@ internal sealed class PrescriptionOutboxService(PrescriptionDbContext dbContext)
             LastError = r.LastError,
             TenantId = r.TenantId
         }).ToList();
+    }
+
+    private static Guid? TryReadPrescriptionId(string payloadJson)
+    {
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(payloadJson);
+            if (document.RootElement.TryGetProperty("PrescriptionId", out JsonElement idElement) &&
+                idElement.ValueKind == JsonValueKind.String &&
+                Guid.TryParse(idElement.GetString(), out Guid prescriptionId))
+            {
+                return prescriptionId;
+            }
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+
+        return null;
     }
 }

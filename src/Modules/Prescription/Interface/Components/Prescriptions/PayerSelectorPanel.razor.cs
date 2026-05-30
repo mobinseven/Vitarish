@@ -9,6 +9,7 @@ public partial class PayerSelectorPanel : PrescriptionBase
     private string? selectedProviderKey;
     private bool isLoading;
     private string? errorMessage;
+    private Guid? loadedPatientId;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -17,27 +18,32 @@ public partial class PayerSelectorPanel : PrescriptionBase
         if (Prescription is null)
             return;
 
-        isLoading = true;
+        selectedProviderKey = Prescription.SelectedProviderKey;
 
-        try
+        if (loadedPatientId != Prescription.PatientId)
         {
-            var result = await Mediator.Send(new GetPatientCoveragesQuery
-            {
-                PatientId = Prescription.PatientId
-            });
+            isLoading = true;
 
-            coverages = [.. result];
-            selectedProviderKey = Prescription.SelectedProviderKey;
-
-            // Auto-select if only one coverage and none selected
-            if (string.IsNullOrEmpty(selectedProviderKey) && coverages.Count == 1)
+            try
             {
-                await ApplyProviderSelectionAsync(coverages[0].ProviderKey, coverages[0].CoverageId);
+                var result = await Mediator.Send(new GetPatientCoveragesQuery
+                {
+                    PatientId = Prescription.PatientId
+                });
+
+                loadedPatientId = Prescription.PatientId;
+                coverages = [.. result];
+            }
+            finally
+            {
+                isLoading = false;
             }
         }
-        finally
+
+        // Auto-select if only one coverage and none selected
+        if (string.IsNullOrEmpty(selectedProviderKey) && coverages.Count == 1)
         {
-            isLoading = false;
+            await ApplyProviderSelectionAsync(coverages[0].ProviderKey, coverages[0].CoverageId);
         }
     }
 

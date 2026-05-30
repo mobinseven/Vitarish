@@ -23,6 +23,7 @@
 
 <EligibilityPanel PrescriptionId="@Prescription.Id"
                   ProviderKey="@Prescription.SelectedProviderKey"
+                  PatientNationalId="@Prescription.PatientNationalId"
                   DoctorId="@Prescription.DoctorId"
                   ClinicId="@Prescription.ClinicId" />
 
@@ -30,7 +31,9 @@
                        OnItemAdded="OnItemAdded"
                        OnItemRemoved="OnItemRemoved" />
 
-@if (Prescription.Status == PrescriptionStatus.Draft)
+@if (Prescription.Status is PrescriptionStatus.Draft
+    or PrescriptionStatus.NeedsCorrection
+    or PrescriptionStatus.ReadyForSubmission)
 {
     <Stack>
         <StackButton Color="Color.Primary"

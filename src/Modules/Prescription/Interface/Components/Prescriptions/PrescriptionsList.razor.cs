@@ -8,21 +8,26 @@ public partial class PrescriptionsList : PrescriptionBase
 
     private List<PrescriptionSummaryDto> prescriptions = [];
     private Guid? previousPatientId;
+    private Guid? previousClinicId;
 
     protected override Task OnSearchedAsync() => ReloadRequired();
 
     protected override async Task OnParametersSetAsync()
     {
-        if (PatientId != previousPatientId)
+        Guid? clinicId = GetClinicId();
+        if (PatientId != previousPatientId || clinicId != previousClinicId)
         {
             previousPatientId = PatientId;
+            previousClinicId = clinicId;
             await ReloadRequired();
         }
     }
 
     protected override async Task ReloadRequired()
     {
-        if (PatientId is null)
+        Guid? clinicId = GetClinicId();
+
+        if (PatientId is null && clinicId is null)
         {
             prescriptions = [];
             await InvokeAsync(StateHasChanged);
@@ -31,7 +36,8 @@ public partial class PrescriptionsList : PrescriptionBase
 
         IReadOnlyList<PrescriptionSummaryDto> items = await Mediator.Send(new GetPrescriptionHistoryQuery
         {
-            PatientId = PatientId.Value,
+            PatientId = PatientId,
+            ClinicId = PatientId is null ? clinicId : null,
             Skip = 0,
             Take = 50
         });
@@ -39,6 +45,9 @@ public partial class PrescriptionsList : PrescriptionBase
         prescriptions = [.. items.OrderByDescending(p => p.CreatedAt)];
         await InvokeAsync(StateHasChanged);
     }
+
+    private Guid? GetClinicId() =>
+        Guid.TryParse(RequestContext.TenantId, out Guid clinicId) ? clinicId : null;
 
     private static string FormatLabel(PrescriptionSummaryDto p) =>
         $"{p.CreatedAt.ToLocalTime():d} — {p.SelectedProviderKey ?? "—"} ({p.ItemCount})";

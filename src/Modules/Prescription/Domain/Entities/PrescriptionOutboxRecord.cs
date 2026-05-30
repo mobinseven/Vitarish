@@ -7,6 +7,7 @@ namespace Vitarish.Prescription.Domain.Entities;
 public sealed class PrescriptionOutboxRecord
 {
     public Guid Id { get; set; }
+    public Guid? PrescriptionId { get; set; }
     public required string ProviderKey { get; set; }
     public required string OperationName { get; set; }
     public required string PayloadJson { get; set; }

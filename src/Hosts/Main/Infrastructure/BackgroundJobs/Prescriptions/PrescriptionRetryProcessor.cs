@@ -109,7 +109,7 @@ public sealed class PrescriptionRetryProcessor(
         var orphaned = await dbContext.Prescriptions
             .Where(p => p.Status == PrescriptionStatus.SyncPending)
             .Where(p => !dbContext.OutboxRecords.Any(o =>
-                o.PayloadJson.Contains(p.Id.ToString()) &&
+                o.PrescriptionId == p.Id &&
                 (o.Status == pendingOutboxStatus || o.Status == processingStatus)))
             .Take(20)
             .Select(p => new { p.Id, p.SelectedProviderKey, p.VersionNumber, p.TenantId })

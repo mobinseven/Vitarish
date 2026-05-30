@@ -10,7 +10,7 @@
                     OnStatusChanged="ReloadRequired" />
 
 @code {
-    [Parameter] public Guid? prescriptionId { get; set; }
+    [Parameter] public Guid? PrescriptionId { get; set; }
 
     private PrescriptionDto? prescription;
 
@@ -18,7 +18,7 @@
 
     protected override async Task ReloadRequired()
     {
-        if (prescriptionId is null)
+        if (PrescriptionId is null)
         {
             NavigationManager.NavigateTo(AppRoutes.Prescriptions.OwnerPrescriptions);
             return;
@@ -26,7 +26,7 @@
 
         prescription = await Mediator.Send(new GetPrescriptionQuery
         {
-            PrescriptionId = prescriptionId.Value
+            PrescriptionId = PrescriptionId.Value
         });
 
         if (prescription is null)
@@ -35,7 +35,7 @@
             return;
         }
 
-        NavService.OverridePageTitle(prescriptionId.Value.ToString(), Localizer["Prescription"]);
+        NavService.OverridePageTitle(PrescriptionId.Value.ToString(), Localizer["Prescription"]);
         await InvokeAsync(StateHasChanged);
     }
 }

@@ -13,7 +13,7 @@ public sealed record GetPrescriptionQuery : IRequest<PrescriptionDto?>
 /// <summary>Gets prescription history for a patient.</summary>
 public sealed record GetPrescriptionHistoryQuery : IRequest<IReadOnlyList<PrescriptionSummaryDto>>
 {
-    public required Guid PatientId { get; init; }
+    public Guid? PatientId { get; init; }
     public Guid? ClinicId { get; init; }
     public int Skip { get; init; }
     public int Take { get; init; } = 20;
@@ -50,6 +50,7 @@ public sealed record PrescriptionDto
 {
     public Guid Id { get; init; }
     public Guid PatientId { get; init; }
+    public string? PatientNationalId { get; init; }
     public Guid DoctorId { get; init; }
     public Guid ClinicId { get; init; }
     public string? SelectedProviderKey { get; init; }
@@ -57,6 +58,7 @@ public sealed record PrescriptionDto
     public int VersionNumber { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
     public DateTimeOffset? SubmittedAt { get; init; }
+    public string? TrackingCode { get; init; }
     public IReadOnlyList<PrescriptionItemDto> Items { get; init; } = [];
 }
 

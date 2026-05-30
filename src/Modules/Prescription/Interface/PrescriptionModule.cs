@@ -15,7 +15,7 @@ public sealed class PrescriptionModule : Module, IPrescriptionModule
     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         _ = builder.Services.AddSingleton<IPrescriptionModule, PrescriptionModule>();
-        _ = builder.Services.AddDbContext<PrescriptionDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
+        _ = builder.Services.AddDbContext<PrescriptionDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Scoped);
         _ = builder.Services.AddPrescriptionInfrastructure(builder.Configuration);
 
         return Task.CompletedTask;

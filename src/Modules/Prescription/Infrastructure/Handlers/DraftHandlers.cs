@@ -23,6 +23,7 @@ public sealed class CreateDraftHandler(
         {
             Id = Guid.NewGuid(),
             PatientId = request.PatientId,
+            PatientNationalId = request.PatientNationalId,
             DoctorId = request.DoctorId,
             ClinicId = request.ClinicId,
             EncounterId = request.EncounterId,
@@ -69,8 +70,8 @@ public sealed class AddItemHandler(
         if (prescription is null)
             return AddItemResult.Failure("نسخه یافت نشد.");
 
-        if (prescription.Status != PrescriptionStatus.Draft)
-            return AddItemResult.Failure("فقط نسخه‌های پیش‌نویس قابل ویرایش هستند.");
+        if (prescription.Status is not (PrescriptionStatus.Draft or PrescriptionStatus.NeedsCorrection))
+            return AddItemResult.Failure("فقط نسخه‌های پیش‌نویس یا نیازمند اصلاح قابل ویرایش هستند.");
 
         var item = new PrescriptionItem
         {
@@ -111,8 +112,8 @@ public sealed class RemoveItemHandler(
         if (prescription is null)
             return RemoveItemResult.Failure("نسخه یافت نشد.");
 
-        if (prescription.Status != PrescriptionStatus.Draft)
-            return RemoveItemResult.Failure("فقط نسخه‌های پیش‌نویس قابل ویرایش هستند.");
+        if (prescription.Status is not (PrescriptionStatus.Draft or PrescriptionStatus.NeedsCorrection))
+            return RemoveItemResult.Failure("فقط نسخه‌های پیش‌نویس یا نیازمند اصلاح قابل ویرایش هستند.");
 
         var item = prescription.Items.FirstOrDefault(i => i.Id == request.ItemId);
         if (item is null)
@@ -175,7 +176,7 @@ public sealed class ValidateDraftHandler(
         }
 
         // If valid, transition to ReadyForSubmission
-        if (errors.Count == 0 && prescription.Status == PrescriptionStatus.Draft)
+        if (errors.Count == 0 && prescription.Status is PrescriptionStatus.Draft or PrescriptionStatus.NeedsCorrection)
         {
             prescription.TransitionTo(PrescriptionStatus.ReadyForSubmission);
             await dbContext.SaveChangesAsync(cancellationToken);

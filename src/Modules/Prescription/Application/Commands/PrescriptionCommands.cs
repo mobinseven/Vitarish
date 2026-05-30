@@ -7,6 +7,7 @@ namespace Vitarish.Prescription.Application.Commands;
 public sealed record CreateDraftCommand : IRequest<CreateDraftResult>
 {
     public required Guid PatientId { get; init; }
+    public string? PatientNationalId { get; init; }
     public required Guid DoctorId { get; init; }
     public required Guid ClinicId { get; init; }
     public Guid? EncounterId { get; init; }

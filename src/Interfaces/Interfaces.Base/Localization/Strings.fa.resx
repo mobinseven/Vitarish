@@ -1843,4 +1843,10 @@
   <data name="sync" xml:space="preserve">
     <value>همگام‌سازی</value>
   </data>
+  <data name="prescriptions" xml:space="preserve">
+    <value>نسخه‌ها</value>
+  </data>
+  <data name="PatientContextRequired" xml:space="preserve">
+    <value>برای ایجاد پیش‌نویس نسخه، ابتدا از صفحه بیمار وارد شوید.</value>
+  </data>
 </root>

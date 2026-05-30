@@ -19,10 +19,18 @@ public sealed class GetPrescriptionHandler(PrescriptionDbContext dbContext)
         if (prescription is null)
             return null;
 
+        string? trackingCode = await dbContext.PrescriptionSubmissions
+            .AsNoTracking()
+            .Where(s => s.PrescriptionRecordId == prescription.Id && s.RemoteTrackingCode != null)
+            .OrderByDescending(s => s.SubmittedAt)
+            .Select(s => s.RemoteTrackingCode)
+            .FirstOrDefaultAsync(cancellationToken);
+
         return new PrescriptionDto
         {
             Id = prescription.Id,
             PatientId = prescription.PatientId,
+            PatientNationalId = prescription.PatientNationalId,
             DoctorId = prescription.DoctorId,
             ClinicId = prescription.ClinicId,
             SelectedProviderKey = prescription.SelectedProviderKey,
@@ -30,6 +38,7 @@ public sealed class GetPrescriptionHandler(PrescriptionDbContext dbContext)
             VersionNumber = prescription.VersionNumber,
             CreatedAt = prescription.CreatedAt,
             SubmittedAt = prescription.SubmittedAt,
+            TrackingCode = trackingCode,
             Items = prescription.Items.Select(i => new PrescriptionItemDto
             {
                 Id = i.Id,
@@ -50,12 +59,16 @@ public sealed class GetPrescriptionHistoryHandler(PrescriptionDbContext dbContex
 {
     public async Task<IReadOnlyList<PrescriptionSummaryDto>> Handle(GetPrescriptionHistoryQuery request, CancellationToken cancellationToken)
     {
-        var query = dbContext.Prescriptions
-            .AsNoTracking()
-            .Where(p => p.PatientId == request.PatientId);
+        var query = dbContext.Prescriptions.AsNoTracking();
+
+        if (request.PatientId.HasValue)
+            query = query.Where(p => p.PatientId == request.PatientId.Value);
 
         if (request.ClinicId.HasValue)
             query = query.Where(p => p.ClinicId == request.ClinicId.Value);
+
+        if (!request.PatientId.HasValue && !request.ClinicId.HasValue)
+            return [];
 
         return await query
             .OrderByDescending(p => p.CreatedAt)
@@ -161,9 +174,12 @@ public sealed class GetPatientCoveragesHandler(PrescriptionDbContext dbContext)
 {
     public async Task<IReadOnlyList<PatientCoverageDto>> Handle(GetPatientCoveragesQuery request, CancellationToken cancellationToken)
     {
+        var now = DateTimeOffset.UtcNow;
+
         return await dbContext.PatientCoverages
             .AsNoTracking()
             .Where(c => c.PatientId == request.PatientId)
+            .Where(c => c.IsEligible && (c.ExpiresAt == null || c.ExpiresAt > now))
             .Join(
                 dbContext.InsuranceProviders,
                 coverage => coverage.InsuranceProviderId,
