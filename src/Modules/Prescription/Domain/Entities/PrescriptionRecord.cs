@@ -24,6 +24,15 @@ public sealed class PrescriptionRecord
     public PrescriptionStatus Status { get; set; } = PrescriptionStatus.Draft;
     public int VersionNumber { get; set; } = 1;
 
+    /// <summary>Reason for paper fallback (when status is PaperFallback).</summary>
+    public string? FallbackReason { get; set; }
+
+    /// <summary>Paper tracking number for manual prescriptions.</summary>
+    public string? PaperTrackingNumber { get; set; }
+
+    /// <summary>Notes from support reconciliation actions.</summary>
+    public string? ReconciliationNotes { get; set; }
+
     public DateTimeOffset CreatedAt { get; set; }
     public DateTimeOffset? SubmittedAt { get; set; }
     public DateTimeOffset? UpdatedAt { get; set; }
@@ -80,6 +89,7 @@ public sealed class PrescriptionRecord
             (PrescriptionStatus.SyncPending, PrescriptionStatus.SyncFailed) => true,
             (PrescriptionStatus.SyncPending, PrescriptionStatus.DuplicateRisk) => true,
             (PrescriptionStatus.SyncFailed, PrescriptionStatus.ManuallyReconciled) => true,
+            (PrescriptionStatus.DuplicateRisk, PrescriptionStatus.AcceptedByProvider) => true,
             (PrescriptionStatus.DuplicateRisk, PrescriptionStatus.ManuallyReconciled) => true,
             (PrescriptionStatus.ProviderUnavailable, PrescriptionStatus.PaperFallback) => true,
 

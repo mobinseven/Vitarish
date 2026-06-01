@@ -1,0 +1,83 @@
+@inherits PrescriptionBase
+
+<Stack>
+    <StackField Label="@Localizer["ReconciliationDesk"]" HelperText="@Localizer["ReconciliationDeskHelp"]" />
+</Stack>
+
+<Stack>
+    <StackSelect T="PrescriptionStatus?" Label="@Localizer["StatusFilter"]" Value="statusFilter" ValueChanged="OnStatusFilterChanged" Clearable>
+        <MudSelectItem T="PrescriptionStatus?" Value="@(PrescriptionStatus.SyncPending)">@Localizer["SyncPending"]</MudSelectItem>
+        <MudSelectItem T="PrescriptionStatus?" Value="@(PrescriptionStatus.SyncFailed)">@Localizer["SyncFailed"]</MudSelectItem>
+        <MudSelectItem T="PrescriptionStatus?" Value="@(PrescriptionStatus.DuplicateRisk)">@Localizer["DuplicateRisk"]</MudSelectItem>
+        <MudSelectItem T="PrescriptionStatus?" Value="@(PrescriptionStatus.PaperFallback)">@Localizer["PaperFallback"]</MudSelectItem>
+        <MudSelectItem T="PrescriptionStatus?" Value="@(PrescriptionStatus.ProviderUnavailable)">@Localizer["ProviderUnavailable"]</MudSelectItem>
+    </StackSelect>
+</Stack>
+
+@if (queueResult is not null)
+{
+    <Stack>
+        <StackField Label="@queueResult.TotalCount.ToString()" HelperText="@Localizer["TotalItems"]" />
+    </Stack>
+
+    @foreach (var item in queueResult.Items)
+    {
+        <Stack>
+            <StackExpandable Label="@FormatItemLabel(item)">
+                <StackField Label="@item.PatientNationalId" HelperText="@Localizer["PatientNationalId"]" />
+                <StackField Label="@item.SelectedProviderKey" HelperText="@Localizer["Provider"]" />
+                <PrescriptionStatusBadge Status="@item.Status" />
+                @if (item.LastError is not null)
+                {
+                    <StackField Label="@item.LastError" HelperText="@Localizer["LastError"]" />
+                }
+                @if (item.RetryCount > 0)
+                {
+                    <StackField Label="@item.RetryCount.ToString()" HelperText="@Localizer["RetryCount"]" />
+                }
+                @if (item.PaperTrackingNumber is not null)
+                {
+                    <StackField Label="@item.PaperTrackingNumber" HelperText="@Localizer["PaperTrackingNumber"]" />
+                }
+
+                @* Action buttons *@
+                @if (item.Status is PrescriptionStatus.SyncPending or PrescriptionStatus.DuplicateRisk)
+                {
+                    <StackButton Color="Color.Info"
+                                 OnClick="() => RefreshStatusAsync(item.PrescriptionId)"
+                                 Label="@Localizer["RefreshStatus"]" />
+                }
+
+                @if (item.Status == PrescriptionStatus.DuplicateRisk)
+                {
+                    <StackButton Color="Color.Success"
+                                 OnClick="() => ResolveDuplicateRiskAsync(item.PrescriptionId, DuplicateRiskResolution.ConfirmedAccepted)"
+                                 Label="@Localizer["ConfirmAccepted"]" />
+                    <StackButton Color="Color.Warning"
+                                 OnClick="() => ResolveDuplicateRiskAsync(item.PrescriptionId, DuplicateRiskResolution.ConfirmedNotSubmitted)"
+                                 Label="@Localizer["ConfirmNotSubmitted"]" />
+                }
+
+                @if (item.Status is PrescriptionStatus.SyncFailed or PrescriptionStatus.DuplicateRisk or PrescriptionStatus.PaperFallback)
+                {
+                    <StackButton Color="Color.Tertiary"
+                                 OnClick="() => ManualReconcileAsync(item.PrescriptionId)"
+                                 Label="@Localizer["ManualReconcile"]" />
+                }
+
+                @if (item.Status == PrescriptionStatus.PaperFallback)
+                {
+                    <StackButton Color="Color.Success"
+                                 OnClick="() => ReconcilePaperFallbackAsync(item.PrescriptionId)"
+                                 Label="@Localizer["ReconcilePaperFallback"]" />
+                }
+            </StackExpandable>
+        </Stack>
+    }
+}
+else
+{
+    <Stack>
+        <MudProgressLinear Indeterminate />
+    </Stack>
+}

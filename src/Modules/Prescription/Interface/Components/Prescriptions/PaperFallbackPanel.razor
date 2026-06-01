@@ -1,0 +1,11 @@
+@inherits PrescriptionBase
+
+@if (ShowFallbackOption)
+{
+    <Stack>
+        <StackAlert Severity="Severity.Warning">@Localizer["PaperFallbackWarning"]</StackAlert>
+        <StackButton Color="Color.Warning"
+                     OnClick="ShowPaperFallbackDialogAsync"
+                     Label="@Localizer["SwitchToPaperFallback"]" />
+    </Stack>
+}

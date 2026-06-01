@@ -197,21 +197,25 @@ For disabled/manual providers; returns graceful "not available" for all operatio
 
 ## Phase 6: Recovery, Reconciliation & Fallback
 
+**Status: Complete**
+
 **Goal:** Production resilience for all failure modes.
 
 ### 6.1 Timeout and duplicate-safe recovery
-- Implement SyncPending → fetch-before-retry pattern.
-- DuplicateRisk state with support resolution workflow.
-- Background worker for stale SyncPending records.
+- Implemented fetch-before-retry pattern in `PrescriptionRetryProcessor`: checks provider status via `FetchPrescriptionAsync` before re-submitting.
+- DuplicateRisk state with support resolution workflow (`ResolveDuplicateRiskCommand` + handler).
+- Background worker escalates stale SyncPending records (>2 hours) to DuplicateRisk or SyncFailed.
 
 ### 6.2 Paper fallback
-- Manual fallback workflow with reason capture and paper tracking number.
-- PaperFallback state; reconcilable after provider recovery.
+- Manual fallback workflow via `PaperFallbackCommand` with reason capture and paper tracking number.
+- PaperFallback state; reconcilable after provider recovery via `ReconcilePaperFallbackCommand`.
+- UI: `PaperFallbackPanel` + `PaperFallbackDialog` for doctor workflow.
 
 ### 6.3 Support reconciliation desk
-- Filtered view of failed/pending transactions.
-- Safe retry, status refresh, manual state correction.
-- All actions audited.
+- `GetReconciliationQueueQuery` provides filtered view of failed/pending transactions.
+- Safe retry via `RefreshProviderStatusCommand`, manual state correction via `ManualReconcileCommand`.
+- `ReconciliationDesk` component with status filtering, action buttons (refresh, resolve, reconcile).
+- All actions audited via `IAuditWriter`.
 
 ## Phase 7: Reference Data & Code Crosswalk
 
@@ -303,7 +307,7 @@ For disabled/manual providers; returns graceful "not available" for all operatio
 4. **Adapter Framework (Phase 3)** — multi-provider integration layer — Complete
 5. **First Provider Slice (Phase 4)** — end-to-end working flow — **Complete**
 6. **Multi-Provider (Phase 5)** — prove architecture extensibility — **Complete**
-7. **Recovery (Phase 6)** — production failure handling
+7. **Recovery (Phase 6)** — production failure handling — **Complete**
 8. **Reference Data (Phase 7)** — code management and sync
 9. **Observability (Phase 8)** — monitoring and support tools
 10. **Security (Phase 9)** — certification readiness
