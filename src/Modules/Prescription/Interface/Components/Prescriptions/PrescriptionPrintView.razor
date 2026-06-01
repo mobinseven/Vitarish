@@ -1,0 +1,45 @@
+@inherits PrescriptionBase
+
+<div class="prescription-print-view d-print-block d-none">
+    <Stack>
+        <StackField Label="@Localizer["PrescriptionSummary"]" />
+        <StackField Label="@Prescription.Id.ToString("N")" HelperText="@Localizer["PrescriptionId"]" />
+        <StackField Label="@Prescription.CreatedAt.ToLocalTime().ToString("g")" HelperText="@Localizer["Date"]" />
+
+        @if (!string.IsNullOrEmpty(Prescription.TrackingCode))
+        {
+            <StackField Label="@Prescription.TrackingCode" HelperText="@Localizer["InsuranceTrackingCode"]" />
+        }
+
+        @if (!string.IsNullOrEmpty(Prescription.SelectedProviderKey))
+        {
+            <StackField Label="@Prescription.SelectedProviderKey" HelperText="@Localizer["InsuranceProvider"]" />
+        }
+
+        <PrescriptionStatusBadge Status="@Prescription.Status" />
+    </Stack>
+
+    <Stack>
+        <StackField Label="@Localizer["Items"]" />
+
+        @foreach (var item in Prescription.Items)
+        {
+            <StackField Label="@item.DisplayName" HelperText="@item.Category.ToString()" />
+        }
+    </Stack>
+</div>
+
+<style>
+    @@media print {
+        .prescription-print-view {
+            display: block !important;
+        }
+        .mud-appbar, .mud-drawer, .mud-main-content > *:not(.prescription-print-view) {
+            display: none !important;
+        }
+    }
+</style>
+
+@code {
+    [Parameter, EditorRequired] public PrescriptionDto Prescription { get; set; } = default!;
+}

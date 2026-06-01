@@ -270,3 +270,52 @@ public sealed class ReconcilePaperFallbackHandler(
         return ReconcilePaperFallbackResult.Success(targetStatus);
     }
 }
+
+public sealed class EscalateHandler(
+    PrescriptionDbContext dbContext,
+    IAuditWriter auditWriter,
+    ILogger<EscalateHandler> logger)
+    : IRequestHandler<EscalateCommand, EscalateResult>
+{
+    public async Task<EscalateResult> Handle(EscalateCommand request, CancellationToken cancellationToken)
+    {
+        var prescription = await dbContext.Prescriptions
+            .FirstOrDefaultAsync(p => p.Id == request.PrescriptionId, cancellationToken);
+
+        if (prescription is null)
+            return EscalateResult.Failure("نسخه یافت نشد.");
+
+        if (string.IsNullOrWhiteSpace(request.Summary))
+            return EscalateResult.Failure("خلاصه تشدید الزامی است.");
+
+        var escalation = new PrescriptionEscalation
+        {
+            Id = Guid.NewGuid(),
+            PrescriptionId = request.PrescriptionId,
+            OperatorId = request.OperatorId,
+            Summary = request.Summary,
+            StatusAtEscalation = prescription.Status,
+            EscalatedAt = DateTimeOffset.UtcNow
+        };
+
+        dbContext.Escalations.Add(escalation);
+        await dbContext.SaveChangesAsync(cancellationToken);
+
+        await auditWriter.WriteAsync(new AuditEntry
+        {
+            EntityType = nameof(PrescriptionEscalation),
+            EntityId = escalation.Id,
+            Action = "Escalated",
+            OldState = prescription.Status.ToString(),
+            CorrelationId = request.CorrelationId,
+            ProviderKey = prescription.SelectedProviderKey,
+            OccurredAt = DateTimeOffset.UtcNow,
+            TenantId = prescription.TenantId
+        }, cancellationToken);
+
+        logger.LogInformation("Prescription {PrescriptionId} escalated by operator {OperatorId}",
+            prescription.Id, request.OperatorId);
+
+        return EscalateResult.Success(escalation.Id);
+    }
+}

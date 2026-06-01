@@ -39,6 +39,18 @@
                 {
                     <StackField Label="@item.PaperTrackingNumber" HelperText="@Localizer["PaperTrackingNumber"]" />
                 }
+                @if (item.CorrelationId is not null)
+                {
+                    <StackField Label="@item.CorrelationId" HelperText="@Localizer["CorrelationId"]" />
+                }
+                @if (item.IdempotencyKey is not null)
+                {
+                    <StackField Label="@item.IdempotencyKey" HelperText="@Localizer["IdempotencyKey"]" />
+                }
+                @if (item.LastAttemptAt.HasValue)
+                {
+                    <StackField Label="@item.LastAttemptAt.Value.ToLocalTime().ToString("g")" HelperText="@Localizer["LastAttempt"]" />
+                }
 
                 @* Action buttons *@
                 @if (item.Status is PrescriptionStatus.SyncPending or PrescriptionStatus.DuplicateRisk)
@@ -63,6 +75,9 @@
                     <StackButton Color="Color.Tertiary"
                                  OnClick="() => ManualReconcileAsync(item.PrescriptionId)"
                                  Label="@Localizer["ManualReconcile"]" />
+                    <StackButton Color="Color.Secondary"
+                                 OnClick="() => EscalateAsync(item.PrescriptionId)"
+                                 Label="@Localizer["Escalate"]" />
                 }
 
                 @if (item.Status == PrescriptionStatus.PaperFallback)

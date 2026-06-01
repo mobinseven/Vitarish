@@ -10,6 +10,15 @@ public partial class PrescriptionsList : PrescriptionBase
     private Guid? previousPatientId;
     private Guid? previousClinicId;
 
+    // Pagination
+    private int currentPage;
+    private int pageSize = 20;
+    private bool hasMore;
+
+    // Filters
+    private PrescriptionStatus? statusFilter;
+    private string? providerFilter;
+
     protected override Task OnSearchedAsync() => ReloadRequired();
 
     protected override async Task OnParametersSetAsync()
@@ -19,6 +28,7 @@ public partial class PrescriptionsList : PrescriptionBase
         {
             previousPatientId = PatientId;
             previousClinicId = clinicId;
+            currentPage = 0;
             await ReloadRequired();
         }
     }
@@ -38,12 +48,44 @@ public partial class PrescriptionsList : PrescriptionBase
         {
             PatientId = PatientId,
             ClinicId = PatientId is null ? clinicId : null,
-            Skip = 0,
-            Take = 50
+            StatusFilter = statusFilter,
+            ProviderKeyFilter = providerFilter,
+            Skip = currentPage * pageSize,
+            Take = pageSize + 1
         });
 
-        prescriptions = [.. items.OrderByDescending(p => p.CreatedAt)];
+        hasMore = items.Count > pageSize;
+        prescriptions = [.. items.Take(pageSize).OrderByDescending(p => p.CreatedAt)];
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnStatusFilterChanged(PrescriptionStatus? value)
+    {
+        statusFilter = value;
+        currentPage = 0;
+        await ReloadRequired();
+    }
+
+    private async Task OnProviderFilterChanged(string? value)
+    {
+        providerFilter = value;
+        currentPage = 0;
+        await ReloadRequired();
+    }
+
+    private async Task NextPageAsync()
+    {
+        currentPage++;
+        await ReloadRequired();
+    }
+
+    private async Task PreviousPageAsync()
+    {
+        if (currentPage > 0)
+        {
+            currentPage--;
+            await ReloadRequired();
+        }
     }
 
     private Guid? GetClinicId() =>

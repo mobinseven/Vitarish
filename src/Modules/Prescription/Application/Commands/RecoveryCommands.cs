@@ -117,3 +117,25 @@ public sealed record ReconcilePaperFallbackResult
     public static ReconcilePaperFallbackResult Success(PrescriptionStatus status) => new() { IsSuccess = true, ResultStatus = status };
     public static ReconcilePaperFallbackResult Failure(string error) => new() { IsSuccess = false, ErrorMessage = error };
 }
+
+/// <summary>
+/// Escalates a prescription from the reconciliation queue for higher-level review.
+/// Creates an escalation record and removes the prescription from the primary queue.
+/// </summary>
+public sealed record EscalateCommand : IRequest<EscalateResult>
+{
+    public required Guid PrescriptionId { get; init; }
+    public required Guid OperatorId { get; init; }
+    public required string Summary { get; init; }
+    public required string CorrelationId { get; init; }
+}
+
+public sealed record EscalateResult
+{
+    public bool IsSuccess { get; init; }
+    public Guid? EscalationId { get; init; }
+    public string? ErrorMessage { get; init; }
+
+    public static EscalateResult Success(Guid id) => new() { IsSuccess = true, EscalationId = id };
+    public static EscalateResult Failure(string error) => new() { IsSuccess = false, ErrorMessage = error };
+}

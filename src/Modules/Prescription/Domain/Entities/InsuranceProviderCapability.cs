@@ -12,4 +12,5 @@ public sealed class InsuranceProviderCapability
     public InsuranceProviderCapabilityType Capability { get; set; }
     public bool IsEnabled { get; set; } = true;
     public string? Configuration { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
 }
