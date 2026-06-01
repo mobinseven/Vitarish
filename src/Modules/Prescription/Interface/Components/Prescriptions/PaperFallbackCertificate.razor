@@ -1,0 +1,70 @@
+@inherits PrescriptionBase
+
+<MudPaper Class="paper-fallback-certificate pa-6" Elevation="0">
+    <Stack>
+        <MudText Typo="Typo.h5" Align="Align.Center">@Localizer["PaperFallbackCertificate"]</MudText>
+        <MudDivider Class="my-2" />
+
+        <MudText Typo="Typo.subtitle1">@Localizer["PatientInformation"]</MudText>
+        @if (!string.IsNullOrEmpty(PatientNationalId))
+        {
+            <StackField Label="@MaskNationalId(PatientNationalId)" HelperText="@Localizer["NationalId"]" />
+        }
+
+        <MudDivider Class="my-2" />
+        <MudText Typo="Typo.subtitle1">@Localizer["PrescriptionInformation"]</MudText>
+        <StackField Label="@PrescriptionId.ToString("N")" HelperText="@Localizer["PrescriptionId"]" />
+        <StackField Label="@FallbackDate.ToLocalTime().ToString("g")" HelperText="@Localizer["FallbackDate"]" />
+
+        @if (!string.IsNullOrEmpty(FallbackReason))
+        {
+            <StackField Label="@FallbackReason" HelperText="@Localizer["FallbackReason"]" />
+        }
+
+        @if (!string.IsNullOrEmpty(PaperTrackingNumber))
+        {
+            <StackField Label="@PaperTrackingNumber" HelperText="@Localizer["PaperTrackingNumber"]" />
+        }
+
+        @if (!string.IsNullOrEmpty(ProviderKey))
+        {
+            <StackField Label="@ProviderKey" HelperText="@Localizer["InsuranceProvider"]" />
+        }
+
+        <MudDivider Class="my-2" />
+        <MudText Typo="Typo.caption" Align="Align.Center">
+            @Localizer["PaperFallbackDisclaimer"]
+        </MudText>
+    </Stack>
+</MudPaper>
+
+<style>
+    .paper-fallback-certificate {
+        max-width: 800px;
+        margin: 0 auto;
+        border: 1px solid #ccc;
+    }
+
+    @@media print {
+        .paper-fallback-certificate {
+            border: none;
+            box-shadow: none;
+        }
+    }
+</style>
+
+@code {
+    [Parameter, EditorRequired] public Guid PrescriptionId { get; set; }
+    [Parameter] public string? PatientNationalId { get; set; }
+    [Parameter] public string? FallbackReason { get; set; }
+    [Parameter] public string? PaperTrackingNumber { get; set; }
+    [Parameter] public string? ProviderKey { get; set; }
+    [Parameter] public DateTimeOffset FallbackDate { get; set; }
+
+    private static string MaskNationalId(string nationalId)
+    {
+        if (nationalId.Length <= 4)
+            return nationalId;
+        return string.Concat(nationalId.AsSpan(0, 3), "****", nationalId.AsSpan(nationalId.Length - 3));
+    }
+}

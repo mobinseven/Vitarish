@@ -1,0 +1,57 @@
+@inherits PrescriptionBase
+
+<MudPaper Class="prescription-print-view d-print-block d-none pa-6">
+    <Stack>
+        <MudText Typo="Typo.h5">@Localizer["PrescriptionSummary"]</MudText>
+        <MudDivider />
+
+        <StackField Label="@Prescription.Id.ToString("N")" HelperText="@Localizer["PrescriptionId"]" />
+        <StackField Label="@Prescription.CreatedAt.ToLocalTime().ToString("g")" HelperText="@Localizer["Date"]" />
+
+        @if (!string.IsNullOrEmpty(Prescription.TrackingCode))
+        {
+            <StackField Label="@Prescription.TrackingCode" HelperText="@Localizer["TrackingCode"]" />
+            <MudText Typo="Typo.caption" Class="mt-1">@Localizer["InsuranceTrackingCode"]</MudText>
+        }
+
+        @if (!string.IsNullOrEmpty(Prescription.SelectedProviderKey))
+        {
+            <StackField Label="@Prescription.SelectedProviderKey" HelperText="@Localizer["InsuranceProvider"]" />
+        }
+
+        <PrescriptionStatusBadge Status="@Prescription.Status" />
+
+        <MudDivider Class="my-2" />
+        <MudText Typo="Typo.h6">@Localizer["Items"]</MudText>
+
+        @foreach (var item in Prescription.Items)
+        {
+            <Stack>
+                <StackField Label="@item.DisplayName" HelperText="@item.Category.ToString()" />
+                @if (item.Quantity > 0)
+                {
+                    <MudText Typo="Typo.body2">@Localizer["Quantity"]: @item.Quantity</MudText>
+                }
+                @if (item.DurationDays.HasValue)
+                {
+                    <MudText Typo="Typo.body2">@Localizer["Duration"]: @item.DurationDays @Localizer["Days"]</MudText>
+                }
+            </Stack>
+        }
+    </Stack>
+</MudPaper>
+
+<style>
+    @@media print {
+        .prescription-print-view {
+            display: block !important;
+        }
+        .mud-appbar, .mud-drawer, .mud-main-content > *:not(.prescription-print-view) {
+            display: none !important;
+        }
+    }
+</style>
+
+@code {
+    [Parameter, EditorRequired] public PrescriptionDto Prescription { get; set; } = default!;
+}

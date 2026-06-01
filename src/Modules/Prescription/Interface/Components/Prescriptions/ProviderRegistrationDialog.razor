@@ -1,0 +1,62 @@
+@inherits PrescriptionBase
+
+<MudDialog>
+    <TitleContent>
+        @Localizer["RegisterProvider"]
+    </TitleContent>
+    <DialogContent>
+        <Stack>
+            <MudTextField T="string" Label="@Localizer["ProviderKey"]" @bind-Value="providerKey" Required
+                          HelperText="@Localizer["ProviderKeyHelp"]" />
+            <MudTextField T="string" Label="@Localizer["ProviderName"]" @bind-Value="providerName" Required />
+            <MudTextField T="string" Label="@Localizer["ProviderType"]" @bind-Value="providerType" />
+            <StackSelect T="IntegrationMode" Label="@Localizer["IntegrationMode"]" @bind-Value="integrationMode">
+                <MudSelectItem T="IntegrationMode" Value="IntegrationMode.DirectApi">@Localizer["DirectApi"]</MudSelectItem>
+                <MudSelectItem T="IntegrationMode" Value="IntegrationMode.PortalApi">@Localizer["PortalApi"]</MudSelectItem>
+                <MudSelectItem T="IntegrationMode" Value="IntegrationMode.DitasGateway">@Localizer["DitasGateway"]</MudSelectItem>
+                <MudSelectItem T="IntegrationMode" Value="IntegrationMode.ManualFallback">@Localizer["ManualFallback"]</MudSelectItem>
+            </StackSelect>
+        </Stack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="RegisterAsync"
+                   Disabled="@(!IsValid)">
+            @Localizer["Register"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+
+    private string providerKey = string.Empty;
+    private string providerName = string.Empty;
+    private string? providerType;
+    private IntegrationMode integrationMode = IntegrationMode.DirectApi;
+
+    private bool IsValid => !string.IsNullOrWhiteSpace(providerKey) && !string.IsNullOrWhiteSpace(providerName);
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private async Task RegisterAsync()
+    {
+        var result = await Mediator.Send(new RegisterProviderCommand
+        {
+            ProviderKey = providerKey.Trim(),
+            Name = providerName.Trim(),
+            ProviderType = providerType,
+            IntegrationMode = integrationMode
+        });
+
+        if (result.IsSuccess)
+        {
+            Snackbar.Add(Localizer["ProviderRegistered"], Severity.Success);
+            MudDialog.Close(DialogResult.Ok(result.ProviderId));
+        }
+        else
+        {
+            Snackbar.Add(result.ErrorMessage ?? Localizer["UnknownError"], Severity.Error);
+        }
+    }
+}

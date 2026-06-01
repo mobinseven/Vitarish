@@ -70,6 +70,18 @@ public sealed class GetPrescriptionHistoryHandler(PrescriptionDbContext dbContex
         if (!request.PatientId.HasValue && !request.ClinicId.HasValue)
             return [];
 
+        if (request.StatusFilter.HasValue)
+            query = query.Where(p => p.Status == request.StatusFilter.Value);
+
+        if (!string.IsNullOrEmpty(request.ProviderKeyFilter))
+            query = query.Where(p => p.SelectedProviderKey == request.ProviderKeyFilter);
+
+        if (request.FromDate.HasValue)
+            query = query.Where(p => p.CreatedAt >= request.FromDate.Value);
+
+        if (request.ToDate.HasValue)
+            query = query.Where(p => p.CreatedAt <= request.ToDate.Value);
+
         return await query
             .OrderByDescending(p => p.CreatedAt)
             .Skip(request.Skip)
@@ -176,7 +188,7 @@ public sealed class GetPatientCoveragesHandler(PrescriptionDbContext dbContext)
     {
         var now = DateTimeOffset.UtcNow;
 
-        return await dbContext.PatientCoverages
+        var coveragesWithProviders = await dbContext.PatientCoverages
             .AsNoTracking()
             .Where(c => c.PatientId == request.PatientId)
             .Where(c => c.IsEligible && (c.ExpiresAt == null || c.ExpiresAt > now))
@@ -184,17 +196,41 @@ public sealed class GetPatientCoveragesHandler(PrescriptionDbContext dbContext)
                 dbContext.InsuranceProviders,
                 coverage => coverage.InsuranceProviderId,
                 provider => provider.Id,
-                (coverage, provider) => new PatientCoverageDto
-                {
-                    CoverageId = coverage.Id,
-                    InsuranceProviderId = coverage.InsuranceProviderId,
-                    ProviderKey = provider.ProviderKey,
-                    ProviderName = provider.Name,
-                    CoverageIdentifier = coverage.CoverageIdentifier,
-                    CoverageType = coverage.CoverageType,
-                    IsEligible = coverage.IsEligible,
-                    ExpiresAt = coverage.ExpiresAt
-                })
+                (coverage, provider) => new { coverage, provider })
             .ToListAsync(cancellationToken);
+
+        var result = new List<PatientCoverageDto>();
+
+        foreach (var item in coveragesWithProviders)
+        {
+            Domain.Enums.CredentialStatus? credStatus = null;
+
+            if (request.DoctorId.HasValue && request.ClinicId.HasValue)
+            {
+                credStatus = await dbContext.DoctorProviderCredentials
+                    .AsNoTracking()
+                    .Where(c => c.DoctorId == request.DoctorId.Value
+                                && c.InsuranceProviderId == item.coverage.InsuranceProviderId
+                                && c.ClinicId == request.ClinicId.Value)
+                    .Select(c => (Domain.Enums.CredentialStatus?)c.Status)
+                    .FirstOrDefaultAsync(cancellationToken);
+            }
+
+            result.Add(new PatientCoverageDto
+            {
+                CoverageId = item.coverage.Id,
+                InsuranceProviderId = item.coverage.InsuranceProviderId,
+                ProviderKey = item.provider.ProviderKey,
+                ProviderName = item.provider.Name,
+                CoverageIdentifier = item.coverage.CoverageIdentifier,
+                CoverageType = item.coverage.CoverageType,
+                IsEligible = item.coverage.IsEligible,
+                ExpiresAt = item.coverage.ExpiresAt,
+                DoctorCredentialStatus = credStatus,
+                ProviderOperationalStatus = item.provider.Status
+            });
+        }
+
+        return result;
     }
 }

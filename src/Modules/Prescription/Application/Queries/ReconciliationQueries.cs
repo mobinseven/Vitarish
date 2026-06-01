@@ -38,6 +38,10 @@ public sealed record ReconciliationItemDto
     public string? LastError { get; init; }
     public string? RemotePrescriptionId { get; init; }
     public string? PaperTrackingNumber { get; init; }
+    public string? CorrelationId { get; init; }
+    public string? RequestHash { get; init; }
+    public string? IdempotencyKey { get; init; }
+    public DateTimeOffset? LastAttemptAt { get; init; }
 }
 
 /// <summary>

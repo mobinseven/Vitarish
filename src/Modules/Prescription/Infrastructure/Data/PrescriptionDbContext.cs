@@ -21,6 +21,7 @@ public sealed class PrescriptionDbContext : DbContext
     public DbSet<ReferenceCode> ReferenceCodes => Set<ReferenceCode>();
     public DbSet<ReferenceCodeCrosswalk> ReferenceCodeCrosswalks => Set<ReferenceCodeCrosswalk>();
     public DbSet<PrescriptionOutboxRecord> OutboxRecords => Set<PrescriptionOutboxRecord>();
+    public DbSet<PrescriptionEscalation> Escalations => Set<PrescriptionEscalation>();
     public DbSet<ReferenceCodeSyncJob> ReferenceCodeSyncJobs => Set<ReferenceCodeSyncJob>();
     public DbSet<ReferenceCodeSyncError> ReferenceCodeSyncErrors => Set<ReferenceCodeSyncError>();
     public DbSet<ReferenceCodeChangeLog> ReferenceCodeChangeLogs => Set<ReferenceCodeChangeLog>();
@@ -52,6 +53,7 @@ public sealed class PrescriptionDbContext : DbContext
         ConfigureReferenceCode(modelBuilder);
         ConfigureReferenceCodeCrosswalk(modelBuilder);
         ConfigureOutboxRecord(modelBuilder);
+        ConfigureEscalation(modelBuilder);
         ConfigureReferenceCodeSyncJob(modelBuilder);
         ConfigureReferenceCodeSyncError(modelBuilder);
         ConfigureReferenceCodeChangeLog(modelBuilder);
@@ -284,6 +286,20 @@ public sealed class PrescriptionDbContext : DbContext
                 .HasDatabaseName("IX_ChangeLog_SyncJobId");
             _ = entity.HasIndex(e => new { e.IsBreakingChange, e.CreatedAt })
                 .HasDatabaseName("IX_ChangeLog_Breaking_CreatedAt");
+        });
+    }
+
+    private static void ConfigureEscalation(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<PrescriptionEscalation>(entity =>
+        {
+            _ = entity.Property(e => e.Summary).HasMaxLength(2048);
+            _ = entity.Property(e => e.ResolutionNotes).HasMaxLength(2048);
+            _ = entity.Property(e => e.StatusAtEscalation).HasConversion<string>().HasMaxLength(32);
+            _ = entity.HasIndex(e => e.PrescriptionId)
+                .HasDatabaseName("IX_Escalation_PrescriptionId");
+            _ = entity.HasIndex(e => new { e.ResolvedAt, e.EscalatedAt })
+                .HasDatabaseName("IX_Escalation_Resolved_Escalated");
         });
     }
 }
