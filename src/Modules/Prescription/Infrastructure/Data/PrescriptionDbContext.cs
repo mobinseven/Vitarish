@@ -142,6 +142,8 @@ public sealed class PrescriptionDbContext : DbContext
             _ = entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(32);
             _ = entity.Property(e => e.TenantId).HasMaxLength(128);
             _ = entity.Property(e => e.FallbackReason).HasMaxLength(1024);
+            _ = entity.Property(e => e.CancellationReason).HasMaxLength(1024);
+            _ = entity.Property(e => e.LastEligibilityStatus).HasConversion<string>().HasMaxLength(64);
             _ = entity.Property(e => e.PaperTrackingNumber).HasMaxLength(256);
             _ = entity.Property(e => e.ReconciliationNotes).HasMaxLength(2048);
             _ = entity.HasIndex(e => new { e.PatientId, e.TenantId })

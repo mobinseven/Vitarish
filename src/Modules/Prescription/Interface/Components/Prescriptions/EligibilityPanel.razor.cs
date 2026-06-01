@@ -7,6 +7,7 @@ public partial class EligibilityPanel : PrescriptionBase
     [Parameter] public string? PatientNationalId { get; set; }
     [Parameter] public Guid DoctorId { get; set; }
     [Parameter] public Guid ClinicId { get; set; }
+    [Parameter] public EventCallback OnEligibilityChecked { get; set; }
 
     private EligibilityResultDto? eligibility;
     private bool isLoading;
@@ -21,6 +22,8 @@ public partial class EligibilityPanel : PrescriptionBase
         EligibilityStatus.RequiresFallback => Color.Secondary,
         _ => Color.Default
     };
+
+    private bool IsEligible => eligibility?.Status == EligibilityStatus.Eligible;
 
     private async Task CheckEligibilityAsync()
     {
@@ -41,6 +44,19 @@ public partial class EligibilityPanel : PrescriptionBase
                 DoctorId = DoctorId,
                 ClinicId = ClinicId
             });
+
+            // Persist eligibility result on the prescription for submission gating
+            if (eligibility is not null)
+            {
+                await Mediator.Send(new RecordEligibilityCommand
+                {
+                    PrescriptionId = PrescriptionId,
+                    Status = eligibility.Status,
+                    TrackingCode = eligibility.TrackingCode
+                });
+            }
+
+            await OnEligibilityChecked.InvokeAsync();
         }
         finally
         {

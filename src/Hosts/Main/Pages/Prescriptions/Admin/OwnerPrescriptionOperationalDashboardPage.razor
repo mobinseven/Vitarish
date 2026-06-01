@@ -1,0 +1,8 @@
+@attribute [Route(AppRoutes.Prescriptions.OwnerPrescriptionOperationalDashboard)]
+@inherits TenantPageBase
+
+<PrescriptionOperationalDashboard />
+
+@code {
+    protected override Task ReloadRequired() => Task.CompletedTask;
+}

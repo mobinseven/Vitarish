@@ -75,11 +75,28 @@ public partial class PrescriptionDetail : PrescriptionBase
 
     private async Task EditAsync()
     {
+        var parameters = new DialogParameters
+        {
+            { nameof(ConfirmDialog.ContentText), Localizer["ConfirmEditPrescription"].Value },
+            { nameof(ConfirmDialog.ButtonText), Localizer["EditItem", Localizer["Prescription"]].Value },
+            { nameof(ConfirmDialog.Color), Color.Info }
+        };
+
+        var dialog = await DialogService.ShowAsync<ConfirmDialog>(
+            Localizer["EditItem", Localizer["Prescription"]], parameters);
+        var dialogResult = await dialog.Result;
+
+        if (dialogResult is null || dialogResult.Canceled)
+        {
+            return;
+        }
+
         string correlationId = Guid.NewGuid().ToString("N");
         EditPrescriptionResult result = await Mediator.Send(new EditPrescriptionCommand
         {
             PrescriptionId = Prescription.Id,
-            CorrelationId = correlationId
+            CorrelationId = correlationId,
+            EditReason = dialogResult.Data?.ToString()
         });
 
         if (!result.IsSuccess)
@@ -97,12 +114,10 @@ public partial class PrescriptionDetail : PrescriptionBase
     {
         DialogParameters parameters = new()
         {
-            { nameof(ConfirmDialog.ContentText), Localizer["ConfirmCancelPrescription"].Value },
-            { nameof(ConfirmDialog.ButtonText), Localizer["CancelItem", Localizer["Prescription"]].Value },
-            { nameof(ConfirmDialog.Color), Color.Error }
+            { nameof(CancelReasonDialog.PrescriptionId), Prescription.Id }
         };
 
-        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>(
+        IDialogReference dialog = await DialogService.ShowAsync<CancelReasonDialog>(
             Localizer["CancelItem", Localizer["Prescription"]], parameters);
         DialogResult? dialogResult = await dialog.Result;
 
@@ -111,11 +126,13 @@ public partial class PrescriptionDetail : PrescriptionBase
             return;
         }
 
+        string? reason = dialogResult.Data?.ToString();
         string correlationId = Guid.NewGuid().ToString("N");
         CancelPrescriptionResult result = await Mediator.Send(new CancelPrescriptionCommand
         {
             PrescriptionId = Prescription.Id,
-            CorrelationId = correlationId
+            CorrelationId = correlationId,
+            Reason = reason
         });
 
         if (!result.IsSuccess)

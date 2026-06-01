@@ -132,6 +132,8 @@ public sealed class ValidateDraftHandler(
     IInsuranceProviderRegistry providerRegistry)
     : IRequestHandler<ValidateDraftCommand, ValidateDraftResult>
 {
+    private static readonly TimeSpan EligibilityFreshnessWindow = TimeSpan.FromHours(24);
+
     public async Task<ValidateDraftResult> Handle(ValidateDraftCommand request, CancellationToken cancellationToken)
     {
         var prescription = await dbContext.Prescriptions
@@ -150,6 +152,21 @@ public sealed class ValidateDraftHandler(
 
         if (string.IsNullOrEmpty(prescription.SelectedProviderKey))
             errors.Add("بیمه‌گر مورد نظر انتخاب نشده است.");
+
+        // Eligibility gate: must have confirmed eligible status that is not stale
+        if (prescription.LastEligibilityStatus is null)
+        {
+            errors.Add("بررسی حق بیمه انجام نشده است. لطفاً ابتدا وضعیت بیمه بیمار را بررسی کنید.");
+        }
+        else if (prescription.LastEligibilityStatus != EligibilityStatus.Eligible)
+        {
+            errors.Add("بیمار واجد شرایط نیست. ارسال نسخه امکان‌پذیر نمی‌باشد.");
+        }
+        else if (prescription.LastEligibilityCheckedAt.HasValue &&
+                 DateTimeOffset.UtcNow - prescription.LastEligibilityCheckedAt.Value > EligibilityFreshnessWindow)
+        {
+            warnings.Add("نتیجه بررسی حق بیمه قدیمی است. توصیه می‌شود مجدداً بررسی کنید.");
+        }
 
         // Provider-specific validation
         if (!string.IsNullOrEmpty(prescription.SelectedProviderKey))
@@ -202,6 +219,30 @@ public sealed class ValidateDraftHandler(
         PrescriptionItemCategory.Referral => InsuranceProviderCapabilityType.SupportsReferralPrescription,
         _ => null
     };
+}
+
+public sealed class RecordEligibilityHandler(
+    PrescriptionDbContext dbContext)
+    : IRequestHandler<RecordEligibilityCommand, RecordEligibilityResult>
+{
+    public async Task<RecordEligibilityResult> Handle(RecordEligibilityCommand request, CancellationToken cancellationToken)
+    {
+        var prescription = await dbContext.Prescriptions
+            .FirstOrDefaultAsync(p => p.Id == request.PrescriptionId, cancellationToken);
+
+        if (prescription is null)
+            return RecordEligibilityResult.Failure("نسخه یافت نشد.");
+
+        if (prescription.Status is not (PrescriptionStatus.Draft or PrescriptionStatus.NeedsCorrection))
+            return RecordEligibilityResult.Failure("ثبت وضعیت بیمه فقط برای نسخه‌های پیش‌نویس امکان‌پذیر است.");
+
+        prescription.LastEligibilityStatus = request.Status;
+        prescription.LastEligibilityCheckedAt = DateTimeOffset.UtcNow;
+        prescription.UpdatedAt = DateTimeOffset.UtcNow;
+
+        await dbContext.SaveChangesAsync(cancellationToken);
+        return RecordEligibilityResult.Success();
+    }
 }
 
 public sealed class SetProviderHandler(

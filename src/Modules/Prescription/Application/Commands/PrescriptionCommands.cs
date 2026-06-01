@@ -104,6 +104,7 @@ public sealed record EditPrescriptionCommand : IRequest<EditPrescriptionResult>
 {
     public required Guid PrescriptionId { get; init; }
     public required string CorrelationId { get; init; }
+    public string? EditReason { get; init; }
 }
 
 public sealed record EditPrescriptionResult
@@ -124,6 +125,8 @@ public sealed record CancelPrescriptionCommand : IRequest<CancelPrescriptionResu
 {
     public required Guid PrescriptionId { get; init; }
     public required string CorrelationId { get; init; }
+    public string? Reason { get; init; }
+    public string? ProviderCancellationWindowInfo { get; init; }
 }
 
 public sealed record CancelPrescriptionResult
@@ -156,4 +159,21 @@ public sealed record SetProviderResult
 
     public static SetProviderResult Success() => new() { IsSuccess = true };
     public static SetProviderResult Failure(string error) => new() { IsSuccess = false, ErrorMessage = error };
+}
+
+/// <summary>Records eligibility check result on a prescription draft for submission gating.</summary>
+public sealed record RecordEligibilityCommand : IRequest<RecordEligibilityResult>
+{
+    public required Guid PrescriptionId { get; init; }
+    public required EligibilityStatus Status { get; init; }
+    public string? TrackingCode { get; init; }
+}
+
+public sealed record RecordEligibilityResult
+{
+    public bool IsSuccess { get; init; }
+    public string? ErrorMessage { get; init; }
+
+    public static RecordEligibilityResult Success() => new() { IsSuccess = true };
+    public static RecordEligibilityResult Failure(string error) => new() { IsSuccess = false, ErrorMessage = error };
 }

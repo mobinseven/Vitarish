@@ -15,6 +15,10 @@ public sealed record GetPrescriptionHistoryQuery : IRequest<IReadOnlyList<Prescr
 {
     public Guid? PatientId { get; init; }
     public Guid? ClinicId { get; init; }
+    public PrescriptionStatus? StatusFilter { get; init; }
+    public string? ProviderKeyFilter { get; init; }
+    public DateTimeOffset? FromDate { get; init; }
+    public DateTimeOffset? ToDate { get; init; }
     public int Skip { get; init; }
     public int Take { get; init; } = 20;
 }
@@ -42,6 +46,8 @@ public sealed record SearchReferenceCodesQuery : IRequest<IReadOnlyList<Referenc
 public sealed record GetPatientCoveragesQuery : IRequest<IReadOnlyList<PatientCoverageDto>>
 {
     public required Guid PatientId { get; init; }
+    public Guid? DoctorId { get; init; }
+    public Guid? ClinicId { get; init; }
 }
 
 // DTOs
@@ -112,4 +118,6 @@ public sealed record PatientCoverageDto
     public string? CoverageType { get; init; }
     public bool IsEligible { get; init; }
     public DateTimeOffset? ExpiresAt { get; init; }
+    public CredentialStatus? DoctorCredentialStatus { get; init; }
+    public ProviderStatus ProviderOperationalStatus { get; init; }
 }

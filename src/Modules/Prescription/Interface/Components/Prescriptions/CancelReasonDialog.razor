@@ -1,0 +1,46 @@
+@inherits PrescriptionBase
+
+<MudDialog>
+    <TitleContent>
+        @Localizer["CancelPrescription"]
+    </TitleContent>
+    <DialogContent>
+        <Stack>
+            <StackField Label="@Localizer["ConfirmCancelPrescription"]" />
+            <StackSelect T="string" Label="@Localizer["CancellationReason"]" @bind-Value="selectedReason">
+                <MudSelectItem T="string" Value="@("DoctorRequest")">@Localizer["DoctorRequest"]</MudSelectItem>
+                <MudSelectItem T="string" Value="@("PatientRequest")">@Localizer["PatientRequest"]</MudSelectItem>
+                <MudSelectItem T="string" Value="@("ErrorInPrescription")">@Localizer["ErrorInPrescription"]</MudSelectItem>
+                <MudSelectItem T="string" Value="@("DuplicatePrescription")">@Localizer["DuplicatePrescription"]</MudSelectItem>
+                <MudSelectItem T="string" Value="@("Other")">@Localizer["Other"]</MudSelectItem>
+            </StackSelect>
+            <MudTextField T="string" Label="@Localizer["AdditionalNotes"]" @bind-Value="additionalNotes"
+                          Lines="3" MaxLength="500" />
+        </Stack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="Submit"
+                   Disabled="@string.IsNullOrEmpty(selectedReason)">
+            @Localizer["ConfirmCancellation"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>
+
+@code {
+    [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
+    [Parameter] public Guid PrescriptionId { get; set; }
+
+    private string? selectedReason;
+    private string? additionalNotes;
+
+    private void Cancel() => MudDialog.Cancel();
+
+    private void Submit()
+    {
+        string reason = string.IsNullOrEmpty(additionalNotes)
+            ? selectedReason!
+            : $"{selectedReason}: {additionalNotes}";
+        MudDialog.Close(DialogResult.Ok(reason));
+    }
+}

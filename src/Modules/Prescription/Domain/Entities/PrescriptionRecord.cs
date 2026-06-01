@@ -24,6 +24,15 @@ public sealed class PrescriptionRecord
     public PrescriptionStatus Status { get; set; } = PrescriptionStatus.Draft;
     public int VersionNumber { get; set; } = 1;
 
+    /// <summary>Last recorded eligibility status from provider check.</summary>
+    public EligibilityStatus? LastEligibilityStatus { get; set; }
+
+    /// <summary>When the last eligibility check was performed.</summary>
+    public DateTimeOffset? LastEligibilityCheckedAt { get; set; }
+
+    /// <summary>Reason for cancellation (when status transitions to Cancelled).</summary>
+    public string? CancellationReason { get; set; }
+
     /// <summary>Reason for paper fallback (when status is PaperFallback).</summary>
     public string? FallbackReason { get; set; }
 

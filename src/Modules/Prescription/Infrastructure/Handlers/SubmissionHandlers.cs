@@ -288,6 +288,7 @@ public sealed class CancelPrescriptionHandler(
 
         // Transition to CancelRequested → Submitting
         prescription.TransitionTo(PrescriptionStatus.CancelRequested);
+        prescription.CancellationReason = request.Reason;
         prescription.TransitionTo(PrescriptionStatus.Submitting);
         await dbContext.SaveChangesAsync(cancellationToken);
 
