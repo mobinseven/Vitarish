@@ -1,0 +1,156 @@
+@inherits PrescriptionBase
+
+<Stack>
+    <StackField Label="@Localizer["ReferenceDataAdmin"]" HelperText="@Localizer["ReferenceDataAdminHelp"]" />
+</Stack>
+
+<Stack>
+    <StackSelect T="string?" Label="@Localizer["ProviderFilter"]" Value="@selectedProviderKey" ValueChanged="OnProviderFilterChanged" Clearable>
+        @if (freshnessData is not null)
+        {
+            @foreach (var provider in freshnessData.Select(f => f.ProviderKey).Distinct())
+            {
+                <MudSelectItem T="string?" Value="@provider">@provider</MudSelectItem>
+            }
+        }
+    </StackSelect>
+</Stack>
+
+<MudTabs @bind-ActivePanelIndex="@tabIndex" Elevation="0" Rounded ApplyEffectsToContainer>
+    <MudTabPanel Text="@Localizer["Freshness"]" OnClick="@(() => OnTabChanged(FreshnessTab))">
+        @if (freshnessData is not null)
+        {
+            @foreach (var item in freshnessData)
+            {
+                <Stack>
+                    <StackExpandable Label="@($"{item.ProviderKey} / {item.CodeSystem}")">
+                        <MudChip T="string" Color="@GetFreshnessColor(item)" Size="Size.Small">
+                            @(item.IsStale ? Localizer["Stale"] : Localizer["Fresh"])
+                        </MudChip>
+                        <StackField Label="@(item.LastSuccessfulSync?.ToLocalTime().ToString("g") ?? "—")" HelperText="@Localizer["LastSync"]" />
+                        <StackField Label="@item.LastDataVersion" HelperText="@Localizer["DataVersion"]" />
+                        <StackField Label="@($"{item.ActiveCodeCount} / {item.TotalCodeCount}")" HelperText="@Localizer["ActiveCodes"]" />
+                        @if (item.RecentBreakingChanges > 0)
+                        {
+                            <MudChip T="string" Color="Color.Error" Size="Size.Small">
+                                @Localizer["BreakingChanges", item.RecentBreakingChanges]
+                            </MudChip>
+                        }
+                        <StackButton Color="Color.Primary"
+                                     Disabled="@isSyncing"
+                                     OnClick="() => TriggerSyncAsync(item.ProviderKey, item.CodeSystem)"
+                                     Label="@Localizer["TriggerSync"]" />
+                    </StackExpandable>
+                </Stack>
+            }
+        }
+        else
+        {
+            <MudProgressLinear Indeterminate />
+        }
+    </MudTabPanel>
+
+    <MudTabPanel Text="@Localizer["SyncHistory"]" OnClick="@(() => OnTabChanged(HistoryTab))">
+        @if (recentJobs is not null)
+        {
+            @foreach (var job in recentJobs)
+            {
+                <Stack>
+                    <StackExpandable Label="@($"{job.ProviderKey}/{job.CodeSystem} — {job.StartedAt.ToLocalTime():g}")">
+                        <MudIcon Icon="@GetSyncStatusIcon(job.Status)" Size="Size.Small" />
+                        <StackField Label="@job.Status.ToString()" HelperText="@Localizer["Status"]" />
+                        <StackField Label="@FormatDuration(job.DurationMs)" HelperText="@Localizer["Duration"]" />
+                        <StackField Label="@job.TotalItemsProcessed.ToString()" HelperText="@Localizer["ItemsProcessed"]" />
+                        <StackField Label="@($"+{job.ItemsAdded} / ~{job.ItemsUpdated} / -{job.ItemsDeactivated}")" HelperText="@Localizer["Changes"]" />
+                        @if (job.ErrorCount > 0)
+                        {
+                            <StackField Label="@job.ErrorCount.ToString()" HelperText="@Localizer["Errors"]" />
+                        }
+                        @if (job.LastError is not null)
+                        {
+                            <StackField Label="@job.LastError" HelperText="@Localizer["LastError"]" />
+                        }
+                        <StackField Label="@(job.TriggeredBy ?? "—")" HelperText="@Localizer["TriggeredBy"]" />
+                    </StackExpandable>
+                </Stack>
+            }
+        }
+        else
+        {
+            <MudProgressLinear Indeterminate />
+        }
+    </MudTabPanel>
+
+    <MudTabPanel Text="@Localizer["BreakingChanges"]" OnClick="@(() => OnTabChanged(BreakingTab))">
+        @if (breakingChanges is not null && breakingChanges.Count > 0)
+        {
+            @foreach (var change in breakingChanges)
+            {
+                <Stack>
+                    <StackExpandable Label="@($"{change.Code} — {change.ChangeType}")">
+                        <MudChip T="string" Color="Color.Error" Size="Size.Small">@Localizer["Breaking"]</MudChip>
+                        <StackField Label="@change.Code" HelperText="@Localizer["Code"]" />
+                        <StackField Label="@change.ChangeType.ToString()" HelperText="@Localizer["ChangeType"]" />
+                        @if (change.OldValue is not null)
+                        {
+                            <StackField Label="@change.OldValue" HelperText="@Localizer["OldValue"]" />
+                        }
+                        @if (change.NewValue is not null)
+                        {
+                            <StackField Label="@change.NewValue" HelperText="@Localizer["NewValue"]" />
+                        }
+                        <StackField Label="@change.AffectedCrosswalkCount.ToString()" HelperText="@Localizer["AffectedCrosswalks"]" />
+                        <StackField Label="@change.CreatedAt.ToLocalTime().ToString("g")" HelperText="@Localizer["DetectedAt"]" />
+                    </StackExpandable>
+                </Stack>
+            }
+        }
+        else
+        {
+            <Stack>
+                <StackField Label="@Localizer["NoBreakingChanges"]" />
+            </Stack>
+        }
+    </MudTabPanel>
+
+    <MudTabPanel Text="@Localizer["Crosswalks"]" OnClick="@(() => OnTabChanged(CrosswalksTab))">
+        @if (crosswalkGrid is not null)
+        {
+            <Stack>
+                <StackField Label="@crosswalkGrid.TotalCount.ToString()" HelperText="@Localizer["TotalMappings"]" />
+            </Stack>
+
+            @foreach (var row in crosswalkGrid.Items)
+            {
+                <Stack>
+                    <StackExpandable Label="@($"{row.LocalCode} → {row.ProviderCode} ({row.ProviderKey})")">
+                        <StackField Label="@row.LocalCodeSystem" HelperText="@Localizer["LocalCodeSystem"]" />
+                        <StackField Label="@row.ProviderCodeSystem" HelperText="@Localizer["ProviderCodeSystem"]" />
+                        <StackField Label="@row.Confidence.ToString("P0")" HelperText="@Localizer["Confidence"]" />
+                        <MudChip T="string" Color="@(row.IsActive ? Color.Success : Color.Default)" Size="Size.Small">
+                            @(row.IsActive ? Localizer["Active"] : Localizer["Inactive"])
+                        </MudChip>
+                        @if (row.IsActive)
+                        {
+                            <StackButton Color="Color.Warning"
+                                         OnClick="() => DeactivateCrosswalkAsync(row.Id)"
+                                         Label="@Localizer["Deactivate"]" />
+                        }
+                    </StackExpandable>
+                </Stack>
+            }
+        }
+        else
+        {
+            <MudProgressLinear Indeterminate />
+        }
+    </MudTabPanel>
+</MudTabs>
+
+@code {
+    private int tabIndex;
+    private const string FreshnessTab = "freshness";
+    private const string HistoryTab = "history";
+    private const string BreakingTab = "breaking";
+    private const string CrosswalksTab = "crosswalks";
+}

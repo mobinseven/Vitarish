@@ -3,11 +3,12 @@ using Hangfire;
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Prescriptions;
 
 /// <summary>
-/// Configures recurring Hangfire jobs for prescription retry processing.
+/// Configures recurring Hangfire jobs for prescription retry processing and reference data sync.
 /// </summary>
 public sealed class HangfirePrescriptionJobManager(IRecurringJobManager recurringJobManager)
 {
     private const string RetryJobId = "prescription:sync-pending:retry";
+    private const string ReferenceSyncJobId = "prescription:reference-data:sync";
 
     /// <summary>
     /// Adds or updates the recurring job that retries SyncPending prescriptions.
@@ -26,5 +27,25 @@ public sealed class HangfirePrescriptionJobManager(IRecurringJobManager recurrin
     public void TriggerRetry()
     {
         recurringJobManager.Trigger(RetryJobId);
+    }
+
+    /// <summary>
+    /// Schedules daily reference data sync at 02:00 UTC.
+    /// </summary>
+    public void ScheduleReferenceDataSync()
+    {
+        recurringJobManager.AddOrUpdate<ReferenceDataSyncProcessor>(
+            ReferenceSyncJobId,
+            processor => processor.ProcessAsync(CancellationToken.None),
+            Cron.Daily(2),
+            new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
+    }
+
+    /// <summary>
+    /// Triggers a reference data sync immediately (used for manual admin actions).
+    /// </summary>
+    public void TriggerReferenceDataSync()
+    {
+        recurringJobManager.Trigger(ReferenceSyncJobId);
     }
 }

@@ -49,5 +49,6 @@ public static class HangfireStartupJobs
 
         HangfirePrescriptionJobManager prescriptionJobs = app.Services.GetRequiredService<HangfirePrescriptionJobManager>();
         prescriptionJobs.ScheduleRetry();
+        prescriptionJobs.ScheduleReferenceDataSync();
     }
 }
