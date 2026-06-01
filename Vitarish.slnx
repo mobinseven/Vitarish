@@ -46,9 +46,7 @@
   <Folder Name="/src/Libraries/DitasInsurance/">
     <Project Path="src/Libraries/DitasInsurance/DitasInsurance.Client/DitasInsurance.Client.csproj" />
   </Folder>
-  <Folder Name="/src/Libraries/TaminInsurance/">
-    <Project Path="src/Libraries/TaminInsurance/TaminInsurance.Client/TaminInsurance.Client.csproj" />
-  </Folder>
+
   <Folder Name="/src/Libraries/Audit/">
     <Project Path="src/Libraries/Audit/Audit.Application/Audit.Application.csproj" />
     <Project Path="src/Libraries/Audit/Audit.Domain/Audit.Domain.csproj" />

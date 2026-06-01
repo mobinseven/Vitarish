@@ -4,6 +4,7 @@
     <PackageReference Include="MediatR" Version="14.0.*" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.*" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.*" />
+    <PackageReference Include="Vorn.Tamin" Version="1.0.1" />
   </ItemGroup>
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -11,7 +12,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\Libraries\DitasInsurance\DitasInsurance.Client\DitasInsurance.Client.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
-    <ProjectReference Include="..\..\..\Libraries\TaminInsurance\TaminInsurance.Client\TaminInsurance.Client.csproj" />
+
     <ProjectReference Include="..\..\..\Libraries\Audit\Audit.Application\Audit.Application.csproj" />
     <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
     <ProjectReference Include="..\Application\Prescription.Application.csproj" />

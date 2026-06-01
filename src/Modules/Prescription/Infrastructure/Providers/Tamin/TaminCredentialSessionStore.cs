@@ -1,29 +1,33 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Vitarish.Modules.Base.Platform.Errors;
 using Vitarish.Prescription.Application.Abstractions;
 using Vitarish.Prescription.Domain.Entities;
 using Vitarish.Prescription.Infrastructure.Data;
-using Vitarish.TaminInsurance.Client;
+using Vorn.Tamin;
 
 namespace Vitarish.Prescription.Infrastructure.Providers.Tamin;
 
 internal sealed class TaminCredentialSessionStore : ITaminCredentialSessionStore
 {
     private readonly PrescriptionDbContext _dbContext;
-    private readonly ITaminInsuranceClient _client;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IOptionsMonitor<TaminOptions> _taminOptions;
     private readonly TaminErrorMapper _errorMapper;
     private readonly ILogger<TaminCredentialSessionStore> _logger;
     private Guid? _providerId;
 
     public TaminCredentialSessionStore(
         PrescriptionDbContext dbContext,
-        ITaminInsuranceClient client,
+        IHttpClientFactory httpClientFactory,
+        IOptionsMonitor<TaminOptions> taminOptions,
         TaminErrorMapper errorMapper,
         ILogger<TaminCredentialSessionStore> logger)
     {
         _dbContext = dbContext;
-        _client = client;
+        _httpClientFactory = httpClientFactory;
+        _taminOptions = taminOptions;
         _errorMapper = errorMapper;
         _logger = logger;
     }
@@ -46,7 +50,11 @@ internal sealed class TaminCredentialSessionStore : ITaminCredentialSessionStore
         if (!string.IsNullOrWhiteSpace(credential.TokenSecretRef) &&
             credential.TokenExpiresAt > DateTimeOffset.UtcNow.AddMinutes(2))
         {
-            return TaminSessionResult.Success(new TaminSession { Token = credential.TokenSecretRef, SessionId = credential.SessionId });
+            var options = _taminOptions.CurrentValue;
+            var httpClient = _httpClientFactory.CreateClient("TaminClient");
+            var session = new TaminSession(httpClient, credential.TokenSecretRef,
+                new Uri(options.EffectiveBaseUrl), needToken: true, clientId: options.ApiKey);
+            return TaminSessionResult.Success(session, credential.ProviderUsername);
         }
 
         return await AuthenticateInternalAsync(credential, doctorId, clinicId, cancellationToken);
@@ -57,33 +65,50 @@ internal sealed class TaminCredentialSessionStore : ITaminCredentialSessionStore
         if (string.IsNullOrWhiteSpace(credential.ProviderUsername) || string.IsNullOrWhiteSpace(credential.CredentialSecretRef))
             return TaminSessionResult.Failure(MissingCredentialError(doctorId));
 
+        var options = _taminOptions.CurrentValue;
+        var httpClient = _httpClientFactory.CreateClient("TaminClient");
+        var baseUri = new Uri(options.EffectiveBaseUrl);
+
         try
         {
-            var authResponse = await _client.AuthenticateAsync(new TaminAuthRequest
-            {
-                Username = credential.ProviderUsername,
-                Password = credential.CredentialSecretRef
-            }, cancellationToken);
+            var session = await TaminSession.CreateAsync(
+                httpClient,
+                username: credential.ProviderUsername,
+                password: credential.CredentialSecretRef,
+                clientId: options.ApiKey,
+                baseUri: baseUri,
+                cancellationToken: cancellationToken);
 
-            if (string.IsNullOrWhiteSpace(authResponse?.Token))
+            var token = session.HttpClient.DefaultRequestHeaders.Authorization?.Parameter;
+            if (string.IsNullOrWhiteSpace(token))
                 return TaminSessionResult.Failure(AuthenticationRequiredError("Tamin authentication returned no token."));
 
-            credential.TokenSecretRef = authResponse.Token;
-            credential.SessionId = authResponse.SessionId;
-            credential.TokenExpiresAt = DateTimeOffset.UtcNow.AddMinutes(authResponse.ExpiresInMinutes ?? 30);
+            credential.TokenSecretRef = token;
+            credential.SessionId = null;
+            credential.TokenExpiresAt = DateTimeOffset.UtcNow.AddMinutes(30);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Tamin authentication successful for doctor {DoctorId} in clinic {ClinicId}", doctorId, clinicId);
-            return TaminSessionResult.Success(new TaminSession { Token = authResponse.Token, SessionId = authResponse.SessionId });
+            return TaminSessionResult.Success(session, credential.ProviderUsername);
         }
-        catch (TaminInsuranceClientException ex)
+        catch (ConnectionError ex)
         {
             _logger.LogWarning(ex, "Tamin authentication failed for doctor {DoctorId} with status {StatusCode}", doctorId, ex.StatusCode);
             return TaminSessionResult.Failure(_errorMapper.MapError(new ProviderErrorContext
             {
-                HttpStatusCode = (int)ex.StatusCode,
-                ProviderErrorCode = ((int)ex.StatusCode).ToString(),
-                ProviderErrorMessage = ex.ResponseBody
+                HttpStatusCode = ex.StatusCode.HasValue ? (int)ex.StatusCode.Value : null,
+                ProviderErrorCode = ex.StatusCode.HasValue ? ((int)ex.StatusCode.Value).ToString() : null,
+                ProviderErrorMessage = ex.Content
+            }));
+        }
+        catch (UserLoginException ex)
+        {
+            _logger.LogWarning(ex, "Tamin authentication login rejected for doctor {DoctorId}: {Reason}", doctorId, ex.ReasonText);
+            return TaminSessionResult.Failure(_errorMapper.MapError(new ProviderErrorContext
+            {
+                HttpStatusCode = ex.Status,
+                ProviderErrorCode = ex.Status?.ToString(),
+                ProviderErrorMessage = ex.ReasonText ?? ex.Message
             }));
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
