@@ -3,10 +3,9 @@
 @if (ShowFallbackOption)
 {
     <Stack>
-        <MudAlert Severity="Severity.Warning" Dense>@Localizer["PaperFallbackWarning"]</MudAlert>
-        <MudButton Variant="Variant.Outlined" Color="Color.Warning" Size="Size.Small"
-                   OnClick="ShowPaperFallbackDialogAsync">
-            @Localizer["SwitchToPaperFallback"]
-        </MudButton>
+        <StackAlert Severity="Severity.Warning">@Localizer["PaperFallbackWarning"]</StackAlert>
+        <StackButton Color="Color.Warning"
+                     OnClick="ShowPaperFallbackDialogAsync"
+                     Label="@Localizer["SwitchToPaperFallback"]" />
     </Stack>
 }

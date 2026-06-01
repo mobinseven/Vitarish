@@ -4,7 +4,7 @@ using Vitarish.Prescription.Domain.Enums;
 namespace Vitarish.Prescription.Application.Queries;
 
 /// <summary>
-/// Gets prescriptions requiring support attention (SyncPending, SyncFailed, DuplicateRisk, PaperFallback).
+/// Gets prescriptions requiring support attention (SyncPending, SyncFailed, DuplicateRisk, PaperFallback, ProviderUnavailable).
 /// Used by the support reconciliation desk.
 /// </summary>
 public sealed record GetReconciliationQueueQuery : IRequest<ReconciliationQueueResult>

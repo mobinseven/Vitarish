@@ -28,6 +28,12 @@ public sealed class PaperFallbackHandler(
         if (!PrescriptionRecord.IsValidTransition(prescription.Status, PrescriptionStatus.PaperFallback))
             return PaperFallbackResult.Failure($"انتقال از وضعیت '{prescription.Status}' به 'کاغذی' مجاز نیست.");
 
+        if (request.Reason is not null && request.Reason.Length > 1024)
+            return PaperFallbackResult.Failure("دلیل بازگشت به نسخه کاغذی نمی‌تواند بیش از ۱۰۲۴ کاراکتر باشد.");
+
+        if (request.PaperTrackingNumber is not null && request.PaperTrackingNumber.Length > 256)
+            return PaperFallbackResult.Failure("شماره رهگیری کاغذی نمی‌تواند بیش از ۲۵۶ کاراکتر باشد.");
+
         var previousStatus = prescription.Status;
         prescription.TransitionTo(PrescriptionStatus.PaperFallback);
         prescription.FallbackReason = request.Reason;
@@ -77,19 +83,6 @@ public sealed class ResolveDuplicateRiskHandler(
             DuplicateRiskResolution.ConfirmedNotSubmitted => PrescriptionStatus.ManuallyReconciled,
             _ => PrescriptionStatus.ManuallyReconciled
         };
-
-        // DuplicateRisk can transition to AcceptedByProvider or ManuallyReconciled via SyncPending
-        // But we have a direct DuplicateRisk → ManuallyReconciled transition
-        // For ConfirmedAccepted, we need DuplicateRisk → SyncPending → AcceptedByProvider
-        if (request.Resolution == DuplicateRiskResolution.ConfirmedAccepted)
-        {
-            // First check if direct transition is valid
-            if (!PrescriptionRecord.IsValidTransition(PrescriptionStatus.DuplicateRisk, PrescriptionStatus.AcceptedByProvider))
-            {
-                // Use ManuallyReconciled as the resolution state
-                targetStatus = PrescriptionStatus.ManuallyReconciled;
-            }
-        }
 
         prescription.TransitionTo(targetStatus);
         prescription.ReconciliationNotes = request.Notes;

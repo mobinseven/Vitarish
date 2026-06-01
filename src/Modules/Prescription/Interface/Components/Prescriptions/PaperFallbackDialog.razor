@@ -2,24 +2,20 @@
 
 <MudDialog>
     <DialogContent>
-        <MudStack Spacing="3">
-            <MudAlert Severity="Severity.Warning">@Localizer["PaperFallbackExplanation"]</MudAlert>
-            <MudTextField @bind-Value="reason"
-                          Label="@Localizer["FallbackReason"]"
-                          Required
-                          Lines="3"
-                          Variant="Variant.Outlined" />
-            <MudTextField @bind-Value="paperTrackingNumber"
-                          Label="@Localizer["PaperTrackingNumber"]"
-                          HelperText="@Localizer["PaperTrackingNumberHelp"]"
-                          Variant="Variant.Outlined" />
-        </MudStack>
+        <Stack>
+            <StackAlert Severity="Severity.Warning">@Localizer["PaperFallbackExplanation"]</StackAlert>
+            <StackTextField @bind-Value="reason"
+                            Label="@Localizer["FallbackReason"]"
+                            Required
+                            Lines="3"
+                            MaxLength="1024" />
+            <StackTextField @bind-Value="paperTrackingNumber"
+                            Label="@Localizer["PaperTrackingNumber"]"
+                            HelperText="@Localizer["PaperTrackingNumberHelp"]"
+                            MaxLength="256" />
+            <StackButton Color="Color.Warning" Disabled="@string.IsNullOrWhiteSpace(reason)"
+                         OnClick="SubmitAsync" Label="@Localizer["ConfirmPaperFallback"]" />
+            <StackButton OnClick="Cancel" Label="@Localizer["Cancel"]" EndIcon="fa-regular fa-xmark" />
+        </Stack>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
-        <MudButton Color="Color.Warning" Variant="Variant.Filled" Disabled="@string.IsNullOrWhiteSpace(reason)"
-                   OnClick="SubmitAsync">
-            @Localizer["ConfirmPaperFallback"]
-        </MudButton>
-    </DialogActions>
 </MudDialog>

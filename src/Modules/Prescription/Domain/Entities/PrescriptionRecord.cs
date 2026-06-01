@@ -89,6 +89,7 @@ public sealed class PrescriptionRecord
             (PrescriptionStatus.SyncPending, PrescriptionStatus.SyncFailed) => true,
             (PrescriptionStatus.SyncPending, PrescriptionStatus.DuplicateRisk) => true,
             (PrescriptionStatus.SyncFailed, PrescriptionStatus.ManuallyReconciled) => true,
+            (PrescriptionStatus.DuplicateRisk, PrescriptionStatus.AcceptedByProvider) => true,
             (PrescriptionStatus.DuplicateRisk, PrescriptionStatus.ManuallyReconciled) => true,
             (PrescriptionStatus.ProviderUnavailable, PrescriptionStatus.PaperFallback) => true,
 

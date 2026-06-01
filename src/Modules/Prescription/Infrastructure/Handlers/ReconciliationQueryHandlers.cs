@@ -1,5 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
+using Vitarish.Modules.Base.Platform.Retry;
 using Vitarish.Prescription.Application.Queries;
 using Vitarish.Prescription.Domain.Enums;
 using Vitarish.Prescription.Infrastructure.Data;
@@ -92,10 +93,10 @@ public sealed class GetOutboxStatusHandler(PrescriptionDbContext dbContext)
         if (!string.IsNullOrEmpty(request.TenantId))
             query = query.Where(r => r.TenantId == request.TenantId);
 
-        var pendingCount = await query.CountAsync(r => r.Status == "Pending", cancellationToken);
-        var processingCount = await query.CountAsync(r => r.Status == "Processing", cancellationToken);
-        var failedCount = await query.CountAsync(r => r.Status == "Failed", cancellationToken);
-        var duplicateRiskCount = await query.CountAsync(r => r.Status == "DuplicateRisk", cancellationToken);
+        var pendingCount = await query.CountAsync(r => r.Status == OutboxEntryStatus.Pending.ToString(), cancellationToken);
+        var processingCount = await query.CountAsync(r => r.Status == OutboxEntryStatus.Processing.ToString(), cancellationToken);
+        var failedCount = await query.CountAsync(r => r.Status == OutboxEntryStatus.Failed.ToString(), cancellationToken);
+        var duplicateRiskCount = await query.CountAsync(r => r.Status == OutboxEntryStatus.DuplicateRisk.ToString(), cancellationToken);
 
         var recentEntries = await query
             .OrderByDescending(r => r.CreatedAt)

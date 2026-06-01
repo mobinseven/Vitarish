@@ -6,6 +6,7 @@ using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Modules.Base.Platform.Retry;
 using Vitarish.Prescription.Application.Abstractions;
 using Vitarish.Prescription.Application.Commands;
+using Vitarish.Prescription.Domain.Entities;
 using Vitarish.Prescription.Domain.Enums;
 using Vitarish.Prescription.Infrastructure.Data;
 
@@ -215,6 +216,7 @@ public sealed class PrescriptionRetryProcessor(
 
     /// <summary>
     /// Escalates SyncPending prescriptions that have been stuck beyond the stale threshold.
+    /// Also cancels any active outbox entries for escalated prescriptions so Phase 3 stops retrying them.
     /// </summary>
     private async Task EscalateStaleSyncPendingAsync(
         PrescriptionDbContext dbContext,
@@ -247,9 +249,27 @@ public sealed class PrescriptionRetryProcessor(
             {
                 prescription.TransitionTo(targetStatus);
 
+                // Cancel any active outbox entries to prevent Phase 3 from continuing to retry
+                var activeStatuses = new[]
+                {
+                    OutboxEntryStatus.Pending.ToString(),
+                    OutboxEntryStatus.Processing.ToString()
+                };
+
+                var activeEntries = await dbContext.OutboxRecords
+                    .Where(o => o.PrescriptionId == prescription.Id &&
+                                activeStatuses.Contains(o.Status))
+                    .ToListAsync(cancellationToken);
+
+                var escalationReason = $"Prescription escalated to {targetStatus} due to stale SyncPending";
+                foreach (var entry in activeEntries)
+                {
+                    await outboxService.FailAsync(entry.Id, escalationReason, cancellationToken);
+                }
+
                 logger.LogWarning(
-                    "Stale SyncPending prescription {PrescriptionId} escalated to {Status} (stuck since {UpdatedAt})",
-                    prescription.Id, targetStatus, prescription.UpdatedAt ?? prescription.SubmittedAt);
+                    "Stale SyncPending prescription {PrescriptionId} escalated to {Status} (stuck since {UpdatedAt}); {EntryCount} outbox entries cancelled",
+                    prescription.Id, targetStatus, prescription.UpdatedAt ?? prescription.SubmittedAt, activeEntries.Count);
             }
         }
 
