@@ -246,37 +246,54 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
             });
         }
 
-        // 3. Provider outage detection (high recent failure rate)
+        // 3. Provider outage detection (high recent transport/provider availability failure rate)
         var recentWindow = now.AddHours(-1);
-        var recentSubmissions = await dbContext.PrescriptionSubmissions
+        var recentSubmissionCalls = dbContext.PrescriptionSubmissions
             .Where(s => s.SubmittedAt >= recentWindow)
-            .GroupBy(s => s.InsuranceProviderId)
+            .Join(dbContext.InsuranceProviders,
+                s => s.InsuranceProviderId,
+                p => p.Id,
+                (s, p) => new
+                {
+                    p.ProviderKey,
+                    IsFailure = s.CanonicalStatus == PrescriptionStatus.SyncFailed
+                });
+
+        var recentFailedPrescriptionCalls = dbContext.Prescriptions
+            .Where(p => p.UpdatedAt >= recentWindow &&
+                        p.SelectedProviderKey != null &&
+                        (p.Status == PrescriptionStatus.SyncPending ||
+                         p.Status == PrescriptionStatus.ProviderUnavailable))
+            .Select(p => new
+            {
+                ProviderKey = p.SelectedProviderKey!,
+                IsFailure = true
+            });
+
+        var recentProviderCalls = recentSubmissionCalls.Concat(recentFailedPrescriptionCalls);
+        if (!string.IsNullOrEmpty(request.ProviderKey))
+            recentProviderCalls = recentProviderCalls.Where(c => c.ProviderKey == request.ProviderKey);
+
+        var recentOutages = await recentProviderCalls
+            .GroupBy(c => c.ProviderKey)
             .Select(g => new
             {
-                ProviderId = g.Key,
+                ProviderKey = g.Key,
                 Total = g.Count(),
-                Failures = g.Count(s => s.CanonicalStatus == PrescriptionStatus.RejectedByProvider ||
-                                        s.CanonicalStatus == PrescriptionStatus.SyncFailed)
+                Failures = g.Count(c => c.IsFailure)
             })
             .Where(x => x.Total >= 3 && (double)x.Failures / x.Total > 0.8)
             .ToListAsync(cancellationToken);
 
-        var providerLookup = await dbContext.InsuranceProviders
-            .ToDictionaryAsync(p => p.Id, p => p.ProviderKey, cancellationToken);
-
-        foreach (var outage in recentSubmissions)
+        foreach (var outage in recentOutages)
         {
-            var providerKey = providerLookup.GetValueOrDefault(outage.ProviderId, "Unknown");
-            if (!string.IsNullOrEmpty(request.ProviderKey) && providerKey != request.ProviderKey)
-                continue;
-
             alerts.Add(new OperationalAlertDto
             {
                 AlertType = "ProviderOutage",
                 Severity = "Critical",
-                Title = $"Possible Provider Outage: {providerKey}",
+                Title = $"Possible Provider Outage: {outage.ProviderKey}",
                 Description = $"{outage.Failures}/{outage.Total} calls failed in the last hour ({(double)outage.Failures / outage.Total * 100:F0}% failure rate).",
-                ProviderKey = providerKey,
+                ProviderKey = outage.ProviderKey,
                 DetectedAt = now
             });
         }
@@ -390,10 +407,10 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
             })
             .ToListAsync(cancellationToken);
 
-        var totalDuplicateRisk = await dbContext.Prescriptions
+        var totalDuplicateRisk = await query
             .CountAsync(p => p.Status == PrescriptionStatus.DuplicateRisk, cancellationToken);
 
-        var totalReconciled = await dbContext.Prescriptions
+        var totalReconciled = await query
             .CountAsync(p => p.Status == PrescriptionStatus.ManuallyReconciled, cancellationToken);
 
         return new DuplicateRiskIncidentsResult
