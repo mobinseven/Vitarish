@@ -8,7 +8,7 @@
 ## Current Implementation Alignment
 - **Status:** `missing` as a user-facing journey; provider integration infrastructure is present.
 - **Implemented now:** provider adapters/options/registry exist for configured providers, and domain entities represent providers, contracts, and capabilities.
-- **Current artifacts:** `InsuranceProvider`, `ProviderContract`, `InsuranceProviderCapability`, `IInsuranceProviderRegistry`, `InsuranceProviderRegistry`, Tamin/Ditas/Salamat adapters and options.
+- **Current artifacts:** InsuranceProvider, ProviderContract (enforcing non-overlapping effective-date intervals using PostgreSQL EXCLUDE USING GIST constraints or application-level validation to ensure interval integrity), InsuranceProviderCapability, IInsuranceProviderRegistry, InsuranceProviderRegistry, Tamin/Ditas/Salamat adapters and options.
 - **Authoritative state:** provider availability/capability should come from provider configuration plus `InsuranceProviderCapability`; adapter implementation remains infrastructure.
 - **Known gaps:** no provider onboarding page, no registration/update commands, no capability matrix editor, no endpoint configuration form, and no UI connectivity test workflow.
 
