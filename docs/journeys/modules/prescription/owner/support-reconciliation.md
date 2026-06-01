@@ -5,6 +5,13 @@
 - **Trigger:** Prescription transactions in `SyncFailed`, `DuplicateRisk`, repeated timeout, or incident escalation.
 - **Goal:** Reconcile local and remote prescription state safely with full audit trail.
 
+## Current Implementation Alignment
+- **Status:** `partial`.
+- **Implemented now:** `ReconciliationDesk` loads recoverable states, filters by status, refreshes provider status, resolves duplicate risk, manually reconciles, and reconciles paper fallback; `PrescriptionOperationalDashboard` surfaces alerts/outbox/duplicate-risk/metrics.
+- **Current artifacts:** `ReconciliationDesk`, `PrescriptionOperationalDashboard`, `GetReconciliationQueueQuery`, `RefreshProviderStatusCommand`, `ResolveDuplicateRiskCommand`, `ManualReconcileCommand`, `ReconcilePaperFallbackCommand`, `GetOutboxStatusQuery`.
+- **Authoritative state:** support actions update the same prescription lifecycle record; outbox records remain retry metadata, not a second prescription state model.
+- **Known gaps:** route/navigation is not confirmed, operator-entered notes are not captured by the current confirmation flow, escalation is not implemented as a separate workflow, and transaction detail masking/audit display need hardening.
+
 ## 2. Entry Conditions
 1. Support operator is authenticated with reconciliation permission.
 2. One or more prescriptions are in recoverable/escalated states.

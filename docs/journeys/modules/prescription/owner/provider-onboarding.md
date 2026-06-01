@@ -5,6 +5,13 @@
 - **Trigger:** A new insurance provider needs to be registered in the system.
 - **Goal:** Register provider, configure capabilities, and enable for clinics/doctors.
 
+## Current Implementation Alignment
+- **Status:** `missing` as a user-facing journey; provider integration infrastructure is present.
+- **Implemented now:** provider adapters/options/registry exist for configured providers, and domain entities represent providers, contracts, and capabilities.
+- **Current artifacts:** `InsuranceProvider`, `ProviderContract`, `InsuranceProviderCapability`, `IInsuranceProviderRegistry`, `InsuranceProviderRegistry`, Tamin/Ditas/Salamat adapters and options.
+- **Authoritative state:** provider availability/capability should come from provider configuration plus `InsuranceProviderCapability`; adapter implementation remains infrastructure.
+- **Known gaps:** no provider onboarding page, no registration/update commands, no capability matrix editor, no endpoint configuration form, and no UI connectivity test workflow.
+
 ## 2. Entry Conditions
 1. Platform admin has provider configuration permission.
 2. Provider API documentation, endpoints, and capability information are available.

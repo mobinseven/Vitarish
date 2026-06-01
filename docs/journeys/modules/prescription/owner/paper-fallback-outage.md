@@ -5,6 +5,13 @@
 - **Trigger:** Insurance provider is unavailable (outage, degraded, prolonged timeout) and clinical care cannot wait.
 - **Goal:** Continue prescription operations via controlled paper fallback with full audit trail and post-recovery reconciliation path.
 
+## Current Implementation Alignment
+- **Status:** `partial`.
+- **Implemented now:** `PaperFallbackPanel` is available for `Draft`, `ReadyForSubmission`, and `ProviderUnavailable`; `PaperFallbackDialog` captures reason and optional paper tracking number; `PaperFallbackCommand` transitions state; support can reconcile paper fallback through `ReconcilePaperFallbackCommand`.
+- **Current artifacts:** `PaperFallbackPanel`, `PaperFallbackDialog`, `PaperFallbackCommand`, `ReconcilePaperFallbackCommand`, `ManualReconcileCommand`, `ReconciliationDesk`.
+- **Authoritative state:** paper fallback is a canonical `PrescriptionStatus` on the existing prescription record; support reconciliation moves that same record forward instead of creating a competing workflow.
+- **Known gaps:** official printable paper form, outage-specific proactive prompt, and routed support/admin reconciliation page are not complete.
+
 ## 2. Entry Conditions
 1. Provider is confirmed unavailable or degraded (repeated timeouts, known outage, admin declaration).
 2. User is authorized for fallback action.

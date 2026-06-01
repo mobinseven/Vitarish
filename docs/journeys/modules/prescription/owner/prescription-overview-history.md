@@ -5,6 +5,13 @@
 - **Trigger:** Doctor needs to view, search, or filter past prescriptions for a patient or across the clinic.
 - **Goal:** Quickly access prescription history with relevant lifecycle and tracking information.
 
+## Current Implementation Alignment
+- **Status:** `partial`.
+- **Implemented now:** owner prescription list and detail routes load clinic/patient history, status badges, item counts, provider labels, detail items, status panel, and a simple timeline.
+- **Current artifacts:** `OwnerPrescriptionsPage`, `OwnerPrescriptionDetailPage`, `PrescriptionsList`, `PrescriptionDetail`, `PrescriptionStatusBadge`, `PrescriptionTimeline`, `GetPrescriptionHistoryQuery`, `GetPrescriptionQuery`.
+- **Authoritative state:** history/detail read from `PrescriptionRecord` and `PrescriptionItem` projections via prescription queries.
+- **Known gaps:** advanced filters, pagination controls, complete audit trail rendering, print view, and routed operational dashboard access are not complete.
+
 ## 2. Entry Conditions
 1. User is authenticated with prescription view permission.
 2. Patient context is available (for patient-scoped view) or clinic context (for clinic-wide view).

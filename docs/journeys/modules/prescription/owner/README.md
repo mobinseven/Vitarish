@@ -1,6 +1,7 @@
 # Prescription Module — Owner Journey Maps
 
 Date created: 2026-05-28
+Last implementation alignment: 2026-06-01
 
 ## Scope and Method
 
@@ -11,6 +12,28 @@ Implementation levels in the matrix:
 - **implemented:** the user can complete the journey in current UI and supporting services.
 - **partial:** enough UI/service support exists for part of the journey, but one or more objectives are missing.
 - **missing:** no clear user-facing journey implementation exists yet.
+
+## Current Implementation Summary
+
+The current module has a working prescription architecture and several implemented UI/service slices, but the journeys are not all complete end-to-end user workflows yet. The implementation matrix is the authoritative status summary.
+
+- **Doctor prescription flow:** partial — create draft, select payer, check eligibility, add/remove items, validate, submit, view status/tracking, request edit/cancel, and enter paper fallback are present.
+- **Recovery/support flow:** partial — timeout classification, outbox retry, fetch-before-retry, reconciliation queue/actions, and operational dashboard components exist; routed navigation and richer operator workflows remain gaps.
+- **Reference data admin:** partial — freshness, sync history, manual sync, breaking changes, and crosswalk read/deactivate surfaces exist; routed admin navigation and crosswalk write/import UI remain gaps.
+- **Credential setup and provider onboarding:** missing as complete user-facing journeys; domain/integration/read-model foundations exist.
+
+### Current Host Routes
+
+| Route | Purpose |
+| --- | --- |
+| `/owner/clinic/prescriptions` | Owner prescription list/history. |
+| `/owner/clinic/prescriptions/new` | Create a new owner prescription draft. |
+| `/owner/clinic/prescriptions/new/{patientId:guid}` | Create a new draft for a known patient. |
+| `/owner/clinic/prescriptions/{prescriptionId:guid}` | Owner prescription detail/workspace. |
+
+### Current Module Components Without Confirmed Host Route
+
+`ReconciliationDesk`, `PrescriptionOperationalDashboard`, and `ReferenceDataAdminDashboard` are implemented as module components. Their journey status remains `partial` until host routing, navigation, and role policy exposure are confirmed.
 
 ## How to Use This Folder
 
@@ -67,6 +90,7 @@ AcceptedByProvider → EditRequested → Submitting → Edited → AcceptedByPro
 AcceptedByProvider → CancelRequested → Submitting → Cancelled
 Any pre-submit → PaperFallback
 ProviderUnavailable → PaperFallback | RetryScheduled
+SyncFailed | DuplicateRisk | PaperFallback → ManuallyReconciled
 ```
 
 ## Cross-Journey Acceptance Outcomes

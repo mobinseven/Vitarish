@@ -5,6 +5,13 @@
 - **Trigger:** Patient has multiple active insurance coverages; doctor must choose which payer to submit to.
 - **Goal:** Select the appropriate payer with full visibility of coverage status and provider capabilities.
 
+## Current Implementation Alignment
+- **Status:** `partial`.
+- **Implemented now:** `PayerSelectorPanel` reads patient coverages and applies the selected provider/coverage to a draft via `SetProviderCommand`; single-coverage and multi-coverage states are displayed from the same panel.
+- **Current artifacts:** `PayerSelectorPanel`, `PrescriptionDetail`, `GetPatientCoveragesQuery`, `SetProviderCommand`, `PatientCoverageDto`.
+- **Authoritative state:** selected payer lives on the prescription draft as `SelectedProviderKey` and `SelectedPatientCoverageId`.
+- **Known gaps:** the selector does not yet show doctor credential health, provider online/degraded/offline status, or capability-driven disabled categories for each payer option.
+
 ## 2. Entry Conditions
 1. Patient identity confirmed.
 2. Patient has ≥2 active `PatientCoverage` records for different providers.

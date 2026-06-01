@@ -5,6 +5,13 @@
 - **Trigger:** Scheduled reference data sync runs, manual refresh requested, or staleness alert triggered.
 - **Goal:** Keep prescription code references current per provider without disrupting active workflows.
 
+## Current Implementation Alignment
+- **Status:** `partial`.
+- **Implemented now:** `ReferenceDataAdminDashboard` shows provider/code-system freshness, sync history, breaking changes, and crosswalk grid; admins can trigger sync and deactivate crosswalks; prescription item search uses synced reference codes.
+- **Current artifacts:** `ReferenceDataAdminDashboard`, `AddPrescriptionItemDialog`, `SyncReferenceDataCommand`, `GetReferenceFreshnessQuery`, `GetReferenceSyncJobHistoryQuery`, `GetReferenceChangeLogsQuery`, `GetReferenceCodeCrosswalkGridQuery`, `DeactivateReferenceCodeCrosswalkCommand`, `SearchReferenceCodesQuery`, `ReferenceDataSyncProcessor`.
+- **Authoritative state:** `ReferenceCode`, `ReferenceCodeSyncJob`, `ReferenceCodeChangeLog`, and `ReferenceCodeCrosswalk` own reference data, sync state, change history, and mappings respectively.
+- **Known gaps:** admin route/navigation is not confirmed, crosswalk create/import UI is incomplete, and sync scheduling controls are not exposed from the dashboard.
+
 ## 2. Entry Conditions
 1. Admin has reference data management permission.
 2. At least one provider is configured with reference data sync endpoints.

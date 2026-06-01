@@ -5,6 +5,13 @@
 - **Trigger:** New doctor needs credentials for insurance provider, or existing credentials need renewal/update.
 - **Goal:** Map doctor credentials to insurance providers so they can submit prescriptions.
 
+## Current Implementation Alignment
+- **Status:** `missing` as a complete owner journey; `partial` backend/read-model support exists.
+- **Implemented now:** credential health can be queried and displayed in operational monitoring; adapters expose `AuthenticateAsync`; `DoctorProviderCredential` models credential state.
+- **Current artifacts:** `PrescriptionOperationalDashboard`, `GetCredentialHealthQuery`, `CredentialHealthResult`, `DoctorProviderCredential`, `IInsuranceProviderAdapter.AuthenticateAsync`.
+- **Authoritative state:** provider credential state belongs to `DoctorProviderCredential`.
+- **Known gaps:** no routed credential setup page, no credential configuration form, no save/update command, no explicit credential test command, and no owner-facing renewal workflow.
+
 ## 2. Entry Conditions
 1. Clinic admin is authenticated with credential management permission.
 2. Insurance provider is registered and active.
