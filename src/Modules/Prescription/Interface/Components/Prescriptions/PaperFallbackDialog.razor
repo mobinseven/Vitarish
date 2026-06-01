@@ -1,0 +1,25 @@
+@inherits PrescriptionBase
+
+<MudDialog>
+    <DialogContent>
+        <MudStack Spacing="3">
+            <MudAlert Severity="Severity.Warning">@Localizer["PaperFallbackExplanation"]</MudAlert>
+            <MudTextField @bind-Value="reason"
+                          Label="@Localizer["FallbackReason"]"
+                          Required
+                          Lines="3"
+                          Variant="Variant.Outlined" />
+            <MudTextField @bind-Value="paperTrackingNumber"
+                          Label="@Localizer["PaperTrackingNumber"]"
+                          HelperText="@Localizer["PaperTrackingNumberHelp"]"
+                          Variant="Variant.Outlined" />
+        </MudStack>
+    </DialogContent>
+    <DialogActions>
+        <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
+        <MudButton Color="Color.Warning" Variant="Variant.Filled" Disabled="@string.IsNullOrWhiteSpace(reason)"
+                   OnClick="SubmitAsync">
+            @Localizer["ConfirmPaperFallback"]
+        </MudButton>
+    </DialogActions>
+</MudDialog>

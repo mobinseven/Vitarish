@@ -1,0 +1,12 @@
+@inherits PrescriptionBase
+
+@if (ShowFallbackOption)
+{
+    <Stack>
+        <MudAlert Severity="Severity.Warning" Dense>@Localizer["PaperFallbackWarning"]</MudAlert>
+        <MudButton Variant="Variant.Outlined" Color="Color.Warning" Size="Size.Small"
+                   OnClick="ShowPaperFallbackDialogAsync">
+            @Localizer["SwitchToPaperFallback"]
+        </MudButton>
+    </Stack>
+}
