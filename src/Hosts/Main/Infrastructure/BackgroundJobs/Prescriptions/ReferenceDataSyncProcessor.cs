@@ -2,9 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Prescription.Application.Abstractions;
-using Vitarish.Prescription.Domain.Entities;
 using Vitarish.Prescription.Domain.Enums;
-using Vitarish.Prescription.Infrastructure.Data;
 using Vitarish.Prescription.Infrastructure.Services;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Prescriptions;
@@ -31,7 +29,6 @@ public sealed class ReferenceDataSyncProcessor(
     private async Task PerTenantAsync(IServiceProvider provider, CancellationToken shutdownToken)
     {
         var syncService = provider.GetRequiredService<ReferenceDataSyncService>();
-        var dbContext = provider.GetRequiredService<PrescriptionDbContext>();
         var providerRegistry = provider.GetRequiredService<IInsuranceProviderRegistry>();
 
         // Get all registered providers and check which ones support reference sync

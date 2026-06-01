@@ -5,7 +5,7 @@
 </Stack>
 
 <Stack>
-    <StackSelect T="string?" Label="@Localizer["ProviderFilter"]" Value="selectedProviderKey" ValueChanged="OnProviderFilterChanged" Clearable>
+    <StackSelect T="string?" Label="@Localizer["ProviderFilter"]" Value="@selectedProviderKey" ValueChanged="OnProviderFilterChanged" Clearable>
         @if (freshnessData is not null)
         {
             @foreach (var provider in freshnessData.Select(f => f.ProviderKey).Distinct())

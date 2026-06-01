@@ -41,6 +41,7 @@ public sealed class ReferenceCodeCrosswalkService(
 
         return await dbContext.ReferenceCodes
             .Where(rc => rc.ProviderKey == providerKey
+                && rc.CodeSystem == crosswalk.ProviderCodeSystem
                 && rc.Code == crosswalk.ProviderCode
                 && rc.IsActive)
             .FirstOrDefaultAsync(cancellationToken);
@@ -71,16 +72,34 @@ public sealed class ReferenceCodeCrosswalkService(
             .OrderByDescending(cw => cw.MappingConfidence)
             .ToListAsync(cancellationToken);
 
+        if (crosswalks.Count == 0)
+            return [];
+
+        // Fetch all needed ReferenceCodes in a single query to avoid N+1
+        var lookupKeys = crosswalks
+            .Select(cw => new { cw.ProviderKey, cw.ProviderCodeSystem, cw.ProviderCode })
+            .Distinct()
+            .ToList();
+
+        var providerKeys = lookupKeys.Select(k => k.ProviderKey).ToHashSet();
+        var providerCodeSystems = lookupKeys.Select(k => k.ProviderCodeSystem).ToHashSet();
+        var providerCodes = lookupKeys.Select(k => k.ProviderCode).ToHashSet();
+
+        var referenceCodes = await dbContext.ReferenceCodes
+            .Where(rc => providerKeys.Contains(rc.ProviderKey)
+                && providerCodeSystems.Contains(rc.CodeSystem)
+                && providerCodes.Contains(rc.Code)
+                && rc.IsActive)
+            .ToListAsync(cancellationToken);
+
+        var codeMap = referenceCodes
+            .ToDictionary(rc => (rc.ProviderKey, rc.CodeSystem, rc.Code));
+
         var results = new List<(ReferenceCodeCrosswalk, ReferenceCode?)>();
 
         foreach (var cw in crosswalks)
         {
-            var code = await dbContext.ReferenceCodes
-                .Where(rc => rc.ProviderKey == cw.ProviderKey
-                    && rc.Code == cw.ProviderCode
-                    && rc.IsActive)
-                .FirstOrDefaultAsync(cancellationToken);
-
+            codeMap.TryGetValue((cw.ProviderKey, cw.ProviderCodeSystem, cw.ProviderCode), out var code);
             results.Add((cw, code));
         }
 
@@ -104,7 +123,9 @@ public sealed class ReferenceCodeCrosswalkService(
         foreach (var cw in crosswalks)
         {
             var code = await dbContext.ReferenceCodes
-                .Where(rc => rc.ProviderKey == cw.ProviderKey && rc.Code == cw.ProviderCode)
+                .Where(rc => rc.ProviderKey == cw.ProviderKey
+                    && rc.CodeSystem == cw.ProviderCodeSystem
+                    && rc.Code == cw.ProviderCode)
                 .FirstOrDefaultAsync(cancellationToken);
 
             if (code is null)

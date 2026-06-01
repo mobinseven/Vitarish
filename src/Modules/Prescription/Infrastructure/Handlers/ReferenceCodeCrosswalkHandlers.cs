@@ -16,9 +16,10 @@ public sealed class UpsertReferenceCodeCrosswalkHandler(PrescriptionDbContext db
         UpsertReferenceCodeCrosswalkCommand request,
         CancellationToken cancellationToken)
     {
-        // Validate provider code exists
+        // Validate provider code exists in the correct code system
         var providerCodeExists = await dbContext.ReferenceCodes
             .AnyAsync(rc => rc.ProviderKey == request.ProviderKey
+                && rc.CodeSystem == request.ProviderCodeSystem
                 && rc.Code == request.ProviderCode
                 && rc.IsActive, cancellationToken);
 
@@ -116,7 +117,7 @@ public sealed class BulkImportCrosswalkHandler(PrescriptionDbContext dbContext)
             var providerKey = parts[2].Trim();
             var providerCode = parts[3].Trim();
             var providerCodeSystem = parts[4].Trim();
-            var confidence = parts.Length > 5 && decimal.TryParse(parts[5].Trim(), out var c) ? c : 1.0m;
+            var confidence = parts.Length > 5 && decimal.TryParse(parts[5].Trim(), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var c) ? c : 1.0m;
 
             // Check for duplicate
             var exists = await dbContext.ReferenceCodeCrosswalks

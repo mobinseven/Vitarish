@@ -37,7 +37,8 @@ public sealed class HangfirePrescriptionJobManager(IRecurringJobManager recurrin
         recurringJobManager.AddOrUpdate<ReferenceDataSyncProcessor>(
             ReferenceSyncJobId,
             processor => processor.ProcessAsync(CancellationToken.None),
-            Cron.Daily(2));
+            Cron.Daily(2),
+            new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
     }
 
     /// <summary>

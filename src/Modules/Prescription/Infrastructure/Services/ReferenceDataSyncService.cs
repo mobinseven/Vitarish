@@ -7,6 +7,7 @@ using Vitarish.Prescription.Application.Abstractions;
 using Vitarish.Prescription.Domain.Entities;
 using Vitarish.Prescription.Domain.Enums;
 using Vitarish.Prescription.Infrastructure.Data;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Prescription.Infrastructure.Services;
 
@@ -18,6 +19,7 @@ namespace Vitarish.Prescription.Infrastructure.Services;
 public sealed class ReferenceDataSyncService(
     PrescriptionDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
+    IRequestContext requestContext,
     ILogger<ReferenceDataSyncService> logger)
 {
     /// <summary>
@@ -40,6 +42,7 @@ public sealed class ReferenceDataSyncService(
             Priority = priority,
             TriggeredBy = triggeredBy,
             IsManualTrigger = triggeredBy?.StartsWith("admin:") == true,
+            TenantId = requestContext.TenantId,
             StartedAt = DateTimeOffset.UtcNow,
             CreatedAt = DateTimeOffset.UtcNow
         };
@@ -61,7 +64,7 @@ public sealed class ReferenceDataSyncService(
             var lastSuccessfulJob = await dbContext.Set<ReferenceCodeSyncJob>()
                 .Where(j => j.ProviderKey == providerKey
                     && j.CodeSystem == codeSystem
-                    && j.Status == ReferenceCodeSyncStatus.Completed)
+                    && (j.Status == ReferenceCodeSyncStatus.Completed || j.Status == ReferenceCodeSyncStatus.CompletedWithErrors))
                 .OrderByDescending(j => j.CompletedAt)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -125,9 +128,11 @@ public sealed class ReferenceDataSyncService(
         var syncErrors = new List<ReferenceCodeSyncError>();
         var now = DateTimeOffset.UtcNow;
 
-        // Get all existing codes for this provider + code system
+        // Get existing sync-owned codes for this provider + code system
+        // Filtering to RecordOrigin == "sync" ensures a deterministic single row per Code
+        // and avoids duplicate key errors when manual/import records share the same Code.
         var existingCodes = await dbContext.ReferenceCodes
-            .Where(rc => rc.ProviderKey == providerKey && rc.CodeSystem == codeSystem)
+            .Where(rc => rc.ProviderKey == providerKey && rc.CodeSystem == codeSystem && rc.RecordOrigin == "sync")
             .ToListAsync(cancellationToken);
 
         var existingLookup = existingCodes.ToDictionary(c => c.Code);
@@ -148,6 +153,8 @@ public sealed class ReferenceDataSyncService(
                         var oldValue = $"{existing.DisplayName}|{existing.Category}|{existing.IsActive}";
                         var newValue = $"{item.DisplayName}|{item.Category}|{item.IsActive}";
 
+                        var wasActive = existing.IsActive;
+
                         existing.DisplayName = item.DisplayName;
                         existing.Category = item.Category;
                         existing.IsActive = item.IsActive;
@@ -155,7 +162,7 @@ public sealed class ReferenceDataSyncService(
                         existing.UpdatedAt = now;
                         existing.RecordOrigin = "sync";
 
-                        var changeType = !existing.IsActive && item.IsActive
+                        var changeType = !wasActive && item.IsActive
                             ? ReferenceCodeChangeType.Reactivated
                             : ReferenceCodeChangeType.Updated;
 
@@ -223,17 +230,25 @@ public sealed class ReferenceDataSyncService(
         }
 
         // Deactivate codes not present in the sync response (versioned deactivation, not deletion)
-        foreach (var code in existingCodes.Where(c => c.IsActive && !processedCodes.Contains(c.Code)))
+        var codesToDeactivate = existingCodes.Where(c => c.IsActive && !processedCodes.Contains(c.Code)).ToList();
+
+        // Precompute affected crosswalk counts in a single query to avoid N+1
+        var deactivatingCodes = codesToDeactivate.Select(c => c.Code).ToHashSet();
+        var crosswalkCountsByCode = await dbContext.ReferenceCodeCrosswalks
+            .Where(cw => cw.ProviderKey == providerKey
+                && cw.ProviderCodeSystem == codeSystem
+                && deactivatingCodes.Contains(cw.ProviderCode)
+                && cw.IsActive)
+            .GroupBy(cw => cw.ProviderCode)
+            .Select(g => new { Code = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(x => x.Code, x => x.Count, cancellationToken);
+
+        foreach (var code in codesToDeactivate)
         {
             code.IsActive = false;
             code.UpdatedAt = now;
 
-            // Check if this affects any crosswalk mappings (breaking change)
-            var affectedCrosswalks = await dbContext.ReferenceCodeCrosswalks
-                .Where(cw => cw.ProviderKey == providerKey
-                    && cw.ProviderCode == code.Code
-                    && cw.IsActive)
-                .ToListAsync(cancellationToken);
+            crosswalkCountsByCode.TryGetValue(code.Code, out var affectedCount);
 
             changeLogs.Add(new ReferenceCodeChangeLog
             {
@@ -244,8 +259,8 @@ public sealed class ReferenceDataSyncService(
                 Code = code.Code,
                 OldValue = "Active",
                 NewValue = "Inactive",
-                IsBreakingChange = affectedCrosswalks.Count > 0,
-                AffectedCrosswalkCount = affectedCrosswalks.Count,
+                IsBreakingChange = affectedCount > 0,
+                AffectedCrosswalkCount = affectedCount,
                 CreatedAt = now
             });
 

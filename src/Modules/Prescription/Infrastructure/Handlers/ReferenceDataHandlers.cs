@@ -7,6 +7,7 @@ using Vitarish.Prescription.Domain.Entities;
 using Vitarish.Prescription.Domain.Enums;
 using Vitarish.Prescription.Infrastructure.Data;
 using Vitarish.Prescription.Infrastructure.Services;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Prescription.Infrastructure.Handlers;
 
@@ -60,14 +61,17 @@ public sealed class SyncReferenceDataHandler(
 }
 
 /// <summary>Handler for retrieving sync job history.</summary>
-public sealed class GetReferenceSyncJobHistoryHandler(PrescriptionDbContext dbContext)
+public sealed class GetReferenceSyncJobHistoryHandler(PrescriptionDbContext dbContext, IRequestContext requestContext)
     : IRequestHandler<GetReferenceSyncJobHistoryQuery, IReadOnlyList<ReferenceSyncJobDto>>
 {
     public async Task<IReadOnlyList<ReferenceSyncJobDto>> Handle(
         GetReferenceSyncJobHistoryQuery request,
         CancellationToken cancellationToken)
     {
-        var query = dbContext.Set<ReferenceCodeSyncJob>().AsNoTracking().AsQueryable();
+        var tenantId = requestContext.TenantId;
+        var query = dbContext.Set<ReferenceCodeSyncJob>().AsNoTracking()
+            .Where(j => j.TenantId == tenantId)
+            .AsQueryable();
 
         if (!string.IsNullOrEmpty(request.ProviderKey))
             query = query.Where(j => j.ProviderKey == request.ProviderKey);
@@ -106,16 +110,17 @@ public sealed class GetReferenceSyncJobHistoryHandler(PrescriptionDbContext dbCo
 }
 
 /// <summary>Handler for getting current sync status.</summary>
-public sealed class GetCurrentReferenceSyncStatusHandler(PrescriptionDbContext dbContext)
+public sealed class GetCurrentReferenceSyncStatusHandler(PrescriptionDbContext dbContext, IRequestContext requestContext)
     : IRequestHandler<GetCurrentReferenceSyncStatusQuery, CurrentSyncStatusDto?>
 {
     public async Task<CurrentSyncStatusDto?> Handle(
         GetCurrentReferenceSyncStatusQuery request,
         CancellationToken cancellationToken)
     {
+        var tenantId = requestContext.TenantId;
         var job = await dbContext.Set<ReferenceCodeSyncJob>()
             .AsNoTracking()
-            .Where(j => j.ProviderKey == request.ProviderKey && j.CodeSystem == request.CodeSystem)
+            .Where(j => j.TenantId == tenantId && j.ProviderKey == request.ProviderKey && j.CodeSystem == request.CodeSystem)
             .OrderByDescending(j => j.StartedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
@@ -136,7 +141,10 @@ public sealed class GetCurrentReferenceSyncStatusHandler(PrescriptionDbContext d
 }
 
 /// <summary>Handler for reference freshness overview.</summary>
-public sealed class GetReferenceFreshnessHandler(PrescriptionDbContext dbContext)
+public sealed class GetReferenceFreshnessHandler(
+    PrescriptionDbContext dbContext,
+    IInsuranceProviderRegistry providerRegistry,
+    IRequestContext requestContext)
     : IRequestHandler<GetReferenceFreshnessQuery, IReadOnlyList<ReferenceFreshnessDto>>
 {
     private static readonly TimeSpan StalenessThreshold = TimeSpan.FromDays(2);
@@ -145,45 +153,102 @@ public sealed class GetReferenceFreshnessHandler(PrescriptionDbContext dbContext
         GetReferenceFreshnessQuery request,
         CancellationToken cancellationToken)
     {
-        // Get distinct provider/code system combinations from reference codes
-        var combinations = await dbContext.ReferenceCodes
+        var tenantId = requestContext.TenantId;
+
+        // Derive provider/code-system combinations from registered providers so the dashboard
+        // works even before the first sync (empty ReferenceCodes table).
+        var registeredCombinations = providerRegistry.GetRegisteredProviderKeys()
+            .SelectMany(key =>
+            {
+                var adapter = providerRegistry.GetAdapter(key);
+                if (adapter is null) return Enumerable.Empty<(string, string)>();
+                var caps = adapter.GetCapabilities();
+                var combos = new List<(string, string)>();
+                if (caps.Contains(InsuranceProviderCapabilityType.SupportsReferenceDrugSync))
+                    combos.Add((key, "Drug"));
+                if (caps.Contains(InsuranceProviderCapabilityType.SupportsReferenceServiceSync))
+                    combos.Add((key, "Service"));
+                return combos;
+            })
+            .ToList();
+
+        // Also include any combinations seen in sync job history that are not in the registered list
+        var historyCombinations = await dbContext.Set<ReferenceCodeSyncJob>()
             .AsNoTracking()
-            .Select(rc => new { rc.ProviderKey, rc.CodeSystem })
+            .Where(j => j.TenantId == tenantId)
+            .Select(j => new { j.ProviderKey, j.CodeSystem })
             .Distinct()
             .ToListAsync(cancellationToken);
 
+        var combinations = registeredCombinations
+            .Union(historyCombinations.Select(c => (c.ProviderKey, c.CodeSystem)))
+            .ToList();
+
         if (!string.IsNullOrEmpty(request.ProviderKey))
-            combinations = combinations.Where(c => c.ProviderKey == request.ProviderKey).ToList();
+            combinations = combinations.Where(c => c.Item1 == request.ProviderKey).ToList();
+
+        if (combinations.Count == 0)
+            return [];
+
+        // Precompute last completed job per (ProviderKey, CodeSystem) in one query
+        var providerKeys = combinations.Select(c => c.Item1).ToHashSet();
+        var codeSystems = combinations.Select(c => c.Item2).ToHashSet();
+
+        var allLastJobs = await dbContext.Set<ReferenceCodeSyncJob>()
+            .AsNoTracking()
+            .Where(j => j.TenantId == tenantId
+                && providerKeys.Contains(j.ProviderKey)
+                && codeSystems.Contains(j.CodeSystem)
+                && (j.Status == ReferenceCodeSyncStatus.Completed || j.Status == ReferenceCodeSyncStatus.CompletedWithErrors))
+            .GroupBy(j => new { j.ProviderKey, j.CodeSystem })
+            .Select(g => g.OrderByDescending(j => j.CompletedAt).First())
+            .ToListAsync(cancellationToken);
+
+        var lastJobLookup = allLastJobs.ToDictionary(j => (j.ProviderKey, j.CodeSystem));
+
+        // Precompute active and total code counts per (ProviderKey, CodeSystem)
+        var activeCounts = await dbContext.ReferenceCodes
+            .AsNoTracking()
+            .Where(rc => providerKeys.Contains(rc.ProviderKey) && codeSystems.Contains(rc.CodeSystem) && rc.IsActive)
+            .GroupBy(rc => new { rc.ProviderKey, rc.CodeSystem })
+            .Select(g => new { g.Key.ProviderKey, g.Key.CodeSystem, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        var totalCounts = await dbContext.ReferenceCodes
+            .AsNoTracking()
+            .Where(rc => providerKeys.Contains(rc.ProviderKey) && codeSystems.Contains(rc.CodeSystem))
+            .GroupBy(rc => new { rc.ProviderKey, rc.CodeSystem })
+            .Select(g => new { g.Key.ProviderKey, g.Key.CodeSystem, Count = g.Count() })
+            .ToListAsync(cancellationToken);
+
+        var activeCountLookup = activeCounts.ToDictionary(x => (x.ProviderKey, x.CodeSystem), x => x.Count);
+        var totalCountLookup = totalCounts.ToDictionary(x => (x.ProviderKey, x.CodeSystem), x => x.Count);
+
+        // Precompute recent breaking change counts per last job id
+        var lastJobIds = lastJobLookup.Values.Select(j => j.Id).ToHashSet();
+        var breakingCounts = lastJobIds.Count == 0
+            ? new Dictionary<Guid, int>()
+            : await dbContext.Set<ReferenceCodeChangeLog>()
+                .AsNoTracking()
+                .Where(cl => lastJobIds.Contains(cl.SyncJobId) && cl.IsBreakingChange)
+                .GroupBy(cl => cl.SyncJobId)
+                .Select(g => new { SyncJobId = g.Key, Count = g.Count() })
+                .ToDictionaryAsync(x => x.SyncJobId, x => x.Count, cancellationToken);
 
         var results = new List<ReferenceFreshnessDto>();
         var now = DateTimeOffset.UtcNow;
 
-        foreach (var combo in combinations)
+        foreach (var (providerKey, codeSystem) in combinations)
         {
-            var lastJob = await dbContext.Set<ReferenceCodeSyncJob>()
-                .AsNoTracking()
-                .Where(j => j.ProviderKey == combo.ProviderKey
-                    && j.CodeSystem == combo.CodeSystem
-                    && (j.Status == ReferenceCodeSyncStatus.Completed || j.Status == ReferenceCodeSyncStatus.CompletedWithErrors))
-                .OrderByDescending(j => j.CompletedAt)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            var activeCount = await dbContext.ReferenceCodes
-                .CountAsync(rc => rc.ProviderKey == combo.ProviderKey
-                    && rc.CodeSystem == combo.CodeSystem
-                    && rc.IsActive, cancellationToken);
-
-            var totalCount = await dbContext.ReferenceCodes
-                .CountAsync(rc => rc.ProviderKey == combo.ProviderKey
-                    && rc.CodeSystem == combo.CodeSystem, cancellationToken);
-
-            var recentBreaking = lastJob is null ? 0 : await dbContext.Set<ReferenceCodeChangeLog>()
-                .CountAsync(cl => cl.SyncJobId == lastJob.Id && cl.IsBreakingChange, cancellationToken);
+            lastJobLookup.TryGetValue((providerKey, codeSystem), out var lastJob);
+            activeCountLookup.TryGetValue((providerKey, codeSystem), out var activeCount);
+            totalCountLookup.TryGetValue((providerKey, codeSystem), out var totalCount);
+            var recentBreaking = lastJob is null ? 0 : breakingCounts.GetValueOrDefault(lastJob.Id, 0);
 
             results.Add(new ReferenceFreshnessDto
             {
-                ProviderKey = combo.ProviderKey,
-                CodeSystem = combo.CodeSystem,
+                ProviderKey = providerKey,
+                CodeSystem = codeSystem,
                 LastSuccessfulSync = lastJob?.CompletedAt,
                 LastDataVersion = lastJob?.DataVersion,
                 ActiveCodeCount = activeCount,
@@ -199,14 +264,23 @@ public sealed class GetReferenceFreshnessHandler(PrescriptionDbContext dbContext
 }
 
 /// <summary>Handler for change log retrieval.</summary>
-public sealed class GetReferenceChangeLogsHandler(PrescriptionDbContext dbContext)
+public sealed class GetReferenceChangeLogsHandler(PrescriptionDbContext dbContext, IRequestContext requestContext)
     : IRequestHandler<GetReferenceChangeLogsQuery, IReadOnlyList<ReferenceChangeLogDto>>
 {
     public async Task<IReadOnlyList<ReferenceChangeLogDto>> Handle(
         GetReferenceChangeLogsQuery request,
         CancellationToken cancellationToken)
     {
-        var query = dbContext.Set<ReferenceCodeChangeLog>().AsNoTracking().AsQueryable();
+        var tenantId = requestContext.TenantId;
+
+        // Scope change log access to tenant-owned sync jobs
+        var tenantJobIds = dbContext.Set<ReferenceCodeSyncJob>()
+            .Where(j => j.TenantId == tenantId)
+            .Select(j => j.Id);
+
+        var query = dbContext.Set<ReferenceCodeChangeLog>().AsNoTracking()
+            .Where(cl => tenantJobIds.Contains(cl.SyncJobId))
+            .AsQueryable();
 
         if (request.SyncJobId.HasValue)
             query = query.Where(cl => cl.SyncJobId == request.SyncJobId);
@@ -217,7 +291,7 @@ public sealed class GetReferenceChangeLogsHandler(PrescriptionDbContext dbContex
         if (!string.IsNullOrEmpty(request.ProviderKey))
         {
             var jobIds = dbContext.Set<ReferenceCodeSyncJob>()
-                .Where(j => j.ProviderKey == request.ProviderKey)
+                .Where(j => j.TenantId == tenantId && j.ProviderKey == request.ProviderKey)
                 .Select(j => j.Id);
             query = query.Where(cl => jobIds.Contains(cl.SyncJobId));
         }
