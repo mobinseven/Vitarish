@@ -239,24 +239,28 @@ For disabled/manual providers; returns graceful "not available" for all operatio
 
 ## Phase 8: Observability & Operational Readiness
 
+**Status: Complete**
+
 **Goal:** Production supportability.
 
 ### 8.1 Dashboards
-- Provider-aware API transaction dashboard.
+- Provider-aware API transaction dashboard (`PrescriptionOperationalDashboard` component).
 - Rejection distribution by provider.
 - Latency monitoring by provider.
-- Token/session failure monitoring.
+- Token/session failure monitoring via Credentials tab.
 - Duplicate-risk incident tracker.
 
 ### 8.2 Alerting
-- Credential expiration warnings.
-- Reference data staleness alerts.
-- Provider outage detection.
-- Retry queue depth alerts.
+- Credential expiration warnings (7-day threshold).
+- Reference data staleness alerts (7-day threshold).
+- Provider outage detection (>80% failure rate in 1-hour window).
+- Retry queue depth alerts (Warning at 10, Critical at 50).
 
 ### 8.3 Operational runbook
-- Document incident modes and resolution paths.
+- Document incident modes and resolution paths (`docs/runbooks/prescription-operational-runbook.md`).
 - Support action procedures.
+- Monitoring checklists (daily, weekly, monthly).
+- Escalation matrix.
 
 ## Execution Order Summary
 
@@ -268,4 +272,4 @@ For disabled/manual providers; returns graceful "not available" for all operatio
 1. **Multi-Provider (Phase 5)** — prove architecture extensibility — **Complete**
 1. **Recovery (Phase 6)** — production failure handling — **Complete**
 1. **Reference Data (Phase 7)** — code management and sync — **Complete**
-1. **Observability & Operational Readiness (Phase 8)** - Production supportability
+1. **Observability & Operational Readiness (Phase 8)** - Production supportability — **Complete**
