@@ -1,54 +1,46 @@
 @inherits PrescriptionBase
 
-<MudPaper Class="paper-fallback-certificate pa-6" Elevation="0">
-    <Stack>
-        <MudText Typo="Typo.h5" Align="Align.Center">@Localizer["PaperFallbackCertificate"]</MudText>
-        <MudDivider Class="my-2" />
+<Stack>
+    <StackField Label="@Localizer["PaperFallbackCertificate"]" />
+</Stack>
 
-        <MudText Typo="Typo.subtitle1">@Localizer["PatientInformation"]</MudText>
-        @if (!string.IsNullOrEmpty(PatientNationalId))
-        {
-            <StackField Label="@MaskNationalId(PatientNationalId)" HelperText="@Localizer["NationalId"]" />
-        }
+<Stack>
+    <StackField Label="@Localizer["PatientInformation"]" />
+    @if (!string.IsNullOrEmpty(PatientNationalId))
+    {
+        <StackField Label="@MaskNationalId(PatientNationalId)" HelperText="@Localizer["NationalId"]" />
+    }
+</Stack>
 
-        <MudDivider Class="my-2" />
-        <MudText Typo="Typo.subtitle1">@Localizer["PrescriptionInformation"]</MudText>
-        <StackField Label="@PrescriptionId.ToString("N")" HelperText="@Localizer["PrescriptionId"]" />
-        <StackField Label="@FallbackDate.ToLocalTime().ToString("g")" HelperText="@Localizer["FallbackDate"]" />
+<Stack>
+    <StackField Label="@Localizer["PrescriptionInformation"]" />
+    <StackField Label="@PrescriptionId.ToString("N")" HelperText="@Localizer["PrescriptionId"]" />
+    <StackField Label="@FallbackDate.ToLocalTime().ToString("g")" HelperText="@Localizer["FallbackDate"]" />
 
-        @if (!string.IsNullOrEmpty(FallbackReason))
-        {
-            <StackField Label="@FallbackReason" HelperText="@Localizer["FallbackReason"]" />
-        }
-
-        @if (!string.IsNullOrEmpty(PaperTrackingNumber))
-        {
-            <StackField Label="@PaperTrackingNumber" HelperText="@Localizer["PaperTrackingNumber"]" />
-        }
-
-        @if (!string.IsNullOrEmpty(ProviderKey))
-        {
-            <StackField Label="@ProviderKey" HelperText="@Localizer["InsuranceProvider"]" />
-        }
-
-        <MudDivider Class="my-2" />
-        <MudText Typo="Typo.caption" Align="Align.Center">
-            @Localizer["PaperFallbackDisclaimer"]
-        </MudText>
-    </Stack>
-</MudPaper>
-
-<style>
-    .paper-fallback-certificate {
-        max-width: 800px;
-        margin: 0 auto;
-        border: 1px solid #ccc;
+    @if (!string.IsNullOrEmpty(FallbackReason))
+    {
+        <StackField Label="@FallbackReason" HelperText="@Localizer["FallbackReason"]" />
     }
 
+    @if (!string.IsNullOrEmpty(PaperTrackingNumber))
+    {
+        <StackField Label="@PaperTrackingNumber" HelperText="@Localizer["PaperTrackingNumber"]" />
+    }
+
+    @if (!string.IsNullOrEmpty(ProviderKey))
+    {
+        <StackField Label="@ProviderKey" HelperText="@Localizer["InsuranceProvider"]" />
+    }
+</Stack>
+
+<Stack>
+    <StackField Label="@Localizer["PaperFallbackDisclaimer"]" />
+</Stack>
+
+<style>
     @@media print {
-        .paper-fallback-certificate {
-            border: none;
-            box-shadow: none;
+        .mud-appbar, .mud-drawer {
+            display: none !important;
         }
     }
 </style>

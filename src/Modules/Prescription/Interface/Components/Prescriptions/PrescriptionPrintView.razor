@@ -1,17 +1,14 @@
 @inherits PrescriptionBase
 
-<MudPaper Class="prescription-print-view d-print-block d-none pa-6">
+<div class="prescription-print-view d-print-block d-none">
     <Stack>
-        <MudText Typo="Typo.h5">@Localizer["PrescriptionSummary"]</MudText>
-        <MudDivider />
-
+        <StackField Label="@Localizer["PrescriptionSummary"]" />
         <StackField Label="@Prescription.Id.ToString("N")" HelperText="@Localizer["PrescriptionId"]" />
         <StackField Label="@Prescription.CreatedAt.ToLocalTime().ToString("g")" HelperText="@Localizer["Date"]" />
 
         @if (!string.IsNullOrEmpty(Prescription.TrackingCode))
         {
-            <StackField Label="@Prescription.TrackingCode" HelperText="@Localizer["TrackingCode"]" />
-            <MudText Typo="Typo.caption" Class="mt-1">@Localizer["InsuranceTrackingCode"]</MudText>
+            <StackField Label="@Prescription.TrackingCode" HelperText="@Localizer["InsuranceTrackingCode"]" />
         }
 
         @if (!string.IsNullOrEmpty(Prescription.SelectedProviderKey))
@@ -20,26 +17,17 @@
         }
 
         <PrescriptionStatusBadge Status="@Prescription.Status" />
+    </Stack>
 
-        <MudDivider Class="my-2" />
-        <MudText Typo="Typo.h6">@Localizer["Items"]</MudText>
+    <Stack>
+        <StackField Label="@Localizer["Items"]" />
 
         @foreach (var item in Prescription.Items)
         {
-            <Stack>
-                <StackField Label="@item.DisplayName" HelperText="@item.Category.ToString()" />
-                @if (item.Quantity > 0)
-                {
-                    <MudText Typo="Typo.body2">@Localizer["Quantity"]: @item.Quantity</MudText>
-                }
-                @if (item.DurationDays.HasValue)
-                {
-                    <MudText Typo="Typo.body2">@Localizer["Duration"]: @item.DurationDays @Localizer["Days"]</MudText>
-                }
-            </Stack>
+            <StackField Label="@item.DisplayName" HelperText="@item.Category.ToString()" />
         }
     </Stack>
-</MudPaper>
+</div>
 
 <style>
     @@media print {

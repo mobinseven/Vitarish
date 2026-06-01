@@ -1,15 +1,12 @@
 @inherits PrescriptionBase
 
 <MudDialog>
-    <TitleContent>
-        @Localizer["RegisterProvider"]
-    </TitleContent>
     <DialogContent>
         <Stack>
-            <MudTextField T="string" Label="@Localizer["ProviderKey"]" @bind-Value="providerKey" Required
-                          HelperText="@Localizer["ProviderKeyHelp"]" />
-            <MudTextField T="string" Label="@Localizer["ProviderName"]" @bind-Value="providerName" Required />
-            <MudTextField T="string" Label="@Localizer["ProviderType"]" @bind-Value="providerType" />
+            <StackTextField @bind-Value="providerKey" Label="@Localizer["ProviderKey"]" Required
+                            HelperText="@Localizer["ProviderKeyHelp"]" />
+            <StackTextField @bind-Value="providerName" Label="@Localizer["ProviderName"]" Required />
+            <StackTextField @bind-Value="providerType" Label="@Localizer["ProviderType"]" />
             <StackSelect T="IntegrationMode" Label="@Localizer["IntegrationMode"]" @bind-Value="integrationMode">
                 <MudSelectItem T="IntegrationMode" Value="IntegrationMode.DirectApi">@Localizer["DirectApi"]</MudSelectItem>
                 <MudSelectItem T="IntegrationMode" Value="IntegrationMode.PortalApi">@Localizer["PortalApi"]</MudSelectItem>
@@ -17,14 +14,12 @@
                 <MudSelectItem T="IntegrationMode" Value="IntegrationMode.ManualFallback">@Localizer["ManualFallback"]</MudSelectItem>
             </StackSelect>
         </Stack>
+        <Stack>
+            <StackButton Color="Color.Primary" OnClick="RegisterAsync" Disabled="@(!IsValid)"
+                         Label="@Localizer["Register"]" EndIcon="fa-regular fa-check" />
+            <StackButton OnClick="Cancel" Label="@Localizer["Cancel"]" EndIcon="fa-regular fa-xmark" />
+        </Stack>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
-        <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="RegisterAsync"
-                   Disabled="@(!IsValid)">
-            @Localizer["Register"]
-        </MudButton>
-    </DialogActions>
 </MudDialog>
 
 @code {

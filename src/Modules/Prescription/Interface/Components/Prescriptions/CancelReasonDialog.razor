@@ -1,9 +1,6 @@
 @inherits PrescriptionBase
 
 <MudDialog>
-    <TitleContent>
-        @Localizer["CancelPrescription"]
-    </TitleContent>
     <DialogContent>
         <Stack>
             <StackField Label="@Localizer["ConfirmCancelPrescription"]" />
@@ -14,17 +11,16 @@
                 <MudSelectItem T="string" Value="@("DuplicatePrescription")">@Localizer["DuplicatePrescription"]</MudSelectItem>
                 <MudSelectItem T="string" Value="@("Other")">@Localizer["Other"]</MudSelectItem>
             </StackSelect>
-            <MudTextField T="string" Label="@Localizer["AdditionalNotes"]" @bind-Value="additionalNotes"
-                          Lines="3" MaxLength="500" />
+            <StackTextField Label="@Localizer["AdditionalNotes"]" @bind-Value="additionalNotes"
+                           Lines="3" MaxLength="500" />
+        </Stack>
+        <Stack>
+            <StackButton Color="Color.Error" OnClick="Submit"
+                         Disabled="@string.IsNullOrEmpty(selectedReason)"
+                         Label="@Localizer["ConfirmCancellation"]" />
+            <StackButton OnClick="Cancel" Label="@Localizer["Cancel"]" EndIcon="fa-regular fa-xmark" />
         </Stack>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
-        <MudButton Color="Color.Error" Variant="Variant.Filled" OnClick="Submit"
-                   Disabled="@string.IsNullOrEmpty(selectedReason)">
-            @Localizer["ConfirmCancellation"]
-        </MudButton>
-    </DialogActions>
 </MudDialog>
 
 @code {
