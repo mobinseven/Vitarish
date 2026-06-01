@@ -258,59 +258,14 @@ For disabled/manual providers; returns graceful "not available" for all operatio
 - Document incident modes and resolution paths.
 - Support action procedures.
 
-## Phase 9: Security, Certification & Compliance
-
-**Goal:** Meet provider certification requirements.
-
-### 9.1 Security hardening
-- TLS enforcement validation.
-- Credential isolation verification.
-- RBAC + object-level authorization tests.
-- Cross-provider access boundary tests.
-- Log masking verification.
-
-### 9.2 Certification evidence
-- Per-provider certification scenario execution.
-- Evidence package generation.
-- Sandbox/production credential separation verification.
-
-## Phase 10: Pilot & Phased Rollout
-
-**Goal:** Controlled production activation.
-
-### 10.1 Pilot
-- Feature-flagged activation for selected doctors/clinics.
-- One provider first; additional providers after stability proven.
-- Rejection analysis and UX tuning.
-
-### 10.2 Rollout
-- Progressive activation by clinic, provider, specialty.
-- Provider-level kill switches for emergency disablement.
-- Continuous monitoring and feedback loop.
-
-## Key Enhancements Over Original Plan
-
-| Concern | Original Approach | Enhanced Approach |
-|---------|-------------------|-------------------|
-| Journey maps | Mentioned but not prioritized | Must be created first; drive all interface decisions |
-| Audit | Module-owned submodule | Centralized platform pipeline — one schema, one query surface |
-| API logging | Module-owned | Centralized IExternalApiTransactionLogger — reusable cross-module |
-| Retry/outbox | Module-owned submodule | Centralized retry infrastructure — uniform retry behavior |
-| Error taxonomy | Per-adapter informal mapping | Platform-level canonical error taxonomy — consistent error UX |
-| Capability gating | Module-specific matrix | Generalized capability framework — reusable for any integration module |
-| Observability | Per-module dashboards | Centralized provider monitoring — one place to see all external integration health |
-| Debuggability | Implicit | Correlation IDs flow end-to-end; centralized transaction logs enable cross-module tracing |
-
 ## Execution Order Summary
 
-1. **Journey Maps (Pre-Phase)** — design what users see and do — Complete
-2. **Centralized Infrastructure (Phase 1)** — build once, use everywhere — Complete
-3. **Module Skeleton (Phase 2)** — domain + persistence foundation — Complete
-4. **Adapter Framework (Phase 3)** — multi-provider integration layer — Complete
-5. **First Provider Slice (Phase 4)** — end-to-end working flow — **Complete**
-6. **Multi-Provider (Phase 5)** — prove architecture extensibility — **Complete**
-7. **Recovery (Phase 6)** — production failure handling — **Complete**
-8. **Reference Data (Phase 7)** — code management and sync — **Complete**
-9. **Observability (Phase 8)** — monitoring and support tools
-10. **Security (Phase 9)** — certification readiness
-11. **Pilot/Rollout (Phase 10)** — controlled production activation
+1. **Journey Maps (Pre-Phase)** — design what users see and do — **Complete**
+1. **Centralized Infrastructure (Phase 1)** — build once, use everywhere — **Complete**
+1. **Module Skeleton (Phase 2)** — domain + persistence foundation — **Complete**
+1. **Adapter Framework (Phase 3)** — multi-provider integration layer — **Complete**
+1. **First Provider Slice (Phase 4)** — end-to-end working flow — **Complete**
+1. **Multi-Provider (Phase 5)** — prove architecture extensibility — **Complete**
+1. **Recovery (Phase 6)** — production failure handling — **Complete**
+1. **Reference Data (Phase 7)** — code management and sync — **Complete**
+1. **Observability & Operational Readiness (Phase 8)** - Production supportability
