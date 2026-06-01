@@ -53,7 +53,7 @@ internal sealed class TaminCredentialSessionStore : ITaminCredentialSessionStore
             var options = _taminOptions.CurrentValue;
             var httpClient = _httpClientFactory.CreateClient("TaminClient");
             var session = new TaminSession(httpClient, credential.TokenSecretRef,
-                new Uri(options.EffectiveBaseUrl), needToken: true, options.ApiKey);
+                new Uri(options.EffectiveBaseUrl), needToken: true, clientId: options.ApiKey);
             return TaminSessionResult.Success(session, credential.ProviderUsername);
         }
 

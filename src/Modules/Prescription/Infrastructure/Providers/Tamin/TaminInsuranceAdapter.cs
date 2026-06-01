@@ -108,6 +108,19 @@ public sealed class TaminInsuranceAdapter : IInsuranceProviderAdapter
         var prescription = await LoadPrescriptionWithItemsAsync(request.PrescriptionId, cancellationToken);
         if (prescription is null)
             return AdapterResult<SubmissionResponse>.Failure(ValidationError("نسخه مورد نظر یافت نشد.", $"Prescription {request.PrescriptionId} not found."));
+        var distinctCategories = prescription.Items
+            .Select(i => i.Category)
+            .Distinct()
+            .Take(2)
+            .ToList();
+        if (distinctCategories.Count > 1)
+            return AdapterResult<SubmissionResponse>.Failure(new IntegrationError
+            {
+                Category = ErrorCategory.BusinessRule,
+                UserMessage = "ارسال نسخه با اقلام ترکیبی در تامین اجتماعی پشتیبانی نمی‌شود.",
+                TechnicalDetail = $"Mixed prescription categories are not supported. Found categories: {string.Join(", ", distinctCategories)}.",
+                IsRetryable = false
+            });
 
         var sessionResult = await _sessionStore.GetOrRefreshSessionAsync(prescription.DoctorId, prescription.ClinicId, cancellationToken);
         if (!sessionResult.IsSuccess)
@@ -365,4 +378,3 @@ public sealed class TaminInsuranceAdapter : IInsuranceProviderAdapter
         IsRetryable = false
     };
 }
-

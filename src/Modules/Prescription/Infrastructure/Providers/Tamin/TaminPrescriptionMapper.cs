@@ -10,8 +10,6 @@ namespace Vitarish.Prescription.Infrastructure.Providers.Tamin;
 
 internal static class TaminPrescriptionMapper
 {
-    private static readonly JsonElement EmptyElement = JsonDocument.Parse("{}").RootElement;
-
     public static Task<JsonElement> RegisterPrescriptionAsync(
         TaminSession session,
         PrescriptionRecord prescription,
