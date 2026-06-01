@@ -5,6 +5,13 @@
 - **Trigger:** Doctor needs to cancel/delete an accepted or submitted prescription.
 - **Goal:** Execute policy-compliant cancellation with clear terminal state.
 
+## Current Implementation Alignment
+- **Status:** `partial`.
+- **Implemented now:** an accepted prescription exposes a cancel action in `PrescriptionDetail`; a confirmation dialog guards the action; `CancelPrescriptionCommand` calls the selected provider adapter and persists the resulting canonical status.
+- **Current artifacts:** `PrescriptionDetail`, `ConfirmDialog`, `PrescriptionTimeline`, `CancelPrescriptionCommand`, `IInsuranceProviderAdapter.CancelPrescriptionAsync`.
+- **Authoritative state:** cancellation updates the existing `PrescriptionRecord.Status`; cancelled prescriptions remain visible through history queries.
+- **Known gaps:** cancellation reason is not captured in the current dialog, provider-specific cancellation window messaging is not shown before the action, and cancel timeout handling is not separately surfaced to the doctor.
+
 ## 2. Entry Conditions
 1. Prescription exists in cancellable state (`AcceptedByProvider`, `Submitted`, or provider-specific cancel-eligible state).
 2. Doctor has cancellation permission.

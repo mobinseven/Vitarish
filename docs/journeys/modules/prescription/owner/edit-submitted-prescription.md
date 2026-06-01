@@ -5,6 +5,13 @@
 - **Trigger:** Doctor needs to amend a previously accepted/submitted prescription.
 - **Goal:** Apply allowed changes through official provider edit path with version tracking.
 
+## Current Implementation Alignment
+- **Status:** `partial`.
+- **Implemented now:** an accepted prescription exposes an edit action in `PrescriptionDetail`; `EditPrescriptionCommand` calls the provider adapter and updates canonical status/tracking.
+- **Current artifacts:** `PrescriptionDetail`, `PrescriptionSubmitPanel`, `PrescriptionTimeline`, `EditPrescriptionCommand`, `IInsuranceProviderAdapter.EditPrescriptionAsync`.
+- **Authoritative state:** the original `PrescriptionRecord` and its `VersionNumber` remain the local source of truth; provider edit response maps back to `PrescriptionStatus`.
+- **Known gaps:** there is no dedicated edit workspace for changing items after acceptance, no diff/confirmation step, no edit reason capture, and no separate route for edit mode.
+
 ## 2. Entry Conditions
 1. Prescription exists in editable state (`AcceptedByProvider` or provider-specific edit-eligible state).
 2. Doctor has edit permission for this prescription.

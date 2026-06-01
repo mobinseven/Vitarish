@@ -5,6 +5,13 @@
 - **Trigger:** Doctor opens prescription workspace from an active patient encounter.
 - **Goal:** Create, validate, and submit an e-prescription; receive insurance tracking confirmation.
 
+## Current Implementation Alignment
+- **Status:** `partial`.
+- **Implemented now:** owner create/detail routes create a draft, show payer and eligibility panels, let the doctor add/remove reference-code-backed items, validate the draft, submit through the selected provider adapter, and display canonical status/tracking feedback.
+- **Current artifacts:** `OwnerPrescriptionCreatePage`, `OwnerPrescriptionDetailPage`, `PrescriptionDetail`, `EligibilityPanel`, `PayerSelectorPanel`, `PrescriptionItemsGrid`, `AddPrescriptionItemDialog`, `PrescriptionSubmitPanel`, `PrescriptionTimeline`, `CreateDraftCommand`, `AddItemCommand`, `RemoveItemCommand`, `ValidateDraftCommand`, `SubmitPrescriptionCommand`, `GetEligibilityQuery`, `SearchReferenceCodesQuery`.
+- **Authoritative state:** `PrescriptionStatus` on `PrescriptionRecord`; provider-native statuses are mapped by adapter/handler code.
+- **Known gaps:** encounter/mobile prefill is not fully represented, eligibility is displayed but not persisted as a mandatory submission gate, submit confirmation/print summary are not complete user journeys, and provider capability warnings do not yet disable every unsupported authoring option.
+
 ## 2. Entry Conditions
 1. Doctor is authenticated and has prescription submission role for the selected clinic.
 2. Doctor has valid provider credentials mapped for at least one active insurance provider.

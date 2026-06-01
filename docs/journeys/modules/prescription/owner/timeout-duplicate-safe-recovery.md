@@ -5,6 +5,13 @@
 - **Trigger:** Prescription submission call times out after outbound request was sent.
 - **Goal:** Resolve final state without creating duplicate prescriptions.
 
+## Current Implementation Alignment
+- **Status:** `partial`.
+- **Implemented now:** submission timeout/failure classification moves prescriptions to `SyncPending`, `ProviderUnavailable`, or `DuplicateRisk`; `PrescriptionOutboxService` stores retry work; `PrescriptionRetryProcessor` runs fetch-before-retry and escalates stale pending records; support commands can refresh provider status or resolve duplicate risk.
+- **Current artifacts:** `SubmitPrescriptionCommand`, `PrescriptionRetryProcessor`, `PrescriptionOutboxService`, `RefreshProviderStatusCommand`, `ResolveDuplicateRiskCommand`, `GetReconciliationQueueQuery`, `GetOutboxStatusQuery`, `ReconciliationDesk`, `PrescriptionOperationalDashboard`.
+- **Authoritative state:** `PrescriptionStatus` owns local lifecycle; outbox records own retry scheduling only.
+- **Known gaps:** request hash is not exposed as a first-class support field in the current UI, doctor-facing pending notifications are limited to status display, and the reconciliation desk route/navigation is not confirmed.
+
 ## 2. Entry Conditions
 1. Prescription was in `Submitting` state.
 2. Outbound API call timed out (request may or may not have reached provider).
