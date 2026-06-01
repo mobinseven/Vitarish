@@ -1,5 +1,4 @@
 using Vitarish.Modules.Base.Platform.Errors;
-using Vitarish.TaminInsurance.Client;
 
 namespace Vitarish.Prescription.Infrastructure.Providers.Tamin;
 
@@ -9,10 +8,10 @@ public interface ITaminCredentialSessionStore
     Task<TaminSessionResult> GetOrRefreshSessionAsync(Guid doctorId, Guid clinicId, CancellationToken cancellationToken = default);
 }
 
-public sealed record TaminSessionResult(TaminSession? Session, IntegrationError? Error)
+public sealed record TaminSessionResult(Vorn.Tamin.TaminSession? Session, IntegrationError? Error, string? DoctorTaminId = null)
 {
     public bool IsSuccess => Session is not null && Error is null;
 
-    public static TaminSessionResult Success(TaminSession session) => new(session, null);
+    public static TaminSessionResult Success(Vorn.Tamin.TaminSession session, string? doctorTaminId = null) => new(session, null, doctorTaminId);
     public static TaminSessionResult Failure(IntegrationError error) => new(null, error);
 }

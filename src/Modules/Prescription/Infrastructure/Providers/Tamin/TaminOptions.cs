@@ -21,4 +21,9 @@ public sealed class TaminOptions
 
     /// <summary>Sandbox base URL (if different from production).</summary>
     public string? SandboxBaseUrl { get; set; }
+
+    /// <summary>Resolves the effective base URL based on sandbox mode.</summary>
+    public string EffectiveBaseUrl => UseSandbox && !string.IsNullOrWhiteSpace(SandboxBaseUrl)
+        ? SandboxBaseUrl
+        : BaseUrl;
 }

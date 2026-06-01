@@ -12,7 +12,6 @@ using Vitarish.Prescription.Infrastructure.Providers.Ditas;
 using Vitarish.Prescription.Infrastructure.Providers.Salamat;
 using Vitarish.Prescription.Infrastructure.Providers.Tamin;
 using Vitarish.Prescription.Infrastructure.Services;
-using Vitarish.TaminInsurance.Client;
 
 namespace Vitarish.Prescription.Infrastructure.DependencyInjection;
 
@@ -53,18 +52,7 @@ public static class DependencyInjectionExtensions
     private static void RegisterTaminProvider(IServiceCollection services, IConfiguration configuration)
     {
         _ = services.Configure<TaminOptions>(configuration.GetSection(TaminOptions.SectionName));
-        _ = services.AddTransient(sp =>
-        {
-            var options = sp.GetRequiredService<IOptionsMonitor<TaminOptions>>().CurrentValue;
-            return new TaminInsuranceClientOptions
-            {
-                BaseUrl = options.BaseUrl,
-                ApiKey = options.ApiKey,
-                UseSandbox = options.UseSandbox,
-                SandboxBaseUrl = options.SandboxBaseUrl
-            };
-        });
-        _ = services.AddHttpClient<ITaminInsuranceClient, TaminInsuranceClient>();
+        _ = services.AddHttpClient("TaminClient");
         _ = services.AddScoped<ITaminCredentialSessionStore, TaminCredentialSessionStore>();
         _ = services.AddScoped<TaminInsuranceAdapter>();
         _ = services.AddSingleton<TaminErrorMapper>();
