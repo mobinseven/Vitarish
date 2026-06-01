@@ -43,6 +43,10 @@ public static class DependencyInjectionExtensions
         // Salamat provider
         RegisterSalamatProvider(services, configuration);
 
+        // Reference data sync services
+        _ = services.AddScoped<ReferenceDataSyncService>();
+        _ = services.AddScoped<ReferenceCodeCrosswalkService>();
+
         return services;
     }
 

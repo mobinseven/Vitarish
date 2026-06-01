@@ -219,6 +219,8 @@ For disabled/manual providers; returns graceful "not available" for all operatio
 
 ## Phase 7: Reference Data & Code Crosswalk
 
+**Status: Complete**
+
 **Goal:** Reliable, provider-scoped reference data management.
 
 ### 7.1 Sync jobs per provider
@@ -308,7 +310,7 @@ For disabled/manual providers; returns graceful "not available" for all operatio
 5. **First Provider Slice (Phase 4)** — end-to-end working flow — **Complete**
 6. **Multi-Provider (Phase 5)** — prove architecture extensibility — **Complete**
 7. **Recovery (Phase 6)** — production failure handling — **Complete**
-8. **Reference Data (Phase 7)** — code management and sync
+8. **Reference Data (Phase 7)** — code management and sync — **Complete**
 9. **Observability (Phase 8)** — monitoring and support tools
 10. **Security (Phase 9)** — certification readiness
 11. **Pilot/Rollout (Phase 10)** — controlled production activation

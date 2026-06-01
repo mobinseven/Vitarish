@@ -21,6 +21,9 @@ public sealed class PrescriptionDbContext : DbContext
     public DbSet<ReferenceCode> ReferenceCodes => Set<ReferenceCode>();
     public DbSet<ReferenceCodeCrosswalk> ReferenceCodeCrosswalks => Set<ReferenceCodeCrosswalk>();
     public DbSet<PrescriptionOutboxRecord> OutboxRecords => Set<PrescriptionOutboxRecord>();
+    public DbSet<ReferenceCodeSyncJob> ReferenceCodeSyncJobs => Set<ReferenceCodeSyncJob>();
+    public DbSet<ReferenceCodeSyncError> ReferenceCodeSyncErrors => Set<ReferenceCodeSyncError>();
+    public DbSet<ReferenceCodeChangeLog> ReferenceCodeChangeLogs => Set<ReferenceCodeChangeLog>();
 
     public PrescriptionDbContext(
         DbContextOptions<PrescriptionDbContext> options,
@@ -49,6 +52,9 @@ public sealed class PrescriptionDbContext : DbContext
         ConfigureReferenceCode(modelBuilder);
         ConfigureReferenceCodeCrosswalk(modelBuilder);
         ConfigureOutboxRecord(modelBuilder);
+        ConfigureReferenceCodeSyncJob(modelBuilder);
+        ConfigureReferenceCodeSyncError(modelBuilder);
+        ConfigureReferenceCodeChangeLog(modelBuilder);
     }
 
     private static void ConfigureInsuranceProvider(ModelBuilder modelBuilder)
@@ -230,6 +236,52 @@ public sealed class PrescriptionDbContext : DbContext
                 .HasDatabaseName("IX_OutboxRecord_Status_NextRetry");
             _ = entity.HasIndex(e => e.PrescriptionId)
                 .HasDatabaseName("IX_OutboxRecord_PrescriptionId");
+        });
+    }
+
+    private static void ConfigureReferenceCodeSyncJob(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ReferenceCodeSyncJob>(entity =>
+        {
+            _ = entity.Property(e => e.ProviderKey).HasMaxLength(64);
+            _ = entity.Property(e => e.CodeSystem).HasMaxLength(128);
+            _ = entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(32);
+            _ = entity.Property(e => e.Priority).HasConversion<string>().HasMaxLength(16);
+            _ = entity.Property(e => e.DataVersion).HasMaxLength(256);
+            _ = entity.Property(e => e.PreviousDataVersion).HasMaxLength(256);
+            _ = entity.Property(e => e.LastError).HasMaxLength(4096);
+            _ = entity.Property(e => e.TriggeredBy).HasMaxLength(256);
+            _ = entity.Property(e => e.TenantId).HasMaxLength(128);
+            _ = entity.HasIndex(e => new { e.ProviderKey, e.CodeSystem, e.Status })
+                .HasDatabaseName("IX_SyncJob_Provider_System_Status");
+            _ = entity.HasIndex(e => new { e.ProviderKey, e.CodeSystem, e.CompletedAt })
+                .HasDatabaseName("IX_SyncJob_Provider_System_CompletedAt");
+        });
+    }
+
+    private static void ConfigureReferenceCodeSyncError(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ReferenceCodeSyncError>(entity =>
+        {
+            _ = entity.Property(e => e.Code).HasMaxLength(128);
+            _ = entity.Property(e => e.ErrorMessage).HasMaxLength(2048);
+            _ = entity.HasIndex(e => e.SyncJobId)
+                .HasDatabaseName("IX_SyncError_SyncJobId");
+        });
+    }
+
+    private static void ConfigureReferenceCodeChangeLog(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ReferenceCodeChangeLog>(entity =>
+        {
+            _ = entity.Property(e => e.ChangeType).HasConversion<string>().HasMaxLength(32);
+            _ = entity.Property(e => e.Code).HasMaxLength(128);
+            _ = entity.Property(e => e.OldValue).HasMaxLength(2048);
+            _ = entity.Property(e => e.NewValue).HasMaxLength(2048);
+            _ = entity.HasIndex(e => e.SyncJobId)
+                .HasDatabaseName("IX_ChangeLog_SyncJobId");
+            _ = entity.HasIndex(e => new { e.IsBreakingChange, e.CreatedAt })
+                .HasDatabaseName("IX_ChangeLog_Breaking_CreatedAt");
         });
     }
 }
