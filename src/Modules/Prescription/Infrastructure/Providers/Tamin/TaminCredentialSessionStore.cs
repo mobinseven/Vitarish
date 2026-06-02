@@ -33,7 +33,7 @@ internal sealed class TaminCredentialSessionStore : ITaminCredentialSessionStore
 
     public async Task<TaminSessionResult> AuthenticateAsync(Guid doctorId, Guid clinicId, CancellationToken cancellationToken = default)
     {
-        var credential = await FindCredentialAsync(doctorId, cancellationToken);
+        var credential = await FindCredentialAsync(doctorId, clinicId, cancellationToken);
         if (credential is null)
             return TaminSessionResult.Failure(MissingCredentialError(doctorId));
 
@@ -42,7 +42,7 @@ internal sealed class TaminCredentialSessionStore : ITaminCredentialSessionStore
 
     public async Task<TaminSessionResult> GetOrRefreshSessionAsync(Guid doctorId, Guid clinicId, CancellationToken cancellationToken = default)
     {
-        var credential = await FindCredentialAsync(doctorId, cancellationToken);
+        var credential = await FindCredentialAsync(doctorId, clinicId, cancellationToken);
         if (credential is null)
             return TaminSessionResult.Failure(MissingCredentialError(doctorId));
 
@@ -121,10 +121,12 @@ internal sealed class TaminCredentialSessionStore : ITaminCredentialSessionStore
         }
     }
 
-    private async Task<DoctorProviderCredential?> FindCredentialAsync(Guid doctorId, CancellationToken cancellationToken)
+    private async Task<DoctorProviderCredential?> FindCredentialAsync(Guid doctorId, Guid clinicId, CancellationToken cancellationToken)
     {
         return await _dbContext.DoctorProviderCredentials
-            .Where(c => c.DoctorId == doctorId && c.ProviderKey == TaminInsuranceAdapter.ProviderKeyConst)
+            .Where(c => c.DoctorId == doctorId &&
+                c.ProviderKey == TaminInsuranceAdapter.ProviderKeyConst &&
+                c.ClinicId == clinicId)
             .FirstOrDefaultAsync(cancellationToken);
     }
 

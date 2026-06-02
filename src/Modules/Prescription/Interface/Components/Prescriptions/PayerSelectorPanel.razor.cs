@@ -34,8 +34,8 @@ public partial class PayerSelectorPanel : PrescriptionBase
             }
         }
 
-        // Auto-select if only one provider and none selected
-        if (string.IsNullOrEmpty(selectedProviderKey) && providers.Count == 1)
+        // Auto-select if only one provider and none selected, and no previous error
+        if (string.IsNullOrEmpty(selectedProviderKey) && providers.Count == 1 && string.IsNullOrEmpty(errorMessage))
         {
             await ApplyProviderSelectionAsync(providers[0].ProviderKey);
         }

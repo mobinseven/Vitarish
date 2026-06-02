@@ -184,6 +184,7 @@ public sealed class GetCredentialSetupGridHandler(
         if (!string.IsNullOrEmpty(request.ProviderKey))
             query = query.Where(c => c.ProviderKey == request.ProviderKey);
 
+        var now = DateTimeOffset.UtcNow;
         var credentials = await query
             .Select(c => new CredentialSetupDto
             {
@@ -197,10 +198,10 @@ public sealed class GetCredentialSetupGridHandler(
                 Status = c.Status,
                 ExpiresAt = c.ExpiresAt,
                 DaysUntilExpiry = c.ExpiresAt.HasValue
-                    ? (int)(c.ExpiresAt.Value - DateTimeOffset.UtcNow).TotalDays
+                    ? (int)(c.ExpiresAt.Value - now).TotalDays
                     : 999,
                 IsExpiringSoon = c.ExpiresAt.HasValue
-                    && (c.ExpiresAt.Value - DateTimeOffset.UtcNow).TotalDays <= 14,
+                    && (c.ExpiresAt.Value - now).TotalDays <= 14,
                 LastTestedAt = c.UpdatedAt
             })
             .OrderBy(x => x.ProviderKey)
