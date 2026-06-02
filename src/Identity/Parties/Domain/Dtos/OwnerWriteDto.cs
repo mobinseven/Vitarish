@@ -7,7 +7,7 @@ namespace Vitarish.Parties.Domain.Dtos;
 /// </summary>
 public record OwnerWriteDto : EntityWriteDto
 {
-    public required string Name { get; set; }
+    public string? Name { get; set; }
     public string? LogoUrl { get; set; }
     public string? Description { get; set; }
 }

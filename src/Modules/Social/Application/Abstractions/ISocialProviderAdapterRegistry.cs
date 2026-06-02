@@ -1,3 +1,5 @@
+using Vitarish.Social.Domain.Enums;
+
 namespace Vitarish.Social.Application.Abstractions;
 
 public interface ISocialProviderAdapterRegistry

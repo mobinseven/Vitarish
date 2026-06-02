@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
 using Vitarish.Parties.Domain.Enums;
+using Vitarish.Parties.Infrastructure.Services;
 
 namespace Parties.Tests;
 /// <summary>

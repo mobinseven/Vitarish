@@ -1,3 +1,5 @@
+using Vitarish.Social.Domain.Dto;
+
 namespace Vitarish.Social.Application.Abstractions;
 
 public interface ITokenVault

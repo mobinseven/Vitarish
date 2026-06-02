@@ -82,7 +82,7 @@ public sealed class NavService : INavService, IDisposable
             return;
         }
         string[] subs = CurrentLocation.Split('/');
-        breadcrumbs = [new Breadcrumb { Path = "/", Text = localizer["Dashboard"] }];
+        breadcrumbs = [new Breadcrumb { Id="/", Path = "/", Text = localizer["Dashboard"] }];
         string path = string.Empty;
         foreach (string sub in subs)
         {

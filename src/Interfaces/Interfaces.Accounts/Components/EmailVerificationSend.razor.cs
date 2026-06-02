@@ -10,7 +10,7 @@ public partial class EmailVerificationSend : IdentityCommonBase
     private async void ValidSubmit()
     {
         await InvokeAsync(StateHasChanged);
-        await OnValidSubmit.InvokeAsync(new SendEmailCodeModel { Email = Email });
+        await OnValidSubmit.InvokeAsync(new SendEmailCodeModel {  Email = Email });
     }
 
 }
