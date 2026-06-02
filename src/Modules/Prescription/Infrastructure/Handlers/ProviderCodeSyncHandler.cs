@@ -64,7 +64,7 @@ public sealed class SyncReferenceDataHandler(
         var importResult = await mediator.Send(syncCommand, cancellationToken);
 
         if (!importResult.IsSuccess)
-            return SyncReferenceDataResult.Failure(importResult.Errors.FirstOrDefault()?.Message ?? "Import failed");
+            return SyncReferenceDataResult.Failure(importResult.Errors?.FirstOrDefault()?.Message ?? "Import failed");
 
         return SyncReferenceDataResult.Success(importResult.Value!.ImportBatchId, importResult.Value.RecordsProcessed);
     }

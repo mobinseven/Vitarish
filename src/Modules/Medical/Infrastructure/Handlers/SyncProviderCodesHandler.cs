@@ -35,33 +35,56 @@ internal sealed class SyncProviderCodesHandler(MedicalDbContext dbContext)
                 _ = await dbContext.SaveChangesAsync(cancellationToken);
             }
 
-            // Idempotency: skip if we already have a completed import for this version
-            bool alreadyImported = await dbContext.ImportBatches
-                .AnyAsync(
+            // Idempotency: handle any existing import for this logical version before inserting a new batch.
+            ImportBatch? existingBatch = await dbContext.ImportBatches
+                .FirstOrDefaultAsync(
                     b => b.SourceType == ImportSourceType.InsuranceProvider
-                        && b.SourceVersion == request.DataVersion
-                        && b.Status == ImportBatchStatus.Imported,
+                        && b.SourceVersion == request.DataVersion,
                     cancellationToken);
 
-            if (alreadyImported)
+            if (existingBatch is not null)
             {
-                ImportBatch? existing = await dbContext.ImportBatches
-                    .AsNoTracking()
-                    .FirstAsync(
-                        b => b.SourceType == ImportSourceType.InsuranceProvider
-                            && b.SourceVersion == request.DataVersion,
-                        cancellationToken);
+                if (existingBatch.Status == ImportBatchStatus.Imported)
+                {
+                    await transaction.CommitAsync(cancellationToken);
+                    return EntityResult<ImportResult>.Success(
+                        new ImportResult(
+                            existingBatch.Id,
+                            existingBatch.Status,
+                            request.Codes.Count,
+                            0,
+                            request.Codes.Count,
+                            ["Version already imported — skipped."],
+                            []));
+                }
 
-                await transaction.CommitAsync(cancellationToken);
-                return EntityResult<ImportResult>.Success(
-                    new ImportResult(
-                        existing.Id,
-                        existing.Status,
-                        request.Codes.Count,
-                        0,
-                        request.Codes.Count,
-                        ["Version already imported — skipped."],
-                        []));
+                List<CodeSystemRelease> incompleteReleases = await dbContext.CodeSystemReleases
+                    .Where(r => r.ImportBatchId == existingBatch.Id)
+                    .ToListAsync(cancellationToken);
+
+                List<Guid> incompleteReleaseIds = [.. incompleteReleases.Select(r => r.Id)];
+                List<MedicalCode> incompleteCodes = await dbContext.MedicalCodes
+                    .Where(c => c.ImportBatchId == existingBatch.Id
+                        || incompleteReleaseIds.Contains(c.CodeSystemReleaseId))
+                    .ToListAsync(cancellationToken);
+
+                foreach (MedicalCode code in incompleteCodes)
+                {
+                    code.HardDelete();
+                }
+
+                dbContext.MedicalCodes.RemoveRange(incompleteCodes);
+
+                foreach (CodeSystemRelease incompleteRelease in incompleteReleases)
+                {
+                    incompleteRelease.HardDelete();
+                }
+
+                dbContext.CodeSystemReleases.RemoveRange(incompleteReleases);
+
+                existingBatch.HardDelete();
+                dbContext.ImportBatches.Remove(existingBatch);
+                _ = await dbContext.SaveChangesAsync(cancellationToken);
             }
 
             // Create import batch
