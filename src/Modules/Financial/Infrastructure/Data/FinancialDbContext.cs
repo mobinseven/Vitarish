@@ -1,14 +1,8 @@
 namespace Vitarish.Financial.Infrastructure.Data;
 
-public sealed class FinancialDbContext : DbContext
+public sealed class FinancialDbContext(DbContextOptions<FinancialDbContext> options, IEnumerable<IInterceptor> interceptors) : DbContext(options)
 {
-    private readonly IEnumerable<IInterceptor> _interceptors;
-
-    public FinancialDbContext(DbContextOptions<FinancialDbContext> options, IEnumerable<IInterceptor> interceptors)
-        : base(options)
-    {
-        _interceptors = interceptors;
-    }
+    private readonly IEnumerable<IInterceptor> _interceptors = interceptors;
 
     public DbSet<LedgerAccount> LedgerAccounts => Set<LedgerAccount>();
 

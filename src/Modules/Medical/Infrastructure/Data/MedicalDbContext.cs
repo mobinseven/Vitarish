@@ -1,8 +1,10 @@
 namespace Vitarish.Medical.Infrastructure.Data;
 
-public sealed class MedicalDbContext : DbContext
+public sealed class MedicalDbContext(
+    DbContextOptions<MedicalDbContext> options,
+    IEnumerable<IInterceptor> interceptors) : DbContext(options)
 {
-    private readonly IEnumerable<IInterceptor> _interceptors;
+    private readonly IEnumerable<IInterceptor> _interceptors = interceptors;
 
     public DbSet<CodeSystem> CodeSystems => Set<CodeSystem>();
     public DbSet<CodeSystemRelease> CodeSystemReleases => Set<CodeSystemRelease>();
@@ -15,13 +17,6 @@ public sealed class MedicalDbContext : DbContext
     public DbSet<MedicalService> MedicalServices => Set<MedicalService>();
     public DbSet<ServiceCode> ServiceCodes => Set<ServiceCode>();
     public DbSet<ServiceValuation> ServiceValuations => Set<ServiceValuation>();
-
-    public MedicalDbContext(
-        DbContextOptions<MedicalDbContext> options,
-        IEnumerable<IInterceptor> interceptors) : base(options)
-    {
-        _interceptors = interceptors;
-    }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => _ = optionsBuilder.AddInterceptors(_interceptors);

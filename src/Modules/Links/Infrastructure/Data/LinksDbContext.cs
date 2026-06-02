@@ -8,16 +8,11 @@ namespace Vitarish.Links.Infrastructure.Data;
 /// a (Domain, Slug) pair uniquely identifies a link across all tenants.
 /// The TenantId column records which tenant owns the link.
 /// </summary>
-public sealed class LinksDbContext : DbContext
+public sealed class LinksDbContext(
+    DbContextOptions<LinksDbContext> options,
+    IEnumerable<IInterceptor> interceptors) : DbContext(options)
 {
-    private readonly IEnumerable<IInterceptor> _interceptors;
-
-    public LinksDbContext(
-        DbContextOptions<LinksDbContext> options,
-        IEnumerable<IInterceptor> interceptors) : base(options)
-    {
-        _interceptors = interceptors;
-    }
+    private readonly IEnumerable<IInterceptor> _interceptors = interceptors;
 
     public DbSet<Link> Links => Set<Link>();
 

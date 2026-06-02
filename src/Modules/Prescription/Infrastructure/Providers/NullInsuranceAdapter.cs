@@ -6,14 +6,9 @@ namespace Vitarish.Prescription.Infrastructure.Providers;
 /// Adapter for disabled or manual-only providers. Returns graceful "not available"
 /// for all operations without throwing exceptions.
 /// </summary>
-public sealed class NullInsuranceAdapter : IInsuranceProviderAdapter
+public sealed class NullInsuranceAdapter(string providerKey) : IInsuranceProviderAdapter
 {
-    private readonly string _providerKey;
-
-    public NullInsuranceAdapter(string providerKey)
-    {
-        _providerKey = providerKey;
-    }
+    private readonly string _providerKey = providerKey;
 
     public string ProviderKey => _providerKey;
 

@@ -10,13 +10,16 @@ namespace Vitarish.Prescription.Infrastructure.Providers.Ditas;
 /// DITAS module adapter. Keeps provider HTTP/API-key details in the DITAS client and
 /// translates between canonical Prescription contracts and provider DTOs.
 /// </summary>
-public sealed class DitasInsuranceAdapter : IInsuranceProviderAdapter
+public sealed class DitasInsuranceAdapter(
+    IDitasInsuranceClient client,
+    DitasErrorMapper errorMapper,
+    ILogger<DitasInsuranceAdapter> logger) : IInsuranceProviderAdapter
 {
     public const string ProviderKeyConst = "DITAS";
 
-    private readonly IDitasInsuranceClient _client;
-    private readonly DitasErrorMapper _errorMapper;
-    private readonly ILogger<DitasInsuranceAdapter> _logger;
+    private readonly IDitasInsuranceClient _client = client;
+    private readonly DitasErrorMapper _errorMapper = errorMapper;
+    private readonly ILogger<DitasInsuranceAdapter> _logger = logger;
 
     private static readonly HashSet<InsuranceProviderCapabilityType> SupportedCapabilities =
     [
@@ -28,17 +31,6 @@ public sealed class DitasInsuranceAdapter : IInsuranceProviderAdapter
         InsuranceProviderCapabilityType.SupportsCancelPrescription,
         InsuranceProviderCapabilityType.SupportsProviderSession,
     ];
-
-    public DitasInsuranceAdapter(
-        IDitasInsuranceClient client,
-        DitasErrorMapper errorMapper,
-        ILogger<DitasInsuranceAdapter> logger)
-    {
-        _client = client;
-        _errorMapper = errorMapper;
-        _logger = logger;
-    }
-
 
     public string ProviderKey => ProviderKeyConst;
 

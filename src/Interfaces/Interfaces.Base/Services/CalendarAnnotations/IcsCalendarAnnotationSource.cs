@@ -2,18 +2,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Vitarish.Interfaces.Base.Services.CalendarAnnotations;
 
-internal sealed class IcsCalendarAnnotationSource : ICalendarAnnotationSource
+internal sealed class IcsCalendarAnnotationSource(
+    IHttpClientFactory httpClientFactory,
+    ILogger<IcsCalendarAnnotationSource>? logger = null) : ICalendarAnnotationSource
 {
-    private readonly IHttpClientFactory httpClientFactory;
-    private readonly ILogger<IcsCalendarAnnotationSource>? logger;
-
-    public IcsCalendarAnnotationSource(
-        IHttpClientFactory httpClientFactory,
-        ILogger<IcsCalendarAnnotationSource>? logger = null)
-    {
-        this.httpClientFactory = httpClientFactory;
-        this.logger = logger;
-    }
+    private readonly IHttpClientFactory httpClientFactory = httpClientFactory;
+    private readonly ILogger<IcsCalendarAnnotationSource>? logger = logger;
 
     public async Task<CalendarAnnotationSourceResult> GetAnnotationsAsync(
         CalendarAnnotationSourceRequest request,

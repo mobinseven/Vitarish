@@ -5,9 +5,11 @@ using Vitarish.Prescription.Domain.Enums;
 
 namespace Vitarish.Prescription.Infrastructure.Data;
 
-public sealed class PrescriptionDbContext : DbContext
+public sealed class PrescriptionDbContext(
+    DbContextOptions<PrescriptionDbContext> options,
+    IEnumerable<IInterceptor> interceptors) : DbContext(options)
 {
-    private readonly IEnumerable<IInterceptor> _interceptors;
+    private readonly IEnumerable<IInterceptor> _interceptors = interceptors;
 
     public DbSet<DoctorProviderCredential> DoctorProviderCredentials => Set<DoctorProviderCredential>();
     public DbSet<PrescriptionRecord> Prescriptions => Set<PrescriptionRecord>();
@@ -15,13 +17,6 @@ public sealed class PrescriptionDbContext : DbContext
     public DbSet<PrescriptionProviderSubmission> PrescriptionSubmissions => Set<PrescriptionProviderSubmission>();
     public DbSet<PrescriptionOutboxRecord> OutboxRecords => Set<PrescriptionOutboxRecord>();
     public DbSet<PrescriptionEscalation> Escalations => Set<PrescriptionEscalation>();
-
-    public PrescriptionDbContext(
-        DbContextOptions<PrescriptionDbContext> options,
-        IEnumerable<IInterceptor> interceptors) : base(options)
-    {
-        _interceptors = interceptors;
-    }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => _ = optionsBuilder.AddInterceptors(_interceptors);

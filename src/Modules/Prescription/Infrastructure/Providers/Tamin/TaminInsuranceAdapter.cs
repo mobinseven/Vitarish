@@ -13,16 +13,22 @@ namespace Vitarish.Prescription.Infrastructure.Providers.Tamin;
 /// Tamin module adapter. Translates canonical Prescription requests to provider-client requests
 /// and coordinates Prescription-owned persistence/session services.
 /// </summary>
-public sealed class TaminInsuranceAdapter : IInsuranceProviderAdapter
+public sealed class TaminInsuranceAdapter(
+    ITaminCredentialSessionStore sessionStore,
+    IHttpClientFactory httpClientFactory,
+    IOptionsMonitor<TaminOptions> taminOptions,
+    PrescriptionDbContext dbContext,
+    TaminErrorMapper errorMapper,
+    ILogger<TaminInsuranceAdapter> logger) : IInsuranceProviderAdapter
 {
     public const string ProviderKeyConst = "TAMIN";
 
-    private readonly ITaminCredentialSessionStore _sessionStore;
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IOptionsMonitor<TaminOptions> _taminOptions;
-    private readonly PrescriptionDbContext _dbContext;
-    private readonly TaminErrorMapper _errorMapper;
-    private readonly ILogger<TaminInsuranceAdapter> _logger;
+    private readonly ITaminCredentialSessionStore _sessionStore = sessionStore;
+    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
+    private readonly IOptionsMonitor<TaminOptions> _taminOptions = taminOptions;
+    private readonly PrescriptionDbContext _dbContext = dbContext;
+    private readonly TaminErrorMapper _errorMapper = errorMapper;
+    private readonly ILogger<TaminInsuranceAdapter> _logger = logger;
 
     private static readonly HashSet<InsuranceProviderCapabilityType> SupportedCapabilities =
     [
@@ -38,22 +44,6 @@ public sealed class TaminInsuranceAdapter : IInsuranceProviderAdapter
         InsuranceProviderCapabilityType.SupportsReferenceServiceSync,
         InsuranceProviderCapabilityType.SupportsProviderSession,
     ];
-
-    public TaminInsuranceAdapter(
-        ITaminCredentialSessionStore sessionStore,
-        IHttpClientFactory httpClientFactory,
-        IOptionsMonitor<TaminOptions> taminOptions,
-        PrescriptionDbContext dbContext,
-        TaminErrorMapper errorMapper,
-        ILogger<TaminInsuranceAdapter> logger)
-    {
-        _sessionStore = sessionStore;
-        _httpClientFactory = httpClientFactory;
-        _taminOptions = taminOptions;
-        _dbContext = dbContext;
-        _errorMapper = errorMapper;
-        _logger = logger;
-    }
 
     public string ProviderKey => ProviderKeyConst;
 

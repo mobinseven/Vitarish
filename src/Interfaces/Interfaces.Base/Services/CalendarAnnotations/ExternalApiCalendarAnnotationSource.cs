@@ -4,18 +4,12 @@ using Microsoft.Extensions.Logging;
 
 namespace Vitarish.Interfaces.Base.Services.CalendarAnnotations;
 
-internal sealed class ExternalApiCalendarAnnotationSource : ICalendarAnnotationSource
+internal sealed class ExternalApiCalendarAnnotationSource(
+    IHttpClientFactory httpClientFactory,
+    ILogger<ExternalApiCalendarAnnotationSource>? logger = null) : ICalendarAnnotationSource
 {
-    private readonly IHttpClientFactory httpClientFactory;
-    private readonly ILogger<ExternalApiCalendarAnnotationSource>? logger;
-
-    public ExternalApiCalendarAnnotationSource(
-        IHttpClientFactory httpClientFactory,
-        ILogger<ExternalApiCalendarAnnotationSource>? logger = null)
-    {
-        this.httpClientFactory = httpClientFactory;
-        this.logger = logger;
-    }
+    private readonly IHttpClientFactory httpClientFactory = httpClientFactory;
+    private readonly ILogger<ExternalApiCalendarAnnotationSource>? logger = logger;
 
     public async Task<CalendarAnnotationSourceResult> GetAnnotationsAsync(
         CalendarAnnotationSourceRequest request,

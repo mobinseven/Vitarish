@@ -9,27 +9,18 @@ using Vorn.Tamin;
 
 namespace Vitarish.Prescription.Infrastructure.Providers.Tamin;
 
-internal sealed class TaminCredentialSessionStore : ITaminCredentialSessionStore
+internal sealed class TaminCredentialSessionStore(
+    PrescriptionDbContext dbContext,
+    IHttpClientFactory httpClientFactory,
+    IOptionsMonitor<TaminOptions> taminOptions,
+    TaminErrorMapper errorMapper,
+    ILogger<TaminCredentialSessionStore> logger) : ITaminCredentialSessionStore
 {
-    private readonly PrescriptionDbContext _dbContext;
-    private readonly IHttpClientFactory _httpClientFactory;
-    private readonly IOptionsMonitor<TaminOptions> _taminOptions;
-    private readonly TaminErrorMapper _errorMapper;
-    private readonly ILogger<TaminCredentialSessionStore> _logger;
-
-    public TaminCredentialSessionStore(
-        PrescriptionDbContext dbContext,
-        IHttpClientFactory httpClientFactory,
-        IOptionsMonitor<TaminOptions> taminOptions,
-        TaminErrorMapper errorMapper,
-        ILogger<TaminCredentialSessionStore> logger)
-    {
-        _dbContext = dbContext;
-        _httpClientFactory = httpClientFactory;
-        _taminOptions = taminOptions;
-        _errorMapper = errorMapper;
-        _logger = logger;
-    }
+    private readonly PrescriptionDbContext _dbContext = dbContext;
+    private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
+    private readonly IOptionsMonitor<TaminOptions> _taminOptions = taminOptions;
+    private readonly TaminErrorMapper _errorMapper = errorMapper;
+    private readonly ILogger<TaminCredentialSessionStore> _logger = logger;
 
     public async Task<TaminSessionResult> AuthenticateAsync(Guid doctorId, Guid clinicId, CancellationToken cancellationToken = default)
     {

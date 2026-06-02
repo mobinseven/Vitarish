@@ -10,27 +10,18 @@ namespace Vitarish.Prescription.Infrastructure.Providers;
 /// Decorator that wraps an adapter with resilience (timeout, retry, circuit-breaker),
 /// centralized error mapping, and transaction logging.
 /// </summary>
-public sealed class ResilientAdapterDecorator : IInsuranceProviderAdapter
+public sealed class ResilientAdapterDecorator(
+    IInsuranceProviderAdapter inner,
+    IProviderErrorMapper errorMapper,
+    IProviderResiliencePipelineProvider resilienceProvider,
+    IExternalApiTransactionLogger transactionLogger,
+    ILogger<ResilientAdapterDecorator> logger) : IInsuranceProviderAdapter
 {
-    private readonly IInsuranceProviderAdapter _inner;
-    private readonly IProviderErrorMapper _errorMapper;
-    private readonly IProviderResiliencePipelineProvider _resilienceProvider;
-    private readonly IExternalApiTransactionLogger _transactionLogger;
-    private readonly ILogger<ResilientAdapterDecorator> _logger;
-
-    public ResilientAdapterDecorator(
-        IInsuranceProviderAdapter inner,
-        IProviderErrorMapper errorMapper,
-        IProviderResiliencePipelineProvider resilienceProvider,
-        IExternalApiTransactionLogger transactionLogger,
-        ILogger<ResilientAdapterDecorator> logger)
-    {
-        _inner = inner;
-        _errorMapper = errorMapper;
-        _resilienceProvider = resilienceProvider;
-        _transactionLogger = transactionLogger;
-        _logger = logger;
-    }
+    private readonly IInsuranceProviderAdapter _inner = inner;
+    private readonly IProviderErrorMapper _errorMapper = errorMapper;
+    private readonly IProviderResiliencePipelineProvider _resilienceProvider = resilienceProvider;
+    private readonly IExternalApiTransactionLogger _transactionLogger = transactionLogger;
+    private readonly ILogger<ResilientAdapterDecorator> _logger = logger;
 
     public string ProviderKey => _inner.ProviderKey;
 
