@@ -14,20 +14,17 @@ else if (Providers.Count == 1 && ShowSingleProviderAsField)
 }
 else
 {
-    <MudSelect T="string"
-               Label="@Label"
-               Value="@SelectedProviderKey"
-               ValueChanged="OnSelectedProviderKeyChanged"
-               Required="@Required"
-               Variant="Variant.Outlined"
-               Dense="true">
+    <StackSelect T="string"
+                 Label="@EffectiveLabel"
+                 Value="@SelectedProviderKey"
+                 ValueChanged="OnSelectedProviderKeyChanged">
         @foreach (var provider in Providers)
         {
-            <MudSelectItem T="string" Value="@provider.ProviderKey">
+            <StackSelectItem T="string" Value="@provider.ProviderKey">
                 @provider.ProviderKey
-            </MudSelectItem>
+            </StackSelectItem>
         }
-    </MudSelect>
+    </StackSelect>
 }
 
 @code {
@@ -36,13 +33,9 @@ else
     [Parameter] public EventCallback<string> SelectedProviderKeyChanged { get; set; }
     [Parameter] public string? Label { get; set; }
     [Parameter] public bool IsLoading { get; set; }
-    [Parameter] public bool Required { get; set; } = true;
     [Parameter] public bool ShowSingleProviderAsField { get; set; } = true;
 
-    protected override void OnParametersSet()
-    {
-        Label ??= Localizer["SelectInsuranceProvider"];
-    }
+    private string EffectiveLabel => Label ?? Localizer["SelectInsuranceProvider"];
 
     private Task OnSelectedProviderKeyChanged(string providerKey)
     {
