@@ -101,7 +101,7 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
                     v => JsonSerializer.Serialize(v, _jsonOptions),
                     v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, _jsonOptions))
                 .HasDefaultValueSql("'{}'")
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("text");
             _ = entity.Ignore(s => s.Stats);
         });
 
@@ -118,7 +118,7 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
                     v => JsonSerializer.Serialize(v, _jsonOptions),
                     v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, _jsonOptions))
                 .HasDefaultValueSql("'{}'")
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("text");
             _ = entity.Property(e => e.RefundNote)
                 .HasMaxLength(2048);
             _ = entity.HasIndex("TenantId", nameof(Order.OrderNumber))
@@ -140,7 +140,7 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
                     v => JsonSerializer.Serialize(v, _jsonOptions),
                     v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, _jsonOptions))
                 .HasDefaultValueSql("'{}'")
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("text");
         });
     }
 

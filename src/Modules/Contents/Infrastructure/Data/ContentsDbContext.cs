@@ -84,23 +84,23 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
         {
             _ = entity.Property(e => e.Type).HasConversion<string>().HasMaxLength(64);
             _ = entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(64);
-            _ = entity.Property(e => e.Slug).HasColumnType("nvarchar(256)");
-            _ = entity.Property(e => e.CanonicalPath).HasColumnType("nvarchar(512)");
-            _ = entity.Property(e => e.Title).HasColumnType("nvarchar(512)");
-            _ = entity.Property(e => e.Excerpt).HasColumnType("nvarchar(max)");
-            _ = entity.Property(e => e.Locale).HasColumnType("nvarchar(32)");
+            _ = entity.Property(e => e.Slug).HasMaxLength(256);
+            _ = entity.Property(e => e.CanonicalPath).HasMaxLength(512);
+            _ = entity.Property(e => e.Title).HasMaxLength(512);
+            _ = entity.Property(e => e.Excerpt).HasColumnType("text");
+            _ = entity.Property(e => e.Locale).HasMaxLength(32);
             _ = entity.Property(e => e.Body)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, JsonOptions),
                     v => JsonSerializer.Deserialize<IReadOnlyList<ContentBodyBlock>>(v, JsonOptions) ?? new List<ContentBodyBlock>())
                 .HasDefaultValueSql("'[]'")
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("text");
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, JsonOptions),
                     v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, JsonOptions) ?? new Dictionary<string, object?>())
                 .HasDefaultValueSql("'{}'")
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("text");
 
             _ = entity.HasIndex("TenantId", nameof(ContentItem.CanonicalPath))
                 .IsUnique()
@@ -118,14 +118,14 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
         _ = modelBuilder.Entity<Term>(entity =>
         {
             _ = entity.Property(e => e.Kind).HasConversion<string>().HasMaxLength(64);
-            _ = entity.Property(e => e.Slug).HasColumnType("nvarchar(256)");
-            _ = entity.Property(e => e.Name).HasColumnType("nvarchar(256)");
+            _ = entity.Property(e => e.Slug).HasMaxLength(256);
+            _ = entity.Property(e => e.Name).HasMaxLength(256);
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, JsonOptions),
                     v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, JsonOptions) ?? new Dictionary<string, object?>())
                 .HasDefaultValueSql("'{}'")
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("text");
 
             _ = entity.HasOne<Term>()
                 .WithMany()
@@ -165,7 +165,7 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
                     v => JsonSerializer.Serialize(v, JsonOptions),
                     v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, JsonOptions) ?? new Dictionary<string, object?>())
                 .HasDefaultValueSql("'{}'")
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("text");
 
             _ = entity.HasOne<ContentItem>()
                 .WithMany()
@@ -184,14 +184,14 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
         _ = modelBuilder.Entity<Asset>(entity =>
         {
             _ = entity.Property(e => e.Type).HasConversion<string>().HasMaxLength(64);
-            _ = entity.Property(e => e.Url).HasColumnType("nvarchar(2048)");
-            _ = entity.Property(e => e.AltText).HasColumnType("nvarchar(1024)");
+            _ = entity.Property(e => e.Url).HasMaxLength(2048);
+            _ = entity.Property(e => e.AltText).HasMaxLength(1024);
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, JsonOptions),
                     v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, JsonOptions) ?? new Dictionary<string, object?>())
                 .HasDefaultValueSql("'{}'")
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("text");
 
             _ = entity.HasIndex(e => e.FileId);
             _ = entity.HasIndex(e => e.Url);
@@ -217,7 +217,7 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
 
         _ = modelBuilder.Entity<ContentRevision>(entity =>
         {
-            _ = entity.Property(e => e.Snapshot).HasColumnType("nvarchar(max)");
+            _ = entity.Property(e => e.Snapshot).HasColumnType("text");
 
             _ = entity.HasOne<ContentItem>()
                 .WithMany()

@@ -90,7 +90,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
                     v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
                 .HasDefaultValueSql("'{}'")
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("text");
 
             _ = entity.HasOne<AppointmentServiceProvider>()
                 .WithMany()
@@ -141,7 +141,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                     v => JsonSerializer.Deserialize<List<ReservationStatus>>(v, (JsonSerializerOptions?)null)
                          ?? new List<ReservationStatus>())
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("text");
 
             _ = entity.HasIndex(p => p.ShiftId)
                 .HasDatabaseName("IX_ShiftReminderPolicies_ShiftId");

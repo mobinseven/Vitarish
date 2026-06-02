@@ -87,7 +87,7 @@ public class CalendarDbContext : DbContext, IMultiTenantDbContext
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                     v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, (JsonSerializerOptions?)null) ?? new())
                 .HasDefaultValueSql("'{}'")
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("text");
         });
     }
 

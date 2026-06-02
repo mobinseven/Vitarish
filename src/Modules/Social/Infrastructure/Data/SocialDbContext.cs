@@ -78,23 +78,23 @@ public sealed class SocialDbContext : DbContext, IMultiTenantDbContext
         {
             _ = entity.Property(e => e.Provider).HasConversion<string>().HasMaxLength(64);
             _ = entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(64);
-            _ = entity.Property(e => e.ExternalAccountId).HasColumnType("nvarchar(256)");
-            _ = entity.Property(e => e.WebhookSecret).HasColumnType("nvarchar(512)");
+            _ = entity.Property(e => e.ExternalAccountId).HasMaxLength(256);
+            _ = entity.Property(e => e.WebhookSecret).HasMaxLength(512);
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, JsonOptions),
                     v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, JsonOptions) ?? new Dictionary<string, object?>())
                 .HasDefaultValueSql("'{}'")
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("text");
 
             _ = entity.HasIndex("TenantId", nameof(SocialConnection.Provider), nameof(SocialConnection.ExternalAccountId)).IsUnique();
         });
 
         _ = modelBuilder.Entity<SocialConnectionToken>(entity =>
         {
-            _ = entity.Property(e => e.AccessToken).HasColumnType("nvarchar(max)");
-            _ = entity.Property(e => e.RefreshToken).HasColumnType("nvarchar(max)");
-            _ = entity.Property(e => e.Scopes).HasColumnType("nvarchar(1024)");
+            _ = entity.Property(e => e.AccessToken).HasColumnType("text");
+            _ = entity.Property(e => e.RefreshToken).HasColumnType("text");
+            _ = entity.Property(e => e.Scopes).HasMaxLength(1024);
 
             _ = entity.HasIndex(e => e.ConnectionId).IsUnique();
 
@@ -109,10 +109,10 @@ public sealed class SocialDbContext : DbContext, IMultiTenantDbContext
             _ = entity.Property(e => e.Provider).HasConversion<string>().HasMaxLength(64);
             _ = entity.Property(e => e.VerificationStatus).HasConversion<string>().HasMaxLength(64);
             _ = entity.Property(e => e.ProcessingStatus).HasConversion<string>().HasMaxLength(64);
-            _ = entity.Property(e => e.IdempotencyKey).HasColumnType("nvarchar(256)");
-            _ = entity.Property(e => e.RawHeaders).HasColumnType("nvarchar(max)");
-            _ = entity.Property(e => e.RawBody).HasColumnType("nvarchar(max)");
-            _ = entity.Property(e => e.ProcessingError).HasColumnType("nvarchar(max)");
+            _ = entity.Property(e => e.IdempotencyKey).HasMaxLength(256);
+            _ = entity.Property(e => e.RawHeaders).HasColumnType("text");
+            _ = entity.Property(e => e.RawBody).HasColumnType("text");
+            _ = entity.Property(e => e.ProcessingError).HasColumnType("text");
 
             _ = entity.HasIndex("TenantId", nameof(RawWebhookEvent.IdempotencyKey)).IsUnique();
             _ = entity.HasIndex(e => new { e.Provider, e.ReceivedAt });
@@ -126,7 +126,7 @@ public sealed class SocialDbContext : DbContext, IMultiTenantDbContext
         _ = modelBuilder.Entity<SocialEvent>(entity =>
         {
             _ = entity.Property(e => e.EventType).HasConversion<string>().HasMaxLength(64);
-            _ = entity.Property(e => e.NormalizedPayload).HasColumnType("nvarchar(max)");
+            _ = entity.Property(e => e.NormalizedPayload).HasColumnType("text");
 
             _ = entity.HasIndex(e => new { e.ConnectionId, e.EventType, e.OccurredAt });
             _ = entity.HasIndex(e => e.RawEventId).IsUnique();

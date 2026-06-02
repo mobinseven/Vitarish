@@ -120,12 +120,12 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
                     v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
                 .HasDefaultValueSql("'{}'")
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("text");
             _ = entity.Ignore(p => p.Stats);
             _ = entity.Ignore(p => p.UserIds);
 
             _ = entity.Property(e => e.IdentificationCode)
-                .HasColumnType("nvarchar(256)");
+                .HasMaxLength(256);
 
             _ = entity.HasIndex("TenantId", nameof(Project.IdentificationCode))
                 .IsUnique()
@@ -145,7 +145,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
                     v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
                 .HasDefaultValueSql("'{}'")
-                .HasColumnType("nvarchar(max)");
+                .HasColumnType("text");
 
             _ = entity.Ignore(p => p.Stats);
         });
