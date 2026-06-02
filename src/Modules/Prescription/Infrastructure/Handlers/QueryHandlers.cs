@@ -153,34 +153,6 @@ public sealed class GetEligibilityHandler(IInsuranceProviderRegistry providerReg
     }
 }
 
-public sealed class SearchReferenceCodesHandler(PrescriptionDbContext dbContext)
-    : IRequestHandler<SearchReferenceCodesQuery, IReadOnlyList<ReferenceCodeDto>>
-{
-    public async Task<IReadOnlyList<ReferenceCodeDto>> Handle(SearchReferenceCodesQuery request, CancellationToken cancellationToken)
-    {
-        var query = dbContext.ReferenceCodes
-            .AsNoTracking()
-            .Where(r => r.ProviderKey == request.ProviderKey && r.CodeSystem == request.CodeSystem && r.IsActive);
-
-        if (!string.IsNullOrEmpty(request.SearchTerm))
-            query = query.Where(r => r.DisplayName.Contains(request.SearchTerm) || r.Code.Contains(request.SearchTerm));
-
-        if (!string.IsNullOrEmpty(request.Category))
-            query = query.Where(r => r.Category == request.Category);
-
-        return await query
-            .Take(request.Take)
-            .Select(r => new ReferenceCodeDto
-            {
-                Code = r.Code,
-                DisplayName = r.DisplayName,
-                Category = r.Category,
-                CodeSystem = r.CodeSystem
-            })
-            .ToListAsync(cancellationToken);
-    }
-}
-
 public sealed class GetAvailableProvidersHandler(IInsuranceProviderRegistry providerRegistry)
     : IRequestHandler<GetAvailableProvidersQuery, IReadOnlyList<AvailableProviderDto>>
 {

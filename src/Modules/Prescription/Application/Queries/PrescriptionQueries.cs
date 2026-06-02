@@ -31,16 +31,6 @@ public sealed record GetEligibilityQuery : IRequest<EligibilityResultDto>
     public required Guid ClinicId { get; init; }
 }
 
-/// <summary>Searches reference codes for a provider.</summary>
-public sealed record SearchReferenceCodesQuery : IRequest<IReadOnlyList<ReferenceCodeDto>>
-{
-    public required string ProviderKey { get; init; }
-    public required string CodeSystem { get; init; }
-    public string? SearchTerm { get; init; }
-    public string? Category { get; init; }
-    public int Take { get; init; } = 50;
-}
-
 /// <summary>Gets the list of insurance providers available via API adapters (for payer selection).</summary>
 public sealed record GetAvailableProvidersQuery : IRequest<IReadOnlyList<AvailableProviderDto>>;
 
@@ -92,14 +82,6 @@ public sealed record EligibilityResultDto
     public string? CoverageIdentifier { get; init; }
     public string? ErrorMessage { get; init; }
     public DateTimeOffset? ExpiresAt { get; init; }
-}
-
-public sealed record ReferenceCodeDto
-{
-    public string Code { get; init; } = string.Empty;
-    public string DisplayName { get; init; } = string.Empty;
-    public string? Category { get; init; }
-    public string CodeSystem { get; init; } = string.Empty;
 }
 
 public sealed record AvailableProviderDto

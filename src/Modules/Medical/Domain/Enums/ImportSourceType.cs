@@ -10,5 +10,6 @@ public enum ImportSourceType
     ICHI,
     ATC,
     RBRVS,
-    LocalCsv
+    LocalCsv,
+    InsuranceProvider
 }

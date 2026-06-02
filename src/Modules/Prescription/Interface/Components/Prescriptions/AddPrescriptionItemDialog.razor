@@ -38,7 +38,7 @@
 
             @if (selectedCode is not null)
             {
-                <StackField Label="@selectedCode.DisplayName" HelperText="@selectedCode.Code" />
+                <StackField Label="@selectedCode.Value.DisplayName" HelperText="@selectedCode.Value.Code" />
             }
 
             <StackNumericField @bind-Value="quantity" Label="@Localizer["Quantity"]" Min="1" />
