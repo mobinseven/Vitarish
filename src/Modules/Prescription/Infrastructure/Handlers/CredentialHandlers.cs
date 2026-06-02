@@ -40,7 +40,7 @@ public sealed class SaveCredentialHandler(
             // Check uniqueness
             var exists = await dbContext.DoctorProviderCredentials.AnyAsync(
                 c => c.DoctorId == request.DoctorId
-                     && c.InsuranceProviderId == request.InsuranceProviderId
+                     && c.ProviderKey == request.ProviderKey
                      && c.ClinicId == request.ClinicId,
                 cancellationToken);
 
@@ -51,7 +51,7 @@ public sealed class SaveCredentialHandler(
             {
                 Id = Guid.NewGuid(),
                 DoctorId = request.DoctorId,
-                InsuranceProviderId = request.InsuranceProviderId,
+                ProviderKey = request.ProviderKey,
                 ClinicId = request.ClinicId,
                 ProviderDoctorIdentifier = request.ProviderDoctorIdentifier,
                 ProviderUsername = request.ProviderUsername,
@@ -94,13 +94,7 @@ public sealed class TestCredentialHandler(
         if (credential is null)
             return TestCredentialResult.Failure("اعتبارنامه یافت نشد.");
 
-        var provider = await dbContext.InsuranceProviders
-            .FirstOrDefaultAsync(p => p.Id == credential.InsuranceProviderId, cancellationToken);
-
-        if (provider is null)
-            return TestCredentialResult.Failure("بیمه‌گر یافت نشد.");
-
-        var adapter = providerRegistry.GetAdapter(provider.ProviderKey);
+        var adapter = providerRegistry.GetAdapter(credential.ProviderKey);
         if (adapter is null)
             return TestCredentialResult.Failure("آداپتور بیمه‌گر در دسترس نیست.");
 
@@ -188,40 +182,26 @@ public sealed class GetCredentialSetupGridHandler(
             .Where(c => c.ClinicId == request.ClinicId);
 
         if (!string.IsNullOrEmpty(request.ProviderKey))
-        {
-            var providerId = await dbContext.InsuranceProviders
-                .Where(p => p.ProviderKey == request.ProviderKey)
-                .Select(p => p.Id)
-                .FirstOrDefaultAsync(cancellationToken);
-
-            if (providerId != Guid.Empty)
-                query = query.Where(c => c.InsuranceProviderId == providerId);
-        }
+            query = query.Where(c => c.ProviderKey == request.ProviderKey);
 
         var credentials = await query
-            .Join(dbContext.InsuranceProviders,
-                c => c.InsuranceProviderId,
-                p => p.Id,
-                (c, p) => new { Credential = c, Provider = p })
-            .Select(x => new CredentialSetupDto
+            .Select(c => new CredentialSetupDto
             {
-                CredentialId = x.Credential.Id,
-                DoctorId = x.Credential.DoctorId,
-                DoctorName = x.Credential.ProviderUsername ?? x.Credential.DoctorId.ToString(),
-                InsuranceProviderId = x.Credential.InsuranceProviderId,
-                ProviderKey = x.Provider.ProviderKey,
-                ProviderName = x.Provider.Name,
-                ClinicId = x.Credential.ClinicId,
-                ProviderDoctorIdentifier = x.Credential.ProviderDoctorIdentifier,
-                ProviderUsername = x.Credential.ProviderUsername,
-                Status = x.Credential.Status,
-                ExpiresAt = x.Credential.ExpiresAt,
-                DaysUntilExpiry = x.Credential.ExpiresAt.HasValue
-                    ? (int)(x.Credential.ExpiresAt.Value - DateTimeOffset.UtcNow).TotalDays
+                CredentialId = c.Id,
+                DoctorId = c.DoctorId,
+                DoctorName = c.ProviderUsername ?? c.DoctorId.ToString(),
+                ProviderKey = c.ProviderKey,
+                ClinicId = c.ClinicId,
+                ProviderDoctorIdentifier = c.ProviderDoctorIdentifier,
+                ProviderUsername = c.ProviderUsername,
+                Status = c.Status,
+                ExpiresAt = c.ExpiresAt,
+                DaysUntilExpiry = c.ExpiresAt.HasValue
+                    ? (int)(c.ExpiresAt.Value - DateTimeOffset.UtcNow).TotalDays
                     : 999,
-                IsExpiringSoon = x.Credential.ExpiresAt.HasValue
-                    && (x.Credential.ExpiresAt.Value - DateTimeOffset.UtcNow).TotalDays <= 14,
-                LastTestedAt = x.Credential.UpdatedAt
+                IsExpiringSoon = c.ExpiresAt.HasValue
+                    && (c.ExpiresAt.Value - DateTimeOffset.UtcNow).TotalDays <= 14,
+                LastTestedAt = c.UpdatedAt
             })
             .OrderBy(x => x.ProviderKey)
             .ThenBy(x => x.DoctorName)

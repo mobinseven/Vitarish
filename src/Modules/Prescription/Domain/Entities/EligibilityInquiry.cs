@@ -8,7 +8,7 @@ namespace Vitarish.Prescription.Domain.Entities;
 public sealed class EligibilityInquiry
 {
     public Guid Id { get; set; }
-    public Guid InsuranceProviderId { get; set; }
+    public required string ProviderKey { get; set; }
     public Guid PatientId { get; set; }
     public Guid DoctorId { get; set; }
     public Guid ClinicId { get; set; }

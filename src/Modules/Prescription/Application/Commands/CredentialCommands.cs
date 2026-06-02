@@ -8,7 +8,7 @@ public sealed record SaveCredentialCommand : IRequest<SaveCredentialResult>
 {
     public Guid? CredentialId { get; init; }
     public required Guid DoctorId { get; init; }
-    public required Guid InsuranceProviderId { get; init; }
+    public required string ProviderKey { get; init; }
     public required Guid ClinicId { get; init; }
     public string? ProviderDoctorIdentifier { get; init; }
     public string? ProviderUsername { get; init; }
@@ -68,9 +68,7 @@ public sealed record CredentialSetupDto
     public Guid CredentialId { get; init; }
     public Guid DoctorId { get; init; }
     public string DoctorName { get; init; } = string.Empty;
-    public Guid InsuranceProviderId { get; init; }
     public string ProviderKey { get; init; } = string.Empty;
-    public string ProviderName { get; init; } = string.Empty;
     public Guid ClinicId { get; init; }
     public string? ProviderDoctorIdentifier { get; init; }
     public string? ProviderUsername { get; init; }

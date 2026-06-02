@@ -18,9 +18,6 @@ public sealed class PrescriptionRecord
     /// <summary>Selected provider key for submission.</summary>
     public string? SelectedProviderKey { get; set; }
 
-    /// <summary>Selected patient coverage for submission.</summary>
-    public Guid? SelectedPatientCoverageId { get; set; }
-
     public PrescriptionStatus Status { get; set; } = PrescriptionStatus.Draft;
     public int VersionNumber { get; set; } = 1;
 

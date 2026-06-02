@@ -10,7 +10,7 @@ public sealed class DoctorProviderCredential
 {
     public Guid Id { get; set; }
     public Guid DoctorId { get; set; }
-    public Guid InsuranceProviderId { get; set; }
+    public required string ProviderKey { get; set; }
     public Guid ClinicId { get; set; }
 
     /// <summary>Provider-specific doctor identifier (e.g., medical council number mapping).</summary>

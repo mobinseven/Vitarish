@@ -9,11 +9,7 @@ public sealed class PrescriptionDbContext : DbContext
 {
     private readonly IEnumerable<IInterceptor> _interceptors;
 
-    public DbSet<InsuranceProvider> InsuranceProviders => Set<InsuranceProvider>();
-    public DbSet<InsuranceProviderCapability> InsuranceProviderCapabilities => Set<InsuranceProviderCapability>();
-    public DbSet<ProviderContract> ProviderContracts => Set<ProviderContract>();
     public DbSet<DoctorProviderCredential> DoctorProviderCredentials => Set<DoctorProviderCredential>();
-    public DbSet<PatientCoverage> PatientCoverages => Set<PatientCoverage>();
     public DbSet<EligibilityInquiry> EligibilityInquiries => Set<EligibilityInquiry>();
     public DbSet<PrescriptionRecord> Prescriptions => Set<PrescriptionRecord>();
     public DbSet<PrescriptionItem> PrescriptionItems => Set<PrescriptionItem>();
@@ -41,11 +37,7 @@ public sealed class PrescriptionDbContext : DbContext
         base.OnModelCreating(modelBuilder);
         modelBuilder.HasDefaultSchema("Prescription");
 
-        ConfigureInsuranceProvider(modelBuilder);
-        ConfigureInsuranceProviderCapability(modelBuilder);
-        ConfigureProviderContract(modelBuilder);
         ConfigureDoctorProviderCredential(modelBuilder);
-        ConfigurePatientCoverage(modelBuilder);
         ConfigureEligibilityInquiry(modelBuilder);
         ConfigurePrescriptionRecord(modelBuilder);
         ConfigurePrescriptionItem(modelBuilder);
@@ -59,65 +51,19 @@ public sealed class PrescriptionDbContext : DbContext
         ConfigureReferenceCodeChangeLog(modelBuilder);
     }
 
-    private static void ConfigureInsuranceProvider(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<InsuranceProvider>(entity =>
-        {
-            _ = entity.Property(e => e.ProviderKey).HasMaxLength(64);
-            _ = entity.Property(e => e.Name).HasMaxLength(256);
-            _ = entity.Property(e => e.ProviderType).HasMaxLength(128);
-            _ = entity.Property(e => e.IntegrationMode).HasConversion<string>().HasMaxLength(64);
-            _ = entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(32);
-            _ = entity.HasIndex(e => e.ProviderKey).IsUnique()
-                .HasDatabaseName("IX_InsuranceProvider_ProviderKey");
-        });
-    }
-
-    private static void ConfigureInsuranceProviderCapability(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<InsuranceProviderCapability>(entity =>
-        {
-            _ = entity.Property(e => e.Capability).HasConversion<string>().HasMaxLength(128);
-            _ = entity.Property(e => e.Configuration).HasMaxLength(4096);
-            _ = entity.HasIndex(e => new { e.InsuranceProviderId, e.Capability }).IsUnique()
-                .HasDatabaseName("IX_ProviderCapability_Provider_Capability");
-        });
-    }
-
-    private static void ConfigureProviderContract(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<ProviderContract>(entity =>
-        {
-            _ = entity.HasIndex(e => new { e.InsuranceProviderId, e.ClinicId }).IsUnique()
-                .HasDatabaseName("IX_ProviderContract_Provider_Clinic");
-        });
-    }
-
     private static void ConfigureDoctorProviderCredential(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<DoctorProviderCredential>(entity =>
         {
+            _ = entity.Property(e => e.ProviderKey).HasMaxLength(64);
             _ = entity.Property(e => e.ProviderDoctorIdentifier).HasMaxLength(256);
             _ = entity.Property(e => e.ProviderUsername).HasMaxLength(256);
             _ = entity.Property(e => e.CredentialSecretRef).HasMaxLength(512);
             _ = entity.Property(e => e.TokenSecretRef).HasMaxLength(512);
             _ = entity.Property(e => e.SessionId).HasMaxLength(512);
             _ = entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(32);
-            _ = entity.HasIndex(e => new { e.DoctorId, e.InsuranceProviderId, e.ClinicId }).IsUnique()
+            _ = entity.HasIndex(e => new { e.DoctorId, e.ProviderKey, e.ClinicId }).IsUnique()
                 .HasDatabaseName("IX_DoctorCredential_Doctor_Provider_Clinic");
-        });
-    }
-
-    private static void ConfigurePatientCoverage(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<PatientCoverage>(entity =>
-        {
-            _ = entity.Property(e => e.CoverageIdentifier).HasMaxLength(256);
-            _ = entity.Property(e => e.InsuranceBookletIdentifier).HasMaxLength(256);
-            _ = entity.Property(e => e.CoverageType).HasMaxLength(128);
-            _ = entity.Property(e => e.RawStatusCode).HasMaxLength(128);
-            _ = entity.HasIndex(e => new { e.PatientId, e.InsuranceProviderId })
-                .HasDatabaseName("IX_PatientCoverage_Patient_Provider");
         });
     }
 
@@ -125,11 +71,12 @@ public sealed class PrescriptionDbContext : DbContext
     {
         modelBuilder.Entity<EligibilityInquiry>(entity =>
         {
+            _ = entity.Property(e => e.ProviderKey).HasMaxLength(64);
             _ = entity.Property(e => e.ResultStatus).HasConversion<string>().HasMaxLength(64);
             _ = entity.Property(e => e.TrackingCode).HasMaxLength(256);
             _ = entity.Property(e => e.RawStatusCode).HasMaxLength(128);
             _ = entity.Property(e => e.RawStatusMessage).HasMaxLength(2048);
-            _ = entity.HasIndex(e => new { e.PatientId, e.InsuranceProviderId, e.RequestTime })
+            _ = entity.HasIndex(e => new { e.PatientId, e.ProviderKey, e.RequestTime })
                 .HasDatabaseName("IX_Eligibility_Patient_Provider_Time");
         });
     }
@@ -178,6 +125,7 @@ public sealed class PrescriptionDbContext : DbContext
     {
         modelBuilder.Entity<PrescriptionProviderSubmission>(entity =>
         {
+            _ = entity.Property(e => e.ProviderKey).HasMaxLength(64);
             _ = entity.Property(e => e.OperationName).HasMaxLength(128);
             _ = entity.Property(e => e.RemotePrescriptionId).HasMaxLength(256);
             _ = entity.Property(e => e.RemoteTrackingCode).HasMaxLength(256);
@@ -185,7 +133,7 @@ public sealed class PrescriptionDbContext : DbContext
             _ = entity.Property(e => e.RemoteStatusText).HasMaxLength(2048);
             _ = entity.Property(e => e.CanonicalStatus).HasConversion<string>().HasMaxLength(32);
             _ = entity.Property(e => e.RawResponseRef).HasMaxLength(1024);
-            _ = entity.HasIndex(e => new { e.PrescriptionRecordId, e.InsuranceProviderId })
+            _ = entity.HasIndex(e => new { e.PrescriptionRecordId, e.ProviderKey })
                 .HasDatabaseName("IX_Submission_Prescription_Provider");
         });
     }

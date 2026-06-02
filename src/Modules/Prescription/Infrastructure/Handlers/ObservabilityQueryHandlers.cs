@@ -26,13 +26,7 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
         var query = dbContext.PrescriptionSubmissions.AsQueryable();
 
         if (!string.IsNullOrEmpty(request.ProviderKey))
-        {
-            var providerIds = await dbContext.InsuranceProviders
-                .Where(p => p.ProviderKey == request.ProviderKey)
-                .Select(p => p.Id)
-                .ToListAsync(cancellationToken);
-            query = query.Where(s => providerIds.Contains(s.InsuranceProviderId));
-        }
+            query = query.Where(s => s.ProviderKey == request.ProviderKey);
 
         if (request.From.HasValue)
             query = query.Where(s => s.SubmittedAt >= request.From.Value);
@@ -41,11 +35,8 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
 
         var submissions = await query.ToListAsync(cancellationToken);
 
-        var providerKeyLookup = await dbContext.InsuranceProviders
-            .ToDictionaryAsync(p => p.Id, p => p.ProviderKey, cancellationToken);
-
         var metrics = submissions
-            .GroupBy(s => new { ProviderKey = providerKeyLookup.GetValueOrDefault(s.InsuranceProviderId, "Unknown"), s.OperationName })
+            .GroupBy(s => new { s.ProviderKey, s.OperationName })
             .Select(g =>
             {
                 var successCount = g.Count(s => s.CanonicalStatus == PrescriptionStatus.AcceptedByProvider ||
@@ -88,22 +79,13 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
             query = query.Where(s => s.SubmittedAt <= request.To.Value);
 
         if (!string.IsNullOrEmpty(request.ProviderKey))
-        {
-            var providerIds = await dbContext.InsuranceProviders
-                .Where(p => p.ProviderKey == request.ProviderKey)
-                .Select(p => p.Id)
-                .ToListAsync(cancellationToken);
-            query = query.Where(r => providerIds.Contains(r.InsuranceProviderId));
-        }
+            query = query.Where(r => r.ProviderKey == request.ProviderKey);
 
         var rejections = await query.ToListAsync(cancellationToken);
         var totalRejections = rejections.Count;
 
-        var providerKeyLookup = await dbContext.InsuranceProviders
-            .ToDictionaryAsync(p => p.Id, p => p.ProviderKey, cancellationToken);
-
         var distribution = rejections
-            .GroupBy(r => new { ProviderKey = providerKeyLookup.GetValueOrDefault(r.InsuranceProviderId, "Unknown"), ErrorCategory = r.RemoteStatusCode ?? "Unknown" })
+            .GroupBy(r => new { r.ProviderKey, ErrorCategory = r.RemoteStatusCode ?? "Unknown" })
             .Select(g => new RejectionDistributionDto
             {
                 ProviderKey = g.Key.ProviderKey,
@@ -127,17 +109,9 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
             query = query.Where(c => c.ClinicId == request.ClinicId.Value);
 
         if (!string.IsNullOrEmpty(request.ProviderKey))
-        {
-            var providerIds = await dbContext.InsuranceProviders
-                .Where(p => p.ProviderKey == request.ProviderKey)
-                .Select(p => p.Id)
-                .ToListAsync(cancellationToken);
-            query = query.Where(c => providerIds.Contains(c.InsuranceProviderId));
-        }
+            query = query.Where(c => c.ProviderKey == request.ProviderKey);
 
         var credentials = await query.ToListAsync(cancellationToken);
-        var providers = await dbContext.InsuranceProviders
-            .ToDictionaryAsync(p => p.Id, p => p.ProviderKey, cancellationToken);
 
         var now = DateTimeOffset.UtcNow;
         var soonThreshold = now.Add(CredentialExpirySoonThreshold);
@@ -153,7 +127,7 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
                 CredentialId = c.Id,
                 DoctorId = c.DoctorId,
                 ClinicId = c.ClinicId,
-                ProviderKey = providers.GetValueOrDefault(c.InsuranceProviderId, "Unknown"),
+                ProviderKey = c.ProviderKey,
                 Status = c.Status,
                 ExpiresAt = c.ExpiresAt,
                 TokenExpiresAt = c.TokenExpiresAt,
@@ -250,14 +224,11 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
         var recentWindow = now.AddHours(-1);
         var recentSubmissionCalls = dbContext.PrescriptionSubmissions
             .Where(s => s.SubmittedAt >= recentWindow)
-            .Join(dbContext.InsuranceProviders,
-                s => s.InsuranceProviderId,
-                p => p.Id,
-                (s, p) => new
-                {
-                    p.ProviderKey,
-                    IsFailure = s.CanonicalStatus == PrescriptionStatus.SyncFailed
-                });
+            .Select(s => new
+            {
+                s.ProviderKey,
+                IsFailure = s.CanonicalStatus == PrescriptionStatus.SyncFailed
+            });
 
         var recentFailedPrescriptionCalls = dbContext.Prescriptions
             .Where(p => p.UpdatedAt >= recentWindow &&
