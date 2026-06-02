@@ -12,16 +12,18 @@ public partial class OwnerTenantSettingsForm
     private async Task Save()
     {
         if (write is null)
+        {
             return;
+        }
 
         TenantReadDto? updated = await PartiesService.UpdateTenantAsync(write);
         if (updated is null)
         {
-            Snackbar.Add(Localizer["Error"], Severity.Error);
+            _ = Snackbar.Add(Localizer["Error"], Severity.Error);
             return;
         }
 
         await TenantChanged.InvokeAsync(updated);
-        Snackbar.Add(Localizer["Saved"], Severity.Success);
+        _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
     }
 }

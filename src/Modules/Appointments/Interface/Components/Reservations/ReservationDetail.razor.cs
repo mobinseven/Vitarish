@@ -8,10 +8,7 @@ public partial class ReservationDetail : ReservationsBase
 
     private ReservationReadDto current = default!;
 
-    protected override void OnParametersSet()
-    {
-        current = Reservation;
-    }
+    protected override void OnParametersSet() => current = Reservation;
 
     private async Task ChangeStatusAsync(ReservationStatus status)
     {
@@ -82,7 +79,7 @@ public partial class ReservationDetail : ReservationsBase
             return;
         }
 
-        await ReservationManager.RemoveAsync(current.Id, CancellationToken.None);
+        _ = await ReservationManager.RemoveAsync(current.Id, CancellationToken.None);
         await OnDeleted.InvokeAsync();
     }
 }

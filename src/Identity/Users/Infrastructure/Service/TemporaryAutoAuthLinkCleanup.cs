@@ -24,12 +24,9 @@ public sealed class TemporaryAutoAuthLinkCleanup(
                 (l.ConsumedAt != null && l.ConsumedAt < cutoff)
                 || (l.ConsumedAt == null && l.ExpiresAt < cutoff));
 
-        if (dbContext.Database.IsRelational())
-        {
-            return query.ExecuteDeleteAsync(cancellationToken);
-        }
-
-        return CleanupWithInMemoryFallbackAsync(query, cancellationToken);
+        return dbContext.Database.IsRelational()
+            ? query.ExecuteDeleteAsync(cancellationToken)
+            : CleanupWithInMemoryFallbackAsync(query, cancellationToken);
     }
 
     private async Task<int> CleanupWithInMemoryFallbackAsync(

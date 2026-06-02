@@ -1,5 +1,3 @@
-using Vitarish.Clinic.Interface.Enums;
-
 namespace Vitarish.Clinic.Interface.Models;
 
 internal record PatientWriteDto : ProjectWriteDto

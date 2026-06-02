@@ -1,5 +1,4 @@
 using Microsoft.Extensions.DependencyInjection;
-using Vitarish.Files.Interface.Abstractions;
 using Vitarish.Files.Interface.Services;
 
 namespace Vitarish.Files.Interface.DependencyInjection;

@@ -27,7 +27,7 @@ public class SuccessfulLoginModel(IUsersService userService, ReturnUrlManager re
 
         // Get and clear ReturnUrl from cookie
         string? returnUrl = returnUrlManager.ConsumeReturnUrl();
-        
+
         // If no return URL is provided, just go home
         if (string.IsNullOrEmpty(returnUrl))
         {

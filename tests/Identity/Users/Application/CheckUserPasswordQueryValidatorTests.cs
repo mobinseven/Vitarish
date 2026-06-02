@@ -26,7 +26,7 @@ public class CheckUserPasswordQueryValidatorTests
 
         TestValidationResult<CheckUserPasswordQuery> result = validator.TestValidate(query);
 
-        result.ShouldHaveValidationErrorFor(q => q.Id);
+        _ = result.ShouldHaveValidationErrorFor(q => q.Id);
     }
 
     [Theory]
@@ -38,6 +38,6 @@ public class CheckUserPasswordQueryValidatorTests
 
         TestValidationResult<CheckUserPasswordQuery> result = validator.TestValidate(query);
 
-        result.ShouldHaveValidationErrorFor(q => q.Password);
+        _ = result.ShouldHaveValidationErrorFor(q => q.Password);
     }
 }

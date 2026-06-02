@@ -10,7 +10,9 @@ public partial class OwnerTenantsPage
     {
         Guid? ownerGuid = GetOwnerGuid();
         if (ownerGuid is null)
+        {
             return;
+        }
 
         tenants = [.. await PartiesService.GetTenantsByOwnerAsync(ownerGuid.Value)];
     }

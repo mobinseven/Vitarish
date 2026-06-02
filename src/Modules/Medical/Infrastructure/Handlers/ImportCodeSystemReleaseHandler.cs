@@ -27,7 +27,7 @@ internal sealed class ImportCodeSystemReleaseHandler(MedicalDbContext dbContext)
                 .BeginTransactionAsync(cancellationToken);
 
             // Create import batch
-            var importBatch = new ImportBatch
+            ImportBatch importBatch = new()
             {
                 Id = Guid.NewGuid(),
                 SourceType = request.SourceType,
@@ -101,7 +101,7 @@ internal sealed class ImportCodeSystemReleaseHandler(MedicalDbContext dbContext)
             }
 
             // Import codes
-            var codes = new List<MedicalCode>(request.Codes.Count);
+            List<MedicalCode> codes = new(request.Codes.Count);
             foreach (ImportMedicalCodeItem item in request.Codes)
             {
                 if (!MedicalValidationRules.IsValidEffectiveDateRange(item.EffectiveFrom, item.EffectiveTo))

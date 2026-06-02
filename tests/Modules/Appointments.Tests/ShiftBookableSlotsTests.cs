@@ -1,8 +1,6 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Appointments.Infrastructure.Repositories;
-using Vitarish.Appointments.Infrastructure.Services;
-using Vitarish.Requests.Application.Abstractions;
 
 namespace Appointments.Tests;
 
@@ -15,7 +13,7 @@ public class ShiftBookableSlotsTests
             .ConfigureWarnings(w => w.Ignore(InMemoryEventId.TransactionIgnoredWarning))
             .Options;
         Mock<IRequestContext> requestContext = new();
-        requestContext.SetupGet(x => x.TenantId).Returns("test-tenant");
+        _ = requestContext.SetupGet(x => x.TenantId).Returns("test-tenant");
         return new AppointmentsDbContext(options, [], requestContext.Object);
     }
 
@@ -32,7 +30,7 @@ public class ShiftBookableSlotsTests
 
         IReadOnlyList<BookableShiftSlot> result = await sut.GetBookableSlotsAsync(descriptor, range, CancellationToken.None);
 
-        result.Should().BeEmpty();
+        _ = result.Should().BeEmpty();
         shiftRepo.Verify(r => r.GetAsync(It.IsAny<ShiftDescriptor>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -40,7 +38,7 @@ public class ShiftBookableSlotsTests
     public async Task GetBookableSlotsAsync_ShouldReturnEmptyWhenNoShiftsMatch()
     {
         Mock<IEntityRepository<Shift, ShiftDescriptor>> shiftRepo = new();
-        shiftRepo
+        _ = shiftRepo
             .Setup(r => r.GetAsync(It.IsAny<ShiftDescriptor>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
         Mock<IShiftReservationViewRepository> viewRepo = new();
@@ -53,7 +51,7 @@ public class ShiftBookableSlotsTests
 
         IReadOnlyList<BookableShiftSlot> result = await sut.GetBookableSlotsAsync(descriptor, range, CancellationToken.None);
 
-        result.Should().BeEmpty();
+        _ = result.Should().BeEmpty();
         viewRepo.Verify(r => r.GetAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()), Times.Never);
     }
 
@@ -64,12 +62,12 @@ public class ShiftBookableSlotsTests
         Shift shift = CreateActiveShift(DayOfWeek.Tuesday);
 
         Mock<IEntityRepository<Shift, ShiftDescriptor>> shiftRepo = new();
-        shiftRepo
+        _ = shiftRepo
             .Setup(r => r.GetAsync(It.IsAny<ShiftDescriptor>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([shift]);
 
         Mock<IShiftReservationViewRepository> viewRepo = new();
-        viewRepo
+        _ = viewRepo
             .Setup(r => r.GetAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
@@ -81,10 +79,10 @@ public class ShiftBookableSlotsTests
 
         IReadOnlyList<BookableShiftSlot> result = await sut.GetBookableSlotsAsync(descriptor, range, CancellationToken.None);
 
-        result.Should().HaveCount(1);
-        result[0].Shift.Id.Should().Be(shift.Id);
-        result[0].Occurrence!.Date.Should().Be(date);
-        result[0].Occurrence!.AvailableSeats.Should().Be(shift.TotalSeats);
+        _ = result.Should().HaveCount(1);
+        _ = result[0].Shift.Id.Should().Be(shift.Id);
+        _ = result[0].Occurrence!.Date.Should().Be(date);
+        _ = result[0].Occurrence!.AvailableSeats.Should().Be(shift.TotalSeats);
     }
 
     [Fact]
@@ -97,12 +95,12 @@ public class ShiftBookableSlotsTests
         Shift wednesdayShift = CreateActiveShift(DayOfWeek.Wednesday);
 
         Mock<IEntityRepository<Shift, ShiftDescriptor>> shiftRepo = new();
-        shiftRepo
+        _ = shiftRepo
             .Setup(r => r.GetAsync(It.IsAny<ShiftDescriptor>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([tuesdayShift, wednesdayShift]);
 
         Mock<IShiftReservationViewRepository> viewRepo = new();
-        viewRepo
+        _ = viewRepo
             .Setup(r => r.GetAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
@@ -118,9 +116,9 @@ public class ShiftBookableSlotsTests
 
         IReadOnlyList<BookableShiftSlot> result = await sut.GetBookableSlotsAsync(descriptor, range, CancellationToken.None);
 
-        result.Should().HaveCount(2);
-        result.Should().Contain(s => s.Shift.Id == tuesdayShift.Id && s.Occurrence!.Date == tuesday);
-        result.Should().Contain(s => s.Shift.Id == wednesdayShift.Id && s.Occurrence!.Date == wednesday);
+        _ = result.Should().HaveCount(2);
+        _ = result.Should().Contain(s => s.Shift.Id == tuesdayShift.Id && s.Occurrence!.Date == tuesday);
+        _ = result.Should().Contain(s => s.Shift.Id == wednesdayShift.Id && s.Occurrence!.Date == wednesday);
     }
 
     [Fact]
@@ -141,12 +139,12 @@ public class ShiftBookableSlotsTests
         };
 
         Mock<IEntityRepository<Shift, ShiftDescriptor>> shiftRepo = new();
-        shiftRepo
+        _ = shiftRepo
             .Setup(r => r.GetAsync(It.IsAny<ShiftDescriptor>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([shift]);
 
         Mock<IShiftReservationViewRepository> viewRepo = new();
-        viewRepo
+        _ = viewRepo
             .Setup(r => r.GetAsync(It.IsAny<IReadOnlyList<Guid>>(), date, date, It.IsAny<CancellationToken>()))
             .ReturnsAsync([existingReservation]);
 
@@ -158,9 +156,9 @@ public class ShiftBookableSlotsTests
 
         IReadOnlyList<BookableShiftSlot> result = await sut.GetBookableSlotsAsync(descriptor, range, CancellationToken.None);
 
-        result.Should().HaveCount(1);
-        result[0].Occurrence!.ReservationCount.Should().Be(3);
-        result[0].Occurrence!.AvailableSeats.Should().Be(7);
+        _ = result.Should().HaveCount(1);
+        _ = result[0].Occurrence!.ReservationCount.Should().Be(3);
+        _ = result[0].Occurrence!.AvailableSeats.Should().Be(7);
     }
 
     [Fact]
@@ -170,26 +168,26 @@ public class ShiftBookableSlotsTests
         Shift shift = CreateActiveShift(DayOfWeek.Tuesday);
 
         Mock<IEntityRepository<Shift, ShiftDescriptor>> shiftRepo = new();
-        shiftRepo
+        _ = shiftRepo
             .Setup(r => r.GetAsync(It.IsAny<ShiftDescriptor>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([shift]);
 
         Mock<IShiftReservationViewRepository> viewRepo = new();
-        viewRepo
+        _ = viewRepo
             .Setup(r => r.GetAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
         await using AppointmentsDbContext ctx = CreateDbContext();
 
         // Seed the closed policy into the in-memory DB
-        ctx.ShiftBookingPolicies.Add(new ShiftBookingPolicy
+        _ = ctx.ShiftBookingPolicies.Add(new ShiftBookingPolicy
         {
             Id = Guid.NewGuid(),
             ShiftId = shift.Id,
             Date = closedDate,
             Closed = true
         });
-        await ctx.SaveChangesAsync();
+        _ = await ctx.SaveChangesAsync();
 
         ShiftBookableDateQueryService sut = new(shiftRepo.Object, viewRepo.Object, ctx);
 
@@ -198,7 +196,7 @@ public class ShiftBookableSlotsTests
 
         IReadOnlyList<BookableShiftSlot> result = await sut.GetBookableSlotsAsync(descriptor, range, CancellationToken.None);
 
-        result.Should().BeEmpty();
+        _ = result.Should().BeEmpty();
     }
 
     [Fact]
@@ -209,12 +207,12 @@ public class ShiftBookableSlotsTests
         Shift shift = CreateActiveShift(DayOfWeek.Wednesday);
 
         Mock<IEntityRepository<Shift, ShiftDescriptor>> shiftRepo = new();
-        shiftRepo
+        _ = shiftRepo
             .Setup(r => r.GetAsync(It.IsAny<ShiftDescriptor>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([shift]);
 
         Mock<IShiftReservationViewRepository> viewRepo = new();
-        viewRepo
+        _ = viewRepo
             .Setup(r => r.GetAsync(It.IsAny<IReadOnlyList<Guid>>(), It.IsAny<DateOnly>(), It.IsAny<DateOnly>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
@@ -227,7 +225,7 @@ public class ShiftBookableSlotsTests
 
         IReadOnlyList<BookableShiftSlot> result = await sut.GetBookableSlotsAsync(descriptor, range, CancellationToken.None);
 
-        result.Should().BeEmpty();
+        _ = result.Should().BeEmpty();
     }
 
     /// <summary>Returns the next occurrence of <paramref name="dayOfWeek"/> that is at least 7 days from now,

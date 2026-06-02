@@ -38,12 +38,7 @@ public static class ContextClaimExtensions
             string? given = GetClaimValue(principal, JwtClaimTypes.GivenName);
             string? sure = GetClaimValue(principal, JwtClaimTypes.FamilyName);
 
-            if (string.IsNullOrWhiteSpace(given) && string.IsNullOrWhiteSpace(sure))
-            {
-                return null;
-            }
-
-            return $"{given} {sure}".Trim();
+            return string.IsNullOrWhiteSpace(given) && string.IsNullOrWhiteSpace(sure) ? null : $"{given} {sure}".Trim();
         }
 
         public string? GetUserFamilyName()
@@ -182,12 +177,7 @@ public static class ContextClaimExtensions
             string? given = GetClaimValue(context, JwtClaimTypes.GivenName);
             string? sure = GetClaimValue(context, JwtClaimTypes.FamilyName);
 
-            if (string.IsNullOrWhiteSpace(given) && string.IsNullOrWhiteSpace(sure))
-            {
-                return null;
-            }
-
-            return $"{given} {sure}".Trim();
+            return string.IsNullOrWhiteSpace(given) && string.IsNullOrWhiteSpace(sure) ? null : $"{given} {sure}".Trim();
         }
 
         public string? GetUserEmail()

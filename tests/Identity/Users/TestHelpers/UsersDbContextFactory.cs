@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Users.Infrastructure.Data;
 
 namespace Users.Tests.TestHelpers;
 

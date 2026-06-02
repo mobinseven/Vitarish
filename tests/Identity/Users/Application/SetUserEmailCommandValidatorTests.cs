@@ -26,7 +26,7 @@ public class SetUserEmailCommandValidatorTests
 
         TestValidationResult<SetUserEmailCommand> result = validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(c => c.Id);
+        _ = result.ShouldHaveValidationErrorFor(c => c.Id);
     }
 
     [Theory]
@@ -39,6 +39,6 @@ public class SetUserEmailCommandValidatorTests
 
         TestValidationResult<SetUserEmailCommand> result = validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(c => c.Email);
+        _ = result.ShouldHaveValidationErrorFor(c => c.Email);
     }
 }

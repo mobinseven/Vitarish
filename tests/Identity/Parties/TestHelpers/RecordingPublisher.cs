@@ -1,7 +1,7 @@
-namespace Parties.Tests.TestHelpers;
 
 using MediatR;
 
+namespace Parties.Tests.TestHelpers;
 /// <summary>
 /// Publisher that records notifications for assertions.
 /// </summary>

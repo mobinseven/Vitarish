@@ -1,8 +1,8 @@
-using System.Collections.Concurrent;
 using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
-using Vitarish.Files.Application.Abstractions;
+using System.Collections.Concurrent;
 using Vitarish.Entities.Server.Models;
+using Vitarish.Files.Application.Abstractions;
 
 namespace Files.Tests;
 
@@ -86,14 +86,7 @@ public sealed class InMemoryFileInformationService : IFileInformationService
 
         if (!string.IsNullOrWhiteSpace(descriptor.Name))
         {
-            if (byName.TryGetValue(descriptor.Name, out FileInformationReadDto? match))
-            {
-                query = query.Where(i => i == match);
-            }
-            else
-            {
-                query = [];
-            }
+            query = byName.TryGetValue(descriptor.Name, out FileInformationReadDto? match) ? query.Where(i => i == match) : [];
         }
 
         if (!string.IsNullOrWhiteSpace(descriptor.Tag))
@@ -143,7 +136,7 @@ public sealed class InMemoryFileInformationService : IFileInformationService
     public Task<EntityResult<PartedResult<FileInformationReadDto>>> GetPartedAsync(FileInformationDescriptorDto descriptor, CancellationToken cancellationToken) =>
         throw new NotSupportedException();
 
-    private static string? TryResolveName(FileInformationReadDto dto) => string.IsNullOrWhiteSpace(dto.Url) ? (string?)null : dto.Url.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
+    private static string? TryResolveName(FileInformationReadDto dto) => string.IsNullOrWhiteSpace(dto.Url) ? null : dto.Url.Split('/', StringSplitOptions.RemoveEmptyEntries).LastOrDefault();
 }
 
 /// <summary>

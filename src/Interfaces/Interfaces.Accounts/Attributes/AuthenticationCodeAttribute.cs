@@ -6,7 +6,7 @@ internal class AuthenticationCodeAttribute : ValidationAttribute
 
     protected override ValidationResult? IsValid(object? value, ValidationContext validationContext)
     {
-        string valueAsString = value as string;
+        string? valueAsString = value as string;
         return string.IsNullOrWhiteSpace(valueAsString)
             ? new ValidationResult("EmptyCodeFieldError")
             : Regex.IsMatch(valueAsString, _pattern)

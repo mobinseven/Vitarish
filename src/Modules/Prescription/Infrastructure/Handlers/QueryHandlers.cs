@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Prescription.Application.Abstractions;
 using Vitarish.Prescription.Application.Queries;
+using Vitarish.Prescription.Domain.Entities;
 using Vitarish.Prescription.Infrastructure.Data;
 
 namespace Vitarish.Prescription.Infrastructure.Handlers;
@@ -11,13 +12,15 @@ public sealed class GetPrescriptionHandler(PrescriptionDbContext dbContext)
 {
     public async Task<PrescriptionDto?> Handle(GetPrescriptionQuery request, CancellationToken cancellationToken)
     {
-        var prescription = await dbContext.Prescriptions
+        PrescriptionRecord? prescription = await dbContext.Prescriptions
             .AsNoTracking()
             .Include(p => p.Items.OrderBy(i => i.SortOrder))
             .FirstOrDefaultAsync(p => p.Id == request.PrescriptionId, cancellationToken);
 
         if (prescription is null)
+        {
             return null;
+        }
 
         string? trackingCode = await dbContext.PrescriptionSubmissions
             .AsNoTracking()
@@ -59,28 +62,42 @@ public sealed class GetPrescriptionHistoryHandler(PrescriptionDbContext dbContex
 {
     public async Task<IReadOnlyList<PrescriptionSummaryDto>> Handle(GetPrescriptionHistoryQuery request, CancellationToken cancellationToken)
     {
-        var query = dbContext.Prescriptions.AsNoTracking();
+        IQueryable<PrescriptionRecord> query = dbContext.Prescriptions.AsNoTracking();
 
         if (request.PatientId.HasValue)
+        {
             query = query.Where(p => p.PatientId == request.PatientId.Value);
+        }
 
         if (request.ClinicId.HasValue)
+        {
             query = query.Where(p => p.ClinicId == request.ClinicId.Value);
+        }
 
         if (!request.PatientId.HasValue && !request.ClinicId.HasValue)
+        {
             return [];
+        }
 
         if (request.StatusFilter.HasValue)
+        {
             query = query.Where(p => p.Status == request.StatusFilter.Value);
+        }
 
         if (!string.IsNullOrEmpty(request.ProviderKeyFilter))
+        {
             query = query.Where(p => p.SelectedProviderKey == request.ProviderKeyFilter);
+        }
 
         if (request.FromDate.HasValue)
+        {
             query = query.Where(p => p.CreatedAt >= request.FromDate.Value);
+        }
 
         if (request.ToDate.HasValue)
+        {
             query = query.Where(p => p.CreatedAt <= request.ToDate.Value);
+        }
 
         return await query
             .OrderByDescending(p => p.CreatedAt)
@@ -104,7 +121,7 @@ public sealed class GetEligibilityHandler(IInsuranceProviderRegistry providerReg
 {
     public async Task<EligibilityResultDto> Handle(GetEligibilityQuery request, CancellationToken cancellationToken)
     {
-        var adapter = providerRegistry.GetAdapter(request.ProviderKey);
+        IInsuranceProviderAdapter? adapter = providerRegistry.GetAdapter(request.ProviderKey);
         if (adapter is null)
         {
             return new EligibilityResultDto
@@ -115,41 +132,35 @@ public sealed class GetEligibilityHandler(IInsuranceProviderRegistry providerReg
             };
         }
 
-        var result = await adapter.CheckEntitlementAsync(new EntitlementRequest
+        AdapterResult<EntitlementResponse> result = await adapter.CheckEntitlementAsync(new EntitlementRequest
         {
             PatientNationalId = request.PatientNationalId,
             DoctorId = request.DoctorId,
             ClinicId = request.ClinicId
         }, cancellationToken);
 
-        if (result.IsSuccess && result.Data is not null)
-        {
-            return new EligibilityResultDto
+        return result.IsSuccess && result.Data is not null
+            ? new EligibilityResultDto
             {
                 IsSuccess = true,
                 Status = result.Data.Status,
                 TrackingCode = result.Data.TrackingCode,
                 CoverageIdentifier = result.Data.CoverageIdentifier,
                 ExpiresAt = result.Data.ExpiresAt
-            };
-        }
-
-        if (result.IsNotSupported)
-        {
-            return new EligibilityResultDto
+            }
+            : result.IsNotSupported
+            ? new EligibilityResultDto
             {
                 IsSuccess = false,
                 Status = Domain.Enums.EligibilityStatus.Unknown,
                 ErrorMessage = "بیمه‌گر از استعلام حق بیمه پشتیبانی نمی‌کند."
+            }
+            : new EligibilityResultDto
+            {
+                IsSuccess = false,
+                Status = Domain.Enums.EligibilityStatus.ProviderUnavailable,
+                ErrorMessage = result.Error?.UserMessage ?? "خطا در استعلام حق بیمه."
             };
-        }
-
-        return new EligibilityResultDto
-        {
-            IsSuccess = false,
-            Status = Domain.Enums.EligibilityStatus.ProviderUnavailable,
-            ErrorMessage = result.Error?.UserMessage ?? "خطا در استعلام حق بیمه."
-        };
     }
 }
 

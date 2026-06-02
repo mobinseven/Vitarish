@@ -12,10 +12,13 @@ public partial class PaperFallbackDialog : PrescriptionBase
 
     private async Task SubmitAsync()
     {
-        if (string.IsNullOrWhiteSpace(reason)) return;
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            return;
+        }
 
-        var correlationId = Guid.NewGuid().ToString("N");
-        var result = await Mediator.Send(new PaperFallbackCommand
+        string correlationId = Guid.NewGuid().ToString("N");
+        PaperFallbackResult result = await Mediator.Send(new PaperFallbackCommand
         {
             PrescriptionId = PrescriptionId,
             Reason = reason,
@@ -25,12 +28,12 @@ public partial class PaperFallbackDialog : PrescriptionBase
 
         if (result.IsSuccess)
         {
-            Snackbar.Add(Localizer["PaperFallbackSuccess"], Severity.Success);
+            _ = Snackbar.Add(Localizer["PaperFallbackSuccess"], Severity.Success);
             MudDialog.Close(DialogResult.Ok(true));
         }
         else
         {
-            Snackbar.Add(result.ErrorMessage ?? Localizer["UnknownError"], Severity.Error);
+            _ = Snackbar.Add(result.ErrorMessage ?? Localizer["UnknownError"], Severity.Error);
         }
     }
 }

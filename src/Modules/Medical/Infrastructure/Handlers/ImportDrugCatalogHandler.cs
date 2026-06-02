@@ -13,7 +13,7 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
             await using IDbContextTransaction transaction = await dbContext.Database
                 .BeginTransactionAsync(cancellationToken);
 
-            var importBatch = new ImportBatch
+            ImportBatch importBatch = new()
             {
                 Id = Guid.NewGuid(),
                 SourceType = request.SourceType,
@@ -64,10 +64,10 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
             }
 
             int drugCount = 0;
-            var drugs = new List<Drug>(request.Drugs.Count);
-            var products = new List<DrugProduct>();
-            var packages = new List<PackagedDrug>();
-            var existingDrugs = await dbContext.Drugs.AsNoTracking()
+            List<Drug> drugs = new(request.Drugs.Count);
+            List<DrugProduct> products = [];
+            List<PackagedDrug> packages = [];
+            Dictionary<DrugImportKey, Guid> existingDrugs = await dbContext.Drugs.AsNoTracking()
                 .Where(d => d.RecordOrigin == RecordOrigin.Imported)
                 .ToDictionaryAsync(
                     d => new DrugImportKey(d.PrimaryIdentifierType, d.PrimaryIdentifierValue, d.EffectiveFrom),
@@ -85,14 +85,14 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
                     return EntityResult<ImportResult>.Failure(EntityError.Validation(importBatch.ErrorReport));
                 }
 
-                var drugKey = new DrugImportKey(
+                DrugImportKey drugKey = new(
                     drugItem.PrimaryIdentifierType,
                     drugItem.PrimaryIdentifierValue,
                     drugItem.EffectiveFrom);
 
                 if (!existingDrugs.TryGetValue(drugKey, out Guid drugId))
                 {
-                    var drug = new Drug
+                    Drug drug = new()
                     {
                         Id = Guid.NewGuid(),
                         PrimaryName = drugItem.PrimaryName,
@@ -116,7 +116,7 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
                 {
                     foreach (ImportDrugProductItem productItem in drugItem.Products)
                     {
-                        var product = new DrugProduct
+                        DrugProduct product = new()
                         {
                             Id = Guid.NewGuid(),
                             DrugId = drugId,

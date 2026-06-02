@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Users.Tests.TestHelpers;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Extensions;
@@ -11,13 +10,13 @@ public class UserManagerExtensionsTests
     public async Task CreateUserWithoutPasswordAsync_SetsNamesAndCreatesUser()
     {
         Mock<UserManager<User>> userManager = UserManagerMockFactory.Create();
-        userManager.Setup(m => m.SetUserNameAsync(It.IsAny<User>(), "user@example.com"))
+        _ = userManager.Setup(m => m.SetUserNameAsync(It.IsAny<User>(), "user@example.com"))
             .Callback<User, string>((user, name) => user.UserName = name)
             .ReturnsAsync(IdentityResult.Success);
-        userManager.Setup(m => m.SetEmailAsync(It.IsAny<User>(), "user@example.com"))
+        _ = userManager.Setup(m => m.SetEmailAsync(It.IsAny<User>(), "user@example.com"))
             .Callback<User, string>((user, email) => user.Email = email)
             .ReturnsAsync(IdentityResult.Success);
-        userManager.Setup(m => m.CreateAsync(It.IsAny<User>()))
+        _ = userManager.Setup(m => m.CreateAsync(It.IsAny<User>()))
             .ReturnsAsync(IdentityResult.Success);
 
         User user = await userManager.Object.CreateUserWithoutPasswordAsync(
@@ -26,10 +25,10 @@ public class UserManagerExtensionsTests
             "Last",
             u => userManager.Object.SetEmailAsync(u, "user@example.com"));
 
-        user.UserName.Should().Be("user@example.com");
-        user.Email.Should().Be("user@example.com");
-        user.FirstName.Should().Be("First");
-        user.LastName.Should().Be("Last");
+        _ = user.UserName.Should().Be("user@example.com");
+        _ = user.Email.Should().Be("user@example.com");
+        _ = user.FirstName.Should().Be("First");
+        _ = user.LastName.Should().Be("Last");
         userManager.Verify(m => m.CreateAsync(It.IsAny<User>()), Times.Once);
     }
 
@@ -37,11 +36,11 @@ public class UserManagerExtensionsTests
     public async Task CreateUserWithoutPasswordAsync_ThrowsWhenCreateFails()
     {
         Mock<UserManager<User>> userManager = UserManagerMockFactory.Create();
-        userManager.Setup(m => m.SetUserNameAsync(It.IsAny<User>(), It.IsAny<string>()))
+        _ = userManager.Setup(m => m.SetUserNameAsync(It.IsAny<User>(), It.IsAny<string>()))
             .ReturnsAsync(IdentityResult.Success);
-        userManager.Setup(m => m.SetEmailAsync(It.IsAny<User>(), It.IsAny<string>()))
+        _ = userManager.Setup(m => m.SetEmailAsync(It.IsAny<User>(), It.IsAny<string>()))
             .ReturnsAsync(IdentityResult.Success);
-        userManager.Setup(m => m.CreateAsync(It.IsAny<User>()))
+        _ = userManager.Setup(m => m.CreateAsync(It.IsAny<User>()))
             .ReturnsAsync(IdentityResult.Failed(new IdentityError { Code = "CreateFailed", Description = "fail" }));
 
         Func<Task> act = () => userManager.Object.CreateUserWithoutPasswordAsync(
@@ -50,7 +49,7 @@ public class UserManagerExtensionsTests
             "Last",
             u => userManager.Object.SetEmailAsync(u, "user@example.com"));
 
-        await act.Should().ThrowAsync<Exception>()
+        _ = await act.Should().ThrowAsync<Exception>()
             .WithMessage("*CreateFailed:fail*");
     }
 }

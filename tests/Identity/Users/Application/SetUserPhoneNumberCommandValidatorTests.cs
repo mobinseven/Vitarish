@@ -26,7 +26,7 @@ public class SetUserPhoneNumberCommandValidatorTests
 
         TestValidationResult<SetUserPhoneNumberCommand> result = validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(c => c.Id);
+        _ = result.ShouldHaveValidationErrorFor(c => c.Id);
     }
 
     [Theory]
@@ -38,6 +38,6 @@ public class SetUserPhoneNumberCommandValidatorTests
 
         TestValidationResult<SetUserPhoneNumberCommand> result = validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(c => c.PhoneNumber);
+        _ = result.ShouldHaveValidationErrorFor(c => c.PhoneNumber);
     }
 }

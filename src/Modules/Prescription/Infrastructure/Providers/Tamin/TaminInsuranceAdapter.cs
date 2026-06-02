@@ -1,8 +1,10 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
 using Vitarish.Modules.Base.Platform.Errors;
 using Vitarish.Prescription.Application.Abstractions;
+using Vitarish.Prescription.Domain.Entities;
 using Vitarish.Prescription.Domain.Enums;
 using Vitarish.Prescription.Infrastructure.Data;
 using Vorn.Tamin;
@@ -51,26 +53,32 @@ public sealed class TaminInsuranceAdapter(
 
     public async Task<AdapterResult> AuthenticateAsync(AuthenticateRequest request, CancellationToken cancellationToken = default)
     {
-        var validationError = ValidateDoctorContext(request.DoctorId, request.ClinicId);
+        IntegrationError? validationError = ValidateDoctorContext(request.DoctorId, request.ClinicId);
         if (validationError is not null)
+        {
             return AdapterResult.Failure(validationError);
+        }
 
-        var sessionResult = await _sessionStore.AuthenticateAsync(request.DoctorId, request.ClinicId, cancellationToken);
+        TaminSessionResult sessionResult = await _sessionStore.AuthenticateAsync(request.DoctorId, request.ClinicId, cancellationToken);
         return sessionResult.IsSuccess ? AdapterResult.Success() : AdapterResult.Failure(sessionResult.Error!);
     }
 
     public async Task<AdapterResult<EntitlementResponse>> CheckEntitlementAsync(EntitlementRequest request, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(request.PatientNationalId))
+        {
             return AdapterResult<EntitlementResponse>.Failure(ValidationError("کد ملی بیمار مشخص نشده است.", "PatientNationalId is required."));
+        }
 
-        var sessionResult = await _sessionStore.GetOrRefreshSessionAsync(request.DoctorId, request.ClinicId, cancellationToken);
+        TaminSessionResult sessionResult = await _sessionStore.GetOrRefreshSessionAsync(request.DoctorId, request.ClinicId, cancellationToken);
         if (!sessionResult.IsSuccess)
+        {
             return AdapterResult<EntitlementResponse>.Failure(sessionResult.Error!);
+        }
 
         try
         {
-            var result = await sessionResult.Session!.Identity.CheckEntitlementAsync(
+            JsonElement result = await sessionResult.Session!.Identity.CheckEntitlementAsync(
                 new CheckEntitlementRequest
                 {
                     NationalId = request.PatientNationalId,
@@ -91,19 +99,28 @@ public sealed class TaminInsuranceAdapter(
     public async Task<AdapterResult<SubmissionResponse>> SubmitPrescriptionAsync(SubmissionRequest request, CancellationToken cancellationToken = default)
     {
         if (request.PrescriptionId == Guid.Empty)
+        {
             return AdapterResult<SubmissionResponse>.Failure(ValidationError("شناسه نسخه مشخص نشده است.", "PrescriptionId is required."));
-        if (string.IsNullOrWhiteSpace(request.IdempotencyKey))
-            return AdapterResult<SubmissionResponse>.Failure(ValidationError("کلید یکتایی درخواست مشخص نشده است.", "IdempotencyKey is required."));
+        }
 
-        var prescription = await LoadPrescriptionWithItemsAsync(request.PrescriptionId, cancellationToken);
+        if (string.IsNullOrWhiteSpace(request.IdempotencyKey))
+        {
+            return AdapterResult<SubmissionResponse>.Failure(ValidationError("کلید یکتایی درخواست مشخص نشده است.", "IdempotencyKey is required."));
+        }
+
+        PrescriptionRecord? prescription = await LoadPrescriptionWithItemsAsync(request.PrescriptionId, cancellationToken);
         if (prescription is null)
+        {
             return AdapterResult<SubmissionResponse>.Failure(ValidationError("نسخه مورد نظر یافت نشد.", $"Prescription {request.PrescriptionId} not found."));
-        var distinctCategories = prescription.Items
+        }
+
+        List<PrescriptionItemCategory> distinctCategories = prescription.Items
             .Select(i => i.Category)
             .Distinct()
             .Take(2)
             .ToList();
         if (distinctCategories.Count > 1)
+        {
             return AdapterResult<SubmissionResponse>.Failure(new IntegrationError
             {
                 Category = ErrorCategory.BusinessRule,
@@ -111,14 +128,17 @@ public sealed class TaminInsuranceAdapter(
                 TechnicalDetail = $"Mixed prescription categories are not supported. Found categories: {string.Join(", ", distinctCategories)}.",
                 IsRetryable = false
             });
+        }
 
-        var sessionResult = await _sessionStore.GetOrRefreshSessionAsync(prescription.DoctorId, prescription.ClinicId, cancellationToken);
+        TaminSessionResult sessionResult = await _sessionStore.GetOrRefreshSessionAsync(prescription.DoctorId, prescription.ClinicId, cancellationToken);
         if (!sessionResult.IsSuccess)
+        {
             return AdapterResult<SubmissionResponse>.Failure(sessionResult.Error!);
+        }
 
         try
         {
-            var result = await TaminPrescriptionMapper.RegisterPrescriptionAsync(
+            JsonElement result = await TaminPrescriptionMapper.RegisterPrescriptionAsync(
                 sessionResult.Session!,
                 prescription,
                 sessionResult.DoctorTaminId ?? string.Empty,
@@ -136,13 +156,18 @@ public sealed class TaminInsuranceAdapter(
     public async Task<AdapterResult<FetchResponse>> FetchPrescriptionAsync(FetchRequest request, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(request.RemotePrescriptionId))
+        {
             return AdapterResult<FetchResponse>.Failure(ValidationError("شناسه نسخه ریموت مشخص نشده است.", "RemotePrescriptionId is required for fetch."));
+        }
 
-        var (prescription, submission) = await LoadPrescriptionAndSubmissionByRemoteIdAsync(request.RemotePrescriptionId, cancellationToken);
+        (PrescriptionRecord? prescription, PrescriptionProviderSubmission? submission) = await LoadPrescriptionAndSubmissionByRemoteIdAsync(request.RemotePrescriptionId, cancellationToken);
         if (prescription is null)
+        {
             return AdapterResult<FetchResponse>.Failure(ValidationError("سابقه ثبت نسخه یافت نشد.", $"No prescription found for remote ID {request.RemotePrescriptionId}."));
+        }
 
         if (string.IsNullOrWhiteSpace(submission?.RemoteTrackingCode))
+        {
             return AdapterResult<FetchResponse>.Failure(new IntegrationError
             {
                 Category = ErrorCategory.BusinessRule,
@@ -150,15 +175,18 @@ public sealed class TaminInsuranceAdapter(
                 TechnicalDetail = $"RemoteTrackingCode not stored for remote prescription {request.RemotePrescriptionId}.",
                 IsRetryable = false
             });
+        }
 
-        var sessionResult = await _sessionStore.GetOrRefreshSessionAsync(prescription.DoctorId, prescription.ClinicId, cancellationToken);
+        TaminSessionResult sessionResult = await _sessionStore.GetOrRefreshSessionAsync(prescription.DoctorId, prescription.ClinicId, cancellationToken);
         if (!sessionResult.IsSuccess)
+        {
             return AdapterResult<FetchResponse>.Failure(sessionResult.Error!);
+        }
 
         try
         {
-            var patientNationalId = prescription.PatientNationalId ?? prescription.PatientId.ToString();
-            var result = await sessionResult.Session!.Prescription.GetRegisteredPrescriptionAsync(
+            string patientNationalId = prescription.PatientNationalId ?? prescription.PatientId.ToString();
+            JsonElement result = await sessionResult.Session!.Prescription.GetRegisteredPrescriptionAsync(
                 request.RemotePrescriptionId,
                 submission.RemoteTrackingCode,
                 patientNationalId,
@@ -176,28 +204,38 @@ public sealed class TaminInsuranceAdapter(
     public async Task<AdapterResult<SubmissionResponse>> EditPrescriptionAsync(EditRequest request, CancellationToken cancellationToken = default)
     {
         if (request.PrescriptionId == Guid.Empty)
+        {
             return AdapterResult<SubmissionResponse>.Failure(ValidationError("شناسه نسخه مشخص نشده است.", "PrescriptionId is required."));
+        }
+
         if (string.IsNullOrWhiteSpace(request.IdempotencyKey))
+        {
             return AdapterResult<SubmissionResponse>.Failure(ValidationError("کلید یکتایی درخواست مشخص نشده است.", "IdempotencyKey is required."));
+        }
 
-        var prescription = await LoadPrescriptionWithItemsAsync(request.PrescriptionId, cancellationToken);
+        PrescriptionRecord? prescription = await LoadPrescriptionWithItemsAsync(request.PrescriptionId, cancellationToken);
         if (prescription is null)
+        {
             return AdapterResult<SubmissionResponse>.Failure(ValidationError("نسخه مورد نظر یافت نشد.", $"Prescription {request.PrescriptionId} not found."));
+        }
 
-        var submission = await _dbContext.PrescriptionSubmissions
+        PrescriptionProviderSubmission? submission = await _dbContext.PrescriptionSubmissions
             .Where(s => s.PrescriptionRecordId == prescription.Id)
             .OrderByDescending(s => s.SubmittedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (string.IsNullOrWhiteSpace(submission?.RemotePrescriptionId))
+        {
             return AdapterResult<SubmissionResponse>.Failure(new IntegrationError
             {
                 Category = ErrorCategory.BusinessRule,
                 UserMessage = "نسخه هنوز در سامانه ثبت نشده و قابل ویرایش نیست.",
                 IsRetryable = false
             });
+        }
 
         if (string.IsNullOrWhiteSpace(submission.RemoteTrackingCode))
+        {
             return AdapterResult<SubmissionResponse>.Failure(new IntegrationError
             {
                 Category = ErrorCategory.BusinessRule,
@@ -205,18 +243,21 @@ public sealed class TaminInsuranceAdapter(
                 TechnicalDetail = $"RemoteTrackingCode not stored for submission of prescription {request.PrescriptionId}.",
                 IsRetryable = false
             });
+        }
 
-        var sessionResult = await _sessionStore.GetOrRefreshSessionAsync(prescription.DoctorId, prescription.ClinicId, cancellationToken);
+        TaminSessionResult sessionResult = await _sessionStore.GetOrRefreshSessionAsync(prescription.DoctorId, prescription.ClinicId, cancellationToken);
         if (!sessionResult.IsSuccess)
+        {
             return AdapterResult<SubmissionResponse>.Failure(sessionResult.Error!);
+        }
 
         try
         {
-            var editedItems = prescription.Items
+            List<object> editedItems = prescription.Items
                 .Select(i => (object)new { service_code = i.ReferenceCode, quantity = i.Quantity })
                 .ToList();
 
-            var result = await sessionResult.Session!.Prescription.EditElectronicPrescriptionAsync(
+            JsonElement result = await sessionResult.Session!.Prescription.EditElectronicPrescriptionAsync(
                 new EditPrescriptionRequest
                 {
                     PrescriptionId = submission.RemotePrescriptionId,
@@ -238,13 +279,18 @@ public sealed class TaminInsuranceAdapter(
     public async Task<AdapterResult> CancelPrescriptionAsync(CancelRequest request, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(request.RemotePrescriptionId))
+        {
             return AdapterResult.Failure(ValidationError("شناسه نسخه ریموت مشخص نشده است.", "RemotePrescriptionId is required."));
+        }
 
-        var (prescription, submission) = await LoadPrescriptionAndSubmissionByRemoteIdAsync(request.RemotePrescriptionId, cancellationToken);
+        (PrescriptionRecord? prescription, PrescriptionProviderSubmission? submission) = await LoadPrescriptionAndSubmissionByRemoteIdAsync(request.RemotePrescriptionId, cancellationToken);
         if (prescription is null)
+        {
             return AdapterResult.Failure(ValidationError("سابقه ثبت نسخه یافت نشد.", $"No prescription found for remote ID {request.RemotePrescriptionId}."));
+        }
 
         if (string.IsNullOrWhiteSpace(submission?.RemoteTrackingCode))
+        {
             return AdapterResult.Failure(new IntegrationError
             {
                 Category = ErrorCategory.BusinessRule,
@@ -252,14 +298,17 @@ public sealed class TaminInsuranceAdapter(
                 TechnicalDetail = $"RemoteTrackingCode not stored for remote prescription {request.RemotePrescriptionId}.",
                 IsRetryable = false
             });
+        }
 
-        var sessionResult = await _sessionStore.GetOrRefreshSessionAsync(prescription.DoctorId, prescription.ClinicId, cancellationToken);
+        TaminSessionResult sessionResult = await _sessionStore.GetOrRefreshSessionAsync(prescription.DoctorId, prescription.ClinicId, cancellationToken);
         if (!sessionResult.IsSuccess)
+        {
             return AdapterResult.Failure(sessionResult.Error!);
+        }
 
         try
         {
-            await sessionResult.Session!.Prescription.DeleteElectronicPrescriptionAsync(
+            _ = await sessionResult.Session!.Prescription.DeleteElectronicPrescriptionAsync(
                 new DeletePrescriptionRequest
                 {
                     PrescriptionId = request.RemotePrescriptionId,
@@ -279,15 +328,17 @@ public sealed class TaminInsuranceAdapter(
     public async Task<AdapterResult<ReferenceDataResponse>> FetchReferenceDataAsync(ReferenceDataRequest request, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(request.CodeSystem))
+        {
             return AdapterResult<ReferenceDataResponse>.Failure(ValidationError("سامانه کد داده مرجع مشخص نشده است.", "CodeSystem is required."));
+        }
 
-        var options = _taminOptions.CurrentValue;
-        var httpClient = _httpClientFactory.CreateClient("TaminClient");
-        var session = new TaminSession(httpClient, baseUri: new Uri(options.EffectiveBaseUrl), needToken: false, clientId: options.ApiKey);
+        TaminOptions options = _taminOptions.CurrentValue;
+        HttpClient httpClient = _httpClientFactory.CreateClient("TaminClient");
+        TaminSession session = new(httpClient, baseUri: new Uri(options.EffectiveBaseUrl), needToken: false, clientId: options.ApiKey);
 
         try
         {
-            var result = request.CodeSystem.Equals("drug", StringComparison.OrdinalIgnoreCase)
+            JsonElement result = request.CodeSystem.Equals("drug", StringComparison.OrdinalIgnoreCase)
                 ? await session.Service.GetDrugListAsync(cancellationToken: cancellationToken)
                 : await session.Service.GetServiceListAsync(cancellationToken: cancellationToken);
 
@@ -319,43 +370,29 @@ public sealed class TaminInsuranceAdapter(
         return (row?.prescription, row?.submission);
     }
 
-    private static IntegrationError? ValidateDoctorContext(Guid doctorId, Guid clinicId)
-    {
-        if (doctorId == Guid.Empty)
-            return ValidationError("شناسه پزشک مشخص نشده است.", "DoctorId is required.");
-        if (clinicId == Guid.Empty)
-            return ValidationError("شناسه کلینیک مشخص نشده است.", "ClinicId is required.");
-        return null;
-    }
+    private static IntegrationError? ValidateDoctorContext(Guid doctorId, Guid clinicId) => doctorId == Guid.Empty
+            ? ValidationError("شناسه پزشک مشخص نشده است.", "DoctorId is required.")
+            : clinicId == Guid.Empty ? ValidationError("شناسه کلینیک مشخص نشده است.", "ClinicId is required.") : null;
 
-    private IntegrationError MapProviderException(Exception exception)
-    {
-        if (exception is ConnectionError connectionError)
-        {
-            return _errorMapper.MapError(new ProviderErrorContext
+    private IntegrationError MapProviderException(Exception exception) => exception is ConnectionError connectionError
+            ? _errorMapper.MapError(new ProviderErrorContext
             {
                 HttpStatusCode = connectionError.StatusCode.HasValue ? (int)connectionError.StatusCode.Value : null,
                 ProviderErrorCode = connectionError.StatusCode.HasValue ? ((int)connectionError.StatusCode.Value).ToString() : null,
                 ProviderErrorMessage = connectionError.Content
-            });
-        }
-
-        if (exception is UserLoginException loginException)
-        {
-            return _errorMapper.MapError(new ProviderErrorContext
+            })
+            : exception is UserLoginException loginException
+            ? _errorMapper.MapError(new ProviderErrorContext
             {
                 HttpStatusCode = loginException.Status,
                 ProviderErrorCode = loginException.Status?.ToString(),
                 ProviderErrorMessage = loginException.ReasonText ?? loginException.Message
+            })
+            : _errorMapper.MapError(new ProviderErrorContext
+            {
+                Exception = exception,
+                ProviderErrorMessage = exception.Message
             });
-        }
-
-        return _errorMapper.MapError(new ProviderErrorContext
-        {
-            Exception = exception,
-            ProviderErrorMessage = exception.Message
-        });
-    }
 
     private static bool IsProviderException(Exception exception) =>
         exception is ConnectionError or UserLoginException or HttpRequestException or TaskCanceledException;

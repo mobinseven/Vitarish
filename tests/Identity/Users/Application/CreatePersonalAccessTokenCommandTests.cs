@@ -9,10 +9,10 @@ public class CreatePersonalAccessTokenCommandTests
     {
         CreatePersonalAccessTokenCommand command = new("user-1", 10, ["scope1"], true);
 
-        command.UserId.Should().Be("user-1");
-        command.LifetimeDays.Should().Be(10);
-        command.Scopes.Should().ContainSingle("scope1");
-        command.IsReferenceToken.Should().BeTrue();
+        _ = command.UserId.Should().Be("user-1");
+        _ = command.LifetimeDays.Should().Be(10);
+        _ = command.Scopes.Should().ContainSingle("scope1");
+        _ = command.IsReferenceToken.Should().BeTrue();
     }
 
     [Fact]
@@ -20,9 +20,9 @@ public class CreatePersonalAccessTokenCommandTests
     {
         CreatePersonalAccessTokenCommand command = new("user-2");
 
-        command.UserId.Should().Be("user-2");
-        command.LifetimeDays.Should().BeNull();
-        command.Scopes.Should().BeNull();
-        command.IsReferenceToken.Should().BeFalse();
+        _ = command.UserId.Should().Be("user-2");
+        _ = command.LifetimeDays.Should().BeNull();
+        _ = command.Scopes.Should().BeNull();
+        _ = command.IsReferenceToken.Should().BeFalse();
     }
 }

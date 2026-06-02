@@ -8,7 +8,6 @@ using Microsoft.Extensions.Options;
 using System.Security.Claims;
 using System.Text.Json;
 using Vitarish.Requests.Application.Abstractions;
-using Vitarish.Users.Application;
 using Vitarish.Users.Application.Abstractions;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Domain.Options;
@@ -139,7 +138,7 @@ public sealed class PersonalAccessTokenGenerator(
             [.. scopeSet],
             isReferenceToken);
 
-        await StoreTokenAsync(user, entry, cancellationToken);
+        _ = await StoreTokenAsync(user, entry, cancellationToken);
 
         return securityToken;
     }

@@ -12,5 +12,5 @@ public record TenantReadDto : EntityReadDto
     public string? LogoUrl { get; set; }
     public string? Description { get; set; }
     public required string AppId { get; set; }
-    public Dictionary<string, object?> Metadata { get; set; } = [];
+    public new Dictionary<string, object?> Metadata { get; set; } = [];
 }

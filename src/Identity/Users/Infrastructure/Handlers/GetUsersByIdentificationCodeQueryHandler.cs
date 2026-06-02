@@ -12,12 +12,9 @@ public sealed class GetUsersByIdentificationCodeQueryHandler(UsersDbContext dbCo
     public async Task<IEnumerable<User>> Handle(GetUsersByIdentificationCodeQuery request, CancellationToken cancellationToken)
     {
         string? normalized = UserIdentityNormalization.NormalizeIdentificationCode(request.IdentificationCode);
-        if (normalized is null)
-        {
-            throw new InvalidDataException("Identification code is invalid.");
-        }
-
-        return await dbContext.Users
+        return normalized is null
+            ? throw new InvalidDataException("Identification code is invalid.")
+            : (IEnumerable<User>)await dbContext.Users
             .Where(u => u.IdentificationCode == normalized)
             .ToListAsync(cancellationToken);
     }

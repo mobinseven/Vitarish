@@ -26,7 +26,7 @@ internal sealed class RegisterCodeSystemReleaseHandler(MedicalDbContext dbContex
             return EntityResult<Guid>.Failure(EntityError.Validation($"Release '{request.ReleaseName}' already exists for this code system."));
         }
 
-        var entity = new CodeSystemRelease
+        CodeSystemRelease entity = new()
         {
             Id = Guid.NewGuid(),
             CodeSystemId = request.CodeSystemId,

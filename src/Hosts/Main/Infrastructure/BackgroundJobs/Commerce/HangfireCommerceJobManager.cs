@@ -13,31 +13,22 @@ public class HangfireCommerceJobManager(
     private const string OrderSyncJobId = "commerce:orders:sync";
     private const string CartCleanupJobId = "commerce:carts:cleanup";
 
-    public void ScheduleCatalogSync()
-    {
-        recurringJobManager.AddOrUpdate<CommerceCatalogSyncProcessor>(
+    public void ScheduleCatalogSync() => recurringJobManager.AddOrUpdate<CommerceCatalogSyncProcessor>(
             CatalogSyncJobId,
             processor => processor.ProcessAsync(CancellationToken.None),
             Cron.MinuteInterval(15));
-    }
 
     public void TriggerCatalogSync() => recurringJobManager.Trigger(CatalogSyncJobId);
 
-    public void ScheduleOrderSync()
-    {
-        recurringJobManager.AddOrUpdate<CommerceOrderSyncProcessor>(
+    public void ScheduleOrderSync() => recurringJobManager.AddOrUpdate<CommerceOrderSyncProcessor>(
             OrderSyncJobId,
             processor => processor.ProcessAsync(CancellationToken.None),
             Cron.MinuteInterval(5));
-    }
 
     public void TriggerOrderSync() => recurringJobManager.Trigger(OrderSyncJobId);
 
-    public void ScheduleCartCleanup()
-    {
-        recurringJobManager.AddOrUpdate<CommerceCartCleanupProcessor>(
+    public void ScheduleCartCleanup() => recurringJobManager.AddOrUpdate<CommerceCartCleanupProcessor>(
             CartCleanupJobId,
             processor => processor.ProcessAsync(CancellationToken.None),
             Cron.Daily(3));
-    }
 }

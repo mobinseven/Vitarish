@@ -84,9 +84,9 @@ public sealed class OllamaTranscriber(IOptionsMonitor<AiOptions> aiOptions) : IT
         [EnumeratorCancellation] CancellationToken cancellationToken)
     {
         using MemoryStream buffer = new();
-        await foreach(byte[] chunk in audio.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+        await foreach (byte[] chunk in audio.ReadAllAsync(cancellationToken).ConfigureAwait(false))
         {
-            if(chunk.Length == 0)
+            if (chunk.Length == 0)
             {
                 continue;
             }
@@ -96,7 +96,7 @@ public sealed class OllamaTranscriber(IOptionsMonitor<AiOptions> aiOptions) : IT
 
         buffer.Position = 0;
         string? transcript = await TranscribeAsync(buffer, mimeType, language, modelId, cancellationToken).ConfigureAwait(false);
-        if(!string.IsNullOrWhiteSpace(transcript))
+        if (!string.IsNullOrWhiteSpace(transcript))
         {
             yield return transcript;
         }
@@ -104,7 +104,7 @@ public sealed class OllamaTranscriber(IOptionsMonitor<AiOptions> aiOptions) : IT
 
     private HttpClient EnsureClient()
     {
-        if(client is not null)
+        if (client is not null)
         {
             return client;
         }
@@ -120,7 +120,7 @@ public sealed class OllamaTranscriber(IOptionsMonitor<AiOptions> aiOptions) : IT
 
     private string ResolveModel(string? requestedModel)
     {
-        if(!string.IsNullOrWhiteSpace(requestedModel))
+        if (!string.IsNullOrWhiteSpace(requestedModel))
         {
             return requestedModel;
         }

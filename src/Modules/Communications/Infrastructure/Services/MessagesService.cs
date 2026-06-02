@@ -1,8 +1,6 @@
 using MailKit.Net.Smtp;
 using Microsoft.Extensions.Options;
 using MimeKit;
-using Vitarish.Communications.Application.Abstractions;
-using Vitarish.Communications.Domain.Models;
 using Vitarish.Communications.Domain.Options;
 
 namespace Vitarish.Communications.Infrastructure.Services;

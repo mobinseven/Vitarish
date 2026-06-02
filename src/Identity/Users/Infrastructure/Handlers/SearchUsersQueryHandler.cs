@@ -12,12 +12,9 @@ public sealed class SearchUsersQueryHandler(UsersDbContext db) : IRequestHandler
     {
         string q = request.Query.Trim();
 
-        if (string.IsNullOrWhiteSpace(q))
-        {
-            return [];
-        }
-
-        return await db.Users
+        return string.IsNullOrWhiteSpace(q)
+            ? []
+            : (IEnumerable<User>)await db.Users
             .AsNoTracking()
             .Where(u =>
                 u.FirstName!.Contains(q) ||

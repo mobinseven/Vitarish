@@ -52,7 +52,7 @@ public partial class AiResponderChat : CommonBase
         = EventCallback<IReadOnlyList<AiResponderChatTurn>>.Empty;
 
     [Parameter]
-    public new EventCallback<string?> OnError { get; set; }
+    public EventCallback<string?> OnError { get; set; }
         = EventCallback<string?>.Empty;
 
     [Parameter]

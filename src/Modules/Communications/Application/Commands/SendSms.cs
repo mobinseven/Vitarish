@@ -1,6 +1,3 @@
-using Vitarish.Communications.Application.Abstractions;
-using Vitarish.Communications.Domain.Models;
-
 namespace Vitarish.Communications.Application.Commands;
 
 public static class SendSms

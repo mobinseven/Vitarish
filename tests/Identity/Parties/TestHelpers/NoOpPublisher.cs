@@ -1,7 +1,7 @@
-namespace Parties.Tests.TestHelpers;
 
 using MediatR;
 
+namespace Parties.Tests.TestHelpers;
 /// <summary>
 /// No-op publisher for testing purposes.
 /// </summary>

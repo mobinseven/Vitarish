@@ -66,7 +66,7 @@ internal sealed class AttachmentsService(
         Attachment? updated = await Mediator.Send(
             new UpdateEntityCommand<Attachment, AttachmentDescriptor>(entity),
             cancellationToken);
-        return updated is null ? null : updated.ToDto();
+        return updated?.ToDto();
     }
 
     public async Task<AttachmentSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken)

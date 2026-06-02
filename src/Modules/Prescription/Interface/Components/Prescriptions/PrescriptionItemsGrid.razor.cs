@@ -22,7 +22,7 @@ public partial class PrescriptionItemsGrid : PrescriptionBase
         }
         else
         {
-            await DialogService.ShowMessageBox(
+            _ = await DialogService.ShowMessageBox(
                 Localizer["Error"],
                 result.ErrorMessage ?? Localizer["UnknownError"],
                 yesText: Localizer["OK"]);

@@ -1,9 +1,8 @@
+using Microsoft.EntityFrameworkCore.Storage;
 using Vitarish.Appointments.Application.Events;
-using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Appointments.Infrastructure.Services;
 using Vitarish.Entities.Server.Data;
 using Vitarish.Requests.Application.Abstractions;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Vitarish.Appointments.Infrastructure.Handlers;
 
@@ -74,10 +73,10 @@ internal class CreateReservationHandler(
                         TenantId = tenantId
                     };
 
-                    dbContext.ShiftReservationLocks.Add(lockEntry);
+                    _ = dbContext.ShiftReservationLocks.Add(lockEntry);
                     try
                     {
-                        await dbContext.SaveChangesAsync(cancellationToken);
+                        _ = await dbContext.SaveChangesAsync(cancellationToken);
                     }
                     catch (DbUpdateException lockEx) when (DatabaseExceptions.IsUniqueConstraintViolation(lockEx))
                     {
@@ -88,20 +87,20 @@ internal class CreateReservationHandler(
                     int occupiedSeats = await CountActiveReservationsAsync(request.ShiftId, request.Date, cancellationToken);
                     if (!request.CapacityOverride && occupiedSeats >= ShiftBookingPolicyEvaluator.GetEffectiveCapacity(shift!, request.Date, policies))
                     {
-                        dbContext.ShiftReservationLocks.Remove(lockEntry);
-                        await dbContext.SaveChangesAsync(cancellationToken);
+                        _ = dbContext.ShiftReservationLocks.Remove(lockEntry);
+                        _ = await dbContext.SaveChangesAsync(cancellationToken);
                         await transaction.RollbackAsync(cancellationToken);
                         return EntityResult<Reservation>.Failure(EntityError.Conflict("No seats are available for this shift slot."));
                     }
 
                     Reservation reservation = BuildReservation(shift!, request, policies);
 
-                    dbContext.Reservations.Add(reservation);
-                    dbContext.ShiftReservationLocks.Remove(lockEntry);
+                    _ = dbContext.Reservations.Add(reservation);
+                    _ = dbContext.ShiftReservationLocks.Remove(lockEntry);
 
                     try
                     {
-                        await dbContext.SaveChangesAsync(cancellationToken);
+                        _ = await dbContext.SaveChangesAsync(cancellationToken);
                         await transaction.CommitAsync(cancellationToken);
                         return EntityResult<Reservation>.Success(reservation);
                     }
@@ -121,8 +120,8 @@ internal class CreateReservationHandler(
                 }
 
                 Reservation fallbackReservation = BuildReservation(shift!, request, policies);
-                dbContext.Reservations.Add(fallbackReservation);
-                await dbContext.SaveChangesAsync(cancellationToken);
+                _ = dbContext.Reservations.Add(fallbackReservation);
+                _ = await dbContext.SaveChangesAsync(cancellationToken);
                 await transaction.CommitAsync(cancellationToken);
                 return EntityResult<Reservation>.Success(fallbackReservation);
             });
@@ -160,25 +159,16 @@ internal class CreateReservationHandler(
             return EntityResult.Failure(EntityError.NotFound("Shift not found.", "shiftId"));
         }
 
-        if (shift.Status != ShiftStatus.Active)
-        {
-            return EntityResult.Failure(EntityError.Conflict("This shift is not open for reservations."));
-        }
-
-        if (date.DayOfWeek != shift.DayOfWeek)
-        {
-            return EntityResult.Failure(EntityError.Validation("Reservation date must match the shift day of week.", new Dictionary<string, string>
+        return shift.Status != ShiftStatus.Active
+            ? EntityResult.Failure(EntityError.Conflict("This shift is not open for reservations."))
+            : date.DayOfWeek != shift.DayOfWeek
+            ? EntityResult.Failure(EntityError.Validation("Reservation date must match the shift day of week.", new Dictionary<string, string>
             {
                 ["date"] = "Reservation date must match the shift day of week."
-            }));
-        }
-
-        if (policies.Any(p => p.Date == date && p.Closed))
-        {
-            return EntityResult.Failure(EntityError.Conflict("This date is closed for reservations."));
-        }
-
-        return EntityResult.Success();
+            }))
+            : policies.Any(p => p.Date == date && p.Closed)
+            ? EntityResult.Failure(EntityError.Conflict("This date is closed for reservations."))
+            : EntityResult.Success();
     }
 
     private async Task<bool> HasCapacityForPartyAsync(

@@ -84,36 +84,30 @@ public sealed class TaminErrorMapper : IProviderErrorMapper
         }
 
         // Map by exception type
-        if (context.Exception is TimeoutException or TaskCanceledException)
-        {
-            return new IntegrationError
+        return context.Exception is TimeoutException or TaskCanceledException
+            ? new IntegrationError
             {
                 Category = ErrorCategory.Timeout,
                 UserMessage = "سامانه تامین اجتماعی پاسخگو نیست. لطفاً دوباره تلاش کنید.",
                 TechnicalDetail = context.Exception.Message,
                 IsRetryable = true
-            };
-        }
-
-        if (context.Exception is HttpRequestException)
-        {
-            return new IntegrationError
+            }
+            : context.Exception is HttpRequestException
+            ? new IntegrationError
             {
                 Category = ErrorCategory.Outage,
                 UserMessage = "ارتباط با سامانه تامین اجتماعی برقرار نشد.",
                 TechnicalDetail = context.Exception.Message,
                 IsRetryable = true
+            }
+            : new IntegrationError
+            {
+                Category = ErrorCategory.Unknown,
+                UserMessage = "خطای ناشناخته رخ داد.",
+                TechnicalDetail = context.Exception?.Message ?? context.ProviderErrorMessage,
+                ProviderErrorCode = context.ProviderErrorCode,
+                ProviderErrorMessage = context.ProviderErrorMessage,
+                IsRetryable = false
             };
-        }
-
-        return new IntegrationError
-        {
-            Category = ErrorCategory.Unknown,
-            UserMessage = "خطای ناشناخته رخ داد.",
-            TechnicalDetail = context.Exception?.Message ?? context.ProviderErrorMessage,
-            ProviderErrorCode = context.ProviderErrorCode,
-            ProviderErrorMessage = context.ProviderErrorMessage,
-            IsRetryable = false
-        };
     }
 }

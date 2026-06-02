@@ -13,53 +13,53 @@ public sealed class ITranscriptionProviderInterfaceTests
     public void SupportsModel_WithSupportedModel_ReturnsTrue()
     {
         // Arrange
-        var mockProvider = new Mock<ITranscriptionProvider>();
-        mockProvider.Setup(p => p.SupportsModel("whisper")).Returns(true);
+        Mock<ITranscriptionProvider> mockProvider = new();
+        _ = mockProvider.Setup(p => p.SupportsModel("whisper")).Returns(true);
 
         // Act
-        var result = mockProvider.Object.SupportsModel("whisper");
+        bool result = mockProvider.Object.SupportsModel("whisper");
 
         // Assert
-        result.Should().BeTrue();
+        _ = result.Should().BeTrue();
     }
 
     [Fact]
     public void SupportsModel_WithUnsupportedModel_ReturnsFalse()
     {
         // Arrange
-        var mockProvider = new Mock<ITranscriptionProvider>();
-        mockProvider.Setup(p => p.SupportsModel("unknown-model")).Returns(false);
+        Mock<ITranscriptionProvider> mockProvider = new();
+        _ = mockProvider.Setup(p => p.SupportsModel("unknown-model")).Returns(false);
 
         // Act
-        var result = mockProvider.Object.SupportsModel("unknown-model");
+        bool result = mockProvider.Object.SupportsModel("unknown-model");
 
         // Assert
-        result.Should().BeFalse();
+        _ = result.Should().BeFalse();
     }
 
     [Fact]
     public void SupportsModel_WithNullModelId_ReturnsFalse()
     {
         // Arrange
-        var mockProvider = new Mock<ITranscriptionProvider>();
-        mockProvider.Setup(p => p.SupportsModel(null)).Returns(false);
+        Mock<ITranscriptionProvider> mockProvider = new();
+        _ = mockProvider.Setup(p => p.SupportsModel(null)).Returns(false);
 
         // Act
-        var result = mockProvider.Object.SupportsModel(null);
+        bool result = mockProvider.Object.SupportsModel(null);
 
         // Assert
-        result.Should().BeFalse();
+        _ = result.Should().BeFalse();
     }
 
     [Fact]
     public async Task TranscribeAsync_WithValidInput_ReturnsTranscribedText()
     {
         // Arrange
-        var mockProvider = new Mock<ITranscriptionProvider>();
+        Mock<ITranscriptionProvider> mockProvider = new();
         using MemoryStream audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
-        var expectedText = "Test transcription result";
+        string expectedText = "Test transcription result";
 
-        mockProvider
+        _ = mockProvider
             .Setup(p => p.TranscribeAsync(
                 It.IsAny<Stream>(),
                 It.IsAny<string>(),
@@ -69,23 +69,23 @@ public sealed class ITranscriptionProviderInterfaceTests
             .ReturnsAsync(expectedText);
 
         // Act
-        var result = await mockProvider.Object.TranscribeAsync(
+        string? result = await mockProvider.Object.TranscribeAsync(
             audioStream, "audio/wav", "en-US", "whisper", CancellationToken.None);
 
         // Assert
-        result.Should().Be(expectedText);
+        _ = result.Should().Be(expectedText);
     }
 
     [Fact]
     public async Task TranscribeAsync_WithCancellation_ThrowsOperationCanceledException()
     {
         // Arrange
-        var mockProvider = new Mock<ITranscriptionProvider>();
+        Mock<ITranscriptionProvider> mockProvider = new();
         using MemoryStream audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
-        using var cts = new CancellationTokenSource();
+        using CancellationTokenSource cts = new();
         cts.Cancel();
 
-        mockProvider
+        _ = mockProvider
             .Setup(p => p.TranscribeAsync(
                 It.IsAny<Stream>(),
                 It.IsAny<string>(),
@@ -99,18 +99,18 @@ public sealed class ITranscriptionProviderInterfaceTests
             audioStream, "audio/wav", "en-US", "whisper", cts.Token);
 
         // Assert
-        await act.Should().ThrowAsync<OperationCanceledException>();
+        _ = await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
     [Fact]
     public async Task StreamTranscribeAsync_ReturnsAsyncEnumerableOfStrings()
     {
         // Arrange
-        var mockProvider = new Mock<ITranscriptionProvider>();
-        var channel = Channel.CreateBounded<byte[]>(10);
-        var expectedChunks = new List<string> { "Real", "-time", " transcription" };
+        Mock<ITranscriptionProvider> mockProvider = new();
+        Channel<byte[]> channel = Channel.CreateBounded<byte[]>(10);
+        List<string> expectedChunks = ["Real", "-time", " transcription"];
 
-        mockProvider
+        _ = mockProvider
             .Setup(p => p.StreamTranscribeAsync(
                 It.IsAny<ChannelReader<byte[]>>(),
                 It.IsAny<string>(),
@@ -120,28 +120,28 @@ public sealed class ITranscriptionProviderInterfaceTests
             .Returns(expectedChunks.ToAsyncEnumerable());
 
         // Act
-        var results = new List<string>();
-        await foreach (var chunk in mockProvider.Object.StreamTranscribeAsync(
+        List<string> results = [];
+        await foreach (string chunk in mockProvider.Object.StreamTranscribeAsync(
             channel.Reader, "audio/wav", "en-US", "whisper", CancellationToken.None))
         {
             results.Add(chunk);
         }
 
         // Assert
-        results.Should().HaveCount(3);
-        results.Should().BeEquivalentTo(expectedChunks);
+        _ = results.Should().HaveCount(3);
+        _ = results.Should().BeEquivalentTo(expectedChunks);
     }
 
     [Fact]
     public async Task StreamTranscribeAsync_WithCancellation_StopsStreaming()
     {
         // Arrange
-        var mockProvider = new Mock<ITranscriptionProvider>();
-        var channel = Channel.CreateBounded<byte[]>(10);
-        using var cts = new CancellationTokenSource();
+        Mock<ITranscriptionProvider> mockProvider = new();
+        Channel<byte[]> channel = Channel.CreateBounded<byte[]>(10);
+        using CancellationTokenSource cts = new();
         cts.Cancel();
 
-        mockProvider
+        _ = mockProvider
             .Setup(p => p.StreamTranscribeAsync(
                 It.IsAny<ChannelReader<byte[]>>(),
                 It.IsAny<string>(),
@@ -153,7 +153,7 @@ public sealed class ITranscriptionProviderInterfaceTests
         // Act
         Func<Task> act = async () =>
         {
-            await foreach (var _ in mockProvider.Object.StreamTranscribeAsync(
+            await foreach (string _ in mockProvider.Object.StreamTranscribeAsync(
                 channel.Reader, "audio/wav", "en-US", "whisper", cts.Token))
             {
                 // Intentionally left empty: enumerating to trigger OperationCanceledException
@@ -161,7 +161,7 @@ public sealed class ITranscriptionProviderInterfaceTests
         };
 
         // Assert
-        await act.Should().ThrowAsync<OperationCanceledException>();
+        _ = await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
     [Theory]
@@ -171,11 +171,11 @@ public sealed class ITranscriptionProviderInterfaceTests
     public void SupportsModel_WithVariousModels_VerifiesModelSupport(string modelId)
     {
         // Arrange
-        var mockProvider = new Mock<ITranscriptionProvider>();
-        mockProvider.Setup(p => p.SupportsModel(modelId)).Returns(true);
+        Mock<ITranscriptionProvider> mockProvider = new();
+        _ = mockProvider.Setup(p => p.SupportsModel(modelId)).Returns(true);
 
         // Act
-        mockProvider.Object.SupportsModel(modelId);
+        _ = mockProvider.Object.SupportsModel(modelId);
 
         // Assert
         mockProvider.Verify(p => p.SupportsModel(modelId), Times.Once);

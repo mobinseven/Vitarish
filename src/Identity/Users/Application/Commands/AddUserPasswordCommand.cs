@@ -1,7 +1,6 @@
 using FluentValidation;
 using MediatR;
 using Microsoft.AspNetCore.Identity;
-using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Users.Application.Commands;
 

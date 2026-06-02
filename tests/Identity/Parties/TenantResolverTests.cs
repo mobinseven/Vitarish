@@ -1,11 +1,9 @@
-namespace Parties.Tests;
 
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
-using Vitarish.Parties.Infrastructure.Services;
 using Vitarish.Parties.Domain.Enums;
 
+namespace Parties.Tests;
 /// <summary>
 /// Tests for tenant resolution functionality.
 /// </summary>
@@ -17,7 +15,7 @@ public class TenantResolverTests : IDisposable
 
     public TenantResolverTests()
     {
-        var options = new DbContextOptionsBuilder<PartiesDbContext>()
+        DbContextOptions<PartiesDbContext> options = new DbContextOptionsBuilder<PartiesDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
@@ -29,7 +27,7 @@ public class TenantResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_ReturnsNull_WhenHostIsEmpty()
     {
-        var httpContext = new DefaultHttpContext();
+        DefaultHttpContext httpContext = new();
         httpContext.Request.Host = new HostString("");
 
         Tenant? result = await _resolver.ResolveAsync(httpContext);
@@ -40,7 +38,7 @@ public class TenantResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_ReturnsTenant_ForActiveHostnameIndicator()
     {
-        var tenant = new Tenant
+        Tenant tenant = new()
         {
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
@@ -55,10 +53,10 @@ public class TenantResolverTests : IDisposable
             Value = "app.customer.com",
             Status = IndicatorStatus.Active
         });
-        _dbContext.Tenants.Add(tenant);
-        await _dbContext.SaveChangesAsync();
+        _ = _dbContext.Tenants.Add(tenant);
+        _ = await _dbContext.SaveChangesAsync();
 
-        var httpContext = new DefaultHttpContext();
+        DefaultHttpContext httpContext = new();
         httpContext.Request.Host = new HostString("app.customer.com");
 
         Tenant? result = await _resolver.ResolveAsync(httpContext);
@@ -70,7 +68,7 @@ public class TenantResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_ReturnsNull_ForPendingVerificationIndicator()
     {
-        var tenant = new Tenant
+        Tenant tenant = new()
         {
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
@@ -85,10 +83,10 @@ public class TenantResolverTests : IDisposable
             Value = "pending.customer.com",
             Status = IndicatorStatus.PendingVerification
         });
-        _dbContext.Tenants.Add(tenant);
-        await _dbContext.SaveChangesAsync();
+        _ = _dbContext.Tenants.Add(tenant);
+        _ = await _dbContext.SaveChangesAsync();
 
-        var httpContext = new DefaultHttpContext();
+        DefaultHttpContext httpContext = new();
         httpContext.Request.Host = new HostString("pending.customer.com");
 
         Tenant? result = await _resolver.ResolveAsync(httpContext);
@@ -99,7 +97,7 @@ public class TenantResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_ReturnsNull_ForVerifiedButNotActiveIndicator()
     {
-        var tenant = new Tenant
+        Tenant tenant = new()
         {
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
@@ -114,10 +112,10 @@ public class TenantResolverTests : IDisposable
             Value = "verified.customer.com",
             Status = IndicatorStatus.Verified
         });
-        _dbContext.Tenants.Add(tenant);
-        await _dbContext.SaveChangesAsync();
+        _ = _dbContext.Tenants.Add(tenant);
+        _ = await _dbContext.SaveChangesAsync();
 
-        var httpContext = new DefaultHttpContext();
+        DefaultHttpContext httpContext = new();
         httpContext.Request.Host = new HostString("verified.customer.com");
 
         Tenant? result = await _resolver.ResolveAsync(httpContext);
@@ -128,7 +126,7 @@ public class TenantResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_ReturnsNull_ForDisabledIndicator()
     {
-        var tenant = new Tenant
+        Tenant tenant = new()
         {
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
@@ -143,10 +141,10 @@ public class TenantResolverTests : IDisposable
             Value = "disabled.customer.com",
             Status = IndicatorStatus.Disabled
         });
-        _dbContext.Tenants.Add(tenant);
-        await _dbContext.SaveChangesAsync();
+        _ = _dbContext.Tenants.Add(tenant);
+        _ = await _dbContext.SaveChangesAsync();
 
-        var httpContext = new DefaultHttpContext();
+        DefaultHttpContext httpContext = new();
         httpContext.Request.Host = new HostString("disabled.customer.com");
 
         Tenant? result = await _resolver.ResolveAsync(httpContext);
@@ -157,7 +155,7 @@ public class TenantResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_NormalizesHostname_BeforeResolution()
     {
-        var tenant = new Tenant
+        Tenant tenant = new()
         {
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
@@ -172,10 +170,10 @@ public class TenantResolverTests : IDisposable
             Value = "app.customer.com",
             Status = IndicatorStatus.Active
         });
-        _dbContext.Tenants.Add(tenant);
-        await _dbContext.SaveChangesAsync();
+        _ = _dbContext.Tenants.Add(tenant);
+        _ = await _dbContext.SaveChangesAsync();
 
-        var httpContext = new DefaultHttpContext();
+        DefaultHttpContext httpContext = new();
         httpContext.Request.Host = new HostString("APP.CUSTOMER.COM");
 
         Tenant? result = await _resolver.ResolveAsync(httpContext);
@@ -187,7 +185,7 @@ public class TenantResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_UsesCache_OnSecondRequest()
     {
-        var tenant = new Tenant
+        Tenant tenant = new()
         {
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
@@ -202,18 +200,18 @@ public class TenantResolverTests : IDisposable
             Value = "app.customer.com",
             Status = IndicatorStatus.Active
         });
-        _dbContext.Tenants.Add(tenant);
-        await _dbContext.SaveChangesAsync();
+        _ = _dbContext.Tenants.Add(tenant);
+        _ = await _dbContext.SaveChangesAsync();
 
-        var httpContext1 = new DefaultHttpContext();
+        DefaultHttpContext httpContext1 = new();
         httpContext1.Request.Host = new HostString("app.customer.com");
         Tenant? result1 = await _resolver.ResolveAsync(httpContext1);
 
         // Remove tenant from DB to ensure cache is used
-        _dbContext.Tenants.Remove(tenant);
-        await _dbContext.SaveChangesAsync();
+        _ = _dbContext.Tenants.Remove(tenant);
+        _ = await _dbContext.SaveChangesAsync();
 
-        var httpContext2 = new DefaultHttpContext();
+        DefaultHttpContext httpContext2 = new();
         httpContext2.Request.Host = new HostString("app.customer.com");
         Tenant? result2 = await _resolver.ResolveAsync(httpContext2);
 
@@ -225,7 +223,7 @@ public class TenantResolverTests : IDisposable
     [Fact]
     public async Task ResolveAsync_SupportsSubdomainMethod()
     {
-        var tenant = new Tenant
+        Tenant tenant = new()
         {
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
@@ -240,10 +238,10 @@ public class TenantResolverTests : IDisposable
             Value = "customer.saas.example.com",
             Status = IndicatorStatus.Active
         });
-        _dbContext.Tenants.Add(tenant);
-        await _dbContext.SaveChangesAsync();
+        _ = _dbContext.Tenants.Add(tenant);
+        _ = await _dbContext.SaveChangesAsync();
 
-        var httpContext = new DefaultHttpContext();
+        DefaultHttpContext httpContext = new();
         httpContext.Request.Host = new HostString("customer.saas.example.com");
 
         Tenant? result = await _resolver.ResolveAsync(httpContext);

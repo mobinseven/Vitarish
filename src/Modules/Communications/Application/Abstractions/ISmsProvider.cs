@@ -1,5 +1,3 @@
-using Vitarish.Communications.Domain.Models;
-
 namespace Vitarish.Communications.Application.Abstractions;
 
 public interface ISmsProvider

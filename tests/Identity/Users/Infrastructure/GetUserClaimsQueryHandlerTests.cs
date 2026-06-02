@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Users.Tests.TestHelpers;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Entities;
@@ -16,7 +15,7 @@ public class GetUserClaimsQueryHandlerTests
 
         Func<Task> act = () => handler.Handle(new GetUserClaimsQuery("missing"), CancellationToken.None);
 
-        await act.Should().ThrowAsync<InvalidDataException>();
+        _ = await act.Should().ThrowAsync<InvalidDataException>();
     }
 
     [Fact]
@@ -26,14 +25,14 @@ public class GetUserClaimsQueryHandlerTests
         IdentityUserClaim<string> claim = new() { UserId = "user-1", ClaimType = "scope", ClaimValue = "read" };
 
         await using UsersDbContext dbContext = UsersDbContextFactory.Create();
-        dbContext.Users.Add(user);
-        dbContext.UserClaims.Add(claim);
-        await dbContext.SaveChangesAsync();
+        _ = dbContext.Users.Add(user);
+        _ = dbContext.UserClaims.Add(claim);
+        _ = await dbContext.SaveChangesAsync();
 
         GetUserClaimsQueryHandler handler = new(dbContext);
 
         IEnumerable<Vitarish.Users.Domain.Models.ClaimDto> result = await handler.Handle(new GetUserClaimsQuery("user-1"), CancellationToken.None);
 
-        result.Should().ContainSingle(dto => dto.Type == "scope" && dto.Value == "read");
+        _ = result.Should().ContainSingle(dto => dto.Type == "scope" && dto.Value == "read");
     }
 }

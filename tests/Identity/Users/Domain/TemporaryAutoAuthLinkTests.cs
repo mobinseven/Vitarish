@@ -20,13 +20,13 @@ public class TemporaryAutoAuthLinkTests
             expiresAt,
             "device");
 
-        link.CodeHash.Should().Be("hashed-code");
-        link.UserId.Should().Be("user-1");
-        link.DestinationPath.Should().Be("/advanced-input/voice");
-        link.Purpose.Should().Be("advanced-input-voice");
-        link.CreatedAt.Should().Be(createdAt);
-        link.ExpiresAt.Should().Be(expiresAt);
-        link.ConsumedAt.Should().BeNull();
+        _ = link.CodeHash.Should().Be("hashed-code");
+        _ = link.UserId.Should().Be("user-1");
+        _ = link.DestinationPath.Should().Be("/advanced-input/voice");
+        _ = link.Purpose.Should().Be("advanced-input-voice");
+        _ = link.CreatedAt.Should().Be(createdAt);
+        _ = link.ExpiresAt.Should().Be(expiresAt);
+        _ = link.ConsumedAt.Should().BeNull();
     }
 
     [Theory]
@@ -43,7 +43,7 @@ public class TemporaryAutoAuthLinkTests
             DateTimeOffset.UtcNow,
             DateTimeOffset.UtcNow.AddMinutes(5));
 
-        action.Should().Throw<ArgumentException>();
+        _ = action.Should().Throw<ArgumentException>();
     }
 
     [Theory]
@@ -60,7 +60,7 @@ public class TemporaryAutoAuthLinkTests
             DateTimeOffset.UtcNow,
             DateTimeOffset.UtcNow.AddMinutes(5));
 
-        action.Should().Throw<ArgumentException>();
+        _ = action.Should().Throw<ArgumentException>();
     }
 
     [Theory]
@@ -77,7 +77,7 @@ public class TemporaryAutoAuthLinkTests
             DateTimeOffset.UtcNow,
             DateTimeOffset.UtcNow.AddMinutes(5));
 
-        action.Should().Throw<ArgumentException>();
+        _ = action.Should().Throw<ArgumentException>();
     }
 
     [Theory]
@@ -94,7 +94,7 @@ public class TemporaryAutoAuthLinkTests
             DateTimeOffset.UtcNow,
             DateTimeOffset.UtcNow.AddMinutes(5));
 
-        action.Should().Throw<ArgumentException>();
+        _ = action.Should().Throw<ArgumentException>();
     }
 
     [Fact]
@@ -111,7 +111,7 @@ public class TemporaryAutoAuthLinkTests
             createdAt,
             createdAt);
 
-        action.Should().Throw<ArgumentOutOfRangeException>();
+        _ = action.Should().Throw<ArgumentOutOfRangeException>();
     }
 
     [Fact]
@@ -130,9 +130,9 @@ public class TemporaryAutoAuthLinkTests
 
         link.MarkConsumed(consumedAt, "127.0.0.1", "agent");
 
-        link.ConsumedAt.Should().Be(consumedAt);
-        link.ConsumedByIp.Should().Be("127.0.0.1");
-        link.ConsumedByUserAgent.Should().Be("agent");
+        _ = link.ConsumedAt.Should().Be(consumedAt);
+        _ = link.ConsumedByIp.Should().Be("127.0.0.1");
+        _ = link.ConsumedByUserAgent.Should().Be("agent");
     }
 
     [Fact]
@@ -150,6 +150,6 @@ public class TemporaryAutoAuthLinkTests
 
         Action action = () => link.MarkConsumed(createdAt.AddSeconds(-1), "127.0.0.1", "agent");
 
-        action.Should().Throw<ArgumentOutOfRangeException>();
+        _ = action.Should().Throw<ArgumentOutOfRangeException>();
     }
 }

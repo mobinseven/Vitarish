@@ -9,7 +9,7 @@ public class UserAccessClaimRemovedEventTests
     {
         UserAccessClaimRemovedEvent @event = new("user-1", "client-2");
 
-        @event.UserId.Should().Be("user-1");
-        @event.ClientId.Should().Be("client-2");
+        _ = @event.UserId.Should().Be("user-1");
+        _ = @event.ClientId.Should().Be("client-2");
     }
 }

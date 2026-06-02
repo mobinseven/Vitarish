@@ -17,10 +17,18 @@ public partial class ShiftBookingPolicyForm : ShiftBookingPoliciesBase
             ? new ShiftBookingPolicyWriteDto { ShiftId = ShiftId, Date = DateOnly.FromDateTime(DateTime.UtcNow) }
             : new ShiftBookingPolicyWriteDto
             {
-                Id = Policy.Id, ShiftId = Policy.ShiftId, Date = Policy.Date, BookingOpensBefore = Policy.BookingOpensBefore,
-                BookingCloseBefore = Policy.BookingCloseBefore, Closed = Policy.Closed, Capacity = Policy.Capacity,
-                RequiresApproval = Policy.RequiresApproval, CancellationDeadline = Policy.CancellationDeadline,
-                EstimatedSessionLength = Policy.EstimatedSessionLength, AllowRescheduling = Policy.AllowRescheduling, MaxReservationsPerParty = Policy.MaxReservationsPerParty
+                Id = Policy.Id,
+                ShiftId = Policy.ShiftId,
+                Date = Policy.Date,
+                BookingOpensBefore = Policy.BookingOpensBefore,
+                BookingCloseBefore = Policy.BookingCloseBefore,
+                Closed = Policy.Closed,
+                Capacity = Policy.Capacity,
+                RequiresApproval = Policy.RequiresApproval,
+                CancellationDeadline = Policy.CancellationDeadline,
+                EstimatedSessionLength = Policy.EstimatedSessionLength,
+                AllowRescheduling = Policy.AllowRescheduling,
+                MaxReservationsPerParty = Policy.MaxReservationsPerParty
             };
         Shift = await ShiftManager.GetAsync(ShiftId, CancellationToken.None).GetValueOrDefaultAsync();
     }

@@ -2,7 +2,7 @@ namespace Vitarish.Interfaces.Accounts.Components;
 
 public partial class PhoneLoginForm : IdentityCommonBase
 {
-    private User? User = null;
+    private new User? User = null;
     private string? PhoneNumber = null;
 
     private async Task ValidSendCodeSubmit(SendSmsCodeModel model)

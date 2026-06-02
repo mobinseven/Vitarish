@@ -9,76 +9,76 @@ public sealed class ResponderOptionsTests
     public void ResponderOptions_DefaultValues_AreCorrect()
     {
         // Arrange & Act
-        var options = new ResponderOptions();
+        ResponderOptions options = new();
 
         // Assert
-        options.Instructions.Should().BeNull();
-        options.TextFormat.Should().Be(ResponseTextFormat.Text);
-        options.PreviousResponseId.Should().BeNull();
-        options.Model.Should().BeNull();
-        options.Tools.Should().BeEmpty();
-        options.EnableWebSearchTool.Should().BeFalse();
-        options.EnableComputerTool.Should().BeFalse();
+        _ = options.Instructions.Should().BeNull();
+        _ = options.TextFormat.Should().Be(ResponseTextFormat.Text);
+        _ = options.PreviousResponseId.Should().BeNull();
+        _ = options.Model.Should().BeNull();
+        _ = options.Tools.Should().BeEmpty();
+        _ = options.EnableWebSearchTool.Should().BeFalse();
+        _ = options.EnableComputerTool.Should().BeFalse();
     }
 
     [Fact]
     public void ResponderOptions_WithInstructions_SetsCorrectly()
     {
         // Arrange & Act
-        var options = new ResponderOptions
+        ResponderOptions options = new()
         {
             Instructions = "You are a helpful assistant."
         };
 
         // Assert
-        options.Instructions.Should().Be("You are a helpful assistant.");
+        _ = options.Instructions.Should().Be("You are a helpful assistant.");
     }
 
     [Fact]
     public void ResponderOptions_WithTextFormat_SetsCorrectly()
     {
         // Arrange & Act
-        var options = new ResponderOptions
+        ResponderOptions options = new()
         {
             TextFormat = ResponseTextFormat.JsonObject
         };
 
         // Assert
-        options.TextFormat.Should().Be(ResponseTextFormat.JsonObject);
+        _ = options.TextFormat.Should().Be(ResponseTextFormat.JsonObject);
     }
 
     [Fact]
     public void ResponderOptions_WithPreviousResponseId_SetsCorrectly()
     {
         // Arrange & Act
-        var options = new ResponderOptions
+        ResponderOptions options = new()
         {
             PreviousResponseId = "resp-12345"
         };
 
         // Assert
-        options.PreviousResponseId.Should().Be("resp-12345");
+        _ = options.PreviousResponseId.Should().Be("resp-12345");
     }
 
     [Fact]
     public void ResponderOptions_WithModel_SetsCorrectly()
     {
         // Arrange & Act
-        var options = new ResponderOptions
+        ResponderOptions options = new()
         {
             Model = "gpt-5-nano-2025-08-07"
         };
 
         // Assert
-        options.Model.Should().Be("gpt-5-nano-2025-08-07");
+        _ = options.Model.Should().Be("gpt-5-nano-2025-08-07");
     }
 
     [Fact]
     public void ResponderOptions_WithTools_SetsCorrectly()
     {
         // Arrange
-        var tools = new List<ResponderToolDefinition>
-        {
+        List<ResponderToolDefinition> tools =
+        [
             new()
             {
                 Type = "mcp",
@@ -86,57 +86,57 @@ public sealed class ResponderOptionsTests
                 ServerUrl = "https://mcp.example.com",
                 AllowedTools = ["search", "browse"]
             }
-        };
+        ];
 
         // Act
-        var options = new ResponderOptions
+        ResponderOptions options = new()
         {
             Tools = tools
         };
 
         // Assert
-        options.Tools.Should().HaveCount(1);
-        options.Tools[0].Type.Should().Be("mcp");
-        options.Tools[0].ServerLabel.Should().Be("web-search");
+        _ = options.Tools.Should().HaveCount(1);
+        _ = options.Tools[0].Type.Should().Be("mcp");
+        _ = options.Tools[0].ServerLabel.Should().Be("web-search");
     }
 
     [Fact]
     public void ResponderOptions_WithWebSearchEnabled_SetsCorrectly()
     {
         // Arrange & Act
-        var options = new ResponderOptions
+        ResponderOptions options = new()
         {
             EnableWebSearchTool = true
         };
 
         // Assert
-        options.EnableWebSearchTool.Should().BeTrue();
+        _ = options.EnableWebSearchTool.Should().BeTrue();
     }
 
     [Fact]
     public void ResponderOptions_WithComputerToolEnabled_SetsCorrectly()
     {
         // Arrange & Act
-        var options = new ResponderOptions
+        ResponderOptions options = new()
         {
             EnableComputerTool = true
         };
 
         // Assert
-        options.EnableComputerTool.Should().BeTrue();
+        _ = options.EnableComputerTool.Should().BeTrue();
     }
 
     [Fact]
     public void ResponderOptions_WithAllProperties_SetsCorrectly()
     {
         // Arrange
-        var tools = new List<ResponderToolDefinition>
-        {
+        List<ResponderToolDefinition> tools =
+        [
             new() { Type = "mcp", ServerLabel = "server-1", ServerUrl = "https://mcp1.example.com" }
-        };
+        ];
 
         // Act
-        var options = new ResponderOptions
+        ResponderOptions options = new()
         {
             Instructions = "Be helpful",
             TextFormat = ResponseTextFormat.JsonObject,
@@ -148,39 +148,42 @@ public sealed class ResponderOptionsTests
         };
 
         // Assert
-        options.Instructions.Should().Be("Be helpful");
-        options.TextFormat.Should().Be(ResponseTextFormat.JsonObject);
-        options.PreviousResponseId.Should().Be("prev-123");
-        options.Model.Should().Be("gpt-5");
-        options.Tools.Should().HaveCount(1);
-        options.EnableWebSearchTool.Should().BeTrue();
-        options.EnableComputerTool.Should().BeTrue();
+        _ = options.Instructions.Should().Be("Be helpful");
+        _ = options.TextFormat.Should().Be(ResponseTextFormat.JsonObject);
+        _ = options.PreviousResponseId.Should().Be("prev-123");
+        _ = options.Model.Should().Be("gpt-5");
+        _ = options.Tools.Should().HaveCount(1);
+        _ = options.EnableWebSearchTool.Should().BeTrue();
+        _ = options.EnableComputerTool.Should().BeTrue();
     }
 
     [Fact]
     public void ResponderOptions_Equality_WorksCorrectly()
     {
         // Arrange
-        var options1 = new ResponderOptions { Model = "gpt-5", Instructions = "Test" };
-        var options2 = new ResponderOptions { Model = "gpt-5", Instructions = "Test" };
+        ResponderOptions options1 = new()
+        { Model = "gpt-5", Instructions = "Test" };
+        ResponderOptions options2 = new()
+        { Model = "gpt-5", Instructions = "Test" };
 
         // Assert
-        options1.Should().Be(options2);
+        _ = options1.Should().Be(options2);
     }
 
     [Fact]
     public void ResponderOptions_WithCopy_CreatesNewInstance()
     {
         // Arrange
-        var original = new ResponderOptions { Model = "gpt-4", Instructions = "Original" };
+        ResponderOptions original = new()
+        { Model = "gpt-4", Instructions = "Original" };
 
         // Act
         ResponderOptions copy = original with { Model = "gpt-5" };
 
         // Assert
-        copy.Model.Should().Be("gpt-5");
-        copy.Instructions.Should().Be("Original");
-        original.Model.Should().Be("gpt-4");
+        _ = copy.Model.Should().Be("gpt-5");
+        _ = copy.Instructions.Should().Be("Original");
+        _ = original.Model.Should().Be("gpt-4");
     }
 
     [Theory]
@@ -191,10 +194,11 @@ public sealed class ResponderOptionsTests
     public void ResponderOptions_AcceptsVariousModels(string model)
     {
         // Arrange & Act
-        var options = new ResponderOptions { Model = model };
+        ResponderOptions options = new()
+        { Model = model };
 
         // Assert
-        options.Model.Should().Be(model);
+        _ = options.Model.Should().Be(model);
     }
 }
 
@@ -207,22 +211,23 @@ public sealed class ResponderToolDefinitionTests
     public void ResponderToolDefinition_DefaultValues_AreCorrect()
     {
         // Arrange & Act
-        var tool = new ResponderToolDefinition { Type = "mcp" };
+        ResponderToolDefinition tool = new()
+        { Type = "mcp" };
 
         // Assert
-        tool.Type.Should().Be("mcp");
-        tool.ServerLabel.Should().BeNull();
-        tool.ServerUrl.Should().BeNull();
-        tool.ServerToken.Should().BeNull();
-        tool.AllowedTools.Should().BeEmpty();
-        tool.RequireApproval.Should().Be(ResponderToolApprovalRequirement.Never);
+        _ = tool.Type.Should().Be("mcp");
+        _ = tool.ServerLabel.Should().BeNull();
+        _ = tool.ServerUrl.Should().BeNull();
+        _ = tool.ServerToken.Should().BeNull();
+        _ = tool.AllowedTools.Should().BeEmpty();
+        _ = tool.RequireApproval.Should().Be(ResponderToolApprovalRequirement.Never);
     }
 
     [Fact]
     public void ResponderToolDefinition_WithAllProperties_SetsCorrectly()
     {
         // Arrange & Act
-        var tool = new ResponderToolDefinition
+        ResponderToolDefinition tool = new()
         {
             Type = "mcp",
             ServerLabel = "web-server",
@@ -233,23 +238,25 @@ public sealed class ResponderToolDefinitionTests
         };
 
         // Assert
-        tool.Type.Should().Be("mcp");
-        tool.ServerLabel.Should().Be("web-server");
-        tool.ServerUrl.Should().Be("https://mcp.example.com");
-        tool.ServerToken.Should().Be("secret-token");
-        tool.AllowedTools.Should().HaveCount(3);
-        tool.RequireApproval.Should().Be(ResponderToolApprovalRequirement.Always);
+        _ = tool.Type.Should().Be("mcp");
+        _ = tool.ServerLabel.Should().Be("web-server");
+        _ = tool.ServerUrl.Should().Be("https://mcp.example.com");
+        _ = tool.ServerToken.Should().Be("secret-token");
+        _ = tool.AllowedTools.Should().HaveCount(3);
+        _ = tool.RequireApproval.Should().Be(ResponderToolApprovalRequirement.Always);
     }
 
     [Fact]
     public void ResponderToolDefinition_Equality_WorksCorrectly()
     {
         // Arrange
-        var tool1 = new ResponderToolDefinition { Type = "mcp", ServerLabel = "server-1" };
-        var tool2 = new ResponderToolDefinition { Type = "mcp", ServerLabel = "server-1" };
+        ResponderToolDefinition tool1 = new()
+        { Type = "mcp", ServerLabel = "server-1" };
+        ResponderToolDefinition tool2 = new()
+        { Type = "mcp", ServerLabel = "server-1" };
 
         // Assert
-        tool1.Should().Be(tool2);
+        _ = tool1.Should().Be(tool2);
     }
 
     [Theory]
@@ -258,14 +265,14 @@ public sealed class ResponderToolDefinitionTests
     public void ResponderToolDefinition_AcceptsAllApprovalRequirements(ResponderToolApprovalRequirement approval)
     {
         // Arrange & Act
-        var tool = new ResponderToolDefinition
+        ResponderToolDefinition tool = new()
         {
             Type = "mcp",
             RequireApproval = approval
         };
 
         // Assert
-        tool.RequireApproval.Should().Be(approval);
+        _ = tool.RequireApproval.Should().Be(approval);
     }
 }
 
@@ -278,8 +285,8 @@ public sealed class ResponseTextFormatTests
     public void ResponseTextFormat_HasExpectedValues()
     {
         // Assert
-        Enum.GetValues<ResponseTextFormat>().Should().Contain(ResponseTextFormat.Text);
-        Enum.GetValues<ResponseTextFormat>().Should().Contain(ResponseTextFormat.JsonObject);
+        _ = Enum.GetValues<ResponseTextFormat>().Should().Contain(ResponseTextFormat.Text);
+        _ = Enum.GetValues<ResponseTextFormat>().Should().Contain(ResponseTextFormat.JsonObject);
     }
 
     [Theory]
@@ -299,8 +306,8 @@ public sealed class ResponderToolApprovalRequirementTests
     public void ResponderToolApprovalRequirement_HasExpectedValues()
     {
         // Assert
-        Enum.GetValues<ResponderToolApprovalRequirement>().Should().Contain(ResponderToolApprovalRequirement.Never);
-        Enum.GetValues<ResponderToolApprovalRequirement>().Should().Contain(ResponderToolApprovalRequirement.Always);
+        _ = Enum.GetValues<ResponderToolApprovalRequirement>().Should().Contain(ResponderToolApprovalRequirement.Never);
+        _ = Enum.GetValues<ResponderToolApprovalRequirement>().Should().Contain(ResponderToolApprovalRequirement.Always);
     }
 
     [Theory]

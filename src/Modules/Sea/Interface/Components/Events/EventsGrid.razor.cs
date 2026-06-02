@@ -54,8 +54,8 @@ public partial class EventsGrid : EventsBase
             { nameof(EventEditDialog.Event), item }
         };
 
-        var dialog = await DialogService.ShowAsync<EventEditDialog>(null, parameters);
-        var result = dialog.Result;
+        IDialogReference dialog = await DialogService.ShowAsync<EventEditDialog>(null, parameters);
+        Task<DialogResult?>? result = dialog.Result;
         if (result is null || result.IsCanceled)
         {
             return;

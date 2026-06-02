@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Vitarish.Medical.Application.Abstractions;
 using Vitarish.Medical.Infrastructure.Data;
 using Vitarish.Medical.Infrastructure.DependencyInjection;
 using Vitarish.Modules.Base;

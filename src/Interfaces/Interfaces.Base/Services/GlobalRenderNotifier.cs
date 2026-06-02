@@ -1,6 +1,3 @@
-using Vitarish.Interfaces.Base.Abstractions;
-using Vitarish.Interfaces.Base.Models;
-
 namespace Vitarish.Interfaces.Base.Services;
 
 [RegisterSingleton]

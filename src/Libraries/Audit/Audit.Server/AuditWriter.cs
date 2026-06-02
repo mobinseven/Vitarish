@@ -1,4 +1,3 @@
-using Microsoft.EntityFrameworkCore;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 

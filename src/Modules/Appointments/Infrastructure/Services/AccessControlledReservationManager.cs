@@ -51,12 +51,9 @@ internal class AccessControlledReservationManager(
         if (existing.IsSuccess && existing.Value is not null && existing.Value.Status != dto.Status)
         {
             EntityResult statusResult = await TransitionReservationAsync(dto.Id, dto.Status, cancellationToken, requireAdmin: dto.Status != ReservationStatus.Cancelled);
-            if (statusResult.IsFailure)
-            {
-                return EntityResult<ReservationReadDto>.Failure([.. statusResult.Errors]);
-            }
-
-            return await reservationManager.GetAsync(dto.Id, cancellationToken);
+            return statusResult.IsFailure
+                ? EntityResult<ReservationReadDto>.Failure([.. statusResult.Errors])
+                : await reservationManager.GetAsync(dto.Id, cancellationToken);
         }
 
         return await reservationManager.UpdateAsync(dto, cancellationToken);
@@ -213,12 +210,9 @@ internal class AccessControlledReservationManager(
             await EnsureOwnershipAsync(reservationId, cancellationToken);
         }
 
-        if (!await bookingPolicyEngine.CanCancelAsync(reservationId, cancellationToken))
-        {
-            return EntityResult.Failure(EntityError.Conflict("This reservation can no longer be cancelled."));
-        }
-
-        return await statusCoordinator.TransitionReservationAsync(reservationId, ReservationStatus.Cancelled, requestContext.UserId, cancellationToken);
+        return !await bookingPolicyEngine.CanCancelAsync(reservationId, cancellationToken)
+            ? EntityResult.Failure(EntityError.Conflict("This reservation can no longer be cancelled."))
+            : await statusCoordinator.TransitionReservationAsync(reservationId, ReservationStatus.Cancelled, requestContext.UserId, cancellationToken);
     }
 
     public Task<EntityResult> RejectReservationAsync(Guid reservationId, CancellationToken cancellationToken)
@@ -246,15 +240,9 @@ internal class AccessControlledReservationManager(
         Guid reservationId,
         ReservationStatus status,
         CancellationToken cancellationToken,
-        bool requireAdmin)
-    {
-        if (requireAdmin && !ElevatedAccess)
-        {
-            throw ElevatedAccessRequired;
-        }
-
-        return await statusCoordinator.TransitionReservationAsync(reservationId, status, requestContext.UserId, cancellationToken);
-    }
+        bool requireAdmin) => requireAdmin && !ElevatedAccess
+            ? throw ElevatedAccessRequired
+            : await statusCoordinator.TransitionReservationAsync(reservationId, status, requestContext.UserId, cancellationToken);
 
     private static bool IsActiveReservation(ReservationReadDto reservation)
         => reservation.Status is not ReservationStatus.Cancelled

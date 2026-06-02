@@ -1,5 +1,4 @@
 using Riok.Mapperly.Abstractions;
-using Vitarish.Clinic.Interface.Models;
 
 namespace Vitarish.Clinic.Interface.Mappers;
 

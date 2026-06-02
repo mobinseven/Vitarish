@@ -1,5 +1,3 @@
-using Microsoft.Extensions.Logging;
-
 namespace Users.Tests.TestHelpers;
 
 internal sealed class TestLogger<T> : ILogger<T>

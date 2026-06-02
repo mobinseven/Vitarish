@@ -1,5 +1,5 @@
-using System.Threading.Channels;
 using Microsoft.Extensions.Options;
+using System.Threading.Channels;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Domain.Options;
 using Vitarish.Intelligence.Infrastructure.Services.Google;

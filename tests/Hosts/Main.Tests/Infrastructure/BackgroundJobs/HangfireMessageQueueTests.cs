@@ -35,17 +35,11 @@ public class HangfireMessageQueueTests
     }
 
     [Fact]
-    public void Enqueue_WithNullCommand_ThrowsArgumentNullException()
-    {
-        _ = Assert.Throws<ArgumentNullException>(() => _sut.Enqueue(null!));
-    }
+    public void Enqueue_WithNullCommand_ThrowsArgumentNullException() => _ = Assert.Throws<ArgumentNullException>(() => _sut.Enqueue(null!));
 
     [Theory]
     [MemberData(nameof(GetInvalidCommands))]
-    public void Enqueue_WithInvalidCommand_ThrowsArgumentException(CommunicationCommand command)
-    {
-        _ = Assert.Throws<ArgumentException>(() => _sut.Enqueue(command));
-    }
+    public void Enqueue_WithInvalidCommand_ThrowsArgumentException(CommunicationCommand command) => _ = Assert.Throws<ArgumentException>(() => _sut.Enqueue(command));
 
     public static IEnumerable<object[]> GetValidCommands()
     {

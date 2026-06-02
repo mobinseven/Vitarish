@@ -58,22 +58,19 @@ public class TemporaryAutoAuthLink
         ValidateRequired(userId, nameof(userId));
         ValidateRequired(destinationPath, nameof(destinationPath));
         ValidateRequired(purpose, nameof(purpose));
-        if (expiresAt <= createdAt)
-        {
-            throw new ArgumentOutOfRangeException(nameof(expiresAt), "ExpiresAt must be later than CreatedAt.");
-        }
-
-        return new TemporaryAutoAuthLink
-        {
-            Id = id,
-            CodeHash = codeHash,
-            UserId = userId,
-            DestinationPath = destinationPath,
-            Purpose = purpose,
-            CreatedAt = createdAt,
-            ExpiresAt = expiresAt,
-            CreatedByDeviceHint = createdByDeviceHint
-        };
+        return expiresAt <= createdAt
+            ? throw new ArgumentOutOfRangeException(nameof(expiresAt), "ExpiresAt must be later than CreatedAt.")
+            : new TemporaryAutoAuthLink
+            {
+                Id = id,
+                CodeHash = codeHash,
+                UserId = userId,
+                DestinationPath = destinationPath,
+                Purpose = purpose,
+                CreatedAt = createdAt,
+                ExpiresAt = expiresAt,
+                CreatedByDeviceHint = createdByDeviceHint
+            };
     }
 
     public void MarkConsumed(DateTimeOffset consumedAt, string? consumedByIp, string? consumedByUserAgent)

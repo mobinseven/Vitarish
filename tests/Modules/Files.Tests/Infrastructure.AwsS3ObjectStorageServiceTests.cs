@@ -1,10 +1,7 @@
 using Amazon.S3;
 using Amazon.S3.Model;
-using FluentAssertions;
 using Microsoft.Extensions.Options;
-using Moq;
 using System.Net;
-using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Services;
 
 namespace Files.Tests;
@@ -14,7 +11,7 @@ public sealed class Infrastructure_AwsS3ObjectStorageServiceTests
     [Fact]
     public async Task EnsureBucketAsync_WhenBucketDoesNotExist_CreatesBucket()
     {
-        var s3Mock = new Mock<IAmazonS3>();
+        Mock<IAmazonS3> s3Mock = new();
         _ = s3Mock
             .Setup(x => x.GetBucketAclAsync(It.IsAny<GetBucketAclRequest>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new AmazonS3Exception("missing") { StatusCode = HttpStatusCode.NotFound });
@@ -33,7 +30,7 @@ public sealed class Infrastructure_AwsS3ObjectStorageServiceTests
     [Fact]
     public async Task ExistsAsync_WhenObjectIsMissing_ReturnsFalse()
     {
-        var s3Mock = new Mock<IAmazonS3>();
+        Mock<IAmazonS3> s3Mock = new();
         _ = s3Mock
             .Setup(x => x.GetObjectMetadataAsync(It.IsAny<GetObjectMetadataRequest>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new AmazonS3Exception("missing") { StatusCode = HttpStatusCode.NotFound, ErrorCode = "NoSuchKey" });
@@ -46,7 +43,7 @@ public sealed class Infrastructure_AwsS3ObjectStorageServiceTests
 
     private static AwsS3ObjectStorageService CreateSut(IAmazonS3 client)
     {
-        var minioOptionsMock = new Mock<IOptionsMonitor<MinioOptions>>();
+        Mock<IOptionsMonitor<MinioOptions>> minioOptionsMock = new();
         _ = minioOptionsMock.SetupGet(x => x.CurrentValue).Returns(new MinioOptions
         {
             BucketName = "bucket"

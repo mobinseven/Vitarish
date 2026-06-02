@@ -11,15 +11,15 @@ public class GetUsersByIdentificationCodeQueryHandlerTests
     [Fact]
     public async Task Handle_ReturnsDuplicates_ForSameNormalizedCode()
     {
-        await using var db = UsersDbContextFactory.Create();
+        await using UsersDbContext db = UsersDbContextFactory.Create();
         db.Users.AddRange(
             new User { Id = "u1", UserName = "u1", IdentificationCode = UserIdentityNormalization.NormalizeIdentificationCode("ab-123") },
             new User { Id = "u2", UserName = "u2", IdentificationCode = UserIdentityNormalization.NormalizeIdentificationCode(" AB123 ") });
-        await db.SaveChangesAsync();
+        _ = await db.SaveChangesAsync();
 
-        var handler = new GetUsersByIdentificationCodeQueryHandler(db);
-        var users = (await handler.Handle(new GetUsersByIdentificationCodeQuery("ab 123"), CancellationToken.None)).ToList();
+        GetUsersByIdentificationCodeQueryHandler handler = new(db);
+        List<User> users = (await handler.Handle(new GetUsersByIdentificationCodeQuery("ab 123"), CancellationToken.None)).ToList();
 
-        users.Should().HaveCount(2);
+        _ = users.Should().HaveCount(2);
     }
 }

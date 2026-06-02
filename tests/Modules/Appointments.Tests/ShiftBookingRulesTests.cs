@@ -14,7 +14,7 @@ public class ShiftBookingRulesTests
             new DateOnly(2026, 1, 15),
             new DateTimeOffset(2026, 1, 7, 12, 0, 0, TimeSpan.Zero));
 
-        result.Should().BeFalse();
+        _ = result.Should().BeFalse();
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class ShiftBookingRulesTests
             new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero),
             closedPolicy);
 
-        result.Should().BeFalse();
+        _ = result.Should().BeFalse();
     }
 
     [Fact]
@@ -44,7 +44,7 @@ public class ShiftBookingRulesTests
             new DateOnly(2026, 1, 15),
             new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
 
-        result.Should().BeFalse();
+        _ = result.Should().BeFalse();
     }
 
     private static Shift CreateActiveShift(DateOnly date) => new()

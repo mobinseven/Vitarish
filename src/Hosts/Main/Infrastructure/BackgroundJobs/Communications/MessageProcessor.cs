@@ -58,7 +58,7 @@ public class MessageProcessor(ILogger<MessageProcessor> logger, IMessagesService
 
                 case SmsCommunicationCommand sms:
                     logger.LogInformation("Processing SMS command to {MaskedPhoneNumber}", MaskPhoneNumber(sms.Recipient));
-                    await messagesService.SendSms(new DeliveryMessage
+                    _ = await messagesService.SendSms(new DeliveryMessage
                     {
                         Recipient = sms.Recipient,
                         Body = sms.Body

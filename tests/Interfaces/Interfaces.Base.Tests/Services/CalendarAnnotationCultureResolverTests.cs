@@ -7,7 +7,7 @@ public class CalendarAnnotationCultureResolverTests
     [Fact]
     public void Uses_Explicit_CountryCode_When_Provided()
     {
-        var query = new CalendarAnnotationQuery(
+        CalendarAnnotationQuery query = new(
             new DateOnly(2026, 1, 1),
             new DateOnly(2026, 1, 2),
             Culture: new CultureInfo("en-US"),
@@ -15,21 +15,21 @@ public class CalendarAnnotationCultureResolverTests
 
         ResolvedCalendarCulture resolved = CalendarAnnotationCultureResolver.Resolve(query);
 
-        resolved.Culture.Name.Should().Be("en-US");
-        resolved.CountryCode.Should().Be("IR");
+        _ = resolved.Culture.Name.Should().Be("en-US");
+        _ = resolved.CountryCode.Should().Be("IR");
     }
 
     [Fact]
     public void Derives_Country_From_Neutral_Culture()
     {
-        var query = new CalendarAnnotationQuery(
+        CalendarAnnotationQuery query = new(
             new DateOnly(2026, 1, 1),
             new DateOnly(2026, 1, 2),
             Culture: new CultureInfo("fa"));
 
         ResolvedCalendarCulture resolved = CalendarAnnotationCultureResolver.Resolve(query);
 
-        resolved.Culture.Name.Should().Be("fa");
-        resolved.CountryCode.Should().Be("IR");
+        _ = resolved.Culture.Name.Should().Be("fa");
+        _ = resolved.CountryCode.Should().Be("IR");
     }
 }

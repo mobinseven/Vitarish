@@ -10,6 +10,6 @@ public class NamespaceExtensionTests
     {
         string result = NamespaceExtension.NamespaceToPath(typeof(SampleComponent));
 
-        result.Should().Be("Interfaces.Base.Tests/TestInfrastructure");
+        _ = result.Should().Be("Interfaces.Base.Tests/TestInfrastructure");
     }
 }

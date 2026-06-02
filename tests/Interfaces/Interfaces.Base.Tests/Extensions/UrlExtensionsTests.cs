@@ -9,7 +9,7 @@ public class UrlExtensionsTests
     {
         string result = "https://example.com/items".AddQueryParam("page", "2");
 
-        result.Should().Be("https://example.com/items?page=2");
+        _ = result.Should().Be("https://example.com/items?page=2");
     }
 
     [Fact]
@@ -17,6 +17,6 @@ public class UrlExtensionsTests
     {
         string result = "https://example.com/items?page=1&filter=active".AddQueryParam("page", "3");
 
-        result.Should().Be("https://example.com/items?page=3&filter=active");
+        _ = result.Should().Be("https://example.com/items?page=3&filter=active");
     }
 }

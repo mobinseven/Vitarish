@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Options;
 using System.Runtime.CompilerServices;
 using System.Threading.Channels;
 using Vitarish.Intelligence.Application.Abstractions;
@@ -116,7 +115,7 @@ public sealed class MockTranscriber(string? transcribeResult = null, IAsyncEnume
 
         if (streamResult is not null)
         {
-            await foreach (var chunk in streamResult.WithCancellation(cancellationToken))
+            await foreach (string? chunk in streamResult.WithCancellation(cancellationToken))
             {
                 yield return chunk;
             }
@@ -162,7 +161,7 @@ public sealed class MockTranscriptionProvider(
 
         if (streamResult is not null)
         {
-            await foreach (var chunk in streamResult.WithCancellation(cancellationToken))
+            await foreach (string? chunk in streamResult.WithCancellation(cancellationToken))
             {
                 yield return chunk;
             }
@@ -202,7 +201,7 @@ public static class AiOptionsFactory
                 Location = "us-central1",
                 RecognizerId = "default"
             }
-            }
+        }
     }).ToMonitor();
 
     public static IOptionsMonitor<AiOptions> CreateWithAllProviders() => Options.Create(new AiOptions()
@@ -220,7 +219,7 @@ public static class AiOptionsFactory
                 Location = "us-central1",
                 RecognizerId = "default"
             }
-            }
+        }
     }).ToMonitor();
 
     public static IOptionsMonitor<AiOptions> CreateWithNoProviders() => Options.Create(new AiOptions()
@@ -258,8 +257,8 @@ public static class AudioTestDataGenerator
         const short bitsPerSample = 16;
         const short channels = 1;
 
-        using var ms = new MemoryStream();
-        using var writer = new BinaryWriter(ms);
+        using MemoryStream ms = new();
+        using BinaryWriter writer = new(ms);
 
         // RIFF header
         writer.Write("RIFF"u8);

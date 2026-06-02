@@ -10,14 +10,7 @@ internal class AccessControlledOrderService(
 
     private static Exception ElevatedAccessRequired => new InvalidOperationException("Elevated access is required to perform this operation");
 
-    private OrderDescriptorDto ScopeToCustomer(OrderDescriptorDto descriptor)
-    {
-        if (ElevatedAccess())
-        {
-            return descriptor;
-        }
-        return descriptor with { CustomerId = requestContext.UserId };
-    }
+    private OrderDescriptorDto ScopeToCustomer(OrderDescriptorDto descriptor) => ElevatedAccess() ? descriptor : (descriptor with { CustomerId = requestContext.UserId });
 
     public Task<EntityResult<OrderReadDto>> AddAsync(OrderWriteDto dto, CancellationToken cancellationToken)
         => ElevatedAccess() ? orderService.AddAsync(dto, cancellationToken) : throw ElevatedAccessRequired;

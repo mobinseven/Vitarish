@@ -1,6 +1,6 @@
-using System.Text.Json;
-using System.Web;
 using Microsoft.Extensions.Logging;
+using System.Collections.Specialized;
+using System.Web;
 
 namespace Vitarish.Interfaces.Base.Services.CalendarAnnotations;
 
@@ -46,13 +46,13 @@ internal sealed class ExternalApiCalendarAnnotationSource(
 
     private static Uri BuildEndpoint(Uri endpoint, CalendarAnnotationSourceRequest request)
     {
-        var query = HttpUtility.ParseQueryString(endpoint.Query);
+        NameValueCollection query = HttpUtility.ParseQueryString(endpoint.Query);
         query["startDate"] = request.StartDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         query["endDate"] = request.EndDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         query["countryCode"] = request.CountryCode;
         query["culture"] = request.Culture.Name;
 
-        var builder = new UriBuilder(endpoint)
+        UriBuilder builder = new(endpoint)
         {
             Query = query.ToString() ?? string.Empty
         };
@@ -131,11 +131,6 @@ internal sealed class ExternalApiCalendarAnnotationSource(
         }
 
         string? value = dateElement.GetString();
-        if (string.IsNullOrWhiteSpace(value))
-        {
-            return false;
-        }
-
-        return DateOnly.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
+        return !string.IsNullOrWhiteSpace(value) && DateOnly.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.None, out date);
     }
 }

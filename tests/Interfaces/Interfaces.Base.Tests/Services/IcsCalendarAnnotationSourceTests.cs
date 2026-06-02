@@ -23,11 +23,11 @@ END:VCALENDAR
             new DateOnly(2026, 3, 1),
             new DateOnly(2026, 3, 31));
 
-        result.Should().ContainSingle();
+        _ = result.Should().ContainSingle();
         CalendarAnnotation annotation = result[0];
-        annotation.StartDate.Should().Be(new DateOnly(2026, 3, 21));
-        annotation.EndDate.Should().Be(new DateOnly(2026, 3, 23));
-        annotation.Label.Should().Be("Nowruz");
+        _ = annotation.StartDate.Should().Be(new DateOnly(2026, 3, 21));
+        _ = annotation.EndDate.Should().Be(new DateOnly(2026, 3, 23));
+        _ = annotation.Label.Should().Be("Nowruz");
     }
 
     [Fact]
@@ -50,7 +50,7 @@ END:VCALENDAR
             new DateOnly(2026, 3, 1),
             new DateOnly(2026, 3, 31));
 
-        result.Should().ContainSingle();
-        result[0].Label.Should().Be("Very longfolded summary");
+        _ = result.Should().ContainSingle();
+        _ = result[0].Label.Should().Be("Very longfolded summary");
     }
 }

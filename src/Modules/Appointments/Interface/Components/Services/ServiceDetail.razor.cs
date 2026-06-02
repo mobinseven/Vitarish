@@ -8,10 +8,7 @@ public partial class ServiceDetail : ServicesBase
 
     private ServiceReadDto? current;
 
-    protected override void OnParametersSet()
-    {
-        current = Service;
-    }
+    protected override void OnParametersSet() => current = Service;
 
     private async Task DeleteAsync()
     {
@@ -31,7 +28,7 @@ public partial class ServiceDetail : ServicesBase
             return;
         }
 
-        await ServiceManager.RemoveAsync(current!.Id, CancellationToken.None);
+        _ = await ServiceManager.RemoveAsync(current!.Id, CancellationToken.None);
         await OnDeleted.InvokeAsync();
     }
 }

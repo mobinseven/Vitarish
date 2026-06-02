@@ -12,12 +12,9 @@ public class GetUserClaimsQueryHandler(UsersDbContext dbContext) : IRequestHandl
     {
         bool userExists = await dbContext.Users.AsNoTracking()
             .AnyAsync(user => user.Id == request.UserId, cancellationToken);
-        if (!userExists)
-        {
-            throw new InvalidDataException("user Id is invalid");
-        }
-
-        return await dbContext.UserClaims.AsNoTracking()
+        return !userExists
+            ? throw new InvalidDataException("user Id is invalid")
+            : (IEnumerable<ClaimDto>)await dbContext.UserClaims.AsNoTracking()
             .Where(claim => claim.UserId == request.UserId)
             .Select(claim => new ClaimDto(claim.ClaimType, claim.ClaimValue))
             .ToListAsync(cancellationToken);

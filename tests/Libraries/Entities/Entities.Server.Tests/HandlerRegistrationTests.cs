@@ -29,7 +29,7 @@ public class HandlerRegistrationTests
             typeof(IRequestHandler<CountEntitiesQuery<TestEntity, TestDescriptor>, int>)
         ];
 
-        foreach(Type type in handlerTypes)
+        foreach (Type type in handlerTypes)
         {
             object? handler = provider.GetService(type);
             Assert.NotNull(handler);

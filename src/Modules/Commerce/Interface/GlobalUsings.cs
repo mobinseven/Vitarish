@@ -1,9 +1,4 @@
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.AspNetCore.Components;
 global using Microsoft.Extensions.DependencyInjection;
-global using MudBlazor;
-global using System.Text.Json.Serialization;
 global using Vitarish.Commerce.Application.Abstractions;
-global using Vitarish.Commerce.Domain.Dto;
-global using Vitarish.Commerce.Domain.Enums;
-global using Vitarish.Commerce.Interface.Components.Base;

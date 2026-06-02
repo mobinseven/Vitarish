@@ -1,7 +1,3 @@
-using Vitarish.Communications.Domain.Dto;
-using Vitarish.Communications.Domain.Entities;
-using Vitarish.Communications.Domain.Models;
-
 namespace Vitarish.Communications.Domain.Mappers;
 
 public partial class EntityMapper

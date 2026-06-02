@@ -26,6 +26,6 @@ public class GetUserQueryValidatorTests
 
         TestValidationResult<GetUserQuery> result = validator.TestValidate(query);
 
-        result.ShouldHaveValidationErrorFor(q => q.Id);
+        _ = result.ShouldHaveValidationErrorFor(q => q.Id);
     }
 }

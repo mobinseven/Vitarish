@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Options;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Infrastructure.Services.Dispatching;
 
@@ -16,14 +15,14 @@ public sealed class ProviderDispatchingResponderTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
-        var modelRegistry = new ModelRegistry(aiOptions);
+        ModelRegistry modelRegistry = new(aiOptions);
 
         // Act
-        var responder = new ProviderDispatchingResponder(aiOptions, modelRegistry);
+        ProviderDispatchingResponder responder = new(aiOptions, modelRegistry);
 
         // Assert
-        responder.Should().NotBeNull();
-        responder.Should().BeAssignableTo<IResponder>();
+        _ = responder.Should().NotBeNull();
+        _ = responder.Should().BeAssignableTo<IResponder>();
     }
 
     [Fact]
@@ -31,16 +30,17 @@ public sealed class ProviderDispatchingResponderTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
-        var modelRegistry = new ModelRegistry(aiOptions);
-        var responder = new ProviderDispatchingResponder(aiOptions, modelRegistry);
-        var input = new List<ResponderInput> { ResponderInput.TextInput("Hello") };
-        var options = new ResponderOptions { Model = DefaultResponseModel };
+        ModelRegistry modelRegistry = new(aiOptions);
+        ProviderDispatchingResponder responder = new(aiOptions, modelRegistry);
+        List<ResponderInput> input = [ResponderInput.TextInput("Hello")];
+        ResponderOptions options = new()
+        { Model = DefaultResponseModel };
 
         // Act
         IAsyncEnumerable<ResponderOutput> stream = responder.StreamAsync(input, options);
 
         // Assert
-        stream.Should().NotBeNull();
+        _ = stream.Should().NotBeNull();
     }
 
     [Theory]
@@ -55,13 +55,13 @@ public sealed class ProviderDispatchingResponderTests
             DefaultResponseModel = model,
             OpenAi = new OpenAiOptions { ApiKey = "test-api-key" }
         }).ToMonitor();
-        var modelRegistry = new ModelRegistry(aiOptions);
+        ModelRegistry modelRegistry = new(aiOptions);
 
         // Act
-        var responder = new ProviderDispatchingResponder(aiOptions, modelRegistry);
+        ProviderDispatchingResponder responder = new(aiOptions, modelRegistry);
 
         // Assert
-        responder.Should().NotBeNull();
+        _ = responder.Should().NotBeNull();
     }
 
     [Theory]
@@ -79,13 +79,13 @@ public sealed class ProviderDispatchingResponderTests
                 Gemini = new GoogleGeminiOptions { ApiKey = "gemini-api-key" }
             }
         }).ToMonitor();
-        var modelRegistry = new ModelRegistry(aiOptions);
+        ModelRegistry modelRegistry = new(aiOptions);
 
         // Act
-        var responder = new ProviderDispatchingResponder(aiOptions, modelRegistry);
+        ProviderDispatchingResponder responder = new(aiOptions, modelRegistry);
 
         // Assert
-        responder.Should().NotBeNull();
+        _ = responder.Should().NotBeNull();
     }
 
     [Theory]
@@ -100,12 +100,12 @@ public sealed class ProviderDispatchingResponderTests
             DefaultResponseModel = model,
             Ollama = new OllamaOptions { BaseUrl = "http://localhost:11434" }
         }).ToMonitor();
-        var modelRegistry = new ModelRegistry(aiOptions);
+        ModelRegistry modelRegistry = new(aiOptions);
 
         // Act
-        var responder = new ProviderDispatchingResponder(aiOptions, modelRegistry);
+        ProviderDispatchingResponder responder = new(aiOptions, modelRegistry);
 
         // Assert
-        responder.Should().NotBeNull();
+        _ = responder.Should().NotBeNull();
     }
 }

@@ -54,7 +54,7 @@ public sealed class TemporaryAutoAuthLinkIssuer(
             request.CreatedByDeviceHint);
 
         _ = dbContext.TemporaryAutoAuthLinks.Add(entity);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         return new IssueTemporaryAutoAuthLinkResult(
             entity.Id,
@@ -96,50 +96,18 @@ internal static class TemporaryAutoAuthLinkSecurity
         return Convert.ToHexString(hash);
     }
 
-    public static TemporaryAutoAuthLinkPurposeOptions GetPurposeOptions(TemporaryAutoAuthLinkOptions options, string purpose)
-    {
-        if (options.Purposes.TryGetValue(purpose, out TemporaryAutoAuthLinkPurposeOptions? configured))
-        {
-            return configured;
-        }
+    public static TemporaryAutoAuthLinkPurposeOptions GetPurposeOptions(TemporaryAutoAuthLinkOptions options, string purpose) => options.Purposes.TryGetValue(purpose, out TemporaryAutoAuthLinkPurposeOptions? configured)
+            ? configured
+            : new TemporaryAutoAuthLinkPurposeOptions
+            {
+                LifetimeMinutes = options.DefaultLifetimeMinutes,
+                AllowedDestinationPathPrefixes = ["/"]
+            };
 
-        return new TemporaryAutoAuthLinkPurposeOptions
-        {
-            LifetimeMinutes = options.DefaultLifetimeMinutes,
-            AllowedDestinationPathPrefixes = ["/"]
-        };
-    }
+    public static bool IsDestinationAllowed(string destinationPath, TemporaryAutoAuthLinkPurposeOptions options) => IsLocalUrl(destinationPath) && options.AllowedDestinationPathPrefixes.Length != 0 && options.AllowedDestinationPathPrefixes.Any(prefix =>
+                                                                                                                             !string.IsNullOrWhiteSpace(prefix)
+                                                                                                                             && (string.Equals(prefix, "/", StringComparison.Ordinal)
+                                                                                                                                 || destinationPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)));
 
-    public static bool IsDestinationAllowed(string destinationPath, TemporaryAutoAuthLinkPurposeOptions options)
-    {
-        if (!IsLocalUrl(destinationPath))
-        {
-            return false;
-        }
-
-        if (options.AllowedDestinationPathPrefixes.Length == 0)
-        {
-            return false;
-        }
-
-        return options.AllowedDestinationPathPrefixes.Any(prefix =>
-            !string.IsNullOrWhiteSpace(prefix)
-            && (string.Equals(prefix, "/", StringComparison.Ordinal)
-                || destinationPath.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)));
-    }
-
-    private static bool IsLocalUrl(string? url)
-    {
-        if (string.IsNullOrWhiteSpace(url))
-        {
-            return false;
-        }
-
-        if (url[0] == '/')
-        {
-            return url.Length <= 1 || url[1] != '/';
-        }
-
-        return url.Length > 1 && url[0] == '~' && url[1] == '/';
-    }
+    private static bool IsLocalUrl(string? url) => !string.IsNullOrWhiteSpace(url) && (url[0] == '/' ? url.Length <= 1 || url[1] != '/' : url.Length > 1 && url[0] == '~' && url[1] == '/');
 }

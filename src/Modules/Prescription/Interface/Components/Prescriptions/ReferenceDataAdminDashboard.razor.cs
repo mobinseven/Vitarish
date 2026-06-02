@@ -8,10 +8,7 @@ public partial class ReferenceDataAdminDashboard : PrescriptionBase
     private IReadOnlyList<AvailableProviderDto>? availableProviders;
     private bool isSyncing;
 
-    protected override async Task OnInitializedAsync()
-    {
-        availableProviders = await Mediator.Send(new GetAvailableProvidersQuery());
-    }
+    protected override async Task OnInitializedAsync() => availableProviders = await Mediator.Send(new GetAvailableProvidersQuery());
 
     private async Task TriggerSyncAsync(string providerKey, string codeSystem)
     {
@@ -27,20 +24,15 @@ public partial class ReferenceDataAdminDashboard : PrescriptionBase
                 TriggeredBy = "admin:manual"
             });
 
-            if (result.IsSuccess)
-            {
-                Snackbar.Add(
+            _ = result.IsSuccess
+                ? Snackbar.Add(
                     Localizer["SyncCompleted", result.TotalItemsProcessed ?? 0],
-                    Severity.Success);
-            }
-            else
-            {
-                Snackbar.Add(result.ErrorMessage ?? Localizer["SyncFailed"], Severity.Error);
-            }
+                    Severity.Success)
+                : Snackbar.Add(result.ErrorMessage ?? Localizer["SyncFailed"], Severity.Error);
         }
         catch (Exception ex)
         {
-            Snackbar.Add(ex.Message, Severity.Error);
+            _ = Snackbar.Add(ex.Message, Severity.Error);
         }
         finally
         {

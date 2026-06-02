@@ -2,9 +2,6 @@
 using Microsoft.Extensions.Options;
 using System.Globalization;
 using System.Net.Http.Json;
-using System.Text.Json.Serialization;
-using Vitarish.Communications.Application.Abstractions;
-using Vitarish.Communications.Domain.Models;
 using Vitarish.Communications.Domain.Options;
 
 namespace Vitarish.Communications.Infrastructure.Wrappers.SmsDotIr;

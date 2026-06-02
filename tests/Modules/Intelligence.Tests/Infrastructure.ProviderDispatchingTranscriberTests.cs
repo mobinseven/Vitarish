@@ -1,5 +1,4 @@
-using Microsoft.Extensions.Options;
-using System.Threading.Tasks;
+using System.Threading.Channels;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Infrastructure.Services.Dispatching;
 
@@ -17,14 +16,14 @@ public sealed class ProviderDispatchingTranscriberTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
-        var modelRegistry = new ModelRegistry(aiOptions);
+        ModelRegistry modelRegistry = new(aiOptions);
 
         // Act
-        var transcriber = new ProviderDispatchingTranscriber(aiOptions, modelRegistry);
+        ProviderDispatchingTranscriber transcriber = new(aiOptions, modelRegistry);
 
         // Assert
-        transcriber.Should().NotBeNull();
-        transcriber.Should().BeAssignableTo<ITranscriber>();
+        _ = transcriber.Should().NotBeNull();
+        _ = transcriber.Should().BeAssignableTo<ITranscriber>();
     }
 
     [Fact]
@@ -32,15 +31,15 @@ public sealed class ProviderDispatchingTranscriberTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
-        var modelRegistry = new ModelRegistry(aiOptions);
-        var transcriber = new ProviderDispatchingTranscriber(aiOptions, modelRegistry);
+        ModelRegistry modelRegistry = new(aiOptions);
+        ProviderDispatchingTranscriber transcriber = new(aiOptions, modelRegistry);
         using MemoryStream audioStream = AudioTestDataGenerator.CreateDummyAudioStream();
 
         // Act
         Func<Task<string?>> act = () => transcriber.TranscribeAsync(audioStream, "audio/wav", null, "unknown-model", CancellationToken.None);
 
         // Assert
-        await act.Should().ThrowAsync<InvalidOperationException>()
+        _ = await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*not supported*");
     }
 
@@ -56,13 +55,13 @@ public sealed class ProviderDispatchingTranscriberTests
             DefaultTranscriptionModel = model,
             OpenAi = new OpenAiOptions { ApiKey = "test-api-key" }
         }).ToMonitor();
-        var modelRegistry = new ModelRegistry(aiOptions);
+        ModelRegistry modelRegistry = new(aiOptions);
 
         // Act
-        var transcriber = new ProviderDispatchingTranscriber(aiOptions, modelRegistry);
+        ProviderDispatchingTranscriber transcriber = new(aiOptions, modelRegistry);
 
         // Assert
-        transcriber.Should().NotBeNull();
+        _ = transcriber.Should().NotBeNull();
     }
 
     [Theory]
@@ -86,13 +85,13 @@ public sealed class ProviderDispatchingTranscriberTests
                 }
             }
         }).ToMonitor();
-        var modelRegistry = new ModelRegistry(aiOptions);
+        ModelRegistry modelRegistry = new(aiOptions);
 
         // Act
-        var transcriber = new ProviderDispatchingTranscriber(aiOptions, modelRegistry);
+        ProviderDispatchingTranscriber transcriber = new(aiOptions, modelRegistry);
 
         // Assert
-        transcriber.Should().NotBeNull();
+        _ = transcriber.Should().NotBeNull();
     }
 
     [Theory]
@@ -108,13 +107,13 @@ public sealed class ProviderDispatchingTranscriberTests
             DefaultTranscriptionModel = model,
             Ollama = new OllamaOptions { BaseUrl = "http://localhost:11434" }
         }).ToMonitor();
-        var modelRegistry = new ModelRegistry(aiOptions);
+        ModelRegistry modelRegistry = new(aiOptions);
 
         // Act
-        var transcriber = new ProviderDispatchingTranscriber(aiOptions, modelRegistry);
+        ProviderDispatchingTranscriber transcriber = new(aiOptions, modelRegistry);
 
         // Assert
-        transcriber.Should().NotBeNull();
+        _ = transcriber.Should().NotBeNull();
     }
 
     [Fact]
@@ -122,9 +121,9 @@ public sealed class ProviderDispatchingTranscriberTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
-        var modelRegistry = new ModelRegistry(aiOptions);
-        var transcriber = new ProviderDispatchingTranscriber(aiOptions, modelRegistry);
-        var channel = System.Threading.Channels.Channel.CreateBounded<byte[]>(10);
+        ModelRegistry modelRegistry = new(aiOptions);
+        ProviderDispatchingTranscriber transcriber = new(aiOptions, modelRegistry);
+        Channel<byte[]> channel = System.Threading.Channels.Channel.CreateBounded<byte[]>(10);
 
         // Act
         IAsyncEnumerable<string> stream = transcriber.StreamTranscribeAsync(
@@ -134,6 +133,6 @@ public sealed class ProviderDispatchingTranscriberTests
             DefaultTranscriptionModel,
             CancellationToken.None);
         // Assert
-        stream.Should().NotBeNull();
+        _ = stream.Should().NotBeNull();
     }
 }

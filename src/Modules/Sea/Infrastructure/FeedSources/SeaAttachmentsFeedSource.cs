@@ -1,8 +1,5 @@
-using MediatR;
 using Vitarish.Feed.Domain.Abstractions;
 using Vitarish.Feed.Domain.Models;
-using Vitarish.Sea.Application.Queries.Events;
-using Vitarish.Sea.Domain.Entities;
 
 namespace Vitarish.Sea.Infrastructure.FeedSources;
 
@@ -26,7 +23,7 @@ public class SeaAttachmentsFeedSource(IAttachmentsService attachmentsService) : 
             // Query recent attachments across all events
             // Note: This is a simplified example. In a real implementation,
             // you'd want a dedicated query for recent attachments
-            var feedItems = new List<FeedItem>();
+            List<FeedItem> feedItems = [];
 
             // For now, return empty list as placeholder
             // A proper implementation would query the database for recent attachments
@@ -50,8 +47,8 @@ public class SeaAttachmentsFeedSource(IAttachmentsService attachmentsService) : 
 
     private FeedItem CreateFeedItem(AttachmentReadDto attachment)
     {
-        var fileName = System.IO.Path.GetFileName(attachment.Content) ?? "Unnamed File";
-        
+        string fileName = System.IO.Path.GetFileName(attachment.Content) ?? "Unnamed File";
+
         return new FeedItem
         {
             Id = attachment.Id,

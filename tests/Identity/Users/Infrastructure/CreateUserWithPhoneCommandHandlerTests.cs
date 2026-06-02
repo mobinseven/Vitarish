@@ -14,8 +14,8 @@ public class CreateUserWithPhoneCommandHandlerTests
     {
         User existing = new() { Id = "user-1", PhoneNumber = "5551234", UserName = "5551234" };
         await using UsersDbContext dbContext = UsersDbContextFactory.Create();
-        dbContext.Users.Add(existing);
-        await dbContext.SaveChangesAsync();
+        _ = dbContext.Users.Add(existing);
+        _ = await dbContext.SaveChangesAsync();
 
         UserManager<User> userManager = UserManagerFactory.Create(dbContext);
         Mock<IDistributedCache> cache = DistributedCacheMockFactory.Create();
@@ -24,7 +24,7 @@ public class CreateUserWithPhoneCommandHandlerTests
 
         User? result = await handler.Handle(new CreateUserWithPhoneCommand("5551234", "First", "Last"), CancellationToken.None);
 
-        result.Should().Be(existing);
+        _ = result.Should().Be(existing);
         cache.Verify(c => c.RemoveAsync("users:all", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -39,12 +39,12 @@ public class CreateUserWithPhoneCommandHandlerTests
 
         User? result = await handler.Handle(new CreateUserWithPhoneCommand("5551234", "First", "Last"), CancellationToken.None);
 
-        result.Should().NotBeNull();
-        result!.PhoneNumber.Should().Be("5551234");
-        result.FirstName.Should().Be("First");
-        result.LastName.Should().Be("Last");
+        _ = result.Should().NotBeNull();
+        _ = result!.PhoneNumber.Should().Be("5551234");
+        _ = result.FirstName.Should().Be("First");
+        _ = result.LastName.Should().Be("Last");
         User? created = await dbContext.Users.SingleOrDefaultAsync(u => u.PhoneNumber == "5551234");
-        created.Should().NotBeNull();
+        _ = created.Should().NotBeNull();
         cache.Verify(c => c.SetAsync($"users:{created!.Id}", It.IsAny<byte[]>(), It.IsAny<DistributedCacheEntryOptions>(), It.IsAny<CancellationToken>()), Times.Once);
         cache.Verify(c => c.RemoveAsync("users:all", It.IsAny<CancellationToken>()), Times.Once);
     }

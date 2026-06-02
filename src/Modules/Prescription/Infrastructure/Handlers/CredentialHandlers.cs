@@ -21,11 +21,15 @@ public sealed class SaveCredentialHandler(
     public async Task<SaveCredentialResult> Handle(SaveCredentialCommand request, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(request.ProviderKey))
+        {
             return SaveCredentialResult.Failure("بیمه‌گر انتخاب شده در سیستم موجود نیست.");
+        }
 
         string providerKey = request.ProviderKey.Trim();
         if (!providerRegistry.IsProviderAvailable(providerKey))
+        {
             return SaveCredentialResult.Failure("بیمه‌گر انتخاب شده در سیستم موجود نیست.");
+        }
 
         DoctorProviderCredential? credential;
 
@@ -35,7 +39,9 @@ public sealed class SaveCredentialHandler(
                 .FirstOrDefaultAsync(c => c.Id == request.CredentialId.Value, cancellationToken);
 
             if (credential is null)
+            {
                 return SaveCredentialResult.Failure("اطلاعات اعتبارنامه یافت نشد.");
+            }
 
             credential.ProviderDoctorIdentifier = request.ProviderDoctorIdentifier;
             credential.ProviderUsername = request.ProviderUsername;
@@ -46,14 +52,16 @@ public sealed class SaveCredentialHandler(
         else
         {
             // Check uniqueness
-            var exists = await dbContext.DoctorProviderCredentials.AnyAsync(
+            bool exists = await dbContext.DoctorProviderCredentials.AnyAsync(
                 c => c.DoctorId == request.DoctorId
                      && c.ProviderKey == providerKey
                      && c.ClinicId == request.ClinicId,
                 cancellationToken);
 
             if (exists)
+            {
                 return SaveCredentialResult.Failure("اعتبارنامه برای این پزشک و بیمه‌گر قبلاً ثبت شده است.");
+            }
 
             credential = new DoctorProviderCredential
             {
@@ -68,10 +76,10 @@ public sealed class SaveCredentialHandler(
                 CreatedAt = DateTimeOffset.UtcNow
             };
 
-            dbContext.DoctorProviderCredentials.Add(credential);
+            _ = dbContext.DoctorProviderCredentials.Add(credential);
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(new AuditEntry
         {
@@ -96,17 +104,21 @@ public sealed class TestCredentialHandler(
 {
     public async Task<TestCredentialResult> Handle(TestCredentialCommand request, CancellationToken cancellationToken)
     {
-        var credential = await dbContext.DoctorProviderCredentials
+        DoctorProviderCredential? credential = await dbContext.DoctorProviderCredentials
             .FirstOrDefaultAsync(c => c.Id == request.CredentialId, cancellationToken);
 
         if (credential is null)
+        {
             return TestCredentialResult.Failure("اعتبارنامه یافت نشد.");
+        }
 
-        var adapter = providerRegistry.GetAdapter(credential.ProviderKey);
+        IInsuranceProviderAdapter? adapter = providerRegistry.GetAdapter(credential.ProviderKey);
         if (adapter is null)
+        {
             return TestCredentialResult.Failure("آداپتور بیمه‌گر در دسترس نیست.");
+        }
 
-        var authResult = await adapter.AuthenticateAsync(new AuthenticateRequest
+        AdapterResult authResult = await adapter.AuthenticateAsync(new AuthenticateRequest
         {
             DoctorId = credential.DoctorId,
             ClinicId = credential.ClinicId
@@ -116,7 +128,7 @@ public sealed class TestCredentialHandler(
         {
             credential.Status = CredentialStatus.Active;
             credential.UpdatedAt = DateTimeOffset.UtcNow;
-            await dbContext.SaveChangesAsync(cancellationToken);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
 
             await auditWriter.WriteAsync(new AuditEntry
             {
@@ -133,7 +145,7 @@ public sealed class TestCredentialHandler(
 
         credential.Status = CredentialStatus.Pending;
         credential.UpdatedAt = DateTimeOffset.UtcNow;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(new AuditEntry
         {
@@ -156,15 +168,17 @@ public sealed class RevokeCredentialHandler(
 {
     public async Task<RevokeCredentialResult> Handle(RevokeCredentialCommand request, CancellationToken cancellationToken)
     {
-        var credential = await dbContext.DoctorProviderCredentials
+        DoctorProviderCredential? credential = await dbContext.DoctorProviderCredentials
             .FirstOrDefaultAsync(c => c.Id == request.CredentialId, cancellationToken);
 
         if (credential is null)
+        {
             return RevokeCredentialResult.Failure("اعتبارنامه یافت نشد.");
+        }
 
         credential.Status = CredentialStatus.Revoked;
         credential.UpdatedAt = DateTimeOffset.UtcNow;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(new AuditEntry
         {
@@ -186,14 +200,16 @@ public sealed class GetCredentialSetupGridHandler(
 {
     public async Task<IReadOnlyList<CredentialSetupDto>> Handle(GetCredentialSetupGridQuery request, CancellationToken cancellationToken)
     {
-        var query = dbContext.DoctorProviderCredentials
+        IQueryable<DoctorProviderCredential> query = dbContext.DoctorProviderCredentials
             .Where(c => c.ClinicId == request.ClinicId);
 
         if (!string.IsNullOrEmpty(request.ProviderKey))
+        {
             query = query.Where(c => c.ProviderKey == request.ProviderKey);
+        }
 
-        var now = DateTimeOffset.UtcNow;
-        var credentials = await query
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        List<CredentialSetupDto> credentials = await query
             .Select(c => new CredentialSetupDto
             {
                 CredentialId = c.Id,

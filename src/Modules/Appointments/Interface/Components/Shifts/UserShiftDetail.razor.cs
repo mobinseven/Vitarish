@@ -88,7 +88,7 @@ public partial class UserShiftDetail : ShiftsBase
             return;
         }
 
-        await ReservationManager.CancelReservationAsync(activeReservationId.Value, CancellationToken.None);
+        _ = await ReservationManager.CancelReservationAsync(activeReservationId.Value, CancellationToken.None);
         await OnCancelled.InvokeAsync();
         await CheckReservationAsync();
     }

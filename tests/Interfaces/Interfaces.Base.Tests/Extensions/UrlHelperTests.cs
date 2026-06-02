@@ -9,7 +9,7 @@ public class UrlHelperTests
     {
         string result = UrlHelper.UrlCombine("https://example.com/api", "/v1/users");
 
-        result.Should().Be("https://example.com/api/v1/users");
+        _ = result.Should().Be("https://example.com/api/v1/users");
     }
 
     [Fact]
@@ -17,6 +17,6 @@ public class UrlHelperTests
     {
         string result = UrlHelper.UrlCombine("https://example.com/api", "search?q=hello world");
 
-        result.Should().Be("https://example.com/api/search?q=hello%20world");
+        _ = result.Should().Be("https://example.com/api/search?q=hello%20world");
     }
 }

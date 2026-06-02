@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace Vitarish.Appointments.Domain.Dto;
 
 public record ShiftReadDto : EntityReadDto

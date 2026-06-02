@@ -9,7 +9,7 @@ public class NumberExtensionsTests
     {
         string result = 1200m.ToCompactString();
 
-        result.Should().Be("1.2K");
+        _ = result.Should().Be("1.2K");
     }
 
     [Fact]
@@ -17,6 +17,6 @@ public class NumberExtensionsTests
     {
         string result = 2500000m.ToCompactString();
 
-        result.Should().Be("2.5M");
+        _ = result.Should().Be("2.5M");
     }
 }

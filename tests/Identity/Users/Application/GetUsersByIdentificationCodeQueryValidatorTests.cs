@@ -10,7 +10,7 @@ public class GetUsersByIdentificationCodeQueryValidatorTests
     [Fact]
     public void Validate_WithEmptyCode_Fails()
     {
-        var result = validator.TestValidate(new GetUsersByIdentificationCodeQuery(""));
-        result.ShouldHaveValidationErrorFor(x => x.IdentificationCode);
+        TestValidationResult<GetUsersByIdentificationCodeQuery> result = validator.TestValidate(new GetUsersByIdentificationCodeQuery(""));
+        _ = result.ShouldHaveValidationErrorFor(x => x.IdentificationCode);
     }
 }

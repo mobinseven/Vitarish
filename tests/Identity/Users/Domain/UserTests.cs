@@ -10,10 +10,10 @@ public class UserTests
     {
         User user = new();
 
-        user.ProfileJson.Should().BeNull();
-        user.ProfilePreferences.Should().BeEmpty();
-        user.FirstName.Should().BeNull();
-        user.LastName.Should().BeNull();
+        _ = user.ProfileJson.Should().BeNull();
+        _ = user.ProfilePreferences.Should().BeEmpty();
+        _ = user.FirstName.Should().BeNull();
+        _ = user.LastName.Should().BeNull();
     }
 
     [Fact]
@@ -28,21 +28,23 @@ public class UserTests
 
         user.ProfilePreferences = preferences;
 
-        user.ProfileJson.Should().NotBeNullOrWhiteSpace();
-        user.ProfilePreferences.Should().BeEquivalentTo(preferences);
-        JsonSerializer.Deserialize<Dictionary<string, string>>(user.ProfileJson!)
+        _ = user.ProfileJson.Should().NotBeNullOrWhiteSpace();
+        _ = user.ProfilePreferences.Should().BeEquivalentTo(preferences);
+        _ = JsonSerializer.Deserialize<Dictionary<string, string>>(user.ProfileJson!)
             .Should().BeEquivalentTo(preferences);
     }
 
     [Fact]
     public void User_ProfilePreferences_EmptyClearsProfileJson()
     {
-        User user = new();
-        user.ProfilePreferences = new Dictionary<string, string> { ["pref"] = "value" };
+        User user = new()
+        {
+            ProfilePreferences = new Dictionary<string, string> { ["pref"] = "value" }
+        };
 
         user.ProfilePreferences = [];
 
-        user.ProfileJson.Should().BeNull();
-        user.ProfilePreferences.Should().BeEmpty();
+        _ = user.ProfileJson.Should().BeNull();
+        _ = user.ProfilePreferences.Should().BeEmpty();
     }
 }

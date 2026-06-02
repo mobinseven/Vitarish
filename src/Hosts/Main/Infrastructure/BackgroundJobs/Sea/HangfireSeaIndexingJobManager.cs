@@ -12,19 +12,13 @@ public class HangfireSeaIndexingJobManager(IRecurringJobManager recurringJobMana
     /// <summary>
     /// Adds or updates the recurring Sea search indexing job.
     /// </summary>
-    public void ScheduleProcessing()
-    {
-        recurringJobManager.AddOrUpdate<SeaIndexingProcessor>(
+    public void ScheduleProcessing() => recurringJobManager.AddOrUpdate<SeaIndexingProcessor>(
             JobId,
             processor => processor.ProcessIndexingAsync(CancellationToken.None),
             Cron.HourInterval(6));
-    }
 
     /// <summary>
     /// Triggers the Sea search indexing job immediately.
     /// </summary>
-    public void TriggerProcessing()
-    {
-        recurringJobManager.Trigger(JobId);
-    }
+    public void TriggerProcessing() => recurringJobManager.Trigger(JobId);
 }

@@ -82,19 +82,19 @@ public sealed class ResilientAdapterDecorator(
         Func<CancellationToken, Task<AdapterResult>> operation,
         CancellationToken cancellationToken)
     {
-        var options = _resilienceProvider.GetOptions(ProviderKey);
-        var transaction = CreateTransaction(operationName, correlationId);
-        var transactionId = await _transactionLogger.BeginTransactionAsync(transaction, cancellationToken);
+        ProviderResilienceOptions options = _resilienceProvider.GetOptions(ProviderKey);
+        ApiTransaction transaction = CreateTransaction(operationName, correlationId);
+        Guid transactionId = await _transactionLogger.BeginTransactionAsync(transaction, cancellationToken);
 
-        var attempt = 0;
+        int attempt = 0;
         while (true)
         {
             try
             {
-                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 cts.CancelAfter(options.Timeout);
 
-                var result = await operation(cts.Token);
+                AdapterResult result = await operation(cts.Token);
 
                 await _transactionLogger.CompleteTransactionAsync(
                     transactionId, responseCode: 200, responseMessage: null,
@@ -108,7 +108,7 @@ public sealed class ResilientAdapterDecorator(
                 attempt++;
                 if (attempt >= options.MaxRetryAttempts)
                 {
-                    var error = _errorMapper.MapError(new ProviderErrorContext
+                    IntegrationError error = _errorMapper.MapError(new ProviderErrorContext
                     {
                         OperationName = operationName,
                         Exception = new TimeoutException($"Operation timed out after {options.Timeout}")
@@ -120,7 +120,7 @@ public sealed class ResilientAdapterDecorator(
                     return AdapterResult.Failure(error);
                 }
 
-                var delay = CalculateBackoff(attempt, options);
+                TimeSpan delay = CalculateBackoff(attempt, options);
                 _logger.LogWarning("Provider {ProviderKey} operation {Operation} timed out, retry {Attempt}/{Max} after {Delay}ms",
                     ProviderKey, operationName, attempt, options.MaxRetryAttempts, delay.TotalMilliseconds);
                 await Task.Delay(delay, cancellationToken);
@@ -130,7 +130,7 @@ public sealed class ResilientAdapterDecorator(
                 attempt++;
                 if (attempt >= options.MaxRetryAttempts)
                 {
-                    var error = _errorMapper.MapError(new ProviderErrorContext
+                    IntegrationError error = _errorMapper.MapError(new ProviderErrorContext
                     {
                         HttpStatusCode = (int?)ex.StatusCode,
                         ProviderErrorMessage = ex.Message,
@@ -144,14 +144,14 @@ public sealed class ResilientAdapterDecorator(
                     return AdapterResult.Failure(error);
                 }
 
-                var delay = CalculateBackoff(attempt, options);
+                TimeSpan delay = CalculateBackoff(attempt, options);
                 _logger.LogWarning(ex, "Provider {ProviderKey} operation {Operation} failed with HTTP error, retry {Attempt}/{Max} after {Delay}ms",
                     ProviderKey, operationName, attempt, options.MaxRetryAttempts, delay.TotalMilliseconds);
                 await Task.Delay(delay, cancellationToken);
             }
             catch (Exception ex)
             {
-                var error = _errorMapper.MapError(new ProviderErrorContext
+                IntegrationError error = _errorMapper.MapError(new ProviderErrorContext
                 {
                     ProviderErrorMessage = ex.Message,
                     OperationName = operationName,
@@ -174,19 +174,19 @@ public sealed class ResilientAdapterDecorator(
         Func<CancellationToken, Task<AdapterResult<T>>> operation,
         CancellationToken cancellationToken)
     {
-        var options = _resilienceProvider.GetOptions(ProviderKey);
-        var transaction = CreateTransaction(operationName, correlationId);
-        var transactionId = await _transactionLogger.BeginTransactionAsync(transaction, cancellationToken);
+        ProviderResilienceOptions options = _resilienceProvider.GetOptions(ProviderKey);
+        ApiTransaction transaction = CreateTransaction(operationName, correlationId);
+        Guid transactionId = await _transactionLogger.BeginTransactionAsync(transaction, cancellationToken);
 
-        var attempt = 0;
+        int attempt = 0;
         while (true)
         {
             try
             {
-                using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 cts.CancelAfter(options.Timeout);
 
-                var result = await operation(cts.Token);
+                AdapterResult<T> result = await operation(cts.Token);
 
                 await _transactionLogger.CompleteTransactionAsync(
                     transactionId, responseCode: 200, responseMessage: null,
@@ -200,7 +200,7 @@ public sealed class ResilientAdapterDecorator(
                 attempt++;
                 if (attempt >= options.MaxRetryAttempts)
                 {
-                    var error = _errorMapper.MapError(new ProviderErrorContext
+                    IntegrationError error = _errorMapper.MapError(new ProviderErrorContext
                     {
                         OperationName = operationName,
                         Exception = new TimeoutException($"Operation timed out after {options.Timeout}")
@@ -212,7 +212,7 @@ public sealed class ResilientAdapterDecorator(
                     return AdapterResult<T>.Failure(error);
                 }
 
-                var delay = CalculateBackoff(attempt, options);
+                TimeSpan delay = CalculateBackoff(attempt, options);
                 _logger.LogWarning("Provider {ProviderKey} operation {Operation} timed out, retry {Attempt}/{Max} after {Delay}ms",
                     ProviderKey, operationName, attempt, options.MaxRetryAttempts, delay.TotalMilliseconds);
                 await Task.Delay(delay, cancellationToken);
@@ -222,7 +222,7 @@ public sealed class ResilientAdapterDecorator(
                 attempt++;
                 if (attempt >= options.MaxRetryAttempts)
                 {
-                    var error = _errorMapper.MapError(new ProviderErrorContext
+                    IntegrationError error = _errorMapper.MapError(new ProviderErrorContext
                     {
                         HttpStatusCode = (int?)ex.StatusCode,
                         ProviderErrorMessage = ex.Message,
@@ -236,14 +236,14 @@ public sealed class ResilientAdapterDecorator(
                     return AdapterResult<T>.Failure(error);
                 }
 
-                var delay = CalculateBackoff(attempt, options);
+                TimeSpan delay = CalculateBackoff(attempt, options);
                 _logger.LogWarning(ex, "Provider {ProviderKey} operation {Operation} failed with HTTP error, retry {Attempt}/{Max} after {Delay}ms",
                     ProviderKey, operationName, attempt, options.MaxRetryAttempts, delay.TotalMilliseconds);
                 await Task.Delay(delay, cancellationToken);
             }
             catch (Exception ex)
             {
-                var error = _errorMapper.MapError(new ProviderErrorContext
+                IntegrationError error = _errorMapper.MapError(new ProviderErrorContext
                 {
                     ProviderErrorMessage = ex.Message,
                     OperationName = operationName,
@@ -270,7 +270,7 @@ public sealed class ResilientAdapterDecorator(
 
     private static TimeSpan CalculateBackoff(int attempt, ProviderResilienceOptions options)
     {
-        var delay = options.RetryBaseDelay * Math.Pow(2, attempt - 1);
+        TimeSpan delay = options.RetryBaseDelay * Math.Pow(2, attempt - 1);
         return delay > options.RetryMaxDelay ? options.RetryMaxDelay : delay;
     }
 }

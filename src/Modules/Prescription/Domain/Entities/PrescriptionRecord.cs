@@ -68,47 +68,44 @@ public sealed class PrescriptionRecord
     /// <summary>
     /// Checks if a state transition is valid according to the canonical lifecycle.
     /// </summary>
-    public static bool IsValidTransition(PrescriptionStatus from, PrescriptionStatus to)
+    public static bool IsValidTransition(PrescriptionStatus from, PrescriptionStatus to) => (from, to) switch
     {
-        return (from, to) switch
-        {
-            (PrescriptionStatus.Draft, PrescriptionStatus.ReadyForSubmission) => true,
-            (PrescriptionStatus.ReadyForSubmission, PrescriptionStatus.Submitting) => true,
-            (PrescriptionStatus.Submitting, PrescriptionStatus.Submitted) => true,
-            (PrescriptionStatus.Submitting, PrescriptionStatus.AcceptedByProvider) => true,
-            (PrescriptionStatus.Submitting, PrescriptionStatus.RejectedByProvider) => true,
-            (PrescriptionStatus.Submitting, PrescriptionStatus.SyncPending) => true,
-            (PrescriptionStatus.Submitting, PrescriptionStatus.ProviderUnavailable) => true,
-            (PrescriptionStatus.Submitted, PrescriptionStatus.AcceptedByProvider) => true,
-            (PrescriptionStatus.RejectedByProvider, PrescriptionStatus.NeedsCorrection) => true,
-            (PrescriptionStatus.NeedsCorrection, PrescriptionStatus.Draft) => true,
-            (PrescriptionStatus.NeedsCorrection, PrescriptionStatus.ReadyForSubmission) => true,
-            (PrescriptionStatus.AcceptedByProvider, PrescriptionStatus.EditRequested) => true,
-            (PrescriptionStatus.EditRequested, PrescriptionStatus.Submitting) => true,
-            (PrescriptionStatus.Edited, PrescriptionStatus.AcceptedByProvider) => true,
-            (PrescriptionStatus.Submitting, PrescriptionStatus.Edited) => true,
-            (PrescriptionStatus.AcceptedByProvider, PrescriptionStatus.CancelRequested) => true,
-            (PrescriptionStatus.CancelRequested, PrescriptionStatus.Submitting) => true,
-            (PrescriptionStatus.Submitting, PrescriptionStatus.Cancelled) => true,
-            (PrescriptionStatus.SyncPending, PrescriptionStatus.AcceptedByProvider) => true,
-            (PrescriptionStatus.SyncPending, PrescriptionStatus.RejectedByProvider) => true,
-            (PrescriptionStatus.SyncPending, PrescriptionStatus.SyncFailed) => true,
-            (PrescriptionStatus.SyncPending, PrescriptionStatus.DuplicateRisk) => true,
-            (PrescriptionStatus.SyncFailed, PrescriptionStatus.ManuallyReconciled) => true,
-            (PrescriptionStatus.DuplicateRisk, PrescriptionStatus.AcceptedByProvider) => true,
-            (PrescriptionStatus.DuplicateRisk, PrescriptionStatus.ManuallyReconciled) => true,
-            (PrescriptionStatus.ProviderUnavailable, PrescriptionStatus.PaperFallback) => true,
+        (PrescriptionStatus.Draft, PrescriptionStatus.ReadyForSubmission) => true,
+        (PrescriptionStatus.ReadyForSubmission, PrescriptionStatus.Submitting) => true,
+        (PrescriptionStatus.Submitting, PrescriptionStatus.Submitted) => true,
+        (PrescriptionStatus.Submitting, PrescriptionStatus.AcceptedByProvider) => true,
+        (PrescriptionStatus.Submitting, PrescriptionStatus.RejectedByProvider) => true,
+        (PrescriptionStatus.Submitting, PrescriptionStatus.SyncPending) => true,
+        (PrescriptionStatus.Submitting, PrescriptionStatus.ProviderUnavailable) => true,
+        (PrescriptionStatus.Submitted, PrescriptionStatus.AcceptedByProvider) => true,
+        (PrescriptionStatus.RejectedByProvider, PrescriptionStatus.NeedsCorrection) => true,
+        (PrescriptionStatus.NeedsCorrection, PrescriptionStatus.Draft) => true,
+        (PrescriptionStatus.NeedsCorrection, PrescriptionStatus.ReadyForSubmission) => true,
+        (PrescriptionStatus.AcceptedByProvider, PrescriptionStatus.EditRequested) => true,
+        (PrescriptionStatus.EditRequested, PrescriptionStatus.Submitting) => true,
+        (PrescriptionStatus.Edited, PrescriptionStatus.AcceptedByProvider) => true,
+        (PrescriptionStatus.Submitting, PrescriptionStatus.Edited) => true,
+        (PrescriptionStatus.AcceptedByProvider, PrescriptionStatus.CancelRequested) => true,
+        (PrescriptionStatus.CancelRequested, PrescriptionStatus.Submitting) => true,
+        (PrescriptionStatus.Submitting, PrescriptionStatus.Cancelled) => true,
+        (PrescriptionStatus.SyncPending, PrescriptionStatus.AcceptedByProvider) => true,
+        (PrescriptionStatus.SyncPending, PrescriptionStatus.RejectedByProvider) => true,
+        (PrescriptionStatus.SyncPending, PrescriptionStatus.SyncFailed) => true,
+        (PrescriptionStatus.SyncPending, PrescriptionStatus.DuplicateRisk) => true,
+        (PrescriptionStatus.SyncFailed, PrescriptionStatus.ManuallyReconciled) => true,
+        (PrescriptionStatus.DuplicateRisk, PrescriptionStatus.AcceptedByProvider) => true,
+        (PrescriptionStatus.DuplicateRisk, PrescriptionStatus.ManuallyReconciled) => true,
+        (PrescriptionStatus.ProviderUnavailable, PrescriptionStatus.PaperFallback) => true,
 
-            // Paper fallback from any pre-submit state
-            (PrescriptionStatus.Draft, PrescriptionStatus.PaperFallback) => true,
-            (PrescriptionStatus.ReadyForSubmission, PrescriptionStatus.PaperFallback) => true,
-            (PrescriptionStatus.ProviderUnavailable, PrescriptionStatus.SyncPending) => true,
+        // Paper fallback from any pre-submit state
+        (PrescriptionStatus.Draft, PrescriptionStatus.PaperFallback) => true,
+        (PrescriptionStatus.ReadyForSubmission, PrescriptionStatus.PaperFallback) => true,
+        (PrescriptionStatus.ProviderUnavailable, PrescriptionStatus.SyncPending) => true,
 
-            // Paper fallback reconciliation
-            (PrescriptionStatus.PaperFallback, PrescriptionStatus.AcceptedByProvider) => true,
-            (PrescriptionStatus.PaperFallback, PrescriptionStatus.ManuallyReconciled) => true,
+        // Paper fallback reconciliation
+        (PrescriptionStatus.PaperFallback, PrescriptionStatus.AcceptedByProvider) => true,
+        (PrescriptionStatus.PaperFallback, PrescriptionStatus.ManuallyReconciled) => true,
 
-            _ => false
-        };
-    }
+        _ => false
+    };
 }

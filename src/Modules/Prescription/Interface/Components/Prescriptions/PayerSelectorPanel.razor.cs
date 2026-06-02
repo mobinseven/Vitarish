@@ -15,7 +15,9 @@ public partial class PayerSelectorPanel : PrescriptionBase
         await base.OnParametersSetAsync();
 
         if (Prescription is null)
+        {
             return;
+        }
 
         selectedProviderKey = Prescription.SelectedProviderKey;
 
@@ -25,7 +27,7 @@ public partial class PayerSelectorPanel : PrescriptionBase
 
             try
             {
-                var result = await Mediator.Send(new GetAvailableProvidersQuery());
+                IReadOnlyList<AvailableProviderDto> result = await Mediator.Send(new GetAvailableProvidersQuery());
                 providers = [.. result];
             }
             finally
@@ -44,7 +46,9 @@ public partial class PayerSelectorPanel : PrescriptionBase
     private async Task OnProviderSelectedAsync(string providerKey)
     {
         if (string.IsNullOrEmpty(providerKey) || providerKey == selectedProviderKey)
+        {
             return;
+        }
 
         await ApplyProviderSelectionAsync(providerKey);
     }

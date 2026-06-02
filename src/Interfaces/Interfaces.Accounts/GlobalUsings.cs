@@ -10,7 +10,6 @@ global using Microsoft.AspNetCore.Components.Authorization;
 global using Microsoft.AspNetCore.Identity;
 global using Microsoft.Extensions.Localization;
 global using Microsoft.JSInterop;
-global using Vitarish.Communications.Application.Abstractions;
 // Third‑party UI libraries
 global using MudBlazor;
 global using MudBlazor.Services;
@@ -18,12 +17,12 @@ global using System.ComponentModel.DataAnnotations;
 global using System.Net.Http;
 global using System.Security.Claims;
 global using System.Text.RegularExpressions;
+global using Vitarish.Communications.Application.Abstractions;
 global using Vitarish.Interfaces.Accounts.Abstractions;
 global using Vitarish.Interfaces.Accounts.Attributes;
 global using Vitarish.Interfaces.Accounts.Models;
 global using Vitarish.Interfaces.Accounts.Services;
 global using Vitarish.Interfaces.Base.Localization;
-global using Vitarish.Requests.Application.Abstractions;
 // Project‑specific namespaces
 global using Vitarish.Users.Application.Abstractions;
 global using Vitarish.Users.Domain.Entities;

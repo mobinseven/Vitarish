@@ -10,13 +10,13 @@ using Vitarish.Documents.Interface;
 using Vitarish.Files.Interface;
 using Vitarish.Financial.Interface;
 using Vitarish.Intelligence.Interface;
-using Vitarish.Modules.Base;
-using Vitarish.Social.Hosting;
-using Vitarish.Sea.Interface;
 using Vitarish.Links.Interface;
 using Vitarish.Medical.Interface;
+using Vitarish.Modules.Base;
 using Vitarish.Prescription.Interface;
+using Vitarish.Sea.Interface;
 using Vitarish.Search.Interface;
+using Vitarish.Social.Hosting;
 public static class ModulesExtensions
 {
     public static List<IModule> GetModules() =>

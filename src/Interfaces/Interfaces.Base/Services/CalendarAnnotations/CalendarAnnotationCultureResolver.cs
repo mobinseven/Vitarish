@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace Vitarish.Interfaces.Base.Services.CalendarAnnotations;
 
 internal static class CalendarAnnotationCultureResolver

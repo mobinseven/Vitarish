@@ -17,8 +17,8 @@ public class WebAuthnCredentialTests
             RegisteredAt = DateTimeOffset.UtcNow
         };
 
-        credential.IsActive.Should().BeTrue();
-        credential.LastUsedAt.Should().BeNull();
+        _ = credential.IsActive.Should().BeTrue();
+        _ = credential.LastUsedAt.Should().BeNull();
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public class WebAuthnCredentialTests
         credential.LastUsedAt = lastUsed;
         credential.IsActive = false;
 
-        credential.LastUsedAt.Should().Be(lastUsed);
-        credential.IsActive.Should().BeFalse();
+        _ = credential.LastUsedAt.Should().Be(lastUsed);
+        _ = credential.IsActive.Should().BeFalse();
     }
 }

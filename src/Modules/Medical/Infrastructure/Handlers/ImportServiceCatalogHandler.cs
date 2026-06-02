@@ -21,7 +21,7 @@ internal sealed class ImportServiceCatalogHandler(MedicalDbContext dbContext)
             await using IDbContextTransaction transaction = await dbContext.Database
                 .BeginTransactionAsync(cancellationToken);
 
-            var importBatch = new ImportBatch
+            ImportBatch importBatch = new()
             {
                 Id = Guid.NewGuid(),
                 SourceType = request.SourceType,
@@ -91,12 +91,12 @@ internal sealed class ImportServiceCatalogHandler(MedicalDbContext dbContext)
             }
 
             int serviceCount = 0;
-            var services = new List<MedicalService>(request.Services.Count);
-            var serviceCodes = new List<ServiceCode>();
+            List<MedicalService> services = new(request.Services.Count);
+            List<ServiceCode> serviceCodes = [];
 
             foreach (ImportServiceItem serviceItem in request.Services)
             {
-                var service = new MedicalService
+                MedicalService service = new()
                 {
                     Id = Guid.NewGuid(),
                     Name = serviceItem.Name,

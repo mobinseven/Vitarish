@@ -1,5 +1,5 @@
-using Vitarish.Search.Domain.Abstractions;
 using Vitarish.Contents.Infrastructure.SearchProviders;
+using Vitarish.Search.Domain.Abstractions;
 
 namespace Vitarish.Contents.Infrastructure.DependencyInjection;
 

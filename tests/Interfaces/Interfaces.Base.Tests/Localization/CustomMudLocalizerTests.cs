@@ -17,8 +17,8 @@ public class CustomMudLocalizerTests
 
         MudLocalizer mudLocalizer = new CustomMudLocalizer(localizer);
 
-        mudLocalizer["Label"].Value.Should().Be("Localized");
-        mudLocalizer["Label"].ResourceNotFound.Should().BeFalse();
+        _ = mudLocalizer["Label"].Value.Should().Be("Localized");
+        _ = mudLocalizer["Label"].ResourceNotFound.Should().BeFalse();
     }
 
     [Fact]
@@ -28,7 +28,7 @@ public class CustomMudLocalizerTests
 
         MudLocalizer mudLocalizer = new CustomMudLocalizer(localizer);
 
-        mudLocalizer["Missing"].Value.Should().Be("Missing");
-        mudLocalizer["Missing"].ResourceNotFound.Should().BeTrue();
+        _ = mudLocalizer["Missing"].Value.Should().Be("Missing");
+        _ = mudLocalizer["Missing"].ResourceNotFound.Should().BeTrue();
     }
 }

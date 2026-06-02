@@ -10,7 +10,7 @@ internal sealed class CreateMedicalServiceHandler(MedicalDbContext dbContext)
             return EntityResult<Guid>.Failure(EntityError.Validation("EffectiveTo must be >= EffectiveFrom."));
         }
 
-        var entity = new MedicalService
+        MedicalService entity = new()
         {
             Id = Guid.NewGuid(),
             Name = request.Name,

@@ -87,7 +87,7 @@ public class FeedService(
         const string configKey = "feed.configuration";
 
         // Try to get from tenant metadata
-        if (tenantService.Metadata?.TryGetValue(configKey, out var configValue) == true
+        if (tenantService.Metadata?.TryGetValue(configKey, out object? configValue) == true
             && configValue is string configJson
             && !string.IsNullOrEmpty(configJson))
         {
@@ -117,7 +117,7 @@ public class FeedService(
 
         if (tenantService.Metadata != null)
         {
-            var configJson = JsonSerializer.Serialize(configuration);
+            string configJson = JsonSerializer.Serialize(configuration);
             tenantService.Metadata[configKey] = configJson;
 
             // Trigger metadata update event

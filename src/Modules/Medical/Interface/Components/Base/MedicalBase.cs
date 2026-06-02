@@ -1,5 +1,3 @@
-using MediatR;
-using Vitarish.Medical.Application.Abstractions;
 using Vitarish.Modules.Base;
 
 namespace Vitarish.Medical.Interface.Components.Base;

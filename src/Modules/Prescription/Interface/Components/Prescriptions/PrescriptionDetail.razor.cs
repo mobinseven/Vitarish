@@ -5,20 +5,11 @@ public partial class PrescriptionDetail : PrescriptionBase
     [Parameter, EditorRequired] public PrescriptionDto Prescription { get; set; } = default!;
     [Parameter] public EventCallback OnStatusChanged { get; set; }
 
-    private async Task OnItemAdded()
-    {
-        await ReloadPrescription();
-    }
+    private async Task OnItemAdded() => await ReloadPrescription();
 
-    private async Task OnItemRemoved()
-    {
-        await ReloadPrescription();
-    }
+    private async Task OnItemRemoved() => await ReloadPrescription();
 
-    private async Task OnProviderChangedAsync()
-    {
-        await ReloadPrescription();
-    }
+    private async Task OnProviderChangedAsync() => await ReloadPrescription();
 
     private async Task ValidateAndSubmitAsync()
     {
@@ -30,7 +21,7 @@ public partial class PrescriptionDetail : PrescriptionBase
         if (!validation.IsValid)
         {
             string errorMessage = string.Join(Environment.NewLine, validation.Errors);
-            await DialogService.ShowMessageBox(
+            _ = await DialogService.ShowMessageBox(
                 Localizer["ValidationFailed"],
                 errorMessage,
                 yesText: Localizer["OK"]);
@@ -65,7 +56,7 @@ public partial class PrescriptionDetail : PrescriptionBase
         }
         else
         {
-            await DialogService.ShowMessageBox(
+            _ = await DialogService.ShowMessageBox(
                 Localizer["SubmissionFailed"],
                 result.ErrorMessage ?? Localizer["UnknownError"],
                 yesText: Localizer["OK"]);
@@ -75,16 +66,16 @@ public partial class PrescriptionDetail : PrescriptionBase
 
     private async Task EditAsync()
     {
-        var parameters = new DialogParameters
+        DialogParameters parameters = new()
         {
             { nameof(ConfirmDialog.ContentText), Localizer["ConfirmEditPrescription"].Value },
             { nameof(ConfirmDialog.ButtonText), Localizer["EditItem", Localizer["Prescription"]].Value },
             { nameof(ConfirmDialog.Color), Color.Info }
         };
 
-        var dialog = await DialogService.ShowAsync<ConfirmDialog>(
+        IDialogReference dialog = await DialogService.ShowAsync<ConfirmDialog>(
             Localizer["EditItem", Localizer["Prescription"]], parameters);
-        var dialogResult = await dialog.Result;
+        DialogResult? dialogResult = await dialog.Result;
 
         if (dialogResult is null || dialogResult.Canceled)
         {
@@ -101,7 +92,7 @@ public partial class PrescriptionDetail : PrescriptionBase
 
         if (!result.IsSuccess)
         {
-            await DialogService.ShowMessageBox(
+            _ = await DialogService.ShowMessageBox(
                 Localizer["EditFailed"],
                 result.ErrorMessage ?? Localizer["UnknownError"],
                 yesText: Localizer["OK"]);
@@ -137,7 +128,7 @@ public partial class PrescriptionDetail : PrescriptionBase
 
         if (!result.IsSuccess)
         {
-            await DialogService.ShowMessageBox(
+            _ = await DialogService.ShowMessageBox(
                 Localizer["CancelFailed"],
                 result.ErrorMessage ?? Localizer["UnknownError"],
                 yesText: Localizer["OK"]);

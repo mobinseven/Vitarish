@@ -39,7 +39,7 @@ public partial class AiResponderInput : AdvancedInput
     }
 
     [Parameter]
-    public new EventCallback<string?> OnError { get; set; }
+    public EventCallback<string?> OnError { get; set; }
         = EventCallback<string?>.Empty;
 
     [Parameter]

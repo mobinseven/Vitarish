@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Search.Domain.Abstractions;
 
@@ -24,13 +23,10 @@ public class SeaIndexingProcessor(
     /// <summary>
     /// Rebuilds all Sea search indexes for every tenant. Intended to be invoked by Hangfire as a recurring job.
     /// </summary>
-    public async Task ProcessIndexingAsync(CancellationToken cancellationToken = default)
-    {
-        await tenantBackgroundExecutor.ExecutePerTenantAsync(
+    public async Task ProcessIndexingAsync(CancellationToken cancellationToken = default) => await tenantBackgroundExecutor.ExecutePerTenantAsync(
             BackgroundResource,
             PerTenantAsync,
             cancellationToken);
-    }
 
     private async Task PerTenantAsync(IServiceProvider provider, CancellationToken shutdownToken)
     {

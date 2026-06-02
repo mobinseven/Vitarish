@@ -14,16 +14,20 @@ public sealed class ConfigurationResiliencePipelineProvider : IProviderResilienc
 
     public ConfigurationResiliencePipelineProvider(IConfiguration configuration)
     {
-        var section = configuration.GetSection("Prescription:Providers");
+        IConfigurationSection section = configuration.GetSection("Prescription:Providers");
         if (!section.Exists())
-            return;
-
-        foreach (var providerSection in section.GetChildren())
         {
-            var key = providerSection.Key;
-            var resilienceSection = providerSection.GetSection("Resilience");
+            return;
+        }
+
+        foreach (IConfigurationSection providerSection in section.GetChildren())
+        {
+            string key = providerSection.Key;
+            IConfigurationSection resilienceSection = providerSection.GetSection("Resilience");
             if (!resilienceSection.Exists())
+            {
                 continue;
+            }
 
             _options[key] = new ProviderResilienceOptions
             {
@@ -38,8 +42,5 @@ public sealed class ConfigurationResiliencePipelineProvider : IProviderResilienc
         }
     }
 
-    public ProviderResilienceOptions GetOptions(string providerKey)
-    {
-        return _options.GetValueOrDefault(providerKey, _default);
-    }
+    public ProviderResilienceOptions GetOptions(string providerKey) => _options.GetValueOrDefault(providerKey, _default);
 }

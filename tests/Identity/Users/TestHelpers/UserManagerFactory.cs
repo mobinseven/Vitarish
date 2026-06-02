@@ -1,8 +1,5 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Vitarish.Users.Domain.Entities;
-using Vitarish.Users.Infrastructure.Data;
 
 namespace Users.Tests.TestHelpers;
 

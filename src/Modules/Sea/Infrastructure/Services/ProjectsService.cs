@@ -40,14 +40,14 @@ internal class ProjectsService(
 
         foreach (ProjectUser pu in existing.Where(pu => !desired.Contains(pu.UserId)))
         {
-            dbContext.ProjectUsers.Remove(pu);
+            _ = dbContext.ProjectUsers.Remove(pu);
         }
 
         foreach (string userId in desired.Where(id => !existingIds.Contains(id)))
         {
-            await dbContext.ProjectUsers.AddAsync(new ProjectUser(projectId, userId), cancellationToken);
+            _ = await dbContext.ProjectUsers.AddAsync(new ProjectUser(projectId, userId), cancellationToken);
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
     }
 }

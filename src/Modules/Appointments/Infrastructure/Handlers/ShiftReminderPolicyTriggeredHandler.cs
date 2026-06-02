@@ -87,17 +87,14 @@ internal class ShiftReminderPolicyTriggeredHandler(
         CancellationToken cancellationToken)
     {
         Vitarish.Users.Domain.Entities.User? user = await mediator.Send(new GetUserQuery(userId), cancellationToken);
-        if (user is null)
-        {
-            return null;
-        }
-
-        return channel switch
-        {
-            ReminderKind.Email => user.Email,
-            ReminderKind.Sms => user.PhoneNumber,
-            _ => null
-        };
+        return user is null
+            ? null
+            : channel switch
+            {
+                ReminderKind.Email => user.Email,
+                ReminderKind.Sms => user.PhoneNumber,
+                _ => null
+            };
     }
 
     private static string RenderTemplate(string template, DateTimeOffset occurrenceStart)

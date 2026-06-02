@@ -17,21 +17,12 @@ internal sealed class LinkResolverService(LinksDbContext context, TimeProvider t
             .Where(l => l.Domain == normalizedDomain && l.Slug == normalizedSlug)
             .FirstOrDefaultAsync(cancellationToken);
 
-        if (link is null)
-        {
-            return new LinkResolutionResult.NotFound();
-        }
-
-        if (link.Status == LinkStatus.Disabled)
-        {
-            return new LinkResolutionResult.Disabled();
-        }
-
-        if (link.ExpiresAt.HasValue && link.ExpiresAt.Value < timeProvider.GetUtcNow())
-        {
-            return new LinkResolutionResult.Expired();
-        }
-
-        return new LinkResolutionResult.Active(link.DestinationUrl);
+        return link is null
+            ? new LinkResolutionResult.NotFound()
+            : link.Status == LinkStatus.Disabled
+            ? new LinkResolutionResult.Disabled()
+            : link.ExpiresAt.HasValue && link.ExpiresAt.Value < timeProvider.GetUtcNow()
+            ? new LinkResolutionResult.Expired()
+            : new LinkResolutionResult.Active(link.DestinationUrl);
     }
 }

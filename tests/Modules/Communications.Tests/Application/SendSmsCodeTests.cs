@@ -73,7 +73,7 @@ public sealed class SendSmsCodeTests
         Message message = new() { Recipient = "+15551234567", Body = "123456" };
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => SendSmsCode.ExecuteAsync(null!, message));
+        _ = await Assert.ThrowsAsync<ArgumentNullException>(() => SendSmsCode.ExecuteAsync(null!, message));
     }
 
     [Fact]
@@ -83,7 +83,7 @@ public sealed class SendSmsCodeTests
         FakeMessagesService service = new();
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => SendSmsCode.ExecuteAsync(service, null!));
+        _ = await Assert.ThrowsAsync<ArgumentNullException>(() => SendSmsCode.ExecuteAsync(service, null!));
     }
 
     [Theory]
@@ -128,7 +128,7 @@ public sealed class SendSmsCodeTests
         cts.Cancel();
 
         // Act & Assert
-        await Assert.ThrowsAsync<OperationCanceledException>(
+        _ = await Assert.ThrowsAsync<OperationCanceledException>(
             () => SendSmsCode.ExecuteAsync(service, message, cts.Token));
     }
 

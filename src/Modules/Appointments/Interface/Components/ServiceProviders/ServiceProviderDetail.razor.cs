@@ -18,10 +18,7 @@ public partial class ServiceProviderDetail : ServiceProvidersBase
         EnsureTenantUserRoleOnLink = false
     };
 
-    protected override void OnParametersSet()
-    {
-        current = Provider;
-    }
+    protected override void OnParametersSet() => current = Provider;
 
     private async Task LinkUserAsync(string? userId)
     {
@@ -30,7 +27,7 @@ public partial class ServiceProviderDetail : ServiceProvidersBase
             return;
         }
 
-        await ServiceProviderManager.LinkUserAsync(current.Id, userId, CancellationToken.None);
+        _ = await ServiceProviderManager.LinkUserAsync(current.Id, userId, CancellationToken.None);
         linkUserId = null;
         await RefreshAsync();
     }
@@ -42,7 +39,7 @@ public partial class ServiceProviderDetail : ServiceProvidersBase
             return;
         }
 
-        await ServiceProviderManager.UnlinkUserAsync(current.Id, userId, CancellationToken.None);
+        _ = await ServiceProviderManager.UnlinkUserAsync(current.Id, userId, CancellationToken.None);
         await RefreshAsync();
     }
 
@@ -77,7 +74,7 @@ public partial class ServiceProviderDetail : ServiceProvidersBase
             return;
         }
 
-        await ServiceProviderManager.RemoveAsync(current!.Id, CancellationToken.None);
+        _ = await ServiceProviderManager.RemoveAsync(current!.Id, CancellationToken.None);
         await OnDeleted.InvokeAsync();
     }
 }

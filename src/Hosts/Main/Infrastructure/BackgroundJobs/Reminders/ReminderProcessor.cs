@@ -162,7 +162,7 @@ public class ReminderProcessor(
                 }, cancellationToken);
                 break;
             case ReminderKind.Sms:
-                await tenantContext.MessagesService.SendSms(new Message
+                _ = await tenantContext.MessagesService.SendSms(new Message
                 {
                     Recipient = reminder.Recipient,
                     Body = reminder.TextBody

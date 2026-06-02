@@ -26,7 +26,7 @@ public class AddUserPasswordCommandValidatorTests
 
         TestValidationResult<AddUserPasswordCommand> result = validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(c => c.Id);
+        _ = result.ShouldHaveValidationErrorFor(c => c.Id);
     }
 
     [Theory]
@@ -38,6 +38,6 @@ public class AddUserPasswordCommandValidatorTests
 
         TestValidationResult<AddUserPasswordCommand> result = validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(c => c.Password);
+        _ = result.ShouldHaveValidationErrorFor(c => c.Password);
     }
 }

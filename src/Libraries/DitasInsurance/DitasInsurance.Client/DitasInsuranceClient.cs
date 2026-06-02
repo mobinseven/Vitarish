@@ -17,12 +17,16 @@ public sealed class DitasInsuranceClient : IDitasInsuranceClient
         _options = options;
 
         if (string.IsNullOrWhiteSpace(_options.EffectiveBaseUrl))
+        {
             throw new InvalidOperationException("DITAS base URL is required.");
-        if (string.IsNullOrWhiteSpace(_options.ApiKey))
-            throw new InvalidOperationException("DITAS API key is required.");
+        }
 
-        if (_httpClient.BaseAddress is null)
-            _httpClient.BaseAddress = new Uri(_options.EffectiveBaseUrl, UriKind.Absolute);
+        if (string.IsNullOrWhiteSpace(_options.ApiKey))
+        {
+            throw new InvalidOperationException("DITAS API key is required.");
+        }
+
+        _httpClient.BaseAddress ??= new Uri(_options.EffectiveBaseUrl, UriKind.Absolute);
     }
 
     public async Task CheckHealthAsync(CancellationToken cancellationToken = default)
@@ -56,31 +60,38 @@ public sealed class DitasInsuranceClient : IDitasInsuranceClient
 
     private async Task<T?> SendAsync<T>(HttpMethod method, string url, object? content, string? idempotencyKey, string? correlationId, CancellationToken cancellationToken)
     {
-        using var request = new HttpRequestMessage(method, url);
+        using HttpRequestMessage request = new(method, url);
         request.Headers.Add(ApiKeyHeader, _options.ApiKey);
         if (!string.IsNullOrWhiteSpace(idempotencyKey))
+        {
             request.Headers.Add("X-Idempotency-Key", idempotencyKey);
-        if (!string.IsNullOrWhiteSpace(correlationId))
-            request.Headers.Add("X-Correlation-Id", correlationId);
-        if (content is not null)
-            request.Content = JsonContent.Create(content);
+        }
 
-        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        if (!string.IsNullOrWhiteSpace(correlationId))
+        {
+            request.Headers.Add("X-Correlation-Id", correlationId);
+        }
+
+        if (content is not null)
+        {
+            request.Content = JsonContent.Create(content);
+        }
+
+        using HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken);
         if (!response.IsSuccessStatusCode)
         {
-            var responseBody = response.Content is null
+            string responseBody = response.Content is null
                 ? string.Empty
                 : await response.Content.ReadAsStringAsync(cancellationToken);
             throw new DitasInsuranceClientException(response.StatusCode, responseBody);
         }
 
         if (response.Content is null || response.StatusCode == HttpStatusCode.NoContent || response.Content.Headers.ContentLength == 0)
+        {
             return default;
+        }
 
-        var successBody = await response.Content.ReadAsStringAsync(cancellationToken);
-        if (string.IsNullOrWhiteSpace(successBody))
-            return default;
-
-        return JsonSerializer.Deserialize<T>(successBody, JsonOptions);
+        string successBody = await response.Content.ReadAsStringAsync(cancellationToken);
+        return string.IsNullOrWhiteSpace(successBody) ? default : JsonSerializer.Deserialize<T>(successBody, JsonOptions);
     }
 }

@@ -1,7 +1,6 @@
 
 using FluentValidation;
 using MediatR;
-using Vitarish.Requests.Domain.Models;
 
 namespace Vitarish.Requests.Application.Commands;
 

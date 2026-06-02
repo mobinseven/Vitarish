@@ -1,5 +1,3 @@
-using MudBlazor;
-using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Dtos;
 
 namespace Vitarish.Main.Components;
@@ -18,13 +16,7 @@ public class OwnerPageBase : PageBase
     /// Parses <see cref="Vitarish.Requests.Application.Abstractions.IRequestContext.OwnerId"/> to a Guid.
     /// Returns null when no owner claim is present or the value is not a valid Guid.
     /// </summary>
-    protected Guid? GetOwnerGuid()
-    {
-        if (RequestContext.OwnerId is null)
-            return null;
-
-        return Guid.TryParse(RequestContext.OwnerId, out Guid g) ? g : null;
-    }
+    protected Guid? GetOwnerGuid() => RequestContext.OwnerId is null ? null : Guid.TryParse(RequestContext.OwnerId, out Guid g) ? g : null;
 
     /// <summary>
     /// Loads the tenant with <paramref name="tenantId"/> from the parties service.
@@ -40,7 +32,9 @@ public class OwnerPageBase : PageBase
 
         TenantReadDto? tenant = await PartiesService.GetTenantAsync(tenantId.Value);
         if (tenant is null)
+        {
             NavigationManager.NavigateTo(fallbackRoute);
+        }
 
         return tenant;
     }

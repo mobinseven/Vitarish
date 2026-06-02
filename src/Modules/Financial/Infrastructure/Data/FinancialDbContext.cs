@@ -25,7 +25,7 @@ public sealed class FinancialDbContext(DbContextOptions<FinancialDbContext> opti
 
         _ = modelBuilder.Entity<LedgerAccount>(entity =>
         {
-            entity.HasQueryFilter(e => e.DeletedAt == null);
+            _ = entity.HasQueryFilter(e => e.DeletedAt == null);
             _ = entity.Property(e => e.Key).HasColumnType("nvarchar(256)");
             _ = entity.Property(e => e.Currency).HasColumnType("nvarchar(3)");
             _ = entity.Property(e => e.OwnerScope).HasConversion<string>().HasMaxLength(32);
@@ -36,7 +36,7 @@ public sealed class FinancialDbContext(DbContextOptions<FinancialDbContext> opti
 
         _ = modelBuilder.Entity<LedgerEntry>(entity =>
         {
-            entity.HasQueryFilter(e => e.DeletedAt == null);
+            _ = entity.HasQueryFilter(e => e.DeletedAt == null);
             _ = entity.Property(e => e.Currency).HasColumnType("nvarchar(3)");
             _ = entity.Property(e => e.State).HasConversion<string>().HasMaxLength(32);
             _ = entity.Property(e => e.TemplateId).HasConversion<string>().HasMaxLength(64);
@@ -56,7 +56,7 @@ public sealed class FinancialDbContext(DbContextOptions<FinancialDbContext> opti
 
         _ = modelBuilder.Entity<LedgerEntryLine>(entity =>
         {
-            entity.HasQueryFilter(e => e.DeletedAt == null);
+            _ = entity.HasQueryFilter(e => e.DeletedAt == null);
             _ = entity.Property(e => e.Side).HasConversion<string>().HasMaxLength(16);
             _ = entity.HasIndex(e => e.LedgerEntryId);
             _ = entity.HasIndex(e => e.AccountId);
@@ -64,7 +64,7 @@ public sealed class FinancialDbContext(DbContextOptions<FinancialDbContext> opti
 
         _ = modelBuilder.Entity<IdempotencyRecord>(entity =>
         {
-            entity.HasQueryFilter(e => e.DeletedAt == null);
+            _ = entity.HasQueryFilter(e => e.DeletedAt == null);
             _ = entity.Property(e => e.Scope).HasColumnType("nvarchar(128)");
             _ = entity.Property(e => e.IdempotencyKey).HasColumnType("nvarchar(256)");
             _ = entity.Property(e => e.RequestHash).HasColumnType("nvarchar(128)");
@@ -74,7 +74,7 @@ public sealed class FinancialDbContext(DbContextOptions<FinancialDbContext> opti
 
         _ = modelBuilder.Entity<ReconciliationRecord>(entity =>
         {
-            entity.HasQueryFilter(e => e.DeletedAt == null);
+            _ = entity.HasQueryFilter(e => e.DeletedAt == null);
             _ = entity.Property(e => e.ExternalReference).HasColumnType("nvarchar(256)");
             _ = entity.Property(e => e.Provider).HasColumnType("nvarchar(128)");
             _ = entity.Property(e => e.Authority).HasConversion<string>().HasMaxLength(32);
@@ -85,7 +85,7 @@ public sealed class FinancialDbContext(DbContextOptions<FinancialDbContext> opti
 
         _ = modelBuilder.Entity<AdapterInboundEvent>(entity =>
         {
-            entity.HasQueryFilter(e => e.DeletedAt == null);
+            _ = entity.HasQueryFilter(e => e.DeletedAt == null);
             _ = entity.Property(e => e.Provider).HasColumnType("nvarchar(128)");
             _ = entity.Property(e => e.EventId).HasColumnType("nvarchar(256)");
             _ = entity.Property(e => e.DedupeKey).HasColumnType("nvarchar(256)");

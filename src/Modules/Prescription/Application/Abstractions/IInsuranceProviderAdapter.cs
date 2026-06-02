@@ -61,8 +61,8 @@ public record AdapterResult<T> : AdapterResult
     public T? Data { get; init; }
 
     public static AdapterResult<T> Success(T data) => new() { IsSuccess = true, Data = data };
-    public new static AdapterResult<T> NotSupported() => new() { IsNotSupported = true };
-    public static AdapterResult<T> Failure(IntegrationError error) => new() { Error = error };
+    public static new AdapterResult<T> NotSupported() => new() { IsNotSupported = true };
+    public static new AdapterResult<T> Failure(IntegrationError error) => new() { Error = error };
 }
 
 // Request/Response DTOs for the adapter contract

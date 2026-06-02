@@ -1,4 +1,3 @@
-using MediatR;
 using Vitarish.Appointments.Infrastructure.Handlers;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Entities;
@@ -19,10 +18,10 @@ public class ShiftReminderPolicyTriggeredHandlerTests
     [Fact]
     public async Task Handle_ShouldNotCreateReminder_WhenNoPoliciesExist()
     {
-        var sut = CreateSut();
-        var (shift, _, date) = CreateShift();
+        ShiftReminderPolicyTriggeredHandler sut = CreateSut();
+        (Shift? shift, _, DateOnly date) = CreateShift();
 
-        _shiftRepository.Setup(r => r.GetAsync(shift.Id, It.IsAny<CancellationToken>()))
+        _ = _shiftRepository.Setup(r => r.GetAsync(shift.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(shift);
         SetupPolicies(shift.Id, []);
 
@@ -37,11 +36,11 @@ public class ShiftReminderPolicyTriggeredHandlerTests
     [Fact]
     public async Task Handle_ShouldNotCreateReminder_WhenStatusDoesNotQualify()
     {
-        var sut = CreateSut();
-        var policy = CreatePolicy([ReservationStatus.Confirmed]);
-        var (shift, _, date) = CreateShift();
+        ShiftReminderPolicyTriggeredHandler sut = CreateSut();
+        ShiftReminderPolicy policy = CreatePolicy([ReservationStatus.Confirmed]);
+        (Shift? shift, _, DateOnly date) = CreateShift();
 
-        _shiftRepository.Setup(r => r.GetAsync(shift.Id, It.IsAny<CancellationToken>()))
+        _ = _shiftRepository.Setup(r => r.GetAsync(shift.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(shift);
         policy.ShiftId = shift.Id;
         SetupPolicies(shift.Id, [policy]);
@@ -58,13 +57,13 @@ public class ShiftReminderPolicyTriggeredHandlerTests
     [Fact]
     public async Task Handle_ShouldNotCreateReminder_WhenRemindAtIsInThePast()
     {
-        var sut = CreateSut();
+        ShiftReminderPolicyTriggeredHandler sut = CreateSut();
         // Shift starts 30 minutes in the future, offset 1 hour → remindAt = 30 min in the past
-        var startTime = _timeProvider.UtcNow.AddMinutes(30);
-        var policy = CreatePolicy([ReservationStatus.Pending], offset: TimeSpan.FromHours(1));
-        var (shift, _, date) = CreateShift(startTime: TimeOnly.FromDateTime(startTime.DateTime));
+        DateTimeOffset startTime = _timeProvider.UtcNow.AddMinutes(30);
+        ShiftReminderPolicy policy = CreatePolicy([ReservationStatus.Pending], offset: TimeSpan.FromHours(1));
+        (Shift? shift, _, DateOnly date) = CreateShift(startTime: TimeOnly.FromDateTime(startTime.DateTime));
 
-        _shiftRepository.Setup(r => r.GetAsync(shift.Id, It.IsAny<CancellationToken>()))
+        _ = _shiftRepository.Setup(r => r.GetAsync(shift.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(shift);
         policy.ShiftId = shift.Id;
         SetupPolicies(shift.Id, [policy]);
@@ -80,25 +79,30 @@ public class ShiftReminderPolicyTriggeredHandlerTests
     [Fact]
     public async Task Handle_ShouldCreateOneReminderPerMatchingPolicy()
     {
-        var sut = CreateSut();
-        var startTime = _timeProvider.UtcNow.AddDays(2);
-        var policiesList = new[]
+        ShiftReminderPolicyTriggeredHandler sut = CreateSut();
+        DateTimeOffset startTime = _timeProvider.UtcNow.AddDays(2);
+        ShiftReminderPolicy[] policiesList = new[]
         {
             CreatePolicy([ReservationStatus.Pending], offset: TimeSpan.FromHours(24)),
             CreatePolicy([ReservationStatus.Pending], offset: TimeSpan.FromHours(1))
         };
-        var (shift, _, date) = CreateShift(startTime: TimeOnly.FromDateTime(startTime.DateTime));
+        (Shift? shift, _, DateOnly date) = CreateShift(startTime: TimeOnly.FromDateTime(startTime.DateTime));
 
-        _shiftRepository.Setup(r => r.GetAsync(shift.Id, It.IsAny<CancellationToken>()))
+        _ = _shiftRepository.Setup(r => r.GetAsync(shift.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(shift);
-        foreach (var p in policiesList) p.ShiftId = shift.Id;
+        foreach (ShiftReminderPolicy? p in policiesList)
+        {
+            p.ShiftId = shift.Id;
+        }
+
         SetupPolicies(shift.Id, policiesList);
 
-        var user = new User { Email = "user@example.com", UserName = "user" };
-        _mediator.Setup(m => m.Send(It.IsAny<GetUserQuery>(), It.IsAny<CancellationToken>()))
+        User user = new()
+        { Email = "user@example.com", UserName = "user" };
+        _ = _mediator.Setup(m => m.Send(It.IsAny<GetUserQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
-        _remindersService.Setup(r => r.AddRangeAsync(
+        _ = _remindersService.Setup(r => r.AddRangeAsync(
             It.IsAny<Guid>(), It.IsAny<IReadOnlyList<ReminderRecipientReadDto>>(),
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
@@ -114,8 +118,8 @@ public class ShiftReminderPolicyTriggeredHandlerTests
     [Fact]
     public async Task Handle_ShouldSkipReminder_WhenReservingPartyIdIsNull()
     {
-        var sut = CreateSut();
-        var (shift, _, date) = CreateShift();
+        ShiftReminderPolicyTriggeredHandler sut = CreateSut();
+        (Shift? shift, Guid _, DateOnly date) = CreateShift();
 
         await sut.Handle(CreateEvent(shift.Id, date, ReservationStatus.Pending, reservingPartyId: null), CancellationToken.None);
 
@@ -125,26 +129,27 @@ public class ShiftReminderPolicyTriggeredHandlerTests
     [Fact]
     public async Task Handle_ShouldRenderTemplateTokens()
     {
-        var sut = CreateSut();
-        var startTime = _timeProvider.UtcNow.AddDays(2);
-        var policy = CreatePolicy(
+        ShiftReminderPolicyTriggeredHandler sut = CreateSut();
+        DateTimeOffset startTime = _timeProvider.UtcNow.AddDays(2);
+        ShiftReminderPolicy policy = CreatePolicy(
             [ReservationStatus.Confirmed],
             subjectTemplate: "Appointment at {{OccurrenceStart}}",
             bodyTemplate: "Your shift starts at {{OccurrenceStart}}.");
-        var (shift, _, date) = CreateShift(startTime: TimeOnly.FromDateTime(startTime.DateTime));
+        (Shift? shift, _, DateOnly date) = CreateShift(startTime: TimeOnly.FromDateTime(startTime.DateTime));
 
-        _shiftRepository.Setup(r => r.GetAsync(shift.Id, It.IsAny<CancellationToken>()))
+        _ = _shiftRepository.Setup(r => r.GetAsync(shift.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(shift);
         policy.ShiftId = shift.Id;
         SetupPolicies(shift.Id, [policy]);
 
-        var user = new User { Email = "user@example.com", UserName = "user" };
-        _mediator.Setup(m => m.Send(It.IsAny<GetUserQuery>(), It.IsAny<CancellationToken>()))
+        User user = new()
+        { Email = "user@example.com", UserName = "user" };
+        _ = _mediator.Setup(m => m.Send(It.IsAny<GetUserQuery>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(user);
 
         string? capturedSubject = null;
         string? capturedBody = null;
-        _remindersService.Setup(r => r.AddRangeAsync(
+        _ = _remindersService.Setup(r => r.AddRangeAsync(
             It.IsAny<Guid>(), It.IsAny<IReadOnlyList<ReminderRecipientReadDto>>(),
             It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
             .Callback<Guid, IReadOnlyList<ReminderRecipientReadDto>, string, string, DateTimeOffset, CancellationToken>(
@@ -153,28 +158,25 @@ public class ShiftReminderPolicyTriggeredHandlerTests
 
         await sut.Handle(CreateEvent(shift.Id, date, ReservationStatus.Confirmed, "user-1"), CancellationToken.None);
 
-        capturedSubject.Should().NotBeNull();
-        capturedSubject.Should().NotContain("{{OccurrenceStart}}");
-        capturedSubject.Should().Contain("Appointment at");
-        capturedBody.Should().NotContain("{{OccurrenceStart}}");
-        capturedBody.Should().Contain("Your shift starts at");
+        _ = capturedSubject.Should().NotBeNull();
+        _ = capturedSubject.Should().NotContain("{{OccurrenceStart}}");
+        _ = capturedSubject.Should().Contain("Appointment at");
+        _ = capturedBody.Should().NotContain("{{OccurrenceStart}}");
+        _ = capturedBody.Should().Contain("Your shift starts at");
     }
 
-    private void SetupPolicies(Guid shiftId, IReadOnlyList<ShiftReminderPolicy> policies)
-    {
-        _reminderPolicyRepository.Setup(r => r.GetAsync(
-            It.Is<ShiftReminderPolicyDescriptor>(d => d.ShiftId == shiftId && d.IsEnabled == true),
-            It.IsAny<CancellationToken>()))
+    private void SetupPolicies(Guid shiftId, IReadOnlyList<ShiftReminderPolicy> policies) => _reminderPolicyRepository.Setup(r => r.GetAsync(
+                                                                                                      It.Is<ShiftReminderPolicyDescriptor>(d => d.ShiftId == shiftId && d.IsEnabled == true),
+                                                                                                      It.IsAny<CancellationToken>()))
             .ReturnsAsync(policies);
-    }
 
     private (Shift Shift, Guid ShiftId, DateOnly Date) CreateShift(TimeOnly? startTime = null)
     {
-        var shiftId = Guid.NewGuid();
-        var resolvedStart = startTime ?? TimeOnly.FromDateTime(_timeProvider.UtcNow.AddDays(3).DateTime);
-        var date = DateOnly.FromDateTime(_timeProvider.UtcNow.AddDays(3).DateTime);
+        Guid shiftId = Guid.NewGuid();
+        TimeOnly resolvedStart = startTime ?? TimeOnly.FromDateTime(_timeProvider.UtcNow.AddDays(3).DateTime);
+        DateOnly date = DateOnly.FromDateTime(_timeProvider.UtcNow.AddDays(3).DateTime);
 
-        var shift = new Shift
+        Shift shift = new()
         {
             Id = shiftId,
             StartTime = resolvedStart,
@@ -190,16 +192,16 @@ public class ShiftReminderPolicyTriggeredHandlerTests
         string subjectTemplate = "Reminder: {{OccurrenceStart}}",
         string bodyTemplate = "Your appointment is at {{OccurrenceStart}}.")
     {
-        var policy = new ShiftReminderPolicy
+        ShiftReminderPolicy policy = new()
         {
             Id = Guid.NewGuid(),
             IsEnabled = true,
             Channel = ReminderKind.Email,
             OffsetBefore = offset ?? TimeSpan.FromHours(24),
             SubjectTemplate = subjectTemplate,
-            BodyTemplate = bodyTemplate
+            BodyTemplate = bodyTemplate,
+            QualifyingStatuses = statuses
         };
-        policy.QualifyingStatuses = statuses;
         return policy;
     }
 

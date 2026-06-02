@@ -1,9 +1,8 @@
+using Microsoft.EntityFrameworkCore.Storage;
 using Vitarish.Appointments.Application.Events;
-using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Appointments.Infrastructure.Services;
 using Vitarish.Entities.Server.Data;
 using Vitarish.Requests.Application.Abstractions;
-using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Vitarish.Appointments.Infrastructure.Handlers;
 
@@ -63,12 +62,12 @@ internal class MoveReservationHandler(
 
             if (lockEntry is not null)
             {
-                dbContext.ShiftReservationLocks.Add(lockEntry);
+                _ = dbContext.ShiftReservationLocks.Add(lockEntry);
             }
 
             try
             {
-                await dbContext.SaveChangesAsync(cancellationToken);
+                _ = await dbContext.SaveChangesAsync(cancellationToken);
             }
             catch (DbUpdateException lockEx) when (DatabaseExceptions.IsUniqueConstraintViolation(lockEx))
             {
@@ -89,7 +88,7 @@ internal class MoveReservationHandler(
             {
                 if (lockEntry is not null)
                 {
-                    dbContext.ShiftReservationLocks.Remove(lockEntry);
+                    _ = dbContext.ShiftReservationLocks.Remove(lockEntry);
                 }
                 await transaction.RollbackAsync(cancellationToken);
                 return;
@@ -103,14 +102,14 @@ internal class MoveReservationHandler(
                 Status = ReservationStatus.Pending
             };
 
-            dbContext.Reservations.Add(newReservation);
+            _ = dbContext.Reservations.Add(newReservation);
 
             if (lockEntry is not null)
             {
-                dbContext.ShiftReservationLocks.Remove(lockEntry);
+                _ = dbContext.ShiftReservationLocks.Remove(lockEntry);
             }
 
-            await dbContext.SaveChangesAsync(cancellationToken);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
             await transaction.CommitAsync(cancellationToken);
 
             await eventPublisher.PublishReservationMovedAsync(

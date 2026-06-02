@@ -7,7 +7,7 @@ using Vitarish.Modules.Base;
 
 namespace Vitarish.Appointments.Interface;
 
-public class AppointmentsModule :Module, IAppointmentsModule
+public class AppointmentsModule : Module, IAppointmentsModule
 {
     public override string Name => "Appointments";
 

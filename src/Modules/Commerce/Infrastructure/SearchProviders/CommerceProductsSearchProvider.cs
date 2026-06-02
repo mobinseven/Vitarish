@@ -1,7 +1,6 @@
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Search.Domain.Abstractions;
 using Vitarish.Search.Domain.Models;
-using Vitarish.Commerce.Infrastructure.Data;
 
 namespace Vitarish.Commerce.Infrastructure.SearchProviders;
 

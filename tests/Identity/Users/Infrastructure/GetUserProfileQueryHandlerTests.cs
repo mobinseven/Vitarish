@@ -15,23 +15,26 @@ public class GetUserProfileQueryHandlerTests
 
         Func<Task> act = () => handler.Handle(new GetUserProfileQuery("missing"), CancellationToken.None);
 
-        await act.Should().ThrowAsync<InvalidDataException>();
+        _ = await act.Should().ThrowAsync<InvalidDataException>();
     }
 
     [Fact]
     public async Task Handle_ReturnsProfilePreferences()
     {
-        User user = new() { Id = "user-1" };
-        user.ProfilePreferences = new Dictionary<string, string> { ["theme"] = "dark" };
+        User user = new()
+        {
+            Id = "user-1",
+            ProfilePreferences = new Dictionary<string, string> { ["theme"] = "dark" }
+        };
 
         await using UsersDbContext dbContext = UsersDbContextFactory.Create();
-        dbContext.Users.Add(user);
-        await dbContext.SaveChangesAsync();
+        _ = dbContext.Users.Add(user);
+        _ = await dbContext.SaveChangesAsync();
 
         GetUserProfileQueryHandler handler = new(dbContext);
 
         Dictionary<string, string> result = await handler.Handle(new GetUserProfileQuery("user-1"), CancellationToken.None);
 
-        result.Should().ContainKey("theme").WhoseValue.Should().Be("dark");
+        _ = result.Should().ContainKey("theme").WhoseValue.Should().Be("dark");
     }
 }

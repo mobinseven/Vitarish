@@ -26,6 +26,6 @@ public class UserHasPasswordQueryValidatorTests
 
         TestValidationResult<UserHasPasswordQuery> result = validator.TestValidate(query);
 
-        result.ShouldHaveValidationErrorFor(q => q.Id);
+        _ = result.ShouldHaveValidationErrorFor(q => q.Id);
     }
 }

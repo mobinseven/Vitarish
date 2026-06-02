@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Components.Web;
-using Scrutor;
 
 namespace Vitarish.Interfaces.Base.Common;
 
@@ -50,7 +49,7 @@ public partial class NavMenu : CommonBase, IAsyncDisposable
     }
     private async void ScrollListenerOnScroll(object? sender, ScrollEventArgs e)
     {
-        var topOffset = e.NodeName == "#document"
+        double? topOffset = e.NodeName == "#document"
             ? e.FirstChildBoundingClientRect?.Top * -1
             : e.ScrollTop;
 

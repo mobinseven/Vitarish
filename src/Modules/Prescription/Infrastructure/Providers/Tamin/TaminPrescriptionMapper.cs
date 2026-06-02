@@ -1,10 +1,10 @@
 using System.Text.Json;
 using Vitarish.Prescription.Application.Abstractions;
 using Vitarish.Prescription.Domain.Entities;
+using Vorn.Tamin;
 using DomainPrescriptionStatus = Vitarish.Prescription.Domain.Enums.PrescriptionStatus;
 using EligibilityStatus = Vitarish.Prescription.Domain.Enums.EligibilityStatus;
 using PrescriptionItemCategory = Vitarish.Prescription.Domain.Enums.PrescriptionItemCategory;
-using Vorn.Tamin;
 
 namespace Vitarish.Prescription.Infrastructure.Providers.Tamin;
 
@@ -16,10 +16,10 @@ internal static class TaminPrescriptionMapper
         string doctorTaminId,
         CancellationToken cancellationToken)
     {
-        var patientNationalId = prescription.PatientNationalId ?? prescription.PatientId.ToString();
-        var visitDate = (prescription.SubmittedAt ?? prescription.CreatedAt).ToString("yyyy-MM-dd");
+        string patientNationalId = prescription.PatientNationalId ?? prescription.PatientId.ToString();
+        string visitDate = (prescription.SubmittedAt ?? prescription.CreatedAt).ToString("yyyy-MM-dd");
 
-        var dominantCategory = prescription.Items
+        PrescriptionItemCategory dominantCategory = prescription.Items
             .GroupBy(i => i.Category)
             .OrderByDescending(g => g.Count())
             .Select(g => g.Key)
@@ -145,40 +145,31 @@ internal static class TaminPrescriptionMapper
             .ToList()
     };
 
-    private static string? GetString(JsonElement element, string propertyName)
-    {
-        if (element.ValueKind == JsonValueKind.Object &&
-            element.TryGetProperty(propertyName, out var prop) &&
-            prop.ValueKind == JsonValueKind.String)
-            return prop.GetString();
-        return null;
-    }
+    private static string? GetString(JsonElement element, string propertyName) => element.ValueKind == JsonValueKind.Object &&
+            element.TryGetProperty(propertyName, out JsonElement prop) &&
+            prop.ValueKind == JsonValueKind.String
+            ? prop.GetString()
+            : null;
 
-    private static bool? GetBool(JsonElement element, string propertyName)
-    {
-        if (element.ValueKind == JsonValueKind.Object &&
-            element.TryGetProperty(propertyName, out var prop) &&
-            (prop.ValueKind == JsonValueKind.True || prop.ValueKind == JsonValueKind.False))
-            return prop.GetBoolean();
-        return null;
-    }
+    private static bool? GetBool(JsonElement element, string propertyName) => element.ValueKind == JsonValueKind.Object &&
+            element.TryGetProperty(propertyName, out JsonElement prop) &&
+            (prop.ValueKind == JsonValueKind.True || prop.ValueKind == JsonValueKind.False)
+            ? prop.GetBoolean()
+            : null;
 
     private static DateTimeOffset? GetDateTimeOffset(JsonElement element, string propertyName)
     {
-        var value = GetString(element, propertyName);
-        return DateTimeOffset.TryParse(value, out var dt) ? dt : null;
+        string? value = GetString(element, propertyName);
+        return DateTimeOffset.TryParse(value, out DateTimeOffset dt) ? dt : null;
     }
 
-    private static IEnumerable<JsonElement> EnumerateArray(JsonElement element)
-    {
-        if (element.ValueKind == JsonValueKind.Array)
-            return element.EnumerateArray();
-        if (element.ValueKind == JsonValueKind.Object &&
-            element.TryGetProperty("items", out var items) &&
-            items.ValueKind == JsonValueKind.Array)
-            return items.EnumerateArray();
-        return [];
-    }
+    private static IEnumerable<JsonElement> EnumerateArray(JsonElement element) => element.ValueKind == JsonValueKind.Array
+            ? element.EnumerateArray()
+            : element.ValueKind == JsonValueKind.Object &&
+            element.TryGetProperty("items", out JsonElement items) &&
+            items.ValueKind == JsonValueKind.Array
+            ? items.EnumerateArray()
+            : (IEnumerable<JsonElement>)[];
 
     private static EligibilityStatus MapTaminEligibility(string? statusCode) => statusCode switch
     {

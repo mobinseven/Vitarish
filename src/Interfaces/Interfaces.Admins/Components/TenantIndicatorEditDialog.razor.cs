@@ -42,7 +42,7 @@ public partial class TenantIndicatorEditDialog
     {
         if (string.IsNullOrWhiteSpace(newValue))
         {
-            Snackbar.Add("Value is required", Severity.Error);
+            _ = Snackbar.Add("Value is required", Severity.Error);
             return;
         }
 
@@ -74,12 +74,12 @@ public partial class TenantIndicatorEditDialog
             TenantIndicatorReadDto? created = await PartiesService.CreateTenantIndicatorAsync(dto);
             if (created is not null)
             {
-                Snackbar.Add("Indicator created successfully", Severity.Success);
+                _ = Snackbar.Add("Indicator created successfully", Severity.Success);
                 MudDialog.Close(DialogResult.Ok(created));
             }
             else
             {
-                Snackbar.Add("Failed to create indicator", Severity.Error);
+                _ = Snackbar.Add("Failed to create indicator", Severity.Error);
             }
         }
         else
@@ -100,12 +100,12 @@ public partial class TenantIndicatorEditDialog
             TenantIndicatorReadDto? updated = await PartiesService.UpdateTenantIndicatorAsync(dto);
             if (updated is not null)
             {
-                Snackbar.Add("Indicator updated successfully", Severity.Success);
+                _ = Snackbar.Add("Indicator updated successfully", Severity.Success);
                 MudDialog.Close(DialogResult.Ok(updated));
             }
             else
             {
-                Snackbar.Add("Failed to update indicator", Severity.Error);
+                _ = Snackbar.Add("Failed to update indicator", Severity.Error);
             }
         }
     }
@@ -119,7 +119,7 @@ public partial class TenantIndicatorEditDialog
         else
         {
             await PartiesService.DeleteTenantIndicatorAsync(TenantIndicator.Id);
-            Snackbar.Add("Indicator deleted successfully", Severity.Success);
+            _ = Snackbar.Add("Indicator deleted successfully", Severity.Success);
             MudDialog.Close();
         }
 

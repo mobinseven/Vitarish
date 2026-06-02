@@ -40,15 +40,15 @@ public sealed class OpenAiResponder(IOptionsMonitor<AiOptions> aiOptions) : IRes
 
         System.ClientModel.AsyncCollectionResult<StreamingResponseUpdate> updates = client.CreateResponseStreamingAsync(items, creation, ct);
 
-        await foreach(StreamingResponseUpdate? update in updates.WithCancellation(ct))
+        await foreach (StreamingResponseUpdate? update in updates.WithCancellation(ct))
         {
-            switch(update)
+            switch (update)
             {
                 case StreamingResponseOutputTextDeltaUpdate textDelta:
                     yield return ResponderOutput.TextOutput(textDelta.Delta);
                     break;
                 case StreamingResponseCompletedUpdate completed:
-                    foreach(ResponderOutput? item in ResponderHelpers.MapResponse(completed.Response).Where(r => r.Type != ResponderOutputType.Text))
+                    foreach (ResponderOutput? item in ResponderHelpers.MapResponse(completed.Response).Where(r => r.Type != ResponderOutputType.Text))
                     {
                         yield return item;
                     }
@@ -71,12 +71,12 @@ public sealed class OpenAiResponder(IOptionsMonitor<AiOptions> aiOptions) : IRes
 
         ResponseCreationOptions creation = new();
 
-        if(!string.IsNullOrWhiteSpace(options.Instructions))
+        if (!string.IsNullOrWhiteSpace(options.Instructions))
         {
             creation.Instructions = options.Instructions;
         }
 
-        if(!string.IsNullOrWhiteSpace(options.PreviousResponseId))
+        if (!string.IsNullOrWhiteSpace(options.PreviousResponseId))
         {
             creation.PreviousResponseId = options.PreviousResponseId;
         }
@@ -92,19 +92,19 @@ public sealed class OpenAiResponder(IOptionsMonitor<AiOptions> aiOptions) : IRes
 
         creation.TextOptions = textOptions;
 
-        foreach(ResponderToolDefinition tool in options.Tools ?? Array.Empty<ResponderToolDefinition>())
+        foreach (ResponderToolDefinition tool in options.Tools ?? Array.Empty<ResponderToolDefinition>())
         {
-            if(!string.Equals(tool.Type, "mcp", StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(tool.Type, "mcp", StringComparison.OrdinalIgnoreCase))
             {
                 continue;
             }
 
-            if(string.IsNullOrWhiteSpace(tool.ServerLabel) || string.IsNullOrWhiteSpace(tool.ServerUrl))
+            if (string.IsNullOrWhiteSpace(tool.ServerLabel) || string.IsNullOrWhiteSpace(tool.ServerUrl))
             {
                 continue;
             }
 
-            if(!Uri.TryCreate(tool.ServerUrl, UriKind.Absolute, out Uri? serverUri))
+            if (!Uri.TryCreate(tool.ServerUrl, UriKind.Absolute, out Uri? serverUri))
             {
                 continue;
             }
@@ -115,7 +115,7 @@ public sealed class OpenAiResponder(IOptionsMonitor<AiOptions> aiOptions) : IRes
 
             McpToolFilter? allowedTools = null;
 
-            if(tool.AllowedTools is { Count: > 0 } allowedList)
+            if (tool.AllowedTools is { Count: > 0 } allowedList)
             {
                 allowedTools = (McpToolFilter?)Activator.CreateInstance(
                     typeof(McpToolFilter),
@@ -180,12 +180,12 @@ public sealed class OpenAiResponder(IOptionsMonitor<AiOptions> aiOptions) : IRes
 
     private static void AddOptionalTools(ResponderOptions options, ResponseCreationOptions creation)
     {
-        if(options.EnableWebSearchTool && !creation.Tools.Any(static tool => tool is WebSearchTool))
+        if (options.EnableWebSearchTool && !creation.Tools.Any(static tool => tool is WebSearchTool))
         {
             creation.Tools.Add(ResponseTool.CreateWebSearchTool());
         }
 
-        if(options.EnableComputerTool && !creation.Tools.Any(static tool => tool is ComputerTool))
+        if (options.EnableComputerTool && !creation.Tools.Any(static tool => tool is ComputerTool))
         {
             creation.Tools.Add(ResponseTool.CreateComputerTool(ComputerToolEnvironment.Browser, 1920, 1080));
         }

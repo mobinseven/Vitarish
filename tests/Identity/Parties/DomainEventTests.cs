@@ -1,15 +1,16 @@
-namespace Parties.Tests;
 
-using Vitarish.Parties.Domain.Events;
 using Vitarish.Parties.Domain.Enums;
+using Vitarish.Parties.Domain.Events;
+
+namespace Parties.Tests;
 
 public class DomainEventTests
 {
     [Fact]
     public void OwnerCreatedEvent_StoresOwnerId()
     {
-        var ownerId = Guid.NewGuid();
-        var notification = new OwnerCreatedEvent(ownerId);
+        Guid ownerId = Guid.NewGuid();
+        OwnerCreatedEvent notification = new(ownerId);
 
         Assert.Equal(ownerId, notification.OwnerId);
     }
@@ -17,10 +18,10 @@ public class DomainEventTests
     [Fact]
     public void TenantCreatedEvent_StoresTenantAndOwnerIds()
     {
-        var tenantId = Guid.NewGuid();
-        var ownerId = Guid.NewGuid();
+        Guid tenantId = Guid.NewGuid();
+        Guid ownerId = Guid.NewGuid();
 
-        var notification = new TenantCreatedEvent(tenantId, ownerId);
+        TenantCreatedEvent notification = new(tenantId, ownerId);
 
         Assert.Equal(tenantId, notification.TenantId);
         Assert.Equal(ownerId, notification.OwnerId);
@@ -29,10 +30,10 @@ public class DomainEventTests
     [Fact]
     public void TenantIndicatorCreatedEvent_StoresIds()
     {
-        var tenantId = Guid.NewGuid();
-        var indicatorId = Guid.NewGuid();
+        Guid tenantId = Guid.NewGuid();
+        Guid indicatorId = Guid.NewGuid();
 
-        var notification = new TenantIndicatorCreatedEvent(tenantId, indicatorId);
+        TenantIndicatorCreatedEvent notification = new(tenantId, indicatorId);
 
         Assert.Equal(tenantId, notification.TenantId);
         Assert.Equal(indicatorId, notification.IndicatorId);
@@ -41,10 +42,10 @@ public class DomainEventTests
     [Fact]
     public void TenantIndicatorUpdatedEvent_StoresIds()
     {
-        var tenantId = Guid.NewGuid();
-        var indicatorId = Guid.NewGuid();
+        Guid tenantId = Guid.NewGuid();
+        Guid indicatorId = Guid.NewGuid();
 
-        var notification = new TenantIndicatorUpdatedEvent(tenantId, indicatorId);
+        TenantIndicatorUpdatedEvent notification = new(tenantId, indicatorId);
 
         Assert.Equal(tenantId, notification.TenantId);
         Assert.Equal(indicatorId, notification.IndicatorId);
@@ -53,10 +54,10 @@ public class DomainEventTests
     [Fact]
     public void TenantIndicatorDeletedEvent_StoresPayload()
     {
-        var tenantId = Guid.NewGuid();
-        var indicatorId = Guid.NewGuid();
+        Guid tenantId = Guid.NewGuid();
+        Guid indicatorId = Guid.NewGuid();
 
-        var notification = new TenantIndicatorDeletedEvent(
+        TenantIndicatorDeletedEvent notification = new(
             tenantId,
             indicatorId,
             IndicatorMethod.Subdomain,

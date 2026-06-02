@@ -26,6 +26,6 @@ public class CreateUserWithPhoneCommandValidatorTests
 
         TestValidationResult<CreateUserWithPhoneCommand> result = validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(c => c.PhoneNumber);
+        _ = result.ShouldHaveValidationErrorFor(c => c.PhoneNumber);
     }
 }

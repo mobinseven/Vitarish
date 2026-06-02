@@ -24,25 +24,26 @@ internal sealed class TaminCredentialSessionStore(
 
     public async Task<TaminSessionResult> AuthenticateAsync(Guid doctorId, Guid clinicId, CancellationToken cancellationToken = default)
     {
-        var credential = await FindCredentialAsync(doctorId, clinicId, cancellationToken);
-        if (credential is null)
-            return TaminSessionResult.Failure(MissingCredentialError(doctorId));
-
-        return await AuthenticateInternalAsync(credential, doctorId, clinicId, cancellationToken);
+        DoctorProviderCredential? credential = await FindCredentialAsync(doctorId, clinicId, cancellationToken);
+        return credential is null
+            ? TaminSessionResult.Failure(MissingCredentialError(doctorId))
+            : await AuthenticateInternalAsync(credential, doctorId, clinicId, cancellationToken);
     }
 
     public async Task<TaminSessionResult> GetOrRefreshSessionAsync(Guid doctorId, Guid clinicId, CancellationToken cancellationToken = default)
     {
-        var credential = await FindCredentialAsync(doctorId, clinicId, cancellationToken);
+        DoctorProviderCredential? credential = await FindCredentialAsync(doctorId, clinicId, cancellationToken);
         if (credential is null)
+        {
             return TaminSessionResult.Failure(MissingCredentialError(doctorId));
+        }
 
         if (!string.IsNullOrWhiteSpace(credential.TokenSecretRef) &&
             credential.TokenExpiresAt > DateTimeOffset.UtcNow.AddMinutes(2))
         {
-            var options = _taminOptions.CurrentValue;
-            var httpClient = _httpClientFactory.CreateClient("TaminClient");
-            var session = new TaminSession(httpClient, credential.TokenSecretRef,
+            TaminOptions options = _taminOptions.CurrentValue;
+            HttpClient httpClient = _httpClientFactory.CreateClient("TaminClient");
+            TaminSession session = new(httpClient, credential.TokenSecretRef,
                 new Uri(options.EffectiveBaseUrl), needToken: true, clientId: options.ApiKey);
             return TaminSessionResult.Success(session, credential.ProviderUsername);
         }
@@ -53,15 +54,17 @@ internal sealed class TaminCredentialSessionStore(
     private async Task<TaminSessionResult> AuthenticateInternalAsync(DoctorProviderCredential credential, Guid doctorId, Guid clinicId, CancellationToken cancellationToken)
     {
         if (string.IsNullOrWhiteSpace(credential.ProviderUsername) || string.IsNullOrWhiteSpace(credential.CredentialSecretRef))
+        {
             return TaminSessionResult.Failure(MissingCredentialError(doctorId));
+        }
 
-        var options = _taminOptions.CurrentValue;
-        var httpClient = _httpClientFactory.CreateClient("TaminClient");
-        var baseUri = new Uri(options.EffectiveBaseUrl);
+        TaminOptions options = _taminOptions.CurrentValue;
+        HttpClient httpClient = _httpClientFactory.CreateClient("TaminClient");
+        Uri baseUri = new(options.EffectiveBaseUrl);
 
         try
         {
-            var session = await TaminSession.CreateAsync(
+            TaminSession session = await TaminSession.CreateAsync(
                 httpClient,
                 username: credential.ProviderUsername,
                 password: credential.CredentialSecretRef,
@@ -69,14 +72,16 @@ internal sealed class TaminCredentialSessionStore(
                 baseUri: baseUri,
                 cancellationToken: cancellationToken);
 
-            var token = session.HttpClient.DefaultRequestHeaders.Authorization?.Parameter;
+            string? token = session.HttpClient.DefaultRequestHeaders.Authorization?.Parameter;
             if (string.IsNullOrWhiteSpace(token))
+            {
                 return TaminSessionResult.Failure(AuthenticationRequiredError("Tamin authentication returned no token."));
+            }
 
             credential.TokenSecretRef = token;
             credential.SessionId = null;
             credential.TokenExpiresAt = DateTimeOffset.UtcNow.AddMinutes(30);
-            await _dbContext.SaveChangesAsync(cancellationToken);
+            _ = await _dbContext.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Tamin authentication successful for doctor {DoctorId} in clinic {ClinicId}", doctorId, clinicId);
             return TaminSessionResult.Success(session, credential.ProviderUsername);
@@ -112,14 +117,11 @@ internal sealed class TaminCredentialSessionStore(
         }
     }
 
-    private async Task<DoctorProviderCredential?> FindCredentialAsync(Guid doctorId, Guid clinicId, CancellationToken cancellationToken)
-    {
-        return await _dbContext.DoctorProviderCredentials
+    private async Task<DoctorProviderCredential?> FindCredentialAsync(Guid doctorId, Guid clinicId, CancellationToken cancellationToken) => await _dbContext.DoctorProviderCredentials
             .Where(c => c.DoctorId == doctorId &&
                 c.ProviderKey == TaminInsuranceAdapter.ProviderKeyConst &&
                 c.ClinicId == clinicId)
             .FirstOrDefaultAsync(cancellationToken);
-    }
 
     private static IntegrationError MissingCredentialError(Guid doctorId) => new()
     {

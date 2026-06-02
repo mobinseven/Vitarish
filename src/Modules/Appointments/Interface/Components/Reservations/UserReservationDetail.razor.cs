@@ -7,10 +7,7 @@ public partial class UserReservationDetail : ReservationsBase
 
     private ReservationReadDto current = default!;
 
-    protected override void OnParametersSet()
-    {
-        current = Reservation;
-    }
+    protected override void OnParametersSet() => current = Reservation;
 
     private async Task CancelReservationAsync()
     {
@@ -29,7 +26,7 @@ public partial class UserReservationDetail : ReservationsBase
             return;
         }
 
-        await ReservationManager.CancelReservationAsync(current.Id, CancellationToken.None);
+        _ = await ReservationManager.CancelReservationAsync(current.Id, CancellationToken.None);
         await OnCancelled.InvokeAsync();
     }
 }

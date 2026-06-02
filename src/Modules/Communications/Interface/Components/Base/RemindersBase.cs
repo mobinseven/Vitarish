@@ -1,5 +1,4 @@
 using Vitarish.Modules.Base;
-using Vitarish.Users.Domain.Models;
 
 namespace Vitarish.Communications.Interface.Components.Base;
 

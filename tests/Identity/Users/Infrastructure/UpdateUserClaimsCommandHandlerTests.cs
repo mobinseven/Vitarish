@@ -14,15 +14,15 @@ public class UpdateUserClaimsCommandHandlerTests
         User user = new() { Id = "user-1" };
         Claim existing = new("scope", "read");
         Mock<UserManager<User>> userManager = UserManagerMockFactory.Create();
-        userManager.Setup(m => m.GetClaimsAsync(user)).ReturnsAsync([existing]);
-        userManager.Setup(m => m.RemoveClaimsAsync(user, It.IsAny<IEnumerable<Claim>>()))
+        _ = userManager.Setup(m => m.GetClaimsAsync(user)).ReturnsAsync([existing]);
+        _ = userManager.Setup(m => m.RemoveClaimsAsync(user, It.IsAny<IEnumerable<Claim>>()))
             .ReturnsAsync(IdentityResult.Failed(new IdentityError { Description = "remove failed" }));
 
         UpdateUserClaimsCommandHandler handler = new(userManager.Object);
 
         IdentityResult result = await handler.Handle(new UpdateUserClaimsCommand(user, [new Claim("scope", "write")]), CancellationToken.None);
 
-        result.Succeeded.Should().BeFalse();
+        _ = result.Succeeded.Should().BeFalse();
         userManager.Verify(m => m.AddClaimsAsync(user, It.IsAny<IEnumerable<Claim>>()), Times.Never);
     }
 
@@ -35,17 +35,17 @@ public class UpdateUserClaimsCommandHandlerTests
         Claim newClaim = new("scope", "write");
 
         Mock<UserManager<User>> userManager = UserManagerMockFactory.Create();
-        userManager.Setup(m => m.GetClaimsAsync(user)).ReturnsAsync([oldClaim, keepClaim]);
-        userManager.Setup(m => m.RemoveClaimsAsync(user, It.IsAny<IEnumerable<Claim>>()))
+        _ = userManager.Setup(m => m.GetClaimsAsync(user)).ReturnsAsync([oldClaim, keepClaim]);
+        _ = userManager.Setup(m => m.RemoveClaimsAsync(user, It.IsAny<IEnumerable<Claim>>()))
             .ReturnsAsync(IdentityResult.Success);
-        userManager.Setup(m => m.AddClaimsAsync(user, It.IsAny<IEnumerable<Claim>>()))
+        _ = userManager.Setup(m => m.AddClaimsAsync(user, It.IsAny<IEnumerable<Claim>>()))
             .ReturnsAsync(IdentityResult.Success);
 
         UpdateUserClaimsCommandHandler handler = new(userManager.Object);
 
         IdentityResult result = await handler.Handle(new UpdateUserClaimsCommand(user, [keepClaim, newClaim]), CancellationToken.None);
 
-        result.Succeeded.Should().BeTrue();
+        _ = result.Succeeded.Should().BeTrue();
         userManager.Verify(m => m.RemoveClaimsAsync(user,
             It.Is<IEnumerable<Claim>>(claims => claims.Single().Type == "scope" && claims.Single().Value == "read")), Times.Once);
         userManager.Verify(m => m.AddClaimsAsync(user,

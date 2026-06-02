@@ -26,6 +26,6 @@ public class RemoveUserPasswordCommandValidatorTests
 
         TestValidationResult<RemoveUserPasswordCommand> result = validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(c => c.Id);
+        _ = result.ShouldHaveValidationErrorFor(c => c.Id);
     }
 }

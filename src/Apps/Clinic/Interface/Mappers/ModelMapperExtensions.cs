@@ -1,7 +1,3 @@
-using Vitarish.Clinic.Interface.Mappers;
-using Vitarish.Clinic.Interface.Models;
-
-
 internal static class ModelMapperExtensions
 {
     private static readonly ModelMapper ModelMapper = new();

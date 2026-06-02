@@ -61,7 +61,7 @@ public sealed class ModelRegistry(IOptionsMonitor<AiOptions> aiOptions)
 
     public static string? GetProviderForModel(string? modelId)
     {
-        if(string.IsNullOrWhiteSpace(modelId))
+        if (string.IsNullOrWhiteSpace(modelId))
         {
             return null;
         }
@@ -75,19 +75,19 @@ public sealed class ModelRegistry(IOptionsMonitor<AiOptions> aiOptions)
         List<ModelInfo> models = [];
 
         // Include OpenAI models if API key is configured
-        if(!string.IsNullOrWhiteSpace(CurrentOptions.OpenAi.ApiKey))
+        if (!string.IsNullOrWhiteSpace(CurrentOptions.OpenAi.ApiKey))
         {
             models.AddRange(AllTranscriberModels.Where(m => m.Provider == "OpenAI"));
         }
 
         // Include Google models if configured
-        if(IsGoogleSpeechConfigured())
+        if (IsGoogleSpeechConfigured())
         {
             models.AddRange(AllTranscriberModels.Where(m => m.Provider == "Google"));
         }
 
         // Include Ollama models if configured
-        if(!string.IsNullOrWhiteSpace(CurrentOptions.Ollama.BaseUrl))
+        if (!string.IsNullOrWhiteSpace(CurrentOptions.Ollama.BaseUrl))
         {
             models.AddRange(AllTranscriberModels.Where(m => m.Provider == "Ollama"));
         }
@@ -100,25 +100,25 @@ public sealed class ModelRegistry(IOptionsMonitor<AiOptions> aiOptions)
         List<ModelInfo> models = [];
 
         // Include OpenAI models if API key is configured
-        if(!string.IsNullOrWhiteSpace(CurrentOptions.OpenAi.ApiKey))
+        if (!string.IsNullOrWhiteSpace(CurrentOptions.OpenAi.ApiKey))
         {
             models.AddRange(AllResponderModels.Where(m => m.Provider == "OpenAI"));
         }
 
         // Include Ollama models if configured
-        if(!string.IsNullOrWhiteSpace(CurrentOptions.Ollama.BaseUrl))
+        if (!string.IsNullOrWhiteSpace(CurrentOptions.Ollama.BaseUrl))
         {
             models.AddRange(AllResponderModels.Where(m => m.Provider == "Ollama"));
         }
 
         // Include Google models if configured
-        if(IsGoogleGeminiConfigured())
+        if (IsGoogleGeminiConfigured())
         {
             models.AddRange(AllResponderModels.Where(m => m.Provider == "Google"));
         }
 
         // Include DeepSeek models if API key is configured
-        if(IsDeepSeekConfigured())
+        if (IsDeepSeekConfigured())
         {
             models.AddRange(AllResponderModels.Where(m => m.Provider == "DeepSeek"));
         }

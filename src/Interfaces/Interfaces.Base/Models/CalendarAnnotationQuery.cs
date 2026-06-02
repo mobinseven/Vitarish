@@ -1,5 +1,3 @@
-using System.Globalization;
-
 namespace Vitarish.Interfaces.Base.Models;
 
 public sealed record CalendarAnnotationQuery(

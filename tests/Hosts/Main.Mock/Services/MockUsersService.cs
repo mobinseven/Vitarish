@@ -116,21 +116,15 @@ public sealed class MockUsersService : IUsersService
             return Task.FromResult(UserNotFound());
         }
 
-        userClaims.TryRemove(command.Id, out _);
-        userPasswords.TryRemove(command.Id, out _);
-        userRoles.TryRemove(command.Id, out _);
+        _ = userClaims.TryRemove(command.Id, out _);
+        _ = userPasswords.TryRemove(command.Id, out _);
+        _ = userRoles.TryRemove(command.Id, out _);
         return Task.FromResult(IdentityResult.Success);
     }
 
-    public Task<IList<Claim>> GetUserClaimsAsync(string userId, CancellationToken ct = default)
-    {
-        if (!userClaims.TryGetValue(userId, out List<Claim>? claims))
-        {
-            return Task.FromResult<IList<Claim>>(new List<Claim>());
-        }
-
-        return Task.FromResult<IList<Claim>>([.. claims]);
-    }
+    public Task<IList<Claim>> GetUserClaimsAsync(string userId, CancellationToken ct = default) => !userClaims.TryGetValue(userId, out List<Claim>? claims)
+            ? Task.FromResult<IList<Claim>>([])
+            : Task.FromResult<IList<Claim>>([.. claims]);
 
     public Task<IdentityResult> UpdateUserClaimsAsync(UpdateUserClaimsCommand command, CancellationToken ct = default)
     {
@@ -172,7 +166,7 @@ public sealed class MockUsersService : IUsersService
             return Task.FromResult(UserNotFound());
         }
 
-        userPasswords.TryRemove(userId, out _);
+        _ = userPasswords.TryRemove(userId, out _);
         return Task.FromResult(IdentityResult.Success);
     }
 
@@ -270,7 +264,7 @@ public sealed class MockUsersService : IUsersService
             _ => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { roleName },
             (_, existing) =>
             {
-                existing.Add(roleName);
+                _ = existing.Add(roleName);
                 return existing;
             });
         return Task.CompletedTask;
@@ -391,6 +385,8 @@ public sealed class MockUsersService : IUsersService
         return Task.FromResult(result);
 
         static bool Contains(string? value, string query)
-            => !string.IsNullOrWhiteSpace(value) && value.Contains(query, StringComparison.OrdinalIgnoreCase);
+        {
+            return !string.IsNullOrWhiteSpace(value) && value.Contains(query, StringComparison.OrdinalIgnoreCase);
+        }
     }
 }

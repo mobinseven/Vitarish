@@ -27,6 +27,6 @@ public class CheckUserEmailInUseQueryValidatorTests
 
         TestValidationResult<CheckUserEmailInUseQuery> result = validator.TestValidate(query);
 
-        result.ShouldHaveValidationErrorFor(q => q.Email);
+        _ = result.ShouldHaveValidationErrorFor(q => q.Email);
     }
 }

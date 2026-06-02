@@ -7,10 +7,7 @@ public partial class ShiftReminderPoliciesList : ShiftReminderPoliciesBase
 
     private List<ShiftReminderPolicyReadDto> policies = [];
 
-    protected override async Task OnParametersSetAsync()
-    {
-        await LoadAsync();
-    }
+    protected override async Task OnParametersSetAsync() => await LoadAsync();
 
     private async Task LoadAsync()
     {

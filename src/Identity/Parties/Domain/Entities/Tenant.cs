@@ -1,4 +1,3 @@
-using System.ComponentModel.DataAnnotations.Schema;
 using Vitarish.Entities.Server.Core;
 
 namespace Vitarish.Parties.Domain.Entities;

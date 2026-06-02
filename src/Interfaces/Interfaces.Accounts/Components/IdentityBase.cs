@@ -14,7 +14,7 @@ public class IdentityBase : IdentityCommonBase
         {
             return;
         }
-        
+
         Duende.IdentityServer.Models.AuthorizationRequest? context = await IdentityServerInteractionService.GetAuthorizationContextAsync(returnUrl);
         if (context is null)
         {

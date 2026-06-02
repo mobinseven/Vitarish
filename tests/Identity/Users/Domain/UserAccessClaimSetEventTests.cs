@@ -9,8 +9,8 @@ public class UserAccessClaimSetEventTests
     {
         UserAccessClaimSetEvent @event = new("user-1", "client-1", "scope.read");
 
-        @event.UserId.Should().Be("user-1");
-        @event.ClientId.Should().Be("client-1");
-        @event.AccessValue.Should().Be("scope.read");
+        _ = @event.UserId.Should().Be("user-1");
+        _ = @event.ClientId.Should().Be("client-1");
+        _ = @event.AccessValue.Should().Be("scope.read");
     }
 }

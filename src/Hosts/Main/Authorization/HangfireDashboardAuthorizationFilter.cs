@@ -6,7 +6,7 @@ namespace Vitarish.Main.Authorization;
 /// <summary>
 /// Authorization filter for Hangfire dashboard that requires authenticated users.
 /// </summary>
-public class HangfireDashboardAuthorizationFilter: IDashboardAuthorizationFilter
+public class HangfireDashboardAuthorizationFilter : IDashboardAuthorizationFilter
 {
     public bool Authorize(DashboardContext context)
     {

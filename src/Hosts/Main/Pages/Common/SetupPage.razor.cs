@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Options;
 using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Parties.Domain.Dtos;
 using Vitarish.Parties.Domain.Enums;
@@ -56,7 +55,7 @@ public partial class SetupPage
     {
         if (fields.Any(string.IsNullOrWhiteSpace))
         {
-            Snackbar.Add(Localizer["RequiredFields"], Severity.Warning);
+            _ = Snackbar.Add(Localizer["RequiredFields"], Severity.Warning);
             return false;
         }
         return true;
@@ -97,7 +96,7 @@ public partial class SetupPage
 
             if (tenant is null)
             {
-                Snackbar.Add(Localizer["Error"], Severity.Error);
+                _ = Snackbar.Add(Localizer["Error"], Severity.Error);
                 return;
             }
 

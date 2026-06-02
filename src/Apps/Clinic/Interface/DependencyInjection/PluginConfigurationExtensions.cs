@@ -1,6 +1,3 @@
-using Vitarish.Clinic.Interface.Plugins;
-using Vitarish.Sea.Interface.Plugins;
-
 namespace Vitarish.Clinic.Interface.DependencyInjection;
 
 public static class PluginConfigurationExtensions

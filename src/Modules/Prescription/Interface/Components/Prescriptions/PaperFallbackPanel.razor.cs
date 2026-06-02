@@ -16,14 +16,14 @@ public partial class PaperFallbackPanel : PrescriptionBase
 
     private async Task ShowPaperFallbackDialogAsync()
     {
-        var parameters = new DialogParameters
+        DialogParameters parameters = new()
         {
             { nameof(PaperFallbackDialog.PrescriptionId), PrescriptionId }
         };
 
-        var dialog = await DialogService.ShowAsync<PaperFallbackDialog>(
+        IDialogReference dialog = await DialogService.ShowAsync<PaperFallbackDialog>(
             Localizer["PaperFallback"], parameters);
-        var dialogResult = await dialog.Result;
+        DialogResult? dialogResult = await dialog.Result;
 
         if (dialogResult is not null && !dialogResult.Canceled)
         {

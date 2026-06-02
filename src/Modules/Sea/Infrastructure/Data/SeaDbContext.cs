@@ -121,8 +121,8 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
                     v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
-            entity.Ignore(p => p.Stats);
-            entity.Ignore(p => p.UserIds);
+            _ = entity.Ignore(p => p.Stats);
+            _ = entity.Ignore(p => p.UserIds);
 
             _ = entity.Property(e => e.IdentificationCode)
                 .HasColumnType("nvarchar(256)");

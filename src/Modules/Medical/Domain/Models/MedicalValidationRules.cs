@@ -11,9 +11,5 @@ public static class MedicalValidationRules
 
     public static bool IsValidConfidence(decimal confidence) => confidence is >= 0 and <= 1;
 
-    public static bool IsValidUri(string? uri)
-    {
-        if (string.IsNullOrWhiteSpace(uri)) return true;
-        return Uri.TryCreate(uri, UriKind.Absolute, out _);
-    }
+    public static bool IsValidUri(string? uri) => string.IsNullOrWhiteSpace(uri) || Uri.TryCreate(uri, UriKind.Absolute, out _);
 }

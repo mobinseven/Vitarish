@@ -1,6 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Vitarish.Commerce.Infrastructure.Clients;
-using Vitarish.Commerce.Infrastructure.Data;
+using Vitarish.Commerce.Infrastructure.Clients.Models;
 
 namespace Vitarish.Commerce.Infrastructure.Services;
 
@@ -23,7 +23,7 @@ internal sealed class CommerceSyncService(
         try
         {
             // Paginate: fetch all products across all pages
-            var products = await medusaClient.ListAllProductsAsync(cancellationToken);
+            IReadOnlyList<MedusaProduct> products = await medusaClient.ListAllProductsAsync(cancellationToken);
 
             // Batch-load all existing products matching incoming MedusaIds (avoids N+1)
             List<string> incomingIds = [.. products.Select(p => p.Id)];
@@ -32,7 +32,7 @@ internal sealed class CommerceSyncService(
                 .ToDictionaryAsync(p => p.MedusaId, cancellationToken);
 
             int upserted = 0;
-            foreach (var mp in products)
+            foreach (MedusaProduct mp in products)
             {
                 if (!existing.TryGetValue(mp.Id, out Product? product))
                 {
@@ -74,7 +74,7 @@ internal sealed class CommerceSyncService(
         try
         {
             // Paginate: fetch all orders across all pages
-            var orders = await medusaClient.ListAllOrdersAsync(cancellationToken);
+            IReadOnlyList<MedusaOrder> orders = await medusaClient.ListAllOrdersAsync(cancellationToken);
 
             // Batch-load all existing orders matching incoming MedusaIds (avoids N+1)
             List<string> incomingIds = [.. orders.Select(o => o.Id)];
@@ -88,7 +88,7 @@ internal sealed class CommerceSyncService(
                 .MaxAsync(cancellationToken) ?? 0;
 
             int upserted = 0;
-            foreach (var mo in orders)
+            foreach (MedusaOrder mo in orders)
             {
                 bool isNew = false;
                 if (!existing.TryGetValue(mo.Id, out Order? order))

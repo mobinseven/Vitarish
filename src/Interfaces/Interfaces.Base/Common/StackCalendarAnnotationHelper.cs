@@ -4,25 +4,11 @@ internal static class StackCalendarAnnotationHelper
 {
     public static CalendarAnnotation? GetAnnotation(
         IReadOnlyList<CalendarAnnotation>? annotations,
-        DateOnly date)
-    {
-        if (annotations is null || annotations.Count == 0)
-        {
-            return null;
-        }
-
-        return annotations.FirstOrDefault(a => a.Includes(date));
-    }
+        DateOnly date) => annotations is null || annotations.Count == 0 ? null : annotations.FirstOrDefault(a => a.Includes(date));
 
     public static string BuildCssClass(
         string baseCssClass,
-        CalendarAnnotation? annotation)
-    {
-        if (annotation is null || string.IsNullOrWhiteSpace(annotation.HighlightClass))
-        {
-            return baseCssClass;
-        }
-
-        return $"{baseCssClass} {annotation.HighlightClass}";
-    }
+        CalendarAnnotation? annotation) => annotation is null || string.IsNullOrWhiteSpace(annotation.HighlightClass)
+            ? baseCssClass
+            : $"{baseCssClass} {annotation.HighlightClass}";
 }

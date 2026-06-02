@@ -17,16 +17,10 @@ public partial class ShiftDetail : ShiftsBase
     private string? serviceName;
     private Guid? lastShiftId;
 
-    private TimeSpan EffectiveEstimatedSessionLength
-    {
-        get
-        {
-            return ShiftEstimatedSessionLengthCalculator.Calculate(
+    private TimeSpan EffectiveEstimatedSessionLength => ShiftEstimatedSessionLengthCalculator.Calculate(
                 Shift.StartTime,
                 Shift.EndTime,
                 Shift.TotalSeats);
-        }
-    }
 
     protected override async Task OnParametersSetAsync()
     {

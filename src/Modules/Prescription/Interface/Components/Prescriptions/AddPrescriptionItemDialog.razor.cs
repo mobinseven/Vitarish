@@ -1,3 +1,5 @@
+using Vitarish.Medical.Domain.Entities;
+
 namespace Vitarish.Prescription.Interface.Components.Prescriptions;
 
 public partial class AddPrescriptionItemDialog : PrescriptionBase
@@ -38,7 +40,7 @@ public partial class AddPrescriptionItemDialog : PrescriptionBase
             ? codeSystem
             : $"{ProviderKey.ToLowerInvariant()}.{codeSystem}";
 
-        var results = await MedicalQuery.SearchMedicalCodesAsync(
+        IReadOnlyList<MedicalCode> results = await MedicalQuery.SearchMedicalCodesAsync(
             systemKey,
             searchTerm,
             limit: 20);
@@ -75,7 +77,7 @@ public partial class AddPrescriptionItemDialog : PrescriptionBase
         }
         else
         {
-            await DialogService.ShowMessageBox(
+            _ = await DialogService.ShowMessageBox(
                 Localizer["Error"],
                 result.ErrorMessage ?? Localizer["UnknownError"],
                 yesText: Localizer["OK"]);

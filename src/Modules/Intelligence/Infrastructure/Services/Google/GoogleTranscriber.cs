@@ -86,17 +86,17 @@ public sealed class GoogleTranscriber(IOptionsMonitor<AiOptions> aiOptions) : IT
         }, cancellationToken);
 
         AsyncResponseStream<StreamingRecognizeResponse> responseStream = call.GetResponseStream();
-        await foreach(StreamingRecognizeResponse response in responseStream.WithCancellation(cancellationToken))
+        await foreach (StreamingRecognizeResponse response in responseStream.WithCancellation(cancellationToken))
         {
-            foreach(StreamingRecognitionResult result in response.Results)
+            foreach (StreamingRecognitionResult result in response.Results)
             {
-                if(!result.IsFinal)
+                if (!result.IsFinal)
                 {
                     continue;
                 }
 
                 string? text = BuildTranscript(result.Alternatives);
-                if(!string.IsNullOrEmpty(text))
+                if (!string.IsNullOrEmpty(text))
                 {
                     yield return text;
                 }
@@ -108,7 +108,7 @@ public sealed class GoogleTranscriber(IOptionsMonitor<AiOptions> aiOptions) : IT
 
     private async Task<SpeechClient> EnsureClientAsync(CancellationToken cancellationToken)
     {
-        if(client is not null)
+        if (client is not null)
         {
             return client;
         }
@@ -120,7 +120,7 @@ public sealed class GoogleTranscriber(IOptionsMonitor<AiOptions> aiOptions) : IT
                 : $"{Options.Location}-speech.googleapis.com"
         };
 
-        if(!string.IsNullOrWhiteSpace(Options.CredentialsPath))
+        if (!string.IsNullOrWhiteSpace(Options.CredentialsPath))
         {
 #pragma warning disable CS0618
             builder.GoogleCredential = GoogleCredential.FromFile(Options.CredentialsPath);
@@ -142,7 +142,7 @@ public sealed class GoogleTranscriber(IOptionsMonitor<AiOptions> aiOptions) : IT
             AutoDecodingConfig = new AutoDetectDecodingConfig()
         };
 
-        if(!string.IsNullOrWhiteSpace(resolvedLanguage))
+        if (!string.IsNullOrWhiteSpace(resolvedLanguage))
         {
             config.LanguageCodes.Add(resolvedLanguage);
         }
@@ -154,7 +154,7 @@ public sealed class GoogleTranscriber(IOptionsMonitor<AiOptions> aiOptions) : IT
     {
         FieldMask mask = new();
         mask.Paths.Add("model");
-        if(!string.IsNullOrWhiteSpace(language) || !string.IsNullOrWhiteSpace(Options.DefaultLanguageCode))
+        if (!string.IsNullOrWhiteSpace(language) || !string.IsNullOrWhiteSpace(Options.DefaultLanguageCode))
         {
             mask.Paths.Add("language_codes");
         }

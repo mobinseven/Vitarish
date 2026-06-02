@@ -79,16 +79,16 @@ public sealed class OpenAiTranscriber(IOptionsMonitor<AiOptions> aiOptions) : IT
         await using Stream stream = pipe.Reader.AsStream(leaveOpen: false);
         IAsyncEnumerable<StreamingAudioTranscriptionUpdate> updates = audioClient.TranscribeAudioStreamingAsync(stream, fileName, options, CancellationToken.None);
 
-        await foreach(StreamingAudioTranscriptionUpdate update in updates.WithCancellation(cancellationToken))
+        await foreach (StreamingAudioTranscriptionUpdate update in updates.WithCancellation(cancellationToken))
         {
-            if(update is StreamingAudioTranscriptionTextDeltaUpdate textDelta)
+            if (update is StreamingAudioTranscriptionTextDeltaUpdate textDelta)
             {
-                if(!string.IsNullOrEmpty(textDelta.Delta))
+                if (!string.IsNullOrEmpty(textDelta.Delta))
                 {
                     yield return textDelta.Delta;
                 }
             }
-            else if(update is StreamingAudioTranscriptionTextDoneUpdate)
+            else if (update is StreamingAudioTranscriptionTextDoneUpdate)
             {
                 stopPumpCts.Cancel();
                 break;

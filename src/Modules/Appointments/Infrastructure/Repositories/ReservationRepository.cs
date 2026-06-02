@@ -45,11 +45,8 @@ internal class ReservationRepository(AppointmentsDbContext dbContext)
     protected override bool IsDuplicateKeyException(DbUpdateException exception) => false;
 
     Task<Reservation?> IEntityRepository<Reservation, ReservationDescriptor>.GetAsync(
-        Guid id, CancellationToken cancellationToken)
-    {
-        return Set.AsNoTracking()
+        Guid id, CancellationToken cancellationToken) => Set.AsNoTracking()
             .FirstOrDefaultAsync(r => r.Id == id, cancellationToken);
-    }
 
     async Task<IReadOnlyList<Reservation>> IEntityRepository<Reservation, ReservationDescriptor>.GetAsync(
         ReservationDescriptor descriptor, CancellationToken cancellationToken)

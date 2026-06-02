@@ -41,20 +41,20 @@ public class TenantResolver(PartiesDbContext dbContext, IMemoryCache cache) : IT
         }
 
         string cacheKey = $"cachedTenant-resolver::{normalized}";
-        var cached = cache.TryGetValue(cacheKey, out object? cachedTenant);
+        bool cached = cache.TryGetValue(cacheKey, out object? cachedTenant);
         if (cached)
         {
             return cachedTenant as Tenant;
         }
 
-        var tenant = await dbContext.TenantIndicators
+        Tenant? tenant = await dbContext.TenantIndicators
                 .Include(indicator => indicator.Tenant)
                 .Where(indicator => indicator.Status == IndicatorStatus.Active)
                 .Where(indicator => indicator.Value == normalized)
                 .Select(indicator => indicator.Tenant)
                 .FirstOrDefaultAsync(cancellationToken);
 
-        cache.Set(cacheKey, tenant);
+        _ = cache.Set(cacheKey, tenant);
 
         return tenant;
     }

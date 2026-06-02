@@ -30,11 +30,6 @@ public record SearchExactMatchPolicy
             .Select(name => name.Trim())
             .Distinct(StringComparer.OrdinalIgnoreCase)];
 
-        if (!IsExactMatchFirst || normalizedFields.Count == 0)
-        {
-            return Disabled;
-        }
-
-        return this with { FieldNames = normalizedFields };
+        return !IsExactMatchFirst || normalizedFields.Count == 0 ? Disabled : (this with { FieldNames = normalizedFields });
     }
 }

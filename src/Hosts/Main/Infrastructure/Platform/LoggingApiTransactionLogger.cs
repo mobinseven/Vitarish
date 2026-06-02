@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using Microsoft.Extensions.Logging;
 using Vitarish.Modules.Base.Platform.Transactions;
 
 namespace Vitarish.Main.Infrastructure.Platform;
@@ -34,9 +33,9 @@ internal sealed class LoggingApiTransactionLogger(ILogger<LoggingApiTransactionL
         string? errorCategory = null,
         CancellationToken cancellationToken = default)
     {
-        _pending.TryRemove(transactionId, out var pending);
+        _ = _pending.TryRemove(transactionId, out (ApiTransaction Transaction, DateTimeOffset StartedAt) pending);
 
-        var durationMs = pending.StartedAt == default
+        long durationMs = pending.StartedAt == default
             ? 0
             : (long)(DateTimeOffset.UtcNow - pending.StartedAt).TotalMilliseconds;
 
@@ -71,7 +70,7 @@ internal sealed class LoggingApiTransactionLogger(ILogger<LoggingApiTransactionL
 
     public Task LogTransactionAsync(ApiTransaction transaction, CancellationToken cancellationToken = default)
     {
-        var durationMs = transaction.FinishedAt.HasValue
+        long durationMs = transaction.FinishedAt.HasValue
             ? (long)(transaction.FinishedAt.Value - transaction.StartedAt).TotalMilliseconds
             : 0;
 

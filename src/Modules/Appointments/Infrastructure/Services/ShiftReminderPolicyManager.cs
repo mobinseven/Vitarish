@@ -1,7 +1,7 @@
-using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Appointments.Domain.Rules;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
-using Vitarish.Appointments.Domain.Rules;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Appointments.Infrastructure.Services;
 

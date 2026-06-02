@@ -1,6 +1,6 @@
+using Microsoft.Extensions.Options;
 using OllamaSharp;
 using OllamaSharp.ModelContextProtocol;
-using Microsoft.Extensions.Options;
 using OllamaSharp.ModelContextProtocol.Server;
 using OllamaSharp.Models.Chat;
 using OllamaSharp.Tools;

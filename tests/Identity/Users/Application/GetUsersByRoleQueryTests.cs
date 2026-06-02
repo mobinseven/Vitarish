@@ -9,6 +9,6 @@ public class GetUsersByRoleQueryTests
     {
         GetUsersByRoleQuery query = new("Admin");
 
-        query.RoleName.Should().Be("Admin");
+        _ = query.RoleName.Should().Be("Admin");
     }
 }

@@ -1,7 +1,7 @@
-using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Modules.Base.Platform.Errors;
@@ -24,33 +24,41 @@ public sealed class SubmitPrescriptionHandler(
 {
     public async Task<SubmitPrescriptionResult> Handle(SubmitPrescriptionCommand request, CancellationToken cancellationToken)
     {
-        var prescription = await dbContext.Prescriptions
+        PrescriptionRecord? prescription = await dbContext.Prescriptions
             .Include(p => p.Items)
             .FirstOrDefaultAsync(p => p.Id == request.PrescriptionId, cancellationToken);
 
         if (prescription is null)
+        {
             return SubmitPrescriptionResult.Failure("نسخه یافت نشد.", PrescriptionStatus.Draft);
+        }
 
         if (prescription.Status != PrescriptionStatus.ReadyForSubmission)
+        {
             return SubmitPrescriptionResult.Failure(
                 "نسخه در وضعیت مناسب برای ارسال نیست. ابتدا اعتبارسنجی کنید.",
                 prescription.Status);
+        }
 
         if (string.IsNullOrEmpty(prescription.SelectedProviderKey))
+        {
             return SubmitPrescriptionResult.Failure("بیمه‌گر انتخاب نشده است.", prescription.Status);
+        }
 
-        var adapter = providerRegistry.GetAdapter(prescription.SelectedProviderKey);
+        IInsuranceProviderAdapter? adapter = providerRegistry.GetAdapter(prescription.SelectedProviderKey);
         if (adapter is null)
+        {
             return SubmitPrescriptionResult.Failure("آداپتور بیمه‌گر در دسترس نیست.", prescription.Status);
+        }
 
         // Transition to Submitting
         prescription.TransitionTo(PrescriptionStatus.Submitting);
         prescription.SubmittedAt = DateTimeOffset.UtcNow;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
 
-        var idempotencyKey = $"{prescription.Id}:v{prescription.VersionNumber}";
+        string idempotencyKey = $"{prescription.Id}:v{prescription.VersionNumber}";
 
-        var submissionResult = await adapter.SubmitPrescriptionAsync(new SubmissionRequest
+        AdapterResult<SubmissionResponse> submissionResult = await adapter.SubmitPrescriptionAsync(new SubmissionRequest
         {
             PrescriptionId = prescription.Id,
             IdempotencyKey = idempotencyKey,
@@ -59,11 +67,11 @@ public sealed class SubmitPrescriptionHandler(
 
         if (submissionResult.IsSuccess && submissionResult.Data is not null)
         {
-            var targetStatus = submissionResult.Data.CanonicalStatus;
+            PrescriptionStatus targetStatus = submissionResult.Data.CanonicalStatus;
             prescription.TransitionTo(targetStatus);
 
             // Record submission
-            var submission = new PrescriptionProviderSubmission
+            PrescriptionProviderSubmission submission = new()
             {
                 Id = Guid.NewGuid(),
                 PrescriptionRecordId = prescription.Id,
@@ -76,8 +84,8 @@ public sealed class SubmitPrescriptionHandler(
                 SubmittedAt = DateTimeOffset.UtcNow
             };
 
-            dbContext.PrescriptionSubmissions.Add(submission);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            _ = dbContext.PrescriptionSubmissions.Add(submission);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
 
             await auditWriter.WriteAsync(new AuditEntry
             {
@@ -104,12 +112,12 @@ public sealed class SubmitPrescriptionHandler(
         if (submissionResult.IsNotSupported)
         {
             prescription.TransitionTo(PrescriptionStatus.ProviderUnavailable);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
             return SubmitPrescriptionResult.Failure("بیمه‌گر از ثبت نسخه الکترونیک پشتیبانی نمی‌کند.", PrescriptionStatus.ProviderUnavailable);
         }
 
         // Handle failure
-        var errorStatus = submissionResult.Error?.Category switch
+        PrescriptionStatus errorStatus = submissionResult.Error?.Category switch
         {
             ErrorCategory.Timeout => PrescriptionStatus.SyncPending,
             ErrorCategory.Outage => PrescriptionStatus.ProviderUnavailable,
@@ -118,7 +126,7 @@ public sealed class SubmitPrescriptionHandler(
         };
 
         prescription.TransitionTo(errorStatus);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         // Enqueue for retry if SyncPending
         if (errorStatus == PrescriptionStatus.SyncPending)
@@ -166,32 +174,40 @@ public sealed class EditPrescriptionHandler(
 {
     public async Task<EditPrescriptionResult> Handle(EditPrescriptionCommand request, CancellationToken cancellationToken)
     {
-        var prescription = await dbContext.Prescriptions
+        PrescriptionRecord? prescription = await dbContext.Prescriptions
             .Include(p => p.Items)
             .FirstOrDefaultAsync(p => p.Id == request.PrescriptionId, cancellationToken);
 
         if (prescription is null)
+        {
             return EditPrescriptionResult.Failure("نسخه یافت نشد.", PrescriptionStatus.Draft);
+        }
 
         if (prescription.Status != PrescriptionStatus.AcceptedByProvider)
+        {
             return EditPrescriptionResult.Failure("فقط نسخه‌های تایید شده قابل ویرایش هستند.", prescription.Status);
+        }
 
         if (string.IsNullOrEmpty(prescription.SelectedProviderKey))
+        {
             return EditPrescriptionResult.Failure("بیمه‌گر انتخاب نشده است.", prescription.Status);
+        }
 
-        var adapter = providerRegistry.GetAdapter(prescription.SelectedProviderKey);
+        IInsuranceProviderAdapter? adapter = providerRegistry.GetAdapter(prescription.SelectedProviderKey);
         if (adapter is null)
+        {
             return EditPrescriptionResult.Failure("آداپتور بیمه‌گر در دسترس نیست.", prescription.Status);
+        }
 
         // Transition to EditRequested → Submitting
         prescription.TransitionTo(PrescriptionStatus.EditRequested);
         prescription.TransitionTo(PrescriptionStatus.Submitting);
         prescription.VersionNumber++;
-        await dbContext.SaveChangesAsync(cancellationToken);
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
 
-        var idempotencyKey = $"{prescription.Id}:edit:v{prescription.VersionNumber}";
+        string idempotencyKey = $"{prescription.Id}:edit:v{prescription.VersionNumber}";
 
-        var editResult = await adapter.EditPrescriptionAsync(new EditRequest
+        AdapterResult<SubmissionResponse> editResult = await adapter.EditPrescriptionAsync(new EditRequest
         {
             PrescriptionId = prescription.Id,
             IdempotencyKey = idempotencyKey,
@@ -200,9 +216,9 @@ public sealed class EditPrescriptionHandler(
 
         if (editResult.IsSuccess && editResult.Data is not null)
         {
-            var targetStatus = editResult.Data.CanonicalStatus;
+            PrescriptionStatus targetStatus = editResult.Data.CanonicalStatus;
             prescription.TransitionTo(targetStatus);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
 
             await auditWriter.WriteAsync(new AuditEntry
             {
@@ -224,7 +240,7 @@ public sealed class EditPrescriptionHandler(
 
         // On failure, stay in SyncPending
         prescription.TransitionTo(PrescriptionStatus.SyncPending);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(new AuditEntry
         {
@@ -254,38 +270,48 @@ public sealed class CancelPrescriptionHandler(
 {
     public async Task<CancelPrescriptionResult> Handle(CancelPrescriptionCommand request, CancellationToken cancellationToken)
     {
-        var prescription = await dbContext.Prescriptions
+        PrescriptionRecord? prescription = await dbContext.Prescriptions
             .FirstOrDefaultAsync(p => p.Id == request.PrescriptionId, cancellationToken);
 
         if (prescription is null)
+        {
             return CancelPrescriptionResult.Failure("نسخه یافت نشد.", PrescriptionStatus.Draft);
+        }
 
         if (prescription.Status != PrescriptionStatus.AcceptedByProvider)
+        {
             return CancelPrescriptionResult.Failure("فقط نسخه‌های تایید شده قابل لغو هستند.", prescription.Status);
+        }
 
         if (string.IsNullOrEmpty(prescription.SelectedProviderKey))
+        {
             return CancelPrescriptionResult.Failure("بیمه‌گر انتخاب نشده است.", prescription.Status);
+        }
 
-        var adapter = providerRegistry.GetAdapter(prescription.SelectedProviderKey);
+        IInsuranceProviderAdapter? adapter = providerRegistry.GetAdapter(prescription.SelectedProviderKey);
         if (adapter is null)
+        {
             return CancelPrescriptionResult.Failure("آداپتور بیمه‌گر در دسترس نیست.", prescription.Status);
+        }
 
         // Get the latest submission to find remote ID
-        var submission = await dbContext.PrescriptionSubmissions
+        PrescriptionProviderSubmission? submission = await dbContext.PrescriptionSubmissions
             .Where(s => s.PrescriptionRecordId == prescription.Id)
             .OrderByDescending(s => s.SubmittedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
         if (submission?.RemotePrescriptionId is null)
+        {
             return CancelPrescriptionResult.Failure("شناسه نسخه ریموت یافت نشد.", prescription.Status);
+        }
 
         // Transition to CancelRequested → Submitting
         prescription.TransitionTo(PrescriptionStatus.CancelRequested);
         prescription.CancellationReason = request.Reason;
         prescription.TransitionTo(PrescriptionStatus.Submitting);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
 
-        var cancelResult = await adapter.CancelPrescriptionAsync(new CancelRequest
+        AdapterResult cancelResult = await adapter.CancelPrescriptionAsync(new CancelRequest
         {
             RemotePrescriptionId = submission.RemotePrescriptionId,
             CorrelationId = request.CorrelationId
@@ -294,7 +320,7 @@ public sealed class CancelPrescriptionHandler(
         if (cancelResult.IsSuccess)
         {
             prescription.TransitionTo(PrescriptionStatus.Cancelled);
-            await dbContext.SaveChangesAsync(cancellationToken);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
 
             await auditWriter.WriteAsync(new AuditEntry
             {
@@ -315,7 +341,7 @@ public sealed class CancelPrescriptionHandler(
 
         // On failure
         prescription.TransitionTo(PrescriptionStatus.SyncPending);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(new AuditEntry
         {

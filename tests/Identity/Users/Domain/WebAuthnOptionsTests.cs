@@ -13,12 +13,12 @@ public class WebAuthnOptionsTests
             Origins = ["https://example.com"]
         };
 
-        options.ServerName.Should().Be("Vitarish");
-        options.Timeout.Should().Be(60000u);
-        options.TimestampDriftTolerance.Should().Be(300000u);
-        options.AttestationConveyance.Should().Be("none");
-        options.UserVerification.Should().Be("preferred");
-        options.RequireResidentKey.Should().Be("discouraged");
+        _ = options.ServerName.Should().Be("Vitarish");
+        _ = options.Timeout.Should().Be(60000u);
+        _ = options.TimestampDriftTolerance.Should().Be(300000u);
+        _ = options.AttestationConveyance.Should().Be("none");
+        _ = options.UserVerification.Should().Be("preferred");
+        _ = options.RequireResidentKey.Should().Be("discouraged");
     }
 
     [Fact]
@@ -37,14 +37,14 @@ public class WebAuthnOptionsTests
             RequireResidentKey = "required"
         };
 
-        options.ServerDomain.Should().Be("auth.example.com");
-        options.Origins.Should().Contain("https://auth.example.com");
-        options.ServerName.Should().Be("Auth Service");
-        options.Timeout.Should().Be(120000u);
-        options.TimestampDriftTolerance.Should().Be(600000u);
-        options.AttestationConveyance.Should().Be("direct");
-        options.AuthenticatorAttachment.Should().Be("platform");
-        options.UserVerification.Should().Be("required");
-        options.RequireResidentKey.Should().Be("required");
+        _ = options.ServerDomain.Should().Be("auth.example.com");
+        _ = options.Origins.Should().Contain("https://auth.example.com");
+        _ = options.ServerName.Should().Be("Auth Service");
+        _ = options.Timeout.Should().Be(120000u);
+        _ = options.TimestampDriftTolerance.Should().Be(600000u);
+        _ = options.AttestationConveyance.Should().Be("direct");
+        _ = options.AuthenticatorAttachment.Should().Be("platform");
+        _ = options.UserVerification.Should().Be("required");
+        _ = options.RequireResidentKey.Should().Be("required");
     }
 }

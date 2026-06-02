@@ -100,7 +100,7 @@ internal sealed class FinancialLedgerService(FinancialDbContext dbContext)
             return FinancialCommandResult<Guid>.Validation("Provider and external reference are required.");
         }
 
-        if (command.Exponent < 0 || command.Exponent > 9)
+        if (command.Exponent is < 0 or > 9)
         {
             return FinancialCommandResult<Guid>.Validation("Exponent must be between 0 and 9.");
         }
@@ -313,7 +313,7 @@ internal sealed class FinancialLedgerService(FinancialDbContext dbContext)
             return metadataValidation;
         }
 
-        Money.Create(1, command.Currency, command.Exponent);
+        _ = Money.Create(1, command.Currency, command.Exponent);
 
         if (command.Lines.Count < 2)
         {
@@ -328,40 +328,25 @@ internal sealed class FinancialLedgerService(FinancialDbContext dbContext)
         long debits = command.Lines.Where(l => l.Side == LedgerEntrySide.Debit).Sum(l => l.AmountMinorUnits);
         long credits = command.Lines.Where(l => l.Side == LedgerEntrySide.Credit).Sum(l => l.AmountMinorUnits);
 
-        if (debits <= 0 || credits <= 0 || debits != credits)
-        {
-            return FinancialCommandResult<PostLedgerEntryResponse>.Validation("Entry lines must be balanced.");
-        }
-
-        return FinancialCommandResult<PostLedgerEntryResponse>.Ok(new PostLedgerEntryResponse(Guid.Empty, LedgerEntryState.Draft, null, command.IdempotencyKey));
+        return debits <= 0 || credits <= 0 || debits != credits
+            ? FinancialCommandResult<PostLedgerEntryResponse>.Validation("Entry lines must be balanced.")
+            : FinancialCommandResult<PostLedgerEntryResponse>.Ok(new PostLedgerEntryResponse(Guid.Empty, LedgerEntryState.Draft, null, command.IdempotencyKey));
     }
 
     private static FinancialCommandResult<PostLedgerEntryResponse> ValidateMetadata(
         FinancialMutationMetadata metadata,
         LedgerReasonCode reasonCode,
-        PostingTemplateId templateId)
-    {
-        if (string.IsNullOrWhiteSpace(metadata.Actor)
+        PostingTemplateId templateId) => string.IsNullOrWhiteSpace(metadata.Actor)
             || string.IsNullOrWhiteSpace(metadata.Source)
             || string.IsNullOrWhiteSpace(metadata.CorrelationId)
-            || string.IsNullOrWhiteSpace(metadata.CausationId))
-        {
-            return FinancialCommandResult<PostLedgerEntryResponse>.Validation("Actor, source, correlation id, and causation id are required.");
-        }
-
-        if (reasonCode == LedgerReasonCode.Post && templateId == PostingTemplateId.Unknown)
-        {
-            return FinancialCommandResult<PostLedgerEntryResponse>.Validation("Template id is required for posting operations.");
-        }
-
-        if (string.Equals(metadata.Source, "provider", StringComparison.OrdinalIgnoreCase)
-            && string.IsNullOrWhiteSpace(metadata.ProviderReference))
-        {
-            return FinancialCommandResult<PostLedgerEntryResponse>.Validation("Provider reference is required for provider-sourced mutations.");
-        }
-
-        return FinancialCommandResult<PostLedgerEntryResponse>.Ok(new PostLedgerEntryResponse(Guid.Empty, LedgerEntryState.Draft, null, string.Empty));
-    }
+            || string.IsNullOrWhiteSpace(metadata.CausationId)
+            ? FinancialCommandResult<PostLedgerEntryResponse>.Validation("Actor, source, correlation id, and causation id are required.")
+            : reasonCode == LedgerReasonCode.Post && templateId == PostingTemplateId.Unknown
+            ? FinancialCommandResult<PostLedgerEntryResponse>.Validation("Template id is required for posting operations.")
+            : string.Equals(metadata.Source, "provider", StringComparison.OrdinalIgnoreCase)
+            && string.IsNullOrWhiteSpace(metadata.ProviderReference)
+            ? FinancialCommandResult<PostLedgerEntryResponse>.Validation("Provider reference is required for provider-sourced mutations.")
+            : FinancialCommandResult<PostLedgerEntryResponse>.Ok(new PostLedgerEntryResponse(Guid.Empty, LedgerEntryState.Draft, null, string.Empty));
 
     private static LedgerEntry BuildDraftEntry(PostLedgerEntryCommand command)
         => new()

@@ -9,10 +9,7 @@ public partial class ServiceForm : ServicesBase
     private ServiceWriteDto writeDto = new();
     private List<ServiceTypeReadDto> serviceTypes = [];
 
-    protected override void OnParametersSet()
-    {
-        writeDto = Service is not null ? Service.ToWrite() : new ServiceWriteDto();
-    }
+    protected override void OnParametersSet() => writeDto = Service is not null ? Service.ToWrite() : new ServiceWriteDto();
 
     protected override async Task OnInitializedAsync()
     {

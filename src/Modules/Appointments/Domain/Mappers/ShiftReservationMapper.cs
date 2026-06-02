@@ -1,7 +1,3 @@
-using Riok.Mapperly.Abstractions;
-using Vitarish.Appointments.Domain.Dto;
-using Vitarish.Appointments.Domain.Models;
-
 namespace Vitarish.Appointments.Domain.Mappers;
 
 /// <summary>

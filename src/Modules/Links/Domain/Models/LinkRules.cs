@@ -11,14 +11,6 @@ public static class LinkRules
 
     public static string NormalizeDestinationUrl(string destinationUrl) => destinationUrl.Trim();
 
-    public static bool IsValidDestinationUrl(string destinationUrl)
-    {
-        if (!Uri.TryCreate(destinationUrl, UriKind.Absolute, out Uri? uri))
-        {
-            return false;
-        }
-
-        return string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
-            || string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase);
-    }
+    public static bool IsValidDestinationUrl(string destinationUrl) => Uri.TryCreate(destinationUrl, UriKind.Absolute, out Uri? uri) && (string.Equals(uri.Scheme, Uri.UriSchemeHttp, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(uri.Scheme, Uri.UriSchemeHttps, StringComparison.OrdinalIgnoreCase));
 }

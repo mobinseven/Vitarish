@@ -1,7 +1,3 @@
-using Microsoft.AspNetCore.Components;
-using Vitarish.Files.Domain.Models;
-using Vitarish.Files.Interface.Models;
-
 namespace Vitarish.Files.Interface.Abstractions;
 
 public interface IStreamTransfer

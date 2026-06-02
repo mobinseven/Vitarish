@@ -22,7 +22,7 @@ public class GetUsersQueryHandlerTests
 
         IEnumerable<User> result = await handler.Handle(new GetUsersQuery(), CancellationToken.None);
 
-        result.Should().BeEquivalentTo(cached);
+        _ = result.Should().BeEquivalentTo(cached);
     }
 
     [Fact]
@@ -31,14 +31,14 @@ public class GetUsersQueryHandlerTests
         User[] users = [new User { Id = "user-1" }, new User { Id = "user-2" }];
         await using UsersDbContext dbContext = UsersDbContextFactory.Create();
         dbContext.Users.AddRange(users);
-        await dbContext.SaveChangesAsync();
+        _ = await dbContext.SaveChangesAsync();
 
         Mock<IDistributedCache> cache = DistributedCacheMockFactory.Create();
         GetUsersQueryHandler handler = new(dbContext, cache.Object);
 
         IEnumerable<User> result = await handler.Handle(new GetUsersQuery(), CancellationToken.None);
 
-        result.Should().HaveCount(2);
+        _ = result.Should().HaveCount(2);
         cache.Verify(c => c.SetAsync("users:all", It.IsAny<byte[]>(), It.IsAny<DistributedCacheEntryOptions>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }

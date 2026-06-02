@@ -1,6 +1,5 @@
 using Vitarish.Commerce.Infrastructure.Clients;
 using Vitarish.Commerce.Infrastructure.FeedSources;
-using Vitarish.Commerce.Infrastructure.Options;
 using Vitarish.Commerce.Infrastructure.SearchProviders;
 using Vitarish.Commerce.Infrastructure.Services;
 using Vitarish.Feed.Domain.Abstractions;

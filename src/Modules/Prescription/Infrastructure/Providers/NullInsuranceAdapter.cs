@@ -8,9 +8,7 @@ namespace Vitarish.Prescription.Infrastructure.Providers;
 /// </summary>
 public sealed class NullInsuranceAdapter(string providerKey) : IInsuranceProviderAdapter
 {
-    private readonly string _providerKey = providerKey;
-
-    public string ProviderKey => _providerKey;
+    public string ProviderKey { get; } = providerKey;
 
     public IReadOnlySet<Domain.Enums.InsuranceProviderCapabilityType> GetCapabilities()
         => new HashSet<Domain.Enums.InsuranceProviderCapabilityType>();

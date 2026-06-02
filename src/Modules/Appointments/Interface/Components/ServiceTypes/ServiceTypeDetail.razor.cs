@@ -8,10 +8,7 @@ public partial class ServiceTypeDetail : ServiceTypesBase
 
     private ServiceTypeReadDto? current;
 
-    protected override void OnParametersSet()
-    {
-        current = ServiceType;
-    }
+    protected override void OnParametersSet() => current = ServiceType;
 
     private async Task DeleteAsync()
     {
@@ -31,7 +28,7 @@ public partial class ServiceTypeDetail : ServiceTypesBase
             return;
         }
 
-        await ServiceTypeManager.RemoveAsync(current!.Id, CancellationToken.None);
+        _ = await ServiceTypeManager.RemoveAsync(current!.Id, CancellationToken.None);
         await OnDeleted.InvokeAsync();
     }
 }

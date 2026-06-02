@@ -18,7 +18,7 @@ internal sealed class RegisterCodeSystemHandler(MedicalDbContext dbContext)
             return EntityResult<Guid>.Failure(EntityError.Validation($"Code system with key '{request.SystemKey}' already exists."));
         }
 
-        var entity = new CodeSystem
+        CodeSystem entity = new()
         {
             Id = Guid.NewGuid(),
             SystemKey = request.SystemKey,

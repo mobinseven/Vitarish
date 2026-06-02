@@ -30,13 +30,10 @@ public static class TenantMetadata
         }
     }
 
-    public static void SetActiveModules(IDictionary<string, object?> metadata, IEnumerable<string> modules)
-    {
-        metadata[ActiveModulesKey] = modules
+    public static void SetActiveModules(IDictionary<string, object?> metadata, IEnumerable<string> modules) => metadata[ActiveModulesKey] = modules
             .Where(module => !string.IsNullOrWhiteSpace(module))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
-    }
 
     public const string ActiveAppsKey = "activeApps";
 
@@ -64,11 +61,8 @@ public static class TenantMetadata
         }
     }
 
-    public static void SetActiveApps(IDictionary<string, object?> metadata, IEnumerable<string> Apps)
-    {
-        metadata[ActiveAppsKey] = Apps
+    public static void SetActiveApps(IDictionary<string, object?> metadata, IEnumerable<string> Apps) => metadata[ActiveAppsKey] = Apps
             .Where(App => !string.IsNullOrWhiteSpace(App))
             .Distinct(StringComparer.OrdinalIgnoreCase)
             .ToArray();
-    }
 }

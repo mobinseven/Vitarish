@@ -36,7 +36,7 @@ public partial class ImportCodeSystemReleasePanel : MedicalBase
         lastResult = null;
         await InvokeAsync(StateHasChanged);
 
-        var result = await Mediator.Send(new ImportCodeSystemReleaseCommand(
+        EntityResult<ImportResult> result = await Mediator.Send(new ImportCodeSystemReleaseCommand(
             writeDto.CodeSystemId,
             writeDto.ReleaseName,
             null,

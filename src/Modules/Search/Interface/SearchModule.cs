@@ -1,10 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Modules.Base;
 using Vitarish.Search.Application.Abstractions;
 using Vitarish.Search.Infrastructure;
 using Vitarish.Search.Interface.DependencyInjection;
-using Vitarish.Modules.Base;
 
 namespace Vitarish.Search.Interface;
 

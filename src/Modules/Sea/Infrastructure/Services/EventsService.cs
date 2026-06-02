@@ -32,7 +32,7 @@ internal class EventsService(
     {
         Event? entity = await Mediator.Send(new AddEventAfterCommand(projectId, procedureId, previousEventId), cancellationToken);
 
-        return entity is null ? null : entity.ToDto();
+        return entity?.ToDto();
     }
 
     public Task<bool> MoveUpAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken)

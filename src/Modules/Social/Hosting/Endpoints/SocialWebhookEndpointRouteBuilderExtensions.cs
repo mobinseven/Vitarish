@@ -1,9 +1,10 @@
-using System.Buffers;
-using System.IO.Pipelines;
-using System.Text;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Routing;
+using Microsoft.Extensions.Primitives;
+using System.Buffers;
+using System.IO.Pipelines;
+using System.Text;
 using Vitarish.Social.Application.Abstractions;
 using Vitarish.Social.Domain.Enums;
 
@@ -38,7 +39,7 @@ public static class SocialWebhookEndpointRouteBuilderExtensions
         }
 
         Guid? connectionId = null;
-        if (httpContext.Request.Query.TryGetValue("connectionId", out var queryValue)
+        if (httpContext.Request.Query.TryGetValue("connectionId", out StringValues queryValue)
             && Guid.TryParse(queryValue.ToString(), out Guid parsedConnectionId))
         {
             connectionId = parsedConnectionId;
@@ -95,21 +96,12 @@ public static class SocialWebhookEndpointRouteBuilderExtensions
         return Encoding.UTF8.GetString(buffer.WrittenSpan);
     }
 
-    private static IResult HandleWebhookChallengeAsync(string provider, HttpContext httpContext)
-    {
-        if (!TryParseProvider(provider, out SocialProvider parsedProvider))
-        {
-            return Results.BadRequest("Unsupported provider.");
-        }
-
-        if (parsedProvider == SocialProvider.Instagram
-            && httpContext.Request.Query.TryGetValue("hub.challenge", out var challenge))
-        {
-            return Results.Text(challenge.ToString());
-        }
-
-        return Results.Ok();
-    }
+    private static IResult HandleWebhookChallengeAsync(string provider, HttpContext httpContext) => !TryParseProvider(provider, out SocialProvider parsedProvider)
+            ? Results.BadRequest("Unsupported provider.")
+            : parsedProvider == SocialProvider.Instagram
+            && httpContext.Request.Query.TryGetValue("hub.challenge", out StringValues challenge)
+            ? Results.Text(challenge.ToString())
+            : Results.Ok();
 
     private static bool TryParseProvider(string provider, out SocialProvider parsedProvider)
         => Enum.TryParse(provider, ignoreCase: true, out parsedProvider);

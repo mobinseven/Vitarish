@@ -13,7 +13,7 @@ public static class FeedServiceExtensions
     public static IServiceCollection AddFeedInfrastructure(this IServiceCollection services)
     {
         // Register the core feed service
-        services.AddScoped<IFeedService, FeedService>();
+        _ = services.AddScoped<IFeedService, FeedService>();
 
 
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(FeedServiceExtensions).Assembly));

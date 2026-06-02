@@ -102,7 +102,7 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
                     v => JsonSerializer.Deserialize<Dictionary<string, object?>>(v, _jsonOptions))
                 .HasDefaultValueSql("'{}'")
                 .HasColumnType("nvarchar(max)");
-            entity.Ignore(s => s.Stats);
+            _ = entity.Ignore(s => s.Stats);
         });
 
         _ = modelBuilder.Entity<OrderStats>(eb =>
@@ -124,7 +124,7 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
             _ = entity.HasIndex("TenantId", nameof(Order.OrderNumber))
                 .IsUnique()
                 .HasFilter($"[{nameof(Order.OrderNumber)}] > 0");
-            entity.Ignore(o => o.Stats);
+            _ = entity.Ignore(o => o.Stats);
         });
 
         _ = modelBuilder.Entity<Cart>(entity =>

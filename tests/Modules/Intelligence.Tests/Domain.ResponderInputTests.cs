@@ -9,48 +9,48 @@ public sealed class ResponderInputTests
     public void TextInput_CreatesTextTypeInput()
     {
         // Arrange & Act
-        var input = ResponderInput.TextInput("Hello, world!");
+        ResponderInput input = ResponderInput.TextInput("Hello, world!");
 
         // Assert
-        input.Type.Should().Be(ResponderInputType.Text);
-        input.Text.Should().Be("Hello, world!");
-        input.ImageUrl.Should().BeNull();
-        input.Detail.Should().BeNull();
-        input.FileId.Should().BeNull();
-        input.FileData.Should().BeNull();
-        input.Filename.Should().BeNull();
-        input.ApprovalId.Should().BeNull();
+        _ = input.Type.Should().Be(ResponderInputType.Text);
+        _ = input.Text.Should().Be("Hello, world!");
+        _ = input.ImageUrl.Should().BeNull();
+        _ = input.Detail.Should().BeNull();
+        _ = input.FileId.Should().BeNull();
+        _ = input.FileData.Should().BeNull();
+        _ = input.Filename.Should().BeNull();
+        _ = input.ApprovalId.Should().BeNull();
     }
 
     [Fact]
     public void ImageInput_CreatesImageTypeInput()
     {
         // Arrange
-        var imageUrl = "https://example.com/image.png";
+        string imageUrl = "https://example.com/image.png";
 
         // Act
-        var input = ResponderInput.ImageInput(imageUrl);
+        ResponderInput input = ResponderInput.ImageInput(imageUrl);
 
         // Assert
-        input.Type.Should().Be(ResponderInputType.Image);
-        input.ImageUrl.Should().Be(imageUrl);
-        input.Text.Should().BeNull();
-        input.Detail.Should().BeNull();
+        _ = input.Type.Should().Be(ResponderInputType.Image);
+        _ = input.ImageUrl.Should().Be(imageUrl);
+        _ = input.Text.Should().BeNull();
+        _ = input.Detail.Should().BeNull();
     }
 
     [Fact]
     public void ImageInput_WithDetail_SetsDetailCorrectly()
     {
         // Arrange
-        var imageUrl = "https://example.com/image.png";
+        string imageUrl = "https://example.com/image.png";
 
         // Act
-        var input = ResponderInput.ImageInput(imageUrl, ResponderInputImageDetail.High);
+        ResponderInput input = ResponderInput.ImageInput(imageUrl, ResponderInputImageDetail.High);
 
         // Assert
-        input.Type.Should().Be(ResponderInputType.Image);
-        input.ImageUrl.Should().Be(imageUrl);
-        input.Detail.Should().Be(ResponderInputImageDetail.High);
+        _ = input.Type.Should().Be(ResponderInputType.Image);
+        _ = input.ImageUrl.Should().Be(imageUrl);
+        _ = input.Detail.Should().Be(ResponderInputImageDetail.High);
     }
 
     [Theory]
@@ -60,124 +60,124 @@ public sealed class ResponderInputTests
     public void ImageInput_AcceptsAllImageDetailLevels(ResponderInputImageDetail detail)
     {
         // Arrange & Act
-        var input = ResponderInput.ImageInput("https://example.com/image.png", detail);
+        ResponderInput input = ResponderInput.ImageInput("https://example.com/image.png", detail);
 
         // Assert
-        input.Detail.Should().Be(detail);
+        _ = input.Detail.Should().Be(detail);
     }
 
     [Fact]
     public void FileInput_WithFileId_CreatesFileTypeInput()
     {
         // Arrange
-        var fileId = "file-123";
+        string fileId = "file-123";
 
         // Act
-        var input = ResponderInput.FileInput(fileId: fileId);
+        ResponderInput input = ResponderInput.FileInput(fileId: fileId);
 
         // Assert
-        input.Type.Should().Be(ResponderInputType.File);
-        input.FileId.Should().Be(fileId);
-        input.FileData.Should().BeNull();
-        input.Filename.Should().BeNull();
+        _ = input.Type.Should().Be(ResponderInputType.File);
+        _ = input.FileId.Should().Be(fileId);
+        _ = input.FileData.Should().BeNull();
+        _ = input.Filename.Should().BeNull();
     }
 
     [Fact]
     public void FileInput_WithFileDataAndFilename_CreatesFileTypeInput()
     {
         // Arrange
-        var fileData = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("test content"));
-        var filename = "test.txt";
+        string fileData = Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes("test content"));
+        string filename = "test.txt";
 
         // Act
-        var input = ResponderInput.FileInput(fileData: fileData, filename: filename);
+        ResponderInput input = ResponderInput.FileInput(fileData: fileData, filename: filename);
 
         // Assert
-        input.Type.Should().Be(ResponderInputType.File);
-        input.FileId.Should().BeNull();
-        input.FileData.Should().Be(fileData);
-        input.Filename.Should().Be(filename);
+        _ = input.Type.Should().Be(ResponderInputType.File);
+        _ = input.FileId.Should().BeNull();
+        _ = input.FileData.Should().Be(fileData);
+        _ = input.Filename.Should().Be(filename);
     }
 
     [Fact]
     public void FileInput_WithAllParameters_SetsAllCorrectly()
     {
         // Arrange
-        var fileId = "file-123";
-        var fileData = "base64data";
-        var filename = "document.pdf";
+        string fileId = "file-123";
+        string fileData = "base64data";
+        string filename = "document.pdf";
 
         // Act
-        var input = ResponderInput.FileInput(fileId: fileId, fileData: fileData, filename: filename);
+        ResponderInput input = ResponderInput.FileInput(fileId: fileId, fileData: fileData, filename: filename);
 
         // Assert
-        input.Type.Should().Be(ResponderInputType.File);
-        input.FileId.Should().Be(fileId);
-        input.FileData.Should().Be(fileData);
-        input.Filename.Should().Be(filename);
+        _ = input.Type.Should().Be(ResponderInputType.File);
+        _ = input.FileId.Should().Be(fileId);
+        _ = input.FileData.Should().Be(fileData);
+        _ = input.Filename.Should().Be(filename);
     }
 
     [Fact]
     public void McpToolCallApprovalInput_CreatesMcpToolCallApprovalTypeInput()
     {
         // Arrange
-        var approvalId = "approval-456";
+        string approvalId = "approval-456";
 
         // Act
-        var input = ResponderInput.McpToolCallApprovalInput(approvalId);
+        ResponderInput input = ResponderInput.McpToolCallApprovalInput(approvalId);
 
         // Assert
-        input.Type.Should().Be(ResponderInputType.McpToolCallApproval);
-        input.ApprovalId.Should().Be(approvalId);
-        input.Text.Should().BeNull();
-        input.ImageUrl.Should().BeNull();
+        _ = input.Type.Should().Be(ResponderInputType.McpToolCallApproval);
+        _ = input.ApprovalId.Should().Be(approvalId);
+        _ = input.Text.Should().BeNull();
+        _ = input.ImageUrl.Should().BeNull();
     }
 
     [Fact]
     public void ResponderInput_Equality_WorksCorrectly()
     {
         // Arrange
-        var input1 = ResponderInput.TextInput("Hello");
-        var input2 = ResponderInput.TextInput("Hello");
+        ResponderInput input1 = ResponderInput.TextInput("Hello");
+        ResponderInput input2 = ResponderInput.TextInput("Hello");
 
         // Assert
-        input1.Should().Be(input2);
+        _ = input1.Should().Be(input2);
     }
 
     [Fact]
     public void ResponderInput_Inequality_WhenTypeDiffers()
     {
         // Arrange
-        var input1 = ResponderInput.TextInput("test");
-        var input2 = ResponderInput.ImageInput("test");
+        ResponderInput input1 = ResponderInput.TextInput("test");
+        ResponderInput input2 = ResponderInput.ImageInput("test");
 
         // Assert
-        input1.Should().NotBe(input2);
+        _ = input1.Should().NotBe(input2);
     }
 
     [Fact]
     public void ResponderInput_Inequality_WhenTextDiffers()
     {
         // Arrange
-        var input1 = ResponderInput.TextInput("Hello");
-        var input2 = ResponderInput.TextInput("World");
+        ResponderInput input1 = ResponderInput.TextInput("Hello");
+        ResponderInput input2 = ResponderInput.TextInput("World");
 
         // Assert
-        input1.Should().NotBe(input2);
+        _ = input1.Should().NotBe(input2);
     }
 
     [Fact]
     public void ResponderInput_WithCopy_CreatesNewInstance()
     {
         // Arrange
-        var original = ResponderInput.TextInput("Hello");
+        ResponderInput original = ResponderInput.TextInput("Hello");
 
         // Act
         ResponderInput copy = original with { Text = "Updated" };
 
         // Assert
-        copy.Text.Should().Be("Updated");
-        original.Text.Should().Be("Hello");
+        _ = copy.Text.Should().Be("Updated");
+        _ = original.Text.Should().Be("Hello");
     }
 
     [Theory]
@@ -187,10 +187,10 @@ public sealed class ResponderInputTests
     public void TextInput_AcceptsVariousTextLengths(string text)
     {
         // Arrange & Act
-        var input = ResponderInput.TextInput(text);
+        ResponderInput input = ResponderInput.TextInput(text);
 
         // Assert
-        input.Text.Should().Be(text);
+        _ = input.Text.Should().Be(text);
     }
 
     [Theory]
@@ -200,10 +200,10 @@ public sealed class ResponderInputTests
     public void ImageInput_AcceptsVariousImageUrls(string imageUrl)
     {
         // Arrange & Act
-        var input = ResponderInput.ImageInput(imageUrl);
+        ResponderInput input = ResponderInput.ImageInput(imageUrl);
 
         // Assert
-        input.ImageUrl.Should().Be(imageUrl);
+        _ = input.ImageUrl.Should().Be(imageUrl);
     }
 }
 
@@ -216,10 +216,10 @@ public sealed class ResponderInputTypeTests
     public void ResponderInputType_HasExpectedValues()
     {
         // Assert
-        Enum.GetValues<ResponderInputType>().Should().Contain(ResponderInputType.Text);
-        Enum.GetValues<ResponderInputType>().Should().Contain(ResponderInputType.Image);
-        Enum.GetValues<ResponderInputType>().Should().Contain(ResponderInputType.File);
-        Enum.GetValues<ResponderInputType>().Should().Contain(ResponderInputType.McpToolCallApproval);
+        _ = Enum.GetValues<ResponderInputType>().Should().Contain(ResponderInputType.Text);
+        _ = Enum.GetValues<ResponderInputType>().Should().Contain(ResponderInputType.Image);
+        _ = Enum.GetValues<ResponderInputType>().Should().Contain(ResponderInputType.File);
+        _ = Enum.GetValues<ResponderInputType>().Should().Contain(ResponderInputType.McpToolCallApproval);
     }
 
     [Theory]
@@ -241,9 +241,9 @@ public sealed class ResponderInputImageDetailTests
     public void ResponderInputImageDetail_HasExpectedValues()
     {
         // Assert
-        Enum.GetValues<ResponderInputImageDetail>().Should().Contain(ResponderInputImageDetail.Low);
-        Enum.GetValues<ResponderInputImageDetail>().Should().Contain(ResponderInputImageDetail.High);
-        Enum.GetValues<ResponderInputImageDetail>().Should().Contain(ResponderInputImageDetail.Auto);
+        _ = Enum.GetValues<ResponderInputImageDetail>().Should().Contain(ResponderInputImageDetail.Low);
+        _ = Enum.GetValues<ResponderInputImageDetail>().Should().Contain(ResponderInputImageDetail.High);
+        _ = Enum.GetValues<ResponderInputImageDetail>().Should().Contain(ResponderInputImageDetail.Auto);
     }
 
     [Theory]

@@ -63,5 +63,5 @@ public static class UrlExtensions
         return $"{basePart}?{newQuery}{fragment}";
     }
 
-    public static string RemoveAllQueryParams(this string url) => url.IndexOf("?") > 0 ? url.Substring(0, url.IndexOf("?")) : url;
+    public static string RemoveAllQueryParams(this string url) => url.IndexOf("?") > 0 ? url[..url.IndexOf("?")] : url;
 }

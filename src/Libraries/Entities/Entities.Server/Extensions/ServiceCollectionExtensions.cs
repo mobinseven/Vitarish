@@ -1,5 +1,4 @@
 using Vitarish.Entities.Server.Repositories.Operations;
-using Vitarish.Entities.Server.Repositories.UnitOfWork;
 
 namespace Vitarish.Entities.Server.Extensions;
 /// <summary>

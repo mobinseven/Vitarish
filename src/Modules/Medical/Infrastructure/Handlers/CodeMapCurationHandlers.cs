@@ -51,7 +51,7 @@ internal sealed class CreateCodeMapHandler(MedicalDbContext dbContext)
             return EntityResult<Guid>.Failure(EntityError.Validation("Effective date range overlaps an existing code map for the same source, target, and mapping type."));
         }
 
-        var entity = new CodeMap
+        CodeMap entity = new()
         {
             Id = Guid.NewGuid(),
             SourceMedicalCodeId = request.SourceMedicalCodeId,

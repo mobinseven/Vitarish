@@ -1,6 +1,5 @@
 
 using System.ComponentModel.DataAnnotations.Schema;
-using System.Text.Json;
 using Vitarish.Files.Domain.Models;
 
 namespace Vitarish.Files.Domain.Entities;

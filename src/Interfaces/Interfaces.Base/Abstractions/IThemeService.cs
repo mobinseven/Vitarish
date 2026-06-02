@@ -1,5 +1,4 @@
 using Vitarish.Interfaces.Base.Enums;
-using Vitarish.Interfaces.Base.Models;
 
 namespace Vitarish.Interfaces.Base.Abstractions;
 

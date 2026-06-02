@@ -95,10 +95,7 @@ public class MessageProcessorTests
     }
 
     [Fact]
-    public async Task ProcessCommand_WithNullCommand_ThrowsArgumentNullException()
-    {
-        await Assert.ThrowsAsync<ArgumentNullException>(() => _sut.ProcessCommand(null!));
-    }
+    public async Task ProcessCommand_WithNullCommand_ThrowsArgumentNullException() => await Assert.ThrowsAsync<ArgumentNullException>(() => _sut.ProcessCommand(null!));
 
     [Fact]
     public async Task ProcessCommand_WhenEmailSendingFails_ThrowsException()

@@ -4,8 +4,5 @@ namespace Vitarish.Main.Mock.Services;
 
 public sealed class MockMessageQueue : ICommunicationCommandQueue
 {
-    public void Enqueue(CommunicationCommand command)
-    {
-        ArgumentNullException.ThrowIfNull(command);
-    }
+    public void Enqueue(CommunicationCommand command) => ArgumentNullException.ThrowIfNull(command);
 }

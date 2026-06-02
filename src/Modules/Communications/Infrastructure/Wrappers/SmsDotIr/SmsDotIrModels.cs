@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace Vitarish.Communications.Infrastructure.Wrappers.SmsDotIr;
 
 public sealed record SmsDotIrSendResult(

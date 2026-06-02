@@ -24,12 +24,9 @@ internal sealed class FakeMessagesService : IMessagesService
     public Task<SmsSendResult> SendSms(Message message, CancellationToken cancellationToken = default)
     {
         LastSmsMessage = message;
-        if (SendSmsDelegate is not null)
-        {
-            return SendSmsDelegate(message, cancellationToken);
-        }
-
-        return Task.FromResult(new SmsSendResult(
+        return SendSmsDelegate is not null
+            ? SendSmsDelegate(message, cancellationToken)
+            : Task.FromResult(new SmsSendResult(
             "0",
             message.Recipient,
             0m,
@@ -48,12 +45,9 @@ internal sealed class FakeMessagesService : IMessagesService
     public Task<SmsDeliveryState> GetSmsDeliveryStateAsync(long messageId, CancellationToken cancellationToken = default)
     {
         LastDeliveryStateMessageId = messageId;
-        if (GetDeliveryStateDelegate is not null)
-        {
-            return GetDeliveryStateDelegate(messageId, cancellationToken);
-        }
-
-        return Task.FromResult(new SmsDeliveryState(
+        return GetDeliveryStateDelegate is not null
+            ? GetDeliveryStateDelegate(messageId, cancellationToken)
+            : Task.FromResult(new SmsDeliveryState(
             messageId.ToString(),
             null,
             null,
@@ -84,12 +78,9 @@ internal sealed class FakeSmsProvider : ISmsProvider
     public Task<SmsSendResult> SendSms(Message message, CancellationToken cancellationToken = default)
     {
         LastSmsMessage = message;
-        if (SendSmsDelegate is not null)
-        {
-            return SendSmsDelegate(message, cancellationToken);
-        }
-
-        return Task.FromResult(new SmsSendResult(
+        return SendSmsDelegate is not null
+            ? SendSmsDelegate(message, cancellationToken)
+            : Task.FromResult(new SmsSendResult(
             "0",
             message.Recipient,
             0m,
@@ -108,12 +99,9 @@ internal sealed class FakeSmsProvider : ISmsProvider
     public Task<SmsDeliveryState> GetSmsDeliveryStateAsync(long messageId, CancellationToken cancellationToken = default)
     {
         LastDeliveryStateMessageId = messageId;
-        if (GetDeliveryStateDelegate is not null)
-        {
-            return GetDeliveryStateDelegate(messageId, cancellationToken);
-        }
-
-        return Task.FromResult(new SmsDeliveryState(
+        return GetDeliveryStateDelegate is not null
+            ? GetDeliveryStateDelegate(messageId, cancellationToken)
+            : Task.FromResult(new SmsDeliveryState(
             messageId.ToString(),
             null,
             null,

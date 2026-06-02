@@ -1,11 +1,6 @@
 using MediatR;
-using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
-using Vitarish.Parties.Application.Abstractions;
-using Vitarish.Parties.Domain.Entities;
 using Vitarish.Requests.Application.Commands;
 using Vitarish.Requests.Domain.Entities;
-using Vitarish.Requests.Domain.Models;
 using Vitarish.Requests.Infrastructure.Data;
 
 namespace Vitarish.Requests.Infrastructure.Handlers;

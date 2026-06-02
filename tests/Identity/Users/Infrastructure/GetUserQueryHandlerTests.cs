@@ -1,10 +1,10 @@
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
+using Users.Tests.TestHelpers;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Extensions;
 using Vitarish.Users.Infrastructure.Handlers;
-using Microsoft.Extensions.Caching.Memory;
-using Users.Tests.TestHelpers;
 
 namespace Users.Tests.Infrastructure;
 
@@ -22,8 +22,8 @@ public class GetUserQueryHandlerTests
 
         User? result = await handler.Handle(new GetUserQuery("user-1"), CancellationToken.None);
 
-        result.Should().NotBeNull();
-        result!.UserName.Should().Be("cached");
+        _ = result.Should().NotBeNull();
+        _ = result!.UserName.Should().Be("cached");
     }
 
     [Fact]
@@ -31,15 +31,15 @@ public class GetUserQueryHandlerTests
     {
         User user = new() { Id = "user-2", UserName = "db-user" };
         await using UsersDbContext dbContext = UsersDbContextFactory.Create();
-        dbContext.Users.Add(user);
-        await dbContext.SaveChangesAsync();
+        _ = dbContext.Users.Add(user);
+        _ = await dbContext.SaveChangesAsync();
 
         Mock<IDistributedCache> cache = DistributedCacheMockFactory.Create();
         GetUserQueryHandler handler = new(dbContext, cache.Object);
 
         User? result = await handler.Handle(new GetUserQuery("user-2"), CancellationToken.None);
 
-        result.Should().NotBeNull();
+        _ = result.Should().NotBeNull();
         cache.Verify(c => c.SetAsync("users:user-2", It.IsAny<byte[]>(), It.IsAny<DistributedCacheEntryOptions>(), It.IsAny<CancellationToken>()), Times.Once);
     }
 }

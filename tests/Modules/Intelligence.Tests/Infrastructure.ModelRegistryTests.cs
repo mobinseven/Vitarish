@@ -12,13 +12,14 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+
+        _ = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = ModelRegistry.GetProviderForModel("gpt-5-nano-2025-08-07");
+        string? provider = ModelRegistry.GetProviderForModel("gpt-5-nano-2025-08-07");
 
         // Assert
-        provider.Should().Be("OpenAI");
+        _ = provider.Should().Be("OpenAI");
     }
 
     [Fact]
@@ -26,13 +27,14 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+
+        _ = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = ModelRegistry.GetProviderForModel("gpt-4o-mini-transcribe");
+        string? provider = ModelRegistry.GetProviderForModel("gpt-4o-mini-transcribe");
 
         // Assert
-        provider.Should().Be("OpenAI");
+        _ = provider.Should().Be("OpenAI");
     }
 
     [Fact]
@@ -40,13 +42,14 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithGoogle().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+
+        _ = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = ModelRegistry.GetProviderForModel("gemini-2.5-pro");
+        string? provider = ModelRegistry.GetProviderForModel("gemini-2.5-pro");
 
         // Assert
-        provider.Should().Be("Google");
+        _ = provider.Should().Be("Google");
     }
 
     [Fact]
@@ -54,13 +57,14 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithGoogle().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+
+        _ = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = ModelRegistry.GetProviderForModel("chirp");
+        string? provider = ModelRegistry.GetProviderForModel("chirp");
 
         // Assert
-        provider.Should().Be("Google");
+        _ = provider.Should().Be("Google");
     }
 
     [Fact]
@@ -68,13 +72,14 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOllama().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+
+        _ = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = ModelRegistry.GetProviderForModel("qwen3:4b");
+        string? provider = ModelRegistry.GetProviderForModel("qwen3:4b");
 
         // Assert
-        provider.Should().Be("Ollama");
+        _ = provider.Should().Be("Ollama");
     }
 
     [Fact]
@@ -82,13 +87,14 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOllama().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+
+        _ = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = ModelRegistry.GetProviderForModel("whisper");
+        string? provider = ModelRegistry.GetProviderForModel("whisper");
 
         // Assert
-        provider.Should().Be("Ollama");
+        _ = provider.Should().Be("Ollama");
     }
 
     [Fact]
@@ -96,13 +102,14 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+
+        _ = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = ModelRegistry.GetProviderForModel("unknown-model");
+        string? provider = ModelRegistry.GetProviderForModel("unknown-model");
 
         // Assert
-        provider.Should().BeNull();
+        _ = provider.Should().BeNull();
     }
 
     [Fact]
@@ -110,13 +117,14 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+
+        _ = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = ModelRegistry.GetProviderForModel(null);
+        string? provider = ModelRegistry.GetProviderForModel(null);
 
         // Assert
-        provider.Should().BeNull();
+        _ = provider.Should().BeNull();
     }
 
     [Fact]
@@ -124,13 +132,14 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+
+        _ = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = ModelRegistry.GetProviderForModel("");
+        string? provider = ModelRegistry.GetProviderForModel("");
 
         // Assert
-        provider.Should().BeNull();
+        _ = provider.Should().BeNull();
     }
 
     [Fact]
@@ -138,13 +147,14 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+
+        _ = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = ModelRegistry.GetProviderForModel("   ");
+        string? provider = ModelRegistry.GetProviderForModel("   ");
 
         // Assert
-        provider.Should().BeNull();
+        _ = provider.Should().BeNull();
     }
 
     [Fact]
@@ -152,15 +162,16 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+
+        _ = new ModelRegistry(aiOptions);
 
         // Act
-        var provider1 = ModelRegistry.GetProviderForModel("GPT-5-NANO-2025-08-07");
-        var provider2 = ModelRegistry.GetProviderForModel("gpt-5-nano-2025-08-07");
+        string? provider1 = ModelRegistry.GetProviderForModel("GPT-5-NANO-2025-08-07");
+        string? provider2 = ModelRegistry.GetProviderForModel("gpt-5-nano-2025-08-07");
 
         // Assert
-        provider1.Should().Be("OpenAI");
-        provider2.Should().Be("OpenAI");
+        _ = provider1.Should().Be("OpenAI");
+        _ = provider2.Should().Be("OpenAI");
     }
 
     [Fact]
@@ -168,14 +179,14 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+        ModelRegistry registry = new(aiOptions);
 
         // Act
         AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
-        availableModels.ResponderModels.Should().Contain(m => m.Provider == "OpenAI");
-        availableModels.TranscriberModels.Should().Contain(m => m.Provider == "OpenAI");
+        _ = availableModels.ResponderModels.Should().Contain(m => m.Provider == "OpenAI");
+        _ = availableModels.TranscriberModels.Should().Contain(m => m.Provider == "OpenAI");
     }
 
     [Fact]
@@ -186,14 +197,14 @@ public sealed class ModelRegistryTests
         {
             OpenAi = new OpenAiOptions { ApiKey = "" }
         }).ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+        ModelRegistry registry = new(aiOptions);
 
         // Act
         AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
-        availableModels.ResponderModels.Should().NotContain(m => m.Provider == "OpenAI");
-        availableModels.TranscriberModels.Should().NotContain(m => m.Provider == "OpenAI");
+        _ = availableModels.ResponderModels.Should().NotContain(m => m.Provider == "OpenAI");
+        _ = availableModels.TranscriberModels.Should().NotContain(m => m.Provider == "OpenAI");
     }
 
     [Fact]
@@ -201,14 +212,14 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOllama().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+        ModelRegistry registry = new(aiOptions);
 
         // Act
         AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
-        availableModels.ResponderModels.Should().Contain(m => m.Provider == "Ollama");
-        availableModels.TranscriberModels.Should().Contain(m => m.Provider == "Ollama");
+        _ = availableModels.ResponderModels.Should().Contain(m => m.Provider == "Ollama");
+        _ = availableModels.TranscriberModels.Should().Contain(m => m.Provider == "Ollama");
     }
 
     [Fact]
@@ -219,14 +230,14 @@ public sealed class ModelRegistryTests
         {
             Ollama = new OllamaOptions { BaseUrl = "" }
         }).ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+        ModelRegistry registry = new(aiOptions);
 
         // Act
         AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
-        availableModels.ResponderModels.Should().NotContain(m => m.Provider == "Ollama");
-        availableModels.TranscriberModels.Should().NotContain(m => m.Provider == "Ollama");
+        _ = availableModels.ResponderModels.Should().NotContain(m => m.Provider == "Ollama");
+        _ = availableModels.TranscriberModels.Should().NotContain(m => m.Provider == "Ollama");
     }
 
     [Fact]
@@ -234,13 +245,13 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithGoogle().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+        ModelRegistry registry = new(aiOptions);
 
         // Act
         AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
-        availableModels.TranscriberModels.Should().Contain(m => m.Provider == "Google");
+        _ = availableModels.TranscriberModels.Should().Contain(m => m.Provider == "Google");
     }
 
     [Fact]
@@ -248,13 +259,13 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithGoogle().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+        ModelRegistry registry = new(aiOptions);
 
         // Act
         AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
-        availableModels.ResponderModels.Should().Contain(m => m.Provider == "Google");
+        _ = availableModels.ResponderModels.Should().Contain(m => m.Provider == "Google");
     }
 
     [Fact]
@@ -269,14 +280,14 @@ public sealed class ModelRegistryTests
                 Speech = new GoogleSpeechOptions { ProjectId = "" }
             }
         }).ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+        ModelRegistry registry = new(aiOptions);
 
         // Act
         AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
-        availableModels.ResponderModels.Should().NotContain(m => m.Provider == "Google");
-        availableModels.TranscriberModels.Should().NotContain(m => m.Provider == "Google");
+        _ = availableModels.ResponderModels.Should().NotContain(m => m.Provider == "Google");
+        _ = availableModels.TranscriberModels.Should().NotContain(m => m.Provider == "Google");
     }
 
     [Fact]
@@ -284,18 +295,18 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithAllProviders().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+        ModelRegistry registry = new(aiOptions);
 
         // Act
         AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
-        availableModels.ResponderModels.Should().Contain(m => m.Provider == "OpenAI");
-        availableModels.ResponderModels.Should().Contain(m => m.Provider == "Google");
-        availableModels.ResponderModels.Should().Contain(m => m.Provider == "Ollama");
-        availableModels.TranscriberModels.Should().Contain(m => m.Provider == "OpenAI");
-        availableModels.TranscriberModels.Should().Contain(m => m.Provider == "Google");
-        availableModels.TranscriberModels.Should().Contain(m => m.Provider == "Ollama");
+        _ = availableModels.ResponderModels.Should().Contain(m => m.Provider == "OpenAI");
+        _ = availableModels.ResponderModels.Should().Contain(m => m.Provider == "Google");
+        _ = availableModels.ResponderModels.Should().Contain(m => m.Provider == "Ollama");
+        _ = availableModels.TranscriberModels.Should().Contain(m => m.Provider == "OpenAI");
+        _ = availableModels.TranscriberModels.Should().Contain(m => m.Provider == "Google");
+        _ = availableModels.TranscriberModels.Should().Contain(m => m.Provider == "Ollama");
     }
 
     [Fact]
@@ -312,14 +323,14 @@ public sealed class ModelRegistryTests
                 Speech = new GoogleSpeechOptions { ProjectId = "" }
             }
         }).ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+        ModelRegistry registry = new(aiOptions);
 
         // Act
         AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
-        availableModels.ResponderModels.Should().BeEmpty();
-        availableModels.TranscriberModels.Should().BeEmpty();
+        _ = availableModels.ResponderModels.Should().BeEmpty();
+        _ = availableModels.TranscriberModels.Should().BeEmpty();
     }
 
     [Theory]
@@ -336,13 +347,14 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithAllProviders().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+
+        _ = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = ModelRegistry.GetProviderForModel(modelId);
+        string? provider = ModelRegistry.GetProviderForModel(modelId);
 
         // Assert
-        provider.Should().Be(expectedProvider);
+        _ = provider.Should().Be(expectedProvider);
     }
 
     [Theory]
@@ -363,13 +375,14 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithAllProviders().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+
+        _ = new ModelRegistry(aiOptions);
 
         // Act
-        var provider = ModelRegistry.GetProviderForModel(modelId);
+        string? provider = ModelRegistry.GetProviderForModel(modelId);
 
         // Assert
-        provider.Should().Be(expectedProvider);
+        _ = provider.Should().Be(expectedProvider);
     }
 
     [Fact]
@@ -377,15 +390,15 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+        ModelRegistry registry = new(aiOptions);
 
         // Act
         AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
-        availableModels.ResponderModels.Should().Contain(m => m.Id == "gpt-5-2025-08-07");
-        availableModels.ResponderModels.Should().Contain(m => m.Id == "gpt-5-mini-2025-08-07");
-        availableModels.ResponderModels.Should().Contain(m => m.Id == "gpt-5-nano-2025-08-07");
+        _ = availableModels.ResponderModels.Should().Contain(m => m.Id == "gpt-5-2025-08-07");
+        _ = availableModels.ResponderModels.Should().Contain(m => m.Id == "gpt-5-mini-2025-08-07");
+        _ = availableModels.ResponderModels.Should().Contain(m => m.Id == "gpt-5-nano-2025-08-07");
     }
 
     [Fact]
@@ -393,14 +406,14 @@ public sealed class ModelRegistryTests
     {
         // Arrange
         IOptionsMonitor<AiOptions> aiOptions = AiOptionsFactory.CreateWithOpenAi().ToMonitor();
-        var registry = new ModelRegistry(aiOptions);
+        ModelRegistry registry = new(aiOptions);
 
         // Act
         AvailableModels availableModels = registry.GetAvailableModels();
 
         // Assert
-        availableModels.TranscriberModels.Should().Contain(m => m.Id == "gpt-4o-mini-transcribe");
-        availableModels.TranscriberModels.Should().Contain(m => m.Id == "gpt-4o-transcribe");
-        availableModels.TranscriberModels.Should().Contain(m => m.Id == "gpt-4o-transcribe-diarize");
+        _ = availableModels.TranscriberModels.Should().Contain(m => m.Id == "gpt-4o-mini-transcribe");
+        _ = availableModels.TranscriberModels.Should().Contain(m => m.Id == "gpt-4o-transcribe");
+        _ = availableModels.TranscriberModels.Should().Contain(m => m.Id == "gpt-4o-transcribe-diarize");
     }
 }

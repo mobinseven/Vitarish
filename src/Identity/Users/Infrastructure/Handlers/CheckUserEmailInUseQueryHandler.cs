@@ -2,7 +2,6 @@ using MediatR;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Users.Application.Queries;
-using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Data;
 
 namespace Vitarish.Users.Infrastructure.Handlers;

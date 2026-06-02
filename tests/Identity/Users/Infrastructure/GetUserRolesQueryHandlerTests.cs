@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Users.Tests.TestHelpers;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Infrastructure.Handlers;
@@ -14,14 +13,14 @@ public class GetUserRolesQueryHandlerTests
         IdentityUserRole<string> userRole = new() { UserId = "user-1", RoleId = "role-1" };
 
         await using UsersDbContext dbContext = UsersDbContextFactory.Create();
-        dbContext.Roles.Add(role);
-        dbContext.UserRoles.Add(userRole);
-        await dbContext.SaveChangesAsync();
+        _ = dbContext.Roles.Add(role);
+        _ = dbContext.UserRoles.Add(userRole);
+        _ = await dbContext.SaveChangesAsync();
 
         GetUserRolesQueryHandler handler = new(dbContext);
 
         IEnumerable<IdentityRole> result = await handler.Handle(new GetUserRolesQuery("user-1"), CancellationToken.None);
 
-        result.Should().ContainSingle(r => r.Name == "tenant:Admin");
+        _ = result.Should().ContainSingle(r => r.Name == "tenant:Admin");
     }
 }

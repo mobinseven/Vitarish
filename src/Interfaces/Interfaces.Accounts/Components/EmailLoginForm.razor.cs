@@ -3,7 +3,7 @@ namespace Vitarish.Interfaces.Accounts.Components;
 public partial class EmailLoginForm : IdentityCommonBase
 {
     [Parameter] public string VerificationEndpoint { get; set; } = "/Account/Login/Email/Submit";
-    private User? User = null;
+    private new User? User = null;
     private string? Email = null;
 
     private async void ValidSendCodeSubmit(SendEmailCodeModel model)

@@ -10,7 +10,7 @@ public class UpdateUserProfileCommandValidatorTests
     [Fact]
     public void Validate_WithValidInput_Passes()
     {
-        UpdateUserProfileCommand command = new("user-1", new Dictionary<string, string>());
+        UpdateUserProfileCommand command = new("user-1", []);
 
         TestValidationResult<UpdateUserProfileCommand> result = validator.TestValidate(command);
 
@@ -22,11 +22,11 @@ public class UpdateUserProfileCommandValidatorTests
     [InlineData(null)]
     public void Validate_WithEmptyUserId_Fails(string? userId)
     {
-        UpdateUserProfileCommand command = new(userId!, new Dictionary<string, string>());
+        UpdateUserProfileCommand command = new(userId!, []);
 
         TestValidationResult<UpdateUserProfileCommand> result = validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(c => c.UserId);
+        _ = result.ShouldHaveValidationErrorFor(c => c.UserId);
     }
 
     [Fact]
@@ -36,6 +36,6 @@ public class UpdateUserProfileCommandValidatorTests
 
         TestValidationResult<UpdateUserProfileCommand> result = validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(c => c.Preferences);
+        _ = result.ShouldHaveValidationErrorFor(c => c.Preferences);
     }
 }

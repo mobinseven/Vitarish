@@ -7,7 +7,7 @@ public partial class ProcedureCreateDialog : ProceduresBase
     [Parameter] public Guid ProjectId { get; set; }
     [Parameter] public string ProjectName { get; set; } = string.Empty;
 
-    private ProcedureWriteDto ProcedureWriteDto = new();
+    private readonly ProcedureWriteDto ProcedureWriteDto = new();
 
     private ProcedureReadDto? templateProcedure
     {

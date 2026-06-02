@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Identity;
 using Users.Tests.TestHelpers;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Entities;
@@ -18,7 +17,7 @@ public class CheckUserPasswordQueryHandlerTests
 
         bool result = await handler.Handle(new CheckUserPasswordQuery("missing", "password"), CancellationToken.None);
 
-        result.Should().BeFalse();
+        _ = result.Should().BeFalse();
     }
 
     [Fact]
@@ -26,15 +25,15 @@ public class CheckUserPasswordQueryHandlerTests
     {
         User user = new() { Id = "user-1" };
         await using UsersDbContext dbContext = UsersDbContextFactory.Create();
-        dbContext.Users.Add(user);
-        await dbContext.SaveChangesAsync();
+        _ = dbContext.Users.Add(user);
+        _ = await dbContext.SaveChangesAsync();
 
         Mock<IPasswordHasher<User>> hasher = new();
         CheckUserPasswordQueryHandler handler = new(dbContext, hasher.Object);
 
         bool result = await handler.Handle(new CheckUserPasswordQuery("user-1", "password"), CancellationToken.None);
 
-        result.Should().BeFalse();
+        _ = result.Should().BeFalse();
     }
 
     [Fact]
@@ -42,18 +41,18 @@ public class CheckUserPasswordQueryHandlerTests
     {
         User user = new() { Id = "user-1", PasswordHash = "hash" };
         await using UsersDbContext dbContext = UsersDbContextFactory.Create();
-        dbContext.Users.Add(user);
-        await dbContext.SaveChangesAsync();
+        _ = dbContext.Users.Add(user);
+        _ = await dbContext.SaveChangesAsync();
 
         Mock<IPasswordHasher<User>> hasher = new();
-        hasher.Setup(h => h.VerifyHashedPassword(It.IsAny<User>(), "hash", "password"))
+        _ = hasher.Setup(h => h.VerifyHashedPassword(It.IsAny<User>(), "hash", "password"))
             .Returns(PasswordVerificationResult.Success);
 
         CheckUserPasswordQueryHandler handler = new(dbContext, hasher.Object);
 
         bool result = await handler.Handle(new CheckUserPasswordQuery("user-1", "password"), CancellationToken.None);
 
-        result.Should().BeTrue();
+        _ = result.Should().BeTrue();
     }
 
     [Fact]
@@ -61,17 +60,17 @@ public class CheckUserPasswordQueryHandlerTests
     {
         User user = new() { Id = "user-1", PasswordHash = "hash" };
         await using UsersDbContext dbContext = UsersDbContextFactory.Create();
-        dbContext.Users.Add(user);
-        await dbContext.SaveChangesAsync();
+        _ = dbContext.Users.Add(user);
+        _ = await dbContext.SaveChangesAsync();
 
         Mock<IPasswordHasher<User>> hasher = new();
-        hasher.Setup(h => h.VerifyHashedPassword(user, "hash", "wrong"))
+        _ = hasher.Setup(h => h.VerifyHashedPassword(user, "hash", "wrong"))
             .Returns(PasswordVerificationResult.Failed);
 
         CheckUserPasswordQueryHandler handler = new(dbContext, hasher.Object);
 
         bool result = await handler.Handle(new CheckUserPasswordQuery("user-1", "wrong"), CancellationToken.None);
 
-        result.Should().BeFalse();
+        _ = result.Should().BeFalse();
     }
 }

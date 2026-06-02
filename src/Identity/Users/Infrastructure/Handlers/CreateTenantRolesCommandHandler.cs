@@ -23,7 +23,7 @@ internal sealed class CreateTenantRolesCommandHandler(UsersDbContext dbContext)
             .Select(r => r.Name!)
             .ToListAsync(cancellationToken);
 
-        var missingRoles = tenantRoles
+        List<IdentityRole> missingRoles = tenantRoles
             .Except(existingRoles)
             .Select(roleName => new IdentityRole
             {

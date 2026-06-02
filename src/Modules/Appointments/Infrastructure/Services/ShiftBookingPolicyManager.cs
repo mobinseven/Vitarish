@@ -19,13 +19,10 @@ internal class ShiftBookingPolicyManager(
         CancellationToken cancellationToken)
     {
         ShiftBookingPolicyViolation? violation = await ValidateWriteAsync(dto, null, cancellationToken);
-        if (violation is not null)
-        {
-            return EntityResult<ShiftBookingPolicyReadDto>.Failure(
-                EntityError.Validation(violation.Code.ToString(), violation.Field));
-        }
-
-        return await base.AddAsync(dto, cancellationToken);
+        return violation is not null
+            ? EntityResult<ShiftBookingPolicyReadDto>.Failure(
+                EntityError.Validation(violation.Code.ToString(), violation.Field))
+            : await base.AddAsync(dto, cancellationToken);
     }
 
     async Task<EntityResult<ShiftBookingPolicyReadDto>> IEntityService<ShiftBookingPolicyReadDto, ShiftBookingPolicyWriteDto, ShiftBookingPolicyDescriptorDto>.UpdateAsync(
@@ -33,13 +30,10 @@ internal class ShiftBookingPolicyManager(
         CancellationToken cancellationToken)
     {
         ShiftBookingPolicyViolation? violation = await ValidateWriteAsync(dto, dto.Id, cancellationToken);
-        if (violation is not null)
-        {
-            return EntityResult<ShiftBookingPolicyReadDto>.Failure(
-                EntityError.Validation(violation.Code.ToString(), violation.Field));
-        }
-
-        return await base.UpdateAsync(dto, cancellationToken);
+        return violation is not null
+            ? EntityResult<ShiftBookingPolicyReadDto>.Failure(
+                EntityError.Validation(violation.Code.ToString(), violation.Field))
+            : await base.UpdateAsync(dto, cancellationToken);
     }
 
     private async Task<ShiftBookingPolicyViolation?> ValidateWriteAsync(

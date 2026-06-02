@@ -13,7 +13,7 @@ internal sealed class ImportServiceValuationsHandler(MedicalDbContext dbContext)
             await using IDbContextTransaction transaction = await dbContext.Database
                 .BeginTransactionAsync(cancellationToken);
 
-            var importBatch = new ImportBatch
+            ImportBatch importBatch = new()
             {
                 Id = Guid.NewGuid(),
                 SourceType = request.SourceType,
@@ -63,7 +63,7 @@ internal sealed class ImportServiceValuationsHandler(MedicalDbContext dbContext)
                         Array.Empty<string>()));
             }
 
-            var valuations = new List<ServiceValuation>(request.Valuations.Count);
+            List<ServiceValuation> valuations = new(request.Valuations.Count);
             foreach (ImportServiceValuationItem item in request.Valuations)
             {
                 if (!MedicalValidationRules.IsValidEffectiveDateRange(item.EffectiveFrom, item.EffectiveTo))

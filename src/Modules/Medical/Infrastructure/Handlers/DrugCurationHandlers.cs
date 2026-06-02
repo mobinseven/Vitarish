@@ -28,7 +28,7 @@ internal sealed class CreateDrugHandler(MedicalDbContext dbContext)
             return EntityResult<Guid>.Failure(EntityError.Validation("Effective date range overlaps an existing drug with the same identifier."));
         }
 
-        var entity = new Drug
+        Drug entity = new()
         {
             Id = Guid.NewGuid(),
             PrimaryName = request.PrimaryName,

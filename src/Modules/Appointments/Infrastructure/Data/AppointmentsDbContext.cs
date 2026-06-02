@@ -71,7 +71,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.HasDefaultSchema("Appointments");
+        _ = modelBuilder.HasDefaultSchema("Appointments");
 
         _ = modelBuilder.ConfigureMultiTenant();
 
@@ -113,7 +113,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
 
         _ = modelBuilder.Entity<ShiftBookingPolicy>(entity =>
         {
-            entity.ToTable("ShiftBookingPolicies");
+            _ = entity.ToTable("ShiftBookingPolicies");
 
             _ = entity.HasOne<Shift>()
                 .WithMany()
@@ -129,7 +129,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
 
         _ = modelBuilder.Entity<ShiftReminderPolicy>(entity =>
         {
-            entity.ToTable("ShiftReminderPolicies");
+            _ = entity.ToTable("ShiftReminderPolicies");
 
             _ = entity.HasOne<Shift>()
                 .WithMany()
@@ -160,14 +160,14 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
 
         _ = modelBuilder.Entity<ShiftReservationLock>(entity =>
         {
-            entity.ToTable("ShiftReservationLocks");
-            entity.HasKey(l => new { l.TenantId, l.ShiftId, l.Date });
+            _ = entity.ToTable("ShiftReservationLocks");
+            _ = entity.HasKey(l => new { l.TenantId, l.ShiftId, l.Date });
         });
 
         _ = modelBuilder.Entity<ShiftReservation>(entity =>
         {
-            entity.ToView("vw_ShiftReservation");
-            entity.HasNoKey();
+            _ = entity.ToView("vw_ShiftReservation");
+            _ = entity.HasNoKey();
         });
 
         _ = modelBuilder.Entity<Service>(entity =>
@@ -188,8 +188,8 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
 
         _ = modelBuilder.Entity<ServiceProviderUserLink>(entity =>
         {
-            entity.ToTable("ServiceProviderUserLinks");
-            entity.HasKey(l => new { l.ServiceProviderId, l.UserId });
+            _ = entity.ToTable("ServiceProviderUserLinks");
+            _ = entity.HasKey(l => new { l.ServiceProviderId, l.UserId });
         });
     }
 

@@ -48,7 +48,7 @@ public class QueryExtensionsTests
         SoftDeleteEntity hiddenDeleted = new() { Name = "HiddenDeleted", IsHidden = true, DeletedAt = DateTimeOffset.UtcNow };
 
         context.Entities.AddRange(visible, deleted, hidden, hiddenDeleted);
-        await context.SaveChangesAsync();
+        _ = await context.SaveChangesAsync();
 
         EntityDescriptor descriptor = new() { DeletedFrom = DateTimeOffset.MinValue };
 
@@ -66,7 +66,7 @@ public class QueryExtensionsTests
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.ConfigureEntitySoftDeleteFilters();
+            _ = modelBuilder.ConfigureEntitySoftDeleteFilters();
 
             _ = modelBuilder.Entity<SoftDeleteEntity>()
                 .HasQueryFilter("Hidden", entity => !entity.IsHidden);

@@ -1,6 +1,3 @@
-
-using System.Text.Json.Serialization;
-
 namespace Vitarish.Communications.Domain.Models;
 
 public class Message

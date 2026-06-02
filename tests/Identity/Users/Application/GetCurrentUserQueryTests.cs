@@ -9,6 +9,6 @@ public class GetCurrentUserQueryTests
     {
         GetCurrentUserQuery query = new();
 
-        query.Should().NotBeNull();
+        _ = query.Should().NotBeNull();
     }
 }

@@ -52,12 +52,9 @@ internal class AccessControlledShiftManager(
         EnsureAdmin();
 
         EntityResult validation = ValidateSchedule(dto);
-        if (validation.IsFailure)
-        {
-            return EntityResult<ShiftReadDto>.Failure([.. validation.Errors]);
-        }
-
-        return await shiftManager.AddAsync(dto, cancellationToken);
+        return validation.IsFailure
+            ? EntityResult<ShiftReadDto>.Failure([.. validation.Errors])
+            : await shiftManager.AddAsync(dto, cancellationToken);
     }
 
     public Task<EntityResult<IReadOnlyList<ShiftReadDto>>> AddAsync(IReadOnlyList<ShiftWriteDto> dtos, CancellationToken cancellationToken)
@@ -68,12 +65,9 @@ internal class AccessControlledShiftManager(
         EnsureAdmin();
 
         EntityResult validation = ValidateSchedule(dto);
-        if (validation.IsFailure)
-        {
-            return EntityResult<ShiftReadDto>.Failure([.. validation.Errors]);
-        }
-
-        return await shiftManager.UpdateAsync(dto, cancellationToken);
+        return validation.IsFailure
+            ? EntityResult<ShiftReadDto>.Failure([.. validation.Errors])
+            : await shiftManager.UpdateAsync(dto, cancellationToken);
     }
 
     public Task<EntityResult<IReadOnlyList<ShiftReadDto>>> UpdateAsync(IReadOnlyList<ShiftWriteDto> dtos, CancellationToken cancellationToken)
@@ -106,12 +100,9 @@ internal class AccessControlledShiftManager(
         }
 
         EntityResult validation = ValidateSchedule(shift.Value.ToWrite());
-        if (validation.IsFailure)
-        {
-            return validation;
-        }
-
-        return await statusCoordinator.TransitionShiftAsync(shiftId, ShiftStatus.Active, requestContext.UserId, cancellationToken);
+        return validation.IsFailure
+            ? validation
+            : await statusCoordinator.TransitionShiftAsync(shiftId, ShiftStatus.Active, requestContext.UserId, cancellationToken);
     }
 
     public Task<EntityResult> PauseShiftAsync(Guid shiftId, CancellationToken cancellationToken)

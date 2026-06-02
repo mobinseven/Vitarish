@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Logging;
 using Vitarish.Commerce.Application.Abstractions;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 
@@ -13,13 +12,10 @@ public class CommerceOrderSyncProcessor(
 {
     private const string BackgroundResource = "hangfire:commerce:orders:sync";
 
-    public async Task ProcessAsync(CancellationToken cancellationToken = default)
-    {
-        await tenantBackgroundExecutor.ExecutePerTenantAsync(
+    public async Task ProcessAsync(CancellationToken cancellationToken = default) => await tenantBackgroundExecutor.ExecutePerTenantAsync(
             BackgroundResource,
             PerTenantAsync,
             cancellationToken);
-    }
 
     private async Task PerTenantAsync(IServiceProvider provider, CancellationToken shutdownToken)
     {

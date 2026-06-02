@@ -1,7 +1,6 @@
-using System.Text.Json;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Modules.Base.Platform.Retry;
 using Vitarish.Prescription.Application.Abstractions;
@@ -28,20 +27,17 @@ public sealed class PrescriptionRetryProcessor(
     /// </summary>
     private static readonly TimeSpan StaleThreshold = TimeSpan.FromHours(2);
 
-    public async Task ProcessAsync(CancellationToken cancellationToken = default)
-    {
-        await tenantBackgroundExecutor.ExecutePerTenantAsync(
+    public async Task ProcessAsync(CancellationToken cancellationToken = default) => await tenantBackgroundExecutor.ExecutePerTenantAsync(
             BackgroundResource,
             PerTenantAsync,
             cancellationToken);
-    }
 
     private async Task PerTenantAsync(IServiceProvider provider, CancellationToken shutdownToken)
     {
-        var outboxService = provider.GetRequiredService<IOutboxService>();
-        var mediator = provider.GetRequiredService<IMediator>();
-        var dbContext = provider.GetRequiredService<PrescriptionDbContext>();
-        var providerRegistry = provider.GetRequiredService<IInsuranceProviderRegistry>();
+        IOutboxService outboxService = provider.GetRequiredService<IOutboxService>();
+        IMediator mediator = provider.GetRequiredService<IMediator>();
+        PrescriptionDbContext dbContext = provider.GetRequiredService<PrescriptionDbContext>();
+        IInsuranceProviderRegistry providerRegistry = provider.GetRequiredService<IInsuranceProviderRegistry>();
 
         // Phase 1: Escalate stale SyncPending prescriptions
         await EscalateStaleSyncPendingAsync(dbContext, outboxService, shutdownToken);
@@ -50,18 +46,20 @@ public sealed class PrescriptionRetryProcessor(
         await SyncOrphanedSyncPendingAsync(outboxService, dbContext, shutdownToken);
 
         // Phase 3: Process due outbox entries with fetch-before-retry
-        var entries = await outboxService.GetPendingAsync(maxItems: 20, cancellationToken: shutdownToken);
+        IReadOnlyList<OutboxEntry> entries = await outboxService.GetPendingAsync(maxItems: 20, cancellationToken: shutdownToken);
 
-        foreach (var entry in entries)
+        foreach (OutboxEntry entry in entries)
         {
             shutdownToken.ThrowIfCancellationRequested();
 
             if (entry.OperationName != "SubmitPrescription")
+            {
                 continue;
+            }
 
             try
             {
-                var payload = JsonSerializer.Deserialize<SubmitPayload>(entry.PayloadJson);
+                SubmitPayload? payload = JsonSerializer.Deserialize<SubmitPayload>(entry.PayloadJson);
                 if (payload is null)
                 {
                     await outboxService.FailAsync(entry.Id, "Invalid payload JSON", shutdownToken);
@@ -69,7 +67,7 @@ public sealed class PrescriptionRetryProcessor(
                 }
 
                 // Mark processing
-                await dbContext.OutboxRecords
+                _ = await dbContext.OutboxRecords
                     .Where(r => r.Id == entry.Id)
                     .ExecuteUpdateAsync(
                         s => s.SetProperty(r => r.Status, OutboxEntryStatus.Processing.ToString())
@@ -77,14 +75,16 @@ public sealed class PrescriptionRetryProcessor(
                         shutdownToken);
 
                 // Fetch-before-retry: check if provider already has this prescription
-                var fetchResolved = await TryFetchBeforeRetryAsync(
+                bool fetchResolved = await TryFetchBeforeRetryAsync(
                     payload.PrescriptionId, dbContext, providerRegistry, entry, outboxService, shutdownToken);
 
                 if (fetchResolved)
+                {
                     continue;
+                }
 
                 // Provider doesn't have it or fetch failed — safe to retry submission
-                var result = await mediator.Send(new SubmitPrescriptionCommand
+                SubmitPrescriptionResult result = await mediator.Send(new SubmitPrescriptionCommand
                 {
                     PrescriptionId = payload.PrescriptionId,
                     CorrelationId = payload.CorrelationId ?? Guid.NewGuid().ToString()
@@ -127,46 +127,54 @@ public sealed class PrescriptionRetryProcessor(
         IOutboxService outboxService,
         CancellationToken cancellationToken)
     {
-        var prescription = await dbContext.Prescriptions
+        PrescriptionRecord? prescription = await dbContext.Prescriptions
             .FirstOrDefaultAsync(p => p.Id == prescriptionId, cancellationToken);
 
         if (prescription is null || string.IsNullOrEmpty(prescription.SelectedProviderKey))
+        {
             return false;
+        }
 
-        var adapter = providerRegistry.GetAdapter(prescription.SelectedProviderKey);
+        IInsuranceProviderAdapter? adapter = providerRegistry.GetAdapter(prescription.SelectedProviderKey);
         if (adapter is null)
+        {
             return false;
+        }
 
         // Check if adapter supports fetch
         if (!adapter.GetCapabilities().Contains(InsuranceProviderCapabilityType.SupportsFetchPrescription))
+        {
             return false;
+        }
 
         // Get the last known remote ID
-        var submission = await dbContext.PrescriptionSubmissions
+        PrescriptionProviderSubmission? submission = await dbContext.PrescriptionSubmissions
             .Where(s => s.PrescriptionRecordId == prescriptionId)
             .OrderByDescending(s => s.SubmittedAt)
             .FirstOrDefaultAsync(cancellationToken);
 
         // Try to fetch from provider
-        var fetchResult = await adapter.FetchPrescriptionAsync(new FetchRequest
+        AdapterResult<FetchResponse> fetchResult = await adapter.FetchPrescriptionAsync(new FetchRequest
         {
             RemotePrescriptionId = submission?.RemotePrescriptionId,
             CorrelationId = entry.CorrelationId
         }, cancellationToken);
 
         if (!fetchResult.IsSuccess || fetchResult.Data is null)
+        {
             return false; // Fetch failed or no data — proceed with retry
+        }
 
-        var remoteStatus = fetchResult.Data.CanonicalStatus;
+        PrescriptionStatus remoteStatus = fetchResult.Data.CanonicalStatus;
 
         // If provider says it's accepted, we're done
-        if (remoteStatus == PrescriptionStatus.AcceptedByProvider ||
-            remoteStatus == PrescriptionStatus.Submitted)
+        if (remoteStatus is PrescriptionStatus.AcceptedByProvider or
+            PrescriptionStatus.Submitted)
         {
             if (PrescriptionRecord.IsValidTransition(prescription.Status, remoteStatus))
             {
                 prescription.TransitionTo(remoteStatus);
-                await dbContext.SaveChangesAsync(cancellationToken);
+                _ = await dbContext.SaveChangesAsync(cancellationToken);
             }
 
             await outboxService.CompleteAsync(entry.Id, cancellationToken);
@@ -182,7 +190,7 @@ public sealed class PrescriptionRetryProcessor(
             if (PrescriptionRecord.IsValidTransition(prescription.Status, PrescriptionStatus.RejectedByProvider))
             {
                 prescription.TransitionTo(PrescriptionStatus.RejectedByProvider);
-                await dbContext.SaveChangesAsync(cancellationToken);
+                _ = await dbContext.SaveChangesAsync(cancellationToken);
             }
 
             await outboxService.CompleteAsync(entry.Id, cancellationToken);
@@ -202,7 +210,7 @@ public sealed class PrescriptionRetryProcessor(
             if (PrescriptionRecord.IsValidTransition(prescription.Status, PrescriptionStatus.DuplicateRisk))
             {
                 prescription.TransitionTo(PrescriptionStatus.DuplicateRisk);
-                await dbContext.SaveChangesAsync(cancellationToken);
+                _ = await dbContext.SaveChangesAsync(cancellationToken);
             }
 
             logger.LogWarning(
@@ -223,25 +231,25 @@ public sealed class PrescriptionRetryProcessor(
         IOutboxService outboxService,
         CancellationToken cancellationToken)
     {
-        var staleThreshold = DateTimeOffset.UtcNow - StaleThreshold;
+        DateTimeOffset staleThreshold = DateTimeOffset.UtcNow - StaleThreshold;
 
         // Find stale SyncPending prescriptions
-        var stalePrescriptions = await dbContext.Prescriptions
+        List<PrescriptionRecord> stalePrescriptions = await dbContext.Prescriptions
             .Where(p => p.Status == PrescriptionStatus.SyncPending)
             .Where(p => (p.UpdatedAt ?? p.SubmittedAt ?? p.CreatedAt) < staleThreshold)
             .Take(20)
             .ToListAsync(cancellationToken);
 
-        foreach (var prescription in stalePrescriptions)
+        foreach (PrescriptionRecord? prescription in stalePrescriptions)
         {
             // Check if there's a failed outbox entry (all retries exhausted)
-            var hasExhaustedEntry = await dbContext.OutboxRecords
+            bool hasExhaustedEntry = await dbContext.OutboxRecords
                 .AnyAsync(o =>
                     o.PrescriptionId == prescription.Id &&
                     o.Status == OutboxEntryStatus.Failed.ToString(),
                     cancellationToken);
 
-            var targetStatus = hasExhaustedEntry
+            PrescriptionStatus targetStatus = hasExhaustedEntry
                 ? PrescriptionStatus.SyncFailed
                 : PrescriptionStatus.DuplicateRisk;
 
@@ -250,19 +258,19 @@ public sealed class PrescriptionRetryProcessor(
                 prescription.TransitionTo(targetStatus);
 
                 // Cancel any active outbox entries to prevent Phase 3 from continuing to retry
-                var activeStatuses = new[]
+                string[] activeStatuses = new[]
                 {
                     OutboxEntryStatus.Pending.ToString(),
                     OutboxEntryStatus.Processing.ToString()
                 };
 
-                var activeEntries = await dbContext.OutboxRecords
+                List<PrescriptionOutboxRecord> activeEntries = await dbContext.OutboxRecords
                     .Where(o => o.PrescriptionId == prescription.Id &&
                                 activeStatuses.Contains(o.Status))
                     .ToListAsync(cancellationToken);
 
-                var escalationReason = $"Prescription escalated to {targetStatus} due to stale SyncPending";
-                foreach (var entry in activeEntries)
+                string escalationReason = $"Prescription escalated to {targetStatus} due to stale SyncPending";
+                foreach (PrescriptionOutboxRecord? entry in activeEntries)
                 {
                     await outboxService.FailAsync(entry.Id, escalationReason, cancellationToken);
                 }
@@ -275,7 +283,7 @@ public sealed class PrescriptionRetryProcessor(
 
         if (stalePrescriptions.Count > 0)
         {
-            await dbContext.SaveChangesAsync(cancellationToken);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
         }
     }
 
@@ -285,8 +293,8 @@ public sealed class PrescriptionRetryProcessor(
         CancellationToken cancellationToken)
     {
         // Find SyncPending prescriptions with no corresponding outbox entry
-        var pendingOutboxStatus = OutboxEntryStatus.Pending.ToString();
-        var processingStatus = OutboxEntryStatus.Processing.ToString();
+        string pendingOutboxStatus = OutboxEntryStatus.Pending.ToString();
+        string processingStatus = OutboxEntryStatus.Processing.ToString();
 
         var orphaned = await dbContext.Prescriptions
             .Where(p => p.Status == PrescriptionStatus.SyncPending)
@@ -299,7 +307,10 @@ public sealed class PrescriptionRetryProcessor(
 
         foreach (var p in orphaned)
         {
-            if (string.IsNullOrEmpty(p.SelectedProviderKey)) continue;
+            if (string.IsNullOrEmpty(p.SelectedProviderKey))
+            {
+                continue;
+            }
 
             _ = await outboxService.EnqueueAsync(new OutboxEntry
             {

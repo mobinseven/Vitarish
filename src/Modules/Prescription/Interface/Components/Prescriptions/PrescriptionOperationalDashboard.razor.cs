@@ -29,11 +29,20 @@ public partial class PrescriptionOperationalDashboard : PrescriptionBase
         await LoadTransactionMetricsAsync();
         await LoadRejectionDistributionAsync();
         if (credentialHealth is not null)
+        {
             await LoadCredentialHealthAsync();
+        }
+
         if (duplicateRiskResult is not null)
+        {
             await LoadDuplicateRiskAsync();
+        }
+
         if (outboxStatus is not null)
+        {
             await LoadOutboxStatusAsync();
+        }
+
         await InvokeAsync(StateHasChanged);
     }
 
@@ -62,56 +71,38 @@ public partial class PrescriptionOperationalDashboard : PrescriptionBase
         }
     }
 
-    private async Task LoadAlertsAsync()
+    private async Task LoadAlertsAsync() => alerts = await Mediator.Send(new GetOperationalAlertsQuery
     {
-        alerts = await Mediator.Send(new GetOperationalAlertsQuery
-        {
-            ProviderKey = selectedProviderKey
-        });
-    }
+        ProviderKey = selectedProviderKey
+    });
 
-    private async Task LoadTransactionMetricsAsync()
+    private async Task LoadTransactionMetricsAsync() => transactionMetrics = await Mediator.Send(new GetProviderTransactionMetricsQuery
     {
-        transactionMetrics = await Mediator.Send(new GetProviderTransactionMetricsQuery
-        {
-            ProviderKey = selectedProviderKey,
-            From = DateTimeOffset.UtcNow.AddDays(-7)
-        });
-    }
+        ProviderKey = selectedProviderKey,
+        From = DateTimeOffset.UtcNow.AddDays(-7)
+    });
 
-    private async Task LoadRejectionDistributionAsync()
+    private async Task LoadRejectionDistributionAsync() => rejectionDistribution = await Mediator.Send(new GetRejectionDistributionQuery
     {
-        rejectionDistribution = await Mediator.Send(new GetRejectionDistributionQuery
-        {
-            ProviderKey = selectedProviderKey,
-            From = DateTimeOffset.UtcNow.AddDays(-30)
-        });
-    }
+        ProviderKey = selectedProviderKey,
+        From = DateTimeOffset.UtcNow.AddDays(-30)
+    });
 
-    private async Task LoadCredentialHealthAsync()
+    private async Task LoadCredentialHealthAsync() => credentialHealth = await Mediator.Send(new GetCredentialHealthQuery
     {
-        credentialHealth = await Mediator.Send(new GetCredentialHealthQuery
-        {
-            ProviderKey = selectedProviderKey
-        });
-    }
+        ProviderKey = selectedProviderKey
+    });
 
-    private async Task LoadDuplicateRiskAsync()
+    private async Task LoadDuplicateRiskAsync() => duplicateRiskResult = await Mediator.Send(new GetDuplicateRiskIncidentsQuery
     {
-        duplicateRiskResult = await Mediator.Send(new GetDuplicateRiskIncidentsQuery
-        {
-            ProviderKey = selectedProviderKey,
-            Take = 20
-        });
-    }
+        ProviderKey = selectedProviderKey,
+        Take = 20
+    });
 
-    private async Task LoadOutboxStatusAsync()
+    private async Task LoadOutboxStatusAsync() => outboxStatus = await Mediator.Send(new GetOutboxStatusQuery
     {
-        outboxStatus = await Mediator.Send(new GetOutboxStatusQuery
-        {
-            ProviderKey = selectedProviderKey
-        });
-    }
+        ProviderKey = selectedProviderKey
+    });
 
     private static Color GetAlertColor(string severity) => severity switch
     {

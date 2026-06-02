@@ -1,5 +1,3 @@
-using Vitarish.Communications.Infrastructure.Data;
-
 namespace Vitarish.Communications.Infrastructure.DependencyInjection;
 
 public static class DependencyInjectionExtensions

@@ -14,8 +14,8 @@ public class StackCalendarAnnotationHelperTests
 
         CalendarAnnotation? result = StackCalendarAnnotationHelper.GetAnnotation(annotations, new DateOnly(2026, 1, 11));
 
-        result.Should().NotBeNull();
-        result!.Label.Should().Be("Range");
+        _ = result.Should().NotBeNull();
+        _ = result!.Label.Should().Be("Range");
     }
 
     [Fact]
@@ -23,7 +23,7 @@ public class StackCalendarAnnotationHelperTests
     {
         string css = StackCalendarAnnotationHelper.BuildCssClass("mud-calendar__day", null);
 
-        css.Should().Be("mud-calendar__day");
+        _ = css.Should().Be("mud-calendar__day");
     }
 
     [Fact]
@@ -36,6 +36,6 @@ public class StackCalendarAnnotationHelperTests
                 new DateOnly(2026, 1, 1),
                 HighlightClass: "special"));
 
-        css.Should().Be("mud-calendar__day special");
+        _ = css.Should().Be("mud-calendar__day special");
     }
 }

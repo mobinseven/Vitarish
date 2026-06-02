@@ -1,6 +1,5 @@
 using Vitarish.Feed.Domain.Abstractions;
 using Vitarish.Feed.Domain.Models;
-using Vitarish.Commerce.Infrastructure.Data;
 
 namespace Vitarish.Commerce.Infrastructure.FeedSources;
 

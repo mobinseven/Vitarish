@@ -14,8 +14,8 @@ public class CreateUserWithEmailCommandHandlerTests
     {
         User existing = new() { Id = "user-1", Email = "user@example.com", UserName = "user@example.com" };
         await using UsersDbContext dbContext = UsersDbContextFactory.Create();
-        dbContext.Users.Add(existing);
-        await dbContext.SaveChangesAsync();
+        _ = dbContext.Users.Add(existing);
+        _ = await dbContext.SaveChangesAsync();
 
         UserManager<User> userManager = UserManagerFactory.Create(dbContext);
         Mock<IDistributedCache> cache = DistributedCacheMockFactory.Create();
@@ -24,7 +24,7 @@ public class CreateUserWithEmailCommandHandlerTests
 
         User? result = await handler.Handle(new CreateUserWithEmailCommand("user@example.com", "First", "Last"), CancellationToken.None);
 
-        result.Should().Be(existing);
+        _ = result.Should().Be(existing);
         cache.Verify(c => c.RemoveAsync("users:all", It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -39,12 +39,12 @@ public class CreateUserWithEmailCommandHandlerTests
 
         User? result = await handler.Handle(new CreateUserWithEmailCommand("user@example.com", "First", "Last"), CancellationToken.None);
 
-        result.Should().NotBeNull();
-        result!.Email.Should().Be("user@example.com");
-        result.FirstName.Should().Be("First");
-        result.LastName.Should().Be("Last");
+        _ = result.Should().NotBeNull();
+        _ = result!.Email.Should().Be("user@example.com");
+        _ = result.FirstName.Should().Be("First");
+        _ = result.LastName.Should().Be("Last");
         User? created = await dbContext.Users.SingleOrDefaultAsync(u => u.Email == "user@example.com");
-        created.Should().NotBeNull();
+        _ = created.Should().NotBeNull();
         cache.Verify(c => c.SetAsync($"users:{created!.Id}", It.IsAny<byte[]>(), It.IsAny<DistributedCacheEntryOptions>(), It.IsAny<CancellationToken>()), Times.Once);
         cache.Verify(c => c.RemoveAsync("users:all", It.IsAny<CancellationToken>()), Times.Once);
     }

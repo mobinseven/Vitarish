@@ -9,74 +9,74 @@ public sealed class FileMetadataTests
     public void FileMetadata_DefaultValues_AreCorrect()
     {
         // Arrange & Act
-        var metadata = new FileMetadata();
+        FileMetadata metadata = new();
 
         // Assert
-        metadata.Size.Should().Be(0);
-        metadata.Extension.Should().BeNull();
-        metadata.Dimensions.Should().BeNull();
+        _ = metadata.Size.Should().Be(0);
+        _ = metadata.Extension.Should().BeNull();
+        _ = metadata.Dimensions.Should().BeNull();
     }
 
     [Fact]
     public void FileMetadata_WithSize_SetsCorrectly()
     {
         // Arrange & Act
-        var metadata = new FileMetadata
+        FileMetadata metadata = new()
         {
             Size = 1024
         };
 
         // Assert
-        metadata.Size.Should().Be(1024);
+        _ = metadata.Size.Should().Be(1024);
     }
 
     [Fact]
     public void FileMetadata_WithExtension_SetsCorrectly()
     {
         // Arrange & Act
-        var metadata = new FileMetadata
+        FileMetadata metadata = new()
         {
             Extension = "png"
         };
 
         // Assert
-        metadata.Extension.Should().Be("png");
+        _ = metadata.Extension.Should().Be("png");
     }
 
     [Fact]
     public void FileMetadata_WithDimensions_SetsCorrectly()
     {
         // Arrange
-        var dimensions = new FileDimensions
+        FileDimensions dimensions = new()
         {
             Width = 1920,
             Height = 1080
         };
 
         // Act
-        var metadata = new FileMetadata
+        FileMetadata metadata = new()
         {
             Dimensions = dimensions
         };
 
         // Assert
-        metadata.Dimensions.Should().NotBeNull();
-        metadata.Dimensions!.Width.Should().Be(1920);
-        metadata.Dimensions.Height.Should().Be(1080);
+        _ = metadata.Dimensions.Should().NotBeNull();
+        _ = metadata.Dimensions!.Width.Should().Be(1920);
+        _ = metadata.Dimensions.Height.Should().Be(1080);
     }
 
     [Fact]
     public void FileMetadata_WithAllProperties_SetsCorrectly()
     {
         // Arrange
-        var dimensions = new FileDimensions
+        FileDimensions dimensions = new()
         {
             Width = 800,
             Height = 600
         };
 
         // Act
-        var metadata = new FileMetadata
+        FileMetadata metadata = new()
         {
             Size = 2048,
             Extension = "jpg",
@@ -84,43 +84,43 @@ public sealed class FileMetadataTests
         };
 
         // Assert
-        metadata.Size.Should().Be(2048);
-        metadata.Extension.Should().Be("jpg");
-        metadata.Dimensions.Should().NotBeNull();
-        metadata.Dimensions!.Width.Should().Be(800);
-        metadata.Dimensions.Height.Should().Be(600);
+        _ = metadata.Size.Should().Be(2048);
+        _ = metadata.Extension.Should().Be("jpg");
+        _ = metadata.Dimensions.Should().NotBeNull();
+        _ = metadata.Dimensions!.Width.Should().Be(800);
+        _ = metadata.Dimensions.Height.Should().Be(600);
     }
 
     [Fact]
     public void FileMetadata_Equality_WorksCorrectly()
     {
         // Arrange
-        var metadata1 = new FileMetadata
+        FileMetadata metadata1 = new()
         {
             Size = 1024,
             Extension = "png"
         };
-        var metadata2 = new FileMetadata
+        FileMetadata metadata2 = new()
         {
             Size = 1024,
             Extension = "png"
         };
 
         // Assert
-        metadata1.Should().Be(metadata2);
+        _ = metadata1.Should().Be(metadata2);
     }
 
     [Fact]
     public void FileMetadata_Equality_WithDimensions_WorksCorrectly()
     {
         // Arrange
-        var metadata1 = new FileMetadata
+        FileMetadata metadata1 = new()
         {
             Size = 1024,
             Extension = "png",
             Dimensions = new FileDimensions { Width = 100, Height = 100 }
         };
-        var metadata2 = new FileMetadata
+        FileMetadata metadata2 = new()
         {
             Size = 1024,
             Extension = "png",
@@ -128,53 +128,57 @@ public sealed class FileMetadataTests
         };
 
         // Assert
-        metadata1.Should().Be(metadata2);
+        _ = metadata1.Should().Be(metadata2);
     }
 
     [Fact]
     public void FileMetadata_Inequality_WhenSizeDiffers()
     {
         // Arrange
-        var metadata1 = new FileMetadata { Size = 1024 };
-        var metadata2 = new FileMetadata { Size = 2048 };
+        FileMetadata metadata1 = new()
+        { Size = 1024 };
+        FileMetadata metadata2 = new()
+        { Size = 2048 };
 
         // Assert
-        metadata1.Should().NotBe(metadata2);
+        _ = metadata1.Should().NotBe(metadata2);
     }
 
     [Fact]
     public void FileMetadata_Inequality_WhenExtensionDiffers()
     {
         // Arrange
-        var metadata1 = new FileMetadata { Extension = "png" };
-        var metadata2 = new FileMetadata { Extension = "jpg" };
+        FileMetadata metadata1 = new()
+        { Extension = "png" };
+        FileMetadata metadata2 = new()
+        { Extension = "jpg" };
 
         // Assert
-        metadata1.Should().NotBe(metadata2);
+        _ = metadata1.Should().NotBe(metadata2);
     }
 
     [Fact]
     public void FileMetadata_Inequality_WhenDimensionsDiffer()
     {
         // Arrange
-        var metadata1 = new FileMetadata
+        FileMetadata metadata1 = new()
         {
             Dimensions = new FileDimensions { Width = 100, Height = 100 }
         };
-        var metadata2 = new FileMetadata
+        FileMetadata metadata2 = new()
         {
             Dimensions = new FileDimensions { Width = 200, Height = 200 }
         };
 
         // Assert
-        metadata1.Should().NotBe(metadata2);
+        _ = metadata1.Should().NotBe(metadata2);
     }
 
     [Fact]
     public void FileMetadata_WithCopy_CreatesNewInstance()
     {
         // Arrange
-        var original = new FileMetadata
+        FileMetadata original = new()
         {
             Size = 1024,
             Extension = "png",
@@ -185,9 +189,9 @@ public sealed class FileMetadataTests
         FileMetadata copy = original with { Size = 2048 };
 
         // Assert
-        copy.Size.Should().Be(2048);
-        copy.Extension.Should().Be("png");
-        original.Size.Should().Be(1024);
+        _ = copy.Size.Should().Be(2048);
+        _ = copy.Extension.Should().Be("png");
+        _ = original.Size.Should().Be(1024);
     }
 
     [Theory]
@@ -200,13 +204,13 @@ public sealed class FileMetadataTests
     public void FileMetadata_AcceptsVariousExtensions(string extension)
     {
         // Arrange & Act
-        var metadata = new FileMetadata
+        FileMetadata metadata = new()
         {
             Extension = extension
         };
 
         // Assert
-        metadata.Extension.Should().Be(extension);
+        _ = metadata.Extension.Should().Be(extension);
     }
 
     [Theory]
@@ -218,13 +222,13 @@ public sealed class FileMetadataTests
     public void FileMetadata_AcceptsVariousSizes(long size)
     {
         // Arrange & Act
-        var metadata = new FileMetadata
+        FileMetadata metadata = new()
         {
             Size = size
         };
 
         // Assert
-        metadata.Size.Should().Be(size);
+        _ = metadata.Size.Should().Be(size);
     }
 }
 
@@ -237,59 +241,65 @@ public sealed class FileDimensionsTests
     public void FileDimensions_DefaultValues_AreZero()
     {
         // Arrange & Act
-        var dimensions = new FileDimensions();
+        FileDimensions dimensions = new();
 
         // Assert
-        dimensions.Width.Should().Be(0);
-        dimensions.Height.Should().Be(0);
+        _ = dimensions.Width.Should().Be(0);
+        _ = dimensions.Height.Should().Be(0);
     }
 
     [Fact]
     public void FileDimensions_WithValues_SetsCorrectly()
     {
         // Arrange & Act
-        var dimensions = new FileDimensions
+        FileDimensions dimensions = new()
         {
             Width = 1920,
             Height = 1080
         };
 
         // Assert
-        dimensions.Width.Should().Be(1920);
-        dimensions.Height.Should().Be(1080);
+        _ = dimensions.Width.Should().Be(1920);
+        _ = dimensions.Height.Should().Be(1080);
     }
 
     [Fact]
     public void FileDimensions_Equality_WorksCorrectly()
     {
         // Arrange
-        var dim1 = new FileDimensions { Width = 100, Height = 100 };
-        var dim2 = new FileDimensions { Width = 100, Height = 100 };
+        FileDimensions dim1 = new()
+        { Width = 100, Height = 100 };
+        FileDimensions dim2 = new()
+        { Width = 100, Height = 100 };
 
         // Assert
-        dim1.Should().Be(dim2);
+        _ = dim1.Should().Be(dim2);
     }
 
     [Fact]
     public void FileDimensions_Inequality_WhenWidthDiffers()
     {
         // Arrange
-        var dim1 = new FileDimensions { Width = 100, Height = 100 };
-        var dim2 = new FileDimensions { Width = 200, Height = 100 };
+        FileDimensions dim1 = new()
+        { Width = 100, Height = 100 };
+        FileDimensions dim2 = new()
+        { Width = 200, Height = 100 };
 
         // Assert
-        dim1.Should().NotBe(dim2);
+        _ = dim1.Should().NotBe(dim2);
     }
 
     [Fact]
     public void FileDimensions_Inequality_WhenHeightDiffers()
     {
         // Arrange
-        var dim1 = new FileDimensions { Width = 100, Height = 100 };
-        var dim2 = new FileDimensions { Width = 100, Height = 200 };
+        FileDimensions dim1 = new()
+        { Width = 100, Height = 100 };
+        FileDimensions dim2 = new()
+        { Width = 100, Height = 200 };
 
         // Assert
-        dim1.Should().NotBe(dim2);
+        _ = dim1.Should().NotBe(dim2);
     }
 
     [Theory]
@@ -301,14 +311,14 @@ public sealed class FileDimensionsTests
     public void FileDimensions_AcceptsVariousSizes(int width, int height)
     {
         // Arrange & Act
-        var dimensions = new FileDimensions
+        FileDimensions dimensions = new()
         {
             Width = width,
             Height = height
         };
 
         // Assert
-        dimensions.Width.Should().Be(width);
-        dimensions.Height.Should().Be(height);
+        _ = dimensions.Width.Should().Be(width);
+        _ = dimensions.Height.Should().Be(height);
     }
 }

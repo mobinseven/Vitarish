@@ -11,65 +11,66 @@ public sealed class FileInformationDtoTests
     public void FileInformationDto_DefaultValues_AreCorrect()
     {
         // Arrange & Act
-        var dto = new FileInformationReadDto();
+        FileInformationReadDto dto = new();
 
         // Assert
-        dto.AllowedOrigins.Should().Be("*");
-        dto.ContentType.Should().BeEmpty();
-        dto.Thumbnail.Should().BeNull();
-        dto.Checksum.Should().BeNull();
-        dto.Url.Should().BeNull();
-        dto.Owner.Should().BeNull();
-        dto.Tag.Should().BeNull();
+        _ = dto.AllowedOrigins.Should().Be("*");
+        _ = dto.ContentType.Should().BeEmpty();
+        _ = dto.Thumbnail.Should().BeNull();
+        _ = dto.Checksum.Should().BeNull();
+        _ = dto.Url.Should().BeNull();
+        _ = dto.Owner.Should().BeNull();
+        _ = dto.Tag.Should().BeNull();
     }
 
     [Fact]
     public void FileInformationDto_PropertiesAreSettable()
     {
         // Arrange
-        var dto = new FileInformationReadDto();
-
-        // Act
-        dto.AllowedOrigins = "https://example.com";
-        dto.ContentType = "image/png";
-        dto.Thumbnail = "https://example.com/thumb.png";
-        dto.Checksum = "abc123";
-        dto.Url = "https://example.com/file.png";
-        dto.Owner = "tenant-1";
-        dto.Tag = "profile";
+        FileInformationReadDto dto = new()
+        {
+            // Act
+            AllowedOrigins = "https://example.com",
+            ContentType = "image/png",
+            Thumbnail = "https://example.com/thumb.png",
+            Checksum = "abc123",
+            Url = "https://example.com/file.png",
+            Owner = "tenant-1",
+            Tag = "profile"
+        };
 
         // Assert
-        dto.AllowedOrigins.Should().Be("https://example.com");
-        dto.ContentType.Should().Be("image/png");
-        dto.Thumbnail.Should().Be("https://example.com/thumb.png");
-        dto.Checksum.Should().Be("abc123");
-        dto.Url.Should().Be("https://example.com/file.png");
-        dto.Owner.Should().Be("tenant-1");
-        dto.Tag.Should().Be("profile");
+        _ = dto.AllowedOrigins.Should().Be("https://example.com");
+        _ = dto.ContentType.Should().Be("image/png");
+        _ = dto.Thumbnail.Should().Be("https://example.com/thumb.png");
+        _ = dto.Checksum.Should().Be("abc123");
+        _ = dto.Url.Should().Be("https://example.com/file.png");
+        _ = dto.Owner.Should().Be("tenant-1");
+        _ = dto.Tag.Should().Be("profile");
     }
 
     [Fact]
     public void Metadata_WhenNotSet_ReturnsEmptyFileMetadata()
     {
         // Arrange
-        var dto = new FileInformationReadDto();
+        FileInformationReadDto dto = new();
 
         // Act
         FileMetadata metadata = dto.Metadata;
 
         // Assert
-        metadata.Should().NotBeNull();
-        metadata.Size.Should().Be(0);
-        metadata.Extension.Should().BeNull();
-        metadata.Dimensions.Should().BeNull();
+        _ = metadata.Should().NotBeNull();
+        _ = metadata.Size.Should().Be(0);
+        _ = metadata.Extension.Should().BeNull();
+        _ = metadata.Dimensions.Should().BeNull();
     }
 
     [Fact]
     public void Metadata_WhenSet_ReturnsCorrectValue()
     {
         // Arrange
-        var dto = new FileInformationReadDto();
-        var expectedMetadata = new FileMetadata
+        FileInformationReadDto dto = new();
+        FileMetadata expectedMetadata = new()
         {
             Size = 1024,
             Extension = "png",
@@ -80,18 +81,18 @@ public sealed class FileInformationDtoTests
         dto.Metadata = expectedMetadata;
 
         // Assert
-        dto.Metadata.Should().NotBeNull();
-        dto.Metadata.Size.Should().Be(1024);
-        dto.Metadata.Extension.Should().Be("png");
-        dto.Metadata.Dimensions!.Width.Should().Be(100);
-        dto.Metadata.Dimensions.Height.Should().Be(100);
+        _ = dto.Metadata.Should().NotBeNull();
+        _ = dto.Metadata.Size.Should().Be(1024);
+        _ = dto.Metadata.Extension.Should().Be("png");
+        _ = dto.Metadata.Dimensions!.Width.Should().Be(100);
+        _ = dto.Metadata.Dimensions.Height.Should().Be(100);
     }
 
     [Fact]
     public void Metadata_WhenSetToNull_ReturnsEmptyMetadata()
     {
         // Arrange
-        var dto = new FileInformationReadDto
+        FileInformationReadDto dto = new()
         {
             Metadata = new FileMetadata { Size = 1024 }
         };
@@ -100,15 +101,15 @@ public sealed class FileInformationDtoTests
         dto.Metadata = null!;
 
         // Assert
-        dto.Metadata.Should().NotBeNull();
-        dto.Metadata.Size.Should().Be(0);
+        _ = dto.Metadata.Should().NotBeNull();
+        _ = dto.Metadata.Size.Should().Be(0);
     }
 
     [Fact]
     public void MetadataJson_WhenMetadataSet_ReturnsSerializedJson()
     {
         // Arrange
-        var dto = new FileInformationReadDto
+        FileInformationReadDto dto = new()
         {
             Metadata = new FileMetadata
             {
@@ -118,148 +119,149 @@ public sealed class FileInformationDtoTests
         };
 
         // Act
-        var json = dto.MetadataJson;
+        string? json = dto.MetadataJson;
 
         // Assert
-        json.Should().NotBeNullOrEmpty();
-        json.Should().Contain("2048");
-        json.Should().Contain("jpg");
+        _ = json.Should().NotBeNullOrEmpty();
+        _ = json.Should().Contain("2048");
+        _ = json.Should().Contain("jpg");
     }
 
     [Fact]
     public void MetadataJson_WhenSet_UpdatesMetadataProperty()
     {
         // Arrange
-        var dto = new FileInformationReadDto();
-        var metadataJson = """{"size":4096,"extension":"gif"}""";
+        FileInformationReadDto dto = new();
+        string metadataJson = """{"size":4096,"extension":"gif"}""";
 
         // Act
         dto.MetadataJson = metadataJson;
         FileMetadata metadata = dto.Metadata;
 
         // Assert
-        metadata.Size.Should().Be(4096);
-        metadata.Extension.Should().Be("gif");
+        _ = metadata.Size.Should().Be(4096);
+        _ = metadata.Extension.Should().Be("gif");
     }
 
     [Fact]
     public void MetadataJson_WhenSetWithDimensions_UpdatesMetadataProperty()
     {
         // Arrange
-        var dto = new FileInformationReadDto();
-        var metadataJson = """{"size":1024,"extension":"png","dimensions":{"width":800,"height":600}}""";
+        FileInformationReadDto dto = new();
+        string metadataJson = """{"size":1024,"extension":"png","dimensions":{"width":800,"height":600}}""";
 
         // Act
         dto.MetadataJson = metadataJson;
         FileMetadata metadata = dto.Metadata;
 
         // Assert
-        metadata.Size.Should().Be(1024);
-        metadata.Extension.Should().Be("png");
-        metadata.Dimensions.Should().NotBeNull();
-        metadata.Dimensions!.Width.Should().Be(800);
-        metadata.Dimensions.Height.Should().Be(600);
+        _ = metadata.Size.Should().Be(1024);
+        _ = metadata.Extension.Should().Be("png");
+        _ = metadata.Dimensions.Should().NotBeNull();
+        _ = metadata.Dimensions!.Width.Should().Be(800);
+        _ = metadata.Dimensions.Height.Should().Be(600);
     }
 
     [Fact]
     public void MetadataJson_WhenSetWithInvalidJson_ReturnsEmptyMetadata()
     {
         // Arrange
-        var dto = new FileInformationReadDto();
-        var invalidJson = "not valid json";
+        FileInformationReadDto dto = new();
+        string invalidJson = "not valid json";
 
         // Act
         dto.MetadataJson = invalidJson;
         FileMetadata metadata = dto.Metadata;
 
         // Assert
-        metadata.Should().NotBeNull();
-        metadata.Size.Should().Be(0);
-        metadata.Extension.Should().BeNull();
+        _ = metadata.Should().NotBeNull();
+        _ = metadata.Size.Should().Be(0);
+        _ = metadata.Extension.Should().BeNull();
     }
 
     [Fact]
     public void MetadataJson_WhenSetWithEmptyString_ReturnsEmptyMetadata()
     {
         // Arrange
-        var dto = new FileInformationReadDto();
-
-        // Act
-        dto.MetadataJson = "";
+        FileInformationReadDto dto = new()
+        {
+            // Act
+            MetadataJson = ""
+        };
         FileMetadata metadata = dto.Metadata;
 
         // Assert
-        metadata.Should().NotBeNull();
-        metadata.Size.Should().Be(0);
+        _ = metadata.Should().NotBeNull();
+        _ = metadata.Size.Should().Be(0);
     }
 
     [Fact]
     public void MetadataJson_WhenSetWithWhitespace_ReturnsEmptyMetadata()
     {
         // Arrange
-        var dto = new FileInformationReadDto();
-
-        // Act
-        dto.MetadataJson = "   ";
+        FileInformationReadDto dto = new()
+        {
+            // Act
+            MetadataJson = "   "
+        };
         FileMetadata metadata = dto.Metadata;
 
         // Assert
-        metadata.Should().NotBeNull();
-        metadata.Size.Should().Be(0);
+        _ = metadata.Should().NotBeNull();
+        _ = metadata.Size.Should().Be(0);
     }
 
     [Fact]
     public void MetadataJson_Caching_ReturnsConsistentValue()
     {
         // Arrange
-        var dto = new FileInformationReadDto
+        FileInformationReadDto dto = new()
         {
             Metadata = new FileMetadata { Size = 1024, Extension = "png" }
         };
 
         // Act
-        var json1 = dto.MetadataJson;
-        var json2 = dto.MetadataJson;
+        string? json1 = dto.MetadataJson;
+        string? json2 = dto.MetadataJson;
 
         // Assert
-        json1.Should().Be(json2);
+        _ = json1.Should().Be(json2);
     }
 
     [Fact]
     public void MetadataJson_WhenMetadataUpdated_CacheInvalidated()
     {
         // Arrange
-        var dto = new FileInformationReadDto
+        FileInformationReadDto dto = new()
         {
             Metadata = new FileMetadata { Size = 1024 }
         };
-        var originalJson = dto.MetadataJson;
+        string? originalJson = dto.MetadataJson;
 
         // Act
         dto.Metadata = new FileMetadata { Size = 2048 };
-        var newJson = dto.MetadataJson;
+        string? newJson = dto.MetadataJson;
 
         // Assert
-        originalJson.Should().NotBe(newJson);
-        newJson.Should().Contain("2048");
+        _ = originalJson.Should().NotBe(newJson);
+        _ = newJson.Should().Contain("2048");
     }
 
     [Fact]
     public void Metadata_WhenMetadataJsonSet_PreviousMetadataCleared()
     {
         // Arrange
-        var dto = new FileInformationReadDto
+        FileInformationReadDto dto = new()
         {
-            Metadata = new FileMetadata { Size = 1024, Extension = "png" }
+            Metadata = new FileMetadata { Size = 1024, Extension = "png" },
+            // Act
+            MetadataJson = """{"size":512,"extension":"jpg"}"""
         };
-
-        // Act
-        dto.MetadataJson = """{"size":512,"extension":"jpg"}""";
         FileMetadata metadata = dto.Metadata;
 
         // Assert
-        metadata.Size.Should().Be(512);
-        metadata.Extension.Should().Be("jpg");
+        _ = metadata.Size.Should().Be(512);
+        _ = metadata.Extension.Should().Be("jpg");
     }
 
     [Theory]
@@ -269,13 +271,13 @@ public sealed class FileInformationDtoTests
     public void FileInformationDto_AcceptsVariousAllowedOrigins(string allowedOrigins)
     {
         // Arrange & Act
-        var dto = new FileInformationReadDto
+        FileInformationReadDto dto = new()
         {
             AllowedOrigins = allowedOrigins
         };
 
         // Assert
-        dto.AllowedOrigins.Should().Be(allowedOrigins);
+        _ = dto.AllowedOrigins.Should().Be(allowedOrigins);
     }
 
     [Theory]
@@ -287,38 +289,38 @@ public sealed class FileInformationDtoTests
     public void FileInformationDto_AcceptsVariousContentTypes(string contentType)
     {
         // Arrange & Act
-        var dto = new FileInformationReadDto
+        FileInformationReadDto dto = new()
         {
             ContentType = contentType
         };
 
         // Assert
-        dto.ContentType.Should().Be(contentType);
+        _ = dto.ContentType.Should().Be(contentType);
     }
 
     [Fact]
     public void FileInformationDto_JsonSerialization_IgnoresMetadataJson()
     {
         // Arrange
-        var dto = new FileInformationReadDto
+        FileInformationReadDto dto = new()
         {
             ContentType = "image/png",
             Metadata = new FileMetadata { Size = 1024, Extension = "png" }
         };
 
         // Act
-        var json = JsonSerializer.Serialize(dto);
+        string json = JsonSerializer.Serialize(dto);
 
         // Assert
-        json.Should().NotContain("metadataJson");
-        json.Should().Contain("metadata");
+        _ = json.Should().NotContain("metadataJson");
+        _ = json.Should().Contain("metadata");
     }
 
     [Fact]
     public void FileInformationDto_JsonDeserialization_WorksCorrectly()
     {
         // Arrange
-        var json = """
+        string json = """
         {
             "allowedOrigins": "https://example.com",
             "contentType": "image/png",
@@ -335,23 +337,23 @@ public sealed class FileInformationDtoTests
         FileInformationReadDto? dto = JsonSerializer.Deserialize<FileInformationReadDto>(json, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
         // Assert
-        dto.Should().NotBeNull();
-        dto!.AllowedOrigins.Should().Be("https://example.com");
-        dto.ContentType.Should().Be("image/png");
-        dto.Thumbnail.Should().Be("https://example.com/thumb.png");
-        dto.Checksum.Should().Be("abc123");
-        dto.Url.Should().Be("https://example.com/file.png");
-        dto.Owner.Should().Be("tenant-1");
-        dto.Metadata.Size.Should().Be(1024);
-        dto.Metadata.Extension.Should().Be("png");
-        dto.Tag.Should().Be("profile");
+        _ = dto.Should().NotBeNull();
+        _ = dto!.AllowedOrigins.Should().Be("https://example.com");
+        _ = dto.ContentType.Should().Be("image/png");
+        _ = dto.Thumbnail.Should().Be("https://example.com/thumb.png");
+        _ = dto.Checksum.Should().Be("abc123");
+        _ = dto.Url.Should().Be("https://example.com/file.png");
+        _ = dto.Owner.Should().Be("tenant-1");
+        _ = dto.Metadata.Size.Should().Be(1024);
+        _ = dto.Metadata.Extension.Should().Be("png");
+        _ = dto.Tag.Should().Be("profile");
     }
 
     [Fact]
     public void FileInformationDto_PartialJsonDeserialization_WorksCorrectly()
     {
         // Arrange
-        var json = """
+        string json = """
         {
             "contentType": "image/png"
         }
@@ -361,9 +363,9 @@ public sealed class FileInformationDtoTests
         FileInformationReadDto? dto = JsonSerializer.Deserialize<FileInformationReadDto>(json, new JsonSerializerOptions(JsonSerializerDefaults.Web));
 
         // Assert
-        dto.Should().NotBeNull();
-        dto!.ContentType.Should().Be("image/png");
-        dto.AllowedOrigins.Should().Be("*");
-        dto.Metadata.Size.Should().Be(0);
+        _ = dto.Should().NotBeNull();
+        _ = dto!.ContentType.Should().Be("image/png");
+        _ = dto.AllowedOrigins.Should().Be("*");
+        _ = dto.Metadata.Size.Should().Be(0);
     }
 }

@@ -27,7 +27,7 @@ public sealed class MockRequestContext : IRequestContext, IRequestContextWriter
 
     public Metadata? Metadata => throw new NotImplementedException();
 
-    ClaimsPrincipal? IRequestContext.User => new ClaimsPrincipal();
+    ClaimsPrincipal? IRequestContext.User => new();
 
     public Request GetRequest() => new()
     {

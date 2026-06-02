@@ -1,7 +1,5 @@
-using MediatR;
 using Vitarish.Feed.Domain.Abstractions;
 using Vitarish.Feed.Domain.Models;
-using Vitarish.Sea.Domain.Entities;
 
 namespace Vitarish.Sea.Infrastructure.FeedSources;
 
@@ -25,7 +23,7 @@ public class SeaProjectsFeedSource(IMediator mediator) : IFeedDataSource
             // Query recent projects
             // Note: This is a simplified example. In a real implementation,
             // you'd want a dedicated query for recent projects
-            var feedItems = new List<FeedItem>();
+            List<FeedItem> feedItems = [];
 
             // For now, return empty list as placeholder
             // A proper implementation would query the database for recent projects
@@ -33,7 +31,7 @@ public class SeaProjectsFeedSource(IMediator mediator) : IFeedDataSource
             // var recentProjects = await _mediator.Send(
             //     new GetRecentProjectsQuery(options.Limit), 
             //     cancellationToken);
-            
+
             // foreach (var project in recentProjects)
             // {
             //     feedItems.Add(CreateFeedItem(project));
@@ -47,7 +45,7 @@ public class SeaProjectsFeedSource(IMediator mediator) : IFeedDataSource
         }
     }
 
-    private FeedItem CreateFeedItem(Project project) => new FeedItem
+    private FeedItem CreateFeedItem(Project project) => new()
     {
         Id = project.Id,
         SourceId = SourceId,

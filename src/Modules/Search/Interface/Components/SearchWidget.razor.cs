@@ -1,7 +1,6 @@
 using MediatR;
 using Microsoft.AspNetCore.Components.Web;
 using Vitarish.Search.Application.Queries;
-using Vitarish.Search.Domain.Models;
 
 namespace Vitarish.Search.Interface.Components;
 
@@ -27,7 +26,7 @@ public partial class SearchWidget : CommonBase
     /// </summary>
     [Parameter]
     public SearchOptions Options { get; set; } = new();
-    
+
     /// <summary>
     /// Optional navigation callback. When provided, the parent owns redirect behavior.
     /// </summary>
@@ -142,7 +141,7 @@ public partial class SearchWidget : CommonBase
             return string.Empty;
         }
 
-        long firstItem = _pageIndex * PageSize + 1;
+        long firstItem = (_pageIndex * PageSize) + 1;
         long lastItem = Math.Min((_pageIndex + 1) * PageSize, _result.TotalCount);
 
         return string.Format(Localizer["SearchPageSummary"], firstItem, lastItem, _result.TotalCount);

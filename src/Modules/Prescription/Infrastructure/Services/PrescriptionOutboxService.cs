@@ -1,5 +1,5 @@
-using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 using Vitarish.Modules.Base.Platform.Retry;
 using Vitarish.Prescription.Domain.Entities;
 using Vitarish.Prescription.Infrastructure.Data;
@@ -15,7 +15,7 @@ internal sealed class PrescriptionOutboxService(PrescriptionDbContext dbContext)
     {
         entry.Id = entry.Id == Guid.Empty ? Guid.NewGuid() : entry.Id;
 
-        var record = new PrescriptionOutboxRecord
+        PrescriptionOutboxRecord record = new()
         {
             Id = entry.Id,
             PrescriptionId = TryReadPrescriptionId(entry.PayloadJson),
@@ -32,26 +32,26 @@ internal sealed class PrescriptionOutboxService(PrescriptionDbContext dbContext)
             TenantId = entry.TenantId
         };
 
-        dbContext.OutboxRecords.Add(record);
-        await dbContext.SaveChangesAsync(cancellationToken);
+        _ = dbContext.OutboxRecords.Add(record);
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
         return record.Id;
     }
 
-    public async Task CompleteAsync(Guid entryId, CancellationToken cancellationToken = default)
-    {
-        await dbContext.OutboxRecords
+    public async Task CompleteAsync(Guid entryId, CancellationToken cancellationToken = default) => await dbContext.OutboxRecords
             .Where(r => r.Id == entryId)
             .ExecuteUpdateAsync(
                 s => s.SetProperty(r => r.Status, OutboxEntryStatus.Completed.ToString()),
                 cancellationToken);
-    }
 
     public async Task FailAsync(Guid entryId, string errorMessage, CancellationToken cancellationToken = default)
     {
-        var record = await dbContext.OutboxRecords
+        PrescriptionOutboxRecord? record = await dbContext.OutboxRecords
             .FirstOrDefaultAsync(r => r.Id == entryId, cancellationToken);
 
-        if (record is null) return;
+        if (record is null)
+        {
+            return;
+        }
 
         record.RetryCount++;
         record.LastError = errorMessage;
@@ -65,38 +65,37 @@ internal sealed class PrescriptionOutboxService(PrescriptionDbContext dbContext)
         {
             record.Status = OutboxEntryStatus.Pending.ToString();
             // Exponential backoff: 1min, 2min, 4min, ...
-            var backoffMinutes = Math.Pow(2, record.RetryCount - 1);
+            double backoffMinutes = Math.Pow(2, record.RetryCount - 1);
             record.NextRetryAt = DateTimeOffset.UtcNow.AddMinutes(backoffMinutes);
         }
 
-        await dbContext.SaveChangesAsync(cancellationToken);
+        _ = await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task MarkDuplicateRiskAsync(Guid entryId, string reason, CancellationToken cancellationToken = default)
-    {
-        await dbContext.OutboxRecords
+    public async Task MarkDuplicateRiskAsync(Guid entryId, string reason, CancellationToken cancellationToken = default) => await dbContext.OutboxRecords
             .Where(r => r.Id == entryId)
             .ExecuteUpdateAsync(
                 s => s.SetProperty(r => r.Status, OutboxEntryStatus.DuplicateRisk.ToString())
                       .SetProperty(r => r.LastError, reason),
                 cancellationToken);
-    }
 
     public async Task<IReadOnlyList<OutboxEntry>> GetPendingAsync(
         string? providerKey = null,
         int maxItems = 10,
         CancellationToken cancellationToken = default)
     {
-        var pendingStatus = OutboxEntryStatus.Pending.ToString();
-        var now = DateTimeOffset.UtcNow;
+        string pendingStatus = OutboxEntryStatus.Pending.ToString();
+        DateTimeOffset now = DateTimeOffset.UtcNow;
 
-        var query = dbContext.OutboxRecords
+        IQueryable<PrescriptionOutboxRecord> query = dbContext.OutboxRecords
             .Where(r => r.Status == pendingStatus && r.NextRetryAt <= now);
 
         if (!string.IsNullOrEmpty(providerKey))
+        {
             query = query.Where(r => r.ProviderKey == providerKey);
+        }
 
-        var records = await query
+        List<PrescriptionOutboxRecord> records = await query
             .OrderBy(r => r.NextRetryAt)
             .Take(maxItems)
             .ToListAsync(cancellationToken);
@@ -109,7 +108,7 @@ internal sealed class PrescriptionOutboxService(PrescriptionDbContext dbContext)
             PayloadJson = r.PayloadJson,
             IdempotencyKey = r.IdempotencyKey,
             CorrelationId = r.CorrelationId,
-            Status = Enum.TryParse<OutboxEntryStatus>(r.Status, out var s) ? s : OutboxEntryStatus.Pending,
+            Status = Enum.TryParse<OutboxEntryStatus>(r.Status, out OutboxEntryStatus s) ? s : OutboxEntryStatus.Pending,
             RetryCount = r.RetryCount,
             MaxRetries = r.MaxRetries,
             CreatedAt = r.CreatedAt,

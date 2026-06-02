@@ -1,8 +1,8 @@
 using Vitarish.Feed.Domain.Abstractions;
-using Vitarish.Search.Domain.Abstractions;
 using Vitarish.Sea.Infrastructure.FeedSources;
 using Vitarish.Sea.Infrastructure.SearchProviders;
 using Vitarish.Sea.Infrastructure.Services;
+using Vitarish.Search.Domain.Abstractions;
 
 namespace Vitarish.Sea.Infrastructure.DependencyInjection;
 
@@ -15,7 +15,7 @@ public static class DependencyInjectionExtensions
         _ = services.AddTransient<IAccessControlledProceduresService, AccessControlledProceduresService>();
         _ = services.AddTransient<IAccessControlledEventsService, AccessControlledEventsService>();
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(SeaDbContext).Assembly));
-        
+
         // Register feed data sources
         _ = services.AddScoped<IFeedDataSource, SeaAttachmentsFeedSource>();
         _ = services.AddScoped<IFeedDataSource, SeaProjectsFeedSource>();
@@ -25,7 +25,7 @@ public static class DependencyInjectionExtensions
         _ = services.AddScoped<ISearchIndexProvider, SeaProceduresSearchProvider>();
         _ = services.AddScoped<ISearchIndexProvider, SeaEventsSearchProvider>();
         _ = services.AddScoped<ISearchIndexProvider, SeaAttachmentsSearchProvider>();
-        
+
         return services;
     }
 }

@@ -1,4 +1,3 @@
-#nullable enable
 
 namespace Vitarish.Parties.Domain.Mappers;
 

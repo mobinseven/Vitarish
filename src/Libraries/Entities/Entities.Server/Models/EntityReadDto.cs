@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using System.Text.Json.Serialization;
 
 namespace Vitarish.Entities.Server.Models;

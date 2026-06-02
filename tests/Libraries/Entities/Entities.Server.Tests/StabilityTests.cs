@@ -89,7 +89,7 @@ public class StabilityTests : IDisposable
         IMediator mediator = _provider.GetRequiredService<IMediator>();
 
         // Act - Rapidly add and remove entities
-        for(int i = 0; i < 50; i++)
+        for (int i = 0; i < 50; i++)
         {
             TestEntity entity = new()
             { Name = $"Cycle-{i}" };
@@ -112,7 +112,7 @@ public class StabilityTests : IDisposable
         int totalEntities = 5000;
         int batchSize = 500;
 
-        for(int batch = 0; batch < totalEntities / batchSize; batch++)
+        for (int batch = 0; batch < totalEntities / batchSize; batch++)
         {
             List<TestEntity> entities = [.. Enumerable.Range(batch * batchSize, batchSize).Select(i => new TestEntity { Name = $"MemTest-{i}" })];
 

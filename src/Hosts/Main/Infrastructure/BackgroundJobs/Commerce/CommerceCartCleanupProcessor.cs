@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Vitarish.Commerce.Domain.Enums;
 using Vitarish.Commerce.Infrastructure.Data;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
@@ -15,13 +14,10 @@ public class CommerceCartCleanupProcessor(
 {
     private const string BackgroundResource = "hangfire:commerce:carts:cleanup";
 
-    public async Task ProcessAsync(CancellationToken cancellationToken = default)
-    {
-        await tenantBackgroundExecutor.ExecutePerTenantAsync(
+    public async Task ProcessAsync(CancellationToken cancellationToken = default) => await tenantBackgroundExecutor.ExecutePerTenantAsync(
             BackgroundResource,
             PerTenantAsync,
             cancellationToken);
-    }
 
     private async Task PerTenantAsync(IServiceProvider provider, CancellationToken shutdownToken)
     {

@@ -28,7 +28,7 @@ public class UpdateUserCommandValidatorTests
 
         TestValidationResult<UpdateUserCommand> result = validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(c => c.User);
+        _ = result.ShouldHaveValidationErrorFor(c => c.User);
     }
 
     [Fact]
@@ -39,6 +39,6 @@ public class UpdateUserCommandValidatorTests
 
         TestValidationResult<UpdateUserCommand> result = validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(c => c.User.Id);
+        _ = result.ShouldHaveValidationErrorFor(c => c.User.Id);
     }
 }

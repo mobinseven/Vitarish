@@ -8,7 +8,11 @@ public static class ShiftBookingPolicyRules
 {
     public static ShiftBookingPolicyViolation? ValidateWrite(DayOfWeek shiftDayOfWeek, DateOnly date, IEnumerable<ShiftBookingPolicy> existingPolicies, Guid? candidateId)
     {
-        if (date.DayOfWeek != shiftDayOfWeek) return new(ShiftBookingPolicyErrorCode.InvalidDateForShift, nameof(date));
+        if (date.DayOfWeek != shiftDayOfWeek)
+        {
+            return new(ShiftBookingPolicyErrorCode.InvalidDateForShift, nameof(date));
+        }
+
         bool duplicate = existingPolicies.Any(p => p.Date == date && p.Id != candidateId.GetValueOrDefault());
         return duplicate ? new ShiftBookingPolicyViolation(ShiftBookingPolicyErrorCode.DuplicateDate, nameof(date)) : null;
     }

@@ -25,8 +25,5 @@ public class CommerceModule : Module, ICommerceModule
         return Task.CompletedTask;
     }
 
-    public override async Task Initialize(WebApplication app)
-    {
-        await app.InitializeViews();
-    }
+    public override async Task Initialize(WebApplication app) => await app.InitializeViews();
 }

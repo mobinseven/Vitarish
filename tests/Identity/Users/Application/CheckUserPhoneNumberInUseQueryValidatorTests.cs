@@ -26,6 +26,6 @@ public class CheckUserPhoneNumberInUseQueryValidatorTests
 
         TestValidationResult<CheckUserPhoneNumberInUseQuery> result = validator.TestValidate(query);
 
-        result.ShouldHaveValidationErrorFor(q => q.PhoneNumber);
+        _ = result.ShouldHaveValidationErrorFor(q => q.PhoneNumber);
     }
 }

@@ -37,7 +37,7 @@ public sealed class SendEmailTests
         Message message = new() { Recipient = "test@example.com" };
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => SendEmail.ExecuteAsync(null!, message));
+        _ = await Assert.ThrowsAsync<ArgumentNullException>(() => SendEmail.ExecuteAsync(null!, message));
     }
 
     [Fact]
@@ -47,7 +47,7 @@ public sealed class SendEmailTests
         FakeMessagesService service = new();
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => SendEmail.ExecuteAsync(service, null!));
+        _ = await Assert.ThrowsAsync<ArgumentNullException>(() => SendEmail.ExecuteAsync(service, null!));
     }
 
     [Theory]
@@ -76,7 +76,7 @@ public sealed class SendEmailTests
         cts.Cancel();
 
         // Act & Assert
-        await Assert.ThrowsAsync<OperationCanceledException>(
+        _ = await Assert.ThrowsAsync<OperationCanceledException>(
             () => SendEmail.ExecuteAsync(service, message, cts.Token));
     }
 
@@ -112,7 +112,7 @@ public sealed class SendEmailTests
         cts.Cancel();
 
         // Act & Assert - validation should happen first and throw ArgumentException, not OperationCanceledException
-        await Assert.ThrowsAsync<ArgumentException>(
+        _ = await Assert.ThrowsAsync<ArgumentException>(
             () => SendEmail.ExecuteAsync(service, message, cts.Token));
     }
 

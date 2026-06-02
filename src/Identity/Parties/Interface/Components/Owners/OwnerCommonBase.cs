@@ -1,5 +1,4 @@
 using Vitarish.Interfaces.Base.Common;
-using Vitarish.Parties.Application.Abstractions;
 
 namespace Vitarish.Parties.Interface.Components.Owners;
 
@@ -16,11 +15,5 @@ public class OwnerCommonBase : CommonBase
     /// Parses <see cref="Requests.Application.Abstractions.IRequestContext.OwnerId"/> to a nullable Guid.
     /// Returns null when the claim is absent or not a valid Guid.
     /// </summary>
-    protected Guid? GetOwnerGuid()
-    {
-        if (RequestContext.OwnerId is null)
-            return null;
-
-        return Guid.TryParse(RequestContext.OwnerId, out Guid g) ? g : null;
-    }
+    protected Guid? GetOwnerGuid() => RequestContext.OwnerId is null ? null : Guid.TryParse(RequestContext.OwnerId, out Guid g) ? g : null;
 }

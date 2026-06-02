@@ -1,5 +1,5 @@
-using System.Collections.Concurrent;
 using Microsoft.AspNetCore.Identity;
+using System.Collections.Concurrent;
 using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Main.Mock.Authentication;
@@ -22,33 +22,24 @@ public sealed class PreviewUserRoleStore : IUserStore<User>, IUserSecurityStampS
         _ = _users.TryAdd(PreviewUser.Id, PreviewUser);
     }
 
-    public Task<IdentityResult> CreateAsync(User user, CancellationToken cancellationToken)
-    {
-        if (_users.TryAdd(user.Id, user))
-        {
-            return Task.FromResult(IdentityResult.Success);
-        }
-
-        return Task.FromResult(IdentityResult.Failed(new IdentityError
-        {
-            Code = "DuplicateUserId",
-            Description = $"User with ID '{user.Id}' already exists."
-        }));
-    }
+    public Task<IdentityResult> CreateAsync(User user, CancellationToken cancellationToken) => _users.TryAdd(user.Id, user)
+            ? Task.FromResult(IdentityResult.Success)
+            : Task.FromResult(IdentityResult.Failed(new IdentityError
+            {
+                Code = "DuplicateUserId",
+                Description = $"User with ID '{user.Id}' already exists."
+            }));
 
     public Task<IdentityResult> DeleteAsync(User user, CancellationToken cancellationToken)
     {
         _ = _userRoles.TryRemove(user.Id, out _);
-        if (_users.TryRemove(user.Id, out _))
-        {
-            return Task.FromResult(IdentityResult.Success);
-        }
-
-        return Task.FromResult(IdentityResult.Failed(new IdentityError
-        {
-            Code = "UserNotFound",
-            Description = $"User with ID '{user.Id}' not found."
-        }));
+        return _users.TryRemove(user.Id, out _)
+            ? Task.FromResult(IdentityResult.Success)
+            : Task.FromResult(IdentityResult.Failed(new IdentityError
+            {
+                Code = "UserNotFound",
+                Description = $"User with ID '{user.Id}' not found."
+            }));
     }
 
     public void Dispose()
@@ -94,33 +85,24 @@ public sealed class PreviewUserRoleStore : IUserStore<User>, IUserSecurityStampS
         return Task.CompletedTask;
     }
 
-    public Task<IdentityResult> UpdateAsync(User user, CancellationToken cancellationToken)
-    {
-        if (!_users.TryGetValue(user.Id, out User? existingUser))
-        {
-            return Task.FromResult(IdentityResult.Failed(new IdentityError
+    public Task<IdentityResult> UpdateAsync(User user, CancellationToken cancellationToken) => !_users.TryGetValue(user.Id, out User? existingUser)
+            ? Task.FromResult(IdentityResult.Failed(new IdentityError
             {
                 Code = "UserNotFound",
                 Description = "User not found."
+            }))
+            : _users.TryUpdate(user.Id, user, existingUser)
+            ? Task.FromResult(IdentityResult.Success)
+            : Task.FromResult(IdentityResult.Failed(new IdentityError
+            {
+                Code = "ConcurrencyFailure",
+                Description = "Optimistic concurrency failure, object has been modified."
             }));
-        }
-
-        if (_users.TryUpdate(user.Id, user, existingUser))
-        {
-            return Task.FromResult(IdentityResult.Success);
-        }
-
-        return Task.FromResult(IdentityResult.Failed(new IdentityError
-        {
-            Code = "ConcurrencyFailure",
-            Description = "Optimistic concurrency failure, object has been modified."
-        }));
-    }
 
     public Task AddToRoleAsync(User user, string roleName, CancellationToken cancellationToken)
     {
         ConcurrentDictionary<string, byte> roles = GetOrCreateRoles(user.Id);
-        roles.TryAdd(roleName, 0);
+        _ = roles.TryAdd(roleName, 0);
         return Task.CompletedTask;
     }
 
@@ -134,15 +116,9 @@ public sealed class PreviewUserRoleStore : IUserStore<User>, IUserSecurityStampS
         return Task.CompletedTask;
     }
 
-    public Task<IList<string>> GetRolesAsync(User user, CancellationToken cancellationToken)
-    {
-        if (!_userRoles.TryGetValue(user.Id, out ConcurrentDictionary<string, byte>? roles))
-        {
-            return Task.FromResult<IList<string>>([]);
-        }
-
-        return Task.FromResult<IList<string>>([.. roles.Keys]);
-    }
+    public Task<IList<string>> GetRolesAsync(User user, CancellationToken cancellationToken) => !_userRoles.TryGetValue(user.Id, out ConcurrentDictionary<string, byte>? roles)
+            ? Task.FromResult<IList<string>>([])
+            : Task.FromResult<IList<string>>([.. roles.Keys]);
 
     public Task<bool> IsInRoleAsync(User user, string roleName, CancellationToken cancellationToken)
     {

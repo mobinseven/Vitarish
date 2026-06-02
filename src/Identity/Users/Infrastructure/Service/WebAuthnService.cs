@@ -23,6 +23,7 @@ public class WebAuthnService(
     WebAuthnOptions webAuthnOptions,
     IDistributedCache cache) : IWebAuthnService
 {
+    [Obsolete]
     public async Task<string> BeginRegistrationAsync(string userId, CancellationToken ct = default)
     {
         if (string.IsNullOrEmpty(userId))
@@ -76,12 +77,12 @@ public class WebAuthnService(
         // Store challenge in distributed cache for verification
         string optionsJson = options.ToJson();
         byte[] optionsBytes = Encoding.UTF8.GetBytes(optionsJson);
-        
+
         DistributedCacheEntryOptions cacheOptions = new()
         {
             AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2) // Align with WebAuthn timeout
         };
-        
+
         await cache.SetAsync(GetAttestationCacheKey(userId), optionsBytes, cacheOptions, ct);
 
         return optionsJson;
@@ -189,12 +190,12 @@ public class WebAuthnService(
         // Store challenge in distributed cache for verification
         string optionsJson = options.ToJson();
         byte[] optionsBytes = Encoding.UTF8.GetBytes(optionsJson);
-        
+
         DistributedCacheEntryOptions cacheOptions = new()
         {
             AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(2) // Align with WebAuthn timeout
         };
-        
+
         await cache.SetAsync(GetAssertionCacheKey(user.Id), optionsBytes, cacheOptions, ct);
 
         return optionsJson;

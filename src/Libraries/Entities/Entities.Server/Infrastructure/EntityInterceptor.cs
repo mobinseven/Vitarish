@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Microsoft.EntityFrameworkCore.Metadata;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Entities.Server.Abstractions;
@@ -261,7 +262,7 @@ public sealed class EntityInterceptor(
     private static IReadOnlyDictionary<string, object?> GetSnapshot(PropertyValues values, bool includePrimaryKey)
     {
         Dictionary<string, object?> snapshot = new(StringComparer.Ordinal);
-        foreach (var propertyMetadata in values.Properties)
+        foreach (IProperty propertyMetadata in values.Properties)
         {
             if (!includePrimaryKey && propertyMetadata.IsPrimaryKey())
             {

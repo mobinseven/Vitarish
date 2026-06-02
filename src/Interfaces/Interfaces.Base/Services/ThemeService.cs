@@ -1,7 +1,5 @@
 using MudBlazor.Utilities;
-using Vitarish.Interfaces.Base.Abstractions;
 using Vitarish.Interfaces.Base.Enums;
-using Vitarish.Interfaces.Base.Models;
 
 namespace Vitarish.Interfaces.Base.Services;
 
@@ -11,7 +9,7 @@ public sealed class ThemeService : IThemeService
     public ThemeSettings Settings { get; private set; } = ThemeSettings.Default;
     public MudTheme Theme { get; private set; } = BuildTheme(TypographySize.Normal);
 
-    public Variant PrimaryVariant  => IsDarkMode ? Variant.Filled : Variant.Filled;
+    public Variant PrimaryVariant => IsDarkMode ? Variant.Filled : Variant.Filled;
     public Variant SecondaryVariant => IsDarkMode ? Variant.Outlined : Variant.Outlined;
 
     public bool IsDarkMode { get; private set; }
@@ -110,7 +108,7 @@ public sealed class ThemeService : IThemeService
     private static MudTheme BuildTheme(TypographySize size)
     {
         // Conservative scaling to preserve layout density & avoid component clipping.
-        var scale = size switch
+        double scale = size switch
         {
             TypographySize.Compact => 0.85,
             TypographySize.Large => 1.25,
@@ -118,13 +116,13 @@ public sealed class ThemeService : IThemeService
             _ => 1.00
         };
 
-        var font = new[]
+        string[] font = new[]
         {
             "Inter", "system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"
         };
 
         // Typography in v8 uses BaseTypography and derived types. :contentReference[oaicite:5]{index=5}
-        var typography = new Typography
+        Typography typography = new()
         {
             Default = new DefaultTypography
             {
@@ -205,8 +203,8 @@ public sealed class ThemeService : IThemeService
 
         if (cssSize.EndsWith("rem", StringComparison.OrdinalIgnoreCase))
         {
-            var n = cssSize[..^3];
-            if (TryParseNumber(n, out var v))
+            string n = cssSize[..^3];
+            if (TryParseNumber(n, out double v))
             {
                 return (v * factor).ToString("0.###", CultureInfo.InvariantCulture) + "rem";
             }
@@ -214,8 +212,8 @@ public sealed class ThemeService : IThemeService
 
         if (cssSize.EndsWith("px", StringComparison.OrdinalIgnoreCase))
         {
-            var n = cssSize[..^2];
-            if (TryParseNumber(n, out var v))
+            string n = cssSize[..^2];
+            if (TryParseNumber(n, out double v))
             {
                 return (v * factor).ToString("0.###", CultureInfo.InvariantCulture) + "px";
             }
@@ -260,7 +258,7 @@ public sealed class ThemeService : IThemeService
     };
     public string BuildCustomCss()
     {
-        var scope = Theme.PseudoCss?.Scope ?? ":root";
+        string scope = Theme.PseudoCss?.Scope ?? ":root";
 
         return $@"
 {scope} {{

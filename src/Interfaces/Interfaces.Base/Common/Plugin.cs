@@ -1,7 +1,7 @@
 namespace Vitarish.Interfaces.Base.Common;
 
 public record PluginContext(
-    IReadOnlyDictionary<string, object?> Metadata = default)
+    IReadOnlyDictionary<string, object?>? Metadata = default)
 {
 
     public bool TryGetMetadata<T>(string key, out T? value)

@@ -162,17 +162,11 @@ internal sealed class SocialWebhookGatewayService(
             if (provider == SocialProvider.Telegram)
             {
                 using JsonDocument doc = JsonDocument.Parse(body);
-                if (doc.RootElement.TryGetProperty("update_id", out JsonElement updateId))
-                {
-                    return updateId.ToString();
-                }
-
-                if (headers.TryGetValue("X-Telegram-Bot-Api-Update-Id", out string? headerId) && !string.IsNullOrWhiteSpace(headerId))
-                {
-                    return headerId;
-                }
-
-                return null;
+                return doc.RootElement.TryGetProperty("update_id", out JsonElement updateId)
+                    ? updateId.ToString()
+                    : headers.TryGetValue("X-Telegram-Bot-Api-Update-Id", out string? headerId) && !string.IsNullOrWhiteSpace(headerId)
+                    ? headerId
+                    : null;
             }
 
             if (provider == SocialProvider.Instagram)

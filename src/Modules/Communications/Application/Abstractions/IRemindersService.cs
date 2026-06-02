@@ -1,6 +1,4 @@
 using Vitarish.Entities.Server.Abstractions;
-using Vitarish.Communications.Domain.Dto;
-using Vitarish.Communications.Domain.Enums;
 
 namespace Vitarish.Communications.Application.Abstractions;
 

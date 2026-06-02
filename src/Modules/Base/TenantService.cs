@@ -39,6 +39,6 @@ public interface ITenantService
     IEnumerable<UserDto> Users { get; set; }
     Tenant? Tenant { get; }
 
-    T? GetField<T>([CallerMemberName] string propertyName = null);
-    void SetField<T>(T value, [CallerMemberName] string propertyName = null);
+    T? GetField<T>([CallerMemberName] string? propertyName = null);
+    void SetField<T>(T value, [CallerMemberName] string? propertyName = null);
 }

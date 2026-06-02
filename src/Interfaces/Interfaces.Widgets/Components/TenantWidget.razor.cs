@@ -15,7 +15,7 @@ public partial class TenantWidget
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
-        if(RequestContext.TenantId is not null && RequestContext.IsTenantUser())
+        if (RequestContext.TenantId is not null && RequestContext.IsTenantUser())
         {
             Tenant = await PartiesService.GetTenantAsync(Guid.Parse(RequestContext.TenantId));
         }

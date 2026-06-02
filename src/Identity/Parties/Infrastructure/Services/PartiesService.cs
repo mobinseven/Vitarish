@@ -135,7 +135,7 @@ public sealed class PartiesService(OwnersService ownerService, TenantsService te
         }
 
         // 3. Create the primary indicator so the tenant can be resolved by hostname/subdomain.
-        await CreateTenantIndicatorAsync(new TenantIndicatorWriteDto
+        _ = await CreateTenantIndicatorAsync(new TenantIndicatorWriteDto
         {
             Id = Guid.NewGuid(),
             TenantId = tenant.Id,

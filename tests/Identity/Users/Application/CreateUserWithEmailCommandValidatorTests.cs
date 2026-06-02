@@ -26,6 +26,6 @@ public class CreateUserWithEmailCommandValidatorTests
 
         TestValidationResult<CreateUserWithEmailCommand> result = validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(c => c.Email);
+        _ = result.ShouldHaveValidationErrorFor(c => c.Email);
     }
 }

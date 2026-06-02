@@ -2,6 +2,7 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Modules.Base.Platform.Retry;
 using Vitarish.Prescription.Application.Queries;
+using Vitarish.Prescription.Domain.Entities;
 using Vitarish.Prescription.Domain.Enums;
 using Vitarish.Prescription.Infrastructure.Data;
 
@@ -21,23 +22,29 @@ public sealed class GetReconciliationQueueHandler(PrescriptionDbContext dbContex
 
     public async Task<ReconciliationQueueResult> Handle(GetReconciliationQueueQuery request, CancellationToken cancellationToken)
     {
-        var query = dbContext.Prescriptions
+        IQueryable<PrescriptionRecord> query = dbContext.Prescriptions
             .IgnoreQueryFilters()
             .Where(p => p.DeletedAt == null)
             .Where(p => ReconciliationStatuses.Contains(p.Status));
 
         if (!string.IsNullOrEmpty(request.TenantId))
+        {
             query = query.Where(p => p.TenantId == request.TenantId);
+        }
 
         if (!string.IsNullOrEmpty(request.ProviderKey))
+        {
             query = query.Where(p => p.SelectedProviderKey == request.ProviderKey);
+        }
 
         if (request.StatusFilter.HasValue)
+        {
             query = query.Where(p => p.Status == request.StatusFilter.Value);
+        }
 
-        var totalCount = await query.CountAsync(cancellationToken);
+        int totalCount = await query.CountAsync(cancellationToken);
 
-        var items = await query
+        List<ReconciliationItemDto> items = await query
             .OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt)
             .Skip(request.Skip)
             .Take(request.Take)
@@ -85,20 +92,24 @@ public sealed class GetOutboxStatusHandler(PrescriptionDbContext dbContext)
 {
     public async Task<OutboxStatusResult> Handle(GetOutboxStatusQuery request, CancellationToken cancellationToken)
     {
-        var query = dbContext.OutboxRecords.AsQueryable();
+        IQueryable<PrescriptionOutboxRecord> query = dbContext.OutboxRecords.AsQueryable();
 
         if (!string.IsNullOrEmpty(request.ProviderKey))
+        {
             query = query.Where(r => r.ProviderKey == request.ProviderKey);
+        }
 
         if (!string.IsNullOrEmpty(request.TenantId))
+        {
             query = query.Where(r => r.TenantId == request.TenantId);
+        }
 
-        var pendingCount = await query.CountAsync(r => r.Status == OutboxEntryStatus.Pending.ToString(), cancellationToken);
-        var processingCount = await query.CountAsync(r => r.Status == OutboxEntryStatus.Processing.ToString(), cancellationToken);
-        var failedCount = await query.CountAsync(r => r.Status == OutboxEntryStatus.Failed.ToString(), cancellationToken);
-        var duplicateRiskCount = await query.CountAsync(r => r.Status == OutboxEntryStatus.DuplicateRisk.ToString(), cancellationToken);
+        int pendingCount = await query.CountAsync(r => r.Status == OutboxEntryStatus.Pending.ToString(), cancellationToken);
+        int processingCount = await query.CountAsync(r => r.Status == OutboxEntryStatus.Processing.ToString(), cancellationToken);
+        int failedCount = await query.CountAsync(r => r.Status == OutboxEntryStatus.Failed.ToString(), cancellationToken);
+        int duplicateRiskCount = await query.CountAsync(r => r.Status == OutboxEntryStatus.DuplicateRisk.ToString(), cancellationToken);
 
-        var recentEntries = await query
+        List<OutboxEntryDto> recentEntries = await query
             .OrderByDescending(r => r.CreatedAt)
             .Take(20)
             .Select(r => new OutboxEntryDto

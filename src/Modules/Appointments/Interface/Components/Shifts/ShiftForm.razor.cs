@@ -22,7 +22,7 @@ public partial class ShiftForm : ShiftsBase
 
     private static TimeOnly GetMinimumEndTime(TimeOnly startTime)
     {
-        var minimumEndTime = startTime.AddMinutes(ShiftTimeStepMinutes);
+        TimeOnly minimumEndTime = startTime.AddMinutes(ShiftTimeStepMinutes);
 
         return minimumEndTime > startTime
             ? minimumEndTime
@@ -34,7 +34,9 @@ public partial class ShiftForm : ShiftsBase
         shiftWriteDto.StartTime = startTime;
 
         if (shiftWriteDto.EndTime <= shiftWriteDto.StartTime)
+        {
             shiftWriteDto.EndTime = MinimumEndTime;
+        }
     }
 
     protected override void OnParametersSet()
@@ -46,7 +48,9 @@ public partial class ShiftForm : ShiftsBase
         else
         {
             if (DayOfWeek is not null)
+            {
                 shiftWriteDto.DayOfWeek = DayOfWeek.Value;
+            }
         }
 
         shiftWriteDto.TimeZone = string.IsNullOrWhiteSpace(shiftWriteDto.TimeZone)
@@ -68,8 +72,8 @@ public partial class ShiftForm : ShiftsBase
 
         await Task.WhenAll(providersTask, servicesTask);
 
-        serviceProviders = [.. (providersTask.Result ?? [])];
-        availableServices = [.. (servicesTask.Result ?? [])];
+        serviceProviders = [.. providersTask.Result ?? []];
+        availableServices = [.. servicesTask.Result ?? []];
     }
 
     private async Task SaveAsync()

@@ -17,7 +17,7 @@ public class EventPublisherTests
         await publisher.PublishAsync(notification, CancellationToken.None);
 
         mediator.Verify(m => m.Publish(notification, It.IsAny<CancellationToken>()), Times.Once);
-        logger.Entries.Should().Contain(e => e.Level == LogLevel.Information && e.Message.Contains("Publishing"));
+        _ = logger.Entries.Should().Contain(e => e.Level == LogLevel.Information && e.Message.Contains("Publishing"));
     }
 
     private sealed record TestNotification(string Payload) : INotification;

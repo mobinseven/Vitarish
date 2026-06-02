@@ -9,49 +9,51 @@ public sealed class AiOptionsTests
     public void AiOptions_DefaultValues_AreCorrect()
     {
         // Arrange & Act
-        var options = new AiOptions();
+        AiOptions options = new();
 
         // Assert
-        options.DefaultTranscriptionModel.Should().Be("gpt-4o-mini-transcribe");
-        options.DefaultResponseModel.Should().Be("gpt-5-nano-2025-08-07");
-        options.Ollama.Should().NotBeNull();
-        options.OpenAi.Should().NotBeNull();
-        options.Google.Should().NotBeNull();
-        options.QuickRewriteInstructions.Should().NotBeNullOrEmpty();
+        _ = options.DefaultTranscriptionModel.Should().Be("gpt-4o-mini-transcribe");
+        _ = options.DefaultResponseModel.Should().Be("gpt-5-nano-2025-08-07");
+        _ = options.Ollama.Should().NotBeNull();
+        _ = options.OpenAi.Should().NotBeNull();
+        _ = options.Google.Should().NotBeNull();
+        _ = options.QuickRewriteInstructions.Should().NotBeNullOrEmpty();
     }
 
     [Fact]
     public void AiOptions_DefaultTranscriptionModel_CanBeSet()
     {
         // Arrange
-        var options = new AiOptions();
-
-        // Act
-        options.DefaultTranscriptionModel = "whisper-large-v3";
+        AiOptions options = new()
+        {
+            // Act
+            DefaultTranscriptionModel = "whisper-large-v3"
+        };
 
         // Assert
-        options.DefaultTranscriptionModel.Should().Be("whisper-large-v3");
+        _ = options.DefaultTranscriptionModel.Should().Be("whisper-large-v3");
     }
 
     [Fact]
     public void AiOptions_DefaultResponseModel_CanBeSet()
     {
         // Arrange
-        var options = new AiOptions();
-
-        // Act
-        options.DefaultResponseModel = "gpt-5-2025-08-07";
+        AiOptions options = new()
+        {
+            // Act
+            DefaultResponseModel = "gpt-5-2025-08-07"
+        };
 
         // Assert
-        options.DefaultResponseModel.Should().Be("gpt-5-2025-08-07");
+        _ = options.DefaultResponseModel.Should().Be("gpt-5-2025-08-07");
     }
 
     [Fact]
     public void AiOptions_OllamaOptions_CanBeSet()
     {
         // Arrange
-        var options = new AiOptions();
-        var ollamaOptions = new OllamaOptions
+        AiOptions options = new();
+        OllamaOptions ollamaOptions = new()
         {
             BaseUrl = "http://custom-ollama:11434",
             DefaultModel = "qwen3:4b"
@@ -61,16 +63,16 @@ public sealed class AiOptionsTests
         options.Ollama = ollamaOptions;
 
         // Assert
-        options.Ollama.Should().BeSameAs(ollamaOptions);
-        options.Ollama.BaseUrl.Should().Be("http://custom-ollama:11434");
+        _ = options.Ollama.Should().BeSameAs(ollamaOptions);
+        _ = options.Ollama.BaseUrl.Should().Be("http://custom-ollama:11434");
     }
 
     [Fact]
     public void AiOptions_OpenAiOptions_CanBeSet()
     {
         // Arrange
-        var options = new AiOptions();
-        var openAiOptions = new OpenAiOptions
+        AiOptions options = new();
+        OpenAiOptions openAiOptions = new()
         {
             ApiKey = "test-api-key"
         };
@@ -79,16 +81,16 @@ public sealed class AiOptionsTests
         options.OpenAi = openAiOptions;
 
         // Assert
-        options.OpenAi.Should().BeSameAs(openAiOptions);
-        options.OpenAi.ApiKey.Should().Be("test-api-key");
+        _ = options.OpenAi.Should().BeSameAs(openAiOptions);
+        _ = options.OpenAi.ApiKey.Should().Be("test-api-key");
     }
 
     [Fact]
     public void AiOptions_GoogleOptions_CanBeSet()
     {
         // Arrange
-        var options = new AiOptions();
-        var googleOptions = new GoogleOptions
+        AiOptions options = new();
+        GoogleOptions googleOptions = new()
         {
             Gemini = new GoogleGeminiOptions { ApiKey = "gemini-key" },
             Speech = new GoogleSpeechOptions { ProjectId = "test-project" }
@@ -98,22 +100,22 @@ public sealed class AiOptionsTests
         options.Google = googleOptions;
 
         // Assert
-        options.Google.Should().BeSameAs(googleOptions);
-        options.Google.Gemini.ApiKey.Should().Be("gemini-key");
+        _ = options.Google.Should().BeSameAs(googleOptions);
+        _ = options.Google.Gemini.ApiKey.Should().Be("gemini-key");
     }
 
     [Fact]
     public void AiOptions_QuickRewriteInstructions_CanBeSet()
     {
         // Arrange
-        var options = new AiOptions();
-        var customInstructions = "Custom rewrite instructions";
+        AiOptions options = new();
+        string customInstructions = "Custom rewrite instructions";
 
         // Act
         options.QuickRewriteInstructions = customInstructions;
 
         // Assert
-        options.QuickRewriteInstructions.Should().Be(customInstructions);
+        _ = options.QuickRewriteInstructions.Should().Be(customInstructions);
     }
 
     [Theory]
@@ -124,10 +126,11 @@ public sealed class AiOptionsTests
     public void AiOptions_AcceptsVariousTranscriptionModels(string model)
     {
         // Arrange & Act
-        var options = new AiOptions { DefaultTranscriptionModel = model };
+        AiOptions options = new()
+        { DefaultTranscriptionModel = model };
 
         // Assert
-        options.DefaultTranscriptionModel.Should().Be(model);
+        _ = options.DefaultTranscriptionModel.Should().Be(model);
     }
 
     [Theory]
@@ -138,10 +141,11 @@ public sealed class AiOptionsTests
     public void AiOptions_AcceptsVariousResponseModels(string model)
     {
         // Arrange & Act
-        var options = new AiOptions { DefaultResponseModel = model };
+        AiOptions options = new()
+        { DefaultResponseModel = model };
 
         // Assert
-        options.DefaultResponseModel.Should().Be(model);
+        _ = options.DefaultResponseModel.Should().Be(model);
     }
 }
 
@@ -154,23 +158,24 @@ public sealed class OpenAiOptionsTests
     public void OpenAiOptions_DefaultValues_AreCorrect()
     {
         // Arrange & Act
-        var options = new OpenAiOptions();
+        OpenAiOptions options = new();
 
         // Assert
-        options.ApiKey.Should().BeEmpty();
+        _ = options.ApiKey.Should().BeEmpty();
     }
 
     [Fact]
     public void OpenAiOptions_ApiKey_CanBeSet()
     {
         // Arrange
-        var options = new OpenAiOptions();
-
-        // Act
-        options.ApiKey = "sk-test-key-12345";
+        OpenAiOptions options = new()
+        {
+            // Act
+            ApiKey = "sk-test-key-12345"
+        };
 
         // Assert
-        options.ApiKey.Should().Be("sk-test-key-12345");
+        _ = options.ApiKey.Should().Be("sk-test-key-12345");
     }
 
     [Theory]
@@ -180,10 +185,11 @@ public sealed class OpenAiOptionsTests
     public void OpenAiOptions_AcceptsVariousApiKeyFormats(string apiKey)
     {
         // Arrange & Act
-        var options = new OpenAiOptions { ApiKey = apiKey };
+        OpenAiOptions options = new()
+        { ApiKey = apiKey };
 
         // Assert
-        options.ApiKey.Should().Be(apiKey);
+        _ = options.ApiKey.Should().Be(apiKey);
     }
 }
 
@@ -196,51 +202,54 @@ public sealed class OllamaOptionsTests
     public void OllamaOptions_DefaultValues_AreCorrect()
     {
         // Arrange & Act
-        var options = new OllamaOptions();
+        OllamaOptions options = new();
 
         // Assert
-        options.BaseUrl.Should().Be("http://localhost:11434");
-        options.DefaultModel.Should().Be("llama3.2");
-        options.DefaultTranscriberModel.Should().Be("whisper");
+        _ = options.BaseUrl.Should().Be("http://localhost:11434");
+        _ = options.DefaultModel.Should().Be("llama3.2");
+        _ = options.DefaultTranscriberModel.Should().Be("whisper");
     }
 
     [Fact]
     public void OllamaOptions_BaseUrl_CanBeSet()
     {
         // Arrange
-        var options = new OllamaOptions();
-
-        // Act
-        options.BaseUrl = "http://custom-ollama:11434";
+        OllamaOptions options = new()
+        {
+            // Act
+            BaseUrl = "http://custom-ollama:11434"
+        };
 
         // Assert
-        options.BaseUrl.Should().Be("http://custom-ollama:11434");
+        _ = options.BaseUrl.Should().Be("http://custom-ollama:11434");
     }
 
     [Fact]
     public void OllamaOptions_DefaultModel_CanBeSet()
     {
         // Arrange
-        var options = new OllamaOptions();
-
-        // Act
-        options.DefaultModel = "qwen3:4b";
+        OllamaOptions options = new()
+        {
+            // Act
+            DefaultModel = "qwen3:4b"
+        };
 
         // Assert
-        options.DefaultModel.Should().Be("qwen3:4b");
+        _ = options.DefaultModel.Should().Be("qwen3:4b");
     }
 
     [Fact]
     public void OllamaOptions_DefaultTranscriberModel_CanBeSet()
     {
         // Arrange
-        var options = new OllamaOptions();
-
-        // Act
-        options.DefaultTranscriberModel = "whisper-large-v3";
+        OllamaOptions options = new()
+        {
+            // Act
+            DefaultTranscriberModel = "whisper-large-v3"
+        };
 
         // Assert
-        options.DefaultTranscriberModel.Should().Be("whisper-large-v3");
+        _ = options.DefaultTranscriberModel.Should().Be("whisper-large-v3");
     }
 
     [Theory]
@@ -251,10 +260,11 @@ public sealed class OllamaOptionsTests
     public void OllamaOptions_AcceptsVariousBaseUrls(string baseUrl)
     {
         // Arrange & Act
-        var options = new OllamaOptions { BaseUrl = baseUrl };
+        OllamaOptions options = new()
+        { BaseUrl = baseUrl };
 
         // Assert
-        options.BaseUrl.Should().Be(baseUrl);
+        _ = options.BaseUrl.Should().Be(baseUrl);
     }
 
     [Theory]
@@ -265,10 +275,11 @@ public sealed class OllamaOptionsTests
     public void OllamaOptions_AcceptsVariousModels(string model)
     {
         // Arrange & Act
-        var options = new OllamaOptions { DefaultModel = model };
+        OllamaOptions options = new()
+        { DefaultModel = model };
 
         // Assert
-        options.DefaultModel.Should().Be(model);
+        _ = options.DefaultModel.Should().Be(model);
     }
 }
 
@@ -281,19 +292,19 @@ public sealed class GoogleOptionsTests
     public void GoogleOptions_DefaultValues_AreCorrect()
     {
         // Arrange & Act
-        var options = new GoogleOptions();
+        GoogleOptions options = new();
 
         // Assert
-        options.Speech.Should().NotBeNull();
-        options.Gemini.Should().NotBeNull();
+        _ = options.Speech.Should().NotBeNull();
+        _ = options.Gemini.Should().NotBeNull();
     }
 
     [Fact]
     public void GoogleOptions_SpeechOptions_CanBeSet()
     {
         // Arrange
-        var options = new GoogleOptions();
-        var speechOptions = new GoogleSpeechOptions
+        GoogleOptions options = new();
+        GoogleSpeechOptions speechOptions = new()
         {
             ProjectId = "test-project",
             Location = "europe-west1"
@@ -303,16 +314,16 @@ public sealed class GoogleOptionsTests
         options.Speech = speechOptions;
 
         // Assert
-        options.Speech.Should().BeSameAs(speechOptions);
-        options.Speech.ProjectId.Should().Be("test-project");
+        _ = options.Speech.Should().BeSameAs(speechOptions);
+        _ = options.Speech.ProjectId.Should().Be("test-project");
     }
 
     [Fact]
     public void GoogleOptions_GeminiOptions_CanBeSet()
     {
         // Arrange
-        var options = new GoogleOptions();
-        var geminiOptions = new GoogleGeminiOptions
+        GoogleOptions options = new();
+        GoogleGeminiOptions geminiOptions = new()
         {
             ApiKey = "gemini-api-key"
         };
@@ -321,8 +332,8 @@ public sealed class GoogleOptionsTests
         options.Gemini = geminiOptions;
 
         // Assert
-        options.Gemini.Should().BeSameAs(geminiOptions);
-        options.Gemini.ApiKey.Should().Be("gemini-api-key");
+        _ = options.Gemini.Should().BeSameAs(geminiOptions);
+        _ = options.Gemini.ApiKey.Should().Be("gemini-api-key");
     }
 }
 
@@ -335,23 +346,24 @@ public sealed class GoogleGeminiOptionsTests
     public void GoogleGeminiOptions_DefaultValues_AreCorrect()
     {
         // Arrange & Act
-        var options = new GoogleGeminiOptions();
+        GoogleGeminiOptions options = new();
 
         // Assert
-        options.ApiKey.Should().BeEmpty();
+        _ = options.ApiKey.Should().BeEmpty();
     }
 
     [Fact]
     public void GoogleGeminiOptions_ApiKey_CanBeSet()
     {
         // Arrange
-        var options = new GoogleGeminiOptions();
-
-        // Act
-        options.ApiKey = "test-gemini-api-key";
+        GoogleGeminiOptions options = new()
+        {
+            // Act
+            ApiKey = "test-gemini-api-key"
+        };
 
         // Assert
-        options.ApiKey.Should().Be("test-gemini-api-key");
+        _ = options.ApiKey.Should().Be("test-gemini-api-key");
     }
 
     [Theory]
@@ -361,10 +373,11 @@ public sealed class GoogleGeminiOptionsTests
     public void GoogleGeminiOptions_AcceptsVariousApiKeyFormats(string apiKey)
     {
         // Arrange & Act
-        var options = new GoogleGeminiOptions { ApiKey = apiKey };
+        GoogleGeminiOptions options = new()
+        { ApiKey = apiKey };
 
         // Assert
-        options.ApiKey.Should().Be(apiKey);
+        _ = options.ApiKey.Should().Be(apiKey);
     }
 }
 
@@ -377,111 +390,117 @@ public sealed class GoogleSpeechOptionsTests
     public void GoogleSpeechOptions_DefaultValues_AreCorrect()
     {
         // Arrange & Act
-        var options = new GoogleSpeechOptions();
+        GoogleSpeechOptions options = new();
 
         // Assert
-        options.ProjectId.Should().BeEmpty();
-        options.Location.Should().Be("us-central1");
-        options.RecognizerId.Should().Be("default");
-        options.DefaultLanguageCode.Should().Be("en-US");
-        options.DefaultModelId.Should().Be("long");
-        options.SupportedModels.Should().Contain("long");
-        options.SupportedModels.Should().Contain("short");
-        options.SupportedModels.Should().Contain("chirp");
-        options.SupportedModels.Should().Contain("chirp-v2");
-        options.SupportedModels.Should().Contain("medical_dictation");
+        _ = options.ProjectId.Should().BeEmpty();
+        _ = options.Location.Should().Be("us-central1");
+        _ = options.RecognizerId.Should().Be("default");
+        _ = options.DefaultLanguageCode.Should().Be("en-US");
+        _ = options.DefaultModelId.Should().Be("long");
+        _ = options.SupportedModels.Should().Contain("long");
+        _ = options.SupportedModels.Should().Contain("short");
+        _ = options.SupportedModels.Should().Contain("chirp");
+        _ = options.SupportedModels.Should().Contain("chirp-v2");
+        _ = options.SupportedModels.Should().Contain("medical_dictation");
     }
 
     [Fact]
     public void GoogleSpeechOptions_ProjectId_CanBeSet()
     {
         // Arrange
-        var options = new GoogleSpeechOptions();
-
-        // Act
-        options.ProjectId = "my-project";
+        GoogleSpeechOptions options = new()
+        {
+            // Act
+            ProjectId = "my-project"
+        };
 
         // Assert
-        options.ProjectId.Should().Be("my-project");
+        _ = options.ProjectId.Should().Be("my-project");
     }
 
     [Fact]
     public void GoogleSpeechOptions_Location_CanBeSet()
     {
         // Arrange
-        var options = new GoogleSpeechOptions();
-
-        // Act
-        options.Location = "europe-west1";
+        GoogleSpeechOptions options = new()
+        {
+            // Act
+            Location = "europe-west1"
+        };
 
         // Assert
-        options.Location.Should().Be("europe-west1");
+        _ = options.Location.Should().Be("europe-west1");
     }
 
     [Fact]
     public void GoogleSpeechOptions_RecognizerId_CanBeSet()
     {
         // Arrange
-        var options = new GoogleSpeechOptions();
-
-        // Act
-        options.RecognizerId = "custom-recognizer";
+        GoogleSpeechOptions options = new()
+        {
+            // Act
+            RecognizerId = "custom-recognizer"
+        };
 
         // Assert
-        options.RecognizerId.Should().Be("custom-recognizer");
+        _ = options.RecognizerId.Should().Be("custom-recognizer");
     }
 
     [Fact]
     public void GoogleSpeechOptions_CredentialsPath_CanBeSet()
     {
         // Arrange
-        var options = new GoogleSpeechOptions();
-
-        // Act
-        options.CredentialsPath = "/path/to/credentials.json";
+        GoogleSpeechOptions options = new()
+        {
+            // Act
+            CredentialsPath = "/path/to/credentials.json"
+        };
 
         // Assert
-        options.CredentialsPath.Should().Be("/path/to/credentials.json");
+        _ = options.CredentialsPath.Should().Be("/path/to/credentials.json");
     }
 
     [Fact]
     public void GoogleSpeechOptions_DefaultLanguageCode_CanBeSet()
     {
         // Arrange
-        var options = new GoogleSpeechOptions();
-
-        // Act
-        options.DefaultLanguageCode = "de-DE";
+        GoogleSpeechOptions options = new()
+        {
+            // Act
+            DefaultLanguageCode = "de-DE"
+        };
 
         // Assert
-        options.DefaultLanguageCode.Should().Be("de-DE");
+        _ = options.DefaultLanguageCode.Should().Be("de-DE");
     }
 
     [Fact]
     public void GoogleSpeechOptions_DefaultModelId_CanBeSet()
     {
         // Arrange
-        var options = new GoogleSpeechOptions();
-
-        // Act
-        options.DefaultModelId = "chirp";
+        GoogleSpeechOptions options = new()
+        {
+            // Act
+            DefaultModelId = "chirp"
+        };
 
         // Assert
-        options.DefaultModelId.Should().Be("chirp");
+        _ = options.DefaultModelId.Should().Be("chirp");
     }
 
     [Fact]
     public void GoogleSpeechOptions_SupportedModels_CanBeSet()
     {
         // Arrange
-        var options = new GoogleSpeechOptions();
-        var customModels = new[] { "custom-model-1", "custom-model-2" };
+        GoogleSpeechOptions options = new();
+        string[] customModels = new[] { "custom-model-1", "custom-model-2" };
 
         // Act
         options.SupportedModels = customModels;
 
         // Assert
-        options.SupportedModels.Should().BeEquivalentTo(customModels);
+        _ = options.SupportedModels.Should().BeEquivalentTo(customModels);
     }
 
     [Theory]
@@ -492,10 +511,11 @@ public sealed class GoogleSpeechOptionsTests
     public void GoogleSpeechOptions_AcceptsVariousLocations(string location)
     {
         // Arrange & Act
-        var options = new GoogleSpeechOptions { Location = location };
+        GoogleSpeechOptions options = new()
+        { Location = location };
 
         // Assert
-        options.Location.Should().Be(location);
+        _ = options.Location.Should().Be(location);
     }
 
     [Theory]
@@ -506,10 +526,11 @@ public sealed class GoogleSpeechOptionsTests
     public void GoogleSpeechOptions_AcceptsVariousLanguageCodes(string languageCode)
     {
         // Arrange & Act
-        var options = new GoogleSpeechOptions { DefaultLanguageCode = languageCode };
+        GoogleSpeechOptions options = new()
+        { DefaultLanguageCode = languageCode };
 
         // Assert
-        options.DefaultLanguageCode.Should().Be(languageCode);
+        _ = options.DefaultLanguageCode.Should().Be(languageCode);
     }
 }
 
@@ -522,45 +543,49 @@ public sealed class TranscriberOptionsTests
     public void TranscriberOptions_DefaultValues_AreCorrect()
     {
         // Arrange & Act
-        var options = new TranscriberOptions();
+        TranscriberOptions options = new();
 
         // Assert
-        options.ModelId.Should().BeNull();
+        _ = options.ModelId.Should().BeNull();
     }
 
     [Fact]
     public void TranscriberOptions_WithModelId_SetsCorrectly()
     {
         // Arrange & Act
-        var options = new TranscriberOptions
+        TranscriberOptions options = new()
         {
             ModelId = "whisper-large-v3"
         };
 
         // Assert
-        options.ModelId.Should().Be("whisper-large-v3");
+        _ = options.ModelId.Should().Be("whisper-large-v3");
     }
 
     [Fact]
     public void TranscriberOptions_Equality_WorksCorrectly()
     {
         // Arrange
-        var options1 = new TranscriberOptions { ModelId = "whisper" };
-        var options2 = new TranscriberOptions { ModelId = "whisper" };
+        TranscriberOptions options1 = new()
+        { ModelId = "whisper" };
+        TranscriberOptions options2 = new()
+        { ModelId = "whisper" };
 
         // Assert
-        options1.Should().Be(options2);
+        _ = options1.Should().Be(options2);
     }
 
     [Fact]
     public void TranscriberOptions_Inequality_WhenModelIdDiffers()
     {
         // Arrange
-        var options1 = new TranscriberOptions { ModelId = "whisper" };
-        var options2 = new TranscriberOptions { ModelId = "gpt-4o-transcribe" };
+        TranscriberOptions options1 = new()
+        { ModelId = "whisper" };
+        TranscriberOptions options2 = new()
+        { ModelId = "gpt-4o-transcribe" };
 
         // Assert
-        options1.Should().NotBe(options2);
+        _ = options1.Should().NotBe(options2);
     }
 
     [Theory]
@@ -572,9 +597,10 @@ public sealed class TranscriberOptionsTests
     public void TranscriberOptions_AcceptsVariousModelIds(string modelId)
     {
         // Arrange & Act
-        var options = new TranscriberOptions { ModelId = modelId };
+        TranscriberOptions options = new()
+        { ModelId = modelId };
 
         // Assert
-        options.ModelId.Should().Be(modelId);
+        _ = options.ModelId.Should().Be(modelId);
     }
 }

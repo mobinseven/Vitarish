@@ -37,7 +37,7 @@ internal sealed class EmbeddedIcsCalendarAnnotationSource : ICalendarAnnotationS
             return null;
         }
 
-        using var reader = new StreamReader(stream);
+        using StreamReader reader = new(stream);
         return reader.ReadToEnd();
     }
 }

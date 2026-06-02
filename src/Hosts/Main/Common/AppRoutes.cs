@@ -43,17 +43,11 @@ public static partial class AppRoutes
     private static string IntValue(int value) =>
         value.ToString(CultureInfo.InvariantCulture);
 
-    private static string SlugValue(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Path segment cannot be null or whitespace.", nameof(value));
-        return Uri.EscapeDataString(value);
-    }
+    private static string SlugValue(string value) => string.IsNullOrWhiteSpace(value)
+            ? throw new ArgumentException("Path segment cannot be null or whitespace.", nameof(value))
+            : Uri.EscapeDataString(value);
 
-    private static string CodeValue(string value)
-    {
-        if (string.IsNullOrWhiteSpace(value))
-            throw new ArgumentException("Path segment cannot be null or whitespace.", nameof(value));
-        return Uri.EscapeDataString(value);
-    }
+    private static string CodeValue(string value) => string.IsNullOrWhiteSpace(value)
+            ? throw new ArgumentException("Path segment cannot be null or whitespace.", nameof(value))
+            : Uri.EscapeDataString(value);
 }

@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Prescription.Application.Queries;
+using Vitarish.Prescription.Domain.Entities;
 using Vitarish.Prescription.Domain.Enums;
 using Vitarish.Prescription.Infrastructure.Data;
 
@@ -22,27 +23,34 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
         GetProviderTransactionMetricsQuery request, CancellationToken cancellationToken)
     {
         // Derive transaction metrics from PrescriptionProviderSubmission records
-        var query = dbContext.PrescriptionSubmissions.AsQueryable();
+        IQueryable<PrescriptionProviderSubmission> query = dbContext.PrescriptionSubmissions.AsQueryable();
 
         if (!string.IsNullOrEmpty(request.ProviderKey))
+        {
             query = query.Where(s => s.ProviderKey == request.ProviderKey);
+        }
 
         if (request.From.HasValue)
+        {
             query = query.Where(s => s.SubmittedAt >= request.From.Value);
+        }
+
         if (request.To.HasValue)
+        {
             query = query.Where(s => s.SubmittedAt <= request.To.Value);
+        }
 
-        var submissions = await query.ToListAsync(cancellationToken);
+        List<PrescriptionProviderSubmission> submissions = await query.ToListAsync(cancellationToken);
 
-        var metrics = submissions
+        List<ProviderTransactionMetricsDto> metrics = submissions
             .GroupBy(s => new { s.ProviderKey, s.OperationName })
             .Select(g =>
             {
-                var successCount = g.Count(s => s.CanonicalStatus == PrescriptionStatus.AcceptedByProvider ||
-                                               s.CanonicalStatus == PrescriptionStatus.Submitted);
-                var failureCount = g.Count(s => s.CanonicalStatus == PrescriptionStatus.RejectedByProvider ||
-                                               s.CanonicalStatus == PrescriptionStatus.SyncFailed);
-                var total = g.Count();
+                int successCount = g.Count(s => s.CanonicalStatus is PrescriptionStatus.AcceptedByProvider or
+                                               PrescriptionStatus.Submitted);
+                int failureCount = g.Count(s => s.CanonicalStatus is PrescriptionStatus.RejectedByProvider or
+                                               PrescriptionStatus.SyncFailed);
+                int total = g.Count();
 
                 return new ProviderTransactionMetricsDto
                 {
@@ -69,21 +77,28 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
     public async Task<IReadOnlyList<RejectionDistributionDto>> Handle(
         GetRejectionDistributionQuery request, CancellationToken cancellationToken)
     {
-        var query = dbContext.PrescriptionSubmissions
+        IQueryable<PrescriptionProviderSubmission> query = dbContext.PrescriptionSubmissions
             .Where(s => s.CanonicalStatus == PrescriptionStatus.RejectedByProvider);
 
         if (request.From.HasValue)
+        {
             query = query.Where(s => s.SubmittedAt >= request.From.Value);
+        }
+
         if (request.To.HasValue)
+        {
             query = query.Where(s => s.SubmittedAt <= request.To.Value);
+        }
 
         if (!string.IsNullOrEmpty(request.ProviderKey))
+        {
             query = query.Where(r => r.ProviderKey == request.ProviderKey);
+        }
 
-        var rejections = await query.ToListAsync(cancellationToken);
-        var totalRejections = rejections.Count;
+        List<PrescriptionProviderSubmission> rejections = await query.ToListAsync(cancellationToken);
+        int totalRejections = rejections.Count;
 
-        var distribution = rejections
+        List<RejectionDistributionDto> distribution = rejections
             .GroupBy(r => new { r.ProviderKey, ErrorCategory = r.RemoteStatusCode ?? "Unknown" })
             .Select(g => new RejectionDistributionDto
             {
@@ -102,22 +117,26 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
     public async Task<CredentialHealthResult> Handle(
         GetCredentialHealthQuery request, CancellationToken cancellationToken)
     {
-        var query = dbContext.DoctorProviderCredentials.AsQueryable();
+        IQueryable<DoctorProviderCredential> query = dbContext.DoctorProviderCredentials.AsQueryable();
 
         if (request.ClinicId.HasValue)
+        {
             query = query.Where(c => c.ClinicId == request.ClinicId.Value);
+        }
 
         if (!string.IsNullOrEmpty(request.ProviderKey))
-            query = query.Where(c => c.ProviderKey == request.ProviderKey);
-
-        var credentials = await query.ToListAsync(cancellationToken);
-
-        var now = DateTimeOffset.UtcNow;
-        var soonThreshold = now.Add(CredentialExpirySoonThreshold);
-
-        var healthDtos = credentials.Select(c =>
         {
-            var daysUntilExpiry = c.ExpiresAt.HasValue
+            query = query.Where(c => c.ProviderKey == request.ProviderKey);
+        }
+
+        List<DoctorProviderCredential> credentials = await query.ToListAsync(cancellationToken);
+
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTimeOffset soonThreshold = now.Add(CredentialExpirySoonThreshold);
+
+        List<CredentialHealthDto> healthDtos = credentials.Select(c =>
+        {
+            int daysUntilExpiry = c.ExpiresAt.HasValue
                 ? (int)(c.ExpiresAt.Value - now).TotalDays
                 : int.MaxValue;
 
@@ -148,11 +167,11 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
     public async Task<IReadOnlyList<OperationalAlertDto>> Handle(
         GetOperationalAlertsQuery request, CancellationToken cancellationToken)
     {
-        var alerts = new List<OperationalAlertDto>();
-        var now = DateTimeOffset.UtcNow;
+        List<OperationalAlertDto> alerts = [];
+        DateTimeOffset now = DateTimeOffset.UtcNow;
 
         // 1. Credential expiration warnings
-        var expiringCredentials = await dbContext.DoctorProviderCredentials
+        int expiringCredentials = await dbContext.DoctorProviderCredentials
             .Where(c => c.Status == CredentialStatus.Active &&
                         c.ExpiresAt != null &&
                         c.ExpiresAt <= now.Add(CredentialExpirySoonThreshold))
@@ -170,7 +189,7 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
             });
         }
 
-        var expiredCredentials = await dbContext.DoctorProviderCredentials
+        int expiredCredentials = await dbContext.DoctorProviderCredentials
             .Where(c => c.Status == CredentialStatus.Expired)
             .CountAsync(cancellationToken);
 
@@ -187,7 +206,7 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
         }
 
         // 2. Provider outage detection (high recent transport/provider availability failure rate)
-        var recentWindow = now.AddHours(-1);
+        DateTimeOffset recentWindow = now.AddHours(-1);
         var recentSubmissionCalls = dbContext.PrescriptionSubmissions
             .Where(s => s.SubmittedAt >= recentWindow)
             .Select(s => new
@@ -209,7 +228,9 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
 
         var recentProviderCalls = recentSubmissionCalls.Concat(recentFailedPrescriptionCalls);
         if (!string.IsNullOrEmpty(request.ProviderKey))
+        {
             recentProviderCalls = recentProviderCalls.Where(c => c.ProviderKey == request.ProviderKey);
+        }
 
         var recentOutages = await recentProviderCalls
             .GroupBy(c => c.ProviderKey)
@@ -236,9 +257,9 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
         }
 
         // 4. Retry queue depth alerts
-        var pendingStatus = "Pending";
-        var processingStatus = "Processing";
-        var queueDepth = await dbContext.OutboxRecords
+        string pendingStatus = "Pending";
+        string processingStatus = "Processing";
+        int queueDepth = await dbContext.OutboxRecords
             .Where(r => r.Status == pendingStatus || r.Status == processingStatus)
             .CountAsync(cancellationToken);
 
@@ -266,7 +287,7 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
         }
 
         // 5. Duplicate risk incidents pending
-        var pendingDuplicateRisks = await dbContext.Prescriptions
+        int pendingDuplicateRisks = await dbContext.Prescriptions
             .Where(p => p.Status == PrescriptionStatus.DuplicateRisk)
             .CountAsync(cancellationToken);
 
@@ -290,18 +311,26 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
     public async Task<IReadOnlyList<StatusDistributionDto>> Handle(
         GetPrescriptionStatusDistributionQuery request, CancellationToken cancellationToken)
     {
-        var query = dbContext.Prescriptions.AsQueryable();
+        IQueryable<PrescriptionRecord> query = dbContext.Prescriptions.AsQueryable();
 
         if (!string.IsNullOrEmpty(request.ProviderKey))
+        {
             query = query.Where(p => p.SelectedProviderKey == request.ProviderKey);
+        }
+
         if (request.From.HasValue)
+        {
             query = query.Where(p => p.CreatedAt >= request.From.Value);
+        }
+
         if (request.To.HasValue)
+        {
             query = query.Where(p => p.CreatedAt <= request.To.Value);
+        }
 
-        var total = await query.CountAsync(cancellationToken);
+        int total = await query.CountAsync(cancellationToken);
 
-        var distribution = await query
+        List<StatusDistributionDto> distribution = await query
             .GroupBy(p => new { p.Status, p.SelectedProviderKey })
             .Select(g => new StatusDistributionDto
             {
@@ -319,18 +348,26 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
     public async Task<DuplicateRiskIncidentsResult> Handle(
         GetDuplicateRiskIncidentsQuery request, CancellationToken cancellationToken)
     {
-        var query = dbContext.Prescriptions
+        IQueryable<PrescriptionRecord> query = dbContext.Prescriptions
             .Where(p => p.Status == PrescriptionStatus.DuplicateRisk ||
                         p.Status == PrescriptionStatus.ManuallyReconciled);
 
         if (!string.IsNullOrEmpty(request.ProviderKey))
+        {
             query = query.Where(p => p.SelectedProviderKey == request.ProviderKey);
-        if (request.From.HasValue)
-            query = query.Where(p => p.UpdatedAt >= request.From.Value || p.CreatedAt >= request.From.Value);
-        if (request.To.HasValue)
-            query = query.Where(p => p.UpdatedAt <= request.To.Value || p.CreatedAt <= request.To.Value);
+        }
 
-        var incidents = await query
+        if (request.From.HasValue)
+        {
+            query = query.Where(p => p.UpdatedAt >= request.From.Value || p.CreatedAt >= request.From.Value);
+        }
+
+        if (request.To.HasValue)
+        {
+            query = query.Where(p => p.UpdatedAt <= request.To.Value || p.CreatedAt <= request.To.Value);
+        }
+
+        List<DuplicateRiskIncidentDto> incidents = await query
             .OrderByDescending(p => p.UpdatedAt ?? p.CreatedAt)
             .Take(request.Take)
             .Select(p => new DuplicateRiskIncidentDto
@@ -344,10 +381,10 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
             })
             .ToListAsync(cancellationToken);
 
-        var totalDuplicateRisk = await query
+        int totalDuplicateRisk = await query
             .CountAsync(p => p.Status == PrescriptionStatus.DuplicateRisk, cancellationToken);
 
-        var totalReconciled = await query
+        int totalReconciled = await query
             .CountAsync(p => p.Status == PrescriptionStatus.ManuallyReconciled, cancellationToken);
 
         return new DuplicateRiskIncidentsResult

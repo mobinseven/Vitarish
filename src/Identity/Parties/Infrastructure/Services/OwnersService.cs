@@ -3,7 +3,6 @@ using Vitarish.Entities.Server.Services;
 using Vitarish.Parties.Domain.Descriptors;
 using Vitarish.Parties.Domain.Dtos;
 using Vitarish.Parties.Domain.Entities;
-using Vitarish.Parties.Domain.Mappers;
 
 namespace Vitarish.Parties.Infrastructure.Services;
 

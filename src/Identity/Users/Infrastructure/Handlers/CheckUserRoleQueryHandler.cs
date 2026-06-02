@@ -1,6 +1,5 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Infrastructure.Data;
 

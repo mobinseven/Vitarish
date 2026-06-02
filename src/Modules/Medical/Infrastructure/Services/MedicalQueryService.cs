@@ -16,7 +16,11 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
     public async Task<IReadOnlyList<CodeSystem>> ListCodeSystemsAsync(bool activeOnly, CancellationToken cancellationToken)
     {
         IQueryable<CodeSystem> query = dbContext.CodeSystems.AsNoTracking();
-        if (activeOnly) query = query.Where(cs => cs.IsActive);
+        if (activeOnly)
+        {
+            query = query.Where(cs => cs.IsActive);
+        }
+
         return await query.OrderBy(cs => cs.Name).ToListAsync(cancellationToken);
     }
 
@@ -45,7 +49,11 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
         IQueryable<CodeSystemRelease> query = dbContext.CodeSystemReleases.AsNoTracking()
             .Where(r => r.CodeSystemId == codeSystemId);
 
-        if (activeOnly) query = query.Where(r => r.IsActive);
+        if (activeOnly)
+        {
+            query = query.Where(r => r.IsActive);
+        }
+
         return await query.OrderByDescending(r => r.ReleaseDate).ToListAsync(cancellationToken);
     }
 
@@ -54,7 +62,11 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
         if (!releaseId.HasValue)
         {
             CodeSystemRelease? activeRelease = await GetActiveReleaseAsync(systemKey, asOfDate, cancellationToken);
-            if (activeRelease is null) return null;
+            if (activeRelease is null)
+            {
+                return null;
+            }
+
             releaseId = activeRelease.Id;
         }
 
@@ -83,7 +95,11 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
         if (!releaseId.HasValue)
         {
             CodeSystemRelease? activeRelease = await GetActiveReleaseAsync(systemKey, asOfDate, cancellationToken);
-            if (activeRelease is null) return Array.Empty<MedicalCode>();
+            if (activeRelease is null)
+            {
+                return Array.Empty<MedicalCode>();
+            }
+
             releaseId = activeRelease.Id;
         }
 
@@ -254,7 +270,11 @@ internal sealed class MedicalQueryService(MedicalDbContext dbContext) : IMedical
         if (!releaseId.HasValue)
         {
             CodeSystemRelease? activeRelease = await GetActiveReleaseAsync(systemKey, asOfDate, cancellationToken);
-            if (activeRelease is null) return null;
+            if (activeRelease is null)
+            {
+                return null;
+            }
+
             releaseId = activeRelease.Id;
         }
 

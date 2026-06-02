@@ -80,12 +80,9 @@ public sealed class TemporaryAutoAuthLinkRedeemer(
                     cancellationToken)
             : await ConsumeWithInMemoryFallbackAsync(link.Id, codeHash, now, request.ConsumedByIp, request.ConsumedByUserAgent, cancellationToken);
 
-        if (updated != 1)
-        {
-            return new RedeemTemporaryAutoAuthLinkResult(false);
-        }
-
-        return new RedeemTemporaryAutoAuthLinkResult(
+        return updated != 1
+            ? new RedeemTemporaryAutoAuthLinkResult(false)
+            : new RedeemTemporaryAutoAuthLinkResult(
             true,
             link.Id,
             link.UserId,

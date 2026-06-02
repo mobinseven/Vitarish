@@ -29,17 +29,14 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
         get
         {
             string? tenantId = _requestContext.TenantId;
-            if (tenantId is null)
-            {
-                return null;
-            }
-
-            return new TenantInfo
-            {
-                Id = tenantId,
-                Identifier = tenantId,
-                Name = tenantId
-            };
+            return tenantId is null
+                ? null
+                : (ITenantInfo)new TenantInfo
+                {
+                    Id = tenantId,
+                    Identifier = tenantId,
+                    Name = tenantId
+                };
         }
     }
 

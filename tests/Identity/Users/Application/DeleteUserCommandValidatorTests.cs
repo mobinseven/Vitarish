@@ -26,6 +26,6 @@ public class DeleteUserCommandValidatorTests
 
         TestValidationResult<DeleteUserCommand> result = validator.TestValidate(command);
 
-        result.ShouldHaveValidationErrorFor(c => c.Id);
+        _ = result.ShouldHaveValidationErrorFor(c => c.Id);
     }
 }

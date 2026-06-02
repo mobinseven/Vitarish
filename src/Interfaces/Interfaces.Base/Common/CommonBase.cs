@@ -1,6 +1,4 @@
 using Vitarish.Entities.Server.Models;
-using Vitarish.Interfaces.Base.Abstractions;
-using Vitarish.Interfaces.Base.Models;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Interfaces.Base.Common;

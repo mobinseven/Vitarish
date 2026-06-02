@@ -83,12 +83,12 @@ internal sealed class SyncProviderCodesHandler(MedicalDbContext dbContext)
                 dbContext.CodeSystemReleases.RemoveRange(incompleteReleases);
 
                 existingBatch.HardDelete();
-                dbContext.ImportBatches.Remove(existingBatch);
+                _ = dbContext.ImportBatches.Remove(existingBatch);
                 _ = await dbContext.SaveChangesAsync(cancellationToken);
             }
 
             // Create import batch
-            var importBatch = new ImportBatch
+            ImportBatch importBatch = new()
             {
                 Id = Guid.NewGuid(),
                 SourceType = ImportSourceType.InsuranceProvider,
@@ -100,7 +100,7 @@ internal sealed class SyncProviderCodesHandler(MedicalDbContext dbContext)
             _ = await dbContext.ImportBatches.AddAsync(importBatch, cancellationToken);
 
             // Create the new release (inactive until codes are imported)
-            var release = new CodeSystemRelease
+            CodeSystemRelease release = new()
             {
                 Id = Guid.NewGuid(),
                 CodeSystemId = codeSystem.Id,
@@ -115,7 +115,7 @@ internal sealed class SyncProviderCodesHandler(MedicalDbContext dbContext)
             _ = await dbContext.SaveChangesAsync(cancellationToken);
 
             // Import codes
-            var codes = new List<MedicalCode>(request.Codes.Count);
+            List<MedicalCode> codes = new(request.Codes.Count);
             foreach (SyncProviderCodeItem item in request.Codes)
             {
                 codes.Add(new MedicalCode

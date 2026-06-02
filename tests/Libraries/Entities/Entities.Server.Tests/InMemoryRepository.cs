@@ -1,5 +1,3 @@
-using System.Collections.Concurrent;
-
 namespace Entities.Server.Tests;
 
 public class InMemoryRepository : IEntityRepository<TestEntity, TestDescriptor>
@@ -14,7 +12,7 @@ public class InMemoryRepository : IEntityRepository<TestEntity, TestDescriptor>
 
     public Task<IReadOnlyList<TestEntity>> AddRangeAsync(IReadOnlyList<TestEntity> entities, CancellationToken cancellationToken)
     {
-        foreach(TestEntity e in entities)
+        foreach (TestEntity e in entities)
         {
             _store[e.Id] = e;
         }
@@ -47,7 +45,7 @@ public class InMemoryRepository : IEntityRepository<TestEntity, TestDescriptor>
 
     public Task RemoveRangeAsync(IReadOnlyList<TestEntity> entities, CancellationToken cancellationToken)
     {
-        foreach(TestEntity e in entities)
+        foreach (TestEntity e in entities)
         {
             _ = _store.TryRemove(e.Id, out _);
         }
@@ -62,7 +60,7 @@ public class InMemoryRepository : IEntityRepository<TestEntity, TestDescriptor>
 
     public Task UpdateRangeAsync(IReadOnlyList<TestEntity> entities, CancellationToken cancellationToken)
     {
-        foreach(TestEntity e in entities)
+        foreach (TestEntity e in entities)
         {
             _store[e.Id] = e;
         }
@@ -83,7 +81,7 @@ public class InMemoryRepository : IEntityRepository<TestEntity, TestDescriptor>
 
     public Task HardDeleteRangeAsync(IReadOnlyList<TestEntity> entities, CancellationToken cancellationToken)
     {
-        foreach(TestEntity e in entities)
+        foreach (TestEntity e in entities)
         {
             _ = _store.TryRemove(e.Id, out _);
         }

@@ -27,7 +27,7 @@ public sealed class DeepSeekResponder(IOptionsMonitor<AiOptions> aiOptions) : IR
     {
         List<ResponderOutput> outputs = [];
 
-        await foreach(ResponderOutput item in StreamAsync(input, options, ct).ConfigureAwait(false))
+        await foreach (ResponderOutput item in StreamAsync(input, options, ct).ConfigureAwait(false))
         {
             outputs.Add(item);
         }
@@ -48,11 +48,11 @@ public sealed class DeepSeekResponder(IOptionsMonitor<AiOptions> aiOptions) : IR
 
         AsyncCollectionResult<StreamingChatCompletionUpdate> stream = client.CompleteChatStreamingAsync(messages, cancellationToken: ct);
 
-        await foreach(StreamingChatCompletionUpdate update in stream.WithCancellation(ct).ConfigureAwait(false))
+        await foreach (StreamingChatCompletionUpdate update in stream.WithCancellation(ct).ConfigureAwait(false))
         {
-            foreach(ChatMessageContentPart part in update.ContentUpdate)
+            foreach (ChatMessageContentPart part in update.ContentUpdate)
             {
-                if(string.IsNullOrEmpty(part.Text))
+                if (string.IsNullOrEmpty(part.Text))
                 {
                     continue;
                 }
@@ -65,21 +65,21 @@ public sealed class DeepSeekResponder(IOptionsMonitor<AiOptions> aiOptions) : IR
         // before emitting the visible text response.
         string visibleText = ExtractReasoningBlocks(accumulatedText, out IReadOnlyList<string> reasoningBlocks);
 
-        foreach(string reasoning in reasoningBlocks)
+        foreach (string reasoning in reasoningBlocks)
         {
             ResponderOutput reasoningOutput = ResponderOutput.ReasoningOutput(reasoning);
             aggregatedOutputs.Add(reasoningOutput);
             yield return reasoningOutput;
         }
 
-        if(!string.IsNullOrEmpty(visibleText))
+        if (!string.IsNullOrEmpty(visibleText))
         {
             ResponderOutput textOutput = ResponderOutput.TextOutput(visibleText);
             aggregatedOutputs.Add(textOutput);
             yield return textOutput;
         }
 
-        if(aggregatedOutputs.Count > 0)
+        if (aggregatedOutputs.Count > 0)
         {
             yield return ResponderOutput.CompletionOutput(responseId: null, content: [.. aggregatedOutputs], metadata: null);
         }
@@ -105,14 +105,14 @@ public sealed class DeepSeekResponder(IOptionsMonitor<AiOptions> aiOptions) : IR
     {
         List<ChatMessage> messages = [];
 
-        if(!string.IsNullOrWhiteSpace(options.Instructions))
+        if (!string.IsNullOrWhiteSpace(options.Instructions))
         {
             messages.Add(new SystemChatMessage(options.Instructions));
         }
 
-        foreach(ResponderInput item in input)
+        foreach (ResponderInput item in input)
         {
-            switch(item.Type)
+            switch (item.Type)
             {
                 case ResponderInputType.Text:
                     messages.Add(new UserChatMessage(item.Text ?? string.Empty));
@@ -141,7 +141,7 @@ public sealed class DeepSeekResponder(IOptionsMonitor<AiOptions> aiOptions) : IR
         {
             string content = match.Groups[1].Value.Trim();
 
-            if(!string.IsNullOrEmpty(content))
+            if (!string.IsNullOrEmpty(content))
             {
                 blocks.Add(content);
             }

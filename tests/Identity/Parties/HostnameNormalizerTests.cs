@@ -13,7 +13,7 @@ public class HostnameNormalizerTests
     [InlineData("MixedCase.Example.Com", "mixedcase.example.com")]
     public void Canonical_ConvertsToLowercase(string input, string expected)
     {
-        var result = HostnameNormalizer.Canonical(input);
+        string result = HostnameNormalizer.Canonical(input);
         Assert.Equal(expected, result);
     }
 
@@ -23,7 +23,7 @@ public class HostnameNormalizerTests
     [InlineData("multi.level.subdomain.com...", "multi.level.subdomain.com")]
     public void Canonical_RemovesTrailingDots(string input, string expected)
     {
-        var result = HostnameNormalizer.Canonical(input);
+        string result = HostnameNormalizer.Canonical(input);
         Assert.Equal(expected, result);
     }
 
@@ -33,7 +33,7 @@ public class HostnameNormalizerTests
     [InlineData("испытание.com", "xn--80akhbyknj4f.com")]
     public void Canonical_AppliesPunycode(string input, string expected)
     {
-        var result = HostnameNormalizer.Canonical(input);
+        string result = HostnameNormalizer.Canonical(input);
         Assert.Equal(expected, result);
     }
 
@@ -41,7 +41,7 @@ public class HostnameNormalizerTests
     public void Canonical_AppliesPunycode_ToArabic()
     {
         // Arabic IDN conversion
-        var result = HostnameNormalizer.Canonical("تست.example.com");
+        string result = HostnameNormalizer.Canonical("تست.example.com");
         // The actual punycode may vary based on implementation
         Assert.StartsWith("xn--", result);
         Assert.EndsWith(".example.com", result);
@@ -53,7 +53,7 @@ public class HostnameNormalizerTests
     [InlineData("subdomain.example.com:443", "subdomain.example.com")]
     public void Canonical_RemovesPort(string input, string expected)
     {
-        var result = HostnameNormalizer.Canonical(input);
+        string result = HostnameNormalizer.Canonical(input);
         Assert.Equal(expected, result);
     }
 
@@ -63,7 +63,7 @@ public class HostnameNormalizerTests
     [InlineData(" subdomain.example.com ", "subdomain.example.com")]
     public void Canonical_TrimsWhitespace(string input, string expected)
     {
-        var result = HostnameNormalizer.Canonical(input);
+        string result = HostnameNormalizer.Canonical(input);
         Assert.Equal(expected, result);
     }
 
@@ -72,7 +72,7 @@ public class HostnameNormalizerTests
     [InlineData("  SubDomain.Example.COM.  ", "subdomain.example.com")]
     public void Canonical_CombinesAllNormalizations(string input, string expected)
     {
-        var result = HostnameNormalizer.Canonical(input);
+        string result = HostnameNormalizer.Canonical(input);
         Assert.Equal(expected, result);
     }
 
@@ -83,7 +83,7 @@ public class HostnameNormalizerTests
     public void Canonical_HandlesEmptyInput(string input)
     {
         // Empty/whitespace input results in empty string after normalization
-        var result = HostnameNormalizer.Canonical(input);
+        string result = HostnameNormalizer.Canonical(input);
         Assert.Equal(string.Empty, result);
     }
 }

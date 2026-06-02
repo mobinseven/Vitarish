@@ -1,5 +1,5 @@
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Caching.Distributed;
+using Microsoft.Extensions.Caching.Memory;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Infrastructure.Extensions;
 
@@ -19,14 +19,14 @@ public class UserCacheExtensionsTests
 
         Task<User?> byIdTask = UserCacheExtensions.GetUserAsync(cache, "user-1", CancellationToken.None);
         Task<User?> byNameTask = UserCacheExtensions.GetUserByNameAsync(cache, "user1", CancellationToken.None);
-        await Task.WhenAll(byIdTask, byNameTask);
+        _ = await Task.WhenAll(byIdTask, byNameTask);
         User? byId = await byIdTask;
         User? byName = await byNameTask;
 
-        byId.Should().NotBeNull();
-        byId!.Id.Should().Be("user-1");
-        byName.Should().NotBeNull();
-        byName!.UserName.Should().Be("user1");
+        _ = byId.Should().NotBeNull();
+        _ = byId!.Id.Should().Be("user-1");
+        _ = byName.Should().NotBeNull();
+        _ = byName!.UserName.Should().Be("user1");
     }
 
     [Fact]
@@ -38,8 +38,8 @@ public class UserCacheExtensionsTests
         await UserCacheExtensions.SetUsersAsync(cache, users, CancellationToken.None);
         User[]? cached = await UserCacheExtensions.GetUsersAsync(cache, CancellationToken.None);
 
-        cached.Should().NotBeNull();
-        cached!.Select(u => u.Id).Should().BeEquivalentTo(["user-1", "user-2"]);
+        _ = cached.Should().NotBeNull();
+        _ = cached!.Select(u => u.Id).Should().BeEquivalentTo(["user-1", "user-2"]);
     }
 
     [Fact]
@@ -56,8 +56,8 @@ public class UserCacheExtensionsTests
         User? byName = await UserCacheExtensions.GetUserByNameAsync(cache, "user3", CancellationToken.None);
         User[]? users = await UserCacheExtensions.GetUsersAsync(cache, CancellationToken.None);
 
-        byId.Should().BeNull();
-        byName.Should().BeNull();
-        users.Should().BeNull();
+        _ = byId.Should().BeNull();
+        _ = byName.Should().BeNull();
+        _ = users.Should().BeNull();
     }
 }

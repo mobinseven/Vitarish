@@ -17,11 +17,13 @@ public partial class ShiftBookingPoliciesList : ShiftBookingPoliciesBase
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task AddAsync() { /* unchanged dialog flow */
+    private async Task AddAsync()
+    { /* unchanged dialog flow */
         DialogParameters parameters = new() { { nameof(ShiftBookingPolicyDialog.ShiftId), ShiftId } };
         IDialogReference dialog = await DialogService.ShowAsync<ShiftBookingPolicyDialog>(Localizer["AddItem", Localizer["BookingPolicy"]], parameters);
         DialogResult? result = await dialog.Result;
-        if (result is not null && !result.Canceled) { await LoadAsync(); await OnChanged.InvokeAsync(); }
+        if (result is not null && !result.Canceled)
+        { await LoadAsync(); await OnChanged.InvokeAsync(); }
     }
 
     private async Task EditAsync(ShiftBookingPolicyReadDto policy)
@@ -29,12 +31,14 @@ public partial class ShiftBookingPoliciesList : ShiftBookingPoliciesBase
         DialogParameters parameters = new() { { nameof(ShiftBookingPolicyDialog.ShiftId), ShiftId }, { nameof(ShiftBookingPolicyDialog.Policy), policy } };
         IDialogReference dialog = await DialogService.ShowAsync<ShiftBookingPolicyDialog>(Localizer["EditItem", Localizer["BookingPolicy"]], parameters);
         DialogResult? result = await dialog.Result;
-        if (result is not null && !result.Canceled) { await LoadAsync(); await OnChanged.InvokeAsync(); }
+        if (result is not null && !result.Canceled)
+        { await LoadAsync(); await OnChanged.InvokeAsync(); }
     }
 
     private async Task RemoveAsync(ShiftBookingPolicyReadDto policy)
     {
         EntityResult result = await BookingPolicyManager.RemoveAsync(policy.Id, CancellationToken.None);
-        if (result.IsSuccess) { await LoadAsync(); await OnChanged.InvokeAsync(); }
+        if (result.IsSuccess)
+        { await LoadAsync(); await OnChanged.InvokeAsync(); }
     }
 }

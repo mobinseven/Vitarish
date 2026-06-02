@@ -78,15 +78,12 @@ internal class CartService(
             })];
     }
 
-    public async Task<int> CountRecoveryQueueAsync(CancellationToken cancellationToken)
-    {
-        return await BuildRecoveryQueueQuery()
+    public async Task<int> CountRecoveryQueueAsync(CancellationToken cancellationToken) => await BuildRecoveryQueueQuery()
             .Where(item => item.RecoveryStatus != CartRecoveryStatus.Recovered
                 && item.RecoveryStatus != CartRecoveryStatus.Ignored)
             .Select(item => item.CartId)
             .Distinct()
             .CountAsync(cancellationToken);
-    }
 
     public async Task<EntityResult> UpdateRecoveryAsync(Guid cartId, CartRecoveryStatus status, string? note, CancellationToken cancellationToken)
     {
@@ -102,20 +99,16 @@ internal class CartService(
         return EntityResult.Success();
     }
 
-    private IQueryable<RecoveryQueueCandidate> BuildRecoveryQueueQuery()
-    {
-        return
-            from cart in dbContext.Carts.AsNoTracking()
-            join profile in dbContext.CustomerProfiles.AsNoTracking() on cart.CustomerId equals profile.MedusaCustomerId
-            where cart.Status == CartStatus.Abandoned
-                && !string.IsNullOrWhiteSpace(profile.UserId)
-            select new RecoveryQueueCandidate(
-                cart.Id,
-                cart.CustomerId,
-                profile.UserId,
-                cart.RecoveryStatus,
-                cart.RecoveryNote,
-                cart.CreatedAt,
-                cart.UpdatedAt ?? cart.CreatedAt);
-    }
+    private IQueryable<RecoveryQueueCandidate> BuildRecoveryQueueQuery() => from cart in dbContext.Carts.AsNoTracking()
+                                                                            join profile in dbContext.CustomerProfiles.AsNoTracking() on cart.CustomerId equals profile.MedusaCustomerId
+                                                                            where cart.Status == CartStatus.Abandoned
+                                                                                && !string.IsNullOrWhiteSpace(profile.UserId)
+                                                                            select new RecoveryQueueCandidate(
+                                                                                cart.Id,
+                                                                                cart.CustomerId,
+                                                                                profile.UserId,
+                                                                                cart.RecoveryStatus,
+                                                                                cart.RecoveryNote,
+                                                                                cart.CreatedAt,
+                                                                                cart.UpdatedAt ?? cart.CreatedAt);
 }

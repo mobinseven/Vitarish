@@ -1,5 +1,3 @@
-using Vitarish.Entities.Server.Models;
-
 namespace Vitarish.Medical.Interface.Components.CodeSystems;
 
 public partial class CodeSystemForm : MedicalBase
@@ -7,7 +5,7 @@ public partial class CodeSystemForm : MedicalBase
     [Parameter] public EventCallback<Guid> OnSaved { get; set; }
     [Parameter] public EventCallback OnCancelled { get; set; }
 
-    private CodeSystemWriteDto writeDto = new();
+    private readonly CodeSystemWriteDto writeDto = new();
 
     private async Task SaveAsync()
     {

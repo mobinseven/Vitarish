@@ -1,6 +1,4 @@
-using Vitarish.Interfaces.Base.Abstractions;
 using Vitarish.Interfaces.Base.Common;
-using Vitarish.Interfaces.Base.Models;
 
 namespace Vitarish.Interfaces.Base.Services;
 
@@ -59,8 +57,8 @@ public sealed class NavService : INavService, IDisposable
 
     public void EnableSearch()
     {
-            navigationManager.NavigateTo(navigationManager.GetUriWithQueryParameter(nameof(NavMenu.Search), true));
-            _ = renderNotifier.Notify();
+        navigationManager.NavigateTo(navigationManager.GetUriWithQueryParameter(nameof(NavMenu.Search), true));
+        _ = renderNotifier.Notify();
     }
 
     public void DisableSearch()

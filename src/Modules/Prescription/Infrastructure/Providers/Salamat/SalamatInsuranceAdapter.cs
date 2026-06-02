@@ -50,12 +50,14 @@ public sealed class SalamatInsuranceAdapter : IInsuranceProviderAdapter
         _options = options.Value;
         _logger = logger;
 
-        var baseUrl = _options.UseSandbox && !string.IsNullOrEmpty(_options.SandboxBaseUrl)
+        string baseUrl = _options.UseSandbox && !string.IsNullOrEmpty(_options.SandboxBaseUrl)
             ? _options.SandboxBaseUrl
             : _options.BaseUrl;
 
         if (!string.IsNullOrEmpty(baseUrl))
+        {
             _httpClient.BaseAddress = new Uri(baseUrl);
+        }
     }
 
     public string ProviderKey => ProviderKeyConst;

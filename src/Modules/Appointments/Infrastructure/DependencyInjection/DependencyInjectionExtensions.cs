@@ -1,4 +1,3 @@
-using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Appointments.Infrastructure.Services;
 
 namespace Vitarish.Appointments.Infrastructure.DependencyInjection;

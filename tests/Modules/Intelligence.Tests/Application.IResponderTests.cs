@@ -12,12 +12,13 @@ public sealed class IResponderInterfaceTests
     public async Task GenerateAsync_WithValidInputAndOptions_ReturnsResponderOutputs()
     {
         // Arrange
-        var mockResponder = new Mock<IResponder>();
-        var input = new List<ResponderInput> { ResponderInput.TextInput("Hello") };
-        var options = new ResponderOptions { Model = "test-model" };
-        var expectedOutput = new List<ResponderOutput> { ResponderOutput.TextOutput("Hi there!") };
+        Mock<IResponder> mockResponder = new();
+        List<ResponderInput> input = [ResponderInput.TextInput("Hello")];
+        ResponderOptions options = new()
+        { Model = "test-model" };
+        List<ResponderOutput> expectedOutput = [ResponderOutput.TextOutput("Hi there!")];
 
-        mockResponder
+        _ = mockResponder
             .Setup(r => r.GenerateAsync(It.IsAny<IReadOnlyList<ResponderInput>>(), It.IsAny<ResponderOptions>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedOutput);
 
@@ -25,26 +26,26 @@ public sealed class IResponderInterfaceTests
         IReadOnlyList<ResponderOutput> result = await mockResponder.Object.GenerateAsync(input, options, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
-        result.Should().HaveCount(1);
-        result[0].Type.Should().Be(ResponderOutputType.Text);
-        result[0].Text.Should().Be("Hi there!");
+        _ = result.Should().NotBeNull();
+        _ = result.Should().HaveCount(1);
+        _ = result[0].Type.Should().Be(ResponderOutputType.Text);
+        _ = result[0].Text.Should().Be("Hi there!");
     }
 
     [Fact]
     public async Task GenerateAsync_WithMultipleInputs_ProcessesAllInputs()
     {
         // Arrange
-        var mockResponder = new Mock<IResponder>();
-        var input = new List<ResponderInput>
-        {
+        Mock<IResponder> mockResponder = new();
+        List<ResponderInput> input =
+        [
             ResponderInput.TextInput("First message"),
             ResponderInput.ImageInput("https://example.com/image.png")
-        };
-        var options = new ResponderOptions();
-        var expectedOutput = new List<ResponderOutput> { ResponderOutput.TextOutput("Response") };
+        ];
+        ResponderOptions options = new();
+        List<ResponderOutput> expectedOutput = [ResponderOutput.TextOutput("Response")];
 
-        mockResponder
+        _ = mockResponder
             .Setup(r => r.GenerateAsync(
                 It.Is<IReadOnlyList<ResponderInput>>(i => i.Count == 2),
                 It.IsAny<ResponderOptions>(),
@@ -55,7 +56,7 @@ public sealed class IResponderInterfaceTests
         IReadOnlyList<ResponderOutput> result = await mockResponder.Object.GenerateAsync(input, options, CancellationToken.None);
 
         // Assert
-        result.Should().NotBeNull();
+        _ = result.Should().NotBeNull();
         mockResponder.Verify(r => r.GenerateAsync(
             It.Is<IReadOnlyList<ResponderInput>>(i => i.Count == 2),
             It.IsAny<ResponderOptions>(),
@@ -66,13 +67,13 @@ public sealed class IResponderInterfaceTests
     public async Task GenerateAsync_WithCancellation_PropagatesCancellationToken()
     {
         // Arrange
-        var mockResponder = new Mock<IResponder>();
-        var input = new List<ResponderInput> { ResponderInput.TextInput("Test") };
-        var options = new ResponderOptions();
-        using var cts = new CancellationTokenSource();
+        Mock<IResponder> mockResponder = new();
+        List<ResponderInput> input = [ResponderInput.TextInput("Test")];
+        ResponderOptions options = new();
+        using CancellationTokenSource cts = new();
         cts.Cancel();
 
-        mockResponder
+        _ = mockResponder
             .Setup(r => r.GenerateAsync(It.IsAny<IReadOnlyList<ResponderInput>>(), It.IsAny<ResponderOptions>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new OperationCanceledException());
 
@@ -80,18 +81,18 @@ public sealed class IResponderInterfaceTests
         Func<Task<IReadOnlyList<ResponderOutput>>> act = () => mockResponder.Object.GenerateAsync(input, options, cts.Token);
 
         // Assert
-        await act.Should().ThrowAsync<OperationCanceledException>();
+        _ = await act.Should().ThrowAsync<OperationCanceledException>();
     }
 
     [Fact]
     public async Task GenerateAsync_ReturnsEmptyList_WhenNoResponse()
     {
         // Arrange
-        var mockResponder = new Mock<IResponder>();
-        var input = new List<ResponderInput> { ResponderInput.TextInput("Test") };
-        var options = new ResponderOptions();
+        Mock<IResponder> mockResponder = new();
+        List<ResponderInput> input = [ResponderInput.TextInput("Test")];
+        ResponderOptions options = new();
 
-        mockResponder
+        _ = mockResponder
             .Setup(r => r.GenerateAsync(It.IsAny<IReadOnlyList<ResponderInput>>(), It.IsAny<ResponderOptions>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Array.Empty<ResponderOutput>());
 
@@ -99,25 +100,25 @@ public sealed class IResponderInterfaceTests
         IReadOnlyList<ResponderOutput> result = await mockResponder.Object.GenerateAsync(input, options, CancellationToken.None);
 
         // Assert
-        result.Should().BeEmpty();
+        _ = result.Should().BeEmpty();
     }
 
     [Fact]
     public async Task GenerateAsync_WithMcpToolCall_ReturnsToolCallOutput()
     {
         // Arrange
-        var mockResponder = new Mock<IResponder>();
-        var input = new List<ResponderInput> { ResponderInput.TextInput("Search for weather") };
-        var options = new ResponderOptions
+        Mock<IResponder> mockResponder = new();
+        List<ResponderInput> input = [ResponderInput.TextInput("Search for weather")];
+        ResponderOptions options = new()
         {
             Tools = [new ResponderToolDefinition { Type = "mcp", ServerLabel = "weather" }]
         };
-        var expectedOutput = new List<ResponderOutput>
-        {
+        List<ResponderOutput> expectedOutput =
+        [
             ResponderOutput.McpToolCallOutput("get_weather", """{"location": "NYC"}""", "weather", "call-1")
-        };
+        ];
 
-        mockResponder
+        _ = mockResponder
             .Setup(r => r.GenerateAsync(It.IsAny<IReadOnlyList<ResponderInput>>(), It.IsAny<ResponderOptions>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedOutput);
 
@@ -125,52 +126,52 @@ public sealed class IResponderInterfaceTests
         IReadOnlyList<ResponderOutput> result = await mockResponder.Object.GenerateAsync(input, options, CancellationToken.None);
 
         // Assert
-        result.Should().HaveCount(1);
-        result[0].Type.Should().Be(ResponderOutputType.McpToolCall);
-        result[0].ToolName.Should().Be("get_weather");
+        _ = result.Should().HaveCount(1);
+        _ = result[0].Type.Should().Be(ResponderOutputType.McpToolCall);
+        _ = result[0].ToolName.Should().Be("get_weather");
     }
 
     [Fact]
     public async Task StreamAsync_ReturnsAsyncEnumerableOfResponderOutputs()
     {
         // Arrange
-        var mockResponder = new Mock<IResponder>();
-        var input = new List<ResponderInput> { ResponderInput.TextInput("Stream test") };
-        var options = new ResponderOptions();
-        var outputs = new List<ResponderOutput>
-        {
+        Mock<IResponder> mockResponder = new();
+        List<ResponderInput> input = [ResponderInput.TextInput("Stream test")];
+        ResponderOptions options = new();
+        List<ResponderOutput> outputs =
+        [
             ResponderOutput.TextOutput("Hello"),
             ResponderOutput.TextOutput(" World")
-        };
+        ];
 
-        mockResponder
+        _ = mockResponder
             .Setup(r => r.StreamAsync(It.IsAny<IReadOnlyList<ResponderInput>>(), It.IsAny<ResponderOptions>(), It.IsAny<CancellationToken>()))
             .Returns(outputs.ToAsyncEnumerable());
 
         // Act
-        var results = new List<ResponderOutput>();
+        List<ResponderOutput> results = [];
         await foreach (ResponderOutput output in mockResponder.Object.StreamAsync(input, options, CancellationToken.None))
         {
             results.Add(output);
         }
 
         // Assert
-        results.Should().HaveCount(2);
-        results[0].Text.Should().Be("Hello");
-        results[1].Text.Should().Be(" World");
+        _ = results.Should().HaveCount(2);
+        _ = results[0].Text.Should().Be("Hello");
+        _ = results[1].Text.Should().Be(" World");
     }
 
     [Fact]
     public async Task StreamAsync_WithCancellation_StopsStreaming()
     {
         // Arrange
-        var mockResponder = new Mock<IResponder>();
-        var input = new List<ResponderInput> { ResponderInput.TextInput("Test") };
-        var options = new ResponderOptions();
-        using var cts = new CancellationTokenSource();
+        Mock<IResponder> mockResponder = new();
+        List<ResponderInput> input = [ResponderInput.TextInput("Test")];
+        ResponderOptions options = new();
+        using CancellationTokenSource cts = new();
         cts.Cancel();
 
-        mockResponder
+        _ = mockResponder
             .Setup(r => r.StreamAsync(It.IsAny<IReadOnlyList<ResponderInput>>(), It.IsAny<ResponderOptions>(), It.IsAny<CancellationToken>()))
             .Returns(AsyncEnumerableTestExtensions.ThrowOnEnumerateAsync<ResponderOutput>(new OperationCanceledException()));
 
@@ -184,6 +185,6 @@ public sealed class IResponderInterfaceTests
         };
 
         // Assert
-        await act.Should().ThrowAsync<OperationCanceledException>();
+        _ = await act.Should().ThrowAsync<OperationCanceledException>();
     }
 }

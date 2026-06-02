@@ -1,5 +1,3 @@
-using Vitarish.Entities.Server.Models;
-
 namespace Vitarish.Appointments.Application.Abstractions;
 
 public interface IServiceProviderManager : IEntityService<ServiceProviderReadDto, ServiceProviderWriteDto, ServiceProviderDescriptorDto>

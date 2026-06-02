@@ -1,10 +1,8 @@
 global using Injectio.Attributes;
-global using MediatR;
 global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
 global using Vitarish.Entities.Server.Core;
-global using Vitarish.Entities.Server.Models;
 global using Vitarish.Entities.Server.Repositories;
 global using Vitarish.Requests.Application.Abstractions;
 global using Vitarish.Social.Application.Abstractions;

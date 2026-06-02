@@ -116,15 +116,9 @@ internal class OrderService(
         return EntityResult.Success();
     }
 
-    private static string ResolveCustomerDisplay(string customerId, IReadOnlyDictionary<string, string> profileMap)
-    {
-        if (string.IsNullOrWhiteSpace(customerId))
-        {
-            return "Guest checkout";
-        }
-
-        return profileMap.TryGetValue(customerId, out string? userId) && !string.IsNullOrWhiteSpace(userId)
+    private static string ResolveCustomerDisplay(string customerId, IReadOnlyDictionary<string, string> profileMap) => string.IsNullOrWhiteSpace(customerId)
+            ? "Guest checkout"
+            : profileMap.TryGetValue(customerId, out string? userId) && !string.IsNullOrWhiteSpace(userId)
             ? $"Registered • {userId}"
             : "Registered customer";
-    }
 }

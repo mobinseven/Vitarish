@@ -17,7 +17,7 @@ public partial class PlatformAdminUserPage : PlatformAdminCommonBase
             return;
         }
 
-        var id = UserId.Value;
+        Guid id = UserId.Value;
 
         User = await UsersService.GetUserAsync(id.ToString("D"));
         if (User is null)

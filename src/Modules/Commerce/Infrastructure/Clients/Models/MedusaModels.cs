@@ -1,5 +1,3 @@
-using System.Text.Json.Serialization;
-
 namespace Vitarish.Commerce.Infrastructure.Clients.Models;
 
 internal record MedusaListResponse<T>

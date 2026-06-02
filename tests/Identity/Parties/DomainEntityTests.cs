@@ -1,14 +1,13 @@
-namespace Parties.Tests;
-
-using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Enums;
+
+namespace Parties.Tests;
 
 public class DomainEntityTests
 {
     [Fact]
     public void Tenant_InitializesIndicatorsCollection()
     {
-        var tenant = new Tenant
+        Tenant tenant = new()
         {
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
@@ -23,7 +22,7 @@ public class DomainEntityTests
     [Fact]
     public void Tenant_SetsCreatedAtOnConstruction()
     {
-        var tenant = new Tenant
+        Tenant tenant = new()
         {
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
@@ -38,7 +37,7 @@ public class DomainEntityTests
     [Fact]
     public void Owner_SetsCreatedAtOnConstruction()
     {
-        var owner = new Owner
+        Owner owner = new()
         {
             Id = Guid.NewGuid(),
             Name = "Owner",
@@ -51,7 +50,7 @@ public class DomainEntityTests
     [Fact]
     public void TenantIndicator_SetsDefaults()
     {
-        var indicator = new TenantIndicator
+        TenantIndicator indicator = new()
         {
             Id = Guid.NewGuid(),
             TenantId = Guid.NewGuid(),
@@ -67,7 +66,7 @@ public class DomainEntityTests
     [Fact]
     public void VerificationInfo_AllowsOptionalToken()
     {
-        var info = new VerificationInfo
+        VerificationInfo info = new()
         {
             Method = IndicatorVerificationMethod.DnsTxt,
             Evidence = "_verify.example.com",

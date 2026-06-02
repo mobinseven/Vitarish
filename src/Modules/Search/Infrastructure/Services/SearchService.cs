@@ -52,7 +52,7 @@ internal sealed class SearchService : ISearchService
             return;
         }
 
-        BulkRequest request = new(fullIndexName) { Operations = new BulkOperationsCollection(operations) };
+        BulkRequest request = new(fullIndexName) { Operations = [.. operations] };
 
         BulkResponse response = await client.BulkAsync(request, cancellationToken);
 
@@ -208,32 +208,20 @@ internal sealed class SearchService : ISearchService
             ? requestContext.TenantId
             : throw new InvalidOperationException("Tenant ID must be set before performing search operations.");
 
-    private string[] ResolveLogicalIndexNames(string? indexName)
-    {
-        if (!string.IsNullOrWhiteSpace(indexName))
-        {
-            return [indexName.Trim()];
-        }
-
-        return [.. providers
+    private string[] ResolveLogicalIndexNames(string? indexName) => !string.IsNullOrWhiteSpace(indexName)
+            ? [indexName.Trim()]
+            : [.. providers
             .Select(p => p.IndexName)
             .Where(name => !string.IsNullOrWhiteSpace(name))
             .Distinct(StringComparer.OrdinalIgnoreCase)];
-    }
 
     private static string? ResolveLogicalIndexName(
         string? fullIndexName,
-        IReadOnlyDictionary<string, string> fullToLogicalIndexNames)
-    {
-        if (string.IsNullOrWhiteSpace(fullIndexName))
-        {
-            return null;
-        }
-
-        return fullToLogicalIndexNames.TryGetValue(fullIndexName, out string? logicalIndexName)
+        IReadOnlyDictionary<string, string> fullToLogicalIndexNames) => string.IsNullOrWhiteSpace(fullIndexName)
+            ? null
+            : fullToLogicalIndexNames.TryGetValue(fullIndexName, out string? logicalIndexName)
             ? logicalIndexName
             : fullIndexName;
-    }
 
     private string BuildIndexName(string indexName) =>
         string.IsNullOrWhiteSpace(options.DefaultIndexPrefix)

@@ -17,21 +17,9 @@ public sealed class InsuranceProviderRegistry : IInsuranceProviderRegistry
         _registeredProviderKeys = _adapters.Keys.Order(StringComparer.OrdinalIgnoreCase).ToArray();
     }
 
-    public IInsuranceProviderAdapter? GetAdapter(string providerKey)
-    {
-        if (string.IsNullOrWhiteSpace(providerKey))
-            return null;
+    public IInsuranceProviderAdapter? GetAdapter(string providerKey) => string.IsNullOrWhiteSpace(providerKey) ? null : _adapters.GetValueOrDefault(providerKey.Trim());
 
-        return _adapters.GetValueOrDefault(providerKey.Trim());
-    }
+    public IReadOnlyCollection<string> GetRegisteredProviderKeys() => _registeredProviderKeys;
 
-    public IReadOnlyCollection<string> GetRegisteredProviderKeys()
-    {
-        return _registeredProviderKeys;
-    }
-
-    public bool IsProviderAvailable(string providerKey)
-    {
-        return !string.IsNullOrWhiteSpace(providerKey) && _adapters.ContainsKey(providerKey.Trim());
-    }
+    public bool IsProviderAvailable(string providerKey) => !string.IsNullOrWhiteSpace(providerKey) && _adapters.ContainsKey(providerKey.Trim());
 }

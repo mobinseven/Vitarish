@@ -10,23 +10,23 @@ public class TemporaryAutoAuthLinkModelConfigurationTests
     [Fact]
     public void Model_ConfiguresTemporaryAutoAuthLinkIndexesAndRelationship()
     {
-        using var context = UsersDbContextFactory.Create();
+        using UsersDbContext context = UsersDbContextFactory.Create();
         IEntityType entityType = context.Model.FindEntityType(typeof(TemporaryAutoAuthLink))!;
 
-        entityType.GetIndexes().Any(index => index.Properties.Select(p => p.Name).SequenceEqual(["CodeHash"]) && index.IsUnique)
+        _ = entityType.GetIndexes().Any(index => index.Properties.Select(p => p.Name).SequenceEqual(["CodeHash"]) && index.IsUnique)
             .Should()
             .BeTrue();
-        entityType.GetIndexes().Any(index => index.Properties.Select(p => p.Name).SequenceEqual(["UserId"]))
+        _ = entityType.GetIndexes().Any(index => index.Properties.Select(p => p.Name).SequenceEqual(["UserId"]))
             .Should()
             .BeTrue();
-        entityType.GetIndexes().Any(index => index.Properties.Select(p => p.Name).SequenceEqual(["ExpiresAt"]))
+        _ = entityType.GetIndexes().Any(index => index.Properties.Select(p => p.Name).SequenceEqual(["ExpiresAt"]))
             .Should()
             .BeTrue();
-        entityType.GetIndexes().Any(index => index.Properties.Select(p => p.Name).SequenceEqual(["ConsumedAt"]))
+        _ = entityType.GetIndexes().Any(index => index.Properties.Select(p => p.Name).SequenceEqual(["ConsumedAt"]))
             .Should()
             .BeTrue();
 
-        entityType.GetForeignKeys()
+        _ = entityType.GetForeignKeys()
             .Single(fk => fk.Properties.Select(p => p.Name).SequenceEqual(["UserId"]))
             .DeleteBehavior
             .Should()

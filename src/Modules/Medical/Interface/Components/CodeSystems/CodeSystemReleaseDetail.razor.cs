@@ -7,7 +7,7 @@ public partial class CodeSystemReleaseDetail : MedicalBase
 
     private async Task ActivateAsync()
     {
-        var result = await Mediator.Send(new ActivateCodeSystemReleaseCommand(Release.Id));
+        EntityResult<Guid> result = await Mediator.Send(new ActivateCodeSystemReleaseCommand(Release.Id));
         if (result.IsSuccess)
         {
             await OnActivationChanged.InvokeAsync();
@@ -16,7 +16,7 @@ public partial class CodeSystemReleaseDetail : MedicalBase
 
     private async Task DeactivateAsync()
     {
-        var result = await Mediator.Send(new DeactivateCodeSystemReleaseCommand(Release.Id));
+        EntityResult<Guid> result = await Mediator.Send(new DeactivateCodeSystemReleaseCommand(Release.Id));
         if (result.IsSuccess)
         {
             await OnActivationChanged.InvokeAsync();

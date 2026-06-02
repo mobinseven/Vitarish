@@ -52,12 +52,12 @@ public static class IdentityUsersExtensions
     /// </summary>
     public static async Task InitializeUsers(this WebApplication app)
     {
-        using var scope = app.Services.CreateScope();
-        var rm = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
-        var roleExists = await rm.RoleExistsAsync(IdentityDefinitions.PlatformAdmin);
+        using IServiceScope scope = app.Services.CreateScope();
+        RoleManager<IdentityRole> rm = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+        bool roleExists = await rm.RoleExistsAsync(IdentityDefinitions.PlatformAdmin);
         if (!roleExists)
         {
-            await rm.CreateAsync(new IdentityRole(IdentityDefinitions.PlatformAdmin));
+            _ = await rm.CreateAsync(new IdentityRole(IdentityDefinitions.PlatformAdmin));
         }
         _ = app.MapWebAuthnManagementEndpoints();
     }

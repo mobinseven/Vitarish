@@ -9,7 +9,7 @@ public class PersonalAccessTokenOptionsTests
     {
         PersonalAccessTokenOptions options = new();
 
-        options.DefaultLifetimeDays.Should().Be(30);
+        _ = options.DefaultLifetimeDays.Should().Be(30);
     }
 
     [Fact]
@@ -17,6 +17,6 @@ public class PersonalAccessTokenOptionsTests
     {
         PersonalAccessTokenOptions options = new() { DefaultLifetimeDays = 7 };
 
-        options.DefaultLifetimeDays.Should().Be(7);
+        _ = options.DefaultLifetimeDays.Should().Be(7);
     }
 }

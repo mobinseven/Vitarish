@@ -1,4 +1,3 @@
-using MediatR;
 using Vitarish.Appointments.Domain.Events;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;

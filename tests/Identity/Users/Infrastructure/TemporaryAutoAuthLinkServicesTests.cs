@@ -1,12 +1,9 @@
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using Users.Tests.TestHelpers;
 using Vitarish.Users.Application.Contracts;
 using Vitarish.Users.Application.TemporaryAutoAuthLinks;
 using Vitarish.Users.Domain.Entities;
 using Vitarish.Users.Domain.Options;
-using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Users.Infrastructure.Service;
 
 namespace Users.Tests.Infrastructure;
@@ -18,7 +15,7 @@ public class TemporaryAutoAuthLinkServicesTests
     {
         await using UsersDbContext context = CreateContext(nameof(IssueAsync_StoresOnlyCodeHash));
         _ = context.Users.Add(new User { Id = "user-1", UserName = "u1" });
-        await context.SaveChangesAsync();
+        _ = await context.SaveChangesAsync();
 
         TemporaryAutoAuthLinkIssuer issuer = new(context, CreateOptions());
 
@@ -31,8 +28,8 @@ public class TemporaryAutoAuthLinkServicesTests
         TemporaryAutoAuthLink stored = await context.TemporaryAutoAuthLinks.SingleAsync();
         string expectedHash = TemporaryAutoAuthLinkSecurity.ComputeCodeHash(result.RawCode, CreateOptions().Value);
 
-        stored.CodeHash.Should().Be(expectedHash);
-        stored.CodeHash.Should().NotBe(result.RawCode);
+        _ = stored.CodeHash.Should().Be(expectedHash);
+        _ = stored.CodeHash.Should().NotBe(result.RawCode);
     }
 
     [Fact]
@@ -40,13 +37,13 @@ public class TemporaryAutoAuthLinkServicesTests
     {
         await using UsersDbContext context = CreateContext(nameof(IssueAsync_RejectsUnknownPurpose));
         _ = context.Users.Add(new User { Id = "user-1", UserName = "u1" });
-        await context.SaveChangesAsync();
+        _ = await context.SaveChangesAsync();
         TemporaryAutoAuthLinkIssuer issuer = new(context, CreateOptions());
 
         Func<Task> act = () => issuer.IssueAsync(
             new IssueTemporaryAutoAuthLinkRequest("user-1", "/medical/patient-checkin", "unknown"));
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        _ = await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
@@ -54,7 +51,7 @@ public class TemporaryAutoAuthLinkServicesTests
     {
         await using UsersDbContext context = CreateContext(nameof(IssueAsync_RejectsNonLocalDestination));
         _ = context.Users.Add(new User { Id = "user-1", UserName = "u1" });
-        await context.SaveChangesAsync();
+        _ = await context.SaveChangesAsync();
         TemporaryAutoAuthLinkIssuer issuer = new(context, CreateOptions());
 
         Func<Task> act = () => issuer.IssueAsync(
@@ -63,7 +60,7 @@ public class TemporaryAutoAuthLinkServicesTests
                 "https://evil.example/a",
                 TemporaryAutoAuthLinkPurposes.AdvancedInputVoice));
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        _ = await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
@@ -71,7 +68,7 @@ public class TemporaryAutoAuthLinkServicesTests
     {
         await using UsersDbContext context = CreateContext(nameof(IssueAsync_RejectsPurposeDisallowedDestination));
         _ = context.Users.Add(new User { Id = "user-1", UserName = "u1" });
-        await context.SaveChangesAsync();
+        _ = await context.SaveChangesAsync();
         TemporaryAutoAuthLinkIssuer issuer = new(context, CreateOptions(["/medical/allowed"]));
 
         Func<Task> act = () => issuer.IssueAsync(
@@ -80,7 +77,7 @@ public class TemporaryAutoAuthLinkServicesTests
                 "/medical/denied",
                 TemporaryAutoAuthLinkPurposes.AdvancedInputVoice));
 
-        await act.Should().ThrowAsync<InvalidOperationException>();
+        _ = await act.Should().ThrowAsync<InvalidOperationException>();
     }
 
     [Fact]
@@ -98,14 +95,14 @@ public class TemporaryAutoAuthLinkServicesTests
             TemporaryAutoAuthLinkPurposes.AdvancedInputVoice,
             now.AddMinutes(-20),
             now.AddMinutes(-10)));
-        await context.SaveChangesAsync();
+        _ = await context.SaveChangesAsync();
 
         TemporaryAutoAuthLinkRedeemer redeemer = new(context, CreateUserManager("user-1"), CreateOptions());
 
         RedeemTemporaryAutoAuthLinkResult result = await redeemer.RedeemAsync(
             new RedeemTemporaryAutoAuthLinkRequest(rawCode, TemporaryAutoAuthLinkPurposes.AdvancedInputVoice));
 
-        result.Succeeded.Should().BeFalse();
+        _ = result.Succeeded.Should().BeFalse();
     }
 
     [Fact]
@@ -125,14 +122,14 @@ public class TemporaryAutoAuthLinkServicesTests
             now.AddMinutes(10));
         link.MarkConsumed(now.AddMinutes(-1), "127.0.0.1", "ua");
         _ = context.TemporaryAutoAuthLinks.Add(link);
-        await context.SaveChangesAsync();
+        _ = await context.SaveChangesAsync();
 
         TemporaryAutoAuthLinkRedeemer redeemer = new(context, CreateUserManager("user-1"), CreateOptions());
 
         RedeemTemporaryAutoAuthLinkResult result = await redeemer.RedeemAsync(
             new RedeemTemporaryAutoAuthLinkRequest(rawCode, TemporaryAutoAuthLinkPurposes.AdvancedInputVoice));
 
-        result.Succeeded.Should().BeFalse();
+        _ = result.Succeeded.Should().BeFalse();
     }
 
     [Fact]
@@ -150,7 +147,7 @@ public class TemporaryAutoAuthLinkServicesTests
             TemporaryAutoAuthLinkPurposes.AdvancedInputVoice,
             now.AddMinutes(-1),
             now.AddMinutes(10)));
-        await context.SaveChangesAsync();
+        _ = await context.SaveChangesAsync();
 
         TemporaryAutoAuthLinkRedeemer redeemer = new(context, CreateUserManager("user-1"), CreateOptions());
 
@@ -161,11 +158,11 @@ public class TemporaryAutoAuthLinkServicesTests
                 "127.0.0.1",
                 "agent"));
 
-        result.Succeeded.Should().BeTrue();
+        _ = result.Succeeded.Should().BeTrue();
         TemporaryAutoAuthLink stored = await context.TemporaryAutoAuthLinks.SingleAsync();
-        stored.ConsumedAt.Should().NotBeNull();
-        stored.ConsumedByIp.Should().Be("127.0.0.1");
-        stored.ConsumedByUserAgent.Should().Be("agent");
+        _ = stored.ConsumedAt.Should().NotBeNull();
+        _ = stored.ConsumedByIp.Should().Be("127.0.0.1");
+        _ = stored.ConsumedByUserAgent.Should().Be("agent");
     }
 
     [Fact]
@@ -185,7 +182,7 @@ public class TemporaryAutoAuthLinkServicesTests
                 TemporaryAutoAuthLinkPurposes.AdvancedInputVoice,
                 now.AddMinutes(-1),
                 now.AddMinutes(10)));
-            await setupContext.SaveChangesAsync();
+            _ = await setupContext.SaveChangesAsync();
         }
 
         await using UsersDbContext context1 = CreateContext(dbName);
@@ -198,7 +195,7 @@ public class TemporaryAutoAuthLinkServicesTests
         Task<RedeemTemporaryAutoAuthLinkResult> second = redeemer2.RedeemAsync(request);
         RedeemTemporaryAutoAuthLinkResult[] results = await Task.WhenAll(first, second);
 
-        results.Count(r => r.Succeeded).Should().Be(1);
+        _ = results.Count(r => r.Succeeded).Should().Be(1);
     }
 
     [Fact]
@@ -210,8 +207,8 @@ public class TemporaryAutoAuthLinkServicesTests
         RedeemTemporaryAutoAuthLinkResult result = await redeemer.RedeemAsync(
             new RedeemTemporaryAutoAuthLinkRequest("invalid", TemporaryAutoAuthLinkPurposes.AdvancedInputVoice));
 
-        result.Succeeded.Should().BeFalse();
-        result.UserId.Should().BeNull();
+        _ = result.Succeeded.Should().BeFalse();
+        _ = result.UserId.Should().BeNull();
     }
 
     [Fact]
@@ -249,14 +246,14 @@ public class TemporaryAutoAuthLinkServicesTests
             now.AddMinutes(30));
 
         context.TemporaryAutoAuthLinks.AddRange(consumedOld, expiredOld, active);
-        await context.SaveChangesAsync();
+        _ = await context.SaveChangesAsync();
 
         TemporaryAutoAuthLinkCleanup cleanup = new(context, CreateOptions());
 
         int deleted = await cleanup.CleanupAsync(now);
 
-        deleted.Should().Be(2);
-        (await context.TemporaryAutoAuthLinks.CountAsync()).Should().Be(1);
+        _ = deleted.Should().Be(2);
+        _ = (await context.TemporaryAutoAuthLinks.CountAsync()).Should().Be(1);
     }
 
     private static UsersDbContext CreateContext(string dbName)
@@ -286,9 +283,9 @@ public class TemporaryAutoAuthLinkServicesTests
     private static UserManager<User> CreateUserManager(string userId)
     {
         Mock<UserManager<User>> mock = UserManagerMockFactory.Create();
-        mock.Setup(m => m.FindByIdAsync(userId))
+        _ = mock.Setup(m => m.FindByIdAsync(userId))
             .ReturnsAsync(new User { Id = userId, UserName = "user" });
-        mock.Setup(m => m.IsLockedOutAsync(It.IsAny<User>()))
+        _ = mock.Setup(m => m.IsLockedOutAsync(It.IsAny<User>()))
             .ReturnsAsync(false);
         return mock.Object;
     }

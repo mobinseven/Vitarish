@@ -1,7 +1,5 @@
 using System.Buffers;
 using Vitarish.Files.Application.Abstractions;
-using Vitarish.Files.Domain.Options;
-using Vitarish.Files.Infrastructure.Extensions;
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 
 public class FilesSelfTestsProcessor(
@@ -25,7 +23,7 @@ public class FilesSelfTestsProcessor(
 
             filesModule.IsAvailable = true;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             filesModule.IsAvailable = false;
         }

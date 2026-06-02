@@ -15,6 +15,6 @@ public class UserAccessAuditLoggerTests
 
         await auditLogger.LogAsync(entry, CancellationToken.None);
 
-        logger.Entries.Should().Contain(e => e.Level == LogLevel.Information && e.Message.Contains("User access audit"));
+        _ = logger.Entries.Should().Contain(e => e.Level == LogLevel.Information && e.Message.Contains("User access audit"));
     }
 }

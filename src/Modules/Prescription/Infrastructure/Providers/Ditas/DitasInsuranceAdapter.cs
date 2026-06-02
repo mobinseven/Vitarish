@@ -54,11 +54,13 @@ public sealed class DitasInsuranceAdapter(
     public async Task<AdapterResult<EntitlementResponse>> CheckEntitlementAsync(EntitlementRequest request, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(request.PatientNationalId))
+        {
             return AdapterResult<EntitlementResponse>.Failure(ValidationError("کد ملی بیمار مشخص نشده است.", "PatientNationalId is required."));
+        }
 
         try
         {
-            var result = await _client.CheckEntitlementAsync(request.PatientNationalId, cancellationToken);
+            DitasEntitlementResponse? result = await _client.CheckEntitlementAsync(request.PatientNationalId, cancellationToken);
             return AdapterResult<EntitlementResponse>.Success(DitasPrescriptionMapper.ToEntitlementResponse(result));
         }
         catch (Exception ex) when (IsProviderException(ex))
@@ -71,13 +73,18 @@ public sealed class DitasInsuranceAdapter(
     public async Task<AdapterResult<SubmissionResponse>> SubmitPrescriptionAsync(SubmissionRequest request, CancellationToken cancellationToken = default)
     {
         if (request.PrescriptionId == Guid.Empty)
+        {
             return AdapterResult<SubmissionResponse>.Failure(ValidationError("شناسه نسخه مشخص نشده است.", "PrescriptionId is required."));
+        }
+
         if (string.IsNullOrWhiteSpace(request.IdempotencyKey))
+        {
             return AdapterResult<SubmissionResponse>.Failure(ValidationError("کلید یکتایی درخواست مشخص نشده است.", "IdempotencyKey is required."));
+        }
 
         try
         {
-            var result = await _client.SubmitPrescriptionAsync(
+            DitasSubmissionResponse? result = await _client.SubmitPrescriptionAsync(
                 DitasPrescriptionMapper.ToDitasSubmission(request),
                 request.IdempotencyKey,
                 cancellationToken);
@@ -97,11 +104,13 @@ public sealed class DitasInsuranceAdapter(
     public async Task<AdapterResult<FetchResponse>> FetchPrescriptionAsync(FetchRequest request, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(request.RemotePrescriptionId))
+        {
             return AdapterResult<FetchResponse>.Failure(ValidationError("شناسه نسخه در سامانه نیروهای مسلح مشخص نشده است.", "RemotePrescriptionId is required for DITAS fetch."));
+        }
 
         try
         {
-            var result = await _client.FetchPrescriptionAsync(request.RemotePrescriptionId, cancellationToken);
+            DitasFetchResponse? result = await _client.FetchPrescriptionAsync(request.RemotePrescriptionId, cancellationToken);
             return AdapterResult<FetchResponse>.Success(DitasPrescriptionMapper.ToFetchResponse(result));
         }
         catch (Exception ex) when (IsProviderException(ex))
@@ -120,9 +129,14 @@ public sealed class DitasInsuranceAdapter(
     public async Task<AdapterResult> CancelPrescriptionAsync(CancelRequest request, CancellationToken cancellationToken = default)
     {
         if (string.IsNullOrWhiteSpace(request.RemotePrescriptionId))
+        {
             return AdapterResult.Failure(ValidationError("شناسه نسخه در سامانه نیروهای مسلح مشخص نشده است.", "RemotePrescriptionId is required."));
+        }
+
         if (string.IsNullOrWhiteSpace(request.CorrelationId))
+        {
             return AdapterResult.Failure(ValidationError("شناسه رهگیری درخواست مشخص نشده است.", "CorrelationId is required."));
+        }
 
         try
         {
@@ -143,24 +157,18 @@ public sealed class DitasInsuranceAdapter(
     public Task<AdapterResult<ReferenceDataResponse>> FetchReferenceDataAsync(ReferenceDataRequest request, CancellationToken cancellationToken = default)
         => Task.FromResult(AdapterResult<ReferenceDataResponse>.NotSupported());
 
-    private IntegrationError MapProviderException(Exception exception)
-    {
-        if (exception is DitasInsuranceClientException clientException)
-        {
-            return _errorMapper.MapError(new ProviderErrorContext
+    private IntegrationError MapProviderException(Exception exception) => exception is DitasInsuranceClientException clientException
+            ? _errorMapper.MapError(new ProviderErrorContext
             {
                 HttpStatusCode = (int)clientException.StatusCode,
                 ProviderErrorCode = ((int)clientException.StatusCode).ToString(),
                 ProviderErrorMessage = clientException.ResponseBody
+            })
+            : _errorMapper.MapError(new ProviderErrorContext
+            {
+                Exception = exception,
+                ProviderErrorMessage = exception.Message
             });
-        }
-
-        return _errorMapper.MapError(new ProviderErrorContext
-        {
-            Exception = exception,
-            ProviderErrorMessage = exception.Message
-        });
-    }
 
     private static bool IsProviderException(Exception exception) =>
         exception is DitasInsuranceClientException or HttpRequestException or TaskCanceledException;

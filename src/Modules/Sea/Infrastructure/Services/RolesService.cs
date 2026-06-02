@@ -4,7 +4,7 @@ namespace Vitarish.Sea.Infrastructure.Services;
 internal class RolesService(IMediator mediator) : EntityService<Role, RoleDescriptor, RoleReadDto, RoleWriteDto, RoleDescriptorDto>
     (
         mediator,
-        role=>role.ToDto(),
+        role => role.ToDto(),
         role => role.ToDomain(),
         role => role.ToDomain()
     ),

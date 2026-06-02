@@ -136,7 +136,7 @@ public class ScalabilityTests : IDisposable
                     TestEntity randomEntity = initialEntities[Random.Shared.Next(initialEntities.Count)];
                     _ = await _mediator.Send(new GetEntityByIdQuery<TestEntity, TestDescriptor>(randomEntity.Id));
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     errors.Add(ex);
                 }
@@ -151,7 +151,7 @@ public class ScalabilityTests : IDisposable
                     { Name = $"New-{i}" };
                     _ = await _mediator.Send(new AddEntityCommand<TestEntity, TestDescriptor>(entity));
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     errors.Add(ex);
                 }
@@ -166,7 +166,7 @@ public class ScalabilityTests : IDisposable
                     entity.Name = $"Updated-{i}";
                     _ = await _mediator.Send(new UpdateEntityCommand<TestEntity, TestDescriptor>(entity));
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     errors.Add(ex);
                 }
@@ -191,7 +191,7 @@ public class ScalabilityTests : IDisposable
         _ = await _mediator.Send(new AddEntitiesCommand<TestEntity, TestDescriptor>(entities));
 
         // Act - Update all entities
-        foreach(TestEntity entity in entities)
+        foreach (TestEntity entity in entities)
         {
             entity.Name = entity.Name.Replace("Original", "Updated");
         }

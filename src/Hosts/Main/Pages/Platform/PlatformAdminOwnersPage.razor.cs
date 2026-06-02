@@ -14,7 +14,7 @@ public partial class PlatformAdminOwnersPage : PlatformAdminCommonBase
         OwnerReadDto? added = await PartiesService.CreateOwnerAsync(new OwnerWriteDto { Name = Localizer["NewItem", Localizer["Owner"]] });
         if (added is null)
         {
-            Snackbar.Add(Localizer["Error"], Severity.Error);
+            _ = Snackbar.Add(Localizer["Error"], Severity.Error);
             return;
         }
         NavigationManager.NavigateTo(AppRoutes.PlatformAdmin.Owner(added.Id));

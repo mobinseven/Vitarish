@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using System.Security.Claims;
 using Vitarish.Main.Infrastructure.IdentityServer;
-using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Users.Domain.Entities;
@@ -77,9 +76,9 @@ public class PartyProfileServiceTests
         await _sut.GetProfileDataAsync(context);
 
         // Assert
-        context.IssuedClaims.Should().Contain(c =>
+        _ = context.IssuedClaims.Should().Contain(c =>
             c.Type == IdentityDefinitions.TenantIdClaim && c.Value == tenantId.ToString());
-        context.IssuedClaims.Should().Contain(c =>
+        _ = context.IssuedClaims.Should().Contain(c =>
             c.Type == IdentityDefinitions.OwnerIdClaim && c.Value == ownerId.ToString());
     }
 
@@ -104,8 +103,8 @@ public class PartyProfileServiceTests
         await _sut.GetProfileDataAsync(context);
 
         // Assert
-        context.IssuedClaims.Should().NotContain(c => c.Type == IdentityDefinitions.TenantIdClaim);
-        context.IssuedClaims.Should().NotContain(c => c.Type == IdentityDefinitions.OwnerIdClaim);
+        _ = context.IssuedClaims.Should().NotContain(c => c.Type == IdentityDefinitions.TenantIdClaim);
+        _ = context.IssuedClaims.Should().NotContain(c => c.Type == IdentityDefinitions.OwnerIdClaim);
     }
 
     [Fact]
@@ -125,8 +124,8 @@ public class PartyProfileServiceTests
         await _sut.GetProfileDataAsync(context);
 
         // Assert
-        context.IssuedClaims.Should().NotContain(c => c.Type == IdentityDefinitions.TenantIdClaim);
-        context.IssuedClaims.Should().NotContain(c => c.Type == IdentityDefinitions.OwnerIdClaim);
+        _ = context.IssuedClaims.Should().NotContain(c => c.Type == IdentityDefinitions.TenantIdClaim);
+        _ = context.IssuedClaims.Should().NotContain(c => c.Type == IdentityDefinitions.OwnerIdClaim);
         _mockTenantsService.Verify(
             x => x.ResolveAsync(It.IsAny<HttpContext>(), It.IsAny<CancellationToken>()),
             Times.Never);
@@ -153,8 +152,8 @@ public class PartyProfileServiceTests
         await _sut.GetProfileDataAsync(context);
 
         // Assert
-        context.IssuedClaims.Should().NotContain(c => c.Type == IdentityDefinitions.TenantIdClaim);
-        context.IssuedClaims.Should().NotContain(c => c.Type == IdentityDefinitions.OwnerIdClaim);
+        _ = context.IssuedClaims.Should().NotContain(c => c.Type == IdentityDefinitions.TenantIdClaim);
+        _ = context.IssuedClaims.Should().NotContain(c => c.Type == IdentityDefinitions.OwnerIdClaim);
     }
 
     [Fact]
@@ -189,8 +188,8 @@ public class PartyProfileServiceTests
         // Assert
         _ = context.IssuedClaims.Should().Contain(c =>
             c.Type == "existing_claim" && c.Value == "existing_value");
-        context.IssuedClaims.Should().Contain(c => c.Type == IdentityDefinitions.TenantIdClaim);
-        context.IssuedClaims.Should().Contain(c => c.Type == IdentityDefinitions.OwnerIdClaim);
+        _ = context.IssuedClaims.Should().Contain(c => c.Type == IdentityDefinitions.TenantIdClaim);
+        _ = context.IssuedClaims.Should().Contain(c => c.Type == IdentityDefinitions.OwnerIdClaim);
     }
 
     [Fact]
@@ -285,9 +284,9 @@ public class PartyProfileServiceTests
         await _sut.GetProfileDataAsync(context);
 
         // Assert
-        context.IssuedClaims.Should().Contain(c =>
+        _ = context.IssuedClaims.Should().Contain(c =>
             c.Type == IdentityDefinitions.TenantIdClaim && c.Value == Guid.Empty.ToString());
-        context.IssuedClaims.Should().Contain(c =>
+        _ = context.IssuedClaims.Should().Contain(c =>
             c.Type == IdentityDefinitions.OwnerIdClaim && c.Value == Guid.Empty.ToString());
     }
 }

@@ -41,8 +41,8 @@ public class AuthorizerTests
         AuthorizationHandlerContext secondContext = new([requirement], principal, null);
         await handler.HandleAsync(secondContext);
 
-        firstContext.HasSucceeded.Should().BeTrue();
-        secondContext.HasSucceeded.Should().BeTrue();
+        _ = firstContext.HasSucceeded.Should().BeTrue();
+        _ = secondContext.HasSucceeded.Should().BeTrue();
         userManager.Verify(m => m.GetUserAsync(userId), Times.Once);
         userManager.Verify(m => m.CheckUserRoleAsync(userId, role), Times.Once);
     }

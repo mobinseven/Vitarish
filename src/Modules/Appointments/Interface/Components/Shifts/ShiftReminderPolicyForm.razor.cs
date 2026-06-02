@@ -20,7 +20,7 @@ public partial class ShiftReminderPolicyForm : ShiftReminderPoliciesBase
         }
         else if (!include)
         {
-            dto.QualifyingStatuses.Remove(status);
+            _ = dto.QualifyingStatuses.Remove(status);
         }
     }
 

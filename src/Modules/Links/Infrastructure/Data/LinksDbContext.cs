@@ -25,7 +25,7 @@ public sealed class LinksDbContext(
 
         _ = modelBuilder.Entity<Link>(entity =>
         {
-            entity.HasQueryFilter(e => e.DeletedAt == null);
+            _ = entity.HasQueryFilter(e => e.DeletedAt == null);
 
             _ = entity.Property(e => e.Domain).HasColumnType("nvarchar(253)");
             _ = entity.Property(e => e.Slug).HasColumnType("nvarchar(32)").UseCollation(LinkRules.SlugCollation);

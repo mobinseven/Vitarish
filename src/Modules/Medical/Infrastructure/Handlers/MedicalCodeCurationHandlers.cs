@@ -28,7 +28,7 @@ internal sealed class CreateLocalMedicalCodeHandler(MedicalDbContext dbContext)
             return EntityResult<Guid>.Failure(EntityError.Validation($"Local code '{request.Code}' already exists in this release."));
         }
 
-        var entity = new MedicalCode
+        MedicalCode entity = new()
         {
             Id = Guid.NewGuid(),
             CodeSystemReleaseId = request.CodeSystemReleaseId,

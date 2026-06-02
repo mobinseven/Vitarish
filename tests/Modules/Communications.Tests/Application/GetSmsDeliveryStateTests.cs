@@ -29,7 +29,7 @@ public sealed class GetSmsDeliveryStateTests
     public async Task ExecuteAsync_ThrowsWhenIdInvalid()
     {
         FakeMessagesService service = new();
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => GetSmsDeliveryState.ExecuteAsync(service, 0));
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(() => GetSmsDeliveryState.ExecuteAsync(service, 0));
     }
 
     [Fact]
@@ -56,7 +56,7 @@ public sealed class GetSmsDeliveryStateTests
             }
         };
 
-        await GetSmsDeliveryState.ExecuteAsync(service, 5, cts.Token);
+        _ = await GetSmsDeliveryState.ExecuteAsync(service, 5, cts.Token);
 
         Assert.Equal(cts.Token, observed);
     }
@@ -91,7 +91,7 @@ public sealed class GetSmsDeliveryStateTests
         cts.Cancel();
 
         // Act & Assert
-        await Assert.ThrowsAsync<OperationCanceledException>(
+        _ = await Assert.ThrowsAsync<OperationCanceledException>(
             () => GetSmsDeliveryState.ExecuteAsync(service, 1, cts.Token));
     }
 
@@ -104,7 +104,7 @@ public sealed class GetSmsDeliveryStateTests
         cts.Cancel();
 
         // Act & Assert - validation should happen first and throw ArgumentOutOfRangeException, not OperationCanceledException
-        await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
+        _ = await Assert.ThrowsAsync<ArgumentOutOfRangeException>(
             () => GetSmsDeliveryState.ExecuteAsync(service, 0, cts.Token));
     }
 
@@ -127,7 +127,7 @@ public sealed class GetSmsDeliveryStateTests
         };
 
         // Act
-        await GetSmsDeliveryState.ExecuteAsync(service, messageId);
+        _ = await GetSmsDeliveryState.ExecuteAsync(service, messageId);
 
         // Assert
         Assert.Equal(messageId, capturedMessageId);

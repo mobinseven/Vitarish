@@ -1,7 +1,5 @@
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Options;
 using System.Net;
 using System.Security.Claims;
 using Users.Tests.TestHelpers;
@@ -17,16 +15,16 @@ public class AuditingSignInManagerTests
     {
         TestLogger<AuditingSignInManager> logger = new();
         Mock<UserManager<User>> userManager = UserManagerMockFactory.Create();
-        userManager.Setup(m => m.FindByNameAsync("missing")).ReturnsAsync((User?)null);
+        _ = userManager.Setup(m => m.FindByNameAsync("missing")).ReturnsAsync((User?)null);
 
         DefaultHttpContext httpContext = new();
         httpContext.Connection.RemoteIpAddress = IPAddress.Loopback;
 
         Mock<IHttpContextAccessor> contextAccessor = new();
-        contextAccessor.Setup(a => a.HttpContext).Returns(httpContext);
+        _ = contextAccessor.Setup(a => a.HttpContext).Returns(httpContext);
 
         Mock<IUserClaimsPrincipalFactory<User>> claimsFactory = new();
-        claimsFactory.Setup(f => f.CreateAsync(It.IsAny<User>())).ReturnsAsync(new ClaimsPrincipal());
+        _ = claimsFactory.Setup(f => f.CreateAsync(It.IsAny<User>())).ReturnsAsync(new ClaimsPrincipal());
 
         Mock<IAuthenticationSchemeProvider> schemes = new();
         Mock<IUserConfirmation<User>> confirmation = new();
@@ -42,7 +40,7 @@ public class AuditingSignInManagerTests
 
         SignInResult result = await manager.PasswordSignInAsync("missing", "password", false, false);
 
-        result.Succeeded.Should().BeFalse();
-        logger.Entries.Should().Contain(e => e.Level == LogLevel.Warning && e.Message.Contains("Authentication failure"));
+        _ = result.Succeeded.Should().BeFalse();
+        _ = logger.Entries.Should().Contain(e => e.Level == LogLevel.Warning && e.Message.Contains("Authentication failure"));
     }
 }

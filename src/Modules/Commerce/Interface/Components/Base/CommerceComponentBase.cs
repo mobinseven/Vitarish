@@ -1,5 +1,3 @@
-using Microsoft.AspNetCore.Components;
-
 namespace Vitarish.Commerce.Interface.Components.Base;
 
 public abstract class CommerceComponentBase : ComponentBase

@@ -24,7 +24,7 @@ public sealed class MessagesServiceTests
     {
         // Arrange
         Mock<IOptionsMonitor<ProvidersOptions>> mockOptions = new();
-        mockOptions.Setup(x => x.CurrentValue).Returns(new ProvidersOptions());
+        _ = mockOptions.Setup(x => x.CurrentValue).Returns(new ProvidersOptions());
 
         // Act & Assert
         ArgumentNullException exception = Assert.Throws<ArgumentNullException>(
@@ -37,7 +37,7 @@ public sealed class MessagesServiceTests
     {
         // Arrange
         Mock<IOptionsMonitor<ProvidersOptions>> mockOptions = new();
-        mockOptions.Setup(x => x.CurrentValue).Returns(new ProvidersOptions());
+        _ = mockOptions.Setup(x => x.CurrentValue).Returns(new ProvidersOptions());
         Mock<ISmsProvider> mockProvider = new();
 
         // Act
@@ -56,7 +56,7 @@ public sealed class MessagesServiceTests
         CancellationToken capturedToken = default;
 
         Mock<ISmsProvider> mockProvider = new();
-        mockProvider
+        _ = mockProvider
             .Setup(x => x.SendSms(It.IsAny<Message>(), It.IsAny<CancellationToken>()))
             .Callback<Message, CancellationToken>((msg, token) =>
             {
@@ -66,7 +66,7 @@ public sealed class MessagesServiceTests
             .ReturnsAsync(expectedResult);
 
         Mock<IOptionsMonitor<ProvidersOptions>> mockOptions = new();
-        mockOptions.Setup(x => x.CurrentValue).Returns(new ProvidersOptions());
+        _ = mockOptions.Setup(x => x.CurrentValue).Returns(new ProvidersOptions());
 
         MessagesService service = new(mockOptions.Object, mockProvider.Object);
         Message message = new() { Recipient = "+15551234567", Body = "Hello" };
@@ -89,7 +89,7 @@ public sealed class MessagesServiceTests
         CancellationToken capturedToken = default;
 
         Mock<ISmsProvider> mockProvider = new();
-        mockProvider
+        _ = mockProvider
             .Setup(x => x.SendCode(It.IsAny<Message>(), It.IsAny<CancellationToken>()))
             .Callback<Message, CancellationToken>((msg, token) =>
             {
@@ -99,7 +99,7 @@ public sealed class MessagesServiceTests
             .Returns(Task.CompletedTask);
 
         Mock<IOptionsMonitor<ProvidersOptions>> mockOptions = new();
-        mockOptions.Setup(x => x.CurrentValue).Returns(new ProvidersOptions());
+        _ = mockOptions.Setup(x => x.CurrentValue).Returns(new ProvidersOptions());
 
         MessagesService service = new(mockOptions.Object, mockProvider.Object);
         Message message = new() { Recipient = "+15551234567", Body = "123456" };
@@ -122,7 +122,7 @@ public sealed class MessagesServiceTests
         CancellationToken capturedToken = default;
 
         Mock<ISmsProvider> mockProvider = new();
-        mockProvider
+        _ = mockProvider
             .Setup(x => x.GetSmsDeliveryStateAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
             .Callback<long, CancellationToken>((id, token) =>
             {
@@ -132,7 +132,7 @@ public sealed class MessagesServiceTests
             .ReturnsAsync(expectedState);
 
         Mock<IOptionsMonitor<ProvidersOptions>> mockOptions = new();
-        mockOptions.Setup(x => x.CurrentValue).Returns(new ProvidersOptions());
+        _ = mockOptions.Setup(x => x.CurrentValue).Returns(new ProvidersOptions());
 
         MessagesService service = new(mockOptions.Object, mockProvider.Object);
         using CancellationTokenSource cts = new();
@@ -152,12 +152,12 @@ public sealed class MessagesServiceTests
         // Arrange
         SmsSendResult expectedResult = new("123", "+15551234567", 100m, null, null, null, null);
         Mock<ISmsProvider> mockProvider = new();
-        mockProvider
+        _ = mockProvider
             .Setup(x => x.SendSms(It.IsAny<Message>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedResult);
 
         Mock<IOptionsMonitor<ProvidersOptions>> mockOptions = new();
-        mockOptions.Setup(x => x.CurrentValue).Returns(new ProvidersOptions());
+        _ = mockOptions.Setup(x => x.CurrentValue).Returns(new ProvidersOptions());
 
         MessagesService service = new(mockOptions.Object, mockProvider.Object);
         Message message = new() { Recipient = "+15551234567", Body = "Hello" };
@@ -174,12 +174,12 @@ public sealed class MessagesServiceTests
     {
         // Arrange
         Mock<ISmsProvider> mockProvider = new();
-        mockProvider
+        _ = mockProvider
             .Setup(x => x.SendCode(It.IsAny<Message>(), It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         Mock<IOptionsMonitor<ProvidersOptions>> mockOptions = new();
-        mockOptions.Setup(x => x.CurrentValue).Returns(new ProvidersOptions());
+        _ = mockOptions.Setup(x => x.CurrentValue).Returns(new ProvidersOptions());
 
         MessagesService service = new(mockOptions.Object, mockProvider.Object);
         Message message = new() { Recipient = "+15551234567", Body = "123456" };
@@ -194,12 +194,12 @@ public sealed class MessagesServiceTests
         // Arrange
         SmsDeliveryState expectedState = new("123", "+15551234567", 2, "Delivered", "Hello", 50m, null, null, null);
         Mock<ISmsProvider> mockProvider = new();
-        mockProvider
+        _ = mockProvider
             .Setup(x => x.GetSmsDeliveryStateAsync(It.IsAny<long>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(expectedState);
 
         Mock<IOptionsMonitor<ProvidersOptions>> mockOptions = new();
-        mockOptions.Setup(x => x.CurrentValue).Returns(new ProvidersOptions());
+        _ = mockOptions.Setup(x => x.CurrentValue).Returns(new ProvidersOptions());
 
         MessagesService service = new(mockOptions.Object, mockProvider.Object);
 

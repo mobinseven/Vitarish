@@ -26,6 +26,6 @@ public class GetUserProfileQueryValidatorTests
 
         TestValidationResult<GetUserProfileQuery> result = validator.TestValidate(query);
 
-        result.ShouldHaveValidationErrorFor(q => q.UserId);
+        _ = result.ShouldHaveValidationErrorFor(q => q.UserId);
     }
 }

@@ -12,9 +12,9 @@ public class IModuleInterfaceTests
         PropertyInfo? property = typeof(IModule).GetProperty("Name");
 
         // Assert
-        property.Should().NotBeNull();
-        property!.PropertyType.Should().Be(typeof(string));
-        property.CanRead.Should().BeTrue();
+        _ = property.Should().NotBeNull();
+        _ = property!.PropertyType.Should().Be(typeof(string));
+        _ = property.CanRead.Should().BeTrue();
     }
 
     [Fact]
@@ -24,11 +24,11 @@ public class IModuleInterfaceTests
         MethodInfo? method = typeof(IModule).GetMethod("Register");
 
         // Assert
-        method.Should().NotBeNull();
-        method!.ReturnType.Should().Be(typeof(Task));
-        method.GetParameters().Should().HaveCount(2);
-        method.GetParameters()[0].ParameterType.Should().Be(typeof(WebApplicationBuilder));
-        method.GetParameters()[1].ParameterType.Should().Be(typeof(Action<DbContextOptionsBuilder>));
+        _ = method.Should().NotBeNull();
+        _ = method!.ReturnType.Should().Be(typeof(Task));
+        _ = method.GetParameters().Should().HaveCount(2);
+        _ = method.GetParameters()[0].ParameterType.Should().Be(typeof(WebApplicationBuilder));
+        _ = method.GetParameters()[1].ParameterType.Should().Be(typeof(Action<DbContextOptionsBuilder>));
     }
 
     [Fact]
@@ -38,9 +38,9 @@ public class IModuleInterfaceTests
         MethodInfo? method = typeof(IModule).GetMethod("Initialize");
 
         // Assert
-        method.Should().NotBeNull();
-        method!.ReturnType.Should().Be(typeof(Task));
-        method.GetParameters().Should().HaveCount(1);
-        method.GetParameters()[0].ParameterType.Should().Be(typeof(IEndpointRouteBuilder));
+        _ = method.Should().NotBeNull();
+        _ = method!.ReturnType.Should().Be(typeof(Task));
+        _ = method.GetParameters().Should().HaveCount(1);
+        _ = method.GetParameters()[0].ParameterType.Should().Be(typeof(IEndpointRouteBuilder));
     }
 }

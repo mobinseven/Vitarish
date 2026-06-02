@@ -7,7 +7,7 @@ public partial class UserRoleAssignmentDialog
 {
     private readonly List<TenantRoleOption> tenantRoles = [];
     private bool isLoading;
-    private TenantRoleOption? selectedRole;
+    private readonly TenantRoleOption? selectedRole;
 
     [CascadingParameter] private IMudDialogInstance MudDialog { get; set; } = default!;
 
@@ -16,7 +16,7 @@ public partial class UserRoleAssignmentDialog
     [Parameter] public List<string> AssignedRoles { get; set; } = [];
 
     [Inject] private IPartiesService PartiesService { get; set; } = default!;
-    [Inject] private IStringLocalizer Localizer { get; set; } = default!;
+    [Inject] private new IStringLocalizer Localizer { get; set; } = default!;
 
     private List<string> assignedRoles = [];
 

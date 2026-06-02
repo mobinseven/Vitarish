@@ -215,7 +215,7 @@ public class CachedRepositoryTests : IDisposable
             new TestEntity { Name = "List3" }
         };
 
-        foreach(TestEntity? entity in entities)
+        foreach (TestEntity? entity in entities)
         {
             _ = await _mediator.Send(new AddEntityCommand<TestEntity, TestDescriptor>(entity));
         }
@@ -238,14 +238,14 @@ public class CachedRepositoryTests : IDisposable
         IReadOnlyList<TestEntity> added = await _mediator.Send(new AddEntitiesCommand<TestEntity, TestDescriptor>(entities));
 
         // Read each entity to populate cache (cache-aside pattern)
-        foreach(TestEntity? entity in added)
+        foreach (TestEntity? entity in added)
         {
             TestEntity? read = await _mediator.Send(new GetEntityByIdQuery<TestEntity, TestDescriptor>(entity.Id));
             Assert.NotNull(read);
         }
 
         // Assert - Each entity should now be cached
-        foreach(TestEntity? entity in added)
+        foreach (TestEntity? entity in added)
         {
             TestEntity? fromCache = _cache.Get(entity.Id);
             Assert.NotNull(fromCache);
@@ -253,7 +253,7 @@ public class CachedRepositoryTests : IDisposable
         }
 
         // Act - Update in bulk and clear cache (simulating EF interceptor behavior)
-        foreach(TestEntity entity in entities)
+        foreach (TestEntity entity in entities)
         {
             entity.Name += "-Updated";
             _cache.Remove(entity.Id); // Simulate cache invalidation
@@ -261,7 +261,7 @@ public class CachedRepositoryTests : IDisposable
         _ = await _mediator.Send(new UpdateEntitiesCommand<TestEntity, TestDescriptor>(entities));
 
         // Assert - Reads should get updated values and re-populate cache
-        foreach(TestEntity entity in entities)
+        foreach (TestEntity entity in entities)
         {
             TestEntity? read = await _mediator.Send(new GetEntityByIdQuery<TestEntity, TestDescriptor>(entity.Id));
             Assert.NotNull(read);

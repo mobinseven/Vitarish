@@ -36,13 +36,19 @@ internal class ShiftBookingPolicyEngine(
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.Id == reservationId, cancellationToken);
 
-        if (reservation is null) return false;
+        if (reservation is null)
+        {
+            return false;
+        }
 
         Shift? shift = await dbContext.Shifts
             .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == reservation.ShiftId, cancellationToken);
 
-        if (shift is null) return false;
+        if (shift is null)
+        {
+            return false;
+        }
 
         IReadOnlyList<ShiftBookingPolicy> policies = await LoadPoliciesAsync(reservation.ShiftId, cancellationToken);
         return ShiftBookingPolicyEvaluator.CanCancel(shift, reservation, policies);
@@ -54,13 +60,19 @@ internal class ShiftBookingPolicyEngine(
             .AsNoTracking()
             .FirstOrDefaultAsync(r => r.Id == reservationId, cancellationToken);
 
-        if (reservation is null) return false;
+        if (reservation is null)
+        {
+            return false;
+        }
 
         Shift? shift = await dbContext.Shifts
             .AsNoTracking()
             .FirstOrDefaultAsync(s => s.Id == reservation.ShiftId, cancellationToken);
 
-        if (shift is null) return false;
+        if (shift is null)
+        {
+            return false;
+        }
 
         IReadOnlyList<ShiftBookingPolicy> policies = await LoadPoliciesAsync(reservation.ShiftId, cancellationToken);
         return ShiftBookingPolicyEvaluator.CanReschedule(shift, reservation, policies);
@@ -81,7 +93,10 @@ internal class ShiftBookingPolicyEngine(
         await Task.WhenAll(shiftTask, policiesTask);
 
         Shift? shift = await shiftTask;
-        if (shift is null) return false;
+        if (shift is null)
+        {
+            return false;
+        }
 
         IReadOnlyList<ShiftBookingPolicy> policies = await policiesTask;
 
@@ -112,7 +127,10 @@ internal class ShiftBookingPolicyEngine(
         await Task.WhenAll(shiftTask, policiesTask);
 
         Shift? shift = await shiftTask;
-        if (shift is null) return false;
+        if (shift is null)
+        {
+            return false;
+        }
 
         IReadOnlyList<ShiftBookingPolicy> policies = await policiesTask;
         return ShiftBookingPolicyEvaluator.RequiresApproval(shift, date, policies);

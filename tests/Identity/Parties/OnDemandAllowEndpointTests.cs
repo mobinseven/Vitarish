@@ -12,7 +12,7 @@ public class OnDemandAllowEndpointTests : IDisposable
 
     public OnDemandAllowEndpointTests()
     {
-        var options = new DbContextOptionsBuilder<PartiesDbContext>()
+        DbContextOptions<PartiesDbContext> options = new DbContextOptionsBuilder<PartiesDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
 
@@ -22,7 +22,7 @@ public class OnDemandAllowEndpointTests : IDisposable
     [Fact]
     public async Task Allow_Returns200_ForVerifiedHostnameIndicator()
     {
-        var tenant = new Tenant
+        Tenant tenant = new()
         {
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
@@ -38,11 +38,11 @@ public class OnDemandAllowEndpointTests : IDisposable
             Status = IndicatorStatus.Verified,
             VerifiedAt = DateTimeOffset.UtcNow
         });
-        _dbContext.Tenants.Add(tenant);
-        await _dbContext.SaveChangesAsync();
+        _ = _dbContext.Tenants.Add(tenant);
+        _ = await _dbContext.SaveChangesAsync();
 
-        var canonical = HostnameNormalizer.Canonical("verified.customer.com");
-        var allowed = await _dbContext.TenantIndicators.AnyAsync(i =>
+        string canonical = HostnameNormalizer.Canonical("verified.customer.com");
+        bool allowed = await _dbContext.TenantIndicators.AnyAsync(i =>
             (i.Method == IndicatorMethod.Hostname || i.Method == IndicatorMethod.Subdomain) &&
             (i.Status == IndicatorStatus.Verified || i.Status == IndicatorStatus.Active) &&
             i.Value == canonical);
@@ -53,7 +53,7 @@ public class OnDemandAllowEndpointTests : IDisposable
     [Fact]
     public async Task Allow_Returns200_ForActiveHostnameIndicator()
     {
-        var tenant = new Tenant
+        Tenant tenant = new()
         {
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
@@ -69,11 +69,11 @@ public class OnDemandAllowEndpointTests : IDisposable
             Status = IndicatorStatus.Active,
             VerifiedAt = DateTimeOffset.UtcNow
         });
-        _dbContext.Tenants.Add(tenant);
-        await _dbContext.SaveChangesAsync();
+        _ = _dbContext.Tenants.Add(tenant);
+        _ = await _dbContext.SaveChangesAsync();
 
-        var canonical = HostnameNormalizer.Canonical("active.customer.com");
-        var allowed = await _dbContext.TenantIndicators.AnyAsync(i =>
+        string canonical = HostnameNormalizer.Canonical("active.customer.com");
+        bool allowed = await _dbContext.TenantIndicators.AnyAsync(i =>
             (i.Method == IndicatorMethod.Hostname || i.Method == IndicatorMethod.Subdomain) &&
             (i.Status == IndicatorStatus.Verified || i.Status == IndicatorStatus.Active) &&
             i.Value == canonical);
@@ -84,7 +84,7 @@ public class OnDemandAllowEndpointTests : IDisposable
     [Fact]
     public async Task Allow_Returns403_ForPendingVerificationIndicator()
     {
-        var tenant = new Tenant
+        Tenant tenant = new()
         {
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
@@ -99,11 +99,11 @@ public class OnDemandAllowEndpointTests : IDisposable
             Value = "pending.customer.com",
             Status = IndicatorStatus.PendingVerification
         });
-        _dbContext.Tenants.Add(tenant);
-        await _dbContext.SaveChangesAsync();
+        _ = _dbContext.Tenants.Add(tenant);
+        _ = await _dbContext.SaveChangesAsync();
 
-        var canonical = HostnameNormalizer.Canonical("pending.customer.com");
-        var allowed = await _dbContext.TenantIndicators.AnyAsync(i =>
+        string canonical = HostnameNormalizer.Canonical("pending.customer.com");
+        bool allowed = await _dbContext.TenantIndicators.AnyAsync(i =>
             (i.Method == IndicatorMethod.Hostname || i.Method == IndicatorMethod.Subdomain) &&
             (i.Status == IndicatorStatus.Verified || i.Status == IndicatorStatus.Active) &&
             i.Value == canonical);
@@ -114,7 +114,7 @@ public class OnDemandAllowEndpointTests : IDisposable
     [Fact]
     public async Task Allow_Returns403_ForDisabledIndicator()
     {
-        var tenant = new Tenant
+        Tenant tenant = new()
         {
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
@@ -129,11 +129,11 @@ public class OnDemandAllowEndpointTests : IDisposable
             Value = "disabled.customer.com",
             Status = IndicatorStatus.Disabled
         });
-        _dbContext.Tenants.Add(tenant);
-        await _dbContext.SaveChangesAsync();
+        _ = _dbContext.Tenants.Add(tenant);
+        _ = await _dbContext.SaveChangesAsync();
 
-        var canonical = HostnameNormalizer.Canonical("disabled.customer.com");
-        var allowed = await _dbContext.TenantIndicators.AnyAsync(i =>
+        string canonical = HostnameNormalizer.Canonical("disabled.customer.com");
+        bool allowed = await _dbContext.TenantIndicators.AnyAsync(i =>
             (i.Method == IndicatorMethod.Hostname || i.Method == IndicatorMethod.Subdomain) &&
             (i.Status == IndicatorStatus.Verified || i.Status == IndicatorStatus.Active) &&
             i.Value == canonical);
@@ -144,8 +144,8 @@ public class OnDemandAllowEndpointTests : IDisposable
     [Fact]
     public async Task Allow_Returns403_ForNonExistentDomain()
     {
-        var canonical = HostnameNormalizer.Canonical("nonexistent.customer.com");
-        var allowed = await _dbContext.TenantIndicators.AnyAsync(i =>
+        string canonical = HostnameNormalizer.Canonical("nonexistent.customer.com");
+        bool allowed = await _dbContext.TenantIndicators.AnyAsync(i =>
             (i.Method == IndicatorMethod.Hostname || i.Method == IndicatorMethod.Subdomain) &&
             (i.Status == IndicatorStatus.Verified || i.Status == IndicatorStatus.Active) &&
             i.Value == canonical);
@@ -156,7 +156,7 @@ public class OnDemandAllowEndpointTests : IDisposable
     [Fact]
     public async Task Allow_NormalizesHostname_BeforeCheck()
     {
-        var tenant = new Tenant
+        Tenant tenant = new()
         {
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
@@ -172,12 +172,12 @@ public class OnDemandAllowEndpointTests : IDisposable
             Status = IndicatorStatus.Verified,
             VerifiedAt = DateTimeOffset.UtcNow
         });
-        _dbContext.Tenants.Add(tenant);
-        await _dbContext.SaveChangesAsync();
+        _ = _dbContext.Tenants.Add(tenant);
+        _ = await _dbContext.SaveChangesAsync();
 
         // Check with uppercase to ensure normalization
-        var canonical = HostnameNormalizer.Canonical("VERIFIED.CUSTOMER.COM");
-        var allowed = await _dbContext.TenantIndicators.AnyAsync(i =>
+        string canonical = HostnameNormalizer.Canonical("VERIFIED.CUSTOMER.COM");
+        bool allowed = await _dbContext.TenantIndicators.AnyAsync(i =>
             (i.Method == IndicatorMethod.Hostname || i.Method == IndicatorMethod.Subdomain) &&
             (i.Status == IndicatorStatus.Verified || i.Status == IndicatorStatus.Active) &&
             i.Value == canonical);
@@ -188,7 +188,7 @@ public class OnDemandAllowEndpointTests : IDisposable
     [Fact]
     public async Task Allow_SupportsSubdomainMethod()
     {
-        var tenant = new Tenant
+        Tenant tenant = new()
         {
             Id = Guid.NewGuid(),
             OwnerId = Guid.NewGuid(),
@@ -204,11 +204,11 @@ public class OnDemandAllowEndpointTests : IDisposable
             Status = IndicatorStatus.Active,
             VerifiedAt = DateTimeOffset.UtcNow
         });
-        _dbContext.Tenants.Add(tenant);
-        await _dbContext.SaveChangesAsync();
+        _ = _dbContext.Tenants.Add(tenant);
+        _ = await _dbContext.SaveChangesAsync();
 
-        var canonical = HostnameNormalizer.Canonical("customer.saas.example.com");
-        var allowed = await _dbContext.TenantIndicators.AnyAsync(i =>
+        string canonical = HostnameNormalizer.Canonical("customer.saas.example.com");
+        bool allowed = await _dbContext.TenantIndicators.AnyAsync(i =>
             (i.Method == IndicatorMethod.Hostname || i.Method == IndicatorMethod.Subdomain) &&
             (i.Status == IndicatorStatus.Verified || i.Status == IndicatorStatus.Active) &&
             i.Value == canonical);

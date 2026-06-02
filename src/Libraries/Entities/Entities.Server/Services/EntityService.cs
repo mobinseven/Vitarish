@@ -1,5 +1,4 @@
 using Vitarish.Entities.Server.Abstractions;
-using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Entities.Server.Services;
 

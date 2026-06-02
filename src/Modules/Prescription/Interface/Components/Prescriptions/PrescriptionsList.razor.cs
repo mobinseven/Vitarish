@@ -12,7 +12,7 @@ public partial class PrescriptionsList : PrescriptionBase
 
     // Pagination
     private int currentPage;
-    private int pageSize = 20;
+    private readonly int pageSize = 20;
     private bool hasMore;
 
     // Filters

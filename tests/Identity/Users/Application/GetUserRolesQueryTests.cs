@@ -9,6 +9,6 @@ public class GetUserRolesQueryTests
     {
         GetUserRolesQuery query = new("user-1");
 
-        query.UserId.Should().Be("user-1");
+        _ = query.UserId.Should().Be("user-1");
     }
 }

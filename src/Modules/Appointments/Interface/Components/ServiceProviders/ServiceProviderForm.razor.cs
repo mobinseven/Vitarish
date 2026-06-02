@@ -8,10 +8,7 @@ public partial class ServiceProviderForm : ServiceProvidersBase
 
     private ServiceProviderWriteDto writeDto = new();
 
-    protected override void OnParametersSet()
-    {
-        writeDto = ServiceProvider is not null ? ServiceProvider.ToWrite() : new ServiceProviderWriteDto();
-    }
+    protected override void OnParametersSet() => writeDto = ServiceProvider is not null ? ServiceProvider.ToWrite() : new ServiceProviderWriteDto();
 
     private async Task SaveAsync()
     {

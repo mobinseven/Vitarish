@@ -1,5 +1,3 @@
-using Vitarish.Entities.Server.Models;
-
 namespace Vitarish.Medical.Interface.Components.Curation;
 
 public partial class LocalDrugForm : MedicalBase

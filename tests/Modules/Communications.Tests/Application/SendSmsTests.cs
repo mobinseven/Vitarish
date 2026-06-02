@@ -47,7 +47,7 @@ public sealed class SendSmsTests
         };
         Message message = new() { Recipient = "+10000000000", Body = "hello" };
 
-        await SendSms.ExecuteAsync(service, message, cts.Token);
+        _ = await SendSms.ExecuteAsync(service, message, cts.Token);
 
         Assert.Equal(cts.Token, observed);
     }
@@ -60,7 +60,7 @@ public sealed class SendSmsTests
         using CancellationTokenSource cts = new();
         cts.Cancel();
 
-        await Assert.ThrowsAsync<OperationCanceledException>(() => SendSms.ExecuteAsync(service, message, cts.Token));
+        _ = await Assert.ThrowsAsync<OperationCanceledException>(() => SendSms.ExecuteAsync(service, message, cts.Token));
     }
 
     [Fact]
@@ -70,7 +70,7 @@ public sealed class SendSmsTests
         Message message = new() { Recipient = "+15551234567", Body = "hello" };
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => SendSms.ExecuteAsync(null!, message));
+        _ = await Assert.ThrowsAsync<ArgumentNullException>(() => SendSms.ExecuteAsync(null!, message));
     }
 
     [Fact]
@@ -80,7 +80,7 @@ public sealed class SendSmsTests
         FakeMessagesService service = new();
 
         // Act & Assert
-        await Assert.ThrowsAsync<ArgumentNullException>(() => SendSms.ExecuteAsync(service, null!));
+        _ = await Assert.ThrowsAsync<ArgumentNullException>(() => SendSms.ExecuteAsync(service, null!));
     }
 
     [Theory]
@@ -138,7 +138,7 @@ public sealed class SendSmsTests
         cts.Cancel();
 
         // Act & Assert - validation should happen first and throw ArgumentException, not OperationCanceledException
-        await Assert.ThrowsAsync<ArgumentException>(
+        _ = await Assert.ThrowsAsync<ArgumentException>(
             () => SendSms.ExecuteAsync(service, message, cts.Token));
     }
 
@@ -167,12 +167,9 @@ public sealed class SendSmsTests
         public Task<SmsSendResult> SendSms(Message message, CancellationToken cancellationToken = default)
         {
             LastSmsMessage = message;
-            if (SendSmsDelegate is not null)
-            {
-                return SendSmsDelegate(message, cancellationToken);
-            }
-
-            return Task.FromResult(new SmsSendResult(
+            return SendSmsDelegate is not null
+                ? SendSmsDelegate(message, cancellationToken)
+                : Task.FromResult(new SmsSendResult(
                 "0",
                 message.Recipient,
                 0m,

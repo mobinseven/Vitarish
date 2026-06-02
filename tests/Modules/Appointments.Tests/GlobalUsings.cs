@@ -1,10 +1,8 @@
-global using System.Security.Claims;
 global using FluentAssertions;
 global using MediatR;
 global using Microsoft.EntityFrameworkCore;
 global using Moq;
-global using Vitarish.Audit.Application;
-global using Vitarish.Audit.Domain;
+global using System.Security.Claims;
 global using Vitarish.Appointments.Application.Abstractions;
 global using Vitarish.Appointments.Application.Events;
 global using Vitarish.Appointments.Domain.Dto;
@@ -12,11 +10,13 @@ global using Vitarish.Appointments.Domain.Entities;
 global using Vitarish.Appointments.Domain.Enums;
 global using Vitarish.Appointments.Domain.Models;
 global using Vitarish.Appointments.Infrastructure.Services;
+global using Vitarish.Audit.Application;
+global using Vitarish.Audit.Domain;
 global using Vitarish.Communications.Application.Abstractions;
 global using Vitarish.Communications.Domain.Dto;
 global using Vitarish.Communications.Domain.Enums;
-global using Vitarish.Entities.Server.Repositories;
 global using Vitarish.Entities.Server.Models;
+global using Vitarish.Entities.Server.Repositories;
 global using Vitarish.Requests.Application.Abstractions;
 global using Xunit;
 // Aliases for types that conflict with Microsoft.Extensions.DependencyInjection names

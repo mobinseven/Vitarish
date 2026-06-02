@@ -10,7 +10,7 @@ public class ShiftBookingPolicyEvaluatorTests
 
         TimeSpan result = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, date, [], TimeSpan.FromMinutes(5));
 
-        result.Should().Be(TimeSpan.FromMinutes(5));
+        _ = result.Should().Be(TimeSpan.FromMinutes(5));
     }
 
     [Fact]
@@ -27,7 +27,7 @@ public class ShiftBookingPolicyEvaluatorTests
 
         TimeSpan result = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, date, policies);
 
-        result.Should().Be(TimeSpan.FromMinutes(15));
+        _ = result.Should().Be(TimeSpan.FromMinutes(15));
     }
 
     [Fact]
@@ -38,7 +38,7 @@ public class ShiftBookingPolicyEvaluatorTests
 
         TimeSpan result = ShiftBookingPolicyEvaluator.GetEffectiveEstimatedSessionLength(shift, date, []);
 
-        result.Should().Be(TimeSpan.FromMinutes(9));
+        _ = result.Should().Be(TimeSpan.FromMinutes(9));
     }
 
     private static Shift CreateShift(TimeOnly startTime, TimeOnly endTime, int totalSeats) => new()

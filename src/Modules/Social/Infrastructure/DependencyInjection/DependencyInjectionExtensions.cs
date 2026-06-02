@@ -1,6 +1,7 @@
-namespace Vitarish.Social.Infrastructure.DependencyInjection;
 
 using Vitarish.Social.Infrastructure.Adapters;
+
+namespace Vitarish.Social.Infrastructure.DependencyInjection;
 
 public static class DependencyInjectionExtensions
 {

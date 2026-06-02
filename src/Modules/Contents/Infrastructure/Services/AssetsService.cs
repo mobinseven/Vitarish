@@ -17,23 +17,17 @@ internal sealed class AssetsService(
     public new async Task<EntityResult<AssetReadDto>> AddAsync(AssetWriteDto dto, CancellationToken cancellationToken)
     {
         EntityResult validation = await ValidateFileAsync(dto.FileId, cancellationToken);
-        if (validation.IsFailure)
-        {
-            return EntityResult<AssetReadDto>.Failure([.. validation.Errors]);
-        }
-
-        return await base.AddAsync(dto, cancellationToken);
+        return validation.IsFailure
+            ? EntityResult<AssetReadDto>.Failure([.. validation.Errors])
+            : await base.AddAsync(dto, cancellationToken);
     }
 
     public new async Task<EntityResult<AssetReadDto>> UpdateAsync(AssetWriteDto dto, CancellationToken cancellationToken)
     {
         EntityResult validation = await ValidateFileAsync(dto.FileId, cancellationToken);
-        if (validation.IsFailure)
-        {
-            return EntityResult<AssetReadDto>.Failure([.. validation.Errors]);
-        }
-
-        return await base.UpdateAsync(dto, cancellationToken);
+        return validation.IsFailure
+            ? EntityResult<AssetReadDto>.Failure([.. validation.Errors])
+            : await base.UpdateAsync(dto, cancellationToken);
     }
 
     private async Task<EntityResult> ValidateFileAsync(Guid fileId, CancellationToken cancellationToken)
@@ -44,11 +38,8 @@ internal sealed class AssetsService(
         }
 
         FileInformationReadDto? file = await fileInformationService.GetAsync(fileId, cancellationToken).GetValueOrDefaultAsync();
-        if (file is null)
-        {
-            return EntityResult.Failure(EntityError.NotFound("Referenced file record was not found.", nameof(fileId)));
-        }
-
-        return EntityResult.Success();
+        return file is null
+            ? EntityResult.Failure(EntityError.NotFound("Referenced file record was not found.", nameof(fileId)))
+            : EntityResult.Success();
     }
 }

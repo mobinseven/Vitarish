@@ -1,5 +1,4 @@
 using Hangfire;
-using Vitarish.Main.Infrastructure.BackgroundJobs.Reminders;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 
@@ -13,19 +12,13 @@ public class HangfireSeaJobManager(IRecurringJobManager recurringJobManager)
     /// <summary>
     /// Adds or updates the recurring job that processes due reminders.
     /// </summary>
-    public void ScheduleProcessing()
-    {
-        recurringJobManager.AddOrUpdate<AttachmentMigrationProcessor>(
+    public void ScheduleProcessing() => recurringJobManager.AddOrUpdate<AttachmentMigrationProcessor>(
             MigrationJobId,
             processor => processor.ProcessMigration(CancellationToken.None),
             Cron.Daily(2));
-    }
 
     /// <summary>
     /// Triggers the reminder processing job immediately.
     /// </summary>
-    public void TriggerProcessing()
-    {
-        recurringJobManager.Trigger(MigrationJobId);
-    }
+    public void TriggerProcessing() => recurringJobManager.Trigger(MigrationJobId);
 }

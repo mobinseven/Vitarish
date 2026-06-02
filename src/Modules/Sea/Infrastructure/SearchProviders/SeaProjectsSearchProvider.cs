@@ -1,8 +1,6 @@
 using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Search.Domain.Abstractions;
 using Vitarish.Search.Domain.Models;
-using Vitarish.Sea.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace Vitarish.Sea.Infrastructure.SearchProviders;
 

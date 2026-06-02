@@ -1,9 +1,7 @@
 using Microsoft.AspNetCore.Builder;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
 using System.Text;
-using Vitarish.Appointments.Infrastructure.Data;
 
 namespace Vitarish.Appointments.Infrastructure.DependencyInjection;
 
