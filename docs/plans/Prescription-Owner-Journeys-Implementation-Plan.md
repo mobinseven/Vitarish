@@ -105,7 +105,7 @@ Complete the current partial Prescription owner journeys while preserving Medica
 
 ### Phase 5 — Medical-owned reference-code administration
 
-1. Keep Prescription reference sync as a utility that fetches provider data and delegates persistence to Medical.
+1. Keep Prescription reference sync as a utility that fetches provider data and delegates persistence to Medical, ensuring that import batches implement separate uniqueness constraints for the logical version (source_type and source_version) and the file content (source_checksum) for idempotency, and include a record_origin field in uniqueness constraints to allow local overlays to coexist with imported records.
 2. Complete freshness, import history, breaking-change review, and governance UI in the Medical module, not in Prescription.
 3. Keep Prescription authoring search pointed at Medical query services.
 
