@@ -8,40 +8,10 @@
 <Stack>
     <StackField Label="@Localizer["SelectPayer"]" />
 
-    @if (isLoading)
-    {
-        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
-    }
-    else if (providers.Count == 0)
-    {
-        <MudAlert Severity="Severity.Warning">@Localizer["NoProvidersAvailable"]</MudAlert>
-    }
-    else if (providers.Count == 1)
-    {
-        @* Single provider — show read-only with auto-selected provider *@
-        <StackField Label="@providers[0].ProviderKey" HelperText="@Localizer["InsuranceProvider"]">
-            <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">
-                @providers[0].ProviderKey
-            </MudChip>
-        </StackField>
-    }
-    else
-    {
-        @* Multiple providers — show selector *@
-        <MudSelect T="string"
-                   Label="@Localizer["SelectInsuranceProvider"]"
-                   Value="@selectedProviderKey"
-                   ValueChanged="OnProviderSelectedAsync"
-                   Variant="Variant.Outlined"
-                   Dense="true">
-            @foreach (var provider in providers)
-            {
-                <MudSelectItem T="string" Value="@provider.ProviderKey">
-                    @provider.ProviderKey
-                </MudSelectItem>
-            }
-        </MudSelect>
-    }
+    <InsuranceProviderSelector Providers="providers"
+                               SelectedProviderKey="selectedProviderKey"
+                               SelectedProviderKeyChanged="OnProviderSelectedAsync"
+                               IsLoading="isLoading" />
 
     @if (!string.IsNullOrEmpty(errorMessage))
     {
