@@ -1,0 +1,44 @@
+@inject IStringLocalizer Localizer
+
+@if (IsLoading)
+{
+    <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
+}
+else if (Providers.Count == 0)
+{
+    <MudAlert Severity="Severity.Warning">@Localizer["NoProvidersAvailable"]</MudAlert>
+}
+else if (Providers.Count == 1 && ShowSingleProviderAsField)
+{
+    <StackField Label="@Providers[0].ProviderKey" HelperText="@Localizer["SelectedProvider"]" />
+}
+else
+{
+    <StackSelect T="string"
+                 Label="@EffectiveLabel"
+                 Value="@SelectedProviderKey"
+                 ValueChanged="OnSelectedProviderKeyChanged">
+        @foreach (var provider in Providers)
+        {
+            <StackSelectItem T="string" Value="@provider.ProviderKey">
+                @provider.ProviderKey
+            </StackSelectItem>
+        }
+    </StackSelect>
+}
+
+@code {
+    [Parameter] public IReadOnlyList<AvailableProviderDto> Providers { get; set; } = [];
+    [Parameter] public string? SelectedProviderKey { get; set; }
+    [Parameter] public EventCallback<string> SelectedProviderKeyChanged { get; set; }
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public bool IsLoading { get; set; }
+    [Parameter] public bool ShowSingleProviderAsField { get; set; } = true;
+
+    private string EffectiveLabel => Label ?? Localizer["SelectInsuranceProvider"];
+
+    private Task OnSelectedProviderKeyChanged(string providerKey)
+    {
+        return SelectedProviderKeyChanged.InvokeAsync(providerKey);
+    }
+}

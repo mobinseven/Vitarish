@@ -13,12 +13,20 @@ namespace Vitarish.Prescription.Infrastructure.Handlers;
 
 public sealed class SaveCredentialHandler(
     PrescriptionDbContext dbContext,
+    IInsuranceProviderRegistry providerRegistry,
     IAuditWriter auditWriter,
     ILogger<SaveCredentialHandler> logger)
     : IRequestHandler<SaveCredentialCommand, SaveCredentialResult>
 {
     public async Task<SaveCredentialResult> Handle(SaveCredentialCommand request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.ProviderKey))
+            return SaveCredentialResult.Failure("بیمه‌گر انتخاب شده در سیستم موجود نیست.");
+
+        string providerKey = request.ProviderKey.Trim();
+        if (!providerRegistry.IsProviderAvailable(providerKey))
+            return SaveCredentialResult.Failure("بیمه‌گر انتخاب شده در سیستم موجود نیست.");
+
         DoctorProviderCredential? credential;
 
         if (request.CredentialId.HasValue)
@@ -40,7 +48,7 @@ public sealed class SaveCredentialHandler(
             // Check uniqueness
             var exists = await dbContext.DoctorProviderCredentials.AnyAsync(
                 c => c.DoctorId == request.DoctorId
-                     && c.ProviderKey == request.ProviderKey
+                     && c.ProviderKey == providerKey
                      && c.ClinicId == request.ClinicId,
                 cancellationToken);
 
@@ -51,7 +59,7 @@ public sealed class SaveCredentialHandler(
             {
                 Id = Guid.NewGuid(),
                 DoctorId = request.DoctorId,
-                ProviderKey = request.ProviderKey,
+                ProviderKey = providerKey,
                 ClinicId = request.ClinicId,
                 ProviderDoctorIdentifier = request.ProviderDoctorIdentifier,
                 ProviderUsername = request.ProviderUsername,

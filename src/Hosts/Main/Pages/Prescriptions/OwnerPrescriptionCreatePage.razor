@@ -9,16 +9,17 @@
                     Label="@Localizer["PatientNationalId"]"
                     HelperText="@Localizer["PatientNationalIdHelp"]" />
 
-    @if (!string.IsNullOrEmpty(selectedProviderKey))
-    {
-        <StackField Label="@selectedProviderKey" HelperText="@Localizer["SelectedProvider"]" />
-    }
+    <InsuranceProviderSelector Providers="availableProviders"
+                               SelectedProviderKey="selectedProviderKey"
+                               SelectedProviderKeyChanged="OnProviderSelected"
+                               Label="@Localizer["SelectInsuranceProvider"]"
+                               IsLoading="isLoadingProviders" />
 
     <StackButton Color="Color.Primary"
                  Label="@Localizer["CreateDraft"]"
                  EndIcon="fa-regular fa-file-medical"
                  OnClick="CreateDraftAsync"
-                 Disabled="@(PatientId is null || string.IsNullOrWhiteSpace(patientNationalId))" />
+                 Disabled="@(PatientId is null || string.IsNullOrWhiteSpace(patientNationalId) || string.IsNullOrWhiteSpace(selectedProviderKey) || isLoadingProviders)" />
 </Stack>
 
 @if (PatientId is null)
@@ -37,20 +38,48 @@
     [Inject] private IMediator Mediator { get; set; } = default!;
 
     private string? patientNationalId;
-    private const string DefaultProviderKey = "TAMIN";
-    private string selectedProviderKey = DefaultProviderKey;
+    private string? selectedProviderKey;
+    private IReadOnlyList<AvailableProviderDto> availableProviders = [];
+    private bool isLoadingProviders;
+    private bool hasLoadedProviders;
     private string? errorMessage;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (isLoadingProviders || hasLoadedProviders)
+            return;
+
+        isLoadingProviders = true;
+
+        try
+        {
+            availableProviders = await Mediator.Send(new GetAvailableProvidersQuery());
+            selectedProviderKey = availableProviders.Count == 1 ? availableProviders[0].ProviderKey : null;
+            hasLoadedProviders = true;
+        }
+        finally
+        {
+            isLoadingProviders = false;
+        }
+    }
 
     protected override Task ReloadRequired()
     {
         return Task.CompletedTask;
     }
 
+    private void OnProviderSelected(string providerKey)
+    {
+        selectedProviderKey = providerKey;
+    }
+
     private async Task CreateDraftAsync()
     {
-        if (PatientId is null || string.IsNullOrWhiteSpace(patientNationalId))
+        if (PatientId is null || string.IsNullOrWhiteSpace(patientNationalId) || string.IsNullOrWhiteSpace(selectedProviderKey))
         {
-            errorMessage = PatientId is null ? Localizer["PatientContextRequired"] : null;
+            errorMessage = PatientId is null
+                ? Localizer["PatientContextRequired"]
+                : (availableProviders.Count == 0 ? Localizer["NoProvidersAvailable"] : Localizer["SelectInsuranceProvider"]);
             return;
         }
 
