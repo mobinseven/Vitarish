@@ -9,35 +9,11 @@
                     Label="@Localizer["PatientNationalId"]"
                     HelperText="@Localizer["PatientNationalIdHelp"]" />
 
-    @if (isLoadingProviders)
-    {
-        <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
-    }
-    else if (availableProviders.Count == 0)
-    {
-        <MudAlert Severity="Severity.Warning">@Localizer["NoProvidersAvailable"]</MudAlert>
-    }
-    else if (availableProviders.Count == 1)
-    {
-        <StackField Label="@availableProviders[0].ProviderKey" HelperText="@Localizer["SelectedProvider"]" />
-    }
-    else
-    {
-        <MudSelect T="string"
-                   Label="@Localizer["SelectInsuranceProvider"]"
-                   Value="@selectedProviderKey"
-                   ValueChanged="OnProviderSelected"
-                   Required="true"
-                   Variant="Variant.Outlined"
-                   Dense="true">
-            @foreach (var provider in availableProviders)
-            {
-                <MudSelectItem T="string" Value="@provider.ProviderKey">
-                    @provider.ProviderKey
-                </MudSelectItem>
-            }
-        </MudSelect>
-    }
+    <InsuranceProviderSelector Providers="availableProviders"
+                               SelectedProviderKey="selectedProviderKey"
+                               SelectedProviderKeyChanged="OnProviderSelected"
+                               Label="@Localizer["SelectInsuranceProvider"]"
+                               IsLoading="isLoadingProviders" />
 
     <StackButton Color="Color.Primary"
                  Label="@Localizer["CreateDraft"]"
@@ -65,11 +41,12 @@
     private string? selectedProviderKey;
     private IReadOnlyList<AvailableProviderDto> availableProviders = [];
     private bool isLoadingProviders;
+    private bool hasLoadedProviders;
     private string? errorMessage;
 
     protected override async Task OnParametersSetAsync()
     {
-        if (isLoadingProviders || availableProviders.Count > 0)
+        if (isLoadingProviders || hasLoadedProviders)
             return;
 
         isLoadingProviders = true;
@@ -78,6 +55,7 @@
         {
             availableProviders = await Mediator.Send(new GetAvailableProvidersQuery());
             selectedProviderKey = availableProviders.Count == 1 ? availableProviders[0].ProviderKey : null;
+            hasLoadedProviders = true;
         }
         finally
         {
@@ -101,7 +79,7 @@
         {
             errorMessage = PatientId is null
                 ? Localizer["PatientContextRequired"]
-                : Localizer["NoProvidersAvailable"];
+                : (availableProviders.Count == 0 ? Localizer["NoProvidersAvailable"] : Localizer["SelectInsuranceProvider"]);
             return;
         }
 

@@ -9,10 +9,12 @@ namespace Vitarish.Prescription.Infrastructure.Providers;
 public sealed class InsuranceProviderRegistry : IInsuranceProviderRegistry
 {
     private readonly Dictionary<string, IInsuranceProviderAdapter> _adapters;
+    private readonly IReadOnlyCollection<string> _registeredProviderKeys;
 
     public InsuranceProviderRegistry(IEnumerable<IInsuranceProviderAdapter> adapters)
     {
         _adapters = adapters.ToDictionary(a => a.ProviderKey, StringComparer.OrdinalIgnoreCase);
+        _registeredProviderKeys = _adapters.Keys.Order(StringComparer.OrdinalIgnoreCase).ToArray();
     }
 
     public IInsuranceProviderAdapter? GetAdapter(string providerKey)
@@ -25,7 +27,7 @@ public sealed class InsuranceProviderRegistry : IInsuranceProviderRegistry
 
     public IReadOnlyCollection<string> GetRegisteredProviderKeys()
     {
-        return _adapters.Keys.Order(StringComparer.OrdinalIgnoreCase).ToArray();
+        return _registeredProviderKeys;
     }
 
     public bool IsProviderAvailable(string providerKey)

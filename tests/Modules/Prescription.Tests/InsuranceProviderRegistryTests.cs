@@ -19,7 +19,7 @@ public sealed class InsuranceProviderRegistryTests
         IReadOnlyCollection<string> providerKeys = registry.GetRegisteredProviderKeys();
 
         // Assert
-        providerKeys.Should().BeEquivalentTo(["SALAMAT", "TAMIN"]);
+        providerKeys.Should().Equal(["SALAMAT", "TAMIN"]);
         providerKeys.Should().NotContain("DITAS");
     }
 
