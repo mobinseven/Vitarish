@@ -7,10 +7,10 @@
 
 ## Current Implementation Alignment
 - **Status:** `partial`.
-- **Implemented now:** owner prescription list and detail routes load clinic/patient history, status badges, item counts, provider labels, detail items, status panel, and a simple timeline.
-- **Current artifacts:** `OwnerPrescriptionsPage`, `OwnerPrescriptionDetailPage`, `PrescriptionsList`, `PrescriptionDetail`, `PrescriptionStatusBadge`, `PrescriptionTimeline`, `GetPrescriptionHistoryQuery`, `GetPrescriptionQuery`.
-- **Authoritative state:** history/detail read from `PrescriptionRecord` and `PrescriptionItem` projections via prescription queries.
-- **Known gaps:** advanced filters, pagination controls, complete audit trail rendering, print view, and routed operational dashboard access are not complete.
+- **Implemented now:** owner prescription list and detail routes load clinic/patient history, status badges, item counts, provider labels, detail items, status panel, basic filters, pagination, and a simple timeline; the operational dashboard has a routed owner admin page.
+- **Current artifacts:** `OwnerPrescriptionsPage`, `OwnerPrescriptionDetailPage`, `OwnerPrescriptionOperationalDashboardPage`, `PrescriptionsList`, `PrescriptionDetail`, `PrescriptionStatusBadge`, `PrescriptionTimeline`, `PrescriptionOperationalDashboard`, `GetPrescriptionHistoryQuery`, `GetPrescriptionQuery`, observability queries.
+- **Authoritative state:** prescription list/detail projections read from `PrescriptionRecord` and related items/submissions; operational counts read from query handlers without changing state.
+- **Known gaps:** date-range filters are supported by the query shape but not surfaced in list UI, complete audit trail rendering is not present, `PrescriptionPrintView` exists but is not wired into the detail journey, and operational navigation/role discoverability needs confirmation.
 
 ## 2. Entry Conditions
 1. User is authenticated with prescription view permission.

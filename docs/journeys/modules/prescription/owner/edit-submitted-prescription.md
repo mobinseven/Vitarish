@@ -7,10 +7,10 @@
 
 ## Current Implementation Alignment
 - **Status:** `partial`.
-- **Implemented now:** an accepted prescription exposes an edit action in `PrescriptionDetail`; `EditPrescriptionCommand` calls the provider adapter and updates canonical status/tracking.
+- **Implemented now:** an accepted prescription exposes an edit action in `PrescriptionDetail`; the UI asks for confirmation/reason, and `EditPrescriptionCommand` calls the provider adapter and updates canonical status/tracking.
 - **Current artifacts:** `PrescriptionDetail`, `PrescriptionSubmitPanel`, `PrescriptionTimeline`, `EditPrescriptionCommand`, `IInsuranceProviderAdapter.EditPrescriptionAsync`.
-- **Authoritative state:** the original `PrescriptionRecord` and its `VersionNumber` remain the local source of truth; provider edit response maps back to `PrescriptionStatus`.
-- **Known gaps:** there is no dedicated edit workspace for changing items after acceptance, no diff/confirmation step, no edit reason capture, and no separate route for edit mode.
+- **Authoritative state:** `PrescriptionRecord.Status`, version/tracking fields, and provider submission history own the local edit lifecycle.
+- **Known gaps:** there is no dedicated edit workspace for changing items after acceptance, no item-level diff/confirmation step, edit reason capture uses the generic confirm dialog instead of an explicit edit-reason form, and no separate route exists for edit mode.
 
 ## 2. Entry Conditions
 1. Prescription exists in editable state (`AcceptedByProvider` or provider-specific edit-eligible state).

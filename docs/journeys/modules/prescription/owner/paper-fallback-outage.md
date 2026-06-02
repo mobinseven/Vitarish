@@ -7,10 +7,10 @@
 
 ## Current Implementation Alignment
 - **Status:** `partial`.
-- **Implemented now:** `PaperFallbackPanel` is available for `Draft`, `ReadyForSubmission`, and `ProviderUnavailable`; `PaperFallbackDialog` captures reason and optional paper tracking number; `PaperFallbackCommand` transitions state; support can reconcile paper fallback through `ReconcilePaperFallbackCommand`.
-- **Current artifacts:** `PaperFallbackPanel`, `PaperFallbackDialog`, `PaperFallbackCommand`, `ReconcilePaperFallbackCommand`, `ManualReconcileCommand`, `ReconciliationDesk`.
-- **Authoritative state:** paper fallback is a canonical `PrescriptionStatus` on the existing prescription record; support reconciliation moves that same record forward instead of creating a competing workflow.
-- **Known gaps:** official printable paper form, outage-specific proactive prompt, and routed support/admin reconciliation page are not complete.
+- **Implemented now:** `PaperFallbackPanel` is available for `Draft`, `ReadyForSubmission`, and `ProviderUnavailable`; `PaperFallbackDialog` captures reason and optional paper tracking number; `PaperFallbackCommand` transitions state; support can reconcile paper fallback through `ReconcilePaperFallbackCommand` from the support reconciliation route.
+- **Current artifacts:** `PaperFallbackPanel`, `PaperFallbackDialog`, `PaperFallbackCommand`, `ReconcilePaperFallbackCommand`, `ManualReconcileCommand`, `ReconciliationDesk`, `SupportPrescriptionReconciliationDeskPage`.
+- **Authoritative state:** `PrescriptionRecord.Status` owns the `PaperFallback` lifecycle state; paper tracking and reconciliation evidence belong to prescription/reconciliation records.
+- **Known gaps:** `PaperFallbackCertificate` exists but is not wired into the owner fallback journey, outage-specific proactive prompt state is computed but not rendered in `PrescriptionSubmitPanel`, and paper tracking format validation remains generic.
 
 ## 2. Entry Conditions
 1. Provider is confirmed unavailable or degraded (repeated timeouts, known outage, admin declaration).
