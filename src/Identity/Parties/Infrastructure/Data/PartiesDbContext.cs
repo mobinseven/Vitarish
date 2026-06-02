@@ -36,8 +36,7 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
                         .HasConversion(
                             v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
                             v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
-                        .HasDefaultValueSql("'{}'")
-                        .HasColumnType("text");
+                        .HasDefaultValueSql("'{}'");
         });
 
         _ = modelBuilder.Entity<TenantIndicator>(entity =>

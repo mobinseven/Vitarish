@@ -119,8 +119,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
                     v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
-                .HasDefaultValueSql("'{}'")
-                .HasColumnType("text");
+                .HasDefaultValueSql("'{}'");
             _ = entity.Ignore(p => p.Stats);
             _ = entity.Ignore(p => p.UserIds);
 
@@ -144,8 +143,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
                 .HasConversion(
                     v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
                     v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
-                .HasDefaultValueSql("'{}'")
-                .HasColumnType("text");
+                .HasDefaultValueSql("'{}'");
 
             _ = entity.Ignore(p => p.Stats);
         });

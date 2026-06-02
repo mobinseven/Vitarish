@@ -68,7 +68,7 @@ public sealed class FinancialDbContext(DbContextOptions<FinancialDbContext> opti
             _ = entity.Property(e => e.Scope).HasMaxLength(128);
             _ = entity.Property(e => e.IdempotencyKey).HasMaxLength(256);
             _ = entity.Property(e => e.RequestHash).HasMaxLength(128);
-            _ = entity.Property(e => e.ResponsePayload).HasColumnType("text");
+            _ = entity.Property(e => e.ResponsePayload);
             _ = entity.HasIndex(e => new { e.Scope, e.IdempotencyKey }).IsUnique();
         });
 
@@ -90,8 +90,8 @@ public sealed class FinancialDbContext(DbContextOptions<FinancialDbContext> opti
             _ = entity.Property(e => e.EventId).HasMaxLength(256);
             _ = entity.Property(e => e.DedupeKey).HasMaxLength(256);
             _ = entity.Property(e => e.SchemaVersion).HasMaxLength(32);
-            _ = entity.Property(e => e.RawPayload).HasColumnType("text");
-            _ = entity.Property(e => e.NormalizedPayload).HasColumnType("text");
+            _ = entity.Property(e => e.RawPayload);
+            _ = entity.Property(e => e.NormalizedPayload);
             _ = entity.HasIndex(e => new { e.Provider, e.DedupeKey }).IsUnique();
         });
     }
