@@ -1,14 +1,11 @@
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using Vitarish.DitasInsurance.Client;
 using Vitarish.Modules.Base.Platform.Retry;
 using Vitarish.Modules.Base.Platform.Transactions;
 using Vitarish.Prescription.Application.Abstractions;
 using Vitarish.Prescription.Infrastructure.Data;
 using Vitarish.Prescription.Infrastructure.Providers;
-using Vitarish.Prescription.Infrastructure.Providers.Ditas;
 using Vitarish.Prescription.Infrastructure.Providers.Salamat;
 using Vitarish.Prescription.Infrastructure.Providers.Tamin;
 using Vitarish.Prescription.Infrastructure.Services;
@@ -36,9 +33,6 @@ public static class DependencyInjectionExtensions
         // Tamin provider
         RegisterTaminProvider(services, configuration);
 
-        // DITAS provider
-        RegisterDitasProvider(services, configuration);
-
         // Salamat provider
         RegisterSalamatProvider(services, configuration);
 
@@ -57,33 +51,6 @@ public static class DependencyInjectionExtensions
             new ResilientAdapterDecorator(
                 sp.GetRequiredService<TaminInsuranceAdapter>(),
                 sp.GetRequiredService<TaminErrorMapper>(),
-                sp.GetRequiredService<IProviderResiliencePipelineProvider>(),
-                sp.GetRequiredService<IExternalApiTransactionLogger>(),
-                sp.GetRequiredService<ILogger<ResilientAdapterDecorator>>()));
-    }
-
-    private static void RegisterDitasProvider(IServiceCollection services, IConfiguration configuration)
-    {
-        _ = services.Configure<DitasOptions>(configuration.GetSection(DitasOptions.SectionName));
-        _ = services.AddTransient(sp =>
-        {
-            var options = sp.GetRequiredService<IOptionsMonitor<DitasOptions>>().CurrentValue;
-            return new DitasInsuranceClientOptions
-            {
-                BaseUrl = options.BaseUrl,
-                ApiKey = options.ApiKey,
-                UseSandbox = options.UseSandbox,
-                SandboxBaseUrl = options.SandboxBaseUrl
-            };
-        });
-        _ = services.AddHttpClient<IDitasInsuranceClient, DitasInsuranceClient>();
-        _ = services.AddScoped<DitasInsuranceAdapter>();
-        _ = services.AddSingleton<DitasErrorMapper>();
-        _ = services.AddSingleton<IProviderErrorMapper>(sp => sp.GetRequiredService<DitasErrorMapper>());
-        _ = services.AddScoped<IInsuranceProviderAdapter>(sp =>
-            new ResilientAdapterDecorator(
-                sp.GetRequiredService<DitasInsuranceAdapter>(),
-                sp.GetRequiredService<DitasErrorMapper>(),
                 sp.GetRequiredService<IProviderResiliencePipelineProvider>(),
                 sp.GetRequiredService<IExternalApiTransactionLogger>(),
                 sp.GetRequiredService<ILogger<ResilientAdapterDecorator>>()));

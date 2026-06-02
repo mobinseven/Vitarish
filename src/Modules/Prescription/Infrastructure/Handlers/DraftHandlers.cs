@@ -13,12 +13,20 @@ namespace Vitarish.Prescription.Infrastructure.Handlers;
 
 public sealed class CreateDraftHandler(
     PrescriptionDbContext dbContext,
+    IInsuranceProviderRegistry providerRegistry,
     IAuditWriter auditWriter,
     ILogger<CreateDraftHandler> logger)
     : IRequestHandler<CreateDraftCommand, CreateDraftResult>
 {
     public async Task<CreateDraftResult> Handle(CreateDraftCommand request, CancellationToken cancellationToken)
     {
+        string? selectedProviderKey = string.IsNullOrWhiteSpace(request.SelectedProviderKey)
+            ? null
+            : request.SelectedProviderKey.Trim();
+
+        if (selectedProviderKey is not null && !providerRegistry.IsProviderAvailable(selectedProviderKey))
+            return CreateDraftResult.Failure("بیمه‌گر انتخاب شده در سیستم موجود نیست.");
+
         var prescription = new PrescriptionRecord
         {
             Id = Guid.NewGuid(),
@@ -27,7 +35,7 @@ public sealed class CreateDraftHandler(
             DoctorId = request.DoctorId,
             ClinicId = request.ClinicId,
             EncounterId = request.EncounterId,
-            SelectedProviderKey = request.SelectedProviderKey,
+            SelectedProviderKey = selectedProviderKey,
             Status = PrescriptionStatus.Draft,
             VersionNumber = 1,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -43,7 +51,7 @@ public sealed class CreateDraftHandler(
             EntityId = prescription.Id,
             Action = AuditAction.Created,
             NewState = PrescriptionStatus.Draft.ToString(),
-            ProviderKey = request.SelectedProviderKey,
+            ProviderKey = selectedProviderKey,
             OccurredAt = DateTimeOffset.UtcNow,
             TenantId = request.TenantId
         }, cancellationToken);
@@ -261,16 +269,20 @@ public sealed class SetProviderHandler(
         if (prescription.Status != PrescriptionStatus.Draft)
             return SetProviderResult.Failure("انتخاب بیمه‌گر فقط برای نسخه‌های پیش‌نویس امکان‌پذیر است.");
 
-        if (!providerRegistry.IsProviderAvailable(request.ProviderKey))
+        if (string.IsNullOrWhiteSpace(request.ProviderKey))
             return SetProviderResult.Failure("بیمه‌گر انتخاب شده در سیستم موجود نیست.");
 
-        prescription.SelectedProviderKey = request.ProviderKey;
+        string providerKey = request.ProviderKey.Trim();
+        if (!providerRegistry.IsProviderAvailable(providerKey))
+            return SetProviderResult.Failure("بیمه‌گر انتخاب شده در سیستم موجود نیست.");
+
+        prescription.SelectedProviderKey = providerKey;
         prescription.UpdatedAt = DateTimeOffset.UtcNow;
 
         await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Provider set to {ProviderKey} for prescription {PrescriptionId}",
-            request.ProviderKey, request.PrescriptionId);
+            providerKey, request.PrescriptionId);
 
         return SetProviderResult.Success();
     }

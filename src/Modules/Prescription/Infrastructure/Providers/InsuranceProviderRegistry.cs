@@ -17,16 +17,19 @@ public sealed class InsuranceProviderRegistry : IInsuranceProviderRegistry
 
     public IInsuranceProviderAdapter? GetAdapter(string providerKey)
     {
-        return _adapters.GetValueOrDefault(providerKey);
+        if (string.IsNullOrWhiteSpace(providerKey))
+            return null;
+
+        return _adapters.GetValueOrDefault(providerKey.Trim());
     }
 
     public IReadOnlyCollection<string> GetRegisteredProviderKeys()
     {
-        return _adapters.Keys;
+        return _adapters.Keys.Order(StringComparer.OrdinalIgnoreCase).ToArray();
     }
 
     public bool IsProviderAvailable(string providerKey)
     {
-        return _adapters.ContainsKey(providerKey);
+        return !string.IsNullOrWhiteSpace(providerKey) && _adapters.ContainsKey(providerKey.Trim());
     }
 }
