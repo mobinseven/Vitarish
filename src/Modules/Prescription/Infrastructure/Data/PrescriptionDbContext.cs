@@ -10,7 +10,6 @@ public sealed class PrescriptionDbContext : DbContext
     private readonly IEnumerable<IInterceptor> _interceptors;
 
     public DbSet<DoctorProviderCredential> DoctorProviderCredentials => Set<DoctorProviderCredential>();
-    public DbSet<EligibilityInquiry> EligibilityInquiries => Set<EligibilityInquiry>();
     public DbSet<PrescriptionRecord> Prescriptions => Set<PrescriptionRecord>();
     public DbSet<PrescriptionItem> PrescriptionItems => Set<PrescriptionItem>();
     public DbSet<PrescriptionProviderSubmission> PrescriptionSubmissions => Set<PrescriptionProviderSubmission>();
@@ -38,7 +37,6 @@ public sealed class PrescriptionDbContext : DbContext
         modelBuilder.HasDefaultSchema("Prescription");
 
         ConfigureDoctorProviderCredential(modelBuilder);
-        ConfigureEligibilityInquiry(modelBuilder);
         ConfigurePrescriptionRecord(modelBuilder);
         ConfigurePrescriptionItem(modelBuilder);
         ConfigurePrescriptionProviderSubmission(modelBuilder);
@@ -64,20 +62,6 @@ public sealed class PrescriptionDbContext : DbContext
             _ = entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(32);
             _ = entity.HasIndex(e => new { e.DoctorId, e.ProviderKey, e.ClinicId }).IsUnique()
                 .HasDatabaseName("IX_DoctorCredential_Doctor_Provider_Clinic");
-        });
-    }
-
-    private static void ConfigureEligibilityInquiry(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<EligibilityInquiry>(entity =>
-        {
-            _ = entity.Property(e => e.ProviderKey).HasMaxLength(64);
-            _ = entity.Property(e => e.ResultStatus).HasConversion<string>().HasMaxLength(64);
-            _ = entity.Property(e => e.TrackingCode).HasMaxLength(256);
-            _ = entity.Property(e => e.RawStatusCode).HasMaxLength(128);
-            _ = entity.Property(e => e.RawStatusMessage).HasMaxLength(2048);
-            _ = entity.HasIndex(e => new { e.PatientId, e.ProviderKey, e.RequestTime })
-                .HasDatabaseName("IX_Eligibility_Patient_Provider_Time");
         });
     }
 
