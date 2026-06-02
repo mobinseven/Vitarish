@@ -83,29 +83,10 @@ This runbook documents incident modes, resolution paths, and support procedures 
 3. **Emergency:** If a provider session can be refreshed, use the provider admin tools
 4. **Verification:** After renewal, test with an eligibility check before prescribing
 
----
-
-### 1.5 Reference Data Staleness
-
-**Symptoms:**
-- `ReferenceDataStale` alert fires
-- Reference Data Admin Dashboard shows stale freshness indicators
-- Doctors report missing or incorrect code lookups
-
-**Diagnosis:**
-1. Check Reference Data Admin Dashboard → Freshness tab
-2. Check Sync History for recent failures
-3. Check Breaking Changes for recent disruptions
-
-**Resolution:**
-1. **Manual sync:** Trigger manual sync from Reference Data Admin Dashboard
-2. **If sync fails:** Check provider API availability, review error messages
-3. **If breaking changes detected:** Review affected crosswalks, update mappings as needed
-4. **Escalate:** If provider changed API contract, coordinate with development team
 
 ---
 
-### 1.6 Retry Queue Depth Critical
+### 1.5 Retry Queue Depth Critical
 
 **Symptoms:**
 - `RetryQueueDepth` alert fires (Warning at 10, Critical at 50)
@@ -195,7 +176,6 @@ This runbook documents incident modes, resolution paths, and support procedures 
 | Job ID | Schedule | Purpose |
 |--------|----------|---------|
 | `prescription:sync-pending:retry` | Every 5 minutes | Retries SyncPending prescriptions with fetch-before-retry pattern |
-| `prescription:reference-data:sync` | Daily at 02:00 UTC | Syncs reference data from all configured providers |
 
 ### Job Failure Recovery
 

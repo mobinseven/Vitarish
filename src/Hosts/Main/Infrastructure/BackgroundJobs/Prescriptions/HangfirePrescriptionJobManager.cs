@@ -29,17 +29,6 @@ public sealed class HangfirePrescriptionJobManager(IRecurringJobManager recurrin
         recurringJobManager.Trigger(RetryJobId);
     }
 
-    /// <summary>
-    /// Schedules daily reference data sync at 02:00 UTC.
-    /// </summary>
-    public void ScheduleReferenceDataSync()
-    {
-        recurringJobManager.AddOrUpdate<ReferenceDataSyncProcessor>(
-            ReferenceSyncJobId,
-            processor => processor.ProcessAsync(CancellationToken.None),
-            Cron.Daily(2),
-            new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc });
-    }
 
     /// <summary>
     /// Triggers a reference data sync immediately (used for manual admin actions).

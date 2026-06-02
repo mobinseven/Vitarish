@@ -13,4 +13,3 @@ global using Vitarish.Social.Domain.Entities;
 global using Vitarish.Social.Domain.Enums;
 global using Vitarish.Social.Domain.Models;
 global using Vitarish.Social.Infrastructure.Data;
-global using Vitarish.Social.Infrastructure.Helpers;
