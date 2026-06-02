@@ -13,13 +13,8 @@ public sealed class PrescriptionDbContext : DbContext
     public DbSet<PrescriptionRecord> Prescriptions => Set<PrescriptionRecord>();
     public DbSet<PrescriptionItem> PrescriptionItems => Set<PrescriptionItem>();
     public DbSet<PrescriptionProviderSubmission> PrescriptionSubmissions => Set<PrescriptionProviderSubmission>();
-    public DbSet<ReferenceCode> ReferenceCodes => Set<ReferenceCode>();
-    public DbSet<ReferenceCodeCrosswalk> ReferenceCodeCrosswalks => Set<ReferenceCodeCrosswalk>();
     public DbSet<PrescriptionOutboxRecord> OutboxRecords => Set<PrescriptionOutboxRecord>();
     public DbSet<PrescriptionEscalation> Escalations => Set<PrescriptionEscalation>();
-    public DbSet<ReferenceCodeSyncJob> ReferenceCodeSyncJobs => Set<ReferenceCodeSyncJob>();
-    public DbSet<ReferenceCodeSyncError> ReferenceCodeSyncErrors => Set<ReferenceCodeSyncError>();
-    public DbSet<ReferenceCodeChangeLog> ReferenceCodeChangeLogs => Set<ReferenceCodeChangeLog>();
 
     public PrescriptionDbContext(
         DbContextOptions<PrescriptionDbContext> options,
@@ -40,13 +35,8 @@ public sealed class PrescriptionDbContext : DbContext
         ConfigurePrescriptionRecord(modelBuilder);
         ConfigurePrescriptionItem(modelBuilder);
         ConfigurePrescriptionProviderSubmission(modelBuilder);
-        ConfigureReferenceCode(modelBuilder);
-        ConfigureReferenceCodeCrosswalk(modelBuilder);
         ConfigureOutboxRecord(modelBuilder);
         ConfigureEscalation(modelBuilder);
-        ConfigureReferenceCodeSyncJob(modelBuilder);
-        ConfigureReferenceCodeSyncError(modelBuilder);
-        ConfigureReferenceCodeChangeLog(modelBuilder);
     }
 
     private static void ConfigureDoctorProviderCredential(ModelBuilder modelBuilder)
@@ -122,42 +112,6 @@ public sealed class PrescriptionDbContext : DbContext
         });
     }
 
-    private static void ConfigureReferenceCode(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<ReferenceCode>(entity =>
-        {
-            _ = entity.Property(e => e.ProviderKey).HasMaxLength(64);
-            _ = entity.Property(e => e.CodeSystem).HasMaxLength(128);
-            _ = entity.Property(e => e.Code).HasMaxLength(128);
-            _ = entity.Property(e => e.DisplayName).HasMaxLength(512);
-            _ = entity.Property(e => e.Category).HasMaxLength(128);
-            _ = entity.Property(e => e.Version).HasMaxLength(128);
-            _ = entity.Property(e => e.RecordOrigin).HasMaxLength(64);
-            _ = entity.Property(e => e.Checksum).HasMaxLength(256);
-            _ = entity.HasIndex(e => new { e.ProviderKey, e.CodeSystem, e.Code, e.RecordOrigin, e.EffectiveFrom })
-                .IsUnique()
-                .HasDatabaseName("IX_ReferenceCode_Provider_System_Code_Origin_Effective");
-            _ = entity.HasIndex(e => new { e.ProviderKey, e.CodeSystem, e.IsActive })
-                .HasDatabaseName("IX_ReferenceCode_Provider_System_Active");
-        });
-    }
-
-    private static void ConfigureReferenceCodeCrosswalk(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<ReferenceCodeCrosswalk>(entity =>
-        {
-            _ = entity.Property(e => e.LocalCode).HasMaxLength(128);
-            _ = entity.Property(e => e.LocalCodeSystem).HasMaxLength(128);
-            _ = entity.Property(e => e.ProviderKey).HasMaxLength(64);
-            _ = entity.Property(e => e.ProviderCode).HasMaxLength(128);
-            _ = entity.Property(e => e.ProviderCodeSystem).HasMaxLength(128);
-            _ = entity.Property(e => e.MappingConfidence).HasPrecision(5, 4);
-            _ = entity.HasIndex(e => new { e.LocalCode, e.LocalCodeSystem, e.ProviderKey, e.ProviderCode, e.ProviderCodeSystem })
-                .IsUnique()
-                .HasDatabaseName("IX_Crosswalk_Local_Provider_Codes");
-        });
-    }
-
     private static void ConfigureOutboxRecord(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<PrescriptionOutboxRecord>(entity =>
@@ -172,52 +126,6 @@ public sealed class PrescriptionDbContext : DbContext
                 .HasDatabaseName("IX_OutboxRecord_Status_NextRetry");
             _ = entity.HasIndex(e => e.PrescriptionId)
                 .HasDatabaseName("IX_OutboxRecord_PrescriptionId");
-        });
-    }
-
-    private static void ConfigureReferenceCodeSyncJob(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<ReferenceCodeSyncJob>(entity =>
-        {
-            _ = entity.Property(e => e.ProviderKey).HasMaxLength(64);
-            _ = entity.Property(e => e.CodeSystem).HasMaxLength(128);
-            _ = entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(32);
-            _ = entity.Property(e => e.Priority).HasConversion<string>().HasMaxLength(16);
-            _ = entity.Property(e => e.DataVersion).HasMaxLength(256);
-            _ = entity.Property(e => e.PreviousDataVersion).HasMaxLength(256);
-            _ = entity.Property(e => e.LastError).HasMaxLength(4096);
-            _ = entity.Property(e => e.TriggeredBy).HasMaxLength(256);
-            _ = entity.Property(e => e.TenantId).HasMaxLength(128);
-            _ = entity.HasIndex(e => new { e.ProviderKey, e.CodeSystem, e.Status })
-                .HasDatabaseName("IX_SyncJob_Provider_System_Status");
-            _ = entity.HasIndex(e => new { e.ProviderKey, e.CodeSystem, e.CompletedAt })
-                .HasDatabaseName("IX_SyncJob_Provider_System_CompletedAt");
-        });
-    }
-
-    private static void ConfigureReferenceCodeSyncError(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<ReferenceCodeSyncError>(entity =>
-        {
-            _ = entity.Property(e => e.Code).HasMaxLength(128);
-            _ = entity.Property(e => e.ErrorMessage).HasMaxLength(2048);
-            _ = entity.HasIndex(e => e.SyncJobId)
-                .HasDatabaseName("IX_SyncError_SyncJobId");
-        });
-    }
-
-    private static void ConfigureReferenceCodeChangeLog(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<ReferenceCodeChangeLog>(entity =>
-        {
-            _ = entity.Property(e => e.ChangeType).HasConversion<string>().HasMaxLength(32);
-            _ = entity.Property(e => e.Code).HasMaxLength(128);
-            _ = entity.Property(e => e.OldValue).HasMaxLength(2048);
-            _ = entity.Property(e => e.NewValue).HasMaxLength(2048);
-            _ = entity.HasIndex(e => e.SyncJobId)
-                .HasDatabaseName("IX_ChangeLog_SyncJobId");
-            _ = entity.HasIndex(e => new { e.IsBreakingChange, e.CreatedAt })
-                .HasDatabaseName("IX_ChangeLog_Breaking_CreatedAt");
         });
     }
 

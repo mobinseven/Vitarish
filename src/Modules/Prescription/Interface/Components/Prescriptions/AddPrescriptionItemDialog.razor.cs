@@ -6,12 +6,14 @@ public partial class AddPrescriptionItemDialog : PrescriptionBase
     [Parameter] public Guid PrescriptionId { get; set; }
     [Parameter] public string? ProviderKey { get; set; }
 
+    [Inject] private Vitarish.Medical.Application.Abstractions.IMedicalQueryService MedicalQuery { get; set; } = default!;
+
     private PrescriptionItemCategory category = PrescriptionItemCategory.Drug;
     private string? searchTerm;
     private int quantity = 1;
     private int durationDays;
-    private ReferenceCodeDto? selectedCode;
-    private List<ReferenceCodeDto> searchResults = [];
+    private (string Code, string DisplayName, string? Category)? selectedCode;
+    private List<(string Code, string DisplayName, string? Category)> searchResults = [];
 
     private bool CanAdd => selectedCode is not null || !string.IsNullOrEmpty(searchTerm);
 
@@ -32,19 +34,23 @@ public partial class AddPrescriptionItemDialog : PrescriptionBase
             _ => "general"
         };
 
-        IReadOnlyList<ReferenceCodeDto> results = await Mediator.Send(new SearchReferenceCodesQuery
-        {
-            ProviderKey = ProviderKey ?? string.Empty,
-            CodeSystem = codeSystem,
-            SearchTerm = searchTerm,
-            Take = 20
-        });
+        string systemKey = string.IsNullOrEmpty(ProviderKey)
+            ? codeSystem
+            : $"{ProviderKey.ToLowerInvariant()}.{codeSystem}";
 
-        searchResults = [.. results];
+        var results = await MedicalQuery.SearchMedicalCodesAsync(
+            systemKey,
+            searchTerm,
+            limit: 20);
+
+        searchResults = results
+            .Select(c => (c.Code, c.DisplayName, Category: (string?)null))
+            .ToList();
+
         await InvokeAsync(StateHasChanged);
     }
 
-    private void SelectCode(ReferenceCodeDto code)
+    private void SelectCode((string Code, string DisplayName, string? Category) code)
     {
         selectedCode = code;
         searchResults = [];

@@ -4,6 +4,7 @@
 	</ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Medical\Interface\Medical.Interface.csproj" />
     <ProjectReference Include="..\..\Appointments\Interface\Appointments.Interface.csproj" />
     <ProjectReference Include="..\..\Commerce\Interface\Commerce.Interface.csproj" />
     <ProjectReference Include="..\..\Documents\Interface\Documents.Interface.csproj" />

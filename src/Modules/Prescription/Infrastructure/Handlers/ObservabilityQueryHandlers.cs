@@ -15,7 +15,6 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
     IRequestHandler<GetDuplicateRiskIncidentsQuery, DuplicateRiskIncidentsResult>
 {
     private static readonly TimeSpan CredentialExpirySoonThreshold = TimeSpan.FromDays(7);
-    private static readonly TimeSpan ReferenceDataStaleThreshold = TimeSpan.FromDays(7);
     private static readonly int RetryQueueDepthWarning = 10;
     private static readonly int RetryQueueDepthCritical = 50;
 
@@ -187,40 +186,7 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
             });
         }
 
-        // 2. Reference data staleness alerts
-        var staleThreshold = now - ReferenceDataStaleThreshold;
-        var staleProviders = await dbContext.ReferenceCodeSyncJobs
-            .GroupBy(j => new { j.ProviderKey, j.CodeSystem })
-            .Select(g => new
-            {
-                g.Key.ProviderKey,
-                g.Key.CodeSystem,
-                LastSuccess = g
-                    .Where(j => j.Status == ReferenceCodeSyncStatus.Completed)
-                    .Max(j => (DateTimeOffset?)j.CompletedAt)
-            })
-            .Where(x => x.LastSuccess == null || x.LastSuccess < staleThreshold)
-            .ToListAsync(cancellationToken);
-
-        foreach (var stale in staleProviders)
-        {
-            if (!string.IsNullOrEmpty(request.ProviderKey) && stale.ProviderKey != request.ProviderKey)
-                continue;
-
-            alerts.Add(new OperationalAlertDto
-            {
-                AlertType = "ReferenceDataStale",
-                Severity = "Warning",
-                Title = $"Stale Reference Data: {stale.ProviderKey}/{stale.CodeSystem}",
-                Description = stale.LastSuccess.HasValue
-                    ? $"Last successful sync was {(now - stale.LastSuccess.Value).Days} days ago."
-                    : "No successful sync recorded.",
-                ProviderKey = stale.ProviderKey,
-                DetectedAt = now
-            });
-        }
-
-        // 3. Provider outage detection (high recent transport/provider availability failure rate)
+        // 2. Provider outage detection (high recent transport/provider availability failure rate)
         var recentWindow = now.AddHours(-1);
         var recentSubmissionCalls = dbContext.PrescriptionSubmissions
             .Where(s => s.SubmittedAt >= recentWindow)
