@@ -4,10 +4,10 @@
     <StackSelect T="ReservationStatus?" Label="@Localizer["Status"]"
                  Value="@descriptor.Status"
                  ValueChanged="@(v => ApplyFilter(descriptor with { Status = v }))">
-        <MudSelectItem T="ReservationStatus?" Value="null">@Localizer["None"]</MudSelectItem>
+        <StackSelectItem T="ReservationStatus?" Value="null">@Localizer["None"]</StackSelectItem>
         @foreach (var status in Enum.GetValues<ReservationStatus>())
         {
-            <MudSelectItem T="ReservationStatus?" Value="status">@Localizer[status.ToString()]</MudSelectItem>
+            <StackSelectItem T="ReservationStatus?" Value="status">@Localizer[status.ToString()]</StackSelectItem>
         }
     </StackSelect>
 </StackExpandable>

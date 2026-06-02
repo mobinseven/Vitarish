@@ -1,44 +1,42 @@
 @attribute [Route(AppRoutes.Setup.Index)]
 
-@switch (context.CurrentStep)
+@switch(context.CurrentStep)
 {
     case SetupStep.Details:
-        <Stack>
-            <StackField Label="@Localizer["WorkspaceDetails"]" />
-            <StackTextField @bind-Value="context.OwnerName"   Label="@Localizer["OwnerName"]"  Required />
-            <StackTextField @bind-Value="context.TenantName"  Label="@Localizer["TenantName"]" Required />
-            <StackTextField @bind-Value="context.AppId"       Label="@Localizer["AppId"]"      Required />
-            <StackButton Label="@Localizer["Next"]" OnClick="GoToIndicator"
-                         EndIcon="fa-regular fa-arrow-right" Color="Color.Primary" />
-        </Stack>
-        break;
+    <Stack>
+        <StackField Label="@Localizer["WorkspaceDetails"]" />
+        <StackTextField @bind-Value="context.OwnerName" Label="@Localizer["OwnerName"]" Required />
+        <StackTextField @bind-Value="context.TenantName" Label="@Localizer["TenantName"]" Required />
+        <StackTextField @bind-Value="context.AppId" Label="@Localizer["AppId"]" Required />
+        <StackButton Label="@Localizer["Next"]" OnClick="GoToIndicator"
+                     EndIcon="fa-regular fa-arrow-right" Color="Color.Primary" />
+    </Stack>
+    break;
 
     case SetupStep.Indicator:
-        <Stack>
-            <StackField Label="@Localizer["TenantIndicator"]" />
-            <StackField>
-                <MudSelect @bind-Value="context.IndicatorMethod" Label="@Localizer["Method"]">
-                    <MudSelectItem Value="@IndicatorMethod.Hostname">Hostname</MudSelectItem>
-                    <MudSelectItem Value="@IndicatorMethod.Subdomain">Subdomain</MudSelectItem>
-                </MudSelect>
-            </StackField>
-            <StackTextField @bind-Value="context.IndicatorValue"
-                            Label="@Localizer["Address"]"
-                            Required />
-            <StackButton Label="@Localizer["Next"]" OnClick="GoToModules"
-                         EndIcon="fa-regular fa-arrow-right" Color="Color.Primary" />
-            <StackButton Label="@Localizer["Back"]" OnClick="GoBack"
-                         EndIcon="fa-regular fa-arrow-left" />
-        </Stack>
-        break;
+    <Stack>
+        <StackField Label="@Localizer["TenantIndicator"]" />
+        <StackSelect @bind-Value="context.IndicatorMethod" Label="@Localizer["Method"]">
+            <StackSelectItem Value="@IndicatorMethod.Hostname">Hostname</StackSelectItem>
+            <StackSelectItem Value="@IndicatorMethod.Subdomain">Subdomain</StackSelectItem>
+        </StackSelect>
+        <StackTextField @bind-Value="context.IndicatorValue"
+                        Label="@Localizer["Address"]"
+                        Required />
+        <StackButton Label="@Localizer["Next"]" OnClick="GoToModules"
+                     EndIcon="fa-regular fa-arrow-right" Color="Color.Primary" />
+        <StackButton Label="@Localizer["Back"]" OnClick="GoBack"
+                     EndIcon="fa-regular fa-arrow-left" />
+    </Stack>
+    break;
 
     case SetupStep.Modules:
-        <TenantAppsSelector SelectedAppNames="context.SelectedModules" Label="@Localizer["SelectModules"]">
-            <StackButton Label="@Localizer["Finish"]" OnClick="Submit"
-                         EndIcon="fa-regular fa-check" Color="Color.Primary"
-                         Disabled="submitting" />
-            <StackButton Label="@Localizer["Back"]" OnClick="GoBack"
-                         EndIcon="fa-regular fa-arrow-left" />
-        </TenantAppsSelector>
-        break;
+    <TenantAppsSelector SelectedAppNames="context.SelectedModules" Label="@Localizer["SelectModules"]">
+        <StackButton Label="@Localizer["Finish"]" OnClick="Submit"
+                     EndIcon="fa-regular fa-check" Color="Color.Primary"
+                     Disabled="submitting" />
+        <StackButton Label="@Localizer["Back"]" OnClick="GoBack"
+                     EndIcon="fa-regular fa-arrow-left" />
+    </TenantAppsSelector>
+    break;
 }

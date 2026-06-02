@@ -3,12 +3,12 @@
 @inject IStringLocalizer<CultureSelector> Strings
 @inject NavigationManager NavManager
 
-<MudSelect T="string" Value="@cultureName" ValueChanged="s => OnCultureChanged(s)" FullWidth Variant="Variant.Filled" Underline="false">
+<StackSelect T="string" Value="@cultureName" ValueChanged="s => OnCultureChanged(s)">
     @foreach(CultureInfo culture in SupportedCultures)
     {
-        <MudSelectItem value="@culture.Name">@culture.NativeName</MudSelectItem>
+        <StackSelectItem value="@culture.Name">@culture.NativeName</StackSelectItem>
     }
-</MudSelect>
+</StackSelect>
 
 @code {
     private string cultureName = CultureInfo.CurrentUICulture.Name;

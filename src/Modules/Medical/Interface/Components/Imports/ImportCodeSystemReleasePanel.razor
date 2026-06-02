@@ -4,7 +4,7 @@
     <StackSelect T="Guid" Label="@Localizer["CodeSystem"]" @bind-Value="writeDto.CodeSystemId">
         @foreach (var cs in codeSystems)
         {
-            <MudSelectItem T="Guid" Value="cs.Id">@cs.Name (@cs.SystemKey)</MudSelectItem>
+            <StackSelectItem T="Guid" Value="cs.Id">@cs.Name (@cs.SystemKey)</StackSelectItem>
         }
     </StackSelect>
     <StackTextField @bind-Value="writeDto.ReleaseName" Label="@Localizer["ReleaseName"]" />
@@ -16,7 +16,7 @@
     <StackSelect T="ImportSourceType" Label="@Localizer["SourceType"]" @bind-Value="writeDto.SourceType">
         @foreach (var st in Enum.GetValues<ImportSourceType>())
         {
-            <MudSelectItem T="ImportSourceType" Value="st">@Localizer[st.ToString()]</MudSelectItem>
+            <StackSelectItem T="ImportSourceType" Value="st">@Localizer[st.ToString()]</StackSelectItem>
         }
     </StackSelect>
     <StackCheckbox @bind-Value="writeDto.DryRun" Label="@Localizer["DryRun"]" />

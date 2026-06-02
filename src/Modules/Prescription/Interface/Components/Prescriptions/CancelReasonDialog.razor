@@ -5,11 +5,11 @@
         <Stack>
             <StackField Label="@Localizer["ConfirmCancelPrescription"]" />
             <StackSelect T="string" Label="@Localizer["CancellationReason"]" @bind-Value="selectedReason">
-                <MudSelectItem T="string" Value="@("DoctorRequest")">@Localizer["DoctorRequest"]</MudSelectItem>
-                <MudSelectItem T="string" Value="@("PatientRequest")">@Localizer["PatientRequest"]</MudSelectItem>
-                <MudSelectItem T="string" Value="@("ErrorInPrescription")">@Localizer["ErrorInPrescription"]</MudSelectItem>
-                <MudSelectItem T="string" Value="@("DuplicatePrescription")">@Localizer["DuplicatePrescription"]</MudSelectItem>
-                <MudSelectItem T="string" Value="@("Other")">@Localizer["Other"]</MudSelectItem>
+                <StackSelectItem T="string" Value="@("DoctorRequest")">@Localizer["DoctorRequest"]</StackSelectItem>
+                <StackSelectItem T="string" Value="@("PatientRequest")">@Localizer["PatientRequest"]</StackSelectItem>
+                <StackSelectItem T="string" Value="@("ErrorInPrescription")">@Localizer["ErrorInPrescription"]</StackSelectItem>
+                <StackSelectItem T="string" Value="@("DuplicatePrescription")">@Localizer["DuplicatePrescription"]</StackSelectItem>
+                <StackSelectItem T="string" Value="@("Other")">@Localizer["Other"]</StackSelectItem>
             </StackSelect>
             <StackTextField Label="@Localizer["AdditionalNotes"]" @bind-Value="additionalNotes"
                            Lines="3" MaxLength="500" />

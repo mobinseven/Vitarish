@@ -6,7 +6,7 @@
     <StackSelect T="Guid" Label="@Localizer["ServiceType"]" @bind-Value="writeDto.ServiceTypeId">
         @foreach (var st in serviceTypes)
         {
-            <MudSelectItem T="Guid" Value="st.Id">@st.Name</MudSelectItem>
+            <StackSelectItem T="Guid" Value="st.Id">@st.Name</StackSelectItem>
         }
     </StackSelect>
 </Stack>

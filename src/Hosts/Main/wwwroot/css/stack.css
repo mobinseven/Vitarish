@@ -1,0 +1,147 @@
+.stack {
+    background-color: var(--glass-bg) !important;
+    backdrop-filter: var(--glass-backdrop);
+    -webkit-backdrop-filter: var(--glass-backdrop);
+    border-radius: var(--mud-default-borderradius) !important;
+}
+
+    .stack > .stack-item {
+        margin: 0;
+        padding: 5px 10px;
+        border-radius: unset !important;
+    }
+
+        .stack > .stack-item:first-child {
+            border-top-left-radius: var(--mud-default-borderradius) !important;
+            border-top-right-radius: var(--mud-default-borderradius) !important;
+        }
+
+            .stack > .stack-item:first-child .stack-field {
+                backdrop-filter: brightness(var(--brightness));
+            }
+
+        .stack > .stack-item:not(:last-child) {
+            border-bottom: var(--glass-border-width) solid var(--stack-glass-border, var(--glass-border)) !important;
+        }
+
+        .stack > .stack-item:last-child {
+            border-bottom-left-radius: var(--mud-default-borderradius) !important;
+            border-bottom-right-radius: var(--mud-default-borderradius) !important;
+            margin: 0;
+        }
+
+        /* -------------------------------------------------------
+   One generic colored-glass rule
+   ------------------------------------------------------- */
+
+        .stack > .stack-item[class*="mud-button-text-"] {
+            color: var(--stack-glass-text) !important;
+            background: var(--stack-glass-bg) !important;
+            box-shadow: var(--stack-glass-shadow), var(--stack-glass-inset);
+            backdrop-filter: var(--glass-backdrop);
+            -webkit-backdrop-filter: var(--glass-backdrop);
+        }
+
+            .stack > .stack-item[class*="mud-button-text-"]:hover {
+                background: var(--stack-glass-bg-hover) !important;
+            }
+
+            .stack > .stack-item[class*="mud-button-text-"]:active {
+                background: var(--stack-glass-bg-active) !important;
+            }
+
+            .stack > .stack-item[class*="mud-button-text-"]:focus-visible {
+                box-shadow: var(--stack-glass-shadow), var(--stack-glass-inset), var(--stack-glass-ring);
+            }
+
+        /* -------------------------------------------------------
+   Mud color class -> glass token mapping
+   ------------------------------------------------------- */
+
+        .stack > .stack-item.mud-button-text-default {
+            --stack-glass-text: var(--mud-palette-text-primary, var(--glass-text-primary));
+            --stack-glass-bg: var(--glass-bg);
+            --stack-glass-bg-hover: var(--glass-bg-hover);
+            --stack-glass-bg-active: var(--glass-bg-active);
+            --stack-glass-border: var(--glass-border);
+            --stack-glass-shadow: var(--glass-shadow);
+            --stack-glass-inset: var(--glass-inset);
+            --stack-glass-ring: var(--glass-ring);
+        }
+
+        .stack > .stack-item.mud-button-text-primary {
+            --stack-glass-text: var(--glass-primary-text);
+            --stack-glass-bg: var(--glass-primary-bg);
+            --stack-glass-bg-hover: var(--glass-primary-bg-hover);
+            --stack-glass-bg-active: var(--glass-primary-bg-active);
+            --stack-glass-border: var(--glass-primary-border);
+            --stack-glass-shadow: var(--glass-primary-shadow);
+            --stack-glass-inset: var(--glass-primary-inset);
+            --stack-glass-ring: var(--glass-primary-ring);
+        }
+
+        .stack > .stack-item.mud-button-text-secondary {
+            --stack-glass-text: var(--glass-secondary-text);
+            --stack-glass-bg: var(--glass-secondary-bg);
+            --stack-glass-bg-hover: var(--glass-secondary-bg-hover);
+            --stack-glass-bg-active: var(--glass-secondary-bg-active);
+            --stack-glass-border: var(--glass-secondary-border);
+            --stack-glass-shadow: var(--glass-secondary-shadow);
+            --stack-glass-inset: var(--glass-secondary-inset);
+            --stack-glass-ring: var(--glass-secondary-ring);
+        }
+
+        .stack > .stack-item.mud-button-text-tertiary {
+            --stack-glass-text: var(--glass-tertiary-text);
+            --stack-glass-bg: var(--glass-tertiary-bg);
+            --stack-glass-bg-hover: var(--glass-tertiary-bg-hover);
+            --stack-glass-bg-active: var(--glass-tertiary-bg-active);
+            --stack-glass-border: var(--glass-tertiary-border);
+            --stack-glass-shadow: var(--glass-tertiary-shadow);
+            --stack-glass-inset: var(--glass-tertiary-inset);
+            --stack-glass-ring: var(--glass-tertiary-ring);
+        }
+
+        .stack > .stack-item.mud-button-text-info {
+            --stack-glass-text: var(--glass-info-text);
+            --stack-glass-bg: var(--glass-info-bg);
+            --stack-glass-bg-hover: var(--glass-info-bg-hover);
+            --stack-glass-bg-active: var(--glass-info-bg-active);
+            --stack-glass-border: var(--glass-info-border);
+            --stack-glass-shadow: var(--glass-info-shadow);
+            --stack-glass-inset: var(--glass-info-inset);
+            --stack-glass-ring: var(--glass-info-ring);
+        }
+
+        .stack > .stack-item.mud-button-text-success {
+            --stack-glass-text: var(--glass-success-text);
+            --stack-glass-bg: var(--glass-success-bg);
+            --stack-glass-bg-hover: var(--glass-success-bg-hover);
+            --stack-glass-bg-active: var(--glass-success-bg-active);
+            --stack-glass-border: var(--glass-success-border);
+            --stack-glass-shadow: var(--glass-success-shadow);
+            --stack-glass-inset: var(--glass-success-inset);
+            --stack-glass-ring: var(--glass-success-ring);
+        }
+
+        .stack > .stack-item.mud-button-text-warning {
+            --stack-glass-text: var(--glass-warning-text);
+            --stack-glass-bg: var(--glass-warning-bg);
+            --stack-glass-bg-hover: var(--glass-warning-bg-hover);
+            --stack-glass-bg-active: var(--glass-warning-bg-active);
+            --stack-glass-border: var(--glass-warning-border);
+            --stack-glass-shadow: var(--glass-warning-shadow);
+            --stack-glass-inset: var(--glass-warning-inset);
+            --stack-glass-ring: var(--glass-warning-ring);
+        }
+
+        .stack > .stack-item.mud-button-text-error {
+            --stack-glass-text: var(--glass-error-text);
+            --stack-glass-bg: var(--glass-error-bg);
+            --stack-glass-bg-hover: var(--glass-error-bg-hover);
+            --stack-glass-bg-active: var(--glass-error-bg-active);
+            --stack-glass-border: var(--glass-error-border);
+            --stack-glass-shadow: var(--glass-error-shadow);
+            --stack-glass-inset: var(--glass-error-inset);
+            --stack-glass-ring: var(--glass-error-ring);
+        }

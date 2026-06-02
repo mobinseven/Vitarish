@@ -5,7 +5,7 @@
     <StackSelect T="DrugIdentifierType" Label="@Localizer["IdentifierType"]" @bind-Value="writeDto.PrimaryIdentifierType">
         @foreach (var t in Enum.GetValues<DrugIdentifierType>())
         {
-            <MudSelectItem T="DrugIdentifierType" Value="t">@Localizer[t.ToString()]</MudSelectItem>
+            <StackSelectItem T="DrugIdentifierType" Value="t">@Localizer[t.ToString()]</StackSelectItem>
         }
     </StackSelect>
     <StackTextField @bind-Value="writeDto.PrimaryIdentifierValue" Label="@Localizer["IdentifierValue"]" />

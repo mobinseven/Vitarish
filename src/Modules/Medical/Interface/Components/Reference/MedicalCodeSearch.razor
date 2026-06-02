@@ -4,7 +4,7 @@
     <StackSelect T="string" Label="@Localizer["CodeSystem"]" @bind-Value="systemKey">
         @foreach (var cs in codeSystems)
         {
-            <MudSelectItem T="string" Value="cs.SystemKey">@cs.Name (@cs.SystemKey)</MudSelectItem>
+            <StackSelectItem T="string" Value="cs.SystemKey">@cs.Name (@cs.SystemKey)</StackSelectItem>
         }
     </StackSelect>
     <StackTextField @bind-Value="searchText" Label="@Localizer["SearchText"]" />

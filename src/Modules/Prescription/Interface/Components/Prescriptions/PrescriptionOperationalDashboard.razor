@@ -5,12 +5,12 @@
 </Stack>
 
 <Stack>
-    <StackSelect T="string?" Label="@Localizer["ProviderFilter"]" Value="@selectedProviderKey" ValueChanged="OnProviderFilterChanged" Clearable>
+    <StackSelect T="string" Label="@Localizer["ProviderFilter"]" Value="@selectedProviderKey" ValueChanged="OnProviderFilterChanged" Clearable>
         @if (transactionMetrics is not null)
         {
             @foreach (var provider in transactionMetrics.Select(m => m.ProviderKey).Distinct())
             {
-                <MudSelectItem T="string?" Value="@provider">@provider</MudSelectItem>
+                <StackSelectItem T="string" Value="@provider">@provider</StackSelectItem>
             }
         }
     </StackSelect>
@@ -47,7 +47,7 @@
         }
         else
         {
-            <MudProgressLinear Indeterminate />
+            <StackProgress Indeterminate />
         }
     </MudTabPanel>
 
@@ -86,7 +86,7 @@
         }
         else
         {
-            <MudProgressLinear Indeterminate />
+            <StackProgress Indeterminate />
         }
     </MudTabPanel>
 
@@ -116,7 +116,7 @@
         }
         else
         {
-            <MudProgressLinear Indeterminate />
+            <StackProgress Indeterminate />
         }
     </MudTabPanel>
 
@@ -165,7 +165,7 @@
         }
         else
         {
-            <MudProgressLinear Indeterminate />
+            <StackProgress Indeterminate />
         }
     </MudTabPanel>
 
@@ -207,7 +207,7 @@
         }
         else
         {
-            <MudProgressLinear Indeterminate />
+            <StackProgress Indeterminate />
         }
     </MudTabPanel>
 
@@ -242,7 +242,7 @@
         }
         else
         {
-            <MudProgressLinear Indeterminate />
+            <StackProgress Indeterminate />
         }
     </MudTabPanel>
 </MudTabs>

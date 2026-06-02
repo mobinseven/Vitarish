@@ -6,11 +6,11 @@
 
 <Stack>
     <StackSelect T="PrescriptionStatus?" Label="@Localizer["StatusFilter"]" Value="statusFilter" ValueChanged="OnStatusFilterChanged" Clearable>
-        <MudSelectItem T="PrescriptionStatus?" Value="@(PrescriptionStatus.SyncPending)">@Localizer["SyncPending"]</MudSelectItem>
-        <MudSelectItem T="PrescriptionStatus?" Value="@(PrescriptionStatus.SyncFailed)">@Localizer["SyncFailed"]</MudSelectItem>
-        <MudSelectItem T="PrescriptionStatus?" Value="@(PrescriptionStatus.DuplicateRisk)">@Localizer["DuplicateRisk"]</MudSelectItem>
-        <MudSelectItem T="PrescriptionStatus?" Value="@(PrescriptionStatus.PaperFallback)">@Localizer["PaperFallback"]</MudSelectItem>
-        <MudSelectItem T="PrescriptionStatus?" Value="@(PrescriptionStatus.ProviderUnavailable)">@Localizer["ProviderUnavailable"]</MudSelectItem>
+        <StackSelectItem T="PrescriptionStatus?" Value="@(PrescriptionStatus.SyncPending)">@Localizer["SyncPending"]</StackSelectItem>
+        <StackSelectItem T="PrescriptionStatus?" Value="@(PrescriptionStatus.SyncFailed)">@Localizer["SyncFailed"]</StackSelectItem>
+        <StackSelectItem T="PrescriptionStatus?" Value="@(PrescriptionStatus.DuplicateRisk)">@Localizer["DuplicateRisk"]</StackSelectItem>
+        <StackSelectItem T="PrescriptionStatus?" Value="@(PrescriptionStatus.PaperFallback)">@Localizer["PaperFallback"]</StackSelectItem>
+        <StackSelectItem T="PrescriptionStatus?" Value="@(PrescriptionStatus.ProviderUnavailable)">@Localizer["ProviderUnavailable"]</StackSelectItem>
     </StackSelect>
 </Stack>
 
@@ -93,6 +93,6 @@
 else
 {
     <Stack>
-        <MudProgressLinear Indeterminate />
+        <StackProgress Indeterminate />
     </Stack>
 }

@@ -4,6 +4,9 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
+  <Folder Name="/docs/">
+    <Project Path="docs/docs.csproj" Id="ebfebdae-c2a9-4025-9566-bae1a793dc6a" />
+  </Folder>
   <Folder Name="/src/" />
   <Folder Name="/src/Apps/" />
   <Folder Name="/src/Apps/Common/">
@@ -46,7 +49,6 @@
   <Folder Name="/src/Libraries/DitasInsurance/">
     <Project Path="src/Libraries/DitasInsurance/DitasInsurance.Client/DitasInsurance.Client.csproj" />
   </Folder>
-
   <Folder Name="/src/Libraries/Audit/">
     <Project Path="src/Libraries/Audit/Audit.Application/Audit.Application.csproj" />
     <Project Path="src/Libraries/Audit/Audit.Domain/Audit.Domain.csproj" />

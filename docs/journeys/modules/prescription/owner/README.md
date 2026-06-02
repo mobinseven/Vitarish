@@ -71,12 +71,10 @@ The current module has a working prescription architecture and several implement
 ### Recovery and Operations Journeys
 - [Submission Timeout — Duplicate-Safe Recovery](./timeout-duplicate-safe-recovery.md)
 - [Paper Fallback — Provider Outage](./paper-fallback-outage.md)
-- [Reference Data Administration](./reference-data-admin.md)
 - [Support Reconciliation](./support-reconciliation.md)
 
 ### Configuration Journeys
 - [Provider Credential Setup](./provider-credential-setup.md)
-- [Provider Onboarding](./provider-onboarding.md)
 
 ## Shared Lifecycle States
 

@@ -4,7 +4,9 @@
     <DialogContent>
         @if(isLoading)
         {
-            <MudProgressLinear Indeterminate Color="Color.Default" />
+            <Stack>
+                <StackProgress Indeterminate Color="Color.Default" />
+            </Stack>
         }
         else if(tenantRoles.Count == 0)
         {

@@ -4,7 +4,7 @@
     <StackSelect T="string" Label="@Localizer["SourceCodeSystem"]" @bind-Value="sourceSystemKey">
         @foreach (var cs in codeSystems)
         {
-            <MudSelectItem T="string" Value="cs.SystemKey">@cs.Name (@cs.SystemKey)</MudSelectItem>
+            <StackSelectItem T="string" Value="cs.SystemKey">@cs.Name (@cs.SystemKey)</StackSelectItem>
         }
     </StackSelect>
     <StackTextField @bind-Value="sourceCodeText" Label="@Localizer["SourceCode"]" />
@@ -19,7 +19,7 @@
     <StackSelect T="string" Label="@Localizer["TargetCodeSystem"]" @bind-Value="targetSystemKey">
         @foreach (var cs in codeSystems)
         {
-            <MudSelectItem T="string" Value="cs.SystemKey">@cs.Name (@cs.SystemKey)</MudSelectItem>
+            <StackSelectItem T="string" Value="cs.SystemKey">@cs.Name (@cs.SystemKey)</StackSelectItem>
         }
     </StackSelect>
     <StackTextField @bind-Value="targetCodeText" Label="@Localizer["TargetCode"]" />
@@ -34,7 +34,7 @@
     <StackSelect T="MappingType" Label="@Localizer["MappingType"]" @bind-Value="mappingType">
         @foreach (var mt in Enum.GetValues<MappingType>())
         {
-            <MudSelectItem T="MappingType" Value="mt">@Localizer[mt.ToString()]</MudSelectItem>
+            <StackSelectItem T="MappingType" Value="mt">@Localizer[mt.ToString()]</StackSelectItem>
         }
     </StackSelect>
     <StackDatePicker @bind-DateOnlyValue="effectiveFrom" Label="@Localizer["EffectiveFrom"]" />

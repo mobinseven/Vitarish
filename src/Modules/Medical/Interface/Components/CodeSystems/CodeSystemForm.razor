@@ -9,7 +9,7 @@
     <StackSelect T="CodeSystemCategory" Label="@Localizer["Category"]" @bind-Value="writeDto.Category">
         @foreach (var cat in Enum.GetValues<CodeSystemCategory>())
         {
-            <MudSelectItem T="CodeSystemCategory" Value="cat">@Localizer[cat.ToString()]</MudSelectItem>
+            <StackSelectItem T="CodeSystemCategory" Value="cat">@Localizer[cat.ToString()]</StackSelectItem>
         }
     </StackSelect>
 </Stack>

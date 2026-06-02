@@ -2,13 +2,13 @@
 
 @inherits IdentityCommonBase
 
-@if(IsLoading)
-{
-    <MudProgressLinear Indeterminate="true" />
-}
-else
-{
-    <Stack>
+<Stack>
+    @if(IsLoading)
+    {
+        <StackProgress Indeterminate="true" />
+    }
+    else
+    {
         @if(!IsSupported)
         {
             <StackField Label="@Localizer["PasskeyNotSupported"]" />
@@ -24,6 +24,6 @@ else
                          Color="Color.Primary"
                          StartIcon="fa-regular fa-plus" />
         }
-    </Stack>
-}
+    }
+</Stack>
 

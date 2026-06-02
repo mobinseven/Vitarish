@@ -1,19 +1,15 @@
 @inherits PrescriptionBase
 
 <MudDialog>
-    <TitleContent>
-        <MudText Typo="Typo.h6">@Localizer["AddItem", Localizer["Item"]]</MudText>
-    </TitleContent>
     <DialogContent>
         <Stack>
-            <StackField Label="@Localizer["Category"]">
-                <MudSelect T="PrescriptionItemCategory" @bind-Value="category" Label="@Localizer["Category"]">
-                    @foreach (var cat in Enum.GetValues<PrescriptionItemCategory>())
-                    {
-                        <MudSelectItem Value="cat">@Localizer[cat.ToString()]</MudSelectItem>
-                    }
-                </MudSelect>
-            </StackField>
+            <StackField Label="@Localizer["AddItem", Localizer["Item"]]" />
+            <StackSelect T="PrescriptionItemCategory" @bind-Value="category" Label="@Localizer["Category"]">
+                @foreach(var cat in Enum.GetValues<PrescriptionItemCategory>())
+                {
+                    <StackSelectItem Value="cat">@Localizer[cat.ToString()]</StackSelectItem>
+                }
+            </StackSelect>
 
             <StackTextField @bind-Value="searchTerm"
                             Label="@Localizer["SearchCode"]"
@@ -44,9 +40,9 @@
             <StackNumericField @bind-Value="quantity" Label="@Localizer["Quantity"]" Min="1" />
             <StackNumericField @bind-Value="durationDays" Label="@Localizer["DurationDays"]" Min="1" />
         </Stack>
+        <Stack>
+            <StackButton Color="Color.Primary" Label="@Localizer["Add"]" OnClick="AddAsync" />
+            <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" Disabled="@(!CanAdd)" />
+        </Stack>
     </DialogContent>
-    <DialogActions>
-        <MudButton OnClick="Cancel">@Localizer["Cancel"]</MudButton>
-        <MudButton Color="Color.Primary" OnClick="AddAsync" Disabled="@(!CanAdd)">@Localizer["Add"]</MudButton>
-    </DialogActions>
 </MudDialog>

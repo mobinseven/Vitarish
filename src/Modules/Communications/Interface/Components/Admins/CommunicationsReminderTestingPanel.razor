@@ -1,9 +1,9 @@
 @inherits RemindersBase
 
 <Stack>
-    <StackField Label="@Localizer["CommunicationsReminders"]" />
+    <StackField Label="@Localizer["Reminders"]" />
 
-    <StackTextField Label="@Localizer["SourceId"]" @bind-Value="sourceIdInput" />
+    <StackTextField Label="@Localizer["SourceId"]" Value="@RequestContext.UserId!.ToString()" ReadOnly />
     <StackButton Label="@Localizer["NewSourceId"]"
                  EndIcon="fa-regular fa-shuffle"
                  OnClick="GenerateSourceId" />
@@ -13,8 +13,8 @@
                       Options="@UserPickerOptions" />
 
     <StackSelect T="ReminderKind" Label="@Localizer["Kind"]" Value="@kind" ValueChanged="OnKindChanged">
-        <MudSelectItem T="ReminderKind" Value="ReminderKind.Email">@Localizer["Email"]</MudSelectItem>
-        <MudSelectItem T="ReminderKind" Value="ReminderKind.Sms">@Localizer["Sms"]</MudSelectItem>
+        <StackSelectItem T="ReminderKind" Value="ReminderKind.Email">@Localizer["Email"]</StackSelectItem>
+        <StackSelectItem T="ReminderKind" Value="ReminderKind.Sms">@Localizer["Sms"]</StackSelectItem>
     </StackSelect>
 
     <StackTextField Label="@Localizer["Recipient"]" @bind-Value="recipient" />

@@ -2,12 +2,10 @@
     <StackField Label="@Localizer["CreateTenant"]" />
     <StackTextField @bind-Value="tenantName" Label="@Localizer["TenantName"]" Required />
     <StackTextField @bind-Value="appId" Label="@Localizer["AppId"]" Required />
-    <StackField>
-        <MudSelect @bind-Value="indicatorMethod" Label="@Localizer["Method"]">
-            <MudSelectItem Value="@IndicatorMethod.Hostname">Hostname</MudSelectItem>
-            <MudSelectItem Value="@IndicatorMethod.Subdomain">Subdomain</MudSelectItem>
-        </MudSelect>
-    </StackField>
+    <StackSelect @bind-Value="indicatorMethod" Label="@Localizer["Method"]">
+        <StackSelectItem Value="@IndicatorMethod.Hostname">Hostname</StackSelectItem>
+        <StackSelectItem Value="@IndicatorMethod.Subdomain">Subdomain</StackSelectItem>
+    </StackSelect>
     <StackTextField @bind-Value="indicatorValue" Label="@Localizer["Address"]" Required />
     @ChildContent
     <StackButton Label="@Localizer["Create"]" OnClick="Create" Color="Color.Primary"
@@ -26,13 +24,13 @@
 
     private async Task Create()
     {
-        if (string.IsNullOrWhiteSpace(tenantName) || string.IsNullOrWhiteSpace(appId) || string.IsNullOrWhiteSpace(indicatorValue))
+        if(string.IsNullOrWhiteSpace(tenantName) || string.IsNullOrWhiteSpace(appId) || string.IsNullOrWhiteSpace(indicatorValue))
         {
             Snackbar.Add(Localizer["RequiredFields"], Severity.Warning);
             return;
         }
 
-        if (RequestContext.OwnerId is null || !Guid.TryParse(RequestContext.OwnerId, out Guid ownerGuid))
+        if(RequestContext.OwnerId is null || !Guid.TryParse(RequestContext.OwnerId, out Guid ownerGuid))
         {
             Snackbar.Add(Localizer["Error"], Severity.Error);
             return;
@@ -49,7 +47,7 @@
                 AppId = appId
             });
 
-            if (tenant is null)
+            if(tenant is null)
             {
                 Snackbar.Add(Localizer["Error"], Severity.Error);
                 return;
@@ -65,7 +63,7 @@
                 IsPrimary = true
             });
 
-            if (indicator is null)
+            if(indicator is null)
             {
                 Snackbar.Add(Localizer["Error"], Severity.Error);
                 return;

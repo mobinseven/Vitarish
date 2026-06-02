@@ -1,14 +1,14 @@
 @inherits MudSelect<ProcedureReadDto>
 
 <StackSelect T="ProcedureReadDto" Value="@Value" ValueChanged="@ValueChanged" Label="@Localizer["SelectItem", Localizer["TemplateItem", Localizer["Procedure"]]]">
-    <MudSelectItem T="ProcedureReadDto" Value="null">@Localizer["None"]</MudSelectItem>
+    <StackSelectItem T="ProcedureReadDto" Value="null">@Localizer["None"]</StackSelectItem>
     @foreach(var proj in projects)
     {
         @if(procedures.TryGetValue(proj.Id, out var list))
         {
             @foreach(var proc in list)
             {
-                <MudSelectItem T="ProcedureReadDto" Value="@proc">@proj.Name : @proc.Name</MudSelectItem>
+                <StackSelectItem T="ProcedureReadDto" Value="@proc">@proj.Name : @proc.Name</StackSelectItem>
             }
         }
     }

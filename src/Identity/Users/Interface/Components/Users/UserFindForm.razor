@@ -14,8 +14,8 @@
                      Value="@SearchScope"
                      ValueChanged="OnScopeChangedAsync"
                      Label="@Localizer["Scope"]">
-            <MudSelectItem T="UserSearchScope" Value="@UserSearchScope.TenantUsers">@Localizer["TenantUsers"]</MudSelectItem>
-            <MudSelectItem T="UserSearchScope" Value="@UserSearchScope.AllPlatformUsers">@Localizer["AllPlatformUsers"]</MudSelectItem>
+            <StackSelectItem T="UserSearchScope" Value="@UserSearchScope.TenantUsers">@Localizer["TenantUsers"]</StackSelectItem>
+            <StackSelectItem T="UserSearchScope" Value="@UserSearchScope.AllPlatformUsers">@Localizer["AllPlatformUsers"]</StackSelectItem>
         </StackSelect>
     }
 

@@ -6,7 +6,7 @@
         <StackSelect T="DayOfWeek" Label="@Localizer["DayOfWeek"]" @bind-Value="shiftWriteDto.DayOfWeek">
             @foreach (var day in Enum.GetValues<DayOfWeek>())
             {
-                <MudSelectItem T="DayOfWeek" Value="day">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(day)</MudSelectItem>
+                <StackSelectItem T="DayOfWeek" Value="day">@System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.GetDayName(day)</StackSelectItem>
             }
         </StackSelect>
         <StackTimePicker TimeOnlyValue="shiftWriteDto.StartTime"
@@ -24,32 +24,32 @@
         <StackSelect T="ShiftStatus" Label="@Localizer["Status"]" @bind-Value="shiftWriteDto.Status">
             @foreach (var status in Enum.GetValues<ShiftStatus>())
             {
-                <MudSelectItem T="ShiftStatus" Value="status">@Localizer[status.ToString()]</MudSelectItem>
+                <StackSelectItem T="ShiftStatus" Value="status">@Localizer[status.ToString()]</StackSelectItem>
             }
         </StackSelect>
         <StackSelect T="ShiftVisibility" Label="@Localizer["Visibility"]" @bind-Value="shiftWriteDto.Visibility">
             @foreach (var visibility in Enum.GetValues<ShiftVisibility>())
             {
-                <MudSelectItem T="ShiftVisibility" Value="visibility">@Localizer[visibility.ToString()]</MudSelectItem>
+                <StackSelectItem T="ShiftVisibility" Value="visibility">@Localizer[visibility.ToString()]</StackSelectItem>
             }
         </StackSelect>
         @if (serviceProviders.Count > 0)
         {
             <StackSelect T="Guid?" Label="@Localizer["ServiceProvider"]" @bind-Value="shiftWriteDto.ServiceProviderId">
-                <MudSelectItem T="Guid?" Value="@((Guid?)null)">@Localizer["None"]</MudSelectItem>
+                <StackSelectItem T="Guid?" Value="@((Guid?)null)">@Localizer["None"]</StackSelectItem>
                 @foreach (var sp in serviceProviders)
                 {
-                    <MudSelectItem T="Guid?" Value="@((Guid?)sp.Id)">@sp.Name</MudSelectItem>
+                    <StackSelectItem T="Guid?" Value="@((Guid?)sp.Id)">@sp.Name</StackSelectItem>
                 }
             </StackSelect>
         }
         @if (availableServices.Count > 0)
         {
             <StackSelect T="Guid?" Label="@Localizer["Service"]" @bind-Value="shiftWriteDto.ServiceId">
-                <MudSelectItem T="Guid?" Value="@((Guid?)null)">@Localizer["None"]</MudSelectItem>
+                <StackSelectItem T="Guid?" Value="@((Guid?)null)">@Localizer["None"]</StackSelectItem>
                 @foreach (var svc in availableServices)
                 {
-                    <MudSelectItem T="Guid?" Value="@((Guid?)svc.Id)">@svc.Name</MudSelectItem>
+                    <StackSelectItem T="Guid?" Value="@((Guid?)svc.Id)">@svc.Name</StackSelectItem>
                 }
             </StackSelect>
         }
