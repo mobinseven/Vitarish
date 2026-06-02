@@ -27,9 +27,9 @@ public sealed class LinksDbContext(
         {
             _ = entity.HasQueryFilter(e => e.DeletedAt == null);
 
-            _ = entity.Property(e => e.Domain).HasColumnType("nvarchar(253)");
-            _ = entity.Property(e => e.Slug).HasColumnType("nvarchar(32)").UseCollation(LinkRules.SlugCollation);
-            _ = entity.Property(e => e.DestinationUrl).HasColumnType("nvarchar(2048)");
+            _ = entity.Property(e => e.Domain).HasMaxLength(253);
+            _ = entity.Property(e => e.Slug).HasMaxLength(32).UseCollation(LinkRules.SlugCollation);
+            _ = entity.Property(e => e.DestinationUrl).HasMaxLength(2048);
             _ = entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(32);
 
             _ = entity.HasIndex(e => new { e.Domain, e.Slug }).IsUnique();

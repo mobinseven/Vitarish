@@ -76,7 +76,7 @@ public sealed class MedicalDbContext(
                                                                                     _ = entity.Property(e => e.Code).HasMaxLength(64);
                                                                                     _ = entity.Property(e => e.DisplayName).HasMaxLength(512);
                                                                                     _ = entity.Property(e => e.LongDescription).HasMaxLength(4096);
-                                                                                    _ = entity.Property(e => e.SourceMetadataJson).HasColumnType("nvarchar(max)");
+                                                                                    _ = entity.Property(e => e.SourceMetadataJson);
                                                                                     _ = entity.HasOne<CodeSystemRelease>()
                                                                                         .WithMany()
                                                                                         .HasForeignKey(e => e.CodeSystemReleaseId)
@@ -100,7 +100,7 @@ public sealed class MedicalDbContext(
                                                                                     _ = entity.Property(e => e.SourceChecksum).HasMaxLength(256);
                                                                                     _ = entity.Property(e => e.ImportedBy).HasMaxLength(256);
                                                                                     _ = entity.Property(e => e.ValidationSummary).HasMaxLength(4096);
-                                                                                    _ = entity.Property(e => e.ErrorReport).HasColumnType("nvarchar(max)");
+                                                                                    _ = entity.Property(e => e.ErrorReport);
                                                                                     _ = entity.HasIndex(e => new { e.SourceType, e.SourceVersion }).IsUnique()
                                                                                         .HasDatabaseName("IX_ImportBatch_SourceType_Version");
                                                                                     _ = entity.HasIndex(e => e.SourceChecksum).IsUnique()
@@ -223,7 +223,7 @@ public sealed class MedicalDbContext(
                                                                                     _ = entity.HasQueryFilter(e => e.DeletedAt == null);
                                                                                     _ = entity.Property(e => e.Code).HasMaxLength(64);
                                                                                     _ = entity.Property(e => e.DisplayName).HasMaxLength(512);
-                                                                                    _ = entity.Property(e => e.ModifierApplicabilityJson).HasColumnType("nvarchar(max)");
+                                                                                    _ = entity.Property(e => e.ModifierApplicabilityJson);
                                                                                     _ = entity.HasOne<MedicalService>()
                                                                                         .WithMany()
                                                                                         .HasForeignKey(e => e.MedicalServiceId)
@@ -252,7 +252,7 @@ public sealed class MedicalDbContext(
                                                                                          _ = entity.Property(e => e.PracticeExpenseRvu).HasPrecision(10, 4);
                                                                                          _ = entity.Property(e => e.MalpracticeRvu).HasPrecision(10, 4);
                                                                                          _ = entity.Property(e => e.ConversionFactor).HasPrecision(10, 4);
-                                                                                         _ = entity.Property(e => e.PolicyIndicatorsJson).HasColumnType("nvarchar(max)");
+                                                                                         _ = entity.Property(e => e.PolicyIndicatorsJson);
                                                                                          _ = entity.HasOne<ServiceCode>()
                                                                                              .WithMany()
                                                                                              .HasForeignKey(e => e.ServiceCodeId)

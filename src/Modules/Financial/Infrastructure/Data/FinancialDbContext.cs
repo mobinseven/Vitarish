@@ -26,8 +26,8 @@ public sealed class FinancialDbContext(DbContextOptions<FinancialDbContext> opti
         _ = modelBuilder.Entity<LedgerAccount>(entity =>
         {
             _ = entity.HasQueryFilter(e => e.DeletedAt == null);
-            _ = entity.Property(e => e.Key).HasColumnType("nvarchar(256)");
-            _ = entity.Property(e => e.Currency).HasColumnType("nvarchar(3)");
+            _ = entity.Property(e => e.Key).HasMaxLength(256);
+            _ = entity.Property(e => e.Currency).HasMaxLength(3);
             _ = entity.Property(e => e.OwnerScope).HasConversion<string>().HasMaxLength(32);
             _ = entity.Property(e => e.AccountClass).HasConversion<string>().HasMaxLength(32);
             _ = entity.HasIndex(e => e.Key).IsUnique();
@@ -37,15 +37,15 @@ public sealed class FinancialDbContext(DbContextOptions<FinancialDbContext> opti
         _ = modelBuilder.Entity<LedgerEntry>(entity =>
         {
             _ = entity.HasQueryFilter(e => e.DeletedAt == null);
-            _ = entity.Property(e => e.Currency).HasColumnType("nvarchar(3)");
+            _ = entity.Property(e => e.Currency).HasMaxLength(3);
             _ = entity.Property(e => e.State).HasConversion<string>().HasMaxLength(32);
             _ = entity.Property(e => e.TemplateId).HasConversion<string>().HasMaxLength(64);
             _ = entity.Property(e => e.ReasonCode).HasConversion<string>().HasMaxLength(64);
-            _ = entity.Property(e => e.Actor).HasColumnType("nvarchar(256)");
-            _ = entity.Property(e => e.Source).HasColumnType("nvarchar(128)");
-            _ = entity.Property(e => e.CorrelationId).HasColumnType("nvarchar(128)");
-            _ = entity.Property(e => e.CausationId).HasColumnType("nvarchar(128)");
-            _ = entity.Property(e => e.ProviderReference).HasColumnType("nvarchar(256)");
+            _ = entity.Property(e => e.Actor).HasMaxLength(256);
+            _ = entity.Property(e => e.Source).HasMaxLength(128);
+            _ = entity.Property(e => e.CorrelationId).HasMaxLength(128);
+            _ = entity.Property(e => e.CausationId).HasMaxLength(128);
+            _ = entity.Property(e => e.ProviderReference).HasMaxLength(256);
             _ = entity.HasMany(e => e.Lines)
                 .WithOne()
                 .HasForeignKey(l => l.LedgerEntryId)
@@ -65,33 +65,33 @@ public sealed class FinancialDbContext(DbContextOptions<FinancialDbContext> opti
         _ = modelBuilder.Entity<IdempotencyRecord>(entity =>
         {
             _ = entity.HasQueryFilter(e => e.DeletedAt == null);
-            _ = entity.Property(e => e.Scope).HasColumnType("nvarchar(128)");
-            _ = entity.Property(e => e.IdempotencyKey).HasColumnType("nvarchar(256)");
-            _ = entity.Property(e => e.RequestHash).HasColumnType("nvarchar(128)");
-            _ = entity.Property(e => e.ResponsePayload).HasColumnType("nvarchar(max)");
+            _ = entity.Property(e => e.Scope).HasMaxLength(128);
+            _ = entity.Property(e => e.IdempotencyKey).HasMaxLength(256);
+            _ = entity.Property(e => e.RequestHash).HasMaxLength(128);
+            _ = entity.Property(e => e.ResponsePayload);
             _ = entity.HasIndex(e => new { e.Scope, e.IdempotencyKey }).IsUnique();
         });
 
         _ = modelBuilder.Entity<ReconciliationRecord>(entity =>
         {
             _ = entity.HasQueryFilter(e => e.DeletedAt == null);
-            _ = entity.Property(e => e.ExternalReference).HasColumnType("nvarchar(256)");
-            _ = entity.Property(e => e.Provider).HasColumnType("nvarchar(128)");
+            _ = entity.Property(e => e.ExternalReference).HasMaxLength(256);
+            _ = entity.Property(e => e.Provider).HasMaxLength(128);
             _ = entity.Property(e => e.Authority).HasConversion<string>().HasMaxLength(32);
             _ = entity.Property(e => e.MismatchState).HasConversion<string>().HasMaxLength(32);
-            _ = entity.Property(e => e.Currency).HasColumnType("nvarchar(3)");
+            _ = entity.Property(e => e.Currency).HasMaxLength(3);
             _ = entity.HasIndex(e => new { e.Provider, e.ExternalReference });
         });
 
         _ = modelBuilder.Entity<AdapterInboundEvent>(entity =>
         {
             _ = entity.HasQueryFilter(e => e.DeletedAt == null);
-            _ = entity.Property(e => e.Provider).HasColumnType("nvarchar(128)");
-            _ = entity.Property(e => e.EventId).HasColumnType("nvarchar(256)");
-            _ = entity.Property(e => e.DedupeKey).HasColumnType("nvarchar(256)");
-            _ = entity.Property(e => e.SchemaVersion).HasColumnType("nvarchar(32)");
-            _ = entity.Property(e => e.RawPayload).HasColumnType("nvarchar(max)");
-            _ = entity.Property(e => e.NormalizedPayload).HasColumnType("nvarchar(max)");
+            _ = entity.Property(e => e.Provider).HasMaxLength(128);
+            _ = entity.Property(e => e.EventId).HasMaxLength(256);
+            _ = entity.Property(e => e.DedupeKey).HasMaxLength(256);
+            _ = entity.Property(e => e.SchemaVersion).HasMaxLength(32);
+            _ = entity.Property(e => e.RawPayload);
+            _ = entity.Property(e => e.NormalizedPayload);
             _ = entity.HasIndex(e => new { e.Provider, e.DedupeKey }).IsUnique();
         });
     }

@@ -62,8 +62,8 @@ public sealed class AuditDbContext : DbContext, IMultiTenantDbContext
             _ = entity.Property(e => e.ActorId).HasMaxLength(256);
             _ = entity.Property(e => e.EntityType).HasMaxLength(256);
             _ = entity.Property(e => e.TenantId).HasMaxLength(64);
-            _ = entity.Property(e => e.SnapshotBefore).HasColumnType("nvarchar(max)");
-            _ = entity.Property(e => e.SnapshotAfter).HasColumnType("nvarchar(max)");
+            _ = entity.Property(e => e.SnapshotBefore);
+            _ = entity.Property(e => e.SnapshotAfter);
             _ = entity.Property(e => e.OccurredAt);
             _ = entity.IsMultiTenant();
             _ = entity.HasIndex(e => new { e.EntityType, e.EntityId, e.OccurredAt });
