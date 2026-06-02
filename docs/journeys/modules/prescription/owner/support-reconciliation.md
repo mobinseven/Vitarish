@@ -7,10 +7,10 @@
 
 ## Current Implementation Alignment
 - **Status:** `partial`.
-- **Implemented now:** `ReconciliationDesk` loads recoverable states, filters by status, refreshes provider status, resolves duplicate risk, manually reconciles, and reconciles paper fallback; `PrescriptionOperationalDashboard` surfaces alerts/outbox/duplicate-risk/metrics.
-- **Current artifacts:** `ReconciliationDesk`, `PrescriptionOperationalDashboard`, `GetReconciliationQueueQuery`, `RefreshProviderStatusCommand`, `ResolveDuplicateRiskCommand`, `ManualReconcileCommand`, `ReconcilePaperFallbackCommand`, `GetOutboxStatusQuery`.
-- **Authoritative state:** support actions update the same prescription lifecycle record; outbox records remain retry metadata, not a second prescription state model.
-- **Known gaps:** route/navigation is not confirmed, operator-entered notes are not captured by the current confirmation flow, escalation is not implemented as a separate workflow, and transaction detail masking/audit display need hardening.
+- **Implemented now:** `ReconciliationDesk` is routed at `/support/prescriptions/reconciliation`, loads recoverable states, filters by status, displays correlation/hash/idempotency/retry metadata, refreshes provider status, resolves duplicate risk, manually reconciles, reconciles paper fallback, and escalates unresolved cases; `PrescriptionOperationalDashboard` surfaces alerts/outbox/duplicate-risk/metrics.
+- **Current artifacts:** `SupportPrescriptionReconciliationDeskPage`, `ReconciliationDesk`, `PrescriptionOperationalDashboard`, `GetReconciliationQueueQuery`, `RefreshProviderStatusCommand`, `ResolveDuplicateRiskCommand`, `ManualReconcileCommand`, `ReconcilePaperFallbackCommand`, `EscalateCommand`, `GetOutboxStatusQuery`, `PrescriptionEscalation`.
+- **Authoritative state:** `PrescriptionStatus` owns prescription recovery state; `PrescriptionOutboxRecord` owns retry scheduling; `PrescriptionEscalation` owns escalation records.
+- **Known gaps:** operator-entered notes are not consistently required by every confirmation flow, transaction detail masking/audit display need hardening, and support navigation/role policy discoverability outside the direct route remains unverified.
 
 ## 2. Entry Conditions
 1. Support operator is authenticated with reconciliation permission.

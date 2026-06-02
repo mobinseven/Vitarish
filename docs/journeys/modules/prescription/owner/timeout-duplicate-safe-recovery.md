@@ -7,10 +7,10 @@
 
 ## Current Implementation Alignment
 - **Status:** `partial`.
-- **Implemented now:** submission timeout/failure classification moves prescriptions to `SyncPending`, `ProviderUnavailable`, or `DuplicateRisk`; `PrescriptionOutboxService` stores retry work; `PrescriptionRetryProcessor` runs fetch-before-retry and escalates stale pending records; support commands can refresh provider status or resolve duplicate risk.
-- **Current artifacts:** `SubmitPrescriptionCommand`, `PrescriptionRetryProcessor`, `PrescriptionOutboxService`, `RefreshProviderStatusCommand`, `ResolveDuplicateRiskCommand`, `GetReconciliationQueueQuery`, `GetOutboxStatusQuery`, `ReconciliationDesk`, `PrescriptionOperationalDashboard`.
-- **Authoritative state:** `PrescriptionStatus` owns local lifecycle; outbox records own retry scheduling only.
-- **Known gaps:** request hash is not exposed as a first-class support field in the current UI, doctor-facing pending notifications are limited to status display, and the reconciliation desk route/navigation is not confirmed.
+- **Implemented now:** submission timeout/failure classification moves prescriptions to `SyncPending`, `ProviderUnavailable`, or `DuplicateRisk`; `PrescriptionOutboxService` stores retry work; `PrescriptionRetryProcessor` runs fetch-before-retry and escalates stale pending records; support commands can refresh provider status, resolve duplicate risk, or escalate a case.
+- **Current artifacts:** `SubmitPrescriptionCommand`, `PrescriptionRetryProcessor`, `PrescriptionOutboxService`, `RefreshProviderStatusCommand`, `ResolveDuplicateRiskCommand`, `EscalateCommand`, `GetReconciliationQueueQuery`, `GetOutboxStatusQuery`, `ReconciliationDesk`, `PrescriptionOperationalDashboard`, `SupportPrescriptionReconciliationDeskPage`.
+- **Authoritative state:** `PrescriptionStatus` owns local lifecycle; `PrescriptionOutboxRecord` owns retry scheduling/idempotency metadata only; `PrescriptionEscalation` owns escalation records.
+- **Known gaps:** doctor-facing pending notifications are limited to status display, retry/outage warnings are not fully rendered in the submit panel, and escalation/audit details are more complete for support than for owner-facing timeline review.
 
 ## 2. Entry Conditions
 1. Prescription was in `Submitting` state.

@@ -6,11 +6,11 @@
 - **Goal:** Map doctor credentials to insurance providers so they can submit prescriptions.
 
 ## Current Implementation Alignment
-- **Status:** `missing` as a complete owner journey; `partial` backend/read-model support exists.
-- **Implemented now:** credential health can be queried and displayed in operational monitoring; adapters expose `AuthenticateAsync`; `DoctorProviderCredential` models credential state.
-- **Current artifacts:** `PrescriptionOperationalDashboard`, `GetCredentialHealthQuery`, `CredentialHealthResult`, `DoctorProviderCredential`, `IInsuranceProviderAdapter.AuthenticateAsync`.
-- **Authoritative state:** provider credential state belongs to `DoctorProviderCredential`.
-- **Known gaps:** no routed credential setup page, no credential configuration form, no save/update command, no explicit credential test command, and no owner-facing renewal workflow.
+- **Status:** `partial`.
+- **Implemented now:** routed credential setup exists at `/owner/clinic/prescriptions/admin/credentials`; `CredentialSetupGrid` loads credentials for the active clinic, `CredentialConfigureDialog` captures provider credential references, `SaveCredentialCommand` stores/updates mappings, `TestCredentialCommand` authenticates through the provider adapter, and `RevokeCredentialCommand` revokes a credential.
+- **Current artifacts:** `OwnerPrescriptionCredentialSetupPage`, `CredentialSetupGrid`, `CredentialConfigureDialog`, `SaveCredentialCommand`, `TestCredentialCommand`, `RevokeCredentialCommand`, `GetCredentialSetupGridQuery`, `DoctorProviderCredential`, `IInsuranceProviderAdapter.AuthenticateAsync`.
+- **Authoritative state:** `DoctorProviderCredential` owns doctor-provider credential status and secret references; plaintext secrets remain outside the prescription database.
+- **Known gaps:** owner-facing renewal reminders/workflow are not complete, credential setup is not yet surfaced from main owner navigation, credential health is not embedded in payer selection, and secure secret storage integration is represented by references rather than a complete vault-backed workflow.
 
 ## 2. Entry Conditions
 1. Clinic admin is authenticated with credential management permission.
