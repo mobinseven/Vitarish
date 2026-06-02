@@ -7,10 +7,10 @@
 
 ## Current Implementation Alignment
 - **Status:** `partial`.
-- **Implemented now:** owner create/detail routes create a draft, show payer and eligibility panels, let the doctor add/remove reference-code-backed items, validate the draft, submit through the selected provider adapter, and display canonical status/tracking feedback.
-- **Current artifacts:** `OwnerPrescriptionCreatePage`, `OwnerPrescriptionDetailPage`, `PrescriptionDetail`, `EligibilityPanel`, `PayerSelectorPanel`, `PrescriptionItemsGrid`, `AddPrescriptionItemDialog`, `PrescriptionSubmitPanel`, `PrescriptionTimeline`, `CreateDraftCommand`, `AddItemCommand`, `RemoveItemCommand`, `ValidateDraftCommand`, `SubmitPrescriptionCommand`, `GetEligibilityQuery`, `SearchReferenceCodesQuery`.
-- **Authoritative state:** `PrescriptionStatus` on `PrescriptionRecord`; provider-native statuses are mapped by adapter/handler code.
-- **Known gaps:** encounter/mobile prefill is not fully represented, eligibility is displayed but not persisted as a mandatory submission gate, submit confirmation/print summary are not complete user journeys, and provider capability warnings do not yet disable every unsupported authoring option.
+- **Implemented now:** owner create/detail routes create a draft, select an available provider through `PayerSelectorPanel`, run provider eligibility through `EligibilityPanel`, persist the latest eligibility result through `RecordEligibilityCommand`, gate submission in `ValidateDraftCommand`, add/remove items backed by Medical module provider code search, submit through the selected provider adapter, and show canonical status/tracking feedback.
+- **Current artifacts:** `OwnerPrescriptionCreatePage`, `OwnerPrescriptionDetailPage`, `PrescriptionDetail`, `PayerSelectorPanel`, `EligibilityPanel`, `PrescriptionItemsGrid`, `AddPrescriptionItemDialog`, `PrescriptionSubmitPanel`, `PrescriptionTimeline`, `CreateDraftCommand`, `SetProviderCommand`, `AddItemCommand`, `RemoveItemCommand`, `RecordEligibilityCommand`, `ValidateDraftCommand`, `SubmitPrescriptionCommand`, `GetAvailableProvidersQuery`, `GetEligibilityQuery`, `IMedicalQueryService.SearchMedicalCodesAsync`.
+- **Authoritative state:** `PrescriptionRecord` owns the draft/submission lifecycle, selected provider, items, and latest eligibility gate result; provider code/reference data is owned by the Medical module and only consumed by Prescription.
+- **Known gaps:** encounter/mobile prefill is not fully represented, provider capability warnings are validation warnings instead of fully disabling unsupported authoring options, submit confirmation/print summary are not wired as complete user journeys, and the UI does not yet expose stale eligibility warnings as a distinct pre-submit refresh prompt.
 
 ## 2. Entry Conditions
 1. Doctor is authenticated and has prescription submission role for the selected clinic.

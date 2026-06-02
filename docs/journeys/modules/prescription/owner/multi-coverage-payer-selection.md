@@ -7,14 +7,14 @@
 
 ## Current Implementation Alignment
 - **Status:** `partial`.
-- **Implemented now:** `PayerSelectorPanel` reads patient coverages and applies the selected provider/coverage to a draft via `SetProviderCommand`; single-coverage and multi-coverage states are displayed from the same panel.
-- **Current artifacts:** `PayerSelectorPanel`, `PrescriptionDetail`, `GetPatientCoveragesQuery`, `SetProviderCommand`, `PatientCoverageDto`.
-- **Authoritative state:** selected payer lives on the prescription draft as `SelectedProviderKey` and `SelectedPatientCoverageId`.
-- **Known gaps:** the selector does not yet show doctor credential health, provider online/degraded/offline status, or capability-driven disabled categories for each payer option.
+- **Implemented now:** `PayerSelectorPanel` lists API adapters from the provider registry using `GetAvailableProvidersQuery`, auto-selects the only provider when applicable, and applies provider changes to a draft through `SetProviderCommand`.
+- **Current artifacts:** `PayerSelectorPanel`, `PrescriptionDetail`, `GetAvailableProvidersQuery`, `SetProviderCommand`, `IInsuranceProviderRegistry`.
+- **Authoritative state:** `PrescriptionRecord.SelectedProviderKey` owns the selected payer/provider for a draft; available providers come from the registry, not from a prescription-owned provider catalog.
+- **Known gaps:** true patient coverage discovery is not implemented, and the selector does not yet show credential health, provider online/degraded/offline status, coverage priority, or capability-driven disabled categories per option.
 
 ## 2. Entry Conditions
 1. Patient identity confirmed.
-2. Patient has ≥2 active `PatientCoverage` records for different providers.
+2. Patient has more than one active payer/coverage option from the source patient coverage system.
 3. Doctor has valid credentials for at least one of the patient's covered providers.
 
 ## 3. Journey Stages

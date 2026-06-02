@@ -7,10 +7,10 @@
 
 ## Current Implementation Alignment
 - **Status:** `partial`.
-- **Implemented now:** `EligibilityPanel` calls `GetEligibilityQuery`, maps provider entitlement responses to canonical `EligibilityStatus`, and renders status/tracking/coverage information without exposing provider-native error details directly.
-- **Current artifacts:** `EligibilityPanel`, `GetEligibilityQuery`, `EligibilityResultDto`, `IInsuranceProviderAdapter.CheckEntitlementAsync`.
-- **Authoritative state:** eligibility result is a query response; the prescription lifecycle remains owned by `PrescriptionStatus`.
-- **Known gaps:** eligibility is not yet stored as a durable pre-submit gate, so submit blocking is not fully enforced by `ValidateDraftCommand`; ineligible guidance is not a separate panel; payer-switch suggestions depend on the payer selector state.
+- **Implemented now:** `EligibilityPanel` calls `GetEligibilityQuery`, writes the returned status to the prescription through `RecordEligibilityCommand`, and `ValidateDraftCommand` blocks submission unless the latest recorded eligibility status is `Eligible` within the freshness window.
+- **Current artifacts:** `EligibilityPanel`, `PrescriptionDetail`, `RecordEligibilityCommand`, `ValidateDraftCommand`, `GetEligibilityQuery`, `IInsuranceProviderAdapter.CheckEntitlementAsync`.
+- **Authoritative state:** `PrescriptionRecord.LastEligibilityStatus`, `LastEligibilityCheckedAt`, and `LastEligibilityTrackingCode` are the single local source of truth for submission eligibility gating.
+- **Known gaps:** ineligible guidance is still a generic validation/message path rather than a dedicated blocked-state panel; payer-switch alternatives are limited to available provider selection and are not enriched with patient coverage recommendations; fallback guidance is not conditionally tailored by eligibility reason.
 
 ## 2. Entry Conditions
 1. Patient identity confirmed.
