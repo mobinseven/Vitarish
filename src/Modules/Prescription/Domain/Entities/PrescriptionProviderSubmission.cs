@@ -10,7 +10,7 @@ public sealed class PrescriptionProviderSubmission
 {
     public Guid Id { get; set; }
     public Guid PrescriptionRecordId { get; set; }
-    public Guid InsuranceProviderId { get; set; }
+    public required string ProviderKey { get; set; }
 
     /// <summary>Operation that was performed (e.g., "RegisterPrescription", "EditPrescription").</summary>
     public required string OperationName { get; set; }

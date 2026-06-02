@@ -181,56 +181,16 @@ public sealed class SearchReferenceCodesHandler(PrescriptionDbContext dbContext)
     }
 }
 
-public sealed class GetPatientCoveragesHandler(PrescriptionDbContext dbContext)
-    : IRequestHandler<GetPatientCoveragesQuery, IReadOnlyList<PatientCoverageDto>>
+public sealed class GetAvailableProvidersHandler(IInsuranceProviderRegistry providerRegistry)
+    : IRequestHandler<GetAvailableProvidersQuery, IReadOnlyList<AvailableProviderDto>>
 {
-    public async Task<IReadOnlyList<PatientCoverageDto>> Handle(GetPatientCoveragesQuery request, CancellationToken cancellationToken)
+    public Task<IReadOnlyList<AvailableProviderDto>> Handle(GetAvailableProvidersQuery request, CancellationToken cancellationToken)
     {
-        var now = DateTimeOffset.UtcNow;
+        IReadOnlyList<AvailableProviderDto> result = providerRegistry
+            .GetRegisteredProviderKeys()
+            .Select(key => new AvailableProviderDto { ProviderKey = key })
+            .ToList();
 
-        var coveragesWithProviders = await dbContext.PatientCoverages
-            .AsNoTracking()
-            .Where(c => c.PatientId == request.PatientId)
-            .Where(c => c.IsEligible && (c.ExpiresAt == null || c.ExpiresAt > now))
-            .Join(
-                dbContext.InsuranceProviders,
-                coverage => coverage.InsuranceProviderId,
-                provider => provider.Id,
-                (coverage, provider) => new { coverage, provider })
-            .ToListAsync(cancellationToken);
-
-        var result = new List<PatientCoverageDto>();
-
-        foreach (var item in coveragesWithProviders)
-        {
-            Domain.Enums.CredentialStatus? credStatus = null;
-
-            if (request.DoctorId.HasValue && request.ClinicId.HasValue)
-            {
-                credStatus = await dbContext.DoctorProviderCredentials
-                    .AsNoTracking()
-                    .Where(c => c.DoctorId == request.DoctorId.Value
-                                && c.InsuranceProviderId == item.coverage.InsuranceProviderId
-                                && c.ClinicId == request.ClinicId.Value)
-                    .Select(c => (Domain.Enums.CredentialStatus?)c.Status)
-                    .FirstOrDefaultAsync(cancellationToken);
-            }
-
-            result.Add(new PatientCoverageDto
-            {
-                CoverageId = item.coverage.Id,
-                InsuranceProviderId = item.coverage.InsuranceProviderId,
-                ProviderKey = item.provider.ProviderKey,
-                ProviderName = item.provider.Name,
-                CoverageIdentifier = item.coverage.CoverageIdentifier,
-                CoverageType = item.coverage.CoverageType,
-                IsEligible = item.coverage.IsEligible,
-                ExpiresAt = item.coverage.ExpiresAt,
-                DoctorCredentialStatus = credStatus,
-                ProviderOperationalStatus = item.provider.Status
-            });
-        }
-
-        return result;
+        return Task.FromResult(result);
     }
 }

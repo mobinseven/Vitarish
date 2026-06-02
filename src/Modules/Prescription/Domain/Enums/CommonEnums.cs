@@ -12,18 +12,6 @@ public enum CredentialStatus
 }
 
 /// <summary>
-/// Status of an insurance provider in the registry.
-/// </summary>
-public enum ProviderStatus
-{
-    Disabled,
-    Sandbox,
-    Active,
-    Degraded,
-    Offline
-}
-
-/// <summary>
 /// Type of prescription item.
 /// </summary>
 public enum PrescriptionItemCategory

@@ -5,11 +5,10 @@ public partial class PayerSelectorPanel : PrescriptionBase
     [Parameter, EditorRequired] public PrescriptionDto Prescription { get; set; } = default!;
     [Parameter] public EventCallback OnProviderChanged { get; set; }
 
-    private List<PatientCoverageDto> coverages = [];
+    private List<AvailableProviderDto> providers = [];
     private string? selectedProviderKey;
     private bool isLoading;
     private string? errorMessage;
-    private Guid? loadedPatientId;
 
     protected override async Task OnParametersSetAsync()
     {
@@ -20,19 +19,14 @@ public partial class PayerSelectorPanel : PrescriptionBase
 
         selectedProviderKey = Prescription.SelectedProviderKey;
 
-        if (loadedPatientId != Prescription.PatientId)
+        if (providers.Count == 0)
         {
             isLoading = true;
 
             try
             {
-                var result = await Mediator.Send(new GetPatientCoveragesQuery
-                {
-                    PatientId = Prescription.PatientId
-                });
-
-                loadedPatientId = Prescription.PatientId;
-                coverages = [.. result];
+                var result = await Mediator.Send(new GetAvailableProvidersQuery());
+                providers = [.. result];
             }
             finally
             {
@@ -40,10 +34,10 @@ public partial class PayerSelectorPanel : PrescriptionBase
             }
         }
 
-        // Auto-select if only one coverage and none selected
-        if (string.IsNullOrEmpty(selectedProviderKey) && coverages.Count == 1)
+        // Auto-select if only one provider and none selected, and no previous error
+        if (string.IsNullOrEmpty(selectedProviderKey) && providers.Count == 1 && string.IsNullOrEmpty(errorMessage))
         {
-            await ApplyProviderSelectionAsync(coverages[0].ProviderKey, coverages[0].CoverageId);
+            await ApplyProviderSelectionAsync(providers[0].ProviderKey);
         }
     }
 
@@ -52,19 +46,17 @@ public partial class PayerSelectorPanel : PrescriptionBase
         if (string.IsNullOrEmpty(providerKey) || providerKey == selectedProviderKey)
             return;
 
-        var coverage = coverages.FirstOrDefault(c => c.ProviderKey == providerKey);
-        await ApplyProviderSelectionAsync(providerKey, coverage?.CoverageId);
+        await ApplyProviderSelectionAsync(providerKey);
     }
 
-    private async Task ApplyProviderSelectionAsync(string providerKey, Guid? coverageId)
+    private async Task ApplyProviderSelectionAsync(string providerKey)
     {
         errorMessage = null;
 
         SetProviderResult result = await Mediator.Send(new SetProviderCommand
         {
             PrescriptionId = Prescription.Id,
-            ProviderKey = providerKey,
-            PatientCoverageId = coverageId
+            ProviderKey = providerKey
         });
 
         if (result.IsSuccess)

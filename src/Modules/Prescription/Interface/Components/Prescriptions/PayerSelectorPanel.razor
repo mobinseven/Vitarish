@@ -12,40 +12,32 @@
     {
         <MudProgressLinear Indeterminate="true" Color="Color.Primary" />
     }
-    else if (coverages.Count == 0)
+    else if (providers.Count == 0)
     {
-        <MudAlert Severity="Severity.Warning">@Localizer["NoCoveragesFound"]</MudAlert>
+        <MudAlert Severity="Severity.Warning">@Localizer["NoProvidersAvailable"]</MudAlert>
     }
-    else if (coverages.Count == 1)
+    else if (providers.Count == 1)
     {
-        @* Single coverage — show read-only with auto-selected provider *@
-        <StackField Label="@coverages[0].ProviderName" HelperText="@Localizer["InsuranceProvider"]">
+        @* Single provider — show read-only with auto-selected provider *@
+        <StackField Label="@providers[0].ProviderKey" HelperText="@Localizer["InsuranceProvider"]">
             <MudChip T="string" Size="Size.Small" Color="Color.Primary" Variant="Variant.Outlined">
-                @coverages[0].ProviderKey
+                @providers[0].ProviderKey
             </MudChip>
         </StackField>
     }
     else
     {
-        @* Multiple coverages — show selector *@
+        @* Multiple providers — show selector *@
         <MudSelect T="string"
                    Label="@Localizer["SelectInsuranceProvider"]"
                    Value="@selectedProviderKey"
                    ValueChanged="OnProviderSelectedAsync"
                    Variant="Variant.Outlined"
                    Dense="true">
-            @foreach (var coverage in coverages)
+            @foreach (var provider in providers)
             {
-                <MudSelectItem T="string" Value="@coverage.ProviderKey">
-                    @coverage.ProviderName
-                    @if (!string.IsNullOrEmpty(coverage.CoverageType))
-                    {
-                        <text> — @coverage.CoverageType</text>
-                    }
-                    @if (coverage.IsEligible)
-                    {
-                        <MudIcon Icon="fa-regular fa-shield-check" Size="Size.Small" Color="Color.Success" />
-                    }
+                <MudSelectItem T="string" Value="@provider.ProviderKey">
+                    @provider.ProviderKey
                 </MudSelectItem>
             }
         </MudSelect>

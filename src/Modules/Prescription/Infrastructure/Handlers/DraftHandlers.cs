@@ -28,7 +28,6 @@ public sealed class CreateDraftHandler(
             ClinicId = request.ClinicId,
             EncounterId = request.EncounterId,
             SelectedProviderKey = request.SelectedProviderKey,
-            SelectedPatientCoverageId = request.SelectedPatientCoverageId,
             Status = PrescriptionStatus.Draft,
             VersionNumber = 1,
             CreatedAt = DateTimeOffset.UtcNow,
@@ -266,7 +265,6 @@ public sealed class SetProviderHandler(
             return SetProviderResult.Failure("بیمه‌گر انتخاب شده در سیستم موجود نیست.");
 
         prescription.SelectedProviderKey = request.ProviderKey;
-        prescription.SelectedPatientCoverageId = request.PatientCoverageId;
         prescription.UpdatedAt = DateTimeOffset.UtcNow;
 
         await dbContext.SaveChangesAsync(cancellationToken);

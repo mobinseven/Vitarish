@@ -67,7 +67,7 @@ public sealed class SubmitPrescriptionHandler(
             {
                 Id = Guid.NewGuid(),
                 PrescriptionRecordId = prescription.Id,
-                InsuranceProviderId = await GetProviderIdAsync(prescription.SelectedProviderKey, cancellationToken),
+                ProviderKey = prescription.SelectedProviderKey!,
                 OperationName = "SubmitPrescription",
                 RemotePrescriptionId = submissionResult.Data.RemotePrescriptionId,
                 RemoteTrackingCode = submissionResult.Data.RemoteTrackingCode,
@@ -154,13 +154,6 @@ public sealed class SubmitPrescriptionHandler(
         return SubmitPrescriptionResult.Failure(
             submissionResult.Error?.UserMessage ?? "خطا در ارسال نسخه.",
             errorStatus);
-    }
-
-    private async Task<Guid> GetProviderIdAsync(string providerKey, CancellationToken cancellationToken)
-    {
-        var provider = await dbContext.InsuranceProviders
-            .FirstOrDefaultAsync(p => p.ProviderKey == providerKey, cancellationToken);
-        return provider?.Id ?? Guid.Empty;
     }
 }
 

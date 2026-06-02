@@ -12,7 +12,6 @@ public sealed record CreateDraftCommand : IRequest<CreateDraftResult>
     public required Guid ClinicId { get; init; }
     public Guid? EncounterId { get; init; }
     public string? SelectedProviderKey { get; init; }
-    public Guid? SelectedPatientCoverageId { get; init; }
     public string TenantId { get; init; } = string.Empty;
 }
 
@@ -149,7 +148,6 @@ public sealed record SetProviderCommand : IRequest<SetProviderResult>
 {
     public required Guid PrescriptionId { get; init; }
     public required string ProviderKey { get; init; }
-    public Guid? PatientCoverageId { get; init; }
 }
 
 public sealed record SetProviderResult

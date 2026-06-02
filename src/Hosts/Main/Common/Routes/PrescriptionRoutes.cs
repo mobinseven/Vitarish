@@ -17,9 +17,6 @@ public static partial class AppRoutes
         // Support routes
         public const string SupportPrescriptionReconciliationDesk = "/support/prescriptions/reconciliation";
 
-        // Platform admin routes
-        public const string PlatformAdminPrescriptionProviders = "/admin/prescriptions/providers";
-
         public static string OwnerPrescription(Guid prescriptionId) => $"{OwnerPrescriptions}/{GuidValue(prescriptionId)}";
         public static string OwnerPrescriptionCreateForPatient(Guid patientId) => $"{OwnerPrescriptionCreate}/{GuidValue(patientId)}";
     }
