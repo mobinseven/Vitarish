@@ -9,5 +9,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Infrastructure\Parties.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
+		<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
 </ItemGroup>
 </Project>

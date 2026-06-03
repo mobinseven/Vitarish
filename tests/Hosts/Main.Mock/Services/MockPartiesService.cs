@@ -166,5 +166,43 @@ public sealed class MockPartiesService : IPartiesService
         return Task.CompletedTask;
     }
 
-    public Task CreateTenantRolesAsync(Guid tenantId, CancellationToken ct = default) => throw new NotImplementedException();
+    public Task CreateTenantRolesAsync(Guid tenantId, CancellationToken ct = default) => Task.CompletedTask;
+
+    public async Task<TenantReadDto?> SetupTenantAsync(SetupTenantRequest request, CancellationToken ct = default)
+    {
+        OwnerReadDto? owner = await CreateOwnerAsync(new OwnerWriteDto { Name = request.OwnerName }, ct);
+        if (owner is null)
+        {
+            return null;
+        }
+
+        TenantReadDto? tenant = await CreateTenantAsync(
+            new TenantWriteDto
+            {
+                OwnerId = owner.Id,
+                Name = request.TenantName,
+                AppId = request.AppId
+            },
+            ct);
+
+        if (tenant is null)
+        {
+            return null;
+        }
+
+        _ = await CreateTenantIndicatorAsync(
+            new TenantIndicatorWriteDto
+            {
+                TenantId = tenant.Id,
+                Method = request.IndicatorMethod,
+                Value = request.IndicatorValue,
+                Status = request.IndicatorStatus,
+                IsPrimary = true
+            },
+            ct);
+
+        await CreateTenantRolesAsync(tenant.Id, ct);
+
+        return tenant;
+    }
 }

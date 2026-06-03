@@ -22,12 +22,9 @@ using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Domain.Entities;
-using Vitarish.Parties.Hosting.DependencyInjection;
 using Vitarish.Parties.Infrastructure.Data;
-using Vitarish.Requests.Hosting.DependencyInjection;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Social.Infrastructure.Data;
-using Vitarish.Users.Hosting.DependencyInjection;
 using Vitarish.Users.Infrastructure.Data;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
@@ -70,9 +67,6 @@ _ = builder.Services.AddRazorPages(options =>
 builder.AddAccountsInterface();
 builder.AddApplicationOptions();
 
-builder.AddUsers(configurePostgres);
-builder.AddRequests(configurePostgres);
-builder.AddParties(configurePostgres);
 
 await builder.AddHostIdentityServer(configurePostgres);
 
@@ -191,7 +185,6 @@ _ = app.MapRazorComponents<App>().AddInteractiveServerRenderMode();
 _ = app.MapRazorPages();
 
 app.MapAccountsInterface();
-await app.InitializeUsers();
 
 app.MapHangfireDashboard();
 

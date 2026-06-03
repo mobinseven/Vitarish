@@ -264,7 +264,7 @@ public sealed class MockUsersService : IUsersService
             _ => new HashSet<string>(StringComparer.OrdinalIgnoreCase) { roleName },
             (_, existing) =>
             {
-                _ = existing.Add(roleName);
+                existing.Add(roleName);
                 return existing;
             });
         return Task.CompletedTask;

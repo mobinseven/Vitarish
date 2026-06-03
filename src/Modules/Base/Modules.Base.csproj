@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.*" />
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
@@ -9,10 +9,12 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Identity\Parties\Application\Parties.Application.csproj" />
-		<ProjectReference Include="..\..\Identity\Parties\Domain\Parties.Domain.csproj" />
-		<ProjectReference Include="..\..\Identity\Requests\Application\Requests.Application.csproj" />
-		<ProjectReference Include="..\..\Identity\Users\Domain\Users.Domain.csproj" />
+		<!-- TODO: Reduce Modules.Base coupling by moving tenant/user/request contracts behind narrower module-owned abstractions.
+		     These references are preserved for this migration because TenantCommonBase and TenantService currently expose Party/User/Request contracts. -->
+		<ProjectReference Include="..\..\Modules\Parties\Application\Parties.Application.csproj" />
+		<ProjectReference Include="..\..\Modules\Parties\Domain\Parties.Domain.csproj" />
+		<ProjectReference Include="..\..\Modules\Requests\Application\Requests.Application.csproj" />
+		<ProjectReference Include="..\..\Modules\Users\Domain\Users.Domain.csproj" />
 		<ProjectReference Include="..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
 	</ItemGroup>
 </Project>

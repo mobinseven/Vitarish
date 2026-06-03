@@ -9,10 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <FrameworkReference Include="Microsoft.AspNetCore.App" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.*" />
     <PackageReference Include="xunit" Version="2.*" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.*">
@@ -25,12 +21,14 @@
     </PackageReference>
     <PackageReference Include="Moq" Version="4.*" />
     <PackageReference Include="FluentAssertions" Version="8.*" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="10.0.*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="10.0.*" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Identity\Requests\Application\Requests.Application.csproj" />
-    <ProjectReference Include="..\..\..\src\Identity\Requests\Domain\Requests.Domain.csproj" />
-    <ProjectReference Include="..\..\..\src\Identity\Requests\Hosting\Requests.Hosting.csproj" />
-    <ProjectReference Include="..\..\..\src\Identity\Requests\Infrastructure\Requests.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Users\Application\Users.Application.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Users\Domain\Users.Domain.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Users\Hosting\Users.Hosting.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Users\Infrastructure\Users.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

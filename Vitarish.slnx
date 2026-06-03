@@ -17,25 +17,25 @@
     <Project Path="src/Hosts/Main/Main.csproj" />
   </Folder>
   <Folder Name="/src/Identity/" />
-  <Folder Name="/src/Identity/Parties/">
-    <Project Path="src/Identity/Parties/Application/Parties.Application.csproj" />
-    <Project Path="src/Identity/Parties/Domain/Parties.Domain.csproj" />
-    <Project Path="src/Identity/Parties/Hosting/Parties.Hosting.csproj" />
-    <Project Path="src/Identity/Parties/Infrastructure/Parties.Infrastructure.csproj" />
-    <Project Path="src/Identity/Parties/Interface/Parties.Interface.csproj" />
+  <Folder Name="/src/Modules/Parties/">
+    <Project Path="src/Modules/Parties/Application/Parties.Application.csproj" />
+    <Project Path="src/Modules/Parties/Domain/Parties.Domain.csproj" />
+    <Project Path="src/Modules/Parties/Hosting/Parties.Hosting.csproj" />
+    <Project Path="src/Modules/Parties/Infrastructure/Parties.Infrastructure.csproj" />
+    <Project Path="src/Modules/Parties/Interface/Parties.Interface.csproj" />
   </Folder>
-  <Folder Name="/src/Identity/Requests/">
-    <Project Path="src/Identity/Requests/Application/Requests.Application.csproj" />
-    <Project Path="src/Identity/Requests/Domain/Requests.Domain.csproj" />
-    <Project Path="src/Identity/Requests/Hosting/Requests.Hosting.csproj" />
-    <Project Path="src/Identity/Requests/Infrastructure/Requests.Infrastructure.csproj" />
+  <Folder Name="/src/Modules/Requests/">
+    <Project Path="src/Modules/Requests/Application/Requests.Application.csproj" />
+    <Project Path="src/Modules/Requests/Domain/Requests.Domain.csproj" />
+    <Project Path="src/Modules/Requests/Hosting/Requests.Hosting.csproj" />
+    <Project Path="src/Modules/Requests/Infrastructure/Requests.Infrastructure.csproj" />
   </Folder>
-  <Folder Name="/src/Identity/Users/">
-    <Project Path="src/Identity/Users/Application/Users.Application.csproj" />
-    <Project Path="src/Identity/Users/Domain/Users.Domain.csproj" />
-    <Project Path="src/Identity/Users/Hosting/Users.Hosting.csproj" />
-    <Project Path="src/Identity/Users/Infrastructure/Users.Infrastructure.csproj" />
-    <Project Path="src/Identity/Users/Interface/Users.Interface.csproj">
+  <Folder Name="/src/Modules/Users/">
+    <Project Path="src/Modules/Users/Application/Users.Application.csproj" />
+    <Project Path="src/Modules/Users/Domain/Users.Domain.csproj" />
+    <Project Path="src/Modules/Users/Hosting/Users.Hosting.csproj" />
+    <Project Path="src/Modules/Users/Infrastructure/Users.Infrastructure.csproj" />
+    <Project Path="src/Modules/Users/Interface/Users.Interface.csproj">
       <Build Solution="Debug|*" Project="false" />
     </Project>
   </Folder>
@@ -158,11 +158,7 @@
     <Project Path="tests/Hosts/Main.Mock/Main.Mock.csproj" />
     <Project Path="tests/Hosts/Main.Tests/Main.Tests.csproj" />
   </Folder>
-  <Folder Name="/tests/Identity/">
-    <Project Path="tests/Identity/Parties/Parties.Tests.csproj" />
-    <Project Path="tests/Identity/Requests/Requests.Tests.csproj" />
-    <Project Path="tests/Identity/Users/Users.Tests.csproj" />
-  </Folder>
+  <Folder Name="/tests/Identity/" />
   <Folder Name="/tests/Interfaces/">
     <Project Path="tests/Interfaces/Interfaces.Base.Tests/Interfaces.Base.Tests.csproj" />
   </Folder>
@@ -171,6 +167,9 @@
     <Project Path="tests/Libraries/Entities/Entities.Server.Tests/Entities.Server.Tests.csproj" />
   </Folder>
   <Folder Name="/tests/Modules/">
+    <Project Path="tests/Modules/Parties.Tests/Parties.Tests.csproj" />
+    <Project Path="tests/Modules/Requests.Tests/Requests.Tests.csproj" />
+    <Project Path="tests/Modules/Users.Tests/Users.Tests.csproj" />
     <Project Path="tests/Modules/Appointments.Tests/Appointments.Tests.csproj" />
     <Project Path="tests/Modules/Base.Tests/Modules.Base.Tests.csproj" />
     <Project Path="tests/Modules/Communications.Tests/Communications.Tests.csproj" />

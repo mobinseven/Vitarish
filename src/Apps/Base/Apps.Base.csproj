@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	
 	<ItemGroup>
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.*" />
@@ -6,9 +6,9 @@
 	</ItemGroup>
 	
 	<ItemGroup>
-	  <ProjectReference Include="..\..\Identity\Parties\Application\Parties.Application.csproj" />
-	  <ProjectReference Include="..\..\Identity\Requests\Application\Requests.Application.csproj" />
-	  <ProjectReference Include="..\..\Identity\Users\Application\Users.Application.csproj" />
+	  <ProjectReference Include="..\..\Modules\Parties\Application\Parties.Application.csproj" />
+	  <ProjectReference Include="..\..\Modules\Requests\Application\Requests.Application.csproj" />
+	  <ProjectReference Include="..\..\Modules\Users\Application\Users.Application.csproj" />
 	  <ProjectReference Include="..\..\Modules\Aggregator\Modules.Aggregator\Modules.Aggregator.csproj" />
 	</ItemGroup>
 
