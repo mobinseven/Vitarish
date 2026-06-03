@@ -1,4 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <None Remove="Views\views.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Views\views.sql" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DnsClient" Version="1.8.0" />
     <PackageReference Include="Injectio" Version="5.0.0" />

@@ -25,5 +25,5 @@ public sealed class UserTenant
     public Guid? IndicatorId { get; init; }
 
     /// <summary>Primary indicator value (hostname/subdomain).</summary>
-    public string? IndicatorValue { get; init; }
+    public string IndicatorValue { get; init; }
 }

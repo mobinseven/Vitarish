@@ -19,5 +19,5 @@ public sealed class PartiesModule : Module
         return Task.CompletedTask;
     }
 
-    public override Task Initialize(WebApplication app) => Task.CompletedTask;
+    public override Task Initialize(WebApplication app) => app.InitializeViews();
 }

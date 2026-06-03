@@ -1,11 +1,12 @@
--- Parties module SQL views
--- Cross-schema view uses current_setting('app.user_id', true) set via RequestContextInterceptor
+BEGIN;
 
-/* ===================== vw_UserTenant ===================== */
--- Cross-schema view to retrieve current user's tenants with their primary indicators
--- Retrieves tenants based on the current user's roles (app.user_id) by parsing tenant IDs from role names
-CREATE OR REPLACE VIEW "Parties"."vw_UserTenant" AS
+DROP VIEW IF EXISTS "Parties"."vw_UserTenant";
+
+DROP MATERIALIZED VIEW IF EXISTS "Parties"."mv_UserTenant";
+
+CREATE MATERIALIZED VIEW "Parties"."mv_UserTenant" AS
 SELECT DISTINCT
+  ur."UserId"     AS "UserId",
   t."Id"          AS "TenantId",
   t."Name"        AS "TenantName",
   t."LogoUrl"     AS "TenantLogoUrl",
@@ -14,22 +15,62 @@ SELECT DISTINCT
   ti."Id"         AS "IndicatorId",
   ti."Value"      AS "IndicatorValue"
 FROM "Users"."AspNetUserRoles" ur
-JOIN "Users"."AspNetRoles" r ON r."Id" = ur."RoleId"
+JOIN "Users"."AspNetRoles" r
+  ON r."Id" = ur."RoleId"
+
 CROSS JOIN LATERAL (
-  SELECT 
-    CASE 
-      WHEN POSITION(':' IN r."Name") > 0 
+  SELECT
+    CASE
+      WHEN POSITION(':' IN r."Name") > 0
       THEN SUBSTRING(r."Name", 1, POSITION(':' IN r."Name") - 1)
       ELSE NULL
     END AS tenant_id_text
+) role_prefix
+
+CROSS JOIN LATERAL (
+  SELECT
+    CASE
+      WHEN role_prefix.tenant_id_text IS NOT NULL
+       AND LENGTH(role_prefix.tenant_id_text) = 36
+       AND role_prefix.tenant_id_text LIKE '________-____-____-____-____________'
+       AND role_prefix.tenant_id_text ~ '^[0-9a-fA-F-]+$'
+      THEN role_prefix.tenant_id_text::uuid
+      ELSE NULL
+    END AS tenant_id
 ) parsed
-JOIN "Parties"."Tenants" t 
-  ON t."Id" = parsed.tenant_id_text::uuid
-  AND t."DeletedAt" IS NULL
-LEFT JOIN "Parties"."TenantIndicators" ti 
-  ON ti."TenantId" = t."Id" 
-  AND ti."IsPrimary" = TRUE
-  AND ti."DeletedAt" IS NULL
-WHERE ur."UserId" = current_setting('app.user_id', true)
-  AND POSITION(':' IN r."Name") > 0
-  AND parsed.tenant_id_text IS NOT NULL;
+
+JOIN "Parties"."Tenants" t
+  ON t."Id" = parsed.tenant_id
+ AND t."DeletedAt" IS NULL
+
+LEFT JOIN "Parties"."TenantIndicators" ti
+  ON ti."TenantId" = t."Id"
+ AND ti."IsPrimary" = TRUE
+ AND ti."DeletedAt" IS NULL
+
+WHERE parsed.tenant_id IS NOT NULL
+
+WITH DATA;
+
+CREATE INDEX "IX_mv_UserTenant_UserId"
+ON "Parties"."mv_UserTenant" ("UserId");
+
+CREATE INDEX "IX_mv_UserTenant_TenantId"
+ON "Parties"."mv_UserTenant" ("TenantId");
+
+CREATE INDEX "IX_mv_UserTenant_UserId_TenantId"
+ON "Parties"."mv_UserTenant" ("UserId", "TenantId");
+
+CREATE OR REPLACE VIEW "Parties"."vw_UserTenant" AS
+SELECT
+  "TenantId",
+  "TenantName",
+  "TenantLogoUrl",
+  "TenantDescription",
+  "TenantAppId",
+  "IndicatorId",
+  "IndicatorValue"
+FROM "Parties"."mv_UserTenant"
+WHERE "UserId" = current_setting('app.user_id', true);
+
+COMMIT;

@@ -1,6 +1,7 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using System.Text.Json;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Events;
@@ -11,7 +12,7 @@ namespace Vitarish.Parties.Infrastructure.Data;
 /// <summary>
 /// EF Core database context for parties management.
 /// </summary>
-public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, MediatR.IPublisher publisher) : DbContext(options)
+public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, MediatR.IPublisher publisher, IEnumerable<IInterceptor> interceptors) : DbContext(options)
 {
     /// <summary>Owners set.</summary>
     public DbSet<Owner> Owners => Set<Owner>();
@@ -24,6 +25,8 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
 
     /// <summary>User tenants view (cross-schema view based on current user).</summary>
     public DbSet<UserTenant> UserTenants => Set<UserTenant>();
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) => _ = optionsBuilder
+            .AddInterceptors(interceptors);
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)

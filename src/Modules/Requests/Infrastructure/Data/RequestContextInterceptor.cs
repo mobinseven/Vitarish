@@ -8,18 +8,56 @@ namespace Vitarish.Requests.Infrastructure.Data;
 
 public sealed class RequestContextInterceptor(IRequestContext ctx) : DbConnectionInterceptor, IInterceptor
 {
+    public override async ValueTask<InterceptionResult> ConnectionClosingAsync(DbConnection connection, ConnectionEventData eventData, InterceptionResult result)
+    {
+        if (connection is NpgsqlConnection npgsql)
+        {
+
+            if (ctx.OwnerId is not null)
+            {
+                await using var cmd = npgsql.CreateCommand();
+                cmd.CommandText = "SELECT set_config('app.owner_id', '', false)";
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+            if (ctx.UserId is not null)
+            {
+                await using var cmd = npgsql.CreateCommand();
+                cmd.CommandText = "SELECT set_config('app.user_id', '', false)";
+                await cmd.ExecuteNonQueryAsync();
+            }
+
+        }
+        return await base.ConnectionClosingAsync(connection, eventData, result);
+    }
+
     public override async Task ConnectionOpenedAsync(
         DbConnection connection,
         ConnectionEndEventData eventData,
         CancellationToken cancellationToken = default)
     {
-        if (connection is NpgsqlConnection npgsql && ctx.OwnerId is not null)
+        if (connection is not NpgsqlConnection npgsql)
+            return;
+
+        await using var cmd = npgsql.CreateCommand();
+        var setParams = new List<string>();
+
+        if (ctx.OwnerId is not null)
         {
-            await using NpgsqlCommand cmd = npgsql.CreateCommand();
-            cmd.CommandText = "SELECT set_config('app.owner_id', @o, false), set_config('app.user_id', @u, false);";
-            _ = cmd.Parameters.AddWithValue("@o", ctx.OwnerId);
-            _ = cmd.Parameters.AddWithValue("@u", (object?)ctx.UserId ?? DBNull.Value);
-            _ = await cmd.ExecuteScalarAsync(cancellationToken);
+            setParams.Add("SELECT set_config('app.owner_id', @ownerId, false)");
+            cmd.Parameters.AddWithValue("@ownerId", ctx.OwnerId);
+        }
+
+        if (ctx.UserId is not null)
+        {
+            setParams.Add("SELECT set_config('app.user_id', @userId, false)");
+            cmd.Parameters.AddWithValue("@userId", ctx.UserId);
+        }
+
+        if (setParams.Any())
+        {
+            cmd.CommandText = string.Join("; ", setParams);
+            await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
     }
 }
