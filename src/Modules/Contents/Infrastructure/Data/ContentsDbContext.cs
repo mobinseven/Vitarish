@@ -131,7 +131,7 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
 
             _ = entity.HasIndex("TenantId", nameof(Term.Slug))
                 .IsUnique()
-                .HasFilter("\"Slug\" IS NOT NULL AND [Slug] <> ''");
+                .HasFilter("\"Slug\" IS NOT NULL AND \"Slug\" <> ''");
             _ = entity.HasIndex(e => new { e.Kind, e.ParentId });
         });
 
