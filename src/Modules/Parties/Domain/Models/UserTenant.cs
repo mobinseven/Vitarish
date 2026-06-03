@@ -2,9 +2,9 @@ namespace Vitarish.Parties.Domain.Models;
 
 /// <summary>
 /// View model representing a user's tenant with its primary indicator.
-/// Optimized for retrieving user tenants in a single database query.
+/// Retrieved from a cross-schema view based on the current user's roles.
 /// </summary>
-public sealed class UserTenantView
+public sealed class UserTenant
 {
     /// <summary>Tenant identifier.</summary>
     public Guid TenantId { get; init; }
@@ -26,7 +26,4 @@ public sealed class UserTenantView
 
     /// <summary>Primary indicator value (hostname/subdomain).</summary>
     public string? IndicatorValue { get; init; }
-
-    /// <summary>Tenant metadata.</summary>
-    public Dictionary<string, object?> Metadata { get; init; } = [];
 }

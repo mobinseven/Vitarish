@@ -8,13 +8,13 @@ namespace Vitarish.Parties.Application.Abstractions;
 public interface IPartiesService
 {
     /// <summary>
-    /// Retrieves all tenants for a given user by their tenant IDs in a single database query.
+    /// Retrieves all tenants for the current user from the cross-schema view.
+    /// Uses the current user context (app.user_id) set via RequestContextInterceptor.
     /// Each result includes the tenant details and its primary indicator.
     /// </summary>
-    /// <param name="tenantIds">Collection of tenant IDs to retrieve.</param>
     /// <param name="ct">Cancellation token.</param>
-    /// <returns>Collection of user tenant views.</returns>
-    Task<IEnumerable<UserTenantView>> GetUserTenantsAsync(IEnumerable<Guid> tenantIds, CancellationToken ct = default);
+    /// <returns>Collection of user tenants.</returns>
+    Task<IEnumerable<UserTenant>> GetUserTenantsAsync(CancellationToken ct = default);
     // Owner methods
     Task<OwnerReadDto?> GetOwnerAsync(Guid id, CancellationToken ct = default);
     Task<IEnumerable<OwnerReadDto>> GetOwnersAsync(CancellationToken ct = default);

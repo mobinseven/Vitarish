@@ -22,8 +22,8 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
     /// <summary>Tenant indicators set.</summary>
     public DbSet<TenantIndicator> TenantIndicators => Set<TenantIndicator>();
 
-    /// <summary>User tenants view.</summary>
-    public DbSet<UserTenantView> UserTenantsView => Set<UserTenantView>();
+    /// <summary>User tenants view (cross-schema view based on current user).</summary>
+    public DbSet<UserTenant> UserTenants => Set<UserTenant>();
 
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -31,9 +31,9 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
         base.OnModelCreating(modelBuilder);
         _ = modelBuilder.HasDefaultSchema(nameof(Parties));
 
-        _ = modelBuilder.Entity<UserTenantView>(eb =>
+        _ = modelBuilder.Entity<UserTenant>(eb =>
         {
-            _ = eb.ToView("vw_UserTenants");
+            _ = eb.ToView("vw_UserTenant");
             _ = eb.HasNoKey();
         });
 

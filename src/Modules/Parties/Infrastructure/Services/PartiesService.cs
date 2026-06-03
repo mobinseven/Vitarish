@@ -20,19 +20,11 @@ public sealed class PartiesService(
     ISender sender,
     PartiesDbContext dbContext) : IPartiesService
 {
-    public async Task<IEnumerable<UserTenantView>> GetUserTenantsAsync(IEnumerable<Guid> tenantIds, CancellationToken ct = default)
+    public async Task<IEnumerable<UserTenant>> GetUserTenantsAsync(CancellationToken ct = default)
     {
-        if (tenantIds == null || !tenantIds.Any())
-        {
-            return [];
-        }
-
-        List<Guid> tenantIdsList = tenantIds.Distinct().ToList();
-
-        // Query the database view to retrieve all user tenants with their primary indicators in a single call
-        return await dbContext.UserTenantsView
-            .Where(v => tenantIdsList.Contains(v.TenantId))
-            .ToListAsync(ct);
+        // Query the cross-schema view that retrieves tenants for the current user
+        // The view uses current_setting('app.user_id', true) set via RequestContextInterceptor
+        return await dbContext.UserTenants.ToListAsync(ct);
     }
     // Owner methods using EntityService
     public async Task<OwnerReadDto?> GetOwnerAsync(Guid id, CancellationToken ct = default)
