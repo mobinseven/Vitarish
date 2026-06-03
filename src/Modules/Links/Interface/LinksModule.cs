@@ -5,6 +5,7 @@ using Vitarish.Links.Application.Abstractions;
 using Vitarish.Links.Infrastructure.Data;
 using Vitarish.Links.Infrastructure.DependencyInjection;
 using Vitarish.Modules.Base;
+using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Links.Interface;
 
@@ -18,7 +19,7 @@ public sealed class LinksModule : Module, ILinksModule
 
         _ = builder.Services.AddSingleton<ILinksModule, LinksModule>();
 
-        _ = builder.Services.AddDbContext<LinksDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
+        _ = builder.Services.AddTransientDbContext<LinksDbContext>((_, options) => configureDbContext?.Invoke(options));
 
         _ = builder.Services.AddLinksInfrastructure();
 

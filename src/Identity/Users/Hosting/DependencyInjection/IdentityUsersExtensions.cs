@@ -12,6 +12,7 @@ using Vitarish.Users.Infrastructure.Abstractions;
 using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Users.Infrastructure.Extensions;
 using Vitarish.Users.Infrastructure.Service;
+using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Users.Hosting.DependencyInjection;
 
@@ -21,7 +22,7 @@ public static class IdentityUsersExtensions
         this WebApplicationBuilder builder,
         Action<DbContextOptionsBuilder> dbContextOptionsBuilder)
     {
-        _ = builder.Services.AddDbContext<UsersDbContext>(dbContextOptionsBuilder, ServiceLifetime.Transient);
+        _ = builder.Services.AddTransientDbContext<UsersDbContext>((_, options) => dbContextOptionsBuilder(options));
 
         _ = builder.Services
             .AddIdentity<User, IdentityRole>()

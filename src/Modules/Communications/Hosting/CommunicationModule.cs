@@ -9,6 +9,7 @@ using Vitarish.Communications.Infrastructure.Services;
 using Vitarish.Communications.Infrastructure.Wrappers.SmsDotIr;
 using Vitarish.Communications.Interface.DependencyInjection;
 using Vitarish.Modules.Base;
+using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Communications.Hosting;
 
@@ -25,7 +26,7 @@ public class CommunicationModule : Module, ICommunicationsModule
 
         builder.Services.AddVitarishCommunicationsDomainEntityHandlers();
 
-        _ = builder.Services.AddDbContext<RemindersDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
+        _ = builder.Services.AddTransientMultiTenantDbContext<RemindersDbContext>((_, options) => configureDbContext?.Invoke(options));
 
         _ = builder.Services.AddRemindersInfrastructure();
 

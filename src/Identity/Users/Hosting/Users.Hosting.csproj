@@ -15,5 +15,6 @@
 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
 			<_Parameter1>Users.Tests</_Parameter1>
 		</AssemblyAttribute>
-	</ItemGroup>
+		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
+</ItemGroup>
 </Project>

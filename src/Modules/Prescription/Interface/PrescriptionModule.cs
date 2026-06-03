@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Entities.Server.Extensions;
 using Vitarish.Modules.Base;
 using Vitarish.Prescription.Application.Abstractions;
 using Vitarish.Prescription.Infrastructure.Data;
@@ -15,7 +16,7 @@ public sealed class PrescriptionModule : Module, IPrescriptionModule
     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         _ = builder.Services.AddSingleton<IPrescriptionModule, PrescriptionModule>();
-        _ = builder.Services.AddDbContext<PrescriptionDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Scoped);
+        _ = builder.Services.AddTransientDbContext<PrescriptionDbContext>((_, options) => configureDbContext?.Invoke(options));
         _ = builder.Services.AddPrescriptionInfrastructure(builder.Configuration);
 
         return Task.CompletedTask;

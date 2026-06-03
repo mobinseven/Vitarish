@@ -7,6 +7,7 @@ using Vitarish.Parties.Infrastructure;
 using Vitarish.Parties.Infrastructure.Abstractions;
 using Vitarish.Parties.Infrastructure.Data;
 using Vitarish.Parties.Infrastructure.Services;
+using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Parties.Hosting.DependencyInjection;
 
@@ -19,7 +20,7 @@ public static class IdentityPartiesExtensions
     {
         builder.Services.AddVitarishPartiesDomainEntityHandlers();
         _ = builder.Services.AddVitarishPartiesInfrastructure();
-        _ = builder.Services.AddDbContext<PartiesDbContext>(dbContextOptionsBuilder, ServiceLifetime.Transient);
+        _ = builder.Services.AddTransientDbContext<PartiesDbContext>((_, options) => dbContextOptionsBuilder(options));
 
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
 

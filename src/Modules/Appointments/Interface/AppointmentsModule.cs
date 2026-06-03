@@ -4,6 +4,7 @@ using Vitarish.Appointments.Infrastructure.DependencyInjection;
 using Vitarish.Appointments.Infrastructure.Serializers;
 using Vitarish.Appointments.Interface.DependencyInjection;
 using Vitarish.Modules.Base;
+using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Appointments.Interface;
 
@@ -18,7 +19,7 @@ public class AppointmentsModule : Module, IAppointmentsModule
         _ = builder.Services.AddSingleton<IAppointmentsModule, AppointmentsModule>();
         _ = builder.Services.AddMemoryCache();
 
-        _ = builder.Services.AddDbContext<AppointmentsDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
+        _ = builder.Services.AddTransientMultiTenantDbContext<AppointmentsDbContext>((_, options) => configureDbContext?.Invoke(options));
 
         _ = builder.Services.AddAppointmentsInfrastructure();
 
