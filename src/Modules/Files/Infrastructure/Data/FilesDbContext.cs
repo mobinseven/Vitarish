@@ -67,6 +67,7 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.HasDefaultSchema(nameof(Files));
 
         // Configure Finbuckle multi-tenant entities
         _ = modelBuilder.ConfigureMultiTenant();

@@ -69,6 +69,7 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.HasDefaultSchema(nameof(Contents));
 
         _ = modelBuilder.ConfigureMultiTenant();
 

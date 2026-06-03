@@ -5,7 +5,7 @@ public static class DependencyInjectionExtensions
     public static IServiceCollection AddRemindersInfrastructure(this IServiceCollection services)
     {
         _ = services.AddVitarishCommunicationsInfrastructure();
-        _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(RemindersDbContext).Assembly));
+        _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CommunicationsDbContext).Assembly));
         return services;
     }
 }

@@ -70,6 +70,7 @@ public class AppointmentsDbContext : DbContext, IMultiTenantDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.HasDefaultSchema(nameof(Appointments));
 
         _ = modelBuilder.HasDefaultSchema("Appointments");
 

@@ -1,5 +1,6 @@
 
 using Microsoft.EntityFrameworkCore;
+using System.Reflection.Emit;
 using Vitarish.Requests.Domain.Entities;
 
 namespace Vitarish.Requests.Infrastructure.Data;
@@ -11,6 +12,7 @@ public class RequestsDbContext(DbContextOptions<RequestsDbContext> options) : Db
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        _ = builder.HasDefaultSchema(nameof(Requests));
         _ = builder.Entity<Request>(entity =>
         {
             _ = entity.HasKey(request => request.Id);

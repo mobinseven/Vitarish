@@ -22,6 +22,7 @@ public sealed class FinancialDbContext(DbContextOptions<FinancialDbContext> opti
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.HasDefaultSchema(nameof(Financial));
 
         _ = modelBuilder.Entity<LedgerAccount>(entity =>
         {

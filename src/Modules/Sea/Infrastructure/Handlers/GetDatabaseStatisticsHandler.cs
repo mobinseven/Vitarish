@@ -2,7 +2,7 @@ using Vitarish.Sea.Application.Queries.Statistics;
 
 namespace Vitarish.Sea.Infrastructure.Handlers;
 
-internal class GetDatabaseStatisticsHandler(SeaDbContext dbContext, Vitarish.Communications.Infrastructure.Data.RemindersDbContext remindersDbContext)
+internal class GetDatabaseStatisticsHandler(SeaDbContext dbContext, Vitarish.Communications.Infrastructure.Data.CommunicationsDbContext remindersDbContext)
     : IRequestHandler<GetDatabaseStatisticsQuery, DatabaseStatistics>
 {
     public async Task<DatabaseStatistics> Handle(GetDatabaseStatisticsQuery request, CancellationToken cancellationToken) => new(

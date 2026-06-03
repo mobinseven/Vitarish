@@ -23,7 +23,7 @@ public sealed class PrescriptionDbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        _ = modelBuilder.HasDefaultSchema("Prescription");
+        _ = modelBuilder.HasDefaultSchema(nameof(Prescription));
 
         ConfigureDoctorProviderCredential(modelBuilder);
         ConfigurePrescriptionRecord(modelBuilder);

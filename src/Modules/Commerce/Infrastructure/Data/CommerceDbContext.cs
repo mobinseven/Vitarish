@@ -76,6 +76,7 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.HasDefaultSchema(nameof(Commerce));
         _ = modelBuilder.ConfigureMultiTenant();
 
         ConfigureTenantEntity<Store>(modelBuilder);

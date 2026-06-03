@@ -22,6 +22,7 @@ public sealed class LinksDbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.HasDefaultSchema(nameof(Links));
 
         _ = modelBuilder.Entity<Link>(entity =>
         {

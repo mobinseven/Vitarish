@@ -27,6 +27,7 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.HasDefaultSchema(nameof(Parties));
 
         _ = modelBuilder.Entity<Tenant>(entity =>
         {

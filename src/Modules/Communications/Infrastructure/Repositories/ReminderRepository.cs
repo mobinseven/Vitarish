@@ -3,8 +3,8 @@ using System.Linq.Expressions;
 namespace Vitarish.Communications.Infrastructure.Repositories;
 
 [RegisterTransient]
-internal class ReminderRepository(RemindersDbContext dbContext)
-    : EntityRepository<Reminder, ReminderDescriptor, RemindersDbContext>(dbContext),
+internal class ReminderRepository(CommunicationsDbContext dbContext)
+    : EntityRepository<Reminder, ReminderDescriptor, CommunicationsDbContext>(dbContext),
       IEntityRepository<Reminder, ReminderDescriptor>
 {
     protected override IQueryable<Reminder> Apply(IQueryable<Reminder> query, ReminderDescriptor descriptor)

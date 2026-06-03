@@ -24,7 +24,7 @@ public sealed class MedicalDbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        _ = modelBuilder.HasDefaultSchema("Medical");
+        _ = modelBuilder.HasDefaultSchema(nameof(Medical));
 
         ConfigureCodeSystem(modelBuilder);
         ConfigureCodeSystemRelease(modelBuilder);

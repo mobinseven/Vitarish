@@ -7,7 +7,7 @@ using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Communications.Infrastructure.Data;
 
-public class RemindersDbContext : DbContext, IMultiTenantDbContext
+public class CommunicationsDbContext : DbContext, IMultiTenantDbContext
 {
     private readonly IEnumerable<IInterceptor> _interceptors;
     private readonly IRequestContext _requestContext;
@@ -31,8 +31,8 @@ public class RemindersDbContext : DbContext, IMultiTenantDbContext
 
     public DbSet<Reminder> Reminders => Set<Reminder>();
 
-    public RemindersDbContext(
-        DbContextOptions<RemindersDbContext> options,
+    public CommunicationsDbContext(
+        DbContextOptions<CommunicationsDbContext> options,
         IEnumerable<IInterceptor> interceptors,
         IRequestContext requestContext) : base(options)
     {
@@ -62,6 +62,7 @@ public class RemindersDbContext : DbContext, IMultiTenantDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.HasDefaultSchema(nameof(Communications));
 
         _ = modelBuilder.ConfigureMultiTenant();
 

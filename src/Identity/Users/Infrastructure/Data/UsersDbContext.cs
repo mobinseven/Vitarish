@@ -17,6 +17,7 @@ public class UsersDbContext(DbContextOptions<UsersDbContext> options) : Identity
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        _ = builder.HasDefaultSchema(nameof(Users));
 
         // Configure WebAuthnCredential entity
         _ = builder.Entity<WebAuthnCredential>(entity =>

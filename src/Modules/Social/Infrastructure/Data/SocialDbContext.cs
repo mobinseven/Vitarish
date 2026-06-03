@@ -66,6 +66,7 @@ public sealed class SocialDbContext : DbContext, IMultiTenantDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.HasDefaultSchema(nameof(Social));
 
         _ = modelBuilder.ConfigureMultiTenant();
 

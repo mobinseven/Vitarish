@@ -26,7 +26,7 @@ public class CommunicationModule : Module, ICommunicationsModule
 
         builder.Services.AddVitarishCommunicationsDomainEntityHandlers();
 
-        _ = builder.Services.AddTransientMultiTenantDbContext<RemindersDbContext>((_, options) => configureDbContext?.Invoke(options));
+        _ = builder.Services.AddTransientMultiTenantDbContext<CommunicationsDbContext>((_, options) => configureDbContext?.Invoke(options));
 
         _ = builder.Services.AddRemindersInfrastructure();
 
