@@ -1,8 +1,6 @@
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
-using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Text.Json;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Events;
@@ -46,8 +44,9 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
             _ = entity.Property(i => i.Value).HasMaxLength(253).IsRequired();
             _ = entity.HasIndex(i => new { i.Method, i.Value }).IsUnique();
 
-            IndexBuilder<TenantIndicator> primaryIdx = entity.HasIndex(i => new { i.TenantId, i.IsPrimary }).IsUnique();
-            primaryIdx.Metadata.SetAnnotation(RelationalAnnotationNames.Filter, "[IsPrimary] = CAST(1 AS bit)");
+            _ = entity.HasIndex(i => new { i.TenantId, i.IsPrimary })
+                .IsUnique()
+                .HasFilter("\"IsPrimary\" = TRUE");
 
             _ = entity.HasOne(i => i.Tenant)
                 .WithMany(t => t.Indicators)
