@@ -1,5 +1,4 @@
 using Vitarish.Communications.Domain.Options;
-using Vitarish.Documents.Domain.Options;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Intelligence.Domain.Options;
 using Vitarish.Search.Domain.Options;
@@ -41,11 +40,6 @@ public class ApplicationOptions
     /// Search (Elasticsearch) module options.
     /// </summary>
     public ElasticSearchOptions Search { get; set; } = new();
-
-    /// <summary>
-    /// Documents (PDF generation) module options.
-    /// </summary>
-    public GotenbergOptions Gotenberg { get; set; } = new();
 
     /// <summary>
     /// Feature-flag switches for in-development functionality.
