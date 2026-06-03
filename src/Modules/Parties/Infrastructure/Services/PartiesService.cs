@@ -1,17 +1,55 @@
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Vitarish.Entities.Server.Models;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain;
 using Vitarish.Parties.Domain.Descriptors;
 using Vitarish.Parties.Domain.Dtos;
+using Vitarish.Parties.Infrastructure.Data;
+using Vitarish.Parties.Infrastructure.ViewModels;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Parties.Infrastructure.Services;
 
-public sealed class PartiesService(OwnersService ownerService, TenantsService tenantService, TenantIndicatorService tenantIndicatorService, ISender sender) : IPartiesService
+public sealed class PartiesService(
+    OwnersService ownerService, 
+    TenantsService tenantService, 
+    TenantIndicatorService tenantIndicatorService, 
+    ISender sender,
+    PartiesDbContext dbContext) : IPartiesService
 {
+    public async Task<IEnumerable<UserTenantView>> GetUserTenantsAsync(IEnumerable<Guid> tenantIds, CancellationToken ct = default)
+    {
+        if (tenantIds == null || !tenantIds.Any())
+        {
+            return [];
+        }
+
+        List<Guid> tenantIdsList = tenantIds.Distinct().ToList();
+
+        // Single query joining Tenants with their primary TenantIndicators
+        return await dbContext.Tenants
+            .Where(t => tenantIdsList.Contains(t.Id))
+            .GroupJoin(
+                dbContext.TenantIndicators.Where(ti => ti.IsPrimary),
+                tenant => tenant.Id,
+                indicator => indicator.TenantId,
+                (tenant, indicators) => new { Tenant = tenant, PrimaryIndicator = indicators.FirstOrDefault() })
+            .Select(x => new UserTenantView
+            {
+                TenantId = x.Tenant.Id,
+                TenantName = x.Tenant.Name,
+                TenantLogoUrl = x.Tenant.LogoUrl,
+                TenantDescription = x.Tenant.Description,
+                TenantAppId = x.Tenant.AppId,
+                Metadata = x.Tenant.Metadata,
+                IndicatorId = x.PrimaryIndicator != null ? x.PrimaryIndicator.Id : null,
+                IndicatorValue = x.PrimaryIndicator != null ? x.PrimaryIndicator.Value : null
+            })
+            .ToListAsync(ct);
+    }
     // Owner methods using EntityService
     public async Task<OwnerReadDto?> GetOwnerAsync(Guid id, CancellationToken ct = default)
     {

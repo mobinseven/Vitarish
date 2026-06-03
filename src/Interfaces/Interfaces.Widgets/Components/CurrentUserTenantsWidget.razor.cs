@@ -3,14 +3,13 @@ using Microsoft.AspNetCore.Identity;
 using Vitarish.Interfaces.Accounts.Abstractions;
 using Vitarish.Interfaces.Base.Common;
 using Vitarish.Parties.Application.Abstractions;
-using Vitarish.Parties.Domain.Dtos;
+using Vitarish.Parties.Infrastructure.ViewModels;
 
 namespace Vitarish.Interfaces.Widgets.Components;
 
 public partial class CurrentUserTenantsWidget : CommonBase
 {
-    private readonly Dictionary<Guid, TenantReadDto> tenants = [];
-    private readonly Dictionary<Guid, TenantIndicatorReadDto> tenantsIndicators = [];
+    private readonly Dictionary<Guid, UserTenantView> tenants = [];
 
     [Inject] private IUserService UserService { get; set; } = default!;
     [Inject] private IPartiesService PartiesService { get; set; } = default!;
@@ -26,30 +25,30 @@ public partial class CurrentUserTenantsWidget : CommonBase
         IEnumerable<IdentityRole> roles = await UserService.GetUserRolesAsync(RequestContext.UserId);
         List<Guid> tenantIds = [.. ParseTenantRoles(roles.Select(ur => ur.Name).Cast<string>()).Distinct()];
 
-        foreach (Guid id in tenantIds)
+        if (tenantIds.Count == 0)
         {
-            TenantReadDto? tenant = await PartiesService.GetTenantAsync(id);
-            if (tenant == null)
-            {
-                continue;
-            }
-            IEnumerable<TenantIndicatorReadDto> tenantInds = await PartiesService.GetTenantIndicatorsByTenantAsync(id);
-            TenantIndicatorReadDto? ind = tenantInds.FirstOrDefault();
-            if (ind == null)
-            {
-                continue;
-            }
+            return;
+        }
 
-            tenants.Add(id, tenant);
-            tenantsIndicators.Add(id, ind);
+        // Single database call to retrieve all user tenants with their primary indicators
+        IEnumerable<UserTenantView> userTenants = await PartiesService.GetUserTenantsAsync(tenantIds);
+
+        foreach (UserTenantView tenant in userTenants)
+        {
+            if (tenant.IndicatorValue != null)
+            {
+                tenants.Add(tenant.TenantId, tenant);
+            }
         }
     }
 
     private Task NavigateToTenant(Guid id)
     {
-        string url = $"https://{tenantsIndicators[id].Value}/{tenants[id].AppId}";
+        UserTenantView tenant = tenants[id];
+        string url = $"https://{tenant.IndicatorValue}/{tenant.TenantAppId}";
         return OnTenantNavigate.InvokeAsync(url);
     }
+
     private static List<Guid> ParseTenantRoles(IEnumerable<string> roles)
     {
         List<Guid> tenantIds = [];

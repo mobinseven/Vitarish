@@ -1,4 +1,5 @@
 using Vitarish.Parties.Domain.Dtos;
+using Vitarish.Parties.Infrastructure.ViewModels;
 
 namespace Vitarish.Parties.Application.Abstractions;
 /// <summary>
@@ -6,6 +7,14 @@ namespace Vitarish.Parties.Application.Abstractions;
 /// </summary>
 public interface IPartiesService
 {
+    /// <summary>
+    /// Retrieves all tenants for a given user by their tenant IDs in a single database query.
+    /// Each result includes the tenant details and its primary indicator.
+    /// </summary>
+    /// <param name="tenantIds">Collection of tenant IDs to retrieve.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Collection of user tenant views.</returns>
+    Task<IEnumerable<UserTenantView>> GetUserTenantsAsync(IEnumerable<Guid> tenantIds, CancellationToken ct = default);
     // Owner methods
     Task<OwnerReadDto?> GetOwnerAsync(Guid id, CancellationToken ct = default);
     Task<IEnumerable<OwnerReadDto>> GetOwnersAsync(CancellationToken ct = default);
