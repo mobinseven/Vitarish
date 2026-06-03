@@ -1,4 +1,5 @@
 using Vitarish.Parties.Domain.Dtos;
+using Vitarish.Parties.Domain.Models;
 
 namespace Vitarish.Parties.Application.Abstractions;
 /// <summary>
@@ -6,6 +7,14 @@ namespace Vitarish.Parties.Application.Abstractions;
 /// </summary>
 public interface IPartiesService
 {
+    /// <summary>
+    /// Retrieves all tenants for the current user from the cross-schema view.
+    /// Uses the current user context (app.user_id) set via RequestContextInterceptor.
+    /// Each result includes the tenant details and its primary indicator.
+    /// </summary>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>Collection of user tenants.</returns>
+    Task<IEnumerable<UserTenant>> GetUserTenantsAsync(CancellationToken ct = default);
     // Owner methods
     Task<OwnerReadDto?> GetOwnerAsync(Guid id, CancellationToken ct = default);
     Task<IEnumerable<OwnerReadDto>> GetOwnersAsync(CancellationToken ct = default);

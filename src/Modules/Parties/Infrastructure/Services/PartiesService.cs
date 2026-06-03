@@ -1,17 +1,31 @@
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Vitarish.Entities.Server.Models;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain;
 using Vitarish.Parties.Domain.Descriptors;
 using Vitarish.Parties.Domain.Dtos;
+using Vitarish.Parties.Domain.Models;
+using Vitarish.Parties.Infrastructure.Data;
 using Vitarish.Users.Application.Commands;
 using Vitarish.Users.Application.Queries;
 using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Parties.Infrastructure.Services;
 
-public sealed class PartiesService(OwnersService ownerService, TenantsService tenantService, TenantIndicatorService tenantIndicatorService, ISender sender) : IPartiesService
+public sealed class PartiesService(
+    OwnersService ownerService, 
+    TenantsService tenantService, 
+    TenantIndicatorService tenantIndicatorService, 
+    ISender sender,
+    PartiesDbContext dbContext) : IPartiesService
 {
+    public async Task<IEnumerable<UserTenant>> GetUserTenantsAsync(CancellationToken ct = default)
+    {
+        // Query the cross-schema view that retrieves tenants for the current user
+        // The view uses current_setting('app.user_id', true) set via RequestContextInterceptor
+        return await dbContext.UserTenants.ToListAsync(ct);
+    }
     // Owner methods using EntityService
     public async Task<OwnerReadDto?> GetOwnerAsync(Guid id, CancellationToken ct = default)
     {
