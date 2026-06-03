@@ -6,7 +6,6 @@ using Vitarish.Appointments.Interface;
 using Vitarish.Commerce.Interface;
 using Vitarish.Communications.Hosting;
 using Vitarish.Contents.Interface;
-using Vitarish.Documents.Interface;
 using Vitarish.Files.Interface;
 using Vitarish.Financial.Interface;
 using Vitarish.Intelligence.Interface;
@@ -32,7 +31,6 @@ public static class ModulesExtensions
                 Activator.CreateInstance<AppointmentsModule>(),
                 Activator.CreateInstance<CommerceModule>(),
                 Activator.CreateInstance<SocialModule>(),
-                Activator.CreateInstance<DocumentsModule>(),
                 Activator.CreateInstance<MedicalModule>(),
                 Activator.CreateInstance<PrescriptionModule>(),
             ];

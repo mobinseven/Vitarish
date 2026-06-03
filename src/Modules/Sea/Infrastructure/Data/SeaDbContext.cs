@@ -78,7 +78,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
-        _ = modelBuilder.HasDefaultSchema("Sea");
+        _ = modelBuilder.HasDefaultSchema(nameof(Sea));
 
         // Configure Finbuckle multi-tenant entities
         _ = modelBuilder.ConfigureMultiTenant();
