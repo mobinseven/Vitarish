@@ -52,6 +52,7 @@ public sealed class AuditDbContext : DbContext, IMultiTenantDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.HasDefaultSchema(nameof(Audit));
 
         _ = modelBuilder.ConfigureMultiTenant();
 
