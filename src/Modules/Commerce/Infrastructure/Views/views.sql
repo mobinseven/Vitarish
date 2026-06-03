@@ -6,7 +6,7 @@ WITH ProductStats AS (
     SELECT
         p."TenantId",
         COUNT(p."Id") AS "TotalProducts",
-        COUNT(CASE WHEN p."Status" = 'Published' THEN p."Id" END) AS "PublishedProducts"
+        COUNT(CASE WHEN p."Status" = 2 THEN p."Id" END) AS "PublishedProducts"
     FROM "Commerce"."Products" p
     WHERE p."DeletedAt" IS NULL
     GROUP BY p."TenantId"
@@ -15,7 +15,7 @@ OrderStats AS (
     SELECT
         o."TenantId",
         COUNT(o."Id") AS "TotalOrders",
-        COUNT(CASE WHEN o."Status" = 'Pending' THEN o."Id" END) AS "PendingOrders",
+        COUNT(CASE WHEN o."Status" = 0 THEN o."Id" END) AS "PendingOrders",
         COALESCE(SUM(o."TotalAmount"), 0) AS "TotalRevenue",
         MAX(o."CreatedAt") AS "LastOrderAt"
     FROM "Commerce"."Orders" o
