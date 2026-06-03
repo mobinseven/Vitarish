@@ -1,5 +1,5 @@
 using Vitarish.Parties.Domain.Dtos;
-using Vitarish.Parties.Infrastructure.ViewModels;
+using Vitarish.Parties.Domain.Models;
 
 namespace Vitarish.Parties.Application.Abstractions;
 /// <summary>

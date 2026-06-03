@@ -1,4 +1,4 @@
-namespace Vitarish.Parties.Infrastructure.ViewModels;
+namespace Vitarish.Parties.Domain.Models;
 
 /// <summary>
 /// View model representing a user's tenant with its primary indicator.
