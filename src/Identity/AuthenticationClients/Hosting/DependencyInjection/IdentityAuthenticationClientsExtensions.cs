@@ -7,6 +7,7 @@ using Vitarish.AuthenticationClients.Application.Commands;
 using Vitarish.AuthenticationClients.Infrastructure;
 using Vitarish.AuthenticationClients.Infrastructure.Data;
 using Vitarish.AuthenticationClients.Infrastructure.Services;
+using Vitarish.Entities.Server.Extensions;
 
 /// <summary>
 /// Service registration helpers for authentication client features.
@@ -15,7 +16,7 @@ public static class IdentityAuthenticationClientsExtensions
 {
     public static void AddAaasAuthenticationClients(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> dbContextOptionsBuilder)
     {
-        _ = builder.Services.AddDbContext<AuthenticationClientDbContext>(dbContextOptionsBuilder);
+        _ = builder.Services.AddTransientDbContext<AuthenticationClientDbContext>((_, options) => dbContextOptionsBuilder(options));
 
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = builder.Services.AddValidatorsFromAssemblyContaining(typeof(AssemblyMarker));

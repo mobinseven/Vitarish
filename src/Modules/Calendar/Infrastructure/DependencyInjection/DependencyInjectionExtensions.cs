@@ -4,6 +4,7 @@ using System.Text;
 using Vitarish.Calendar.Infrastructure.Data;
 using Vitarish.Calendar.Infrastructure.Helpers;
 using Vitarish.Calendar.Infrastructure.Options;
+using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Calendar.Infrastructure.DependencyInjection;
 
@@ -48,12 +49,7 @@ public static class DependencyInjectionExtensions
         });
 
         // DbContext
-        _ = services.AddDbContext<CalendarDbContext>((provider, options) =>
-        {
-            configureDbContext?.Invoke(options);
-            IEnumerable<IInterceptor> interceptors = provider.GetServices<IInterceptor>();
-            options.AddInterceptors(interceptors);
-        }, ServiceLifetime.Transient);
+        _ = services.AddTransientMultiTenantDbContext<CalendarDbContext>((_, options) => configureDbContext?.Invoke(options));
 
         return services;
     }

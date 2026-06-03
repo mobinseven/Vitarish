@@ -5,6 +5,7 @@ using Vitarish.Sea.Infrastructure.DependencyInjection;
 using Vitarish.Sea.Infrastructure.Services;
 using Vitarish.Sea.Interface.DependencyInjection;
 using Vitarish.Sea.Presentation.Serializers;
+using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Sea.Interface;
 /// <summary>
@@ -21,7 +22,7 @@ public class SeaModule : Module, ISeaModule
         _ = builder.Services.AddSingleton<ISeaModule, SeaModule>();
         _ = builder.Services.AddMemoryCache();
 
-        _ = builder.Services.AddDbContext<SeaDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Transient);
+        _ = builder.Services.AddTransientMultiTenantDbContext<SeaDbContext>((_, options) => configureDbContext?.Invoke(options));
 
         _ = builder.Services.AddSeaInfrastructure();
 

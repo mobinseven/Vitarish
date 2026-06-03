@@ -12,6 +12,7 @@ using Vitarish.Files.Infrastructure.Data;
 using Vitarish.Files.Infrastructure.Services;
 using Vitarish.Files.Interface.DependencyInjection;
 using Vitarish.Modules.Base;
+using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Files.Interface;
 
@@ -46,7 +47,7 @@ public class FilesModule : Module, IFilesModule
 
         if (configureDbContext != null)
         {
-            _ = services.AddDbContext<FilesDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Transient);
+            _ = services.AddTransientMultiTenantDbContext<FilesDbContext>((_, options) => configureDbContext(options));
         }
 
         services.AddVitarishFilesDomainEntityHandlers();

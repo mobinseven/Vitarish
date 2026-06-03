@@ -5,6 +5,7 @@ using Vitarish.Contents.Application.Abstractions;
 using Vitarish.Contents.Infrastructure.Data;
 using Vitarish.Contents.Infrastructure.DependencyInjection;
 using Vitarish.Modules.Base;
+using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Contents.Interface;
 
@@ -19,7 +20,7 @@ public sealed class ContentsModule : Module, IContentsModule
         _ = builder.Services.AddSingleton<IContentsModule, ContentsModule>();
         _ = builder.Services.AddMemoryCache();
 
-        _ = builder.Services.AddDbContext<ContentsDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
+        _ = builder.Services.AddTransientMultiTenantDbContext<ContentsDbContext>((_, options) => configureDbContext?.Invoke(options));
 
         _ = builder.Services.AddContentsInfrastructure();
 

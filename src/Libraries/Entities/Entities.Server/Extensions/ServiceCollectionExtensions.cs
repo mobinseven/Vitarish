@@ -6,6 +6,43 @@ namespace Vitarish.Entities.Server.Extensions;
 /// </summary>
 public static class ServiceCollectionExtensions
 {
+
+    /// <summary>
+    /// Registers a transient non-tenant DbContext and its factory using the platform creation path.
+    /// </summary>
+    public static IServiceCollection AddTransientDbContext<TDbContext>(
+        this IServiceCollection services,
+        Action<IServiceProvider, DbContextOptionsBuilder> configureDbContext)
+        where TDbContext : DbContext
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configureDbContext);
+
+        _ = services.AddDbContext<TDbContext>(configureDbContext, ServiceLifetime.Transient);
+        services.Replace(ServiceDescriptor.Transient<IDbContextFactory<TDbContext>, TransientDbContextFactory<TDbContext>>());
+        services.Replace(ServiceDescriptor.Transient<TDbContext>(provider => provider.GetRequiredService<IDbContextFactory<TDbContext>>().CreateDbContext()));
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers a transient multi-tenant DbContext and its factory using the platform creation path.
+    /// </summary>
+    public static IServiceCollection AddTransientMultiTenantDbContext<TDbContext>(
+        this IServiceCollection services,
+        Action<IServiceProvider, DbContextOptionsBuilder> configureDbContext)
+        where TDbContext : DbContext, Finbuckle.MultiTenant.EntityFrameworkCore.IMultiTenantDbContext
+    {
+        ArgumentNullException.ThrowIfNull(services);
+        ArgumentNullException.ThrowIfNull(configureDbContext);
+
+        _ = services.AddDbContext<TDbContext>(configureDbContext, ServiceLifetime.Transient);
+        services.Replace(ServiceDescriptor.Transient<IDbContextFactory<TDbContext>, TransientMultiTenantDbContextFactory<TDbContext>>());
+        services.Replace(ServiceDescriptor.Transient<TDbContext>(provider => provider.GetRequiredService<IDbContextFactory<TDbContext>>().CreateDbContext()));
+
+        return services;
+    }
+
     /// <summary>
     /// Adds FluentValidation pipeline behavior to MediatR for request validation.
     /// </summary>

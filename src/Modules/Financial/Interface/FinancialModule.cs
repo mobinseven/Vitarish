@@ -5,6 +5,7 @@ using Vitarish.Financial.Application.Abstractions;
 using Vitarish.Financial.Infrastructure.Data;
 using Vitarish.Financial.Infrastructure.DependencyInjection;
 using Vitarish.Modules.Base;
+using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Financial.Interface;
 
@@ -15,7 +16,7 @@ public sealed class FinancialModule : Module, IFinancialModule
     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         _ = builder.Services.AddSingleton<IFinancialModule, FinancialModule>();
-        _ = builder.Services.AddDbContext<FinancialDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
+        _ = builder.Services.AddTransientDbContext<FinancialDbContext>((_, options) => configureDbContext?.Invoke(options));
         _ = builder.Services.AddFinancialInfrastructure();
 
         return Task.CompletedTask;
