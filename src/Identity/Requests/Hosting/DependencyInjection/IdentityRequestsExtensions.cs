@@ -9,6 +9,7 @@ using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Requests.Infrastructure;
 using Vitarish.Requests.Infrastructure.Data;
 using Vitarish.Requests.Infrastructure.Services;
+using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Requests.Hosting.DependencyInjection;
 
@@ -23,7 +24,7 @@ public static class IdentityRequestsExtensions
         this WebApplicationBuilder builder,
         Action<DbContextOptionsBuilder> dbContextOptionsBuilder)
     {
-        _ = builder.Services.AddDbContext<RequestsDbContext>(dbContextOptionsBuilder, ServiceLifetime.Transient);
+        _ = builder.Services.AddTransientDbContext<RequestsDbContext>((_, options) => dbContextOptionsBuilder(options));
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = builder.Services.AddValidatorsFromAssemblyContaining(typeof(AssemblyMarker));
         _ = builder.Services.AddTransient<IRequestIdentitiesService, RequestIdentitiesService>();

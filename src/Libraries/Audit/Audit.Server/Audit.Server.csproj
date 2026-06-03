@@ -11,5 +11,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Audit.Application\Audit.Application.csproj" />
     <ProjectReference Include="..\..\..\Identity\Requests\Application\Requests.Application.csproj" />
-  </ItemGroup>
+    <ProjectReference Include="..\..\Entities\Entities.Server\Entities.Server.csproj" />
+</ItemGroup>
 </Project>

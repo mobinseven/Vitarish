@@ -104,7 +104,7 @@ public sealed class MedicalDbContext(
                                                                                     _ = entity.HasIndex(e => new { e.SourceType, e.SourceVersion }).IsUnique()
                                                                                         .HasDatabaseName("IX_ImportBatch_SourceType_Version");
                                                                                     _ = entity.HasIndex(e => e.SourceChecksum).IsUnique()
-                                                                                        .HasFilter("[SourceChecksum] IS NOT NULL")
+                                                                                        .HasFilter("\"SourceChecksum\" IS NOT NULL")
                                                                                         .HasDatabaseName("IX_ImportBatch_SourceChecksum");
                                                                                     _ = entity.HasIndex(e => new { e.Status, e.SourceType, e.ImportedAt })
                                                                                         .HasDatabaseName("IX_ImportBatch_Status_Type_ImportedAt");

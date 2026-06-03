@@ -7,6 +7,7 @@ using Vitarish.ApiClients.Application.Commands;
 using Vitarish.ApiClients.Infrastructure;
 using Vitarish.ApiClients.Infrastructure.Data;
 using Vitarish.ApiClients.Infrastructure.Services;
+using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.ApiClients.Hosting.DependencyInjection;
 
@@ -17,7 +18,7 @@ public static class ApiClientsWebApplicationBuilderExtensions
 {
     public static void AddAaasApiClients(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> dbContextOptionsBuilder)
     {
-        _ = builder.Services.AddDbContext<ApiClientDbContext>(dbContextOptionsBuilder);
+        _ = builder.Services.AddTransientDbContext<ApiClientDbContext>((_, options) => dbContextOptionsBuilder(options));
 
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = builder.Services.AddValidatorsFromAssemblyContaining(typeof(AssemblyMarker));

@@ -7,6 +7,7 @@ using Vitarish.Social.Application.Abstractions;
 using Vitarish.Social.Hosting.Endpoints;
 using Vitarish.Social.Infrastructure.Data;
 using Vitarish.Social.Infrastructure.DependencyInjection;
+using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Social.Hosting;
 
@@ -18,7 +19,7 @@ public sealed class SocialModule : Module, ISocialModule
     {
         _ = builder.Services.AddSingleton<ISocialModule, SocialModule>();
 
-        _ = builder.Services.AddDbContext<SocialDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
+        _ = builder.Services.AddTransientMultiTenantDbContext<SocialDbContext>((_, options) => configureDbContext?.Invoke(options));
 
         _ = builder.Services.AddSocialInfrastructure();
 

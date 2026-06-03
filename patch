@@ -1,0 +1,1069 @@
+diff --git a/src/Identity/ApiClients/Hosting/ApiClients.Hosting.csproj b/src/Identity/ApiClients/Hosting/ApiClients.Hosting.csproj
+index 290f4012af65d51753270f15ef904745c8546b5b..55060b443621008c1bb60e2d5eba0b825c3e12a9 100644
+--- a/src/Identity/ApiClients/Hosting/ApiClients.Hosting.csproj
++++ b/src/Identity/ApiClients/Hosting/ApiClients.Hosting.csproj
+@@ -1,12 +1,13 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+   <ItemGroup>
+     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+   </ItemGroup>
+   <ItemGroup>
+     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.*" />
+     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.*" />
+   </ItemGroup>
+   <ItemGroup>
+     <ProjectReference Include="..\Infrastructure\ApiClients.Infrastructure.csproj" />
+-  </ItemGroup>
++    <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
++</ItemGroup>
+ </Project>
+diff --git a/src/Identity/ApiClients/Hosting/DependencyInjection/ApiClientsWebApplicationBuilderExtensions.cs b/src/Identity/ApiClients/Hosting/DependencyInjection/ApiClientsWebApplicationBuilderExtensions.cs
+index 35ab633838e03e23234697a8eb02255fdc15bffb..a9a96c98770448d1c871aaa9a652e540af0b87fb 100644
+--- a/src/Identity/ApiClients/Hosting/DependencyInjection/ApiClientsWebApplicationBuilderExtensions.cs
++++ b/src/Identity/ApiClients/Hosting/DependencyInjection/ApiClientsWebApplicationBuilderExtensions.cs
+@@ -1,28 +1,29 @@
+ using FluentValidation;
+ using Microsoft.AspNetCore.Builder;
+ using Microsoft.EntityFrameworkCore;
+ using Microsoft.Extensions.DependencyInjection;
+ using Vitarish.ApiClients.Application.Abstractions;
+ using Vitarish.ApiClients.Application.Commands;
+ using Vitarish.ApiClients.Infrastructure;
+ using Vitarish.ApiClients.Infrastructure.Data;
+ using Vitarish.ApiClients.Infrastructure.Services;
++using Vitarish.Entities.Server.Extensions;
+ 
+ namespace Vitarish.ApiClients.Hosting.DependencyInjection;
+ 
+ /// <summary>
+ /// Service registration helpers for API client features.
+ /// </summary>
+ public static class ApiClientsWebApplicationBuilderExtensions
+ {
+     public static void AddAaasApiClients(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> dbContextOptionsBuilder)
+     {
+-        _ = builder.Services.AddDbContext<ApiClientDbContext>(dbContextOptionsBuilder);
++        _ = builder.Services.AddTransientDbContext<ApiClientDbContext>((_, options) => dbContextOptionsBuilder(options));
+ 
+         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+         _ = builder.Services.AddValidatorsFromAssemblyContaining(typeof(AssemblyMarker));
+ 
+         _ = builder.Services.AddTransient<IApiClientsService, ApiClientsService>();
+ 
+     }
+ }
+diff --git a/src/Identity/AuthenticationClients/Hosting/AuthenticationClients.Hosting.csproj b/src/Identity/AuthenticationClients/Hosting/AuthenticationClients.Hosting.csproj
+index 0cf961f2cc0638fd55cded4b2871040a246e947e..b3f7dae6b30b475239861a3bbb16ae8f5233bdf6 100644
+--- a/src/Identity/AuthenticationClients/Hosting/AuthenticationClients.Hosting.csproj
++++ b/src/Identity/AuthenticationClients/Hosting/AuthenticationClients.Hosting.csproj
+@@ -1,12 +1,13 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+   <ItemGroup>
+     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+   </ItemGroup>
+   <ItemGroup>
+     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.*" />
+     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.*" />
+   </ItemGroup>
+   <ItemGroup>
+     <ProjectReference Include="..\Infrastructure\AuthenticationClients.Infrastructure.csproj" />
+-  </ItemGroup>
++    <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
++</ItemGroup>
+ </Project>
+diff --git a/src/Identity/AuthenticationClients/Hosting/DependencyInjection/IdentityAuthenticationClientsExtensions.cs b/src/Identity/AuthenticationClients/Hosting/DependencyInjection/IdentityAuthenticationClientsExtensions.cs
+index b85c1859cc56ef9ee2ac78c22d5ed72e4b1057e2..ee87f1b179eb4aac993415a9ced25c30e4b55859 100644
+--- a/src/Identity/AuthenticationClients/Hosting/DependencyInjection/IdentityAuthenticationClientsExtensions.cs
++++ b/src/Identity/AuthenticationClients/Hosting/DependencyInjection/IdentityAuthenticationClientsExtensions.cs
+@@ -1,25 +1,26 @@
+ using FluentValidation;
+ using Microsoft.AspNetCore.Builder;
+ using Microsoft.EntityFrameworkCore;
+ using Microsoft.Extensions.DependencyInjection;
+ using Vitarish.AuthenticationClients.Application.Abstractions;
+ using Vitarish.AuthenticationClients.Application.Commands;
+ using Vitarish.AuthenticationClients.Infrastructure;
+ using Vitarish.AuthenticationClients.Infrastructure.Data;
+ using Vitarish.AuthenticationClients.Infrastructure.Services;
++using Vitarish.Entities.Server.Extensions;
+ 
+ /// <summary>
+ /// Service registration helpers for authentication client features.
+ /// </summary>
+ public static class IdentityAuthenticationClientsExtensions
+ {
+     public static void AddAaasAuthenticationClients(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> dbContextOptionsBuilder)
+     {
+-        _ = builder.Services.AddDbContext<AuthenticationClientDbContext>(dbContextOptionsBuilder);
++        _ = builder.Services.AddTransientDbContext<AuthenticationClientDbContext>((_, options) => dbContextOptionsBuilder(options));
+ 
+         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+         _ = builder.Services.AddValidatorsFromAssemblyContaining(typeof(AssemblyMarker));
+ 
+         _ = builder.Services.AddTransient<IAuthenticationClientsService, AuthenticationClientsService>();
+     }
+ }
+diff --git a/src/Identity/Parties/Hosting/DependencyInjection/IdentityPartiesExtensions.cs b/src/Identity/Parties/Hosting/DependencyInjection/IdentityPartiesExtensions.cs
+index 99fab73df22fee4e387a93694f5254fd6e299e94..70dfce37422cb60900ebb8614ccb16d85ce0efd7 100644
+--- a/src/Identity/Parties/Hosting/DependencyInjection/IdentityPartiesExtensions.cs
++++ b/src/Identity/Parties/Hosting/DependencyInjection/IdentityPartiesExtensions.cs
+@@ -1,45 +1,46 @@
+ using DnsClient;
+ using Microsoft.AspNetCore.Builder;
+ using Microsoft.EntityFrameworkCore;
+ using Microsoft.Extensions.DependencyInjection;
+ using Vitarish.Parties.Application.Abstractions;
+ using Vitarish.Parties.Infrastructure;
+ using Vitarish.Parties.Infrastructure.Abstractions;
+ using Vitarish.Parties.Infrastructure.Data;
+ using Vitarish.Parties.Infrastructure.Services;
++using Vitarish.Entities.Server.Extensions;
+ 
+ namespace Vitarish.Parties.Hosting.DependencyInjection;
+ 
+ /// <summary>
+ /// Service registration helpers for parties features.
+ /// </summary>
+ public static class IdentityPartiesExtensions
+ {
+     public static void AddParties(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> dbContextOptionsBuilder)
+     {
+         builder.Services.AddVitarishPartiesDomainEntityHandlers();
+         _ = builder.Services.AddVitarishPartiesInfrastructure();
+-        _ = builder.Services.AddDbContext<PartiesDbContext>(dbContextOptionsBuilder, ServiceLifetime.Transient);
++        _ = builder.Services.AddTransientDbContext<PartiesDbContext>((_, options) => dbContextOptionsBuilder(options));
+ 
+         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+ 
+         // Register Entity Services
+         _ = builder.Services.AddTransient<OwnersService>();
+         _ = builder.Services.AddTransient<TenantsService>();
+         _ = builder.Services.AddTransient<TenantIndicatorService>();
+ 
+         _ = builder.Services.AddTransient<ITenantResolver, TenantResolver>();
+         _ = builder.Services.AddTransient<IPartiesService, PartiesService>();
+         _ = builder.Services.AddSingleton<ILookupClient>(sp =>
+         {
+             LookupClientOptions lookupClientOptions = new()
+             {
+                 Timeout = TimeSpan.FromSeconds(5),
+                 UseCache = true,
+                 // Configure other options as needed
+             };
+             return new LookupClient(lookupClientOptions);
+         });
+         _ = builder.Services.AddSingleton<IDnsVerificationService, DnsVerificationService>();
+     }
+ }
+diff --git a/src/Identity/Parties/Hosting/Parties.Hosting.csproj b/src/Identity/Parties/Hosting/Parties.Hosting.csproj
+index 30af9bfb10fd37b5e0916c23d6a5cf6250353f8f..4daa0bf6c8130abf787b660f12ff9a66e28fb6cf 100644
+--- a/src/Identity/Parties/Hosting/Parties.Hosting.csproj
++++ b/src/Identity/Parties/Hosting/Parties.Hosting.csproj
+@@ -1,12 +1,13 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+   <ItemGroup>
+     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+   </ItemGroup>
+   <ItemGroup>
+     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.*" />
+     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.*" />
+   </ItemGroup>
+   <ItemGroup>
+     <ProjectReference Include="..\Infrastructure\Parties.Infrastructure.csproj" />
+-  </ItemGroup>
++    <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
++</ItemGroup>
+ </Project>
+diff --git a/src/Identity/Requests/Hosting/DependencyInjection/IdentityRequestsExtensions.cs b/src/Identity/Requests/Hosting/DependencyInjection/IdentityRequestsExtensions.cs
+index 33a55e0bd3464222bb51b7fbbe25fad50a4d931c..e7777c14d563d7d8698b5171694ce05f57cb4beb 100644
+--- a/src/Identity/Requests/Hosting/DependencyInjection/IdentityRequestsExtensions.cs
++++ b/src/Identity/Requests/Hosting/DependencyInjection/IdentityRequestsExtensions.cs
+@@ -1,43 +1,44 @@
+ using FluentValidation;
+ using Microsoft.AspNetCore.Builder;
+ using Microsoft.EntityFrameworkCore;
+ using Microsoft.EntityFrameworkCore.Diagnostics;
+ using Microsoft.Extensions.Configuration;
+ using Microsoft.Extensions.DependencyInjection;
+ using Vitarish.Requests.Application;
+ using Vitarish.Requests.Application.Abstractions;
+ using Vitarish.Requests.Infrastructure;
+ using Vitarish.Requests.Infrastructure.Data;
+ using Vitarish.Requests.Infrastructure.Services;
++using Vitarish.Entities.Server.Extensions;
+ 
+ namespace Vitarish.Requests.Hosting.DependencyInjection;
+ 
+ public static class IdentityRequestsExtensions
+ {
+     /// <summary>
+     /// Adds request identities services including the server-side <see cref="IRequestContext"/>.
+     /// </summary>
+     /// <param name="builder">The web application builder.</param>
+     /// <param name="dbContextOptionsBuilder">Configuration for the database context.</param>
+     public static void AddRequests(
+         this WebApplicationBuilder builder,
+         Action<DbContextOptionsBuilder> dbContextOptionsBuilder)
+     {
+-        _ = builder.Services.AddDbContext<RequestsDbContext>(dbContextOptionsBuilder, ServiceLifetime.Transient);
++        _ = builder.Services.AddTransientDbContext<RequestsDbContext>((_, options) => dbContextOptionsBuilder(options));
+         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+         _ = builder.Services.AddValidatorsFromAssemblyContaining(typeof(AssemblyMarker));
+         _ = builder.Services.AddTransient<IRequestIdentitiesService, RequestIdentitiesService>();
+ 
+         IConfigurationSection section = builder.Configuration.GetSection(RequestsOptions.Section);
+         if (section.Exists())
+         {
+             _ = builder.Services.Configure<RequestsOptions>(section);
+         }
+ 
+         _ = builder.Services.AddHttpContextAccessor();
+         _ = builder.Services.AddScoped<RequestContext>();
+         _ = builder.Services.AddScoped<IRequestContext>(sp => sp.GetRequiredService<RequestContext>());
+         _ = builder.Services.AddScoped<IRequestContextWriter>(sp => sp.GetRequiredService<RequestContext>());
+         _ = builder.Services.AddScoped<IInterceptor, RequestContextInterceptor>();
+     }
+ }
+diff --git a/src/Identity/Requests/Hosting/Requests.Hosting.csproj b/src/Identity/Requests/Hosting/Requests.Hosting.csproj
+index 00e6371c803bc3eaf6f5404c1f077aaa4bd65131..cd12f83c72c213a616d1cbdcdfac5d68bcb68348 100644
+--- a/src/Identity/Requests/Hosting/Requests.Hosting.csproj
++++ b/src/Identity/Requests/Hosting/Requests.Hosting.csproj
+@@ -1,12 +1,13 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+   <ItemGroup>
+     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+   </ItemGroup>
+   <ItemGroup>
+     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.*" />
+     <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.*" />
+   </ItemGroup>
+   <ItemGroup>
+     <ProjectReference Include="..\Infrastructure\Requests.Infrastructure.csproj" />
+-  </ItemGroup>
++    <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
++</ItemGroup>
+ </Project>
+diff --git a/src/Identity/Users/Hosting/DependencyInjection/IdentityUsersExtensions.cs b/src/Identity/Users/Hosting/DependencyInjection/IdentityUsersExtensions.cs
+index 6c9233ca272a9b202c74ef04000dc3dd772e2fdc..dededaa327ab44d9cb84a8c9f4da8246e674a27e 100644
+--- a/src/Identity/Users/Hosting/DependencyInjection/IdentityUsersExtensions.cs
++++ b/src/Identity/Users/Hosting/DependencyInjection/IdentityUsersExtensions.cs
+@@ -1,49 +1,50 @@
+ using FluentValidation;
+ using Microsoft.AspNetCore.Builder;
+ using Microsoft.AspNetCore.Identity;
+ using Microsoft.EntityFrameworkCore;
+ using Microsoft.Extensions.DependencyInjection;
+ using Microsoft.Extensions.DependencyInjection.Extensions;
+ using Vitarish.Users.Application.Abstractions;
+ using Vitarish.Users.Domain.Entities;
+ using Vitarish.Users.Domain.Options;
+ using Vitarish.Users.Infrastructure;
+ using Vitarish.Users.Infrastructure.Abstractions;
+ using Vitarish.Users.Infrastructure.Data;
+ using Vitarish.Users.Infrastructure.Extensions;
+ using Vitarish.Users.Infrastructure.Service;
++using Vitarish.Entities.Server.Extensions;
+ 
+ namespace Vitarish.Users.Hosting.DependencyInjection;
+ 
+ public static class IdentityUsersExtensions
+ {
+     public static void AddUsers(
+         this WebApplicationBuilder builder,
+         Action<DbContextOptionsBuilder> dbContextOptionsBuilder)
+     {
+-        _ = builder.Services.AddDbContext<UsersDbContext>(dbContextOptionsBuilder, ServiceLifetime.Transient);
++        _ = builder.Services.AddTransientDbContext<UsersDbContext>((_, options) => dbContextOptionsBuilder(options));
+ 
+         _ = builder.Services
+             .AddIdentity<User, IdentityRole>()
+             .AddRoles<IdentityRole>()
+             .AddEntityFrameworkStores<UsersDbContext>()
+             .AddSignInManager<AuditingSignInManager>()
+             .AddClaimsPrincipalFactory<UserInfoClaimsPrincipalFactory>()
+             .AddDefaultTokenProviders();
+ 
+         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
+         _ = builder.Services.AddValidatorsFromAssemblyContaining(typeof(AssemblyMarker));
+         _ = builder.Services.Configure<PersonalAccessTokenOptions>(builder.Configuration.GetSection("PersonalAccessTokens"));
+         _ = builder.Services.Configure<TemporaryAutoAuthLinkOptions>(
+             builder.Configuration.GetSection("Vitarish").GetSection(TemporaryAutoAuthLinkOptions.SectionName));
+         _ = builder.Services.AddSingleton<IUserAccessAuditLogger, UserAccessAuditLogger>();
+         _ = builder.Services.AddTransient<IUserProfileService, UserProfileService>();
+         _ = builder.Services.AddTransient<IPersonalAccessTokenGenerator, PersonalAccessTokenGenerator>();
+         builder.Services.TryAddSingleton(TimeProvider.System);
+         _ = builder.Services.AddTransient<ITemporaryAutoAuthLinkIssuer, TemporaryAutoAuthLinkIssuer>();
+         _ = builder.Services.AddTransient<ITemporaryAutoAuthLinkRedeemer, TemporaryAutoAuthLinkRedeemer>();
+         _ = builder.Services.AddTransient<ITemporaryAutoAuthLinkCleanup, TemporaryAutoAuthLinkCleanup>();
+         _ = builder.Services.AddTransient<IUsersService, UsersService>();
+         _ = builder.Services.AddTransient<IWebAuthnService, WebAuthnService>();
+     }
+ 
+diff --git a/src/Identity/Users/Hosting/Users.Hosting.csproj b/src/Identity/Users/Hosting/Users.Hosting.csproj
+index eb39db18a3851b34f3dd9d3a6b9f0aa48e4fac0b..d076ca72f51db534c1e2b8aa3f122477458e7248 100644
+--- a/src/Identity/Users/Hosting/Users.Hosting.csproj
++++ b/src/Identity/Users/Hosting/Users.Hosting.csproj
+@@ -1,19 +1,20 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+ 	<ItemGroup>
+ 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+ 	</ItemGroup>
+ 	<ItemGroup>
+ 		<PackageReference Include="Fido2" Version="4.0.*" />
+ 		<PackageReference Include="Fido2.AspNet" Version="4.0.*" />
+ 		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="10.0.*" />
+ 		<PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.*" />
+ 	</ItemGroup>
+ 	<ItemGroup>
+ 		<ProjectReference Include="..\Infrastructure\Users.Infrastructure.csproj" />
+ 	</ItemGroup>
+ 	<ItemGroup>
+ 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+ 			<_Parameter1>Users.Tests</_Parameter1>
+ 		</AssemblyAttribute>
+-	</ItemGroup>
++		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
++</ItemGroup>
+ </Project>
+diff --git a/src/Libraries/Audit/Audit.Server/Audit.Server.csproj b/src/Libraries/Audit/Audit.Server/Audit.Server.csproj
+index 35569b700870289a440c8bcdb1be7634dc3f4a1b..b8738c562b94d7bceb2de9ed8596bdf4f3c359f4 100644
+--- a/src/Libraries/Audit/Audit.Server/Audit.Server.csproj
++++ b/src/Libraries/Audit/Audit.Server/Audit.Server.csproj
+@@ -1,15 +1,16 @@
+ <Project Sdk="Microsoft.NET.Sdk">
+   <ItemGroup>
+     <FrameworkReference Include="Microsoft.AspNetCore.App" />
+   </ItemGroup>
+ 
+   <ItemGroup>
+     <PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="9.*" />
+     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.*" />
+   </ItemGroup>
+ 
+   <ItemGroup>
+     <ProjectReference Include="..\Audit.Application\Audit.Application.csproj" />
+     <ProjectReference Include="..\..\..\Identity\Requests\Application\Requests.Application.csproj" />
+-  </ItemGroup>
++    <ProjectReference Include="..\..\Entities\Entities.Server\Entities.Server.csproj" />
++</ItemGroup>
+ </Project>
+diff --git a/src/Libraries/Audit/Audit.Server/ServiceCollectionExtensions.cs b/src/Libraries/Audit/Audit.Server/ServiceCollectionExtensions.cs
+index 013987986b080b8853ea6fa03e063d144d7b5f75..27bd791d64e404bba35b0e1de9ffc72d6b625e44 100644
+--- a/src/Libraries/Audit/Audit.Server/ServiceCollectionExtensions.cs
++++ b/src/Libraries/Audit/Audit.Server/ServiceCollectionExtensions.cs
+@@ -1,21 +1,21 @@
+ using Microsoft.EntityFrameworkCore;
+ using Microsoft.Extensions.DependencyInjection;
+ using Vitarish.Audit.Application;
++using Vitarish.Entities.Server.Extensions;
+ 
+ namespace Vitarish.Audit.Server;
+ 
+ public static class ServiceCollectionExtensions
+ {
+     public static IServiceCollection AddAuditInfrastructure(
+         this IServiceCollection services,
+         Action<DbContextOptionsBuilder>? configureDbContext = null)
+     {
+-        _ = services.AddDbContext<AuditDbContext>((_, options) =>
+-            configureDbContext?.Invoke(options), ServiceLifetime.Transient);
++        _ = services.AddTransientMultiTenantDbContext<AuditDbContext>((_, options) => configureDbContext?.Invoke(options));
+ 
+         _ = services.AddTransient<IAuditWriter, AuditWriter>();
+         _ = services.AddTransient<IAuditQueryService, AuditQueryService>();
+ 
+         return services;
+     }
+ }
+diff --git a/src/Libraries/Entities/Entities.Server/Data/DbContextFactoryBase.cs b/src/Libraries/Entities/Entities.Server/Data/DbContextFactoryBase.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..2aec9ec042c3fd58955eae3f1a9af132e0e31446
+--- /dev/null
++++ b/src/Libraries/Entities/Entities.Server/Data/DbContextFactoryBase.cs
+@@ -0,0 +1,26 @@
++using Microsoft.EntityFrameworkCore.Infrastructure;
++
++namespace Vitarish.Entities.Server.Data;
++
++/// <summary>
++/// Creates transient EF Core contexts through a cached activator while reusing the configured options instance.
++/// </summary>
++public abstract class DbContextFactoryBase<TDbContext>(
++    IServiceProvider serviceProvider,
++    DbContextOptions<TDbContext> options) : IDbContextFactory<TDbContext>
++    where TDbContext : DbContext
++{
++    private static readonly ObjectFactory ContextFactory = ActivatorUtilities.CreateFactory(
++        typeof(TDbContext),
++        [typeof(DbContextOptions<TDbContext>)]);
++
++    public TDbContext CreateDbContext()
++    {
++        ValidateCreationRequest();
++        return (TDbContext)ContextFactory(serviceProvider, [options]);
++    }
++
++    protected virtual void ValidateCreationRequest()
++    {
++    }
++}
+diff --git a/src/Libraries/Entities/Entities.Server/Data/TransientDbContextFactory.cs b/src/Libraries/Entities/Entities.Server/Data/TransientDbContextFactory.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..63946225ca13c1eb0672551d7b43c91fad06b1ac
+--- /dev/null
++++ b/src/Libraries/Entities/Entities.Server/Data/TransientDbContextFactory.cs
+@@ -0,0 +1,10 @@
++namespace Vitarish.Entities.Server.Data;
++
++/// <summary>
++/// Creates transient non-tenant EF Core contexts with the platform context creation path.
++/// </summary>
++public sealed class TransientDbContextFactory<TDbContext>(
++    IServiceProvider serviceProvider,
++    DbContextOptions<TDbContext> options)
++    : DbContextFactoryBase<TDbContext>(serviceProvider, options)
++    where TDbContext : DbContext;
+diff --git a/src/Libraries/Entities/Entities.Server/Data/TransientMultiTenantDbContextFactory.cs b/src/Libraries/Entities/Entities.Server/Data/TransientMultiTenantDbContextFactory.cs
+new file mode 100644
+index 0000000000000000000000000000000000000000..5c5c6ac2c95111b4d8c827794ff12e35496444ff
+--- /dev/null
++++ b/src/Libraries/Entities/Entities.Server/Data/TransientMultiTenantDbContextFactory.cs
+@@ -0,0 +1,12 @@
++using Finbuckle.MultiTenant.EntityFrameworkCore;
++
++namespace Vitarish.Entities.Server.Data;
++
++/// <summary>
++/// Creates transient multi-tenant EF Core contexts with the platform context creation path.
++/// </summary>
++public sealed class TransientMultiTenantDbContextFactory<TDbContext>(
++    IServiceProvider serviceProvider,
++    DbContextOptions<TDbContext> options)
++    : DbContextFactoryBase<TDbContext>(serviceProvider, options)
++    where TDbContext : DbContext, IMultiTenantDbContext;
+diff --git a/src/Libraries/Entities/Entities.Server/Entities.Server.csproj b/src/Libraries/Entities/Entities.Server/Entities.Server.csproj
+index 2f6031d4fe0657131cce07797e73e6d3aac22362..65558d9bd352b9f1f2692c1d23d9fd4bc5dc06a2 100644
+--- a/src/Libraries/Entities/Entities.Server/Entities.Server.csproj
++++ b/src/Libraries/Entities/Entities.Server/Entities.Server.csproj
+@@ -1,34 +1,35 @@
+ ﻿<Project Sdk="Microsoft.NET.Sdk">
+ 	<ItemGroup>
+ 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
+ 	</ItemGroup>
+ 
+ 	<ItemGroup>
+ 		<PackageReference Include="MediatR" Version="14.0.*" />
+ 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.*" />
+ 		<PackageReference Include="FluentValidation" Version="12.1.*" />
++		<PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="9.*" />
+ 		<PackageReference Include="Npgsql" Version="9.0.*" />
+ 		<PackageReference Include="Scrutor" Version="7.0.*" />
+ 	</ItemGroup>
+ 
+ 	<ItemGroup>
+ 		<ProjectReference Include="..\..\Audit\Audit.Application\Audit.Application.csproj" />
+ 		<None Include="../Entities.Generators/bin/$(Configuration)/netstandard2.0/Vitarish.Entities.Generators.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+ 	</ItemGroup>
+ 
+ 	<ItemGroup>
+ 		<Compile Include="../Entities.Generators/GeneratorAttributes.cs" Link="GeneratorAttributes.cs" />
+ 	</ItemGroup>
+ 
+ 	<ItemGroup>
+ 		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+ 			<_Parameter1>Entities.Server.Tests</_Parameter1>
+ 		</AssemblyAttribute>
+ 	</ItemGroup>
+ 
+ 	<PropertyGroup>
+ 		<PackageId>Vitarish.Entities.Server</PackageId>
+ 		<Title>Vitarish.Entities.Server</Title>
+ 		<Description>
+ 			This library provides entity management server base classes.
+ 		</Description>
+diff --git a/src/Libraries/Entities/Entities.Server/Extensions/ServiceCollectionExtensions.cs b/src/Libraries/Entities/Entities.Server/Extensions/ServiceCollectionExtensions.cs
+index fc1d9539963014595bb43717c9b290fdff55e96f..8f8bc3dfbbb15df76eadcf8bf3cc5f7150b99871 100644
+--- a/src/Libraries/Entities/Entities.Server/Extensions/ServiceCollectionExtensions.cs
++++ b/src/Libraries/Entities/Entities.Server/Extensions/ServiceCollectionExtensions.cs
+@@ -1,33 +1,70 @@
+ using Vitarish.Entities.Server.Repositories.Operations;
+ 
+ namespace Vitarish.Entities.Server.Extensions;
+ /// <summary>
+ /// Extension methods for configuring Vitarish.Entities services with enhanced features.
+ /// </summary>
+ public static class ServiceCollectionExtensions
+ {
++
++    /// <summary>
++    /// Registers a transient non-tenant DbContext and its factory using the platform creation path.
++    /// </summary>
++    public static IServiceCollection AddTransientDbContext<TDbContext>(
++        this IServiceCollection services,
++        Action<IServiceProvider, DbContextOptionsBuilder> configureDbContext)
++        where TDbContext : DbContext
++    {
++        ArgumentNullException.ThrowIfNull(services);
++        ArgumentNullException.ThrowIfNull(configureDbContext);
++
++        _ = services.AddDbContext<TDbContext>(configureDbContext, ServiceLifetime.Transient);
++        services.Replace(ServiceDescriptor.Transient<IDbContextFactory<TDbContext>, TransientDbContextFactory<TDbContext>>());
++        services.Replace(ServiceDescriptor.Transient<TDbContext>(provider => provider.GetRequiredService<IDbContextFactory<TDbContext>>().CreateDbContext()));
++
++        return services;
++    }
++
++    /// <summary>
++    /// Registers a transient multi-tenant DbContext and its factory using the platform creation path.
++    /// </summary>
++    public static IServiceCollection AddTransientMultiTenantDbContext<TDbContext>(
++        this IServiceCollection services,
++        Action<IServiceProvider, DbContextOptionsBuilder> configureDbContext)
++        where TDbContext : DbContext, Finbuckle.MultiTenant.EntityFrameworkCore.IMultiTenantDbContext
++    {
++        ArgumentNullException.ThrowIfNull(services);
++        ArgumentNullException.ThrowIfNull(configureDbContext);
++
++        _ = services.AddDbContext<TDbContext>(configureDbContext, ServiceLifetime.Transient);
++        services.Replace(ServiceDescriptor.Transient<IDbContextFactory<TDbContext>, TransientMultiTenantDbContextFactory<TDbContext>>());
++        services.Replace(ServiceDescriptor.Transient<TDbContext>(provider => provider.GetRequiredService<IDbContextFactory<TDbContext>>().CreateDbContext()));
++
++        return services;
++    }
++
+     /// <summary>
+     /// Adds FluentValidation pipeline behavior to MediatR for request validation.
+     /// </summary>
+     public static IServiceCollection AddEntityValidation(this IServiceCollection services)
+     {
+         _ = services.AddTransient(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
+         return services;
+     }
+ 
+     /// <summary>
+     /// Adds distributed cache implementation for entities using IDistributedCache (e.g., Redis).
+     /// Requires IDistributedCache to be registered (e.g., via AddStackExchangeRedisCache).
+     /// </summary>
+     public static IServiceCollection AddDistributedEntityCache<TEntity>(
+         this IServiceCollection services,
+         Action<DistributedCacheEntryOptions>? configureOptions = null)
+         where TEntity : Entity
+     {
+         _ = services.AddSingleton<IEntityCache<TEntity>>(provider =>
+         {
+             IDistributedCache cache = provider.GetRequiredService<IDistributedCache>();
+             DistributedCacheEntryOptions options = new()
+             {
+                 SlidingExpiration = TimeSpan.FromMinutes(5),
+                 AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(1)
+
+diff --git a/src/Modules/Appointments/Interface/AppointmentsModule.cs b/src/Modules/Appointments/Interface/AppointmentsModule.cs
+index c8a29a9a2a551151b1e81a0f5077555fd43bf9a5..5af440747fe5c8c03c7dda78868d069cdabb7601 100644
+--- a/src/Modules/Appointments/Interface/AppointmentsModule.cs
++++ b/src/Modules/Appointments/Interface/AppointmentsModule.cs
+@@ -1,34 +1,35 @@
+ using Microsoft.EntityFrameworkCore;
+ using Vitarish.Appointments.Infrastructure.Data;
+ using Vitarish.Appointments.Infrastructure.DependencyInjection;
+ using Vitarish.Appointments.Infrastructure.Serializers;
+ using Vitarish.Appointments.Interface.DependencyInjection;
+ using Vitarish.Modules.Base;
++using Vitarish.Entities.Server.Extensions;
+ 
+ namespace Vitarish.Appointments.Interface;
+ 
+ public class AppointmentsModule : Module, IAppointmentsModule
+ {
+     public override string Name => "Appointments";
+ 
+     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
+     {
+         builder.Services.AddVitarishAppointmentsDomainEntityHandlers();
+ 
+         _ = builder.Services.AddSingleton<IAppointmentsModule, AppointmentsModule>();
+         _ = builder.Services.AddMemoryCache();
+ 
+-        _ = builder.Services.AddDbContext<AppointmentsDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
++        _ = builder.Services.AddTransientMultiTenantDbContext<AppointmentsDbContext>((_, options) => configureDbContext?.Invoke(options));
+ 
+         _ = builder.Services.AddAppointmentsInfrastructure();
+ 
+         _ = builder.Services.ConfigureHttpJsonOptions(options =>
+             options.SerializerOptions.TypeInfoResolverChain.Insert(0, AppointmentsJsonSerializerContext.Default));
+ 
+         _ = builder.Services.ConfigureAppointmentsInterface();
+ 
+         return Task.CompletedTask;
+     }
+ 
+     public override async Task Initialize(WebApplication app) => await app.InitializeViews();
+ }
+diff --git a/src/Modules/Calendar/Infrastructure/DependencyInjection/DependencyInjectionExtensions.cs b/src/Modules/Calendar/Infrastructure/DependencyInjection/DependencyInjectionExtensions.cs
+index 4719bb53ed06509c14985dc964b86dc26d51d3f1..65e38dab54c63738ed24cad26be7c16e99b76c09 100644
+--- a/src/Modules/Calendar/Infrastructure/DependencyInjection/DependencyInjectionExtensions.cs
++++ b/src/Modules/Calendar/Infrastructure/DependencyInjection/DependencyInjectionExtensions.cs
+@@ -1,60 +1,56 @@
+ using Microsoft.EntityFrameworkCore.Diagnostics;
+ using Microsoft.Extensions.Options;
+ using System.Text;
+ using Vitarish.Calendar.Infrastructure.Data;
+ using Vitarish.Calendar.Infrastructure.Helpers;
+ using Vitarish.Calendar.Infrastructure.Options;
++using Vitarish.Entities.Server.Extensions;
+ 
+ namespace Vitarish.Calendar.Infrastructure.DependencyInjection;
+ 
+ public static class DependencyInjectionExtensions
+ {
+     public static IServiceCollection AddCalendarInfrastructure(
+         this IServiceCollection services,
+         Action<DbContextOptionsBuilder>? configureDbContext = null)
+     {
+         // Injectio-generated registration for all [RegisterTransient] services in this assembly
+         _ = services.AddVitarishCalendarInfrastructure();
+ 
+         // MediatR scan for entity pipeline handlers generated by the source generator
+         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CalendarDbContext).Assembly));
+ 
+         // Named HTTP client for Radicale
+         _ = services.AddHttpClient("Radicale", (provider, client) =>
+         {
+             RadicaleOptions opts = provider.GetRequiredService<IOptions<RadicaleOptions>>().Value;
+ 
+             if (!string.IsNullOrEmpty(opts.BaseUrl))
+             {
+                 client.BaseAddress = new Uri(opts.BaseUrl);
+             }
+ 
+             client.Timeout = TimeSpan.FromSeconds(opts.TimeoutSeconds > 0 ? opts.TimeoutSeconds : 30);
+ 
+             if (opts.AuthScheme == RadicaleAuthScheme.Basic
+                 && !string.IsNullOrEmpty(opts.Username))
+             {
+                 string credentials = Convert.ToBase64String(
+                     Encoding.UTF8.GetBytes($"{opts.Username}:{opts.Password}"));
+                 client.DefaultRequestHeaders.Authorization =
+                     new System.Net.Http.Headers.AuthenticationHeaderValue("Basic", credentials);
+             }
+             else if (opts.AuthScheme == RadicaleAuthScheme.BearerToken
+                 && !string.IsNullOrEmpty(opts.Password))
+             {
+                 client.DefaultRequestHeaders.Authorization =
+                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", opts.Password);
+             }
+         });
+ 
+         // DbContext
+-        _ = services.AddDbContext<CalendarDbContext>((provider, options) =>
+-        {
+-            configureDbContext?.Invoke(options);
+-            IEnumerable<IInterceptor> interceptors = provider.GetServices<IInterceptor>();
+-            options.AddInterceptors(interceptors);
+-        }, ServiceLifetime.Transient);
++        _ = services.AddTransientMultiTenantDbContext<CalendarDbContext>((_, options) => configureDbContext?.Invoke(options));
+ 
+         return services;
+     }
+ }
+diff --git a/src/Modules/Commerce/Interface/CommerceModule.cs b/src/Modules/Commerce/Interface/CommerceModule.cs
+index de6730980d50e81009e4374301b462f7559d608f..3eabb30fd67b0bce627533dea5d99d5704369327 100644
+--- a/src/Modules/Commerce/Interface/CommerceModule.cs
++++ b/src/Modules/Commerce/Interface/CommerceModule.cs
+@@ -1,29 +1,28 @@
+ using Microsoft.EntityFrameworkCore;
+ using Vitarish.Commerce.Infrastructure.Data;
+ using Vitarish.Commerce.Infrastructure.DependencyInjection;
+ using Vitarish.Commerce.Infrastructure.Services;
+ using Vitarish.Commerce.Interface.DependencyInjection;
+ using Vitarish.Modules.Base;
++using Vitarish.Entities.Server.Extensions;
+ 
+ namespace Vitarish.Commerce.Interface;
+ 
+ public class CommerceModule : Module, ICommerceModule
+ {
+     public override string Name => "Commerce";
+ 
+     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
+     {
+         _ = builder.Services.AddSingleton<ICommerceModule, CommerceModule>();
+ 
+-        _ = builder.Services.AddDbContext<CommerceDbContext>(
+-            (_, options) => configureDbContext?.Invoke(options),
+-            ServiceLifetime.Transient);
++        _ = builder.Services.AddTransientMultiTenantDbContext<CommerceDbContext>((_, options) => configureDbContext?.Invoke(options));
+ 
+         _ = builder.Services.AddCommerceInfrastructure();
+         _ = builder.Services.ConfigureCommerceInterface();
+ 
+         return Task.CompletedTask;
+     }
+ 
+     public override async Task Initialize(WebApplication app) => await app.InitializeViews();
+ }
+diff --git a/src/Modules/Communications/Hosting/CommunicationModule.cs b/src/Modules/Communications/Hosting/CommunicationModule.cs
+index cfcc76d414f7e0d0df16ea3d65620198554b5be9..22e4b3f8c5d4ec0ad5c05246ed46913e0372cafd 100644
+--- a/src/Modules/Communications/Hosting/CommunicationModule.cs
++++ b/src/Modules/Communications/Hosting/CommunicationModule.cs
+@@ -1,38 +1,39 @@
+ using Microsoft.AspNetCore.Builder;
+ using Microsoft.EntityFrameworkCore;
+ using Microsoft.Extensions.DependencyInjection;
+ using Vitarish.Communications.Application.Abstractions;
+ using Vitarish.Communications.Infrastructure.Data;
+ using Vitarish.Communications.Infrastructure.DependencyInjection;
+ using Vitarish.Communications.Infrastructure.Serializers;
+ using Vitarish.Communications.Infrastructure.Services;
+ using Vitarish.Communications.Infrastructure.Wrappers.SmsDotIr;
+ using Vitarish.Communications.Interface.DependencyInjection;
+ using Vitarish.Modules.Base;
++using Vitarish.Entities.Server.Extensions;
+ 
+ namespace Vitarish.Communications.Hosting;
+ 
+ public class CommunicationModule : Module, ICommunicationsModule
+ {
+     public override string Name => "Communications";
+ 
+     public override Task Initialize(WebApplication app) => Task.CompletedTask;
+     public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
+     {
+         _ = builder.Services.AddSingleton<ICommunicationsModule, CommunicationModule>();
+         _ = builder.Services.AddTransient<IMessagesService, MessagesService>();
+         _ = builder.Services.AddTransient<ISmsProvider, SmsDotIrProvider>();
+ 
+         builder.Services.AddVitarishCommunicationsDomainEntityHandlers();
+ 
+-        _ = builder.Services.AddDbContext<RemindersDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
++        _ = builder.Services.AddTransientMultiTenantDbContext<RemindersDbContext>((_, options) => configureDbContext?.Invoke(options));
+ 
+         _ = builder.Services.AddRemindersInfrastructure();
+ 
+         _ = builder.Services.ConfigureHttpJsonOptions(options =>
+             options.SerializerOptions.TypeInfoResolverChain.Insert(0, CommunicationsJsonSerializerContext.Default));
+ 
+         _ = builder.Services.ConfigureCommunicationsInterface();
+     }
+ }
+ 
+diff --git a/src/Modules/Contents/Interface/ContentsModule.cs b/src/Modules/Contents/Interface/ContentsModule.cs
+index 387a504def89b0f318114e86c9e809e6b531cfb6..1ab0d305e64e8e1e71f9780e04b6260e4e6db2df 100644
+--- a/src/Modules/Contents/Interface/ContentsModule.cs
++++ b/src/Modules/Contents/Interface/ContentsModule.cs
+@@ -1,30 +1,31 @@
+ using Microsoft.AspNetCore.Builder;
+ using Microsoft.EntityFrameworkCore;
+ using Microsoft.Extensions.DependencyInjection;
+ using Vitarish.Contents.Application.Abstractions;
+ using Vitarish.Contents.Infrastructure.Data;
+ using Vitarish.Contents.Infrastructure.DependencyInjection;
+ using Vitarish.Modules.Base;
++using Vitarish.Entities.Server.Extensions;
+ 
+ namespace Vitarish.Contents.Interface;
+ 
+ public sealed class ContentsModule : Module, IContentsModule
+ {
+     public override string Name => "Contents";
+ 
+     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
+     {
+         builder.Services.AddVitarishContentsDomainEntityHandlers();
+ 
+         _ = builder.Services.AddSingleton<IContentsModule, ContentsModule>();
+         _ = builder.Services.AddMemoryCache();
+ 
+-        _ = builder.Services.AddDbContext<ContentsDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
++        _ = builder.Services.AddTransientMultiTenantDbContext<ContentsDbContext>((_, options) => configureDbContext?.Invoke(options));
+ 
+         _ = builder.Services.AddContentsInfrastructure();
+ 
+         return Task.CompletedTask;
+     }
+ 
+     public override Task Initialize(WebApplication app) => Task.CompletedTask;
+ }
+diff --git a/src/Modules/Files/Interface/FilesModule.cs b/src/Modules/Files/Interface/FilesModule.cs
+index 67548ebbca6b3a5e8acdeacce7c6c3158789c81a..c22b3448f4d6183eb70fd7a36602aa2f7d609452 100644
+--- a/src/Modules/Files/Interface/FilesModule.cs
++++ b/src/Modules/Files/Interface/FilesModule.cs
+@@ -1,58 +1,59 @@
+ using Amazon.Runtime;
+ using Amazon.S3;
+ using Microsoft.AspNetCore.Builder;
+ using Microsoft.EntityFrameworkCore;
+ using Microsoft.Extensions.Configuration;
+ using Microsoft.Extensions.DependencyInjection;
+ using Microsoft.Extensions.Options;
+ using Vitarish.Files.Application.Abstractions;
+ using Vitarish.Files.Domain.Options;
+ using Vitarish.Files.Infrastructure.Api;
+ using Vitarish.Files.Infrastructure.Data;
+ using Vitarish.Files.Infrastructure.Services;
+ using Vitarish.Files.Interface.DependencyInjection;
+ using Vitarish.Modules.Base;
++using Vitarish.Entities.Server.Extensions;
+ 
+ namespace Vitarish.Files.Interface;
+ 
+ public class FilesModule : Module, IFilesModule
+ {
+     public override string Name => "Files";
+     public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
+     {
+         IServiceCollection services = builder.Services;
+         ConfigurationManager configuration = builder.Configuration;
+         _ = services.AddSingleton<IFilesModule, FilesModule>();
+         _ = services.AddSingleton<IAmazonS3>(sp =>
+         {
+             MinioOptions minioOptions = sp.GetRequiredService<IOptions<MinioOptions>>().Value;
+             AmazonS3Config amazonS3Config = new()
+             {
+                 ServiceURL = minioOptions.BuildServiceUrl(),
+                 ForcePathStyle = minioOptions.ForcePathStyle,
+                 UseHttp = !minioOptions.UseSsl
+             };
+             if (!string.IsNullOrWhiteSpace(minioOptions.Region))
+             {
+                 amazonS3Config.AuthenticationRegion = minioOptions.Region;
+             }
+             BasicAWSCredentials credentials = new(minioOptions.AccessKey, minioOptions.SecretKey);
+             return new AmazonS3Client(credentials, amazonS3Config);
+         });
+ 
+         _ = services.AddSingleton<IObjectStorageService, AwsS3ObjectStorageService>();
+         _ = services.AddScoped<IFilesService, FilesService>();
+         _ = services.AddScoped<IFileInformationService, FileInformationService>();
+ 
+         if (configureDbContext != null)
+         {
+-            _ = services.AddDbContext<FilesDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Transient);
++            _ = services.AddTransientMultiTenantDbContext<FilesDbContext>((_, options) => configureDbContext(options));
+         }
+ 
+         services.AddVitarishFilesDomainEntityHandlers();
+         _ = services.AddVitarishFilesInfrastructure();
+ 
+         _ = services.ConfigureFilesInterface();
+     }
+     public override async Task Initialize(WebApplication app) => _ = app.MapFilesApi();
+ }
+diff --git a/src/Modules/Financial/Interface/FinancialModule.cs b/src/Modules/Financial/Interface/FinancialModule.cs
+index 9d6febacdfe0f3d68fe70686012da1250ebaef43..362a4c23fb4cb59d91d73c42fa3322ef4562d3d4 100644
+--- a/src/Modules/Financial/Interface/FinancialModule.cs
++++ b/src/Modules/Financial/Interface/FinancialModule.cs
+@@ -1,25 +1,26 @@
+ using Microsoft.AspNetCore.Builder;
+ using Microsoft.EntityFrameworkCore;
+ using Microsoft.Extensions.DependencyInjection;
+ using Vitarish.Financial.Application.Abstractions;
+ using Vitarish.Financial.Infrastructure.Data;
+ using Vitarish.Financial.Infrastructure.DependencyInjection;
+ using Vitarish.Modules.Base;
++using Vitarish.Entities.Server.Extensions;
+ 
+ namespace Vitarish.Financial.Interface;
+ 
+ public sealed class FinancialModule : Module, IFinancialModule
+ {
+     public override string Name => "Financial";
+ 
+     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
+     {
+         _ = builder.Services.AddSingleton<IFinancialModule, FinancialModule>();
+-        _ = builder.Services.AddDbContext<FinancialDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
++        _ = builder.Services.AddTransientDbContext<FinancialDbContext>((_, options) => configureDbContext?.Invoke(options));
+         _ = builder.Services.AddFinancialInfrastructure();
+ 
+         return Task.CompletedTask;
+     }
+ 
+     public override Task Initialize(WebApplication app) => Task.CompletedTask;
+ }
+diff --git a/src/Modules/Links/Interface/LinksModule.cs b/src/Modules/Links/Interface/LinksModule.cs
+index b9eca7e29c5013e5b3aed5d801b10c16984ced5b..45db16b6422c83b956bd54dfc9648ade641099ed 100644
+--- a/src/Modules/Links/Interface/LinksModule.cs
++++ b/src/Modules/Links/Interface/LinksModule.cs
+@@ -1,29 +1,30 @@
+ using Microsoft.AspNetCore.Builder;
+ using Microsoft.EntityFrameworkCore;
+ using Microsoft.Extensions.DependencyInjection;
+ using Vitarish.Links.Application.Abstractions;
+ using Vitarish.Links.Infrastructure.Data;
+ using Vitarish.Links.Infrastructure.DependencyInjection;
+ using Vitarish.Modules.Base;
++using Vitarish.Entities.Server.Extensions;
+ 
+ namespace Vitarish.Links.Interface;
+ 
+ public sealed class LinksModule : Module, ILinksModule
+ {
+     public override string Name => "Links";
+ 
+     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
+     {
+         builder.Services.AddVitarishLinksDomainEntityHandlers();
+ 
+         _ = builder.Services.AddSingleton<ILinksModule, LinksModule>();
+ 
+-        _ = builder.Services.AddDbContext<LinksDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
++        _ = builder.Services.AddTransientDbContext<LinksDbContext>((_, options) => configureDbContext?.Invoke(options));
+ 
+         _ = builder.Services.AddLinksInfrastructure();
+ 
+         return Task.CompletedTask;
+     }
+ 
+     public override Task Initialize(WebApplication app) => Task.CompletedTask;
+ }
+diff --git a/src/Modules/Medical/Interface/MedicalModule.cs b/src/Modules/Medical/Interface/MedicalModule.cs
+index 17910d6cc2bae294a70ab5a84ef7ae3b63ff145b..e83a32e90544d4d435219bc0acba36c45abdf46a 100644
+--- a/src/Modules/Medical/Interface/MedicalModule.cs
++++ b/src/Modules/Medical/Interface/MedicalModule.cs
+@@ -1,24 +1,25 @@
+ using Microsoft.AspNetCore.Builder;
+ using Microsoft.EntityFrameworkCore;
+ using Microsoft.Extensions.DependencyInjection;
+ using Vitarish.Medical.Infrastructure.Data;
+ using Vitarish.Medical.Infrastructure.DependencyInjection;
+ using Vitarish.Modules.Base;
++using Vitarish.Entities.Server.Extensions;
+ 
+ namespace Vitarish.Medical.Interface;
+ 
+ public sealed class MedicalModule : Module, IMedicalModule
+ {
+     public override string Name => "Medical";
+ 
+     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
+     {
+         _ = builder.Services.AddSingleton<IMedicalModule, MedicalModule>();
+-        _ = builder.Services.AddDbContext<MedicalDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
++        _ = builder.Services.AddTransientDbContext<MedicalDbContext>((_, options) => configureDbContext?.Invoke(options));
+         _ = builder.Services.AddMedicalInfrastructure();
+ 
+         return Task.CompletedTask;
+     }
+ 
+     public override Task Initialize(WebApplication app) => Task.CompletedTask;
+ }
+diff --git a/src/Modules/Prescription/Interface/PrescriptionModule.cs b/src/Modules/Prescription/Interface/PrescriptionModule.cs
+index be46e7bc607e4eb53c6345b89ef0439d07dbc05e..1c41512f3c503355c685b9d50e1784e6d512f07b 100644
+--- a/src/Modules/Prescription/Interface/PrescriptionModule.cs
++++ b/src/Modules/Prescription/Interface/PrescriptionModule.cs
+@@ -1,25 +1,26 @@
+ using Microsoft.AspNetCore.Builder;
+ using Microsoft.EntityFrameworkCore;
+ using Microsoft.Extensions.DependencyInjection;
++using Vitarish.Entities.Server.Extensions;
+ using Vitarish.Modules.Base;
+ using Vitarish.Prescription.Application.Abstractions;
+ using Vitarish.Prescription.Infrastructure.Data;
+ using Vitarish.Prescription.Infrastructure.DependencyInjection;
+ 
+ namespace Vitarish.Prescription.Interface;
+ 
+ public sealed class PrescriptionModule : Module, IPrescriptionModule
+ {
+     public override string Name => "Prescription";
+ 
+     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
+     {
+         _ = builder.Services.AddSingleton<IPrescriptionModule, PrescriptionModule>();
+-        _ = builder.Services.AddDbContext<PrescriptionDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Scoped);
++        _ = builder.Services.AddTransientDbContext<PrescriptionDbContext>((_, options) => configureDbContext?.Invoke(options));
+         _ = builder.Services.AddPrescriptionInfrastructure(builder.Configuration);
+ 
+         return Task.CompletedTask;
+     }
+ 
+     public override Task Initialize(WebApplication app) => Task.CompletedTask;
+ }
+diff --git a/src/Modules/Sea/Interface/SeaModule.cs b/src/Modules/Sea/Interface/SeaModule.cs
+index 9f2fdd4dc6615ddb58e474aabe02e6e1d34f01e4..4764114de283584fdc0a3ba4a014f595c0000dd6 100644
+--- a/src/Modules/Sea/Interface/SeaModule.cs
++++ b/src/Modules/Sea/Interface/SeaModule.cs
+@@ -1,35 +1,36 @@
+ using Microsoft.EntityFrameworkCore;
+ using Vitarish.Modules.Base;
+ using Vitarish.Sea.Infrastructure.Data;
+ using Vitarish.Sea.Infrastructure.DependencyInjection;
+ using Vitarish.Sea.Infrastructure.Services;
+ using Vitarish.Sea.Interface.DependencyInjection;
+ using Vitarish.Sea.Presentation.Serializers;
++using Vitarish.Entities.Server.Extensions;
+ 
+ namespace Vitarish.Sea.Interface;
+ /// <summary>
+ /// SEA is short for state-event-action, which is the concept behind this module which provides project management features.
+ /// </summary>
+ public class SeaModule : Module, ISeaModule
+ {
+     public override string Name => "Sea";
+ 
+     public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
+     {
+         builder.Services.AddVitarishSeaDomainEntityHandlers();
+ 
+         _ = builder.Services.AddSingleton<ISeaModule, SeaModule>();
+         _ = builder.Services.AddMemoryCache();
+ 
+-        _ = builder.Services.AddDbContext<SeaDbContext>((_, options) => configureDbContext(options), ServiceLifetime.Transient);
++        _ = builder.Services.AddTransientMultiTenantDbContext<SeaDbContext>((_, options) => configureDbContext?.Invoke(options));
+ 
+         _ = builder.Services.AddSeaInfrastructure();
+ 
+         _ = builder.Services.ConfigureHttpJsonOptions(options =>
+             options.SerializerOptions.TypeInfoResolverChain.Insert(0, SeaJsonSerializerContext.Default));
+ 
+         _ = builder.Services.ConfigureInterface();
+     }
+ 
+     public override async Task Initialize(WebApplication app) => await app.InitializeViews();
+ }
+diff --git a/src/Modules/Social/Hosting/SocialModule.cs b/src/Modules/Social/Hosting/SocialModule.cs
+index 25f91a68cf2bdc47841d565b8d247db81c7363f9..22e41980e9f40b97478c2519fee8b2ead18c459d 100644
+--- a/src/Modules/Social/Hosting/SocialModule.cs
++++ b/src/Modules/Social/Hosting/SocialModule.cs
+@@ -1,39 +1,40 @@
+ using Microsoft.AspNetCore.Builder;
+ using Microsoft.EntityFrameworkCore;
+ using Microsoft.Extensions.Configuration;
+ using Microsoft.Extensions.DependencyInjection;
+ using Vitarish.Modules.Base;
+ using Vitarish.Social.Application.Abstractions;
+ using Vitarish.Social.Hosting.Endpoints;
+ using Vitarish.Social.Infrastructure.Data;
+ using Vitarish.Social.Infrastructure.DependencyInjection;
++using Vitarish.Entities.Server.Extensions;
+ 
+ namespace Vitarish.Social.Hosting;
+ 
+ public sealed class SocialModule : Module, ISocialModule
+ {
+     public override string Name => "Social";
+ 
+     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
+     {
+         _ = builder.Services.AddSingleton<ISocialModule, SocialModule>();
+ 
+-        _ = builder.Services.AddDbContext<SocialDbContext>((_, options) => configureDbContext?.Invoke(options), ServiceLifetime.Transient);
++        _ = builder.Services.AddTransientMultiTenantDbContext<SocialDbContext>((_, options) => configureDbContext?.Invoke(options));
+ 
+         _ = builder.Services.AddSocialInfrastructure();
+ 
+         return Task.CompletedTask;
+     }
+ 
+     public override Task Initialize(WebApplication app)
+     {
+         bool enabled = app.Configuration.GetValue<bool>("Vitarish:Features:SocialIntegrations");
+         if (!enabled)
+         {
+             return Task.CompletedTask;
+         }
+ 
+         _ = app.MapSocialWebhookEndpoints();
+         return Task.CompletedTask;
+     }
+ }

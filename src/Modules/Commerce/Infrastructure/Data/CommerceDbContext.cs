@@ -121,7 +121,7 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
                 .HasMaxLength(2048);
             _ = entity.HasIndex("TenantId", nameof(Order.OrderNumber))
                 .IsUnique()
-                .HasFilter($"[{nameof(Order.OrderNumber)}] > 0");
+                .HasFilter($"\"{nameof(Order.OrderNumber)}\" > 0");
             _ = entity.Ignore(o => o.Stats);
         });
 
