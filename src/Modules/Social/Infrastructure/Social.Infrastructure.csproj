@@ -12,7 +12,7 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Identity\Requests\Application\Requests.Application.csproj" />
+    <ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
     <ProjectReference Include="..\Application\Social.Application.csproj" />
     <ProjectReference Include="..\Domain\Social.Domain.csproj" />

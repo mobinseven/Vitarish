@@ -16,5 +16,6 @@
 			<_Parameter1>Users.Tests</_Parameter1>
 		</AssemblyAttribute>
 		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
+		<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
 </ItemGroup>
 </Project>

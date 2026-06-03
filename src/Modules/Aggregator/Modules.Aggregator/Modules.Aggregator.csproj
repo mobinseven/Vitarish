@@ -1,9 +1,12 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Requests\Hosting\Requests.Hosting.csproj" />
+    <ProjectReference Include="..\..\Users\Hosting\Users.Hosting.csproj" />
+    <ProjectReference Include="..\..\Parties\Hosting\Parties.Hosting.csproj" />
     <ProjectReference Include="..\..\Medical\Interface\Medical.Interface.csproj" />
     <ProjectReference Include="..\..\Appointments\Interface\Appointments.Interface.csproj" />
     <ProjectReference Include="..\..\Commerce\Interface\Commerce.Interface.csproj" />
