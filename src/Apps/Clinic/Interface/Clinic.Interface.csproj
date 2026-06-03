@@ -10,7 +10,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\Modules\Users\Interface\Users.Interface.csproj" ReferenceOutputAssembly="true" BuildReference="true" />
 		<ProjectReference Include="..\..\Base\Apps.Base.csproj" />
 	</ItemGroup>
 

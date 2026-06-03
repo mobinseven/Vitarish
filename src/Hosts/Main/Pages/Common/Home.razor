@@ -2,19 +2,21 @@
 @attribute [Route(AppRoutes.Owner)]
 @attribute [Route(AppRoutes.User)]
 
-@if(hasTenantContext && activeDashboards.Count > 0)
-{
-    @foreach(var (name, record) in activeDashboards)
-    {
-        <DynamicComponent @key="name"
-                          Type="@record.ComponentType" />
-    }
+<AuthorizeView>
+    <Authorized>
+        <span>test</span>
 
-}
-else
-{
-    <AuthorizeView>
-        <Authorized>
+        @if(hasTenantContext && activeDashboards.Count > 0)
+        {
+            @foreach(var (name, record) in activeDashboards)
+            {
+                <DynamicComponent @key="name"
+                                  Type="@record.ComponentType" />
+            }
+
+        }
+        else
+        {
             <TenantWidget OnTenantNavigate="NavigateToTenant" />
             @if(onboardingEnabled)
             {
@@ -24,14 +26,13 @@ else
                                  EndIcon="fa-regular fa-plus" />
                 </Stack>
             }
-        </Authorized>
-        <NotAuthorized>
-            <Stack>
-                <StackButton Label="@Localizer["Login"]"
-                             EndIcon="fa-regular fa-sign-in"
-                             OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.Login))" />
-            </Stack>
-        </NotAuthorized>
-    </AuthorizeView>
-}
-
+        }
+    </Authorized>
+    <NotAuthorized>
+        <Stack>
+            <StackButton Label="@Localizer["Login"]"
+                         EndIcon="fa-regular fa-sign-in"
+                         OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.Login))" />
+        </Stack>
+    </NotAuthorized>
+</AuthorizeView>

@@ -16,7 +16,6 @@
   <Folder Name="/src/Hosts/">
     <Project Path="src/Hosts/Main/Main.csproj" />
   </Folder>
-  <Folder Name="/src/Identity/" />
   <Folder Name="/src/Modules/Parties/">
     <Project Path="src/Modules/Parties/Application/Parties.Application.csproj" />
     <Project Path="src/Modules/Parties/Domain/Parties.Domain.csproj" />
@@ -158,7 +157,6 @@
     <Project Path="tests/Hosts/Main.Mock/Main.Mock.csproj" />
     <Project Path="tests/Hosts/Main.Tests/Main.Tests.csproj" />
   </Folder>
-  <Folder Name="/tests/Identity/" />
   <Folder Name="/tests/Interfaces/">
     <Project Path="tests/Interfaces/Interfaces.Base.Tests/Interfaces.Base.Tests.csproj" />
   </Folder>
@@ -167,14 +165,14 @@
     <Project Path="tests/Libraries/Entities/Entities.Server.Tests/Entities.Server.Tests.csproj" />
   </Folder>
   <Folder Name="/tests/Modules/">
-    <Project Path="tests/Modules/Parties.Tests/Parties.Tests.csproj" />
-    <Project Path="tests/Modules/Requests.Tests/Requests.Tests.csproj" />
-    <Project Path="tests/Modules/Users.Tests/Users.Tests.csproj" />
     <Project Path="tests/Modules/Appointments.Tests/Appointments.Tests.csproj" />
     <Project Path="tests/Modules/Base.Tests/Modules.Base.Tests.csproj" />
     <Project Path="tests/Modules/Communications.Tests/Communications.Tests.csproj" />
     <Project Path="tests/Modules/Feed.Tests/Feed.Tests.csproj" />
     <Project Path="tests/Modules/Files.Tests/Files.Tests.csproj" />
     <Project Path="tests/Modules/Intelligence.Tests/Intelligence.Tests.csproj" />
+    <Project Path="tests/Modules/Parties.Tests/Parties.Tests.csproj" />
+    <Project Path="tests/Modules/Requests.Tests/Requests.Tests.csproj" />
+    <Project Path="tests/Modules/Users.Tests/Users.Tests.csproj" />
   </Folder>
 </Solution>

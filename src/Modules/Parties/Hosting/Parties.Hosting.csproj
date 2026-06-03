@@ -10,5 +10,6 @@
     <ProjectReference Include="..\Infrastructure\Parties.Infrastructure.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
 		<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+		<ProjectReference Include="..\Interface\Parties.Interface.csproj" BuildReference="true" />
 </ItemGroup>
 </Project>
