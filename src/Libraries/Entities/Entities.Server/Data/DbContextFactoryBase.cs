@@ -1,5 +1,3 @@
-using Microsoft.EntityFrameworkCore.Infrastructure;
-
 namespace Vitarish.Entities.Server.Data;
 
 /// <summary>
@@ -10,14 +8,22 @@ public abstract class DbContextFactoryBase<TDbContext>(
     DbContextOptions<TDbContext> options) : IDbContextFactory<TDbContext>
     where TDbContext : DbContext
 {
-    private static readonly ObjectFactory ContextFactory = ActivatorUtilities.CreateFactory(
-        typeof(TDbContext),
-        [typeof(DbContextOptions<TDbContext>)]);
+    private readonly IServiceProvider _serviceProvider =
+        serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+
+    private readonly object[] _arguments =
+        [options ?? throw new ArgumentNullException(nameof(options))];
+
+    private static readonly ObjectFactory ContextFactory =
+        ActivatorUtilities.CreateFactory(
+            typeof(TDbContext),
+            [typeof(DbContextOptions<TDbContext>)]);
 
     public TDbContext CreateDbContext()
     {
         ValidateCreationRequest();
-        return (TDbContext)ContextFactory(serviceProvider, [options]);
+
+        return (TDbContext)ContextFactory(_serviceProvider, _arguments);
     }
 
     protected virtual void ValidateCreationRequest()
