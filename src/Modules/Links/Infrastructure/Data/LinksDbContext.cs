@@ -12,6 +12,8 @@ public sealed class LinksDbContext(
     DbContextOptions<LinksDbContext> options,
     IEnumerable<IInterceptor> interceptors) : DbContext(options)
 {
+    private const string SlugCollation = "C";
+
     private readonly IEnumerable<IInterceptor> _interceptors = interceptors;
 
     public DbSet<Link> Links => Set<Link>();
@@ -29,7 +31,7 @@ public sealed class LinksDbContext(
             _ = entity.HasQueryFilter(e => e.DeletedAt == null);
 
             _ = entity.Property(e => e.Domain).HasMaxLength(253);
-            _ = entity.Property(e => e.Slug).HasMaxLength(32).UseCollation(LinkRules.SlugCollation);
+            _ = entity.Property(e => e.Slug).HasMaxLength(32).UseCollation(SlugCollation);
             _ = entity.Property(e => e.DestinationUrl).HasMaxLength(2048);
             _ = entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(32);
 
