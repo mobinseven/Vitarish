@@ -119,6 +119,9 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
                 .HasDefaultValueSql("'{}'");
             _ = entity.Property(e => e.RefundNote)
                 .HasMaxLength(2048);
+            _ = entity.HasIndex("TenantId", nameof(Order.OrderNumber))
+                .IsUnique()
+                .HasFilter($"\"{nameof(Order.OrderNumber)}\" > 0");
             _ = entity.Ignore(o => o.Stats);
         });
 
