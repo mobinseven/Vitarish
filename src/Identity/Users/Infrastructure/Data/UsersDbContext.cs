@@ -23,7 +23,8 @@ public class UsersDbContext(DbContextOptions<UsersDbContext> options) : Identity
         {
             _ = entity.HasKey(e => e.Id);
             _ = entity.HasIndex(e => e.CredentialId).IsUnique();
-            _ = entity.HasIndex(e => e.UserId).HasFilter("[IsActive] = 1");
+            _ = entity.HasIndex(e => e.UserId)
+                      .HasFilter("\"IsActive\" = TRUE");
 
             _ = entity.HasOne(e => e.User)
                 .WithMany()

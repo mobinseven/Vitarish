@@ -102,10 +102,10 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
 
             _ = entity.HasIndex("TenantId", nameof(ContentItem.CanonicalPath))
                 .IsUnique()
-                .HasFilter("[CanonicalPath] IS NOT NULL AND [CanonicalPath] != ''");
+                .HasFilter("\"CanonicalPath\" IS NOT NULL AND \"CanonicalPath\" <> ''");
             _ = entity.HasIndex("TenantId", nameof(ContentItem.Slug))
                 .IsUnique()
-                .HasFilter("[Slug] IS NOT NULL AND [Slug] != ''");
+                .HasFilter("\"Slug\" IS NOT NULL AND \"Slug\" <> ''");
 
             _ = entity.HasIndex(e => e.PublishedAt);
             _ = entity.HasIndex(e => new { e.Type, e.Status, e.PublishedAt });
@@ -131,7 +131,7 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
 
             _ = entity.HasIndex("TenantId", nameof(Term.Slug))
                 .IsUnique()
-                .HasFilter("[Slug] IS NOT NULL AND [Slug] != ''");
+                .HasFilter("\"Slug\" IS NOT NULL AND [Slug] <> ''");
             _ = entity.HasIndex(e => new { e.Kind, e.ParentId });
         });
 

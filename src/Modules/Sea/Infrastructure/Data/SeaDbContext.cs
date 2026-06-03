@@ -78,6 +78,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.HasDefaultSchema("Sea");
 
         // Configure Finbuckle multi-tenant entities
         _ = modelBuilder.ConfigureMultiTenant();
@@ -128,7 +129,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
 
             _ = entity.HasIndex("TenantId", nameof(Project.IdentificationCode))
                 .IsUnique()
-                .HasFilter("[IdentificationCode] IS NOT NULL AND [IdentificationCode] != ''");
+                .HasFilter("\"IdentificationCode\" IS NOT NULL AND \"IdentificationCode\" <> ''");
         });
 
         _ = modelBuilder.Entity<ProcedureStats>(eb =>
