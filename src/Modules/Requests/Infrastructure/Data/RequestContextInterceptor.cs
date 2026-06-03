@@ -15,16 +15,16 @@ public sealed class RequestContextInterceptor(IRequestContext ctx) : DbConnectio
 
             if (ctx.OwnerId is not null)
             {
-                await using var cmd = npgsql.CreateCommand();
+                await using NpgsqlCommand cmd = npgsql.CreateCommand();
                 cmd.CommandText = "SELECT set_config('app.owner_id', '', false)";
-                await cmd.ExecuteNonQueryAsync();
+                _ = await cmd.ExecuteNonQueryAsync();
             }
 
             if (ctx.UserId is not null)
             {
-                await using var cmd = npgsql.CreateCommand();
+                await using NpgsqlCommand cmd = npgsql.CreateCommand();
                 cmd.CommandText = "SELECT set_config('app.user_id', '', false)";
-                await cmd.ExecuteNonQueryAsync();
+                _ = await cmd.ExecuteNonQueryAsync();
             }
 
         }
@@ -37,27 +37,29 @@ public sealed class RequestContextInterceptor(IRequestContext ctx) : DbConnectio
         CancellationToken cancellationToken = default)
     {
         if (connection is not NpgsqlConnection npgsql)
+        {
             return;
+        }
 
-        await using var cmd = npgsql.CreateCommand();
+        await using NpgsqlCommand cmd = npgsql.CreateCommand();
         var setParams = new List<string>();
 
         if (ctx.OwnerId is not null)
         {
             setParams.Add("SELECT set_config('app.owner_id', @ownerId, false)");
-            cmd.Parameters.AddWithValue("@ownerId", ctx.OwnerId);
+            _ = cmd.Parameters.AddWithValue("@ownerId", ctx.OwnerId);
         }
 
         if (ctx.UserId is not null)
         {
             setParams.Add("SELECT set_config('app.user_id', @userId, false)");
-            cmd.Parameters.AddWithValue("@userId", ctx.UserId);
+            _ = cmd.Parameters.AddWithValue("@userId", ctx.UserId);
         }
 
         if (setParams.Any())
         {
             cmd.CommandText = string.Join("; ", setParams);
-            await cmd.ExecuteNonQueryAsync(cancellationToken);
+            _ = await cmd.ExecuteNonQueryAsync(cancellationToken);
         }
     }
 }
