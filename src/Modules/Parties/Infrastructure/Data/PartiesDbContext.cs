@@ -4,6 +4,7 @@ using Microsoft.EntityFrameworkCore.ChangeTracking;
 using System.Text.Json;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Domain.Events;
+using Vitarish.Parties.Domain.Models;
 using Vitarish.Parties.Infrastructure.Extensions;
 
 namespace Vitarish.Parties.Infrastructure.Data;
@@ -21,11 +22,20 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
     /// <summary>Tenant indicators set.</summary>
     public DbSet<TenantIndicator> TenantIndicators => Set<TenantIndicator>();
 
+    /// <summary>User tenants view.</summary>
+    public DbSet<UserTenantView> UserTenantsView => Set<UserTenantView>();
+
     /// <inheritdoc />
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
         _ = modelBuilder.HasDefaultSchema(nameof(Parties));
+
+        _ = modelBuilder.Entity<UserTenantView>(eb =>
+        {
+            _ = eb.ToView("vw_UserTenants");
+            _ = eb.HasNoKey();
+        });
 
         _ = modelBuilder.Entity<Tenant>(entity =>
         {

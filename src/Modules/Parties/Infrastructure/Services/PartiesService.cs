@@ -29,25 +29,9 @@ public sealed class PartiesService(
 
         List<Guid> tenantIdsList = tenantIds.Distinct().ToList();
 
-        // Single query joining Tenants with their primary TenantIndicators
-        return await dbContext.Tenants
-            .Where(t => tenantIdsList.Contains(t.Id))
-            .GroupJoin(
-                dbContext.TenantIndicators.Where(ti => ti.IsPrimary),
-                tenant => tenant.Id,
-                indicator => indicator.TenantId,
-                (tenant, indicators) => new { Tenant = tenant, PrimaryIndicator = indicators.FirstOrDefault() })
-            .Select(x => new UserTenantView
-            {
-                TenantId = x.Tenant.Id,
-                TenantName = x.Tenant.Name,
-                TenantLogoUrl = x.Tenant.LogoUrl,
-                TenantDescription = x.Tenant.Description,
-                TenantAppId = x.Tenant.AppId,
-                Metadata = x.Tenant.Metadata,
-                IndicatorId = x.PrimaryIndicator != null ? x.PrimaryIndicator.Id : null,
-                IndicatorValue = x.PrimaryIndicator != null ? x.PrimaryIndicator.Value : null
-            })
+        // Query the database view to retrieve all user tenants with their primary indicators in a single call
+        return await dbContext.UserTenantsView
+            .Where(v => tenantIdsList.Contains(v.TenantId))
             .ToListAsync(ct);
     }
     // Owner methods using EntityService
