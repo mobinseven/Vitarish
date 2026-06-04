@@ -1,13 +1,14 @@
+@using Vitarish.Parties.Domain.Models
 @inherits CommonBase
 
-@if(tenants.Count > 0)
+@if(userTenants.Count() > 0)
 {
     <Stack>
-        <StackField Label="@Localizer["Workspaces"]" />
-
-        @foreach(var entry in tenants)
-        {
-            <StackButton Size="Size.Large" Color="Color.Primary" Label="@entry.Value.TenantName" OnClick="@(() => NavigateToTenant(entry.Key))" StartIcon="fa-regular fa-building" />
-        }
+        <StackSelect T="UserTenant" Label="@Localizer["Workspaces"]" ValueChanged="t => NavigateToTenant(t)">
+            @foreach(var entry in userTenants)
+            {
+                <StackSelectItem Value="entry">@entry.TenantName</StackSelectItem>
+            }
+        </StackSelect>
     </Stack>
 }
