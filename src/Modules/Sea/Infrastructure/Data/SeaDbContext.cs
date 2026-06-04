@@ -35,7 +35,6 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     public DbSet<Project> Projects => Set<Project>();
     public DbSet<Procedure> Procedures => Set<Procedure>();
     public DbSet<Event> Events => Set<Event>();
-    //public DbSet<EventItem> EventItems => Set<EventItem>();
     public DbSet<Attachment> Attachments => Set<Attachment>();
     public DbSet<Role> Roles => Set<Role>();
     public DbSet<UserRole> UserRoles => Set<UserRole>();
@@ -54,7 +53,6 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         _requestContext = requestIdentity;
         _httpContextAccessor = httpContextAccessor;
 
-        // Enable multi-tenant tracking
         this.EnforceMultiTenantOnTracking();
     }
 
@@ -80,11 +78,8 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         base.OnModelCreating(modelBuilder);
         _ = modelBuilder.HasDefaultSchema(nameof(Sea));
 
-        // Configure Finbuckle multi-tenant entities
         _ = modelBuilder.ConfigureMultiTenant();
 
-        // Apply soft-delete filter first, then mark as multi-tenant
-        // Finbuckle automatically merges its tenant filter with the existing filter
         ConfigureTenantEntity<Project>(modelBuilder);
         ConfigureTenantEntity<Procedure>(modelBuilder);
         ConfigureTenantEntity<Event>(modelBuilder);
@@ -164,11 +159,9 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     {
         EntityTypeBuilder<TEntity> entityBuilder = modelBuilder.Entity<TEntity>();
 
-        // Apply soft-delete filter first
         _ = entityBuilder.HasQueryFilter(e =>
             EF.Property<DateTimeOffset?>(e, "DeletedAt") == null);
 
-        // Mark as multi-tenant - Finbuckle will merge its tenant filter with the soft-delete filter
         _ = entityBuilder.IsMultiTenant();
     }
 }
