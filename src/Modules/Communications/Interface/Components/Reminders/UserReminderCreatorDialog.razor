@@ -10,12 +10,9 @@
                     <MudRadio T="ReminderKind" Value="ReminderKind.Email" Disabled="RequestContext.User?.GetUserEmail() is null" Label="@Localizer["Email"]" />
                 </MudRadioGroup>
             </StackField>
-            <StackField Label="@Localizer["Date"]">
-                <MudDatePicker PickerVariant="PickerVariant.Inline" @bind-Date="remindDate" Culture="@System.Globalization.CultureInfo.CurrentCulture" />
-            </StackField>
-            <StackField Label="@Localizer["Time"]">
-                <MudTimePicker PickerVariant="PickerVariant.Inline" @bind-Time="remindTime" Culture="@System.Globalization.CultureInfo.CurrentCulture" />
-            </StackField>
+            <ReminderSchedulePicker DateLabel="@Localizer["Date"]"
+                                    TimeLabel="@Localizer["Time"]"
+                                    @bind-Value="remindAt" />
         </Stack>
 
         <Stack>

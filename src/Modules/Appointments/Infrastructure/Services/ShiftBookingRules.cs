@@ -33,7 +33,7 @@ internal static class ShiftBookingRules
 
         if (effectiveOpensBefore.HasValue)
         {
-            DateTime opensAt = slotStart.Date.AddDays(-effectiveOpensBefore.Value);
+            DateTime opensAt = DateTime.SpecifyKind(slotStart.Date.AddDays(-effectiveOpensBefore.Value), DateTimeKind.Utc);
             if (now < opensAt)
             {
                 return false;
@@ -42,7 +42,7 @@ internal static class ShiftBookingRules
 
         if (effectiveCloseBefore.HasValue)
         {
-            DateTime closesAt = slotStart.Date.AddDays(-effectiveCloseBefore.Value);
+            DateTime closesAt = DateTime.SpecifyKind(slotStart.Date.AddDays(-effectiveCloseBefore.Value), DateTimeKind.Utc);
             if (now >= closesAt)
             {
                 return false;

@@ -97,7 +97,7 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        DateTime now = DateTime.UtcNow;
+        DateTime now = DateTime.Now;
         sourceIdInput = Guid.NewGuid().ToString();
         remindDate = now.Date;
         remindTime = now.AddMinutes(DefaultReminderDelayMinutes).TimeOfDay;

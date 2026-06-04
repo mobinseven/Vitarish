@@ -37,7 +37,7 @@ internal class ShiftReminderPolicyTriggeredHandler(
             return;
         }
 
-        DateTime occurrenceStart = notification.Date.ToDateTime(shift.StartTime);
+        DateTime occurrenceStart = DateTime.SpecifyKind(notification.Date.ToDateTime(shift.StartTime), DateTimeKind.Utc);
         DateTime now = _timeProvider.GetUtcNow().UtcDateTime;
 
         foreach (ShiftReminderPolicy policy in policies)

@@ -7,9 +7,7 @@ public partial class UserReminderCreatorDialog : RemindersBase
     [Parameter, EditorRequired] public Guid SourceId { get; set; }
 
     private ReminderKind kind = ReminderKind.Sms;
-    private DateTime? remindDate = DateTime.UtcNow.Date;
-    private TimeSpan? remindTime = DateTime.UtcNow.TimeOfDay;
-    private DateTime RemindAt => DateTime.SpecifyKind(remindDate!.Value.Date + remindTime!.Value, DateTimeKind.Local).ToUniversalTime();
+    private DateTime remindAt = DateTime.Now.ToUniversalTime();
 
     protected override async Task OnInitializedAsync()
     {
@@ -23,7 +21,7 @@ public partial class UserReminderCreatorDialog : RemindersBase
     private async Task SaveAsync()
     {
         List<ReminderRecipientReadDto> recipients = [new ReminderRecipientReadDto { Kind = kind, RecipientUserId = RequestContext.UserId, Recipient = GetAddress(kind) }];
-        IReadOnlyList<ReminderReadDto> added = await RemindersService.AddRangeAsync(SourceId, recipients, string.Empty, string.Empty, RemindAt, CancellationToken.None);
+        IReadOnlyList<ReminderReadDto> added = await RemindersService.AddRangeAsync(SourceId, recipients, string.Empty, string.Empty, remindAt, CancellationToken.None);
         MudDialog.Close(DialogResult.Ok(added));
     }
 
