@@ -29,13 +29,13 @@ namespace Vitarish.Main.Migrations.LinksDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -51,7 +51,7 @@ namespace Vitarish.Main.Migrations.LinksDb
                         .HasMaxLength(253)
                         .HasColumnType("character varying(253)");
 
-                    b.Property<DateTimeOffset?>("ExpiresAt")
+                    b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Slug")
@@ -68,7 +68,7 @@ namespace Vitarish.Main.Migrations.LinksDb
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")

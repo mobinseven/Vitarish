@@ -29,13 +29,13 @@ namespace Vitarish.Main.Migrations.PartiesDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -51,7 +51,7 @@ namespace Vitarish.Main.Migrations.PartiesDb
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -72,13 +72,13 @@ namespace Vitarish.Main.Migrations.PartiesDb
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -103,7 +103,7 @@ namespace Vitarish.Main.Migrations.PartiesDb
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -122,13 +122,13 @@ namespace Vitarish.Main.Migrations.PartiesDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -137,7 +137,7 @@ namespace Vitarish.Main.Migrations.PartiesDb
                     b.Property<bool>("IsPrimary")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTimeOffset?>("LastCheckedAt")
+                    b.Property<DateTime?>("LastCheckedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Method")
@@ -149,7 +149,7 @@ namespace Vitarish.Main.Migrations.PartiesDb
                     b.Property<Guid>("TenantId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -160,7 +160,7 @@ namespace Vitarish.Main.Migrations.PartiesDb
                         .HasMaxLength(253)
                         .HasColumnType("character varying(253)");
 
-                    b.Property<DateTimeOffset?>("VerifiedAt")
+                    b.Property<DateTime?>("VerifiedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
@@ -173,6 +173,37 @@ namespace Vitarish.Main.Migrations.PartiesDb
                         .HasFilter("\"IsPrimary\" = TRUE");
 
                     b.ToTable("TenantIndicators", "Parties");
+                });
+
+            modelBuilder.Entity("Vitarish.Parties.Domain.Models.UserTenant", b =>
+                {
+                    b.Property<Guid?>("IndicatorId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("IndicatorValue")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TenantAppId")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("TenantDescription")
+                        .HasColumnType("text");
+
+                    b.Property<Guid>("TenantId")
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("TenantLogoUrl")
+                        .HasColumnType("text");
+
+                    b.Property<string>("TenantName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.ToTable((string)null);
+
+                    b.ToView("vw_UserTenant", "Parties");
                 });
 
             modelBuilder.Entity("Vitarish.Parties.Domain.Entities.TenantIndicator", b =>

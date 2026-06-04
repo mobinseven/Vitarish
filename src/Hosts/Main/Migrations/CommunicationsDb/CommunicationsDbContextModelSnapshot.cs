@@ -29,13 +29,13 @@ namespace Vitarish.Main.Migrations.CommunicationsDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -52,10 +52,10 @@ namespace Vitarish.Main.Migrations.CommunicationsDb
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset>("RemindAt")
+                    b.Property<DateTime>("RemindAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTimeOffset?>("SentAt")
+                    b.Property<DateTime?>("SentAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("SourceId")
@@ -74,7 +74,7 @@ namespace Vitarish.Main.Migrations.CommunicationsDb
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")

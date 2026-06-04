@@ -29,13 +29,13 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("CancelledAt")
+                    b.Property<DateTime?>("CancelledAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTimeOffset?>("ConfirmedAt")
+                    b.Property<DateTime?>("ConfirmedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
@@ -44,7 +44,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -53,7 +53,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.Property<TimeSpan?>("EstimatedSessionLength")
                         .HasColumnType("interval");
 
-                    b.Property<DateTimeOffset?>("ExpiresAt")
+                    b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<bool>("IsHold")
@@ -73,7 +73,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -95,13 +95,13 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -122,7 +122,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -143,13 +143,13 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -167,7 +167,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -199,13 +199,13 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -223,7 +223,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -248,7 +248,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.Property<int?>("BookingOpensBefore")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
@@ -257,7 +257,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.Property<int>("DayOfWeek")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -296,7 +296,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.Property<int>("TotalSeats")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -342,7 +342,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.Property<bool>("Closed")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
@@ -351,7 +351,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.Property<DateOnly>("Date")
                         .HasColumnType("date");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -374,7 +374,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -406,13 +406,13 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                     b.Property<int>("Channel")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -440,7 +440,7 @@ namespace Vitarish.Main.Migrations.AppointmentsDb
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")

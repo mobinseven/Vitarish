@@ -43,7 +43,7 @@ namespace Vitarish.Main.Migrations.RequestsDb
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("OwnerId")

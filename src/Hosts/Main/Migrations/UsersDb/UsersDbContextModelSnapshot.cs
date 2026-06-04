@@ -166,7 +166,7 @@ namespace Vitarish.Main.Migrations.UsersDb
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
-                    b.Property<DateTimeOffset?>("ConsumedAt")
+                    b.Property<DateTime?>("ConsumedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ConsumedByIp")
@@ -177,7 +177,7 @@ namespace Vitarish.Main.Migrations.UsersDb
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedByDeviceHint")
@@ -189,7 +189,7 @@ namespace Vitarish.Main.Migrations.UsersDb
                         .HasMaxLength(2048)
                         .HasColumnType("character varying(2048)");
 
-                    b.Property<DateTimeOffset>("ExpiresAt")
+                    b.Property<DateTime>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Purpose")
@@ -332,7 +332,7 @@ namespace Vitarish.Main.Migrations.UsersDb
                     b.Property<bool>("IsActive")
                         .HasColumnType("boolean");
 
-                    b.Property<DateTimeOffset?>("LastUsedAt")
+                    b.Property<DateTime?>("LastUsedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<byte[]>("PublicKey")
@@ -340,7 +340,7 @@ namespace Vitarish.Main.Migrations.UsersDb
                         .HasMaxLength(512)
                         .HasColumnType("bytea");
 
-                    b.Property<DateTimeOffset>("RegisteredAt")
+                    b.Property<DateTime>("RegisteredAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<long>("SignatureCounter")

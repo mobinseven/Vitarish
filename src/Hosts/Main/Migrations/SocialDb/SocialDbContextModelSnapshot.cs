@@ -32,13 +32,13 @@ namespace Vitarish.Main.Migrations.SocialDb
                     b.Property<Guid?>("ConnectionId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -49,7 +49,7 @@ namespace Vitarish.Main.Migrations.SocialDb
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<DateTimeOffset?>("ProcessedAt")
+                    b.Property<DateTime?>("ProcessedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ProcessingError")
@@ -73,7 +73,7 @@ namespace Vitarish.Main.Migrations.SocialDb
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset>("ReceivedAt")
+                    b.Property<DateTime>("ReceivedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("RetryCount")
@@ -84,7 +84,7 @@ namespace Vitarish.Main.Migrations.SocialDb
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -115,13 +115,13 @@ namespace Vitarish.Main.Migrations.SocialDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -153,7 +153,7 @@ namespace Vitarish.Main.Migrations.SocialDb
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -164,7 +164,7 @@ namespace Vitarish.Main.Migrations.SocialDb
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
 
-                    b.Property<DateTimeOffset?>("WebhookVerifiedAt")
+                    b.Property<DateTime?>("WebhookVerifiedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
@@ -190,22 +190,22 @@ namespace Vitarish.Main.Migrations.SocialDb
                     b.Property<Guid>("ConnectionId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("ExpiresAt")
+                    b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTimeOffset?>("LastRefreshedAt")
+                    b.Property<DateTime?>("LastRefreshedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("RefreshToken")
@@ -221,7 +221,7 @@ namespace Vitarish.Main.Migrations.SocialDb
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -246,13 +246,13 @@ namespace Vitarish.Main.Migrations.SocialDb
                     b.Property<Guid>("ConnectionId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -267,7 +267,7 @@ namespace Vitarish.Main.Migrations.SocialDb
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset>("OccurredAt")
+                    b.Property<DateTime>("OccurredAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("RawEventId")
@@ -281,7 +281,7 @@ namespace Vitarish.Main.Migrations.SocialDb
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")

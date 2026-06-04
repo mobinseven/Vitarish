@@ -32,7 +32,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                     b.Property<Guid>("ClinicId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CredentialSecretRef")
@@ -42,7 +42,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                     b.Property<Guid>("DoctorId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("ExpiresAt")
+                    b.Property<DateTime?>("ExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ProviderDoctorIdentifier")
@@ -67,14 +67,14 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
-                    b.Property<DateTimeOffset?>("TokenExpiresAt")
+                    b.Property<DateTime?>("TokenExpiresAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("TokenSecretRef")
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
@@ -92,7 +92,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("EscalatedAt")
+                    b.Property<DateTime>("EscalatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("OperatorId")
@@ -105,7 +105,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                         .HasMaxLength(2048)
                         .HasColumnType("character varying(2048)");
 
-                    b.Property<DateTimeOffset?>("ResolvedAt")
+                    b.Property<DateTime?>("ResolvedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("StatusAtEscalation")
@@ -140,7 +140,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DisplayName")
@@ -193,7 +193,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("IdempotencyKey")
@@ -201,7 +201,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
 
-                    b.Property<DateTimeOffset?>("LastAttemptAt")
+                    b.Property<DateTime?>("LastAttemptAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("LastError")
@@ -210,7 +210,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                     b.Property<int>("MaxRetries")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset?>("NextRetryAt")
+                    b.Property<DateTime?>("NextRetryAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("OperationName")
@@ -265,7 +265,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
-                    b.Property<DateTimeOffset?>("LastSyncedAt")
+                    b.Property<DateTime?>("LastSyncedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("OperationName")
@@ -304,7 +304,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                     b.Property<int>("SubmissionVersion")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset>("SubmittedAt")
+                    b.Property<DateTime>("SubmittedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.HasKey("Id");
@@ -328,10 +328,10 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                     b.Property<Guid>("ClinicId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<Guid>("DoctorId")
@@ -344,7 +344,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                         .HasMaxLength(1024)
                         .HasColumnType("character varying(1024)");
 
-                    b.Property<DateTimeOffset?>("LastEligibilityCheckedAt")
+                    b.Property<DateTime?>("LastEligibilityCheckedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("LastEligibilityStatus")
@@ -375,7 +375,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                         .HasMaxLength(32)
                         .HasColumnType("character varying(32)");
 
-                    b.Property<DateTimeOffset?>("SubmittedAt")
+                    b.Property<DateTime?>("SubmittedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("TenantId")
@@ -383,7 +383,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("VersionNumber")

@@ -33,13 +33,13 @@ namespace Vitarish.Main.Migrations.MedicalDb
                         .HasPrecision(5, 4)
                         .HasColumnType("numeric(5,4)");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -73,7 +73,7 @@ namespace Vitarish.Main.Migrations.MedicalDb
                     b.Property<Guid>("TargetMedicalCodeId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -113,13 +113,13 @@ namespace Vitarish.Main.Migrations.MedicalDb
                     b.Property<int>("Category")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -142,7 +142,7 @@ namespace Vitarish.Main.Migrations.MedicalDb
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -166,13 +166,13 @@ namespace Vitarish.Main.Migrations.MedicalDb
                     b.Property<Guid>("CodeSystemId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -206,7 +206,7 @@ namespace Vitarish.Main.Migrations.MedicalDb
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -229,13 +229,13 @@ namespace Vitarish.Main.Migrations.MedicalDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -274,7 +274,7 @@ namespace Vitarish.Main.Migrations.MedicalDb
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -304,13 +304,13 @@ namespace Vitarish.Main.Migrations.MedicalDb
                         .HasMaxLength(512)
                         .HasColumnType("character varying(512)");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -354,7 +354,7 @@ namespace Vitarish.Main.Migrations.MedicalDb
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -375,16 +375,16 @@ namespace Vitarish.Main.Migrations.MedicalDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("CompletedAt")
+                    b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("timestamp with time zone");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -393,7 +393,7 @@ namespace Vitarish.Main.Migrations.MedicalDb
                     b.Property<string>("ErrorReport")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("ImportedAt")
+                    b.Property<DateTime?>("ImportedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("ImportedBy")
@@ -416,13 +416,13 @@ namespace Vitarish.Main.Migrations.MedicalDb
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
-                    b.Property<DateTimeOffset?>("StartedAt")
+                    b.Property<DateTime?>("StartedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -463,13 +463,13 @@ namespace Vitarish.Main.Migrations.MedicalDb
                     b.Property<Guid>("CodeSystemReleaseId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -502,7 +502,7 @@ namespace Vitarish.Main.Migrations.MedicalDb
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -532,13 +532,13 @@ namespace Vitarish.Main.Migrations.MedicalDb
                         .HasMaxLength(128)
                         .HasColumnType("character varying(128)");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -572,7 +572,7 @@ namespace Vitarish.Main.Migrations.MedicalDb
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -591,13 +591,13 @@ namespace Vitarish.Main.Migrations.MedicalDb
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -645,7 +645,7 @@ namespace Vitarish.Main.Migrations.MedicalDb
                     b.Property<Guid?>("SourceReleaseId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -683,13 +683,13 @@ namespace Vitarish.Main.Migrations.MedicalDb
                     b.Property<Guid>("CodeSystemReleaseId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -723,7 +723,7 @@ namespace Vitarish.Main.Migrations.MedicalDb
                     b.Property<int>("Status")
                         .HasColumnType("integer");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")
@@ -753,13 +753,13 @@ namespace Vitarish.Main.Migrations.MedicalDb
                         .HasPrecision(10, 4)
                         .HasColumnType("numeric(10,4)");
 
-                    b.Property<DateTimeOffset>("CreatedAt")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("CreatedBy")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset?>("DeletedAt")
+                    b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("DeletedBy")
@@ -801,7 +801,7 @@ namespace Vitarish.Main.Migrations.MedicalDb
                     b.Property<Guid?>("SourceReleaseId")
                         .HasColumnType("uuid");
 
-                    b.Property<DateTimeOffset?>("UpdatedAt")
+                    b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("UpdatedBy")

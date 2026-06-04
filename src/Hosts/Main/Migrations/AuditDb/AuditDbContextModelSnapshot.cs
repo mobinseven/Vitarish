@@ -55,7 +55,7 @@ namespace Vitarish.Main.Migrations.AuditDb
                     b.Property<string>("NewState")
                         .HasColumnType("text");
 
-                    b.Property<DateTimeOffset>("OccurredAt")
+                    b.Property<DateTime>("OccurredAt")
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("OldState")
