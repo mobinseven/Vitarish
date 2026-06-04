@@ -1,4 +1,5 @@
 using Vitarish.Files.Domain.Options;
+using Vitarish.Interfaces.Accounts.Services;
 using Vitarish.Search.Domain.Options;
 
 namespace Vitarish.Main.Infrastructure.Options;
@@ -67,6 +68,11 @@ public static class ApplicationOptionsExtensions
 
         _ = services.AddOptions<FeaturesOptions>()
             .BindConfiguration($"{ApplicationOptions.Section}:Features");
+
+        _ = services.AddOptions<VerificationSmsShieldOptions>()
+            .BindConfiguration(VerificationSmsShieldOptions.SectionName)
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
 
         return services;
     }
