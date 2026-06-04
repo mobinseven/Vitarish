@@ -158,6 +158,7 @@
     <Project Path="tests/Hosts/Main.Tests/Main.Tests.csproj" />
   </Folder>
   <Folder Name="/tests/Interfaces/">
+    <Project Path="tests/Interfaces/Interfaces.Accounts.Tests/Interfaces.Accounts.Tests.csproj" />
     <Project Path="tests/Interfaces/Interfaces.Base.Tests/Interfaces.Base.Tests.csproj" />
   </Folder>
   <Folder Name="/tests/Libraries/" />
