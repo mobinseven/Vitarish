@@ -37,11 +37,7 @@ internal class ShiftReminderPolicyTriggeredHandler(
             return;
         }
 
-        if (!TryGetOccurrenceStart(shift, notification.Date, out DateTime occurrenceStart))
-        {
-            return;
-        }
-
+        DateTime occurrenceStart = GetOccurrenceStart(shift, notification.Date);
         DateTime now = _timeProvider.GetUtcNow().UtcDateTime;
 
         foreach (ShiftReminderPolicy policy in policies)
@@ -85,34 +81,23 @@ internal class ShiftReminderPolicyTriggeredHandler(
         }
     }
 
-    private static bool TryGetOccurrenceStart(Shift shift, DateOnly date, out DateTime occurrenceStart)
+    private static DateTime GetOccurrenceStart(Shift shift, DateOnly date)
     {
-        occurrenceStart = default;
+        DateTime localOccurrenceStart = DateTime.SpecifyKind(date.ToDateTime(shift.StartTime), DateTimeKind.Unspecified);
 
         if (string.IsNullOrWhiteSpace(shift.TimeZone))
         {
-            return false;
+            return DateTime.SpecifyKind(localOccurrenceStart, DateTimeKind.Utc);
         }
-
-        DateTime localOccurrenceStart = DateTime.SpecifyKind(date.ToDateTime(shift.StartTime), DateTimeKind.Unspecified);
 
         try
         {
             TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(shift.TimeZone);
-            occurrenceStart = TimeZoneInfo.ConvertTimeToUtc(localOccurrenceStart, timeZone);
-            return true;
+            return TimeZoneInfo.ConvertTimeToUtc(localOccurrenceStart, timeZone);
         }
-        catch (TimeZoneNotFoundException)
+        catch (Exception ex) when (ex is TimeZoneNotFoundException or InvalidTimeZoneException or ArgumentException)
         {
-            return false;
-        }
-        catch (InvalidTimeZoneException)
-        {
-            return false;
-        }
-        catch (ArgumentException)
-        {
-            return false;
+            return DateTime.SpecifyKind(localOccurrenceStart, DateTimeKind.Utc);
         }
     }
 

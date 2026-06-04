@@ -31,9 +31,9 @@ internal static class OverviewMetadataParser
             if (document.RootElement.TryGetProperty("overviewUpdatedAt", out JsonElement updatedAtElement))
             {
                 if (updatedAtElement.ValueKind == JsonValueKind.String &&
-                    updatedAtElement.TryGetDateTime(out DateTime parsed))
+                    updatedAtElement.TryGetDateTimeOffset(out DateTimeOffset parsedOffset))
                 {
-                    updatedAt = parsed;
+                    updatedAt = parsedOffset.UtcDateTime;
                 }
                 else if (updatedAtElement.ValueKind == JsonValueKind.Number &&
                     updatedAtElement.TryGetInt64(out long epoch))

@@ -160,7 +160,7 @@ internal static class TaminPrescriptionMapper
     private static DateTime? GetDateTime(JsonElement element, string propertyName)
     {
         string? value = GetString(element, propertyName);
-        return DateTime.TryParse(value, out DateTime dt) ? dt : null;
+        return DateTimeOffset.TryParse(value, out DateTimeOffset parsedOffset) ? parsedOffset.UtcDateTime : null;
     }
 
     private static IEnumerable<JsonElement> EnumerateArray(JsonElement element) => element.ValueKind == JsonValueKind.Array
