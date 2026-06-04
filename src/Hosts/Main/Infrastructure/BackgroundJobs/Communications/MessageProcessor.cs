@@ -12,6 +12,7 @@ public class MessageProcessor(ILogger<MessageProcessor> logger, IMessagesService
 {
     public async Task ProcessSelfTests()
     {
+        return;
         try
         {
             string recipient = options.CurrentValue.StartupSmsRecipient;
