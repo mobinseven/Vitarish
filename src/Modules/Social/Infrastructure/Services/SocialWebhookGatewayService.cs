@@ -31,7 +31,7 @@ internal sealed class SocialWebhookGatewayService(
             RawBody = body,
             VerificationStatus = WebhookVerificationStatus.Pending,
             ProcessingStatus = WebhookProcessingStatus.Pending,
-            ReceivedAt = DateTimeOffset.UtcNow,
+            ReceivedAt = DateTime.UtcNow,
             IdempotencyKey = $"pending:{Guid.NewGuid():N}",
         };
 
@@ -73,7 +73,7 @@ internal sealed class SocialWebhookGatewayService(
         {
             rawEvent.VerificationStatus = WebhookVerificationStatus.Verified;
             rawEvent.ProcessingStatus = WebhookProcessingStatus.Processed;
-            rawEvent.ProcessedAt = DateTimeOffset.UtcNow;
+            rawEvent.ProcessedAt = DateTime.UtcNow;
             rawEvent.ProcessingError = "Duplicate webhook event ignored.";
             _ = await rawWebhookRepository.UpdateAsync(rawEvent, cancellationToken);
             return rawEvent.Id;

@@ -209,7 +209,7 @@ public class SmsDotIrProvider : ISmsProvider
         return metadata.Count == 0 ? null : metadata;
     }
 
-    private static DateTimeOffset? FromUnixTimeSeconds(long? value)
+    private static DateTime? FromUnixTimeSeconds(long? value)
     {
         if (!value.HasValue || value.Value <= 0)
         {
@@ -218,7 +218,7 @@ public class SmsDotIrProvider : ISmsProvider
 
         try
         {
-            return DateTimeOffset.FromUnixTimeSeconds(value.Value).ToLocalTime();
+            return DateTimeOffset.FromUnixTimeSeconds(value.Value).UtcDateTime;
         }
         catch (ArgumentOutOfRangeException)
         {

@@ -17,7 +17,7 @@ else if (batch is not null)
         <StackField Label="@batch.Status.ToString()" HelperText="@Localizer["Status"]" />
         @if (batch.ImportedAt is { } at)
         {
-            <StackField Label="@at.ToLocalTime().DateTime.ToString("g")" HelperText="@Localizer["ImportedAt"]" />
+            <StackField Label="@at.ToLocalTime().ToString("g")" HelperText="@Localizer["ImportedAt"]" />
         }
         @if (!string.IsNullOrWhiteSpace(batch.ImportedBy))
         {

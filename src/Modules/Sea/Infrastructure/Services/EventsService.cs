@@ -64,13 +64,13 @@ internal class EventsService(
         return (await UpdateAsync(en, cancellationToken)).GetValueOrDefault();
     }
 
-    public Task CommitAsync(Guid eventId, Guid reporterUserId, DateTimeOffset commitTime, CancellationToken cancellationToken)
+    public Task CommitAsync(Guid eventId, Guid reporterUserId, DateTime commitTime, CancellationToken cancellationToken)
         => Mediator.Send(new CommitEventCommand(eventId, reporterUserId, commitTime), cancellationToken);
 
     public Task<int> CommitAllByProcedureAsync(
         Guid procedureId,
         Guid reporterUserId,
-        DateTimeOffset commitTime,
+        DateTime commitTime,
         CancellationToken cancellationToken)
         => Mediator.Send(new CommitProcedureEventsCommand(procedureId, reporterUserId, commitTime), cancellationToken);
 

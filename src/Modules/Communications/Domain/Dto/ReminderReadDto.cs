@@ -21,10 +21,10 @@ public record ReminderReadDto : EntityReadDto
     public string TextBody { get; set; } = default!;
 
     [JsonPropertyName("remindAt")]
-    public DateTimeOffset RemindAt { get; set; }
+    public DateTime RemindAt { get; set; }
 
     [JsonPropertyName("sentAt")]
-    public DateTimeOffset? SentAt { get; set; }
+    public DateTime? SentAt { get; set; }
 
     [JsonPropertyName("isSent")]
     public bool IsSent { get; set; }

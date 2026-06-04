@@ -36,10 +36,10 @@ public sealed class ApiTransaction
     public long DurationMs { get; set; }
 
     /// <summary>When the call started.</summary>
-    public DateTimeOffset StartedAt { get; set; }
+    public DateTime StartedAt { get; set; }
 
     /// <summary>When the call completed (or timed out).</summary>
-    public DateTimeOffset? FinishedAt { get; set; }
+    public DateTime? FinishedAt { get; set; }
 
     /// <summary>Whether the call completed successfully.</summary>
     public bool Success { get; set; }

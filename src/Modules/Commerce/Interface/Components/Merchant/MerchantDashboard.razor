@@ -45,9 +45,9 @@
             CancellationToken.None).GetValueOrDefaultAsync() ?? [];
         _pendingFulfillment = pending.Count(order => order.FulfillmentStatus != FulfillmentStatus.Fulfilled);
 
-        DateTimeOffset now = DateTimeOffset.UtcNow;
-        DateTimeOffset dayStart = now.Date;
-        DateTimeOffset weekStart = now.Date.AddDays(-7);
+        DateTime now = DateTime.UtcNow;
+        DateTime dayStart = now.Date;
+        DateTime weekStart = now.Date.AddDays(-7);
 
         IReadOnlyList<OrderReadDto> todayOrders = await OrderService.GetListAsync(
             new OrderDescriptorDto { CreatedFrom = dayStart },

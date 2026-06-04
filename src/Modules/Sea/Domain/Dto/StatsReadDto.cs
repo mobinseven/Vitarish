@@ -24,6 +24,6 @@ public sealed class StatsReadDto
     public bool Unread { get; set; }
 
     [JsonPropertyName("lastUpdate")]
-    public DateTimeOffset? LastUpdate { get; set; }
+    public DateTime? LastUpdate { get; set; }
 }
 

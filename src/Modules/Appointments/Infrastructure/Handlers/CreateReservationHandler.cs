@@ -204,7 +204,7 @@ internal class CreateReservationHandler(
         Status = ReservationStatus.Pending,
         IsHold = request.IsHold,
         ExpiresAt = request.IsHold && request.HoldDuration.HasValue
-            ? DateTimeOffset.UtcNow.Add(request.HoldDuration.Value)
+            ? DateTime.UtcNow.Add(request.HoldDuration.Value)
             : null
     };
 

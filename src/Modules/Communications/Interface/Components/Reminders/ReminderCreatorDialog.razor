@@ -10,7 +10,7 @@
                     <MudRadio T="ReminderKind" Value="ReminderKind.Email" Label="@Localizer["Email"]" />
                 </MudRadioGroup>
             </StackField>
-            <StackDatePicker Label="@Localizer["Date"]" @bind-Date="remindDate" MinDate="@DateTime.Now.Date" />
+            <StackDatePicker Label="@Localizer["Date"]" @bind-Date="remindDate" MinDate="@DateTime.UtcNow.Date" />
             <StackTimePicker Label="@Localizer["Time"]" @bind-Time="remindTime" />
             <StackButton Label="@Localizer["Recipients"]" OnClick="AddRecipientAsync" Color="@(recipients.Count == 0 ? Color.Warning : Color.Default)">
                 @if(recipients.Count > 0)

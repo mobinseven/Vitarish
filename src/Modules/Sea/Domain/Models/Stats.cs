@@ -8,5 +8,5 @@ public sealed record Stats(
     int EventItems,
     int NewItems,
     bool Unread,
-    DateTimeOffset? LastUpdate);
+    DateTime? LastUpdate);
 

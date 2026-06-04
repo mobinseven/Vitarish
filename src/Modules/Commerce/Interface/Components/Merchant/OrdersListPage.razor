@@ -78,8 +78,8 @@ else
             OrderNumber = GetOrderNumberFilter(),
             Status = _statusFilter,
             Search = string.IsNullOrWhiteSpace(_customerFilter) ? null : _customerFilter,
-            CreatedFrom = _fromDate is null ? null : new DateTimeOffset(_fromDate.Value.Date, TimeSpan.Zero),
-            CreatedTo = _toDate is null ? null : new DateTimeOffset(_toDate.Value.Date.AddDays(1).AddTicks(-1), TimeSpan.Zero)
+            CreatedFrom = _fromDate is null ? null : DateTime.SpecifyKind(_fromDate.Value.Date, DateTimeKind.Local).ToUniversalTime(),
+            CreatedTo = _toDate is null ? null : DateTime.SpecifyKind(_toDate.Value.Date.AddDays(1).AddTicks(-1), DateTimeKind.Local).ToUniversalTime()
         };
 
         _orders = await OrderService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];

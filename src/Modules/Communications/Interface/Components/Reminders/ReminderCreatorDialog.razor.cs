@@ -8,9 +8,9 @@ public partial class ReminderCreatorDialog : RemindersBase
 
     private ReminderKind kind = ReminderKind.Sms;
     private List<ReminderRecipientReadDto> recipients = [];
-    private DateTime? remindDate = DateTime.Now.Date;
-    private TimeSpan? remindTime = DateTime.Now.ToLocalTime().TimeOfDay;
-    private DateTimeOffset RemindAt => new(remindDate!.Value.Date + remindTime!.Value, TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow));
+    private DateTime? remindDate = DateTime.UtcNow.Date;
+    private TimeSpan? remindTime = DateTime.UtcNow.TimeOfDay;
+    private DateTime RemindAt => DateTime.SpecifyKind(remindDate!.Value.Date + remindTime!.Value, DateTimeKind.Local).ToUniversalTime();
 
     private async Task SaveAsync()
     {

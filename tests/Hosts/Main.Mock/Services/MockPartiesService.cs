@@ -25,7 +25,7 @@ public sealed class MockPartiesService : IPartiesService
             Name = dto.Name,
             LogoUrl = dto.LogoUrl,
             Description = dto.Description,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTime.UtcNow
         };
         owners[owner.Id] = owner;
         return Task.FromResult<OwnerReadDto?>(owner);
@@ -43,7 +43,7 @@ public sealed class MockPartiesService : IPartiesService
             Name = dto.Name,
             LogoUrl = dto.LogoUrl,
             Description = dto.Description,
-            UpdatedAt = DateTimeOffset.UtcNow
+            UpdatedAt = DateTime.UtcNow
         };
         owners[dto.Id] = updatedOwner;
         return Task.FromResult<OwnerReadDto?>(updatedOwner);
@@ -76,7 +76,7 @@ public sealed class MockPartiesService : IPartiesService
             Description = dto.Description,
             AppId = dto.AppId,
             Metadata = dto.Metadata,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTime.UtcNow
         };
         tenants[tenant.Id] = tenant;
         return Task.FromResult<TenantReadDto?>(tenant);
@@ -97,7 +97,7 @@ public sealed class MockPartiesService : IPartiesService
             Description = dto.Description,
             AppId = dto.AppId,
             Metadata = dto.Metadata,
-            UpdatedAt = DateTimeOffset.UtcNow
+            UpdatedAt = DateTime.UtcNow
         };
         tenants[dto.Id] = updatedTenant;
         return Task.FromResult<TenantReadDto?>(updatedTenant);
@@ -131,7 +131,7 @@ public sealed class MockPartiesService : IPartiesService
             Verification = dto.Verification,
             VerifiedAt = dto.VerifiedAt,
             LastCheckedAt = dto.LastCheckedAt,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTime.UtcNow
         };
         indicators[indicator.Id] = indicator;
         return Task.FromResult<TenantIndicatorReadDto?>(indicator);
@@ -154,7 +154,7 @@ public sealed class MockPartiesService : IPartiesService
             Verification = dto.Verification,
             VerifiedAt = dto.VerifiedAt,
             LastCheckedAt = dto.LastCheckedAt,
-            UpdatedAt = DateTimeOffset.UtcNow
+            UpdatedAt = DateTime.UtcNow
         };
         indicators[dto.Id] = updatedIndicator;
         return Task.FromResult<TenantIndicatorReadDto?>(updatedIndicator);

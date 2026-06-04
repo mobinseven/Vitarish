@@ -10,7 +10,7 @@ public sealed class SmsSendResultTests
     {
         // Arrange
         Guid packId = Guid.NewGuid();
-        DateTimeOffset submittedAt = DateTimeOffset.UtcNow;
+        DateTime submittedAt = DateTime.UtcNow;
         string[] relatedIds = ["1", "2", "3"];
         Dictionary<string, string?> metadata = new() { ["key1"] = "value1", ["key2"] = null };
 

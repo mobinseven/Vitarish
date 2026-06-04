@@ -15,10 +15,10 @@ public record EventDescriptorDto : EntityDescriptorDto
     public Guid? CommittedBy { get; init; }
 
     [JsonPropertyName("committedFrom")]
-    public DateTimeOffset? CommittedFrom { get; init; }
+    public DateTime? CommittedFrom { get; init; }
 
     [JsonPropertyName("committedTo")]
-    public DateTimeOffset? CommittedTo { get; init; }
+    public DateTime? CommittedTo { get; init; }
 
     [JsonPropertyName("isCommitted")]
     public bool? IsCommitted { get; init; }

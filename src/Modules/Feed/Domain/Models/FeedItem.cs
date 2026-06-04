@@ -34,7 +34,7 @@ public record FeedItem
     /// <summary>
     /// Timestamp when this item was created or last updated
     /// </summary>
-    public required DateTimeOffset Timestamp { get; init; }
+    public required DateTime Timestamp { get; init; }
 
     /// <summary>
     /// Type/category of the item (e.g., "attachment", "project", "event")

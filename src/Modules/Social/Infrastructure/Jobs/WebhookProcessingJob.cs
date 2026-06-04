@@ -54,7 +54,7 @@ internal sealed class WebhookProcessingJob(
 
             rawEvent.ProcessingStatus = WebhookProcessingStatus.Processed;
             rawEvent.ProcessingError = null;
-            rawEvent.ProcessedAt = DateTimeOffset.UtcNow;
+            rawEvent.ProcessedAt = DateTime.UtcNow;
             _ = await rawWebhookRepository.UpdateAsync(rawEvent, cancellationToken);
         }
         catch (Exception ex)
@@ -67,7 +67,7 @@ internal sealed class WebhookProcessingJob(
             if (rawEvent.RetryCount >= 3)
             {
                 rawEvent.ProcessingStatus = WebhookProcessingStatus.DeadLetter;
-                rawEvent.ProcessedAt = DateTimeOffset.UtcNow;
+                rawEvent.ProcessedAt = DateTime.UtcNow;
                 _ = await rawWebhookRepository.UpdateAsync(rawEvent, cancellationToken);
                 return;
             }

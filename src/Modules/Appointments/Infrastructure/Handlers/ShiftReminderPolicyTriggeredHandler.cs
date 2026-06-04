@@ -37,8 +37,8 @@ internal class ShiftReminderPolicyTriggeredHandler(
             return;
         }
 
-        DateTimeOffset occurrenceStart = new(notification.Date.ToDateTime(shift.StartTime), TimeSpan.Zero);
-        DateTimeOffset now = _timeProvider.GetUtcNow();
+        DateTime occurrenceStart = notification.Date.ToDateTime(shift.StartTime);
+        DateTime now = _timeProvider.GetUtcNow().UtcDateTime;
 
         foreach (ShiftReminderPolicy policy in policies)
         {
@@ -47,7 +47,7 @@ internal class ShiftReminderPolicyTriggeredHandler(
                 continue;
             }
 
-            DateTimeOffset remindAt = occurrenceStart - policy.OffsetBefore;
+            DateTime remindAt = occurrenceStart - policy.OffsetBefore;
             if (remindAt <= now)
             {
                 continue;
@@ -97,7 +97,7 @@ internal class ShiftReminderPolicyTriggeredHandler(
             };
     }
 
-    private static string RenderTemplate(string template, DateTimeOffset occurrenceStart)
+    private static string RenderTemplate(string template, DateTime occurrenceStart)
         => template.Replace("{{OccurrenceStart}}", occurrenceStart.ToString("f"), StringComparison.Ordinal);
 }
 

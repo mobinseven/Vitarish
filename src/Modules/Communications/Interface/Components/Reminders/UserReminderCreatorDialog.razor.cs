@@ -7,9 +7,9 @@ public partial class UserReminderCreatorDialog : RemindersBase
     [Parameter, EditorRequired] public Guid SourceId { get; set; }
 
     private ReminderKind kind = ReminderKind.Sms;
-    private DateTime? remindDate = DateTime.Now.Date;
-    private TimeSpan? remindTime = DateTime.Now.TimeOfDay;
-    private DateTimeOffset RemindAt => new(remindDate!.Value.Date + remindTime!.Value, TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow));
+    private DateTime? remindDate = DateTime.UtcNow.Date;
+    private TimeSpan? remindTime = DateTime.UtcNow.TimeOfDay;
+    private DateTime RemindAt => DateTime.SpecifyKind(remindDate!.Value.Date + remindTime!.Value, DateTimeKind.Local).ToUniversalTime();
 
     protected override async Task OnInitializedAsync()
     {

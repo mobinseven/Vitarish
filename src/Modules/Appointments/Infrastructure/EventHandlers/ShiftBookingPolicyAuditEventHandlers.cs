@@ -27,7 +27,7 @@ internal sealed class ShiftBookingPolicyAuditEventHandlers(IAuditWriter auditWri
                 ActorId = requestContext.UserId,
                 EntityType = nameof(ShiftBookingPolicy),
                 EntityId = policyId,
-                OccurredAt = DateTimeOffset.UtcNow,
+                OccurredAt = DateTime.UtcNow,
                 TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.")
             },
             cancellationToken);

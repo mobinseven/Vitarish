@@ -25,7 +25,7 @@ public sealed class PrescriptionRecord
     public EligibilityStatus? LastEligibilityStatus { get; set; }
 
     /// <summary>When the last eligibility check was performed.</summary>
-    public DateTimeOffset? LastEligibilityCheckedAt { get; set; }
+    public DateTime? LastEligibilityCheckedAt { get; set; }
 
     /// <summary>Reason for cancellation (when status transitions to Cancelled).</summary>
     public string? CancellationReason { get; set; }
@@ -39,10 +39,10 @@ public sealed class PrescriptionRecord
     /// <summary>Notes from support reconciliation actions.</summary>
     public string? ReconciliationNotes { get; set; }
 
-    public DateTimeOffset CreatedAt { get; set; }
-    public DateTimeOffset? SubmittedAt { get; set; }
-    public DateTimeOffset? UpdatedAt { get; set; }
-    public DateTimeOffset? DeletedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? SubmittedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
+    public DateTime? DeletedAt { get; set; }
 
     /// <summary>Tenant context for multi-tenant isolation.</summary>
     public string TenantId { get; set; } = string.Empty;
@@ -62,7 +62,7 @@ public sealed class PrescriptionRecord
         }
 
         Status = newStatus;
-        UpdatedAt = DateTimeOffset.UtcNow;
+        UpdatedAt = DateTime.UtcNow;
     }
 
     /// <summary>

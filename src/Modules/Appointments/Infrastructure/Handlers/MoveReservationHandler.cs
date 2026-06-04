@@ -53,7 +53,7 @@ internal class MoveReservationHandler(
             DateOnly fromDate = original.Date;
 
             original.Status = ReservationStatus.Cancelled;
-            original.CancelledAt = DateTimeOffset.UtcNow;
+            original.CancelledAt = DateTime.UtcNow;
 
             string? tenantId = requestContext.TenantId;
             ShiftReservationLock? lockEntry = tenantId is not null

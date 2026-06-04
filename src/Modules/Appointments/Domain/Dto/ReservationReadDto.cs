@@ -7,8 +7,8 @@ public record ReservationReadDto : EntityReadDto
     public DateOnly Date { get; set; }
     public string? ReservingPartyId { get; set; }
     public TimeSpan? EstimatedSessionLength { get; set; }
-    public DateTimeOffset? ConfirmedAt { get; set; }
-    public DateTimeOffset? CancelledAt { get; set; }
+    public DateTime? ConfirmedAt { get; set; }
+    public DateTime? CancelledAt { get; set; }
     public bool IsHold { get; set; }
-    public DateTimeOffset? ExpiresAt { get; set; }
+    public DateTime? ExpiresAt { get; set; }
 }

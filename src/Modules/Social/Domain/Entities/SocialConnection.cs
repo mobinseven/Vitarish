@@ -20,7 +20,7 @@ public class SocialConnection : Entity
         set => SetField(ref field, value, nameof(WebhookSecret));
     } = string.Empty;
 
-    public DateTimeOffset? WebhookVerifiedAt
+    public DateTime? WebhookVerifiedAt
     {
         get;
         set => SetField(ref field, value, nameof(WebhookVerifiedAt));

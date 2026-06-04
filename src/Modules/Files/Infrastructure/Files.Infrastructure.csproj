@@ -15,5 +15,6 @@
 	<ItemGroup>
 		<ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
 		<ProjectReference Include="..\Application\Files.Application.csproj" />
-	</ItemGroup>
+	  <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
+  </ItemGroup>
 </Project>

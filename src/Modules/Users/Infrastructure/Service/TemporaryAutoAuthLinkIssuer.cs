@@ -40,8 +40,8 @@ public sealed class TemporaryAutoAuthLinkIssuer(
 
         string rawCode = TemporaryAutoAuthLinkSecurity.GenerateRawCode();
         string codeHash = TemporaryAutoAuthLinkSecurity.ComputeCodeHash(rawCode, options.Value);
-        DateTimeOffset createdAt = (timeProvider ?? TimeProvider.System).GetUtcNow();
-        DateTimeOffset expiresAt = createdAt.AddMinutes(purposeOptions.LifetimeMinutes);
+        DateTime createdAt = (timeProvider ?? TimeProvider.System).GetUtcNow().UtcDateTime;
+        DateTime expiresAt = createdAt.AddMinutes(purposeOptions.LifetimeMinutes);
 
         TemporaryAutoAuthLink entity = TemporaryAutoAuthLink.Create(
             Guid.NewGuid(),

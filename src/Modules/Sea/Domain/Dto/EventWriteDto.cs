@@ -7,6 +7,6 @@ public record EventWriteDto : EntityWriteDto
     public string? Title { get; set; }
     public string? Description { get; set; }
     public Guid? PreviousEventId { get; set; }
-    public DateTimeOffset? CommittedAt { get; set; }
+    public DateTime? CommittedAt { get; set; }
     public Guid CommittedBy { get; set; }
 }

@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Entities.Server.Infrastructure;
 
 namespace Vitarish.Files.Infrastructure.Data;
 
@@ -67,6 +68,7 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.ConfigureUtcDateTimeColumns();
         _ = modelBuilder.HasDefaultSchema(nameof(Files));
 
         // Configure Finbuckle multi-tenant entities
@@ -91,7 +93,7 @@ public sealed class FilesDbContext : DbContext, IMultiTenantDbContext
         // Apply soft-delete filter and tenant filter with special RootTenant behavior
         // Note: Files module allows RootTenant to access all files across tenants
         _ = entityBuilder.HasQueryFilter(e =>
-            EF.Property<DateTimeOffset?>(e, "DeletedAt") == null &&
+            EF.Property<DateTime?>(e, "DeletedAt") == null &&
             (TenantInfo!.Id == TenantDefaults.RootTenant ||
              e.TenantId == TenantInfo.Id));
 

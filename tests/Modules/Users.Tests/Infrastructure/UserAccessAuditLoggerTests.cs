@@ -11,7 +11,7 @@ public class UserAccessAuditLoggerTests
     {
         TestLogger<UserAccessAuditLogger> logger = new();
         UserAccessAuditLogger auditLogger = new(logger);
-        UserAccessAuditEntry entry = new(DateTimeOffset.UtcNow, "admin-1", "owner-1", "user-1", "client-1", "access");
+        UserAccessAuditEntry entry = new(DateTime.UtcNow, "admin-1", "owner-1", "user-1", "client-1", "access");
 
         await auditLogger.LogAsync(entry, CancellationToken.None);
 

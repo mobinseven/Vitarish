@@ -30,8 +30,8 @@ public sealed class PrescriptionProviderSubmission
     /// <summary>Submission version (increments with each edit/resubmit).</summary>
     public int SubmissionVersion { get; set; } = 1;
 
-    public DateTimeOffset SubmittedAt { get; set; }
-    public DateTimeOffset? LastSyncedAt { get; set; }
+    public DateTime SubmittedAt { get; set; }
+    public DateTime? LastSyncedAt { get; set; }
 
     /// <summary>Canonical status derived from provider response.</summary>
     public PrescriptionStatus CanonicalStatus { get; set; }

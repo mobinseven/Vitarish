@@ -20,11 +20,11 @@ public class RawWebhookEvent : Entity
         set => SetField(ref field, value, nameof(IdempotencyKey));
     } = string.Empty;
 
-    public DateTimeOffset ReceivedAt
+    public DateTime ReceivedAt
     {
         get;
         set => SetField(ref field, value, nameof(ReceivedAt));
-    } = DateTimeOffset.UtcNow;
+    } = DateTime.UtcNow;
 
     public string RawHeaders
     {
@@ -56,7 +56,7 @@ public class RawWebhookEvent : Entity
         set => SetField(ref field, value, nameof(ProcessingError));
     }
 
-    public DateTimeOffset? ProcessedAt
+    public DateTime? ProcessedAt
     {
         get;
         set => SetField(ref field, value, nameof(ProcessedAt));

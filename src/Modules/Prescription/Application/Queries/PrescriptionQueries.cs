@@ -16,8 +16,8 @@ public sealed record GetPrescriptionHistoryQuery : IRequest<IReadOnlyList<Prescr
     public Guid? ClinicId { get; init; }
     public PrescriptionStatus? StatusFilter { get; init; }
     public string? ProviderKeyFilter { get; init; }
-    public DateTimeOffset? FromDate { get; init; }
-    public DateTimeOffset? ToDate { get; init; }
+    public DateTime? FromDate { get; init; }
+    public DateTime? ToDate { get; init; }
     public int Skip { get; init; }
     public int Take { get; init; } = 20;
 }
@@ -46,8 +46,8 @@ public sealed record PrescriptionDto
     public string? SelectedProviderKey { get; init; }
     public PrescriptionStatus Status { get; init; }
     public int VersionNumber { get; init; }
-    public DateTimeOffset CreatedAt { get; init; }
-    public DateTimeOffset? SubmittedAt { get; init; }
+    public DateTime CreatedAt { get; init; }
+    public DateTime? SubmittedAt { get; init; }
     public string? TrackingCode { get; init; }
     public IReadOnlyList<PrescriptionItemDto> Items { get; init; } = [];
 }
@@ -70,8 +70,8 @@ public sealed record PrescriptionSummaryDto
     public PrescriptionStatus Status { get; init; }
     public string? SelectedProviderKey { get; init; }
     public int ItemCount { get; init; }
-    public DateTimeOffset CreatedAt { get; init; }
-    public DateTimeOffset? SubmittedAt { get; init; }
+    public DateTime CreatedAt { get; init; }
+    public DateTime? SubmittedAt { get; init; }
 }
 
 public sealed record EligibilityResultDto
@@ -81,7 +81,7 @@ public sealed record EligibilityResultDto
     public string? TrackingCode { get; init; }
     public string? CoverageIdentifier { get; init; }
     public string? ErrorMessage { get; init; }
-    public DateTimeOffset? ExpiresAt { get; init; }
+    public DateTime? ExpiresAt { get; init; }
 }
 
 public sealed record AvailableProviderDto

@@ -6,21 +6,61 @@ namespace Vitarish.Entities.Server.Infrastructure;
 
 public static class ModelBuilderExtensions
 {
-    public static ModelBuilder ConfigureEntityDateTimeOffsetConversions(this ModelBuilder modelBuilder)
+    private const string PostgreSqlUtcInstantColumnType = "timestamp with time zone";
+
+    private static readonly HashSet<string> UtcInstantPropertyNames =
+    [
+        nameof(Entity.CreatedAt),
+        nameof(Entity.UpdatedAt),
+        nameof(Entity.DeletedAt),
+        "OccurredAt",
+        "SubmittedAt",
+        "PublishedAt",
+        "ExpiresAt",
+        "TokenExpiresAt",
+        "LastAttemptAt",
+        "NextRetryAt",
+        "LastSyncedAt",
+        "LastEligibilityCheckedAt",
+        "LastTestedAt",
+        "LastUsedAt",
+        "RegisteredAt",
+        "ConsumedAt",
+        "RevokedAt",
+        "VerifiedAt",
+        "BookedAt",
+        "ReleasedAt",
+        "CancelledAt",
+        "CompletedAt",
+        "SentAt",
+        "DeliveredAt",
+        "DueAt",
+        "ScheduledAt",
+        "ProcessedAt",
+        "ReceivedAt",
+        "CapturedAt",
+        "EscalatedAt",
+        "ResolvedAt",
+        "DetectedAt",
+        "LastCallAt",
+        "LastOccurrence"
+    ];
+
+    private static readonly ValueConverter<DateTime, DateTime> UtcDateTimeConverter = new(
+        v => ToUtc(v),
+        v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
+
+    private static readonly ValueConverter<DateTime?, DateTime?> NullableUtcDateTimeConverter = new(
+        v => v.HasValue ? ToUtc(v.Value) : null,
+        v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : null);
+
+    public static ModelBuilder ConfigureUtcDateTimeColumns(this ModelBuilder modelBuilder)
     {
-        ValueConverter<DateTimeOffset, DateTime> dtoToUtc = new(
-            v => v.UtcDateTime,
-            v => DateTime.SpecifyKind(v, DateTimeKind.Utc));
-
-        ValueConverter<DateTimeOffset?, DateTime?> dtoNullableToUtc = new(
-            v => v.HasValue ? v.Value.UtcDateTime : null,
-            v => v.HasValue ? DateTime.SpecifyKind(v.Value, DateTimeKind.Utc) : (DateTime?)null);
-
-        foreach (IMutableEntityType? entityType in modelBuilder.Model.GetEntityTypes().Where(IsEntityType))
+        foreach (IMutableEntityType entityType in modelBuilder.Model.GetEntityTypes())
         {
             foreach (IMutableProperty property in entityType.GetProperties())
             {
-                ConfigureProperty(property, dtoToUtc, dtoNullableToUtc);
+                ConfigureUtcInstantProperty(property);
             }
         }
 
@@ -29,13 +69,13 @@ public static class ModelBuilderExtensions
 
     public static ModelBuilder ConfigureEntitySoftDeleteFilters(this ModelBuilder modelBuilder)
     {
-        foreach (IMutableEntityType? entityType in modelBuilder.Model.GetEntityTypes().Where(IsEntityType))
+        foreach (IMutableEntityType entityType in modelBuilder.Model.GetEntityTypes().Where(IsEntityType))
         {
             ParameterExpression parameter = Expression.Parameter(entityType.ClrType, "entity");
             MemberExpression deletedAtProperty = Expression.Property(parameter, nameof(Entity.DeletedAt));
             BinaryExpression notDeletedExpression = Expression.Equal(
                 deletedAtProperty,
-                Expression.Constant(null, typeof(DateTimeOffset?)));
+                Expression.Constant(null, typeof(DateTime?)));
 
             entityType.SetQueryFilter(
                 EntityQueryFilterNames.SoftDelete,
@@ -47,24 +87,35 @@ public static class ModelBuilderExtensions
 
     private static bool IsEntityType(IMutableEntityType entityType) => typeof(Entity).IsAssignableFrom(entityType.ClrType);
 
-    private static void ConfigureProperty(
-        IMutableProperty property,
-        ValueConverter<DateTimeOffset, DateTime> dtoToUtc,
-        ValueConverter<DateTimeOffset?, DateTime?> dtoNullableToUtc)
+    private static void ConfigureUtcInstantProperty(IMutableProperty property)
     {
+        if (!IsUtcInstantProperty(property))
+        {
+            return;
+        }
+
+        property.SetColumnType(PostgreSqlUtcInstantColumnType);
+
         if (property.GetValueConverter() is not null)
         {
             return;
         }
 
-        if (property.ClrType == typeof(DateTimeOffset))
+        if (property.ClrType == typeof(DateTime))
         {
-            property.SetValueConverter(dtoToUtc);
+            property.SetValueConverter(UtcDateTimeConverter);
         }
-        else if (property.ClrType == typeof(DateTimeOffset?))
+        else if (property.ClrType == typeof(DateTime?))
         {
-            property.SetValueConverter(dtoNullableToUtc);
+            property.SetValueConverter(NullableUtcDateTimeConverter);
         }
     }
 
+    private static bool IsUtcInstantProperty(IMutableProperty property) =>
+        (property.ClrType == typeof(DateTime) || property.ClrType == typeof(DateTime?)) &&
+        (UtcInstantPropertyNames.Contains(property.Name) || property.Name.EndsWith("At", StringComparison.Ordinal));
+
+    private static DateTime ToUtc(DateTime value) => value.Kind == DateTimeKind.Utc
+        ? value
+        : value.ToUniversalTime();
 }

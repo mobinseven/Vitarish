@@ -4,6 +4,7 @@ using Finbuckle.MultiTenant.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Entities.Server.Infrastructure;
 
 namespace Vitarish.Contents.Infrastructure.Data;
 
@@ -69,6 +70,7 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.ConfigureUtcDateTimeColumns();
         _ = modelBuilder.HasDefaultSchema(nameof(Contents));
 
         _ = modelBuilder.ConfigureMultiTenant();
@@ -230,7 +232,7 @@ public sealed class ContentsDbContext : DbContext, IMultiTenantDbContext
         EntityTypeBuilder<TEntity> entityBuilder = modelBuilder.Entity<TEntity>();
 
         _ = entityBuilder.HasQueryFilter(e =>
-            EF.Property<DateTimeOffset?>(e, nameof(Entity.DeletedAt)) == null);
+            EF.Property<DateTime?>(e, nameof(Entity.DeletedAt)) == null);
 
         _ = entityBuilder.IsMultiTenant();
     }

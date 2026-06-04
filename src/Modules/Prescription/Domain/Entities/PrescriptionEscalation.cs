@@ -13,6 +13,6 @@ public sealed class PrescriptionEscalation
     public required string Summary { get; set; }
     public string? ResolutionNotes { get; set; }
     public PrescriptionStatus StatusAtEscalation { get; set; }
-    public DateTimeOffset EscalatedAt { get; set; }
-    public DateTimeOffset? ResolvedAt { get; set; }
+    public DateTime EscalatedAt { get; set; }
+    public DateTime? ResolvedAt { get; set; }
 }

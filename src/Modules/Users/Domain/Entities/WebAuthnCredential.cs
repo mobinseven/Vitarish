@@ -67,12 +67,12 @@ public class WebAuthnCredential
     /// <summary>
     /// When this credential was registered.
     /// </summary>
-    public DateTimeOffset RegisteredAt { get; set; }
+    public DateTime RegisteredAt { get; set; }
 
     /// <summary>
     /// When this credential was last used for authentication.
     /// </summary>
-    public DateTimeOffset? LastUsedAt { get; set; }
+    public DateTime? LastUsedAt { get; set; }
 
     /// <summary>
     /// The transport methods supported by this credential (e.g., "usb", "nfc", "ble", "internal").

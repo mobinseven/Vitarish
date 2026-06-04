@@ -10,7 +10,7 @@ public abstract class Entity : INotifyPropertyChanged
         get;
         set;
     }
-    public DateTimeOffset CreatedAt
+    public DateTime CreatedAt
     {
         get;
         set => SetField(ref field, value, nameof(CreatedAt));
@@ -20,7 +20,7 @@ public abstract class Entity : INotifyPropertyChanged
         get;
         set => SetField(ref field, value, nameof(CreatedBy));
     }
-    public DateTimeOffset? UpdatedAt
+    public DateTime? UpdatedAt
     {
         get;
         set => SetField(ref field, value, nameof(UpdatedAt));
@@ -30,7 +30,7 @@ public abstract class Entity : INotifyPropertyChanged
         get;
         set => SetField(ref field, value, nameof(UpdatedBy));
     }
-    public DateTimeOffset? DeletedAt
+    public DateTime? DeletedAt
     {
         get;
         set => SetField(ref field, value, nameof(DeletedAt));

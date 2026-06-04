@@ -14,14 +14,14 @@ internal class AccessControlledEventsService(
     public async Task<EntityResult<IReadOnlyList<EventReadDto>>> AddAsync(IReadOnlyList<EventWriteDto> dtos, CancellationToken cancellationToken) => await IsAdmin() ? await Service.AddAsync(dtos, cancellationToken) : throw ElevatedAccessRequired;
     public async Task<EntityResult<EventReadDto>> AddOrUpdateAsync(EventWriteDto dto, CancellationToken cancellationToken) => await IsAdmin() ? await Service.AddOrUpdateAsync(dto, cancellationToken) : throw ElevatedAccessRequired;
     public async Task<EventSnapshot?> CaptureSnapshotAsync(Guid id, CancellationToken cancellationToken) => await CanReadEvent(id) ? await Service.CaptureSnapshotAsync(id, cancellationToken) : throw ReadRoleRequired;
-    public async Task<int> CommitAllByProcedureAsync(Guid procedureId, Guid reporterUserId, DateTimeOffset commitTime, CancellationToken cancellationToken) => await IsAdmin() ? await Service.CommitAllByProcedureAsync(procedureId, reporterUserId, commitTime, cancellationToken) : throw ElevatedAccessRequired;
+    public async Task<int> CommitAllByProcedureAsync(Guid procedureId, Guid reporterUserId, DateTime commitTime, CancellationToken cancellationToken) => await IsAdmin() ? await Service.CommitAllByProcedureAsync(procedureId, reporterUserId, commitTime, cancellationToken) : throw ElevatedAccessRequired;
     public async Task CommitAsync(Guid eventId, CancellationToken cancellationToken)
     {
         bool res = await CanWriteEvent(eventId);
 
         if (res)
         {
-            await Service.CommitAsync(eventId, UserId, DateTimeOffset.Now, cancellationToken);
+            await Service.CommitAsync(eventId, UserId, DateTime.UtcNow, cancellationToken);
         }
         else
         {
@@ -29,7 +29,7 @@ internal class AccessControlledEventsService(
         }
     }
 
-    public Task CommitAsync(Guid eventId, Guid reporterUserId, DateTimeOffset commitTime, CancellationToken cancellationToken) => throw new NotImplementedException();
+    public Task CommitAsync(Guid eventId, Guid reporterUserId, DateTime commitTime, CancellationToken cancellationToken) => throw new NotImplementedException();
     public Task<EntityResult<int>> CountAsync(EventDescriptorDto descriptor, CancellationToken cancellationToken) => Service.CountAsync(descriptor, cancellationToken);
     public async Task<EntityResult<EventReadDto>> GetAsync(Guid id, CancellationToken cancellationToken) => await CanReadEvent(id) ? await Service.GetAsync(id, cancellationToken) : throw ReadRoleRequired;
     public async Task<IReadOnlyList<EventReadDto>> GetByProcedureAsync(Guid procedureId, CancellationToken cancellationToken)

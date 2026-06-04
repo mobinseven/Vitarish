@@ -30,5 +30,5 @@ public sealed class PrescriptionItem
     public string? MetadataJson { get; set; }
 
     public int SortOrder { get; set; }
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

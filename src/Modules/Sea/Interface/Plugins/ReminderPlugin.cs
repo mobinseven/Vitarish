@@ -27,7 +27,7 @@ internal sealed class ReminderPlugin(IRemindersService remindersService) : IEven
 
         return [.. reminders
             .Select(reminder => new EventTimelineItem(
-                reminder.RemindAt.ToLocalTime().DateTime,
+                reminder.RemindAt.ToLocalTime(),
                 builder =>
                 {
                     builder.OpenComponent<ReminderDisplay>(0);

@@ -26,7 +26,7 @@
                 <MudText HtmlTag="p" Typo="Typo.caption" Class="py-1">@Localizer["Events"]: @Project.Stats.Events</MudText>
                 @if (Project.Stats.LastUpdate.HasValue)
                 {
-                    <MudText HtmlTag="p" Typo="Typo.caption" Class="py-1">@Localizer["LastUpdate"]: @Project.Stats.LastUpdate.Value.ToLocalTime().DateTime.ToShortDateString()</MudText>
+                    <MudText HtmlTag="p" Typo="Typo.caption" Class="py-1">@Localizer["LastUpdate"]: @Project.Stats.LastUpdate.Value.ToLocalTime().ToShortDateString()</MudText>
                 }
             }
             @if (!string.IsNullOrWhiteSpace(linkedUserId))

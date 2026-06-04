@@ -20,7 +20,7 @@ public class SocialConnectionToken : Entity
         set => SetField(ref field, value, nameof(RefreshToken));
     }
 
-    public DateTimeOffset? ExpiresAt
+    public DateTime? ExpiresAt
     {
         get;
         set => SetField(ref field, value, nameof(ExpiresAt));
@@ -32,7 +32,7 @@ public class SocialConnectionToken : Entity
         set => SetField(ref field, value, nameof(Scopes));
     } = string.Empty;
 
-    public DateTimeOffset? LastRefreshedAt
+    public DateTime? LastRefreshedAt
     {
         get;
         set => SetField(ref field, value, nameof(LastRefreshedAt));

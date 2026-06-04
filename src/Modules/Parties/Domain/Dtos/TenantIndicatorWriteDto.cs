@@ -15,6 +15,6 @@ public record TenantIndicatorWriteDto : EntityWriteDto
     public IndicatorStatus Status { get; set; }
     public bool IsPrimary { get; set; }
     public VerificationInfo? Verification { get; set; }
-    public DateTimeOffset? VerifiedAt { get; set; }
-    public DateTimeOffset? LastCheckedAt { get; set; }
+    public DateTime? VerifiedAt { get; set; }
+    public DateTime? LastCheckedAt { get; set; }
 }

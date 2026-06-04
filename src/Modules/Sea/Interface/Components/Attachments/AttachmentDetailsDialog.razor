@@ -11,7 +11,7 @@
         }
         else
         {
-            string created = $"{GetUserFullNameById(Attachment.CreatedBy)}\t{Attachment.CreatedAt.DateTime.ToShortDateString()} {Attachment.CreatedAt.DateTime.ToShortTimeString()}";
+            string created = $"{GetUserFullNameById(Attachment.CreatedBy)}\t{Attachment.CreatedAt.ToLocalTime().ToShortDateString()} {Attachment.CreatedAt.ToLocalTime().ToShortTimeString()}";
             <Stack>
                 
                 @if(Attachment.ContentType.StartsWith("text"))
@@ -57,7 +57,7 @@
                 <StackExpandable Label="@Localizer["Details"]">
                     @if(Attachment.UpdatedAt.HasValue)
                     {
-                        <StackField Label="@Localizer["UpdatedAt"]" HelperText="@Attachment.UpdatedAt.Value.DateTime.ToShortDateString()" />
+                        <StackField Label="@Localizer["UpdatedAt"]" HelperText="@Attachment.UpdatedAt.Value.ToLocalTime().ToShortDateString()" />
                     }
                     <StackField Label="@Localizer["ContentType"]" HelperText="@Attachment.ContentType" />
                 </StackExpandable>

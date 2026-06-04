@@ -15,7 +15,7 @@ internal class RemindersService(IMediator mediator) : EntityService<Reminder, Re
         IReadOnlyList<ReminderRecipientReadDto> recipients,
         string subject,
         string textBody,
-        DateTimeOffset remindAt,
+        DateTime remindAt,
         CancellationToken cancellationToken)
     {
         List<Reminder> reminders = [
@@ -43,7 +43,7 @@ internal class RemindersService(IMediator mediator) : EntityService<Reminder, Re
         string recipient,
         string subject,
         string textBody,
-        DateTimeOffset remindAt,
+        DateTime remindAt,
         CancellationToken cancellationToken)
     {
         Reminder? reminder = (await GetEntityAsync(
@@ -71,9 +71,9 @@ internal class RemindersService(IMediator mediator) : EntityService<Reminder, Re
                 new ReminderDescriptor { SourceId = sourceId },
                 cancellationToken)).EnsureValue("Get reminders by source");
 
-    public async Task<IReadOnlyList<ReminderReadDto>> GetDueAsync(DateTimeOffset now, CancellationToken cancellationToken) => (await GetListAsync(
+    public async Task<IReadOnlyList<ReminderReadDto>> GetDueAsync(DateTime now, CancellationToken cancellationToken) => (await GetListAsync(
                 new ReminderDescriptor { RemindTo = now, IsSent = false },
                 cancellationToken)).EnsureValue("Get due reminders");
 
-    public async Task MarkSentAsync(Guid id, DateTimeOffset sentAt, CancellationToken cancellationToken) => await Mediator.Send(new MarkReminderSentCommand(id, sentAt), cancellationToken);
+    public async Task MarkSentAsync(Guid id, DateTime sentAt, CancellationToken cancellationToken) => await Mediator.Send(new MarkReminderSentCommand(id, sentAt), cancellationToken);
 }

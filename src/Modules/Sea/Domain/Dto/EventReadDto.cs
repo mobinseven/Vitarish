@@ -12,7 +12,7 @@ public record EventReadDto : EntityReadDto
     public Guid? PreviousEventId { get; set; }
 
     [JsonPropertyName("committedAt")]
-    public DateTimeOffset? CommittedAt { get; set; }
+    public DateTime? CommittedAt { get; set; }
 
     [JsonPropertyName("committedBy")]
     public Guid CommittedBy { get; set; }

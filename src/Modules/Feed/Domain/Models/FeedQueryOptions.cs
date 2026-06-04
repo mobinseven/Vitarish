@@ -28,12 +28,12 @@ public record FeedQueryOptions
     /// <summary>
     /// Only include items after this timestamp
     /// </summary>
-    public DateTimeOffset? After { get; init; }
+    public DateTime? After { get; init; }
 
     /// <summary>
     /// Only include items before this timestamp
     /// </summary>
-    public DateTimeOffset? Before { get; init; }
+    public DateTime? Before { get; init; }
 
     /// <summary>
     /// Tenant ID for multi-tenant filtering (null = current tenant)

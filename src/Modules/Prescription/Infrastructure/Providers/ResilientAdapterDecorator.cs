@@ -265,7 +265,7 @@ public sealed class ResilientAdapterDecorator(
         ProviderKey = ProviderKey,
         OperationName = operationName,
         CorrelationId = correlationId,
-        StartedAt = DateTimeOffset.UtcNow
+        StartedAt = DateTime.UtcNow
     };
 
     private static TimeSpan CalculateBackoff(int attempt, ProviderResilienceOptions options)

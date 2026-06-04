@@ -4,6 +4,7 @@ using Finbuckle.MultiTenant.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Audit.Domain;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Entities.Server.Infrastructure;
 
 namespace Vitarish.Audit.Server;
 
@@ -52,6 +53,7 @@ public sealed class AuditDbContext : DbContext, IMultiTenantDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.ConfigureUtcDateTimeColumns();
         _ = modelBuilder.HasDefaultSchema(nameof(Audit));
 
         _ = modelBuilder.ConfigureMultiTenant();

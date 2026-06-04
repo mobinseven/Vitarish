@@ -18,9 +18,9 @@ public sealed class ImportBatch : Entity
 
     public string? ImportedBy { get; set; }
 
-    public DateTimeOffset? ImportedAt { get; set; }
+    public DateTime? ImportedAt { get; set; }
 
-    public DateTimeOffset? StartedAt { get; set; }
+    public DateTime? StartedAt { get; set; }
 
-    public DateTimeOffset? CompletedAt { get; set; }
+    public DateTime? CompletedAt { get; set; }
 }

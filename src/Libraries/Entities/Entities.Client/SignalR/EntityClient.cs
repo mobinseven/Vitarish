@@ -9,7 +9,7 @@ namespace Vitarish.Entities.Client.SignalR;
 public sealed record EntityInterceptionConfig
 {
     public string? UserId { get; init; }
-    public DateTimeOffset? Time { get; init; }
+    public DateTime? Time { get; init; }
 }
 
 public delegate void EntityNotificationHandler(object? sender, EntityNotification dto);

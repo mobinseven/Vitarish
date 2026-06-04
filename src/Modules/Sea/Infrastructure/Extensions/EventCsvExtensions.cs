@@ -34,4 +34,4 @@ public record EventCsvItem(
     string ProcedureName,
     string Title,
     string Description,
-    DateTimeOffset? CommittedAt);
+    DateTime? CommittedAt);

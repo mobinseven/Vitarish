@@ -9,7 +9,7 @@ public interface IRemindersService : IEntityService<ReminderReadDto, ReminderWri
         IReadOnlyList<ReminderRecipientReadDto> recipients,
         string subject,
         string textBody,
-        DateTimeOffset remindAt,
+        DateTime remindAt,
         CancellationToken cancellationToken);
 
     Task<ReminderReadDto?> UpdateAsync(
@@ -19,12 +19,12 @@ public interface IRemindersService : IEntityService<ReminderReadDto, ReminderWri
         string recipient,
         string subject,
         string textBody,
-        DateTimeOffset remindAt,
+        DateTime remindAt,
         CancellationToken cancellationToken);
 
     Task<IReadOnlyList<ReminderReadDto>> GetBySourceAsync(Guid sourceId, CancellationToken cancellationToken);
 
-    Task<IReadOnlyList<ReminderReadDto>> GetDueAsync(DateTimeOffset now, CancellationToken cancellationToken);
+    Task<IReadOnlyList<ReminderReadDto>> GetDueAsync(DateTime now, CancellationToken cancellationToken);
 
-    Task MarkSentAsync(Guid id, DateTimeOffset sentAt, CancellationToken cancellationToken);
+    Task MarkSentAsync(Guid id, DateTime sentAt, CancellationToken cancellationToken);
 }

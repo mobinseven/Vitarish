@@ -13,8 +13,8 @@ public record ShiftReservationReadDto
     public bool IsClosed { get; set; }
 
     [JsonIgnore]
-    public DateTimeOffset SlotStart => new(Date.ToDateTime(StartTime), TimeSpan.Zero);
+    public DateTime SlotStart => Date.ToDateTime(StartTime);
 
     [JsonIgnore]
-    public DateTimeOffset SlotEnd => new(Date.ToDateTime(EndTime), TimeSpan.Zero);
+    public DateTime SlotEnd => Date.ToDateTime(EndTime);
 }

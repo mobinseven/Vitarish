@@ -49,7 +49,7 @@ public sealed class FinancialDomainRulesTests
             AmountMinorUnits = 100
         });
 
-        entry.Post(DateTimeOffset.UtcNow);
+        entry.Post(DateTime.UtcNow);
         Action act = () => entry.VoidDraft();
 
         act.Should().Throw<InvalidOperationException>();

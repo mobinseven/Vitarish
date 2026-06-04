@@ -29,11 +29,11 @@ public class TemporaryAutoAuthLink
     [MaxLength(100)]
     public string Purpose { get; private set; } = string.Empty;
 
-    public DateTimeOffset ExpiresAt { get; private set; }
+    public DateTime ExpiresAt { get; private set; }
 
-    public DateTimeOffset? ConsumedAt { get; private set; }
+    public DateTime? ConsumedAt { get; private set; }
 
-    public DateTimeOffset CreatedAt { get; private set; }
+    public DateTime CreatedAt { get; private set; }
 
     [MaxLength(200)]
     public string? CreatedByDeviceHint { get; private set; }
@@ -50,8 +50,8 @@ public class TemporaryAutoAuthLink
         string userId,
         string destinationPath,
         string purpose,
-        DateTimeOffset createdAt,
-        DateTimeOffset expiresAt,
+        DateTime createdAt,
+        DateTime expiresAt,
         string? createdByDeviceHint = null)
     {
         ValidateRequired(codeHash, nameof(codeHash));
@@ -73,7 +73,7 @@ public class TemporaryAutoAuthLink
             };
     }
 
-    public void MarkConsumed(DateTimeOffset consumedAt, string? consumedByIp, string? consumedByUserAgent)
+    public void MarkConsumed(DateTime consumedAt, string? consumedByIp, string? consumedByUserAgent)
     {
         if (ConsumedAt.HasValue)
         {

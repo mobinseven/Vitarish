@@ -110,7 +110,7 @@ internal static class TaminPrescriptionMapper
         CoverageIdentifier = GetString(result, "insurance_number"),
         RawStatusCode = GetString(result, "status_code"),
         RawStatusMessage = GetString(result, "status_message"),
-        ExpiresAt = GetDateTimeOffset(result, "expires_at")
+        ExpiresAt = GetDateTime(result, "expires_at")
     };
 
     public static SubmissionResponse ToSubmissionResponse(JsonElement result, string? fallbackRemotePrescriptionId = null) => new()
@@ -157,10 +157,10 @@ internal static class TaminPrescriptionMapper
             ? prop.GetBoolean()
             : null;
 
-    private static DateTimeOffset? GetDateTimeOffset(JsonElement element, string propertyName)
+    private static DateTime? GetDateTime(JsonElement element, string propertyName)
     {
         string? value = GetString(element, propertyName);
-        return DateTimeOffset.TryParse(value, out DateTimeOffset dt) ? dt : null;
+        return DateTime.TryParse(value, out DateTime dt) ? dt : null;
     }
 
     private static IEnumerable<JsonElement> EnumerateArray(JsonElement element) => element.ValueKind == JsonValueKind.Array

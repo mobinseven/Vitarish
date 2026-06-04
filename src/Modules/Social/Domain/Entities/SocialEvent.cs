@@ -26,11 +26,11 @@ public class SocialEvent : Entity
         set => SetField(ref field, value, nameof(SchemaVersion));
     } = 1;
 
-    public DateTimeOffset OccurredAt
+    public DateTime OccurredAt
     {
         get;
         set => SetField(ref field, value, nameof(OccurredAt));
-    } = DateTimeOffset.UtcNow;
+    } = DateTime.UtcNow;
 
     public string NormalizedPayload
     {

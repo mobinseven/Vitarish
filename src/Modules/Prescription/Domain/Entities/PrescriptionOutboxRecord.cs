@@ -16,9 +16,9 @@ public sealed class PrescriptionOutboxRecord
     public string Status { get; set; } = "Pending";
     public int RetryCount { get; set; }
     public int MaxRetries { get; set; } = 3;
-    public DateTimeOffset CreatedAt { get; set; }
-    public DateTimeOffset? NextRetryAt { get; set; }
-    public DateTimeOffset? LastAttemptAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? NextRetryAt { get; set; }
+    public DateTime? LastAttemptAt { get; set; }
     public string? LastError { get; set; }
     public string TenantId { get; set; } = string.Empty;
 }

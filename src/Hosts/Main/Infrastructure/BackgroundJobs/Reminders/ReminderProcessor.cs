@@ -54,7 +54,7 @@ public class ReminderProcessor(
         TenantReminderContext tenantContext,
         CancellationToken shutdownToken)
     {
-        DateTimeOffset now = _timeProvider.GetUtcNow();
+        DateTime now = _timeProvider.GetUtcNow().UtcDateTime;
 
         IReadOnlyList<ReminderReadDto> due = await tenantContext.RemindersService.GetDueAsync(now, shutdownToken);
 
@@ -67,7 +67,7 @@ public class ReminderProcessor(
     private async Task ProcessReminderAsync(
         TenantReminderContext tenantContext,
         ReminderReadDto reminder,
-        DateTimeOffset now,
+        DateTime now,
         CancellationToken cancellationToken)
     {
         bool shouldSkipQuietHours = false;
@@ -146,7 +146,7 @@ public class ReminderProcessor(
     private async Task SendPreRenderedReminderAsync(
         TenantReminderContext tenantContext,
         ReminderReadDto reminder,
-        DateTimeOffset now,
+        DateTime now,
         CancellationToken cancellationToken)
     {
         switch (reminder.Kind)

@@ -58,7 +58,7 @@ internal class StatusCoordinator(
             ActorId = actorId,
             EntityType = nameof(Shift),
             EntityId = shiftId,
-            OccurredAt = DateTimeOffset.UtcNow,
+            OccurredAt = DateTime.UtcNow,
             TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.")
         }, cancellationToken);
 
@@ -84,13 +84,13 @@ internal class StatusCoordinator(
 
         if (newStatus == ReservationStatus.Confirmed)
         {
-            reservation.ConfirmedAt = DateTimeOffset.UtcNow;
+            reservation.ConfirmedAt = DateTime.UtcNow;
             reservation.IsHold = false;
             reservation.ExpiresAt = null;
         }
         else if (newStatus == ReservationStatus.Cancelled)
         {
-            reservation.CancelledAt = DateTimeOffset.UtcNow;
+            reservation.CancelledAt = DateTime.UtcNow;
         }
 
         _ = await reservationRepository.UpdateAsync(reservation, cancellationToken);
@@ -101,7 +101,7 @@ internal class StatusCoordinator(
             ActorId = actorId,
             EntityType = nameof(Reservation),
             EntityId = reservationId,
-            OccurredAt = DateTimeOffset.UtcNow,
+            OccurredAt = DateTime.UtcNow,
             TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.")
         }, cancellationToken);
 

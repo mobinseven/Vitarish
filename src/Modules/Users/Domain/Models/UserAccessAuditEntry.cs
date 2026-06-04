@@ -1,7 +1,7 @@
 namespace Vitarish.Users.Domain.Models;
 
 public sealed record UserAccessAuditEntry(
-    DateTimeOffset Timestamp,
+    DateTime Timestamp,
     string? AdminUserId,
     string? OwnerId,
     string TargetUserId,
