@@ -10,10 +10,6 @@ public static class WebApplicationBuilderExtensions
         _ = builder.Services.AddHttpContextAccessor();
         _ = builder.Services.AddCascadingAuthenticationState();
         _ = builder.Services.AddScoped<ReturnUrlManager>();
-        _ = builder.Services.AddOptions<VerificationSmsShieldOptions>()
-            .BindConfiguration(VerificationSmsShieldOptions.SectionName)
-            .ValidateDataAnnotations()
-            .ValidateOnStart();
         _ = builder.Services.AddSingleton(TimeProvider.System);
         _ = builder.Services.AddSingleton<IVerificationSmsRequestShield, InMemoryVerificationSmsRequestShield>();
         _ = builder.Services.AddScoped<IUserService, UserService>();
