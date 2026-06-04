@@ -16,7 +16,7 @@ public static class HostIdentityServerExtensions
         string domain = builder.Configuration[$"{ConfigSection}:Authority"] ?? throw new Exception($"{ConfigSection}:Authority not set");
         string pfxPassword = builder.Configuration[$"{ConfigSection}:DataProtectionPassword"] ?? throw new Exception($"{ConfigSection}:DataProtectionPassword not set");
         string redisConfig = builder.Configuration.GetConnectionString("Redis") ?? throw new InvalidOperationException("Redis connection string not configured.");
-        ConnectionMultiplexer redis = ConnectionMultiplexer.Connect(redisConfig);
+        ConnectionMultiplexer redis = await ConnectionMultiplexer.ConnectAsync(redisConfig);
         X509Certificate2 cert = await HostDataProtectionExtensions.GetOrCreateFromRedisAsync(redis, domain, pfxPassword);
         _ = builder.Services
             .AddIdentityServer(options =>

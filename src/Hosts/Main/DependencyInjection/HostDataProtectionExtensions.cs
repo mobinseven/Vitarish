@@ -13,7 +13,7 @@ public static class HostDataProtectionExtensions
     {
         string domain = configuration[$"{ConfigSection}:Authority"] ?? throw new Exception($"{ConfigSection}:Authority not set");
         string pfxPassword = configuration[$"{ConfigSection}:DataProtectionPassword"] ?? throw new Exception($"{ConfigSection}:DataProtectionPassword not set");
-        ConnectionMultiplexer redis = ConnectionMultiplexer.Connect(configuration.GetRedisConnectionString());
+        ConnectionMultiplexer redis = await ConnectionMultiplexer.ConnectAsync(configuration.GetRedisConnectionString());
         X509Certificate2 cert = await GetOrCreateFromRedisAsync(redis, domain, pfxPassword);
         _ = services
             .AddDataProtection()
