@@ -26,11 +26,11 @@ public sealed class LedgerEntry : Entity
 
     public Guid? ReversalOfEntryId { get; set; }
 
-    public DateTimeOffset? PostedAt { get; set; }
+    public DateTime? PostedAt { get; set; }
 
     public List<LedgerEntryLine> Lines { get; set; } = [];
 
-    public void Post(DateTimeOffset postedAt)
+    public void Post(DateTime postedAt)
     {
         if (State != LedgerEntryState.Draft)
         {

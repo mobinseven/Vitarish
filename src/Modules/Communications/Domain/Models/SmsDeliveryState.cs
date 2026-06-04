@@ -7,6 +7,6 @@ public sealed record SmsDeliveryState(
     [property: JsonPropertyName("status")] string? Status,
     [property: JsonPropertyName("messageText")] string? MessageText,
     [property: JsonPropertyName("cost")] decimal? Cost,
-    [property: JsonPropertyName("sentAt")] DateTimeOffset? SentAt,
-    [property: JsonPropertyName("deliveredAt")] DateTimeOffset? DeliveredAt,
+    [property: JsonPropertyName("sentAt")] DateTime? SentAt,
+    [property: JsonPropertyName("deliveredAt")] DateTime? DeliveredAt,
     [property: JsonPropertyName("metadata")] IReadOnlyDictionary<string, string?>? Metadata);

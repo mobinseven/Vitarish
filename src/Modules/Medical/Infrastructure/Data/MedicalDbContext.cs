@@ -1,3 +1,4 @@
+using Vitarish.Entities.Server.Infrastructure;
 namespace Vitarish.Medical.Infrastructure.Data;
 
 public sealed class MedicalDbContext(
@@ -24,6 +25,7 @@ public sealed class MedicalDbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.ConfigureUtcDateTimeColumns();
         _ = modelBuilder.HasDefaultSchema(nameof(Medical));
 
         ConfigureCodeSystem(modelBuilder);

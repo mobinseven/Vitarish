@@ -9,12 +9,12 @@ namespace Vitarish.Main.Infrastructure.Platform;
 /// </summary>
 internal sealed class LoggingApiTransactionLogger(ILogger<LoggingApiTransactionLogger> logger) : IExternalApiTransactionLogger
 {
-    private readonly ConcurrentDictionary<Guid, (ApiTransaction Transaction, DateTimeOffset StartedAt)> _pending = new();
+    private readonly ConcurrentDictionary<Guid, (ApiTransaction Transaction, DateTime StartedAt)> _pending = new();
 
     public Task<Guid> BeginTransactionAsync(ApiTransaction transaction, CancellationToken cancellationToken = default)
     {
         transaction.Id = transaction.Id == Guid.Empty ? Guid.NewGuid() : transaction.Id;
-        transaction.StartedAt = DateTimeOffset.UtcNow;
+        transaction.StartedAt = DateTime.UtcNow;
 
         _ = _pending.TryAdd(transaction.Id, (transaction, transaction.StartedAt));
 
@@ -33,11 +33,11 @@ internal sealed class LoggingApiTransactionLogger(ILogger<LoggingApiTransactionL
         string? errorCategory = null,
         CancellationToken cancellationToken = default)
     {
-        _ = _pending.TryRemove(transactionId, out (ApiTransaction Transaction, DateTimeOffset StartedAt) pending);
+        _ = _pending.TryRemove(transactionId, out (ApiTransaction Transaction, DateTime StartedAt) pending);
 
         long durationMs = pending.StartedAt == default
             ? 0
-            : (long)(DateTimeOffset.UtcNow - pending.StartedAt).TotalMilliseconds;
+            : (long)(DateTime.UtcNow - pending.StartedAt).TotalMilliseconds;
 
         if (success)
         {

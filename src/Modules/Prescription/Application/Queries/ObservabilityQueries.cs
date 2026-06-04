@@ -10,8 +10,8 @@ namespace Vitarish.Prescription.Application.Queries;
 public sealed record GetProviderTransactionMetricsQuery : IRequest<IReadOnlyList<ProviderTransactionMetricsDto>>
 {
     public string? ProviderKey { get; init; }
-    public DateTimeOffset? From { get; init; }
-    public DateTimeOffset? To { get; init; }
+    public DateTime? From { get; init; }
+    public DateTime? To { get; init; }
 }
 
 /// <summary>
@@ -20,8 +20,8 @@ public sealed record GetProviderTransactionMetricsQuery : IRequest<IReadOnlyList
 public sealed record GetRejectionDistributionQuery : IRequest<IReadOnlyList<RejectionDistributionDto>>
 {
     public string? ProviderKey { get; init; }
-    public DateTimeOffset? From { get; init; }
-    public DateTimeOffset? To { get; init; }
+    public DateTime? From { get; init; }
+    public DateTime? To { get; init; }
 }
 
 /// <summary>
@@ -49,8 +49,8 @@ public sealed record GetOperationalAlertsQuery : IRequest<IReadOnlyList<Operatio
 public sealed record GetPrescriptionStatusDistributionQuery : IRequest<IReadOnlyList<StatusDistributionDto>>
 {
     public string? ProviderKey { get; init; }
-    public DateTimeOffset? From { get; init; }
-    public DateTimeOffset? To { get; init; }
+    public DateTime? From { get; init; }
+    public DateTime? To { get; init; }
 }
 
 /// <summary>
@@ -59,8 +59,8 @@ public sealed record GetPrescriptionStatusDistributionQuery : IRequest<IReadOnly
 public sealed record GetDuplicateRiskIncidentsQuery : IRequest<DuplicateRiskIncidentsResult>
 {
     public string? ProviderKey { get; init; }
-    public DateTimeOffset? From { get; init; }
-    public DateTimeOffset? To { get; init; }
+    public DateTime? From { get; init; }
+    public DateTime? To { get; init; }
     public int Take { get; init; } = 20;
 }
 
@@ -78,7 +78,7 @@ public sealed record ProviderTransactionMetricsDto
     public long P95LatencyMs { get; init; }
     public long MaxLatencyMs { get; init; }
     public int TimeoutCount { get; init; }
-    public DateTimeOffset? LastCallAt { get; init; }
+    public DateTime? LastCallAt { get; init; }
 }
 
 public sealed record RejectionDistributionDto
@@ -87,7 +87,7 @@ public sealed record RejectionDistributionDto
     public string ErrorCategory { get; init; } = string.Empty;
     public int Count { get; init; }
     public double Percentage { get; init; }
-    public DateTimeOffset? LastOccurrence { get; init; }
+    public DateTime? LastOccurrence { get; init; }
 }
 
 public sealed record CredentialHealthResult
@@ -106,8 +106,8 @@ public sealed record CredentialHealthDto
     public Guid ClinicId { get; init; }
     public string ProviderKey { get; init; } = string.Empty;
     public CredentialStatus Status { get; init; }
-    public DateTimeOffset? ExpiresAt { get; init; }
-    public DateTimeOffset? TokenExpiresAt { get; init; }
+    public DateTime? ExpiresAt { get; init; }
+    public DateTime? TokenExpiresAt { get; init; }
     public int DaysUntilExpiry { get; init; }
     public bool IsExpiringSoon { get; init; }
 }
@@ -119,7 +119,7 @@ public sealed record OperationalAlertDto
     public required string Title { get; init; }
     public required string Description { get; init; }
     public string? ProviderKey { get; init; }
-    public DateTimeOffset DetectedAt { get; init; }
+    public DateTime DetectedAt { get; init; }
     public string? ActionUrl { get; init; }
 }
 
@@ -144,7 +144,7 @@ public sealed record DuplicateRiskIncidentDto
     public Guid PrescriptionId { get; init; }
     public string? ProviderKey { get; init; }
     public PrescriptionStatus CurrentStatus { get; init; }
-    public DateTimeOffset DetectedAt { get; init; }
-    public DateTimeOffset? ResolvedAt { get; init; }
+    public DateTime DetectedAt { get; init; }
+    public DateTime? ResolvedAt { get; init; }
     public string? ResolutionNotes { get; init; }
 }

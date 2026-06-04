@@ -30,7 +30,7 @@ public class QueryExtensionsTests
         Func<SoftDeleteEntity, bool> predicate = (Func<SoftDeleteEntity, bool>)predicateExpression!.Compile();
 
         Assert.True(predicate(new SoftDeleteEntity { DeletedAt = null }));
-        Assert.False(predicate(new SoftDeleteEntity { DeletedAt = DateTimeOffset.UtcNow }));
+        Assert.False(predicate(new SoftDeleteEntity { DeletedAt = DateTime.UtcNow }));
     }
 
     [Fact]
@@ -43,14 +43,14 @@ public class QueryExtensionsTests
         await using TestDbContext context = new(options);
 
         SoftDeleteEntity visible = new() { Name = "Visible" };
-        SoftDeleteEntity deleted = new() { Name = "Deleted", DeletedAt = DateTimeOffset.UtcNow };
+        SoftDeleteEntity deleted = new() { Name = "Deleted", DeletedAt = DateTime.UtcNow };
         SoftDeleteEntity hidden = new() { Name = "Hidden", IsHidden = true };
-        SoftDeleteEntity hiddenDeleted = new() { Name = "HiddenDeleted", IsHidden = true, DeletedAt = DateTimeOffset.UtcNow };
+        SoftDeleteEntity hiddenDeleted = new() { Name = "HiddenDeleted", IsHidden = true, DeletedAt = DateTime.UtcNow };
 
         context.Entities.AddRange(visible, deleted, hidden, hiddenDeleted);
         _ = await context.SaveChangesAsync();
 
-        EntityDescriptor descriptor = new() { DeletedFrom = DateTimeOffset.MinValue };
+        EntityDescriptor descriptor = new() { DeletedFrom = DateTime.MinValue };
 
         List<SoftDeleteEntity> result = await context.Entities
             .ApplyDescription(descriptor)

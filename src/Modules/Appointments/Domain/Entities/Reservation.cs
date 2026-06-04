@@ -32,13 +32,13 @@ public class Reservation : Entity
         set => SetField(ref field, value, nameof(EstimatedSessionLength));
     }
 
-    public DateTimeOffset? ConfirmedAt
+    public DateTime? ConfirmedAt
     {
         get;
         set => SetField(ref field, value, nameof(ConfirmedAt));
     }
 
-    public DateTimeOffset? CancelledAt
+    public DateTime? CancelledAt
     {
         get;
         set => SetField(ref field, value, nameof(CancelledAt));
@@ -50,7 +50,7 @@ public class Reservation : Entity
         set => SetField(ref field, value, nameof(IsHold));
     }
 
-    public DateTimeOffset? ExpiresAt
+    public DateTime? ExpiresAt
     {
         get;
         set => SetField(ref field, value, nameof(ExpiresAt));

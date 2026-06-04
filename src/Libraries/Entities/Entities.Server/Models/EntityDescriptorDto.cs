@@ -17,11 +17,11 @@ public record EntityDescriptorDto
 
     [JsonPropertyName("createdFrom")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? CreatedFrom { get; set; }
+    public DateTime? CreatedFrom { get; set; }
 
     [JsonPropertyName("createdTo")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? CreatedTo { get; set; }
+    public DateTime? CreatedTo { get; set; }
 
     [JsonPropertyName("createdBy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -29,11 +29,11 @@ public record EntityDescriptorDto
 
     [JsonPropertyName("updatedFrom")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? UpdatedFrom { get; set; }
+    public DateTime? UpdatedFrom { get; set; }
 
     [JsonPropertyName("updatedTo")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? UpdatedTo { get; set; }
+    public DateTime? UpdatedTo { get; set; }
 
     [JsonPropertyName("updatedBy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -41,11 +41,11 @@ public record EntityDescriptorDto
 
     [JsonPropertyName("deletedFrom")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? DeletedFrom { get; set; }
+    public DateTime? DeletedFrom { get; set; }
 
     [JsonPropertyName("deletedTo")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? DeletedTo { get; set; }
+    public DateTime? DeletedTo { get; set; }
 
     [JsonPropertyName("deletedBy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

@@ -86,7 +86,7 @@ public class TemporaryAutoAuthLinkServicesTests
         await using UsersDbContext context = CreateContext(nameof(RedeemAsync_RejectsExpiredLink));
         string rawCode = "raw-code";
         string codeHash = TemporaryAutoAuthLinkSecurity.ComputeCodeHash(rawCode, CreateOptions().Value);
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTime now = DateTime.UtcNow;
         _ = context.TemporaryAutoAuthLinks.Add(TemporaryAutoAuthLink.Create(
             Guid.NewGuid(),
             codeHash,
@@ -111,7 +111,7 @@ public class TemporaryAutoAuthLinkServicesTests
         await using UsersDbContext context = CreateContext(nameof(RedeemAsync_RejectsAlreadyConsumedLink));
         string rawCode = "raw-code";
         string codeHash = TemporaryAutoAuthLinkSecurity.ComputeCodeHash(rawCode, CreateOptions().Value);
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTime now = DateTime.UtcNow;
         TemporaryAutoAuthLink link = TemporaryAutoAuthLink.Create(
             Guid.NewGuid(),
             codeHash,
@@ -138,7 +138,7 @@ public class TemporaryAutoAuthLinkServicesTests
         await using UsersDbContext context = CreateContext(nameof(RedeemAsync_ConsumesValidLinkAndStoresClientData));
         string rawCode = "raw-code";
         string codeHash = TemporaryAutoAuthLinkSecurity.ComputeCodeHash(rawCode, CreateOptions().Value);
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTime now = DateTime.UtcNow;
         _ = context.TemporaryAutoAuthLinks.Add(TemporaryAutoAuthLink.Create(
             Guid.NewGuid(),
             codeHash,
@@ -173,7 +173,7 @@ public class TemporaryAutoAuthLinkServicesTests
         {
             string rawCode = "raw-code";
             string codeHash = TemporaryAutoAuthLinkSecurity.ComputeCodeHash(rawCode, CreateOptions().Value);
-            DateTimeOffset now = DateTimeOffset.UtcNow;
+            DateTime now = DateTime.UtcNow;
             _ = setupContext.TemporaryAutoAuthLinks.Add(TemporaryAutoAuthLink.Create(
                 Guid.NewGuid(),
                 codeHash,
@@ -215,7 +215,7 @@ public class TemporaryAutoAuthLinkServicesTests
     public async Task CleanupAsync_RemovesEligibleRecords()
     {
         await using UsersDbContext context = CreateContext(nameof(CleanupAsync_RemovesEligibleRecords));
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTime now = DateTime.UtcNow;
 
         TemporaryAutoAuthLink consumedOld = TemporaryAutoAuthLink.Create(
             Guid.NewGuid(),

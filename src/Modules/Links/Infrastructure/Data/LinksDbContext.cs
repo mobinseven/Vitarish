@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Vitarish.Entities.Server.Infrastructure;
 
 namespace Vitarish.Links.Infrastructure.Data;
 
@@ -24,6 +25,7 @@ public sealed class LinksDbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.ConfigureUtcDateTimeColumns();
         _ = modelBuilder.HasDefaultSchema(nameof(Links));
 
         _ = modelBuilder.Entity<Link>(entity =>

@@ -21,13 +21,13 @@ internal class UpdateReservationStatusHandler(
 
         if (request.Status == ReservationStatus.Confirmed)
         {
-            entity.ConfirmedAt = DateTimeOffset.UtcNow;
+            entity.ConfirmedAt = DateTime.UtcNow;
             entity.IsHold = false;
             entity.ExpiresAt = null;
         }
         else if (request.Status == ReservationStatus.Cancelled)
         {
-            entity.CancelledAt = DateTimeOffset.UtcNow;
+            entity.CancelledAt = DateTime.UtcNow;
         }
 
         _ = await repository.UpdateAsync(entity, cancellationToken);

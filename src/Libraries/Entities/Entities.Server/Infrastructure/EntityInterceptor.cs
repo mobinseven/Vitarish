@@ -22,7 +22,7 @@ public sealed class EntityInterceptor(
     {
         if (eventData.Context is DbContext context)
         {
-            DateTimeOffset now = timeService.Now;
+            DateTime now = timeService.Now;
             UpdateEntities(context, now, userService.UserId);
             CaptureChanges(context, now, userService.UserId);
             InvalidateCache(context, cacheInvalidationService);
@@ -38,7 +38,7 @@ public sealed class EntityInterceptor(
     {
         if (eventData.Context is DbContext context)
         {
-            DateTimeOffset now = timeService.Now;
+            DateTime now = timeService.Now;
             UpdateEntities(context, now, userService.UserId);
             CaptureChanges(context, now, userService.UserId);
             InvalidateCache(context, cacheInvalidationService);
@@ -99,7 +99,7 @@ public sealed class EntityInterceptor(
         await base.SaveChangesFailedAsync(eventData, cancellationToken);
     }
 
-    private static void UpdateEntities(DbContext context, DateTimeOffset now, string? actorId)
+    private static void UpdateEntities(DbContext context, DateTime now, string? actorId)
     {
         context.ChangeTracker.CascadeChanges();
 
@@ -135,7 +135,7 @@ public sealed class EntityInterceptor(
         }
     }
 
-    private void CaptureChanges(DbContext context, DateTimeOffset now, string? actorId)
+    private void CaptureChanges(DbContext context, DateTime now, string? actorId)
     {
         List<EntityNotification> notifications = [];
         List<AuditEntry> auditEntries = [];

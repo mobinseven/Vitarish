@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Text.Json;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Entities.Server.Infrastructure;
 
 namespace Vitarish.Commerce.Infrastructure.Data;
 
@@ -76,6 +77,7 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.ConfigureUtcDateTimeColumns();
         _ = modelBuilder.HasDefaultSchema(nameof(Commerce));
         _ = modelBuilder.ConfigureMultiTenant();
 
@@ -147,7 +149,7 @@ public class CommerceDbContext : DbContext, IMultiTenantDbContext
     {
         EntityTypeBuilder<TEntity> entityBuilder = modelBuilder.Entity<TEntity>();
         _ = entityBuilder.HasQueryFilter(e =>
-            EF.Property<DateTimeOffset?>(e, "DeletedAt") == null);
+            EF.Property<DateTime?>(e, "DeletedAt") == null);
         _ = entityBuilder.IsMultiTenant();
     }
 }

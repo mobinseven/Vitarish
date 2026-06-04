@@ -9,8 +9,8 @@ public record ContentItemDescriptor : EntityDescriptor
     public string? CanonicalPath { get; init; }
     public Guid? AuthorId { get; init; }
     public string? Locale { get; init; }
-    public DateTimeOffset? PublishedFrom { get; init; }
-    public DateTimeOffset? PublishedTo { get; init; }
+    public DateTime? PublishedFrom { get; init; }
+    public DateTime? PublishedTo { get; init; }
     public Guid? TermId { get; init; }
     public IReadOnlyList<Guid>? TermIds { get; init; }
 }

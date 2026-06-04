@@ -450,11 +450,11 @@ public sealed class AiResponderChatTurn
     private readonly List<ResponderInput> _inputs = [];
     private readonly StringBuilder _assistantTextBuilder = new();
 
-    internal AiResponderChatTurn(string userText, string? parentResponseId, IEnumerable<ResponderInput>? inputs = null, DateTimeOffset? createdAt = null)
+    internal AiResponderChatTurn(string userText, string? parentResponseId, IEnumerable<ResponderInput>? inputs = null, DateTime? createdAt = null)
     {
         UserText = userText;
         ParentResponseId = parentResponseId;
-        CreatedAt = createdAt ?? DateTimeOffset.UtcNow;
+        CreatedAt = createdAt ?? DateTime.UtcNow;
 
         if (inputs is not null)
         {
@@ -468,7 +468,7 @@ public sealed class AiResponderChatTurn
 
     public string? ResponseId { get; internal set; }
 
-    public DateTimeOffset CreatedAt { get; }
+    public DateTime CreatedAt { get; }
 
     public bool IsStreaming { get; internal set; }
     public bool NeedsApproval => _outputs.Any(o => o.Type == ResponderOutputType.McpApprovalRequest);

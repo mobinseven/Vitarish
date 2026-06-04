@@ -28,10 +28,10 @@ public class DomainEntityTests
             OwnerId = Guid.NewGuid(),
             Name = "Tenant",
             AppId = "client-id",
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTime.UtcNow
         };
 
-        Assert.InRange(DateTimeOffset.UtcNow.Subtract(tenant.CreatedAt), TimeSpan.Zero, TimeSpan.FromSeconds(5));
+        Assert.InRange(DateTime.UtcNow.Subtract(tenant.CreatedAt), TimeSpan.Zero, TimeSpan.FromSeconds(5));
     }
 
     [Fact]
@@ -41,10 +41,10 @@ public class DomainEntityTests
         {
             Id = Guid.NewGuid(),
             Name = "Owner",
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTime.UtcNow
         };
 
-        Assert.InRange(DateTimeOffset.UtcNow.Subtract(owner.CreatedAt), TimeSpan.Zero, TimeSpan.FromSeconds(5));
+        Assert.InRange(DateTime.UtcNow.Subtract(owner.CreatedAt), TimeSpan.Zero, TimeSpan.FromSeconds(5));
     }
 
     [Fact]
@@ -60,7 +60,7 @@ public class DomainEntityTests
 
         Assert.Null(indicator.Verification);
         Assert.False(indicator.IsPrimary);
-        Assert.InRange(DateTimeOffset.UtcNow.Subtract(indicator.CreatedAt), TimeSpan.Zero, TimeSpan.FromSeconds(5));
+        Assert.InRange(DateTime.UtcNow.Subtract(indicator.CreatedAt), TimeSpan.Zero, TimeSpan.FromSeconds(5));
     }
 
     [Fact]

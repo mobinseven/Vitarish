@@ -34,7 +34,7 @@ internal sealed class TokenVault(
                 RefreshToken = encryptedRefresh,
                 ExpiresAt = token.ExpiresAt,
                 Scopes = scopes,
-                LastRefreshedAt = DateTimeOffset.UtcNow,
+                LastRefreshedAt = DateTime.UtcNow,
             };
 
             _ = await tokenRepository.AddAsync(entity, cancellationToken);
@@ -45,12 +45,12 @@ internal sealed class TokenVault(
             existing.RefreshToken = encryptedRefresh;
             existing.ExpiresAt = token.ExpiresAt;
             existing.Scopes = scopes;
-            existing.LastRefreshedAt = DateTimeOffset.UtcNow;
+            existing.LastRefreshedAt = DateTime.UtcNow;
 
             _ = await tokenRepository.UpdateAsync(existing, cancellationToken);
         }
 
-        connection.Status = token.ExpiresAt is { } expiresAt && expiresAt <= DateTimeOffset.UtcNow
+        connection.Status = token.ExpiresAt is { } expiresAt && expiresAt <= DateTime.UtcNow
             ? SocialConnectionStatus.TokenExpired
             : SocialConnectionStatus.Active;
 

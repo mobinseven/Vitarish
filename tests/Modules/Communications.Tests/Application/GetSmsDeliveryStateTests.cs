@@ -12,8 +12,8 @@ public sealed class GetSmsDeliveryStateTests
             "موفق",
             "hello",
             1.2m,
-            DateTimeOffset.FromUnixTimeSeconds(1_628_683_626).ToLocalTime(),
-            DateTimeOffset.FromUnixTimeSeconds(1_628_683_629).ToLocalTime(),
+            DateTimeOffset.FromUnixTimeSeconds(1_628_683_626).UtcDateTime,
+            DateTimeOffset.FromUnixTimeSeconds(1_628_683_629).UtcDateTime,
             Metadata: new Dictionary<string, string?> { ["lineNumber"] = "30004505000017" });
         FakeMessagesService service = new()
         {

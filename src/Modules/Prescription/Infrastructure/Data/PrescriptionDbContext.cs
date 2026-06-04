@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Vitarish.Prescription.Domain.Entities;
+using Vitarish.Entities.Server.Infrastructure;
 
 namespace Vitarish.Prescription.Infrastructure.Data;
 
@@ -23,6 +24,7 @@ public sealed class PrescriptionDbContext(
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.ConfigureUtcDateTimeColumns();
         _ = modelBuilder.HasDefaultSchema(nameof(Prescription));
 
         ConfigureDoctorProviderCredential(modelBuilder);

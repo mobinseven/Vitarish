@@ -1,3 +1,4 @@
+using Vitarish.Entities.Server.Infrastructure;
 
 using Microsoft.EntityFrameworkCore;
 using System.Reflection.Emit;
@@ -12,6 +13,7 @@ public class RequestsDbContext(DbContextOptions<RequestsDbContext> options) : Db
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        _ = builder.ConfigureUtcDateTimeColumns();
         _ = builder.HasDefaultSchema(nameof(Requests));
         _ = builder.Entity<Request>(entity =>
         {

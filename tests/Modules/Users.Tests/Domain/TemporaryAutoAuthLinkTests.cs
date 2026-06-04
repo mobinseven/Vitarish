@@ -7,8 +7,8 @@ public class TemporaryAutoAuthLinkTests
     [Fact]
     public void Create_ValidLink_SetsExpectedValues()
     {
-        DateTimeOffset createdAt = DateTimeOffset.UtcNow;
-        DateTimeOffset expiresAt = createdAt.AddMinutes(10);
+        DateTime createdAt = DateTime.UtcNow;
+        DateTime expiresAt = createdAt.AddMinutes(10);
 
         TemporaryAutoAuthLink link = TemporaryAutoAuthLink.Create(
             Guid.NewGuid(),
@@ -40,8 +40,8 @@ public class TemporaryAutoAuthLinkTests
             "user-1",
             "/destination",
             "advanced-input-voice",
-            DateTimeOffset.UtcNow,
-            DateTimeOffset.UtcNow.AddMinutes(5));
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddMinutes(5));
 
         _ = action.Should().Throw<ArgumentException>();
     }
@@ -57,8 +57,8 @@ public class TemporaryAutoAuthLinkTests
             userId,
             "/destination",
             "advanced-input-voice",
-            DateTimeOffset.UtcNow,
-            DateTimeOffset.UtcNow.AddMinutes(5));
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddMinutes(5));
 
         _ = action.Should().Throw<ArgumentException>();
     }
@@ -74,8 +74,8 @@ public class TemporaryAutoAuthLinkTests
             "user-1",
             destinationPath,
             "advanced-input-voice",
-            DateTimeOffset.UtcNow,
-            DateTimeOffset.UtcNow.AddMinutes(5));
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddMinutes(5));
 
         _ = action.Should().Throw<ArgumentException>();
     }
@@ -91,8 +91,8 @@ public class TemporaryAutoAuthLinkTests
             "user-1",
             "/destination",
             purpose,
-            DateTimeOffset.UtcNow,
-            DateTimeOffset.UtcNow.AddMinutes(5));
+            DateTime.UtcNow,
+            DateTime.UtcNow.AddMinutes(5));
 
         _ = action.Should().Throw<ArgumentException>();
     }
@@ -100,7 +100,7 @@ public class TemporaryAutoAuthLinkTests
     [Fact]
     public void Create_InvalidExpirationState_Throws()
     {
-        DateTimeOffset createdAt = DateTimeOffset.UtcNow;
+        DateTime createdAt = DateTime.UtcNow;
 
         Action action = () => TemporaryAutoAuthLink.Create(
             Guid.NewGuid(),
@@ -117,7 +117,7 @@ public class TemporaryAutoAuthLinkTests
     [Fact]
     public void MarkConsumed_ValidTimestamp_SetsConsumedFields()
     {
-        DateTimeOffset createdAt = DateTimeOffset.UtcNow;
+        DateTime createdAt = DateTime.UtcNow;
         TemporaryAutoAuthLink link = TemporaryAutoAuthLink.Create(
             Guid.NewGuid(),
             "hashed-code",
@@ -126,7 +126,7 @@ public class TemporaryAutoAuthLinkTests
             "advanced-input-voice",
             createdAt,
             createdAt.AddMinutes(5));
-        DateTimeOffset consumedAt = createdAt.AddMinutes(1);
+        DateTime consumedAt = createdAt.AddMinutes(1);
 
         link.MarkConsumed(consumedAt, "127.0.0.1", "agent");
 
@@ -138,7 +138,7 @@ public class TemporaryAutoAuthLinkTests
     [Fact]
     public void MarkConsumed_TimestampEarlierThanCreatedAt_Throws()
     {
-        DateTimeOffset createdAt = DateTimeOffset.UtcNow;
+        DateTime createdAt = DateTime.UtcNow;
         TemporaryAutoAuthLink link = TemporaryAutoAuthLink.Create(
             Guid.NewGuid(),
             "hashed-code",

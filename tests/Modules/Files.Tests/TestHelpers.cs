@@ -212,7 +212,7 @@ public sealed class RecordingObjectStorageService : IObjectStorageService
     {
         IEnumerable<ObjectListItem> items = objects
             .Where(kvp => prefix is null || kvp.Key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
-            .Select(kvp => new ObjectListItem(kvp.Key, kvp.Value.Data.Length, DateTimeOffset.UtcNow, null));
+            .Select(kvp => new ObjectListItem(kvp.Key, kvp.Value.Data.Length, DateTime.UtcNow, null));
         if (maxKeys is int takeCount && takeCount > 0)
         {
             items = items.Take(takeCount);

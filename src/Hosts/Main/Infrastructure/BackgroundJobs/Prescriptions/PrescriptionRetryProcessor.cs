@@ -71,7 +71,7 @@ public sealed class PrescriptionRetryProcessor(
                     .Where(r => r.Id == entry.Id)
                     .ExecuteUpdateAsync(
                         s => s.SetProperty(r => r.Status, OutboxEntryStatus.Processing.ToString())
-                              .SetProperty(r => r.LastAttemptAt, DateTimeOffset.UtcNow),
+                              .SetProperty(r => r.LastAttemptAt, DateTime.UtcNow),
                         shutdownToken);
 
                 // Fetch-before-retry: check if provider already has this prescription
@@ -231,7 +231,7 @@ public sealed class PrescriptionRetryProcessor(
         IOutboxService outboxService,
         CancellationToken cancellationToken)
     {
-        DateTimeOffset staleThreshold = DateTimeOffset.UtcNow - StaleThreshold;
+        DateTime staleThreshold = DateTime.UtcNow - StaleThreshold;
 
         // Find stale SyncPending prescriptions
         List<PrescriptionRecord> stalePrescriptions = await dbContext.Prescriptions
@@ -319,7 +319,7 @@ public sealed class PrescriptionRetryProcessor(
                 PayloadJson = JsonSerializer.Serialize(new { PrescriptionId = p.Id, CorrelationId = Guid.NewGuid().ToString() }),
                 IdempotencyKey = $"{p.Id}:v{p.VersionNumber}",
                 CorrelationId = Guid.NewGuid().ToString(),
-                NextRetryAt = DateTimeOffset.UtcNow,
+                NextRetryAt = DateTime.UtcNow,
                 TenantId = p.TenantId
             }, cancellationToken);
         }

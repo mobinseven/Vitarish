@@ -63,7 +63,7 @@ public record WebAuthnCredentialDto
 {
     public Guid Id { get; init; }
     public string? FriendlyName { get; init; }
-    public DateTimeOffset RegisteredAt { get; init; }
-    public DateTimeOffset? LastUsedAt { get; init; }
+    public DateTime RegisteredAt { get; init; }
+    public DateTime? LastUsedAt { get; init; }
     public string? Transports { get; init; }
 }

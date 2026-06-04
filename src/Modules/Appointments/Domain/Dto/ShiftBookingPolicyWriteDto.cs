@@ -3,7 +3,7 @@ namespace Vitarish.Appointments.Domain.Dto;
 public record ShiftBookingPolicyWriteDto : EntityWriteDto
 {
     public Guid ShiftId { get; set; }
-    public DateOnly Date { get; set; } = DateOnly.FromDateTime(DateTime.Now);
+    public DateOnly Date { get; set; } = DateOnly.FromDateTime(DateTime.UtcNow);
     public int? BookingOpensBefore { get; set; }
     public int? BookingCloseBefore { get; set; }
     public bool Closed { get; set; }

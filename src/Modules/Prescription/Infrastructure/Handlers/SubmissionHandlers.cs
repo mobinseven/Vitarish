@@ -52,8 +52,9 @@ public sealed class SubmitPrescriptionHandler(
         }
 
         // Transition to Submitting
+        DateTime submittedAt = DateTime.UtcNow;
         prescription.TransitionTo(PrescriptionStatus.Submitting);
-        prescription.SubmittedAt = DateTimeOffset.UtcNow;
+        prescription.SubmittedAt = submittedAt;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         string idempotencyKey = $"{prescription.Id}:v{prescription.VersionNumber}";
@@ -81,7 +82,7 @@ public sealed class SubmitPrescriptionHandler(
                 RemoteTrackingCode = submissionResult.Data.RemoteTrackingCode,
                 RemoteStatusCode = submissionResult.Data.RemoteStatusCode,
                 CanonicalStatus = targetStatus,
-                SubmittedAt = DateTimeOffset.UtcNow
+                SubmittedAt = submittedAt
             };
 
             _ = dbContext.PrescriptionSubmissions.Add(submission);
@@ -96,7 +97,7 @@ public sealed class SubmitPrescriptionHandler(
                 NewState = targetStatus.ToString(),
                 CorrelationId = request.CorrelationId,
                 ProviderKey = prescription.SelectedProviderKey,
-                OccurredAt = DateTimeOffset.UtcNow,
+                OccurredAt = submittedAt,
                 TenantId = prescription.TenantId
             }, cancellationToken);
 
@@ -138,7 +139,7 @@ public sealed class SubmitPrescriptionHandler(
                 PayloadJson = JsonSerializer.Serialize(new { PrescriptionId = prescription.Id, request.CorrelationId }),
                 IdempotencyKey = idempotencyKey,
                 CorrelationId = request.CorrelationId,
-                NextRetryAt = DateTimeOffset.UtcNow.AddMinutes(1),
+                NextRetryAt = DateTime.UtcNow.AddMinutes(1),
                 TenantId = prescription.TenantId
             }, cancellationToken);
         }
@@ -152,7 +153,7 @@ public sealed class SubmitPrescriptionHandler(
             NewState = errorStatus.ToString(),
             CorrelationId = request.CorrelationId,
             ProviderKey = prescription.SelectedProviderKey,
-            OccurredAt = DateTimeOffset.UtcNow,
+            OccurredAt = DateTime.UtcNow,
             TenantId = prescription.TenantId
         }, cancellationToken);
 
@@ -229,7 +230,7 @@ public sealed class EditPrescriptionHandler(
                 NewState = targetStatus.ToString(),
                 CorrelationId = request.CorrelationId,
                 ProviderKey = prescription.SelectedProviderKey,
-                OccurredAt = DateTimeOffset.UtcNow,
+                OccurredAt = DateTime.UtcNow,
                 TenantId = prescription.TenantId
             }, cancellationToken);
 
@@ -251,7 +252,7 @@ public sealed class EditPrescriptionHandler(
             NewState = PrescriptionStatus.SyncPending.ToString(),
             CorrelationId = request.CorrelationId,
             ProviderKey = prescription.SelectedProviderKey,
-            OccurredAt = DateTimeOffset.UtcNow,
+            OccurredAt = DateTime.UtcNow,
             TenantId = prescription.TenantId
         }, cancellationToken);
 
@@ -331,7 +332,7 @@ public sealed class CancelPrescriptionHandler(
                 NewState = PrescriptionStatus.Cancelled.ToString(),
                 CorrelationId = request.CorrelationId,
                 ProviderKey = prescription.SelectedProviderKey,
-                OccurredAt = DateTimeOffset.UtcNow,
+                OccurredAt = DateTime.UtcNow,
                 TenantId = prescription.TenantId
             }, cancellationToken);
 
@@ -352,7 +353,7 @@ public sealed class CancelPrescriptionHandler(
             NewState = PrescriptionStatus.SyncPending.ToString(),
             CorrelationId = request.CorrelationId,
             ProviderKey = prescription.SelectedProviderKey,
-            OccurredAt = DateTimeOffset.UtcNow,
+            OccurredAt = DateTime.UtcNow,
             TenantId = prescription.TenantId
         }, cancellationToken);
 

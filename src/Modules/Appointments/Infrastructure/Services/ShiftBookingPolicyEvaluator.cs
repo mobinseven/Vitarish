@@ -7,7 +7,7 @@ public static class ShiftBookingPolicyEvaluator
     public static bool IsBookingOpen(Shift shift, DateOnly date, IReadOnlyList<ShiftBookingPolicy> policies)
     {
         ShiftBookingPolicy? datePolicy = ResolvePolicy(policies, date);
-        return ShiftBookingRules.IsBookingOpen(shift, date, DateTimeOffset.UtcNow, datePolicy);
+        return ShiftBookingRules.IsBookingOpen(shift, date, DateTime.UtcNow, datePolicy);
     }
 
     public static bool CanCancel(Shift shift, Reservation reservation, IReadOnlyList<ShiftBookingPolicy> policies)
@@ -19,8 +19,8 @@ public static class ShiftBookingPolicyEvaluator
             return true;
         }
 
-        DateTimeOffset cutoff = ToDateTimeOffset(reservation.Date, shift.StartTime) - deadline.Value;
-        return DateTimeOffset.UtcNow < cutoff;
+        DateTime cutoff = ToDateTime(shift, reservation.Date, shift.StartTime) - deadline.Value;
+        return DateTime.UtcNow < cutoff;
     }
 
     public static bool CanReschedule(Shift shift, Reservation reservation, IReadOnlyList<ShiftBookingPolicy> policies)
@@ -83,6 +83,23 @@ public static class ShiftBookingPolicyEvaluator
     private static ShiftBookingPolicy? ResolvePolicy(IReadOnlyList<ShiftBookingPolicy> policies, DateOnly date)
         => policies.FirstOrDefault(p => p.Date == date);
 
-    private static DateTimeOffset ToDateTimeOffset(DateOnly date, TimeOnly time)
-        => new(date.ToDateTime(time), TimeSpan.Zero);
+    private static DateTime ToDateTime(Shift shift, DateOnly date, TimeOnly time)
+    {
+        DateTime localTime = DateTime.SpecifyKind(date.ToDateTime(time), DateTimeKind.Unspecified);
+
+        if (string.IsNullOrWhiteSpace(shift.TimeZone))
+        {
+            return DateTime.SpecifyKind(localTime, DateTimeKind.Utc);
+        }
+
+        try
+        {
+            TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(shift.TimeZone);
+            return TimeZoneInfo.ConvertTimeToUtc(localTime, timeZone);
+        }
+        catch (Exception ex) when (ex is TimeZoneNotFoundException or InvalidTimeZoneException or ArgumentException)
+        {
+            return DateTime.SpecifyKind(localTime, DateTimeKind.Utc);
+        }
+    }
 }

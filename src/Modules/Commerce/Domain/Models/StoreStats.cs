@@ -8,5 +8,5 @@ public sealed class StoreStats
     public int TotalOrders { get; init; }
     public int PendingOrders { get; init; }
     public decimal TotalRevenue { get; init; }
-    public DateTimeOffset? LastOrderAt { get; init; }
+    public DateTime? LastOrderAt { get; init; }
 }

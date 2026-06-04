@@ -5,7 +5,7 @@ internal static class ShiftBookingRules
     internal static bool IsBookingOpen(
         Shift shift,
         DateOnly date,
-        DateTimeOffset now,
+        DateTime now,
         ShiftBookingPolicy? datePolicy = null)
     {
         if (shift.Status != ShiftStatus.Active)
@@ -18,7 +18,7 @@ internal static class ShiftBookingRules
             return false;
         }
 
-        if (!TryGetSlotStart(shift, date, out DateTimeOffset slotStart))
+        if (!TryGetSlotStart(shift, date, out DateTime slotStart))
         {
             return false;
         }
@@ -33,7 +33,7 @@ internal static class ShiftBookingRules
 
         if (effectiveOpensBefore.HasValue)
         {
-            DateTimeOffset opensAt = slotStart.Date.AddDays(-effectiveOpensBefore.Value);
+            DateTime opensAt = GetUtcShiftDateStart(shift, date).AddDays(-effectiveOpensBefore.Value);
             if (now < opensAt)
             {
                 return false;
@@ -42,7 +42,7 @@ internal static class ShiftBookingRules
 
         if (effectiveCloseBefore.HasValue)
         {
-            DateTimeOffset closesAt = slotStart.Date.AddDays(-effectiveCloseBefore.Value);
+            DateTime closesAt = GetUtcShiftDateStart(shift, date).AddDays(-effectiveCloseBefore.Value);
             if (now >= closesAt)
             {
                 return false;
@@ -52,7 +52,38 @@ internal static class ShiftBookingRules
         return true;
     }
 
-    private static bool TryGetSlotStart(Shift shift, DateOnly date, out DateTimeOffset slotStart)
+    private static DateTime GetUtcShiftDateStart(Shift shift, DateOnly date)
+    {
+        if (!string.IsNullOrWhiteSpace(shift.TimeZone))
+        {
+            DateTime localMidnight = DateTime.SpecifyKind(date.ToDateTime(TimeOnly.MinValue), DateTimeKind.Unspecified);
+
+            try
+            {
+                TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(shift.TimeZone);
+                return TimeZoneInfo.ConvertTimeToUtc(localMidnight, timeZone);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                return GetUtcDateStart(date);
+            }
+            catch (InvalidTimeZoneException)
+            {
+                return GetUtcDateStart(date);
+            }
+            catch (ArgumentException)
+            {
+                return GetUtcDateStart(date);
+            }
+        }
+
+        return GetUtcDateStart(date);
+    }
+
+    private static DateTime GetUtcDateStart(DateOnly date)
+        => DateTime.SpecifyKind(date.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
+
+    private static bool TryGetSlotStart(Shift shift, DateOnly date, out DateTime slotStart)
     {
         slotStart = default;
 
@@ -66,7 +97,7 @@ internal static class ShiftBookingRules
         try
         {
             TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(shift.TimeZone);
-            slotStart = new DateTimeOffset(dateTime, timeZone.GetUtcOffset(dateTime));
+            slotStart = TimeZoneInfo.ConvertTimeToUtc(dateTime, timeZone);
             return true;
         }
         catch (TimeZoneNotFoundException)
@@ -74,6 +105,10 @@ internal static class ShiftBookingRules
             return false;
         }
         catch (InvalidTimeZoneException)
+        {
+            return false;
+        }
+        catch (ArgumentException)
         {
             return false;
         }

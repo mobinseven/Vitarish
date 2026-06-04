@@ -36,7 +36,7 @@ public sealed class TemporaryAutoAuthLinkRedeemer(
         }
 
         string codeHash = TemporaryAutoAuthLinkSecurity.ComputeCodeHash(request.RawCode, options.Value);
-        DateTimeOffset now = (timeProvider ?? TimeProvider.System).GetUtcNow();
+        DateTime now = (timeProvider ?? TimeProvider.System).GetUtcNow().UtcDateTime;
 
         TemporaryAutoAuthLink? link = await dbContext.TemporaryAutoAuthLinks
             .AsNoTracking()
@@ -92,7 +92,7 @@ public sealed class TemporaryAutoAuthLinkRedeemer(
     private async Task<int> ConsumeWithInMemoryFallbackAsync(
         Guid linkId,
         string codeHash,
-        DateTimeOffset now,
+        DateTime now,
         string? consumedByIp,
         string? consumedByUserAgent,
         CancellationToken cancellationToken)

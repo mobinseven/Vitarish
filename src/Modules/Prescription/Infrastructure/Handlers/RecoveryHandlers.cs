@@ -57,7 +57,7 @@ public sealed class PaperFallbackHandler(
             NewState = PrescriptionStatus.PaperFallback.ToString(),
             CorrelationId = request.CorrelationId,
             ProviderKey = prescription.SelectedProviderKey,
-            OccurredAt = DateTimeOffset.UtcNow,
+            OccurredAt = DateTime.UtcNow,
             TenantId = prescription.TenantId
         }, cancellationToken);
 
@@ -109,7 +109,7 @@ public sealed class ResolveDuplicateRiskHandler(
             NewState = targetStatus.ToString(),
             CorrelationId = request.CorrelationId,
             ProviderKey = prescription.SelectedProviderKey,
-            OccurredAt = DateTimeOffset.UtcNow,
+            OccurredAt = DateTime.UtcNow,
             TenantId = prescription.TenantId
         }, cancellationToken);
 
@@ -155,7 +155,7 @@ public sealed class ManualReconcileHandler(
             NewState = PrescriptionStatus.ManuallyReconciled.ToString(),
             CorrelationId = request.CorrelationId,
             ProviderKey = prescription.SelectedProviderKey,
-            OccurredAt = DateTimeOffset.UtcNow,
+            OccurredAt = DateTime.UtcNow,
             TenantId = prescription.TenantId
         }, cancellationToken);
 
@@ -236,7 +236,7 @@ public sealed class RefreshProviderStatusHandler(
                 NewState = newCanonicalStatus.ToString(),
                 CorrelationId = request.CorrelationId,
                 ProviderKey = prescription.SelectedProviderKey,
-                OccurredAt = DateTimeOffset.UtcNow,
+                OccurredAt = DateTime.UtcNow,
                 TenantId = prescription.TenantId
             }, cancellationToken);
 
@@ -290,7 +290,7 @@ public sealed class ReconcilePaperFallbackHandler(
             NewState = targetStatus.ToString(),
             CorrelationId = request.CorrelationId,
             ProviderKey = prescription.SelectedProviderKey,
-            OccurredAt = DateTimeOffset.UtcNow,
+            OccurredAt = DateTime.UtcNow,
             TenantId = prescription.TenantId
         }, cancellationToken);
 
@@ -329,7 +329,7 @@ public sealed class EscalateHandler(
             OperatorId = request.OperatorId,
             Summary = request.Summary,
             StatusAtEscalation = prescription.Status,
-            EscalatedAt = DateTimeOffset.UtcNow
+            EscalatedAt = DateTime.UtcNow
         };
 
         _ = dbContext.Escalations.Add(escalation);
@@ -343,7 +343,7 @@ public sealed class EscalateHandler(
             OldState = prescription.Status.ToString(),
             CorrelationId = request.CorrelationId,
             ProviderKey = prescription.SelectedProviderKey,
-            OccurredAt = DateTimeOffset.UtcNow,
+            OccurredAt = DateTime.UtcNow,
             TenantId = prescription.TenantId
         }, cancellationToken);
 

@@ -20,7 +20,7 @@ public sealed class RecordRequestCommandHandler(RequestsDbContext dbContext) : I
             ResourceId = request.ResourceId,
             TraceId = request.TraceId,
             AdditionalInfo = request.AdditionalInfo,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTime.UtcNow
         };
 
         _ = await dbContext.Requests.AddAsync(entity, cancellationToken);

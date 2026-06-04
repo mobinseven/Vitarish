@@ -51,7 +51,7 @@
     [Parameter] public string? FallbackReason { get; set; }
     [Parameter] public string? PaperTrackingNumber { get; set; }
     [Parameter] public string? ProviderKey { get; set; }
-    [Parameter] public DateTimeOffset FallbackDate { get; set; }
+    [Parameter] public DateTime FallbackDate { get; set; }
 
     private static string MaskNationalId(string nationalId)
     {

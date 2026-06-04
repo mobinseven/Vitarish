@@ -29,7 +29,7 @@ public class Event : Entity
         private set => SetField(ref field, value, nameof(CommittedBy));
     } = default;
 
-    public DateTimeOffset? CommittedAt
+    public DateTime? CommittedAt
     {
         get;
         private set => SetField(ref field, value, nameof(CommittedAt));
@@ -46,7 +46,7 @@ public class Event : Entity
         PreviousEventId = previousEventId;
     }
 
-    public void Commit(Guid userId, DateTimeOffset commitTime)
+    public void Commit(Guid userId, DateTime commitTime)
     {
         CommittedBy = userId;
         CommittedAt = commitTime;

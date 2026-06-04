@@ -25,7 +25,7 @@ public class CommerceCartCleanupProcessor(
 
         try
         {
-            DateTimeOffset cutoff = DateTimeOffset.UtcNow.AddHours(-48);
+            DateTime cutoff = DateTime.UtcNow.AddHours(-48);
 
             int count = await dbContext.Carts
                 .Where(c => c.Status == CartStatus.Open && c.CreatedAt < cutoff)

@@ -9,8 +9,8 @@ public sealed class SmsDeliveryStateTests
     public void SmsDeliveryState_CanBeCreated_WithAllProperties()
     {
         // Arrange
-        DateTimeOffset sentAt = DateTimeOffset.UtcNow.AddMinutes(-5);
-        DateTimeOffset deliveredAt = DateTimeOffset.UtcNow;
+        DateTime sentAt = DateTime.UtcNow.AddMinutes(-5);
+        DateTime deliveredAt = DateTime.UtcNow;
         Dictionary<string, string?> metadata = new() { ["lineNumber"] = "30004505000017" };
 
         // Act
@@ -68,7 +68,7 @@ public sealed class SmsDeliveryStateTests
     public void SmsDeliveryState_RecordEquality_Works()
     {
         // Arrange
-        DateTimeOffset time = DateTimeOffset.UtcNow;
+        DateTime time = DateTime.UtcNow;
         SmsDeliveryState state1 = new("1", "+15551234567", 2, "Delivered", "Test", 10m, time, time, null);
         SmsDeliveryState state2 = new("1", "+15551234567", 2, "Delivered", "Test", 10m, time, time, null);
         SmsDeliveryState state3 = new("2", "+15551234567", 2, "Delivered", "Test", 10m, time, time, null);

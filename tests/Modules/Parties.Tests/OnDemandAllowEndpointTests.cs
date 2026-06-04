@@ -36,7 +36,7 @@ public class OnDemandAllowEndpointTests : IDisposable
             Method = IndicatorMethod.Hostname,
             Value = "verified.customer.com",
             Status = IndicatorStatus.Verified,
-            VerifiedAt = DateTimeOffset.UtcNow
+            VerifiedAt = DateTime.UtcNow
         });
         _ = _dbContext.Tenants.Add(tenant);
         _ = await _dbContext.SaveChangesAsync();
@@ -67,7 +67,7 @@ public class OnDemandAllowEndpointTests : IDisposable
             Method = IndicatorMethod.Hostname,
             Value = "active.customer.com",
             Status = IndicatorStatus.Active,
-            VerifiedAt = DateTimeOffset.UtcNow
+            VerifiedAt = DateTime.UtcNow
         });
         _ = _dbContext.Tenants.Add(tenant);
         _ = await _dbContext.SaveChangesAsync();
@@ -170,7 +170,7 @@ public class OnDemandAllowEndpointTests : IDisposable
             Method = IndicatorMethod.Hostname,
             Value = "verified.customer.com",
             Status = IndicatorStatus.Verified,
-            VerifiedAt = DateTimeOffset.UtcNow
+            VerifiedAt = DateTime.UtcNow
         });
         _ = _dbContext.Tenants.Add(tenant);
         _ = await _dbContext.SaveChangesAsync();
@@ -202,7 +202,7 @@ public class OnDemandAllowEndpointTests : IDisposable
             Method = IndicatorMethod.Subdomain,
             Value = "customer.saas.example.com",
             Status = IndicatorStatus.Active,
-            VerifiedAt = DateTimeOffset.UtcNow
+            VerifiedAt = DateTime.UtcNow
         });
         _ = _dbContext.Tenants.Add(tenant);
         _ = await _dbContext.SaveChangesAsync();

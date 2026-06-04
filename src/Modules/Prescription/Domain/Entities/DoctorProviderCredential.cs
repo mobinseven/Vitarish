@@ -29,10 +29,10 @@ public sealed class DoctorProviderCredential
     public string? SessionId { get; set; }
 
     /// <summary>When the current token expires.</summary>
-    public DateTimeOffset? TokenExpiresAt { get; set; }
+    public DateTime? TokenExpiresAt { get; set; }
 
     public CredentialStatus Status { get; set; } = CredentialStatus.Pending;
-    public DateTimeOffset? ExpiresAt { get; set; }
-    public DateTimeOffset CreatedAt { get; set; }
-    public DateTimeOffset? UpdatedAt { get; set; }
+    public DateTime? ExpiresAt { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 }

@@ -32,12 +32,12 @@ public interface IEventsService : IEntityService<EventReadDto, EventWriteDto, Ev
         IEnumerable<EventsChainChangeReadDto> chainChangeDtos,
         CancellationToken cancellationToken);
 
-    Task CommitAsync(Guid eventId, Guid reporterUserId, DateTimeOffset commitTime, CancellationToken cancellationToken);
+    Task CommitAsync(Guid eventId, Guid reporterUserId, DateTime commitTime, CancellationToken cancellationToken);
 
     Task<int> CommitAllByProcedureAsync(
         Guid procedureId,
         Guid reporterUserId,
-        DateTimeOffset commitTime,
+        DateTime commitTime,
         CancellationToken cancellationToken);
 
     Task UncommitAsync(Guid eventId, CancellationToken cancellationToken);

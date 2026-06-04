@@ -87,7 +87,7 @@ public sealed record EntitlementResponse
     public string? CoverageIdentifier { get; init; }
     public string? RawStatusCode { get; init; }
     public string? RawStatusMessage { get; init; }
-    public DateTimeOffset? ExpiresAt { get; init; }
+    public DateTime? ExpiresAt { get; init; }
 }
 
 public sealed record SubmissionRequest

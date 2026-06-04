@@ -1,3 +1,4 @@
+using Vitarish.Entities.Server.Infrastructure;
 
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -17,6 +18,7 @@ public class UsersDbContext(DbContextOptions<UsersDbContext> options) : Identity
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+        _ = builder.ConfigureUtcDateTimeColumns();
         _ = builder.HasDefaultSchema(nameof(Users));
 
         // Configure WebAuthnCredential entity

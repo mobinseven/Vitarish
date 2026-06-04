@@ -11,5 +11,6 @@
   <ItemGroup>
     <InternalsVisibleTo Include="Vitarish.Requests.Hosting" />
     <InternalsVisibleTo Include="Vitarish.Requests.Tests" />
+    <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
 </Project>

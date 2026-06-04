@@ -3,5 +3,5 @@ namespace Vitarish.Social.Domain.Dto;
 public record SocialTokenPayload(
     string AccessToken,
     string? RefreshToken,
-    DateTimeOffset? ExpiresAt,
+    DateTime? ExpiresAt,
     IReadOnlyList<string> Scopes);

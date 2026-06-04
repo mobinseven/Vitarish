@@ -20,7 +20,7 @@ internal static class DitasPrescriptionMapper
         CoverageIdentifier = result?.MembershipNumber,
         RawStatusCode = result?.Status,
         RawStatusMessage = result?.StatusDescription,
-        ExpiresAt = result?.ValidUntil
+        ExpiresAt = result?.ValidUntil?.UtcDateTime
     };
 
     public static SubmissionResponse ToSubmissionResponse(DitasSubmissionResponse? result) => new()

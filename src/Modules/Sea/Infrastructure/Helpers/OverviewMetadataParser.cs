@@ -4,7 +4,7 @@ namespace Vitarish.Sea.Infrastructure.Helpers;
 
 internal static class OverviewMetadataParser
 {
-    public static (string? Overview, DateTimeOffset? UpdatedAt) Parse(string metadata)
+    public static (string? Overview, DateTime? UpdatedAt) Parse(string metadata)
     {
         if (string.IsNullOrWhiteSpace(metadata))
         {
@@ -20,7 +20,7 @@ internal static class OverviewMetadataParser
             }
 
             string? overview = null;
-            DateTimeOffset? updatedAt = null;
+            DateTime? updatedAt = null;
 
             if (document.RootElement.TryGetProperty("overview", out JsonElement overviewElement) &&
                 overviewElement.ValueKind == JsonValueKind.String)
@@ -31,16 +31,16 @@ internal static class OverviewMetadataParser
             if (document.RootElement.TryGetProperty("overviewUpdatedAt", out JsonElement updatedAtElement))
             {
                 if (updatedAtElement.ValueKind == JsonValueKind.String &&
-                    updatedAtElement.TryGetDateTimeOffset(out DateTimeOffset parsed))
+                    updatedAtElement.TryGetDateTimeOffset(out DateTimeOffset parsedOffset))
                 {
-                    updatedAt = parsed;
+                    updatedAt = parsedOffset.UtcDateTime;
                 }
                 else if (updatedAtElement.ValueKind == JsonValueKind.Number &&
                     updatedAtElement.TryGetInt64(out long epoch))
                 {
                     try
                     {
-                        updatedAt = DateTimeOffset.FromUnixTimeMilliseconds(epoch);
+                        updatedAt = DateTimeOffset.FromUnixTimeMilliseconds(epoch).UtcDateTime;
                     }
                     catch (ArgumentOutOfRangeException)
                     {

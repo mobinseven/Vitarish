@@ -28,7 +28,7 @@ internal sealed class AttachmentPlugin(IAttachmentsService attachmentsService) :
 
         return [.. attachments
             .Select(attachment => new EventTimelineItem(
-                attachment.CreatedAt.LocalDateTime,
+                attachment.CreatedAt.ToLocalTime(),
                 builder =>
                 {
                     builder.OpenComponent<AttachmentsDisplay>(0);

@@ -54,14 +54,14 @@ public class TenantIndicator : Entity
     }
 
     /// <summary>Date when the indicator was verified.</summary>
-    public DateTimeOffset? VerifiedAt
+    public DateTime? VerifiedAt
     {
         get;
         set => SetField(ref field, value, nameof(VerifiedAt));
     }
 
     /// <summary>Date when the indicator was last checked.</summary>
-    public DateTimeOffset? LastCheckedAt
+    public DateTime? LastCheckedAt
     {
         get;
         set => SetField(ref field, value, nameof(LastCheckedAt));
