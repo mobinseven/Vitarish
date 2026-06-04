@@ -33,7 +33,7 @@ internal static class ShiftBookingRules
 
         if (effectiveOpensBefore.HasValue)
         {
-            DateTime opensAt = GetUtcShiftDateStart(date).AddDays(-effectiveOpensBefore.Value);
+            DateTime opensAt = GetUtcShiftDateStart(shift, date).AddDays(-effectiveOpensBefore.Value);
             if (now < opensAt)
             {
                 return false;
@@ -42,7 +42,7 @@ internal static class ShiftBookingRules
 
         if (effectiveCloseBefore.HasValue)
         {
-            DateTime closesAt = GetUtcShiftDateStart(date).AddDays(-effectiveCloseBefore.Value);
+            DateTime closesAt = GetUtcShiftDateStart(shift, date).AddDays(-effectiveCloseBefore.Value);
             if (now >= closesAt)
             {
                 return false;
@@ -52,7 +52,35 @@ internal static class ShiftBookingRules
         return true;
     }
 
-    private static DateTime GetUtcShiftDateStart(DateOnly date)
+    private static DateTime GetUtcShiftDateStart(Shift shift, DateOnly date)
+    {
+        if (!string.IsNullOrWhiteSpace(shift.TimeZone))
+        {
+            DateTime localMidnight = DateTime.SpecifyKind(date.ToDateTime(TimeOnly.MinValue), DateTimeKind.Unspecified);
+
+            try
+            {
+                TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(shift.TimeZone);
+                return TimeZoneInfo.ConvertTimeToUtc(localMidnight, timeZone);
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                return GetUtcDateStart(date);
+            }
+            catch (InvalidTimeZoneException)
+            {
+                return GetUtcDateStart(date);
+            }
+            catch (ArgumentException)
+            {
+                return GetUtcDateStart(date);
+            }
+        }
+
+        return GetUtcDateStart(date);
+    }
+
+    private static DateTime GetUtcDateStart(DateOnly date)
         => DateTime.SpecifyKind(date.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
 
     private static bool TryGetSlotStart(Shift shift, DateOnly date, out DateTime slotStart)
@@ -77,6 +105,10 @@ internal static class ShiftBookingRules
             return false;
         }
         catch (InvalidTimeZoneException)
+        {
+            return false;
+        }
+        catch (ArgumentException)
         {
             return false;
         }

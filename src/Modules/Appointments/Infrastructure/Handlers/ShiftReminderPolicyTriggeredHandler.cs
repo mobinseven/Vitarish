@@ -110,6 +110,10 @@ internal class ShiftReminderPolicyTriggeredHandler(
         {
             return false;
         }
+        catch (ArgumentException)
+        {
+            return false;
+        }
     }
 
     private async Task<string?> ResolveRecipientAsync(
