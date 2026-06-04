@@ -15,37 +15,39 @@ public partial class PhoneChangeForm : IdentityCommonBase
             throw new InvalidOperationException("A signed-in user is required to request a phone change verification SMS.");
         }
 
-        bool phoneNumberInUse = await UserService.CheckUserPhoneNumberInUseAsync(model.PhoneNumber, User.Id);
-        if (phoneNumberInUse)
+        string shieldKey = VerificationSmsShieldKeys.ForPhoneChange(User.Id, model.PhoneNumber);
+        VerificationSmsShieldDecision shieldDecision = VerificationSmsRequestShield.TryAcquireSendSlot(shieldKey);
+        if (!shieldDecision.CanSendSms)
         {
-            error = Localizer["InvalidPhoneNumber"];
+            Logger.LogInformation(
+                "Suppressed duplicate phone change verification SMS request for user {UserId}. RemainingCooldownSeconds: {RemainingCooldownSeconds}.",
+                User.Id,
+                Math.Ceiling(shieldDecision.RemainingCooldown.TotalSeconds));
+            error = null;
+            PhoneNumber = model.PhoneNumber;
+            await InvokeAsync(StateHasChanged);
+            return;
         }
-        else
+
+        try
         {
-            string shieldKey = VerificationSmsShieldKeys.ForPhoneChange(User.Id, model.PhoneNumber);
-            VerificationSmsShieldDecision shieldDecision = VerificationSmsRequestShield.TryAcquireSendSlot(shieldKey);
-            if (shieldDecision.CanSendSms)
+            bool phoneNumberInUse = await UserService.CheckUserPhoneNumberInUseAsync(model.PhoneNumber, User.Id);
+            if (phoneNumberInUse)
             {
-                try
-                {
-                    await UserService.SendSmsCode(User.Id, model.PhoneNumber);
-                }
-                catch
-                {
-                    VerificationSmsRequestShield.ReleaseSendSlot(shieldKey);
-                    throw;
-                }
+                VerificationSmsRequestShield.ReleaseSendSlot(shieldKey);
+                error = Localizer["InvalidPhoneNumber"];
             }
             else
             {
-                Logger.LogInformation(
-                    "Suppressed duplicate phone change verification SMS request for user {UserId}. RemainingCooldownSeconds: {RemainingCooldownSeconds}.",
-                    User.Id,
-                    Math.Ceiling(shieldDecision.RemainingCooldown.TotalSeconds));
+                await UserService.SendSmsCode(User.Id, model.PhoneNumber);
+                error = null;
+                PhoneNumber = model.PhoneNumber;
             }
-
-            error = null;
-            PhoneNumber = model.PhoneNumber;
+        }
+        catch
+        {
+            VerificationSmsRequestShield.ReleaseSendSlot(shieldKey);
+            throw;
         }
         await InvokeAsync(StateHasChanged);
     }

@@ -18,9 +18,17 @@ public static class VerificationSmsShieldKeys
             throw new ArgumentException("Verification SMS shield phone number is required.", nameof(phoneNumber));
         }
 
-        string normalizedPhoneNumber = phoneNumber.Trim();
+        string normalizedPhoneNumber = NormalizePhoneNumber(phoneNumber);
+        if (string.IsNullOrWhiteSpace(normalizedPhoneNumber))
+        {
+            throw new ArgumentException("Verification SMS shield phone number must contain digits or a plus sign.", nameof(phoneNumber));
+        }
+
         return string.IsNullOrWhiteSpace(userId)
             ? $"{purpose}:{normalizedPhoneNumber}"
             : $"{purpose}:{userId.Trim()}:{normalizedPhoneNumber}";
     }
+
+    private static string NormalizePhoneNumber(string phoneNumber) =>
+        new([.. phoneNumber.Where(static character => char.IsDigit(character) || character == '+')]);
 }

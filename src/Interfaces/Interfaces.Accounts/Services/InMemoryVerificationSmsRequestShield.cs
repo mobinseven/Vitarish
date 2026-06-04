@@ -29,7 +29,6 @@ public sealed class InMemoryVerificationSmsRequestShield(
         }
 
         VerificationSmsShieldOptions currentOptions = options.Value;
-        ValidateOptions(currentOptions);
         DateTimeOffset now = timeProvider.GetUtcNow();
 
         lock (syncRoot)
@@ -67,24 +66,6 @@ public sealed class InMemoryVerificationSmsRequestShield(
         }
     }
 
-    private static void ValidateOptions(VerificationSmsShieldOptions currentOptions)
-    {
-        if (currentOptions.VerificationSmsCooldownSeconds <= 0)
-        {
-            throw new InvalidOperationException("Verification SMS cooldown must be greater than zero seconds.");
-        }
-
-        if (currentOptions.VerificationSmsRecentRequestCleanupIntervalSeconds <= 0)
-        {
-            throw new InvalidOperationException("Verification SMS recent request cleanup interval must be greater than zero seconds.");
-        }
-
-        if (currentOptions.VerificationSmsMaximumRecentRequestCount <= 0)
-        {
-            throw new InvalidOperationException("Verification SMS maximum recent request count must be greater than zero when configured.");
-        }
-    }
-
     private void RemoveExpiredRequestsWhenDue(DateTimeOffset now, TimeSpan cleanupInterval)
     {
         if (lastCleanupAt != DateTimeOffset.MinValue && now - lastCleanupAt < cleanupInterval)
@@ -113,9 +94,8 @@ public sealed class InMemoryVerificationSmsRequestShield(
         }
 
         string oldestKey = recentRequests
-            .OrderBy(pair => pair.Value.ExpiresAt)
-            .Select(pair => pair.Key)
-            .First();
+            .MinBy(pair => pair.Value.ExpiresAt)
+            .Key;
         _ = recentRequests.Remove(oldestKey);
     }
 }
