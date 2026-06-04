@@ -115,7 +115,10 @@ public static class ModelBuilderExtensions
         (property.ClrType == typeof(DateTime) || property.ClrType == typeof(DateTime?)) &&
         (UtcInstantPropertyNames.Contains(property.Name) || property.Name.EndsWith("At", StringComparison.Ordinal));
 
-    private static DateTime ToUtc(DateTime value) => value.Kind == DateTimeKind.Utc
-        ? value
-        : value.ToUniversalTime();
+    private static DateTime ToUtc(DateTime value) => value.Kind switch
+    {
+        DateTimeKind.Utc => value,
+        DateTimeKind.Local => value.ToUniversalTime(),
+        _ => DateTime.SpecifyKind(value, DateTimeKind.Utc)
+    };
 }

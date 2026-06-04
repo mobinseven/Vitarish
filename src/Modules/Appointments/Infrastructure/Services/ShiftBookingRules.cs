@@ -33,7 +33,7 @@ internal static class ShiftBookingRules
 
         if (effectiveOpensBefore.HasValue)
         {
-            DateTime opensAt = DateTime.SpecifyKind(slotStart.Date.AddDays(-effectiveOpensBefore.Value), DateTimeKind.Utc);
+            DateTime opensAt = GetUtcShiftDateStart(date).AddDays(-effectiveOpensBefore.Value);
             if (now < opensAt)
             {
                 return false;
@@ -42,7 +42,7 @@ internal static class ShiftBookingRules
 
         if (effectiveCloseBefore.HasValue)
         {
-            DateTime closesAt = DateTime.SpecifyKind(slotStart.Date.AddDays(-effectiveCloseBefore.Value), DateTimeKind.Utc);
+            DateTime closesAt = GetUtcShiftDateStart(date).AddDays(-effectiveCloseBefore.Value);
             if (now >= closesAt)
             {
                 return false;
@@ -51,6 +51,9 @@ internal static class ShiftBookingRules
 
         return true;
     }
+
+    private static DateTime GetUtcShiftDateStart(DateOnly date)
+        => DateTime.SpecifyKind(date.ToDateTime(TimeOnly.MinValue), DateTimeKind.Utc);
 
     private static bool TryGetSlotStart(Shift shift, DateOnly date, out DateTime slotStart)
     {

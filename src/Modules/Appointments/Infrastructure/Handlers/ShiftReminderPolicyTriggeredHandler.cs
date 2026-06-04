@@ -37,7 +37,11 @@ internal class ShiftReminderPolicyTriggeredHandler(
             return;
         }
 
-        DateTime occurrenceStart = DateTime.SpecifyKind(notification.Date.ToDateTime(shift.StartTime), DateTimeKind.Utc);
+        if (!TryGetOccurrenceStart(shift, notification.Date, out DateTime occurrenceStart))
+        {
+            return;
+        }
+
         DateTime now = _timeProvider.GetUtcNow().UtcDateTime;
 
         foreach (ShiftReminderPolicy policy in policies)
@@ -78,6 +82,33 @@ internal class ShiftReminderPolicyTriggeredHandler(
                 body,
                 remindAt,
                 cancellationToken);
+        }
+    }
+
+    private static bool TryGetOccurrenceStart(Shift shift, DateOnly date, out DateTime occurrenceStart)
+    {
+        occurrenceStart = default;
+
+        if (string.IsNullOrWhiteSpace(shift.TimeZone))
+        {
+            return false;
+        }
+
+        DateTime localOccurrenceStart = DateTime.SpecifyKind(date.ToDateTime(shift.StartTime), DateTimeKind.Unspecified);
+
+        try
+        {
+            TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(shift.TimeZone);
+            occurrenceStart = TimeZoneInfo.ConvertTimeToUtc(localOccurrenceStart, timeZone);
+            return true;
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return false;
+        }
+        catch (InvalidTimeZoneException)
+        {
+            return false;
         }
     }
 
