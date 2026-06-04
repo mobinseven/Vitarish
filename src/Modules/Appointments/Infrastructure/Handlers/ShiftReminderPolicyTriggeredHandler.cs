@@ -37,8 +37,8 @@ internal class ShiftReminderPolicyTriggeredHandler(
             return;
         }
 
-        DateTimeOffset occurrenceStart = new(notification.Date.ToDateTime(shift.StartTime), TimeSpan.Zero);
-        DateTimeOffset now = _timeProvider.GetUtcNow();
+        DateTime occurrenceStart = GetOccurrenceStart(shift, notification.Date);
+        DateTime now = _timeProvider.GetUtcNow().UtcDateTime;
 
         foreach (ShiftReminderPolicy policy in policies)
         {
@@ -47,7 +47,7 @@ internal class ShiftReminderPolicyTriggeredHandler(
                 continue;
             }
 
-            DateTimeOffset remindAt = occurrenceStart - policy.OffsetBefore;
+            DateTime remindAt = occurrenceStart - policy.OffsetBefore;
             if (remindAt <= now)
             {
                 continue;
@@ -81,6 +81,26 @@ internal class ShiftReminderPolicyTriggeredHandler(
         }
     }
 
+    private static DateTime GetOccurrenceStart(Shift shift, DateOnly date)
+    {
+        DateTime localOccurrenceStart = DateTime.SpecifyKind(date.ToDateTime(shift.StartTime), DateTimeKind.Unspecified);
+
+        if (string.IsNullOrWhiteSpace(shift.TimeZone))
+        {
+            return DateTime.SpecifyKind(localOccurrenceStart, DateTimeKind.Utc);
+        }
+
+        try
+        {
+            TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(shift.TimeZone);
+            return TimeZoneInfo.ConvertTimeToUtc(localOccurrenceStart, timeZone);
+        }
+        catch (Exception ex) when (ex is TimeZoneNotFoundException or InvalidTimeZoneException or ArgumentException)
+        {
+            return DateTime.SpecifyKind(localOccurrenceStart, DateTimeKind.Utc);
+        }
+    }
+
     private async Task<string?> ResolveRecipientAsync(
         string userId,
         ReminderKind channel,
@@ -97,7 +117,7 @@ internal class ShiftReminderPolicyTriggeredHandler(
             };
     }
 
-    private static string RenderTemplate(string template, DateTimeOffset occurrenceStart)
+    private static string RenderTemplate(string template, DateTime occurrenceStart)
         => template.Replace("{{OccurrenceStart}}", occurrenceStart.ToString("f"), StringComparison.Ordinal);
 }
 

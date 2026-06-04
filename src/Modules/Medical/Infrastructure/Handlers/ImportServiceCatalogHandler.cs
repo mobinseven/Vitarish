@@ -29,7 +29,7 @@ internal sealed class ImportServiceCatalogHandler(MedicalDbContext dbContext)
                 SourceLocator = request.SourceLocator,
                 SourceChecksum = request.SourceChecksum,
                 Status = ImportBatchStatus.Validating,
-                StartedAt = DateTimeOffset.UtcNow
+                StartedAt = DateTime.UtcNow
             };
 
             if (!string.IsNullOrEmpty(request.SourceChecksum))
@@ -135,8 +135,8 @@ internal sealed class ImportServiceCatalogHandler(MedicalDbContext dbContext)
             await dbContext.ServiceCodes.AddRangeAsync(serviceCodes, cancellationToken);
 
             importBatch.Status = ImportBatchStatus.Imported;
-            importBatch.ImportedAt = DateTimeOffset.UtcNow;
-            importBatch.CompletedAt = DateTimeOffset.UtcNow;
+            importBatch.ImportedAt = DateTime.UtcNow;
+            importBatch.CompletedAt = DateTime.UtcNow;
             importBatch.ValidationSummary = $"Imported {serviceCount} services.";
 
             _ = await dbContext.SaveChangesAsync(cancellationToken);

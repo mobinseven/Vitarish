@@ -131,8 +131,8 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
 
         List<DoctorProviderCredential> credentials = await query.ToListAsync(cancellationToken);
 
-        DateTimeOffset now = DateTimeOffset.UtcNow;
-        DateTimeOffset soonThreshold = now.Add(CredentialExpirySoonThreshold);
+        DateTime now = DateTime.UtcNow;
+        DateTime soonThreshold = now.Add(CredentialExpirySoonThreshold);
 
         List<CredentialHealthDto> healthDtos = credentials.Select(c =>
         {
@@ -168,7 +168,7 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
         GetOperationalAlertsQuery request, CancellationToken cancellationToken)
     {
         List<OperationalAlertDto> alerts = [];
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTime now = DateTime.UtcNow;
 
         // 1. Credential expiration warnings
         int expiringCredentials = await dbContext.DoctorProviderCredentials
@@ -206,7 +206,7 @@ internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext
         }
 
         // 2. Provider outage detection (high recent transport/provider availability failure rate)
-        DateTimeOffset recentWindow = now.AddHours(-1);
+        DateTime recentWindow = now.AddHours(-1);
         var recentSubmissionCalls = dbContext.PrescriptionSubmissions
             .Where(s => s.SubmittedAt >= recentWindow)
             .Select(s => new

@@ -137,7 +137,7 @@ public class WebAuthnService(
             SignatureCounter = credential.SignCount,
             CredentialType = "public-key",
             AaGuid = credential.AaGuid,
-            RegisteredAt = DateTimeOffset.UtcNow,
+            RegisteredAt = DateTime.UtcNow,
             IsActive = true
         };
 
@@ -260,7 +260,7 @@ public class WebAuthnService(
 
         // Update the signature counter
         credential.SignatureCounter = result.SignCount;
-        credential.LastUsedAt = DateTimeOffset.UtcNow;
+        credential.LastUsedAt = DateTime.UtcNow;
         _ = await dbContext.SaveChangesAsync(ct);
 
         // Sign in the user

@@ -18,8 +18,8 @@ internal class CartService(
         string UserId,
         CartRecoveryStatus RecoveryStatus,
         string RecoveryNote,
-        DateTimeOffset CreatedAt,
-        DateTimeOffset LastActivityAt);
+        DateTime CreatedAt,
+        DateTime LastActivityAt);
 
     public async Task<CartReadDto?> GetActiveCartAsync(string customerId, CancellationToken cancellationToken)
     {

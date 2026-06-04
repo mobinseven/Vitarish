@@ -95,7 +95,7 @@ public sealed class PersonalAccessTokenGenerator(
             throw new InvalidOperationException("At least one scope must be provided.");
         }
 
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTime now = DateTime.UtcNow;
         PersonalAccessTokenCacheEntry? cached = await GetCachedTokenAsync(user, cancellationToken);
         if (cached is not null && cached.IsReusable(scopeSet, isReferenceToken, now))
         {
@@ -107,7 +107,7 @@ public sealed class PersonalAccessTokenGenerator(
         {
             Issuer = await issuerNameService.GetCurrentAsync(),
             Lifetime = (int)lifetime.TotalSeconds,
-            CreationTime = now.UtcDateTime,
+            CreationTime = now,
             ClientId = requestContext.ClientId,
             AccessTokenType = isReferenceToken ? AccessTokenType.Reference : AccessTokenType.Jwt,
             Claims =
@@ -177,11 +177,11 @@ public sealed class PersonalAccessTokenGenerator(
 
     private sealed record PersonalAccessTokenCacheEntry(
         string Token,
-        DateTimeOffset ExpiresAt,
+        DateTime ExpiresAt,
         string[] Scopes,
         bool IsReferenceToken)
     {
-        public bool IsReusable(ISet<string> requiredScopes, bool requiresReferenceToken, DateTimeOffset now) => ExpiresAt > now && IsReferenceToken == requiresReferenceToken && Scopes.Length == requiredScopes.Count &&
+        public bool IsReusable(ISet<string> requiredScopes, bool requiresReferenceToken, DateTime now) => ExpiresAt > now && IsReferenceToken == requiresReferenceToken && Scopes.Length == requiredScopes.Count &&
                 new HashSet<string>(Scopes, StringComparer.Ordinal).SetEquals(requiredScopes);
     }
 }

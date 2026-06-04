@@ -14,7 +14,7 @@ public class WebAuthnCredentialTests
             CredentialId = [1, 2, 3],
             PublicKey = [4, 5, 6],
             CredentialType = "public-key",
-            RegisteredAt = DateTimeOffset.UtcNow
+            RegisteredAt = DateTime.UtcNow
         };
 
         _ = credential.IsActive.Should().BeTrue();
@@ -31,9 +31,9 @@ public class WebAuthnCredentialTests
             CredentialId = [7, 8, 9],
             PublicKey = [10, 11, 12],
             CredentialType = "public-key",
-            RegisteredAt = DateTimeOffset.UtcNow
+            RegisteredAt = DateTime.UtcNow
         };
-        DateTimeOffset lastUsed = DateTimeOffset.UtcNow.AddMinutes(-5);
+        DateTime lastUsed = DateTime.UtcNow.AddMinutes(-5);
 
         credential.LastUsedAt = lastUsed;
         credential.IsActive = false;

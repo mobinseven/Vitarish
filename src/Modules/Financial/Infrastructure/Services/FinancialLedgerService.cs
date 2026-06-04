@@ -18,7 +18,7 @@ internal sealed class FinancialLedgerService(FinancialDbContext dbContext)
             List<LedgerAccount> accounts = await LoadAccountsAsync(command, cancellationToken);
 
             LedgerEntry entry = BuildDraftEntry(command);
-            entry.Post(DateTimeOffset.UtcNow);
+            entry.Post(DateTime.UtcNow);
 
             foreach (PostLedgerLineRequest line in command.Lines)
             {

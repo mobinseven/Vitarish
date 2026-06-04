@@ -95,7 +95,7 @@ public class PersonalAccessTokenGeneratorTests
         string cachedPayload = JsonSerializer.Serialize(new
         {
             Token = "cached-token",
-            ExpiresAt = DateTimeOffset.UtcNow.AddDays(1),
+            ExpiresAt = DateTime.UtcNow.AddDays(1),
             Scopes = new[] { "scope1", IdentityDefinitions.AccessScope },
             IsReferenceToken = false
         });

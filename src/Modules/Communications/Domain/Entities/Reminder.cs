@@ -38,13 +38,13 @@ public class Reminder : Entity
         set => SetField(ref field, value, nameof(TextBody));
     } = string.Empty;
 
-    public DateTimeOffset RemindAt
+    public DateTime RemindAt
     {
         get;
         set => SetField(ref field, value, nameof(RemindAt));
     }
 
-    public DateTimeOffset? SentAt
+    public DateTime? SentAt
     {
         get;
         private set => SetField(ref field, value, nameof(SentAt));
@@ -52,7 +52,7 @@ public class Reminder : Entity
 
     public bool IsSent => SentAt != null;
 
-    public void MarkSent(DateTimeOffset sentAt) => SentAt = sentAt;
+    public void MarkSent(DateTime sentAt) => SentAt = sentAt;
 
     public void SetKind(ReminderKind kind) => Kind = kind;
 }

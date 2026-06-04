@@ -39,7 +39,7 @@ internal sealed class TaminCredentialSessionStore(
         }
 
         if (!string.IsNullOrWhiteSpace(credential.TokenSecretRef) &&
-            credential.TokenExpiresAt > DateTimeOffset.UtcNow.AddMinutes(2))
+            credential.TokenExpiresAt > DateTime.UtcNow.AddMinutes(2))
         {
             TaminOptions options = _taminOptions.CurrentValue;
             HttpClient httpClient = _httpClientFactory.CreateClient("TaminClient");
@@ -80,7 +80,7 @@ internal sealed class TaminCredentialSessionStore(
 
             credential.TokenSecretRef = token;
             credential.SessionId = null;
-            credential.TokenExpiresAt = DateTimeOffset.UtcNow.AddMinutes(30);
+            credential.TokenExpiresAt = DateTime.UtcNow.AddMinutes(30);
             _ = await _dbContext.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Tamin authentication successful for doctor {DoctorId} in clinic {ClinicId}", doctorId, clinicId);

@@ -6,5 +6,5 @@ public class EventCommitReadDto
     public Guid ReporterUserId { get; set; }
 
     [JsonPropertyName("commitTime")]
-    public DateTimeOffset CommitTime { get; set; }
+    public DateTime CommitTime { get; set; }
 }

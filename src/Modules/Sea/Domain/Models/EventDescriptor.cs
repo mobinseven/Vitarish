@@ -7,8 +7,8 @@ public record EventDescriptor : EntityDescriptor
     public Guid? ProcedureId { get; init; }
     public Guid? PreviousEventId { get; init; }
     public Guid? CommittedBy { get; init; }
-    public DateTimeOffset? CommittedFrom { get; init; }
-    public DateTimeOffset? CommittedTo { get; init; }
+    public DateTime? CommittedFrom { get; init; }
+    public DateTime? CommittedTo { get; init; }
     public bool? IsCommitted { get; init; }
     public Guid? ReadRoleId { get; init; }
     public Guid? WriteRoleId { get; init; }

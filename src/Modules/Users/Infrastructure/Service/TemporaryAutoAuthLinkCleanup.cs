@@ -11,13 +11,13 @@ public sealed class TemporaryAutoAuthLinkCleanup(
     IOptions<TemporaryAutoAuthLinkOptions> options) : ITemporaryAutoAuthLinkCleanup
 {
     public Task<int> CleanupAsync(
-        DateTimeOffset now,
+        DateTime now,
         CancellationToken cancellationToken = default)
     {
         int retentionDays = options.Value.RetentionDays > 0
             ? options.Value.RetentionDays
             : 7;
-        DateTimeOffset cutoff = now.AddDays(-retentionDays);
+        DateTime cutoff = now.AddDays(-retentionDays);
 
         IQueryable<Domain.Entities.TemporaryAutoAuthLink> query = dbContext.TemporaryAutoAuthLinks
             .Where(l =>

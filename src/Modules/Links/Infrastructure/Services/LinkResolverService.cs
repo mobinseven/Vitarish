@@ -21,7 +21,7 @@ internal sealed class LinkResolverService(LinksDbContext context, TimeProvider t
             ? new LinkResolutionResult.NotFound()
             : link.Status == LinkStatus.Disabled
             ? new LinkResolutionResult.Disabled()
-            : link.ExpiresAt.HasValue && link.ExpiresAt.Value < timeProvider.GetUtcNow()
+            : link.ExpiresAt.HasValue && link.ExpiresAt.Value < timeProvider.GetUtcNow().UtcDateTime
             ? new LinkResolutionResult.Expired()
             : new LinkResolutionResult.Active(link.DestinationUrl);
     }

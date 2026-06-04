@@ -62,7 +62,7 @@ internal class ShiftBookableDateQueryService(
             return [];
         }
 
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTime now = DateTime.UtcNow;
         IReadOnlyList<Guid> shiftIds = [.. shifts.Select(s => s.Id)];
 
         Task<IReadOnlyList<ShiftBookingPolicy>> policiesTask = LoadPoliciesAsync(shiftIds, cancellationToken);

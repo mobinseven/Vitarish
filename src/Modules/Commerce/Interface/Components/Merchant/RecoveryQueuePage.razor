@@ -20,7 +20,7 @@ else
             <StackExpandable Label="@item.CustomerDisplay" StartIcon="fa-regular fa-cart-shopping">
                 <StackField Label="Contact" HelperText="@(item.HasContact ? "Available" : "Missing")" />
                 <StackField Label="Estimated Value" HelperText="@item.EstimatedValue.ToString("0.##")" />
-                <StackField Label="Age" HelperText="@($"{(DateTimeOffset.UtcNow - item.CreatedAt).TotalHours:0}h")" />
+                <StackField Label="Age" HelperText="@($"{(DateTime.UtcNow - item.CreatedAt).TotalHours:0}h")" />
                 <StackField Label="Last Activity" HelperText="@item.LastActivityAt?.ToString("yyyy-MM-dd HH:mm")" />
                 <StackField Label="Status">
                     <MudChip T="string" Size="Size.Small">@item.RecoveryStatus</MudChip>

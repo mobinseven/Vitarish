@@ -21,7 +21,7 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
                 SourceLocator = request.SourceLocator,
                 SourceChecksum = request.SourceChecksum,
                 Status = ImportBatchStatus.Validating,
-                StartedAt = DateTimeOffset.UtcNow
+                StartedAt = DateTime.UtcNow
             };
 
             if (!string.IsNullOrEmpty(request.SourceChecksum))
@@ -163,8 +163,8 @@ internal sealed class ImportDrugCatalogHandler(MedicalDbContext dbContext)
             await dbContext.PackagedDrugs.AddRangeAsync(packages, cancellationToken);
 
             importBatch.Status = ImportBatchStatus.Imported;
-            importBatch.ImportedAt = DateTimeOffset.UtcNow;
-            importBatch.CompletedAt = DateTimeOffset.UtcNow;
+            importBatch.ImportedAt = DateTime.UtcNow;
+            importBatch.CompletedAt = DateTime.UtcNow;
             importBatch.ValidationSummary = $"Imported {drugCount} drugs.";
 
             _ = await dbContext.SaveChangesAsync(cancellationToken);

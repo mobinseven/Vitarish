@@ -7,7 +7,7 @@ namespace Vitarish.Entities.Server.SignalR;
 public sealed record EntityInterceptionConfig
 {
     public string? UserId { get; set; }
-    public DateTimeOffset? Time { get; set; }
+    public DateTime? Time { get; set; }
 }
 
 /// <summary>

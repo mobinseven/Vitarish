@@ -73,8 +73,8 @@ public sealed record CredentialSetupDto
     public string? ProviderDoctorIdentifier { get; init; }
     public string? ProviderUsername { get; init; }
     public CredentialStatus Status { get; init; }
-    public DateTimeOffset? ExpiresAt { get; init; }
+    public DateTime? ExpiresAt { get; init; }
     public int DaysUntilExpiry { get; init; }
     public bool IsExpiringSoon { get; init; }
-    public DateTimeOffset? LastTestedAt { get; init; }
+    public DateTime? LastTestedAt { get; init; }
 }

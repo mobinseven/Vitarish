@@ -49,7 +49,7 @@ public record FeedItem
     public string SourceName { get; init; }
     public string Title { get; init; }
     public string? Description { get; init; }
-    public DateTimeOffset Timestamp { get; init; }
+    public DateTime Timestamp { get; init; }
     public string ItemType { get; init; }
     public string? IconUrl { get; init; }
     public string? NavigationUrl { get; init; }
@@ -220,8 +220,8 @@ public record FeedQueryOptions
     public int Skip { get; init; } = 0;
     public IReadOnlyList<string>? SourceIds { get; init; }
     public IReadOnlyList<string>? ItemTypes { get; init; }
-    public DateTimeOffset? After { get; init; }
-    public DateTimeOffset? Before { get; init; }
+    public DateTime? After { get; init; }
+    public DateTime? Before { get; init; }
     public Guid? TenantId { get; init; }
 }
 ```

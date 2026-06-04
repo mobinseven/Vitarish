@@ -35,7 +35,7 @@ internal sealed class ImportCodeSystemReleaseHandler(MedicalDbContext dbContext)
                 SourceLocator = request.SourceLocator,
                 SourceChecksum = request.SourceChecksum,
                 Status = ImportBatchStatus.Validating,
-                StartedAt = DateTimeOffset.UtcNow
+                StartedAt = DateTime.UtcNow
             };
 
             // Check for duplicate import
@@ -132,8 +132,8 @@ internal sealed class ImportCodeSystemReleaseHandler(MedicalDbContext dbContext)
             await dbContext.MedicalCodes.AddRangeAsync(codes, cancellationToken);
 
             importBatch.Status = ImportBatchStatus.Imported;
-            importBatch.ImportedAt = DateTimeOffset.UtcNow;
-            importBatch.CompletedAt = DateTimeOffset.UtcNow;
+            importBatch.ImportedAt = DateTime.UtcNow;
+            importBatch.CompletedAt = DateTime.UtcNow;
             importBatch.ValidationSummary = $"Imported {codes.Count} codes.";
 
             _ = await dbContext.SaveChangesAsync(cancellationToken);

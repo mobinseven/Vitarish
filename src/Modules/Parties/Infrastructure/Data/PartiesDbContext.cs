@@ -1,3 +1,4 @@
+using Vitarish.Entities.Server.Infrastructure;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -32,6 +33,7 @@ public class PartiesDbContext(DbContextOptions<PartiesDbContext> options, Mediat
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.ConfigureUtcDateTimeColumns();
         _ = modelBuilder.HasDefaultSchema(nameof(Parties));
 
         _ = modelBuilder.Entity<UserTenant>(eb =>

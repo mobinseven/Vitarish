@@ -29,7 +29,7 @@ public class ShiftReminderPolicyTriggeredHandlerTests
 
         _remindersService.Verify(r => r.AddRangeAsync(
             It.IsAny<Guid>(), It.IsAny<IReadOnlyList<ReminderRecipientReadDto>>(),
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -50,7 +50,7 @@ public class ShiftReminderPolicyTriggeredHandlerTests
 
         _remindersService.Verify(r => r.AddRangeAsync(
             It.IsAny<Guid>(), It.IsAny<IReadOnlyList<ReminderRecipientReadDto>>(),
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -59,9 +59,9 @@ public class ShiftReminderPolicyTriggeredHandlerTests
     {
         ShiftReminderPolicyTriggeredHandler sut = CreateSut();
         // Shift starts 30 minutes in the future, offset 1 hour → remindAt = 30 min in the past
-        DateTimeOffset startTime = _timeProvider.UtcNow.AddMinutes(30);
+        DateTime startTime = _timeProvider.UtcNow.AddMinutes(30);
         ShiftReminderPolicy policy = CreatePolicy([ReservationStatus.Pending], offset: TimeSpan.FromHours(1));
-        (Shift? shift, _, DateOnly date) = CreateShift(startTime: TimeOnly.FromDateTime(startTime.DateTime));
+        (Shift? shift, _, DateOnly date) = CreateShift(startTime: TimeOnly.FromDateTime(startTime));
 
         _ = _shiftRepository.Setup(r => r.GetAsync(shift.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(shift);
@@ -72,7 +72,7 @@ public class ShiftReminderPolicyTriggeredHandlerTests
 
         _remindersService.Verify(r => r.AddRangeAsync(
             It.IsAny<Guid>(), It.IsAny<IReadOnlyList<ReminderRecipientReadDto>>(),
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()),
             Times.Never);
     }
 
@@ -80,13 +80,13 @@ public class ShiftReminderPolicyTriggeredHandlerTests
     public async Task Handle_ShouldCreateOneReminderPerMatchingPolicy()
     {
         ShiftReminderPolicyTriggeredHandler sut = CreateSut();
-        DateTimeOffset startTime = _timeProvider.UtcNow.AddDays(2);
+        DateTime startTime = _timeProvider.UtcNow.AddDays(2);
         ShiftReminderPolicy[] policiesList = new[]
         {
             CreatePolicy([ReservationStatus.Pending], offset: TimeSpan.FromHours(24)),
             CreatePolicy([ReservationStatus.Pending], offset: TimeSpan.FromHours(1))
         };
-        (Shift? shift, _, DateOnly date) = CreateShift(startTime: TimeOnly.FromDateTime(startTime.DateTime));
+        (Shift? shift, _, DateOnly date) = CreateShift(startTime: TimeOnly.FromDateTime(startTime));
 
         _ = _shiftRepository.Setup(r => r.GetAsync(shift.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(shift);
@@ -104,14 +104,14 @@ public class ShiftReminderPolicyTriggeredHandlerTests
 
         _ = _remindersService.Setup(r => r.AddRangeAsync(
             It.IsAny<Guid>(), It.IsAny<IReadOnlyList<ReminderRecipientReadDto>>(),
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync([]);
 
         await sut.Handle(CreateEvent(shift.Id, date, ReservationStatus.Pending, "user-1"), CancellationToken.None);
 
         _remindersService.Verify(r => r.AddRangeAsync(
             It.IsAny<Guid>(), It.IsAny<IReadOnlyList<ReminderRecipientReadDto>>(),
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()),
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()),
             Times.Exactly(2));
     }
 
@@ -130,12 +130,12 @@ public class ShiftReminderPolicyTriggeredHandlerTests
     public async Task Handle_ShouldRenderTemplateTokens()
     {
         ShiftReminderPolicyTriggeredHandler sut = CreateSut();
-        DateTimeOffset startTime = _timeProvider.UtcNow.AddDays(2);
+        DateTime startTime = _timeProvider.UtcNow.AddDays(2);
         ShiftReminderPolicy policy = CreatePolicy(
             [ReservationStatus.Confirmed],
             subjectTemplate: "Appointment at {{OccurrenceStart}}",
             bodyTemplate: "Your shift starts at {{OccurrenceStart}}.");
-        (Shift? shift, _, DateOnly date) = CreateShift(startTime: TimeOnly.FromDateTime(startTime.DateTime));
+        (Shift? shift, _, DateOnly date) = CreateShift(startTime: TimeOnly.FromDateTime(startTime));
 
         _ = _shiftRepository.Setup(r => r.GetAsync(shift.Id, It.IsAny<CancellationToken>()))
             .ReturnsAsync(shift);
@@ -151,8 +151,8 @@ public class ShiftReminderPolicyTriggeredHandlerTests
         string? capturedBody = null;
         _ = _remindersService.Setup(r => r.AddRangeAsync(
             It.IsAny<Guid>(), It.IsAny<IReadOnlyList<ReminderRecipientReadDto>>(),
-            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTimeOffset>(), It.IsAny<CancellationToken>()))
-            .Callback<Guid, IReadOnlyList<ReminderRecipientReadDto>, string, string, DateTimeOffset, CancellationToken>(
+            It.IsAny<string>(), It.IsAny<string>(), It.IsAny<DateTime>(), It.IsAny<CancellationToken>()))
+            .Callback<Guid, IReadOnlyList<ReminderRecipientReadDto>, string, string, DateTime, CancellationToken>(
                 (_, _, subject, body, _, _) => { capturedSubject = subject; capturedBody = body; })
             .ReturnsAsync([]);
 
@@ -173,8 +173,8 @@ public class ShiftReminderPolicyTriggeredHandlerTests
     private (Shift Shift, Guid ShiftId, DateOnly Date) CreateShift(TimeOnly? startTime = null)
     {
         Guid shiftId = Guid.NewGuid();
-        TimeOnly resolvedStart = startTime ?? TimeOnly.FromDateTime(_timeProvider.UtcNow.AddDays(3).DateTime);
-        DateOnly date = DateOnly.FromDateTime(_timeProvider.UtcNow.AddDays(3).DateTime);
+        TimeOnly resolvedStart = startTime ?? TimeOnly.FromDateTime(_timeProvider.UtcNow.AddDays(3));
+        DateOnly date = DateOnly.FromDateTime(_timeProvider.UtcNow.AddDays(3));
 
         Shift shift = new()
         {
@@ -214,7 +214,7 @@ public class ShiftReminderPolicyTriggeredHandlerTests
 
     private sealed class TestTimeProvider : TimeProvider
     {
-        public DateTimeOffset UtcNow { get; set; } = DateTimeOffset.UtcNow;
-        public override DateTimeOffset GetUtcNow() => UtcNow;
+        public DateTime UtcNow { get; set; } = DateTime.UtcNow;
+        public override DateTimeOffset GetUtcNow() => new(UtcNow, TimeSpan.Zero);
     }
 }

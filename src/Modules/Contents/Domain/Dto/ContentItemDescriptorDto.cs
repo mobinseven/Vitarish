@@ -28,11 +28,11 @@ public record ContentItemDescriptorDto : EntityDescriptorDto
 
     [JsonPropertyName("publishedFrom")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? PublishedFrom { get; set; }
+    public DateTime? PublishedFrom { get; set; }
 
     [JsonPropertyName("publishedTo")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? PublishedTo { get; set; }
+    public DateTime? PublishedTo { get; set; }
 
     [JsonPropertyName("termId")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

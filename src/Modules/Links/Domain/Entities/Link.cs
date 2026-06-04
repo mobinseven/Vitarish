@@ -22,5 +22,5 @@ public class Link : Entity
     public LinkStatus Status { get; set; } = LinkStatus.Active;
 
     /// <summary>Optional expiry; null means the link never expires.</summary>
-    public DateTimeOffset? ExpiresAt { get; set; }
+    public DateTime? ExpiresAt { get; set; }
 }

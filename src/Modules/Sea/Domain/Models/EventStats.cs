@@ -6,5 +6,5 @@ public sealed class EventStats
     public int EventItems { get; init; }
     public int NewItems { get; init; }
     public bool Unread { get; init; }
-    public DateTimeOffset? LastUpdate { get; init; }
+    public DateTime? LastUpdate { get; init; }
 }

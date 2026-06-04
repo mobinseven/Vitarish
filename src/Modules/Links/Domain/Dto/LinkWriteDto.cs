@@ -19,5 +19,5 @@ public record LinkWriteDto : EntityWriteDto
 
     [JsonPropertyName("expiresAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? ExpiresAt { get; set; }
+    public DateTime? ExpiresAt { get; set; }
 }

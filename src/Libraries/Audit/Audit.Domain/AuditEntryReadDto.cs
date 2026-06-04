@@ -14,6 +14,6 @@ public sealed record AuditEntryReadDto
     public string? NewState { get; init; }
     public string? CorrelationId { get; init; }
     public string? ProviderKey { get; init; }
-    public DateTimeOffset OccurredAt { get; init; }
+    public DateTime OccurredAt { get; init; }
     public string TenantId { get; init; } = string.Empty;
 }

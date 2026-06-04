@@ -12,7 +12,7 @@ public class ShiftBookingRulesTests
         bool result = ShiftBookingRules.IsBookingOpen(
             shift,
             new DateOnly(2026, 1, 15),
-            new DateTimeOffset(2026, 1, 7, 12, 0, 0, TimeSpan.Zero));
+            new DateTime(2026, 1, 7, 12, 0, 0, DateTimeKind.Utc));
 
         _ = result.Should().BeFalse();
     }
@@ -27,7 +27,7 @@ public class ShiftBookingRulesTests
         bool result = ShiftBookingRules.IsBookingOpen(
             shift,
             shiftDate,
-            new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero),
+            new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc),
             closedPolicy);
 
         _ = result.Should().BeFalse();
@@ -42,7 +42,7 @@ public class ShiftBookingRulesTests
         bool result = ShiftBookingRules.IsBookingOpen(
             shift,
             new DateOnly(2026, 1, 15),
-            new DateTimeOffset(2026, 1, 1, 0, 0, 0, TimeSpan.Zero));
+            new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc));
 
         _ = result.Should().BeFalse();
     }

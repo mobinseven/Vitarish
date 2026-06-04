@@ -74,7 +74,7 @@ internal class ShiftReminderPolicyManager(
         ActorId = requestContext.UserId,
         EntityType = nameof(ShiftReminderPolicy),
         EntityId = id,
-        OccurredAt = DateTimeOffset.UtcNow,
+        OccurredAt = DateTime.UtcNow,
         TenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID cannot be recognized.")
     };
 }

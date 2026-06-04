@@ -6,14 +6,14 @@ public record EntityDescriptorDto
     public int? Take { get; set; }
     public bool? IsDeleted { get; set; }
     public string? Search { get; set; }
-    public DateTimeOffset? CreatedFrom { get; set; }
-    public DateTimeOffset? CreatedTo { get; set; }
+    public DateTime? CreatedFrom { get; set; }
+    public DateTime? CreatedTo { get; set; }
     public string? CreatedBy { get; set; }
-    public DateTimeOffset? UpdatedFrom { get; set; }
-    public DateTimeOffset? UpdatedTo { get; set; }
+    public DateTime? UpdatedFrom { get; set; }
+    public DateTime? UpdatedTo { get; set; }
     public string? UpdatedBy { get; set; }
-    public DateTimeOffset? DeletedFrom { get; set; }
-    public DateTimeOffset? DeletedTo { get; set; }
+    public DateTime? DeletedFrom { get; set; }
+    public DateTime? DeletedTo { get; set; }
     public string? DeletedBy { get; set; }
 }
 

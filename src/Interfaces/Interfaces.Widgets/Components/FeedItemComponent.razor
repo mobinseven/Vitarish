@@ -51,9 +51,9 @@
         }
     }
 
-    private string FormatTimestamp(DateTimeOffset timestamp)
+    private string FormatTimestamp(DateTime timestamp)
     {
-        var now = DateTimeOffset.Now;
+        var now = DateTime.UtcNow;
         var diff = now - timestamp;
 
         if (diff.TotalMinutes < 1)

@@ -6,7 +6,7 @@
         <Stack>
             <StackField Label="@($"{Localizer["Creator"]}: {GetUserFullNameById(Reminder.CreatedBy)}")" />
             <StackField Label="@($"{Localizer["Recipient"]}: {GetUserFullNameById(Reminder.RecipientUserId)}")" />
-            <StackField Label="@($"{Localizer["RemindAt"]}: {Reminder.RemindAt.ToLocalTime().DateTime.ToShortDateString()} {Reminder.CreatedAt.ToLocalTime().DateTime.ToShortTimeString()}")" />
+            <StackField Label="@($"{Localizer["RemindAt"]}: {Reminder.RemindAt.ToLocalTime().ToShortDateString()} {Reminder.CreatedAt.ToLocalTime().ToShortTimeString()}")" />
             <StackField Label="@($"{Localizer["SentAt"]}: {SentAtText()}")" />
         </Stack>
 

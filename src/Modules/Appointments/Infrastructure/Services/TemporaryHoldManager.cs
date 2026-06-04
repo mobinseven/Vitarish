@@ -15,7 +15,7 @@ internal class TemporaryHoldManager(
             ReservingPartyId = reservingPartyId,
             Status = ReservationStatus.Pending,
             IsHold = true,
-            ExpiresAt = DateTimeOffset.UtcNow.Add(duration)
+            ExpiresAt = DateTime.UtcNow.Add(duration)
         };
 
         Reservation created = await reservationRepository.AddAsync(hold, cancellationToken);
@@ -31,7 +31,7 @@ internal class TemporaryHoldManager(
             return EntityResult.Failure(EntityError.NotFound("Hold not found.", nameof(holdId)));
         }
 
-        if (hold.ExpiresAt.HasValue && hold.ExpiresAt.Value < DateTimeOffset.UtcNow)
+        if (hold.ExpiresAt.HasValue && hold.ExpiresAt.Value < DateTime.UtcNow)
         {
             return EntityResult.Failure(EntityError.Conflict("Hold has expired."));
         }
@@ -54,7 +54,7 @@ internal class TemporaryHoldManager(
         }
 
         hold.Status = ReservationStatus.Cancelled;
-        hold.CancelledAt = DateTimeOffset.UtcNow;
+        hold.CancelledAt = DateTime.UtcNow;
 
         _ = await reservationRepository.UpdateAsync(hold, cancellationToken);
         return EntityResult.Success();
@@ -62,7 +62,7 @@ internal class TemporaryHoldManager(
 
     public async Task ExpireStaleHoldsAsync(CancellationToken cancellationToken)
     {
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTime now = DateTime.UtcNow;
 
         List<Reservation> staleHolds = await dbContext.Reservations
             .Where(r => r.IsHold && r.ExpiresAt.HasValue && r.ExpiresAt.Value < now)

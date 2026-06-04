@@ -95,7 +95,7 @@ internal sealed class SyncProviderCodesHandler(MedicalDbContext dbContext)
                 SourceVersion = request.DataVersion,
                 SourceLocator = systemKey,
                 Status = ImportBatchStatus.Validating,
-                StartedAt = DateTimeOffset.UtcNow
+                StartedAt = DateTime.UtcNow
             };
             _ = await dbContext.ImportBatches.AddAsync(importBatch, cancellationToken);
 
@@ -146,8 +146,8 @@ internal sealed class SyncProviderCodesHandler(MedicalDbContext dbContext)
             release.IsActive = true;
 
             importBatch.Status = ImportBatchStatus.Imported;
-            importBatch.ImportedAt = DateTimeOffset.UtcNow;
-            importBatch.CompletedAt = DateTimeOffset.UtcNow;
+            importBatch.ImportedAt = DateTime.UtcNow;
+            importBatch.CompletedAt = DateTime.UtcNow;
             importBatch.ValidationSummary = $"Imported {codes.Count} codes from {systemKey}.";
 
             _ = await dbContext.SaveChangesAsync(cancellationToken);

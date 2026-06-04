@@ -79,13 +79,13 @@ public partial class PrescriptionOperationalDashboard : PrescriptionBase
     private async Task LoadTransactionMetricsAsync() => transactionMetrics = await Mediator.Send(new GetProviderTransactionMetricsQuery
     {
         ProviderKey = selectedProviderKey,
-        From = DateTimeOffset.UtcNow.AddDays(-7)
+        From = DateTime.UtcNow.AddDays(-7)
     });
 
     private async Task LoadRejectionDistributionAsync() => rejectionDistribution = await Mediator.Send(new GetRejectionDistributionQuery
     {
         ProviderKey = selectedProviderKey,
-        From = DateTimeOffset.UtcNow.AddDays(-30)
+        From = DateTime.UtcNow.AddDays(-30)
     });
 
     private async Task LoadCredentialHealthAsync() => credentialHealth = await Mediator.Send(new GetCredentialHealthQuery

@@ -12,16 +12,16 @@ public record ReminderDescriptorDto : EntityDescriptorDto
     public string? RecipientUserId { get; init; }
 
     [JsonPropertyName("remindFrom")]
-    public DateTimeOffset? RemindFrom { get; init; }
+    public DateTime? RemindFrom { get; init; }
 
     [JsonPropertyName("remindTo")]
-    public DateTimeOffset? RemindTo { get; init; }
+    public DateTime? RemindTo { get; init; }
 
     [JsonPropertyName("sentFrom")]
-    public DateTimeOffset? SentFrom { get; init; }
+    public DateTime? SentFrom { get; init; }
 
     [JsonPropertyName("sentTo")]
-    public DateTimeOffset? SentTo { get; init; }
+    public DateTime? SentTo { get; init; }
 
     [JsonPropertyName("isSent")]
     public bool? IsSent { get; init; }

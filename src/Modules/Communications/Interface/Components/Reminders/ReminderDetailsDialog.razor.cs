@@ -10,7 +10,7 @@ public partial class ReminderDetailsDialog : RemindersBase
 
     private string SentAtText() => Reminder.SentAt is null
         ? Localizer["NotSent"].Value
-        : $"{Reminder.SentAt.Value.ToLocalTime().DateTime:d} {Reminder.SentAt.Value.ToLocalTime().DateTime:t}";
+        : $"{Reminder.SentAt.Value.ToLocalTime():d} {Reminder.SentAt.Value.ToLocalTime():t}";
 
     private async Task DeleteAsync()
     {

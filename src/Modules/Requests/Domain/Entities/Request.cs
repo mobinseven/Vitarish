@@ -34,5 +34,5 @@ public sealed class Request
     [MaxLength(2048)]
     public string? AdditionalInfo { get; set; }
 
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 }

@@ -31,9 +31,9 @@ public sealed record ReconciliationItemDto
     public Guid ClinicId { get; init; }
     public PrescriptionStatus Status { get; init; }
     public string? SelectedProviderKey { get; init; }
-    public DateTimeOffset CreatedAt { get; init; }
-    public DateTimeOffset? SubmittedAt { get; init; }
-    public DateTimeOffset? UpdatedAt { get; init; }
+    public DateTime CreatedAt { get; init; }
+    public DateTime? SubmittedAt { get; init; }
+    public DateTime? UpdatedAt { get; init; }
     public int RetryCount { get; init; }
     public string? LastError { get; init; }
     public string? RemotePrescriptionId { get; init; }
@@ -41,7 +41,7 @@ public sealed record ReconciliationItemDto
     public string? CorrelationId { get; init; }
     public string? RequestHash { get; init; }
     public string? IdempotencyKey { get; init; }
-    public DateTimeOffset? LastAttemptAt { get; init; }
+    public DateTime? LastAttemptAt { get; init; }
 }
 
 /// <summary>
@@ -71,8 +71,8 @@ public sealed record OutboxEntryDto
     public string Status { get; init; } = string.Empty;
     public int RetryCount { get; init; }
     public int MaxRetries { get; init; }
-    public DateTimeOffset CreatedAt { get; init; }
-    public DateTimeOffset? NextRetryAt { get; init; }
-    public DateTimeOffset? LastAttemptAt { get; init; }
+    public DateTime CreatedAt { get; init; }
+    public DateTime? NextRetryAt { get; init; }
+    public DateTime? LastAttemptAt { get; init; }
     public string? LastError { get; init; }
 }

@@ -9,6 +9,6 @@ public sealed record ProcedureSnapshot(
     string Name,
     string Metadata,
     string? CurrentOverview,
-    DateTimeOffset? OverviewUpdatedAt,
+    DateTime? OverviewUpdatedAt,
     StatsReadDto? Stats,
     IReadOnlyList<EventSnapshot> Events);

@@ -21,7 +21,7 @@ internal sealed class ImportServiceValuationsHandler(MedicalDbContext dbContext)
                 SourceLocator = request.SourceLocator,
                 SourceChecksum = request.SourceChecksum,
                 Status = ImportBatchStatus.Validating,
-                StartedAt = DateTimeOffset.UtcNow
+                StartedAt = DateTime.UtcNow
             };
 
             if (!string.IsNullOrEmpty(request.SourceChecksum))
@@ -98,8 +98,8 @@ internal sealed class ImportServiceValuationsHandler(MedicalDbContext dbContext)
             await dbContext.ServiceValuations.AddRangeAsync(valuations, cancellationToken);
 
             importBatch.Status = ImportBatchStatus.Imported;
-            importBatch.ImportedAt = DateTimeOffset.UtcNow;
-            importBatch.CompletedAt = DateTimeOffset.UtcNow;
+            importBatch.ImportedAt = DateTime.UtcNow;
+            importBatch.CompletedAt = DateTime.UtcNow;
             importBatch.ValidationSummary = $"Imported {valuations.Count} valuations.";
 
             _ = await dbContext.SaveChangesAsync(cancellationToken);

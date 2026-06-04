@@ -33,7 +33,7 @@ public sealed class AppDbContext(DbContextOptions<AppDbContext> options)
         base.OnModelCreating(modelBuilder);
 
         modelBuilder
-            .ConfigureEntityDateTimeOffsetConversions()
+            .ConfigureUtcDateTimeColumns()
             .ConfigureEntitySoftDeleteFilters();
     }
 }

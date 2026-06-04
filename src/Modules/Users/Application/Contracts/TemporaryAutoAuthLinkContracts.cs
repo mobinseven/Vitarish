@@ -11,8 +11,8 @@ public sealed record IssueTemporaryAutoAuthLinkResult(
     string RawCode,
     string Purpose,
     string DestinationPath,
-    DateTimeOffset CreatedAt,
-    DateTimeOffset ExpiresAt);
+    DateTime CreatedAt,
+    DateTime ExpiresAt);
 
 public sealed record RedeemTemporaryAutoAuthLinkRequest(
     string RawCode,

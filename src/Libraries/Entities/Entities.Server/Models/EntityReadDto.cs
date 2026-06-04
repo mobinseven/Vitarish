@@ -8,7 +8,7 @@ namespace Vitarish.Entities.Server.Models;
 public abstract record EntityReadDto : EntityWriteDto
 {
     [JsonPropertyName("createdAt")]
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     [JsonPropertyName("createdBy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -16,7 +16,7 @@ public abstract record EntityReadDto : EntityWriteDto
 
     [JsonPropertyName("updatedAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? UpdatedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 
     [JsonPropertyName("updatedBy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
@@ -24,7 +24,7 @@ public abstract record EntityReadDto : EntityWriteDto
 
     [JsonPropertyName("deletedAt")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-    public DateTimeOffset? DeletedAt { get; set; }
+    public DateTime? DeletedAt { get; set; }
 
     [JsonPropertyName("deletedBy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]

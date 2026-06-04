@@ -47,7 +47,7 @@ public sealed class SaveCredentialHandler(
             credential.ProviderUsername = request.ProviderUsername;
             credential.CredentialSecretRef = request.CredentialSecretRef;
             credential.Status = CredentialStatus.Pending;
-            credential.UpdatedAt = DateTimeOffset.UtcNow;
+            credential.UpdatedAt = DateTime.UtcNow;
         }
         else
         {
@@ -73,7 +73,7 @@ public sealed class SaveCredentialHandler(
                 ProviderUsername = request.ProviderUsername,
                 CredentialSecretRef = request.CredentialSecretRef,
                 Status = CredentialStatus.Pending,
-                CreatedAt = DateTimeOffset.UtcNow
+                CreatedAt = DateTime.UtcNow
             };
 
             _ = dbContext.DoctorProviderCredentials.Add(credential);
@@ -87,7 +87,7 @@ public sealed class SaveCredentialHandler(
             EntityId = credential.Id,
             Action = request.CredentialId.HasValue ? "Updated" : AuditAction.Created,
             NewState = credential.Status.ToString(),
-            OccurredAt = DateTimeOffset.UtcNow
+            OccurredAt = DateTime.UtcNow
         }, cancellationToken);
 
         logger.LogInformation("Credential {CredentialId} saved for doctor {DoctorId}", credential.Id, request.DoctorId);
@@ -127,7 +127,7 @@ public sealed class TestCredentialHandler(
         if (authResult.IsSuccess)
         {
             credential.Status = CredentialStatus.Active;
-            credential.UpdatedAt = DateTimeOffset.UtcNow;
+            credential.UpdatedAt = DateTime.UtcNow;
             _ = await dbContext.SaveChangesAsync(cancellationToken);
 
             await auditWriter.WriteAsync(new AuditEntry
@@ -136,7 +136,7 @@ public sealed class TestCredentialHandler(
                 EntityId = credential.Id,
                 Action = "TestSucceeded",
                 NewState = CredentialStatus.Active.ToString(),
-                OccurredAt = DateTimeOffset.UtcNow
+                OccurredAt = DateTime.UtcNow
             }, cancellationToken);
 
             logger.LogInformation("Credential {CredentialId} test succeeded", credential.Id);
@@ -144,7 +144,7 @@ public sealed class TestCredentialHandler(
         }
 
         credential.Status = CredentialStatus.Pending;
-        credential.UpdatedAt = DateTimeOffset.UtcNow;
+        credential.UpdatedAt = DateTime.UtcNow;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(new AuditEntry
@@ -153,7 +153,7 @@ public sealed class TestCredentialHandler(
             EntityId = credential.Id,
             Action = "TestFailed",
             NewState = CredentialStatus.Pending.ToString(),
-            OccurredAt = DateTimeOffset.UtcNow
+            OccurredAt = DateTime.UtcNow
         }, cancellationToken);
 
         return TestCredentialResult.Failure(authResult.Error?.UserMessage ?? "احراز هویت ناموفق بود.");
@@ -177,7 +177,7 @@ public sealed class RevokeCredentialHandler(
         }
 
         credential.Status = CredentialStatus.Revoked;
-        credential.UpdatedAt = DateTimeOffset.UtcNow;
+        credential.UpdatedAt = DateTime.UtcNow;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(new AuditEntry
@@ -186,7 +186,7 @@ public sealed class RevokeCredentialHandler(
             EntityId = credential.Id,
             Action = "Revoked",
             NewState = CredentialStatus.Revoked.ToString(),
-            OccurredAt = DateTimeOffset.UtcNow
+            OccurredAt = DateTime.UtcNow
         }, cancellationToken);
 
         logger.LogInformation("Credential {CredentialId} revoked", credential.Id);
@@ -208,7 +208,7 @@ public sealed class GetCredentialSetupGridHandler(
             query = query.Where(c => c.ProviderKey == request.ProviderKey);
         }
 
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTime now = DateTime.UtcNow;
         List<CredentialSetupDto> credentials = await query
             .Select(c => new CredentialSetupDto
             {

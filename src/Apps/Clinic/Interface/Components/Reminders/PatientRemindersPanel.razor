@@ -13,7 +13,7 @@
         {
             <StackButton OnClick="() => OnReminderClicked(reminder)"
                          Label="@reminder.Subject">
-                @reminder.RemindAt.LocalDateTime.ToString("g")
+                @reminder.RemindAt.ToLocalTime().ToString("g")
             </StackButton>
         }
     }

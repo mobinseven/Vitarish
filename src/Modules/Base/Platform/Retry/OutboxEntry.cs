@@ -33,13 +33,13 @@ public sealed class OutboxEntry
     public int MaxRetries { get; set; } = 3;
 
     /// <summary>When this entry was created.</summary>
-    public DateTimeOffset CreatedAt { get; set; }
+    public DateTime CreatedAt { get; set; }
 
     /// <summary>When the next retry should be attempted.</summary>
-    public DateTimeOffset? NextRetryAt { get; set; }
+    public DateTime? NextRetryAt { get; set; }
 
     /// <summary>When this entry was last processed.</summary>
-    public DateTimeOffset? LastAttemptAt { get; set; }
+    public DateTime? LastAttemptAt { get; set; }
 
     /// <summary>Last error message (if failed).</summary>
     public string? LastError { get; set; }

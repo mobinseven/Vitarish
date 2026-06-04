@@ -1,3 +1,4 @@
+using Vitarish.Entities.Server.Infrastructure;
 namespace Vitarish.Financial.Infrastructure.Data;
 
 public sealed class FinancialDbContext(DbContextOptions<FinancialDbContext> options, IEnumerable<IInterceptor> interceptors) : DbContext(options)
@@ -22,6 +23,7 @@ public sealed class FinancialDbContext(DbContextOptions<FinancialDbContext> opti
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        _ = modelBuilder.ConfigureUtcDateTimeColumns();
         _ = modelBuilder.HasDefaultSchema(nameof(Financial));
 
         _ = modelBuilder.Entity<LedgerAccount>(entity =>

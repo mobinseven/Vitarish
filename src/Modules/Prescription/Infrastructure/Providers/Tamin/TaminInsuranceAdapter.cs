@@ -83,7 +83,7 @@ public sealed class TaminInsuranceAdapter(
                 {
                     NationalId = request.PatientNationalId,
                     ProviderId = sessionResult.DoctorTaminId ?? sessionResult.Session.ClientId ?? string.Empty,
-                    VisitDate = DateTimeOffset.UtcNow.ToString("yyyy-MM-dd"),
+                    VisitDate = DateTime.UtcNow.ToString("yyyy-MM-dd"),
                     ServiceType = "clinic"
                 }, cancellationToken);
 

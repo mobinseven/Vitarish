@@ -29,6 +29,8 @@ public sealed class CreateDraftHandler(
             return CreateDraftResult.Failure("بیمه‌گر انتخاب شده در سیستم موجود نیست.");
         }
 
+        DateTime createdAt = DateTime.UtcNow;
+
         PrescriptionRecord prescription = new()
         {
             Id = Guid.NewGuid(),
@@ -40,7 +42,7 @@ public sealed class CreateDraftHandler(
             SelectedProviderKey = selectedProviderKey,
             Status = PrescriptionStatus.Draft,
             VersionNumber = 1,
-            CreatedAt = DateTimeOffset.UtcNow,
+            CreatedAt = createdAt,
             TenantId = request.TenantId
         };
 
@@ -54,7 +56,7 @@ public sealed class CreateDraftHandler(
             Action = AuditAction.Created,
             NewState = PrescriptionStatus.Draft.ToString(),
             ProviderKey = selectedProviderKey,
-            OccurredAt = DateTimeOffset.UtcNow,
+            OccurredAt = createdAt,
             TenantId = request.TenantId
         }, cancellationToken);
 
@@ -98,11 +100,11 @@ public sealed class AddItemHandler(
             DurationDays = request.DurationDays,
             MetadataJson = request.MetadataJson,
             SortOrder = prescription.Items.Count + 1,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTime.UtcNow
         };
 
         prescription.Items.Add(item);
-        prescription.UpdatedAt = DateTimeOffset.UtcNow;
+        prescription.UpdatedAt = DateTime.UtcNow;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         logger.LogInformation("Added item {ItemId} to prescription {PrescriptionId}",
@@ -139,7 +141,7 @@ public sealed class RemoveItemHandler(
         }
 
         _ = prescription.Items.Remove(item);
-        prescription.UpdatedAt = DateTimeOffset.UtcNow;
+        prescription.UpdatedAt = DateTime.UtcNow;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         return RemoveItemResult.Success();
@@ -188,7 +190,7 @@ public sealed class ValidateDraftHandler(
             errors.Add("بیمار واجد شرایط نیست. ارسال نسخه امکان‌پذیر نمی‌باشد.");
         }
         else if (prescription.LastEligibilityCheckedAt.HasValue &&
-                 DateTimeOffset.UtcNow - prescription.LastEligibilityCheckedAt.Value > EligibilityFreshnessWindow)
+                 DateTime.UtcNow - prescription.LastEligibilityCheckedAt.Value > EligibilityFreshnessWindow)
         {
             warnings.Add("نتیجه بررسی حق بیمه قدیمی است. توصیه می‌شود مجدداً بررسی کنید.");
         }
@@ -266,8 +268,8 @@ public sealed class RecordEligibilityHandler(
         }
 
         prescription.LastEligibilityStatus = request.Status;
-        prescription.LastEligibilityCheckedAt = DateTimeOffset.UtcNow;
-        prescription.UpdatedAt = DateTimeOffset.UtcNow;
+        prescription.LastEligibilityCheckedAt = DateTime.UtcNow;
+        prescription.UpdatedAt = DateTime.UtcNow;
 
         _ = await dbContext.SaveChangesAsync(cancellationToken);
         return RecordEligibilityResult.Success();
@@ -307,7 +309,7 @@ public sealed class SetProviderHandler(
         }
 
         prescription.SelectedProviderKey = providerKey;
-        prescription.UpdatedAt = DateTimeOffset.UtcNow;
+        prescription.UpdatedAt = DateTime.UtcNow;
 
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 

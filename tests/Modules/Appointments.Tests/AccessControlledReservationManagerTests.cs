@@ -13,8 +13,8 @@ public class AccessControlledReservationManagerTests
         Guid shiftId = Guid.NewGuid();
         Guid reservationId = Guid.NewGuid();
 
-        DateTimeOffset slotStart = DateTimeOffset.UtcNow.AddHours(2);
-        DateOnly date = DateOnly.FromDateTime(slotStart.DateTime);
+        DateTime slotStart = DateTime.UtcNow.AddHours(2);
+        DateOnly date = DateOnly.FromDateTime(slotStart);
 
         _ = bookingPolicyEngine.Setup(x => x.IsBookingOpenAsync(shiftId, date, It.IsAny<CancellationToken>())).ReturnsAsync(true);
         _ = bookingPolicyEngine.Setup(x => x.HasCapacityForPartyAsync(shiftId, date, "user-1", It.IsAny<CancellationToken>())).ReturnsAsync(true);
@@ -27,7 +27,7 @@ public class AccessControlledReservationManagerTests
                 Date = date,
                 ReservingPartyId = "user-1",
                 Status = ReservationStatus.Pending,
-                CreatedAt = DateTimeOffset.UtcNow
+                CreatedAt = DateTime.UtcNow
             }));
 
         _ = reservationManager
@@ -43,7 +43,7 @@ public class AccessControlledReservationManagerTests
                 Date = date,
                 ReservingPartyId = "user-1",
                 Status = ReservationStatus.Confirmed,
-                CreatedAt = DateTimeOffset.UtcNow
+                CreatedAt = DateTime.UtcNow
             }));
 
         _ = statusCoordinator
@@ -161,7 +161,7 @@ public class AccessControlledReservationManagerTests
                 Date = date,
                 ReservingPartyId = "patient-1",
                 Status = ReservationStatus.Pending,
-                CreatedAt = DateTimeOffset.UtcNow
+                CreatedAt = DateTime.UtcNow
             }));
         _ = reservationManager
             .Setup(x => x.GetAsync(reservationId, It.IsAny<CancellationToken>()))
@@ -172,7 +172,7 @@ public class AccessControlledReservationManagerTests
                 Date = date,
                 ReservingPartyId = "patient-1",
                 Status = ReservationStatus.Pending,
-                CreatedAt = DateTimeOffset.UtcNow
+                CreatedAt = DateTime.UtcNow
             }));
 
         AccessControlledReservationManager sut = new(
@@ -238,7 +238,7 @@ public class AccessControlledReservationManagerTests
                 Date = date,
                 ReservingPartyId = "patient-1",
                 Status = ReservationStatus.Pending,
-                CreatedAt = DateTimeOffset.UtcNow
+                CreatedAt = DateTime.UtcNow
             }));
         _ = reservationManager
             .Setup(x => x.GetAsync(reservationId, It.IsAny<CancellationToken>()))
@@ -249,7 +249,7 @@ public class AccessControlledReservationManagerTests
                 Date = date,
                 ReservingPartyId = "patient-1",
                 Status = ReservationStatus.Pending,
-                CreatedAt = DateTimeOffset.UtcNow
+                CreatedAt = DateTime.UtcNow
             }));
 
         AccessControlledReservationManager sut = new(

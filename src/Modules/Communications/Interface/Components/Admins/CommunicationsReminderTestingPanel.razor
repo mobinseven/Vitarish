@@ -58,8 +58,8 @@
                     <tr>
                         <td>@reminder.Subject</td>
                         <td>@reminder.Recipient</td>
-                        <td>@reminder.RemindAt.ToLocalTime().DateTime.ToString(ReminderDateTimeFormat)</td>
-                        <td>@(reminder.SentAt?.ToLocalTime().DateTime.ToString(ReminderDateTimeFormat) ?? "-")</td>
+                        <td>@reminder.RemindAt.ToLocalTime().ToString(ReminderDateTimeFormat)</td>
+                        <td>@(reminder.SentAt?.ToLocalTime().ToString(ReminderDateTimeFormat) ?? "-")</td>
                     </tr>
                 }
             </tbody>
@@ -97,7 +97,7 @@
     protected override void OnInitialized()
     {
         base.OnInitialized();
-        DateTimeOffset now = DateTimeOffset.Now;
+        DateTime now = DateTime.Now;
         sourceIdInput = Guid.NewGuid().ToString();
         remindDate = now.Date;
         remindTime = now.AddMinutes(DefaultReminderDelayMinutes).TimeOfDay;
@@ -160,7 +160,7 @@
         DateTime date = remindDate.Value.Date;
         TimeSpan time = remindTime.Value;
         DateTime remindAtDateTime = date.Add(time);
-        DateTimeOffset remindAt = new(remindAtDateTime, TimeZoneInfo.Local.GetUtcOffset(remindAtDateTime));
+        DateTime remindAt = DateTime.SpecifyKind(remindAtDateTime, DateTimeKind.Local).ToUniversalTime();
 
         ReminderReadDto? created = await RemindersService.AddAsync(new ReminderWriteDto(
             sourceId,

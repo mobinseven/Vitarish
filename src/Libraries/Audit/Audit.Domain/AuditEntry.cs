@@ -14,6 +14,6 @@ public sealed class AuditEntry
     public string? NewState { get; set; }
     public string? CorrelationId { get; set; }
     public string? ProviderKey { get; set; }
-    public DateTimeOffset OccurredAt { get; set; }
+    public DateTime OccurredAt { get; set; }
     public string TenantId { get; set; } = string.Empty;
 }

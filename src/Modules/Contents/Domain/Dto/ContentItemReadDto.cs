@@ -11,5 +11,5 @@ public record ContentItemReadDto : EntityReadDto
     public IReadOnlyList<ContentBodyBlock> Body { get; set; } = [];
     public Guid AuthorId { get; set; }
     public string Locale { get; set; } = "en";
-    public DateTimeOffset? PublishedAt { get; set; }
+    public DateTime? PublishedAt { get; set; }
 }

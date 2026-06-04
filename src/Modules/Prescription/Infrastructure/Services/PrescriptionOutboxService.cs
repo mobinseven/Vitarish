@@ -14,6 +14,7 @@ internal sealed class PrescriptionOutboxService(PrescriptionDbContext dbContext)
     public async Task<Guid> EnqueueAsync(OutboxEntry entry, CancellationToken cancellationToken = default)
     {
         entry.Id = entry.Id == Guid.Empty ? Guid.NewGuid() : entry.Id;
+        DateTime now = DateTime.UtcNow;
 
         PrescriptionOutboxRecord record = new()
         {
@@ -27,8 +28,8 @@ internal sealed class PrescriptionOutboxService(PrescriptionDbContext dbContext)
             Status = OutboxEntryStatus.Pending.ToString(),
             RetryCount = entry.RetryCount,
             MaxRetries = entry.MaxRetries,
-            CreatedAt = DateTimeOffset.UtcNow,
-            NextRetryAt = entry.NextRetryAt ?? DateTimeOffset.UtcNow,
+            CreatedAt = now,
+            NextRetryAt = entry.NextRetryAt ?? now,
             TenantId = entry.TenantId
         };
 
@@ -55,7 +56,8 @@ internal sealed class PrescriptionOutboxService(PrescriptionDbContext dbContext)
 
         record.RetryCount++;
         record.LastError = errorMessage;
-        record.LastAttemptAt = DateTimeOffset.UtcNow;
+        DateTime now = DateTime.UtcNow;
+        record.LastAttemptAt = now;
 
         if (record.RetryCount >= record.MaxRetries)
         {
@@ -66,7 +68,7 @@ internal sealed class PrescriptionOutboxService(PrescriptionDbContext dbContext)
             record.Status = OutboxEntryStatus.Pending.ToString();
             // Exponential backoff: 1min, 2min, 4min, ...
             double backoffMinutes = Math.Pow(2, record.RetryCount - 1);
-            record.NextRetryAt = DateTimeOffset.UtcNow.AddMinutes(backoffMinutes);
+            record.NextRetryAt = now.AddMinutes(backoffMinutes);
         }
 
         _ = await dbContext.SaveChangesAsync(cancellationToken);
@@ -85,7 +87,7 @@ internal sealed class PrescriptionOutboxService(PrescriptionDbContext dbContext)
         CancellationToken cancellationToken = default)
     {
         string pendingStatus = OutboxEntryStatus.Pending.ToString();
-        DateTimeOffset now = DateTimeOffset.UtcNow;
+        DateTime now = DateTime.UtcNow;
 
         IQueryable<PrescriptionOutboxRecord> query = dbContext.OutboxRecords
             .Where(r => r.Status == pendingStatus && r.NextRetryAt <= now);

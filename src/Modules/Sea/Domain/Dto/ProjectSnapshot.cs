@@ -7,6 +7,6 @@ public sealed record ProjectSnapshot(
     bool Template,
     string Metadata,
     string? CurrentOverview,
-    DateTimeOffset? OverviewUpdatedAt,
+    DateTime? OverviewUpdatedAt,
     StatsReadDto? Stats,
     IReadOnlyList<ProcedureSnapshot> Procedures);
