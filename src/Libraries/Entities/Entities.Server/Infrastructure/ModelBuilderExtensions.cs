@@ -43,7 +43,8 @@ public static class ModelBuilderExtensions
         "ResolvedAt",
         "DetectedAt",
         "LastCallAt",
-        "LastOccurrence"
+        "LastOccurrence",
+        "Timestamp"
     ];
 
     private static readonly ValueConverter<DateTime, DateTime> UtcDateTimeConverter = new(

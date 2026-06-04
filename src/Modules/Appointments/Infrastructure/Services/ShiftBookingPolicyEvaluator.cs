@@ -19,7 +19,7 @@ public static class ShiftBookingPolicyEvaluator
             return true;
         }
 
-        DateTime cutoff = ToDateTime(reservation.Date, shift.StartTime) - deadline.Value;
+        DateTime cutoff = ToDateTime(shift, reservation.Date, shift.StartTime) - deadline.Value;
         return DateTime.UtcNow < cutoff;
     }
 
@@ -83,6 +83,23 @@ public static class ShiftBookingPolicyEvaluator
     private static ShiftBookingPolicy? ResolvePolicy(IReadOnlyList<ShiftBookingPolicy> policies, DateOnly date)
         => policies.FirstOrDefault(p => p.Date == date);
 
-    private static DateTime ToDateTime(DateOnly date, TimeOnly time)
-        => DateTime.SpecifyKind(date.ToDateTime(time), DateTimeKind.Utc);
+    private static DateTime ToDateTime(Shift shift, DateOnly date, TimeOnly time)
+    {
+        DateTime localTime = DateTime.SpecifyKind(date.ToDateTime(time), DateTimeKind.Unspecified);
+
+        if (string.IsNullOrWhiteSpace(shift.TimeZone))
+        {
+            return DateTime.SpecifyKind(localTime, DateTimeKind.Utc);
+        }
+
+        try
+        {
+            TimeZoneInfo timeZone = TimeZoneInfo.FindSystemTimeZoneById(shift.TimeZone);
+            return TimeZoneInfo.ConvertTimeToUtc(localTime, timeZone);
+        }
+        catch (Exception ex) when (ex is TimeZoneNotFoundException or InvalidTimeZoneException or ArgumentException)
+        {
+            return DateTime.SpecifyKind(localTime, DateTimeKind.Utc);
+        }
+    }
 }
