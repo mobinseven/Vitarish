@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Platform.Application.Abstractions;
 using Vitarish.Platform.Application.Contracts;
+using Vitarish.Platform.Application.Rules;
+using Vitarish.Platform.Application.Validation;
 using Vitarish.Platform.Domain.Entities;
 using Vitarish.Platform.Infrastructure.Data;
 
@@ -9,12 +11,8 @@ namespace Vitarish.Platform.Infrastructure.Services;
 public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider timeProvider) : IPlatformThemeQuery, IPlatformThemeCommand
 {
     private const int ThemeSelectionId = 1;
-    private const string NameRequired = "Theme name is required.";
-    private const string ColorRequired = "All palette colors are required.";
-    private const string ColorInvalid = "Palette colors must be valid hex values.";
     private const string ThemeNotFound = "Theme was not found.";
     private const string ThemeNameExists = "Theme name already exists.";
-    public const string ActiveThemeDeleteError = "Active theme cannot be deleted.";
 
     public async Task<IReadOnlyList<ThemeListItem>> ListThemesAsync(CancellationToken cancellationToken = default)
     {
@@ -46,7 +44,7 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
 
     public async Task<CreateThemeResult> CreateThemeAsync(ThemeWriteModel model, CancellationToken cancellationToken = default)
     {
-        string? validationError = Validate(model);
+        string? validationError = ThemeWriteValidator.Validate(model);
         if (validationError is not null)
         {
             return CreateThemeResult.Failure(validationError);
@@ -77,7 +75,7 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
 
     public async Task<PlatformCommandResult> UpdateThemeAsync(Guid themeId, ThemeWriteModel model, CancellationToken cancellationToken = default)
     {
-        string? validationError = Validate(model);
+        string? validationError = ThemeWriteValidator.Validate(model);
         if (validationError is not null)
         {
             return PlatformCommandResult.Failure(validationError);
@@ -147,50 +145,10 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
     private async Task<PlatformCommandResult> CheckDeleteAllowedAsync(Guid themeId, CancellationToken cancellationToken)
     {
         ThemeSelection? selection = await dbContext.ThemeSelections.AsNoTracking().SingleOrDefaultAsync(e => e.Id == ThemeSelectionId, cancellationToken);
-        if (selection is not null && selection.ActiveThemeId == themeId)
-        {
-            return PlatformCommandResult.Failure(ActiveThemeDeleteError);
-        }
-
-        return PlatformCommandResult.Success();
-    }
-
-    private static string? Validate(ThemeWriteModel model)
-    {
-        if (string.IsNullOrWhiteSpace(model.Name))
-        {
-            return NameRequired;
-        }
-
-        if (PaletteValues(model.LightPalette).Concat(PaletteValues(model.DarkPalette)).Any(string.IsNullOrWhiteSpace))
-        {
-            return ColorRequired;
-        }
-
-        if (PaletteValues(model.LightPalette).Concat(PaletteValues(model.DarkPalette)).Any(v => !IsHexColor(v)))
-        {
-            return ColorInvalid;
-        }
-
-        return null;
-    }
-
-    private static bool IsHexColor(string value)
-        => value.Length == 7 && value[0] == '#' && value.Skip(1).All(Uri.IsHexDigit);
-
-    private static IEnumerable<string> PaletteValues(ThemePaletteDto palette)
-    {
-        yield return palette.Primary;
-        yield return palette.PrimaryContrastText;
-        yield return palette.Secondary;
-        yield return palette.SecondaryContrastText;
-        yield return palette.Background;
-        yield return palette.Surface;
-        yield return palette.AppbarBackground;
-        yield return palette.AppbarText;
-        yield return palette.TextPrimary;
-        yield return palette.TextSecondary;
-        yield return palette.Divider;
+        string? deleteError = ThemeDeletionPolicy.ValidateInactiveDeletion(themeId, selection?.ActiveThemeId);
+        return deleteError is null
+            ? PlatformCommandResult.Success()
+            : PlatformCommandResult.Failure(deleteError);
     }
 
     private static ThemeEditorModel ToEditorModel(Theme theme)

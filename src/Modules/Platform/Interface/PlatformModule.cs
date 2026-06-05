@@ -1,11 +1,14 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Vitarish.Interfaces.Base.Abstractions;
 using Vitarish.Modules.Base;
 using Vitarish.Platform.Domain.Entities;
 using Vitarish.Platform.Infrastructure.Data;
 using Vitarish.Platform.Infrastructure.DependencyInjection;
 using Vitarish.Platform.Infrastructure.Services;
+using Vitarish.Platform.Interface.Services;
 
 namespace Vitarish.Platform.Interface;
 
@@ -17,6 +20,7 @@ public sealed class PlatformModule : Module
     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         builder.AddPlatform(configureDbContext ?? (_ => { }));
+        builder.Services.TryAddTransient<IPlatformThemePaletteProvider, PlatformThemePaletteProvider>();
         return Task.CompletedTask;
     }
 

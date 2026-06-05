@@ -1,5 +1,3 @@
-using Vitarish.Platform.Application.Abstractions;
-using Vitarish.Platform.Application.Contracts;
 using Vitarish.Interfaces.Accounts.Abstractions;
 using Vitarish.Interfaces.Base.Abstractions;
 using Vitarish.Interfaces.Base.Models;
@@ -13,7 +11,7 @@ public partial class MainLayout : LayoutComponentBase
     [Inject] protected IRequestContext RequestContext { get; set; } = default!;
     [Inject] protected IUserService UserService { get; set; } = default!;
     [Inject] protected INavService NavService { get; set; } = default!;
-    [Inject] protected IPlatformThemeQuery PlatformThemeQuery { get; set; } = default!;
+    [Inject] protected IPlatformThemePaletteProvider PlatformThemePaletteProvider { get; set; } = default!;
 
     private bool Initialized;
     protected Breakpoint PageBreakpoint
@@ -44,20 +42,12 @@ public partial class MainLayout : LayoutComponentBase
             string? theme = await UserService.GetThemeAsync(userId);
             themeSettings = ThemeSettings.FromJson(theme);
         }
-        ThemeEditorModel? platformTheme = await PlatformThemeQuery.GetActiveThemeAsync();
-        await ThemeService.InitializeAsync(themeSettings, ToPlatformPalette(platformTheme));
+        PlatformThemePalette? platformPalette = await PlatformThemePaletteProvider.GetActivePaletteAsync();
+        await ThemeService.InitializeAsync(themeSettings, platformPalette);
         Initialized = true;
         StateHasChanged();
     }
 
-
-    private static PlatformThemePalette? ToPlatformPalette(ThemeEditorModel? theme)
-        => theme is null
-            ? null
-            : new PlatformThemePalette(ToPaletteValues(theme.LightPalette), ToPaletteValues(theme.DarkPalette));
-
-    private static ThemePaletteValues ToPaletteValues(ThemePaletteDto palette)
-        => new(palette.Primary, palette.PrimaryContrastText, palette.Secondary, palette.SecondaryContrastText, palette.Background, palette.Surface, palette.AppbarBackground, palette.AppbarText, palette.TextPrimary, palette.TextSecondary, palette.Divider);
 
     private async void RenderNotificationReceived(object? sender, RenderNotification notification)
     {
