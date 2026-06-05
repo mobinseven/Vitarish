@@ -20,7 +20,7 @@ public interface IThemeService
     event Action? VisualStateChanged;
 
     string BuildCustomCss();
-    Task InitializeAsync(ThemeSettings? imported = null);
+    Task InitializeAsync(ThemeSettings? imported = null, PlatformThemePalette? platformPalette = null);
     Task SetSurfaceAsync(ThemeSurfaceType surface);
     Task SetThemePreferenceAsync(ThemePreference pref);
     Task SetTypographySizeAsync(TypographySize size);

@@ -7,6 +7,7 @@
     <ProjectReference Include="..\..\Requests\Hosting\Requests.Hosting.csproj" />
     <ProjectReference Include="..\..\Users\Hosting\Users.Hosting.csproj" />
     <ProjectReference Include="..\..\Parties\Hosting\Parties.Hosting.csproj" />
+    <ProjectReference Include="..\..\Platform\Interface\Platform.Interface.csproj" />
     <ProjectReference Include="..\..\Medical\Interface\Medical.Interface.csproj" />
     <ProjectReference Include="..\..\Appointments\Interface\Appointments.Interface.csproj" />
     <ProjectReference Include="..\..\Commerce\Interface\Commerce.Interface.csproj" />

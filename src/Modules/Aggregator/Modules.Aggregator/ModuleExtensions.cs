@@ -13,6 +13,7 @@ using Vitarish.Links.Interface;
 using Vitarish.Medical.Interface;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Hosting;
+using Vitarish.Platform.Interface;
 using Vitarish.Users.Hosting;
 using Vitarish.Requests.Hosting;
 using Vitarish.Prescription.Interface;
@@ -26,6 +27,7 @@ public static class ModulesExtensions
                 Activator.CreateInstance<RequestsModule>(),
                 Activator.CreateInstance<UsersModule>(),
                 Activator.CreateInstance<PartiesModule>(),
+                Activator.CreateInstance<PlatformModule>(),
                 Activator.CreateInstance<CommunicationModule>(),
                 Activator.CreateInstance<IntelligenceModule>(),
                 Activator.CreateInstance<FilesModule>(),

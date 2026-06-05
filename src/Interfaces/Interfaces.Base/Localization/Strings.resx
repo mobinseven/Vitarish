@@ -2010,4 +2010,43 @@ of project "{2}"</value>
   <data name="PatientContextRequired" xml:space="preserve">
     <value>Open prescription creation from a patient context before creating a draft.</value>
   </data>
+  <data name="Theme Palette Management" xml:space="preserve">
+    <value>Theme Palette Management</value>
+  </data>
+  <data name="Active theme" xml:space="preserve">
+    <value>Active theme</value>
+  </data>
+  <data name="Set as Active" xml:space="preserve">
+    <value>Set as Active</value>
+  </data>
+  <data name="Light palette" xml:space="preserve">
+    <value>Light palette</value>
+  </data>
+  <data name="Dark palette" xml:space="preserve">
+    <value>Dark palette</value>
+  </data>
+  <data name="Active theme cannot be deleted" xml:space="preserve">
+    <value>Active theme cannot be deleted</value>
+  </data>
+  <data name="Theme saved" xml:space="preserve">
+    <value>Theme saved</value>
+  </data>
+  <data name="Theme activated" xml:space="preserve">
+    <value>Theme activated</value>
+  </data>
+  <data name="Theme deleted" xml:space="preserve">
+    <value>Theme deleted</value>
+  </data>
+  <data name="Theme name" xml:space="preserve">
+    <value>Theme name</value>
+  </data>
+  <data name="Inactive" xml:space="preserve">
+    <value>Inactive</value>
+  </data>
+  <data name="both" xml:space="preserve">
+    <value>both</value>
+  </data>
+  <data name="Select another active theme before deleting this one." xml:space="preserve">
+    <value>Select another active theme before deleting this one.</value>
+  </data>
 </root>

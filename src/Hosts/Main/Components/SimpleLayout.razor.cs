@@ -1,3 +1,5 @@
+using Vitarish.Platform.Application.Abstractions;
+using Vitarish.Platform.Application.Contracts;
 using Vitarish.Interfaces.Accounts.Abstractions;
 using Vitarish.Interfaces.Base.Abstractions;
 using Vitarish.Interfaces.Base.Models;
@@ -13,6 +15,7 @@ public partial class SimpleLayout : LayoutComponentBase, IAsyncDisposable, IBrow
     [Inject] protected IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
     [Inject] protected IUserService UserService { get; set; } = default!;
     [Inject] protected INavService NavService { get; set; } = default!;
+    [Inject] protected IPlatformThemeQuery PlatformThemeQuery { get; set; } = default!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
     [Inject] protected IStringLocalizer Localizer { get; set; } = default!;
 
@@ -32,7 +35,8 @@ public partial class SimpleLayout : LayoutComponentBase, IAsyncDisposable, IBrow
             string? theme = await UserService.GetThemeAsync(userId);
             themeSettings = ThemeSettings.FromJson(theme);
         }
-        await ThemeService.InitializeAsync(themeSettings);
+        ThemeEditorModel? platformTheme = await PlatformThemeQuery.GetActiveThemeAsync();
+        await ThemeService.InitializeAsync(themeSettings, ToPlatformPalette(platformTheme));
         Initialized = true;
         RenderNotifier.RenderRequired += HandleLocationChanged;
         _ = NavigationManager.RegisterLocationChangingHandler(async c => { Navigating = true; await InvokeAsync(() => StateHasChanged()); });
@@ -55,6 +59,15 @@ public partial class SimpleLayout : LayoutComponentBase, IAsyncDisposable, IBrow
 
         await base.OnAfterRenderAsync(firstRender);
     }
+
+
+    private static PlatformThemePalette? ToPlatformPalette(ThemeEditorModel? theme)
+        => theme is null
+            ? null
+            : new PlatformThemePalette(ToPaletteValues(theme.LightPalette), ToPaletteValues(theme.DarkPalette));
+
+    private static ThemePaletteValues ToPaletteValues(ThemePaletteDto palette)
+        => new(palette.Primary, palette.PrimaryContrastText, palette.Secondary, palette.SecondaryContrastText, palette.Background, palette.Surface, palette.AppbarBackground, palette.AppbarText, palette.TextPrimary, palette.TextSecondary, palette.Divider);
 
     private async void RenderNotificationReceived(object? sender, RenderNotification notification)
     {
