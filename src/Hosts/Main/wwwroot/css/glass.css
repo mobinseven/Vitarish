@@ -7,86 +7,106 @@
    1) Adjustable tokens (common)
    ----------------------------- */
 :root {
-    /* Frost */
-    --glass-blur: 18px;
-    --glass-saturation: 1.35;
+    /* Frost — stronger blur + saturation for a crisper glass look */
+    --glass-blur: 24px;
+    --glass-saturation: 1.8;
     --glass-backdrop: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+
     /* Shape */
     --glass-radius: 18px;
     --glass-radius-sm: 14px;
-    --glass-border-width: 0px;
-    /* Depth */
-    --glass-shadow-y: 18px;
-    --glass-shadow-blur: 45px;
+    --glass-border-width: 2px;
+
+    /* Depth — tighter, snappier shadow */
+    --glass-shadow-y: 2px;
+    --glass-shadow-blur: 24px;
+
     /* Focus ring */
-    --glass-ring-width: 3px;
-    --glass-ring-alpha: 0.22;
+    --glass-ring-width: 3px;    
+    --glass-ring-alpha: 0.28;
+
     /* ---------- LIGHT defaults ---------- */
     --glass-surface-rgb: 255 255 255;
-    --glass-border-rgb: 255 255 255 0;
+    --glass-border-rgb: 255 255 255;
     --glass-shadow-rgb: 0 0 0;
     --glass-ring-rgb: 255 255 255;
-    --glass-surface-a: 0.5;
-    --glass-surface-hover-a: 0.18;
-    --glass-surface-active-a: 0.22;
+
+    /* Opacity layers — 3-tier depth system */
+    --glass-surface-a: 0.52;
+    --glass-surface-hover-a: 0.62;
+    --glass-surface-active-a: 0.70;
     --glass-border-a: 0.22;
-    --glass-shadow-a: 0.28;
-    --glass-inset-a: 0.10;
-    /* Buttons */
-    --glass-btn-a: 0.14;
-    --glass-btn-hover-a: 0.18;
-    --glass-btn-active-a: 0.22;
+    --glass-shadow-a: 0;
+    --glass-inset-a: 0.0;
+
+    /* Buttons — clear tap affordance */
+    --glass-btn-a: 0.20;
+    --glass-btn-hover-a: 0.30;
+    --glass-btn-active-a: 0.38;
+
     /* Inputs */
-    --glass-input-a: 0.10;
-    --glass-input-hover-a: 0.14;
-    --glass-input-focus-a: 0.18;
+    --glass-input-a: 0.45;
+    --glass-input-hover-a: 0.55;
+    --glass-input-focus-a: 0.62;
 }
 
 /* -----------------------------
    2) Dark scheme overrides
-   (automatic system mode)
    ----------------------------- */
-@media (prefers-color-scheme: dark) { 
+@media (prefers-color-scheme: dark) {
     :root {
-        --glass-surface-rgb: 18 22 35; /* deep bluish glass */
-        --glass-border-rgb: 255 255 255 0;
+        --glass-surface-rgb: 18 22 35;
+        --glass-border-rgb: 255 255 255;
         --glass-shadow-rgb: 0 0 0;
         --glass-ring-rgb: 120 170 255;
-        --glass-surface-a: 0.5;
-        --glass-surface-hover-a: 0.28;
-        --glass-surface-active-a: 0.32;
-        --glass-border-a: 0.02;
-        --glass-shadow-a: 0.55;
-        --glass-inset-a: 0.12;
-        --glass-ring-alpha: 0.34;
-        --glass-btn-a: 0.20;
-        --glass-btn-hover-a: 0.26;
-        --glass-btn-active-a: 0.30;
-        --glass-input-a: 0.16;
-        --glass-input-hover-a: 0.22;
-        --glass-input-focus-a: 0.28;
+
+        --glass-surface-a: 0.50;
+        --glass-surface-hover-a: 0.32;
+        --glass-surface-active-a: 0.38;
+        --glass-border-a: 0.12;
+        --glass-shadow-a: 0.60;
+        --glass-inset-a: 0.16;
+        --glass-ring-alpha: 0.38;
+
+        --glass-btn-a: 0.22;
+        --glass-btn-hover-a: 0.30;
+        --glass-btn-active-a: 0.36;
+
+        --glass-input-a: 0.18;
+        --glass-input-hover-a: 0.26;
+        --glass-input-focus-a: 0.32;
     }
 }
 
+/* -----------------------------
+   3) Computed surface tokens
+   ----------------------------- */
 :root {
     --glass-bg: rgb(var(--glass-surface-rgb) / var(--glass-surface-a));
     --glass-bg-hover: rgb(var(--glass-surface-rgb) / var(--glass-surface-hover-a));
     --glass-bg-active: rgb(var(--glass-surface-rgb) / var(--glass-surface-active-a));
+
     --glass-border: rgb(var(--glass-border-rgb) / var(--glass-border-a));
+
     --glass-shadow: 0 var(--glass-shadow-y) var(--glass-shadow-blur) rgb(var(--glass-shadow-rgb) / var(--glass-shadow-a));
-    --glass-inset: inset 0 0px 0 rgb(var(--glass-border-rgb) / var(--glass-inset-a));
+
+    /* Neutral top-edge highlight */
+    --glass-inset: inset 0 1px 0 rgb(var(--glass-border-rgb) / var(--glass-inset-a));
+
     --glass-ring: 0 0 0 var(--glass-ring-width) rgb(var(--glass-ring-rgb) / var(--glass-ring-alpha));
 }
 
+/* -----------------------------
+   4) Color-mix strengths
+   ----------------------------- */
 :root {
-    /* Color mix strengths */
-    --glass-color-bg-mix: 18%;
-    --glass-color-bg-hover-mix: 24%;
-    --glass-color-bg-active-mix: 30%;
-    --glass-color-border-mix: 38%;
-    --glass-color-ring-mix: 34%;
-    --glass-color-shadow-mix: 20%;
-    --glass-color-inset-mix: 44%;
+    --glass-color-bg-mix: 22%;
+    --glass-color-bg-hover-mix: 28%;
+    --glass-color-bg-active-mix: 34%;
+    --glass-color-border-mix: 50%;
+    --glass-color-ring-mix: 42%;
+    --glass-color-inset-mix: 56%;
+
     /* MudBlazor palette aliases */
     --glass-primary: var(--mud-palette-primary, #594ae2);
     --glass-secondary: var(--mud-palette-secondary, #ff4081);
@@ -95,6 +115,7 @@
     --glass-success: var(--mud-palette-success, #00c853);
     --glass-warning: var(--mud-palette-warning, #ff9800);
     --glass-error: var(--mud-palette-error, #f44336);
+
     --glass-primary-text: var(--mud-palette-primary, #ffffff);
     --glass-secondary-text: var(--mud-palette-secondary, #ffffff);
     --glass-tertiary-text: var(--mud-palette-tertiary, #ffffff);
@@ -102,64 +123,80 @@
     --glass-success-text: var(--mud-palette-success, #ffffff);
     --glass-warning-text: var(--mud-palette-warning, #000000);
     --glass-error-text: var(--mud-palette-error, #ffffff);
+
     /* Text aliases */
     --glass-text-primary: var(--mud-palette-text-primary, currentColor);
     --glass-text-secondary: var(--mud-palette-text-secondary, currentColor);
     --glass-text-disabled: var(--mud-palette-text-disabled, currentColor);
-    /* Primary glass */
+}
+
+/* -----------------------------
+   5) Per-color glass tokens
+      Backgrounds stay colored.
+      Borders and inset highlights use default light/dark glass tokens.
+      Shadows use the default light/dark --glass-shadow.
+   ----------------------------- */
+:root {
+    /* Primary */
     --glass-primary-bg: color-mix(in srgb, var(--glass-primary) var(--glass-color-bg-mix), var(--glass-bg));
     --glass-primary-bg-hover: color-mix(in srgb, var(--glass-primary) var(--glass-color-bg-hover-mix), var(--glass-bg-hover));
     --glass-primary-bg-active: color-mix(in srgb, var(--glass-primary) var(--glass-color-bg-active-mix), var(--glass-bg-active));
-    --glass-primary-border: color-mix(in srgb, var(--glass-primary) var(--glass-color-border-mix), var(--glass-border));
-    --glass-primary-shadow: 0 var(--glass-shadow-y) var(--glass-shadow-blur) color-mix(in srgb, var(--glass-primary) var(--glass-color-shadow-mix), rgb(var(--glass-shadow-rgb) / var(--glass-shadow-a)));
-    --glass-primary-inset: inset 0 1px 0 color-mix(in srgb, var(--glass-primary) var(--glass-color-inset-mix), rgb(var(--glass-border-rgb) / var(--glass-inset-a)));
+    --glass-primary-border: var(--glass-border);
+    --glass-primary-shadow: var(--glass-shadow);
+    --glass-primary-inset: var(--glass-inset);
     --glass-primary-ring: 0 0 0 var(--glass-ring-width) color-mix(in srgb, var(--glass-primary) var(--glass-color-ring-mix), transparent);
-    /* Secondary glass */
+
+    /* Secondary */
     --glass-secondary-bg: color-mix(in srgb, var(--glass-secondary) var(--glass-color-bg-mix), var(--glass-bg));
     --glass-secondary-bg-hover: color-mix(in srgb, var(--glass-secondary) var(--glass-color-bg-hover-mix), var(--glass-bg-hover));
     --glass-secondary-bg-active: color-mix(in srgb, var(--glass-secondary) var(--glass-color-bg-active-mix), var(--glass-bg-active));
-    --glass-secondary-border: color-mix(in srgb, var(--glass-secondary) var(--glass-color-border-mix), var(--glass-border));
-    --glass-secondary-shadow: 0 var(--glass-shadow-y) var(--glass-shadow-blur) color-mix(in srgb, var(--glass-secondary) var(--glass-color-shadow-mix), rgb(var(--glass-shadow-rgb) / var(--glass-shadow-a)));
-    --glass-secondary-inset: inset 0 1px 0 color-mix(in srgb, var(--glass-secondary) var(--glass-color-inset-mix), rgb(var(--glass-border-rgb) / var(--glass-inset-a)));
+    --glass-secondary-border: var(--glass-border);
+    --glass-secondary-shadow: var(--glass-shadow);
+    --glass-secondary-inset: var(--glass-inset);
     --glass-secondary-ring: 0 0 0 var(--glass-ring-width) color-mix(in srgb, var(--glass-secondary) var(--glass-color-ring-mix), transparent);
-    /* Tertiary glass */
+
+    /* Tertiary */
     --glass-tertiary-bg: color-mix(in srgb, var(--glass-tertiary) var(--glass-color-bg-mix), var(--glass-bg));
     --glass-tertiary-bg-hover: color-mix(in srgb, var(--glass-tertiary) var(--glass-color-bg-hover-mix), var(--glass-bg-hover));
     --glass-tertiary-bg-active: color-mix(in srgb, var(--glass-tertiary) var(--glass-color-bg-active-mix), var(--glass-bg-active));
-    --glass-tertiary-border: color-mix(in srgb, var(--glass-tertiary) var(--glass-color-border-mix), var(--glass-border));
-    --glass-tertiary-shadow: 0 var(--glass-shadow-y) var(--glass-shadow-blur) color-mix(in srgb, var(--glass-tertiary) var(--glass-color-shadow-mix), rgb(var(--glass-shadow-rgb) / var(--glass-shadow-a)));
-    --glass-tertiary-inset: inset 0 1px 0 color-mix(in srgb, var(--glass-tertiary) var(--glass-color-inset-mix), rgb(var(--glass-border-rgb) / var(--glass-inset-a)));
+    --glass-tertiary-border: var(--glass-border);
+    --glass-tertiary-shadow: var(--glass-shadow);
+    --glass-tertiary-inset: var(--glass-inset);
     --glass-tertiary-ring: 0 0 0 var(--glass-ring-width) color-mix(in srgb, var(--glass-tertiary) var(--glass-color-ring-mix), transparent);
-    /* Info glass */
+
+    /* Info */
     --glass-info-bg: color-mix(in srgb, var(--glass-info) var(--glass-color-bg-mix), var(--glass-bg));
     --glass-info-bg-hover: color-mix(in srgb, var(--glass-info) var(--glass-color-bg-hover-mix), var(--glass-bg-hover));
     --glass-info-bg-active: color-mix(in srgb, var(--glass-info) var(--glass-color-bg-active-mix), var(--glass-bg-active));
-    --glass-info-border: color-mix(in srgb, var(--glass-info) var(--glass-color-border-mix), var(--glass-border));
-    --glass-info-shadow: 0 var(--glass-shadow-y) var(--glass-shadow-blur) color-mix(in srgb, var(--glass-info) var(--glass-color-shadow-mix), rgb(var(--glass-shadow-rgb) / var(--glass-shadow-a)));
-    --glass-info-inset: inset 0 1px 0 color-mix(in srgb, var(--glass-info) var(--glass-color-inset-mix), rgb(var(--glass-border-rgb) / var(--glass-inset-a)));
+    --glass-info-border: var(--glass-border);
+    --glass-info-shadow: var(--glass-shadow);
+    --glass-info-inset: var(--glass-inset);
     --glass-info-ring: 0 0 0 var(--glass-ring-width) color-mix(in srgb, var(--glass-info) var(--glass-color-ring-mix), transparent);
-    /* Success glass */
+
+    /* Success */
     --glass-success-bg: color-mix(in srgb, var(--glass-success) var(--glass-color-bg-mix), var(--glass-bg));
     --glass-success-bg-hover: color-mix(in srgb, var(--glass-success) var(--glass-color-bg-hover-mix), var(--glass-bg-hover));
     --glass-success-bg-active: color-mix(in srgb, var(--glass-success) var(--glass-color-bg-active-mix), var(--glass-bg-active));
-    --glass-success-border: color-mix(in srgb, var(--glass-success) var(--glass-color-border-mix), var(--glass-border));
-    --glass-success-shadow: 0 var(--glass-shadow-y) var(--glass-shadow-blur) color-mix(in srgb, var(--glass-success) var(--glass-color-shadow-mix), rgb(var(--glass-shadow-rgb) / var(--glass-shadow-a)));
-    --glass-success-inset: inset 0 1px 0 color-mix(in srgb, var(--glass-success) var(--glass-color-inset-mix), rgb(var(--glass-border-rgb) / var(--glass-inset-a)));
+    --glass-success-border: var(--glass-border);
+    --glass-success-shadow: var(--glass-shadow);
+    --glass-success-inset: var(--glass-inset);
     --glass-success-ring: 0 0 0 var(--glass-ring-width) color-mix(in srgb, var(--glass-success) var(--glass-color-ring-mix), transparent);
-    /* Warning glass */
+
+    /* Warning */
     --glass-warning-bg: color-mix(in srgb, var(--glass-warning) var(--glass-color-bg-mix), var(--glass-bg));
     --glass-warning-bg-hover: color-mix(in srgb, var(--glass-warning) var(--glass-color-bg-hover-mix), var(--glass-bg-hover));
     --glass-warning-bg-active: color-mix(in srgb, var(--glass-warning) var(--glass-color-bg-active-mix), var(--glass-bg-active));
-    --glass-warning-border: color-mix(in srgb, var(--glass-warning) var(--glass-color-border-mix), var(--glass-border));
-    --glass-warning-shadow: 0 var(--glass-shadow-y) var(--glass-shadow-blur) color-mix(in srgb, var(--glass-warning) var(--glass-color-shadow-mix), rgb(var(--glass-shadow-rgb) / var(--glass-shadow-a)));
-    --glass-warning-inset: inset 0 1px 0 color-mix(in srgb, var(--glass-warning) var(--glass-color-inset-mix), rgb(var(--glass-border-rgb) / var(--glass-inset-a)));
+    --glass-warning-border: var(--glass-border);
+    --glass-warning-shadow: var(--glass-shadow);
+    --glass-warning-inset: var(--glass-inset);
     --glass-warning-ring: 0 0 0 var(--glass-ring-width) color-mix(in srgb, var(--glass-warning) var(--glass-color-ring-mix), transparent);
-    /* Error glass */
+
+    /* Error */
     --glass-error-bg: color-mix(in srgb, var(--glass-error) var(--glass-color-bg-mix), var(--glass-bg));
     --glass-error-bg-hover: color-mix(in srgb, var(--glass-error) var(--glass-color-bg-hover-mix), var(--glass-bg-hover));
     --glass-error-bg-active: color-mix(in srgb, var(--glass-error) var(--glass-color-bg-active-mix), var(--glass-bg-active));
-    --glass-error-border: color-mix(in srgb, var(--glass-error) var(--glass-color-border-mix), var(--glass-border));
-    --glass-error-shadow: 0 var(--glass-shadow-y) var(--glass-shadow-blur) color-mix(in srgb, var(--glass-error) var(--glass-color-shadow-mix), rgb(var(--glass-shadow-rgb) / var(--glass-shadow-a)));
-    --glass-error-inset: inset 0 1px 0 color-mix(in srgb, var(--glass-error) var(--glass-color-inset-mix), rgb(var(--glass-border-rgb) / var(--glass-inset-a)));
+    --glass-error-border: var(--glass-border);
+    --glass-error-shadow: var(--glass-shadow);
+    --glass-error-inset: var(--glass-inset);
     --glass-error-ring: 0 0 0 var(--glass-ring-width) color-mix(in srgb, var(--glass-error) var(--glass-color-ring-mix), transparent);
 }

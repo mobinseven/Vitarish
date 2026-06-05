@@ -12,7 +12,7 @@
     <Stack>
         @if (reservations.Count == 0)
         {
-            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Reservation"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Reservation"]]" EndIcon="fa-regular fa-refresh">
+            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Reservation"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Reservation"]]" EndIcon="fa-solid fa-refresh">
                 @Localizer["Reload"]
             </StackButton>
         }

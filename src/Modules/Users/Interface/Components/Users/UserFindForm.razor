@@ -6,7 +6,7 @@
                     Label="@Localizer["Search"]"
                     HelperText="@Localizer["User"]"
                     Adornment="Adornment.End"
-                    AdornmentIcon="@(searching ? "fa-regular fa-circle-notch fa-spin" : "fa-regular fa-search")" />
+                    AdornmentIcon="@(searching ? "fa-solid fa-circle-notch fa-spin" : "fa-solid fa-search")" />
 
     @if (ShowSearchScopeSelector)
     {
@@ -29,7 +29,7 @@
         {
             <StackButton Label="@GetDisplayName(user)"
                          HelperText="@GetHelperText(user)"
-                         EndIcon="fa-regular fa-user-check"
+                         EndIcon="fa-solid fa-user-check"
                          OnClick="() => SelectUserAsync(user.Id)" />
         }
     }

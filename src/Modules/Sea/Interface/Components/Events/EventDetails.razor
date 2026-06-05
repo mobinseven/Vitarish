@@ -12,7 +12,7 @@
     }
     else if(CanWrite)
     {
-        <StackButton EndIcon="fa-regular fa-circle" Color="Color.Primary" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Commit"]" />
+        <StackButton EndIcon="fa-solid fa-circle" Color="Color.Primary" OnClick="() => ToggleCommitAsync()" Label="@Localizer["Commit"]" />
     }
 </Stack>
 
@@ -20,13 +20,13 @@
 @if(AdminMode)
 {
     <Stack>
-        <StackButton EndIcon="fa-regular fa-edit"
+        <StackButton EndIcon="fa-solid fa-edit"
                      OnClick="EditEvent"
                      Label="@Localizer["EditItem", Localizer["Event"]]" />
-        <StackButton EndIcon="fa-regular fa-users"
+        <StackButton EndIcon="fa-solid fa-users"
                      OnClick="EditEventRoles"
                      Label="@Localizer["EditRoles", Localizer["Event"]]" />
-        <StackButton EndIcon="fa-regular fa-trash"
+        <StackButton EndIcon="fa-solid fa-trash"
                      OnClick="DeleteEvent"
                      Label="@Localizer["DeleteItem", Localizer["Event"]]"
                      Color="Color.Error" />

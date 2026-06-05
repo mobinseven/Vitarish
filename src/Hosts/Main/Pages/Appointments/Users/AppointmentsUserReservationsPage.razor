@@ -4,7 +4,7 @@
 <Stack>
     <StackButton Color="Color.Secondary"
                  OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Appointments.UserShifts))"
-                 StartIcon="fa-regular fa-calendar-days"
+                 StartIcon="fa-solid fa-calendar-days"
                  Label="@Localizer["BrowseItems", Localizer["Shift"]]" />
 </Stack>
 <ReservationsList OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Appointments.Reservation(id)))" />

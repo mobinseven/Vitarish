@@ -58,9 +58,9 @@ public partial class TenantIndicatorsEditor
 
     private static string GetStatusIcon(IndicatorStatus status) => status switch
     {
-        IndicatorStatus.PendingVerification => "fa-regular fa-seal-exclamation",
-        IndicatorStatus.Verified => "fa-regular fa-check",
-        IndicatorStatus.Active => "fa-regular fa-check-circle",
-        _ => "fa-regular fa-pause"
+        IndicatorStatus.PendingVerification => "fa-solid fa-seal-exclamation",
+        IndicatorStatus.Verified => "fa-solid fa-check",
+        IndicatorStatus.Active => "fa-solid fa-check-circle",
+        _ => "fa-solid fa-pause"
     };
 }

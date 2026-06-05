@@ -9,7 +9,7 @@
     <AuthorizeView Context="admin" Policy="@IdentityDefinitions.PlatformAdmin">
         <Stack>
             <StackButton Label="@Localizer["Admin"]"
-                         StartIcon="fa-regular fa-user-shield"
+                         StartIcon="fa-solid fa-user-shield"
                          OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.PlatformAdmin.Home))" />
         </Stack>
     </AuthorizeView>
@@ -18,27 +18,27 @@
             <MudText Typo="Typo.body2" Color="Color.Secondary">@User?.UserName</MudText>
         </StackField>
         <StackButton OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.SettingsName))"
-                     StartIcon="fa-regular fa-person"
+                     StartIcon="fa-solid fa-person"
                      Label="@Localizer["Name"]">
             @User?.FullName
         </StackButton>
         <StackButton OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.SettingsEmail))"
-                     StartIcon="fa-regular fa-envelope"
+                     StartIcon="fa-solid fa-envelope"
                      Label="@Localizer["Email"]">
             @User?.Email
         </StackButton>
         <StackButton OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.SettingsPhone))"
-                     StartIcon="fa-regular fa-mobile"
+                     StartIcon="fa-solid fa-mobile"
                      Label="@Localizer["PhoneNumber"]">
             @User?.PhoneNumber
         </StackButton>
         <StackButton OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.SettingsPassword))"
-                     StartIcon="fa-regular fa-lock"
+                     StartIcon="fa-solid fa-lock"
                      Label="@Localizer["EditPassword"]">
             ***********
         </StackButton>
         <StackButton OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.SettingsPasskeys))"
-                     StartIcon="fa-regular fa-key"
+                     StartIcon="fa-solid fa-key"
                      Label="@Localizer["Passkeys"]">
             
         </StackButton>
@@ -51,7 +51,7 @@
     <Stack>
 
         <StackButton OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.SettingsAppearance))"
-                     StartIcon="fa-regular fa-paint-brush-alt"
+                     StartIcon="fa-solid fa-paint-brush-alt"
                      Label="@Localizer["Appearance"]" />
     </Stack>
 
@@ -60,7 +60,7 @@
     <Stack>
         <StackButton Label="@Localizer["Logout"]"
                      Color="Color.Error"
-                     EndIcon="fa-regular fa-sign-out-alt"
+                     EndIcon="fa-solid fa-sign-out-alt"
                      OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.Logout))" />
     </Stack>
 </MudStack>

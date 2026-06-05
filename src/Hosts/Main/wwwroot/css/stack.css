@@ -1,19 +1,28 @@
+:root {
+    --stack-item-padding: 14px;
+    --stack-radius: var(--mud-default-borderradius);
+}
+
 .stack {
     background-color: var(--glass-bg) !important;
     backdrop-filter: var(--glass-backdrop);
     -webkit-backdrop-filter: var(--glass-backdrop);
-    border-radius: var(--mud-default-borderradius) !important;
+    border-radius: var(--stack-radius) !important;
+    border: var(--glass-border-width) solid var(--glass-border);
+    box-shadow: var(--glass-inset);
+    overflow: hidden;
 }
 
     .stack > .stack-item {
         margin: 0;
-        padding: 5px 10px;
+        padding: var(--stack-item-padding); 
         border-radius: unset !important;
+        transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
     }
 
         .stack > .stack-item:first-child {
-            border-top-left-radius: var(--mud-default-borderradius) !important;
-            border-top-right-radius: var(--mud-default-borderradius) !important;
+            border-top-left-radius: var(--stack-radius) !important;
+            border-top-right-radius: var(--stack-radius) !important;
         }
 
             .stack > .stack-item:first-child .stack-field {
@@ -25,48 +34,46 @@
         }
 
         .stack > .stack-item:last-child {
-            border-bottom-left-radius: var(--mud-default-borderradius) !important;
-            border-bottom-right-radius: var(--mud-default-borderradius) !important;
+            border-bottom-left-radius: var(--stack-radius) !important;
+            border-bottom-right-radius: var(--stack-radius) !important;
             margin: 0;
         }
+        .stack > .stack-item[class*="mud-button-text-"] .mud-button-icon-end {
+            padding: 10px;
+            border-radius: calc(var(--stack-radius) - var(--stack-item-padding)) !important;
+        }
 
-        /* -------------------------------------------------------
-   One generic colored-glass rule
-   ------------------------------------------------------- */
-
-        .stack > .stack-item[class*="mud-button-text-"] {
+        .stack > .stack-item[class*="mud-button-text-"]:not(:disabled):not(.mud-disabled) .mud-button-icon-end {
             color: var(--stack-glass-text) !important;
-            background: var(--stack-glass-bg) !important;
             box-shadow: var(--stack-glass-shadow), var(--stack-glass-inset);
             backdrop-filter: var(--glass-backdrop);
             -webkit-backdrop-filter: var(--glass-backdrop);
         }
 
-            .stack > .stack-item[class*="mud-button-text-"]:hover {
-                background: var(--stack-glass-bg-hover) !important;
-            }
+        .stack > .stack-item[class*="mud-button-text-"]:not(:disabled):not(.mud-disabled):hover .mud-button-icon-end {
+            box-shadow: var(--stack-glass-shadow), var(--stack-glass-inset), 0 2px 8px rgb(var(--glass-shadow-rgb) / 0.08);
+        }
 
-            .stack > .stack-item[class*="mud-button-text-"]:active {
-                background: var(--stack-glass-bg-active) !important;
-            }
+        .stack > .stack-item[class*="mud-button-text-"]:not(:disabled):not(.mud-disabled):active .mud-button-icon-end {
+            background: var(--stack-glass-bg-active) !important;
+            transform: scaleY(0.98);
+            box-shadow: var(--stack-glass-shadow), var(--stack-glass-inset);
+        }
 
-            .stack > .stack-item[class*="mud-button-text-"]:focus-visible {
-                box-shadow: var(--stack-glass-shadow), var(--stack-glass-inset), var(--stack-glass-ring);
-            }
-
-        /* -------------------------------------------------------
-   Mud color class -> glass token mapping
-   ------------------------------------------------------- */
+        .stack > .stack-item[class*="mud-button-text-"]:not(:disabled):not(.mud-disabled):focus-visible .mud-button-icon-end {
+            box-shadow: var(--stack-glass-shadow), var(--stack-glass-inset), var(--stack-glass-ring);
+            outline: none;
+        }
 
         .stack > .stack-item.mud-button-text-default {
-            --stack-glass-text: var(--mud-palette-text-primary, var(--glass-text-primary));
-            --stack-glass-bg: var(--glass-bg);
-            --stack-glass-bg-hover: var(--glass-bg-hover);
-            --stack-glass-bg-active: var(--glass-bg-active);
-            --stack-glass-border: var(--glass-border);
-            --stack-glass-shadow: var(--glass-shadow);
-            --stack-glass-inset: var(--glass-inset);
-            --stack-glass-ring: var(--glass-ring);
+            --stack-glass-text: var(--glass-primary-text);
+            --stack-glass-bg: var(--glass-primary-bg);
+            --stack-glass-bg-hover: var(--glass-primary-bg-hover);
+            --stack-glass-bg-active: var(--glass-primary-bg-active);
+            --stack-glass-border: var(--glass-primary-border);
+            --stack-glass-shadow: var(--glass-primary-shadow);
+            --stack-glass-inset: var(--glass-primary-inset);
+            --stack-glass-ring: var(--glass-primary-ring);
         }
 
         .stack > .stack-item.mud-button-text-primary {

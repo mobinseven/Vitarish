@@ -17,7 +17,7 @@
 
     <StackButton Color="Color.Primary"
                  Label="@Localizer["CreateDraft"]"
-                 EndIcon="fa-regular fa-file-medical"
+                 EndIcon="fa-solid fa-file-medical"
                  OnClick="CreateDraftAsync"
                  Disabled="@(PatientId is null || string.IsNullOrWhiteSpace(patientNationalId) || string.IsNullOrWhiteSpace(selectedProviderKey) || isLoadingProviders)" />
 </Stack>

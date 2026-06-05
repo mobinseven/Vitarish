@@ -6,7 +6,7 @@
         <StackButton OnClick="ReloadRequired"
                      Label="@Localizer["NoItems", Localizer["CodeSystem"]]"
                      HelperText="@Localizer["NoItemsHelp", Localizer["CodeSystem"]]"
-                     EndIcon="fa-regular fa-refresh">
+                     EndIcon="fa-solid fa-refresh">
             @Localizer["Reload"]
         </StackButton>
     }
@@ -24,7 +24,7 @@
     {
         <StackExpandable Color="Color.Primary"
                          Label="@Localizer["AddItem", Localizer["CodeSystem"]]"
-                         EndIcon="fa-regular fa-plus">
+                         EndIcon="fa-solid fa-plus">
             <ExpandableContent>
                 <CodeSystemForm OnSaved="() => context.CloseAsync()" OnCancelled="() => context.CloseAsync()" />
             </ExpandableContent>

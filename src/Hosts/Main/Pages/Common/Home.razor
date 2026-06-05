@@ -23,7 +23,7 @@
                 <Stack>
                     <StackButton Label="@Localizer["CreateWorkspace"]"
                                  Href="@AppRoutes.Setup.Index"
-                                 EndIcon="fa-regular fa-plus" />
+                                 EndIcon="fa-solid fa-plus" />
                 </Stack>
             }
         }
@@ -31,7 +31,7 @@
     <NotAuthorized>
         <Stack>
             <StackButton Label="@Localizer["Login"]"
-                         EndIcon="fa-regular fa-sign-in"
+                         EndIcon="fa-solid fa-sign-in"
                          OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Account.Login))" />
         </Stack>
     </NotAuthorized>

@@ -6,13 +6,13 @@
                     Label="@Localizer["IdentificationCode"]"
                     HelperText="@Localizer["PatientIdentificationCodeHelp"]"
                     Adornment="Adornment.End"
-                    AdornmentIcon="@(Context.IdentificationLookupInProgress ? "fa-regular fa-circle-notch fa-spin" : "fa-regular fa-search")"
+                    AdornmentIcon="@(Context.IdentificationLookupInProgress ? "fa-solid fa-circle-notch fa-spin" : "fa-solid fa-search")"
                     AdornmentColor="@(Context.IdentificationLookupInProgress ? Color.Secondary : Color.Default)"
                     OnAdornmentClick="() => OnIdentificationCodeChangedAsync(Context.IdentificationCode)"
                     DebounceInterval="400"
                     dir="ltr"/>
     <StackButton Label="@Localizer["AdvancedSearch"]"
-                 EndIcon="@(showAdvancedSearch ? "fa-regular fa-chevron-up" : "fa-regular fa-chevron-down")"
+                 EndIcon="@(showAdvancedSearch ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down")"
                  OnClick="ToggleAdvancedSearch" />
 
     @if(showAdvancedSearch)
@@ -39,7 +39,7 @@
 
         <StackButton Label="@Localizer["Search"]"
                      Color="Color.Primary"
-                     EndIcon="@(searching ? "fa-regular fa-circle-notch fa-spin" : "fa-regular fa-magnifying-glass")"
+                     EndIcon="@(searching ? "fa-solid fa-circle-notch fa-spin" : "fa-solid fa-magnifying-glass")"
                      Disabled="@(!HasAdvancedSearchCriteria() || searching)"
                      OnClick="OnContinueWithSearch" />
 
@@ -54,7 +54,7 @@
         {
             <StackButton Label="@result.Name"
                          HelperText="@GetPatientHelperText(result)"
-                         EndIcon="fa-regular fa-user-check"
+                         EndIcon="fa-solid fa-user-check"
                          OnClick="@(() => SelectPatientAsync(result))" />
         }
     </Stack>

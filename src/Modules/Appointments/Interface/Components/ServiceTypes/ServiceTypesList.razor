@@ -6,7 +6,7 @@
         <StackButton OnClick="ReloadRequired"
                      Label="@Localizer["NoItems", Localizer["ServiceType"]]"
                      HelperText="@Localizer["NoItemsHelp", Localizer["ServiceType"]]"
-                     EndIcon="fa-regular fa-refresh">
+                     EndIcon="fa-solid fa-refresh">
             @Localizer["Reload"]
         </StackButton>
     }
@@ -27,7 +27,7 @@
     {
         <StackExpandable Color="Color.Primary"
                          Label="@Localizer["AddItem", Localizer["ServiceType"]]"
-                         EndIcon="fa-regular fa-plus">
+                         EndIcon="fa-solid fa-plus">
             <ExpandableContent>
                 <ServiceTypeForm OnCancelled="() => context.CloseAsync()" OnSaved="() => context.CloseAsync()" />
             </ExpandableContent>

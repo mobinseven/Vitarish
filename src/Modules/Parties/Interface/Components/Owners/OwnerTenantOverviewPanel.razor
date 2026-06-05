@@ -14,23 +14,23 @@
     }
     @if (!string.IsNullOrWhiteSpace(SettingsHref))
     {
-        <StackButton Label="@Localizer["Settings"]" Href="@SettingsHref" EndIcon="fa-regular fa-cog" />
+        <StackButton Label="@Localizer["Settings"]" Href="@SettingsHref" EndIcon="fa-solid fa-cog" />
     }
     @if (!string.IsNullOrWhiteSpace(MembersHref))
     {
-        <StackButton Label="@Localizer["MembersAndRoles"]" Href="@MembersHref" EndIcon="fa-regular fa-users" />
+        <StackButton Label="@Localizer["MembersAndRoles"]" Href="@MembersHref" EndIcon="fa-solid fa-users" />
     }
     @if (!string.IsNullOrWhiteSpace(BillingHref))
     {
-        <StackButton Label="@Localizer["Billing"]" Href="@BillingHref" EndIcon="fa-regular fa-credit-card" />
+        <StackButton Label="@Localizer["Billing"]" Href="@BillingHref" EndIcon="fa-solid fa-credit-card" />
     }
     @if (!string.IsNullOrWhiteSpace(AuditHref))
     {
-        <StackButton Label="@Localizer["AuditLog"]" Href="@AuditHref" EndIcon="fa-regular fa-history" />
+        <StackButton Label="@Localizer["AuditLog"]" Href="@AuditHref" EndIcon="fa-solid fa-history" />
     }
     @if (!string.IsNullOrWhiteSpace(DangerHref))
     {
-        <StackButton Label="@Localizer["DangerZone"]" Href="@DangerHref" Color="Color.Error" EndIcon="fa-regular fa-triangle-exclamation" />
+        <StackButton Label="@Localizer["DangerZone"]" Href="@DangerHref" Color="Color.Error" EndIcon="fa-solid fa-triangle-exclamation" />
     }
 </Stack>
 

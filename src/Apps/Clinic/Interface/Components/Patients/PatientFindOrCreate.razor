@@ -2,12 +2,12 @@
 
 @if(showCreateForm)
 {
-    <Stack>
-        @if(CreateContext.DuplicateCandidates.Count > 0)
-        {
+    @if(CreateContext.DuplicateCandidates.Count > 0)
+    {
+        <Stack>
             <StackField Label="@Localizer["DuplicateWarning"]"
                         HelperText="@Localizer["DuplicateWarningHelp"]"
-                        AdornmentIcon="fa-regular fa-triangle-exclamation"
+                        AdornmentIcon="fa-solid fa-triangle-exclamation"
                         AdornmentColor="Color.Warning"
                         Color="Color.Warning" />
 
@@ -16,15 +16,15 @@
                 <StackButton Label="@candidate.Name"
                              HelperText="@GetCandidateHelperText(candidate)"
                              Color="Color.Warning"
-                             EndIcon="fa-regular fa-user-check"
+                             EndIcon="fa-solid fa-user-check"
                              OnClick="@(() => SelectPatientAsync(candidate))" />
             }
-        }
-    </Stack>
+        </Stack>
+    }
     <PatientEditForm @key="createFormKey"
-                          InitialProject="draft"
-                          OnCreate="OnPatientCreatedAsync"
-                          OnCancel="ShowLookup" />
+                     InitialProject="draft"
+                     OnCreate="OnPatientCreatedAsync"
+                     OnCancel="ShowLookup" />
 }
 else
 {
@@ -33,7 +33,7 @@ else
     <Stack>
         <StackButton Label="@Localizer["CreateNewPatient"]"
                      HelperText="@Localizer["CreateNewPatientHelp"]"
-                     EndIcon="fa-regular fa-user-plus"
+                     EndIcon="fa-solid fa-user-plus"
                      Color="Color.Primary"
                      OnClick="ShowCreate" />
     </Stack>

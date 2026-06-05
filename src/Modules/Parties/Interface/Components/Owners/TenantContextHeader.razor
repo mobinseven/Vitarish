@@ -1,8 +1,8 @@
 @if(owner is not null)
 {
     <StackField Align="Align.Center" Label="@tenant?.Name" HelperText="@owner.Name" />
-    <StackButton Size="Size.Small" Label="@Localizer["Dashboard"]" Href="@DashboardHref" EndIcon="fa-regular fa-grid" />
-    <StackButton Size="Size.Small" Label="@Localizer["Owner"]" Href="@TenantsHref" EndIcon="fa-regular fa-building" />
+    <StackButton Size="Size.Small" Label="@Localizer["Dashboard"]" Href="@DashboardHref" EndIcon="fa-solid fa-grid" />
+    <StackButton Size="Size.Small" Label="@Localizer["Owner"]" Href="@TenantsHref" EndIcon="fa-solid fa-building" />
 }
 
 @code {

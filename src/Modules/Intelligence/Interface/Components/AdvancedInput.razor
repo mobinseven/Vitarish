@@ -21,7 +21,7 @@
                     OnFileUploaded="HandleFileUploaded"
                     OnStateChange="()=>StateHasChanged()">
         <ActivatorContent>
-            <MudFab StartIcon="fa-regular fa-photo-film"
+            <MudFab StartIcon="fa-solid fa-photo-film"
                     HtmlTag="div"
                     Disabled=@(_busy || !FilesModule.IsAvailable)
                     Size="Size.Small"
@@ -48,7 +48,7 @@
                     else
                     {
                         <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                            <MudFab OnClick="() => RemovePendingFile(_streamTransferComponent, item)" StartIcon="fa-regular fa-xmark" Size="Size.Small" DropShadow=false />
+                            <MudFab OnClick="() => RemovePendingFile(_streamTransferComponent, item)" StartIcon="fa-solid fa-xmark" Size="Size.Small" DropShadow=false />
                         </div>
                     }
                 </Chip>
@@ -89,7 +89,7 @@
             @if(_streamTransferComponent!.Transferring)
             {
                 <div>
-                    <MudFab StartIcon="fa-regular fa-circle-notch fa-spin"
+                    <MudFab StartIcon="fa-solid fa-circle-notch fa-spin"
                             Disabled
                             Size="Size.Small"
                             Color="Color.Primary"
@@ -101,7 +101,7 @@
                 @if(DisplaySubmit)
                 {
                     <div>
-                        <MudFab StartIcon="fa-regular fa-check"
+                        <MudFab StartIcon="fa-solid fa-check"
                                 Disabled="_busy"
                                 OnClick="SubmitAsync"
                                 Size="Size.Small"
@@ -119,7 +119,7 @@
                     <MudFab Size="Size.Small"
                             DropShadow=false
                             Color="Color.Primary"
-                            StartIcon="@(_rewriting ? "fa-regular fa-wand-sparkles fa-fade" : "fa-regular fa-wand-sparkles")"
+                            StartIcon="@(_rewriting ? "fa-solid fa-wand-sparkles fa-fade" : "fa-solid fa-wand-sparkles")"
                             Disabled=@(_rewriting || _recording || _transcribing || _transferring || _value.Length < MinStringLengthToRewrite || !IntelligenceModule.IsAvailable)
                             OnClick="RewriteAsync" />
                 </div>
@@ -129,7 +129,7 @@
                         <MudFab Size="Size.Small"
                                 DropShadow=false
                                 Color="@(_recording  || _transcribing ? Color.Error : Color.Primary)"
-                                StartIcon="@(_recording ? "fa-duotone fa-regular fa-microphone fa-fade" : _transcribing ? "fa-duotone fa-regular fa-waveform-lines fa-fade" : "fa-regular fa-microphone")"
+                                StartIcon="@(_recording ? "fa-duotone fa-solid fa-microphone fa-fade" : _transcribing ? "fa-duotone fa-solid fa-waveform-lines fa-fade" : "fa-solid fa-microphone")"
                                 Disabled=@(_transcribing || _rewriting || _transferring || !IntelligenceModule.IsAvailable)
                                 OnClick="ToggleRecordingAsync" />
                     </div>

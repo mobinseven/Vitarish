@@ -5,11 +5,11 @@
     <Stack>
         <StackButton Color="Color.Primary"
                      OnClick="AddProject"
-                     EndIcon="fa-regular fa-folder-plus"
+                     EndIcon="fa-solid fa-folder-plus"
                      Label="@Localizer["AddItem", Localizer["Project"]]" />
         <StackButton Color="Color.Primary"
                      OnClick="@(() => MassEditMode = !MassEditMode)"
-                     EndIcon="@(MassEditMode ? "fa-regular fa-check" : "fa-regular fa-edit")"
+                     EndIcon="@(MassEditMode ? "fa-solid fa-check" : "fa-solid fa-edit")"
                      Label="@(MassEditMode ? Localizer["EndItem", Localizer["MassEditMode"]] : Localizer["MassEditMode"])" />
     </Stack>
 

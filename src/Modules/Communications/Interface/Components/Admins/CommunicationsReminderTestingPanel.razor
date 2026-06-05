@@ -5,7 +5,7 @@
 
     <StackTextField Label="@Localizer["SourceId"]" Value="@RequestContext.UserId!.ToString()" ReadOnly />
     <StackButton Label="@Localizer["NewSourceId"]"
-                 EndIcon="fa-regular fa-shuffle"
+                 EndIcon="fa-solid fa-shuffle"
                  OnClick="GenerateSourceId" />
 
     <UserFindOrCreate Value="@recipientUserId"
@@ -19,7 +19,7 @@
 
     <StackTextField Label="@Localizer["Recipient"]" @bind-Value="recipient" />
     <StackButton Label="@Localizer["UseUserAddress"]"
-                 EndIcon="fa-regular fa-address-book"
+                 EndIcon="fa-solid fa-address-book"
                  OnClick="UseUserAddress" />
 
     <StackTextField Label="@Localizer["Subject"]" @bind-Value="subject" />
@@ -29,11 +29,11 @@
     <StackTimePicker Label="@Localizer["Time"]" @bind-Time="remindTime" />
 
     <StackButton Label="@Localizer["CreateReminder"]"
-                 EndIcon="fa-regular fa-bell-plus"
+                 EndIcon="fa-solid fa-bell-plus"
                  Color="Color.Primary"
                  OnClick="CreateReminderAsync" />
     <StackButton Label="@Localizer["RefreshReminders"]"
-                 EndIcon="fa-regular fa-rotate-right"
+                 EndIcon="fa-solid fa-rotate-right"
                  OnClick="ReloadRemindersAsync" />
 
     @if (!string.IsNullOrWhiteSpace(status))

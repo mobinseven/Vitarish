@@ -12,7 +12,7 @@
         {
             <StackButton Label="@evt.Title"
                          Color="@(evt.IsCommitted ? Color.Primary : Color.Default)"
-                         StartIcon="@(evt.IsCommitted ? "fa-regular fa-check" : "fa-regular fa-circle")"
+                         StartIcon="@(evt.IsCommitted ? "fa-solid fa-check" : "fa-solid fa-circle")"
                          EndIcon=""
                          OnClick="@(() => EventClicked.InvokeAsync(evt.Id))">
                 <StatsDisplay Stats="evt.Stats ?? new StatsReadDto()" />
@@ -23,7 +23,7 @@
     @if(AdminMode)
     {
         <StackButton Color="Color.Primary"
-                     EndIcon="fa-regular fa-plus"
+                     EndIcon="fa-solid fa-plus"
                      OnClick="AddEvent"
                      Label="@Localizer["AddItem", Localizer["Event"]]" />
     }

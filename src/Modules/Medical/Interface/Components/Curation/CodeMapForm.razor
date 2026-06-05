@@ -9,7 +9,7 @@
     </StackSelect>
     <StackTextField @bind-Value="sourceCodeText" Label="@Localizer["SourceCode"]" />
     <StackButton Label="@Localizer["FindSourceCode"]" OnClick="FindSourceCodeAsync"
-                 Color="Color.Default" EndIcon="fa-regular fa-magnifying-glass" />
+                 Color="Color.Default" EndIcon="fa-solid fa-magnifying-glass" />
 
     @if (sourceCode is not null)
     {
@@ -24,7 +24,7 @@
     </StackSelect>
     <StackTextField @bind-Value="targetCodeText" Label="@Localizer["TargetCode"]" />
     <StackButton Label="@Localizer["FindTargetCode"]" OnClick="FindTargetCodeAsync"
-                 Color="Color.Default" EndIcon="fa-regular fa-magnifying-glass" />
+                 Color="Color.Default" EndIcon="fa-solid fa-magnifying-glass" />
 
     @if (targetCode is not null)
     {
@@ -43,6 +43,6 @@
 <Stack>
     <StackButton Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary"
                  Disabled="@(sourceCode is null || targetCode is null)"
-                 EndIcon="fa-regular fa-save" />
-    <StackButton Label="@Localizer["Cancel"]" OnClick="() => OnCancelled.InvokeAsync()" EndIcon="fa-regular fa-xmark" />
+                 EndIcon="fa-solid fa-save" />
+    <StackButton Label="@Localizer["Cancel"]" OnClick="() => OnCancelled.InvokeAsync()" EndIcon="fa-solid fa-xmark" />
 </Stack>

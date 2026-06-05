@@ -6,7 +6,7 @@
         <Stack>
             <StackButton Color="Color.Primary"
                          OnClick="AddProject"
-                         StartIcon="fa-regular fa-folder-plus"
+                         StartIcon="fa-solid fa-folder-plus"
                          Label="@Localizer["AddItem", Localizer["Project"]]" />
         </Stack>
     }
@@ -22,7 +22,7 @@
         }
         @if(projects.Count == 0)
         {
-            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Project"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Project"]]" EndIcon="fa-regular fa-refresh">
+            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Project"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Project"]]" EndIcon="fa-solid fa-refresh">
                 @Localizer["Reload"]
             </StackButton>
         }

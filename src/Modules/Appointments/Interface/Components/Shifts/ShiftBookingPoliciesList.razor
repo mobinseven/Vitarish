@@ -17,12 +17,12 @@ else
             }
             <MudStack Row>
                 <MudFab Label="@Localizer["EditItem", Localizer["BookingPolicy"]]"
-                        EndIcon="fa-regular fa-pen"
+                        EndIcon="fa-solid fa-pen"
                         OnClick="@(() => EditAsync(policy))"
                         DropShadow="false" />
                 <MudFab Color="Color.Error"
                         Label="@Localizer["RemoveItem", Localizer["BookingPolicy"]]"
-                        EndIcon="fa-regular fa-trash"
+                        EndIcon="fa-solid fa-trash"
                         OnClick="@(() => RemoveAsync(policy))"
                         DropShadow="false" />
             </MudStack>
@@ -31,5 +31,5 @@ else
 }
 
 <StackButton Label="@Localizer["AddItem", Localizer["BookingPolicy"]]"
-             EndIcon="fa-regular fa-plus"
+             EndIcon="fa-solid fa-plus"
              OnClick="AddAsync" />

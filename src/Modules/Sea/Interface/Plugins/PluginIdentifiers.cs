@@ -9,8 +9,8 @@ public static class PluginIdentifiers
     public const string Gym = nameof(Gym);
     public static PluginIdentifier[] List =>
         [
-            new PluginIdentifier(Clinic, "fa-regular fa-clinic-medical"),
-            new PluginIdentifier(Gym, "fa-regular fa-dumbbell")
+            new PluginIdentifier(Clinic, "fa-solid fa-clinic-medical"),
+            new PluginIdentifier(Gym, "fa-solid fa-dumbbell")
         ];
 }
 

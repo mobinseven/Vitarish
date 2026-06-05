@@ -3,7 +3,7 @@
 @inject IStringLocalizer<CultureSelector> Strings
 @inject NavigationManager NavManager
 
-<StackSelect T="string" Value="@cultureName" ValueChanged="s => OnCultureChanged(s)">
+<StackSelect T="string" HelperText="@Localizer["Language"]" Value="@cultureName" ValueChanged="s => OnCultureChanged(s)">
     @foreach(CultureInfo culture in SupportedCultures)
     {
         <StackSelectItem value="@culture.Name">@culture.NativeName</StackSelectItem>

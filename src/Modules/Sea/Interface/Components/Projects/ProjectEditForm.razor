@@ -9,12 +9,12 @@
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
                 <Vitarish.Files.Interface.Components.StreamTransfer OnFileUploaded="OnAvatarUploaded">
                     <ActivatorContent>
-                        <MudButton Variant="Variant.Outlined" StartIcon="fa-regular fa-upload" Color="Color.Primary">@Localizer["Select"]</MudButton>
+                        <MudButton Variant="Variant.Outlined" StartIcon="fa-solid fa-upload" Color="Color.Primary">@Localizer["Select"]</MudButton>
                     </ActivatorContent>
                 </Vitarish.Files.Interface.Components.StreamTransfer>
                 @if(projectWriteDto.AvatarFileId.HasValue)
                 {
-                    <MudButton Variant="Variant.Text" StartIcon="fa-regular fa-xmark" Color="Color.Error" OnClick="RemoveAvatar">@Localizer["Remove"]</MudButton>
+                    <MudButton Variant="Variant.Text" StartIcon="fa-solid fa-xmark" Color="Color.Error" OnClick="RemoveAvatar">@Localizer["Remove"]</MudButton>
                 }
             </MudStack>
         </StackField>

@@ -14,8 +14,8 @@
         <StackField Label="@Localizer["Roles"]" />
         @foreach(var role in userRole.RoleDetails)
         {
-            <StackButton Label="@Localizer[role.RoleName]" HelperText="@role.TenantName" OnClick="@(() => RemoveRoleAsync(userRole, role.FullRoleName))" EndIcon="fa-regular fa-xmark" />
+            <StackButton Label="@Localizer[role.RoleName]" HelperText="@role.TenantName" OnClick="@(() => RemoveRoleAsync(userRole, role.FullRoleName))" EndIcon="fa-solid fa-xmark" />
         }
     }
-    <StackButton Label="@Localizer["AssignRole"]" Color="Color.Primary" EndIcon="fa-regular fa-plus" OnClick="@(() => OpenAssignRoleDialogAsync(userRole))" />
+    <StackButton Label="@Localizer["AssignRole"]" Color="Color.Primary" EndIcon="fa-solid fa-plus" OnClick="@(() => OpenAssignRoleDialogAsync(userRole))" />
 </Stack>

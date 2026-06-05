@@ -1,15 +1,24 @@
-::deep .sticky-top {
+.mud-input > input.mud-input-root {
+    padding: 12px !important;
+}
+
+.mud-input {
+    border-radius: calc(var(--stack-radius) - var(--stack-item-padding)) !important;
+}
+
+.sticky-top {
     position: sticky;
     top: 0;
     z-index: 100;
 }
-::deep .sticky-bottom {
+
+.sticky-bottom {
     position: sticky;
     bottom: 0;
     z-index: 100;
 }
 
-::deep .fade {
+.fade {
     -webkit-animation-name: fade-in;
     -webkit-animation-duration: 1s;
     -webkit-animation-iteration-count: 1;
@@ -29,50 +38,54 @@
     }
 }
 
-@media (prefers-color-scheme: dark) {
-    ::deep .mud-input.mud-input-filled {
+/*@media (prefers-color-scheme: dark) {
+    .mud-input.mud-input-filled {
         background-color: black;
     }
 }
 
 
 @media (prefers-color-scheme: light) {
-    ::deep .mud-input.mud-input-filled {
+    .mud-input.mud-input-filled {
         background-color: white;
     }
-}
+}*/
 
 
-::deep .mud-paper:not(.mud-popover):not(.mud-picker) {
+.mud-paper:not(.mud-popover):not(.mud-picker) {
     background-color: unset;
 }
 
-::deep .mud-elevation-1 {
+.mud-elevation-1 {
     box-shadow: unset;
 }
 
-::deep .glass:is(.mud-button-root, .mud-icon-button) {
+.glass:is(.mud-button-root, .mud-icon-button) {
     border-radius: var(--glass-radius-sm) !important;
     -webkit-backdrop-filter: var(--glass-backdrop);
     backdrop-filter: var(--glass-backdrop);
 }
 
-::deep .glass:is(.mud-button-root, .mud-icon-button) {
+.glass:is(.mud-button-root, .mud-icon-button) {
     background-color: rgb(var(--glass-surface-rgb) / var(--glass-btn-a)) !important;
     border: var(--glass-border-width) solid var(--glass-border) !important;
     box-shadow: 0 10px 25px rgb(var(--glass-shadow-rgb) / 0.22), var(--glass-inset) !important;
 }
 
-@media (hover: hover) and (pointer: fine) {
-    ::deep .glass:is(.mud-button-root, .mud-icon-button):hover {
+/*@media (hover: hover) and (pointer: fine) {
+    .glass:is(.mud-button-root, .mud-icon-button):hover {
         background-color: rgb(var(--glass-surface-rgb) / var(--glass-btn-hover-a)) !important;
     }
-}
+}*/
 
-::deep .glass:is(.mud-button-root, .mud-icon-button):active {
+.glass:is(.mud-button-root, .mud-icon-button):active {
     background-color: rgb(var(--glass-surface-rgb) / var(--glass-btn-active-a)) !important;
 }
 
-::deep [centered], ::deep .centered input{
+[centered], .centered input {
     text-align: center;
+}
+
+.mud-input-helper-text {
+    font-size: 1rem;
 }

@@ -30,14 +30,14 @@
     <Stack>
         <StackButton Color="Color.Success"
                      Label="@Localizer["ActivateItem", Localizer["Shift"]]"
-                     EndIcon="fa-regular fa-play"
+                     EndIcon="fa-solid fa-play"
                      OnClick="@(() => ChangeStatusAsync(ShiftStatus.Active))" />
         <StackButton Label="@Localizer["EditItem", Localizer["Shift"]]"
-                     EndIcon="fa-regular fa-pen"
+                     EndIcon="fa-solid fa-pen"
                      OnClick="OnEdit" />
         <StackButton Color="Color.Error"
                      Label="@Localizer["CancelItem", Localizer["Shift"]]"
-                     EndIcon="fa-regular fa-xmark"
+                     EndIcon="fa-solid fa-xmark"
                      OnClick="@(() => ChangeStatusAsync(ShiftStatus.Cancelled))" />
     </Stack>
     break;
@@ -45,19 +45,19 @@
     case ShiftStatus.Active:
     <Stack>
         <StackButton Label="@Localizer["EditItem", Localizer["Shift"]]"
-                     EndIcon="fa-regular fa-pen"
+                     EndIcon="fa-solid fa-pen"
                      OnClick="OnEdit" />
         <StackButton Color="Color.Warning"
                      Label="@Localizer["PauseItem", Localizer["Shift"]]"
-                     EndIcon="fa-regular fa-pause"
+                     EndIcon="fa-solid fa-pause"
                      OnClick="@(() => ChangeStatusAsync(ShiftStatus.Paused))" />
         <StackButton Color="Color.Dark"
                      Label="@Localizer["CloseItem", Localizer["Shift"]]"
-                     EndIcon="fa-regular fa-lock"
+                     EndIcon="fa-solid fa-lock"
                      OnClick="@(() => ChangeStatusAsync(ShiftStatus.Closed))" />
         <StackButton Color="Color.Error"
                      Label="@Localizer["CancelItem", Localizer["Shift"]]"
-                     EndIcon="fa-regular fa-xmark"
+                     EndIcon="fa-solid fa-xmark"
                      OnClick="@(() => ChangeStatusAsync(ShiftStatus.Cancelled))" />
     </Stack>
     break;
@@ -66,15 +66,15 @@
     <Stack>
         <StackButton Color="Color.Success"
                      Label="@Localizer["ActivateItem", Localizer["Shift"]]"
-                     EndIcon="fa-regular fa-play"
+                     EndIcon="fa-solid fa-play"
                      OnClick="@(() => ChangeStatusAsync(ShiftStatus.Active))" />
         <StackButton Color="Color.Dark"
                      Label="@Localizer["CloseItem", Localizer["Shift"]]"
-                     EndIcon="fa-regular fa-lock"
+                     EndIcon="fa-solid fa-lock"
                      OnClick="@(() => ChangeStatusAsync(ShiftStatus.Closed))" />
         <StackButton Color="Color.Error"
                      Label="@Localizer["CancelItem", Localizer["Shift"]]"
-                     EndIcon="fa-regular fa-xmark"
+                     EndIcon="fa-solid fa-xmark"
                      OnClick="@(() => ChangeStatusAsync(ShiftStatus.Cancelled))" />
     </Stack>
     break;
@@ -84,7 +84,7 @@
     <Stack>
         <StackButton Color="Color.Dark"
                      Label="@Localizer["ArchiveItem", Localizer["Shift"]]"
-                     EndIcon="fa-regular fa-box-archive"
+                     EndIcon="fa-solid fa-box-archive"
                      OnClick="@(() => ChangeStatusAsync(ShiftStatus.Archived))" />
     </Stack>
     break;

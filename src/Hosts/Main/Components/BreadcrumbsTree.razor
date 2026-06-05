@@ -22,7 +22,7 @@
 
             string title = breadcrumb.Text;
             string cut = title.Length > 50 ? title.Substring(0, 50) + "..." : title;
-            <StackButton Label="@cut" Href="@breadcrumb.Path" EndIcon="fa-regular fa-chevron-down" />
+            <StackButton Label="@cut" Href="@breadcrumb.Path" EndIcon="fa-solid fa-chevron-down" />
         }
     }
 </Stack>

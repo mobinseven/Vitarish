@@ -6,30 +6,30 @@
     {
         <StackField Label="@Localizer["User"]"
                     HelperText="@selectedUserSubtitle"
-                    AdornmentIcon="fa-regular fa-user-check" />
+                    AdornmentIcon="fa-solid fa-user-check" />
 
         <StackButton Label="@Localizer["ChangeUser"]"
-                     EndIcon="fa-regular fa-arrow-rotate-right"
+                     EndIcon="fa-solid fa-arrow-rotate-right"
                      OnClick="ShowFindForm" />
 
         @if (ResolvedOptions.AllowUnlink)
         {
             <StackButton Label="@Localizer["None"]"
-                         EndIcon="fa-regular fa-link-slash"
+                         EndIcon="fa-solid fa-link-slash"
                          OnClick="ClearAsync" />
         }
     }
     else
     {
         <StackButton Label="@Localizer["FindExistingUser"]"
-                     EndIcon="fa-regular fa-magnifying-glass"
+                     EndIcon="fa-solid fa-magnifying-glass"
                      Color="@(!showCreateForm ? Color.Primary : Color.Default)"
                      OnClick="ShowFindForm" />
 
         @if (ResolvedOptions.AllowCreate)
         {
             <StackButton Label="@Localizer["CreateOrAutoLinkUser"]"
-                         EndIcon="fa-regular fa-user-plus"
+                         EndIcon="fa-solid fa-user-plus"
                          Color="@(showCreateForm ? Color.Primary : Color.Default)"
                          OnClick="ShowCreateForm" />
         }

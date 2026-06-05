@@ -6,22 +6,22 @@
             <StackField Label="@Event.Title" HelperText="@Event.Description" />
         </Stack>
         <Stack>
-            <StackField AdornmentIcon="fa-regular fa-glasses" Label="@Localizer["ReaderRoles"]" HelperText="@Localizer["ReaderRolesHelp"]" />
+            <StackField AdornmentIcon="fa-solid fa-glasses" Label="@Localizer["ReaderRoles"]" HelperText="@Localizer["ReaderRolesHelp"]" />
             @foreach(var role in roles)
             {
                 <StackCheckbox Label="@role.Name" Value="readRoleIds.Contains(role.Id)" ValueChanged="@((bool b) => OnReadRoleChanged(role.Id, b))" />
             }
         </Stack>
         <Stack>
-            <StackField AdornmentIcon="fa-regular fa-pen" Label="@Localizer["WriterRoles"]" HelperText="@Localizer["WriterRolesHelp"]" />
+            <StackField AdornmentIcon="fa-solid fa-pen" Label="@Localizer["WriterRoles"]" HelperText="@Localizer["WriterRolesHelp"]" />
             @foreach(var role in roles)
             {
                 <StackCheckbox Label="@role.Name" Value="writeRoleIds.Contains(role.Id)" ValueChanged="@((bool b) => OnWriteRoleChanged(role.Id, b))" />
             }
         </Stack>
         <Stack Class="sticky-bottom">
-            <StackButton Color="Color.Primary" OnClick="SaveAsync" Label="@Localizer["Save"]" EndIcon="fa-regular fa-save" />
-            <StackButton EndIcon="fa-regular fa-xmark" Label="@Localizer["Cancel"]" OnClick="Cancel" />
+            <StackButton Color="Color.Primary" OnClick="SaveAsync" Label="@Localizer["Save"]" EndIcon="fa-solid fa-save" />
+            <StackButton EndIcon="fa-solid fa-xmark" Label="@Localizer["Cancel"]" OnClick="Cancel" />
         </Stack>
     </DialogContent>
 </MudDialog>

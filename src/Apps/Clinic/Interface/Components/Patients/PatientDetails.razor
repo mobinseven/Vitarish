@@ -48,11 +48,11 @@
     @if(AdminMode)
     {
         <StackButton OnClick="@(() => EditProject())"
-                     EndIcon="fa-regular fa-pencil"
+                     EndIcon="fa-solid fa-pencil"
                      Label="@Localizer["EditItem", Localizer["Project"]]" />
         <StackButton OnClick="@(() => DeleteProject())"
                      Color="Color.Error"
-                     EndIcon="fa-regular fa-folder-xmark"
+                     EndIcon="fa-solid fa-folder-xmark"
                      Label="@Localizer["DeleteItem", Localizer["Project"]]" />
     }
 </Stack>

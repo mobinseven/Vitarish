@@ -3,7 +3,7 @@
 <MudText Typo="Typo.h4">Orders</MudText>
 
 <Stack>
-    <StackExpandable Label="Filters" StartIcon="fa-regular fa-sliders">
+    <StackExpandable Label="Filters" StartIcon="fa-solid fa-sliders">
         <StackTextField Label="Order Number" @bind-Value="_orderNumberFilter" InputType="InputType.Number" />
         <StackTextField Label="Customer" @bind-Value="_customerFilter" />
         <StackSelect T="OrderStatus?" Label="Status" @bind-Value="_statusFilter">
@@ -15,8 +15,8 @@
         </StackSelect>
         <StackDatePicker Label="From" @bind-Date="_fromDate" />
         <StackDatePicker Label="To" @bind-Date="_toDate" />
-        <StackButton Color="Color.Primary" EndIcon="fa-regular fa-filter" OnClick="LoadOrdersAsync" Label="Apply Filters" />
-        <StackButton EndIcon="fa-regular fa-rotate-left" OnClick="ClearFiltersAsync" Label="Reset" />
+        <StackButton Color="Color.Primary" EndIcon="fa-solid fa-filter" OnClick="LoadOrdersAsync" Label="Apply Filters" />
+        <StackButton EndIcon="fa-solid fa-rotate-left" OnClick="ClearFiltersAsync" Label="Reset" />
     </StackExpandable>
 </Stack>
 
@@ -30,7 +30,7 @@ else
         <StackField Label="Orders" HelperText="@($"{_orders.Count} orders found")" />
         @foreach (OrderReadDto order in _orders)
         {
-            <StackExpandable Label="@($"#{order.OrderNumber} · {order.CustomerDisplay}")" StartIcon="fa-regular fa-receipt">
+            <StackExpandable Label="@($"#{order.OrderNumber} · {order.CustomerDisplay}")" StartIcon="fa-solid fa-receipt">
                 <StackField Label="Status">
                     <MudChip T="string" Size="Size.Small">@order.Status</MudChip>
                 </StackField>
@@ -41,7 +41,7 @@ else
                 <StackField Label="Date" HelperText="@order.CreatedAt.ToString("yyyy-MM-dd")" />
                 @if (order.RefundStatus == RefundStatus.None)
                 {
-                    <StackButton Color="Color.Secondary" EndIcon="fa-regular fa-rotate-left" OnClick="() => RequestRefundAsync(order.Id)" Label="Request Refund" />
+                    <StackButton Color="Color.Secondary" EndIcon="fa-solid fa-rotate-left" OnClick="() => RequestRefundAsync(order.Id)" Label="Request Refund" />
                 }
                 else
                 {

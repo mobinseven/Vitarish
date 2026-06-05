@@ -13,19 +13,19 @@
     <StackTextField Label="@Localizer["Tenant"]" @bind-Value="reminderTenant" />
 
     <StackButton Label="@Localizer["SendEmail"]"
-                 EndIcon="fa-regular fa-envelope"
+                 EndIcon="fa-solid fa-envelope"
                  Color="Color.Primary"
                  OnClick="SendEmailAsync" />
     <StackButton Label="@Localizer["SendSms"]"
-                 EndIcon="fa-regular fa-message-sms"
+                 EndIcon="fa-solid fa-message-sms"
                  Color="Color.Primary"
                  OnClick="SendSmsAsync" />
     <StackButton Label="@Localizer["SendSmsCode"]"
-                 EndIcon="fa-regular fa-key"
+                 EndIcon="fa-solid fa-key"
                  Color="Color.Default"
                  OnClick="SendSmsCodeAsync" />
     <StackButton Label="@Localizer["SendSmsReminder"]"
-                 EndIcon="fa-regular fa-bell-ring"
+                 EndIcon="fa-solid fa-bell-ring"
                  Color="Color.Default"
                  OnClick="SendSmsReminderAsync" />
 
@@ -33,7 +33,7 @@
     {
         <StackTextField Label="@Localizer["MessageId"]" @bind-Value="lastSmsMessageId" />
         <StackButton Label="@Localizer["CheckSmsDeliveryState"]"
-                     EndIcon="fa-regular fa-chart-line-up-down"
+                     EndIcon="fa-solid fa-chart-line-up-down"
                      OnClick="CheckDeliveryStateAsync" />
     }
 

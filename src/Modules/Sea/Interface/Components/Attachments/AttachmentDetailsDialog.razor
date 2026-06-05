@@ -5,8 +5,8 @@
         {
             <Stack>
                 <StackTextField Label="@Localizer["Attachment"]" @bind-Value="editContent" AutoGrow Immediate />
-                <StackButton EndIcon="fa-regular fa-save" Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" />
-                <StackButton EndIcon="fa-regular fa-xmark" Label="@Localizer["Cancel"]" OnClick="CancelEdit" />
+                <StackButton EndIcon="fa-solid fa-save" Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" />
+                <StackButton EndIcon="fa-solid fa-xmark" Label="@Localizer["Cancel"]" OnClick="CancelEdit" />
             </Stack>
         }
         else
@@ -47,7 +47,7 @@
                 }
                 @if(readers.Length > 0)
                 {
-                    <StackExpandable StartIcon="fa-regular fa-check-double" Label="@Localizer["SeenBy", Localizer["PersonCount", readers.Length]]">
+                    <StackExpandable StartIcon="fa-solid fa-check-double" Label="@Localizer["SeenBy", Localizer["PersonCount", readers.Length]]">
                         @foreach(var reader in GetReaders())
                         {
                             <MudText Typo="Typo.caption" HtmlTag="p">@reader</MudText>
@@ -65,13 +65,13 @@
             <Stack>
                 @if(CanEdit && Attachment.ContentType.StartsWith("text"))
                 {
-                    <StackButton EndIcon="fa-regular fa-edit" Label="@Localizer["Edit"]" OnClick="StartEdit" />
+                    <StackButton EndIcon="fa-solid fa-edit" Label="@Localizer["Edit"]" OnClick="StartEdit" />
                 }
                 @if(CanDelete)
                 {
-                    <StackButton EndIcon="fa-regular fa-trash" Label="@Localizer["DeleteItem", Localizer["Attachment"]]" OnClick="DeleteAttachment" Color="Color.Error" />
+                    <StackButton EndIcon="fa-solid fa-trash" Label="@Localizer["DeleteItem", Localizer["Attachment"]]" OnClick="DeleteAttachment" Color="Color.Error" />
                 }
-                <StackButton EndIcon="fa-regular fa-xmark" Label="@Localizer["Close"]" OnClick="Close" />
+                <StackButton EndIcon="fa-solid fa-xmark" Label="@Localizer["Close"]" OnClick="Close" />
             </Stack>
         }
     </DialogContent>

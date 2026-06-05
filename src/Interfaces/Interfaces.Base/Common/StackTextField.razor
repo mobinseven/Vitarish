@@ -9,13 +9,13 @@
               Style="@Style"
               Class="@($"stack-item {(Centered ? "centered" : "")}")"
               Underline="false"
-              Variant="Variant.Outlined"
+              Variant="Variant.Filled"
               Required="@Required"
               RequiredError="@RequiredError"
               Placeholder="@Placeholder"
               DebounceInterval="@DebounceInterval"
               Immediate="@Immediate"
-              Label="@Label"
+              HelperText="@Label"
               InputType="@InputType"
               Lines="@Lines"
               MaxLines="@MaxLines"
@@ -23,7 +23,6 @@
               AutoGrow="@AutoGrow"
               InputMode="@InputMode"
               UserAttributes="@UserAttributes"
-              HelperText="@HelperText"
               ReadOnly="@ReadOnly"
               Disabled="@Disabled"/>
 @code {

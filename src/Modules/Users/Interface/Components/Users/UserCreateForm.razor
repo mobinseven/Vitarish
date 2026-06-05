@@ -15,13 +15,13 @@
     }
 
     <StackButton Label="@Localizer["Create"]"
-                 EndIcon="@(submitting ? "fa-regular fa-circle-notch fa-spin" : "fa-regular fa-plus")"
+                 EndIcon="@(submitting ? "fa-solid fa-circle-notch fa-spin" : "fa-solid fa-plus")"
                  Color="Color.Primary"
                  Disabled="@submitting"
                  OnClick="SubmitAsync" />
     @if (OnCancel.HasDelegate)
     {
-        <StackButton Label="@Localizer["Cancel"]" EndIcon="fa-regular fa-xmark" OnClick="() => OnCancel.InvokeAsync()" />
+        <StackButton Label="@Localizer["Cancel"]" EndIcon="fa-solid fa-xmark" OnClick="() => OnCancel.InvokeAsync()" />
     }
 </Stack>
 

@@ -9,7 +9,7 @@
         <StackTextField @bind-Value="context.TenantName" Label="@Localizer["TenantName"]" Required />
         <StackTextField @bind-Value="context.AppId" Label="@Localizer["AppId"]" Required />
         <StackButton Label="@Localizer["Next"]" OnClick="GoToIndicator"
-                     EndIcon="fa-regular fa-arrow-right" Color="Color.Primary" />
+                     EndIcon="fa-solid fa-arrow-right" Color="Color.Primary" />
     </Stack>
     break;
 
@@ -24,19 +24,19 @@
                         Label="@Localizer["Address"]"
                         Required />
         <StackButton Label="@Localizer["Next"]" OnClick="GoToModules"
-                     EndIcon="fa-regular fa-arrow-right" Color="Color.Primary" />
+                     EndIcon="fa-solid fa-arrow-right" Color="Color.Primary" />
         <StackButton Label="@Localizer["Back"]" OnClick="GoBack"
-                     EndIcon="fa-regular fa-arrow-left" />
+                     EndIcon="fa-solid fa-arrow-left" />
     </Stack>
     break;
 
     case SetupStep.Modules:
     <TenantAppsSelector SelectedAppNames="context.SelectedModules" Label="@Localizer["SelectModules"]">
         <StackButton Label="@Localizer["Finish"]" OnClick="Submit"
-                     EndIcon="fa-regular fa-check" Color="Color.Primary"
+                     EndIcon="fa-solid fa-check" Color="Color.Primary"
                      Disabled="submitting" />
         <StackButton Label="@Localizer["Back"]" OnClick="GoBack"
-                     EndIcon="fa-regular fa-arrow-left" />
+                     EndIcon="fa-solid fa-arrow-left" />
     </TenantAppsSelector>
     break;
 }

@@ -6,8 +6,8 @@
             <StackTextField @bind-Value="name" Label="@Localizer["Role"]" />
         </Stack>
         <Stack>
-            <StackButton Color="Color.Primary" OnClick="SaveAsync" Label="@Localizer["Save"]" Disabled="@string.IsNullOrWhiteSpace(name)" EndIcon="fa-regular fa-save" />
-            <StackButton EndIcon="fa-regular fa-xmark" Label="@Localizer["Cancel"]" OnClick="Cancel" />
+            <StackButton Color="Color.Primary" OnClick="SaveAsync" Label="@Localizer["Save"]" Disabled="@string.IsNullOrWhiteSpace(name)" EndIcon="fa-solid fa-save" />
+            <StackButton EndIcon="fa-solid fa-xmark" Label="@Localizer["Cancel"]" OnClick="Cancel" />
         </Stack>
     </DialogContent>
 </MudDialog>

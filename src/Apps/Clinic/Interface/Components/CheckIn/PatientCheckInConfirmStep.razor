@@ -1,12 +1,12 @@
 @inherits Vitarish.Modules.Base.TenantCommonBase
 <Stack>
     <StackField Label="@Localizer["CheckInComplete"]"
-                AdornmentIcon="fa-regular fa-circle-check"
+                AdornmentIcon="fa-solid fa-circle-check"
                 AdornmentColor="@(Context.Outcome == CheckInOutcome.CurrentShift ? Color.Success : Color.Info)" />
     @if (Context.ConfirmedReservation is not null)
     {
         <StackField Label="@Localizer["ReservationSuccessful"]"
-                    AdornmentIcon="fa-regular fa-calendar-check"
+                    AdornmentIcon="fa-solid fa-calendar-check"
                     AdornmentColor="Color.Success"
                     Color="Color.Success" />
     }
@@ -15,7 +15,7 @@
     {
         <StackField Label="@Localizer["Patient"]" />
         <StackButton Label="@Context.SelectedPatient.Name"
-                     EndIcon="fa-regular fa-user"
+                     EndIcon="fa-solid fa-user"
                      OnClick="HandleGoToPatientAsync" />
     }
 
@@ -23,7 +23,7 @@
     {
         <StackField Label="@Localizer["CheckedInToday"]"
                     HelperText="@GetOutcomeHelperText()"
-                    AdornmentIcon="fa-regular fa-hospital"
+                    AdornmentIcon="fa-solid fa-hospital"
                     AdornmentColor="Color.Success"
                     Color="Color.Success" />
     }
@@ -31,7 +31,7 @@
     {
         <StackField Label="@Localizer["BookedForFuture"]"
                     HelperText="@GetOutcomeHelperText()"
-                    AdornmentIcon="fa-regular fa-calendar-check"
+                    AdornmentIcon="fa-solid fa-calendar-check"
                     AdornmentColor="Color.Info"
                     Color="Color.Info" />
     }
@@ -39,7 +39,7 @@
     @if (!string.IsNullOrWhiteSpace(Context.OperationalWarning))
     {
         <StackField Label="@Context.OperationalWarning"
-                    AdornmentIcon="fa-regular fa-triangle-exclamation"
+                    AdornmentIcon="fa-solid fa-triangle-exclamation"
                     AdornmentColor="Color.Warning"
                     Color="Color.Warning" />
     }
@@ -48,7 +48,7 @@
     {
         <StackField Label="@GetNotificationLabel()"
                     HelperText="@Context.NotificationMessage"
-                    AdornmentIcon="@(Context.NotificationStatus == CheckInNotificationStatus.Sent ? "fa-regular fa-paper-plane" : "fa-regular fa-circle-xmark")"
+                    AdornmentIcon="@(Context.NotificationStatus == CheckInNotificationStatus.Sent ? "fa-solid fa-paper-plane" : "fa-solid fa-circle-xmark")"
                     AdornmentColor="@(Context.NotificationStatus == CheckInNotificationStatus.Sent ? Color.Success : Color.Error)"
                     Color="@(Context.NotificationStatus == CheckInNotificationStatus.Sent ? Color.Success : Color.Error)" />
     }
@@ -67,17 +67,17 @@
     @if(Context.SelectedPatient is not null)
     {
         <StackButton Label="@Localizer["GoToPatient"]"
-                     EndIcon="fa-regular fa-arrow-right"
+                     EndIcon="fa-solid fa-arrow-right"
                      Color="Color.Primary"
                      OnClick="HandleGoToPatientAsync" />
         <StackButton Label="@Localizer["SendSmsConfirmation"]"
-                     EndIcon="fa-regular fa-paper-plane"
+                     EndIcon="fa-solid fa-paper-plane"
                      Variant="Variant.Outlined"
                      OnClick="SendConfirmationAsync" />
     }
 
     <StackButton Label="@Localizer["StartAnotherCheckIn"]"
-                 EndIcon="fa-regular fa-rotate-right"
+                 EndIcon="fa-solid fa-rotate-right"
                  OnClick="OnStartAnother" />
 </Stack>
 

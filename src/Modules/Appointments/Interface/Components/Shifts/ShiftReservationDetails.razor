@@ -7,7 +7,7 @@
                 HelperText="@Localizer["EstimatedSessionLength"]" />
 }
 <ShiftReservationList ShiftReservation="ShiftReservation" />
-<StackButton Label="@Localizer["AddItem", Localizer["Reservation"]]" OnClick="AddReservationAsync" EndIcon="fa-regular fa-plus" Color="Color.Primary" />
+<StackButton Label="@Localizer["AddItem", Localizer["Reservation"]]" OnClick="AddReservationAsync" EndIcon="fa-solid fa-plus" Color="Color.Primary" />
 
 @code {
     [Parameter, EditorRequired] public ShiftReservationReadDto ShiftReservation { get; set; }

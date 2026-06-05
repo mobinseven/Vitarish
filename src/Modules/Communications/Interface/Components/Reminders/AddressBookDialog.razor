@@ -11,11 +11,11 @@
             {
                 <StackCheckbox ValueChanged="() => RemoveRecipient(recipient)" Value="true" Label="@recipient.Recipient" />
             }
-            <StackTextField @bind-Value="customAddress" Label="@AddressLabel" Adornment="Adornment.End" AdornmentIcon="fa-regular fa-plus" OnAdornmentClick="AddCustom" />
+            <StackTextField @bind-Value="customAddress" Label="@AddressLabel" Adornment="Adornment.End" AdornmentIcon="fa-solid fa-plus" OnAdornmentClick="AddCustom" />
         </Stack>
         <Stack>
-            <StackButton Color="Color.Primary" OnClick="Confirm" Label="@Localizer["Confirm"]" EndIcon="fa-regular fa-check" />
-            <StackButton EndIcon="fa-regular fa-xmark" Label="@Localizer["Cancel"]" OnClick="Cancel" />
+            <StackButton Color="Color.Primary" OnClick="Confirm" Label="@Localizer["Confirm"]" EndIcon="fa-solid fa-check" />
+            <StackButton EndIcon="fa-solid fa-xmark" Label="@Localizer["Cancel"]" OnClick="Cancel" />
         </Stack>
     </DialogContent>
 </MudDialog>

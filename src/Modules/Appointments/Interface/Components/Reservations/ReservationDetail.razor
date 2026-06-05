@@ -26,15 +26,15 @@
     <Stack>
         <StackButton Color="Color.Success"
                      Label="@Localizer["ConfirmItem", Localizer["Reservation"]]"
-                     EndIcon="fa-regular fa-calendar-check"
+                     EndIcon="fa-solid fa-calendar-check"
                      OnClick="@(() => ChangeStatusAsync(ReservationStatus.Confirmed))" />
         <StackButton Color="Color.Warning"
                      Label="@Localizer["RejectItem", Localizer["Reservation"]]"
-                     EndIcon="fa-regular fa-calendar-xmark"
+                     EndIcon="fa-solid fa-calendar-xmark"
                      OnClick="@(() => ChangeStatusAsync(ReservationStatus.Rejected))" />
         <StackButton Color="Color.Error"
                      Label="@Localizer["CancelItem", Localizer["Reservation"]]"
-                     EndIcon="fa-regular fa-calendar-xmark"
+                     EndIcon="fa-solid fa-calendar-xmark"
                      OnClick="@(() => ChangeStatusAsync(ReservationStatus.Cancelled))" />
     </Stack>
     break;
@@ -43,11 +43,11 @@
     <Stack>
         <StackButton Color="Color.Secondary"
                      Label="@Localizer["PresentItem", Localizer["Reservation"]]"
-                     EndIcon="fa-regular fa-person-check"
+                     EndIcon="fa-solid fa-person-check"
                      OnClick="@(() => ChangeStatusAsync(ReservationStatus.Present))" />
         <StackButton Color="Color.Error"
                      Label="@Localizer["CancelItem", Localizer["Reservation"]]"
-                     EndIcon="fa-regular fa-calendar-xmark"
+                     EndIcon="fa-solid fa-calendar-xmark"
                      OnClick="@(() => ChangeStatusAsync(ReservationStatus.Cancelled))" />
     </Stack>
     break;
@@ -56,7 +56,7 @@
     <Stack>
         <StackButton Color="Color.Secondary"
                      Label="@Localizer["CompleteItem", Localizer["Reservation"]]"
-                     EndIcon="fa-regular fa-check"
+                     EndIcon="fa-solid fa-check"
                      OnClick="@(() => ChangeStatusAsync(ReservationStatus.Completed))" />
     </Stack>
     break;
@@ -65,11 +65,11 @@
     <Stack>
         <StackButton Color="Color.Success"
                      Label="@Localizer["ConfirmItem", Localizer["Reservation"]]"
-                     EndIcon="fa-regular fa-calendar-check"
+                     EndIcon="fa-solid fa-calendar-check"
                      OnClick="@(() => ChangeStatusAsync(ReservationStatus.Confirmed))" />
         <StackButton Color="Color.Error"
                      Label="@Localizer["CancelItem", Localizer["Reservation"]]"
-                     EndIcon="fa-regular fa-calendar-xmark"
+                     EndIcon="fa-solid fa-calendar-xmark"
                      OnClick="@(() => ChangeStatusAsync(ReservationStatus.Cancelled))" />
     </Stack>
     break;

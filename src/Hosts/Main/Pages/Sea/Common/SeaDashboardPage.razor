@@ -3,26 +3,26 @@
 @inject IAccessControlledProjectsService ProjectsService
 
 <Stack>
-    <StackButton Href="@AppRoutes.Sea.Projects" Label="@Localizer["Projects"]" EndIcon="fa-regular fa-3x fa-folders">
+    <StackButton Href="@AppRoutes.Sea.Projects" Label="@Localizer["Projects"]" EndIcon="fa-solid fa-3x fa-folders">
         @if(projectsCount > 0)
         {
             @projectsCount
         }
     </StackButton>
-    <StackButton Href="@AppRoutes.Appointments.UserReservations" Label="@Localizer["MyAppointments"]" EndIcon="fa-regular fa-calendar-days" />
+    <StackButton Href="@AppRoutes.Appointments.UserReservations" Label="@Localizer["MyAppointments"]" EndIcon="fa-solid fa-calendar-days" />
 </Stack>
 
 @if(IsOwner)
 {
     <Stack>
         <StackField Label="@Localizer["Administration"]" />
-        <StackButton Href="@AppRoutes.Sea.OwnerTemplateProjects" Label="@Localizer["Templates"]" EndIcon="fa-regular fa-folder-gear" />
-        <StackButton Href="@AppRoutes.Appointments.OwnerReservations" Label="@Localizer["AppointmentsAdmin"]" EndIcon="fa-regular fa-calendar-star" />
+        <StackButton Href="@AppRoutes.Sea.OwnerTemplateProjects" Label="@Localizer["Templates"]" EndIcon="fa-solid fa-folder-gear" />
+        <StackButton Href="@AppRoutes.Appointments.OwnerReservations" Label="@Localizer["AppointmentsAdmin"]" EndIcon="fa-solid fa-calendar-star" />
     </Stack>
     <Stack>
         <StackField Label="@Localizer["Ownership"]" />
-        <StackButton Href="@AppRoutes.Sea.OwnerSettingsUsers" Label="@Localizer["Users"]" EndIcon="fa-regular fa-users" />
-        <StackButton Href="@AppRoutes.Sea.OwnerSettingsAdvanced" Label="@Localizer["Advanced"]" EndIcon="fa-regular fa-gear-complex" />
+        <StackButton Href="@AppRoutes.Sea.OwnerSettingsUsers" Label="@Localizer["Users"]" EndIcon="fa-solid fa-users" />
+        <StackButton Href="@AppRoutes.Sea.OwnerSettingsAdvanced" Label="@Localizer["Advanced"]" EndIcon="fa-solid fa-gear-complex" />
     </Stack>
 }
 

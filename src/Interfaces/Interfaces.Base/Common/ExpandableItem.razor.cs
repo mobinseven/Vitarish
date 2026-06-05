@@ -13,8 +13,8 @@ public partial class ExpandableItem : ComponentBase, IExpandableItem
     [Parameter] public Guid Id { get; set; } = Guid.NewGuid();
     [Parameter] public string Name { get; set; } = string.Empty;
     [Parameter] public bool NoIcon { get; set; }
-    [Parameter] public string OpenIcon { get; set; } = "fa-regular fa-folder-open";
-    [Parameter] public string CloseIcon { get; set; } = "fa-regular fa-folder";
+    [Parameter] public string OpenIcon { get; set; } = "fa-solid fa-folder-open";
+    [Parameter] public string CloseIcon { get; set; } = "fa-solid fa-folder";
     [Parameter] public string? HighlightString { get; set; }
     [Parameter] public int Count { get; set; }
     [Parameter] public bool Focusable { get; set; } = false;

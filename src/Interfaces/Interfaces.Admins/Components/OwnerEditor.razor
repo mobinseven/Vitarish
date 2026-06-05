@@ -5,10 +5,10 @@
     <StackTextField @bind-Value=write.Name Label="@Localizer["Name"]" Required />
     <StackTextField @bind-Value=write.LogoUrl Label="@Localizer["LogoUrl"]" />
     <StackTextField @bind-Value=write.Description Label="@Localizer["Description"]" />
-    <StackButton Label="@Localizer["Save"]" OnClick="Save" Color="Color.Primary" EndIcon="fa-regular fa-save" />
+    <StackButton Label="@Localizer["Save"]" OnClick="Save" Color="Color.Primary" EndIcon="fa-solid fa-save" />
     @if(OnCancelled.HasDelegate)
     {
-        <StackButton Label="@Localizer["Cancel"]" OnClick="OnCancelled" EndIcon="fa-regular fa-xmark" />
+        <StackButton Label="@Localizer["Cancel"]" OnClick="OnCancelled" EndIcon="fa-solid fa-xmark" />
     }
 </Stack>
 

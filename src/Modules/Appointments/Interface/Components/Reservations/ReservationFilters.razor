@@ -1,6 +1,6 @@
 @inherits CommonBase
 
-<StackExpandable Label="@Localizer["Filters"]" StartIcon="fa-regular fa-sliders">
+<StackExpandable Label="@Localizer["Filters"]" StartIcon="fa-solid fa-sliders">
     <StackSelect T="ReservationStatus?" Label="@Localizer["Status"]"
                  Value="@descriptor.Status"
                  ValueChanged="@(v => ApplyFilter(descriptor with { Status = v }))">

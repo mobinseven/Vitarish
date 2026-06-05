@@ -17,7 +17,7 @@ else
         <StackField Label="Recovery Queue" HelperText="@($"{_items.Count} carts awaiting review")" />
         @foreach (MerchantRecoveryCartReadDto item in _items)
         {
-            <StackExpandable Label="@item.CustomerDisplay" StartIcon="fa-regular fa-cart-shopping">
+            <StackExpandable Label="@item.CustomerDisplay" StartIcon="fa-solid fa-cart-shopping">
                 <StackField Label="Contact" HelperText="@(item.HasContact ? "Available" : "Missing")" />
                 <StackField Label="Estimated Value" HelperText="@item.EstimatedValue.ToString("0.##")" />
                 <StackField Label="Age" HelperText="@($"{(DateTime.UtcNow - item.CreatedAt).TotalHours:0}h")" />
@@ -30,10 +30,10 @@ else
                                 Label="Notes"
                                 Placeholder="Internal note"
                                 HelperText="Save note with one of the actions or the Save button." />
-                <StackButton EndIcon="fa-regular fa-save" OnClick="() => SaveNoteAsync(item.CartId)" Label="Save" />
-                <StackButton EndIcon="fa-regular fa-message" OnClick="() => UpdateRecoveryAsync(item.CartId, CartRecoveryStatus.Contacted)" Label="Contacted" />
-                <StackButton Color="Color.Success" EndIcon="fa-regular fa-check" OnClick="() => UpdateRecoveryAsync(item.CartId, CartRecoveryStatus.Recovered)" Label="Recovered" />
-                <StackButton Color="Color.Warning" EndIcon="fa-regular fa-ban" OnClick="() => UpdateRecoveryAsync(item.CartId, CartRecoveryStatus.Ignored)" Label="Ignore" />
+                <StackButton EndIcon="fa-solid fa-save" OnClick="() => SaveNoteAsync(item.CartId)" Label="Save" />
+                <StackButton EndIcon="fa-solid fa-message" OnClick="() => UpdateRecoveryAsync(item.CartId, CartRecoveryStatus.Contacted)" Label="Contacted" />
+                <StackButton Color="Color.Success" EndIcon="fa-solid fa-check" OnClick="() => UpdateRecoveryAsync(item.CartId, CartRecoveryStatus.Recovered)" Label="Recovered" />
+                <StackButton Color="Color.Warning" EndIcon="fa-solid fa-ban" OnClick="() => UpdateRecoveryAsync(item.CartId, CartRecoveryStatus.Ignored)" Label="Ignore" />
             </StackExpandable>
         }
     </Stack>

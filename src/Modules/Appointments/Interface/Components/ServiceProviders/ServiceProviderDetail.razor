@@ -19,10 +19,10 @@
         <StackField Label="@Localizer["LinkedUsers"]" />
         @foreach (var userId in current.LinkedUserIds)
         {
-            <StackField Label="@userId" AdornmentIcon="fa-regular fa-user">
+            <StackField Label="@userId" AdornmentIcon="fa-solid fa-user">
                 <StackButton Color="Color.Error"
                              Label="@Localizer["Unlink"]"
-                             EndIcon="fa-regular fa-link-slash"
+                             EndIcon="fa-solid fa-link-slash"
                              OnClick="() => UnlinkUserAsync(userId)" />
             </StackField>
         }
@@ -33,11 +33,11 @@
 
     <Stack>
         <StackButton Label="@Localizer["EditItem", Localizer["ServiceProvider"]]"
-                     EndIcon="fa-regular fa-pen"
+                     EndIcon="fa-solid fa-pen"
                      OnClick="OnEdit" />
         <StackButton Color="Color.Error"
                      Label="@Localizer["DeleteItem", Localizer["ServiceProvider"]]"
-                     EndIcon="fa-regular fa-trash"
+                     EndIcon="fa-solid fa-trash"
                      OnClick="DeleteAsync" />
     </Stack>
 }

@@ -15,7 +15,7 @@
 
     @if(loadingReservations)
     {
-        <StackField Label="@Localizer["Loading"]" AdornmentIcon="fa-regular fa-circle-notch fa-spin" />
+        <StackField Label="@Localizer["Loading"]" AdornmentIcon="fa-solid fa-circle-notch fa-spin" />
     }
     else
     {
@@ -96,12 +96,12 @@
     @if(!string.IsNullOrWhiteSpace(bookingError))
     {
         <StackField Label="@bookingError"
-                    AdornmentIcon="fa-regular fa-circle-xmark"
+                    AdornmentIcon="fa-solid fa-circle-xmark"
                     AdornmentColor="Color.Error"
                     Color="Color.Error" />
     }
 
     <StackButton Label="@Localizer["Back"]"
-                 EndIcon="fa-regular fa-arrow-left"
+                 EndIcon="fa-solid fa-arrow-left"
                  OnClick="OnBack" />
 </Stack>
