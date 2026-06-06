@@ -8,7 +8,7 @@
 const _fileInputStates = new WeakMap();
 
 export function ensureFileInput(options = {}) {
-    const { inputId, dotNetRef, accept, hidden, multiple = true, algorithm, thumbnail } = options;
+    const { inputId, dotNetRef, accept, hidden, multiple = true, capture, algorithm, thumbnail } = options;
     if (!inputId || !dotNetRef) {
         throw new Error("ensureFileInput: inputId and dotNetRef are required.");
     }
@@ -29,6 +29,12 @@ export function ensureFileInput(options = {}) {
         input.setAttribute("accept", accept);
     } else {
         input.removeAttribute("accept");
+    }
+
+    if (typeof capture === "string" && capture) {
+        input.setAttribute("capture", capture);
+    } else {
+        input.removeAttribute("capture");
     }
 
     if (hidden) {
@@ -190,15 +196,11 @@ export function removeFile(inputElId, name) {
     }
 }
 
-export async function getFileStream(inputElId, name) {
+export function getFileStream(inputElId, name) {
     const inputEl = resolveInputEl(inputElId);
     const fileList = inputEl.files ? Array.from(inputEl.files) : [];
     const file = fileList.find(f => f.name === name);
-    if (!file) return null;
-
-    // Return an ArrayBuffer (or a typed array). Both are valid.
-    // return await file.arrayBuffer();
-    return new Uint8Array(await file.arrayBuffer());
+    return file || null;
 }
 
 /**
