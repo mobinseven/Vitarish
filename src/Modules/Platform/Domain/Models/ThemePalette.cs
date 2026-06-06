@@ -1,4 +1,4 @@
-namespace Vitarish.Platform.Domain.Entities;
+namespace Vitarish.Platform.Domain.Models;
 
 public sealed class ThemePalette
 {

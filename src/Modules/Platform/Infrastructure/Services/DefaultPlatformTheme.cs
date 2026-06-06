@@ -1,4 +1,5 @@
 using Vitarish.Platform.Domain.Entities;
+using Vitarish.Platform.Domain.Models;
 
 namespace Vitarish.Platform.Infrastructure.Services;
 

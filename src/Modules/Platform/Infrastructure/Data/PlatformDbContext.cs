@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Platform.Domain.Entities;
+using Vitarish.Platform.Domain.Models;
 
 namespace Vitarish.Platform.Infrastructure.Data;
 
@@ -23,8 +25,8 @@ public sealed class PlatformDbContext(DbContextOptions<PlatformDbContext> option
             _ = entity.Property(e => e.UpdatedAt).IsRequired();
             _ = entity.HasIndex(e => e.Name).IsUnique();
 
-            entity.OwnsOne(e => e.LightPalette, ConfigureLightPalette);
-            entity.OwnsOne(e => e.DarkPalette, ConfigureDarkPalette);
+            _ = entity.ComplexProperty(e => e.LightPalette, palette => ConfigurePalette(palette, nameof(Theme.LightPalette)));
+            _ = entity.ComplexProperty(e => e.DarkPalette, palette => ConfigurePalette(palette, nameof(Theme.DarkPalette)));
         });
 
         _ = modelBuilder.Entity<ThemeSelection>(entity =>
@@ -40,24 +42,19 @@ public sealed class PlatformDbContext(DbContextOptions<PlatformDbContext> option
         });
     }
 
-    private static void ConfigureLightPalette(Microsoft.EntityFrameworkCore.Metadata.Builders.OwnedNavigationBuilder<Theme, ThemePalette> palette)
-        => ConfigurePalette(palette, "Light");
-
-    private static void ConfigureDarkPalette(Microsoft.EntityFrameworkCore.Metadata.Builders.OwnedNavigationBuilder<Theme, ThemePalette> palette)
-        => ConfigurePalette(palette, "Dark");
-
-    private static void ConfigurePalette(Microsoft.EntityFrameworkCore.Metadata.Builders.OwnedNavigationBuilder<Theme, ThemePalette> palette, string prefix)
+    private static void ConfigurePalette(ComplexPropertyBuilder<ThemePalette> palette, string columnName)
     {
-        _ = palette.Property(e => e.Primary).IsRequired().HasMaxLength(7).HasColumnName($"{prefix}Primary");
-        _ = palette.Property(e => e.PrimaryContrastText).IsRequired().HasMaxLength(7).HasColumnName($"{prefix}PrimaryContrastText");
-        _ = palette.Property(e => e.Secondary).IsRequired().HasMaxLength(7).HasColumnName($"{prefix}Secondary");
-        _ = palette.Property(e => e.SecondaryContrastText).IsRequired().HasMaxLength(7).HasColumnName($"{prefix}SecondaryContrastText");
-        _ = palette.Property(e => e.Background).IsRequired().HasMaxLength(7).HasColumnName($"{prefix}Background");
-        _ = palette.Property(e => e.Surface).IsRequired().HasMaxLength(7).HasColumnName($"{prefix}Surface");
-        _ = palette.Property(e => e.AppbarBackground).IsRequired().HasMaxLength(7).HasColumnName($"{prefix}AppbarBackground");
-        _ = palette.Property(e => e.AppbarText).IsRequired().HasMaxLength(7).HasColumnName($"{prefix}AppbarText");
-        _ = palette.Property(e => e.TextPrimary).IsRequired().HasMaxLength(7).HasColumnName($"{prefix}TextPrimary");
-        _ = palette.Property(e => e.TextSecondary).IsRequired().HasMaxLength(7).HasColumnName($"{prefix}TextSecondary");
-        _ = palette.Property(e => e.Divider).IsRequired().HasMaxLength(7).HasColumnName($"{prefix}Divider");
+        _ = palette.ToJson(columnName);
+        _ = palette.Property(e => e.Primary).IsRequired().HasMaxLength(7);
+        _ = palette.Property(e => e.PrimaryContrastText).IsRequired().HasMaxLength(7);
+        _ = palette.Property(e => e.Secondary).IsRequired().HasMaxLength(7);
+        _ = palette.Property(e => e.SecondaryContrastText).IsRequired().HasMaxLength(7);
+        _ = palette.Property(e => e.Background).IsRequired().HasMaxLength(7);
+        _ = palette.Property(e => e.Surface).IsRequired().HasMaxLength(7);
+        _ = palette.Property(e => e.AppbarBackground).IsRequired().HasMaxLength(7);
+        _ = palette.Property(e => e.AppbarText).IsRequired().HasMaxLength(7);
+        _ = palette.Property(e => e.TextPrimary).IsRequired().HasMaxLength(7);
+        _ = palette.Property(e => e.TextSecondary).IsRequired().HasMaxLength(7);
+        _ = palette.Property(e => e.Divider).IsRequired().HasMaxLength(7);
     }
 }
