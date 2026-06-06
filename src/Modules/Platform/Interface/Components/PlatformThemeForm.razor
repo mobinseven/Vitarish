@@ -1,25 +1,26 @@
 <Stack>
     <StackTextField Label="@Localizer["Theme name"]" @bind-Value="Model.Name" Required />
-    <StackField Label="@Localizer["Light palette"]" />
-    <StackTextField Label="Primary" @bind-Value="Model.LightPrimary" />
-    <StackTextField Label="Secondary" @bind-Value="Model.LightSecondary" />
-    <StackTextField Label="Background" @bind-Value="Model.LightBackground" />
-    <StackTextField Label="Surface" @bind-Value="Model.LightSurface" />
-    <StackTextField Label="Text" @bind-Value="Model.LightTextPrimary" />
+
+    <StackExpandable Label="@Localizer["Light palette"]">
+        <StackColorPicker Label="@Localizer["Primary"]" @bind-Value="Model.LightPrimary" />
+        <StackColorPicker Label="@Localizer["Secondary"]" @bind-Value="Model.LightSecondary" />
+        <StackColorPicker Label="@Localizer["Background"]" @bind-Value="Model.LightBackground" />
+        <StackColorPicker Label="@Localizer["Surface"]" @bind-Value="Model.LightSurface" />
+        <StackColorPicker Label="@Localizer["Text"]" @bind-Value="Model.LightTextPrimary" />
+    </StackExpandable>
     <StackPalettePreview Colors="Model.LightPreview" />
 
-    <StackField Label="@Localizer["Dark palette"]" />
-    <StackTextField Label="Primary" @bind-Value="Model.DarkPrimary" />
-    <StackTextField Label="Secondary" @bind-Value="Model.DarkSecondary" />
-    <StackTextField Label="Background" @bind-Value="Model.DarkBackground" />
-    <StackTextField Label="Surface" @bind-Value="Model.DarkSurface" />
-    <StackTextField Label="Text" @bind-Value="Model.DarkTextPrimary" />
+    <StackExpandable Label="@Localizer["Dark palette"]">
+        <StackColorPicker Label="@Localizer["Primary"]" @bind-Value="Model.DarkPrimary" />
+        <StackColorPicker Label="@Localizer["Secondary"]" @bind-Value="Model.DarkSecondary" />
+        <StackColorPicker Label="@Localizer["Background"]" @bind-Value="Model.DarkBackground" />
+        <StackColorPicker Label="@Localizer["Surface"]" @bind-Value="Model.DarkSurface" />
+        <StackColorPicker Label="@Localizer["Text"]" @bind-Value="Model.DarkTextPrimary" />
+    </StackExpandable>
     <StackPalettePreview Colors="Model.DarkPreview" />
 
-    <MudStack Row Spacing="1">
-        <StackButton Label="@Localizer["Save"]" OnClick="Save" Color="Color.Primary" />
-        <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" />
-    </MudStack>
+    <StackButton Label="@Localizer["Save"]" OnClick="Save" Color="Color.Primary" />
+    <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" />
 </Stack>
 
 @code {

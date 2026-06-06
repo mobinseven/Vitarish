@@ -41,7 +41,22 @@ public static class ThemeWriteValidator
     }
 
     private static bool IsHexColor(string value)
-        => value.Length == 7 && value[0] == '#' && value.Skip(1).All(Uri.IsHexDigit);
+    {
+        if (value.Length != 7 || value[0] != '#')
+        {
+            return false;
+        }
+
+        for (int i = 1; i < value.Length; i++)
+        {
+            if (!Uri.IsHexDigit(value[i]))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
 
     private static IEnumerable<string> PaletteValues(ThemePalette palette)
     {

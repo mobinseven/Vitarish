@@ -1,11 +1,53 @@
-@inherits MudColorPicker
+@using MudBlazor
+@using MudBlazor.Utilities
 
 <MudColorPicker Underline="false"
-    Variant="Variant.Filled"
-    HelperText="@Label"
-    Class="stack-item"
-    Elevation="0"
-    Value="@Value"
-    ValueChanged="@ValueChanged"
-    PickerVariant="PickerVariant.Dialog"
-    />
+                Variant="Variant.Filled"
+                HelperText="@Label"
+                Class="stack-item"
+                Elevation="0"
+                Value="@_pickerValue"
+                ValueChanged="OnPickerValueChanged"
+                PickerVariant="PickerVariant.Dialog" />
+
+@code {
+    private MudColor _pickerValue = new("#ffffff");
+
+    [Parameter]
+    public string? Label { get; set; }
+
+    [Parameter]
+    public string? Value { get; set; }
+
+    [Parameter]
+    public EventCallback<string?> ValueChanged { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if(string.IsNullOrWhiteSpace(Value))
+        {
+            _pickerValue = new MudColor("#ffffff");
+            return;
+        }
+
+        try
+        {
+            _pickerValue = new MudColor(Value);
+        }
+        catch
+        {
+            _pickerValue = new MudColor("#ffffff");
+        }
+    }
+
+    private async Task OnPickerValueChanged(MudColor color)
+    {
+        _pickerValue = color;
+
+        // Usually returns a normalized color string, commonly hex.
+        var stringValue = color.Value;
+
+        if(Value != stringValue)
+            await ValueChanged.InvokeAsync(stringValue);
+    }
+}

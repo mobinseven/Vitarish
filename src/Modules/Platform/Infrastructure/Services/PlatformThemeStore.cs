@@ -157,7 +157,7 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
         => new(theme.Id, theme.Name, CopyPalette(theme.LightPalette), CopyPalette(theme.DarkPalette));
 
     private static ThemePalette CopyPalette(ThemePalette palette)
-        => new()
+        => palette is null ? new() : new ()
         {
             Primary = palette.Primary,
             PrimaryContrastText = palette.PrimaryContrastText,

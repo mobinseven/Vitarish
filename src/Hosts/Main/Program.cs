@@ -23,6 +23,7 @@ using Vitarish.Main.Infrastructure.Services;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Infrastructure.Data;
+using Vitarish.Platform.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Social.Infrastructure.Data;
 using Vitarish.Users.Infrastructure.Data;
@@ -131,6 +132,7 @@ builder.Services.AddSingleton<INotificationHandler<EntityNotification>, EntityNo
 
 WebApplication app = builder.Build();
 
+_ = await app.MigrateDatabaseAsync<PlatformDbContext>();
 _ = await app.MigrateDatabaseAsync<UsersDbContext>();
 _ = await app.MigrateDatabaseAsync<PartiesDbContext>();
 _ = await app.MigrateDatabaseAsync<FilesDbContext>();
