@@ -12,11 +12,20 @@ public partial class PlatformAdminThemeEditPage : PlatformAdminCommonBase
     [Inject] private IPlatformThemeCommand ThemeCommand { get; set; } = default!;
 
     private PlatformThemeForm.PlatformThemeFormModel FormModel { get; set; } = new();
+    private Guid? loadedThemeId;
 
     protected override async Task OnParametersSetAsync()
     {
+        if (ThemeId == loadedThemeId)
+        {
+            return;
+        }
+
+        loadedThemeId = ThemeId;
+
         if (ThemeId is null)
         {
+            FormModel = new();
             return;
         }
 

@@ -17,11 +17,14 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
     public async Task<IReadOnlyList<ThemeListItem>> ListThemesAsync(CancellationToken cancellationToken = default)
     {
         ThemeSelection? selection = await dbContext.ThemeSelections.AsNoTracking().SingleOrDefaultAsync(e => e.Id == ThemeSelectionId, cancellationToken);
-        return await dbContext.Themes
+        List<Theme> themes = await dbContext.Themes
             .AsNoTracking()
             .OrderBy(e => e.Name)
-            .Select(e => new ThemeListItem(e.Id, e.Name, ToDto(e.LightPalette), ToDto(e.DarkPalette), selection != null && e.Id == selection.ActiveThemeId))
             .ToListAsync(cancellationToken);
+
+        return themes
+            .Select(e => new ThemeListItem(e.Id, e.Name, ToDto(e.LightPalette), ToDto(e.DarkPalette), selection != null && e.Id == selection.ActiveThemeId))
+            .ToList();
     }
 
     public async Task<ThemeEditorModel?> GetThemeAsync(Guid themeId, CancellationToken cancellationToken = default)
@@ -51,7 +54,8 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
         }
 
         string name = model.Name.Trim();
-        bool exists = await dbContext.Themes.AnyAsync(e => e.Name == name, cancellationToken);
+        string normalizedName = name.ToLowerInvariant();
+        bool exists = await dbContext.Themes.AnyAsync(e => e.Name.ToLower() == normalizedName, cancellationToken);
         if (exists)
         {
             return CreateThemeResult.Failure(ThemeNameExists);
@@ -88,7 +92,8 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
         }
 
         string name = model.Name.Trim();
-        bool exists = await dbContext.Themes.AnyAsync(e => e.Id != themeId && e.Name == name, cancellationToken);
+        string normalizedName = name.ToLowerInvariant();
+        bool exists = await dbContext.Themes.AnyAsync(e => e.Id != themeId && e.Name.ToLower() == normalizedName, cancellationToken);
         if (exists)
         {
             return PlatformCommandResult.Failure(ThemeNameExists);

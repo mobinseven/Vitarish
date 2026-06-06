@@ -1,10 +1,11 @@
+using Microsoft.Extensions.Logging;
 using MudBlazor.Utilities;
 using Vitarish.Interfaces.Base.Enums;
 
 namespace Vitarish.Interfaces.Base.Services;
 
 [RegisterScoped]
-public sealed class ThemeService : IThemeService
+public sealed class ThemeService(ILogger<ThemeService> logger) : IThemeService
 {
     public ThemeSettings Settings { get; private set; } = ThemeSettings.Default;
     public MudTheme Theme { get; private set; } = BuildTheme(TypographySize.Normal, null);
@@ -94,7 +95,14 @@ public sealed class ThemeService : IThemeService
 
         foreach (Delegate d in handlers.GetInvocationList())
         {
-            await ((Func<ThemeSettings, Task>)d)(Settings);
+            try
+            {
+                await ((Func<ThemeSettings, Task>)d)(Settings);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "A theme settings subscriber failed while handling a theme update.");
+            }
         }
     }
 
