@@ -1,6 +1,5 @@
 using Microsoft.JSInterop;
 using Vitarish.Files.Interface.Abstractions;
-using Vitarish.Files.Interface.Components;
 using Vitarish.Files.Interface.Models;
 
 namespace Vitarish.Files.Interface.Services;
@@ -12,10 +11,9 @@ public sealed class StreamTransferService(
     IFileInputOptionsFactory fileInputOptionsFactory) : IStreamTransfer, IAsyncDisposable
 {
     private readonly List<FileInformationReadDto> _uploadedFiles = [];
-    private readonly string _id = $"{nameof(StreamTransfer)}-{Guid.NewGuid()}";
+    private readonly string _inputId = $"StreamTransfer-{Guid.NewGuid()}";
 
     private DotNetObjectReference<StreamTransferService>? _selfRef;
-    private RenderFragment? _activatorContent;
     private readonly SemaphoreSlim _initializationGate = new(1, 1);
     private bool _initialized;
 
@@ -24,11 +22,11 @@ public sealed class StreamTransferService(
     public string? UserId { get; set; }
     public FileSelectionMode SelectionMode { get; set; } = FileSelectionMode.GeneralMulti;
     public bool Transferring { get; private set; }
-    public RenderFragment ActContent { get => field ??= BuildInputHost(); private set; }
+    public string InputId => _inputId;
     public IReadOnlyList<PendingFileDto> PendingFiles => fileSelectionSession.PendingFiles;
     public IReadOnlyList<FileInformationReadDto> UploadedFiles => _uploadedFiles;
 
-    public async Task InitializeAsync(CancellationToken cancellationToken = default)
+    public async Task InitializeAsync(bool hiddenInput, CancellationToken cancellationToken = default)
     {
         if (_initialized)
         {
@@ -44,7 +42,7 @@ public sealed class StreamTransferService(
             }
 
             _selfRef ??= DotNetObjectReference.Create(this);
-            await EnsureInputElementAsync(cancellationToken);
+            await EnsureInputElementAsync(hiddenInput, cancellationToken);
             _initialized = true;
         }
         finally
@@ -67,7 +65,7 @@ public sealed class StreamTransferService(
             return;
         }
 
-        await fileInputInterop.RemoveFileAsync(_id, file.Name, cancellationToken);
+        await fileInputInterop.RemoveFileAsync(_inputId, file.Name, cancellationToken);
         await TriggerStateChangedAsync();
     }
 
@@ -85,7 +83,7 @@ public sealed class StreamTransferService(
         {
             await fileTransferCoordinator.StartTransferAsync(
                 PendingFiles,
-                _id,
+                _inputId,
                 UserId,
                 SelectionMode,
                 TriggerStateChangedAsync,
@@ -109,13 +107,6 @@ public sealed class StreamTransferService(
         }
     }
 
-    public void SetActivatorContent(RenderFragment? activatorContent)
-    {
-        _activatorContent = activatorContent;
-        ActContent = BuildInputHost();
-        TriggerStateChanged();
-    }
-
     [JSInvokable]
     public async Task OnPendingFilesChanged(List<PendingFileDto> files)
     {
@@ -129,7 +120,7 @@ public sealed class StreamTransferService(
         {
             _selfRef?.Dispose();
             _selfRef = null;
-            await fileInputInterop.DisposeInputAsync(_id);
+            await fileInputInterop.DisposeInputAsync(_inputId);
         }
         catch (JSDisconnectedException)
         {
@@ -141,26 +132,15 @@ public sealed class StreamTransferService(
         }
     }
 
-    private RenderFragment BuildInputHost() => builder =>
-    {
-        if (_activatorContent is not null)
-        {
-            builder.OpenElement(2, "label");
-            builder.AddAttribute(3, "for", _id);
-            builder.AddContent(4, _activatorContent);
-            builder.CloseElement();
-        }
-    };
-
-    private Task EnsureInputElementAsync(CancellationToken cancellationToken)
+    private Task EnsureInputElementAsync(bool hiddenInput, CancellationToken cancellationToken)
     {
         if (_selfRef is null)
         {
             return Task.CompletedTask;
         }
 
-        FileInputOptions options = fileInputOptionsFactory.Create(SelectionMode, hidden: _activatorContent is not null);
-        return fileInputInterop.EnsureInitializedAsync(_id, _selfRef, options, cancellationToken);
+        FileInputOptions options = fileInputOptionsFactory.Create(SelectionMode, hidden: hiddenInput);
+        return fileInputInterop.EnsureInitializedAsync(_inputId, _selfRef, options, cancellationToken);
     }
 
     private void TriggerStateChanged() => _ = TriggerStateChangedAsync();
