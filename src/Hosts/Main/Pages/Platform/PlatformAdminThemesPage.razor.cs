@@ -47,5 +47,5 @@ public partial class PlatformAdminThemesPage : PlatformAdminCommonBase
     private string AvailabilityLabel(ThemeListItem theme) => Localizer["both"];
 
     private static IReadOnlyList<string> Preview(ThemePalette palette)
-        => [palette.Primary, palette.Secondary, palette.Background, palette.Surface, palette.TextPrimary];
+        => [palette.Primary, palette.Secondary, palette.Tertiary, palette.Info, palette.Success, palette.Warning, palette.Error, palette.Background, palette.Surface, palette.TextPrimary];
 }

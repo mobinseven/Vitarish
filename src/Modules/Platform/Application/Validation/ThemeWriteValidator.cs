@@ -64,6 +64,16 @@ public static class ThemeWriteValidator
         yield return palette.PrimaryContrastText;
         yield return palette.Secondary;
         yield return palette.SecondaryContrastText;
+        yield return palette.Tertiary;
+        yield return palette.TertiaryContrastText;
+        yield return palette.Info;
+        yield return palette.InfoContrastText;
+        yield return palette.Success;
+        yield return palette.SuccessContrastText;
+        yield return palette.Warning;
+        yield return palette.WarningContrastText;
+        yield return palette.Error;
+        yield return palette.ErrorContrastText;
         yield return palette.Background;
         yield return palette.Surface;
         yield return palette.AppbarBackground;

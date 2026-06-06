@@ -13,19 +13,31 @@ public static class DefaultPlatformTheme
         Id = Id,
         Name = Name,
         LightPalette = new ThemePalette(),
-        DarkPalette = new ThemePalette
-        {
-            Primary = "#60A5FA",
-            PrimaryContrastText = "#07101F",
-            Secondary = "#38BDF8",
-            SecondaryContrastText = "#041018",
-            Background = "#323232",
-            Surface = "#323232",
-            AppbarBackground = "#434343",
-            AppbarText = "#E2E8F0",
-            TextPrimary = "#E2E8F0",
-            TextSecondary = "#94A3B8",
-            Divider = "#233044"
-        }
+        DarkPalette = CreateDarkPalette()
+    };
+
+    public static ThemePalette CreateDarkPalette() => new()
+    {
+        Primary = ThemePalette.FallbackDarkPrimary,
+        PrimaryContrastText = ThemePalette.FallbackDarkPrimaryContrastText,
+        Secondary = ThemePalette.FallbackDarkSecondary,
+        SecondaryContrastText = ThemePalette.FallbackDarkSecondaryContrastText,
+        Tertiary = ThemePalette.FallbackDarkTertiary,
+        TertiaryContrastText = ThemePalette.FallbackDarkTertiaryContrastText,
+        Info = ThemePalette.FallbackDarkInfo,
+        InfoContrastText = ThemePalette.FallbackDarkInfoContrastText,
+        Success = ThemePalette.FallbackDarkSuccess,
+        SuccessContrastText = ThemePalette.FallbackDarkSuccessContrastText,
+        Warning = ThemePalette.FallbackDarkWarning,
+        WarningContrastText = ThemePalette.FallbackDarkWarningContrastText,
+        Error = ThemePalette.FallbackDarkError,
+        ErrorContrastText = ThemePalette.FallbackDarkErrorContrastText,
+        Background = ThemePalette.FallbackDarkBackground,
+        Surface = ThemePalette.FallbackDarkSurface,
+        AppbarBackground = ThemePalette.FallbackDarkAppbarBackground,
+        AppbarText = ThemePalette.FallbackDarkAppbarText,
+        TextPrimary = ThemePalette.FallbackDarkTextPrimary,
+        TextSecondary = ThemePalette.FallbackDarkTextSecondary,
+        Divider = ThemePalette.FallbackDarkDivider
     };
 }
