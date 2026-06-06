@@ -7,6 +7,9 @@ public static partial class AppRoutes
         public const string Home = "/platformadmin";
         public const string Search = "/platformadmin/search";
         public const string Communications = "/platformadmin/communications";
+        public const string Themes = "/platformadmin/themes";
+        public const string NewTheme = "/platformadmin/themes/new";
+        public const string ThemeTemplate = "/platformadmin/themes/{themeId:guid}";
         public const string Users = "/platformadmin/users";
         public const string UserTemplate = "/platformadmin/users/{userId:guid}";
         public const string Owners = "/platformadmin/owners";
@@ -15,6 +18,7 @@ public static partial class AppRoutes
 
         // userId is a string (ASP.NET Identity), validated but not recast as Guid
         public static string User(string userId) => $"{Users}/{SlugValue(userId)}";
+        public static string Theme(Guid themeId) => $"{Themes}/{GuidValue(themeId)}";
         public static string Owner(Guid ownerId) => $"{Owners}/{GuidValue(ownerId)}";
         public static string OwnerTenant(Guid ownerId, Guid tenantId) =>
             $"{Owners}/{GuidValue(ownerId)}/tenants/{GuidValue(tenantId)}";

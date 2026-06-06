@@ -1,0 +1,26 @@
+@attribute [Route(AppRoutes.PlatformAdmin.Themes)]
+@using Vitarish.Platform.Application.Contracts
+
+<Stack>
+    <StackButton Label="@Localizer["Theme Palette Management"]" HelperText="@ThemeSummary" Href="@AppRoutes.PlatformAdmin.NewTheme" EndIcon="fa-solid fa-plus" Color="Color.Primary" />
+    @foreach (ThemeListItem theme in Themes)
+    {
+        <StackCard Label="@theme.Name" Caption="@(theme.IsActive ? Localizer["Active theme"].Value : Localizer["Inactive"].Value)" HelperText="@AvailabilityLabel(theme)">
+            <MudStack Spacing="1">
+                <MudText Typo="Typo.caption">@Localizer["Light palette"]</MudText>
+                <StackPalettePreview Colors="@Preview(theme.LightPalette)" />
+                <MudText Typo="Typo.caption">@Localizer["Dark palette"]</MudText>
+                <StackPalettePreview Colors="@Preview(theme.DarkPalette)" />
+                @if (theme.IsActive)
+                {
+                    <MudText Typo="Typo.caption">@Localizer["Select another active theme before deleting this one."]</MudText>
+                }
+                <MudStack Row Spacing="1">
+                    <MudButton Size="Size.Small" Disabled="@theme.IsActive" OnClick="@(() => Activate(theme.Id))">@Localizer["Set as Active"]</MudButton>
+                    <MudButton Size="Size.Small" OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.PlatformAdmin.Theme(theme.Id)))">@Localizer["Edit"]</MudButton>
+                    <MudButton Size="Size.Small" Color="Color.Error" Disabled="@theme.IsActive" OnClick="@(() => Delete(theme.Id))">@Localizer["Delete"]</MudButton>
+                </MudStack>
+            </MudStack>
+        </StackCard>
+    }
+</Stack>

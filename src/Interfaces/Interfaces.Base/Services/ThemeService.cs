@@ -1,13 +1,15 @@
+using Microsoft.Extensions.Logging;
 using MudBlazor.Utilities;
 using Vitarish.Interfaces.Base.Enums;
 
 namespace Vitarish.Interfaces.Base.Services;
 
 [RegisterScoped]
-public sealed class ThemeService : IThemeService
+public sealed class ThemeService(ILogger<ThemeService> logger) : IThemeService
 {
     public ThemeSettings Settings { get; private set; } = ThemeSettings.Default;
-    public MudTheme Theme { get; private set; } = BuildTheme(TypographySize.Normal);
+    public MudTheme Theme { get; private set; } = BuildTheme(TypographySize.Normal, null);
+    private PlatformThemePalette? platformPalette;
 
     public Variant PrimaryVariant => IsDarkMode ? Variant.Filled : Variant.Filled;
     public Variant SecondaryVariant => IsDarkMode ? Variant.Outlined : Variant.Outlined;
@@ -20,12 +22,14 @@ public sealed class ThemeService : IThemeService
     public event Func<ThemeSettings, Task>? SettingsChanged;
     public event Action? VisualStateChanged;
 
-    public async Task InitializeAsync(ThemeSettings? imported = null)
+    public Task InitializeAsync(ThemeSettings? imported = null, PlatformThemePalette? platformPalette = null)
     {
         Settings = imported ?? ThemeSettings.Default;
+        this.platformPalette = platformPalette;
 
-        Theme = BuildTheme(Settings.Typography);
+        Theme = BuildTheme(Settings.Typography, this.platformPalette);
         IsDarkMode = ResolveIsDarkMode(Settings);
+        return Task.CompletedTask;
     }
     public Task SetSurfaceAsync(ThemeSurfaceType surface)
     {
@@ -74,7 +78,7 @@ public sealed class ThemeService : IThemeService
     private Task ApplyAsync(ThemeSettings next)
     {
         Settings = next;
-        Theme = BuildTheme(next.Typography);
+        Theme = BuildTheme(next.Typography, platformPalette);
         IsDarkMode = ResolveIsDarkMode(next);
         ThemeVersion++;
         VisualStateChanged?.Invoke();
@@ -92,8 +96,13 @@ public sealed class ThemeService : IThemeService
         foreach (Delegate d in handlers.GetInvocationList())
         {
             try
-            { await ((Func<ThemeSettings, Task>)d)(Settings); }
-            catch { /* swallow/log as you prefer */ }
+            {
+                await ((Func<ThemeSettings, Task>)d)(Settings);
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "A theme settings subscriber failed while handling a theme update.");
+            }
         }
     }
 
@@ -105,7 +114,7 @@ public sealed class ThemeService : IThemeService
         _ => false
     };
 
-    private static MudTheme BuildTheme(TypographySize size)
+    private static MudTheme BuildTheme(TypographySize size, PlatformThemePalette? platformPalette)
     {
         // Conservative scaling to preserve layout density & avoid component clipping.
         double scale = size switch
@@ -159,31 +168,31 @@ public sealed class ThemeService : IThemeService
             },
             PaletteLight = new PaletteLight
             {
-                Primary = new MudColor("#2563EB"),
-                PrimaryContrastText = new MudColor("#FFFFFF"),
-                Secondary = new MudColor("#0EA5E9"),
-                SecondaryContrastText = new MudColor("#001018"),
-                Background = new MudColor("#f1f1f1"),
-                Surface = new MudColor("#f1f1f1"),
-                AppbarBackground = new MudColor("#FFFFFF"),
-                AppbarText = new MudColor("#0F172A"),
-                TextPrimary = new MudColor("#0F172A"),
-                TextSecondary = new MudColor("#334155"),
-                Divider = new MudColor("#E2E8F0")
+                Primary = new MudColor(platformPalette?.LightPalette.Primary ?? "#2563EB"),
+                PrimaryContrastText = new MudColor(platformPalette?.LightPalette.PrimaryContrastText ?? "#FFFFFF"),
+                Secondary = new MudColor(platformPalette?.LightPalette.Secondary ?? "#0EA5E9"),
+                SecondaryContrastText = new MudColor(platformPalette?.LightPalette.SecondaryContrastText ?? "#001018"),
+                Background = new MudColor(platformPalette?.LightPalette.Background ?? "#f1f1f1"),
+                Surface = new MudColor(platformPalette?.LightPalette.Surface ?? "#f1f1f1"),
+                AppbarBackground = new MudColor(platformPalette?.LightPalette.AppbarBackground ?? "#FFFFFF"),
+                AppbarText = new MudColor(platformPalette?.LightPalette.AppbarText ?? "#0F172A"),
+                TextPrimary = new MudColor(platformPalette?.LightPalette.TextPrimary ?? "#0F172A"),
+                TextSecondary = new MudColor(platformPalette?.LightPalette.TextSecondary ?? "#334155"),
+                Divider = new MudColor(platformPalette?.LightPalette.Divider ?? "#E2E8F0")
             },
             PaletteDark = new PaletteDark
             {
-                Primary = new MudColor("#60A5FA"),
-                PrimaryContrastText = new MudColor("#07101F"),
-                Secondary = new MudColor("#38BDF8"),
-                SecondaryContrastText = new MudColor("#041018"),
-                Background = new MudColor("#323232"),
-                Surface = new MudColor("#323232"),
-                AppbarBackground = new MudColor("#434343"),
-                AppbarText = new MudColor("#E2E8F0"),
-                TextPrimary = new MudColor("#E2E8F0"),
-                TextSecondary = new MudColor("#94A3B8"),
-                Divider = new MudColor("#233044"),
+                Primary = new MudColor(platformPalette?.DarkPalette.Primary ?? "#60A5FA"),
+                PrimaryContrastText = new MudColor(platformPalette?.DarkPalette.PrimaryContrastText ?? "#07101F"),
+                Secondary = new MudColor(platformPalette?.DarkPalette.Secondary ?? "#38BDF8"),
+                SecondaryContrastText = new MudColor(platformPalette?.DarkPalette.SecondaryContrastText ?? "#041018"),
+                Background = new MudColor(platformPalette?.DarkPalette.Background ?? "#323232"),
+                Surface = new MudColor(platformPalette?.DarkPalette.Surface ?? "#323232"),
+                AppbarBackground = new MudColor(platformPalette?.DarkPalette.AppbarBackground ?? "#434343"),
+                AppbarText = new MudColor(platformPalette?.DarkPalette.AppbarText ?? "#E2E8F0"),
+                TextPrimary = new MudColor(platformPalette?.DarkPalette.TextPrimary ?? "#E2E8F0"),
+                TextSecondary = new MudColor(platformPalette?.DarkPalette.TextSecondary ?? "#94A3B8"),
+                Divider = new MudColor(platformPalette?.DarkPalette.Divider ?? "#233044"),
             },
             Typography = typography
         };

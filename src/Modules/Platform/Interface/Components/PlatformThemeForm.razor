@@ -1,0 +1,51 @@
+<Stack>
+    <StackTextField Label="@Localizer["Theme name"]" @bind-Value="Model.Name" Required />
+    <StackField Label="@Localizer["Light palette"]" />
+    <StackTextField Label="Primary" @bind-Value="Model.LightPrimary" />
+    <StackTextField Label="Secondary" @bind-Value="Model.LightSecondary" />
+    <StackTextField Label="Background" @bind-Value="Model.LightBackground" />
+    <StackTextField Label="Surface" @bind-Value="Model.LightSurface" />
+    <StackTextField Label="Text" @bind-Value="Model.LightTextPrimary" />
+    <StackPalettePreview Colors="Model.LightPreview" />
+
+    <StackField Label="@Localizer["Dark palette"]" />
+    <StackTextField Label="Primary" @bind-Value="Model.DarkPrimary" />
+    <StackTextField Label="Secondary" @bind-Value="Model.DarkSecondary" />
+    <StackTextField Label="Background" @bind-Value="Model.DarkBackground" />
+    <StackTextField Label="Surface" @bind-Value="Model.DarkSurface" />
+    <StackTextField Label="Text" @bind-Value="Model.DarkTextPrimary" />
+    <StackPalettePreview Colors="Model.DarkPreview" />
+
+    <MudStack Row Spacing="1">
+        <StackButton Label="@Localizer["Save"]" OnClick="Save" Color="Color.Primary" />
+        <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" />
+    </MudStack>
+</Stack>
+
+@code {
+    [Inject] private IStringLocalizer Localizer { get; set; } = default!;
+    [Parameter, EditorRequired] public PlatformThemeFormModel Model { get; set; } = new();
+    [Parameter, EditorRequired] public EventCallback<PlatformThemeFormModel> OnSave { get; set; }
+    [Parameter, EditorRequired] public EventCallback OnCancel { get; set; }
+
+    private Task Save() => OnSave.InvokeAsync(Model);
+    private Task Cancel() => OnCancel.InvokeAsync();
+
+    public sealed class PlatformThemeFormModel
+    {
+        public string Name { get; set; } = string.Empty;
+        public string LightPrimary { get; set; } = "#2563EB";
+        public string LightSecondary { get; set; } = "#0EA5E9";
+        public string LightBackground { get; set; } = "#F1F1F1";
+        public string LightSurface { get; set; } = "#F1F1F1";
+        public string LightTextPrimary { get; set; } = "#0F172A";
+        public string DarkPrimary { get; set; } = "#60A5FA";
+        public string DarkSecondary { get; set; } = "#38BDF8";
+        public string DarkBackground { get; set; } = "#323232";
+        public string DarkSurface { get; set; } = "#323232";
+        public string DarkTextPrimary { get; set; } = "#E2E8F0";
+
+        public IReadOnlyList<string> LightPreview => [LightPrimary, LightSecondary, LightBackground, LightSurface, LightTextPrimary];
+        public IReadOnlyList<string> DarkPreview => [DarkPrimary, DarkSecondary, DarkBackground, DarkSurface, DarkTextPrimary];
+    }
+}

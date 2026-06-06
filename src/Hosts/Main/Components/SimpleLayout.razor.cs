@@ -13,6 +13,7 @@ public partial class SimpleLayout : LayoutComponentBase, IAsyncDisposable, IBrow
     [Inject] protected IHttpContextAccessor HttpContextAccessor { get; set; } = default!;
     [Inject] protected IUserService UserService { get; set; } = default!;
     [Inject] protected INavService NavService { get; set; } = default!;
+    [Inject] protected IPlatformThemePaletteProvider PlatformThemePaletteProvider { get; set; } = default!;
     [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
     [Inject] protected IStringLocalizer Localizer { get; set; } = default!;
 
@@ -32,7 +33,8 @@ public partial class SimpleLayout : LayoutComponentBase, IAsyncDisposable, IBrow
             string? theme = await UserService.GetThemeAsync(userId);
             themeSettings = ThemeSettings.FromJson(theme);
         }
-        await ThemeService.InitializeAsync(themeSettings);
+        PlatformThemePalette? platformPalette = await PlatformThemePaletteProvider.GetActivePaletteAsync();
+        await ThemeService.InitializeAsync(themeSettings, platformPalette);
         Initialized = true;
         RenderNotifier.RenderRequired += HandleLocationChanged;
         _ = NavigationManager.RegisterLocationChangingHandler(async c => { Navigating = true; await InvokeAsync(() => StateHasChanged()); });
@@ -55,6 +57,7 @@ public partial class SimpleLayout : LayoutComponentBase, IAsyncDisposable, IBrow
 
         await base.OnAfterRenderAsync(firstRender);
     }
+
 
     private async void RenderNotificationReceived(object? sender, RenderNotification notification)
     {

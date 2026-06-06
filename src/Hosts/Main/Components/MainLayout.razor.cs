@@ -11,6 +11,7 @@ public partial class MainLayout : LayoutComponentBase
     [Inject] protected IRequestContext RequestContext { get; set; } = default!;
     [Inject] protected IUserService UserService { get; set; } = default!;
     [Inject] protected INavService NavService { get; set; } = default!;
+    [Inject] protected IPlatformThemePaletteProvider PlatformThemePaletteProvider { get; set; } = default!;
 
     private bool Initialized;
     protected Breakpoint PageBreakpoint
@@ -41,10 +42,12 @@ public partial class MainLayout : LayoutComponentBase
             string? theme = await UserService.GetThemeAsync(userId);
             themeSettings = ThemeSettings.FromJson(theme);
         }
-        await ThemeService.InitializeAsync(themeSettings);
+        PlatformThemePalette? platformPalette = await PlatformThemePaletteProvider.GetActivePaletteAsync();
+        await ThemeService.InitializeAsync(themeSettings, platformPalette);
         Initialized = true;
         StateHasChanged();
     }
+
 
     private async void RenderNotificationReceived(object? sender, RenderNotification notification)
     {
