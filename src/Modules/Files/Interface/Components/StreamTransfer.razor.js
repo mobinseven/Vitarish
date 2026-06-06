@@ -8,7 +8,7 @@
 const _fileInputStates = new WeakMap();
 
 export function ensureFileInput(options = {}) {
-    const { inputId, dotNetRef, accept, hidden, multiple = true, algorithm, thumbnail } = options;
+    const { inputId, dotNetRef, accept, hidden, multiple = true, capture, algorithm, thumbnail } = options;
     if (!inputId || !dotNetRef) {
         throw new Error("ensureFileInput: inputId and dotNetRef are required.");
     }
@@ -29,6 +29,12 @@ export function ensureFileInput(options = {}) {
         input.setAttribute("accept", accept);
     } else {
         input.removeAttribute("accept");
+    }
+
+    if (typeof capture === "string" && capture) {
+        input.setAttribute("capture", capture);
+    } else {
+        input.removeAttribute("capture");
     }
 
     if (hidden) {

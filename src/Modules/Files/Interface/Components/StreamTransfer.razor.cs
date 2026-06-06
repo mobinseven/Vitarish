@@ -18,6 +18,9 @@ public partial class StreamTransfer : ComponentBase
     [Parameter]
     public string? UserId { get; set; }
 
+    [Parameter]
+    public FileSelectionMode SelectionMode { get; set; } = FileSelectionMode.GeneralMulti;
+
     public RenderFragment ActContent => Service.ActContent;
 
     public IReadOnlyList<PendingFileDto> PendingFiles => Service.PendingFiles;
@@ -63,6 +66,7 @@ public partial class StreamTransfer : ComponentBase
     private void ApplyParameters()
     {
         Service.UserId = UserId;
+        Service.SelectionMode = SelectionMode;
         Service.SetActivatorContent(ActivatorContent);
     }
 }
