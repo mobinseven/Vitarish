@@ -14,19 +14,19 @@
     }
     @if (!string.IsNullOrWhiteSpace(SettingsHref))
     {
-        <StackButton Label="@Localizer["Settings"]" Href="@SettingsHref" EndIcon="fa-solid fa-cog" />
+        <StackButton Label="@Localizer["Settings"]" Href="@SettingsHref" EndIcon="fa-solid fa-cog" Color="Color.Secondary" />
     }
     @if (!string.IsNullOrWhiteSpace(MembersHref))
     {
-        <StackButton Label="@Localizer["MembersAndRoles"]" Href="@MembersHref" EndIcon="fa-solid fa-users" />
+        <StackButton Label="@Localizer["MembersAndRoles"]" Href="@MembersHref" EndIcon="fa-solid fa-users" Color="Color.Secondary" />
     }
     @if (!string.IsNullOrWhiteSpace(BillingHref))
     {
-        <StackButton Label="@Localizer["Billing"]" Href="@BillingHref" EndIcon="fa-solid fa-credit-card" />
+        <StackButton Label="@Localizer["Billing"]" Href="@BillingHref" EndIcon="fa-solid fa-credit-card" Color="Color.Secondary" />
     }
     @if (!string.IsNullOrWhiteSpace(AuditHref))
     {
-        <StackButton Label="@Localizer["AuditLog"]" Href="@AuditHref" EndIcon="fa-solid fa-history" />
+        <StackButton Label="@Localizer["AuditLog"]" Href="@AuditHref" EndIcon="fa-solid fa-history" Color="Color.Info" />
     }
     @if (!string.IsNullOrWhiteSpace(DangerHref))
     {

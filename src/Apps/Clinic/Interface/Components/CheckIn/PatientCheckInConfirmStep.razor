@@ -16,7 +16,7 @@
         <StackField Label="@Localizer["Patient"]" />
         <StackButton Label="@Context.SelectedPatient.Name"
                      EndIcon="fa-solid fa-user"
-                     OnClick="HandleGoToPatientAsync" />
+                     OnClick="HandleGoToPatientAsync" Color="Color.Secondary" />
     }
 
     @if (Context.Outcome == CheckInOutcome.CurrentShift)
@@ -73,12 +73,12 @@
         <StackButton Label="@Localizer["SendSmsConfirmation"]"
                      EndIcon="fa-solid fa-paper-plane"
                      Variant="Variant.Outlined"
-                     OnClick="SendConfirmationAsync" />
+                     OnClick="SendConfirmationAsync" Color="Color.Primary" />
     }
 
     <StackButton Label="@Localizer["StartAnotherCheckIn"]"
                  EndIcon="fa-solid fa-rotate-right"
-                 OnClick="OnStartAnother" />
+                 OnClick="OnStartAnother" Color="Color.Primary" />
 </Stack>
 
 @code {

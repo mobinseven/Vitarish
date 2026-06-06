@@ -14,7 +14,7 @@
     <StackField Label="@Localizer["Tenants"]" />
     @foreach(var tenant in Tenants)
     {
-        <StackButton Label="@tenant.Name" Href="@AppRoutes.PlatformAdmin.OwnerTenant(ownerGuid, tenant.Id)" />
+        <StackButton Label="@tenant.Name" Href="@AppRoutes.PlatformAdmin.OwnerTenant(ownerGuid, tenant.Id)" Color="Color.Info" />
     }
     <StackButton Label="@Localizer["AddItem", Localizer["Tenant"]]" Color="Color.Primary" OnClick="AddTenant" EndIcon="fa-solid fa-plus" />
 </Stack>

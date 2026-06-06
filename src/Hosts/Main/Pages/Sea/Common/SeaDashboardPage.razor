@@ -3,26 +3,26 @@
 @inject IAccessControlledProjectsService ProjectsService
 
 <Stack>
-    <StackButton Href="@AppRoutes.Sea.Projects" Label="@Localizer["Projects"]" EndIcon="fa-solid fa-3x fa-folders">
+    <StackButton Href="@AppRoutes.Sea.Projects" Label="@Localizer["Projects"]" EndIcon="fa-solid fa-3x fa-folders" Color="Color.Info">
         @if(projectsCount > 0)
         {
             @projectsCount
         }
     </StackButton>
-    <StackButton Href="@AppRoutes.Appointments.UserReservations" Label="@Localizer["MyAppointments"]" EndIcon="fa-solid fa-calendar-days" />
+    <StackButton Href="@AppRoutes.Appointments.UserReservations" Label="@Localizer["MyAppointments"]" EndIcon="fa-solid fa-calendar-days" Color="Color.Info" />
 </Stack>
 
 @if(IsOwner)
 {
     <Stack>
         <StackField Label="@Localizer["Administration"]" />
-        <StackButton Href="@AppRoutes.Sea.OwnerTemplateProjects" Label="@Localizer["Templates"]" EndIcon="fa-solid fa-folder-gear" />
-        <StackButton Href="@AppRoutes.Appointments.OwnerReservations" Label="@Localizer["AppointmentsAdmin"]" EndIcon="fa-solid fa-calendar-star" />
+        <StackButton Href="@AppRoutes.Sea.OwnerTemplateProjects" Label="@Localizer["Templates"]" EndIcon="fa-solid fa-folder-gear" Color="Color.Info" />
+        <StackButton Href="@AppRoutes.Appointments.OwnerReservations" Label="@Localizer["AppointmentsAdmin"]" EndIcon="fa-solid fa-calendar-star" Color="Color.Secondary" />
     </Stack>
     <Stack>
         <StackField Label="@Localizer["Ownership"]" />
-        <StackButton Href="@AppRoutes.Sea.OwnerSettingsUsers" Label="@Localizer["Users"]" EndIcon="fa-solid fa-users" />
-        <StackButton Href="@AppRoutes.Sea.OwnerSettingsAdvanced" Label="@Localizer["Advanced"]" EndIcon="fa-solid fa-gear-complex" />
+        <StackButton Href="@AppRoutes.Sea.OwnerSettingsUsers" Label="@Localizer["Users"]" EndIcon="fa-solid fa-users" Color="Color.Secondary" />
+        <StackButton Href="@AppRoutes.Sea.OwnerSettingsAdvanced" Label="@Localizer["Advanced"]" EndIcon="fa-solid fa-gear-complex" Color="Color.Secondary" />
     </Stack>
 }
 

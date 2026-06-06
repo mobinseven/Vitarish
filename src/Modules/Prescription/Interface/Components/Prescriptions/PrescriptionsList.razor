@@ -3,7 +3,7 @@
 @if (prescriptions.Count == 0)
 {
     <Stack>
-        <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Prescription"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Prescription"]]" EndIcon="fa-solid fa-refresh">
+        <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Prescription"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Prescription"]]" EndIcon="fa-solid fa-refresh" Color="Color.Secondary">
             @Localizer["Reload"]
         </StackButton>
     </Stack>

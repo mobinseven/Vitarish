@@ -34,7 +34,7 @@
                      OnClick="@(() => ChangeStatusAsync(ShiftStatus.Active))" />
         <StackButton Label="@Localizer["EditItem", Localizer["Shift"]]"
                      EndIcon="fa-solid fa-pen"
-                     OnClick="OnEdit" />
+                     OnClick="OnEdit" Color="Color.Secondary" />
         <StackButton Color="Color.Error"
                      Label="@Localizer["CancelItem", Localizer["Shift"]]"
                      EndIcon="fa-solid fa-xmark"
@@ -46,7 +46,7 @@
     <Stack>
         <StackButton Label="@Localizer["EditItem", Localizer["Shift"]]"
                      EndIcon="fa-solid fa-pen"
-                     OnClick="OnEdit" />
+                     OnClick="OnEdit" Color="Color.Secondary" />
         <StackButton Color="Color.Warning"
                      Label="@Localizer["PauseItem", Localizer["Shift"]]"
                      EndIcon="fa-solid fa-pause"

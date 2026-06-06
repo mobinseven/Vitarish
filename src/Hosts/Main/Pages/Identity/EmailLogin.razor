@@ -8,7 +8,7 @@
 <AntiforgeryToken />
 <EmailLoginForm @rendermode=@InteractiveServer />
 <Stack>
-    <StackButton Label="@Localizer["LoginVia", Localizer["Phone"]]" EndIcon="fa-solid fa-phone" Href="@AppRoutes.Account.LoginPhone" />
-    <StackButton Label="@Localizer["LoginVia", Localizer["Password"]]" EndIcon="fa-solid fa-asterisk" Href="@AppRoutes.Account.LoginPassword" />
-    <StackButton Label="@Localizer["LoginVia", Localizer["Passkey"]]" EndIcon="fa-solid fa-key" Href="@AppRoutes.Account.LoginPasskey" />
+    <StackButton Label="@Localizer["LoginVia", Localizer["Phone"]]" EndIcon="fa-solid fa-phone" Href="@AppRoutes.Account.LoginPhone" Color="Color.Secondary" />
+    <StackButton Label="@Localizer["LoginVia", Localizer["Password"]]" EndIcon="fa-solid fa-asterisk" Href="@AppRoutes.Account.LoginPassword" Color="Color.Secondary" />
+    <StackButton Label="@Localizer["LoginVia", Localizer["Passkey"]]" EndIcon="fa-solid fa-key" Href="@AppRoutes.Account.LoginPasskey" Color="Color.Secondary" />
 </Stack>

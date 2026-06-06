@@ -14,7 +14,7 @@
         @foreach (var reservation in reservations)
         {
             <StackButton OnClick="@(() => OpenDetailDialogAsync(reservation))"
-                         Label="@GetReservationLabel(reservation)">
+                         Label="@GetReservationLabel(reservation)" Color="Color.Info">
                 <ReservationStatusBadge Status="reservation.Status" />
             </StackButton>
         }

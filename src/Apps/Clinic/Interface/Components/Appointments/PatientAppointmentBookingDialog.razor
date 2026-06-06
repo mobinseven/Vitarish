@@ -8,7 +8,7 @@
                 <StackButton Label="@Localizer["NoItems", Localizer["AppointmentShift"]]"
                              HelperText="@Localizer["NoItemsHelp", Localizer["AppointmentShift"]]"
                              EndIcon="fa-solid fa-refresh"
-                             OnClick="LoadShiftsAsync">
+                             OnClick="LoadShiftsAsync" Color="Color.Secondary">
                     @Localizer["Reload"]
                 </StackButton>
             </Stack>
@@ -20,7 +20,7 @@
                 {
                     <StackButton OnClick="@(() => ReserveAsync(shift))"
                                  Label="@Localizer[shift.DayOfWeek.ToString()]"
-                                 HelperText="@($"{shift.StartTime:t}-{shift.EndTime:t} · {shift.TotalSeats} {Localizer["TotalSeats"]}")">
+                                 HelperText="@($"{shift.StartTime:t}-{shift.EndTime:t} · {shift.TotalSeats} {Localizer["TotalSeats"]}")" Color="Color.Primary">
                         <ShiftStatusBadge Status="shift.Status" />
                     </StackButton>
                 }
@@ -39,7 +39,7 @@
         <Stack>
             <StackButton Label="@Localizer["Cancel"]"
                          EndIcon="fa-solid fa-xmark"
-                         OnClick="Cancel" />
+                         OnClick="Cancel" Color="Color.Secondary" />
         </Stack>
     </DialogContent>
 </MudDialog>
