@@ -24,7 +24,7 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
             .ToListAsync(cancellationToken);
 
         return themes
-            .Select(e => new ThemeListItem(e.Id, e.Name, ToDto(e.LightPalette), ToDto(e.DarkPalette), selection != null && e.Id == selection.ActiveThemeId))
+            .Select(e => new ThemeListItem(e.Id, e.Name, CopyPalette(e.LightPalette), CopyPalette(e.DarkPalette), selection != null && e.Id == selection.ActiveThemeId))
             .ToList();
     }
 
@@ -62,13 +62,12 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
             return CreateThemeResult.Failure(ThemeNameExists);
         }
 
-        DateTimeOffset now = timeProvider.GetUtcNow();
         Theme theme = new()
         {
             Id = Guid.NewGuid(),
             Name = name,
-            LightPalette = ToEntity(model.LightPalette),
-            DarkPalette = ToEntity(model.DarkPalette)
+            LightPalette = NormalizePalette(model.LightPalette),
+            DarkPalette = NormalizePalette(model.DarkPalette)
         };
 
         _ = dbContext.Themes.Add(theme);
@@ -99,8 +98,8 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
         }
 
         theme.Name = name;
-        theme.LightPalette = ToEntity(model.LightPalette);
-        theme.DarkPalette = ToEntity(model.DarkPalette);
+        theme.LightPalette = NormalizePalette(model.LightPalette);
+        theme.DarkPalette = NormalizePalette(model.DarkPalette);
         _ = await dbContext.SaveChangesAsync(cancellationToken);
         return PlatformCommandResult.Success();
     }
@@ -155,12 +154,25 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
     }
 
     private static ThemeEditorModel ToEditorModel(Theme theme)
-        => new(theme.Id, theme.Name, ToDto(theme.LightPalette), ToDto(theme.DarkPalette));
+        => new(theme.Id, theme.Name, CopyPalette(theme.LightPalette), CopyPalette(theme.DarkPalette));
 
-    private static ThemePaletteDto ToDto(ThemePalette palette)
-        => new(palette.Primary, palette.PrimaryContrastText, palette.Secondary, palette.SecondaryContrastText, palette.Background, palette.Surface, palette.AppbarBackground, palette.AppbarText, palette.TextPrimary, palette.TextSecondary, palette.Divider);
+    private static ThemePalette CopyPalette(ThemePalette palette)
+        => new()
+        {
+            Primary = palette.Primary,
+            PrimaryContrastText = palette.PrimaryContrastText,
+            Secondary = palette.Secondary,
+            SecondaryContrastText = palette.SecondaryContrastText,
+            Background = palette.Background,
+            Surface = palette.Surface,
+            AppbarBackground = palette.AppbarBackground,
+            AppbarText = palette.AppbarText,
+            TextPrimary = palette.TextPrimary,
+            TextSecondary = palette.TextSecondary,
+            Divider = palette.Divider
+        };
 
-    private static ThemePalette ToEntity(ThemePaletteDto palette)
+    private static ThemePalette NormalizePalette(ThemePalette palette)
         => new()
         {
             Primary = palette.Primary.Trim().ToUpperInvariant(),

@@ -8,12 +8,10 @@ public static class DefaultPlatformTheme
     public static readonly Guid Id = Guid.Parse("3af03f4e-e53a-4f63-97cc-820c5ea52d85");
     public const string Name = "Default";
 
-    public static Theme Create(DateTimeOffset now) => new()
+    public static Theme Create() => new()
     {
         Id = Id,
         Name = Name,
-        CreatedAt = now,
-        UpdatedAt = now,
         LightPalette = new ThemePalette(),
         DarkPalette = new ThemePalette
         {

@@ -1,6 +1,7 @@
 using Vitarish.Interfaces.Admins.Components;
 using Vitarish.Platform.Application.Abstractions;
 using Vitarish.Platform.Application.Contracts;
+using Vitarish.Platform.Domain.Models;
 using Vitarish.Platform.Interface.Components;
 
 namespace Vitarish.Main.Pages.Platform;
@@ -85,6 +86,32 @@ public partial class PlatformAdminThemeEditPage : PlatformAdminCommonBase
 
     private static ThemeWriteModel ToWriteModel(PlatformThemeForm.PlatformThemeFormModel model)
         => new(model.Name,
-            new ThemePaletteDto(model.LightPrimary, "#FFFFFF", model.LightSecondary, "#001018", model.LightBackground, model.LightSurface, "#FFFFFF", model.LightTextPrimary, model.LightTextPrimary, "#334155", "#E2E8F0"),
-            new ThemePaletteDto(model.DarkPrimary, "#07101F", model.DarkSecondary, "#041018", model.DarkBackground, model.DarkSurface, "#434343", model.DarkTextPrimary, model.DarkTextPrimary, "#94A3B8", "#233044"));
+            new ThemePalette
+            {
+                Primary = model.LightPrimary,
+                PrimaryContrastText = "#FFFFFF",
+                Secondary = model.LightSecondary,
+                SecondaryContrastText = "#001018",
+                Background = model.LightBackground,
+                Surface = model.LightSurface,
+                AppbarBackground = "#FFFFFF",
+                AppbarText = model.LightTextPrimary,
+                TextPrimary = model.LightTextPrimary,
+                TextSecondary = "#334155",
+                Divider = "#E2E8F0"
+            },
+            new ThemePalette
+            {
+                Primary = model.DarkPrimary,
+                PrimaryContrastText = "#07101F",
+                Secondary = model.DarkSecondary,
+                SecondaryContrastText = "#041018",
+                Background = model.DarkBackground,
+                Surface = model.DarkSurface,
+                AppbarBackground = "#434343",
+                AppbarText = model.DarkTextPrimary,
+                TextPrimary = model.DarkTextPrimary,
+                TextSecondary = "#94A3B8",
+                Divider = "#233044"
+            });
 }

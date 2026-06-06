@@ -1,4 +1,5 @@
 using Vitarish.Platform.Application.Contracts;
+using Vitarish.Platform.Domain.Models;
 
 namespace Vitarish.Platform.Application.Validation;
 
@@ -8,9 +9,9 @@ public static class ThemeWriteValidator
     public const string ColorRequired = "All palette colors are required.";
     public const string ColorInvalid = "Palette colors must be valid hex values.";
 
-    public static string? Validate(ThemeWriteModel model)
+    public static string? Validate(ThemeWriteModel? model)
     {
-        if (string.IsNullOrWhiteSpace(model.Name))
+        if (model is null || string.IsNullOrWhiteSpace(model.Name))
         {
             return NameRequired;
         }
@@ -19,8 +20,13 @@ public static class ThemeWriteValidator
         return invalidPalette;
     }
 
-    private static string? ValidatePalette(ThemePaletteDto palette)
+    private static string? ValidatePalette(ThemePalette? palette)
     {
+        if (palette is null)
+        {
+            return ColorRequired;
+        }
+
         if (PaletteValues(palette).Any(string.IsNullOrWhiteSpace))
         {
             return ColorRequired;
@@ -37,7 +43,7 @@ public static class ThemeWriteValidator
     private static bool IsHexColor(string value)
         => value.Length == 7 && value[0] == '#' && value.Skip(1).All(Uri.IsHexDigit);
 
-    private static IEnumerable<string> PaletteValues(ThemePaletteDto palette)
+    private static IEnumerable<string> PaletteValues(ThemePalette palette)
     {
         yield return palette.Primary;
         yield return palette.PrimaryContrastText;
