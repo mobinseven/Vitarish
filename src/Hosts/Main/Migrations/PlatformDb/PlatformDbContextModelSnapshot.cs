@@ -51,6 +51,18 @@ namespace Vitarish.Main.Migrations.PlatformDb
                             b1.Property<string>("Divider")
                                 .IsRequired();
 
+                            b1.Property<string>("Error")
+                                .IsRequired();
+
+                            b1.Property<string>("ErrorContrastText")
+                                .IsRequired();
+
+                            b1.Property<string>("Info")
+                                .IsRequired();
+
+                            b1.Property<string>("InfoContrastText")
+                                .IsRequired();
+
                             b1.Property<string>("Primary")
                                 .IsRequired();
 
@@ -63,13 +75,31 @@ namespace Vitarish.Main.Migrations.PlatformDb
                             b1.Property<string>("SecondaryContrastText")
                                 .IsRequired();
 
+                            b1.Property<string>("Success")
+                                .IsRequired();
+
+                            b1.Property<string>("SuccessContrastText")
+                                .IsRequired();
+
                             b1.Property<string>("Surface")
+                                .IsRequired();
+
+                            b1.Property<string>("Tertiary")
+                                .IsRequired();
+
+                            b1.Property<string>("TertiaryContrastText")
                                 .IsRequired();
 
                             b1.Property<string>("TextPrimary")
                                 .IsRequired();
 
                             b1.Property<string>("TextSecondary")
+                                .IsRequired();
+
+                            b1.Property<string>("Warning")
+                                .IsRequired();
+
+                            b1.Property<string>("WarningContrastText")
                                 .IsRequired();
 
                             b1
@@ -93,6 +123,18 @@ namespace Vitarish.Main.Migrations.PlatformDb
                             b1.Property<string>("Divider")
                                 .IsRequired();
 
+                            b1.Property<string>("Error")
+                                .IsRequired();
+
+                            b1.Property<string>("ErrorContrastText")
+                                .IsRequired();
+
+                            b1.Property<string>("Info")
+                                .IsRequired();
+
+                            b1.Property<string>("InfoContrastText")
+                                .IsRequired();
+
                             b1.Property<string>("Primary")
                                 .IsRequired();
 
@@ -105,13 +147,31 @@ namespace Vitarish.Main.Migrations.PlatformDb
                             b1.Property<string>("SecondaryContrastText")
                                 .IsRequired();
 
+                            b1.Property<string>("Success")
+                                .IsRequired();
+
+                            b1.Property<string>("SuccessContrastText")
+                                .IsRequired();
+
                             b1.Property<string>("Surface")
+                                .IsRequired();
+
+                            b1.Property<string>("Tertiary")
+                                .IsRequired();
+
+                            b1.Property<string>("TertiaryContrastText")
                                 .IsRequired();
 
                             b1.Property<string>("TextPrimary")
                                 .IsRequired();
 
                             b1.Property<string>("TextSecondary")
+                                .IsRequired();
+
+                            b1.Property<string>("Warning")
+                                .IsRequired();
+
+                            b1.Property<string>("WarningContrastText")
                                 .IsRequired();
 
                             b1
