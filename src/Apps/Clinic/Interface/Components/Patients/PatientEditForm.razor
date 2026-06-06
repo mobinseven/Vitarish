@@ -7,7 +7,6 @@
 }
 <Stack>
 
-
     <StackTextField @bind-Value="projectWriteDto.IdentificationCode"
                     Label="@Localizer["IdentificationCode"]"
                     HelperText="@Localizer["IdentificationCodeHelp"]"
@@ -34,7 +33,7 @@
 </Stack>
 <Stack>
 
-    <StackExpandable>
+    <StackExpandable Label="@Localizer["Details"]">
 
         <StackTextField @bind-Value="projectWriteDto.FatherName"
                         Label="@Localizer["FatherName"]" />
@@ -46,9 +45,6 @@
                 <MudRadio Value="@Gender.Male">@Localizer["Male"]</MudRadio>
             </MudRadioGroup>
         </StackField>
-
-        <StackDatePicker @bind-Date="projectWriteDto.DateOfSurgery"
-                         Label="@Localizer["DateOf", Localizer["Surgery"]]" />
 
         <StackDatePicker @bind-Date="projectWriteDto.DateOfBirth"
                          Label="@Localizer["DateOfBirth"]" />
@@ -83,29 +79,26 @@
                         AutoGrow
                         Label="@Localizer["Notes"]" />
 
-        <UserFindOrCreate Value="@LinkedUserId"
-                          ValueChanged="OnLinkedUserChangedAsync"
-                          Options="@LinkedUserPickerOptions" />
 
         <StackField Label="@Localizer["Image"]">
             <ProjectAvatar AvatarFileId="@projectWriteDto.AvatarFileId" Size="96" Style="margin-bottom: 0.5rem;" />
-            <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
-                <Vitarish.Files.Interface.Components.StreamTransfer OnFileUploaded="OnAvatarUploaded">
-                    <ActivatorContent>
-                        <MudButton Variant="Variant.Outlined" StartIcon="fa-solid fa-upload" Color="Color.Primary">@Localizer["Select"]</MudButton>
-                    </ActivatorContent>
-                </Vitarish.Files.Interface.Components.StreamTransfer>
-                @if(projectWriteDto.AvatarFileId.HasValue)
-                {
-                    <MudButton Variant="Variant.Text" StartIcon="fa-solid fa-xmark" Color="Color.Error" OnClick="RemoveAvatar">@Localizer["Remove"]</MudButton>
-                }
-            </MudStack>
+            <Vitarish.Files.Interface.Components.StreamTransfer OnFileUploaded="OnAvatarUploaded">
+                <ActivatorContent>
+                    <MudButton Variant="Variant.Outlined" StartIcon="fa-solid fa-upload" Color="Color.Primary">@Localizer["Select"]</MudButton>
+                </ActivatorContent>
+            </Vitarish.Files.Interface.Components.StreamTransfer>
+            @if(projectWriteDto.AvatarFileId.HasValue)
+            {
+                <MudButton Variant="Variant.Text" StartIcon="fa-solid fa-xmark" Color="Color.Error" OnClick="RemoveAvatar">@Localizer["Remove"]</MudButton>
+            }
         </StackField>
     </StackExpandable>
 
 </Stack>
 <Stack>
     <StackExpandable Label="@Localizer["ClinicalData"]">
+        <StackDatePicker @bind-Date="projectWriteDto.DateOfSurgery"
+                         Label="@Localizer["DateOf", Localizer["Surgery"]]" />
         <StackTextField @bind-Value="projectWriteDto.InsuranceProvider"
                         Label="@Localizer["InsuranceProvider"]" />
         <StackTextField @bind-Value="projectWriteDto.VisitReason"
