@@ -13,19 +13,31 @@ public static class DefaultPlatformTheme
         Id = Id,
         Name = Name,
         LightPalette = new ThemePalette(),
-        DarkPalette = new ThemePalette
-        {
-            Primary = "#60A5FA",
-            PrimaryContrastText = "#07101F",
-            Secondary = "#38BDF8",
-            SecondaryContrastText = "#041018",
-            Background = "#323232",
-            Surface = "#323232",
-            AppbarBackground = "#434343",
-            AppbarText = "#E2E8F0",
-            TextPrimary = "#E2E8F0",
-            TextSecondary = "#94A3B8",
-            Divider = "#233044"
-        }
+        DarkPalette = CreateDarkPalette()
+    };
+
+    public static ThemePalette CreateDarkPalette() => new()
+    {
+        Primary = "#60A5FA",
+        PrimaryContrastText = "#07101F",
+        Secondary = "#38BDF8",
+        SecondaryContrastText = "#041018",
+        Tertiary = "#C084FC",
+        TertiaryContrastText = "#14091F",
+        Info = "#29B6F6",
+        InfoContrastText = "#031018",
+        Success = "#66BB6A",
+        SuccessContrastText = "#071207",
+        Warning = "#FFA726",
+        WarningContrastText = "#1A0F00",
+        Error = "#F44336",
+        ErrorContrastText = "#1A0503",
+        Background = "#323232",
+        Surface = "#323232",
+        AppbarBackground = "#434343",
+        AppbarText = "#E2E8F0",
+        TextPrimary = "#E2E8F0",
+        TextSecondary = "#94A3B8",
+        Divider = "#233044"
     };
 }

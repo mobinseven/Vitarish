@@ -24,7 +24,12 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
             .ToListAsync(cancellationToken);
 
         return themes
-            .Select(e => new ThemeListItem(e.Id, e.Name, CopyPalette(e.LightPalette), CopyPalette(e.DarkPalette), selection != null && e.Id == selection.ActiveThemeId))
+            .Select(e => new ThemeListItem(
+                e.Id,
+                e.Name,
+                CopyPalette(e.LightPalette, new ThemePalette()),
+                CopyPalette(e.DarkPalette, DefaultPlatformTheme.CreateDarkPalette()),
+                selection != null && e.Id == selection.ActiveThemeId))
             .ToList();
     }
 
@@ -154,37 +159,71 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
     }
 
     private static ThemeEditorModel ToEditorModel(Theme theme)
-        => new(theme.Id, theme.Name, CopyPalette(theme.LightPalette), CopyPalette(theme.DarkPalette));
+        => new(
+            theme.Id,
+            theme.Name,
+            CopyPalette(theme.LightPalette, new ThemePalette()),
+            CopyPalette(theme.DarkPalette, DefaultPlatformTheme.CreateDarkPalette()));
 
-    private static ThemePalette CopyPalette(ThemePalette palette)
-        => palette is null ? new() : new ()
+    private static ThemePalette CopyPalette(ThemePalette? palette, ThemePalette fallback)
+    {
+        ThemePalette source = palette ?? fallback;
+
+        return new()
         {
-            Primary = palette.Primary,
-            PrimaryContrastText = palette.PrimaryContrastText,
-            Secondary = palette.Secondary,
-            SecondaryContrastText = palette.SecondaryContrastText,
-            Background = palette.Background,
-            Surface = palette.Surface,
-            AppbarBackground = palette.AppbarBackground,
-            AppbarText = palette.AppbarText,
-            TextPrimary = palette.TextPrimary,
-            TextSecondary = palette.TextSecondary,
-            Divider = palette.Divider
+            Primary = ColorOrFallback(source.Primary, fallback.Primary),
+            PrimaryContrastText = ColorOrFallback(source.PrimaryContrastText, fallback.PrimaryContrastText),
+            Secondary = ColorOrFallback(source.Secondary, fallback.Secondary),
+            SecondaryContrastText = ColorOrFallback(source.SecondaryContrastText, fallback.SecondaryContrastText),
+            Tertiary = ColorOrFallback(source.Tertiary, fallback.Tertiary),
+            TertiaryContrastText = ColorOrFallback(source.TertiaryContrastText, fallback.TertiaryContrastText),
+            Info = ColorOrFallback(source.Info, fallback.Info),
+            InfoContrastText = ColorOrFallback(source.InfoContrastText, fallback.InfoContrastText),
+            Success = ColorOrFallback(source.Success, fallback.Success),
+            SuccessContrastText = ColorOrFallback(source.SuccessContrastText, fallback.SuccessContrastText),
+            Warning = ColorOrFallback(source.Warning, fallback.Warning),
+            WarningContrastText = ColorOrFallback(source.WarningContrastText, fallback.WarningContrastText),
+            Error = ColorOrFallback(source.Error, fallback.Error),
+            ErrorContrastText = ColorOrFallback(source.ErrorContrastText, fallback.ErrorContrastText),
+            Background = ColorOrFallback(source.Background, fallback.Background),
+            Surface = ColorOrFallback(source.Surface, fallback.Surface),
+            AppbarBackground = ColorOrFallback(source.AppbarBackground, fallback.AppbarBackground),
+            AppbarText = ColorOrFallback(source.AppbarText, fallback.AppbarText),
+            TextPrimary = ColorOrFallback(source.TextPrimary, fallback.TextPrimary),
+            TextSecondary = ColorOrFallback(source.TextSecondary, fallback.TextSecondary),
+            Divider = ColorOrFallback(source.Divider, fallback.Divider)
         };
+    }
 
     private static ThemePalette NormalizePalette(ThemePalette palette)
         => new()
         {
-            Primary = palette.Primary.Trim().ToUpperInvariant(),
-            PrimaryContrastText = palette.PrimaryContrastText.Trim().ToUpperInvariant(),
-            Secondary = palette.Secondary.Trim().ToUpperInvariant(),
-            SecondaryContrastText = palette.SecondaryContrastText.Trim().ToUpperInvariant(),
-            Background = palette.Background.Trim().ToUpperInvariant(),
-            Surface = palette.Surface.Trim().ToUpperInvariant(),
-            AppbarBackground = palette.AppbarBackground.Trim().ToUpperInvariant(),
-            AppbarText = palette.AppbarText.Trim().ToUpperInvariant(),
-            TextPrimary = palette.TextPrimary.Trim().ToUpperInvariant(),
-            TextSecondary = palette.TextSecondary.Trim().ToUpperInvariant(),
-            Divider = palette.Divider.Trim().ToUpperInvariant()
+            Primary = NormalizeColor(palette.Primary),
+            PrimaryContrastText = NormalizeColor(palette.PrimaryContrastText),
+            Secondary = NormalizeColor(palette.Secondary),
+            SecondaryContrastText = NormalizeColor(palette.SecondaryContrastText),
+            Tertiary = NormalizeColor(palette.Tertiary),
+            TertiaryContrastText = NormalizeColor(palette.TertiaryContrastText),
+            Info = NormalizeColor(palette.Info),
+            InfoContrastText = NormalizeColor(palette.InfoContrastText),
+            Success = NormalizeColor(palette.Success),
+            SuccessContrastText = NormalizeColor(palette.SuccessContrastText),
+            Warning = NormalizeColor(palette.Warning),
+            WarningContrastText = NormalizeColor(palette.WarningContrastText),
+            Error = NormalizeColor(palette.Error),
+            ErrorContrastText = NormalizeColor(palette.ErrorContrastText),
+            Background = NormalizeColor(palette.Background),
+            Surface = NormalizeColor(palette.Surface),
+            AppbarBackground = NormalizeColor(palette.AppbarBackground),
+            AppbarText = NormalizeColor(palette.AppbarText),
+            TextPrimary = NormalizeColor(palette.TextPrimary),
+            TextSecondary = NormalizeColor(palette.TextSecondary),
+            Divider = NormalizeColor(palette.Divider)
         };
+
+    private static string ColorOrFallback(string? value, string fallback)
+        => string.IsNullOrWhiteSpace(value) ? fallback : value;
+
+    private static string NormalizeColor(string value)
+        => value.Trim().ToUpperInvariant();
 }
