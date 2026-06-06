@@ -34,7 +34,7 @@ public sealed class PlatformModule : Module
         bool hasDefault = await dbContext.Themes.AnyAsync(e => e.Id == DefaultPlatformTheme.Id);
         if (!hasDefault)
         {
-            _ = dbContext.Themes.Add(DefaultPlatformTheme.Create(now));
+            _ = dbContext.Themes.Add(DefaultPlatformTheme.Create());
         }
 
         ThemeSelection? selection = await dbContext.ThemeSelections.SingleOrDefaultAsync(e => e.Id == ThemeSelectionId);

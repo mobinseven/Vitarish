@@ -1,7 +1,9 @@
+using Vitarish.Platform.Domain.Models;
+
 namespace Vitarish.Platform.Application.Contracts;
 
 public sealed record ThemeEditorModel(
     Guid Id,
     string Name,
-    ThemePaletteDto LightPalette,
-    ThemePaletteDto DarkPalette);
+    ThemePalette LightPalette,
+    ThemePalette DarkPalette);

@@ -1,6 +1,7 @@
 using Vitarish.Interfaces.Admins.Components;
 using Vitarish.Platform.Application.Abstractions;
 using Vitarish.Platform.Application.Contracts;
+using Vitarish.Platform.Domain.Models;
 
 namespace Vitarish.Main.Pages.Platform;
 
@@ -45,6 +46,6 @@ public partial class PlatformAdminThemesPage : PlatformAdminCommonBase
 
     private string AvailabilityLabel(ThemeListItem theme) => Localizer["both"];
 
-    private static IReadOnlyList<string> Preview(ThemePaletteDto palette)
+    private static IReadOnlyList<string> Preview(ThemePalette palette)
         => [palette.Primary, palette.Secondary, palette.Background, palette.Surface, palette.TextPrimary];
 }

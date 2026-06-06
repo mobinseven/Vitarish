@@ -2,6 +2,7 @@ using Vitarish.Interfaces.Base.Abstractions;
 using Vitarish.Interfaces.Base.Models;
 using Vitarish.Platform.Application.Abstractions;
 using Vitarish.Platform.Application.Contracts;
+using Vitarish.Platform.Domain.Models;
 
 namespace Vitarish.Platform.Interface.Services;
 
@@ -15,7 +16,7 @@ public sealed class PlatformThemePaletteProvider(IPlatformThemeQuery themeQuery)
             : new PlatformThemePalette(ToPaletteValues(theme.LightPalette), ToPaletteValues(theme.DarkPalette));
     }
 
-    private static ThemePaletteValues ToPaletteValues(ThemePaletteDto palette)
+    private static ThemePaletteValues ToPaletteValues(ThemePalette palette)
         => new(
             palette.Primary,
             palette.PrimaryContrastText,
