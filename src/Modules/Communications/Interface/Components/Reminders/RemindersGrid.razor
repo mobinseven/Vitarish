@@ -17,7 +17,7 @@
         {
             <StackButton OnClick="() => OnClicked(reminder)"
                          Label="@reminder.Subject"
-                         HighlightString="@SearchString">
+                         HighlightString="@SearchString" Color="Color.Info">
                 @GetUserFullNameById(reminder.RecipientUserId)
             </StackButton>
         }

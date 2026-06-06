@@ -16,7 +16,7 @@ else
         <StackField Label="@Localizer["Roles"]" />
         @foreach (var role in roleDetails)
         {
-            <StackButton Label="@Localizer[role.RoleName]" HelperText="@role.TenantName" OnClick="@(() => RemoveRoleAsync(role.FullRoleName))" EndIcon="fa-solid fa-xmark" />
+            <StackButton Label="@Localizer[role.RoleName]" HelperText="@role.TenantName" OnClick="@(() => RemoveRoleAsync(role.FullRoleName))" EndIcon="fa-solid fa-xmark" Color="Color.Error" />
         }
     </Stack>
 }

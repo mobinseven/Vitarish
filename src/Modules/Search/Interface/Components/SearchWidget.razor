@@ -26,7 +26,7 @@
     {
         @if(_result.Items.Count == 0)
         {
-            <StackField Color="Color.Secondary" Label="@Localizer["NoResults"]" />
+            <StackField Color="Color.Info" Label="@Localizer["NoResults"]" />
         }
         else
         {
@@ -36,17 +36,17 @@
                     <StackField Label="@group.IndexName" Color="Color.Primary" />
                     @foreach(SearchDocument item in group.Items)
                     {
-                        <StackButton Label="@item.Title" HelperText="@item.Body" OnClick="() => NavigateAsync(item)" />
+                        <StackButton Label="@item.Title" HelperText="@item.Body" OnClick="() => NavigateAsync(item)" Color="Color.Info" />
                     }
                 </Stack>
             }
 
-            <StackField Label="@GetPageSummary()" Color="Color.Secondary" />
+            <StackField Label="@GetPageSummary()" Color="Color.Info" />
 
             @if(TotalPages > 1)
             {
-                <StackButton Label="@Localizer["Previous"]" Disabled="@(!HasPreviousPage)" StartIcon="fa-solid fa-chevron-left" OnClick="GoToPreviousPageAsync" />
-                <StackButton Label="@Localizer["Next"]" Disabled="@(!HasNextPage)" EndIcon="fa-solid fa-chevron-right" OnClick="GoToNextPageAsync" />
+                <StackButton Label="@Localizer["Previous"]" Disabled="@(!HasPreviousPage)" StartIcon="fa-solid fa-chevron-left" OnClick="GoToPreviousPageAsync" Color="Color.Info" />
+                <StackButton Label="@Localizer["Next"]" Disabled="@(!HasNextPage)" EndIcon="fa-solid fa-chevron-right" OnClick="GoToNextPageAsync" Color="Color.Info" />
             }
         }
     }

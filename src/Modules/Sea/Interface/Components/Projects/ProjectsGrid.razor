@@ -16,13 +16,13 @@
             <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
                          Label="@project.Name"
                          HighlightString="@SearchString"
-                         EndIcon="">
+                         EndIcon="" Color="Color.Info">
                 <StatsDisplay Stats="project.Stats" />
             </StackButton>
         }
         @if(projects.Count == 0)
         {
-            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Project"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Project"]]" EndIcon="fa-solid fa-refresh">
+            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Project"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Project"]]" EndIcon="fa-solid fa-refresh" Color="Color.Info">
                 @Localizer["Reload"]
             </StackButton>
         }

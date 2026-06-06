@@ -1,4 +1,4 @@
-<StackButton Label="@Tenant.Name" HelperText="@Tenant.AppId" Href="@Href" />
+<StackButton Label="@Tenant.Name" HelperText="@Tenant.AppId" Href="@Href" Color="Color.Info" />
 @code {
     [Parameter, EditorRequired] public TenantReadDto Tenant { get; set; } = default!;
     [Parameter] public string Href { get; set; } = "#";

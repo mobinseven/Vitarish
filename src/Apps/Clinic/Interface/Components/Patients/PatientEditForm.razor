@@ -118,7 +118,7 @@
     <StackButton Label="@Localizer["Save"]" EndIcon="fa-solid fa-save" Color="Color.Primary" OnClick="SaveAsync" />
     @if(OnCancel.HasDelegate)
     {
-        <StackButton Label="@Localizer["Cancel"]" EndIcon="fa-solid fa-xmark" OnClick="() => OnCancel.InvokeAsync()" />
+        <StackButton Label="@Localizer["Cancel"]" EndIcon="fa-solid fa-xmark" OnClick="() => OnCancel.InvokeAsync()" Color="Color.Secondary" />
     }
 </Stack>
 

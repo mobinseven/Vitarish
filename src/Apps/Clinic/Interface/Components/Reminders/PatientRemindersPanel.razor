@@ -12,7 +12,7 @@
         @foreach(var reminder in reminders)
         {
             <StackButton OnClick="() => OnReminderClicked(reminder)"
-                         Label="@reminder.Subject">
+                         Label="@reminder.Subject" Color="Color.Info">
                 @reminder.RemindAt.ToLocalTime().ToString("g")
             </StackButton>
         }

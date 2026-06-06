@@ -17,7 +17,7 @@
         {
             @foreach(var credential in Credentials)
             {
-                <StackButton Label="@(credential.FriendlyName ?? Localizer["UnnamedPasskey"])" OnClick="@(() => DeletePasskeyAsync(credential))" />
+                <StackButton Label="@(credential.FriendlyName ?? Localizer["UnnamedPasskey"])" OnClick="@(() => DeletePasskeyAsync(credential))" Color="Color.Error" />
             }
             <StackButton Label="@Localizer["RegisterNewPasskey"]"
                          OnClick="@RegisterPasskeyAsync"

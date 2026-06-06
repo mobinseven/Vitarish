@@ -5,7 +5,7 @@
     <Stack>
         <StackButton OnClick="@(() => OnClicked.InvokeAsync(Project.Id))"
                      Label="@Project.Name"
-                     HelperText="@(!string.IsNullOrWhiteSpace(Project.IdentificationCode) ? $"{Localizer["IdentificationCode"]}: {Project.IdentificationCode}" : null)">
+                     HelperText="@(!string.IsNullOrWhiteSpace(Project.IdentificationCode) ? $"{Localizer["IdentificationCode"]}: {Project.IdentificationCode}" : null)" Color="Color.Info">
             @if (patient.DateOfSurgery.HasValue)
             {
                 <MudText Typo="Typo.caption">@Localizer["DateOf", Localizer["Surgery"]]: @patient.DateOfSurgery.Value.ToShortDateString()</MudText>

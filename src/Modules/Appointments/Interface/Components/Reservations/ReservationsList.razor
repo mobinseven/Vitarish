@@ -12,7 +12,7 @@
     <Stack>
         @if (reservations.Count == 0)
         {
-            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Reservation"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Reservation"]]" EndIcon="fa-solid fa-refresh">
+            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Reservation"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Reservation"]]" EndIcon="fa-solid fa-refresh" Color="Color.Info">
                 @Localizer["Reload"]
             </StackButton>
         }
@@ -22,7 +22,7 @@
             {
                 <StackButton OnClick="() => OnClicked.InvokeAsync(reservation.Id)"
                              Label="@($"{reservation.Date:d}")"
-                             HighlightString="@SearchString">
+                             HighlightString="@SearchString" Color="Color.Info">
                     <ReservationStatusBadge Status="reservation.Status" />
                 </StackButton>
             }

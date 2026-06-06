@@ -22,7 +22,7 @@
                     <StackField Label="@tenant.First().TenantName" HelperText="@tenant.First().OwnerName" />
                     @foreach(var role in tenant)
                     {
-                        <StackButton Label="@Localizer[role.RoleName]" Disabled="assignedRoles.Contains(role.FullRoleName)" EndIcon="" OnClick="() => Assign(role)">
+                        <StackButton Label="@Localizer[role.RoleName]" Disabled="assignedRoles.Contains(role.FullRoleName)" EndIcon="" OnClick="() => Assign(role)" Color="Color.Primary">
                             @if(assignedRoles.Contains(role.FullRoleName))
                             {
                                 <MudChip T="string" Size="Size.Small" Color="Color.Success">@Localizer["Assigned"]</MudChip>

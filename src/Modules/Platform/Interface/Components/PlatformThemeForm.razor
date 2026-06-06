@@ -4,46 +4,46 @@
 
     <StackExpandable Label="@Localizer["Light palette"]">
         <StackColorPicker Label="@Localizer["Primary"]" @bind-Value="Model.LightPrimary" />
-        <StackButton Label="@Localizer["Primary"]" Style="@($"color: {Model.LightPrimary};")" />
+        <StackButton Label="@Localizer["Primary"]" Style="@($"color: {Model.LightPrimary};")" Color="Color.Primary" />
 
         <StackColorPicker Label="@Localizer["Primary contrast text"]" @bind-Value="Model.LightPrimaryContrastText" />
-        <StackButton Label="@Localizer["Primary"]" Style="@($"color: {Model.LightPrimaryContrastText};; background-color: {Model.LightPrimary}")" />
+        <StackButton Label="@Localizer["Primary"]" Style="@($"color: {Model.LightPrimaryContrastText};; background-color: {Model.LightPrimary}")" Color="Color.Primary" />
 
         <StackColorPicker Label="@Localizer["Secondary"]" @bind-Value="Model.LightSecondary" />
-        <StackButton Label="@Localizer["Secondary"]" Style="@($"color: {Model.LightSecondary}")" />
+        <StackButton Label="@Localizer["Secondary"]" Style="@($"color: {Model.LightSecondary}")" Color="Color.Secondary" />
 
         <StackColorPicker Label="@Localizer["Secondary contrast text"]" @bind-Value="Model.LightSecondaryContrastText" />
-        <StackButton Label="@Localizer["Secondary"]" Style="@($"color: {Model.LightSecondaryContrastText}; background-color: {Model.LightSecondary}")"/>
+        <StackButton Label="@Localizer["Secondary"]" Style="@($"color: {Model.LightSecondaryContrastText}; background-color: {Model.LightSecondary}")" Color="Color.Secondary"/>
 
         <StackColorPicker Label="@Localizer["Tertiary"]" @bind-Value="Model.LightTertiary" />
-        <StackButton Label="@Localizer["Tertiary"]" Style="@($"color: {Model.LightTertiary};")" />
+        <StackButton Label="@Localizer["Tertiary"]" Style="@($"color: {Model.LightTertiary};")" Color="Color.Tertiary" />
 
         <StackColorPicker Label="@Localizer["Tertiary contrast text"]" @bind-Value="Model.LightTertiaryContrastText" />
-        <StackButton Label="@Localizer["Tertiary"]" Style="@($"color: {Model.LightTertiaryContrastText}; background-color: {Model.LightTertiary}")"/>
+        <StackButton Label="@Localizer["Tertiary"]" Style="@($"color: {Model.LightTertiaryContrastText}; background-color: {Model.LightTertiary}")" Color="Color.Tertiary"/>
 
         <StackColorPicker Label="@Localizer["Info"]" @bind-Value="Model.LightInfo" />
-        <StackButton Label="@Localizer["Info"]" Style="@($"color: {Model.LightInfo};")" />
+        <StackButton Label="@Localizer["Info"]" Style="@($"color: {Model.LightInfo};")" Color="Color.Info" />
 
         <StackColorPicker Label="@Localizer["Info contrast text"]" @bind-Value="Model.LightInfoContrastText" />
-        <StackButton Label="@Localizer["Info"]" Style="@($"color: {Model.LightInfoContrastText}; background-color: {Model.LightInfo}")"/>
+        <StackButton Label="@Localizer["Info"]" Style="@($"color: {Model.LightInfoContrastText}; background-color: {Model.LightInfo}")" Color="Color.Info"/>
 
         <StackColorPicker Label="@Localizer["Success"]" @bind-Value="Model.LightSuccess" />
-        <StackButton Label="@Localizer["Info"]" Style="@($"color: {Model.LightSuccess};")" />
+        <StackButton Label="@Localizer["Info"]" Style="@($"color: {Model.LightSuccess};")" Color="Color.Success" />
 
         <StackColorPicker Label="@Localizer["Success contrast text"]" @bind-Value="Model.LightSuccessContrastText" />
-        <StackButton Label="@Localizer["Success"]" Style="@($"color: {Model.LightSuccessContrastText}; background-color: {Model.LightSuccess}")"/>
+        <StackButton Label="@Localizer["Success"]" Style="@($"color: {Model.LightSuccessContrastText}; background-color: {Model.LightSuccess}")" Color="Color.Success"/>
 
         <StackColorPicker Label="@Localizer["Warning"]" @bind-Value="Model.LightWarning" />
-        <StackButton Label="@Localizer["Warning"]" Style="@($"color: {Model.LightWarning};")" />
+        <StackButton Label="@Localizer["Warning"]" Style="@($"color: {Model.LightWarning};")" Color="Color.Warning" />
 
         <StackColorPicker Label="@Localizer["Warning contrast text"]" @bind-Value="Model.LightWarningContrastText" />
-        <StackButton Label="@Localizer["Warning"]" Style="@($"color: {Model.LightWarningContrastText}; background-color: {Model.LightWarning}")"/>
+        <StackButton Label="@Localizer["Warning"]" Style="@($"color: {Model.LightWarningContrastText}; background-color: {Model.LightWarning}")" Color="Color.Warning"/>
 
         <StackColorPicker Label="@Localizer["Error"]" @bind-Value="Model.LightError" />
-        <StackButton Label="@Localizer["Error"]" Style="@($"color: {Model.LightError};")" />
+        <StackButton Label="@Localizer["Error"]" Style="@($"color: {Model.LightError};")" Color="Color.Error" />
 
         <StackColorPicker Label="@Localizer["Error contrast text"]" @bind-Value="Model.LightErrorContrastText" />
-        <StackButton Label="@Localizer["Error"]" Style="@($"color: {Model.LightErrorContrastText}; background-color: {Model.LightError}")" />
+        <StackButton Label="@Localizer["Error"]" Style="@($"color: {Model.LightErrorContrastText}; background-color: {Model.LightError}")" Color="Color.Error" />
 
 
         <StackColorPicker Label="@Localizer["Background"]" @bind-Value="Model.LightBackground" />
@@ -54,46 +54,46 @@
 
     <StackExpandable Label="@Localizer["Dark palette"]">
         <StackColorPicker Label="@Localizer["Primary"]" @bind-Value="Model.DarkPrimary" />
-        <StackButton Label="@Localizer["Primary"]" Style="@($"color: {Model.DarkPrimary};")" />
+        <StackButton Label="@Localizer["Primary"]" Style="@($"color: {Model.DarkPrimary};")" Color="Color.Primary" />
 
         <StackColorPicker Label="@Localizer["Primary contrast text"]" @bind-Value="Model.DarkPrimaryContrastText" />
-        <StackButton Label="@Localizer["Primary"]" Style="@($"color: {Model.DarkPrimaryContrastText}; background-color: {Model.DarkPrimary}")" />
+        <StackButton Label="@Localizer["Primary"]" Style="@($"color: {Model.DarkPrimaryContrastText}; background-color: {Model.DarkPrimary}")" Color="Color.Primary" />
 
         <StackColorPicker Label="@Localizer["Secondary"]" @bind-Value="Model.DarkSecondary" />
-        <StackButton Label="@Localizer["Secondary"]" Style="@($"color: {Model.DarkSecondary};")" />
+        <StackButton Label="@Localizer["Secondary"]" Style="@($"color: {Model.DarkSecondary};")" Color="Color.Secondary" />
 
         <StackColorPicker Label="@Localizer["Secondary contrast text"]" @bind-Value="Model.DarkSecondaryContrastText" />
-        <StackButton Label="@Localizer["Secondary"]" Style="@($"color: {Model.DarkSecondaryContrastText}; background-color: {Model.DarkSecondary}")" />
+        <StackButton Label="@Localizer["Secondary"]" Style="@($"color: {Model.DarkSecondaryContrastText}; background-color: {Model.DarkSecondary}")" Color="Color.Secondary" />
 
         <StackColorPicker Label="@Localizer["Tertiary"]" @bind-Value="Model.DarkTertiary" />
-        <StackButton Label="@Localizer["Tertiary"]" Style="@($"color: {Model.DarkTertiary};")" />
+        <StackButton Label="@Localizer["Tertiary"]" Style="@($"color: {Model.DarkTertiary};")" Color="Color.Tertiary" />
 
         <StackColorPicker Label="@Localizer["Tertiary contrast text"]" @bind-Value="Model.DarkTertiaryContrastText" />
-        <StackButton Label="@Localizer["Tertiary"]" Style="@($"color: {Model.DarkTertiaryContrastText}; background-color: {Model.DarkTertiary}")" />
+        <StackButton Label="@Localizer["Tertiary"]" Style="@($"color: {Model.DarkTertiaryContrastText}; background-color: {Model.DarkTertiary}")" Color="Color.Tertiary" />
 
         <StackColorPicker Label="@Localizer["Info"]" @bind-Value="Model.DarkInfo" />
-        <StackButton Label="@Localizer["Info"]" Style="@($"color: {Model.DarkInfo};")" />
+        <StackButton Label="@Localizer["Info"]" Style="@($"color: {Model.DarkInfo};")" Color="Color.Info" />
 
         <StackColorPicker Label="@Localizer["Info contrast text"]" @bind-Value="Model.DarkInfoContrastText" />
-        <StackButton Label="@Localizer["Info"]" Style="@($"color: {Model.DarkInfoContrastText}; background-color: {Model.DarkInfo}")" />
+        <StackButton Label="@Localizer["Info"]" Style="@($"color: {Model.DarkInfoContrastText}; background-color: {Model.DarkInfo}")" Color="Color.Info" />
 
         <StackColorPicker Label="@Localizer["Success"]" @bind-Value="Model.DarkSuccess" />
-        <StackButton Label="@Localizer["Success"]" Style="@($"color: {Model.DarkSuccess};")" />
+        <StackButton Label="@Localizer["Success"]" Style="@($"color: {Model.DarkSuccess};")" Color="Color.Success" />
 
         <StackColorPicker Label="@Localizer["Success contrast text"]" @bind-Value="Model.DarkSuccessContrastText" />
-        <StackButton Label="@Localizer["Success"]" Style="@($"color: {Model.DarkSuccessContrastText}; background-color: {Model.DarkSuccess}")" />
+        <StackButton Label="@Localizer["Success"]" Style="@($"color: {Model.DarkSuccessContrastText}; background-color: {Model.DarkSuccess}")" Color="Color.Success" />
 
         <StackColorPicker Label="@Localizer["Warning"]" @bind-Value="Model.DarkWarning" />
-        <StackButton Label="@Localizer["Warning"]" Style="@($"color: {Model.DarkWarning};")" />
+        <StackButton Label="@Localizer["Warning"]" Style="@($"color: {Model.DarkWarning};")" Color="Color.Warning" />
 
         <StackColorPicker Label="@Localizer["Warning contrast text"]" @bind-Value="Model.DarkWarningContrastText" />
-        <StackButton Label="@Localizer["Warning"]" Style="@($"color: {Model.DarkWarningContrastText}; background-color: {Model.DarkWarning}")" />
+        <StackButton Label="@Localizer["Warning"]" Style="@($"color: {Model.DarkWarningContrastText}; background-color: {Model.DarkWarning}")" Color="Color.Warning" />
 
         <StackColorPicker Label="@Localizer["Error"]" @bind-Value="Model.DarkError" />
-        <StackButton Label="@Localizer["Error"]" Style="@($"color: {Model.DarkError};")" />
+        <StackButton Label="@Localizer["Error"]" Style="@($"color: {Model.DarkError};")" Color="Color.Error" />
 
         <StackColorPicker Label="@Localizer["Error contrast text"]" @bind-Value="Model.DarkErrorContrastText" />
-        <StackButton Label="@Localizer["Error"]" Style="@($"color: {Model.DarkErrorContrastText}; background-color: {Model.DarkError}")" />
+        <StackButton Label="@Localizer["Error"]" Style="@($"color: {Model.DarkErrorContrastText}; background-color: {Model.DarkError}")" Color="Color.Error" />
 
         <StackColorPicker Label="@Localizer["Background"]" @bind-Value="Model.DarkBackground" />
         <StackColorPicker Label="@Localizer["Surface"]" @bind-Value="Model.DarkSurface" />
@@ -102,7 +102,7 @@
     <StackPalettePreview Colors="Model.DarkPreview" />
 
     <StackButton Label="@Localizer["Save"]" OnClick="Save" Color="Color.Primary" />
-    <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" />
+    <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" Color="Color.Secondary" />
 </Stack>
 
 @code {

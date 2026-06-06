@@ -14,7 +14,7 @@
 
             string title = breadcrumb.Text;
             string cut = title.Length > 50 ? title.Substring(0, 50) + "..." : title;
-            <StackButton Label="@cut" OnClick="@(() => NavigationManager.NavigateTo(breadcrumb.Path))" EndIcon="fa-solid fa-caret-large-down" />
+            <StackButton Label="@cut" OnClick="@(() => NavigationManager.NavigateTo(breadcrumb.Path))" EndIcon="fa-solid fa-caret-large-down" Color="Color.Secondary" />
         }
     </Stack>
 }
