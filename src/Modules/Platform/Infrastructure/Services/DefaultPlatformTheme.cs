@@ -1,4 +1,5 @@
 using Vitarish.Platform.Domain.Entities;
+using Vitarish.Platform.Domain.Models;
 
 namespace Vitarish.Platform.Infrastructure.Services;
 
@@ -13,20 +14,7 @@ public static class DefaultPlatformTheme
         Name = Name,
         CreatedAt = now,
         UpdatedAt = now,
-        LightPalette = new ThemePalette
-        {
-            Primary = "#2563EB",
-            PrimaryContrastText = "#FFFFFF",
-            Secondary = "#0EA5E9",
-            SecondaryContrastText = "#001018",
-            Background = "#F1F1F1",
-            Surface = "#F1F1F1",
-            AppbarBackground = "#FFFFFF",
-            AppbarText = "#0F172A",
-            TextPrimary = "#0F172A",
-            TextSecondary = "#334155",
-            Divider = "#E2E8F0"
-        },
+        LightPalette = new ThemePalette(),
         DarkPalette = new ThemePalette
         {
             Primary = "#60A5FA",

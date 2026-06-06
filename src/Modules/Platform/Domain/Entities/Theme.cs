@@ -1,3 +1,5 @@
+using Vitarish.Platform.Domain.Models;
+
 namespace Vitarish.Platform.Domain.Entities;
 
 public sealed class Theme

@@ -4,6 +4,7 @@ using Vitarish.Platform.Application.Contracts;
 using Vitarish.Platform.Application.Rules;
 using Vitarish.Platform.Application.Validation;
 using Vitarish.Platform.Domain.Entities;
+using Vitarish.Platform.Domain.Models;
 using Vitarish.Platform.Infrastructure.Data;
 
 namespace Vitarish.Platform.Infrastructure.Services;
