@@ -17,7 +17,7 @@
 
             <StackButton Label="@Localizer["Search"]"
                          EndIcon="fa-solid fa-search"
-                         OnClick="SearchCodesAsync" />
+                         OnClick="SearchCodesAsync" Color="Color.Secondary" />
 
             @if (searchResults.Count > 0)
             {
@@ -42,7 +42,7 @@
         </Stack>
         <Stack>
             <StackButton Color="Color.Primary" Label="@Localizer["Add"]" OnClick="AddAsync" />
-            <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" Disabled="@(!CanAdd)" />
+            <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" Disabled="@(!CanAdd)" Color="Color.Secondary" />
         </Stack>
     </DialogContent>
 </MudDialog>

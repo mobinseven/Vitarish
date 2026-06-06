@@ -30,8 +30,8 @@ else
                                 Label="Notes"
                                 Placeholder="Internal note"
                                 HelperText="Save note with one of the actions or the Save button." />
-                <StackButton EndIcon="fa-solid fa-save" OnClick="() => SaveNoteAsync(item.CartId)" Label="Save" />
-                <StackButton EndIcon="fa-solid fa-message" OnClick="() => UpdateRecoveryAsync(item.CartId, CartRecoveryStatus.Contacted)" Label="Contacted" />
+                <StackButton EndIcon="fa-solid fa-save" OnClick="() => SaveNoteAsync(item.CartId)" Label="Save" Color="Color.Primary" />
+                <StackButton EndIcon="fa-solid fa-message" OnClick="() => UpdateRecoveryAsync(item.CartId, CartRecoveryStatus.Contacted)" Label="Contacted" Color="Color.Success" />
                 <StackButton Color="Color.Success" EndIcon="fa-solid fa-check" OnClick="() => UpdateRecoveryAsync(item.CartId, CartRecoveryStatus.Recovered)" Label="Recovered" />
                 <StackButton Color="Color.Warning" EndIcon="fa-solid fa-ban" OnClick="() => UpdateRecoveryAsync(item.CartId, CartRecoveryStatus.Ignored)" Label="Ignore" />
             </StackExpandable>

@@ -34,7 +34,7 @@
         <StackTextField Label="@Localizer["MessageId"]" @bind-Value="lastSmsMessageId" />
         <StackButton Label="@Localizer["CheckSmsDeliveryState"]"
                      EndIcon="fa-solid fa-chart-line-up-down"
-                     OnClick="CheckDeliveryStateAsync" />
+                     OnClick="CheckDeliveryStateAsync" Color="Color.Secondary" />
     }
 
     @if (!string.IsNullOrWhiteSpace(status))

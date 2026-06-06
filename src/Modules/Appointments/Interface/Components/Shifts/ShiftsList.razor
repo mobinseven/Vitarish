@@ -5,7 +5,7 @@
     @if(shifts.Count == 0)
     {
         <Stack>
-            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Shift"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Shift"]]" EndIcon="fa-solid fa-refresh">
+            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Shift"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Shift"]]" EndIcon="fa-solid fa-refresh" Color="Color.Secondary">
                 @Localizer["Reload"]
             </StackButton>
         </Stack>

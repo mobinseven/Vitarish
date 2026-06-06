@@ -6,7 +6,7 @@
         <StackButton OnClick="ReloadRequired"
                      Label="@Localizer["NoItems", Localizer["CodeSystem"]]"
                      HelperText="@Localizer["NoItemsHelp", Localizer["CodeSystem"]]"
-                     EndIcon="fa-solid fa-refresh">
+                     EndIcon="fa-solid fa-refresh" Color="Color.Info">
             @Localizer["Reload"]
         </StackButton>
     }
@@ -17,7 +17,7 @@
             <StackButton Label="@item.Name"
                          HelperText="@item.SystemKey"
                          HighlightString="@SearchString"
-                         OnClick="() => OnClicked.InvokeAsync(item.Id)" />
+                         OnClick="() => OnClicked.InvokeAsync(item.Id)" Color="Color.Info" />
         }
     }
     @if (AdminMode)

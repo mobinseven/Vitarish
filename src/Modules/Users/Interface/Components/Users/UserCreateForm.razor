@@ -21,7 +21,7 @@
                  OnClick="SubmitAsync" />
     @if (OnCancel.HasDelegate)
     {
-        <StackButton Label="@Localizer["Cancel"]" EndIcon="fa-solid fa-xmark" OnClick="() => OnCancel.InvokeAsync()" />
+        <StackButton Label="@Localizer["Cancel"]" EndIcon="fa-solid fa-xmark" OnClick="() => OnCancel.InvokeAsync()" Color="Color.Secondary" />
     }
 </Stack>
 

@@ -10,13 +10,13 @@
 
         <StackButton Label="@Localizer["ChangeUser"]"
                      EndIcon="fa-solid fa-arrow-rotate-right"
-                     OnClick="ShowFindForm" />
+                     OnClick="ShowFindForm" Color="Color.Secondary" />
 
         @if (ResolvedOptions.AllowUnlink)
         {
             <StackButton Label="@Localizer["None"]"
                          EndIcon="fa-solid fa-link-slash"
-                         OnClick="ClearAsync" />
+                         OnClick="ClearAsync" Color="Color.Error" />
         }
     }
     else
