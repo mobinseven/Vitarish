@@ -10,7 +10,6 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Libraries\DitasInsurance\DitasInsurance.Client\DitasInsurance.Client.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
 
     <ProjectReference Include="..\..\..\Libraries\Audit\Audit.Application\Audit.Application.csproj" />
