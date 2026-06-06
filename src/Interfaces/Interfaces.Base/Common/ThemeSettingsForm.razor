@@ -24,16 +24,6 @@
         <StackSelectItem T="TypographySize" Value="TypographySize.ExtraLarge">@Localizer["ExtraLarge"]</StackSelectItem>
     </StackSelect>
 
-    <StackSelect Label="@Localizer["Transparency"]"
-                 T="ThemeSurfaceType"
-                 Value="@_settings.Surface"
-                 ValueChanged="OnSurfaceChanged">
-        <StackSelectItem T="ThemeSurfaceType" Value="ThemeSurfaceType.Opaque">@Localizer["Opaque"]</StackSelectItem>
-        <StackSelectItem T="ThemeSurfaceType" Value="ThemeSurfaceType.Translucent">@Localizer["Translucent"]</StackSelectItem>
-        <StackSelectItem T="ThemeSurfaceType" Value="ThemeSurfaceType.Transparent">@Localizer["Transparent"]</StackSelectItem>
-    </StackSelect>
-
-
     <StackButton OnClick="ResetAsync" Label="@Localizer["Reset"]" />
 
 </Stack>
