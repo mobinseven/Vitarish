@@ -19,8 +19,6 @@ public sealed class PlatformDbContext(DbContextOptions<PlatformDbContext> option
         {
             _ = entity.HasKey(e => e.Id);
             _ = entity.Property(e => e.Name).IsRequired().HasMaxLength(128);
-            _ = entity.Property(e => e.CreatedAt).IsRequired();
-            _ = entity.Property(e => e.UpdatedAt).IsRequired();
             _ = entity.HasIndex(e => e.Name).IsUnique();
 
             _ = entity.ComplexProperty(e => e.LightPalette, palette => ConfigurePalette(palette, nameof(Theme.LightPalette)));

@@ -68,9 +68,7 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
             Id = Guid.NewGuid(),
             Name = name,
             LightPalette = ToEntity(model.LightPalette),
-            DarkPalette = ToEntity(model.DarkPalette),
-            CreatedAt = now,
-            UpdatedAt = now
+            DarkPalette = ToEntity(model.DarkPalette)
         };
 
         _ = dbContext.Themes.Add(theme);
@@ -103,7 +101,6 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
         theme.Name = name;
         theme.LightPalette = ToEntity(model.LightPalette);
         theme.DarkPalette = ToEntity(model.DarkPalette);
-        theme.UpdatedAt = timeProvider.GetUtcNow();
         _ = await dbContext.SaveChangesAsync(cancellationToken);
         return PlatformCommandResult.Success();
     }
