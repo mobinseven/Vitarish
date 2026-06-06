@@ -5,27 +5,48 @@ namespace Vitarish.Files.Interface.Services;
 
 public sealed class FileSelectionSession : IFileSelectionSession
 {
+    private readonly object _lock = new();
     private List<PendingFileDto> _pendingFiles = [];
 
-    public IReadOnlyList<PendingFileDto> PendingFiles => _pendingFiles;
+    public IReadOnlyList<PendingFileDto> PendingFiles
+    {
+        get
+        {
+            lock (_lock)
+            {
+                return _pendingFiles.ToList();
+            }
+        }
+    }
 
-    public void Clear() => _pendingFiles.Clear();
+    public void Clear()
+    {
+        lock (_lock)
+        {
+            _pendingFiles.Clear();
+        }
+    }
 
     public bool Remove(PendingFileDto pendingFile, FileSelectionMode mode)
     {
-        if (mode == FileSelectionMode.SingleCapture)
+        lock (_lock)
         {
-            _pendingFiles.RemoveAll(x => x.Name == pendingFile.Name);
-            return true;
-        }
+            if (mode == FileSelectionMode.SingleCapture)
+            {
+                return _pendingFiles.RemoveAll(x => x.Name == pendingFile.Name) > 0;
+            }
 
-        return _pendingFiles.Remove(pendingFile);
+            return _pendingFiles.Remove(pendingFile);
+        }
     }
 
     public void ReplaceWith(List<PendingFileDto> pendingFiles, FileSelectionMode mode)
     {
-        _pendingFiles = mode == FileSelectionMode.SingleCapture
-            ? pendingFiles.Take(1).ToList()
-            : pendingFiles;
+        lock (_lock)
+        {
+            _pendingFiles = mode == FileSelectionMode.SingleCapture
+                ? pendingFiles.Take(1).ToList()
+                : pendingFiles.ToList();
+        }
     }
 }

@@ -196,15 +196,11 @@ export function removeFile(inputElId, name) {
     }
 }
 
-export async function getFileStream(inputElId, name) {
+export function getFileStream(inputElId, name) {
     const inputEl = resolveInputEl(inputElId);
     const fileList = inputEl.files ? Array.from(inputEl.files) : [];
     const file = fileList.find(f => f.name === name);
-    if (!file) return null;
-
-    // Return an ArrayBuffer (or a typed array). Both are valid.
-    // return await file.arrayBuffer();
-    return new Uint8Array(await file.arrayBuffer());
+    return file || null;
 }
 
 /**

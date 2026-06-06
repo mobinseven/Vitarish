@@ -78,6 +78,7 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
                 Metadata = new FileMetadata { Size = file.Size }
             };
 
+            bool success = false;
             try
             {
                 FileInformationReadDto fileInfo = await filesService.SaveFile(channel.Reader, info, cancellationToken).ConfigureAwait(false)
@@ -86,6 +87,7 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
                 await pump.ConfigureAwait(false);
                 _ = onPendingRemoved(file, mode);
                 await onUploadedAsync(fileInfo);
+                success = true;
             }
             finally
             {
@@ -98,6 +100,10 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
                 try
                 {
                     await pump.ConfigureAwait(false);
+                }
+                catch (Exception) when (!success)
+                {
+                    // Ignore pump exceptions if the main operation already failed to avoid masking the original exception.
                 }
                 catch (OperationCanceledException) when (pumpCancellationTokenSource.IsCancellationRequested)
                 {
