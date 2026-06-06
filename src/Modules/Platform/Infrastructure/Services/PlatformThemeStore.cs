@@ -14,6 +14,8 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
     private const int ThemeSelectionId = 1;
     private const string ThemeNotFound = "Theme was not found.";
     private const string ThemeNameExists = "Theme name already exists.";
+    private static readonly ThemePalette LightFallback = new();
+    private static readonly ThemePalette DarkFallback = DefaultPlatformTheme.CreateDarkPalette();
 
     public async Task<IReadOnlyList<ThemeListItem>> ListThemesAsync(CancellationToken cancellationToken = default)
     {
@@ -27,8 +29,8 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
             .Select(e => new ThemeListItem(
                 e.Id,
                 e.Name,
-                CopyPalette(e.LightPalette, new ThemePalette()),
-                CopyPalette(e.DarkPalette, DefaultPlatformTheme.CreateDarkPalette()),
+                CopyPalette(e.LightPalette, LightFallback),
+                CopyPalette(e.DarkPalette, DarkFallback),
                 selection != null && e.Id == selection.ActiveThemeId))
             .ToList();
     }
@@ -162,8 +164,8 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
         => new(
             theme.Id,
             theme.Name,
-            CopyPalette(theme.LightPalette, new ThemePalette()),
-            CopyPalette(theme.DarkPalette, DefaultPlatformTheme.CreateDarkPalette()));
+            CopyPalette(theme.LightPalette, LightFallback),
+            CopyPalette(theme.DarkPalette, DarkFallback));
 
     private static ThemePalette CopyPalette(ThemePalette? palette, ThemePalette fallback)
     {
@@ -224,6 +226,6 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
     private static string ColorOrFallback(string? value, string fallback)
         => string.IsNullOrWhiteSpace(value) ? fallback : value;
 
-    private static string NormalizeColor(string value)
-        => value.Trim().ToUpperInvariant();
+    private static string NormalizeColor(string? value)
+        => value?.Trim().ToUpperInvariant() ?? string.Empty;
 }

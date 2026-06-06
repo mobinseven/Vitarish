@@ -24,6 +24,28 @@ public sealed class ThemePalette
     public const string FallbackTextSecondary = "#334155";
     public const string FallbackDivider = "#E2E8F0";
 
+    public const string FallbackDarkPrimary = "#60A5FA";
+    public const string FallbackDarkPrimaryContrastText = "#07101F";
+    public const string FallbackDarkSecondary = "#38BDF8";
+    public const string FallbackDarkSecondaryContrastText = "#041018";
+    public const string FallbackDarkTertiary = "#C084FC";
+    public const string FallbackDarkTertiaryContrastText = "#14091F";
+    public const string FallbackDarkInfo = "#29B6F6";
+    public const string FallbackDarkInfoContrastText = "#031018";
+    public const string FallbackDarkSuccess = "#66BB6A";
+    public const string FallbackDarkSuccessContrastText = "#071207";
+    public const string FallbackDarkWarning = "#FFA726";
+    public const string FallbackDarkWarningContrastText = "#1A0F00";
+    public const string FallbackDarkError = "#F44336";
+    public const string FallbackDarkErrorContrastText = "#1A0503";
+    public const string FallbackDarkBackground = "#323232";
+    public const string FallbackDarkSurface = "#323232";
+    public const string FallbackDarkAppbarBackground = "#434343";
+    public const string FallbackDarkAppbarText = "#E2E8F0";
+    public const string FallbackDarkTextPrimary = "#E2E8F0";
+    public const string FallbackDarkTextSecondary = "#94A3B8";
+    public const string FallbackDarkDivider = "#233044";
+
     public string Primary { get; set; } = FallbackPrimary;
     public string PrimaryContrastText { get; set; } = FallbackPrimaryContrastText;
     public string Secondary { get; set; } = FallbackSecondary;
