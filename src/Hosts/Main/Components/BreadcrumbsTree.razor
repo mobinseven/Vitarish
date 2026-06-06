@@ -1,18 +1,10 @@
 @using Vitarish.Parties.Interface.Components.Owners
 @inherits CommonBase
 
-<Stack>
-    <StackField>
-        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Style="width: 100%;">
-            <MudImage Src="/logo/brandmark-opacity50.webp" Height="100" />
-        </MudStack>
-    </StackField>
+@if(NavService.Breadcrumbs.Length > 4)
+{
+    <Stack>
 
-    <TenantContextHeader DashboardHref="@AppRoutes.Home"
-                         TenantsHref="@AppRoutes.Owners.Dashboard" />
-    @if(NavService.Breadcrumbs.Length > 1)
-    {
-        /// 4 skipped parts: [home] / [role] / [app] / ... / [current]
         @foreach(var breadcrumb in NavService.Breadcrumbs.Skip(3).SkipLast(1))
         {
             @if(string.IsNullOrWhiteSpace(breadcrumb.Text))
@@ -22,7 +14,7 @@
 
             string title = breadcrumb.Text;
             string cut = title.Length > 50 ? title.Substring(0, 50) + "..." : title;
-            <StackButton Label="@cut" Href="@breadcrumb.Path" EndIcon="fa-solid fa-chevron-down" />
+            <StackButton Label="@cut" OnClick="@(() => NavigationManager.NavigateTo(breadcrumb.Path))" EndIcon="fa-solid fa-caret-large-down" />
         }
-    }
-</Stack>
+    </Stack>
+}

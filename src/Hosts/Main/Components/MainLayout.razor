@@ -9,6 +9,10 @@
             {
                 <CascadingValue Value="@PageBreakpoint">
 
+                    <div style="height: 10dvh;">
+                        <hr />
+                    </div>
+
 
                     <WidthControlled>
                         <BreadcrumbsTree />
@@ -18,6 +22,14 @@
                         <CascadingValue Value="NavService.SearchString">
                             @Body
                         </CascadingValue>
+
+                        <Stack>
+                            <StackField>
+                                <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Style="width: 100%;">
+                                    <MudImage Src="/logo/brandmark-opacity50.webp" Height="100" />
+                                </MudStack>
+                            </StackField>
+                        </Stack>
 
                     </WidthControlled>
 

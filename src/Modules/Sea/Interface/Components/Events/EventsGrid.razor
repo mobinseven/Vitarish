@@ -11,8 +11,8 @@
         else
         {
             <StackButton Label="@evt.Title"
-                         Color="@(evt.IsCommitted ? Color.Primary : Color.Default)"
-                         StartIcon="@(evt.IsCommitted ? "fa-solid fa-check" : "fa-solid fa-circle")"
+                         Color="@(evt.IsCommitted ? Color.Success : Color.Default)"
+                         StartIcon="@(evt.IsCommitted ? "fa-solid fa-check" : "fa-solid fa-moon-full")"
                          EndIcon=""
                          OnClick="@(() => EventClicked.InvokeAsync(evt.Id))">
                 <StatsDisplay Stats="evt.Stats ?? new StatsReadDto()" />

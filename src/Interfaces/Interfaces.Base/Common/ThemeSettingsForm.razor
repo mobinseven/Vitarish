@@ -33,31 +33,6 @@
         <StackSelectItem T="ThemeSurfaceType" Value="ThemeSurfaceType.Transparent">@Localizer["Transparent"]</StackSelectItem>
     </StackSelect>
 
-    <StackField Label="@Localizer["Preview"]">
-        <MudStack Spacing="2">
-            <MudText Typo="Typo.h3">
-                @Localizer["PreviewOf", Localizer["Heading"]]
-            </MudText>
-            <MudText Typo="Typo.body1">
-                @Localizer["PreviewOf", Localizer["TextBody"]]
-            </MudText>
-            <MudText Typo="Typo.caption">
-                @Localizer["PreviewOf", Localizer["Caption"]]
-            </MudText>
-
-            <MudStack Spacing="2">
-                <MudButton Variant="Variant.Filled" Color="Color.Primary" FullWidth>
-                    @Localizer["PreviewOf", Localizer["Action"]]
-                </MudButton>
-                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" FullWidth>
-                    @Localizer["PreviewOf", Localizer["Action"]]
-                </MudButton>
-                <MudButton Variant="Variant.Text" Color="Color.Tertiary" FullWidth>
-                    @Localizer["PreviewOf", Localizer["Action"]]
-                </MudButton>
-            </MudStack>
-        </MudStack>
-    </StackField>
 
     <StackButton OnClick="ResetAsync" Label="@Localizer["Reset"]" />
 

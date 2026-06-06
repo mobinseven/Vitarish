@@ -39,10 +39,14 @@ public static class ThemeWriteValidator
 
         return null;
     }
-
-    private static bool IsHexColor(string value)
+    private static bool IsHexColor(string? value)
     {
-        if (value.Length != 7 || value[0] != '#')
+        if (string.IsNullOrEmpty(value) || value[0] != '#')
+        {
+            return false;
+        }
+
+        if (value.Length is not (4 or 5 or 7 or 9))
         {
             return false;
         }

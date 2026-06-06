@@ -38,7 +38,6 @@ public partial class SimpleLayout : LayoutComponentBase, IAsyncDisposable, IBrow
         Initialized = true;
         RenderNotifier.RenderRequired += HandleLocationChanged;
         _ = NavigationManager.RegisterLocationChangingHandler(async c => { Navigating = true; await InvokeAsync(() => StateHasChanged()); });
-        await InvokeAsync(StateHasChanged);
     }
 
 

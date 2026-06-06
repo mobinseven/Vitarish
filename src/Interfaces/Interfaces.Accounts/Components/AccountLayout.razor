@@ -12,19 +12,20 @@
             <hr />
         </div>
         <WidthControlled>
-            @* <TitleContainer @rendermode=InteractiveServer /> *@
-            <div class="stack sticky-top">
-                <StackField>
-                    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Style="width: 100%;">
-                        <MudImage Src="/logo/brandmark-opacity50.webp" Height="100" />
-                    </MudStack>
-                </StackField>
-            </div>
+
             @Body
 
             <Stack>
                 <CultureSelector @rendermode=InteractiveServer />
                 <StackButton Label="@Localizer["Home"]" EndIcon="fa-solid fa-home" Href="/" />
+            </Stack>
+
+            <Stack>
+                <StackField>
+                    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Style="width: 100%;">
+                        <MudImage Src="/logo/brandmark-opacity50.webp" Height="100" />
+                    </MudStack>
+                </StackField>
             </Stack>
 
         </WidthControlled>

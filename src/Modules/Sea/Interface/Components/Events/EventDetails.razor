@@ -5,9 +5,9 @@
     @if(Event.IsCommitted)
     {
         <StackButton Label="@Localizer["Committed"]"
+                     Color="Color.Success"
                      EndIcon="fa-duotone fa-circle-check fa-2x"
-                     OnClick="() => ToggleCommitAsync()">
-        </StackButton>
+                     OnClick="() => ToggleCommitAsync()" />
 
     }
     else if(CanWrite)

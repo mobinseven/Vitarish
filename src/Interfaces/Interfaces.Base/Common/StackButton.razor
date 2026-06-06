@@ -1,5 +1,6 @@
 @inherits MudButton
 <MudButton Variant="Variant.Text"
+           HtmlTag="div"
            ButtonType="@ButtonType"
            Disabled="@Disabled"
            Class="stack-item"
@@ -19,25 +20,41 @@
             </MudText>
             @if(!string.IsNullOrWhiteSpace(HelperText))
             {
-                <MudText Typo="Typo.caption">
-                    @HelperText
-                </MudText>
+                <MudText Typo="Typo.caption">@HelperText</MudText>
             }
         </div>
         <div />
-        <div>
-            @if(ChildContent is null)
-            {
-                <MudFab DropShadow="false" EndIcon="@ContinueIcon" Color="@Color" Size="Size.Small" />
-            }
-            else
-            {
-                @ChildContent
-            }
-        </div>
+
+        @if(ChildContent is null)
+        {
+            <div>
+                @if(RendererInfo.IsInteractive)
+                {
+                    <MudFab HtmlTag="div"
+                            Disabled="@Disabled"
+                            StartIcon="@ContinueIcon"
+                            DropShadow="false"
+                            Color="@Color"
+                            Size="Size.Small" />
+                }
+                else
+                {
+                    <MudIcon Disabled="@Disabled"
+                             Icon="@ContinueIcon"
+                             Color="@Color"
+                             Size="Size.Small" />
+                }
+            </div>
+        }
+        else
+        {
+            @ChildContent
+        }
     </MudStack>
 </MudButton>
+
 @code {
+
     [Parameter] public string? Label { get; set; }
     [Parameter] public string? HighlightString { get; set; }
     [Parameter] public string? HelperText { get; set; }
@@ -49,5 +66,4 @@
         Size.Large => Typo.h3,
         _ => Typo.body1
     };
-
 }

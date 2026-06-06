@@ -4,7 +4,7 @@
 
 @if(ThemeService.IsDarkMode)
 {
-    <div style="width: 100dvw; height: 100dvh; background-image: url('/bg/bd.webp'); background-size: cover; position: fixed; top: 0; right: 0; z-index: -100; pointer-events: none; filter: brightness(20%) contrast(1.3); "></div>
+    <div style="width: 100dvw; height: 100dvh; background-image: url('/bg/bd.webp'); background-size: cover; position: fixed; top: 0; right: 0; z-index: -100; pointer-events: none;  "></div>
 }
 else
 {
@@ -53,10 +53,9 @@ else
         if(!firstRender || _provider is null)
             return;
 
-        // If Auto, sync to actual system preference once JS is available.
         if(ThemeService.Settings.Theme == ThemePreference.Auto)
         {
-            var systemIsDark = await _provider.GetSystemDarkModeAsync(); // preferred API :contentReference[oaicite:10]{index=10}
+            var systemIsDark = await _provider.GetSystemDarkModeAsync(); 
             await ThemeService.UpdateSystemDarkModeAsync(systemIsDark);
         }
     }

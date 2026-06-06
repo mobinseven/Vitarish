@@ -1,14 +1,19 @@
 @using MudBlazor
 @using MudBlazor.Utilities
-
-<MudColorPicker Underline="false"
-                Variant="Variant.Filled"
-                HelperText="@Label"
-                Class="stack-item"
-                Elevation="0"
-                Value="@_pickerValue"
-                ValueChanged="OnPickerValueChanged"
-                PickerVariant="PickerVariant.Dialog" />
+<MudStack Class="stack-item" Row Style="width: 100%;" AlignItems="AlignItems.Start" Justify="Justify.Center" StretchItems="StretchItems.Start">
+    <div>
+        <MudColorPicker Underline="false"
+                        Variant="Variant.Filled"
+                        HelperText="@Label"
+                        Class="stack-item"
+                        Elevation="0"
+                        ShowColorField
+                        Value="@_pickerValue"
+                        ValueChanged="OnPickerValueChanged"
+                        PickerVariant="PickerVariant.Inline" />
+    </div>
+    <MudFab Size="Size.Small"  DropShadow="false" Style="@($"background-color: {_pickerValue}; width: 50px; height: 50px")"/>
+</MudStack>
 
 @code {
     private MudColor _pickerValue = new("#ffffff");

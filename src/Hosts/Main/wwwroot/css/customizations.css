@@ -26,15 +26,11 @@
 
 @-webkit-keyframes fade-in {
     0% {
-        opacity: 0;
-        -webkit-filter: blur(20px);
-        backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+        -webkit-filter: blur(10px) opacity(0);
     }
 
     100% {
-        opacity: 1;
-        -webkit-filter: blur(0px);
-        backdrop-filter: blur(var(--blur)) brightness(var(--brightness));
+        -webkit-filter: blur(10px) opacity(1);
     }
 }
 

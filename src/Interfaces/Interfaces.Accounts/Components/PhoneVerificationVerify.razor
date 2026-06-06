@@ -6,7 +6,6 @@
     <input type="hidden" name="Input.Provider" value="@TokenOptions.DefaultPhoneProvider" />
     <input type="hidden" name="Input.PhoneNumber" value="@PhoneNumber" />
     <AntiforgeryToken />
-    <span>@VerifyCodeInput.Code?.Length</span>
     <StackTextField @bind-Value="VerifyCodeInput.Code"
                     name="Input.Code"
                     Label="@Localizer["Code"]"
