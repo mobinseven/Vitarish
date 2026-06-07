@@ -56,7 +56,7 @@ public partial class ProfileRoleEditor
             return;
         }
 
-        bool? confirmed = await DialogService.ShowMessageBox(
+        bool? confirmed = await DialogService.ShowMessageBoxAsyncAsync(
             null,
             Localizer["DeleteItemConfirm", Localizer["Role"]],
             yesText: Localizer["Remove"],

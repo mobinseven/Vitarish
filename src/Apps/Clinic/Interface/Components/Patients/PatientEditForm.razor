@@ -200,7 +200,7 @@
         projectWriteDto.Name = $"{projectWriteDto.FirstName} {projectWriteDto.LastName}".TrimEnd(' ', ',');
         if(string.IsNullOrWhiteSpace(projectWriteDto.Name))
         {
-            await DialogService.ShowMessageBox(null, Localizer["RequiredItem", Localizer["LastName"]]);
+            await DialogService.ShowMessageBoxAsyncAsync(null, Localizer["RequiredItem", Localizer["LastName"]]);
             return;
         }
         if(Project is null)

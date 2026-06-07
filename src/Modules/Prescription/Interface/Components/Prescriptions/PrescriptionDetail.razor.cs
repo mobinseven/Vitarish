@@ -21,7 +21,7 @@ public partial class PrescriptionDetail : PrescriptionBase
         if (!validation.IsValid)
         {
             string errorMessage = string.Join(Environment.NewLine, validation.Errors);
-            _ = await DialogService.ShowMessageBox(
+            _ = await DialogService.ShowMessageBoxAsyncAsync(
                 Localizer["ValidationFailed"],
                 errorMessage,
                 yesText: Localizer["OK"]);
@@ -31,7 +31,7 @@ public partial class PrescriptionDetail : PrescriptionBase
         if (validation.Warnings.Count > 0)
         {
             string warningMessage = string.Join(Environment.NewLine, validation.Warnings);
-            bool? proceed = await DialogService.ShowMessageBox(
+            bool? proceed = await DialogService.ShowMessageBoxAsyncAsync(
                 Localizer["Warnings"],
                 warningMessage,
                 yesText: Localizer["Proceed"],
@@ -56,7 +56,7 @@ public partial class PrescriptionDetail : PrescriptionBase
         }
         else
         {
-            _ = await DialogService.ShowMessageBox(
+            _ = await DialogService.ShowMessageBoxAsyncAsync(
                 Localizer["SubmissionFailed"],
                 result.ErrorMessage ?? Localizer["UnknownError"],
                 yesText: Localizer["OK"]);
@@ -92,7 +92,7 @@ public partial class PrescriptionDetail : PrescriptionBase
 
         if (!result.IsSuccess)
         {
-            _ = await DialogService.ShowMessageBox(
+            _ = await DialogService.ShowMessageBoxAsyncAsync(
                 Localizer["EditFailed"],
                 result.ErrorMessage ?? Localizer["UnknownError"],
                 yesText: Localizer["OK"]);
@@ -128,7 +128,7 @@ public partial class PrescriptionDetail : PrescriptionBase
 
         if (!result.IsSuccess)
         {
-            _ = await DialogService.ShowMessageBox(
+            _ = await DialogService.ShowMessageBoxAsyncAsync(
                 Localizer["CancelFailed"],
                 result.ErrorMessage ?? Localizer["UnknownError"],
                 yesText: Localizer["OK"]);
