@@ -3,7 +3,10 @@ using System.Linq.Expressions;
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
 [RegisterTransient]
-internal class RoleRepository(SeaDbContext dbContext)
+internal class RoleRepository(
+    SeaDbContext dbContext,
+    EntitySearchPatternFactory searchPatternFactory,
+    EntitySearchPredicateBuilder searchPredicateBuilder)
     : EntityRepository<Role, RoleDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Role, RoleDescriptor>
 {
@@ -13,11 +16,11 @@ internal class RoleRepository(SeaDbContext dbContext)
 
         if (!string.IsNullOrWhiteSpace(descriptor.Search))
         {
-            IReadOnlyCollection<string> patterns = EntitySearchHelper.CreateSearchPatterns(descriptor.Search);
+            IReadOnlyCollection<string> patterns = searchPatternFactory.CreateSearchPatterns(descriptor.Search);
 
             if (patterns.Count > 0)
             {
-                Expression<Func<Role, bool>> predicate = EntitySearchHelper.BuildSearchPredicate<Role>(
+                Expression<Func<Role, bool>> predicate = searchPredicateBuilder.BuildSearchPredicate<Role>(
                     patterns,
                     role => role.Name);
 

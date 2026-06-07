@@ -1,3 +1,5 @@
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Vitarish.Entities.Server.Infrastructure.Search;
 using Vitarish.Entities.Server.Repositories.Operations;
 
 namespace Vitarish.Entities.Server.Extensions;
@@ -39,6 +41,20 @@ public static class ServiceCollectionExtensions
         _ = services.AddDbContext<TDbContext>(configureDbContext, ServiceLifetime.Transient, ServiceLifetime.Transient);
         services.Replace(ServiceDescriptor.Transient<IDbContextFactory<TDbContext>, TransientMultiTenantDbContextFactory<TDbContext>>());
         services.Replace(ServiceDescriptor.Transient<TDbContext>(provider => provider.GetRequiredService<IDbContextFactory<TDbContext>>().CreateDbContext()));
+
+        return services;
+    }
+
+    /// <summary>
+    /// Registers the stateless infrastructure services that normalize entity search text and build EF Core search predicates.
+    /// </summary>
+    public static IServiceCollection AddEntitySearchInfrastructure(this IServiceCollection services)
+    {
+        ArgumentNullException.ThrowIfNull(services);
+
+        services.TryAddSingleton<EntitySearchTextNormalizer>();
+        services.TryAddSingleton<EntitySearchPatternFactory>();
+        services.TryAddSingleton<EntitySearchPredicateBuilder>();
 
         return services;
     }

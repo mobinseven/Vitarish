@@ -3,7 +3,10 @@ using System.Linq.Expressions;
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
 [RegisterTransient]
-internal class EventRepository(SeaDbContext dbContext)
+internal class EventRepository(
+    SeaDbContext dbContext,
+    EntitySearchPatternFactory searchPatternFactory,
+    EntitySearchPredicateBuilder searchPredicateBuilder)
     : EntityRepository<Event, EventDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Event, EventDescriptor>
 {
@@ -23,11 +26,11 @@ internal class EventRepository(SeaDbContext dbContext)
 
         if (!string.IsNullOrWhiteSpace(descriptor.Search))
         {
-            IReadOnlyCollection<string> patterns = EntitySearchHelper.CreateSearchPatterns(descriptor.Search);
+            IReadOnlyCollection<string> patterns = searchPatternFactory.CreateSearchPatterns(descriptor.Search);
 
             if (patterns.Count > 0)
             {
-                Expression<Func<Event, bool>> predicate = EntitySearchHelper.BuildSearchPredicate<Event>(
+                Expression<Func<Event, bool>> predicate = searchPredicateBuilder.BuildSearchPredicate<Event>(
                     patterns,
                     e => e.Title,
                     e => e.Description);

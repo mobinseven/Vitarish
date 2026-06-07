@@ -3,7 +3,10 @@ using System.Linq.Expressions;
 namespace Vitarish.Communications.Infrastructure.Repositories;
 
 [RegisterTransient]
-internal class ReminderRepository(CommunicationsDbContext dbContext)
+internal class ReminderRepository(
+    CommunicationsDbContext dbContext,
+    EntitySearchPatternFactory searchPatternFactory,
+    EntitySearchPredicateBuilder searchPredicateBuilder)
     : EntityRepository<Reminder, ReminderDescriptor, CommunicationsDbContext>(dbContext),
       IEntityRepository<Reminder, ReminderDescriptor>
 {
@@ -23,11 +26,11 @@ internal class ReminderRepository(CommunicationsDbContext dbContext)
 
         if (!string.IsNullOrWhiteSpace(descriptor.Search))
         {
-            IReadOnlyCollection<string> patterns = EntitySearchHelper.CreateSearchPatterns(descriptor.Search);
+            IReadOnlyCollection<string> patterns = searchPatternFactory.CreateSearchPatterns(descriptor.Search);
 
             if (patterns.Count > 0)
             {
-                Expression<Func<Reminder, bool>> predicate = EntitySearchHelper.BuildSearchPredicate<Reminder>(
+                Expression<Func<Reminder, bool>> predicate = searchPredicateBuilder.BuildSearchPredicate<Reminder>(
                     patterns,
                     r => r.Recipient,
                     r => r.Subject,

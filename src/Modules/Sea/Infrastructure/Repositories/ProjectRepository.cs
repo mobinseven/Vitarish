@@ -3,7 +3,10 @@ using System.Linq.Expressions;
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
 [RegisterTransient]
-internal class ProjectRepository(SeaDbContext dbContext)
+internal class ProjectRepository(
+    SeaDbContext dbContext,
+    EntitySearchPatternFactory searchPatternFactory,
+    EntitySearchPredicateBuilder searchPredicateBuilder)
     : EntityRepository<Project, ProjectDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Project, ProjectDescriptor>
 {
@@ -13,11 +16,11 @@ internal class ProjectRepository(SeaDbContext dbContext)
 
         if (!string.IsNullOrWhiteSpace(descriptor.Search))
         {
-            IReadOnlyCollection<string> patterns = EntitySearchHelper.CreateSearchPatterns(descriptor.Search);
+            IReadOnlyCollection<string> patterns = searchPatternFactory.CreateSearchPatterns(descriptor.Search);
 
             if (patterns.Count > 0)
             {
-                Expression<Func<Project, bool>> predicate = EntitySearchHelper.BuildSearchPredicate<Project>(
+                Expression<Func<Project, bool>> predicate = searchPredicateBuilder.BuildSearchPredicate<Project>(
                     patterns,
                     project => project.Name,
                     project => project.Description,
