@@ -1,61 +1,24 @@
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
-namespace Vitarish.Communications.Infrastructure.Helpers;
+namespace Vitarish.Entities.Server.Infrastructure.Search;
 
-internal static class EntitySearchHelper
+public sealed class EntitySearchPredicateBuilder
 {
-    private static readonly char[] SearchSeparators = [' ', '\t', '\r', '\n'];
-
-    private static readonly (string Variant, string Replacement)[] NormalizationPairs =
-    [
-        ("\u200c", string.Empty), // Zero-width non-joiner
-        ("ك", "ک"),
-        ("ي", "ی"),
-        ("ى", "ی"),
-        ("ئ", "ی"),
-        ("ة", "ه"),
-        ("ۀ", "ه"),
-        ("أ", "ا"),
-        ("إ", "ا"),
-        ("آ", "ا"),
-        ("ؤ", "و")
-    ];
-
-    private static readonly IReadOnlyDictionary<char, string> NormalizationLookup =
-        NormalizationPairs
-            .Where(pair => pair.Variant.Length == 1)
-            .ToDictionary(pair => pair.Variant[0], pair => pair.Replacement);
-
     private static readonly MethodInfo StringReplaceMethod = typeof(string)
         .GetMethod(nameof(string.Replace), [typeof(string), typeof(string)])!;
 
-    public static IReadOnlyCollection<string> CreateSearchPatterns(string search)
+    private static readonly MethodInfo StringToLowerMethod = typeof(string)
+        .GetMethod(nameof(string.ToLower), Type.EmptyTypes)!;
+
+    private readonly EntitySearchTextNormalizer textNormalizer;
+
+    public EntitySearchPredicateBuilder(EntitySearchTextNormalizer textNormalizer)
     {
-        ArgumentNullException.ThrowIfNull(search);
-
-        HashSet<string> fragments = new(StringComparer.OrdinalIgnoreCase);
-
-        string trimmed = NormalizeText(search.Trim());
-        if (trimmed.Length > 0)
-        {
-            _ = fragments.Add(trimmed);
-        }
-
-        foreach (string fragment in search.Split(SearchSeparators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
-        {
-            string normalized = NormalizeText(fragment);
-            if (normalized.Length > 0)
-            {
-                _ = fragments.Add(normalized);
-            }
-        }
-
-        return [.. fragments.Select(static fragment => $"%{EscapeLikeFragment(fragment)}%")];
+        this.textNormalizer = textNormalizer ?? throw new ArgumentNullException(nameof(textNormalizer));
     }
 
-    public static Expression<Func<TEntity, bool>> BuildSearchPredicate<TEntity>(
+    public Expression<Func<TEntity, bool>> BuildSearchPredicate<TEntity>(
         IEnumerable<string> patterns,
         params Expression<Func<TEntity, string?>>[] propertySelectors)
     {
@@ -111,29 +74,11 @@ internal static class EntitySearchHelper
             : Expression.Lambda<Func<TEntity, bool>>(predicate, entity);
     }
 
-    public static string NormalizeText(string value)
-    {
-        if (string.IsNullOrEmpty(value))
-        {
-            return string.Empty;
-        }
-
-        string normalized = value.Normalize(NormalizationForm.FormKC);
-        StringBuilder builder = new(normalized.Length);
-
-        foreach (char character in normalized)
-        {
-            _ = NormalizationLookup.TryGetValue(character, out string? replacement) ? builder.Append(replacement) : builder.Append(character);
-        }
-
-        return builder.ToString();
-    }
-
-    public static Expression NormalizeProperty(Expression property)
+    private Expression NormalizeProperty(Expression property)
     {
         Expression normalized = property;
 
-        foreach ((string? variant, string? replacement) in NormalizationPairs)
+        foreach ((string variant, string replacement) in textNormalizer.Replacements)
         {
             normalized = Expression.Call(
                 normalized,
@@ -142,13 +87,8 @@ internal static class EntitySearchHelper
                 Expression.Constant(replacement));
         }
 
-        return normalized;
+        return Expression.Call(normalized, StringToLowerMethod);
     }
-
-    private static string EscapeLikeFragment(string fragment) => fragment
-                .Replace("\\", "\\\\", StringComparison.Ordinal)
-                .Replace("%", "\\%", StringComparison.Ordinal)
-                .Replace("_", "\\_", StringComparison.Ordinal);
 
     private sealed class ReplaceParameterVisitor(ParameterExpression source, ParameterExpression target) : ExpressionVisitor
     {

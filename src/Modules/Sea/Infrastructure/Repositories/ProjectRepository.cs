@@ -7,17 +7,21 @@ internal class ProjectRepository(SeaDbContext dbContext)
     : EntityRepository<Project, ProjectDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Project, ProjectDescriptor>
 {
+    private static readonly EntitySearchTextNormalizer SearchTextNormalizer = new();
+    private static readonly EntitySearchPatternFactory SearchPatternFactory = new(SearchTextNormalizer);
+    private static readonly EntitySearchPredicateBuilder SearchPredicateBuilder = new(SearchTextNormalizer);
+
     protected override IQueryable<Project> Apply(IQueryable<Project> query, ProjectDescriptor descriptor)
     {
         query = base.Apply(query, descriptor);
 
         if (!string.IsNullOrWhiteSpace(descriptor.Search))
         {
-            IReadOnlyCollection<string> patterns = EntitySearchHelper.CreateSearchPatterns(descriptor.Search);
+            IReadOnlyCollection<string> patterns = SearchPatternFactory.CreateSearchPatterns(descriptor.Search);
 
             if (patterns.Count > 0)
             {
-                Expression<Func<Project, bool>> predicate = EntitySearchHelper.BuildSearchPredicate<Project>(
+                Expression<Func<Project, bool>> predicate = SearchPredicateBuilder.BuildSearchPredicate<Project>(
                     patterns,
                     project => project.Name,
                     project => project.Description,

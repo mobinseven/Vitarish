@@ -7,6 +7,10 @@ internal class EventRepository(SeaDbContext dbContext)
     : EntityRepository<Event, EventDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Event, EventDescriptor>
 {
+    private static readonly EntitySearchTextNormalizer SearchTextNormalizer = new();
+    private static readonly EntitySearchPatternFactory SearchPatternFactory = new(SearchTextNormalizer);
+    private static readonly EntitySearchPredicateBuilder SearchPredicateBuilder = new(SearchTextNormalizer);
+
     protected override IQueryable<Event> Apply(IQueryable<Event> query, EventDescriptor descriptor)
     {
         query = base.Apply(query, descriptor);
@@ -23,11 +27,11 @@ internal class EventRepository(SeaDbContext dbContext)
 
         if (!string.IsNullOrWhiteSpace(descriptor.Search))
         {
-            IReadOnlyCollection<string> patterns = EntitySearchHelper.CreateSearchPatterns(descriptor.Search);
+            IReadOnlyCollection<string> patterns = SearchPatternFactory.CreateSearchPatterns(descriptor.Search);
 
             if (patterns.Count > 0)
             {
-                Expression<Func<Event, bool>> predicate = EntitySearchHelper.BuildSearchPredicate<Event>(
+                Expression<Func<Event, bool>> predicate = SearchPredicateBuilder.BuildSearchPredicate<Event>(
                     patterns,
                     e => e.Title,
                     e => e.Description);

@@ -10,7 +10,7 @@ global using Vitarish.Communications.Domain.Entities;
 global using Vitarish.Communications.Domain.Enums;
 global using Vitarish.Communications.Domain.Models;
 global using Vitarish.Communications.Infrastructure.Data;
-global using Vitarish.Communications.Infrastructure.Helpers;
+global using Vitarish.Entities.Server.Infrastructure.Search;
 global using Vitarish.Entities.Server.Core;
 global using Vitarish.Entities.Server.Models;
 global using Vitarish.Entities.Server.Repositories;

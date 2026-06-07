@@ -7,6 +7,10 @@ internal class ProcedureRepository(SeaDbContext dbContext)
     : EntityRepository<Procedure, ProcedureDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Procedure, ProcedureDescriptor>
 {
+    private static readonly EntitySearchTextNormalizer SearchTextNormalizer = new();
+    private static readonly EntitySearchPatternFactory SearchPatternFactory = new(SearchTextNormalizer);
+    private static readonly EntitySearchPredicateBuilder SearchPredicateBuilder = new(SearchTextNormalizer);
+
     protected override IQueryable<Procedure> Apply(IQueryable<Procedure> query, ProcedureDescriptor descriptor)
     {
         query = base.Apply(query, descriptor);
@@ -18,11 +22,11 @@ internal class ProcedureRepository(SeaDbContext dbContext)
 
         if (!string.IsNullOrWhiteSpace(descriptor.Search))
         {
-            IReadOnlyCollection<string> patterns = EntitySearchHelper.CreateSearchPatterns(descriptor.Search);
+            IReadOnlyCollection<string> patterns = SearchPatternFactory.CreateSearchPatterns(descriptor.Search);
 
             if (patterns.Count > 0)
             {
-                Expression<Func<Procedure, bool>> predicate = EntitySearchHelper.BuildSearchPredicate<Procedure>(
+                Expression<Func<Procedure, bool>> predicate = SearchPredicateBuilder.BuildSearchPredicate<Procedure>(
                     patterns,
                     procedure => procedure.Name);
 
