@@ -9,7 +9,7 @@ public sealed class EntitySearchPredicateBuilder
         .GetMethod(nameof(string.Replace), [typeof(string), typeof(string)])!;
 
     private static readonly MethodInfo StringToLowerMethod = typeof(string)
-        .GetMethod(nameof(string.ToLower), Type.EmptyTypes)!;
+        .GetMethod(nameof(string.ToLowerInvariant), Type.EmptyTypes)!;
 
     private readonly EntitySearchTextNormalizer textNormalizer;
 

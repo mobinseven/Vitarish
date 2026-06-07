@@ -3,14 +3,13 @@ using System.Linq.Expressions;
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
 [RegisterTransient]
-internal class ProcedureRepository(SeaDbContext dbContext)
+internal class ProcedureRepository(
+    SeaDbContext dbContext,
+    EntitySearchPatternFactory searchPatternFactory,
+    EntitySearchPredicateBuilder searchPredicateBuilder)
     : EntityRepository<Procedure, ProcedureDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Procedure, ProcedureDescriptor>
 {
-    private static readonly EntitySearchTextNormalizer SearchTextNormalizer = new();
-    private static readonly EntitySearchPatternFactory SearchPatternFactory = new(SearchTextNormalizer);
-    private static readonly EntitySearchPredicateBuilder SearchPredicateBuilder = new(SearchTextNormalizer);
-
     protected override IQueryable<Procedure> Apply(IQueryable<Procedure> query, ProcedureDescriptor descriptor)
     {
         query = base.Apply(query, descriptor);
@@ -22,11 +21,11 @@ internal class ProcedureRepository(SeaDbContext dbContext)
 
         if (!string.IsNullOrWhiteSpace(descriptor.Search))
         {
-            IReadOnlyCollection<string> patterns = SearchPatternFactory.CreateSearchPatterns(descriptor.Search);
+            IReadOnlyCollection<string> patterns = searchPatternFactory.CreateSearchPatterns(descriptor.Search);
 
             if (patterns.Count > 0)
             {
-                Expression<Func<Procedure, bool>> predicate = SearchPredicateBuilder.BuildSearchPredicate<Procedure>(
+                Expression<Func<Procedure, bool>> predicate = searchPredicateBuilder.BuildSearchPredicate<Procedure>(
                     patterns,
                     procedure => procedure.Name);
 

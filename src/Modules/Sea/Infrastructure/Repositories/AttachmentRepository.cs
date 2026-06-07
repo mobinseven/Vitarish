@@ -3,14 +3,13 @@ using System.Linq.Expressions;
 namespace Vitarish.Sea.Infrastructure.Repositories;
 
 [RegisterTransient]
-internal class AttachmentRepository(SeaDbContext dbContext)
+internal class AttachmentRepository(
+    SeaDbContext dbContext,
+    EntitySearchPatternFactory searchPatternFactory,
+    EntitySearchPredicateBuilder searchPredicateBuilder)
     : EntityRepository<Attachment, AttachmentDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Attachment, AttachmentDescriptor>
 {
-    private static readonly EntitySearchTextNormalizer SearchTextNormalizer = new();
-    private static readonly EntitySearchPatternFactory SearchPatternFactory = new(SearchTextNormalizer);
-    private static readonly EntitySearchPredicateBuilder SearchPredicateBuilder = new(SearchTextNormalizer);
-
     protected override IQueryable<Attachment> Apply(IQueryable<Attachment> query, AttachmentDescriptor descriptor)
     {
         query = base.Apply(query, descriptor);
@@ -22,11 +21,11 @@ internal class AttachmentRepository(SeaDbContext dbContext)
 
         if (!string.IsNullOrWhiteSpace(descriptor.Search))
         {
-            IReadOnlyCollection<string> patterns = SearchPatternFactory.CreateSearchPatterns(descriptor.Search);
+            IReadOnlyCollection<string> patterns = searchPatternFactory.CreateSearchPatterns(descriptor.Search);
 
             if (patterns.Count > 0)
             {
-                Expression<Func<Attachment, bool>> predicate = SearchPredicateBuilder.BuildSearchPredicate<Attachment>(
+                Expression<Func<Attachment, bool>> predicate = searchPredicateBuilder.BuildSearchPredicate<Attachment>(
                     patterns,
                     a => a.Content,
                     a => a.ContentType,

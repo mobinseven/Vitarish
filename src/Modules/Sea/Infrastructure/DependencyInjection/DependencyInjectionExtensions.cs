@@ -1,3 +1,4 @@
+using Vitarish.Entities.Server.Extensions;
 using Vitarish.Feed.Domain.Abstractions;
 using Vitarish.Sea.Infrastructure.FeedSources;
 using Vitarish.Sea.Infrastructure.SearchProviders;
@@ -11,6 +12,7 @@ public static class DependencyInjectionExtensions
     public static IServiceCollection AddSeaInfrastructure(this IServiceCollection services)
     {
         _ = services.AddVitarishSeaInfrastructure();
+        _ = services.AddEntitySearchInfrastructure();
         _ = services.AddTransient<IAccessControlledProjectsService, AccessControlledProjectsService>();
         _ = services.AddTransient<IAccessControlledProceduresService, AccessControlledProceduresService>();
         _ = services.AddTransient<IAccessControlledEventsService, AccessControlledEventsService>();

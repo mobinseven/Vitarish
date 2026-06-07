@@ -16,12 +16,6 @@ public sealed class EntitySearchPatternFactory
 
         HashSet<string> fragments = new(StringComparer.Ordinal);
 
-        string trimmed = textNormalizer.Normalize(search.Trim());
-        if (trimmed.Length > 0)
-        {
-            _ = fragments.Add(trimmed);
-        }
-
         foreach (string fragment in search.Split(SearchSeparators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
         {
             string normalized = textNormalizer.Normalize(fragment);

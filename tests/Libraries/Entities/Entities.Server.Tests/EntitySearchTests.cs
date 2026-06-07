@@ -24,7 +24,6 @@ public sealed class EntitySearchTests
 
         Assert.Equal(
         [
-            "%foo\\_\\%\\\\ کی%",
             "%foo\\_\\%\\\\%",
             "%کی%"
         ],
