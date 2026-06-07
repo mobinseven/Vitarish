@@ -37,7 +37,7 @@ public partial class ProcedureCreateDialog : ProceduresBase
         IReadOnlyList<ProcedureReadDto> existing = await ProceduresService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
         if (existing.Any(p => string.Equals(p.Name, ProcedureWriteDto.Name, StringComparison.CurrentCultureIgnoreCase)))
         {
-            _ = await DialogService.ShowMessageBox(
+            _ = await DialogService.ShowMessageBoxAsync(
                 Localizer["Procedure"],
                 Localizer["ProcedureExistsError", ProjectName, ProcedureWriteDto.Name],
                 yesText: Localizer["Ok"]);

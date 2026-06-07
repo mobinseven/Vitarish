@@ -70,7 +70,10 @@ public partial class NavMenu : CommonBase, IAsyncDisposable
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
         _scrollListener?.OnScroll -= ScrollListenerOnScroll;
-        _scrollListener?.Dispose();
+        if (_scrollListener is not null)
+        {
+            await _scrollListener.DisposeAsync();
+        }
         GC.SuppressFinalize(this);
     }
 }

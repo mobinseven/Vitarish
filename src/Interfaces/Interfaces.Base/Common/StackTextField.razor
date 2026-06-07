@@ -20,11 +20,13 @@
               Lines="@Lines"
               MaxLines="@MaxLines"
               MaxLength="@MaxLength"
-              AutoGrow="@AutoGrow"
               InputMode="@InputMode"
               UserAttributes="@UserAttributes"
               ReadOnly="@ReadOnly"
               Disabled="@Disabled"/>
 @code {
     [Parameter] public bool Centered { get; set; }
+    
+    // Note: parameter removed - not available in MudBlazor 9.x
+    // Use Lines and MaxLines together for similar behavior
 }

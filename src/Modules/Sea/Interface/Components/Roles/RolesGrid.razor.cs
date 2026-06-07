@@ -12,7 +12,7 @@ public partial class RolesGrid : RolesBase
 
     private async Task AddRole()
     {
-        IDialogReference dialog = await DialogService.ShowAsync<RoleEditDialog>(null);
+        IDialogReference dialog = await DialogService.ShowAsync<RoleEditDialog>((string?)null);
         DialogResult? result = await dialog.Result;
 
         if (result is null)

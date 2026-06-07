@@ -77,7 +77,7 @@ public partial class AddPrescriptionItemDialog : PrescriptionBase
         }
         else
         {
-            _ = await DialogService.ShowMessageBox(
+            _ = await DialogService.ShowMessageBoxAsync(
                 Localizer["Error"],
                 result.ErrorMessage ?? Localizer["UnknownError"],
                 yesText: Localizer["OK"]);
