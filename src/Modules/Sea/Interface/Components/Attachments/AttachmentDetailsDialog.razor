@@ -4,7 +4,7 @@
         @if(editing)
         {
             <Stack>
-                <StackTextField Label="@Localizer["Attachment"]" @bind-Value="editContent" AutoGrow Immediate />
+                <StackTextField Label="@Localizer["Attachment"]" @bind-Value="editContent" Immediate />
                 <StackButton EndIcon="fa-solid fa-save" Label="@Localizer["Save"]" OnClick="SaveAsync" Color="Color.Primary" />
                 <StackButton EndIcon="fa-solid fa-xmark" Label="@Localizer["Cancel"]" OnClick="CancelEdit" Color="Color.Secondary" />
             </Stack>

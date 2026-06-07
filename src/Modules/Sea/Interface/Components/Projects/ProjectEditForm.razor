@@ -3,7 +3,7 @@
 {
     <Stack>
         <StackTextField @bind-Value="projectWriteDto.Name" Label="@Localizer["Project"]" />
-        <StackTextField @bind-Value="projectWriteDto.Description" AutoGrow Lines=3 Label="@Localizer["Description"]" />
+        <StackTextField @bind-Value="projectWriteDto.Description" Lines=3 Label="@Localizer["Description"]" />
         <StackField Label="@Localizer["Image"]">
             <ProjectAvatar AvatarFileId="@projectWriteDto.AvatarFileId" Size="96" Style="margin-bottom: 0.5rem;" />
             <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="1">
