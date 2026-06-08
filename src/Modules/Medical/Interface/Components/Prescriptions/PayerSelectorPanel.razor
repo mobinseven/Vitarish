@@ -1,0 +1,20 @@
+@inherits PrescriptionBase
+
+@if (Prescription is null || Prescription.Status != PrescriptionStatus.Draft)
+{
+    return;
+}
+
+<Stack>
+    <StackField Label="@Localizer["SelectPayer"]" />
+
+    <InsuranceProviderSelector Providers="providers"
+                               SelectedProviderKey="selectedProviderKey"
+                               SelectedProviderKeyChanged="OnProviderSelectedAsync"
+                               IsLoading="isLoading" />
+
+    @if (!string.IsNullOrEmpty(errorMessage))
+    {
+        <MudAlert Severity="Severity.Error">@errorMessage</MudAlert>
+    }
+</Stack>

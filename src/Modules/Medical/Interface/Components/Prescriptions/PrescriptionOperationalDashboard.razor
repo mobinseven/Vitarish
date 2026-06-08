@@ -1,0 +1,258 @@
+@inherits PrescriptionBase
+
+<Stack>
+    <StackField Label="@Localizer["OperationalDashboard"]" HelperText="@Localizer["OperationalDashboardHelp"]" />
+</Stack>
+
+<Stack>
+    <StackSelect T="string" Label="@Localizer["ProviderFilter"]" Value="@selectedProviderKey" ValueChanged="OnProviderFilterChanged" Clearable>
+        @if (transactionMetrics is not null)
+        {
+            @foreach (var provider in transactionMetrics.Select(m => m.ProviderKey).Distinct())
+            {
+                <StackSelectItem T="string" Value="@provider">@provider</StackSelectItem>
+            }
+        }
+    </StackSelect>
+</Stack>
+
+<MudTabs @bind-ActivePanelIndex="@tabIndex" Elevation="0" Rounded ApplyEffectsToContainer>
+    <MudTabPanel Text="@Localizer["Alerts"]" OnClick="@(() => OnTabChanged(AlertsTab))">
+        @if (alerts is not null)
+        {
+            @if (alerts.Count == 0)
+            {
+                <Stack>
+                    <MudChip T="string" Color="Color.Success" Size="Size.Small">@Localizer["NoActiveAlerts"]</MudChip>
+                </Stack>
+            }
+            else
+            {
+                @foreach (var alert in alerts)
+                {
+                    <Stack>
+                        <StackExpandable Label="@alert.Title">
+                            <MudChip T="string" Color="@GetAlertColor(alert.Severity)" Size="Size.Small">@alert.Severity</MudChip>
+                            <StackField Label="@alert.AlertType" HelperText="@Localizer["AlertType"]" />
+                            <StackField Label="@alert.Description" HelperText="@Localizer["Details"]" />
+                            @if (alert.ProviderKey is not null)
+                            {
+                                <StackField Label="@alert.ProviderKey" HelperText="@Localizer["Provider"]" />
+                            }
+                            <StackField Label="@alert.DetectedAt.ToLocalTime().ToString("g")" HelperText="@Localizer["DetectedAt"]" />
+                        </StackExpandable>
+                    </Stack>
+                }
+            }
+        }
+        else
+        {
+            <StackProgress Indeterminate />
+        }
+    </MudTabPanel>
+
+    <MudTabPanel Text="@Localizer["Transactions"]" OnClick="@(() => OnTabChanged(TransactionsTab))">
+        @if (transactionMetrics is not null)
+        {
+            @foreach (var metric in transactionMetrics)
+            {
+                <Stack>
+                    <StackExpandable Label="@($"{metric.ProviderKey} / {metric.OperationName}")">
+                        <StackField Label="@metric.TotalCalls.ToString()" HelperText="@Localizer["TotalCalls"]" />
+                        <StackField Label="@($"{metric.SuccessRate:F1}%")" HelperText="@Localizer["SuccessRate"]" />
+                        <MudChip T="string" Color="@GetSuccessRateColor(metric.SuccessRate)" Size="Size.Small">
+                            @metric.SuccessCount ✓ / @metric.FailureCount ✗
+                        </MudChip>
+                        @if (metric.TimeoutCount > 0)
+                        {
+                            <MudChip T="string" Color="Color.Warning" Size="Size.Small">
+                                @Localizer["Timeouts"]: @metric.TimeoutCount
+                            </MudChip>
+                        }
+                        @if (metric.LastCallAt.HasValue)
+                        {
+                            <StackField Label="@metric.LastCallAt.Value.ToLocalTime().ToString("g")" HelperText="@Localizer["LastCall"]" />
+                        }
+                    </StackExpandable>
+                </Stack>
+            }
+
+            @if (transactionMetrics.Count == 0)
+            {
+                <Stack>
+                    <StackField Label="@Localizer["NoTransactionData"]" />
+                </Stack>
+            }
+        }
+        else
+        {
+            <StackProgress Indeterminate />
+        }
+    </MudTabPanel>
+
+    <MudTabPanel Text="@Localizer["Rejections"]" OnClick="@(() => OnTabChanged(RejectionsTab))">
+        @if (rejectionDistribution is not null)
+        {
+            @foreach (var item in rejectionDistribution)
+            {
+                <Stack>
+                    <StackExpandable Label="@($"{item.ProviderKey} — {item.ErrorCategory}")">
+                        <StackField Label="@item.Count.ToString()" HelperText="@Localizer["Count"]" />
+                        <StackField Label="@($"{item.Percentage:F1}%")" HelperText="@Localizer["Percentage"]" />
+                        @if (item.LastOccurrence.HasValue)
+                        {
+                            <StackField Label="@item.LastOccurrence.Value.ToLocalTime().ToString("g")" HelperText="@Localizer["LastOccurrence"]" />
+                        }
+                    </StackExpandable>
+                </Stack>
+            }
+
+            @if (rejectionDistribution.Count == 0)
+            {
+                <Stack>
+                    <StackField Label="@Localizer["NoRejections"]" />
+                </Stack>
+            }
+        }
+        else
+        {
+            <StackProgress Indeterminate />
+        }
+    </MudTabPanel>
+
+    <MudTabPanel Text="@Localizer["Credentials"]" OnClick="@(() => OnTabChanged(CredentialsTab))">
+        @if (credentialHealth is not null)
+        {
+            <Stack>
+                <StackField Label="@credentialHealth.TotalActive.ToString()" HelperText="@Localizer["ActiveCredentials"]" />
+                @if (credentialHealth.ExpiringSoon > 0)
+                {
+                    <MudChip T="string" Color="Color.Warning" Size="Size.Small">
+                        @Localizer["ExpiringSoon"]: @credentialHealth.ExpiringSoon
+                    </MudChip>
+                }
+                @if (credentialHealth.Expired > 0)
+                {
+                    <MudChip T="string" Color="Color.Error" Size="Size.Small">
+                        @Localizer["Expired"]: @credentialHealth.Expired
+                    </MudChip>
+                }
+                @if (credentialHealth.Revoked > 0)
+                {
+                    <MudChip T="string" Color="Color.Dark" Size="Size.Small">
+                        @Localizer["Revoked"]: @credentialHealth.Revoked
+                    </MudChip>
+                }
+            </Stack>
+
+            @foreach (var cred in credentialHealth.Credentials.Where(c => c.IsExpiringSoon || c.Status != CredentialStatus.Active).Take(20))
+            {
+                <Stack>
+                    <StackExpandable Label="@($"{cred.ProviderKey} — Doctor {cred.DoctorId:N}")">
+                        <MudChip T="string" Color="@GetCredentialStatusColor(cred.Status)" Size="Size.Small">@cred.Status</MudChip>
+                        @if (cred.ExpiresAt.HasValue)
+                        {
+                            <StackField Label="@cred.ExpiresAt.Value.ToLocalTime().ToString("g")" HelperText="@Localizer["ExpiresAt"]" />
+                            <StackField Label="@cred.DaysUntilExpiry.ToString()" HelperText="@Localizer["DaysUntilExpiry"]" />
+                        }
+                        @if (cred.IsExpiringSoon)
+                        {
+                            <MudChip T="string" Color="Color.Warning" Size="Size.Small">@Localizer["ExpiringSoon"]</MudChip>
+                        }
+                    </StackExpandable>
+                </Stack>
+            }
+        }
+        else
+        {
+            <StackProgress Indeterminate />
+        }
+    </MudTabPanel>
+
+    <MudTabPanel Text="@Localizer["DuplicateRisk"]" OnClick="@(() => OnTabChanged(DuplicateRiskTab))">
+        @if (duplicateRiskResult is not null)
+        {
+            <Stack>
+                <StackField Label="@duplicateRiskResult.TotalIncidents.ToString()" HelperText="@Localizer["TotalIncidents"]" />
+                <StackField Label="@duplicateRiskResult.PendingCount.ToString()" HelperText="@Localizer["Pending"]" />
+                <StackField Label="@duplicateRiskResult.ResolvedCount.ToString()" HelperText="@Localizer["Resolved"]" />
+            </Stack>
+
+            @foreach (var incident in duplicateRiskResult.RecentIncidents)
+            {
+                <Stack>
+                    <StackExpandable Label="@($"{incident.ProviderKey ?? "—"} — {incident.DetectedAt.ToLocalTime():g}")">
+                        <StackField Label="@incident.PrescriptionId.ToString("N")" HelperText="@Localizer["PrescriptionId"]" />
+                        <MudChip T="string" Color="@(incident.CurrentStatus == PrescriptionStatus.DuplicateRisk ? Color.Warning : Color.Success)" Size="Size.Small">
+                            @incident.CurrentStatus
+                        </MudChip>
+                        @if (incident.ResolvedAt.HasValue)
+                        {
+                            <StackField Label="@incident.ResolvedAt.Value.ToLocalTime().ToString("g")" HelperText="@Localizer["ResolvedAt"]" />
+                        }
+                        @if (incident.ResolutionNotes is not null)
+                        {
+                            <StackField Label="@incident.ResolutionNotes" HelperText="@Localizer["Notes"]" />
+                        }
+                    </StackExpandable>
+                </Stack>
+            }
+
+            @if (duplicateRiskResult.RecentIncidents.Count == 0)
+            {
+                <Stack>
+                    <StackField Label="@Localizer["NoDuplicateRiskIncidents"]" />
+                </Stack>
+            }
+        }
+        else
+        {
+            <StackProgress Indeterminate />
+        }
+    </MudTabPanel>
+
+    <MudTabPanel Text="@Localizer["RetryQueue"]" OnClick="@(() => OnTabChanged(RetryQueueTab))">
+        @if (outboxStatus is not null)
+        {
+            <Stack>
+                <StackField Label="@outboxStatus.PendingCount.ToString()" HelperText="@Localizer["Pending"]" />
+                <StackField Label="@outboxStatus.ProcessingCount.ToString()" HelperText="@Localizer["Processing"]" />
+                <StackField Label="@outboxStatus.FailedCount.ToString()" HelperText="@Localizer["Failed"]" />
+                <StackField Label="@outboxStatus.DuplicateRiskCount.ToString()" HelperText="@Localizer["DuplicateRisk"]" />
+            </Stack>
+
+            @foreach (var entry in outboxStatus.RecentEntries)
+            {
+                <Stack>
+                    <StackExpandable Label="@($"{entry.ProviderKey} — {entry.OperationName} ({entry.Status})")">
+                        <StackField Label="@entry.Id.ToString("N")" HelperText="@Localizer["EntryId"]" />
+                        <StackField Label="@($"{entry.RetryCount}/{entry.MaxRetries}")" HelperText="@Localizer["Retries"]" />
+                        <StackField Label="@entry.CreatedAt.ToLocalTime().ToString("g")" HelperText="@Localizer["CreatedAt"]" />
+                        @if (entry.NextRetryAt.HasValue)
+                        {
+                            <StackField Label="@entry.NextRetryAt.Value.ToLocalTime().ToString("g")" HelperText="@Localizer["NextRetry"]" />
+                        }
+                        @if (entry.LastError is not null)
+                        {
+                            <StackField Label="@entry.LastError" HelperText="@Localizer["LastError"]" />
+                        }
+                    </StackExpandable>
+                </Stack>
+            }
+        }
+        else
+        {
+            <StackProgress Indeterminate />
+        }
+    </MudTabPanel>
+</MudTabs>
+
+@code {
+    private int tabIndex;
+    private const string AlertsTab = "alerts";
+    private const string TransactionsTab = "transactions";
+    private const string RejectionsTab = "rejections";
+    private const string CredentialsTab = "credentials";
+    private const string DuplicateRiskTab = "duplicaterisk";
+    private const string RetryQueueTab = "retryqueue";
+}
