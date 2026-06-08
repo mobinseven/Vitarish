@@ -91,7 +91,7 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
             {
                 if (!pumpCancellationTokenSource.IsCancellationRequested)
                 {
-                    pumpCancellationTokenSource.Cancel();
+                    await pumpCancellationTokenSource.CancelAsync().ConfigureAwait(false);
                 }
 
                 _ = channel.Writer.TryComplete();
