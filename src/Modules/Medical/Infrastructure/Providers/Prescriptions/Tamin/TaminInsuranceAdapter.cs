@@ -3,8 +3,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
 using Vitarish.Modules.Base.Platform.Errors;
-using Vitarish.Medical.Application.Abstractions;
+using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Domain.Entities;
+using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
 using Vitarish.Medical.Infrastructure.Data;
 using Vorn.Tamin;
@@ -19,7 +20,7 @@ public sealed class TaminInsuranceAdapter(
     ITaminCredentialSessionStore sessionStore,
     IHttpClientFactory httpClientFactory,
     IOptionsMonitor<TaminOptions> taminOptions,
-    PrescriptionDbContext dbContext,
+    MedicalDbContext dbContext,
     TaminErrorMapper errorMapper,
     ILogger<TaminInsuranceAdapter> logger) : IInsuranceProviderAdapter
 {
@@ -28,7 +29,7 @@ public sealed class TaminInsuranceAdapter(
     private readonly ITaminCredentialSessionStore _sessionStore = sessionStore;
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly IOptionsMonitor<TaminOptions> _taminOptions = taminOptions;
-    private readonly PrescriptionDbContext _dbContext = dbContext;
+    private readonly MedicalDbContext _dbContext = dbContext;
     private readonly TaminErrorMapper _errorMapper = errorMapper;
     private readonly ILogger<TaminInsuranceAdapter> _logger = logger;
 
@@ -388,12 +389,12 @@ public sealed class TaminInsuranceAdapter(
         IsRetryable = false
     };
 
-    private Task<Domain.Entities.PrescriptionRecord?> LoadPrescriptionWithItemsAsync(Guid prescriptionId, CancellationToken cancellationToken) =>
+    private Task<Domain.Entities.Prescriptions.PrescriptionRecord?> LoadPrescriptionWithItemsAsync(Guid prescriptionId, CancellationToken cancellationToken) =>
         _dbContext.Prescriptions
             .Include(p => p.Items)
             .FirstOrDefaultAsync(p => p.Id == prescriptionId, cancellationToken);
 
-    private async Task<(Domain.Entities.PrescriptionRecord? Prescription, Domain.Entities.PrescriptionProviderSubmission? Submission)>
+    private async Task<(Domain.Entities.Prescriptions.PrescriptionRecord? Prescription, Domain.Entities.Prescriptions.PrescriptionProviderSubmission? Submission)>
         LoadPrescriptionAndSubmissionByRemoteIdAsync(string remotePrescriptionId, CancellationToken cancellationToken)
     {
         var row = await (

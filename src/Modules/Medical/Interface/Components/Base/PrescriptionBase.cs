@@ -1,3 +1,4 @@
+using MudBlazor;
 using Vitarish.Modules.Base;
 
 namespace Vitarish.Medical.Interface.Components.Base;

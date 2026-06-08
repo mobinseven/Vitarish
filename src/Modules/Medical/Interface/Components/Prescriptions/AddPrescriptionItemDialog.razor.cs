@@ -1,6 +1,7 @@
+using MudBlazor;
 using Vitarish.Medical.Domain.Entities;
 
-namespace Vitarish.Medical.Interface.Components.Prescriptions.Prescriptions;
+namespace Vitarish.Medical.Interface.Components.Prescriptions;
 
 public partial class AddPrescriptionItemDialog : PrescriptionBase
 {

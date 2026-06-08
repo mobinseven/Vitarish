@@ -1,5 +1,5 @@
 using Vitarish.Modules.Base.Platform.Errors;
-using Vitarish.Medical.Application.Abstractions;
+using Vitarish.Medical.Application.Abstractions.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Salamat;
 

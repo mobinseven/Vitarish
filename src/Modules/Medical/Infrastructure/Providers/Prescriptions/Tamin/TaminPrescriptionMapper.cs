@@ -1,10 +1,10 @@
 using System.Text.Json;
-using Vitarish.Medical.Application.Abstractions;
+using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Domain.Entities;
 using Vorn.Tamin;
-using DomainPrescriptionStatus = Vitarish.Prescription.Domain.Enums.PrescriptionStatus;
-using EligibilityStatus = Vitarish.Prescription.Domain.Enums.EligibilityStatus;
-using PrescriptionItemCategory = Vitarish.Prescription.Domain.Enums.PrescriptionItemCategory;
+using DomainPrescriptionStatus = Vitarish.Medical.Domain.Enums.Prescriptions.PrescriptionStatus;
+using EligibilityStatus = Vitarish.Medical.Domain.Enums.Prescriptions.EligibilityStatus;
+using PrescriptionItemCategory = Vitarish.Medical.Domain.Enums.Prescriptions.PrescriptionItemCategory;
 
 namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
 

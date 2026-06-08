@@ -1,8 +1,8 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Medical.Application.Abstractions;
-using Vitarish.Medical.Application.Queries;
-using Vitarish.Medical.Domain.Entities;
+using Vitarish.Medical.Application.Abstractions.Prescriptions;
+using Vitarish.Medical.Application.Queries.Prescriptions;
+using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Infrastructure.Data;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
@@ -127,7 +127,7 @@ public sealed class GetEligibilityHandler(IInsuranceProviderRegistry providerReg
             return new EligibilityResultDto
             {
                 IsSuccess = false,
-                Status = Domain.Enums.EligibilityStatus.Unknown,
+                Status = Domain.Enums.Prescriptions.EligibilityStatus.Unknown,
                 ErrorMessage = "آداپتور بیمه‌گر در دسترس نیست."
             };
         }
@@ -152,13 +152,13 @@ public sealed class GetEligibilityHandler(IInsuranceProviderRegistry providerReg
             ? new EligibilityResultDto
             {
                 IsSuccess = false,
-                Status = Domain.Enums.EligibilityStatus.Unknown,
+                Status = Domain.Enums.Prescriptions.EligibilityStatus.Unknown,
                 ErrorMessage = "بیمه‌گر از استعلام حق بیمه پشتیبانی نمی‌کند."
             }
             : new EligibilityResultDto
             {
                 IsSuccess = false,
-                Status = Domain.Enums.EligibilityStatus.ProviderUnavailable,
+                Status = Domain.Enums.Prescriptions.EligibilityStatus.ProviderUnavailable,
                 ErrorMessage = result.Error?.UserMessage ?? "خطا در استعلام حق بیمه."
             };
     }

@@ -1,4 +1,5 @@
-using Vitarish.Medical.Application.Abstractions;
+using Vitarish.Medical.Application.Abstractions.Prescriptions;
+using Vitarish.Medical.Domain.Enums.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions;
 
@@ -10,8 +11,8 @@ public sealed class NullInsuranceAdapter(string providerKey) : IInsuranceProvide
 {
     public string ProviderKey { get; } = providerKey;
 
-    public IReadOnlySet<Domain.Enums.InsuranceProviderCapabilityType> GetCapabilities()
-        => new HashSet<Domain.Enums.InsuranceProviderCapabilityType>();
+    public IReadOnlySet<InsuranceProviderCapabilityType> GetCapabilities()
+        => new HashSet<InsuranceProviderCapabilityType>();
 
     public Task<AdapterResult> AuthenticateAsync(AuthenticateRequest request, CancellationToken cancellationToken = default)
         => Task.FromResult(AdapterResult.NotSupported());

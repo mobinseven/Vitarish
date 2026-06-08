@@ -6,9 +6,9 @@ using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Modules.Base.Platform.Errors;
 using Vitarish.Modules.Base.Platform.Retry;
-using Vitarish.Medical.Application.Abstractions;
-using Vitarish.Medical.Application.Commands;
-using Vitarish.Medical.Domain.Entities;
+using Vitarish.Medical.Application.Abstractions.Prescriptions;
+using Vitarish.Medical.Application.Commands.Prescriptions;
+using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
 using Vitarish.Medical.Infrastructure.Data;
 

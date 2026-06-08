@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using Vitarish.Modules.Base.Platform.Retry;
-using Vitarish.Medical.Domain.Entities;
+using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Infrastructure.Data;
 
 namespace Vitarish.Medical.Infrastructure.Services.Prescriptions;

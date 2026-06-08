@@ -2,7 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Vitarish.Modules.Base.Platform.Errors;
-using Vitarish.Medical.Application.Abstractions;
+using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Domain.Entities;
 using Vitarish.Medical.Infrastructure.Data;
 using Vorn.Tamin;
@@ -10,13 +10,13 @@ using Vorn.Tamin;
 namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
 
 internal sealed class TaminCredentialSessionStore(
-    PrescriptionDbContext dbContext,
+    MedicalDbContext dbContext,
     IHttpClientFactory httpClientFactory,
     IOptionsMonitor<TaminOptions> taminOptions,
     TaminErrorMapper errorMapper,
     ILogger<TaminCredentialSessionStore> logger) : ITaminCredentialSessionStore
 {
-    private readonly PrescriptionDbContext _dbContext = dbContext;
+    private readonly MedicalDbContext _dbContext = dbContext;
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly IOptionsMonitor<TaminOptions> _taminOptions = taminOptions;
     private readonly TaminErrorMapper _errorMapper = errorMapper;

@@ -1,4 +1,5 @@
-namespace Vitarish.Medical.Interface.Components.Prescriptions.Prescriptions;
+using MudBlazor;
+namespace Vitarish.Medical.Interface.Components.Prescriptions;
 
 public partial class PrescriptionItemsGrid : PrescriptionBase
 {
