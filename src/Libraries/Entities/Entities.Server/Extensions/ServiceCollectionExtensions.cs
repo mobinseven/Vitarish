@@ -54,7 +54,6 @@ public static class ServiceCollectionExtensions
 
         services.TryAddSingleton<EntitySearchTextNormalizer>();
         services.TryAddSingleton<EntitySearchPatternFactory>();
-        services.TryAddSingleton<EntitySearchPredicateBuilder>();
 
         return services;
     }

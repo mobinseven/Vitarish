@@ -5,8 +5,7 @@ namespace Vitarish.Sea.Infrastructure.Repositories;
 [RegisterTransient]
 internal class EventRepository(
     SeaDbContext dbContext,
-    EntitySearchPatternFactory searchPatternFactory,
-    EntitySearchPredicateBuilder searchPredicateBuilder)
+    EntitySearchPatternFactory searchPatternFactory)
     : EntityRepository<Event, EventDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Event, EventDescriptor>
 {
@@ -30,7 +29,7 @@ internal class EventRepository(
 
             if (patterns.Count > 0)
             {
-                Expression<Func<Event, bool>> predicate = searchPredicateBuilder.BuildSearchPredicate<Event>(
+                Expression<Func<Event, bool>> predicate = EntitySearchPredicateBuilder.BuildSearchPredicate<Event>(
                     patterns,
                     e => e.Title,
                     e => e.Description);

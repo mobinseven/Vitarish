@@ -5,8 +5,7 @@ namespace Vitarish.Sea.Infrastructure.Repositories;
 [RegisterTransient]
 internal class RoleRepository(
     SeaDbContext dbContext,
-    EntitySearchPatternFactory searchPatternFactory,
-    EntitySearchPredicateBuilder searchPredicateBuilder)
+    EntitySearchPatternFactory searchPatternFactory)
     : EntityRepository<Role, RoleDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Role, RoleDescriptor>
 {
@@ -20,7 +19,7 @@ internal class RoleRepository(
 
             if (patterns.Count > 0)
             {
-                Expression<Func<Role, bool>> predicate = searchPredicateBuilder.BuildSearchPredicate<Role>(
+                Expression<Func<Role, bool>> predicate = EntitySearchPredicateBuilder.BuildSearchPredicate<Role>(
                     patterns,
                     role => role.Name);
 

@@ -5,8 +5,7 @@ namespace Vitarish.Communications.Infrastructure.Repositories;
 [RegisterTransient]
 internal class ReminderRepository(
     CommunicationsDbContext dbContext,
-    EntitySearchPatternFactory searchPatternFactory,
-    EntitySearchPredicateBuilder searchPredicateBuilder)
+    EntitySearchPatternFactory searchPatternFactory)
     : EntityRepository<Reminder, ReminderDescriptor, CommunicationsDbContext>(dbContext),
       IEntityRepository<Reminder, ReminderDescriptor>
 {
@@ -30,7 +29,7 @@ internal class ReminderRepository(
 
             if (patterns.Count > 0)
             {
-                Expression<Func<Reminder, bool>> predicate = searchPredicateBuilder.BuildSearchPredicate<Reminder>(
+                Expression<Func<Reminder, bool>> predicate = EntitySearchPredicateBuilder.BuildSearchPredicate<Reminder>(
                     patterns,
                     r => r.Recipient,
                     r => r.Subject,

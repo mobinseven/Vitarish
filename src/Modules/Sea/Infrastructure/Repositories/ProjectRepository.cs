@@ -5,8 +5,7 @@ namespace Vitarish.Sea.Infrastructure.Repositories;
 [RegisterTransient]
 internal class ProjectRepository(
     SeaDbContext dbContext,
-    EntitySearchPatternFactory searchPatternFactory,
-    EntitySearchPredicateBuilder searchPredicateBuilder)
+    EntitySearchPatternFactory searchPatternFactory)
     : EntityRepository<Project, ProjectDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Project, ProjectDescriptor>
 {
@@ -20,11 +19,11 @@ internal class ProjectRepository(
 
             if (patterns.Count > 0)
             {
-                Expression<Func<Project, bool>> predicate = searchPredicateBuilder.BuildSearchPredicate<Project>(
+                var predicate = EntitySearchPredicateBuilder.BuildSearchPredicate<Project>(
                     patterns,
-                    project => project.Name,
-                    project => project.Description,
-                    project => project.IdentificationCode);
+                    p => p.Name,
+                    p => p.Description,
+                    p => p.IdentificationCode);
 
                 query = query.Where(predicate);
             }

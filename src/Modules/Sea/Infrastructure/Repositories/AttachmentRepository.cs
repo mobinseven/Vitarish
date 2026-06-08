@@ -5,8 +5,7 @@ namespace Vitarish.Sea.Infrastructure.Repositories;
 [RegisterTransient]
 internal class AttachmentRepository(
     SeaDbContext dbContext,
-    EntitySearchPatternFactory searchPatternFactory,
-    EntitySearchPredicateBuilder searchPredicateBuilder)
+    EntitySearchPatternFactory searchPatternFactory)
     : EntityRepository<Attachment, AttachmentDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Attachment, AttachmentDescriptor>
 {
@@ -25,7 +24,7 @@ internal class AttachmentRepository(
 
             if (patterns.Count > 0)
             {
-                Expression<Func<Attachment, bool>> predicate = searchPredicateBuilder.BuildSearchPredicate<Attachment>(
+                Expression<Func<Attachment, bool>> predicate = EntitySearchPredicateBuilder.BuildSearchPredicate<Attachment>(
                     patterns,
                     a => a.Content,
                     a => a.ContentType,

@@ -5,8 +5,7 @@ namespace Vitarish.Sea.Infrastructure.Repositories;
 [RegisterTransient]
 internal class ProcedureRepository(
     SeaDbContext dbContext,
-    EntitySearchPatternFactory searchPatternFactory,
-    EntitySearchPredicateBuilder searchPredicateBuilder)
+    EntitySearchPatternFactory searchPatternFactory)
     : EntityRepository<Procedure, ProcedureDescriptor, SeaDbContext>(dbContext),
       IEntityRepository<Procedure, ProcedureDescriptor>
 {
@@ -25,7 +24,7 @@ internal class ProcedureRepository(
 
             if (patterns.Count > 0)
             {
-                Expression<Func<Procedure, bool>> predicate = searchPredicateBuilder.BuildSearchPredicate<Procedure>(
+                Expression<Func<Procedure, bool>> predicate = EntitySearchPredicateBuilder.BuildSearchPredicate<Procedure>(
                     patterns,
                     procedure => procedure.Name);
 
