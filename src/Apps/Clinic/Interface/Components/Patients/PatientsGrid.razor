@@ -46,8 +46,8 @@
         {
             <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
                          Label="@project.Name"
-                         HighlightString="@SearchString"
-                         EndIcon="" Color="Color.Info">
+                         HighlightString="@SearchString">
+                <MudText Typo="Typo.caption">@project.DateOfSurgery!.Value.ToShortDateString()</MudText>
                 <StatsDisplay Stats="project.Stats" />
             </StackButton>
         }
@@ -63,8 +63,7 @@
         {
             <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
                          Label="@project.Name"
-                         HighlightString="@SearchString"
-                         EndIcon="" Color="Color.Info">
+                         HighlightString="@SearchString">
                 <StatsDisplay Stats="project.Stats" />
             </StackButton>
         }

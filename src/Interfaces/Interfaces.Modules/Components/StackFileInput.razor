@@ -1,0 +1,98 @@
+@using MudBlazor
+@using Vitarish.Files.Application.Abstractions
+@using Vitarish.Files.Domain.Models
+@using Vitarish.Files.Interface.Components
+@using Vitarish.Files.Interface.Models
+@using Vitarish.Interfaces.Base.Common
+@using Vitarish.Requests.Application.Abstractions
+
+@inherits StackButton
+
+<StreamTransfer @ref="_streamTransferComponent"
+                OnFileUploaded="HandleFileUploaded"
+                OnStateChange="@(async () => await InvokeAsync(StateHasChanged))">
+
+    <ActivatorContent>
+        @{
+            var pendingFile = _streamTransferComponent!.PendingFiles.FirstOrDefault();
+        }
+        <StackButton Label="@Label"
+                     HtmlTag="div"
+                     Disabled=@(_busy || !FilesModule.IsAvailable)
+                     Size="@Size"
+                     Color="@Color">
+
+
+            @if(pendingFile is not null)
+            {
+                <div>
+                    <Chip Class="glass" Style="@($"white-space: pre-wrap;height:auto; overflow: auto; background-image: url('{pendingFile.Thumbnail}'); background-size: cover;")">
+                        <MudImage Src="@pendingFile.Thumbnail" Style="opacity:0; height: 100px;" />
+                        @if(_streamTransferComponent.Transferring)
+                        {
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); pointer-events: none;">
+                                <MudProgressCircular Max="100" Min="0" Value="@pendingFile.Progress" />
+                            </div>
+                        }
+                        else
+                        {
+                            <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
+                                <MudFab OnClick="async () => await _streamTransferComponent.StartTransferAsync()" StartIcon="fa-solid fa-check" Color="Color.Success" Size="Size.Small" DropShadow=false />
+                                <MudFab OnClick="() => RemovePendingFile(_streamTransferComponent, pendingFile)" StartIcon="fa-solid fa-xmark" Color="Color.Error" Size="Size.Small" DropShadow=false />
+                            </div>
+                        }
+                    </Chip>
+                </div>
+            }
+            else if(_file is not null)
+            {
+                <MudImage Src="_file.Thumbnail" Style="height: 100px;" />
+            }
+            else
+            {
+                <MudFab HtmlTag="div"
+                        Disabled="@Disabled"
+                        StartIcon="fa-solid fa-photo-film"
+                        DropShadow="false"
+                        Color="@Color"
+                        Size="Size.Small" />
+            }
+
+        </StackButton>
+    </ActivatorContent>
+</StreamTransfer>
+
+@code {
+    [Inject] protected IRequestContext RequestContext { get; set; } = default!;
+    [Inject] protected IFilesModule FilesModule { get; set; } = default!;
+    [Inject] protected IFileInformationService FileInformationService { get; set; } = default!;
+
+    [Parameter] public Guid? FileId { get; set; }
+    [Parameter] public EventCallback<Guid?> FileIdeChanged { get; set; }
+
+    private bool _transferring;
+    private StreamTransfer? _streamTransferComponent;
+
+    private FileInformationReadDto? _file;
+
+    private bool _busy => _transferring;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if(FileId is not null && FileId != Guid.Empty)
+        {
+            _file = await FileInformationService.GetAsync(FileId.Value, CancellationToken.None).GetValueOrDefaultAsync();
+        }
+    }
+
+    private async Task HandleFileUploaded(FileInformationReadDto file)
+    {
+        _file = file;
+        FileId = _file.Id;
+        await FileIdeChanged.InvokeAsync(FileId);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private static void RemovePendingFile(StreamTransfer transfer, PendingFileDto item) => transfer.RemovePendingFileAsync(item);
+
+}

@@ -6,6 +6,7 @@
 	</ItemGroup>
 	
 	<ItemGroup>
+	  <ProjectReference Include="..\..\Interfaces\Interfaces.Modules\Interfaces.Modules.csproj" />
 	  <ProjectReference Include="..\..\Modules\Aggregator\Modules.Aggregator\Modules.Aggregator.csproj" />
 	</ItemGroup>
 

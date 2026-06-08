@@ -30,7 +30,10 @@
                     AdornmentIcon="@(string.IsNullOrWhiteSpace(projectWriteDto.Phone) ? "fa-solid fa-triangle-exclamation" : "fa-solid fa-phone")"
                     AdornmentColor="@(string.IsNullOrWhiteSpace(projectWriteDto.Phone) ? Color.Warning : Color.Default)" />
 
+    <StackFileInput @ref="@stackFileInput" Label="@Localizer["Photo"]" FileId="@projectWriteDto.AvatarFileId" FileIdeChanged="@AvatarUploaded" />
+
 </Stack>
+
 <Stack>
 
     <StackExpandable Label="@Localizer["Details"]">
@@ -76,142 +79,47 @@
                         Label="@Localizer["Occupation"]" />
 
         <StackTextField @bind-Value="projectWriteDto.ClinicalNotes"
-                       
                         Label="@Localizer["Notes"]" />
 
 
-        <StackField Label="@Localizer["Image"]">
-            <ProjectAvatar AvatarFileId="@projectWriteDto.AvatarFileId" Size="96" Style="margin-bottom: 0.5rem;" />
-            <Vitarish.Files.Interface.Components.StreamTransfer OnFileUploaded="OnAvatarUploaded">
-                <ActivatorContent>
-                    <MudButton Variant="Variant.Outlined" StartIcon="fa-solid fa-upload" Color="Color.Primary">@Localizer["Select"]</MudButton>
-                </ActivatorContent>
-            </Vitarish.Files.Interface.Components.StreamTransfer>
-            @if(projectWriteDto.AvatarFileId.HasValue)
-            {
-                <MudButton Variant="Variant.Text" StartIcon="fa-solid fa-xmark" Color="Color.Error" OnClick="RemoveAvatar">@Localizer["Remove"]</MudButton>
-            }
-        </StackField>
+
     </StackExpandable>
 
 </Stack>
+
 <Stack>
+
     <StackExpandable Label="@Localizer["ClinicalData"]">
+
         <StackDatePicker @bind-Date="projectWriteDto.DateOfSurgery"
                          Label="@Localizer["DateOf", Localizer["Surgery"]]" />
+
         <StackTextField @bind-Value="projectWriteDto.InsuranceProvider"
                         Label="@Localizer["InsuranceProvider"]" />
+
         <StackTextField @bind-Value="projectWriteDto.VisitReason"
                         Label="@Localizer["VisitReason"]" />
+
         <StackTextField @bind-Value="projectWriteDto.Allergies"
                         Label="@Localizer["Allergies"]" />
+
         <StackTextField @bind-Value="projectWriteDto.CurrentMedications"
                         Label="@Localizer["CurrentMedications"]" />
+
         <StackTextField @bind-Value="projectWriteDto.EmergencyContactName"
                         Label="@Localizer["EmergencyContactName"]" />
+
         <StackTextField @bind-Value="projectWriteDto.EmergencyContactPhone"
                         Label="@Localizer["EmergencyContactPhone"]" />
+
     </StackExpandable>
 
 </Stack>
+
 <Stack>
-    <StackButton Label="@Localizer["Save"]" EndIcon="fa-solid fa-save" Color="Color.Primary" OnClick="SaveAsync" />
+    <StackButton Label="@Localizer["Save"]" EndIcon="fa-solid fa-save" Color="Color.Primary" OnClick="Proceed" />
     @if(OnCancel.HasDelegate)
     {
         <StackButton Label="@Localizer["Cancel"]" EndIcon="fa-solid fa-xmark" OnClick="() => OnCancel.InvokeAsync()" Color="Color.Secondary" />
     }
 </Stack>
-
-@code {
-    [Parameter] public ProjectWriteDto? InitialProject { get; set; }
-
-    private PatientWriteDto projectWriteDto = new();
-    private static readonly UserFindOrCreateOptions LinkedUserPickerOptions = new()
-    {
-        AllowCreate = true,
-        AllowUnlink = true,
-        ShowSearchScopeSelector = true,
-        DefaultSearchScope = UserSearchScope.TenantUsers,
-        AutoLinkExistingUser = true,
-        AllowAutoLinkToggle = true,
-        EnsureTenantUserRoleOnLink = true
-    };
-
-    private string? LinkedUserId
-    {
-        get => projectWriteDto.UserIds?.FirstOrDefault();
-        set => projectWriteDto.UserIds = value is null ? [] : [value];
-    }
-
-    private Task OnAvatarUploaded(Vitarish.Files.Domain.Models.FileInformationReadDto fileInfo)
-    {
-        projectWriteDto.AvatarFileId = fileInfo.Id;
-        return InvokeAsync(StateHasChanged);
-    }
-
-    private Task RemoveAvatar()
-    {
-        projectWriteDto.AvatarFileId = null;
-        return InvokeAsync(StateHasChanged);
-    }
-
-    private Task OnLinkedUserChangedAsync(string? userId)
-    {
-        LinkedUserId = userId;
-        return InvokeAsync(StateHasChanged);
-    }
-
-    protected override void OnInitialized()
-    {
-        base.OnInitialized();
-        if(Project is not null)
-        {
-            projectWriteDto = Project.ToPatientWrite()!;
-        }
-        else if(InitialProject is PatientWriteDto initialPatient)
-        {
-            projectWriteDto = initialPatient;
-        }
-        else if(InitialProject is not null)
-        {
-            projectWriteDto = new PatientWriteDto
-            {
-                Id = InitialProject.Id,
-                Name = InitialProject.Name,
-                Description = InitialProject.Description,
-                AvatarFileId = InitialProject.AvatarFileId,
-                IdentificationCode = InitialProject.IdentificationCode,
-                Template = InitialProject.Template,
-                UserIds = InitialProject.UserIds,
-                Metadata = InitialProject.Metadata,
-                MetadataValues = InitialProject.MetadataValues
-            };
-        }
-
-        if(Project is not null && string.IsNullOrWhiteSpace(projectWriteDto.LastName))
-        {
-            projectWriteDto.LastName = Project.Name;
-        }
-        StateHasChanged();
-    }
-
-    protected override async Task SaveAsync()
-    {
-        projectWriteDto.Name = $"{projectWriteDto.FirstName} {projectWriteDto.LastName}".TrimEnd(' ', ',');
-        if(string.IsNullOrWhiteSpace(projectWriteDto.Name))
-        {
-            await DialogService.ShowMessageBoxAsync(null, Localizer["RequiredItem", Localizer["LastName"]]);
-            return;
-        }
-        if(Project is null)
-        {
-            var created = await ProjectsService.AddAsync(projectWriteDto, CancellationToken.None).EnsureValueAsync();
-            await OnCreate.InvokeAsync(created.Id);
-        }
-        else
-        {
-            await ProjectsService.UpdateAsync(projectWriteDto, CancellationToken.None);
-            await OnUpdate.InvokeAsync(Project.Id);
-        }
-    }
-}

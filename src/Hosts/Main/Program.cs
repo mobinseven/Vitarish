@@ -20,6 +20,7 @@ using Vitarish.Main.Infrastructure.BackgroundJobs;
 using Vitarish.Main.Infrastructure.Handlers;
 using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Infrastructure.Services;
+using Vitarish.Medical.Infrastructure.Data;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Infrastructure.Data;
@@ -145,6 +146,7 @@ _ = await app.MigrateDatabaseAsync<ContentsDbContext>();
 _ = await app.MigrateDatabaseAsync<SocialDbContext>();
 _ = await app.MigrateDatabaseAsync<LinksDbContext>();
 _ = await app.MigrateDatabaseAsync<FinancialDbContext>();
+_ = await app.MigrateDatabaseAsync<MedicalDbContext>();
 
 CookiePolicyOptions cookiePolicyOptions = new()
 {
