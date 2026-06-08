@@ -78,13 +78,13 @@ public sealed class TaminInsuranceAdapter(
 
         try
         {
-            JsonElement result = await sessionResult.Session!.Identity.CheckEntitlementAsync(
-                new CheckEntitlementRequest
+            JsonElement result = await sessionResult.Session!.Eligibility.LookupPrivatePracticeAsync(
+                new EligibilityLookupRequest
                 {
-                    NationalId = request.PatientNationalId,
-                    ProviderId = sessionResult.DoctorTaminId ?? sessionResult.Session.ClientId ?? string.Empty,
-                    VisitDate = DateTime.UtcNow.ToString("yyyy-MM-dd"),
-                    ServiceType = "clinic"
+                    SiamId = request.ClinicId.ToString(),
+                    DoctorId = sessionResult.DoctorTaminId ?? string.Empty,
+                    DoctorNationalCode = sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
+                    PatientNationalCode = request.PatientNationalId
                 }, cancellationToken);
 
             return AdapterResult<EntitlementResponse>.Success(TaminPrescriptionMapper.ToEntitlementResponse(result));
@@ -185,9 +185,14 @@ public sealed class TaminInsuranceAdapter(
 
         try
         {
+            if (!TryParseHeaderId(request.RemotePrescriptionId, out int headerId))
+            {
+                return AdapterResult<FetchResponse>.Failure(InvalidHeaderIdError(request.RemotePrescriptionId));
+            }
+
             string patientNationalId = prescription.PatientNationalId ?? prescription.PatientId.ToString();
             JsonElement result = await sessionResult.Session!.Prescription.GetRegisteredPrescriptionAsync(
-                request.RemotePrescriptionId,
+                headerId,
                 submission.RemoteTrackingCode,
                 patientNationalId,
                 cancellationToken);
@@ -253,6 +258,11 @@ public sealed class TaminInsuranceAdapter(
 
         try
         {
+            if (!TryParseHeaderId(submission.RemotePrescriptionId, out int headerId))
+            {
+                return AdapterResult<SubmissionResponse>.Failure(InvalidHeaderIdError(submission.RemotePrescriptionId));
+            }
+
             List<object> editedItems = prescription.Items
                 .Select(i => (object)new { service_code = i.ReferenceCode, quantity = i.Quantity })
                 .ToList();
@@ -260,10 +270,10 @@ public sealed class TaminInsuranceAdapter(
             JsonElement result = await sessionResult.Session!.Prescription.EditElectronicPrescriptionAsync(
                 new EditPrescriptionRequest
                 {
-                    PrescriptionId = submission.RemotePrescriptionId,
-                    TrackingCode = submission.RemoteTrackingCode,
-                    EditedItems = editedItems,
-                    EditReason = "ویرایش نسخه"
+                    HeaderId = headerId,
+                    DoctorNationalCode = sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
+                    DoctorId = sessionResult.DoctorTaminId ?? string.Empty,
+                    EditedItems = editedItems
                 }, cancellationToken);
 
             return AdapterResult<SubmissionResponse>.Success(
@@ -308,12 +318,17 @@ public sealed class TaminInsuranceAdapter(
 
         try
         {
+            if (!TryParseHeaderId(request.RemotePrescriptionId, out int headerId))
+            {
+                return AdapterResult.Failure(InvalidHeaderIdError(request.RemotePrescriptionId));
+            }
+
             _ = await sessionResult.Session!.Prescription.DeleteElectronicPrescriptionAsync(
                 new DeletePrescriptionRequest
                 {
-                    PrescriptionId = request.RemotePrescriptionId,
-                    TrackingCode = submission.RemoteTrackingCode,
-                    DeleteReason = "لغو نسخه"
+                    HeaderId = headerId,
+                    DoctorNationalCode = sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
+                    DoctorId = sessionResult.DoctorTaminId ?? string.Empty
                 }, cancellationToken);
 
             return AdapterResult.Success();
@@ -350,6 +365,17 @@ public sealed class TaminInsuranceAdapter(
             return AdapterResult<ReferenceDataResponse>.Failure(MapProviderException(ex));
         }
     }
+
+    private static bool TryParseHeaderId(string? remotePrescriptionId, out int headerId) =>
+        int.TryParse(remotePrescriptionId, out headerId) && headerId > 0;
+
+    private static IntegrationError InvalidHeaderIdError(string? remotePrescriptionId) => new()
+    {
+        Category = ErrorCategory.Validation,
+        UserMessage = "شناسه نسخه ریموت معتبر نیست.",
+        TechnicalDetail = $"RemotePrescriptionId must be a positive integer header ID for Tamin v2. Value: {remotePrescriptionId}",
+        IsRetryable = false
+    };
 
     private Task<Domain.Entities.PrescriptionRecord?> LoadPrescriptionWithItemsAsync(Guid prescriptionId, CancellationToken cancellationToken) =>
         _dbContext.Prescriptions
