@@ -1,10 +1,12 @@
 using Microsoft.JSInterop;
 using Vitarish.Files.Interface.Abstractions;
 using Vitarish.Files.Interface.Models;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Files.Interface.Services;
 
 public sealed class StreamTransferService(
+    IRequestContext requestContext,
     IFileSelectionSession fileSelectionSession,
     IFileTransferCoordinator fileTransferCoordinator,
     IFileInputInterop fileInputInterop,
@@ -19,7 +21,6 @@ public sealed class StreamTransferService(
 
     public Func<Task>? OnStateChangedAsync { get; set; }
     public Func<FileInformationReadDto, Task>? OnFileUploadedAsync { get; set; }
-    public string? UserId { get; set; }
     public FileSelectionMode SelectionMode { get; set; } = FileSelectionMode.GeneralMulti;
     public bool Transferring { get; private set; }
     public string InputId => _inputId;
@@ -84,7 +85,7 @@ public sealed class StreamTransferService(
             await fileTransferCoordinator.StartTransferAsync(
                 PendingFiles,
                 _inputId,
-                UserId,
+                requestContext.UserId,
                 SelectionMode,
                 TriggerStateChangedAsync,
                 async fileInfo =>

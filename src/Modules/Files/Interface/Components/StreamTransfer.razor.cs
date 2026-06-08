@@ -16,7 +16,7 @@ public partial class StreamTransfer : ComponentBase
     public RenderFragment? ActivatorContent { get; set; } = default!;
 
     [Parameter]
-    public string? UserId { get; set; }
+    public bool RenderActContent { get; set; }
 
     [Parameter]
     public FileSelectionMode SelectionMode { get; set; } = FileSelectionMode.GeneralMulti;
@@ -68,7 +68,6 @@ public partial class StreamTransfer : ComponentBase
 
     private void ApplyParameters()
     {
-        Service.UserId = UserId;
         Service.SelectionMode = SelectionMode;
         ActContent = BuildInputHost();
     }

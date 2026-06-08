@@ -9,7 +9,6 @@ public interface IStreamTransfer
     IReadOnlyList<FileInformationReadDto> UploadedFiles { get; }
     Func<Task>? OnStateChangedAsync { get; set; }
     Func<FileInformationReadDto, Task>? OnFileUploadedAsync { get; set; }
-    string? UserId { get; set; }
     FileSelectionMode SelectionMode { get; set; }
 
     void ClearPendings();

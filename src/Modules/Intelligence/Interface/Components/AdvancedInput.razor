@@ -17,7 +17,6 @@
 @if(FileUploadEnabled)
 {
     <StreamTransfer @ref="_streamTransferComponent"
-                    UserId="@UserId"
                     OnFileUploaded="HandleFileUploaded"
                     OnStateChange="()=>StateHasChanged()">
         <ActivatorContent>

@@ -9,6 +9,7 @@
 @inherits StackButton
 
 <StreamTransfer @ref="_streamTransferComponent"
+                RenderActContent="true"
                 OnFileUploaded="HandleFileUploaded"
                 OnStateChange="@(async () => await InvokeAsync(StateHasChanged))">
 
@@ -18,7 +19,7 @@
         }
         <StackButton Label="@Label"
                      HtmlTag="div"
-                     Disabled=@(_busy || !FilesModule.IsAvailable)
+                     Disabled=@(_streamTransferComponent.Transferring)
                      Size="@Size"
                      Color="@Color">
 
@@ -38,7 +39,7 @@
                         {
                             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
                                 <MudFab OnClick="async () => await _streamTransferComponent.StartTransferAsync()" StartIcon="fa-solid fa-check" Color="Color.Success" Size="Size.Small" DropShadow=false />
-                                <MudFab OnClick="() => RemovePendingFile(_streamTransferComponent, pendingFile)" StartIcon="fa-solid fa-xmark" Color="Color.Error" Size="Size.Small" DropShadow=false />
+@*                                 <MudFab OnClick="() => RemovePendingFile(_streamTransferComponent, pendingFile)" StartIcon="fa-solid fa-xmark" Color="Color.Error" Size="Size.Small" DropShadow=false /> *@
                             </div>
                         }
                     </Chip>
@@ -46,7 +47,7 @@
             }
             else if(_file is not null)
             {
-                <MudImage Src="_file.Thumbnail" Style="height: 100px;" />
+                <MudImage Src="@_file.Thumbnail" Style="height: 100px;" />
             }
             else
             {
@@ -70,12 +71,21 @@
     [Parameter] public Guid? FileId { get; set; }
     [Parameter] public EventCallback<Guid?> FileIdeChanged { get; set; }
 
-    private bool _transferring;
     private StreamTransfer? _streamTransferComponent;
 
     private FileInformationReadDto? _file;
 
-    private bool _busy => _transferring;
+    public bool HasPendingFiles => _streamTransferComponent?.PendingFiles.Count > 0;
+
+    public async Task Upload()
+    {
+        if(_streamTransferComponent is null)
+        {
+            return;
+        }
+
+        await _streamTransferComponent.StartTransferAsync();
+    }
 
     protected override async Task OnInitializedAsync()
     {
