@@ -1,4 +1,4 @@
-using Vitarish.Medical.Domain.Enums;
+using Vitarish.Medical.Domain.Enums.Prescriptions;
 
 namespace Vitarish.Medical.Domain.Entities.Prescriptions;
 

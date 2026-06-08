@@ -1,7 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Vitarish.Medical.Application.Abstractions;
-using Vitarish.Medical.Domain.Enums;
+using Vitarish.Medical.Domain.Enums.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Salamat;
 

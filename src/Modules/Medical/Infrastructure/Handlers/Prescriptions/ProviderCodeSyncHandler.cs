@@ -2,9 +2,10 @@ using MediatR;
 using Vitarish.Entities.Server.Models;
 using Vitarish.Medical.Application.Commands;
 using Vitarish.Medical.Application.Contracts;
+using Vitarish.Medical.Application.Contracts.Prescriptions;
 using Vitarish.Medical.Application.Abstractions;
 using Vitarish.Medical.Application.Commands;
-using Vitarish.Medical.Domain.Enums;
+using Vitarish.Medical.Domain.Enums.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 

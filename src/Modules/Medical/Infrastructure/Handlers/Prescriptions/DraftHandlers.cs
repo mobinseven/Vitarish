@@ -6,7 +6,7 @@ using Vitarish.Audit.Domain;
 using Vitarish.Medical.Application.Abstractions;
 using Vitarish.Medical.Application.Commands;
 using Vitarish.Medical.Domain.Entities;
-using Vitarish.Medical.Domain.Enums;
+using Vitarish.Medical.Domain.Enums.Prescriptions;
 using Vitarish.Medical.Infrastructure.Data;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;

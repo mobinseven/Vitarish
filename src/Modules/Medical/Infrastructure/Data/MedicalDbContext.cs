@@ -292,7 +292,6 @@ public sealed class MedicalDbContext(
                                                                                          _ = entity.HasIndex(e => new { e.ServiceCodeId, e.ValuationYear, e.Locality, e.FacilityIndicator })
                                                                                              .HasDatabaseName("IX_ServiceValuation_Lookup");
                                                                                      });
-}
 
     private static void ConfigurePrescriptionDoctorProviderCredential(ModelBuilder modelBuilder) => modelBuilder.Entity<DoctorProviderCredential>(entity =>
                                                                                              {

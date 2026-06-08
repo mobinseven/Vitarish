@@ -1,5 +1,5 @@
 using Vitarish.Modules.Base.Platform.Errors;
-using Vitarish.Medical.Domain.Enums;
+using Vitarish.Medical.Domain.Enums.Prescriptions;
 
 namespace Vitarish.Medical.Application.Abstractions.Prescriptions;
 

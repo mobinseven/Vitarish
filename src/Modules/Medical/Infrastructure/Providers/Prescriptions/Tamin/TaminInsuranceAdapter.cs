@@ -5,7 +5,7 @@ using System.Text.Json;
 using Vitarish.Modules.Base.Platform.Errors;
 using Vitarish.Medical.Application.Abstractions;
 using Vitarish.Medical.Domain.Entities;
-using Vitarish.Medical.Domain.Enums;
+using Vitarish.Medical.Domain.Enums.Prescriptions;
 using Vitarish.Medical.Infrastructure.Data;
 using Vorn.Tamin;
 

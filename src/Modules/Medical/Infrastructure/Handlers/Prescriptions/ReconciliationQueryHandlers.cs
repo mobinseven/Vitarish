@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Vitarish.Modules.Base.Platform.Retry;
 using Vitarish.Medical.Application.Queries;
 using Vitarish.Medical.Domain.Entities;
-using Vitarish.Medical.Domain.Enums;
+using Vitarish.Medical.Domain.Enums.Prescriptions;
 using Vitarish.Medical.Infrastructure.Data;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
