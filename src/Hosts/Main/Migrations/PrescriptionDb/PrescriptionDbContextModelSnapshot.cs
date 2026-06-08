@@ -49,10 +49,6 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                         .HasMaxLength(256)
                         .HasColumnType("character varying(256)");
 
-                    b.Property<string>("ProviderClinicIdentifier")
-                        .HasMaxLength(256)
-                        .HasColumnType("character varying(256)");
-
                     b.Property<string>("ProviderKey")
                         .IsRequired()
                         .HasMaxLength(64)
