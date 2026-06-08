@@ -45,6 +45,7 @@ public sealed class SaveCredentialHandler(
 
             credential.ProviderDoctorIdentifier = request.ProviderDoctorIdentifier;
             credential.ProviderUsername = request.ProviderUsername;
+            credential.ProviderClinicIdentifier = request.ProviderClinicIdentifier;
             credential.CredentialSecretRef = request.CredentialSecretRef;
             credential.Status = CredentialStatus.Pending;
             credential.UpdatedAt = DateTime.UtcNow;
@@ -71,6 +72,7 @@ public sealed class SaveCredentialHandler(
                 ClinicId = request.ClinicId,
                 ProviderDoctorIdentifier = request.ProviderDoctorIdentifier,
                 ProviderUsername = request.ProviderUsername,
+                ProviderClinicIdentifier = request.ProviderClinicIdentifier,
                 CredentialSecretRef = request.CredentialSecretRef,
                 Status = CredentialStatus.Pending,
                 CreatedAt = DateTime.UtcNow
@@ -219,6 +221,7 @@ public sealed class GetCredentialSetupGridHandler(
                 ClinicId = c.ClinicId,
                 ProviderDoctorIdentifier = c.ProviderDoctorIdentifier,
                 ProviderUsername = c.ProviderUsername,
+                ProviderClinicIdentifier = c.ProviderClinicIdentifier,
                 Status = c.Status,
                 ExpiresAt = c.ExpiresAt,
                 DaysUntilExpiry = c.ExpiresAt.HasValue

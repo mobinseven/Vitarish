@@ -76,12 +76,17 @@ public sealed class TaminInsuranceAdapter(
             return AdapterResult<EntitlementResponse>.Failure(sessionResult.Error!);
         }
 
+        if (string.IsNullOrWhiteSpace(sessionResult.ClinicSiamId))
+        {
+            return AdapterResult<EntitlementResponse>.Failure(MissingClinicSiamIdError(request.ClinicId));
+        }
+
         try
         {
             JsonElement result = await sessionResult.Session!.Eligibility.LookupPrivatePracticeAsync(
                 new EligibilityLookupRequest
                 {
-                    SiamId = request.ClinicId.ToString(),
+                    SiamId = sessionResult.ClinicSiamId,
                     DoctorId = sessionResult.DoctorTaminId ?? string.Empty,
                     DoctorNationalCode = sessionResult.DoctorNationalCode ?? sessionResult.DoctorTaminId ?? string.Empty,
                     PatientNationalCode = request.PatientNationalId
@@ -263,9 +268,7 @@ public sealed class TaminInsuranceAdapter(
                 return AdapterResult<SubmissionResponse>.Failure(InvalidHeaderIdError(submission.RemotePrescriptionId));
             }
 
-            List<object> editedItems = prescription.Items
-                .Select(i => (object)new { service_code = i.ReferenceCode, quantity = i.Quantity })
-                .ToList();
+            IReadOnlyList<object> editedItems = TaminEditedPrescriptionItemMapper.ToEditedItems(prescription.Items);
 
             JsonElement result = await sessionResult.Session!.Prescription.EditElectronicPrescriptionAsync(
                 new EditPrescriptionRequest
@@ -374,6 +377,14 @@ public sealed class TaminInsuranceAdapter(
         Category = ErrorCategory.Validation,
         UserMessage = "شناسه نسخه ریموت معتبر نیست.",
         TechnicalDetail = $"RemotePrescriptionId must be a positive integer header ID for Tamin v2. Value: {remotePrescriptionId}",
+        IsRetryable = false
+    };
+
+    private static IntegrationError MissingClinicSiamIdError(Guid clinicId) => new()
+    {
+        Category = ErrorCategory.Validation,
+        UserMessage = "شناسه سیام کلینیک برای تامین اجتماعی ثبت نشده است.",
+        TechnicalDetail = $"ProviderClinicIdentifier (SiamId) is required for clinic {clinicId} and provider TAMIN.",
         IsRetryable = false
     };
 

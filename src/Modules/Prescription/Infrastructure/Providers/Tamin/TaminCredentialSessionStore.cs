@@ -45,7 +45,7 @@ internal sealed class TaminCredentialSessionStore(
             HttpClient httpClient = _httpClientFactory.CreateClient("TaminClient");
             TaminSession session = new(httpClient, credential.TokenSecretRef,
                 new Uri(options.EffectiveBaseUrl), needToken: true, clientId: options.ApiKey);
-            return TaminSessionResult.Success(session, ResolveDoctorTaminId(credential), credential.ProviderUsername);
+            return TaminSessionResult.Success(session, ResolveDoctorTaminId(credential), credential.ProviderUsername, credential.ProviderClinicIdentifier);
         }
 
         return await AuthenticateInternalAsync(credential, doctorId, clinicId, cancellationToken);
@@ -84,7 +84,7 @@ internal sealed class TaminCredentialSessionStore(
             _ = await _dbContext.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation("Tamin authentication successful for doctor {DoctorId} in clinic {ClinicId}", doctorId, clinicId);
-            return TaminSessionResult.Success(session, ResolveDoctorTaminId(credential), credential.ProviderUsername);
+            return TaminSessionResult.Success(session, ResolveDoctorTaminId(credential), credential.ProviderUsername, credential.ProviderClinicIdentifier);
         }
         catch (ConnectionError ex)
         {
