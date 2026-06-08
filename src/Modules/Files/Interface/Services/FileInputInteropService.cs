@@ -1,5 +1,4 @@
 using Microsoft.JSInterop;
-using Vitarish.Files.Interface.Abstractions;
 
 namespace Vitarish.Files.Interface.Services;
 
@@ -50,15 +49,7 @@ public sealed class FileInputInteropService(IJSRuntime jsRuntime) : IFileInputIn
             ? Task.CompletedTask
             : _module.InvokeVoidAsync("disposeFileInput", inputId).AsTask();
 
-    public async Task<IJSStreamReference?> GetFileStreamAsync(string inputId, string fileName, CancellationToken cancellationToken = default)
-    {
-        if (_module is null)
-        {
-            return null;
-        }
-
-        return await _module.InvokeAsync<IJSStreamReference?>("getFileStream", cancellationToken, inputId, fileName);
-    }
+    public async Task<IJSStreamReference?> GetFileStreamAsync(string inputId, string fileName, CancellationToken cancellationToken = default) => _module is null ? null : await _module.InvokeAsync<IJSStreamReference?>("getFileStream", cancellationToken, inputId, fileName);
 
     public async ValueTask DisposeAsync()
     {
