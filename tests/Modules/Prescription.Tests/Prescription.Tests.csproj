@@ -25,6 +25,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\src\Modules\Prescription\Infrastructure\Prescription.Infrastructure.csproj" />
+    <ProjectReference Include="../../../src/Modules/Medical/Infrastructure/Medical.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

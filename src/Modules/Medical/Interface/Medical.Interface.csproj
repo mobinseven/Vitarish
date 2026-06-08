@@ -6,6 +6,7 @@
     <ProjectReference Include="..\Application\Medical.Application.csproj" />
     <ProjectReference Include="..\Domain\Medical.Domain.csproj" />
     <ProjectReference Include="..\Infrastructure\Medical.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
 </Project>
