@@ -82,7 +82,21 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
                 FileInformationReadDto fileInfo = await filesService.SaveFile(channel.Reader, info, cancellationToken).ConfigureAwait(false)
                     ?? throw new InvalidDataException("The returned result must not be null");
 
-                await pump.ConfigureAwait(false);
+                if (!pumpCancellationTokenSource.IsCancellationRequested)
+                {
+                    await pumpCancellationTokenSource.CancelAsync().ConfigureAwait(false);
+                }
+
+                _ = channel.Writer.TryComplete();
+                try
+                {
+                    await pump.ConfigureAwait(false);
+                }
+                catch (OperationCanceledException) when (pumpCancellationTokenSource.IsCancellationRequested)
+                {
+                    // SaveFile may return without consuming the stream when the file already exists.
+                }
+
                 _ = onPendingRemoved(file, mode);
                 await onUploadedAsync(fileInfo);
                 success = true;
@@ -91,7 +105,7 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
             {
                 if (!pumpCancellationTokenSource.IsCancellationRequested)
                 {
-                    pumpCancellationTokenSource.Cancel();
+                    await pumpCancellationTokenSource.CancelAsync().ConfigureAwait(false);
                 }
 
                 _ = channel.Writer.TryComplete();
