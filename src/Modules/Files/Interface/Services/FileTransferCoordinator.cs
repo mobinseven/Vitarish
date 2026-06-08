@@ -4,7 +4,10 @@ using Vitarish.Files.Application.Abstractions;
 
 namespace Vitarish.Files.Interface.Services;
 
-public sealed class FileTransferCoordinator(IFilesService filesService, IFileInputInterop fileInputInterop) : IFileTransferCoordinator
+public sealed class FileTransferCoordinator(
+    IFilesService filesService,
+    IFileInformationService fileInformationService,
+    IFileInputInterop fileInputInterop) : IFileTransferCoordinator
 {
     public async Task StartTransferAsync(
         IReadOnlyList<PendingFileDto> pendingFiles,
@@ -21,6 +24,18 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
         {
             if (file.Size <= 0 || string.IsNullOrWhiteSpace(file.Name))
             {
+                continue;
+            }
+
+            file.UserId = userId;
+            FileInformationReadDto info = CreateFileInformation(file);
+
+            FileInformationReadDto? existingFile = await FindExistingChecksumAsync(file.Checksum, cancellationToken).ConfigureAwait(false);
+            if (existingFile is not null)
+            {
+                FileInformationReadDto savedFile = await CreateFileRecordAsync(info, existingFile, cancellationToken).ConfigureAwait(false);
+                _ = onPendingRemoved(file, mode);
+                await onUploadedAsync(savedFile);
                 continue;
             }
 
@@ -65,16 +80,6 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
                     throw;
                 }
             }, cancellationToken);
-
-            file.UserId = userId;
-            FileInformationReadDto info = new()
-            {
-                Checksum = file.Checksum,
-                Thumbnail = file.Thumbnail,
-                AllowedOrigins = "*",
-                ContentType = file.Type,
-                Metadata = new FileMetadata { Size = file.Size }
-            };
 
             bool success = false;
             try
@@ -122,5 +127,45 @@ public sealed class FileTransferCoordinator(IFilesService filesService, IFileInp
                 }
             }
         }
+    }
+
+    private static FileInformationReadDto CreateFileInformation(PendingFileDto file) => new()
+    {
+        Checksum = file.Checksum,
+        Thumbnail = file.Thumbnail,
+        AllowedOrigins = "*",
+        ContentType = file.Type,
+        Metadata = new FileMetadata { Size = file.Size }
+    };
+
+    private async Task<FileInformationReadDto?> FindExistingChecksumAsync(string checksum, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(checksum))
+        {
+            return null;
+        }
+
+        IReadOnlyList<FileInformationReadDto> existingFiles = await fileInformationService
+            .GetListAsync(new FileInformationDescriptorDto { Checksum = checksum }, cancellationToken)
+            .EnsureValueAsync()
+            .ConfigureAwait(false);
+
+        return existingFiles.FirstOrDefault();
+    }
+
+    private async Task<FileInformationReadDto> CreateFileRecordAsync(FileInformationReadDto info, FileInformationReadDto existingFile, CancellationToken cancellationToken)
+    {
+        FileInformationWriteDto writeDto = new()
+        {
+            AllowedOrigins = info.AllowedOrigins,
+            Checksum = info.Checksum,
+            ContentType = info.ContentType,
+            Owner = existingFile.Owner,
+            Thumbnail = info.Thumbnail,
+            Tag = info.Tag,
+            Url = existingFile.Url
+        };
+
+        return await fileInformationService.AddAsync(writeDto, cancellationToken).EnsureValueAsync().ConfigureAwait(false);
     }
 }
