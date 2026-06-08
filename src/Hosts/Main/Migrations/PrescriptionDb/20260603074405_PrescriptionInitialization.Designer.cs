@@ -5,13 +5,13 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
-using Vitarish.Prescription.Infrastructure.Data;
+using Vitarish.Medical.Infrastructure.Data;
 
 #nullable disable
 
 namespace Vitarish.Main.Migrations.PrescriptionDb
 {
-    [DbContext(typeof(PrescriptionDbContext))]
+    [DbContext(typeof(MedicalDbContext))]
     [Migration("20260603074405_PrescriptionInitialization")]
     partial class PrescriptionInitialization
     {
@@ -26,7 +26,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("Vitarish.Prescription.Domain.Entities.DoctorProviderCredential", b =>
+            modelBuilder.Entity("Vitarish.Medical.Domain.Entities.Prescriptions.DoctorProviderCredential", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -89,7 +89,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                     b.ToTable("DoctorProviderCredentials", "Prescription");
                 });
 
-            modelBuilder.Entity("Vitarish.Prescription.Domain.Entities.PrescriptionEscalation", b =>
+            modelBuilder.Entity("Vitarish.Medical.Domain.Entities.Prescriptions.PrescriptionEscalation", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -132,7 +132,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                     b.ToTable("Escalations", "Prescription");
                 });
 
-            modelBuilder.Entity("Vitarish.Prescription.Domain.Entities.PrescriptionItem", b =>
+            modelBuilder.Entity("Vitarish.Medical.Domain.Entities.Prescriptions.PrescriptionItem", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -185,7 +185,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                     b.ToTable("PrescriptionItems", "Prescription");
                 });
 
-            modelBuilder.Entity("Vitarish.Prescription.Domain.Entities.PrescriptionOutboxRecord", b =>
+            modelBuilder.Entity("Vitarish.Medical.Domain.Entities.Prescriptions.PrescriptionOutboxRecord", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -257,7 +257,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                     b.ToTable("OutboxRecords", "Prescription");
                 });
 
-            modelBuilder.Entity("Vitarish.Prescription.Domain.Entities.PrescriptionProviderSubmission", b =>
+            modelBuilder.Entity("Vitarish.Medical.Domain.Entities.Prescriptions.PrescriptionProviderSubmission", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -318,7 +318,7 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                     b.ToTable("PrescriptionSubmissions", "Prescription");
                 });
 
-            modelBuilder.Entity("Vitarish.Prescription.Domain.Entities.PrescriptionRecord", b =>
+            modelBuilder.Entity("Vitarish.Medical.Domain.Entities.Prescriptions.PrescriptionRecord", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
@@ -406,16 +406,16 @@ namespace Vitarish.Main.Migrations.PrescriptionDb
                     b.ToTable("Prescriptions", "Prescription");
                 });
 
-            modelBuilder.Entity("Vitarish.Prescription.Domain.Entities.PrescriptionItem", b =>
+            modelBuilder.Entity("Vitarish.Medical.Domain.Entities.Prescriptions.PrescriptionItem", b =>
                 {
-                    b.HasOne("Vitarish.Prescription.Domain.Entities.PrescriptionRecord", null)
+                    b.HasOne("Vitarish.Medical.Domain.Entities.Prescriptions.PrescriptionRecord", null)
                         .WithMany("Items")
                         .HasForeignKey("PrescriptionRecordId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("Vitarish.Prescription.Domain.Entities.PrescriptionRecord", b =>
+            modelBuilder.Entity("Vitarish.Medical.Domain.Entities.Prescriptions.PrescriptionRecord", b =>
                 {
                     b.Navigation("Items");
                 });

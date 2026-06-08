@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Modules.Base.Platform.Retry;
-using Vitarish.Prescription.Application.Abstractions;
-using Vitarish.Prescription.Application.Commands;
-using Vitarish.Prescription.Domain.Entities;
-using Vitarish.Prescription.Domain.Enums;
-using Vitarish.Prescription.Infrastructure.Data;
+using Vitarish.Medical.Application.Abstractions.Prescriptions;
+using Vitarish.Medical.Application.Commands.Prescriptions;
+using Vitarish.Medical.Domain.Entities.Prescriptions;
+using Vitarish.Medical.Domain.Enums.Prescriptions;
+using Vitarish.Medical.Infrastructure.Data;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Prescriptions;
 
@@ -36,7 +36,7 @@ public sealed class PrescriptionRetryProcessor(
     {
         IOutboxService outboxService = provider.GetRequiredService<IOutboxService>();
         IMediator mediator = provider.GetRequiredService<IMediator>();
-        PrescriptionDbContext dbContext = provider.GetRequiredService<PrescriptionDbContext>();
+        MedicalDbContext dbContext = provider.GetRequiredService<MedicalDbContext>();
         IInsuranceProviderRegistry providerRegistry = provider.GetRequiredService<IInsuranceProviderRegistry>();
 
         // Phase 1: Escalate stale SyncPending prescriptions
@@ -121,7 +121,7 @@ public sealed class PrescriptionRetryProcessor(
     /// </summary>
     private async Task<bool> TryFetchBeforeRetryAsync(
         Guid prescriptionId,
-        PrescriptionDbContext dbContext,
+        MedicalDbContext dbContext,
         IInsuranceProviderRegistry providerRegistry,
         OutboxEntry entry,
         IOutboxService outboxService,
@@ -227,7 +227,7 @@ public sealed class PrescriptionRetryProcessor(
     /// Also cancels any active outbox entries for escalated prescriptions so Phase 3 stops retrying them.
     /// </summary>
     private async Task EscalateStaleSyncPendingAsync(
-        PrescriptionDbContext dbContext,
+        MedicalDbContext dbContext,
         IOutboxService outboxService,
         CancellationToken cancellationToken)
     {
@@ -289,7 +289,7 @@ public sealed class PrescriptionRetryProcessor(
 
     private static async Task SyncOrphanedSyncPendingAsync(
         IOutboxService outboxService,
-        PrescriptionDbContext dbContext,
+        MedicalDbContext dbContext,
         CancellationToken cancellationToken)
     {
         // Find SyncPending prescriptions with no corresponding outbox entry
