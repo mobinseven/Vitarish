@@ -1,5 +1,4 @@
 using Vitarish.Entities.Server.Infrastructure;
-using Vitarish.Medical.Domain.Entities.Prescriptions;
 namespace Vitarish.Medical.Infrastructure.Data;
 
 public sealed class MedicalDbContext(
