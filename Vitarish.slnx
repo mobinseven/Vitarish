@@ -129,12 +129,6 @@
     <Project Path="src/Modules/Platform/Infrastructure/Platform.Infrastructure.csproj" />
     <Project Path="src/Modules/Platform/Interface/Platform.Interface.csproj" />
   </Folder>
-  <Folder Name="/src/Modules/Prescription/">
-    <Project Path="src/Modules/Prescription/Application/Prescription.Application.csproj" />
-    <Project Path="src/Modules/Prescription/Domain/Prescription.Domain.csproj" />
-    <Project Path="src/Modules/Prescription/Infrastructure/Prescription.Infrastructure.csproj" />
-    <Project Path="src/Modules/Prescription/Interface/Prescription.Interface.csproj" />
-  </Folder>
   <Folder Name="/src/Modules/Sea/">
     <Project Path="src/Modules/Sea/Application/Sea.Application.csproj" />
     <Project Path="src/Modules/Sea/Domain/Sea.Domain.csproj" />

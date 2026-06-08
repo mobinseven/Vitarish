@@ -16,7 +16,7 @@ public sealed class MedicalModule : Module, IMedicalModule
     {
         _ = builder.Services.AddSingleton<IMedicalModule, MedicalModule>();
         _ = builder.Services.AddTransientDbContext<MedicalDbContext>((_, options) => configureDbContext?.Invoke(options));
-        _ = builder.Services.AddMedicalInfrastructure();
+        _ = builder.Services.AddMedicalInfrastructure(builder.Configuration);
 
         return Task.CompletedTask;
     }

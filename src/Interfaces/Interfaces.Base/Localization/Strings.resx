@@ -2049,4 +2049,7 @@ of project "{2}"</value>
   <data name="Select another active theme before deleting this one." xml:space="preserve">
     <value>Select another active theme before deleting this one.</value>
   </data>
+  <data name="ProviderClinicIdentifier" xml:space="preserve">
+    <value>Provider clinic identifier</value>
+  </data>
 </root>

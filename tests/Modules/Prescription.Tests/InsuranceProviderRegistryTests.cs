@@ -1,5 +1,5 @@
-using Vitarish.Prescription.Application.Abstractions;
-using Vitarish.Prescription.Infrastructure.Providers;
+using Vitarish.Medical.Application.Abstractions.Prescriptions;
+using Vitarish.Medical.Infrastructure.Providers.Prescriptions;
 
 namespace Modules.Prescription.Tests;
 
