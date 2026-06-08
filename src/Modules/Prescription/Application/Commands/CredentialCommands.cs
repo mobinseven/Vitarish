@@ -12,6 +12,7 @@ public sealed record SaveCredentialCommand : IRequest<SaveCredentialResult>
     public required Guid ClinicId { get; init; }
     public string? ProviderDoctorIdentifier { get; init; }
     public string? ProviderUsername { get; init; }
+    public string? ProviderClinicIdentifier { get; init; }
     public string? CredentialSecretRef { get; init; }
 }
 
@@ -72,6 +73,7 @@ public sealed record CredentialSetupDto
     public Guid ClinicId { get; init; }
     public string? ProviderDoctorIdentifier { get; init; }
     public string? ProviderUsername { get; init; }
+    public string? ProviderClinicIdentifier { get; init; }
     public CredentialStatus Status { get; init; }
     public DateTime? ExpiresAt { get; init; }
     public int DaysUntilExpiry { get; init; }

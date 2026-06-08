@@ -1888,4 +1888,7 @@
   <data name="Select another active theme before deleting this one." xml:space="preserve">
     <value>پیش از حذف این پوسته، پوسته فعال دیگری انتخاب کنید.</value>
   </data>
+  <data name="ProviderClinicIdentifier" xml:space="preserve">
+    <value>شناسه کلینیک در بیمه‌گر</value>
+  </data>
 </root>

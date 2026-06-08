@@ -19,6 +19,9 @@ public sealed class DoctorProviderCredential
     /// <summary>Provider-specific username.</summary>
     public string? ProviderUsername { get; set; }
 
+    /// <summary>Provider-specific clinic identifier registered outside this system.</summary>
+    public string? ProviderClinicIdentifier { get; set; }
+
     /// <summary>Reference to encrypted credential secret (never store plaintext).</summary>
     public string? CredentialSecretRef { get; set; }
 

@@ -39,6 +39,7 @@ public sealed class PrescriptionDbContext(
                                                                                              {
                                                                                                  _ = entity.Property(e => e.ProviderKey).HasMaxLength(64);
                                                                                                  _ = entity.Property(e => e.ProviderDoctorIdentifier).HasMaxLength(256);
+                                                                                                 _ = entity.Property(e => e.ProviderClinicIdentifier).HasMaxLength(256);
                                                                                                  _ = entity.Property(e => e.ProviderUsername).HasMaxLength(256);
                                                                                                  _ = entity.Property(e => e.CredentialSecretRef).HasMaxLength(512);
                                                                                                  _ = entity.Property(e => e.TokenSecretRef).HasMaxLength(512);
