@@ -33,9 +33,9 @@ public sealed class FileTransferCoordinator(
             FileInformationReadDto? existingFile = await FindExistingChecksumAsync(file.Checksum, cancellationToken).ConfigureAwait(false);
             if (existingFile is not null)
             {
-                FileInformationReadDto savedFile = await CreateFileRecordAsync(info, existingFile.Owner, cancellationToken).ConfigureAwait(false);
+                FileInformationReadDto savedFile = await CreateFileRecordAsync(info, existingFile, cancellationToken).ConfigureAwait(false);
                 _ = onPendingRemoved(file, mode);
-                await onUploadedAsync(savedFile).ConfigureAwait(false);
+                await onUploadedAsync(savedFile);
                 continue;
             }
 
@@ -153,17 +153,17 @@ public sealed class FileTransferCoordinator(
         return existingFiles.FirstOrDefault();
     }
 
-    private async Task<FileInformationReadDto> CreateFileRecordAsync(FileInformationReadDto info, string? owner, CancellationToken cancellationToken)
+    private async Task<FileInformationReadDto> CreateFileRecordAsync(FileInformationReadDto info, FileInformationReadDto existingFile, CancellationToken cancellationToken)
     {
         FileInformationWriteDto writeDto = new()
         {
             AllowedOrigins = info.AllowedOrigins,
             Checksum = info.Checksum,
             ContentType = info.ContentType,
-            Owner = owner,
+            Owner = existingFile.Owner,
             Thumbnail = info.Thumbnail,
             Tag = info.Tag,
-            Url = info.Url
+            Url = existingFile.Url
         };
 
         return await fileInformationService.AddAsync(writeDto, cancellationToken).EnsureValueAsync().ConfigureAwait(false);

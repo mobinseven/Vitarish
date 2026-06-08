@@ -20,7 +20,8 @@ public sealed class FileTransferCoordinatorTests
             Checksum = pendingFile.Checksum,
             ContentType = pendingFile.Type,
             Owner = "tenant",
-            Thumbnail = pendingFile.Thumbnail
+            Thumbnail = pendingFile.Thumbnail,
+            Url = "https://example.com/existing.bin"
         };
         FileInformationReadDto savedFile = existingFile with { Id = Guid.NewGuid() };
 
@@ -36,7 +37,8 @@ public sealed class FileTransferCoordinatorTests
                     dto.Checksum == pendingFile.Checksum &&
                     dto.ContentType == pendingFile.Type &&
                     dto.Thumbnail == pendingFile.Thumbnail &&
-                    dto.Owner == "tenant"),
+                    dto.Owner == "tenant" &&
+                    dto.Url == "https://example.com/existing.bin"),
                 It.IsAny<CancellationToken>()))
             .ReturnsAsync(EntityResult<FileInformationReadDto>.Success(savedFile));
 
