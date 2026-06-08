@@ -4,22 +4,23 @@
     <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Style="width: 100%;">
         @if(SearchActive)
         {
-            <MudTextField T="string" Class="mx-2" @bind-Value="NavService.SearchString" Style="border-radius: 70px; width: 100%;" AutoFocus DebounceInterval="1000" Underline="false" Variant="Variant.Text" />
-            <MudFab Size=Size StartIcon="fa-solid fa-xmark" DropShadow=false OnClick="Close" />
+            <Stack>
+                <StackTextField @bind-Value="NavService.SearchString" DebounceInterval="500" Adornment="Adornment.End" AdornmentIcon="fa-solid fa-xmark" OnAdornmentClick="Close" />
+            </Stack>
         }
         else
         {
             @if(ScrollToTopVisible)
             {
-                <MudFab Size="Size" StartIcon="fa-solid fa-chevron-up" DropShadow="false" OnClick="OnScrollToTopClick" />
+                <MudFab Size="Size" StartIcon="fa-solid fa-chevron-up" DropShadow="false" OnClick="OnScrollToTopClick" Color="Color.Tertiary" Style="backdrop-filter: blur(10px);" />
             }
             else
             {
-                <MudFab Size=Size StartIcon="fa-solid fa-house-blank" DropShadow=false OnClick="HandleHomeClick" />
+                <MudFab Size=Size StartIcon="fa-solid fa-house-blank" DropShadow=false OnClick="HandleHomeClick" Color="Color.Tertiary" Style="backdrop-filter: blur(10px);" />
             }
-            <MudFab Size=Size StartIcon="fa-solid fa-magnifying-glass" DropShadow=false OnClick="Open" Disabled="!Search" />
-            <MudFab Size=Size StartIcon="fa-solid fa-level-up-alt" DropShadow=false OnClick="HandleBackClick" Disabled="@(NavigationManager.Uri == NavigationManager.BaseUri)" />
-            <MudFab Size=Size StartIcon="fa-solid fa-gear" DropShadow=false OnClick="HandleProfileClick" />
+            <MudFab Size=Size StartIcon="fa-solid fa-magnifying-glass" DropShadow=false OnClick="Open" Color="@(Search ? Color.Success : Color.Tertiary)" Style="backdrop-filter: blur(10px);" />
+            <MudFab Size=Size StartIcon="fa-solid fa-level-up-alt" DropShadow=false OnClick="HandleBackClick" Disabled="@(NavigationManager.Uri == NavigationManager.BaseUri)" Color="Color.Tertiary" Style="backdrop-filter: blur(10px);" />
+            <MudFab Size=Size StartIcon="fa-solid fa-gear" DropShadow=false OnClick="HandleProfileClick" Color="Color.Tertiary" Style="backdrop-filter: blur(10px);" />
         }
     </MudStack>
 </div>

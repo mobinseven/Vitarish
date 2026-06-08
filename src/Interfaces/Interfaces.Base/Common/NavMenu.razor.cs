@@ -1,20 +1,31 @@
 using Microsoft.AspNetCore.Components.Web;
+using System.Reflection;
+using Vitarish.Main.Components;
 
 namespace Vitarish.Interfaces.Base.Common;
 
 
 public partial class NavMenu : CommonBase, IAsyncDisposable
 {
+    [CascadingParameter(Name = "CurrentRouteData")]
+    public RouteData? RouteData { get; set; }
+
     [Inject]
     private IScrollListenerFactory ScrollListenerFactory { get; set; } = null!;
 
     [SupplyParameterFromQuery]
     [Parameter]
     public bool Search { get; set; }
+
+    [Parameter] public EventCallback RedirectToSearch { get; set; }
     [Parameter] public Size Size { get; set; } = Size.Large;
 
     private bool SearchActive => NavService.SearchString is not null;
-    protected override void OnInitialized() => NavigationManager.LocationChanged += OnLocationChanged;
+    protected override void OnInitialized()
+    {
+        Search = RouteData?.PageType.GetCustomAttribute<EnableSearchAttribute>(inherit: true) is not null;
+        NavigationManager.LocationChanged += OnLocationChanged;
+    }
 
     private async void Close()
     {
@@ -24,11 +35,24 @@ public partial class NavMenu : CommonBase, IAsyncDisposable
 
     private async void Open()
     {
-        NavService.SearchString = string.Empty;
-        await InvokeAsync(StateHasChanged);
+        if (Search)
+        {
+            NavService.SearchString = string.Empty;
+            await InvokeAsync(StateHasChanged);
+
+        }
+        else
+        {
+            await RedirectToSearch.InvokeAsync();
+        }
     }
 
-    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e) => Close();
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+
+        Search = RouteData?.PageType.GetCustomAttribute<EnableSearchAttribute>(inherit: true) is not null;
+        Close();
+    }
     private void HandleHomeClick() => NavService.Home();
     private void HandleBackClick() => NavService.Back();
     private void HandleProfileClick() => NavService.Profile();

@@ -1,11 +1,13 @@
+@using MudBlazor.State
 @inherits MudTextField<string>
 
-<MudTextField Value="@Value"
+<MudTextField @bind-Value:get="@_valueState.Value"
+              @bind-Value:set="@_valueState.SetValueAsync"
               AdornmentColor="@AdornmentColor"
               AdornmentIcon="@AdornmentIcon"
               Adornment="@Adornment"
+              AutoFocus="@AutoFocus"
               OnAdornmentClick="@OnAdornmentClick"
-              ValueChanged="@ValueChanged"
               Style="@Style"
               Class="@($"stack-item {(Centered ? "centered" : "")}")"
               Underline="false"
@@ -23,10 +25,15 @@
               InputMode="@InputMode"
               UserAttributes="@UserAttributes"
               ReadOnly="@ReadOnly"
-              Disabled="@Disabled"/>
+              Disabled="@Disabled" />
 @code {
     [Parameter] public bool Centered { get; set; }
-    
-    // Note: parameter removed - not available in MudBlazor 9.x
-    // Use Lines and MaxLines together for similar behavior
+    private readonly ParameterState<string?> _valueState;
+    public StackTextField()
+    {
+        using var registerScope = CreateRegisterScope();
+        this._valueState = registerScope.RegisterParameter<string?>(nameof(Value))
+            .WithParameter(() => Value)
+            .WithEventCallback(() => ValueChanged);
+    }
 }

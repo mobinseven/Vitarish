@@ -19,7 +19,7 @@ else
                       Theme="@ThemeService.Theme"
                       IsDarkMode="@ThemeService.IsDarkMode"
                       IsDarkModeChanged="OnDarkModeChanged"
-                      ObserveSystemThemeChange="@ThemeService.ObserveSystemThemeChange" />
+                      ObserveSystemDarkModeChange="@ThemeService.ObserveSystemThemeChange" />
 }
 else
 {
@@ -27,8 +27,8 @@ else
                       @rendermode="InteractiveServer"
                       Theme="@ThemeService.Theme"
                       IsDarkMode="@ThemeService.IsDarkMode"
-                      IsDarkModeChanged="OnDarkModeChanged"
-                      ObserveSystemThemeChange="@ThemeService.ObserveSystemThemeChange" />
+                      IsDarkModeChanged="OnDarkModeChanged" 
+                      ObserveSystemDarkModeChange="@ThemeService.ObserveSystemThemeChange" />
 }
 
 @* <ThemeSurfaceConfigurator @rendermode="InteractiveServer" /> *@

@@ -8,7 +8,7 @@
    ----------------------------- */
 :root {
     /* Frost — stronger blur + saturation for a crisper glass look */
-    --glass-blur: 24px;
+    --glass-blur: 10px;
     --glass-saturation: 1.8;
     --glass-backdrop: blur(var(--glass-blur)) saturate(var(--glass-saturation));
 

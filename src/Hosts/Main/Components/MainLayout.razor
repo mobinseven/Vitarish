@@ -1,10 +1,11 @@
+@using Vitarish.Parties.Interface.Components.Common
 @inherits LayoutComponentBase
 
 @if(Initialized)
 {
     <ThemeConnector>
         <MudRTLProvider RightToLeft="@System.Globalization.CultureInfo.CurrentCulture.TextInfo.IsRightToLeft" Style="min-height: 100dvh;">
-            <BreakpointProvider @bind-Breakpoint="PageBreakpoint" BreakpointReceived="() => BreakpointReceived  = true" />
+            <BreakpointProvider @bind-Breakpoint="PageBreakpoint" BreakpointReceived="() => BreakpointReceived = true" />
             @if(BreakpointReceived)
             {
                 <CascadingValue Value="@PageBreakpoint">
@@ -15,6 +16,12 @@
 
 
                     <WidthControlled>
+
+                        <TenantHeader />
+
+                        @* <CurrentUserTenantsWidget /> *@
+
+
                         <BreadcrumbsTree />
 
                         <TitleContainer />
@@ -40,18 +47,14 @@
                     <div style="position: fixed; z-index: 10; bottom: 0; width: 100%;pointer-events: none;">
                         @if(PageBreakpoint >= Breakpoint.Sm)
                         {
-                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-5">
-                                <Stack Style="border-radius: 70px; pointer-events: auto;">
-                                    <NavMenu Size="Size.Large" />
-                                </Stack>
+                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-5" Style="pointer-events: auto;">
+                                <NavMenu Size="Size.Large" />
                             </MudStack>
                         }
                         else if(PageBreakpoint < Breakpoint.Sm)
                         {
-                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Class="pa-1">
-                                <Stack Style="border-radius: 70px; pointer-events: auto;">
-                                    <NavMenu />
-                                </Stack>
+                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Class="pa-1" Style="pointer-events: auto;">
+                                <NavMenu />
                             </MudStack>
                         }
                     </div>
@@ -59,7 +62,7 @@
                 </CascadingValue>
             }
             <MudPopoverProvider />
-            <MudDialogProvider FullWidth="true" 
+            <MudDialogProvider FullWidth="true"
                                MaxWidth="MaxWidth.Small" />
             <MudSnackbarProvider />
         </MudRTLProvider>

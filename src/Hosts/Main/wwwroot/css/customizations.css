@@ -20,7 +20,7 @@
 
 .fade {
     -webkit-animation-name: fade-in;
-    -webkit-animation-duration: 1s;
+    -webkit-animation-duration: .5s;
     -webkit-animation-iteration-count: 1;
 }
 

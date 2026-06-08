@@ -14,7 +14,8 @@
     <StackButton Label="@Localizer["CheckIn"]"
                  Href="@AppRoutes.Clinic.CheckIn"
                  EndIcon="fa-solid fa-person-walking-arrow-right"
-                 Color="Color.Primary" />
+                 Color="Color.Primary"
+                 Size="Size.Large" />
 </Stack>
 
 <Stack>
@@ -22,11 +23,11 @@
     <StackButton Href="@AppRoutes.Clinic.OwnerShifts" Label="@Localizer["Shifts"]" EndIcon="fa-solid fa-calendar-star" Color="Color.Info" />
     <StackButton Href="@AppRoutes.Clinic.OwnerReservations" Label="@Localizer["Reservations"]" EndIcon="fa-solid fa-calendar-check" Color="Color.Info" />
     <StackButton Href="@AppRoutes.Clinic.OwnerReminders" Label="@Localizer["Reminders"]" EndIcon="fa-solid fa-bell" Color="Color.Info" />
-    <StackButton Href="@AppRoutes.Clinic.OwnerAppointmentSettings" Label="@Localizer["AppointmentSettings"]" EndIcon="fa-solid fa-layer-group" Color="Color.Secondary" />
 </Stack>
 
 <Stack>
     <StackField Label="@Localizer["Settings"]" />
     <StackButton Href="@AppRoutes.Clinic.OwnerSettingsUsers" Label="@Localizer["Users"]" EndIcon="fa-solid fa-users" Color="Color.Secondary" />
+    <StackButton Href="@AppRoutes.Clinic.OwnerAppointmentSettings" Label="@Localizer["AppointmentSettings"]" EndIcon="fa-solid fa-layer-group" Color="Color.Secondary" />
     <StackButton Href="@AppRoutes.Clinic.OwnerSettingsStatistics" Label="@Localizer["Statistics"]" EndIcon="fa-solid fa-chart-bar" Color="Color.Secondary" />
 </Stack>
