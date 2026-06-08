@@ -12,7 +12,7 @@ using Vitarish.Medical.Infrastructure.Data;
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
 public sealed class CreateDraftHandler(
-    PrescriptionDbContext dbContext,
+    MedicalDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
     IAuditWriter auditWriter,
     ILogger<CreateDraftHandler> logger)
@@ -68,7 +68,7 @@ public sealed class CreateDraftHandler(
 }
 
 public sealed class AddItemHandler(
-    PrescriptionDbContext dbContext,
+    MedicalDbContext dbContext,
     ILogger<AddItemHandler> logger)
     : IRequestHandler<AddItemCommand, AddItemResult>
 {
@@ -115,7 +115,7 @@ public sealed class AddItemHandler(
 }
 
 public sealed class RemoveItemHandler(
-    PrescriptionDbContext dbContext)
+    MedicalDbContext dbContext)
     : IRequestHandler<RemoveItemCommand, RemoveItemResult>
 {
     public async Task<RemoveItemResult> Handle(RemoveItemCommand request, CancellationToken cancellationToken)
@@ -149,7 +149,7 @@ public sealed class RemoveItemHandler(
 }
 
 public sealed class ValidateDraftHandler(
-    PrescriptionDbContext dbContext,
+    MedicalDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry)
     : IRequestHandler<ValidateDraftCommand, ValidateDraftResult>
 {
@@ -249,7 +249,7 @@ public sealed class ValidateDraftHandler(
 }
 
 public sealed class RecordEligibilityHandler(
-    PrescriptionDbContext dbContext)
+    MedicalDbContext dbContext)
     : IRequestHandler<RecordEligibilityCommand, RecordEligibilityResult>
 {
     public async Task<RecordEligibilityResult> Handle(RecordEligibilityCommand request, CancellationToken cancellationToken)
@@ -277,7 +277,7 @@ public sealed class RecordEligibilityHandler(
 }
 
 public sealed class SetProviderHandler(
-    PrescriptionDbContext dbContext,
+    MedicalDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
     ILogger<SetProviderHandler> logger)
     : IRequestHandler<SetProviderCommand, SetProviderResult>

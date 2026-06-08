@@ -12,7 +12,7 @@ using Vitarish.Medical.Infrastructure.Data;
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
 public sealed class PaperFallbackHandler(
-    PrescriptionDbContext dbContext,
+    MedicalDbContext dbContext,
     IAuditWriter auditWriter,
     ILogger<PaperFallbackHandler> logger)
     : IRequestHandler<PaperFallbackCommand, PaperFallbackResult>
@@ -69,7 +69,7 @@ public sealed class PaperFallbackHandler(
 }
 
 public sealed class ResolveDuplicateRiskHandler(
-    PrescriptionDbContext dbContext,
+    MedicalDbContext dbContext,
     IAuditWriter auditWriter,
     ILogger<ResolveDuplicateRiskHandler> logger)
     : IRequestHandler<ResolveDuplicateRiskCommand, ResolveDuplicateRiskResult>
@@ -121,7 +121,7 @@ public sealed class ResolveDuplicateRiskHandler(
 }
 
 public sealed class ManualReconcileHandler(
-    PrescriptionDbContext dbContext,
+    MedicalDbContext dbContext,
     IAuditWriter auditWriter,
     ILogger<ManualReconcileHandler> logger)
     : IRequestHandler<ManualReconcileCommand, ManualReconcileResult>
@@ -167,7 +167,7 @@ public sealed class ManualReconcileHandler(
 }
 
 public sealed class RefreshProviderStatusHandler(
-    PrescriptionDbContext dbContext,
+    MedicalDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
     IAuditWriter auditWriter,
     ILogger<RefreshProviderStatusHandler> logger)
@@ -249,7 +249,7 @@ public sealed class RefreshProviderStatusHandler(
 }
 
 public sealed class ReconcilePaperFallbackHandler(
-    PrescriptionDbContext dbContext,
+    MedicalDbContext dbContext,
     IAuditWriter auditWriter,
     ILogger<ReconcilePaperFallbackHandler> logger)
     : IRequestHandler<ReconcilePaperFallbackCommand, ReconcilePaperFallbackResult>
@@ -302,7 +302,7 @@ public sealed class ReconcilePaperFallbackHandler(
 }
 
 public sealed class EscalateHandler(
-    PrescriptionDbContext dbContext,
+    MedicalDbContext dbContext,
     IAuditWriter auditWriter,
     ILogger<EscalateHandler> logger)
     : IRequestHandler<EscalateCommand, EscalateResult>

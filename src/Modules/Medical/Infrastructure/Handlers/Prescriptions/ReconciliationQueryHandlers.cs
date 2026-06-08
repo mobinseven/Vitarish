@@ -8,7 +8,7 @@ using Vitarish.Medical.Infrastructure.Data;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
-public sealed class GetReconciliationQueueHandler(PrescriptionDbContext dbContext)
+public sealed class GetReconciliationQueueHandler(MedicalDbContext dbContext)
     : IRequestHandler<GetReconciliationQueueQuery, ReconciliationQueueResult>
 {
     private static readonly PrescriptionStatus[] ReconciliationStatuses =
@@ -87,7 +87,7 @@ public sealed class GetReconciliationQueueHandler(PrescriptionDbContext dbContex
     }
 }
 
-public sealed class GetOutboxStatusHandler(PrescriptionDbContext dbContext)
+public sealed class GetOutboxStatusHandler(MedicalDbContext dbContext)
     : IRequestHandler<GetOutboxStatusQuery, OutboxStatusResult>
 {
     public async Task<OutboxStatusResult> Handle(GetOutboxStatusQuery request, CancellationToken cancellationToken)

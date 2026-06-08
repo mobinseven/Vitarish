@@ -16,7 +16,6 @@ using Vitarish.Parties.Hosting;
 using Vitarish.Platform.Interface;
 using Vitarish.Users.Hosting;
 using Vitarish.Requests.Hosting;
-using Vitarish.Prescription.Interface;
 using Vitarish.Sea.Interface;
 using Vitarish.Search.Interface;
 using Vitarish.Social.Hosting;
@@ -40,7 +39,6 @@ public static class ModulesExtensions
                 Activator.CreateInstance<CommerceModule>(),
                 Activator.CreateInstance<SocialModule>(),
                 Activator.CreateInstance<MedicalModule>(),
-                Activator.CreateInstance<PrescriptionModule>(),
             ];
 
     extension(WebApplicationBuilder builder)

@@ -12,7 +12,7 @@ using Vitarish.Medical.Infrastructure.Data;
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
 public sealed class SaveCredentialHandler(
-    PrescriptionDbContext dbContext,
+    MedicalDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
     IAuditWriter auditWriter,
     ILogger<SaveCredentialHandler> logger)
@@ -98,7 +98,7 @@ public sealed class SaveCredentialHandler(
 }
 
 public sealed class TestCredentialHandler(
-    PrescriptionDbContext dbContext,
+    MedicalDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
     IAuditWriter auditWriter,
     ILogger<TestCredentialHandler> logger)
@@ -163,7 +163,7 @@ public sealed class TestCredentialHandler(
 }
 
 public sealed class RevokeCredentialHandler(
-    PrescriptionDbContext dbContext,
+    MedicalDbContext dbContext,
     IAuditWriter auditWriter,
     ILogger<RevokeCredentialHandler> logger)
     : IRequestHandler<RevokeCredentialCommand, RevokeCredentialResult>
@@ -197,7 +197,7 @@ public sealed class RevokeCredentialHandler(
 }
 
 public sealed class GetCredentialSetupGridHandler(
-    PrescriptionDbContext dbContext)
+    MedicalDbContext dbContext)
     : IRequestHandler<GetCredentialSetupGridQuery, IReadOnlyList<CredentialSetupDto>>
 {
     public async Task<IReadOnlyList<CredentialSetupDto>> Handle(GetCredentialSetupGridQuery request, CancellationToken cancellationToken)

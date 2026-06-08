@@ -7,7 +7,7 @@ using Vitarish.Medical.Infrastructure.Data;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
-internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext) :
+internal sealed class ObservabilityQueryHandlers(MedicalDbContext dbContext) :
     IRequestHandler<GetProviderTransactionMetricsQuery, IReadOnlyList<ProviderTransactionMetricsDto>>,
     IRequestHandler<GetRejectionDistributionQuery, IReadOnlyList<RejectionDistributionDto>>,
     IRequestHandler<GetCredentialHealthQuery, CredentialHealthResult>,

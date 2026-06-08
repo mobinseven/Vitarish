@@ -7,7 +7,7 @@ using Vitarish.Medical.Infrastructure.Data;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
-public sealed class GetPrescriptionHandler(PrescriptionDbContext dbContext)
+public sealed class GetPrescriptionHandler(MedicalDbContext dbContext)
     : IRequestHandler<GetPrescriptionQuery, PrescriptionDto?>
 {
     public async Task<PrescriptionDto?> Handle(GetPrescriptionQuery request, CancellationToken cancellationToken)
@@ -57,7 +57,7 @@ public sealed class GetPrescriptionHandler(PrescriptionDbContext dbContext)
     }
 }
 
-public sealed class GetPrescriptionHistoryHandler(PrescriptionDbContext dbContext)
+public sealed class GetPrescriptionHistoryHandler(MedicalDbContext dbContext)
     : IRequestHandler<GetPrescriptionHistoryQuery, IReadOnlyList<PrescriptionSummaryDto>>
 {
     public async Task<IReadOnlyList<PrescriptionSummaryDto>> Handle(GetPrescriptionHistoryQuery request, CancellationToken cancellationToken)
