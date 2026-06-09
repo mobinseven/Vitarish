@@ -7,6 +7,7 @@ public static partial class AppRoutes
         public const string Home = "/platformadmin";
         public const string Search = "/platformadmin/search";
         public const string Communications = "/platformadmin/communications";
+        public const string ConnectionMemory = "/platformadmin/connectionmemory";
         public const string Themes = "/platformadmin/themes";
         public const string NewTheme = "/platformadmin/themes/new";
         public const string ThemeTemplate = "/platformadmin/themes/{themeId:guid}";

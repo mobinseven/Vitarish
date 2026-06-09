@@ -1,0 +1,45 @@
+@attribute [Route(AppRoutes.PlatformAdmin.ConnectionMemory)]
+@using Vitarish.Platform.Application.Contracts
+@using Vitarish.Platform.Domain.Entities
+
+<Stack>
+    <StackButton Label="@Localizer["Connection Memory Telemetry"]" HelperText="@SummaryText" EndIcon="fa-solid fa-chart-line" Color="Color.Info" OnClick="ReloadAsync" />
+    
+    @if (Samples.Count == 0)
+    {
+        <MudText Typo="Typo.body2">@Localizer["No memory samples recorded yet."]</MudText>
+    }
+    else
+    {
+        @foreach (ConnectionMemorySnapshot sample in Samples)
+        {
+            <StackCard Label="@($"{Localizer["Circuit"]}: {sample.CircuitId}")" Caption="@KindLabel(sample.Kind)" HelperText="@ObservedAtLabel(sample.LastObservedAtUtc)">
+                <MudStack Spacing="1">
+                    @if (!string.IsNullOrWhiteSpace(sample.UserId))
+                    {
+                        <MudText Typo="Typo.caption">@Localizer["User"]: @sample.UserId</MudText>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(sample.TenantId))
+                    {
+                        <MudText Typo="Typo.caption">@Localizer["Tenant"]: @sample.TenantId</MudText>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(sample.ClientId))
+                    {
+                        <MudText Typo="Typo.caption">@Localizer["Client"]: @sample.ClientId</MudText>
+                    }
+                    <MudText Typo="Typo.caption">@Localizer["Private Memory"]: @FormatBytes(sample.ProcessPrivateMemoryBytes)</MudText>
+                    <MudText Typo="Typo.caption">@Localizer["Working Set"]: @FormatBytes(sample.ProcessWorkingSetBytes)</MudText>
+                    <MudText Typo="Typo.caption">@Localizer["Managed Heap"]: @FormatBytes(sample.ManagedHeapBytes)</MudText>
+                    @if (sample.EstimatedCircuitDeltaBytes.HasValue)
+                    {
+                        <MudText Typo="Typo.caption">@Localizer["Estimated Delta"]: @FormatBytes(sample.EstimatedCircuitDeltaBytes.Value)</MudText>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(sample.FailureReason))
+                    {
+                        <MudAlert Severity="Severity.Error" Dense>@sample.FailureReason</MudAlert>
+                    }
+                </MudStack>
+            </StackCard>
+        }
+    }
+</Stack>
