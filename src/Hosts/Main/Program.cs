@@ -24,6 +24,7 @@ using Vitarish.Medical.Infrastructure.Data;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Parties.Infrastructure.Data;
+using Vitarish.Platform.Hosting.DependencyInjection;
 using Vitarish.Platform.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Social.Infrastructure.Data;
@@ -47,6 +48,9 @@ _ = builder.Services.AddAuditInfrastructure(configurePostgres);
 
 await builder.RegisterApps(configurePostgres);
 await builder.RegisterModules(configurePostgres);
+
+// Register Platform CircuitHandler for memory telemetry
+builder.AddPlatformCircuitMemoryObserver();
 
 // Register Feed infrastructure
 _ = builder.Services.AddFeedInfrastructure();

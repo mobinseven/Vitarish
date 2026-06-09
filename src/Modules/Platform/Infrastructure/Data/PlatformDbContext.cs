@@ -8,6 +8,7 @@ public sealed class PlatformDbContext(DbContextOptions<PlatformDbContext> option
 {
     public DbSet<Theme> Themes => Set<Theme>();
     public DbSet<ThemeSelection> ThemeSelections => Set<ThemeSelection>();
+    public DbSet<ConnectionMemorySample> ConnectionMemorySamples => Set<ConnectionMemorySample>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -35,6 +36,23 @@ public sealed class PlatformDbContext(DbContextOptions<PlatformDbContext> option
                 .WithMany()
                 .HasForeignKey(e => e.ActiveThemeId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        _ = modelBuilder.Entity<ConnectionMemorySample>(entity =>
+        {
+            _ = entity.HasKey(e => e.Id);
+            _ = entity.Property(e => e.CircuitId).IsRequired().HasMaxLength(128);
+            _ = entity.Property(e => e.UserId).HasMaxLength(128);
+            _ = entity.Property(e => e.TenantId).HasMaxLength(128);
+            _ = entity.Property(e => e.ClientId).HasMaxLength(128);
+            _ = entity.Property(e => e.ObservedAtUtc).IsRequired();
+            _ = entity.Property(e => e.Kind).IsRequired();
+            _ = entity.Property(e => e.ProcessPrivateMemoryBytes).IsRequired();
+            _ = entity.Property(e => e.ProcessWorkingSetBytes).IsRequired();
+            _ = entity.Property(e => e.ManagedHeapBytes).IsRequired();
+            _ = entity.Property(e => e.FailureReason).HasMaxLength(ConnectionMemorySample.FailureReasonMaxLength);
+            _ = entity.HasIndex(e => e.CircuitId);
+            _ = entity.HasIndex(e => e.ObservedAtUtc);
         });
     }
 
