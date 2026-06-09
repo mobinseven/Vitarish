@@ -23,6 +23,7 @@
 		<ProjectReference Include="..\..\Interfaces\Interfaces.Widgets\Interfaces.Widgets.csproj" />
 		<ProjectReference Include="..\..\Libraries\Audit\Audit.Server\Audit.Server.csproj" />
 		<ProjectReference Include="..\..\Modules\Aggregator\Modules.Aggregator\Modules.Aggregator.csproj" />
+		<ProjectReference Include="..\..\Modules\Platform\Hosting\Platform.Hosting.csproj" />
 	</ItemGroup>
 
 </Project>
