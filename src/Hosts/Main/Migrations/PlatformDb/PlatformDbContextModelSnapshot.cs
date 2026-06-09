@@ -24,6 +24,60 @@ namespace Vitarish.Main.Migrations.PlatformDb
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
+            modelBuilder.Entity("Vitarish.Platform.Domain.Entities.ConnectionMemorySample", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uuid");
+
+                    b.Property<string>("CircuitId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("UserId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("TenantId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<string>("ClientId")
+                        .HasMaxLength(128)
+                        .HasColumnType("character varying(128)");
+
+                    b.Property<DateTimeOffset>("ObservedAtUtc")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int>("Kind")
+                        .HasColumnType("integer");
+
+                    b.Property<long>("ProcessPrivateMemoryBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ProcessWorkingSetBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<long>("ManagedHeapBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<long?>("EstimatedCircuitDeltaBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(512)
+                        .HasColumnType("character varying(512)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CircuitId");
+
+                    b.HasIndex("ObservedAtUtc");
+
+                    b.ToTable("ConnectionMemorySamples", "Platform");
+                });
+
             modelBuilder.Entity("Vitarish.Platform.Domain.Entities.Theme", b =>
                 {
                     b.Property<Guid>("Id")
