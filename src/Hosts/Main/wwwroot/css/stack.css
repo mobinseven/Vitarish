@@ -1,6 +1,6 @@
 :root {
     --stack-item-padding: 14px;
-    --stack-radius: var(--mud-default-borderradius);
+    --stack-radius: 20px;
 }
 
 .stack {

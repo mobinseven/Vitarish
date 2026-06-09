@@ -4,11 +4,9 @@
     @if(providers.Count == 0)
     {
         <StackButton OnClick="ReloadRequired"
-                     Label="@Localizer["NoItems", Localizer["ServiceProvider"]]"
+                     Label="@Localizer["Reload"]"
                      HelperText="@Localizer["NoItemsHelp", Localizer["ServiceProvider"]]"
-                     EndIcon="fa-solid fa-refresh" Color="Color.Secondary">
-            @Localizer["Reload"]
-        </StackButton>
+                     EndIcon="fa-solid fa-refresh" Color="Color.Secondary"/>
     }
     else
     {

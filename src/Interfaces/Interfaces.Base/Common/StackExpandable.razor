@@ -1,7 +1,13 @@
 @inherits MudButton
 
-<StackButton Label="@Label" OnClick="Toggle" EndIcon="@ContinueIcon" Color="@Color" Size="@Size" />
-
+@if(TitleContent is not null)
+{
+        @TitleContent(Expansion)
+}
+else
+{
+    <StackButton Label="@Label" OnClick="Toggle" EndIcon="@ContinueIcon" Color="@Color" Size="@Size" />
+}
 @if(expanded)
 {
     @if(ExpandableContent is not null)
@@ -13,6 +19,7 @@
         @ChildContent
     }
 }
+
 
 @code {
     private bool expanded;
@@ -44,6 +51,7 @@
     [Parameter] public string? HighlightString { get; set; }
     [Parameter] public string? HelperText { get; set; }
     [Parameter] public RenderFragment<ExpansionContext>? ExpandableContent { get; set; }
+    [Parameter] public RenderFragment<ExpansionContext>? TitleContent { get; set; }
 
     private Typo LabelSize => Size switch
     {

@@ -1,27 +1,33 @@
 @using System.Globalization
 @using MudBlazor
+@using MudBlazor.State
 
-@inherits MudComponentBase
+@inherits MudDatePicker
 
-<div Class="@($"mud-calendar stack-item {Class}")" style="align-self: anchor-center;"
+<div class="@($"mud-calendar {(Outlined ? "stack-item" : string.Empty)} {Class}")"
+     style="@("align-self: anchor-center;")"
      dir="@RootDirection">
 
     <div class="mud-calendar__header">
-        <MudIconButton Icon="@PreviousIcon"
-                       Size="Size.Small"
+        <div>
+            <MudIconButton Icon="@PreviousIcon"
+                           Size="Size.Small"
+                           Disabled="@Disabled"
+                           OnClick="GoPreviousAsync" />
+        </div>
+        <div>
+            <MudButton Variant="Variant.Text"
                        Disabled="@Disabled"
-                       OnClick="GoPreviousAsync" />
-
-        <MudButton Variant="Variant.Text"
-                   Disabled="@Disabled"
-                   OnClick="MoveUpView">
-            @HeaderText
-        </MudButton>
-
-        <MudIconButton Icon="@NextIcon"
-                       Size="Size.Small"
-                       Disabled="@Disabled"
-                       OnClick="GoNextAsync" />
+                       OnClick="MoveUpView">
+                @HeaderText
+            </MudButton>
+        </div>
+        <div>
+            <MudIconButton Icon="@NextIcon"
+                           Size="Size.Small"
+                           Disabled="@Disabled"
+                           OnClick="GoNextAsync" />
+        </div>
     </div>
 
     @if(_view == OpenTo.Date)
@@ -67,6 +73,7 @@
                                 aria-selected="@day.IsSelected"
                                 @onclick="() => day.SelectDayAsync(day)">
                             @day.DisplayDayNumber
+
                             @if(!string.IsNullOrWhiteSpace(annotatedDay.Label))
                             {
                                 <span class="mud-calendar__day-label">@annotatedDay.Label</span>
@@ -133,108 +140,151 @@
     private OpenTo _view;
     private bool _initialized;
 
-    [Parameter] public DateTime? Date { get; set; }
-    [Parameter] public EventCallback<DateTime?> DateChanged { get; set; }
+    private const int MinDayCount = 1;
+    private const int MaxDayCount = 31;
 
-    [Parameter] public DateTime? PickerMonth { get; set; }
-    [Parameter] public EventCallback<DateTime?> PickerMonthChanged { get; set; }
+    protected readonly ParameterState<CultureInfo?> _cultureState;
+    protected readonly ParameterState<DateTime?> _dateState;
+    protected readonly ParameterState<DateTime?> _pickerMonthState;
 
-    [Parameter] public DateTime? MinDate { get; set; }
-    [Parameter] public DateTime? MaxDate { get; set; }
+    [Parameter]
+    public StackCalendarViewMode ViewMode { get; set; } = StackCalendarViewMode.Month;
 
-    [Parameter] public OpenTo OpenTo { get; set; } = OpenTo.Date;
-    [Parameter] public StackCalendarViewMode ViewMode { get; set; } = StackCalendarViewMode.Month;
-    [Parameter] public int? DayCount { get; set; }
-    [Parameter] public DayOfWeek? FirstDayOfWeek { get; set; } = DayOfWeek.Saturday;
-    [Parameter] public CultureInfo? Culture { get; set; }
+    [Parameter]
+    public int? DayCount { get; set; }
 
-    [Parameter] public bool Disabled { get; set; }
-    [Parameter] public bool Square { get; set; }
-    [Parameter] public bool Outlined { get; set; }
-    [Parameter] public int Elevation { get; set; } = 1;
+    [Parameter]
+    public bool Outlined { get; set; }
 
-    [Parameter] public bool ShowAdjacentMonthDays { get; set; } = true;
+    [Parameter]
+    public bool ShowAdjacentMonthDays { get; set; } = true;
 
-    [Parameter] public Func<DateTime, bool>? IsDateDisabledFunc { get; set; }
-    [Parameter] public Func<DateTime, string?>? AdditionalDateClassesFunc { get; set; }
-    [Parameter] public IReadOnlyList<CalendarAnnotation>? CalendarAnnotations { get; set; }
+    [Parameter]
+    public IReadOnlyList<CalendarAnnotation>? CalendarAnnotations { get; set; }
 
-    [Parameter] public RenderFragment<CalendarDayContext>? DayTemplate { get; set; }
-    [Parameter] public RenderFragment<CalendarAnnotatedDayContext>? AnnotatedDayTemplate { get; set; }
-    [Parameter] public RenderFragment<CalendarMonthContext>? MonthTemplate { get; set; }
-    [Parameter] public RenderFragment<CalendarYearContext>? YearTemplate { get; set; }
-    [Parameter] public RenderFragment<CalendarDayOfWeekContext>? DayOfWeekTemplate { get; set; }
+    [Parameter]
+    public RenderFragment<CalendarDayContext>? DayTemplate { get; set; }
 
-    private CultureInfo EffectiveCulture => Culture ?? CultureInfo.CurrentCulture;
+    [Parameter]
+    public RenderFragment<CalendarAnnotatedDayContext>? AnnotatedDayTemplate { get; set; }
 
-    private DateTimeFormatInfo EffectiveDateTimeFormat => EffectiveCulture.DateTimeFormat;
+    [Parameter]
+    public RenderFragment<CalendarMonthContext>? MonthTemplate { get; set; }
 
-    private Calendar EffectiveCalendar => EffectiveDateTimeFormat.Calendar;
+    [Parameter]
+    public RenderFragment<CalendarYearContext>? YearTemplate { get; set; }
+
+    [Parameter]
+    public RenderFragment<CalendarDayOfWeekContext>? DayOfWeekTemplate { get; set; }
+
+    public StackCalendar()
+    {
+        using var registerScope = CreateRegisterScope();
+
+        _cultureState = registerScope.RegisterParameter<CultureInfo?>(nameof(Culture))
+            .WithParameter(() => Culture);
+
+        _dateState = registerScope.RegisterParameter<DateTime?>(nameof(Date))
+            .WithParameter(() => Date)
+            .WithEventCallback(() => DateChanged);
+
+        _pickerMonthState = registerScope.RegisterParameter<DateTime?>(nameof(PickerMonth))
+            .WithParameter(() => PickerMonth)
+            .WithEventCallback(() => PickerMonthChanged);
+    }
+
+    private CultureInfo EffectiveCulture =>
+        _cultureState.Value ?? CultureInfo.CurrentCulture;
+
+    private DateTimeFormatInfo EffectiveDateTimeFormat =>
+        EffectiveCulture.DateTimeFormat;
+
+    private Calendar EffectiveCalendar =>
+        EffectiveDateTimeFormat.Calendar;
 
     private DayOfWeek ResolvedFirstDayOfWeek =>
         FirstDayOfWeek ?? EffectiveDateTimeFormat.FirstDayOfWeek;
 
-    private bool IsRtl => EffectiveCulture.TextInfo.IsRightToLeft;
+    private bool IsRtl =>
+        EffectiveCulture.TextInfo.IsRightToLeft;
 
-    private string RootDirection => IsRtl ? "rtl" : "ltr";
+    private string RootDirection =>
+        IsRtl ? "rtl" : "ltr";
 
-    private string PreviousIcon =>
+    private bool HasCustomDayCount =>
+        DayCount.HasValue;
+
+    private bool IsWeekView =>
+        ViewMode == StackCalendarViewMode.Week;
+
+    private bool IsDayCountView =>
+        IsWeekView || HasCustomDayCount;
+
+    private int ResolvedDayCount =>
+        HasCustomDayCount
+            ? Math.Clamp(DayCount.GetValueOrDefault(), MinDayCount, MaxDayCount)
+            : 7;
+
+    private int DayGridColumnCount =>
+        IsDayCountView ? ResolvedDayCount : 7;
+
+    private string DayGridStyle =>
+        $"grid-template-columns: repeat({DayGridColumnCount}, 1fr);";
+
+    private int VisibleEra =>
+        EffectiveCalendar.GetEra(_visibleDate);
+
+    private int VisibleCalendarYear =>
+        EffectiveCalendar.GetYear(_visibleDate);
+
+    private int VisibleCalendarMonth =>
+        EffectiveCalendar.GetMonth(_visibleDate);
+
+    private int YearPageStart =>
+        VisibleCalendarYear - ((VisibleCalendarYear - 1) % 12);
+
+    public new string PreviousIcon =>
         IsRtl
-            ? Icons.Material.Filled.ChevronRight
-            : Icons.Material.Filled.ChevronLeft;
+            ? "fa-solid fa-square-caret-right"
+            : "fa-solid fa-square-caret-left";
 
-    private string NextIcon =>
+    public new string NextIcon =>
         IsRtl
-            ? Icons.Material.Filled.ChevronLeft
-            : Icons.Material.Filled.ChevronRight;
-
-    private const int MinDayCount = 1;
-    private const int MaxDayCount = 31;
-
-    private bool HasCustomDayCount => DayCount.HasValue;
-
-    private bool IsWeekView => ViewMode == StackCalendarViewMode.Week;
-
-    private bool IsDayCountView => IsWeekView || HasCustomDayCount;
-
-    private int ResolvedDayCount => HasCustomDayCount
-        ? Math.Clamp(DayCount.GetValueOrDefault(), MinDayCount, MaxDayCount)
-        : 7;
-
-    private int DayGridColumnCount => IsDayCountView ? ResolvedDayCount : 7;
-
-    private string DayGridStyle => $"grid-template-columns: repeat({DayGridColumnCount}, 1fr);";
-
-    private int VisibleEra => EffectiveCalendar.GetEra(_visibleDate);
-
-    private int VisibleCalendarYear => EffectiveCalendar.GetYear(_visibleDate);
-
-    private int VisibleCalendarMonth => EffectiveCalendar.GetMonth(_visibleDate);
-
-    private int YearPageStart => VisibleCalendarYear - ((VisibleCalendarYear - 1) % 12);
+            ? "fa-solid fa-square-caret-left"
+            : "fa-solid fa-square-caret-right";
 
     private string HeaderText =>
         _view switch
         {
-            OpenTo.Date => IsDayCountView ? FormatDayRangeHeader() : _visibleDate.ToString("MMMM yyyy", EffectiveCulture),
+            OpenTo.Date => IsDayCountView
+                ? FormatDayRangeHeader()
+                : _visibleDate.ToString("MMMM yyyy", EffectiveCulture),
+
             OpenTo.Month => FormatYear(VisibleCalendarYear),
+
             OpenTo.Year => $"{FormatYear(YearPageStart)} - {FormatYear(YearPageStart + 11)}",
+
             _ => _visibleDate.ToString("MMMM yyyy", EffectiveCulture)
         };
 
     protected override void OnParametersSet()
     {
-        _currentDate = Date?.Date;
+        base.OnParametersSet();
+
+        _currentDate = _dateState.Value?.Date;
 
         if(!_initialized)
         {
             _view = OpenTo;
-            _visibleDate = NormalizeVisibleDate(PickerMonth ?? Date ?? DateTime.Today);
+            _visibleDate = NormalizeVisibleDate(
+                _pickerMonthState.Value ?? _dateState.Value ?? DateTime.Today);
+
             _initialized = true;
         }
-        else if(PickerMonth.HasValue)
+        else if(_pickerMonthState.Value.HasValue)
         {
-            var normalizedPickerDate = NormalizeVisibleDate(PickerMonth.Value);
+            var normalizedPickerDate = NormalizeVisibleDate(_pickerMonthState.Value.Value);
+
             var currentPickerDate = IsDayCountView
                 ? _visibleDate.Date
                 : StartOfMonth(_visibleDate);
@@ -255,21 +305,39 @@
     private async Task GoPreviousAsync()
     {
         if(_view == OpenTo.Date)
-            await SetVisibleDateAsync(IsDayCountView ? _visibleDate.AddDays(-ResolvedDayCount) : AddCalendarMonths(_visibleDate, -1));
+        {
+            await SetVisibleDateAsync(
+                IsDayCountView
+                    ? _visibleDate.AddDays(-ResolvedDayCount)
+                    : AddCalendarMonths(_visibleDate, -1));
+        }
         else if(_view == OpenTo.Month)
+        {
             await SetVisibleDateAsync(AddCalendarYears(_visibleDate, -1));
+        }
         else if(_view == OpenTo.Year)
+        {
             await SetVisibleDateAsync(AddCalendarYears(_visibleDate, -12));
+        }
     }
 
     private async Task GoNextAsync()
     {
         if(_view == OpenTo.Date)
-            await SetVisibleDateAsync(IsDayCountView ? _visibleDate.AddDays(ResolvedDayCount) : AddCalendarMonths(_visibleDate, 1));
+        {
+            await SetVisibleDateAsync(
+                IsDayCountView
+                    ? _visibleDate.AddDays(ResolvedDayCount)
+                    : AddCalendarMonths(_visibleDate, 1));
+        }
         else if(_view == OpenTo.Month)
+        {
             await SetVisibleDateAsync(AddCalendarYears(_visibleDate, 1));
+        }
         else if(_view == OpenTo.Year)
+        {
             await SetVisibleDateAsync(AddCalendarYears(_visibleDate, 12));
+        }
     }
 
     private async Task SelectDayAsync(CalendarDayContext day)
@@ -277,12 +345,14 @@
         if(day.IsDisabled)
             return;
 
-        _currentDate = day.Date.Date;
+        var selectedDate = day.Date.Date;
+
+        _currentDate = selectedDate;
 
         if(!IsDayCountView && day.IsOutsideMonth)
             await SetVisibleDateAsync(day.Date);
 
-        await DateChanged.InvokeAsync(_currentDate);
+        await _dateState.SetValueAsync(selectedDate);
     }
 
     private async Task SelectMonthAsync(CalendarMonthContext month)
@@ -291,6 +361,7 @@
             return;
 
         await SetVisibleDateAsync(month.Month);
+
         _view = OpenTo.Date;
     }
 
@@ -308,13 +379,15 @@
         var newVisibleMonth = ToCalendarDate(year.Year, targetMonth, 1, year.Era);
 
         await SetVisibleDateAsync(newVisibleMonth);
+
         _view = OpenTo.Month;
     }
 
     private async Task SetVisibleDateAsync(DateTime date)
     {
         _visibleDate = NormalizeVisibleDate(date);
-        await PickerMonthChanged.InvokeAsync(StartOfMonth(_visibleDate));
+
+        await _pickerMonthState.SetValueAsync(StartOfMonth(_visibleDate));
     }
 
     private IEnumerable<CalendarDayOfWeekContext> GetDayOfWeekContexts()
@@ -330,8 +403,7 @@
                 DayOfWeek: day,
                 Index: i,
                 ShortName: names[(int)day],
-                IsWeekend: day is DayOfWeek.Saturday or DayOfWeek.Sunday
-            );
+                IsWeekend: day is DayOfWeek.Saturday or DayOfWeek.Sunday);
         }
     }
 
@@ -369,6 +441,7 @@
                 css.Add("mud-calendar__day--disabled");
 
             var extra = AdditionalDateClassesFunc?.Invoke(date);
+
             if(!string.IsNullOrWhiteSpace(extra))
                 css.Add(extra);
 
@@ -383,8 +456,7 @@
                 IsOutsideMonth: outsideMonth,
                 IsDisabled: disabled,
                 CssClass: string.Join(" ", css),
-                SelectDayAsync: SelectDayAsync
-            );
+                SelectDayAsync: SelectDayAsync);
         }
     }
 
@@ -423,8 +495,7 @@
                 Era: era,
                 IsSelected: selected,
                 IsDisabled: disabled,
-                CssClass: string.Join(" ", css)
-            );
+                CssClass: string.Join(" ", css));
         }
     }
 
@@ -455,8 +526,7 @@
                 Era: era,
                 IsSelected: selected,
                 IsDisabled: disabled,
-                CssClass: string.Join(" ", css)
-            );
+                CssClass: string.Join(" ", css));
         }
     }
 
@@ -519,11 +589,15 @@
         if(HasCustomDayCount)
             return date.Date;
 
-        return IsWeekView ? StartOfWeek(date) : StartOfMonth(date);
+        return IsWeekView
+            ? StartOfWeek(date)
+            : StartOfMonth(date);
     }
 
     private DateTime GetVisibleDateRangeStart() =>
-        IsDayCountView ? _visibleDate.Date : StartOfWeek(StartOfMonth(_visibleDate));
+        IsDayCountView
+            ? _visibleDate.Date
+            : StartOfWeek(StartOfMonth(_visibleDate));
 
     private DateTime StartOfWeek(DateTime date)
     {

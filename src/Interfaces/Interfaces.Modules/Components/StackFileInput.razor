@@ -38,8 +38,7 @@
                         else
                         {
                             <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);">
-                                <MudFab OnClick="async () => await _streamTransferComponent.StartTransferAsync()" StartIcon="fa-solid fa-check" Color="Color.Success" Size="Size.Small" DropShadow=false />
-@*                                 <MudFab OnClick="() => RemovePendingFile(_streamTransferComponent, pendingFile)" StartIcon="fa-solid fa-xmark" Color="Color.Error" Size="Size.Small" DropShadow=false /> *@
+                                <MudFab OnClick="() => RemovePendingFile(_streamTransferComponent, pendingFile)" StartIcon="fa-solid fa-xmark" Color="Color.Error" Size="Size.Small" DropShadow=false />
                             </div>
                         }
                     </Chip>
@@ -47,7 +46,7 @@
             }
             else if(_file is not null)
             {
-                <MudImage Src="@_file.Thumbnail" Style="height: 100px;" />
+                <Avatar FileInformation="_file" />
             }
             else
             {
@@ -69,7 +68,7 @@
     [Inject] protected IFileInformationService FileInformationService { get; set; } = default!;
 
     [Parameter] public Guid? FileId { get; set; }
-    [Parameter] public EventCallback<Guid?> FileIdeChanged { get; set; }
+    [Parameter] public EventCallback<Guid?> FileIdChanged { get; set; }
 
     private StreamTransfer? _streamTransferComponent;
 
@@ -99,7 +98,7 @@
     {
         _file = file;
         FileId = _file.Id;
-        await FileIdeChanged.InvokeAsync(FileId);
+        await FileIdChanged.InvokeAsync(FileId);
         await InvokeAsync(StateHasChanged);
     }
 

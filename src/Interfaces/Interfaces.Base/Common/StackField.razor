@@ -1,10 +1,7 @@
 @inherits MudField
 
-<MudField Variant="@Variant"
-          Class="stack-item"
-          Style="cursor: pointer"
-          Underline="false"
-          FullWidth>
+<div class="stack-item"
+     style="cursor: pointer">
     @if(!string.IsNullOrWhiteSpace(Label) || !string.IsNullOrWhiteSpace(HelperText))
     {
         <MudField AdornmentIcon="@AdornmentIcon"
@@ -32,7 +29,7 @@
     {
         @ChildContent
     }
-</MudField>
+</div>
 
 @code {
     [CascadingParameter] public Breakpoint PageBreakpoint { get; set; }

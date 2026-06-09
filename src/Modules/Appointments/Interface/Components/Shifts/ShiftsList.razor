@@ -5,9 +5,7 @@
     @if(shifts.Count == 0)
     {
         <Stack>
-            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Shift"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Shift"]]" EndIcon="fa-solid fa-refresh" Color="Color.Secondary">
-                @Localizer["Reload"]
-            </StackButton>
+            <StackButton OnClick="ReloadRequired" Label="@Localizer["Reload"]" HelperText="@Localizer["NoItemsHelp", Localizer["Shift"]]" EndIcon="fa-solid fa-refresh" Color="Color.Secondary"/>
         </Stack>
     }
     @foreach(var day in Enum.GetValues<DayOfWeek>().OrderBy(d => ((int)d - (int)DayOfWeek.Saturday + 7) % 7))

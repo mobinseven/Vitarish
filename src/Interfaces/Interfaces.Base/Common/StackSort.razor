@@ -4,7 +4,7 @@
     <StackSelect Label="@Localizer["SortBy"]" T="SortMethod" Value="selectedValue" ValueChanged="v => OnChanged(v)">
         @foreach(var method in Methods)
         {
-            <MudSelectItem Value="method">@method.LabelAction()</MudSelectItem>
+            <StackSelectItem Value="method">@method.LabelAction()</StackSelectItem>
         }
     </StackSelect>
 }

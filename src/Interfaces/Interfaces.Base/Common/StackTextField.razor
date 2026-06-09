@@ -1,7 +1,8 @@
 @using MudBlazor.State
 @inherits MudTextField<string>
 
-<MudTextField @bind-Value:get="@_valueState.Value"
+<MudTextField @key="guid"
+              @bind-Value:get="@_valueState.Value"
               @bind-Value:set="@_valueState.SetValueAsync"
               AdornmentColor="@AdornmentColor"
               AdornmentIcon="@AdornmentIcon"
@@ -27,6 +28,7 @@
               ReadOnly="@ReadOnly"
               Disabled="@Disabled" />
 @code {
+    private Guid guid = Guid.NewGuid();
     [Parameter] public bool Centered { get; set; }
     private readonly ParameterState<string?> _valueState;
     public StackTextField()

@@ -28,7 +28,7 @@
         <StackButton Label="@Localizer["Info"]" Style="@($"color: {Model.LightInfoContrastText}; background-color: {Model.LightInfo}")" Color="Color.Info"/>
 
         <StackColorPicker Label="@Localizer["Success"]" @bind-Value="Model.LightSuccess" />
-        <StackButton Label="@Localizer["Info"]" Style="@($"color: {Model.LightSuccess};")" Color="Color.Success" />
+        <StackButton Label="@Localizer["Success"]" Style="@($"color: {Model.LightSuccess};")" Color="Color.Success" />
 
         <StackColorPicker Label="@Localizer["Success contrast text"]" @bind-Value="Model.LightSuccessContrastText" />
         <StackButton Label="@Localizer["Success"]" Style="@($"color: {Model.LightSuccessContrastText}; background-color: {Model.LightSuccess}")" Color="Color.Success"/>
@@ -101,8 +101,8 @@
     </StackExpandable>
     <StackPalettePreview Colors="Model.DarkPreview" />
 
-    <StackButton Label="@Localizer["Save"]" OnClick="Save" Color="Color.Primary" />
-    <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" Color="Color.Secondary" />
+    <StackButton Label="@Localizer["Save"]" OnClick="Save" Color="Color.Primary" EndIcon="fa-solid fa-save" />
+    <StackButton Label="@Localizer["Cancel"]" OnClick="Cancel" Color="Color.Secondary" EndIcon="fa-solid fa-xmark" />
 </Stack>
 
 @code {

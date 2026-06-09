@@ -127,6 +127,7 @@
   <Folder Name="/src/Modules/Platform/">
     <Project Path="src/Modules/Platform/Application/Platform.Application.csproj" />
     <Project Path="src/Modules/Platform/Domain/Platform.Domain.csproj" />
+    <Project Path="src/Modules/Platform/Hosting/Platform.Hosting.csproj" />
     <Project Path="src/Modules/Platform/Infrastructure/Platform.Infrastructure.csproj" />
     <Project Path="src/Modules/Platform/Interface/Platform.Interface.csproj" />
   </Folder>

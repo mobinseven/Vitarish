@@ -3,7 +3,7 @@
     {
         <MudButton FullWidth OnClick="@(() => NavigationManager.NavigateTo("/"))">
             <div>
-                <MudStack AlignItems="AlignItems.Center" Style="height: 100%;" Justify="Justify.Center">
+                <MudStack AlignItems="AlignItems.Center" Style="height: 100%;" Justify="Justify.Center" Class="my-4">
                     @if(!string.IsNullOrWhiteSpace(tenant.LogoUrl))
                     {
                         <div>

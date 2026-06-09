@@ -1,48 +1,169 @@
 @inherits ProjectDetails
 
 <Stack>
-    <StackField Label="@Project.Name">
-        <ProjectAvatar AvatarFileId="@Project.AvatarFileId" Size="96" Style="margin-bottom: 0.5rem;" />
-        @if(!string.IsNullOrWhiteSpace(Project.IdentificationCode))
-        {
-            <MudText HtmlTag="p" Typo="Typo.caption" Class="py-1">@Localizer["IdentificationCode"]: @Project.IdentificationCode</MudText>
-        }
-        @if(!string.IsNullOrWhiteSpace(Project.Description))
-        {
-            <MudText HtmlTag="p" Typo="Typo.caption" Class="py-3">@Project.Description</MudText>
-        }
-        @if(patient is not null)
-        {
-            @if(!string.IsNullOrWhiteSpace(patient.ClinicalNotes))
+    <StackField>
+
+        <MudGrid Spacing="2" Class="mt-2">
+
+            <ProjectInfoValue Visible="@(Project.AvatarFileId is not null)">
+                <Avatar FileId="@Project.AvatarFileId" />
+            </ProjectInfoValue>
+
+            <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(Project.IdentificationCode))"
+                              Label="@Localizer["IdentificationCode"]">
+                @Project.IdentificationCode
+            </ProjectInfoValue>
+
+            @if(patient is not null)
             {
-                <MudText HtmlTag="p" Typo="Typo.caption" Class="py-3">@Localizer["ClinicalNotes"]: @patient.ClinicalNotes</MudText>
-            }
-            @if(patient.DateOfSurgery.HasValue)
-            {
-                <MudText HtmlTag="p" Typo="Typo.caption" Class="py-3">@Localizer["DateOf", Localizer["Surgery"]]: @patient.DateOfSurgery.Value.ToShortDateString()</MudText>
-            }
-            @if(patient.Gender != Gender.Unspecified)
-            {
-                <MudText HtmlTag="p" Typo="Typo.caption" Class="py-1">@Localizer["Gender"]: @Localizer[patient.Gender.ToString()]</MudText>
-            }
-            @if(patient.DateOfBirth.HasValue)
-            {
-                <MudText HtmlTag="p" Typo="Typo.caption" Class="py-1">@Localizer["DateOfBirth"]: @patient.DateOfBirth.Value.ToShortDateString() (@AgeText)</MudText>
-            }
-            @if(Project.Stats is not null)
-            {
-                <MudText HtmlTag="p" Typo="Typo.caption" Class="py-1">@Localizer["Procedures"]: @Project.Stats.Procedures</MudText>
-                <MudText HtmlTag="p" Typo="Typo.caption" Class="py-1">@Localizer["Events"]: @Project.Stats.Events</MudText>
-                @if(Project.Stats.LastUpdate.HasValue)
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.FirstName))"
+                                  Label="@Localizer["FirstName"]">
+                    @patient.FirstName
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.LastName))"
+                                  Label="@Localizer["LastName"]">
+                    @patient.LastName
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@patient.DateOfSurgery.HasValue"
+                                  Label="@Localizer["DateOf", Localizer["Surgery"]]">
+                    @patient.DateOfSurgery?.ToShortDateString()
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(patient.Gender != Gender.Unspecified)"
+                                  Label="@Localizer["Gender"]">
+                    @Localizer[patient.Gender.ToString()]
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@patient.DateOfBirth.HasValue"
+                                  Label="@Localizer["DateOfBirth"]">
+                    @patient.DateOfBirth?.ToShortDateString() (@AgeText)
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.FatherName))"
+                                  Label="@Localizer["FatherName"]">
+                    @patient.FatherName
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.PlaceOfBirth))"
+                                  Label="@Localizer["PlaceOfBirth"]">
+                    @patient.PlaceOfBirth
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.Address))"
+                                  Label="@Localizer["Address"]"
+                                  Md="12">
+                    @patient.Address
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(patient.Education != Education.Unspecified)"
+                                  Label="@Localizer["Education"]">
+                    @Localizer[patient.Education.ToString()]
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.Occupation))"
+                                  Label="@Localizer["Occupation"]">
+                    @patient.Occupation
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(patient.Height > 0)"
+                                  Label="@Localizer["Height"]">
+                    @patient.Height
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(patient.Weight > 0)"
+                                  Label="@Localizer["Weight"]">
+                    @patient.Weight
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.Phone))"
+                                  Label="@Localizer["Phone"]">
+                    @patient.Phone
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.Referrer))"
+                                  Label="@Localizer["Referrer"]">
+                    @patient.Referrer
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.InsuranceProvider))"
+                                  Label="@Localizer["InsuranceProvider"]">
+                    @patient.InsuranceProvider
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.VisitReason))"
+                                  Label="@Localizer["VisitReason"]"
+                                  Md="12">
+                    @patient.VisitReason
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.Allergies))"
+                                  Label="@Localizer["Allergies"]"
+                                  Md="12">
+                    @patient.Allergies
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.CurrentMedications))"
+                                  Label="@Localizer["CurrentMedications"]"
+                                  Md="12">
+                    @patient.CurrentMedications
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.EmergencyContactName))"
+                                  Label="@Localizer["EmergencyContactName"]">
+                    @patient.EmergencyContactName
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.EmergencyContactPhone))"
+                                  Label="@Localizer["EmergencyContactPhone"]">
+                    @patient.EmergencyContactPhone
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(linkedUserId))"
+                                  Label="@Localizer["LinkedUser"]">
+                    @GetUserFullNameById(linkedUserId!)
+                </ProjectInfoValue>
+
+                <MudDivider />
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(Project.Description))"
+                                  Md="12"
+                                  Class="py-3">
+                    @Project.Description
+                </ProjectInfoValue>
+
+                <ProjectInfoValue Visible="@(!string.IsNullOrWhiteSpace(patient.ClinicalNotes))"
+                                  Label="@Localizer["ClinicalNotes"]"
+                                  Md="12"
+                                  Class="py-3">
+                    @patient.ClinicalNotes
+                </ProjectInfoValue>
+
+                <MudDivider />
+
+                @if(Project.Stats is not null)
                 {
-                    <MudText HtmlTag="p" Typo="Typo.caption" Class="py-1">@Localizer["LastUpdate"]: @Project.Stats.LastUpdate.Value.ToLocalTime().ToShortDateString()</MudText>
+                    <ProjectInfoValue Label="@Localizer["Procedures"]"
+                                      Color="Color.Secondary">
+                        @Project.Stats.Procedures
+                    </ProjectInfoValue>
+
+                    <ProjectInfoValue Label="@Localizer["Events"]"
+                                      Color="Color.Secondary">
+                        @Project.Stats.Events
+                    </ProjectInfoValue>
+
+                    <ProjectInfoValue Visible="@Project.Stats.LastUpdate.HasValue"
+                                      Label="@Localizer["LastUpdate"]"
+                                      Color="Color.Secondary">
+                        @Project.Stats.LastUpdate?.ToLocalTime().ToShortDateString()
+                    </ProjectInfoValue>
                 }
             }
-            @if(!string.IsNullOrWhiteSpace(linkedUserId))
-            {
-                <MudText HtmlTag="p" Typo="Typo.caption" Class="py-1">@Localizer["LinkedUser"]: @GetUserFullNameById(linkedUserId)</MudText>
-            }
-        }
+
+        </MudGrid>
     </StackField>
 
     @if(AdminMode)

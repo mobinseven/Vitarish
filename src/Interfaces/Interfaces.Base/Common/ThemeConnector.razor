@@ -4,11 +4,11 @@
 
 @if(ThemeService.IsDarkMode)
 {
-    <div style="width: 100dvw; height: 100dvh; background-image: url('/bg/bd.webp'); background-size: cover; position: fixed; top: 0; right: 0; z-index: -100; pointer-events: none;  "></div>
+    <div style="width: 100dvw; height: 100dvh; background-image: url('/bg/bg.webp'); background-size: cover; background-color: black; position: fixed; top: 0; right: 0; z-index: -100; pointer-events: none; opacity: .2;"></div>
 }
 else
 {
-    <div style="width: 100dvw; height: 100dvh; background-image: url('/bg/bl.webp'); background-size: cover; position: fixed; top: 0; right: 0; z-index: -100; pointer-events: none; opacity: .4;"></div>
+    <div style="width: 100dvw; height: 100dvh; background-image: url('/bg/bg.webp'); background-size: cover; position: fixed; top: 0; right: 0; z-index: -100; pointer-events: none; opacity: .2;"></div>
 }
 
 @if(RendererInfo.IsInteractive)

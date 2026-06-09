@@ -1,9 +1,10 @@
-.mud-input > input.mud-input-root {
+.mud-input > .mud-input-root {
     padding: 12px !important;
+    /*border-radius: calc(var(--stack-radius) - var(--stack-item-padding)) !important;*/
 }
 
 .mud-input {
-    border-radius: calc(var(--stack-radius) - var(--stack-item-padding)) !important;
+    /*border-radius: calc(var(--stack-radius) - var(--stack-item-padding)) !important;*/
 }
 
 .sticky-top {
@@ -52,6 +53,10 @@
     background-color: unset;
 }
 
+.mud-paper {
+    backdrop-filter: blur(7px);
+}
+
 .mud-elevation-1 {
     box-shadow: unset;
 }
@@ -84,4 +89,8 @@
 
 .mud-input-helper-text {
     font-size: 1rem;
+}
+
+.mud-fab {
+    backdrop-filter: blur(3px) !important;
 }

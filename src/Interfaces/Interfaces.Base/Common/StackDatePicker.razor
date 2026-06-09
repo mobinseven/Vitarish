@@ -1,47 +1,32 @@
-@inherits MudDatePicker
-@using Microsoft.AspNetCore.Components
+@using MudBlazor
 
-<StackField Label="@Label">
-    <MudDatePicker Date="@PickerDate"
-                   DateChanged="@OnPickerDateChanged"
-                   Color="Color.Default"
-                   IconSize="Size.Small"
-                   OverflowBehavior="OverflowBehavior.FlipOnOpen"
-                   Variant="Variant.Filled"
-                   DateFormat="dd/MM/yyyy"
-                   Underline="false"
-                   Elevation="0"
-                   PickerVariant="@PickerVariant.Inline"
-                   MinDate="@MinDate"
-                   MaxDate="@MaxDate"
-                   IsDateDisabledFunc="@IsDateDisabledFunc" />
-</StackField>
+@inherits StackCalendar
+<div class="stack-item">
+    <StackExpandable>
+        <TitleContent>
+            <MudDatePicker HelperText="@Label"
+                           Editable="true"
+                           @bind-Date:get="_dateState.Value"
+                           @bind-Date:set="_dateState.SetValueAsync"
+                           Underline="false"
+                           ShowToolbar="false"
+                           Elevation="0"
+                           ImmediateText
+                           Clearable
+                           ClearIcon="fa-solid fa-eraser"
+                           AdornmentIcon=""
+                           Mask="@(new DateMask("yyyy/MM/dd"))"
+                           DateFormat="yyyy/MM/dd"
+                           OnClick="context.ToggleAsync"
+                           Variant="@(context.Expanded ? Variant.Outlined :Variant.Filled)" />
+        </TitleContent>
+        <ExpandableContent>
+            <StackCalendar ViewMode="@ViewMode"
+                           DayCount="@DayCount"
+                           IsDateDisabledFunc="@IsDateDisabledFunc"
+                           @bind-Date:get="_dateState.Value"
+                           @bind-Date:set="_dateState.SetValueAsync" />
+        </ExpandableContent>
 
-@code {
-    [Parameter]
-    public DateOnly? DateOnlyValue { get; set; }
-
-    [Parameter]
-    public EventCallback<DateOnly?> DateOnlyValueChanged { get; set; }
-
-    private bool UsesDateOnlyBinding =>
-        DateOnlyValue.HasValue || DateOnlyValueChanged.HasDelegate;
-
-    private DateTime? PickerDate =>
-        UsesDateOnlyBinding
-            ? DateOnlyValue?.ToDateTime(TimeOnly.MinValue)
-            : Date;
-
-    private async Task OnPickerDateChanged(DateTime? value)
-    {
-        // Keep existing DateTime? binding support from MudDatePicker.
-        await DateChanged.InvokeAsync(value);
-
-        // Add DateOnly? binding support.
-        DateOnly? dateOnlyValue = value.HasValue
-            ? System.DateOnly.FromDateTime(value.Value)
-            : null;
-
-        await DateOnlyValueChanged.InvokeAsync(dateOnlyValue);
-    }
-}
+    </StackExpandable>
+</div>

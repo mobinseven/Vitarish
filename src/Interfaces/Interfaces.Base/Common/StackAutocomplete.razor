@@ -1,20 +1,22 @@
+@using MudBlazor.State
 @inherits MudAutocomplete<string>
 
 <MudAutocomplete T="string"
-                 Value="@Value"
+                 @bind-Value:get="@_valueState.Value"
+                 @bind-Value:set="@_valueState.SetValueAsync"
                  SearchFunc="@(SearchFunc is null ? Search : SearchFunc)"
                  Strict="@Strict"
                  Variant="@Variant.Filled"
                  Underline="false"
                  Dense="@Dense"
                  Style="@Style"
-                 Class="@($"stack-item {(Centered ? "centered" : "")}")"
+                 Class="@($"stack-item ma-3 {(Centered ? "centered" : "")}")"
                  Disabled="@Disabled"
                  ReadOnly="@ReadOnly"
                  Placeholder="@Placeholder"
                  HelperText="@Label"
                  HelperTextOnFocus="@HelperTextOnFocus"
-                 Clearable="@Clearable"
+                 Clearable="@true"
                  Modal="@Modal"
                  Adornment="@Adornment"
                  AdornmentText="@AdornmentText"
@@ -25,6 +27,17 @@
 @code {
     [Parameter] public bool Centered { get; set; }
     [Parameter] public IEnumerable<string> Items { get; set; } = [];
+
+    protected readonly ParameterState<string?> _valueState;
+
+    public StackAutocomplete()
+    {
+        using var registerScope = CreateRegisterScope();
+
+        _valueState = registerScope.RegisterParameter<string?>(nameof(Value))
+            .WithParameter(() => Value)
+            .WithEventCallback(() => ValueChanged);
+    }
 
     private async Task<IEnumerable<string>> Search(string? value, CancellationToken token)
     {

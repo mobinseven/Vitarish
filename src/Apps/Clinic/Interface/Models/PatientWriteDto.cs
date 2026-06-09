@@ -2,6 +2,8 @@ namespace Vitarish.Clinic.Interface.Models;
 
 internal record PatientWriteDto : ProjectWriteDto
 {
+    public new Guid? AvatarFileId { get => GetField<Guid?>(); set => SetField(value); }
+
     public string? FirstName { get => GetField<string>(); set => SetField(value); }
 
     public string? LastName { get => GetField<string>(); set => SetField(value); }
@@ -16,7 +18,7 @@ internal record PatientWriteDto : ProjectWriteDto
 
     public string? Address { get => GetField<string>(); set => SetField(value); }
 
-    public string? Education { get => GetField<string>(); set => SetField(value); }
+    public Education Education { get => GetField<Education>(); set => SetField(value); }
 
     public string? Occupation { get => GetField<string>(); set => SetField(value); }
 

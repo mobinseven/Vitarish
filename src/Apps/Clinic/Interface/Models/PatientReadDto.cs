@@ -14,9 +14,23 @@ internal record PatientReadDto : ProjectReadDto
 
     public string? PlaceOfBirth => GetField<string>();
 
+    public string? Address => GetField<string>();
+
+    public Education Education => GetField<Education>();
+
+    public string? Occupation => GetField<string>();
+
+    public string? FatherName => GetField<string>();
+
+    public int Height => GetField<int>();
+
+    public int Weight => GetField<int>();
+
     public string? Email => GetField<string>();
 
     public string? Phone => GetField<string>();
+
+    public string? Referrer => GetField<string>();
 
     public string? InsuranceProvider => GetField<string>();
 

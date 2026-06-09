@@ -12,15 +12,15 @@
         {
             @if(ScrollToTopVisible)
             {
-                <MudFab Size="Size" StartIcon="fa-solid fa-chevron-up" DropShadow="false" OnClick="OnScrollToTopClick" Color="Color.Tertiary" Style="backdrop-filter: blur(10px);" />
+                <MudFab Size="Size" StartIcon="fa-solid fa-chevron-up" DropShadow="false" OnClick="OnScrollToTopClick" Color="Color.Tertiary" />
             }
             else
             {
-                <MudFab Size=Size StartIcon="fa-solid fa-house-blank" DropShadow=false OnClick="HandleHomeClick" Color="Color.Tertiary" Style="backdrop-filter: blur(10px);" />
+                <MudFab Size=Size StartIcon="fa-solid fa-house-blank" DropShadow=false OnClick="HandleHomeClick" Color="Color.Tertiary" />
             }
-            <MudFab Size=Size StartIcon="fa-solid fa-magnifying-glass" DropShadow=false OnClick="Open" Color="@(Search ? Color.Success : Color.Tertiary)" Style="backdrop-filter: blur(10px);" />
-            <MudFab Size=Size StartIcon="fa-solid fa-level-up-alt" DropShadow=false OnClick="HandleBackClick" Disabled="@(NavigationManager.Uri == NavigationManager.BaseUri)" Color="Color.Tertiary" Style="backdrop-filter: blur(10px);" />
-            <MudFab Size=Size StartIcon="fa-solid fa-gear" DropShadow=false OnClick="HandleProfileClick" Color="Color.Tertiary" Style="backdrop-filter: blur(10px);" />
+            <MudFab Size=Size StartIcon="fa-solid fa-magnifying-glass" DropShadow=false OnClick="Open" Color="@(Search ? Color.Success : Color.Tertiary)" />
+            <MudFab Size=Size StartIcon="fa-solid fa-level-up-alt" DropShadow=false OnClick="HandleBackClick" Disabled="@(NavigationManager.Uri == NavigationManager.BaseUri)" Color="Color.Tertiary" />
+            <MudFab Size=Size StartIcon="fa-solid fa-gear" DropShadow=false OnClick="HandleProfileClick" Color="Color.Tertiary" />
         }
     </MudStack>
 </div>

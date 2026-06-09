@@ -1,0 +1,32 @@
+@using MudBlazor
+@if (Visible)
+{
+    <MudItem xs="12" md="@Md">
+        <MudText HtmlTag="p"
+                 Typo="@Typo"
+                 Color="@Color"
+                 Class="@Class">
+            @if (!string.IsNullOrWhiteSpace(Label))
+            {
+                <span class="font-weight-medium">@Label: </span>
+            }
+            @ChildContent
+        </MudText>
+    </MudItem>
+}
+
+@code {
+    [Parameter] public bool Visible { get; set; } = true;
+
+    [Parameter] public string? Label { get; set; }
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [Parameter] public Typo Typo { get; set; } = Typo.caption;
+
+    [Parameter] public Color Color { get; set; } = Color.Default;
+
+    [Parameter] public string Class { get; set; } = "py-1";
+
+    [Parameter] public int Md { get; set; } = 6;
+}

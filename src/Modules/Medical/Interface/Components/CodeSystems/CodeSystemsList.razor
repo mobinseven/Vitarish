@@ -4,11 +4,9 @@
     @if (codeSystems.Count == 0)
     {
         <StackButton OnClick="ReloadRequired"
-                     Label="@Localizer["NoItems", Localizer["CodeSystem"]]"
+                     Label="@Localizer["Reload"]"
                      HelperText="@Localizer["NoItemsHelp", Localizer["CodeSystem"]]"
-                     EndIcon="fa-solid fa-refresh" Color="Color.Info">
-            @Localizer["Reload"]
-        </StackButton>
+                     EndIcon="fa-solid fa-refresh" Color="Color.Info"/>
     }
     else
     {

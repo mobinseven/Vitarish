@@ -22,9 +22,7 @@
         }
         @if(projects.Count == 0)
         {
-            <StackButton OnClick="ReloadRequired" Label="@Localizer["NoItems", Localizer["Project"]]" HelperText="@Localizer["NoItemsHelp", Localizer["Project"]]" EndIcon="fa-solid fa-refresh" Color="Color.Info">
-                @Localizer["Reload"]
-            </StackButton>
+            <StackButton OnClick="ReloadRequired" Label="@Localizer["Reload"]" HelperText="@Localizer["NoItemsHelp", Localizer["Project"]]" EndIcon="fa-solid fa-refresh" Color="Color.Info"/>
         }
     </Stack>
 }
