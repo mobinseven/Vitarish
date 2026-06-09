@@ -2,6 +2,8 @@ namespace Vitarish.Platform.Domain.Entities;
 
 public sealed class ConnectionMemorySample
 {
+    public const int FailureReasonMaxLength = 512;
+
     public Guid Id { get; set; }
     public string CircuitId { get; set; } = string.Empty;
     public string? UserId { get; set; }
@@ -50,6 +52,11 @@ public sealed class ConnectionMemorySample
         if (Kind == ConnectionMemorySampleKind.Failed && string.IsNullOrWhiteSpace(FailureReason))
         {
             throw new InvalidOperationException("Kind == Failed should include FailureReason.");
+        }
+
+        if (FailureReason?.Length > FailureReasonMaxLength)
+        {
+            throw new InvalidOperationException($"FailureReason must be <= {FailureReasonMaxLength} characters.");
         }
     }
 }

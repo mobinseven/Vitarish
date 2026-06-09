@@ -50,7 +50,7 @@ public sealed class PlatformDbContext(DbContextOptions<PlatformDbContext> option
             _ = entity.Property(e => e.ProcessPrivateMemoryBytes).IsRequired();
             _ = entity.Property(e => e.ProcessWorkingSetBytes).IsRequired();
             _ = entity.Property(e => e.ManagedHeapBytes).IsRequired();
-            _ = entity.Property(e => e.FailureReason).HasMaxLength(512);
+            _ = entity.Property(e => e.FailureReason).HasMaxLength(ConnectionMemorySample.FailureReasonMaxLength);
             _ = entity.HasIndex(e => e.CircuitId);
             _ = entity.HasIndex(e => e.ObservedAtUtc);
         });

@@ -3,20 +3,19 @@ using Microsoft.Extensions.Logging;
 using Vitarish.Platform.Application.Abstractions;
 using Vitarish.Platform.Application.Contracts;
 using Vitarish.Platform.Domain.Entities;
-using Vitarish.Platform.Infrastructure.Services;
 
 namespace Vitarish.Platform.Hosting;
 
 public sealed class PlatformCircuitMemoryObserver : CircuitHandler
 {
     private readonly IPlatformConnectionMemoryCommand _command;
-    private readonly ProcessMemorySampler _sampler;
+    private readonly IConnectionMemorySampler _sampler;
     private readonly TimeProvider _timeProvider;
     private readonly ILogger<PlatformCircuitMemoryObserver> _logger;
 
     public PlatformCircuitMemoryObserver(
         IPlatformConnectionMemoryCommand command,
-        ProcessMemorySampler sampler,
+        IConnectionMemorySampler sampler,
         TimeProvider timeProvider,
         ILogger<PlatformCircuitMemoryObserver> logger)
     {
@@ -40,8 +39,8 @@ public sealed class PlatformCircuitMemoryObserver : CircuitHandler
     {
         try
         {
-            (long privateMemoryBytes, long workingSetBytes, long managedHeapBytes) = _sampler.Sample();
-            
+            ProcessMemorySample sample = _sampler.Sample();
+
             RecordConnectionMemorySampleRequest request = new(
                 CircuitId: circuit.Id,
                 UserId: null,
@@ -49,9 +48,9 @@ public sealed class PlatformCircuitMemoryObserver : CircuitHandler
                 ClientId: null,
                 Kind: kind,
                 ObservedAtUtc: _timeProvider.GetUtcNow(),
-                ProcessPrivateMemoryBytes: privateMemoryBytes,
-                ProcessWorkingSetBytes: workingSetBytes,
-                ManagedHeapBytes: managedHeapBytes,
+                ProcessPrivateMemoryBytes: sample.PrivateMemoryBytes,
+                ProcessWorkingSetBytes: sample.WorkingSetBytes,
+                ManagedHeapBytes: sample.ManagedHeapBytes,
                 EstimatedCircuitDeltaBytes: null,
                 FailureReason: null);
 
@@ -74,7 +73,7 @@ public sealed class PlatformCircuitMemoryObserver : CircuitHandler
                     ProcessWorkingSetBytes: 0,
                     ManagedHeapBytes: 0,
                     EstimatedCircuitDeltaBytes: null,
-                    FailureReason: ex.Message);
+                    FailureReason: BoundFailureReason(ex));
 
                 await _command.RecordAsync(failureRequest, cancellationToken);
             }
@@ -83,5 +82,19 @@ public sealed class PlatformCircuitMemoryObserver : CircuitHandler
                 _logger.LogError(innerEx, "Failed to record failure sample for circuit {CircuitId}", circuit.Id);
             }
         }
+    }
+
+    private static string BoundFailureReason(Exception exception)
+    {
+        string failureReason = string.IsNullOrWhiteSpace(exception.Message)
+            ? exception.GetType().Name
+            : exception.Message;
+
+        if (failureReason.Length <= ConnectionMemorySample.FailureReasonMaxLength)
+        {
+            return failureReason;
+        }
+
+        return failureReason[..ConnectionMemorySample.FailureReasonMaxLength];
     }
 }

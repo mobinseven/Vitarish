@@ -19,7 +19,7 @@ public static class PlatformDependencyInjectionExtensions
         builder.Services.TryAddTransient<IPlatformThemeQuery>(sp => sp.GetRequiredService<PlatformThemeStore>());
         builder.Services.TryAddTransient<IPlatformThemeCommand>(sp => sp.GetRequiredService<PlatformThemeStore>());
 
-        builder.Services.TryAddSingleton<ProcessMemorySampler>();
+        builder.Services.TryAddSingleton<IConnectionMemorySampler, ProcessMemorySampler>();
         builder.Services.TryAddTransient<PlatformConnectionMemoryStore>();
         builder.Services.TryAddTransient<IPlatformConnectionMemoryCommand>(sp => sp.GetRequiredService<PlatformConnectionMemoryStore>());
         builder.Services.TryAddTransient<IPlatformConnectionMemoryQuery>(sp => sp.GetRequiredService<PlatformConnectionMemoryStore>());
