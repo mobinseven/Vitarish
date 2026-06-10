@@ -1,3 +1,5 @@
+using Vitarish.Clinic.Domain.Models;
+
 namespace Vitarish.Clinic.Interface.Components.Patients;
 
 public partial class PatientEditForm

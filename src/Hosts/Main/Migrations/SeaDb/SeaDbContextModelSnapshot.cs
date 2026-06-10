@@ -18,7 +18,7 @@ namespace Vitarish.Main.Migrations.SeaDb
 #pragma warning disable 612, 618
             modelBuilder
                 .HasDefaultSchema("Sea")
-                .HasAnnotation("ProductVersion", "10.0.8")
+                .HasAnnotation("ProductVersion", "10.0.9")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
@@ -258,8 +258,8 @@ namespace Vitarish.Main.Migrations.SeaDb
                     b.Property<string>("Metadata")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("text")
-                        .HasDefaultValueSql("'{}'");
+                        .HasColumnType("jsonb")
+                        .HasDefaultValueSql("'{}'::jsonb");
 
                     b.Property<string>("Name")
                         .IsRequired()

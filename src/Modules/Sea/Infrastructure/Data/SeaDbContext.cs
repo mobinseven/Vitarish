@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Text.Json;
-using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Sea.Infrastructure.Data;
 
@@ -115,9 +115,10 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         {
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
-                .HasDefaultValueSql("'{}'");
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => DeserializeMetadata(v))
+                .HasColumnType("jsonb")
+                .HasDefaultValueSql("'{}'::jsonb");
             _ = entity.Ignore(p => p.Stats);
             _ = entity.Ignore(p => p.UserIds);
 
@@ -139,8 +140,8 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         {
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
-                    v => JsonSerializer.Deserialize<Dictionary<string, object>>(v, (JsonSerializerOptions)null))
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+                    v => DeserializeMetadata(v))
                 .HasDefaultValueSql("'{}'");
 
             _ = entity.Ignore(p => p.Stats);
@@ -155,6 +156,11 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         _ = modelBuilder.Entity<Event>()
             .Ignore(e => e.Stats);
     }
+
+    private static Dictionary<string, object?> DeserializeMetadata(string? value)
+        => string.IsNullOrWhiteSpace(value)
+            ? []
+            : JsonSerializer.Deserialize<Dictionary<string, object?>>(value, (JsonSerializerOptions?)null) ?? [];
 
     private static void ConfigureTenantEntity<TEntity>(ModelBuilder modelBuilder)
         where TEntity : Entity
