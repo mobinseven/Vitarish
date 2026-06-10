@@ -34,6 +34,16 @@ public sealed class StackPaginationState
 
     public void SetPage(int page)
     {
+        SetPageCore(page, notify: true);
+    }
+
+    public void SetPageWithoutNotification(int page)
+    {
+        SetPageCore(page, notify: false);
+    }
+
+    private void SetPageCore(int page, bool notify)
+    {
         int boundedPage = Math.Clamp(page, 1, TotalPages);
         if (boundedPage == Page)
         {
@@ -41,7 +51,11 @@ public sealed class StackPaginationState
         }
 
         Page = boundedPage;
-        NotifyStateChanged();
+
+        if (notify)
+        {
+            NotifyStateChanged();
+        }
     }
 
     private void NotifyStateChanged() => StateChanged?.Invoke();
