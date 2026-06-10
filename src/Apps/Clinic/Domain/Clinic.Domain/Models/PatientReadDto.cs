@@ -3,7 +3,7 @@ using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Clinic.Domain.Models;
 
-internal record PatientReadDto : ProjectReadDto
+public record PatientReadDto : ProjectReadDto
 {
     public string? FirstName => GetField<string>();
 

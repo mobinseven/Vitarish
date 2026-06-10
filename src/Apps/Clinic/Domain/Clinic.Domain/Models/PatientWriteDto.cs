@@ -1,6 +1,9 @@
+using Vitarish.Clinic.Domain.Enums;
+using Vitarish.Sea.Domain.Dto;
+
 namespace Vitarish.Clinic.Domain.Models;
 
-internal record PatientWriteDto : ProjectWriteDto
+public record PatientWriteDto : ProjectWriteDto
 {
     public new Guid? AvatarFileId { get => GetField<Guid?>(); set => SetField(value); }
 

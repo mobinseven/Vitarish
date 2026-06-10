@@ -1,3 +1,7 @@
+using Vitarish.Clinic.Domain.Models;
+using Vitarish.Clinic.Infrastructure.Mappers;
+using Vitarish.Sea.Domain.Dto;
+
 internal static class ModelMapperExtensions
 {
     private static readonly ModelMapper ModelMapper = new();

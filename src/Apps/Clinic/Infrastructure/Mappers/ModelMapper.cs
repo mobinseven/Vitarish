@@ -1,4 +1,6 @@
 using Riok.Mapperly.Abstractions;
+using Vitarish.Clinic.Domain.Models;
+using Vitarish.Sea.Domain.Dto;
 
 namespace Vitarish.Clinic.Infrastructure.Mappers;
 
