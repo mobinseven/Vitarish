@@ -125,7 +125,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         {
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                     v => DeserializeMetadata(v))
                 .HasColumnType("jsonb")
                 .HasDefaultValueSql("'{}'::jsonb");
@@ -150,7 +150,7 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         {
             _ = entity.Property(e => e.Metadata)
                 .HasConversion(
-                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions)null),
+                    v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
                     v => DeserializeMetadata(v))
                 .HasDefaultValueSql("'{}'");
 
@@ -167,8 +167,10 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
             .Ignore(e => e.Stats);
     }
 
-    private static Dictionary<string, object> DeserializeMetadata(string value)
-        => JsonSerializer.Deserialize<Dictionary<string, object>>(value, (JsonSerializerOptions)null) ?? new Dictionary<string, object>();
+    private static Dictionary<string, object?> DeserializeMetadata(string? value)
+        => string.IsNullOrWhiteSpace(value)
+            ? new Dictionary<string, object?>()
+            : JsonSerializer.Deserialize<Dictionary<string, object?>>(value, (JsonSerializerOptions?)null) ?? new Dictionary<string, object?>();
 
     private static void ConfigureTenantEntity<TEntity>(ModelBuilder modelBuilder)
         where TEntity : Entity

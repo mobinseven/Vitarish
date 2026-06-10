@@ -9,6 +9,9 @@ internal sealed class GetPatientViewsHandler(
     IRequestContext requestContext,
     EntitySearchPatternFactory searchPatternFactory) : IRequestHandler<GetPatientViewsQuery, IReadOnlyList<PatientListItemDto>>
 {
+    private const int DefaultTake = 100;
+    private const int MaximumTake = 1000;
+
     public async Task<IReadOnlyList<PatientListItemDto>> Handle(GetPatientViewsQuery request, CancellationToken cancellationToken)
     {
         string tenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID is required to query patient views.");
@@ -25,11 +28,11 @@ internal sealed class GetPatientViewsHandler(
                 query = query.Where(patient =>
                     EF.Functions.ILike(patient.Name, pattern)
                     || EF.Functions.ILike(patient.Description, pattern)
-                    || (patient.IdentificationCode != null && EF.Functions.ILike(patient.IdentificationCode, pattern))
-                    || (patient.FirstName != null && EF.Functions.ILike(patient.FirstName, pattern))
-                    || (patient.LastName != null && EF.Functions.ILike(patient.LastName, pattern))
-                    || (patient.Phone != null && EF.Functions.ILike(patient.Phone, pattern))
-                    || (patient.Email != null && EF.Functions.ILike(patient.Email, pattern)));
+                    || EF.Functions.ILike(patient.IdentificationCode!, pattern)
+                    || EF.Functions.ILike(patient.FirstName!, pattern)
+                    || EF.Functions.ILike(patient.LastName!, pattern)
+                    || EF.Functions.ILike(patient.Phone!, pattern)
+                    || EF.Functions.ILike(patient.Email!, pattern));
             }
         }
 
@@ -43,10 +46,11 @@ internal sealed class GetPatientViewsHandler(
             query = query.Skip(request.Skip.Value);
         }
 
-        if (request.Take is > 0)
-        {
-            query = query.Take(request.Take.Value);
-        }
+        int take = request.Take is > 0
+            ? Math.Min(request.Take.Value, MaximumTake)
+            : DefaultTake;
+
+        query = query.Take(take);
 
         return await query.Select(patient => new PatientListItemDto(
                 patient.Id,
