@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Logging;
 using System.Data.Common;
 using System.Transactions;
-using Vitarish.Sea.Application.Commands.Patients;
+using Vitarish.Clinic.Application.Commands.Patients;
 
-namespace Vitarish.Sea.Infrastructure.Handlers;
+namespace Vitarish.Clinic.Infrastructure.Handlers;
 
 internal sealed class PatientViewRefreshCommandHandler(
     SeaDbContext dbContext,

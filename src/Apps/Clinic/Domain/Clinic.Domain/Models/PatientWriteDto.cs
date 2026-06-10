@@ -1,4 +1,4 @@
-namespace Vitarish.Clinic.Interface.Models;
+namespace Vitarish.Clinic.Domain.Models;
 
 internal record PatientWriteDto : ProjectWriteDto
 {

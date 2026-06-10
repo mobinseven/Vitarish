@@ -1,6 +1,6 @@
-namespace Vitarish.Sea.Infrastructure.ReadModels;
+namespace Vitarish.Clinic.Domain.Models;
 
-internal sealed class PatientView
+public sealed class PatientView
 {
     public Guid Id { get; init; }
     public string TenantId { get; init; } = string.Empty;

@@ -1,18 +1,22 @@
+using MediatR;
+using Microsoft.EntityFrameworkCore;
+using Vitarish.Clinic.Application.Queries.Patients;
+using Vitarish.Clinic.Domain.Models;
+using Vitarish.Clinic.Infrastructure.Data;
+using Vitarish.Entities.Server.Infrastructure.Search;
 using Vitarish.Requests.Application.Abstractions;
-using Vitarish.Sea.Application.Queries.Patients;
-using Vitarish.Sea.Infrastructure.ReadModels;
 
-namespace Vitarish.Sea.Infrastructure.Handlers;
+namespace Vitarish.Clinic.Infrastructure.Handlers;
 
 internal sealed class GetPatientViewsHandler(
-    SeaDbContext dbContext,
+    ClinicDbContext dbContext,
     IRequestContext requestContext,
-    EntitySearchPatternFactory searchPatternFactory) : IRequestHandler<GetPatientViewsQuery, IReadOnlyList<PatientListItemDto>>
+    EntitySearchPatternFactory searchPatternFactory) : IRequestHandler<GetPatientsQuery, IReadOnlyList<PatientListItemDto>>
 {
     private const int DefaultTake = 100;
     private const int MaximumTake = 1000;
 
-    public async Task<IReadOnlyList<PatientListItemDto>> Handle(GetPatientViewsQuery request, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<PatientListItemDto>> Handle(GetPatientsQuery request, CancellationToken cancellationToken)
     {
         string tenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID is required to query patient views.");
 

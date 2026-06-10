@@ -44,7 +44,6 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
     public DbSet<Receipt> Receipts => Set<Receipt>();
     public DbSet<ProjectUser> ProjectUsers => Set<ProjectUser>();
     public DbSet<ProjectAttachmentView> ProjectAttachmentsView => Set<ProjectAttachmentView>();
-    internal DbSet<PatientView> PatientViews => Set<PatientView>();
 
     public SeaDbContext(
         DbContextOptions<SeaDbContext> options,
@@ -110,14 +109,6 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
         {
             _ = eb.ToView("vw_ProjectAttachments");
             _ = eb.HasNoKey();
-            _ = eb.IsMultiTenant();
-        });
-
-        _ = modelBuilder.Entity<PatientView>(eb =>
-        {
-            _ = eb.ToView("mv_Patients", nameof(Sea));
-            _ = eb.HasNoKey();
-            _ = eb.Property(patient => patient.TenantId).HasMaxLength(64);
             _ = eb.IsMultiTenant();
         });
 

@@ -1,4 +1,7 @@
-namespace Vitarish.Clinic.Interface.Models;
+using Vitarish.Clinic.Domain.Enums;
+using Vitarish.Sea.Domain.Dto;
+
+namespace Vitarish.Clinic.Domain.Models;
 
 internal record PatientReadDto : ProjectReadDto
 {

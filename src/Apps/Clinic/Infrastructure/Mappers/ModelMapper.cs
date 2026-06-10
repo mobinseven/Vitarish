@@ -1,6 +1,6 @@
 using Riok.Mapperly.Abstractions;
 
-namespace Vitarish.Clinic.Interface.Mappers;
+namespace Vitarish.Clinic.Infrastructure.Mappers;
 
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Source)]
 internal partial class ModelMapper

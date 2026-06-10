@@ -1,6 +1,8 @@
-namespace Vitarish.Sea.Application.Queries.Patients;
+using MediatR;
 
-public sealed record GetPatientViewsQuery(string? Search = null, int? Skip = null, int? Take = null) : IRequest<IReadOnlyList<PatientListItemDto>>;
+namespace Vitarish.Clinic.Application.Queries.Patients;
+
+public sealed record GetPatientsQuery(string? Search = null, int? Skip = null, int? Take = null) : IRequest<IReadOnlyList<PatientListItemDto>>;
 
 public sealed record PatientListItemDto(
     Guid Id,
