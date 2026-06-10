@@ -6,35 +6,30 @@ public partial class PatientsGrid
 {
     private bool MassEditMode;
 
-    private IReadOnlyList<PatientReadDto>? projectsViaSurgeryData;
-    private IReadOnlyList<PatientReadDto>? projectsLackSurgeryData;
-
+    private IReadOnlyList<PatientReadDto>? patients;
+    ProjectDescriptorDto descriptor = new();
     protected override async Task ReloadRequired()
     {
         ProjectDescriptorDto descriptor = new()
         {
             Skip = 0,
-            Take = int.MaxValue,
+            Take = 10,
             Search = string.IsNullOrWhiteSpace(SearchString) ? null : SearchString,
             Template = TemplateMode
         };
 
         IReadOnlyList<ProjectReadDto> Items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
 
-        projects = [.. Items];
-
-        List<PatientReadDto> patientProjects = [.. Items.Select(p => p.ToPatientRead()!)];
-        projectsViaSurgeryData = [.. patientProjects.Where(c => c.DateOfSurgery is not null)];
-        projectsLackSurgeryData = [.. patientProjects.Where(c => c.DateOfSurgery is null)];
+        patients = [.. Items.Select(p => p.ToPatientRead()!)];
         await InvokeAsync(StateHasChanged);
     }
 
-    private SortMethod[] SortMethodsViaSurgeryData => [
+    private SortMethod[] SortMethods => [
         new SortMethod(
             () => Localizer["SurgeryDateDesc"],
             () =>
             {
-                projectsViaSurgeryData = [.. projectsViaSurgeryData!
+                patients = [.. patients!
                         .OrderByDescending(e => e.DateOfSurgery)
                         .ThenByDescending(e => (e.Stats?.NewItems ?? 0) > 0)
                         .ThenByDescending(e => e.Stats?.Unread ?? false)
@@ -45,23 +40,32 @@ public partial class PatientsGrid
             () => Localizer["SurgeryDate"],
             () =>
             {
-                projectsViaSurgeryData = [.. projectsViaSurgeryData!
+                patients = [.. patients!
                     .OrderBy(e=> e.DateOfSurgery)
                     .ThenByDescending(e => (e.Stats?.NewItems ?? 0) > 0)
                     .ThenByDescending(e => e.Stats?.Unread ?? false)
                     .ThenBy(e => e.Name)];
                 StateHasChanged();
-            })];
-
-    private SortMethod[] SortMethodsLackSurgeryData =>
-        [new SortMethod(
-            () => Localizer["DateAscending"],
+            }),
+        new SortMethod(
+            () => Localizer["Name"],
             () =>
             {
-                projectsLackSurgeryData = [.. projectsLackSurgeryData!
-                    .OrderByDescending(e => (e.Stats?.NewItems ?? 0) > 0)
-                    .ThenByDescending(e => e.Stats?.Unread ?? false)
-                    .ThenBy(e => e.Name)];
+                patients = [.. patients!
+                        .OrderBy(e => e.Name)
+                        .ThenByDescending(e => (e.Stats?.NewItems ?? 0) > 0)
+                        .ThenByDescending(e => e.Stats?.Unread ?? false)];
                 StateHasChanged();
-            })];
+            }),
+        new SortMethod(
+            () => Localizer["NameDesc"],
+            () =>
+            {
+                patients = [.. patients!
+                        .OrderByDescending(e => e.Name)
+                        .ThenByDescending(e => (e.Stats?.NewItems ?? 0) > 0)
+                        .ThenByDescending(e => e.Stats?.Unread ?? false)];
+                StateHasChanged();
+            }),];
+
 }

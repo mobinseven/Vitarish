@@ -1,5 +1,9 @@
 @inherits ProjectsGrid
 
+<Stack>
+    <StackPersonIdField />
+</Stack>
+
 @if(AdminMode)
 {
     <Stack>
@@ -7,17 +11,17 @@
                      OnClick="AddProject"
                      EndIcon="fa-solid fa-folder-plus"
                      Label="@Localizer["AddItem", Localizer["Project"]]" />
-        <StackButton Color="Color.Primary"
+@*         <StackButton Color="Color.Primary"
                      OnClick="@(() => MassEditMode = !MassEditMode)"
                      EndIcon="@(MassEditMode ? "fa-solid fa-check" : "fa-solid fa-edit")"
-                     Label="@(MassEditMode ? Localizer["EndItem", Localizer["MassEditMode"]] : Localizer["MassEditMode"])" />
+                     Label="@(MassEditMode ? Localizer["EndItem", Localizer["MassEditMode"]] : Localizer["MassEditMode"])" /> *@
     </Stack>
 
     @if(MassEditMode)
     {
-        <StackPaged Items="projects" Context="project" PageSize="5">
+        <StackPaged Items="patients" Context="patient" PageSize="5">
             <StackItemTemplate>
-                <PatientEditForm @key="project.Id" Project="project" OnUpdate="ReloadRequired" />
+                <PatientEditForm @key="patient.Id" Project="patient" OnUpdate="ReloadRequired" />
             </StackItemTemplate>
         </StackPaged>
         return;
@@ -25,7 +29,7 @@
 
 }
 
-@if(projects is null)
+@if(patients is null)
 {
     return;
 }
@@ -37,36 +41,29 @@
     </Stack>
 }
 
-@if(projectsViaSurgeryData?.Count > 0)
+@if(patients?.Count > 0)
 {
     <Stack>
-        <StackSort Methods="SortMethodsViaSurgeryData" />
+        <StackSort Methods="SortMethods" />
 
-        @foreach(var project in projectsViaSurgeryData)
-        {
-            <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
-                         Label="@project.Name"
-                         HighlightString="@SearchString">
-                <div>
-                    <MudText Typo="Typo.caption">@project.DateOfSurgery!.Value.ToShortDateString()</MudText>
-                    <StatsDisplay Stats="project.Stats" />
-                </div>
-            </StackButton>
-        }
-    </Stack>
-}
-
-@if(projectsLackSurgeryData?.Count > 0)
-{
-    <Stack>
-        <StackSort Methods="SortMethodsLackSurgeryData" />
-        @foreach(var project in projectsLackSurgeryData)
-        {
-            <StackButton OnClick="() => OnClicked.InvokeAsync(project.Id)"
-                         Label="@project.Name"
-                         HighlightString="@SearchString">
-                <StatsDisplay Stats="project.Stats" />
-            </StackButton>
-        }
+        <StackPaged Items="patients" Context="patient">
+            <StackItemTemplate>
+                <StackButton OnClick="() => OnClicked.InvokeAsync(patient.Id)"
+                             Label="@patient.Name"
+                             HighlightString="@SearchString">
+                    <MudStack Row AlignItems="AlignItems.Center">
+                        @if(patient.DateOfSurgery.HasValue)
+                        {
+                            <div>
+                                <MudChip T="string" Text="@($"{Localizer["DateOf", Localizer["Surgery"]]}: {patient.DateOfSurgery.Value.ToShortDateString()}")" />
+                            </div>
+                        }
+                        <div>
+                            <StatsDisplay Stats="patient.Stats" />
+                        </div>
+                    </MudStack>
+                </StackButton>
+            </StackItemTemplate>
+        </StackPaged>
     </Stack>
 }

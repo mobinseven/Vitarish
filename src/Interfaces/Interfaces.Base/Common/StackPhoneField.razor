@@ -1,0 +1,179 @@
+@using MudBlazor
+@inherits MudTextField<string>
+
+<MudTextField @key="guid"
+              @bind-Value:get="@_displayValue"
+              @bind-Value:set="SetPhoneValueAsync"
+              AdornmentColor="@EffectiveAdornmentColor"
+              AdornmentIcon="@EffectiveAdornmentIcon"
+              Adornment="@EffectiveAdornment"
+              AutoFocus="@AutoFocus"
+              Mask="@_phoneMask"
+              OnAdornmentClick="@OnAdornmentClick"
+              Style="@Style"
+              Class="@($"stack-item {(Centered ? "centered" : "")}")"
+              Underline="false"
+              Variant="Variant.Filled"
+              Required="@Required"
+              RequiredError="@RequiredError"
+              Placeholder="@Placeholder"
+              DebounceInterval="500"
+              Immediate="@Immediate"
+              HelperText="@EffectiveLabel"
+              InputType="@InputType"
+              Lines="@Lines"
+              MaxLines="@MaxLines"
+              MaxLength="@MaxLength"
+              InputMode="@InputMode"
+              UserAttributes="@UserAttributes"
+              ReadOnly="@ReadOnly"
+              Disabled="@Disabled" />
+
+@code {
+    [Inject] protected IStringLocalizer Localizer { get; set; } = default!;
+
+    private Guid guid = Guid.NewGuid();
+
+    [Parameter] public bool Centered { get; set; }
+
+    private readonly ParameterState<string?> _valueState;
+
+    private string? _displayValue;
+    private bool _hasValue;
+    private bool _isValidIranPhone;
+
+    private readonly MultiMask _phoneMask = new(
+        // Default: local Iran mobile format
+    "0000 000 0000",
+
+        // 0912 345 6789
+    new MaskOption("Iran", "0000 000 0000", @"^09"),
+
+        // 912 345 6789
+    new MaskOption("Iran", "000 000 0000", @"^9"),
+
+        // 98912 345 6789
+    new MaskOption("Iran", "00000 000 0000", @"^98")
+    );
+
+    private bool ShowUnknownPhoneWarning =>
+        _hasValue && !_isValidIranPhone;
+
+    private Adornment EffectiveAdornment => Adornment.End;
+    // ShowUnknownPhoneWarning
+        //     ? Adornment.End
+        //     : Adornment;
+
+    private string? EffectiveAdornmentIcon =>
+        ShowUnknownPhoneWarning
+            ? "fa-solid fa-triangle-exclamation"
+            : AdornmentIcon is null ? "fa-solid fa-phone" : AdornmentIcon;
+
+    private Color EffectiveAdornmentColor =>
+        ShowUnknownPhoneWarning
+            ? Color.Warning
+            : AdornmentColor;
+
+    private string EffectiveLabel =>
+        Label is null ?
+            Localizer["Phone"] : Label;
+
+    public StackPhoneField()
+    {
+        using var registerScope = CreateRegisterScope();
+
+        _valueState = registerScope.RegisterParameter<string?>(nameof(Value))
+            .WithParameter(() => Value)
+            .WithEventCallback(() => ValueChanged);
+
+        InputType = InputType.Telephone;
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        // Value is stored canonically, e.g. +989123456789.
+        // Display it locally, e.g. 0912 345 6789.
+        _displayValue = ToIranLocalDisplay(_valueState.Value);
+
+        UpdatePhoneMatchState(_displayValue);
+    }
+
+    private async Task SetPhoneValueAsync(string? input)
+    {
+        _displayValue = input;
+
+        var normalized = NormalizeIranPhone(input);
+
+        UpdatePhoneMatchState(input);
+
+        // Store one canonical format everywhere:
+        // +989123456789
+        await _valueState.SetValueAsync(normalized);
+    }
+
+    private void UpdatePhoneMatchState(string? value)
+    {
+        var digits = OnlyDigits(value);
+
+        _hasValue = !string.IsNullOrWhiteSpace(digits);
+        _isValidIranPhone = NormalizeIranPhone(value) is not null;
+    }
+
+    private static string? NormalizeIranPhone(string? value)
+    {
+        var digits = OnlyDigits(value);
+
+        if(string.IsNullOrWhiteSpace(digits))
+            return null;
+
+        // 0912 345 6789 -> 9123456789
+        if(digits.Length == 11 && digits.StartsWith("09"))
+            digits = digits[1..];
+
+        // 98912 345 6789 -> 9123456789
+        else if(digits.Length == 12 && digits.StartsWith("98"))
+            digits = digits[2..];
+
+        // 0098 912 345 6789 -> 9123456789
+        else if(digits.Length == 14 && digits.StartsWith("0098"))
+            digits = digits[4..];
+
+        // 912 345 6789 -> already national significant number
+        else if(digits.Length == 10 && digits.StartsWith("9"))
+            digits = digits;
+
+        else
+            return null;
+
+        // Iran mobile national significant number should be:
+        // 9xxxxxxxxx
+        if(digits.Length != 10 || !digits.StartsWith("9"))
+            return null;
+
+        return $"+98{digits}";
+    }
+
+    private static string? ToIranLocalDisplay(string? value)
+    {
+        var normalized = NormalizeIranPhone(value);
+
+        if(normalized is null)
+            return value;
+
+        // +989123456789 -> 09123456789
+        var localDigits = $"0{normalized[3..]}";
+
+        // 09123456789 -> 0912 345 6789
+        return $"{localDigits[..4]} {localDigits[4..7]} {localDigits[7..]}";
+    }
+
+    private static string OnlyDigits(string? value)
+    {
+        if(string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        return new string(value.ConvertToEnglishNumerals().Where(char.IsDigit).ToArray());
+    }
+}

@@ -49,9 +49,6 @@
     private async Task OnTypographyChanged(TypographySize size)
         => await ThemeService.SetTypographySizeAsync(size);
 
-    private Task OnSurfaceChanged(ThemeSurfaceType s)
-        => ThemeService.SetSurfaceAsync(s);
-
     private async Task ResetAsync()
         => await ThemeService.InitializeAsync(Models.ThemeSettings.Default with { LastKnownIsDarkMode = ThemeService.IsDarkMode });
 

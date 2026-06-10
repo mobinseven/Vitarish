@@ -153,7 +153,7 @@ public sealed class ThemeService(ILogger<ThemeService> logger) : IThemeService
             Subtitle1 = new Subtitle1Typography { FontFamily = font, FontSize = Scale("0.95rem", scale), FontWeight = "600", LineHeight = "1.45", LetterSpacing = "0.01em", TextTransform = "none" },
             Subtitle2 = new Subtitle2Typography { FontFamily = font, FontSize = Scale("0.875rem", scale), FontWeight = "600", LineHeight = "1.45", LetterSpacing = "0.01em", TextTransform = "none" },
             Button = new ButtonTypography { FontFamily = font, FontSize = Scale("0.875rem", scale), FontWeight = "650", LineHeight = "1.2", LetterSpacing = "0.02em", TextTransform = "none" },
-            Caption = new CaptionTypography { FontFamily = font, FontSize = Scale("0.75rem", scale), FontWeight = "400", LineHeight = "1.35", LetterSpacing = "0.02em", TextTransform = "none" },
+            Caption = new CaptionTypography { FontFamily = font, FontSize = Scale("0.55rem", scale), FontWeight = "400", LineHeight = "1.35", LetterSpacing = "0.02em", TextTransform = "none" },
             Overline = new OverlineTypography { FontFamily = font, FontSize = Scale("0.75rem", scale), FontWeight = "650", LineHeight = "1.2", LetterSpacing = "0.08em", TextTransform = "uppercase" }
         };
         PseudoCss pseudoCss = new()

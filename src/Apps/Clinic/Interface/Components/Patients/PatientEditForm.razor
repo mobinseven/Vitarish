@@ -6,9 +6,7 @@
 }
 
 <Stack>
-    <StackTextField @bind-Value="patient.IdentificationCode"
-                    Label="@Localizer["IdentificationCode"]"
-                    HelperText="@Localizer["IdentificationCodeHelp"]"
+    <StackPersonIdField @bind-Value="patient.IdentificationCode"
                     Adornment="Adornment.End"
                     AdornmentIcon="@RequiredIcon(patient.IdentificationCode, "fa-solid fa-id-card")"
                     AdornmentColor="@RequiredColor(patient.IdentificationCode)" />
@@ -26,16 +24,10 @@
                     AdornmentIcon="@RequiredIcon(patient.LastName)"
                     AdornmentColor="@RequiredColor(patient.LastName)" />
 
-    <StackTextField @bind-Value="patient.Phone"
-                    Label="@Localizer["Phone"]"
+    <StackPhoneField @bind-Value="patient.Phone"
                     Adornment="Adornment.End"
                     AdornmentIcon="@RequiredIcon(patient.Phone, "fa-solid fa-phone")"
                     AdornmentColor="@RequiredColor(patient.Phone)" />
-
-    <StackTextField @bind-Value="patient.Email"
-                    Label="@Localizer["Email"]"
-                    Adornment="Adornment.End"
-                    AdornmentIcon="fa-solid fa-envelope" />
 
     <StackFileInput @ref="stackFileInput"
                     Label="@Localizer["Photo"]"

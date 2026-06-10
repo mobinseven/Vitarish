@@ -1,0 +1,204 @@
+@using MudBlazor
+@inherits MudTextField<string>
+
+<MudTextField @key="guid"
+              @bind-Value:get="@_displayValue"
+              @bind-Value:set="SetIdentityValueAsync"
+              AdornmentColor="@EffectiveAdornmentColor"
+              AdornmentIcon="@EffectiveAdornmentIcon"
+              Adornment="@EffectiveAdornment"
+              AutoFocus="@AutoFocus"
+              Mask="@_identityMask"
+              OnAdornmentClick="@OnAdornmentClick"
+              Style="direction: ltr"
+              Class="@($"stack-item {(Centered ? "centered" : "")}")"
+              Underline="false"
+              Variant="Variant.Filled"
+              Required="@Required"
+              RequiredError="@RequiredError"
+              Placeholder="@Placeholder"
+              DebounceInterval="500"
+              Immediate="@Immediate"
+              HelperText="@Localizer["IdentificationCode"]"
+              InputType="@InputType"
+              Lines="@Lines"
+              MaxLines="@MaxLines"
+              MaxLength="@MaxLength"
+              InputMode="@InputMode"
+              UserAttributes="@UserAttributes"
+              ReadOnly="@ReadOnly"
+              Disabled="@Disabled" />
+
+@code {
+
+    [Inject] protected IStringLocalizer Localizer { get; set; } = default!;
+
+    private Guid guid = Guid.NewGuid();
+
+    [Parameter] public bool Centered { get; set; }
+
+    /// <summary>
+    /// Optional ISO-3166 alpha-3 country code for stricter passport validation.
+    /// Examples: IRN, USA, IND, AUS, GBR, DEU, FRA, NLD.
+    /// If null or unsupported, passport validation uses broad global rules.
+    /// </summary>
+    [Parameter] public string? PassportCountryIso3 { get; set; }
+
+    private readonly ParameterState<string?> _valueState;
+
+    private string? _displayValue;
+    private bool _hasValue;
+    private bool _isValidIdentity;
+
+    private readonly MultiMask _identityMask = new(
+    // Default: کد ملی
+    "000-000000-0",
+
+    // Passport: broad 6-9 alphanumeric.
+    // Mask length is 9 so shorter values still work while typing.
+    new MaskOption("Passport", "*********", @"^[A-Za-z]"),
+
+    // Numeric passport or کد ملی starts with a digit.
+    // This keeps کد ملی formatting as the default numeric experience.
+    new MaskOption("NationalCode", "000-000000-0", @"^\d")
+    );
+
+    private bool ShowUnknownIdentityWarning =>
+        _hasValue && !_isValidIdentity;
+
+    private Adornment EffectiveAdornment => Adornment.End;
+    // ShowUnknownIdentityWarning
+    //     ? Adornment.End
+    //     : Adornment;
+
+    private string? EffectiveAdornmentIcon =>
+        ShowUnknownIdentityWarning
+            ? Icons.Material.Filled.Warning
+            : AdornmentIcon is null ? "fa-solid fa-id-card" : AdornmentIcon;
+
+    private Color EffectiveAdornmentColor =>
+        ShowUnknownIdentityWarning
+            ? Color.Warning
+            : AdornmentColor;
+
+    public StackPersonIdField()
+    {
+        using var registerScope = CreateRegisterScope();
+
+        _valueState = registerScope.RegisterParameter<string?>(nameof(Value))
+            .WithParameter(() => Value)
+            .WithEventCallback(() => ValueChanged);
+
+        InputType = InputType.Text;
+        MaxLength = 12; // 000-000000-0 is longest displayed mask here
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        _displayValue = _valueState.Value;
+
+        UpdateIdentityState(_displayValue);
+    }
+
+    private async Task SetIdentityValueAsync(string? input)
+    {
+        _displayValue = input;
+
+        var normalized = NormalizeIdentity(input);
+
+        UpdateIdentityState(input);
+
+        await _valueState.SetValueAsync(normalized);
+    }
+
+    private void UpdateIdentityState(string? value)
+    {
+        _hasValue = !string.IsNullOrWhiteSpace(value);
+        _isValidIdentity = NormalizeIdentity(value) is not null;
+    }
+
+    private string? NormalizeIdentity(string? value)
+    {
+        if(string.IsNullOrWhiteSpace(value))
+            return null;
+
+        return NormalizeNationalCode(value)
+               ?? NormalizePassportNumber(value);
+    }
+
+    private string? NormalizePassportNumber(string? value)
+    {
+        var normalized = PassportValidator.NormalizePassport(value);
+
+        if(normalized is null)
+            return null;
+
+        return PassportValidator.IsValidPassport(normalized, PassportCountryIso3)
+            ? normalized
+            : null;
+    }
+
+    private static string? NormalizeNationalCode(string? value)
+    {
+        var digits = OnlyDigits(value);
+
+        if(string.IsNullOrWhiteSpace(digits))
+            return null;
+
+        if(digits.Length < 10)
+            digits = digits.PadLeft(10, '0');
+
+        if(digits.Length != 10)
+            return null;
+
+        if(!IsValidIranNationalCode(digits))
+            return null;
+
+        return digits;
+    }
+
+    private static bool IsValidIranNationalCode(string code)
+    {
+        if(code.Length != 10)
+            return false;
+
+        if(!code.All(char.IsDigit))
+            return false;
+
+        if(code.Distinct().Count() == 1)
+            return false;
+
+        var checkDigit = code[9] - '0';
+
+        var sum = 0;
+
+        for(var i = 0; i < 9; i++)
+        {
+            var digit = code[i] - '0';
+            var weight = 10 - i;
+
+            sum += digit * weight;
+        }
+
+        var remainder = sum % 11;
+
+        var expectedCheckDigit =
+            remainder < 2
+                ? remainder
+                : 11 - remainder;
+
+        return checkDigit == expectedCheckDigit;
+    }
+
+    private static string OnlyDigits(string? value)
+    {
+        if(string.IsNullOrWhiteSpace(value))
+            return string.Empty;
+
+        return new string(value.ConvertToEnglishNumerals().Where(char.IsDigit).ToArray());
+    }
+
+
+}

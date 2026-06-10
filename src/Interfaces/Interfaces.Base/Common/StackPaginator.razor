@@ -3,8 +3,8 @@
 
 @if(State is not null)
 {
-    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Class="ma-1 pa-1">
-        <MudSelect T="int" Value="PageSize" ValueChanged="v => SetPageSize(v)" Underline="false" Variant="Variant.Outlined">
+    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Class="stack-item">
+        <MudSelect T="int" Value="PageSize" ValueChanged="v => SetPageSize(v)" Underline="false" Variant="Variant.Filled">
             <MudSelectItem T="int" Value="5">5</MudSelectItem>
             <MudSelectItem T="int" Value="10">10</MudSelectItem>
             <MudSelectItem T="int" Value="20">50</MudSelectItem>

@@ -54,7 +54,7 @@ else
     protected override void OnInitialized()
     {
         _state.StateChanged += OnPaginationStateChanged;
-        _state?.Configure(Items?.Count ?? 0, 5);
+        _state?.Configure(Items?.Count ?? 0, PageSize);
     }
 
     private void OnPaginationStateChanged() => _ = InvokeAsync(StateHasChanged);

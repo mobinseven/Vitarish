@@ -33,10 +33,6 @@
                         Label="@Localizer["Phone"]"
                         InputType="InputType.Telephone" />
 
-        <StackTextField @bind-Value="Context.SearchEmail"
-                        Label="@Localizer["Email"]"
-                        InputType="InputType.Email" />
-
         <StackButton Label="@Localizer["Search"]"
                      Color="Color.Primary"
                      EndIcon="@(searching ? "fa-solid fa-circle-notch fa-spin" : "fa-solid fa-magnifying-glass")"

@@ -7,7 +7,7 @@
             <MudDatePicker HelperText="@Label"
                            Editable="true"
                            @bind-Date:get="_dateState.Value"
-                           @bind-Date:set="_dateState.SetValueAsync"
+                           @bind-Date:set="@(v =>  ValueSet(context, v))"
                            Underline="false"
                            ShowToolbar="false"
                            Elevation="0"
@@ -30,3 +30,14 @@
 
     </StackExpandable>
 </div>
+
+@code {
+    private async Task ValueSet(StackExpandable.ExpansionContext context, DateTime? value)
+    {
+        if(context.Expanded)
+        {
+            await context.ToggleAsync();
+        }
+        await _dateState.SetValueAsync(value);
+    }
+}
