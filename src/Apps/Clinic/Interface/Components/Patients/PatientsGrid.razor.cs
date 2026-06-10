@@ -1,3 +1,5 @@
+using MediatR;
+using Vitarish.Clinic.Application.Queries.Patients;
 using Vitarish.Interfaces.Base.Models;
 using Vitarish.Sea.Domain.Enums;
 
@@ -5,6 +7,8 @@ namespace Vitarish.Clinic.Interface.Components.Patients;
 
 public partial class PatientsGrid
 {
+    [Inject] private ISender Sender { get; set; } = default!;
+
     private readonly bool MassEditMode;
     private int patientsQueryVersion;
     private ProjectSortBy? patientsSortBy = ProjectSortBy.Name;
@@ -28,19 +32,29 @@ public partial class PatientsGrid
         Descending = patientsSortDescending
     };
 
-    private async Task<IReadOnlyList<PatientReadDto>> QueryPatientsAsync(int skip, int take, CancellationToken cancellationToken)
+    private GetPatientsQuery CreatePatientsQuery(int skip, int take) => new(
+        Search: string.IsNullOrWhiteSpace(SearchString) ? null : SearchString,
+        Skip: skip,
+        Take: take,
+        Template: TemplateMode,
+        SortBy: patientsSortBy,
+        Descending: patientsSortDescending);
+
+    private CountPatientsQuery CreatePatientsCountQuery() => new(
+        Search: string.IsNullOrWhiteSpace(SearchString) ? null : SearchString,
+        Template: TemplateMode);
+
+    private Task<IReadOnlyList<PatientView>> QueryPatientsAsync(int skip, int take, CancellationToken cancellationToken)
+        => Sender.Send(CreatePatientsQuery(skip, take), cancellationToken);
+
+    private async Task<IReadOnlyList<ProjectReadDto>> QueryEditablePatientsAsync(int skip, int take, CancellationToken cancellationToken)
     {
         ProjectDescriptorDto descriptor = CreatePatientsDescriptor(skip, take);
-        IReadOnlyList<ProjectReadDto> items = await ProjectsService.GetListAsync(descriptor, cancellationToken).GetValueOrDefaultAsync() ?? [];
-
-        return [.. items.Select(project => project.ToPatientRead()).OfType<PatientReadDto>()];
+        return await ProjectsService.GetListAsync(descriptor, cancellationToken).GetValueOrDefaultAsync() ?? [];
     }
 
-    private async Task<int> CountPatientsAsync(CancellationToken cancellationToken)
-    {
-        ProjectDescriptorDto descriptor = CreatePatientsDescriptor(skip: null, take: null);
-        return await ProjectsService.CountAsync(descriptor, cancellationToken).GetValueOrDefaultAsync();
-    }
+    private Task<int> CountPatientsAsync(CancellationToken cancellationToken)
+        => Sender.Send(CreatePatientsCountQuery(), cancellationToken);
 
     private Task SetPatientsSort(ProjectSortBy sortBy, bool descending)
     {

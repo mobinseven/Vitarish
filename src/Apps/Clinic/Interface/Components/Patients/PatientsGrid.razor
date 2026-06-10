@@ -19,7 +19,7 @@
 
     @if(MassEditMode)
     {
-        <StackPaged QueryItems="QueryPatientsAsync" CountItems="CountPatientsAsync" QueryKey="PatientsQueryKey" Context="patient" PageSize="5">
+        <StackPaged QueryItems="QueryEditablePatientsAsync" CountItems="CountPatientsAsync" QueryKey="PatientsQueryKey" Context="patient" PageSize="5">
             <StackItemTemplate>
                 <PatientEditForm @key="patient.Id" Project="patient" OnUpdate="ReloadRequired" />
             </StackItemTemplate>

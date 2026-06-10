@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Clinic.Domain.Models;
 using Vitarish.Requests.Application.Abstractions;
+using Vitarish.Sea.Domain.Models;
 
 namespace Vitarish.Clinic.Infrastructure.Data;
 
@@ -28,6 +29,7 @@ public class ClinicDbContext : DbContext, Finbuckle.MultiTenant.EntityFrameworkC
         }
     }
     internal DbSet<PatientView> PatientViews => Set<PatientView>();
+    internal DbSet<ProjectStats> ProjectStats => Set<ProjectStats>();
     public ClinicDbContext(
     DbContextOptions<ClinicDbContext> options,
     IRequestContext requestIdentity,
@@ -38,12 +40,22 @@ public class ClinicDbContext : DbContext, Finbuckle.MultiTenant.EntityFrameworkC
 
         this.EnforceMultiTenantOnTracking();
     }
-    protected override void OnModelCreating(ModelBuilder modelBuilder) => _ = modelBuilder.Entity<PatientView>(eb =>
-                                                                          {
-                                                                              _ = eb.ToView("mv_Patients", nameof(Sea));
-                                                                              _ = eb.HasNoKey();
-                                                                              _ = eb.Property(patient => patient.TenantId).HasMaxLength(64);
-                                                                              _ = eb.IsMultiTenant();
-                                                                          });
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        _ = modelBuilder.Entity<PatientView>(eb =>
+        {
+            _ = eb.ToView("mv_Patients", nameof(Sea));
+            _ = eb.HasNoKey();
+            _ = eb.Property(patient => patient.TenantId).HasMaxLength(64);
+            _ = eb.Property(patient => patient.UserIds).HasColumnType("text[]");
+            _ = eb.IsMultiTenant();
+        });
+
+        _ = modelBuilder.Entity<ProjectStats>(eb =>
+        {
+            _ = eb.ToView("vw_ProjectStats", nameof(Sea));
+            _ = eb.HasNoKey();
+        });
+    }
 
 }

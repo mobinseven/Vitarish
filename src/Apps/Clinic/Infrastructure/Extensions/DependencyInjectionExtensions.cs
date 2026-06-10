@@ -1,5 +1,6 @@
 using Microsoft.Extensions.DependencyInjection;
-using Vitarish.Sea.Infrastructure.Data;
+using Vitarish.Clinic.Infrastructure.Data;
+using Vitarish.Clinic.Infrastructure.Handlers;
 
 namespace Vitarish.Clinic.Infrastructure.Extensions
 {
@@ -7,7 +8,8 @@ namespace Vitarish.Clinic.Infrastructure.Extensions
     {
         public static IServiceCollection AddClinicInfrastructure(this IServiceCollection services)
         {
-            _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(SeaDbContext).Assembly));
+            _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ClinicDbContext).Assembly));
+            _ = services.AddTransient<PatientViewQueryShape>();
 
             return services;
         }
