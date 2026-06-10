@@ -10,8 +10,4 @@
     <ProjectReference Include="..\..\..\Base\Apps.Base.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="ReadModels\" />
-  </ItemGroup>
-
 </Project>

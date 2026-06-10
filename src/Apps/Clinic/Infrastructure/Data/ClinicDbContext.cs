@@ -3,6 +3,7 @@ using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Vitarish.Clinic.Domain.Models;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Clinic.Infrastructure.Data;

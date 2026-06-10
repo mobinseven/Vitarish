@@ -1,12 +1,15 @@
+using MediatR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Data.Common;
 using System.Transactions;
 using Vitarish.Clinic.Application.Commands.Patients;
+using Vitarish.Clinic.Infrastructure.Data;
 
 namespace Vitarish.Clinic.Infrastructure.Handlers;
 
 internal sealed class PatientViewRefreshCommandHandler(
-    SeaDbContext dbContext,
+    ClinicDbContext dbContext,
     ILogger<PatientViewRefreshCommandHandler> logger) : IRequestHandler<PatientViewRefreshCommand>
 {
     public async Task Handle(PatientViewRefreshCommand request, CancellationToken cancellationToken)
@@ -17,7 +20,7 @@ internal sealed class PatientViewRefreshCommandHandler(
         }
 
         string concurrencyClause = request.Concurrently ? " CONCURRENTLY" : string.Empty;
-        string sql = $"REFRESH MATERIALIZED VIEW{concurrencyClause} \"Sea\".\"mv_Patients\";";
+        string sql = $"REFRESH MATERIALIZED VIEW{concurrencyClause} \"Clinic\".\"mv_Patients\";";
 
         try
         {
