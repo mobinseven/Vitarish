@@ -2,31 +2,12 @@
 @typeparam TItem
 @implements IDisposable
 
-@if(IncludeStack)
+<StackPaginator @bind-State="_state" IsLoading="_isLoadingRemoteData" />
+@foreach(var item in PagedItems)
 {
-    <Stack>
-        <StackPaginator @bind-State="_state" IsLoading="_isLoadingRemoteData" />
-        @foreach(var item in PagedItems)
-        {
-            @if(StackItemTemplate is not null)
-            {
-                @StackItemTemplate(item)
-            }
-        }
-    </Stack>
-}
-else
-{
-
-    <Stack>
-        <StackPaginator @bind-State="_state" IsLoading="_isLoadingRemoteData" />
-    </Stack>
-    @foreach(var item in PagedItems)
+    @if(StackItemTemplate is not null)
     {
-        @if(StackItemTemplate is not null)
-        {
-            @StackItemTemplate(item)
-        }
+        @StackItemTemplate(item)
     }
 }
 
@@ -50,7 +31,6 @@ else
     [Parameter] public object? QueryKey { get; set; }
     [Parameter] public RenderFragment<TItem>? StackItemTemplate { get; set; }
     [Parameter] public int PageSize { get; set; } = 10;
-    [Parameter] public bool IncludeStack { get; set; }
 
     private bool UsesRemoteData => QueryItems is not null || CountItems is not null;
 

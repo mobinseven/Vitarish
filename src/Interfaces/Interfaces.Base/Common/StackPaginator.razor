@@ -19,6 +19,8 @@
                            ShowLastButton="true"
                            Count="@State.TotalPages"
                            Selected="@State.Page"
+                           BoundaryCount="1"
+                           MiddleCount="1"
                            SelectedChanged="OnPageChanged" />
         }
     </MudStack>
