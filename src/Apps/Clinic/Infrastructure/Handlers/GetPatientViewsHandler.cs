@@ -51,10 +51,14 @@ internal sealed class GetPatientViewsHandler(
         }
 
         Guid[] patientIds = [.. patients.Select(patient => patient.Id)];
-        Dictionary<Guid, ProjectStats> statsByPatientId = await dbContext.ProjectStats
+        var statsList = await dbContext.ProjectStats
             .AsNoTracking()
             .Where(stat => patientIds.Contains(stat.ProjectId))
-            .ToDictionaryAsync(stat => stat.ProjectId, cancellationToken);
+            .ToListAsync(cancellationToken);
+
+        Dictionary<Guid, ProjectStats> statsByPatientId = statsList
+            .GroupBy(stat => stat.ProjectId)
+            .ToDictionary(g => g.Key, g => g.First());
 
         foreach (PatientView patient in patients)
         {
