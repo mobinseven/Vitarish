@@ -43,7 +43,10 @@ internal sealed class PatientViewQueryShape(EntitySearchPatternFactory searchPat
         IQueryable<PatientView> query,
         ProjectSortBy? sortBy,
         bool descending)
-        => (sortBy, descending) switch
+    {
+        sortBy ??= ProjectSortBy.Name;
+
+        return (sortBy, descending) switch
         {
             (ProjectSortBy.Name, true) => query
                 .OrderByDescending(patient => patient.LastName ?? patient.Name)
@@ -57,9 +60,9 @@ internal sealed class PatientViewQueryShape(EntitySearchPatternFactory searchPat
                 .ThenBy(patient => patient.Id),
             (ProjectSortBy.Template, true) => query
                 .OrderByDescending(patient => patient.Template)
-                .ThenBy(patient => patient.LastName ?? patient.Name)
-                .ThenBy(patient => patient.FirstName)
-                .ThenBy(patient => patient.Id),
+                .ThenByDescending(patient => patient.LastName ?? patient.Name)
+                .ThenByDescending(patient => patient.FirstName)
+                .ThenByDescending(patient => patient.Id),
             (ProjectSortBy.Template, false) => query
                 .OrderBy(patient => patient.Template)
                 .ThenBy(patient => patient.LastName ?? patient.Name)
@@ -71,4 +74,5 @@ internal sealed class PatientViewQueryShape(EntitySearchPatternFactory searchPat
                 .ThenBy(patient => patient.Name)
                 .ThenBy(patient => patient.Id)
         };
+    }
 }
