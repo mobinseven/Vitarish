@@ -31,20 +31,8 @@ internal sealed class PatientViewQueryShape(EntitySearchPatternFactory searchPat
                     || EF.Functions.ILike(patient.IdentificationCode!, pattern)
                     || EF.Functions.ILike(patient.FirstName!, pattern)
                     || EF.Functions.ILike(patient.LastName!, pattern)
-                    || EF.Functions.ILike(patient.PlaceOfBirth!, pattern)
-                    || EF.Functions.ILike(patient.Address!, pattern)
-                    || EF.Functions.ILike(patient.Occupation!, pattern)
-                    || EF.Functions.ILike(patient.FatherName!, pattern)
                     || EF.Functions.ILike(patient.Email!, pattern)
-                    || EF.Functions.ILike(patient.Phone!, pattern)
-                    || EF.Functions.ILike(patient.Referrer!, pattern)
-                    || EF.Functions.ILike(patient.InsuranceProvider!, pattern)
-                    || EF.Functions.ILike(patient.VisitReason!, pattern)
-                    || EF.Functions.ILike(patient.Allergies!, pattern)
-                    || EF.Functions.ILike(patient.CurrentMedications!, pattern)
-                    || EF.Functions.ILike(patient.ClinicalNotes!, pattern)
-                    || EF.Functions.ILike(patient.EmergencyContactName!, pattern)
-                    || EF.Functions.ILike(patient.EmergencyContactPhone!, pattern));
+                    || EF.Functions.ILike(patient.Phone!, pattern));
             }
         }
 
