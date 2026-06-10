@@ -20,7 +20,7 @@ SELECT
   p."DeletedBy",
   COALESCE(
     (
-      SELECT array_agg(pu."UserId" ORDER BY pu."UserId")
+      SELECT array_agg(pu."UserId"::text ORDER BY pu."UserId")
       FROM "Sea"."ProjectUsers" pu
       WHERE pu."ProjectId" = p."Id"
         AND pu."DeletedAt" IS NULL
