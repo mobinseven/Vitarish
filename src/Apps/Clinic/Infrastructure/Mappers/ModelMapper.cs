@@ -1,6 +1,8 @@
 using Riok.Mapperly.Abstractions;
+using Vitarish.Clinic.Domain.Models;
+using Vitarish.Sea.Domain.Dto;
 
-namespace Vitarish.Clinic.Interface.Mappers;
+namespace Vitarish.Clinic.Infrastructure.Mappers;
 
 [Mapper(RequiredMappingStrategy = RequiredMappingStrategy.Source)]
 internal partial class ModelMapper

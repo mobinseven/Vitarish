@@ -1,4 +1,6 @@
-namespace Vitarish.Clinic.Interface.Enums;
+using System.Text.Json.Serialization;
+
+namespace Vitarish.Clinic.Domain.Enums;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum Education

@@ -1,6 +1,7 @@
 -- Sea module SQL views
 -- Row-level security uses current_setting('app.user_id', true) set via RequestContextInterceptor
 
+
 /* ===================== vw_ProjectStats ===================== */
 CREATE OR REPLACE VIEW "Sea"."vw_ProjectStats" AS
 SELECT

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Hosting.DependencyInjection;
+using Vitarish.Parties.Infrastructure.Services;
 
 namespace Vitarish.Parties.Hosting;
 
