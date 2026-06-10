@@ -11,12 +11,12 @@ namespace Vitarish.Clinic.Infrastructure.Handlers;
 internal sealed class GetPatientViewsHandler(
     ClinicDbContext dbContext,
     IRequestContext requestContext,
-    EntitySearchPatternFactory searchPatternFactory) : IRequestHandler<GetPatientsQuery, IReadOnlyList<PatientListItemDto>>
+    EntitySearchPatternFactory searchPatternFactory) : IRequestHandler<GetPatientsQuery, IReadOnlyList<PatientView>>
 {
     private const int DefaultTake = 100;
     private const int MaximumTake = 1000;
 
-    public async Task<IReadOnlyList<PatientListItemDto>> Handle(GetPatientsQuery request, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<PatientView>> Handle(GetPatientsQuery request, CancellationToken cancellationToken)
     {
         string tenantId = requestContext.TenantId ?? throw new InvalidOperationException("Tenant ID is required to query patient views.");
 
@@ -56,21 +56,7 @@ internal sealed class GetPatientViewsHandler(
 
         query = query.Take(take);
 
-        return await query.Select(patient => new PatientListItemDto(
-                patient.Id,
-                patient.TenantId,
-                patient.Name,
-                patient.Description,
-                patient.IdentificationCode,
-                patient.CreatedAt,
-                patient.CreatedBy,
-                patient.UpdatedAt,
-                patient.UpdatedBy,
-                patient.FirstName,
-                patient.LastName,
-                patient.DateOfBirth,
-                patient.Phone,
-                patient.Email))
+        return await query
             .ToListAsync(cancellationToken);
     }
 }

@@ -1,4 +1,6 @@
 /* ===================== mv_Patients ===================== */
+CREATE SCHEMA IF NOT EXISTS "Clinic";
+
 DROP MATERIALIZED VIEW IF EXISTS "Clinic"."mv_Patients";
 
 CREATE MATERIALIZED VIEW "Clinic"."mv_Patients" AS
@@ -18,7 +20,7 @@ SELECT
   p."Metadata" ->> 'DateOfBirth' AS "DateOfBirth",
   p."Metadata" ->> 'Phone' AS "Phone",
   p."Metadata" ->> 'Email' AS "Email"
-FROM "Clinic"."Projects" p
+FROM "Sea"."Projects" p
 WHERE p."DeletedAt" IS NULL;
 
 CREATE UNIQUE INDEX "IX_mv_Patients_Id"

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+
 namespace Vitarish.Clinic.Domain.Enums;
 
 [JsonConverter(typeof(JsonStringEnumConverter))]

@@ -1,3 +1,4 @@
+using Vitarish.Clinic.Domain.Models;
 using Vitarish.Interfaces.Base.Models;
 
 namespace Vitarish.Clinic.Interface.Components.Patients;

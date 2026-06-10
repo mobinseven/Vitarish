@@ -5,9 +5,8 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using System.Text.Json;
-using Vitarish.Requests.Application.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
-using Vitarish.Sea.Infrastructure.ReadModels;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Sea.Infrastructure.Data;
 
@@ -160,8 +159,8 @@ public class SeaDbContext : DbContext, IMultiTenantDbContext
 
     private static Dictionary<string, object?> DeserializeMetadata(string? value)
         => string.IsNullOrWhiteSpace(value)
-            ? new Dictionary<string, object?>()
-            : JsonSerializer.Deserialize<Dictionary<string, object?>>(value, (JsonSerializerOptions?)null) ?? new Dictionary<string, object?>();
+            ? []
+            : JsonSerializer.Deserialize<Dictionary<string, object?>>(value, (JsonSerializerOptions?)null) ?? [];
 
     private static void ConfigureTenantEntity<TEntity>(ModelBuilder modelBuilder)
         where TEntity : Entity
