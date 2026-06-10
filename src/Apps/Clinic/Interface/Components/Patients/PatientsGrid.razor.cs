@@ -33,7 +33,7 @@ public partial class PatientsGrid
         ProjectDescriptorDto descriptor = CreatePatientsDescriptor(skip, take);
         IReadOnlyList<ProjectReadDto> items = await ProjectsService.GetListAsync(descriptor, cancellationToken).GetValueOrDefaultAsync() ?? [];
 
-        return [.. items.Select(project => project.ToPatientRead())];
+        return [.. items.Select(project => project.ToPatientRead()).OfType<PatientReadDto>()];
     }
 
     private async Task<int> CountPatientsAsync(CancellationToken cancellationToken)

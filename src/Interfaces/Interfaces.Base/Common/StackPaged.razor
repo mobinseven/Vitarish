@@ -1,3 +1,4 @@
+@using Microsoft.Extensions.Logging
 @typeparam TItem
 @implements IDisposable
 
@@ -40,6 +41,8 @@ else
     private object? _loadedQueryKey;
     private int? _loadedSkip;
     private int? _loadedTake;
+
+    [Inject] private ILogger<StackPaged<TItem>> Logger { get; set; } = default!;
 
     [Parameter] public IReadOnlyList<TItem>? Items { get; set; } = Array.Empty<TItem>();
     [Parameter] public Func<int, int, CancellationToken, Task<IReadOnlyList<TItem>>>? QueryItems { get; set; }
@@ -132,7 +135,7 @@ else
     private void OnPaginationStateChanged()
     {
         if(UsesRemoteData && !_isConfiguringRemoteState)
-            _ = LoadRemoteDataIfNeededAsync(force: true);
+            _ = LoadRemoteDataIfNeededAsync(force: false);
 
         _ = InvokeAsync(StateHasChanged);
     }
@@ -184,6 +187,10 @@ else
         catch(OperationCanceledException)
         {
             // Cancellation is expected when a newer remote pagination request supersedes this one.
+        }
+        catch(Exception exception)
+        {
+            Logger.LogError(exception, "StackPaged failed to load remote data.");
         }
         finally
         {
