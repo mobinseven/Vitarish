@@ -64,9 +64,15 @@
     <Project Path="src/Modules/Appointments/Interface/Appointments.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Apps/Clinic/">
-    <Project Path="src/Apps/Clinic/Application/Clinic.Application/Clinic.Application.csproj" Id="4d5da5d0-ac72-4086-95e9-1f4cbf4a29f2" />
-    <Project Path="src/Apps/Clinic/Domain/Clinic.Domain/Clinic.Domain.csproj" Id="8e0682cf-e85e-4323-ba27-9068b49b1f86" />
-    <Project Path="src/Apps/Clinic/Infrastructure/Clinic.Infrastructure.csproj" Id="38ba156c-11d5-4ee7-939e-bbf73d2516ca" />
+    <Project Path="src/Apps/Clinic/Application/Clinic.Application/Clinic.Application.csproj" Id="4d5da5d0-ac72-4086-95e9-1f4cbf4a29f2">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/Apps/Clinic/Domain/Clinic.Domain/Clinic.Domain.csproj" Id="8e0682cf-e85e-4323-ba27-9068b49b1f86">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
+    <Project Path="src/Apps/Clinic/Infrastructure/Clinic.Infrastructure.csproj" Id="38ba156c-11d5-4ee7-939e-bbf73d2516ca">
+      <Build Solution="Debug|*" Project="false" />
+    </Project>
     <Project Path="src/Apps/Clinic/Interface/Clinic.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Commerce/">
