@@ -1,71 +1,60 @@
 using Vitarish.Interfaces.Base.Models;
+using Vitarish.Sea.Domain.Enums;
 
 namespace Vitarish.Clinic.Interface.Components.Patients;
 
 public partial class PatientsGrid
 {
     private bool MassEditMode;
+    private int patientsQueryVersion;
+    private ProjectSortBy? patientsSortBy = ProjectSortBy.Name;
+    private bool patientsSortDescending;
 
-    private IReadOnlyList<PatientReadDto>? patients;
-    ProjectDescriptorDto descriptor = new();
-    protected override async Task ReloadRequired()
+    private string PatientsQueryKey => string.Join('|', SearchString ?? string.Empty, TemplateMode, patientsSortBy?.ToString() ?? string.Empty, patientsSortDescending, patientsQueryVersion);
+
+    protected override Task ReloadRequired()
     {
-        ProjectDescriptorDto descriptor = new()
-        {
-            Skip = 0,
-            Take = 10,
-            Search = string.IsNullOrWhiteSpace(SearchString) ? null : SearchString,
-            Template = TemplateMode
-        };
+        patientsQueryVersion++;
+        return InvokeAsync(StateHasChanged);
+    }
 
-        IReadOnlyList<ProjectReadDto> Items = await ProjectsService.GetListAsync(descriptor, CancellationToken.None).GetValueOrDefaultAsync() ?? [];
+    private ProjectDescriptorDto CreatePatientsDescriptor(int? skip, int? take) => new()
+    {
+        Skip = skip,
+        Take = take,
+        Search = string.IsNullOrWhiteSpace(SearchString) ? null : SearchString,
+        Template = TemplateMode,
+        SortBy = patientsSortBy,
+        Descending = patientsSortDescending
+    };
 
-        patients = [.. Items.Select(p => p.ToPatientRead()!)];
-        await InvokeAsync(StateHasChanged);
+    private async Task<IReadOnlyList<PatientReadDto>> QueryPatientsAsync(int skip, int take, CancellationToken cancellationToken)
+    {
+        ProjectDescriptorDto descriptor = CreatePatientsDescriptor(skip, take);
+        IReadOnlyList<ProjectReadDto> items = await ProjectsService.GetListAsync(descriptor, cancellationToken).GetValueOrDefaultAsync() ?? [];
+
+        return [.. items.Select(project => project.ToPatientRead())];
+    }
+
+    private async Task<int> CountPatientsAsync(CancellationToken cancellationToken)
+    {
+        ProjectDescriptorDto descriptor = CreatePatientsDescriptor(skip: null, take: null);
+        return await ProjectsService.CountAsync(descriptor, cancellationToken).GetValueOrDefaultAsync();
+    }
+
+    private Task SetPatientsSort(ProjectSortBy sortBy, bool descending)
+    {
+        patientsSortBy = sortBy;
+        patientsSortDescending = descending;
+        return ReloadRequired();
     }
 
     private SortMethod[] SortMethods => [
         new SortMethod(
-            () => Localizer["SurgeryDateDesc"],
-            () =>
-            {
-                patients = [.. patients!
-                        .OrderByDescending(e => e.DateOfSurgery)
-                        .ThenByDescending(e => (e.Stats?.NewItems ?? 0) > 0)
-                        .ThenByDescending(e => e.Stats?.Unread ?? false)
-                        .ThenBy(e => e.Name)];
-                StateHasChanged();
-            }),
-        new SortMethod(
-            () => Localizer["SurgeryDate"],
-            () =>
-            {
-                patients = [.. patients!
-                    .OrderBy(e=> e.DateOfSurgery)
-                    .ThenByDescending(e => (e.Stats?.NewItems ?? 0) > 0)
-                    .ThenByDescending(e => e.Stats?.Unread ?? false)
-                    .ThenBy(e => e.Name)];
-                StateHasChanged();
-            }),
-        new SortMethod(
             () => Localizer["Name"],
-            () =>
-            {
-                patients = [.. patients!
-                        .OrderBy(e => e.Name)
-                        .ThenByDescending(e => (e.Stats?.NewItems ?? 0) > 0)
-                        .ThenByDescending(e => e.Stats?.Unread ?? false)];
-                StateHasChanged();
-            }),
+            () => _ = SetPatientsSort(ProjectSortBy.Name, descending: false)),
         new SortMethod(
             () => Localizer["NameDesc"],
-            () =>
-            {
-                patients = [.. patients!
-                        .OrderByDescending(e => e.Name)
-                        .ThenByDescending(e => (e.Stats?.NewItems ?? 0) > 0)
-                        .ThenByDescending(e => e.Stats?.Unread ?? false)];
-                StateHasChanged();
-            }),];
+            () => _ = SetPatientsSort(ProjectSortBy.Name, descending: true)),];
 
 }

@@ -19,7 +19,7 @@
 
     @if(MassEditMode)
     {
-        <StackPaged Items="patients" Context="patient" PageSize="5">
+        <StackPaged QueryItems="QueryPatientsAsync" CountItems="CountPatientsAsync" QueryKey="PatientsQueryKey" Context="patient" PageSize="5">
             <StackItemTemplate>
                 <PatientEditForm @key="patient.Id" Project="patient" OnUpdate="ReloadRequired" />
             </StackItemTemplate>
@@ -29,41 +29,26 @@
 
 }
 
-@if(patients is null)
-{
-    return;
-}
+<Stack>
+    <StackSort Methods="SortMethods" />
 
-@if(!string.IsNullOrWhiteSpace(SearchString) && projects.Count == 0)
-{
-    <Stack>
-        <StackField Label="@Localizer["NoSearchItems", SearchString]" />
-    </Stack>
-}
-
-@if(patients?.Count > 0)
-{
-    <Stack>
-        <StackSort Methods="SortMethods" />
-
-        <StackPaged Items="patients" Context="patient">
-            <StackItemTemplate>
-                <StackButton OnClick="() => OnClicked.InvokeAsync(patient.Id)"
-                             Label="@patient.Name"
-                             HighlightString="@SearchString">
-                    <MudStack Row AlignItems="AlignItems.Center">
-                        @if(patient.DateOfSurgery.HasValue)
-                        {
-                            <div>
-                                <MudChip T="string" Text="@($"{Localizer["DateOf", Localizer["Surgery"]]}: {patient.DateOfSurgery.Value.ToShortDateString()}")" />
-                            </div>
-                        }
+    <StackPaged QueryItems="QueryPatientsAsync" CountItems="CountPatientsAsync" QueryKey="PatientsQueryKey" Context="patient">
+        <StackItemTemplate>
+            <StackButton OnClick="() => OnClicked.InvokeAsync(patient.Id)"
+                         Label="@patient.Name"
+                         HighlightString="@SearchString">
+                <MudStack Row AlignItems="AlignItems.Center">
+                    @if(patient.DateOfSurgery.HasValue)
+                    {
                         <div>
-                            <StatsDisplay Stats="patient.Stats" />
+                            <MudChip T="string" Text="@($"{Localizer["DateOf", Localizer["Surgery"]]}: {patient.DateOfSurgery.Value.ToShortDateString()}")" />
                         </div>
-                    </MudStack>
-                </StackButton>
-            </StackItemTemplate>
-        </StackPaged>
-    </Stack>
-}
+                    }
+                    <div>
+                        <StatsDisplay Stats="patient.Stats" />
+                    </div>
+                </MudStack>
+            </StackButton>
+        </StackItemTemplate>
+    </StackPaged>
+</Stack>

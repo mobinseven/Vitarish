@@ -4,7 +4,7 @@
 @if(IncludeStack)
 {
     <Stack>
-        <StackPaginator @bind-State="_state" />
+        <StackPaginator @bind-State="_state" IsLoading="_isLoadingRemoteData" />
         @foreach(var item in PagedItems)
         {
             @if(StackItemTemplate is not null)
@@ -18,7 +18,7 @@ else
 {
 
     <Stack>
-        <StackPaginator @bind-State="_state" />
+        <StackPaginator @bind-State="_state" IsLoading="_isLoadingRemoteData" />
     </Stack>
     @foreach(var item in PagedItems)
     {
@@ -31,15 +31,38 @@ else
 
 @code {
     private StackPaginationState _state = new();
+    private readonly SemaphoreSlim _remoteDataSemaphore = new(1, 1);
+    private CancellationTokenSource? _remoteDataCancellation;
+    private IReadOnlyList<TItem> _remoteItems = [];
+    private bool _isLoadingRemoteData;
+    private bool _isConfiguringRemoteState;
+    private int _appliedParameterPageSize;
+    private object? _loadedQueryKey;
+    private int? _loadedSkip;
+    private int? _loadedTake;
 
     [Parameter] public IReadOnlyList<TItem>? Items { get; set; } = Array.Empty<TItem>();
+    [Parameter] public Func<int, int, CancellationToken, Task<IReadOnlyList<TItem>>>? QueryItems { get; set; }
+    [Parameter] public Func<CancellationToken, Task<int>>? CountItems { get; set; }
+    [Parameter] public object? QueryKey { get; set; }
     [Parameter] public RenderFragment<TItem>? StackItemTemplate { get; set; }
     [Parameter] public int PageSize { get; set; } = 10;
     [Parameter] public bool IncludeStack { get; set; }
+
+    private bool UsesRemoteData => QueryItems is not null || CountItems is not null;
+
     private IEnumerable<TItem> PagedItems
     {
         get
         {
+            if(UsesRemoteData)
+            {
+                foreach(var item in _remoteItems)
+                    yield return item;
+
+                yield break;
+            }
+
             if(Items is null || Items.Count == 0)
                 yield break;
 
@@ -54,13 +77,127 @@ else
     protected override void OnInitialized()
     {
         _state.StateChanged += OnPaginationStateChanged;
-        _state?.Configure(Items?.Count ?? 0, PageSize);
+        ConfigureLocalPagination();
     }
 
-    private void OnPaginationStateChanged() => _ = InvokeAsync(StateHasChanged);
+    protected override async Task OnParametersSetAsync()
+    {
+        ValidateRemoteDataParameters();
+
+        if(!UsesRemoteData)
+        {
+            ConfigureLocalPagination();
+            return;
+        }
+
+        ApplyParameterPageSize();
+
+        var queryChanged = !Equals(_loadedQueryKey, QueryKey);
+        if(queryChanged)
+            _state.SetPageWithoutNotification(1);
+
+        await LoadRemoteDataIfNeededAsync(queryChanged);
+    }
+
+    private void ConfigureLocalPagination()
+    {
+        if(UsesRemoteData)
+            return;
+
+        _appliedParameterPageSize = PageSize;
+        _state.Configure(Items?.Count ?? 0, PageSize);
+    }
+
+    private void ApplyParameterPageSize()
+    {
+        if(_appliedParameterPageSize == PageSize)
+            return;
+
+        _appliedParameterPageSize = PageSize;
+        _state.Configure(_state.TotalItems, PageSize);
+    }
+
+    private void ValidateRemoteDataParameters()
+    {
+        if(QueryItems is null && CountItems is null)
+            return;
+
+        if(QueryItems is null)
+            throw new InvalidOperationException($"StackPaged requires {nameof(QueryItems)} when {nameof(CountItems)} is provided.");
+
+        if(CountItems is null)
+            throw new InvalidOperationException($"StackPaged requires {nameof(CountItems)} when {nameof(QueryItems)} is provided.");
+    }
+
+    private void OnPaginationStateChanged()
+    {
+        if(UsesRemoteData && !_isConfiguringRemoteState)
+            _ = LoadRemoteDataIfNeededAsync(force: true);
+
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadRemoteDataIfNeededAsync(bool force)
+    {
+        if(QueryItems is null || CountItems is null)
+            return;
+
+        if(!force && Equals(_loadedQueryKey, QueryKey) && _loadedSkip == _state.Skip && _loadedTake == _state.PageSize)
+            return;
+
+        _remoteDataCancellation?.Cancel();
+
+        await _remoteDataSemaphore.WaitAsync();
+        try
+        {
+            if(!force && Equals(_loadedQueryKey, QueryKey) && _loadedSkip == _state.Skip && _loadedTake == _state.PageSize)
+                return;
+
+            _remoteDataCancellation?.Dispose();
+            _remoteDataCancellation = new CancellationTokenSource();
+            CancellationToken cancellationToken = _remoteDataCancellation.Token;
+
+            _isLoadingRemoteData = true;
+            await InvokeAsync(StateHasChanged);
+
+            int totalItems = await CountItems(cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            _isConfiguringRemoteState = true;
+            try
+            {
+                _state.Configure(totalItems, _state.PageSize);
+            }
+            finally
+            {
+                _isConfiguringRemoteState = false;
+            }
+
+            IReadOnlyList<TItem> queriedItems = await QueryItems(_state.Skip, _state.PageSize, cancellationToken);
+            cancellationToken.ThrowIfCancellationRequested();
+
+            _remoteItems = queriedItems;
+            _loadedQueryKey = QueryKey;
+            _loadedSkip = _state.Skip;
+            _loadedTake = _state.PageSize;
+        }
+        catch(OperationCanceledException)
+        {
+            // Cancellation is expected when a newer remote pagination request supersedes this one.
+        }
+        finally
+        {
+            _isLoadingRemoteData = false;
+            await InvokeAsync(StateHasChanged);
+            _remoteDataSemaphore.Release();
+        }
+    }
 
     public void Dispose()
     {
         _state.StateChanged -= OnPaginationStateChanged;
+        _remoteDataCancellation?.Cancel();
+        _remoteDataCancellation?.Dispose();
+        _remoteDataSemaphore.Dispose();
     }
 }
