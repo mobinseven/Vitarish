@@ -1,4 +1,3 @@
-using Vitarish.Clinic.Domain.Models;
 using Vitarish.Interfaces.Base.Models;
 using Vitarish.Sea.Domain.Enums;
 
@@ -6,7 +5,7 @@ namespace Vitarish.Clinic.Interface.Components.Patients;
 
 public partial class PatientsGrid
 {
-    private bool MassEditMode;
+    private readonly bool MassEditMode;
     private int patientsQueryVersion;
     private ProjectSortBy? patientsSortBy = ProjectSortBy.Name;
     private bool patientsSortDescending;
