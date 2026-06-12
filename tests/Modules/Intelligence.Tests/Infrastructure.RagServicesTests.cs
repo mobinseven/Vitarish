@@ -61,22 +61,6 @@ public sealed class RagServicesTests
     }
 
     [Fact]
-    public async Task PlaceholderServices_ReturnPlannedStatus()
-    {
-        // Arrange
-        var reranking = new PlaceholderRagRerankingService();
-        var platformAdmin = new PlaceholderRagPlatformAdminService();
-
-        // Act
-        string rerankingStatus = await reranking.GetStatusAsync();
-        string platformStatus = await platformAdmin.GetStatusAsync();
-
-        // Assert
-        rerankingStatus.Should().ContainEquivalentOf("future phase");
-        platformStatus.Should().ContainEquivalentOf("deferred");
-    }
-
-    [Fact]
     public async Task GroundedGenerationRagService_ReturnsGroundedAnswerAndCitations()
     {
         // Arrange
@@ -186,7 +170,7 @@ public sealed class RagServicesTests
     }
 
     [Fact]
-    public void RagCapabilityCatalog_ReportsV1AndPlannedCapabilities()
+    public void RagCapabilityCatalog_ReportsImplementedV1Capabilities()
     {
         // Arrange
         var catalog = new RagCapabilityCatalog();
@@ -198,7 +182,7 @@ public sealed class RagServicesTests
         capabilities.Should().Contain(x => x.Capability == RagCapability.RetrieveOnly && x.State == RagCapabilityState.Available);
         capabilities.Should().Contain(x => x.Capability == RagCapability.HealthCheck && x.State == RagCapabilityState.Available);
         capabilities.Should().Contain(x => x.Capability == RagCapability.GroundedGeneration && x.State == RagCapabilityState.Available);
-        capabilities.Should().Contain(x => x.Capability == RagCapability.PlatformAdmin && x.State == RagCapabilityState.Planned);
+        capabilities.Should().OnlyContain(x => x.State == RagCapabilityState.Available);
     }
 
     private sealed class TestRagSearchBridge(IReadOnlyList<RagRetrievedDocument> documents) : IRagSearchBridge

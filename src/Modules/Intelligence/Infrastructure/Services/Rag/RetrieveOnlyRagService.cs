@@ -17,13 +17,6 @@ public sealed class RetrieveOnlyRagService(IRagSearchBridge searchBridge) : IRag
         new()
         {
             Id = "rag-embedded-2",
-            Content = "PlatformAdmin support is planned for a future phase.",
-            Source = "intelligence/rag/roadmap",
-            Score = 0.55
-        },
-        new()
-        {
-            Id = "rag-embedded-3",
             Content = "Search integration is optional for Retrieval in Intelligence module.",
             Source = "intelligence/rag/integration",
             Score = 0.50

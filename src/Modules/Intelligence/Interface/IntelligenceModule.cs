@@ -35,8 +35,6 @@ public class IntelligenceModule : Module, IIntelligenceModule
         _ = builder.Services.AddScoped<IRagHealthCheckService, RagHealthCheckService>();
         _ = builder.Services.AddSingleton<IRagCapabilityCatalog, RagCapabilityCatalog>();
         _ = builder.Services.AddScoped<IRagGroundedGenerationService, GroundedGenerationRagService>();
-        _ = builder.Services.AddScoped<IRagRerankingService, PlaceholderRagRerankingService>();
-        _ = builder.Services.AddScoped<IRagPlatformAdminService, PlaceholderRagPlatformAdminService>();
         _ = builder.Services.AddAntiforgery();
         _ = builder.Services.ConfigureIntelligenceInterface();
     }

@@ -4,8 +4,5 @@ public enum RagCapability
 {
     RetrieveOnly,
     HealthCheck,
-    GroundedGeneration,
-    Reranking,
-    FeedbackLoop,
-    PlatformAdmin
+    GroundedGeneration
 }
