@@ -84,6 +84,21 @@ jobs:
             core.setOutput('base_ref', pr.base.ref);
             core.setOutput('draft', String(pr.draft));
 
+      - name: Test bot token can comment
+        uses: actions/github-script@v9
+        with:
+          github-token: ${{ secrets.PR_BOT_TOKEN }}
+          script: |
+            const auth = await github.rest.users.getAuthenticated();
+            core.info(`Authenticated as: ${auth.data.login} (${auth.data.type})`);
+
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: Number('${{ steps.pr.outputs.number }}'),
+              body: `Token test from @${auth.data.login}`
+            });
+            
       - name: Stop on draft PR
         if: steps.pr.outputs.draft == 'true'
         run: |
