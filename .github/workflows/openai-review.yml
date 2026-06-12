@@ -35,7 +35,7 @@ jobs:
       )
 
     env:
-      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OAI_KEY }}
       OPENAI_MODEL: gpt-5.5
       MAX_DIFF_CHARS: 160000
       MAX_RULE_CHARS: 60000
