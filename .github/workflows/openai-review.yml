@@ -14,7 +14,7 @@ on:
 
 permissions:
   contents: read
-  pull-requests: read
+  pull-requests: write
   issues: write
 
 concurrency:
@@ -46,9 +46,13 @@ jobs:
         id: pr
         uses: actions/github-script@v9
         with:
+          github-token: ${{ secrets.PR_BOT_TOKEN }}
           script: |
             const owner = context.repo.owner;
             const repo = context.repo.repo;
+
+            const auth = await github.rest.users.getAuthenticated();
+            core.info(`Resolve PR step authenticated as: ${auth.data.login} (${auth.data.type})`);
 
             let prNumber;
 
@@ -79,26 +83,11 @@ jobs:
 
             core.setOutput('number', String(prNumber));
             core.setOutput('head_sha', pr.head.sha);
-            core.setOutput('head_ref', pr.head.ref);
+            core.setOutput('head_ref', pr.head.ref || '');
             core.setOutput('base_sha', pr.base.sha);
             core.setOutput('base_ref', pr.base.ref);
             core.setOutput('draft', String(pr.draft));
 
-      - name: Test bot token can comment
-        uses: actions/github-script@v9
-        with:
-          github-token: ${{ secrets.PR_BOT_TOKEN }}
-          script: |
-            const auth = await github.rest.users.getAuthenticated();
-            core.info(`Authenticated as: ${auth.data.login} (${auth.data.type})`);
-
-            await github.rest.issues.createComment({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: Number('${{ steps.pr.outputs.number }}'),
-              body: `Token test from @${auth.data.login}`
-            });
-            
       - name: Stop on draft PR
         if: steps.pr.outputs.draft == 'true'
         run: |
@@ -110,6 +99,7 @@ jobs:
         with:
           fetch-depth: 0
           ref: ${{ steps.pr.outputs.head_sha }}
+          token: ${{ secrets.PR_BOT_TOKEN }}
 
       - name: Review PR with OpenAI
         if: steps.pr.outputs.draft != 'true'
@@ -120,6 +110,7 @@ jobs:
           BASE_SHA: ${{ steps.pr.outputs.base_sha }}
           HEAD_SHA: ${{ steps.pr.outputs.head_sha }}
         with:
+          github-token: ${{ secrets.PR_BOT_TOKEN }}
           retries: 3
           script: |
             const fs = require('fs');
@@ -139,6 +130,11 @@ jobs:
             const model = process.env.OPENAI_MODEL || 'gpt-5.5';
             const maxDiffChars = Number(process.env.MAX_DIFF_CHARS || 160000);
             const maxRuleChars = Number(process.env.MAX_RULE_CHARS || 60000);
+
+            const auth = await github.rest.users.getAuthenticated();
+            const botLogin = auth.data.login;
+
+            core.info(`Main review step authenticated as: ${auth.data.login} (${auth.data.type})`);
 
             if (!apiKey) {
               core.setFailed('Missing required repository secret: OPENAI_API_KEY');
@@ -169,8 +165,10 @@ jobs:
             }
 
             function findAgentFiles() {
-              const output = git(['ls-files', '**/AGENTS.md', 'AGENTS.md']);
-              return splitLines(output);
+              const output = git(['ls-files']);
+
+              return splitLines(output)
+                .filter(file => file === 'AGENTS.md' || file.endsWith('/AGENTS.md'));
             }
 
             function getChangedFiles() {
@@ -248,6 +246,7 @@ jobs:
 
             **Trigger:** on demand  
             **Command:** \`/arch-review\`  
+            **Reviewer identity:** \`${botLogin}\`  
             **Model:** \`${model}\`  
             **Head SHA:** \`${headSha}\`  
             **Base SHA:** \`${baseSha}\`  
@@ -302,12 +301,16 @@ jobs:
                 per_page: 100
               });
 
+              // Only update a previous review comment created by the same authenticated bot/user.
+              // This avoids trying to edit an older github-actions[bot] comment.
               const existing = comments.find(comment =>
-                comment.user?.type === 'Bot' &&
+                comment.user?.login === botLogin &&
                 comment.body?.includes(marker)
               );
 
               if (existing) {
+                core.info(`Updating existing architecture review comment ${existing.id} as ${botLogin}.`);
+
                 await github.rest.issues.updateComment({
                   owner,
                   repo,
@@ -315,6 +318,8 @@ jobs:
                   body
                 });
               } else {
+                core.info(`Creating new architecture review comment as ${botLogin}.`);
+
                 await github.rest.issues.createComment({
                   owner,
                   repo,
@@ -324,9 +329,12 @@ jobs:
               }
             }
 
-            // Ensure the base commit exists locally for a correct base...HEAD diff.
-            // Fetch by branch ref first, then verify the exact base SHA is available.
-            git(['fetch', 'origin', `+refs/heads/${baseRef}:refs/remotes/origin/${baseRef}`, '--depth=100']);
+            git([
+              'fetch',
+              'origin',
+              `+refs/heads/${baseRef}:refs/remotes/origin/${baseRef}`,
+              '--depth=100'
+            ]);
 
             try {
               git(['cat-file', '-e', `${baseSha}^{commit}`]);
