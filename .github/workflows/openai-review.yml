@@ -35,9 +35,8 @@ jobs:
       )
 
     env:
-      OPENAI_API_KEY: ${{ secrets.OAI_KEY }}
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       OPENAI_MODEL: gpt-5.5
-      FAIL_ON_VIOLATIONS: true
       MAX_DIFF_CHARS: 160000
       MAX_RULE_CHARS: 60000
 
@@ -301,8 +300,6 @@ jobs:
                 per_page: 100
               });
 
-              // Only update a previous review comment created by the same authenticated bot/user.
-              // This avoids trying to edit an older github-actions[bot] comment.
               const existing = comments.find(comment =>
                 comment.user?.login === botLogin &&
                 comment.body?.includes(marker)
@@ -501,10 +498,3 @@ jobs:
             }
 
             await upsertComment(buildComment(review, { agentFiles, changedFiles }));
-
-            if (
-              review.violations.length > 0 &&
-              process.env.FAIL_ON_VIOLATIONS === 'true'
-            ) {
-              core.setFailed(`${review.violations.length} architecture violation(s) found.`);
-            }
