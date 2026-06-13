@@ -11,25 +11,13 @@ public sealed class SearchKnowledgeIndexer(IKnowledgeRepository repository, ISea
     public async Task<KnowledgeIndexResult> IndexCorpusAsync(string corpusId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
-        IReadOnlyList<KnowledgeChunk> chunks = await repository.GetChunksAsync(corpusId, cancellationToken);
-        SearchDocument[] documents = [.. chunks.Select(chunk => new SearchDocument
-        {
-            Id = chunk.Id,
-            Title = chunk.Title ?? chunk.DocumentId,
-            Body = chunk.Text,
-            TenantId = chunk.TenantId ?? throw new InvalidOperationException($"Knowledge chunk '{chunk.Id}' is missing tenant scope."),
-            Type = "knowledge-chunk",
-            IndexName = SearchKnowledgeRetriever.IndexName,
-            Metadata = new Dictionary<string, object?>
-            {
-                ["corpusId"] = chunk.CorpusId,
-                ["documentId"] = chunk.DocumentId,
-                ["sourceId"] = chunk.SourceId,
-                ["order"] = chunk.Order,
-                ["headingPath"] = chunk.HeadingPath
-            }
-        })];
-        await search.IndexAsync(SearchKnowledgeRetriever.IndexName, documents, cancellationToken);
+        KnowledgeCorpus? corpus = await repository.GetCorpusAsync(corpusId, cancellationToken);
+        if (corpus is null) throw new InvalidOperationException($"Knowledge corpus '{corpusId}' does not exist.");
+        if (!corpus.IsActive) throw new InvalidOperationException($"Knowledge corpus '{corpusId}' is inactive.");
+
+        IReadOnlyList<KnowledgeChunk> chunks = await repository.GetChunksAsync(corpus.Id, cancellationToken);
+        SearchDocument[] documents = [.. chunks.Select(chunk => KnowledgeSearchDocumentContract.ToSearchDocument(corpus, chunk))];
+        await search.IndexAsync(KnowledgeSearchDocumentContract.IndexName, documents, cancellationToken);
         return new KnowledgeIndexResult(corpusId, documents.Length);
     }
 }

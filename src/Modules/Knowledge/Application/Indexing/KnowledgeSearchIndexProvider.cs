@@ -8,7 +8,7 @@ namespace Vitarish.Knowledge.Application.Indexing;
 
 public sealed class KnowledgeSearchIndexProvider(IKnowledgeRepository repository) : ISearchIndexProvider
 {
-    public string IndexName => SearchKnowledgeRetriever.IndexName;
+    public string IndexName => KnowledgeSearchDocumentContract.IndexName;
 
     public async Task<IReadOnlyList<SearchDocument>> GetDocumentsAsync(CancellationToken cancellationToken = default)
     {
@@ -18,23 +18,7 @@ public sealed class KnowledgeSearchIndexProvider(IKnowledgeRepository repository
         foreach (KnowledgeCorpus corpus in corpora.Where(static corpus => corpus.IsActive))
         {
             IReadOnlyList<KnowledgeChunk> chunks = await repository.GetChunksAsync(corpus.Id, cancellationToken);
-            documents.AddRange(chunks.Select(chunk => new SearchDocument
-            {
-                Id = chunk.Id,
-                Title = chunk.Title ?? chunk.HeadingPath ?? chunk.Id,
-                Body = chunk.Text,
-                TenantId = chunk.TenantId ?? corpus.TenantId,
-                Type = "knowledge-chunk",
-                IndexName = SearchKnowledgeRetriever.IndexName,
-                Metadata = new Dictionary<string, object?>
-                {
-                    ["corpusId"] = chunk.CorpusId,
-                    ["sourceId"] = chunk.SourceId,
-                    ["documentId"] = chunk.DocumentId,
-                    ["headingPath"] = chunk.HeadingPath,
-                    ["order"] = chunk.Order
-                }
-            }));
+            documents.AddRange(chunks.Select(chunk => KnowledgeSearchDocumentContract.ToSearchDocument(corpus, chunk)));
         }
 
         return documents;
