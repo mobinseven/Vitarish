@@ -60,8 +60,10 @@ public sealed record KnowledgeAskTraceDiagnostics
     public bool IsAnswered { get; init; }
     public string? MissingInformation { get; init; }
     public required IReadOnlyList<string> RetrievedChunkIds { get; init; }
+    public string? RetrievedChunkIdsParseError { get; init; }
     public required string GeneratedAnswer { get; init; }
-    public required string CitationsJson { get; init; }
+    public required IReadOnlyList<KnowledgeCitation> Citations { get; init; }
+    public string? CitationsParseError { get; init; }
     public string? TraceKind { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
 }

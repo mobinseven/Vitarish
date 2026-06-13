@@ -9,7 +9,7 @@
     <StackButton Label="Apply trace filters" Color="Color.Primary" OnClick="LoadAsync" />
     @foreach (KnowledgeAskTraceDiagnostics trace in traces)
     {
-        <StackCard Label="@trace.Question" Caption="@trace.CreatedAt.ToString("u")" HelperText="@($"Answered {trace.IsAnswered} · Retrieved {trace.RetrievedChunkIds.Count} · Citations {CitationCount(trace.CitationsJson)} · Kind {trace.TraceKind ?? "-"}")">
+        <StackCard Label="@trace.Question" Caption="@trace.CreatedAt.ToString("u")" HelperText="@($"Answered {trace.IsAnswered} · Retrieved {trace.RetrievedChunkIds.Count} · Citations {trace.Citations.Count} · Kind {trace.TraceKind ?? "-"}")">
             <MudText>@trace.MissingInformation</MudText>
             <MudButton Variant="Variant.Text" OnClick="@(() => opened = trace)">Open trace</MudButton>
         </StackCard>
@@ -20,8 +20,12 @@
             <MudText Typo="Typo.subtitle2">Question</MudText><MudText>@opened.Question</MudText>
             <MudText Typo="Typo.subtitle2">Retrieved chunks</MudText><MudText>@string.Join(", ", opened.RetrievedChunkIds)</MudText>
             <MudText Typo="Typo.subtitle2">Generated answer</MudText><MudText Style="white-space: pre-wrap">@opened.GeneratedAnswer</MudText>
-            <MudText Typo="Typo.subtitle2">Citations</MudText><MudText Style="white-space: pre-wrap">@opened.CitationsJson</MudText>
+            <MudText Typo="Typo.subtitle2">Citations</MudText><MudText Style="white-space: pre-wrap">@CitationSummary(opened.Citations)</MudText>
             <MudText Typo="Typo.subtitle2">Missing information</MudText><MudText>@opened.MissingInformation</MudText>
+            @if (opened.RetrievedChunkIdsParseError is not null || opened.CitationsParseError is not null)
+            {
+                <MudAlert Severity="Severity.Warning">@string.Join(" ", new[] { opened.RetrievedChunkIdsParseError, opened.CitationsParseError }.Where(error => error is not null))</MudAlert>
+            }
             <MudButton Variant="Variant.Text" OnClick="@(() => opened = null)">Close</MudButton>
         </StackCard>
     }
@@ -39,5 +43,5 @@
     protected override async Task OnParametersSetAsync() => await LoadAsync();
     private async Task LoadAsync() => traces = await Diagnostics.GetAskTracesAsync(CorpusId, TenantId, new KnowledgeAskTraceDiagnosticsQuery { IsAnswered = answered, TraceKind = Blank(traceKind), QuestionContains = Blank(questionContains) }, CancellationToken.None);
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
-    private static int CitationCount(string json) => string.IsNullOrWhiteSpace(json) || json == "[]" ? 0 : System.Text.RegularExpressions.Regex.Matches(json, "chunkId", System.Text.RegularExpressions.RegexOptions.IgnoreCase).Count;
+    private static string CitationSummary(IReadOnlyList<KnowledgeCitation> citations) => citations.Count == 0 ? "None" : string.Join("\n", citations.Select(citation => $"{citation.ChunkId} · {citation.SourceId} · {citation.DocumentId}"));
 }

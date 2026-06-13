@@ -14,22 +14,20 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
 
     public async Task<IReadOnlyList<KnowledgeCorpusDiagnostics>> GetCorporaDiagnosticsAsync(CancellationToken cancellationToken)
     {
-        List<KnowledgeCorpusEntity> corpora = await dbContext.Corpora.AsNoTracking().OrderBy(corpus => corpus.TenantId).ThenBy(corpus => corpus.Name).ToListAsync(cancellationToken);
-        List<KnowledgeCorpusDiagnostics> diagnostics = [];
-        foreach (KnowledgeCorpusEntity corpus in corpora)
-        {
-            diagnostics.Add(await BuildCorpusDiagnosticsAsync(corpus, cancellationToken));
-        }
-        return diagnostics;
+        return await CorpusDiagnosticsQuery()
+            .OrderBy(corpus => corpus.TenantId)
+            .ThenBy(corpus => corpus.Name)
+            .ToListAsync(cancellationToken);
     }
 
     public async Task<KnowledgeCorpusDiagnostics> GetCorpusDiagnosticsAsync(string corpusId, string tenantId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
-        KnowledgeCorpusEntity corpus = await dbContext.Corpora.AsNoTracking().FirstOrDefaultAsync(item => item.Id == corpusId && item.TenantId == tenantId, cancellationToken)
+        return await CorpusDiagnosticsQuery()
+            .Where(corpus => corpus.CorpusId == corpusId && corpus.TenantId == tenantId)
+            .FirstOrDefaultAsync(cancellationToken)
             ?? throw new InvalidOperationException($"Knowledge corpus '{corpusId}' was not found for tenant '{tenantId}'.");
-        return await BuildCorpusDiagnosticsAsync(corpus, cancellationToken);
     }
 
     public async Task<IReadOnlyList<KnowledgeSourceDiagnostics>> GetSourcesAsync(string corpusId, string tenantId, CancellationToken cancellationToken)
@@ -93,7 +91,57 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
         if (query.From is not null) traces = traces.Where(trace => trace.CreatedAt >= query.From);
         if (query.To is not null) traces = traces.Where(trace => trace.CreatedAt <= query.To);
         List<KnowledgeAskTraceEntity> rows = await traces.OrderByDescending(trace => trace.CreatedAt).Take(Math.Clamp(query.Limit, 1, 500)).ToListAsync(cancellationToken);
-        return [.. rows.Select(trace => new KnowledgeAskTraceDiagnostics
+        return [.. rows.Select(MapTraceDiagnostics)];
+    }
+
+    public async Task<KnowledgeAskDebugResult> DebugAskAsync(KnowledgeAskRequest request, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.CorpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.Question);
+        if (request.TopK < 1) throw new ArgumentOutOfRangeException(nameof(request), request.TopK, "TopK must be at least 1.");
+        int chunkCount = await dbContext.Chunks.AsNoTracking().CountAsync(chunk => chunk.CorpusId == request.CorpusId && chunk.TenantId == request.TenantId, cancellationToken);
+        if (chunkCount == 0) return EmptyDebugResult(request, KnowledgeFailureStage.NoImportedChunks, "Corpus has no imported chunks.", "No chunks exist for this corpus and tenant.");
+        IReadOnlyList<KnowledgeHit> hits = await retriever.RetrieveAsync(new KnowledgeQuery { CorpusId = request.CorpusId, TenantId = request.TenantId, Question = request.Question, TopK = request.TopK }, cancellationToken);
+        if (hits.Count == 0) return EmptyDebugResult(request, KnowledgeFailureStage.Retrieval, "Search returned no chunks.", "Search returned no hits.");
+        KnowledgeContext context = contextBuilder.Build(request.Question, hits);
+        KnowledgeAnswer answer = await answerer.AnswerFromHitsAsync(request with { SaveTrace = false, TraceKind = "diagnostic" }, hits, cancellationToken);
+        KnowledgeFailureStage stage = KnowledgeFailureClassifier.Classify(chunkCount, hits, context, answer);
+        return new KnowledgeAskDebugResult { CorpusId = request.CorpusId, TenantId = request.TenantId, Question = request.Question, RetrievedHits = hits, ContextChunkIds = context.ChunkIds, Answer = answer, FailureStage = stage, FailureReason = answer.MissingInformation };
+    }
+
+    public async Task<KnowledgeIndexDiagnostics> GetIndexDiagnosticsAsync(string corpusId, string tenantId, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        int chunkCount = await dbContext.Chunks.AsNoTracking().CountAsync(chunk => chunk.CorpusId == corpusId && chunk.TenantId == tenantId, cancellationToken);
+        IReadOnlyList<KnowledgeHit> hits = chunkCount == 0 ? [] : await retriever.RetrieveAsync(new KnowledgeQuery { CorpusId = corpusId, TenantId = tenantId, Question = IndexProbe, TopK = 1 }, cancellationToken);
+        DateTimeOffset? lastImportedAt = await dbContext.Sources.AsNoTracking().Where(source => source.CorpusId == corpusId && source.TenantId == tenantId).MaxAsync(source => (DateTimeOffset?)source.ImportedAt, cancellationToken);
+        return new KnowledgeIndexDiagnostics { CorpusId = corpusId, TenantId = tenantId, StoredChunkCount = chunkCount, SearchHitCountForProbe = hits.Count, LastIndexedAt = lastImportedAt, LooksIndexed = chunkCount > 0 && hits.Count > 0 };
+    }
+
+    private IQueryable<KnowledgeCorpusDiagnostics> CorpusDiagnosticsQuery() => dbContext.Corpora.AsNoTracking()
+        .Select(corpus => new KnowledgeCorpusDiagnostics
+        {
+            CorpusId = corpus.Id,
+            TenantId = corpus.TenantId,
+            Name = corpus.Name,
+            IsActive = corpus.IsActive,
+            SourceCount = dbContext.Sources.Count(source => source.CorpusId == corpus.Id && source.TenantId == corpus.TenantId),
+            DocumentCount = dbContext.Documents.Count(document => document.CorpusId == corpus.Id && document.TenantId == corpus.TenantId),
+            ChunkCount = dbContext.Chunks.Count(chunk => chunk.CorpusId == corpus.Id && chunk.TenantId == corpus.TenantId),
+            QuestionCount = dbContext.Questions.Count(question => question.CorpusId == corpus.Id),
+            AskTraceCount = dbContext.AskTraces.Count(trace => trace.CorpusId == corpus.Id && trace.TenantId == corpus.TenantId),
+            LastImportedAt = dbContext.Sources.Where(source => source.CorpusId == corpus.Id && source.TenantId == corpus.TenantId).Max(source => (DateTimeOffset?)source.ImportedAt),
+            LastAskedAt = dbContext.AskTraces.Where(trace => trace.CorpusId == corpus.Id && trace.TenantId == corpus.TenantId).Max(trace => (DateTimeOffset?)trace.CreatedAt)
+        });
+
+    private static KnowledgeAskTraceDiagnostics MapTraceDiagnostics(KnowledgeAskTraceEntity trace)
+    {
+        JsonParseResult<string> retrievedChunkIds = DeserializeList<string>(trace.RetrievedChunkIdsJson, "retrieved chunk IDs");
+        JsonParseResult<KnowledgeCitation> citations = DeserializeList<KnowledgeCitation>(trace.CitationsJson, "citations");
+        return new KnowledgeAskTraceDiagnostics
         {
             TraceId = trace.Id,
             CorpusId = trace.CorpusId,
@@ -101,49 +149,15 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
             Question = trace.Question,
             IsAnswered = trace.IsAnswered,
             MissingInformation = trace.MissingInformation,
-            RetrievedChunkIds = DeserializeStringList(trace.RetrievedChunkIdsJson),
+            RetrievedChunkIds = retrievedChunkIds.Items,
+            RetrievedChunkIdsParseError = retrievedChunkIds.Error,
             GeneratedAnswer = trace.GeneratedAnswer,
-            CitationsJson = trace.CitationsJson,
+            Citations = citations.Items,
+            CitationsParseError = citations.Error,
             TraceKind = trace.TraceKind,
             CreatedAt = trace.CreatedAt
-        })];
+        };
     }
-
-    public async Task<KnowledgeAskDebugResult> DebugAskAsync(KnowledgeAskRequest request, CancellationToken cancellationToken)
-    {
-        ArgumentNullException.ThrowIfNull(request);
-        int chunkCount = await dbContext.Chunks.AsNoTracking().CountAsync(chunk => chunk.CorpusId == request.CorpusId && chunk.TenantId == request.TenantId, cancellationToken);
-        if (chunkCount == 0) return EmptyDebugResult(request, KnowledgeFailureStage.NoImportedChunks, "Corpus has no imported chunks.", "No chunks exist for this corpus and tenant.");
-        IReadOnlyList<KnowledgeHit> hits = await retriever.RetrieveAsync(new KnowledgeQuery { CorpusId = request.CorpusId, TenantId = request.TenantId, Question = request.Question, TopK = request.TopK }, cancellationToken);
-        if (hits.Count == 0) return EmptyDebugResult(request, KnowledgeFailureStage.Retrieval, "Search returned no chunks.", "Search returned no hits.");
-        KnowledgeContext context = contextBuilder.Build(request.Question, hits);
-        KnowledgeAnswer answer = await answerer.AnswerFromHitsAsync(request with { SaveTrace = true, TraceKind = "diagnostic" }, hits, cancellationToken);
-        KnowledgeFailureStage stage = KnowledgeFailureClassifier.Classify(chunkCount, hits, context, answer);
-        return new KnowledgeAskDebugResult { CorpusId = request.CorpusId, TenantId = request.TenantId, Question = request.Question, RetrievedHits = hits, ContextChunkIds = context.ChunkIds, Answer = answer, FailureStage = stage, FailureReason = answer.MissingInformation };
-    }
-
-    public async Task<KnowledgeIndexDiagnostics> GetIndexDiagnosticsAsync(string corpusId, string tenantId, CancellationToken cancellationToken)
-    {
-        int chunkCount = await dbContext.Chunks.AsNoTracking().CountAsync(chunk => chunk.CorpusId == corpusId && chunk.TenantId == tenantId, cancellationToken);
-        IReadOnlyList<KnowledgeHit> hits = chunkCount == 0 ? [] : await retriever.RetrieveAsync(new KnowledgeQuery { CorpusId = corpusId, TenantId = tenantId, Question = IndexProbe, TopK = 1 }, cancellationToken);
-        DateTimeOffset? lastImportedAt = await dbContext.Sources.AsNoTracking().Where(source => source.CorpusId == corpusId && source.TenantId == tenantId).MaxAsync(source => (DateTimeOffset?)source.ImportedAt, cancellationToken);
-        return new KnowledgeIndexDiagnostics { CorpusId = corpusId, TenantId = tenantId, StoredChunkCount = chunkCount, SearchHitCountForProbe = hits.Count, LastIndexedAt = lastImportedAt, LooksIndexed = chunkCount > 0 && hits.Count > 0 };
-    }
-
-    private async Task<KnowledgeCorpusDiagnostics> BuildCorpusDiagnosticsAsync(KnowledgeCorpusEntity corpus, CancellationToken cancellationToken) => new()
-    {
-        CorpusId = corpus.Id,
-        TenantId = corpus.TenantId,
-        Name = corpus.Name,
-        IsActive = corpus.IsActive,
-        SourceCount = await dbContext.Sources.AsNoTracking().CountAsync(source => source.CorpusId == corpus.Id && source.TenantId == corpus.TenantId, cancellationToken),
-        DocumentCount = await dbContext.Documents.AsNoTracking().CountAsync(document => document.CorpusId == corpus.Id && document.TenantId == corpus.TenantId, cancellationToken),
-        ChunkCount = await dbContext.Chunks.AsNoTracking().CountAsync(chunk => chunk.CorpusId == corpus.Id && chunk.TenantId == corpus.TenantId, cancellationToken),
-        QuestionCount = await dbContext.Questions.AsNoTracking().CountAsync(question => question.CorpusId == corpus.Id, cancellationToken),
-        AskTraceCount = await dbContext.AskTraces.AsNoTracking().CountAsync(trace => trace.CorpusId == corpus.Id && trace.TenantId == corpus.TenantId, cancellationToken),
-        LastImportedAt = await dbContext.Sources.AsNoTracking().Where(source => source.CorpusId == corpus.Id && source.TenantId == corpus.TenantId).MaxAsync(source => (DateTimeOffset?)source.ImportedAt, cancellationToken),
-        LastAskedAt = await dbContext.AskTraces.AsNoTracking().Where(trace => trace.CorpusId == corpus.Id && trace.TenantId == corpus.TenantId).MaxAsync(trace => (DateTimeOffset?)trace.CreatedAt, cancellationToken)
-    };
 
     private static KnowledgeAskDebugResult EmptyDebugResult(KnowledgeAskRequest request, KnowledgeFailureStage stage, string missingInformation, string reason) => new()
     {
@@ -157,10 +171,18 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
         FailureReason = reason
     };
 
-    private static IReadOnlyList<string> DeserializeStringList(string json)
+    private static JsonParseResult<T> DeserializeList<T>(string json, string fieldName)
     {
-        if (string.IsNullOrWhiteSpace(json)) return [];
-        try { return JsonSerializer.Deserialize<IReadOnlyList<string>>(json, JsonOptions) ?? []; }
-        catch (JsonException) { return []; }
+        if (string.IsNullOrWhiteSpace(json)) return new JsonParseResult<T>([], $"Stored {fieldName} JSON was empty.");
+        try
+        {
+            return new JsonParseResult<T>(JsonSerializer.Deserialize<IReadOnlyList<T>>(json, JsonOptions) ?? [], null);
+        }
+        catch (JsonException ex)
+        {
+            return new JsonParseResult<T>([], $"Stored {fieldName} JSON could not be parsed: {ex.Message}");
+        }
     }
+
+    private sealed record JsonParseResult<T>(IReadOnlyList<T> Items, string? Error);
 }
