@@ -14,10 +14,14 @@ public sealed class SearchKnowledgeRetriever(ISearchService search) : IKnowledge
         ArgumentException.ThrowIfNullOrWhiteSpace(query.CorpusId);
         ArgumentException.ThrowIfNullOrWhiteSpace(query.Question);
 
-        SearchResult result = await search.SearchAsync(IndexName, query.Question, new SearchOptions { Limit = query.TopK, Type = "knowledge-chunk" }, cancellationToken);
+        SearchResult result = await search.SearchAsync(IndexName, query.Question, new SearchOptions
+        {
+            Limit = query.TopK,
+            Type = "knowledge-chunk",
+            MetadataFilters = new Dictionary<string, string> { ["corpusId"] = query.CorpusId }
+        }, cancellationToken);
 
         return [.. result.Items
-            .Where(document => MetadataEquals(document, "corpusId", query.CorpusId))
             .Select((document, index) => new KnowledgeHit
             {
                 ChunkId = document.Id,
@@ -29,6 +33,5 @@ public sealed class SearchKnowledgeRetriever(ISearchService search) : IKnowledge
             })];
     }
 
-    private static bool MetadataEquals(SearchDocument document, string key, string value) => document.Metadata.TryGetValue(key, out object? found) && string.Equals(found?.ToString(), value, StringComparison.Ordinal);
     private static string MetadataString(SearchDocument document, string key) => document.Metadata.TryGetValue(key, out object? found) ? found?.ToString() ?? string.Empty : string.Empty;
 }

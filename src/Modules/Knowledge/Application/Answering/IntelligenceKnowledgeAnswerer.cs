@@ -52,14 +52,19 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
     private static KnowledgeAnswer MapAnswer(string json, IReadOnlyList<KnowledgeHit> hits)
     {
         GeneratedKnowledgeAnswer? generated = JsonSerializer.Deserialize<GeneratedKnowledgeAnswer>(json, JsonOptions) ?? throw new InvalidOperationException("Knowledge answer generation returned empty JSON.");
-        Dictionary<string, KnowledgeHit> byChunk = hits.ToDictionary(static hit => hit.ChunkId, StringComparer.Ordinal);
+        Dictionary<string, KnowledgeHit> byChunk = new(StringComparer.Ordinal);
+        foreach (KnowledgeHit hit in hits)
+        {
+            byChunk[hit.ChunkId] = hit;
+        }
+
         return new KnowledgeAnswer
         {
             Answer = generated.Answer ?? string.Empty,
             IsAnswered = generated.IsAnswered,
             MissingInformation = generated.MissingInformation,
             RetrievedContext = hits,
-            Citations = [.. generated.Citations.Where(citation => citation.ChunkId is not null && byChunk.ContainsKey(citation.ChunkId)).Select(citation =>
+            Citations = generated.Citations is null ? [] : [.. generated.Citations.Where(citation => citation.ChunkId is not null && byChunk.ContainsKey(citation.ChunkId)).Select(citation =>
             {
                 KnowledgeHit hit = byChunk[citation.ChunkId!];
                 return new KnowledgeCitation { ChunkId = hit.ChunkId, SourceId = hit.SourceId, DocumentId = hit.DocumentId, Title = hit.Title, Quote = citation.Quote };
@@ -68,6 +73,6 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
     }
 
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-    private sealed record GeneratedKnowledgeAnswer(string? Answer, bool IsAnswered, IReadOnlyList<GeneratedCitation> Citations, string? MissingInformation);
+    private sealed record GeneratedKnowledgeAnswer(string? Answer, bool IsAnswered, IReadOnlyList<GeneratedCitation>? Citations, string? MissingInformation);
     private sealed record GeneratedCitation([property: JsonPropertyName("chunkId")] string? ChunkId, string? Quote);
 }

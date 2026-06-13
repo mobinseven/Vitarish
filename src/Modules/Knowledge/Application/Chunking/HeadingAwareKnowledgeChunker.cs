@@ -1,3 +1,4 @@
+using System.IO;
 using System.Text;
 using Vitarish.Knowledge.Application.Abstractions;
 using Vitarish.Knowledge.Domain.Models;
@@ -18,15 +19,18 @@ public sealed class HeadingAwareKnowledgeChunker : IKnowledgeChunker
         string? headingPath = null;
         int order = 0;
 
-        foreach (string line in document.Text.ReplaceLineEndings("\n").Split('\n'))
+        using StringReader reader = new(document.Text);
+        string? line;
+        while ((line = reader.ReadLine()) is not null)
         {
-            if (IsMarkdownHeading(line) && buffer.Length > 0)
+            bool isHeading = IsMarkdownHeading(line);
+            if (isHeading && buffer.Length > 0)
             {
                 AddChunk(chunks, document.Title, headingPath, buffer.ToString(), order++);
                 KeepOverlap(buffer);
             }
 
-            if (IsMarkdownHeading(line))
+            if (isHeading)
             {
                 headingPath = line.Trim();
             }
@@ -59,9 +63,10 @@ public sealed class HeadingAwareKnowledgeChunker : IKnowledgeChunker
 
     private static void KeepOverlap(StringBuilder buffer)
     {
+        if (buffer.Length <= OverlapCharacters) return;
+
         string text = buffer.ToString();
         buffer.Clear();
-        if (text.Length <= OverlapCharacters) return;
         _ = buffer.Append(text[^OverlapCharacters..]);
     }
 }
