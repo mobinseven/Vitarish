@@ -12,7 +12,7 @@ public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeRepos
         ArgumentException.ThrowIfNullOrWhiteSpace(request.CorpusId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Format);
-        KnowledgeCorpus? corpus = await repository.GetCorpusAsync(request.CorpusId, cancellationToken);
+        KnowledgeCorpus? corpus = await repository.GetCorpusAsync(request.CorpusId, request.TenantId, cancellationToken);
         if (corpus is null) throw new InvalidOperationException($"Knowledge corpus '{request.CorpusId}' does not exist.");
         if (!corpus.IsActive) throw new InvalidOperationException($"Knowledge corpus '{request.CorpusId}' is inactive.");
         if (!string.Equals(corpus.TenantId, request.TenantId, StringComparison.Ordinal)) throw new InvalidOperationException($"Knowledge corpus '{request.CorpusId}' is not available for tenant '{request.TenantId}'.");

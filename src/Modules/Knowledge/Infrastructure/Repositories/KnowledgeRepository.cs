@@ -45,11 +45,12 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<KnowledgeCorpus?> GetCorpusAsync(string corpusId, CancellationToken cancellationToken)
+    public async Task<KnowledgeCorpus?> GetCorpusAsync(string corpusId, string tenantId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         return await dbContext.Corpora.AsNoTracking()
-            .Where(corpus => corpus.Id == corpusId)
+            .Where(corpus => corpus.Id == corpusId && corpus.TenantId == tenantId)
             .Select(corpus => new KnowledgeCorpus
             {
                 Id = corpus.Id,
@@ -61,8 +62,11 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
             .FirstOrDefaultAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<KnowledgeCorpus>> ListCorporaAsync(CancellationToken cancellationToken) =>
-        await dbContext.Corpora.AsNoTracking()
+    public async Task<IReadOnlyList<KnowledgeCorpus>> ListCorporaAsync(string tenantId, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        return await dbContext.Corpora.AsNoTracking()
+            .Where(corpus => corpus.TenantId == tenantId)
             .OrderBy(corpus => corpus.Name)
             .Select(corpus => new KnowledgeCorpus
             {
@@ -73,13 +77,32 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
                 IsActive = corpus.IsActive
             })
             .ToListAsync(cancellationToken);
+    }
 
-    public async Task<IReadOnlyList<KnowledgeChunk>> GetChunksAsync(string corpusId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<KnowledgeCorpus>> ListActiveCorporaAsync(CancellationToken cancellationToken) =>
+        await dbContext.Corpora.AsNoTracking()
+            .Where(corpus => corpus.IsActive)
+            .OrderBy(corpus => corpus.TenantId)
+            .ThenBy(corpus => corpus.Name)
+            .Select(corpus => new KnowledgeCorpus
+            {
+                Id = corpus.Id,
+                Name = corpus.Name,
+                TenantId = corpus.TenantId,
+                Description = corpus.Description,
+                IsActive = corpus.IsActive
+            })
+            .ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<KnowledgeChunk>> GetChunksAsync(string corpusId, string tenantId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         return await dbContext.Chunks.AsNoTracking()
-            .Where(chunk => chunk.CorpusId == corpusId)
-            .OrderBy(chunk => chunk.Order)
+            .Where(chunk => chunk.CorpusId == corpusId && chunk.TenantId == tenantId)
+            .OrderBy(chunk => chunk.SourceId)
+            .ThenBy(chunk => chunk.DocumentId)
+            .ThenBy(chunk => chunk.Order)
             .Select(chunk => new KnowledgeChunk
             {
                 Id = chunk.Id,
@@ -95,11 +118,51 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<IReadOnlyList<KnowledgeQuestion>> GetQuestionsAsync(string corpusId, CancellationToken cancellationToken)
+    public async Task<IReadOnlyList<KnowledgeChunk>> GetChunksForCorporaAsync(IReadOnlyCollection<string> corpusIds, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(corpusIds);
+        if (corpusIds.Count == 0)
+        {
+            return [];
+        }
+
+        string[] distinctCorpusIds = [.. corpusIds
+            .Select(corpusId =>
+            {
+                ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
+                return corpusId;
+            })
+            .Distinct(StringComparer.Ordinal)];
+
+        return await dbContext.Chunks.AsNoTracking()
+            .Where(chunk => distinctCorpusIds.Contains(chunk.CorpusId))
+            .OrderBy(chunk => chunk.CorpusId)
+            .ThenBy(chunk => chunk.SourceId)
+            .ThenBy(chunk => chunk.DocumentId)
+            .ThenBy(chunk => chunk.Order)
+            .Select(chunk => new KnowledgeChunk
+            {
+                Id = chunk.Id,
+                CorpusId = chunk.CorpusId,
+                TenantId = chunk.TenantId,
+                SourceId = chunk.SourceId,
+                DocumentId = chunk.DocumentId,
+                Text = chunk.Text,
+                Order = chunk.Order,
+                Title = chunk.Title,
+                HeadingPath = chunk.HeadingPath
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<KnowledgeQuestion>> GetQuestionsAsync(string corpusId, string tenantId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         List<KnowledgeQuestionEntity> questions = await dbContext.Questions.AsNoTracking()
-            .Where(question => question.CorpusId == corpusId)
+            .Join(dbContext.Corpora.AsNoTracking(), question => question.CorpusId, corpus => corpus.Id, (question, corpus) => new { question, corpus.TenantId })
+            .Where(row => row.question.CorpusId == corpusId && row.TenantId == tenantId)
+            .Select(row => row.question)
             .OrderBy(question => question.Id)
             .ToListAsync(cancellationToken);
 
@@ -170,9 +233,13 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
         {
             Id = trace.Id,
             CorpusId = trace.CorpusId,
+            TenantId = trace.TenantId,
             Question = trace.Question,
             RetrievedChunkIdsJson = JsonSerializer.Serialize(trace.RetrievedChunkIds, JsonOptions),
             GeneratedAnswer = trace.GeneratedAnswer,
+            MissingInformation = trace.MissingInformation,
+            CitationsJson = trace.CitationsJson,
+            TraceKind = trace.TraceKind,
             IsAnswered = trace.IsAnswered,
             CreatedAt = trace.CreatedAt
         });

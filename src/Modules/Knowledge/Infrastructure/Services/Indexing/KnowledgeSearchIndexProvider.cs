@@ -12,15 +12,15 @@ public sealed class KnowledgeSearchIndexProvider(IKnowledgeRepository repository
 
     public async Task<IReadOnlyList<SearchDocument>> GetDocumentsAsync(CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<KnowledgeCorpus> corpora = await repository.ListCorporaAsync(cancellationToken);
-        List<SearchDocument> documents = [];
-
-        foreach (KnowledgeCorpus corpus in corpora.Where(static corpus => corpus.IsActive))
+        IReadOnlyList<KnowledgeCorpus> corpora = await repository.ListActiveCorporaAsync(cancellationToken);
+        if (corpora.Count == 0)
         {
-            IReadOnlyList<KnowledgeChunk> chunks = await repository.GetChunksAsync(corpus.Id, cancellationToken);
-            documents.AddRange(chunks.Select(chunk => KnowledgeSearchDocumentContract.ToSearchDocument(corpus, chunk)));
+            return [];
         }
 
-        return documents;
+        Dictionary<string, KnowledgeCorpus> corpusById = corpora.ToDictionary(corpus => corpus.Id, StringComparer.Ordinal);
+        IReadOnlyList<KnowledgeChunk> chunks = await repository.GetChunksForCorporaAsync(corpusById.Keys.ToArray(), cancellationToken);
+
+        return [.. chunks.Select(chunk => KnowledgeSearchDocumentContract.ToSearchDocument(corpusById[chunk.CorpusId], chunk))];
     }
 }

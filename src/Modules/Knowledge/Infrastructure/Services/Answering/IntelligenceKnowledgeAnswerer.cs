@@ -1,12 +1,13 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Domain.Models;
 using Vitarish.Knowledge.Application.Abstractions;
 
 namespace Vitarish.Knowledge.Infrastructure.Services.Answering;
 
-public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever, IKnowledgeContextBuilder contextBuilder, IResponder responder, IKnowledgeRepository repository) : IKnowledgeAnswerer
+public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever, IKnowledgeContextBuilder contextBuilder, IResponder responder, IKnowledgeRepository repository, ILogger<IntelligenceKnowledgeAnswerer> logger) : IKnowledgeAnswerer
 {
     public async Task<KnowledgeAnswer> AskAsync(KnowledgeAskRequest request, CancellationToken cancellationToken)
     {
@@ -24,24 +25,53 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Question);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
         ArgumentNullException.ThrowIfNull(hits);
+        if (hits.Count == 0)
+        {
+            KnowledgeAnswer refused = RefusedAnswer(hits, "No relevant context was retrieved.");
+            await SaveTraceAsync(request, [], refused, cancellationToken);
+            return refused;
+        }
+
         KnowledgeContext context = contextBuilder.Build(request.Question, hits);
         string prompt = $"Question:\n{request.Question}\n\nContext:\n{context.Text}";
         IReadOnlyList<ResponderOutput> outputs = await responder.GenerateAsync([ResponderInput.TextInput(prompt)], new ResponderOptions { Instructions = KnowledgeGroundingPolicy.Instructions, TextFormat = ResponseTextFormat.JsonSchema, JsonSchema = KnowledgeAnswerSchema }, cancellationToken);
         string json = ExtractText(outputs);
         KnowledgeAnswer answer = MapAnswer(json, hits);
 
-        await repository.SaveAskTraceAsync(new KnowledgeAskTrace
-        {
-            Id = Guid.NewGuid().ToString("n"),
-            CorpusId = request.CorpusId,
-            Question = request.Question,
-            RetrievedChunkIds = context.ChunkIds,
-            GeneratedAnswer = answer.Answer,
-            IsAnswered = answer.IsAnswered,
-            CreatedAt = DateTimeOffset.UtcNow
-        }, cancellationToken);
+        await SaveTraceAsync(request, context.ChunkIds, answer, cancellationToken);
 
         return answer;
+    }
+
+
+    private async Task SaveTraceAsync(KnowledgeAskRequest request, IReadOnlyList<string> retrievedChunkIds, KnowledgeAnswer answer, CancellationToken cancellationToken)
+    {
+        if (!request.SaveTrace)
+        {
+            return;
+        }
+
+        try
+        {
+            await repository.SaveAskTraceAsync(new KnowledgeAskTrace
+            {
+                Id = Guid.NewGuid().ToString("n"),
+                CorpusId = request.CorpusId,
+                TenantId = request.TenantId,
+                Question = request.Question,
+                RetrievedChunkIds = retrievedChunkIds,
+                GeneratedAnswer = answer.Answer,
+                MissingInformation = answer.MissingInformation,
+                CitationsJson = JsonSerializer.Serialize(answer.Citations, JsonOptions),
+                TraceKind = request.TraceKind,
+                IsAnswered = answer.IsAnswered,
+                CreatedAt = DateTimeOffset.UtcNow
+            }, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        {
+            logger.LogWarning(ex, "Knowledge ask trace persistence failed for corpus {CorpusId} and tenant {TenantId}.", request.CorpusId, request.TenantId);
+        }
     }
 
     private static string ExtractText(IReadOnlyList<ResponderOutput> outputs) => string.Concat(Flatten(outputs).Select(static output => output.Text));

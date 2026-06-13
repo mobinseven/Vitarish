@@ -14,7 +14,7 @@ public sealed class KnowledgeSourceEntity
 {
     public required string Id { get; set; }
     public required string CorpusId { get; set; }
-    public string? TenantId { get; set; }
+    public required string TenantId { get; set; }
     public required string Name { get; set; }
     public required string SourceType { get; set; }
     public string? OriginalLocation { get; set; }
@@ -27,7 +27,7 @@ public sealed class KnowledgeDocumentEntity
 {
     public required string Id { get; set; }
     public required string CorpusId { get; set; }
-    public string? TenantId { get; set; }
+    public required string TenantId { get; set; }
     public required string SourceId { get; set; }
     public required string Title { get; set; }
     public required string Text { get; set; }
@@ -40,7 +40,7 @@ public sealed class KnowledgeChunkEntity
 {
     public required string Id { get; set; }
     public required string CorpusId { get; set; }
-    public string? TenantId { get; set; }
+    public required string TenantId { get; set; }
     public required string SourceId { get; set; }
     public required string DocumentId { get; set; }
     public required string Text { get; set; }
@@ -63,8 +63,12 @@ public sealed class KnowledgeAskTraceEntity
     public required string Id { get; set; }
     public required string CorpusId { get; set; }
     public required string Question { get; set; }
+    public required string TenantId { get; set; }
     public required string RetrievedChunkIdsJson { get; set; }
     public required string GeneratedAnswer { get; set; }
+    public string? MissingInformation { get; set; }
+    public required string CitationsJson { get; set; }
+    public string? TraceKind { get; set; }
     public bool IsAnswered { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 }
