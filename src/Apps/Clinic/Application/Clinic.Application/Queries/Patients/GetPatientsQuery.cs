@@ -1,6 +1,6 @@
 using MediatR;
+using Vitarish.Clinic.Domain.Enums;
 using Vitarish.Clinic.Domain.Models;
-using Vitarish.Sea.Domain.Enums;
 
 namespace Vitarish.Clinic.Application.Queries.Patients;
 
@@ -9,5 +9,5 @@ public sealed record GetPatientsQuery(
     int? Skip = null,
     int? Take = null,
     bool? Template = false,
-    ProjectSortBy? SortBy = ProjectSortBy.Name,
+    PatientSortBy? SortBy = PatientSortBy.Name,
     bool Descending = false) : IRequest<IReadOnlyList<PatientView>>;
