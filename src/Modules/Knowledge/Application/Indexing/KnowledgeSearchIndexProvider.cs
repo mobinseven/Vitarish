@@ -18,12 +18,12 @@ public sealed class KnowledgeSearchIndexProvider(IKnowledgeRepository repository
         foreach (KnowledgeCorpus corpus in corpora.Where(static corpus => corpus.IsActive))
         {
             IReadOnlyList<KnowledgeChunk> chunks = await repository.GetChunksAsync(corpus.Id, cancellationToken);
-            documents.AddRange(chunks.Select(static chunk => new SearchDocument
+            documents.AddRange(chunks.Select(chunk => new SearchDocument
             {
                 Id = chunk.Id,
                 Title = chunk.Title ?? chunk.HeadingPath ?? chunk.Id,
                 Body = chunk.Text,
-                TenantId = chunk.TenantId ?? throw new InvalidOperationException($"Knowledge chunk '{chunk.Id}' is missing tenant scope."),
+                TenantId = chunk.TenantId ?? corpus.TenantId,
                 Type = "knowledge-chunk",
                 IndexName = SearchKnowledgeRetriever.IndexName,
                 Metadata = new Dictionary<string, object?>

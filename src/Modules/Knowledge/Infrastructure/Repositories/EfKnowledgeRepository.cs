@@ -18,17 +18,29 @@ public sealed class EfKnowledgeRepository(KnowledgeDbContext dbContext) : IKnowl
         ArgumentException.ThrowIfNullOrWhiteSpace(corpus.Name);
         ArgumentException.ThrowIfNullOrWhiteSpace(corpus.TenantId);
 
-        KnowledgeCorpusEntity entity = new()
+        KnowledgeCorpusEntity? existing = await dbContext.Corpora.FindAsync([corpus.Id], cancellationToken);
+        if (existing is not null)
         {
-            Id = corpus.Id,
-            Name = corpus.Name,
-            TenantId = corpus.TenantId,
-            Description = corpus.Description,
-            IsActive = corpus.IsActive,
-            CreatedAt = DateTimeOffset.UtcNow
-        };
+            existing.Name = corpus.Name;
+            existing.TenantId = corpus.TenantId;
+            existing.Description = corpus.Description;
+            existing.IsActive = corpus.IsActive;
+        }
+        else
+        {
+            KnowledgeCorpusEntity entity = new()
+            {
+                Id = corpus.Id,
+                Name = corpus.Name,
+                TenantId = corpus.TenantId,
+                Description = corpus.Description,
+                IsActive = corpus.IsActive,
+                CreatedAt = DateTimeOffset.UtcNow
+            };
 
-        dbContext.Corpora.Update(entity);
+            dbContext.Corpora.Add(entity);
+        }
+
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
