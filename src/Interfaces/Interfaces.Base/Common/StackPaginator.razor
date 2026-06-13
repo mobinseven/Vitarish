@@ -3,27 +3,30 @@
 
 @if(State is not null)
 {
-    <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Class="stack-item">
-        <MudSelect T="int" Value="PageSize" ValueChanged="v => SetPageSize(v)" Underline="false" Variant="Variant.Filled" Disabled="IsLoading">
-            <MudSelectItem T="int" Value="5">5</MudSelectItem>
-            <MudSelectItem T="int" Value="10">10</MudSelectItem>
-            <MudSelectItem T="int" Value="50">50</MudSelectItem>
-            <MudSelectItem T="int" Value="100">100</MudSelectItem>
-            <MudSelectItem T="int" Value="int.MaxValue">@Localizer["Infinite"]</MudSelectItem>
-        </MudSelect>
-        @if(State.TotalPages > 1)
-        {
-            <MudPagination Class="glass"
-                           Disabled="IsLoading"
-                           ShowFirstButton="true"
-                           ShowLastButton="true"
-                           Count="@State.TotalPages"
-                           Selected="@State.Page"
-                           BoundaryCount="1"
-                           MiddleCount="1"
-                           SelectedChanged="OnPageChanged" />
-        }
-    </MudStack>
+    @if(State.TotalPages > 5)
+    {
+        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Class="stack-item">
+            <MudSelect T="int" Value="PageSize" ValueChanged="v => SetPageSize(v)" Underline="false" Variant="Variant.Filled" Disabled="IsLoading">
+                <MudSelectItem T="int" Value="5">5</MudSelectItem>
+                <MudSelectItem T="int" Value="10">10</MudSelectItem>
+                <MudSelectItem T="int" Value="50">50</MudSelectItem>
+                <MudSelectItem T="int" Value="100">100</MudSelectItem>
+                <MudSelectItem T="int" Value="int.MaxValue">@Localizer["Infinite"]</MudSelectItem>
+            </MudSelect>
+            @if(State.TotalPages > 1)
+            {
+                <MudPagination Class="glass"
+                               Disabled="IsLoading"
+                               ShowFirstButton="true"
+                               ShowLastButton="true"
+                               Count="@State.TotalPages"
+                               Selected="@State.Page"
+                               BoundaryCount="1"
+                               MiddleCount="1"
+                               SelectedChanged="OnPageChanged" />
+            }
+        </MudStack>
+    }
 }
 
 @code {
