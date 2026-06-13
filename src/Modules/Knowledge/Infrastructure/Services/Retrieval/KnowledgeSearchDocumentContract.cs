@@ -39,12 +39,14 @@ public static class KnowledgeSearchDocumentContract
             throw new InvalidOperationException($"Knowledge chunk '{chunk.Id}' tenant does not match corpus '{corpus.Id}' tenant.");
         }
 
+        string title = string.IsNullOrWhiteSpace(chunk.Title) ? chunk.DocumentId : chunk.Title;
+
         return new SearchDocument
         {
             Id = chunk.Id,
             Title = string.IsNullOrWhiteSpace(chunk.HeadingPath)
-                ? chunk.Title ?? chunk.DocumentId ?? chunk.Id
-                : $"{chunk.Title ?? chunk.DocumentId ?? chunk.Id} — {chunk.HeadingPath}",
+                ? title
+                : $"{title} — {chunk.HeadingPath}",
             Body = chunk.Text,
             TenantId = corpus.TenantId,
             Type = DocumentType,

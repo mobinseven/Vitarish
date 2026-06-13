@@ -1,12 +1,13 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using Microsoft.Extensions.Logging;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Domain.Models;
 using Vitarish.Knowledge.Application.Abstractions;
 
 namespace Vitarish.Knowledge.Infrastructure.Services.Answering;
 
-public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever, IKnowledgeContextBuilder contextBuilder, IResponder responder, IKnowledgeRepository repository) : IKnowledgeAnswerer
+public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever, IKnowledgeContextBuilder contextBuilder, IResponder responder, IKnowledgeRepository repository, ILogger<IntelligenceKnowledgeAnswerer> logger) : IKnowledgeAnswerer
 {
     public async Task<KnowledgeAnswer> AskAsync(KnowledgeAskRequest request, CancellationToken cancellationToken)
     {
@@ -50,20 +51,27 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
             return;
         }
 
-        await repository.SaveAskTraceAsync(new KnowledgeAskTrace
+        try
         {
-            Id = Guid.NewGuid().ToString("n"),
-            CorpusId = request.CorpusId,
-            TenantId = request.TenantId,
-            Question = request.Question,
-            RetrievedChunkIds = retrievedChunkIds,
-            GeneratedAnswer = answer.Answer,
-            MissingInformation = answer.MissingInformation,
-            CitationsJson = JsonSerializer.Serialize(answer.Citations, JsonOptions),
-            TraceKind = request.TraceKind,
-            IsAnswered = answer.IsAnswered,
-            CreatedAt = DateTimeOffset.UtcNow
-        }, cancellationToken);
+            await repository.SaveAskTraceAsync(new KnowledgeAskTrace
+            {
+                Id = Guid.NewGuid().ToString("n"),
+                CorpusId = request.CorpusId,
+                TenantId = request.TenantId,
+                Question = request.Question,
+                RetrievedChunkIds = retrievedChunkIds,
+                GeneratedAnswer = answer.Answer,
+                MissingInformation = answer.MissingInformation,
+                CitationsJson = JsonSerializer.Serialize(answer.Citations, JsonOptions),
+                TraceKind = request.TraceKind,
+                IsAnswered = answer.IsAnswered,
+                CreatedAt = DateTimeOffset.UtcNow
+            }, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException || !cancellationToken.IsCancellationRequested)
+        {
+            logger.LogWarning(ex, "Knowledge ask trace persistence failed for corpus {CorpusId} and tenant {TenantId}.", request.CorpusId, request.TenantId);
+        }
     }
 
     private static string ExtractText(IReadOnlyList<ResponderOutput> outputs) => string.Concat(Flatten(outputs).Select(static output => output.Text));

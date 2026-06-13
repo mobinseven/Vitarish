@@ -118,6 +118,43 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
             .ToListAsync(cancellationToken);
     }
 
+    public async Task<IReadOnlyList<KnowledgeChunk>> GetChunksForCorporaAsync(IReadOnlyCollection<string> corpusIds, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(corpusIds);
+        if (corpusIds.Count == 0)
+        {
+            return [];
+        }
+
+        string[] distinctCorpusIds = [.. corpusIds
+            .Select(corpusId =>
+            {
+                ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
+                return corpusId;
+            })
+            .Distinct(StringComparer.Ordinal)];
+
+        return await dbContext.Chunks.AsNoTracking()
+            .Where(chunk => distinctCorpusIds.Contains(chunk.CorpusId))
+            .OrderBy(chunk => chunk.CorpusId)
+            .ThenBy(chunk => chunk.SourceId)
+            .ThenBy(chunk => chunk.DocumentId)
+            .ThenBy(chunk => chunk.Order)
+            .Select(chunk => new KnowledgeChunk
+            {
+                Id = chunk.Id,
+                CorpusId = chunk.CorpusId,
+                TenantId = chunk.TenantId,
+                SourceId = chunk.SourceId,
+                DocumentId = chunk.DocumentId,
+                Text = chunk.Text,
+                Order = chunk.Order,
+                Title = chunk.Title,
+                HeadingPath = chunk.HeadingPath
+            })
+            .ToListAsync(cancellationToken);
+    }
+
     public async Task<IReadOnlyList<KnowledgeQuestion>> GetQuestionsAsync(string corpusId, string tenantId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);

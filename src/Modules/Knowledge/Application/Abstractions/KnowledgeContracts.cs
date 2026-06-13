@@ -21,6 +21,7 @@ public interface IKnowledgeRepository
     Task<IReadOnlyList<KnowledgeCorpus>> ListCorporaAsync(string tenantId, CancellationToken cancellationToken);
     Task<IReadOnlyList<KnowledgeCorpus>> ListActiveCorporaAsync(CancellationToken cancellationToken);
     Task<IReadOnlyList<KnowledgeChunk>> GetChunksAsync(string corpusId, string tenantId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<KnowledgeChunk>> GetChunksForCorporaAsync(IReadOnlyCollection<string> corpusIds, CancellationToken cancellationToken);
     Task<IReadOnlyList<KnowledgeQuestion>> GetQuestionsAsync(string corpusId, string tenantId, CancellationToken cancellationToken);
     Task SaveImportAsync(KnowledgeImportResult result, CancellationToken cancellationToken);
     Task SaveAskTraceAsync(KnowledgeAskTrace trace, CancellationToken cancellationToken);
