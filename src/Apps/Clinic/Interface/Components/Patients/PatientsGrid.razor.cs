@@ -1,6 +1,5 @@
 using MediatR;
 using Vitarish.Clinic.Application.Queries.Patients;
-using Vitarish.Clinic.Domain.Enums;
 using Vitarish.Interfaces.Base.Models;
 using Vitarish.Sea.Domain.Enums;
 
@@ -74,39 +73,18 @@ public partial class PatientsGrid
     private SortMethod[] SortMethods => [
         new SortMethod(
             () => Localizer["Name"],
-            () => _ = SetPatientsSort(PatientSortBy.Name, descending: false)),
-        new SortMethod(
-            () => Localizer["NameDesc"],
-            () => _ = SetPatientsSort(PatientSortBy.Name, descending: true)),
-        new SortMethod(
-            () => Localizer["IdentificationCode"],
-            () => _ = SetPatientsSort(PatientSortBy.IdentificationCode, descending: false)),
-        new SortMethod(
-            () => Localizer["IdentificationCodeDesc"],
-            () => _ = SetPatientsSort(PatientSortBy.IdentificationCode, descending: true)),
+            d => _ = SetPatientsSort(PatientSortBy.Name, descending: d)),
         new SortMethod(
             () => Localizer["DateOf", Localizer["Birth"]],
-            () => _ = SetPatientsSort(PatientSortBy.DateOfBirth, descending: false)),
-        new SortMethod(
-            () => Localizer["DateOfDesc", Localizer["Birth"]],
-            () => _ = SetPatientsSort(PatientSortBy.DateOfBirth, descending: true)),
+            d => _ = SetPatientsSort(PatientSortBy.DateOfBirth, descending: d)),
         new SortMethod(
             () => Localizer["DateOf", Localizer["Surgery"]],
-            () => _ = SetPatientsSort(PatientSortBy.DateOfSurgery, descending: false)),
-        new SortMethod(
-            () => Localizer["DateOfDesc", Localizer["Surgery"]],
-            () => _ = SetPatientsSort(PatientSortBy.DateOfSurgery, descending: true)),
+            d => _ = SetPatientsSort(PatientSortBy.DateOfSurgery, descending: d)),
         new SortMethod(
             () => Localizer["CreatedAt"],
-            () => _ = SetPatientsSort(PatientSortBy.CreatedAt, descending: false)),
-        new SortMethod(
-            () => Localizer["CreatedAtDesc"],
-            () => _ = SetPatientsSort(PatientSortBy.CreatedAt, descending: true)),
+            d => _ = SetPatientsSort(PatientSortBy.CreatedAt, descending : d)),
         new SortMethod(
             () => Localizer["UpdatedAt"],
-            () => _ = SetPatientsSort(PatientSortBy.UpdatedAt, descending: false)),
-        new SortMethod(
-            () => Localizer["UpdatedAtDesc"],
-            () => _ = SetPatientsSort(PatientSortBy.UpdatedAt, descending: true)),];
+            d => _ = SetPatientsSort(PatientSortBy.UpdatedAt, descending : d))];
 
 }

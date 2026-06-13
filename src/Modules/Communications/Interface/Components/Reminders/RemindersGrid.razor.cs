@@ -15,17 +15,9 @@ public partial class RemindersGrid : RemindersBase
     private SortMethod[] SortMethods => [
         new SortMethod(
             () => Localizer["DateAscending"],
-            () =>
+            d =>
             {
-                Reminders = [.. Reminders.OrderBy(r => r.CreatedAt)];
-                StateHasChanged();
-            }),
-
-        new SortMethod(
-            () => Localizer["DateDescending"],
-            () =>
-            {
-                Reminders = [.. Reminders.OrderByDescending(r => r.CreatedAt)];
+                Reminders = Reminders is null ? [] : d ? [.. Reminders.OrderByDescending(r => r.CreatedAt)] : [.. Reminders.OrderBy(r => r.CreatedAt)];
                 StateHasChanged();
             })];
 

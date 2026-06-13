@@ -1,21 +1,51 @@
-@inherits CommonBase
+@inherits StackSelect<SortMethod>
+
 @if(Methods.Length > 1)
 {
-    <StackSelect Label="@Localizer["SortBy"]" T="SortMethod" Value="selectedValue" ValueChanged="v => OnChanged(v)">
-        @foreach(var method in Methods)
-        {
-            <StackSelectItem Value="method">@method.LabelAction()</StackSelectItem>
-        }
-    </StackSelect>
+    <div class="stack-item">
+        <MudStack Row Justify="Justify.Center" AlignItems="AlignItems.Start" StretchItems="StretchItems.Start">
+            <div>
+                <MudSelect T="SortMethod"
+                           HelperText="@Localizer["SortBy"]"
+                           OuterClass="stack-item"
+                           Variant="Variant.Filled"
+                           Value="selectedValue" ValueChanged="v => OnChanged(v)"
+                           AdornmentColor="@AdornmentColor"
+                           AdornmentIcon="@AdornmentIcon"
+                           Adornment="@Adornment"
+                           OnAdornmentClick="@OnAdornmentClick"
+                           Clearable="@Clearable"
+                           Underline="false"
+                           Required="@Required">
+                    @foreach(var method in Methods)
+                    {
+                        <StackSelectItem Value="method">@method.LabelAction()</StackSelectItem>
+                    }
+                </MudSelect>
+            </div>
+            <div>
+                <MudToggleIconButton @bind-Toggled:get="descending" @bind-Toggled:set="OnToggled" Icon="fa-solid fa-arrow-down-short-wide" ToggledIcon="fa-solid fa-arrow-up-short-wide" DropShadow="false" />
+            </div>
+        </MudStack>
+    </div>
 }
 
 @code {
-
-    private SortMethod? selectedValue => Value ?? Methods.FirstOrDefault();
+    [Inject] protected IStringLocalizer Localizer { get; set; } = default!;
+    private SortMethod? selectedValue => ValueState.Value ?? Methods.FirstOrDefault();
 
     [Parameter] public SortMethod[] Methods { get; set; } = [];
-    [Parameter] public SortMethod? Value { get; set; }
-    [Parameter] public EventCallback<SortMethod?> ValueChanged { get; set; }
+
+    private bool descending;
+
+    public StackSort()
+    {
+        using var registerScope = CreateRegisterScope();
+
+        ValueState = registerScope.RegisterParameter<SortMethod?>(nameof(Value))
+            .WithParameter(() => Value)
+            .WithEventCallback(() => ValueChanged);
+    }
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -24,13 +54,19 @@
             return;
         }
 
-        selectedValue?.SortAction();
+        selectedValue?.SortAction(descending);
     }
 
-    private void OnChanged(SortMethod method)
+    private void OnToggled(bool toggle)
     {
-        method.SortAction();
-        Value = method;
-        ValueChanged.InvokeAsync(Value);
+        descending = toggle;
+        selectedValue?.SortAction(descending);
+    }
+
+    private async Task OnChanged(SortMethod method)
+    {
+        await ValueState.SetValueAsync(method);
+        await ValueChanged.InvokeAsync(ValueState.Value);
+        method.SortAction(descending);
     }
 }

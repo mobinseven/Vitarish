@@ -5,8 +5,8 @@
            HelperText="@Label"
            OuterClass="stack-item"
            Variant="Variant.Filled"
-           Value="@Value"
-           ValueChanged="@ValueChanged"
+           @bind-Value:get="@ValueState.Value"
+           @bind-Value:set="@ValueState.SetValueAsync"
            AdornmentColor="@AdornmentColor"
            AdornmentIcon="@AdornmentIcon"
            Adornment="@Adornment"
@@ -16,3 +16,15 @@
            Required="@Required">
     @ChildContent
 </MudSelect>
+@code {
+    protected ParameterState<T?> ValueState;
+
+    public StackSelect()
+    {
+        using var registerScope = CreateRegisterScope();
+
+        ValueState = registerScope.RegisterParameter<T?>(nameof(Value))
+            .WithParameter(() => Value)
+            .WithEventCallback(() => ValueChanged);
+    }
+}
