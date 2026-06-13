@@ -85,6 +85,7 @@ public sealed class OpenAiResponder(IOptionsMonitor<AiOptions> aiOptions) : IRes
         {
             TextFormat = options.TextFormat switch
             {
+                DomainResponseTextFormat.JsonSchema when options.JsonSchema is not null => OpenAiResponseTextFormat.CreateJsonSchemaFormat(options.JsonSchema.Name, BinaryData.FromString(options.JsonSchema.Schema), options.JsonSchema.Description, options.JsonSchema.Strict),
                 DomainResponseTextFormat.JsonObject => OpenAiResponseTextFormat.CreateJsonObjectFormat(),
                 _ => OpenAiResponseTextFormat.CreateTextFormat()
             }

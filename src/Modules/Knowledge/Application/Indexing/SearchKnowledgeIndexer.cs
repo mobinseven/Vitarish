@@ -17,7 +17,7 @@ public sealed class SearchKnowledgeIndexer(IKnowledgeRepository repository, ISea
             Id = chunk.Id,
             Title = chunk.Title ?? chunk.DocumentId,
             Body = chunk.Text,
-            TenantId = chunk.CorpusId,
+            TenantId = chunk.TenantId ?? throw new InvalidOperationException($"Knowledge chunk '{chunk.Id}' is missing tenant scope."),
             Type = "knowledge-chunk",
             IndexName = SearchKnowledgeRetriever.IndexName,
             Metadata = new Dictionary<string, object?>

@@ -13,6 +13,7 @@ public sealed record KnowledgeSource
 {
     public required string Id { get; init; }
     public required string CorpusId { get; init; }
+    public string? TenantId { get; init; }
     public required string Name { get; init; }
     public required string SourceType { get; init; }
     public string? OriginalLocation { get; init; }
@@ -25,6 +26,7 @@ public sealed record KnowledgeDocument
 {
     public required string Id { get; init; }
     public required string CorpusId { get; init; }
+    public string? TenantId { get; init; }
     public required string SourceId { get; init; }
     public required string Title { get; init; }
     public required string Text { get; init; }
@@ -37,6 +39,7 @@ public sealed record KnowledgeChunk
 {
     public required string Id { get; init; }
     public required string CorpusId { get; init; }
+    public string? TenantId { get; init; }
     public required string SourceId { get; init; }
     public required string DocumentId { get; init; }
     public required string Text { get; init; }
