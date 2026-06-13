@@ -49,6 +49,8 @@ public sealed record KnowledgeAskRequest
     public required string Question { get; init; }
     public required string TenantId { get; init; }
     public int TopK { get; init; } = 8;
+    public bool SaveTrace { get; init; } = true;
+    public string? TraceKind { get; init; }
 }
 
 public sealed record KnowledgeAnswer
@@ -70,11 +72,12 @@ public sealed record KnowledgeCitation
 }
 
 public sealed record KnowledgeEvaluationRequest(string CorpusId, string TenantId, int TopK = 10);
-public sealed record KnowledgeEvaluationRun(string Id, string CorpusId, IReadOnlyList<KnowledgeEvaluationItem> Items, double RecallAt5, double RecallAt10, double AverageExpectedChunkRank);
+public sealed record KnowledgeEvaluationRun(string Id, string CorpusId, string TenantId, IReadOnlyList<KnowledgeEvaluationItem> Items, double RecallAt5, double RecallAt10, double AverageExpectedChunkRank);
 
 public sealed record KnowledgeEvaluationItem
 {
     public required string QuestionId { get; init; }
+    public bool HasExpectedContext { get; init; }
     public bool ExpectedContextFoundInTop5 { get; init; }
     public bool ExpectedContextFoundInTop10 { get; init; }
     public bool WasAnswered { get; init; }
@@ -86,9 +89,13 @@ public sealed record KnowledgeAskTrace
 {
     public required string Id { get; init; }
     public required string CorpusId { get; init; }
+    public required string TenantId { get; init; }
     public required string Question { get; init; }
     public required IReadOnlyList<string> RetrievedChunkIds { get; init; }
     public required string GeneratedAnswer { get; init; }
+    public string? MissingInformation { get; init; }
+    public required string CitationsJson { get; init; }
+    public string? TraceKind { get; init; }
     public bool IsAnswered { get; init; }
     public DateTimeOffset CreatedAt { get; init; }
 }

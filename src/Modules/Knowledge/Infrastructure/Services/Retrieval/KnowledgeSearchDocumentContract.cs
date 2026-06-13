@@ -27,16 +27,24 @@ public static class KnowledgeSearchDocumentContract
         ArgumentException.ThrowIfNullOrWhiteSpace(corpus.TenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(chunk.Id);
         ArgumentException.ThrowIfNullOrWhiteSpace(chunk.CorpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(chunk.TenantId);
 
         if (!string.Equals(chunk.CorpusId, corpus.Id, StringComparison.Ordinal))
         {
             throw new InvalidOperationException($"Knowledge chunk '{chunk.Id}' does not belong to corpus '{corpus.Id}'.");
         }
 
+        if (!string.Equals(chunk.TenantId, corpus.TenantId, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException($"Knowledge chunk '{chunk.Id}' tenant does not match corpus '{corpus.Id}' tenant.");
+        }
+
         return new SearchDocument
         {
             Id = chunk.Id,
-            Title = chunk.Title ?? chunk.HeadingPath ?? chunk.DocumentId ?? chunk.Id,
+            Title = string.IsNullOrWhiteSpace(chunk.HeadingPath)
+                ? chunk.Title ?? chunk.DocumentId ?? chunk.Id
+                : $"{chunk.Title ?? chunk.DocumentId ?? chunk.Id} — {chunk.HeadingPath}",
             Body = chunk.Text,
             TenantId = corpus.TenantId,
             Type = DocumentType,

@@ -9,19 +9,21 @@ public sealed class KnowledgeEvaluator(IKnowledgeRepository repository, IKnowled
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(request.CorpusId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
-        IReadOnlyList<KnowledgeQuestion> questions = await repository.GetQuestionsAsync(request.CorpusId, cancellationToken);
+        IReadOnlyList<KnowledgeQuestion> questions = await repository.GetQuestionsAsync(request.CorpusId, request.TenantId, cancellationToken);
         List<KnowledgeEvaluationItem> items = [];
         List<int> ranks = [];
 
         foreach (KnowledgeQuestion question in questions)
         {
             IReadOnlyList<KnowledgeHit> hits = await retriever.RetrieveAsync(new KnowledgeQuery { CorpusId = request.CorpusId, Question = question.Question, TenantId = request.TenantId, TopK = request.TopK }, cancellationToken);
-            int rank = FirstExpectedRank(question.ExpectedChunkIds, hits);
+            bool hasExpectedContext = question.ExpectedChunkIds.Count > 0;
+            int rank = hasExpectedContext ? FirstExpectedRank(question.ExpectedChunkIds, hits) : 0;
             if (rank > 0) ranks.Add(rank);
-            KnowledgeAnswer answer = await answerer.AnswerFromHitsAsync(new KnowledgeAskRequest { CorpusId = request.CorpusId, Question = question.Question, TenantId = request.TenantId, TopK = request.TopK }, hits, cancellationToken);
+            KnowledgeAnswer answer = await answerer.AnswerFromHitsAsync(new KnowledgeAskRequest { CorpusId = request.CorpusId, Question = question.Question, TenantId = request.TenantId, TopK = request.TopK, SaveTrace = false, TraceKind = "evaluation" }, hits, cancellationToken);
             items.Add(new KnowledgeEvaluationItem
             {
                 QuestionId = question.Id,
+                HasExpectedContext = hasExpectedContext,
                 ExpectedContextFoundInTop5 = rank is > 0 and <= 5,
                 ExpectedContextFoundInTop10 = rank is > 0 and <= 10,
                 WasAnswered = answer.IsAnswered,
@@ -30,7 +32,8 @@ public sealed class KnowledgeEvaluator(IKnowledgeRepository repository, IKnowled
             });
         }
 
-        return new KnowledgeEvaluationRun(Guid.NewGuid().ToString("n"), request.CorpusId, items, Ratio(items, static item => item.ExpectedContextFoundInTop5), Ratio(items, static item => item.ExpectedContextFoundInTop10), ranks.Count == 0 ? 0 : ranks.Average());
+        IReadOnlyList<KnowledgeEvaluationItem> retrievableItems = [.. items.Where(static item => item.HasExpectedContext)];
+        return new KnowledgeEvaluationRun(Guid.NewGuid().ToString("n"), request.CorpusId, request.TenantId, items, Ratio(retrievableItems, static item => item.ExpectedContextFoundInTop5), Ratio(retrievableItems, static item => item.ExpectedContextFoundInTop10), ranks.Count == 0 ? 0 : ranks.Average());
     }
 
     private static int FirstExpectedRank(IReadOnlyList<string> expectedChunkIds, IReadOnlyList<KnowledgeHit> hits)

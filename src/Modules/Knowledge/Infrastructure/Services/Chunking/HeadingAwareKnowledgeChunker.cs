@@ -27,7 +27,7 @@ public sealed class HeadingAwareKnowledgeChunker : IKnowledgeChunker
             if (isHeading && buffer.Length > 0)
             {
                 AddChunk(chunks, document.Title, headingPath, buffer.ToString(), order++);
-                KeepOverlap(buffer);
+                buffer.Clear();
             }
 
             if (isHeading)

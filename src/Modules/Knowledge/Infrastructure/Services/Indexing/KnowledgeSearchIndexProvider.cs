@@ -12,12 +12,12 @@ public sealed class KnowledgeSearchIndexProvider(IKnowledgeRepository repository
 
     public async Task<IReadOnlyList<SearchDocument>> GetDocumentsAsync(CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<KnowledgeCorpus> corpora = await repository.ListCorporaAsync(cancellationToken);
+        IReadOnlyList<KnowledgeCorpus> corpora = await repository.ListActiveCorporaAsync(cancellationToken);
         List<SearchDocument> documents = [];
 
-        foreach (KnowledgeCorpus corpus in corpora.Where(static corpus => corpus.IsActive))
+        foreach (KnowledgeCorpus corpus in corpora)
         {
-            IReadOnlyList<KnowledgeChunk> chunks = await repository.GetChunksAsync(corpus.Id, cancellationToken);
+            IReadOnlyList<KnowledgeChunk> chunks = await repository.GetChunksAsync(corpus.Id, corpus.TenantId, cancellationToken);
             documents.AddRange(chunks.Select(chunk => KnowledgeSearchDocumentContract.ToSearchDocument(corpus, chunk)));
         }
 
