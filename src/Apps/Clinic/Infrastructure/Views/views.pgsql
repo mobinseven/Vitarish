@@ -1,12 +1,77 @@
 CREATE SCHEMA IF NOT EXISTS "Clinic";
 
+CREATE OR REPLACE FUNCTION "Clinic"."try_int"(value text)
+RETURNS integer
+LANGUAGE plpgsql
+IMMUTABLE
+PARALLEL SAFE
+AS $$
+DECLARE
+  v text := NULLIF(btrim(value), '');
+BEGIN
+  IF v IS NULL THEN
+    RETURN NULL;
+  END IF;
+
+  RETURN v::integer;
+
+EXCEPTION
+  WHEN invalid_text_representation OR numeric_value_out_of_range THEN
+    RETURN NULL;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION "Clinic"."try_uuid"(value text)
+RETURNS uuid
+LANGUAGE plpgsql
+IMMUTABLE
+PARALLEL SAFE
+AS $$
+DECLARE
+  v text := NULLIF(btrim(value), '');
+BEGIN
+  IF v IS NULL THEN
+    RETURN NULL;
+  END IF;
+
+  RETURN v::uuid;
+
+EXCEPTION
+  WHEN invalid_text_representation THEN
+    RETURN NULL;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION "Clinic"."try_timestamptz"(value text)
+RETURNS timestamptz
+LANGUAGE plpgsql
+STABLE
+PARALLEL SAFE
+AS $$
+DECLARE
+  v text := NULLIF(btrim(value), '');
+BEGIN
+  IF v IS NULL THEN
+    RETURN NULL;
+  END IF;
+
+  RETURN v::timestamptz;
+
+EXCEPTION
+  WHEN invalid_datetime_format
+    OR datetime_field_overflow
+    OR invalid_text_representation THEN
+    RETURN NULL;
+END;
+$$;
+
 DROP MATERIALIZED VIEW IF EXISTS "Clinic"."mv_Patients" CASCADE;
 
 CREATE MATERIALIZED VIEW "Clinic"."mv_Patients" AS
 WITH src AS (
   SELECT
     p.*,
-    COALESCE(p."Metadata"::jsonb, '{{}}'::jsonb) AS md
+    COALESCE(p."Metadata"::jsonb, jsonb_build_object()) AS md
   FROM "Sea"."Projects" p
   WHERE p."DeletedAt" IS NULL
 )
@@ -16,7 +81,7 @@ SELECT
   p."Name",
   p."Description",
 
-  NULLIF(p.md ->> 'AvatarFileId', '')::uuid AS "AvatarFileId",
+  "Clinic"."try_uuid"(p.md ->> 'AvatarFileId') AS "AvatarFileId",
 
   p."IdentificationCode",
   p."Template",
@@ -40,21 +105,21 @@ SELECT
   p.md ->> 'FirstName' AS "FirstName",
   p.md ->> 'LastName' AS "LastName",
 
-  NULLIF(p.md ->> 'DateOfBirth', '')::timestamptz AS "DateOfBirth",
-  NULLIF(p.md ->> 'DateOfSurgery', '')::timestamptz AS "DateOfSurgery",
+  "Clinic"."try_timestamptz"(p.md ->> 'DateOfBirth') AS "DateOfBirth",
+  "Clinic"."try_timestamptz"(p.md ->> 'DateOfSurgery') AS "DateOfSurgery",
 
-  COALESCE(NULLIF(p.md ->> 'Gender', '')::integer, 0) AS "Gender",
+  COALESCE("Clinic"."try_int"(p.md ->> 'Gender'), 0) AS "Gender",
 
   p.md ->> 'PlaceOfBirth' AS "PlaceOfBirth",
   p.md ->> 'Address' AS "Address",
 
-  COALESCE(NULLIF(p.md ->> 'Education', '')::integer, 0) AS "Education",
+  COALESCE("Clinic"."try_int"(p.md ->> 'Education'), 0) AS "Education",
 
   p.md ->> 'Occupation' AS "Occupation",
   p.md ->> 'FatherName' AS "FatherName",
 
-  COALESCE(NULLIF(p.md ->> 'Height', '')::integer, 0) AS "Height",
-  COALESCE(NULLIF(p.md ->> 'Weight', '')::integer, 0) AS "Weight",
+  COALESCE("Clinic"."try_int"(p.md ->> 'Height'), 0) AS "Height",
+  COALESCE("Clinic"."try_int"(p.md ->> 'Weight'), 0) AS "Weight",
 
   p.md ->> 'Email' AS "Email",
   p.md ->> 'Phone' AS "Phone",
