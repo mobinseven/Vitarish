@@ -1,6 +1,6 @@
 using Vitarish.Search.Domain.Models;
 
-namespace Vitarish.Search.Domain.Abstractions;
+namespace Vitarish.Search.Application.Abstractions;
 
 /// <summary>
 /// Shared search capability exposed to all modules and apps.

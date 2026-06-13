@@ -1,5 +1,5 @@
 using Vitarish.Requests.Application.Abstractions;
-using Vitarish.Search.Domain.Abstractions;
+using Vitarish.Search.Application.Abstractions;
 using Vitarish.Search.Domain.Models;
 
 namespace Vitarish.Sea.Infrastructure.SearchProviders;

@@ -1,6 +1,6 @@
 using Vitarish.Search.Domain.Models;
 
-namespace Vitarish.Search.Domain.Abstractions;
+namespace Vitarish.Search.Application.Abstractions;
 
 /// <summary>
 /// Extension point that any module or block implements to expose its data for indexing.

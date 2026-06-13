@@ -5,7 +5,7 @@ using Elastic.Clients.Elasticsearch.QueryDsl;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Vitarish.Requests.Application.Abstractions;
-using Vitarish.Search.Domain.Abstractions;
+using Vitarish.Search.Application.Abstractions;
 using Vitarish.Search.Domain.Models;
 using Vitarish.Search.Domain.Options;
 

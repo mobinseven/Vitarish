@@ -5,7 +5,6 @@ using Vitarish.Knowledge.Application.Abstractions;
 using Vitarish.Knowledge.Infrastructure.Data;
 using Vitarish.Knowledge.Infrastructure.Repositories;
 using Vitarish.Modules.Base;
-using Vitarish.Search.Domain.Abstractions;
 using Vitarish.Knowledge.Infrastructure.Services.Answering;
 using Vitarish.Knowledge.Infrastructure.Services.Evaluation;
 using Vitarish.Knowledge.Infrastructure.Services.Retrieval;
@@ -13,6 +12,7 @@ using Vitarish.Knowledge.Infrastructure.Services;
 using Vitarish.Knowledge.Infrastructure.Services.Indexing;
 using Vitarish.Knowledge.Infrastructure.Services.Importing;
 using Vitarish.Knowledge.Infrastructure.Services.Chunking;
+using Vitarish.Search.Application.Abstractions;
 
 namespace Vitarish.Knowledge.Interface;
 

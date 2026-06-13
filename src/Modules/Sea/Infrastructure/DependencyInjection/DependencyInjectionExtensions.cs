@@ -3,7 +3,7 @@ using Vitarish.Feed.Domain.Abstractions;
 using Vitarish.Sea.Infrastructure.FeedSources;
 using Vitarish.Sea.Infrastructure.SearchProviders;
 using Vitarish.Sea.Infrastructure.Services;
-using Vitarish.Search.Domain.Abstractions;
+using Vitarish.Search.Application.Abstractions;
 
 namespace Vitarish.Sea.Infrastructure.DependencyInjection;
 

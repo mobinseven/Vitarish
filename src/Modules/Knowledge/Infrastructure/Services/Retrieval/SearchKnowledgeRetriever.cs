@@ -1,5 +1,5 @@
 using Vitarish.Knowledge.Application.Abstractions;
-using Vitarish.Search.Domain.Abstractions;
+using Vitarish.Search.Application.Abstractions;
 using Vitarish.Search.Domain.Models;
 
 namespace Vitarish.Knowledge.Infrastructure.Services.Retrieval;

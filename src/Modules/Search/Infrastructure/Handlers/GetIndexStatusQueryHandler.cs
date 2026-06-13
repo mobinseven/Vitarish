@@ -1,6 +1,6 @@
 using MediatR;
+using Vitarish.Search.Application.Abstractions;
 using Vitarish.Search.Application.Queries;
-using Vitarish.Search.Domain.Abstractions;
 using Vitarish.Search.Domain.Models;
 
 namespace Vitarish.Search.Infrastructure.Handlers;

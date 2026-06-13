@@ -1,5 +1,5 @@
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
-using Vitarish.Search.Domain.Abstractions;
+using Vitarish.Search.Application.Abstractions;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 

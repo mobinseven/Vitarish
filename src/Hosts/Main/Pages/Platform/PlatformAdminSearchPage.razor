@@ -22,7 +22,7 @@
 <SearchWidget IndexName="@IndexName" Type="@SearchType" Options="@_options" OnNavigate="NavigateFromSearch" />
 
 @code {
-    [Inject] protected IEnumerable<Search.Domain.Abstractions.ISearchIndexProvider> IndexProviders { get; set; } = [];
+    [Inject] protected IEnumerable<Search.Application.Abstractions.ISearchIndexProvider> IndexProviders { get; set; } = [];
 
     private string? _indexName;
     private string? _searchType;

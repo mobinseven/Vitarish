@@ -1,6 +1,6 @@
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Microsoft.Extensions.Logging;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Domain.Models;
 using Vitarish.Knowledge.Application.Abstractions;
@@ -83,7 +83,10 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
             yield return output;
             if (output.Content is not null)
             {
-                foreach (ResponderOutput child in Flatten(output.Content)) yield return child;
+                foreach (ResponderOutput child in Flatten(output.Content))
+                {
+                    yield return child;
+                }
             }
         }
     }
@@ -121,19 +124,16 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
             citations.Add(new KnowledgeCitation { ChunkId = hit.ChunkId, SourceId = hit.SourceId, DocumentId = hit.DocumentId, Title = hit.Title, Quote = citation.Quote });
         }
 
-        if (generated.IsAnswered && citations.Count == 0)
-        {
-            return RefusedAnswer(hits, "The generated answer did not include citations.");
-        }
-
-        return new KnowledgeAnswer
-        {
-            Answer = generated.Answer ?? string.Empty,
-            IsAnswered = generated.IsAnswered,
-            MissingInformation = generated.MissingInformation,
-            RetrievedContext = hits,
-            Citations = citations
-        };
+        return generated.IsAnswered && citations.Count == 0
+            ? RefusedAnswer(hits, "The generated answer did not include citations.")
+            : new KnowledgeAnswer
+            {
+                Answer = generated.Answer ?? string.Empty,
+                IsAnswered = generated.IsAnswered,
+                MissingInformation = generated.MissingInformation,
+                RetrievedContext = hits,
+                Citations = citations
+            };
     }
 
     private static KnowledgeAnswer RefusedAnswer(IReadOnlyList<KnowledgeHit> hits, string reason) => new()

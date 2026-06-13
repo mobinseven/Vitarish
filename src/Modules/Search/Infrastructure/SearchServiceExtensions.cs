@@ -2,7 +2,7 @@ using Elastic.Clients.Elasticsearch;
 using Elastic.Transport;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
-using Vitarish.Search.Domain.Abstractions;
+using Vitarish.Search.Application.Abstractions;
 using Vitarish.Search.Domain.Options;
 using Vitarish.Search.Infrastructure.Services;
 

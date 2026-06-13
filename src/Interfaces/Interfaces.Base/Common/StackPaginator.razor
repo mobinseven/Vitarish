@@ -1,61 +1,269 @@
 @inherits CommonBase
 @implements IDisposable
 
-@if(State is not null)
+@if(ShouldRenderControls)
 {
-    @if(State.TotalPages > 5)
-    {
-        <MudStack Row="true" AlignItems="AlignItems.Center" Justify="Justify.Center" Class="stack-item">
-            <MudSelect T="int" Value="PageSize" ValueChanged="v => SetPageSize(v)" Underline="false" Variant="Variant.Filled" Disabled="IsLoading">
-                <MudSelectItem T="int" Value="5">5</MudSelectItem>
-                <MudSelectItem T="int" Value="10">10</MudSelectItem>
-                <MudSelectItem T="int" Value="50">50</MudSelectItem>
-                <MudSelectItem T="int" Value="100">100</MudSelectItem>
-                <MudSelectItem T="int" Value="int.MaxValue">@Localizer["Infinite"]</MudSelectItem>
+    <MudStack Row="true"
+              AlignItems="AlignItems.Center"
+              Justify="Justify.Center"
+              Spacing="1"
+              Class="stack-item stack-pagination"
+              Style="flex-wrap: wrap;">
+
+        @if(ShowItemSummary)
+        {
+            <MudText Typo="Typo.caption" Class="stack-pagination__summary">
+                @($"{FirstVisibleItem}-{LastVisibleItem} / {TotalItems}")
+            </MudText>
+        }
+
+        @if(ShowPageSizeSelector)
+        {
+            <MudSelect T="int"
+                       Value="_pageSize"
+                       ValueChanged="SetPageSize"
+                       Underline="false"
+                       Variant="Variant.Filled"
+                       Dense="true"
+                       Disabled="ControlsDisabled">
+
+                @foreach(int size in VisiblePageSizeOptions)
+                {
+                    <MudSelectItem T="int" Value="@size">@size</MudSelectItem>
+                }
+
+                <MudSelectItem T="int" Value="int.MaxValue">
+                    @Localizer["Infinite"]
+                </MudSelectItem>
             </MudSelect>
-            @if(State.TotalPages > 1)
-            {
-                <MudPagination Class="glass"
-                               Disabled="IsLoading"
-                               ShowFirstButton="true"
-                               ShowLastButton="true"
-                               Count="@State.TotalPages"
-                               Selected="@State.Page"
-                               BoundaryCount="1"
-                               MiddleCount="1"
-                               SelectedChanged="OnPageChanged" />
-            }
-        </MudStack>
-    }
+        }
+
+        @if(ShowPaginator)
+        {
+            <MudPagination Class="glass"
+                           Disabled="ControlsDisabled"
+                           ShowFirstButton="@ShowEdgeButtons"
+                           ShowLastButton="@ShowEdgeButtons"
+                           Count="@TotalPages"
+                           Selected="@CurrentPage"
+                           BoundaryCount="@BoundaryCount"
+                           MiddleCount="@MiddleCount"
+                           SelectedChanged="OnPageChanged" />
+        }
+
+        @if(IsLoading)
+        {
+            <MudProgressCircular Size="Size.Small" Indeterminate="true" />
+        }
+
+    </MudStack>
 }
 
 @code {
-    private int PageSize;
+    private const int DefaultPageSize = 10;
+    private const int MinimumUsefulPageSize = 5;
+
+    private static readonly int[] PageSizeOptions = new[]
+    {
+        5,
+        10,
+        50,
+        100
+    };
+
+    private int _pageSize = DefaultPageSize;
+    private StackPaginationState? _activeState;
 
     [Parameter] public StackPaginationState? State { get; set; }
     [Parameter] public EventCallback<StackPaginationState?> StateChanged { get; set; }
     [Parameter] public bool IsLoading { get; set; }
-    private StackPaginationState? _activeState;
+
+    private bool HasState => State is not null;
+
+    private int TotalItems => Math.Max(State?.TotalItems ?? 0, 0);
+
+    private int TotalPages => Math.Max(State?.TotalPages ?? 0, 0);
+
+    private int EffectivePageSize =>
+        _pageSize <= 0
+            ? DefaultPageSize
+            : _pageSize;
+
+    private int CurrentPage
+    {
+        get
+        {
+            if(TotalPages <= 0)
+                return 1;
+
+            return Math.Clamp(State?.Page ?? 1, 1, TotalPages);
+        }
+    }
+
+    private bool HasItems => TotalItems > 0;
+
+    private bool ControlsDisabled => IsLoading || State is null;
+
+    private bool ShowPageSizeSelector =>
+        HasItems &&
+        TotalItems > MinimumUsefulPageSize;
+
+    private bool ShowPaginator =>
+        HasItems &&
+        TotalPages > 1;
+
+    private bool ShowItemSummary =>
+        HasItems &&
+        (ShowPageSizeSelector || ShowPaginator);
+
+    private bool ShouldRenderControls =>
+        HasState &&
+        (IsLoading || ShowPageSizeSelector || ShowPaginator);
+
+    private bool ShowEdgeButtons =>
+        TotalPages > 3;
+
+    private int BoundaryCount =>
+        TotalPages > 7 ? 1 : 0;
+
+    private int MiddleCount =>
+        TotalPages switch
+        {
+            <= 3 => TotalPages,
+            <= 7 => 3,
+            _ => 1
+        };
+
+    private int FirstVisibleItem
+    {
+        get
+        {
+            if(!HasItems)
+                return 0;
+
+            if(EffectivePageSize == int.MaxValue)
+                return 1;
+
+            long first = ((long)CurrentPage - 1) * EffectivePageSize + 1;
+
+            return (int)Math.Min(first, TotalItems);
+        }
+    }
+
+    private int LastVisibleItem
+    {
+        get
+        {
+            if(!HasItems)
+                return 0;
+
+            if(EffectivePageSize == int.MaxValue)
+                return TotalItems;
+
+            long last = (long)CurrentPage * EffectivePageSize;
+
+            return (int)Math.Min(last, TotalItems);
+        }
+    }
+
+    private IReadOnlyCollection<int> VisiblePageSizeOptions
+    {
+        get
+        {
+            List<int> options = PageSizeOptions
+                .Where(size => size < TotalItems || size == _pageSize)
+                .ToList();
+
+            if(_pageSize > 0 && _pageSize != int.MaxValue && !options.Contains(_pageSize))
+                options.Add(_pageSize);
+
+            return options
+                .Distinct()
+                .OrderBy(size => size)
+                .ToArray();
+        }
+    }
 
     protected override void OnInitialized()
     {
         SubscribeToState();
-        PageSize = State?.PageSize ?? PageSize;
+        SyncFromState();
     }
 
     protected override void OnParametersSet()
     {
         SubscribeToState();
+        SyncFromState();
+        EnsureCurrentPageIsValid();
+    }
 
-        if(State is not null)
-            PageSize = State.PageSize;
+    private void SyncFromState()
+    {
+        if(State is null)
+            return;
+
+        _pageSize = NormalizePageSize(State.PageSize);
+    }
+
+    private void EnsureCurrentPageIsValid()
+    {
+        if(State is null || TotalPages <= 0)
+            return;
+
+        int validPage = Math.Clamp(State.Page, 1, TotalPages);
+
+        if(validPage == State.Page)
+            return;
+
+        State.SetPage(validPage);
+        _ = InvokeAsync(() => StateChanged.InvokeAsync(State));
     }
 
     private async Task SetPageSize(int size)
     {
-        PageSize = size;
-        State?.Configure(State?.TotalItems ?? 0, PageSize);
+        if(State is null)
+            return;
+
+        int normalizedSize = NormalizePageSize(size);
+
+        if(_pageSize == normalizedSize && State.PageSize == normalizedSize)
+            return;
+
+        _pageSize = normalizedSize;
+
+        State.Configure(State.TotalItems, _pageSize);
+
+        EnsureCurrentPageIsValid();
+
         await StateChanged.InvokeAsync(State);
+    }
+
+    private async Task OnPageChanged(int selected)
+    {
+        if(State is null)
+            return;
+
+        int validPage = TotalPages <= 0
+            ? 1
+            : Math.Clamp(selected, 1, TotalPages);
+
+        if(validPage == State.Page)
+            return;
+
+        State.SetPage(validPage);
+
+        await StateChanged.InvokeAsync(State);
+    }
+
+    private static int NormalizePageSize(int size)
+    {
+        if(size == int.MaxValue)
+            return int.MaxValue;
+
+        if(size <= 0)
+            return DefaultPageSize;
+
+        return size;
     }
 
     private void SubscribeToState()
@@ -72,13 +280,10 @@
             _activeState.StateChanged += OnPaginationStateChanged;
     }
 
-    private async Task OnPageChanged(int selected)
+    private void OnPaginationStateChanged()
     {
-        State?.SetPage(selected);
-        await StateChanged.InvokeAsync(State);
+        _ = InvokeAsync(StateHasChanged);
     }
-
-    private void OnPaginationStateChanged() => _ = InvokeAsync(StateHasChanged);
 
     public void Dispose()
     {
