@@ -65,7 +65,7 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
         {
             throw new InvalidOperationException("Knowledge answer generation returned empty JSON.");
         }
-        Dictionary<string, KnowledgeHit> byChunk = new(StringComparer.Ordinal);
+        Dictionary<string, KnowledgeHit> byChunk = new(StringComparer.OrdinalIgnoreCase);
         foreach (KnowledgeHit hit in hits)
         {
             byChunk[hit.ChunkId] = hit;
@@ -106,6 +106,9 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
         Citations = []
     };
 
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+    private static readonly object NullableStringSchema = new { anyOf = new object[] { new { type = "string" }, new { type = "null" } } };
+
     private static readonly ResponderJsonSchema KnowledgeAnswerSchema = new()
     {
         Name = "knowledge_answer",
@@ -119,7 +122,7 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
             {
                 answer = new { type = "string" },
                 isAnswered = new { type = "boolean" },
-                missingInformation = new { type = new[] { "string", "null" } },
+                missingInformation = NullableStringSchema,
                 citations = new
                 {
                     type = "array",
@@ -130,7 +133,7 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
                         properties = new
                         {
                             chunkId = new { type = "string" },
-                            quote = new { type = new[] { "string", "null" } }
+                            quote = NullableStringSchema
                         },
                         required = new[] { "chunkId", "quote" }
                     }
@@ -140,7 +143,6 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
         }, JsonOptions)
     };
 
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
     private sealed record GeneratedKnowledgeAnswer(string? Answer, bool IsAnswered, IReadOnlyList<GeneratedCitation>? Citations, string? MissingInformation);
     private sealed record GeneratedCitation([property: JsonPropertyName("chunkId")] string? ChunkId, string? Quote);
 }

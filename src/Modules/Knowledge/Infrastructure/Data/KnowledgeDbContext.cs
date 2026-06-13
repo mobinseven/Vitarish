@@ -25,6 +25,8 @@ public sealed class KnowledgeDbContext(DbContextOptions<KnowledgeDbContext> opti
             entity.Property(source => source.Version).HasMaxLength(128);
             entity.Property(source => source.Checksum).HasMaxLength(256);
             entity.HasIndex(source => source.CorpusId);
+            entity.HasIndex(source => new { source.CorpusId, source.SourceType, source.Version }).IsUnique();
+            entity.HasIndex(source => new { source.CorpusId, source.Checksum }).IsUnique();
         });
 
         modelBuilder.Entity<KnowledgeDocumentEntity>(entity =>

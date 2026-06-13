@@ -117,6 +117,11 @@ public sealed class EfKnowledgeRepository(KnowledgeDbContext dbContext) : IKnowl
 
     private static IReadOnlyList<string> DeserializeStringList(string json)
     {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return [];
+        }
+
         try
         {
             return JsonSerializer.Deserialize<IReadOnlyList<string>>(json, JsonOptions) ?? [];
