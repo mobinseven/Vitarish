@@ -137,6 +137,9 @@
     <Project Path="src/Modules/Medical/Infrastructure/Medical.Infrastructure.csproj" />
     <Project Path="src/Modules/Medical/Interface/Medical.Interface.csproj" />
   </Folder>
+  <Folder Name="/src/Modules/Knowledge/Application/" />
+  <Folder Name="/src/Modules/Knowledge/Domain/" />
+  <Folder Name="/src/Modules/Knowledge/Infrastructure/" />
   <Folder Name="/src/Modules/Links/">
     <Project Path="src/Modules/Links/Application/Links.Application.csproj" />
     <Project Path="src/Modules/Links/Domain/Links.Domain.csproj" />
@@ -190,6 +193,7 @@
     <Project Path="tests/Modules/Feed.Tests/Feed.Tests.csproj" />
     <Project Path="tests/Modules/Files.Tests/Files.Tests.csproj" />
     <Project Path="tests/Modules/Intelligence.Tests/Intelligence.Tests.csproj" />
+    <Project Path="tests/Modules/Knowledge.Tests/Knowledge.Tests.csproj" />
     <Project Path="tests/Modules/Parties.Tests/Parties.Tests.csproj" />
     <Project Path="tests/Modules/Requests.Tests/Requests.Tests.csproj" />
     <Project Path="tests/Modules/Users.Tests/Users.Tests.csproj" />

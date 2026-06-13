@@ -5,7 +5,7 @@ namespace Vitarish.Knowledge.Infrastructure.Services.Importing;
 
 public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeRepository repository) : IKnowledgeImporter
 {
-    private static readonly HashSet<string> TextFormats = new(StringComparer.OrdinalIgnoreCase) { "plain-text", "markdown" };
+    private readonly KnowledgeImportContentReader contentReader = new();
 
     public async Task<KnowledgeImportResult> ImportAsync(KnowledgeImportRequest request, CancellationToken cancellationToken)
     {
@@ -16,46 +16,72 @@ public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeRepos
         if (corpus is null) throw new InvalidOperationException($"Knowledge corpus '{request.CorpusId}' does not exist.");
         if (!corpus.IsActive) throw new InvalidOperationException($"Knowledge corpus '{request.CorpusId}' is inactive.");
         if (!string.Equals(corpus.TenantId, request.TenantId, StringComparison.Ordinal)) throw new InvalidOperationException($"Knowledge corpus '{request.CorpusId}' is not available for tenant '{request.TenantId}'.");
-        if (!TextFormats.Contains(request.Format)) throw new NotSupportedException($"Knowledge import format '{request.Format}' is not supported by the MVP importer.");
 
-        using StreamReader reader = new(request.Content, leaveOpen: true);
-        string text = await reader.ReadToEndAsync(cancellationToken);
-        ArgumentException.ThrowIfNullOrWhiteSpace(text);
+        string sourceName = request.SourceName ?? request.Format;
+        KnowledgeImportContent content = await contentReader.ReadAsync(request.Content, request.Format, sourceName, cancellationToken);
 
         string sourceId = Guid.NewGuid().ToString("n");
-        string documentId = Guid.NewGuid().ToString("n");
         KnowledgeSource source = new()
         {
             Id = sourceId,
             CorpusId = request.CorpusId,
             TenantId = request.TenantId,
-            Name = request.SourceName ?? request.Format,
+            Name = sourceName,
             SourceType = request.Format,
             ImportedAt = DateTimeOffset.UtcNow
         };
-        KnowledgeDocument document = new()
+
+        List<KnowledgeDocument> documents = [];
+        List<KnowledgeChunk> chunks = [];
+        foreach (KnowledgeDocumentDraft draft in content.Documents)
         {
-            Id = documentId,
-            CorpusId = request.CorpusId,
-            TenantId = request.TenantId,
-            SourceId = sourceId,
-            Title = source.Name,
-            Text = text
-        };
-        KnowledgeChunk[] chunks = [.. chunker.Chunk(document).Select(draft => new KnowledgeChunk
+            string documentId = Guid.NewGuid().ToString("n");
+            KnowledgeDocument document = new()
+            {
+                Id = documentId,
+                CorpusId = request.CorpusId,
+                TenantId = request.TenantId,
+                SourceId = sourceId,
+                Title = draft.Title,
+                Text = draft.Text,
+                Product = draft.Product,
+                Version = draft.Version,
+                Language = draft.Language
+            };
+            documents.Add(document);
+            chunks.AddRange(chunker.Chunk(document).Select(chunkDraft => new KnowledgeChunk
+            {
+                Id = Guid.NewGuid().ToString("n"),
+                CorpusId = request.CorpusId,
+                TenantId = request.TenantId,
+                SourceId = sourceId,
+                DocumentId = documentId,
+                Text = chunkDraft.Text,
+                Order = chunkDraft.Order,
+                Title = chunkDraft.Title,
+                HeadingPath = chunkDraft.HeadingPath
+            }));
+        }
+
+        KnowledgeQuestion[] questions = [.. content.Questions.Select(question => new KnowledgeQuestion
         {
             Id = Guid.NewGuid().ToString("n"),
             CorpusId = request.CorpusId,
-            TenantId = request.TenantId,
-            SourceId = sourceId,
-            DocumentId = documentId,
-            Text = draft.Text,
-            Order = draft.Order,
-            Title = draft.Title,
-            HeadingPath = draft.HeadingPath
+            Question = question.Question,
+            ExpectedAnswer = question.ExpectedAnswer,
+            ExpectedChunkIds = FindExpectedChunkIds(question.ExpectedContextTexts, chunks)
         })];
-        KnowledgeImportResult result = new() { CorpusId = request.CorpusId, Sources = [source], Documents = [document], Chunks = chunks };
+
+        KnowledgeImportResult result = new() { CorpusId = request.CorpusId, Sources = [source], Documents = documents, Chunks = chunks, Questions = questions };
         await repository.SaveImportAsync(result, cancellationToken);
         return result;
     }
+
+    private static IReadOnlyList<string> FindExpectedChunkIds(IReadOnlyList<string> expectedContextTexts, IReadOnlyList<KnowledgeChunk> chunks)
+    {
+        if (expectedContextTexts.Count == 0) return [];
+        return [.. chunks.Where(chunk => expectedContextTexts.Any(expectedContext => ContainsNormalized(chunk.Text, expectedContext) || ContainsNormalized(expectedContext, chunk.Text))).Select(chunk => chunk.Id).Distinct(StringComparer.Ordinal)];
+    }
+
+    private static bool ContainsNormalized(string haystack, string needle) => haystack.Contains(needle.Trim(), StringComparison.OrdinalIgnoreCase);
 }
