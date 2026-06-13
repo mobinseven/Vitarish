@@ -104,7 +104,7 @@ internal sealed class SearchService : ISearchService
 
         IReadOnlyList<SearchDocument> items = [.. response.Hits
             .Where(h => h.Source is not null)
-            .Select(h => h.Source! with { IndexName = ResolveLogicalIndexName(h.Index?.ToString(), fullToLogicalIndexNames) })];
+            .Select(h => h.Source! with { IndexName = ResolveLogicalIndexName(h.Index?.ToString(), fullToLogicalIndexNames), Score = h.Score })];
 
         return new SearchResult
         {

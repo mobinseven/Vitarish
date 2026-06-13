@@ -10,7 +10,12 @@ public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeRepos
     public async Task<KnowledgeImportResult> ImportAsync(KnowledgeImportRequest request, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(request.CorpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Format);
+        KnowledgeCorpus? corpus = await repository.GetCorpusAsync(request.CorpusId, cancellationToken);
+        if (corpus is null) throw new InvalidOperationException($"Knowledge corpus '{request.CorpusId}' does not exist.");
+        if (!corpus.IsActive) throw new InvalidOperationException($"Knowledge corpus '{request.CorpusId}' is inactive.");
+        if (!string.Equals(corpus.TenantId, request.TenantId, StringComparison.Ordinal)) throw new InvalidOperationException($"Knowledge corpus '{request.CorpusId}' is not available for tenant '{request.TenantId}'.");
         if (!TextFormats.Contains(request.Format)) throw new NotSupportedException($"Knowledge import format '{request.Format}' is not supported by the MVP importer.");
 
         using StreamReader reader = new(request.Content, leaveOpen: true);

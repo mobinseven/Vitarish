@@ -13,8 +13,18 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(request.CorpusId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Question);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
 
         IReadOnlyList<KnowledgeHit> hits = await retriever.RetrieveAsync(new KnowledgeQuery { CorpusId = request.CorpusId, Question = request.Question, TenantId = request.TenantId, TopK = request.TopK }, cancellationToken);
+        return await AnswerFromHitsAsync(request, hits, cancellationToken);
+    }
+
+    public async Task<KnowledgeAnswer> AnswerFromHitsAsync(KnowledgeAskRequest request, IReadOnlyList<KnowledgeHit> hits, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.CorpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.Question);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
+        ArgumentNullException.ThrowIfNull(hits);
         KnowledgeContext context = contextBuilder.Build(request.Question, hits);
         string prompt = $"Question:\n{request.Question}\n\nContext:\n{context.Text}";
         IReadOnlyList<ResponderOutput> outputs = await responder.GenerateAsync([ResponderInput.TextInput(prompt)], new ResponderOptions { Instructions = KnowledgeGroundingPolicy.Instructions, TextFormat = ResponseTextFormat.JsonSchema, JsonSchema = KnowledgeAnswerSchema }, cancellationToken);

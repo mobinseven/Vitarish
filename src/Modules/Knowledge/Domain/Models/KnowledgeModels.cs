@@ -4,7 +4,7 @@ public sealed record KnowledgeCorpus
 {
     public required string Id { get; init; }
     public required string Name { get; init; }
-    public string? TenantId { get; init; }
+    public required string TenantId { get; init; }
     public string? Description { get; init; }
     public bool IsActive { get; init; }
 }

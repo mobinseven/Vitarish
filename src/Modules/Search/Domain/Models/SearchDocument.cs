@@ -42,6 +42,11 @@ public record SearchDocument
     public string? IndexName { get; init; }
 
     /// <summary>
+    /// Provider relevance score assigned by the search backend.
+    /// </summary>
+    public double? Score { get; init; }
+
+    /// <summary>
     /// Arbitrary extra fields supplied by the provider.
     /// </summary>
     public IReadOnlyDictionary<string, object?> Metadata { get; init; } = new Dictionary<string, object?>();

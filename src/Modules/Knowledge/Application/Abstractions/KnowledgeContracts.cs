@@ -7,11 +7,18 @@ public interface IKnowledgeImporter { Task<KnowledgeImportResult> ImportAsync(Kn
 public interface IKnowledgeIndexer { Task<KnowledgeIndexResult> IndexCorpusAsync(string corpusId, CancellationToken cancellationToken); }
 public interface IKnowledgeRetriever { Task<IReadOnlyList<KnowledgeHit>> RetrieveAsync(KnowledgeQuery query, CancellationToken cancellationToken); }
 public interface IKnowledgeContextBuilder { KnowledgeContext Build(string question, IReadOnlyList<KnowledgeHit> hits); }
-public interface IKnowledgeAnswerer { Task<KnowledgeAnswer> AskAsync(KnowledgeAskRequest request, CancellationToken cancellationToken); }
+public interface IKnowledgeAnswerer
+{
+    Task<KnowledgeAnswer> AskAsync(KnowledgeAskRequest request, CancellationToken cancellationToken);
+    Task<KnowledgeAnswer> AnswerFromHitsAsync(KnowledgeAskRequest request, IReadOnlyList<KnowledgeHit> hits, CancellationToken cancellationToken);
+}
 public interface IKnowledgeEvaluator { Task<KnowledgeEvaluationRun> EvaluateAsync(KnowledgeEvaluationRequest request, CancellationToken cancellationToken); }
 
 public interface IKnowledgeRepository
 {
+    Task SaveCorpusAsync(KnowledgeCorpus corpus, CancellationToken cancellationToken);
+    Task<KnowledgeCorpus?> GetCorpusAsync(string corpusId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<KnowledgeCorpus>> ListCorporaAsync(CancellationToken cancellationToken);
     Task<IReadOnlyList<KnowledgeChunk>> GetChunksAsync(string corpusId, CancellationToken cancellationToken);
     Task<IReadOnlyList<KnowledgeQuestion>> GetQuestionsAsync(string corpusId, CancellationToken cancellationToken);
     Task SaveImportAsync(KnowledgeImportResult result, CancellationToken cancellationToken);
