@@ -13,7 +13,6 @@ public sealed class PatientView
     public Guid? AvatarFileId { get; init; }
     public string? IdentificationCode { get; init; }
     public bool Template { get; init; }
-    public string Url => $"/sea/projects/{Id}";
     public DateTime CreatedAt { get; init; }
     public string? CreatedBy { get; init; }
     public DateTime? UpdatedAt { get; init; }

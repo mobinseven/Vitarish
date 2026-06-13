@@ -7,11 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Views\views.sql" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EmbeddedResource Include="Views\views.sql" />
+    <EmbeddedResource Include="Views\views.pgsql" />
   </ItemGroup>
 
 	<ItemGroup>

@@ -44,11 +44,10 @@ public class ClinicDbContext : DbContext, Finbuckle.MultiTenant.EntityFrameworkC
     {
         _ = modelBuilder.Entity<PatientView>(eb =>
         {
-            _ = eb.ToView("mv_Patients", nameof(Sea));
+            _ = eb.ToView("mv_Patients", nameof(Clinic));
             _ = eb.HasNoKey();
             _ = eb.Property(patient => patient.TenantId).HasMaxLength(64);
             _ = eb.Property(patient => patient.UserIds).HasColumnType("text[]");
-            _ = eb.IsMultiTenant();
         });
 
         _ = modelBuilder.Entity<ProjectStats>(eb =>

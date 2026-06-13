@@ -20,7 +20,7 @@ public static class ViewsInitializerExtensions
 
             object? resource = typeof(ViewsInitializerExtensions)
                                 .Assembly
-                                .GetManifestResourceStream("Vitarish.Clinic.Infrastructure.Views.views.sql");
+                                .GetManifestResourceStream("Vitarish.Clinic.Infrastructure.Views.views.pgsql");
             if (resource is null)
             {
                 logger.LogInformation("No SQL resource found: {ResourceName}:{Key}.", "Resources", "Views");
