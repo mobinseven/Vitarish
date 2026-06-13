@@ -91,7 +91,7 @@ internal sealed class SearchService : ISearchService
 
         Indices indices = fullToLogicalIndexNames.Keys.ToArray();
 
-        Query esQuery = BuildQuery(query, normalizedOptions, ResolveTenantId());
+        Query esQuery = BuildQuery(query, normalizedOptions, ResolveTenantId(normalizedOptions));
 
         SearchRequest<SearchDocument> request = new(indices)
         {
@@ -203,8 +203,10 @@ internal sealed class SearchService : ISearchService
         return reports;
     }
 
-    private string ResolveTenantId() =>
-        !string.IsNullOrWhiteSpace(requestContext.TenantId)
+    private string ResolveTenantId(SearchOptions? searchOptions = null) =>
+        !string.IsNullOrWhiteSpace(searchOptions?.TenantId)
+            ? searchOptions.TenantId
+            : !string.IsNullOrWhiteSpace(requestContext.TenantId)
             ? requestContext.TenantId
             : throw new InvalidOperationException("Tenant ID must be set before performing search operations.");
 
@@ -261,6 +263,11 @@ internal sealed class SearchService : ISearchService
         if (!string.IsNullOrWhiteSpace(searchOptions.Type))
         {
             filters.Add(new TermQuery { Field = new Field("type.keyword"), Value = searchOptions.Type });
+        }
+
+        if (!string.IsNullOrWhiteSpace(searchOptions.CorpusId))
+        {
+            filters.Add(new TermQuery { Field = new Field("metadata.corpusId.keyword"), Value = searchOptions.CorpusId });
         }
 
         foreach (KeyValuePair<string, string> metadataFilter in searchOptions.MetadataFilters)

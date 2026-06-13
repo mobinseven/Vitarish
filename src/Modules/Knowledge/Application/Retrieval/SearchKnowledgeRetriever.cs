@@ -18,7 +18,9 @@ public sealed class SearchKnowledgeRetriever(ISearchService search) : IKnowledge
         {
             Limit = query.TopK,
             Type = "knowledge-chunk",
-            MetadataFilters = new Dictionary<string, string> { ["corpusId"] = query.CorpusId }
+            TenantId = query.TenantId,
+            CorpusId = query.CorpusId,
+            MetadataFilters = query.Filters ?? new Dictionary<string, string>()
         }, cancellationToken);
 
         return [.. result.Items

@@ -31,6 +31,7 @@ public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeRepos
         {
             Id = documentId,
             CorpusId = request.CorpusId,
+            TenantId = request.TenantId,
             SourceId = sourceId,
             Title = source.Name,
             Text = text
@@ -39,6 +40,7 @@ public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeRepos
         {
             Id = Guid.NewGuid().ToString("n"),
             CorpusId = request.CorpusId,
+            TenantId = request.TenantId,
             SourceId = sourceId,
             DocumentId = documentId,
             Text = draft.Text,

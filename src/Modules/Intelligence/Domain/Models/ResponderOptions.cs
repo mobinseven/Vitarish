@@ -10,6 +10,9 @@ public sealed record ResponderOptions
     [JsonPropertyName("text_format")]
     public ResponseTextFormat TextFormat { get; init; } = ResponseTextFormat.Text;
 
+    [JsonPropertyName("json_schema")]
+    public ResponderJsonSchema? JsonSchema { get; init; }
+
     [JsonPropertyName("previous_response_id")]
     public string? PreviousResponseId { get; init; }
 
@@ -24,6 +27,21 @@ public sealed record ResponderOptions
 
     [JsonPropertyName("enable_computer_tool")]
     public bool EnableComputerTool { get; init; }
+}
+
+public sealed record ResponderJsonSchema
+{
+    [JsonPropertyName("name")]
+    public required string Name { get; init; }
+
+    [JsonPropertyName("schema")]
+    public required string Schema { get; init; }
+
+    [JsonPropertyName("description")]
+    public string? Description { get; init; }
+
+    [JsonPropertyName("strict")]
+    public bool Strict { get; init; } = true;
 }
 
 public sealed record ResponderToolDefinition
@@ -57,5 +75,6 @@ public enum ResponderToolApprovalRequirement
 public enum ResponseTextFormat
 {
     Text,
-    JsonObject
+    JsonObject,
+    JsonSchema
 }
