@@ -80,8 +80,24 @@ public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeRepos
     private static IReadOnlyList<string> FindExpectedChunkIds(IReadOnlyList<string> expectedContextTexts, IReadOnlyList<KnowledgeChunk> chunks)
     {
         if (expectedContextTexts.Count == 0) return [];
-        return [.. chunks.Where(chunk => expectedContextTexts.Any(expectedContext => ContainsNormalized(chunk.Text, expectedContext) || ContainsNormalized(expectedContext, chunk.Text))).Select(chunk => chunk.Id).Distinct(StringComparer.Ordinal)];
-    }
 
-    private static bool ContainsNormalized(string haystack, string needle) => haystack.Contains(needle.Trim(), StringComparison.OrdinalIgnoreCase);
+        string[] trimmedContexts = [.. expectedContextTexts
+            .Select(static t => t.Trim())
+            .Where(static t => t.Length > 0)];
+
+        if (trimmedContexts.Length == 0) return [];
+
+        return [.. chunks
+            .Where(chunk =>
+            {
+                string chunkText = chunk.Text.Trim();
+                if (chunkText.Length == 0) return false;
+
+                return trimmedContexts.Any(expectedContext =>
+                    chunkText.Contains(expectedContext, StringComparison.OrdinalIgnoreCase) ||
+                    expectedContext.Contains(chunkText, StringComparison.OrdinalIgnoreCase));
+            })
+            .Select(static chunk => chunk.Id)
+            .Distinct(StringComparer.Ordinal)];
+    }
 }
