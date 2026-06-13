@@ -1,4 +1,4 @@
-namespace Vitarish.Knowledge.Application.Answering;
+namespace Vitarish.Knowledge.Infrastructure.Services.Answering;
 
 public static class KnowledgeGroundingPolicy
 {

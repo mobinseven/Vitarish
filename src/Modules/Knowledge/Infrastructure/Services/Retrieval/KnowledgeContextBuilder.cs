@@ -1,8 +1,7 @@
 using System.Text;
 using Vitarish.Knowledge.Application.Abstractions;
-using Vitarish.Knowledge.Domain.Models;
 
-namespace Vitarish.Knowledge.Application.Retrieval;
+namespace Vitarish.Knowledge.Infrastructure.Services.Retrieval;
 
 public sealed class KnowledgeContextBuilder : IKnowledgeContextBuilder
 {

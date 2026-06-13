@@ -1,9 +1,8 @@
 using Vitarish.Knowledge.Application.Abstractions;
-using Vitarish.Knowledge.Domain.Models;
 using Vitarish.Search.Domain.Abstractions;
 using Vitarish.Search.Domain.Models;
 
-namespace Vitarish.Knowledge.Application.Retrieval;
+namespace Vitarish.Knowledge.Infrastructure.Services.Retrieval;
 
 public sealed class SearchKnowledgeRetriever(ISearchService search) : IKnowledgeRetriever
 {

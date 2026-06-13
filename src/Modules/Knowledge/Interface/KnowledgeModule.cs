@@ -1,18 +1,18 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
-using Vitarish.Knowledge.Application;
 using Vitarish.Knowledge.Application.Abstractions;
-using Vitarish.Knowledge.Application.Answering;
-using Vitarish.Knowledge.Application.Chunking;
-using Vitarish.Knowledge.Application.Evaluation;
-using Vitarish.Knowledge.Application.Indexing;
-using Vitarish.Knowledge.Application.Importing;
-using Vitarish.Knowledge.Application.Retrieval;
 using Vitarish.Knowledge.Infrastructure.Data;
 using Vitarish.Knowledge.Infrastructure.Repositories;
 using Vitarish.Modules.Base;
 using Vitarish.Search.Domain.Abstractions;
+using Vitarish.Knowledge.Infrastructure.Services.Answering;
+using Vitarish.Knowledge.Infrastructure.Services.Evaluation;
+using Vitarish.Knowledge.Infrastructure.Services.Retrieval;
+using Vitarish.Knowledge.Infrastructure.Services;
+using Vitarish.Knowledge.Infrastructure.Services.Indexing;
+using Vitarish.Knowledge.Infrastructure.Services.Importing;
+using Vitarish.Knowledge.Infrastructure.Services.Chunking;
 
 namespace Vitarish.Knowledge.Interface;
 
@@ -34,7 +34,7 @@ public sealed class KnowledgeModule : Module, IKnowledgeModule
         _ = builder.Services.AddScoped<IKnowledgeContextBuilder, KnowledgeContextBuilder>();
         _ = builder.Services.AddScoped<IKnowledgeAnswerer, IntelligenceKnowledgeAnswerer>();
         _ = builder.Services.AddScoped<IKnowledgeEvaluator, KnowledgeEvaluator>();
-        _ = builder.Services.AddScoped<IKnowledgeRepository, EfKnowledgeRepository>();
+        _ = builder.Services.AddScoped<IKnowledgeRepository, KnowledgeRepository>();
         _ = builder.Services.AddScoped<IKnowledgeService, KnowledgeService>();
         return Task.CompletedTask;
     }

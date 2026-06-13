@@ -1,4 +1,6 @@
-namespace Vitarish.Knowledge.Domain.Models;
+using Vitarish.Knowledge.Domain.Models;
+
+namespace Vitarish.Knowledge.Application.Abstractions;
 
 public sealed record KnowledgeImportRequest
 {

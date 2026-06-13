@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using Vitarish.Knowledge.Domain.Entities;
 
 namespace Vitarish.Knowledge.Infrastructure.Data;
 
@@ -13,6 +14,8 @@ public sealed class KnowledgeDbContext(DbContextOptions<KnowledgeDbContext> opti
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.HasDefaultSchema(nameof(Knowledge));
+
         modelBuilder.Entity<KnowledgeCorpusEntity>(entity =>
         {
             entity.ToTable("KnowledgeCorpora");

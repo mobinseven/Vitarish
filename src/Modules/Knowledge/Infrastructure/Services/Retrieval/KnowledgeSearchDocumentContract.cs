@@ -1,7 +1,8 @@
+using Vitarish.Knowledge.Application.Abstractions;
 using Vitarish.Knowledge.Domain.Models;
 using Vitarish.Search.Domain.Models;
 
-namespace Vitarish.Knowledge.Application.Retrieval;
+namespace Vitarish.Knowledge.Infrastructure.Services.Retrieval;
 
 /// <summary>
 /// Defines the search-document contract for knowledge chunks. Corpus tenant scope is the

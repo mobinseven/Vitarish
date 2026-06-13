@@ -1,10 +1,10 @@
 using Vitarish.Knowledge.Application.Abstractions;
-using Vitarish.Knowledge.Application.Retrieval;
 using Vitarish.Knowledge.Domain.Models;
+using Vitarish.Knowledge.Infrastructure.Services.Retrieval;
 using Vitarish.Search.Domain.Abstractions;
 using Vitarish.Search.Domain.Models;
 
-namespace Vitarish.Knowledge.Application.Indexing;
+namespace Vitarish.Knowledge.Infrastructure.Services.Indexing;
 
 public sealed class KnowledgeSearchIndexProvider(IKnowledgeRepository repository) : ISearchIndexProvider
 {

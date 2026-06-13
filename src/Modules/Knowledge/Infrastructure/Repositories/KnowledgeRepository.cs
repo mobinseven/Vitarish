@@ -1,12 +1,13 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Knowledge.Application.Abstractions;
+using Vitarish.Knowledge.Domain.Entities;
 using Vitarish.Knowledge.Domain.Models;
 using Vitarish.Knowledge.Infrastructure.Data;
 
 namespace Vitarish.Knowledge.Infrastructure.Repositories;
 
-public sealed class EfKnowledgeRepository(KnowledgeDbContext dbContext) : IKnowledgeRepository
+public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowledgeRepository
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 

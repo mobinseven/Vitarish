@@ -1,4 +1,4 @@
-namespace Vitarish.Knowledge.Infrastructure.Data;
+namespace Vitarish.Knowledge.Domain.Entities;
 
 public sealed class KnowledgeCorpusEntity
 {

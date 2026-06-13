@@ -1,7 +1,7 @@
 using Vitarish.Knowledge.Application.Abstractions;
 using Vitarish.Knowledge.Domain.Models;
 
-namespace Vitarish.Knowledge.Application.Importing;
+namespace Vitarish.Knowledge.Infrastructure.Services.Importing;
 
 public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeRepository repository) : IKnowledgeImporter
 {

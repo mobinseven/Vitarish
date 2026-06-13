@@ -3,9 +3,8 @@ using System.Text.Json.Serialization;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Domain.Models;
 using Vitarish.Knowledge.Application.Abstractions;
-using Vitarish.Knowledge.Domain.Models;
 
-namespace Vitarish.Knowledge.Application.Answering;
+namespace Vitarish.Knowledge.Infrastructure.Services.Answering;
 
 public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever, IKnowledgeContextBuilder contextBuilder, IResponder responder, IKnowledgeRepository repository) : IKnowledgeAnswerer
 {

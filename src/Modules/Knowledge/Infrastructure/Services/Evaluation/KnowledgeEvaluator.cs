@@ -1,7 +1,7 @@
 using Vitarish.Knowledge.Application.Abstractions;
 using Vitarish.Knowledge.Domain.Models;
 
-namespace Vitarish.Knowledge.Application.Evaluation;
+namespace Vitarish.Knowledge.Infrastructure.Services.Evaluation;
 
 public sealed class KnowledgeEvaluator(IKnowledgeRepository repository, IKnowledgeRetriever retriever, IKnowledgeAnswerer answerer) : IKnowledgeEvaluator
 {

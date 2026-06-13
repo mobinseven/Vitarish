@@ -3,7 +3,7 @@ using System.Text;
 using Vitarish.Knowledge.Application.Abstractions;
 using Vitarish.Knowledge.Domain.Models;
 
-namespace Vitarish.Knowledge.Application.Chunking;
+namespace Vitarish.Knowledge.Infrastructure.Services.Chunking;
 
 public sealed class HeadingAwareKnowledgeChunker : IKnowledgeChunker
 {

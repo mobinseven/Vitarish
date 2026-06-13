@@ -1,7 +1,6 @@
 using Vitarish.Knowledge.Application.Abstractions;
-using Vitarish.Knowledge.Domain.Models;
 
-namespace Vitarish.Knowledge.Application;
+namespace Vitarish.Knowledge.Infrastructure.Services;
 
 public sealed class KnowledgeService(IKnowledgeImporter importer, IKnowledgeIndexer indexer, IKnowledgeRetriever retriever, IKnowledgeAnswerer answerer, IKnowledgeEvaluator evaluator) : IKnowledgeService
 {
