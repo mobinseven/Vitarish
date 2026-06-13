@@ -35,47 +35,44 @@ internal sealed class KnowledgeImportContentReader
 
     private static async Task<KnowledgeImportContent> ReadEvaluationJsonAsync(Stream content, string format, string sourceName, CancellationToken cancellationToken)
     {
-        JsonDocument json = await JsonDocument.ParseAsync(content, cancellationToken: cancellationToken);
-        using (json)
+        using JsonDocument json = await JsonDocument.ParseAsync(content, cancellationToken: cancellationToken);
+        JsonElement root = json.RootElement;
+        IReadOnlyList<JsonElement> rows = ReadRows(root);
+        if (rows.Count == 0)
         {
-            JsonElement root = json.RootElement;
-            IReadOnlyList<JsonElement> rows = ReadRows(root);
-            if (rows.Count == 0)
-            {
-                throw new ArgumentException($"Knowledge import format '{format}' requires at least one JSON item.");
-            }
-
-            List<KnowledgeDocumentDraft> documents = [];
-            List<KnowledgeQuestionDraft> questions = [];
-            int rowNumber = 1;
-            foreach (JsonElement row in rows)
-            {
-                KnowledgeQuestionDraft question = ReadQuestion(row, format, rowNumber);
-                questions.Add(question);
-
-                string? documentText = FirstString(row, "document", "text", "context", "passage", "content") ?? FirstStringFromArray(row, "contexts", "context", "documents", "passages");
-                if (!string.IsNullOrWhiteSpace(documentText))
-                {
-                    documents.Add(new KnowledgeDocumentDraft
-                    {
-                        Title = FirstString(row, "title", "document_title", "source") ?? $"{sourceName} item {rowNumber}",
-                        Text = documentText,
-                        Product = FirstString(row, "product"),
-                        Version = FirstString(row, "version"),
-                        Language = FirstString(row, "language", "lang")
-                    });
-                }
-
-                rowNumber++;
-            }
-
-            if (documents.Count == 0)
-            {
-                throw new ArgumentException($"Knowledge import format '{format}' requires document, text, context, contexts, or passages content.");
-            }
-
-            return new KnowledgeImportContent(documents, questions);
+            throw new ArgumentException($"Knowledge import format '{format}' requires at least one JSON item.");
         }
+
+        List<KnowledgeDocumentDraft> documents = [];
+        List<KnowledgeQuestionDraft> questions = [];
+        int rowNumber = 1;
+        foreach (JsonElement row in rows)
+        {
+            KnowledgeQuestionDraft question = ReadQuestion(row, format, rowNumber);
+            questions.Add(question);
+
+            string? documentText = FirstString(row, "document", "text", "context", "passage", "content") ?? FirstStringFromArray(row, "contexts", "context", "documents", "passages");
+            if (!string.IsNullOrWhiteSpace(documentText))
+            {
+                documents.Add(new KnowledgeDocumentDraft
+                {
+                    Title = FirstString(row, "title", "document_title", "source") ?? $"{sourceName} item {rowNumber}",
+                    Text = documentText,
+                    Product = FirstString(row, "product"),
+                    Version = FirstString(row, "version"),
+                    Language = FirstString(row, "language", "lang")
+                });
+            }
+
+            rowNumber++;
+        }
+
+        if (documents.Count == 0)
+        {
+            throw new ArgumentException($"Knowledge import format '{format}' requires document, text, context, contexts, or passages content.");
+        }
+
+        return new KnowledgeImportContent(documents, questions);
     }
 
     private static IReadOnlyList<JsonElement> ReadRows(JsonElement root)
