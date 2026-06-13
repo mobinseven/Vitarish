@@ -263,6 +263,12 @@ internal sealed class SearchService : ISearchService
             filters.Add(new TermQuery { Field = new Field("type.keyword"), Value = searchOptions.Type });
         }
 
+        foreach (KeyValuePair<string, string> metadataFilter in searchOptions.MetadataFilters)
+        {
+            if (string.IsNullOrWhiteSpace(metadataFilter.Key) || string.IsNullOrWhiteSpace(metadataFilter.Value)) continue;
+            filters.Add(new TermQuery { Field = new Field($"metadata.{metadataFilter.Key}.keyword"), Value = metadataFilter.Value });
+        }
+
         return new BoolQuery
         {
             Must = [textQuery],

@@ -9,6 +9,7 @@ using Vitarish.Contents.Interface;
 using Vitarish.Files.Interface;
 using Vitarish.Financial.Interface;
 using Vitarish.Intelligence.Interface;
+using Vitarish.Knowledge.Interface;
 using Vitarish.Links.Interface;
 using Vitarish.Medical.Interface;
 using Vitarish.Modules.Base;
@@ -29,6 +30,7 @@ public static class ModulesExtensions
                 Activator.CreateInstance<PlatformModule>(),
                 Activator.CreateInstance<CommunicationModule>(),
                 Activator.CreateInstance<IntelligenceModule>(),
+                Activator.CreateInstance<KnowledgeModule>(),
                 Activator.CreateInstance<FilesModule>(),
                 Activator.CreateInstance<FinancialModule>(),
                 Activator.CreateInstance<SearchModule>(),

@@ -32,6 +32,11 @@ public record SearchOptions
     public string? Type { get; init; }
 
     /// <summary>
+    /// Exact-match metadata filters applied before pagination.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> MetadataFilters { get; init; } = new Dictionary<string, string>();
+
+    /// <summary>
     /// Returns a copy with safe pagination values applied.
     /// </summary>
     public SearchOptions Normalize() => this with

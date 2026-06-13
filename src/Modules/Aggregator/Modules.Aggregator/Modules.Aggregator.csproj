@@ -17,6 +17,7 @@
     <ProjectReference Include="..\..\Files\Interface\Files.Interface.csproj" />
     <ProjectReference Include="..\..\Financial\Interface\Financial.Interface.csproj" />
     <ProjectReference Include="..\..\Intelligence\Interface\Intelligence.Interface.csproj" />
+    <ProjectReference Include="..\..\Knowledge\Interface\Knowledge.Interface.csproj" />
     <ProjectReference Include="..\..\Search\Interface\Search.Interface.csproj" />
     <ProjectReference Include="..\..\Contents\Interface\Contents.Interface.csproj" />
     <ProjectReference Include="..\..\Social\Hosting\Social.Hosting.csproj" />
