@@ -1,0 +1,24 @@
+@page "/admin/knowledge"
+
+<Stack>
+    <StackField Label="Knowledge diagnostics" HelperText="Read-only RAG pipeline diagnostics." />
+    @foreach (KnowledgeCorpusDiagnostics corpus in corpora)
+    {
+        <StackCard Label="@corpus.Name" Caption="@($"{corpus.CorpusId} / {corpus.TenantId}")" HelperText="@($"Sources {corpus.SourceCount} · Documents {corpus.DocumentCount} · Chunks {corpus.ChunkCount} · Questions {corpus.QuestionCount} · Last import {Format(corpus.LastImportedAt)} · Last ask {Format(corpus.LastAskedAt)}")">
+            <MudStack Row="true" Spacing="1">
+                <MudChip T="string" Color="@(corpus.IsActive ? Color.Success : Color.Default)">@(corpus.IsActive ? "Active" : "Inactive")</MudChip>
+                <MudButton Variant="Variant.Filled" Color="Color.Info" Href="@DetailHref(corpus)">Open</MudButton>
+                <MudButton Variant="Variant.Outlined" Disabled="true">Index</MudButton>
+                <MudButton Variant="Variant.Outlined" Disabled="true">Evaluate</MudButton>
+            </MudStack>
+        </StackCard>
+    }
+</Stack>
+
+@code {
+    [Inject] private IKnowledgeDiagnosticsService Diagnostics { get; set; } = default!;
+    private IReadOnlyList<KnowledgeCorpusDiagnostics> corpora = [];
+    protected override async Task OnInitializedAsync() => corpora = await Diagnostics.GetCorporaDiagnosticsAsync(CancellationToken.None);
+    private static string DetailHref(KnowledgeCorpusDiagnostics corpus) => $"/admin/knowledge/{Uri.EscapeDataString(corpus.CorpusId)}?tenantId={Uri.EscapeDataString(corpus.TenantId)}";
+    private static string Format(DateTimeOffset? value) => value?.ToString("u") ?? "never";
+}
