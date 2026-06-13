@@ -11,6 +11,7 @@ using Vitarish.Knowledge.Infrastructure.Services.Retrieval;
 using Vitarish.Knowledge.Infrastructure.Services;
 using Vitarish.Knowledge.Infrastructure.Services.Indexing;
 using Vitarish.Knowledge.Infrastructure.Services.Importing;
+using Vitarish.Knowledge.Infrastructure.Services.Diagnostics;
 using Vitarish.Knowledge.Infrastructure.Services.Chunking;
 using Vitarish.Search.Application.Abstractions;
 
@@ -36,6 +37,7 @@ public sealed class KnowledgeModule : Module, IKnowledgeModule
         _ = builder.Services.AddScoped<IKnowledgeEvaluator, KnowledgeEvaluator>();
         _ = builder.Services.AddScoped<IKnowledgeRepository, KnowledgeRepository>();
         _ = builder.Services.AddScoped<IKnowledgeService, KnowledgeService>();
+        _ = builder.Services.AddScoped<IKnowledgeDiagnosticsService, KnowledgeDiagnosticsService>();
         return Task.CompletedTask;
     }
 

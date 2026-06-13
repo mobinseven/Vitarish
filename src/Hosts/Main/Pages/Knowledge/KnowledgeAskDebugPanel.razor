@@ -1,0 +1,33 @@
+<Stack>
+    <StackTextField Label="Question" @bind-Value="question" />
+    <StackNumericField Label="TopK" @bind-Value="topK" Min="1" Max="20" />
+    <StackButton Label="Debug ask" Color="Color.Primary" OnClick="DebugAsync" />
+    @if (result is not null)
+    {
+        <StackCard Label="Failure stage" HelperText="@result.FailureReason"><MudText>@result.FailureStage</MudText></StackCard>
+        <StackCard Label="Packed context chunk ids"><MudText>@string.Join(", ", result.ContextChunkIds)</MudText></StackCard>
+        <StackCard Label="Generated answer" HelperText="@(result.Answer.MissingInformation ?? "No missing information")"><MudText Style="white-space: pre-wrap">@result.Answer.Answer</MudText></StackCard>
+        <StackCard Label="Citations"><MudText>@string.Join(", ", result.Answer.Citations.Select(citation => citation.ChunkId))</MudText></StackCard>
+        @foreach (KnowledgeHit hit in result.RetrievedHits.Select((hit, index) => hit with { Score = hit.Score }))
+        {
+            <StackCard Label="@(hit.Title ?? hit.ChunkId)" Caption="@hit.ChunkId" HelperText="@($"Score {hit.Score:0.###} · Cited {result.Answer.Citations.Any(citation => citation.ChunkId == hit.ChunkId)}")">
+                <MudText Typo="Typo.body2">@Preview(hit.Text)</MudText>
+            </StackCard>
+        }
+    }
+</Stack>
+
+@code {
+    [Parameter, EditorRequired] public string CorpusId { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string TenantId { get; set; } = string.Empty;
+    [Inject] private IKnowledgeDiagnosticsService Diagnostics { get; set; } = default!;
+    private string question = string.Empty;
+    private int topK = 8;
+    private KnowledgeAskDebugResult? result;
+    private async Task DebugAsync()
+    {
+        if (string.IsNullOrWhiteSpace(question)) return;
+        result = await Diagnostics.DebugAskAsync(new KnowledgeAskRequest { CorpusId = CorpusId, TenantId = TenantId, Question = question.Trim(), TopK = topK }, CancellationToken.None);
+    }
+    private static string Preview(string text) => text.Length <= 240 ? text : text[..240];
+}

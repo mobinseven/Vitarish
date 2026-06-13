@@ -1,0 +1,38 @@
+@page "/admin/knowledge/{CorpusId}"
+
+<Stack>
+    <StackField Label="@($"Knowledge corpus: {diagnostics?.Name ?? CorpusId}")" HelperText="@($"Tenant: {TenantId}")" />
+    @if (diagnostics is not null)
+    {
+        <StackCard Label="Overview" HelperText="@($"Sources {diagnostics.SourceCount} · Documents {diagnostics.DocumentCount} · Chunks {diagnostics.ChunkCount} · Traces {diagnostics.AskTraceCount}")">
+            <MudText>Last import: @Format(diagnostics.LastImportedAt)</MudText>
+            <MudText>Last ask: @Format(diagnostics.LastAskedAt)</MudText>
+            @if (index is not null)
+            {
+                <MudText>Index probe hits: @index.SearchHitCountForProbe / Stored chunks: @index.StoredChunkCount / Looks indexed: @index.LooksIndexed</MudText>
+            }
+        </StackCard>
+    }
+    <MudTabs>
+        <MudTabPanel Text="Sources"><KnowledgeSourcesPanel CorpusId="@CorpusId" TenantId="@TenantId" /></MudTabPanel>
+        <MudTabPanel Text="Chunks"><KnowledgeChunksPanel CorpusId="@CorpusId" TenantId="@TenantId" /></MudTabPanel>
+        <MudTabPanel Text="Ask Debug"><KnowledgeAskDebugPanel CorpusId="@CorpusId" TenantId="@TenantId" /></MudTabPanel>
+        <MudTabPanel Text="Traces"><KnowledgeAskTracesPanel CorpusId="@CorpusId" TenantId="@TenantId" /></MudTabPanel>
+        <MudTabPanel Text="Evaluation"><StackField Label="Evaluation" HelperText="Read-only diagnostics first; evaluation action remains outside this MVP screen." /></MudTabPanel>
+    </MudTabs>
+</Stack>
+
+@code {
+    [Parameter] public string CorpusId { get; set; } = string.Empty;
+    [SupplyParameterFromQuery] public string TenantId { get; set; } = string.Empty;
+    [Inject] private IKnowledgeDiagnosticsService Diagnostics { get; set; } = default!;
+    private KnowledgeCorpusDiagnostics? diagnostics;
+    private KnowledgeIndexDiagnostics? index;
+    protected override async Task OnParametersSetAsync()
+    {
+        if (string.IsNullOrWhiteSpace(TenantId)) return;
+        diagnostics = await Diagnostics.GetCorpusDiagnosticsAsync(CorpusId, TenantId, CancellationToken.None);
+        index = await Diagnostics.GetIndexDiagnosticsAsync(CorpusId, TenantId, CancellationToken.None);
+    }
+    private static string Format(DateTimeOffset? value) => value?.ToString("u") ?? "never";
+}
