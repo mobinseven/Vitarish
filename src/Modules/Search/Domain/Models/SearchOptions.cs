@@ -32,6 +32,21 @@ public record SearchOptions
     public string? Type { get; init; }
 
     /// <summary>
+    /// Optional tenant scope override for callers that search outside the ambient request tenant.
+    /// </summary>
+    public string? TenantId { get; init; }
+
+    /// <summary>
+    /// Optional corpus scope for knowledge search.
+    /// </summary>
+    public string? CorpusId { get; init; }
+
+    /// <summary>
+    /// Exact-match metadata filters applied before pagination.
+    /// </summary>
+    public IReadOnlyDictionary<string, string> MetadataFilters { get; init; } = new Dictionary<string, string>();
+
+    /// <summary>
     /// Returns a copy with safe pagination values applied.
     /// </summary>
     public SearchOptions Normalize() => this with
