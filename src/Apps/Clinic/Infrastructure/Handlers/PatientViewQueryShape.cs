@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Vitarish.Clinic.Domain.Enums;
 using Vitarish.Clinic.Domain.Models;
 using Vitarish.Entities.Server.Infrastructure.Search;
-using Vitarish.Sea.Domain.Enums;
 
 namespace Vitarish.Clinic.Infrastructure.Handlers;
 
@@ -41,30 +41,86 @@ internal sealed class PatientViewQueryShape(EntitySearchPatternFactory searchPat
 
     public IQueryable<PatientView> ApplySort(
         IQueryable<PatientView> query,
-        ProjectSortBy? sortBy,
+        PatientSortBy? sortBy,
         bool descending)
     {
-        sortBy ??= ProjectSortBy.Name;
+        sortBy ??= PatientSortBy.Name;
 
         return (sortBy, descending) switch
         {
-            (ProjectSortBy.Name, true) => query
+            (PatientSortBy.Name, true) => query
                 .OrderByDescending(patient => patient.LastName ?? patient.Name)
                 .ThenByDescending(patient => patient.FirstName)
                 .ThenByDescending(patient => patient.Name)
                 .ThenByDescending(patient => patient.Id),
-            (ProjectSortBy.Name, false) => query
+            (PatientSortBy.Name, false) => query
                 .OrderBy(patient => patient.LastName ?? patient.Name)
                 .ThenBy(patient => patient.FirstName)
                 .ThenBy(patient => patient.Name)
                 .ThenBy(patient => patient.Id),
-            (ProjectSortBy.Template, true) => query
+            (PatientSortBy.Template, true) => query
                 .OrderByDescending(patient => patient.Template)
                 .ThenByDescending(patient => patient.LastName ?? patient.Name)
                 .ThenByDescending(patient => patient.FirstName)
                 .ThenByDescending(patient => patient.Id),
-            (ProjectSortBy.Template, false) => query
+            (PatientSortBy.Template, false) => query
                 .OrderBy(patient => patient.Template)
+                .ThenBy(patient => patient.LastName ?? patient.Name)
+                .ThenBy(patient => patient.FirstName)
+                .ThenBy(patient => patient.Id),
+            (PatientSortBy.IdentificationCode, true) => query
+                .OrderByDescending(patient => patient.IdentificationCode)
+                .ThenByDescending(patient => patient.LastName ?? patient.Name)
+                .ThenByDescending(patient => patient.FirstName)
+                .ThenByDescending(patient => patient.Id),
+            (PatientSortBy.IdentificationCode, false) => query
+                .OrderBy(patient => patient.IdentificationCode)
+                .ThenBy(patient => patient.LastName ?? patient.Name)
+                .ThenBy(patient => patient.FirstName)
+                .ThenBy(patient => patient.Id),
+            (PatientSortBy.DateOfBirth, true) => query
+                .OrderByDescending(patient => patient.DateOfBirth.HasValue)
+                .ThenByDescending(patient => patient.DateOfBirth)
+                .ThenByDescending(patient => patient.LastName ?? patient.Name)
+                .ThenByDescending(patient => patient.FirstName)
+                .ThenByDescending(patient => patient.Id),
+            (PatientSortBy.DateOfBirth, false) => query
+                .OrderByDescending(patient => patient.DateOfBirth.HasValue)
+                .ThenBy(patient => patient.DateOfBirth)
+                .ThenBy(patient => patient.LastName ?? patient.Name)
+                .ThenBy(patient => patient.FirstName)
+                .ThenBy(patient => patient.Id),
+            (PatientSortBy.DateOfSurgery, true) => query
+                .OrderByDescending(patient => patient.DateOfSurgery.HasValue)
+                .ThenByDescending(patient => patient.DateOfSurgery)
+                .ThenByDescending(patient => patient.LastName ?? patient.Name)
+                .ThenByDescending(patient => patient.FirstName)
+                .ThenByDescending(patient => patient.Id),
+            (PatientSortBy.DateOfSurgery, false) => query
+                .OrderByDescending(patient => patient.DateOfSurgery.HasValue)
+                .ThenBy(patient => patient.DateOfSurgery)
+                .ThenBy(patient => patient.LastName ?? patient.Name)
+                .ThenBy(patient => patient.FirstName)
+                .ThenBy(patient => patient.Id),
+            (PatientSortBy.CreatedAt, true) => query
+                .OrderByDescending(patient => patient.CreatedAt)
+                .ThenByDescending(patient => patient.LastName ?? patient.Name)
+                .ThenByDescending(patient => patient.FirstName)
+                .ThenByDescending(patient => patient.Id),
+            (PatientSortBy.CreatedAt, false) => query
+                .OrderBy(patient => patient.CreatedAt)
+                .ThenBy(patient => patient.LastName ?? patient.Name)
+                .ThenBy(patient => patient.FirstName)
+                .ThenBy(patient => patient.Id),
+            (PatientSortBy.UpdatedAt, true) => query
+                .OrderByDescending(patient => patient.UpdatedAt.HasValue)
+                .ThenByDescending(patient => patient.UpdatedAt)
+                .ThenByDescending(patient => patient.LastName ?? patient.Name)
+                .ThenByDescending(patient => patient.FirstName)
+                .ThenByDescending(patient => patient.Id),
+            (PatientSortBy.UpdatedAt, false) => query
+                .OrderByDescending(patient => patient.UpdatedAt.HasValue)
+                .ThenBy(patient => patient.UpdatedAt)
                 .ThenBy(patient => patient.LastName ?? patient.Name)
                 .ThenBy(patient => patient.FirstName)
                 .ThenBy(patient => patient.Id),
