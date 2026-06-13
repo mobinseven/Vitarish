@@ -4,6 +4,7 @@ namespace Vitarish.Knowledge.Infrastructure.Data;
 
 public sealed class KnowledgeDbContext(DbContextOptions<KnowledgeDbContext> options) : DbContext(options)
 {
+    public DbSet<KnowledgeCorpusEntity> Corpora => Set<KnowledgeCorpusEntity>();
     public DbSet<KnowledgeSourceEntity> Sources => Set<KnowledgeSourceEntity>();
     public DbSet<KnowledgeDocumentEntity> Documents => Set<KnowledgeDocumentEntity>();
     public DbSet<KnowledgeChunkEntity> Chunks => Set<KnowledgeChunkEntity>();
@@ -12,6 +13,17 @@ public sealed class KnowledgeDbContext(DbContextOptions<KnowledgeDbContext> opti
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<KnowledgeCorpusEntity>(entity =>
+        {
+            entity.ToTable("KnowledgeCorpora");
+            entity.HasKey(corpus => corpus.Id);
+            entity.Property(corpus => corpus.Id).HasMaxLength(128);
+            entity.Property(corpus => corpus.Name).HasMaxLength(512).IsRequired();
+            entity.Property(corpus => corpus.TenantId).HasMaxLength(128).IsRequired();
+            entity.Property(corpus => corpus.Description).HasMaxLength(2048);
+            entity.HasIndex(corpus => corpus.TenantId);
+        });
+
         modelBuilder.Entity<KnowledgeSourceEntity>(entity =>
         {
             entity.ToTable("KnowledgeSources");

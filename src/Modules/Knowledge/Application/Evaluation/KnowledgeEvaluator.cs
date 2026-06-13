@@ -8,6 +8,7 @@ public sealed class KnowledgeEvaluator(IKnowledgeRepository repository, IKnowled
     public async Task<KnowledgeEvaluationRun> EvaluateAsync(KnowledgeEvaluationRequest request, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(request.CorpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
         IReadOnlyList<KnowledgeQuestion> questions = await repository.GetQuestionsAsync(request.CorpusId, cancellationToken);
         List<KnowledgeEvaluationItem> items = [];
         List<int> ranks = [];
@@ -17,7 +18,7 @@ public sealed class KnowledgeEvaluator(IKnowledgeRepository repository, IKnowled
             IReadOnlyList<KnowledgeHit> hits = await retriever.RetrieveAsync(new KnowledgeQuery { CorpusId = request.CorpusId, Question = question.Question, TenantId = request.TenantId, TopK = request.TopK }, cancellationToken);
             int rank = FirstExpectedRank(question.ExpectedChunkIds, hits);
             if (rank > 0) ranks.Add(rank);
-            KnowledgeAnswer answer = await answerer.AskAsync(new KnowledgeAskRequest { CorpusId = request.CorpusId, Question = question.Question, TenantId = request.TenantId, TopK = request.TopK }, cancellationToken);
+            KnowledgeAnswer answer = await answerer.AnswerFromHitsAsync(new KnowledgeAskRequest { CorpusId = request.CorpusId, Question = question.Question, TenantId = request.TenantId, TopK = request.TopK }, hits, cancellationToken);
             items.Add(new KnowledgeEvaluationItem
             {
                 QuestionId = question.Id,

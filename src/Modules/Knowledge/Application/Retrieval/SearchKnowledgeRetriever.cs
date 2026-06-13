@@ -13,6 +13,7 @@ public sealed class SearchKnowledgeRetriever(ISearchService search) : IKnowledge
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(query.CorpusId);
         ArgumentException.ThrowIfNullOrWhiteSpace(query.Question);
+        ArgumentException.ThrowIfNullOrWhiteSpace(query.TenantId);
 
         SearchResult result = await search.SearchAsync(IndexName, query.Question, new SearchOptions
         {
@@ -24,14 +25,14 @@ public sealed class SearchKnowledgeRetriever(ISearchService search) : IKnowledge
         }, cancellationToken);
 
         return [.. result.Items
-            .Select((document, index) => new KnowledgeHit
+            .Select(document => new KnowledgeHit
             {
                 ChunkId = document.Id,
                 SourceId = MetadataString(document, "sourceId"),
                 DocumentId = MetadataString(document, "documentId"),
                 Text = document.Body ?? document.Title,
                 Title = document.Title,
-                Score = 1.0d / (index + 1)
+                Score = document.Score ?? 0
             })];
     }
 

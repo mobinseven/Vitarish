@@ -1,5 +1,15 @@
 namespace Vitarish.Knowledge.Infrastructure.Data;
 
+public sealed class KnowledgeCorpusEntity
+{
+    public required string Id { get; set; }
+    public required string Name { get; set; }
+    public required string TenantId { get; set; }
+    public string? Description { get; set; }
+    public bool IsActive { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}
+
 public sealed class KnowledgeSourceEntity
 {
     public required string Id { get; set; }

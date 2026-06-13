@@ -12,6 +12,7 @@ using Vitarish.Knowledge.Application.Retrieval;
 using Vitarish.Knowledge.Infrastructure.Data;
 using Vitarish.Knowledge.Infrastructure.Repositories;
 using Vitarish.Modules.Base;
+using Vitarish.Search.Domain.Abstractions;
 
 namespace Vitarish.Knowledge.Interface;
 
@@ -28,6 +29,7 @@ public sealed class KnowledgeModule : Module, IKnowledgeModule
         _ = builder.Services.AddScoped<IKnowledgeChunker, HeadingAwareKnowledgeChunker>();
         _ = builder.Services.AddScoped<IKnowledgeImporter, KnowledgeImporter>();
         _ = builder.Services.AddScoped<IKnowledgeIndexer, SearchKnowledgeIndexer>();
+        _ = builder.Services.AddScoped<ISearchIndexProvider, KnowledgeSearchIndexProvider>();
         _ = builder.Services.AddScoped<IKnowledgeRetriever, SearchKnowledgeRetriever>();
         _ = builder.Services.AddScoped<IKnowledgeContextBuilder, KnowledgeContextBuilder>();
         _ = builder.Services.AddScoped<IKnowledgeAnswerer, IntelligenceKnowledgeAnswerer>();

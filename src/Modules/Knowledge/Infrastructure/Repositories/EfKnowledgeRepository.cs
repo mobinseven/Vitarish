@@ -10,6 +10,57 @@ public sealed class EfKnowledgeRepository(KnowledgeDbContext dbContext) : IKnowl
 {
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
+
+    public async Task SaveCorpusAsync(KnowledgeCorpus corpus, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(corpus);
+        ArgumentException.ThrowIfNullOrWhiteSpace(corpus.Id);
+        ArgumentException.ThrowIfNullOrWhiteSpace(corpus.Name);
+        ArgumentException.ThrowIfNullOrWhiteSpace(corpus.TenantId);
+
+        KnowledgeCorpusEntity entity = new()
+        {
+            Id = corpus.Id,
+            Name = corpus.Name,
+            TenantId = corpus.TenantId,
+            Description = corpus.Description,
+            IsActive = corpus.IsActive,
+            CreatedAt = DateTimeOffset.UtcNow
+        };
+
+        dbContext.Corpora.Update(entity);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<KnowledgeCorpus?> GetCorpusAsync(string corpusId, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
+        return await dbContext.Corpora.AsNoTracking()
+            .Where(corpus => corpus.Id == corpusId)
+            .Select(corpus => new KnowledgeCorpus
+            {
+                Id = corpus.Id,
+                Name = corpus.Name,
+                TenantId = corpus.TenantId,
+                Description = corpus.Description,
+                IsActive = corpus.IsActive
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<KnowledgeCorpus>> ListCorporaAsync(CancellationToken cancellationToken) =>
+        await dbContext.Corpora.AsNoTracking()
+            .OrderBy(corpus => corpus.Name)
+            .Select(corpus => new KnowledgeCorpus
+            {
+                Id = corpus.Id,
+                Name = corpus.Name,
+                TenantId = corpus.TenantId,
+                Description = corpus.Description,
+                IsActive = corpus.IsActive
+            })
+            .ToListAsync(cancellationToken);
+
     public async Task<IReadOnlyList<KnowledgeChunk>> GetChunksAsync(string corpusId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);

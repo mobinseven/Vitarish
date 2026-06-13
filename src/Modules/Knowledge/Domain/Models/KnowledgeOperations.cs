@@ -3,10 +3,10 @@ namespace Vitarish.Knowledge.Domain.Models;
 public sealed record KnowledgeImportRequest
 {
     public required string CorpusId { get; init; }
+    public required string TenantId { get; init; }
     public required Stream Content { get; init; }
     public required string Format { get; init; }
     public string? SourceName { get; init; }
-    public string? TenantId { get; init; }
 }
 
 public sealed record KnowledgeImportResult
@@ -24,7 +24,7 @@ public sealed record KnowledgeQuery
 {
     public required string CorpusId { get; init; }
     public required string Question { get; init; }
-    public string? TenantId { get; init; }
+    public required string TenantId { get; init; }
     public int TopK { get; init; } = 8;
     public IReadOnlyDictionary<string, string>? Filters { get; init; }
 }
@@ -45,7 +45,7 @@ public sealed record KnowledgeAskRequest
 {
     public required string CorpusId { get; init; }
     public required string Question { get; init; }
-    public string? TenantId { get; init; }
+    public required string TenantId { get; init; }
     public int TopK { get; init; } = 8;
 }
 
@@ -67,7 +67,7 @@ public sealed record KnowledgeCitation
     public string? Quote { get; init; }
 }
 
-public sealed record KnowledgeEvaluationRequest(string CorpusId, string? TenantId = null, int TopK = 10);
+public sealed record KnowledgeEvaluationRequest(string CorpusId, string TenantId, int TopK = 10);
 public sealed record KnowledgeEvaluationRun(string Id, string CorpusId, IReadOnlyList<KnowledgeEvaluationItem> Items, double RecallAt5, double RecallAt10, double AverageExpectedChunkRank);
 
 public sealed record KnowledgeEvaluationItem
