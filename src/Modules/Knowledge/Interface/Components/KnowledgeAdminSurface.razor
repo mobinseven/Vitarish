@@ -133,7 +133,11 @@
         status = "Evaluation complete.";
     });
 
-    private async Task RefreshCorporaAsync() => corpora = string.IsNullOrWhiteSpace(tenantId) ? [] : await Knowledge.ListCorporaAsync(tenantId.Trim(), CancellationToken.None);
+    private async Task RefreshCorporaAsync()
+    {
+        corpora = string.IsNullOrWhiteSpace(tenantId) ? [] : await Knowledge.ListCorporaAsync(tenantId.Trim(), CancellationToken.None);
+        StateHasChanged();
+    }
     private void SelectCorpus(string id) => selectedImportCorpusId = selectedIndexCorpusId = selectedEvaluationCorpusId = id;
     private void ValidateCorpus() { ValidateTenantAndCorpus(corpusId); if (string.IsNullOrWhiteSpace(name)) throw new InvalidOperationException("Name is required."); }
     private void ValidateTenantAndCorpus(string id) { if (string.IsNullOrWhiteSpace(tenantId)) throw new InvalidOperationException("TenantId is required."); if (string.IsNullOrWhiteSpace(id)) throw new InvalidOperationException("CorpusId is required."); }
