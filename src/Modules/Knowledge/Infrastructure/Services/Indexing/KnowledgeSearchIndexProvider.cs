@@ -6,21 +6,24 @@ using Vitarish.Search.Domain.Models;
 
 namespace Vitarish.Knowledge.Infrastructure.Services.Indexing;
 
-public sealed class KnowledgeSearchIndexProvider(IKnowledgeRepository repository) : ISearchIndexProvider
+public sealed class KnowledgeSearchIndexProvider(IKnowledgeCorpusRepository corpusRepository, IKnowledgeChunkRepository chunkRepository) : ISearchIndexProvider
 {
     public string IndexName => KnowledgeSearchDocumentContract.IndexName;
 
     public async Task<IReadOnlyList<SearchDocument>> GetDocumentsAsync(CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<KnowledgeCorpus> corpora = await repository.ListActiveCorporaAsync(cancellationToken);
-        if (corpora.Count == 0)
+        IReadOnlyList<KnowledgeCorpus> corpora = await corpusRepository.ListAllActiveCorporaForIndexingAsync(cancellationToken);
+        if (corpora.Count == 0) return [];
+
+        Dictionary<Guid, KnowledgeCorpus> corpusById = corpora.ToDictionary(corpus => corpus.Id);
+        List<SearchDocument> documents = [];
+        foreach (IGrouping<string, KnowledgeCorpus> tenantCorpora in corpora.GroupBy(corpus => corpus.TenantId))
         {
-            return [];
+            Guid[] corpusIds = [.. tenantCorpora.Select(corpus => corpus.Id)];
+            IReadOnlyList<KnowledgeChunk> chunks = await chunkRepository.GetChunksForCorporaForIndexingAsync(corpusIds, tenantCorpora.Key, cancellationToken);
+            documents.AddRange(chunks.Select(chunk => KnowledgeSearchDocumentContract.ToSearchDocument(corpusById[chunk.CorpusId], chunk)));
         }
 
-        Dictionary<string, KnowledgeCorpus> corpusById = corpora.ToDictionary(corpus => corpus.Id, StringComparer.Ordinal);
-        IReadOnlyList<KnowledgeChunk> chunks = await repository.GetChunksForCorporaAsync(corpusById.Keys.ToArray(), cancellationToken);
-
-        return [.. chunks.Select(chunk => KnowledgeSearchDocumentContract.ToSearchDocument(corpusById[chunk.CorpusId], chunk))];
+        return documents;
     }
 }

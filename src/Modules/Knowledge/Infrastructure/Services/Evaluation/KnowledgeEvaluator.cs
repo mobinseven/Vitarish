@@ -3,12 +3,11 @@ using Vitarish.Knowledge.Domain.Models;
 
 namespace Vitarish.Knowledge.Infrastructure.Services.Evaluation;
 
-public sealed class KnowledgeEvaluator(IKnowledgeRepository repository, IKnowledgeRetriever retriever, IKnowledgeAnswerer answerer) : IKnowledgeEvaluator
+public sealed class KnowledgeEvaluator(IKnowledgeQuestionRepository repository, IKnowledgeRetriever retriever, IKnowledgeAnswerer answerer) : IKnowledgeEvaluator
 {
     public async Task<KnowledgeEvaluationRun> EvaluateAsync(KnowledgeEvaluationRequest request, CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.CorpusId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
+                ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
         IReadOnlyList<KnowledgeQuestion> questions = await repository.GetQuestionsAsync(request.CorpusId, request.TenantId, cancellationToken);
         List<KnowledgeEvaluationItem> items = [];
         List<int> ranks = [];
@@ -33,12 +32,12 @@ public sealed class KnowledgeEvaluator(IKnowledgeRepository repository, IKnowled
         }
 
         IReadOnlyList<KnowledgeEvaluationItem> retrievableItems = [.. items.Where(static item => item.HasExpectedContext)];
-        return new KnowledgeEvaluationRun(Guid.NewGuid().ToString("n"), request.CorpusId, request.TenantId, items, Ratio(retrievableItems, static item => item.ExpectedContextFoundInTop5), Ratio(retrievableItems, static item => item.ExpectedContextFoundInTop10), ranks.Count == 0 ? 0 : ranks.Average());
+        return new KnowledgeEvaluationRun(Guid.NewGuid(), request.CorpusId, request.TenantId, items, Ratio(retrievableItems, static item => item.ExpectedContextFoundInTop5), Ratio(retrievableItems, static item => item.ExpectedContextFoundInTop10), ranks.Count == 0 ? 0 : ranks.Average());
     }
 
-    private static int FirstExpectedRank(IReadOnlyList<string> expectedChunkIds, IReadOnlyList<KnowledgeHit> hits)
+    private static int FirstExpectedRank(IReadOnlyList<Guid> expectedChunkIds, IReadOnlyList<KnowledgeHit> hits)
     {
-        for (int i = 0; i < hits.Count; i++) if (expectedChunkIds.Contains(hits[i].ChunkId, StringComparer.Ordinal)) return i + 1;
+        for (int i = 0; i < hits.Count; i++) if (expectedChunkIds.Contains(hits[i].ChunkId)) return i + 1;
         return 0;
     }
 

@@ -8,9 +8,9 @@
         <StackCard Label="Packed context chunk ids"><MudText>@string.Join(", ", result.ContextChunkIds)</MudText></StackCard>
         <StackCard Label="Generated answer" HelperText="@(result.Answer.MissingInformation ?? "No missing information")"><MudText Style="white-space: pre-wrap">@result.Answer.Answer</MudText></StackCard>
         <StackCard Label="Citations"><MudText>@string.Join(", ", result.Answer.Citations.Select(citation => citation.ChunkId))</MudText></StackCard>
-        @foreach (KnowledgeHit hit in result.RetrievedHits.Select((hit, index) => hit with { Score = hit.Score }))
+        @foreach (KnowledgeHit hit in result.RetrievedHits)
         {
-            <StackCard Label="@(hit.Title ?? hit.ChunkId)" Caption="@hit.ChunkId" HelperText="@($"Score {hit.Score:0.###} · Cited {result.Answer.Citations.Any(citation => citation.ChunkId == hit.ChunkId)}")">
+            <StackCard Label="@(hit.Title ?? hit.ChunkId.ToString())" Caption="@hit.ChunkId.ToString()" HelperText="@($"Score {hit.Score:0.###} · Cited {result.Answer.Citations.Any(citation => citation.ChunkId == hit.ChunkId)}")">
                 <MudText Typo="Typo.body2">@Preview(hit.Text)</MudText>
             </StackCard>
         }
@@ -27,7 +27,8 @@
     private async Task DebugAsync()
     {
         if (string.IsNullOrWhiteSpace(question)) return;
-        result = await Diagnostics.DebugAskAsync(new KnowledgeAskRequest { CorpusId = CorpusId, TenantId = TenantId, Question = question.Trim(), TopK = topK }, CancellationToken.None);
+        result = await Diagnostics.DebugAskAsync(new KnowledgeAskRequest { CorpusId = ParseId(CorpusId), TenantId = TenantId, Question = question.Trim(), TopK = topK }, CancellationToken.None);
     }
+    private static Guid ParseId(string id) => Guid.TryParse(id?.Trim(), out Guid value) ? value : throw new InvalidOperationException("CorpusId must be a GUID.");
     private static string Preview(string text) => text.Length <= 240 ? text : text[..240];
 }

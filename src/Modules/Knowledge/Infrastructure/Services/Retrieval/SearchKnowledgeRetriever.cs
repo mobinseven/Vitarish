@@ -8,7 +8,6 @@ public sealed class SearchKnowledgeRetriever(ISearchService search) : IKnowledge
 {
     public async Task<IReadOnlyList<KnowledgeHit>> RetrieveAsync(KnowledgeQuery query, CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(query.CorpusId);
         ArgumentException.ThrowIfNullOrWhiteSpace(query.Question);
         ArgumentException.ThrowIfNullOrWhiteSpace(query.TenantId);
 
@@ -17,7 +16,7 @@ public sealed class SearchKnowledgeRetriever(ISearchService search) : IKnowledge
             Limit = query.TopK,
             Type = KnowledgeSearchDocumentContract.DocumentType,
             TenantId = query.TenantId,
-            CorpusId = query.CorpusId,
+            CorpusId = query.CorpusId.ToString("N"),
             MetadataFilters = query.Filters ?? new Dictionary<string, string>()
         }, cancellationToken);
 
