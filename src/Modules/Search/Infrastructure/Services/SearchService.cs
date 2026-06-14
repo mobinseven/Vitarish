@@ -342,7 +342,6 @@ internal sealed class SearchService : ISearchService
             new TermQuery { Field = new Field("id.keyword"), Value = query, Boost = 10 },
             new TermQuery { Field = new Field("title.keyword"), Value = query, Boost = 8 }
         ];
-
         if (searchOptions.RetrievalMode is SearchRetrievalMode.Balanced or SearchRetrievalMode.Broad)
         {
             shouldQueries.Add(new MultiMatchQuery
@@ -353,11 +352,19 @@ internal sealed class SearchService : ISearchService
                 PrefixLength = 1,
                 MaxExpansions = 25
             });
-
             shouldQueries.Add(new MultiMatchQuery
             {
                 Query = query,
                 Fields = Fields.FromStrings(["title.synonym^2", "body.synonym"])
+            });
+        }
+        if (searchOptions.RetrievalMode is SearchRetrievalMode.Broad && IsSemanticRetrievalAvailable())
+        {
+            shouldQueries.Add(new KnnQuery
+            {
+                Field = new Field("vector"),
+                QueryVector = new float[] { /* TODO: Implementation dependent: vectorization of query string */ },
+                Boost = 5
             });
         }
 
