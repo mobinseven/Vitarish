@@ -3,7 +3,6 @@ namespace Vitarish.Knowledge.Domain.Models;
 [EntityDescriptorFor(typeof(KnowledgeCorpusEntity))]
 public sealed record KnowledgeCorpusDescriptor : EntityDescriptor
 {
-    public Guid? Id { get; init; }
     public string? TenantId { get; init; }
     public bool? IsActive { get; init; }
 }
@@ -11,7 +10,6 @@ public sealed record KnowledgeCorpusDescriptor : EntityDescriptor
 [EntityDescriptorFor(typeof(KnowledgeSourceEntity))]
 public sealed record KnowledgeSourceDescriptor : EntityDescriptor
 {
-    public Guid? Id { get; init; }
     public Guid? CorpusId { get; init; }
     public string? TenantId { get; init; }
 }
@@ -19,7 +17,6 @@ public sealed record KnowledgeSourceDescriptor : EntityDescriptor
 [EntityDescriptorFor(typeof(KnowledgeDocumentEntity))]
 public sealed record KnowledgeDocumentDescriptor : EntityDescriptor
 {
-    public Guid? Id { get; init; }
     public Guid? CorpusId { get; init; }
     public Guid? SourceId { get; init; }
     public string? TenantId { get; init; }
@@ -28,7 +25,6 @@ public sealed record KnowledgeDocumentDescriptor : EntityDescriptor
 [EntityDescriptorFor(typeof(KnowledgeChunkEntity))]
 public sealed record KnowledgeChunkDescriptor : EntityDescriptor
 {
-    public Guid? Id { get; init; }
     public IReadOnlyCollection<Guid>? CorpusIds { get; init; }
     public Guid? CorpusId { get; init; }
     public Guid? SourceId { get; init; }
