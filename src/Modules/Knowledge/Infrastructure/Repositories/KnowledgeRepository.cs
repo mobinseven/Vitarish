@@ -111,5 +111,5 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
     private async Task<KnowledgeCorpusEntity> RequireCorpusAsync(string corpusId, string tenantId, CancellationToken cancellationToken) => await dbContext.Corpora.FirstOrDefaultAsync(c => c.ExternalId == corpusId && c.TenantId == tenantId, cancellationToken) ?? throw new InvalidOperationException($"Knowledge corpus '{corpusId}' does not exist for tenant '{tenantId}'.");
     private async Task RemoveQuestionsForChunksAsync(string corpusId, IReadOnlyCollection<string> chunkIds, CancellationToken cancellationToken)
     { if (chunkIds.Count == 0) return; HashSet<string> chunkIdSet = new(chunkIds, StringComparer.Ordinal); KnowledgeQuestionEntity[] rows = [.. (await dbContext.Questions.Where(q => q.CorpusId == corpusId).ToListAsync(cancellationToken)).Where(q => EntityMapper.DeserializeStringList(q.ExpectedChunkIdsJson).Any(chunkIdSet.Contains))]; dbContext.Questions.RemoveRange(rows); }
-    private static void Validate(string value) => ArgumentException.ThrowIfNullOrWhiteSpace(value);
+    private static void Validate(string value, [System.Runtime.CompilerServices.CallerArgumentExpression(nameof(value))] string? paramName = null) => ArgumentException.ThrowIfNullOrWhiteSpace(value, paramName);
 }
