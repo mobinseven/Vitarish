@@ -25,6 +25,8 @@ public interface IKnowledgeRepository
     Task<IReadOnlyList<KnowledgeQuestion>> GetQuestionsAsync(string corpusId, string tenantId, CancellationToken cancellationToken);
     Task SaveImportAsync(KnowledgeImportResult result, CancellationToken cancellationToken);
     Task SaveAskTraceAsync(KnowledgeAskTrace trace, CancellationToken cancellationToken);
+    Task SaveIndexRunAsync(KnowledgeIndexRun run, CancellationToken cancellationToken);
+    Task<KnowledgeIndexRun?> GetLatestIndexRunAsync(string corpusId, string tenantId, CancellationToken cancellationToken);
 }
 
 public interface IKnowledgeService : IKnowledgeImporter

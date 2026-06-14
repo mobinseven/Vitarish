@@ -11,6 +11,7 @@ public sealed class KnowledgeDbContext(DbContextOptions<KnowledgeDbContext> opti
     public DbSet<KnowledgeChunkEntity> Chunks => Set<KnowledgeChunkEntity>();
     public DbSet<KnowledgeQuestionEntity> Questions => Set<KnowledgeQuestionEntity>();
     public DbSet<KnowledgeAskTraceEntity> AskTraces => Set<KnowledgeAskTraceEntity>();
+    public DbSet<KnowledgeIndexRunEntity> IndexRuns => Set<KnowledgeIndexRunEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -98,6 +99,24 @@ public sealed class KnowledgeDbContext(DbContextOptions<KnowledgeDbContext> opti
             entity.HasOne<KnowledgeCorpusEntity>()
                 .WithMany()
                 .HasForeignKey(question => question.CorpusId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+
+
+        modelBuilder.Entity<KnowledgeIndexRunEntity>(entity =>
+        {
+            entity.ToTable("KnowledgeIndexRuns");
+            entity.HasKey(run => run.Id);
+            entity.Property(run => run.Id).HasMaxLength(64);
+            entity.Property(run => run.CorpusId).HasMaxLength(128).IsRequired();
+            entity.Property(run => run.TenantId).HasMaxLength(128).IsRequired();
+            entity.Property(run => run.Scope).HasMaxLength(32).IsRequired();
+            entity.Property(run => run.SourceId).HasMaxLength(64);
+            entity.HasIndex(run => new { run.TenantId, run.CorpusId, run.CreatedAt });
+            entity.HasOne<KnowledgeCorpusEntity>()
+                .WithMany()
+                .HasForeignKey(run => run.CorpusId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 

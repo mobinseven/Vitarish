@@ -246,6 +246,49 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+
+    public async Task SaveIndexRunAsync(KnowledgeIndexRun run, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(run);
+        ArgumentException.ThrowIfNullOrWhiteSpace(run.Id);
+        ArgumentException.ThrowIfNullOrWhiteSpace(run.CorpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(run.TenantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(run.Scope);
+
+        dbContext.IndexRuns.Add(new KnowledgeIndexRunEntity
+        {
+            Id = run.Id,
+            CorpusId = run.CorpusId,
+            TenantId = run.TenantId,
+            IndexedChunkCount = run.IndexedChunkCount,
+            Scope = run.Scope,
+            SourceId = run.SourceId,
+            CreatedAt = run.CreatedAt
+        });
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task<KnowledgeIndexRun?> GetLatestIndexRunAsync(string corpusId, string tenantId, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+
+        return await dbContext.IndexRuns.AsNoTracking()
+            .Where(run => run.CorpusId == corpusId && run.TenantId == tenantId)
+            .OrderByDescending(run => run.CreatedAt)
+            .Select(run => new KnowledgeIndexRun
+            {
+                Id = run.Id,
+                CorpusId = run.CorpusId,
+                TenantId = run.TenantId,
+                IndexedChunkCount = run.IndexedChunkCount,
+                Scope = run.Scope,
+                SourceId = run.SourceId,
+                CreatedAt = run.CreatedAt
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+    }
+
     private static IReadOnlyList<string> DeserializeStringList(string json)
     {
         if (string.IsNullOrWhiteSpace(json))

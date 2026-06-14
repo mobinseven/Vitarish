@@ -19,6 +19,14 @@ public sealed class SearchKnowledgeIndexer(IKnowledgeRepository repository, ISea
         IReadOnlyList<KnowledgeChunk> chunks = await repository.GetChunksAsync(corpus.Id, tenantId, cancellationToken);
         SearchDocument[] documents = [.. chunks.Select(chunk => KnowledgeSearchDocumentContract.ToSearchDocument(corpus, chunk))];
         await search.IndexAsync(KnowledgeSearchDocumentContract.IndexName, documents, cancellationToken);
+        await repository.SaveIndexRunAsync(new KnowledgeIndexRun
+        {
+            Id = Guid.NewGuid().ToString("n"),
+            CorpusId = corpusId,
+            TenantId = tenantId,
+            IndexedChunkCount = documents.Length,
+            CreatedAt = DateTimeOffset.UtcNow
+        }, cancellationToken);
         return new KnowledgeIndexResult(corpusId, documents.Length);
     }
 }

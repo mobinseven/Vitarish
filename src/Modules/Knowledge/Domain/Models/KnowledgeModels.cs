@@ -64,3 +64,14 @@ public sealed record KnowledgeQuestion
     public string? ExpectedAnswer { get; init; }
     public IReadOnlyList<string> ExpectedChunkIds { get; init; } = [];
 }
+
+public sealed record KnowledgeIndexRun
+{
+    public required string Id { get; init; }
+    public required string CorpusId { get; init; }
+    public required string TenantId { get; init; }
+    public int IndexedChunkCount { get; init; }
+    public string Scope { get; init; } = "corpus";
+    public string? SourceId { get; init; }
+    public DateTimeOffset CreatedAt { get; init; }
+}
