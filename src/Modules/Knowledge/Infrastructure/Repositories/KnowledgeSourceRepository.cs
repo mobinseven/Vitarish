@@ -6,6 +6,7 @@ using Vitarish.Knowledge.Domain.Entities;
 using Vitarish.Knowledge.Domain.Mappers;
 using Vitarish.Knowledge.Domain.Models;
 using Vitarish.Knowledge.Infrastructure.Data;
+using Vitarish.Knowledge.Infrastructure.Extensions;
 
 namespace Vitarish.Knowledge.Infrastructure.Repositories;
 

@@ -12,6 +12,70 @@ public partial class EntityMapper
     public static KnowledgeQuestion ToModel(KnowledgeQuestionEntity entity) => new() { Id = entity.Id, CorpusId = entity.CorpusId, Question = entity.Question, ExpectedAnswer = entity.ExpectedAnswer, ExpectedChunkIds = DeserializeStringList(entity.ExpectedChunkIdsJson) };
     public static KnowledgeIndexRun ToModel(KnowledgeIndexRunEntity entity) => new() { Id = entity.Id, CorpusId = entity.CorpusId, TenantId = entity.TenantId, IndexedChunkCount = entity.IndexedChunkCount, Scope = entity.Scope, SourceId = entity.SourceId, CreatedAt = entity.CreatedAt };
 
+
+    public static KnowledgeCorpusEntity ToEntity(KnowledgeCorpus source) =>
+        new()
+        {
+            Id = source.Id,
+            TenantId = source.TenantId,
+            Name = source.Name,
+            IsActive = source.IsActive,
+            Description = source.Description,
+        };
+
+    public static KnowledgeSourceEntity ToEntity(KnowledgeSource source) =>
+        new()
+        {
+            Id = source.Id,
+            CorpusId = source.CorpusId,
+            TenantId = source.TenantId,
+            Name = source.Name,
+            SourceType = source.SourceType,
+            OriginalLocation = source.OriginalLocation,
+            Version = source.Version,
+            Checksum = source.Checksum,
+            ImportedAt = source.ImportedAt
+        };
+
+    public static KnowledgeDocumentEntity ToEntity(KnowledgeDocument document) =>
+        new()
+        {
+            Id = document.Id,
+            CorpusId = document.CorpusId,
+            TenantId = document.TenantId,
+            SourceId = document.SourceId,
+            Title = document.Title,
+            Text = document.Text,
+            Product = document.Product,
+            Version = document.Version,
+            Language = document.Language
+        };
+
+    public static KnowledgeChunkEntity ToEntity(KnowledgeChunk chunk) =>
+        new()
+        {
+            Id = chunk.Id,
+            CorpusId = chunk.CorpusId,
+            SourceId = chunk.SourceId,
+            DocumentId = chunk.DocumentId,
+            TenantId = chunk.TenantId,
+            Text = chunk.Text,
+            Order = chunk.Order,
+            Title = chunk.Title,
+            HeadingPath = chunk.HeadingPath
+        };
+
+    public static KnowledgeQuestionEntity ToEntity(KnowledgeQuestion question) =>
+        new()
+        {
+            Id = question.Id,
+            CorpusId = question.CorpusId,
+            Question = question.Question,
+            ExpectedAnswer = question.ExpectedAnswer,
+            ExpectedChunkIdsJson = JsonSerializer.Serialize(
+                question.ExpectedChunkIds,
+                JsonOptions)
+        };
     public static IReadOnlyList<Guid> DeserializeStringList(string json)
     {
         if (string.IsNullOrWhiteSpace(json)) return [];

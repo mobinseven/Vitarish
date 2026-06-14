@@ -63,18 +63,6 @@ public interface IKnowledgeIndexRunRepository
     Task<KnowledgeIndexRun?> GetLatestIndexRunAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken);
 }
 
-public interface IKnowledgeImportCommandHandler
-{
-    Task SaveImportAsync(KnowledgeImportResult result, CancellationToken cancellationToken);
-    Task ReplaceSourceAsync(Guid sourceId, KnowledgeImportResult result, CancellationToken cancellationToken);
-}
-
-public interface IKnowledgeImportPersistenceRepository
-{
-    Task SaveImportAsync(KnowledgeImportResult result, CancellationToken cancellationToken);
-    Task ReplaceSourceAsync(Guid sourceId, KnowledgeImportResult result, CancellationToken cancellationToken);
-}
-
 public interface IKnowledgeService : IKnowledgeImporter
 {
     Task SaveCorpusAsync(KnowledgeCorpus corpus, CancellationToken cancellationToken);

@@ -1,23 +1,25 @@
+using MediatR;
 using Vitarish.Knowledge.Application.Abstractions;
+using Vitarish.Knowledge.Application.Commands;
 using Vitarish.Knowledge.Domain.Models;
 
 namespace Vitarish.Knowledge.Infrastructure.Services.Importing;
 
-public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeCorpusRepository corpusRepository, IKnowledgeImportCommandHandler importCommandHandler) : IKnowledgeImporter
+public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeCorpusRepository corpusRepository, ISender sender) : IKnowledgeImporter
 {
     private readonly KnowledgeImportContentReader contentReader = new();
 
     public async Task<KnowledgeImportResult> ImportAsync(KnowledgeImportRequest request, CancellationToken cancellationToken)
     {
         KnowledgeImportResult result = await BuildImportResultAsync(null, request, cancellationToken);
-        await importCommandHandler.SaveImportAsync(result, cancellationToken);
+        await sender.Send(new SaveKnowledgeImportCommand(result), cancellationToken);
         return result;
     }
 
     public async Task<KnowledgeImportResult> ReplaceSourceAsync(Guid sourceId, KnowledgeImportRequest request, CancellationToken cancellationToken)
     {
         KnowledgeImportResult result = await BuildImportResultAsync(sourceId, request, cancellationToken);
-        await importCommandHandler.ReplaceSourceAsync(sourceId, result, cancellationToken);
+        await sender.Send(new ReplaceKnowledgeSourceImportCommand(sourceId, result), cancellationToken);
         return result;
     }
 
@@ -27,9 +29,12 @@ public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeCorpu
         ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Format);
         KnowledgeCorpus? corpus = await corpusRepository.GetCorpusAsync(request.CorpusId, request.TenantId, cancellationToken);
-        if (corpus is null) throw new InvalidOperationException($"Knowledge corpus '{request.CorpusId}' does not exist.");
-        if (!corpus.IsActive) throw new InvalidOperationException($"Knowledge corpus '{request.CorpusId}' is inactive.");
-        if (!string.Equals(corpus.TenantId, request.TenantId, StringComparison.Ordinal)) throw new InvalidOperationException($"Knowledge corpus '{request.CorpusId}' is not available for tenant '{request.TenantId}'.");
+        if (corpus is null)
+            throw new InvalidOperationException($"Knowledge corpus '{request.CorpusId}' does not exist.");
+        if (!corpus.IsActive)
+            throw new InvalidOperationException($"Knowledge corpus '{request.CorpusId}' is inactive.");
+        if (!string.Equals(corpus.TenantId, request.TenantId, StringComparison.Ordinal))
+            throw new InvalidOperationException($"Knowledge corpus '{request.CorpusId}' is not available for tenant '{request.TenantId}'.");
 
         string sourceName = request.SourceName ?? request.Format;
         KnowledgeImportContent content = await contentReader.ReadAsync(request.Content, request.Format, sourceName, cancellationToken);
@@ -91,13 +96,15 @@ public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeCorpu
 
     private static IReadOnlyList<Guid> FindExpectedChunkIds(IReadOnlyList<string> expectedContextTexts, IReadOnlyList<KnowledgeChunk> chunks)
     {
-        if (expectedContextTexts.Count == 0) return [];
+        if (expectedContextTexts.Count == 0)
+            return [];
 
         string[] trimmedContexts = [.. expectedContextTexts
             .Select(static t => t.Trim())
             .Where(static t => t.Length > 0)];
 
-        if (trimmedContexts.Length == 0) return [];
+        if (trimmedContexts.Length == 0)
+            return [];
 
         return [.. chunks
             .Where(chunk =>

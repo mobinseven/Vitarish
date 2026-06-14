@@ -6,6 +6,7 @@ using Vitarish.Knowledge.Application.Abstractions;
 using Vitarish.Knowledge.Domain.Entities;
 using Vitarish.Knowledge.Domain.Models;
 using Vitarish.Knowledge.Infrastructure.Data;
+using Vitarish.Knowledge.Infrastructure.Validators;
 
 namespace Vitarish.Knowledge.Infrastructure.Repositories;
 
