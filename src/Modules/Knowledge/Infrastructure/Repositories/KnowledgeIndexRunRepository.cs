@@ -23,8 +23,16 @@ public sealed class KnowledgeIndexRunRepository(KnowledgeDbContext dbContext)
         ArgumentException.ThrowIfNullOrWhiteSpace(run.TenantId);
         bool corpusExists = await DbContext.Corpora.AnyAsync(c => c.Id == run.CorpusId && c.TenantId == run.TenantId, cancellationToken);
         if (!corpusExists) throw new InvalidOperationException($"Knowledge corpus '{run.CorpusId}' does not exist for tenant '{run.TenantId}'.");
-        DbContext.IndexRuns.Add(new KnowledgeIndexRunEntity { Id = run.Id, CorpusId = run.CorpusId, TenantId = run.TenantId, IndexedChunkCount = run.IndexedChunkCount, Scope = run.Scope, SourceId = run.SourceId });
-        _ = await DbContext.SaveChangesAsync(cancellationToken);
+        KnowledgeIndexRunEntity entity = new()
+        {
+            Id = run.Id,
+            CorpusId = run.CorpusId,
+            TenantId = run.TenantId,
+            IndexedChunkCount = run.IndexedChunkCount,
+            Scope = run.Scope,
+            SourceId = run.SourceId
+        };
+        _ = await AddAsync(entity, cancellationToken);
     }
 
     public async Task<KnowledgeIndexRun?> GetLatestIndexRunAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken)

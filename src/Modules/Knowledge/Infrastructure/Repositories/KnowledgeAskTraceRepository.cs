@@ -23,7 +23,19 @@ public sealed class KnowledgeAskTraceRepository(KnowledgeDbContext dbContext)
         ArgumentException.ThrowIfNullOrWhiteSpace(trace.TenantId);
         bool corpusExists = await DbContext.Corpora.AnyAsync(c => c.Id == trace.CorpusId && c.TenantId == trace.TenantId, cancellationToken);
         if (!corpusExists) throw new InvalidOperationException($"Knowledge corpus '{trace.CorpusId}' does not exist for tenant '{trace.TenantId}'.");
-        DbContext.AskTraces.Add(new KnowledgeAskTraceEntity { Id = trace.Id, CorpusId = trace.CorpusId, TenantId = trace.TenantId, Question = trace.Question, RetrievedChunkIdsJson = JsonSerializer.Serialize(trace.RetrievedChunkIds, KnowledgeImportRules.JsonOptions), GeneratedAnswer = trace.GeneratedAnswer, MissingInformation = trace.MissingInformation, CitationsJson = trace.CitationsJson, TraceKind = trace.TraceKind, IsAnswered = trace.IsAnswered });
-        _ = await DbContext.SaveChangesAsync(cancellationToken);
+        KnowledgeAskTraceEntity entity = new()
+        {
+            Id = trace.Id,
+            CorpusId = trace.CorpusId,
+            TenantId = trace.TenantId,
+            Question = trace.Question,
+            RetrievedChunkIdsJson = JsonSerializer.Serialize(trace.RetrievedChunkIds, KnowledgeImportRules.JsonOptions),
+            GeneratedAnswer = trace.GeneratedAnswer,
+            MissingInformation = trace.MissingInformation,
+            CitationsJson = trace.CitationsJson,
+            TraceKind = trace.TraceKind,
+            IsAnswered = trace.IsAnswered
+        };
+        _ = await AddAsync(entity, cancellationToken);
     }
 }

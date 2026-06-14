@@ -22,10 +22,15 @@ public sealed class KnowledgeCorpusRepository(KnowledgeDbContext dbContext)
         ArgumentNullException.ThrowIfNull(corpus);
         ArgumentException.ThrowIfNullOrWhiteSpace(corpus.Name);
         ArgumentException.ThrowIfNullOrWhiteSpace(corpus.TenantId);
-        KnowledgeCorpusEntity? existing = await DbContext.Corpora.FirstOrDefaultAsync(row => row.Id == corpus.Id && row.TenantId == corpus.TenantId, cancellationToken);
-        if (existing is null) DbContext.Corpora.Add(new KnowledgeCorpusEntity { Id = corpus.Id, Name = corpus.Name, TenantId = corpus.TenantId, Description = corpus.Description, IsActive = corpus.IsActive });
-        else { existing.Name = corpus.Name; existing.Description = corpus.Description; existing.IsActive = corpus.IsActive; }
-        _ = await DbContext.SaveChangesAsync(cancellationToken);
+        KnowledgeCorpusEntity entity = new()
+        {
+            Id = corpus.Id,
+            Name = corpus.Name,
+            TenantId = corpus.TenantId,
+            Description = corpus.Description,
+            IsActive = corpus.IsActive
+        };
+        _ = await AddOrUpdateAsync(entity, cancellationToken);
     }
 
     public async Task<KnowledgeCorpus?> GetCorpusAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken)
