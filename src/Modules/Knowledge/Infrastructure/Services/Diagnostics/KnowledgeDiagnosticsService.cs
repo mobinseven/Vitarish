@@ -157,8 +157,13 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
         return new KnowledgePipelineDiagnostics
         {
             CorpusCreated = Pass("Corpus exists.", new Dictionary<string, object?> { ["name"] = corpus.Name, ["isActive"] = corpus.IsActive }),
-            ContentImported = chunks.Count > 0 ? Pass("Content has been imported.", new Dictionary<string, object?> { ["chunkCount"] = chunks.Count }) : Fail("No imported chunks exist."),
-            ChunksCreated = chunks.Count > 0 ? Pass("Chunks were created.", new Dictionary<string, object?> { ["chunkCount"] = chunks.Count, ["emptyChunkCount"] = chunks.Count(chunk => string.IsNullOrWhiteSpace(chunk.Text)), ["minLength"] = chunks.Min(chunk => chunk.Text.Length), ["maxLength"] = chunks.Max(chunk => chunk.Text.Length) }) : Fail("No chunks were created."),
+        var chunkStats = chunks.Count > 0 ? new { Count = chunks.Count, EmptyCount = chunks.Count(chunk => string.IsNullOrWhiteSpace(chunk.Text)), MinLength = chunks.Min(chunk => chunk.Text.Length), MaxLength = chunks.Max(chunk => chunk.Text.Length) } : null;
+
+        return new KnowledgePipelineDiagnostics
+        {
+            CorpusCreated = Pass("Corpus exists.", new Dictionary<string, object?> { ["name"] = corpus.Name, ["isActive"] = corpus.IsActive }),
+            ContentImported = chunkStats is not null ? Pass("Content has been imported.", new Dictionary<string, object?> { ["chunkCount"] = chunkStats.Count }) : Fail("No imported chunks exist."),
+            ChunksCreated = chunkStats is not null ? Pass("Chunks were created.", new Dictionary<string, object?> { ["chunkCount"] = chunkStats.Count, ["emptyChunkCount"] = chunkStats.EmptyCount, ["minLength"] = chunkStats.MinLength, ["maxLength"] = chunkStats.MaxLength }) : Fail("No chunks were created."),
             CorpusIndexed = indexRun is null ? Fail("No persisted index run exists.", new Dictionary<string, object?> { ["status"] = "missing" }) : Pass("Corpus has a persisted index run.", new Dictionary<string, object?> { ["indexedChunkCount"] = indexRun.IndexedChunkCount, ["createdAt"] = indexRun.CreatedAt, ["scope"] = indexRun.Scope }),
             SearchRetrievedChunks = searchRetrieved,
             ContextPackedChunks = contextPacked,
