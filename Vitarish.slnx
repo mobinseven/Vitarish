@@ -193,6 +193,7 @@
     <Project Path="tests/Modules/Knowledge.Tests/Knowledge.Tests.csproj" />
     <Project Path="tests/Modules/Parties.Tests/Parties.Tests.csproj" />
     <Project Path="tests/Modules/Requests.Tests/Requests.Tests.csproj" />
+    <Project Path="tests/Modules/Search.Tests/Search.Tests.csproj" />
     <Project Path="tests/Modules/Users.Tests/Users.Tests.csproj" />
   </Folder>
 </Solution>
