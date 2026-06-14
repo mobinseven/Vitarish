@@ -30,4 +30,6 @@
 		<AssemblyName Condition="'$(AssemblyName)'=='' and '$(SolutionRootNamespace)'!=''">$(SolutionRootNamespace).$(MSBuildProjectName)</AssemblyName>
 	</PropertyGroup>
 
+	<Import Project="Build/ModuleBuildProfiles.props" />
+
 </Project>

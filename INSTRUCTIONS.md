@@ -74,3 +74,17 @@ tests/                    tests mirror the source area they verify
 ## Journey maps
 
 Journey maps, which are directions about UX, are stored in `docs\journeys\*`.
+
+## Focused module builds
+
+For faster inner-loop builds, use the module build profile flags documented in `docs/development/focused-builds.md`. The source of truth is `src/Build/ModuleBuildProfiles.props`, with `ModuleBuildProfile=All` preserving the full module graph.
+
+Examples:
+
+```bash
+dotnet build src/Hosts/Main/Main.csproj -p:ModuleBuildProfile=Users
+dotnet build src/Hosts/Main/Main.csproj -p:ModuleBuildProfile=Appointments
+dotnet build src/Hosts/Main/Main.csproj -p:ModuleBuildProfile=Custom -p:EnableUsersModule=true -p:EnableAppointmentsModule=true
+```
+
+Use focused builds only for local speed. Before submitting changes, run `ModuleBuildProfile=All` or the full solution build. Keep module selection in MSBuild project composition; do not add source-level `#if` switches for disabled modules.
