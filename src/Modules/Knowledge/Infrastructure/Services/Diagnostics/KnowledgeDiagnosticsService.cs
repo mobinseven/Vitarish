@@ -2,11 +2,12 @@ using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Knowledge.Application.Abstractions;
 using Vitarish.Knowledge.Domain.Entities;
+using Vitarish.Knowledge.Domain.Models;
 using Vitarish.Knowledge.Infrastructure.Data;
 
 namespace Vitarish.Knowledge.Infrastructure.Services.Diagnostics;
 
-public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IKnowledgeRetriever retriever, IKnowledgeContextBuilder contextBuilder, IKnowledgeAnswerer answerer) : IKnowledgeDiagnosticsService
+public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IKnowledgeRepository repository, IKnowledgeRetriever retriever, IKnowledgeContextBuilder contextBuilder, IKnowledgeAnswerer answerer) : IKnowledgeDiagnosticsService
 {
     private const int PreviewLength = 240;
     private const string IndexProbe = "the";
@@ -94,6 +95,140 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
         return [.. rows.Select(MapTraceDiagnostics)];
     }
 
+
+    public async Task<KnowledgePipelineDiagnostics> InspectAsync(KnowledgeDiagnosticsRequest request, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(request);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.CorpusId);
+        if (request.TopK < 1) throw new ArgumentOutOfRangeException(nameof(request), request.TopK, "TopK must be at least 1.");
+
+        KnowledgeCorpus? corpus = await repository.GetCorpusAsync(request.CorpusId, request.TenantId, cancellationToken);
+        if (corpus is null)
+        {
+            KnowledgeCheck corpusMissing = Fail("Corpus does not exist for this tenant.");
+            return new KnowledgePipelineDiagnostics
+            {
+                CorpusCreated = corpusMissing,
+                ContentImported = Fail("Corpus is missing."),
+                ChunksCreated = Fail("Corpus is missing."),
+                CorpusIndexed = Fail("Corpus is missing."),
+                SearchRetrievedChunks = Fail("Corpus is missing."),
+                ContextPackedChunks = Fail("Corpus is missing."),
+                AnswerHasValidCitations = Fail("Corpus is missing."),
+                RefusalIsGrounded = Fail("Corpus is missing.")
+            };
+        }
+
+        var chunkStats = await dbContext.Chunks.AsNoTracking()
+            .Where(c => c.CorpusId == request.CorpusId && c.TenantId == request.TenantId)
+            .GroupBy(_ => 1)
+            .Select(g => new
+            {
+                Count = g.Count(),
+                EmptyCount = g.Count(c => string.IsNullOrWhiteSpace(c.Text)),
+                MinLength = g.Min(c => c.Text.Length),
+                MaxLength = g.Max(c => c.Text.Length)
+            })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        KnowledgeIndexRun? indexRun = await repository.GetLatestIndexRunAsync(request.CorpusId, request.TenantId, cancellationToken);
+        KnowledgeAskDebugResult? debugAsk = null;
+        KnowledgeCheck searchRetrieved = Fail("No question was provided.");
+        KnowledgeCheck contextPacked = Fail("No question was provided.");
+        KnowledgeCheck answerCitations = Fail("No question was provided.");
+        KnowledgeCheck refusal = Fail("No question was provided.");
+
+        if (!string.IsNullOrWhiteSpace(request.Question))
+        {
+            debugAsk = await DebugAskAsync(new KnowledgeAskRequest
+            {
+                CorpusId = request.CorpusId,
+                TenantId = request.TenantId,
+                Question = request.Question,
+                TopK = request.TopK,
+                SaveTrace = true,
+                TraceKind = "diagnostic"
+            }, cancellationToken);
+
+            searchRetrieved = debugAsk.RetrievedHits.Count > 0
+                ? Pass("Search retrieved chunks.", new Dictionary<string, object?> { ["hitCount"] = debugAsk.RetrievedHits.Count, ["topChunkId"] = debugAsk.RetrievedHits[0].ChunkId, ["topScore"] = debugAsk.RetrievedHits[0].Score })
+                : Fail("Search retrieved no chunks.", new Dictionary<string, object?> { ["failureStage"] = debugAsk.FailureStage.ToString() });
+            contextPacked = debugAsk.ContextChunkIds.Count > 0
+                ? Pass("Context packing included chunks.", new Dictionary<string, object?> { ["contextChunkCount"] = debugAsk.ContextChunkIds.Count, ["contextChunkIds"] = debugAsk.ContextChunkIds })
+                : Fail("No chunks were included in packed context.", new Dictionary<string, object?> { ["failureStage"] = debugAsk.FailureStage.ToString() });
+            answerCitations = debugAsk.Answer.IsAnswered && debugAsk.Answer.Citations.Count > 0
+                ? Pass("Answer contains valid citations.", new Dictionary<string, object?> { ["citationCount"] = debugAsk.Answer.Citations.Count })
+                : Fail(debugAsk.Answer.MissingInformation ?? "Answer did not include valid citations.", new Dictionary<string, object?> { ["failureStage"] = debugAsk.FailureStage.ToString() });
+            refusal = !debugAsk.Answer.IsAnswered
+                ? Pass("Refusal is explicit and grounded.", new Dictionary<string, object?> { ["missingInformation"] = debugAsk.Answer.MissingInformation, ["failureStage"] = debugAsk.FailureStage.ToString() })
+                : Pass("No refusal was needed.");
+        }
+
+        return new KnowledgePipelineDiagnostics
+        {
+            CorpusCreated = Pass("Corpus exists.", new Dictionary<string, object?> { ["name"] = corpus.Name, ["isActive"] = corpus.IsActive }),
+            ContentImported = chunkStats is not null ? Pass("Content has been imported.", new Dictionary<string, object?> { ["chunkCount"] = chunkStats.Count }) : Fail("No imported chunks exist."),
+            ChunksCreated = chunkStats is not null ? Pass("Chunks were created.", new Dictionary<string, object?> { ["chunkCount"] = chunkStats.Count, ["emptyChunkCount"] = chunkStats.EmptyCount, ["minLength"] = chunkStats.MinLength, ["maxLength"] = chunkStats.MaxLength }) : Fail("No chunks were created."),
+            CorpusIndexed = indexRun is null ? Fail("No persisted index run exists.", new Dictionary<string, object?> { ["status"] = "missing" }) : Pass("Corpus has a persisted index run.", new Dictionary<string, object?> { ["indexedChunkCount"] = indexRun.IndexedChunkCount, ["createdAt"] = indexRun.CreatedAt, ["scope"] = indexRun.Scope }),
+            SearchRetrievedChunks = searchRetrieved,
+            ContextPackedChunks = contextPacked,
+            AnswerHasValidCitations = answerCitations,
+            RefusalIsGrounded = refusal,
+            DebugAsk = debugAsk
+        };
+        KnowledgeIndexRun? indexRun = await repository.GetLatestIndexRunAsync(request.CorpusId, request.TenantId, cancellationToken);
+        KnowledgeAskDebugResult? debugAsk = null;
+        KnowledgeCheck searchRetrieved = Fail("No question was provided.");
+        KnowledgeCheck contextPacked = Fail("No question was provided.");
+        KnowledgeCheck answerCitations = Fail("No question was provided.");
+        KnowledgeCheck refusal = Fail("No question was provided.");
+
+        if (!string.IsNullOrWhiteSpace(request.Question))
+        {
+            debugAsk = await DebugAskAsync(new KnowledgeAskRequest
+            {
+                CorpusId = request.CorpusId,
+                TenantId = request.TenantId,
+                Question = request.Question,
+                TopK = request.TopK,
+                SaveTrace = true,
+                TraceKind = "diagnostic"
+            }, cancellationToken);
+
+            searchRetrieved = debugAsk.RetrievedHits.Count > 0
+                ? Pass("Search retrieved chunks.", new Dictionary<string, object?> { ["hitCount"] = debugAsk.RetrievedHits.Count, ["topChunkId"] = debugAsk.RetrievedHits[0].ChunkId, ["topScore"] = debugAsk.RetrievedHits[0].Score })
+                : Fail("Search retrieved no chunks.", new Dictionary<string, object?> { ["failureStage"] = debugAsk.FailureStage.ToString() });
+            contextPacked = debugAsk.ContextChunkIds.Count > 0
+                ? Pass("Context packing included chunks.", new Dictionary<string, object?> { ["contextChunkCount"] = debugAsk.ContextChunkIds.Count, ["contextChunkIds"] = debugAsk.ContextChunkIds })
+                : Fail("No chunks were included in packed context.", new Dictionary<string, object?> { ["failureStage"] = debugAsk.FailureStage.ToString() });
+            answerCitations = debugAsk.Answer.IsAnswered && debugAsk.Answer.Citations.Count > 0
+                ? Pass("Answer contains valid citations.", new Dictionary<string, object?> { ["citationCount"] = debugAsk.Answer.Citations.Count })
+                : Fail(debugAsk.Answer.MissingInformation ?? "Answer did not include valid citations.", new Dictionary<string, object?> { ["failureStage"] = debugAsk.FailureStage.ToString() });
+            refusal = !debugAsk.Answer.IsAnswered
+                ? Pass("Refusal is explicit and grounded.", new Dictionary<string, object?> { ["missingInformation"] = debugAsk.Answer.MissingInformation, ["failureStage"] = debugAsk.FailureStage.ToString() })
+                : Pass("No refusal was needed.");
+        }
+
+        return new KnowledgePipelineDiagnostics
+        {
+            CorpusCreated = Pass("Corpus exists.", new Dictionary<string, object?> { ["name"] = corpus.Name, ["isActive"] = corpus.IsActive }),
+        var chunkStats = chunks.Count > 0 ? new { Count = chunks.Count, EmptyCount = chunks.Count(chunk => string.IsNullOrWhiteSpace(chunk.Text)), MinLength = chunks.Min(chunk => chunk.Text.Length), MaxLength = chunks.Max(chunk => chunk.Text.Length) } : null;
+
+        return new KnowledgePipelineDiagnostics
+        {
+            CorpusCreated = Pass("Corpus exists.", new Dictionary<string, object?> { ["name"] = corpus.Name, ["isActive"] = corpus.IsActive }),
+            ContentImported = chunkStats is not null ? Pass("Content has been imported.", new Dictionary<string, object?> { ["chunkCount"] = chunkStats.Count }) : Fail("No imported chunks exist."),
+            ChunksCreated = chunkStats is not null ? Pass("Chunks were created.", new Dictionary<string, object?> { ["chunkCount"] = chunkStats.Count, ["emptyChunkCount"] = chunkStats.EmptyCount, ["minLength"] = chunkStats.MinLength, ["maxLength"] = chunkStats.MaxLength }) : Fail("No chunks were created."),
+            CorpusIndexed = indexRun is null ? Fail("No persisted index run exists.", new Dictionary<string, object?> { ["status"] = "missing" }) : Pass("Corpus has a persisted index run.", new Dictionary<string, object?> { ["indexedChunkCount"] = indexRun.IndexedChunkCount, ["createdAt"] = indexRun.CreatedAt, ["scope"] = indexRun.Scope }),
+            SearchRetrievedChunks = searchRetrieved,
+            ContextPackedChunks = contextPacked,
+            AnswerHasValidCitations = answerCitations,
+            RefusalIsGrounded = refusal,
+            DebugAsk = debugAsk
+        };
+    }
+
     public async Task<KnowledgeAskDebugResult> DebugAskAsync(KnowledgeAskRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -101,12 +236,36 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
         ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Question);
         if (request.TopK < 1) throw new ArgumentOutOfRangeException(nameof(request), request.TopK, "TopK must be at least 1.");
+        bool corpusExists = await dbContext.Corpora.AsNoTracking().AnyAsync(corpus => corpus.Id == request.CorpusId && corpus.TenantId == request.TenantId, cancellationToken);
+        if (!corpusExists) return EmptyDebugResult(request, KnowledgeFailureStage.CorpusMissing, "Corpus does not exist for this tenant.", "Corpus lookup failed.");
         int chunkCount = await dbContext.Chunks.AsNoTracking().CountAsync(chunk => chunk.CorpusId == request.CorpusId && chunk.TenantId == request.TenantId, cancellationToken);
         if (chunkCount == 0) return EmptyDebugResult(request, KnowledgeFailureStage.NoImportedChunks, "Corpus has no imported chunks.", "No chunks exist for this corpus and tenant.");
         IReadOnlyList<KnowledgeHit> hits = await retriever.RetrieveAsync(new KnowledgeQuery { CorpusId = request.CorpusId, TenantId = request.TenantId, Question = request.Question, TopK = request.TopK }, cancellationToken);
         if (hits.Count == 0) return EmptyDebugResult(request, KnowledgeFailureStage.Retrieval, "Search returned no chunks.", "Search returned no hits.");
         KnowledgeContext context = contextBuilder.Build(request.Question, hits);
-        KnowledgeAnswer answer = await answerer.AnswerFromHitsAsync(request with { SaveTrace = false, TraceKind = "diagnostic" }, hits, cancellationToken);
+        if (context.ChunkIds.Count == 0)
+        {
+            return new KnowledgeAskDebugResult
+            {
+                CorpusId = request.CorpusId,
+                TenantId = request.TenantId,
+                Question = request.Question,
+                RetrievedHits = hits,
+                ContextChunkIds = [],
+                Answer = new KnowledgeAnswer
+                {
+                    Answer = string.Empty,
+                    IsAnswered = false,
+                    MissingInformation = "Retrieved chunks did not fit into context budget.",
+                    Citations = [],
+                    RetrievedContext = hits
+                },
+                FailureStage = KnowledgeFailureStage.ContextPacking,
+                FailureReason = "Context packing included no chunks."
+            };
+        }
+
+        KnowledgeAnswer answer = await answerer.AnswerFromHitsAsync(request with { SaveTrace = true, TraceKind = request.TraceKind ?? "diagnostic" }, hits, cancellationToken);
         KnowledgeFailureStage stage = KnowledgeFailureClassifier.Classify(chunkCount, hits, context, answer);
         return new KnowledgeAskDebugResult { CorpusId = request.CorpusId, TenantId = request.TenantId, Question = request.Question, RetrievedHits = hits, ContextChunkIds = context.ChunkIds, Answer = answer, FailureStage = stage, FailureReason = answer.MissingInformation };
     }
@@ -117,8 +276,8 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         int chunkCount = await dbContext.Chunks.AsNoTracking().CountAsync(chunk => chunk.CorpusId == corpusId && chunk.TenantId == tenantId, cancellationToken);
         IReadOnlyList<KnowledgeHit> hits = chunkCount == 0 ? [] : await retriever.RetrieveAsync(new KnowledgeQuery { CorpusId = corpusId, TenantId = tenantId, Question = IndexProbe, TopK = 1 }, cancellationToken);
-        DateTimeOffset? lastImportedAt = await dbContext.Sources.AsNoTracking().Where(source => source.CorpusId == corpusId && source.TenantId == tenantId).MaxAsync(source => (DateTimeOffset?)source.ImportedAt, cancellationToken);
-        return new KnowledgeIndexDiagnostics { CorpusId = corpusId, TenantId = tenantId, StoredChunkCount = chunkCount, SearchHitCountForProbe = hits.Count, LastIndexedAt = lastImportedAt, LooksIndexed = chunkCount > 0 && hits.Count > 0 };
+        KnowledgeIndexRun? indexRun = await repository.GetLatestIndexRunAsync(corpusId, tenantId, cancellationToken);
+        return new KnowledgeIndexDiagnostics { CorpusId = corpusId, TenantId = tenantId, StoredChunkCount = chunkCount, SearchHitCountForProbe = hits.Count, LastIndexedAt = indexRun?.CreatedAt, LooksIndexed = indexRun is not null && chunkCount > 0 && hits.Count > 0 };
     }
 
     private IQueryable<KnowledgeCorpusDiagnostics> CorpusDiagnosticsQuery() => dbContext.Corpora.AsNoTracking()
@@ -170,6 +329,10 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
         FailureStage = stage,
         FailureReason = reason
     };
+
+    private static KnowledgeCheck Pass(string message, IReadOnlyDictionary<string, object?>? data = null) => new() { Passed = true, Message = message, Data = data ?? new Dictionary<string, object?>() };
+
+    private static KnowledgeCheck Fail(string message, IReadOnlyDictionary<string, object?>? data = null) => new() { Passed = false, Message = message, Data = data ?? new Dictionary<string, object?>() };
 
     private static JsonParseResult<T> DeserializeList<T>(string json, string fieldName)
     {

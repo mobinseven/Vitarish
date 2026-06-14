@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Knowledge.Application.Abstractions;
@@ -41,5 +43,9 @@ public sealed class KnowledgeModule : Module, IKnowledgeModule
         return Task.CompletedTask;
     }
 
-    public override Task Initialize(WebApplication app) => Task.CompletedTask;
+    public override Task Initialize(WebApplication app)
+    {
+        return Task.CompletedTask;
+    }
+
 }

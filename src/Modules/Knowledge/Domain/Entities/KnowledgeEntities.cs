@@ -72,3 +72,14 @@ public sealed class KnowledgeAskTraceEntity
     public bool IsAnswered { get; set; }
     public DateTimeOffset CreatedAt { get; set; }
 }
+
+public sealed class KnowledgeIndexRunEntity
+{
+    public required string Id { get; set; }
+    public required string CorpusId { get; set; }
+    public required string TenantId { get; set; }
+    public int IndexedChunkCount { get; set; }
+    public required string Scope { get; set; }
+    public string? SourceId { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+}

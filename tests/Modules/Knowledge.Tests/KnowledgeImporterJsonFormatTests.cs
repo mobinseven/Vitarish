@@ -90,5 +90,7 @@ public sealed class KnowledgeImporterJsonFormatTests
         public Task<IReadOnlyList<KnowledgeChunk>> GetChunksForCorporaAsync(IReadOnlyCollection<string> corpusIds, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<IReadOnlyList<KnowledgeQuestion>> GetQuestionsAsync(string corpusId, string tenantId, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task SaveAskTraceAsync(KnowledgeAskTrace trace, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task SaveIndexRunAsync(KnowledgeIndexRun run, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<KnowledgeIndexRun?> GetLatestIndexRunAsync(string corpusId, string tenantId, CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 }

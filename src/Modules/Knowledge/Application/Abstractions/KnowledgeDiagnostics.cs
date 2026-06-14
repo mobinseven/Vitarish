@@ -7,6 +7,7 @@ public interface IKnowledgeDiagnosticsService
     Task<IReadOnlyList<KnowledgeSourceDiagnostics>> GetSourcesAsync(string corpusId, string tenantId, CancellationToken cancellationToken);
     Task<IReadOnlyList<KnowledgeChunkDiagnostics>> GetChunksAsync(string corpusId, string tenantId, KnowledgeChunkDiagnosticsQuery query, CancellationToken cancellationToken);
     Task<IReadOnlyList<KnowledgeAskTraceDiagnostics>> GetAskTracesAsync(string corpusId, string tenantId, KnowledgeAskTraceDiagnosticsQuery query, CancellationToken cancellationToken);
+    Task<KnowledgePipelineDiagnostics> InspectAsync(KnowledgeDiagnosticsRequest request, CancellationToken cancellationToken);
     Task<KnowledgeAskDebugResult> DebugAskAsync(KnowledgeAskRequest request, CancellationToken cancellationToken);
     Task<KnowledgeIndexDiagnostics> GetIndexDiagnosticsAsync(string corpusId, string tenantId, CancellationToken cancellationToken);
 }
@@ -102,6 +103,7 @@ public sealed record KnowledgeAskDebugResult
 public enum KnowledgeFailureStage
 {
     None,
+    CorpusMissing,
     NoImportedChunks,
     Retrieval,
     ContextPacking,
@@ -118,4 +120,32 @@ public sealed record KnowledgeIndexDiagnostics
     public int SearchHitCountForProbe { get; init; }
     public DateTimeOffset? LastIndexedAt { get; init; }
     public bool LooksIndexed { get; init; }
+}
+
+public sealed record KnowledgeDiagnosticsRequest
+{
+    public required string TenantId { get; init; }
+    public required string CorpusId { get; init; }
+    public string? Question { get; init; }
+    public int TopK { get; init; } = 8;
+}
+
+public sealed record KnowledgePipelineDiagnostics
+{
+    public required KnowledgeCheck CorpusCreated { get; init; }
+    public required KnowledgeCheck ContentImported { get; init; }
+    public required KnowledgeCheck ChunksCreated { get; init; }
+    public required KnowledgeCheck CorpusIndexed { get; init; }
+    public required KnowledgeCheck SearchRetrievedChunks { get; init; }
+    public required KnowledgeCheck ContextPackedChunks { get; init; }
+    public required KnowledgeCheck AnswerHasValidCitations { get; init; }
+    public required KnowledgeCheck RefusalIsGrounded { get; init; }
+    public KnowledgeAskDebugResult? DebugAsk { get; init; }
+}
+
+public sealed record KnowledgeCheck
+{
+    public required bool Passed { get; init; }
+    public required string Message { get; init; }
+    public IReadOnlyDictionary<string, object?> Data { get; init; } = new Dictionary<string, object?>();
 }
