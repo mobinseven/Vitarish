@@ -16,7 +16,7 @@
     <StackSelect T="string" @bind-Value="selectedImportCorpusId" Label="Select corpus">
         @foreach (KnowledgeCorpus corpus in corpora)
         {
-            <MudSelectItem T="string" Value="@corpus.Id">@corpus.Id</MudSelectItem>
+            <StackSelectItem T="string" Value="@corpus.Id">@corpus.Id</StackSelectItem>
         }
     </StackSelect>
     <StackTextField @bind-Value="sourceName" Label="Source name" />
