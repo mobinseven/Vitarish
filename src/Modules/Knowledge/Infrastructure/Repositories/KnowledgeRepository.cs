@@ -94,6 +94,40 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
             })
             .ToListAsync(cancellationToken);
 
+
+    public async Task<IReadOnlyList<KnowledgeSource>> GetSourcesAsync(string corpusId, string tenantId, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+
+        return await dbContext.Sources.AsNoTracking()
+            .Where(source => source.CorpusId == corpusId && source.TenantId == tenantId)
+            .OrderByDescending(source => source.ImportedAt)
+            .Select(source => new KnowledgeSource
+            {
+                Id = source.Id,
+                CorpusId = source.CorpusId,
+                TenantId = source.TenantId,
+                Name = source.Name,
+                SourceType = source.SourceType,
+                OriginalLocation = source.OriginalLocation,
+                Version = source.Version,
+                Checksum = source.Checksum,
+                ImportedAt = source.ImportedAt
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<bool> SourceExistsAsync(string sourceId, string corpusId, string tenantId, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+
+        return await dbContext.Sources.AsNoTracking()
+            .AnyAsync(source => source.Id == sourceId && source.CorpusId == corpusId && source.TenantId == tenantId, cancellationToken);
+    }
+
     public async Task<IReadOnlyList<KnowledgeChunk>> GetChunksAsync(string corpusId, string tenantId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
@@ -102,6 +136,32 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
             .Where(chunk => chunk.CorpusId == corpusId && chunk.TenantId == tenantId)
             .OrderBy(chunk => chunk.SourceId)
             .ThenBy(chunk => chunk.DocumentId)
+            .ThenBy(chunk => chunk.Order)
+            .Select(chunk => new KnowledgeChunk
+            {
+                Id = chunk.Id,
+                CorpusId = chunk.CorpusId,
+                TenantId = chunk.TenantId,
+                SourceId = chunk.SourceId,
+                DocumentId = chunk.DocumentId,
+                Text = chunk.Text,
+                Order = chunk.Order,
+                Title = chunk.Title,
+                HeadingPath = chunk.HeadingPath
+            })
+            .ToListAsync(cancellationToken);
+    }
+
+
+    public async Task<IReadOnlyList<KnowledgeChunk>> GetChunksBySourceAsync(string sourceId, string corpusId, string tenantId, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+
+        return await dbContext.Chunks.AsNoTracking()
+            .Where(chunk => chunk.SourceId == sourceId && chunk.CorpusId == corpusId && chunk.TenantId == tenantId)
+            .OrderBy(chunk => chunk.DocumentId)
             .ThenBy(chunk => chunk.Order)
             .Select(chunk => new KnowledgeChunk
             {
@@ -226,6 +286,51 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
         await dbContext.SaveChangesAsync(cancellationToken);
     }
 
+
+    public async Task DeleteSourceAsync(string sourceId, string corpusId, string tenantId, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+
+        KnowledgeSourceEntity? source = await dbContext.Sources
+            .FirstOrDefaultAsync(found => found.Id == sourceId && found.CorpusId == corpusId && found.TenantId == tenantId, cancellationToken);
+        if (source is null)
+        {
+            throw new InvalidOperationException($"Knowledge source '{sourceId}' does not exist in corpus '{corpusId}' for tenant '{tenantId}'.");
+        }
+
+        List<KnowledgeChunkEntity> chunks = await dbContext.Chunks
+            .Where(chunk => chunk.SourceId == sourceId && chunk.CorpusId == corpusId && chunk.TenantId == tenantId)
+            .ToListAsync(cancellationToken);
+
+        List<KnowledgeDocumentEntity> documents = await dbContext.Documents
+            .Where(document => document.SourceId == sourceId && document.CorpusId == corpusId && document.TenantId == tenantId)
+            .ToListAsync(cancellationToken);
+
+        string[] chunkIds = [.. chunks.Select(chunk => chunk.Id)];
+
+        dbContext.Chunks.RemoveRange(chunks);
+        dbContext.Documents.RemoveRange(documents);
+        dbContext.Sources.Remove(source);
+        await RemoveQuestionsForChunksAsync(corpusId, chunkIds, cancellationToken);
+        await dbContext.SaveChangesAsync(cancellationToken);
+    }
+
+    public async Task ReplaceSourceAsync(string sourceId, KnowledgeImportResult result, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceId);
+        ArgumentNullException.ThrowIfNull(result);
+        KnowledgeSource source = result.Sources.Single();
+        if (!string.Equals(source.Id, sourceId, StringComparison.Ordinal))
+        {
+            throw new InvalidOperationException($"Replacement source id '{source.Id}' must match requested source id '{sourceId}'.");
+        }
+
+        await DeleteSourceAsync(sourceId, result.CorpusId, source.TenantId, cancellationToken);
+        await SaveImportAsync(result, cancellationToken);
+    }
+
     public async Task SaveAskTraceAsync(KnowledgeAskTrace trace, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(trace);
@@ -287,6 +392,25 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
                 CreatedAt = run.CreatedAt
             })
             .FirstOrDefaultAsync(cancellationToken);
+    }
+
+
+    private async Task RemoveQuestionsForChunksAsync(string corpusId, IReadOnlyCollection<string> chunkIds, CancellationToken cancellationToken)
+    {
+        if (chunkIds.Count == 0)
+        {
+            return;
+        }
+
+        HashSet<string> chunkIdSet = new(chunkIds, StringComparer.Ordinal);
+        List<KnowledgeQuestionEntity> questions = await dbContext.Questions
+            .Where(question => question.CorpusId == corpusId)
+            .ToListAsync(cancellationToken);
+
+        KnowledgeQuestionEntity[] questionsToRemove = [.. questions.Where(question =>
+            DeserializeStringList(question.ExpectedChunkIdsJson).Any(chunkIdSet.Contains))];
+
+        dbContext.Questions.RemoveRange(questionsToRemove);
     }
 
     private static IReadOnlyList<string> DeserializeStringList(string json)

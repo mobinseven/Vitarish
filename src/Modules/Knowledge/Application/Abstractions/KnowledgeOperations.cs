@@ -20,7 +20,7 @@ public sealed record KnowledgeImportResult
     public IReadOnlyList<KnowledgeQuestion> Questions { get; init; } = [];
 }
 
-public sealed record KnowledgeIndexResult(string CorpusId, int IndexedChunkCount);
+public sealed record KnowledgeIndexResult(string CorpusId, string TenantId, int IndexedChunkCount, string Scope, string? SourceId);
 
 public sealed record KnowledgeQuery
 {

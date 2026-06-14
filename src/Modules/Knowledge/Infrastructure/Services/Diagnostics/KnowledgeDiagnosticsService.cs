@@ -170,57 +170,7 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
             CorpusCreated = Pass("Corpus exists.", new Dictionary<string, object?> { ["name"] = corpus.Name, ["isActive"] = corpus.IsActive }),
             ContentImported = chunkStats is not null ? Pass("Content has been imported.", new Dictionary<string, object?> { ["chunkCount"] = chunkStats.Count }) : Fail("No imported chunks exist."),
             ChunksCreated = chunkStats is not null ? Pass("Chunks were created.", new Dictionary<string, object?> { ["chunkCount"] = chunkStats.Count, ["emptyChunkCount"] = chunkStats.EmptyCount, ["minLength"] = chunkStats.MinLength, ["maxLength"] = chunkStats.MaxLength }) : Fail("No chunks were created."),
-            CorpusIndexed = indexRun is null ? Fail("No persisted index run exists.", new Dictionary<string, object?> { ["status"] = "missing" }) : Pass("Corpus has a persisted index run.", new Dictionary<string, object?> { ["indexedChunkCount"] = indexRun.IndexedChunkCount, ["createdAt"] = indexRun.CreatedAt, ["scope"] = indexRun.Scope }),
-            SearchRetrievedChunks = searchRetrieved,
-            ContextPackedChunks = contextPacked,
-            AnswerHasValidCitations = answerCitations,
-            RefusalIsGrounded = refusal,
-            DebugAsk = debugAsk
-        };
-        KnowledgeIndexRun? indexRun = await repository.GetLatestIndexRunAsync(request.CorpusId, request.TenantId, cancellationToken);
-        KnowledgeAskDebugResult? debugAsk = null;
-        KnowledgeCheck searchRetrieved = Fail("No question was provided.");
-        KnowledgeCheck contextPacked = Fail("No question was provided.");
-        KnowledgeCheck answerCitations = Fail("No question was provided.");
-        KnowledgeCheck refusal = Fail("No question was provided.");
-
-        if (!string.IsNullOrWhiteSpace(request.Question))
-        {
-            debugAsk = await DebugAskAsync(new KnowledgeAskRequest
-            {
-                CorpusId = request.CorpusId,
-                TenantId = request.TenantId,
-                Question = request.Question,
-                TopK = request.TopK,
-                SaveTrace = true,
-                TraceKind = "diagnostic"
-            }, cancellationToken);
-
-            searchRetrieved = debugAsk.RetrievedHits.Count > 0
-                ? Pass("Search retrieved chunks.", new Dictionary<string, object?> { ["hitCount"] = debugAsk.RetrievedHits.Count, ["topChunkId"] = debugAsk.RetrievedHits[0].ChunkId, ["topScore"] = debugAsk.RetrievedHits[0].Score })
-                : Fail("Search retrieved no chunks.", new Dictionary<string, object?> { ["failureStage"] = debugAsk.FailureStage.ToString() });
-            contextPacked = debugAsk.ContextChunkIds.Count > 0
-                ? Pass("Context packing included chunks.", new Dictionary<string, object?> { ["contextChunkCount"] = debugAsk.ContextChunkIds.Count, ["contextChunkIds"] = debugAsk.ContextChunkIds })
-                : Fail("No chunks were included in packed context.", new Dictionary<string, object?> { ["failureStage"] = debugAsk.FailureStage.ToString() });
-            answerCitations = debugAsk.Answer.IsAnswered && debugAsk.Answer.Citations.Count > 0
-                ? Pass("Answer contains valid citations.", new Dictionary<string, object?> { ["citationCount"] = debugAsk.Answer.Citations.Count })
-                : Fail(debugAsk.Answer.MissingInformation ?? "Answer did not include valid citations.", new Dictionary<string, object?> { ["failureStage"] = debugAsk.FailureStage.ToString() });
-            refusal = !debugAsk.Answer.IsAnswered
-                ? Pass("Refusal is explicit and grounded.", new Dictionary<string, object?> { ["missingInformation"] = debugAsk.Answer.MissingInformation, ["failureStage"] = debugAsk.FailureStage.ToString() })
-                : Pass("No refusal was needed.");
-        }
-
-        return new KnowledgePipelineDiagnostics
-        {
-            CorpusCreated = Pass("Corpus exists.", new Dictionary<string, object?> { ["name"] = corpus.Name, ["isActive"] = corpus.IsActive }),
-        var chunkStats = chunks.Count > 0 ? new { Count = chunks.Count, EmptyCount = chunks.Count(chunk => string.IsNullOrWhiteSpace(chunk.Text)), MinLength = chunks.Min(chunk => chunk.Text.Length), MaxLength = chunks.Max(chunk => chunk.Text.Length) } : null;
-
-        return new KnowledgePipelineDiagnostics
-        {
-            CorpusCreated = Pass("Corpus exists.", new Dictionary<string, object?> { ["name"] = corpus.Name, ["isActive"] = corpus.IsActive }),
-            ContentImported = chunkStats is not null ? Pass("Content has been imported.", new Dictionary<string, object?> { ["chunkCount"] = chunkStats.Count }) : Fail("No imported chunks exist."),
-            ChunksCreated = chunkStats is not null ? Pass("Chunks were created.", new Dictionary<string, object?> { ["chunkCount"] = chunkStats.Count, ["emptyChunkCount"] = chunkStats.EmptyCount, ["minLength"] = chunkStats.MinLength, ["maxLength"] = chunkStats.MaxLength }) : Fail("No chunks were created."),
-            CorpusIndexed = indexRun is null ? Fail("No persisted index run exists.", new Dictionary<string, object?> { ["status"] = "missing" }) : Pass("Corpus has a persisted index run.", new Dictionary<string, object?> { ["indexedChunkCount"] = indexRun.IndexedChunkCount, ["createdAt"] = indexRun.CreatedAt, ["scope"] = indexRun.Scope }),
+            CorpusIndexed = indexRun is null ? Fail("No persisted index run exists.", new Dictionary<string, object?> { ["status"] = "missing" }) : Pass("Corpus has a persisted index run.", new Dictionary<string, object?> { ["indexedChunkCount"] = indexRun.IndexedChunkCount, ["createdAt"] = indexRun.CreatedAt, ["scope"] = indexRun.Scope, ["sourceId"] = indexRun.SourceId }),
             SearchRetrievedChunks = searchRetrieved,
             ContextPackedChunks = contextPacked,
             AnswerHasValidCitations = answerCitations,
