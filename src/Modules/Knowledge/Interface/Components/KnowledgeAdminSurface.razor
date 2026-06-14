@@ -35,7 +35,7 @@
     <StackSelect T="string" @bind-Value="selectedIndexCorpusId" Label="Select corpus">
         @foreach (KnowledgeCorpus corpus in corpora)
         {
-            <MudSelectItem T="string" Value="@corpus.Id">@corpus.Id</MudSelectItem>
+            <StackSelectItem T="string" Value="@corpus.Id">@corpus.Id</StackSelectItem>
         }
     </StackSelect>
     <StackButton Label="Index corpus" Color="Color.Primary" OnClick="IndexAsync" Disabled="@isBusy" />
