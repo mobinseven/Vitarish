@@ -1,0 +1,81 @@
+<Project>
+  <PropertyGroup>
+    <ModuleBuildProfile Condition="'$(ModuleBuildProfile)' == ''">All</ModuleBuildProfile>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'All'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableMedicalModule>true</EnableMedicalModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableFinancialModule>true</EnableFinancialModule>
+    <EnableIntelligenceModule>true</EnableIntelligenceModule>
+    <EnableKnowledgeModule>true</EnableKnowledgeModule>
+    <EnableSearchModule>true</EnableSearchModule>
+    <EnableContentsModule>true</EnableContentsModule>
+    <EnableSocialModule>true</EnableSocialModule>
+    <EnableLinksModule>true</EnableLinksModule>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Requests'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Users'">
+    <EnableUsersModule>true</EnableUsersModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Parties'">
+    <EnablePartiesModule>true</EnablePartiesModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Platform'">
+    <EnablePlatformModule>true</EnablePlatformModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Medical'">
+    <EnableMedicalModule>true</EnableMedicalModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Appointments'">
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Commerce'">
+    <EnableCommerceModule>true</EnableCommerceModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Sea'">
+    <EnableSeaModule>true</EnableSeaModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Communications'">
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Feed'">
+    <EnableFeedModule>true</EnableFeedModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Files'">
+    <EnableFilesModule>true</EnableFilesModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Financial'">
+    <EnableFinancialModule>true</EnableFinancialModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Intelligence'">
+    <EnableIntelligenceModule>true</EnableIntelligenceModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Knowledge'">
+    <EnableKnowledgeModule>true</EnableKnowledgeModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Search'">
+    <EnableSearchModule>true</EnableSearchModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Contents'">
+    <EnableContentsModule>true</EnableContentsModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Social'">
+    <EnableSocialModule>true</EnableSocialModule>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Links'">
+    <EnableLinksModule>true</EnableLinksModule>
+  </PropertyGroup>
+</Project>

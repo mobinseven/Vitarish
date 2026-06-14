@@ -1,47 +1,58 @@
+using System.Reflection;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
-using Vitarish.Appointments.Interface;
-using Vitarish.Commerce.Interface;
-using Vitarish.Communications.Hosting;
-using Vitarish.Contents.Interface;
-using Vitarish.Files.Interface;
-using Vitarish.Financial.Interface;
-using Vitarish.Intelligence.Interface;
-using Vitarish.Knowledge.Interface;
-using Vitarish.Links.Interface;
-using Vitarish.Medical.Interface;
+using Microsoft.Extensions.DependencyModel;
 using Vitarish.Modules.Base;
-using Vitarish.Parties.Hosting;
-using Vitarish.Platform.Interface;
-using Vitarish.Users.Hosting;
-using Vitarish.Requests.Hosting;
-using Vitarish.Sea.Interface;
-using Vitarish.Search.Interface;
-using Vitarish.Social.Hosting;
+
 public static class ModulesExtensions
 {
+    private static readonly string[] ModuleAssemblyNames =
+    [
+        "Vitarish.Requests.Hosting",
+        "Vitarish.Users.Hosting",
+        "Vitarish.Parties.Hosting",
+        "Vitarish.Platform.Interface",
+        "Vitarish.Communications.Hosting",
+        "Vitarish.Intelligence.Interface",
+        "Vitarish.Knowledge.Interface",
+        "Vitarish.Files.Interface",
+        "Vitarish.Financial.Interface",
+        "Vitarish.Search.Interface",
+        "Vitarish.Contents.Interface",
+        "Vitarish.Links.Interface",
+        "Vitarish.Sea.Interface",
+        "Vitarish.Appointments.Interface",
+        "Vitarish.Commerce.Interface",
+        "Vitarish.Social.Hosting",
+        "Vitarish.Medical.Interface",
+        "Vitarish.Feed.Infrastructure",
+    ];
+
     public static List<IModule> GetModules() =>
-            [
-                Activator.CreateInstance<RequestsModule>(),
-                Activator.CreateInstance<UsersModule>(),
-                Activator.CreateInstance<PartiesModule>(),
-                Activator.CreateInstance<PlatformModule>(),
-                Activator.CreateInstance<CommunicationModule>(),
-                Activator.CreateInstance<IntelligenceModule>(),
-                Activator.CreateInstance<KnowledgeModule>(),
-                Activator.CreateInstance<FilesModule>(),
-                Activator.CreateInstance<FinancialModule>(),
-                Activator.CreateInstance<SearchModule>(),
-                Activator.CreateInstance<ContentsModule>(),
-                Activator.CreateInstance<LinksModule>(),
-                Activator.CreateInstance<SeaModule>(),
-                Activator.CreateInstance<AppointmentsModule>(),
-                Activator.CreateInstance<CommerceModule>(),
-                Activator.CreateInstance<SocialModule>(),
-                Activator.CreateInstance<MedicalModule>(),
-            ];
+        ModuleAssemblyNames
+            .SelectMany(GetModuleTypes)
+            .Select(moduleType => (IModule)Activator.CreateInstance(moduleType)!)
+            .ToList();
+
+    private static IEnumerable<Type> GetModuleTypes(string assemblyName)
+    {
+        if (!IsRuntimeDependency(assemblyName))
+        {
+            return [];
+        }
+
+        Assembly assembly = Assembly.Load(new AssemblyName(assemblyName));
+
+        return assembly
+            .GetTypes()
+            .Where(type => type is { IsAbstract: false, IsInterface: false } && typeof(IModule).IsAssignableFrom(type))
+            .OrderBy(type => type.FullName, StringComparer.Ordinal);
+    }
+
+    private static bool IsRuntimeDependency(string assemblyName) =>
+        DependencyContext.Default?.RuntimeLibraries.Any(library => library.Name == assemblyName) == true;
 
     extension(WebApplicationBuilder builder)
     {
