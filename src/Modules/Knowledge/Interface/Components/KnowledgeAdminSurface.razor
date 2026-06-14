@@ -114,7 +114,14 @@
     {
         ValidateTenantAndCorpus(selectedImportCorpusId);
         if (string.IsNullOrWhiteSpace(importText)) throw new InvalidOperationException("Paste text before importing.");
-        await using MemoryStream content = new(Encoding.UTF8.GetBytes(importText));
+    private async Task ImportAsync() => await RunAsync(async () =>
+    {
+        ValidateTenantAndCorpus(selectedImportCorpusId);
+        if (string.IsNullOrWhiteSpace(importText)) throw new InvalidOperationException("Paste text before importing.");
+        using MemoryStream content = new(Encoding.UTF8.GetBytes(importText));
+        importResult = await Knowledge.ImportAsync(new KnowledgeImportRequest { CorpusId = selectedImportCorpusId.Trim(), TenantId = tenantId.Trim(), Content = content, Format = format, SourceName = sourceName }, CancellationToken.None);
+        status = "Import complete.";
+    });
         importResult = await Knowledge.ImportAsync(new KnowledgeImportRequest { CorpusId = selectedImportCorpusId.Trim(), TenantId = tenantId.Trim(), Content = content, Format = format, SourceName = sourceName }, CancellationToken.None);
         status = "Import complete.";
     });
