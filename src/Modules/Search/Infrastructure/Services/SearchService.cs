@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Bulk;
 using Elastic.Clients.Elasticsearch.IndexManagement;
@@ -18,6 +19,9 @@ namespace Vitarish.Search.Infrastructure.Services;
 /// </summary>
 internal sealed class SearchService : ISearchService
 {
+    private static readonly ConcurrentDictionary<string, byte> VerifiedIndices = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, SemaphoreSlim> IndexCreationLocks = new(StringComparer.OrdinalIgnoreCase);
+
     private readonly ElasticsearchClient client;
     private readonly IReadOnlyList<ISearchIndexProvider> providers;
     private readonly ElasticSearchOptions options;
@@ -44,7 +48,8 @@ internal sealed class SearchService : ISearchService
         CancellationToken cancellationToken = default)
     {
         string fullIndexName = BuildIndexName(indexName);
-        SearchDocument[] preparedDocuments = [.. documents.Select(PrepareDocumentForIndexing)];
+        bool semanticRetrievalAvailable = IsSemanticRetrievalAvailable();
+        SearchDocument[] preparedDocuments = [.. documents.Select(document => PrepareDocumentForIndexing(document, semanticRetrievalAvailable))];
 
         if (preparedDocuments.Length == 0)
         {
@@ -281,23 +286,56 @@ internal sealed class SearchService : ISearchService
 
     private async Task EnsureIndexAsync(string fullIndexName, CancellationToken cancellationToken)
     {
-        Elastic.Clients.Elasticsearch.IndexManagement.ExistsResponse existsResponse = await client.Indices.ExistsAsync(fullIndexName, cancellationToken);
-
-        if (existsResponse.Exists)
+        if (VerifiedIndices.ContainsKey(fullIndexName))
         {
             return;
         }
 
-        CreateIndexResponse createResponse = await client.Indices.CreateAsync(
-            new CreateIndexRequest(fullIndexName)
-            {
-                Mappings = BuildIndexMapping()
-            },
-            cancellationToken);
+        SemaphoreSlim indexCreationLock = IndexCreationLocks.GetOrAdd(fullIndexName, _ => new SemaphoreSlim(1, 1));
+        await indexCreationLock.WaitAsync(cancellationToken);
 
-        if (!createResponse.IsValidResponse)
+        try
         {
-            throw new InvalidOperationException($"Create index '{fullIndexName}' failed.");
+            if (VerifiedIndices.ContainsKey(fullIndexName))
+            {
+                return;
+            }
+
+            Elastic.Clients.Elasticsearch.IndexManagement.ExistsResponse existsResponse =
+                await client.Indices.ExistsAsync(fullIndexName, cancellationToken);
+
+            if (existsResponse.Exists)
+            {
+                VerifiedIndices.TryAdd(fullIndexName, 0);
+                return;
+            }
+
+            CreateIndexResponse createResponse = await client.Indices.CreateAsync(
+                new CreateIndexRequest(fullIndexName)
+                {
+                    Mappings = BuildIndexMapping()
+                },
+                cancellationToken);
+
+            if (!createResponse.IsValidResponse)
+            {
+                Elastic.Clients.Elasticsearch.IndexManagement.ExistsResponse doubleCheck =
+                    await client.Indices.ExistsAsync(fullIndexName, cancellationToken);
+
+                if (doubleCheck.Exists)
+                {
+                    VerifiedIndices.TryAdd(fullIndexName, 0);
+                    return;
+                }
+
+                throw new InvalidOperationException($"Create index '{fullIndexName}' failed: {createResponse.DebugInformation}");
+            }
+
+            VerifiedIndices.TryAdd(fullIndexName, 0);
+        }
+        finally
+        {
+            indexCreationLock.Release();
         }
     }
 
@@ -330,9 +368,14 @@ internal sealed class SearchService : ISearchService
         return new TypeMapping { Properties = properties };
     }
 
-    private static SearchDocument PrepareDocumentForIndexing(SearchDocument document)
+    private static SearchDocument PrepareDocumentForIndexing(SearchDocument document, bool semanticAvailable)
     {
         ArgumentNullException.ThrowIfNull(document);
+
+        if (!semanticAvailable)
+        {
+            return document.SemanticText is null ? document : document with { SemanticText = null };
+        }
 
         return string.IsNullOrWhiteSpace(document.SemanticText)
             ? document with { SemanticText = BuildSemanticText(document.Title, document.Body) }
@@ -419,11 +462,6 @@ internal sealed class SearchService : ISearchService
                 Fuzziness = new Fuzziness("AUTO"),
                 PrefixLength = 1,
                 MaxExpansions = 25
-            });
-            shouldQueries.Add(new MultiMatchQuery
-            {
-                Query = query,
-                Fields = Fields.FromStrings(["title.synonym^2", "body.synonym"])
             });
         }
         if (searchOptions.RetrievalMode is SearchRetrievalMode.Broad && semanticRetrievalAvailable)
