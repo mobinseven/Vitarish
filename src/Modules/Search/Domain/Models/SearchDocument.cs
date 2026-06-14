@@ -21,6 +21,11 @@ public record SearchDocument
     public string? Body { get; init; }
 
     /// <summary>
+    /// Optional combined text used by semantic search fields. Exact, lexical, and fuzzy search keep using Title and Body.
+    /// </summary>
+    public string? SemanticText { get; init; }
+
+    /// <summary>
     /// Tenant that owns this document. Used as a mandatory filter on every search query
     /// so that results are always scoped to the requesting tenant (Option B isolation).
     /// </summary>

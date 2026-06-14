@@ -1,6 +1,7 @@
 using Elastic.Clients.Elasticsearch;
 using Elastic.Clients.Elasticsearch.Core.Bulk;
 using Elastic.Clients.Elasticsearch.IndexManagement;
+using Elastic.Clients.Elasticsearch.Mapping;
 using Elastic.Clients.Elasticsearch.QueryDsl;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -43,14 +44,17 @@ internal sealed class SearchService : ISearchService
         CancellationToken cancellationToken = default)
     {
         string fullIndexName = BuildIndexName(indexName);
+        SearchDocument[] preparedDocuments = [.. documents.Select(PrepareDocumentForIndexing)];
 
-        List<IBulkOperation> operations = [.. documents.Select(doc =>
-            new BulkIndexOperation<SearchDocument>(doc) { Id = doc.Id, Index = fullIndexName })];
-
-        if (operations.Count == 0)
+        if (preparedDocuments.Length == 0)
         {
             return;
         }
+
+        await EnsureIndexAsync(fullIndexName, cancellationToken);
+
+        List<IBulkOperation> operations = [.. preparedDocuments.Select(doc =>
+            new BulkIndexOperation<SearchDocument>(doc) { Id = doc.Id, Index = fullIndexName })];
 
         BulkRequest request = new(fullIndexName) { Operations = [.. operations] };
 
@@ -116,7 +120,7 @@ internal sealed class SearchService : ISearchService
 
         Indices indices = fullToLogicalIndexNames.Keys.ToArray();
 
-        Query esQuery = BuildQuery(query, normalizedOptions, ResolveTenantId(normalizedOptions));
+        Query esQuery = BuildQuery(query, normalizedOptions, ResolveTenantId(normalizedOptions), IsSemanticRetrievalAvailable());
 
         SearchRequest<SearchDocument> request = new(indices)
         {
@@ -275,6 +279,70 @@ internal sealed class SearchService : ISearchService
     }
 
 
+    private async Task EnsureIndexAsync(string fullIndexName, CancellationToken cancellationToken)
+    {
+        Elastic.Clients.Elasticsearch.IndexManagement.ExistsResponse existsResponse = await client.Indices.ExistsAsync(fullIndexName, cancellationToken);
+
+        if (existsResponse.Exists)
+        {
+            return;
+        }
+
+        CreateIndexResponse createResponse = await client.Indices.CreateAsync(
+            new CreateIndexRequest(fullIndexName)
+            {
+                Mappings = BuildIndexMapping()
+            },
+            cancellationToken);
+
+        if (!createResponse.IsValidResponse)
+        {
+            throw new InvalidOperationException($"Create index '{fullIndexName}' failed.");
+        }
+    }
+
+    private TypeMapping BuildIndexMapping()
+    {
+        Properties properties = new()
+        {
+            ["id"] = new KeywordProperty(),
+            ["title"] = new TextProperty
+            {
+                Fields = new Properties
+                {
+                    ["keyword"] = new KeywordProperty()
+                }
+            },
+            ["body"] = new TextProperty(),
+            ["tenantId"] = new KeywordProperty(),
+            ["type"] = new KeywordProperty(),
+            ["metadata"] = new ObjectProperty { Dynamic = DynamicMapping.True }
+        };
+
+        if (IsSemanticRetrievalAvailable())
+        {
+            properties["semanticText"] = new SemanticTextProperty
+            {
+                InferenceId = options.InferenceEndpointId!
+            };
+        }
+
+        return new TypeMapping { Properties = properties };
+    }
+
+    private static SearchDocument PrepareDocumentForIndexing(SearchDocument document)
+    {
+        ArgumentNullException.ThrowIfNull(document);
+
+        return string.IsNullOrWhiteSpace(document.SemanticText)
+            ? document with { SemanticText = BuildSemanticText(document.Title, document.Body) }
+            : document;
+    }
+
+    private static string BuildSemanticText(string title, string? body) => string.IsNullOrWhiteSpace(body)
+        ? title
+        : $"{title}\n\n{body}";
+
     private static Query BuildDeleteQuery(SearchDeleteOptions deleteOptions)
     {
         List<Query> filters =
@@ -319,16 +387,16 @@ internal sealed class SearchService : ISearchService
         options.UseNativeInferenceOnly &&
         !string.IsNullOrWhiteSpace(options.InferenceEndpointId);
 
-    private static IReadOnlyList<string> BuildAppliedStrategies(SearchRetrievalMode retrievalMode, bool semanticAvailable) => retrievalMode switch
+    internal static IReadOnlyList<string> BuildAppliedStrategies(SearchRetrievalMode retrievalMode, bool semanticAvailable) => retrievalMode switch
     {
         SearchRetrievalMode.Strict => ["exact", "lexical"],
-        SearchRetrievalMode.Balanced => ["exact", "lexical", "fuzzy", "synonym"],
-        SearchRetrievalMode.Broad when semanticAvailable => ["exact", "lexical", "fuzzy", "synonym", "semantic"],
-        SearchRetrievalMode.Broad => ["exact", "lexical", "fuzzy", "synonym"],
-        _ => ["exact", "lexical", "fuzzy", "synonym"]
+        SearchRetrievalMode.Balanced => ["exact", "lexical", "fuzzy"],
+        SearchRetrievalMode.Broad when semanticAvailable => ["exact", "lexical", "fuzzy", "semantic"],
+        SearchRetrievalMode.Broad => ["exact", "lexical", "fuzzy"],
+        _ => ["exact", "lexical", "fuzzy"]
     };
 
-    private Query BuildQuery(string query, SearchOptions searchOptions, string tenantId)
+    internal static Query BuildQuery(string query, SearchOptions searchOptions, string tenantId, bool semanticRetrievalAvailable)
     {
         List<Query> shouldQueries =
         [
@@ -358,13 +426,13 @@ internal sealed class SearchService : ISearchService
                 Fields = Fields.FromStrings(["title.synonym^2", "body.synonym"])
             });
         }
-        if (searchOptions.RetrievalMode is SearchRetrievalMode.Broad && IsSemanticRetrievalAvailable())
+        if (searchOptions.RetrievalMode is SearchRetrievalMode.Broad && semanticRetrievalAvailable)
         {
-            shouldQueries.Add(new KnnQuery
+            shouldQueries.Add(new MatchQuery
             {
-                Field = new Field("vector"),
-                QueryVector = new float[] { /* TODO: Implementation dependent: vectorization of query string */ },
-                Boost = 5
+                Field = new Field("semanticText"),
+                Query = query,
+                Boost = 4
             });
         }
 
