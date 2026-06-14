@@ -408,11 +408,19 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
         }
 
         HashSet<string> chunkIdSet = new(chunkIds, StringComparer.Ordinal);
-        KnowledgeQuestionEntity[] questions = await dbContext.Questions
-            .Where(question => question.CorpusId == corpusId)
-            .ToArrayAsync(cancellationToken);
+    private async Task RemoveQuestionsForChunksAsync(string corpusId, IReadOnlyCollection<string> chunkIds, CancellationToken cancellationToken)
+    {
+        if (chunkIds.Count == 0)
+        {
+            return;
+        }
 
-        dbContext.Questions.RemoveRange(questions.Where(question => DeserializeStringList(question.ExpectedChunkIdsJson).Any(chunkIdSet.Contains)));
+        var questionsToRemove = await dbContext.Questions
+            .Where(q => q.CorpusId == corpusId && q.Chunks.Any(c => chunkIds.Contains(c.ChunkId)))
+            .ToListAsync(cancellationToken);
+
+        dbContext.Questions.RemoveRange(questionsToRemove);
+    }
     }
 
     private static IReadOnlyList<string> DeserializeStringList(string json)
