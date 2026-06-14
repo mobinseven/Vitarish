@@ -19,4 +19,30 @@ public record SearchResult
     /// The query string that produced this result.
     /// </summary>
     public required string Query { get; init; }
+
+    /// <summary>
+    /// Optional diagnostic summary of the retrieval strategies used.
+    /// </summary>
+    public SearchDiagnostics? Diagnostics { get; init; }
+}
+
+/// <summary>
+/// Lightweight diagnostic summary for a search operation.
+/// </summary>
+public sealed record SearchDiagnostics
+{
+    /// <summary>
+    /// Retrieval mode used to build the query.
+    /// </summary>
+    public required SearchRetrievalMode RetrievalMode { get; init; }
+
+    /// <summary>
+    /// Names of the retrieval strategies applied.
+    /// </summary>
+    public IReadOnlyList<string> AppliedStrategies { get; init; } = [];
+
+    /// <summary>
+    /// Optional provider-specific diagnostic values.
+    /// </summary>
+    public IReadOnlyDictionary<string, object?> Data { get; init; } = new Dictionary<string, object?>();
 }

@@ -47,6 +47,21 @@ public record SearchOptions
     public IReadOnlyDictionary<string, string> MetadataFilters { get; init; } = new Dictionary<string, string>();
 
     /// <summary>
+    /// Retrieval breadth used by the search backend.
+    /// </summary>
+    public SearchRetrievalMode RetrievalMode { get; init; } = SearchRetrievalMode.Balanced;
+
+    /// <summary>
+    /// Optional backend relevance threshold for filtering weak results.
+    /// </summary>
+    public double? MinScore { get; init; }
+
+    /// <summary>
+    /// Enables lightweight search diagnostics in the result envelope.
+    /// </summary>
+    public bool Explain { get; init; } = false;
+
+    /// <summary>
     /// Returns a copy with safe pagination values applied.
     /// </summary>
     public SearchOptions Normalize() => this with

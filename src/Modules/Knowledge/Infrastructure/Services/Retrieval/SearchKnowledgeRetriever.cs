@@ -17,7 +17,9 @@ public sealed class SearchKnowledgeRetriever(ISearchService search) : IKnowledge
             Type = KnowledgeSearchDocumentContract.DocumentType,
             TenantId = query.TenantId,
             CorpusId = query.CorpusId.ToString("N"),
-            MetadataFilters = query.Filters ?? new Dictionary<string, string>()
+            MetadataFilters = query.Filters ?? new Dictionary<string, string>(),
+            RetrievalMode = SearchRetrievalMode.Balanced,
+            Explain = true
         }, cancellationToken);
 
         return [.. result.Items.Select(KnowledgeSearchDocumentContract.ToKnowledgeHit)];
