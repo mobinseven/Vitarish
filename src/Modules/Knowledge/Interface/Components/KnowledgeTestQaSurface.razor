@@ -1,0 +1,80 @@
+@inject IKnowledgeService Knowledge
+
+<Stack>
+    <StackField Label="Knowledge Test QA" HelperText="Manually ask one corpus and inspect grounded answer output." />
+
+    <StackField Label="Ask" />
+    <StackTextField @bind-Value="tenantId" Label="TenantId" />
+    <StackTextField @bind-Value="corpusId" Label="CorpusId" />
+    <StackTextField @bind-Value="question" Label="Question" Lines="3" />
+    <StackNumericField @bind-Value="topK" Label="TopK" Min="1" Max="20" />
+    <StackButton Label="Ask" Color="Color.Primary" OnClick="AskAsync" Disabled="@isBusy" />
+
+    @if (answer is not null)
+    {
+        <StackField Label="Result" />
+        <StackCard Label="IsAnswered" HelperText="@(answer.IsAnswered ? "Yes" : "No")" />
+        <StackCard Label="Answer" HelperText="@answer.Answer" />
+        <StackCard Label="MissingInformation" HelperText="@(answer.MissingInformation ?? "None")" />
+
+        <StackField Label="Retrieved context" />
+        @foreach (KnowledgeHit hit in answer.RetrievedContext)
+        {
+            <StackCard Label="@(hit.Title ?? hit.ChunkId)" Caption="@hit.ChunkId" HelperText="@($"Score {hit.Score:0.###} · {Preview(hit.Text)}")" />
+        }
+
+        <StackField Label="Citations" />
+        @foreach (KnowledgeCitation citation in answer.Citations)
+        {
+            <StackCard Label="@(citation.Title ?? citation.ChunkId)" Caption="@citation.ChunkId" HelperText="@(citation.Quote ?? "No quote")" />
+        }
+    }
+
+    @if (!string.IsNullOrWhiteSpace(status))
+    {
+        <StackField Label="Status" HelperText="@status" Color="@statusColor" />
+    }
+</Stack>
+
+@code {
+    private string tenantId = "current";
+    private string corpusId = "test";
+    private string question = string.Empty;
+    private int topK = 8;
+    private KnowledgeAnswer? answer;
+    private bool isBusy;
+    private string? status;
+    private Color statusColor = Color.Info;
+
+    private async Task AskAsync()
+    {
+        try
+        {
+            ValidateAsk();
+            isBusy = true;
+            status = null;
+            answer = await Knowledge.AskAsync(new KnowledgeAskRequest { CorpusId = corpusId.Trim(), TenantId = tenantId.Trim(), Question = question.Trim(), TopK = topK, TraceKind = "manual-ui-test" }, CancellationToken.None);
+            status = "Ask complete.";
+            statusColor = Color.Success;
+        }
+        catch (Exception ex)
+        {
+            status = ex.Message;
+            statusColor = Color.Error;
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private void ValidateAsk()
+    {
+        if (string.IsNullOrWhiteSpace(tenantId)) throw new InvalidOperationException("TenantId is required.");
+        if (string.IsNullOrWhiteSpace(corpusId)) throw new InvalidOperationException("CorpusId is required.");
+        if (string.IsNullOrWhiteSpace(question)) throw new InvalidOperationException("Question is required.");
+        if (topK < 1) throw new InvalidOperationException("TopK must be at least 1.");
+    }
+
+    private static string Preview(string text) => text.Length <= 240 ? text : string.Concat(text.AsSpan(0, 240), "…");
+}
