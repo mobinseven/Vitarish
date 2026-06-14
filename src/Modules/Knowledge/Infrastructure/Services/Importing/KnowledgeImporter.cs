@@ -9,6 +9,21 @@ public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeRepos
 
     public async Task<KnowledgeImportResult> ImportAsync(KnowledgeImportRequest request, CancellationToken cancellationToken)
     {
+        KnowledgeImportResult result = await BuildImportResultAsync(null, request, cancellationToken);
+        await repository.SaveImportAsync(result, cancellationToken);
+        return result;
+    }
+
+    public async Task<KnowledgeImportResult> ReplaceSourceAsync(string sourceId, KnowledgeImportRequest request, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceId);
+        KnowledgeImportResult result = await BuildImportResultAsync(sourceId, request, cancellationToken);
+        await repository.ReplaceSourceAsync(sourceId, result, cancellationToken);
+        return result;
+    }
+
+    private async Task<KnowledgeImportResult> BuildImportResultAsync(string? requestedSourceId, KnowledgeImportRequest request, CancellationToken cancellationToken)
+    {
         ArgumentNullException.ThrowIfNull(request);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.CorpusId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
@@ -21,7 +36,7 @@ public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeRepos
         string sourceName = request.SourceName ?? request.Format;
         KnowledgeImportContent content = await contentReader.ReadAsync(request.Content, request.Format, sourceName, cancellationToken);
 
-        string sourceId = Guid.NewGuid().ToString("n");
+        string sourceId = requestedSourceId ?? Guid.NewGuid().ToString("n");
         KnowledgeSource source = new()
         {
             Id = sourceId,
@@ -73,9 +88,7 @@ public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeRepos
             ExpectedChunkIds = FindExpectedChunkIds(question.ExpectedContextTexts, chunks)
         })];
 
-        KnowledgeImportResult result = new() { CorpusId = request.CorpusId, Sources = [source], Documents = documents, Chunks = chunks, Questions = questions };
-        await repository.SaveImportAsync(result, cancellationToken);
-        return result;
+        return new KnowledgeImportResult { CorpusId = request.CorpusId, Sources = [source], Documents = documents, Chunks = chunks, Questions = questions };
     }
 
     private static IReadOnlyList<string> FindExpectedChunkIds(IReadOnlyList<string> expectedContextTexts, IReadOnlyList<KnowledgeChunk> chunks)
