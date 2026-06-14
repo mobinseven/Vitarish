@@ -2,9 +2,6 @@ namespace Vitarish.Knowledge.Domain.Entities;
 
 public sealed class KnowledgeChunkEntity : Entity
 {
-    public Guid CorpusEntityId { get; set => SetField(ref field, value, nameof(CorpusEntityId)); }
-    public Guid SourceEntityId { get; set => SetField(ref field, value, nameof(SourceEntityId)); }
-    public Guid DocumentEntityId { get; set => SetField(ref field, value, nameof(DocumentEntityId)); }
     public Guid CorpusId { get; set => SetField(ref field, value, nameof(CorpusId)); }
     public string TenantId { get; set => SetField(ref field, value, nameof(TenantId)); } = string.Empty;
     public Guid SourceId { get; set => SetField(ref field, value, nameof(SourceId)); }

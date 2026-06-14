@@ -40,7 +40,7 @@ public sealed class KnowledgeDbContext(DbContextOptions<KnowledgeDbContext> opti
             entity.HasIndex(source => source.CorpusId);
             entity.HasOne<KnowledgeCorpusEntity>()
                 .WithMany()
-                .HasForeignKey(source => source.CorpusEntityId)
+                .HasForeignKey(source => source.CorpusId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -57,7 +57,7 @@ public sealed class KnowledgeDbContext(DbContextOptions<KnowledgeDbContext> opti
             entity.HasIndex(document => document.CorpusId);
             entity.HasOne<KnowledgeSourceEntity>()
                 .WithMany()
-                .HasForeignKey(document => document.SourceEntityId)
+                .HasForeignKey(document => document.SourceId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -72,7 +72,7 @@ public sealed class KnowledgeDbContext(DbContextOptions<KnowledgeDbContext> opti
             entity.HasIndex(chunk => new { chunk.CorpusId, chunk.SourceId, chunk.DocumentId, chunk.Order });
             entity.HasOne<KnowledgeDocumentEntity>()
                 .WithMany()
-                .HasForeignKey(chunk => chunk.DocumentEntityId)
+                .HasForeignKey(chunk => chunk.DocumentId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -86,7 +86,7 @@ public sealed class KnowledgeDbContext(DbContextOptions<KnowledgeDbContext> opti
             entity.HasIndex(question => question.CorpusId);
             entity.HasOne<KnowledgeCorpusEntity>()
                 .WithMany()
-                .HasForeignKey(question => question.CorpusEntityId)
+                .HasForeignKey(question => question.CorpusId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -99,7 +99,7 @@ public sealed class KnowledgeDbContext(DbContextOptions<KnowledgeDbContext> opti
             entity.HasIndex(run => new { run.TenantId, run.CorpusId, run.CreatedAt });
             entity.HasOne<KnowledgeCorpusEntity>()
                 .WithMany()
-                .HasForeignKey(run => run.CorpusEntityId)
+                .HasForeignKey(run => run.CorpusId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -117,7 +117,7 @@ public sealed class KnowledgeDbContext(DbContextOptions<KnowledgeDbContext> opti
             entity.HasIndex(trace => new { trace.TenantId, trace.CorpusId, trace.CreatedAt });
             entity.HasOne<KnowledgeCorpusEntity>()
                 .WithMany()
-                .HasForeignKey(trace => trace.CorpusEntityId)
+                .HasForeignKey(trace => trace.CorpusId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }
