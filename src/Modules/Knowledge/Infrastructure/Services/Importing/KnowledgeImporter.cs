@@ -3,28 +3,28 @@ using Vitarish.Knowledge.Domain.Models;
 
 namespace Vitarish.Knowledge.Infrastructure.Services.Importing;
 
-public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeCorpusRepository corpusRepository, IKnowledgeImportRepository importRepository) : IKnowledgeImporter
+public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeCorpusRepository corpusRepository, IKnowledgeImportCommandHandler importCommandHandler) : IKnowledgeImporter
 {
     private readonly KnowledgeImportContentReader contentReader = new();
 
     public async Task<KnowledgeImportResult> ImportAsync(KnowledgeImportRequest request, CancellationToken cancellationToken)
     {
         KnowledgeImportResult result = await BuildImportResultAsync(null, request, cancellationToken);
-        await importRepository.SaveImportAsync(result, cancellationToken);
+        await importCommandHandler.SaveImportAsync(result, cancellationToken);
         return result;
     }
 
     public async Task<KnowledgeImportResult> ReplaceSourceAsync(Guid sourceId, KnowledgeImportRequest request, CancellationToken cancellationToken)
     {
-                KnowledgeImportResult result = await BuildImportResultAsync(sourceId, request, cancellationToken);
-        await importRepository.ReplaceSourceAsync(sourceId, result, cancellationToken);
+        KnowledgeImportResult result = await BuildImportResultAsync(sourceId, request, cancellationToken);
+        await importCommandHandler.ReplaceSourceAsync(sourceId, result, cancellationToken);
         return result;
     }
 
     private async Task<KnowledgeImportResult> BuildImportResultAsync(Guid? requestedSourceId, KnowledgeImportRequest request, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(request);
-                ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Format);
         KnowledgeCorpus? corpus = await corpusRepository.GetCorpusAsync(request.CorpusId, request.TenantId, cancellationToken);
         if (corpus is null) throw new InvalidOperationException($"Knowledge corpus '{request.CorpusId}' does not exist.");
