@@ -1,0 +1,14 @@
+<Stack>
+    @foreach (KnowledgeSourceDiagnostics source in sources)
+    {
+        <StackCard Label="@source.Name" Caption="@source.SourceId" HelperText="@($"{source.SourceType} · Imported {source.ImportedAt:u} · {source.OriginalLocation}")" />
+    }
+</Stack>
+
+@code {
+    [Parameter, EditorRequired] public string CorpusId { get; set; } = string.Empty;
+    [Parameter, EditorRequired] public string TenantId { get; set; } = string.Empty;
+    [Inject] private IKnowledgeDiagnosticsService Diagnostics { get; set; } = default!;
+    private IReadOnlyList<KnowledgeSourceDiagnostics> sources = [];
+    protected override async Task OnParametersSetAsync() => sources = await Diagnostics.GetSourcesAsync(CorpusId, TenantId, CancellationToken.None);
+}
