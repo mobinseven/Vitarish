@@ -11,7 +11,7 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
 {
     public async Task<KnowledgeAnswer> AskAsync(KnowledgeAskRequest request, CancellationToken cancellationToken)
     {
-                ArgumentException.ThrowIfNullOrWhiteSpace(request.Question);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.Question);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
 
         IReadOnlyList<KnowledgeHit> hits = await retriever.RetrieveAsync(new KnowledgeQuery { CorpusId = request.CorpusId, Question = request.Question, TenantId = request.TenantId, TopK = request.TopK }, cancellationToken);
@@ -20,7 +20,7 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
 
     public async Task<KnowledgeAnswer> AnswerFromHitsAsync(KnowledgeAskRequest request, IReadOnlyList<KnowledgeHit> hits, CancellationToken cancellationToken)
     {
-                ArgumentException.ThrowIfNullOrWhiteSpace(request.Question);
+        ArgumentException.ThrowIfNullOrWhiteSpace(request.Question);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
         ArgumentNullException.ThrowIfNull(hits);
         if (hits.Count == 0)
@@ -105,7 +105,7 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
         {
             throw new InvalidOperationException("Knowledge answer generation returned empty JSON.");
         }
-        Dictionary<Guid, KnowledgeHit> byChunk = new();
+        Dictionary<Guid, KnowledgeHit> byChunk = [];
         foreach (KnowledgeHit hit in hits)
         {
             byChunk[hit.ChunkId] = hit;
