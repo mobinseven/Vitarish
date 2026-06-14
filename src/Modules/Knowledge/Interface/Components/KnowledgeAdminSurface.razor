@@ -64,7 +64,19 @@
 </Stack>
 
 @code {
-    private string tenantId = "current";
+    private string _tenantId = "current";
+    private string tenantId
+    {
+        get => _tenantId;
+        set
+        {
+            if (_tenantId != value)
+            {
+                _tenantId = value;
+                _ = RefreshCorporaAsync();
+            }
+        }
+    }
     private string corpusId = "test";
     private string name = "Test Knowledge";
     private string? description;
