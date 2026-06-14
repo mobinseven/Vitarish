@@ -18,7 +18,7 @@ public sealed class KnowledgeSearchIndexProvider(IKnowledgeRepository repository
             return [];
         }
 
-        Dictionary<string, KnowledgeCorpus> corpusById = corpora.ToDictionary(corpus => corpus.Id, StringComparer.Ordinal);
+        Dictionary<Guid, KnowledgeCorpus> corpusById = corpora.ToDictionary(corpus => corpus.Id);
         IReadOnlyList<KnowledgeChunk> chunks = await repository.GetChunksForCorporaAsync(corpusById.Keys.ToArray(), cancellationToken);
 
         return [.. chunks.Select(chunk => KnowledgeSearchDocumentContract.ToSearchDocument(corpusById[chunk.CorpusId], chunk))];

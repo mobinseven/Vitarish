@@ -23,13 +23,9 @@ public static class KnowledgeSearchDocumentContract
     {
         ArgumentNullException.ThrowIfNull(corpus);
         ArgumentNullException.ThrowIfNull(chunk);
-        ArgumentException.ThrowIfNullOrWhiteSpace(corpus.Id);
         ArgumentException.ThrowIfNullOrWhiteSpace(corpus.TenantId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(chunk.Id);
-        ArgumentException.ThrowIfNullOrWhiteSpace(chunk.CorpusId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(chunk.TenantId);
 
-        if (!string.Equals(chunk.CorpusId, corpus.Id, StringComparison.Ordinal))
+        if (chunk.CorpusId != corpus.Id)
         {
             throw new InvalidOperationException($"Knowledge chunk '{chunk.Id}' does not belong to corpus '{corpus.Id}'.");
         }
@@ -39,11 +35,11 @@ public static class KnowledgeSearchDocumentContract
             throw new InvalidOperationException($"Knowledge chunk '{chunk.Id}' tenant does not match corpus '{corpus.Id}' tenant.");
         }
 
-        string title = string.IsNullOrWhiteSpace(chunk.Title) ? chunk.DocumentId : chunk.Title;
+        string title = string.IsNullOrWhiteSpace(chunk.Title) ? chunk.DocumentId.ToString("N") : chunk.Title;
 
         return new SearchDocument
         {
-            Id = chunk.Id,
+            Id = chunk.Id.ToString("N"),
             Title = string.IsNullOrWhiteSpace(chunk.HeadingPath)
                 ? title
                 : $"{title} — {chunk.HeadingPath}",
@@ -53,9 +49,9 @@ public static class KnowledgeSearchDocumentContract
             IndexName = IndexName,
             Metadata = new Dictionary<string, object?>
             {
-                [CorpusIdMetadataKey] = chunk.CorpusId,
-                [SourceIdMetadataKey] = chunk.SourceId,
-                [DocumentIdMetadataKey] = chunk.DocumentId,
+                [CorpusIdMetadataKey] = chunk.CorpusId.ToString("N"),
+                [SourceIdMetadataKey] = chunk.SourceId.ToString("N"),
+                [DocumentIdMetadataKey] = chunk.DocumentId.ToString("N"),
                 [HeadingPathMetadataKey] = chunk.HeadingPath,
                 [OrderMetadataKey] = chunk.Order
             }
@@ -68,14 +64,14 @@ public static class KnowledgeSearchDocumentContract
 
         return new KnowledgeHit
         {
-            ChunkId = document.Id,
-            SourceId = MetadataString(document, SourceIdMetadataKey),
-            DocumentId = MetadataString(document, DocumentIdMetadataKey),
+            ChunkId = Guid.Parse(document.Id),
+            SourceId = MetadataGuid(document, SourceIdMetadataKey),
+            DocumentId = MetadataGuid(document, DocumentIdMetadataKey),
             Text = document.Body ?? document.Title,
             Title = document.Title,
             Score = document.Score ?? 0
         };
     }
 
-    private static string MetadataString(SearchDocument document, string key) => document.Metadata.TryGetValue(key, out object? found) ? found?.ToString() ?? string.Empty : string.Empty;
+    private static Guid MetadataGuid(SearchDocument document, string key) => document.Metadata.TryGetValue(key, out object? found) && Guid.TryParse(found?.ToString(), out Guid value) ? value : Guid.Empty;
 }
