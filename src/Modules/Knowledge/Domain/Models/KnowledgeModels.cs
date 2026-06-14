@@ -1,17 +1,15 @@
 namespace Vitarish.Knowledge.Domain.Models;
 
-public sealed record KnowledgeCorpus
+public sealed record KnowledgeCorpus : EntityReadDto
 {
-    public required Guid Id { get; init; }
     public required string Name { get; init; }
     public required string TenantId { get; init; }
     public string? Description { get; init; }
     public bool IsActive { get; init; }
 }
 
-public sealed record KnowledgeSource
+public sealed record KnowledgeSource : EntityReadDto
 {
-    public required Guid Id { get; init; }
     public required Guid CorpusId { get; init; }
     public required string TenantId { get; init; }
     public required string Name { get; init; }
@@ -22,9 +20,8 @@ public sealed record KnowledgeSource
     public DateTimeOffset ImportedAt { get; init; }
 }
 
-public sealed record KnowledgeDocument
+public sealed record KnowledgeDocument : EntityReadDto
 {
-    public required Guid Id { get; init; }
     public required Guid CorpusId { get; init; }
     public required string TenantId { get; init; }
     public required Guid SourceId { get; init; }
@@ -35,9 +32,8 @@ public sealed record KnowledgeDocument
     public string? Language { get; init; }
 }
 
-public sealed record KnowledgeChunk
+public sealed record KnowledgeChunk : EntityReadDto
 {
-    public required Guid Id { get; init; }
     public required Guid CorpusId { get; init; }
     public required string TenantId { get; init; }
     public required Guid SourceId { get; init; }
@@ -48,7 +44,7 @@ public sealed record KnowledgeChunk
     public string? HeadingPath { get; init; }
 }
 
-public sealed record KnowledgeChunkDraft
+public sealed record KnowledgeChunkDraft : EntityReadDto
 {
     public required string Text { get; init; }
     public int Order { get; init; }
@@ -56,22 +52,19 @@ public sealed record KnowledgeChunkDraft
     public string? HeadingPath { get; init; }
 }
 
-public sealed record KnowledgeQuestion
+public sealed record KnowledgeQuestion : EntityReadDto
 {
-    public required Guid Id { get; init; }
     public required Guid CorpusId { get; init; }
     public required string Question { get; init; }
     public string? ExpectedAnswer { get; init; }
     public IReadOnlyList<Guid> ExpectedChunkIds { get; init; } = [];
 }
 
-public sealed record KnowledgeIndexRun
+public sealed record KnowledgeIndexRun : EntityReadDto
 {
-    public required Guid Id { get; init; }
     public required Guid CorpusId { get; init; }
     public required string TenantId { get; init; }
     public int IndexedChunkCount { get; init; }
     public string Scope { get; init; } = "corpus";
     public Guid? SourceId { get; init; }
-    public DateTimeOffset CreatedAt { get; init; }
 }
