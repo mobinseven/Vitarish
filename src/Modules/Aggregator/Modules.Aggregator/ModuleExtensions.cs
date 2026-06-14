@@ -38,21 +38,29 @@ public static class ModulesExtensions
 
     private static IEnumerable<Type> GetModuleTypes(string assemblyName)
     {
-        if (!IsRuntimeDependency(assemblyName))
+        Assembly assembly;
+        try
+        {
+            assembly = Assembly.Load(new AssemblyName(assemblyName));
+        }
+        catch (FileNotFoundException)
         {
             return [];
         }
 
-        Assembly assembly = Assembly.Load(new AssemblyName(assemblyName));
-
-        return assembly
-            .GetTypes()
-            .Where(type => type is { IsAbstract: false, IsInterface: false } && typeof(IModule).IsAssignableFrom(type))
-            .OrderBy(type => type.FullName, StringComparer.Ordinal);
+        try
+        {
+            return assembly.GetTypes()
+                .Where(type => type is { IsAbstract: false, IsInterface: false } && typeof(IModule).IsAssignableFrom(type))
+                .OrderBy(type => type.FullName, StringComparer.Ordinal);
+        }
+        catch (ReflectionTypeLoadException ex)
+        {
+            return ex.Types
+                .Where(type => type is { IsAbstract: false, IsInterface: false } && typeof(IModule).IsAssignableFrom(type))
+                .OrderBy(type => type!.FullName, StringComparer.Ordinal)!;
+        }
     }
-
-    private static bool IsRuntimeDependency(string assemblyName) =>
-        DependencyContext.Default?.RuntimeLibraries.Any(library => library.Name == assemblyName) == true;
 
     extension(WebApplicationBuilder builder)
     {
