@@ -3,7 +3,7 @@ using Vitarish.Knowledge.Domain.Models;
 
 namespace Vitarish.Knowledge.Infrastructure.Services.Evaluation;
 
-public sealed class KnowledgeEvaluator(IKnowledgeRepository repository, IKnowledgeRetriever retriever, IKnowledgeAnswerer answerer) : IKnowledgeEvaluator
+public sealed class KnowledgeEvaluator(IKnowledgeQuestionRepository repository, IKnowledgeRetriever retriever, IKnowledgeAnswerer answerer) : IKnowledgeEvaluator
 {
     public async Task<KnowledgeEvaluationRun> EvaluateAsync(KnowledgeEvaluationRequest request, CancellationToken cancellationToken)
     {

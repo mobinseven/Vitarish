@@ -3,15 +3,15 @@ using Vitarish.Knowledge.Domain.Models;
 
 namespace Vitarish.Knowledge.Infrastructure.Services;
 
-public sealed class KnowledgeService(IKnowledgeImporter importer, IKnowledgeIndexer indexer, IKnowledgeRetriever retriever, IKnowledgeAnswerer answerer, IKnowledgeEvaluator evaluator, IKnowledgeRepository repository) : IKnowledgeService
+public sealed class KnowledgeService(IKnowledgeImporter importer, IKnowledgeIndexer indexer, IKnowledgeRetriever retriever, IKnowledgeAnswerer answerer, IKnowledgeEvaluator evaluator, IKnowledgeCorpusRepository corpusRepository, IKnowledgeSourceRepository sourceRepository) : IKnowledgeService
 {
-    public Task SaveCorpusAsync(KnowledgeCorpus corpus, CancellationToken cancellationToken) => repository.SaveCorpusAsync(corpus, cancellationToken);
-    public Task<KnowledgeCorpus?> GetCorpusAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken) => repository.GetCorpusAsync(corpusId, tenantId, cancellationToken);
-    public Task<IReadOnlyList<KnowledgeCorpus>> ListCorporaAsync(string tenantId, CancellationToken cancellationToken) => repository.ListCorporaAsync(tenantId, cancellationToken);
-    public Task<IReadOnlyList<KnowledgeSource>> GetSourcesAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken) => repository.GetSourcesAsync(corpusId, tenantId, cancellationToken);
+    public Task SaveCorpusAsync(KnowledgeCorpus corpus, CancellationToken cancellationToken) => corpusRepository.SaveCorpusAsync(corpus, cancellationToken);
+    public Task<KnowledgeCorpus?> GetCorpusAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken) => corpusRepository.GetCorpusAsync(corpusId, tenantId, cancellationToken);
+    public Task<IReadOnlyList<KnowledgeCorpus>> ListCorporaAsync(string tenantId, CancellationToken cancellationToken) => corpusRepository.ListCorporaAsync(tenantId, cancellationToken);
+    public Task<IReadOnlyList<KnowledgeSource>> GetSourcesAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken) => sourceRepository.GetSourcesAsync(corpusId, tenantId, cancellationToken);
     public async Task DeleteSourceAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken)
     {
-        await repository.DeleteSourceAsync(sourceId, corpusId, tenantId, cancellationToken);
+        await sourceRepository.DeleteSourceAsync(sourceId, corpusId, tenantId, cancellationToken);
         await indexer.DeleteFromIndexAsync(sourceId, corpusId, tenantId, cancellationToken);
     }
     public Task<KnowledgeImportResult> ImportAsync(KnowledgeImportRequest request, CancellationToken cancellationToken) => importer.ImportAsync(request, cancellationToken);

@@ -12,8 +12,9 @@ public sealed class KnowledgeImporterJsonFormatTests
     [Fact]
     public async Task ImportAsync_ImportsTechQaJsonDocumentsAndQuestions()
     {
-        InMemoryKnowledgeRepository repository = new();
-        KnowledgeImporter importer = new(new OneChunkPerDocumentChunker(), repository);
+        InMemoryKnowledgeCorpusRepository corpusRepository = new();
+        InMemoryKnowledgeImportRepository importRepository = new();
+        KnowledgeImporter importer = new(new OneChunkPerDocumentChunker(), corpusRepository, importRepository);
         string json = """
             [
               {
@@ -30,14 +31,15 @@ public sealed class KnowledgeImporterJsonFormatTests
         _ = result.Documents.Should().ContainSingle(document => document.Title == "Reset guide" && document.Text.Contains("holding reset", StringComparison.Ordinal));
         _ = result.Questions.Should().ContainSingle(question => question.Question == "How do I reset the appliance?" && question.ExpectedAnswer == "Hold reset for ten seconds.");
         _ = result.Questions[0].ExpectedChunkIds.Should().ContainSingle().And.Contain(result.Chunks[0].Id);
-        _ = repository.SavedImport.Should().BeSameAs(result);
+        _ = importRepository.SavedImport.Should().BeSameAs(result);
     }
 
     [Fact]
     public async Task ImportAsync_ImportsRagEvalJsonContextsAndGroundTruth()
     {
-        InMemoryKnowledgeRepository repository = new();
-        KnowledgeImporter importer = new(new OneChunkPerDocumentChunker(), repository);
+        InMemoryKnowledgeCorpusRepository corpusRepository = new();
+        InMemoryKnowledgeImportRepository importRepository = new();
+        KnowledgeImporter importer = new(new OneChunkPerDocumentChunker(), corpusRepository, importRepository);
         string json = """
             {
               "data": [
@@ -59,7 +61,7 @@ public sealed class KnowledgeImporterJsonFormatTests
 
     private static KnowledgeImportRequest Request(string format, string json) => new()
     {
-        CorpusId = "corpus-1",
+        CorpusId = Guid.Parse("11111111-1111-1111-1111-111111111111"),
         TenantId = "tenant-1",
         Format = format,
         SourceName = "source.json",
@@ -71,31 +73,18 @@ public sealed class KnowledgeImporterJsonFormatTests
         public IReadOnlyList<KnowledgeChunkDraft> Chunk(KnowledgeDocument document) => [new() { Text = document.Text, Order = 0, Title = document.Title }];
     }
 
-    private sealed class InMemoryKnowledgeRepository : IKnowledgeRepository
+    private sealed class InMemoryKnowledgeCorpusRepository : IKnowledgeCorpusRepository
     {
-        public KnowledgeImportResult? SavedImport { get; private set; }
-
-        public Task<KnowledgeCorpus?> GetCorpusAsync(string corpusId, string tenantId, CancellationToken cancellationToken) => Task.FromResult<KnowledgeCorpus?>(new KnowledgeCorpus { Id = corpusId, Name = "Corpus", TenantId = tenantId, IsActive = true });
-
-        public Task SaveImportAsync(KnowledgeImportResult result, CancellationToken cancellationToken)
-        {
-            SavedImport = result;
-            return Task.CompletedTask;
-        }
-
+        public Task<KnowledgeCorpus?> GetCorpusAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken) => Task.FromResult<KnowledgeCorpus?>(new KnowledgeCorpus { Id = corpusId, Name = "Corpus", TenantId = tenantId, IsActive = true });
         public Task SaveCorpusAsync(KnowledgeCorpus corpus, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<IReadOnlyList<KnowledgeCorpus>> ListCorporaAsync(string tenantId, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<IReadOnlyList<KnowledgeCorpus>> ListActiveCorporaAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task<IReadOnlyList<KnowledgeSource>> GetSourcesAsync(string corpusId, string tenantId, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task<bool> SourceExistsAsync(string sourceId, string corpusId, string tenantId, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task<IReadOnlyList<KnowledgeChunk>> GetChunksAsync(string corpusId, string tenantId, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task<IReadOnlyList<KnowledgeChunk>> GetChunksBySourceAsync(string sourceId, string corpusId, string tenantId, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task<IReadOnlyList<KnowledgeChunk>> GetChunksForCorporaAsync(IReadOnlyCollection<string> corpusIds, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task<IReadOnlyList<KnowledgeQuestion>> GetQuestionsAsync(string corpusId, string tenantId, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task DeleteSourceAsync(string sourceId, string corpusId, string tenantId, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task ReplaceSourceAsync(string sourceId, KnowledgeImportResult result, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task SaveAskTraceAsync(KnowledgeAskTrace trace, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task SaveIndexRunAsync(KnowledgeIndexRun run, CancellationToken cancellationToken) => throw new NotSupportedException();
-        public Task<KnowledgeIndexRun?> GetLatestIndexRunAsync(string corpusId, string tenantId, CancellationToken cancellationToken) => throw new NotSupportedException();
+    }
+
+    private sealed class InMemoryKnowledgeImportRepository : IKnowledgeImportRepository
+    {
+        public KnowledgeImportResult? SavedImport { get; private set; }
+        public Task SaveImportAsync(KnowledgeImportResult result, CancellationToken cancellationToken) { SavedImport = result; return Task.CompletedTask; }
+        public Task ReplaceSourceAsync(Guid sourceId, KnowledgeImportResult result, CancellationToken cancellationToken) { SavedImport = result; return Task.CompletedTask; }
     }
 }
