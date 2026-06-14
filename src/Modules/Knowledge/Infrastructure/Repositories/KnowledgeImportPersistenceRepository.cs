@@ -7,7 +7,7 @@ using Vitarish.Knowledge.Infrastructure.Data;
 
 namespace Vitarish.Knowledge.Infrastructure.Repositories;
 
-public sealed class KnowledgeImportRepository(KnowledgeDbContext dbContext) : IKnowledgeImportRepository
+public sealed class KnowledgeImportPersistenceRepository(KnowledgeDbContext dbContext) : IKnowledgeImportPersistenceRepository
 {
     public async Task SaveImportAsync(KnowledgeImportResult result, CancellationToken cancellationToken)
     {
