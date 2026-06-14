@@ -13,6 +13,11 @@ public interface ISearchService
     Task IndexAsync(string indexName, IEnumerable<SearchDocument> documents, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Deletes documents from the specified index that match the supplied tenant, type, corpus, and metadata filters.
+    /// </summary>
+    Task DeleteAsync(string indexName, SearchDeleteOptions options, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Queries the specified index and returns matching documents.
     /// When <paramref name="indexName"/> is <see langword="null"/>, all registered indexes are searched.
     /// </summary>

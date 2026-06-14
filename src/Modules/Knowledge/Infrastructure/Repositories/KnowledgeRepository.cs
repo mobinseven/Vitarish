@@ -116,6 +116,8 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
                 ImportedAt = source.ImportedAt
             })
             .ToListAsync(cancellationToken);
+    }
+
     public async Task<bool> SourceExistsAsync(string sourceId, string corpusId, string tenantId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(sourceId);
@@ -298,22 +300,15 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
             throw new InvalidOperationException($"Knowledge source '{sourceId}' does not exist in corpus '{corpusId}' for tenant '{tenantId}'.");
         }
 
-        KnowledgeSourceEntity? source = await dbContext.Sources
-            .FirstOrDefaultAsync(found => found.Id == sourceId && found.CorpusId == corpusId && found.TenantId == tenantId, cancellationToken);
-        if (source is null)
-        {
-            throw new InvalidOperationException($"Knowledge source '{sourceId}' does not exist in corpus '{corpusId}' for tenant '{tenantId}'.");
-        }
-
-        var chunks = await dbContext.Chunks
+        List<KnowledgeChunkEntity> chunks = await dbContext.Chunks
             .Where(chunk => chunk.SourceId == sourceId && chunk.CorpusId == corpusId && chunk.TenantId == tenantId)
             .ToListAsync(cancellationToken);
 
-        var documents = await dbContext.Documents
-            .Where(doc => doc.SourceId == sourceId && doc.CorpusId == corpusId && doc.TenantId == tenantId)
+        List<KnowledgeDocumentEntity> documents = await dbContext.Documents
+            .Where(document => document.SourceId == sourceId && document.CorpusId == corpusId && document.TenantId == tenantId)
             .ToListAsync(cancellationToken);
 
-        string[] chunkIds = chunks.Select(chunk => chunk.Id).ToArray();
+        string[] chunkIds = [.. chunks.Select(chunk => chunk.Id)];
 
         dbContext.Chunks.RemoveRange(chunks);
         dbContext.Documents.RemoveRange(documents);
@@ -408,19 +403,14 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
         }
 
         HashSet<string> chunkIdSet = new(chunkIds, StringComparer.Ordinal);
-    private async Task RemoveQuestionsForChunksAsync(string corpusId, IReadOnlyCollection<string> chunkIds, CancellationToken cancellationToken)
-    {
-        if (chunkIds.Count == 0)
-        {
-            return;
-        }
-
-        var questionsToRemove = await dbContext.Questions
-            .Where(q => q.CorpusId == corpusId && q.Chunks.Any(c => chunkIds.Contains(c.ChunkId)))
+        List<KnowledgeQuestionEntity> questions = await dbContext.Questions
+            .Where(question => question.CorpusId == corpusId)
             .ToListAsync(cancellationToken);
 
+        KnowledgeQuestionEntity[] questionsToRemove = [.. questions.Where(question =>
+            DeserializeStringList(question.ExpectedChunkIdsJson).Any(chunkIdSet.Contains))];
+
         dbContext.Questions.RemoveRange(questionsToRemove);
-    }
     }
 
     private static IReadOnlyList<string> DeserializeStringList(string json)

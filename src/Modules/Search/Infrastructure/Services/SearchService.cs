@@ -67,6 +67,30 @@ internal sealed class SearchService : ISearchService
         }
     }
 
+
+    public async Task DeleteAsync(
+        string indexName,
+        SearchDeleteOptions deleteOptions,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(indexName);
+        ArgumentNullException.ThrowIfNull(deleteOptions);
+        ArgumentException.ThrowIfNullOrWhiteSpace(deleteOptions.TenantId);
+
+        string fullIndexName = BuildIndexName(indexName);
+        Query deleteQuery = BuildDeleteQuery(deleteOptions);
+
+        DeleteByQueryResponse response = await client.DeleteByQueryAsync<SearchDocument>(
+            fullIndexName,
+            request => request.Query(deleteQuery),
+            cancellationToken);
+
+        if (!response.IsValidResponse)
+        {
+            throw new InvalidOperationException($"Delete from index '{fullIndexName}' failed.");
+        }
+    }
+
     public async Task<SearchResult> SearchAsync(
         string? indexName,
         string query,
@@ -245,6 +269,33 @@ internal sealed class SearchService : ISearchService
                 "Elasticsearch native inference endpoint is not configured (Vitarish:ElasticSearch:InferenceEndpointId). " +
                 "Semantic retrieval should stay disabled until this endpoint is available.");
         }
+    }
+
+
+    private static Query BuildDeleteQuery(SearchDeleteOptions deleteOptions)
+    {
+        List<Query> filters =
+        [
+            new TermQuery { Field = new Field("tenantId.keyword"), Value = deleteOptions.TenantId }
+        ];
+
+        if (!string.IsNullOrWhiteSpace(deleteOptions.Type))
+        {
+            filters.Add(new TermQuery { Field = new Field("type.keyword"), Value = deleteOptions.Type });
+        }
+
+        if (!string.IsNullOrWhiteSpace(deleteOptions.CorpusId))
+        {
+            filters.Add(new TermQuery { Field = new Field("metadata.corpusId.keyword"), Value = deleteOptions.CorpusId });
+        }
+
+        foreach (KeyValuePair<string, string> metadataFilter in deleteOptions.MetadataFilters)
+        {
+            if (string.IsNullOrWhiteSpace(metadataFilter.Key) || string.IsNullOrWhiteSpace(metadataFilter.Value)) continue;
+            filters.Add(new TermQuery { Field = new Field($"metadata.{metadataFilter.Key}.keyword"), Value = metadataFilter.Value });
+        }
+
+        return new BoolQuery { Filter = filters };
     }
 
     private static Query BuildQuery(string query, SearchOptions searchOptions, string tenantId)

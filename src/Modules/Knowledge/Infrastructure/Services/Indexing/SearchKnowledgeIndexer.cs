@@ -32,7 +32,7 @@ public sealed class SearchKnowledgeIndexer(IKnowledgeRepository repository, ISea
         if (corpus is null) throw new InvalidOperationException($"Knowledge corpus '{corpusId}' does not exist.");
         if (!corpus.IsActive) throw new InvalidOperationException($"Knowledge corpus '{corpusId}' is inactive.");
 
-        bool sourceExists = (await repository.GetSourcesAsync(corpusId, tenantId, cancellationToken)).Any(source => string.Equals(source.Id, sourceId, StringComparison.Ordinal));
+        bool sourceExists = await repository.SourceExistsAsync(sourceId, corpusId, tenantId, cancellationToken);
         if (!sourceExists) throw new InvalidOperationException($"Knowledge source '{sourceId}' does not exist in corpus '{corpusId}'.");
 
         IReadOnlyList<KnowledgeChunk> chunks = await repository.GetChunksBySourceAsync(sourceId, corpusId, tenantId, cancellationToken);
@@ -40,6 +40,25 @@ public sealed class SearchKnowledgeIndexer(IKnowledgeRepository repository, ISea
         await search.IndexAsync(KnowledgeSearchDocumentContract.IndexName, documents, cancellationToken);
         await SaveRunAsync(corpusId, tenantId, documents.Length, "source", sourceId, cancellationToken);
         return new KnowledgeIndexResult(corpusId, tenantId, documents.Length, "source", sourceId);
+    }
+
+
+    public async Task DeleteFromIndexAsync(string sourceId, string corpusId, string tenantId, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+
+        await search.DeleteAsync(KnowledgeSearchDocumentContract.IndexName, new SearchDeleteOptions
+        {
+            TenantId = tenantId,
+            Type = KnowledgeSearchDocumentContract.DocumentType,
+            CorpusId = corpusId,
+            MetadataFilters = new Dictionary<string, string>
+            {
+                [KnowledgeSearchDocumentContract.SourceIdMetadataKey] = sourceId
+            }
+        }, cancellationToken);
     }
 
     private Task SaveRunAsync(string corpusId, string tenantId, int indexedChunkCount, string scope, string? sourceId, CancellationToken cancellationToken) =>

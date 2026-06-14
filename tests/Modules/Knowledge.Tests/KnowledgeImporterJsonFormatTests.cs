@@ -87,6 +87,7 @@ public sealed class KnowledgeImporterJsonFormatTests
         public Task<IReadOnlyList<KnowledgeCorpus>> ListCorporaAsync(string tenantId, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<IReadOnlyList<KnowledgeCorpus>> ListActiveCorporaAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<IReadOnlyList<KnowledgeSource>> GetSourcesAsync(string corpusId, string tenantId, CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<bool> SourceExistsAsync(string sourceId, string corpusId, string tenantId, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<IReadOnlyList<KnowledgeChunk>> GetChunksAsync(string corpusId, string tenantId, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<IReadOnlyList<KnowledgeChunk>> GetChunksBySourceAsync(string sourceId, string corpusId, string tenantId, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<IReadOnlyList<KnowledgeChunk>> GetChunksForCorporaAsync(IReadOnlyCollection<string> corpusIds, CancellationToken cancellationToken) => throw new NotSupportedException();

@@ -9,7 +9,11 @@ public sealed class KnowledgeService(IKnowledgeImporter importer, IKnowledgeInde
     public Task<KnowledgeCorpus?> GetCorpusAsync(string corpusId, string tenantId, CancellationToken cancellationToken) => repository.GetCorpusAsync(corpusId, tenantId, cancellationToken);
     public Task<IReadOnlyList<KnowledgeCorpus>> ListCorporaAsync(string tenantId, CancellationToken cancellationToken) => repository.ListCorporaAsync(tenantId, cancellationToken);
     public Task<IReadOnlyList<KnowledgeSource>> GetSourcesAsync(string corpusId, string tenantId, CancellationToken cancellationToken) => repository.GetSourcesAsync(corpusId, tenantId, cancellationToken);
-    public Task DeleteSourceAsync(string sourceId, string corpusId, string tenantId, CancellationToken cancellationToken) => repository.DeleteSourceAsync(sourceId, corpusId, tenantId, cancellationToken);
+    public async Task DeleteSourceAsync(string sourceId, string corpusId, string tenantId, CancellationToken cancellationToken)
+    {
+        await repository.DeleteSourceAsync(sourceId, corpusId, tenantId, cancellationToken);
+        await indexer.DeleteFromIndexAsync(sourceId, corpusId, tenantId, cancellationToken);
+    }
     public Task<KnowledgeImportResult> ImportAsync(KnowledgeImportRequest request, CancellationToken cancellationToken) => importer.ImportAsync(request, cancellationToken);
     public Task<KnowledgeImportResult> ReplaceSourceAsync(string sourceId, KnowledgeImportRequest request, CancellationToken cancellationToken) => importer.ReplaceSourceAsync(sourceId, request, cancellationToken);
     public Task<KnowledgeIndexResult> IndexAsync(string corpusId, string tenantId, CancellationToken cancellationToken) => indexer.IndexCorpusAsync(corpusId, tenantId, cancellationToken);

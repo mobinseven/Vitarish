@@ -12,6 +12,7 @@ public interface IKnowledgeIndexer
 {
     Task<KnowledgeIndexResult> IndexCorpusAsync(string corpusId, string tenantId, CancellationToken cancellationToken);
     Task<KnowledgeIndexResult> ReindexSourceAsync(string sourceId, string corpusId, string tenantId, CancellationToken cancellationToken);
+    Task DeleteFromIndexAsync(string sourceId, string corpusId, string tenantId, CancellationToken cancellationToken);
 }
 public interface IKnowledgeRetriever { Task<IReadOnlyList<KnowledgeHit>> RetrieveAsync(KnowledgeQuery query, CancellationToken cancellationToken); }
 public interface IKnowledgeContextBuilder { KnowledgeContext Build(string question, IReadOnlyList<KnowledgeHit> hits); }
