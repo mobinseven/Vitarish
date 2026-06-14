@@ -21,8 +21,8 @@
     </StackSelect>
     <StackTextField @bind-Value="sourceName" Label="Source name" />
     <StackSelect T="string" @bind-Value="format" Label="Format">
-        <MudSelectItem T="string" Value='"markdown"'>markdown</MudSelectItem>
-        <MudSelectItem T="string" Value='"plain-text"'>plain-text</MudSelectItem>
+        <StackSelectItem T="string" Value='"markdown"'>markdown</StackSelectItem>
+        <StackSelectItem T="string" Value='"plain-text"'>plain-text</StackSelectItem>
     </StackSelect>
     <StackTextField @bind-Value="importText" Label="Paste text" Lines="10" />
     <StackButton Label="Import" Color="Color.Primary" OnClick="ImportAsync" Disabled="@isBusy" />
