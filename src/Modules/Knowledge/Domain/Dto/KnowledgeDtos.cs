@@ -1,0 +1,9 @@
+namespace Vitarish.Knowledge.Domain.Dto;
+
+public record KnowledgeCorpusReadDto : EntityReadDto { public string ExternalId { get; set; } = string.Empty; public string Name { get; set; } = string.Empty; public string TenantId { get; set; } = string.Empty; public string? Description { get; set; } public bool IsActive { get; set; } }
+public record KnowledgeCorpusWriteDto : EntityWriteDto { public string ExternalId { get; set; } = string.Empty; public string Name { get; set; } = string.Empty; public string TenantId { get; set; } = string.Empty; public string? Description { get; set; } public bool IsActive { get; set; } }
+public record KnowledgeCorpusDescriptorDto : EntityDescriptorDto { public string? ExternalId { get; set; } public string? TenantId { get; set; } public bool? IsActive { get; set; } }
+
+public record KnowledgeSourceReadDto : EntityReadDto { public string ExternalId { get; set; } = string.Empty; public string CorpusId { get; set; } = string.Empty; public string TenantId { get; set; } = string.Empty; public string Name { get; set; } = string.Empty; public string SourceType { get; set; } = string.Empty; public string? OriginalLocation { get; set; } public string? Version { get; set; } public string? Checksum { get; set; } public DateTimeOffset ImportedAt { get; set; } }
+public record KnowledgeSourceWriteDto : EntityWriteDto { public string ExternalId { get; set; } = string.Empty; public string CorpusId { get; set; } = string.Empty; public string TenantId { get; set; } = string.Empty; public string Name { get; set; } = string.Empty; public string SourceType { get; set; } = string.Empty; public string? OriginalLocation { get; set; } public string? Version { get; set; } public string? Checksum { get; set; } }
+public record KnowledgeSourceDescriptorDto : EntityDescriptorDto { public string? ExternalId { get; set; } public string? CorpusId { get; set; } public string? TenantId { get; set; } }

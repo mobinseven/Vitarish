@@ -40,7 +40,7 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
             .OrderByDescending(source => source.ImportedAt)
             .Select(source => new KnowledgeSourceDiagnostics
             {
-                SourceId = source.Id,
+                SourceId = source.ExternalId,
                 CorpusId = source.CorpusId,
                 TenantId = source.TenantId,
                 Name = source.Name,
@@ -67,7 +67,7 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
             .Take(limit)
             .Select(chunk => new KnowledgeChunkDiagnostics
             {
-                ChunkId = chunk.Id,
+                ChunkId = chunk.ExternalId,
                 SourceId = chunk.SourceId,
                 DocumentId = chunk.DocumentId,
                 Title = chunk.Title ?? string.Empty,
@@ -186,7 +186,7 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
         ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Question);
         if (request.TopK < 1) throw new ArgumentOutOfRangeException(nameof(request), request.TopK, "TopK must be at least 1.");
-        bool corpusExists = await dbContext.Corpora.AsNoTracking().AnyAsync(corpus => corpus.Id == request.CorpusId && corpus.TenantId == request.TenantId, cancellationToken);
+        bool corpusExists = await dbContext.Corpora.AsNoTracking().AnyAsync(corpus => corpus.ExternalId == request.CorpusId && corpus.TenantId == request.TenantId, cancellationToken);
         if (!corpusExists) return EmptyDebugResult(request, KnowledgeFailureStage.CorpusMissing, "Corpus does not exist for this tenant.", "Corpus lookup failed.");
         int chunkCount = await dbContext.Chunks.AsNoTracking().CountAsync(chunk => chunk.CorpusId == request.CorpusId && chunk.TenantId == request.TenantId, cancellationToken);
         if (chunkCount == 0) return EmptyDebugResult(request, KnowledgeFailureStage.NoImportedChunks, "Corpus has no imported chunks.", "No chunks exist for this corpus and tenant.");
@@ -233,17 +233,17 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
     private IQueryable<KnowledgeCorpusDiagnostics> CorpusDiagnosticsQuery() => dbContext.Corpora.AsNoTracking()
         .Select(corpus => new KnowledgeCorpusDiagnostics
         {
-            CorpusId = corpus.Id,
+            CorpusId = corpus.ExternalId,
             TenantId = corpus.TenantId,
             Name = corpus.Name,
             IsActive = corpus.IsActive,
-            SourceCount = dbContext.Sources.Count(source => source.CorpusId == corpus.Id && source.TenantId == corpus.TenantId),
-            DocumentCount = dbContext.Documents.Count(document => document.CorpusId == corpus.Id && document.TenantId == corpus.TenantId),
-            ChunkCount = dbContext.Chunks.Count(chunk => chunk.CorpusId == corpus.Id && chunk.TenantId == corpus.TenantId),
-            QuestionCount = dbContext.Questions.Count(question => question.CorpusId == corpus.Id),
-            AskTraceCount = dbContext.AskTraces.Count(trace => trace.CorpusId == corpus.Id && trace.TenantId == corpus.TenantId),
-            LastImportedAt = dbContext.Sources.Where(source => source.CorpusId == corpus.Id && source.TenantId == corpus.TenantId).Max(source => (DateTimeOffset?)source.ImportedAt),
-            LastAskedAt = dbContext.AskTraces.Where(trace => trace.CorpusId == corpus.Id && trace.TenantId == corpus.TenantId).Max(trace => (DateTimeOffset?)trace.CreatedAt)
+            SourceCount = dbContext.Sources.Count(source => source.CorpusId == corpus.ExternalId && source.TenantId == corpus.TenantId),
+            DocumentCount = dbContext.Documents.Count(document => document.CorpusId == corpus.ExternalId && document.TenantId == corpus.TenantId),
+            ChunkCount = dbContext.Chunks.Count(chunk => chunk.CorpusId == corpus.ExternalId && chunk.TenantId == corpus.TenantId),
+            QuestionCount = dbContext.Questions.Count(question => question.CorpusId == corpus.ExternalId),
+            AskTraceCount = dbContext.AskTraces.Count(trace => trace.CorpusId == corpus.ExternalId && trace.TenantId == corpus.TenantId),
+            LastImportedAt = dbContext.Sources.Where(source => source.CorpusId == corpus.ExternalId && source.TenantId == corpus.TenantId).Max(source => (DateTimeOffset?)source.ImportedAt),
+            LastAskedAt = dbContext.AskTraces.Where(trace => trace.CorpusId == corpus.ExternalId && trace.TenantId == corpus.TenantId).Max(trace => (DateTimeOffset?)trace.CreatedAt)
         });
 
     private static KnowledgeAskTraceDiagnostics MapTraceDiagnostics(KnowledgeAskTraceEntity trace)
@@ -252,7 +252,7 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
         JsonParseResult<KnowledgeCitation> citations = DeserializeList<KnowledgeCitation>(trace.CitationsJson, "citations");
         return new KnowledgeAskTraceDiagnostics
         {
-            TraceId = trace.Id,
+            TraceId = trace.ExternalId,
             CorpusId = trace.CorpusId,
             TenantId = trace.TenantId,
             Question = trace.Question,
