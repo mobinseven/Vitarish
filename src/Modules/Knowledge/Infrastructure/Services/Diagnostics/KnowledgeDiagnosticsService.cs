@@ -7,7 +7,7 @@ using Vitarish.Knowledge.Infrastructure.Data;
 
 namespace Vitarish.Knowledge.Infrastructure.Services.Diagnostics;
 
-public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IKnowledgeRepository repository, IKnowledgeRetriever retriever, IKnowledgeContextBuilder contextBuilder, IKnowledgeAnswerer answerer) : IKnowledgeDiagnosticsService
+public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IKnowledgeCorpusRepository corpusRepository, IKnowledgeIndexRunRepository indexRunRepository, IKnowledgeRetriever retriever, IKnowledgeContextBuilder contextBuilder, IKnowledgeAnswerer answerer) : IKnowledgeDiagnosticsService
 {
     private const int PreviewLength = 240;
     private const string IndexProbe = "the";
@@ -98,7 +98,7 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
         ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
                 if (request.TopK < 1) throw new ArgumentOutOfRangeException(nameof(request), request.TopK, "TopK must be at least 1.");
 
-        KnowledgeCorpus? corpus = await repository.GetCorpusAsync(request.CorpusId, request.TenantId, cancellationToken);
+        KnowledgeCorpus? corpus = await corpusRepository.GetCorpusAsync(request.CorpusId, request.TenantId, cancellationToken);
         if (corpus is null)
         {
             KnowledgeCheck corpusMissing = Fail("Corpus does not exist for this tenant.");
@@ -127,7 +127,7 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
             })
             .FirstOrDefaultAsync(cancellationToken);
 
-        KnowledgeIndexRun? indexRun = await repository.GetLatestIndexRunAsync(request.CorpusId, request.TenantId, cancellationToken);
+        KnowledgeIndexRun? indexRun = await indexRunRepository.GetLatestIndexRunAsync(request.CorpusId, request.TenantId, cancellationToken);
         KnowledgeAskDebugResult? debugAsk = null;
         KnowledgeCheck searchRetrieved = Fail("No question was provided.");
         KnowledgeCheck contextPacked = Fail("No question was provided.");
@@ -219,7 +219,7 @@ public sealed class KnowledgeDiagnosticsService(KnowledgeDbContext dbContext, IK
                 ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         int chunkCount = await dbContext.Chunks.AsNoTracking().CountAsync(chunk => chunk.CorpusId == corpusId && chunk.TenantId == tenantId, cancellationToken);
         IReadOnlyList<KnowledgeHit> hits = chunkCount == 0 ? [] : await retriever.RetrieveAsync(new KnowledgeQuery { CorpusId = corpusId, TenantId = tenantId, Question = IndexProbe, TopK = 1 }, cancellationToken);
-        KnowledgeIndexRun? indexRun = await repository.GetLatestIndexRunAsync(corpusId, tenantId, cancellationToken);
+        KnowledgeIndexRun? indexRun = await indexRunRepository.GetLatestIndexRunAsync(corpusId, tenantId, cancellationToken);
         return new KnowledgeIndexDiagnostics { CorpusId = corpusId, TenantId = tenantId, StoredChunkCount = chunkCount, SearchHitCountForProbe = hits.Count, LastIndexedAt = indexRun?.CreatedAt, LooksIndexed = indexRun is not null && chunkCount > 0 && hits.Count > 0 };
     }
 

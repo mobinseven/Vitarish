@@ -16,6 +16,7 @@ using Vitarish.Knowledge.Infrastructure.Services.Importing;
 using Vitarish.Knowledge.Infrastructure.Services.Diagnostics;
 using Vitarish.Knowledge.Infrastructure.Services.Chunking;
 using Vitarish.Search.Application.Abstractions;
+using Vitarish.Entities.Server.Extensions;
 
 namespace Vitarish.Knowledge.Interface;
 
@@ -26,9 +27,7 @@ public sealed class KnowledgeModule : Module, IKnowledgeModule
     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         _ = builder.Services.AddSingleton<IKnowledgeModule, KnowledgeModule>();
-        _ = configureDbContext is null
-            ? builder.Services.AddDbContext<KnowledgeDbContext>()
-            : builder.Services.AddDbContext<KnowledgeDbContext>(configureDbContext);
+        _ = builder.Services.AddTransientMultiTenantDbContext<KnowledgeDbContext>((_, options) => configureDbContext?.Invoke(options));
         _ = builder.Services.AddScoped<IKnowledgeChunker, HeadingAwareKnowledgeChunker>();
         _ = builder.Services.AddScoped<IKnowledgeImporter, KnowledgeImporter>();
         _ = builder.Services.AddScoped<IKnowledgeIndexer, SearchKnowledgeIndexer>();
@@ -37,7 +36,13 @@ public sealed class KnowledgeModule : Module, IKnowledgeModule
         _ = builder.Services.AddScoped<IKnowledgeContextBuilder, KnowledgeContextBuilder>();
         _ = builder.Services.AddScoped<IKnowledgeAnswerer, IntelligenceKnowledgeAnswerer>();
         _ = builder.Services.AddScoped<IKnowledgeEvaluator, KnowledgeEvaluator>();
-        _ = builder.Services.AddScoped<IKnowledgeRepository, KnowledgeRepository>();
+        _ = builder.Services.AddScoped<IKnowledgeCorpusRepository, KnowledgeCorpusRepository>();
+        _ = builder.Services.AddScoped<IKnowledgeSourceRepository, KnowledgeSourceRepository>();
+        _ = builder.Services.AddScoped<IKnowledgeChunkRepository, KnowledgeChunkRepository>();
+        _ = builder.Services.AddScoped<IKnowledgeQuestionRepository, KnowledgeQuestionRepository>();
+        _ = builder.Services.AddScoped<IKnowledgeAskTraceRepository, KnowledgeAskTraceRepository>();
+        _ = builder.Services.AddScoped<IKnowledgeIndexRunRepository, KnowledgeIndexRunRepository>();
+        _ = builder.Services.AddScoped<IKnowledgeImportRepository, KnowledgeImportRepository>();
         _ = builder.Services.AddScoped<IKnowledgeService, KnowledgeService>();
         _ = builder.Services.AddScoped<IKnowledgeDiagnosticsService, KnowledgeDiagnosticsService>();
         return Task.CompletedTask;

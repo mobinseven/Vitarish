@@ -23,24 +23,50 @@ public interface IKnowledgeAnswerer
 }
 public interface IKnowledgeEvaluator { Task<KnowledgeEvaluationRun> EvaluateAsync(KnowledgeEvaluationRequest request, CancellationToken cancellationToken); }
 
-public interface IKnowledgeRepository
+public interface IKnowledgeCorpusRepository
 {
     Task SaveCorpusAsync(KnowledgeCorpus corpus, CancellationToken cancellationToken);
     Task<KnowledgeCorpus?> GetCorpusAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken);
     Task<IReadOnlyList<KnowledgeCorpus>> ListCorporaAsync(string tenantId, CancellationToken cancellationToken);
     Task<IReadOnlyList<KnowledgeCorpus>> ListActiveCorporaAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<KnowledgeCorpus>> ListAllActiveCorporaForIndexingAsync(CancellationToken cancellationToken);
+}
+
+public interface IKnowledgeSourceRepository
+{
     Task<IReadOnlyList<KnowledgeSource>> GetSourcesAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken);
     Task<bool> SourceExistsAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken);
+    Task DeleteSourceAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken);
+}
+
+public interface IKnowledgeChunkRepository
+{
     Task<IReadOnlyList<KnowledgeChunk>> GetChunksAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken);
     Task<IReadOnlyList<KnowledgeChunk>> GetChunksBySourceAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken);
-    Task<IReadOnlyList<KnowledgeChunk>> GetChunksForCorporaAsync(IReadOnlyCollection<Guid> corpusIds, CancellationToken cancellationToken);
+    Task<IReadOnlyList<KnowledgeChunk>> GetChunksForCorporaAsync(IReadOnlyCollection<Guid> corpusIds, string tenantId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<KnowledgeChunk>> GetChunksForCorporaForIndexingAsync(IReadOnlyCollection<Guid> corpusIds, string tenantId, CancellationToken cancellationToken);
+}
+
+public interface IKnowledgeQuestionRepository
+{
     Task<IReadOnlyList<KnowledgeQuestion>> GetQuestionsAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken);
-    Task SaveImportAsync(KnowledgeImportResult result, CancellationToken cancellationToken);
-    Task DeleteSourceAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken);
-    Task ReplaceSourceAsync(Guid sourceId, KnowledgeImportResult result, CancellationToken cancellationToken);
+}
+
+public interface IKnowledgeAskTraceRepository
+{
     Task SaveAskTraceAsync(KnowledgeAskTrace trace, CancellationToken cancellationToken);
+}
+
+public interface IKnowledgeIndexRunRepository
+{
     Task SaveIndexRunAsync(KnowledgeIndexRun run, CancellationToken cancellationToken);
     Task<KnowledgeIndexRun?> GetLatestIndexRunAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken);
+}
+
+public interface IKnowledgeImportRepository
+{
+    Task SaveImportAsync(KnowledgeImportResult result, CancellationToken cancellationToken);
+    Task ReplaceSourceAsync(Guid sourceId, KnowledgeImportResult result, CancellationToken cancellationToken);
 }
 
 public interface IKnowledgeService : IKnowledgeImporter

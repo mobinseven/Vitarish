@@ -7,7 +7,7 @@ using Vitarish.Knowledge.Application.Abstractions;
 
 namespace Vitarish.Knowledge.Infrastructure.Services.Answering;
 
-public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever, IKnowledgeContextBuilder contextBuilder, IResponder responder, IKnowledgeRepository repository, ILogger<IntelligenceKnowledgeAnswerer> logger) : IKnowledgeAnswerer
+public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever, IKnowledgeContextBuilder contextBuilder, IResponder responder, IKnowledgeAskTraceRepository repository, ILogger<IntelligenceKnowledgeAnswerer> logger) : IKnowledgeAnswerer
 {
     public async Task<KnowledgeAnswer> AskAsync(KnowledgeAskRequest request, CancellationToken cancellationToken)
     {
