@@ -128,7 +128,9 @@ public sealed class KnowledgeDbContext : DbContext, IMultiTenantDbContext
             entity.HasKey(question => question.Id);
             entity.Property(question => question.Question).HasMaxLength(2048).IsRequired();
             entity.Property(question => question.ExpectedAnswer).HasMaxLength(4096);
-            entity.Property(question => question.ExpectedChunkIdsJson).IsRequired();
+            entity.Property(question => question.ExpectedChunkIds)
+                .HasColumnName("ExpectedChunkIdsJson")
+                .IsRequired();
             entity.HasIndex(question => question.CorpusId);
             entity.HasOne<KnowledgeCorpusEntity>().WithMany().HasForeignKey(question => question.CorpusId).OnDelete(DeleteBehavior.Cascade);
         });
