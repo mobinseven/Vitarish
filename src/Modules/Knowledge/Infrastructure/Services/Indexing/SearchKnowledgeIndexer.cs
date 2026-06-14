@@ -65,6 +65,6 @@ public sealed class SearchKnowledgeIndexer(IKnowledgeCorpusRepository corpusRepo
             IndexedChunkCount = indexedChunkCount,
             Scope = scope,
             SourceId = sourceId,
-            CreatedAt = DateTimeOffset.UtcNow
+            CreatedAt = DateTime.UtcNow
         }, cancellationToken);
 }

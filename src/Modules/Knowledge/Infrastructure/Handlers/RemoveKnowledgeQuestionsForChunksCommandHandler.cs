@@ -2,7 +2,6 @@ using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Knowledge.Application.Commands;
 using Vitarish.Knowledge.Domain.Entities;
-using Vitarish.Knowledge.Domain.Mappers;
 using Vitarish.Knowledge.Infrastructure.Data;
 
 namespace Vitarish.Knowledge.Infrastructure.Handlers;
@@ -29,22 +28,11 @@ public sealed class RemoveKnowledgeQuestionsForChunksCommandHandler(KnowledgeDbC
         }
 
         HashSet<Guid> chunkIdSet = [.. distinctChunkIds];
-        string[] chunkIdValues = [.. distinctChunkIds.Select(static id => id.ToString())];
 
-        IQueryable<KnowledgeQuestionEntity> corpusQuestions = dbContext.Questions
-            .Where(question => question.CorpusId == request.CorpusId);
-
-        IQueryable<KnowledgeQuestionEntity> candidateQuestions = chunkIdValues.Aggregate(
-            corpusQuestions.Where(_ => false),
-            (query, chunkId) => query.Concat(
-                corpusQuestions.Where(question => question.ExpectedChunkIdsJson.Contains(chunkId))));
-
-        KnowledgeQuestionEntity[] rows = [.. (await candidateQuestions
-                .Distinct()
+        KnowledgeQuestionEntity[] rows = [.. (await dbContext.Questions
+                .Where(question => question.CorpusId == request.CorpusId)
                 .ToListAsync(cancellationToken))
-            .Where(question => EntityMapper
-                .DeserializeStringList(question.ExpectedChunkIdsJson)
-                .Any(chunkIdSet.Contains))];
+            .Where(question => question.ExpectedChunkIds.Any(chunkIdSet.Contains))];
 
         if (rows.Length > 0)
         {
