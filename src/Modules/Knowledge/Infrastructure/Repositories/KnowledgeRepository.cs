@@ -290,11 +290,25 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
             throw new InvalidOperationException($"Knowledge source '{sourceId}' does not exist in corpus '{corpusId}' for tenant '{tenantId}'.");
         }
 
-        string[] chunkIds = await dbContext.Chunks.AsNoTracking()
-            .Where(chunk => chunk.SourceId == sourceId && chunk.CorpusId == corpusId && chunk.TenantId == tenantId)
-            .Select(chunk => chunk.Id)
-            .ToArrayAsync(cancellationToken);
+        KnowledgeSourceEntity? source = await dbContext.Sources
+            .FirstOrDefaultAsync(found => found.Id == sourceId && found.CorpusId == corpusId && found.TenantId == tenantId, cancellationToken);
+        if (source is null)
+        {
+            throw new InvalidOperationException($"Knowledge source '{sourceId}' does not exist in corpus '{corpusId}' for tenant '{tenantId}'.");
+        }
 
+        var chunks = await dbContext.Chunks
+            .Where(chunk => chunk.SourceId == sourceId && chunk.CorpusId == corpusId && chunk.TenantId == tenantId)
+            .ToListAsync(cancellationToken);
+
+        var documents = await dbContext.Documents
+            .Where(doc => doc.SourceId == sourceId && doc.CorpusId == corpusId && doc.TenantId == tenantId)
+            .ToListAsync(cancellationToken);
+
+        string[] chunkIds = chunks.Select(chunk => chunk.Id).ToArray();
+
+        dbContext.Chunks.RemoveRange(chunks);
+        dbContext.Documents.RemoveRange(documents);
         dbContext.Sources.Remove(source);
         await RemoveQuestionsForChunksAsync(corpusId, chunkIds, cancellationToken);
         await dbContext.SaveChangesAsync(cancellationToken);
