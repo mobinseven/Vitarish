@@ -1,4 +1,4 @@
-@page "/admin/knowledge"
+@page "/owner/knowledge"
 
 <Stack>
     <StackField Label="Knowledge diagnostics" HelperText="Read-only RAG pipeline diagnostics." />
@@ -19,6 +19,6 @@
     [Inject] private IKnowledgeDiagnosticsService Diagnostics { get; set; } = default!;
     private IReadOnlyList<KnowledgeCorpusDiagnostics> corpora = [];
     protected override async Task OnInitializedAsync() => corpora = await Diagnostics.GetCorporaDiagnosticsAsync(CancellationToken.None);
-    private static string DetailHref(KnowledgeCorpusDiagnostics corpus) => $"/admin/knowledge/{Uri.EscapeDataString(corpus.CorpusId)}?tenantId={Uri.EscapeDataString(corpus.TenantId)}";
+    private static string DetailHref(KnowledgeCorpusDiagnostics corpus) => $"/owner/knowledge/{Uri.EscapeDataString(corpus.CorpusId)}?tenantId={Uri.EscapeDataString(corpus.TenantId)}";
     private static string Format(DateTimeOffset? value) => value?.ToString("u") ?? "never";
 }
