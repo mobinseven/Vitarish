@@ -3,18 +3,18 @@ namespace Vitarish.Knowledge.Application.Abstractions;
 public interface IKnowledgeDiagnosticsService
 {
     Task<IReadOnlyList<KnowledgeCorpusDiagnostics>> GetCorporaDiagnosticsAsync(CancellationToken cancellationToken);
-    Task<KnowledgeCorpusDiagnostics> GetCorpusDiagnosticsAsync(string corpusId, string tenantId, CancellationToken cancellationToken);
-    Task<IReadOnlyList<KnowledgeSourceDiagnostics>> GetSourcesAsync(string corpusId, string tenantId, CancellationToken cancellationToken);
-    Task<IReadOnlyList<KnowledgeChunkDiagnostics>> GetChunksAsync(string corpusId, string tenantId, KnowledgeChunkDiagnosticsQuery query, CancellationToken cancellationToken);
-    Task<IReadOnlyList<KnowledgeAskTraceDiagnostics>> GetAskTracesAsync(string corpusId, string tenantId, KnowledgeAskTraceDiagnosticsQuery query, CancellationToken cancellationToken);
+    Task<KnowledgeCorpusDiagnostics> GetCorpusDiagnosticsAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<KnowledgeSourceDiagnostics>> GetSourcesAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<KnowledgeChunkDiagnostics>> GetChunksAsync(Guid corpusId, string tenantId, KnowledgeChunkDiagnosticsQuery query, CancellationToken cancellationToken);
+    Task<IReadOnlyList<KnowledgeAskTraceDiagnostics>> GetAskTracesAsync(Guid corpusId, string tenantId, KnowledgeAskTraceDiagnosticsQuery query, CancellationToken cancellationToken);
     Task<KnowledgePipelineDiagnostics> InspectAsync(KnowledgeDiagnosticsRequest request, CancellationToken cancellationToken);
     Task<KnowledgeAskDebugResult> DebugAskAsync(KnowledgeAskRequest request, CancellationToken cancellationToken);
-    Task<KnowledgeIndexDiagnostics> GetIndexDiagnosticsAsync(string corpusId, string tenantId, CancellationToken cancellationToken);
+    Task<KnowledgeIndexDiagnostics> GetIndexDiagnosticsAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken);
 }
 
 public sealed record KnowledgeCorpusDiagnostics
 {
-    public required string CorpusId { get; init; }
+    public required Guid CorpusId { get; init; }
     public required string TenantId { get; init; }
     public required string Name { get; init; }
     public bool IsActive { get; init; }
@@ -29,8 +29,8 @@ public sealed record KnowledgeCorpusDiagnostics
 
 public sealed record KnowledgeSourceDiagnostics
 {
-    public required string SourceId { get; init; }
-    public required string CorpusId { get; init; }
+    public required Guid SourceId { get; init; }
+    public required Guid CorpusId { get; init; }
     public required string TenantId { get; init; }
     public required string Name { get; init; }
     public required string SourceType { get; init; }
@@ -41,9 +41,9 @@ public sealed record KnowledgeSourceDiagnostics
 
 public sealed record KnowledgeChunkDiagnostics
 {
-    public required string ChunkId { get; init; }
-    public required string SourceId { get; init; }
-    public required string DocumentId { get; init; }
+    public required Guid ChunkId { get; init; }
+    public required Guid SourceId { get; init; }
+    public required Guid DocumentId { get; init; }
     public required string Title { get; init; }
     public string? HeadingPath { get; init; }
     public int Order { get; init; }
@@ -54,13 +54,13 @@ public sealed record KnowledgeChunkDiagnostics
 
 public sealed record KnowledgeAskTraceDiagnostics
 {
-    public required string TraceId { get; init; }
-    public required string CorpusId { get; init; }
+    public required Guid TraceId { get; init; }
+    public required Guid CorpusId { get; init; }
     public required string TenantId { get; init; }
     public required string Question { get; init; }
     public bool IsAnswered { get; init; }
     public string? MissingInformation { get; init; }
-    public required IReadOnlyList<string> RetrievedChunkIds { get; init; }
+    public required IReadOnlyList<Guid> RetrievedChunkIds { get; init; }
     public string? RetrievedChunkIdsParseError { get; init; }
     public required string GeneratedAnswer { get; init; }
     public required IReadOnlyList<KnowledgeCitation> Citations { get; init; }
@@ -71,8 +71,8 @@ public sealed record KnowledgeAskTraceDiagnostics
 
 public sealed record KnowledgeChunkDiagnosticsQuery
 {
-    public string? SourceId { get; init; }
-    public string? DocumentId { get; init; }
+    public Guid? SourceId { get; init; }
+    public Guid? DocumentId { get; init; }
     public string? HeadingContains { get; init; }
     public string? TextContains { get; init; }
     public int Limit { get; init; } = 100;
@@ -90,11 +90,11 @@ public sealed record KnowledgeAskTraceDiagnosticsQuery
 
 public sealed record KnowledgeAskDebugResult
 {
-    public required string CorpusId { get; init; }
+    public required Guid CorpusId { get; init; }
     public required string TenantId { get; init; }
     public required string Question { get; init; }
     public required IReadOnlyList<KnowledgeHit> RetrievedHits { get; init; }
-    public required IReadOnlyList<string> ContextChunkIds { get; init; }
+    public required IReadOnlyList<Guid> ContextChunkIds { get; init; }
     public required KnowledgeAnswer Answer { get; init; }
     public required KnowledgeFailureStage FailureStage { get; init; }
     public string? FailureReason { get; init; }
@@ -114,7 +114,7 @@ public enum KnowledgeFailureStage
 
 public sealed record KnowledgeIndexDiagnostics
 {
-    public required string CorpusId { get; init; }
+    public required Guid CorpusId { get; init; }
     public required string TenantId { get; init; }
     public int StoredChunkCount { get; init; }
     public int SearchHitCountForProbe { get; init; }
@@ -125,7 +125,7 @@ public sealed record KnowledgeIndexDiagnostics
 public sealed record KnowledgeDiagnosticsRequest
 {
     public required string TenantId { get; init; }
-    public required string CorpusId { get; init; }
+    public required Guid CorpusId { get; init; }
     public string? Question { get; init; }
     public int TopK { get; init; } = 8;
 }

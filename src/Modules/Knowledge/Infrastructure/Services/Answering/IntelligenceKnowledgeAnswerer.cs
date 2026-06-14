@@ -11,8 +11,7 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
 {
     public async Task<KnowledgeAnswer> AskAsync(KnowledgeAskRequest request, CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.CorpusId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.Question);
+                ArgumentException.ThrowIfNullOrWhiteSpace(request.Question);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
 
         IReadOnlyList<KnowledgeHit> hits = await retriever.RetrieveAsync(new KnowledgeQuery { CorpusId = request.CorpusId, Question = request.Question, TenantId = request.TenantId, TopK = request.TopK }, cancellationToken);
@@ -21,8 +20,7 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
 
     public async Task<KnowledgeAnswer> AnswerFromHitsAsync(KnowledgeAskRequest request, IReadOnlyList<KnowledgeHit> hits, CancellationToken cancellationToken)
     {
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.CorpusId);
-        ArgumentException.ThrowIfNullOrWhiteSpace(request.Question);
+                ArgumentException.ThrowIfNullOrWhiteSpace(request.Question);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
         ArgumentNullException.ThrowIfNull(hits);
         if (hits.Count == 0)
@@ -44,7 +42,7 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
     }
 
 
-    private async Task SaveTraceAsync(KnowledgeAskRequest request, IReadOnlyList<string> retrievedChunkIds, KnowledgeAnswer answer, CancellationToken cancellationToken)
+    private async Task SaveTraceAsync(KnowledgeAskRequest request, IReadOnlyList<Guid> retrievedChunkIds, KnowledgeAnswer answer, CancellationToken cancellationToken)
     {
         if (!request.SaveTrace)
         {
@@ -55,7 +53,7 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
         {
             await repository.SaveAskTraceAsync(new KnowledgeAskTrace
             {
-                Id = Guid.NewGuid().ToString("n"),
+                Id = Guid.NewGuid(),
                 CorpusId = request.CorpusId,
                 TenantId = request.TenantId,
                 Question = request.Question,
@@ -107,7 +105,7 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
         {
             throw new InvalidOperationException("Knowledge answer generation returned empty JSON.");
         }
-        Dictionary<string, KnowledgeHit> byChunk = new(StringComparer.OrdinalIgnoreCase);
+        Dictionary<Guid, KnowledgeHit> byChunk = new();
         foreach (KnowledgeHit hit in hits)
         {
             byChunk[hit.ChunkId] = hit;
@@ -116,7 +114,7 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
         List<KnowledgeCitation> citations = [];
         foreach (GeneratedCitation citation in generated.Citations ?? [])
         {
-            if (string.IsNullOrWhiteSpace(citation.ChunkId) || !byChunk.TryGetValue(citation.ChunkId, out KnowledgeHit? hit))
+            if (!Guid.TryParse(citation.ChunkId, out Guid citationChunkId) || !byChunk.TryGetValue(citationChunkId, out KnowledgeHit? hit))
             {
                 return RefusedAnswer(hits, "The generated answer cited context chunks that were not retrieved.");
             }

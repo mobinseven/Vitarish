@@ -29,7 +29,7 @@ public sealed class KnowledgeContextBuilder : IKnowledgeContextBuilder
 
         StringBuilder builder = new(UntrustedContextNotice);
         _ = builder.AppendLine();
-        List<string> includedChunkIds = [];
+        List<Guid> includedChunkIds = [];
         foreach (KnowledgeHit hit in hits)
         {
             string block = $"[chunk: {hit.ChunkId}]\nTitle: {hit.Title}\nSource: {hit.SourceId}\nText:\n{hit.Text}\n\n";

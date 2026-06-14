@@ -2,8 +2,6 @@
 
 <Stack>
     <StackField Label="Knowledge Test QA" HelperText="Manually ask one corpus and inspect grounded answer output." />
-
-    <StackField Label="Ask" />
     <StackTextField @bind-Value="tenantId" Label="TenantId" />
     <StackTextField @bind-Value="corpusId" Label="CorpusId" />
     <StackTextField @bind-Value="question" Label="Question" Lines="3" />
@@ -20,13 +18,13 @@
         <StackField Label="Retrieved context" />
         @foreach (KnowledgeHit hit in answer.RetrievedContext)
         {
-            <StackCard Label="@(hit.Title ?? hit.ChunkId)" Caption="@hit.ChunkId" HelperText="@($"Score {hit.Score:0.###} · {Preview(hit.Text)}")" />
+            <StackCard Label="@(hit.Title ?? hit.ChunkId.ToString())" Caption="@hit.ChunkId.ToString()" HelperText="@($"Score {hit.Score:0.###} · {Preview(hit.Text)}")" />
         }
 
         <StackField Label="Citations" />
         @foreach (KnowledgeCitation citation in answer.Citations)
         {
-            <StackCard Label="@(citation.Title ?? citation.ChunkId)" Caption="@citation.ChunkId" HelperText="@(citation.Quote ?? "No quote")" />
+            <StackCard Label="@(citation.Title ?? citation.ChunkId.ToString())" Caption="@citation.ChunkId.ToString()" HelperText="@(citation.Quote ?? "No quote")" />
         }
     }
 
@@ -38,7 +36,7 @@
 
 @code {
     private string tenantId = "current";
-    private string corpusId = "test";
+    private string corpusId = string.Empty;
     private string question = string.Empty;
     private int topK = 8;
     private KnowledgeAnswer? answer;
@@ -53,7 +51,7 @@
             ValidateAsk();
             isBusy = true;
             status = null;
-            answer = await Knowledge.AskAsync(new KnowledgeAskRequest { CorpusId = corpusId.Trim(), TenantId = tenantId.Trim(), Question = question.Trim(), TopK = topK, TraceKind = "manual-ui-test" }, CancellationToken.None);
+            answer = await Knowledge.AskAsync(new KnowledgeAskRequest { CorpusId = ParseId(corpusId), TenantId = tenantId.Trim(), Question = question.Trim(), TopK = topK, TraceKind = "manual-ui-test" }, CancellationToken.None);
             status = "Ask complete.";
             statusColor = Color.Success;
         }
@@ -62,19 +60,17 @@
             status = ex.Message;
             statusColor = Color.Error;
         }
-        finally
-        {
-            isBusy = false;
-        }
+        finally { isBusy = false; }
     }
 
     private void ValidateAsk()
     {
         if (string.IsNullOrWhiteSpace(tenantId)) throw new InvalidOperationException("TenantId is required.");
-        if (string.IsNullOrWhiteSpace(corpusId)) throw new InvalidOperationException("CorpusId is required.");
+        _ = ParseId(corpusId);
         if (string.IsNullOrWhiteSpace(question)) throw new InvalidOperationException("Question is required.");
         if (topK < 1) throw new InvalidOperationException("TopK must be at least 1.");
     }
 
+    private static Guid ParseId(string id) => Guid.TryParse(id?.Trim(), out Guid value) ? value : throw new InvalidOperationException("CorpusId must be a GUID.");
     private static string Preview(string text) => text.Length <= 240 ? text : string.Concat(text.AsSpan(0, 240), "…");
 }

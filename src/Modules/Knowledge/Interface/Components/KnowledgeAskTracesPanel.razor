@@ -16,16 +16,12 @@
     }
     @if (opened is not null)
     {
-        <StackCard Label="Trace detail" HelperText="@opened.TraceId">
+        <StackCard Label="Trace detail" HelperText="@opened.TraceId.ToString()">
             <MudText Typo="Typo.subtitle2">Question</MudText><MudText>@opened.Question</MudText>
             <MudText Typo="Typo.subtitle2">Retrieved chunks</MudText><MudText>@string.Join(", ", opened.RetrievedChunkIds)</MudText>
             <MudText Typo="Typo.subtitle2">Generated answer</MudText><MudText Style="white-space: pre-wrap">@opened.GeneratedAnswer</MudText>
             <MudText Typo="Typo.subtitle2">Citations</MudText><MudText Style="white-space: pre-wrap">@CitationSummary(opened.Citations)</MudText>
             <MudText Typo="Typo.subtitle2">Missing information</MudText><MudText>@opened.MissingInformation</MudText>
-            @if (opened.RetrievedChunkIdsParseError is not null || opened.CitationsParseError is not null)
-            {
-                <MudAlert Severity="Severity.Warning">@string.Join(" ", new[] { opened.RetrievedChunkIdsParseError, opened.CitationsParseError }.Where(error => error is not null))</MudAlert>
-            }
             <MudButton Variant="Variant.Text" OnClick="@(() => opened = null)">Close</MudButton>
         </StackCard>
     }
@@ -41,7 +37,8 @@
     private string? traceKind;
     private string? questionContains;
     protected override async Task OnParametersSetAsync() => await LoadAsync();
-    private async Task LoadAsync() => traces = await Diagnostics.GetAskTracesAsync(CorpusId, TenantId, new KnowledgeAskTraceDiagnosticsQuery { IsAnswered = answered, TraceKind = Blank(traceKind), QuestionContains = Blank(questionContains) }, CancellationToken.None);
+    private async Task LoadAsync() => traces = await Diagnostics.GetAskTracesAsync(ParseId(CorpusId), TenantId, new KnowledgeAskTraceDiagnosticsQuery { IsAnswered = answered, TraceKind = Blank(traceKind), QuestionContains = Blank(questionContains) }, CancellationToken.None);
     private static string? Blank(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private static Guid ParseId(string id) => Guid.TryParse(id?.Trim(), out Guid value) ? value : throw new InvalidOperationException("CorpusId must be a GUID.");
     private static string CitationSummary(IReadOnlyList<KnowledgeCitation> citations) => citations.Count == 0 ? "None" : string.Join("\n", citations.Select(citation => $"{citation.ChunkId} · {citation.SourceId} · {citation.DocumentId}"));
 }
