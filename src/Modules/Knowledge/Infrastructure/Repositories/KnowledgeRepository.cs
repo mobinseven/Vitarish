@@ -116,6 +116,14 @@ public sealed class KnowledgeRepository(KnowledgeDbContext dbContext) : IKnowled
                 ImportedAt = source.ImportedAt
             })
             .ToListAsync(cancellationToken);
+    public async Task<bool> SourceExistsAsync(string sourceId, string corpusId, string tenantId, CancellationToken cancellationToken)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(sourceId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(corpusId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+
+        return await dbContext.Sources.AsNoTracking()
+            .AnyAsync(source => source.Id == sourceId && source.CorpusId == corpusId && source.TenantId == tenantId, cancellationToken);
     }
 
     public async Task<IReadOnlyList<KnowledgeChunk>> GetChunksAsync(string corpusId, string tenantId, CancellationToken cancellationToken)
