@@ -1,7 +1,7 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Knowledge.Application.Commands;
 using Vitarish.Knowledge.Domain.Entities;
+using Vitarish.Knowledge.Application.Commands;
 using Vitarish.Knowledge.Infrastructure.Data;
 
 namespace Vitarish.Knowledge.Infrastructure.Handlers;
@@ -27,12 +27,10 @@ public sealed class RemoveKnowledgeQuestionsForChunksCommandHandler(KnowledgeDbC
             return 0;
         }
 
-        HashSet<Guid> chunkIdSet = [.. distinctChunkIds];
-
-        KnowledgeQuestionEntity[] rows = [.. (await dbContext.Questions
-                .Where(question => question.CorpusId == request.CorpusId)
-                .ToListAsync(cancellationToken))
-            .Where(question => question.ExpectedChunkIds.Any(chunkIdSet.Contains))];
+        KnowledgeQuestionEntity[] rows = await dbContext.Questions
+            .Where(question => question.CorpusId == request.CorpusId
+                && question.ExpectedChunkIds.Any(chunkId => distinctChunkIds.Contains(chunkId)))
+            .ToArrayAsync(cancellationToken);
 
         if (rows.Length > 0)
         {

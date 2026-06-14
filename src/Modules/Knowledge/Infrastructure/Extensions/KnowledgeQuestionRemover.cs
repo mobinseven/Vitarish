@@ -13,11 +13,11 @@ internal static class KnowledgeQuestionRemover
             return;
         }
 
-        HashSet<Guid> chunkIdSet = [.. chunkIds];
-        KnowledgeQuestionEntity[] rows = [.. (await dbContext.Questions
-                .Where(question => question.CorpusId == corpusId)
-                .ToListAsync(cancellationToken))
-            .Where(question => question.ExpectedChunkIds.Any(chunkIdSet.Contains))];
+        Guid[] distinctChunkIds = [.. chunkIds.Where(static id => id != Guid.Empty).Distinct()];
+        KnowledgeQuestionEntity[] rows = await dbContext.Questions
+            .Where(question => question.CorpusId == corpusId
+                && question.ExpectedChunkIds.Any(chunkId => distinctChunkIds.Contains(chunkId)))
+            .ToArrayAsync(cancellationToken);
 
         dbContext.Questions.RemoveRange(rows);
     }

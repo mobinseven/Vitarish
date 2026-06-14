@@ -3,9 +3,7 @@ using Finbuckle.MultiTenant.Abstractions;
 using Finbuckle.MultiTenant.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using System.Text.Json;
 using Vitarish.Knowledge.Domain.Entities;
 using Vitarish.Requests.Application.Abstractions;
 
@@ -13,12 +11,6 @@ namespace Vitarish.Knowledge.Infrastructure.Data;
 
 public sealed class KnowledgeDbContext : DbContext, IMultiTenantDbContext
 {
-    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
-    private static readonly ValueComparer<IReadOnlyList<Guid>> GuidListComparer = new(
-        (left, right) => left != null && right != null && left.SequenceEqual(right),
-        list => list.Aggregate(0, (hash, value) => HashCode.Combine(hash, value.GetHashCode())),
-        list => list.ToArray());
-
     private readonly IEnumerable<IInterceptor> _interceptors;
     private readonly IRequestContext _requestContext;
     private readonly IHttpContextAccessor _httpContextAccessor;
@@ -68,23 +60,6 @@ public sealed class KnowledgeDbContext : DbContext, IMultiTenantDbContext
     {
         this.EnforceMultiTenant();
         return base.SaveChangesAsync(acceptAllChangesOnSuccess, cancellationToken);
-    }
-
-    private static IReadOnlyList<Guid> DeserializeGuidList(string? json)
-    {
-        if (string.IsNullOrWhiteSpace(json))
-        {
-            return [];
-        }
-
-        try
-        {
-            return JsonSerializer.Deserialize<Guid[]>(json, JsonOptions) ?? [];
-        }
-        catch (JsonException)
-        {
-            return [];
-        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -153,13 +128,9 @@ public sealed class KnowledgeDbContext : DbContext, IMultiTenantDbContext
             entity.HasKey(question => question.Id);
             entity.Property(question => question.Question).HasMaxLength(2048).IsRequired();
             entity.Property(question => question.ExpectedAnswer).HasMaxLength(4096);
-            var expectedChunkIds = entity.Property(question => question.ExpectedChunkIds)
+            entity.Property(question => question.ExpectedChunkIds)
                 .HasColumnName("ExpectedChunkIdsJson")
-                .HasConversion(
-                    chunkIds => JsonSerializer.Serialize(chunkIds, JsonOptions),
-                    json => DeserializeGuidList(json))
                 .IsRequired();
-            expectedChunkIds.Metadata.SetValueComparer(GuidListComparer);
             entity.HasIndex(question => question.CorpusId);
             entity.HasOne<KnowledgeCorpusEntity>().WithMany().HasForeignKey(question => question.CorpusId).OnDelete(DeleteBehavior.Cascade);
         });
