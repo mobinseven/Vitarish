@@ -106,7 +106,8 @@ internal sealed class SearchService : ISearchService
             {
                 Items = [],
                 TotalCount = 0,
-                Query = query
+                Query = query,
+                Diagnostics = BuildDiagnostics(normalizedOptions)
             };
         }
 
@@ -121,7 +122,8 @@ internal sealed class SearchService : ISearchService
         {
             Query = esQuery,
             From = normalizedOptions.Skip,
-            Size = normalizedOptions.Limit
+            Size = normalizedOptions.Limit,
+            MinScore = normalizedOptions.MinScore
         };
 
         SearchResponse<SearchDocument> response = await client.SearchAsync<SearchDocument>(request, cancellationToken);
@@ -134,7 +136,8 @@ internal sealed class SearchService : ISearchService
         {
             Items = items,
             TotalCount = response.Total,
-            Query = query
+            Query = query,
+            Diagnostics = BuildDiagnostics(normalizedOptions)
         };
     }
 
@@ -298,14 +301,85 @@ internal sealed class SearchService : ISearchService
         return new BoolQuery { Filter = filters };
     }
 
-    private static Query BuildQuery(string query, SearchOptions searchOptions, string tenantId)
-    {
-        Query textQuery = new MultiMatchQuery
+    private SearchDiagnostics? BuildDiagnostics(SearchOptions searchOptions) => !searchOptions.Explain
+        ? null
+        : new SearchDiagnostics
         {
-            Query = query,
-            Fields = Fields.FromStrings(["title^3", "body"])
+            RetrievalMode = searchOptions.RetrievalMode,
+            AppliedStrategies = BuildAppliedStrategies(searchOptions.RetrievalMode, IsSemanticRetrievalAvailable()),
+            Data = new Dictionary<string, object?>
+            {
+                ["semanticEnabled"] = IsSemanticRetrievalAvailable(),
+                ["minScore"] = searchOptions.MinScore
+            }
         };
 
+    private bool IsSemanticRetrievalAvailable() =>
+        options.EnableSemanticRetrieval &&
+        options.UseNativeInferenceOnly &&
+        !string.IsNullOrWhiteSpace(options.InferenceEndpointId);
+
+    private static IReadOnlyList<string> BuildAppliedStrategies(SearchRetrievalMode retrievalMode, bool semanticAvailable) => retrievalMode switch
+    {
+        SearchRetrievalMode.Strict => ["exact", "lexical"],
+        SearchRetrievalMode.Balanced => ["exact", "lexical", "fuzzy", "synonym"],
+        SearchRetrievalMode.Broad when semanticAvailable => ["exact", "lexical", "fuzzy", "synonym", "semantic"],
+        SearchRetrievalMode.Broad => ["exact", "lexical", "fuzzy", "synonym"],
+        _ => ["exact", "lexical", "fuzzy", "synonym"]
+    };
+
+    private Query BuildQuery(string query, SearchOptions searchOptions, string tenantId)
+    {
+        List<Query> shouldQueries =
+        [
+            new MatchPhraseQuery { Field = new Field("title"), Query = query, Boost = 5 },
+            new MatchPhraseQuery { Field = new Field("body"), Query = query, Boost = 2 },
+            new MultiMatchQuery
+            {
+                Query = query,
+                Fields = Fields.FromStrings(["title^3", "body"])
+            },
+            new TermQuery { Field = new Field("id.keyword"), Value = query, Boost = 10 },
+            new TermQuery { Field = new Field("title.keyword"), Value = query, Boost = 8 }
+        ];
+        if (searchOptions.RetrievalMode is SearchRetrievalMode.Balanced or SearchRetrievalMode.Broad)
+        {
+            shouldQueries.Add(new MultiMatchQuery
+            {
+                Query = query,
+                Fields = Fields.FromStrings(["title^2", "body"]),
+                Fuzziness = new Fuzziness("AUTO"),
+                PrefixLength = 1,
+                MaxExpansions = 25
+            });
+            shouldQueries.Add(new MultiMatchQuery
+            {
+                Query = query,
+                Fields = Fields.FromStrings(["title.synonym^2", "body.synonym"])
+            });
+        }
+        if (searchOptions.RetrievalMode is SearchRetrievalMode.Broad && IsSemanticRetrievalAvailable())
+        {
+            shouldQueries.Add(new KnnQuery
+            {
+                Field = new Field("vector"),
+                QueryVector = new float[] { /* TODO: Implementation dependent: vectorization of query string */ },
+                Boost = 5
+            });
+        }
+
+        List<Query> filters = BuildSearchFilters(searchOptions, tenantId);
+
+        return new BoolQuery
+        {
+            Should = shouldQueries,
+            MinimumShouldMatch = 1,
+            Filter = filters
+        };
+    }
+
+    private static List<Query> BuildSearchFilters(SearchOptions searchOptions, string tenantId)
+    {
         List<Query> filters =
         [
             new TermQuery { Field = new Field("tenantId.keyword"), Value = tenantId }
@@ -327,10 +401,6 @@ internal sealed class SearchService : ISearchService
             filters.Add(new TermQuery { Field = new Field($"metadata.{metadataFilter.Key}.keyword"), Value = metadataFilter.Value });
         }
 
-        return new BoolQuery
-        {
-            Must = [textQuery],
-            Filter = filters
-        };
+        return filters;
     }
 }
