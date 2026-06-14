@@ -29,6 +29,7 @@ public interface IKnowledgeCorpusRepository
     Task<KnowledgeCorpus?> GetCorpusAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken);
     Task<IReadOnlyList<KnowledgeCorpus>> ListCorporaAsync(string tenantId, CancellationToken cancellationToken);
     Task<IReadOnlyList<KnowledgeCorpus>> ListActiveCorporaAsync(CancellationToken cancellationToken);
+    Task<IReadOnlyList<KnowledgeCorpus>> ListAllActiveCorporaForIndexingAsync(CancellationToken cancellationToken);
 }
 
 public interface IKnowledgeSourceRepository
@@ -43,6 +44,7 @@ public interface IKnowledgeChunkRepository
     Task<IReadOnlyList<KnowledgeChunk>> GetChunksAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken);
     Task<IReadOnlyList<KnowledgeChunk>> GetChunksBySourceAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken);
     Task<IReadOnlyList<KnowledgeChunk>> GetChunksForCorporaAsync(IReadOnlyCollection<Guid> corpusIds, string tenantId, CancellationToken cancellationToken);
+    Task<IReadOnlyList<KnowledgeChunk>> GetChunksForCorporaForIndexingAsync(IReadOnlyCollection<Guid> corpusIds, string tenantId, CancellationToken cancellationToken);
 }
 
 public interface IKnowledgeQuestionRepository

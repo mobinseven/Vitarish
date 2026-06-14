@@ -21,8 +21,20 @@ public sealed class KnowledgeChunkRepository(KnowledgeDbContext dbContext) : IKn
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         if (corpusIds.Count == 0) return [];
         Guid[] ids = [.. corpusIds.Distinct()];
-        return await OrderedChunks().Where(chunk => ids.Contains(chunk.CorpusId) && chunk.TenantId == tenantId).Select(chunk => chunk.ToModel()).ToListAsync(cancellationToken);
+        return await ChunksForCorpora(ids, tenantId).Select(chunk => chunk.ToModel()).ToListAsync(cancellationToken);
     }
+
+    public async Task<IReadOnlyList<KnowledgeChunk>> GetChunksForCorporaForIndexingAsync(IReadOnlyCollection<Guid> corpusIds, string tenantId, CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(corpusIds);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        if (corpusIds.Count == 0) return [];
+        Guid[] ids = [.. corpusIds.Distinct()];
+        return await ChunksForCorpora(ids, tenantId).IgnoreQueryFilters().Select(chunk => chunk.ToModel()).ToListAsync(cancellationToken);
+    }
+
+    private IQueryable<KnowledgeChunkEntity> ChunksForCorpora(IReadOnlyCollection<Guid> corpusIds, string tenantId)
+        => OrderedChunks().Where(chunk => corpusIds.Contains(chunk.CorpusId) && chunk.TenantId == tenantId);
 
     private IQueryable<KnowledgeChunkEntity> OrderedChunks() => dbContext.Chunks.AsNoTracking().OrderBy(c => c.SourceId).ThenBy(c => c.DocumentId).ThenBy(c => c.Order);
 }

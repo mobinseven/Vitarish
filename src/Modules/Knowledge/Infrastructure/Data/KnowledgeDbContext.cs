@@ -31,10 +31,9 @@ public sealed class KnowledgeDbContext : DbContext, IMultiTenantDbContext
     {
         get
         {
-            string tenantId = _requestContext.TenantId
-                ?? _httpContextAccessor.HttpContext?.GetTenantId()
-                ?? throw new InvalidOperationException("Tenant ID can not be recognized.");
-            return new TenantInfo { Id = tenantId, Identifier = tenantId, Name = tenantId };
+            string? tenantId = _requestContext.TenantId
+                ?? _httpContextAccessor.HttpContext?.GetTenantId();
+            return tenantId is null ? null : new TenantInfo { Id = tenantId, Identifier = tenantId, Name = tenantId };
         }
     }
 

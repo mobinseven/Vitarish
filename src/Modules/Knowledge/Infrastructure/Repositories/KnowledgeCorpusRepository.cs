@@ -33,5 +33,11 @@ public sealed class KnowledgeCorpusRepository(KnowledgeDbContext dbContext) : IK
     }
 
     public async Task<IReadOnlyList<KnowledgeCorpus>> ListActiveCorporaAsync(CancellationToken cancellationToken)
-        => await dbContext.Corpora.AsNoTracking().Where(c => c.IsActive).OrderBy(c => c.TenantId).ThenBy(c => c.Name).Select(c => c.ToModel()).ToListAsync(cancellationToken);
+        => await ActiveCorpora().Select(c => c.ToModel()).ToListAsync(cancellationToken);
+
+    public async Task<IReadOnlyList<KnowledgeCorpus>> ListAllActiveCorporaForIndexingAsync(CancellationToken cancellationToken)
+        => await ActiveCorpora().IgnoreQueryFilters().Select(c => c.ToModel()).ToListAsync(cancellationToken);
+
+    private IQueryable<KnowledgeCorpusEntity> ActiveCorpora()
+        => dbContext.Corpora.AsNoTracking().Where(c => c.IsActive).OrderBy(c => c.TenantId).ThenBy(c => c.Name);
 }

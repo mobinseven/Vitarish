@@ -12,7 +12,7 @@ public sealed class KnowledgeSearchIndexProvider(IKnowledgeCorpusRepository corp
 
     public async Task<IReadOnlyList<SearchDocument>> GetDocumentsAsync(CancellationToken cancellationToken = default)
     {
-        IReadOnlyList<KnowledgeCorpus> corpora = await corpusRepository.ListActiveCorporaAsync(cancellationToken);
+        IReadOnlyList<KnowledgeCorpus> corpora = await corpusRepository.ListAllActiveCorporaForIndexingAsync(cancellationToken);
         if (corpora.Count == 0) return [];
 
         Dictionary<Guid, KnowledgeCorpus> corpusById = corpora.ToDictionary(corpus => corpus.Id);
@@ -20,7 +20,7 @@ public sealed class KnowledgeSearchIndexProvider(IKnowledgeCorpusRepository corp
         foreach (IGrouping<string, KnowledgeCorpus> tenantCorpora in corpora.GroupBy(corpus => corpus.TenantId))
         {
             Guid[] corpusIds = [.. tenantCorpora.Select(corpus => corpus.Id)];
-            IReadOnlyList<KnowledgeChunk> chunks = await chunkRepository.GetChunksForCorporaAsync(corpusIds, tenantCorpora.Key, cancellationToken);
+            IReadOnlyList<KnowledgeChunk> chunks = await chunkRepository.GetChunksForCorporaForIndexingAsync(corpusIds, tenantCorpora.Key, cancellationToken);
             documents.AddRange(chunks.Select(chunk => KnowledgeSearchDocumentContract.ToSearchDocument(corpusById[chunk.CorpusId], chunk)));
         }
 

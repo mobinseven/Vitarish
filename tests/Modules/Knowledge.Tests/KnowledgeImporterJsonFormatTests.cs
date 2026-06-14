@@ -79,6 +79,7 @@ public sealed class KnowledgeImporterJsonFormatTests
         public Task SaveCorpusAsync(KnowledgeCorpus corpus, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<IReadOnlyList<KnowledgeCorpus>> ListCorporaAsync(string tenantId, CancellationToken cancellationToken) => throw new NotSupportedException();
         public Task<IReadOnlyList<KnowledgeCorpus>> ListActiveCorporaAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
+        public Task<IReadOnlyList<KnowledgeCorpus>> ListAllActiveCorporaForIndexingAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
     private sealed class InMemoryKnowledgeImportRepository : IKnowledgeImportRepository

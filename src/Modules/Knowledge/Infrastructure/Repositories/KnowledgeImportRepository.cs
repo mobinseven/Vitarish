@@ -24,13 +24,26 @@ public sealed class KnowledgeImportRepository(KnowledgeDbContext dbContext) : IK
         if (result.Sources.Count != 1) throw new InvalidOperationException("Source replacement must contain exactly one source.");
         KnowledgeSource source = result.Sources[0];
         if (source.Id != sourceId) throw new InvalidOperationException($"Replacement source id '{source.Id}' must match requested source id '{sourceId}'.");
-        KnowledgeSourceEntity existing = await dbContext.Sources.FirstOrDefaultAsync(s => s.Id == sourceId && s.CorpusId == result.CorpusId && s.TenantId == source.TenantId, cancellationToken)
-            ?? throw new InvalidOperationException($"Knowledge source '{sourceId}' does not exist in corpus '{result.CorpusId}' for tenant '{source.TenantId}'.");
-        Guid[] existingChunkIds = await dbContext.Chunks.AsNoTracking().Where(c => c.SourceId == sourceId && c.CorpusId == result.CorpusId && c.TenantId == source.TenantId).Select(c => c.Id).ToArrayAsync(cancellationToken);
-        dbContext.Sources.Remove(existing);
-        await KnowledgeQuestionRemover.RemoveQuestionsForChunksAsync(dbContext, result.CorpusId, existingChunkIds, cancellationToken);
-        StageImport(result);
-        _ = await dbContext.SaveChangesAsync(cancellationToken);
+
+        await using Microsoft.EntityFrameworkCore.Storage.IDbContextTransaction transaction = await dbContext.Database.BeginTransactionAsync(cancellationToken);
+        try
+        {
+            KnowledgeSourceEntity existing = await dbContext.Sources.FirstOrDefaultAsync(s => s.Id == sourceId && s.CorpusId == result.CorpusId && s.TenantId == source.TenantId, cancellationToken)
+                ?? throw new InvalidOperationException($"Knowledge source '{sourceId}' does not exist in corpus '{result.CorpusId}' for tenant '{source.TenantId}'.");
+            Guid[] existingChunkIds = await dbContext.Chunks.AsNoTracking().Where(c => c.SourceId == sourceId && c.CorpusId == result.CorpusId && c.TenantId == source.TenantId).Select(c => c.Id).ToArrayAsync(cancellationToken);
+            dbContext.Sources.Remove(existing);
+            await KnowledgeQuestionRemover.RemoveQuestionsForChunksAsync(dbContext, result.CorpusId, existingChunkIds, cancellationToken);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
+
+            StageImport(result);
+            _ = await dbContext.SaveChangesAsync(cancellationToken);
+            await transaction.CommitAsync(cancellationToken);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken);
+            throw;
+        }
     }
 
     private async Task<KnowledgeCorpusEntity> RequireCorpusAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken)
