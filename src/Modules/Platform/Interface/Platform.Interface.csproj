@@ -3,9 +3,7 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Application\Platform.Application.csproj" />
-    <ProjectReference Include="..\Infrastructure\Platform.Infrastructure.csproj" />
+    <ProjectReference Include="..\Domain\Platform.Domain.csproj" />
     <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
-    <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
   </ItemGroup>
 </Project>

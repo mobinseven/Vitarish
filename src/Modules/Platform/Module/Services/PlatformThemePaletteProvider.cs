@@ -4,7 +4,7 @@ using Vitarish.Platform.Application.Abstractions;
 using Vitarish.Platform.Application.Contracts;
 using Vitarish.Platform.Domain.Models;
 
-namespace Vitarish.Platform.Interface.Services;
+namespace Vitarish.Platform.Module.Services;
 
 public sealed class PlatformThemePaletteProvider(IPlatformThemeQuery themeQuery) : IPlatformThemePaletteProvider
 {

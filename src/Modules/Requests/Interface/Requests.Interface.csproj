@@ -1,8 +1,2 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
-  <ItemGroup>
-    <SupportedPlatform Include="browser" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Application\Requests.Application.csproj" />
-  </ItemGroup>
+<Project Sdk="Microsoft.NET.Sdk">
 </Project>

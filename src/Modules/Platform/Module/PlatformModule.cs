@@ -8,7 +8,7 @@ using Vitarish.Platform.Domain.Entities;
 using Vitarish.Platform.Infrastructure.Data;
 using Vitarish.Platform.Infrastructure.DependencyInjection;
 using Vitarish.Platform.Infrastructure.Services;
-using Vitarish.Platform.Interface.Services;
+using Vitarish.Platform.Module.Services;
 
 namespace Vitarish.Platform.Module;
 

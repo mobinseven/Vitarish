@@ -1,13 +1,14 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-	<ItemGroup>
-		<FrameworkReference Include="Microsoft.AspNetCore.App" />
-	</ItemGroup>
+<Project Sdk="Microsoft.NET.Sdk">
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Duende.IdentityModel" Version="8.0.0" />
     <PackageReference Include="MediatR" Version="14.0.*" />
     <PackageReference Include="FluentValidation" Version="11.*" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Interface\Requests.Interface.csproj" />
     <ProjectReference Include="..\Domain\Requests.Domain.csproj" />
   </ItemGroup>
 </Project>
