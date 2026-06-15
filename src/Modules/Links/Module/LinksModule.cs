@@ -19,7 +19,17 @@ public sealed class LinksModule : Vitarish.Modules.Base.Module, ILinksModule
 
         _ = builder.Services.AddSingleton<ILinksModule, LinksModule>();
 
-        _ = builder.Services.AddTransientDbContext<LinksDbContext>((_, options) => configureDbContext?.Invoke(options));
+        _ = builder.Services.AddTransientDbContext<LinksDbContext>((_, options) =>
+        {
+            configureDbContext?.Invoke(options);
+            options.UseNpgsql(
+                builder.Configuration.GetSection("ConnectionStrings")["Db"],
+                npgsql =>
+                {
+                    npgsql.MigrationsAssembly(typeof(LinksDbContext).Assembly.FullName);
+                    npgsql.EnableRetryOnFailure();
+                });
+        });
 
         _ = builder.Services.AddLinksInfrastructure();
 

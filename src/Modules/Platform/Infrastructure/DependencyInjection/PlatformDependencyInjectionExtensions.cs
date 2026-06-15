@@ -13,7 +13,17 @@ public static class PlatformDependencyInjectionExtensions
 {
     public static void AddPlatform(this WebApplicationBuilder builder, Action<DbContextOptionsBuilder> configureDbContext)
     {
-        _ = builder.Services.AddTransientDbContext<PlatformDbContext>((_, options) => configureDbContext(options));
+        _ = builder.Services.AddTransientDbContext<PlatformDbContext>((_, options) =>
+        {
+            configureDbContext(options);
+            options.UseNpgsql(
+                builder.Configuration.GetSection("ConnectionStrings")["Db"],
+                npgsql =>
+                {
+                    npgsql.MigrationsAssembly(typeof(PlatformDbContext).Assembly.FullName);
+                    npgsql.EnableRetryOnFailure();
+                });
+        });
         builder.Services.TryAddSingleton(TimeProvider.System);
         builder.Services.TryAddTransient<PlatformThemeStore>();
         builder.Services.TryAddTransient<IPlatformThemeQuery>(sp => sp.GetRequiredService<PlatformThemeStore>());

@@ -19,7 +19,17 @@ public class CommerceModule : Vitarish.Modules.Base.Module, ICommerceModule
     {
         _ = builder.Services.AddSingleton<ICommerceModule, CommerceModule>();
 
-        _ = builder.Services.AddTransientMultiTenantDbContext<CommerceDbContext>((_, options) => configureDbContext?.Invoke(options));
+        _ = builder.Services.AddTransientMultiTenantDbContext<CommerceDbContext>((_, options) =>
+        {
+            configureDbContext?.Invoke(options);
+            options.UseNpgsql(
+                builder.Configuration.GetSection("ConnectionStrings")["Db"],
+                npgsql =>
+                {
+                    npgsql.MigrationsAssembly(typeof(CommerceDbContext).Assembly.FullName);
+                    npgsql.EnableRetryOnFailure();
+                });
+        });
 
         _ = builder.Services.AddCommerceInfrastructure();
         _ = builder.Services.ConfigureCommerceInterface();

@@ -25,7 +25,17 @@ public class SeaModule : Vitarish.Modules.Base.Module, ISeaModule
         _ = builder.Services.AddSingleton<ISeaModule, SeaModule>();
         _ = builder.Services.AddMemoryCache();
 
-        _ = builder.Services.AddTransientMultiTenantDbContext<SeaDbContext>((_, options) => configureDbContext?.Invoke(options));
+        _ = builder.Services.AddTransientMultiTenantDbContext<SeaDbContext>((_, options) =>
+        {
+            configureDbContext?.Invoke(options);
+            options.UseNpgsql(
+                builder.Configuration.GetSection("ConnectionStrings")["Db"],
+                npgsql =>
+                {
+                    npgsql.MigrationsAssembly(typeof(SeaDbContext).Assembly.FullName);
+                    npgsql.EnableRetryOnFailure();
+                });
+        });
 
         _ = builder.Services.AddSeaInfrastructure();
 
