@@ -1,35 +1,21 @@
 using Finbuckle.MultiTenant;
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Appointments.Infrastructure.Data;
 using Vitarish.Apps.Aggregator;
 using Vitarish.Audit.Server;
-using Vitarish.Commerce.Infrastructure.Data;
-using Vitarish.Communications.Infrastructure.Data;
-using Vitarish.Contents.Infrastructure.Data;
 using Vitarish.Entities.Server.Abstractions;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Feed.Infrastructure;
-using Vitarish.Files.Infrastructure.Data;
-using Vitarish.Financial.Infrastructure.Data;
 using Vitarish.Interfaces.Base.Services;
-using Vitarish.Links.Infrastructure.Data;
 using Vitarish.Main.Authorization;
 using Vitarish.Main.DependencyInjection;
 using Vitarish.Main.Infrastructure.BackgroundJobs;
 using Vitarish.Main.Infrastructure.Handlers;
 using Vitarish.Main.Infrastructure.Options;
 using Vitarish.Main.Infrastructure.Services;
-using Vitarish.Medical.Infrastructure.Data;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Domain.Entities;
-using Vitarish.Parties.Infrastructure.Data;
 using Vitarish.Platform.Module.DependencyInjection;
-using Vitarish.Platform.Infrastructure.Data;
-using Vitarish.Sea.Infrastructure.Data;
-using Vitarish.Social.Infrastructure.Data;
-using Vitarish.Users.Infrastructure.Data;
-using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -138,21 +124,7 @@ builder.Services.AddSingleton<INotificationHandler<EntityNotification>, EntityNo
 
 WebApplication app = builder.Build();
 
-_ = await app.MigrateDatabaseAsync<PlatformDbContext>();
-_ = await app.MigrateDatabaseAsync<UsersDbContext>();
-_ = await app.MigrateDatabaseAsync<PartiesDbContext>();
-_ = await app.MigrateDatabaseAsync<FilesDbContext>();
-_ = await app.MigrateDatabaseAsync<CommunicationsDbContext>();
-_ = await app.MigrateDatabaseAsync<SeaDbContext>();
 _ = await app.MigrateDatabaseAsync<AuditDbContext>();
-_ = await app.MigrateDatabaseAsync<AppointmentsDbContext>();
-_ = await app.MigrateDatabaseAsync<CommerceDbContext>();
-_ = await app.MigrateDatabaseAsync<ContentsDbContext>();
-_ = await app.MigrateDatabaseAsync<SocialDbContext>();
-_ = await app.MigrateDatabaseAsync<LinksDbContext>();
-_ = await app.MigrateDatabaseAsync<FinancialDbContext>();
-_ = await app.MigrateDatabaseAsync<MedicalDbContext>();
-_ = await app.MigrateDatabaseAsync<PrescriptionDbContext>();
 
 CookiePolicyOptions cookiePolicyOptions = new()
 {

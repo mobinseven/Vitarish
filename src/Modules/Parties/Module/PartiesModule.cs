@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Vitarish.Modules.Base;
 using Vitarish.Parties.Module.DependencyInjection;
 using Vitarish.Parties.Infrastructure.Services;
+using Vitarish.Parties.Infrastructure.Data;
 
 namespace Vitarish.Parties.Module;
 
@@ -20,5 +21,9 @@ public sealed class PartiesModule : Vitarish.Modules.Base.Module
         return Task.CompletedTask;
     }
 
-    public override Task Initialize(WebApplication app) => app.InitializeViews();
+    public override async Task Initialize(WebApplication app)
+    {
+        _ = await app.MigrateDatabaseAsync<PartiesDbContext>();
+        await app.InitializeViews();
+    }
 }

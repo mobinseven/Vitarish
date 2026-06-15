@@ -35,5 +35,9 @@ public class SeaModule : Vitarish.Modules.Base.Module, ISeaModule
         _ = builder.Services.ConfigureInterface();
     }
 
-    public override async Task Initialize(WebApplication app) => await app.InitializeViews();
+    public override async Task Initialize(WebApplication app)
+    {
+        _ = await app.MigrateDatabaseAsync<SeaDbContext>();
+        await app.InitializeViews();
+    }
 }
