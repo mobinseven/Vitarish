@@ -1,5 +1,6 @@
 using Vitarish.Sea.Application.Commands.Attachments;
 using Vitarish.Sea.Application.Queries.Events;
+using Vitarish.Sea.Domain.Mappers;
 
 namespace Vitarish.Sea.Infrastructure.Services;
 

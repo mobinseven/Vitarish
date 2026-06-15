@@ -1,3 +1,5 @@
+using Vitarish.Sea.Domain.Mappers;
+
 namespace Vitarish.Sea.Interface.Components.Procedures;
 
 public partial class ProcedureEditDialog : ProceduresBase

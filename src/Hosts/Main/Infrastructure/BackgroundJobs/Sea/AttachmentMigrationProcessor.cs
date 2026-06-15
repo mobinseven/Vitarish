@@ -4,6 +4,7 @@ using Vitarish.Files.Infrastructure.Extensions;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
+using Vitarish.Sea.Domain.Mappers;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 

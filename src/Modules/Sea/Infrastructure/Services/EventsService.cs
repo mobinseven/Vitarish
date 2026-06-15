@@ -1,3 +1,5 @@
+using Vitarish.Sea.Domain.Mappers;
+
 namespace Vitarish.Sea.Infrastructure.Services;
 
 [RegisterTransient]
