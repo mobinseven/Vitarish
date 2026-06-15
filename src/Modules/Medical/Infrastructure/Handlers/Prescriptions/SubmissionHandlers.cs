@@ -201,8 +201,9 @@ public sealed class EditPrescriptionHandler(
         }
 
         // Transition to EditRequested → Submitting
-        prescription.TransitionTo(PrescriptionStatus.EditRequested, DateTime.UtcNow);
-        prescription.TransitionTo(PrescriptionStatus.Submitting, DateTime.UtcNow);
+        DateTime occurredAt = DateTime.UtcNow;
+        prescription.TransitionTo(PrescriptionStatus.EditRequested, occurredAt);
+        prescription.TransitionTo(PrescriptionStatus.Submitting, occurredAt);
         prescription.VersionNumber++;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
