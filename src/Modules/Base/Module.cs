@@ -6,7 +6,11 @@ namespace Vitarish.Modules.Base;
 
 public abstract class Module : IModule
 {
+    public const string ApplicationSection = "Vitarish";
+
     public abstract string Name { get; }
+
+    protected string OptionsSectionPath => $"{ApplicationSection}:{Name}";
 
     public bool IsAvailable
     {

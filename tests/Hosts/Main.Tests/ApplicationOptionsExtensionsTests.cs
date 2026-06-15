@@ -1,66 +1,58 @@
 using FluentAssertions;
-using Xunit;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Main.Infrastructure.Options;
-using Vitarish.Modules.Base;
+using Xunit;
 
 namespace Hosts.Main.Tests;
 
 public class ApplicationOptionsExtensionsTests
 {
     [Fact]
-    public void AddApplicationOptions_DelegatesModuleOptionBindingThroughApplicationModulePath()
+    public void AddApplicationOptions_DoesNotDiscoverModulesFromServiceCollection()
     {
         ServiceCollection services = new();
-        IConfiguration configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Vitarish:Example:Enabled"] = "true",
-                ["Vitarish:Ai:Enabled"] = "true",
-                ["Vitarish:ElasticSearch:Url"] = "http://legacy:9200"
-            })
-            .Build();
+        IConfiguration configuration = new ConfigurationBuilder().Build();
+        CapturingModule module = new("Example");
+        services.AddSingleton<IReadOnlyList<Vitarish.Modules.Base.IModule>>([module]);
+
+        _ = services.AddApplicationOptions(configuration);
+
+        module.CapturedSectionPath.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ModuleRegister_DelegatesOptionBindingThroughApplicationModulePath()
+    {
+        WebApplicationBuilder builder = WebApplication.CreateBuilder();
         CapturingModule module = new("Example");
 
-        _ = services.AddApplicationOptions(configuration, [module]);
+        await module.Register(builder);
 
         module.CapturedSectionPath.Should().Be($"{ApplicationOptions.Section}:Example");
     }
 
     [Fact]
-    public void AddApplicationOptions_DoesNotRequireLegacyModulePaths()
+    public void ApplicationOptionsSection_UsesSharedModuleApplicationSection()
     {
-        ServiceCollection services = new();
-        IConfiguration configuration = new ConfigurationBuilder()
-            .AddInMemoryCollection(new Dictionary<string, string?>
-            {
-                ["Vitarish:Intelligence:DefaultResponseModel"] = "gpt-test",
-                ["Vitarish:Search:Url"] = "http://search:9200"
-            })
-            .Build();
-        CapturingModule intelligence = new("Intelligence");
-        CapturingModule search = new("Search");
-
-        _ = services.AddApplicationOptions(configuration, [intelligence, search]);
-
-        intelligence.CapturedSectionPath.Should().Be("Vitarish:Intelligence");
-        search.CapturedSectionPath.Should().Be("Vitarish:Search");
+        ApplicationOptions.Section.Should().Be(Vitarish.Modules.Base.Module.ApplicationSection);
     }
 
-    private sealed class CapturingModule(string name) : IModule
+    private sealed class CapturingModule(string name) : Vitarish.Modules.Base.Module
     {
-        public string Name { get; } = name;
-        public bool IsAvailable { get; set; }
+        public override string Name { get; } = name;
         public string? CapturedSectionPath { get; private set; }
-        public event Action<bool>? AvailabilityChanged;
 
-        public void RegisterOptions(IServiceCollection services, IConfiguration configuration, string sectionPath) => CapturedSectionPath = sectionPath;
+        public override void RegisterOptions(IServiceCollection services, IConfiguration configuration, string sectionPath) => CapturedSectionPath = sectionPath;
 
-        public Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null) => Task.CompletedTask;
+        public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
+        {
+            RegisterOptions(builder.Services, builder.Configuration, OptionsSectionPath);
+            return Task.CompletedTask;
+        }
 
-        public Task Initialize(WebApplication app) => Task.CompletedTask;
+        public override Task Initialize(WebApplication app) => Task.CompletedTask;
     }
 }

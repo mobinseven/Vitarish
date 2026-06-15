@@ -1,5 +1,4 @@
 using Vitarish.Interfaces.Accounts.Services;
-using Vitarish.Modules.Base;
 
 namespace Vitarish.Main.Infrastructure.Options;
 
@@ -15,26 +14,19 @@ public static class ApplicationOptionsExtensions
     /// <returns>The web application builder for chaining.</returns>
     public static WebApplicationBuilder AddApplicationOptions(this WebApplicationBuilder builder)
     {
-        IReadOnlyList<IModule> modules = builder.Services
-            .Where(descriptor => descriptor.ServiceType == typeof(IReadOnlyList<IModule>))
-            .Select(descriptor => descriptor.ImplementationInstance)
-            .OfType<IReadOnlyList<IModule>>()
-            .LastOrDefault() ?? [];
-        _ = builder.Services.AddApplicationOptions(builder.Configuration, modules);
+        _ = builder.Services.AddApplicationOptions(builder.Configuration);
         return builder;
     }
 
     /// <summary>
-    /// Adds and configures host-owned application options and delegates module-owned option registration to modules.
+    /// Adds and configures host-owned application options.
     /// </summary>
     /// <param name="services">The service collection.</param>
     /// <param name="configuration">The configuration root.</param>
-    /// <param name="modules">The modules that own module-specific option binding.</param>
     /// <returns>The service collection for chaining.</returns>
     public static IServiceCollection AddApplicationOptions(
         this IServiceCollection services,
-        Microsoft.Extensions.Configuration.IConfiguration configuration,
-        IReadOnlyList<IModule>? modules = null)
+        Microsoft.Extensions.Configuration.IConfiguration configuration)
     {
         _ = services.AddOptions<ApplicationOptions>()
             .BindConfiguration(ApplicationOptions.Section)
@@ -46,12 +38,6 @@ public static class ApplicationOptionsExtensions
             IOptions<ApplicationOptions> options = sp.GetRequiredService<IOptions<ApplicationOptions>>();
             return options.Value;
         });
-
-        foreach (IModule module in modules ?? [])
-        {
-            string moduleSectionPath = $"{ApplicationOptions.Section}:{module.Name}";
-            module.RegisterOptions(services, configuration, moduleSectionPath);
-        }
 
         _ = services.AddOptions<FeaturesOptions>()
             .BindConfiguration($"{ApplicationOptions.Section}:Features");

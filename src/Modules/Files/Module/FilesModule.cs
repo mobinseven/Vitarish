@@ -35,6 +35,7 @@ public class FilesModule : Vitarish.Modules.Base.Module, IFilesModule
 
     public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
+        RegisterOptions(builder.Services, builder.Configuration, OptionsSectionPath);
         IServiceCollection services = builder.Services;
         ConfigurationManager configuration = builder.Configuration;
         _ = services.AddSingleton<IFilesModule, FilesModule>();

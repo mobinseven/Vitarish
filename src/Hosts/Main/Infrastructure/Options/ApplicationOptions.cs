@@ -1,3 +1,5 @@
+using Vitarish.Modules.Base;
+
 namespace Vitarish.Main.Infrastructure.Options;
 
 /// <summary>
@@ -8,7 +10,7 @@ public class ApplicationOptions
     /// <summary>
     /// The configuration section name for application options.
     /// </summary>
-    public const string Section = "Vitarish";
+    public static string Section => Module.ApplicationSection;
 
     /// <summary>
     /// Feature-flag switches for in-development functionality.

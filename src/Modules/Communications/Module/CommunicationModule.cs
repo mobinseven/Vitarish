@@ -36,6 +36,7 @@ public class CommunicationModule : Vitarish.Modules.Base.Module, ICommunications
 
     public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
+        RegisterOptions(builder.Services, builder.Configuration, OptionsSectionPath);
         _ = builder.Services.AddSingleton<ICommunicationsModule, CommunicationModule>();
         _ = builder.Services.AddTransient<IMessagesService, MessagesService>();
         _ = builder.Services.AddTransient<ISmsProvider, SmsDotIrProvider>();

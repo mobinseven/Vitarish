@@ -33,6 +33,7 @@ public class IntelligenceModule : Vitarish.Modules.Base.Module, IIntelligenceMod
     public override async Task Register(WebApplicationBuilder builder,
         Action<DbContextOptionsBuilder>? configureDbContext)
     {
+        RegisterOptions(builder.Services, builder.Configuration, OptionsSectionPath);
         _ = builder.Services.AddSingleton<IIntelligenceModule, IntelligenceModule>();
         _ = builder.Services.AddSingleton<ModelRegistry>();
         _ = builder.Services.AddTransient<IResponder, ProviderDispatchingResponder>();

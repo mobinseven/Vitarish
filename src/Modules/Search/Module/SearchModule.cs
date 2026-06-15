@@ -30,6 +30,7 @@ public class SearchModule : Vitarish.Modules.Base.Module, ISearchModule
         WebApplicationBuilder builder,
         Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
+        RegisterOptions(builder.Services, builder.Configuration, OptionsSectionPath);
         _ = builder.Services.AddSingleton<ISearchModule, SearchModule>();
         _ = builder.Services.AddSearchInfrastructure();
         _ = builder.Services.ConfigureSearchInterface();
