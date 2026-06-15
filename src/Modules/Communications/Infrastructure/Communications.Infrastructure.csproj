@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <ItemGroup>
+		<PackageReference Include="Hangfire.Core" Version="1.8.*" />
     <InternalsVisibleTo Include="Vitarish.Communications.Tests" />
   </ItemGroup>
   <ItemGroup>
@@ -14,7 +15,11 @@
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
+    		            <ProjectReference Include="..\..\Parties\Application\Parties.Application.csproj" />
+<ProjectReference Include="..\..\Sea\Domain\Sea.Domain.csproj" />
+<ProjectReference Include="..\..\Sea\Application\Sea.Application.csproj" />
+<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+<ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
     <ProjectReference Include="..\..\..\Modules\Users\Application\Users.Application.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
     <ProjectReference Include="..\Application\Communications.Application.csproj" />

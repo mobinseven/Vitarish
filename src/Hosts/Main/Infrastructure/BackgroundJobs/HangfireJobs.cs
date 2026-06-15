@@ -1,52 +1,27 @@
-using Vitarish.Main.Infrastructure.BackgroundJobs.Commerce;
-using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
-using Vitarish.Main.Infrastructure.BackgroundJobs.Files;
-using Vitarish.Main.Infrastructure.BackgroundJobs.Intelligence;
-using Vitarish.Main.Infrastructure.BackgroundJobs.Prescriptions;
-using Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
+using Vitarish.Modules.Base.BackgroundJobs;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs;
 
 /// <summary>
-/// Configures Hangfire jobs that need to be scheduled or triggered at application startup.
+/// Configures host startup scheduling for module-owned recurring background jobs.
 /// </summary>
 public static class HangfireJobs
 {
     /// <summary>
-    /// Registers and triggers Hangfire recurring jobs that should start processing immediately.
+    /// Registers recurring jobs through module schedulers and triggers startup jobs separately.
     /// </summary>
     public static void ScheduleJobs(this WebApplication app)
     {
-        HangfireSeaJobManager seaJobs = app.Services.GetRequiredService<HangfireSeaJobManager>();
-        seaJobs.ScheduleProcessing();
-        seaJobs.TriggerProcessing();
+        IEnumerable<IRecurringJobScheduler> schedulers = app.Services.GetServices<IRecurringJobScheduler>();
 
-        HangfireSeaIndexingJobManager seaIndexingJobs = app.Services.GetRequiredService<HangfireSeaIndexingJobManager>();
-        seaIndexingJobs.ScheduleProcessing();
-        seaIndexingJobs.TriggerProcessing();
+        foreach (IRecurringJobScheduler scheduler in schedulers)
+        {
+            scheduler.ScheduleJobs();
+        }
 
-        HangfireRemindersJobManager reminderJobs = app.Services.GetRequiredService<HangfireRemindersJobManager>();
-        reminderJobs.ScheduleProcessing();
-        reminderJobs.TriggerProcessing();
-
-        HangfireFilesJobManager filesJobs = app.Services.GetRequiredService<HangfireFilesJobManager>();
-        filesJobs.ScheduleProcessing();
-        filesJobs.TriggerProcessing();
-
-        HangfireIntelligenceJobManager intelligenceJobs = app.Services.GetRequiredService<HangfireIntelligenceJobManager>();
-        intelligenceJobs.ScheduleProcessing();
-        //intelligenceJobs.TriggerProcessing();
-
-        HangfireCommunicationsJobManager commJobs = app.Services.GetRequiredService<HangfireCommunicationsJobManager>();
-        commJobs.ScheduleProcessing();
-        commJobs.TriggerProcessing();
-
-        HangfireCommerceJobManager commerceJobs = app.Services.GetRequiredService<HangfireCommerceJobManager>();
-        commerceJobs.ScheduleCatalogSync();
-        commerceJobs.ScheduleOrderSync();
-        commerceJobs.ScheduleCartCleanup();
-
-        HangfirePrescriptionJobManager prescriptionJobs = app.Services.GetRequiredService<HangfirePrescriptionJobManager>();
-        prescriptionJobs.ScheduleRetry();
+        foreach (IRecurringJobScheduler scheduler in schedulers)
+        {
+            scheduler.TriggerStartupJobs();
+        }
     }
 }

@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
+		<PackageReference Include="Hangfire.Core" Version="1.8.*" />
 		<PackageReference Include="Finbuckle.MultiTenant.AspNetCore" Version="9.4.0" />
 		<PackageReference Include="Finbuckle.MultiTenant.EntityFrameworkCore" Version="9.*" />
 		<PackageReference Include="Injectio" Version="5.0.0" />
@@ -13,7 +14,8 @@
 		<FrameworkReference Include="Microsoft.AspNetCore.App" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
+				<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+<ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
 		<ProjectReference Include="..\Application\Files.Application.csproj" />
 	  <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
