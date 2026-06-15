@@ -6,6 +6,7 @@ using Vitarish.Medical.Infrastructure.Data;
 using Vitarish.Medical.Infrastructure.DependencyInjection;
 using Vitarish.Modules.Base;
 using Vitarish.Entities.Server.Extensions;
+using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 namespace Vitarish.Medical.Module;
 
@@ -17,6 +18,7 @@ public sealed class MedicalModule : Vitarish.Modules.Base.Module, IMedicalModule
     {
         _ = builder.Services.AddSingleton<IMedicalModule, MedicalModule>();
         _ = builder.Services.AddTransientDbContext<MedicalDbContext>((_, options) => configureDbContext?.Invoke(options));
+        _ = builder.Services.AddTransientMultiTenantDbContext<PrescriptionDbContext>((_, options) => configureDbContext?.Invoke(options));
         _ = builder.Services.AddMedicalInfrastructure(builder.Configuration);
 
         return Task.CompletedTask;
