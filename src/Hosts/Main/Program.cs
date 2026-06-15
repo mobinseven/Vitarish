@@ -196,7 +196,7 @@ app.MapAccountsInterface();
 
 app.MapHangfireDashboard();
 
-app.ScheduleSelfTriggeringJobs();
+app.ScheduleJobs();
 
 
 app.Run();

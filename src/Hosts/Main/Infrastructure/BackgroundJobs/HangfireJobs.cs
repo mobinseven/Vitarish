@@ -10,12 +10,12 @@ namespace Vitarish.Main.Infrastructure.BackgroundJobs;
 /// <summary>
 /// Configures Hangfire jobs that need to be scheduled or triggered at application startup.
 /// </summary>
-public static class HangfireStartupJobs
+public static class HangfireJobs
 {
     /// <summary>
     /// Registers and triggers Hangfire recurring jobs that should start processing immediately.
     /// </summary>
-    public static void ScheduleSelfTriggeringJobs(this WebApplication app)
+    public static void ScheduleJobs(this WebApplication app)
     {
         HangfireSeaJobManager seaJobs = app.Services.GetRequiredService<HangfireSeaJobManager>();
         seaJobs.ScheduleProcessing();
