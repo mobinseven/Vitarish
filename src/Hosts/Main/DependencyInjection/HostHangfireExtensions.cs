@@ -1,16 +1,7 @@
 using Hangfire;
 using Hangfire.PostgreSql;
-using Vitarish.Commerce.Application.Abstractions;
-using Vitarish.Communications.Application.Abstractions;
 using Vitarish.Main.Authorization;
 using Vitarish.Main.DependencyInjection;
-using Vitarish.Main.Infrastructure.BackgroundJobs.Base;
-using Vitarish.Main.Infrastructure.BackgroundJobs.Commerce;
-using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
-using Vitarish.Main.Infrastructure.BackgroundJobs.Files;
-using Vitarish.Main.Infrastructure.BackgroundJobs.Intelligence;
-using Vitarish.Main.Infrastructure.BackgroundJobs.Prescriptions;
-using Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 using Vitarish.Main.Infrastructure.Platform;
 using Vitarish.Modules.Base.Platform.Transactions;
 
@@ -56,29 +47,6 @@ public static class HostHangfireExtensions
             options.WorkerCount = workerCount;
             options.ServerName = $"{Environment.MachineName}:{Guid.NewGuid()}";
         });
-
-        // Register message queue / processors and tenant executor
-        _ = builder.Services.AddScoped<TenantBackgroundExecutor>();
-        _ = builder.Services.AddTransient<ICommunicationCommandQueue, HangfireMessageQueue>();
-        _ = builder.Services.AddTransient<MessageProcessor>();
-        _ = builder.Services.AddTransient<ReminderProcessor>();
-        _ = builder.Services.AddTransient<FilesSelfTestsProcessor>();
-        _ = builder.Services.AddTransient<IntelligenceProcessor>();
-        _ = builder.Services.AddTransient<AttachmentMigrationProcessor>();
-        _ = builder.Services.AddTransient<SeaIndexingProcessor>();
-        _ = builder.Services.AddTransient<PrescriptionRetryProcessor>();
-        _ = builder.Services.AddSingleton<HangfireRemindersJobManager>();
-        _ = builder.Services.AddSingleton<HangfireSeaJobManager>();
-        _ = builder.Services.AddSingleton<HangfireSeaIndexingJobManager>();
-        _ = builder.Services.AddSingleton<HangfireFilesJobManager>();
-        _ = builder.Services.AddSingleton<HangfireIntelligenceJobManager>();
-        _ = builder.Services.AddSingleton<HangfireCommunicationsJobManager>();
-        _ = builder.Services.AddSingleton<HangfirePrescriptionJobManager>();
-        _ = builder.Services.AddTransient<CommerceCatalogSyncProcessor>();
-        _ = builder.Services.AddTransient<CommerceOrderSyncProcessor>();
-        _ = builder.Services.AddTransient<CommerceCartCleanupProcessor>();
-        _ = builder.Services.AddSingleton<HangfireCommerceJobManager>();
-        _ = builder.Services.AddSingleton<ICommerceJobManager>(sp => sp.GetRequiredService<HangfireCommerceJobManager>());
 
         // Centralized platform services
         _ = builder.Services.AddSingleton<IExternalApiTransactionLogger, LoggingApiTransactionLogger>();

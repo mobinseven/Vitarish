@@ -9,6 +9,7 @@ using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Domain.Options;
 using Vitarish.Files.Infrastructure.Api;
 using Vitarish.Files.Infrastructure.Data;
+using Vitarish.Files.Infrastructure.DependencyInjection;
 using Vitarish.Files.Infrastructure.Services;
 using Vitarish.Files.Interface.DependencyInjection;
 using Vitarish.Modules.Base;
@@ -52,6 +53,7 @@ public class FilesModule : Vitarish.Modules.Base.Module, IFilesModule
 
         services.AddVitarishFilesDomainEntityHandlers();
         _ = services.AddVitarishFilesInfrastructure();
+        _ = services.AddFilesBackgroundJobs();
 
         _ = services.ConfigureFilesInterface();
     }

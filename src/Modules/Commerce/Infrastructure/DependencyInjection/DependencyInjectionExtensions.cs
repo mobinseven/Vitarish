@@ -26,6 +26,8 @@ public static class DependencyInjectionExtensions
         // Feed
         _ = services.AddScoped<IFeedDataSource, CommerceFeedSource>();
 
+        _ = services.AddCommerceBackgroundJobs();
+
         return services;
     }
 }

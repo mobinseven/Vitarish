@@ -9,6 +9,8 @@ public static class DependencyInjectionExtensions
         _ = services.AddVitarishCommunicationsInfrastructure();
         _ = services.AddEntitySearchInfrastructure();
         _ = services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(CommunicationsDbContext).Assembly));
+        _ = services.AddCommunicationsBackgroundJobs();
+
         return services;
     }
 }

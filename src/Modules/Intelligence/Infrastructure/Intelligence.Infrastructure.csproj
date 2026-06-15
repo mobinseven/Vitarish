@@ -1,11 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<ItemGroup>
+		<PackageReference Include="Hangfire.Core" Version="1.8.*" />
 		<PackageReference Include="Google.Cloud.Speech.V2" Version="1.6.0" />
 		<PackageReference Include="OllamaSharp.ModelContextProtocol" Version="5.4.9" />
 		<PackageReference Include="OpenAI" Version="2.4.0" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\Application\Intelligence.Application.csproj" />
+				<ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+<ProjectReference Include="..\Application\Intelligence.Application.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 	  <Compile Update="IntelligenceResource.Designer.cs">
