@@ -7,7 +7,6 @@ namespace Vitarish.Medical.Domain.Entities.Prescriptions;
 /// </summary>
 public sealed class PrescriptionItem : Entity
 {
-    public Guid PrescriptionRecordId { get; set; }
     public PrescriptionItemCategory Category { get; set; }
 
     /// <summary>Reference code from provider's code system.</summary>
