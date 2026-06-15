@@ -1,6 +1,5 @@
 using Microsoft.Extensions.Options;
 using OpenAI.Responses;
-using System.Reflection;
 using System.Runtime.CompilerServices;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Domain.Models;
@@ -16,13 +15,17 @@ public sealed class OpenAiResponder(IOptionsMonitor<AiOptions> aiOptions) : IRes
 #pragma warning disable OPENAI001 // Type is for evaluation purposes only and is subject to change or removal in future updates.
 #pragma warning disable OPENAICUA001 // Type is for evaluation purposes only and is subject to change or removal in future updates.
 
-    public async Task<IReadOnlyList<ResponderOutput>> GenerateAsync(IReadOnlyList<ResponderInput> input, ResponderOptions options, CancellationToken ct = default)
+    public async Task<IReadOnlyList<ResponderOutput>> GenerateAsync(
+        IReadOnlyList<ResponderInput> input,
+        ResponderOptions options,
+        CancellationToken ct = default)
     {
-        (OpenAIResponseClient client, ResponseCreationOptions creation) = await CreateResponseClient(options);
-
         IReadOnlyList<ResponseItem> items = [.. ResponderHelpers.MapInput(input)];
 
-        OpenAIResponse response = await client.CreateResponseAsync(items, creation, ct);
+        (ResponsesClient client, CreateResponseOptions creation) =
+            CreateResponseClient(options, items, streaming: false);
+
+        ResponseResult response = await client.CreateResponseAsync(creation, ct);
 
         IReadOnlyList<ResponderOutput> mapped = ResponderHelpers.MapResponse(response);
 
@@ -34,30 +37,39 @@ public sealed class OpenAiResponder(IOptionsMonitor<AiOptions> aiOptions) : IRes
         ResponderOptions options,
         [EnumeratorCancellation] CancellationToken ct = default)
     {
-        (OpenAIResponseClient client, ResponseCreationOptions creation) = await CreateResponseClient(options);
-
         IReadOnlyList<ResponseItem> items = [.. ResponderHelpers.MapInput(input)];
 
-        System.ClientModel.AsyncCollectionResult<StreamingResponseUpdate> updates = client.CreateResponseStreamingAsync(items, creation, ct);
+        (ResponsesClient client, CreateResponseOptions creation) =
+            CreateResponseClient(options, items, streaming: true);
 
-        await foreach (StreamingResponseUpdate? update in updates.WithCancellation(ct))
+        System.ClientModel.AsyncCollectionResult<StreamingResponseUpdate> updates =
+            client.CreateResponseStreamingAsync(creation, ct);
+
+        await foreach (StreamingResponseUpdate update in updates.WithCancellation(ct))
         {
             switch (update)
             {
                 case StreamingResponseOutputTextDeltaUpdate textDelta:
                     yield return ResponderOutput.TextOutput(textDelta.Delta);
                     break;
+
                 case StreamingResponseCompletedUpdate completed:
-                    foreach (ResponderOutput? item in ResponderHelpers.MapResponse(completed.Response).Where(r => r.Type != ResponderOutputType.Text))
+                    foreach (ResponderOutput item in ResponderHelpers
+                        .MapResponse(completed.Response)
+                        .Where(static r => r.Type != ResponderOutputType.Text))
                     {
                         yield return item;
                     }
+
                     break;
             }
         }
     }
 
-    private Task<(OpenAIResponseClient client, ResponseCreationOptions creation)> CreateResponseClient(ResponderOptions options)
+    private (ResponsesClient client, CreateResponseOptions creation) CreateResponseClient(
+        ResponderOptions options,
+        IReadOnlyList<ResponseItem> inputItems,
+        bool streaming)
     {
         AiOptions optionsValue = aiOptions.CurrentValue;
 
@@ -65,11 +77,14 @@ public sealed class OpenAiResponder(IOptionsMonitor<AiOptions> aiOptions) : IRes
             ? optionsValue.DefaultResponseModel
             : options.Model!.Trim();
 
-        OpenAIResponseClient client = new(
-            model: model,
-            apiKey: optionsValue.OpenAi.ApiKey);
+        ResponsesClient client = new(apiKey: optionsValue.OpenAi.ApiKey);
 
-        ResponseCreationOptions creation = new();
+        CreateResponseOptions creation = new(model, inputItems);
+
+        if (streaming)
+        {
+            creation.StreamingEnabled = true;
+        }
 
         if (!string.IsNullOrWhiteSpace(options.Instructions))
         {
@@ -81,18 +96,33 @@ public sealed class OpenAiResponder(IOptionsMonitor<AiOptions> aiOptions) : IRes
             creation.PreviousResponseId = options.PreviousResponseId;
         }
 
-        ResponseTextOptions textOptions = new()
+        creation.TextOptions = new ResponseTextOptions
         {
             TextFormat = options.TextFormat switch
             {
-                DomainResponseTextFormat.JsonSchema when options.JsonSchema is not null => OpenAiResponseTextFormat.CreateJsonSchemaFormat(options.JsonSchema.Name, BinaryData.FromString(options.JsonSchema.Schema), options.JsonSchema.Description, options.JsonSchema.Strict),
-                DomainResponseTextFormat.JsonObject => OpenAiResponseTextFormat.CreateJsonObjectFormat(),
-                _ => OpenAiResponseTextFormat.CreateTextFormat()
+                DomainResponseTextFormat.JsonSchema when options.JsonSchema is not null =>
+                    OpenAiResponseTextFormat.CreateJsonSchemaFormat(
+                        options.JsonSchema.Name,
+                        BinaryData.FromString(options.JsonSchema.Schema),
+                        options.JsonSchema.Description,
+                        options.JsonSchema.Strict),
+
+                DomainResponseTextFormat.JsonObject =>
+                    OpenAiResponseTextFormat.CreateJsonObjectFormat(),
+
+                _ =>
+                    OpenAiResponseTextFormat.CreateTextFormat()
             }
         };
 
-        creation.TextOptions = textOptions;
+        AddMcpTools(options, creation);
+        AddOptionalTools(options, creation);
 
+        return (client, creation);
+    }
+
+    private static void AddMcpTools(ResponderOptions options, CreateResponseOptions creation)
+    {
         foreach (ResponderToolDefinition tool in options.Tools ?? Array.Empty<ResponderToolDefinition>())
         {
             if (!string.Equals(tool.Type, "mcp", StringComparison.OrdinalIgnoreCase))
@@ -100,7 +130,8 @@ public sealed class OpenAiResponder(IOptionsMonitor<AiOptions> aiOptions) : IRes
                 continue;
             }
 
-            if (string.IsNullOrWhiteSpace(tool.ServerLabel) || string.IsNullOrWhiteSpace(tool.ServerUrl))
+            if (string.IsNullOrWhiteSpace(tool.ServerLabel) ||
+                string.IsNullOrWhiteSpace(tool.ServerUrl))
             {
                 continue;
             }
@@ -110,85 +141,82 @@ public sealed class OpenAiResponder(IOptionsMonitor<AiOptions> aiOptions) : IRes
                 continue;
             }
 
-            Dictionary<string, string>? headers = string.IsNullOrWhiteSpace(tool.ServerToken)
-                ? null
-                : new Dictionary<string, string> { ["Authorization"] = $"Bearer {tool.ServerToken}" };
-
-            McpToolFilter? allowedTools = null;
-
-            if (tool.AllowedTools is { Count: > 0 } allowedList)
+            GlobalMcpToolCallApprovalPolicy globalApprovalPolicy = tool.RequireApproval switch
             {
-                allowedTools = (McpToolFilter?)Activator.CreateInstance(
-                    typeof(McpToolFilter),
-                    BindingFlags.Instance | BindingFlags.NonPublic,
-                    binder: null,
-                    args: new object?[] { allowedList.ToList(), new Dictionary<string, System.BinaryData>() },
-                    culture: null);
-            }
+                ResponderToolApprovalRequirement.Always =>
+                    GlobalMcpToolCallApprovalPolicy.AlwaysRequireApproval,
 
-            GlobalMcpToolCallApprovalPolicy policy = tool.RequireApproval switch
-            {
-                ResponderToolApprovalRequirement.Always => GlobalMcpToolCallApprovalPolicy.AlwaysRequireApproval,
-                _ => GlobalMcpToolCallApprovalPolicy.NeverRequireApproval
+                _ =>
+                    GlobalMcpToolCallApprovalPolicy.NeverRequireApproval
             };
 
-            McpToolCallApprovalPolicy approvalPolicy = new(policy);
+            McpTool mcpTool = new(
+                serverLabel: tool.ServerLabel.Trim(),
+                serverUri: serverUri)
+            {
+                ToolCallApprovalPolicy = new McpToolCallApprovalPolicy(globalApprovalPolicy)
+            };
 
-            ResponseTool mcpTool = ResponseTool.CreateMcpTool(
-                serverLabel: tool.ServerLabel,
-                serverUri: serverUri,
-                headers: headers,
-                allowedTools: allowedTools,
-                toolCallApprovalPolicy: approvalPolicy);
+            if (!string.IsNullOrWhiteSpace(tool.ServerToken))
+            {
+                mcpTool.AuthorizationToken = NormalizeBearerToken(tool.ServerToken);
+            }
+
+            McpToolFilter? allowedTools = CreateAllowedToolsFilter(tool.AllowedTools);
+
+            if (allowedTools is not null)
+            {
+                mcpTool.AllowedTools = allowedTools;
+            }
 
             creation.Tools.Add(mcpTool);
         }
-        //creation.Tools.Add(ResponseTool.CreateFunctionTool(
-        //    functionName: "fetch",
-        //    functionDescription: "Returns a content response.",
-        //    functionParameters: BinaryData.FromObjectAsJson(new
-        //    {
-        //        type = "object",
-        //        properties = new
-        //        {
-        //            url = new { type = "string", description = "The URL to fetch." }
-        //        },
-        //        required = new[] { "url" },
-        //        additionalProperties = false
-        //    }),
-        //    strictModeEnabled: false
-        //));
-        //creation.Tools.Add(ResponseTool.CreateFunctionTool(
-        //    functionName: "search",
-        //    functionDescription: "Returns a content response.",
-        //    functionParameters: BinaryData.FromObjectAsJson(new
-        //    {
-        //        type = "object",
-        //        properties = new
-        //        {
-        //            q = new { type = "string", description = "The query to search." }
-        //        },
-        //        required = new[] { "q" },
-        //        additionalProperties = false
-        //    }),
-        //    strictModeEnabled: false
-        //));
-
-        AddOptionalTools(options, creation);
-
-        return Task.FromResult((client, creation));
     }
 
-    private static void AddOptionalTools(ResponderOptions options, ResponseCreationOptions creation)
+    private static McpToolFilter? CreateAllowedToolsFilter(IReadOnlyCollection<string>? allowedTools)
     {
-        if (options.EnableWebSearchTool && !creation.Tools.Any(static tool => tool is WebSearchTool))
+        if (allowedTools is not { Count: > 0 })
+        {
+            return null;
+        }
+
+        McpToolFilter filter = new();
+
+        foreach (string allowedTool in allowedTools)
+        {
+            if (!string.IsNullOrWhiteSpace(allowedTool))
+            {
+                filter.ToolNames.Add(allowedTool.Trim());
+            }
+        }
+
+        return filter.ToolNames.Count > 0 ? filter : null;
+    }
+
+    private static string NormalizeBearerToken(string token)
+    {
+        string trimmed = token.Trim();
+
+        return trimmed.StartsWith("Bearer ", StringComparison.OrdinalIgnoreCase)
+            ? trimmed["Bearer ".Length..].Trim()
+            : trimmed;
+    }
+
+    private static void AddOptionalTools(ResponderOptions options, CreateResponseOptions creation)
+    {
+        if (options.EnableWebSearchTool &&
+            !creation.Tools.Any(static tool => tool is WebSearchTool))
         {
             creation.Tools.Add(ResponseTool.CreateWebSearchTool());
         }
 
-        if (options.EnableComputerTool && !creation.Tools.Any(static tool => tool is ComputerTool))
+        if (options.EnableComputerTool &&
+            !creation.Tools.Any(static tool => tool is ComputerTool))
         {
-            creation.Tools.Add(ResponseTool.CreateComputerTool(ComputerToolEnvironment.Browser, 1920, 1080));
+            creation.Tools.Add(ResponseTool.CreateComputerTool(
+                ComputerToolEnvironment.Browser,
+                1920,
+                1080));
         }
     }
 }
