@@ -5,7 +5,6 @@ using Vitarish.Modules.Base.Platform.Errors;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Domain.Entities;
 using Vorn.Tamin;
-using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
 

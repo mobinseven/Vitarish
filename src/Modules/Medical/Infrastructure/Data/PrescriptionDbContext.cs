@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Requests.Application.Abstractions;
 
-namespace Vitarish.Medical.Infrastructure.Data.Prescriptions;
+namespace Vitarish.Medical.Infrastructure.Data;
 
 public sealed class PrescriptionDbContext : DbContext, IMultiTenantDbContext
 {

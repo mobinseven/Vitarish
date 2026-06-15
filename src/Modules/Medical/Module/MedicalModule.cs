@@ -6,7 +6,6 @@ using Vitarish.Medical.Infrastructure.Data;
 using Vitarish.Medical.Infrastructure.DependencyInjection;
 using Vitarish.Modules.Base;
 using Vitarish.Entities.Server.Extensions;
-using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 namespace Vitarish.Medical.Module;
 

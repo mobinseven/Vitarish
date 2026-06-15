@@ -7,7 +7,6 @@ using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Application.Commands.Prescriptions;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
-using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.BackgroundJobs;
 
