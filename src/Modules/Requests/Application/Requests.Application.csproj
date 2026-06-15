@@ -8,7 +8,6 @@
     <PackageReference Include="FluentValidation" Version="11.*" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Interface\Requests.Interface.csproj" />
     <ProjectReference Include="..\Domain\Requests.Domain.csproj" />
   </ItemGroup>
 </Project>
