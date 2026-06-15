@@ -183,11 +183,6 @@
     <Project Path="src/Modules/Base/Modules.Base.csproj" />
   </Folder>
   <Folder Name="/tests/" />
-  <Folder Name="/tests/Hosts/" />
-  <Folder Name="/tests/Hosts/Main/">
-    <Project Path="tests/Hosts/Main.Mock/Main.Mock.csproj" />
-    <Project Path="tests/Hosts/Main.Tests/Main.Tests.csproj" />
-  </Folder>
   <Folder Name="/tests/Interfaces/">
     <Project Path="tests/Interfaces/Interfaces.Accounts.Tests/Interfaces.Accounts.Tests.csproj" />
     <Project Path="tests/Interfaces/Interfaces.Base.Tests/Interfaces.Base.Tests.csproj" />
