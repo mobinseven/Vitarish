@@ -337,10 +337,10 @@ public sealed class MedicalDbContext(
                                                                                          _ = entity.Property(e => e.DosageJson).HasMaxLength(4096);
                                                                                          _ = entity.Property(e => e.ProviderItemIdentifier).HasMaxLength(256);
                                                                                          _ = entity.Property(e => e.MetadataJson).HasMaxLength(4096);
-                                                                                         _ = entity.Property<Guid>("PrescriptionRecordId");
+                                                                                         _ = entity.Property<Guid>(e => e.PrescriptionRecordId);
                                                                                          _ = entity.HasOne<PrescriptionRecord>()
                                                                                              .WithMany(p => p.Items)
-                                                                                             .HasForeignKey("PrescriptionRecordId")
+                                                                                             .HasForeignKey(e => e.PrescriptionRecordId)
                                                                                              .OnDelete(DeleteBehavior.Cascade);
                                                                                      });
 

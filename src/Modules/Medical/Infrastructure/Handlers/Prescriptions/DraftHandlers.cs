@@ -85,6 +85,7 @@ public sealed class AddItemHandler(
         PrescriptionItem item = new()
         {
             Id = Guid.NewGuid(),
+            PrescriptionRecordId = prescription.Id,
             Category = request.Category,
             ReferenceCode = request.ReferenceCode,
             DisplayName = request.DisplayName,
