@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Modules.Base;
 using Vitarish.Search.Application.Abstractions;
+using Vitarish.Search.Domain.Options;
 using Vitarish.Search.Infrastructure;
 using Vitarish.Search.Interface.DependencyInjection;
 
@@ -14,6 +16,15 @@ namespace Vitarish.Search.Module;
 public class SearchModule : Vitarish.Modules.Base.Module, ISearchModule
 {
     public override string Name => "Search";
+
+    public override void RegisterOptions(IServiceCollection services, IConfiguration configuration, string sectionPath)
+    {
+        _ = services.AddOptions<ElasticSearchOptions>()
+            .BindConfiguration(sectionPath)
+            .ValidateDataAnnotations()
+            .Validate(options => !string.IsNullOrWhiteSpace(options.Url), $"{sectionPath}:{nameof(ElasticSearchOptions.Url)} is not defined")
+            .ValidateOnStart();
+    }
 
     public override Task Register(
         WebApplicationBuilder builder,

@@ -278,7 +278,7 @@ internal sealed class SearchService : ISearchService
         if (options.EnableSemanticRetrieval && string.IsNullOrWhiteSpace(options.InferenceEndpointId))
         {
             logger.LogWarning(
-                "Elasticsearch native inference endpoint is not configured (Vitarish:ElasticSearch:InferenceEndpointId). " +
+                "Elasticsearch native inference endpoint is not configured (Vitarish:Search:InferenceEndpointId). " +
                 "Semantic retrieval should stay disabled until this endpoint is available.");
         }
     }

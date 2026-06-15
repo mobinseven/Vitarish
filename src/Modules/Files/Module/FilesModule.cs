@@ -20,6 +20,19 @@ namespace Vitarish.Files.Module;
 public class FilesModule : Vitarish.Modules.Base.Module, IFilesModule
 {
     public override string Name => "Files";
+
+    public override void RegisterOptions(IServiceCollection services, IConfiguration configuration, string sectionPath)
+    {
+        _ = services.AddOptions<MinioOptions>()
+            .BindConfiguration(sectionPath)
+            .ValidateDataAnnotations()
+            .Validate(options => !string.IsNullOrWhiteSpace(options.Endpoint), $"{sectionPath}:{nameof(MinioOptions.Endpoint)} is not defined")
+            .Validate(options => !string.IsNullOrWhiteSpace(options.AccessKey), $"{sectionPath}:{nameof(MinioOptions.AccessKey)} is not defined")
+            .Validate(options => !string.IsNullOrWhiteSpace(options.SecretKey), $"{sectionPath}:{nameof(MinioOptions.SecretKey)} is not defined")
+            .Validate(options => !string.IsNullOrWhiteSpace(options.BucketName), $"{sectionPath}:{nameof(MinioOptions.BucketName)} is not defined")
+            .ValidateOnStart();
+    }
+
     public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         IServiceCollection services = builder.Services;
