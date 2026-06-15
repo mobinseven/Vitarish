@@ -22,5 +22,5 @@ public sealed class FinancialModule : Vitarish.Modules.Base.Module, IFinancialMo
         return Task.CompletedTask;
     }
 
-    public override async Task Initialize(WebApplication app) => _ = await app.MigrateDatabaseAsync<FinancialDbContext>();
+    public override Task Initialize(WebApplication app) => app.MigrateDatabaseAsync<FinancialDbContext>();
 }
