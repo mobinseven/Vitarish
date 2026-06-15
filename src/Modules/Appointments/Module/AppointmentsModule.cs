@@ -34,5 +34,9 @@ public class AppointmentsModule : Vitarish.Modules.Base.Module, IAppointmentsMod
         return Task.CompletedTask;
     }
 
-    public override async Task Initialize(WebApplication app) => await app.InitializeViews();
+    public override async Task Initialize(WebApplication app)
+    {
+        _ = await app.MigrateDatabaseAsync<AppointmentsDbContext>();
+        await app.InitializeViews();
+    }
 }

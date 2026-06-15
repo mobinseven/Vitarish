@@ -26,5 +26,5 @@ public sealed class LinksModule : Vitarish.Modules.Base.Module, ILinksModule
         return Task.CompletedTask;
     }
 
-    public override Task Initialize(WebApplication app) => Task.CompletedTask;
+    public override async Task Initialize(WebApplication app) => _ = await app.MigrateDatabaseAsync<LinksDbContext>();
 }

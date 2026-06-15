@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Modules.Base;
+using Vitarish.Users.Infrastructure.Data;
 using Vitarish.Users.Module.DependencyInjection;
 
 namespace Vitarish.Users.Module;
@@ -19,5 +20,9 @@ public sealed class UsersModule : Vitarish.Modules.Base.Module
         return Task.CompletedTask;
     }
 
-    public override async Task Initialize(WebApplication app) => await app.InitializeUsers();
+    public override async Task Initialize(WebApplication app)
+    {
+        _ = await app.MigrateDatabaseAsync<UsersDbContext>();
+        await app.InitializeUsers();
+    }
 }

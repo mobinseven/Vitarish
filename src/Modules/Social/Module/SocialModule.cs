@@ -26,15 +26,15 @@ public sealed class SocialModule : Vitarish.Modules.Base.Module, ISocialModule
         return Task.CompletedTask;
     }
 
-    public override Task Initialize(WebApplication app)
+    public override async Task Initialize(WebApplication app)
     {
+        _ = await app.MigrateDatabaseAsync<SocialDbContext>();
         bool enabled = app.Configuration.GetValue<bool>("Vitarish:Features:SocialIntegrations");
         if (!enabled)
         {
-            return Task.CompletedTask;
+            return;
         }
 
         _ = app.MapSocialWebhookEndpoints();
-        return Task.CompletedTask;
     }
 }
