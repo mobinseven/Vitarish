@@ -1,6 +1,5 @@
 using System.Text.Json;
 using Vitarish.Modules.Base.Platform.Retry;
-using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Services.Prescriptions;
 

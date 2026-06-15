@@ -8,7 +8,6 @@ using Vitarish.Medical.Domain.Entities;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
 using Vorn.Tamin;
-using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
 

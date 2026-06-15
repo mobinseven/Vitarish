@@ -3,7 +3,6 @@ using Microsoft.EntityFrameworkCore;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Application.Queries.Prescriptions;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
-using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 

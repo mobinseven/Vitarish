@@ -27,5 +27,9 @@ public class CommerceModule : Vitarish.Modules.Base.Module, ICommerceModule
         return Task.CompletedTask;
     }
 
-    public override async Task Initialize(WebApplication app) => await app.InitializeViews();
+    public override async Task Initialize(WebApplication app)
+    {
+        _ = await app.MigrateDatabaseAsync<CommerceDbContext>();
+        await app.InitializeViews();
+    }
 }

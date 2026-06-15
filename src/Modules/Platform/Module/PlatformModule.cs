@@ -26,6 +26,8 @@ public sealed class PlatformModule : Vitarish.Modules.Base.Module
 
     public override async Task Initialize(WebApplication app)
     {
+        _ = await app.MigrateDatabaseAsync<PlatformDbContext>();
+
         using IServiceScope scope = app.Services.CreateScope();
         PlatformDbContext dbContext = scope.ServiceProvider.GetRequiredService<PlatformDbContext>();
         TimeProvider timeProvider = scope.ServiceProvider.GetRequiredService<TimeProvider>();

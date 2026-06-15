@@ -6,7 +6,6 @@ using Vitarish.Medical.Infrastructure.Data;
 using Vitarish.Medical.Infrastructure.DependencyInjection;
 using Vitarish.Modules.Base;
 using Vitarish.Entities.Server.Extensions;
-using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 namespace Vitarish.Medical.Module;
 
@@ -24,5 +23,9 @@ public sealed class MedicalModule : Vitarish.Modules.Base.Module, IMedicalModule
         return Task.CompletedTask;
     }
 
-    public override Task Initialize(WebApplication app) => Task.CompletedTask;
+    public override async Task Initialize(WebApplication app)
+    {
+        _ = await app.MigrateDatabaseAsync<MedicalDbContext>();
+        _ = await app.MigrateDatabaseAsync<PrescriptionDbContext>();
+    }
 }

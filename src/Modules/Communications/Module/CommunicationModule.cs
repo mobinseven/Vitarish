@@ -19,8 +19,6 @@ public class CommunicationModule : Vitarish.Modules.Base.Module, ICommunications
 {
     public override string Name => "Communications";
 
-    public override Task Initialize(WebApplication app) => Task.CompletedTask;
-
     public override void RegisterOptions(IServiceCollection services, IConfiguration configuration, string sectionPath)
     {
         _ = services.AddOptions<ProvidersOptions>()
@@ -34,6 +32,7 @@ public class CommunicationModule : Vitarish.Modules.Base.Module, ICommunications
             .ValidateOnStart();
     }
 
+    public override Task Initialize(WebApplication app) => app.MigrateDatabaseAsync<CommunicationsDbContext>();
     public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         RegisterOptions(builder.Services, builder.Configuration, OptionsSectionPath);
