@@ -27,5 +27,5 @@ public sealed class ContentsModule : Vitarish.Modules.Base.Module, IContentsModu
         return Task.CompletedTask;
     }
 
-    public override async Task Initialize(WebApplication app) => _ = await app.MigrateDatabaseAsync<ContentsDbContext>();
+    public override Task Initialize(WebApplication app) => app.MigrateDatabaseAsync<ContentsDbContext>();
 }
