@@ -43,7 +43,7 @@ public sealed class PaperFallbackHandler(
         }
 
         PrescriptionStatus previousStatus = prescription.Status;
-        prescription.TransitionTo(PrescriptionStatus.PaperFallback);
+        prescription.TransitionTo(PrescriptionStatus.PaperFallback, DateTime.UtcNow);
         prescription.FallbackReason = request.Reason;
         prescription.PaperTrackingNumber = request.PaperTrackingNumber;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
@@ -96,7 +96,7 @@ public sealed class ResolveDuplicateRiskHandler(
             _ => PrescriptionStatus.ManuallyReconciled
         };
 
-        prescription.TransitionTo(targetStatus);
+        prescription.TransitionTo(targetStatus, DateTime.UtcNow);
         prescription.ReconciliationNotes = request.Notes;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -142,7 +142,7 @@ public sealed class ManualReconcileHandler(
         }
 
         PrescriptionStatus previousStatus = prescription.Status;
-        prescription.TransitionTo(PrescriptionStatus.ManuallyReconciled);
+        prescription.TransitionTo(PrescriptionStatus.ManuallyReconciled, DateTime.UtcNow);
         prescription.ReconciliationNotes = request.Notes;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -224,7 +224,7 @@ public sealed class RefreshProviderStatusHandler(
         // Only update if the status transition is valid
         if (PrescriptionRecord.IsValidTransition(prescription.Status, newCanonicalStatus))
         {
-            prescription.TransitionTo(newCanonicalStatus);
+            prescription.TransitionTo(newCanonicalStatus, DateTime.UtcNow);
             _ = await dbContext.SaveChangesAsync(cancellationToken);
 
             await auditWriter.WriteAsync(new AuditEntry
@@ -278,7 +278,7 @@ public sealed class ReconcilePaperFallbackHandler(
             return ReconcilePaperFallbackResult.Failure($"انتقال وضعیت به '{targetStatus}' مجاز نیست.");
         }
 
-        prescription.TransitionTo(targetStatus);
+        prescription.TransitionTo(targetStatus, DateTime.UtcNow);
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(new AuditEntry

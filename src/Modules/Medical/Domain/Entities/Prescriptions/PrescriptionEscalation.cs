@@ -5,9 +5,8 @@ namespace Vitarish.Medical.Domain.Entities.Prescriptions;
 /// <summary>
 /// Records an escalation of a prescription from the reconciliation queue.
 /// </summary>
-public sealed class PrescriptionEscalation
+public sealed class PrescriptionEscalation : Entity
 {
-    public Guid Id { get; set; }
     public Guid PrescriptionId { get; set; }
     public Guid OperatorId { get; set; }
     public required string Summary { get; set; }

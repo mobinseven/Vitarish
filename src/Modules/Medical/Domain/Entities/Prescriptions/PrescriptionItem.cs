@@ -5,10 +5,8 @@ namespace Vitarish.Medical.Domain.Entities.Prescriptions;
 /// <summary>
 /// A single item within a prescription (drug, service, referral, etc.).
 /// </summary>
-public sealed class PrescriptionItem
+public sealed class PrescriptionItem : Entity
 {
-    public Guid Id { get; set; }
-    public Guid PrescriptionRecordId { get; set; }
     public PrescriptionItemCategory Category { get; set; }
 
     /// <summary>Reference code from provider's code system.</summary>
@@ -30,5 +28,4 @@ public sealed class PrescriptionItem
     public string? MetadataJson { get; set; }
 
     public int SortOrder { get; set; }
-    public DateTime CreatedAt { get; set; }
 }

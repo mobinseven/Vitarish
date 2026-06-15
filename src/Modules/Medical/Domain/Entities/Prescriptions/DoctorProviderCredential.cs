@@ -6,9 +6,8 @@ namespace Vitarish.Medical.Domain.Entities.Prescriptions;
 /// Maps a doctor's credentials for a specific insurance provider at a specific clinic.
 /// Credentials themselves are stored via secure secret references, never plaintext.
 /// </summary>
-public sealed class DoctorProviderCredential
+public sealed class DoctorProviderCredential : Entity
 {
-    public Guid Id { get; set; }
     public Guid DoctorId { get; set; }
     public required string ProviderKey { get; set; }
     public Guid ClinicId { get; set; }
@@ -36,6 +35,4 @@ public sealed class DoctorProviderCredential
 
     public CredentialStatus Status { get; set; } = CredentialStatus.Pending;
     public DateTime? ExpiresAt { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
 }
