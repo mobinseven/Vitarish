@@ -1,0 +1,16 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Interface\Knowledge.Interface.csproj" />
+    <ProjectReference Include="..\Infrastructure\Knowledge.Infrastructure.csproj" />
+    <ProjectReference Include="..\Application\Knowledge.Application.csproj" />
+    <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
+    <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
+  </ItemGroup>
+</Project>

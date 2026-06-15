@@ -5,24 +5,24 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
-    <ProjectReference Include="..\..\Requests\Hosting\Requests.Hosting.csproj" Condition="'$(EnableRequestsModule)' == 'true'" />
-    <ProjectReference Include="..\..\Users\Hosting\Users.Hosting.csproj" Condition="'$(EnableUsersModule)' == 'true'" />
-    <ProjectReference Include="..\..\Parties\Hosting\Parties.Hosting.csproj" Condition="'$(EnablePartiesModule)' == 'true'" />
-    <ProjectReference Include="..\..\Platform\Interface\Platform.Interface.csproj" Condition="'$(EnablePlatformModule)' == 'true'" />
-    <ProjectReference Include="..\..\Medical\Interface\Medical.Interface.csproj" Condition="'$(EnableMedicalModule)' == 'true'" />
-    <ProjectReference Include="..\..\Appointments\Interface\Appointments.Interface.csproj" Condition="'$(EnableAppointmentsModule)' == 'true'" />
-    <ProjectReference Include="..\..\Commerce\Interface\Commerce.Interface.csproj" Condition="'$(EnableCommerceModule)' == 'true'" />
-    <ProjectReference Include="..\..\Sea\Interface\Sea.Interface.csproj" Condition="'$(EnableSeaModule)' == 'true'" />
-    <ProjectReference Include="..\..\Communications\Hosting\Communications.Hosting.csproj" Condition="'$(EnableCommunicationsModule)' == 'true'" />
-    <ProjectReference Include="..\..\Feed\Infrastructure\Feed.Infrastructure.csproj" Condition="'$(EnableFeedModule)' == 'true'" />
-    <ProjectReference Include="..\..\Files\Interface\Files.Interface.csproj" Condition="'$(EnableFilesModule)' == 'true'" />
-    <ProjectReference Include="..\..\Financial\Interface\Financial.Interface.csproj" Condition="'$(EnableFinancialModule)' == 'true'" />
-    <ProjectReference Include="..\..\Intelligence\Interface\Intelligence.Interface.csproj" Condition="'$(EnableIntelligenceModule)' == 'true'" />
-    <ProjectReference Include="..\..\Knowledge\Interface\Knowledge.Interface.csproj" Condition="'$(EnableKnowledgeModule)' == 'true'" />
-    <ProjectReference Include="..\..\Search\Interface\Search.Interface.csproj" Condition="'$(EnableSearchModule)' == 'true'" />
-    <ProjectReference Include="..\..\Contents\Interface\Contents.Interface.csproj" Condition="'$(EnableContentsModule)' == 'true'" />
-    <ProjectReference Include="..\..\Social\Hosting\Social.Hosting.csproj" Condition="'$(EnableSocialModule)' == 'true'" />
-    <ProjectReference Include="..\..\Links\Interface\Links.Interface.csproj" Condition="'$(EnableLinksModule)' == 'true'" />
+    <ProjectReference Include="..\..\Requests\Module\Requests.Module.csproj" Condition="'$(EnableRequestsModule)' == 'true'" />
+    <ProjectReference Include="..\..\Users\Module\Users.Module.csproj" Condition="'$(EnableUsersModule)' == 'true'" />
+    <ProjectReference Include="..\..\Parties\Module\Parties.Module.csproj" Condition="'$(EnablePartiesModule)' == 'true'" />
+    <ProjectReference Include="..\..\Platform\Module\Platform.Module.csproj" Condition="'$(EnablePlatformModule)' == 'true'" />
+    <ProjectReference Include="..\..\Medical\Module\Medical.Module.csproj" Condition="'$(EnableMedicalModule)' == 'true'" />
+    <ProjectReference Include="..\..\Appointments\Module\Appointments.Module.csproj" Condition="'$(EnableAppointmentsModule)' == 'true'" />
+    <ProjectReference Include="..\..\Commerce\Module\Commerce.Module.csproj" Condition="'$(EnableCommerceModule)' == 'true'" />
+    <ProjectReference Include="..\..\Sea\Module\Sea.Module.csproj" Condition="'$(EnableSeaModule)' == 'true'" />
+    <ProjectReference Include="..\..\Communications\Module\Communications.Module.csproj" Condition="'$(EnableCommunicationsModule)' == 'true'" />
+    <ProjectReference Include="..\..\Feed\Module\Feed.Module.csproj" Condition="'$(EnableFeedModule)' == 'true'" />
+    <ProjectReference Include="..\..\Files\Module\Files.Module.csproj" Condition="'$(EnableFilesModule)' == 'true'" />
+    <ProjectReference Include="..\..\Financial\Module\Financial.Module.csproj" Condition="'$(EnableFinancialModule)' == 'true'" />
+    <ProjectReference Include="..\..\Intelligence\Module\Intelligence.Module.csproj" Condition="'$(EnableIntelligenceModule)' == 'true'" />
+    <ProjectReference Include="..\..\Knowledge\Module\Knowledge.Module.csproj" Condition="'$(EnableKnowledgeModule)' == 'true'" />
+    <ProjectReference Include="..\..\Search\Module\Search.Module.csproj" Condition="'$(EnableSearchModule)' == 'true'" />
+    <ProjectReference Include="..\..\Contents\Module\Contents.Module.csproj" Condition="'$(EnableContentsModule)' == 'true'" />
+    <ProjectReference Include="..\..\Social\Module\Social.Module.csproj" Condition="'$(EnableSocialModule)' == 'true'" />
+    <ProjectReference Include="..\..\Links\Module\Links.Module.csproj" Condition="'$(EnableLinksModule)' == 'true'" />
   </ItemGroup>
 
 </Project>

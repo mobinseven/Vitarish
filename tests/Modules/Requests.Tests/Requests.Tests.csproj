@@ -30,7 +30,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Modules\Requests\Application\Requests.Application.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Requests\Domain\Requests.Domain.csproj" />
-    <ProjectReference Include="..\..\..\src\Modules\Requests\Hosting\Requests.Hosting.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Requests\Module\Requests.Module.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Requests\Infrastructure\Requests.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
