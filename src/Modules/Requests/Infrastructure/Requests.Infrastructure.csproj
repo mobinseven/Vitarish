@@ -8,7 +8,7 @@
     <ProjectReference Include="..\..\Parties\Application\Parties.Application.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Vitarish.Requests.Hosting" />
+    <InternalsVisibleTo Include="Vitarish.Requests.Module" />
     <InternalsVisibleTo Include="Vitarish.Requests.Tests" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>

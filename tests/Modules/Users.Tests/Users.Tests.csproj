@@ -28,7 +28,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Modules\Users\Application\Users.Application.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Users\Domain\Users.Domain.csproj" />
-    <ProjectReference Include="..\..\..\src\Modules\Users\Hosting\Users.Hosting.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Users\Module\Users.Module.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Users\Infrastructure\Users.Infrastructure.csproj" />
   </ItemGroup>
 </Project>

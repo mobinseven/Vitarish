@@ -22,7 +22,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\..\src\Modules\Parties\Application\Parties.Application.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Parties\Domain\Parties.Domain.csproj" />
-    <ProjectReference Include="..\..\..\src\Modules\Parties\Hosting\Parties.Hosting.csproj" />
+    <ProjectReference Include="..\..\..\src\Modules\Parties\Module\Parties.Module.csproj" />
     <ProjectReference Include="..\..\..\src\Modules\Parties\Infrastructure\Parties.Infrastructure.csproj" />
   </ItemGroup>
 
