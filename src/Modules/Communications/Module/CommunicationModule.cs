@@ -17,7 +17,7 @@ public class CommunicationModule : Vitarish.Modules.Base.Module, ICommunications
 {
     public override string Name => "Communications";
 
-    public override Task Initialize(WebApplication app) => Task.CompletedTask;
+    public override Task Initialize(WebApplication app) => app.MigrateDatabaseAsync<CommunicationsDbContext>();
     public override async Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         _ = builder.Services.AddSingleton<ICommunicationsModule, CommunicationModule>();

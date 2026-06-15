@@ -57,5 +57,9 @@ public class FilesModule : Vitarish.Modules.Base.Module, IFilesModule
 
         _ = services.ConfigureFilesInterface();
     }
-    public override async Task Initialize(WebApplication app) => _ = app.MapFilesApi();
+    public override async Task Initialize(WebApplication app)
+    {
+        _ = await app.MigrateDatabaseAsync<FilesDbContext>();
+        _ = app.MapFilesApi();
+    }
 }
