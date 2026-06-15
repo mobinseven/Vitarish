@@ -1,6 +1,6 @@
 using Vitarish.Parties.Domain.Dtos;
 
-namespace Vitarish.Main.Pages.Owners;
+namespace Vitarish.Main.Pages.Parties;
 
 public partial class OwnerTenantPage
 {
