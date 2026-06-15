@@ -1,4 +1,6 @@
 using System.Reflection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Modules.Base;
 
 namespace Modules.Base.Tests;
@@ -32,6 +34,19 @@ public class IModuleInterfaceTests
     }
 
     [Fact]
+    public void IModule_HasRegisterOptionsMethod()
+    {
+        MethodInfo? method = typeof(IModule).GetMethod("RegisterOptions");
+
+        _ = method.Should().NotBeNull();
+        _ = method!.ReturnType.Should().Be(typeof(void));
+        _ = method.GetParameters().Should().HaveCount(3);
+        _ = method.GetParameters()[0].ParameterType.Should().Be(typeof(IServiceCollection));
+        _ = method.GetParameters()[1].ParameterType.Should().Be(typeof(IConfiguration));
+        _ = method.GetParameters()[2].ParameterType.Should().Be(typeof(string));
+    }
+
+    [Fact]
     public void IModule_HasMapEndpointsMethod()
     {
         // Arrange & Act
@@ -41,6 +56,6 @@ public class IModuleInterfaceTests
         _ = method.Should().NotBeNull();
         _ = method!.ReturnType.Should().Be(typeof(Task));
         _ = method.GetParameters().Should().HaveCount(1);
-        _ = method.GetParameters()[0].ParameterType.Should().Be(typeof(IEndpointRouteBuilder));
+        _ = method.GetParameters()[0].ParameterType.Should().Be(typeof(WebApplication));
     }
 }

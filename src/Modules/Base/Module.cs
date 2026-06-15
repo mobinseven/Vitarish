@@ -1,10 +1,16 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Vitarish.Modules.Base;
 
 public abstract class Module : IModule
 {
+    public const string ApplicationSection = "Vitarish";
+
     public abstract string Name { get; }
+
+    protected string OptionsSectionPath => $"{ApplicationSection}:{Name}";
 
     public bool IsAvailable
     {
@@ -19,6 +25,10 @@ public abstract class Module : IModule
         }
     }
     public event Action<bool>? AvailabilityChanged;
+    public virtual void RegisterOptions(IServiceCollection services, IConfiguration configuration, string sectionPath)
+    {
+    }
+
     public abstract Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null);
     public abstract Task Initialize(WebApplication app);
 }
@@ -26,6 +36,7 @@ public abstract class Module : IModule
 public interface IModule
 {
     string Name { get; }
+    void RegisterOptions(IServiceCollection services, IConfiguration configuration, string sectionPath);
     Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null);
     Task Initialize(WebApplication app);
     bool IsAvailable { get; set; }
