@@ -2,11 +2,12 @@ using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Application.Commands.Prescriptions;
+using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
 public sealed class CreateDraftHandler(
-    MedicalDbContext dbContext,
+    PrescriptionDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
     IAuditWriter auditWriter,
     ILogger<CreateDraftHandler> logger)
@@ -62,7 +63,7 @@ public sealed class CreateDraftHandler(
 }
 
 public sealed class AddItemHandler(
-    MedicalDbContext dbContext,
+    PrescriptionDbContext dbContext,
     ILogger<AddItemHandler> logger)
     : IRequestHandler<AddItemCommand, AddItemResult>
 {
@@ -109,7 +110,7 @@ public sealed class AddItemHandler(
 }
 
 public sealed class RemoveItemHandler(
-    MedicalDbContext dbContext)
+    PrescriptionDbContext dbContext)
     : IRequestHandler<RemoveItemCommand, RemoveItemResult>
 {
     public async Task<RemoveItemResult> Handle(RemoveItemCommand request, CancellationToken cancellationToken)
@@ -143,7 +144,7 @@ public sealed class RemoveItemHandler(
 }
 
 public sealed class ValidateDraftHandler(
-    MedicalDbContext dbContext,
+    PrescriptionDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry)
     : IRequestHandler<ValidateDraftCommand, ValidateDraftResult>
 {
@@ -243,7 +244,7 @@ public sealed class ValidateDraftHandler(
 }
 
 public sealed class RecordEligibilityHandler(
-    MedicalDbContext dbContext)
+    PrescriptionDbContext dbContext)
     : IRequestHandler<RecordEligibilityCommand, RecordEligibilityResult>
 {
     public async Task<RecordEligibilityResult> Handle(RecordEligibilityCommand request, CancellationToken cancellationToken)
@@ -271,7 +272,7 @@ public sealed class RecordEligibilityHandler(
 }
 
 public sealed class SetProviderHandler(
-    MedicalDbContext dbContext,
+    PrescriptionDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
     ILogger<SetProviderHandler> logger)
     : IRequestHandler<SetProviderCommand, SetProviderResult>

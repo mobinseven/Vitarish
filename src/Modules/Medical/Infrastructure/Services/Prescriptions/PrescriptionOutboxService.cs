@@ -1,12 +1,13 @@
 using System.Text.Json;
 using Vitarish.Modules.Base.Platform.Retry;
+using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Services.Prescriptions;
 
 /// <summary>
 /// Prescription-scoped implementation of IOutboxService backed by the Prescription schema.
 /// </summary>
-internal sealed class PrescriptionOutboxService(MedicalDbContext dbContext) : IOutboxService
+internal sealed class PrescriptionOutboxService(PrescriptionDbContext dbContext) : IOutboxService
 {
     public async Task<Guid> EnqueueAsync(OutboxEntry entry, CancellationToken cancellationToken = default)
     {

@@ -4,11 +4,11 @@ using Vitarish.Modules.Base.Platform.Retry;
 using Vitarish.Medical.Application.Queries.Prescriptions;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
-using Vitarish.Medical.Infrastructure.Data;
+using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
-public sealed class GetReconciliationQueueHandler(MedicalDbContext dbContext)
+public sealed class GetReconciliationQueueHandler(PrescriptionDbContext dbContext)
     : IRequestHandler<GetReconciliationQueueQuery, ReconciliationQueueResult>
 {
     private static readonly PrescriptionStatus[] ReconciliationStatuses =
@@ -87,7 +87,7 @@ public sealed class GetReconciliationQueueHandler(MedicalDbContext dbContext)
     }
 }
 
-public sealed class GetOutboxStatusHandler(MedicalDbContext dbContext)
+public sealed class GetOutboxStatusHandler(PrescriptionDbContext dbContext)
     : IRequestHandler<GetOutboxStatusQuery, OutboxStatusResult>
 {
     public async Task<OutboxStatusResult> Handle(GetOutboxStatusQuery request, CancellationToken cancellationToken)

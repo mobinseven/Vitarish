@@ -10,12 +10,12 @@ using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Application.Commands.Prescriptions;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
-using Vitarish.Medical.Infrastructure.Data;
+using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
 public sealed class SubmitPrescriptionHandler(
-    MedicalDbContext dbContext,
+    PrescriptionDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
     IOutboxService outboxService,
     IAuditWriter auditWriter,
@@ -167,7 +167,7 @@ public sealed class SubmitPrescriptionHandler(
 }
 
 public sealed class EditPrescriptionHandler(
-    MedicalDbContext dbContext,
+    PrescriptionDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
     IAuditWriter auditWriter,
     ILogger<EditPrescriptionHandler> logger)
@@ -264,7 +264,7 @@ public sealed class EditPrescriptionHandler(
 }
 
 public sealed class CancelPrescriptionHandler(
-    MedicalDbContext dbContext,
+    PrescriptionDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
     IAuditWriter auditWriter,
     ILogger<CancelPrescriptionHandler> logger)

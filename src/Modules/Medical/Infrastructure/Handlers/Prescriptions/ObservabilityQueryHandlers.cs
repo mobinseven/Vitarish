@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Vitarish.Medical.Application.Queries.Prescriptions;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
-using Vitarish.Medical.Infrastructure.Data;
+using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
-internal sealed class ObservabilityQueryHandlers(MedicalDbContext dbContext) :
+internal sealed class ObservabilityQueryHandlers(PrescriptionDbContext dbContext) :
     IRequestHandler<GetProviderTransactionMetricsQuery, IReadOnlyList<ProviderTransactionMetricsDto>>,
     IRequestHandler<GetRejectionDistributionQuery, IReadOnlyList<RejectionDistributionDto>>,
     IRequestHandler<GetCredentialHealthQuery, CredentialHealthResult>,

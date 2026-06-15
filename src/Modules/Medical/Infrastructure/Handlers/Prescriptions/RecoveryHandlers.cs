@@ -7,12 +7,12 @@ using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Application.Commands.Prescriptions;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
-using Vitarish.Medical.Infrastructure.Data;
+using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
 public sealed class PaperFallbackHandler(
-    MedicalDbContext dbContext,
+    PrescriptionDbContext dbContext,
     IAuditWriter auditWriter,
     ILogger<PaperFallbackHandler> logger)
     : IRequestHandler<PaperFallbackCommand, PaperFallbackResult>
@@ -69,7 +69,7 @@ public sealed class PaperFallbackHandler(
 }
 
 public sealed class ResolveDuplicateRiskHandler(
-    MedicalDbContext dbContext,
+    PrescriptionDbContext dbContext,
     IAuditWriter auditWriter,
     ILogger<ResolveDuplicateRiskHandler> logger)
     : IRequestHandler<ResolveDuplicateRiskCommand, ResolveDuplicateRiskResult>
@@ -121,7 +121,7 @@ public sealed class ResolveDuplicateRiskHandler(
 }
 
 public sealed class ManualReconcileHandler(
-    MedicalDbContext dbContext,
+    PrescriptionDbContext dbContext,
     IAuditWriter auditWriter,
     ILogger<ManualReconcileHandler> logger)
     : IRequestHandler<ManualReconcileCommand, ManualReconcileResult>
@@ -167,7 +167,7 @@ public sealed class ManualReconcileHandler(
 }
 
 public sealed class RefreshProviderStatusHandler(
-    MedicalDbContext dbContext,
+    PrescriptionDbContext dbContext,
     IInsuranceProviderRegistry providerRegistry,
     IAuditWriter auditWriter,
     ILogger<RefreshProviderStatusHandler> logger)
@@ -249,7 +249,7 @@ public sealed class RefreshProviderStatusHandler(
 }
 
 public sealed class ReconcilePaperFallbackHandler(
-    MedicalDbContext dbContext,
+    PrescriptionDbContext dbContext,
     IAuditWriter auditWriter,
     ILogger<ReconcilePaperFallbackHandler> logger)
     : IRequestHandler<ReconcilePaperFallbackCommand, ReconcilePaperFallbackResult>
@@ -302,7 +302,7 @@ public sealed class ReconcilePaperFallbackHandler(
 }
 
 public sealed class EscalateHandler(
-    MedicalDbContext dbContext,
+    PrescriptionDbContext dbContext,
     IAuditWriter auditWriter,
     ILogger<EscalateHandler> logger)
     : IRequestHandler<EscalateCommand, EscalateResult>
