@@ -6,9 +6,8 @@ namespace Vitarish.Medical.Domain.Entities.Prescriptions;
 /// Records a submission attempt to an insurance provider.
 /// Stores remote state separately from canonical prescription state.
 /// </summary>
-public sealed class PrescriptionProviderSubmission
+public sealed class PrescriptionProviderSubmission : Entity
 {
-    public Guid Id { get; set; }
     public Guid PrescriptionRecordId { get; set; }
     public required string ProviderKey { get; set; }
 

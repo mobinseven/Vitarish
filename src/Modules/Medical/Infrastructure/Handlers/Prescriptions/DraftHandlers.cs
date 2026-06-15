@@ -216,7 +216,7 @@ public sealed class ValidateDraftHandler(
         // If valid, transition to ReadyForSubmission
         if (errors.Count == 0 && prescription.Status is PrescriptionStatus.Draft or PrescriptionStatus.NeedsCorrection)
         {
-            prescription.TransitionTo(PrescriptionStatus.ReadyForSubmission);
+            prescription.TransitionTo(PrescriptionStatus.ReadyForSubmission, DateTime.UtcNow);
             _ = await dbContext.SaveChangesAsync(cancellationToken);
         }
 

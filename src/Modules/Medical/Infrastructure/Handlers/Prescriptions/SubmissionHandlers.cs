@@ -53,7 +53,7 @@ public sealed class SubmitPrescriptionHandler(
 
         // Transition to Submitting
         DateTime submittedAt = DateTime.UtcNow;
-        prescription.TransitionTo(PrescriptionStatus.Submitting);
+        prescription.TransitionTo(PrescriptionStatus.Submitting, DateTime.UtcNow);
         prescription.SubmittedAt = submittedAt;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -69,7 +69,7 @@ public sealed class SubmitPrescriptionHandler(
         if (submissionResult.IsSuccess && submissionResult.Data is not null)
         {
             PrescriptionStatus targetStatus = submissionResult.Data.CanonicalStatus;
-            prescription.TransitionTo(targetStatus);
+            prescription.TransitionTo(targetStatus, DateTime.UtcNow);
 
             // Record submission
             PrescriptionProviderSubmission submission = new()
@@ -112,7 +112,7 @@ public sealed class SubmitPrescriptionHandler(
 
         if (submissionResult.IsNotSupported)
         {
-            prescription.TransitionTo(PrescriptionStatus.ProviderUnavailable);
+            prescription.TransitionTo(PrescriptionStatus.ProviderUnavailable, DateTime.UtcNow);
             _ = await dbContext.SaveChangesAsync(cancellationToken);
             return SubmitPrescriptionResult.Failure("بیمه‌گر از ثبت نسخه الکترونیک پشتیبانی نمی‌کند.", PrescriptionStatus.ProviderUnavailable);
         }
@@ -126,7 +126,7 @@ public sealed class SubmitPrescriptionHandler(
             _ => PrescriptionStatus.SyncPending
         };
 
-        prescription.TransitionTo(errorStatus);
+        prescription.TransitionTo(errorStatus, DateTime.UtcNow);
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         // Enqueue for retry if SyncPending
@@ -201,8 +201,8 @@ public sealed class EditPrescriptionHandler(
         }
 
         // Transition to EditRequested → Submitting
-        prescription.TransitionTo(PrescriptionStatus.EditRequested);
-        prescription.TransitionTo(PrescriptionStatus.Submitting);
+        prescription.TransitionTo(PrescriptionStatus.EditRequested, DateTime.UtcNow);
+        prescription.TransitionTo(PrescriptionStatus.Submitting, DateTime.UtcNow);
         prescription.VersionNumber++;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
@@ -218,7 +218,7 @@ public sealed class EditPrescriptionHandler(
         if (editResult.IsSuccess && editResult.Data is not null)
         {
             PrescriptionStatus targetStatus = editResult.Data.CanonicalStatus;
-            prescription.TransitionTo(targetStatus);
+            prescription.TransitionTo(targetStatus, DateTime.UtcNow);
             _ = await dbContext.SaveChangesAsync(cancellationToken);
 
             await auditWriter.WriteAsync(new AuditEntry
@@ -240,7 +240,7 @@ public sealed class EditPrescriptionHandler(
         }
 
         // On failure, stay in SyncPending
-        prescription.TransitionTo(PrescriptionStatus.SyncPending);
+        prescription.TransitionTo(PrescriptionStatus.SyncPending, DateTime.UtcNow);
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(new AuditEntry
@@ -307,9 +307,9 @@ public sealed class CancelPrescriptionHandler(
         }
 
         // Transition to CancelRequested → Submitting
-        prescription.TransitionTo(PrescriptionStatus.CancelRequested);
+        prescription.TransitionTo(PrescriptionStatus.CancelRequested, DateTime.UtcNow);
         prescription.CancellationReason = request.Reason;
-        prescription.TransitionTo(PrescriptionStatus.Submitting);
+        prescription.TransitionTo(PrescriptionStatus.Submitting, DateTime.UtcNow);
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         AdapterResult cancelResult = await adapter.CancelPrescriptionAsync(new CancelRequest
@@ -320,7 +320,7 @@ public sealed class CancelPrescriptionHandler(
 
         if (cancelResult.IsSuccess)
         {
-            prescription.TransitionTo(PrescriptionStatus.Cancelled);
+            prescription.TransitionTo(PrescriptionStatus.Cancelled, DateTime.UtcNow);
             _ = await dbContext.SaveChangesAsync(cancellationToken);
 
             await auditWriter.WriteAsync(new AuditEntry
@@ -341,7 +341,7 @@ public sealed class CancelPrescriptionHandler(
         }
 
         // On failure
-        prescription.TransitionTo(PrescriptionStatus.SyncPending);
+        prescription.TransitionTo(PrescriptionStatus.SyncPending, DateTime.UtcNow);
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
         await auditWriter.WriteAsync(new AuditEntry

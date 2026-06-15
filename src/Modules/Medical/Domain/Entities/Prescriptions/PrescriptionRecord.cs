@@ -6,9 +6,8 @@ namespace Vitarish.Medical.Domain.Entities.Prescriptions;
 /// The payer-neutral clinical prescription aggregate.
 /// Provider-specific mapping is generated only at submission time.
 /// </summary>
-public sealed class PrescriptionRecord
+public sealed class PrescriptionRecord : Entity
 {
-    public Guid Id { get; set; }
     public Guid PatientId { get; set; }
     public string? PatientNationalId { get; set; }
     public Guid DoctorId { get; set; }
@@ -39,10 +38,7 @@ public sealed class PrescriptionRecord
     /// <summary>Notes from support reconciliation actions.</summary>
     public string? ReconciliationNotes { get; set; }
 
-    public DateTime CreatedAt { get; set; }
     public DateTime? SubmittedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
-    public DateTime? DeletedAt { get; set; }
 
     /// <summary>Tenant context for multi-tenant isolation.</summary>
     public string TenantId { get; set; } = string.Empty;
@@ -53,7 +49,7 @@ public sealed class PrescriptionRecord
     /// <summary>
     /// Validates and applies a state transition. Throws if transition is illegal.
     /// </summary>
-    public void TransitionTo(PrescriptionStatus newStatus)
+    public void TransitionTo(PrescriptionStatus newStatus, DateTime occurredAt)
     {
         if (!IsValidTransition(Status, newStatus))
         {
@@ -62,7 +58,7 @@ public sealed class PrescriptionRecord
         }
 
         Status = newStatus;
-        UpdatedAt = DateTime.UtcNow;
+        UpdatedAt = occurredAt;
     }
 
     /// <summary>

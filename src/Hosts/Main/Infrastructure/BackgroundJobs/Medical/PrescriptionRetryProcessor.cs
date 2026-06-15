@@ -173,7 +173,7 @@ public sealed class PrescriptionRetryProcessor(
         {
             if (PrescriptionRecord.IsValidTransition(prescription.Status, remoteStatus))
             {
-                prescription.TransitionTo(remoteStatus);
+                prescription.TransitionTo(remoteStatus, DateTime.UtcNow);
                 _ = await dbContext.SaveChangesAsync(cancellationToken);
             }
 
@@ -189,7 +189,7 @@ public sealed class PrescriptionRetryProcessor(
         {
             if (PrescriptionRecord.IsValidTransition(prescription.Status, PrescriptionStatus.RejectedByProvider))
             {
-                prescription.TransitionTo(PrescriptionStatus.RejectedByProvider);
+                prescription.TransitionTo(PrescriptionStatus.RejectedByProvider, DateTime.UtcNow);
                 _ = await dbContext.SaveChangesAsync(cancellationToken);
             }
 
@@ -209,7 +209,7 @@ public sealed class PrescriptionRetryProcessor(
 
             if (PrescriptionRecord.IsValidTransition(prescription.Status, PrescriptionStatus.DuplicateRisk))
             {
-                prescription.TransitionTo(PrescriptionStatus.DuplicateRisk);
+                prescription.TransitionTo(PrescriptionStatus.DuplicateRisk, DateTime.UtcNow);
                 _ = await dbContext.SaveChangesAsync(cancellationToken);
             }
 
@@ -255,7 +255,7 @@ public sealed class PrescriptionRetryProcessor(
 
             if (PrescriptionRecord.IsValidTransition(prescription.Status, targetStatus))
             {
-                prescription.TransitionTo(targetStatus);
+                prescription.TransitionTo(targetStatus, DateTime.UtcNow);
 
                 // Cancel any active outbox entries to prevent Phase 3 from continuing to retry
                 string[] activeStatuses = new[]
