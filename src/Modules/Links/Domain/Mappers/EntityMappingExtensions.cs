@@ -4,7 +4,8 @@ public static class LinksEntityMapperExtensions
 {
     private static readonly EntityMapper Mapper = new();
 
-    public static LinkReadDto ToDto(this Link src) => Mapper.ToDto(src);
-    public static Link ToDomain(this LinkWriteDto src) => Mapper.ToDomain(src);
-    public static LinkDescriptor ToDescriptor(this LinkDescriptorDto src) => Mapper.ToDomain(src);
+    public static LinkReadDto ToRead(this Link src) => Mapper.ToRead(src);
+    public static Link ToEntity(this LinkWriteDto src) => Mapper.ToEntity(src);
+    public static LinkWriteDto ToWrite(this LinkReadDto src) => Mapper.ToWrite(src);
+    public static LinkDescriptor ToDescriptor(this LinkDescriptorDto src) => Mapper.ToDescriptor(src);
 }

@@ -9,8 +9,8 @@ internal sealed class AssetsService(
     IFileInformationService fileInformationService)
     : EntityService<Asset, AssetDescriptor, AssetReadDto, AssetWriteDto, AssetDescriptorDto>(
         mediator,
-        ContentsEntityMapperExtensions.ToDto,
-        ContentsEntityMapperExtensions.ToDomain,
+        ContentsEntityMapperExtensions.ToRead,
+        ContentsEntityMapperExtensions.ToEntity,
         ContentsEntityMapperExtensions.ToDescriptor),
       IAssetsService
 {

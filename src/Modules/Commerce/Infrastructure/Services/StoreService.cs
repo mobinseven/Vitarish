@@ -6,9 +6,9 @@ internal class StoreService(
     CommerceDbContext dbContext) : EntityService<Store, StoreDescriptor, StoreReadDto, StoreWriteDto, StoreDescriptorDto>
     (
         mediator,
-        store => store.ToDto(),
-        store => store.ToDomain(),
-        store => store.ToDomain()
+        store => store.ToRead(),
+        store => store.ToEntity(),
+        store => store.ToDescriptor()
     ),
     IStoreService
 {
@@ -17,6 +17,6 @@ internal class StoreService(
         Store? store = await dbContext.Stores
             .AsNoTracking()
             .FirstOrDefaultAsync(cancellationToken);
-        return store?.ToDto();
+        return store?.ToRead();
     }
 }

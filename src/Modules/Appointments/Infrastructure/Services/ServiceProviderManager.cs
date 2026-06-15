@@ -1,12 +1,14 @@
+using Vitarish.Appointments.Domain.Mappers;
+
 namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
 internal class ServiceProviderManager(IMediator mediator, AppointmentsDbContext dbContext)
     : EntityService<AppointmentServiceProvider, ServiceProviderDescriptor, ServiceProviderReadDto, ServiceProviderWriteDto, ServiceProviderDescriptorDto>(
         mediator,
-        provider => provider.ToDto(),
-        dto => dto.ToDomain(),
-        dto => dto.ToDomain()),
+        provider => provider.ToRead(),
+        dto => dto.ToEntity(),
+        dto => dto.ToDescriptor()),
       IServiceProviderManager
 {
     private const string ProviderNotFound = "ServiceProviderNotFoundError";

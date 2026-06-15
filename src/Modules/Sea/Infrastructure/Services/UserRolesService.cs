@@ -6,9 +6,9 @@ namespace Vitarish.Sea.Infrastructure.Services;
 internal class UserRolesService(IMediator mediator) : EntityService<UserRole, UserRoleDescriptor, UserRoleReadDto, UserRoleWriteDto, UserRoleDescriptorDto>
     (
         mediator,
-        userRole => userRole.ToDto(),
-        userRole => userRole.ToDomain(),
-        userRole => userRole.ToDomain()
+        userRole => userRole.ToRead(),
+        userRole => userRole.ToEntity(),
+        userRole => userRole.ToDescriptor()
     ),
     IUserRolesService
 {

@@ -10,9 +10,9 @@ internal class ReceiptsService(
     : EntityService<Receipt, ReceiptDescriptor, ReceiptReadDto, ReceiptWriteDto, ReceiptDescriptorDto>
     (
         mediator,
-        receipt => receipt.ToDto(),
-        receipt => receipt.ToDomain(),
-        receipt => receipt.ToDomain()
+        receipt => receipt.ToRead(),
+        receipt => receipt.ToEntity(),
+        receipt => receipt.ToDescriptor()
     ),
     IReceiptsService
 {

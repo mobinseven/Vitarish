@@ -1,3 +1,4 @@
+using Vitarish.Appointments.Domain.Mappers;
 using Vitarish.Appointments.Domain.Rules;
 
 namespace Vitarish.Appointments.Infrastructure.Services;
@@ -9,9 +10,9 @@ internal class ShiftBookingPolicyManager(
     IEntityRepository<ShiftBookingPolicy, ShiftBookingPolicyDescriptor> policyRepository)
     : EntityService<ShiftBookingPolicy, ShiftBookingPolicyDescriptor, ShiftBookingPolicyReadDto, ShiftBookingPolicyWriteDto, ShiftBookingPolicyDescriptorDto>(
         mediator,
-        policy => policy.ToDto(),
-        dto => dto.ToDomain(),
-        dto => dto.ToDomain()),
+        policy => policy.ToRead(),
+        dto => dto.ToEntity(),
+        dto => dto.ToDescriptor()),
       IShiftBookingPolicyManager
 {
     async Task<EntityResult<ShiftBookingPolicyReadDto>> IEntityService<ShiftBookingPolicyReadDto, ShiftBookingPolicyWriteDto, ShiftBookingPolicyDescriptorDto>.AddAsync(

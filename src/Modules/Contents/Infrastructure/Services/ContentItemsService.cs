@@ -14,8 +14,8 @@ internal sealed class ContentItemsService(
     ISearchService? searchService = null)
     : EntityService<ContentItem, ContentItemDescriptor, ContentItemReadDto, ContentItemWriteDto, ContentItemDescriptorDto>(
         mediator,
-        ContentsEntityMapperExtensions.ToDto,
-        ContentsEntityMapperExtensions.ToDomain,
+        ContentsEntityMapperExtensions.ToRead,
+        ContentsEntityMapperExtensions.ToEntity,
         ContentsEntityMapperExtensions.ToDescriptor),
       IContentItemsService
 {

@@ -1,12 +1,14 @@
+using Vitarish.Appointments.Domain.Mappers;
+
 namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
 internal class ReservationManager(IMediator mediator)
     : EntityService<Reservation, ReservationDescriptor, ReservationReadDto, ReservationWriteDto, ReservationDescriptorDto>(
         mediator,
-        reservation => reservation.ToDto(),
-        reservation => reservation.ToDomain(),
-        reservation => reservation.ToDomain()),
+        reservation => reservation.ToRead(),
+        reservation => reservation.ToEntity(),
+        reservation => reservation.ToDescriptor()),
       IReservationManager
 {
     public async Task<EntityResult<ReservationReadDto>> ReserveAsync(

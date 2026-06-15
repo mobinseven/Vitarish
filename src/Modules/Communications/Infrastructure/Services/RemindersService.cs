@@ -4,9 +4,9 @@ namespace Vitarish.Communications.Infrastructure.Services;
 internal class RemindersService(IMediator mediator) : EntityService<Reminder, ReminderDescriptor, ReminderReadDto, ReminderWriteDto, ReminderDescriptorDto>
     (
         mediator,
-        reminder => reminder.ToDto(),
-        reminder => reminder.ToDomain(),
-        reminder => reminder.ToDomain()
+        reminder => reminder.ToRead(),
+        reminder => reminder.ToEntity(),
+        reminder => reminder.ToDescriptor()
     ),
     IRemindersService
 {
@@ -33,7 +33,7 @@ internal class RemindersService(IMediator mediator) : EntityService<Reminder, Re
 
         IReadOnlyList<Reminder> added = (await AddEntitiesAsync(reminders, cancellationToken))
             .EnsureValue("Add reminders");
-        return [.. added.Select(reminder => reminder.ToDto())];
+        return [.. added.Select(reminder => reminder.ToRead())];
     }
 
     public async Task<ReminderReadDto?> UpdateAsync(
@@ -64,7 +64,7 @@ internal class RemindersService(IMediator mediator) : EntityService<Reminder, Re
 
         Reminder updated = (await UpdateEntityAsync(reminder, cancellationToken))
             .EnsureValue("Update reminder");
-        return updated.ToDto();
+        return updated.ToRead();
     }
 
     public async Task<IReadOnlyList<ReminderReadDto>> GetBySourceAsync(Guid sourceId, CancellationToken cancellationToken) => (await GetListAsync(

@@ -7,12 +7,12 @@ namespace Vitarish.Sea.Domain.Mappers;
 /// </summary>
 public partial class EntityMapper
 {
-    public partial global::Vitarish.Sea.Domain.Dto.ProjectReadDto ToDto(global::Vitarish.Sea.Domain.Entities.Project src);
+    public partial global::Vitarish.Sea.Domain.Dto.ProjectReadDto ToRead(global::Vitarish.Sea.Domain.Entities.Project src);
 
     [MapperIgnoreSource("UserIds")]
-    public partial global::Vitarish.Sea.Domain.Entities.Project ToDomain(global::Vitarish.Sea.Domain.Dto.ProjectWriteDto src);
+    public partial global::Vitarish.Sea.Domain.Entities.Project ToEntity(global::Vitarish.Sea.Domain.Dto.ProjectWriteDto src);
 
     public partial global::Vitarish.Sea.Domain.Dto.ProjectWriteDto ToWrite(global::Vitarish.Sea.Domain.Dto.ProjectReadDto src);
 
-    public partial global::Vitarish.Sea.Domain.Models.ProjectDescriptor ToDomain(global::Vitarish.Sea.Domain.Dto.ProjectDescriptorDto src);
+    public partial global::Vitarish.Sea.Domain.Models.ProjectDescriptor ToDescriptor(global::Vitarish.Sea.Domain.Dto.ProjectDescriptorDto src);
 }

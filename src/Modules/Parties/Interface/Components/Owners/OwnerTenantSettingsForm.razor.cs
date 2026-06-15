@@ -1,3 +1,5 @@
+using Vitarish.Parties.Domain.Mappers;
+
 namespace Vitarish.Parties.Interface.Components.Owners;
 
 public partial class OwnerTenantSettingsForm

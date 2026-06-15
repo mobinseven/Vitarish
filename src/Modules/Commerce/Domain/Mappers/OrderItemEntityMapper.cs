@@ -2,11 +2,11 @@ namespace Vitarish.Commerce.Domain.Mappers;
 
 public partial class EntityMapper
 {
-    public partial global::Vitarish.Commerce.Domain.Dto.OrderItemReadDto ToDto(global::Vitarish.Commerce.Domain.Entities.OrderItem src);
+    public partial global::Vitarish.Commerce.Domain.Dto.OrderItemReadDto ToRead(global::Vitarish.Commerce.Domain.Entities.OrderItem src);
 
-    public partial global::Vitarish.Commerce.Domain.Entities.OrderItem ToDomain(global::Vitarish.Commerce.Domain.Dto.OrderItemWriteDto src);
+    public partial global::Vitarish.Commerce.Domain.Entities.OrderItem ToEntity(global::Vitarish.Commerce.Domain.Dto.OrderItemWriteDto src);
 
     public partial global::Vitarish.Commerce.Domain.Dto.OrderItemWriteDto ToWrite(global::Vitarish.Commerce.Domain.Dto.OrderItemReadDto src);
 
-    public partial global::Vitarish.Commerce.Domain.Models.OrderItemDescriptor ToDomain(global::Vitarish.Commerce.Domain.Dto.OrderItemDescriptorDto src);
+    public partial global::Vitarish.Commerce.Domain.Models.OrderItemDescriptor ToDescriptor(global::Vitarish.Commerce.Domain.Dto.OrderItemDescriptorDto src);
 }

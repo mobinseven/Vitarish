@@ -9,9 +9,9 @@ internal class ProceduresService(
     : EntityService<Procedure, ProcedureDescriptor, ProcedureReadDto, ProcedureWriteDto, ProcedureDescriptorDto>
     (
         mediator,
-        procedure => procedure.ToDto(),
-        procedure => procedure.ToDomain(),
-        procedure => procedure.ToDomain()
+        procedure => procedure.ToRead(),
+        procedure => procedure.ToEntity(),
+        procedure => procedure.ToDescriptor()
     ),
     IProceduresService
 {

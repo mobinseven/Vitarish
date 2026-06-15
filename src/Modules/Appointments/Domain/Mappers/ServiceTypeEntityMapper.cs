@@ -5,11 +5,11 @@ namespace Vitarish.Appointments.Domain.Mappers;
 /// </summary>
 public partial class EntityMapper
 {
-    public partial global::Vitarish.Appointments.Domain.Dto.ServiceTypeReadDto ToDto(global::Vitarish.Appointments.Domain.Entities.ServiceType src);
+    public partial global::Vitarish.Appointments.Domain.Dto.ServiceTypeReadDto ToRead(global::Vitarish.Appointments.Domain.Entities.ServiceType src);
 
-    public partial global::Vitarish.Appointments.Domain.Entities.ServiceType ToDomain(global::Vitarish.Appointments.Domain.Dto.ServiceTypeWriteDto src);
+    public partial global::Vitarish.Appointments.Domain.Entities.ServiceType ToEntity(global::Vitarish.Appointments.Domain.Dto.ServiceTypeWriteDto src);
 
     public partial global::Vitarish.Appointments.Domain.Dto.ServiceTypeWriteDto ToWrite(global::Vitarish.Appointments.Domain.Dto.ServiceTypeReadDto src);
 
-    public partial global::Vitarish.Appointments.Domain.Models.ServiceTypeDescriptor ToDomain(global::Vitarish.Appointments.Domain.Dto.ServiceTypeDescriptorDto src);
+    public partial global::Vitarish.Appointments.Domain.Models.ServiceTypeDescriptor ToDescriptor(global::Vitarish.Appointments.Domain.Dto.ServiceTypeDescriptorDto src);
 }

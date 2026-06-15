@@ -6,9 +6,9 @@ internal class CartService(
     CommerceDbContext dbContext) : EntityService<Cart, CartDescriptor, CartReadDto, CartWriteDto, CartDescriptorDto>
     (
         mediator,
-        cart => cart.ToDto(),
-        cart => cart.ToDomain(),
-        cart => cart.ToDomain()
+        cart => cart.ToRead(),
+        cart => cart.ToEntity(),
+        cart => cart.ToDescriptor()
     ),
     ICartService
 {
@@ -28,7 +28,7 @@ internal class CartService(
             .Where(c => c.CustomerId == customerId && c.Status == CartStatus.Open)
             .OrderByDescending(c => c.CreatedAt)
             .FirstOrDefaultAsync(cancellationToken);
-        return cart?.ToDto();
+        return cart?.ToRead();
     }
 
     public async Task<EntityResult<CartReadDto>> InitiateCheckoutAsync(Guid cartId, CancellationToken cancellationToken)
@@ -41,7 +41,7 @@ internal class CartService(
 
         cart.Status = CartStatus.Ordered;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
-        return EntityResult<CartReadDto>.Success(cart.ToDto());
+        return EntityResult<CartReadDto>.Success(cart.ToRead());
     }
 
     public async Task<IReadOnlyList<MerchantRecoveryCartReadDto>> GetRecoveryQueueAsync(CancellationToken cancellationToken)

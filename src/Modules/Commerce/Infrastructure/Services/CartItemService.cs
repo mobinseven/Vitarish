@@ -4,8 +4,8 @@ namespace Vitarish.Commerce.Infrastructure.Services;
 internal class CartItemService(IMediator mediator) : EntityService<CartItem, CartItemDescriptor, CartItemReadDto, CartItemWriteDto, CartItemDescriptorDto>
     (
         mediator,
-        item => item.ToDto(),
-        item => item.ToDomain(),
-        item => item.ToDomain()
+        item => item.ToRead(),
+        item => item.ToEntity(),
+        item => item.ToDescriptor()
     ),
     ICartItemService;

@@ -1,3 +1,5 @@
+using Vitarish.Appointments.Domain.Mappers;
+
 namespace Vitarish.Appointments.Interface.Components.Services;
 
 public partial class ServiceForm : ServicesBase

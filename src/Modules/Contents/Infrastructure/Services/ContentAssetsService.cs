@@ -4,8 +4,8 @@ namespace Vitarish.Contents.Infrastructure.Services;
 internal sealed class ContentAssetsService(IMediator mediator)
     : EntityService<ContentAsset, ContentAssetDescriptor, ContentAssetReadDto, ContentAssetWriteDto, ContentAssetDescriptorDto>(
         mediator,
-        ContentsEntityMapperExtensions.ToDto,
-        ContentsEntityMapperExtensions.ToDomain,
+        ContentsEntityMapperExtensions.ToRead,
+        ContentsEntityMapperExtensions.ToEntity,
         ContentsEntityMapperExtensions.ToDescriptor),
       IContentAssetsService
 {

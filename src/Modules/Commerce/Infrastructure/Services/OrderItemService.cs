@@ -4,8 +4,8 @@ namespace Vitarish.Commerce.Infrastructure.Services;
 internal class OrderItemService(IMediator mediator) : EntityService<OrderItem, OrderItemDescriptor, OrderItemReadDto, OrderItemWriteDto, OrderItemDescriptorDto>
     (
         mediator,
-        item => item.ToDto(),
-        item => item.ToDomain(),
-        item => item.ToDomain()
+        item => item.ToRead(),
+        item => item.ToEntity(),
+        item => item.ToDescriptor()
     ),
     IOrderItemService;

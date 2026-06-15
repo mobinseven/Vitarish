@@ -6,9 +6,9 @@ internal class OrderService(
     CommerceDbContext dbContext) : EntityService<Order, OrderDescriptor, OrderReadDto, OrderWriteDto, OrderDescriptorDto>
     (
         mediator,
-        order => order.ToDto(),
-        order => order.ToDomain(),
-        order => order.ToDomain()
+        order => order.ToRead(),
+        order => order.ToEntity(),
+        order => order.ToDescriptor()
     ),
     IOrderService
 {
@@ -77,7 +77,7 @@ internal class OrderService(
 
         IReadOnlyList<OrderReadDto> result = [.. orders.Select(order =>
         {
-            OrderReadDto dto = order.ToDto();
+            OrderReadDto dto = order.ToRead();
             dto.CustomerDisplay = ResolveCustomerDisplay(dto.CustomerId, profileMap);
             return dto;
         })];

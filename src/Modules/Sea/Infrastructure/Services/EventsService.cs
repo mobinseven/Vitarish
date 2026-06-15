@@ -8,9 +8,9 @@ internal class EventsService(
     IAttachmentsService attachmentsService)
     : EntityService<Event, EventDescriptor, EventReadDto, EventWriteDto, EventDescriptorDto>
     (
-        mediator, evnt => evnt.ToDto(),
-        evnt => evnt.ToDomain(),
-        evnt => evnt.ToDomain()
+        mediator, evnt => evnt.ToRead(),
+        evnt => evnt.ToEntity(),
+        evnt => evnt.ToDescriptor()
     ),
     IEventsService
 {
@@ -34,7 +34,7 @@ internal class EventsService(
     {
         Event? entity = await Mediator.Send(new AddEventAfterCommand(projectId, procedureId, previousEventId), cancellationToken);
 
-        return entity?.ToDto();
+        return entity?.ToRead();
     }
 
     public Task<bool> MoveUpAsync(Guid procedureId, Guid eventId, CancellationToken cancellationToken)

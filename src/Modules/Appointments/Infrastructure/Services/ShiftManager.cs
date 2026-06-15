@@ -1,12 +1,14 @@
+using Vitarish.Appointments.Domain.Mappers;
+
 namespace Vitarish.Appointments.Infrastructure.Services;
 
 [RegisterTransient]
 internal class ShiftManager(IMediator mediator)
     : EntityService<Shift, ShiftDescriptor, ShiftReadDto, ShiftWriteDto, ShiftDescriptorDto>(
         mediator,
-        shift => shift.ToDto(),
-        shift => shift.ToDomain(),
-        shift => shift.ToDomain()),
+        shift => shift.ToRead(),
+        shift => shift.ToEntity(),
+        shift => shift.ToDescriptor()),
       IShiftManager
 {
     public Task<EntityResult> ActivateShiftAsync(Guid shiftId, CancellationToken cancellationToken)

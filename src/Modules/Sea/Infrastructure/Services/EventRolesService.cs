@@ -7,9 +7,9 @@ namespace Vitarish.Sea.Infrastructure.Services;
 internal class EventRolesService(IMediator mediator)
     : EntityService<EventRole, EventRoleDescriptor, EventRoleReadDto, EventRoleWriteDto, EventRoleDescriptorDto>
     (
-        mediator, eventRole => eventRole.ToDto(),
-        eventRole => eventRole.ToDomain(),
-        eventRole => eventRole.ToDomain()
+        mediator, eventRole => eventRole.ToRead(),
+        eventRole => eventRole.ToEntity(),
+        eventRole => eventRole.ToDescriptor()
     ),
     IEventRolesService
 {

@@ -2,9 +2,6 @@ using Vitarish.Entities.Server.Abstractions;
 
 namespace Vitarish.Entities.Server.Services;
 
-/// <summary>
-/// Constructor using mapping functions (use auto-generated extension methods: entity => entity.ToDto(), dto => dto.ToDomain()).
-/// </summary>
 public abstract class EntityService<TEntity, TDescriptor, TReadDto, TWriteDto, TDescriptorDto>(
     IMediator mediator,
     Func<TEntity, TReadDto> outgoingMap,

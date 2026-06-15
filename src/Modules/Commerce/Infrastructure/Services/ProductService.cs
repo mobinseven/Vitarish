@@ -4,8 +4,8 @@ namespace Vitarish.Commerce.Infrastructure.Services;
 internal class ProductService(IMediator mediator) : EntityService<Product, ProductDescriptor, ProductReadDto, ProductWriteDto, ProductDescriptorDto>
     (
         mediator,
-        product => product.ToDto(),
-        product => product.ToDomain(),
-        product => product.ToDomain()
+        product => product.ToRead(),
+        product => product.ToEntity(),
+        product => product.ToDescriptor()
     ),
     IProductService;

@@ -1,3 +1,4 @@
+using Vitarish.Appointments.Domain.Mappers;
 using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Appointments.Infrastructure.Services;

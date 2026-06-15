@@ -3,6 +3,7 @@ using Vitarish.Entities.Server.Services;
 using Vitarish.Parties.Domain.Descriptors;
 using Vitarish.Parties.Domain.Dtos;
 using Vitarish.Parties.Domain.Entities;
+using Vitarish.Parties.Domain.Mappers;
 
 namespace Vitarish.Parties.Infrastructure.Services;
 
@@ -11,8 +12,8 @@ namespace Vitarish.Parties.Infrastructure.Services;
 /// </summary>
 public class TenantIndicatorService(IMediator mediator) : EntityService<TenantIndicator, TenantIndicatorDescriptor, TenantIndicatorReadDto, TenantIndicatorWriteDto, TenantIndicatorDescriptorDto>(
         mediator,
-        indicator => indicator.ToDto(),
-        dto => dto.ToDomain(),
-        descriptorDto => descriptorDto.ToDomain())
+        indicator => indicator.ToRead(),
+        dto => dto.ToEntity(),
+        descriptorDto => descriptorDto.ToDescriptor())
 {
 }

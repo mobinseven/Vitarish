@@ -4,8 +4,8 @@ namespace Vitarish.Links.Infrastructure.Services;
 internal sealed class LinksService(IMediator mediator)
     : EntityService<Link, LinkDescriptor, LinkReadDto, LinkWriteDto, LinkDescriptorDto>(
         mediator,
-        LinksEntityMapperExtensions.ToDto,
-        LinksEntityMapperExtensions.ToDomain,
+        LinksEntityMapperExtensions.ToRead,
+        LinksEntityMapperExtensions.ToEntity,
         LinksEntityMapperExtensions.ToDescriptor),
       ILinksService
 {

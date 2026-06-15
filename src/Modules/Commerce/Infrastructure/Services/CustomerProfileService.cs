@@ -6,9 +6,9 @@ internal class CustomerProfileService(
     CommerceDbContext dbContext) : EntityService<CustomerProfile, CustomerProfileDescriptor, CustomerProfileReadDto, CustomerProfileWriteDto, CustomerProfileDescriptorDto>
     (
         mediator,
-        profile => profile.ToDto(),
-        profile => profile.ToDomain(),
-        profile => profile.ToDomain()
+        profile => profile.ToRead(),
+        profile => profile.ToDescriptor(),
+        profile => profile.ToDescriptor()
     ),
     ICustomerProfileService
 {
@@ -17,7 +17,7 @@ internal class CustomerProfileService(
         CustomerProfile? profile = await dbContext.CustomerProfiles
             .AsNoTracking()
             .FirstOrDefaultAsync(p => p.UserId == userId, cancellationToken);
-        return profile?.ToDto();
+        return profile?.ToRead();
     }
 
     public async Task<CustomerProfileReadDto> EnsureProfileAsync(string userId, CancellationToken cancellationToken)
@@ -35,6 +35,6 @@ internal class CustomerProfileService(
         };
         _ = await dbContext.CustomerProfiles.AddAsync(profile, cancellationToken);
         _ = await dbContext.SaveChangesAsync(cancellationToken);
-        return profile.ToDto();
+        return profile.ToRead();
     }
 }

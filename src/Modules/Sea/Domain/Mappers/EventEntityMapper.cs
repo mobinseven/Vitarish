@@ -6,11 +6,11 @@ namespace Vitarish.Sea.Domain.Mappers;
 /// </summary>
 public partial class EntityMapper
 {
-    public partial global::Vitarish.Sea.Domain.Dto.EventReadDto ToDto(global::Vitarish.Sea.Domain.Entities.Event src);
+    public partial global::Vitarish.Sea.Domain.Dto.EventReadDto ToRead(global::Vitarish.Sea.Domain.Entities.Event src);
 
-    public partial global::Vitarish.Sea.Domain.Entities.Event ToDomain(global::Vitarish.Sea.Domain.Dto.EventWriteDto src);
+    public partial global::Vitarish.Sea.Domain.Entities.Event ToEntity(global::Vitarish.Sea.Domain.Dto.EventWriteDto src);
 
     public partial global::Vitarish.Sea.Domain.Dto.EventWriteDto ToWrite(global::Vitarish.Sea.Domain.Dto.EventReadDto src);
 
-    public partial global::Vitarish.Sea.Domain.Models.EventDescriptor ToDomain(global::Vitarish.Sea.Domain.Dto.EventDescriptorDto src);
+    public partial global::Vitarish.Sea.Domain.Models.EventDescriptor ToDescriptor(global::Vitarish.Sea.Domain.Dto.EventDescriptorDto src);
 }

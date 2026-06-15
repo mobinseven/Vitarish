@@ -1,3 +1,5 @@
+using Vitarish.Appointments.Domain.Mappers;
+
 namespace Vitarish.Appointments.Interface.Components.Reservations;
 
 public partial class ReservationDetail : ReservationsBase

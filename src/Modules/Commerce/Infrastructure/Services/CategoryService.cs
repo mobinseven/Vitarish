@@ -4,8 +4,8 @@ namespace Vitarish.Commerce.Infrastructure.Services;
 internal class CategoryService(IMediator mediator) : EntityService<Category, CategoryDescriptor, CategoryReadDto, CategoryWriteDto, CategoryDescriptorDto>
     (
         mediator,
-        category => category.ToDto(),
-        category => category.ToDomain(),
-        category => category.ToDomain()
+        category => category.ToRead(),
+        category => category.ToEntity(),
+        category => category.ToDescriptor()
     ),
     ICategoryService;

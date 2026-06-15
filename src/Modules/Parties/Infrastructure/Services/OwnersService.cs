@@ -3,6 +3,7 @@ using Vitarish.Entities.Server.Services;
 using Vitarish.Parties.Domain.Descriptors;
 using Vitarish.Parties.Domain.Dtos;
 using Vitarish.Parties.Domain.Entities;
+using Vitarish.Parties.Domain.Mappers;
 
 namespace Vitarish.Parties.Infrastructure.Services;
 
@@ -11,6 +12,6 @@ namespace Vitarish.Parties.Infrastructure.Services;
 /// </summary>
 public class OwnersService(IMediator mediator) : EntityService<Owner, OwnerDescriptor, OwnerReadDto, OwnerWriteDto, OwnerDescriptorDto>(
         mediator,
-        owner => owner.ToDto(),
-        dto => dto.ToDomain(),
-        descriptorDto => descriptorDto.ToDomain());
+        owner => owner.ToRead(),
+        dto => dto.ToEntity(),
+        descriptorDto => descriptorDto.ToDescriptor());

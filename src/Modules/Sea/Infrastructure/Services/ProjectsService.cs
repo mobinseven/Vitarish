@@ -9,9 +9,9 @@ internal class ProjectsService(
     SeaDbContext dbContext) : EntityService<Project, ProjectDescriptor, ProjectReadDto, ProjectWriteDto, ProjectDescriptorDto>
     (
         mediator,
-        project => project.ToDto(),
-        project => project.ToDomain(),
-        project => project.ToDomain()
+        project => project.ToRead(),
+        project => project.ToEntity(),
+        project => project.ToDescriptor()
     ),
     IProjectsService
 {

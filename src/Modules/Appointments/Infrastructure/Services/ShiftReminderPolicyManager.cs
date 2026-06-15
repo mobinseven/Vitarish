@@ -1,3 +1,4 @@
+using Vitarish.Appointments.Domain.Mappers;
 using Vitarish.Appointments.Domain.Rules;
 using Vitarish.Audit.Application;
 using Vitarish.Audit.Domain;
@@ -12,9 +13,9 @@ internal class ShiftReminderPolicyManager(
     IRequestContext requestContext)
     : EntityService<ShiftReminderPolicy, ShiftReminderPolicyDescriptor, ShiftReminderPolicyReadDto, ShiftReminderPolicyWriteDto, ShiftReminderPolicyDescriptorDto>(
         mediator,
-        policy => policy.ToDto(),
-        dto => dto.ToDomain(),
-        dto => dto.ToDomain()),
+        policy => policy.ToRead(),
+        dto => dto.ToEntity(),
+        dto => dto.ToDescriptor()),
       IShiftReminderPolicyManager
 {
     async Task<EntityResult<ShiftReminderPolicyReadDto>> IEntityService<ShiftReminderPolicyReadDto, ShiftReminderPolicyWriteDto, ShiftReminderPolicyDescriptorDto>.AddAsync(
