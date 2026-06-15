@@ -182,26 +182,4 @@
     <Project Path="src/Modules/Aggregator/Modules.Aggregator/Modules.Aggregator.csproj" />
     <Project Path="src/Modules/Base/Modules.Base.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
-  <Folder Name="/tests/Interfaces/">
-    <Project Path="tests/Interfaces/Interfaces.Accounts.Tests/Interfaces.Accounts.Tests.csproj" />
-    <Project Path="tests/Interfaces/Interfaces.Base.Tests/Interfaces.Base.Tests.csproj" />
-  </Folder>
-  <Folder Name="/tests/Libraries/" />
-  <Folder Name="/tests/Libraries/Entities/">
-    <Project Path="tests/Libraries/Entities/Entities.Server.Tests/Entities.Server.Tests.csproj" />
-  </Folder>
-  <Folder Name="/tests/Modules/">
-    <Project Path="tests/Modules/Appointments.Tests/Appointments.Tests.csproj" />
-    <Project Path="tests/Modules/Base.Tests/Modules.Base.Tests.csproj" />
-    <Project Path="tests/Modules/Communications.Tests/Communications.Tests.csproj" />
-    <Project Path="tests/Modules/Feed.Tests/Feed.Tests.csproj" />
-    <Project Path="tests/Modules/Files.Tests/Files.Tests.csproj" />
-    <Project Path="tests/Modules/Intelligence.Tests/Intelligence.Tests.csproj" />
-    <Project Path="tests/Modules/Knowledge.Tests/Knowledge.Tests.csproj" />
-    <Project Path="tests/Modules/Parties.Tests/Parties.Tests.csproj" />
-    <Project Path="tests/Modules/Requests.Tests/Requests.Tests.csproj" />
-    <Project Path="tests/Modules/Search.Tests/Search.Tests.csproj" />
-    <Project Path="tests/Modules/Users.Tests/Users.Tests.csproj" />
-  </Folder>
 </Solution>
