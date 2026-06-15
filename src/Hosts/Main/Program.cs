@@ -29,6 +29,7 @@ using Vitarish.Platform.Infrastructure.Data;
 using Vitarish.Sea.Infrastructure.Data;
 using Vitarish.Social.Infrastructure.Data;
 using Vitarish.Users.Infrastructure.Data;
+using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
@@ -151,6 +152,7 @@ _ = await app.MigrateDatabaseAsync<SocialDbContext>();
 _ = await app.MigrateDatabaseAsync<LinksDbContext>();
 _ = await app.MigrateDatabaseAsync<FinancialDbContext>();
 _ = await app.MigrateDatabaseAsync<MedicalDbContext>();
+_ = await app.MigrateDatabaseAsync<PrescriptionDbContext>();
 
 CookiePolicyOptions cookiePolicyOptions = new()
 {
