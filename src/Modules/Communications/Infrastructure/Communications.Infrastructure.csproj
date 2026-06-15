@@ -16,8 +16,6 @@
   </ItemGroup>
   <ItemGroup>
     		            <ProjectReference Include="..\..\Parties\Application\Parties.Application.csproj" />
-<ProjectReference Include="..\..\Sea\Domain\Sea.Domain.csproj" />
-<ProjectReference Include="..\..\Sea\Application\Sea.Application.csproj" />
 <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
 <ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
     <ProjectReference Include="..\..\..\Modules\Users\Application\Users.Application.csproj" />

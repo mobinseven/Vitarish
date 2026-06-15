@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Commerce.Application.Abstractions;
 using Vitarish.Commerce.Infrastructure.BackgroundJobs;
 using Vitarish.Modules.Base.BackgroundJobs;
@@ -8,7 +9,7 @@ public static class CommerceBackgroundJobExtensions
 {
     public static IServiceCollection AddCommerceBackgroundJobs(this IServiceCollection services)
     {
-        _ = services.AddScoped<TenantBackgroundExecutor>();
+        services.TryAddScoped<TenantBackgroundExecutor>();
         _ = services.AddTransient<CommerceCatalogSyncProcessor>();
         _ = services.AddTransient<CommerceOrderSyncProcessor>();
         _ = services.AddTransient<CommerceCartCleanupProcessor>();

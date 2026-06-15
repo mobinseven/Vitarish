@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Medical.Infrastructure.BackgroundJobs;
 using Vitarish.Modules.Base.BackgroundJobs;
 
@@ -7,7 +8,7 @@ public static class MedicalBackgroundJobExtensions
 {
     public static IServiceCollection AddMedicalBackgroundJobs(this IServiceCollection services)
     {
-        _ = services.AddScoped<TenantBackgroundExecutor>();
+        services.TryAddScoped<TenantBackgroundExecutor>();
         _ = services.AddTransient<PrescriptionRetryProcessor>();
         _ = services.AddSingleton<HangfirePrescriptionJobManager>();
         _ = services.AddSingleton<IRecurringJobScheduler, MedicalRecurringJobScheduler>();

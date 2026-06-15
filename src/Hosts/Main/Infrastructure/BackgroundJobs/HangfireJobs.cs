@@ -1,3 +1,4 @@
+using Microsoft.Extensions.Logging;
 using Vitarish.Modules.Base.BackgroundJobs;
 
 namespace Vitarish.Main.Infrastructure.BackgroundJobs;
@@ -13,15 +14,30 @@ public static class HangfireJobs
     public static void ScheduleJobs(this WebApplication app)
     {
         IEnumerable<IRecurringJobScheduler> schedulers = app.Services.GetServices<IRecurringJobScheduler>();
+        ILogger logger = app.Logger;
 
         foreach (IRecurringJobScheduler scheduler in schedulers)
         {
-            scheduler.ScheduleJobs();
+            try
+            {
+                scheduler.ScheduleJobs();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to schedule background jobs for {SchedulerType}", scheduler.GetType().Name);
+            }
         }
 
         foreach (IRecurringJobScheduler scheduler in schedulers)
         {
-            scheduler.TriggerStartupJobs();
+            try
+            {
+                scheduler.TriggerStartupJobs();
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "Failed to trigger startup jobs for {SchedulerType}", scheduler.GetType().Name);
+            }
         }
     }
 }

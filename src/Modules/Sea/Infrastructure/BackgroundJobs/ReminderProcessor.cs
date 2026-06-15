@@ -12,7 +12,7 @@ using Vitarish.Parties.Domain.Dtos;
 using Vitarish.Sea.Application.Abstractions;
 using Vitarish.Sea.Domain.Dto;
 
-namespace Vitarish.Communications.Infrastructure.BackgroundJobs;
+namespace Vitarish.Sea.Infrastructure.BackgroundJobs;
 
 /// <summary>
 /// Processes Sea reminders using Hangfire.

@@ -15,7 +15,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-						<ProjectReference Include="..\..\Files\Infrastructure\Files.Infrastructure.csproj" />
+<ProjectReference Include="..\..\Files\Application\Files.Application.csproj" />
+<ProjectReference Include="..\..\Communications\Application\Communications.Application.csproj" />
 <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
 <ProjectReference Include="..\..\..\Modules\Requests\Application\Requests.Application.csproj" />
 		<ProjectReference Include="..\..\..\Modules\Users\Application\Users.Application.csproj" />
@@ -24,7 +25,6 @@
 		<ProjectReference Include="..\..\Search\Application\Search.Application.csproj" />
 		<ProjectReference Include="..\Application\Sea.Application.csproj" />
 		<ProjectReference Include="..\Domain\Sea.Domain.csproj" />
-		<ProjectReference Include="..\..\Communications\Infrastructure\Communications.Infrastructure.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

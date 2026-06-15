@@ -1,3 +1,4 @@
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Vitarish.Modules.Base.BackgroundJobs;
 using Vitarish.Sea.Infrastructure.BackgroundJobs;
 
@@ -7,11 +8,13 @@ public static class SeaBackgroundJobExtensions
 {
     public static IServiceCollection AddSeaBackgroundJobs(this IServiceCollection services)
     {
-        _ = services.AddScoped<TenantBackgroundExecutor>();
+        services.TryAddScoped<TenantBackgroundExecutor>();
         _ = services.AddTransient<AttachmentMigrationProcessor>();
         _ = services.AddTransient<SeaIndexingProcessor>();
         _ = services.AddSingleton<HangfireSeaJobManager>();
         _ = services.AddSingleton<HangfireSeaIndexingJobManager>();
+        _ = services.AddTransient<ReminderProcessor>();
+        _ = services.AddSingleton<HangfireRemindersJobManager>();
         _ = services.AddSingleton<IRecurringJobScheduler, SeaRecurringJobScheduler>();
         return services;
     }

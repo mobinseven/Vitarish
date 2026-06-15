@@ -6,18 +6,15 @@ namespace Vitarish.Communications.Infrastructure.BackgroundJobs;
 /// Schedules Communications recurring jobs and startup triggers.
 /// </summary>
 public sealed class CommunicationsRecurringJobScheduler(
-    HangfireRemindersJobManager remindersJobManager,
     HangfireCommunicationsJobManager communicationsJobManager) : IRecurringJobScheduler
 {
     public void ScheduleJobs()
     {
-        remindersJobManager.ScheduleProcessing();
         communicationsJobManager.ScheduleProcessing();
     }
 
     public void TriggerStartupJobs()
     {
-        remindersJobManager.TriggerProcessing();
         communicationsJobManager.TriggerProcessing();
     }
 }
