@@ -13,15 +13,14 @@ public static class DatabaseMigrationExtensions
         using IServiceScope scope = app.Services.CreateScope();
         TContext db = scope.ServiceProvider.GetRequiredService<TContext>();
         ILogger<TContext> logger = scope.ServiceProvider.GetRequiredService<ILogger<TContext>>();
-
-        IEnumerable<string> pending = await db.Database.GetPendingMigrationsAsync();
+        System.Threading.CancellationToken cancellationToken = app.Lifetime.ApplicationStopping;
+        IEnumerable<string> pending = await db.Database.GetPendingMigrationsAsync(cancellationToken);
         int pendingCount = pending.Count();
         if (pendingCount > 0)
         {
             logger.LogInformation("Applying {Count} EF Core migration(s)...", pendingCount);
         }
-
-        await db.Database.MigrateAsync();
+        await db.Database.MigrateAsync(cancellationToken);
         return app;
     }
 }
