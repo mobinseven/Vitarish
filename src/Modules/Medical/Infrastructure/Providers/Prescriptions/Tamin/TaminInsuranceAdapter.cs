@@ -7,8 +7,8 @@ using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Domain.Entities;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
-using Vitarish.Medical.Infrastructure.Data;
 using Vorn.Tamin;
+using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Providers.Prescriptions.Tamin;
 
@@ -20,7 +20,7 @@ public sealed class TaminInsuranceAdapter(
     ITaminCredentialSessionStore sessionStore,
     IHttpClientFactory httpClientFactory,
     IOptionsMonitor<TaminOptions> taminOptions,
-    MedicalDbContext dbContext,
+    PrescriptionDbContext dbContext,
     TaminErrorMapper errorMapper,
     ILogger<TaminInsuranceAdapter> logger) : IInsuranceProviderAdapter
 {
@@ -29,7 +29,7 @@ public sealed class TaminInsuranceAdapter(
     private readonly ITaminCredentialSessionStore _sessionStore = sessionStore;
     private readonly IHttpClientFactory _httpClientFactory = httpClientFactory;
     private readonly IOptionsMonitor<TaminOptions> _taminOptions = taminOptions;
-    private readonly MedicalDbContext _dbContext = dbContext;
+    private readonly PrescriptionDbContext _dbContext = dbContext;
     private readonly TaminErrorMapper _errorMapper = errorMapper;
     private readonly ILogger<TaminInsuranceAdapter> _logger = logger;
 

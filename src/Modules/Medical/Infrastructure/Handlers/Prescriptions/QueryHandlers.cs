@@ -3,11 +3,11 @@ using Microsoft.EntityFrameworkCore;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
 using Vitarish.Medical.Application.Queries.Prescriptions;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
-using Vitarish.Medical.Infrastructure.Data;
+using Vitarish.Medical.Infrastructure.Data.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
-public sealed class GetPrescriptionHandler(MedicalDbContext dbContext)
+public sealed class GetPrescriptionHandler(PrescriptionDbContext dbContext)
     : IRequestHandler<GetPrescriptionQuery, PrescriptionDto?>
 {
     public async Task<PrescriptionDto?> Handle(GetPrescriptionQuery request, CancellationToken cancellationToken)
@@ -57,7 +57,7 @@ public sealed class GetPrescriptionHandler(MedicalDbContext dbContext)
     }
 }
 
-public sealed class GetPrescriptionHistoryHandler(MedicalDbContext dbContext)
+public sealed class GetPrescriptionHistoryHandler(PrescriptionDbContext dbContext)
     : IRequestHandler<GetPrescriptionHistoryQuery, IReadOnlyList<PrescriptionSummaryDto>>
 {
     public async Task<IReadOnlyList<PrescriptionSummaryDto>> Handle(GetPrescriptionHistoryQuery request, CancellationToken cancellationToken)
