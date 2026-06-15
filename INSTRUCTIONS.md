@@ -2,25 +2,6 @@
 
 Use this map before scanning the repository. It captures the stable structure and the placement rules that are easy to miss.
 
-## One-minute placement guide
-
-| Need to add/change | Put it here | Do not put it here | Notes |
-| --- | --- | --- | --- |
-| Routable Blazor page (`@page`) for the main app | `src/Hosts/Main/Pages/<Area>/...` | `src/Modules/*/Interface/Components` | Pages are host composition. Module interfaces provide reusable UI pieces only. |
-| Route constants / URL builders | `src/Hosts/Main/Common/AppRoutes.cs` and `src/Hosts/Main/Common/Routes/*Routes.cs` | Inline strings spread through pages/components | `AppRoutes` is the source of truth for main-app routes. |
-| Main app shell/layout/routing infrastructure | `src/Hosts/Main/Components` | Module folders | Host owns layouts, route rendering, and app-level page bases. |
-| Reusable module UI component, dialog, grid, plugin UI | `src/Modules/<Module>/Interface/Components`, `.../Plugins`, `.../DependencyInjection` | `src/Hosts/Main/Pages` | No `@page`; expose components/pages' building blocks to the host. |
-| Module business contracts / use cases | `src/Modules/<Module>/Application` | Host or Interface projects | Interfaces and handlers live here; UI calls abstractions rather than data stores. |
-| Module domain entities, DTOs, enums, descriptors | `src/Modules/<Module>/Domain` | Infrastructure or Host | Keep domain model free of UI and persistence concerns where possible. |
-| EF Core, repositories, external adapters, jobs, services | `src/Modules/<Module>/Infrastructure` | Domain or Host | Infrastructure implements Application abstractions and owns persistence/external details. |
-| Module registration and endpoint initialization | `src/Modules/<Module>/Interface/<Module>Module.cs` or `src/Modules/<Module>/Hosting/<Module>Module.cs` | `src/Hosts/Main/Program.cs` unless truly host-specific | Register modules through the aggregator. |
-| Add a module to the app | `src/Modules/Aggregator/Modules.Aggregator/ModuleExtensions.cs` and its `.csproj` references | Manual one-off host registration | Main calls `RegisterModules` / `InitializeModules`. |
-| Identity bounded context work | `src/Identity/<Context>/{Domain,Application,Infrastructure,Hosting}` | Modules or Host | Identity contexts mirror the module layering. |
-| Shared interface primitives | `src/Interfaces/Interfaces.Base` | Feature modules | Base UI services/extensions/components used by multiple interfaces. |
-| Cross-module app aggregation | `src/Apps/Base`, `src/Apps/Aggregator` | Host pages or individual modules | App-level orchestration over module/application contracts. |
-| Shared libraries/framework pieces | `src/Libraries/*` | Feature modules | Entities, Audit, generators, and reusable infrastructure primitives. |
-| Tests | `tests/<same top-level area>/...` | Production projects | Mirror source ownership: `tests/Modules/<Module>.Tests`, `tests/Hosts/Main.Tests`, etc. |
-
 ## Architecture at a glance
 
 ```text
@@ -74,6 +55,67 @@ tests/                    tests mirror the source area they verify
 ## Journey maps
 
 Journey maps, which are directions about UX, are stored in `docs\journeys\*`.
+
+## Entity Conventions
+
+When creating a new entity class, agents must follow the centralized entity-management conventions already demonstrated by the Sea module.
+
+### Required artifacts for every new entity
+
+For each new entity, create the smallest required set of artifacts:
+
+- **Entity class**  
+  - Must be based on the solution’s existing `Entity` base class.  
+  - Must keep domain state and behavior focused on the entity’s single responsibility.
+
+- **Read DTO**  
+  - Create a dedicated `<EntityName>ReadDto`.  
+  - Use it only for query/read-facing data transfer.
+
+- **Write DTO**  
+  - Create a dedicated `<EntityName>WriteDto`.  
+  - Use it only for command/write-facing input data.
+
+- **Descriptor and its DTO**  
+  - Create a dedicated `<EntityName>Descriptor`.
+  - Mark it with `[EntityDescriptorFor(typeof(<EntityName>))]`
+  - Create its DTO `<EntityName>DescriptorDto`.
+
+- **Mappers**  
+  - Create a dedicated Mapperly auto-generated mapper methods `ToRead`, `ToWrite`, `ToEntity`, and `ToDescriptor` for the entity.
+  - Follow the same mapper style and placement used by the Sea module.  
+  - Mapping rules must be centralized in this mapper rather than duplicated across controllers, services, repositories, or UI components.
+
+- **Entity mapping extensions**  
+  - Create `EntityMappingExtensions` under the `*.Domain.Mappers` namespace and define extension methods of the mapper methods.  
+  - Use these extensions for standardized entity/DTO mapping entry points where the existing solution pattern requires them.
+
+- **Repository**  
+  - Create a dedicated repository class based on the solution’s existing `EntityRepository` pattern.  
+  - The repository must be responsible only for persistence access for that entity.  
+  - Business rules must not be placed in the repository.
+
+- **Service**  
+  - Create a dedicated service class based on the solution’s existing `EntityService` pattern.
+  - `EntityService` base class provides all required CQRS style artifacts for base crud operations. 
+  - Services must be a gate to all CQRS style commands and queries of the module beyond base CRUD operations.
+
+### Reference implementation
+
+Use the **Sea module** as the source of truth for implementation style, naming, project placement, mapper structure, repository structure, service structure, and extension conventions.
+
+### Design intent
+
+These conventions centralize entity management by ensuring each entity owns a consistent set of DTOs, mappers, mapping extensions, repository access, and optional service orchestration. This reduces duplicated mapping and persistence logic, decreases defects, simplifies debugging, and the most important objective: easier separation/decoupling of client and server sides.
+
+### Architectural requirements
+
+- Keep domain logic out of DTOs, repositories, adapters, controllers, and UI components.  
+- Keep read and write models separate.  
+- Do not mix command behavior with query behavior.  
+- Do not duplicate mapping rules across artifacts.  
+- Do not introduce services, abstractions, or layers unless they are required by the current entity behavior.
+
 
 ## Focused module builds
 
