@@ -1,6 +1,6 @@
 using Hangfire;
 
-namespace Vitarish.Main.Infrastructure.BackgroundJobs.Reminders;
+namespace Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 
 /// <summary>
 /// Configures recurring Hangfire jobs for processing Sea reminders.

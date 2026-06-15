@@ -10,7 +10,6 @@ using Vitarish.Main.Infrastructure.BackgroundJobs.Communications;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Files;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Intelligence;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Prescriptions;
-using Vitarish.Main.Infrastructure.BackgroundJobs.Reminders;
 using Vitarish.Main.Infrastructure.BackgroundJobs.Sea;
 using Vitarish.Main.Infrastructure.Platform;
 using Vitarish.Modules.Base.Platform.Transactions;
