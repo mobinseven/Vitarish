@@ -21,6 +21,8 @@ public static class DependencyInjectionExtensions
         // Prescription infrastructure
         AddPrescriptionInfrastructure(services, configuration);
 
+        _ = services.AddMedicalBackgroundJobs();
+
         return services;
     }
 

@@ -28,6 +28,8 @@ public static class DependencyInjectionExtensions
         _ = services.AddScoped<ISearchIndexProvider, SeaEventsSearchProvider>();
         _ = services.AddScoped<ISearchIndexProvider, SeaAttachmentsSearchProvider>();
 
+        _ = services.AddSeaBackgroundJobs();
+
         return services;
     }
 }

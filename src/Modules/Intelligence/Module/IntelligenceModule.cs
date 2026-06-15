@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Intelligence.Application.Abstractions;
+using Vitarish.Intelligence.Infrastructure.DependencyInjection;
 using Vitarish.Intelligence.Infrastructure.Services.Dispatching;
 using Vitarish.Intelligence.Interface.DependencyInjection;
 using Vitarish.Modules.Base;
@@ -28,6 +29,7 @@ public class IntelligenceModule : Vitarish.Modules.Base.Module, IIntelligenceMod
         _ = builder.Services.AddSingleton<ITranscriber, ProviderDispatchingTranscriber>();
         _ = builder.Services.AddAntiforgery();
         _ = builder.Services.ConfigureIntelligenceInterface();
+        _ = builder.Services.AddIntelligenceBackgroundJobs();
     }
 
 }
