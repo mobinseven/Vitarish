@@ -25,4 +25,89 @@
 		<ProjectReference Include="..\..\Modules\Aggregator\Modules.Aggregator\Modules.Aggregator.csproj" />
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(EnableAppointmentsModule)' != 'true'">
+		<Content Remove="Pages\Appointments\**" />
+		<None Remove="Pages\Appointments\**" />
+		<Compile Remove="Pages\Appointments\**" />
+		<RazorGenerate Remove="Pages\Appointments\**" />
+		<RazorComponent Remove="Pages\Appointments\**" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(EnableSeaModule)' != 'true' Or '$(EnableCommunicationsModule)' != 'true'">
+		<Content Remove="Pages\Sea\**" />
+		<None Remove="Pages\Sea\**" />
+		<Compile Remove="Pages\Sea\**" />
+		<RazorGenerate Remove="Pages\Sea\**" />
+		<RazorComponent Remove="Pages\Sea\**" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(EnableCommerceModule)' != 'true'">
+		<Content Remove="Pages\Commerce\**" />
+		<None Remove="Pages\Commerce\**" />
+		<Compile Remove="Pages\Commerce\**" />
+		<RazorGenerate Remove="Pages\Commerce\**" />
+		<RazorComponent Remove="Pages\Commerce\**" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(EnableKnowledgeModule)' != 'true'">
+		<Content Remove="Pages\Knowledge\**" />
+		<None Remove="Pages\Knowledge\**" />
+		<Compile Remove="Pages\Knowledge\**" />
+		<RazorGenerate Remove="Pages\Knowledge\**" />
+		<RazorComponent Remove="Pages\Knowledge\**" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(EnableMedicalModule)' != 'true'">
+		<Content Remove="Pages\Prescriptions\**" />
+		<Content Remove="Pages\Support\Prescriptions\**" />
+		<None Remove="Pages\Prescriptions\**" />
+		<None Remove="Pages\Support\Prescriptions\**" />
+		<Compile Remove="Pages\Prescriptions\**" />
+		<Compile Remove="Pages\Support\Prescriptions\**" />
+		<RazorGenerate Remove="Pages\Prescriptions\**" />
+		<RazorGenerate Remove="Pages\Support\Prescriptions\**" />
+		<RazorComponent Remove="Pages\Prescriptions\**" />
+		<RazorComponent Remove="Pages\Support\Prescriptions\**" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(EnablePlatformModule)' != 'true'">
+		<Content Remove="Pages\Platform\**" />
+		<None Remove="Pages\Platform\**" />
+		<Compile Remove="Pages\Platform\**" />
+		<RazorGenerate Remove="Pages\Platform\**" />
+		<RazorComponent Remove="Pages\Platform\**" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(EnableSearchModule)' != 'true'">
+		<Content Remove="Pages\Platform\PlatformAdminSearchPage.razor" />
+		<None Remove="Pages\Platform\PlatformAdminSearchPage.razor" />
+		<Compile Remove="Pages\Platform\PlatformAdminSearchPage.razor" />
+		<RazorGenerate Remove="Pages\Platform\PlatformAdminSearchPage.razor" />
+		<RazorComponent Remove="Pages\Platform\PlatformAdminSearchPage.razor" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(EnableCommunicationsModule)' != 'true'">
+		<Content Remove="Pages\Platform\PlatformAdminCommunicationsPage.razor" />
+		<None Remove="Pages\Platform\PlatformAdminCommunicationsPage.razor" />
+		<Compile Remove="Pages\Platform\PlatformAdminCommunicationsPage.razor" />
+		<RazorGenerate Remove="Pages\Platform\PlatformAdminCommunicationsPage.razor" />
+		<RazorComponent Remove="Pages\Platform\PlatformAdminCommunicationsPage.razor" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(EnableLinksModule)' != 'true'">
+		<Content Remove="Pages\Links\**" />
+		<None Remove="Pages\Links\**" />
+		<Compile Remove="Pages\Links\**" />
+		<RazorGenerate Remove="Pages\Links\**" />
+		<RazorComponent Remove="Pages\Links\**" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(EnableSeaModule)' != 'true' Or '$(EnableAppointmentsModule)' != 'true' Or '$(EnableCommunicationsModule)' != 'true'">
+		<Content Remove="Pages\Clinic\**" />
+		<None Remove="Pages\Clinic\**" />
+		<Compile Remove="Pages\Clinic\**" />
+		<RazorGenerate Remove="Pages\Clinic\**" />
+		<RazorComponent Remove="Pages\Clinic\**" />
+	</ItemGroup>
+
 </Project>
