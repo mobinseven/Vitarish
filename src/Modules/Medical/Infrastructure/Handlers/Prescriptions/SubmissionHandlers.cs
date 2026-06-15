@@ -53,7 +53,7 @@ public sealed class SubmitPrescriptionHandler(
 
         // Transition to Submitting
         DateTime submittedAt = DateTime.UtcNow;
-        prescription.TransitionTo(PrescriptionStatus.Submitting, DateTime.UtcNow);
+        prescription.TransitionTo(PrescriptionStatus.Submitting, submittedAt);
         prescription.SubmittedAt = submittedAt;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
 
