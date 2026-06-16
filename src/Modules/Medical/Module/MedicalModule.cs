@@ -16,28 +16,8 @@ public sealed class MedicalModule : Vitarish.Modules.Base.Module, IMedicalModule
     public override Task Register(WebApplicationBuilder builder, Action<DbContextOptionsBuilder>? configureDbContext = null)
     {
         _ = builder.Services.AddSingleton<IMedicalModule, MedicalModule>();
-        _ = builder.Services.AddTransientDbContext<MedicalDbContext>((_, options) =>
-        {
-            configureDbContext?.Invoke(options);
-            options.UseNpgsql(
-                builder.Configuration.GetSection("ConnectionStrings")["Db"],
-                npgsql =>
-                {
-                    npgsql.MigrationsAssembly(typeof(MedicalDbContext).Assembly.FullName);
-                    npgsql.EnableRetryOnFailure();
-                });
-        });
-        _ = builder.Services.AddTransientMultiTenantDbContext<PrescriptionDbContext>((_, options) =>
-        {
-            configureDbContext?.Invoke(options);
-            options.UseNpgsql(
-                builder.Configuration.GetSection("ConnectionStrings")["Db"],
-                npgsql =>
-                {
-                    npgsql.MigrationsAssembly(typeof(PrescriptionDbContext).Assembly.FullName);
-                    npgsql.EnableRetryOnFailure();
-                });
-        });
+        _ = builder.Services.AddTransientDbContext<MedicalDbContext>((_, options) => configureDbContext?.Invoke(options));
+        _ = builder.Services.AddTransientMultiTenantDbContext<PrescriptionDbContext>((_, options) => configureDbContext?.Invoke(options));
         _ = builder.Services.AddMedicalInfrastructure(builder.Configuration);
 
         return Task.CompletedTask;

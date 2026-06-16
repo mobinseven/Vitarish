@@ -20,17 +20,7 @@ public static class IdentityPartiesExtensions
     {
         builder.Services.AddVitarishPartiesDomainEntityHandlers();
         _ = builder.Services.AddVitarishPartiesInfrastructure();
-        _ = builder.Services.AddTransientDbContext<PartiesDbContext>((_, options) =>
-        {
-            dbContextOptionsBuilder(options);
-            options.UseNpgsql(
-                builder.Configuration.GetSection("ConnectionStrings")["Db"],
-                npgsql =>
-                {
-                    npgsql.MigrationsAssembly(typeof(PartiesDbContext).Assembly.FullName);
-                    npgsql.EnableRetryOnFailure();
-                });
-        });
+        _ = builder.Services.AddTransientDbContext<PartiesDbContext>((_, options) => dbContextOptionsBuilder(options));
 
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
 

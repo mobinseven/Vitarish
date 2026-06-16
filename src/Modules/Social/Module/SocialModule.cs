@@ -19,17 +19,7 @@ public sealed class SocialModule : Vitarish.Modules.Base.Module, ISocialModule
     {
         _ = builder.Services.AddSingleton<ISocialModule, SocialModule>();
 
-        _ = builder.Services.AddTransientMultiTenantDbContext<SocialDbContext>((_, options) =>
-        {
-            configureDbContext?.Invoke(options);
-            options.UseNpgsql(
-                builder.Configuration.GetSection("ConnectionStrings")["Db"],
-                npgsql =>
-                {
-                    npgsql.MigrationsAssembly(typeof(SocialDbContext).Assembly.FullName);
-                    npgsql.EnableRetryOnFailure();
-                });
-        });
+        _ = builder.Services.AddTransientMultiTenantDbContext<SocialDbContext>((_, options) => configureDbContext?.Invoke(options));
 
         _ = builder.Services.AddSocialInfrastructure();
 

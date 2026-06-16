@@ -48,17 +48,7 @@ public class FilesModule : Vitarish.Modules.Base.Module, IFilesModule
 
         if (configureDbContext != null)
         {
-            _ = services.AddTransientMultiTenantDbContext<FilesDbContext>((_, options) =>
-            {
-                configureDbContext(options);
-                options.UseNpgsql(
-                builder.Configuration.GetSection("ConnectionStrings")["Db"],
-                npgsql =>
-                {
-                    npgsql.MigrationsAssembly(typeof(FilesDbContext).Assembly.FullName);
-                    npgsql.EnableRetryOnFailure();
-                });
-            });
+            _ = services.AddTransientMultiTenantDbContext<FilesDbContext>((_, options) => configureDbContext(options));
         }
 
         services.AddVitarishFilesDomainEntityHandlers();

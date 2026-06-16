@@ -24,17 +24,7 @@ public static class IdentityRequestsExtensions
         this WebApplicationBuilder builder,
         Action<DbContextOptionsBuilder> dbContextOptionsBuilder)
     {
-        _ = builder.Services.AddTransientDbContext<RequestsDbContext>((_, options) =>
-        {
-            dbContextOptionsBuilder(options);
-            options.UseNpgsql(
-                builder.Configuration.GetSection("ConnectionStrings")["Db"],
-                npgsql =>
-                {
-                    npgsql.MigrationsAssembly(typeof(RequestsDbContext).Assembly.FullName);
-                    npgsql.EnableRetryOnFailure();
-                });
-        });
+        _ = builder.Services.AddTransientDbContext<RequestsDbContext>((_, options) => dbContextOptionsBuilder(options));
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(AssemblyMarker).Assembly));
         _ = builder.Services.AddValidatorsFromAssemblyContaining(typeof(AssemblyMarker));
         _ = builder.Services.AddTransient<IRequestIdentitiesService, RequestIdentitiesService>();

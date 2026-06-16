@@ -20,17 +20,7 @@ public sealed class ContentsModule : Vitarish.Modules.Base.Module, IContentsModu
         _ = builder.Services.AddSingleton<IContentsModule, ContentsModule>();
         _ = builder.Services.AddMemoryCache();
 
-        _ = builder.Services.AddTransientMultiTenantDbContext<ContentsDbContext>((_, options) =>
-        {
-            configureDbContext?.Invoke(options);
-            options.UseNpgsql(
-                builder.Configuration.GetSection("ConnectionStrings")["Db"],
-                npgsql =>
-                {
-                    npgsql.MigrationsAssembly(typeof(ContentsDbContext).Assembly.FullName);
-                    npgsql.EnableRetryOnFailure();
-                });
-        });
+        _ = builder.Services.AddTransientMultiTenantDbContext<ContentsDbContext>((_, options) => configureDbContext?.Invoke(options));
 
         _ = builder.Services.AddContentsInfrastructure();
 

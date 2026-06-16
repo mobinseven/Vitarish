@@ -22,17 +22,7 @@ public class AppointmentsModule : Vitarish.Modules.Base.Module, IAppointmentsMod
         _ = builder.Services.AddSingleton<IAppointmentsModule, AppointmentsModule>();
         _ = builder.Services.AddMemoryCache();
 
-        _ = builder.Services.AddTransientMultiTenantDbContext<AppointmentsDbContext>((_, options) =>
-        {
-            configureDbContext?.Invoke(options);
-            options.UseNpgsql(
-                builder.Configuration.GetSection("ConnectionStrings")["Db"],
-                npgsql =>
-                {
-                    npgsql.MigrationsAssembly(typeof(AppointmentsDbContext).Assembly.FullName);
-                    npgsql.EnableRetryOnFailure();
-                });
-        });
+        _ = builder.Services.AddTransientMultiTenantDbContext<AppointmentsDbContext>((_, options) => configureDbContext?.Invoke(options));
 
         _ = builder.Services.AddAppointmentsInfrastructure();
 

@@ -26,17 +26,7 @@ public class CommunicationModule : Vitarish.Modules.Base.Module, ICommunications
 
         builder.Services.AddVitarishCommunicationsDomainEntityHandlers();
 
-        _ = builder.Services.AddTransientMultiTenantDbContext<CommunicationsDbContext>((_, options) =>
-        {
-            configureDbContext?.Invoke(options);
-            options.UseNpgsql(
-                builder.Configuration.GetSection("ConnectionStrings")["Db"],
-                npgsql =>
-                {
-                    npgsql.MigrationsAssembly(typeof(CommunicationsDbContext).Assembly.FullName);
-                    npgsql.EnableRetryOnFailure();
-                });
-        });
+        _ = builder.Services.AddTransientMultiTenantDbContext<CommunicationsDbContext>((_, options) => configureDbContext?.Invoke(options));
 
         _ = builder.Services.AddRemindersInfrastructure();
 

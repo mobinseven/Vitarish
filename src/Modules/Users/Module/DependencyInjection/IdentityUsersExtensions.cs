@@ -22,17 +22,7 @@ public static class IdentityUsersExtensions
         this WebApplicationBuilder builder,
         Action<DbContextOptionsBuilder> dbContextOptionsBuilder)
     {
-        _ = builder.Services.AddTransientDbContext<UsersDbContext>((_, options) =>
-        {
-            dbContextOptionsBuilder(options);
-            options.UseNpgsql(
-                builder.Configuration.GetSection("ConnectionStrings")["Db"],
-                npgsql =>
-                {
-                    npgsql.MigrationsAssembly(typeof(UsersDbContext).Assembly.FullName);
-                    npgsql.EnableRetryOnFailure();
-                });
-        });
+        _ = builder.Services.AddTransientDbContext<UsersDbContext>((_, options) => dbContextOptionsBuilder(options));
 
         _ = builder.Services
             .AddIdentity<User, IdentityRole>()

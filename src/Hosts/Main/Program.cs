@@ -21,26 +21,23 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 void configurePostgres(DbContextOptionsBuilder options)
 {
-    options.UseNpgsql(
-    builder.Configuration.GetConnectionString("Db"),
-    b =>
+    string? assemblyName = options.Options.ContextType.Assembly.FullName;
+    if (assemblyName is null || !assemblyName.StartsWith("Vitarish", StringComparison.Ordinal))
     {
-        _ = b.EnableRetryOnFailure();
-    });
-}
+        assemblyName = "Vitarish.Main";
+    }
 
-_ = builder.Services.AddScoped<ITenantService, TenantService>();
-_ = builder.Services.AddAuditInfrastructure(options =>
-{
-    configurePostgres(options);
     options.UseNpgsql(
         builder.Configuration.GetConnectionString("Db"),
         b =>
         {
-            b.MigrationsAssembly(typeof(AuditDbContext).Assembly.FullName);
+            _ = b.MigrationsAssembly(assemblyName);
             _ = b.EnableRetryOnFailure();
         });
-});
+}
+
+_ = builder.Services.AddScoped<ITenantService, TenantService>();
+_ = builder.Services.AddAuditInfrastructure(configurePostgres);
 
 await builder.RegisterApps(configurePostgres);
 await builder.RegisterModules(configurePostgres);
