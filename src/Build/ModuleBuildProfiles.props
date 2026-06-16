@@ -24,39 +24,34 @@
     <EnableLinksModule>true</EnableLinksModule>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Requests'">
+  <!-- Main host baseline modules are always enabled for all profiles to ensure the host compiles -->
+  <PropertyGroup>
     <EnableRequestsModule>true</EnableRequestsModule>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Users'">
     <EnableUsersModule>true</EnableUsersModule>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Parties'">
     <EnablePartiesModule>true</EnablePartiesModule>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Platform'">
     <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
   </PropertyGroup>
+
+  <!-- Profile-specific overrides for non-baseline modules -->
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Requests'" />
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Users'" />
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Parties'" />
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Platform'" />
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Medical'">
     <EnableMedicalModule>true</EnableMedicalModule>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Appointments'">
-    <EnableAppointmentsModule>true</EnableAppointmentsModule>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Commerce'">
-    <EnableCommerceModule>true</EnableCommerceModule>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Sea'">
-    <EnableSeaModule>true</EnableSeaModule>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Communications'">
-    <EnableCommunicationsModule>true</EnableCommunicationsModule>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Feed'">
-    <EnableFeedModule>true</EnableFeedModule>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Files'">
-    <EnableFilesModule>true</EnableFilesModule>
-  </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Appointments'" />
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Commerce'" />
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Sea'" />
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Communications'" />
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Feed'" />
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Files'" />
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Financial'">
     <EnableFinancialModule>true</EnableFinancialModule>
   </PropertyGroup>
@@ -78,6 +73,7 @@
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Links'">
     <EnableLinksModule>true</EnableLinksModule>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Custom'" />
 
   <Target Name="ValidateModuleBuildProfile" BeforeTargets="PrepareForBuild">
     <Error Condition="'$(ModuleBuildProfile)' != 'All' And '$(ModuleBuildProfile)' != 'Custom' And '$(ModuleBuildProfile)' != 'Requests' And '$(ModuleBuildProfile)' != 'Users' And '$(ModuleBuildProfile)' != 'Parties' And '$(ModuleBuildProfile)' != 'Platform' And '$(ModuleBuildProfile)' != 'Medical' And '$(ModuleBuildProfile)' != 'Appointments' And '$(ModuleBuildProfile)' != 'Commerce' And '$(ModuleBuildProfile)' != 'Sea' And '$(ModuleBuildProfile)' != 'Communications' And '$(ModuleBuildProfile)' != 'Feed' And '$(ModuleBuildProfile)' != 'Files' And '$(ModuleBuildProfile)' != 'Financial' And '$(ModuleBuildProfile)' != 'Intelligence' And '$(ModuleBuildProfile)' != 'Knowledge' And '$(ModuleBuildProfile)' != 'Search' And '$(ModuleBuildProfile)' != 'Contents' And '$(ModuleBuildProfile)' != 'Social' And '$(ModuleBuildProfile)' != 'Links'"
