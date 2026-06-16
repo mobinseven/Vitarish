@@ -21,13 +21,19 @@ WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 void configurePostgres(DbContextOptionsBuilder options)
 {
-    _ = options.UseNpgsql(
-    builder.Configuration.GetConnectionString("Db"),
-    b =>
+    string? assemblyName = options.Options.ContextType.Assembly.FullName;
+    if (assemblyName is null || !assemblyName.StartsWith("Vitarish", StringComparison.Ordinal))
     {
-        _ = b.MigrationsAssembly("Vitarish.Main");
-        _ = b.EnableRetryOnFailure();
-    });
+        assemblyName = "Vitarish.Main";
+    }
+
+    options.UseNpgsql(
+        builder.Configuration.GetConnectionString("Db"),
+        b =>
+        {
+            _ = b.MigrationsAssembly(assemblyName);
+            _ = b.EnableRetryOnFailure();
+        });
 }
 
 _ = builder.Services.AddScoped<ITenantService, TenantService>();
