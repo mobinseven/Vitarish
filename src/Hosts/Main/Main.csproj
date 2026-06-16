@@ -1,4 +1,18 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
+	<PropertyGroup>
+		<!-- Main host baseline dependencies required by shared layout, identity, admin, setup, and dashboard composition code. -->
+		<EnableRequestsModule>true</EnableRequestsModule>
+		<EnableUsersModule>true</EnableUsersModule>
+		<EnablePartiesModule>true</EnablePartiesModule>
+		<EnablePlatformModule>true</EnablePlatformModule>
+		<EnableFeedModule>true</EnableFeedModule>
+		<EnableFilesModule>true</EnableFilesModule>
+		<EnableSeaModule>true</EnableSeaModule>
+		<EnableCommunicationsModule>true</EnableCommunicationsModule>
+		<EnableAppointmentsModule>true</EnableAppointmentsModule>
+		<EnableCommerceModule>true</EnableCommerceModule>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<PackageReference Include="Duende.IdentityServer.AspNetIdentity" Version="7.*" />
 		<PackageReference Include="Duende.IdentityServer.EntityFramework" Version="7.*" />

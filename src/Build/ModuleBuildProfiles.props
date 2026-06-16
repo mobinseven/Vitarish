@@ -26,57 +26,242 @@
 
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Requests'">
     <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Users'">
+    <EnableRequestsModule>true</EnableRequestsModule>
     <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Parties'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
     <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Platform'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
     <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Medical'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
     <EnableMedicalModule>true</EnableMedicalModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Appointments'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
     <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Commerce'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
     <EnableCommerceModule>true</EnableCommerceModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Sea'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
     <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Communications'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
     <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Feed'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
     <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Files'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
     <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Financial'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
     <EnableFinancialModule>true</EnableFinancialModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Intelligence'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
     <EnableIntelligenceModule>true</EnableIntelligenceModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Knowledge'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
     <EnableKnowledgeModule>true</EnableKnowledgeModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Search'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
     <EnableSearchModule>true</EnableSearchModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Contents'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
     <EnableContentsModule>true</EnableContentsModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Social'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
     <EnableSocialModule>true</EnableSocialModule>
   </PropertyGroup>
   <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Links'">
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
     <EnableLinksModule>true</EnableLinksModule>
+  </PropertyGroup>
+
+
+  <PropertyGroup Condition="'$(ModuleBuildProfile)' == 'Custom'">
+    <!-- Baseline required for the Main host composition; additional modules remain explicit opt-ins. -->
+    <EnableRequestsModule>true</EnableRequestsModule>
+    <EnableUsersModule>true</EnableUsersModule>
+    <EnablePartiesModule>true</EnablePartiesModule>
+    <EnablePlatformModule>true</EnablePlatformModule>
+    <EnableFeedModule>true</EnableFeedModule>
+    <EnableFilesModule>true</EnableFilesModule>
+    <EnableSeaModule>true</EnableSeaModule>
+    <EnableCommunicationsModule>true</EnableCommunicationsModule>
+    <EnableAppointmentsModule>true</EnableAppointmentsModule>
+    <EnableCommerceModule>true</EnableCommerceModule>
   </PropertyGroup>
 
   <Target Name="ValidateModuleBuildProfile" BeforeTargets="PrepareForBuild">
