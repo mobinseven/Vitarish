@@ -17,19 +17,29 @@
 </Stack>
 <Stack>
     <StackField Label="Import" />
-    <StackSelect T="string" @bind-Value="selectedImportCorpusId" Label="Select corpus">
+    <StackSelect T="string" Value="@selectedImportCorpusId" ValueChanged="SelectImportCorpusAsync" Label="Select corpus">
         @foreach(KnowledgeCorpus corpus in corpora)
         {
             <MudSelectItem T="string" Value="@corpus.Id.ToString()">@corpus.Id</MudSelectItem>
         }
     </StackSelect>
     <StackTextField @bind-Value="sourceName" Label="Source name" />
-    <StackSelect T="string" @bind-Value="format" Label="Format">
+    <StackSelect T="string" @bind-Value="format" Label="Format for pasted content">
         <MudSelectItem T="string" Value='"markdown"'>markdown</MudSelectItem>
         <MudSelectItem T="string" Value='"plain-text"'>plain-text</MudSelectItem>
+        <MudSelectItem T="string" Value='"techqa-json"'>techqa-json</MudSelectItem>
+        <MudSelectItem T="string" Value='"rag-eval-json"'>rag-eval-json</MudSelectItem>
     </StackSelect>
-    <StackTextField @bind-Value="importText" Label="Paste text" Lines="10" />
+    <StackTextField @bind-Value="importText" Label="Paste content as text/markdown or an evaluation JSON payload for the selected format" Lines="10" />
     <StackButton Label="Import" Color="Color.Primary" OnClick="ImportAsync" Disabled="@isBusy" />
+    <StackSelect T="string" @bind-Value="replaceSourceId" Label="Existing source to replace">
+        @foreach(KnowledgeSource source in importSources)
+        {
+            <MudSelectItem T="string" Value="@source.Id.ToString()">@($"{source.Name} ({source.Id})")</MudSelectItem>
+        }
+    </StackSelect>
+    <StackTextField @bind-Value="replaceSourceId" Label="Source ID to replace (select above or paste an existing GUID)" />
+    <StackButton Label="Replace source" Color="Color.Warning" OnClick="ReplaceSourceAsync" Disabled="@isBusy" />
     @if(importResult is not null)
     {
         <StackField Label="Import result" HelperText="@($"Sources {importResult.Sources.Count} · Documents {importResult.Documents.Count} · Chunks {importResult.Chunks.Count}")" Color="Color.Success" />
@@ -83,7 +93,9 @@
     private string sourceName = "Manual paste";
     private string format = "markdown";
     private string importText = string.Empty;
+    private string replaceSourceId = string.Empty;
     private IReadOnlyList<KnowledgeCorpus> corpora = [];
+    private IReadOnlyList<KnowledgeSource> importSources = [];
     private KnowledgeImportResult? importResult;
     private KnowledgeIndexResult? indexResult;
     private KnowledgeEvaluationRun? evaluationRun;
@@ -103,17 +115,29 @@
         await KnowledgeService.SaveCorpusAsync(new KnowledgeCorpus { Id = ParseId(corpusId), TenantId = tenantId.Trim(), Name = name.Trim(), Description = description, IsActive = isActive }, CancellationToken.None);
         await RefreshCorporaAsync();
         SelectCorpus(corpusId.Trim());
+        await RefreshImportSourcesAsync();
         status = "Corpus saved.";
     });
 
     private async Task ImportAsync() => await RunAsync(async () =>
     {
-        ValidateTenantAndCorpus(selectedImportCorpusId);
-        if(string.IsNullOrWhiteSpace(importText))
-            throw new InvalidOperationException("Paste text before importing.");
-        await using MemoryStream content = new(Encoding.UTF8.GetBytes(importText));
-        importResult = await KnowledgeService.ImportAsync(new KnowledgeImportRequest { CorpusId = ParseId(selectedImportCorpusId), TenantId = tenantId.Trim(), Content = content, Format = format, SourceName = sourceName }, CancellationToken.None);
+        ValidateImportInputs(selectedImportCorpusId);
+        await using MemoryStream content = BuildImportContentStream();
+        importResult = await KnowledgeService.ImportAsync(BuildImportRequest(content), CancellationToken.None);
         status = "Import complete.";
+        await RefreshImportSourcesAsync();
+    });
+
+    private async Task ReplaceSourceAsync() => await RunAsync(async () =>
+    {
+        ValidateImportInputs(selectedImportCorpusId);
+        if(string.IsNullOrWhiteSpace(replaceSourceId))
+            throw new InvalidOperationException("Source ID is required for replacement.");
+        Guid sourceId = ParseId(replaceSourceId, "Source ID");
+        await using MemoryStream content = BuildImportContentStream();
+        importResult = await KnowledgeService.ReplaceSourceAsync(sourceId, BuildImportRequest(content), CancellationToken.None);
+        status = "Source replacement complete.";
+        await RefreshImportSourcesAsync();
     });
 
     private async Task IndexAsync() => await RunAsync(async () =>
@@ -132,8 +156,14 @@
 
     private async Task RefreshCorporaAsync() => corpora = string.IsNullOrWhiteSpace(tenantId) ? [] : await KnowledgeService.ListCorporaAsync(tenantId.Trim(), CancellationToken.None);
     private void SelectCorpus(string id) => selectedImportCorpusId = selectedIndexCorpusId = selectedEvaluationCorpusId = id;
+    private async Task SelectImportCorpusAsync(string? id) => await RunAsync(async () => { selectedImportCorpusId = id ?? string.Empty; replaceSourceId = string.Empty; await RefreshImportSourcesAsync(); });
+    private async Task RefreshImportSourcesAsync() => importSources = string.IsNullOrWhiteSpace(tenantId) || string.IsNullOrWhiteSpace(selectedImportCorpusId) ? [] : await KnowledgeService.GetSourcesAsync(ParseId(selectedImportCorpusId), tenantId.Trim(), CancellationToken.None);
     private void ValidateCorpus() { ValidateTenantAndCorpus(corpusId); if(string.IsNullOrWhiteSpace(name)) throw new InvalidOperationException("Name is required."); }
     private void ValidateTenantAndCorpus(string id) { if(string.IsNullOrWhiteSpace(tenantId)) throw new InvalidOperationException("TenantId is required."); _ = ParseId(id); }
-    private static Guid ParseId(string id) => Guid.TryParse(id?.Trim(), out Guid value) ? value : throw new InvalidOperationException("CorpusId must be a GUID.");
+    private void ValidateImportInputs(string id) { ValidateTenantAndCorpus(id); if(string.IsNullOrWhiteSpace(format)) throw new InvalidOperationException("Format is required."); if(string.IsNullOrWhiteSpace(importText)) throw new InvalidOperationException("Paste content before importing."); }
+    private MemoryStream BuildImportContentStream() => new(Encoding.UTF8.GetBytes(importText));
+    private KnowledgeImportRequest BuildImportRequest(Stream content) => new() { CorpusId = ParseId(selectedImportCorpusId), TenantId = tenantId.Trim(), Content = content, Format = format.Trim(), SourceName = string.IsNullOrWhiteSpace(sourceName) ? null : sourceName.Trim() };
+    private static Guid ParseId(string id) => ParseId(id, "CorpusId");
+    private static Guid ParseId(string id, string fieldName) => Guid.TryParse(id?.Trim(), out Guid value) ? value : throw new InvalidOperationException($"{fieldName} must be a GUID.");
     private async Task RunAsync(Func<Task> action) { try { isBusy = true; status = null; statusColor = Color.Info; await action(); statusColor = Color.Success; } catch(Exception ex) { status = ex.Message; statusColor = Color.Error; } finally { isBusy = false; } }
 }
