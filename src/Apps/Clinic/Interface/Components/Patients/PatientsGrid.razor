@@ -1,32 +1,36 @@
 @inherits ProjectsGrid
 
-<Stack>
-    <StackPersonIdField />
-</Stack>
-
+<PaletteCard AutoTone>
+    <Stack>
+        <StackPersonIdField />
+    </Stack>
+    <PaletteButton Label="@Localizer["Search"]"
+                   EndIcon="fa-solid fa-search" />
+</PaletteCard>
 @if(AdminMode)
 {
     <Stack>
         <StackButton Color="Color.Primary"
-                     OnClick="AddProject"
-                     EndIcon="fa-solid fa-folder-plus"
-                     Label="@Localizer["AddItem", Localizer["Project"]]" />
-@*         <StackButton Color="Color.Primary"
+                       OnClick="AddProject"
+                       EndIcon="fa-solid fa-folder-plus"
+                       Label="@Localizer["AddItem", Localizer["Project"]]" />
+        @*         <StackButton Color="Color.Primary"
                      OnClick="@(() => MassEditMode = !MassEditMode)"
                      EndIcon="@(MassEditMode ? "fa-solid fa-check" : "fa-solid fa-edit")"
                      Label="@(MassEditMode ? Localizer["EndItem", Localizer["MassEditMode"]] : Localizer["MassEditMode"])" /> *@
     </Stack>
 
-    @if(MassEditMode)
-    {
-        <StackPaged QueryItems="QueryEditablePatientsAsync" CountItems="CountPatientsAsync" QueryKey="PatientsQueryKey" Context="patient" PageSize="5">
-            <StackItemTemplate>
-                <PatientEditForm @key="patient.Id" Project="patient" OnUpdate="ReloadRequired" />
-            </StackItemTemplate>
-        </StackPaged>
-        return;
-    }
 
+}
+
+@if(MassEditMode)
+{
+    <StackPaged QueryItems="QueryEditablePatientsAsync" CountItems="CountPatientsAsync" QueryKey="PatientsQueryKey" Context="patient" PageSize="5">
+        <StackItemTemplate>
+            <PatientEditForm @key="patient.Id" Project="patient" OnUpdate="ReloadRequired" />
+        </StackItemTemplate>
+    </StackPaged>
+    return;
 }
 
 <Stack>

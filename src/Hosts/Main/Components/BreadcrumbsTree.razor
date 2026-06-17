@@ -1,20 +1,16 @@
-@using Vitarish.Parties.Interface.Components.Common
 @inherits CommonBase
 
 @if(NavService.Breadcrumbs.Length > 4)
 {
-    <Stack>
-
-        @foreach(var breadcrumb in NavService.Breadcrumbs.Skip(3).SkipLast(1))
+    @foreach(var breadcrumb in NavService.Breadcrumbs.Skip(3).SkipLast(1))
+    {
+        @if(string.IsNullOrWhiteSpace(breadcrumb.Text))
         {
-            @if(string.IsNullOrWhiteSpace(breadcrumb.Text))
-            {
-                continue;
-            }
-
-            string title = breadcrumb.Text;
-            string cut = title.Length > 50 ? title.Substring(0, 50) + "..." : title;
-            <StackButton Label="@cut" OnClick="@(() => NavigationManager.NavigateTo(breadcrumb.Path))" EndIcon="fa-solid fa-caret-large-down" Color="Color.Secondary" />
+            continue;
         }
-    </Stack>
+
+        string title = breadcrumb.Text;
+        string cut = title.Length > 50 ? title.Substring(0, 50) + "..." : title;
+        <StackButton Label="@cut" OnClick="@(() => NavigationManager.NavigateTo(breadcrumb.Path))" Size="Size.Small" EndIcon="fa-solid fa-caret-large-down" Color="Color.Default" />
+    }
 }

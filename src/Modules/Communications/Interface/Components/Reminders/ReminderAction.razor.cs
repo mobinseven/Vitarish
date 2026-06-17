@@ -5,7 +5,7 @@ public partial class ReminderAction : RemindersBase
     [Parameter, EditorRequired] public Guid SourceId { get; set; }
     [Parameter] public EventCallback OnCreated { get; set; }
 
-    private async Task AddReminderAsync()
+    protected async Task AddReminderAsync()
     {
         DialogParameters parameters = new()
         {

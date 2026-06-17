@@ -1,4 +1,5 @@
 using Vitarish.Communications.Interface.Components.Reminders;
+using Vitarish.Sea.Interface.Components.Events;
 
 namespace Vitarish.Sea.Interface.Plugins;
 
@@ -14,9 +15,9 @@ internal sealed class ReminderPlugin(IRemindersService remindersService) : IEven
     public RenderFragment Render(EventItemCreationContext context)
         => builder =>
         {
-            builder.OpenComponent<ReminderAction>(0);
-            builder.AddAttribute(1, nameof(ReminderAction.SourceId), context.Event.Id);
-            builder.AddAttribute(2, nameof(ReminderAction.OnCreated), EventCallback.Factory.Create(this, context.OnCreated));
+            builder.OpenComponent<EventReminderAction>(0);
+            builder.AddAttribute(1, nameof(EventReminderAction.SourceId), context.Event.Id);
+            builder.AddAttribute(2, nameof(EventReminderAction.OnCreated), EventCallback.Factory.Create(this, context.OnCreated));
             builder.CloseComponent();
         };
 

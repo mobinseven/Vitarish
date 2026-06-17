@@ -1,14 +1,13 @@
-using Vitarish.Clinic.Domain.Models;
-
 namespace Vitarish.Clinic.Interface.Components.Patients;
 
+using Vitarish.Interfaces.Aggregator.Components;
 public partial class PatientEditForm
 {
     [Parameter] public ProjectWriteDto? InitialProject { get; set; }
 
     private PatientWriteDto patient = new();
 
-    private Vitarish.Interfaces.Modules.Components.StackFileInput? stackFileInput;
+    private StackFileInput? stackFileInput;
 
     protected override void OnInitialized()
     {

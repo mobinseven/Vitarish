@@ -1,21 +1,24 @@
 @inherits EventsBase
 
-<Stack>
-    <StackField Label="@Localizer["Attachments"]" Align="Align.Center" />
-    @foreach(var item in items)
+<PaletteCard Title="@Localizer["Attachments"]">
+    @if(items.Count > 0)
     {
-        @if(!string.IsNullOrWhiteSpace(item.Placeholder))
+        @foreach(var item in items)
         {
-            <StackField Label="@item.Placeholder" AdornmentIcon="fa-solid fa-circle-notch fa-spin" />
-        }
-        else
-        {
-            @item.Content
+            <Stack>
+                @if(!string.IsNullOrWhiteSpace(item.Placeholder))
+                {
+                    <StackField Label="@item.Placeholder" AdornmentIcon="fa-solid fa-circle-notch fa-spin" />
+                }
+                else
+                {
+                    @item.Content
+                }
+            </Stack>
         }
     }
     @if(CanWrite)
     {
         <EventItemsInput Project="Project" Procedure="Procedure" Event="Event" OnCreated="ReloadRequired" />
     }
-
-</Stack>
+</PaletteCard>

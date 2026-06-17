@@ -4,27 +4,11 @@
 
 <AuthorizeView>
     <Authorized>
-        @if(hasTenantContext && activeDashboards.Count > 0)
-        {
-            @foreach(var (name, record) in activeDashboards)
-            {
-                <DynamicComponent @key="name"
-                                  Type="@record.ComponentType" />
-            }
-
-        }
-        else
-        {
-            <TenantWidget OnTenantNavigate="NavigateToTenant" />
-            @if(onboardingEnabled)
-            {
-                <Stack>
-                    <StackButton Label="@Localizer["CreateWorkspace"]"
-                                 Href="@AppRoutes.Setup.Index"
-                                 EndIcon="fa-solid fa-plus" Color="Color.Primary" />
-                </Stack>
-            }
-        }
+        <Stack>
+            <StackButton Label="@Localizer["CreateWorkspace"]"
+                         Href="@AppRoutes.Setup.Index"
+                         EndIcon="fa-solid fa-plus" Color="Color.Primary" />
+        </Stack>
     </Authorized>
     <NotAuthorized>
         <Stack>

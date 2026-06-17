@@ -1,6 +1,6 @@
 @attribute [Route(AppRoutes.Clinic.Patients)]
 @attribute [EnableSearch]
-
+@attribute [PageColor(Interfaces.Base.Enums.Palettes.Purple)]
 
 <PatientsGrid OnClicked="@(id => NavigationManager.NavigateTo(AppRoutes.Clinic.Patient(id)))"
               OnAdd="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientNew))" />

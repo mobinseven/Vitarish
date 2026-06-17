@@ -7,7 +7,7 @@
         @plugin.Render(contextWithActions)
     }
 }
-else if(actionPlugins.Count > 0)
+@if(actionPlugins.Count > 0)
 {
     @foreach(var plugin in actionPlugins)
     {

@@ -1,16 +1,14 @@
 @attribute [Route(AppRoutes.Clinic.OwnerDashboard)]
+@attribute [PageColor(Interfaces.Base.Enums.Palettes.Blue)]
 @inject IAccessControlledProjectsService ProjectsService
+
 
 
 <Stack>
     <StackButton Label="@Localizer["Patients"]"
                  Href="@AppRoutes.Clinic.Patients"
                  EndIcon="fa-solid fa-people"
-                 Color="Color.Tertiary"
-                 Size="Size.Large"/>
-</Stack>
-
-<Stack>
+                 Size="Size.Large" />
     <StackButton Label="@Localizer["CheckIn"]"
                  Href="@AppRoutes.Clinic.CheckIn"
                  EndIcon="fa-solid fa-person-walking-arrow-right"
@@ -20,9 +18,9 @@
 
 <Stack>
     <StackField Label="@Localizer["Administration"]" />
-    <StackButton Href="@AppRoutes.Clinic.OwnerShifts" Label="@Localizer["Shifts"]" EndIcon="fa-solid fa-calendar-star" Color="Color.Info" />
-    <StackButton Href="@AppRoutes.Clinic.OwnerReservations" Label="@Localizer["Reservations"]" EndIcon="fa-solid fa-calendar-check" Color="Color.Info" />
-    <StackButton Href="@AppRoutes.Clinic.OwnerReminders" Label="@Localizer["Reminders"]" EndIcon="fa-solid fa-bell" Color="Color.Info" />
+    <StackButton Href="@AppRoutes.Clinic.OwnerShifts" Label="@Localizer["Shifts"]" EndIcon="fa-solid fa-calendar-star" />
+    <StackButton Href="@AppRoutes.Clinic.OwnerReservations" Label="@Localizer["Reservations"]" EndIcon="fa-solid fa-calendar-check" />
+    <StackButton Href="@AppRoutes.Clinic.OwnerReminders" Label="@Localizer["Reminders"]" EndIcon="fa-solid fa-bell"/>
 </Stack>
 
 <Stack>

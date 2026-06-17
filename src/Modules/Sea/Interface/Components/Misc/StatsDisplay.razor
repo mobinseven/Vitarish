@@ -15,7 +15,7 @@
         NumberExtensions.LocalizeNumerals(BadgeCount.ToString());
 
     private string TextColor => HasNewItems
-        ? "var(--mud-palette-primary)"
+        ? "currentColor"
         : "currentColor";
 
     private MarkupString BlinkIcon => new(BadgeCount <= 0

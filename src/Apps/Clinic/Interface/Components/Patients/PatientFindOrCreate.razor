@@ -1,5 +1,6 @@
 @inherits Vitarish.Modules.Base.TenantCommonBase
 
+
 @if(showCreateForm)
 {
     @if(CreateContext.DuplicateCandidates.Count > 0)
@@ -29,14 +30,15 @@
 else
 {
     <PatientAdvancedSearch Context="SearchContext"
-                           OnPatientSelected="SelectPatientAsync" />
-    <Stack>
-        <StackButton Label="@Localizer["CreateNewPatient"]"
-                     HelperText="@Localizer["CreateNewPatientHelp"]"
-                     EndIcon="fa-solid fa-user-plus"
-                     Color="Color.Primary"
-                     OnClick="ShowCreate" />
-    </Stack>
+                           OnPatientSelected="SelectPatientAsync">
+        <NotFoundContent>
+            <StackButton Label="@Localizer["CreateNewPatient"]"
+                         HelperText="@context"
+                         EndIcon="fa-solid fa-user-plus"
+                         Color="Color.Primary"
+                         OnClick="ShowCreate" />
+        </NotFoundContent>
+    </PatientAdvancedSearch>
 }
 
 @code {

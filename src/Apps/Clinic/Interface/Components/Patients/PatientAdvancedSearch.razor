@@ -1,22 +1,85 @@
+@using System.Threading
 @inherits Vitarish.Modules.Base.TenantCommonBase
+@implements IDisposable
 
-<Stack>
-    <StackTextField Value="@Context.IdentificationCode"
-                    ValueChanged="v => OnIdentificationCodeChangedAsync(v)"
-                    Label="@Localizer["IdentificationCode"]"
-                    HelperText="@Localizer["PatientIdentificationCodeHelp"]"
-                    Adornment="Adornment.End"
-                    AdornmentIcon="@(Context.IdentificationLookupInProgress ? "fa-solid fa-circle-notch fa-spin" : "fa-solid fa-search")"
-                    AdornmentColor="@(Context.IdentificationLookupInProgress ? Color.Secondary : Color.Default)"
-                    OnAdornmentClick="() => OnIdentificationCodeChangedAsync(Context.IdentificationCode)"
-                    DebounceInterval="400"
-                    dir="ltr"/>
-    <StackButton Label="@Localizer["AdvancedSearch"]"
-                 EndIcon="@(showAdvancedSearch ? "fa-solid fa-chevron-up" : "fa-solid fa-chevron-down")"
-                 OnClick="ToggleAdvancedSearch" Color="Color.Secondary" />
+<PaletteCard>
+    <Stack>
+        <StackPersonIdField Value="@Context.IdentificationCode"
+                            ValueChanged="OnIdentificationCodeChangedAsync" />
 
-    @if(showAdvancedSearch)
-    {
+    
+    </Stack>
+</PaletteCard>
+@if(Context.IsIdentificationLookupLookingUp)
+{
+    <Stack>
+        <StackProgress />
+    </Stack>
+}
+else if(Context.ExactIdentificationCodeMatch is ProjectReadDto exactMatch)
+{
+    <Stack>
+        <StackField Label="@Localizer["PatientFound"]" />
+
+        <StackButton Label="@exactMatch.Name"
+                     HelperText="@GetPatientHelperText(exactMatch)"
+                     EndIcon="fa-solid fa-arrow-right"
+                     Color="Color.Success"
+                     OnClick="@(() => SelectPatientAsync(exactMatch))" />
+    </Stack>
+}
+else if(Context.IsIdentificationLookupNotFound)
+{
+    string notFoundIdentificationCode = GetNotFoundIdentificationCode();
+
+    <Stack>
+        @if(NotFoundContent is not null)
+        {
+            @NotFoundContent(notFoundIdentificationCode)
+        }
+        else
+        {
+            <StackField Label="@Localizer["PatientNotFound", notFoundIdentificationCode]" />
+        }
+    </Stack>
+
+    @RenderAdvancedSearch()
+}
+else if(Context.IsIdentificationLookupFailed)
+{
+    <Stack>
+        <StackField Label="@GetIdentificationLookupFailureText()" />
+
+        <StackButton Label="@Localizer["Retry"]"
+                     EndIcon="fa-solid fa-rotate-right"
+                     Color="Color.Secondary"
+                     Disabled="@(!Context.HasIdentificationCode)"
+                     OnClick="RetryIdentificationLookupAsync" />
+    </Stack>
+}
+@code {
+    [Parameter, EditorRequired] public PatientAdvancedSearchContext Context { get; set; } = default!;
+    [Parameter] public EventCallback<ProjectReadDto> OnPatientSelected { get; set; }
+
+    /// <summary>
+    /// Optional placeholder for the not-found flow. The string argument is the normalized person id.
+    /// Use this later to render create/register-patient content without changing this component again.
+    /// </summary>
+    [Parameter] public RenderFragment<string>? NotFoundContent { get; set; }
+
+    [Inject] private IAccessControlledProjectsService ProjectsService { get; set; } = default!;
+
+    private const int IdentificationLookupDebounceMs = 160;
+    private const int MaxSearchResults = 50;
+    private const int MaxAdvancedSearchCandidates = 500;
+
+    private CancellationTokenSource? identificationLookupCts;
+    private CancellationTokenSource? advancedSearchCts;
+    private int identificationLookupVersion;
+    private int advancedSearchVersion;
+    private bool disposed;
+
+    private RenderFragment RenderAdvancedSearch() => @<Stack>
         <StackTextField @bind-Value="Context.SearchQuery"
                         Label="@Localizer["PatientName"]"
                         Adornment="Adornment.End"
@@ -33,129 +96,171 @@
                         Label="@Localizer["Phone"]"
                         InputType="InputType.Telephone" />
 
-        <StackButton Label="@Localizer["Search"]"
+        <StackTextField @bind-Value="Context.SearchEmail"
+                        Label="@Localizer["Email"]"
+                        InputType="InputType.Email" />
+
+        <StackButton Label="@Localizer["AdvancedSearch"]"
                      Color="Color.Primary"
-                     EndIcon="@(searching ? "fa-solid fa-circle-notch fa-spin" : "fa-solid fa-magnifying-glass")"
-                     Disabled="@(!HasAdvancedSearchCriteria() || searching)"
-                     OnClick="OnContinueWithSearch" />
+                     EndIcon="@(Context.AdvancedSearchInProgress ? "fa-solid fa-circle-notch fa-spin" : "fa-solid fa-magnifying-glass")"
+                     Disabled="@(!CanRunAdvancedSearch)"
+                     OnClick="OnContinueWithSearchAsync" />
 
-    }
-</Stack>
-
-
-@if(Context.SearchResults.Count > 0)
-{
-    <Stack>
-        @foreach(var result in Context.SearchResults)
+        @if(Context.AdvancedSearchInProgress)
         {
-            <StackButton Label="@result.Name"
-                         HelperText="@GetPatientHelperText(result)"
-                         EndIcon="fa-solid fa-user-check"
-                         OnClick="@(() => SelectPatientAsync(result))" Color="Color.Primary" />
+            <StackProgress />
         }
-    </Stack>
-}
-else if(Context.AdvancedSearchDone)
-{
-    <Stack>
-        <StackField Label="@Localizer["NoSearchItems", GetAdvancedSearchSummary()]" />
-    </Stack>
-}
+        else if(Context.SearchResults.Count > 0)
+        {
+            @foreach(ProjectReadDto result in Context.SearchResults)
+            {
+                <StackButton @key="result"
+                             Label="@result.Name"
+                             HelperText="@GetPatientHelperText(result)"
+                             EndIcon="fa-solid fa-user-check"
+                             Color="Color.Primary"
+                             OnClick="@(() => SelectPatientAsync(result))" />
+            }
+        }
+        else if(Context.AdvancedSearchDone)
+        {
+            <StackField Label="@Localizer["NoSearchItems", GetAdvancedSearchSummary()]" />
+        }
+    </Stack>;
 
-@if(Context.ExactIdentificationCodeMatch is not null)
-{
-    <Stack>
-        <StackButton Label="@Context.ExactIdentificationCodeMatch.Name"
-                     Color="Color.Success"
-                     OnClick="@(() => SelectPatientAsync(Context.ExactIdentificationCodeMatch))" />
-    </Stack>
-}
-
-@code {
-    [Parameter, EditorRequired] public PatientAdvancedSearchContext Context { get; set; } = default!;
-    [Parameter] public EventCallback<ProjectReadDto> OnPatientSelected { get; set; }
-    [Inject] private IAccessControlledProjectsService ProjectsService { get; set; } = default!;
-
-    private const int MaxSearchResults = 50;
-    private const int MaxAdvancedSearchCandidates = 500;
-
-    private bool showAdvancedSearch;
-    private bool searching;
+    private bool CanRunAdvancedSearch
+        => !Context.AdvancedSearchInProgress
+           && !Context.IdentificationLookupInProgress
+           && HasAdvancedSearchCriteria();
 
     private async Task OnIdentificationCodeChangedAsync(string? value)
     {
-        if(Context.IdentificationLookupInProgress)
-        {
-            return;
-        }
+        int version = Interlocked.Increment(ref identificationLookupVersion);
+        identificationLookupCts?.Cancel();
+        identificationLookupCts?.Dispose();
+        identificationLookupCts = new CancellationTokenSource();
+        CancellationToken ct = identificationLookupCts.Token;
 
-        Context.IdentificationCode = value;
-        Context.ExactIdentificationCodeMatch = null;
-        Context.IdentificationLookupDone = false;
-        Context.SearchResults = [];
-        Context.AdvancedSearchDone = false;
+        Context.PrepareForIdentificationCodeInput(value);
+        CancelAdvancedSearch();
 
-        string? code = Context.IdentificationCode?.Trim();
-        if(string.IsNullOrWhiteSpace(code))
+        string? code = NormalizeText(value);
+        if(code is null)
         {
-            Context.IdentificationLookupInProgress = false;
             await InvokeAsync(StateHasChanged);
             return;
         }
+
+        Context.BeginIdentificationLookup(code);
+        await InvokeAsync(StateHasChanged);
 
         try
         {
-            Context.IdentificationLookupInProgress = true;
-            await InvokeAsync(StateHasChanged);
+            await Task.Delay(IdentificationLookupDebounceMs, ct);
 
-            // Take = 1: IdentificationCode has a unique-per-tenant index, so at most one
-            // result can match; this short-circuits the query as early as possible.
-            ProjectDescriptorDto descriptor = new()
+            ProjectReadDto? exactMatch = await FindExactIdentificationCodeMatchAsync(code, ct);
+            if(IsStaleIdentificationLookup(version, ct))
             {
-                IdentificationCode = code,
-                Template = false,
-                Skip = 0,
-                Take = 1
-            };
+                return;
+            }
 
-            IReadOnlyList<ProjectReadDto> results = await ProjectsService
-                .GetListAsync(descriptor, CancellationToken.None)
-                .GetValueOrDefaultAsync() ?? [];
-
-            Context.ExactIdentificationCodeMatch = results.FirstOrDefault();
-            Context.IdentificationLookupDone = true;
+            Context.CompleteIdentificationLookup(exactMatch, code);
+        }
+        catch(OperationCanceledException)
+        {
+            if(version == identificationLookupVersion)
+            {
+                Context.CancelIdentificationLookup();
+            }
+        }
+        catch(Exception ex)
+        {
+            if(version == identificationLookupVersion)
+            {
+                Context.FailIdentificationLookup(code, ex.Message);
+            }
         }
         finally
         {
-            Context.IdentificationLookupInProgress = false;
-            await InvokeAsync(StateHasChanged);
+            if(!disposed && version == identificationLookupVersion)
+            {
+                await InvokeAsync(StateHasChanged);
+            }
         }
     }
 
-    private async Task OnContinueWithSearch()
+    private async Task RetryIdentificationLookupAsync()
     {
-        if(!HasAdvancedSearchCriteria() || searching)
+        await OnIdentificationCodeChangedAsync(Context.IdentificationCode);
+    }
+
+    private async Task<ProjectReadDto?> FindExactIdentificationCodeMatchAsync(string code, CancellationToken ct)
+    {
+        // IdentificationCode is the primary gate. Take = 1 keeps the roundtrip and allocation cost minimal.
+        ProjectDescriptorDto descriptor = new()
+        {
+            IdentificationCode = code,
+            Template = false,
+            Skip = 0,
+            Take = 1
+        };
+
+        IReadOnlyList<ProjectReadDto> results = await ProjectsService
+            .GetListAsync(descriptor, ct)
+            .GetValueOrDefaultAsync() ?? [];
+
+        return results.FirstOrDefault(project => IsExactIdentificationCode(project, code));
+    }
+
+    private async Task OnContinueWithSearchAsync()
+    {
+        if(!CanRunAdvancedSearch)
         {
             return;
         }
 
+        int version = Interlocked.Increment(ref advancedSearchVersion);
+        advancedSearchCts?.Cancel();
+        advancedSearchCts?.Dispose();
+        advancedSearchCts = new CancellationTokenSource();
+        CancellationToken ct = advancedSearchCts.Token;
+
+        Context.BeginAdvancedSearch();
+        await InvokeAsync(StateHasChanged);
+
         try
         {
-            searching = true;
-            Context.AdvancedSearchDone = false;
-            Context.SearchResults = [];
-            await InvokeAsync(StateHasChanged);
-
             AdvancedSearchCriteria criteria = AdvancedSearchCriteria.From(Context);
-            IReadOnlyList<ProjectReadDto> items = await LoadAdvancedSearchCandidatesAsync(criteria);
+            IReadOnlyList<ProjectReadDto> candidates = await LoadAdvancedSearchCandidatesAsync(criteria, ct);
 
-            Context.SearchResults = [.. items.Where(project => MatchesAdvancedSearch(project, criteria)).Take(MaxSearchResults)];
-            Context.AdvancedSearchDone = true;
+            if(IsStaleAdvancedSearch(version, ct))
+            {
+                return;
+            }
+
+            IReadOnlyList<ProjectReadDto> results = [.. candidates
+                .Where(project => MatchesAdvancedSearch(project, criteria))
+                .Take(MaxSearchResults)];
+
+            Context.CompleteAdvancedSearch(results);
+        }
+        catch(OperationCanceledException)
+        {
+            // A newer search or new identification-code lookup has superseded this search.
+        }
+        catch
+        {
+            if(version == advancedSearchVersion)
+            {
+                Context.FailAdvancedSearch();
+            }
         }
         finally
         {
-            searching = false;
-            await InvokeAsync(StateHasChanged);
+            if(!disposed && version == advancedSearchVersion)
+            {
+                await InvokeAsync(StateHasChanged);
+            }
         }
     }
 
@@ -164,10 +269,20 @@ else if(Context.AdvancedSearchDone)
         await OnPatientSelected.InvokeAsync(patient);
     }
 
-    private void ToggleAdvancedSearch()
+    private async Task<IReadOnlyList<ProjectReadDto>> LoadAdvancedSearchCandidatesAsync(AdvancedSearchCriteria criteria, CancellationToken ct)
     {
-        showAdvancedSearch = !showAdvancedSearch;
-        StateHasChanged();
+        ProjectDescriptorDto descriptor = new()
+        {
+            IdentificationCode = criteria.IdentificationCode,
+            Search = criteria.IdentificationCode is null ? criteria.Name : null,
+            Template = false,
+            Skip = 0,
+            Take = criteria.NeedsLargeClientSideSearch ? MaxAdvancedSearchCandidates : MaxSearchResults
+        };
+
+        return await ProjectsService
+            .GetListAsync(descriptor, ct)
+            .GetValueOrDefaultAsync() ?? [];
     }
 
     private bool HasAdvancedSearchCriteria()
@@ -177,32 +292,33 @@ else if(Context.AdvancedSearchDone)
            || !string.IsNullOrWhiteSpace(Context.SearchPhone)
            || !string.IsNullOrWhiteSpace(Context.SearchEmail);
 
-    private async Task<IReadOnlyList<ProjectReadDto>> LoadAdvancedSearchCandidatesAsync(AdvancedSearchCriteria criteria)
-    {
-        ProjectDescriptorDto descriptor = new()
-        {
-            IdentificationCode = criteria.IdentificationCode,
-            Search = criteria.IdentificationCode is null ? criteria.Name : null,
-            Template = false,
-            Skip = 0,
-            Take = criteria.NeedsClientSideSearch ? MaxAdvancedSearchCandidates : MaxSearchResults
-        };
-
-        return await ProjectsService
-            .GetListAsync(descriptor, CancellationToken.None)
-            .GetValueOrDefaultAsync() ?? [];
-    }
-
     private static bool MatchesAdvancedSearch(ProjectReadDto project, AdvancedSearchCriteria criteria)
-        => MatchesText(project.Name, criteria.Name)
+        => MatchesName(project.Name, criteria.NameTokens)
            && MatchesIdentificationCode(project, criteria.IdentificationCode)
            && MatchesDate(project.GetField<DateTime?>(nameof(PatientReadDto.DateOfBirth)), criteria.DateOfBirth)
            && MatchesPhone(project.GetField<string>(nameof(PatientReadDto.Phone)), criteria)
            && MatchesText(project.GetField<string>(nameof(PatientReadDto.Email)), criteria.Email);
 
+    private static bool MatchesName(string? value, IReadOnlyList<string> expectedTokens)
+    {
+        if(expectedTokens.Count == 0)
+        {
+            return true;
+        }
+
+        if(string.IsNullOrWhiteSpace(value))
+        {
+            return false;
+        }
+
+        return expectedTokens.All(token => value.Contains(token, StringComparison.OrdinalIgnoreCase));
+    }
+
     private static bool MatchesIdentificationCode(ProjectReadDto project, string? identificationCode)
-        => identificationCode is null
-           || string.Equals(project.IdentificationCode?.Trim(), identificationCode, StringComparison.OrdinalIgnoreCase);
+        => identificationCode is null || IsExactIdentificationCode(project, identificationCode);
+
+    private static bool IsExactIdentificationCode(ProjectReadDto project, string identificationCode)
+        => string.Equals(project.IdentificationCode?.Trim(), identificationCode, StringComparison.OrdinalIgnoreCase);
 
     private static bool MatchesDate(DateTime? value, DateTime? expected)
         => !expected.HasValue || (value.HasValue && value.Value.Date == expected.Value.Date);
@@ -234,32 +350,57 @@ else if(Context.AdvancedSearchDone)
 
     private static string DigitsOnly(string value) => new(value.Where(char.IsDigit).ToArray());
 
+    private static string? NormalizeText(string? value)
+        => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private static IReadOnlyList<string> Tokenize(string? value)
+        => NormalizeText(value)?
+            .Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToArray() ?? [];
+
     private sealed record AdvancedSearchCriteria(
         string? Name,
+        IReadOnlyList<string> NameTokens,
         string? IdentificationCode,
         DateTime? DateOfBirth,
         string? Phone,
         string PhoneDigits,
         string? Email)
     {
-        public bool NeedsClientSideSearch
-            => DateOfBirth.HasValue || Phone is not null || Email is not null;
+        public bool NeedsLargeClientSideSearch
+            => DateOfBirth.HasValue
+               || Phone is not null
+               || Email is not null;
 
         public static AdvancedSearchCriteria From(PatientAdvancedSearchContext context)
         {
+            string? name = NormalizeText(context.SearchQuery);
             string? phone = NormalizeText(context.SearchPhone);
 
             return new(
-                NormalizeText(context.SearchQuery),
+                name,
+                Tokenize(name),
                 NormalizeText(context.SearchIdentificationCode),
                 context.SearchDateOfBirth?.Date,
                 phone,
                 phone is null ? string.Empty : DigitsOnly(phone),
                 NormalizeText(context.SearchEmail));
         }
+    }
 
-        private static string? NormalizeText(string? value)
-            => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+    private string GetNotFoundIdentificationCode()
+        => NormalizeText(Context.LastLookedUpIdentificationCode)
+           ?? NormalizeText(Context.IdentificationCode)
+           ?? string.Empty;
+
+    private string GetIdentificationLookupFailureText()
+    {
+        string identificationCode = GetNotFoundIdentificationCode();
+
+        return string.IsNullOrWhiteSpace(Context.IdentificationLookupError)
+            ? Localizer["PatientIdentificationLookupFailed", identificationCode]
+            : Localizer["PatientIdentificationLookupFailed", identificationCode, Context.IdentificationLookupError];
     }
 
     private string GetAdvancedSearchSummary()
@@ -272,7 +413,7 @@ else if(Context.AdvancedSearchDone)
         AddCriteria(parts, Localizer["Phone"].Value, Context.SearchPhone);
         AddCriteria(parts, Localizer["Email"].Value, Context.SearchEmail);
 
-        return string.Join(" · ", parts);
+        return parts.Count == 0 ? Localizer["NoCriteria"].Value : string.Join(" · ", parts);
     }
 
     private static void AddCriteria(List<string> parts, string label, string? value)
@@ -303,6 +444,34 @@ else if(Context.AdvancedSearchDone)
             parts.Add(patient.Phone);
         }
 
+        if(!string.IsNullOrWhiteSpace(patient.Email))
+        {
+            parts.Add(patient.Email);
+        }
+
         return string.Join(" · ", parts);
+    }
+
+    private bool IsStaleIdentificationLookup(int version, CancellationToken ct)
+        => ct.IsCancellationRequested || version != identificationLookupVersion;
+
+    private bool IsStaleAdvancedSearch(int version, CancellationToken ct)
+        => ct.IsCancellationRequested || version != advancedSearchVersion;
+
+    private void CancelAdvancedSearch()
+    {
+        Interlocked.Increment(ref advancedSearchVersion);
+        advancedSearchCts?.Cancel();
+        advancedSearchCts?.Dispose();
+        advancedSearchCts = null;
+    }
+
+    public void Dispose()
+    {
+        disposed = true;
+        identificationLookupCts?.Cancel();
+        identificationLookupCts?.Dispose();
+        advancedSearchCts?.Cancel();
+        advancedSearchCts?.Dispose();
     }
 }

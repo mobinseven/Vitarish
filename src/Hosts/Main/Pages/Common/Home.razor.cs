@@ -9,39 +9,18 @@ namespace Vitarish.Main.Pages.Common;
 
 public partial class Home
 {
-    [Inject] private IOptions<FeaturesOptions> FeaturesOptions { get; set; } = default!;
     [Inject] private IPartiesService PartiesService { get; set; } = default!;
 
-    private sealed record DashboardDefinition(
-    string Route,
-    Type ComponentType
-);
-    private static readonly Dictionary<string, DashboardDefinition> Dashboards =
+    private bool hasTenantContext;
+
+    private static readonly Dictionary<string, string> Dashboards =
     new(StringComparer.OrdinalIgnoreCase)
     {
-        ["Sea"] = new(
-            AppRoutes.Sea.Dashboard,
-            typeof(SeaDashboardPage)
-        ),
-
-        ["Clinic"] = new(
-            AppRoutes.Clinic.OwnerDashboard,
-            typeof(ClinicOwnerDashboardPage)
-        ),
-
-        ["Commerce"] = new(
-            AppRoutes.Commerce.OwnerDashboard,
-            typeof(CommerceOwnerDashboardPage)
-        ),
+        ["Clinic"] = AppRoutes.Clinic.OwnerDashboard,
     };
 
-    private IReadOnlyList<(string Name, DashboardDefinition)> activeDashboards = [];
-    private bool hasTenantContext;
-    private bool onboardingEnabled;
-
-    protected override async Task ReloadRequired()
+    protected override async Task OnInitializedAsync()
     {
-        onboardingEnabled = FeaturesOptions.Value.TenantOnboarding;
         hasTenantContext = RequestContext.TenantId is not null;
 
         if (hasTenantContext && Guid.TryParse(RequestContext.TenantId, out Guid tenantGuid))
@@ -49,12 +28,20 @@ public partial class Home
             TenantReadDto? tenant = await PartiesService.GetTenantAsync(tenantGuid);
             if (tenant is not null)
             {
-                IReadOnlyList<string> modules = TenantMetadata.GetActiveModules(tenant.Metadata);
                 IReadOnlyList<string> apps = TenantMetadata.GetActiveApps(tenant.Metadata);
+                var app = apps.FirstOrDefault();
+                if(app is null)
+                {
+                    return;
+                }
+                Dashboards.TryGetValue(app, out string? route);
 
-                activeDashboards = [.. modules.Union(apps)
-                    .Where(Dashboards.ContainsKey)
-                    .Select(m => (m, Dashboards[m]))];
+                if (route is null)
+                {
+                    return;
+                }
+
+                NavigationManager.NavigateTo(route);
             }
         }
     }

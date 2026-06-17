@@ -1,5 +1,6 @@
 @attribute [Route(AppRoutes.Clinic.PatientEventTemplate)]
 @inherits ClinicPatientProcedurePageBase
+@attribute [PageColor(Interfaces.Base.Enums.Palettes.Pink)]
 @inject IAccessControlledEventsService EventService
 
 @if(Patient is null || Procedure is null || evt is null)
@@ -11,6 +12,7 @@
               Project="@Patient"
               OnDelete="@(() => NavigationManager.NavigateTo(AppRoutes.Clinic.PatientProcedure(PatientId, ProcedureId)))"
               OnUpdate="ReloadRequired" />
+
 <EventItemsTimeline Event="@evt" Procedure="@Procedure" Project="@Patient" />
 
 @code {
@@ -22,12 +24,12 @@
     {
         await base.ReloadRequired();
 
-        if (Procedure is null)
+        if(Procedure is null)
         {
             return;
         }
 
-        if (eventId is null)
+        if(eventId is null)
         {
             NavigationManager.NavigateTo(AppRoutes.Clinic.PatientProcedure(PatientId, ProcedureId));
             return;
@@ -35,7 +37,7 @@
 
         evt = await EventService.GetAsync(eventId.Value, CancellationToken.None).GetValueOrDefaultAsync();
 
-        if (evt is null)
+        if(evt is null)
         {
             NavigationManager.NavigateTo(AppRoutes.Clinic.PatientProcedure(PatientId, ProcedureId));
             return;

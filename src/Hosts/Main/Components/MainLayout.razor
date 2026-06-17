@@ -3,40 +3,28 @@
 
 @if(Initialized)
 {
+    <TenantHeader />
+    <div style="height: 10dvh;">
+        <hr />
+    </div>
     <ThemeConnector>
         <MudRTLProvider RightToLeft="@System.Globalization.CultureInfo.CurrentCulture.TextInfo.IsRightToLeft" Style="min-height: 100dvh;">
             <BreakpointProvider @bind-Breakpoint="PageBreakpoint" BreakpointReceived="() => BreakpointReceived = true" />
             @if(BreakpointReceived)
             {
                 <CascadingValue Value="@PageBreakpoint">
-
-                    <div style="height: 10dvh;">
-                        <hr />
-                    </div>
-
-
                     <WidthControlled>
-
-                        <TenantHeader />
-
-                        @* <CurrentUserTenantsWidget /> *@
-
-
-                        <BreadcrumbsTree />
-
-                        <TitleContainer />
+                        <TitleContainer>
+                            <BreadcrumbsTree />
+                        </TitleContainer>
 
                         <CascadingValue Value="NavService.SearchString">
                             @Body
                         </CascadingValue>
 
-                        <Stack>
-                            <StackField>
-                                <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Style="width: 100%;">
-                                    <MudImage Src="/logo/brandmark-opacity50.webp" Height="100" />
-                                </MudStack>
-                            </StackField>
-                        </Stack>
+                        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Style="width: 100%;">
+                            <MudImage Src="/logo/brandmark-opacity50.webp" Height="150" />
+                        </MudStack>
 
                     </WidthControlled>
 
