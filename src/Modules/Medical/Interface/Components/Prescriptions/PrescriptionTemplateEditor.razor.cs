@@ -15,6 +15,9 @@ public partial class PrescriptionTemplateEditor : PrescriptionBase
         if (TemplateId is null || TemplateId == Guid.Empty)
         {
             template = null;
+            name = string.Empty;
+            description = null;
+            newItem = new();
             return;
         }
 
@@ -48,6 +51,7 @@ public partial class PrescriptionTemplateEditor : PrescriptionBase
     private async Task AddItemAsync()
     {
         if (TemplateId is null || TemplateId == Guid.Empty) return;
+        if (string.IsNullOrWhiteSpace(newItem.ReferenceCode) && string.IsNullOrWhiteSpace(newItem.DisplayName)) return;
         PrescriptionTemplateCommandResult result = await Mediator.Send(new AddPrescriptionTemplateItemCommand
         {
             TemplateId = TemplateId.Value,

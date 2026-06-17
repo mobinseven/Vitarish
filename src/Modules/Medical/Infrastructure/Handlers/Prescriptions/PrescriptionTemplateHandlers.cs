@@ -16,8 +16,11 @@ public sealed class CreatePrescriptionTemplateHandler(PrescriptionDbContext dbCo
 
         PrescriptionTemplate template = new()
         {
-            Id = Guid.NewGuid(), TenantId = request.TenantId.Trim(), Name = request.Name.Trim(),
-            Description = NormalizeOptional(request.Description), CreatedAt = DateTime.UtcNow
+            Id = Guid.NewGuid(),
+            TenantId = request.TenantId.Trim(),
+            Name = request.Name.Trim(),
+            Description = NormalizeOptional(request.Description),
+            CreatedAt = DateTime.UtcNow
         };
         _ = dbContext.PrescriptionTemplates.Add(template);
         _ = await dbContext.SaveChangesAsync(cancellationToken);
@@ -71,6 +74,7 @@ public sealed class AddPrescriptionTemplateItemHandler(PrescriptionDbContext dbC
 {
     public async Task<PrescriptionTemplateCommandResult> Handle(AddPrescriptionTemplateItemCommand request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.ReferenceCode) && string.IsNullOrWhiteSpace(request.DisplayName)) return PrescriptionTemplateCommandResult.Failure("آیتم قالب باید کد مرجع یا نام نمایشی داشته باشد.");
         if (request.Quantity < 1) return PrescriptionTemplateCommandResult.Failure("تعداد آیتم باید حداقل یک باشد.");
         PrescriptionTemplate? template = await dbContext.PrescriptionTemplates.Include(t => t.Items).FirstOrDefaultAsync(t => t.Id == request.TemplateId && t.TenantId == request.TenantId, cancellationToken);
         if (template is null) return PrescriptionTemplateCommandResult.Failure("قالب نسخه یافت نشد.");
@@ -136,21 +140,39 @@ public sealed class LoadPrescriptionTemplateIntoDraftHandler(PrescriptionDbConte
         IInsuranceProviderAdapter? adapter = providerRegistry.GetAdapter(prescription.SelectedProviderKey);
         if (adapter is null) return "آداپتور بیمه‌گر انتخاب شده در دسترس نیست.";
         IReadOnlySet<InsuranceProviderCapabilityType> capabilities = adapter.GetCapabilities();
+        List<PrescriptionItemIdentity> itemsToCheck = prescription.Items
+            .Select(item => new PrescriptionItemIdentity(item.Category, item.ReferenceCode, item.DisplayName))
+            .ToList();
+
         foreach (PrescriptionTemplateItem item in template.Items)
         {
             if (string.IsNullOrWhiteSpace(item.ReferenceCode) && string.IsNullOrWhiteSpace(item.DisplayName)) return "آیتم قالب باید کد مرجع یا نام نمایشی داشته باشد.";
             if (item.Quantity < 1) return "تعداد آیتم باید حداقل یک باشد.";
             InsuranceProviderCapabilityType? requiredCapability = MapCategoryToCapability(item.Category);
             if (requiredCapability.HasValue && !capabilities.Contains(requiredCapability.Value)) return $"بیمه‌گر انتخابی از نوع آیتم «{item.Category}» پشتیبانی نمی‌کند.";
-            if (prescription.Items.Any(existing => IsSamePrescriptionItem(existing, item))) return "بارگذاری قالب به دلیل آیتم تکراری انجام نشد.";
+            PrescriptionItemIdentity templateIdentity = new(item.Category, item.ReferenceCode, item.DisplayName);
+            if (itemsToCheck.Any(existing => IsSamePrescriptionItem(existing, templateIdentity))) return "بارگذاری قالب به دلیل آیتم تکراری انجام نشد.";
+            itemsToCheck.Add(templateIdentity);
         }
         return null;
     }
 
-    private static bool IsSamePrescriptionItem(PrescriptionItem existing, PrescriptionTemplateItem templateItem) =>
-        existing.Category == templateItem.Category
-        && string.Equals(existing.ReferenceCode?.Trim(), templateItem.ReferenceCode?.Trim(), StringComparison.OrdinalIgnoreCase)
-        && string.Equals(existing.DisplayName?.Trim(), templateItem.DisplayName?.Trim(), StringComparison.OrdinalIgnoreCase);
+    private static bool IsSamePrescriptionItem(PrescriptionItemIdentity existing, PrescriptionItemIdentity templateItem)
+    {
+        if (existing.Category != templateItem.Category) return false;
+
+        bool hasExistingCode = !string.IsNullOrWhiteSpace(existing.ReferenceCode);
+        bool hasTemplateCode = !string.IsNullOrWhiteSpace(templateItem.ReferenceCode);
+
+        if (hasExistingCode && hasTemplateCode)
+        {
+            return string.Equals(existing.ReferenceCode!.Trim(), templateItem.ReferenceCode!.Trim(), StringComparison.OrdinalIgnoreCase);
+        }
+
+        return string.Equals(existing.DisplayName?.Trim(), templateItem.DisplayName?.Trim(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    private sealed record PrescriptionItemIdentity(PrescriptionItemCategory Category, string? ReferenceCode, string? DisplayName);
 
     private static InsuranceProviderCapabilityType? MapCategoryToCapability(PrescriptionItemCategory category) => category switch
     {

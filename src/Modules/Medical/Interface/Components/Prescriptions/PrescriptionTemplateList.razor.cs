@@ -10,7 +10,7 @@ public partial class PrescriptionTemplateList : PrescriptionBase
 
     protected override Task OnSearchedAsync() => ReloadRequired();
 
-    protected override async Task OnParametersSetAsync() => await ReloadRequired();
+    protected override async Task OnInitializedAsync() => await ReloadRequired();
 
     protected override async Task ReloadRequired()
     {

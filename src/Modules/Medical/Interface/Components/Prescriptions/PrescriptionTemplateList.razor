@@ -16,7 +16,8 @@
     {
         @foreach (PrescriptionTemplateSummaryDto template in templates)
         {
-            <StackExpandable Label="@template.Name"
+            <StackExpandable @key="template.Id"
+                             Label="@template.Name"
                              HelperText="@TemplateSummary(template)"
                              HighlightString="@SearchString"
                              OnClick="() => OnSelected.InvokeAsync(template.Id)">
