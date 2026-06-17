@@ -38,6 +38,18 @@ flowchart LR
     AuditLog[Audit log<br/>Tenant-scoped activity review<br/><code>owner-audit-log-journey.md</code>]:::futureRead
     DangerZone[Danger zone<br/>Archive / restore / delete policy gates<br/><code>owner-danger-zone-journey.md</code>]:::futureRisk
 
+    %% Knowledge module owner journeys
+    subgraph KnowledgeModule[Knowledge module owner journeys]
+        KnowledgeDashboard[Knowledge module owner entry<br/>Current corpora and QA routes]:::currentGap
+        KnowledgeCorpus[Knowledge corpus management<br/>Save tenant-scoped corpus<br/><code>knowledge-corpus-management-journey.md</code>]:::current
+        KnowledgeImport[Knowledge source import<br/>Markdown / plain-text paste import<br/><code>knowledge-source-import-journey.md</code>]:::current
+        KnowledgeIndex[Knowledge indexing<br/>Index corpus chunks<br/><code>knowledge-indexing-journey.md</code>]:::current
+        KnowledgeQa[Knowledge QA test<br/>Grounded manual ask<br/><code>knowledge-qa-test-journey.md</code>]:::currentGap
+        KnowledgeEvaluation[Knowledge evaluation<br/>Recall metrics<br/><code>knowledge-evaluation-journey.md</code>]:::current
+        KnowledgeDiagnostics[Knowledge diagnostics<br/>Sources, chunks, debug ask, traces<br/><code>knowledge-diagnostics-journey.md</code>]:::currentGap
+        KnowledgeState[(Canonical Knowledge state<br/>corpora, sources, documents, chunks, questions, traces, index runs)]:::state
+    end
+
     %% Medical module admin journeys
     MedicalDashboard[Medical dashboard / patient list]:::current
     PatientCrud[Patient profile CRUD<br/>Current-state profile management<br/><code>patient-profile-crud-journey.md</code>]:::current
@@ -60,6 +72,23 @@ flowchart LR
     Home -->|tenant context resolved| ModuleShortcuts
     Home -. future owner entry .-> Dashboard
     ModuleShortcuts -->|Medical module| MedicalDashboard
+    ModuleShortcuts -->|Knowledge module| KnowledgeDashboard
+
+    KnowledgeDashboard --> KnowledgeCorpus
+    KnowledgeDashboard --> KnowledgeQa
+    KnowledgeCorpus -->|saved corpus| KnowledgeImport
+    KnowledgeImport -->|chunks created| KnowledgeIndex
+    KnowledgeIndex -->|retrieval ready| KnowledgeQa
+    KnowledgeIndex -->|quality check| KnowledgeEvaluation
+    KnowledgeQa -. investigate answer .-> KnowledgeDiagnostics
+    KnowledgeEvaluation -. investigate recall gaps .-> KnowledgeDiagnostics
+    KnowledgeDiagnostics -. source/chunk issue .-> KnowledgeImport
+    KnowledgeCorpus --> KnowledgeState
+    KnowledgeImport --> KnowledgeState
+    KnowledgeIndex --> KnowledgeState
+    KnowledgeEvaluation --> KnowledgeState
+    KnowledgeQa -. trace evidence .-> KnowledgeState
+    KnowledgeDiagnostics -. reads .-> KnowledgeState
 
     OwnerData --> Dashboard
     Dashboard --> Switcher
@@ -155,8 +184,10 @@ flowchart LR
 5. Members/roles, billing, audit, and action inbox are source-backed surfaces. Until their application contracts exist, they should render honest unavailable or empty states instead of fake counts or rows.
 6. Create tenant, invite/remove users, tenant settings, and danger zone are future state-changing journeys. They should validate input, call focused use cases, and feed audit where sensitive changes occur.
 7. Danger zone is intentionally isolated because archive, restore, and delete semantics require explicit policy gates and should not become ordinary settings-page buttons.
-8. Medical module admin journeys branch from the Medical module shortcut/dashboard. Patient CRUD and check-in are current/implemented paths, while appointments and procedures are usable but carry documented scheduling and clinical workflow gaps.
-9. Future medical patient overview should become the read-only patient command page that aggregates profile, appointments, procedures, flags, and quick actions without duplicating module-specific state.
+8. Knowledge module owner journeys branch from the Knowledge module shortcut into two current routes: corpora management and manual QA. Corpus save, source import, indexing, and evaluation are state-changing command journeys; QA testing and diagnostics are query/read journeys.
+9. Knowledge diagnostics is marked as current-state with gaps because the diagnostic panels exist, but a canonical diagnostics route/shell is not evidenced by the current Knowledge route file.
+10. Medical module admin journeys branch from the Medical module shortcut/dashboard. Patient CRUD and check-in are current/implemented paths, while appointments and procedures are usable but carry documented scheduling and clinical workflow gaps.
+11. Future medical patient overview should become the read-only patient command page that aggregates profile, appointments, procedures, flags, and quick actions without duplicating module-specific state.
 
 ## Source Journey Documents
 
@@ -165,6 +196,14 @@ flowchart LR
 - [docs/journeys/apps/clinic/owner/patient-overview-journey.md](./apps/clinic/owner/patient-overview-journey.md)
 - [docs/journeys/apps/clinic/owner/patient-procedure-journey.md](./apps/clinic/owner/patient-procedure-journey.md)
 - [docs/journeys/apps/clinic/owner/patient-profile-crud-journey.md](./apps/clinic/owner/patient-profile-crud-journey.md)
+- [docs/journeys/modules/knowledge/owner/README.md](./modules/knowledge/owner/README.md)
+- [docs/journeys/modules/knowledge/owner/implementation-matrix.md](./modules/knowledge/owner/implementation-matrix.md)
+- [docs/journeys/modules/knowledge/owner/knowledge-corpus-management-journey.md](./modules/knowledge/owner/knowledge-corpus-management-journey.md)
+- [docs/journeys/modules/knowledge/owner/knowledge-diagnostics-journey.md](./modules/knowledge/owner/knowledge-diagnostics-journey.md)
+- [docs/journeys/modules/knowledge/owner/knowledge-evaluation-journey.md](./modules/knowledge/owner/knowledge-evaluation-journey.md)
+- [docs/journeys/modules/knowledge/owner/knowledge-indexing-journey.md](./modules/knowledge/owner/knowledge-indexing-journey.md)
+- [docs/journeys/modules/knowledge/owner/knowledge-qa-test-journey.md](./modules/knowledge/owner/knowledge-qa-test-journey.md)
+- [docs/journeys/modules/knowledge/owner/knowledge-source-import-journey.md](./modules/knowledge/owner/knowledge-source-import-journey.md)
 - [docs/journeys/platform/owners/owner-action-inbox-journey.md](./platform/owners/owner-action-inbox-journey.md)
 - [docs/journeys/platform/owners/owner-audit-log-journey.md](./platform/owners/owner-audit-log-journey.md)
 - [docs/journeys/platform/owners/owner-billing-page-journey.md](./platform/owners/owner-billing-page-journey.md)
