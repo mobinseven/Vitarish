@@ -175,7 +175,11 @@
     }
 
     private async Task SelectCorpusAsync(string? id) => await RunAsync(async () => { selectedCorpusId = id ?? string.Empty; replaceSourceId = string.Empty; importResult = null; indexResult = null; evaluationRun = null; await RefreshImportSourcesAsync(); });
-    private async Task RefreshImportSourcesAsync() => importSources = SelectedCorpus is null ? [] : await KnowledgeService.GetSourcesAsync(SelectedCorpus.Id, CurrentTenantId, CancellationToken.None);
+    private async Task RefreshImportSourcesAsync()
+    {
+        replaceSourceId = string.Empty;
+        importSources = SelectedCorpus is null ? [] : await KnowledgeService.GetSourcesAsync(SelectedCorpus.Id, CurrentTenantId, CancellationToken.None);
+    }
     private void ValidateCorpus() { if (string.IsNullOrWhiteSpace(name)) throw new InvalidOperationException("Enter a corpus name."); _ = CurrentTenantId; }
     private void ValidateImportInputs() { _ = RequireSelectedCorpus(); if (string.IsNullOrWhiteSpace(format)) throw new InvalidOperationException("Choose a content format."); if (string.IsNullOrWhiteSpace(importText)) throw new InvalidOperationException("Paste content before importing."); }
     private KnowledgeCorpus RequireSelectedCorpus() => SelectedCorpus ?? throw new InvalidOperationException("Select or create a corpus first.");
