@@ -2,6 +2,7 @@ using Vitarish.Medical.Application.Commands.Prescriptions;
 using Vitarish.Medical.Application.Queries.Prescriptions;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
+using Vitarish.Medical.Application.Abstractions.Prescriptions;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
@@ -106,7 +107,7 @@ public sealed class RemovePrescriptionTemplateItemHandler(PrescriptionDbContext 
     }
 }
 
-public sealed class LoadPrescriptionTemplateIntoDraftHandler(PrescriptionDbContext dbContext)
+public sealed class LoadPrescriptionTemplateIntoDraftHandler(PrescriptionDbContext dbContext, IInsuranceProviderRegistry providerRegistry)
     : IRequestHandler<LoadPrescriptionTemplateIntoDraftCommand, PrescriptionTemplateCommandResult>
 {
     public async Task<PrescriptionTemplateCommandResult> Handle(LoadPrescriptionTemplateIntoDraftCommand request, CancellationToken cancellationToken)
@@ -117,15 +118,52 @@ public sealed class LoadPrescriptionTemplateIntoDraftHandler(PrescriptionDbConte
         PrescriptionRecord? prescription = await dbContext.Prescriptions.Include(p => p.Items).FirstOrDefaultAsync(p => p.Id == request.PrescriptionId && p.TenantId == request.TenantId, cancellationToken);
         if (prescription is null) return PrescriptionTemplateCommandResult.Failure("نسخه یافت نشد.");
         if (prescription.Status is not (PrescriptionStatus.Draft or PrescriptionStatus.NeedsCorrection)) return PrescriptionTemplateCommandResult.Failure("قالب فقط در نسخه پیش‌نویس یا نیازمند اصلاح قابل بارگذاری است.");
+        string? loadValidationError = ValidateLoad(template, prescription);
+        if (loadValidationError is not null) return PrescriptionTemplateCommandResult.Failure(loadValidationError);
         int sortOrder = CurrentMaxSortOrder(prescription.Items);
+        DateTime copiedAt = DateTime.UtcNow;
         foreach (PrescriptionTemplateItem templateItem in template.Items)
         {
-            prescription.Items.Add(new PrescriptionItem { Id = Guid.NewGuid(), PrescriptionRecordId = prescription.Id, Category = templateItem.Category, ReferenceCode = templateItem.ReferenceCode, DisplayName = templateItem.DisplayName, DosageJson = templateItem.DosageJson, Quantity = templateItem.Quantity, DurationDays = templateItem.DurationDays, MetadataJson = templateItem.MetadataJson, SortOrder = ++sortOrder, CreatedAt = DateTime.UtcNow });
+            prescription.Items.Add(new PrescriptionItem { Id = Guid.NewGuid(), PrescriptionRecordId = prescription.Id, Category = templateItem.Category, ReferenceCode = templateItem.ReferenceCode, DisplayName = templateItem.DisplayName, DosageJson = templateItem.DosageJson, Quantity = templateItem.Quantity, DurationDays = templateItem.DurationDays, MetadataJson = templateItem.MetadataJson, SortOrder = ++sortOrder, CreatedAt = copiedAt });
         }
         prescription.UpdatedAt = DateTime.UtcNow;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
         return PrescriptionTemplateCommandResult.Success(prescription.Id);
     }
+    private string? ValidateLoad(PrescriptionTemplate template, PrescriptionRecord prescription)
+    {
+        if (string.IsNullOrWhiteSpace(prescription.SelectedProviderKey)) return "بیمه‌گر مورد نظر انتخاب نشده است.";
+        IInsuranceProviderAdapter? adapter = providerRegistry.GetAdapter(prescription.SelectedProviderKey);
+        if (adapter is null) return "آداپتور بیمه‌گر انتخاب شده در دسترس نیست.";
+        IReadOnlySet<InsuranceProviderCapabilityType> capabilities = adapter.GetCapabilities();
+        foreach (PrescriptionTemplateItem item in template.Items)
+        {
+            if (string.IsNullOrWhiteSpace(item.ReferenceCode) && string.IsNullOrWhiteSpace(item.DisplayName)) return "آیتم قالب باید کد مرجع یا نام نمایشی داشته باشد.";
+            if (item.Quantity < 1) return "تعداد آیتم باید حداقل یک باشد.";
+            InsuranceProviderCapabilityType? requiredCapability = MapCategoryToCapability(item.Category);
+            if (requiredCapability.HasValue && !capabilities.Contains(requiredCapability.Value)) return $"بیمه‌گر انتخابی از نوع آیتم «{item.Category}» پشتیبانی نمی‌کند.";
+            if (prescription.Items.Any(existing => IsSamePrescriptionItem(existing, item))) return "بارگذاری قالب به دلیل آیتم تکراری انجام نشد.";
+        }
+        return null;
+    }
+
+    private static bool IsSamePrescriptionItem(PrescriptionItem existing, PrescriptionTemplateItem templateItem) =>
+        existing.Category == templateItem.Category
+        && string.Equals(existing.ReferenceCode?.Trim(), templateItem.ReferenceCode?.Trim(), StringComparison.OrdinalIgnoreCase)
+        && string.Equals(existing.DisplayName?.Trim(), templateItem.DisplayName?.Trim(), StringComparison.OrdinalIgnoreCase);
+
+    private static InsuranceProviderCapabilityType? MapCategoryToCapability(PrescriptionItemCategory category) => category switch
+    {
+        PrescriptionItemCategory.Visit => InsuranceProviderCapabilityType.SupportsVisitPrescription,
+        PrescriptionItemCategory.Drug => InsuranceProviderCapabilityType.SupportsDrugPrescription,
+        PrescriptionItemCategory.Paraclinic or PrescriptionItemCategory.Lab or PrescriptionItemCategory.Imaging => InsuranceProviderCapabilityType.SupportsParaclinicPrescription,
+        PrescriptionItemCategory.MedicalService => InsuranceProviderCapabilityType.SupportsMedicalServicePrescription,
+        PrescriptionItemCategory.Physiotherapy => InsuranceProviderCapabilityType.SupportsPhysiotherapyPrescription,
+        PrescriptionItemCategory.Dental => InsuranceProviderCapabilityType.SupportsDentalPrescription,
+        PrescriptionItemCategory.Referral => InsuranceProviderCapabilityType.SupportsReferralPrescription,
+        _ => null
+    };
+
     private static int CurrentMaxSortOrder(IEnumerable<PrescriptionItem> items)
     {
         return items.Any() ? items.Max(i => i.SortOrder) : 0;

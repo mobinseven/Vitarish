@@ -13,11 +13,11 @@
 
 ## Current Implementation Alignment
 
-* **Status:** `partially implemented`.
-* **Implemented now:** Tenant prescription template domain entities, lifecycle enum, application command/query contracts, EF persistence mappings, infrastructure handlers, and baseline domain tests are implemented. Dedicated tenant template list/editor/picker UI surfaces and route integrations are still pending.
+* **Status:** `implemented` (baseline end-to-end implementation is in place).
+* **Implemented now:** Tenant prescription template domain entities, lifecycle enum, application command/query contracts, EF persistence mappings, infrastructure handlers, baseline domain tests, owner template list/editor routes, prescription-create navigation to template management, and draft-only template picker integration are implemented. Template loading now validates tenant scope, active template status, draft status, required reusable item identity, quantity, selected provider availability, provider category capabilities, duplicate conflicts, and performs all-or-nothing item copying into the draft prescription.
 * **Target artifacts:** `PrescriptionTemplate`, `PrescriptionTemplateItem`, `CreatePrescriptionTemplateCommand`, `UpdatePrescriptionTemplateCommand`, `ArchivePrescriptionTemplateCommand`, `AddPrescriptionTemplateItemCommand`, `RemovePrescriptionTemplateItemCommand`, `LoadPrescriptionTemplateIntoDraftCommand`, `GetPrescriptionTemplatesQuery`, `GetPrescriptionTemplateQuery`, `PrescriptionTemplateList`, `PrescriptionTemplateEditor`, and `PrescriptionTemplatePicker`.
 * **Authoritative state:** `PrescriptionTemplate` owns reusable tenant template state. `PrescriptionRecord` owns active draft and submitted prescription state. Loading a template copies validated item data into a draft and must not link the draft to mutable template state.
-* **Known gaps:** Routes, UI surfaces, owner authorization policy integration, provider-capability validation during load, conflict decisions beyond append-only loading, migrations, and fuller handler/integration tests remain pending.
+* **Known gaps:** Dedicated authorization policy hardening, medical reference-code availability lookup during load, explicit EF migration generation for environments that do not use automatic schema management, richer handler/integration tests, and optional create-from-existing-prescription workflow remain pending.
 
 ## 2. Artifact List and Responsibilities
 

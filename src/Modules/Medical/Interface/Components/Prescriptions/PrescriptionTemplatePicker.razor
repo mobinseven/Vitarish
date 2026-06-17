@@ -1,0 +1,21 @@
+@inherits PrescriptionBase
+
+<Stack>
+    <MudSelect T="Guid?" Label="@Localizer["Templates"]" Value="selectedTemplateId" ValueChanged="OnTemplateSelectedAsync">
+        @foreach (PrescriptionTemplateSummaryDto template in templates)
+        {
+            <MudSelectItem T="Guid?" Value="@((Guid?)template.Id)">@template.Name (@template.ItemCount)</MudSelectItem>
+        }
+    </MudSelect>
+
+    @if (selectedTemplate is not null)
+    {
+        <StackField Label="@selectedTemplate.Name" HelperText="@selectedTemplate.Description" />
+        <StackField Label="@selectedTemplate.ItemCount.ToString()" HelperText="@Localizer["Items"]" />
+        <StackButton Color="Color.Secondary"
+                     Label="@Localizer["Load"]"
+                     EndIcon="fa-solid fa-download"
+                     OnClick="LoadAsync"
+                     Disabled="@(PrescriptionId == Guid.Empty)" />
+    }
+</Stack>
