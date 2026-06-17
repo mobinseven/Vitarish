@@ -162,7 +162,7 @@
     private void ValidateTenantAndCorpus(string id) { if(string.IsNullOrWhiteSpace(tenantId)) throw new InvalidOperationException("TenantId is required."); _ = ParseId(id); }
     private void ValidateImportInputs(string id) { ValidateTenantAndCorpus(id); if(string.IsNullOrWhiteSpace(format)) throw new InvalidOperationException("Format is required."); if(string.IsNullOrWhiteSpace(importText)) throw new InvalidOperationException("Paste content before importing."); }
     private MemoryStream BuildImportContentStream() => new(Encoding.UTF8.GetBytes(importText));
-    private KnowledgeImportRequest BuildImportRequest(Stream content) => new() { CorpusId = ParseId(selectedImportCorpusId), TenantId = tenantId.Trim(), Content = content, Format = format.Trim(), SourceName = sourceName };
+    private KnowledgeImportRequest BuildImportRequest(Stream content) => new() { CorpusId = ParseId(selectedImportCorpusId), TenantId = tenantId.Trim(), Content = content, Format = format.Trim(), SourceName = string.IsNullOrWhiteSpace(sourceName) ? null : sourceName.Trim() };
     private static Guid ParseId(string id) => ParseId(id, "CorpusId");
     private static Guid ParseId(string id, string fieldName) => Guid.TryParse(id?.Trim(), out Guid value) ? value : throw new InvalidOperationException($"{fieldName} must be a GUID.");
     private async Task RunAsync(Func<Task> action) { try { isBusy = true; status = null; statusColor = Color.Info; await action(); statusColor = Color.Success; } catch(Exception ex) { status = ex.Message; statusColor = Color.Error; } finally { isBusy = false; } }
