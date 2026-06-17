@@ -156,7 +156,7 @@
 
     private async Task RefreshCorporaAsync() => corpora = string.IsNullOrWhiteSpace(tenantId) ? [] : await KnowledgeService.ListCorporaAsync(tenantId.Trim(), CancellationToken.None);
     private void SelectCorpus(string id) => selectedImportCorpusId = selectedIndexCorpusId = selectedEvaluationCorpusId = id;
-    private async Task SelectImportCorpusAsync(string? id) { selectedImportCorpusId = id ?? string.Empty; replaceSourceId = string.Empty; await RefreshImportSourcesAsync(); }
+    private async Task SelectImportCorpusAsync(string? id) => await RunAsync(async () => { selectedImportCorpusId = id ?? string.Empty; replaceSourceId = string.Empty; await RefreshImportSourcesAsync(); });
     private async Task RefreshImportSourcesAsync() => importSources = string.IsNullOrWhiteSpace(tenantId) || string.IsNullOrWhiteSpace(selectedImportCorpusId) ? [] : await KnowledgeService.GetSourcesAsync(ParseId(selectedImportCorpusId), tenantId.Trim(), CancellationToken.None);
     private void ValidateCorpus() { ValidateTenantAndCorpus(corpusId); if(string.IsNullOrWhiteSpace(name)) throw new InvalidOperationException("Name is required."); }
     private void ValidateTenantAndCorpus(string id) { if(string.IsNullOrWhiteSpace(tenantId)) throw new InvalidOperationException("TenantId is required."); _ = ParseId(id); }
