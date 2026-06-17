@@ -1,0 +1,11 @@
+@attribute [Route(AppRoutes.Prescriptions.OwnerPrescriptionTemplateCreate)]
+@attribute [Route(AppRoutes.Prescriptions.OwnerPrescriptionTemplateEditTemplate)]
+@inherits TenantPageBase
+
+<PrescriptionTemplateEditor TemplateId="TemplateId" OnSaved="OnSaved" />
+
+@code {
+    [Parameter] public Guid? TemplateId { get; set; }
+    protected override Task ReloadRequired() => Task.CompletedTask;
+    private void OnSaved(Guid id) => NavigationManager.NavigateTo(AppRoutes.Prescriptions.OwnerPrescriptionTemplateEdit(id));
+}

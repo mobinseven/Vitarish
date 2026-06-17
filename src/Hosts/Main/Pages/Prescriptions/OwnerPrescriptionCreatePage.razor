@@ -15,6 +15,11 @@
                                Label="@Localizer["SelectInsuranceProvider"]"
                                IsLoading="isLoadingProviders" />
 
+    <StackButton Color="Color.Info"
+                 Label="@Localizer["Templates"]"
+                 EndIcon="fa-solid fa-layer-group"
+                 OnClick="@(() => NavigationManager.NavigateTo(AppRoutes.Prescriptions.OwnerPrescriptionTemplates))" />
+
     <StackButton Color="Color.Primary"
                  Label="@Localizer["CreateDraft"]"
                  EndIcon="fa-solid fa-file-medical"
