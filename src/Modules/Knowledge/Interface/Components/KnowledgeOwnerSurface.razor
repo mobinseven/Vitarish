@@ -127,7 +127,6 @@
         KnowledgeCorpus corpus = new() { Id = Guid.NewGuid(), TenantId = CurrentTenantId, Name = name.Trim(), Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(), IsActive = isActive };
         await KnowledgeService.SaveCorpusAsync(corpus, CancellationToken.None);
         await RefreshCorporaAsync(corpus.Id.ToString());
-        await RefreshImportSourcesAsync();
         name = string.Empty;
         description = null;
         isActive = true;
