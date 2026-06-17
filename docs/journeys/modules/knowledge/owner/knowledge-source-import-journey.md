@@ -15,7 +15,7 @@
 | Command contract | `IKnowledgeService.ImportAsync` is inherited from `IKnowledgeImporter`. |
 | Import commands | `SaveKnowledgeImportCommand` and `ReplaceKnowledgeSourceImportCommand` represent persisted import writes. |
 | Input formats | The UI offers `markdown` and `plain-text`. |
-| Domain state | `KnowledgeSource`, `KnowledgeDocument`, and `KnowledgeChunk` are created for the selected `KnowledgeCorpus`. |
+| Domain state | KnowledgeSource, KnowledgeDocument, KnowledgeChunk, and optional KnowledgeQuestion (for evaluation) are created for the selected KnowledgeCorpus. |
 | Feedback | Import result summarizes source, document, and chunk counts. |
 
 ## 3. Happy Path
