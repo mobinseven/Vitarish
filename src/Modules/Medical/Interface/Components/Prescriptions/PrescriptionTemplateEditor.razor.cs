@@ -9,12 +9,27 @@ public partial class PrescriptionTemplateEditor : PrescriptionBase
     private string name = string.Empty;
     private string? description;
     private TemplateItemInput newItem = new();
+    private Guid? loadedTemplateId;
 
-    protected override async Task OnParametersSetAsync()
+    protected override Task OnParametersSetAsync() => LoadTemplateAsync(force: false);
+
+    protected override Task ReloadRequired() => LoadTemplateAsync(force: true);
+
+    private async Task LoadTemplateAsync(bool force)
     {
+        if (!force && TemplateId == loadedTemplateId)
+        {
+            return;
+        }
+
+        loadedTemplateId = TemplateId;
+
         if (TemplateId is null || TemplateId == Guid.Empty)
         {
             template = null;
+            name = string.Empty;
+            description = null;
+            newItem = new();
             return;
         }
 
@@ -25,9 +40,8 @@ public partial class PrescriptionTemplateEditor : PrescriptionBase
         });
         name = template?.Name ?? string.Empty;
         description = template?.Description;
+        newItem = new();
     }
-
-    protected override Task ReloadRequired() => OnParametersSetAsync();
 
     private async Task SaveAsync()
     {
@@ -48,6 +62,7 @@ public partial class PrescriptionTemplateEditor : PrescriptionBase
     private async Task AddItemAsync()
     {
         if (TemplateId is null || TemplateId == Guid.Empty) return;
+        if (string.IsNullOrWhiteSpace(newItem.ReferenceCode) && string.IsNullOrWhiteSpace(newItem.DisplayName)) return;
         PrescriptionTemplateCommandResult result = await Mediator.Send(new AddPrescriptionTemplateItemCommand
         {
             TemplateId = TemplateId.Value,
