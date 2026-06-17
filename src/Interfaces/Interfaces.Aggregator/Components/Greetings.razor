@@ -1,0 +1,10 @@
+@inherits IdentityCommonBase
+@using MudBlazor
+@if(User is null)
+{
+    return;
+}
+<MudButton>
+    @Localizer["Greetings"], @User.FirstName
+</MudButton>
+

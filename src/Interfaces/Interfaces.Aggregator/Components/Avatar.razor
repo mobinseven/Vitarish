@@ -1,6 +1,3 @@
-@using MudBlazor
-@using Vitarish.Files.Domain.Models
-@using Vitarish.Files.Interface.Components
 @if(FileId.HasValue)
 {
     <div class="@Class" style="@($"width:{_size}px;height:{_size}px;overflow:hidden;border-radius:{(Circle ? "50%" : "8px")};{Style}")">
@@ -12,6 +9,12 @@ else if(FileInformation is not null)
 
     <MudAvatar Size="@MudBlazor.Size.Large">
         <MudImage Src="@FileInformation.Thumbnail" />
+    </MudAvatar>
+}
+else
+{
+    <MudAvatar Size="@MudBlazor.Size.Large">
+        <MudIcon Icon="fa-solid fa-camera" />
     </MudAvatar>
 }
 

@@ -1,0 +1,45 @@
+@using MudBlazor
+@using Vitarish.Parties.Domain.Dtos
+@using Vitarish.Parties.Interface.Components.Base
+@inherits PartiesCommonBase
+
+@if(tenant is not null)
+{
+    <MudStack Class="glass px-4" Style="width: 100%; border-radius: 0;" Justify="Justify.Center" StretchItems="StretchItems.Middle" AlignItems="AlignItems.Center" Row>
+        <div style="opacity:0">
+            <Greetings />
+        </div>
+        <div>
+            <MudStack AlignItems="AlignItems.Center" Style="height: 100%;" Justify="Justify.Center" Class="my-4">
+                @if(!string.IsNullOrWhiteSpace(tenant.LogoUrl))
+                {
+                    <div>
+                        <MudAvatar>
+                            <MudImage Src="tenant.LogoUrl" />
+                        </MudAvatar>
+                    </div>
+                }
+                <div>
+                    @tenant.Name
+                </div>
+                @if(!string.IsNullOrWhiteSpace(tenant.Description))
+                {
+                    <div>
+                        @tenant.Description
+                    </div>
+                }
+            </MudStack>
+        </div>
+        <div>
+            <Greetings />
+        </div>
+    </MudStack>
+}
+@code {
+    private TenantReadDto? tenant;
+    protected override async Task ReloadRequired()
+    {
+        if(RequestContext.TenantId is not null)
+            tenant = await PartiesService.GetTenantAsync(Guid.Parse(RequestContext.TenantId));
+    }
+}

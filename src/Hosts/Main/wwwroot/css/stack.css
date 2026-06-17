@@ -2,20 +2,16 @@
     --stack-item-padding: 14px;
     --stack-radius: 20px;
 }
-
 .stack {
-    background-color: var(--glass-bg) !important;
-    backdrop-filter: var(--glass-backdrop);
     -webkit-backdrop-filter: var(--glass-backdrop);
     border-radius: var(--stack-radius) !important;
-    border: var(--glass-border-width) solid var(--glass-border);
-    box-shadow: var(--glass-inset);
     overflow: hidden;
+    padding: var(--stack-item-padding);
 }
 
     .stack > .stack-item {
         margin: 0;
-        padding: var(--stack-item-padding); 
+        padding: var(--stack-item-padding);
         border-radius: unset !important;
         transition: background 0.15s ease, box-shadow 0.15s ease, transform 0.1s ease;
     }
@@ -24,131 +20,99 @@
             border-top-left-radius: var(--stack-radius) !important;
             border-top-right-radius: var(--stack-radius) !important;
         }
-
-            .stack > .stack-item:first-child .stack-field {
-                backdrop-filter: brightness(var(--brightness));
-            }
-
-        .stack > .stack-item:not(:last-child) {
-            border-bottom: var(--glass-border-width) solid var(--stack-glass-border, var(--glass-border)) !important;
-        }
-
         .stack > .stack-item:last-child {
             border-bottom-left-radius: var(--stack-radius) !important;
-            border-bottom-right-radius: var(--stack-radius) !important;
-            margin: 0;
-        }
-        .stack > .stack-item[class*="mud-button-text-"] .mud-button-icon-end {
-            padding: 10px;
-            border-radius: calc(var(--stack-radius) - var(--stack-item-padding)) !important;
+            border-bottom-right-radius: var(--stack-radius) !important;\
         }
 
-        .stack > .stack-item[class*="mud-button-text-"]:not(:disabled):not(.mud-disabled) .mud-button-icon-end {
-            color: var(--stack-glass-text) !important;
-            box-shadow: var(--stack-glass-shadow), var(--stack-glass-inset);
-            backdrop-filter: var(--glass-backdrop);
-            -webkit-backdrop-filter: var(--glass-backdrop);
-        }
+/* -----------------------------------------
+   StackButton
+----------------------------------------- */
 
-        .stack > .stack-item[class*="mud-button-text-"]:not(:disabled):not(.mud-disabled):hover .mud-button-icon-end {
-            box-shadow: var(--stack-glass-shadow), var(--stack-glass-inset), 0 2px 8px rgb(var(--glass-shadow-rgb) / 0.08);
-        }
+.stack-button.palette-button {
+    --stack-button-gap: 0.85rem;
+    --stack-button-icon-size: 2.15rem;
+    --stack-button-padding-x: clamp(1rem, 3vw, 1.65rem);
+    --stack-button-padding-y: 0.85rem;
+    min-height: 3.45rem;
+    padding: var(--stack-button-padding-y) var(--stack-button-padding-x);
+    justify-content: flex-start;
+    text-align: start;
+    text-transform: none;
+    overflow: hidden;
+}
 
-        .stack > .stack-item[class*="mud-button-text-"]:not(:disabled):not(.mud-disabled):active .mud-button-icon-end {
-            background: var(--stack-glass-bg-active) !important;
-            transform: scaleY(0.98);
-            box-shadow: var(--stack-glass-shadow), var(--stack-glass-inset);
-        }
+    .stack-button.palette-button .mud-button-label {
+        width: 100%;
+        min-width: 0;
+    }
 
-        .stack > .stack-item[class*="mud-button-text-"]:not(:disabled):not(.mud-disabled):focus-visible .mud-button-icon-end {
-            box-shadow: var(--stack-glass-shadow), var(--stack-glass-inset), var(--stack-glass-ring);
-            outline: none;
-        }
+.stack-button__layout {
+    width: 100%;
+    min-width: 0;
+    gap: var(--stack-button-gap);
+    color: var(--palette-button-color);
+}
 
-        .stack > .stack-item.mud-button-text-default {
-            --stack-glass-text: var(--glass-primary-text);
-            --stack-glass-bg: var(--glass-primary-bg);
-            --stack-glass-bg-hover: var(--glass-primary-bg-hover);
-            --stack-glass-bg-active: var(--glass-primary-bg-active);
-            --stack-glass-border: var(--glass-primary-border);
-            --stack-glass-shadow: var(--glass-primary-shadow);
-            --stack-glass-inset: var(--glass-primary-inset);
-            --stack-glass-ring: var(--glass-primary-ring);
-        }
+.stack-button__text {
+    min-width: 0;
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: 0.15rem;
+    overflow: hidden;
+}
 
-        .stack > .stack-item.mud-button-text-primary {
-            --stack-glass-text: var(--glass-primary-text);
-            --stack-glass-bg: var(--glass-primary-bg);
-            --stack-glass-bg-hover: var(--glass-primary-bg-hover);
-            --stack-glass-bg-active: var(--glass-primary-bg-active);
-            --stack-glass-border: var(--glass-primary-border);
-            --stack-glass-shadow: var(--glass-primary-shadow);
-            --stack-glass-inset: var(--glass-primary-inset);
-            --stack-glass-ring: var(--glass-primary-ring);
-        }
+.stack-button__label,
+.stack-button__helper {
+    color: currentColor;
+}
 
-        .stack > .stack-item.mud-button-text-secondary {
-            --stack-glass-text: var(--glass-secondary-text);
-            --stack-glass-bg: var(--glass-secondary-bg);
-            --stack-glass-bg-hover: var(--glass-secondary-bg-hover);
-            --stack-glass-bg-active: var(--glass-secondary-bg-active);
-            --stack-glass-border: var(--glass-secondary-border);
-            --stack-glass-shadow: var(--glass-secondary-shadow);
-            --stack-glass-inset: var(--glass-secondary-inset);
-            --stack-glass-ring: var(--glass-secondary-ring);
-        }
+    .stack-button__label .mud-typography,
+    .stack-button__helper .mud-typography {
+        color: currentColor;
+    }
 
-        .stack > .stack-item.mud-button-text-tertiary {
-            --stack-glass-text: var(--glass-tertiary-text);
-            --stack-glass-bg: var(--glass-tertiary-bg);
-            --stack-glass-bg-hover: var(--glass-tertiary-bg-hover);
-            --stack-glass-bg-active: var(--glass-tertiary-bg-active);
-            --stack-glass-border: var(--glass-tertiary-border);
-            --stack-glass-shadow: var(--glass-tertiary-shadow);
-            --stack-glass-inset: var(--glass-tertiary-inset);
-            --stack-glass-ring: var(--glass-tertiary-ring);
-        }
+.stack-button__helper {
+    opacity: 0.72;
+}
 
-        .stack > .stack-item.mud-button-text-info {
-            --stack-glass-text: var(--glass-info-text);
-            --stack-glass-bg: var(--glass-info-bg);
-            --stack-glass-bg-hover: var(--glass-info-bg-hover);
-            --stack-glass-bg-active: var(--glass-info-bg-active);
-            --stack-glass-border: var(--glass-info-border);
-            --stack-glass-shadow: var(--glass-info-shadow);
-            --stack-glass-inset: var(--glass-info-inset);
-            --stack-glass-ring: var(--glass-info-ring);
-        }
+.stack-button__spacer {
+    flex: 0 0 auto;
+}
 
-        .stack > .stack-item.mud-button-text-success {
-            --stack-glass-text: var(--glass-success-text);
-            --stack-glass-bg: var(--glass-success-bg);
-            --stack-glass-bg-hover: var(--glass-success-bg-hover);
-            --stack-glass-bg-active: var(--glass-success-bg-active);
-            --stack-glass-border: var(--glass-success-border);
-            --stack-glass-shadow: var(--glass-success-shadow);
-            --stack-glass-inset: var(--glass-success-inset);
-            --stack-glass-ring: var(--glass-success-ring);
-        }
+.stack-button__end-icon,
+.stack-button__custom-end {
+    flex: 0 0 auto;
+    color: currentColor;
+}
 
-        .stack > .stack-item.mud-button-text-warning {
-            --stack-glass-text: var(--glass-warning-text);
-            --stack-glass-bg: var(--glass-warning-bg);
-            --stack-glass-bg-hover: var(--glass-warning-bg-hover);
-            --stack-glass-bg-active: var(--glass-warning-bg-active);
-            --stack-glass-border: var(--glass-warning-border);
-            --stack-glass-shadow: var(--glass-warning-shadow);
-            --stack-glass-inset: var(--glass-warning-inset);
-            --stack-glass-ring: var(--glass-warning-ring);
-        }
+.stack-button__end-icon {
+    width: var(--stack-button-icon-size);
+    height: var(--stack-button-icon-size);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999rem;
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16), inset 0 -0.45rem 0.8rem rgba(0, 0, 0, 0.12);
+}
 
-        .stack > .stack-item.mud-button-text-error {
-            --stack-glass-text: var(--glass-error-text);
-            --stack-glass-bg: var(--glass-error-bg);
-            --stack-glass-bg-hover: var(--glass-error-bg-hover);
-            --stack-glass-bg-active: var(--glass-error-bg-active);
-            --stack-glass-border: var(--glass-error-border);
-            --stack-glass-shadow: var(--glass-error-shadow);
-            --stack-glass-inset: var(--glass-error-inset);
-            --stack-glass-ring: var(--glass-error-ring);
-        }
+.stack-button .mud-icon-root,
+.stack-button .mud-button-icon-start,
+.stack-button .mud-button-icon-end {
+    color: currentColor;
+}
+
+.stack-button--disabled,
+.stack-button[disabled],
+.stack-button.mud-disabled {
+    pointer-events: none;
+}
+
+@media (max-width: 420px) {
+    .stack-button.palette-button {
+        --stack-button-icon-size: 1.95rem;
+        --stack-button-padding-x: 1rem;
+    }
+}

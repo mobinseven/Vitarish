@@ -16,6 +16,7 @@
   <Folder Name="/src/Hosts/">
     <Project Path="src/Hosts/Main/Main.csproj" />
   </Folder>
+  <Folder Name="/tests/" />
   <Folder Name="/tests/Hosts/">
     <Project Path="tests/Hosts/Main.Tests/Main.Tests.csproj" />
   </Folder>
@@ -23,8 +24,7 @@
     <Project Path="src/Interfaces/Interfaces.Accounts/Interfaces.Accounts.csproj" />
     <Project Path="src/Interfaces/Interfaces.Admins/Interfaces.Admins.csproj" />
     <Project Path="src/Interfaces/Interfaces.Base/Interfaces.Base.csproj" />
-    <Project Path="src/Interfaces/Interfaces.Modules/Interfaces.Modules.csproj" Id="58fae1cd-da6c-49d4-a500-516c6c509359" />
-    <Project Path="src/Interfaces/Interfaces.Widgets/Interfaces.Widgets.csproj" />
+    <Project Path="src/Interfaces/Interfaces.Aggregator/Interfaces.Aggregator.csproj" Id="58fae1cd-da6c-49d4-a500-516c6c509359" />
   </Folder>
   <Folder Name="/src/Libraries/" />
   <Folder Name="/src/Libraries/Audit/">
