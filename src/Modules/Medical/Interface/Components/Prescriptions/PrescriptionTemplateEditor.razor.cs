@@ -9,9 +9,21 @@ public partial class PrescriptionTemplateEditor : PrescriptionBase
     private string name = string.Empty;
     private string? description;
     private TemplateItemInput newItem = new();
+    private Guid? loadedTemplateId;
 
-    protected override async Task OnParametersSetAsync()
+    protected override Task OnParametersSetAsync() => LoadTemplateAsync(force: false);
+
+    protected override Task ReloadRequired() => LoadTemplateAsync(force: true);
+
+    private async Task LoadTemplateAsync(bool force)
     {
+        if (!force && TemplateId == loadedTemplateId)
+        {
+            return;
+        }
+
+        loadedTemplateId = TemplateId;
+
         if (TemplateId is null || TemplateId == Guid.Empty)
         {
             template = null;
@@ -28,9 +40,8 @@ public partial class PrescriptionTemplateEditor : PrescriptionBase
         });
         name = template?.Name ?? string.Empty;
         description = template?.Description;
+        newItem = new();
     }
-
-    protected override Task ReloadRequired() => OnParametersSetAsync();
 
     private async Task SaveAsync()
     {

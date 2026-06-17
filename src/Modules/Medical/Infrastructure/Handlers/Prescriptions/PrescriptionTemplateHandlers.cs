@@ -79,6 +79,8 @@ public sealed class AddPrescriptionTemplateItemHandler(PrescriptionDbContext dbC
         PrescriptionTemplate? template = await dbContext.PrescriptionTemplates.Include(t => t.Items).FirstOrDefaultAsync(t => t.Id == request.TemplateId && t.TenantId == request.TenantId, cancellationToken);
         if (template is null) return PrescriptionTemplateCommandResult.Failure("قالب نسخه یافت نشد.");
         if (!template.IsActive) return PrescriptionTemplateCommandResult.Failure("قالب بایگانی‌شده قابل ویرایش نیست.");
+        PrescriptionItemIdentity requestedIdentity = new(request.Category, request.ReferenceCode, request.DisplayName);
+        if (template.Items.Any(item => PrescriptionItemIdentityComparer.AreSame(new PrescriptionItemIdentity(item.Category, item.ReferenceCode, item.DisplayName), requestedIdentity))) return PrescriptionTemplateCommandResult.Failure("آیتم تکراری در قالب نسخه مجاز نیست.");
         PrescriptionTemplateItem item = new() { Id = Guid.NewGuid(), PrescriptionTemplateId = template.Id, Category = request.Category, ReferenceCode = request.ReferenceCode, DisplayName = request.DisplayName, DosageJson = request.DosageJson, Quantity = request.Quantity, DurationDays = request.DurationDays, MetadataJson = request.MetadataJson, SortOrder = NextSortOrder(template.Items), CreatedAt = DateTime.UtcNow };
         template.Items.Add(item); template.UpdatedAt = DateTime.UtcNow;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
@@ -151,28 +153,11 @@ public sealed class LoadPrescriptionTemplateIntoDraftHandler(PrescriptionDbConte
             InsuranceProviderCapabilityType? requiredCapability = MapCategoryToCapability(item.Category);
             if (requiredCapability.HasValue && !capabilities.Contains(requiredCapability.Value)) return $"بیمه‌گر انتخابی از نوع آیتم «{item.Category}» پشتیبانی نمی‌کند.";
             PrescriptionItemIdentity templateIdentity = new(item.Category, item.ReferenceCode, item.DisplayName);
-            if (itemsToCheck.Any(existing => IsSamePrescriptionItem(existing, templateIdentity))) return "بارگذاری قالب به دلیل آیتم تکراری انجام نشد.";
+            if (itemsToCheck.Any(existing => PrescriptionItemIdentityComparer.AreSame(existing, templateIdentity))) return "بارگذاری قالب به دلیل آیتم تکراری انجام نشد.";
             itemsToCheck.Add(templateIdentity);
         }
         return null;
     }
-
-    private static bool IsSamePrescriptionItem(PrescriptionItemIdentity existing, PrescriptionItemIdentity templateItem)
-    {
-        if (existing.Category != templateItem.Category) return false;
-
-        bool hasExistingCode = !string.IsNullOrWhiteSpace(existing.ReferenceCode);
-        bool hasTemplateCode = !string.IsNullOrWhiteSpace(templateItem.ReferenceCode);
-
-        if (hasExistingCode && hasTemplateCode)
-        {
-            return string.Equals(existing.ReferenceCode!.Trim(), templateItem.ReferenceCode!.Trim(), StringComparison.OrdinalIgnoreCase);
-        }
-
-        return string.Equals(existing.DisplayName?.Trim(), templateItem.DisplayName?.Trim(), StringComparison.OrdinalIgnoreCase);
-    }
-
-    private sealed record PrescriptionItemIdentity(PrescriptionItemCategory Category, string? ReferenceCode, string? DisplayName);
 
     private static InsuranceProviderCapabilityType? MapCategoryToCapability(PrescriptionItemCategory category) => category switch
     {
@@ -189,6 +174,35 @@ public sealed class LoadPrescriptionTemplateIntoDraftHandler(PrescriptionDbConte
     private static int CurrentMaxSortOrder(IEnumerable<PrescriptionItem> items)
     {
         return items.Any() ? items.Max(i => i.SortOrder) : 0;
+    }
+}
+
+
+internal sealed record PrescriptionItemIdentity(PrescriptionItemCategory Category, string? ReferenceCode, string? DisplayName);
+
+internal static class PrescriptionItemIdentityComparer
+{
+    internal static bool AreSame(PrescriptionItemIdentity existing, PrescriptionItemIdentity candidate)
+    {
+        if (existing.Category != candidate.Category) return false;
+
+        bool hasExistingCode = !string.IsNullOrWhiteSpace(existing.ReferenceCode);
+        bool hasCandidateCode = !string.IsNullOrWhiteSpace(candidate.ReferenceCode);
+
+        if (hasExistingCode && hasCandidateCode)
+        {
+            return string.Equals(existing.ReferenceCode!.Trim(), candidate.ReferenceCode!.Trim(), StringComparison.OrdinalIgnoreCase);
+        }
+
+        string? existingName = existing.DisplayName?.Trim();
+        string? candidateName = candidate.DisplayName?.Trim();
+
+        if (string.IsNullOrWhiteSpace(existingName) || string.IsNullOrWhiteSpace(candidateName))
+        {
+            return false;
+        }
+
+        return string.Equals(existingName, candidateName, StringComparison.OrdinalIgnoreCase);
     }
 }
 
