@@ -74,10 +74,20 @@ public sealed class AddPrescriptionTemplateItemHandler(PrescriptionDbContext dbC
         PrescriptionTemplate? template = await dbContext.PrescriptionTemplates.Include(t => t.Items).FirstOrDefaultAsync(t => t.Id == request.TemplateId && t.TenantId == request.TenantId, cancellationToken);
         if (template is null) return PrescriptionTemplateCommandResult.Failure("قالب نسخه یافت نشد.");
         if (!template.IsActive) return PrescriptionTemplateCommandResult.Failure("قالب بایگانی‌شده قابل ویرایش نیست.");
-        PrescriptionTemplateItem item = new() { Id = Guid.NewGuid(), PrescriptionTemplateId = template.Id, Category = request.Category, ReferenceCode = request.ReferenceCode, DisplayName = request.DisplayName, DosageJson = request.DosageJson, Quantity = request.Quantity, DurationDays = request.DurationDays, MetadataJson = request.MetadataJson, SortOrder = template.Items.Count + 1, CreatedAt = DateTime.UtcNow };
+        PrescriptionTemplateItem item = new() { Id = Guid.NewGuid(), PrescriptionTemplateId = template.Id, Category = request.Category, ReferenceCode = request.ReferenceCode, DisplayName = request.DisplayName, DosageJson = request.DosageJson, Quantity = request.Quantity, DurationDays = request.DurationDays, MetadataJson = request.MetadataJson, SortOrder = NextSortOrder(template.Items), CreatedAt = DateTime.UtcNow };
         template.Items.Add(item); template.UpdatedAt = DateTime.UtcNow;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
         return PrescriptionTemplateCommandResult.Success(item.Id);
+    }
+
+    internal static int NextSortOrder(IEnumerable<PrescriptionTemplateItem> items)
+    {
+        return CurrentMaxSortOrder(items) + 1;
+    }
+
+    private static int CurrentMaxSortOrder(IEnumerable<PrescriptionTemplateItem> items)
+    {
+        return items.Any() ? items.Max(i => i.SortOrder) : 0;
     }
 }
 
@@ -107,7 +117,7 @@ public sealed class LoadPrescriptionTemplateIntoDraftHandler(PrescriptionDbConte
         PrescriptionRecord? prescription = await dbContext.Prescriptions.Include(p => p.Items).FirstOrDefaultAsync(p => p.Id == request.PrescriptionId && p.TenantId == request.TenantId, cancellationToken);
         if (prescription is null) return PrescriptionTemplateCommandResult.Failure("نسخه یافت نشد.");
         if (prescription.Status is not (PrescriptionStatus.Draft or PrescriptionStatus.NeedsCorrection)) return PrescriptionTemplateCommandResult.Failure("قالب فقط در نسخه پیش‌نویس یا نیازمند اصلاح قابل بارگذاری است.");
-        int sortOrder = prescription.Items.Count;
+        int sortOrder = CurrentMaxSortOrder(prescription.Items);
         foreach (PrescriptionTemplateItem templateItem in template.Items)
         {
             prescription.Items.Add(new PrescriptionItem { Id = Guid.NewGuid(), PrescriptionRecordId = prescription.Id, Category = templateItem.Category, ReferenceCode = templateItem.ReferenceCode, DisplayName = templateItem.DisplayName, DosageJson = templateItem.DosageJson, Quantity = templateItem.Quantity, DurationDays = templateItem.DurationDays, MetadataJson = templateItem.MetadataJson, SortOrder = ++sortOrder, CreatedAt = DateTime.UtcNow });
@@ -115,6 +125,10 @@ public sealed class LoadPrescriptionTemplateIntoDraftHandler(PrescriptionDbConte
         prescription.UpdatedAt = DateTime.UtcNow;
         _ = await dbContext.SaveChangesAsync(cancellationToken);
         return PrescriptionTemplateCommandResult.Success(prescription.Id);
+    }
+    private static int CurrentMaxSortOrder(IEnumerable<PrescriptionItem> items)
+    {
+        return items.Any() ? items.Max(i => i.SortOrder) : 0;
     }
 }
 
