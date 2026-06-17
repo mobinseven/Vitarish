@@ -13,11 +13,11 @@
 
 ## Current Implementation Alignment
 
-* **Status:** `planned`.
-* **Implemented now:** No dedicated tenant prescription template list, editor, picker, template domain entity, template command, or template query is currently identified in the prescription journey matrix.
+* **Status:** `implemented-partial`.
+* **Implemented now:** Tenant prescription template domain entities, lifecycle state, application commands/queries, EF mappings, infrastructure handlers, and all-or-nothing draft loading are implemented. UI list/editor/picker routes, explicit authorization policy wiring, provider medical-code lookup, provider capability validation, migrations, and executable tests remain pending in this environment.
 * **Target artifacts:** `PrescriptionTemplate`, `PrescriptionTemplateItem`, `CreatePrescriptionTemplateCommand`, `UpdatePrescriptionTemplateCommand`, `ArchivePrescriptionTemplateCommand`, `AddPrescriptionTemplateItemCommand`, `RemovePrescriptionTemplateItemCommand`, `LoadPrescriptionTemplateIntoDraftCommand`, `GetPrescriptionTemplatesQuery`, `GetPrescriptionTemplateQuery`, `PrescriptionTemplateList`, `PrescriptionTemplateEditor`, and `PrescriptionTemplatePicker`.
 * **Authoritative state:** `PrescriptionTemplate` owns reusable tenant template state. `PrescriptionRecord` owns active draft and submitted prescription state. Loading a template copies validated item data into a draft and must not link the draft to mutable template state.
-* **Known gaps:** Routes, UI surfaces, domain entities, EF mappings, handlers, authorization checks, tenant scoping, provider-capability validation, conflict decisions, and tests are not implemented yet.
+* **Known gaps:** Routes, UI surfaces, authorization checks beyond tenant-scoped command/query inputs, provider-capability validation, medical-code availability validation, generated EF migrations, and runnable tests are not completed yet.
 
 ## 2. Artifact List and Responsibilities
 

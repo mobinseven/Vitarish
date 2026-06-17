@@ -50,6 +50,8 @@ public sealed class PrescriptionDbContext : DbContext, IMultiTenantDbContext
     public DbSet<DoctorProviderCredential> DoctorProviderCredentials => Set<DoctorProviderCredential>();
     public DbSet<PrescriptionRecord> Prescriptions => Set<PrescriptionRecord>();
     public DbSet<PrescriptionItem> PrescriptionItems => Set<PrescriptionItem>();
+    public DbSet<PrescriptionTemplate> PrescriptionTemplates => Set<PrescriptionTemplate>();
+    public DbSet<PrescriptionTemplateItem> PrescriptionTemplateItems => Set<PrescriptionTemplateItem>();
     public DbSet<PrescriptionProviderSubmission> PrescriptionSubmissions => Set<PrescriptionProviderSubmission>();
     public DbSet<PrescriptionOutboxRecord> OutboxRecords => Set<PrescriptionOutboxRecord>();
     public DbSet<PrescriptionEscalation> Escalations => Set<PrescriptionEscalation>();
@@ -78,6 +80,8 @@ public sealed class PrescriptionDbContext : DbContext, IMultiTenantDbContext
         ConfigureDoctorProviderCredential(modelBuilder);
         ConfigurePrescriptionRecord(modelBuilder);
         ConfigurePrescriptionItem(modelBuilder);
+        ConfigurePrescriptionTemplate(modelBuilder);
+        ConfigurePrescriptionTemplateItem(modelBuilder);
         ConfigurePrescriptionProviderSubmission(modelBuilder);
         ConfigurePrescriptionOutboxRecord(modelBuilder);
         ConfigurePrescriptionEscalation(modelBuilder);
@@ -130,6 +134,32 @@ public sealed class PrescriptionDbContext : DbContext, IMultiTenantDbContext
         _ = entity.HasOne<PrescriptionRecord>()
             .WithMany(p => p.Items)
             .HasForeignKey(e => e.PrescriptionRecordId)
+            .OnDelete(DeleteBehavior.Cascade);
+    });
+
+    private static void ConfigurePrescriptionTemplate(ModelBuilder modelBuilder) => modelBuilder.Entity<PrescriptionTemplate>(entity =>
+    {
+        _ = entity.ToTable("PrescriptionTemplates", "Prescription");
+        _ = entity.HasQueryFilter(e => e.DeletedAt == null);
+        _ = entity.Property(e => e.TenantId).HasMaxLength(128);
+        _ = entity.Property(e => e.Name).HasMaxLength(256);
+        _ = entity.Property(e => e.Description).HasMaxLength(1024);
+        _ = entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(32);
+        _ = entity.HasIndex(e => new { e.TenantId, e.Status, e.Name }).HasDatabaseName("IX_Template_Tenant_Status_Name");
+        _ = entity.IsMultiTenant();
+    });
+
+    private static void ConfigurePrescriptionTemplateItem(ModelBuilder modelBuilder) => modelBuilder.Entity<PrescriptionTemplateItem>(entity =>
+    {
+        ConfigureTenantEntity(entity, "PrescriptionTemplateItems");
+        _ = entity.Property(e => e.Category).HasConversion<string>().HasMaxLength(64);
+        _ = entity.Property(e => e.ReferenceCode).HasMaxLength(128);
+        _ = entity.Property(e => e.DisplayName).HasMaxLength(512);
+        _ = entity.Property(e => e.DosageJson).HasMaxLength(4096);
+        _ = entity.Property(e => e.MetadataJson).HasMaxLength(4096);
+        _ = entity.HasOne<PrescriptionTemplate>()
+            .WithMany(t => t.Items)
+            .HasForeignKey(e => e.PrescriptionTemplateId)
             .OnDelete(DeleteBehavior.Cascade);
     });
 
