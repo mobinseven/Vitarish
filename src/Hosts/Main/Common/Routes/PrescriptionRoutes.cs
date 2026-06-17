@@ -8,6 +8,9 @@ public static partial class AppRoutes
         public const string OwnerPrescriptionTemplate = "/owner/clinic/prescriptions/{prescriptionId:guid}";
         public const string OwnerPrescriptionCreate = "/owner/clinic/prescriptions/new";
         public const string OwnerPrescriptionCreateTemplate = "/owner/clinic/prescriptions/new/{patientId:guid}";
+        public const string OwnerPrescriptionTemplates = "/owner/clinic/prescriptions/templates";
+        public const string OwnerPrescriptionTemplateCreate = "/owner/clinic/prescriptions/templates/new";
+        public const string OwnerPrescriptionTemplateEditTemplate = "/owner/clinic/prescriptions/templates/{templateId:guid}";
 
         // Admin routes
         public const string OwnerPrescriptionOperationalDashboard = "/owner/clinic/prescriptions/admin/operational";
@@ -19,5 +22,6 @@ public static partial class AppRoutes
 
         public static string OwnerPrescription(Guid prescriptionId) => $"{OwnerPrescriptions}/{GuidValue(prescriptionId)}";
         public static string OwnerPrescriptionCreateForPatient(Guid patientId) => $"{OwnerPrescriptionCreate}/{GuidValue(patientId)}";
+        public static string OwnerPrescriptionTemplateEdit(Guid templateId) => $"{OwnerPrescriptionTemplates}/{GuidValue(templateId)}";
     }
 }
