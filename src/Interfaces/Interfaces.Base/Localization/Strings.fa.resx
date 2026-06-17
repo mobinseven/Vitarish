@@ -1911,16 +1911,19 @@
   <data name="Professional" xml:space="preserve">
     <value>حرفه‌ای</value>
   </data>
+  <data name="IdentificationCode" xml:space="preserve">
+    <value>شناسه شخص (شماره ملی، شماره پاسپورت)</value>
+  </data>
+  <data name="NameDesc" xml:space="preserve">
+    <value>نام (از آخر به اول)</value>
+  </data>
   <data name="Gender_Unspecified" xml:space="preserve">
     <value>نامشخص</value>
   </data>
   <data name="Education" xml:space="preserve">
     <value>تحصیلات</value>
   </data>
-  <data name="IdentificationCode" xml:space="preserve">
-    <value>شناسه شخص (شماره ملی، شماره پاسپورت)</value>
-  </data>
-  <data name="NameDesc" xml:space="preserve">
-    <value>نام (از آخر به اول)</value>
+  <data name="Greetings" xml:space="preserve">
+    <value>درود</value>
   </data>
 </root>

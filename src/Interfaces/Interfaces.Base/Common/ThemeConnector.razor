@@ -1,15 +1,19 @@
+@using System.Reflection
+@using Vitarish.Interfaces.Base.Attributes
 @implements IDisposable
 
 @inject IThemeService ThemeService
 
-@if(ThemeService.IsDarkMode)
+@((MarkupString)PaletteCss.GetStyleTag(options: new PaletteCss.PaletteOptions
 {
-    <div style="width: 100dvw; height: 100dvh; background-image: url('/bg/bg.webp'); background-size: cover; background-color: black; position: fixed; top: 0; right: 0; z-index: -100; pointer-events: none; opacity: .2;"></div>
-}
-else
-{
-    <div style="width: 100dvw; height: 100dvh; background-image: url('/bg/bg.webp'); background-size: cover; position: fixed; top: 0; right: 0; z-index: -100; pointer-events: none; opacity: .2;"></div>
-}
+    BodyPalette = CurrentPalette,
+    BodyPaletteMode = ThemeService.Settings.Theme switch {
+        ThemePreference.Auto => PaletteCss.PaletteMode.Auto,
+        ThemePreference.Dark => PaletteCss.PaletteMode.Dark,
+        ThemePreference.Light => PaletteCss.PaletteMode.Light,
+        _ => PaletteCss.PaletteMode.Auto
+    }
+}))
 
 @if(RendererInfo.IsInteractive)
 {
@@ -27,25 +31,30 @@ else
                       @rendermode="InteractiveServer"
                       Theme="@ThemeService.Theme"
                       IsDarkMode="@ThemeService.IsDarkMode"
-                      IsDarkModeChanged="OnDarkModeChanged" 
+                      IsDarkModeChanged="OnDarkModeChanged"
                       ObserveSystemDarkModeChange="@ThemeService.ObserveSystemThemeChange" />
 }
-
-@* <ThemeSurfaceConfigurator @rendermode="InteractiveServer" /> *@
-
-<div style="height: 100%" class="glass-theme glass--transparent">
+<div style="height: 100%;">
     @ChildContent
 </div>
 
+
 @code {
+    [Inject] protected NavigationManager NavigationManager { get; set; } = default!;
 
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    [CascadingParameter(Name = "CurrentRouteData")] public RouteData? RouteData { get; set; }
+
     private MudThemeProvider? _provider;
+
+    private Palettes? CurrentPalette;
 
     protected override async Task OnInitializedAsync()
     {
         ThemeService.VisualStateChanged += OnVisualStateChanged;
+        NavigationManager.LocationChanged += OnLocationChanged;
+        GetPagePalette();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -55,9 +64,22 @@ else
 
         if(ThemeService.Settings.Theme == ThemePreference.Auto)
         {
-            var systemIsDark = await _provider.GetSystemDarkModeAsync(); 
+            var systemIsDark = await _provider.GetSystemDarkModeAsync();
             await ThemeService.UpdateSystemDarkModeAsync(systemIsDark);
         }
+    }
+    private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        GetPagePalette();
+    }
+
+    private void GetPagePalette()
+    {
+        CurrentPalette =
+        RouteData?.PageType
+            .GetCustomAttribute<PageColorAttribute>()?
+            .Palette;
+        StateHasChanged();
     }
 
     private Task OnDarkModeChanged(bool isDarkMode)
@@ -69,5 +91,6 @@ else
     public void Dispose()
     {
         ThemeService.VisualStateChanged -= OnVisualStateChanged;
+        NavigationManager.LocationChanged -= OnLocationChanged;
     }
 }

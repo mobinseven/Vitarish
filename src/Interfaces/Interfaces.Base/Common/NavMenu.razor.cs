@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Components.Web;
 using System.Reflection;
-using Vitarish.Main.Components;
+using Vitarish.Interfaces.Base.Attributes;
 
 namespace Vitarish.Interfaces.Base.Common;
 

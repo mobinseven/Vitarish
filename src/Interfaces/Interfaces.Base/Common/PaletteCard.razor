@@ -1,0 +1,36 @@
+<div class="@CssClass" @attributes="AdditionalAttributes" style="@Style">
+    @if(Title is not null)
+    {
+        <MudText Class="my-2" Typo="Typo.h3" Align="Align.Center">@Title</MudText>
+    }
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [Parameter] public Palettes? Palette { get; set; }
+
+    [Parameter] public bool AutoTone { get; set; } = true;
+
+    [Parameter] public string? Class { get; set; }
+
+    [Parameter] public string? Style { get; set; }
+
+    [Parameter] public string? Title { get; set; }
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private string CssClass =>
+        string.Join(" ", new[]
+        {
+            "mx-1 my-3",
+            "palette-card",
+            "palette-surface",
+            PaletteCss.GetCssClass(Palette),
+            AutoTone ? null : "palette-card--no-auto-tone",
+            Class
+        }.Where(x => !string.IsNullOrWhiteSpace(x)));
+
+}

@@ -2081,4 +2081,7 @@ of project "{2}"</value>
   <data name="NameDesc" xml:space="preserve">
     <value>Name (Descending)</value>
   </data>
+  <data name="Greetings" xml:space="preserve">
+    <value>Greetings</value>
+  </data>
 </root>

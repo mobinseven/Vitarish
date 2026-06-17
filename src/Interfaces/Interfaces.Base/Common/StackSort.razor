@@ -3,11 +3,11 @@
 @if(Methods.Length > 1)
 {
     <div class="stack-item">
-        <MudStack Row Justify="Justify.Center" AlignItems="AlignItems.Start" StretchItems="StretchItems.Start">
+        <MudStack Row Justify="Justify.Center" AlignItems="AlignItems.Center" StretchItems="StretchItems.Start">
             <div>
                 <MudSelect T="SortMethod"
-                           HelperText="@Localizer["SortBy"]"
                            OuterClass="stack-item"
+                           ToStringFunc="@(v => $"{Localizer["SortBy"]}: {v.LabelAction()}")"
                            Variant="Variant.Filled"
                            Value="selectedValue" ValueChanged="v => OnChanged(v)"
                            AdornmentColor="@AdornmentColor"
@@ -24,7 +24,8 @@
                 </MudSelect>
             </div>
             <div>
-                <MudToggleIconButton @bind-Toggled:get="descending" @bind-Toggled:set="OnToggled" Icon="fa-solid fa-arrow-down-short-wide" ToggledIcon="fa-solid fa-arrow-up-short-wide" DropShadow="false" />
+                @* <MudFab StartIcon="fa-solid fa-arrow-down-short-wide" /> *@
+                <MudToggleIconButton Variant="Variant.Filled" Color="Color.Secondary" ToggledColor="Color.Secondary" @bind-Toggled:get="descending" @bind-Toggled:set="OnToggled" Icon="fa-solid fa-arrow-down-short-wide" ToggledIcon="fa-solid fa-arrow-up-short-wide" DropShadow="false" />
             </div>
         </MudStack>
     </div>

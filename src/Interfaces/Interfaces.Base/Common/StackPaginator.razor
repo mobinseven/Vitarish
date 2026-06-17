@@ -10,18 +10,13 @@
               Class="stack-item stack-pagination"
               Style="flex-wrap: wrap;">
 
-        @if(ShowItemSummary)
-        {
-            <MudText Typo="Typo.caption" Class="stack-pagination__summary">
-                @($"{FirstVisibleItem}-{LastVisibleItem} / {TotalItems}")
-            </MudText>
-        }
 
         @if(ShowPageSizeSelector)
         {
             <MudSelect T="int"
                        Value="_pageSize"
                        ValueChanged="SetPageSize"
+                       HelperText="@($"{FirstVisibleItem}-{LastVisibleItem} / {TotalItems}")"
                        Underline="false"
                        Variant="Variant.Filled"
                        Dense="true"
@@ -40,10 +35,12 @@
 
         @if(ShowPaginator)
         {
-            <MudPagination Class="glass"
-                           Disabled="ControlsDisabled"
+            <MudPagination Disabled="ControlsDisabled"
                            ShowFirstButton="@ShowEdgeButtons"
                            ShowLastButton="@ShowEdgeButtons"
+                           DropShadow="false"
+                           Variant="Variant.Text"
+                           Rectangular
                            Count="@TotalPages"
                            Selected="@CurrentPage"
                            BoundaryCount="@BoundaryCount"
