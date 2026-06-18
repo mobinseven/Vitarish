@@ -8,16 +8,21 @@
                                CanRunSearch="@CanRunAdvancedSearch"
                                OnSearchRequested="@RunAdvancedSearchAsync" />
 
-    @if(Context.AdvancedSearchInProgress)
-    {
+</Stack>
+
+@if(Context.AdvancedSearchInProgress)
+{
+    <Stack>
         <StackProgress />
-    }
-    else
-    {
+    </Stack>
+}
+else
+{
+    <Stack>
         <PatientAdvancedSearchResults Context="@Context"
                                       OnPatientSelected="@OnPatientSelected" />
-    }
-</Stack>
+    </Stack>
+}
 
 @code {
     [Parameter, EditorRequired] public PatientAdvancedSearchContext Context { get; set; } = default!;

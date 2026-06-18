@@ -1,3 +1,7 @@
+@using MudBlazor
+@using Vitarish.Files.Application.Abstractions
+@using Vitarish.Interfaces.Base.Common
+@using Vitarish.Requests.Application.Abstractions
 
 
 @inherits StackButton
@@ -40,7 +44,7 @@
             }
             else if(_file is not null)
             {
-                <Avatar FileInformation="_file" />
+                <FileImageAvatar FileInformation="_file" />
             }
             else
             {

@@ -1,0 +1,96 @@
+@using MudBlazor
+@using Vitarish.Files.Application.Abstractions
+@using Vitarish.Interfaces.Base.Common
+@using Vitarish.Requests.Application.Abstractions
+
+
+@inherits StackButton
+
+<StreamTransfer @ref="_streamTransferComponent"
+                RenderActContent="true"
+                OnFileUploaded="HandleFileUploaded"
+                OnStateChange="@(async () => await InvokeAsync(StateHasChanged))">
+
+    <ActivatorContent>
+        @{
+            var pendingFile = _streamTransferComponent!.PendingFiles.FirstOrDefault();
+        }
+        @if(pendingFile is not null)
+        {
+            <StackButton Label="@pendingFile.Name"
+                         HtmlTag="div"
+                         EndIcon="fa-solid fa-xmark"
+                         OnClick="() => RemovePendingFile(_streamTransferComponent, pendingFile)"
+                         Disabled=@(_streamTransferComponent.Transferring)
+                         Size="@Size"
+                         Color="@Color">
+                @if(_streamTransferComponent.Transferring)
+                {
+                    <MudProgressLinear Max="100" Min="0" Value="@pendingFile.Progress" />
+                }
+            </StackButton>
+        }
+        else if(_file is not null)
+        {
+            <StackButton Label="@_file.ContentType"
+                         HtmlTag="div"
+                         EndIcon="fa-solid fa-file"
+                         Disabled=@(_streamTransferComponent.Transferring)
+                         Size="@Size"
+                         Color="@Color" />
+        }
+        else
+        {
+            <StackButton Label="@Label"
+                         HtmlTag="div"
+                         EndIcon="fa-solid fa-file"
+                         Disabled=@(_streamTransferComponent.Transferring)
+                         Size="@Size"
+                         Color="@Color" />
+        }
+    </ActivatorContent>
+</StreamTransfer>
+
+@code {
+    [Inject] protected IRequestContext RequestContext { get; set; } = default!;
+    [Inject] protected IFilesModule FilesModule { get; set; } = default!;
+    [Inject] protected IFileInformationService FileInformationService { get; set; } = default!;
+
+    [Parameter] public Guid? FileId { get; set; }
+    [Parameter] public EventCallback<Guid?> FileIdChanged { get; set; }
+
+    private StreamTransfer? _streamTransferComponent;
+
+    private FileInformationReadDto? _file;
+
+    public bool HasPendingFiles => _streamTransferComponent?.PendingFiles.Count > 0;
+
+    public async Task Upload()
+    {
+        if(_streamTransferComponent is null)
+        {
+            return;
+        }
+
+        await _streamTransferComponent.StartTransferAsync();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if(FileId is not null && FileId != Guid.Empty)
+        {
+            _file = await FileInformationService.GetAsync(FileId.Value, CancellationToken.None).GetValueOrDefaultAsync();
+        }
+    }
+
+    private async Task HandleFileUploaded(FileInformationReadDto file)
+    {
+        _file = file;
+        FileId = _file.Id;
+        await FileIdChanged.InvokeAsync(FileId);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private static void RemovePendingFile(StreamTransfer transfer, PendingFileDto item) => transfer.RemovePendingFileAsync(item);
+
+}

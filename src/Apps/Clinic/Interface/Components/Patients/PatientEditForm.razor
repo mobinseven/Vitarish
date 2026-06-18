@@ -29,7 +29,7 @@
                     AdornmentIcon="@RequiredIcon(patient.Phone, "fa-solid fa-phone")"
                     AdornmentColor="@RequiredColor(patient.Phone)" />
 
-    <StackFileInput @ref="stackFileInput"
+    <StackFileImageInput @ref="stackFileInput"
                     Label="@Localizer["Photo"]"
                     FileId="@patient.AvatarFileId"
                     FileIdChanged="@AvatarUploaded" />
