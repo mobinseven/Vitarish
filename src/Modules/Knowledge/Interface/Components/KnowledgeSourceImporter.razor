@@ -3,7 +3,7 @@
 @using Microsoft.AspNetCore.Components
 
 <Stack>
-    <StackField Label="Import" HelperText="Imported content is added to the selected corpus." />
+    <StackField Label="Import" HelperText="Imported file content is added to the selected corpus." />
 
     @if(SelectedCorpus is null)
     {
@@ -14,24 +14,12 @@
         <StackCard Label="Importing into" HelperText="@SelectedCorpus.Label" />
     }
 
-    <KnowledgeSourcePayloadEditor ActionLabel="Import pasted content into selected corpus"
-                                  ActionColor="Color.Primary"
-                                  ImportFormats="@ImportFormats"
-                                  IsBusy="@IsBusy"
-                                  SubmitRequested="ImportAsync" />
-
-    <StackCard Label="Import uploaded file" HelperText="Upload through Files, then import without copying bytes into the pasted content payload.">
-        <KnowledgeSourcePayloadEditor ActionLabel="Import selected file into selected corpus"
-                                      ActionColor="Color.Secondary"
-                                      ImportFormats="@ImportFormats"
-                                      IsBusy="@(IsBusy || uploadedFile is null)"
-                                      SubmitRequested="ImportFileAsync" />
-        <StackFileInput @ref="fileTransfer" @bind-FileInfo="uploadedFile" />
-        <MudButton Variant="Variant.Filled" Color="Color.Secondary" Disabled="@IsBusy" OnClick="StartFileUploadAsync">Upload selected file</MudButton>
-        @if(uploadedFile is not null)
-        {
-            <StackField Label="Selected file" HelperText="@DescribeUploadedFile()" Color="Color.Info" />
-        }
+    <StackCard Label="Import uploaded file" HelperText="Upload a markdown, text, or JSON source file, then import it into the selected corpus.">
+        <KnowledgeSourcePayloadFileInput ActionLabel="Import selected file into selected corpus"
+                                         ActionColor="Color.Secondary"
+                                         IsBusy="@IsBusy"
+                                         FileUploaded="FileUploadedAsync"
+                                         SubmitRequested="ImportFileAsync" />
     </StackCard>
 
     @if(!string.IsNullOrWhiteSpace(ImportSummary))
@@ -44,9 +32,6 @@
     [Parameter]
     public KnowledgeOwnerCorpusOption? SelectedCorpus { get; set; }
 
-    [Parameter, EditorRequired]
-    public KnowledgeOwnerImportFormats ImportFormats { get; set; } = new([]);
-
     [Parameter]
     public bool IsBusy { get; set; }
 
@@ -54,26 +39,9 @@
     public string? ImportSummary { get; set; }
 
     [Parameter, EditorRequired]
-    public EventCallback<ImportKnowledgeSourceInput> ImportRequested { get; set; }
-
-    [Parameter, EditorRequired]
     public EventCallback<ImportKnowledgeSourceFromFileInput> FileImportRequested { get; set; }
 
-    private StackFileInput? fileTransfer;
     private FileInformationReadDto? uploadedFile;
-
-    private async Task ImportAsync(KnowledgeSourcePayload payload)
-    {
-        await ImportRequested.InvokeAsync(new ImportKnowledgeSourceInput(SelectedCorpus?.CorpusId, payload.SourceName, payload.FormatName, payload.Content));
-    }
-
-    private async Task StartFileUploadAsync()
-    {
-        if(fileTransfer is not null)
-        {
-            await fileTransfer.Upload();
-        }
-    }
 
     private Task FileUploadedAsync(FileInformationReadDto file)
     {
@@ -83,8 +51,6 @@
 
     private async Task ImportFileAsync(KnowledgeSourcePayload payload)
     {
-        await FileImportRequested.InvokeAsync(new ImportKnowledgeSourceFromFileInput(SelectedCorpus?.CorpusId, uploadedFile?.Id, payload.SourceName, payload.FormatName));
+        await FileImportRequested.InvokeAsync(new ImportKnowledgeSourceFromFileInput(SelectedCorpus?.CorpusId, uploadedFile?.Id, payload.SourceName, payload.Format));
     }
-
-    private string DescribeUploadedFile() => uploadedFile is null ? string.Empty : $"{uploadedFile.Tag ?? uploadedFile.Id.ToString()} ({uploadedFile.ContentType})";
 }

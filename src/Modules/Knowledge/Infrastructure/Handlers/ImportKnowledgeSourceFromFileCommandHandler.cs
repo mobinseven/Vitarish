@@ -43,7 +43,7 @@ public sealed class ImportKnowledgeSourceFromFileCommandHandler(
         }
         catch (NotSupportedException ex)
         {
-            logger.LogWarning(ex, "Knowledge file import rejected unsupported format {FormatName}.", request.Input.FormatName);
+            logger.LogWarning(ex, "Knowledge file import rejected unsupported format {FormatName}.", request.Input.Format);
             return KnowledgeOwnerImportCommandResult.Failure("Choose a supported content format.");
         }
         catch (InvalidDataException ex)
@@ -63,7 +63,7 @@ public sealed class ImportKnowledgeSourceFromFileCommandHandler(
         CorpusId = input.CorpusId!.Value,
         TenantId = tenantId,
         Content = content,
-        Format = input.FormatName.Trim(),
+        Format = input.Format.ToImporterName(),
         SourceName = string.IsNullOrWhiteSpace(input.SourceName) ? file.DisplayName : input.SourceName.Trim(),
         OriginalLocation = file.OriginalLocation,
         Checksum = file.Checksum,
