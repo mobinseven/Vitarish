@@ -1,4 +1,5 @@
 @using Vitarish.Modules.Base
+@using Vitarish.Knowledge.Application.Enums
 @using Vitarish.Knowledge.Application.Owner
 @using Microsoft.AspNetCore.Components
 
@@ -14,27 +15,33 @@
             }
         </StackSelect>
 
-        <KnowledgeSourcePayloadEditor
-            ActionLabel="Replace selected source"
-            ActionColor="Color.Warning"
-            ImportFormats="@ImportFormats"
-            IsBusy="@IsBusy"
-            SubmitRequested="ReplaceAsync" />
+        <StackTextField @bind-Value="sourceName" Label="Source name" />
+
+        <StackSelect T="KnowledgeSourceInputFormat" @bind-Value="format" Label="Replacement content format">
+            @foreach (KnowledgeSourceInputFormat option in KnowledgeSourceInputFormatLabels.Formats)
+            {
+                <MudSelectItem T="KnowledgeSourceInputFormat" Value="@option">@option.Label()</MudSelectItem>
+            }
+        </StackSelect>
+
+        <StackTextField @bind-Value="content" Label="Paste replacement content" Lines="10" />
+
+        <StackButton Label="Replace selected source" Color="Color.Warning" OnClick="ReplaceAsync" Disabled="@IsBusy" />
     </Stack>
 }
 
 @code {
     private KnowledgeOwnerSourceOption? source;
     private int observedSourcesVersion = -1;
+    private string sourceName = "Replacement content";
+    private KnowledgeSourceInputFormat format = KnowledgeSourceInputFormat.Markdown;
+    private string content = string.Empty;
 
     [Parameter]
     public KnowledgeOwnerCorpusOption? SelectedCorpus { get; set; }
 
     [Parameter, EditorRequired]
     public IReadOnlyList<KnowledgeOwnerSourceOption> Sources { get; set; } = [];
-
-    [Parameter, EditorRequired]
-    public KnowledgeOwnerImportFormats ImportFormats { get; set; } = new([]);
 
     [Parameter]
     public bool IsBusy { get; set; }
@@ -56,8 +63,8 @@
         source = null;
     }
 
-    private async Task ReplaceAsync(KnowledgeSourcePayload payload)
+    private async Task ReplaceAsync()
     {
-        await ReplaceRequested.InvokeAsync(new ReplaceKnowledgeSourceInput(SelectedCorpus?.CorpusId, source?.SourceId, payload.SourceName, payload.FormatName, payload.Content));
+        await ReplaceRequested.InvokeAsync(new ReplaceKnowledgeSourceInput(SelectedCorpus?.CorpusId, source?.SourceId, sourceName, format, content));
     }
 }

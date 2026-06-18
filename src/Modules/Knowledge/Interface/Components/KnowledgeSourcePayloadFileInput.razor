@@ -1,0 +1,61 @@
+@using Vitarish.Knowledge.Application.Enums
+
+<StackTextField @bind-Value="sourceName" Label="Source name" />
+
+<StackSelect T="KnowledgeSourceInputFormat" @bind-Value="format" Label="Source file format">
+    @foreach (KnowledgeSourceInputFormat option in KnowledgeSourceInputFormatLabels.Formats)
+    {
+        <MudSelectItem T="KnowledgeSourceInputFormat" Value="@option">@option.Label()</MudSelectItem>
+    }
+</StackSelect>
+
+<StackFileInput @ref="fileTransfer" @bind-FileInfo="uploadedFile" />
+<MudButton Variant="Variant.Filled" Color="Color.Secondary" Disabled="@IsBusy" OnClick="StartFileUploadAsync">Upload selected file</MudButton>
+@if (uploadedFile is not null)
+{
+    <StackField Label="Selected file" HelperText="@DescribeUploadedFile()" Color="Color.Info" />
+}
+
+<StackButton Label="@ActionLabel" Color="@ActionColor" OnClick="SubmitAsync" Disabled="@(IsBusy || uploadedFile is null)" />
+
+@code {
+    private StackFileInput? fileTransfer;
+    private FileInformationReadDto? uploadedFile;
+    private string sourceName = "Uploaded file";
+    private KnowledgeSourceInputFormat format = KnowledgeSourceInputFormat.Markdown;
+
+    [Parameter]
+    public bool IsBusy { get; set; }
+
+    [Parameter, EditorRequired]
+    public string ActionLabel { get; set; } = string.Empty;
+
+    [Parameter]
+    public Color ActionColor { get; set; } = Color.Primary;
+
+    [Parameter, EditorRequired]
+    public EventCallback<KnowledgeSourcePayload> SubmitRequested { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<FileInformationReadDto> FileUploaded { get; set; }
+
+    private async Task StartFileUploadAsync()
+    {
+        if (fileTransfer is not null)
+        {
+            await fileTransfer.Upload();
+        }
+
+        if (uploadedFile is not null)
+        {
+            await FileUploaded.InvokeAsync(uploadedFile);
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        await SubmitRequested.InvokeAsync(new KnowledgeSourcePayload(sourceName, format));
+    }
+
+    private string DescribeUploadedFile() => uploadedFile is null ? string.Empty : $"{uploadedFile.Tag ?? uploadedFile.Id.ToString()} ({uploadedFile.ContentType})";
+}

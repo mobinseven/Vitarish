@@ -31,5 +31,5 @@ public sealed class ImportKnowledgeSourceCommandHandler(IKnowledgeService knowle
         }
     }
 
-    internal static KnowledgeImportRequest BuildImportRequest(string tenantId, ImportKnowledgeSourceInput input, Stream content) => new() { CorpusId = input.CorpusId!.Value, TenantId = tenantId, Content = content, Format = input.FormatName.Trim(), SourceName = string.IsNullOrWhiteSpace(input.SourceName) ? null : input.SourceName.Trim() };
+    internal static KnowledgeImportRequest BuildImportRequest(string tenantId, ImportKnowledgeSourceInput input, Stream content) => new() { CorpusId = input.CorpusId!.Value, TenantId = tenantId, Content = content, Format = input.Format.ToImporterName(), SourceName = string.IsNullOrWhiteSpace(input.SourceName) ? null : input.SourceName.Trim() };
 }

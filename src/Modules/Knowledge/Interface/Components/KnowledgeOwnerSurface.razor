@@ -16,16 +16,13 @@
 
 <KnowledgeSourceImporter
     SelectedCorpus="@model.SelectedCorpus"
-    ImportFormats="@KnowledgeOwnerImportFormatCatalog.Current"
     IsBusy="@isBusy"
-    ImportRequested="ImportSourceAsync"
     FileImportRequested="ImportSourceFromFileAsync"
     ImportSummary="@importSummary" />
 
 <KnowledgeSourceReplacer
     SelectedCorpus="@model.SelectedCorpus"
     Sources="@model.Sources"
-    ImportFormats="@KnowledgeOwnerImportFormatCatalog.Current"
     IsBusy="@isBusy"
     SourcesVersion="@sourcesVersion"
     ReplaceRequested="ReplaceSourceAsync" />
@@ -83,18 +80,6 @@
     {
         model = await Sender.Send(new KnowledgeOwnerReadModelQuery(RequestContext.TenantId, corpus?.CorpusId), token);
         ClearCorpusScopedResults();
-    });
-
-    private async Task ImportSourceAsync(ImportKnowledgeSourceInput input) => await RunAsync(async token =>
-    {
-        KnowledgeOwnerImportCommandResult result = await Sender.Send(new ImportKnowledgeSourceCommand(RequestContext.TenantId, input), token);
-        Apply(result.Succeeded, result.Message);
-        importSummary = result.Summary;
-
-        if (result.Succeeded)
-        {
-            await ReloadSelectedCorpusAsync(token);
-        }
     });
 
     private async Task ImportSourceFromFileAsync(ImportKnowledgeSourceFromFileInput input) => await RunAsync(async token =>
