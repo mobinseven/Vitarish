@@ -8,7 +8,19 @@ public sealed class KnowledgeOwnerReadModelProjector
 
     public IReadOnlyList<KnowledgeOwnerCorpusOption> ToCorpusOptions(IReadOnlyList<KnowledgeCorpus> corpora) => corpora.Select(ToCorpusOption).ToArray();
 
-    public KnowledgeOwnerCorpusOption? ResolveSelectedCorpus(IReadOnlyList<KnowledgeOwnerCorpusOption> corpusOptions, Guid? selectedCorpusId) => corpusOptions.FirstOrDefault(option => selectedCorpusId is not null && option.CorpusId == selectedCorpusId.Value) ?? corpusOptions.FirstOrDefault();
+    public KnowledgeOwnerCorpusOption? ResolveSelectedCorpus(IReadOnlyList<KnowledgeOwnerCorpusOption> corpusOptions, Guid? selectedCorpusId)
+    {
+        if (selectedCorpusId is not null)
+        {
+            var selected = corpusOptions.FirstOrDefault(option => option.CorpusId == selectedCorpusId.Value);
+            if (selected is not null)
+            {
+                return selected;
+            }
+        }
+
+        return corpusOptions.FirstOrDefault();
+    }
 
     public KnowledgeOwnerCorpusOption ToCorpusOption(KnowledgeCorpus corpus) => new(string.IsNullOrWhiteSpace(corpus.Description) ? corpus.Name : $"{corpus.Name} — {corpus.Description}", $"{(corpus.IsActive ? "Enabled" : "Disabled")}{(string.IsNullOrWhiteSpace(corpus.Description) ? string.Empty : $" · {corpus.Description}")}") { CorpusId = corpus.Id };
 
