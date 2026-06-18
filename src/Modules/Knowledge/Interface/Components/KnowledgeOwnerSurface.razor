@@ -1,27 +1,28 @@
-@using System.Globalization
 @using Vitarish.Modules.Base
+@using Vitarish.Knowledge.Application.Owner
 @inherits TenantCommonBase
-@inject IKnowledgeService KnowledgeService
+@implements IDisposable
+@inject IKnowledgeOwnerUseCases OwnerUseCases
 
 <Stack>
     <StackField Label="@Localizer["Knowledge"]" HelperText="Create or select a corpus, import content, index it, and evaluate it without copying identifiers." />
 
     <StackField Label="Select corpus" HelperText="Choose a corpus by name, or create one below if this workspace does not have any yet." />
-    @if (corpora.Count == 0)
+    @if (model.Corpora.Count == 0)
     {
         <StackCard Label="No corpora yet" HelperText="Create a corpus to start importing knowledge content." />
     }
     else
     {
-        <StackSelect T="string" Value="@selectedCorpusId" ValueChanged="SelectCorpusAsync" Label="Corpus">
-            @foreach (KnowledgeCorpus corpus in corpora)
+        <StackSelect T="KnowledgeOwnerCorpusOption" Value="@model.SelectedCorpus" ValueChanged="SelectCorpusAsync" Label="Corpus">
+            @foreach (KnowledgeOwnerCorpusOption corpus in model.Corpora)
             {
-                <MudSelectItem T="string" Value="@corpus.Id.ToString()">@CorpusLabel(corpus)</MudSelectItem>
+                <MudSelectItem T="KnowledgeOwnerCorpusOption" Value="@corpus">@corpus.Label</MudSelectItem>
             }
         </StackSelect>
-        @if (SelectedCorpus is not null)
+        @if (model.SelectedCorpus is not null)
         {
-            <StackCard Label="Selected corpus" HelperText="@CorpusDetails(SelectedCorpus)" />
+            <StackCard Label="Selected corpus" HelperText="@model.SelectedCorpus.Details" />
         }
     }
 
@@ -34,59 +35,55 @@
 
 <Stack>
     <StackField Label="Import" HelperText="Imported content is added to the selected corpus." />
-    @if (SelectedCorpus is null)
+    @if (model.SelectedCorpus is null)
     {
         <StackCard Label="Select or create a corpus first" HelperText="Choose a corpus above before importing content." />
     }
     else
     {
-        <StackCard Label="Importing into" HelperText="@CorpusLabel(SelectedCorpus)" />
+        <StackCard Label="Importing into" HelperText="@model.SelectedCorpus.Label" />
     }
     <StackTextField @bind-Value="sourceName" Label="Source name" />
     <StackSelect T="string" @bind-Value="format" Label="Format for pasted content">
-        <MudSelectItem T="string" Value='"markdown"'>markdown</MudSelectItem>
-        <MudSelectItem T="string" Value='"plain-text"'>plain-text</MudSelectItem>
-        <MudSelectItem T="string" Value='"techqa-json"'>techqa-json</MudSelectItem>
-        <MudSelectItem T="string" Value='"rag-eval-json"'>rag-eval-json</MudSelectItem>
+        @foreach (KnowledgeOwnerImportFormatOption option in OwnerUseCases.ImportFormats.Options)
+        {
+            <MudSelectItem T="string" Value="@option.Name">@option.Label</MudSelectItem>
+        }
     </StackSelect>
     <StackTextField @bind-Value="importText" Label="Paste content as text/markdown or an evaluation JSON payload for the selected format" Lines="10" />
     <StackButton Label="Import into selected corpus" Color="Color.Primary" OnClick="ImportAsync" Disabled="@isBusy" />
 
-    @if (importSources.Count > 0)
+    @if (model.Sources.Count > 0)
     {
-        <StackSelect T="string" @bind-Value="replaceSourceId" Label="Existing source to replace">
-            @foreach (KnowledgeSource source in importSources)
+        <StackSelect T="KnowledgeOwnerSourceOption" @bind-Value="replaceSource" Label="Existing source to replace">
+            @foreach (KnowledgeOwnerSourceOption source in model.Sources)
             {
-                <MudSelectItem T="string" Value="@source.Id.ToString()">@SourceLabel(source)</MudSelectItem>
+                <MudSelectItem T="KnowledgeOwnerSourceOption" Value="@source">@source.Label</MudSelectItem>
             }
         </StackSelect>
         <StackButton Label="Replace selected source" Color="Color.Warning" OnClick="ReplaceSourceAsync" Disabled="@isBusy" />
     }
-    @if (importResult is not null)
+    @if (!string.IsNullOrWhiteSpace(importSummary))
     {
-        <StackField Label="Import result" HelperText="@($"Imported {importResult.Sources.Count} source(s), {importResult.Documents.Count} document(s), and {importResult.Chunks.Count} searchable section(s).")" Color="Color.Success" />
+        <StackField Label="Import result" HelperText="@importSummary" Color="Color.Success" />
     }
 </Stack>
 
 <Stack>
     <StackField Label="Index" HelperText="Build the searchable index for the selected corpus." />
-    @if (SelectedCorpus is not null)
+    @if (model.SelectedCorpus is not null)
     {
-        <StackCard Label="Ready to index" HelperText="@CorpusLabel(SelectedCorpus)" />
+        <StackCard Label="Ready to index" HelperText="@model.SelectedCorpus.Label" />
     }
     <StackButton Label="Index selected corpus" Color="Color.Primary" OnClick="IndexAsync" Disabled="@isBusy" />
-    @if (indexResult is not null)
-    {
-        <StackField Label="Index result" HelperText="@($"Indexed {indexResult.IndexedChunkCount} searchable section(s).")" Color="Color.Success" />
-    }
 </Stack>
 
 <Stack>
     <StackField Label="Evaluation" HelperText="Run evaluation against the selected corpus." />
     <StackButton Label="Run evaluation for selected corpus" Color="Color.Primary" OnClick="EvaluateAsync" Disabled="@isBusy" />
-    @if (evaluationRun is not null)
+    @if (!string.IsNullOrWhiteSpace(evaluationSummary))
     {
-        <StackField Label="Evaluation result" HelperText="@EvaluationSummary" Color="Color.Success" />
+        <StackField Label="Evaluation result" HelperText="@evaluationSummary" Color="Color.Success" />
     }
 
     @if (!string.IsNullOrWhiteSpace(status))
@@ -96,97 +93,105 @@
 </Stack>
 
 @code {
+    private readonly CancellationTokenSource disposal = new();
+    private KnowledgeOwnerReadModel model = new([], null, []);
     private string name = string.Empty;
     private string? description;
     private bool isActive = true;
-    private string selectedCorpusId = string.Empty;
     private string sourceName = "Manual paste";
-    private string format = "markdown";
+    private string format = string.Empty;
     private string importText = string.Empty;
-    private string replaceSourceId = string.Empty;
-    private IReadOnlyList<KnowledgeCorpus> corpora = [];
-    private IReadOnlyList<KnowledgeSource> importSources = [];
-    private KnowledgeImportResult? importResult;
-    private KnowledgeIndexResult? indexResult;
-    private KnowledgeEvaluationRun? evaluationRun;
+    private KnowledgeOwnerSourceOption? replaceSource;
+    private string? importSummary;
+    private string? evaluationSummary;
     private bool isBusy;
     private string? status;
     private Color statusColor = Color.Info;
 
-    private string CurrentTenantId => RequestContext.TenantId ?? throw new InvalidOperationException("Your workspace is unavailable. Please refresh the page and try again.");
-    private KnowledgeCorpus? SelectedCorpus => corpora.FirstOrDefault(corpus => corpus.Id.ToString() == selectedCorpusId);
-    private string EvaluationSummary => evaluationRun is null
-        ? string.Empty
-        : string.Create(CultureInfo.InvariantCulture, $"recall@5 {evaluationRun.RecallAt5:0.###} · recall@10 {evaluationRun.RecallAt10:0.###} · average expected rank {evaluationRun.AverageExpectedChunkRank:0.###}");
-
-    protected override async Task OnInitializedAsync() => await RefreshCorporaAsync();
-
-    private async Task SaveCorpusAsync() => await RunAsync(async () =>
+    protected override async Task OnInitializedAsync()
     {
-        ValidateCorpus();
-        KnowledgeCorpus corpus = new() { Id = Guid.NewGuid(), TenantId = CurrentTenantId, Name = name.Trim(), Description = string.IsNullOrWhiteSpace(description) ? null : description.Trim(), IsActive = isActive };
-        await KnowledgeService.SaveCorpusAsync(corpus, CancellationToken.None);
-        await RefreshCorporaAsync(corpus.Id.ToString());
+        format = OwnerUseCases.ImportFormats.DefaultName;
+        model = await OwnerUseCases.LoadAsync(RequestContext.TenantId, null, disposal.Token);
+    }
+
+    private async Task SaveCorpusAsync() => await RunAsync(async token =>
+    {
+        KnowledgeOwnerCommandResult result = await OwnerUseCases.CreateCorpusAsync(RequestContext.TenantId, new CreateKnowledgeCorpusInput(name, description, isActive), token);
+        Apply(result);
+        if (!result.Succeeded) return;
+        model = await OwnerUseCases.LoadAsync(RequestContext.TenantId, model.SelectedCorpus, token);
         name = string.Empty;
         description = null;
         isActive = true;
-        status = "Corpus created and selected.";
     });
 
-    private async Task ImportAsync() => await RunAsync(async () =>
+    private async Task SelectCorpusAsync(KnowledgeOwnerCorpusOption? corpus) => await RunAsync(async token =>
     {
-        ValidateImportInputs();
-        await using MemoryStream content = BuildImportContentStream();
-        importResult = await KnowledgeService.ImportAsync(BuildImportRequest(content), CancellationToken.None);
-        status = "Import complete.";
-        await RefreshImportSourcesAsync();
+        model = await OwnerUseCases.SelectCorpusAsync(RequestContext.TenantId, new SelectKnowledgeCorpusInput(corpus), token);
+        replaceSource = null;
+        importSummary = null;
+        evaluationSummary = null;
     });
 
-    private async Task ReplaceSourceAsync() => await RunAsync(async () =>
+    private async Task ImportAsync() => await RunAsync(async token =>
     {
-        ValidateImportInputs();
-        if (string.IsNullOrWhiteSpace(replaceSourceId))
-            throw new InvalidOperationException("Choose a source to replace.");
-        await using MemoryStream content = BuildImportContentStream();
-        importResult = await KnowledgeService.ReplaceSourceAsync(Guid.Parse(replaceSourceId), BuildImportRequest(content), CancellationToken.None);
-        status = "Source replacement complete.";
-        await RefreshImportSourcesAsync();
+        KnowledgeOwnerImportCommandResult result = await OwnerUseCases.ImportSourceAsync(RequestContext.TenantId, new ImportKnowledgeSourceInput(model.SelectedCorpus, sourceName, format, importText), token);
+        Apply(result.Succeeded, result.Message);
+        importSummary = result.Summary;
+        if (result.Succeeded) model = await OwnerUseCases.LoadAsync(RequestContext.TenantId, model.SelectedCorpus, token);
     });
 
-    private async Task IndexAsync() => await RunAsync(async () =>
+    private async Task ReplaceSourceAsync() => await RunAsync(async token =>
     {
-        KnowledgeCorpus corpus = RequireSelectedCorpus();
-        indexResult = await KnowledgeService.IndexAsync(corpus.Id, CurrentTenantId, CancellationToken.None);
-        status = "Index complete. You can ask questions against this corpus now.";
+        KnowledgeOwnerImportCommandResult result = await OwnerUseCases.ReplaceSourceAsync(RequestContext.TenantId, new ReplaceKnowledgeSourceInput(model.SelectedCorpus, replaceSource, sourceName, format, importText), token);
+        Apply(result.Succeeded, result.Message);
+        importSummary = result.Summary;
+        if (result.Succeeded) model = await OwnerUseCases.LoadAsync(RequestContext.TenantId, model.SelectedCorpus, token);
     });
 
-    private async Task EvaluateAsync() => await RunAsync(async () =>
+    private async Task IndexAsync() => await RunAsync(async token =>
     {
-        KnowledgeCorpus corpus = RequireSelectedCorpus();
-        evaluationRun = await KnowledgeService.EvaluateAsync(new KnowledgeEvaluationRequest(corpus.Id, CurrentTenantId), CancellationToken.None);
-        status = "Evaluation complete.";
+        KnowledgeOwnerCommandResult result = await OwnerUseCases.IndexCorpusAsync(RequestContext.TenantId, new IndexKnowledgeCorpusInput(model.SelectedCorpus), token);
+        Apply(result);
     });
 
-    private async Task RefreshCorporaAsync(string? corpusIdToSelect = null)
+    private async Task EvaluateAsync() => await RunAsync(async token =>
     {
-        corpora = await KnowledgeService.ListCorporaAsync(CurrentTenantId, CancellationToken.None);
-        selectedCorpusId = corpusIdToSelect ?? (SelectedCorpus is not null ? selectedCorpusId : corpora.FirstOrDefault()?.Id.ToString() ?? string.Empty);
-        await RefreshImportSourcesAsync();
+        KnowledgeOwnerEvaluationCommandResult result = await OwnerUseCases.EvaluateCorpusAsync(RequestContext.TenantId, new EvaluateKnowledgeCorpusInput(model.SelectedCorpus), token);
+        Apply(result.Succeeded, result.Message);
+        evaluationSummary = result.Summary;
+    });
+
+    private async Task RunAsync(Func<CancellationToken, Task> action)
+    {
+        isBusy = true;
+        status = null;
+        statusColor = Color.Info;
+        try
+        {
+            await action(disposal.Token);
+        }
+        catch (OperationCanceledException) when (disposal.IsCancellationRequested)
+        {
+            status = "The operation was canceled.";
+            statusColor = Color.Info;
+        }
+        finally
+        {
+            isBusy = false;
+        }
     }
 
-    private async Task SelectCorpusAsync(string? id) => await RunAsync(async () => { selectedCorpusId = id ?? string.Empty; replaceSourceId = string.Empty; importResult = null; indexResult = null; evaluationRun = null; await RefreshImportSourcesAsync(); });
-    private async Task RefreshImportSourcesAsync()
+    private void Apply(KnowledgeOwnerCommandResult result) => Apply(result.Succeeded, result.Message);
+    private void Apply(bool succeeded, string message)
     {
-        replaceSourceId = string.Empty;
-        importSources = SelectedCorpus is null ? [] : await KnowledgeService.GetSourcesAsync(SelectedCorpus.Id, CurrentTenantId, CancellationToken.None);
+        status = message;
+        statusColor = succeeded ? Color.Success : Color.Error;
     }
-    private void ValidateCorpus() { if (string.IsNullOrWhiteSpace(name)) throw new InvalidOperationException("Enter a corpus name."); _ = CurrentTenantId; }
-    private void ValidateImportInputs() { _ = RequireSelectedCorpus(); if (string.IsNullOrWhiteSpace(format)) throw new InvalidOperationException("Choose a content format."); if (string.IsNullOrWhiteSpace(importText)) throw new InvalidOperationException("Paste content before importing."); }
-    private KnowledgeCorpus RequireSelectedCorpus() => SelectedCorpus ?? throw new InvalidOperationException("Select or create a corpus first.");
-    private MemoryStream BuildImportContentStream() => new(Encoding.UTF8.GetBytes(importText));
-    private KnowledgeImportRequest BuildImportRequest(Stream content) => new() { CorpusId = RequireSelectedCorpus().Id, TenantId = CurrentTenantId, Content = content, Format = format.Trim(), SourceName = string.IsNullOrWhiteSpace(sourceName) ? null : sourceName.Trim() };
-    private static string CorpusLabel(KnowledgeCorpus corpus) => string.IsNullOrWhiteSpace(corpus.Description) ? corpus.Name : $"{corpus.Name} — {corpus.Description}";
-    private static string CorpusDetails(KnowledgeCorpus corpus) => $"{(corpus.IsActive ? "Enabled" : "Disabled")}{(string.IsNullOrWhiteSpace(corpus.Description) ? string.Empty : $" · {corpus.Description}")}";
-    private static string SourceLabel(KnowledgeSource source) => $"{source.Name} · {source.SourceType} · imported {source.ImportedAt.LocalDateTime:g}";
-    private async Task RunAsync(Func<Task> action) { try { isBusy = true; status = null; statusColor = Color.Info; await action(); statusColor = Color.Success; } catch (Exception ex) { status = ex.Message; statusColor = Color.Error; } finally { isBusy = false; } }
+
+    public void Dispose()
+    {
+        disposal.Cancel();
+        disposal.Dispose();
+    }
 }
