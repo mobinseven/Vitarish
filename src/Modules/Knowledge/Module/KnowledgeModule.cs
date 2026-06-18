@@ -19,6 +19,7 @@ using Vitarish.Knowledge.Infrastructure.Services.Chunking;
 using Vitarish.Search.Application.Abstractions;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Knowledge.Infrastructure.Handlers;
+using Vitarish.Knowledge.Interface.Components;
 
 namespace Vitarish.Knowledge.Module;
 
@@ -46,6 +47,7 @@ public sealed class KnowledgeModule : Vitarish.Modules.Base.Module, IKnowledgeMo
         _ = builder.Services.AddScoped<IKnowledgeIndexRunRepository, KnowledgeIndexRunRepository>();
         _ = builder.Services.AddScoped<IKnowledgeService, KnowledgeService>();
         _ = builder.Services.AddScoped<IKnowledgeOwnerUseCases, KnowledgeOwnerUseCases>();
+        _ = builder.Services.AddScoped<KnowledgeOwnerSurfaceState>();
         _ = builder.Services.AddScoped<IKnowledgeDiagnosticsService, KnowledgeDiagnosticsService>();
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(KnowledgeDbContext).Assembly));
         return Task.CompletedTask;
