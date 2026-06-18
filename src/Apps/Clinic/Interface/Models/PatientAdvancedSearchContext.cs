@@ -1,4 +1,4 @@
-namespace Vitarish.Clinic.Interface.Components.Patients;
+namespace Vitarish.Clinic.Interface.Models;
 
 public enum PatientIdentificationLookupState
 {

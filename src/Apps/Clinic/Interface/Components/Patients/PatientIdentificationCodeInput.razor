@@ -1,0 +1,16 @@
+@namespace Vitarish.Clinic.Interface.Components.Patients
+
+<PaletteCard>
+    <Stack>
+        <StackPersonIdField Value="@Value"
+                            ValueChanged="@NotifyValueChangedAsync" />
+    </Stack>
+</PaletteCard>
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+
+    private async Task NotifyValueChangedAsync(string? value)
+        => await ValueChanged.InvokeAsync(value);
+}

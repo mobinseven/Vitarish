@@ -1,0 +1,33 @@
+@namespace Vitarish.Clinic.Interface.Components.Patients
+@inherits Vitarish.Modules.Base.TenantCommonBase
+
+@if(Context.SearchResults.Count > 0)
+{
+    @foreach(ProjectReadDto result in Context.SearchResults)
+    {
+        <StackButton @key="result"
+                     Label="@result.Name"
+                     HelperText="@GetPatientHelperText(result)"
+                     EndIcon="fa-solid fa-user-check"
+                     Color="Color.Primary"
+                     OnClick="@(() => SelectPatientAsync(result))" />
+    }
+}
+else if(Context.AdvancedSearchDone)
+{
+    <StackField Label="@NoSearchItemsText" />
+}
+
+@code {
+    [Parameter, EditorRequired] public PatientAdvancedSearchContext Context { get; set; } = default!;
+    [Parameter] public EventCallback<ProjectReadDto> OnPatientSelected { get; set; }
+
+    private string NoSearchItemsText
+        => Localizer["NoSearchItems", PatientAdvancedSearchSummary.Build(Context, Localizer)];
+
+    private string GetPatientHelperText(ProjectReadDto patient)
+        => PatientDisplayText.GetPatientHelperText(patient, Localizer["IdentificationCode"].Value);
+
+    private async Task SelectPatientAsync(ProjectReadDto patient)
+        => await OnPatientSelected.InvokeAsync(patient);
+}

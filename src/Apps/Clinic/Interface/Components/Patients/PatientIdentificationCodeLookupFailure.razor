@@ -1,0 +1,26 @@
+@namespace Vitarish.Clinic.Interface.Components.Patients
+@inherits Vitarish.Modules.Base.TenantCommonBase
+
+<Stack>
+    <StackField Label="@FailureText" />
+
+    <StackButton Label="@Localizer["Retry"]"
+                 EndIcon="fa-solid fa-rotate-right"
+                 Color="Color.Secondary"
+                 Disabled="@(!CanRetry)"
+                 OnClick="@RetryAsync" />
+</Stack>
+
+@code {
+    [Parameter] public string IdentificationCode { get; set; } = string.Empty;
+    [Parameter] public string? Error { get; set; }
+    [Parameter] public bool CanRetry { get; set; }
+    [Parameter] public EventCallback OnRetry { get; set; }
+
+    private string FailureText => string.IsNullOrWhiteSpace(Error)
+        ? Localizer["PatientIdentificationLookupFailed", IdentificationCode]
+        : Localizer["PatientIdentificationLookupFailed", IdentificationCode, Error];
+
+    private async Task RetryAsync()
+        => await OnRetry.InvokeAsync();
+}
