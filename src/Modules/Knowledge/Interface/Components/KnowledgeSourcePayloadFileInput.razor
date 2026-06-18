@@ -39,16 +39,30 @@
     [Parameter, EditorRequired]
     public EventCallback<FileInformationReadDto> FileUploaded { get; set; }
 
+    private bool isUploading;
+
     private async Task StartFileUploadAsync()
     {
         if (fileTransfer is not null)
         {
-            await fileTransfer.Upload();
+            try
+            {
+                isUploading = true;
+                await fileTransfer.Upload();
+            }
+            finally
+            {
+                isUploading = false;
+            }
         }
+    }
 
-        if (uploadedFile is not null)
+    private async Task HandleFileInfoChanged(FileInformationReadDto? file)
+    {
+        uploadedFile = file;
+        if (file is not null)
         {
-            await FileUploaded.InvokeAsync(uploadedFile);
+            await FileUploaded.InvokeAsync(file);
         }
     }
 
