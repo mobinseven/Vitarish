@@ -9,7 +9,7 @@ public interface IKnowledgeOwnerUseCases
 {
     KnowledgeOwnerImportFormats ImportFormats { get; }
     Task<KnowledgeOwnerReadModel> LoadAsync(string? tenantId, KnowledgeOwnerCorpusOption? selectedCorpus, CancellationToken cancellationToken);
-    Task<KnowledgeOwnerCommandResult> CreateCorpusAsync(string? tenantId, CreateKnowledgeCorpusInput input, CancellationToken cancellationToken);
+    Task<KnowledgeOwnerCreateCorpusResult> CreateCorpusAsync(string? tenantId, CreateKnowledgeCorpusInput input, CancellationToken cancellationToken);
     Task<KnowledgeOwnerReadModel> SelectCorpusAsync(string? tenantId, SelectKnowledgeCorpusInput input, CancellationToken cancellationToken);
     Task<KnowledgeOwnerImportCommandResult> ImportSourceAsync(string? tenantId, ImportKnowledgeSourceInput input, CancellationToken cancellationToken);
     Task<KnowledgeOwnerImportCommandResult> ReplaceSourceAsync(string? tenantId, ReplaceKnowledgeSourceInput input, CancellationToken cancellationToken);
@@ -26,17 +26,18 @@ public sealed class KnowledgeOwnerUseCases(IKnowledgeService knowledge) : IKnowl
         string? tenantError = ValidateTenant(tenantId);
         if (tenantError is not null) return new KnowledgeOwnerReadModel([], null, []);
         IReadOnlyList<KnowledgeCorpus> corpora = await knowledge.ListCorporaAsync(tenantId!, cancellationToken);
-        KnowledgeOwnerCorpusOption? selected = BuildCorpusOptions(corpora).FirstOrDefault(option => selectedCorpus is not null && option.CorpusId == selectedCorpus.CorpusId) ?? BuildCorpusOptions(corpora).FirstOrDefault();
-        return await BuildReadModelAsync(tenantId!, corpora, selected, cancellationToken);
+        IReadOnlyList<KnowledgeOwnerCorpusOption> corpusOptions = BuildCorpusOptions(corpora);
+        KnowledgeOwnerCorpusOption? selected = corpusOptions.FirstOrDefault(option => selectedCorpus is not null && option.CorpusId == selectedCorpus.CorpusId) ?? corpusOptions.FirstOrDefault();
+        return await BuildReadModelAsync(tenantId!, corpusOptions, selected, cancellationToken);
     }
 
-    public async Task<KnowledgeOwnerCommandResult> CreateCorpusAsync(string? tenantId, CreateKnowledgeCorpusInput input, CancellationToken cancellationToken)
+    public async Task<KnowledgeOwnerCreateCorpusResult> CreateCorpusAsync(string? tenantId, CreateKnowledgeCorpusInput input, CancellationToken cancellationToken)
     {
         string? error = ValidateTenant(tenantId) ?? KnowledgeOwnerInputValidator.ValidateCreateCorpus(input);
-        if (error is not null) return KnowledgeOwnerCommandResult.Failure(error);
+        if (error is not null) return KnowledgeOwnerCreateCorpusResult.Failure(error);
         KnowledgeCorpus corpus = new() { Id = Guid.NewGuid(), TenantId = tenantId!, Name = input.Name.Trim(), Description = string.IsNullOrWhiteSpace(input.Description) ? null : input.Description.Trim(), IsActive = input.IsActive };
         await knowledge.SaveCorpusAsync(corpus, cancellationToken);
-        return KnowledgeOwnerCommandResult.Success("Corpus created.");
+        return KnowledgeOwnerCreateCorpusResult.Success("Corpus created.", ToCorpusOption(corpus));
     }
 
     public async Task<KnowledgeOwnerReadModel> SelectCorpusAsync(string? tenantId, SelectKnowledgeCorpusInput input, CancellationToken cancellationToken) => await LoadAsync(tenantId, input.Corpus, cancellationToken);
@@ -78,10 +79,10 @@ public sealed class KnowledgeOwnerUseCases(IKnowledgeService knowledge) : IKnowl
     }
 
     private static KnowledgeImportRequest BuildImportRequest(string tenantId, KnowledgeOwnerCorpusOption corpus, ImportKnowledgeSourceInput input, Stream content) => new() { CorpusId = corpus.CorpusId, TenantId = tenantId, Content = content, Format = input.FormatName.Trim(), SourceName = string.IsNullOrWhiteSpace(input.SourceName) ? null : input.SourceName.Trim() };
-    private async Task<KnowledgeOwnerReadModel> BuildReadModelAsync(string tenantId, IReadOnlyList<KnowledgeCorpus> corpora, KnowledgeOwnerCorpusOption? selected, CancellationToken cancellationToken)
+    private async Task<KnowledgeOwnerReadModel> BuildReadModelAsync(string tenantId, IReadOnlyList<KnowledgeOwnerCorpusOption> corpusOptions, KnowledgeOwnerCorpusOption? selected, CancellationToken cancellationToken)
     {
         IReadOnlyList<KnowledgeOwnerSourceOption> sources = selected is null ? [] : (await knowledge.GetSourcesAsync(selected.CorpusId, tenantId, cancellationToken)).Select(ToSourceOption).ToArray();
-        return new KnowledgeOwnerReadModel(BuildCorpusOptions(corpora), selected, sources);
+        return new KnowledgeOwnerReadModel(corpusOptions, selected, sources);
     }
 
     private static IReadOnlyList<KnowledgeOwnerCorpusOption> BuildCorpusOptions(IReadOnlyList<KnowledgeCorpus> corpora) => corpora.Select(ToCorpusOption).ToArray();

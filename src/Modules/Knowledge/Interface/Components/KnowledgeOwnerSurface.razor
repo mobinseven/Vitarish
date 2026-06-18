@@ -116,10 +116,10 @@
 
     private async Task SaveCorpusAsync() => await RunAsync(async token =>
     {
-        KnowledgeOwnerCommandResult result = await OwnerUseCases.CreateCorpusAsync(RequestContext.TenantId, new CreateKnowledgeCorpusInput(name, description, isActive), token);
-        Apply(result);
+        KnowledgeOwnerCreateCorpusResult result = await OwnerUseCases.CreateCorpusAsync(RequestContext.TenantId, new CreateKnowledgeCorpusInput(name, description, isActive), token);
+        Apply(result.Succeeded, result.Message);
         if (!result.Succeeded) return;
-        model = await OwnerUseCases.LoadAsync(RequestContext.TenantId, model.SelectedCorpus, token);
+        model = await OwnerUseCases.LoadAsync(RequestContext.TenantId, result.Corpus, token);
         name = string.Empty;
         description = null;
         isActive = true;
