@@ -1,0 +1,50 @@
+@using Vitarish.Modules.Base
+@using Vitarish.Knowledge.Application.Owner
+@using Microsoft.AspNetCore.Components
+
+<Stack>
+    <StackField Label="Create corpus" HelperText="Use a meaningful name and optional description. The system creates the internal identifier automatically." />
+    <StackTextField @bind-Value="name" Label="Name" />
+    <StackTextField @bind-Value="description" Label="Description" Lines="2" />
+    @* <StackCheckbox @bind-Value="isActive" Label="Enabled" /> *@
+    <StackButton Label="Create corpus" Color="Color.Primary" OnClick="CreateAsync" Disabled="@IsBusy" />
+</Stack>
+
+@code {
+    private string name = string.Empty;
+    private string? description;
+    private bool isActive = true;
+    private int observedResetVersion = -1;
+
+    [Parameter]
+    public bool IsBusy { get; set; }
+
+    [Parameter]
+    public int ResetVersion { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<CreateKnowledgeCorpusInput> CreateRequested { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (observedResetVersion == ResetVersion)
+        {
+            return;
+        }
+
+        observedResetVersion = ResetVersion;
+        ResetForm();
+    }
+
+    private async Task CreateAsync()
+    {
+        await CreateRequested.InvokeAsync(new CreateKnowledgeCorpusInput(name, description, isActive));
+    }
+
+    private void ResetForm()
+    {
+        name = string.Empty;
+        description = null;
+        isActive = true;
+    }
+}

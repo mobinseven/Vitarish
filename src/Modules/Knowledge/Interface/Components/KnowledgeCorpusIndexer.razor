@@ -1,0 +1,30 @@
+@using Vitarish.Modules.Base
+@using Vitarish.Knowledge.Application.Owner
+@using Microsoft.AspNetCore.Components
+
+<Stack>
+    <StackField Label="Index" HelperText="Build the searchable index for the selected corpus." />
+
+    @if (SelectedCorpus is not null)
+    {
+        <StackCard Label="Ready to index" HelperText="@SelectedCorpus.Label" />
+    }
+
+    <StackButton Label="Index selected corpus" Color="Color.Primary" OnClick="IndexAsync" Disabled="@IsBusy" />
+</Stack>
+
+@code {
+    [Parameter]
+    public KnowledgeOwnerCorpusOption? SelectedCorpus { get; set; }
+
+    [Parameter]
+    public bool IsBusy { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback IndexRequested { get; set; }
+
+    private async Task IndexAsync()
+    {
+        await IndexRequested.InvokeAsync();
+    }
+}

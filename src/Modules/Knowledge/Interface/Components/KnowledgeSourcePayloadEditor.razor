@@ -1,0 +1,50 @@
+@using Vitarish.Modules.Base
+@using Vitarish.Knowledge.Application.Owner
+@using Microsoft.AspNetCore.Components
+
+<StackTextField @bind-Value="sourceName" Label="Source name" />
+
+<StackSelect T="string" @bind-Value="format" Label="Format for pasted content">
+    @foreach (KnowledgeOwnerImportFormatOption option in ImportFormats.Options)
+    {
+        <MudSelectItem T="string" Value="@option.Name">@option.Label</MudSelectItem>
+    }
+</StackSelect>
+
+<StackTextField @bind-Value="content" Label="Paste content as text/markdown or an evaluation JSON payload for the selected format" Lines="10" />
+
+<StackButton Label="@ActionLabel" Color="@ActionColor" OnClick="SubmitAsync" Disabled="@IsBusy" />
+
+@code {
+    private string sourceName = "Manual paste";
+    private string format = string.Empty;
+    private string content = string.Empty;
+
+    [Parameter, EditorRequired]
+    public KnowledgeOwnerImportFormats ImportFormats { get; set; } = new([]);
+
+    [Parameter]
+    public bool IsBusy { get; set; }
+
+    [Parameter, EditorRequired]
+    public string ActionLabel { get; set; } = string.Empty;
+
+    [Parameter]
+    public Color ActionColor { get; set; } = Color.Primary;
+
+    [Parameter, EditorRequired]
+    public EventCallback<KnowledgeSourcePayload> SubmitRequested { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(format) && ImportFormats.Options.Count > 0)
+        {
+            format = ImportFormats.DefaultName;
+        }
+    }
+
+    private async Task SubmitAsync()
+    {
+        await SubmitRequested.InvokeAsync(new KnowledgeSourcePayload(sourceName, format, content));
+    }
+}

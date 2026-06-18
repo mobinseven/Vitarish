@@ -1,0 +1,63 @@
+@using Vitarish.Modules.Base
+@using Vitarish.Knowledge.Application.Owner
+@using Microsoft.AspNetCore.Components
+
+@if (Sources.Count > 0)
+{
+    <Stack>
+        <StackField Label="Replace source" HelperText="Replace an existing source in the selected corpus with new pasted content." />
+
+        <StackSelect T="KnowledgeOwnerSourceOption" @bind-Value="source" Label="Existing source to replace">
+            @foreach (KnowledgeOwnerSourceOption option in Sources)
+            {
+                <MudSelectItem T="KnowledgeOwnerSourceOption" Value="@option">@option.Label</MudSelectItem>
+            }
+        </StackSelect>
+
+        <KnowledgeSourcePayloadEditor
+            ActionLabel="Replace selected source"
+            ActionColor="Color.Warning"
+            ImportFormats="@ImportFormats"
+            IsBusy="@IsBusy"
+            SubmitRequested="ReplaceAsync" />
+    </Stack>
+}
+
+@code {
+    private KnowledgeOwnerSourceOption? source;
+    private int observedSourcesVersion = -1;
+
+    [Parameter]
+    public KnowledgeOwnerCorpusOption? SelectedCorpus { get; set; }
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<KnowledgeOwnerSourceOption> Sources { get; set; } = [];
+
+    [Parameter, EditorRequired]
+    public KnowledgeOwnerImportFormats ImportFormats { get; set; } = new([]);
+
+    [Parameter]
+    public bool IsBusy { get; set; }
+
+    [Parameter]
+    public int SourcesVersion { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<ReplaceKnowledgeSourceInput> ReplaceRequested { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (observedSourcesVersion == SourcesVersion)
+        {
+            return;
+        }
+
+        observedSourcesVersion = SourcesVersion;
+        source = null;
+    }
+
+    private async Task ReplaceAsync(KnowledgeSourcePayload payload)
+    {
+        await ReplaceRequested.InvokeAsync(new ReplaceKnowledgeSourceInput(SelectedCorpus, source, payload.SourceName, payload.FormatName, payload.Content));
+    }
+}

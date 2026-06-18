@@ -1,0 +1,50 @@
+@using Vitarish.Modules.Base
+@using Vitarish.Knowledge.Application.Owner
+@using Microsoft.AspNetCore.Components
+
+<Stack>
+    <StackField Label="Import" HelperText="Imported content is added to the selected corpus." />
+
+    @if (SelectedCorpus is null)
+    {
+        <StackCard Label="Select or create a corpus first" HelperText="Choose a corpus above before importing content." />
+    }
+    else
+    {
+        <StackCard Label="Importing into" HelperText="@SelectedCorpus.Label" />
+    }
+
+    <KnowledgeSourcePayloadEditor
+        ActionLabel="Import into selected corpus"
+        ActionColor="Color.Primary"
+        ImportFormats="@ImportFormats"
+        IsBusy="@IsBusy"
+        SubmitRequested="ImportAsync" />
+
+    @if (!string.IsNullOrWhiteSpace(ImportSummary))
+    {
+        <StackField Label="Import result" HelperText="@ImportSummary" Color="Color.Success" />
+    }
+</Stack>
+
+@code {
+    [Parameter]
+    public KnowledgeOwnerCorpusOption? SelectedCorpus { get; set; }
+
+    [Parameter, EditorRequired]
+    public KnowledgeOwnerImportFormats ImportFormats { get; set; } = new([]);
+
+    [Parameter]
+    public bool IsBusy { get; set; }
+
+    [Parameter]
+    public string? ImportSummary { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<ImportKnowledgeSourceInput> ImportRequested { get; set; }
+
+    private async Task ImportAsync(KnowledgeSourcePayload payload)
+    {
+        await ImportRequested.InvokeAsync(new ImportKnowledgeSourceInput(SelectedCorpus, payload.SourceName, payload.FormatName, payload.Content));
+    }
+}

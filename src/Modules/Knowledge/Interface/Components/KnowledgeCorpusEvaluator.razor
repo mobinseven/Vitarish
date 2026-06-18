@@ -1,0 +1,28 @@
+@using Vitarish.Modules.Base
+@using Microsoft.AspNetCore.Components
+
+<Stack>
+    <StackField Label="Evaluation" HelperText="Run evaluation against the selected corpus." />
+    <StackButton Label="Run evaluation for selected corpus" Color="Color.Primary" OnClick="EvaluateAsync" Disabled="@IsBusy" />
+
+    @if (!string.IsNullOrWhiteSpace(EvaluationSummary))
+    {
+        <StackField Label="Evaluation result" HelperText="@EvaluationSummary" Color="Color.Success" />
+    }
+</Stack>
+
+@code {
+    [Parameter]
+    public bool IsBusy { get; set; }
+
+    [Parameter]
+    public string? EvaluationSummary { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback EvaluateRequested { get; set; }
+
+    private async Task EvaluateAsync()
+    {
+        await EvaluateRequested.InvokeAsync();
+    }
+}

@@ -1,0 +1,37 @@
+@using Vitarish.Modules.Base
+@using Vitarish.Knowledge.Application.Owner
+@using Microsoft.AspNetCore.Components
+
+<Stack>
+    <StackField Label="Select corpus" HelperText="Choose a corpus by name, or create one below if this workspace does not have any yet." />
+
+    @if (Model.Corpora.Count == 0)
+    {
+        <StackCard Label="No corpora yet" HelperText="Create a corpus to start importing knowledge content." />
+    }
+    else
+    {
+        <StackSelect T="KnowledgeOwnerCorpusOption" Value="@Model.SelectedCorpus" ValueChanged="SelectedCorpusChanged" Label="Corpus">
+            @foreach (KnowledgeOwnerCorpusOption corpus in Model.Corpora)
+            {
+                <MudSelectItem T="KnowledgeOwnerCorpusOption" Value="@corpus">@corpus.Label</MudSelectItem>
+            }
+        </StackSelect>
+
+        @if (Model.SelectedCorpus is not null)
+        {
+            <StackCard Label="Selected corpus" HelperText="@Model.SelectedCorpus.Details" />
+        }
+    }
+</Stack>
+
+@code {
+    [Parameter, EditorRequired]
+    public KnowledgeOwnerReadModel Model { get; set; } = new([], null, []);
+
+    [Parameter]
+    public bool IsBusy { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<KnowledgeOwnerCorpusOption?> SelectedCorpusChanged { get; set; }
+}
