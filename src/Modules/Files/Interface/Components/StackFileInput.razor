@@ -3,7 +3,6 @@
 @using Vitarish.Interfaces.Base.Common
 @using Vitarish.Requests.Application.Abstractions
 
-
 @inherits StackButton
 
 <StreamTransfer @ref="_streamTransferComponent"
@@ -13,18 +12,20 @@
 
     <ActivatorContent>
         @{
-            var pendingFile = _streamTransferComponent!.PendingFiles.FirstOrDefault();
+            PendingFileDto? pendingFile = _streamTransferComponent?.PendingFiles.FirstOrDefault();
+            bool transferring = _streamTransferComponent?.Transferring == true;
         }
+
         @if(pendingFile is not null)
         {
             <StackButton Label="@pendingFile.Name"
                          HtmlTag="div"
                          EndIcon="fa-solid fa-xmark"
-                         OnClick="() => RemovePendingFile(_streamTransferComponent, pendingFile)"
-                         Disabled=@(_streamTransferComponent.Transferring)
+                         OnClick="() => RemovePendingFileAsync(pendingFile)"
+                         Disabled="@transferring"
                          Size="@Size"
                          Color="@Color">
-                @if(_streamTransferComponent.Transferring)
+                @if(transferring)
                 {
                     <MudProgressLinear Max="100" Min="0" Value="@pendingFile.Progress" />
                 }
@@ -35,7 +36,7 @@
             <StackButton Label="@_file.ContentType"
                          HtmlTag="div"
                          EndIcon="fa-solid fa-file"
-                         Disabled=@(_streamTransferComponent.Transferring)
+                         Disabled="@transferring"
                          Size="@Size"
                          Color="@Color" />
         }
@@ -44,7 +45,7 @@
             <StackButton Label="@Label"
                          HtmlTag="div"
                          EndIcon="fa-solid fa-file"
-                         Disabled=@(_streamTransferComponent.Transferring)
+                         Disabled="@transferring"
                          Size="@Size"
                          Color="@Color" />
         }
@@ -59,9 +60,13 @@
     [Parameter] public Guid? FileId { get; set; }
     [Parameter] public EventCallback<Guid?> FileIdChanged { get; set; }
 
-    private StreamTransfer? _streamTransferComponent;
+    [Parameter] public FileInformationReadDto? FileInfo { get; set; }
+    [Parameter] public EventCallback<FileInformationReadDto?> FileInfoChanged { get; set; }
 
+    private StreamTransfer? _streamTransferComponent;
     private FileInformationReadDto? _file;
+    private Guid? _resolvedFileId;
+    private int _syncVersion;
 
     public bool HasPendingFiles => _streamTransferComponent?.PendingFiles.Count > 0;
 
@@ -75,22 +80,100 @@
         await _streamTransferComponent.StartTransferAsync();
     }
 
-    protected override async Task OnInitializedAsync()
+    protected override async Task OnParametersSetAsync()
     {
-        if(FileId is not null && FileId != Guid.Empty)
+        await SynchronizeBoundValuesAsync();
+    }
+
+    private async Task SynchronizeBoundValuesAsync()
+    {
+        if(FileInfo is not null)
         {
-            _file = await FileInformationService.GetAsync(FileId.Value, CancellationToken.None).GetValueOrDefaultAsync();
+            Guid? fileInfoId = NormalizeFileId(FileInfo.Id);
+
+            _file = FileInfo;
+            _resolvedFileId = fileInfoId;
+
+            if(FileId != fileInfoId && FileIdChanged.HasDelegate)
+            {
+                FileId = fileInfoId;
+                await FileIdChanged.InvokeAsync(fileInfoId);
+            }
+
+            return;
         }
+
+        Guid? requestedFileId = NormalizeFileId(FileId);
+
+        if(requestedFileId is null)
+        {
+            if(_file is not null || _resolvedFileId is not null)
+            {
+                await SetBoundFileAsync(null, notifyFileId: false, notifyFileInfo: true);
+            }
+
+            return;
+        }
+
+        if(_resolvedFileId == requestedFileId)
+        {
+            return;
+        }
+
+        int syncVersion = ++_syncVersion;
+
+        FileInformationReadDto? resolvedFile = await FileInformationService
+            .GetAsync(requestedFileId.Value, CancellationToken.None)
+            .GetValueOrDefaultAsync();
+
+        if(syncVersion != _syncVersion)
+        {
+            return;
+        }
+
+        await SetBoundFileAsync(resolvedFile, notifyFileId: false, notifyFileInfo: true);
     }
 
     private async Task HandleFileUploaded(FileInformationReadDto file)
     {
-        _file = file;
-        FileId = _file.Id;
-        await FileIdChanged.InvokeAsync(FileId);
+        await SetBoundFileAsync(file, notifyFileId: true, notifyFileInfo: true);
         await InvokeAsync(StateHasChanged);
     }
 
-    private static void RemovePendingFile(StreamTransfer transfer, PendingFileDto item) => transfer.RemovePendingFileAsync(item);
+    private async Task SetBoundFileAsync(
+        FileInformationReadDto? file,
+        bool notifyFileId,
+        bool notifyFileInfo)
+    {
+        Guid? fileId = NormalizeFileId(file?.Id);
 
+        _file = file;
+        _resolvedFileId = fileId;
+        FileId = fileId;
+        FileInfo = file;
+
+        if(notifyFileId && FileIdChanged.HasDelegate)
+        {
+            await FileIdChanged.InvokeAsync(fileId);
+        }
+
+        if(notifyFileInfo && FileInfoChanged.HasDelegate)
+        {
+            await FileInfoChanged.InvokeAsync(file);
+        }
+    }
+
+    private async Task RemovePendingFileAsync(PendingFileDto item)
+    {
+        if(_streamTransferComponent is null)
+        {
+            return;
+        }
+
+        await _streamTransferComponent.RemovePendingFileAsync(item);
+    }
+
+    private static Guid? NormalizeFileId(Guid? fileId) => fileId is { } value && value != Guid.Empty
+        ? value
+        : null;
 }
