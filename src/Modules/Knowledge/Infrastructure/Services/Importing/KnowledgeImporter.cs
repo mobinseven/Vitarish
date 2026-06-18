@@ -48,6 +48,9 @@ public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeCorpu
             TenantId = request.TenantId,
             Name = sourceName,
             SourceType = request.Format,
+            OriginalLocation = request.OriginalLocation,
+            Version = request.Version ?? request.ContentLength?.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            Checksum = request.Checksum,
             ImportedAt = DateTimeOffset.UtcNow
         };
 

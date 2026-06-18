@@ -16,6 +16,14 @@ public static class KnowledgeOwnerInputValidator
         return null;
     }
 
+    public static string? ValidateFileImport(ImportKnowledgeSourceFromFileInput input)
+    {
+        if (input.CorpusId is null) return "Select or create a corpus first.";
+        if (input.FileInformationId is null) return "Upload a file before importing.";
+        if (string.IsNullOrWhiteSpace(input.FormatName) || !KnowledgeOwnerImportFormatCatalog.Contains(input.FormatName)) return "Choose a supported content format.";
+        return null;
+    }
+
     public static string? ValidateReplace(ReplaceKnowledgeSourceInput input)
     {
         string? importError = ValidateImport(input.ToImportInput());

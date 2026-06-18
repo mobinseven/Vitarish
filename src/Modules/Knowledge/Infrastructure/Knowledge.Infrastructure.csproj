@@ -5,5 +5,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Application\Knowledge.Application.csproj" />
+    <ProjectReference Include="..\..\Files\Application\Files.Application.csproj" />
+    <ProjectReference Include="..\..\Files\Domain\Files.Domain.csproj" />
   </ItemGroup>
 </Project>

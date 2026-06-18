@@ -15,11 +15,30 @@
     }
 
     <KnowledgeSourcePayloadEditor
-        ActionLabel="Import into selected corpus"
+        ActionLabel="Import pasted content into selected corpus"
         ActionColor="Color.Primary"
         ImportFormats="@ImportFormats"
         IsBusy="@IsBusy"
         SubmitRequested="ImportAsync" />
+
+    <StackCard Label="Import uploaded file" HelperText="Upload through Files, then import without copying bytes into the pasted content payload.">
+        <KnowledgeSourcePayloadEditor
+            ActionLabel="Import selected file into selected corpus"
+            ActionColor="Color.Secondary"
+            ImportFormats="@ImportFormats"
+            IsBusy="@(IsBusy || uploadedFile is null)"
+            SubmitRequested="ImportFileAsync" />
+        <SingleFileCaptureTransfer @ref="fileTransfer" OnFileUploaded="FileUploadedAsync">
+            <ActivatorContent>
+                <MudButton Variant="Variant.Outlined" Color="Color.Secondary" Disabled="@IsBusy">Select file</MudButton>
+            </ActivatorContent>
+        </SingleFileCaptureTransfer>
+        <MudButton Variant="Variant.Filled" Color="Color.Secondary" Disabled="@IsBusy" OnClick="StartFileUploadAsync">Upload selected file</MudButton>
+        @if (uploadedFile is not null)
+        {
+            <StackField Label="Selected file" HelperText="@DescribeUploadedFile()" Color="Color.Info" />
+        }
+    </StackCard>
 
     @if (!string.IsNullOrWhiteSpace(ImportSummary))
     {
@@ -43,8 +62,35 @@
     [Parameter, EditorRequired]
     public EventCallback<ImportKnowledgeSourceInput> ImportRequested { get; set; }
 
+    [Parameter, EditorRequired]
+    public EventCallback<ImportKnowledgeSourceFromFileInput> FileImportRequested { get; set; }
+
+    private SingleFileCaptureTransfer? fileTransfer;
+    private FileInformationReadDto? uploadedFile;
+
     private async Task ImportAsync(KnowledgeSourcePayload payload)
     {
         await ImportRequested.InvokeAsync(new ImportKnowledgeSourceInput(SelectedCorpus?.CorpusId, payload.SourceName, payload.FormatName, payload.Content));
     }
+
+    private async Task StartFileUploadAsync()
+    {
+        if (fileTransfer is not null)
+        {
+            await fileTransfer.StartTransferAsync();
+        }
+    }
+
+    private Task FileUploadedAsync(FileInformationReadDto file)
+    {
+        uploadedFile = file;
+        return Task.CompletedTask;
+    }
+
+    private async Task ImportFileAsync(KnowledgeSourcePayload payload)
+    {
+        await FileImportRequested.InvokeAsync(new ImportKnowledgeSourceFromFileInput(SelectedCorpus?.CorpusId, uploadedFile?.Id, payload.SourceName, payload.FormatName));
+    }
+
+    private string DescribeUploadedFile() => uploadedFile is null ? string.Empty : $"{uploadedFile.Tag ?? uploadedFile.Id.ToString()} ({uploadedFile.ContentType})";
 }

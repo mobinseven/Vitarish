@@ -32,6 +32,7 @@ public sealed class KnowledgeModule : Vitarish.Modules.Base.Module, IKnowledgeMo
         _ = builder.Services.AddTransientMultiTenantDbContext<KnowledgeDbContext>((_, options) => configureDbContext?.Invoke(options));
         _ = builder.Services.AddScoped<IKnowledgeChunker, HeadingAwareKnowledgeChunker>();
         _ = builder.Services.AddScoped<IKnowledgeImporter, KnowledgeImporter>();
+        _ = builder.Services.AddScoped<IKnowledgeImportFileReader, KnowledgeImportFileReader>();
         _ = builder.Services.AddScoped<IKnowledgeIndexer, SearchKnowledgeIndexer>();
         _ = builder.Services.AddScoped<ISearchIndexProvider, KnowledgeSearchIndexProvider>();
         _ = builder.Services.AddScoped<IKnowledgeRetriever, SearchKnowledgeRetriever>();
