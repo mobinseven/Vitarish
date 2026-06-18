@@ -33,6 +33,6 @@ public sealed class KnowledgeImportFileReader(IFileInformationService fileInform
 
         Stream content = await storage.DownloadAsync(file.Checksum, cancellationToken);
         string displayName = string.IsNullOrWhiteSpace(file.Tag) ? fileInformationId.ToString() : file.Tag;
-        return new KnowledgeImportFile(content, displayName, file.Checksum, $"file:{fileInformationId}", file.ContentType, file.Metadata.Size > 0 ? file.Metadata.Size : null);
+        return new KnowledgeImportFile(content, displayName, file.Checksum, $"file:{fileInformationId}", file.ContentType, file.Metadata?.Size > 0 ? file.Metadata.Size : null);
     }
 }
