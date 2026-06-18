@@ -45,6 +45,6 @@
 
     private async Task ImportAsync(KnowledgeSourcePayload payload)
     {
-        await ImportRequested.InvokeAsync(new ImportKnowledgeSourceInput(SelectedCorpus, payload.SourceName, payload.FormatName, payload.Content));
+        await ImportRequested.InvokeAsync(new ImportKnowledgeSourceInput(SelectedCorpus?.CorpusId, payload.SourceName, payload.FormatName, payload.Content));
     }
 }

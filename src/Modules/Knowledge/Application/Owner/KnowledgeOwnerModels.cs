@@ -2,12 +2,12 @@ namespace Vitarish.Knowledge.Application.Owner;
 
 public sealed record KnowledgeOwnerCorpusOption(string Label, string Details)
 {
-    internal Guid CorpusId { get; init; }
+    public Guid CorpusId { get; init; }
 }
 
 public sealed record KnowledgeOwnerSourceOption(string Label)
 {
-    internal Guid SourceId { get; init; }
+    public Guid SourceId { get; init; }
 }
 
 public sealed record KnowledgeOwnerImportFormatOption(string Name, string Label);
@@ -17,14 +17,19 @@ public sealed record KnowledgeOwnerImportFormats(IReadOnlyList<KnowledgeOwnerImp
     public string DefaultName => Options[0].Name;
 }
 
-public sealed record KnowledgeOwnerReadModel(IReadOnlyList<KnowledgeOwnerCorpusOption> Corpora, KnowledgeOwnerCorpusOption? SelectedCorpus, IReadOnlyList<KnowledgeOwnerSourceOption> Sources);
+public sealed record KnowledgeOwnerReadModel(IReadOnlyList<KnowledgeOwnerCorpusOption> Corpora, KnowledgeOwnerCorpusOption? SelectedCorpus, IReadOnlyList<KnowledgeOwnerSourceOption> Sources)
+{
+    public static KnowledgeOwnerReadModel Empty { get; } = new([], null, []);
+}
 
 public sealed record CreateKnowledgeCorpusInput(string Name, string? Description, bool IsActive);
-public sealed record ImportKnowledgeSourceInput(KnowledgeOwnerCorpusOption? Corpus, string? SourceName, string FormatName, string Content);
-public sealed record ReplaceKnowledgeSourceInput(KnowledgeOwnerCorpusOption? Corpus, KnowledgeOwnerSourceOption? Source, string? SourceName, string FormatName, string Content);
-public sealed record SelectKnowledgeCorpusInput(KnowledgeOwnerCorpusOption? Corpus);
-public sealed record IndexKnowledgeCorpusInput(KnowledgeOwnerCorpusOption? Corpus);
-public sealed record EvaluateKnowledgeCorpusInput(KnowledgeOwnerCorpusOption? Corpus);
+public sealed record ImportKnowledgeSourceInput(Guid? CorpusId, string? SourceName, string FormatName, string Content);
+public sealed record ReplaceKnowledgeSourceInput(Guid? CorpusId, Guid? SourceId, string? SourceName, string FormatName, string Content)
+{
+    public ImportKnowledgeSourceInput ToImportInput() => new(CorpusId, SourceName, FormatName, Content);
+}
+public sealed record IndexKnowledgeCorpusInput(Guid? CorpusId);
+public sealed record EvaluateKnowledgeCorpusInput(Guid? CorpusId);
 
 public sealed record KnowledgeOwnerCommandResult(bool Succeeded, string Message)
 {
