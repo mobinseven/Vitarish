@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Metadata;
 using System.Data;
 using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Entities.Server.Repositories.Operations;
@@ -154,58 +155,179 @@ public abstract class EntityRepository<TEntity, TDescriptor, TDbContext>(TDbCont
 
     public async Task<TEntity?> AddOrUpdateAsync(TEntity entity, CancellationToken cancellationToken)
     {
-        await using IEntityContextScope<TDbContext> scope = CreateOperationScope();
-        DbSet<TEntity> set = scope.Context.Set<TEntity>();
+        ArgumentNullException.ThrowIfNull(entity);
 
-        // Optimistic approach: try update first (most common case in production)
-        // This avoids race condition of check-then-act pattern
-        try
+        const int maxAttempts = 3;
+
+        await using IEntityContextScope<TDbContext> scope = CreateOperationScope();
+
+        TDbContext context = scope.Context;
+        DbSet<TEntity> set = context.Set<TEntity>();
+
+        IEntityType entityType = context.Model.FindEntityType(typeof(TEntity))
+            ?? throw new InvalidOperationException(
+                $"Entity type '{typeof(TEntity).Name}' is not part of the current DbContext model.");
+
+        IKey primaryKey = entityType.FindPrimaryKey()
+            ?? throw new InvalidOperationException(
+                $"Entity type '{typeof(TEntity).Name}' does not have a primary key.");
+
+        if (primaryKey.Properties.Any(p => p.IsShadowProperty()))
         {
-            _ = set.Update(entity);
-            await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
-            scope.Context.Entry(entity).State = EntityState.Detached;
-            return entity;
+            throw new InvalidOperationException(
+                $"Entity type '{typeof(TEntity).Name}' has a shadow primary key. Generic AddOrUpdate cannot resolve it safely.");
         }
-        catch (DbUpdateConcurrencyException)
+
+        object?[] keyValues = GetPrimaryKeyValues(context, entity, primaryKey);
+
+        bool hasUsableKey = HasUsablePrimaryKey(keyValues);
+
+        for (int attempt = 1; attempt <= maxAttempts; attempt++)
         {
-            // Entity doesn't exist, detach and try insert
-            scope.Context.Entry(entity).State = EntityState.Detached;
+            cancellationToken.ThrowIfCancellationRequested();
 
             try
             {
-                _ = await set.AddAsync(entity, cancellationToken);
-                await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
-                scope.Context.Entry(entity).State = EntityState.Detached;
-                return entity;
-            }
-            catch (DbUpdateException ex) when (IsDuplicateKeyException(ex))
-            {
-                // Race condition: another thread inserted between our attempts
-                // Fall back to update - wrap in try-catch to handle potential update failures
-                scope.Context.Entry(entity).State = EntityState.Detached;
-                try
+                if (!hasUsableKey)
                 {
-                    _ = set.Update(entity);
-                    await SaveChangesWithHandlingAsync(scope.Context, cancellationToken);
-                    scope.Context.Entry(entity).State = EntityState.Detached;
+                    await set.AddAsync(entity, cancellationToken);
+                    await SaveChangesWithHandlingAsync(context, cancellationToken);
+
+                    DetachIfTracked(context, entity);
                     return entity;
                 }
-                catch (DbUpdateConcurrencyException)
+
+                TEntity? existing = await set.FindAsync(keyValues, cancellationToken);
+
+                if (existing is null)
                 {
-                    // If final update also fails with concurrency exception, let SaveChangesWithHandlingAsync handle it
-                    throw;
+                    await set.AddAsync(entity, cancellationToken);
+                    await SaveChangesWithHandlingAsync(context, cancellationToken);
+
+                    DetachIfTracked(context, entity);
+                    return entity;
                 }
-                catch (DbUpdateException)
+
+                ApplyValues(context, entityType, source: entity, target: existing);
+
+                await SaveChangesWithHandlingAsync(context, cancellationToken);
+
+                DetachIfTracked(context, existing);
+
+                if (!ReferenceEquals(existing, entity))
                 {
-                    // Other database exceptions should propagate for consistent error handling
-                    throw;
+                    DetachIfTracked(context, entity);
                 }
+
+                return existing;
             }
-            catch (DbUpdateException)
+            catch (DbUpdateException ex) when (IsDuplicateKeyException(ex) && attempt < maxAttempts)
             {
-                // Non-duplicate-key DbUpdateException: propagate for consistent error handling
+                // Another request inserted the row between FindAsync and AddAsync.
+                // Clear tracking and retry; next pass should FindAsync the row and update it.
+                context.ChangeTracker.Clear();
+            }
+            catch (DbUpdateConcurrencyException) when (attempt < maxAttempts)
+            {
+                // Row was changed/deleted between read and save.
+                // Clear and retry against the latest database state.
+                context.ChangeTracker.Clear();
+            }
+            catch
+            {
+                context.ChangeTracker.Clear();
                 throw;
             }
+        }
+
+        throw new DbUpdateConcurrencyException(
+            $"Could not add or update '{typeof(TEntity).Name}' after {maxAttempts} attempts because of repeated concurrency conflicts.");
+    }
+
+    private static object?[] GetPrimaryKeyValues(
+        TDbContext context,
+        TEntity entity,
+        IKey primaryKey)
+    {
+        EntityEntry<TEntity> entry = context.Entry(entity);
+
+        object?[] values = primaryKey.Properties
+            .Select(property => entry.Property(property.Name).CurrentValue)
+            .ToArray();
+
+        entry.State = EntityState.Detached;
+
+        return values;
+    }
+
+    private static bool HasUsablePrimaryKey(object?[] keyValues)
+    {
+        return keyValues.All(value => value is not null && !IsDefaultValue(value));
+    }
+
+    private static bool IsDefaultValue(object value)
+    {
+        Type type = value.GetType();
+
+        if (!type.IsValueType)
+        {
+            return false;
+        }
+
+        object? defaultValue = Activator.CreateInstance(type);
+
+        return Equals(value, defaultValue);
+    }
+
+    private static void ApplyValues(
+        TDbContext context,
+        IEntityType entityType,
+        TEntity source,
+        TEntity target)
+    {
+        EntityEntry<TEntity> sourceEntry = context.Entry(source);
+        EntityEntry<TEntity> targetEntry = context.Entry(target);
+
+        foreach (IProperty property in entityType.GetProperties())
+        {
+            if (property.IsShadowProperty())
+            {
+                continue;
+            }
+
+            if (property.IsPrimaryKey())
+            {
+                continue;
+            }
+
+            if (property.GetAfterSaveBehavior() == PropertySaveBehavior.Throw)
+            {
+                continue;
+            }
+
+            if (property.ValueGenerated == ValueGenerated.OnAddOrUpdate)
+            {
+                continue;
+            }
+
+            object? value = sourceEntry.Property(property.Name).CurrentValue;
+
+            targetEntry.Property(property.Name).CurrentValue = value;
+        }
+
+        if (!ReferenceEquals(source, target))
+        {
+            sourceEntry.State = EntityState.Detached;
+        }
+    }
+
+    private static void DetachIfTracked(TDbContext context, TEntity entity)
+    {
+        EntityEntry<TEntity> entry = context.Entry(entity);
+
+        if (entry.State != EntityState.Detached)
+        {
+            entry.State = EntityState.Detached;
         }
     }
 
