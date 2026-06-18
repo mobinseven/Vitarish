@@ -58,6 +58,6 @@
 
     private async Task ReplaceAsync(KnowledgeSourcePayload payload)
     {
-        await ReplaceRequested.InvokeAsync(new ReplaceKnowledgeSourceInput(SelectedCorpus, source, payload.SourceName, payload.FormatName, payload.Content));
+        await ReplaceRequested.InvokeAsync(new ReplaceKnowledgeSourceInput(SelectedCorpus?.CorpusId, source?.SourceId, payload.SourceName, payload.FormatName, payload.Content));
     }
 }

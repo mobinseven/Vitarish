@@ -2,7 +2,12 @@
 @using Vitarish.Knowledge.Application.Owner
 @inherits TenantCommonBase
 @implements IDisposable
-@inject IKnowledgeOwnerUseCases OwnerUseCases
+@inject IKnowledgeOwnerReadModelQuery OwnerQuery
+@inject ICreateKnowledgeCorpusCommand CreateCorpusCommand
+@inject IImportKnowledgeSourceCommand ImportSourceCommand
+@inject IReplaceKnowledgeSourceCommand ReplaceSourceCommand
+@inject IIndexKnowledgeCorpusCommand IndexCorpusCommand
+@inject IEvaluateKnowledgeCorpusCommand EvaluateCorpusCommand
 
 <Stack>
     <StackField Label="@Localizer["Knowledge"]" HelperText="Create or select a corpus, import content, index it, and evaluate it without copying identifiers." />
@@ -14,7 +19,7 @@
 
 <KnowledgeSourceImporter
     SelectedCorpus="@model.SelectedCorpus"
-    ImportFormats="@OwnerUseCases.ImportFormats"
+    ImportFormats="@ImportSourceCommand.ImportFormats"
     IsBusy="@isBusy"
     ImportRequested="ImportSourceAsync"
     ImportSummary="@importSummary" />
@@ -22,7 +27,7 @@
 <KnowledgeSourceReplacer
     SelectedCorpus="@model.SelectedCorpus"
     Sources="@model.Sources"
-    ImportFormats="@OwnerUseCases.ImportFormats"
+    ImportFormats="@ReplaceSourceCommand.ImportFormats"
     IsBusy="@isBusy"
     SourcesVersion="@sourcesVersion"
     ReplaceRequested="ReplaceSourceAsync" />
@@ -50,12 +55,12 @@
 
     protected override async Task OnInitializedAsync()
     {
-        model = await OwnerUseCases.LoadAsync(RequestContext.TenantId, null, disposal.Token);
+        model = await OwnerQuery.LoadAsync(RequestContext.TenantId, null, disposal.Token);
     }
 
     private async Task CreateCorpusAsync(CreateKnowledgeCorpusInput input) => await RunAsync(async token =>
     {
-        KnowledgeOwnerCreateCorpusResult result = await OwnerUseCases.CreateCorpusAsync(RequestContext.TenantId, input, token);
+        KnowledgeOwnerCreateCorpusResult result = await CreateCorpusCommand.CreateCorpusAsync(RequestContext.TenantId, input, token);
         Apply(result.Succeeded, result.Message);
 
         if (!result.Succeeded || result.Corpus is null)
@@ -63,20 +68,20 @@
             return;
         }
 
-        model = await OwnerUseCases.LoadAsync(RequestContext.TenantId, result.Corpus, token);
+        model = await OwnerQuery.LoadAsync(RequestContext.TenantId, result.Corpus.CorpusId, token);
         createCorpusResetVersion++;
         ClearCorpusScopedResults();
     });
 
     private async Task SelectCorpusAsync(KnowledgeOwnerCorpusOption? corpus) => await RunAsync(async token =>
     {
-        model = await OwnerUseCases.SelectCorpusAsync(RequestContext.TenantId, new SelectKnowledgeCorpusInput(corpus), token);
+        model = await OwnerQuery.LoadAsync(RequestContext.TenantId, corpus?.CorpusId, token);
         ClearCorpusScopedResults();
     });
 
     private async Task ImportSourceAsync(ImportKnowledgeSourceInput input) => await RunAsync(async token =>
     {
-        KnowledgeOwnerImportCommandResult result = await OwnerUseCases.ImportSourceAsync(RequestContext.TenantId, input, token);
+        KnowledgeOwnerImportCommandResult result = await ImportSourceCommand.ImportSourceAsync(RequestContext.TenantId, input, token);
         Apply(result.Succeeded, result.Message);
         importSummary = result.Summary;
 
@@ -88,7 +93,7 @@
 
     private async Task ReplaceSourceAsync(ReplaceKnowledgeSourceInput input) => await RunAsync(async token =>
     {
-        KnowledgeOwnerImportCommandResult result = await OwnerUseCases.ReplaceSourceAsync(RequestContext.TenantId, input, token);
+        KnowledgeOwnerImportCommandResult result = await ReplaceSourceCommand.ReplaceSourceAsync(RequestContext.TenantId, input, token);
         Apply(result.Succeeded, result.Message);
         importSummary = result.Summary;
 
@@ -100,20 +105,20 @@
 
     private async Task IndexCorpusAsync() => await RunAsync(async token =>
     {
-        KnowledgeOwnerCommandResult result = await OwnerUseCases.IndexCorpusAsync(RequestContext.TenantId, new IndexKnowledgeCorpusInput(model.SelectedCorpus), token);
+        KnowledgeOwnerCommandResult result = await IndexCorpusCommand.IndexCorpusAsync(RequestContext.TenantId, new IndexKnowledgeCorpusInput(model.SelectedCorpus?.CorpusId), token);
         Apply(result);
     });
 
     private async Task EvaluateCorpusAsync() => await RunAsync(async token =>
     {
-        KnowledgeOwnerEvaluationCommandResult result = await OwnerUseCases.EvaluateCorpusAsync(RequestContext.TenantId, new EvaluateKnowledgeCorpusInput(model.SelectedCorpus), token);
+        KnowledgeOwnerEvaluationCommandResult result = await EvaluateCorpusCommand.EvaluateCorpusAsync(RequestContext.TenantId, new EvaluateKnowledgeCorpusInput(model.SelectedCorpus?.CorpusId), token);
         Apply(result.Succeeded, result.Message);
         evaluationSummary = result.Summary;
     });
 
     private async Task ReloadSelectedCorpusAsync(CancellationToken token)
     {
-        model = await OwnerUseCases.LoadAsync(RequestContext.TenantId, model.SelectedCorpus, token);
+        model = await OwnerQuery.LoadAsync(RequestContext.TenantId, model.SelectedCorpus?.CorpusId, token);
         sourcesVersion++;
     }
 

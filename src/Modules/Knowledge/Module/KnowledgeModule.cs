@@ -45,7 +45,14 @@ public sealed class KnowledgeModule : Vitarish.Modules.Base.Module, IKnowledgeMo
         _ = builder.Services.AddScoped<IKnowledgeAskTraceRepository, KnowledgeAskTraceRepository>();
         _ = builder.Services.AddScoped<IKnowledgeIndexRunRepository, KnowledgeIndexRunRepository>();
         _ = builder.Services.AddScoped<IKnowledgeService, KnowledgeService>();
-        _ = builder.Services.AddScoped<IKnowledgeOwnerUseCases, KnowledgeOwnerUseCases>();
+        _ = builder.Services.AddScoped<KnowledgeOwnerReadModelProjector>();
+        _ = builder.Services.AddScoped<KnowledgeOwnerResultFormatter>();
+        _ = builder.Services.AddScoped<IKnowledgeOwnerReadModelQuery, KnowledgeOwnerReadModelQuery>();
+        _ = builder.Services.AddScoped<ICreateKnowledgeCorpusCommand, CreateKnowledgeCorpusCommand>();
+        _ = builder.Services.AddScoped<IImportKnowledgeSourceCommand, ImportKnowledgeSourceCommand>();
+        _ = builder.Services.AddScoped<IReplaceKnowledgeSourceCommand, ReplaceKnowledgeSourceCommand>();
+        _ = builder.Services.AddScoped<IIndexKnowledgeCorpusCommand, IndexKnowledgeCorpusCommand>();
+        _ = builder.Services.AddScoped<IEvaluateKnowledgeCorpusCommand, EvaluateKnowledgeCorpusCommand>();
         _ = builder.Services.AddScoped<IKnowledgeDiagnosticsService, KnowledgeDiagnosticsService>();
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(KnowledgeDbContext).Assembly));
         return Task.CompletedTask;
