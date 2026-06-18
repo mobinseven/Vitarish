@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Knowledge.Application.Abstractions;
+using Vitarish.Knowledge.Application.Owner;
 using Vitarish.Knowledge.Infrastructure.Data;
 using Vitarish.Knowledge.Infrastructure.Repositories;
 using Vitarish.Modules.Base;
@@ -44,6 +45,7 @@ public sealed class KnowledgeModule : Vitarish.Modules.Base.Module, IKnowledgeMo
         _ = builder.Services.AddScoped<IKnowledgeAskTraceRepository, KnowledgeAskTraceRepository>();
         _ = builder.Services.AddScoped<IKnowledgeIndexRunRepository, KnowledgeIndexRunRepository>();
         _ = builder.Services.AddScoped<IKnowledgeService, KnowledgeService>();
+        _ = builder.Services.AddScoped<IKnowledgeOwnerUseCases, KnowledgeOwnerUseCases>();
         _ = builder.Services.AddScoped<IKnowledgeDiagnosticsService, KnowledgeDiagnosticsService>();
         _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(KnowledgeDbContext).Assembly));
         return Task.CompletedTask;
