@@ -1,92 +1,130 @@
-using System.Globalization;
 using System.Text;
+using MediatR;
 using Vitarish.Knowledge.Application.Abstractions;
 using Vitarish.Knowledge.Domain.Models;
 
 namespace Vitarish.Knowledge.Application.Owner;
 
-public interface IKnowledgeOwnerUseCases
+public sealed record KnowledgeOwnerReadModelQuery(string? TenantId, Guid? SelectedCorpusId) : IRequest<KnowledgeOwnerReadModel>;
+public sealed record CreateKnowledgeCorpusCommand(string? TenantId, CreateKnowledgeCorpusInput Input) : IRequest<KnowledgeOwnerCreateCorpusResult>;
+public sealed record ImportKnowledgeSourceCommand(string? TenantId, ImportKnowledgeSourceInput Input) : IRequest<KnowledgeOwnerImportCommandResult>;
+public sealed record ReplaceKnowledgeSourceCommand(string? TenantId, ReplaceKnowledgeSourceInput Input) : IRequest<KnowledgeOwnerImportCommandResult>;
+public sealed record IndexKnowledgeCorpusCommand(string? TenantId, IndexKnowledgeCorpusInput Input) : IRequest<KnowledgeOwnerCommandResult>;
+public sealed record EvaluateKnowledgeCorpusCommand(string? TenantId, EvaluateKnowledgeCorpusInput Input) : IRequest<KnowledgeOwnerEvaluationCommandResult>;
+
+public sealed class KnowledgeOwnerReadModelQueryHandler(IKnowledgeService knowledge) : IRequestHandler<KnowledgeOwnerReadModelQuery, KnowledgeOwnerReadModel>
 {
-    KnowledgeOwnerImportFormats ImportFormats { get; }
-    Task<KnowledgeOwnerReadModel> LoadAsync(string? tenantId, KnowledgeOwnerCorpusOption? selectedCorpus, CancellationToken cancellationToken);
-    Task<KnowledgeOwnerCreateCorpusResult> CreateCorpusAsync(string? tenantId, CreateKnowledgeCorpusInput input, CancellationToken cancellationToken);
-    Task<KnowledgeOwnerReadModel> SelectCorpusAsync(string? tenantId, SelectKnowledgeCorpusInput input, CancellationToken cancellationToken);
-    Task<KnowledgeOwnerImportCommandResult> ImportSourceAsync(string? tenantId, ImportKnowledgeSourceInput input, CancellationToken cancellationToken);
-    Task<KnowledgeOwnerImportCommandResult> ReplaceSourceAsync(string? tenantId, ReplaceKnowledgeSourceInput input, CancellationToken cancellationToken);
-    Task<KnowledgeOwnerCommandResult> IndexCorpusAsync(string? tenantId, IndexKnowledgeCorpusInput input, CancellationToken cancellationToken);
-    Task<KnowledgeOwnerEvaluationCommandResult> EvaluateCorpusAsync(string? tenantId, EvaluateKnowledgeCorpusInput input, CancellationToken cancellationToken);
+    public async Task<KnowledgeOwnerReadModel> Handle(KnowledgeOwnerReadModelQuery request, CancellationToken cancellationToken)
+    {
+        string? tenantError = KnowledgeOwnerInputValidator.ValidateTenant(request.TenantId);
+        if (tenantError is not null) return KnowledgeOwnerReadModel.Empty;
+
+        IReadOnlyList<KnowledgeCorpus> corpora = await knowledge.ListCorporaAsync(request.TenantId!, cancellationToken);
+        IReadOnlyList<KnowledgeOwnerCorpusOption> corpusOptions = corpora.ToOwnerCorpusOptions();
+        KnowledgeOwnerCorpusOption? selected = corpusOptions.ResolveSelectedOwnerCorpus(request.SelectedCorpusId);
+        IReadOnlyList<KnowledgeSource> sources = selected is null ? [] : await knowledge.GetSourcesAsync(selected.CorpusId, request.TenantId!, cancellationToken);
+
+        return corpusOptions.ToOwnerReadModel(selected, sources);
+    }
 }
 
-public sealed class KnowledgeOwnerUseCases(IKnowledgeService knowledge) : IKnowledgeOwnerUseCases
+public sealed class CreateKnowledgeCorpusCommandHandler(IKnowledgeService knowledge) : IRequestHandler<CreateKnowledgeCorpusCommand, KnowledgeOwnerCreateCorpusResult>
 {
-    public KnowledgeOwnerImportFormats ImportFormats => KnowledgeOwnerImportFormatCatalog.Current;
-
-    public async Task<KnowledgeOwnerReadModel> LoadAsync(string? tenantId, KnowledgeOwnerCorpusOption? selectedCorpus, CancellationToken cancellationToken)
+    public async Task<KnowledgeOwnerCreateCorpusResult> Handle(CreateKnowledgeCorpusCommand request, CancellationToken cancellationToken)
     {
-        string? tenantError = ValidateTenant(tenantId);
-        if (tenantError is not null) return new KnowledgeOwnerReadModel([], null, []);
-        IReadOnlyList<KnowledgeCorpus> corpora = await knowledge.ListCorporaAsync(tenantId!, cancellationToken);
-        IReadOnlyList<KnowledgeOwnerCorpusOption> corpusOptions = BuildCorpusOptions(corpora);
-        KnowledgeOwnerCorpusOption? selected = corpusOptions.FirstOrDefault(option => selectedCorpus is not null && option.CorpusId == selectedCorpus.CorpusId) ?? corpusOptions.FirstOrDefault();
-        return await BuildReadModelAsync(tenantId!, corpusOptions, selected, cancellationToken);
-    }
-
-    public async Task<KnowledgeOwnerCreateCorpusResult> CreateCorpusAsync(string? tenantId, CreateKnowledgeCorpusInput input, CancellationToken cancellationToken)
-    {
-        string? error = ValidateTenant(tenantId) ?? KnowledgeOwnerInputValidator.ValidateCreateCorpus(input);
+        string? error = KnowledgeOwnerInputValidator.ValidateTenant(request.TenantId) ?? KnowledgeOwnerInputValidator.ValidateCreateCorpus(request.Input);
         if (error is not null) return KnowledgeOwnerCreateCorpusResult.Failure(error);
-        KnowledgeCorpus corpus = new() { Id = Guid.NewGuid(), TenantId = tenantId!, Name = input.Name.Trim(), Description = string.IsNullOrWhiteSpace(input.Description) ? null : input.Description.Trim(), IsActive = input.IsActive };
-        await knowledge.SaveCorpusAsync(corpus, cancellationToken);
-        return KnowledgeOwnerCreateCorpusResult.Success("Corpus created.", ToCorpusOption(corpus));
+
+        KnowledgeCorpus corpus = new() { Id = Guid.NewGuid(), TenantId = request.TenantId!, Name = request.Input.Name.Trim(), Description = string.IsNullOrWhiteSpace(request.Input.Description) ? null : request.Input.Description.Trim(), IsActive = request.Input.IsActive };
+        try
+        {
+            await knowledge.SaveCorpusAsync(corpus, cancellationToken);
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return KnowledgeOwnerCreateCorpusResult.Failure(KnowledgeOwnerFailureMessages.SaveCorpusFailed);
+        }
+
+        return KnowledgeOwnerCreateCorpusResult.Success("Corpus created.", corpus.ToOwnerCorpusOption());
     }
+}
 
-    public async Task<KnowledgeOwnerReadModel> SelectCorpusAsync(string? tenantId, SelectKnowledgeCorpusInput input, CancellationToken cancellationToken) => await LoadAsync(tenantId, input.Corpus, cancellationToken);
-
-    public async Task<KnowledgeOwnerImportCommandResult> ImportSourceAsync(string? tenantId, ImportKnowledgeSourceInput input, CancellationToken cancellationToken)
+public sealed class ImportKnowledgeSourceCommandHandler(IKnowledgeService knowledge) : IRequestHandler<ImportKnowledgeSourceCommand, KnowledgeOwnerImportCommandResult>
+{
+    public async Task<KnowledgeOwnerImportCommandResult> Handle(ImportKnowledgeSourceCommand request, CancellationToken cancellationToken)
     {
-        string? error = ValidateTenant(tenantId) ?? KnowledgeOwnerInputValidator.ValidateImport(input);
+        string? error = KnowledgeOwnerInputValidator.ValidateTenant(request.TenantId) ?? KnowledgeOwnerInputValidator.ValidateImport(request.Input);
         if (error is not null) return KnowledgeOwnerImportCommandResult.Failure(error);
-        await using MemoryStream content = new(Encoding.UTF8.GetBytes(input.Content));
-        KnowledgeImportResult result = await knowledge.ImportAsync(BuildImportRequest(tenantId!, input.Corpus!, input, content), cancellationToken);
-        return KnowledgeOwnerImportCommandResult.Success("Import complete.", $"Imported {result.Sources.Count} source(s), {result.Documents.Count} document(s), and {result.Chunks.Count} searchable section(s).");
+
+        try
+        {
+            await using MemoryStream content = new(Encoding.UTF8.GetBytes(request.Input.Content));
+            KnowledgeImportResult result = await knowledge.ImportAsync(BuildImportRequest(request.TenantId!, request.Input, content), cancellationToken);
+            return KnowledgeOwnerImportCommandResult.Success("Import complete.", result.ToOwnerImportSummary());
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return KnowledgeOwnerImportCommandResult.Failure(KnowledgeOwnerFailureMessages.ImportFailed);
+        }
     }
 
-    public async Task<KnowledgeOwnerImportCommandResult> ReplaceSourceAsync(string? tenantId, ReplaceKnowledgeSourceInput input, CancellationToken cancellationToken)
+    internal static KnowledgeImportRequest BuildImportRequest(string tenantId, ImportKnowledgeSourceInput input, Stream content) => new() { CorpusId = input.CorpusId!.Value, TenantId = tenantId, Content = content, Format = input.FormatName.Trim(), SourceName = string.IsNullOrWhiteSpace(input.SourceName) ? null : input.SourceName.Trim() };
+}
+
+public sealed class ReplaceKnowledgeSourceCommandHandler(IKnowledgeService knowledge) : IRequestHandler<ReplaceKnowledgeSourceCommand, KnowledgeOwnerImportCommandResult>
+{
+    public async Task<KnowledgeOwnerImportCommandResult> Handle(ReplaceKnowledgeSourceCommand request, CancellationToken cancellationToken)
     {
-        string? error = ValidateTenant(tenantId) ?? KnowledgeOwnerInputValidator.ValidateReplace(input);
+        string? error = KnowledgeOwnerInputValidator.ValidateTenant(request.TenantId) ?? KnowledgeOwnerInputValidator.ValidateReplace(request.Input);
         if (error is not null) return KnowledgeOwnerImportCommandResult.Failure(error);
-        await using MemoryStream content = new(Encoding.UTF8.GetBytes(input.Content));
-        KnowledgeImportRequest request = BuildImportRequest(tenantId!, input.Corpus!, new ImportKnowledgeSourceInput(input.Corpus, input.SourceName, input.FormatName, input.Content), content);
-        KnowledgeImportResult result = await knowledge.ReplaceSourceAsync(input.Source!.SourceId, request, cancellationToken);
-        return KnowledgeOwnerImportCommandResult.Success("Source replacement complete.", $"Imported {result.Sources.Count} source(s), {result.Documents.Count} document(s), and {result.Chunks.Count} searchable section(s).");
-    }
 
-    public async Task<KnowledgeOwnerCommandResult> IndexCorpusAsync(string? tenantId, IndexKnowledgeCorpusInput input, CancellationToken cancellationToken)
+        try
+        {
+            await using MemoryStream content = new(Encoding.UTF8.GetBytes(request.Input.Content));
+            KnowledgeImportResult result = await knowledge.ReplaceSourceAsync(request.Input.SourceId!.Value, ImportKnowledgeSourceCommandHandler.BuildImportRequest(request.TenantId!, request.Input.ToImportInput(), content), cancellationToken);
+            return KnowledgeOwnerImportCommandResult.Success("Source replacement complete.", result.ToOwnerImportSummary());
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return KnowledgeOwnerImportCommandResult.Failure(KnowledgeOwnerFailureMessages.ReplaceFailed);
+        }
+    }
+}
+
+public sealed class IndexKnowledgeCorpusCommandHandler(IKnowledgeService knowledge) : IRequestHandler<IndexKnowledgeCorpusCommand, KnowledgeOwnerCommandResult>
+{
+    public async Task<KnowledgeOwnerCommandResult> Handle(IndexKnowledgeCorpusCommand request, CancellationToken cancellationToken)
     {
-        string? error = ValidateTenant(tenantId) ?? KnowledgeOwnerInputValidator.ValidateSelectedCorpus(input.Corpus);
+        string? error = KnowledgeOwnerInputValidator.ValidateTenant(request.TenantId) ?? KnowledgeOwnerInputValidator.ValidateSelectedCorpus(request.Input.CorpusId);
         if (error is not null) return KnowledgeOwnerCommandResult.Failure(error);
-        KnowledgeIndexResult result = await knowledge.IndexAsync(input.Corpus!.CorpusId, tenantId!, cancellationToken);
-        return KnowledgeOwnerCommandResult.Success($"Indexed {result.IndexedChunkCount} searchable section(s).");
-    }
 
-    public async Task<KnowledgeOwnerEvaluationCommandResult> EvaluateCorpusAsync(string? tenantId, EvaluateKnowledgeCorpusInput input, CancellationToken cancellationToken)
+        try
+        {
+            KnowledgeIndexResult result = await knowledge.IndexAsync(request.Input.CorpusId!.Value, request.TenantId!, cancellationToken);
+            return KnowledgeOwnerCommandResult.Success(result.ToOwnerIndexSummary());
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return KnowledgeOwnerCommandResult.Failure(KnowledgeOwnerFailureMessages.IndexFailed);
+        }
+    }
+}
+
+public sealed class EvaluateKnowledgeCorpusCommandHandler(IKnowledgeService knowledge) : IRequestHandler<EvaluateKnowledgeCorpusCommand, KnowledgeOwnerEvaluationCommandResult>
+{
+    public async Task<KnowledgeOwnerEvaluationCommandResult> Handle(EvaluateKnowledgeCorpusCommand request, CancellationToken cancellationToken)
     {
-        string? error = ValidateTenant(tenantId) ?? KnowledgeOwnerInputValidator.ValidateSelectedCorpus(input.Corpus);
+        string? error = KnowledgeOwnerInputValidator.ValidateTenant(request.TenantId) ?? KnowledgeOwnerInputValidator.ValidateSelectedCorpus(request.Input.CorpusId);
         if (error is not null) return KnowledgeOwnerEvaluationCommandResult.Failure(error);
-        KnowledgeEvaluationRun run = await knowledge.EvaluateAsync(new KnowledgeEvaluationRequest(input.Corpus!.CorpusId, tenantId!), cancellationToken);
-        string summary = string.Create(CultureInfo.InvariantCulture, $"recall@5 {run.RecallAt5:0.###} · recall@10 {run.RecallAt10:0.###} · average expected rank {run.AverageExpectedChunkRank:0.###}");
-        return KnowledgeOwnerEvaluationCommandResult.Success("Evaluation complete.", summary);
-    }
 
-    private static KnowledgeImportRequest BuildImportRequest(string tenantId, KnowledgeOwnerCorpusOption corpus, ImportKnowledgeSourceInput input, Stream content) => new() { CorpusId = corpus.CorpusId, TenantId = tenantId, Content = content, Format = input.FormatName.Trim(), SourceName = string.IsNullOrWhiteSpace(input.SourceName) ? null : input.SourceName.Trim() };
-    private async Task<KnowledgeOwnerReadModel> BuildReadModelAsync(string tenantId, IReadOnlyList<KnowledgeOwnerCorpusOption> corpusOptions, KnowledgeOwnerCorpusOption? selected, CancellationToken cancellationToken)
-    {
-        IReadOnlyList<KnowledgeOwnerSourceOption> sources = selected is null ? [] : (await knowledge.GetSourcesAsync(selected.CorpusId, tenantId, cancellationToken)).Select(ToSourceOption).ToArray();
-        return new KnowledgeOwnerReadModel(corpusOptions, selected, sources);
+        try
+        {
+            KnowledgeEvaluationRun run = await knowledge.EvaluateAsync(new KnowledgeEvaluationRequest(request.Input.CorpusId!.Value, request.TenantId!), cancellationToken);
+            return KnowledgeOwnerEvaluationCommandResult.Success("Evaluation complete.", run.ToOwnerEvaluationSummary());
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return KnowledgeOwnerEvaluationCommandResult.Failure(KnowledgeOwnerFailureMessages.EvaluationFailed);
+        }
     }
-
-    private static IReadOnlyList<KnowledgeOwnerCorpusOption> BuildCorpusOptions(IReadOnlyList<KnowledgeCorpus> corpora) => corpora.Select(ToCorpusOption).ToArray();
-    private static KnowledgeOwnerCorpusOption ToCorpusOption(KnowledgeCorpus corpus) => new(string.IsNullOrWhiteSpace(corpus.Description) ? corpus.Name : $"{corpus.Name} — {corpus.Description}", $"{(corpus.IsActive ? "Enabled" : "Disabled")}{(string.IsNullOrWhiteSpace(corpus.Description) ? string.Empty : $" · {corpus.Description}")}") { CorpusId = corpus.Id };
-    private static KnowledgeOwnerSourceOption ToSourceOption(KnowledgeSource source) => new($"{source.Name} · {source.SourceType} · imported {source.ImportedAt.LocalDateTime:g}") { SourceId = source.Id };
-    private static string? ValidateTenant(string? tenantId) => string.IsNullOrWhiteSpace(tenantId) ? "Your workspace is unavailable. Please refresh the page and try again." : null;
 }

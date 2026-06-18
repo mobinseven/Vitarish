@@ -45,9 +45,12 @@ public sealed class KnowledgeModule : Vitarish.Modules.Base.Module, IKnowledgeMo
         _ = builder.Services.AddScoped<IKnowledgeAskTraceRepository, KnowledgeAskTraceRepository>();
         _ = builder.Services.AddScoped<IKnowledgeIndexRunRepository, KnowledgeIndexRunRepository>();
         _ = builder.Services.AddScoped<IKnowledgeService, KnowledgeService>();
-        _ = builder.Services.AddScoped<IKnowledgeOwnerUseCases, KnowledgeOwnerUseCases>();
         _ = builder.Services.AddScoped<IKnowledgeDiagnosticsService, KnowledgeDiagnosticsService>();
-        _ = builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(KnowledgeDbContext).Assembly));
+        _ = builder.Services.AddMediatR(cfg =>
+        {
+            cfg.RegisterServicesFromAssembly(typeof(KnowledgeDbContext).Assembly);
+            cfg.RegisterServicesFromAssembly(typeof(KnowledgeOwnerReadModelQuery).Assembly);
+        });
         return Task.CompletedTask;
     }
 
