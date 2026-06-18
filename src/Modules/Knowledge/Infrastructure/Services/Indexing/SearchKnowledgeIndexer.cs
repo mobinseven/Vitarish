@@ -1,4 +1,5 @@
 using Vitarish.Knowledge.Application.Abstractions;
+using Vitarish.Knowledge.Application.Contracts;
 using Vitarish.Knowledge.Domain.Models;
 using Vitarish.Knowledge.Infrastructure.Services.Retrieval;
 using Vitarish.Search.Application.Abstractions;

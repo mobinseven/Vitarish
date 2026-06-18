@@ -1,5 +1,5 @@
 using System.Globalization;
-using Vitarish.Knowledge.Application.Abstractions;
+using Vitarish.Knowledge.Application.Contracts;
 
 namespace Vitarish.Knowledge.Application.Owner;
 

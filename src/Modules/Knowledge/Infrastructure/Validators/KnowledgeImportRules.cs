@@ -1,5 +1,5 @@
 using System.Text.Json;
-using Vitarish.Knowledge.Application.Abstractions;
+using Vitarish.Knowledge.Application.Contracts;
 using Vitarish.Knowledge.Domain.Models;
 
 namespace Vitarish.Knowledge.Infrastructure.Validators;

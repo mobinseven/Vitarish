@@ -1,8 +1,8 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
-using Vitarish.Knowledge.Application.Abstractions;
 using Vitarish.Knowledge.Application.Commands;
+using Vitarish.Knowledge.Application.Contracts;
 using Vitarish.Knowledge.Domain.Entities;
 using Vitarish.Knowledge.Domain.Models;
 using Vitarish.Knowledge.Infrastructure.Data;

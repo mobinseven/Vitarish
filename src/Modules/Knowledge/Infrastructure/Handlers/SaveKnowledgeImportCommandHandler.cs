@@ -1,6 +1,6 @@
 using MediatR;
-using Vitarish.Knowledge.Application.Abstractions;
 using Vitarish.Knowledge.Application.Commands;
+using Vitarish.Knowledge.Application.Contracts;
 using Vitarish.Knowledge.Infrastructure.Data;
 using Vitarish.Knowledge.Infrastructure.Extensions;
 using Vitarish.Knowledge.Infrastructure.Validators;

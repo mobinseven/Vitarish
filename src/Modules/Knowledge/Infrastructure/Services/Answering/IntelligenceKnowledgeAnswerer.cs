@@ -4,6 +4,7 @@ using System.Text.Json.Serialization;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Domain.Models;
 using Vitarish.Knowledge.Application.Abstractions;
+using Vitarish.Knowledge.Application.Contracts;
 
 namespace Vitarish.Knowledge.Infrastructure.Services.Answering;
 

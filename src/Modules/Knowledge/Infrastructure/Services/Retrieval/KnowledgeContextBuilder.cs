@@ -1,5 +1,6 @@
 using System.Text;
 using Vitarish.Knowledge.Application.Abstractions;
+using Vitarish.Knowledge.Application.Contracts;
 
 namespace Vitarish.Knowledge.Infrastructure.Services.Retrieval;
 

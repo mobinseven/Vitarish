@@ -54,9 +54,9 @@ public sealed class KnowledgeModule : Vitarish.Modules.Base.Module, IKnowledgeMo
         return Task.CompletedTask;
     }
 
-    public override Task Initialize(WebApplication app)
+    public override async Task Initialize(WebApplication app)
     {
-        return Task.CompletedTask;
+      await  app.MigrateDatabaseAsync<KnowledgeDbContext>();
     }
 
 }

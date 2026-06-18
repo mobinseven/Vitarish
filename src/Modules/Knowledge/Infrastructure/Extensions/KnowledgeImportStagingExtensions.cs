@@ -1,4 +1,4 @@
-using Vitarish.Knowledge.Application.Abstractions;
+using Vitarish.Knowledge.Application.Contracts;
 using Vitarish.Knowledge.Domain.Mappers;
 using Vitarish.Knowledge.Infrastructure.Data;
 

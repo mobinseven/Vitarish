@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Knowledge.Application.Abstractions;
+using Vitarish.Knowledge.Application.Contracts;
 using Vitarish.Knowledge.Domain.Models;
 using Vitarish.Knowledge.Infrastructure.Data;
 using Vitarish.Knowledge.Infrastructure.Validators;

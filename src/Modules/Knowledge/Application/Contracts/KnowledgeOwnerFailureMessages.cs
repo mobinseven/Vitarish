@@ -1,4 +1,4 @@
-namespace Vitarish.Knowledge.Application.Owner;
+namespace Vitarish.Knowledge.Application.Contracts;
 
 public static class KnowledgeOwnerFailureMessages
 {

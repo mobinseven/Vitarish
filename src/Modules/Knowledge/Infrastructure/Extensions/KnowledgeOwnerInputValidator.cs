@@ -1,3 +1,5 @@
+using Vitarish.Knowledge.Application.Contracts;
+
 namespace Vitarish.Knowledge.Application.Owner;
 
 public static class KnowledgeOwnerInputValidator

@@ -1,6 +1,9 @@
 using System.Text.Json;
 using Microsoft.EntityFrameworkCore;
 using Vitarish.Knowledge.Application.Abstractions;
+using Vitarish.Knowledge.Application.Contracts;
+using Vitarish.Knowledge.Application.Enums;
+using Vitarish.Knowledge.Application.Queries;
 using Vitarish.Knowledge.Domain.Entities;
 using Vitarish.Knowledge.Domain.Models;
 using Vitarish.Knowledge.Infrastructure.Data;

@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Vitarish.Entities.Server.Data;
 using Vitarish.Entities.Server.Repositories;
 using Vitarish.Knowledge.Application.Abstractions;
+using Vitarish.Knowledge.Application.Contracts;
 using Vitarish.Knowledge.Domain.Entities;
 using Vitarish.Knowledge.Domain.Models;
 using Vitarish.Knowledge.Infrastructure.Data;
