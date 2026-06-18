@@ -1,10 +1,11 @@
 namespace Vitarish.Knowledge.Application.Owner;
 
-internal static class KnowledgeOwnerFailureMessages
+public static class KnowledgeOwnerFailureMessages
 {
-    public const string SaveCorpusFailed = "The corpus could not be saved. Please try again.";
-    public const string ImportFailed = "The source could not be imported. Check the content and try again.";
-    public const string ReplaceFailed = "The source could not be replaced. Check the content and try again.";
-    public const string IndexFailed = "The corpus could not be indexed. Please try again.";
-    public const string EvaluationFailed = "The corpus could not be evaluated. Please try again.";
+    public const string SaveCorpusFailed = nameof(SaveCorpusFailed);
+    public const string ImportFailed = nameof(ImportFailed);
+    public const string ReplaceFailed = nameof(ReplaceFailed);
+    public const string IndexFailed = nameof(IndexFailed);
+    public const string EvaluationFailed = nameof(EvaluationFailed);
+    public const string LoadWorkspaceFailed = nameof(LoadWorkspaceFailed);
 }

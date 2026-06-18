@@ -12,5 +12,5 @@ public static class KnowledgeOwnerReadModelProjector
 
     public static KnowledgeOwnerCorpusOption ToOwnerCorpusOption(this KnowledgeCorpus corpus) => new(string.IsNullOrWhiteSpace(corpus.Description) ? corpus.Name : $"{corpus.Name} — {corpus.Description}", $"{(corpus.IsActive ? "Enabled" : "Disabled")}{(string.IsNullOrWhiteSpace(corpus.Description) ? string.Empty : $" · {corpus.Description}")}") { CorpusId = corpus.Id };
 
-    private static KnowledgeOwnerSourceOption ToOwnerSourceOption(this KnowledgeSource source) => new($"{source.Name} · {source.SourceType} · imported {source.ImportedAt.LocalDateTime:g}") { SourceId = source.Id };
+    private static KnowledgeOwnerSourceOption ToOwnerSourceOption(this KnowledgeSource source) => new($"{source.Name} · {source.SourceType} · imported {source.ImportedAt:g}") { SourceId = source.Id };
 }

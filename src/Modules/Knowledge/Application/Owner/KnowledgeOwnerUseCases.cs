@@ -1,5 +1,6 @@
 using System.Text;
 using MediatR;
+using Microsoft.Extensions.Logging;
 using Vitarish.Knowledge.Application.Abstractions;
 using Vitarish.Knowledge.Domain.Models;
 
@@ -28,7 +29,7 @@ public sealed class KnowledgeOwnerReadModelQueryHandler(IKnowledgeService knowle
     }
 }
 
-public sealed class CreateKnowledgeCorpusCommandHandler(IKnowledgeService knowledge) : IRequestHandler<CreateKnowledgeCorpusCommand, KnowledgeOwnerCreateCorpusResult>
+public sealed class CreateKnowledgeCorpusCommandHandler(IKnowledgeService knowledge, ILogger<CreateKnowledgeCorpusCommandHandler> logger) : IRequestHandler<CreateKnowledgeCorpusCommand, KnowledgeOwnerCreateCorpusResult>
 {
     public async Task<KnowledgeOwnerCreateCorpusResult> Handle(CreateKnowledgeCorpusCommand request, CancellationToken cancellationToken)
     {
@@ -42,6 +43,7 @@ public sealed class CreateKnowledgeCorpusCommandHandler(IKnowledgeService knowle
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            logger.LogError(ex, "Failed to save knowledge corpus for tenant {TenantId}.", request.TenantId);
             return KnowledgeOwnerCreateCorpusResult.Failure(KnowledgeOwnerFailureMessages.SaveCorpusFailed);
         }
 
@@ -49,7 +51,7 @@ public sealed class CreateKnowledgeCorpusCommandHandler(IKnowledgeService knowle
     }
 }
 
-public sealed class ImportKnowledgeSourceCommandHandler(IKnowledgeService knowledge) : IRequestHandler<ImportKnowledgeSourceCommand, KnowledgeOwnerImportCommandResult>
+public sealed class ImportKnowledgeSourceCommandHandler(IKnowledgeService knowledge, ILogger<ImportKnowledgeSourceCommandHandler> logger) : IRequestHandler<ImportKnowledgeSourceCommand, KnowledgeOwnerImportCommandResult>
 {
     public async Task<KnowledgeOwnerImportCommandResult> Handle(ImportKnowledgeSourceCommand request, CancellationToken cancellationToken)
     {
@@ -64,6 +66,7 @@ public sealed class ImportKnowledgeSourceCommandHandler(IKnowledgeService knowle
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            logger.LogError(ex, "Failed to import knowledge source for corpus {CorpusId} and tenant {TenantId}.", request.Input.CorpusId, request.TenantId);
             return KnowledgeOwnerImportCommandResult.Failure(KnowledgeOwnerFailureMessages.ImportFailed);
         }
     }
@@ -71,7 +74,7 @@ public sealed class ImportKnowledgeSourceCommandHandler(IKnowledgeService knowle
     internal static KnowledgeImportRequest BuildImportRequest(string tenantId, ImportKnowledgeSourceInput input, Stream content) => new() { CorpusId = input.CorpusId!.Value, TenantId = tenantId, Content = content, Format = input.FormatName.Trim(), SourceName = string.IsNullOrWhiteSpace(input.SourceName) ? null : input.SourceName.Trim() };
 }
 
-public sealed class ReplaceKnowledgeSourceCommandHandler(IKnowledgeService knowledge) : IRequestHandler<ReplaceKnowledgeSourceCommand, KnowledgeOwnerImportCommandResult>
+public sealed class ReplaceKnowledgeSourceCommandHandler(IKnowledgeService knowledge, ILogger<ReplaceKnowledgeSourceCommandHandler> logger) : IRequestHandler<ReplaceKnowledgeSourceCommand, KnowledgeOwnerImportCommandResult>
 {
     public async Task<KnowledgeOwnerImportCommandResult> Handle(ReplaceKnowledgeSourceCommand request, CancellationToken cancellationToken)
     {
@@ -86,12 +89,13 @@ public sealed class ReplaceKnowledgeSourceCommandHandler(IKnowledgeService knowl
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            logger.LogError(ex, "Failed to replace knowledge source {SourceId} for tenant {TenantId}.", request.Input.SourceId, request.TenantId);
             return KnowledgeOwnerImportCommandResult.Failure(KnowledgeOwnerFailureMessages.ReplaceFailed);
         }
     }
 }
 
-public sealed class IndexKnowledgeCorpusCommandHandler(IKnowledgeService knowledge) : IRequestHandler<IndexKnowledgeCorpusCommand, KnowledgeOwnerCommandResult>
+public sealed class IndexKnowledgeCorpusCommandHandler(IKnowledgeService knowledge, ILogger<IndexKnowledgeCorpusCommandHandler> logger) : IRequestHandler<IndexKnowledgeCorpusCommand, KnowledgeOwnerCommandResult>
 {
     public async Task<KnowledgeOwnerCommandResult> Handle(IndexKnowledgeCorpusCommand request, CancellationToken cancellationToken)
     {
@@ -105,12 +109,13 @@ public sealed class IndexKnowledgeCorpusCommandHandler(IKnowledgeService knowled
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            logger.LogError(ex, "Failed to index knowledge corpus {CorpusId} for tenant {TenantId}.", request.Input.CorpusId, request.TenantId);
             return KnowledgeOwnerCommandResult.Failure(KnowledgeOwnerFailureMessages.IndexFailed);
         }
     }
 }
 
-public sealed class EvaluateKnowledgeCorpusCommandHandler(IKnowledgeService knowledge) : IRequestHandler<EvaluateKnowledgeCorpusCommand, KnowledgeOwnerEvaluationCommandResult>
+public sealed class EvaluateKnowledgeCorpusCommandHandler(IKnowledgeService knowledge, ILogger<EvaluateKnowledgeCorpusCommandHandler> logger) : IRequestHandler<EvaluateKnowledgeCorpusCommand, KnowledgeOwnerEvaluationCommandResult>
 {
     public async Task<KnowledgeOwnerEvaluationCommandResult> Handle(EvaluateKnowledgeCorpusCommand request, CancellationToken cancellationToken)
     {
@@ -124,6 +129,7 @@ public sealed class EvaluateKnowledgeCorpusCommandHandler(IKnowledgeService know
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
+            logger.LogError(ex, "Failed to evaluate knowledge corpus {CorpusId} for tenant {TenantId}.", request.Input.CorpusId, request.TenantId);
             return KnowledgeOwnerEvaluationCommandResult.Failure(KnowledgeOwnerFailureMessages.EvaluationFailed);
         }
     }

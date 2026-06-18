@@ -1926,4 +1926,22 @@
   <data name="Greetings" xml:space="preserve">
     <value>درود</value>
   </data>
+  <data name="SaveCorpusFailed" xml:space="preserve">
+    <value>ذخیره پیکره ممکن نشد. دوباره تلاش کنید.</value>
+  </data>
+  <data name="ImportFailed" xml:space="preserve">
+    <value>درون‌ریزی منبع ممکن نشد. محتوا را بررسی کنید و دوباره تلاش کنید.</value>
+  </data>
+  <data name="ReplaceFailed" xml:space="preserve">
+    <value>جایگزینی منبع ممکن نشد. محتوا را بررسی کنید و دوباره تلاش کنید.</value>
+  </data>
+  <data name="IndexFailed" xml:space="preserve">
+    <value>نمایه‌سازی پیکره ممکن نشد. دوباره تلاش کنید.</value>
+  </data>
+  <data name="EvaluationFailed" xml:space="preserve">
+    <value>ارزیابی پیکره ممکن نشد. دوباره تلاش کنید.</value>
+  </data>
+  <data name="LoadWorkspaceFailed" xml:space="preserve">
+    <value>بارگذاری فضای کاری دانش ناموفق بود. صفحه را تازه‌سازی کنید و دوباره تلاش کنید.</value>
+  </data>
 </root>
