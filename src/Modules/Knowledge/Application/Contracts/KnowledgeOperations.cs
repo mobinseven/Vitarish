@@ -9,7 +9,13 @@ public sealed record KnowledgeImportRequest
     public required Stream Content { get; init; }
     public required string Format { get; init; }
     public string? SourceName { get; init; }
+    public string? OriginalLocation { get; init; }
+    public string? Checksum { get; init; }
+    public string? Version { get; init; }
+    public long? ContentLength { get; init; }
 }
+
+public sealed record KnowledgeImportFile(Stream Content, string DisplayName, string? Checksum, string OriginalLocation, string? ContentType, long? Size);
 
 public sealed record KnowledgeImportResult
 {
