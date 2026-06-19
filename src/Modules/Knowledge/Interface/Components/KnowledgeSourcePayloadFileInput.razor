@@ -1,6 +1,7 @@
+@inherits CommonBase
 @using Vitarish.Knowledge.Application.Enums
 
-<StackTextField @bind-Value="sourceName" Label="Source name" />
+<StackTextField @bind-Value="sourceName" Label="@Localizer["NameItem", Localizer["Source"]]" />
 
 <StackSelect T="KnowledgeSourceInputFormat" @bind-Value="format" Label="Source file format">
     @foreach (KnowledgeSourceInputFormat option in KnowledgeSourceInputFormatLabels.Formats)
@@ -9,14 +10,14 @@
     }
 </StackSelect>
 
-<StackFileInput @ref="fileTransfer" @bind-FileInfo="uploadedFile" />
-<MudButton Variant="Variant.Filled" Color="Color.Secondary" Disabled="@IsBusy" OnClick="StartFileUploadAsync">Upload selected file</MudButton>
+<StackFileInput @ref="fileTransfer" @bind-FileInfo="uploadedFile" Label="@Localizer["FileItem", Localizer["Source"]]" />
+
 @if (uploadedFile is not null)
 {
     <StackField Label="Selected file" HelperText="@DescribeUploadedFile()" Color="Color.Info" />
 }
 
-<StackButton Label="@ActionLabel" Color="@ActionColor" OnClick="SubmitAsync" Disabled="@(IsBusy || uploadedFile is null)" />
+<StackButton Label="@ActionLabel" Color="@ActionColor" OnClick="StartFileUploadAsync" Disabled="@(IsBusy)" />
 
 @code {
     private StackFileInput? fileTransfer;
@@ -36,9 +37,6 @@
     [Parameter, EditorRequired]
     public EventCallback<KnowledgeSourcePayload> SubmitRequested { get; set; }
 
-    [Parameter, EditorRequired]
-    public EventCallback<FileInformationReadDto> FileUploaded { get; set; }
-
     private bool isUploading;
 
     private async Task StartFileUploadAsync()
@@ -49,6 +47,7 @@
             {
                 isUploading = true;
                 await fileTransfer.Upload();
+                await SubmitAsync();
             }
             finally
             {
@@ -57,18 +56,13 @@
         }
     }
 
-    private async Task HandleFileInfoChanged(FileInformationReadDto? file)
-    {
-        uploadedFile = file;
-        if (file is not null)
-        {
-            await FileUploaded.InvokeAsync(file);
-        }
-    }
-
     private async Task SubmitAsync()
     {
-        await SubmitRequested.InvokeAsync(new KnowledgeSourcePayload(sourceName, format));
+        if(uploadedFile is null)
+        {
+            return;
+        }
+        await SubmitRequested.InvokeAsync(new KnowledgeSourcePayload(sourceName, format, uploadedFile.Id));
     }
 
     private string DescribeUploadedFile() => uploadedFile is null ? string.Empty : $"{uploadedFile.Tag ?? uploadedFile.Id.ToString()} ({uploadedFile.ContentType})";

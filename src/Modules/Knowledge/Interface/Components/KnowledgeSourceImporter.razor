@@ -1,5 +1,3 @@
-@using Vitarish.Modules.Base
-@using Vitarish.Knowledge.Application.Owner
 @using Microsoft.AspNetCore.Components
 
 <Stack>
@@ -14,13 +12,10 @@
         <StackCard Label="Importing into" HelperText="@SelectedCorpus.Label" />
     }
 
-    <StackCard Label="Import uploaded file" HelperText="Upload a markdown, text, or JSON source file, then import it into the selected corpus.">
-        <KnowledgeSourcePayloadFileInput ActionLabel="Import selected file into selected corpus"
-                                         ActionColor="Color.Secondary"
-                                         IsBusy="@IsBusy"
-                                         FileUploaded="FileUploadedAsync"
-                                         SubmitRequested="ImportFileAsync" />
-    </StackCard>
+    <KnowledgeSourcePayloadFileInput ActionLabel="Import selected file into selected corpus"
+                                     ActionColor="Color.Secondary"
+                                     IsBusy="@IsBusy"
+                                     SubmitRequested="ImportFileAsync" />
 
     @if(!string.IsNullOrWhiteSpace(ImportSummary))
     {
@@ -43,14 +38,8 @@
 
     private FileInformationReadDto? uploadedFile;
 
-    private Task FileUploadedAsync(FileInformationReadDto file)
-    {
-        uploadedFile = file;
-        return Task.CompletedTask;
-    }
-
     private async Task ImportFileAsync(KnowledgeSourcePayload payload)
     {
-        await FileImportRequested.InvokeAsync(new ImportKnowledgeSourceFromFileInput(SelectedCorpus?.CorpusId, uploadedFile?.Id, payload.SourceName, payload.Format));
+        await FileImportRequested.InvokeAsync(new ImportKnowledgeSourceFromFileInput(SelectedCorpus?.CorpusId, payload.FileId, payload.SourceName, payload.Format));
     }
 }

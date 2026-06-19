@@ -11,10 +11,17 @@ public sealed class SearchKnowledgeIndexer(IKnowledgeCorpusRepository corpusRepo
 {
     public async Task<KnowledgeIndexResult> IndexCorpusAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken)
     {
-                ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         KnowledgeCorpus? corpus = await corpusRepository.GetCorpusAsync(corpusId, tenantId, cancellationToken);
-        if (corpus is null) throw new InvalidOperationException($"Knowledge corpus '{corpusId}' does not exist.");
-        if (!corpus.IsActive) throw new InvalidOperationException($"Knowledge corpus '{corpusId}' is inactive.");
+        if (corpus is null)
+        {
+            throw new InvalidOperationException($"Knowledge corpus '{corpusId}' does not exist.");
+        }
+
+        if (!corpus.IsActive)
+        {
+            throw new InvalidOperationException($"Knowledge corpus '{corpusId}' is inactive.");
+        }
 
         IReadOnlyList<KnowledgeChunk> chunks = await chunkRepository.GetChunksAsync(corpus.Id, tenantId, cancellationToken);
         SearchDocument[] documents = [.. chunks.Select(chunk => KnowledgeSearchDocumentContract.ToSearchDocument(corpus, chunk))];
@@ -25,13 +32,23 @@ public sealed class SearchKnowledgeIndexer(IKnowledgeCorpusRepository corpusRepo
 
     public async Task<KnowledgeIndexResult> ReindexSourceAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken)
     {
-                        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         KnowledgeCorpus? corpus = await corpusRepository.GetCorpusAsync(corpusId, tenantId, cancellationToken);
-        if (corpus is null) throw new InvalidOperationException($"Knowledge corpus '{corpusId}' does not exist.");
-        if (!corpus.IsActive) throw new InvalidOperationException($"Knowledge corpus '{corpusId}' is inactive.");
+        if (corpus is null)
+        {
+            throw new InvalidOperationException($"Knowledge corpus '{corpusId}' does not exist.");
+        }
+
+        if (!corpus.IsActive)
+        {
+            throw new InvalidOperationException($"Knowledge corpus '{corpusId}' is inactive.");
+        }
 
         bool sourceExists = await sourceRepository.SourceExistsAsync(sourceId, corpusId, tenantId, cancellationToken);
-        if (!sourceExists) throw new InvalidOperationException($"Knowledge source '{sourceId}' does not exist in corpus '{corpusId}'.");
+        if (!sourceExists)
+        {
+            throw new InvalidOperationException($"Knowledge source '{sourceId}' does not exist in corpus '{corpusId}'.");
+        }
 
         IReadOnlyList<KnowledgeChunk> chunks = await chunkRepository.GetChunksBySourceAsync(sourceId, corpusId, tenantId, cancellationToken);
         SearchDocument[] documents = [.. chunks.Select(chunk => KnowledgeSearchDocumentContract.ToSearchDocument(corpus, chunk))];
@@ -43,7 +60,7 @@ public sealed class SearchKnowledgeIndexer(IKnowledgeCorpusRepository corpusRepo
 
     public async Task DeleteFromIndexAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken)
     {
-                        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
 
         await search.DeleteAsync(KnowledgeSearchDocumentContract.IndexName, new SearchDeleteOptions
         {

@@ -13,7 +13,10 @@ public sealed class KnowledgeSearchIndexProvider(IKnowledgeCorpusRepository corp
     public async Task<IReadOnlyList<SearchDocument>> GetDocumentsAsync(CancellationToken cancellationToken = default)
     {
         IReadOnlyList<KnowledgeCorpus> corpora = await corpusRepository.ListAllActiveCorporaForIndexingAsync(cancellationToken);
-        if (corpora.Count == 0) return [];
+        if (corpora.Count == 0)
+        {
+            return [];
+        }
 
         Dictionary<Guid, KnowledgeCorpus> corpusById = corpora.ToDictionary(corpus => corpus.Id);
         List<SearchDocument> documents = [];
