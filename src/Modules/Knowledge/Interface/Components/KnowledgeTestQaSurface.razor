@@ -3,10 +3,9 @@
 @inject IKnowledgeService Knowledge
 
 <Stack>
-    <StackField Label="Knowledge QA" HelperText="Ask a natural-language question against a selected corpus and inspect the grounded answer." />
-
     @if (corpora.Count == 0)
     {
+        <StackField Label="Knowledge QA" HelperText="Ask a natural-language question against a selected corpus and inspect the grounded answer." />
         <StackCard Label="No corpora available" HelperText="Create a corpus and import content before asking questions." />
     }
     else
@@ -19,34 +18,17 @@
         </StackSelect>
     }
 
-    <StackTextField @bind-Value="question" Label="Question" Lines="3" />
-    <StackNumericField @bind-Value="topK" Label="Number of context sections" Min="1" Max="20" />
-    <StackButton Label="Ask selected corpus" Color="Color.Primary" OnClick="AskAsync" Disabled="@isBusy" />
-
-    @if (answer is not null)
-    {
-        <StackField Label="Answer result" />
-        <StackCard Label="Answered" HelperText="@(answer.IsAnswered ? "Yes" : "No")" />
-        <StackCard Label="Answer" HelperText="@answer.Answer" />
-        <StackCard Label="Missing information" HelperText="@(answer.MissingInformation ?? "None")" />
-
-        <StackField Label="Retrieved context" />
-        @foreach (KnowledgeHit hit in answer.RetrievedContext)
-        {
-            <StackCard Label="@ReadableTitle(hit.Title)" HelperText="@($"Score {hit.Score:0.###} · {Preview(hit.Text)}")" />
-        }
-
-        <StackField Label="Citations" />
-        @foreach (KnowledgeCitation citation in answer.Citations)
-        {
-            <StackCard Label="@ReadableTitle(citation.Title)" HelperText="@(citation.Quote ?? "No quote")" />
-        }
-    }
-
-    @if (!string.IsNullOrWhiteSpace(status))
-    {
-        <StackField Label="Status" HelperText="@status" Color="@statusColor" />
-    }
+    <KnowledgeQuestionAnswer
+        SelectedCorpus="@SelectedCorpusOption"
+        IsBusy="@isBusy"
+        Question="@question"
+        QuestionChanged="SetQuestion"
+        TopK="@topK"
+        TopKChanged="SetTopK"
+        Answer="@answer"
+        Status="@status"
+        StatusColor="@statusColor"
+        AskRequested="AskAsync" />
 </Stack>
 
 @code {
@@ -61,13 +43,14 @@
 
     private string CurrentTenantId => RequestContext.TenantId ?? throw new InvalidOperationException("Your workspace is unavailable. Please refresh the page and try again.");
     private KnowledgeCorpus? SelectedCorpus => corpora.FirstOrDefault(corpus => corpus.Id.ToString() == selectedCorpusId);
+    private KnowledgeOwnerCorpusOption? SelectedCorpusOption => SelectedCorpus is null ? null : new KnowledgeOwnerCorpusOption(SelectedCorpus.Name, SelectedCorpus.Description ?? string.Empty) { CorpusId = SelectedCorpus.Id };
 
     protected override async Task OnInitializedAsync() => await RefreshCorporaAsync();
 
-    private async Task AskAsync() => await RunAsync(async () =>
+    private async Task AskAsync(KnowledgeQuestionInput input) => await RunAsync(async () =>
     {
-        ValidateAsk();
-        answer = await Knowledge.AskAsync(new KnowledgeAskRequest { CorpusId = RequireSelectedCorpus().Id, TenantId = CurrentTenantId, Question = question.Trim(), TopK = topK, TraceKind = "manual-ui-test" }, CancellationToken.None);
+        KnowledgeQuestionInput validated = ValidateAsk(input);
+        answer = await Knowledge.AskAsync(new KnowledgeAskRequest { CorpusId = validated.CorpusId!.Value, TenantId = CurrentTenantId, Question = validated.Question, TopK = validated.TopK, SaveTrace = false }, CancellationToken.None);
         status = "Answer generated.";
     });
 
@@ -85,16 +68,30 @@
         return Task.CompletedTask;
     }
 
-    private void ValidateAsk()
+    private Task SetQuestion(string value)
     {
-        _ = RequireSelectedCorpus();
-        if (string.IsNullOrWhiteSpace(question)) throw new InvalidOperationException("Enter a question.");
-        if (topK is < 1 or > 20) throw new InvalidOperationException("Choose between 1 and 20 context sections.");
+        question = value;
+        answer = null;
+        status = null;
+        return Task.CompletedTask;
     }
 
-    private KnowledgeCorpus RequireSelectedCorpus() => SelectedCorpus ?? throw new InvalidOperationException("Select or create a corpus first.");
+    private Task SetTopK(int value)
+    {
+        topK = value;
+        answer = null;
+        status = null;
+        return Task.CompletedTask;
+    }
+
+    private static KnowledgeQuestionInput ValidateAsk(KnowledgeQuestionInput input)
+    {
+        if (input.CorpusId is null) throw new InvalidOperationException("Select or create a corpus first.");
+        if (string.IsNullOrWhiteSpace(input.Question)) throw new InvalidOperationException("Enter a question.");
+        if (input.TopK is < 1 or > 20) throw new InvalidOperationException("Choose between 1 and 20 context sections.");
+        return input with { Question = input.Question.Trim() };
+    }
+
     private static string CorpusLabel(KnowledgeCorpus corpus) => string.IsNullOrWhiteSpace(corpus.Description) ? corpus.Name : $"{corpus.Name} — {corpus.Description}";
-    private static string ReadableTitle(string? title) => string.IsNullOrWhiteSpace(title) ? "Untitled source" : title;
-    private static string Preview(string text) => text.Length <= 240 ? text : string.Concat(text.AsSpan(0, 240), "…");
     private async Task RunAsync(Func<Task> action) { try { isBusy = true; status = null; statusColor = Color.Info; await action(); statusColor = Color.Success; } catch (Exception ex) { status = ex.Message; statusColor = Color.Error; } finally { isBusy = false; } }
 }

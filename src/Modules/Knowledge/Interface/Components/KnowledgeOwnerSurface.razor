@@ -5,6 +5,7 @@
 @implements IDisposable
 @inject MediatR.ISender Sender
 @inject ILogger<KnowledgeOwnerSurface> Logger
+@inject IKnowledgeService Knowledge
 
 <Stack>
     <StackField Label="@Localizer["Knowledge"]" HelperText="Create or select a corpus, import content, index it, and evaluate it without copying identifiers." />
@@ -34,6 +35,18 @@
     EvaluationSummary="@evaluationSummary"
     EvaluateRequested="EvaluateCorpusAsync" />
 
+<KnowledgeQuestionAnswer
+    SelectedCorpus="@model.SelectedCorpus"
+    IsBusy="@isBusy"
+    Question="@qaQuestion"
+    QuestionChanged="SetQaQuestion"
+    TopK="@qaTopK"
+    TopKChanged="SetQaTopK"
+    Answer="@qaAnswer"
+    Status="@qaStatus"
+    StatusColor="@qaStatusColor"
+    AskRequested="AskSelectedCorpusAsync" />
+
 <KnowledgeOwnerStatus Status="@status" Color="@statusColor" />
 
 @code {
@@ -42,6 +55,11 @@
     private KnowledgeOwnerReadModel model = new([], null, []);
     private string? importSummary;
     private string? evaluationSummary;
+    private string qaQuestion = string.Empty;
+    private int qaTopK = 8;
+    private KnowledgeAnswer? qaAnswer;
+    private string? qaStatus;
+    private Color qaStatusColor = Color.Info;
     private string? status;
     private Color statusColor = Color.Info;
     private bool isBusy;
@@ -119,6 +137,64 @@
         evaluationSummary = result.Summary;
     });
 
+    private async Task AskSelectedCorpusAsync(KnowledgeQuestionInput input) => await RunQaAsync(async token =>
+    {
+        KnowledgeQuestionInput validated = ValidateQuestionInput(input);
+        qaAnswer = await Knowledge.AskAsync(new KnowledgeAskRequest
+        {
+            CorpusId = validated.CorpusId!.Value,
+            TenantId = RequestContext.TenantId ?? throw new InvalidOperationException("Your workspace is unavailable. Please refresh the page and try again."),
+        qaAnswer = await Knowledge.AskAsync(new KnowledgeAskRequest
+        {
+            CorpusId = validated.CorpusId!.Value,
+            TenantId = RequestContext.TenantId ?? throw new InvalidOperationException("Your workspace is unavailable. Please refresh the page and try again."),
+            Question = validated.Question,
+            TopK = validated.TopK,
+            SaveTrace = false
+        }, token);
+            TopK = validated.TopK,
+            SaveTrace = false
+        }, token);
+        qaStatus = "Answer generated.";
+        qaStatusColor = Color.Success;
+    });
+
+    private Task SetQaQuestion(string value)
+    {
+        qaQuestion = value;
+        qaAnswer = null;
+        qaStatus = null;
+        return Task.CompletedTask;
+    }
+
+    private Task SetQaTopK(int value)
+    {
+        qaTopK = value;
+        qaAnswer = null;
+        qaStatus = null;
+        return Task.CompletedTask;
+    }
+
+    private static KnowledgeQuestionInput ValidateQuestionInput(KnowledgeQuestionInput input)
+    {
+        if (input.CorpusId is null)
+        {
+            throw new InvalidOperationException("Select or create a corpus first.");
+        }
+
+        if (string.IsNullOrWhiteSpace(input.Question))
+        {
+            throw new InvalidOperationException("Enter a question.");
+        }
+
+        if (input.TopK is < 1 or > 20)
+        {
+            throw new InvalidOperationException("Choose between 1 and 20 context sections.");
+        }
+
+        return input with { Question = input.Question.Trim() };
+    }
+
     private async Task ReloadSelectedCorpusAsync(CancellationToken token)
     {
         model = await Sender.Send(new KnowledgeOwnerReadModelQuery(RequestContext.TenantId, model.SelectedCorpus?.CorpusId), token);
@@ -129,6 +205,8 @@
     {
         importSummary = null;
         evaluationSummary = null;
+        qaAnswer = null;
+        qaStatus = null;
         sourcesVersion++;
     }
 
@@ -151,6 +229,38 @@
         {
             status = Localizer["The operation was canceled."];
             statusColor = Color.Info;
+        }
+        finally
+        {
+            isBusy = false;
+        }
+    }
+
+    private async Task RunQaAsync(Func<CancellationToken, Task> action)
+    {
+        if (isBusy)
+        {
+            return;
+        }
+
+        isBusy = true;
+        qaStatus = null;
+        qaStatusColor = Color.Info;
+
+        try
+        {
+            await action(disposal.Token);
+        }
+        catch (OperationCanceledException) when (disposal.IsCancellationRequested)
+        {
+            qaStatus = Localizer["The operation was canceled."];
+            qaStatusColor = Color.Info;
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "An error occurred during the QA operation.");
+            qaStatus = ex.Message;
+            qaStatusColor = Color.Error;
         }
         finally
         {

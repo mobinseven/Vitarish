@@ -1,0 +1,73 @@
+<Stack>
+    <StackField Label="Knowledge QA" HelperText="Ask a natural-language question against the selected corpus and inspect the grounded answer." />
+
+    @if (SelectedCorpus is null)
+    {
+        <StackCard Label="No corpus selected" HelperText="Select or create a corpus before asking questions." />
+    }
+    else
+    {
+        <StackCard Label="Corpus" HelperText="@CorpusLabel(SelectedCorpus)" />
+    }
+
+    <StackTextField Value="@Question" ValueChanged="UpdateQuestionAsync" Label="Question" Lines="3" />
+    <StackNumericField Value="@TopK" ValueChanged="UpdateTopKAsync" Label="Number of context sections" Min="1" Max="20" />
+    <StackButton Label="Ask selected corpus" Color="Color.Primary" OnClick="RequestAskAsync" Disabled="@(IsBusy || SelectedCorpus is null)" />
+
+    @if (Answer is not null)
+    {
+        <StackField Label="Answer result" />
+        <StackCard Label="Answered" HelperText="@(Answer.IsAnswered ? "Yes" : "No")" />
+        <StackCard Label="Answer" HelperText="@Answer.Answer" />
+        <StackCard Label="Missing information" HelperText="@(Answer.MissingInformation ?? "None")" />
+
+        <StackField Label="Retrieved context" />
+        @foreach (KnowledgeHit hit in Answer.RetrievedContext)
+        {
+            <StackCard Label="@ReadableTitle(hit.Title)" HelperText="@($"Score {hit.Score:0.###} · {Preview(hit.Text)}")" />
+        }
+
+        <StackField Label="Citations" />
+        @foreach (KnowledgeCitation citation in Answer.Citations)
+        {
+            <StackCard Label="@ReadableTitle(citation.Title)" HelperText="@(citation.Quote ?? "No quote")" />
+        }
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Status))
+    {
+        <StackField Label="QA status" HelperText="@Status" Color="@StatusColor" />
+    }
+</Stack>
+
+@code {
+    [Parameter] public KnowledgeOwnerCorpusOption? SelectedCorpus { get; set; }
+    [Parameter] public bool IsBusy { get; set; }
+    [Parameter] public KnowledgeAnswer? Answer { get; set; }
+    [Parameter] public string Question { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> QuestionChanged { get; set; }
+    [Parameter] public int TopK { get; set; } = 8;
+    [Parameter] public EventCallback<int> TopKChanged { get; set; }
+    [Parameter] public string? Status { get; set; }
+    [Parameter] public Color StatusColor { get; set; } = Color.Info;
+    [Parameter] public EventCallback<KnowledgeQuestionInput> AskRequested { get; set; }
+
+    private async Task RequestAskAsync()
+    {
+        await AskRequested.InvokeAsync(new KnowledgeQuestionInput(SelectedCorpus?.CorpusId, Question, TopK));
+    }
+
+    private Task UpdateQuestionAsync(string value)
+    {
+        return QuestionChanged.InvokeAsync(value);
+    }
+
+    private Task UpdateTopKAsync(int value)
+    {
+        return TopKChanged.InvokeAsync(value);
+    }
+
+    private static string CorpusLabel(KnowledgeOwnerCorpusOption corpus) => string.IsNullOrWhiteSpace(corpus.Details) ? corpus.Label : $"{corpus.Label} — {corpus.Details}";
+    private static string ReadableTitle(string? title) => string.IsNullOrWhiteSpace(title) ? "Untitled source" : title;
+    private static string Preview(string? text) => string.IsNullOrEmpty(text) ? string.Empty : (text.Length <= 240 ? text : string.Concat(text.AsSpan(0, 240), "…"));
+}
