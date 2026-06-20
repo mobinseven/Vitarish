@@ -1,4 +1,5 @@
 using Vitarish.Knowledge.Application.Contracts;
+using Vitarish.Knowledge.Application.Enums;
 
 namespace Vitarish.Knowledge.Application.Owner;
 
@@ -27,6 +28,16 @@ public static class KnowledgeOwnerInputValidator
         string? importError = ValidateImport(input.ToImportInput());
         if (importError is not null) return importError;
         return input.SourceId is null ? "Choose a source to replace." : null;
+    }
+
+    public static string? ValidateFileReplace(ReplaceKnowledgeSourceFromFileInput input)
+    {
+        if (input.CorpusId is null) return "Select or create a corpus first.";
+        if (input.SourceId is null) return "Choose a source to replace.";
+        if (input.FileInformationId is null) return "Upload a file before replacing.";
+        if (string.IsNullOrWhiteSpace(input.SourceName)) return "Enter a source name.";
+        if (!Enum.IsDefined(typeof(KnowledgeSourceInputFormat), input.Format)) return "Choose a supported content format.";
+        return null;
     }
 
     public static string? ValidateSelectedCorpus(Guid? corpusId) => corpusId is null ? "Select or create a corpus first." : null;
