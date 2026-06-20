@@ -57,16 +57,14 @@
         await AskRequested.InvokeAsync(new KnowledgeQuestionInput(SelectedCorpus?.CorpusId, Question, TopK));
     }
 
-    private async Task UpdateQuestionAsync(string value)
+    private Task UpdateQuestionAsync(string value)
     {
-        Question = value;
-        await QuestionChanged.InvokeAsync(value);
+        return QuestionChanged.InvokeAsync(value);
     }
 
-    private async Task UpdateTopKAsync(int value)
+    private Task UpdateTopKAsync(int value)
     {
-        TopK = value;
-        await TopKChanged.InvokeAsync(value);
+        return TopKChanged.InvokeAsync(value);
     }
 
     private static string CorpusLabel(KnowledgeOwnerCorpusOption corpus) => string.IsNullOrWhiteSpace(corpus.Details) ? corpus.Label : $"{corpus.Label} — {corpus.Details}";
