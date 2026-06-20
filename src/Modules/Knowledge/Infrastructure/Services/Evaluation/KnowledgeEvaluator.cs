@@ -112,7 +112,13 @@ public sealed class KnowledgeEvaluator(
                 GeneratedAnswerMatchedExpectedAnswer = correctnessScore?.IsCorrect,
                 GeneratedAnswerCorrectnessRationale = correctnessScore?.Rationale,
                 GeneratedAnswer = answer?.Answer,
-                Status = DetermineStatus(hasExpectedAnswer, hasExpectedContext, expectedContextRank > 0 && expectedContextRank <= request.TopK, answer?.IsAnswered ?? false, correctnessScore?.IsCorrect)
+                Status = DetermineStatus(
+                    request.EvaluateAnswers,
+                    hasExpectedAnswer,
+                    hasExpectedContext,
+                    expectedContextRank > 0 && expectedContextRank <= request.TopK,
+                    answer?.IsAnswered ?? false,
+                    correctnessScore?.IsCorrect)
             });
         }
 
@@ -160,6 +166,7 @@ public sealed class KnowledgeEvaluator(
     }
 
     private static KnowledgeEvaluationItemStatus DetermineStatus(
+        bool evaluateAnswers,
         bool hasExpectedAnswer,
         bool hasExpectedContext,
         bool expectedContextWasRetrieved,
@@ -167,8 +174,15 @@ public sealed class KnowledgeEvaluator(
         bool? answerIsCorrect)
     {
         if (!hasExpectedContext) return KnowledgeEvaluationItemStatus.MissingGoldContext;
-        if (!expectedContextWasRetrieved && wasAnswered) return KnowledgeEvaluationItemStatus.AnsweredWithoutGoldContext;
-        if (!expectedContextWasRetrieved) return KnowledgeEvaluationItemStatus.GoldContextNotRetrieved;
+
+        if (!expectedContextWasRetrieved)
+        {
+            return evaluateAnswers && wasAnswered
+                ? KnowledgeEvaluationItemStatus.AnsweredWithoutGoldContext
+                : KnowledgeEvaluationItemStatus.GoldContextNotRetrieved;
+        }
+
+        if (!evaluateAnswers) return KnowledgeEvaluationItemStatus.GoldContextRetrieved;
         if (!wasAnswered) return KnowledgeEvaluationItemStatus.AbstainedWithGoldContext;
         if (hasExpectedAnswer && answerIsCorrect == true) return KnowledgeEvaluationItemStatus.CorrectAnswer;
         if (hasExpectedAnswer && answerIsCorrect == false) return KnowledgeEvaluationItemStatus.UnsupportedAnswer;

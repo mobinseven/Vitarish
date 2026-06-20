@@ -85,6 +85,7 @@ public enum KnowledgeEvaluationItemStatus
 {
     MissingGoldContext,
     GoldContextNotRetrieved,
+    GoldContextRetrieved,
     AnsweredWithoutGoldContext,
     AbstainedWithGoldContext,
     UnsupportedAnswer,
