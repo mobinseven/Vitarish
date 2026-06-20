@@ -35,7 +35,6 @@ public static class KnowledgeOwnerInputValidator
         if (input.CorpusId is null) return "Select or create a corpus first.";
         if (input.SourceId is null) return "Choose a source to replace.";
         if (input.FileInformationId is null) return "Upload a file before replacing.";
-        if (string.IsNullOrWhiteSpace(input.SourceName)) return "Enter a source name.";
         if (!Enum.IsDefined(typeof(KnowledgeSourceInputFormat), input.Format)) return "Choose a supported content format.";
         return null;
     }
