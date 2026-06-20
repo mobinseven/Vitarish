@@ -69,5 +69,5 @@
 
     private static string CorpusLabel(KnowledgeOwnerCorpusOption corpus) => string.IsNullOrWhiteSpace(corpus.Details) ? corpus.Label : $"{corpus.Label} — {corpus.Details}";
     private static string ReadableTitle(string? title) => string.IsNullOrWhiteSpace(title) ? "Untitled source" : title;
-    private static string Preview(string text) => text.Length <= 240 ? text : string.Concat(text.AsSpan(0, 240), "…");
+    private static string Preview(string? text) => string.IsNullOrEmpty(text) ? string.Empty : (text.Length <= 240 ? text : string.Concat(text.AsSpan(0, 240), "…"));
 }
