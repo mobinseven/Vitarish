@@ -16,4 +16,5 @@ internal sealed record KnowledgeQuestionDraft
     public required string Question { get; init; }
     public string? ExpectedAnswer { get; init; }
     public IReadOnlyList<string> ExpectedContextTexts { get; init; } = [];
+    public IReadOnlyList<Guid> ExpectedChunkIds { get; init; } = [];
 }

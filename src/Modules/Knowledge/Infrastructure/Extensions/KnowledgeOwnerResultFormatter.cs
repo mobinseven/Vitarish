@@ -9,5 +9,5 @@ public static class KnowledgeOwnerResultFormatter
 
     public static string ToOwnerIndexSummary(this KnowledgeIndexResult result) => $"Indexed {result.IndexedChunkCount} searchable section(s).";
 
-    public static string ToOwnerEvaluationSummary(this KnowledgeEvaluationRun run) => string.Create(CultureInfo.InvariantCulture, $"recall@5 {run.RecallAt5:0.###} · recall@10 {run.RecallAt10:0.###} · average expected rank {run.AverageExpectedChunkRank:0.###}");
+    public static string ToOwnerEvaluationSummary(this KnowledgeEvaluationRun run) => string.Create(CultureInfo.InvariantCulture, $"run {run.Id} · items {run.Items.Count} · recall@5 {run.RecallAt5:0.###} · recall@10 {run.RecallAt10:0.###} · average expected rank {run.AverageExpectedChunkRank:0.###}");
 }

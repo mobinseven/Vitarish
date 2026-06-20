@@ -79,9 +79,24 @@ public sealed record KnowledgeCitation
 
 public sealed record KnowledgeEvaluationRun(Guid Id, Guid CorpusId, string TenantId, IReadOnlyList<KnowledgeEvaluationItem> Items, double RecallAt5, double RecallAt10, double AverageExpectedChunkRank);
 
+public sealed record KnowledgeAnswerCorrectnessScore(bool? IsCorrect, string? Rationale);
+
+public enum KnowledgeEvaluationItemStatus
+{
+    MissingGoldContext,
+    GoldContextNotRetrieved,
+    AnsweredWithoutGoldContext,
+    AbstainedWithGoldContext,
+    UnsupportedAnswer,
+    SupportedAnswerCandidate,
+    CorrectAnswer
+}
+
 public sealed record KnowledgeEvaluationItem
 {
+    public required Guid RunId { get; init; }
     public required Guid QuestionId { get; init; }
+    public bool HasExpectedAnswer { get; init; }
     public bool HasExpectedContext { get; init; }
     public bool ExpectedContextFoundInTop5 { get; init; }
     public bool ExpectedContextFoundInTop10 { get; init; }
@@ -92,7 +107,9 @@ public sealed record KnowledgeEvaluationItem
     public bool ShouldHaveAnswered { get; init; }
     /// <summary>Null until a semantic answer correctness scorer is provided through an application abstraction.</summary>
     public bool? GeneratedAnswerMatchedExpectedAnswer { get; init; }
+    public string? GeneratedAnswerCorrectnessRationale { get; init; }
     public string? GeneratedAnswer { get; init; }
+    public KnowledgeEvaluationItemStatus Status { get; init; }
 }
 
 public sealed record KnowledgeAskTrace

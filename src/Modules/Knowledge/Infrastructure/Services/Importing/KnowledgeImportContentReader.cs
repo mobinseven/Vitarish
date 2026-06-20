@@ -110,8 +110,50 @@ internal sealed class KnowledgeImportContentReader
         {
             Question = question,
             ExpectedAnswer = FirstString(row, "answer", "expected_answer", "ground_truth", "reference_answer", "output"),
-            ExpectedContextTexts = ReadExpectedContexts(row)
+            ExpectedContextTexts = ReadExpectedContexts(row),
+            ExpectedChunkIds = ReadExpectedChunkIds(row)
         };
+    }
+
+
+    private static IReadOnlyList<Guid> ReadExpectedChunkIds(JsonElement row)
+    {
+        List<Guid> ids = [];
+        AddGuidValues(ids, row, "expected_chunk_ids");
+        AddGuidValues(ids, row, "expected_chunk_id");
+        AddGuidValues(ids, row, "expected_chunks");
+        AddGuidValues(ids, row, "gold_chunk_ids");
+        AddGuidValues(ids, row, "gold_chunk_id");
+        AddGuidValues(ids, row, "chunk_ids");
+        AddGuidValues(ids, row, "chunk_id");
+        AddGuidValues(ids, row, "evidence_chunk_ids");
+        AddGuidValues(ids, row, "evidence_ids");
+        return [.. ids.Distinct()];
+    }
+
+    private static void AddGuidValues(List<Guid> values, JsonElement row, string propertyName)
+    {
+        if (!row.TryGetProperty(propertyName, out JsonElement property)) return;
+        AddGuidValue(values, property);
+    }
+
+    private static void AddGuidValue(List<Guid> values, JsonElement value)
+    {
+        if (value.ValueKind == JsonValueKind.Array)
+        {
+            foreach (JsonElement item in value.EnumerateArray()) AddGuidValue(values, item);
+            return;
+        }
+
+        if (value.ValueKind == JsonValueKind.Object)
+        {
+            string? objectId = FirstString(value, "id", "chunk_id", "chunkId", "expected_chunk_id", "evidence_id");
+            if (Guid.TryParse(objectId, out Guid parsedObjectId)) values.Add(parsedObjectId);
+            return;
+        }
+
+        string? text = ReadString(value);
+        if (Guid.TryParse(text, out Guid parsedId)) values.Add(parsedId);
     }
 
     private static IReadOnlyList<string> ReadExpectedContexts(JsonElement row)

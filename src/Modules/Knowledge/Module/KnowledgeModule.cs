@@ -38,6 +38,7 @@ public sealed class KnowledgeModule : Vitarish.Modules.Base.Module, IKnowledgeMo
         _ = builder.Services.AddScoped<IKnowledgeRetriever, SearchKnowledgeRetriever>();
         _ = builder.Services.AddScoped<IKnowledgeContextBuilder, KnowledgeContextBuilder>();
         _ = builder.Services.AddScoped<IKnowledgeAnswerer, IntelligenceKnowledgeAnswerer>();
+        _ = builder.Services.AddScoped<IKnowledgeAnswerCorrectnessScorer, ExactKnowledgeAnswerCorrectnessScorer>();
         _ = builder.Services.AddScoped<IKnowledgeEvaluator, KnowledgeEvaluator>();
         _ = builder.Services.AddScoped<IKnowledgeCorpusRepository, KnowledgeCorpusRepository>();
         _ = builder.Services.AddScoped<IKnowledgeSourceRepository, KnowledgeSourceRepository>();

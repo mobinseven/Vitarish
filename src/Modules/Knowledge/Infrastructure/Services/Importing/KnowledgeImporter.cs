@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using MediatR;
 using Vitarish.Knowledge.Application.Abstractions;
 using Vitarish.Knowledge.Application.Commands;
@@ -92,7 +93,9 @@ public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeCorpu
             CorpusId = request.CorpusId,
             Question = question.Question,
             ExpectedAnswer = question.ExpectedAnswer,
-            ExpectedChunkIds = FindExpectedChunkIds(question.ExpectedContextTexts, chunks)
+            ExpectedChunkIds = question.ExpectedChunkIds.Count > 0
+                ? question.ExpectedChunkIds
+                : FindExpectedChunkIds(question.ExpectedContextTexts, chunks)
         })];
 
         return new KnowledgeImportResult { CorpusId = request.CorpusId, Sources = [source], Documents = documents, Chunks = chunks, Questions = questions };
@@ -103,24 +106,33 @@ public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeCorpu
         if (expectedContextTexts.Count == 0)
             return [];
 
-        string[] trimmedContexts = [.. expectedContextTexts
-            .Select(static t => t.Trim())
-            .Where(static t => t.Length > 0)];
+        string[] normalizedContexts = [.. expectedContextTexts
+            .Select(NormalizeExpectedContextText)
+            .Where(static text => text.Length > 0)
+            .Distinct(StringComparer.Ordinal)];
 
-        if (trimmedContexts.Length == 0)
+        if (normalizedContexts.Length == 0)
             return [];
 
         return [.. chunks
-            .Where(chunk =>
-            {
-                string chunkText = chunk.Text.Trim();
-                if (chunkText.Length == 0) return false;
-
-                return trimmedContexts.Any(expectedContext =>
-                    chunkText.Contains(expectedContext, StringComparison.OrdinalIgnoreCase) ||
-                    expectedContext.Contains(chunkText, StringComparison.OrdinalIgnoreCase));
-            })
+            .Where(chunk => ExpectedContextMatchesChunk(normalizedContexts, chunk.Text))
             .Select(static chunk => chunk.Id)
             .Distinct()];
+    }
+
+    private static bool ExpectedContextMatchesChunk(IReadOnlyList<string> normalizedContexts, string chunkText)
+    {
+        string normalizedChunkText = NormalizeExpectedContextText(chunkText);
+        if (normalizedChunkText.Length == 0) return false;
+
+        return normalizedContexts.Any(expectedContext =>
+            normalizedChunkText.Contains(expectedContext, StringComparison.Ordinal) ||
+            expectedContext.Contains(normalizedChunkText, StringComparison.Ordinal));
+    }
+
+    private static string NormalizeExpectedContextText(string text)
+    {
+        string withoutMarkup = Regex.Replace(text, @"[`*_>#\[\]()]", " ");
+        return Regex.Replace(withoutMarkup.Trim().ToLowerInvariant(), @"\s+", " ");
     }
 }

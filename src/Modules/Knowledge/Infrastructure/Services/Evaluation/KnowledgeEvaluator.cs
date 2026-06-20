@@ -8,7 +8,8 @@ namespace Vitarish.Knowledge.Infrastructure.Services.Evaluation;
 public sealed class KnowledgeEvaluator(
     IKnowledgeQuestionRepository repository,
     IKnowledgeRetriever retriever,
-    IKnowledgeAnswerer answerer) : IKnowledgeEvaluator
+    IKnowledgeAnswerer answerer,
+    IKnowledgeAnswerCorrectnessScorer? answerCorrectnessScorer = null) : IKnowledgeEvaluator
 {
     private const int RecallAt5 = 5;
     private const int RecallAt10 = 10;
@@ -28,6 +29,7 @@ public sealed class KnowledgeEvaluator(
         IReadOnlyList<KnowledgeQuestion> uniqueQuestions = DistinctQuestionsById(allQuestions);
         IReadOnlyList<KnowledgeQuestion> questions = SelectQuestions(uniqueQuestions, request);
 
+        Guid runId = Guid.NewGuid();
         List<KnowledgeEvaluationItem> items = new(capacity: questions.Count);
 
         // Contains ranks for all questions that have expected context.
@@ -79,9 +81,19 @@ public sealed class KnowledgeEvaluator(
                     cancellationToken);
             }
 
+            bool hasExpectedAnswer = !string.IsNullOrWhiteSpace(question.ExpectedAnswer);
+            bool generatedAnswerExists = answer?.IsAnswered == true && !string.IsNullOrWhiteSpace(answer.Answer);
+            KnowledgeAnswerCorrectnessScore? correctnessScore = await ScoreAnswerCorrectnessAsync(
+                hasExpectedAnswer,
+                question.ExpectedAnswer,
+                generatedAnswerExists ? answer?.Answer : null,
+                cancellationToken);
+
             items.Add(new KnowledgeEvaluationItem
             {
+                RunId = runId,
                 QuestionId = question.Id,
+                HasExpectedAnswer = hasExpectedAnswer,
                 HasExpectedContext = hasExpectedContext,
 
                 ExpectedContextFoundInTop5 =
@@ -95,11 +107,12 @@ public sealed class KnowledgeEvaluator(
 
                 WasAnswered = answer?.IsAnswered ?? false,
 
-                ShouldHaveAnswered =
-                    !string.IsNullOrWhiteSpace(question.ExpectedAnswer),
+                ShouldHaveAnswered = hasExpectedAnswer,
 
-                GeneratedAnswerMatchedExpectedAnswer = null,
-                GeneratedAnswer = answer?.Answer
+                GeneratedAnswerMatchedExpectedAnswer = correctnessScore?.IsCorrect,
+                GeneratedAnswerCorrectnessRationale = correctnessScore?.Rationale,
+                GeneratedAnswer = answer?.Answer,
+                Status = DetermineStatus(hasExpectedAnswer, hasExpectedContext, expectedContextRank > 0 && expectedContextRank <= request.TopK, answer?.IsAnswered ?? false, correctnessScore?.IsCorrect)
             });
         }
 
@@ -117,13 +130,49 @@ public sealed class KnowledgeEvaluator(
         double meanRank = MeanRankIncludingMisses(expectedContextRanks);
 
         return new KnowledgeEvaluationRun(
-            Guid.NewGuid(),
+            runId,
             request.CorpusId,
             request.TenantId,
             items,
             recallAt5,
             recallAt10,
             meanRank);
+    }
+
+
+    private async Task<KnowledgeAnswerCorrectnessScore?> ScoreAnswerCorrectnessAsync(
+        bool hasExpectedAnswer,
+        string? expectedAnswer,
+        string? generatedAnswer,
+        CancellationToken cancellationToken)
+    {
+        if (!hasExpectedAnswer || string.IsNullOrWhiteSpace(expectedAnswer) || string.IsNullOrWhiteSpace(generatedAnswer))
+        {
+            return null;
+        }
+
+        if (answerCorrectnessScorer is null)
+        {
+            return new KnowledgeAnswerCorrectnessScore(null, "No answer correctness scorer is configured.");
+        }
+
+        return await answerCorrectnessScorer.ScoreAsync(expectedAnswer, generatedAnswer, cancellationToken);
+    }
+
+    private static KnowledgeEvaluationItemStatus DetermineStatus(
+        bool hasExpectedAnswer,
+        bool hasExpectedContext,
+        bool expectedContextWasRetrieved,
+        bool wasAnswered,
+        bool? answerIsCorrect)
+    {
+        if (!hasExpectedContext) return KnowledgeEvaluationItemStatus.MissingGoldContext;
+        if (!expectedContextWasRetrieved && wasAnswered) return KnowledgeEvaluationItemStatus.AnsweredWithoutGoldContext;
+        if (!expectedContextWasRetrieved) return KnowledgeEvaluationItemStatus.GoldContextNotRetrieved;
+        if (!wasAnswered) return KnowledgeEvaluationItemStatus.AbstainedWithGoldContext;
+        if (hasExpectedAnswer && answerIsCorrect == true) return KnowledgeEvaluationItemStatus.CorrectAnswer;
+        if (hasExpectedAnswer && answerIsCorrect == false) return KnowledgeEvaluationItemStatus.UnsupportedAnswer;
+        return KnowledgeEvaluationItemStatus.SupportedAnswerCandidate;
     }
 
     private static void ValidateRequest(KnowledgeEvaluationRequest request)
