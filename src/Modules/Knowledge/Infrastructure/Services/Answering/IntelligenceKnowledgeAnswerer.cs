@@ -20,7 +20,8 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
             CorpusId = request.CorpusId,
             Question = request.Question,
             TenantId = request.TenantId,
-            TopK = request.TopK
+            TopK = request.TopK,
+            RetrievalMode = request.RetrievalMode
         }, cancellationToken);
         return await AnswerFromHitsAsync(request, hits, cancellationToken);
     }
