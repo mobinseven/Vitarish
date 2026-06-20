@@ -25,8 +25,8 @@ public sealed class KnowledgeEvaluator(
                 request.TenantId,
                 cancellationToken);
 
-        IReadOnlyList<KnowledgeQuestion> selectedQuestions = SelectQuestions(allQuestions, request);
-        IReadOnlyList<KnowledgeQuestion> questions = DistinctQuestionsById(selectedQuestions);
+        IReadOnlyList<KnowledgeQuestion> uniqueQuestions = DistinctQuestionsById(allQuestions);
+        IReadOnlyList<KnowledgeQuestion> questions = SelectQuestions(uniqueQuestions, request);
 
         List<KnowledgeEvaluationItem> items = new(capacity: questions.Count);
 
