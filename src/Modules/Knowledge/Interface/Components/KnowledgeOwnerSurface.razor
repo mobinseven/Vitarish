@@ -25,7 +25,7 @@
     Sources="@model.Sources"
     IsBusy="@isBusy"
     SourcesVersion="@sourcesVersion"
-    ReplaceRequested="ReplaceSourceAsync" />
+    ReplaceRequested="ReplaceSourceFromFileAsync" />
 
 <KnowledgeCorpusIndexer SelectedCorpus="@model.SelectedCorpus" IsBusy="@isBusy" IndexRequested="IndexCorpusAsync" />
 
@@ -94,9 +94,9 @@
         }
     });
 
-    private async Task ReplaceSourceAsync(ReplaceKnowledgeSourceInput input) => await RunAsync(async token =>
+    private async Task ReplaceSourceFromFileAsync(ReplaceKnowledgeSourceFromFileInput input) => await RunAsync(async token =>
     {
-        KnowledgeOwnerImportCommandResult result = await Sender.Send(new ReplaceKnowledgeSourceCommand(RequestContext.TenantId, input), token);
+        KnowledgeOwnerImportCommandResult result = await Sender.Send(new ReplaceKnowledgeSourceFromFileCommand(RequestContext.TenantId, input), token);
         Apply(result.Succeeded, result.Message);
         importSummary = result.Summary;
 
