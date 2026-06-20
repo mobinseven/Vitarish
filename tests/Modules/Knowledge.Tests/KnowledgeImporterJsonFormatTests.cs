@@ -1,6 +1,9 @@
 using System.Text;
 using FluentAssertions;
+using MediatR;
 using Vitarish.Knowledge.Application.Abstractions;
+using Vitarish.Knowledge.Application.Commands;
+using Vitarish.Knowledge.Application.Contracts;
 using Vitarish.Knowledge.Domain.Models;
 using Vitarish.Knowledge.Infrastructure.Services.Importing;
 using Xunit;
@@ -82,10 +85,22 @@ public sealed class KnowledgeImporterJsonFormatTests
         public Task<IReadOnlyList<KnowledgeCorpus>> ListAllActiveCorporaForIndexingAsync(CancellationToken cancellationToken) => throw new NotSupportedException();
     }
 
-    private sealed class InMemoryKnowledgeImportRepository : IKnowledgeImportRepository
+    private sealed class InMemoryKnowledgeImportRepository : ISender
     {
         public KnowledgeImportResult? SavedImport { get; private set; }
-        public Task SaveImportAsync(KnowledgeImportResult result, CancellationToken cancellationToken) { SavedImport = result; return Task.CompletedTask; }
-        public Task ReplaceSourceAsync(Guid sourceId, KnowledgeImportResult result, CancellationToken cancellationToken) { SavedImport = result; return Task.CompletedTask; }
+        public Task<TResponse> Send<TResponse>(IRequest<TResponse> request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task Send<TRequest>(TRequest request, CancellationToken cancellationToken = default) where TRequest : IRequest
+        {
+            if (request is SaveKnowledgeImportCommand saveCommand)
+            {
+                SavedImport = saveCommand.Result;
+                return Task.CompletedTask;
+            }
+
+            throw new NotSupportedException();
+        }
+        public IAsyncEnumerable<TResponse> CreateStream<TResponse>(IStreamRequest<TResponse> request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public IAsyncEnumerable<object?> CreateStream(object request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<object?> Send(object request, CancellationToken cancellationToken = default) => throw new NotSupportedException();
     }
 }
