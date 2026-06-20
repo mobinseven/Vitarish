@@ -81,6 +81,43 @@ public sealed class KnowledgeEvaluatorTests
         _ = retriever.Questions.Should().Equal("First duplicate?", "Unique?");
     }
 
+    [Fact]
+    public async Task EvaluateAsync_TreatsAnyRowLocalGoldChunkAsExpectedContextHit()
+    {
+        Guid missedExpectedChunkId = Guid.Parse("12121212-1212-1212-1212-121212121212");
+        Guid foundExpectedChunkId = Guid.Parse("34343434-3434-3434-3434-343434343434");
+        KnowledgeQuestion question = Question(
+            Guid.Parse("56565656-5656-5656-5656-565656565656"),
+            "Which gold chunk is enough?",
+            "Any row-local gold evidence is enough.",
+            [missedExpectedChunkId, foundExpectedChunkId]);
+        KnowledgeEvaluator evaluator = Evaluator([question], [Hit(foundExpectedChunkId)]);
+
+        KnowledgeEvaluationRun run = await evaluator.EvaluateAsync(Request(evaluateAnswers: false), CancellationToken.None);
+
+        KnowledgeEvaluationItem item = run.Items.Should().ContainSingle().Subject;
+        _ = item.ExpectedContextFoundInTop5.Should().BeTrue();
+        _ = item.ExpectedContextFoundInTop10.Should().BeTrue();
+        _ = item.ExpectedContextWasRetrieved.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task EvaluateAsync_RetrievesAtLeastTop10WhenReportingTop10Metric()
+    {
+        Guid expectedChunkId = Guid.Parse("78787878-7878-7878-7878-787878787878");
+        KnowledgeQuestion question = Question(Guid.Parse("90909090-9090-9090-9090-909090909090"), "Where is rank seven?", "Rank seven.", [expectedChunkId]);
+        RecordingRetriever retriever = new(HitsWithExpectedChunkAtRank(expectedChunkId, 7));
+        KnowledgeEvaluator evaluator = Evaluator([question], retriever);
+
+        KnowledgeEvaluationRun run = await evaluator.EvaluateAsync(Request(topK: 5, evaluateAnswers: false), CancellationToken.None);
+
+        _ = retriever.TopKs.Should().Equal(10);
+        KnowledgeEvaluationItem item = run.Items.Should().ContainSingle().Subject;
+        _ = item.ExpectedContextFoundInTop5.Should().BeFalse();
+        _ = item.ExpectedContextFoundInTop10.Should().BeTrue();
+        _ = item.ExpectedContextWasRetrieved.Should().BeFalse();
+    }
+
     private static KnowledgeEvaluationRequest Request(int topK = 5, bool evaluateAnswers = false) => new()
     {
         CorpusId = CorpusId,
@@ -126,10 +163,12 @@ public sealed class KnowledgeEvaluatorTests
     private sealed class RecordingRetriever(IReadOnlyList<KnowledgeHit> hits) : IKnowledgeRetriever
     {
         public List<string> Questions { get; } = [];
+        public List<int> TopKs { get; } = [];
 
         public Task<IReadOnlyList<KnowledgeHit>> RetrieveAsync(KnowledgeQuery query, CancellationToken cancellationToken)
         {
             Questions.Add(query.Question);
+            TopKs.Add(query.TopK);
             return Task.FromResult(hits);
         }
     }

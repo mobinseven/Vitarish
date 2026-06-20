@@ -13,11 +13,108 @@ namespace Vitarish.Knowledge.Tests;
 public sealed class KnowledgeImporterJsonFormatTests
 {
     [Fact]
+    public async Task ImportAsync_MapsTechQaQuestionToChunksFromSameJsonRow()
+    {
+        KnowledgeImporter importer = Importer(out _);
+        string json = """
+            [
+              {
+                "question": "Why does alpha fail?",
+                "answer": "Alpha fails because task A returns 404.",
+                "document": "Alpha task A returns 404.",
+                "title": "Alpha"
+              },
+              {
+                "question": "Why does beta fail?",
+                "answer": "Beta fails because task B times out.",
+                "document": "Beta task B times out.",
+                "title": "Beta"
+              }
+            ]
+            """;
+
+        KnowledgeImportResult result = await importer.ImportAsync(Request("techqa-json", json), CancellationToken.None);
+
+        KnowledgeQuestion alphaQuestion = result.Questions.Single(question => question.Question == "Why does alpha fail?");
+        KnowledgeQuestion betaQuestion = result.Questions.Single(question => question.Question == "Why does beta fail?");
+        KnowledgeChunk alphaChunk = result.Chunks.Single(chunk => chunk.Text.Contains("Alpha task", StringComparison.Ordinal));
+        KnowledgeChunk betaChunk = result.Chunks.Single(chunk => chunk.Text.Contains("Beta task", StringComparison.Ordinal));
+
+        _ = alphaQuestion.ExpectedChunkIds.Should().Equal(alphaChunk.Id);
+        _ = betaQuestion.ExpectedChunkIds.Should().Equal(betaChunk.Id);
+    }
+
+    [Fact]
+    public async Task ImportAsync_UsesRowLocalDocumentWhenAnswerIsParaphrased()
+    {
+        KnowledgeImporter importer = Importer(out _);
+        string json = """
+            [
+              {
+                "question": "Why does the upgrade fail?",
+                "answer": "Because remote task execution returns 404.",
+                "document": "The import-nodes task failed with TASK001X. Remote task execution returned response code 404."
+              }
+            ]
+            """;
+
+        KnowledgeImportResult result = await importer.ImportAsync(Request("techqa-json", json), CancellationToken.None);
+
+        _ = result.Questions.Should().ContainSingle().Subject.ExpectedChunkIds.Should().Equal(result.Chunks.Single().Id);
+    }
+
+    [Fact]
+    public async Task ImportAsync_ReadsContextArraysAsRowLocalGoldEvidence()
+    {
+        KnowledgeImporter importer = Importer(out _);
+        string json = """
+            [
+              {
+                "question": "Why does the upgrade fail?",
+                "answer": "Because remote task execution returns 404.",
+                "documents": [
+                  { "title": "Portal upgrade technote", "text": "The import-nodes task failed with TASK001X." },
+                  { "title": "Cause", "content": "Remote task execution returned response code 404." }
+                ]
+              }
+            ]
+            """;
+
+        KnowledgeImportResult result = await importer.ImportAsync(Request("techqa-json", json), CancellationToken.None);
+
+        _ = result.Documents.Should().ContainSingle().Subject.Text.Should().Contain("The import-nodes task failed").And.Contain("Remote task execution returned response code 404");
+        _ = result.Questions.Should().ContainSingle().Subject.ExpectedChunkIds.Should().Equal(result.Chunks.Single().Id);
+    }
+
+    [Fact]
+    public async Task ImportAsync_FallsBackToExpectedContextTextsWhenNoRowLocalDocumentExists()
+    {
+        KnowledgeImporter importer = Importer(out _);
+        string json = """
+            [
+              {
+                "question": "What does the shared evidence say?",
+                "answer": "Shared evidence answers the fallback question.",
+                "expected_context": "Shared evidence answers the fallback question."
+              },
+              {
+                "question": "What creates the shared evidence?",
+                "answer": "The second row creates it.",
+                "document": "Shared evidence answers the fallback question."
+              }
+            ]
+            """;
+
+        KnowledgeImportResult result = await importer.ImportAsync(Request("techqa-json", json), CancellationToken.None);
+
+        KnowledgeQuestion fallbackQuestion = result.Questions.Single(question => question.Question == "What does the shared evidence say?");
+        _ = fallbackQuestion.ExpectedChunkIds.Should().Equal(result.Chunks.Single().Id);
+    }
+
+    [Fact]
     public async Task ImportAsync_ImportsTechQaJsonDocumentsAndQuestions()
     {
-        InMemoryKnowledgeCorpusRepository corpusRepository = new();
-        InMemoryKnowledgeImportRepository importRepository = new();
-        KnowledgeImporter importer = new(new OneChunkPerDocumentChunker(), corpusRepository, importRepository);
+        KnowledgeImporter importer = Importer(out InMemoryKnowledgeImportRepository importRepository);
         string json = """
             [
               {
@@ -40,9 +137,7 @@ public sealed class KnowledgeImporterJsonFormatTests
     [Fact]
     public async Task ImportAsync_ImportsRagEvalJsonContextsAndGroundTruth()
     {
-        InMemoryKnowledgeCorpusRepository corpusRepository = new();
-        InMemoryKnowledgeImportRepository importRepository = new();
-        KnowledgeImporter importer = new(new OneChunkPerDocumentChunker(), corpusRepository, importRepository);
+        KnowledgeImporter importer = Importer(out _);
         string json = """
             {
               "data": [
@@ -70,6 +165,13 @@ public sealed class KnowledgeImporterJsonFormatTests
         SourceName = "source.json",
         Content = new MemoryStream(Encoding.UTF8.GetBytes(json))
     };
+
+    private static KnowledgeImporter Importer(out InMemoryKnowledgeImportRepository importRepository)
+    {
+        InMemoryKnowledgeCorpusRepository corpusRepository = new();
+        importRepository = new InMemoryKnowledgeImportRepository();
+        return new KnowledgeImporter(new OneChunkPerDocumentChunker(), corpusRepository, importRepository);
+    }
 
     private sealed class OneChunkPerDocumentChunker : IKnowledgeChunker
     {

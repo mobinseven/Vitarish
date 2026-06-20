@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 
 namespace Vitarish.Knowledge.Infrastructure.Services.Importing;
@@ -48,15 +49,21 @@ internal sealed class KnowledgeImportContentReader
         int rowNumber = 1;
         foreach (JsonElement row in rows)
         {
-            KnowledgeQuestionDraft question = ReadQuestion(row, format, rowNumber);
+            string evaluationItemKey = $"{sourceName}:{rowNumber.ToString(CultureInfo.InvariantCulture)}";
+
+            KnowledgeQuestionDraft question = ReadQuestion(row, format, rowNumber) with
+            {
+                EvaluationItemKey = evaluationItemKey
+            };
             questions.Add(question);
 
-            string? documentText = FirstString(row, "document", "text", "context", "passage", "content") ?? FirstStringFromArray(row, "contexts", "context", "documents", "passages");
+            string? documentText = ReadRowLocalEvidenceText(row);
             if (!string.IsNullOrWhiteSpace(documentText))
             {
                 documents.Add(new KnowledgeDocumentDraft
                 {
-                    Title = FirstString(row, "title", "document_title", "source") ?? $"{sourceName} item {rowNumber}",
+                    EvaluationItemKey = evaluationItemKey,
+                    Title = ReadTitle(row, sourceName, rowNumber),
                     Text = documentText,
                     Product = FirstString(row, "product"),
                     Version = FirstString(row, "version"),
@@ -122,7 +129,7 @@ internal sealed class KnowledgeImportContentReader
         AddStringArray(contexts, row, "context");
         AddStringArray(contexts, row, "documents");
         AddStringArray(contexts, row, "passages");
-        string? single = FirstString(row, "expected_context", "document", "text", "passage", "content");
+        string? single = FirstString(row, "expected_context", "document", "passage", "content");
         if (!string.IsNullOrWhiteSpace(single)) contexts.Add(single);
         return [.. contexts.Where(static context => !string.IsNullOrWhiteSpace(context)).Distinct(StringComparer.Ordinal)];
     }
@@ -145,23 +152,52 @@ internal sealed class KnowledgeImportContentReader
             }
             else if (item.ValueKind == JsonValueKind.Object)
             {
-                string? text = FirstString(item, "text", "content", "context", "passage", "document");
+                string? text = FirstString(item, "text", "content", "document", "context", "passage", "body", "abstract", "title");
                 if (!string.IsNullOrWhiteSpace(text)) values.Add(text);
             }
         }
     }
 
-    private static string? FirstStringFromArray(JsonElement row, params string[] propertyNames)
+    private static string ReadTitle(JsonElement row, string sourceName, int rowNumber) =>
+        FirstString(row, "title", "document_title", "source") ?? $"{sourceName} item {rowNumber.ToString(CultureInfo.InvariantCulture)}";
+
+    private static string? ReadRowLocalEvidenceText(JsonElement row) =>
+        FirstEvidenceValue(row, "document", "context", "passage", "content", "contexts", "documents", "passages", "text");
+
+    private static string? FirstEvidenceValue(JsonElement row, params string[] propertyNames)
     {
         foreach (string propertyName in propertyNames)
         {
-            if (!row.TryGetProperty(propertyName, out JsonElement property) || property.ValueKind != JsonValueKind.Array) continue;
-            string[] values = [.. property.EnumerateArray().Select(item => item.ValueKind == JsonValueKind.String ? item.GetString() : item.ValueKind == JsonValueKind.Object ? FirstString(item, "text", "content", "context", "passage", "document") : null).Where(static value => !string.IsNullOrWhiteSpace(value))!];
-            if (values.Length > 0) return string.Join("\n\n", values);
+            if (!row.TryGetProperty(propertyName, out JsonElement property)) continue;
+
+            string? text = ReadEvidenceValue(property);
+            if (!string.IsNullOrWhiteSpace(text)) return text;
         }
 
         return null;
     }
+
+    private static string? ReadEvidenceValue(JsonElement value)
+    {
+        if (value.ValueKind != JsonValueKind.Array)
+        {
+            return ReadString(value);
+        }
+
+        string[] values = [.. value.EnumerateArray()
+            .Select(ReadEvidenceArrayItem)
+            .Where(static text => !string.IsNullOrWhiteSpace(text))!];
+
+        return values.Length == 0 ? null : string.Join("\n\n", values);
+    }
+
+    private static string? ReadEvidenceArrayItem(JsonElement item) => item.ValueKind switch
+    {
+        JsonValueKind.String => item.GetString(),
+        JsonValueKind.Object => FirstString(item, "text", "content", "document", "context", "passage", "body", "abstract", "title"),
+        JsonValueKind.Number or JsonValueKind.True or JsonValueKind.False => item.ToString(),
+        _ => null
+    };
 
     private static string? FirstString(JsonElement row, params string[] propertyNames)
     {

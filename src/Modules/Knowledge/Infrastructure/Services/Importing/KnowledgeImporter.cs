@@ -56,6 +56,7 @@ public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeCorpu
 
         List<KnowledgeDocument> documents = [];
         List<KnowledgeChunk> chunks = [];
+        Dictionary<string, List<KnowledgeChunk>> chunksByEvaluationItemKey = new(StringComparer.Ordinal);
         foreach (KnowledgeDocumentDraft draft in content.Documents)
         {
             Guid documentId = Guid.NewGuid();
@@ -65,34 +66,61 @@ public sealed class KnowledgeImporter(IKnowledgeChunker chunker, IKnowledgeCorpu
                 CorpusId = request.CorpusId,
                 TenantId = request.TenantId,
                 SourceId = sourceId,
-                Title = draft.Title,
+                Title = draft.Title ?? sourceName,
                 Text = draft.Text,
                 Product = draft.Product,
                 Version = draft.Version,
                 Language = draft.Language
             };
             documents.Add(document);
-            chunks.AddRange(chunker.Chunk(document).Select(chunkDraft => new KnowledgeChunk
+
+            IReadOnlyList<KnowledgeChunkDraft> chunkDrafts = chunker.Chunk(document);
+            foreach (KnowledgeChunkDraft chunkDraft in chunkDrafts)
+            {
+                KnowledgeChunk chunk = new()
+                {
+                    Id = Guid.NewGuid(),
+                    CorpusId = request.CorpusId,
+                    TenantId = request.TenantId,
+                    SourceId = sourceId,
+                    DocumentId = documentId,
+                    Text = chunkDraft.Text,
+                    Order = chunkDraft.Order,
+                    Title = chunkDraft.Title,
+                    HeadingPath = chunkDraft.HeadingPath
+                };
+
+                chunks.Add(chunk);
+
+                if (!string.IsNullOrWhiteSpace(draft.EvaluationItemKey))
+                {
+                    if (!chunksByEvaluationItemKey.TryGetValue(draft.EvaluationItemKey, out List<KnowledgeChunk>? rowChunks))
+                    {
+                        rowChunks = [];
+                        chunksByEvaluationItemKey[draft.EvaluationItemKey] = rowChunks;
+                    }
+
+                    rowChunks.Add(chunk);
+                }
+            }
+        }
+
+        KnowledgeQuestion[] questions = [.. content.Questions.Select(question =>
+        {
+            IReadOnlyList<Guid> expectedChunkIds =
+                !string.IsNullOrWhiteSpace(question.EvaluationItemKey)
+                && chunksByEvaluationItemKey.TryGetValue(question.EvaluationItemKey, out List<KnowledgeChunk>? rowChunks)
+                    ? [.. rowChunks.Select(static chunk => chunk.Id)]
+                    : FindExpectedChunkIds(question.ExpectedContextTexts, chunks);
+
+            return new KnowledgeQuestion
             {
                 Id = Guid.NewGuid(),
                 CorpusId = request.CorpusId,
-                TenantId = request.TenantId,
-                SourceId = sourceId,
-                DocumentId = documentId,
-                Text = chunkDraft.Text,
-                Order = chunkDraft.Order,
-                Title = chunkDraft.Title,
-                HeadingPath = chunkDraft.HeadingPath
-            }));
-        }
-
-        KnowledgeQuestion[] questions = [.. content.Questions.Select(question => new KnowledgeQuestion
-        {
-            Id = Guid.NewGuid(),
-            CorpusId = request.CorpusId,
-            Question = question.Question,
-            ExpectedAnswer = question.ExpectedAnswer,
-            ExpectedChunkIds = FindExpectedChunkIds(question.ExpectedContextTexts, chunks)
+                Question = question.Question,
+                ExpectedAnswer = question.ExpectedAnswer,
+                ExpectedChunkIds = expectedChunkIds
+            };
         })];
 
         return new KnowledgeImportResult { CorpusId = request.CorpusId, Sources = [source], Documents = documents, Chunks = chunks, Questions = questions };
