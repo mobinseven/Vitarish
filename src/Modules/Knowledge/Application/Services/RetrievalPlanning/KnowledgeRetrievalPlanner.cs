@@ -104,6 +104,11 @@ public sealed class KnowledgeRetrievalPlanner(IResponder responder) : IKnowledge
 
     private static void AddQuery(List<string> planned, string query)
     {
+        if (string.IsNullOrWhiteSpace(query))
+        {
+            return;
+        }
+
         string normalized = KnowledgeQueryTextCleaner.Clean(query);
         if (planned.Any(existing => IsNearDuplicate(existing, normalized)))
         {
