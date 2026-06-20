@@ -16,19 +16,28 @@ public sealed class SearchKnowledgeRetriever(ISearchService search, IKnowledgeRe
         Dictionary<Guid, RankedKnowledgeHit> rankedHits = [];
         int firstSeenOrder = 0;
 
-        for (int queryIndex = 0; queryIndex < plan.SearchQueries.Count; queryIndex++)
-        {
-            SearchResult result = await search.SearchAsync(KnowledgeSearchDocumentContract.IndexName, plan.SearchQueries[queryIndex], new SearchOptions
+        string corpusIdStr = query.CorpusId.ToString("N");
+        IReadOnlyDictionary<string, string> metadataFilters = query.Filters ?? new Dictionary<string, string>();
+        SearchRetrievalMode retrievalMode = MapRetrievalMode(query.RetrievalMode);
+
+        var searchTasks = plan.SearchQueries.Select(searchQuery =>
+            search.SearchAsync(KnowledgeSearchDocumentContract.IndexName, searchQuery, new SearchOptions
             {
                 Limit = query.TopK,
                 Type = KnowledgeSearchDocumentContract.DocumentType,
                 TenantId = query.TenantId,
-                CorpusId = query.CorpusId.ToString("N"),
-                MetadataFilters = query.Filters ?? new Dictionary<string, string>(),
-                RetrievalMode = MapRetrievalMode(query.RetrievalMode),
+                CorpusId = corpusIdStr,
+                MetadataFilters = metadataFilters,
+                RetrievalMode = retrievalMode,
                 Explain = true
-            }, cancellationToken);
+            }, cancellationToken)
+        );
 
+        SearchResult[] searchResults = await Task.WhenAll(searchTasks);
+
+        for (int queryIndex = 0; queryIndex < searchResults.Length; queryIndex++)
+        {
+            SearchResult result = searchResults[queryIndex];
             foreach (KnowledgeHit hit in result.Items.Select(KnowledgeSearchDocumentContract.ToKnowledgeHit))
             {
                 if (rankedHits.TryGetValue(hit.ChunkId, out RankedKnowledgeHit? existing))
