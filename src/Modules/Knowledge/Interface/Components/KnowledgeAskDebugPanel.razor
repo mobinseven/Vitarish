@@ -1,6 +1,10 @@
 <Stack>
     <StackTextField Label="Question" @bind-Value="question" />
     <StackNumericField Label="TopK" @bind-Value="topK" Min="1" Max="20" />
+    <StackSelect T="KnowledgeRetrievalMode" Label="Retrieval mode" @bind-Value="retrievalMode">
+        <MudSelectItem T="KnowledgeRetrievalMode" Value="KnowledgeRetrievalMode.Balanced">Balanced</MudSelectItem>
+        <MudSelectItem T="KnowledgeRetrievalMode" Value="KnowledgeRetrievalMode.Broad">Broad</MudSelectItem>
+    </StackSelect>
     <StackButton Label="Debug ask" Color="Color.Primary" OnClick="DebugAsync" />
     @if (result is not null)
     {
@@ -23,11 +27,12 @@
     [Inject] private IKnowledgeDiagnosticsService Diagnostics { get; set; } = default!;
     private string question = string.Empty;
     private int topK = 8;
+    private KnowledgeRetrievalMode retrievalMode = KnowledgeRetrievalMode.Balanced;
     private KnowledgeAskDebugResult? result;
     private async Task DebugAsync()
     {
         if (string.IsNullOrWhiteSpace(question)) return;
-        result = await Diagnostics.DebugAskAsync(new KnowledgeAskRequest { CorpusId = ParseId(CorpusId), TenantId = TenantId, Question = question.Trim(), TopK = topK }, CancellationToken.None);
+        result = await Diagnostics.DebugAskAsync(new KnowledgeAskRequest { CorpusId = ParseId(CorpusId), TenantId = TenantId, Question = question.Trim(), TopK = topK, RetrievalMode = retrievalMode }, CancellationToken.None);
     }
     private static Guid ParseId(string id) => Guid.TryParse(id?.Trim(), out Guid value) ? value : throw new InvalidOperationException("CorpusId must be a GUID.");
     private static string Preview(string text) => text.Length <= 240 ? text : text[..240];

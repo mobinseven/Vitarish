@@ -35,6 +35,7 @@ public sealed record KnowledgeQuery
     public required string TenantId { get; init; }
     public int TopK { get; init; } = 8;
     public IReadOnlyDictionary<string, string>? Filters { get; init; }
+    public KnowledgeRetrievalMode RetrievalMode { get; init; } = KnowledgeRetrievalMode.Balanced;
 }
 
 public sealed record KnowledgeHit
@@ -55,6 +56,7 @@ public sealed record KnowledgeAskRequest
     public required string Question { get; init; }
     public required string TenantId { get; init; }
     public int TopK { get; init; } = 8;
+    public KnowledgeRetrievalMode RetrievalMode { get; init; } = KnowledgeRetrievalMode.Balanced;
     public bool SaveTrace { get; init; } = true;
     public string? TraceKind { get; init; }
 }
