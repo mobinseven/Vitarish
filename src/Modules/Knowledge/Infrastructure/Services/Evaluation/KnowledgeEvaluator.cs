@@ -25,7 +25,8 @@ public sealed class KnowledgeEvaluator(
                 request.TenantId,
                 cancellationToken);
 
-        IReadOnlyList<KnowledgeQuestion> questions = SelectQuestions(allQuestions, request);
+        IReadOnlyList<KnowledgeQuestion> uniqueQuestions = DistinctQuestionsById(allQuestions);
+        IReadOnlyList<KnowledgeQuestion> questions = SelectQuestions(uniqueQuestions, request);
 
         List<KnowledgeEvaluationItem> items = new(capacity: questions.Count);
 
@@ -89,11 +90,15 @@ public sealed class KnowledgeEvaluator(
                 ExpectedContextFoundInTop10 =
                     expectedContextRank is > 0 and <= RecallAt10,
 
+                ExpectedContextWasRetrieved =
+                    expectedContextRank > 0 && expectedContextRank <= request.TopK,
+
                 WasAnswered = answer?.IsAnswered ?? false,
 
                 ShouldHaveAnswered =
                     !string.IsNullOrWhiteSpace(question.ExpectedAnswer),
 
+                GeneratedAnswerMatchedExpectedAnswer = null,
                 GeneratedAnswer = answer?.Answer
             });
         }
@@ -169,6 +174,28 @@ public sealed class KnowledgeEvaluator(
             : Random.Shared;
 
         return TakeRandomSample(questions, sampleSize, random);
+    }
+
+    private static IReadOnlyList<KnowledgeQuestion> DistinctQuestionsById(
+        IReadOnlyList<KnowledgeQuestion> questions)
+    {
+        if (questions.Count < 2)
+        {
+            return questions;
+        }
+
+        HashSet<Guid> seenQuestionIds = [];
+        List<KnowledgeQuestion> distinctQuestions = new(capacity: questions.Count);
+
+        foreach (KnowledgeQuestion question in questions)
+        {
+            if (seenQuestionIds.Add(question.Id))
+            {
+                distinctQuestions.Add(question);
+            }
+        }
+
+        return distinctQuestions;
     }
 
     private static IReadOnlyList<KnowledgeQuestion> TakeRandomSample(

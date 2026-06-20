@@ -85,8 +85,13 @@ public sealed record KnowledgeEvaluationItem
     public bool HasExpectedContext { get; init; }
     public bool ExpectedContextFoundInTop5 { get; init; }
     public bool ExpectedContextFoundInTop10 { get; init; }
+    public bool ExpectedContextWasRetrieved { get; init; }
+    /// <summary>True when the answerer produced an answer; this is not an answer correctness score.</summary>
     public bool WasAnswered { get; init; }
+    /// <summary>True when the question has a gold-label expected answer.</summary>
     public bool ShouldHaveAnswered { get; init; }
+    /// <summary>Null until a semantic answer correctness scorer is provided through an application abstraction.</summary>
+    public bool? GeneratedAnswerMatchedExpectedAnswer { get; init; }
     public string? GeneratedAnswer { get; init; }
 }
 
