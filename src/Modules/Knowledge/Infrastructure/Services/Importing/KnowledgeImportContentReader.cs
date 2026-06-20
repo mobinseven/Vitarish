@@ -179,6 +179,11 @@ internal sealed class KnowledgeImportContentReader
 
     private static string? ReadEvidenceValue(JsonElement value)
     {
+        if (value.ValueKind == JsonValueKind.Object)
+        {
+            return FirstString(value, "text", "content", "document", "context", "passage", "body", "abstract", "title");
+        }
+
         if (value.ValueKind != JsonValueKind.Array)
         {
             return ReadString(value);
