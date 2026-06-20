@@ -114,7 +114,7 @@
 
     private async Task EvaluateCorpusAsync() => await RunAsync(async token =>
     {
-        KnowledgeOwnerEvaluationCommandResult result = await Sender.Send(new EvaluateKnowledgeCorpusCommand(RequestContext.TenantId, new EvaluateKnowledgeCorpusInput(model.SelectedCorpus?.CorpusId)), token);
+        KnowledgeOwnerEvaluationCommandResult result = await Sender.Send(new EvaluateKnowledgeCorpusCommand(RequestContext.TenantId, new EvaluateKnowledgeCorpusInput(model.SelectedCorpus?.CorpusId, Application.Enums.KnowledgeEvaluationScope.RandomSample)), token);
         Apply(result.Succeeded, result.Message);
         evaluationSummary = result.Summary;
     });

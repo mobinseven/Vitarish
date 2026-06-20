@@ -19,7 +19,12 @@ public sealed class EvaluateKnowledgeCorpusCommandHandler(IKnowledgeService know
 
         try
         {
-            KnowledgeEvaluationRun run = await knowledge.EvaluateAsync(new KnowledgeEvaluationRequest(request.Input.CorpusId!.Value, request.TenantId!), cancellationToken);
+            KnowledgeEvaluationRun run = await knowledge.EvaluateAsync(new KnowledgeEvaluationRequest
+            {
+                CorpusId = request.Input.CorpusId!.Value,
+                TenantId = request.TenantId!,
+                Scope= request.Input.EvaluationScope
+            }, cancellationToken);
             return KnowledgeOwnerEvaluationCommandResult.Success("Evaluation complete.", run.ToOwnerEvaluationSummary());
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

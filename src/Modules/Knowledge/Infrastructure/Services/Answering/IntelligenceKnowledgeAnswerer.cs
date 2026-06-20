@@ -15,7 +15,13 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
         ArgumentException.ThrowIfNullOrWhiteSpace(request.Question);
         ArgumentException.ThrowIfNullOrWhiteSpace(request.TenantId);
 
-        IReadOnlyList<KnowledgeHit> hits = await retriever.RetrieveAsync(new KnowledgeQuery { CorpusId = request.CorpusId, Question = request.Question, TenantId = request.TenantId, TopK = request.TopK }, cancellationToken);
+        IReadOnlyList<KnowledgeHit> hits = await retriever.RetrieveAsync(new KnowledgeQuery
+        {
+            CorpusId = request.CorpusId,
+            Question = request.Question,
+            TenantId = request.TenantId,
+            TopK = request.TopK
+        }, cancellationToken);
         return await AnswerFromHitsAsync(request, hits, cancellationToken);
     }
 
@@ -33,7 +39,12 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
 
         KnowledgeContext context = contextBuilder.Build(request.Question, hits);
         string prompt = $"Question:\n{request.Question}\n\nContext:\n{context.Text}";
-        IReadOnlyList<ResponderOutput> outputs = await responder.GenerateAsync([ResponderInput.TextInput(prompt)], new ResponderOptions { Instructions = KnowledgeGroundingPolicy.Instructions, TextFormat = ResponseTextFormat.JsonSchema, JsonSchema = KnowledgeAnswerSchema }, cancellationToken);
+        IReadOnlyList<ResponderOutput> outputs = await responder.GenerateAsync([ResponderInput.TextInput(prompt)], new ResponderOptions
+        {
+            Instructions = KnowledgeGroundingPolicy.Instructions,
+            TextFormat = ResponseTextFormat.JsonSchema,
+            JsonSchema = KnowledgeAnswerSchema
+        }, cancellationToken);
         string json = ExtractText(outputs);
         KnowledgeAnswer answer = MapAnswer(json, hits);
 
@@ -72,21 +83,100 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
             logger.LogWarning(ex, "Knowledge ask trace persistence failed for corpus {CorpusId} and tenant {TenantId}.", request.CorpusId, request.TenantId);
         }
     }
+    private static string ExtractText(IReadOnlyList<ResponderOutput> outputs)
+    {
+        ArgumentNullException.ThrowIfNull(outputs);
 
-    private static string ExtractText(IReadOnlyList<ResponderOutput> outputs) => string.Concat(Flatten(outputs).Select(static output => output.Text));
+        // First prefer any single output node that already contains the complete JSON.
+        // This avoids concatenating duplicate parent/child text.
+        foreach (string candidate in EnumerateText(outputs)
+            .Select(static text => text.Trim())
+            .Where(static text => text.Length > 0)
+            .Distinct(StringComparer.Ordinal))
+        {
+            if (IsKnowledgeAnswerJson(candidate))
+            {
+                return candidate;
+            }
+        }
 
-    private static IEnumerable<ResponderOutput> Flatten(IEnumerable<ResponderOutput> outputs)
+        // If the responder returned fragmented text, concatenate only leaf text nodes.
+        // This avoids parent + child duplication while still supporting split output.
+        string leafText = string.Concat(EnumerateLeafText(outputs)).Trim();
+        if (IsKnowledgeAnswerJson(leafText))
+        {
+            return leafText;
+        }
+
+        // Last safe fallback: top-level text only, never recursive flattening.
+        string topLevelText = string.Concat(outputs.Select(static output => output.Text ?? string.Empty)).Trim();
+        if (IsKnowledgeAnswerJson(topLevelText))
+        {
+            return topLevelText;
+        }
+
+        throw new InvalidOperationException("Knowledge answer generation did not contain a valid single knowledge-answer JSON object.");
+    }
+
+    private static IEnumerable<string> EnumerateText(IEnumerable<ResponderOutput> outputs)
     {
         foreach (ResponderOutput output in outputs)
         {
-            yield return output;
+            if (!string.IsNullOrWhiteSpace(output.Text))
+            {
+                yield return output.Text;
+            }
+
+            if (output.Content is null)
+            {
+                continue;
+            }
+
+            foreach (string childText in EnumerateText(output.Content))
+            {
+                yield return childText;
+            }
+        }
+    }
+
+    private static IEnumerable<string> EnumerateLeafText(IEnumerable<ResponderOutput> outputs)
+    {
+        foreach (ResponderOutput output in outputs)
+        {
+            bool yieldedChildText = false;
+
             if (output.Content is not null)
             {
-                foreach (ResponderOutput child in Flatten(output.Content))
+                foreach (string childText in EnumerateLeafText(output.Content))
                 {
-                    yield return child;
+                    yieldedChildText = true;
+                    yield return childText;
                 }
             }
+
+            if (!yieldedChildText && !string.IsNullOrWhiteSpace(output.Text))
+            {
+                yield return output.Text;
+            }
+        }
+    }
+
+    private static bool IsKnowledgeAnswerJson(string text)
+    {
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(text);
+            JsonElement root = document.RootElement;
+
+            return root.ValueKind == JsonValueKind.Object
+                && root.TryGetProperty("answer", out _)
+                && root.TryGetProperty("isAnswered", out _)
+                && root.TryGetProperty("missingInformation", out _)
+                && root.TryGetProperty("citations", out _);
+        }
+        catch (JsonException)
+        {
+            return false;
         }
     }
 
@@ -120,7 +210,14 @@ public sealed class IntelligenceKnowledgeAnswerer(IKnowledgeRetriever retriever,
                 return RefusedAnswer(hits, "The generated answer cited context chunks that were not retrieved.");
             }
 
-            citations.Add(new KnowledgeCitation { ChunkId = hit.ChunkId, SourceId = hit.SourceId, DocumentId = hit.DocumentId, Title = hit.Title, Quote = citation.Quote });
+            citations.Add(new KnowledgeCitation
+            {
+                ChunkId = hit.ChunkId,
+                SourceId = hit.SourceId,
+                DocumentId = hit.DocumentId,
+                Title = hit.Title,
+                Quote = citation.Quote
+            });
         }
 
         return generated.IsAnswered && citations.Count == 0

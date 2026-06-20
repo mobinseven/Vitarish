@@ -77,7 +77,6 @@ public sealed record KnowledgeCitation
     public string? Quote { get; init; }
 }
 
-public sealed record KnowledgeEvaluationRequest(Guid CorpusId, string TenantId, int TopK = 10);
 public sealed record KnowledgeEvaluationRun(Guid Id, Guid CorpusId, string TenantId, IReadOnlyList<KnowledgeEvaluationItem> Items, double RecallAt5, double RecallAt10, double AverageExpectedChunkRank);
 
 public sealed record KnowledgeEvaluationItem
