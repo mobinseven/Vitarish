@@ -144,7 +144,14 @@
         {
             CorpusId = validated.CorpusId!.Value,
             TenantId = RequestContext.TenantId ?? throw new InvalidOperationException("Your workspace is unavailable. Please refresh the page and try again."),
-            Question = validated.Question.Trim(),
+        qaAnswer = await Knowledge.AskAsync(new KnowledgeAskRequest
+        {
+            CorpusId = validated.CorpusId!.Value,
+            TenantId = RequestContext.TenantId ?? throw new InvalidOperationException("Your workspace is unavailable. Please refresh the page and try again."),
+            Question = validated.Question,
+            TopK = validated.TopK,
+            SaveTrace = false
+        }, token);
             TopK = validated.TopK,
             SaveTrace = false
         }, token);
