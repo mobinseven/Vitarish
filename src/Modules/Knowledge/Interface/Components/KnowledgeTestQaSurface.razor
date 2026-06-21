@@ -13,23 +13,22 @@
         <StackSelect T="string" Value="@selectedCorpusId" ValueChanged="SelectCorpusAsync" Label="Corpus">
             @foreach (KnowledgeCorpus corpus in corpora)
             {
-                <MudSelectItem T="string" Value="@corpus.Id.ToString()">@CorpusLabel(corpus)</MudSelectItem>
+                <StackSelectItem T="string" Value="@corpus.Id.ToString()">@CorpusLabel(corpus)</StackSelectItem>
             }
         </StackSelect>
     }
-
-    <KnowledgeQuestionAnswer
-        SelectedCorpus="@SelectedCorpusOption"
-        IsBusy="@isBusy"
-        Question="@question"
-        QuestionChanged="SetQuestion"
-        TopK="@topK"
-        TopKChanged="SetTopK"
-        Answer="@answer"
-        Status="@status"
-        StatusColor="@statusColor"
-        AskRequested="AskAsync" />
 </Stack>
+
+<KnowledgeQuestionAnswer SelectedCorpus="@SelectedCorpusOption"
+                         IsBusy="@isBusy"
+                         Question="@question"
+                         QuestionChanged="SetQuestion"
+                         TopK="@topK"
+                         TopKChanged="SetTopK"
+                         Answer="@answer"
+                         Status="@status"
+                         StatusColor="@statusColor"
+                         AskRequested="AskAsync" />
 
 @code {
     private string selectedCorpusId = string.Empty;

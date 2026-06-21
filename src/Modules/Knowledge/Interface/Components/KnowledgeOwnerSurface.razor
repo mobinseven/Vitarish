@@ -11,7 +11,9 @@
     <StackField Label="@Localizer["Knowledge"]" HelperText="Create or select a corpus, import content, index it, and evaluate it without copying identifiers." />
 </Stack>
 
-<KnowledgeCorpusSelector Model="@model" IsBusy="@isBusy" SelectedCorpusChanged="SelectCorpusAsync" />
+<PaletteCard>
+    <KnowledgeCorpusSelector Model="@model" IsBusy="@isBusy" SelectedCorpusChanged="SelectCorpusAsync" />
+</PaletteCard>
 
 <KnowledgeCorpusCreator IsBusy="@isBusy" ResetVersion="@createCorpusResetVersion" CreateRequested="CreateCorpusAsync" />
 
@@ -144,17 +146,11 @@
         {
             CorpusId = validated.CorpusId!.Value,
             TenantId = RequestContext.TenantId ?? throw new InvalidOperationException("Your workspace is unavailable. Please refresh the page and try again."),
-        qaAnswer = await Knowledge.AskAsync(new KnowledgeAskRequest
-        {
-            CorpusId = validated.CorpusId!.Value,
-            TenantId = RequestContext.TenantId ?? throw new InvalidOperationException("Your workspace is unavailable. Please refresh the page and try again."),
             Question = validated.Question,
             TopK = validated.TopK,
             SaveTrace = false
         }, token);
-            TopK = validated.TopK,
-            SaveTrace = false
-        }, token);
+
         qaStatus = "Answer generated.";
         qaStatusColor = Color.Success;
     });

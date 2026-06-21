@@ -1,5 +1,4 @@
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Domain.Models;
 using Vitarish.Knowledge.Application.Abstractions;
@@ -48,12 +47,9 @@ public sealed class KnowledgeRetrievalPlanner(IResponder responder) : IKnowledge
             }, cancellationToken);
 
             string json = ExtractText(outputs);
-            if (string.IsNullOrWhiteSpace(json))
-            {
-                return new AiRetrievalPlan { Warnings = ["AI retrieval expansion returned no content and was ignored."] };
-            }
-
-            return JsonSerializer.Deserialize<AiRetrievalPlan>(json, JsonOptions);
+            return string.IsNullOrWhiteSpace(json)
+                ? new AiRetrievalPlan { Warnings = ["AI retrieval expansion returned no content and was ignored."] }
+                : JsonSerializer.Deserialize<AiRetrievalPlan>(json, JsonOptions);
         }
         catch (OperationCanceledException)
         {
@@ -69,19 +65,98 @@ public sealed class KnowledgeRetrievalPlanner(IResponder responder) : IKnowledge
         }
     }
 
-    private static string ExtractText(IReadOnlyList<ResponderOutput> outputs) => string.Concat(outputs.SelectMany(Flatten).Where(output => !string.IsNullOrWhiteSpace(output.Text)).Select(output => output.Text));
-
-    private static IEnumerable<ResponderOutput> Flatten(ResponderOutput output)
+    private static string ExtractText(IReadOnlyList<ResponderOutput> outputs)
     {
-        yield return output;
-        if (output.Content is null)
+        ArgumentNullException.ThrowIfNull(outputs);
+
+        // First prefer any single output node that already contains the complete JSON.
+        // This avoids concatenating duplicate parent/child text.
+        foreach (string candidate in EnumerateText(outputs)
+            .Select(static text => text.Trim())
+            .Where(static text => text.Length > 0)
+            .Distinct(StringComparer.Ordinal))
         {
-            yield break;
+            if (IsRetrievalPlanJson(candidate))
+            {
+                return candidate;
+            }
         }
 
-        foreach (ResponderOutput child in output.Content.SelectMany(Flatten))
+        // If the responder returned fragmented text, concatenate only leaf text nodes.
+        // This avoids parent + child duplication while still supporting split output.
+        string leafText = string.Concat(EnumerateLeafText(outputs)).Trim();
+        if (IsRetrievalPlanJson(leafText))
         {
-            yield return child;
+            return leafText;
+        }
+
+        // Last safe fallback: top-level text only, never recursive flattening.
+        string topLevelText = string.Concat(outputs.Select(static output => output.Text ?? string.Empty)).Trim();
+        return IsRetrievalPlanJson(topLevelText)
+            ? topLevelText
+            : throw new JsonException("Knowledge retrieval planning did not contain a valid single retrieval-plan JSON object.");
+    }
+
+    private static IEnumerable<string> EnumerateText(IEnumerable<ResponderOutput> outputs)
+    {
+        foreach (ResponderOutput output in outputs)
+        {
+            if (!string.IsNullOrWhiteSpace(output.Text))
+            {
+                yield return output.Text;
+            }
+
+            if (output.Content is null)
+            {
+                continue;
+            }
+
+            foreach (string childText in EnumerateText(output.Content))
+            {
+                yield return childText;
+            }
+        }
+    }
+
+    private static IEnumerable<string> EnumerateLeafText(IEnumerable<ResponderOutput> outputs)
+    {
+        foreach (ResponderOutput output in outputs)
+        {
+            bool yieldedChildText = false;
+
+            if (output.Content is not null)
+            {
+                foreach (string childText in EnumerateLeafText(output.Content))
+                {
+                    yieldedChildText = true;
+                    yield return childText;
+                }
+            }
+
+            if (!yieldedChildText && !string.IsNullOrWhiteSpace(output.Text))
+            {
+                yield return output.Text;
+            }
+        }
+    }
+
+    private static bool IsRetrievalPlanJson(string text)
+    {
+        try
+        {
+            using JsonDocument document = JsonDocument.Parse(text);
+            JsonElement root = document.RootElement;
+
+            return root.ValueKind == JsonValueKind.Object
+                && root.TryGetProperty("searchQueries", out _)
+                && root.TryGetProperty("preservedTerms", out _)
+                && root.TryGetProperty("expandedTerms", out _)
+                && root.TryGetProperty("droppedTerms", out _)
+                && root.TryGetProperty("warnings", out _);
+        }
+        catch (JsonException)
+        {
+            return false;
         }
     }
 
@@ -122,7 +197,7 @@ public sealed class KnowledgeRetrievalPlanner(IResponder responder) : IKnowledge
 
     private static string NearDuplicateKey(string value) => new(value.Where(char.IsLetterOrDigit).Select(char.ToLowerInvariant).ToArray());
 
-    private static IReadOnlyList<string> NormalizeTerms(IReadOnlyList<string> terms) => [.. terms.Where(term => !string.IsNullOrWhiteSpace(term)).Select(term => KnowledgeQueryTextCleaner.Clean(term)).Distinct(StringComparer.OrdinalIgnoreCase)];
+    private static IReadOnlyList<string> NormalizeTerms(IReadOnlyList<string> terms) => [.. terms.Where(term => !string.IsNullOrWhiteSpace(term)).Select(KnowledgeQueryTextCleaner.Clean).Distinct(StringComparer.OrdinalIgnoreCase)];
 
     private sealed record AiRetrievalPlan
     {
