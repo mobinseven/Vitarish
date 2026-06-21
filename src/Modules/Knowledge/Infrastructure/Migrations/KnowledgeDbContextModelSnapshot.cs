@@ -351,8 +351,7 @@ namespace Vitarish.Knowledge.Infrastructure.Migrations
                         .HasColumnType("text");
 
                     b.Property<string>("ExpectedAnswer")
-                        .HasMaxLength(4096)
-                        .HasColumnType("character varying(4096)");
+                        .HasColumnType("text");
 
                     b.PrimitiveCollection<Guid[]>("ExpectedChunkIds")
                         .IsRequired()
@@ -361,8 +360,7 @@ namespace Vitarish.Knowledge.Infrastructure.Migrations
 
                     b.Property<string>("Question")
                         .IsRequired()
-                        .HasMaxLength(2048)
-                        .HasColumnType("character varying(2048)");
+                        .HasColumnType("text");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("timestamp with time zone");

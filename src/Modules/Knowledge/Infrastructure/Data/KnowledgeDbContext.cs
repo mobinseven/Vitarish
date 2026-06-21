@@ -126,8 +126,8 @@ public sealed class KnowledgeDbContext : DbContext, IMultiTenantDbContext
         {
             entity.ToTable("KnowledgeQuestions");
             entity.HasKey(question => question.Id);
-            entity.Property(question => question.Question).HasMaxLength(2048).IsRequired();
-            entity.Property(question => question.ExpectedAnswer).HasMaxLength(4096);
+            entity.Property(question => question.Question).IsRequired();
+            entity.Property(question => question.ExpectedAnswer);
             entity.Property(question => question.ExpectedChunkIds)
                 .HasColumnName("ExpectedChunkIdsJson")
                 .IsRequired();
