@@ -1,0 +1,34 @@
+@using Microsoft.AspNetCore.Components
+@using CorpusItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerCorpusCollectionItem
+@using SourceItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceCollectionItem
+@using SourceFileItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceFileCollectionItem
+
+<PaletteCard>
+    <Stack>
+        <StackField Label="Knowledge collection" HelperText="Browse corpora, their sources, and imported source files." />
+        @if (Model.Corpora.Count == 0)
+        {
+            <StackCard Label="No corpora yet" HelperText="Create a corpus to start importing knowledge content." />
+        }
+        else
+        {
+            <MudExpansionPanels MultiExpansion="true">
+                @foreach (CorpusItemModel corpus in Model.Corpora)
+                {
+                    <KnowledgeOwnerCorpusCollectionItem Item="corpus" IsSelected="@(Model.SelectedCorpusId == corpus.CorpusId)" SelectedSourceId="Model.SelectedSourceId" SelectedCorpusChanged="SelectedCorpusChanged" SelectedSourceChanged="SelectedSourceChanged" />
+                }
+            </MudExpansionPanels>
+        }
+    </Stack>
+</PaletteCard>
+
+@code {
+    [Parameter, EditorRequired]
+    public KnowledgeOwnerCollectionReadModel Model { get; set; } = KnowledgeOwnerCollectionReadModel.Empty;
+
+    [Parameter, EditorRequired]
+    public EventCallback<Guid> SelectedCorpusChanged { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<Guid> SelectedSourceChanged { get; set; }
+}
