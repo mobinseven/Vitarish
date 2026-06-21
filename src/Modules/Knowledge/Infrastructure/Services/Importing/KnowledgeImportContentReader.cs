@@ -7,6 +7,7 @@ internal sealed class KnowledgeImportContentReader
 {
     private static readonly HashSet<string> TextFormats = new(StringComparer.OrdinalIgnoreCase) { "plain-text", "markdown" };
     private static readonly HashSet<string> JsonEvaluationFormats = new(StringComparer.OrdinalIgnoreCase) { "techqa-json", "rag-eval-json" };
+    private static readonly HashSet<string> PlainQaJsonFormats = new(StringComparer.OrdinalIgnoreCase) { "plain-qa-json" };
 
     public async Task<KnowledgeImportContent> ReadAsync(Stream content, string format, string sourceName, CancellationToken cancellationToken)
     {
@@ -23,6 +24,11 @@ internal sealed class KnowledgeImportContentReader
             return await ReadEvaluationJsonAsync(content, format, sourceName, cancellationToken);
         }
 
+        if (PlainQaJsonFormats.Contains(format))
+        {
+            return await ReadPlainQaJsonAsync(content, format, sourceName, cancellationToken);
+        }
+
         throw new NotSupportedException($"Knowledge import format '{format}' is not supported by the MVP importer.");
     }
 
@@ -32,6 +38,58 @@ internal sealed class KnowledgeImportContentReader
         string text = await reader.ReadToEndAsync(cancellationToken);
         ArgumentException.ThrowIfNullOrWhiteSpace(text);
         return new KnowledgeImportContent([new KnowledgeDocumentDraft { Title = sourceName, Text = text }], []);
+    }
+
+    private static async Task<KnowledgeImportContent> ReadPlainQaJsonAsync(Stream content, string format, string sourceName, CancellationToken cancellationToken)
+    {
+        using JsonDocument json = await JsonDocument.ParseAsync(content, cancellationToken: cancellationToken);
+        IReadOnlyList<JsonElement> rows = ReadRows(json.RootElement);
+        if (rows.Count == 0)
+        {
+            throw new ArgumentException($"Knowledge import format '{format}' requires at least one JSON item.");
+        }
+
+        List<KnowledgeDocumentDraft> documents = [];
+        List<KnowledgeQuestionDraft> questions = [];
+        int rowNumber = 1;
+        foreach (JsonElement row in rows)
+        {
+            string evaluationItemKey = $"{sourceName}:{rowNumber.ToString(CultureInfo.InvariantCulture)}";
+            string? answer = FirstString(row, "answer", "expected_answer", "ground_truth", "reference_answer", "output");
+            if (string.IsNullOrWhiteSpace(answer))
+            {
+                throw new ArgumentException($"Knowledge import format '{format}' item {rowNumber} requires an answer, expected_answer, ground_truth, reference_answer, or output value.");
+            }
+
+            string? questionText = FirstString(row, "question", "query", "input", "prompt");
+            if (string.IsNullOrWhiteSpace(questionText))
+            {
+                throw new ArgumentException($"Knowledge import format '{format}' item {rowNumber} requires a question, query, input, or prompt value.");
+            }
+
+            KnowledgeQuestionDraft question = new()
+            {
+                Question = questionText,
+                EvaluationItemKey = evaluationItemKey,
+                ExpectedAnswer = answer,
+                ExpectedContextTexts = []
+            };
+            questions.Add(question);
+
+            documents.Add(new KnowledgeDocumentDraft
+            {
+                EvaluationItemKey = evaluationItemKey,
+                Title = ReadPlainQaTitle(row, sourceName, rowNumber),
+                Text = answer,
+                Product = FirstString(row, "product"),
+                Version = FirstString(row, "version"),
+                Language = FirstString(row, "language", "lang")
+            });
+
+            rowNumber++;
+        }
+
+        return new KnowledgeImportContent(documents, questions);
     }
 
     private static async Task<KnowledgeImportContent> ReadEvaluationJsonAsync(Stream content, string format, string sourceName, CancellationToken cancellationToken)
@@ -160,6 +218,12 @@ internal sealed class KnowledgeImportContentReader
 
     private static string ReadTitle(JsonElement row, string sourceName, int rowNumber) =>
         FirstString(row, "title", "document_title", "source") ?? $"{sourceName} item {rowNumber.ToString(CultureInfo.InvariantCulture)}";
+
+    private static string ReadPlainQaTitle(JsonElement row, string sourceName, int rowNumber)
+    {
+        string itemIdentifier = FirstString(row, "id") ?? rowNumber.ToString(CultureInfo.InvariantCulture);
+        return $"{sourceName} item {itemIdentifier}";
+    }
 
     private static string? ReadRowLocalEvidenceText(JsonElement row) =>
         FirstEvidenceValue(row, "document", "context", "passage", "content", "contexts", "documents", "passages", "text");

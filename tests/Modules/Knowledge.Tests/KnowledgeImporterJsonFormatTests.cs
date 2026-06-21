@@ -157,6 +157,98 @@ public sealed class KnowledgeImporterJsonFormatTests
         _ = result.Questions[0].ExpectedChunkIds.Should().ContainSingle().And.Contain(result.Chunks[0].Id);
     }
 
+    [Fact]
+    public async Task ImportAsync_ImportsPlainQaJsonArrayAsRowLocalAnswerDocuments()
+    {
+        KnowledgeImporter importer = Importer(out _);
+        string json = """
+            [
+              { "id": "alpha", "question": "What fails for alpha?", "answer": "Alpha evidence only." },
+              { "id": "beta", "question": "What fails for beta?", "answer": "Beta evidence only." }
+            ]
+            """;
+
+        KnowledgeImportResult result = await importer.ImportAsync(Request("plain-qa-json", json), CancellationToken.None);
+
+        _ = result.Questions.Should().HaveCount(2);
+        _ = result.Documents.Should().HaveCount(2);
+        _ = result.Chunks.Should().HaveCount(2);
+        _ = result.Documents.Should().Contain(document => document.Title == "source.json item alpha" && document.Text == "Alpha evidence only.");
+        _ = result.Documents.Should().Contain(document => document.Title == "source.json item beta" && document.Text == "Beta evidence only.");
+    }
+
+    [Fact]
+    public async Task ImportAsync_MapsPlainQaJsonQuestionsOnlyToOwnAnswerChunks()
+    {
+        KnowledgeImporter importer = Importer(out _);
+        string json = """
+            [
+              { "id": "alpha", "question": "What answer belongs to alpha?", "answer": "The alpha-only answer." },
+              { "id": "beta", "question": "What answer belongs to beta?", "answer": "The beta-only answer." }
+            ]
+            """;
+
+        KnowledgeImportResult result = await importer.ImportAsync(Request("plain-qa-json", json), CancellationToken.None);
+
+        KnowledgeQuestion alphaQuestion = result.Questions.Single(question => question.Question == "What answer belongs to alpha?");
+        KnowledgeQuestion betaQuestion = result.Questions.Single(question => question.Question == "What answer belongs to beta?");
+        KnowledgeChunk alphaChunk = result.Chunks.Single(chunk => chunk.Text == "The alpha-only answer.");
+        KnowledgeChunk betaChunk = result.Chunks.Single(chunk => chunk.Text == "The beta-only answer.");
+
+        _ = alphaQuestion.ExpectedChunkIds.Should().Equal(alphaChunk.Id);
+        _ = betaQuestion.ExpectedChunkIds.Should().Equal(betaChunk.Id);
+    }
+
+    [Fact]
+    public async Task ImportAsync_ReadsPlainQaJsonDataWrapper()
+    {
+        KnowledgeImporter importer = Importer(out _);
+        string json = """
+            {
+              "data": [
+                { "id": "wrapped", "query": "Which wrapper works?", "output": "The data wrapper works." }
+              ]
+            }
+            """;
+
+        KnowledgeImportResult result = await importer.ImportAsync(Request("plain-qa-json", json), CancellationToken.None);
+
+        _ = result.Questions.Should().ContainSingle(question => question.Question == "Which wrapper works?" && question.ExpectedAnswer == "The data wrapper works.");
+        _ = result.Documents.Should().ContainSingle(document => document.Title == "source.json item wrapped" && document.Text == "The data wrapper works.");
+    }
+
+    [Fact]
+    public async Task ImportAsync_RejectsPlainQaJsonWithoutQuestion()
+    {
+        KnowledgeImporter importer = Importer(out _);
+        string json = """
+            [
+              { "id": "missing-question", "question": " ", "answer": "Answer exists." }
+            ]
+            """;
+
+        Func<Task> act = () => importer.ImportAsync(Request("plain-qa-json", json), CancellationToken.None);
+
+        _ = await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*plain-qa-json*item 1 requires a question, query, input, or prompt value*");
+    }
+
+    [Fact]
+    public async Task ImportAsync_RejectsPlainQaJsonWithoutAnswer()
+    {
+        KnowledgeImporter importer = Importer(out _);
+        string json = """
+            [
+              { "id": "missing-answer", "question": "Question exists?", "answer": " " }
+            ]
+            """;
+
+        Func<Task> act = () => importer.ImportAsync(Request("plain-qa-json", json), CancellationToken.None);
+
+        _ = await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*plain-qa-json*item 1 requires an answer, expected_answer, ground_truth, reference_answer, or output value*");
+    }
+
     private static KnowledgeImportRequest Request(string format, string json) => new()
     {
         CorpusId = Guid.Parse("11111111-1111-1111-1111-111111111111"),

@@ -12,6 +12,7 @@ internal static class KnowledgeSourceInputFormatLabels
         KnowledgeSourceInputFormat.PlainText => "Plain text",
         KnowledgeSourceInputFormat.TechQaJson => "TechQA JSON",
         KnowledgeSourceInputFormat.RagEvaluationJson => "RAG evaluation JSON",
+        KnowledgeSourceInputFormat.PlainQaJson => "Plain QA JSON",
         _ => format.ToString()
     };
 }

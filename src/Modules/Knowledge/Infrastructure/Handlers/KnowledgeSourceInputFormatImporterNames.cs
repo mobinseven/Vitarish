@@ -10,6 +10,7 @@ internal static class KnowledgeSourceInputFormatImporterNames
         KnowledgeSourceInputFormat.PlainText => "plain-text",
         KnowledgeSourceInputFormat.TechQaJson => "techqa-json",
         KnowledgeSourceInputFormat.RagEvaluationJson => "rag-eval-json",
+        KnowledgeSourceInputFormat.PlainQaJson => "plain-qa-json",
         _ => throw new ArgumentOutOfRangeException(nameof(format), format, "Knowledge source input format is not supported.")
     };
 }
