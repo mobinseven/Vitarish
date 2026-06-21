@@ -4,13 +4,11 @@ using Vitarish.Intelligence.Domain.Models;
 using Vitarish.Knowledge.Application.Abstractions;
 using Vitarish.Knowledge.Application.Contracts;
 
-namespace Vitarish.Knowledge.Application.Services.RetrievalPlanning;
+namespace Vitarish.Knowledge.Infrastructure.Services.RetrievalPlanning;
 
 public sealed class KnowledgeRetrievalPlanner(IResponder responder) : IKnowledgeRetrievalPlanner
 {
     private const int PlannedQueryLimit = 5;
-    private const int ExpansionWordThreshold = 24;
-    private const int ExpansionCharacterThreshold = 160;
     private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
 
     public async Task<KnowledgeRetrievalPlan> PlanAsync(string originalQuestion, CancellationToken cancellationToken)
@@ -18,7 +16,7 @@ public sealed class KnowledgeRetrievalPlanner(IResponder responder) : IKnowledge
         ArgumentException.ThrowIfNullOrWhiteSpace(originalQuestion);
 
         string cleanedQuery = KnowledgeQueryTextCleaner.Clean(originalQuestion);
-        AiRetrievalPlan? aiPlan = ShouldExpand(cleanedQuery) ? await TryExpandAsync(originalQuestion, cancellationToken) : null;
+        AiRetrievalPlan? aiPlan = await TryPlanAsync(originalQuestion, cancellationToken);
         IReadOnlyList<string> searchQueries = MergeQueries(originalQuestion, cleanedQuery, aiPlan?.SearchQueries ?? []);
 
         return new KnowledgeRetrievalPlan
@@ -33,9 +31,7 @@ public sealed class KnowledgeRetrievalPlanner(IResponder responder) : IKnowledge
         };
     }
 
-    private static bool ShouldExpand(string cleanedQuery) => cleanedQuery.Length >= ExpansionCharacterThreshold || cleanedQuery.Split(' ', StringSplitOptions.RemoveEmptyEntries).Length >= ExpansionWordThreshold;
-
-    private async Task<AiRetrievalPlan?> TryExpandAsync(string originalQuestion, CancellationToken cancellationToken)
+    private async Task<AiRetrievalPlan?> TryPlanAsync(string originalQuestion, CancellationToken cancellationToken)
     {
         try
         {

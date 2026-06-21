@@ -94,3 +94,7 @@
 .mud-fab {
     backdrop-filter: blur(3px) !important;
 }
+
+.mud-input > textarea.mud-input-root.mud-input-root-filled {
+    margin-top: unset;
+}

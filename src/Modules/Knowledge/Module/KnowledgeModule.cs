@@ -4,7 +4,6 @@ using Microsoft.AspNetCore.Routing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Vitarish.Knowledge.Application.Abstractions;
-using Vitarish.Knowledge.Application.Owner;
 using Vitarish.Knowledge.Infrastructure.Data;
 using Vitarish.Knowledge.Infrastructure.Repositories;
 using Vitarish.Modules.Base;
@@ -19,7 +18,8 @@ using Vitarish.Knowledge.Infrastructure.Services.Chunking;
 using Vitarish.Search.Application.Abstractions;
 using Vitarish.Entities.Server.Extensions;
 using Vitarish.Knowledge.Infrastructure.Handlers;
-using Vitarish.Knowledge.Application.Services.RetrievalPlanning;
+using Vitarish.Knowledge.Infrastructure.Services.RetrievalPlanning;
+using Vitarish.Knowledge.Application.Queries;
 
 namespace Vitarish.Knowledge.Module;
 

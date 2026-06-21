@@ -3,7 +3,7 @@ using Microsoft.Extensions.Logging;
 using Vitarish.Knowledge.Application.Abstractions;
 using Vitarish.Knowledge.Application.Commands;
 using Vitarish.Knowledge.Application.Contracts;
-using Vitarish.Knowledge.Application.Owner;
+using Vitarish.Knowledge.Infrastructure.Extensions;
 
 namespace Vitarish.Knowledge.Infrastructure.Handlers;
 

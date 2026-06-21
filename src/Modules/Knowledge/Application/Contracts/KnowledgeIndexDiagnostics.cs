@@ -1,4 +1,4 @@
-namespace Vitarish.Knowledge.Application.Abstractions;
+namespace Vitarish.Knowledge.Application.Contracts;
 
 public sealed record KnowledgeIndexDiagnostics
 {

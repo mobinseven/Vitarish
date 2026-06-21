@@ -1,54 +1,52 @@
-<Stack>
-    <StackField Label="Knowledge QA" HelperText="Ask a natural-language question against the selected corpus and inspect the grounded answer." />
-
-    @if(SelectedCorpus is null)
-    {
-        <StackCard Label="No corpus selected" HelperText="Select or create a corpus before asking questions." />
-    }
-    else
-    {
-        <StackCard Label="Corpus" HelperText="@CorpusLabel(SelectedCorpus)" />
-    }
-
-    <StackTextField Value="@Question" ValueChanged="UpdateQuestionAsync" Label="Question" Lines="3" />
-    <StackNumericField Value="@TopK" ValueChanged="UpdateTopKAsync" Label="Number of context sections" Min="1" Max="20" />
-    <StackButton Label="Ask selected corpus" Color="Color.Primary" OnClick="RequestAskAsync" Disabled="@(IsBusy || SelectedCorpus is null)" />
-
-</Stack>
+<PaletteCard>
+    <Stack>
+        <StackTextField Value="@Question" ValueChanged="UpdateQuestionAsync" Label="Question" Lines="3" />
+        @* <StackNumericField Value="@TopK" ValueChanged="UpdateTopKAsync" Label="Number of context sections" Min="1" Max="20" /> *@
+        <StackButton Label="Ask" Color="Color.Primary" OnClick="RequestAskAsync" Disabled="@(IsBusy || SelectedCorpus is null)" />
+    </Stack>
+</PaletteCard>
 
 @if(Answer is not null)
 {
     <Stack>
-        <StackField Label="Answer result" />
-        @if(!string.IsNullOrWhiteSpace(Status))
+        <StackField Label="Answer" Adornment="Adornment.End" AdornmentIcon="@(Answer.IsAnswered ? "fa-solid fa-circle-check" : "")" AdornmentColor="@(Answer.IsAnswered ? Color.Success : Color.Default)">
+            @Answer.Answer
+        </StackField>
+        @if(!string.IsNullOrWhiteSpace(Answer.MissingInformation))
         {
-            <StackField Label="QA status" HelperText="@Status" Color="@StatusColor" />
+            <StackField Label="Missing information">
+                @Answer.MissingInformation
+            </StackField>
         }
-        <StackCard Label="Answered" HelperText="@(Answer.IsAnswered ? "Yes" : "No")" />
-        <StackCard Label="Answer" HelperText="@Answer.Answer" />
-        <StackCard Label="Missing information" HelperText="@(Answer.MissingInformation ?? "None")" />
-
     </Stack>
+    @if(Answer.RetrievedContext.Count > 0)
+    {
+        <Stack>
+            <StackExpandable Label="Retrieved context">
+                @foreach(KnowledgeHit hit in Answer.RetrievedContext)
+                {
+                    <StackCard Label="@ReadableTitle(hit.Title)" HelperText="@($"Score {hit.Score:0.###} · {Preview(hit.Text)}")" />
+                }
+            </StackExpandable>
+        </Stack>
+    }
 
-    <Stack>
-        <StackField Label="Retrieved context" />
-        @foreach(KnowledgeHit hit in Answer.RetrievedContext)
-        {
-            <StackCard Label="@ReadableTitle(hit.Title)" HelperText="@($"Score {hit.Score:0.###} · {Preview(hit.Text)}")" />
-        }
-
-        <StackField Label="Citations" />
-        @foreach(KnowledgeCitation citation in Answer.Citations)
-        {
-            <StackCard Label="@ReadableTitle(citation.Title)" HelperText="@(citation.Quote ?? "No quote")" />
-        }
-
-    </Stack>
+    @if(Answer.Citations.Count > 0)
+    {
+        <Stack>
+            <StackExpandable Label="Citations">
+                @foreach(KnowledgeCitation citation in Answer.Citations)
+                {
+                    <StackCard Label="@ReadableTitle(citation.Title)" HelperText="@(citation.Quote ?? "No quote")" />
+                }
+            </StackExpandable>
+        </Stack>
+    }
 }
 
 
 @code {
-    [Parameter] public KnowledgeOwnerCorpusOption? SelectedCorpus { get; set; }
+    [Parameter, EditorRequired] public KnowledgeOwnerCorpusOption SelectedCorpus { get; set; }
     [Parameter] public bool IsBusy { get; set; }
     [Parameter] public KnowledgeAnswer? Answer { get; set; }
     [Parameter] public string Question { get; set; } = string.Empty;

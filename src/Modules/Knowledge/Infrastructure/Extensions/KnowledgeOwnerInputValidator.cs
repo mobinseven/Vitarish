@@ -1,7 +1,7 @@
 using Vitarish.Knowledge.Application.Contracts;
 using Vitarish.Knowledge.Application.Enums;
 
-namespace Vitarish.Knowledge.Application.Owner;
+namespace Vitarish.Knowledge.Infrastructure.Extensions;
 
 public static class KnowledgeOwnerInputValidator
 {

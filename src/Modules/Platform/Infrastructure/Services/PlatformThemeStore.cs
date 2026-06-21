@@ -25,14 +25,13 @@ public sealed class PlatformThemeStore(PlatformDbContext dbContext, TimeProvider
             .OrderBy(e => e.Name)
             .ToListAsync(cancellationToken);
 
-        return themes
+        return [.. themes
             .Select(e => new ThemeListItem(
                 e.Id,
                 e.Name,
                 CopyPalette(e.LightPalette, LightFallback),
                 CopyPalette(e.DarkPalette, DarkFallback),
-                selection != null && e.Id == selection.ActiveThemeId))
-            .ToList();
+                selection != null && e.Id == selection.ActiveThemeId))];
     }
 
     public async Task<ThemeEditorModel?> GetThemeAsync(Guid themeId, CancellationToken cancellationToken = default)

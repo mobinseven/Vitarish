@@ -1,6 +1,6 @@
 using System.Text.RegularExpressions;
 
-namespace Vitarish.Knowledge.Application.Services.RetrievalPlanning;
+namespace Vitarish.Knowledge.Infrastructure.Services.RetrievalPlanning;
 
 public static partial class KnowledgeQueryTextCleaner
 {

@@ -8,5 +8,6 @@ public enum Palettes
     Blue = 3,
     Purple = 4,
     Lagoon = 5,
-    Sunset = 6
+    Sunset = 6,
+    Intuition = 7
 }

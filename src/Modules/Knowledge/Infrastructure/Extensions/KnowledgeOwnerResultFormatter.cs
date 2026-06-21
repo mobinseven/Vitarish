@@ -1,7 +1,7 @@
 using System.Globalization;
 using Vitarish.Knowledge.Application.Contracts;
 
-namespace Vitarish.Knowledge.Application.Owner;
+namespace Vitarish.Knowledge.Infrastructure.Extensions;
 
 public static class KnowledgeOwnerResultFormatter
 {

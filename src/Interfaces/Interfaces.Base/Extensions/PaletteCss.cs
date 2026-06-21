@@ -21,7 +21,9 @@ public static class PaletteCss
         PaletteOptions? options = null)
     {
         if (string.IsNullOrWhiteSpace(styleElementId))
+        {
             throw new ArgumentException("Style element id cannot be empty.", nameof(styleElementId));
+        }
 
         string encodedId = WebUtility.HtmlEncode(styleElementId);
         string nonceAttribute = string.IsNullOrWhiteSpace(nonce)
@@ -49,26 +51,30 @@ public static class PaletteCss
     public static string? GetToneCssClass(PaletteTone tone, string componentClass = "palette-button")
     {
         if (tone == PaletteTone.Auto)
+        {
             return null;
+        }
 
         if (!Enum.IsDefined(tone))
+        {
             throw new ArgumentOutOfRangeException(nameof(tone), tone, "Unsupported palette tone.");
+        }
 
-        if (string.IsNullOrWhiteSpace(componentClass))
-            throw new ArgumentException("Component class cannot be empty.", nameof(componentClass));
-
-        return $"{componentClass}--{GetToneValue(tone)}";
+        return string.IsNullOrWhiteSpace(componentClass)
+            ? throw new ArgumentException("Component class cannot be empty.", nameof(componentClass))
+            : $"{componentClass}--{GetToneValue(tone)}";
     }
 
     public static string? GetToneValue(PaletteTone tone)
     {
         if (tone == PaletteTone.Auto)
+        {
             return null;
+        }
 
-        if (!Enum.IsDefined(tone))
-            throw new ArgumentOutOfRangeException(nameof(tone), tone, "Unsupported palette tone.");
-
-        return ((int)tone).ToString(CultureInfo.InvariantCulture);
+        return !Enum.IsDefined(tone)
+            ? throw new ArgumentOutOfRangeException(nameof(tone), tone, "Unsupported palette tone.")
+            : ((int)tone).ToString(CultureInfo.InvariantCulture);
     }
 
 
@@ -80,15 +86,21 @@ public static class PaletteCss
         PaletteTone resolvedTone = tone == PaletteTone.Auto ? defaultTone : tone;
 
         if (!Enum.IsDefined(resolvedTone) || resolvedTone == PaletteTone.Auto)
+        {
             throw new ArgumentOutOfRangeException(nameof(tone), tone, "Unsupported palette tone.");
+        }
 
         if (!Enum.IsDefined(defaultTone) || defaultTone == PaletteTone.Auto)
+        {
             throw new ArgumentOutOfRangeException(nameof(defaultTone), defaultTone, "Default tone must be a concrete palette tone.");
+        }
 
         int index = Array.IndexOf(ToneOrder, resolvedTone);
 
         if (index < 0)
+        {
             throw new ArgumentOutOfRangeException(nameof(tone), tone, "Unsupported palette tone.");
+        }
 
         int resolvedIndex = PositiveModulo(index + offset, ToneOrder.Length);
         return ToneOrder[resolvedIndex];
@@ -117,28 +129,34 @@ public static class PaletteCss
         PaletteDefinition definition = GetDefinition(palette);
         PaletteOptions resolvedOptions = options ?? PaletteOptions.Default;
 
-        return BuildHeaderImageUrl(
+        return ResolveHeaderImageUrl(
             definition,
             mode == PaletteMode.Dark ? PaletteMode.Dark : PaletteMode.Light,
             resolvedOptions
         );
     }
 
-    public static string GetCssVariables(Palettes palette) =>
-        GetCssVariables(GetDefinition(palette), PaletteMode.Light, PaletteOptions.Default);
+    public static string GetCssVariables(Palettes palette, PaletteOptions? options = null) =>
+        GetCssVariables(GetDefinition(palette), PaletteMode.Light, options ?? PaletteOptions.Default);
 
-    public static string GetCssVariables(Palettes palette, bool darkMode) =>
+    public static string GetCssVariables(
+        Palettes palette,
+        bool darkMode,
+        PaletteOptions? options = null) =>
         GetCssVariables(
             GetDefinition(palette),
             darkMode ? PaletteMode.Dark : PaletteMode.Light,
-            PaletteOptions.Default
+            options ?? PaletteOptions.Default
         );
 
-    public static string GetCssVariables(Palettes palette, PaletteMode mode) =>
+    public static string GetCssVariables(
+        Palettes palette,
+        PaletteMode mode,
+        PaletteOptions? options = null) =>
         GetCssVariables(
             GetDefinition(palette),
             mode == PaletteMode.Dark ? PaletteMode.Dark : PaletteMode.Light,
-            PaletteOptions.Default
+            options ?? PaletteOptions.Default
         );
 
     private static string BuildPaletteCss(PaletteOptions options)
@@ -151,6 +169,7 @@ public static class PaletteCss
              *
              * Palette classes:
              *   .palette-green
+             *   .palette-intuition
              *   .palette-pink
              *   .palette-yellow
              *   .palette-blue
@@ -164,13 +183,20 @@ public static class PaletteCss
              *   .palette-dark   forces dark palette
              *
              * Also supported:
-             *   [data-palette="green|pink|yellow|blue|purple|lagoon|sunset"]
+             *   [data-palette="green|intuition|pink|yellow|blue|purple|lagoon|sunset"]
              *   [data-theme="light|dark"]
              *   .light
              *   .dark
              *
              * Header image default pattern:
              *   /bg/headers/{palette}-{mode}.webp
+             *
+             * Header image URL override:
+             *   PaletteOptions.HeaderImageUrlResolver
+             *
+             * Color opacity override:
+             *   PaletteOptions.ColorAlpha emits paired -alpha variables.
+             *   Base variables stay unchanged.
              */
             """,
 
@@ -240,12 +266,16 @@ public static class PaletteCss
     private static string BuildBodyBackgroundBlock(PaletteOptions options)
     {
         if (!options.IncludeBodyBackgroundCss)
+        {
             return string.Empty;
+        }
 
         string bodyBackgroundStyleBlock = BuildBodyBackgroundStyleBlock(options);
 
         if (options.BodyPalette is not { } bodyPalette)
+        {
             return bodyBackgroundStyleBlock;
+        }
 
         PaletteDefinition bodyDefinition = GetDefinition(bodyPalette);
 
@@ -341,33 +371,6 @@ public static class PaletteCss
     }
     """;
 
-    private static string GetBodyCssVariables(
-        PaletteDefinition definition,
-        PaletteMode mode,
-        PaletteOptions options)
-    {
-        bool isDark = mode == PaletteMode.Dark;
-
-        string pageBackground = isDark
-            ? options.DarkPageBackground
-            : options.LightPageBackground;
-
-        string headerImageUrl = BuildHeaderImageUrl(definition, mode, options);
-
-        string headerImageCss = options.IncludeHeaderImages
-            ? CssUrl(headerImageUrl)
-            : "none";
-
-        return $$"""
-        --palette-body-bg: {{pageBackground}};
-        --palette-body-header-image: {{headerImageCss}};
-        --palette-body-header-repeat: no-repeat;
-        --palette-body-header-position: {{options.HeaderBackgroundPosition}};
-        --palette-body-header-size: {{options.HeaderBackgroundSize}};
-        --palette-body-header-attachment: {{options.HeaderBackgroundAttachment}};
-        """;
-    }
-
     private static string GetCssVariables(
         PaletteDefinition definition,
         PaletteMode mode,
@@ -376,13 +379,18 @@ public static class PaletteCss
         bool isDark = mode == PaletteMode.Dark;
 
         PaletteTokens tokens = isDark ? definition.Dark : definition.Light;
+        double colorAlpha = NormalizeColorAlpha(options.ColorAlpha);
+        PaletteTokens alphaTokens = ApplyColorAlpha(tokens, colorAlpha);
 
         string colorScheme = isDark ? "dark" : "light";
         string text = isDark ? tokens.TextLight : tokens.TextDark;
         string textInverse = isDark ? tokens.TextDark : tokens.TextLight;
+        string textAlpha = isDark ? alphaTokens.TextLight : alphaTokens.TextDark;
+        string textInverseAlpha = isDark ? alphaTokens.TextDark : alphaTokens.TextLight;
         string isDarkValue = isDark ? "1" : "0";
         string pageBackground = isDark ? options.DarkPageBackground : options.LightPageBackground;
-        string headerImageUrl = BuildHeaderImageUrl(definition, mode, options);
+        string pageBackgroundAlpha = ApplyColorAlpha(pageBackground, colorAlpha);
+        string headerImageUrl = ResolveHeaderImageUrl(definition, mode, options);
         string headerImageCss = options.IncludeHeaderImages
             ? CssUrl(headerImageUrl)
             : "none";
@@ -393,7 +401,9 @@ public static class PaletteCss
         --palette-mode-dark: {{isDarkValue}};
 
         --palette-page-bg: {{pageBackground}};
+        --palette-page-bg-alpha: {{pageBackgroundAlpha}};
         --palette-body-bg: {{pageBackground}};
+        --palette-body-bg-alpha: {{pageBackgroundAlpha}};
 
         --palette-body-header-image: {{headerImageCss}};
         --palette-body-header-repeat: no-repeat;
@@ -402,22 +412,63 @@ public static class PaletteCss
         --palette-body-header-attachment: {{options.HeaderBackgroundAttachment}};
 
         --palette-surface-bg: {{tokens.SurfaceBg}};
+        --palette-surface-bg-alpha: {{alphaTokens.SurfaceBg}};
         --palette-surface-start: {{tokens.SurfaceStart}};
+        --palette-surface-start-alpha: {{alphaTokens.SurfaceStart}};
         --palette-surface-end: {{tokens.SurfaceEnd}};
+        --palette-surface-end-alpha: {{alphaTokens.SurfaceEnd}};
         --palette-surface-glow: {{tokens.SurfaceGlow}};
+        --palette-surface-glow-alpha: {{alphaTokens.SurfaceGlow}};
 
         --palette-tone-100: {{tokens.Tone100}};
+        --palette-tone-100-alpha: {{alphaTokens.Tone100}};
         --palette-tone-300: {{tokens.Tone300}};
+        --palette-tone-300-alpha: {{alphaTokens.Tone300}};
         --palette-tone-700: {{tokens.Tone700}};
+        --palette-tone-700-alpha: {{alphaTokens.Tone700}};
         --palette-tone-800: {{tokens.Tone800}};
+        --palette-tone-800-alpha: {{alphaTokens.Tone800}};
         --palette-tone-900: {{tokens.Tone900}};
+        --palette-tone-900-alpha: {{alphaTokens.Tone900}};
         --palette-tone-950: {{tokens.Tone950}};
+        --palette-tone-950-alpha: {{alphaTokens.Tone950}};
 
         --palette-text: {{text}};
+        --palette-text-alpha: {{textAlpha}};
         --palette-text-inverse: {{textInverse}};
+        --palette-text-inverse-alpha: {{textInverseAlpha}};
         --palette-text-light: {{tokens.TextLight}};
+        --palette-text-light-alpha: {{alphaTokens.TextLight}};
         --palette-text-dark: {{tokens.TextDark}};
+        --palette-text-dark-alpha: {{alphaTokens.TextDark}};
         """;
+    }
+
+    private static string ResolveHeaderImageUrl(
+        PaletteDefinition definition,
+        PaletteMode mode,
+        PaletteOptions options)
+    {
+        string defaultUrl = BuildHeaderImageUrl(definition, mode, options);
+
+        if (options.HeaderImageUrlResolver is null)
+        {
+            return defaultUrl;
+        }
+
+        string? resolvedUrl = options.HeaderImageUrlResolver(
+            new HeaderImageUrlContext(
+                Palette: definition.Palette,
+                PaletteName: definition.Name,
+                PaletteCssClass: definition.CssClass,
+                Mode: mode,
+                DefaultUrl: defaultUrl
+            )
+        );
+
+        return string.IsNullOrWhiteSpace(resolvedUrl)
+            ? defaultUrl
+            : resolvedUrl.Trim();
     }
 
     private static string BuildHeaderImageUrl(
@@ -447,6 +498,215 @@ public static class PaletteCss
 
     private static string EscapeCssString(string value) =>
         value.Replace("\\", "\\\\").Replace("\"", "\\\"");
+
+    private static PaletteTokens ApplyColorAlpha(PaletteTokens tokens, double alpha)
+    {
+        if (alpha >= 1d)
+        {
+            return tokens;
+        }
+
+        return tokens with
+        {
+            SurfaceBg = ApplyColorAlpha(tokens.SurfaceBg, alpha),
+            SurfaceStart = ApplyColorAlpha(tokens.SurfaceStart, alpha),
+            SurfaceEnd = ApplyColorAlpha(tokens.SurfaceEnd, alpha),
+            SurfaceGlow = ApplyColorAlpha(tokens.SurfaceGlow, alpha),
+            Tone100 = ApplyColorAlpha(tokens.Tone100, alpha),
+            Tone300 = ApplyColorAlpha(tokens.Tone300, alpha),
+            Tone700 = ApplyColorAlpha(tokens.Tone700, alpha),
+            Tone800 = ApplyColorAlpha(tokens.Tone800, alpha),
+            Tone900 = ApplyColorAlpha(tokens.Tone900, alpha),
+            Tone950 = ApplyColorAlpha(tokens.Tone950, alpha),
+            TextLight = ApplyColorAlpha(tokens.TextLight, alpha),
+            TextDark = ApplyColorAlpha(tokens.TextDark, alpha)
+        };
+    }
+
+    private static string ApplyColorAlpha(string color, double alpha)
+    {
+        if (alpha >= 1d || string.IsNullOrWhiteSpace(color))
+        {
+            return color;
+        }
+
+        string trimmed = color.Trim();
+
+        return TryParseHexColor(trimmed, out int red, out int green, out int blue, out double sourceAlpha)
+            || TryParseRgbColor(trimmed, out red, out green, out blue, out sourceAlpha)
+            ? FormatRgba(red, green, blue, sourceAlpha * alpha)
+            : color;
+    }
+
+    private static double NormalizeColorAlpha(double alpha)
+    {
+        if (double.IsNaN(alpha) || double.IsInfinity(alpha) || alpha < 0d || alpha > 1d)
+        {
+            throw new ArgumentOutOfRangeException(nameof(alpha), alpha, "Color alpha must be between 0 and 1.");
+        }
+
+        return alpha;
+    }
+
+    private static bool TryParseHexColor(
+        string color,
+        out int red,
+        out int green,
+        out int blue,
+        out double alpha)
+    {
+        red = 0;
+        green = 0;
+        blue = 0;
+        alpha = 1d;
+
+        if (!color.StartsWith("#", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        string hex = color.Substring(1);
+
+        switch (hex.Length)
+        {
+            case 3:
+                return TryParseRepeatedHexChar(hex[0], out red)
+                    && TryParseRepeatedHexChar(hex[1], out green)
+                    && TryParseRepeatedHexChar(hex[2], out blue);
+
+            case 4:
+                return TryParseRepeatedHexChar(hex[0], out red)
+                    && TryParseRepeatedHexChar(hex[1], out green)
+                    && TryParseRepeatedHexChar(hex[2], out blue)
+                    && TryParseRepeatedHexChar(hex[3], out int alphaByte4)
+                    && SetAlpha(alphaByte4, out alpha);
+
+            case 6:
+                return TryParseHexByte(hex.Substring(0, 2), out red)
+                    && TryParseHexByte(hex.Substring(2, 2), out green)
+                    && TryParseHexByte(hex.Substring(4, 2), out blue);
+
+            case 8:
+                return TryParseHexByte(hex.Substring(0, 2), out red)
+                    && TryParseHexByte(hex.Substring(2, 2), out green)
+                    && TryParseHexByte(hex.Substring(4, 2), out blue)
+                    && TryParseHexByte(hex.Substring(6, 2), out int alphaByte8)
+                    && SetAlpha(alphaByte8, out alpha);
+
+            default:
+                return false;
+        }
+    }
+
+    private static bool TryParseRgbColor(
+        string color,
+        out int red,
+        out int green,
+        out int blue,
+        out double alpha)
+    {
+        red = 0;
+        green = 0;
+        blue = 0;
+        alpha = 1d;
+
+        bool isRgba = color.StartsWith("rgba(", StringComparison.OrdinalIgnoreCase)
+            && color.EndsWith(")", StringComparison.Ordinal);
+        bool isRgb = color.StartsWith("rgb(", StringComparison.OrdinalIgnoreCase)
+            && color.EndsWith(")", StringComparison.Ordinal);
+
+        if (!isRgba && !isRgb)
+        {
+            return false;
+        }
+
+        int prefixLength = isRgba ? 5 : 4;
+        string[] parts = color.Substring(prefixLength, color.Length - prefixLength - 1).Split(',');
+
+        if (parts.Length != (isRgba ? 4 : 3))
+        {
+            return false;
+        }
+
+        if (!TryParseRgbChannel(parts[0], out red)
+            || !TryParseRgbChannel(parts[1], out green)
+            || !TryParseRgbChannel(parts[2], out blue))
+        {
+            return false;
+        }
+
+        return !isRgba || TryParseCssAlpha(parts[3], out alpha);
+    }
+
+    private static bool TryParseRgbChannel(string value, out int channel)
+    {
+        string normalized = value.Trim();
+
+        if (normalized.EndsWith("%", StringComparison.Ordinal))
+        {
+            if (!double.TryParse(
+                    normalized.TrimEnd('%'),
+                    NumberStyles.Float,
+                    CultureInfo.InvariantCulture,
+                    out double percent)
+                || percent < 0d
+                || percent > 100d)
+            {
+                channel = 0;
+                return false;
+            }
+
+            channel = (int)Math.Round(percent * 255d / 100d, MidpointRounding.AwayFromZero);
+            return true;
+        }
+
+        if (!int.TryParse(normalized, NumberStyles.Integer, CultureInfo.InvariantCulture, out channel))
+        {
+            return false;
+        }
+
+        return channel is >= 0 and <= 255;
+    }
+
+    private static bool TryParseCssAlpha(string value, out double alpha)
+    {
+        string normalized = value.Trim();
+        bool isPercent = normalized.EndsWith("%", StringComparison.Ordinal);
+
+        if (isPercent)
+        {
+            normalized = normalized.TrimEnd('%');
+        }
+
+        if (!double.TryParse(normalized, NumberStyles.Float, CultureInfo.InvariantCulture, out alpha))
+        {
+            return false;
+        }
+
+        alpha = isPercent ? alpha / 100d : alpha;
+        return alpha is >= 0d and <= 1d;
+    }
+
+    private static bool TryParseRepeatedHexChar(char value, out int result) =>
+        TryParseHexByte(new string(value, 2), out result);
+
+    private static bool TryParseHexByte(string value, out int result) =>
+        int.TryParse(value, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out result);
+
+    private static bool SetAlpha(int alphaByte, out double alpha)
+    {
+        alpha = alphaByte / 255d;
+        return true;
+    }
+
+    private static string FormatRgba(int red, int green, int blue, double alpha) =>
+        $"rgba({red}, {green}, {blue}, {FormatAlpha(ClampAlpha(alpha))})";
+
+    private static string FormatAlpha(double alpha) =>
+        alpha.ToString("0.####", CultureInfo.InvariantCulture);
+
+    private static double ClampAlpha(double alpha) =>
+        Math.Min(1d, Math.Max(0d, alpha));
 
     private static string GetBodySelector(PaletteOptions options) =>
         options.BodySelector;
@@ -590,7 +850,9 @@ public static class PaletteCss
         for (int i = 0; i < lines.Length; i++)
         {
             if (lines[i].Length > 0)
+            {
                 lines[i] = prefix + lines[i];
+            }
         }
 
         return string.Join(Environment.NewLine, lines);
@@ -598,6 +860,7 @@ public static class PaletteCss
 
     private static PaletteDefinition GetDefinition(Palettes palette) => palette switch
     {
+        Palettes.Intuition => Intuition,
         Palettes.Pink => Pink,
         Palettes.Yellow => Yellow,
         Palettes.Blue => Blue,
@@ -614,9 +877,25 @@ public static class PaletteCss
         Dark
     }
 
+    public sealed record HeaderImageUrlContext(
+        Palettes Palette,
+        string PaletteName,
+        string PaletteCssClass,
+        PaletteMode Mode,
+        string DefaultUrl
+    );
+
     public sealed record PaletteOptions
     {
         public static PaletteOptions Default { get; } = new();
+
+        public Func<HeaderImageUrlContext, string?>? HeaderImageUrlResolver { get; init; }
+
+        public PaletteOptions WithHeaderImageUrlResolver(Func<HeaderImageUrlContext, string?> resolver)
+        {
+            ArgumentNullException.ThrowIfNull(resolver);
+            return this with { HeaderImageUrlResolver = resolver };
+        }
 
         public string HeaderImageBasePath { get; init; } = "/bg/headers";
 
@@ -638,11 +917,23 @@ public static class PaletteCss
 
         public string DarkPageBackground { get; init; } = "#2B2B2B";
 
+        /// <summary>
+        /// Controls the opacity of generated *-alpha CSS variables.
+        /// Base CSS variables keep the original non-alpha colors.
+        /// 1 makes *-alpha variables match the original colors.
+        /// 0 makes recognized *-alpha colors fully transparent.
+        /// Existing rgba/hex-alpha values keep their own alpha and are multiplied by this value.
+        /// </summary>
+        public double ColorAlpha { get; init; } = .25d;
+
+        public PaletteOptions WithColorAlpha(double alpha) =>
+            this with { ColorAlpha = NormalizeColorAlpha(alpha) };
+
         public string HeaderBackgroundPosition { get; init; } = "top center";
 
         public string HeaderBackgroundSize { get; init; } = "100% auto";
 
-        public string HeaderBackgroundAttachment { get; init; } = "scroll";
+        public string HeaderBackgroundAttachment { get; init; } = "fixed";
     }
 
     private static readonly PaletteTokens GreenLightTokens = new(
@@ -675,8 +966,39 @@ public static class PaletteCss
         TextDark: "#001b16"
     );
 
+    private static readonly PaletteTokens IntuitionLightTokens = new(
+        SurfaceBg: "#2f9697",
+        SurfaceStart: "#b7e6e8",
+        SurfaceEnd: "#033d3f",
+        SurfaceGlow: "rgba(104, 203, 204, 0.30)",
+        Tone100: "#e9fbfb",
+        Tone300: "#a9d9dc",
+        Tone700: "#319899",
+        Tone800: "#1d7c7d",
+        Tone900: "#0e5254",
+        Tone950: "#033d3f",
+        TextLight: "#f3ffff",
+        TextDark: "#033d3f"
+    );
+
+    private static readonly PaletteTokens IntuitionDarkTokens = new(
+        SurfaceBg: "#2b2b2b",
+        SurfaceStart: "#76cdd0",
+        SurfaceEnd: "#123f42",
+        SurfaceGlow: "rgba(118, 205, 208, 0.24)",
+        Tone100: "#e9fbfb",
+        Tone300: "#b7e6e8",
+        Tone700: "#3e9fa0",
+        Tone800: "#267f81",
+        Tone900: "#15595c",
+        Tone950: "#123f42",
+        TextLight: "#f3ffff",
+        TextDark: "#2b2b2b"
+    );
+
     private static readonly PaletteTokens PinkLightTokens = new(
-SurfaceBg: "#979cd0", SurfaceStart: "#75c6ee", SurfaceEnd: "#dcaad3", SurfaceGlow: "rgba(151, 156, 208, 0.28)", Tone100: "#f8e1f5", Tone300: "#e4b9dd", Tone700: "#979cd0", Tone800: "#489cdd", Tone900: "#4a5f92", Tone950: "#28345d", TextLight: "#fbf6ff", TextDark: "#28345d"
+SurfaceBg: "#979cd0",
+SurfaceStart: "#75c6ee", SurfaceEnd: "#dcaad3", SurfaceGlow: "rgba(151, 156, 208, 0.28)", Tone100: "#f8e1f5", Tone300: "#e4b9dd", Tone700: "#979cd0", Tone800: "#489cdd", Tone900: "#4a5f92", Tone950: "#28345d", TextLight: "#fbf6ff", TextDark: "#28345d"
     );
 
     private static readonly PaletteTokens PinkDarkTokens = new(
@@ -712,66 +1034,65 @@ SurfaceBg: "#28345d", SurfaceStart: "#438dce", SurfaceEnd: "#171b34", SurfaceGlo
         TextLight: "#fff8dc",
         TextDark: "#1f1000"
     );
-
     private static readonly PaletteTokens BlueLightTokens = new(
-        SurfaceBg: "#0c61ad",
-        SurfaceStart: "#37c0f7",
-        SurfaceEnd: "#041447",
-        SurfaceGlow: "rgba(55, 192, 247, 0.28)",
-        Tone100: "#cfffff",
-        Tone300: "#37c0f7",
-        Tone700: "#1d97da",
-        Tone800: "#0c61ad",
-        Tone900: "#153887",
-        Tone950: "#041447",
-        TextLight: "#eaffff",
-        TextDark: "#041447"
+        SurfaceBg: "#0184ba",
+        SurfaceStart: "#6ad3e7",
+        SurfaceEnd: "#023a63",
+        SurfaceGlow: "rgba(106, 211, 231, 0.30)",
+        Tone100: "#eafcff",
+        Tone300: "#6ad3e7",
+        Tone700: "#02a7d9",
+        Tone800: "#0184ba",
+        Tone900: "#025c90",
+        Tone950: "#023a63",
+        TextLight: "#f2fdff",
+        TextDark: "#023a63"
     );
 
     private static readonly PaletteTokens BlueDarkTokens = new(
-        SurfaceBg: "#091e50",
-        SurfaceStart: "#1493dc",
-        SurfaceEnd: "#000629",
-        SurfaceGlow: "rgba(55, 192, 247, 0.22)",
-        Tone100: "#cfffff",
-        Tone300: "#2dbef9",
-        Tone700: "#0a72bf",
-        Tone800: "#0862b2",
-        Tone900: "#0d317e",
-        Tone950: "#000629",
-        TextLight: "#eaffff",
-        TextDark: "#000629"
+        SurfaceBg: "#2b2b2b",
+        SurfaceStart: "#4ab5d1",
+        SurfaceEnd: "#03304f",
+        SurfaceGlow: "rgba(74, 181, 209, 0.24)",
+        Tone100: "#eafcff",
+        Tone300: "#4ab5d1",
+        Tone700: "#087fb9",
+        Tone800: "#0568a0",
+        Tone900: "#043f66",
+        Tone950: "#03304f",
+        TextLight: "#eafcff",
+        TextDark: "#2b2b2b"
     );
 
-        private static readonly PaletteTokens PurpleLightTokens = new(
-        SurfaceBg: "#b22b75",
-        SurfaceStart: "#ed4d89",
-        SurfaceEnd: "#2d063c",
-        SurfaceGlow: "rgba(237, 77, 137, 0.30)",
+    private static readonly PaletteTokens PurpleLightTokens = new(
+    SurfaceBg: "#b22b75",
+    SurfaceStart: "#ed4d89",
+    SurfaceEnd: "#2d063c",
+    SurfaceGlow: "rgba(237, 77, 137, 0.30)",
+    Tone100: "#fde6f1",
+    Tone300: "#f58abb",
+    Tone700: "#b22b75",
+    Tone800: "#871a62",
+    Tone900: "#590d51",
+    Tone950: "#23032d",
+    TextLight: "#fff7fb",
+    TextDark: "#23032d"
+);
+
+    private static readonly PaletteTokens PurpleDarkTokens = new(
+        SurfaceBg: "#59054e",
+        SurfaceStart: "#e43786",
+        SurfaceEnd: "#270235",
+        SurfaceGlow: "rgba(228, 55, 134, 0.24)",
         Tone100: "#fde6f1",
-        Tone300: "#f58abb",
-        Tone700: "#b22b75",
-        Tone800: "#871a62",
-        Tone900: "#590d51",
-        Tone950: "#23032d",
+        Tone300: "#f06aa4",
+        Tone700: "#b91c79",
+        Tone800: "#840d64",
+        Tone900: "#59054e",
+        Tone950: "#270235",
         TextLight: "#fff7fb",
-        TextDark: "#23032d"
+        TextDark: "#270235"
     );
-
-        private static readonly PaletteTokens PurpleDarkTokens = new(
-            SurfaceBg: "#59054e",
-            SurfaceStart: "#e43786",
-            SurfaceEnd: "#270235",
-            SurfaceGlow: "rgba(228, 55, 134, 0.24)",
-            Tone100: "#fde6f1",
-            Tone300: "#f06aa4",
-            Tone700: "#b91c79",
-            Tone800: "#840d64",
-            Tone900: "#59054e",
-            Tone950: "#270235",
-            TextLight: "#fff7fb",
-            TextDark: "#270235"
-        );
 
     private static readonly PaletteTokens LagoonLightTokens = new(
         SurfaceBg: "#93beba",
@@ -852,6 +1173,15 @@ SurfaceBg: "#28345d", SurfaceStart: "#438dce", SurfaceEnd: "#171b34", SurfaceGlo
         Dark: GreenDarkTokens
     );
 
+    private static readonly PaletteDefinition Intuition = new(
+        Palette: Palettes.Intuition,
+        Name: "intuition",
+        CssClass: "palette-intuition",
+        IsDefault: false,
+        Light: IntuitionLightTokens,
+        Dark: IntuitionDarkTokens
+    );
+
     private static readonly PaletteDefinition Pink = new(
         Palette: Palettes.Pink,
         Name: "pink",
@@ -909,6 +1239,7 @@ SurfaceBg: "#28345d", SurfaceStart: "#438dce", SurfaceEnd: "#171b34", SurfaceGlo
     private static readonly PaletteDefinition[] Definitions =
     [
         Green,
+        Intuition,
         Pink,
         Yellow,
         Blue,

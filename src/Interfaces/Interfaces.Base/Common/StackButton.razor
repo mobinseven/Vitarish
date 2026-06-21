@@ -1,6 +1,6 @@
 @inherits MudButton
 <MudButton Variant="Variant.Text"
-           HtmlTag="div"
+           HtmlTag="@(ButtonType  != ButtonType.Submit ? "div" : "button")"
            ButtonType="@ButtonType"
            Disabled="@Disabled"
            Class="stack-item"

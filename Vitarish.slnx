@@ -16,10 +16,6 @@
   <Folder Name="/src/Hosts/">
     <Project Path="src/Hosts/Main/Main.csproj" />
   </Folder>
-  <Folder Name="/tests/" />
-  <Folder Name="/tests/Hosts/">
-    <Project Path="tests/Hosts/Main.Tests/Main.Tests.csproj" />
-  </Folder>
   <Folder Name="/src/Interfaces/">
     <Project Path="src/Interfaces/Interfaces.Accounts/Interfaces.Accounts.csproj" />
     <Project Path="src/Interfaces/Interfaces.Admins/Interfaces.Admins.csproj" />
