@@ -1,0 +1,47 @@
+@using Microsoft.AspNetCore.Components
+@using CorpusItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerCorpusCollectionItem
+@using SourceItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceCollectionItem
+@using SourceFileItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceFileCollectionItem
+
+<MudExpansionPanel Text="@Item.SourceName" IsInitiallyExpanded="@IsSelected">
+    <TitleContent>
+        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+            <MudText>@Item.SourceName</MudText>
+            <MudChip T="string" Size="Size.Small" Color="Color.Info">@Item.SourceType</MudChip>
+        </MudStack>
+    </TitleContent>
+    <ChildContent>
+        <MudText Typo="Typo.caption">Imported @Item.ImportedAt:g</MudText>
+        @if (!string.IsNullOrWhiteSpace(Item.OriginalLocation))
+        {
+            <MudText Typo="Typo.caption">Original location: @Item.OriginalLocation</MudText>
+        }
+        @if (Item.Files.Count == 0)
+        {
+            <MudText Typo="Typo.body2">No source files are registered for this source.</MudText>
+        }
+        else
+        {
+            <MudList T="KnowledgeOwnerSourceFileCollectionItem" Dense="true">
+                @foreach (SourceFileItemModel file in Item.Files)
+                {
+                    <KnowledgeOwnerSourceFileCollectionItem Item="file" />
+                }
+            </MudList>
+        }
+        <MudButton Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" OnClick="SelectAsync" Disabled="@IsSelected">Select source</MudButton>
+    </ChildContent>
+</MudExpansionPanel>
+
+@code {
+    [Parameter, EditorRequired]
+    public SourceItemModel Item { get; set; } = new(Guid.Empty, string.Empty, string.Empty, DateTimeOffset.MinValue, null, []);
+
+    [Parameter]
+    public bool IsSelected { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<Guid> SelectedSourceChanged { get; set; }
+
+    private async Task SelectAsync() => await SelectedSourceChanged.InvokeAsync(Item.SourceId);
+}

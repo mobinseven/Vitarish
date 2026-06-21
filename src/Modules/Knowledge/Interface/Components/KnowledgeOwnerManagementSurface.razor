@@ -1,0 +1,147 @@
+@using Microsoft.Extensions.Logging
+@using CorpusItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerCorpusCollectionItem
+@using SourceItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceCollectionItem
+@using Vitarish.Modules.Base
+@inherits TenantCommonBase
+@implements IDisposable
+@inject MediatR.ISender Sender
+@inject ILogger<KnowledgeOwnerManagementSurface> Logger
+@inject IKnowledgeService Knowledge
+
+<Stack>
+    <StackField Label="Knowledge management" HelperText="Manage corpora, sources, and imported source files from one owner workspace." />
+</Stack>
+
+<KnowledgeOwnerCorpusCollection Model="@collection" SelectedCorpusChanged="SelectCorpusByIdAsync" SelectedSourceChanged="SelectSourceByIdAsync" />
+
+<KnowledgeCorpusCreator IsBusy="@isBusy" ResetVersion="@createCorpusResetVersion" CreateRequested="CreateCorpusAsync" />
+
+<KnowledgeSourceImporter SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" FileImportRequested="ImportSourceFromFileAsync" ImportSummary="@importSummary" />
+
+<KnowledgeSourceReplacer SelectedCorpus="@SelectedCorpusOption" Sources="@SelectedSourceOptions" IsBusy="@isBusy" SourcesVersion="@sourcesVersion" ReplaceRequested="ReplaceSourceFromFileAsync" />
+
+<KnowledgeSourceDeleter SelectedCorpus="@SelectedCorpusOption" Sources="@SelectedSourceOptions" IsBusy="@isBusy" CanDelete="@CanDeleteSources" SourcesVersion="@sourcesVersion" DeleteRequested="DeleteSourceAsync" />
+
+<KnowledgeCorpusIndexer SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" IndexRequested="IndexCorpusAsync" />
+
+<KnowledgeCorpusEvaluator IsBusy="@isBusy" EvaluationSummary="@evaluationSummary" EvaluateRequested="EvaluateCorpusAsync" />
+
+<KnowledgeQuestionAnswer SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" Question="@qaQuestion" QuestionChanged="SetQaQuestion" TopK="@qaTopK" TopKChanged="SetQaTopK" Answer="@qaAnswer" Status="@qaStatus" StatusColor="@qaStatusColor" AskRequested="AskSelectedCorpusAsync" />
+
+<KnowledgeOwnerStatus Status="@status" Color="@statusColor" />
+
+@code {
+    private readonly CancellationTokenSource disposal = new();
+    private KnowledgeOwnerCollectionReadModel collection = KnowledgeOwnerCollectionReadModel.Empty;
+    private string? importSummary;
+    private string? evaluationSummary;
+    private string qaQuestion = string.Empty;
+    private int qaTopK = 8;
+    private KnowledgeAnswer? qaAnswer;
+    private string? qaStatus;
+    private Color qaStatusColor = Color.Info;
+    private string? status;
+    private Color statusColor = Color.Info;
+    private bool isBusy;
+    private int createCorpusResetVersion;
+    private int sourcesVersion;
+
+    private CorpusItemModel? SelectedCorpus => collection.Corpora.FirstOrDefault(corpus => corpus.CorpusId == collection.SelectedCorpusId);
+    private SourceItemModel? SelectedSource => SelectedCorpus?.Sources.FirstOrDefault(source => source.SourceId == collection.SelectedSourceId);
+    private KnowledgeOwnerCorpusOption? SelectedCorpusOption => SelectedCorpus is null ? null : ToCorpusOption(SelectedCorpus);
+    private IReadOnlyList<KnowledgeOwnerSourceOption> SelectedSourceOptions => SelectedCorpus?.Sources.Select(ToSourceOption).ToArray() ?? [];
+    private bool CanDeleteSources => !string.IsNullOrWhiteSpace(RequestContext.OwnerId) && SelectedCorpus is not null && SelectedSourceOptions.Count > 0;
+    private string TenantId => RequestContext.TenantId ?? throw new InvalidOperationException("Your workspace is unavailable. Please refresh the page and try again.");
+
+    protected override async Task OnInitializedAsync() => await ReloadAsync(null, null, disposal.Token);
+
+    private async Task CreateCorpusAsync(CreateKnowledgeCorpusInput input) => await RunAsync(async token =>
+    {
+        KnowledgeOwnerCreateCorpusResult result = await Sender.Send(new CreateKnowledgeCorpusCommand(TenantId, input), token);
+        Apply(result.Succeeded, result.Message);
+        if (!result.Succeeded || result.Corpus is null) return;
+        await ReloadAsync(result.Corpus.CorpusId, null, token);
+        createCorpusResetVersion++;
+        ClearCorpusScopedResults();
+    });
+
+    private async Task SelectCorpusByIdAsync(Guid corpusId) => await RunAsync(async token => { await ReloadAsync(corpusId, null, token); ClearCorpusScopedResults(); });
+    private async Task SelectSourceByIdAsync(Guid sourceId) => await RunAsync(async token => await ReloadAsync(collection.SelectedCorpusId, sourceId, token));
+
+    private async Task ImportSourceFromFileAsync(ImportKnowledgeSourceFromFileInput input) => await RunAsync(async token =>
+    {
+        KnowledgeOwnerImportCommandResult result = await Sender.Send(new ImportKnowledgeSourceFromFileCommand(TenantId, input), token);
+        Apply(result.Succeeded, result.Message); importSummary = result.Summary;
+        if (result.Succeeded) await ReloadSelectedAsync(token);
+    });
+
+    private async Task ReplaceSourceFromFileAsync(ReplaceKnowledgeSourceFromFileInput input) => await RunAsync(async token =>
+    {
+        KnowledgeOwnerImportCommandResult result = await Sender.Send(new ReplaceKnowledgeSourceFromFileCommand(TenantId, input), token);
+        Apply(result.Succeeded, result.Message); importSummary = result.Summary;
+        if (result.Succeeded) await ReloadSelectedAsync(token);
+    });
+
+    private async Task DeleteSourceAsync(DeleteKnowledgeSourceInput input) => await RunAsync(async token =>
+    {
+        KnowledgeOwnerCommandResult result = await Sender.Send(new DeleteKnowledgeSourceCommand(TenantId, RequestContext.OwnerId, input), token);
+        Apply(result);
+        if (result.Succeeded) await ReloadAsync(collection.SelectedCorpusId, null, token);
+    });
+
+    private async Task IndexCorpusAsync() => await RunAsync(async token => Apply(await Sender.Send(new IndexKnowledgeCorpusCommand(TenantId, new IndexKnowledgeCorpusInput(collection.SelectedCorpusId)), token)));
+
+    private async Task EvaluateCorpusAsync() => await RunAsync(async token =>
+    {
+        KnowledgeOwnerEvaluationCommandResult result = await Sender.Send(new EvaluateKnowledgeCorpusCommand(TenantId, new EvaluateKnowledgeCorpusInput(collection.SelectedCorpusId, Application.Enums.KnowledgeEvaluationScope.RandomSample)), token);
+        Apply(result.Succeeded, result.Message); evaluationSummary = result.Summary;
+    });
+
+    private async Task AskSelectedCorpusAsync(KnowledgeQuestionInput input) => await RunQaAsync(async token =>
+    {
+        KnowledgeQuestionInput validated = ValidateQuestionInput(input);
+        qaAnswer = await Knowledge.AskAsync(new KnowledgeAskRequest { CorpusId = validated.CorpusId!.Value, TenantId = TenantId, Question = validated.Question, TopK = validated.TopK, SaveTrace = false }, token);
+        qaStatus = "Answer generated."; qaStatusColor = Color.Success;
+    });
+
+    private Task SetQaQuestion(string value) { qaQuestion = value; qaAnswer = null; qaStatus = null; return Task.CompletedTask; }
+    private Task SetQaTopK(int value) { qaTopK = value; qaAnswer = null; qaStatus = null; return Task.CompletedTask; }
+
+    private static KnowledgeQuestionInput ValidateQuestionInput(KnowledgeQuestionInput input)
+    {
+        if (input.CorpusId is null) throw new InvalidOperationException("Select or create a corpus first.");
+        if (string.IsNullOrWhiteSpace(input.Question)) throw new InvalidOperationException("Enter a question.");
+        if (input.TopK is < 1 or > 20) throw new InvalidOperationException("Choose between 1 and 20 context sections.");
+        return input with { Question = input.Question.Trim() };
+    }
+
+    private static KnowledgeOwnerCorpusOption ToCorpusOption(CorpusItemModel corpus)
+        => new(corpus.CorpusName, $"{(corpus.IsActive ? "Enabled" : "Disabled")}{(string.IsNullOrWhiteSpace(corpus.CorpusDescription) ? string.Empty : $" · {corpus.CorpusDescription}")}") { CorpusId = corpus.CorpusId };
+
+    private static KnowledgeOwnerSourceOption ToSourceOption(SourceItemModel source)
+        => new($"{source.SourceName} · {source.SourceType} · imported {source.ImportedAt:g}") { SourceId = source.SourceId };
+
+    private async Task ReloadSelectedAsync(CancellationToken token) { await ReloadAsync(collection.SelectedCorpusId, collection.SelectedSourceId, token); sourcesVersion++; }
+    private async Task ReloadAsync(Guid? corpusId, Guid? sourceId, CancellationToken token) => collection = await Sender.Send(new KnowledgeOwnerCollectionQuery(TenantId, RequestContext.OwnerId, corpusId, sourceId), token);
+    private void ClearCorpusScopedResults() { importSummary = null; evaluationSummary = null; qaAnswer = null; qaStatus = null; sourcesVersion++; }
+
+    private async Task RunAsync(Func<CancellationToken, Task> action)
+    {
+        if (isBusy) return; isBusy = true; status = null; statusColor = Color.Info;
+        try { await action(disposal.Token); }
+        catch (Exception ex) when (ex is not OperationCanceledException) { Logger.LogError(ex, "Knowledge management operation failed."); Apply(false, ex.Message); }
+        finally { isBusy = false; }
+    }
+
+    private async Task RunQaAsync(Func<CancellationToken, Task> action)
+    {
+        if (isBusy) return; isBusy = true; qaStatus = null; qaStatusColor = Color.Info;
+        try { await action(disposal.Token); }
+        catch (Exception ex) when (ex is not OperationCanceledException) { Logger.LogError(ex, "An error occurred during the QA operation."); qaStatus = ex.Message; qaStatusColor = Color.Error; }
+        finally { isBusy = false; }
+    }
+
+    private void Apply(KnowledgeOwnerCommandResult result) => Apply(result.Succeeded, result.Message);
+    private void Apply(bool succeeded, string message) { status = Localizer[message]; statusColor = succeeded ? Color.Success : Color.Error; }
+    public void Dispose() { disposal.Cancel(); disposal.Dispose(); }
+}

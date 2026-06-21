@@ -12,8 +12,8 @@ public sealed class KnowledgeService(IKnowledgeImporter importer, IKnowledgeInde
     public Task<IReadOnlyList<KnowledgeSource>> GetSourcesAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken) => sourceRepository.GetSourcesAsync(corpusId, tenantId, cancellationToken);
     public async Task DeleteSourceAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken)
     {
-        await sourceRepository.DeleteSourceAsync(sourceId, corpusId, tenantId, cancellationToken);
         await indexer.DeleteFromIndexAsync(sourceId, corpusId, tenantId, cancellationToken);
+        await sourceRepository.DeleteSourceAsync(sourceId, corpusId, tenantId, cancellationToken);
     }
     public Task<KnowledgeImportResult> ImportAsync(KnowledgeImportRequest request, CancellationToken cancellationToken) => importer.ImportAsync(request, cancellationToken);
     public Task<KnowledgeImportResult> ReplaceSourceAsync(Guid sourceId, KnowledgeImportRequest request, CancellationToken cancellationToken) => importer.ReplaceSourceAsync(sourceId, request, cancellationToken);

@@ -32,6 +32,14 @@
     ReplaceRequested="ReplaceSourceFromFileAsync" />
 @* step: corpus index and evaluate *@
 
+<KnowledgeSourceDeleter
+    SelectedCorpus="@model.SelectedCorpus"
+    Sources="@model.Sources"
+    IsBusy="@isBusy"
+    CanDelete="@CanDeleteSources"
+    SourcesVersion="@sourcesVersion"
+    DeleteRequested="DeleteSourceAsync" />
+
 <KnowledgeCorpusIndexer SelectedCorpus="@model.SelectedCorpus" IsBusy="@isBusy" IndexRequested="IndexCorpusAsync" />
 
 <KnowledgeCorpusEvaluator
@@ -70,6 +78,8 @@
     private bool isBusy;
     private int createCorpusResetVersion;
     private int sourcesVersion;
+
+    private bool CanDeleteSources => !string.IsNullOrWhiteSpace(RequestContext.OwnerId) && model.SelectedCorpus is not null && model.Sources.Count > 0;
 
     protected override async Task OnInitializedAsync()
     {
@@ -122,6 +132,17 @@
         KnowledgeOwnerImportCommandResult result = await Sender.Send(new ReplaceKnowledgeSourceFromFileCommand(RequestContext.TenantId, input), token);
         Apply(result.Succeeded, result.Message);
         importSummary = result.Summary;
+
+        if (result.Succeeded)
+        {
+            await ReloadSelectedCorpusAsync(token);
+        }
+    });
+
+    private async Task DeleteSourceAsync(DeleteKnowledgeSourceInput input) => await RunAsync(async token =>
+    {
+        KnowledgeOwnerCommandResult result = await Sender.Send(new DeleteKnowledgeSourceCommand(RequestContext.TenantId, RequestContext.OwnerId, input), token);
+        Apply(result);
 
         if (result.Succeeded)
         {
