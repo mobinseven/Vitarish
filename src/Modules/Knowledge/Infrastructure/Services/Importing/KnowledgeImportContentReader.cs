@@ -61,8 +61,15 @@ internal sealed class KnowledgeImportContentReader
                 throw new ArgumentException($"Knowledge import format '{format}' item {rowNumber} requires an answer, expected_answer, ground_truth, reference_answer, or output value.");
             }
 
-            KnowledgeQuestionDraft question = ReadQuestion(row, format, rowNumber) with
+            string? questionText = FirstString(row, "question", "query", "input", "prompt");
+            if (string.IsNullOrWhiteSpace(questionText))
             {
+                throw new ArgumentException($"Knowledge import format '{format}' item {rowNumber} requires a question, query, input, or prompt value.");
+            }
+
+            KnowledgeQuestionDraft question = new()
+            {
+                Question = questionText,
                 EvaluationItemKey = evaluationItemKey,
                 ExpectedAnswer = answer,
                 ExpectedContextTexts = []
