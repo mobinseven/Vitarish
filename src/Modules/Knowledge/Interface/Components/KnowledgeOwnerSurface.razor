@@ -1,6 +1,5 @@
 @using Microsoft.Extensions.Logging
 @using Vitarish.Modules.Base
-@using Vitarish.Knowledge.Application.Owner
 @inherits TenantCommonBase
 @implements IDisposable
 @inject MediatR.ISender Sender
@@ -11,11 +10,13 @@
     <StackField Label="@Localizer["Knowledge"]" HelperText="Create or select a corpus, import content, index it, and evaluate it without copying identifiers." />
 </Stack>
 
+@* step: ccorpus selection/creation *@
 <PaletteCard>
     <KnowledgeCorpusSelector Model="@model" IsBusy="@isBusy" SelectedCorpusChanged="SelectCorpusAsync" />
 </PaletteCard>
 
 <KnowledgeCorpusCreator IsBusy="@isBusy" ResetVersion="@createCorpusResetVersion" CreateRequested="CreateCorpusAsync" />
+@* step: source import/replace *@
 
 <KnowledgeSourceImporter
     SelectedCorpus="@model.SelectedCorpus"
@@ -29,6 +30,7 @@
     IsBusy="@isBusy"
     SourcesVersion="@sourcesVersion"
     ReplaceRequested="ReplaceSourceFromFileAsync" />
+@* step: corpus index and evaluate *@
 
 <KnowledgeCorpusIndexer SelectedCorpus="@model.SelectedCorpus" IsBusy="@isBusy" IndexRequested="IndexCorpusAsync" />
 
@@ -36,6 +38,7 @@
     IsBusy="@isBusy"
     EvaluationSummary="@evaluationSummary"
     EvaluateRequested="EvaluateCorpusAsync" />
+@* step: test *@
 
 <KnowledgeQuestionAnswer
     SelectedCorpus="@model.SelectedCorpus"
