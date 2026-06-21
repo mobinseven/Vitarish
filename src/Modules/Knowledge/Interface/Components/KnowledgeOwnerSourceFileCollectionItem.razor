@@ -1,18 +1,17 @@
 @using Microsoft.AspNetCore.Components
-@using CorpusItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerCorpusCollectionItem
-@using SourceItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceCollectionItem
+@inject Microsoft.Extensions.Localization.IStringLocalizer Localizer
 @using SourceFileItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceFileCollectionItem
 
-<MudListItem T="SourceFileItemModel" Dense="true">
-    <MudText Typo="Typo.body2">@Item.FileName</MudText>
-    <MudText Typo="Typo.caption">@Item.ChunkCount chunks · @FormatSize(Item.Size)@ContentTypeText</MudText>
-</MudListItem>
+<StackCard Label="@Item.FileName" HelperText="@FileDetails" />
 
 @code {
     [Parameter, EditorRequired]
     public SourceFileItemModel Item { get; set; } = new(Guid.Empty, string.Empty, null, null, 0, null);
 
-    private string ContentTypeText => string.IsNullOrWhiteSpace(Item.ContentType) ? string.Empty : $" · {Item.ContentType}";
+    private string FileDetails => string.IsNullOrWhiteSpace(Item.ContentType)
+        ? $"{ChunkText} · {SizeText}"
+        : $"{ChunkText} · {SizeText} · {Item.ContentType}";
 
-    private static string FormatSize(long? size) => size is null ? "unknown size" : $"{size.Value:N0} chars";
+    private string ChunkText => $"{Item.ChunkCount:N0} {Localizer["chunks"]}";
+    private string SizeText => Item.Size is null ? Localizer["unknown size"] : $"{Item.Size.Value:N0} {Localizer["chars"]}";
 }

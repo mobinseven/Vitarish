@@ -44,10 +44,11 @@ public sealed class KnowledgeOwnerCollectionQueryHandler(KnowledgeDbContext dbCo
                 .OrderBy(document => document.Title)
                 .ToArrayAsync(cancellationToken);
 
+        Guid[] documentIds = documents.Select(document => document.Id).ToArray();
         Dictionary<Guid, int> chunkCounts = documents.Length == 0
             ? []
             : await dbContext.Chunks.AsNoTracking()
-                .Where(chunk => chunk.TenantId == tenantId && sourceIds.Contains(chunk.SourceId))
+                .Where(chunk => chunk.TenantId == tenantId && documentIds.Contains(chunk.DocumentId))
                 .GroupBy(chunk => chunk.DocumentId)
                 .ToDictionaryAsync(group => group.Key, group => group.Count(), cancellationToken);
 
@@ -57,9 +58,9 @@ public sealed class KnowledgeOwnerCollectionQueryHandler(KnowledgeDbContext dbCo
 
         IReadOnlyDictionary<Guid, IReadOnlyList<KnowledgeOwnerSourceFileProjection>> filesBySource = documents
             .GroupBy(document => document.SourceId)
-            .ToDictionary(
+            .ToDictionary<IGrouping<Guid, KnowledgeDocumentEntity>, Guid, IReadOnlyList<KnowledgeOwnerSourceFileProjection>>(
                 group => group.Key,
-                group => (IReadOnlyList<KnowledgeOwnerSourceFileProjection>)group.Select(document => new KnowledgeOwnerSourceFileProjection(document, chunkCounts.GetValueOrDefault(document.Id), null)).ToArray());
+                group => group.Select(document => new KnowledgeOwnerSourceFileProjection(document, chunkCounts.GetValueOrDefault(document.Id), null)).ToArray());
 
         return KnowledgeOwnerCollectionProjector.ToOwnerCollection(corpora, sourcesByCorpus, filesBySource, request.SelectedCorpusId, request.SelectedSourceId);
     }

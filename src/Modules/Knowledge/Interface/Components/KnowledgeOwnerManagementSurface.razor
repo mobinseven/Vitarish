@@ -51,12 +51,13 @@
     private KnowledgeOwnerCorpusOption? SelectedCorpusOption => SelectedCorpus is null ? null : ToCorpusOption(SelectedCorpus);
     private IReadOnlyList<KnowledgeOwnerSourceOption> SelectedSourceOptions => SelectedCorpus?.Sources.Select(ToSourceOption).ToArray() ?? [];
     private bool CanDeleteSources => !string.IsNullOrWhiteSpace(RequestContext.OwnerId) && SelectedCorpus is not null && SelectedSourceOptions.Count > 0;
+    private string TenantId => RequestContext.TenantId ?? throw new InvalidOperationException("Your workspace is unavailable. Please refresh the page and try again.");
 
     protected override async Task OnInitializedAsync() => await ReloadAsync(null, null, disposal.Token);
 
     private async Task CreateCorpusAsync(CreateKnowledgeCorpusInput input) => await RunAsync(async token =>
     {
-        KnowledgeOwnerCreateCorpusResult result = await Sender.Send(new CreateKnowledgeCorpusCommand(RequestContext.TenantId, input), token);
+        KnowledgeOwnerCreateCorpusResult result = await Sender.Send(new CreateKnowledgeCorpusCommand(TenantId, input), token);
         Apply(result.Succeeded, result.Message);
         if (!result.Succeeded || result.Corpus is null) return;
         await ReloadAsync(result.Corpus.CorpusId, null, token);
@@ -69,37 +70,37 @@
 
     private async Task ImportSourceFromFileAsync(ImportKnowledgeSourceFromFileInput input) => await RunAsync(async token =>
     {
-        KnowledgeOwnerImportCommandResult result = await Sender.Send(new ImportKnowledgeSourceFromFileCommand(RequestContext.TenantId, input), token);
+        KnowledgeOwnerImportCommandResult result = await Sender.Send(new ImportKnowledgeSourceFromFileCommand(TenantId, input), token);
         Apply(result.Succeeded, result.Message); importSummary = result.Summary;
         if (result.Succeeded) await ReloadSelectedAsync(token);
     });
 
     private async Task ReplaceSourceFromFileAsync(ReplaceKnowledgeSourceFromFileInput input) => await RunAsync(async token =>
     {
-        KnowledgeOwnerImportCommandResult result = await Sender.Send(new ReplaceKnowledgeSourceFromFileCommand(RequestContext.TenantId, input), token);
+        KnowledgeOwnerImportCommandResult result = await Sender.Send(new ReplaceKnowledgeSourceFromFileCommand(TenantId, input), token);
         Apply(result.Succeeded, result.Message); importSummary = result.Summary;
         if (result.Succeeded) await ReloadSelectedAsync(token);
     });
 
     private async Task DeleteSourceAsync(DeleteKnowledgeSourceInput input) => await RunAsync(async token =>
     {
-        KnowledgeOwnerCommandResult result = await Sender.Send(new DeleteKnowledgeSourceCommand(RequestContext.TenantId, RequestContext.OwnerId, input), token);
+        KnowledgeOwnerCommandResult result = await Sender.Send(new DeleteKnowledgeSourceCommand(TenantId, RequestContext.OwnerId, input), token);
         Apply(result);
         if (result.Succeeded) await ReloadAsync(collection.SelectedCorpusId, null, token);
     });
 
-    private async Task IndexCorpusAsync() => await RunAsync(async token => Apply(await Sender.Send(new IndexKnowledgeCorpusCommand(RequestContext.TenantId, new IndexKnowledgeCorpusInput(collection.SelectedCorpusId)), token)));
+    private async Task IndexCorpusAsync() => await RunAsync(async token => Apply(await Sender.Send(new IndexKnowledgeCorpusCommand(TenantId, new IndexKnowledgeCorpusInput(collection.SelectedCorpusId)), token)));
 
     private async Task EvaluateCorpusAsync() => await RunAsync(async token =>
     {
-        KnowledgeOwnerEvaluationCommandResult result = await Sender.Send(new EvaluateKnowledgeCorpusCommand(RequestContext.TenantId, new EvaluateKnowledgeCorpusInput(collection.SelectedCorpusId, Application.Enums.KnowledgeEvaluationScope.RandomSample)), token);
+        KnowledgeOwnerEvaluationCommandResult result = await Sender.Send(new EvaluateKnowledgeCorpusCommand(TenantId, new EvaluateKnowledgeCorpusInput(collection.SelectedCorpusId, Application.Enums.KnowledgeEvaluationScope.RandomSample)), token);
         Apply(result.Succeeded, result.Message); evaluationSummary = result.Summary;
     });
 
     private async Task AskSelectedCorpusAsync(KnowledgeQuestionInput input) => await RunQaAsync(async token =>
     {
         KnowledgeQuestionInput validated = ValidateQuestionInput(input);
-        qaAnswer = await Knowledge.AskAsync(new KnowledgeAskRequest { CorpusId = validated.CorpusId!.Value, TenantId = RequestContext.TenantId ?? throw new InvalidOperationException("Your workspace is unavailable. Please refresh the page and try again."), Question = validated.Question, TopK = validated.TopK, SaveTrace = false }, token);
+        qaAnswer = await Knowledge.AskAsync(new KnowledgeAskRequest { CorpusId = validated.CorpusId!.Value, TenantId = TenantId, Question = validated.Question, TopK = validated.TopK, SaveTrace = false }, token);
         qaStatus = "Answer generated."; qaStatusColor = Color.Success;
     });
 
@@ -121,7 +122,7 @@
         => new($"{source.SourceName} · {source.SourceType} · imported {source.ImportedAt:g}") { SourceId = source.SourceId };
 
     private async Task ReloadSelectedAsync(CancellationToken token) { await ReloadAsync(collection.SelectedCorpusId, collection.SelectedSourceId, token); sourcesVersion++; }
-    private async Task ReloadAsync(Guid? corpusId, Guid? sourceId, CancellationToken token) => collection = await Sender.Send(new KnowledgeOwnerCollectionQuery(RequestContext.TenantId, RequestContext.OwnerId, corpusId, sourceId), token);
+    private async Task ReloadAsync(Guid? corpusId, Guid? sourceId, CancellationToken token) => collection = await Sender.Send(new KnowledgeOwnerCollectionQuery(TenantId, RequestContext.OwnerId, corpusId, sourceId), token);
     private void ClearCorpusScopedResults() { importSummary = null; evaluationSummary = null; qaAnswer = null; qaStatus = null; sourcesVersion++; }
 
     private async Task RunAsync(Func<CancellationToken, Task> action)

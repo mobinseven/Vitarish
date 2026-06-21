@@ -20,11 +20,6 @@ public static class KnowledgeOwnerCollectionProjector
         return new KnowledgeOwnerCollectionReadModel(corpusItems, resolvedCorpusId, resolvedSourceId);
     }
 
-    public static KnowledgeOwnerCorpusOption ToOwnerCorpusOption(this KnowledgeOwnerCorpusCollectionItem corpus)
-        => new(corpus.CorpusName, $"{(corpus.IsActive ? "Enabled" : "Disabled")}{(string.IsNullOrWhiteSpace(corpus.CorpusDescription) ? string.Empty : $" · {corpus.CorpusDescription}")}") { CorpusId = corpus.CorpusId };
-
-    public static KnowledgeOwnerSourceOption ToOwnerSourceOption(this KnowledgeOwnerSourceCollectionItem source)
-        => new($"{source.SourceName} · {source.SourceType} · imported {source.ImportedAt:g}") { SourceId = source.SourceId };
 
     private static KnowledgeOwnerCorpusCollectionItem ToCorpusItem(
         this KnowledgeCorpusEntity corpus,
