@@ -27,8 +27,12 @@ public sealed class KnowledgeSourceRepository(KnowledgeDbContext dbContext)
     public async Task DeleteSourceAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
-        var source = await DbContext.Sources.FirstOrDefaultAsync(s => s.Id == sourceId && s.CorpusId == corpusId && s.TenantId == tenantId, cancellationToken)
-            ?? throw new InvalidOperationException($"Knowledge source '{sourceId}' does not exist in corpus '{corpusId}' for tenant '{tenantId}'.");
+        var source = await DbContext.Sources.FirstOrDefaultAsync(s => s.Id == sourceId && s.CorpusId == corpusId && s.TenantId == tenantId, cancellationToken);
+        if (source is null)
+        {
+            return;
+        }
+
         Guid[] chunkIds = await DbContext.Chunks.AsNoTracking().Where(c => c.SourceId == source.Id && c.CorpusId == corpusId && c.TenantId == tenantId).Select(c => c.Id).ToArrayAsync(cancellationToken);
         DbContext.Sources.Remove(source);
         await KnowledgeQuestionRemover.RemoveQuestionsForChunksAsync(DbContext, corpusId, chunkIds, cancellationToken);

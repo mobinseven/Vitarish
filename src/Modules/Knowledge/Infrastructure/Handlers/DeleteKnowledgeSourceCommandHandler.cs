@@ -31,13 +31,6 @@ public sealed class DeleteKnowledgeSourceCommandHandler(IKnowledgeService knowle
                 return KnowledgeOwnerCommandResult.Failure("The selected corpus was not found.");
             }
 
-            bool sourceExists = (await knowledge.GetSourcesAsync(corpus.Id, request.TenantId!, cancellationToken))
-                .Any(source => source.Id == sourceId);
-            if (!sourceExists)
-            {
-                return KnowledgeOwnerCommandResult.Failure("The selected source was not found.");
-            }
-
             await knowledge.DeleteSourceAsync(sourceId, corpus.Id, request.TenantId!, cancellationToken);
             return KnowledgeOwnerCommandResult.Success("Source deleted.");
         }
