@@ -4,7 +4,7 @@
 - Product / service: Vitarish Knowledge module source import
 - Journey type: Current-state owner command journey
 - Entry point: `/owner/knowledge/corpora` via the Import section of `KnowledgeOwnerSurface`
-- User goal: Paste supported text, markdown, or evaluation JSON content into one existing tenant-scoped corpus, or explicitly replace one existing source.
+- User goal: Paste supported text, markdown, QA JSON, or evaluation JSON content into one existing tenant-scoped corpus, or explicitly replace one existing source.
 - Business goal: Convert source content into canonical Knowledge source, document, and chunk state for retrieval and later diagnostics.
 
 ## 2. Current Implementation Snapshot
@@ -14,7 +14,7 @@
 | Page / surface | `KnowledgeOwnerCorporaPage` renders `KnowledgeOwnerSurface`. |
 | Command contract | `IKnowledgeService.ImportAsync` and `IKnowledgeService.ReplaceSourceAsync` are inherited from `IKnowledgeImporter`. |
 | Import commands | `SaveKnowledgeImportCommand` and `ReplaceKnowledgeSourceImportCommand` represent persisted import writes. |
-| Input formats | The UI offers `markdown`, `plain-text`, `techqa-json`, and `rag-eval-json`; parsing rules remain centralized in `KnowledgeImportContentReader`. |
+| Input formats | The UI offers `markdown`, `plain-text`, `techqa-json`, `rag-eval-json`, and `plain-qa-json`; parsing rules remain centralized in `KnowledgeImportContentReader`. |
 | Domain state | KnowledgeSource, KnowledgeDocument, KnowledgeChunk, and optional KnowledgeQuestion (for evaluation) are created for the selected KnowledgeCorpus. |
 | Feedback | Import result summarizes source, document, and chunk counts. |
 
@@ -22,8 +22,8 @@
 1. Owner opens the Knowledge corpora page after a corpus exists.
 2. Owner chooses the target corpus from the Import selector.
 3. Owner enters a source name.
-4. Owner selects `markdown`, `plain-text`, `techqa-json`, or `rag-eval-json`.
-5. Owner pastes source content or an evaluation JSON payload matching the selected format.
+4. Owner selects `markdown`, `plain-text`, `techqa-json`, `rag-eval-json`, or `plain-qa-json`.
+5. Owner pastes source content or a JSON payload matching the selected format.
 6. Owner clicks **Import**.
 7. `KnowledgeOwnerSurface` validates tenant id, selected corpus id, selected format, and non-empty pasted content without duplicating importer JSON-shape rules.
 8. The surface sends a `KnowledgeImportRequest` to `IKnowledgeService.ImportAsync` with tenant id, corpus id, format, source name, and content stream.
@@ -48,7 +48,7 @@
 6. Create-import and replace-import remain separate state-changing controls so owners explicitly choose whether to add a source or replace one.
 
 ## 6. Acceptance Criteria
-- Owner can import non-empty markdown, plain-text, TechQA JSON, or RAG evaluation JSON into a selected corpus.
+- Owner can import non-empty markdown, plain-text, TechQA JSON, RAG evaluation JSON, or Plain QA JSON into a selected corpus.
 - Owner can select or enter an existing source id and explicitly replace that source with supported pasted content.
 - The import command creates source, document, chunk, and optional evaluation-question state for the corpus.
 - The UI displays imported source, document, and chunk counts.
