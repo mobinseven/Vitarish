@@ -9,6 +9,8 @@ public static class KnowledgeOwnerInputValidator
 
     public static string? ValidateCreateCorpus(CreateKnowledgeCorpusInput input) => string.IsNullOrWhiteSpace(input.Name) ? "Enter a corpus name." : null;
 
+    public static string? ValidateOwner(string? ownerId) => string.IsNullOrWhiteSpace(ownerId) ? "Your owner identity is unavailable. Please sign in again." : null;
+
     public static string? ValidateImport(ImportKnowledgeSourceInput input)
     {
         if (input.CorpusId is null) return "Select or create a corpus first.";
@@ -36,6 +38,13 @@ public static class KnowledgeOwnerInputValidator
         if (input.SourceId is null) return "Choose a source to replace.";
         if (input.FileInformationId is null) return "Upload a file before replacing.";
         if (!Enum.IsDefined(typeof(KnowledgeSourceInputFormat), input.Format)) return "Choose a supported content format.";
+        return null;
+    }
+
+    public static string? ValidateDeleteSource(DeleteKnowledgeSourceInput input)
+    {
+        if (input.CorpusId is null) return "Select or create a corpus first.";
+        if (input.SourceId is null) return "Choose a source to delete.";
         return null;
     }
 

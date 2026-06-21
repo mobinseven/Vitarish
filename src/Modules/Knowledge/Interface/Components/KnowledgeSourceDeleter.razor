@@ -1,0 +1,87 @@
+@using Vitarish.Interfaces.Base.Common
+@using Vitarish.Modules.Base
+@using Microsoft.AspNetCore.Components
+
+@if (CanDelete)
+{
+    <Stack>
+        <StackField Label="Delete source" HelperText="Delete a source and its dependent chunks, questions, and search index entries from the selected corpus." />
+
+        <StackSelect T="KnowledgeOwnerSourceOption" @bind-Value="source" Label="Existing source to delete" Disabled="@IsBusy">
+            @foreach (KnowledgeOwnerSourceOption option in Sources)
+            {
+                <MudSelectItem T="KnowledgeOwnerSourceOption" Value="@option">@option.Label</MudSelectItem>
+            }
+        </StackSelect>
+
+        <StackButton Color="Color.Error" Disabled="@(IsBusy || source is null)" OnClick="ConfirmDeleteAsync">
+            @if (IsBusy)
+            {
+                <MudProgressCircular Size="Size.Small" Indeterminate="true" Class="me-2" />
+            }
+            Delete selected source
+        </StackButton>
+    </Stack>
+}
+
+@code {
+    private KnowledgeOwnerSourceOption? source;
+    private int observedSourcesVersion = -1;
+
+    [Inject]
+    private IDialogService DialogService { get; set; } = default!;
+
+    [Parameter]
+    public KnowledgeOwnerCorpusOption? SelectedCorpus { get; set; }
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<KnowledgeOwnerSourceOption> Sources { get; set; } = [];
+
+    [Parameter]
+    public bool IsBusy { get; set; }
+
+    [Parameter]
+    public bool CanDelete { get; set; }
+
+    [Parameter]
+    public int SourcesVersion { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<DeleteKnowledgeSourceInput> DeleteRequested { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        if (observedSourcesVersion == SourcesVersion)
+        {
+            return;
+        }
+
+        observedSourcesVersion = SourcesVersion;
+        source = null;
+    }
+
+    private async Task ConfirmDeleteAsync()
+    {
+        if (source is null)
+        {
+            return;
+        }
+
+        DialogParameters parameters = new()
+        {
+            { nameof(StrictConfirmDialog.ContentText), "Delete this knowledge source and its indexed content?" },
+            { nameof(StrictConfirmDialog.ItemName), source.Label },
+            { nameof(StrictConfirmDialog.ButtonText), "Delete" },
+            { nameof(StrictConfirmDialog.Color), Color.Error }
+        };
+
+        IDialogReference dialog = await DialogService.ShowAsync<StrictConfirmDialog>("Delete source", parameters);
+        DialogResult? result = await dialog.Result;
+        if (result is null || result.Canceled)
+        {
+            return;
+        }
+
+        await DeleteRequested.InvokeAsync(new DeleteKnowledgeSourceInput(SelectedCorpus?.CorpusId, source.SourceId));
+    }
+}
