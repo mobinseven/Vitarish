@@ -14,11 +14,9 @@ src/
     Infrastructure/       EF DbContext, repositories, external services, jobs, implementation details
     Interface/            reusable Razor components, plugins, module UI DI; no routable pages
     Hosting/              module endpoints/host-facing registration when a module needs web endpoints
-  Identity/<Context>/     identity bounded contexts with the same Domain/Application/Infrastructure/Hosting split
   Interfaces/             shared UI/interface packages not owned by a single feature module
   Libraries/              reusable platform libraries (Entities, Audit, generators, etc.)
 
-tests/                    tests mirror the source area they verify
 ```
 
 ## Dependency direction rules
@@ -45,12 +43,6 @@ tests/                    tests mirror the source area they verify
 5. Add the module to `src/Modules/Aggregator/Modules.Aggregator/ModuleExtensions.cs` and `Modules.Aggregator.csproj` when it should load in the main app.
 6. Add host migrations/bootstrapping only where the existing host pattern requires it.
 7. Add tests in the mirrored `tests/...` area.
-
-## Quick examples
-
-- New Social connections page: create `src/Hosts/Main/Pages/Social/SocialConnectionsPage.razor`, add `AppRoutes.Social.Connections`, and compose reusable Social UI from `src/Modules/Social/Interface/Components`.
-- New Social connections grid: create `src/Modules/Social/Interface/Components/SocialConnectionsGrid.razor`; no `@page` directive.
-- New webhook endpoint: keep endpoint mapping in `src/Modules/Social/Hosting/Endpoints` and initialize from `SocialModule`, not from a Razor page.
 
 ## Journey maps
 
@@ -126,6 +118,10 @@ Examples:
 ```bash
 dotnet build src/Hosts/Main/Main.csproj -p:ModuleBuildProfile=Users
 dotnet build src/Hosts/Main/Main.csproj -p:ModuleBuildProfile=Appointments
+
+## Caution
+
+- Never create EF migrations.
 dotnet build src/Hosts/Main/Main.csproj -p:ModuleBuildProfile=Custom -p:EnableUsersModule=true -p:EnableAppointmentsModule=true
 ```
 
