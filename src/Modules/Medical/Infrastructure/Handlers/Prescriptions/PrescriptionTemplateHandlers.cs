@@ -3,14 +3,18 @@ using Vitarish.Medical.Application.Queries.Prescriptions;
 using Vitarish.Medical.Domain.Entities.Prescriptions;
 using Vitarish.Medical.Domain.Enums.Prescriptions;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;
+using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Medical.Infrastructure.Handlers.Prescriptions;
 
-public sealed class CreatePrescriptionTemplateHandler(PrescriptionDbContext dbContext)
+public sealed class CreatePrescriptionTemplateHandler(PrescriptionDbContext dbContext, IRequestContext requestContext)
     : IRequestHandler<CreatePrescriptionTemplateCommand, PrescriptionTemplateCommandResult>
 {
     public async Task<PrescriptionTemplateCommandResult> Handle(CreatePrescriptionTemplateCommand request, CancellationToken cancellationToken)
     {
+        string? authorizationError = PrescriptionTemplateAuthorization.RequireManagementCapability(requestContext, request.TenantId);
+        if (authorizationError is not null) return PrescriptionTemplateCommandResult.Failure(authorizationError);
+
         string? error = ValidateTenantAndName(request.TenantId, request.Name);
         if (error is not null) return PrescriptionTemplateCommandResult.Failure(error);
 
@@ -37,11 +41,14 @@ public sealed class CreatePrescriptionTemplateHandler(PrescriptionDbContext dbCo
     internal static string? NormalizeOptional(string? value) => string.IsNullOrWhiteSpace(value) ? null : value.Trim();
 }
 
-public sealed class UpdatePrescriptionTemplateHandler(PrescriptionDbContext dbContext)
+public sealed class UpdatePrescriptionTemplateHandler(PrescriptionDbContext dbContext, IRequestContext requestContext)
     : IRequestHandler<UpdatePrescriptionTemplateCommand, PrescriptionTemplateCommandResult>
 {
     public async Task<PrescriptionTemplateCommandResult> Handle(UpdatePrescriptionTemplateCommand request, CancellationToken cancellationToken)
     {
+        string? authorizationError = PrescriptionTemplateAuthorization.RequireManagementCapability(requestContext, request.TenantId);
+        if (authorizationError is not null) return PrescriptionTemplateCommandResult.Failure(authorizationError);
+
         string? error = CreatePrescriptionTemplateHandler.ValidateTenantAndName(request.TenantId, request.Name);
         if (error is not null) return PrescriptionTemplateCommandResult.Failure(error);
         PrescriptionTemplate? template = await dbContext.PrescriptionTemplates.FirstOrDefaultAsync(t => t.Id == request.TemplateId && t.TenantId == request.TenantId, cancellationToken);
@@ -55,11 +62,14 @@ public sealed class UpdatePrescriptionTemplateHandler(PrescriptionDbContext dbCo
     }
 }
 
-public sealed class ArchivePrescriptionTemplateHandler(PrescriptionDbContext dbContext)
+public sealed class ArchivePrescriptionTemplateHandler(PrescriptionDbContext dbContext, IRequestContext requestContext)
     : IRequestHandler<ArchivePrescriptionTemplateCommand, PrescriptionTemplateCommandResult>
 {
     public async Task<PrescriptionTemplateCommandResult> Handle(ArchivePrescriptionTemplateCommand request, CancellationToken cancellationToken)
     {
+        string? authorizationError = PrescriptionTemplateAuthorization.RequireManagementCapability(requestContext, request.TenantId);
+        if (authorizationError is not null) return PrescriptionTemplateCommandResult.Failure(authorizationError);
+
         if (string.IsNullOrWhiteSpace(request.TenantId)) return PrescriptionTemplateCommandResult.Failure("شناسه مستأجر الزامی است.");
         PrescriptionTemplate? template = await dbContext.PrescriptionTemplates.FirstOrDefaultAsync(t => t.Id == request.TemplateId && t.TenantId == request.TenantId, cancellationToken);
         if (template is null) return PrescriptionTemplateCommandResult.Failure("قالب نسخه یافت نشد.");
@@ -69,11 +79,14 @@ public sealed class ArchivePrescriptionTemplateHandler(PrescriptionDbContext dbC
     }
 }
 
-public sealed class AddPrescriptionTemplateItemHandler(PrescriptionDbContext dbContext)
+public sealed class AddPrescriptionTemplateItemHandler(PrescriptionDbContext dbContext, IRequestContext requestContext)
     : IRequestHandler<AddPrescriptionTemplateItemCommand, PrescriptionTemplateCommandResult>
 {
     public async Task<PrescriptionTemplateCommandResult> Handle(AddPrescriptionTemplateItemCommand request, CancellationToken cancellationToken)
     {
+        string? authorizationError = PrescriptionTemplateAuthorization.RequireManagementCapability(requestContext, request.TenantId);
+        if (authorizationError is not null) return PrescriptionTemplateCommandResult.Failure(authorizationError);
+
         if (string.IsNullOrWhiteSpace(request.ReferenceCode) && string.IsNullOrWhiteSpace(request.DisplayName)) return PrescriptionTemplateCommandResult.Failure("آیتم قالب باید کد مرجع یا نام نمایشی داشته باشد.");
         if (request.Quantity < 1) return PrescriptionTemplateCommandResult.Failure("تعداد آیتم باید حداقل یک باشد.");
         PrescriptionTemplate? template = await dbContext.PrescriptionTemplates.Include(t => t.Items).FirstOrDefaultAsync(t => t.Id == request.TemplateId && t.TenantId == request.TenantId, cancellationToken);
@@ -98,11 +111,14 @@ public sealed class AddPrescriptionTemplateItemHandler(PrescriptionDbContext dbC
     }
 }
 
-public sealed class RemovePrescriptionTemplateItemHandler(PrescriptionDbContext dbContext)
+public sealed class RemovePrescriptionTemplateItemHandler(PrescriptionDbContext dbContext, IRequestContext requestContext)
     : IRequestHandler<RemovePrescriptionTemplateItemCommand, PrescriptionTemplateCommandResult>
 {
     public async Task<PrescriptionTemplateCommandResult> Handle(RemovePrescriptionTemplateItemCommand request, CancellationToken cancellationToken)
     {
+        string? authorizationError = PrescriptionTemplateAuthorization.RequireManagementCapability(requestContext, request.TenantId);
+        if (authorizationError is not null) return PrescriptionTemplateCommandResult.Failure(authorizationError);
+
         PrescriptionTemplate? template = await dbContext.PrescriptionTemplates.Include(t => t.Items).FirstOrDefaultAsync(t => t.Id == request.TemplateId && t.TenantId == request.TenantId, cancellationToken);
         if (template is null) return PrescriptionTemplateCommandResult.Failure("قالب نسخه یافت نشد.");
         PrescriptionTemplateItem? item = template.Items.FirstOrDefault(i => i.Id == request.ItemId);
@@ -113,19 +129,22 @@ public sealed class RemovePrescriptionTemplateItemHandler(PrescriptionDbContext 
     }
 }
 
-public sealed class LoadPrescriptionTemplateIntoDraftHandler(PrescriptionDbContext dbContext, IInsuranceProviderRegistry providerRegistry)
+public sealed class LoadPrescriptionTemplateIntoDraftHandler(PrescriptionDbContext dbContext, IInsuranceProviderRegistry providerRegistry, IMedicalQueryService medicalQueryService, IRequestContext requestContext)
     : IRequestHandler<LoadPrescriptionTemplateIntoDraftCommand, PrescriptionTemplateCommandResult>
 {
     public async Task<PrescriptionTemplateCommandResult> Handle(LoadPrescriptionTemplateIntoDraftCommand request, CancellationToken cancellationToken)
     {
+        string? authorizationError = PrescriptionTemplateAuthorization.RequireAuthoringCapability(requestContext, request.TenantId);
+        if (authorizationError is not null) return PrescriptionTemplateCommandResult.Failure(authorizationError);
+
         PrescriptionTemplate? template = await dbContext.PrescriptionTemplates.AsNoTracking().Include(t => t.Items.OrderBy(i => i.SortOrder)).FirstOrDefaultAsync(t => t.Id == request.TemplateId && t.TenantId == request.TenantId, cancellationToken);
         if (template is null || !template.IsActive) return PrescriptionTemplateCommandResult.Failure("قالب فعال یافت نشد.");
         if (template.Items.Count == 0) return PrescriptionTemplateCommandResult.Failure("قالب نسخه آیتمی برای بارگذاری ندارد.");
         PrescriptionRecord? prescription = await dbContext.Prescriptions.Include(p => p.Items).FirstOrDefaultAsync(p => p.Id == request.PrescriptionId && p.TenantId == request.TenantId, cancellationToken);
         if (prescription is null) return PrescriptionTemplateCommandResult.Failure("نسخه یافت نشد.");
         if (prescription.Status is not (PrescriptionStatus.Draft or PrescriptionStatus.NeedsCorrection)) return PrescriptionTemplateCommandResult.Failure("قالب فقط در نسخه پیش‌نویس یا نیازمند اصلاح قابل بارگذاری است.");
-        string? loadValidationError = ValidateLoad(template, prescription);
-        if (loadValidationError is not null) return PrescriptionTemplateCommandResult.Failure(loadValidationError);
+        PrescriptionTemplateLoadValidationResult loadValidation = await ValidateLoadAsync(template, prescription, cancellationToken);
+        if (!loadValidation.IsValid) return PrescriptionTemplateCommandResult.Failure("بارگذاری قالب به دلیل خطای اعتبارسنجی آیتم‌ها انجام نشد.", loadValidation.ItemFailures);
         int sortOrder = CurrentMaxSortOrder(prescription.Items);
         DateTime copiedAt = DateTime.UtcNow;
         foreach (PrescriptionTemplateItem templateItem in template.Items)
@@ -136,28 +155,69 @@ public sealed class LoadPrescriptionTemplateIntoDraftHandler(PrescriptionDbConte
         _ = await dbContext.SaveChangesAsync(cancellationToken);
         return PrescriptionTemplateCommandResult.Success(prescription.Id);
     }
-    private string? ValidateLoad(PrescriptionTemplate template, PrescriptionRecord prescription)
+    private async Task<PrescriptionTemplateLoadValidationResult> ValidateLoadAsync(PrescriptionTemplate template, PrescriptionRecord prescription, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(prescription.SelectedProviderKey)) return "بیمه‌گر مورد نظر انتخاب نشده است.";
+        List<PrescriptionTemplateItemFailure> failures = [];
+        if (string.IsNullOrWhiteSpace(prescription.SelectedProviderKey)) return PrescriptionTemplateLoadValidationResult.Failure([TemplateFailure(template.Items.First(), "بیمه‌گر مورد نظر انتخاب نشده است.")]);
         IInsuranceProviderAdapter? adapter = providerRegistry.GetAdapter(prescription.SelectedProviderKey);
-        if (adapter is null) return "آداپتور بیمه‌گر انتخاب شده در دسترس نیست.";
+        if (adapter is null) return PrescriptionTemplateLoadValidationResult.Failure([TemplateFailure(template.Items.First(), "آداپتور بیمه‌گر انتخاب شده در دسترس نیست.")]);
         IReadOnlySet<InsuranceProviderCapabilityType> capabilities = adapter.GetCapabilities();
         List<PrescriptionItemIdentity> itemsToCheck = prescription.Items
             .Select(item => new PrescriptionItemIdentity(item.Category, item.ReferenceCode, item.DisplayName))
             .ToList();
 
+        IReadOnlyDictionary<Guid, MedicalCodeResolution> resolvedCodes = await ResolveTemplateMedicalCodesAsync(template.Items, prescription.SelectedProviderKey, cancellationToken);
+
         foreach (PrescriptionTemplateItem item in template.Items)
         {
-            if (string.IsNullOrWhiteSpace(item.ReferenceCode) && string.IsNullOrWhiteSpace(item.DisplayName)) return "آیتم قالب باید کد مرجع یا نام نمایشی داشته باشد.";
-            if (item.Quantity < 1) return "تعداد آیتم باید حداقل یک باشد.";
+            if (string.IsNullOrWhiteSpace(item.ReferenceCode) && string.IsNullOrWhiteSpace(item.DisplayName)) failures.Add(TemplateFailure(item, "آیتم قالب باید کد مرجع یا نام نمایشی داشته باشد."));
+            if (item.Quantity < 1) failures.Add(TemplateFailure(item, "تعداد آیتم باید حداقل یک باشد."));
             InsuranceProviderCapabilityType? requiredCapability = MapCategoryToCapability(item.Category);
-            if (requiredCapability.HasValue && !capabilities.Contains(requiredCapability.Value)) return $"بیمه‌گر انتخابی از نوع آیتم «{item.Category}» پشتیبانی نمی‌کند.";
+            if (!requiredCapability.HasValue) failures.Add(TemplateFailure(item, $"دسته آیتم «{item.Category}» قابل بارگذاری از قالب نیست."));
+            if (requiredCapability.HasValue && !capabilities.Contains(requiredCapability.Value)) failures.Add(TemplateFailure(item, $"بیمه‌گر انتخابی از نوع آیتم «{item.Category}» پشتیبانی نمی‌کند."));
             PrescriptionItemIdentity templateIdentity = new(item.Category, item.ReferenceCode, item.DisplayName);
-            if (itemsToCheck.Any(existing => PrescriptionItemIdentityComparer.AreSame(existing, templateIdentity))) return "بارگذاری قالب به دلیل آیتم تکراری انجام نشد.";
+            if (itemsToCheck.Any(existing => PrescriptionItemIdentityComparer.AreSame(existing, templateIdentity))) failures.Add(TemplateFailure(item, "بارگذاری قالب به دلیل آیتم تکراری انجام نشد."));
+            if (resolvedCodes.TryGetValue(item.Id, out MedicalCodeResolution? resolvedCode))
+            {
+                if (resolvedCode.MissingCodeSystem) failures.Add(TemplateFailure(item, $"دسته آیتم «{item.Category}» سامانه کد مرجع ندارد."));
+                else if (resolvedCode.Code is null) failures.Add(TemplateFailure(item, "کد مرجع آیتم در منبع مرجع پزشکی فعال یافت نشد."));
+                else if (resolvedCode.Code.Status is not (MedicalCodeStatus.Active or MedicalCodeStatus.Imported)) failures.Add(TemplateFailure(item, "کد مرجع آیتم در منبع مرجع پزشکی قابل استفاده نیست."));
+            }
             itemsToCheck.Add(templateIdentity);
         }
-        return null;
+        return failures.Count == 0 ? PrescriptionTemplateLoadValidationResult.Success() : PrescriptionTemplateLoadValidationResult.Failure(failures);
     }
+
+    private async Task<IReadOnlyDictionary<Guid, MedicalCodeResolution>> ResolveTemplateMedicalCodesAsync(IEnumerable<PrescriptionTemplateItem> items, string providerKey, CancellationToken cancellationToken)
+    {
+        Task<MedicalCodeResolution>[] resolutionTasks = items
+            .Where(item => !string.IsNullOrWhiteSpace(item.ReferenceCode))
+            .Select(item => ResolveTemplateMedicalCodeAsync(item, providerKey, cancellationToken))
+            .ToArray();
+
+        MedicalCodeResolution[] resolutions = await Task.WhenAll(resolutionTasks);
+        return resolutions.ToDictionary(resolution => resolution.TemplateItemId);
+    }
+
+    private async Task<MedicalCodeResolution> ResolveTemplateMedicalCodeAsync(PrescriptionTemplateItem item, string providerKey, CancellationToken cancellationToken)
+    {
+        string? codeSystemKey = MapCategoryToCodeSystemKey(providerKey, item.Category);
+        if (codeSystemKey is null) return new MedicalCodeResolution(item.Id, null, true);
+
+        MedicalCode? code = await medicalQueryService.ResolveMedicalCodeAsync(codeSystemKey, item.ReferenceCode!.Trim(), null, null, cancellationToken);
+        return new MedicalCodeResolution(item.Id, code, false);
+    }
+
+    private static PrescriptionTemplateItemFailure TemplateFailure(PrescriptionTemplateItem item, string message) => new() { TemplateItemId = item.Id, Category = item.Category, ReferenceCode = item.ReferenceCode, DisplayName = item.DisplayName, Message = message };
+
+    private sealed record MedicalCodeResolution(Guid TemplateItemId, MedicalCode? Code, bool MissingCodeSystem);
+
+    private static string? MapCategoryToCodeSystemKey(string providerKey, PrescriptionItemCategory category) => category switch
+    {
+        PrescriptionItemCategory.Drug => $"{providerKey.ToLowerInvariant()}.drug",
+        PrescriptionItemCategory.Paraclinic or PrescriptionItemCategory.Lab or PrescriptionItemCategory.Imaging or PrescriptionItemCategory.MedicalService or PrescriptionItemCategory.Physiotherapy or PrescriptionItemCategory.Dental or PrescriptionItemCategory.Referral => $"{providerKey.ToLowerInvariant()}.service",
+        _ => null
+    };
 
     private static InsuranceProviderCapabilityType? MapCategoryToCapability(PrescriptionItemCategory category) => category switch
     {
@@ -177,6 +237,36 @@ public sealed class LoadPrescriptionTemplateIntoDraftHandler(PrescriptionDbConte
     }
 }
 
+
+
+internal static class PrescriptionTemplateAuthorization
+{
+    private const string AccessDeniedMessage = "دسترسی لازم برای عملیات قالب نسخه وجود ندارد.";
+
+    internal static string? RequireManagementCapability(IRequestContext requestContext, string tenantId)
+    {
+        if (requestContext.IsPlatformAdmin()) return null;
+        if (!IsSameTenant(requestContext, tenantId)) return AccessDeniedMessage;
+        return requestContext.IsTenantOwner() ? null : AccessDeniedMessage;
+    }
+
+    internal static string? RequireAuthoringCapability(IRequestContext requestContext, string tenantId)
+    {
+        if (requestContext.IsPlatformAdmin()) return null;
+        if (!IsSameTenant(requestContext, tenantId)) return AccessDeniedMessage;
+        return requestContext.IsTenantOwner() || requestContext.IsTenantUser() ? null : AccessDeniedMessage;
+    }
+
+    private static bool IsSameTenant(IRequestContext requestContext, string tenantId)
+        => !string.IsNullOrWhiteSpace(tenantId)
+           && string.Equals(requestContext.TenantId, tenantId.Trim(), StringComparison.Ordinal);
+}
+
+internal sealed record PrescriptionTemplateLoadValidationResult(bool IsValid, IReadOnlyList<PrescriptionTemplateItemFailure> ItemFailures)
+{
+    internal static PrescriptionTemplateLoadValidationResult Success() => new(true, []);
+    internal static PrescriptionTemplateLoadValidationResult Failure(IReadOnlyList<PrescriptionTemplateItemFailure> itemFailures) => new(false, itemFailures);
+}
 
 internal sealed record PrescriptionItemIdentity(PrescriptionItemCategory Category, string? ReferenceCode, string? DisplayName);
 

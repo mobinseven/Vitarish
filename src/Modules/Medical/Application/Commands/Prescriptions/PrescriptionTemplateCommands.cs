@@ -56,7 +56,19 @@ public sealed record PrescriptionTemplateCommandResult
     public bool IsSuccess { get; init; }
     public Guid? Id { get; init; }
     public string? ErrorMessage { get; init; }
+    public IReadOnlyList<PrescriptionTemplateItemFailure> ItemFailures { get; init; } = [];
 
     public static PrescriptionTemplateCommandResult Success(Guid? id = null) => new() { IsSuccess = true, Id = id };
     public static PrescriptionTemplateCommandResult Failure(string error) => new() { IsSuccess = false, ErrorMessage = error };
+    public static PrescriptionTemplateCommandResult Failure(string error, IReadOnlyList<PrescriptionTemplateItemFailure> itemFailures)
+        => new() { IsSuccess = false, ErrorMessage = error, ItemFailures = itemFailures };
+}
+
+public sealed record PrescriptionTemplateItemFailure
+{
+    public Guid TemplateItemId { get; init; }
+    public PrescriptionItemCategory Category { get; init; }
+    public string? ReferenceCode { get; init; }
+    public string? DisplayName { get; init; }
+    public string Message { get; init; } = string.Empty;
 }
