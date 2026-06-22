@@ -10,15 +10,15 @@ public class UserCacheExtensionsTests
     private static IDistributedCache CreateCache() => new MemoryDistributedCache(Options.Create(new MemoryDistributedCacheOptions()));
 
     [Fact]
-    public async Task SetAndGetUserAsync_StoresUserByIdAndName()
+    public async Task SetAndGetUserAsync_StoresUserByIdAndNormalizedUserName()
     {
         IDistributedCache cache = CreateCache();
-        User user = new() { Id = "user-1", UserName = "user1" };
+        User user = new() { Id = "user-1", UserName = "user1", NormalizedUserName = "USER1" };
 
         await UserCacheExtensions.SetUserAsync(cache, user, CancellationToken.None);
 
         Task<User?> byIdTask = UserCacheExtensions.GetUserAsync(cache, "user-1", CancellationToken.None);
-        Task<User?> byNameTask = UserCacheExtensions.GetUserByNameAsync(cache, "user1", CancellationToken.None);
+        Task<User?> byNameTask = UserCacheExtensions.GetUserByNormalizedUserNameAsync(cache, "USER1", CancellationToken.None);
         _ = await Task.WhenAll(byIdTask, byNameTask);
         User? byId = await byIdTask;
         User? byName = await byNameTask;
@@ -46,14 +46,14 @@ public class UserCacheExtensionsTests
     public async Task RemoveUserAsync_ClearsUserAndUserList()
     {
         IDistributedCache cache = CreateCache();
-        User user = new() { Id = "user-3", UserName = "user3" };
+        User user = new() { Id = "user-3", UserName = "user3", NormalizedUserName = "USER3" };
         await UserCacheExtensions.SetUserAsync(cache, user, CancellationToken.None);
         await UserCacheExtensions.SetUsersAsync(cache, [user], CancellationToken.None);
 
         await UserCacheExtensions.RemoveUserAsync(cache, user, CancellationToken.None);
 
         User? byId = await UserCacheExtensions.GetUserAsync(cache, "user-3", CancellationToken.None);
-        User? byName = await UserCacheExtensions.GetUserByNameAsync(cache, "user3", CancellationToken.None);
+        User? byName = await UserCacheExtensions.GetUserByNormalizedUserNameAsync(cache, "USER3", CancellationToken.None);
         User[]? users = await UserCacheExtensions.GetUsersAsync(cache, CancellationToken.None);
 
         _ = byId.Should().BeNull();

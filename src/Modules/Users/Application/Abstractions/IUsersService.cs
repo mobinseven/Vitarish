@@ -12,7 +12,7 @@ public interface IUsersService : IUserStore<User>, IUserSecurityStampStore<User>
 {
     Task<IEnumerable<User>> GetUsersAsync(CancellationToken ct = default);
     Task<User?> GetUserAsync(string id, CancellationToken ct = default);
-    Task<User?> GetUserByNameAsync(string userName, CancellationToken ct = default);
+    Task<User?> GetUserByRawUserNameAsync(string rawUserName, CancellationToken ct = default);
     Task<User?> CreateUserWithPhoneAsync(CreateUserWithPhoneCommand command, CancellationToken ct = default);
     Task<User?> CreateUserWithEmailAsync(CreateUserWithEmailCommand command, CancellationToken ct = default);
     Task<IdentityResult> UpdateUserAsync(UpdateUserCommand command, CancellationToken ct = default);

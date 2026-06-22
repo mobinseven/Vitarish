@@ -14,6 +14,16 @@ internal sealed class GetUserByNormalizedNameQueryHandler(
 {
     public async Task<User?> Handle(GetUserByNormalizedNameQuery request, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(request.NormalizedUserName))
+        {
+            throw new ArgumentException("Normalized user name is required.", nameof(request));
+        }
+
+        if (await UserCacheExtensions.GetUserByNormalizedUserNameAsync(cache, request.NormalizedUserName, cancellationToken) is { } cached)
+        {
+            return cached;
+        }
+
         User? user = await dbContext.Users.AsNoTracking()
             .SingleOrDefaultAsync(u => u.NormalizedUserName == request.NormalizedUserName, cancellationToken);
 

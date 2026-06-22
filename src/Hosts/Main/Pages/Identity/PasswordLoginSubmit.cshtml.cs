@@ -6,15 +6,13 @@ namespace Vitarish.Main.Pages.Identity;
 
 [ValidateAntiForgeryToken]
 public sealed class PasswordLoginSubmitModel(
-    IUsersService usersService,
+    UserManager<User> userManager,
     SignInManager<User> signInManager,
-    ReturnUrlManager returnUrlManager,
     IStringLocalizer localizer,
     ILogger<PasswordLoginSubmitModel> logger) : PageModel
 {
-    private readonly IUsersService _usersService = usersService;
+    private readonly UserManager<User> _userManager = userManager;
     private readonly SignInManager<User> _signInManager = signInManager;
-    private readonly ReturnUrlManager _returnUrlManager = returnUrlManager;
     private readonly IStringLocalizer _localizer = localizer;
     private readonly ILogger<PasswordLoginSubmitModel> _logger = logger;
 
@@ -30,7 +28,7 @@ public sealed class PasswordLoginSubmitModel(
             return RedirectWithStatus(failureDestination, BuildInvalidAttemptMessage());
         }
 
-        User? user = await _usersService.GetUserByNameAsync(Input.Username, HttpContext.RequestAborted);
+        User? user = await _userManager.FindByNameAsync(Input.Username);
         if (user is null)
         {
             LogWarning(null, Input.Username, "InvalidCredentials");
