@@ -77,7 +77,7 @@ public partial class PrescriptionTemplateEditor : PrescriptionBase
 
         if (string.IsNullOrWhiteSpace(newItem.ReferenceCode) && string.IsNullOrWhiteSpace(newItem.DisplayName))
         {
-            Snackbar.Add(Localizer["UnknownError"], MudBlazor.Severity.Error);
+            Snackbar.Add(Localizer["ItemCodeOrNameRequired"], MudBlazor.Severity.Error);
             return;
         }
         PrescriptionTemplateCommandResult result = await Mediator.Send(new AddPrescriptionTemplateItemCommand
