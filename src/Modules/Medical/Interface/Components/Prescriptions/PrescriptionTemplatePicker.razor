@@ -16,6 +16,6 @@
                      Label="@Localizer["Load"]"
                      EndIcon="fa-solid fa-download"
                      OnClick="LoadAsync"
-                     Disabled="@(PrescriptionId == Guid.Empty)" />
+                     Disabled="@(PrescriptionId == Guid.Empty || selectedTemplateId is null)" />
     }
 </Stack>
