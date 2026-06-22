@@ -166,6 +166,8 @@ public sealed class LoadPrescriptionTemplateIntoDraftHandler(PrescriptionDbConte
             .Select(item => new PrescriptionItemIdentity(item.Category, item.ReferenceCode, item.DisplayName))
             .ToList();
 
+        IReadOnlyDictionary<Guid, MedicalCodeResolution> resolvedCodes = await ResolveTemplateMedicalCodesAsync(template.Items, prescription.SelectedProviderKey, cancellationToken);
+
         foreach (PrescriptionTemplateItem item in template.Items)
         {
             if (string.IsNullOrWhiteSpace(item.ReferenceCode) && string.IsNullOrWhiteSpace(item.DisplayName)) failures.Add(TemplateFailure(item, "آیتم قالب باید کد مرجع یا نام نمایشی داشته باشد."));
@@ -175,26 +177,40 @@ public sealed class LoadPrescriptionTemplateIntoDraftHandler(PrescriptionDbConte
             if (requiredCapability.HasValue && !capabilities.Contains(requiredCapability.Value)) failures.Add(TemplateFailure(item, $"بیمه‌گر انتخابی از نوع آیتم «{item.Category}» پشتیبانی نمی‌کند."));
             PrescriptionItemIdentity templateIdentity = new(item.Category, item.ReferenceCode, item.DisplayName);
             if (itemsToCheck.Any(existing => PrescriptionItemIdentityComparer.AreSame(existing, templateIdentity))) failures.Add(TemplateFailure(item, "بارگذاری قالب به دلیل آیتم تکراری انجام نشد."));
-            if (!string.IsNullOrWhiteSpace(item.ReferenceCode))
+            if (resolvedCodes.TryGetValue(item.Id, out MedicalCodeResolution? resolvedCode))
             {
-                string? codeSystemKey = MapCategoryToCodeSystemKey(prescription.SelectedProviderKey, item.Category);
-                if (codeSystemKey is null)
-                {
-                    failures.Add(TemplateFailure(item, $"دسته آیتم «{item.Category}» سامانه کد مرجع ندارد."));
-                }
-                else
-                {
-                    MedicalCode? code = await medicalQueryService.ResolveMedicalCodeAsync(codeSystemKey, item.ReferenceCode.Trim(), null, null, cancellationToken);
-                    if (code is null) failures.Add(TemplateFailure(item, "کد مرجع آیتم در منبع مرجع پزشکی فعال یافت نشد."));
-                    else if (code.Status is not (MedicalCodeStatus.Active or MedicalCodeStatus.Imported)) failures.Add(TemplateFailure(item, "کد مرجع آیتم در منبع مرجع پزشکی قابل استفاده نیست."));
-                }
+                if (resolvedCode.MissingCodeSystem) failures.Add(TemplateFailure(item, $"دسته آیتم «{item.Category}» سامانه کد مرجع ندارد."));
+                else if (resolvedCode.Code is null) failures.Add(TemplateFailure(item, "کد مرجع آیتم در منبع مرجع پزشکی فعال یافت نشد."));
+                else if (resolvedCode.Code.Status is not (MedicalCodeStatus.Active or MedicalCodeStatus.Imported)) failures.Add(TemplateFailure(item, "کد مرجع آیتم در منبع مرجع پزشکی قابل استفاده نیست."));
             }
             itemsToCheck.Add(templateIdentity);
         }
         return failures.Count == 0 ? PrescriptionTemplateLoadValidationResult.Success() : PrescriptionTemplateLoadValidationResult.Failure(failures);
     }
 
+    private async Task<IReadOnlyDictionary<Guid, MedicalCodeResolution>> ResolveTemplateMedicalCodesAsync(IEnumerable<PrescriptionTemplateItem> items, string providerKey, CancellationToken cancellationToken)
+    {
+        Task<MedicalCodeResolution>[] resolutionTasks = items
+            .Where(item => !string.IsNullOrWhiteSpace(item.ReferenceCode))
+            .Select(item => ResolveTemplateMedicalCodeAsync(item, providerKey, cancellationToken))
+            .ToArray();
+
+        MedicalCodeResolution[] resolutions = await Task.WhenAll(resolutionTasks);
+        return resolutions.ToDictionary(resolution => resolution.TemplateItemId);
+    }
+
+    private async Task<MedicalCodeResolution> ResolveTemplateMedicalCodeAsync(PrescriptionTemplateItem item, string providerKey, CancellationToken cancellationToken)
+    {
+        string? codeSystemKey = MapCategoryToCodeSystemKey(providerKey, item.Category);
+        if (codeSystemKey is null) return new MedicalCodeResolution(item.Id, null, true);
+
+        MedicalCode? code = await medicalQueryService.ResolveMedicalCodeAsync(codeSystemKey, item.ReferenceCode!.Trim(), null, null, cancellationToken);
+        return new MedicalCodeResolution(item.Id, code, false);
+    }
+
     private static PrescriptionTemplateItemFailure TemplateFailure(PrescriptionTemplateItem item, string message) => new() { TemplateItemId = item.Id, Category = item.Category, ReferenceCode = item.ReferenceCode, DisplayName = item.DisplayName, Message = message };
+
+    private sealed record MedicalCodeResolution(Guid TemplateItemId, MedicalCode? Code, bool MissingCodeSystem);
 
     private static string? MapCategoryToCodeSystemKey(string providerKey, PrescriptionItemCategory category) => category switch
     {
@@ -229,14 +245,16 @@ internal static class PrescriptionTemplateAuthorization
 
     internal static string? RequireManagementCapability(IRequestContext requestContext, string tenantId)
     {
+        if (requestContext.IsPlatformAdmin()) return null;
         if (!IsSameTenant(requestContext, tenantId)) return AccessDeniedMessage;
-        return requestContext.IsPlatformAdmin() || requestContext.IsTenantOwner() ? null : AccessDeniedMessage;
+        return requestContext.IsTenantOwner() ? null : AccessDeniedMessage;
     }
 
     internal static string? RequireAuthoringCapability(IRequestContext requestContext, string tenantId)
     {
+        if (requestContext.IsPlatformAdmin()) return null;
         if (!IsSameTenant(requestContext, tenantId)) return AccessDeniedMessage;
-        return requestContext.IsPlatformAdmin() || requestContext.IsTenantOwner() || requestContext.IsTenantUser() ? null : AccessDeniedMessage;
+        return requestContext.IsTenantOwner() || requestContext.IsTenantUser() ? null : AccessDeniedMessage;
     }
 
     private static bool IsSameTenant(IRequestContext requestContext, string tenantId)

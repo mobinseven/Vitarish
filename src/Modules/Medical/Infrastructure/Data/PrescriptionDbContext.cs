@@ -146,7 +146,6 @@ public sealed class PrescriptionDbContext : DbContext, IMultiTenantDbContext
         _ = entity.Property(e => e.Description).HasMaxLength(1024);
         _ = entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(32);
         _ = entity.HasIndex(e => new { e.TenantId, e.Status, e.Name }).HasDatabaseName("IX_PrescriptionTemplate_Tenant_Status_Name");
-        _ = entity.HasIndex(e => new { e.TenantId, e.Id, e.Status }).HasDatabaseName("IX_PrescriptionTemplate_Tenant_Id_Status");
         _ = entity.IsMultiTenant();
     });
 
