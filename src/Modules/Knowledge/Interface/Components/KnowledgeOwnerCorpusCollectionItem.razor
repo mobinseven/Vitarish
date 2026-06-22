@@ -1,13 +1,21 @@
+@inherits CommonBase
 @using Microsoft.AspNetCore.Components
 @using CorpusItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerCorpusCollectionItem
 @using SourceItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceCollectionItem
 @using SourceFileItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceFileCollectionItem
 
-<MudExpansionPanel Text="@Item.CorpusName" IsInitiallyExpanded="@IsSelected">
+<MudExpansionPanel Text="@Item.CorpusName" Class="glass" HeaderClass="glass">
     <TitleContent>
         <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
             <MudText>@Item.CorpusName</MudText>
-            <MudChip T="string" Size="Size.Small" Color="@(Item.IsActive ? Color.Success : Color.Default)">@(Item.IsActive ? "Active" : "Inactive")</MudChip>
+            @if(Item.IsActive)
+            {
+                <MudChip T="string" Size="Size.Small" Color="Color.Success">@Localizer["Active"]</MudChip>
+            }
+            @if(IsSelected)
+            {
+                <MudChip T="string" Size="Size.Small" Color="Color.Success">@Localizer["Selected"]</MudChip>
+            }
         </MudStack>
     </TitleContent>
     <ChildContent>
@@ -15,14 +23,19 @@
         {
             <MudText Typo="Typo.body2">@Item.CorpusDescription</MudText>
         }
-        <MudButton Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" OnClick="SelectCorpusAsync" Disabled="@IsSelected">Select corpus</MudButton>
+        @if(!IsSelected)
+        {
+            <Stack>
+                <StackButton Label="@Localizer["SelectItem", Localizer["Corpus"]]" EndIcon="fa-solid fa-check" OnClick="SelectCorpusAsync" Color="Color.Primary" />
+            </Stack>
+        }
         @if (Item.Sources.Count == 0)
         {
             <MudText Typo="Typo.body2">No sources have been imported into this corpus.</MudText>
         }
         else
         {
-            <MudExpansionPanels MultiExpansion="true">
+            <MudExpansionPanels MultiExpansion="true" Class="stack">
                 @foreach (SourceItemModel source in Item.Sources)
                 {
                     <KnowledgeOwnerSourceCollectionItem Item="source" IsSelected="@(SelectedSourceId == source.SourceId)" SelectedSourceChanged="SelectedSourceChanged" />

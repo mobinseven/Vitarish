@@ -3,24 +3,19 @@
 @using SourceItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceCollectionItem
 @using SourceFileItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceFileCollectionItem
 
-<PaletteCard>
-    <Stack>
-        <StackField Label="Knowledge collection" HelperText="Browse corpora, their sources, and imported source files." />
-        @if (Model.Corpora.Count == 0)
+    @if(Model.Corpora.Count == 0)
+{
+    <StackCard Label="No corpora yet" HelperText="Create a corpus to start importing knowledge content." />
+}
+else
+{
+    <MudExpansionPanels MultiExpansion="true" Class="glass">
+        @foreach(CorpusItemModel corpus in Model.Corpora)
         {
-            <StackCard Label="No corpora yet" HelperText="Create a corpus to start importing knowledge content." />
+            <KnowledgeOwnerCorpusCollectionItem Item="corpus" IsSelected="@(Model.SelectedCorpusId == corpus.CorpusId)" SelectedSourceId="Model.SelectedSourceId" SelectedCorpusChanged="SelectedCorpusChanged" SelectedSourceChanged="SelectedSourceChanged" />
         }
-        else
-        {
-            <MudExpansionPanels MultiExpansion="true">
-                @foreach (CorpusItemModel corpus in Model.Corpora)
-                {
-                    <KnowledgeOwnerCorpusCollectionItem Item="corpus" IsSelected="@(Model.SelectedCorpusId == corpus.CorpusId)" SelectedSourceId="Model.SelectedSourceId" SelectedCorpusChanged="SelectedCorpusChanged" SelectedSourceChanged="SelectedSourceChanged" />
-                }
-            </MudExpansionPanels>
-        }
-    </Stack>
-</PaletteCard>
+    </MudExpansionPanels>
+}
 
 @code {
     [Parameter, EditorRequired]
