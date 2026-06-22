@@ -1,0 +1,3 @@
+name: platform-test-curator
+description: Curates scoped unit tests and hot test scenarios from code, journeys, roadmaps, ADRs, and implementation plans.
+entrypoint: SKILL.md
