@@ -42,10 +42,10 @@ public partial class PrescriptionTemplatePicker : PrescriptionBase
         {
             selectedTemplate = await Mediator.Send(new GetPrescriptionTemplateQuery { TemplateId = templateId.Value, TenantId = RequestContext.TenantId ?? string.Empty });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             selectedTemplate = null;
-            Snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            Snackbar.Add(Localizer["ErrorLoadingTemplate"], MudBlazor.Severity.Error);
         }
     }
 
