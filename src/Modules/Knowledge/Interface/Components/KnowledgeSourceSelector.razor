@@ -1,0 +1,49 @@
+<StackSelect T="KnowledgeOwnerSourceOption" Value="@selectedSource" ValueChanged="SelectSourceAsync" Label="@Label" Disabled="@Disabled">
+    @foreach (KnowledgeOwnerSourceOption option in Sources)
+    {
+        <MudSelectItem T="KnowledgeOwnerSourceOption" Value="@option">@option.Label</MudSelectItem>
+    }
+</StackSelect>
+
+@code {
+    private KnowledgeOwnerSourceOption? selectedSource;
+    private int observedSourcesVersion = -1;
+    private Guid? observedFocusedSourceId;
+
+    [Parameter, EditorRequired]
+    public string Label { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool Disabled { get; set; }
+
+    [Parameter]
+    public KnowledgeOwnerSourceOption? FocusedSource { get; set; }
+
+    [Parameter, EditorRequired]
+    public IReadOnlyList<KnowledgeOwnerSourceOption> Sources { get; set; } = [];
+
+    [Parameter]
+    public int SourcesVersion { get; set; }
+
+    [Parameter, EditorRequired]
+    public EventCallback<KnowledgeOwnerSourceOption?> SelectedSourceChanged { get; set; }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (observedSourcesVersion == SourcesVersion && observedFocusedSourceId == FocusedSource?.SourceId)
+        {
+            return;
+        }
+
+        observedSourcesVersion = SourcesVersion;
+        observedFocusedSourceId = FocusedSource?.SourceId;
+        selectedSource = Sources.FirstOrDefault(option => option.SourceId == FocusedSource?.SourceId);
+        await SelectedSourceChanged.InvokeAsync(selectedSource);
+    }
+
+    private async Task SelectSourceAsync(KnowledgeOwnerSourceOption? selected)
+    {
+        selectedSource = selected;
+        await SelectedSourceChanged.InvokeAsync(selectedSource);
+    }
+}

@@ -3,12 +3,11 @@
     <Stack>
         <StackField Label="Replace source" HelperText="Replace the focused or chosen source in the selected corpus with uploaded file content." />
 
-        <StackSelect T="KnowledgeOwnerSourceOption" @bind-Value="source" Label="Focused source to replace">
-            @foreach (KnowledgeOwnerSourceOption option in Sources)
-            {
-                <MudSelectItem T="KnowledgeOwnerSourceOption" Value="@option">@option.Label</MudSelectItem>
-            }
-        </StackSelect>
+        <KnowledgeSourceSelector Label="Focused source to replace"
+                                 FocusedSource="@FocusedSource"
+                                 Sources="@Sources"
+                                 SourcesVersion="@SourcesVersion"
+                                 SelectedSourceChanged="SelectSource" />
 
         <KnowledgeSourcePayloadFileInput ActionLabel="Replace selected source with selected file"
                                          ActionColor="Color.Warning"
@@ -19,9 +18,6 @@
 
 @code {
     private KnowledgeOwnerSourceOption? source;
-    private int observedSourcesVersion = -1;
-    private Guid? observedFocusedSourceId;
-
     [Parameter]
     public KnowledgeOwnerCorpusOption? SelectedCorpus { get; set; }
 
@@ -40,16 +36,10 @@
     [Parameter, EditorRequired]
     public EventCallback<ReplaceKnowledgeSourceFromFileInput> ReplaceRequested { get; set; }
 
-    protected override void OnParametersSet()
+    private Task SelectSource(KnowledgeOwnerSourceOption? selected)
     {
-        if (observedSourcesVersion == SourcesVersion && observedFocusedSourceId == FocusedSource?.SourceId)
-        {
-            return;
-        }
-
-        observedSourcesVersion = SourcesVersion;
-        observedFocusedSourceId = FocusedSource?.SourceId;
-        source = Sources.FirstOrDefault(option => option.SourceId == FocusedSource?.SourceId);
+        source = selected;
+        return Task.CompletedTask;
     }
 
     private async Task ReplaceFileAsync(KnowledgeSourcePayload payload)

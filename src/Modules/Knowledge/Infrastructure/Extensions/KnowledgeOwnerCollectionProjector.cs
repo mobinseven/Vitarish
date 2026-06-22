@@ -41,6 +41,7 @@ public static class KnowledgeOwnerCollectionProjector
 
     private static Guid? ResolveFocusedSourceId(IReadOnlyList<KnowledgeOwnerCorpusCollectionItem> corpora, Guid? selectedCorpusId, Guid? selectedSourceId)
     {
+        if (selectedSourceId is null) return null;
         KnowledgeOwnerCorpusCollectionItem? corpus = corpora.FirstOrDefault(item => item.CorpusId == selectedCorpusId);
         if (corpus is null) return null;
         return corpus.Sources.Any(source => source.SourceId == selectedSourceId) ? selectedSourceId : null;

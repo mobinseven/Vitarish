@@ -7,12 +7,12 @@
     <Stack>
         <StackField Label="Delete source" HelperText="Delete the focused or chosen source and its dependent chunks, questions, and search index entries from the selected corpus." />
 
-        <StackSelect T="KnowledgeOwnerSourceOption" @bind-Value="source" Label="Focused source to delete" Disabled="@IsBusy">
-            @foreach (KnowledgeOwnerSourceOption option in Sources)
-            {
-                <MudSelectItem T="KnowledgeOwnerSourceOption" Value="@option">@option.Label</MudSelectItem>
-            }
-        </StackSelect>
+        <KnowledgeSourceSelector Label="Focused source to delete"
+                                 Disabled="@IsBusy"
+                                 FocusedSource="@FocusedSource"
+                                 Sources="@Sources"
+                                 SourcesVersion="@SourcesVersion"
+                                 SelectedSourceChanged="SelectSource" />
 
         <StackButton Color="Color.Error" Disabled="@(IsBusy || source is null)" OnClick="ConfirmDeleteAsync">
             @if (IsBusy)
@@ -26,9 +26,6 @@
 
 @code {
     private KnowledgeOwnerSourceOption? source;
-    private int observedSourcesVersion = -1;
-    private Guid? observedFocusedSourceId;
-
     [Inject]
     private IDialogService DialogService { get; set; } = default!;
 
@@ -53,16 +50,10 @@
     [Parameter, EditorRequired]
     public EventCallback<DeleteKnowledgeSourceInput> DeleteRequested { get; set; }
 
-    protected override void OnParametersSet()
+    private Task SelectSource(KnowledgeOwnerSourceOption? selected)
     {
-        if (observedSourcesVersion == SourcesVersion && observedFocusedSourceId == FocusedSource?.SourceId)
-        {
-            return;
-        }
-
-        observedSourcesVersion = SourcesVersion;
-        observedFocusedSourceId = FocusedSource?.SourceId;
-        source = Sources.FirstOrDefault(option => option.SourceId == FocusedSource?.SourceId);
+        source = selected;
+        return Task.CompletedTask;
     }
 
     private async Task ConfirmDeleteAsync()
