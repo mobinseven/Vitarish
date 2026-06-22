@@ -1,5 +1,6 @@
 <PaletteCard>
     <Stack>
+        <StackField Label="Corpus question answering" HelperText="Ask across the selected corpus. Source focus does not filter retrieval." />
         <StackTextField Value="@Question" ValueChanged="UpdateQuestionAsync" Label="Question" Lines="3" />
         @* <StackNumericField Value="@TopK" ValueChanged="UpdateTopKAsync" Label="Number of context sections" Min="1" Max="20" /> *@
         <StackButton Label="Ask" Color="Color.Primary" OnClick="RequestAskAsync" Disabled="@(IsBusy || SelectedCorpus is null)" />
@@ -46,7 +47,7 @@
 
 
 @code {
-    [Parameter, EditorRequired] public KnowledgeOwnerCorpusOption SelectedCorpus { get; set; }
+    [Parameter, EditorRequired] public KnowledgeOwnerCorpusOption? SelectedCorpus { get; set; }
     [Parameter] public bool IsBusy { get; set; }
     [Parameter] public KnowledgeAnswer? Answer { get; set; }
     [Parameter] public string Question { get; set; } = string.Empty;

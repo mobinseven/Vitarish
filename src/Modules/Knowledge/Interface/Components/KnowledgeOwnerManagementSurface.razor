@@ -18,13 +18,13 @@
 
 <KnowledgeSourceImporter SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" FileImportRequested="ImportSourceFromFileAsync" ImportSummary="@importSummary" />
 
-<KnowledgeSourceReplacer SelectedCorpus="@SelectedCorpusOption" Sources="@SelectedSourceOptions" IsBusy="@isBusy" SourcesVersion="@sourcesVersion" ReplaceRequested="ReplaceSourceFromFileAsync" />
+<KnowledgeSourceReplacer SelectedCorpus="@SelectedCorpusOption" FocusedSource="@FocusedSourceOption" Sources="@SelectedSourceOptions" IsBusy="@isBusy" SourcesVersion="@sourcesVersion" ReplaceRequested="ReplaceSourceFromFileAsync" />
 
-<KnowledgeSourceDeleter SelectedCorpus="@SelectedCorpusOption" Sources="@SelectedSourceOptions" IsBusy="@isBusy" CanDelete="@CanDeleteSources" SourcesVersion="@sourcesVersion" DeleteRequested="DeleteSourceAsync" />
+<KnowledgeSourceDeleter SelectedCorpus="@SelectedCorpusOption" FocusedSource="@FocusedSourceOption" Sources="@SelectedSourceOptions" IsBusy="@isBusy" CanDelete="@CanDeleteSources" SourcesVersion="@sourcesVersion" DeleteRequested="DeleteSourceAsync" />
 
 <KnowledgeCorpusIndexer SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" IndexRequested="IndexCorpusAsync" />
 
-<KnowledgeCorpusEvaluator IsBusy="@isBusy" EvaluationSummary="@evaluationSummary" EvaluateRequested="EvaluateCorpusAsync" />
+<KnowledgeCorpusEvaluator SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" EvaluationSummary="@evaluationSummary" EvaluateRequested="EvaluateCorpusAsync" />
 
 <KnowledgeQuestionAnswer SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" Question="@qaQuestion" QuestionChanged="SetQaQuestion" TopK="@qaTopK" TopKChanged="SetQaTopK" Answer="@qaAnswer" Status="@qaStatus" StatusColor="@qaStatusColor" AskRequested="AskSelectedCorpusAsync" />
 
@@ -47,8 +47,9 @@
     private int sourcesVersion;
 
     private CorpusItemModel? SelectedCorpus => collection.Corpora.FirstOrDefault(corpus => corpus.CorpusId == collection.SelectedCorpusId);
-    private SourceItemModel? SelectedSource => SelectedCorpus?.Sources.FirstOrDefault(source => source.SourceId == collection.SelectedSourceId);
+    private SourceItemModel? FocusedSource => SelectedCorpus?.Sources.FirstOrDefault(source => source.SourceId == collection.FocusedSourceId);
     private KnowledgeOwnerCorpusOption? SelectedCorpusOption => SelectedCorpus is null ? null : ToCorpusOption(SelectedCorpus);
+    private KnowledgeOwnerSourceOption? FocusedSourceOption => FocusedSource is null ? null : ToSourceOption(FocusedSource);
     private IReadOnlyList<KnowledgeOwnerSourceOption> SelectedSourceOptions => SelectedCorpus?.Sources.Select(ToSourceOption).ToArray() ?? [];
     private bool CanDeleteSources => !string.IsNullOrWhiteSpace(RequestContext.OwnerId) && SelectedCorpus is not null && SelectedSourceOptions.Count > 0;
     private string TenantId => RequestContext.TenantId ?? throw new InvalidOperationException("Your workspace is unavailable. Please refresh the page and try again.");
@@ -121,7 +122,7 @@
     private static KnowledgeOwnerSourceOption ToSourceOption(SourceItemModel source)
         => new($"{source.SourceName} · {source.SourceType} · imported {source.ImportedAt:g}") { SourceId = source.SourceId };
 
-    private async Task ReloadSelectedAsync(CancellationToken token) { await ReloadAsync(collection.SelectedCorpusId, collection.SelectedSourceId, token); sourcesVersion++; }
+    private async Task ReloadSelectedAsync(CancellationToken token) { await ReloadAsync(collection.SelectedCorpusId, collection.FocusedSourceId, token); sourcesVersion++; }
     private async Task ReloadAsync(Guid? corpusId, Guid? sourceId, CancellationToken token) => collection = await Sender.Send(new KnowledgeOwnerCollectionQuery(TenantId, RequestContext.OwnerId, corpusId, sourceId), token);
     private void ClearCorpusScopedResults() { importSummary = null; evaluationSummary = null; qaAnswer = null; qaStatus = null; sourcesVersion++; }
 

@@ -5,14 +5,14 @@
 @if (CanDelete)
 {
     <Stack>
-        <StackField Label="Delete source" HelperText="Delete a source and its dependent chunks, questions, and search index entries from the selected corpus." />
+        <StackField Label="Delete source" HelperText="Delete the focused or chosen source and its dependent chunks, questions, and search index entries from the selected corpus." />
 
-        <StackSelect T="KnowledgeOwnerSourceOption" @bind-Value="source" Label="Existing source to delete" Disabled="@IsBusy">
-            @foreach (KnowledgeOwnerSourceOption option in Sources)
-            {
-                <MudSelectItem T="KnowledgeOwnerSourceOption" Value="@option">@option.Label</MudSelectItem>
-            }
-        </StackSelect>
+        <KnowledgeSourceSelector Label="Focused source to delete"
+                                 Disabled="@IsBusy"
+                                 FocusedSource="@FocusedSource"
+                                 Sources="@Sources"
+                                 SourcesVersion="@SourcesVersion"
+                                 SelectedSourceChanged="SelectSource" />
 
         <StackButton Color="Color.Error" Disabled="@(IsBusy || source is null)" OnClick="ConfirmDeleteAsync">
             @if (IsBusy)
@@ -26,13 +26,14 @@
 
 @code {
     private KnowledgeOwnerSourceOption? source;
-    private int observedSourcesVersion = -1;
-
     [Inject]
     private IDialogService DialogService { get; set; } = default!;
 
     [Parameter]
     public KnowledgeOwnerCorpusOption? SelectedCorpus { get; set; }
+
+    [Parameter]
+    public KnowledgeOwnerSourceOption? FocusedSource { get; set; }
 
     [Parameter, EditorRequired]
     public IReadOnlyList<KnowledgeOwnerSourceOption> Sources { get; set; } = [];
@@ -49,15 +50,10 @@
     [Parameter, EditorRequired]
     public EventCallback<DeleteKnowledgeSourceInput> DeleteRequested { get; set; }
 
-    protected override void OnParametersSet()
+    private Task SelectSource(KnowledgeOwnerSourceOption? selected)
     {
-        if (observedSourcesVersion == SourcesVersion)
-        {
-            return;
-        }
-
-        observedSourcesVersion = SourcesVersion;
-        source = null;
+        source = selected;
+        return Task.CompletedTask;
     }
 
     private async Task ConfirmDeleteAsync()

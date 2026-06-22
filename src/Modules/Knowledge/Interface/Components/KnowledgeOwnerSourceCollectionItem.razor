@@ -8,13 +8,13 @@
     <MudText Typo="Typo.caption">@Localizer["Source"]</MudText>
     <MudText>@Item.SourceName</MudText>
     <MudChip T="string" Size="Size.Small" Color="Color.Info">@Item.SourceType</MudChip>
-    @if(IsSelected)
+    @if(IsFocused)
     {
-        <MudChip T="string" Size="Size.Small" Color="Color.Success">@Localizer["Selected"]</MudChip>
+        <MudChip T="string" Size="Size.Small" Color="Color.Success">@Localizer["Focused for source actions"]</MudChip>
     }
     else
     {
-        <MudButton Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" OnClick="SelectAsync">Select source</MudButton>
+        <MudButton Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" OnClick="SelectAsync">Focus source</MudButton>
     }
 </MudStack>
 
@@ -23,7 +23,7 @@
     public SourceItemModel Item { get; set; } = new(Guid.Empty, string.Empty, string.Empty, DateTimeOffset.MinValue, null, []);
 
     [Parameter]
-    public bool IsSelected { get; set; }
+    public bool IsFocused { get; set; }
 
     [Parameter, EditorRequired]
     public EventCallback<Guid> SelectedSourceChanged { get; set; }

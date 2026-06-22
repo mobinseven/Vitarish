@@ -1,12 +1,12 @@
 <Stack>
-    <StackField Label="Index" HelperText="Build the searchable index for the selected corpus." />
+    <StackField Label="Index" HelperText="Build the searchable index for the selected corpus. Source focus does not limit this corpus-level operation." />
 
     @if (SelectedCorpus is not null)
     {
         <StackCard Label="Ready to index" HelperText="@SelectedCorpus.Label" />
     }
 
-    <StackButton Label="Index selected corpus" Color="Color.Primary" OnClick="IndexAsync" Disabled="@IsBusy" />
+    <StackButton Label="Index selected corpus" Color="Color.Primary" OnClick="IndexAsync" Disabled="@(IsBusy || SelectedCorpus is null)" />
 </Stack>
 
 @code {

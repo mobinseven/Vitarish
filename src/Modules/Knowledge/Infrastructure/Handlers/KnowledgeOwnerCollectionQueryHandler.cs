@@ -62,6 +62,6 @@ public sealed class KnowledgeOwnerCollectionQueryHandler(KnowledgeDbContext dbCo
                 group => group.Key,
                 group => group.Select(document => new KnowledgeOwnerSourceFileProjection(document, chunkCounts.GetValueOrDefault(document.Id), null)).ToArray());
 
-        return KnowledgeOwnerCollectionProjector.ToOwnerCollection(corpora, sourcesByCorpus, filesBySource, request.SelectedCorpusId, request.SelectedSourceId);
+        return KnowledgeOwnerCollectionProjector.ToOwnerCollection(corpora, sourcesByCorpus, filesBySource, request.SelectedCorpusId, request.FocusedSourceId);
     }
 }

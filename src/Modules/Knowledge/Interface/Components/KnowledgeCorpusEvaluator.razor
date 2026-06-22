@@ -2,8 +2,12 @@
 @using Microsoft.AspNetCore.Components
 
 <Stack>
-    <StackField Label="Evaluation" HelperText="Run evaluation against the selected corpus." />
-    <StackButton Label="Run evaluation for selected corpus" Color="Color.Primary" OnClick="EvaluateAsync" Disabled="@IsBusy" />
+    <StackField Label="Corpus evaluation" HelperText="Run evaluation against the selected corpus. Source focus does not limit this corpus-level operation." />
+    @if (SelectedCorpus is not null)
+    {
+        <StackCard Label="Evaluation corpus" HelperText="@SelectedCorpus.Label" />
+    }
+    <StackButton Label="Run evaluation for selected corpus" Color="Color.Primary" OnClick="EvaluateAsync" Disabled="@(IsBusy || SelectedCorpus is null)" />
 
     @if (!string.IsNullOrWhiteSpace(EvaluationSummary))
     {
@@ -12,6 +16,9 @@
 </Stack>
 
 @code {
+    [Parameter]
+    public KnowledgeOwnerCorpusOption? SelectedCorpus { get; set; }
+
     [Parameter]
     public bool IsBusy { get; set; }
 
