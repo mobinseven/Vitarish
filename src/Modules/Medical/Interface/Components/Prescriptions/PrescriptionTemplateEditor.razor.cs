@@ -41,10 +41,10 @@ public partial class PrescriptionTemplateEditor : PrescriptionBase
                 TenantId = RequestContext.TenantId ?? string.Empty
             });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             template = null;
-            Snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            Snackbar.Add(Localizer["ErrorLoadingTemplate"], MudBlazor.Severity.Error);
         }
         name = template?.Name ?? string.Empty;
         description = template?.Description;
