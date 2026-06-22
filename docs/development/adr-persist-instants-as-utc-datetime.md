@@ -1,4 +1,4 @@
-# ADR 0001: Persist instants as UTC DateTime mapped to PostgreSQL timestamp with time zone
+# ADR: Persist instants as UTC DateTime mapped to PostgreSQL timestamp with time zone
 
 ## Status
 
