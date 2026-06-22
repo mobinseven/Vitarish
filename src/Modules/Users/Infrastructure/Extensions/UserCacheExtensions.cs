@@ -25,32 +25,32 @@ internal static class UserCacheExtensions
     internal static async Task<User?> GetUserAsync(IDistributedCache cache, string id, CancellationToken ct) =>
         Deserialize<User>(await cache.GetAsync(UserKey(id), ct));
 
-    internal static async Task<User?> GetUserByNameAsync(IDistributedCache cache, string userName, CancellationToken ct) =>
-        Deserialize<User>(await cache.GetAsync(UserNameKey(userName), ct));
+    internal static async Task<User?> GetUserByNormalizedUserNameAsync(IDistributedCache cache, string normalizedUserName, CancellationToken ct) =>
+        Deserialize<User>(await cache.GetAsync(NormalizedUserNameKey(normalizedUserName), ct));
 
     internal static Task SetUserAsync(IDistributedCache cache, User user, CancellationToken ct)
     {
         byte[] payload = Serialize(user);
         Task setById = cache.SetAsync(UserKey(user.Id), payload, CacheOptions, ct);
-        Task setByName = string.IsNullOrWhiteSpace(user.UserName)
+        Task setByNormalizedName = string.IsNullOrWhiteSpace(user.NormalizedUserName)
             ? Task.CompletedTask
-            : cache.SetAsync(UserNameKey(user.UserName), payload, CacheOptions, ct);
-        return Task.WhenAll(setById, setByName);
+            : cache.SetAsync(NormalizedUserNameKey(user.NormalizedUserName), payload, CacheOptions, ct);
+        return Task.WhenAll(setById, setByNormalizedName);
     }
 
     internal static Task RemoveUserAsync(IDistributedCache cache, User user, CancellationToken ct)
     {
         Task removeById = cache.RemoveAsync(UserKey(user.Id), ct);
-        Task removeByName = string.IsNullOrWhiteSpace(user.UserName)
+        Task removeByName = string.IsNullOrWhiteSpace(user.NormalizedUserName)
             ? Task.CompletedTask
-            : cache.RemoveAsync(UserNameKey(user.UserName), ct);
+            : cache.RemoveAsync(NormalizedUserNameKey(user.NormalizedUserName), ct);
         Task removeUsers = cache.RemoveAsync(UsersKey, ct);
         return Task.WhenAll(removeById, removeByName, removeUsers);
     }
 
     private static string UserKey(string id) => $"users:{id}";
 
-    private static string UserNameKey(string userName) => $"users:name:{userName}";
+    private static string NormalizedUserNameKey(string normalizedUserName) => $"users:normalized-name:{normalizedUserName}";
 
     private static byte[] Serialize<T>(T value) => JsonSerializer.SerializeToUtf8Bytes(value, JsonOptions);
 

@@ -26,6 +26,6 @@ public class GetUserByNameQueryValidatorTests
 
         TestValidationResult<GetUserByNameQuery> result = validator.TestValidate(query);
 
-        _ = result.ShouldHaveValidationErrorFor(q => q.UserName);
+        _ = result.ShouldHaveValidationErrorFor(q => q.RawUserName);
     }
 }

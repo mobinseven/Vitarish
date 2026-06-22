@@ -5,12 +5,12 @@ using Vitarish.Users.Domain.Entities;
 
 namespace Vitarish.Users.Application.Queries;
 
-public record GetUserByNameQuery(string UserName) : IRequest<User?>;
+public record GetUserByNameQuery(string RawUserName) : IRequest<User?>;
 
 public class GetUserByNameQueryValidator : AbstractValidator<GetUserByNameQuery>
 {
     public GetUserByNameQueryValidator()
     {
-        _ = RuleFor(q => q.UserName).NotEmpty();
+        _ = RuleFor(q => q.RawUserName).NotEmpty();
     }
 }

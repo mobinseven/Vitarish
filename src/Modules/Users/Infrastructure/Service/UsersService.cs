@@ -45,8 +45,8 @@ public sealed class UsersService(ISender sender) : IUsersService
     public Task<IdentityResult> UpdateUserClaimsAsync(UpdateUserClaimsCommand command, CancellationToken ct = default) =>
         sender.Send(command, ct);
 
-    public Task<User?> GetUserByNameAsync(string userName, CancellationToken ct = default) =>
-        sender.Send(new GetUserByNameQuery(userName), ct);
+    public Task<User?> GetUserByRawUserNameAsync(string rawUserName, CancellationToken ct = default) =>
+        sender.Send(new GetUserByNameQuery(rawUserName), ct);
 
     public Task<User?> FindByNameAsync(string normalizedUserName, CancellationToken cancellationToken) =>
         sender.Send(new GetUserByNormalizedNameQuery(normalizedUserName), cancellationToken);
