@@ -148,3 +148,120 @@ Any Fail means the artifact is not done. Fix it before submitting.
 ---
 
 The goal is simple, enforceable, correct software. Every rule above is a red line. Treat it accordingly.
+
+---
+
+## Skills
+
+Use skills as task-specific operating manuals.
+
+This section is only a routing index. Do not treat it as a replacement for the skill files.
+
+When a task matches a skill, open and follow that skill’s `SKILL.md`.
+
+Project skills live under:
+
+```txt
+skills/
+  platform-user-journey-curator/
+  platform-feature-roadmap-curator/
+  platform-adr-steward/
+  platform-test-curator/
+  platform-artifact-placement-steward/
+```
+
+If the runtime expects native Codex skill discovery, mirror or symlink these folders under:
+
+```txt
+.agents/skills/
+```
+
+### Skill Routing
+
+| Situation                                                                 | Use this skill                      | Read                                                  |
+| ------------------------------------------------------------------------- | ----------------------------------- | ----------------------------------------------------- |
+| User workflow, persona, design objective, pain points, journey stages     | Platform User Journey Curator       | `skills/platform-user-journey-curator/SKILL.md`       |
+| Roadmap, phases, MVP/short-term/long-term scope, implementation tickets   | Platform Feature Roadmap Curator    | `skills/platform-feature-roadmap-curator/SKILL.md`    |
+| Architecture decision, ADR need, supersession, architecture conflict      | Platform ADR Steward                | `skills/platform-adr-steward/SKILL.md`                |
+| Unit tests, required tests, hot test scenarios, risk-based test planning  | Platform Test Curator               | `skills/platform-test-curator/SKILL.md`               |
+| File placement, layer ownership, module boundary, artifact classification | Platform Artifact Placement Steward | `skills/platform-artifact-placement-steward/SKILL.md` |
+
+### Default Skill Order
+
+Use only the skills needed for the task.
+
+For a new user-facing feature:
+
+```txt
+Journey → Roadmap → ADR if needed → Artifact Placement → Test Plan → Implementation
+```
+
+For an architecture-sensitive change:
+
+```txt
+ADR → Artifact Placement → Test Plan → Implementation
+```
+
+For a code placement or refactor task:
+
+```txt
+Artifact Placement → Test Plan → Implementation
+```
+
+For a test review task:
+
+```txt
+Test Curator → Artifact Placement if new test files are needed
+```
+
+### Mandatory Checks Before Implementation
+
+Before creating or moving production code, answer:
+
+```txt
+1. Is a journey needed?
+2. Is a roadmap or task derivation needed?
+3. Is an ADR needed?
+4. Where should each artifact live?
+5. What unit tests are required?
+6. What hot test scenarios are required?
+```
+
+Skip irrelevant checks for small local bug fixes, styling changes, simple refactors, and test-only corrections.
+
+### Scope and Placement
+
+Generated planning and documentation artifacts should be scoped by owner:
+
+```txt
+docs/apps/<App>/modules/<Module>/
+  journeys/
+  roadmaps/
+  tasks/
+  tests/
+  decisions/
+
+docs/platform/modules/<Module>/
+  journeys/
+  roadmaps/
+  tasks/
+  tests/
+  decisions/
+```
+
+Global indexes are navigation only. The scoped artifact is the source of truth.
+
+### Core Rules
+
+Do not duplicate full skill instructions in `AGENTS.md`.
+
+Do not load every skill by default.
+
+Do not create ceremony without value.
+
+Do not invent product goals, architectural decisions, or testing requirements.
+
+Do not proceed from roadmap directly to implementation when artifact placement or test risk is unresolved.
+
+Preserve the platform architecture principles: single responsibility, simple design, protected core logic, clear boundaries, CQRS separation, and one source of truth.
+
