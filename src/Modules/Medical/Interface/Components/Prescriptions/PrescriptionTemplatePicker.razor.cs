@@ -71,14 +71,14 @@ public partial class PrescriptionTemplatePicker : PrescriptionBase
         Snackbar.Add(FormatLoadError(result), MudBlazor.Severity.Error);
     }
 
-    private static string FormatLoadError(PrescriptionTemplateCommandResult result)
+    private string FormatLoadError(PrescriptionTemplateCommandResult result)
     {
         if (result.ItemFailures.Count == 0)
         {
             return result.ErrorMessage ?? string.Empty;
         }
 
-        string failures = string.Join(Environment.NewLine, result.ItemFailures.Select(f => $"{f.DisplayName ?? f.ReferenceCode ?? f.Category.ToString()}: {f.Message}"));
+        string failures = string.Join(Environment.NewLine, result.ItemFailures.Select(f => $"{f.DisplayName ?? f.ReferenceCode ?? Localizer[f.Category.ToString()]}: {f.Message}"));
         return string.IsNullOrWhiteSpace(result.ErrorMessage) ? failures : $"{result.ErrorMessage}{Environment.NewLine}{failures}";
     }
 }
