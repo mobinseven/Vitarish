@@ -23,10 +23,10 @@ public partial class PrescriptionTemplateList : PrescriptionBase
                 SearchTerm = SearchString
             });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             templates = [];
-            Snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            Snackbar.Add(Localizer["ErrorLoadingTemplates"], MudBlazor.Severity.Error);
         }
 
         await InvokeAsync(StateHasChanged);
