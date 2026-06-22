@@ -11,10 +11,20 @@ public partial class PrescriptionTemplatePicker : PrescriptionBase
 
     protected override async Task OnParametersSetAsync()
     {
-        templates = await Mediator.Send(new GetPrescriptionTemplatesQuery
+        try
         {
-            TenantId = RequestContext.TenantId ?? string.Empty
-        });
+            templates = await Mediator.Send(new GetPrescriptionTemplatesQuery
+            {
+                TenantId = RequestContext.TenantId ?? string.Empty
+            });
+        }
+        catch (Exception ex)
+        {
+            templates = [];
+            selectedTemplate = null;
+            selectedTemplateId = null;
+            Snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+        }
     }
 
     protected override Task ReloadRequired() => OnParametersSetAsync();
@@ -22,14 +32,30 @@ public partial class PrescriptionTemplatePicker : PrescriptionBase
     private async Task OnTemplateSelectedAsync(Guid? templateId)
     {
         selectedTemplateId = templateId;
-        selectedTemplate = templateId is null
-            ? null
-            : await Mediator.Send(new GetPrescriptionTemplateQuery { TemplateId = templateId.Value, TenantId = RequestContext.TenantId ?? string.Empty });
+        if (templateId is null)
+        {
+            selectedTemplate = null;
+            return;
+        }
+
+        try
+        {
+            selectedTemplate = await Mediator.Send(new GetPrescriptionTemplateQuery { TemplateId = templateId.Value, TenantId = RequestContext.TenantId ?? string.Empty });
+        }
+        catch (Exception ex)
+        {
+            selectedTemplate = null;
+            Snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+        }
     }
 
     private async Task LoadAsync()
     {
-        if (selectedTemplateId is null) return;
+        if (selectedTemplateId is null || PrescriptionId == Guid.Empty)
+        {
+            Snackbar.Add(Localizer["UnknownError"], MudBlazor.Severity.Error);
+            return;
+        }
         PrescriptionTemplateCommandResult result = await Mediator.Send(new LoadPrescriptionTemplateIntoDraftCommand
         {
             TemplateId = selectedTemplateId.Value,
@@ -42,6 +68,17 @@ public partial class PrescriptionTemplatePicker : PrescriptionBase
             await OnLoaded.InvokeAsync();
             return;
         }
-        Snackbar.Add(result.ErrorMessage ?? Localizer["UnknownError"], MudBlazor.Severity.Error);
+        Snackbar.Add(FormatLoadError(result), MudBlazor.Severity.Error);
+    }
+
+    private static string FormatLoadError(PrescriptionTemplateCommandResult result)
+    {
+        if (result.ItemFailures.Count == 0)
+        {
+            return result.ErrorMessage ?? string.Empty;
+        }
+
+        string failures = string.Join(Environment.NewLine, result.ItemFailures.Select(f => $"{f.DisplayName ?? f.ReferenceCode ?? f.Category.ToString()}: {f.Message}"));
+        return string.IsNullOrWhiteSpace(result.ErrorMessage) ? failures : $"{result.ErrorMessage}{Environment.NewLine}{failures}";
     }
 }

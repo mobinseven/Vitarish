@@ -14,12 +14,21 @@ public partial class PrescriptionTemplateList : PrescriptionBase
 
     protected override async Task ReloadRequired()
     {
-        templates = await Mediator.Send(new GetPrescriptionTemplatesQuery
+        try
         {
-            TenantId = RequestContext.TenantId ?? string.Empty,
-            IncludeArchived = includeArchived,
-            SearchTerm = SearchString
-        });
+            templates = await Mediator.Send(new GetPrescriptionTemplatesQuery
+            {
+                TenantId = RequestContext.TenantId ?? string.Empty,
+                IncludeArchived = includeArchived,
+                SearchTerm = SearchString
+            });
+        }
+        catch (Exception ex)
+        {
+            templates = [];
+            Snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+        }
+
         await InvokeAsync(StateHasChanged);
     }
 
@@ -31,6 +40,12 @@ public partial class PrescriptionTemplateList : PrescriptionBase
 
     private async Task ArchiveAsync(Guid templateId)
     {
+        if (templateId == Guid.Empty)
+        {
+            Snackbar.Add(Localizer["UnknownError"], MudBlazor.Severity.Error);
+            return;
+        }
+
         PrescriptionTemplateCommandResult result = await Mediator.Send(new ArchivePrescriptionTemplateCommand
         {
             TemplateId = templateId,
