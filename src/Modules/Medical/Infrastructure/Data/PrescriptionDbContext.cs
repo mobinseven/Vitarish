@@ -157,7 +157,6 @@ public sealed class PrescriptionDbContext : DbContext, IMultiTenantDbContext
         _ = entity.Property(e => e.DisplayName).HasMaxLength(512);
         _ = entity.Property(e => e.DosageJson).HasMaxLength(4096);
         _ = entity.Property(e => e.MetadataJson).HasMaxLength(4096);
-        _ = entity.HasIndex("TenantId", nameof(PrescriptionTemplateItem.PrescriptionTemplateId), nameof(PrescriptionTemplateItem.SortOrder)).HasDatabaseName("IX_PrescriptionTemplateItem_Tenant_Template_Sort");
         _ = entity.HasOne<PrescriptionTemplate>()
             .WithMany(p => p.Items)
             .HasForeignKey(e => e.PrescriptionTemplateId)
