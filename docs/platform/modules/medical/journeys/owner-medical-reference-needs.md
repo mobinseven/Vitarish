@@ -12,7 +12,7 @@
 - Scope end: Owner can import, activate, query, curate, and audit reference data with safe guardrails.
 - Primary persona: Platform owner / reference admin
 - Secondary personas: Reference importer, reference curator, read-only consumer module owners
-- Evidence sources: `docs/plans/Medical-Implementation-Plan.md`
+- Evidence sources: `docs/platform/modules/medical/roadmaps/0001-medical-implementation-roadmap.md`
 - Confidence level: Medium-high for feature boundaries and lifecycle; medium for final UX sequencing.
 
 ## 2. Implied User Needs

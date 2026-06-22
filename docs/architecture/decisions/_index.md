@@ -1,12 +1,16 @@
 # Architecture Decision Records
 
-This directory contains the platform architecture decision records.
+This directory serves as a central index. ADRs have been moved to scope-owned decision folders:
+
+- **Platform ADRs**: `docs/platform/modules/platform/decisions/`
+- **App-owned ADRs**: `docs/apps/{app-slug}/modules/{module-slug}/decisions/`
 
 ## Current Decisions
 
-| ADR | Title | Status | Scope | Date |
-|---|---|---|---|---|
-| ADR-0001 | Record Architecture Decisions | Accepted | Platform | YYYY-MM-DD |
+| ADR | Title | Status | Scope | Location | Date |
+|---|---|---|---|---|---|
+| ADR-0001 | Record Architecture Decisions | Accepted | Platform | `docs/platform/modules/platform/decisions/` | YYYY-MM-DD |
+| ADR-0002 | Persist instants as UTC DateTime | Accepted | Platform | `docs/platform/modules/platform/decisions/` | YYYY-MM-DD |
 
 ## Superseded / Deprecated Decisions
 
