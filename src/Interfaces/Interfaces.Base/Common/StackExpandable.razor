@@ -1,14 +1,21 @@
-@inherits MudButton
+@using Microsoft.AspNetCore.Components
+@using MudBlazor
 
 @if(TitleContent is not null)
 {
-        @TitleContent(Expansion)
+    @TitleContent(Expansion)
 }
 else
 {
-    <StackButton Label="@Label" OnClick="Toggle" EndIcon="@ContinueIcon" Color="@Color" Size="@Size" />
+    <StackButton Label="@Label"
+                 OnClick="Toggle"
+                 StartIcon="@StartIcon"
+                 EndIcon="@ContinueIcon"
+                 Color="@Color"
+                 Size="@Size" />
 }
-@if(expanded)
+
+@if(_expanded)
 {
     @if(ExpandableContent is not null)
     {
@@ -20,50 +27,79 @@ else
     }
 }
 
-
 @code {
-    private bool expanded;
+    private bool _expanded;
+    private bool _expandedParameterWasSupplied;
+    private bool _initialized;
 
     private ExpansionContext Expansion =>
         new(
-            expanded,
+            _expanded,
             Open,
             Close,
             Toggle
         );
 
-    private Task Toggle() => SetExpanded(!expanded);
-
-    private Task Open() => SetExpanded(true);
-
-    private Task Close() => SetExpanded(false);
-
-    private Task SetExpanded(bool value)
+    public override Task SetParametersAsync(ParameterView parameters)
     {
-        if(expanded == value)
-            return Task.CompletedTask;
+        _expandedParameterWasSupplied =
+            parameters.TryGetValue<bool>(nameof(Expanded), out _);
 
-        expanded = value;
-        return InvokeAsync(StateHasChanged);
+        return base.SetParametersAsync(parameters);
     }
+
+    protected override void OnParametersSet()
+    {
+        if(!_initialized)
+        {
+            _expanded = Expanded;
+            _initialized = true;
+            return;
+        }
+
+        if(_expandedParameterWasSupplied && _expanded != Expanded)
+        {
+            _expanded = Expanded;
+        }
+    }
+
+    private Task Toggle() => SetExpandedAsync(!_expanded);
+
+    private Task Open() => SetExpandedAsync(true);
+
+    private Task Close() => SetExpandedAsync(false);
+
+    private async Task SetExpandedAsync(bool value)
+    {
+        if(_expanded == value)
+        {
+            return;
+        }
+
+        _expanded = value;
+        await ExpandedChanged.InvokeAsync(value);
+    }
+
+    [Parameter] public bool Expanded { get; set; }
+    [Parameter] public EventCallback<bool> ExpandedChanged { get; set; }
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+    [Parameter] public RenderFragment<ExpansionContext>? ExpandableContent { get; set; }
+    [Parameter] public RenderFragment<ExpansionContext>? TitleContent { get; set; }
 
     [Parameter] public string? Label { get; set; }
     [Parameter] public string? HighlightString { get; set; }
     [Parameter] public string? HelperText { get; set; }
-    [Parameter] public RenderFragment<ExpansionContext>? ExpandableContent { get; set; }
-    [Parameter] public RenderFragment<ExpansionContext>? TitleContent { get; set; }
 
-    private Typo LabelSize => Size switch
-    {
-        Size.Small => Typo.caption,
-        Size.Large => Typo.h3,
-        _ => Typo.body1
-    };
+    [Parameter] public string? StartIcon { get; set; }
+    [Parameter] public string? EndIcon { get; set; }
+    [Parameter] public Color Color { get; set; } = Color.Default;
+    [Parameter] public Size Size { get; set; } = Size.Medium;
 
     private string ContinueIcon =>
         !string.IsNullOrWhiteSpace(EndIcon)
             ? EndIcon
-            : expanded
+            : _expanded
                 ? "fa-solid fa-chevron-up"
                 : "fa-solid fa-chevron-down";
 
