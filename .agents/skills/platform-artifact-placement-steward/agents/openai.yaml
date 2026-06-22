@@ -1,0 +1,15 @@
+name: platform-artifact-placement-steward
+version: 1.0.0
+description: Classifies platform artifacts and recommends correct repository placement, ownership boundaries, dependency constraints, related tests, documentation impact, and ADR impact.
+recommended_model: gpt-5.5-thinking
+triggers:
+  - where should this file go
+  - classify artifact placement
+  - artifact placement
+  - repository structure
+  - module folder
+  - app module host identity placement
+  - review misplaced files
+  - architecture conformance
+  - folder rules
+  - dependency boundary
