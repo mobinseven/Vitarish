@@ -16,8 +16,8 @@ public static class KnowledgeOwnerCollectionProjector
     {
         KnowledgeOwnerCorpusCollectionItem[] corpusItems = corpora.Select(corpus => corpus.ToCorpusItem(sourcesByCorpus, filesBySource)).ToArray();
         Guid? resolvedCorpusId = corpusItems.Any(corpus => corpus.CorpusId == selectedCorpusId) ? selectedCorpusId : corpusItems.FirstOrDefault()?.CorpusId;
-        Guid? resolvedSourceId = ResolveSelectedSourceId(corpusItems, resolvedCorpusId, selectedSourceId);
-        return new KnowledgeOwnerCollectionReadModel(corpusItems, resolvedCorpusId, resolvedSourceId);
+        Guid? focusedSourceId = ResolveFocusedSourceId(corpusItems, resolvedCorpusId, selectedSourceId);
+        return new KnowledgeOwnerCollectionReadModel(corpusItems, resolvedCorpusId, focusedSourceId);
     }
 
 
@@ -39,10 +39,10 @@ public static class KnowledgeOwnerCollectionProjector
     private static KnowledgeOwnerSourceFileCollectionItem ToFileItem(KnowledgeOwnerSourceFileProjection file)
         => new(file.Document.Id, file.Document.Title, file.Document.Language, file.Document.Text.Length, file.ChunkCount, file.IndexedAt);
 
-    private static Guid? ResolveSelectedSourceId(IReadOnlyList<KnowledgeOwnerCorpusCollectionItem> corpora, Guid? selectedCorpusId, Guid? selectedSourceId)
+    private static Guid? ResolveFocusedSourceId(IReadOnlyList<KnowledgeOwnerCorpusCollectionItem> corpora, Guid? selectedCorpusId, Guid? selectedSourceId)
     {
         KnowledgeOwnerCorpusCollectionItem? corpus = corpora.FirstOrDefault(item => item.CorpusId == selectedCorpusId);
         if (corpus is null) return null;
-        return corpus.Sources.Any(source => source.SourceId == selectedSourceId) ? selectedSourceId : corpus.Sources.FirstOrDefault()?.SourceId;
+        return corpus.Sources.Any(source => source.SourceId == selectedSourceId) ? selectedSourceId : null;
     }
 }

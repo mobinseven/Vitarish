@@ -12,7 +12,7 @@ else
     <MudExpansionPanels MultiExpansion="true" Class="glass">
         @foreach(CorpusItemModel corpus in Model.Corpora)
         {
-            <KnowledgeOwnerCorpusCollectionItem Item="corpus" IsSelected="@(Model.SelectedCorpusId == corpus.CorpusId)" SelectedSourceId="Model.SelectedSourceId" SelectedCorpusChanged="SelectedCorpusChanged" SelectedSourceChanged="SelectedSourceChanged" />
+            <KnowledgeOwnerCorpusCollectionItem Item="corpus" IsSelected="@(Model.SelectedCorpusId == corpus.CorpusId)" FocusedSourceId="Model.FocusedSourceId" SelectedCorpusChanged="SelectedCorpusChanged" SelectedSourceChanged="SelectedSourceChanged" />
         }
     </MudExpansionPanels>
 }

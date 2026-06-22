@@ -2,7 +2,7 @@ using FluentAssertions;
 using Vitarish.Intelligence.Application.Abstractions;
 using Vitarish.Intelligence.Domain.Models;
 using Vitarish.Knowledge.Application.Contracts;
-using Vitarish.Knowledge.Application.Services.RetrievalPlanning;
+using Vitarish.Knowledge.Infrastructure.Services.RetrievalPlanning;
 using Xunit;
 
 namespace Vitarish.Knowledge.Tests;

@@ -38,7 +38,7 @@
             <MudExpansionPanels MultiExpansion="true" Class="stack">
                 @foreach (SourceItemModel source in Item.Sources)
                 {
-                    <KnowledgeOwnerSourceCollectionItem Item="source" IsSelected="@(SelectedSourceId == source.SourceId)" SelectedSourceChanged="SelectedSourceChanged" />
+                    <KnowledgeOwnerSourceCollectionItem Item="source" IsFocused="@(FocusedSourceId == source.SourceId)" SelectedSourceChanged="SelectedSourceChanged" />
                 }
             </MudExpansionPanels>
         }
@@ -53,7 +53,7 @@
     public bool IsSelected { get; set; }
 
     [Parameter]
-    public Guid? SelectedSourceId { get; set; }
+    public Guid? FocusedSourceId { get; set; }
 
     [Parameter, EditorRequired]
     public EventCallback<Guid> SelectedCorpusChanged { get; set; }

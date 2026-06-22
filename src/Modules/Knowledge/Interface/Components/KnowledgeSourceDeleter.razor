@@ -5,9 +5,9 @@
 @if (CanDelete)
 {
     <Stack>
-        <StackField Label="Delete source" HelperText="Delete a source and its dependent chunks, questions, and search index entries from the selected corpus." />
+        <StackField Label="Delete source" HelperText="Delete the focused or chosen source and its dependent chunks, questions, and search index entries from the selected corpus." />
 
-        <StackSelect T="KnowledgeOwnerSourceOption" @bind-Value="source" Label="Existing source to delete" Disabled="@IsBusy">
+        <StackSelect T="KnowledgeOwnerSourceOption" @bind-Value="source" Label="Focused source to delete" Disabled="@IsBusy">
             @foreach (KnowledgeOwnerSourceOption option in Sources)
             {
                 <MudSelectItem T="KnowledgeOwnerSourceOption" Value="@option">@option.Label</MudSelectItem>
@@ -27,12 +27,16 @@
 @code {
     private KnowledgeOwnerSourceOption? source;
     private int observedSourcesVersion = -1;
+    private Guid? observedFocusedSourceId;
 
     [Inject]
     private IDialogService DialogService { get; set; } = default!;
 
     [Parameter]
     public KnowledgeOwnerCorpusOption? SelectedCorpus { get; set; }
+
+    [Parameter]
+    public KnowledgeOwnerSourceOption? FocusedSource { get; set; }
 
     [Parameter, EditorRequired]
     public IReadOnlyList<KnowledgeOwnerSourceOption> Sources { get; set; } = [];
@@ -51,13 +55,14 @@
 
     protected override void OnParametersSet()
     {
-        if (observedSourcesVersion == SourcesVersion)
+        if (observedSourcesVersion == SourcesVersion && observedFocusedSourceId == FocusedSource?.SourceId)
         {
             return;
         }
 
         observedSourcesVersion = SourcesVersion;
-        source = null;
+        observedFocusedSourceId = FocusedSource?.SourceId;
+        source = Sources.FirstOrDefault(option => option.SourceId == FocusedSource?.SourceId);
     }
 
     private async Task ConfirmDeleteAsync()
