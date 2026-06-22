@@ -1,6 +1,8 @@
 # Journey Graph Visualizer
 
-This page visualizes the complete journey map inventory under `docs/journeys/` as one Mermaid graph. It separates the implemented and current-state paths from planned future journeys, while showing how each journey hands off to the next focused flow.
+This page visualizes the complete journey map inventory from `docs/apps/` and `docs/platform/` as one Mermaid graph. It separates the implemented and current-state paths from planned future journeys, while showing how each journey hands off to the next focused flow.
+
+**Note:** Journey files have been reorganized. For clinic owner journeys, see `docs/apps/clinic-owner/modules/`. For platform shared journeys, see `docs/platform/modules/`.
 
 ## Legend
 
@@ -191,29 +193,13 @@ flowchart LR
 
 ## Source Journey Documents
 
-- [docs/journeys/apps/clinic/owner/patient-appointment-journey.md](./apps/clinic/owner/patient-appointment-journey.md)
-- [docs/journeys/apps/clinic/owner/patient-check-in-journey.md](./apps/clinic/owner/patient-check-in-journey.md)
-- [docs/journeys/apps/clinic/owner/patient-overview-journey.md](./apps/clinic/owner/patient-overview-journey.md)
-- [docs/journeys/apps/clinic/owner/patient-procedure-journey.md](./apps/clinic/owner/patient-procedure-journey.md)
-- [docs/journeys/apps/clinic/owner/patient-profile-crud-journey.md](./apps/clinic/owner/patient-profile-crud-journey.md)
-- [docs/journeys/modules/knowledge/owner/README.md](./modules/knowledge/owner/README.md)
-- [docs/journeys/modules/knowledge/owner/implementation-matrix.md](./modules/knowledge/owner/implementation-matrix.md)
-- [docs/journeys/modules/knowledge/owner/knowledge-corpus-management-journey.md](./modules/knowledge/owner/knowledge-corpus-management-journey.md)
-- [docs/journeys/modules/knowledge/owner/knowledge-diagnostics-journey.md](./modules/knowledge/owner/knowledge-diagnostics-journey.md)
-- [docs/journeys/modules/knowledge/owner/knowledge-evaluation-journey.md](./modules/knowledge/owner/knowledge-evaluation-journey.md)
-- [docs/journeys/modules/knowledge/owner/knowledge-indexing-journey.md](./modules/knowledge/owner/knowledge-indexing-journey.md)
-- [docs/journeys/modules/knowledge/owner/knowledge-qa-test-journey.md](./modules/knowledge/owner/knowledge-qa-test-journey.md)
-- [docs/journeys/modules/knowledge/owner/knowledge-source-import-journey.md](./modules/knowledge/owner/knowledge-source-import-journey.md)
-- [docs/journeys/platform/owners/owner-action-inbox-journey.md](./platform/owners/owner-action-inbox-journey.md)
-- [docs/journeys/platform/owners/owner-audit-log-journey.md](./platform/owners/owner-audit-log-journey.md)
-- [docs/journeys/platform/owners/owner-billing-page-journey.md](./platform/owners/owner-billing-page-journey.md)
-- [docs/journeys/platform/owners/owner-create-tenant-journey.md](./platform/owners/owner-create-tenant-journey.md)
-- [docs/journeys/platform/owners/owner-danger-zone-journey.md](./platform/owners/owner-danger-zone-journey.md)
-- [docs/journeys/platform/owners/owner-dashboard-journey.md](./platform/owners/owner-dashboard-journey.md)
-- [docs/journeys/platform/owners/owner-global-tenant-list-journey.md](./platform/owners/owner-global-tenant-list-journey.md)
-- [docs/journeys/platform/owners/owner-invite-remove-users-journey.md](./platform/owners/owner-invite-remove-users-journey.md)
-- [docs/journeys/platform/owners/owner-members-roles-journey.md](./platform/owners/owner-members-roles-journey.md)
-- [docs/journeys/platform/owners/owner-onboarding-journey.md](./platform/owners/owner-onboarding-journey.md)
-- [docs/journeys/platform/owners/owner-tenant-overview-journey.md](./platform/owners/owner-tenant-overview-journey.md)
-- [docs/journeys/platform/owners/owner-tenant-settings-journey.md](./platform/owners/owner-tenant-settings-journey.md)
-- [docs/journeys/platform/owners/owner-tenant-switcher-journey.md](./platform/owners/owner-tenant-switcher-journey.md)
+**Clinic Owner App (docs/apps/clinic-owner/modules/)**
+- [Patient Module](../apps/clinic-owner/modules/patient/journeys/patient-profile-crud-journey.md)
+- [Appointment Module](../apps/clinic-owner/modules/appointment/journeys/patient-appointment-journey.md)
+- [Prescription Module](../apps/clinic-owner/modules/prescription/journeys/prescription-journey.md)
+
+**Platform Modules (docs/platform/modules/)**
+- [Knowledge Module](../platform/modules/knowledge/journeys/knowledge-corpus-management-journey.md)
+- [Medical Module](../platform/modules/medical/journeys/owner-medical-code-system-registry-journey.md)
+- [Platform Module](../platform/modules/platform/journeys/owner-dashboard-journey.md)
+- [Prescription Module](../platform/modules/prescription/journeys/eligible-patient-happy-path.md)
