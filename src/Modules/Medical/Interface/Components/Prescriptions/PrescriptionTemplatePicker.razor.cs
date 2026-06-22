@@ -18,12 +18,12 @@ public partial class PrescriptionTemplatePicker : PrescriptionBase
                 TenantId = RequestContext.TenantId ?? string.Empty
             });
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             templates = [];
             selectedTemplate = null;
             selectedTemplateId = null;
-            Snackbar.Add(ex.Message, MudBlazor.Severity.Error);
+            Snackbar.Add(Localizer["ErrorLoadingTemplates"], MudBlazor.Severity.Error);
         }
     }
 
