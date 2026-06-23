@@ -31,7 +31,12 @@ public sealed class DeleteKnowledgeSourceCommandHandler(IKnowledgeService knowle
                 return KnowledgeOwnerCommandResult.Failure("The selected corpus was not found.");
             }
 
-            await knowledge.DeleteSourceAsync(sourceId, corpus.Id, request.TenantId!, cancellationToken);
+            KnowledgeDeleteSourceResult result = await knowledge.DeleteSourceAsync(sourceId, corpus.Id, request.TenantId!, cancellationToken);
+            if (!result.SourceDeleted)
+            {
+                return KnowledgeOwnerCommandResult.Failure("The selected source was not found.");
+            }
+
             return KnowledgeOwnerCommandResult.Success("Source deleted.");
         }
         catch (Exception ex) when (ex is not OperationCanceledException)

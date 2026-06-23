@@ -28,6 +28,8 @@ public sealed record KnowledgeImportResult
 
 public sealed record KnowledgeIndexResult(Guid CorpusId, string TenantId, int IndexedChunkCount, string Scope, Guid? SourceId);
 
+public sealed record KnowledgeDeleteSourceResult(Guid SourceId, Guid CorpusId, string TenantId, bool SourceDeleted, bool IndexCleaned);
+
 public sealed record KnowledgeQuery
 {
     public required Guid CorpusId { get; init; }

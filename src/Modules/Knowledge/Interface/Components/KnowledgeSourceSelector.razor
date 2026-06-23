@@ -38,7 +38,16 @@
 
         observedSourcesVersion = SourcesVersion;
         observedFocusedSourceId = FocusedSource?.SourceId;
-        selectedSource = Sources.FirstOrDefault(option => option.SourceId == FocusedSource?.SourceId);
+
+        Guid? retainedSourceId = FocusedSource?.SourceId ?? selectedSource?.SourceId;
+        KnowledgeOwnerSourceOption? refreshedSource = Sources.FirstOrDefault(option => option.SourceId == retainedSourceId);
+        if (selectedSource?.SourceId == refreshedSource?.SourceId)
+        {
+            selectedSource = refreshedSource;
+            return;
+        }
+
+        selectedSource = refreshedSource;
         await SelectedSourceChanged.InvokeAsync(selectedSource);
     }
 

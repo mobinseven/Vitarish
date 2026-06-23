@@ -24,18 +24,19 @@ public sealed class KnowledgeSourceRepository(KnowledgeDbContext dbContext)
     public async Task<bool> SourceExistsAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken)
     { ArgumentException.ThrowIfNullOrWhiteSpace(tenantId); return await DbContext.Sources.AsNoTracking().AnyAsync(s => s.Id == sourceId && s.CorpusId == corpusId && s.TenantId == tenantId, cancellationToken); }
 
-    public async Task DeleteSourceAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken)
+    public async Task<bool> DeleteSourceAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(tenantId);
         var source = await DbContext.Sources.FirstOrDefaultAsync(s => s.Id == sourceId && s.CorpusId == corpusId && s.TenantId == tenantId, cancellationToken);
         if (source is null)
         {
-            return;
+            return false;
         }
 
         Guid[] chunkIds = await DbContext.Chunks.AsNoTracking().Where(c => c.SourceId == source.Id && c.CorpusId == corpusId && c.TenantId == tenantId).Select(c => c.Id).ToArrayAsync(cancellationToken);
         DbContext.Sources.Remove(source);
         await KnowledgeQuestionRemover.RemoveQuestionsForChunksAsync(DbContext, corpusId, chunkIds, cancellationToken);
-        _ = await DbContext.SaveChangesAsync(cancellationToken);
+        int changed = await DbContext.SaveChangesAsync(cancellationToken);
+        return changed > 0;
     }
 }

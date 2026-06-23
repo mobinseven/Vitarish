@@ -50,6 +50,14 @@
     [Parameter, EditorRequired]
     public EventCallback<DeleteKnowledgeSourceInput> DeleteRequested { get; set; }
 
+    protected override void OnParametersSet()
+    {
+        if (source is not null && !Sources.Any(option => option.SourceId == source.SourceId))
+        {
+            source = null;
+        }
+    }
+
     private Task SelectSource(KnowledgeOwnerSourceOption? selected)
     {
         source = selected;

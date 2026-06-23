@@ -10,10 +10,16 @@ public sealed class KnowledgeService(IKnowledgeImporter importer, IKnowledgeInde
     public Task<KnowledgeCorpus?> GetCorpusAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken) => corpusRepository.GetCorpusAsync(corpusId, tenantId, cancellationToken);
     public Task<IReadOnlyList<KnowledgeCorpus>> ListCorporaAsync(string tenantId, CancellationToken cancellationToken) => corpusRepository.ListCorporaAsync(tenantId, cancellationToken);
     public Task<IReadOnlyList<KnowledgeSource>> GetSourcesAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken) => sourceRepository.GetSourcesAsync(corpusId, tenantId, cancellationToken);
-    public async Task DeleteSourceAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken)
+    public async Task<KnowledgeDeleteSourceResult> DeleteSourceAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken)
     {
+        bool sourceDeleted = await sourceRepository.DeleteSourceAsync(sourceId, corpusId, tenantId, cancellationToken);
+        if (!sourceDeleted)
+        {
+            return new KnowledgeDeleteSourceResult(sourceId, corpusId, tenantId, SourceDeleted: false, IndexCleaned: false);
+        }
+
         await indexer.DeleteFromIndexAsync(sourceId, corpusId, tenantId, cancellationToken);
-        await sourceRepository.DeleteSourceAsync(sourceId, corpusId, tenantId, cancellationToken);
+        return new KnowledgeDeleteSourceResult(sourceId, corpusId, tenantId, SourceDeleted: true, IndexCleaned: true);
     }
     public Task<KnowledgeImportResult> ImportAsync(KnowledgeImportRequest request, CancellationToken cancellationToken) => importer.ImportAsync(request, cancellationToken);
     public Task<KnowledgeImportResult> ReplaceSourceAsync(Guid sourceId, KnowledgeImportRequest request, CancellationToken cancellationToken) => importer.ReplaceSourceAsync(sourceId, request, cancellationToken);
