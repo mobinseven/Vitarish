@@ -10,7 +10,6 @@ public sealed class KnowledgeService(IKnowledgeImporter importer, IKnowledgeInde
     public Task<KnowledgeCorpus?> GetCorpusAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken) => corpusRepository.GetCorpusAsync(corpusId, tenantId, cancellationToken);
     public Task<IReadOnlyList<KnowledgeCorpus>> ListCorporaAsync(string tenantId, CancellationToken cancellationToken) => corpusRepository.ListCorporaAsync(tenantId, cancellationToken);
     public Task<IReadOnlyList<KnowledgeSource>> GetSourcesAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken) => sourceRepository.GetSourcesAsync(corpusId, tenantId, cancellationToken);
-    public Task<bool> SourceExistsAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken) => sourceRepository.SourceExistsAsync(sourceId, corpusId, tenantId, cancellationToken);
     public async Task<KnowledgeDeleteSourceResult> DeleteSourceAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken)
     {
         bool sourceDeleted = await sourceRepository.DeleteSourceAsync(sourceId, corpusId, tenantId, cancellationToken);

@@ -20,7 +20,7 @@ public sealed class KnowledgeSourceDeletionTests
     {
         Guid corpusId = Guid.NewGuid();
         Guid sourceId = Guid.NewGuid();
-        var service = new RecordingKnowledgeService { Corpus = Corpus(corpusId), SourceExists = true };
+        var service = new RecordingKnowledgeService { Corpus = Corpus(corpusId) };
         var handler = new DeleteKnowledgeSourceCommandHandler(service, NullLogger<DeleteKnowledgeSourceCommandHandler>.Instance);
 
         KnowledgeOwnerCommandResult result = await handler.Handle(Command(corpusId, sourceId), CancellationToken.None);
@@ -33,30 +33,28 @@ public sealed class KnowledgeSourceDeletionTests
     [Fact]
     public async Task DeleteSource_WithMissingCorpus_ReturnsCorpusNotFoundAndDoesNotMutateState()
     {
-        var service = new RecordingKnowledgeService { Corpus = null, SourceExists = true };
+        var service = new RecordingKnowledgeService { Corpus = null };
         var handler = new DeleteKnowledgeSourceCommandHandler(service, NullLogger<DeleteKnowledgeSourceCommandHandler>.Instance);
 
         KnowledgeOwnerCommandResult result = await handler.Handle(Command(Guid.NewGuid(), Guid.NewGuid()), CancellationToken.None);
 
         _ = result.Succeeded.Should().BeFalse();
         _ = result.Message.Should().Be("The selected corpus was not found.");
-        _ = service.SourceExistsCalls.Should().Be(0);
         _ = service.DeleteCalls.Should().Be(0);
     }
 
     [Fact]
-    public async Task DeleteSource_WithMissingSource_ReturnsSourceNotFoundAndDoesNotDelete()
+    public async Task DeleteSource_WithMissingSource_ReturnsSourceNotFoundAndDoesNotReportSuccess()
     {
         Guid corpusId = Guid.NewGuid();
-        var service = new RecordingKnowledgeService { Corpus = Corpus(corpusId), SourceExists = false };
+        var service = new RecordingKnowledgeService { Corpus = Corpus(corpusId), DeleteResult = false };
         var handler = new DeleteKnowledgeSourceCommandHandler(service, NullLogger<DeleteKnowledgeSourceCommandHandler>.Instance);
 
         KnowledgeOwnerCommandResult result = await handler.Handle(Command(corpusId, Guid.NewGuid()), CancellationToken.None);
 
         _ = result.Succeeded.Should().BeFalse();
         _ = result.Message.Should().Be("The selected source was not found.");
-        _ = service.SourceExistsCalls.Should().Be(1);
-        _ = service.DeleteCalls.Should().Be(0);
+        _ = service.DeleteCalls.Should().Be(1);
     }
 
     [Fact]
@@ -135,12 +133,10 @@ public sealed class KnowledgeSourceDeletionTests
     private sealed class RecordingKnowledgeService : IKnowledgeService
     {
         public KnowledgeCorpus? Corpus { get; init; }
-        public bool SourceExists { get; init; }
-        public int SourceExistsCalls { get; private set; }
+        public bool DeleteResult { get; init; } = true;
         public int DeleteCalls { get; private set; }
         public Task<KnowledgeCorpus?> GetCorpusAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken) => Task.FromResult(Corpus);
-        public Task<bool> SourceExistsAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken) { SourceExistsCalls++; return Task.FromResult(SourceExists); }
-        public Task<KnowledgeDeleteSourceResult> DeleteSourceAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken) { DeleteCalls++; return Task.FromResult(new KnowledgeDeleteSourceResult(sourceId, corpusId, tenantId, true, true)); }
+        public Task<KnowledgeDeleteSourceResult> DeleteSourceAsync(Guid sourceId, Guid corpusId, string tenantId, CancellationToken cancellationToken) { DeleteCalls++; return Task.FromResult(new KnowledgeDeleteSourceResult(sourceId, corpusId, tenantId, DeleteResult, DeleteResult)); }
         public Task SaveCorpusAsync(KnowledgeCorpus corpus, CancellationToken cancellationToken) => Task.CompletedTask;
         public Task<IReadOnlyList<KnowledgeCorpus>> ListCorporaAsync(string tenantId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<KnowledgeCorpus>>([]);
         public Task<IReadOnlyList<KnowledgeSource>> GetSourcesAsync(Guid corpusId, string tenantId, CancellationToken cancellationToken) => Task.FromResult<IReadOnlyList<KnowledgeSource>>([]);
