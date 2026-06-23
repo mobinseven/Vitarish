@@ -9,6 +9,7 @@ public partial class AdvancedInput : CommonBase
     [Inject] protected IFilesModule FilesModule { get; set; } = default!;
     [Inject] protected IIntelligenceModule IntelligenceModule { get; set; } = default!;
 
+    private MudTextField<string>? _textInput;
     private AiStreamTranscriber? _transcriber;
     private AiStreamRewriter? _rewriter;
     private StreamTransfer? _streamTransferComponent;
@@ -24,6 +25,7 @@ public partial class AdvancedInput : CommonBase
 
     [Parameter] public RenderFragment? StartContent { get; set; }
     [Parameter] public RenderFragment? EndContent { get; set; }
+    [Parameter] public RenderFragment? BusyContent { get; set; }
     [Parameter] public string? UserId { get; set; }
     [Parameter] public EventCallback<FileInformationReadDto> FileUploaded { get; set; }
     [Parameter] public EventCallback<string> OnSubmit { get; set; }

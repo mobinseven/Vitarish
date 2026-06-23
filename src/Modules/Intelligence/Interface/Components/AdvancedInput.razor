@@ -23,20 +23,20 @@
                     OnFileUploaded="HandleFileUploaded"
                     OnStateChange="()=>StateHasChanged()">
         <ActivatorContent>
-            <MudFab StartIcon="fa-solid fa-photo-film"
-                    HtmlTag="div"
-                    Disabled=@(_busy || !FilesModule.IsAvailable)
-                    Size="Size.Small"
-                    Color="Color.Primary"
-                    DropShadow=false />
+            <MudIconButton Icon="fa-solid fa-photo-film"
+                           HtmlTag="div"
+                           Disabled=@(_busy || !FilesModule.IsAvailable)
+                           Size="Size.Small"
+                           Color="Color.Primary"
+                           DropShadow=false />
         </ActivatorContent>
     </StreamTransfer>
 }
 
-<MudField Style="width: 100%; position: relative;" Class="pa-1 my-2" Underline=false Variant="Variant.Text">
+<MudField Style="width: 100%; position: relative;" Underline=false Variant="Variant.Text">
     @if(_streamTransferComponent is not null && fileAttachmentMode)
     {
-        <MudField Underline=false Class="my-1">
+        <MudField Underline=false>
             @foreach(var item in _streamTransferComponent!.PendingFiles)
             {
                 <Chip Class="glass" Style="@($"white-space: pre-wrap;height:auto; overflow: auto; background-image: url('{item.Thumbnail}'); background-size: cover;")">
@@ -58,20 +58,35 @@
         </MudField>
     }
 
-    <TextField Value="@_value"
-               ValueChanged="(v) => UpdateValueAsync(v)"
-               Variant="Variant.Text"
-               Disabled=@(_busy)
-               Lines="@Lines"
-               HideOnFocus
-               Immediate />
+    @if(Busy)
+    {
+        @if(BusyContent is not null)
+        {
+            @BusyContent
+        }
+        else
+        {
+            <ShimmeringText Text="@Localizer["Thinking"]" />
+        }
+    }
+    else
+    {
 
+        <MudTextField T="string"
+                      @ref="_textInput"
+                      Value="@_value"
+                      Placeholder="@Localizer["TypeHere"]"
+                      ValueChanged="(v) => UpdateValueAsync(v)"
+                      Variant="Variant.Text"
+                      Lines="@Lines"
+                      Underline="false"
+                      Immediate />
+    }
 
     <MudStack Row Justify="Justify.SpaceBetween"
               AlignItems="AlignItems.Center"
               Style="width: 100%; pointer-events: none;"
-              Spacing="0"
-              Class="ma-1">
+              Spacing="0">
         <MudStack Row Justify="Justify.FlexEnd" AlignItems="AlignItems.Center" Spacing="1" Style="pointer-events: auto;">
             @if(_streamTransferComponent is not null)
             {
@@ -84,7 +99,7 @@
                 </div>
             }
         </MudStack>
-        <MudStack Row Justify="Justify.FlexStart" AlignItems="AlignItems.Center" Spacing="1" Style="pointer-events: auto;">
+        <MudStack Row Justify="Justify.FlexStart" AlignItems="AlignItems.Center" Spacing="0" Style="pointer-events: auto;">
             @if(_streamTransferComponent is not null && _streamTransferComponent!.Transferring)
             {
                 <div>
@@ -100,8 +115,8 @@
                 @if(DisplaySubmit)
                 {
                     <div>
-                        <MudFab StartIcon="fa-solid fa-arrow-up"
-                                Disabled="@(_busy || string.IsNullOrWhiteSpace(_value))"
+                        <MudFab StartIcon="@(Busy ? "fa-solid fa-circle-notch fa-spin" : "fa-solid fa-arrow-up")"
+                                Disabled="@(Busy || string.IsNullOrWhiteSpace(_value))"
                                 OnClick="SubmitAsync"
                                 Size="Size.Small"
                                 Color="Color.Primary"
@@ -119,23 +134,23 @@
                     @if(RewriteEnabled)
                     {
                         <div>
-                            <MudFab Size="Size.Small"
-                                    DropShadow=false
-                                    Color="Color.Primary"
-                                    StartIcon="@(_rewriting ? "fa-solid fa-wand-sparkles fa-fade" : "fa-solid fa-wand-sparkles")"
-                                    Disabled=@(_rewriting || _recording || _transcribing || _transferring || _value.Length < MinStringLengthToRewrite)
-                                    OnClick="RewriteAsync" />
+                            <MudIconButton Size="Size.Small"
+                                           DropShadow=false
+                                           Color="Color.Primary"
+                                           Icon="@(_rewriting ? "fa-solid fa-wand-sparkles fa-fade" : "fa-solid fa-wand-sparkles")"
+                                           Disabled=@(_rewriting || _recording || _transcribing || _transferring || _value.Length < MinStringLengthToRewrite)
+                                           OnClick="RewriteAsync" />
                         </div>
                     }
                     @if(_transcriber?.Supported ?? false)
                     {
                         <div>
-                            <MudFab Size="Size.Small"
-                                    DropShadow=false
-                                    Color="@(_recording  || _transcribing ? Color.Error : Color.Primary)"
-                                    StartIcon="@(_recording ? "fa-duotone fa-solid fa-microphone fa-fade" : _transcribing ? "fa-duotone fa-solid fa-waveform-lines fa-fade" : "fa-solid fa-microphone")"
-                                    Disabled=@(_transcribing || _rewriting || _transferring)
-                                    OnClick="ToggleRecordingAsync" />
+                            <MudIconButton Size="Size.Small"
+                                           DropShadow=false
+                                           Color="@(_recording  || _transcribing ? Color.Error : Color.Primary)"
+                                           Icon="@(_recording ? "fa-duotone fa-solid fa-microphone fa-fade" : _transcribing ? "fa-duotone fa-solid fa-waveform-lines fa-fade" : "fa-solid fa-microphone")"
+                                           Disabled=@(_transcribing || _rewriting || _transferring)
+                                           OnClick="ToggleRecordingAsync" />
                         </div>
                     }
                 }

@@ -1,12 +1,12 @@
 @inherits PrescriptionBase
 
 <Stack>
-    <MudSelect T="Guid?" Label="@Localizer["Templates"]" Value="selectedTemplateId" ValueChanged="OnTemplateSelectedAsync">
+    <StackSelect T="Guid?" Label="@Localizer["Templates"]" Value="selectedTemplateId" ValueChanged="OnTemplateSelectedAsync">
         @foreach (PrescriptionTemplateSummaryDto template in templates)
         {
-            <MudSelectItem T="Guid?" Value="@((Guid?)template.Id)">@template.Name (@template.ItemCount)</MudSelectItem>
+            <StackSelectItem T="Guid?" Value="@((Guid?)template.Id)">@template.Name (@template.ItemCount)</StackSelectItem>
         }
-    </MudSelect>
+    </StackSelect>
 
     @if (selectedTemplate is not null)
     {

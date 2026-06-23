@@ -1,96 +1,324 @@
+@using Vitarish.Interfaces.Base.Abstractions
+@using Vitarish.Interfaces.Base.Models
 @using Vitarish.Modules.Base
 @inherits TenantCommonBase
+@implements IDisposable
 @inject IKnowledgeService Knowledge
+@inject IChatService ChatService
 
 <Stack>
-    @if (corpora.Count == 0)
+    <StackField Label="Knowledge QA"
+                HelperText="Ask a natural-language question against a selected corpus and inspect the grounded answer." />
+
+    @if(corpora.Count == 0)
     {
-        <StackField Label="Knowledge QA" HelperText="Ask a natural-language question against a selected corpus and inspect the grounded answer." />
-        <StackCard Label="No corpora available" HelperText="Create a corpus and import content before asking questions." />
+        <StackCard Label="No corpora available"
+                   HelperText="Create a corpus and import content before asking questions." />
+        <StackButton Label="@Localizer["Manage"]" OnClick="OnManagementClicked" />
+        return;
     }
-    else
+    @if(!string.IsNullOrWhiteSpace(status))
     {
-        <StackSelect T="string" Value="@selectedCorpusId" ValueChanged="SelectCorpusAsync" Label="Corpus">
-            @foreach (KnowledgeCorpus corpus in corpora)
-            {
-                <StackSelectItem T="string" Value="@corpus.Id.ToString()">@CorpusLabel(corpus)</StackSelectItem>
-            }
-        </StackSelect>
+        <StackCard Label="@status"
+                   Color="@statusColor" />
     }
 </Stack>
 
-<KnowledgeQuestionAnswer SelectedCorpus="@SelectedCorpusOption"
-                         IsBusy="@isBusy"
-                         Question="@question"
-                         QuestionChanged="SetQuestion"
-                         TopK="@topK"
-                         TopKChanged="SetTopK"
-                         Answer="@answer"
-                         Status="@status"
-                         StatusColor="@statusColor"
-                         AskRequested="AskAsync" />
+@if(!string.IsNullOrWhiteSpace(question))
+{
+    <Chip>
+        @question
+    </Chip>
+}
+
+
+@if(answer is not null)
+{
+    <KnowledgeQuestionAnswer Answer="@answer" />
+}
 
 @code {
+    [Parameter] public EventCallback OnManagementClicked { get; set; }
+
     private string selectedCorpusId = string.Empty;
     private string question = string.Empty;
     private int topK = 8;
+
     private IReadOnlyList<KnowledgeCorpus> corpora = [];
     private KnowledgeAnswer? answer;
+
     private bool isBusy;
     private string? status;
     private Color statusColor = Color.Info;
 
-    private string CurrentTenantId => RequestContext.TenantId ?? throw new InvalidOperationException("Your workspace is unavailable. Please refresh the page and try again.");
-    private KnowledgeCorpus? SelectedCorpus => corpora.FirstOrDefault(corpus => corpus.Id.ToString() == selectedCorpusId);
-    private KnowledgeOwnerCorpusOption? SelectedCorpusOption => SelectedCorpus is null ? null : new KnowledgeOwnerCorpusOption(SelectedCorpus.Name, SelectedCorpus.Description ?? string.Empty) { CorpusId = SelectedCorpus.Id };
+    private CancellationTokenSource? askCts;
 
-    protected override async Task OnInitializedAsync() => await RefreshCorporaAsync();
+    private string CurrentTenantId =>
+        RequestContext.TenantId ?? throw new InvalidOperationException("tenant is unavailable.");
 
-    private async Task AskAsync(KnowledgeQuestionInput input) => await RunAsync(async () =>
+    private KnowledgeCorpus? SelectedCorpus =>
+        corpora.FirstOrDefault(corpus => corpus.Id.ToString() == selectedCorpusId);
+
+    private KnowledgeOwnerCorpusOption? SelectedCorpusOption =>
+        SelectedCorpus is null
+            ? null
+            : new KnowledgeOwnerCorpusOption(
+                SelectedCorpus.Name,
+                SelectedCorpus.Description ?? string.Empty)
+            {
+                CorpusId = SelectedCorpus.Id
+            };
+
+    private bool CanAsk =>
+        !isBusy &&
+        SelectedCorpus is not null &&
+        !string.IsNullOrWhiteSpace(question);
+
+    private bool DisableCorpusSelect =>
+        isBusy || corpora.Count == 0;
+
+    private RenderFragment chatContext =>
+@<div>
+    @if(corpora.Count > 0)
     {
-        KnowledgeQuestionInput validated = ValidateAsk(input);
-        answer = await Knowledge.AskAsync(new KnowledgeAskRequest { CorpusId = validated.CorpusId!.Value, TenantId = CurrentTenantId, Question = validated.Question, TopK = validated.TopK, SaveTrace = false }, CancellationToken.None);
-        status = "Answer generated.";
-    });
+        <StackSelect T="string"
+                     Icon="fa-solid fa-brain"
+                     Disabled="@DisableCorpusSelect"
+                     Value="@selectedCorpusId"
+                     ValueChanged="SelectCorpusAsync"
+                     ShrinkLabel="false"
+                     ToStringFunc="@(v => $"{Localizer["Corpus"]}: {SelectedCorpus?.Name}")"
+                     Underline="false"
+                     Variant="Variant.Filled">
+            @foreach(KnowledgeCorpus corpus in corpora)
+            {
+                <StackSelectItem T="string" Value="@corpus.Id.ToString()">
+                    @CorpusLabel(corpus)
+                </StackSelectItem>
+            }
+        </StackSelect>
+    }
+</div>;
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        ChatService.OnChatSubmit += ChatSubmit;
+    }
+
+    protected override async Task ReloadRequired()
+    {
+        await RefreshCorporaAsync();
+    }
+
+    public void Dispose()
+    {
+        ChatService.OnChatSubmit -= ChatSubmit;
+
+        askCts?.Cancel();
+        askCts?.Dispose();
+    }
+
+    private void ChatSubmit(object? sender, ChatSubmitEventArgs args)
+    {
+        _ = InvokeAsync(async () =>
+        {
+            await HandleChatSubmitAsync(args.Message);
+        });
+    }
+
+    private async Task HandleChatSubmitAsync(string message)
+    {
+        if(isBusy)
+        {
+            return;
+        }
+
+        question = message?.Trim() ?? string.Empty;
+        answer = null;
+        status = null;
+
+        await AskCurrentQuestionAsync();
+    }
+
+    private async Task AskCurrentQuestionAsync()
+    {
+        if(SelectedCorpus is null)
+        {
+            status = "Select or create a corpus first.";
+            statusColor = Color.Error;
+            await RefreshBusyUiAsync();
+            return;
+        }
+
+        KnowledgeQuestionInput input = ValidateAsk(
+            new KnowledgeQuestionInput(SelectedCorpus.Id, question, topK));
+
+        askCts?.Cancel();
+        askCts?.Dispose();
+        askCts = new CancellationTokenSource();
+
+        await RunBusyAsync(async cancellationToken =>
+        {
+            answer = await Knowledge.AskAsync(
+                new KnowledgeAskRequest
+                {
+                    CorpusId = input.CorpusId!.Value,
+                    TenantId = CurrentTenantId,
+                    Question = input.Question,
+                    TopK = input.TopK,
+                    SaveTrace = false
+                },
+                cancellationToken);
+
+            status = "Answer generated.";
+        }, askCts.Token);
+    }
 
     private async Task RefreshCorporaAsync()
     {
         corpora = await Knowledge.ListCorporaAsync(CurrentTenantId, CancellationToken.None);
-        selectedCorpusId = SelectedCorpus is not null ? selectedCorpusId : corpora.FirstOrDefault()?.Id.ToString() ?? string.Empty;
+
+        selectedCorpusId = SelectedCorpus is not null
+            ? selectedCorpusId
+            : corpora.FirstOrDefault()?.Id.ToString() ?? string.Empty;
+
+        RefreshChatContext();
+        await InvokeAsync(StateHasChanged);
     }
 
-    private Task SelectCorpusAsync(string? id)
+    private async Task SelectCorpusAsync(string? id)
     {
+        if(isBusy)
+        {
+            return;
+        }
+
         selectedCorpusId = id ?? string.Empty;
         answer = null;
         status = null;
-        return Task.CompletedTask;
+
+        RefreshChatContext();
+        await InvokeAsync(StateHasChanged);
     }
 
-    private Task SetQuestion(string value)
+    private async Task SetQuestion(string value)
     {
+        if(isBusy)
+        {
+            return;
+        }
+
         question = value;
         answer = null;
         status = null;
-        return Task.CompletedTask;
+
+        await InvokeAsync(StateHasChanged);
     }
 
-    private Task SetTopK(int value)
+    private async Task SetTopK(int value)
     {
+        if(isBusy)
+        {
+            return;
+        }
+
         topK = value;
         answer = null;
         status = null;
-        return Task.CompletedTask;
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RunBusyAsync(
+        Func<CancellationToken, Task> action,
+        CancellationToken cancellationToken)
+    {
+        await SetBusyAsync(true);
+
+        try
+        {
+            status = null;
+            statusColor = Color.Info;
+
+            await action(cancellationToken);
+
+            statusColor = Color.Success;
+        }
+        catch(OperationCanceledException)
+        {
+            status = "Request cancelled.";
+            statusColor = Color.Info;
+        }
+        catch(Exception ex)
+        {
+            status = ex.Message;
+            statusColor = Color.Error;
+        }
+        finally
+        {
+            await SetBusyAsync(false);
+        }
+    }
+
+    private async Task SetBusyAsync(bool value)
+    {
+        if(isBusy == value)
+        {
+            return;
+        }
+
+        isBusy = value;
+
+        if(isBusy)
+        {
+            ChatService.WaitChat();
+        }
+        else
+        {
+            ChatService.EnableChat();
+        }
+
+        RefreshChatContext();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task RefreshBusyUiAsync()
+    {
+        RefreshChatContext();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void RefreshChatContext()
+    {
+        ChatService.SetChatContext(chatContext);
     }
 
     private static KnowledgeQuestionInput ValidateAsk(KnowledgeQuestionInput input)
     {
-        if (input.CorpusId is null) throw new InvalidOperationException("Select or create a corpus first.");
-        if (string.IsNullOrWhiteSpace(input.Question)) throw new InvalidOperationException("Enter a question.");
-        if (input.TopK is < 1 or > 20) throw new InvalidOperationException("Choose between 1 and 20 context sections.");
-        return input with { Question = input.Question.Trim() };
+        if(input.CorpusId is null)
+        {
+            throw new InvalidOperationException("Select or create a corpus first.");
+        }
+
+        if(string.IsNullOrWhiteSpace(input.Question))
+        {
+            throw new InvalidOperationException("Enter a question.");
+        }
+
+        if(input.TopK is < 1 or > 20)
+        {
+            throw new InvalidOperationException("Choose between 1 and 20 context sections.");
+        }
+
+        return input with
+        {
+            Question = input.Question.Trim()
+        };
     }
 
-    private static string CorpusLabel(KnowledgeCorpus corpus) => string.IsNullOrWhiteSpace(corpus.Description) ? corpus.Name : $"{corpus.Name} — {corpus.Description}";
-    private async Task RunAsync(Func<Task> action) { try { isBusy = true; status = null; statusColor = Color.Info; await action(); statusColor = Color.Success; } catch (Exception ex) { status = ex.Message; statusColor = Color.Error; } finally { isBusy = false; } }
+    private static string CorpusLabel(KnowledgeCorpus corpus) =>
+        string.IsNullOrWhiteSpace(corpus.Description)
+            ? corpus.Name
+            : $"{corpus.Name} — {corpus.Description}";
 }

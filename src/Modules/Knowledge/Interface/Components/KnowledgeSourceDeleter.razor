@@ -71,7 +71,7 @@
             { nameof(StrictConfirmDialog.Color), Color.Error }
         };
 
-        IDialogReference dialog = await DialogService.ShowAsync<StrictConfirmDialog>("Delete source", parameters);
+        IDialogReference dialog = await DialogService.ShowAsync<StrictConfirmDialog>(null, parameters);
         DialogResult? result = await dialog.Result;
         if (result is null || result.Canceled)
         {

@@ -2,8 +2,8 @@
     <StackTextField Label="Question" @bind-Value="question" />
     <StackNumericField Label="TopK" @bind-Value="topK" Min="1" Max="20" />
     <StackSelect T="KnowledgeRetrievalMode" Label="Retrieval mode" @bind-Value="retrievalMode">
-        <MudSelectItem T="KnowledgeRetrievalMode" Value="KnowledgeRetrievalMode.Balanced">Balanced</MudSelectItem>
-        <MudSelectItem T="KnowledgeRetrievalMode" Value="KnowledgeRetrievalMode.Broad">Broad</MudSelectItem>
+        <StackSelectItem T="KnowledgeRetrievalMode" Value="KnowledgeRetrievalMode.Balanced">Balanced</StackSelectItem>
+        <StackSelectItem T="KnowledgeRetrievalMode" Value="KnowledgeRetrievalMode.Broad">Broad</StackSelectItem>
     </StackSelect>
     <StackButton Label="Debug ask" Color="Color.Primary" OnClick="DebugAsync" />
     @if (result is not null)

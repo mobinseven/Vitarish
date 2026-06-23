@@ -1,3 +1,4 @@
+@inherits CommonBase
 @using Microsoft.AspNetCore.Components
 @using CorpusItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerCorpusCollectionItem
 @using SourceItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceCollectionItem
@@ -9,12 +10,12 @@
 }
 else
 {
-    <MudExpansionPanels MultiExpansion="true" Class="glass">
-        @foreach(CorpusItemModel corpus in Model.Corpora)
-        {
+    @foreach(CorpusItemModel corpus in Model.Corpora)
+    {
+        <Stack>
             <KnowledgeOwnerCorpusCollectionItem Item="corpus" IsSelected="@(Model.SelectedCorpusId == corpus.CorpusId)" FocusedSourceId="Model.FocusedSourceId" SelectedCorpusChanged="SelectedCorpusChanged" SelectedSourceChanged="SelectedSourceChanged" />
-        }
-    </MudExpansionPanels>
+        </Stack>
+    }
 }
 
 @code {

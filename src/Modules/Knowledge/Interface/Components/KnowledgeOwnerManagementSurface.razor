@@ -18,19 +18,20 @@
 
 <KnowledgeSourceImporter SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" FileImportRequested="ImportSourceFromFileAsync" ImportSummary="@importSummary" />
 
-<KnowledgeSourceReplacer SelectedCorpus="@SelectedCorpusOption" FocusedSource="@FocusedSourceOption" Sources="@SelectedSourceOptions" IsBusy="@isBusy" SourcesVersion="@sourcesVersion" ReplaceRequested="ReplaceSourceFromFileAsync" />
-
 <KnowledgeSourceDeleter SelectedCorpus="@SelectedCorpusOption" FocusedSource="@FocusedSourceOption" Sources="@SelectedSourceOptions" IsBusy="@isBusy" CanDelete="@CanDeleteSources" SourcesVersion="@sourcesVersion" DeleteRequested="DeleteSourceAsync" />
 
 <KnowledgeCorpusIndexer SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" IndexRequested="IndexCorpusAsync" />
 
-<KnowledgeCorpusEvaluator SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" EvaluationSummary="@evaluationSummary" EvaluateRequested="EvaluateCorpusAsync" />
-
-<KnowledgeQuestionAnswer SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" Question="@qaQuestion" QuestionChanged="SetQaQuestion" TopK="@qaTopK" TopKChanged="SetQaTopK" Answer="@qaAnswer" Status="@qaStatus" StatusColor="@qaStatusColor" AskRequested="AskSelectedCorpusAsync" />
-
 <KnowledgeOwnerStatus Status="@status" Color="@statusColor" />
 
+<PaletteCard>
+    <PaletteButton Label="@Localizer["Start"]" OnClick="StartClicked" />
+</PaletteCard>
+
 @code {
+
+    [Parameter] public EventCallback StartClicked { get; set; }
+
     private readonly CancellationTokenSource disposal = new();
     private KnowledgeOwnerCollectionReadModel collection = KnowledgeOwnerCollectionReadModel.Empty;
     private string? importSummary;

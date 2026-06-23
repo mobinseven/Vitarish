@@ -29,12 +29,12 @@
     </Stack>
 
     <Stack>
-        <MudSelect T="PrescriptionItemCategory" Label="@Localizer["Category"]" @bind-Value="newItem.Category">
+        <StackSelect T="PrescriptionItemCategory" Label="@Localizer["Category"]" @bind-Value="newItem.Category">
             @foreach (PrescriptionItemCategory category in Enum.GetValues<PrescriptionItemCategory>())
             {
-                <MudSelectItem Value="@category">@category</MudSelectItem>
+                <StackSelectItem Value="@category">@category</StackSelectItem>
             }
-        </MudSelect>
+        </StackSelect>
         <StackTextField @bind-Value="newItem.ReferenceCode" Label="@Localizer["Code"]" />
         <StackTextField @bind-Value="newItem.DisplayName" Label="@Localizer["Name"]" />
         <MudNumericField T="int" @bind-Value="newItem.Quantity" Min="1" Label="@Localizer["Quantity"]" />

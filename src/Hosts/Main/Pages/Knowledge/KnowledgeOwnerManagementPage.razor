@@ -2,4 +2,4 @@
 @attribute [Route(AppRoutes.Knowledge.OwnerManagement)]
 @attribute [PageBackgroundImage(PalettePageBackgroundImages.Intuition)]
 @attribute [PageColor(Interfaces.Base.Enums.Palettes.Intuition)]
-<KnowledgeOwnerManagementSurface />
+<KnowledgeOwnerManagementSurface StartClicked="@(() => NavigationManager.NavigateTo(AppRoutes.Knowledge.QA))" />

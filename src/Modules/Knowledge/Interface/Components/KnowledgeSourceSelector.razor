@@ -1,7 +1,8 @@
-<StackSelect T="KnowledgeOwnerSourceOption" Value="@selectedSource" ValueChanged="SelectSourceAsync" Label="@Label" Disabled="@Disabled">
+@inherits CommonBase
+<StackSelect T="KnowledgeOwnerSourceOption" Value="@selectedSource" ValueChanged="SelectSourceAsync" ToStringFunc="@(v => $"{Label}: {v?.Label ?? Localizer["None"]}")" Disabled="@Disabled">
     @foreach (KnowledgeOwnerSourceOption option in Sources)
     {
-        <MudSelectItem T="KnowledgeOwnerSourceOption" Value="@option">@option.Label</MudSelectItem>
+        <StackSelectItem T="KnowledgeOwnerSourceOption" Value="@option">@option.Label</StackSelectItem>
     }
 </StackSelect>
 

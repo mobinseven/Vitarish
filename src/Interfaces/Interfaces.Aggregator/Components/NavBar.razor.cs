@@ -27,11 +27,28 @@ public partial class NavBar : CommonBase, IAsyncDisposable
     protected bool SearchActive => NavService.SearchString is not null;
 
     protected bool ChatActive;
+    protected bool ChatWaiting;
+    protected RenderFragment? ChatContext;
+
     protected override void OnInitialized()
     {
         Search = RouteData?.PageType.GetCustomAttribute<EnableSearchAttribute>(inherit: true) is not null;
         ChatActive = RouteData?.PageType.GetCustomAttribute<EnableChatAttribute>(inherit: true) is not null;
         NavigationManager.LocationChanged += OnLocationChanged;
+        ChatService.OnChatWait += OnChatWait;
+        ChatService.OnChatContext += OnChatContext;
+    }
+
+    private async void OnChatContext(object? sender, Base.Models.ChatContextEventArgs e)
+    {
+        ChatContext = e.ChatContext;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async void OnChatWait(object? sender, Base.Models.ChatWaitEventArgs e)
+    {
+        ChatWaiting = e.Waiting;
+        await InvokeAsync(StateHasChanged);
     }
 
     protected async void CloseSearch()
@@ -66,7 +83,9 @@ public partial class NavBar : CommonBase, IAsyncDisposable
 
     private IScrollListener? _scrollListener;
     protected bool ScrollToTopVisible;
+    protected bool ScrollToBotVisible;
     private readonly int TopOffset = 200;
+    private readonly int BotOffset = 200;
 
     protected override void OnAfterRender(bool firstRender)
     {
@@ -84,22 +103,39 @@ public partial class NavBar : CommonBase, IAsyncDisposable
             ? e.FirstChildBoundingClientRect?.Top * -1
             : e.ScrollTop;
 
-        if (topOffset >= TopOffset && ScrollToTopVisible != true)
+        double? botOffset = e.NodeName == "#document"
+            ? e.FirstChildBoundingClientRect?.Bottom - e.ClientHeight
+            : e.ScrollHeight - e.ClientHeight - e.ScrollTop;
+
+        var shouldShowTop = topOffset >= TopOffset;
+        var shouldShowBot = botOffset >= BotOffset;
+
+        var changed = false;
+
+        if (ScrollToTopVisible != shouldShowTop)
         {
-            ScrollToTopVisible = true;
-            await InvokeAsync(StateHasChanged);
+            ScrollToTopVisible = shouldShowTop;
+            changed = true;
         }
 
-        if (topOffset < TopOffset && ScrollToTopVisible)
+        if (ScrollToBotVisible != shouldShowBot)
         {
-            ScrollToTopVisible = false;
+            ScrollToBotVisible = shouldShowBot;
+            changed = true;
+        }
+
+        if (changed)
+        {
             await InvokeAsync(StateHasChanged);
         }
     }
     protected async Task OnScrollToTopClick(MouseEventArgs args) => await ScrollManager.ScrollToTopAsync(_scrollListener?.Selector, ScrollBehavior.Smooth);
+    protected async Task OnScrollToBotClick(MouseEventArgs args) => await ScrollManager.ScrollToBottomAsync(_scrollListener?.Selector, ScrollBehavior.Smooth);
     public async ValueTask DisposeAsync()
     {
         NavigationManager.LocationChanged -= OnLocationChanged;
+        ChatService.OnChatWait -= OnChatWait;
+        ChatService.OnChatContext -= OnChatContext;
         _scrollListener?.OnScroll -= ScrollListenerOnScroll;
         if (_scrollListener is not null)
         {

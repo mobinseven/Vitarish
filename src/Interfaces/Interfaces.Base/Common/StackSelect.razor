@@ -1,22 +1,27 @@
 @typeparam T
 @inherits MudSelect<T>
 
-<MudSelect T="T"
-           HelperText="@Label"
-           OuterClass="stack-item"
-           Variant="Variant.Filled"
-           @bind-Value:get="@ValueState.Value"
-           @bind-Value:set="@ValueState.SetValueAsync"
-           AdornmentColor="@AdornmentColor"
-           AdornmentIcon="@AdornmentIcon"
-           Adornment="@Adornment"
-           OnAdornmentClick="@OnAdornmentClick"
-           Clearable="@Clearable"
-           Underline="false"
-           Required="@Required">
-    @ChildContent
-</MudSelect>
+<MudChip T="T" Icon="@Icon"
+         Disabled="Disabled"
+         Size="Size.Large"
+         Text="@(Label is not null ? Label : ToStringFunc is null ? ValueState.Value?.ToString() : ToStringFunc(ValueState.Value))"
+         OnClick="ToggleOpen" />
+<MudDialog @bind-Visible="_open">
+    <DialogContent>
+        <MudList @bind-SelectedValue:get="@ValueState.Value"
+                 @bind-SelectedValue:set="@(async v => { await ValueState.SetValueAsync(v); ToggleOpen(); })" T="T">
+            @ChildContent
+        </MudList>
+    </DialogContent>
+</MudDialog>
 @code {
+
+    [Parameter] public string? Icon { get; set; }
+
+    private bool _open;
+
+    private void ToggleOpen() => _open = !_open;
+
     protected ParameterState<T?> ValueState;
 
     public StackSelect()

@@ -4,9 +4,9 @@
 @using SourceItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceCollectionItem
 @using SourceFileItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceFileCollectionItem
 
-<MudExpansionPanel Text="@Item.CorpusName" Class="glass" HeaderClass="glass">
+<StackExpandable Label="@Item.CorpusName" HelperText="@Localizer["Corpus"]">
     <TitleContent>
-        <MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2">
+        <StackButton OnClick="context.ToggleAsync">
             <MudText>@Item.CorpusName</MudText>
             @if(Item.IsActive)
             {
@@ -16,7 +16,7 @@
             {
                 <MudChip T="string" Size="Size.Small" Color="Color.Success">@Localizer["Selected"]</MudChip>
             }
-        </MudStack>
+        </StackButton>
     </TitleContent>
     <ChildContent>
         @if (!string.IsNullOrWhiteSpace(Item.CorpusDescription))
@@ -35,15 +35,13 @@
         }
         else
         {
-            <MudExpansionPanels MultiExpansion="true" Class="stack">
-                @foreach (SourceItemModel source in Item.Sources)
-                {
-                    <KnowledgeOwnerSourceCollectionItem Item="source" IsFocused="@(FocusedSourceId == source.SourceId)" SelectedSourceChanged="SelectedSourceChanged" />
-                }
-            </MudExpansionPanels>
+            @foreach(SourceItemModel source in Item.Sources)
+            {
+                <KnowledgeOwnerSourceCollectionItem Item="source" IsFocused="@(FocusedSourceId == source.SourceId)" SelectedSourceChanged="SelectedSourceChanged" />
+            }
         }
     </ChildContent>
-</MudExpansionPanel>
+</StackExpandable>
 
 @code {
     [Parameter, EditorRequired]

@@ -106,3 +106,7 @@
 .white {
     background-color: white !important;
 }
+
+.mud-dialog-content, .mud-dialog-title {
+    padding: 0 !important;
+}

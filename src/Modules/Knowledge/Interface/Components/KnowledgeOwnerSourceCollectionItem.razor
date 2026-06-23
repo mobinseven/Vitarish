@@ -4,7 +4,7 @@
 @using SourceItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceCollectionItem
 @using SourceFileItemModel = Vitarish.Knowledge.Application.Contracts.KnowledgeOwnerSourceFileCollectionItem
 
-<MudStack Row="true" AlignItems="AlignItems.Center" Spacing="2" Class="stack-item">
+<StackButton>
     <MudText Typo="Typo.caption">@Localizer["Source"]</MudText>
     <MudText>@Item.SourceName</MudText>
     <MudChip T="string" Size="Size.Small" Color="Color.Info">@Item.SourceType</MudChip>
@@ -16,7 +16,7 @@
     {
         <MudButton Size="Size.Small" Color="Color.Primary" Variant="Variant.Text" OnClick="SelectAsync">Focus source</MudButton>
     }
-</MudStack>
+</StackButton>
 
 @code {
     [Parameter, EditorRequired]

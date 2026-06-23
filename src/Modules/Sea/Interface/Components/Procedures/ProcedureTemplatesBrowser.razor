@@ -1,4 +1,4 @@
-@inherits MudSelect<ProcedureReadDto>
+@inherits StackSelect<ProcedureReadDto>
 
 <StackSelect T="ProcedureReadDto" Value="@Value" ValueChanged="@ValueChanged" Label="@Localizer["SelectItem", Localizer["TemplateItem", Localizer["Procedure"]]]">
     <StackSelectItem T="ProcedureReadDto" Value="null">@Localizer["None"]</StackSelectItem>

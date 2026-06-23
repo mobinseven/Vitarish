@@ -8,40 +8,46 @@
             @if(BreakpointReceived)
             {
                 <CascadingValue Value="@PageBreakpoint">
-                    <TenantHeader>
-                        <Content>
-                            <div class="@($"sticky-top {(PageBreakpoint >= Breakpoint.Sm ? "mt-5 pa-5" : "mt-3 pa-3")}")">
-                                <StackPill Class="@($"{(PageBreakpoint >= Breakpoint.Sm ? "pa-5 mx-20" : "pa-1 mx-5")}")">
-                                    <div>
-                                        <MudStack AlignItems="AlignItems.Center" Style="height: 100%;" Justify="Justify.Center" Class="my-4">
-                                            @if(!string.IsNullOrWhiteSpace(context.LogoUrl))
-                                            {
-                                                <div>
-                                                    <MudAvatar>
-                                                        <MudImage Src="@context.LogoUrl" />
-                                                    </MudAvatar>
-                                                </div>
-                                            }
-                                            @if(PageBreakpoint >= Breakpoint.Sm)
-                                            {
-                                                <div>
-                                                    @context.Name
-                                                </div>
-                                            }
-                                        </MudStack>
-                                    </div>
-                                    <div />
-                                    <div>
-                                        <MudButton>Home</MudButton>
-                                    </div>
-                                </StackPill>
-                            </div>
-                        </Content>
-                    </TenantHeader>
-                    <div style="height: 10dvh;">
-                        <hr />
-                    </div>
                     <WidthControlled>
+                        <TenantHeader>
+                            <Content>
+                                <div class="@($"sticky-top {(PageBreakpoint >= Breakpoint.Sm ? "mt-5 pa-5" : "mt-3 pa-3")}")">
+                                    <StackPill Class="@($"{(PageBreakpoint >= Breakpoint.Sm ? "mt-5 pa-2" : "pa-1 mx-5")}")">
+                                        <div>
+                                            <MudStack Row AlignItems="AlignItems.Center" Style="height: 100%;" Justify="Justify.Center" Class="my-4">
+                                                @if(!string.IsNullOrWhiteSpace(context.LogoUrl))
+                                                {
+                                                    <div>
+                                                        <MudAvatar>
+                                                            <MudImage Src="@context.LogoUrl" />
+                                                        </MudAvatar>
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <i class="fa-brands fa-flutter"></i>
+                                                }
+                                                @if(PageBreakpoint >= Breakpoint.Sm)
+                                                {
+                                                    <div>
+                                                        @context.Name
+                                                    </div>
+                                                }
+                                            </MudStack>
+                                        </div>
+                                        <div />
+                                        <div>
+                                            <MudButton>
+                                                <MudImage Src="/logo/brandmark-opacity50.webp" Height="50" />
+                                            </MudButton>
+                                        </div>
+                                    </StackPill>
+                                </div>
+                            </Content>
+                        </TenantHeader>
+                        <div style="height: 10dvh;">
+                            <hr />
+                        </div>
 @*                         <TitleContainer>
                             <BreadcrumbsTree />
                         </TitleContainer> *@
@@ -50,21 +56,17 @@
                             @Body
                         </CascadingValue>
 
-                        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Style="width: 100%;">
-                            <MudImage Src="/logo/brandmark-opacity50.webp" Height="150" />
-                        </MudStack>
+                        <div style="height: 20dvh;">
+                            <hr />
+                        </div>
+
+                        <div class="sticky-bottom ma-5">
+                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Class="@($"{(PageBreakpoint >= Breakpoint.Sm ? "py-5" : "pa-1")}")" Style="pointer-events: auto;">
+                                <NavBar Size="@(PageBreakpoint >= Breakpoint.Sm ? Size.Medium : Size.Small)" />
+                            </MudStack>
+                        </div>
 
                     </WidthControlled>
-
-                    <div style="height: 20dvh;">
-                        <hr />
-                    </div>
-
-                    <div class="sticky-bottom ma-5">
-                        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Class="@($"{(PageBreakpoint >= Breakpoint.Sm ? "py-5" : "pa-1")}")" Style="pointer-events: auto;">
-                            <NavBar Size="@(PageBreakpoint >= Breakpoint.Sm ? Size.Medium : Size.Small)" />
-                        </MudStack>
-                    </div>
                     <AntiforgeryToken />
                 </CascadingValue>
             }

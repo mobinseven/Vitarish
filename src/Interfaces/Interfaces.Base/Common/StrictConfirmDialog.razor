@@ -4,8 +4,8 @@
         <Stack>
             <StackField Label="@ContentText" />
             <StackTextField @bind-Value="confirmation"
-                            Label="@Localizer["TypeNameToConfirm", ItemName]"
                             Immediate="true" />
+            <MudText Typo="@Typo.caption">@Localizer["TypeNameToConfirm", ItemName]</MudText>
         </Stack>
         <Stack>
             <StackButton Label="@(ButtonText is null ? Localizer["Confirm"] : ButtonText)" OnClick="Submit" Disabled="!IsMatch" Color="Color.Primary" />

@@ -4,9 +4,9 @@
     --palette-surface-start-soft: var(--palette-surface-start-alpha, var(--palette-surface-start));
     --palette-surface-end-soft: var(--palette-surface-end-alpha, var(--palette-surface-end));
     --palette-surface-glow-soft: var(--palette-surface-glow-alpha, var(--palette-surface-glow));
-    background-color: var(--palette-surface-bg-soft);
+    background-color: var(--palette-surface-bg);
     /*background-image: radial-gradient(circle at 80% 0%, var(--palette-surface-glow-soft), transparent 18rem), linear-gradient(135deg, var(--palette-surface-start-soft) 0%, var(--palette-surface-bg-soft) 58%, var(--palette-surface-end-soft) 100%);*/
-    color: var(--palette-text-light);
+    color: var(--palette-text);
 }
 
     .palette-surface > * {
@@ -31,7 +31,7 @@
     border-radius: var(--palette-card-radius);
     background-color: var(--palette-card-bg-soft);
     background-image: radial-gradient(circle at 82% 0%, var(--palette-card-glow-soft), transparent 14rem), linear-gradient(135deg, var(--palette-card-start-soft) 0%, var(--palette-card-bg-soft) 60%, var(--palette-card-end-soft) 100%);
-    color: var(--palette-text-light);
+    color: var(--palette-text);
     /*box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.14), inset 0 -1.4rem 2rem rgba(0, 0, 0, 0.16), 0 2rem 3rem rgba(0, 0, 0, 0.38);*/
 }
 

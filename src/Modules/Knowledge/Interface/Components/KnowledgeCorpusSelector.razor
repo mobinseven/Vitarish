@@ -10,7 +10,7 @@
         <StackSelect T="KnowledgeOwnerCorpusOption" Value="@Model.SelectedCorpus" ValueChanged="SelectedCorpusChanged" Label="Corpus">
             @foreach (KnowledgeOwnerCorpusOption corpus in Model.Corpora)
             {
-                <MudSelectItem T="KnowledgeOwnerCorpusOption" Value="@corpus">@corpus.Label</MudSelectItem>
+                <StackSelectItem T="KnowledgeOwnerCorpusOption" Value="@corpus">@corpus.Label</StackSelectItem>
             }
         </StackSelect>
 

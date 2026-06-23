@@ -1,77 +1,49 @@
-<PaletteCard>
-    <Stack>
-        <StackField Label="Corpus question answering" HelperText="Ask across the selected corpus. Source focus does not filter retrieval." />
-        <StackTextField Value="@Question" ValueChanged="UpdateQuestionAsync" Label="Question" Lines="3" />
-        @* <StackNumericField Value="@TopK" ValueChanged="UpdateTopKAsync" Label="Number of context sections" Min="1" Max="20" /> *@
-        <StackButton Label="Ask" Color="Color.Primary" OnClick="RequestAskAsync" Disabled="@(IsBusy || SelectedCorpus is null)" />
-    </Stack>
-</PaletteCard>
-
+@inherits CommonBase
 @if(Answer is not null)
 {
-    <Stack>
-        <StackField Label="Answer" Adornment="Adornment.End" AdornmentIcon="@(Answer.IsAnswered ? "fa-solid fa-circle-check" : "")" AdornmentColor="@(Answer.IsAnswered ? Color.Success : Color.Default)">
+    @if(!string.IsNullOrWhiteSpace(Answer.Answer))
+    {
+        <PaletteCard>
             @Answer.Answer
-        </StackField>
-        @if(!string.IsNullOrWhiteSpace(Answer.MissingInformation))
-        {
-            <StackField Label="Missing information">
-                @Answer.MissingInformation
-            </StackField>
-        }
-    </Stack>
-    @if(Answer.RetrievedContext.Count > 0)
-    {
-        <Stack>
-            <StackExpandable Label="Retrieved context">
-                @foreach(KnowledgeHit hit in Answer.RetrievedContext)
-                {
-                    <StackCard Label="@ReadableTitle(hit.Title)" HelperText="@($"Score {hit.Score:0.###} · {Preview(hit.Text)}")" />
-                }
-            </StackExpandable>
-        </Stack>
+        </PaletteCard>
     }
-
-    @if(Answer.Citations.Count > 0)
+    @if(Answer.RetrievedContext.Count > 0 || Answer.Citations.Count > 0 || !string.IsNullOrWhiteSpace(Answer.MissingInformation))
     {
         <Stack>
-            <StackExpandable Label="Citations">
-                @foreach(KnowledgeCitation citation in Answer.Citations)
-                {
-                    <StackCard Label="@ReadableTitle(citation.Title)" HelperText="@(citation.Quote ?? "No quote")" />
-                }
-            </StackExpandable>
+            @if(!string.IsNullOrWhiteSpace(Answer.MissingInformation))
+            {
+                <StackExpandable Size="Size.Small" Label="@Localizer["MissingInfo"]">
+                    @Answer.MissingInformation
+                </StackExpandable>
+            }
+            @if(Answer.RetrievedContext.Count > 0)
+            {
+                <StackExpandable Size="Size.Small" Label="@Localizer["RetrievedContext"]">
+                    @foreach(KnowledgeHit hit in Answer.RetrievedContext)
+                    {
+                        <StackCard Size="Size.Small" Label="@ReadableTitle(hit.Title)" HelperText="@($"Score {hit.Score:0.###} · {Preview(hit.Text)}")" />
+                    }
+                </StackExpandable>
+            }
+
+            @if(Answer.Citations.Count > 0)
+            {
+                <StackExpandable Size="Size.Small" Label="@Localizer["Citations"]">
+                    @foreach(KnowledgeCitation citation in Answer.Citations)
+                    {
+                        <StackCard Size="Size.Small" Label="@ReadableTitle(citation.Title)" HelperText="@(citation.Quote ?? "No quote")" />
+                    }
+                </StackExpandable>
+            }
         </Stack>
     }
 }
 
 
 @code {
-    [Parameter, EditorRequired] public KnowledgeOwnerCorpusOption? SelectedCorpus { get; set; }
-    [Parameter] public bool IsBusy { get; set; }
+
     [Parameter] public KnowledgeAnswer? Answer { get; set; }
-    [Parameter] public string Question { get; set; } = string.Empty;
-    [Parameter] public EventCallback<string> QuestionChanged { get; set; }
-    [Parameter] public int TopK { get; set; } = 8;
-    [Parameter] public EventCallback<int> TopKChanged { get; set; }
-    [Parameter] public string? Status { get; set; }
-    [Parameter] public Color StatusColor { get; set; } = Color.Info;
-    [Parameter] public EventCallback<KnowledgeQuestionInput> AskRequested { get; set; }
 
-    private async Task RequestAskAsync()
-    {
-        await AskRequested.InvokeAsync(new KnowledgeQuestionInput(SelectedCorpus?.CorpusId, Question, TopK));
-    }
-
-    private Task UpdateQuestionAsync(string value)
-    {
-        return QuestionChanged.InvokeAsync(value);
-    }
-
-    private Task UpdateTopKAsync(int value)
-    {
-        return TopKChanged.InvokeAsync(value);
-    }
 
     private static string CorpusLabel(KnowledgeOwnerCorpusOption corpus) => string.IsNullOrWhiteSpace(corpus.Details) ? corpus.Label : $"{corpus.Label} — {corpus.Details}";
     private static string ReadableTitle(string? title) => string.IsNullOrWhiteSpace(title) ? "Untitled source" : title;

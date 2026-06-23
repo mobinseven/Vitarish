@@ -76,13 +76,13 @@
                                                 }
                                                 break;
                                             case ResponderOutputType.McpToolCall:
-                                                <MudExpansionPanels Elevation="0" Dense>
-                                                    <MudExpansionPanel Dense Text="@Localizer["Details"]">
-                                                        <TextChip Text="@nonText.ToolName" />
-                                                        <TextChip Text="@nonText.ToolArguments" />
-                                                    </MudExpansionPanel>
-                                                </MudExpansionPanels>
-                                                break;
+                                            <MudExpansionPanels Elevation="0" Dense>
+                                                <MudExpansionPanel Dense Text="@Localizer["Details"]">
+                                                    <TextChip Text="@nonText.ToolName" />
+                                                    <TextChip Text="@nonText.ToolArguments" />
+                                                </MudExpansionPanel>
+                                            </MudExpansionPanels>
+                                            break;
                                             case ResponderOutputType.Reasoning:
                                                 break;
                                         }
@@ -90,9 +90,7 @@
 
                                     @if(turn.IsStreaming)
                                     {
-                                        <Chip>
-                                            <span class="shimmer">@Localizer["Responding"]</span>
-                                        </Chip>
+                                        <ShimmeringText Text="@Localizer["Responding"]" />
                                     }
                                 </MudStack>
                             </div>

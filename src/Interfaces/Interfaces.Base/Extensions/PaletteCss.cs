@@ -395,6 +395,8 @@ public static class PaletteCss
         string isDarkValue = isDark ? "1" : "0";
         string pageBackground = isDark ? options.DarkPageBackground : options.LightPageBackground;
         string pageBackgroundAlpha = ApplyColorAlpha(pageBackground, colorAlpha);
+        string surfaceBackground = ResolveSurfaceBackground(pageBackground, isDark, options);
+        string surfaceBackgroundAlpha = ApplyColorAlpha(surfaceBackground, colorAlpha);
         string headerImageCss = options.IncludeHeaderImages && definition.HasHeaderImage
             ? CssUrl(ResolveHeaderImageUrl(definition, mode, options))
             : "none";
@@ -404,6 +406,8 @@ public static class PaletteCss
 
         --palette-mode-dark: {{isDarkValue}};
 
+        --palette-bg: {{pageBackground}};
+        --palette-bg-alpha: {{pageBackgroundAlpha}};
         --palette-page-bg: {{pageBackground}};
         --palette-page-bg-alpha: {{pageBackgroundAlpha}};
         --palette-body-bg: {{pageBackground}};
@@ -415,8 +419,10 @@ public static class PaletteCss
         --palette-body-header-size: {{options.HeaderBackgroundSize}};
         --palette-body-header-attachment: {{options.HeaderBackgroundAttachment}};
 
-        --palette-surface-bg: {{tokens.SurfaceBg}};
-        --palette-surface-bg-alpha: {{alphaTokens.SurfaceBg}};
+        --palette-surface-bg: {{surfaceBackground}};
+        --palette-surface-bg-alpha: {{surfaceBackgroundAlpha}};
+        --palette-surface-accent-bg: {{tokens.SurfaceBg}};
+        --palette-surface-accent-bg-alpha: {{alphaTokens.SurfaceBg}};
         --palette-surface-start: {{tokens.SurfaceStart}};
         --palette-surface-start-alpha: {{alphaTokens.SurfaceStart}};
         --palette-surface-end: {{tokens.SurfaceEnd}};
@@ -502,6 +508,40 @@ public static class PaletteCss
 
     private static string EscapeCssString(string value) =>
         value.Replace("\\", "\\\\").Replace("\"", "\\\"");
+
+    private static string ResolveSurfaceBackground(
+        string pageBackground,
+        bool isDark,
+        PaletteOptions options)
+    {
+        if (string.IsNullOrWhiteSpace(pageBackground))
+        {
+            return pageBackground;
+        }
+
+        string trimmed = pageBackground.Trim();
+        int channelLift = NormalizeSurfaceBackgroundChannelLift(
+            isDark
+                ? options.DarkSurfaceBackgroundChannelLift
+                : options.LightSurfaceBackgroundChannelLift
+        );
+
+        return TryParseHexColor(trimmed, out int red, out int green, out int blue, out double sourceAlpha)
+            || TryParseRgbColor(trimmed, out red, out green, out blue, out sourceAlpha)
+            ? FormatCssColor(
+                ClampByte(red + channelLift),
+                ClampByte(green + channelLift),
+                ClampByte(blue + channelLift),
+                sourceAlpha
+            )
+            : pageBackground;
+    }
+
+    private static int NormalizeSurfaceBackgroundChannelLift(int channelLift) =>
+        Math.Clamp(channelLift, 0, 255);
+
+    private static int ClampByte(int value) =>
+        Math.Clamp(value, 0, 255);
 
     private static PaletteTokens ApplyColorAlpha(PaletteTokens tokens, double alpha)
     {
@@ -703,8 +743,16 @@ public static class PaletteCss
         return true;
     }
 
+    private static string FormatCssColor(int red, int green, int blue, double alpha) =>
+        ClampAlpha(alpha) >= 1d
+            ? FormatHexColor(red, green, blue)
+            : FormatRgba(red, green, blue, alpha);
+
+    private static string FormatHexColor(int red, int green, int blue) =>
+        $"#{ClampByte(red):X2}{ClampByte(green):X2}{ClampByte(blue):X2}".ToLowerInvariant();
+
     private static string FormatRgba(int red, int green, int blue, double alpha) =>
-        $"rgba({red}, {green}, {blue}, {FormatAlpha(ClampAlpha(alpha))})";
+        $"rgba({ClampByte(red)}, {ClampByte(green)}, {ClampByte(blue)}, {FormatAlpha(ClampAlpha(alpha))})";
 
     private static string FormatAlpha(double alpha) =>
         alpha.ToString("0.####", CultureInfo.InvariantCulture);
@@ -920,6 +968,18 @@ public static class PaletteCss
         public string LightPageBackground { get; init; } = "#f4f4f4";
 
         public string DarkPageBackground { get; init; } = "#2B2B2B";
+
+        /// <summary>
+        /// Raises the light-mode surface background from the page background.
+        /// The default turns #f4f4f4 into #ffffff.
+        /// </summary>
+        public int LightSurfaceBackgroundChannelLift { get; init; } = 18;
+
+        /// <summary>
+        /// Raises the dark-mode surface background from the page background.
+        /// The default turns #2B2B2B into #3b3b3b.
+        /// </summary>
+        public int DarkSurfaceBackgroundChannelLift { get; init; } = 16;
 
         /// <summary>
         /// Controls the opacity of generated *-alpha CSS variables.

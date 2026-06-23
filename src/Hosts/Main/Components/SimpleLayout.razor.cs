@@ -33,8 +33,7 @@ public partial class SimpleLayout : LayoutComponentBase, IAsyncDisposable, IBrow
             string? theme = await UserService.GetThemeAsync(userId);
             themeSettings = ThemeSettings.FromJson(theme);
         }
-        PlatformThemePalette? platformPalette = await PlatformThemePaletteProvider.GetActivePaletteAsync();
-        await ThemeService.InitializeAsync(themeSettings, platformPalette);
+        await ThemeService.InitializeAsync(themeSettings);
         Initialized = true;
         RenderNotifier.RenderRequired += HandleLocationChanged;
         _ = NavigationManager.RegisterLocationChangingHandler(async c => { Navigating = true; await InvokeAsync(() => StateHasChanged()); });

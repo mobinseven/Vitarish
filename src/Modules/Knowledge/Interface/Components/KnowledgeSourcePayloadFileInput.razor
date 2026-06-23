@@ -6,7 +6,7 @@
 <StackSelect T="KnowledgeSourceInputFormat" @bind-Value="format" Label="Source file format">
     @foreach (KnowledgeSourceInputFormat option in KnowledgeSourceInputFormatLabels.Formats)
     {
-        <MudSelectItem T="KnowledgeSourceInputFormat" Value="@option">@option.Label()</MudSelectItem>
+        <StackSelectItem T="KnowledgeSourceInputFormat" Value="@option">@option.Label()</StackSelectItem>
     }
 </StackSelect>
 

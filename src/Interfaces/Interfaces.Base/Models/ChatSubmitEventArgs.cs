@@ -1,4 +1,4 @@
-namespace Vitarish.Interfaces.Aggregator.Models;
+namespace Vitarish.Interfaces.Base.Models;
 
 public class ChatSubmitEventArgs(string message) : EventArgs
 {

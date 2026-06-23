@@ -1,5 +1,5 @@
 @using Vitarish.Intelligence.Interface.Components
-@using Vitarish.Interfaces.Aggregator.Abstractions
+@using Vitarish.Interfaces.Base.Abstractions
 @inherits CommonBase
 @implements IDisposable
 @inject IChatService ChatService
@@ -16,16 +16,19 @@
             {
                 <MudFab Size=Size.Small StartIcon="fa-solid fa-house" DropShadow=false OnClick="HandleHomeClick" Color="Color.Default" />
             }
+            @* <MudFab Size="Size.Small" StartIcon="fa-solid fa-chevron-down" Disabled="@(!ScrollToBotVisible)" DropShadow="false" OnClick="OnScrollToBotClick" Color="Color.Default" /> *@
             <MudFab Size=Size.Small StartIcon="fa-solid fa-level-up-alt" DropShadow=false OnClick="HandleBackClick" Disabled="@(NavigationManager.Uri == NavigationManager.BaseUri)" Color="Color.Default" />
         </div>
 
         <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Style="width: 100%;">
-            <Stack Class="ma-3 glass white">
+            <Stack Class="glass white mt-1 pa-0" Style="width: 100%;">
                 <AdvancedInput FileUploadEnabled="false"
                                RewriteEnabled="false"
-                               OnSubmit="@ChatService.ChatSubmit"
-                               Lines="1">
-                    <EndContent></EndContent>
+                               Busy="@ChatWaiting"
+                               OnSubmit="@ChatService.ChatSubmit">
+                    <EndContent>
+                        @ChatContext
+                    </EndContent>
                 </AdvancedInput>
             </Stack>
         </MudStack>
@@ -33,7 +36,7 @@
 }
 else
 {
-    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Style="width: 100%;">
+    <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.SpaceAround" Style="width: 100%;" Class="glass">
         @if(SearchActive)
         {
             <Stack>
@@ -44,15 +47,17 @@ else
         {
             @if(ScrollToTopVisible)
             {
-                <MudFab Size="Size" StartIcon="fa-solid fa-chevron-up" DropShadow="false" OnClick="OnScrollToTopClick" Color="Color.Tertiary" />
+                <MudFab Size="Size.Small" StartIcon="fa-solid fa-chevron-up" DropShadow="false" OnClick="OnScrollToTopClick" Color="Color.Default" />
             }
             else
             {
-                <MudFab Size=Size StartIcon="fa-solid fa-house-blank" DropShadow=false OnClick="HandleHomeClick" Color="Color.Tertiary" />
+                <MudFab Size=Size.Small StartIcon="fa-solid fa-house-blank" DropShadow=false OnClick="HandleHomeClick" Color="Color.Default" />
             }
-            <MudFab Size=Size StartIcon="fa-solid fa-magnifying-glass" DropShadow=false OnClick="OpenSearch" Color="@(Search ? Color.Success : Color.Default)" />
-            <MudFab Size=Size StartIcon="fa-solid fa-level-up-alt" DropShadow=false OnClick="HandleBackClick" Disabled="@(NavigationManager.Uri == NavigationManager.BaseUri)" Color="Color.Info" />
-            <MudFab Size=Size StartIcon="fa-solid fa-gear" DropShadow=false OnClick="HandleProfileClick" Color="Color.Secondary" />
+
+            <MudFab Size="Size.Small" StartIcon="fa-solid fa-chevron-down" Disabled="@(!ScrollToBotVisible)" DropShadow="false" OnClick="OnScrollToBotClick" Color="Color.Default" />
+            <MudFab Size=Size.Small StartIcon="fa-solid fa-magnifying-glass" DropShadow=false OnClick="OpenSearch" Color="@(Search ? Color.Success : Color.Default)" />
+            <MudFab Size=Size.Small StartIcon="fa-solid fa-level-up-alt" DropShadow=false OnClick="HandleBackClick" Disabled="@(NavigationManager.Uri == NavigationManager.BaseUri)" Color="Color.Info" />
+            <MudFab Size=Size.Small StartIcon="fa-solid fa-gear" DropShadow=false OnClick="HandleProfileClick" Color="Color.Secondary" />
         }
     </MudStack>
 }

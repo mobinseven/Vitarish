@@ -14,19 +14,19 @@
            OnClick="@OnClick"
            DropShadow="false">
     <MudStack Row Style="width: 100%" AlignItems="AlignItems.Center" Justify="Justify.FlexStart" StretchItems="StretchItems.Middle">
-        <div>
-            <MudText Typo="@LabelSize" Align="Align.Start">
-                <MudHighlighter HighlightedText="@HighlightString" Text="@Label" />
-            </MudText>
-            @if(!string.IsNullOrWhiteSpace(HelperText))
-            {
-                <MudText Typo="Typo.caption">@HelperText</MudText>
-            }
-        </div>
-        <div />
 
         @if(ChildContent is null)
         {
+            <div>
+                <MudText Typo="@LabelSize" Align="Align.Start">
+                    <MudHighlighter HighlightedText="@HighlightString" Text="@Label" />
+                </MudText>
+                @if(!string.IsNullOrWhiteSpace(HelperText))
+                {
+                    <MudText Typo="Typo.caption">@HelperText</MudText>
+                }
+            </div>
+            <div />
             <div>
                 @if(RendererInfo.IsInteractive)
                 {

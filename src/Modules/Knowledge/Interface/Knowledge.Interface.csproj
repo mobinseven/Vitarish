@@ -4,6 +4,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
+    <ProjectReference Include="..\..\Intelligence\Interface\Intelligence.Interface.csproj" />
     <ProjectReference Include="..\Application\Knowledge.Application.csproj" />
     <ProjectReference Include="..\Infrastructure\Knowledge.Infrastructure.csproj" />
     <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
