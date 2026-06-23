@@ -28,10 +28,10 @@
     /* Motion */
     --glass-transition: background 160ms ease, border-color 160ms ease, box-shadow 160ms ease, color 160ms ease, filter 160ms ease, transform 120ms ease, opacity 160ms ease;
     /* Neutral glass colors. These intentionally do not use palette tones. */
-    --glass-neutral-rgb: 255 255 255;
+    --glass-neutral-rgb: var(--palette-body-bg);
     --glass-neutral-inverse-rgb: 0 0 0;
     --glass-border-rgb: 255 255 255;
-    --glass-shadow-rgb: 0 0 0;
+    --glass-shadow-rgb: 255 255 255;
     --glass-ring-rgb: 255 255 255;
     /* Neutral opacity layers */
     --glass-surface-a: 80%;
@@ -42,7 +42,7 @@
     --glass-border-active-a: 40%;
     --glass-inset-a: 34%;
     --glass-ring-a: 46%;
-    --glass-shadow-a: 22%;
+    --glass-shadow-a: 50%;
     /* Colored glass strength. Used only by opt-in colored classes and colored buttons. */
     --glass-color-bg-mix: 24%;
     --glass-color-bg-hover-mix: 34%;
@@ -115,14 +115,14 @@
         --glass-neutral-inverse-rgb: 0 0 0;
         --glass-border-rgb: 255 255 255;
         --glass-ring-rgb: 255 255 255;
-        --glass-surface-a: 42%;
+        --glass-surface-a: 80%;
         --glass-surface-hover-a: 50%;
         --glass-surface-active-a: 58%;
         --glass-border-a: 14%;
         --glass-border-hover-a: 22%;
         --glass-border-active-a: 30%;
         --glass-inset-a: 18%;
-        --glass-ring-a: 34%;
+        --glass-ring-a: 10%;
         --glass-shadow-a: 54%;
         --glass-color-bg-mix: 36%;
         --glass-color-bg-hover-mix: 46%;

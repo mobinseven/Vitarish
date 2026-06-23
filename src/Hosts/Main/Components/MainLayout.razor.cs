@@ -13,7 +13,7 @@ public partial class MainLayout : LayoutComponentBase
     [Inject] protected INavService NavService { get; set; } = default!;
     [Inject] protected IPlatformThemePaletteProvider PlatformThemePaletteProvider { get; set; } = default!;
 
-    private bool Initialized;
+    protected bool Initialized;
     protected Breakpoint PageBreakpoint
     {
         get;
@@ -23,7 +23,7 @@ public partial class MainLayout : LayoutComponentBase
             StateHasChanged();
         }
     }
-    private bool BreakpointReceived
+    protected bool BreakpointReceived
     {
         get;
         set

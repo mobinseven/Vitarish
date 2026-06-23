@@ -73,15 +73,15 @@
     box-shadow: 0 10px 25px rgb(var(--glass-shadow-rgb) / 0.22), var(--glass-inset) !important;
 }
 
-/*@media (hover: hover) and (pointer: fine) {
+    /*@media (hover: hover) and (pointer: fine) {
     .glass:is(.mud-button-root, .mud-icon-button):hover {
         background-color: rgb(var(--glass-surface-rgb) / var(--glass-btn-hover-a)) !important;
     }
 }*/
 
-.glass:is(.mud-button-root, .mud-icon-button):active {
-    background-color: rgb(var(--glass-surface-rgb) / var(--glass-btn-active-a)) !important;
-}
+    .glass:is(.mud-button-root, .mud-icon-button):active {
+        background-color: rgb(var(--glass-surface-rgb) / var(--glass-btn-active-a)) !important;
+    }
 
 [centered], .centered input {
     text-align: center;
@@ -97,4 +97,12 @@
 
 .mud-input > textarea.mud-input-root.mud-input-root-filled {
     margin-top: unset;
+}
+
+.fa-solid {
+    font-size: smaller;
+}
+
+.white {
+    background-color: white !important;
 }

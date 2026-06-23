@@ -1,5 +1,3 @@
-using Vitarish.Interfaces.Base.Common;
-
 namespace Vitarish.Interfaces.Base.Services;
 
 [RegisterScoped]
@@ -55,20 +53,10 @@ public sealed class NavService : INavService, IDisposable
         _ = renderNotifier.Notify();
     }
 
-    public void EnableSearch()
-    {
-        navigationManager.NavigateTo(navigationManager.GetUriWithQueryParameter(nameof(NavMenu.Search), true));
-        _ = renderNotifier.Notify();
-    }
+    public void EnableSearch() => _ = renderNotifier.Notify();
 
     public void DisableSearch()
     {
-        string uriWithoutSearch = navigationManager.GetUriWithQueryParameter(nameof(NavMenu.Search), (bool?)null);
-        if (navigationManager.Uri != uriWithoutSearch)
-        {
-            navigationManager.NavigateTo(uriWithoutSearch);
-        }
-
         if (SearchString is not null)
         {
             SearchString = null;
@@ -82,7 +70,7 @@ public sealed class NavService : INavService, IDisposable
             return;
         }
         string[] subs = CurrentLocation.Split('/');
-        breadcrumbs = [new Breadcrumb { Id="/", Path = "/", Text = localizer["Dashboard"] }];
+        breadcrumbs = [new Breadcrumb { Id = "/", Path = "/", Text = localizer["Dashboard"] }];
         string path = string.Empty;
         foreach (string sub in subs)
         {

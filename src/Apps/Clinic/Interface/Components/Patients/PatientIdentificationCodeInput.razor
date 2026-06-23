@@ -1,11 +1,10 @@
-@namespace Vitarish.Clinic.Interface.Components.Patients
-
+@inherits CommonBase
 <PaletteCard>
     <Stack>
         <StackPersonIdField Value="@Value"
                             ValueChanged="@NotifyValueChangedAsync" />
     </Stack>
-    <PaletteButton />
+    <PaletteButton OnClick="@(() => ValueChanged.InvokeAsync(Value))" Label="@Localizer["Search"]" />
 </PaletteCard>
 
 @code {

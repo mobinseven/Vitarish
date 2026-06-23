@@ -1,0 +1,67 @@
+@using MudBlazor
+<div>
+    <div class="@RootClass">
+        <MudTextField T="string"
+                      Value="@Value"
+                      ValueChanged="@HandleValueChanged"
+                      Label="@Label"
+                      Variant="@Variant"
+                      Margin="@Margin"
+                      FullWidth="@FullWidth"
+                      Disabled="@Disabled"
+                      ReadOnly="@ReadOnly"
+                      Immediate="@Immediate"
+                      Lines="@Lines"
+                      InputType="@InputType"
+                      Class="@TextFieldClass"
+                      AutoFocus="@AutoFocus"
+                      Underline="false"
+                      @attributes="AdditionalAttributes" />
+
+        @if(!HasValue)
+        {
+            <span class="animated-placeholder-text">
+                @PlaceholderText
+                <span class="animated-placeholder-caret"></span>
+            </span>
+        }
+    </div>
+</div>
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+
+    [Parameter] public string PlaceholderText { get; set; } = "Type here ...";
+    [Parameter] public string? Label { get; set; }
+
+    [Parameter] public Variant Variant { get; set; } = Variant.Outlined;
+    [Parameter] public Margin Margin { get; set; } = Margin.Dense;
+    [Parameter] public InputType InputType { get; set; } = InputType.Text;
+
+    [Parameter] public bool FullWidth { get; set; } = true;
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public bool ReadOnly { get; set; }
+    [Parameter] public bool AutoFocus { get; set; }
+    [Parameter] public bool Immediate { get; set; } = true;
+
+    [Parameter] public int Lines { get; set; } = 1;
+
+    [Parameter] public bool HideOnFocus { get; set; } = false;
+
+    [Parameter(CaptureUnmatchedValues = true)]
+    public Dictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private bool HasValue => !string.IsNullOrWhiteSpace(Value);
+
+    private string RootClass =>
+        $"animated-placeholder-field {(HasValue ? "has-value" : "")} {(HideOnFocus ? "hide-on-focus" : "")}";
+
+    private string TextFieldClass => "animated-placeholder-input";
+
+    private async Task HandleValueChanged(string? value)
+    {
+        Value = value;
+        await ValueChanged.InvokeAsync(value);
+    }
+}

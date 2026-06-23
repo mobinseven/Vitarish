@@ -118,6 +118,7 @@ _ = builder.Services.AddMultiTenant<TenantInfo>()
 
 builder.Services.AddTransient<IClaimsTransformation, ClaimsTransformation>();
 builder.Services.AddVitarishInterfacesBase();
+builder.Services.AddVitarishInterfacesAggregator();
 builder.Services.AddSingleton(new NavServiceRoutes { ProfileRoute = AppRoutes.Account.Settings });
 
 builder.Services.AddSingleton<IAppsProvider, AppsProvider>();

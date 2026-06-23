@@ -29,6 +29,8 @@ public partial class AdvancedInput : CommonBase
     [Parameter] public EventCallback<string> OnSubmit { get; set; }
     [Parameter] public bool FileUploadEnabled { get; set; } = true;
     [Parameter] public bool DisplaySubmit { get; set; } = true;
+    [Parameter] public int Lines { get; set; } = 3;
+    [Parameter] public bool RewriteEnabled { get; set; } = true;
 
     [Parameter] public string? Value { get; set; }
     [Parameter] public EventCallback<string?> ValueChanged { get; set; }
@@ -46,6 +48,7 @@ public partial class AdvancedInput : CommonBase
         if (OnSubmit.HasDelegate)
         {
             await OnSubmit.InvokeAsync(_value);
+            _value = string.Empty;
         }
     }
 

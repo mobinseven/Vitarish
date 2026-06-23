@@ -2,72 +2,45 @@
 @using Vitarish.Parties.Domain.Dtos
 @using Vitarish.Parties.Interface.Components.Base
 @inherits PartiesCommonBase
-@inject IScrollListenerFactory ScrollListenerFactory
-@implements IAsyncDisposable
 
 @if(tenant is not null)
 {
-    <MudStack Class="glass px-4 sticky-top" Style="width: 100%; border-radius: 0;" Justify="Justify.Center" StretchItems="StretchItems.Middle" AlignItems="AlignItems.Center" Row>
-        <div />
-        <div>
-            <MudStack AlignItems="AlignItems.Center" Style="height: 100%;" Justify="Justify.Center" Class="my-4">
-                @if(!string.IsNullOrWhiteSpace(tenant.LogoUrl))
-                {
+    @if(Content is null)
+    {
+        <Stack Class="sticky-top">
+            <div>
+                <MudStack AlignItems="AlignItems.Center" Style="height: 100%;" Justify="Justify.Center" Class="my-4">
+                    @if(!string.IsNullOrWhiteSpace(tenant.LogoUrl))
+                    {
+                        <div>
+                            <MudAvatar>
+                                <MudImage Src="tenant.LogoUrl" />
+                            </MudAvatar>
+                        </div>
+                    }
                     <div>
-                        <MudAvatar>
-                            <MudImage Src="tenant.LogoUrl" />
-                        </MudAvatar>
+                        @tenant.Name
                     </div>
-                }
-                <div>
-                    @tenant.Name
-                </div>
-                @if(!string.IsNullOrWhiteSpace(tenant.Description))
-                {
-                    <div>
-                        @tenant.Description
-                    </div>
-                }
-            </MudStack>
-        </div>
-        @if(!scrolled)
-        {
+                </MudStack>
+            </div>
+            <div />
             <div>
                 <Greetings />
             </div>
-        }
-    </MudStack>
+        </Stack>
+    }
+    else
+    {
+        @Content(tenant)
+    }
 }
 @code {
-    private IScrollListener? _scrollListener;
-    private bool scrolled;
     private TenantReadDto? tenant;
+    [Parameter]
+    public RenderFragment<TenantReadDto>? Content { get; set; }
     protected override async Task ReloadRequired()
     {
         if(RequestContext.TenantId is not null)
             tenant = await PartiesService.GetTenantAsync(Guid.Parse(RequestContext.TenantId));
-    }
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        await base.OnAfterRenderAsync(firstRender);
-        if(firstRender)
-        {
-            _scrollListener = ScrollListenerFactory.Create("html");
-            _scrollListener.OnScroll += ScrollListenerOnScroll;
-        }
-    }
-    public async ValueTask DisposeAsync()
-    {
-        if(_scrollListener != null)
-        {
-            await _scrollListener.DisposeAsync();
-        }
-    }
-
-    private void ScrollListenerOnScroll(object? sender, ScrollEventArgs e)
-    {
-        scrolled = e.ScrollTop > 10;
-        Console.WriteLine(e.ScrollTop);
-        StateHasChanged();
     }
 }

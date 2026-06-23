@@ -1,5 +1,30 @@
+@using Vitarish.Interfaces.Aggregator.Abstractions
+@using Vitarish.Interfaces.Aggregator.Models
 @using Vitarish.Interfaces.Base.Extensions
 @attribute [Route(AppRoutes.Knowledge.QA)]
 @attribute [PageBackgroundImage(PalettePageBackgroundImages.Intuition)]
 @attribute [PageColor(Interfaces.Base.Enums.Palettes.Intuition)]
+@attribute [EnableChat]
+@implements IDisposable
+@inject IChatService ChatService
 <KnowledgeTestQaSurface />
+
+
+@code {
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        ChatService.OnChatSubmit += ChatSubmit;
+
+    }
+
+    public void Dispose()
+    {
+        ChatService.OnChatSubmit -= ChatSubmit;
+    }
+
+    private async void ChatSubmit(object? sender, ChatSubmitEventArgs args)
+    {
+        Console.WriteLine(args.Message);
+    }
+}

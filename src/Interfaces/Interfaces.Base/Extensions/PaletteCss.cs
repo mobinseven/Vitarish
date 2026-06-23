@@ -168,6 +168,7 @@ public static class PaletteCss
              * Vitarish palette variables.
              *
              * Palette classes:
+             *   .palette-blank
              *   .palette-green
              *   .palette-intuition
              *   .palette-pink
@@ -183,7 +184,7 @@ public static class PaletteCss
              *   .palette-dark   forces dark palette
              *
              * Also supported:
-             *   [data-palette="green|intuition|pink|yellow|blue|purple|lagoon|sunset"]
+             *   [data-palette="blank|green|intuition|pink|yellow|blue|purple|lagoon|sunset"]
              *   [data-theme="light|dark"]
              *   .light
              *   .dark
@@ -308,13 +309,17 @@ public static class PaletteCss
     private static string BuildBodyBackgroundStyleBlock(PaletteOptions options) => $$"""
     {{options.BodySelector}} {
         background-color: var(--palette-body-bg);
+    }
+    """;
+    /*
+     
         background-image: var(--palette-body-header-image);
         background-repeat: var(--palette-body-header-repeat);
         background-position: var(--palette-body-header-position);
         background-size: var(--palette-body-header-size);
         background-attachment: var(--palette-body-header-attachment);
-    }
-    """;
+
+     */
 
     private static string BuildAutoBodyPaletteVariablesBlocks(
         PaletteDefinition definition,
@@ -390,9 +395,8 @@ public static class PaletteCss
         string isDarkValue = isDark ? "1" : "0";
         string pageBackground = isDark ? options.DarkPageBackground : options.LightPageBackground;
         string pageBackgroundAlpha = ApplyColorAlpha(pageBackground, colorAlpha);
-        string headerImageUrl = ResolveHeaderImageUrl(definition, mode, options);
-        string headerImageCss = options.IncludeHeaderImages
-            ? CssUrl(headerImageUrl)
+        string headerImageCss = options.IncludeHeaderImages && definition.HasHeaderImage
+            ? CssUrl(ResolveHeaderImageUrl(definition, mode, options))
             : "none";
 
         return $$"""
@@ -867,7 +871,7 @@ public static class PaletteCss
         Palettes.Purple => Purple,
         Palettes.Lagoon => Lagoon,
         Palettes.Sunset => Sunset,
-        _ => Green
+        _ => Blank
     };
 
     public enum PaletteMode
@@ -913,7 +917,7 @@ public static class PaletteCss
 
         public PaletteMode BodyPaletteMode { get; init; } = PaletteMode.Auto;
 
-        public string LightPageBackground { get; init; } = "#ffffff";
+        public string LightPageBackground { get; init; } = "#f4f4f4";
 
         public string DarkPageBackground { get; init; } = "#2B2B2B";
 
@@ -935,6 +939,36 @@ public static class PaletteCss
 
         public string HeaderBackgroundAttachment { get; init; } = "fixed";
     }
+
+    private static readonly PaletteTokens BlankLightTokens = new(
+        SurfaceBg: "#ffffff",
+        SurfaceStart: "#ffffff",
+        SurfaceEnd: "#e5e5e5",
+        SurfaceGlow: "rgba(0, 0, 0, 0.08)",
+        Tone100: "#ffffff",
+        Tone300: "#e5e5e5",
+        Tone700: "#737373",
+        Tone800: "#525252",
+        Tone900: "#262626",
+        Tone950: "#000000",
+        TextLight: "#ffffff",
+        TextDark: "#000000"
+    );
+
+    private static readonly PaletteTokens BlankDarkTokens = new(
+        SurfaceBg: "#2b2b2b",
+        SurfaceStart: "#525252",
+        SurfaceEnd: "#000000",
+        SurfaceGlow: "rgba(255, 255, 255, 0.12)",
+        Tone100: "#ffffff",
+        Tone300: "#d4d4d4",
+        Tone700: "#737373",
+        Tone800: "#525252",
+        Tone900: "#262626",
+        Tone950: "#000000",
+        TextLight: "#ffffff",
+        TextDark: "#000000"
+    );
 
     private static readonly PaletteTokens GreenLightTokens = new(
         SurfaceBg: "#055b33",
@@ -1164,11 +1198,21 @@ SurfaceBg: "#28345d", SurfaceStart: "#438dce", SurfaceEnd: "#171b34", SurfaceGlo
         PaletteTone.Tone950
     ];
 
+    private static readonly PaletteDefinition Blank = new(
+        Palette: default,
+        Name: "blank",
+        CssClass: "palette-blank",
+        IsDefault: true,
+        Light: BlankLightTokens,
+        Dark: BlankDarkTokens,
+        HasHeaderImage: false
+    );
+
     private static readonly PaletteDefinition Green = new(
         Palette: default,
         Name: "green",
         CssClass: "palette-green",
-        IsDefault: true,
+        IsDefault: false,
         Light: GreenLightTokens,
         Dark: GreenDarkTokens
     );
@@ -1238,6 +1282,7 @@ SurfaceBg: "#28345d", SurfaceStart: "#438dce", SurfaceEnd: "#171b34", SurfaceGlo
 
     private static readonly PaletteDefinition[] Definitions =
     [
+        Blank,
         Green,
         Intuition,
         Pink,
@@ -1254,7 +1299,8 @@ SurfaceBg: "#28345d", SurfaceStart: "#438dce", SurfaceEnd: "#171b34", SurfaceGlo
         string CssClass,
         bool IsDefault,
         PaletteTokens Light,
-        PaletteTokens Dark
+        PaletteTokens Dark,
+        bool HasHeaderImage = true
     );
 
     private sealed record PaletteTokens(

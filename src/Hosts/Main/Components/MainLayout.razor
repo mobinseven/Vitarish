@@ -1,18 +1,46 @@
-@using Vitarish.Parties.Interface.Components.Common
 @inherits LayoutComponentBase
 
 @if(Initialized)
 {
-    <TenantHeader />
-    <div style="height: 10dvh;">
-        <hr />
-    </div>
     <ThemeConnector>
         <MudRTLProvider RightToLeft="@System.Globalization.CultureInfo.CurrentCulture.TextInfo.IsRightToLeft" Style="min-height: 100dvh;">
             <BreakpointProvider @bind-Breakpoint="PageBreakpoint" BreakpointReceived="() => BreakpointReceived = true" />
             @if(BreakpointReceived)
             {
                 <CascadingValue Value="@PageBreakpoint">
+                    <TenantHeader>
+                        <Content>
+                            <div class="@($"sticky-top {(PageBreakpoint >= Breakpoint.Sm ? "mt-5 pa-5" : "mt-3 pa-3")}")">
+                                <StackPill Class="@($"{(PageBreakpoint >= Breakpoint.Sm ? "pa-5 mx-20" : "pa-1 mx-5")}")">
+                                    <div>
+                                        <MudStack AlignItems="AlignItems.Center" Style="height: 100%;" Justify="Justify.Center" Class="my-4">
+                                            @if(!string.IsNullOrWhiteSpace(context.LogoUrl))
+                                            {
+                                                <div>
+                                                    <MudAvatar>
+                                                        <MudImage Src="@context.LogoUrl" />
+                                                    </MudAvatar>
+                                                </div>
+                                            }
+                                            @if(PageBreakpoint >= Breakpoint.Sm)
+                                            {
+                                                <div>
+                                                    @context.Name
+                                                </div>
+                                            }
+                                        </MudStack>
+                                    </div>
+                                    <div />
+                                    <div>
+                                        <MudButton>Home</MudButton>
+                                    </div>
+                                </StackPill>
+                            </div>
+                        </Content>
+                    </TenantHeader>
+                    <div style="height: 10dvh;">
+                        <hr />
+                    </div>
                     <WidthControlled>
 @*                         <TitleContainer>
                             <BreadcrumbsTree />
@@ -32,19 +60,10 @@
                         <hr />
                     </div>
 
-                    <div style="position: fixed; z-index: 10; bottom: 0; width: 100%;pointer-events: none;">
-                        @if(PageBreakpoint >= Breakpoint.Sm)
-                        {
-                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Class="py-5" Style="pointer-events: auto;">
-                                <NavMenu Size="Size.Large" />
-                            </MudStack>
-                        }
-                        else if(PageBreakpoint < Breakpoint.Sm)
-                        {
-                            <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Class="pa-1" Style="pointer-events: auto;">
-                                <NavMenu />
-                            </MudStack>
-                        }
+                    <div class="sticky-bottom ma-5">
+                        <MudStack Row AlignItems="AlignItems.Center" Justify="Justify.Center" Class="@($"{(PageBreakpoint >= Breakpoint.Sm ? "py-5" : "pa-1")}")" Style="pointer-events: auto;">
+                            <NavBar Size="@(PageBreakpoint >= Breakpoint.Sm ? Size.Medium : Size.Small)" />
+                        </MudStack>
                     </div>
                     <AntiforgeryToken />
                 </CascadingValue>

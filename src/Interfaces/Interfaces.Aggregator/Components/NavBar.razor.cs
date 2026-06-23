@@ -1,11 +1,15 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.AspNetCore.Components.Web;
+using MudBlazor;
 using System.Reflection;
 using Vitarish.Interfaces.Base.Attributes;
+using Vitarish.Interfaces.Base.Common;
 
-namespace Vitarish.Interfaces.Base.Common;
+namespace Vitarish.Interfaces.Aggregator.Components;
 
 
-public partial class NavMenu : CommonBase, IAsyncDisposable
+public partial class NavBar : CommonBase, IAsyncDisposable
 {
     [CascadingParameter(Name = "CurrentRouteData")]
     public RouteData? RouteData { get; set; }
@@ -20,20 +24,23 @@ public partial class NavMenu : CommonBase, IAsyncDisposable
     [Parameter] public EventCallback RedirectToSearch { get; set; }
     [Parameter] public Size Size { get; set; } = Size.Large;
 
-    private bool SearchActive => NavService.SearchString is not null;
+    protected bool SearchActive => NavService.SearchString is not null;
+
+    protected bool ChatActive;
     protected override void OnInitialized()
     {
         Search = RouteData?.PageType.GetCustomAttribute<EnableSearchAttribute>(inherit: true) is not null;
+        ChatActive = RouteData?.PageType.GetCustomAttribute<EnableChatAttribute>(inherit: true) is not null;
         NavigationManager.LocationChanged += OnLocationChanged;
     }
 
-    private async void Close()
+    protected async void CloseSearch()
     {
         NavService.SearchString = null;
         await InvokeAsync(StateHasChanged);
     }
 
-    private async void Open()
+    protected async void OpenSearch()
     {
         if (Search)
         {
@@ -49,16 +56,16 @@ public partial class NavMenu : CommonBase, IAsyncDisposable
 
     private async void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-
+        ChatActive = RouteData?.PageType.GetCustomAttribute<EnableChatAttribute>(inherit: true) is not null;
         Search = RouteData?.PageType.GetCustomAttribute<EnableSearchAttribute>(inherit: true) is not null;
-        Close();
+        CloseSearch();
     }
-    private void HandleHomeClick() => NavService.Home();
-    private void HandleBackClick() => NavService.Back();
-    private void HandleProfileClick() => NavService.Profile();
+    protected void HandleHomeClick() => NavService.Home();
+    protected void HandleBackClick() => NavService.Back();
+    protected void HandleProfileClick() => NavService.Profile();
 
     private IScrollListener? _scrollListener;
-    private bool ScrollToTopVisible;
+    protected bool ScrollToTopVisible;
     private readonly int TopOffset = 200;
 
     protected override void OnAfterRender(bool firstRender)
@@ -89,7 +96,7 @@ public partial class NavMenu : CommonBase, IAsyncDisposable
             await InvokeAsync(StateHasChanged);
         }
     }
-    private async Task OnScrollToTopClick(MouseEventArgs args) => await ScrollManager.ScrollToTopAsync(_scrollListener?.Selector, ScrollBehavior.Smooth);
+    protected async Task OnScrollToTopClick(MouseEventArgs args) => await ScrollManager.ScrollToTopAsync(_scrollListener?.Selector, ScrollBehavior.Smooth);
     public async ValueTask DisposeAsync()
     {
         NavigationManager.LocationChanged -= OnLocationChanged;

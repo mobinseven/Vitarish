@@ -1,19 +1,22 @@
 @inherits CommonBase
 
-<AiStreamTranscriber @ref="_transcriber"
-                     Value="@_value"
-                     OnChunk="OnChunk"
-                     OnSupportStatusChanged="()=>StateHasChanged()"
-                     OnTransciptionEnd="OnTranscriptionEnded"
-                     OnRecordingStateChanged="OnRecordingChanged"
-                     OnTranscribingStateChanged="OnTranscribingChanged" />
+@if(IntelligenceModule.IsAvailable)
+{
+    <AiStreamTranscriber @ref="_transcriber"
+                         Value="@_value"
+                         OnChunk="OnChunk"
+                         OnSupportStatusChanged="()=>StateHasChanged()"
+                         OnTransciptionEnd="OnTranscriptionEnded"
+                         OnRecordingStateChanged="OnRecordingChanged"
+                         OnTranscribingStateChanged="OnTranscribingChanged" />
 
-<AiStreamRewriter @ref="_rewriter"
-                  Value="@_value"
-                  ValueChanged="OnRewriteValueChanged"
-                  OnRewriteStarted="OnRewriteStarted"
-                  OnRewriteCompleted="OnRewriteCompleted"
-                  OnRewriteError="OnRewriteError" />
+    <AiStreamRewriter @ref="_rewriter"
+                      Value="@_value"
+                      ValueChanged="OnRewriteValueChanged"
+                      OnRewriteStarted="OnRewriteStarted"
+                      OnRewriteCompleted="OnRewriteCompleted"
+                      OnRewriteError="OnRewriteError" />
+}
 @if(FileUploadEnabled)
 {
     <StreamTransfer @ref="_streamTransferComponent"
@@ -30,8 +33,8 @@
     </StreamTransfer>
 }
 
-<MudField Style="width: 100%; position: relative;" Class="pa-1 my-2" Underline=false Variant="ThemeService.SecondaryVariant">
-    @if(fileAttachmentMode)
+<MudField Style="width: 100%; position: relative;" Class="pa-1 my-2" Underline=false Variant="Variant.Text">
+    @if(_streamTransferComponent is not null && fileAttachmentMode)
     {
         <MudField Underline=false Class="my-1">
             @foreach(var item in _streamTransferComponent!.PendingFiles)
@@ -55,16 +58,13 @@
         </MudField>
     }
 
-    <MudTextField T="string"
-                  Value="@_value"
-                  ValueChanged="(v) => UpdateValueAsync(v)"
-                  Disabled=@(_busy)
-                  Style="width:100%;"
-                  Underline=false
-                  Lines="3"
-                  AutoFocus
-                 
-                  Immediate />
+    <TextField Value="@_value"
+               ValueChanged="(v) => UpdateValueAsync(v)"
+               Variant="Variant.Text"
+               Disabled=@(_busy)
+               Lines="@Lines"
+               HideOnFocus
+               Immediate />
 
 
     <MudStack Row Justify="Justify.SpaceBetween"
@@ -85,7 +85,7 @@
             }
         </MudStack>
         <MudStack Row Justify="Justify.FlexStart" AlignItems="AlignItems.Center" Spacing="1" Style="pointer-events: auto;">
-            @if(_streamTransferComponent!.Transferring)
+            @if(_streamTransferComponent is not null && _streamTransferComponent!.Transferring)
             {
                 <div>
                     <MudFab StartIcon="fa-solid fa-circle-notch fa-spin"
@@ -100,11 +100,11 @@
                 @if(DisplaySubmit)
                 {
                     <div>
-                        <MudFab StartIcon="fa-solid fa-check"
-                                Disabled="_busy"
+                        <MudFab StartIcon="fa-solid fa-arrow-up"
+                                Disabled="@(_busy || string.IsNullOrWhiteSpace(_value))"
                                 OnClick="SubmitAsync"
                                 Size="Size.Small"
-                                Color="Color.Success"
+                                Color="Color.Primary"
                                 DropShadow=false />
                     </div>
                 }
@@ -114,24 +114,30 @@
                         @StartContent
                     </div>
                 }
-                <div>
-                    <MudFab Size="Size.Small"
-                            DropShadow=false
-                            Color="Color.Primary"
-                            StartIcon="@(_rewriting ? "fa-solid fa-wand-sparkles fa-fade" : "fa-solid fa-wand-sparkles")"
-                            Disabled=@(_rewriting || _recording || _transcribing || _transferring || _value.Length < MinStringLengthToRewrite || !IntelligenceModule.IsAvailable)
-                            OnClick="RewriteAsync" />
-                </div>
-                @if(_transcriber?.Supported ?? false)
+                @if(IntelligenceModule.IsAvailable)
                 {
-                    <div>
-                        <MudFab Size="Size.Small"
-                                DropShadow=false
-                                Color="@(_recording  || _transcribing ? Color.Error : Color.Primary)"
-                                StartIcon="@(_recording ? "fa-duotone fa-solid fa-microphone fa-fade" : _transcribing ? "fa-duotone fa-solid fa-waveform-lines fa-fade" : "fa-solid fa-microphone")"
-                                Disabled=@(_transcribing || _rewriting || _transferring || !IntelligenceModule.IsAvailable)
-                                OnClick="ToggleRecordingAsync" />
-                    </div>
+                    @if(RewriteEnabled)
+                    {
+                        <div>
+                            <MudFab Size="Size.Small"
+                                    DropShadow=false
+                                    Color="Color.Primary"
+                                    StartIcon="@(_rewriting ? "fa-solid fa-wand-sparkles fa-fade" : "fa-solid fa-wand-sparkles")"
+                                    Disabled=@(_rewriting || _recording || _transcribing || _transferring || _value.Length < MinStringLengthToRewrite)
+                                    OnClick="RewriteAsync" />
+                        </div>
+                    }
+                    @if(_transcriber?.Supported ?? false)
+                    {
+                        <div>
+                            <MudFab Size="Size.Small"
+                                    DropShadow=false
+                                    Color="@(_recording  || _transcribing ? Color.Error : Color.Primary)"
+                                    StartIcon="@(_recording ? "fa-duotone fa-solid fa-microphone fa-fade" : _transcribing ? "fa-duotone fa-solid fa-waveform-lines fa-fade" : "fa-solid fa-microphone")"
+                                    Disabled=@(_transcribing || _rewriting || _transferring)
+                                    OnClick="ToggleRecordingAsync" />
+                        </div>
+                    }
                 }
             }
         </MudStack>
