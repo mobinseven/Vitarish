@@ -25,30 +25,34 @@
     </Stack>
 </PaletteCard>
 
-<MudDialog @bind-Visible="createCorpusDialogOpen">
+<MudDialog @bind-Visible="createCorpusDialogOpen" Options="@ActiveDialogOptions">
     <DialogContent>
-        <KnowledgeCorpusCreator IsBusy="@isBusy" ResetVersion="@createCorpusResetVersion" CreateRequested="CreateCorpusAsync" />
+        <KnowledgeCorpusCreator IsBusy="@isBusy" ResetVersion="@createCorpusResetVersion" CreateRequested="CreateCorpusAndCloseOnSuccessAsync" />
+        <KnowledgeOwnerStatus Status="@status" Color="@statusColor" />
         <StackButton Label="Close" Color="Color.Secondary" OnClick="CloseCreateCorpusDialog" Disabled="@isBusy" />
     </DialogContent>
 </MudDialog>
 
-<MudDialog @bind-Visible="importSourceDialogOpen">
+<MudDialog @bind-Visible="importSourceDialogOpen" Options="@ActiveDialogOptions">
     <DialogContent>
-        <KnowledgeSourceImporter SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" FileImportRequested="ImportSourceFromFileAsync" ImportSummary="@importSummary" />
+        <KnowledgeSourceImporter SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" FileImportRequested="ImportSourceFromFileAndCloseOnSuccessAsync" ImportSummary="@importSummary" />
+        <KnowledgeOwnerStatus Status="@status" Color="@statusColor" />
         <StackButton Label="Close" Color="Color.Secondary" OnClick="CloseImportSourceDialog" Disabled="@isBusy" />
     </DialogContent>
 </MudDialog>
 
-<MudDialog @bind-Visible="deleteSourceDialogOpen">
+<MudDialog @bind-Visible="deleteSourceDialogOpen" Options="@ActiveDialogOptions">
     <DialogContent>
-        <KnowledgeSourceDeleter SelectedCorpus="@SelectedCorpusOption" FocusedSource="@FocusedSourceOption" Sources="@SelectedSourceOptions" IsBusy="@isBusy" CanDelete="@CanDeleteSources" SourcesVersion="@sourcesVersion" DeleteRequested="DeleteSourceAsync" />
+        <KnowledgeSourceDeleter SelectedCorpus="@SelectedCorpusOption" FocusedSource="@FocusedSourceOption" Sources="@SelectedSourceOptions" IsBusy="@isBusy" CanDelete="@CanDeleteSources" SourcesVersion="@sourcesVersion" DeleteRequested="DeleteSourceAndCloseOnSuccessAsync" />
+        <KnowledgeOwnerStatus Status="@status" Color="@statusColor" />
         <StackButton Label="Close" Color="Color.Secondary" OnClick="CloseDeleteSourceDialog" Disabled="@isBusy" />
     </DialogContent>
 </MudDialog>
 
-<MudDialog @bind-Visible="indexCorpusDialogOpen">
+<MudDialog @bind-Visible="indexCorpusDialogOpen" Options="@ActiveDialogOptions">
     <DialogContent>
-        <KnowledgeCorpusIndexer SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" IndexRequested="IndexCorpusAsync" />
+        <KnowledgeCorpusIndexer SelectedCorpus="@SelectedCorpusOption" IsBusy="@isBusy" IndexRequested="IndexCorpusAndCloseOnSuccessAsync" />
+        <KnowledgeOwnerStatus Status="@status" Color="@statusColor" />
         <StackButton Label="Close" Color="Color.Secondary" OnClick="CloseIndexCorpusDialog" Disabled="@isBusy" />
     </DialogContent>
 </MudDialog>
@@ -83,6 +87,7 @@
     private IReadOnlyList<KnowledgeOwnerSourceOption> SelectedSourceOptions => SelectedCorpus?.Sources.Select(ToSourceOption).ToArray() ?? [];
     private bool CanDeleteSources => !string.IsNullOrWhiteSpace(RequestContext.OwnerId) && SelectedCorpus is not null && SelectedSourceOptions.Count > 0;
     private string TenantId => RequestContext.TenantId ?? throw new InvalidOperationException("Your workspace is unavailable. Please refresh the page and try again.");
+    private DialogOptions ActiveDialogOptions => new() { BackdropClick = !isBusy, CloseOnEscapeKey = !isBusy };
 
     protected override async Task OnInitializedAsync() => await ReloadAsync(null, null, disposal.Token);
 
@@ -115,13 +120,37 @@
 
     private async Task IndexCorpusAsync() => await RunAsync(async token => Apply(await Sender.Send(new IndexKnowledgeCorpusCommand(TenantId, new IndexKnowledgeCorpusInput(collection.SelectedCorpusId)), token)));
 
-    private void OpenCreateCorpusDialog() => createCorpusDialogOpen = true;
+    private async Task CreateCorpusAndCloseOnSuccessAsync(CreateKnowledgeCorpusInput input)
+    {
+        await CreateCorpusAsync(input);
+        if (statusColor == Color.Success) createCorpusDialogOpen = false;
+    }
+
+    private async Task ImportSourceFromFileAndCloseOnSuccessAsync(ImportKnowledgeSourceFromFileInput input)
+    {
+        await ImportSourceFromFileAsync(input);
+        if (statusColor == Color.Success) importSourceDialogOpen = false;
+    }
+
+    private async Task DeleteSourceAndCloseOnSuccessAsync(DeleteKnowledgeSourceInput input)
+    {
+        await DeleteSourceAsync(input);
+        if (statusColor == Color.Success) deleteSourceDialogOpen = false;
+    }
+
+    private async Task IndexCorpusAndCloseOnSuccessAsync()
+    {
+        await IndexCorpusAsync();
+        if (statusColor == Color.Success) indexCorpusDialogOpen = false;
+    }
+
+    private void OpenCreateCorpusDialog() { ClearStatus(); createCorpusDialogOpen = true; }
     private void CloseCreateCorpusDialog() => createCorpusDialogOpen = false;
-    private void OpenImportSourceDialog() => importSourceDialogOpen = true;
+    private void OpenImportSourceDialog() { ClearStatus(); importSourceDialogOpen = true; }
     private void CloseImportSourceDialog() => importSourceDialogOpen = false;
-    private void OpenDeleteSourceDialog() => deleteSourceDialogOpen = true;
+    private void OpenDeleteSourceDialog() { ClearStatus(); deleteSourceDialogOpen = true; }
     private void CloseDeleteSourceDialog() => deleteSourceDialogOpen = false;
-    private void OpenIndexCorpusDialog() => indexCorpusDialogOpen = true;
+    private void OpenIndexCorpusDialog() { ClearStatus(); indexCorpusDialogOpen = true; }
     private void CloseIndexCorpusDialog() => indexCorpusDialogOpen = false;
 
     private static KnowledgeOwnerCorpusOption ToCorpusOption(CorpusItemModel corpus)
@@ -142,6 +171,7 @@
         finally { isBusy = false; }
     }
 
+    private void ClearStatus() { status = null; statusColor = Color.Info; }
     private void Apply(KnowledgeOwnerCommandResult result) => Apply(result.Succeeded, result.Message);
     private void Apply(bool succeeded, string message) { status = Localizer[message]; statusColor = succeeded ? Color.Success : Color.Error; }
     public void Dispose() { disposal.Cancel(); disposal.Dispose(); }
