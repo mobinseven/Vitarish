@@ -36,7 +36,6 @@
     [Parameter, EditorRequired]
     public EventCallback<ImportKnowledgeSourceFromFileInput> FileImportRequested { get; set; }
 
-    private FileInformationReadDto? uploadedFile;
 
     private async Task ImportFileAsync(KnowledgeSourcePayload payload)
     {

@@ -17,7 +17,7 @@
     <StackField Label="Selected file" HelperText="@DescribeUploadedFile()" Color="Color.Info" />
 }
 
-<StackButton Label="@ActionLabel" Color="@ActionColor" OnClick="StartFileUploadAsync" Disabled="@(IsBusy)" />
+<StackButton Label="@ActionLabel" Color="@ActionColor" OnClick="StartFileUploadAsync" Disabled="@(IsBusy || isUploading)" />
 
 @code {
     private StackFileInput? fileTransfer;
