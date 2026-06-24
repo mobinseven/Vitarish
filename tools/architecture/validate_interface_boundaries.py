@@ -396,7 +396,7 @@ def main() -> int:
     fail_fast_modules = [module for module in modules if module_mode(config, module) == "FailFast"]
 
     print(f"Modules scanned: {', '.join(modules)}")
-    print(f"Fail-fast modules: {', '.join(fail_fast_modules) if fail_fast_modules else "none"}")
+    print(f"Fail-fast modules: {', '.join(fail_fast_modules) if fail_fast_modules else 'none'}")
     print(f"Violations found: {len(violations)}")
     print(f"Temporary exceptions suppressed: {len(suppressed)}")
     print(f"Fail-fast violations: {len(fail_fast)}")
