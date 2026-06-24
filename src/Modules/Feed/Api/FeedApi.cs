@@ -23,11 +23,10 @@ public static class FeedApi
     }
 
     private static async Task<IResult> QueryFeedItemsAsync(
-        HttpRequest request,
+        [AsParameters] FeedQueryParameters parameters,
         IMediator mediator,
         CancellationToken cancellationToken)
     {
-        FeedQueryParameters parameters = ReadQueryParameters(request.Query);
         IReadOnlyList<FeedItem> items = await mediator.Send(new GetFeedQuery(ToOptions(parameters)), cancellationToken);
         return Results.Ok(items.Select(ToResponse).ToArray());
     }
@@ -46,19 +45,6 @@ public static class FeedApi
     {
         FeedConfiguration configuration = await mediator.Send(new GetFeedConfigurationQuery(), cancellationToken);
         return Results.Ok(ToResponse(configuration));
-    }
-
-    private static FeedQueryParameters ReadQueryParameters(IQueryCollection query)
-    {
-        return new FeedQueryParameters
-        {
-            Limit = TryReadInt(query, "limit"),
-            Skip = TryReadInt(query, "skip"),
-            SourceIds = ReadValues(query, "sourceIds"),
-            ItemTypes = ReadValues(query, "itemTypes"),
-            After = TryReadDateTime(query, "after"),
-            Before = TryReadDateTime(query, "before")
-        };
     }
 
     private static FeedQueryOptions ToOptions(FeedQueryParameters parameters) => new()
@@ -100,19 +86,4 @@ public static class FeedApi
         configuration.AutoRefreshIntervalSeconds,
         configuration.CustomSettings);
 
-    private static int? TryReadInt(IQueryCollection query, string key) =>
-        int.TryParse(query[key].FirstOrDefault(), out int value) ? value : null;
-
-    private static DateTime? TryReadDateTime(IQueryCollection query, string key) =>
-        DateTime.TryParse(query[key].FirstOrDefault(), out DateTime value) ? value : null;
-
-    private static IReadOnlyList<string>? ReadValues(IQueryCollection query, string key)
-    {
-        string[] values = query[key]
-            .Where(value => !string.IsNullOrWhiteSpace(value))
-            .Select(value => value!)
-            .ToArray();
-
-        return values.Length == 0 ? null : values;
-    }
 }

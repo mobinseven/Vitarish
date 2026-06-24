@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -37,11 +38,14 @@ public sealed class FeedHttpClient(HttpClient httpClient)
 
             return FeedClientResult<T>.Failed(await CreateFailureAsync(response, cancellationToken));
         }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException ex)
         {
-            return FeedClientResult<T>.Failed(new FeedClientFailure(FeedClientFailureKind.Canceled, "Feed request was canceled."));
+            bool isTimeout = ex is TaskCanceledException && !cancellationToken.IsCancellationRequested;
+            return FeedClientResult<T>.Failed(new FeedClientFailure(
+                isTimeout ? FeedClientFailureKind.Timeout : FeedClientFailureKind.Canceled,
+                isTimeout ? "Feed request timed out." : "Feed request was canceled."));
         }
-        catch (TaskCanceledException)
+        catch (TimeoutException)
         {
             return FeedClientResult<T>.Failed(new FeedClientFailure(FeedClientFailureKind.Timeout, "Feed request timed out."));
         }
@@ -49,7 +53,7 @@ public sealed class FeedHttpClient(HttpClient httpClient)
         {
             return FeedClientResult<T>.Failed(new FeedClientFailure(FeedClientFailureKind.Transport, ex.Message));
         }
-        catch (JsonException ex)
+        catch (Exception ex) when (ex is JsonException or NotSupportedException)
         {
             return FeedClientResult<T>.Failed(new FeedClientFailure(FeedClientFailureKind.Deserialization, ex.Message));
         }
@@ -64,7 +68,7 @@ public sealed class FeedHttpClient(HttpClient httpClient)
         {
             error = await response.Content.ReadFromJsonAsync<FeedErrorResponse>(cancellationToken);
         }
-        catch (JsonException)
+        catch (Exception ex) when (ex is JsonException or NotSupportedException)
         {
             errorPayloadWasUnreadable = true;
         }
@@ -89,10 +93,10 @@ public sealed class FeedHttpClient(HttpClient httpClient)
     private static string BuildItemsUri(FeedQueryParameters parameters)
     {
         List<string> query = [];
-        Add(query, "limit", parameters.Limit?.ToString());
-        Add(query, "skip", parameters.Skip?.ToString());
-        Add(query, "after", parameters.After?.ToString("O"));
-        Add(query, "before", parameters.Before?.ToString("O"));
+        Add(query, "limit", parameters.Limit?.ToString(CultureInfo.InvariantCulture));
+        Add(query, "skip", parameters.Skip?.ToString(CultureInfo.InvariantCulture));
+        Add(query, "after", parameters.After?.ToString("O", CultureInfo.InvariantCulture));
+        Add(query, "before", parameters.Before?.ToString("O", CultureInfo.InvariantCulture));
         AddMany(query, "sourceIds", parameters.SourceIds);
         AddMany(query, "itemTypes", parameters.ItemTypes);
 
