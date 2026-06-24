@@ -1,0 +1,22 @@
+name: Architecture Validation
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  interface-boundaries:
+    name: Validate ADR-0003 Interface boundaries
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate Interface boundaries
+        run: python3 tools/architecture/validate_interface_boundaries.py
