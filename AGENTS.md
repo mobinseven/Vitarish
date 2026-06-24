@@ -169,6 +169,7 @@ skills/
   platform-test-curator/
   platform-artifact-placement-steward/
   platform-localization-maintenance/
+  platform-frontend-backend-isolation/
 ```
 
 If the runtime expects native Codex skill discovery, mirror or symlink these folders under:
@@ -187,6 +188,7 @@ If the runtime expects native Codex skill discovery, mirror or symlink these fol
 | Unit tests, required tests, hot test scenarios, risk-based test planning  | Platform Test Curator               | `skills/platform-test-curator/SKILL.md`               |
 | File placement, layer ownership, module boundary, artifact classification | Platform Artifact Placement Steward | `skills/platform-artifact-placement-steward/SKILL.md` |
 | Localization review, hard-coded UI text, `IStringLocalizer` usage | Platform Localization Maintenance | `.agents/skills/platform-localization-maintenance/SKILL.md` |
+| Frontend/backend isolation, Interface-to-backend dependency, HTTP Client/Contracts/Api/Application boundary | Platform Frontend/Backend Isolation | `.agents/skills/platform-frontend-backend-isolation/SKILL.md` |
 
 ### Default Skill Order
 
