@@ -15,7 +15,7 @@
     "Medical": { "mode": "ReportOnly", "temporaryExceptions": [] },
     "Parties": { "mode": "ReportOnly", "temporaryExceptions": [] },
     "Platform": { "mode": "ReportOnly", "temporaryExceptions": [] },
-    "Requests": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Requests": { "mode": "FailFast", "temporaryExceptions": [] },
     "Sea": { "mode": "ReportOnly", "temporaryExceptions": [] },
     "Search": { "mode": "ReportOnly", "temporaryExceptions": [] },
     "Social": { "mode": "ReportOnly", "temporaryExceptions": [] },

@@ -133,7 +133,10 @@
     <Project Path="src/Modules/Platform/Interface/Platform.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Requests/">
+    <Project Path="src/Modules/Requests/Api/Requests.Api.csproj" />
     <Project Path="src/Modules/Requests/Application/Requests.Application.csproj" />
+    <Project Path="src/Modules/Requests/Client/Requests.Client.csproj" />
+    <Project Path="src/Modules/Requests/Contracts/Requests.Contracts.csproj" />
     <Project Path="src/Modules/Requests/Domain/Requests.Domain.csproj" />
     <Project Path="src/Modules/Requests/Module/Requests.Module.csproj" />
     <Project Path="src/Modules/Requests/Infrastructure/Requests.Infrastructure.csproj" />
