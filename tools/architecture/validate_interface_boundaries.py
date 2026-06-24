@@ -83,7 +83,7 @@ def classify_project_reference(root: Path, module: str, reference_path: Path) ->
 
 def scan_project(root: Path, project_file: Path, module: str, mode: str) -> list[Violation]:
     violations: list[Violation] = []
-    text = project_file.read_text(encoding="utf-8")
+    text = project_file.read_text(encoding="utf-8-sig")
     xml = ET.fromstring(text)
     for item in xml.iter():
         if item.tag.split('}')[-1] != "ProjectReference":
