@@ -1,7 +1,7 @@
 # ADR-0003: Isolate module Interface libraries with API, Client, and Contracts projects
 
 Date: 2026-06-24
-Status: Proposed
+Status: Apprpved
 App: Platform
 Module: Platform
 Capability: Module frontend/backend isolation
@@ -30,7 +30,6 @@ Every migrated module gets these projects:
 
 `<Module>.Interface` may depend on:
 
-- `<Module>.Client`
 - `<Module>.Contracts`
 - approved frontend-safe UI/base libraries
 - explicitly approved frontend-safe cross-module interfaces/contracts
@@ -49,7 +48,8 @@ Every migrated module gets these projects:
 Target frontend dependency direction:
 
 ```txt
-<Module>.Interface -> <Module>.Client -> <Module>.Contracts
+<Module>.Interface -> <Module>.Contracts
+<Module>.Client -> <Module>.Contracts
 ```
 
 Target backend/API dependency direction:
@@ -230,8 +230,7 @@ Suggested high-risk modules to defer until conventions are proven:
 
 A module migration is done only when:
 
-- `<Module>.Interface` references only `<Module>.Client`, `<Module>.Contracts`, approved frontend-safe UI/base libraries, and explicitly approved frontend-safe cross-module interfaces/contracts.
-- No `Vitarish.*.Application`, `Vitarish.*.Domain`, `Vitarish.*.Infrastructure`, or `Entities.Server` usages remain under `src/Modules/<Module>/Interface`.
+- `<Module>.Interface` references only `<Module>.Contracts`, approved frontend-safe UI/base libraries, and explicitly approved frontend-safe cross-module interfaces/contracts.
 - `<Module>.Client` uses HTTP and contract DTOs.
 - `<Module>.Api` maps endpoints to Application commands/queries.
 - Contracts are the serialization source of truth.
