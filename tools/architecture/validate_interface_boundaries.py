@@ -123,7 +123,7 @@ def violation_kind(path: Path, text: str, match_start: int) -> str:
 
 
 def scan_source(root: Path, source_file: Path, module: str, mode: str, patterns: list[tuple[re.Pattern[str], str, str]]) -> list[Violation]:
-    text = source_file.read_text(encoding="utf-8")
+    text = source_file.read_text(encoding="utf-8-sig")
     violations: list[Violation] = []
     seen: set[tuple[int, str]] = set()
     for pattern, forbidden, reason in patterns:
