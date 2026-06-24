@@ -1,4 +1,4 @@
-using Vitarish.Entities.Server.Models;
+using Vitarish.Entities.Contracts;
 using Vitarish.Parties.Domain.Enums;
 
 namespace Vitarish.Parties.Domain.Dtos;

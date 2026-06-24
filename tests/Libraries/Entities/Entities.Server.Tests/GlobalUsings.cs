@@ -9,7 +9,7 @@ global using Vitarish.Entities.Server.Caching;
 global using Vitarish.Entities.Server.Commands;
 global using Vitarish.Entities.Server.Core;
 global using Vitarish.Entities.Server.Extensions;
-global using Vitarish.Entities.Server.Models;
+global using Vitarish.Entities.Contracts;
 global using Vitarish.Entities.Server.Queries;
 global using Vitarish.Entities.Server.Repositories;
 global using Vitarish.Entities.Server.Validation;

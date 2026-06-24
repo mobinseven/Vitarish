@@ -1,0 +1,9 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<PackageId>Vitarish.Entities.Contracts</PackageId>
+		<Title>Vitarish.Entities.Contracts</Title>
+		<Description>
+			This library provides frontend-safe entity transport contracts shared across Vitarish entity clients and servers.
+		</Description>
+	</PropertyGroup>
+</Project>

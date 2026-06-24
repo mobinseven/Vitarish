@@ -1,6 +1,6 @@
 global using MediatR;
 global using Microsoft.AspNetCore.Components;
-global using Vitarish.Entities.Server.Models;
+global using Vitarish.Entities.Contracts;
 global using Vitarish.Medical.Application.Abstractions;
 global using Vitarish.Medical.Application.Commands;
 global using Vitarish.Medical.Application.Contracts;

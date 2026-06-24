@@ -5,7 +5,7 @@ global using Microsoft.EntityFrameworkCore.Diagnostics;
 global using Microsoft.EntityFrameworkCore.Storage;
 global using Microsoft.Extensions.DependencyInjection;
 global using Microsoft.Extensions.Logging;
-global using Vitarish.Entities.Server.Models;
+global using Vitarish.Entities.Contracts;
 global using Vitarish.Medical.Application.Abstractions;
 global using Vitarish.Medical.Application.Commands;
 global using Vitarish.Medical.Application.Contracts;

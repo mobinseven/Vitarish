@@ -15,7 +15,7 @@ global using Vitarish.Communications.Domain.Enums;
 global using Vitarish.Entities.Server.Abstractions;
 global using Vitarish.Entities.Server.Core;
 global using Vitarish.Entities.Server.Infrastructure;
-global using Vitarish.Entities.Server.Models;
+global using Vitarish.Entities.Contracts;
 global using Vitarish.Entities.Server.Repositories;
 global using Vitarish.Entities.Server.Services;
 global using AppointmentServiceDescriptor = Vitarish.Appointments.Domain.Models.ServiceDescriptor;

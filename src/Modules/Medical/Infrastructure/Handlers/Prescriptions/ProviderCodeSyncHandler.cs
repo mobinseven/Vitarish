@@ -1,5 +1,5 @@
 using MediatR;
-using Vitarish.Entities.Server.Models;
+using Vitarish.Entities.Contracts;
 using Vitarish.Medical.Application.Commands.Prescriptions;
 using Vitarish.Medical.Application.Contracts;
 using Vitarish.Medical.Application.Abstractions.Prescriptions;

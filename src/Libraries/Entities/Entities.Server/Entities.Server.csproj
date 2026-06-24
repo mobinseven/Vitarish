@@ -36,4 +36,8 @@
 		</Description>
 	</PropertyGroup>
 
+	<ItemGroup>
+		<ProjectReference Include="..\Entities.Contracts\Entities.Contracts.csproj" />
+	</ItemGroup>
+
 </Project>

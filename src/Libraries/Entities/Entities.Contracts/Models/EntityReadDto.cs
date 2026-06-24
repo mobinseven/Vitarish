@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Vitarish.Entities.Server.Models;
+namespace Vitarish.Entities.Contracts;
 /// <summary>
 /// DTO returned by read operations. Includes audit metadata populated
 /// by the entity interceptor on the server.

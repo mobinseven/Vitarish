@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Razor">
+﻿<Project Sdk="Microsoft.NET.Sdk.Razor">
 
 	<ItemGroup>
 		<SupportedPlatform Include="browser" />
@@ -15,7 +15,7 @@
 		<ProjectReference Include="..\..\..\Modules\Users\Application\Users.Application.csproj" />
 		<ProjectReference Include="..\..\..\Modules\Users\Domain\Users.Domain.csproj" />
 		<ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
-		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
+		<ProjectReference Include="..\..\..\Libraries\Entities\Entities.Contracts\Entities.Contracts.csproj" />
 		<ProjectReference Include="..\..\Files\Interface\Files.Interface.csproj" />
 		<ProjectReference Include="..\..\Intelligence\Interface\Intelligence.Interface.csproj" />
 		<ProjectReference Include="..\..\Communications\Interface\Communications.Interface.csproj" />

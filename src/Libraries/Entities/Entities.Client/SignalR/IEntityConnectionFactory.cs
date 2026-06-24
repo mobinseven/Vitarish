@@ -1,6 +1,7 @@
 
 using Microsoft.AspNetCore.SignalR.Client;
 using Vitarish.Entities.Client.Models;
+using Vitarish.Entities.Contracts;
 
 namespace Vitarish.Entities.Client.SignalR;
 
