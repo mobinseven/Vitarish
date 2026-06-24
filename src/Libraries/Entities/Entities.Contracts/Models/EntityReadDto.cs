@@ -29,4 +29,6 @@ public abstract record EntityReadDto : EntityWriteDto
     [JsonPropertyName("deletedBy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? DeletedBy { get; set; }
+
+    public bool IsDeleted => DeletedAt is not null;
 }
