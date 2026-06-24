@@ -6,7 +6,7 @@
     "Commerce": { "mode": "ReportOnly", "temporaryExceptions": [] },
     "Communications": { "mode": "ReportOnly", "temporaryExceptions": [] },
     "Contents": { "mode": "ReportOnly", "temporaryExceptions": [] },
-    "Feed": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Feed": { "mode": "FailFast", "temporaryExceptions": [] },
     "Files": { "mode": "ReportOnly", "temporaryExceptions": [] },
     "Financial": { "mode": "ReportOnly", "temporaryExceptions": [] },
     "Intelligence": { "mode": "ReportOnly", "temporaryExceptions": [] },

@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Feed.Api;
 using Vitarish.Feed.Infrastructure;
 using Vitarish.Modules.Base;
 
@@ -16,5 +17,9 @@ public sealed class FeedModule : Vitarish.Modules.Base.Module
         return Task.CompletedTask;
     }
 
-    public override Task Initialize(WebApplication app) => Task.CompletedTask;
+    public override Task Initialize(WebApplication app)
+    {
+        _ = app.MapFeedApi();
+        return Task.CompletedTask;
+    }
 }
