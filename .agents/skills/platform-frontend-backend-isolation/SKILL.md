@@ -166,7 +166,7 @@ When reporting a review or plan, include:
 
 ### Dependency Direction
 - Expected: Interface → Client → Contracts over HTTP; Api → Contracts/Application; Application → Domain/ports; Domain → none.
-- Actual: <summary>
+- Actual: [summary]
 
 ### Findings
 | Severity | File | Issue | Required fix |
