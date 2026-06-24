@@ -4,6 +4,7 @@ using Finbuckle.MultiTenant.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Vitarish.Entities.Server.Infrastructure;
 using Vitarish.Knowledge.Domain.Entities;
 using Vitarish.Requests.Application.Abstractions;
 
@@ -161,5 +162,7 @@ public sealed class KnowledgeDbContext : DbContext, IMultiTenantDbContext
             entity.HasOne<KnowledgeCorpusEntity>().WithMany().HasForeignKey(trace => trace.CorpusId).OnDelete(DeleteBehavior.Cascade);
             _ = entity.IsMultiTenant();
         });
+
+        _ = modelBuilder.ConfigureEntitySoftDeleteFilters();
     }
 }

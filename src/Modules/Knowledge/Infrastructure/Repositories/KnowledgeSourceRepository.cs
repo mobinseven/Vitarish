@@ -33,8 +33,20 @@ public sealed class KnowledgeSourceRepository(KnowledgeDbContext dbContext)
             return false;
         }
 
-        Guid[] chunkIds = await DbContext.Chunks.AsNoTracking().Where(c => c.SourceId == source.Id && c.CorpusId == corpusId && c.TenantId == tenantId).Select(c => c.Id).ToArrayAsync(cancellationToken);
+        KnowledgeDocumentEntity[] documents = await DbContext.Documents
+            .Where(document => document.SourceId == source.Id && document.CorpusId == corpusId && document.TenantId == tenantId)
+            .ToArrayAsync(cancellationToken);
+
+        KnowledgeChunkEntity[] chunks = await DbContext.Chunks
+            .Where(chunk => chunk.SourceId == source.Id && chunk.CorpusId == corpusId && chunk.TenantId == tenantId)
+            .ToArrayAsync(cancellationToken);
+
+        Guid[] chunkIds = [.. chunks.Select(chunk => chunk.Id)];
+
+        DbContext.Chunks.RemoveRange(chunks);
+        DbContext.Documents.RemoveRange(documents);
         DbContext.Sources.Remove(source);
+
         await KnowledgeQuestionRemover.RemoveQuestionsForChunksAsync(DbContext, corpusId, chunkIds, cancellationToken);
         int changed = await DbContext.SaveChangesAsync(cancellationToken);
         return changed > 0;
