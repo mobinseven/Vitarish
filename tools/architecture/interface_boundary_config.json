@@ -1,0 +1,24 @@
+{
+  "adr": "docs/platform/modules/platform/decisions/0003-isolate-module-interface-libraries-with-api-client-contracts.md",
+  "defaultMode": "ReportOnly",
+  "modules": {
+    "Appointments": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Commerce": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Communications": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Contents": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Feed": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Files": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Financial": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Intelligence": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Knowledge": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Links": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Medical": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Parties": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Platform": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Requests": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Sea": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Search": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Social": { "mode": "ReportOnly", "temporaryExceptions": [] },
+    "Users": { "mode": "ReportOnly", "temporaryExceptions": [] }
+  }
+}

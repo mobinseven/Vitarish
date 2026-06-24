@@ -1,7 +1,7 @@
 # ADR-0003: Isolate module Interface libraries with API, Client, and Contracts projects
 
 Date: 2026-06-24
-Status: Approved
+Status: Accepted
 App: Platform
 Module: Platform
 Capability: Module frontend/backend isolation
@@ -296,4 +296,4 @@ The check must allow only approved frontend-safe dependencies. Include this chec
 
 ## Notes
 
-This ADR proposes the target isolation boundary. It does not approve a big-bang migration, does not accept the ADR, and does not by itself create new production projects.
+This ADR accepts the target Interface isolation boundary. It does not approve a big-bang migration and does not by itself create new production projects.
