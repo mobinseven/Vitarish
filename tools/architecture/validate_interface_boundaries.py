@@ -104,10 +104,8 @@ def namespace_patterns(modules: list[str]) -> list[tuple[re.Pattern[str], str, s
     patterns: list[tuple[re.Pattern[str], str, str]] = []
     for module in modules:
         for layer in BACKEND_LAYERS:
-            token = rf"(?:^|[^A-Za-z0-9_])(?:Vitarish\.)?Modules\.{module}\.{layer}(?:\b|\.)"
-            patterns.append((re.compile(token), f"Modules.{module}.{layer}", f"Interface source must not import or use backend {layer} namespaces."))
-            short_token = rf"(?:^|[^A-Za-z0-9_]){module}\.{layer}(?:\b|\.)"
-            patterns.append((re.compile(short_token), f"{module}.{layer}", f"Interface source must not import or use backend {layer} namespaces."))
+            token = rf"(?:^|[^A-Za-z0-9_])(?:(?:Vitarish\.)?Modules\.)?{module}\\.{layer}(?:\\b|\\.)"
+            patterns.append((re.compile(token), f"{module}.{layer}", f"Interface source must not import or use backend {layer} namespaces."))
     for fragment in SERVER_ONLY_NAMESPACE_FRAGMENTS:
         patterns.append((re.compile(rf"(?:^|[^A-Za-z0-9_]){re.escape(fragment)}(?:\b|\.)"), fragment, "Interface source must not import or use server-only Entities namespaces."))
     return patterns
