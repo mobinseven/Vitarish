@@ -11,6 +11,7 @@ This directory serves as a central index. ADRs have been moved to scope-owned de
 |---|---|---|---|---|---|
 | ADR-0001 | Record Architecture Decisions | Accepted | Platform | `docs/platform/modules/platform/decisions/` | YYYY-MM-DD |
 | ADR-0002 | Persist instants as UTC DateTime | Accepted | Platform | `docs/platform/modules/platform/decisions/` | YYYY-MM-DD |
+| ADR-0003 | Isolate module Interface libraries with API, Client, and Contracts projects | Proposed | Platform | `docs/platform/modules/platform/decisions/` | 2026-06-24 |
 
 ## Superseded / Deprecated Decisions
 

@@ -8,6 +8,7 @@ This directory contains the platform-level architecture decision records (ADRs).
 |---|---|---|---|
 | 0001 | Record Architecture Decisions | Accepted | YYYY-MM-DD |
 | 0002 | Persist instants as UTC DateTime | Accepted | YYYY-MM-DD |
+| 0003 | Isolate module Interface libraries with API, Client, and Contracts projects | Proposed | 2026-06-24 |
 
 ## Superseded / Deprecated Decisions
 
