@@ -64,11 +64,17 @@
     <Project Path="src/Modules/Contents/Interface/Contents.Interface.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Feed/">
+    <Project Path="src/Modules/Feed/Api/Feed.Api.csproj" />
     <Project Path="src/Modules/Feed/Application/Feed.Application.csproj" />
+    <Project Path="src/Modules/Feed/Client/Feed.Client.csproj" />
+    <Project Path="src/Modules/Feed/Contracts/Feed.Contracts.csproj" />
     <Project Path="src/Modules/Feed/Domain/Feed.Domain.csproj" />
     <Project Path="src/Modules/Feed/Module/Feed.Module.csproj" />
     <Project Path="src/Modules/Feed/Infrastructure/Feed.Infrastructure.csproj" />
     <Project Path="src/Modules/Feed/Interface/Feed.Interface.csproj" />
+  </Folder>
+  <Folder Name="/tests/Modules/Feed/">
+    <Project Path="tests/Modules/Feed.Tests/Feed.Tests.csproj" />
   </Folder>
   <Folder Name="/src/Modules/Files/">
     <Project Path="src/Modules/Files/Application/Files.Application.csproj" />

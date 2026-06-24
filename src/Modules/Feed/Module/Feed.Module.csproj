@@ -8,6 +8,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Interface\Feed.Interface.csproj" />
+    <ProjectReference Include="..\Api\Feed.Api.csproj" />
     <ProjectReference Include="..\Infrastructure\Feed.Infrastructure.csproj" />
     <ProjectReference Include="..\Application\Feed.Application.csproj" />
     <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
