@@ -12,7 +12,7 @@ global using Vitarish.Clinic.Domain.Models;
 global using Vitarish.Clinic.Infrastructure.Mappers;
 global using Vitarish.Clinic.Interface.Plugins;
 global using Vitarish.Communications.Application.Abstractions;
-global using Vitarish.Entities.Server.Models;
+global using Vitarish.Entities.Contracts;
 global using Vitarish.Sea.Application.Abstractions;
 global using Vitarish.Sea.Domain.Dto;
 global using Vitarish.Sea.Interface.Plugins;

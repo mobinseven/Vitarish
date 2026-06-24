@@ -1,4 +1,4 @@
-namespace Vitarish.Entities.Client.Models;
+namespace Vitarish.Entities.Contracts;
 
 public enum EntityOperation
 {

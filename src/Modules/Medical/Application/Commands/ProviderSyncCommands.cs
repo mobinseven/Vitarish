@@ -1,4 +1,4 @@
-using Vitarish.Entities.Server.Models;
+using Vitarish.Entities.Contracts;
 
 namespace Vitarish.Medical.Application.Commands;
 

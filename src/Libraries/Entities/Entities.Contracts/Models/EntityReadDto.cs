@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Vitarish.Entities.Server.Models;
+namespace Vitarish.Entities.Contracts;
 /// <summary>
 /// DTO returned by read operations. Includes audit metadata populated
 /// by the entity interceptor on the server.
@@ -29,4 +29,6 @@ public abstract record EntityReadDto : EntityWriteDto
     [JsonPropertyName("deletedBy")]
     [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
     public string? DeletedBy { get; set; }
+
+    public bool IsDeleted => DeletedAt is not null;
 }

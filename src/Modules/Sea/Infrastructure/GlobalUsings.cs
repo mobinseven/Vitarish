@@ -5,7 +5,7 @@ global using Microsoft.Extensions.DependencyInjection;
 global using System.Text.Json.Serialization;
 global using Vitarish.Entities.Server.Commands;
 global using Vitarish.Entities.Server.Core;
-global using Vitarish.Entities.Server.Models;
+global using Vitarish.Entities.Contracts;
 global using Vitarish.Entities.Server.Repositories;
 global using Vitarish.Entities.Server.Services;
 global using Vitarish.Sea.Application.Abstractions;

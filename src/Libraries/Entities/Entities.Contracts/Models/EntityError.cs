@@ -1,4 +1,4 @@
-namespace Vitarish.Entities.Server.Models;
+namespace Vitarish.Entities.Contracts;
 /// <summary>
 /// Describes a structured error returned from an entity operation.
 /// </summary>

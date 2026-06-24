@@ -30,6 +30,7 @@
   </Folder>
   <Folder Name="/src/Libraries/Entities/">
     <Project Path="src/Libraries/Entities/Entities.Client/Entities.Client.csproj" />
+    <Project Path="src/Libraries/Entities/Entities.Contracts/Entities.Contracts.csproj" />
     <Project Path="src/Libraries/Entities/Entities.Generators/Entities.Generators.csproj" />
     <Project Path="src/Libraries/Entities/Entities.Server/Entities.Server.csproj" />
   </Folder>

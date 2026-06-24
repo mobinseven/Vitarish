@@ -1,6 +1,6 @@
 using System.Threading.Channels;
 using Microsoft.JSInterop;
-using Vitarish.Entities.Server.Models;
+using Vitarish.Entities.Contracts;
 using Vitarish.Files.Application.Abstractions;
 using Vitarish.Files.Interface.Abstractions;
 using Vitarish.Files.Interface.Models;

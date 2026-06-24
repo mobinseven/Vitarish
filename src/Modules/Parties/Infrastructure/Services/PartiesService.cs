@@ -1,6 +1,6 @@
 using MediatR;
 using Microsoft.EntityFrameworkCore;
-using Vitarish.Entities.Server.Models;
+using Vitarish.Entities.Contracts;
 using Vitarish.Parties.Application.Abstractions;
 using Vitarish.Parties.Domain;
 using Vitarish.Parties.Domain.Descriptors;

@@ -10,5 +10,5 @@ global using Vitarish.Commerce.Domain.Enums;
 global using Vitarish.Commerce.Domain.Models;
 global using Vitarish.Commerce.Infrastructure.Data;
 global using Vitarish.Entities.Server.Core;
-global using Vitarish.Entities.Server.Models;
+global using Vitarish.Entities.Contracts;
 global using Vitarish.Entities.Server.Services;

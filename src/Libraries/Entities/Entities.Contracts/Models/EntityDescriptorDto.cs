@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Vitarish.Entities.Server.Models;
+namespace Vitarish.Entities.Contracts;
 
 public record EntityDescriptorDto
 {
@@ -52,7 +52,7 @@ public record EntityDescriptorDto
     public string? DeletedBy { get; set; }
 
     [JsonExtensionData]
-    public Dictionary<string, JsonElement>? AdditionalData { get; set; }
+    public Dictionary<string, System.Text.Json.JsonElement>? AdditionalData { get; set; }
 }
 
 

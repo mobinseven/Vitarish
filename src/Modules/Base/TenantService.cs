@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 using System.Text.Json;
-using Vitarish.Entities.Server.Models;
+using Vitarish.Entities.Contracts;
 using Vitarish.Parties.Domain.Entities;
 using Vitarish.Users.Domain.Models;
 

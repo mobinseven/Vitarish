@@ -1,7 +1,7 @@
 using Finbuckle.MultiTenant;
 using Finbuckle.MultiTenant.Abstractions;
 using System.Collections.Concurrent;
-using Vitarish.Entities.Server.Models;
+using Vitarish.Entities.Contracts;
 using Vitarish.Files.Application.Abstractions;
 
 namespace Files.Tests;

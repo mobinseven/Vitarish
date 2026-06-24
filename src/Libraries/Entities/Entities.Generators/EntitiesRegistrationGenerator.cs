@@ -74,7 +74,7 @@ public sealed class EntitiesRegistrationGenerator : ISourceGenerator
         _ = sb.AppendLine("using Vitarish.Entities.Server.Commands;");
         _ = sb.AppendLine("using Vitarish.Entities.Server.Core;");
         _ = sb.AppendLine("using Vitarish.Entities.Server.Infrastructure;");
-        _ = sb.AppendLine("using Vitarish.Entities.Server.Models;");
+        _ = sb.AppendLine("using Vitarish.Entities.Contracts;");
         _ = sb.AppendLine("using Vitarish.Entities.Server.Queries;");
         _ = sb.AppendLine("using Vitarish.Entities.Server.Services;");
         _ = sb.AppendLine("using Microsoft.EntityFrameworkCore.Diagnostics;");

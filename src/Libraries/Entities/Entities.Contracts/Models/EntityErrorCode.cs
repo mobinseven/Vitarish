@@ -1,4 +1,4 @@
-namespace Vitarish.Entities.Server.Models;
+namespace Vitarish.Entities.Contracts;
 
 /// <summary>
 /// Represents the high level reason describing why an entity operation failed.

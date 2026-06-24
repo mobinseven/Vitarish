@@ -8,6 +8,6 @@ global using Vitarish.Appointments.Domain.Enums;
 global using Vitarish.Appointments.Domain.Models;
 global using Vitarish.Appointments.Interface.Components.Base;
 global using Vitarish.Appointments.Interface.Plugins;
-global using Vitarish.Entities.Server.Models;
+global using Vitarish.Entities.Contracts;
 global using Vitarish.Interfaces.Base.Common;
 // Aliases for types that conflict with Microsoft.Extensions.DependencyInjection names

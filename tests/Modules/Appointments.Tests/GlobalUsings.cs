@@ -15,7 +15,7 @@ global using Vitarish.Audit.Domain;
 global using Vitarish.Communications.Application.Abstractions;
 global using Vitarish.Communications.Domain.Dto;
 global using Vitarish.Communications.Domain.Enums;
-global using Vitarish.Entities.Server.Models;
+global using Vitarish.Entities.Contracts;
 global using Vitarish.Entities.Server.Repositories;
 global using Vitarish.Requests.Application.Abstractions;
 global using Xunit;
