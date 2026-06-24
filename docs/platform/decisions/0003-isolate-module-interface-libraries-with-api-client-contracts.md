@@ -1,7 +1,7 @@
 # ADR-0003: Isolate module Interface libraries with API, Client, and Contracts projects
 
 Date: 2026-06-24
-Status: Apprpved
+Status: Approved
 App: Platform
 Module: Platform
 Capability: Module frontend/backend isolation
