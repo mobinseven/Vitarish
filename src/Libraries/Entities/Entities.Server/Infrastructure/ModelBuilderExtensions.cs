@@ -78,12 +78,28 @@ public static class ModelBuilderExtensions
                 deletedAtProperty,
                 Expression.Constant(null, typeof(DateTime?)));
 
-            entityType.SetQueryFilter(
-                EntityQueryFilterNames.SoftDelete,
-                Expression.Lambda(notDeletedExpression, parameter));
+            LambdaExpression softDeleteFilter = Expression.Lambda(notDeletedExpression, parameter);
+#pragma warning disable CS0618 // EF 10 still uses this API for anonymous filters, including Finbuckle-composed filters.
+            LambdaExpression? existingFilter = entityType.GetQueryFilter();
+#pragma warning restore CS0618
+
+            if (existingFilter is null)
+            {
+                entityType.SetQueryFilter(EntityQueryFilterNames.SoftDelete, softDeleteFilter);
+                continue;
+            }
+
+            Expression existingBody = new ParameterReplacingExpressionVisitor(existingFilter.Parameters[0], parameter)
+                .Visit(existingFilter.Body)!;
+            entityType.SetQueryFilter(Expression.Lambda(Expression.AndAlso(existingBody, notDeletedExpression), parameter));
         }
 
         return modelBuilder;
+    }
+
+    private sealed class ParameterReplacingExpressionVisitor(ParameterExpression source, ParameterExpression target) : ExpressionVisitor
+    {
+        protected override Expression VisitParameter(ParameterExpression node) => node == source ? target : base.VisitParameter(node);
     }
 
     private static bool IsEntityType(IMutableEntityType entityType) => typeof(Entity).IsAssignableFrom(entityType.ClrType);
