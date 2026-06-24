@@ -14,11 +14,28 @@ internal static class KnowledgeQuestionRemover
         }
 
         Guid[] distinctChunkIds = [.. chunkIds.Where(static id => id != Guid.Empty).Distinct()];
-        KnowledgeQuestionEntity[] corpusQuestions = await dbContext.Questions
+        if (distinctChunkIds.Length == 0)
+        {
+            return;
+        }
+
+        var corpusQuestions = await dbContext.Questions
+            .AsNoTracking()
             .Where(question => question.CorpusId == corpusId)
+            .Select(question => new { question.Id, question.ExpectedChunkIds })
             .ToArrayAsync(cancellationToken);
-        KnowledgeQuestionEntity[] rows = [.. corpusQuestions
-            .Where(question => question.ExpectedChunkIds.Any(chunkId => distinctChunkIds.Contains(chunkId)))];
+
+        Guid[] idsToRemove = [.. corpusQuestions
+            .Where(question => question.ExpectedChunkIds.Any(chunkId => distinctChunkIds.Contains(chunkId)))
+            .Select(question => question.Id)];
+        if (idsToRemove.Length == 0)
+        {
+            return;
+        }
+
+        KnowledgeQuestionEntity[] rows = await dbContext.Questions
+            .Where(question => idsToRemove.Contains(question.Id))
+            .ToArrayAsync(cancellationToken);
 
         dbContext.Questions.RemoveRange(rows);
     }
