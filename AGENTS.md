@@ -168,6 +168,7 @@ skills/
   platform-adr-steward/
   platform-test-curator/
   platform-artifact-placement-steward/
+  platform-localization-maintenance/
 ```
 
 If the runtime expects native Codex skill discovery, mirror or symlink these folders under:
@@ -185,6 +186,7 @@ If the runtime expects native Codex skill discovery, mirror or symlink these fol
 | Architecture decision, ADR need, supersession, architecture conflict      | Platform ADR Steward                | `skills/platform-adr-steward/SKILL.md`                |
 | Unit tests, required tests, hot test scenarios, risk-based test planning  | Platform Test Curator               | `skills/platform-test-curator/SKILL.md`               |
 | File placement, layer ownership, module boundary, artifact classification | Platform Artifact Placement Steward | `skills/platform-artifact-placement-steward/SKILL.md` |
+| Localization review, hard-coded UI text, `IStringLocalizer` usage | Platform Localization Maintenance | `.agents/skills/platform-localization-maintenance/SKILL.md` |
 
 ### Default Skill Order
 
