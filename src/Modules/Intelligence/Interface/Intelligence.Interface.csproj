@@ -1,22 +1,12 @@
 <Project Sdk="Microsoft.NET.Sdk.Razor">
-
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-  </PropertyGroup>
-
-
-  <ItemGroup>
-    <SupportedPlatform Include="browser" />
-  </ItemGroup>
-
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><Nullable>enable</Nullable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>
+  <ItemGroup><SupportedPlatform Include="browser" /></ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
     <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
     <ProjectReference Include="..\..\Files\Interface\Files.Interface.csproj" />
-    <ProjectReference Include="..\Application\Intelligence.Application.csproj" />
-    <ProjectReference Include="..\Infrastructure\Intelligence.Infrastructure.csproj" />
+    <ProjectReference Include="..\..\Files\Contracts\Files.Contracts.csproj" />
+    <ProjectReference Include="..\Client\Intelligence.Client.csproj" />
+    <ProjectReference Include="..\Contracts\Intelligence.Contracts.csproj" />
   </ItemGroup>
-
 </Project>

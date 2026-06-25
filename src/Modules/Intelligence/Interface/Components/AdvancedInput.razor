@@ -1,22 +1,19 @@
 @inherits CommonBase
 
-@if(IntelligenceModule.IsAvailable)
-{
-    <AiStreamTranscriber @ref="_transcriber"
-                         Value="@_value"
-                         OnChunk="OnChunk"
-                         OnSupportStatusChanged="()=>StateHasChanged()"
-                         OnTransciptionEnd="OnTranscriptionEnded"
-                         OnRecordingStateChanged="OnRecordingChanged"
-                         OnTranscribingStateChanged="OnTranscribingChanged" />
+<AiStreamTranscriber @ref="_transcriber"
+                     Value="@_value"
+                     OnChunk="OnChunk"
+                     OnSupportStatusChanged="()=>StateHasChanged()"
+                     OnTransciptionEnd="OnTranscriptionEnded"
+                     OnRecordingStateChanged="OnRecordingChanged"
+                     OnTranscribingStateChanged="OnTranscribingChanged" />
 
-    <AiStreamRewriter @ref="_rewriter"
-                      Value="@_value"
-                      ValueChanged="OnRewriteValueChanged"
-                      OnRewriteStarted="OnRewriteStarted"
-                      OnRewriteCompleted="OnRewriteCompleted"
-                      OnRewriteError="OnRewriteError" />
-}
+<AiStreamRewriter @ref="_rewriter"
+                  Value="@_value"
+                  ValueChanged="OnRewriteValueChanged"
+                  OnRewriteStarted="OnRewriteStarted"
+                  OnRewriteCompleted="OnRewriteCompleted"
+                  OnRewriteError="OnRewriteError" />
 @if(FileUploadEnabled)
 {
     <StreamTransfer @ref="_streamTransferComponent"
@@ -25,7 +22,7 @@
         <ActivatorContent>
             <MudIconButton Icon="fa-solid fa-photo-film"
                            HtmlTag="div"
-                           Disabled=@(_busy || !FilesModule.IsAvailable)
+                           Disabled=@_busy
                            Size="Size.Small"
                            Color="Color.Primary"
                            DropShadow=false />
@@ -129,30 +126,27 @@
                         @StartContent
                     </div>
                 }
-                @if(IntelligenceModule.IsAvailable)
+                @if(RewriteEnabled)
                 {
-                    @if(RewriteEnabled)
-                    {
-                        <div>
-                            <MudIconButton Size="Size.Small"
-                                           DropShadow=false
-                                           Color="Color.Primary"
-                                           Icon="@(_rewriting ? "fa-solid fa-wand-sparkles fa-fade" : "fa-solid fa-wand-sparkles")"
-                                           Disabled=@(_rewriting || _recording || _transcribing || _transferring || _value.Length < MinStringLengthToRewrite)
-                                           OnClick="RewriteAsync" />
-                        </div>
-                    }
-                    @if(_transcriber?.Supported ?? false)
-                    {
-                        <div>
-                            <MudIconButton Size="Size.Small"
-                                           DropShadow=false
-                                           Color="@(_recording  || _transcribing ? Color.Error : Color.Primary)"
-                                           Icon="@(_recording ? "fa-duotone fa-solid fa-microphone fa-fade" : _transcribing ? "fa-duotone fa-solid fa-waveform-lines fa-fade" : "fa-solid fa-microphone")"
-                                           Disabled=@(_transcribing || _rewriting || _transferring)
-                                           OnClick="ToggleRecordingAsync" />
-                        </div>
-                    }
+                    <div>
+                        <MudIconButton Size="Size.Small"
+                                       DropShadow=false
+                                       Color="Color.Primary"
+                                       Icon="@(_rewriting ? "fa-solid fa-wand-sparkles fa-fade" : "fa-solid fa-wand-sparkles")"
+                                       Disabled=@(_rewriting || _recording || _transcribing || _transferring || _value.Length < MinStringLengthToRewrite)
+                                       OnClick="RewriteAsync" />
+                    </div>
+                }
+                @if(_transcriber?.Supported ?? false)
+                {
+                    <div>
+                        <MudIconButton Size="Size.Small"
+                                       DropShadow=false
+                                       Color="@(_recording  || _transcribing ? Color.Error : Color.Primary)"
+                                       Icon="@(_recording ? "fa-duotone fa-solid fa-microphone fa-fade" : _transcribing ? "fa-duotone fa-solid fa-waveform-lines fa-fade" : "fa-solid fa-microphone")"
+                                       Disabled=@(_transcribing || _rewriting || _transferring)
+                                       OnClick="ToggleRecordingAsync" />
+                    </div>
                 }
             }
         </MudStack>
