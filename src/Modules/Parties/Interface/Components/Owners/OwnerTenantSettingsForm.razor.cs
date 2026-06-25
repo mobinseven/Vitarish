@@ -15,7 +15,7 @@ public partial class OwnerTenantSettingsForm
         LogoUrl = Tenant.LogoUrl,
         Description = Tenant.Description,
         AppId = Tenant.AppId,
-        Metadata = Tenant.Metadata
+        Metadata = Tenant.Metadata is null ? [] : new Dictionary<string, object?>(Tenant.Metadata)
     };
 
     private async Task Save()
