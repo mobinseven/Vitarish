@@ -41,7 +41,7 @@ public partial class SearchWidget : CommonBase
     private int _pageIndex;
     private IReadOnlyList<SearchResultGroup> _resultGroups = [];
 
-    private int PageSize => SearchOptionsDto.NormalizeLimit(Options.Limit);
+    private int PageSize => SearchOptionsDto.NormalizeLimit(Options?.Limit ?? SearchOptionsDto.DefaultLimit);
 
     private long TotalPages => _result is null || _result.TotalCount == 0
         ? 0
