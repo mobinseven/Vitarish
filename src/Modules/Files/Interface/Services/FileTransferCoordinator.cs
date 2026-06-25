@@ -104,6 +104,8 @@ public sealed class FileTransferCoordinator(
     private sealed class ProgressStream(Stream inner, long size, Action<double> setProgress, Func<Task> onProgressAsync) : Stream
     {
         private long _transferred;
+        private double _lastReportedProgress;
+
         public override bool CanRead => inner.CanRead;
         public override bool CanSeek => false;
         public override bool CanWrite => false;
@@ -121,8 +123,13 @@ public sealed class FileTransferCoordinator(
             if (read > 0 && size > 0)
             {
                 _transferred += read;
-                setProgress(Math.Min(100d, 100d * _transferred / size));
-                await onProgressAsync().ConfigureAwait(false);
+                double currentProgress = Math.Min(100d, 100d * _transferred / size);
+                if (currentProgress - _lastReportedProgress >= 1.0 || currentProgress >= 100d)
+                {
+                    _lastReportedProgress = currentProgress;
+                    setProgress(currentProgress);
+                    await onProgressAsync().ConfigureAwait(false);
+                }
             }
 
             return read;
