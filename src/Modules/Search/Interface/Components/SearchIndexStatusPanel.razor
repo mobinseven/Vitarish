@@ -25,7 +25,7 @@ else if (_reports is not null)
                 </tr>
             </thead>
             <tbody>
-                @foreach (IndexStatusReport report in _reports)
+                @foreach (SearchIndexStatusReportDto report in _reports)
                 {
                     <tr>
                         <td>@report.IndexName</td>

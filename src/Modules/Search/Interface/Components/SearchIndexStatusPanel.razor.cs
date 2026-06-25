@@ -1,13 +1,14 @@
-using MediatR;
-using Vitarish.Search.Application.Queries;
+using Vitarish.Search.Client;
+using Vitarish.Search.Contracts.Requests;
+using Vitarish.Search.Contracts.Responses;
 
 namespace Vitarish.Search.Interface.Components;
 
 public partial class SearchIndexStatusPanel : CommonBase
 {
-    [Inject] private IMediator Mediator { get; set; } = default!;
+    [Inject] private ISearchClient SearchClient { get; set; } = default!;
 
-    private IReadOnlyList<IndexStatusReport>? _reports;
+    private IReadOnlyList<SearchIndexStatusReportDto>? _reports;
     private bool _loading;
     private string? _errorMessage;
 
@@ -19,7 +20,14 @@ public partial class SearchIndexStatusPanel : CommonBase
 
         try
         {
-            _reports = await Mediator.Send(new GetIndexStatusQuery());
+            var result = await SearchClient.GetIndexStatusAsync(new GetSearchIndexStatusRequest(), CancellationToken.None);
+            if (!result.IsSuccess || result.Value is null)
+            {
+                _errorMessage = result.Error?.Message ?? Localizer["IndexStatusLoadFailed"];
+                return;
+            }
+
+            _reports = result.Value;
         }
         catch
         {

@@ -17,4 +17,7 @@
     <ProjectReference Include="..\..\Base\Modules.Base.csproj" />
     <ProjectReference Include="..\..\..\Libraries\Entities\Entities.Server\Entities.Server.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Api\Parties.Api.csproj" />
+  </ItemGroup>
 </Project>

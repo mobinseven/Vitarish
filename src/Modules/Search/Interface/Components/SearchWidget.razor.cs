@@ -1,12 +1,13 @@
-using MediatR;
 using Microsoft.AspNetCore.Components.Web;
-using Vitarish.Search.Application.Queries;
+using Vitarish.Search.Client;
+using Vitarish.Search.Contracts.Requests;
+using Vitarish.Search.Contracts.Responses;
 
 namespace Vitarish.Search.Interface.Components;
 
 public partial class SearchWidget : CommonBase
 {
-    [Inject] private IMediator Mediator { get; set; } = default!;
+    [Inject] private ISearchClient SearchClient { get; set; } = default!;
 
     /// <summary>
     /// Optional logical index name to search (e.g. "sea.projects").
@@ -16,7 +17,7 @@ public partial class SearchWidget : CommonBase
     public string? IndexName { get; set; }
 
     /// <summary>
-    /// Optional document type filter passed to <see cref="SearchOptions.Type"/>.
+    /// Optional document type filter passed to <see cref="SearchOptionsDto.Type"/>.
     /// </summary>
     [Parameter]
     public string? Type { get; set; }
@@ -25,22 +26,22 @@ public partial class SearchWidget : CommonBase
     /// Pagination and filtering options. Defaults are applied when not provided.
     /// </summary>
     [Parameter]
-    public SearchOptions Options { get; set; } = new();
+    public SearchOptionsDto Options { get; set; } = new();
 
     /// <summary>
     /// Optional navigation callback. When provided, the parent owns redirect behavior.
     /// </summary>
     [Parameter]
-    public EventCallback<SearchDocument> OnNavigate { get; set; }
+    public EventCallback<SearchDocumentDto> OnNavigate { get; set; }
 
     private string _query = string.Empty;
-    private SearchResult? _result;
+    private SearchResultDto? _result;
     private bool _loading;
     private string? _errorMessage;
     private int _pageIndex;
     private IReadOnlyList<SearchResultGroup> _resultGroups = [];
 
-    private int PageSize => SearchOptions.NormalizeLimit(Options.Limit);
+    private int PageSize => SearchOptionsDto.NormalizeLimit(Options?.Limit ?? SearchOptionsDto.DefaultLimit);
 
     private long TotalPages => _result is null || _result.TotalCount == 0
         ? 0
@@ -80,14 +81,23 @@ public partial class SearchWidget : CommonBase
 
         try
         {
-            SearchOptions options = Options with
+            SearchOptionsDto options = (Options ?? new SearchOptionsDto()) with
             {
                 Skip = _pageIndex * PageSize,
                 Limit = PageSize,
-                Type = Type ?? Options.Type
+                Type = Type ?? Options?.Type
             };
 
-            _result = await Mediator.Send(new SearchQuery(IndexName, _query, options));
+            var result = await SearchClient.SearchAsync(new SearchRequest(IndexName, _query, options), CancellationToken.None);
+            if (!result.IsSuccess || result.Value is null)
+            {
+                _result = null;
+                _resultGroups = [];
+                _errorMessage = result.Error?.Message ?? Localizer["SearchFailed"];
+                return;
+            }
+
+            _result = result.Value;
             _resultGroups = CreateResultGroups(_result.Items);
         }
         catch
@@ -124,12 +134,12 @@ public partial class SearchWidget : CommonBase
         await SearchPageAsync();
     }
 
-    private IReadOnlyList<SearchResultGroup> CreateResultGroups(IReadOnlyList<SearchDocument> items) =>
+    private IReadOnlyList<SearchResultGroup> CreateResultGroups(IReadOnlyList<SearchDocumentDto> items) =>
         [.. items
             .GroupBy(GetIndexDisplayName)
             .Select(group => new SearchResultGroup(group.Key, [.. group]))];
 
-    private string GetIndexDisplayName(SearchDocument item) =>
+    private string GetIndexDisplayName(SearchDocumentDto item) =>
         string.IsNullOrWhiteSpace(item.IndexName)
             ? Localizer["UnknownIndex"]
             : item.IndexName;
@@ -147,7 +157,7 @@ public partial class SearchWidget : CommonBase
         return string.Format(Localizer["SearchPageSummary"], firstItem, lastItem, _result.TotalCount);
     }
 
-    private async Task NavigateAsync(SearchDocument item)
+    private async Task NavigateAsync(SearchDocumentDto item)
     {
         if (OnNavigate.HasDelegate)
         {
@@ -161,5 +171,5 @@ public partial class SearchWidget : CommonBase
         }
     }
 
-    private sealed record SearchResultGroup(string IndexName, IReadOnlyList<SearchDocument> Items);
+    private sealed record SearchResultGroup(string IndexName, IReadOnlyList<SearchDocumentDto> Items);
 }
