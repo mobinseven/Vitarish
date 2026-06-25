@@ -58,7 +58,9 @@ public sealed class RequestsHttpClient(HttpClient httpClient)
 
         try
         {
-            error = await response.Content.ReadFromJsonAsync<RequestsErrorResponse>(cancellationToken);
+            error = response.Content is not null
+                ? await response.Content.ReadFromJsonAsync<RequestsErrorResponse>(cancellationToken)
+                : null;
         }
         catch (Exception ex) when (ex is JsonException or NotSupportedException)
         {
