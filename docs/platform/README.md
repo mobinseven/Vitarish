@@ -43,4 +43,5 @@ Covers platform owner/admin journeys for tenant management, user invitations, bi
 
 ## Related Documentation
 
-For app-specific journeys, see [App Documentation](../apps/).
+- For app-specific journeys, see [App Documentation](../apps/).
+- For ADR-0003 pilot-proven module migration conventions, see [ADR-0003 implementation conventions](./modules/platform/conventions/adr-0003-implementation-conventions.md).
