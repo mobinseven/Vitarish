@@ -15,7 +15,7 @@ public interface IRemindersService : IEntityService<ReminderReadDto, ReminderWri
     Task<ReminderReadDto?> UpdateAsync(
         Guid id,
         ReminderKind kind,
-        string recipientUserId,
+        string? recipientUserId,
         string recipient,
         string subject,
         string textBody,

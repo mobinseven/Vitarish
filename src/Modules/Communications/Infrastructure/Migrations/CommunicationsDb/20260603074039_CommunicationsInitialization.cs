@@ -23,7 +23,7 @@ namespace Vitarish.Communications.Infrastructure.Migrations.CommunicationsDb
                     SourceId = table.Column<Guid>(type: "uuid", nullable: false),
                     Kind = table.Column<int>(type: "integer", nullable: false),
                     Recipient = table.Column<string>(type: "text", nullable: false),
-                    RecipientUserId = table.Column<string>(type: "text", nullable: false),
+                    RecipientUserId = table.Column<string>(type: "text", nullable: true),
                     Subject = table.Column<string>(type: "text", nullable: false),
                     TextBody = table.Column<string>(type: "text", nullable: false),
                     RemindAt = table.Column<DateTimeOffset>(type: "timestamp with time zone", nullable: false),
