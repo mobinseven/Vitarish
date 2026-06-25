@@ -276,7 +276,7 @@ To promote a migrated module:
 
 ### Temporary baseline entries
 
-Temporary exception entries must include path, forbidden dependency or namespace, reason, and removal condition. Remove a temporary exception in the same change that removes the underlying violation. Exceptions cannot become permanent policy.
+Temporary exception entries must include the exact JSON keys: path, forbidden, reason, and removalCondition. Remove a temporary exception in the same change that removes the underlying violation. Exceptions cannot become permanent policy.
 
 ### Local command
 
