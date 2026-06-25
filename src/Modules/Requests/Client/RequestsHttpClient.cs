@@ -121,7 +121,10 @@ public sealed class RequestsHttpClient(HttpClient httpClient)
             return;
         }
 
-        foreach (RequestIdentitySortParameter sort in sorts.Where(sort => !string.IsNullOrWhiteSpace(sort.Field)))
+        foreach (RequestIdentitySortParameter sort in sorts.Where(sort => sort is not null && !string.IsNullOrWhiteSpace(sort.Field)))
+        {
+            Add(query, "sort", sort.Descending ? $"-{sort.Field}" : sort.Field);
+        }
         {
             Add(query, "sort", sort.Descending ? $"-{sort.Field}" : sort.Field);
         }
