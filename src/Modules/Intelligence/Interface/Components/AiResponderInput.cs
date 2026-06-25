@@ -75,7 +75,7 @@ public partial class AiResponderInput : AdvancedInput
         base.ValueChanged = EventCallback.Factory.Create<string?>(this, OnValueChangedAsync);
 
         base.BusyChanged = EventCallback.Factory.Create<bool>(this, HandleInputBusyChangedAsync);
-        base.FileUploaded = EventCallback.Factory.Create<FileInformationReadDto>(this, HandleFileUploadedAsync);
+        base.FileUploaded = EventCallback.Factory.Create<FileInformationDto>(this, HandleFileUploadedAsync);
         base.OnSubmit = EventCallback.Factory.Create<string>(this, SubmitCurrentAsync);
 
         _responderSubmit = Submit;
@@ -190,7 +190,7 @@ public partial class AiResponderInput : AdvancedInput
 
     private Task HandleOutputEndAsync(IEnumerable<ResponderOutput> outputs) => OnOutputEnd.InvokeAsync(outputs);
 
-    private async Task HandleFileUploadedAsync(FileInformationReadDto file)
+    private async Task HandleFileUploadedAsync(FileInformationDto file)
     {
         if (string.IsNullOrWhiteSpace(file.Url))
         {
@@ -219,7 +219,7 @@ public partial class AiResponderInput : AdvancedInput
             attachment = ResponderInput.FileInput(fileId, fileData, filename);
 
             _ = _pendingInputs.RemoveAll(input => input.Type == ResponderInputType.File
-                && string.Equals(input.FileId, fileId, StringComparison.OrdinalIgnoreCase));
+                && string.Equals(input.File?.FileId, fileId, StringComparison.OrdinalIgnoreCase));
         }
 
         _pendingInputs.Add(attachment);
@@ -289,7 +289,7 @@ public partial class AiResponderInput : AdvancedInput
         return submitted;
     }
 
-    private static string ResolveFileName(FileInformationReadDto file)
+    private static string ResolveFileName(FileInformationDto file)
     {
         if (!string.IsNullOrWhiteSpace(file.Tag))
         {

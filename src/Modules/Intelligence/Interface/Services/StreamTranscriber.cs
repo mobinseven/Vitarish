@@ -1,10 +1,10 @@
 using Microsoft.JSInterop;
-using System.Threading.Channels;
-using Vitarish.Intelligence.Application.Abstractions;
+using Vitarish.Intelligence.Client;
+using Vitarish.Intelligence.Contracts;
 
 namespace Vitarish.Intelligence.Interface.Services;
 
-public sealed class StreamTranscriber(ITranscriber speechHubClient, IJSRuntime jsRuntime) : IStreamTranscriber
+public sealed class StreamTranscriber(IIntelligenceClient intelligenceClient, IJSRuntime jsRuntime) : IStreamTranscriber
 {
     private const string ModulePath = "./_content/Vitarish.Intelligence.Interface/Components/AiStreamTranscriber.razor.js";
     private const int ChannelCapacity = 5000;
@@ -12,7 +12,7 @@ public sealed class StreamTranscriber(ITranscriber speechHubClient, IJSRuntime j
     private readonly SemaphoreSlim _initializationGate = new(1, 1);
     private IJSObjectReference? _module;
     private DotNetObjectReference<StreamTranscriber>? _objRef;
-    private Channel<byte[]>? _audioRecorder;
+    private MemoryStream? _audioRecorder;
     private bool _initialized;
     private bool _disposed;
 
@@ -94,7 +94,7 @@ public sealed class StreamTranscriber(ITranscriber speechHubClient, IJSRuntime j
 
         Recording = true;
         RecordingStateChanged?.Invoke(this, true);
-        _audioRecorder = Channel.CreateBounded<byte[]>(ChannelCapacity);
+        _audioRecorder = new MemoryStream();
 
         await _module!.InvokeVoidAsync("start", _objRef).ConfigureAwait(false);
 
@@ -102,8 +102,9 @@ public sealed class StreamTranscriber(ITranscriber speechHubClient, IJSRuntime j
 
         try
         {
-            await foreach (string chunk in speechHubClient.StreamTranscribeAsync(_audioRecorder.Reader, modelId: Options?.ModelId, cancellationToken: cancellationToken).ConfigureAwait(false))
+            await foreach (IntelligenceStreamChunk<TranscriptionProgress> item in intelligenceClient.StreamTranscriptionAsync(new TranscriptionRequest(new IntelligenceFileReference { TemporaryUploadReference = "browser-audio", ContentType = Options?.ContentType ?? "audio/webm" }, Options), cancellationToken).WithCancellation(cancellationToken).ConfigureAwait(false))
             {
+                string chunk = item.Delta?.Text ?? string.Empty;
                 if (string.IsNullOrEmpty(chunk))
                 {
                     continue;
@@ -141,7 +142,7 @@ public sealed class StreamTranscriber(ITranscriber speechHubClient, IJSRuntime j
 
         ValueTask stopTask = _module?.InvokeVoidAsync("stop") ?? ValueTask.CompletedTask;
 
-        _ = (_audioRecorder?.Writer.TryComplete());
+        
         Recording = false;
         RecordingStateChanged?.Invoke(this, false);
 
@@ -151,7 +152,7 @@ public sealed class StreamTranscriber(ITranscriber speechHubClient, IJSRuntime j
     [JSInvokable]
     public ValueTask OnChunk(byte[] data)
     {
-        _ = (_audioRecorder?.Writer.TryWrite(data));
+        _audioRecorder?.Write(data);
         return ValueTask.CompletedTask;
     }
 
@@ -164,7 +165,7 @@ public sealed class StreamTranscriber(ITranscriber speechHubClient, IJSRuntime j
             RecordingStateChanged?.Invoke(this, false);
         }
 
-        _ = (_audioRecorder?.Writer.TryComplete());
+        
         return ValueTask.CompletedTask;
     }
 
