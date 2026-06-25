@@ -99,7 +99,7 @@ public sealed class FilesClient(HttpClient httpClient) : IFilesClient
             if (response.IsSuccessStatusCode)
             {
                 Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-                return FilesResult<Stream>.Success(stream);
+                return FilesResult<Stream>.Success(new HttpResponseStream(stream, response));
             }
 
             FilesError error = await CreateErrorAsync(response, cancellationToken).ConfigureAwait(false);
