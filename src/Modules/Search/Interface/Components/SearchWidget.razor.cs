@@ -81,11 +81,11 @@ public partial class SearchWidget : CommonBase
 
         try
         {
-            SearchOptionsDto options = Options with
+            SearchOptionsDto options = (Options ?? new SearchOptionsDto()) with
             {
                 Skip = _pageIndex * PageSize,
                 Limit = PageSize,
-                Type = Type ?? Options.Type
+                Type = Type ?? Options?.Type
             };
 
             var result = await SearchClient.SearchAsync(new SearchRequest(IndexName, _query, options), CancellationToken.None);
