@@ -151,7 +151,61 @@ public sealed class FilesClient(HttpClient httpClient) : IFilesClient
         return new FilesError(code, "Files API request failed.", (int)response.StatusCode);
     }
 
+    public async Task<FilesResult<Stream>> DownloadFileAsync(Guid fileId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            HttpResponseMessage response = await httpClient.GetAsync($"{FilesApiRoutes.Base}/{fileId}/content", HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+            if (response.IsSuccessStatusCode)
+            {
+                Stream stream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
+                return FilesResult<Stream>.Success(new HttpResponseStream(stream, response));
+            }
+
+            FilesError error = await CreateErrorAsync(response, cancellationToken).ConfigureAwait(false);
+            response.Dispose();
+            return FilesResult<Stream>.Failed(error);
+        }
+        catch (OperationCanceledException)
+        {
+            return FilesResult<Stream>.Failed(CreateCancellationError(cancellationToken));
+        }
+        catch (Exception ex) when (ex is HttpRequestException or JsonException or NotSupportedException or IOException)
+        {
+            return FilesResult<Stream>.Failed(new FilesError(FilesErrorCode.Transport, ex.Message));
+        }
+    }
+
     private static FilesError CreateCancellationError(CancellationToken cancellationToken) => cancellationToken.IsCancellationRequested
         ? new FilesError(FilesErrorCode.Canceled, "Files request was canceled.")
         : new FilesError(FilesErrorCode.Timeout, "Files request timed out.");
+
+    private sealed class HttpResponseStream(Stream innerStream, HttpResponseMessage response) : Stream
+    {
+        public override bool CanRead => innerStream.CanRead;
+        public override bool CanSeek => innerStream.CanSeek;
+        public override bool CanWrite => innerStream.CanWrite;
+        public override long Length => innerStream.Length;
+        public override long Position { get => innerStream.Position; set => innerStream.Position = value; }
+        public override void Flush() => innerStream.Flush();
+        public override int Read(byte[] buffer, int offset, int count) => innerStream.Read(buffer, offset, count);
+        public override long Seek(long offset, SeekOrigin origin) => innerStream.Seek(offset, origin);
+        public override void SetLength(long value) => innerStream.SetLength(value);
+        public override void Write(byte[] buffer, int offset, int count) => innerStream.Write(buffer, offset, count);
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                innerStream.Dispose();
+                response.Dispose();
+            }
+            base.Dispose(disposing);
+        }
+        public override async ValueTask DisposeAsync()
+        {
+            await innerStream.DisposeAsync().ConfigureAwait(false);
+            response.Dispose();
+            await base.DisposeAsync().ConfigureAwait(false);
+        }
+    }
 }
