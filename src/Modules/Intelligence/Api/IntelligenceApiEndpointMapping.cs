@@ -36,12 +36,20 @@ public static class IntelligenceApiEndpointMapping
         context.Response.ContentType = "application/x-ndjson";
         string operationId = request.Context?.OperationId ?? Guid.NewGuid().ToString("N");
         long seq = 0;
-        await Write(context, new IntelligenceStreamChunk<ResponderProgress>(StreamChunkKind.Started, Meta(operationId, seq++, IntelligenceProgressStage.Responding, request.Context), new ResponderProgress(IntelligenceProgressStage.Responding)), ct);
-        await foreach (D.ResponderOutput output in responder.StreamAsync(request.Inputs.Select(ToDomain).ToArray(), ToDomain(request.Options), ct).WithCancellation(ct).ConfigureAwait(false))
+        try
         {
-            await Write(context, new IntelligenceStreamChunk<ResponderProgress>(StreamChunkKind.Delta, Meta(operationId, seq++, IntelligenceProgressStage.Responding, request.Context), new ResponderProgress(IntelligenceProgressStage.Responding, ToContract(output))), ct);
+            await Write(context, new IntelligenceStreamChunk<ResponderProgress>(StreamChunkKind.Started, Meta(operationId, seq++, IntelligenceProgressStage.Responding, request.Context), new ResponderProgress(IntelligenceProgressStage.Responding)), ct);
+            await foreach (D.ResponderOutput output in responder.StreamAsync(request.Inputs.Select(ToDomain).ToArray(), ToDomain(request.Options), ct).WithCancellation(ct).ConfigureAwait(false))
+            {
+                await Write(context, new IntelligenceStreamChunk<ResponderProgress>(StreamChunkKind.Delta, Meta(operationId, seq++, IntelligenceProgressStage.Responding, request.Context), new ResponderProgress(IntelligenceProgressStage.Responding, ToContract(output))), ct);
+            }
+
+            await Write(context, new IntelligenceStreamChunk<ResponderProgress>(StreamChunkKind.Completed, Meta(operationId, seq, IntelligenceProgressStage.Completed, request.Context), new ResponderProgress(IntelligenceProgressStage.Completed)), ct);
         }
-        await Write(context, new IntelligenceStreamChunk<ResponderProgress>(StreamChunkKind.Completed, Meta(operationId, seq, IntelligenceProgressStage.Completed, request.Context), new ResponderProgress(IntelligenceProgressStage.Completed)), ct);
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            await TryWriteFailed(context, new IntelligenceStreamChunk<ResponderProgress>(StreamChunkKind.Failed, Meta(operationId, seq, IntelligenceProgressStage.Failed, request.Context), new ResponderProgress(IntelligenceProgressStage.Failed), new IntelligenceError(IntelligenceErrorCode.UnexpectedFailure, ex.Message)), ct).ConfigureAwait(false);
+        }
     }
 
     private static Task<IResult> TranscribeAsync(TranscriptionRequest request, CancellationToken ct) => Task.FromResult<IResult>(Results.BadRequest(IntelligenceResult<TranscriptionResult>.Failed(new IntelligenceError(IntelligenceErrorCode.UnsupportedMediaType, "Direct Intelligence transcription upload is not approved; provide Files-owned references to a backend-approved transcription workflow."))));
@@ -59,15 +67,35 @@ public static class IntelligenceApiEndpointMapping
         context.Response.ContentType = "application/x-ndjson";
         string operationId = request.Context?.OperationId ?? Guid.NewGuid().ToString("N");
         long seq = 0;
-        await foreach (D.ResponderOutput output in responder.StreamAsync([D.ResponderInput.TextInput(request.Prompt)], new D.ResponderOptions { Instructions = request.Options?.Instructions, Model = request.Options?.ModelId }, ct).WithCancellation(ct).ConfigureAwait(false))
+        try
         {
-            await Write(context, new IntelligenceStreamChunk<RewriteProgress>(StreamChunkKind.Delta, Meta(operationId, seq++, IntelligenceProgressStage.Rewriting, request.Context), new RewriteProgress(IntelligenceProgressStage.Rewriting, output.Text)), ct);
+            await Write(context, new IntelligenceStreamChunk<RewriteProgress>(StreamChunkKind.Started, Meta(operationId, seq++, IntelligenceProgressStage.Rewriting, request.Context), new RewriteProgress(IntelligenceProgressStage.Rewriting)), ct);
+            await foreach (D.ResponderOutput output in responder.StreamAsync([D.ResponderInput.TextInput(request.Prompt)], new D.ResponderOptions { Instructions = request.Options?.Instructions, Model = request.Options?.ModelId }, ct).WithCancellation(ct).ConfigureAwait(false))
+            {
+                await Write(context, new IntelligenceStreamChunk<RewriteProgress>(StreamChunkKind.Delta, Meta(operationId, seq++, IntelligenceProgressStage.Rewriting, request.Context), new RewriteProgress(IntelligenceProgressStage.Rewriting, output.Text)), ct);
+            }
+
+            await Write(context, new IntelligenceStreamChunk<RewriteProgress>(StreamChunkKind.Completed, Meta(operationId, seq, IntelligenceProgressStage.Completed, request.Context), new RewriteProgress(IntelligenceProgressStage.Completed)), ct);
         }
-        await Write(context, new IntelligenceStreamChunk<RewriteProgress>(StreamChunkKind.Completed, Meta(operationId, seq, IntelligenceProgressStage.Completed, request.Context), new RewriteProgress(IntelligenceProgressStage.Completed)), ct);
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            await TryWriteFailed(context, new IntelligenceStreamChunk<RewriteProgress>(StreamChunkKind.Failed, Meta(operationId, seq, IntelligenceProgressStage.Failed, request.Context), new RewriteProgress(IntelligenceProgressStage.Failed), new IntelligenceError(IntelligenceErrorCode.UnexpectedFailure, ex.Message)), ct).ConfigureAwait(false);
+        }
     }
 
     private static IntelligenceStreamMetadata Meta(string operationId, long sequence, IntelligenceProgressStage stage, IntelligenceSessionContext? context) => new(operationId, sequence, DateTimeOffset.UtcNow, stage, context);
     private static async Task Write<T>(HttpContext context, IntelligenceStreamChunk<T> chunk, CancellationToken ct) { await context.Response.WriteAsync(JsonSerializer.Serialize(chunk, JsonOptions), ct); await context.Response.WriteAsync("\n", ct); await context.Response.Body.FlushAsync(ct); }
+    private static async Task TryWriteFailed<T>(HttpContext context, IntelligenceStreamChunk<T> chunk, CancellationToken ct)
+    {
+        try
+        {
+            await Write(context, chunk, ct).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or OperationCanceledException)
+        {
+            // The response stream is no longer writable, so there is no client transport left for the contract failure.
+        }
+    }
     private static D.ResponderInput ToDomain(ResponderInput input) => input.Type switch { ResponderInputType.Image => D.ResponderInput.ImageInput(input.ImageUrl ?? string.Empty, (D.ResponderInputImageDetail)(int)(input.Detail ?? ResponderInputImageDetail.Auto)), ResponderInputType.File => D.ResponderInput.FileInput(input.File?.FileId ?? string.Empty, input.File?.TemporaryUploadReference ?? string.Empty, input.File?.FileName ?? string.Empty), _ => D.ResponderInput.TextInput(input.Text ?? string.Empty) };
     private static D.ResponderOptions ToDomain(ResponderOptions? options) => new() { Instructions = options?.Instructions, Model = options?.ModelId };
     private static ResponderOutput ToContract(D.ResponderOutput output) => new() { Type = output.Type == D.ResponderOutputType.Text ? ResponderOutputType.Text : ResponderOutputType.Json, Text = output.Text };

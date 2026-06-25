@@ -12,7 +12,6 @@ public sealed class StreamTranscriber(IIntelligenceClient intelligenceClient, IJ
     private readonly SemaphoreSlim _initializationGate = new(1, 1);
     private IJSObjectReference? _module;
     private DotNetObjectReference<StreamTranscriber>? _objRef;
-    private MemoryStream? _audioRecorder;
     private bool _initialized;
     private bool _disposed;
 
@@ -94,7 +93,6 @@ public sealed class StreamTranscriber(IIntelligenceClient intelligenceClient, IJ
 
         Recording = true;
         RecordingStateChanged?.Invoke(this, true);
-        _audioRecorder = new MemoryStream();
 
         await _module!.InvokeVoidAsync("start", _objRef).ConfigureAwait(false);
 
@@ -123,7 +121,6 @@ public sealed class StreamTranscriber(IIntelligenceClient intelligenceClient, IJ
         }
         finally
         {
-            _audioRecorder = null;
             Transcribing = false;
             TranscribingStateChanged?.Invoke(this, false);
             TranscriptionCompleted?.Invoke(this, EventArgs.Empty);
@@ -152,7 +149,6 @@ public sealed class StreamTranscriber(IIntelligenceClient intelligenceClient, IJ
     [JSInvokable]
     public ValueTask OnChunk(byte[] data)
     {
-        _audioRecorder?.Write(data);
         return ValueTask.CompletedTask;
     }
 
@@ -192,7 +188,6 @@ public sealed class StreamTranscriber(IIntelligenceClient intelligenceClient, IJ
             _objRef?.Dispose();
             _objRef = null;
             _module = null;
-            _audioRecorder = null;
         }
     }
 }

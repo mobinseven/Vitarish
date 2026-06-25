@@ -45,6 +45,7 @@ public sealed class IntelligenceClient(HttpClient httpClient) : AuthenticatedMod
             IntelligenceError? readError = null;
             try { line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false); }
             catch (OperationCanceledException) { line = null; readError = new IntelligenceError(IntelligenceErrorCode.Cancellation, "The stream was canceled."); }
+            catch (Exception ex) { line = null; readError = new IntelligenceError(IntelligenceErrorCode.UnexpectedFailure, ex.Message); }
             if (readError is not null) { yield return Failure<TProgress>(readError); yield break; }
             if (line is null) { break; }
             if (string.IsNullOrWhiteSpace(line)) continue;
