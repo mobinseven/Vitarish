@@ -23,7 +23,7 @@
       "temporaryExceptions": []
     },
     "Files": {
-      "mode": "ReportOnly",
+      "mode": "FailFast",
       "temporaryExceptions": []
     },
     "Financial": {

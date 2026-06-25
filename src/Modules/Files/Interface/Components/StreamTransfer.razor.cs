@@ -7,10 +7,10 @@ public partial class StreamTransfer : ComponentBase
     public IStreamTransfer Service { get; set; } = default!;
 
     [Parameter]
-    public EventCallback<FileInformationReadDto> OnFileUploaded { get; set; }
+    public EventCallback<FileInformationDto> OnFileUploaded { get; set; }
 
     [Parameter]
-    public EventCallback<FileInformationReadDto> OnStateChange { get; set; }
+    public EventCallback<FileInformationDto> OnStateChange { get; set; }
 
     [Parameter]
     public RenderFragment? ActivatorContent { get; set; } = default!;
@@ -25,7 +25,7 @@ public partial class StreamTransfer : ComponentBase
 
     public IReadOnlyList<PendingFileDto> PendingFiles => Service.PendingFiles;
 
-    public IReadOnlyList<FileInformationReadDto> UploadedFiles => Service.UploadedFiles;
+    public IReadOnlyList<FileInformationDto> UploadedFiles => Service.UploadedFiles;
 
     public bool Transferring => Service.Transferring;
 

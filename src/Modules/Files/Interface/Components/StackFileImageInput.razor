@@ -1,10 +1,11 @@
 @using MudBlazor
-@using Vitarish.Files.Application.Abstractions
+@using Vitarish.Files.Client
+@using Vitarish.Files.Contracts.Results
 @using Vitarish.Interfaces.Base.Common
-@using Vitarish.Requests.Application.Abstractions
 
 
 @inherits StackButton
+@implements IDisposable
 
 <StreamTransfer @ref="_streamTransferComponent"
                 RenderActContent="true"
@@ -61,16 +62,15 @@
 </StreamTransfer>
 
 @code {
-    [Inject] protected IRequestContext RequestContext { get; set; } = default!;
-    [Inject] protected IFilesModule FilesModule { get; set; } = default!;
-    [Inject] protected IFileInformationService FileInformationService { get; set; } = default!;
+    [Inject] protected IFilesClient FilesClient { get; set; } = default!;
 
     [Parameter] public Guid? FileId { get; set; }
     [Parameter] public EventCallback<Guid?> FileIdChanged { get; set; }
 
     private StreamTransfer? _streamTransferComponent;
+    private readonly CancellationTokenSource _componentCancellation = new();
 
-    private FileInformationReadDto? _file;
+    private FileInformationDto? _file;
 
     public bool HasPendingFiles => _streamTransferComponent?.PendingFiles.Count > 0;
 
@@ -88,16 +88,28 @@
     {
         if(FileId is not null && FileId != Guid.Empty)
         {
-            _file = await FileInformationService.GetAsync(FileId.Value, CancellationToken.None).GetValueOrDefaultAsync();
+            _file = await GetFileInformationOrDefaultAsync(FileId.Value);
         }
     }
 
-    private async Task HandleFileUploaded(FileInformationReadDto file)
+    private async Task<FileInformationDto?> GetFileInformationOrDefaultAsync(Guid fileId)
+    {
+        FilesResult<FileInformationDto> result = await FilesClient.GetFileInformationAsync(fileId, _componentCancellation.Token);
+        return result.Succeeded ? result.Value : null;
+    }
+
+    private async Task HandleFileUploaded(FileInformationDto file)
     {
         _file = file;
         FileId = _file.Id;
         await FileIdChanged.InvokeAsync(FileId);
         await InvokeAsync(StateHasChanged);
+    }
+
+    public new void Dispose()
+    {
+        _componentCancellation.Cancel();
+        _componentCancellation.Dispose();
     }
 
     private static void RemovePendingFile(StreamTransfer transfer, PendingFileDto item) => transfer.RemovePendingFileAsync(item);
