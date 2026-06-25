@@ -14,7 +14,7 @@ public sealed class PartiesClient(HttpClient httpClient) : IPartiesClient
     private async Task<PartiesResult<TResponse>> SendAsync<TRequest,TResponse>(HttpMethod method,string uri,TRequest request,CancellationToken cancellationToken)
     {
         try { using HttpResponseMessage response = await httpClient.SendAsync(new HttpRequestMessage(method, uri){ Content = JsonContent.Create(request)}, cancellationToken); if(response.IsSuccessStatusCode){ TResponse? value=await response.Content.ReadFromJsonAsync<TResponse>(cancellationToken); return value is null ? PartiesResult<TResponse>.Failed(new(PartiesErrorCode.Unexpected,"Parties API returned an empty response.")) : PartiesResult<TResponse>.Success(value);} return PartiesResult<TResponse>.Failed(await CreateErrorAsync(response,cancellationToken)); }
-        catch(OperationCanceledException) { return PartiesResult<TResponse>.Failed(new(cancellationToken.IsCancellationRequested?PartiesErrorCode.Unexpected:PartiesErrorCode.Unexpected, cancellationToken.IsCancellationRequested?"Parties request was canceled.":"Parties request timed out.")); }
+        catch(OperationCanceledException) { return PartiesResult<TResponse>.Failed(new(PartiesErrorCode.Unexpected, cancellationToken.IsCancellationRequested ? "Parties request was canceled." : "Parties request timed out.")); }
         catch(Exception ex) when (ex is HttpRequestException or JsonException or NotSupportedException) { return PartiesResult<TResponse>.Failed(new(PartiesErrorCode.Unexpected, ex.Message)); }
     }
     private static async Task<PartiesError> CreateErrorAsync(HttpResponseMessage response,CancellationToken cancellationToken)
