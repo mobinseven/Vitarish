@@ -1,18 +1,16 @@
 using Microsoft.JSInterop;
 using Vitarish.Files.Interface.Abstractions;
 using Vitarish.Files.Interface.Models;
-using Vitarish.Requests.Application.Abstractions;
 
 namespace Vitarish.Files.Interface.Services;
 
 public sealed class StreamTransferService(
-    IRequestContext requestContext,
     IFileSelectionSession fileSelectionSession,
     IFileTransferCoordinator fileTransferCoordinator,
     IFileInputInterop fileInputInterop,
     IFileInputOptionsFactory fileInputOptionsFactory) : IStreamTransfer, IAsyncDisposable
 {
-    private readonly List<FileInformationReadDto> _uploadedFiles = [];
+    private readonly List<FileInformationDto> _uploadedFiles = [];
     private readonly string _inputId = $"StreamTransfer-{Guid.NewGuid()}";
 
     private DotNetObjectReference<StreamTransferService>? _selfRef;
@@ -20,12 +18,12 @@ public sealed class StreamTransferService(
     private bool _initialized;
 
     public Func<Task>? OnStateChangedAsync { get; set; }
-    public Func<FileInformationReadDto, Task>? OnFileUploadedAsync { get; set; }
+    public Func<FileInformationDto, Task>? OnFileUploadedAsync { get; set; }
     public FileSelectionMode SelectionMode { get; set; } = FileSelectionMode.GeneralMulti;
     public bool Transferring { get; private set; }
     public string InputId => _inputId;
     public IReadOnlyList<PendingFileDto> PendingFiles => fileSelectionSession.PendingFiles;
-    public IReadOnlyList<FileInformationReadDto> UploadedFiles => _uploadedFiles;
+    public IReadOnlyList<FileInformationDto> UploadedFiles => _uploadedFiles;
 
     public async Task InitializeAsync(bool hiddenInput, CancellationToken cancellationToken = default)
     {
@@ -85,7 +83,6 @@ public sealed class StreamTransferService(
             await fileTransferCoordinator.StartTransferAsync(
                 PendingFiles,
                 _inputId,
-                requestContext.UserId,
                 SelectionMode,
                 TriggerStateChangedAsync,
                 async fileInfo =>

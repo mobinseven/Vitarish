@@ -1,9 +1,10 @@
 @using MudBlazor
-@using Vitarish.Files.Application.Abstractions
+@using Vitarish.Files.Client
+@using Vitarish.Files.Contracts.Results
 @using Vitarish.Interfaces.Base.Common
-@using Vitarish.Requests.Application.Abstractions
 
 @inherits StackButton
+@implements IDisposable
 
 <StreamTransfer @ref="_streamTransferComponent"
                 RenderActContent="true"
@@ -53,18 +54,17 @@
 </StreamTransfer>
 
 @code {
-    [Inject] protected IRequestContext RequestContext { get; set; } = default!;
-    [Inject] protected IFilesModule FilesModule { get; set; } = default!;
-    [Inject] protected IFileInformationService FileInformationService { get; set; } = default!;
+    [Inject] protected IFilesClient FilesClient { get; set; } = default!;
 
     [Parameter] public Guid? FileId { get; set; }
     [Parameter] public EventCallback<Guid?> FileIdChanged { get; set; }
 
-    [Parameter] public FileInformationReadDto? FileInfo { get; set; }
-    [Parameter] public EventCallback<FileInformationReadDto?> FileInfoChanged { get; set; }
+    [Parameter] public FileInformationDto? FileInfo { get; set; }
+    [Parameter] public EventCallback<FileInformationDto?> FileInfoChanged { get; set; }
 
     private StreamTransfer? _streamTransferComponent;
-    private FileInformationReadDto? _file;
+    private readonly CancellationTokenSource _componentCancellation = new();
+    private FileInformationDto? _file;
     private Guid? _resolvedFileId;
     private int _syncVersion;
 
@@ -122,9 +122,7 @@
 
         int syncVersion = ++_syncVersion;
 
-        FileInformationReadDto? resolvedFile = await FileInformationService
-            .GetAsync(requestedFileId.Value, CancellationToken.None)
-            .GetValueOrDefaultAsync();
+        FileInformationDto? resolvedFile = await GetFileInformationOrDefaultAsync(requestedFileId.Value);
 
         if(syncVersion != _syncVersion)
         {
@@ -134,14 +132,20 @@
         await SetBoundFileAsync(resolvedFile, notifyFileId: false, notifyFileInfo: true);
     }
 
-    private async Task HandleFileUploaded(FileInformationReadDto file)
+    private async Task<FileInformationDto?> GetFileInformationOrDefaultAsync(Guid fileId)
+    {
+        FilesResult<FileInformationDto> result = await FilesClient.GetFileInformationAsync(fileId, _componentCancellation.Token);
+        return result.Succeeded ? result.Value : null;
+    }
+
+    private async Task HandleFileUploaded(FileInformationDto file)
     {
         await SetBoundFileAsync(file, notifyFileId: true, notifyFileInfo: true);
         await InvokeAsync(StateHasChanged);
     }
 
     private async Task SetBoundFileAsync(
-        FileInformationReadDto? file,
+        FileInformationDto? file,
         bool notifyFileId,
         bool notifyFileInfo)
     {
@@ -171,6 +175,12 @@
         }
 
         await _streamTransferComponent.RemovePendingFileAsync(item);
+    }
+
+    public new void Dispose()
+    {
+        _componentCancellation.Cancel();
+        _componentCancellation.Dispose();
     }
 
     private static Guid? NormalizeFileId(Guid? fileId) => fileId is { } value && value != Guid.Empty

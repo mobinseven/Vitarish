@@ -1,4 +1,4 @@
-using Vitarish.Files.Domain.Models;
+using Vitarish.Files.Contracts.Metadata;
 using Vitarish.Files.Interface.Models;
 
 namespace Vitarish.Files.Interface.Abstractions;
