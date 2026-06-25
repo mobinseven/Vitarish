@@ -1,5 +1,3 @@
-using Vitarish.Parties.Domain.Mappers;
-
 namespace Vitarish.Parties.Interface.Components.Owners;
 
 public partial class OwnerTenantSettingsForm
@@ -9,7 +7,16 @@ public partial class OwnerTenantSettingsForm
 
     private TenantWriteDto? write;
 
-    protected override void OnParametersSet() => write = Tenant?.ToWriteWithMetadata();
+    protected override void OnParametersSet() => write = Tenant is null ? null : new TenantWriteDto
+    {
+        Id = Tenant.Id,
+        OwnerId = Tenant.OwnerId,
+        Name = Tenant.Name,
+        LogoUrl = Tenant.LogoUrl,
+        Description = Tenant.Description,
+        AppId = Tenant.AppId,
+        Metadata = Tenant.Metadata
+    };
 
     private async Task Save()
     {
@@ -18,14 +25,14 @@ public partial class OwnerTenantSettingsForm
             return;
         }
 
-        TenantReadDto? updated = await PartiesService.UpdateTenantAsync(write);
-        if (updated is null)
+        var result = await PartiesClient.UpdateTenantAsync(write, CancellationToken.None);
+        if (!result.IsSuccess || result.Value is null)
         {
-            _ = Snackbar.Add(Localizer["Error"], Severity.Error);
+            _ = Snackbar.Add(result.Error?.Message ?? Localizer["Error"], Severity.Error);
             return;
         }
 
-        await TenantChanged.InvokeAsync(updated);
+        await TenantChanged.InvokeAsync(result.Value);
         _ = Snackbar.Add(Localizer["Saved"], Severity.Success);
     }
 }

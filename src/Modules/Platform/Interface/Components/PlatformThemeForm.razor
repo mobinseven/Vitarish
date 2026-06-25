@@ -1,4 +1,4 @@
-@using Vitarish.Platform.Domain.Models
+@using Vitarish.Platform.Contracts.Theming
 <Stack>
     <StackTextField Label="@Localizer["Theme name"]" @bind-Value="Model.Name" Required />
 
@@ -117,40 +117,40 @@
     public sealed class PlatformThemeFormModel
     {
         public string Name { get; set; } = string.Empty;
-        public string LightPrimary { get; set; } = ThemePalette.FallbackPrimary;
-        public string LightPrimaryContrastText { get; set; } = ThemePalette.FallbackPrimaryContrastText;
-        public string LightSecondary { get; set; } = ThemePalette.FallbackSecondary;
-        public string LightSecondaryContrastText { get; set; } = ThemePalette.FallbackSecondaryContrastText;
-        public string LightTertiary { get; set; } = ThemePalette.FallbackTertiary;
-        public string LightTertiaryContrastText { get; set; } = ThemePalette.FallbackTertiaryContrastText;
-        public string LightInfo { get; set; } = ThemePalette.FallbackInfo;
-        public string LightInfoContrastText { get; set; } = ThemePalette.FallbackInfoContrastText;
-        public string LightSuccess { get; set; } = ThemePalette.FallbackSuccess;
-        public string LightSuccessContrastText { get; set; } = ThemePalette.FallbackSuccessContrastText;
-        public string LightWarning { get; set; } = ThemePalette.FallbackWarning;
-        public string LightWarningContrastText { get; set; } = ThemePalette.FallbackWarningContrastText;
-        public string LightError { get; set; } = ThemePalette.FallbackError;
-        public string LightErrorContrastText { get; set; } = ThemePalette.FallbackErrorContrastText;
-        public string LightBackground { get; set; } = ThemePalette.FallbackBackground;
-        public string LightSurface { get; set; } = ThemePalette.FallbackSurface;
-        public string LightTextPrimary { get; set; } = ThemePalette.FallbackTextPrimary;
-        public string DarkPrimary { get; set; } = ThemePalette.FallbackDarkPrimary;
-        public string DarkPrimaryContrastText { get; set; } = ThemePalette.FallbackDarkPrimaryContrastText;
-        public string DarkSecondary { get; set; } = ThemePalette.FallbackDarkSecondary;
-        public string DarkSecondaryContrastText { get; set; } = ThemePalette.FallbackDarkSecondaryContrastText;
-        public string DarkTertiary { get; set; } = ThemePalette.FallbackDarkTertiary;
-        public string DarkTertiaryContrastText { get; set; } = ThemePalette.FallbackDarkTertiaryContrastText;
-        public string DarkInfo { get; set; } = ThemePalette.FallbackDarkInfo;
-        public string DarkInfoContrastText { get; set; } = ThemePalette.FallbackDarkInfoContrastText;
-        public string DarkSuccess { get; set; } = ThemePalette.FallbackDarkSuccess;
-        public string DarkSuccessContrastText { get; set; } = ThemePalette.FallbackDarkSuccessContrastText;
-        public string DarkWarning { get; set; } = ThemePalette.FallbackDarkWarning;
-        public string DarkWarningContrastText { get; set; } = ThemePalette.FallbackDarkWarningContrastText;
-        public string DarkError { get; set; } = ThemePalette.FallbackDarkError;
-        public string DarkErrorContrastText { get; set; } = ThemePalette.FallbackDarkErrorContrastText;
-        public string DarkBackground { get; set; } = ThemePalette.FallbackDarkBackground;
-        public string DarkSurface { get; set; } = ThemePalette.FallbackDarkSurface;
-        public string DarkTextPrimary { get; set; } = ThemePalette.FallbackDarkTextPrimary;
+        public string LightPrimary { get; set; } = PlatformThemeDefaults.FallbackPrimary;
+        public string LightPrimaryContrastText { get; set; } = PlatformThemeDefaults.FallbackPrimaryContrastText;
+        public string LightSecondary { get; set; } = PlatformThemeDefaults.FallbackSecondary;
+        public string LightSecondaryContrastText { get; set; } = PlatformThemeDefaults.FallbackSecondaryContrastText;
+        public string LightTertiary { get; set; } = PlatformThemeDefaults.FallbackTertiary;
+        public string LightTertiaryContrastText { get; set; } = PlatformThemeDefaults.FallbackTertiaryContrastText;
+        public string LightInfo { get; set; } = PlatformThemeDefaults.FallbackInfo;
+        public string LightInfoContrastText { get; set; } = PlatformThemeDefaults.FallbackInfoContrastText;
+        public string LightSuccess { get; set; } = PlatformThemeDefaults.FallbackSuccess;
+        public string LightSuccessContrastText { get; set; } = PlatformThemeDefaults.FallbackSuccessContrastText;
+        public string LightWarning { get; set; } = PlatformThemeDefaults.FallbackWarning;
+        public string LightWarningContrastText { get; set; } = PlatformThemeDefaults.FallbackWarningContrastText;
+        public string LightError { get; set; } = PlatformThemeDefaults.FallbackError;
+        public string LightErrorContrastText { get; set; } = PlatformThemeDefaults.FallbackErrorContrastText;
+        public string LightBackground { get; set; } = PlatformThemeDefaults.FallbackBackground;
+        public string LightSurface { get; set; } = PlatformThemeDefaults.FallbackSurface;
+        public string LightTextPrimary { get; set; } = PlatformThemeDefaults.FallbackTextPrimary;
+        public string DarkPrimary { get; set; } = PlatformThemeDefaults.FallbackDarkPrimary;
+        public string DarkPrimaryContrastText { get; set; } = PlatformThemeDefaults.FallbackDarkPrimaryContrastText;
+        public string DarkSecondary { get; set; } = PlatformThemeDefaults.FallbackDarkSecondary;
+        public string DarkSecondaryContrastText { get; set; } = PlatformThemeDefaults.FallbackDarkSecondaryContrastText;
+        public string DarkTertiary { get; set; } = PlatformThemeDefaults.FallbackDarkTertiary;
+        public string DarkTertiaryContrastText { get; set; } = PlatformThemeDefaults.FallbackDarkTertiaryContrastText;
+        public string DarkInfo { get; set; } = PlatformThemeDefaults.FallbackDarkInfo;
+        public string DarkInfoContrastText { get; set; } = PlatformThemeDefaults.FallbackDarkInfoContrastText;
+        public string DarkSuccess { get; set; } = PlatformThemeDefaults.FallbackDarkSuccess;
+        public string DarkSuccessContrastText { get; set; } = PlatformThemeDefaults.FallbackDarkSuccessContrastText;
+        public string DarkWarning { get; set; } = PlatformThemeDefaults.FallbackDarkWarning;
+        public string DarkWarningContrastText { get; set; } = PlatformThemeDefaults.FallbackDarkWarningContrastText;
+        public string DarkError { get; set; } = PlatformThemeDefaults.FallbackDarkError;
+        public string DarkErrorContrastText { get; set; } = PlatformThemeDefaults.FallbackDarkErrorContrastText;
+        public string DarkBackground { get; set; } = PlatformThemeDefaults.FallbackDarkBackground;
+        public string DarkSurface { get; set; } = PlatformThemeDefaults.FallbackDarkSurface;
+        public string DarkTextPrimary { get; set; } = PlatformThemeDefaults.FallbackDarkTextPrimary;
 
         public IReadOnlyList<string> LightPreview => [LightPrimary, LightSecondary, LightTertiary, LightInfo, LightSuccess, LightWarning, LightError, LightBackground, LightSurface, LightTextPrimary];
         public IReadOnlyList<string> DarkPreview => [DarkPrimary, DarkSecondary, DarkTertiary, DarkInfo, DarkSuccess, DarkWarning, DarkError, DarkBackground, DarkSurface, DarkTextPrimary];

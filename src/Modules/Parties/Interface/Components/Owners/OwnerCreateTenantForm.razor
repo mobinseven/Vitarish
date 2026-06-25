@@ -39,7 +39,7 @@
         creating = true;
         try
         {
-            TenantReadDto? tenant = await PartiesService.CreateTenantAsync(new TenantWriteDto
+            var tenantResult = await PartiesClient.CreateTenantAsync(new TenantWriteDto
             {
                 Id = Guid.NewGuid(),
                 OwnerId = ownerGuid,
@@ -47,13 +47,14 @@
                 AppId = appId
             });
 
-            if(tenant is null)
+            if(!tenantResult.IsSuccess || tenantResult.Value is null)
             {
-                Snackbar.Add(Localizer["Error"], Severity.Error);
+                Snackbar.Add(tenantResult.Error?.Message ?? Localizer["Error"], Severity.Error);
                 return;
             }
 
-            TenantIndicatorReadDto? indicator = await PartiesService.CreateTenantIndicatorAsync(new TenantIndicatorWriteDto
+            TenantReadDto tenant = tenantResult.Value;
+            var indicatorResult = await PartiesClient.CreateTenantIndicatorAsync(new TenantIndicatorWriteDto
             {
                 Id = Guid.NewGuid(),
                 TenantId = tenant.Id,
@@ -63,9 +64,9 @@
                 IsPrimary = true
             });
 
-            if(indicator is null)
+            if(!indicatorResult.IsSuccess || indicatorResult.Value is null)
             {
-                Snackbar.Add(Localizer["Error"], Severity.Error);
+                Snackbar.Add(indicatorResult.Error?.Message ?? Localizer["Error"], Severity.Error);
                 return;
             }
 

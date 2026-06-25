@@ -34,7 +34,7 @@
             {
                 <Stack>
                     <StackField Label="@group.IndexName" Color="Color.Primary" />
-                    @foreach(SearchDocument item in group.Items)
+                    @foreach(SearchDocumentDto item in group.Items)
                     {
                         <StackButton Label="@item.Title" HelperText="@item.Body" OnClick="() => NavigateAsync(item)" Color="Color.Info" />
                     }

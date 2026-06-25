@@ -11,7 +11,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Infrastructure\Search.Infrastructure.csproj" />
+    <ProjectReference Include="..\Contracts\Search.Contracts.csproj" />
+    <ProjectReference Include="..\Client\Search.Client.csproj" />
     <ProjectReference Include="..\..\..\Interfaces\Interfaces.Base\Interfaces.Base.csproj" />
   </ItemGroup>
 

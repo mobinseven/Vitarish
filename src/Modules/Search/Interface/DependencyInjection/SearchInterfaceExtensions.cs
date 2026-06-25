@@ -1,11 +1,13 @@
 using Microsoft.Extensions.DependencyInjection;
+using Vitarish.Search.Client;
 
 namespace Vitarish.Search.Interface.DependencyInjection;
 
 public static class SearchInterfaceExtensions
 {
-    /// <summary>
-    /// Registers Search interface services (e.g. widget dependencies).
-    /// </summary>
-    public static IServiceCollection ConfigureSearchInterface(this IServiceCollection services) => services;
+    public static IServiceCollection ConfigureSearchInterface(this IServiceCollection services)
+    {
+        _ = services.AddScoped<ISearchClient, SearchClient>();
+        return services;
+    }
 }

@@ -6,6 +6,7 @@ using Vitarish.Modules.Base;
 using Vitarish.Search.Application.Abstractions;
 using Vitarish.Search.Domain.Options;
 using Vitarish.Search.Infrastructure;
+using Vitarish.Search.Api;
 using Vitarish.Search.Interface.DependencyInjection;
 
 namespace Vitarish.Search.Module;
@@ -38,5 +39,9 @@ public class SearchModule : Vitarish.Modules.Base.Module, ISearchModule
         return Task.CompletedTask;
     }
 
-    public override Task Initialize(WebApplication app) => Task.CompletedTask;
+    public override Task Initialize(WebApplication app)
+    {
+        _ = app.MapSearchApi();
+        return Task.CompletedTask;
+    }
 }
